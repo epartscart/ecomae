@@ -123,6 +123,88 @@ try {
     $steps['industry_schema'] = 'error: ' . $e->getMessage();
 }
 
+// 4b. Module entitlements + per-module schema (only enabled modules built).
+//
+//   &bundle=einvoice_only|payroll_only|customs_logistics|pos_retail|
+//           finance_suite|supply_chain|manufacturing_pack|full
+//   &exclusive=1   disable every module not in the bundle (clean per-client run)
+//
+// If no entitlement rows exist yet and no bundle is given, default policy is
+// everything-on (so an existing full tenant keeps working). A bundle makes the
+// tenant pick-and-choose (e.g. an e-invoice-only client).
+require_once __DIR__ . '/content/shop/finance/epc_erp_modules.php';
+try {
+    epc_mod_ensure_schema($pdo);
+    $bundle = (string) ($_GET['bundle'] ?? $_POST['bundle'] ?? '');
+    if ($bundle !== '') {
+        $exclusive = (string) ($_GET['exclusive'] ?? $_POST['exclusive'] ?? '') === '1';
+        $enabled = epc_mod_apply_bundle($pdo, $bundle, $exclusive);
+        $steps['entitlements'] = 'ok (bundle ' . $bundle . ($exclusive ? ', exclusive' : '') . ': ' . count($enabled) . ' modules)';
+    } else {
+        $steps['entitlements'] = 'ok (no bundle; default policy applies)';
+    }
+} catch (Exception $e) {
+    $steps['entitlements'] = 'error: ' . $e->getMessage();
+}
+
+// Map: module code => [relative file, schema function]. Only the schema of an
+// ENABLED module is created, so a payroll-only tenant never gets SCM tables.
+$moduleSchema = array(
+    'currency' => array('content/shop/finance/epc_erp_currency.php', 'epc_ccy_ensure_schema'),
+    'credit' => array('content/shop/finance/epc_erp_credit.php', 'epc_credit_ensure_schema'),
+    'procurement' => array('content/shop/finance/epc_erp_scm.php', 'epc_scm_ensure_schema'),
+    'customs' => array('content/shop/finance/epc_erp_customs.php', 'epc_cust_ensure_schema'),
+    'manufacturing' => array('content/shop/finance/epc_erp_manufacturing.php', 'epc_mfg_ensure_schema'),
+    'aftersales' => array('content/shop/finance/epc_erp_aftersales.php', 'epc_as_ensure_schema'),
+    'asset_maint' => array('content/shop/finance/epc_erp_costing.php', 'epc_eam_ensure_schema'),
+    'cost_accounting' => array('content/shop/finance/epc_erp_costing.php', 'epc_cc_ensure_schema'),
+    'rebate' => array('content/shop/finance/epc_erp_costing.php', 'epc_rbt_ensure_schema'),
+    'org' => array('content/shop/finance/epc_erp_org.php', 'epc_org_ensure_schema'),
+    'vouchers' => array('content/shop/finance/epc_erp_vouchers.php', 'epc_erp_vouchers_ensure_schema'),
+    'closing' => array('content/shop/finance/epc_erp_closing.php', 'epc_fy_ensure_schema'),
+    'integration' => array('content/shop/finance/epc_erp_integration.php', 'epc_int_ensure_schema'),
+    'process_flow' => array('content/shop/finance/epc_erp_process_flows.php', 'epc_flow_ensure_schema'),
+    'hr' => array('content/shop/finance/epc_erp_hr.php', 'epc_hr_ensure_schema'),
+    'projects' => array('content/shop/finance/epc_erp_projects.php', 'epc_prj_ensure_schema'),
+    'pricing' => array('content/shop/finance/epc_erp_pricing.php', 'epc_price_ensure_schema'),
+    'migration' => array('content/shop/finance/epc_erp_migration.php', 'epc_mig_ensure_schema'),
+    'roles' => array('content/shop/finance/epc_erp_governance.php', 'epc_gov_ensure_schema'),
+    'compliance' => array('content/shop/finance/epc_erp_compliance.php', 'epc_cmp_ensure_schema'),
+    'workflow' => array('content/shop/finance/epc_erp_collab.php', 'epc_collab_ensure_schema'),
+);
+$built = array();
+$skipped = array();
+foreach ($moduleSchema as $code => $spec) {
+    list($relFile, $fn) = $spec;
+    try {
+        if (!epc_mod_enabled($pdo, $code, true)) {
+            $skipped[] = $code;
+            continue;
+        }
+        $abs = __DIR__ . '/' . $relFile;
+        if (is_file($abs)) {
+            require_once $abs;
+        }
+        if (function_exists($fn)) {
+            $fn($pdo);
+            $built[] = $code;
+        }
+    } catch (Exception $e) {
+        $steps['schema_' . $code] = 'error: ' . $e->getMessage();
+    }
+}
+$steps['module_schema'] = 'built: ' . implode(',', $built) . ($skipped ? ' | skipped(disabled): ' . implode(',', $skipped) : '');
+
+// 4c. Seed the UAE (FTA) compliance baseline when compliance is enabled.
+try {
+    if (epc_mod_enabled($pdo, 'compliance', true) && function_exists('epc_cmp_seed_uae')) {
+        epc_cmp_seed_uae($pdo);
+        $steps['compliance_seed'] = 'ok (UAE FTA baseline)';
+    }
+} catch (Exception $e) {
+    $steps['compliance_seed'] = 'error: ' . $e->getMessage();
+}
+
 // 5. Register the advanced guide CP page.
 try {
     $guide = epc_erp_adv_register_guides($pdo, (string) $cfg->backend_dir);

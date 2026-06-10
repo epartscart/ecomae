@@ -66,6 +66,28 @@ if (!function_exists('epc_mod_registry')) {
             'dataio' => array('label' => 'Excel/CSV import-export', 'category' => 'Platform', 'requires' => array('core')),
             'audit' => array('label' => 'Audit trail', 'category' => 'Platform', 'requires' => array('core')),
             'roles' => array('label' => 'Roles & permissions', 'category' => 'Platform', 'requires' => array('core')),
+            'notifications' => array('label' => 'Notifications', 'category' => 'Platform', 'requires' => array('core')),
+            'questionnaire' => array('label' => 'Questionnaire / surveys', 'category' => 'Platform', 'requires' => array('core')),
+            'dashboard' => array('label' => 'Dashboards & KPIs', 'category' => 'Platform', 'requires' => array('core')),
+            'migration' => array('label' => 'Data migration toolkit', 'category' => 'Platform', 'requires' => array('core')),
+            'integration' => array('label' => 'Integration / API layer', 'category' => 'Platform', 'requires' => array('core')),
+            'process_flow' => array('label' => 'Process-flow engine', 'category' => 'Platform', 'requires' => array('core')),
+            // Finance depth
+            'treasury' => array('label' => 'Treasury / cash & bank monitoring', 'category' => 'Finance', 'requires' => array('gl')),
+            'audit_tools' => array('label' => 'Audit assurance tools', 'category' => 'Finance', 'requires' => array('gl')),
+            'cost_accounting' => array('label' => 'Cost accounting / cost centers', 'category' => 'Finance', 'requires' => array('gl')),
+            'rebate' => array('label' => 'Rebate management', 'category' => 'Finance', 'requires' => array('gl')),
+            'consolidation' => array('label' => 'Consolidation (multi-company)', 'category' => 'Finance', 'requires' => array('gl')),
+            'budgeting' => array('label' => 'Budgeting', 'category' => 'Finance', 'requires' => array('gl')),
+            'closing' => array('label' => 'Fiscal periods & year-end closing', 'category' => 'Finance', 'requires' => array('gl')),
+            'vouchers' => array('label' => 'Voucher numbering sequences', 'category' => 'Finance', 'requires' => array('gl')),
+            'compliance' => array('label' => 'Tax compliance engine (auto-update)', 'category' => 'Finance', 'requires' => array('tax')),
+            'org' => array('label' => 'Org structure (company/BU/branch/warehouse)', 'category' => 'Foundation', 'requires' => array('core')),
+            // Operations / sales depth
+            'projects' => array('label' => 'Projects & timesheets', 'category' => 'Operations', 'requires' => array('core')),
+            'contracts' => array('label' => 'Contracts management', 'category' => 'Operations', 'requires' => array('core')),
+            'pricing' => array('label' => 'Price lists / promotions / loyalty', 'category' => 'CRM & Sales', 'requires' => array('core')),
+            'expense' => array('label' => 'Expense management', 'category' => 'HR', 'requires' => array('core')),
         );
     }
 }
