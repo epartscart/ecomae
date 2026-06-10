@@ -1,0 +1,14 @@
+{
+  "id": "electronics_retail_virgin",
+  "label": "Virgin Megastore retail (electronics)",
+  "industry_code": "electronics",
+  "theme_template": "midnight",
+  "access_mode": "full",
+  "enabled_packs": ["core", "commerce", "catalogue"],
+  "tagline": "Shop Online for Tech, Gaming, Toys & More",
+  "contact": {
+    "storefront_package": "electronics_retail_virgin",
+    "use_animated_hub_logo": false
+  },
+  "notes": "Assign via CP Industry Settings contact JSON or epc_portal_save_site_settings with contact.storefront_package"
+}

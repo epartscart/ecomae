@@ -1,0 +1,61 @@
+body.modal-open {
+	position: relative;
+}
+
+.epc-ssf-switch {
+	position: relative;
+	display: inline-block;
+	width: 46px;
+	height: 24px;
+	margin: 0;
+	vertical-align: middle;
+}
+.epc-ssf-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+.epc-ssf-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #cbd5e1;
+	border-radius: 24px;
+	transition: 0.2s;
+}
+.epc-ssf-slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background: #fff;
+	border-radius: 50%;
+	transition: 0.2s;
+}
+.epc-ssf-switch input:checked + .epc-ssf-slider {
+	background: #22c55e;
+}
+.epc-ssf-switch input:checked + .epc-ssf-slider:before {
+	transform: translateX(22px);
+}
+.epc-ssf-switch input:disabled + .epc-ssf-slider {
+	opacity: 0.5;
+	cursor: wait;
+}
+.epc-ssf-save-btn {
+	min-width: 64px;
+}
+.epc-ssf-save-btn:disabled {
+	opacity: 0.45;
+}
+.epc-ssf-row-dirty .epc-ssf-badge {
+	box-shadow: 0 0 0 1px #f59e0b;
+}
+.epc-ssf-row-dirty .epc-ssf-save-btn:not(:disabled) {
+	box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.45);
+}

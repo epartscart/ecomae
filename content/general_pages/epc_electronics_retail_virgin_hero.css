@@ -1,0 +1,255 @@
+/**
+ * Electronics animated hero banner — scoped to electronics_retail_virgin.
+ */
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner.epc-home-pro,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner.epc-home-pro {
+	background: transparent;
+	color: #fff;
+	margin: 0 0 8px;
+	overflow: hidden;
+	padding: 14px 0 0;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .container,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .container {
+	background: #0a0a0a;
+	border: 1px solid rgba(225, 10, 10, .22);
+	border-radius: 22px;
+	box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+	overflow: hidden;
+	position: relative;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .container:before,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .container:before {
+	background:
+		radial-gradient(circle at 18% 20%, rgba(225, 10, 10, .32), transparent 30%),
+		linear-gradient(135deg, #0a0a0a, #1a1a1a);
+	content: "";
+	inset: 0;
+	position: absolute;
+	z-index: 0;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .container > *,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .container > * {
+	position: relative;
+	z-index: 1;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__grid,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__grid {
+	align-items: stretch;
+	display: grid;
+	gap: 22px;
+	grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+	padding: 36px 0;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__eyebrow,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__eyebrow {
+	align-items: center;
+	background: rgba(225, 10, 10, .14);
+	border: 1px solid rgba(225, 10, 10, .28);
+	border-radius: 999px;
+	color: #fecaca;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	margin-bottom: 16px;
+	padding: 8px 14px;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner h2,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner h2 {
+	color: #fff;
+	font-size: 38px;
+	font-weight: 800;
+	line-height: 1.08;
+	margin: 0 0 14px;
+	max-width: 720px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__copy,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__copy {
+	color: rgba(255, 255, 255, .78);
+	font-size: 16px;
+	line-height: 1.65;
+	margin-bottom: 22px;
+	max-width: 640px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__actions,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 22px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__btn,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__btn {
+	align-items: center;
+	border-radius: 10px;
+	display: inline-flex;
+	font-weight: 800;
+	gap: 9px;
+	padding: 13px 18px;
+	text-decoration: none !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__btn--primary,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__btn--primary {
+	background: #e10a0a;
+	box-shadow: 0 14px 28px rgba(225, 10, 10, .28);
+	color: #fff !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__btn--ghost,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__btn--ghost {
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .16);
+	color: #fff !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stats,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stats {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 720px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stat,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stat {
+	background: rgba(255, 255, 255, .07);
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 14px;
+	padding: 14px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stat strong,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stat strong {
+	color: #fff;
+	display: block;
+	font-size: 20px;
+	margin-bottom: 6px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stat span,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__stat span {
+	color: rgba(255, 255, 255, .68);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__visual,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__visual {
+	background: linear-gradient(160deg, rgba(225, 10, 10, .16), rgba(255, 255, 255, .04));
+	border: 1px solid rgba(225, 10, 10, .22);
+	border-radius: 22px;
+	min-height: 320px;
+	overflow: hidden;
+	padding: 18px;
+	position: relative;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__video-card,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__video-card {
+	background: rgba(10, 10, 10, .88);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(225, 10, 10, .24);
+	border-radius: 16px;
+	bottom: 28px;
+	left: 28px;
+	padding: 16px;
+	position: absolute;
+	right: 28px;
+	z-index: 3;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__play,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__play {
+	align-items: center;
+	animation: epcErPlayPulse 1.35s ease-in-out infinite;
+	background: #e10a0a;
+	border-radius: 999px;
+	box-shadow: 0 12px 28px rgba(225, 10, 10, .38);
+	display: inline-flex;
+	height: 44px;
+	justify-content: center;
+	margin-right: 10px;
+	width: 44px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__play i,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__play i {
+	color: #fff;
+	font-size: 14px;
+	margin-left: 2px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__video-card strong,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__video-card strong {
+	color: #fff;
+	display: inline-block;
+	font-size: 15px;
+	vertical-align: middle;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__video-card p,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__video-card p {
+	color: rgba(255, 255, 255, .72);
+	font-size: 12px;
+	margin: 10px 0 0;
+}
+.epc-er-hero-anim {
+	align-items: center;
+	background: linear-gradient(135deg, #111, #0a0a0a);
+	border-radius: 16px;
+	display: flex;
+	gap: 18px;
+	height: 100%;
+	justify-content: center;
+	min-height: 284px;
+	position: relative;
+}
+.epc-er-hero-anim__chip {
+	background: #111;
+	border: 2px solid rgba(225, 10, 10, .65);
+	border-radius: 6px;
+	height: 48px;
+	overflow: hidden;
+	position: relative;
+	width: 72px;
+}
+.epc-er-hero-anim__chip:before {
+	animation: epcErScan 1.8s linear infinite;
+	background: linear-gradient(90deg, transparent, rgba(225, 10, 10, .4), transparent);
+	content: "";
+	inset: 0;
+	position: absolute;
+}
+.epc-er-hero-anim__wave {
+	align-items: flex-end;
+	display: flex;
+	gap: 4px;
+	height: 48px;
+}
+.epc-er-hero-anim__wave span {
+	animation: epcErWave 1.2s ease-in-out infinite;
+	background: #e10a0a;
+	border-radius: 2px;
+	width: 5px;
+}
+.epc-er-hero-anim__wave span:nth-child(1) { height: 26px; }
+.epc-er-hero-anim__wave span:nth-child(2) { animation-delay: .15s; height: 36px; }
+.epc-er-hero-anim__wave span:nth-child(3) { animation-delay: .3s; height: 30px; }
+.epc-er-hero-anim__wave span:nth-child(4) { animation-delay: .45s; height: 20px; }
+.epc-er-hero-anim__label {
+	bottom: 14px;
+	color: rgba(255, 255, 255, .68);
+	font-size: 11px;
+	font-weight: 700;
+	left: 16px;
+	position: absolute;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero,
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero {
+	display: none !important;
+}
+@keyframes epcErScan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+@keyframes epcErWave { 0%, 100% { transform: scaleY(.5); } 50% { transform: scaleY(1); } }
+@keyframes epcErPlayPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (max-width: 991px) {
+	html[data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__grid,
+	html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] .epc-er-hero-banner .epc-home-pro__grid {
+		grid-template-columns: 1fr;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.epc-er-hero-anim * { animation: none !important; }
+}

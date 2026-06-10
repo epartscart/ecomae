@@ -1,0 +1,14 @@
+{
+  "id": "fashion_retail_namshi",
+  "label": "Namshi fashion & beauty retail",
+  "industry_code": "fashion",
+  "theme_template": "signature",
+  "access_mode": "full",
+  "enabled_packs": ["core", "commerce", "catalogue"],
+  "tagline": "Fashion, beauty & lifestyle — UAE delivery, prices in AED",
+  "contact": {
+    "storefront_package": "fashion_retail_namshi",
+    "use_animated_hub_logo": false
+  },
+  "notes": "Assign via CP Industry Settings contact JSON or epc-stylenlook-namshi-theme.php"
+}

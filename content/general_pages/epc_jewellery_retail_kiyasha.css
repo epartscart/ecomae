@@ -1,0 +1,885 @@
+﻿/**
+ * Kiyasha-style jewellery luxury retail theme.
+ * Scoped to data-epc-storefront="jewellery_retail_kiyasha".
+ */
+html[data-epc-storefront="jewellery_retail_kiyasha"],
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] {
+	--epc-jrk-gold: #b8860b;
+	--epc-jrk-gold-dark: #92400e;
+	--epc-jrk-black: #1c1917;
+	--epc-jrk-gray: #f7f7f8;
+	--epc-jrk-text: #1a1a1a;
+	--epc-jrk-muted: #6b7280;
+	--epc-jrk-border: #ececec;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html[data-epc-storefront="jewellery_retail_kiyasha"] body {
+	background: #fff;
+	color: var(--epc-jrk-text);
+}
+
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-portal-tenant-brand-hero,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-tenant-brand-hero,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-portal-hero,
+html[data-epc-storefront="jewellery_retail_kiyasha"] #epc-parts-agent-root,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-parts-agent,
+html[data-epc-storefront="jewellery_retail_kiyasha"] #vinModal,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .section-vin {
+	display: none !important;
+}
+
+html[data-epc-storefront="jewellery_retail_kiyasha"] header:not(.epc-jrk-header):not(.epc-jrk-header-mobile),
+html[data-epc-storefront="jewellery_retail_kiyasha"] .header-box-mobile:not(.epc-jrk-header-mobile),
+html[data-epc-storefront="jewellery_retail_kiyasha"] #footer-widgets,
+html[data-epc-storefront="jewellery_retail_kiyasha"] footer#footer:not(.epc-jrk-footer) {
+	display: none !important;
+}
+
+/* Tenant brand logo in header */
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-logo .epc-tenant-brand--header img,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-mobile-bar__logo .epc-tenant-brand--header img {
+	max-height: 48px;
+	width: auto;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-logo .epc-tenant-brand--header {
+	max-width: min(42vw, 220px);
+	overflow: visible;
+	white-space: normal;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-search {
+	min-width: 0;
+	flex: 1 1 120px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-logo .epc-tenant-brand--header,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-mobile-bar__logo .epc-tenant-brand--header {
+	display: inline-flex;
+	align-items: center;
+}
+
+/* Utility bar */
+.epc-jrk-utility {
+	background: var(--epc-jrk-gray);
+	border-bottom: 1px solid var(--epc-jrk-border);
+	color: var(--epc-jrk-text);
+	font-size: 12px;
+	padding: 8px 0;
+}
+.epc-jrk-utility .container {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: space-between;
+}
+.epc-jrk-utility__nav,
+.epc-jrk-utility__actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+}
+.epc-jrk-utility__link {
+	color: var(--epc-jrk-text) !important;
+	font-weight: 500;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-jrk-utility__link:hover {
+	color: var(--epc-jrk-gold) !important;
+}
+.epc-jrk-utility__promo {
+	color: var(--epc-jrk-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+}
+.epc-jrk-utility__currency select {
+	background: #fff;
+	border: 1px solid var(--epc-jrk-border);
+	border-radius: 4px;
+	font-size: 11px;
+	height: 28px;
+	padding: 0 8px;
+}
+
+/* Logo row */
+.epc-jrk-logo-row {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-jrk-border);
+	padding: 14px 0;
+}
+.epc-jrk-logo-row__grid {
+	align-items: center;
+	display: grid;
+	gap: 16px;
+	grid-template-columns: minmax(100px, 180px) 1fr auto;
+}
+.epc-jrk-search__form {
+	display: flex;
+}
+.epc-jrk-search__input {
+	border: 1px solid var(--epc-jrk-border) !important;
+	border-radius: 24px 0 0 24px !important;
+	box-shadow: none !important;
+	font-size: 14px;
+	height: 44px;
+	padding: 0 18px;
+}
+.epc-jrk-search__btn {
+	background: var(--epc-jrk-black) !important;
+	border: 0 !important;
+	border-radius: 0 24px 24px 0 !important;
+	color: #fff !important;
+	height: 44px;
+	min-width: 52px;
+}
+.epc-jrk-search__btn:hover {
+	background: var(--epc-jrk-gold) !important;
+}
+.epc-jrk-logo-row__icons {
+	display: flex;
+	gap: 12px;
+}
+.epc-jrk-icon-btn {
+	align-items: center;
+	color: var(--epc-jrk-black);
+	display: inline-flex;
+	font-size: 20px;
+	height: 44px;
+	justify-content: center;
+	position: relative;
+	text-decoration: none !important;
+	width: 44px;
+}
+.epc-jrk-icon-btn:hover {
+	color: var(--epc-jrk-gold);
+}
+.epc-jrk-icon-btn__count {
+	background: var(--epc-jrk-gold);
+	border-radius: 10px;
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+	min-width: 18px;
+	padding: 3px 5px;
+	position: absolute;
+	right: 0;
+	top: 2px;
+}
+
+/* Department tabs */
+.epc-jrk-dept {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-jrk-border);
+}
+.epc-jrk-dept__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-jrk-dept__item a {
+	color: var(--epc-jrk-text);
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	padding: 12px 18px;
+	text-decoration: none !important;
+}
+.epc-jrk-dept__item.is-active a,
+.epc-jrk-dept__item a:hover {
+	border-bottom: 2px solid var(--epc-jrk-gold);
+	color: var(--epc-jrk-gold);
+}
+
+/* Beauty sub-tabs */
+.epc-jrk-beauty-tabs {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-jrk-border);
+}
+.epc-jrk-beauty-tabs__list {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 4px;
+	list-style: none;
+	margin: 0;
+	overflow-x: auto;
+	padding: 8px 0;
+	scrollbar-width: none;
+}
+.epc-jrk-beauty-tabs__list::-webkit-scrollbar {
+	display: none;
+}
+.epc-jrk-beauty-tabs__item a {
+	border-radius: 20px;
+	color: var(--epc-jrk-muted);
+	display: block;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 8px 16px;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-jrk-beauty-tabs__item.is-active a {
+	background: var(--epc-jrk-black);
+	color: #fff;
+}
+.epc-jrk-beauty-tabs__item a:hover {
+	background: var(--epc-jrk-gray);
+	color: var(--epc-jrk-black);
+}
+
+/* Mega nav */
+.epc-jrk-mega {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-jrk-border);
+	padding: 8px 0;
+}
+.epc-jrk-mega .container {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+}
+.epc-jrk-mega__all {
+	background: var(--epc-jrk-gray);
+	border: 0;
+	border-radius: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 8px 14px;
+}
+.epc-jrk-mega__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 16px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-jrk-mega__item a {
+	color: var(--epc-jrk-text);
+	font-size: 13px;
+	font-weight: 500;
+	text-decoration: none !important;
+}
+.epc-jrk-mega__item--deal a {
+	color: var(--epc-jrk-gold);
+	font-weight: 700;
+}
+
+/* Mobile header */
+.epc-jrk-header-mobile {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-jrk-border);
+	position: sticky;
+	top: 0;
+	z-index: 900;
+}
+.epc-jrk-mobile-bar {
+	align-items: center;
+	display: flex;
+	gap: 8px;
+	padding: 10px 12px;
+}
+.epc-jrk-mobile-bar__toggle {
+	background: transparent;
+	border: 0;
+	font-size: 20px;
+	margin: 0;
+	padding: 8px;
+}
+.epc-jrk-mobile-bar__logo {
+	flex: 1;
+	text-align: center;
+}
+.epc-jrk-mobile-bar__cart {
+	color: var(--epc-jrk-black);
+	font-size: 20px;
+	padding: 8px;
+	position: relative;
+}
+.epc-jrk-mobile-dept {
+	border-bottom: 1px solid var(--epc-jrk-border);
+	padding: 0 12px 10px;
+}
+.epc-jrk-mobile-dept__scroll {
+	display: flex;
+	gap: 8px;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.epc-jrk-mobile-dept__scroll::-webkit-scrollbar {
+	display: none;
+}
+.epc-jrk-mobile-dept__chip {
+	background: var(--epc-jrk-gray);
+	border-radius: 20px;
+	color: var(--epc-jrk-text);
+	font-size: 12px;
+	font-weight: 600;
+	padding: 8px 14px;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-jrk-mobile-dept__chip.is-active {
+	background: var(--epc-jrk-black);
+	color: #fff;
+}
+.epc-jrk-mobile-search {
+	padding-bottom: 12px;
+}
+.epc-jrk-mobile-nav {
+	background: #fff;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-jrk-mobile-nav a {
+	border-bottom: 1px solid var(--epc-jrk-border);
+	color: var(--epc-jrk-text);
+	display: block;
+	padding: 12px 16px;
+	text-decoration: none !important;
+}
+
+/* Homepage */
+.epc-jrk-home {
+	padding: 0;
+}
+
+.epc-jrk-promo-strip {
+	background: var(--epc-jrk-black);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 10px 0;
+}
+.epc-jrk-promo-strip__track {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 24px;
+	justify-content: center;
+}
+.epc-jrk-promo-strip__item {
+	color: #fff !important;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-jrk-promo-strip__item:hover {
+	color: var(--epc-jrk-gold) !important;
+}
+
+/* Category chips */
+.epc-jrk-chips {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-jrk-border);
+	padding: 14px 0;
+}
+.epc-jrk-chips__scroll {
+	display: flex;
+	gap: 8px;
+	overflow-x: auto;
+	padding-bottom: 4px;
+	scrollbar-width: thin;
+}
+.epc-jrk-chips__chip {
+	align-items: center;
+	background: #fff;
+	border: 1px solid var(--epc-jrk-border);
+	border-radius: 24px;
+	color: var(--epc-jrk-text);
+	display: inline-flex;
+	flex-shrink: 0;
+	font-size: 13px;
+	font-weight: 600;
+	gap: 6px;
+	padding: 8px 16px;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-jrk-chips__chip:hover {
+	border-color: var(--epc-jrk-gold);
+	color: var(--epc-jrk-gold);
+}
+.epc-jrk-chips__chip--sale {
+	background: var(--epc-jrk-gold);
+	border-color: var(--epc-jrk-gold);
+	color: #fff;
+}
+.epc-jrk-chips__chip--sale:hover {
+	background: var(--epc-jrk-gold-dark);
+	border-color: var(--epc-jrk-gold-dark);
+	color: #fff;
+}
+
+/* Hero — min-height prevents blank first paint if carousel JS is slow */
+.epc-jrk-hero {
+	min-height: 320px;
+	padding: 20px 0 28px;
+	background: linear-gradient(135deg, #0a0a0a 0%, #1a1510 55%, #0a0a0a 100%);
+}
+.epc-jrk-hero__carousel {
+	position: relative;
+}
+.epc-jrk-hero__slides {
+	min-height: 280px;
+	position: relative;
+}
+.epc-jrk-hero__slide {
+	align-items: center;
+	display: none;
+	gap: 24px;
+	grid-template-columns: 1fr 1fr;
+}
+.epc-jrk-hero__slide.is-active {
+	display: grid;
+}
+.epc-jrk-hero__eyebrow {
+	color: var(--epc-jrk-gold);
+	display: block;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+}
+.epc-jrk-hero__copy h1 {
+	font-size: clamp(24px, 4vw, 36px);
+	font-weight: 800;
+	line-height: 1.15;
+	margin: 0 0 12px;
+}
+.epc-jrk-hero__copy p {
+	color: var(--epc-jrk-muted);
+	font-size: 15px;
+	line-height: 1.5;
+	margin: 0 0 20px;
+}
+.epc-jrk-hero__photo {
+	border-radius: 12px;
+	height: auto;
+	max-height: 360px;
+	object-fit: cover;
+	width: 100%;
+}
+.epc-jrk-btn {
+	border-radius: 24px;
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 12px 28px;
+	text-decoration: none !important;
+}
+.epc-jrk-btn--primary {
+	background: var(--epc-jrk-black);
+	color: #fff !important;
+}
+.epc-jrk-btn--primary:hover {
+	background: var(--epc-jrk-gold);
+}
+.epc-jrk-hero__dots {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	margin-top: 16px;
+}
+.epc-jrk-hero__dot {
+	background: var(--epc-jrk-border);
+	border: 0;
+	border-radius: 50%;
+	height: 8px;
+	padding: 0;
+	width: 8px;
+}
+.epc-jrk-hero__dot.is-active {
+	background: var(--epc-jrk-gold);
+	width: 24px;
+	border-radius: 4px;
+}
+
+/* Trust badges */
+.epc-jrk-trust {
+	background: var(--epc-jrk-gray);
+	padding: 20px 0;
+}
+.epc-jrk-trust__grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.epc-jrk-trust__item {
+	align-items: flex-start;
+	display: flex;
+	gap: 12px;
+}
+.epc-jrk-trust__item .fa {
+	color: var(--epc-jrk-gold);
+	font-size: 20px;
+	margin-top: 2px;
+}
+.epc-jrk-trust__item strong {
+	display: block;
+	font-size: 13px;
+}
+.epc-jrk-trust__item span {
+	color: var(--epc-jrk-muted);
+	font-size: 12px;
+}
+
+/* Sections */
+.epc-jrk-section {
+	padding: 28px 0;
+}
+.epc-jrk-section__title {
+	font-size: 20px;
+	font-weight: 800;
+	margin: 0 0 4px;
+}
+.epc-jrk-section__sub {
+	color: var(--epc-jrk-muted);
+	font-size: 13px;
+	margin: 0;
+}
+.epc-jrk-section__head {
+	align-items: flex-end;
+	display: flex;
+	gap: 16px;
+	justify-content: space-between;
+	margin-bottom: 18px;
+}
+.epc-jrk-section__link {
+	color: var(--epc-jrk-gold);
+	font-size: 13px;
+	font-weight: 700;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+/* Category tiles */
+.epc-jrk-cat-scroll {
+	display: flex;
+	gap: 12px;
+	overflow-x: auto;
+	padding-bottom: 8px;
+}
+.epc-jrk-cat-tile {
+	flex-shrink: 0;
+	text-align: center;
+	text-decoration: none !important;
+	width: 100px;
+}
+.epc-jrk-cat-tile__img {
+	border-radius: 50%;
+	display: block;
+	height: 100px;
+	min-height: 100px;
+	overflow: hidden;
+	width: 100px;
+}
+.epc-jrk-cat-tile__img img {
+	aspect-ratio: 1;
+	display: block;
+	height: 100%;
+	min-height: 100px;
+	object-fit: cover;
+	width: 100%;
+}
+.epc-jrk-cat-tile__name {
+	color: var(--epc-jrk-text);
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	margin-top: 8px;
+}
+
+/* Brand chips */
+.epc-jrk-brand-scroll {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.epc-jrk-brand-chip {
+	background: var(--epc-jrk-gray);
+	border-radius: 4px;
+	color: var(--epc-jrk-text);
+	font-size: 12px;
+	font-weight: 600;
+	padding: 8px 14px;
+	text-decoration: none !important;
+}
+.epc-jrk-brand-chip:hover {
+	background: var(--epc-jrk-black);
+	color: #fff;
+}
+
+/* Product grid */
+.epc-jrk-product-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(2, 1fr);
+}
+.epc-jrk-product-card__link {
+	color: inherit;
+	display: block;
+	text-decoration: none !important;
+}
+.epc-jrk-product-card__img {
+	background: var(--epc-jrk-gray);
+	border-radius: 8px;
+	min-height: 180px;
+	overflow: hidden;
+	position: relative;
+}
+.epc-jrk-product-card__img img {
+	aspect-ratio: 1;
+	display: block;
+	height: auto;
+	min-height: 180px;
+	object-fit: cover;
+	width: 100%;
+}
+.epc-jrk-badge {
+	border-radius: 4px;
+	font-size: 10px;
+	font-weight: 800;
+	left: 8px;
+	padding: 4px 8px;
+	position: absolute;
+	top: 8px;
+	z-index: 1;
+}
+.epc-jrk-badge--sale {
+	background: var(--epc-jrk-gold);
+	color: #fff;
+}
+.epc-jrk-badge--new {
+	background: var(--epc-jrk-black);
+	color: #fff;
+}
+.epc-jrk-product-card__brand {
+	color: var(--epc-jrk-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .04em;
+	margin-top: 10px;
+	text-transform: uppercase;
+}
+.epc-jrk-product-card__sku {
+	color: var(--epc-jrk-muted);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: .06em;
+	margin: 2px 0 4px;
+	opacity: .85;
+	text-transform: uppercase;
+}
+.epc-jrk-product-card__name {
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.35;
+	margin: 4px 0 6px;
+}
+.epc-jrk-product-card__price strong {
+	color: var(--epc-jrk-black);
+	font-size: 14px;
+}
+.epc-jrk-product-card__price s {
+	color: var(--epc-jrk-muted);
+	font-size: 12px;
+	margin-left: 6px;
+}
+
+/* Footer */
+.epc-jrk-footer__main {
+	background: var(--epc-jrk-gray);
+	border-top: 1px solid var(--epc-jrk-border);
+	padding: 40px 0 24px;
+}
+.epc-jrk-footer__grid {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.epc-jrk-footer__title {
+	font-size: 13px;
+	font-weight: 800;
+	margin: 0 0 12px;
+	text-transform: uppercase;
+}
+.epc-jrk-footer__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-jrk-footer__links a {
+	color: var(--epc-jrk-muted);
+	font-size: 13px;
+	text-decoration: none !important;
+}
+.epc-jrk-footer__links a:hover {
+	color: var(--epc-jrk-gold);
+}
+.epc-jrk-footer__links li {
+	margin-bottom: 8px;
+}
+.epc-jrk-footer__social-row {
+	align-items: center;
+	border-top: 1px solid var(--epc-jrk-border);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	justify-content: space-between;
+	margin-top: 28px;
+	padding-top: 20px;
+}
+.epc-jrk-footer__social-label {
+	color: var(--epc-jrk-muted);
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+}
+.epc-jrk-footer__social-icon {
+	color: var(--epc-jrk-black);
+	font-size: 18px;
+	margin-right: 12px;
+}
+.epc-jrk-footer__pay-icons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.epc-jrk-footer__bar {
+	background: var(--epc-jrk-black);
+	color: #fff;
+	padding: 14px 0;
+}
+.epc-jrk-footer__copy {
+	font-size: 12px;
+	margin: 0;
+	opacity: .85;
+	text-align: center;
+}
+
+/* Reveal animation — always visible */
+.epc-jrk-reveal {
+	opacity: 1;
+	transform: none;
+	transition: opacity .45s ease, transform .45s ease;
+}
+.epc-jrk-reveal.is-visible {
+	opacity: 1;
+	transform: none;
+}
+
+html[data-epc-storefront="jewellery_retail_kiyasha"] body {
+	background: #fff !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	height: auto !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] #preloader {
+	display: none !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] #sb-site .boxed > .container {
+	min-height: 0 !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] #sb-site #Container > .epc-goods-catalog,
+html[data-epc-storefront="jewellery_retail_kiyasha"] #sb-site .news_box,
+html[data-epc-storefront="jewellery_retail_kiyasha"] #sb-site .section-news {
+	display: none !important;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+	.epc-jrk-product-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+@media (min-width: 992px) {
+	.epc-jrk-product-grid {
+		grid-template-columns: repeat(6, 1fr);
+	}
+}
+@media (max-width: 767px) {
+	.epc-jrk-hero__slide.is-active {
+		grid-template-columns: 1fr;
+	}
+	.epc-jrk-hero__copy {
+		order: 2;
+	}
+	.epc-jrk-hero__media {
+		order: 1;
+	}
+	.epc-jrk-trust__grid {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+/* Kiyasha gold luxury accents */
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-promo-strip {
+	background: linear-gradient(90deg, #1c1917 0%, #78350f 45%, #1c1917 100%);
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-promo-strip__item:hover {
+	color: #fbbf24 !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero__eyebrow {
+	color: var(--epc-jrk-gold);
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-logo .epc-tenant-brand--header img,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-mobile-bar__logo .epc-tenant-brand--header img {
+	max-height: 56px;
+}
+
+/* Full-width storefront — override site_professional_shell grey boxed squash */
+html[data-epc-storefront="jewellery_retail_kiyasha"] {
+	--epc-max-w: min(1728px, 98vw);
+	--epc-pad-x: clamp(12px, 1vw, 24px);
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] body {
+	background: #fff !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] #sb-site,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .boxed {
+	background: #fff !important;
+	box-shadow: none !important;
+	margin: 0 !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	width: 100% !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .top-menu-line > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .logo-line > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .schearch-line > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .schearch-line #dp_menu > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .main-header > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] #sb-site .boxed > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-home-pro .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-home-banners .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .section-vin > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .container.epart-front-original-data,
+html[data-epc-storefront="jewellery_retail_kiyasha"] header .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] #footer-widgets > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] footer#footer .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] footer.footer .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] body > .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .alert .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-home .container,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-home,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-header,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-footer {
+	max-width: var(--epc-max-w) !important;
+	width: 98% !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-home,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-header,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-footer {
+	max-width: 100% !important;
+	width: 100% !important;
+}

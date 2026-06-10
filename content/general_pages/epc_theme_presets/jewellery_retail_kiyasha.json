@@ -1,0 +1,14 @@
+{
+  "id": "jewellery_retail_kiyasha",
+  "label": "Kiyasha jewellery luxury retail",
+  "industry_code": "jewellery",
+  "theme_template": "classic",
+  "access_mode": "full",
+  "enabled_packs": ["core", "commerce", "catalogue"],
+  "tagline": "Fine gold, diamonds & bridal jewellery — UAE delivery, prices in AED",
+  "contact": {
+    "storefront_package": "jewellery_retail_kiyasha",
+    "use_animated_hub_logo": false
+  },
+  "notes": "Assign via CP Industry Settings contact JSON or epc-thejewellerytrend-kiyasha-theme.php"
+}

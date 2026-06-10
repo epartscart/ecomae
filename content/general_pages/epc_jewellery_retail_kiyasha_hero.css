@@ -1,0 +1,256 @@
+/**
+ * Jewellery animated hero banner — scoped to jewellery_retail_kiyasha.
+ */
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner.epc-home-pro,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner.epc-home-pro {
+	background: transparent;
+	color: #fff;
+	margin: 0 0 8px;
+	overflow: hidden;
+	padding: 14px 0 0;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .container,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .container {
+	background: #1c1917;
+	border: 1px solid rgba(212, 175, 55, .2);
+	border-radius: 22px;
+	box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+	overflow: hidden;
+	position: relative;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .container:before,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .container:before {
+	background:
+		radial-gradient(circle at 24% 20%, rgba(212, 175, 55, .28), transparent 32%),
+		linear-gradient(135deg, #1c1917, #292524);
+	content: "";
+	inset: 0;
+	position: absolute;
+	z-index: 0;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .container > *,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .container > * {
+	position: relative;
+	z-index: 1;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__grid,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__grid {
+	align-items: stretch;
+	display: grid;
+	gap: 22px;
+	grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+	padding: 36px 0;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__eyebrow,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__eyebrow {
+	align-items: center;
+	background: rgba(212, 175, 55, .12);
+	border: 1px solid rgba(251, 191, 36, .24);
+	border-radius: 999px;
+	color: #fde68a;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	margin-bottom: 16px;
+	padding: 8px 14px;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner h2,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner h2 {
+	color: #fff;
+	font-size: 38px;
+	font-weight: 800;
+	line-height: 1.08;
+	margin: 0 0 14px;
+	max-width: 720px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__copy,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__copy {
+	color: rgba(255, 255, 255, .78);
+	font-size: 16px;
+	line-height: 1.65;
+	margin-bottom: 22px;
+	max-width: 640px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__actions,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 22px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__btn,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__btn {
+	align-items: center;
+	border-radius: 10px;
+	display: inline-flex;
+	font-weight: 800;
+	gap: 9px;
+	padding: 13px 18px;
+	text-decoration: none !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__btn--primary,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__btn--primary {
+	background: linear-gradient(135deg, #d4af37, #b8860b);
+	box-shadow: 0 14px 28px rgba(212, 175, 55, .24);
+	color: #1c1917 !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__btn--ghost,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__btn--ghost {
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .16);
+	color: #fff !important;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stats,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stats {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 720px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stat,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stat {
+	background: rgba(255, 255, 255, .07);
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 14px;
+	padding: 14px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stat strong,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stat strong {
+	color: #fff;
+	display: block;
+	font-size: 20px;
+	margin-bottom: 6px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stat span,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__stat span {
+	color: rgba(255, 255, 255, .68);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__visual,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__visual {
+	background: linear-gradient(160deg, rgba(212, 175, 55, .14), rgba(255, 255, 255, .04));
+	border: 1px solid rgba(212, 175, 55, .2);
+	border-radius: 22px;
+	min-height: 320px;
+	overflow: hidden;
+	padding: 18px;
+	position: relative;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__video-card,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__video-card {
+	background: rgba(28, 25, 23, .88);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(212, 175, 55, .22);
+	border-radius: 16px;
+	bottom: 28px;
+	left: 28px;
+	padding: 16px;
+	position: absolute;
+	right: 28px;
+	z-index: 3;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__play,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__play {
+	align-items: center;
+	animation: epcJrkPlayPulse 1.35s ease-in-out infinite;
+	background: linear-gradient(135deg, #d4af37, #b8860b);
+	border-radius: 999px;
+	box-shadow: 0 12px 28px rgba(212, 175, 55, .38);
+	display: inline-flex;
+	height: 44px;
+	justify-content: center;
+	margin-right: 10px;
+	width: 44px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__play i,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__play i {
+	color: #1c1917;
+	font-size: 14px;
+	margin-left: 2px;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__video-card strong,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__video-card strong {
+	color: #fff;
+	display: inline-block;
+	font-size: 15px;
+	vertical-align: middle;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__video-card p,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__video-card p {
+	color: rgba(255, 255, 255, .72);
+	font-size: 12px;
+	margin: 10px 0 0;
+}
+.epc-jrk-hero-anim {
+	align-items: center;
+	background: linear-gradient(135deg, rgba(28, 25, 23, .95), rgba(41, 37, 36, .88));
+	border-radius: 16px;
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	min-height: 284px;
+	position: relative;
+}
+.epc-jrk-hero-anim__ring {
+	animation: epcJrkRingGlow 2.2s ease-in-out infinite;
+	border: 6px solid #d4af37;
+	border-radius: 50%;
+	box-shadow: 0 0 18px rgba(212, 175, 55, .45);
+	height: 88px;
+	width: 88px;
+}
+.epc-jrk-hero-anim__gem {
+	background: #fff;
+	border-radius: 2px;
+	box-shadow: 0 0 12px rgba(255, 255, 255, .8);
+	height: 12px;
+	position: absolute;
+	transform: rotate(45deg);
+	width: 12px;
+}
+.epc-jrk-hero-anim__spark {
+	background: #fbbf24;
+	border-radius: 50%;
+	height: 6px;
+	position: absolute;
+	width: 6px;
+}
+.epc-jrk-hero-anim__spark--one {
+	animation: epcJrkSparkle 1.8s ease-in-out infinite;
+	right: 28%;
+	top: 24%;
+}
+.epc-jrk-hero-anim__spark--two {
+	animation: epcJrkSparkle 1.8s ease-in-out infinite .5s;
+	bottom: 28%;
+	left: 24%;
+}
+.epc-jrk-hero-anim__label {
+	bottom: 14px;
+	color: rgba(255, 255, 255, .68);
+	font-size: 11px;
+	font-weight: 700;
+	left: 16px;
+	position: absolute;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero,
+html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero {
+	display: none !important;
+}
+@keyframes epcJrkRingGlow { 0%, 100% { box-shadow: 0 0 12px rgba(212, 175, 55, .35); } 50% { box-shadow: 0 0 28px rgba(212, 175, 55, .75); } }
+@keyframes epcJrkSparkle { 0%, 100% { opacity: .2; transform: scale(.6); } 50% { opacity: 1; transform: scale(1.2); } }
+@keyframes epcJrkPlayPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (max-width: 991px) {
+	html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__grid,
+	html[data-epc-industry="jewellery"][data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-hero-banner .epc-home-pro__grid {
+		grid-template-columns: 1fr;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.epc-jrk-hero-anim * { animation: none !important; }
+}

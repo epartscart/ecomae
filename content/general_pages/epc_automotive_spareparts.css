@@ -1,0 +1,846 @@
+/**
+ * Automotive spare parts storefront (piston banner + pro hero).
+ * Scoped to data-epc-storefront="automotive_spareparts_pro".
+ */
+html[data-epc-storefront="automotive_spareparts_pro"], html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] {
+	--epc-asp-hero-surface: #0b1220;
+}
+
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro {
+	background: transparent;
+	color: #fff;
+	margin: 0;
+	overflow: hidden;
+	padding: 14px 0 0;
+	position: relative;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro .container {
+	background: #0b1220;
+	border: 1px solid rgba(255, 255, 255, .08);
+	border-radius: 22px;
+	box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
+	overflow: hidden;
+	position: relative;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro .container:before {
+	background:
+	radial-gradient(circle at 20% 25%, rgba(239, 68, 68, .28), transparent 28%),
+	radial-gradient(circle at 80% 15%, rgba(59, 130, 246, .24), transparent 32%),
+	linear-gradient(135deg, rgba(15, 23, 42, .9), rgba(15, 23, 42, .72));
+	content: "";
+	inset: 0;
+	position: absolute;
+	z-index: 0;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro .container > * {
+	position: relative;
+	z-index: 1;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__grid {
+	align-items: stretch;
+	display: grid;
+	gap: 22px;
+	grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+	padding: 42px 0;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__eyebrow {
+	align-items: center;
+	background: rgba(255, 255, 255, .1);
+	border: 1px solid rgba(255, 255, 255, .14);
+	border-radius: 999px;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	margin-bottom: 18px;
+	padding: 8px 14px;
+	text-transform: uppercase;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro h2 {
+	color: #fff;
+	font-size: 42px;
+	font-weight: 800;
+	line-height: 1.08;
+	margin: 0 0 14px;
+	max-width: 760px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__copy {
+	color: rgba(255, 255, 255, .78);
+	font-size: 16px;
+	line-height: 1.7;
+	margin-bottom: 24px;
+	max-width: 680px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 26px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__btn {
+	align-items: center;
+	border-radius: 10px;
+	display: inline-flex;
+	font-weight: 800;
+	gap: 9px;
+	padding: 13px 18px;
+	text-decoration: none !important;
+	transition: transform .2s ease, box-shadow .2s ease;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__btn:hover {
+	transform: translateY(-2px);
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__btn--primary {
+	background: #ef4444;
+	box-shadow: 0 14px 28px rgba(239, 68, 68, .25);
+	color: #fff !important;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__btn--ghost {
+	background: rgba(255, 255, 255, .1);
+	border: 1px solid rgba(255, 255, 255, .18);
+	color: #fff !important;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__stats {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 760px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__stat {
+	background: rgba(255, 255, 255, .09);
+	border: 1px solid rgba(255, 255, 255, .12);
+	border-radius: 14px;
+	padding: 15px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__stat strong {
+	color: #fff;
+	display: block;
+	font-size: 22px;
+	line-height: 1;
+	margin-bottom: 7px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__stat span {
+	color: rgba(255, 255, 255, .72);
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__visual {
+	background: linear-gradient(160deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .06));
+	border: 1px solid rgba(255, 255, 255, .16);
+	border-radius: 22px;
+	box-shadow: 0 28px 70px rgba(0, 0, 0, .32);
+	min-height: 390px;
+	overflow: hidden;
+	padding: 18px;
+	position: relative;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__visual:before {
+	background:
+	radial-gradient(circle at 20% 20%, rgba(239, 68, 68, .36), transparent 32%),
+	linear-gradient(135deg, rgba(239, 68, 68, .24), rgba(17, 24, 39, .2));
+	border-radius: 16px;
+	content: "";
+	inset: 18px;
+	position: absolute;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__animation {
+	border-radius: 16px;
+	height: calc(100% - 36px);
+	inset: 18px;
+	object-fit: cover;
+	position: absolute;
+	width: calc(100% - 36px);
+	z-index: 1;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-animation {
+	background:
+	radial-gradient(circle at 75% 30%, rgba(239, 68, 68, .28), transparent 28%),
+	radial-gradient(circle at 18% 20%, rgba(37, 99, 235, .24), transparent 30%),
+	linear-gradient(135deg, #0f172a, #111827);
+	border-radius: 16px;
+	height: calc(100% - 36px);
+	inset: 18px;
+	overflow: hidden;
+	position: absolute;
+	width: calc(100% - 36px);
+	z-index: 3;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-block {
+	background: linear-gradient(135deg, #111827, #1f2937);
+	border: 4px solid rgba(148, 163, 184, .45);
+	border-radius: 22px;
+	box-shadow: 0 24px 48px rgba(0, 0, 0, .35);
+	height: 220px;
+	left: 7%;
+	position: absolute;
+	top: 12%;
+	width: 62%;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder {
+	background:
+		linear-gradient(90deg, rgba(255, 255, 255, .08), transparent 16%, transparent 84%, rgba(255, 255, 255, .08)),
+		#020617;
+	border: 3px solid rgba(148, 163, 184, .72);
+	border-radius: 16px;
+	box-shadow: inset 0 0 26px rgba(148, 163, 184, .22);
+	height: 138px;
+	position: absolute;
+	top: 28px;
+	width: 22%;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder--one { left: 8%; }
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder--two { left: 39%; }
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder--three { left: 70%; }
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-piston {
+	background:
+	linear-gradient(180deg, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0) 34%),
+	repeating-linear-gradient(180deg, transparent 0 10px, rgba(15, 23, 42, .62) 10px 14px),
+	linear-gradient(135deg, #f8fafc 0%, #cbd5e1 42%, #64748b 100%);
+	border: 3px solid #e5e7eb;
+	border-radius: 18px 18px 10px 10px;
+	box-shadow: inset 0 -10px 16px rgba(15, 23, 42, .28), 0 10px 18px rgba(0, 0, 0, .28);
+	height: 56px;
+	left: 13%;
+	position: absolute;
+	top: 18px;
+	width: 74%;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-piston:before {
+	background: radial-gradient(circle, #f8fafc 0 28%, #64748b 30% 100%);
+	border: 2px solid #e2e8f0;
+	border-radius: 999px;
+	content: "";
+	height: 18px;
+	left: calc(50% - 11px);
+	position: absolute;
+	top: 25px;
+	width: 22px;
+	z-index: 2;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-piston:after {
+	background: linear-gradient(90deg, #94a3b8, #f8fafc 48%, #64748b);
+	border: 2px solid #cbd5e1;
+	border-radius: 999px;
+	content: "";
+	height: 104px;
+	left: calc(50% - 9px);
+	position: absolute;
+	top: 54px;
+	width: 18px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder--one .epc-engine-piston,
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder--three .epc-engine-piston {
+	animation: epcPistonDown 1.05s linear infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-cylinder--two .epc-engine-piston {
+	animation: epcPistonUp 1.05s linear infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank {
+	background: #020617;
+	border: 9px solid #94a3b8;
+	border-radius: 999px;
+	bottom: 26px;
+	height: 78px;
+	left: calc(50% - 39px);
+	position: absolute;
+	width: 78px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank:before,
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank:after {
+	background: #cbd5e1;
+	border-radius: 999px;
+	content: "";
+	left: 50%;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank:before {
+	height: 14px;
+	width: 92px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank:after {
+	height: 92px;
+	width: 14px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank {
+	animation: epcCrankSpin 1.05s linear infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-exhaust {
+	border: 18px solid #ef4444;
+	border-left-color: transparent;
+	border-radius: 999px;
+	height: 170px;
+	opacity: .78;
+	position: absolute;
+	right: 7%;
+	top: 22%;
+	width: 170px;
+	animation: epcPulsePower 1.05s ease-in-out infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-spark {
+	background: #f97316;
+	border-radius: 999px;
+	box-shadow: 34px 26px 0 -5px #facc15, 20px -26px 0 -3px #ef4444;
+	height: 18px;
+	position: absolute;
+	right: 18%;
+	top: 45%;
+	width: 18px;
+	animation: epcSparkMove 1.05s linear infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-part {
+	position: absolute;
+	z-index: 1;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-ring {
+	animation: epcPartFloat 3.2s ease-in-out infinite, epcPartSpin 5s linear infinite, epcRedRingGlow 2.1s ease-in-out infinite;
+	border: 8px solid #e5e7eb;
+	border-left-color: #ef4444;
+	border-radius: 999px;
+	box-shadow: inset 0 0 0 5px rgba(15, 23, 42, .8), 0 12px 24px rgba(0, 0, 0, .26);
+	height: 72px;
+	right: 12%;
+	top: 8%;
+	width: 72px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-ring:after {
+	animation: epcRedDotPulse 1.15s ease-in-out infinite;
+	background: #ef4444;
+	border-radius: 999px;
+	box-shadow: 0 0 0 0 rgba(239, 68, 68, .55);
+	content: "";
+	height: 9px;
+	position: absolute;
+	right: -7px;
+	top: 30px;
+	width: 18px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-gasket {
+	background: rgba(248, 250, 252, .92);
+	border: 4px solid #94a3b8;
+	border-radius: 18px;
+	height: 72px;
+	right: 8%;
+	top: 34%;
+	transform: rotate(-10deg);
+	width: 138px;
+	animation: epcPartFloatAlt 3.7s ease-in-out infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-gasket:before {
+	background: #0f172a;
+	border-radius: 999px;
+	box-shadow: 52px 0 0 #0f172a, 26px 28px 0 #0f172a;
+	content: "";
+	height: 22px;
+	left: 22px;
+	position: absolute;
+	top: 18px;
+	width: 22px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-gasket:after {
+	animation: epcRedDotPulse 1.2s ease-in-out infinite;
+	background: #ef4444;
+	border-radius: 999px;
+	box-shadow: 104px 0 0 #2563eb, 0 44px 0 #2563eb, 104px 44px 0 #ef4444;
+	content: "";
+	height: 8px;
+	left: 12px;
+	position: absolute;
+	top: 10px;
+	width: 8px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-liner {
+	background:
+		linear-gradient(90deg, #475569, #f8fafc 45%, #64748b),
+		#cbd5e1;
+	border: 4px solid #e5e7eb;
+	border-radius: 20px 20px 14px 14px;
+	bottom: 28%;
+	box-shadow: inset 0 0 22px rgba(15, 23, 42, .45), 0 14px 26px rgba(0, 0, 0, .24);
+	height: 104px;
+	left: 5%;
+	width: 58px;
+	animation: epcPartFloatAlt 3.1s ease-in-out infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-liner:before,
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-liner:after {
+	background: rgba(15, 23, 42, .55);
+	content: "";
+	height: 8px;
+	left: 8px;
+	position: absolute;
+	right: 8px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-liner:before { top: 20px; }
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-liner:after { bottom: 18px; }
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-suspension {
+	bottom: 14%;
+	height: 124px;
+	right: 16%;
+	transform: rotate(18deg);
+	width: 54px;
+	animation: epcSuspensionBounce 1.4s ease-in-out infinite;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-suspension:before {
+	animation: epcRedSpringPulse 1.05s ease-in-out infinite;
+	background:
+	repeating-linear-gradient(180deg, #ef4444 0 7px, transparent 7px 15px),
+	linear-gradient(90deg, transparent 0 20px, #e5e7eb 20px 34px, transparent 34px);
+	border-radius: 999px;
+	content: "";
+	inset: 0;
+	position: absolute;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-suspension:after {
+	background: #94a3b8;
+	border-radius: 8px;
+	box-shadow: 0 96px 0 #94a3b8;
+	content: "";
+	height: 16px;
+	left: 4px;
+	position: absolute;
+	top: 4px;
+	width: 46px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-label {
+	bottom: 24px;
+	color: rgba(255, 255, 255, .84);
+	font-size: 15px;
+	font-weight: 900;
+	left: 24px;
+	letter-spacing: .05em;
+	position: absolute;
+	text-transform: uppercase;
+}
+@keyframes epcPistonDown {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(58px); }
+}
+@keyframes epcPistonUp {
+	0%, 100% { transform: translateY(58px); }
+	50% { transform: translateY(0); }
+}
+@keyframes epcCrankSpin {
+	to { transform: rotate(360deg); }
+}
+@keyframes epcPulsePower {
+	0%, 100% { opacity: .42; transform: scale(.95); }
+	50% { opacity: .95; transform: scale(1.04); }
+}
+@keyframes epcSparkMove {
+	0%, 100% { opacity: .35; transform: translate(0, 0); }
+	50% { opacity: 1; transform: translate(12px, -8px); }
+}
+@keyframes epcPartFloat {
+	0%, 100% { transform: translateY(0) rotate(0deg); }
+	50% { transform: translateY(14px) rotate(8deg); }
+}
+@keyframes epcPartFloatAlt {
+	0%, 100% { transform: translateY(0) rotate(-10deg); }
+	50% { transform: translateY(-12px) rotate(-4deg); }
+}
+@keyframes epcPartSpin {
+	to { rotate: 360deg; }
+}
+@keyframes epcSuspensionBounce {
+	0%, 100% { transform: translateY(0) rotate(18deg); }
+	50% { transform: translateY(-10px) rotate(18deg); }
+}
+@keyframes epcRedPlayPulse {
+	0%, 100% { box-shadow: 0 12px 28px rgba(239, 68, 68, .32); transform: scale(1); }
+	50% { box-shadow: 0 16px 36px rgba(239, 68, 68, .58); transform: scale(1.06); }
+}
+@keyframes epcRedSpringPulse {
+	0%, 100% { filter: brightness(1); opacity: .92; }
+	50% { filter: brightness(1.18); opacity: 1; }
+}
+@keyframes epcRedRingGlow {
+	0%, 100% { border-left-color: #ef4444; box-shadow: inset 0 0 0 5px rgba(15, 23, 42, .8), 0 10px 22px rgba(239, 68, 68, .18); }
+	50% { border-left-color: #f87171; box-shadow: inset 0 0 0 5px rgba(15, 23, 42, .8), 0 14px 30px rgba(239, 68, 68, .42); }
+}
+@keyframes epcRedDotPulse {
+	0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .45); opacity: .82; transform: scale(1); }
+	50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); opacity: 1; transform: scale(1.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-engine-piston,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-piston,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-crank,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-exhaust,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-spark,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-part,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-suspension,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-suspension:before,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-ring,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-ring:after,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-gasket,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-gasket:after,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-engine-liner,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__play {
+		animation: none !important;
+	}
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__visual:after {
+	background: linear-gradient(135deg, rgba(239, 68, 68, .28), rgba(15, 23, 42, .12));
+	border-radius: 16px;
+	content: "";
+	inset: 18px;
+	pointer-events: none;
+	position: absolute;
+	z-index: 2;
+}
+html[data-epc-storefront="automotive_spareparts_pro"] .header-logo .epc-animated-logo,
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .header-logo .epc-animated-logo {
+	background: transparent;
+	box-shadow: none;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__video-card {
+	background: rgba(15, 23, 42, .82);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(255, 255, 255, .16);
+	border-radius: 16px;
+	bottom: 28px;
+	left: 28px;
+	padding: 16px;
+	position: absolute;
+	right: 28px;
+	z-index: 3;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__play {
+	align-items: center;
+	animation: epcRedPlayPulse 1.35s ease-in-out infinite;
+	background: #ef4444;
+	border-radius: 999px;
+	box-shadow: 0 12px 28px rgba(239, 68, 68, .38);
+	display: inline-flex;
+	height: 44px;
+	justify-content: center;
+	margin-right: 10px;
+	width: 44px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__play i {
+	color: #fff;
+	margin-left: 3px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__video-card strong {
+	color: #fff;
+	display: inline-block;
+	font-size: 15px;
+	vertical-align: middle;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__video-card p {
+	color: rgba(255, 255, 255, .72);
+	font-size: 12px;
+	margin: 10px 0 0;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home {
+	margin-top: 22px;
+	width: 100%;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__card,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__card {
+	background: rgba(15, 23, 42, .55);
+	border: 1px solid rgba(255, 140, 26, .35);
+	border-radius: 16px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+	padding: 18px 18px 16px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__badge,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__badge {
+	background: linear-gradient(120deg, #ffb347, #e65c00);
+	border-radius: 999px;
+	color: #fff;
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: .06em;
+	margin-bottom: 8px;
+	padding: 5px 12px;
+	text-transform: uppercase;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__title,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__title {
+	color: #fff;
+	font-size: 22px;
+	font-weight: 800;
+	margin: 0 0 6px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__lead,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__lead {
+	color: rgba(255, 255, 255, .78);
+	font-size: 13px;
+	line-height: 1.45;
+	margin: 0 0 14px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__form,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__input,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__input {
+	background: rgba(255, 255, 255, .96);
+	border: 1px solid rgba(255, 255, 255, .2);
+	border-radius: 10px;
+	color: #0f172a;
+	flex: 1 1 160px;
+	font-size: 15px;
+	min-width: 0;
+	padding: 11px 14px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__input--brand,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__input--brand {
+	flex: 0 1 140px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__submit,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__submit {
+	background: linear-gradient(120deg, #ffb347, #e65c00);
+	border: none;
+	border-radius: 10px;
+	color: #fff;
+	cursor: pointer;
+	flex: 0 0 auto;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 11px 18px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__submit:disabled,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__submit:disabled {
+	opacity: .65;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__hint,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__hint {
+	color: rgba(255, 255, 255, .65);
+	font-size: 12px;
+	margin: 10px 0 0;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__pulse,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__pulse {
+	animation: epcAiExpertPulse 1.2s ease-in-out infinite;
+	background: #ff8c1a;
+	border-radius: 50%;
+	display: inline-block;
+	height: 8px;
+	margin-right: 6px;
+	vertical-align: middle;
+	width: 8px;
+}
+@keyframes epcAiExpertPulse {
+	0%, 100% { opacity: .35; transform: scale(.85); }
+	50% { opacity: 1; transform: scale(1.15); }
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__results,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__results {
+	margin-top: 14px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__results--hidden,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__results--hidden {
+	display: none;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__sections,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__sections {
+	display: grid;
+	gap: 12px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__section,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__section {
+	background: rgba(255, 255, 255, .96);
+	border-radius: 12px;
+	color: #0f172a;
+	padding: 12px 14px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__section h4,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__section h4 {
+	font-size: 14px;
+	font-weight: 800;
+	margin: 0 0 10px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__table-wrap,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__table-wrap {
+	max-height: 220px;
+	overflow: auto;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__cross-list,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__cross-list {
+	columns: 2;
+	font-size: 13px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__cross-list li,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__cross-list li {
+	margin: 0 0 6px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__empty,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__empty {
+	color: #64748b;
+	font-size: 13px;
+	margin: 0;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__brands,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__brands {
+	margin-bottom: 8px;
+}
+html[data-epc-industry="auto_parts"] .epc-ai-expert-home__brands .btn,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__brands .btn {
+	margin: 2px 4px 2px 0;
+}
+@media (max-width: 767px) {
+	html[data-epc-industry="auto_parts"] .epc-ai-expert-home__cross-list,
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home__cross-list {
+		columns: 1;
+	}
+}
+
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners {
+	background: transparent;
+	margin: 0;
+	padding: 14px 0;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners .container {
+	background: transparent;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners__grid {
+	display: grid;
+	gap: 14px;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner {
+	background: rgba(255, 255, 255, .96);
+	border: 1px solid rgba(255, 255, 255, .18);
+	border-radius: 16px;
+	box-shadow: 0 12px 34px rgba(15, 23, 42, .08);
+	color: #0f172a;
+	display: block;
+	min-height: 145px;
+	overflow: hidden;
+	padding: 18px;
+	position: relative;
+	text-decoration: none !important;
+	transition: transform .2s ease, box-shadow .2s ease;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner:hover {
+	box-shadow: 0 18px 42px rgba(15, 23, 42, .14);
+	transform: translateY(-3px);
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner:after {
+	background: rgba(239, 68, 68, .08);
+	border-radius: 999px;
+	content: "";
+	height: 120px;
+	position: absolute;
+	right: -42px;
+	top: -36px;
+	width: 120px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner__icon {
+	align-items: center;
+	background: #0f172a;
+	border-radius: 13px;
+	color: #fff;
+	display: inline-flex;
+	font-size: 20px;
+	height: 44px;
+	justify-content: center;
+	margin-bottom: 14px;
+	width: 44px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner strong {
+	color: #0f172a;
+	display: block;
+	font-size: 16px;
+	margin-bottom: 6px;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner span {
+	color: #64748b;
+	display: block;
+	font-size: 13px;
+	line-height: 1.45;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner--red .epc-home-banner__icon {
+	background: #ef4444;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner--blue .epc-home-banner__icon {
+	background: #2563eb;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner--green .epc-home-banner__icon {
+	background: #16a34a;
+}
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banner--dark .epc-home-banner__icon {
+	background: #111827;
+}
+@media (max-width: 991px) {
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__grid,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__grid {
+		grid-template-columns: 1fr;
+	}
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners__grid,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 767px) {
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro h2,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro h2 {
+		font-size: 30px;
+	}
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__stats,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__stats,
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners__grid,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners__grid {
+		grid-template-columns: 1fr;
+	}
+	html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__grid,
+	html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro__grid {
+		padding: 28px 0;
+	}
+}
+/* Full-width storefront — override site_professional_shell grey boxed squash */
+html[data-epc-storefront="automotive_spareparts_pro"] body {
+	background: #fff !important;
+}
+html[data-epc-storefront="automotive_spareparts_pro"] #sb-site,
+html[data-epc-storefront="automotive_spareparts_pro"] .boxed {
+	background: #fff !important;
+	box-shadow: none !important;
+	margin: 0 !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	width: 100% !important;
+}
+html[data-epc-storefront="automotive_spareparts_pro"] .top-menu-line > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .logo-line > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .schearch-line > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .schearch-line #dp_menu > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .main-header > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] #sb-site .boxed > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .section-vin > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .container.epart-front-original-data,
+html[data-epc-storefront="automotive_spareparts_pro"] header .container,
+html[data-epc-storefront="automotive_spareparts_pro"] #footer-widgets > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] footer#footer .container,
+html[data-epc-storefront="automotive_spareparts_pro"] footer.footer .container,
+html[data-epc-storefront="automotive_spareparts_pro"] body > .container,
+html[data-epc-storefront="automotive_spareparts_pro"] .alert .container {
+	max-width: min(1728px, 98vw) !important;
+	width: 98% !important;
+}
+
+/* Keep hero/banners visible when scroll-reveal JS fails (demo subdirectory paths). */
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners,
+html[data-epc-storefront="automotive_spareparts_pro"] .epc-ai-expert-home,
+html[data-epc-storefront="automotive_spareparts_pro"] .section-vin,
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-pro,
+html[data-epc-industry="auto_parts"][data-epc-storefront="automotive_spareparts_pro"] .epc-home-banners {
+	opacity: 1 !important;
+	visibility: visible !important;
+	transform: none !important;
+}

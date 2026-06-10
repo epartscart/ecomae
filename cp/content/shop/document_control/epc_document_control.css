@@ -1,0 +1,53 @@
+.epc-dc-hero {
+	background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+	color: #fff;
+	border-radius: 10px;
+	padding: 20px 22px;
+	margin-bottom: 16px;
+}
+.epc-dc-hero h3 {
+	margin: 0 0 8px;
+	color: #fff;
+}
+.epc-dc-kpi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+.epc-dc-kpi .kpi {
+	flex: 1 1 120px;
+	background: #f0fdfa;
+	border: 1px solid #99f6e4;
+	border-radius: 8px;
+	padding: 12px;
+}
+.epc-dc-kpi .lbl {
+	font-size: 10px;
+	color: #0f766e;
+	text-transform: uppercase;
+}
+.epc-dc-kpi .val {
+	font-size: 18px;
+	font-weight: 700;
+	color: #115e59;
+}
+.epc-dc-nav .btn {
+	margin: 0 4px 6px 0;
+}
+.epc-dc-msg {
+	display: none;
+	margin: 10px 0;
+}
+.epc-dc-tpl-editor textarea {
+	font-family: Consolas, monospace;
+	font-size: 12px;
+	min-height: 140px;
+}
+.epc-dc-logo {
+	max-height: 80px;
+	max-width: 220px;
+	border: 1px solid #ddd;
+	padding: 4px;
+	background: #fff;
+}

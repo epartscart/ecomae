@@ -1,0 +1,286 @@
+/* Standalone ERP portal — no storefront chrome */
+body.epc-erp-standalone {
+	margin: 0;
+	background: #eef2f7;
+	font-family: "Open Sans", "Segoe UI", sans-serif;
+	color: #1e293b;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.epc-erp-topbar {
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+	color: #fff;
+	box-shadow: 0 2px 12px rgba(15, 23, 42, 0.2);
+}
+
+.epc-erp-topbar__inner {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 12px 20px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.epc-erp-topbar__brand {
+	color: #fff;
+	text-decoration: none;
+	display: flex;
+	flex-direction: column;
+	line-height: 1.2;
+}
+
+.epc-erp-topbar__brand strong {
+	font-size: 18px;
+}
+
+.epc-erp-topbar__brand small {
+	opacity: 0.85;
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.epc-erp-topbar__nav a {
+	color: rgba(255, 255, 255, 0.92);
+	margin-left: 14px;
+	text-decoration: none;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.epc-erp-topbar__nav a:hover {
+	color: #fff;
+	text-decoration: underline;
+}
+
+.epc-erp-topbar__nav--compact a {
+	font-size: 12px;
+	margin-left: 12px;
+	opacity: 0.92;
+}
+
+.epc-erp-main {
+	flex: 1;
+	max-width: 1400px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 20px 16px 32px;
+	box-sizing: border-box;
+}
+
+.epc-erp-foot {
+	text-align: center;
+	padding: 14px 16px 20px;
+	font-size: 12px;
+	color: #64748b;
+}
+
+.epc-erp-login-panel--standalone.epc-erp-login-panel--split {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	padding: 0;
+	overflow: hidden;
+}
+.epc-erp-login-panel--split .epc-erp-login-panel__brand {
+	background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 55%, #312e81 100%);
+	color: #fff;
+	padding: 32px 28px;
+	min-height: 320px;
+}
+.epc-erp-topbar__brand--hub {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	text-decoration: none;
+	color: inherit;
+}
+.epc-erp-topbar__brand--hub:hover,
+.epc-erp-topbar__brand--hub:focus {
+	text-decoration: none;
+	color: inherit;
+}
+.epc-erp-topbar__brand-text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.2;
+	min-width: 0;
+}
+.epc-erp-topbar__brand-text strong {
+	color: #0f172a;
+	font-size: 15px;
+}
+.epc-erp-topbar__brand-text small {
+	color: #64748b;
+	font-size: 11px;
+}
+.epc-erp-login-panel--split .epc-erp-login-panel__brand h1 { color: #fff; }
+.epc-erp-login-panel--split .epc-erp-login-lead { color: rgba(255,255,255,0.85); }
+.epc-erp-login-panel--split .epc-erp-login-features li { color: rgba(255,255,255,0.9); }
+.epc-erp-login-panel--split > .col-md-7 { padding: 28px 32px; }
+
+.epc-erp-login-panel--standalone {
+	background: #fff;
+	border: 1px solid #dce4ef;
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.epc-erp-login-panel--standalone h1 {
+	margin: 0 0 10px;
+	font-size: 26px;
+	color: #0f172a;
+}
+
+.epc-erp-login-lead {
+	color: #64748b;
+	line-height: 1.55;
+	margin-bottom: 14px;
+}
+
+.epc-erp-login-features {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.epc-erp-login-features li {
+	padding: 6px 0;
+	color: #334155;
+	font-size: 14px;
+}
+
+.epc-erp-login-features i {
+	color: #16a34a;
+	margin-right: 8px;
+}
+
+.epc-erp-workspace .hpanel {
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+
+.epc-erp-workspace .epc-erp-shell {
+	margin-top: 0;
+}
+
+/* Platform marketing landing (ecomae.com /erp) */
+.epc-erp-home-hero {
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #312e81 100%);
+	color: #fff;
+	border-radius: 14px;
+	margin-bottom: 24px;
+	overflow: hidden;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+.epc-erp-home-hero__inner {
+	padding: 32px 28px 24px;
+}
+.epc-erp-home-hero__logo {
+	border-radius: 12px;
+	margin-bottom: 12px;
+	background: #fff;
+	padding: 6px;
+}
+.epc-erp-home-hero__eyebrow {
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-size: 11px;
+	font-weight: 700;
+	opacity: 0.85;
+	margin: 0 0 8px;
+}
+.epc-erp-home-hero__title {
+	margin: 0 0 12px;
+	font-size: 28px;
+	font-weight: 800;
+	line-height: 1.2;
+}
+.epc-erp-home-hero__lead {
+	max-width: 720px;
+	color: rgba(255, 255, 255, 0.88);
+	line-height: 1.55;
+	margin-bottom: 18px;
+}
+.epc-erp-home-hero__cta .btn {
+	margin: 0 8px 8px 0;
+}
+.epc-erp-home-hero__stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 10px;
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+.epc-erp-home-stat {
+	background: rgba(255, 255, 255, 0.08);
+	border-radius: 10px;
+	padding: 12px 14px;
+}
+.epc-erp-home-stat strong {
+	display: block;
+	font-size: 13px;
+	margin-bottom: 4px;
+}
+.epc-erp-home-stat span {
+	font-size: 11px;
+	opacity: 0.85;
+}
+.epc-erp-home-grid {
+	margin-bottom: 24px;
+}
+.epc-erp-home-card {
+	background: #fff;
+	border: 1px solid #dce4ef;
+	border-radius: 12px;
+	padding: 20px 18px;
+	height: 100%;
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+.epc-erp-home-card--accent {
+	border-color: #a5b4fc;
+	background: linear-gradient(180deg, #f8fafc, #fff);
+}
+.epc-erp-home-card h3 {
+	margin: 0 0 10px;
+	font-size: 16px;
+	font-weight: 700;
+}
+.epc-erp-home-card p {
+	color: #64748b;
+	font-size: 13px;
+	line-height: 1.5;
+	margin-bottom: 12px;
+}
+.epc-erp-home-card a {
+	font-weight: 700;
+	font-size: 13px;
+}
+.epc-erp-platform-foot {
+	display: block;
+	margin-top: 6px;
+}
+
+/* ERP portal login — avoid empty panel before JS toggles wrappers */
+body.epc-erp-standalone .login_form > .col-lg-12 > .panel-heading:first-child {
+	display: none;
+}
+body.epc-erp-standalone .epc-erp-login-panel [id^="wrapper_code_smtp_"].hidden,
+body.epc-erp-standalone .epc-erp-login-panel [id^="wrapper_pass_email_"].hidden {
+	display: block !important;
+}
+
+@media (max-width: 768px) {
+	.epc-erp-topbar__nav a {
+		margin-left: 8px;
+		font-size: 12px;
+	}
+	.epc-erp-home-hero__title {
+		font-size: 22px;
+	}
+}

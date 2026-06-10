@@ -1,0 +1,129 @@
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v8.4.14,
+* Autoprefixer: v10.4.7
+* Browsers: last 4 version
+*/
+
+.customer-modal-info-wrapper {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99999;
+    opacity: 0; 
+    -webkit-transition: opacity 200ms ease-in;
+    -o-transition: opacity 200ms ease-in;
+    transition: opacity 200ms ease-in;
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    color: black;
+
+}
+
+h2 {
+    font-weight: 400 !important;
+}
+
+.customer-modal-info-wrapper-show {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.customer-modal-info-block {
+    width: 80%;
+    max-width: 700px;
+    overflow-y: auto;
+    cursor: default;
+    position: relative;
+    border-radius: 3px;
+}
+
+.customer-modal-info-block-header {
+    font-size: 20px;
+    padding: 15px 0 10px;
+    background: white;
+    font-weight: 700;
+}
+
+.customer-modal-info-block-header div {
+    text-align: center;
+    padding: 0 30px;
+}
+.customer-modal-info-block-header i {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    line-height: 1;
+}
+
+.customer-modal-info-block-header  i {
+    color: red;
+    cursor: pointer;
+}
+
+.customer-modal-info-block-main-content {
+    background: rgb(255, 255, 255);
+    padding: 0px 10px 30px;
+}
+
+.customer-modal-info-block-left-side {
+    background: white;
+    padding: 10px;
+}
+
+h2 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-weight: 200;
+}
+
+.info-str {
+    font-size: 13px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    padding: 4px;
+}
+
+.chet {
+    background: #f5f7f9;
+}
+
+.info-title {
+    font-weight: 700;
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 35%;
+    flex: 0 0 35%;
+}
+
+.info-value {
+    padding-left: 10px;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    font-weight: 500;
+    /* font-size: 13px; */
+}
+
+.info-value a {
+    color: #0a96f3;
+    text-decoration: underline;
+}
+
+.customer-modal-info-block-right-side {
+    background: white;
+}

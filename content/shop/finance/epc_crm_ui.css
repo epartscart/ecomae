@@ -1,0 +1,58 @@
+/* Native CRM — matches ERP / epc_cp_ui shell */
+.epc-crm-shell { margin-bottom: 24px; }
+.epc-crm-shell .panel-heading { font-weight: 600; }
+.epc-crm-nav { margin-bottom: 16px; }
+.epc-crm-nav .btn { margin: 0 4px 6px 0; }
+.epc-crm-kpi { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.epc-crm-kpi .kpi {
+	flex: 1 1 140px;
+	min-width: 120px;
+	background: linear-gradient(135deg, #f8fafc, #eef2ff);
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 12px 14px;
+}
+.epc-crm-kpi .kpi .lbl { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.04em; }
+.epc-crm-kpi .kpi .val { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 4px; }
+.epc-crm-kpi .kpi .val.green { color: #059669; }
+.epc-crm-kpi .kpi .val.blue { color: #2563eb; }
+.epc-crm-pipeline {
+	display: flex;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	gap: 12px;
+	padding-bottom: 8px;
+	min-height: 280px;
+}
+.epc-crm-pipeline-col {
+	flex: 0 0 220px;
+	background: #f1f5f9;
+	border-radius: 8px;
+	padding: 10px;
+	border-top: 3px solid #6366f1;
+}
+.epc-crm-pipeline-col h5 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #334155;
+}
+.epc-crm-card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 10px;
+	margin-bottom: 8px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+	cursor: grab;
+}
+.epc-crm-card .amt { font-weight: 700; color: #2563eb; }
+.epc-crm-card .meta { font-size: 11px; color: #64748b; margin-top: 4px; }
+.epc-crm-msg { display: none; margin: 10px 0; }
+.epc-crm-section { margin-top: 16px; }
+.epc-crm-stage-prospect { border-top-color: #94a3b8; }
+.epc-crm-stage-qualified { border-top-color: #3b82f6; }
+.epc-crm-stage-proposal { border-top-color: #8b5cf6; }
+.epc-crm-stage-negotiation { border-top-color: #f59e0b; }
+.epc-crm-stage-won { border-top-color: #10b981; }
+.epc-crm-stage-lost { border-top-color: #ef4444; }

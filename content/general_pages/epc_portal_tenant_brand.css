@@ -1,0 +1,240 @@
+/* Tenant animated brand — subtle fade, scale, tagline shimmer */
+.epc-tenant-brand {
+	--etb-accent: #2563eb;
+	--etb-glow: rgba(37, 99, 235, 0.24);
+	align-items: center;
+	display: inline-flex;
+	flex-direction: column;
+	gap: 8px;
+	justify-content: center;
+	position: relative;
+}
+
+.epc-tenant-brand__halo {
+	background: radial-gradient(circle at 50% 45%, var(--etb-glow), transparent 68%);
+	border-radius: 999px;
+	inset: -8% -4%;
+	opacity: 0;
+	pointer-events: none;
+	position: absolute;
+	z-index: 0;
+	animation: etb-halo-in 1.4s ease forwards;
+}
+
+.epc-tenant-brand__logo-wrap {
+	display: block;
+	position: relative;
+	z-index: 1;
+	animation: etb-logo-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	transform-origin: center center;
+}
+
+.epc-tenant-brand__logo {
+	display: block;
+	height: auto;
+	max-width: 100%;
+	object-fit: contain;
+	width: auto;
+}
+
+.epc-tenant-brand__tagline {
+	background: linear-gradient(90deg, color-mix(in srgb, var(--etb-accent) 72%, #fff), var(--etb-accent), color-mix(in srgb, var(--etb-accent) 72%, #fff));
+	background-size: 220% 100%;
+	color: transparent;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	line-height: 1.2;
+	position: relative;
+	text-transform: uppercase;
+	-webkit-background-clip: text;
+	background-clip: text;
+	animation: etb-tagline-shimmer 4.8s ease-in-out infinite, etb-tagline-in 1.1s ease 0.35s forwards;
+	opacity: 0;
+	z-index: 1;
+}
+
+.epc-tenant-brand--header {
+	align-items: flex-start;
+	gap: 4px;
+}
+
+.epc-tenant-brand--header .epc-tenant-brand__logo {
+	max-height: 72px;
+	max-width: min(320px, 100%);
+}
+
+.epc-tenant-brand--header .epc-tenant-brand__tagline {
+	font-size: 9px;
+	letter-spacing: 0.14em;
+}
+
+.epc-tenant-brand--hero .epc-tenant-brand__logo {
+	filter: drop-shadow(0 10px 28px rgba(15, 23, 42, 0.18));
+	max-height: 120px;
+	max-width: min(520px, 92vw);
+}
+
+.epc-tenant-brand--hero .epc-tenant-brand__tagline {
+	font-size: 13px;
+	margin-top: 4px;
+}
+
+.epc-tenant-brand-hero {
+	margin: 0 0 18px;
+	padding: 0;
+}
+
+.epc-tenant-brand-hero__inner {
+	align-items: center;
+	background: linear-gradient(135deg, var(--epc-portal-hero-from, #0b1220), var(--epc-portal-hero-to, #1e3a5f));
+	border-radius: 22px;
+	display: flex;
+	justify-content: center;
+	min-height: 168px;
+	padding: 28px 20px 24px;
+	position: relative;
+	overflow: hidden;
+}
+
+.epc-tenant-brand-hero__inner::before {
+	background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 58%);
+	content: "";
+	inset: 0;
+	pointer-events: none;
+	position: absolute;
+}
+
+.epc-tenant-brand-hero .epc-tenant-brand--hero {
+	color: #fff;
+}
+
+.epc-tenant-brand--sparkle .epc-tenant-brand__halo {
+	animation: etb-halo-in 1.4s ease forwards, etb-sparkle-pulse 3.6s ease-in-out 1.4s infinite;
+}
+
+.epc-tenant-brand--fashion .epc-tenant-brand__logo-wrap {
+	animation: etb-logo-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards, etb-fashion-float 5s ease-in-out 1s infinite;
+}
+
+.epc-tenant-brand--circuit .epc-tenant-brand__logo-wrap::after {
+	border: 1px solid color-mix(in srgb, var(--etb-accent) 35%, transparent);
+	border-radius: 18px;
+	content: "";
+	inset: -6px -10px;
+	opacity: 0;
+	position: absolute;
+	animation: etb-circuit-ring 2.8s ease-out 0.5s infinite;
+}
+
+.epc-tenant-brand--automotive .epc-tenant-brand__halo {
+	animation: etb-halo-in 1.4s ease forwards, etb-automotive-pulse 3.4s ease-in-out 1.4s infinite;
+}
+
+.epc-tenant-brand--automotive .epc-tenant-brand__logo-wrap {
+	animation: etb-logo-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards, etb-automotive-drive 4.2s ease-in-out 1s infinite;
+}
+
+.header-logo .epc-tenant-brand,
+.logo_min .epc-tenant-brand {
+	width: 100%;
+}
+
+.header-logo .epc-tenant-brand--header,
+.logo_min .epc-tenant-brand--header {
+	min-height: 72px;
+}
+
+@keyframes etb-logo-in {
+	from {
+		opacity: 0;
+		transform: scale(0.94) translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+@keyframes etb-halo-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes etb-tagline-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes etb-tagline-shimmer {
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+}
+
+@keyframes etb-sparkle-pulse {
+	0%, 100% { transform: scale(1); opacity: 1; }
+	50% { transform: scale(1.04); opacity: 0.82; }
+}
+
+@keyframes etb-fashion-float {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-3px); }
+}
+
+@keyframes etb-circuit-ring {
+	0% {
+		opacity: 0.55;
+		transform: scale(0.98);
+	}
+	70%, 100% {
+		opacity: 0;
+		transform: scale(1.06);
+	}
+}
+
+@keyframes etb-automotive-pulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.82; transform: scale(1.04); }
+}
+
+@keyframes etb-automotive-drive {
+	0%, 100% { transform: translateX(0); }
+	50% { transform: translateX(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.epc-tenant-brand__halo,
+	.epc-tenant-brand__logo-wrap,
+	.epc-tenant-brand__tagline,
+	.epc-tenant-brand--fashion .epc-tenant-brand__logo-wrap,
+	.epc-tenant-brand--automotive .epc-tenant-brand__halo,
+	.epc-tenant-brand--automotive .epc-tenant-brand__logo-wrap,
+	.epc-tenant-brand--circuit .epc-tenant-brand__logo-wrap::after {
+		animation: none !important;
+	}
+	.epc-tenant-brand__logo-wrap,
+	.epc-tenant-brand__tagline,
+	.epc-tenant-brand__halo {
+		opacity: 1 !important;
+		transform: none !important;
+	}
+}
+
+@media (max-width: 767px) {
+	.epc-tenant-brand--header .epc-tenant-brand__logo {
+		max-height: 56px;
+	}
+	.epc-tenant-brand-hero__inner {
+		min-height: 140px;
+		padding: 22px 14px 18px;
+	}
+	.epc-tenant-brand--hero .epc-tenant-brand__logo {
+		max-height: 96px;
+	}
+}

@@ -1,0 +1,432 @@
+.btnForm {
+    border-radius: 2px;
+    padding: 16px;
+    font-size: 20px;
+}
+.section-form {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #CCC;
+    background: #FFF;
+}
+.section-form .request-seller {
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    padding: 40px 40px 65px 40px;
+}
+.section-form .request-seller .all-input {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    gap: 20px;
+    -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+}
+.section-form .request-seller .all-input .main-input,
+.section-form .request-seller .all-input .second-input {
+    width: calc(100% / 2 - 10px);
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    gap: 20px;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+}
+.section-form .request-seller .only-main {
+	justify-content: center;
+}
+.section-form .request-seller .only-main .second-input {
+	display: none;
+}
+.section-form .request-seller .only-main .main-input {
+	width: 65%;
+}
+.section-form .request-seller h2 {
+    margin: 0px;
+    margin-bottom: 30px;
+    color: #1E1E1E;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+}
+.input-shell {
+	width: 100%;
+}
+.button-shell {
+    display: -webkit-inline-box;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+						width: 100%;
+}
+.input-shell label {
+    color: #1E1E1E;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    position: relative;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+.section-form .request-seller .all-input label .question {
+    position: absolute;
+    right: -30px;
+    top: 1px;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+.section-form .request-seller label span {
+	color: #ED3C38;
+}
+.section-form .request-seller .input-shell input,
+.section-form .request-seller .input-shell textarea {
+    border-radius: 2px !important;
+    border: 1px solid #DFDFDF;
+    background: #F7F7F7;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    padding: 12px 20px;
+    width: 100%;
+    display: inline-block;
+    resize: none;
+    outline: none;
+}
+.section-form .request-seller input.error-input,
+.section-form .request-seller textarea.error-input {
+    border: 1px solid #ED3C38;
+}
+.section-form .request-seller textarea {
+    height: 152px;
+}
+.section-form .request-seller input::-webkit-input-placeholder,
+.section-form .request-seller textarea::-webkit-input-placeholder,
+.section-form .request-seller input::-moz-placeholder,
+.section-form .request-seller textarea::-moz-placeholder,
+.section-form .request-seller input:-ms-input-placeholder,
+.section-form .request-seller textarea:-ms-input-placeholder,
+.section-form .request-seller input::placeholder,
+.section-form .request-seller textarea::placeholder  {
+    color: #E8E8E8;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.captha-img {
+    margin-top: 23px;
+    display: -webkit-inline-box !important;
+    display: -ms-inline-flexbox !important;
+    display: inline-flex !important;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    border: 4px solid #f57636;
+    background: #f57636;
+    border-radius: 6px;
+}
+.captha-img img {
+	border-radius: 3px;
+}
+.captha-img a {
+    width: 70px;
+    height: 70px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+}
+
+.section-form .request-seller .send-input .input-shell {
+    margin-top: 30px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: start;
+        -ms-flex-pack: start;
+            justify-content: flex-start;
+    margin-bottom: 30px;
+}
+.section-form .request-seller .send-input .input-shell input[type="checkbox"] {
+    border-radius: 2px;
+    border: 1px solid #DFDFDF;
+    background: #F7F7F7;
+    margin-right: 20px;
+    outline: none;
+    width: 38px;
+    height: 38px;
+}
+
+.section-form .request-seller .send-input .input-shell a {
+    color: #F57636;
+}
+
+.section-form__helper {
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    padding: 20px 40px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    gap: 50px;
+}
+.section-form__helper_img svg {
+    width: 50px;
+    height: 50px;
+}
+.section-form__helper_text{
+    color: #1E1E1E;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.section-form__helper_text p {
+    margin: 0;
+    margin-bottom: 8px;
+}
+.input-file-row {
+	display: inline-block;
+}
+.input-file {
+	position: relative;
+	display: inline-block;
+    width: 100%;
+}
+.input-file-text {
+	padding: 0 10px;
+	line-height: 40px;
+	text-align: left;
+	height: 49px;
+	display: block;
+	float: left;
+	-webkit-box-sizing: border-box;
+	        box-sizing: border-box;
+	width: 200px;
+	border-radius: 6px 0px 0 6px;
+    background: #F7F7F7;
+    border: 1px solid #DFDFDF;
+    width: calc(100% - 135px) !important;
+    margin-top: 12px;
+}
+.input-file span {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+	outline: none;
+	text-decoration: none;
+	font-size: 14px;
+	vertical-align: middle;
+	color: rgb(255 255 255) !important;
+	text-align: center;
+	border-radius: 0px 4px 4px 0px;
+	background-color: #36B0F5;
+	line-height: 22px;
+	height: 49px;
+	padding: 10px 20px;
+	-webkit-box-sizing: border-box;
+	        box-sizing: border-box;
+	border: none;
+	margin: 0;
+	-webkit-transition: background-color 0.2s;
+	-o-transition: background-color 0.2s;
+	transition: background-color 0.2s;
+  width: 135px !important;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.input-file input[type=file] {
+	position: absolute;
+	z-index: -1;
+	opacity: 0;
+	display: block !important;
+	width: 0 !important;
+	height: 0 !important;
+}
+.input-text-img {
+    margin-top: 10px;
+}
+.input-text-img li {
+    color: #999999;
+    font-size: 10px;
+    font-style: italic;
+}
+.input-text-img li::marker {
+    content: '-  ';
+}
+/* Focus */
+.input-file input[type=file]:focus + span {
+	-webkit-box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+	        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+ 
+/* Hover/active */
+.input-file:hover span {
+	background-color: #36B0F5;
+}
+.input-file:active span {
+	background-color: #36B0F5;
+}
+ 
+/* Список c превью */
+.input-file-list {
+	padding: 10px 0;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+    gap: 10px;
+    width: 100% !important;
+}
+.input-file-list-item {
+	display: inline-block;
+	margin: 0;
+	width: calc(100% / 3 - 20px) !important;
+	vertical-align: top;
+	position: relative;
+}
+.input-file-list-item img {
+	width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+.input-file-list-name {
+	text-align: center;
+	display: block;
+	font-size: 12px;
+	-o-text-overflow: ellipsis;
+	   text-overflow: ellipsis;
+	overflow: hidden;
+
+    color: #1E1E1E;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+.input-file-list-remove {
+    font-size: 15px;
+    text-decoration: none;
+    display: inline-block;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 19px;
+    border-radius: 50%;
+}
+
+/* Стилизация модалки*/
+.hystmodal__close:focus {
+    outline: none;
+}
+.body_modal {
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    padding: 30px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+}
+.body_modal h4 {
+    margin: 0px;
+    margin-bottom: 24px;
+
+    color: #1E1E1E;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+}
+.body_modal p {
+    color: #1E1E1E;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-bottom: 8px;
+}
+
+/* ADAPTIVE */
+@media (max-width: 768px) {
+    .section-form .request-seller .all-input .main-input, 
+    .section-form .request-seller .all-input .second-input {
+			width: 100%;
+		}
+    .section-form .section-form__helper {
+			gap: 30px;
+		}
+}
+@media (max-width: 460px) {
+    .section-form .section-form__helper {
+			-webkit-box-orient: vertical;
+			-webkit-box-direction: normal;
+			-ms-flex-direction: column;
+			flex-direction: column;
+		}
+    .input-file span {
+			width: 110px !important;
+		}
+    .input-file-text {
+			width: calc(100% - 110px) !important;
+		}
+    .body_modal {
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+    }
+    .section-form .request-seller {
+			padding: 20px 20px 50px 20px;
+		}
+    .input-file-list-item {
+			width: calc(100% / 2 - 20px) !important;
+		}
+    .section-form__helper_img svg {
+        width: 100px;
+        height: 100px;
+    }
+    .section-form__helper {
+			padding: 20px 20px;
+		}
+}
+@media (max-width: 320px) {
+    .btnForm {
+			font-size: 18px;
+		}
+}
+
