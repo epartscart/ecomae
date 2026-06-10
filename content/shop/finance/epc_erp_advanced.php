@@ -162,6 +162,12 @@ if (!function_exists('epc_erp_adv_register_guides')) {
                 'title' => 'ERP dashboard',
                 'seed' => 'epc_erp_dashboard_cp',
             ),
+            array(
+                'url' => 'shop/finance/erp/provider-console',
+                'php' => $base . 'erp_provider_console_page.php',
+                'title' => 'Provider console',
+                'seed' => 'epc_erp_provider_console_cp',
+            ),
         );
         $out = array();
         foreach ($pages as $pg) {
