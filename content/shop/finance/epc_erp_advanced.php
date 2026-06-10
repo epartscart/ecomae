@@ -156,6 +156,12 @@ if (!function_exists('epc_erp_adv_register_guides')) {
                 'title' => 'Advanced ERP guide',
                 'seed' => 'epc_erp_advanced_guide_cp',
             ),
+            array(
+                'url' => 'shop/finance/erp/dashboard',
+                'php' => $base . 'erp_dashboard_page.php',
+                'title' => 'ERP dashboard',
+                'seed' => 'epc_erp_dashboard_cp',
+            ),
         );
         $out = array();
         foreach ($pages as $pg) {
