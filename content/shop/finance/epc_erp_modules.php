@@ -87,6 +87,7 @@ if (!function_exists('epc_mod_registry')) {
             'projects' => array('label' => 'Projects & timesheets', 'category' => 'Operations', 'requires' => array('core')),
             'contracts' => array('label' => 'Contracts management', 'category' => 'Operations', 'requires' => array('core')),
             'pricing' => array('label' => 'Price lists / promotions / loyalty', 'category' => 'CRM & Sales', 'requires' => array('core')),
+            'ecommerce' => array('label' => 'E-commerce <-> ERP bridge', 'category' => 'CRM & Sales', 'requires' => array('inventory', 'pricing')),
             'expense' => array('label' => 'Expense management', 'category' => 'HR', 'requires' => array('core')),
         );
     }
@@ -106,6 +107,7 @@ if (!function_exists('epc_mod_bundles')) {
             'payroll_only' => array('core', 'hr', 'payroll'),
             'customs_logistics' => array('core', 'logistics', 'customs'),
             'pos_retail' => array('core', 'inventory', 'industry', 'pos', 'crm'),
+            'ecommerce_pack' => array('core', 'inventory', 'pricing', 'ecommerce', 'einvoice', 'crm'),
             'finance_suite' => array('core', 'gl', 'tax', 'vat_return', 'corporate_tax', 'bank_recon', 'einvoice', 'credit', 'fixed_assets', 'reporting', 'currency'),
             'supply_chain' => array('core', 'inventory', 'procurement', 'planning', 'logistics', 'landed_cost', 'customs'),
             'manufacturing_pack' => array('core', 'inventory', 'manufacturing', 'quality', 'planning'),
