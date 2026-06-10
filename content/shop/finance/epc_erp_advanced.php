@@ -168,6 +168,12 @@ if (!function_exists('epc_erp_adv_register_guides')) {
                 'title' => 'Provider console',
                 'seed' => 'epc_erp_provider_console_cp',
             ),
+            array(
+                'url' => 'shop/finance/erp/guide',
+                'php' => $base . 'erp_full_guide_page.php',
+                'title' => 'ERP step-by-step guide',
+                'seed' => 'epc_erp_full_guide_cp',
+            ),
         );
         $out = array();
         foreach ($pages as $pg) {
