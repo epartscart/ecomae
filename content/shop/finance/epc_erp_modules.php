@@ -84,6 +84,7 @@ if (!function_exists('epc_mod_registry')) {
             'vouchers' => array('label' => 'Voucher numbering sequences', 'category' => 'Finance', 'requires' => array('gl')),
             'compliance' => array('label' => 'Tax compliance engine (auto-update)', 'category' => 'Finance', 'requires' => array('tax')),
             'org' => array('label' => 'Org structure (company/BU/branch/warehouse)', 'category' => 'Foundation', 'requires' => array('core')),
+            'company' => array('label' => 'Company profile / letterhead / TRN / statements', 'category' => 'Foundation', 'requires' => array('core')),
             // Operations / sales depth
             'projects' => array('label' => 'Projects & timesheets', 'category' => 'Operations', 'requires' => array('core')),
             'contracts' => array('label' => 'Contracts management', 'category' => 'Operations', 'requires' => array('core')),

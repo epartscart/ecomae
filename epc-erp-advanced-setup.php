@@ -173,6 +173,7 @@ $moduleSchema = array(
     'workflow' => array('content/shop/finance/epc_erp_collab.php', 'epc_collab_ensure_schema'),
     'ecommerce' => array('content/shop/finance/epc_erp_ecommerce.php', 'epc_ec_ensure_schema'),
     'control' => array('content/shop/finance/epc_erp_control.php', 'epc_ctl_ensure_schema'),
+    'company' => array('content/shop/finance/epc_erp_company.php', 'epc_co_ensure_schema'),
 );
 $built = array();
 $skipped = array();
