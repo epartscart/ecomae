@@ -62,7 +62,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<div class="ehm-ti"><span class="ehm-ti-ico">⚡</span><span>Go live in <strong>24 hours</strong></span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🔒</span><span>Isolated <strong>MySQL per tenant</strong></span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">📋</span><span><strong>UAE e-invoice</strong> (PINT-AE) built-in</span></div>
-				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>8 industry</strong> templates ready</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>19+ industry</strong> packs ready</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🌍</span><span><strong>195+</strong> tax jurisdictions</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI</strong> demo guide (Layla)</span></div>
 			</div>
@@ -346,7 +346,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 					<span class="ehm-cc">Go live in 24 hours</span>
 					<span class="ehm-cc">UAE compliance built-in</span>
 					<span class="ehm-cc">112 CP modules</span>
-					<span class="ehm-cc">8 industry templates</span>
+					<span class="ehm-cc">19+ industry packs</span>
 				</div>
 			</div>
 		</div>
