@@ -1,0 +1,8 @@
+http://doimage/draw.php?number=25&value0=4&value1=4&value2=4&value3=4&value4=4&value5=4&value6=4&value7=4&value8=4&value9=4&value10=4&value11=4&value12=4&value13=4&value14=4&value15=4&value16=4&value17=4&value18=4&value19=4&value20=4&value21=4&value22=4&value23=4&value24=4&start_angle=0&size=1000&inside_size=70&slope=2
+
+
+25 секторов по 4%
+2 - наклон
+0 - начальный угол
+1000 - размер исходного изображения (отобажается 500)
+70 - большая полуось внутреннего эллипса

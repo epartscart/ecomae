@@ -1,0 +1,574 @@
+.message_error
+{
+    background-color:#C33;
+    color:#FFF;
+}
+
+.RUB
+{
+    font-family: 'PT Sans', serif;/*Для знака рубля*/
+}
+
+
+
+/*Таблица найденных автозапчастей*/
+/*Таблица найденных автозапчастей*/
+@media screen and (max-width: 768px) {
+	.head
+	{
+		height:160px;
+		margin-bottom:1px;
+		
+		border-bottom:2px solid #e7b035;
+		background-color:#f8f5f0;
+	}
+	.head > div
+	{
+		font-size:12px;
+		color:#5d5959;
+		
+		font-weight:bold;
+		
+		line-height:30px;
+	}
+	.body
+	{
+		height:160px;
+		border-top:1px solid #e7b035;
+	}
+	.body > div
+	{
+		font-size:12px;
+		color:#5d5959;
+	}
+	.body > .price
+	{
+		font-weight:bold;
+		font-size:14px;
+	}
+	.product_record
+	{
+		position:relative;
+	}
+	.manufacturer,
+	.article,
+	.name,
+	.exist,
+	.time_to_exe,
+	.info,
+	.price,
+	.basket
+	{
+		position:absolute;
+	}
+	/*Поля*/
+	.manufacturer
+	{
+		left:0;
+		width:130px;
+		text-align:left;
+		padding-left:5px;
+	}
+	.article
+	{
+		left:130px;
+		width:130px;
+		text-align:left;
+	}
+	.name
+	{
+		left:0;
+		top:40px;
+		text-align:left;
+		
+		white-space: nowrap; /* Отменяем перенос текста */
+		overflow: hidden; /* Обрезаем содержимое */
+		text-overflow: ellipsis; /* Многоточие */
+	}
+	.exist
+	{
+		left:0px;
+		top:80px;
+		width:70px;
+		text-align:right;
+	}
+	.time_to_exe
+	{
+		left:100px;
+		top:80px;
+		width:50px;
+		text-align:right;
+	}
+	.info
+	{
+		left:150px;
+		top:80px;
+		width:100px;
+		text-align:center;
+	}
+	.price
+	{
+		left:0px;
+		top:120px;
+		width:100px;
+		text-align:left;
+	}
+	.basket
+	{
+		right:0;
+		top:120px;
+		width:30px;
+		text-align:center;
+	}
+	
+	.body > .manufacturer,
+	.body >.article,
+	.body >.name,
+	.body >.exist,
+	.body >.time_to_exe,
+	.body >.info,
+	.body >.price,
+	.body >.basket
+	{
+		/*border-top:1px solid #e7b035;*/
+	}
+}
+@media screen and (min-width: 768px) and (max-width: 991px) {
+	.head
+	{
+		height:30px;
+		margin-bottom:1px;
+	}
+	.head > div
+	{
+		font-size:12px;
+		color:#5d5959;
+		background-color:#f8f5f0;
+		font-weight:bold;
+		border-bottom:2px solid #e7b035;
+		line-height:30px;
+	}
+	.body
+	{
+		height:40px;
+	}
+	.body > div
+	{
+		font-size:12px;
+		color:#5d5959;
+	}
+	.body > .price
+	{
+		font-weight:bold;
+		font-size:14px;
+	}
+	.product_record
+	{
+		position:relative;
+	}
+	.manufacturer,
+	.article,
+	.name,
+	.exist,
+	.time_to_exe,
+	.info,
+	.price,
+	.basket
+	{
+		position:absolute;
+	}
+	/*Поля*/
+	.manufacturer
+	{
+		left:0;
+		width:130px;
+		text-align:left;
+		padding-left:5px;
+	}
+	.article
+	{
+		left:130px;
+		width:130px;
+		text-align:left;
+	}
+	.name
+	{
+		left:260px;
+		width:140px;
+		text-align:left;
+		
+		white-space: nowrap; /* Отменяем перенос текста */
+		overflow: hidden; /* Обрезаем содержимое */
+		text-overflow: ellipsis; /* Многоточие */
+	}
+	.exist
+	{
+		right:280px;
+		width:70px;
+		text-align:right;
+	}
+	.time_to_exe
+	{
+		right:230px;
+		width:50px;
+		text-align:right;
+	}
+	.info
+	{
+		right:130px;
+		width:100px;
+		text-align:center;
+	}
+	.price
+	{
+		right:30px;
+		width:100px;
+		text-align:left;
+	}
+	.basket
+	{
+		right:0;
+		width:30px;
+		text-align:center;
+	}
+	
+	.body > .manufacturer,
+	.body >.article,
+	.body >.name,
+	.body >.exist,
+	.body >.time_to_exe,
+	.body >.info,
+	.body >.price,
+	.body >.basket
+	{
+		border-top:1px solid #e7b035;
+	}
+}
+@media screen and (min-width: 991px) and (max-width: 1200px) {
+	.head
+	{
+		height:30px;
+		margin-bottom:1px;
+	}
+	.head > div
+	{
+		font-size:12px;
+		color:#5d5959;
+		background-color:#f8f5f0;
+		font-weight:bold;
+		border-bottom:2px solid #e7b035;
+		line-height:30px;
+	}
+	.body
+	{
+		height:40px;
+	}
+	.body > div
+	{
+		font-size:12px;
+		color:#5d5959;
+	}
+	.body > .price
+	{
+		font-weight:bold;
+		font-size:14px;
+	}
+	.product_record
+	{
+		position:relative;
+	}
+	.manufacturer,
+	.article,
+	.name,
+	.exist,
+	.time_to_exe,
+	.info,
+	.price,
+	.basket
+	{
+		position:absolute;
+	}
+	/*Поля*/
+	.manufacturer
+	{
+		left:0;
+		width:130px;
+		text-align:left;
+		padding-left:5px;
+	}
+	.article
+	{
+		left:130px;
+		width:130px;
+		text-align:left;
+	}
+	.name
+	{
+		left:260px;
+		width:118px;
+		text-align:left;
+		
+		white-space: nowrap; /* Отменяем перенос текста */
+		overflow: hidden; /* Обрезаем содержимое */
+		text-overflow: ellipsis; /* Многоточие */
+	}
+	.exist
+	{
+		right:280px;
+		width:70px;
+		text-align:right;
+	}
+	.time_to_exe
+	{
+		right:230px;
+		width:50px;
+		text-align:right;
+	}
+	.info
+	{
+		right:130px;
+		width:100px;
+		text-align:center;
+	}
+	.price
+	{
+		right:30px;
+		width:100px;
+		text-align:left;
+	}
+	.basket
+	{
+		right:0;
+		width:30px;
+		text-align:center;
+	}
+	
+	.body > .manufacturer,
+	.body >.article,
+	.body >.name,
+	.body >.exist,
+	.body >.time_to_exe,
+	.body >.info,
+	.body >.price,
+	.body >.basket
+	{
+		border-top:1px solid #e7b035;
+	}
+}
+@media screen and (min-width: 1200px) {
+	.head
+	{
+		height:30px;
+		margin-bottom:1px;
+	}
+	.head > div
+	{
+		font-size:12px;
+		color:#5d5959;
+		background-color:#f8f5f0;
+		font-weight:bold;
+		border-bottom:2px solid #e7b035;
+		line-height:30px;
+	}
+	.body
+	{
+		height:40px;
+	}
+	.body > div
+	{
+		font-size:12px;
+		color:#5d5959;
+	}
+	.body > .price
+	{
+		font-weight:bold;
+		font-size:14px;
+	}
+	.product_record
+	{
+		position:relative;
+	}
+	.manufacturer,
+	.article,
+	.name,
+	.exist,
+	.time_to_exe,
+	.info,
+	.price,
+	.basket
+	{
+		position:absolute;
+	}
+	/*Поля*/
+	.manufacturer
+	{
+		left:0;
+		width:130px;
+		text-align:left;
+		padding-left:5px;
+	}
+	.article
+	{
+		left:130px;
+		width:130px;
+		text-align:left;
+	}
+	.name
+	{
+		left:260px;
+		width:310px;
+		text-align:left;
+		
+		white-space: nowrap; /* Отменяем перенос текста */
+		overflow: hidden; /* Обрезаем содержимое */
+		text-overflow: ellipsis; /* Многоточие */
+	}
+	.exist
+	{
+		right:280px;
+		width:70px;
+		text-align:right;
+	}
+	.time_to_exe
+	{
+		right:230px;
+		width:50px;
+		text-align:right;
+	}
+	.info
+	{
+		right:130px;
+		width:100px;
+		text-align:center;
+	}
+	.price
+	{
+		right:30px;
+		width:100px;
+		text-align:left;
+	}
+	.basket
+	{
+		right:0;
+		width:30px;
+		text-align:center;
+	}
+	
+	.body > .manufacturer,
+	.body >.article,
+	.body >.name,
+	.body >.exist,
+	.body >.time_to_exe,
+	.body >.info,
+	.body >.price,
+	.body >.basket
+	{
+		border-top:1px solid #e7b035;
+	}
+}
+
+/*Содержимое полей колонок*/
+.body > .exist > span,
+.body > .time_to_exe > span
+{
+    display: inline-block;
+    border-bottom:1px dotted #007;
+    cursor:pointer;
+}
+
+
+/*Заголовки-кнопки для упорядочивания*/
+.head > .manufacturer > span,
+.head > .article > span,
+.head > .name > span,
+.head > .exist > span,
+.head > .time_to_exe > span,
+.head > .price > span
+{
+    border-bottom:1px dotted #007;
+    cursor:pointer;
+}
+.head > .manufacturer.sorted,
+.head > .article.sorted,
+.head > .name.sorted
+{
+    background-color:#f6e7b2;
+}
+.head > .exist.sorted,
+.head > .time_to_exe.sorted,
+.head > .price.sorted
+{
+    background-color:#a7ceea;
+}
+
+
+
+
+
+
+
+
+
+/*Пиктограммы колонки Инфо*/
+.body > .info > span,
+.body > .info > A > span
+{
+    cursor: pointer;
+    display: inline-block;
+    width:15px;
+    height:15px;
+    margin-top:4px;
+    background-size:contain;
+}
+.info_office
+{
+    background: url('/content/files/images/icons/home.png');
+}
+.info_min_order
+{
+    background: url('/content/files/images/icons/warning.png');
+}
+.info_storage_caption
+{
+    background: url('/content/files/images/icons/storage.png');
+}
+.info_storage_product_page
+{
+    background: url('/content/files/images/icons/camera.png');
+}
+
+
+
+/*Название блока*/
+.block_caption
+{
+    padding:4px;
+    text-align:right;
+    font-weight:bold;
+    font-size:16px;
+    border-bottom:1px solid #e7b035;
+}
+
+
+/*Кнопка Показать/Скрыть*/
+.show_hide_button
+{
+    position:absolute;
+    left:0;
+    width:130px;
+    text-align:left;
+    padding-left:5px;
+    margin-top:15px;
+    text-align:left;
+}
+.show_hide_button > span
+{
+    display: inline-block;
+    border-bottom:1px dotted #58af4f;
+    color:#58af4f;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+
+

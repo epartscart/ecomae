@@ -1,0 +1,443 @@
+
+body {
+   padding: 0 !important;
+}
+
+
+#UCatalog_container{
+	padding: 0;
+	margin: 0;
+}
+#UCatalog_container > div:first-child{
+    margin-top: 30px;
+}
+#UCatalog_container > div:last-child{
+    margin-bottom: 0px;
+}
+
+
+
+
+.UCatalog_breadcrumbs{
+	margin-bottom: 20px;
+    border-bottom: 1px solid #e4e4e4;
+}
+.UCatalog_breadcrumbs > div{
+	display:inline-block;
+	padding: 8px 0px 6px 0px;
+	cursor:pointer;
+	position: relative;
+}
+.UCatalog_breadcrumbs > div:hover:after{
+	content: '';
+    display: inline-block;
+    height: 1px;
+    background: #e4e4e4;
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    bottom: 8px;
+}
+
+
+
+
+.UCatalog_nav_box{
+	overflow-x: auto;
+}
+.UCatalog_nav_tabs{
+	padding: 0;
+	margin: 0;
+    margin-bottom: 20px;
+    border: 0;
+    border-bottom: 1px solid #e4e4e4;
+	white-space: nowrap;
+}
+.UCatalog_nav_tabs li{
+	padding: 0;
+    margin: 0;
+    border: 0;
+    list-style: none;
+    list-style-type: none;
+    display: inline-block;
+    border-radius: 4px 4px 0px 0px;
+	border: 1px solid transparent;
+	border-bottom: 1px solid #e4e4e4;
+    padding: 7px 17px 5px 17px;
+    position: relative;
+    bottom: -1px;
+	cursor: pointer;
+}
+.UCatalog_nav_tabs li:hover{
+	background: #f2f2f2;
+	border-color:#e4e4e4;
+}
+.UCatalog_nav_tabs .active{
+	background: #fff;
+	border: 1px solid #e4e4e4;
+	border-bottom: 1px solid #fff;
+	z-index: 2;
+}
+.UCatalog_nav_tabs .active:hover{
+	background: #fff;
+	border-bottom: 1px solid #fff;
+}
+
+
+
+
+
+.UCatalog_nav_letters{
+	padding: 0;
+	margin: 0;
+    margin-bottom: 20px;
+    border: 0;
+	white-space: nowrap;
+	font-size: 0;
+	overflow-x: auto;
+}
+.UCatalog_nav_letters li{
+	width: 35px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    list-style: none;
+    list-style-type: none;
+    display: inline-block;
+    border-radius: 0px;
+    border: 1px solid #e4e4e4;
+    border-right: 0;
+    padding: 7px 0px 5px 0px;
+    line-height: 1em;
+    cursor: pointer;
+    font-size: 14px;
+}
+.UCatalog_nav_letters li:first-child{
+	border-radius:4px 0px 0px 4px;
+}
+.UCatalog_nav_letters li:last-child{
+	border-radius:0px 4px 4px 0px;
+	border-right: 1px solid #e4e4e4;
+}
+.UCatalog_nav_letters li:hover{
+	background: #f2f2f2;
+	cursor:pointer;
+}
+.UCatalog_nav_letters #UCatalog_nav_letter_popular, .UCatalog_nav_letters #UCatalog_nav_letter_all{
+	width:auto;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+.UCatalog_nav_letters .active{
+	background: #f2f2f2;
+}
+
+
+
+
+.UCatalog_nav_filters{
+	padding: 0;
+	margin: 0;
+    margin-bottom: 20px;
+    border: 0;
+	white-space: nowrap;
+	font-size: 0;
+	overflow-x: auto;
+}
+.UCatalog_nav_filters li{
+    padding: 0;
+    margin: 0;
+    border: 0;
+    list-style: none;
+    list-style-type: none;
+    display: inline-block;
+    border-radius: 0px;
+    border: 1px solid #e4e4e4;
+    border-right: 0;
+    padding: 7px 17px 5px 17px;
+    line-height: 1em;
+    cursor: pointer;
+    font-size: 14px;
+}
+.UCatalog_nav_filters li:first-child{
+	padding-left: 10px;
+    padding-right: 10px;
+	border-radius:4px 0px 0px 4px;
+}
+.UCatalog_nav_filters li:last-child{
+	border-radius:0px 4px 4px 0px;
+	border-right: 1px solid #e4e4e4;
+}
+.UCatalog_nav_filters li:hover{
+	background: #f2f2f2;
+	cursor:pointer;
+}
+.UCatalog_nav_filters .active{
+	background: #f2f2f2;
+}
+
+
+
+.UCatalog_tab_element > div{
+	display: block;
+    border: 1px solid #e4e4e4;
+    padding: 10px 10px 7px 10px;
+    line-height: 1em;
+	margin-bottom: 5px;
+	cursor: pointer;
+}
+.UCatalog_tab_element > div:hover{
+	background: #f2f2f2;
+}
+.UCatalog_tab_element > div > div{
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow: ellipsis;
+}
+.UCatalog_tab_element > div > div small{
+	color:#979797;
+	font-size: 11px;
+}
+
+
+
+
+
+.UCatalog_modifications{
+	border: 1px solid #e4e4e4;
+    border-top: 0;
+    padding-top: 10px;
+    padding-bottom: 6px;
+	position: relative;
+}
+.UCatalog_modifications:hover{
+	background:#f2f2f2;
+}
+.UCatalog_modifications .btn_primary{
+	border: 1px solid #e4e4e4;
+    display: inline-block;
+    line-height: 1em;
+    padding: 7px 10px 7px 10px;
+    position: absolute;
+    right: 5px;
+    top: 0px;
+    border-radius: 4px;
+	cursor:pointer;
+}
+.UCatalog_modifications:hover .btn_primary{
+	background: #fff;
+}
+.UCatalog_modifications .btn_property{
+	border: 1px solid #e4e4e4;
+    display: inline-block;
+    line-height: 1em;
+    padding: 7px 10px 7px 10px;
+    position: absolute;
+    right: 92px;
+    top: 0px;
+    border-radius: 4px;
+	cursor:pointer;
+}
+.UCatalog_modifications:hover .btn_property{
+	background: #fff;
+}
+.UCatalog_modifications_property{
+	display:none;
+    border: 1px solid #ddd;
+    border-top: none;
+    background: #fbfbfb;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    line-height: 1.3em;
+}
+.UCatalog_modifications_property > div > div{
+	margin-bottom:10px;
+}
+
+
+
+
+
+
+
+
+.UCatalog_tree, 
+.UCatalog_tree ul,
+.UCatalog_tree li {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  list-style: none;
+}
+.UCatalog_tree ul {
+  margin: 0 0 0 .5em; /* вести линию вниз где-то с полбуквы родителя */
+}
+.UCatalog_tree > li:not(:only-child),
+.UCatalog_tree li li {
+  position: relative;
+  padding: .2em 0 0 1.2em; /* отступ до текста; для раскрывающегося списка в ряде случаев (в Хроме есть баг) padding-top (.2em) лучше указывать в px */
+	cursor: pointer;
+}
+.UCatalog_tree li:not(:last-child) {
+  border-left: 1px solid #ccc; /* толщина, цвет и стиль (вместо сплошной пунктирная или точечная) вертикальной линии */
+}
+.UCatalog_tree li li:before,
+.UCatalog_tree > li:not(:only-child):before { /* горизонтальная линия */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1.1em; /* не более отступа до текста (1.2em) */
+  height: .7em; /* начинается приблизительно с половины высоты буквы (.5em + .2em) */
+  border-bottom: 1px solid #ccc;
+}
+.UCatalog_tree li:last-child:before { /* вертикальная линия последнего пункта в каждом списке */
+  width: calc(1.1em - 1px); /* для перфекционистов */
+  border-left: 1px solid #ccc;
+}
+
+
+
+.UCatalog_tree .UCatalog_tree_drop {
+  position: absolute;
+  left: -.5em;
+  top: .4em; /* .2em (font-size: 80%;) + .2em (padding из .UCatalog_tree li li) */
+  width: .9em;
+  height: .9em;
+  line-height: .9em;
+  text-align: center;
+  background: #fff;
+  font-size: 80%;
+  cursor: pointer;
+}
+.UCatalog_tree li:last-child > .UCatalog_tree_drop {
+  margin-left: 1px;
+}
+.UCatalog_tree .UCatalog_tree_drop + div + ul {
+  display: none;
+}
+.UCatalog_tree .UCatalog_tree_drop_open + div + ul {
+  display: block;
+}
+
+.UCatalog_tree .UCatalog_tree_caption:hover{
+	text-decoration: underline;
+}
+
+
+
+
+#UCatalog_parts .table tr:hover{
+	background: #f2f2f2;
+}
+#UCatalog_parts .btn_primary, #UCatalog_modal_products_info_body .btn_primary, .UCatalog_breadcrumbs .btn_primary, #UCatalog_add_bloknot_btn .btn_primary{
+	background: #fff;
+	border: 1px solid #e4e4e4;
+    display: inline-block;
+    line-height: 1em;
+    padding: 7px 10px 7px 10px;
+    border-radius: 4px;
+	cursor:pointer;
+	position: relative;
+}
+
+.UCatalog_breadcrumbs .btn_primary, #UCatalog_add_bloknot_btn .btn_primary{
+	float: right;
+    position: relative;
+    top: 4px;
+}
+
+
+
+
+
+
+
+.UCatalog_garage_btn{
+	position: absolute; 
+	top: 12px; 
+	right: 17px; 
+	text-align: right;
+	cursor:pointer;
+}
+.UCatalog_garage_btn + div{
+	position: absolute; 
+	top: 38px; 
+	right: 15px; 
+	background: #fff; 
+	border: 1px solid #e4e4e4;
+	z-index: 2;
+	display:none;
+	max-height: 300px;
+    overflow-y: auto;
+}
+.UCatalog_garage_btn + div > div{
+	padding:3px 10px;
+	cursor:pointer;
+	border-bottom: 1px solid #e4e4e4;
+}
+.UCatalog_garage_btn + div > div:last-child{
+	border-bottom: none;
+}
+.UCatalog_garage_btn + div > div:hover{
+	background:#f2f2f2;
+}
+
+#UCatalog_add_bloknot_msg{
+	display: inline-block;
+    margin-right: 15px;
+}
+
+
+
+
+
+
+
+
+@media (max-width: 400px) {
+	.UCatalog_nav_box{
+		margin-right: 32px;
+	}
+	.UCatalog_garage_btn {
+		position: absolute;
+		top: 10px;
+		right: 17px;
+		text-align: right;
+		cursor: pointer;
+		border-bottom: 1px solid #e4e4e4;
+		width: 31px;
+		padding-bottom: 4px;
+	}
+}
+
+
+
+@media (max-width: 991px) {
+	.UCatalog_tree{
+		margin-bottom:20px;
+	}
+}
+@media (max-width: 600px) {
+	#UCatalog_parts > .table{
+		margin-top:30px;
+	}
+	#UCatalog_parts > .table>tbody>tr>td, 
+	#UCatalog_parts > .table>tbody>tr>th, 
+	#UCatalog_parts > .table>tfoot>tr>td, 
+	#UCatalog_parts > .table>tfoot>tr>th, 
+	#UCatalog_parts > .table>thead>tr>td, 
+	#UCatalog_parts > .table>thead>tr>th {
+		display: block;
+		padding: 1px 0px;
+	}
+	#UCatalog_parts > .table>tbody>tr>td:last-child {
+		padding-bottom: 30px;
+	}
+	
+	.UCatalog_breadcrumbs  .btn_primary {
+		margin-bottom: 20px;
+	}
+}
+

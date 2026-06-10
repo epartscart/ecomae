@@ -1,0 +1,4 @@
+Options +ExecCGI
+AddHandler cgi-script .py
+SetEnv PYTHONIOENCODING utf-8
+SetEnv LANG ru_RU.UTF-8

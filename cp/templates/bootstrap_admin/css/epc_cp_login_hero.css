@@ -1,0 +1,516 @@
+/**
+ * CP login split layout — animated ECOM AE hub hero (left) + form (right).
+ * Animation runs only here; narrow CP/ERP shells use static marks.
+ */
+.epc-cp-login-hero {
+	--epc-login-navy: #0f172a;
+	--epc-login-navy-mid: #1e293b;
+	--epc-login-navy-deep: #0c4a6e;
+	--epc-login-cyan: #22d3ee;
+	--epc-login-blue: #0ea5e9;
+}
+
+.epc-cp-login-hero .epc-cp-login-shell {
+	min-height: 100vh;
+}
+
+/* Left hero panel — dark marketing gradient */
+.epc-cp-login-hero .epc-cp-login-brand {
+	flex: 1 1 52%;
+	min-width: 300px;
+	background:
+		radial-gradient(ellipse 80% 60% at 15% 85%, rgba(34, 211, 238, 0.14) 0%, transparent 55%),
+		radial-gradient(ellipse 70% 50% at 85% 15%, rgba(14, 165, 233, 0.18) 0%, transparent 50%),
+		linear-gradient(155deg, #020617 0%, var(--epc-login-navy) 38%, #1e3a8a 72%, var(--epc-login-navy-deep) 100%);
+	padding: 48px 56px 56px;
+	position: relative;
+	overflow: hidden;
+}
+
+.epc-cp-login-hero .epc-cp-login-brand::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background:
+		radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
+		radial-gradient(circle at 80% 20%, rgba(20, 184, 166, 0.12) 0%, transparent 40%);
+	pointer-events: none;
+}
+
+.epc-cp-login-hero .epc-cp-login-brand::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	opacity: 0.04;
+	background-image:
+		linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+	background-size: 48px 48px;
+	pointer-events: none;
+}
+
+.epc-cp-login-hero .epc-cp-login-brand-inner {
+	position: relative;
+	z-index: 1;
+	max-width: 480px;
+	width: 100%;
+	color: #fff;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.epc-cp-login-hero .epc-cp-login-brand-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: rgba(34, 211, 238, 0.12);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(34, 211, 238, 0.35);
+	border-radius: 999px;
+	padding: 7px 16px;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	margin-bottom: 20px;
+	color: var(--epc-login-cyan);
+	box-shadow: 0 0 24px rgba(34, 211, 238, 0.12);
+}
+
+.epc-cp-login-hero .epc-cp-login-brand h1 {
+	color: #fff;
+	font-size: clamp(28px, 3.5vw, 40px);
+	font-weight: 800;
+	line-height: 1.12;
+	margin: 0 0 12px;
+	letter-spacing: -0.03em;
+	text-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
+}
+
+.epc-cp-login-hero .epc-cp-login-brand p.epc-cp-login-brand-sub {
+	color: rgba(226, 232, 240, 0.92);
+	font-size: 16px;
+	line-height: 1.55;
+	margin: 0 0 8px;
+	font-weight: 500;
+}
+
+.epc-cp-login-hero .epc-cp-login-brand p.epc-cp-login-brand-tagline {
+	color: rgba(148, 163, 184, 0.95);
+	font-size: 13px;
+	line-height: 1.5;
+	margin: 0 0 28px;
+	font-weight: 500;
+}
+
+/* Animated hub — full orbit, adequate space */
+.epc-cp-login-hero .epc-cp-login-visual {
+	margin: 8px 0 28px;
+	padding: 28px 24px 32px;
+	background: rgba(2, 6, 23, 0.45);
+	border: 1px solid rgba(34, 211, 238, 0.22);
+	border-radius: 20px;
+	box-shadow:
+		0 24px 48px rgba(2, 6, 23, 0.45),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	max-width: 100%;
+	width: 100%;
+	min-height: 320px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: visible;
+}
+
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login,
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login-panel {
+	--ech-orbit-r: min(38vw, 140px);
+	max-width: min(100%, 380px);
+	min-height: 300px;
+	margin: 0 auto;
+}
+
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login-panel {
+	--ech-orbit-r: 100px;
+	max-width: 280px;
+	min-width: 240px;
+	min-height: 220px;
+}
+
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login .ech-hub__title,
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login-panel .ech-hub__title {
+	font-size: clamp(16px, 2.5vw, 20px);
+}
+
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login .ech-hub__tagline,
+.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login-panel .ech-hub__tagline {
+	display: none;
+}
+
+.epc-cp-login-hero .epc-cp-login-features {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+.epc-cp-login-hero .epc-cp-login-features li {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 14px;
+	font-weight: 500;
+	margin-bottom: 12px;
+}
+
+.epc-cp-login-hero .epc-cp-login-features li i {
+	width: 34px;
+	height: 34px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(14, 165, 233, 0.2);
+	border: 1px solid rgba(34, 211, 238, 0.25);
+	border-radius: 9px;
+	font-size: 14px;
+	color: var(--epc-login-cyan);
+}
+
+/* Right form panel */
+.epc-cp-login-hero .epc-cp-login-panel {
+	flex: 1 1 48%;
+	background: #f8fafc;
+	padding: 48px 40px;
+	min-width: 280px;
+}
+
+.epc-cp-login-hero .epc-cp-login-panel .login-container .hpanel > .panel-body {
+	border-radius: 16px;
+	box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+	padding: 36px 32px;
+}
+
+.epc-cp-login-hero .epc-cp-login-panel .login-container h3 {
+	font-size: 24px;
+}
+
+.epc-cp-login-hero .epc-cp-login-panel .btn-success {
+	background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+	box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+}
+
+.epc-cp-login-hero .epc-cp-login-panel .btn-success:hover {
+	background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
+}
+
+/* CP type accents */
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-brand-badge {
+	border-color: rgba(56, 189, 248, 0.5);
+}
+
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-brand-badge {
+	background: rgba(16, 185, 129, 0.15);
+	border-color: rgba(52, 211, 153, 0.4);
+	color: #6ee7b7;
+}
+
+@media (max-width: 960px) {
+	.epc-cp-login-hero .epc-cp-login-shell {
+		flex-direction: column;
+	}
+
+	.epc-cp-login-hero .epc-cp-login-brand {
+		flex: none;
+		padding: 36px 28px 32px;
+	}
+
+	.epc-cp-login-hero .epc-cp-login-visual {
+		min-height: 260px;
+		padding: 20px 16px 24px;
+	}
+
+	.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login,
+	.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login-panel {
+		--ech-orbit-r: 118px;
+		min-height: 240px;
+	}
+
+	.epc-cp-login-hero .epc-cp-login-visual .ech-hub--login-panel {
+		--ech-orbit-r: 92px;
+		min-height: 200px;
+		max-width: 100%;
+	}
+
+	.epc-cp-login-hero .epc-cp-login-features {
+		display: none;
+	}
+
+	.epc-cp-login-hero .epc-cp-login-panel {
+		padding: 32px 24px 40px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.epc-cp-login-hero .ech-hub__orbit-spin,
+	.epc-cp-login-hero .ech-hub__node-inner,
+	.epc-cp-login-hero .ech-hub__core-pulse,
+	.epc-cp-login-hero .ech-hub__logo,
+	.epc-cp-login-hero .ech-hub__glow,
+	.epc-cp-login-hero .ech-hub__node-tile {
+		animation: none !important;
+	}
+}
+
+/* ── Centered card login — tenant CPs, Super CP, client ERP ── */
+.epc-cp-login-hero.epc-cp-login--tenant,
+.epc-cp-login-hero.epc-cp-login--super,
+.epc-cp-login-hero.epc-cp-login--client_erp,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only,
+.epc-cp-login-hero.epc-cp-login--platform_erp {
+	background:
+		radial-gradient(ellipse 80% 60% at 15% 85%, rgba(34, 211, 238, 0.12) 0%, transparent 55%),
+		radial-gradient(ellipse 70% 50% at 85% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 50%),
+		linear-gradient(155deg, #020617 0%, #0f172a 38%, #1e3a8a 72%, #0c4a6e 100%);
+	min-height: 100vh;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .color-line,
+.epc-cp-login-hero.epc-cp-login--super .color-line,
+.epc-cp-login-hero.epc-cp-login--client_erp .color-line,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .color-line,
+.epc-cp-login-hero.epc-cp-login--platform_erp .color-line {
+	display: none;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-shell,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-shell,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-shell,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-shell,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-shell {
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 28px 20px 40px;
+	min-height: 100vh;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-brand,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-brand,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-brand,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-brand,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-brand {
+	display: none;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-panel,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-panel,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-panel,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-panel,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-panel {
+	flex: none;
+	width: 100%;
+	max-width: 440px;
+	padding: 0;
+	background: transparent;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-container,
+.epc-cp-login-hero.epc-cp-login--super .login-container,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-container,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-container {
+	max-width: 100%;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-card-head,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-card-head,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-card-head,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-card-head,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-card-head {
+	text-align: center;
+	margin-bottom: 18px;
+	color: #fff;
+}
+
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-card-head__logo {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 14px;
+}
+
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-card-head__logo .ech-static--compact {
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-card-head__badge,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-card-head__badge,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-card-head__badge,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-card-head__badge,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-card-head__badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: rgba(34, 211, 238, 0.12);
+	border: 1px solid rgba(34, 211, 238, 0.35);
+	border-radius: 999px;
+	padding: 6px 14px;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #22d3ee;
+	margin-bottom: 12px;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-card-head h1,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-card-head h1,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-card-head h1,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-card-head h1,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-card-head h1 {
+	margin: 0 0 6px;
+	font-size: clamp(22px, 4vw, 28px);
+	font-weight: 800;
+	color: #fff;
+	letter-spacing: -0.03em;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-card-head p,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-card-head p,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-card-head p,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-card-head p,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-card-head p {
+	margin: 0;
+	font-size: 14px;
+	color: rgba(226, 232, 240, 0.9);
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-container .hpanel > .panel-body,
+.epc-cp-login-hero.epc-cp-login--super .login-container .hpanel > .panel-body,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-container .hpanel > .panel-body,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container .hpanel > .panel-body,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-container .hpanel > .panel-body {
+	border-radius: 18px;
+	border: 1px solid rgba(226, 232, 240, 0.9);
+	box-shadow:
+		0 24px 48px rgba(2, 6, 23, 0.35),
+		0 0 0 1px rgba(255, 255, 255, 0.04);
+	padding: 32px 28px 28px;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-container h3,
+.epc-cp-login-hero.epc-cp-login--super .login-container h3,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-container h3,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container h3,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-container h3 {
+	display: none;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-container .text-center.m-b-md,
+.epc-cp-login-hero.epc-cp-login--super .login-container .text-center.m-b-md,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-container .text-center.m-b-md,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container .text-center.m-b-md,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-container .text-center.m-b-md {
+	display: none;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-container .btn-success,
+.epc-cp-login-hero.epc-cp-login--super .login-container .btn-success,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-container .btn-success,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container .btn-success,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-container .btn-success {
+	background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+	border: none;
+	box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-container .btn-success:hover,
+.epc-cp-login-hero.epc-cp-login--super .login-container .btn-success:hover,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-container .btn-success:hover,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container .btn-success:hover,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-container .btn-success:hover {
+	background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-features--card,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-features--card,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-features--card,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-features--card,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-features--card {
+	list-style: none;
+	padding: 0;
+	margin: 20px 0 0;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 8px;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-features--card li,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-features--card li,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-features--card li,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-features--card li,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-features--card li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #64748b;
+	margin: 0;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-features--card li i,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-features--card li i,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-features--card li i,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-features--card li i,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-features--card li i {
+	width: 28px;
+	height: 28px;
+	font-size: 12px;
+	background: #e0f2fe;
+	color: #0369a1;
+	border-radius: 8px;
+	border: none;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-footer,
+.epc-cp-login-hero.epc-cp-login--super .login-footer,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-footer,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-footer,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-footer,
+.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-hosted,
+.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-hosted,
+.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-hosted,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-hosted,
+.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-hosted {
+	color: rgba(148, 163, 184, 0.95) !important;
+}
+
+.epc-cp-login-hero.epc-cp-login--tenant .login-footer a,
+.epc-cp-login-hero.epc-cp-login--super .login-footer a,
+.epc-cp-login-hero.epc-cp-login--client_erp .login-footer a,
+.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-footer a,
+.epc-cp-login-hero.epc-cp-login--platform_erp .login-footer a {
+	color: #7dd3fc;
+}
+
+@media (max-width: 480px) {
+	.epc-cp-login-hero.epc-cp-login--tenant .epc-cp-login-shell,
+	.epc-cp-login-hero.epc-cp-login--super .epc-cp-login-shell,
+	.epc-cp-login-hero.epc-cp-login--client_erp .epc-cp-login-shell,
+	.epc-cp-login-hero.epc-cp-login--demo_erp_only .epc-cp-login-shell,
+	.epc-cp-login-hero.epc-cp-login--platform_erp .epc-cp-login-shell {
+		padding: 20px 14px 32px;
+	}
+
+	.epc-cp-login-hero.epc-cp-login--tenant .login-container .hpanel > .panel-body,
+	.epc-cp-login-hero.epc-cp-login--super .login-container .hpanel > .panel-body,
+	.epc-cp-login-hero.epc-cp-login--client_erp .login-container .hpanel > .panel-body,
+	.epc-cp-login-hero.epc-cp-login--demo_erp_only .login-container .hpanel > .panel-body,
+	.epc-cp-login-hero.epc-cp-login--platform_erp .login-container .hpanel > .panel-body {
+		padding: 24px 20px 22px;
+	}
+}

@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/templates/nero/$  [NC]
+RewriteRule ^(.*)$ http://%{HTTP_HOST} [L,R=302]

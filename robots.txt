@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /shop/part_search
+Disallow: /shop/cart
+Disallow: /shop/orders
+Disallow: /shop/balans
+Disallow: /users
+Disallow: /cp
+Disallow: /*/parts/brands/
+Disallow: /*/parts/all/
+
+Sitemap: /sitemap-index.php

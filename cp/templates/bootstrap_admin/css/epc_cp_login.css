@@ -1,0 +1,89 @@
+/**
+ * CP login page — modern auth + centered card polish (tenant + Super CP).
+ */
+.epc-cp-login--tenant .epc-cp-auth-title,
+.epc-cp-login--super .epc-cp-auth-title,
+.epc-cp-login--client_erp .epc-cp-auth-title,
+.epc-cp-login--demo_erp_only .epc-cp-auth-title,
+.epc-cp-login--platform_erp .epc-cp-auth-title {
+	display: none;
+}
+
+.epc-cp-login--tenant .epc-cp-auth-hint,
+.epc-cp-login--super .epc-cp-auth-hint,
+.epc-cp-login--client_erp .epc-cp-auth-hint,
+.epc-cp-login--demo_erp_only .epc-cp-auth-hint,
+.epc-cp-login--platform_erp .epc-cp-auth-hint {
+	margin: 0 0 14px;
+	font-size: 13px;
+	color: #64748b;
+}
+
+.epc-cp-login--tenant .epc-cp-auth-modern,
+.epc-cp-login--super .epc-cp-auth-modern,
+.epc-cp-login--client_erp .epc-cp-auth-modern,
+.epc-cp-login--demo_erp_only .epc-cp-auth-modern,
+.epc-cp-login--platform_erp .epc-cp-auth-modern {
+	margin-bottom: 0;
+}
+
+.epc-cp-login--tenant .epc-cp-auth-tabs,
+.epc-cp-login--super .epc-cp-auth-tabs,
+.epc-cp-login--client_erp .epc-cp-auth-tabs,
+.epc-cp-login--demo_erp_only .epc-cp-auth-tabs,
+.epc-cp-login--platform_erp .epc-cp-auth-tabs {
+	margin-bottom: 16px;
+}
+
+.epc-cp-login--tenant .epc-cp-auth-tab.is-active,
+.epc-cp-login--super .epc-cp-auth-tab.is-active,
+.epc-cp-login--client_erp .epc-cp-auth-tab.is-active,
+.epc-cp-login--demo_erp_only .epc-cp-auth-tab.is-active,
+.epc-cp-login--platform_erp .epc-cp-auth-tab.is-active {
+	border-color: #0ea5e9;
+	color: #0369a1;
+	box-shadow: 0 1px 4px rgba(14, 165, 233, 0.2);
+}
+
+.epc-cp-login--tenant .epc-cp-auth-continue-email,
+.epc-cp-login--super .epc-cp-auth-continue-email,
+.epc-cp-login--client_erp .epc-cp-auth-continue-email,
+.epc-cp-login--demo_erp_only .epc-cp-auth-continue-email,
+.epc-cp-login--platform_erp .epc-cp-auth-continue-email {
+	background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+	border: none;
+	color: #fff;
+	font-weight: 700;
+	border-radius: 10px;
+	padding: 12px;
+}
+
+.epc-cp-login--tenant .epc-cp-auth-continue-email:hover,
+.epc-cp-login--tenant .epc-cp-auth-continue-email:focus,
+.epc-cp-login--super .epc-cp-auth-continue-email:hover,
+.epc-cp-login--super .epc-cp-auth-continue-email:focus,
+.epc-cp-login--client_erp .epc-cp-auth-continue-email:hover,
+.epc-cp-login--client_erp .epc-cp-auth-continue-email:focus,
+.epc-cp-login--demo_erp_only .epc-cp-auth-continue-email:hover,
+.epc-cp-login--demo_erp_only .epc-cp-auth-continue-email:focus,
+.epc-cp-login--platform_erp .epc-cp-auth-continue-email:hover,
+.epc-cp-login--platform_erp .epc-cp-auth-continue-email:focus {
+	background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
+	color: #fff;
+}
+
+/* Single email field — hide legacy phone/email toggle on centered login */
+.epc-cp-login--tenant #login_form > .form-group:first-child,
+.epc-cp-login--super #login_form > .form-group:first-child,
+.epc-cp-login--client_erp #login_form > .form-group:first-child,
+.epc-cp-login--demo_erp_only #login_form > .form-group:first-child,
+.epc-cp-login--platform_erp #login_form > .form-group:first-child {
+	display: none;
+}
+
+.epc-cp-login .epc-cp-auth-title {
+	font-size: 17px;
+	font-weight: 700;
+	color: #111;
+	margin: 0 0 8px;
+}

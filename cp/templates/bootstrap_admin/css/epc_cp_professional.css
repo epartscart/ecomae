@@ -1,0 +1,5711 @@
+/**
+ * CP professional shell — topbar strip, sidebar polish, content cards.
+ */
+
+/* ══════════════════════════════════════
+   Corporate blue tokens (--epc-blue-*, --epc-sidebar-*)
+   Applied on all CP / ERP shells via .epc-cp--blue-theme
+   ══════════════════════════════════════ */
+.epc-cp--blue-theme,
+.epc-cp.epc-cp--blue-theme,
+body.epc-cp-shell.epc-cp--blue-theme {
+	--epc-blue-950: #082f49;
+	--epc-blue-900: #0c4a6e;
+	--epc-blue-800: #075985;
+	--epc-blue-700: #0369a1;
+	--epc-blue-600: #0284c7;
+	--epc-blue-500: #0ea5e9;
+	--epc-blue-400: #38bdf8;
+	--epc-blue-100: #e0f2fe;
+	--epc-blue-50: #f0f9ff;
+	--epc-sidebar-from: #0c4a6e;
+	--epc-sidebar-to: #0369a1;
+	--epc-sidebar-mid: #075985;
+	--epc-sidebar-hover: #0ea5e9;
+	--epc-sidebar-active-bg: rgba(56, 189, 248, 0.22);
+	--epc-sidebar-text: #bae6fd;
+	--epc-sidebar-muted: #7dd3fc;
+	--epc-sidebar-border: rgba(255, 255, 255, 0.1);
+
+	--epc-cp-primary: #2563eb;
+	--epc-cp-primary-dark: #1d4ed8;
+	--epc-cp-primary-deep: #1e3a8a;
+	--epc-cp-accent: var(--epc-blue-500);
+	--epc-cp-sidebar-bg: var(--epc-blue-900);
+	--epc-cp-sidebar-mid: var(--epc-sidebar-mid);
+	--epc-cp-sidebar-hover: var(--epc-blue-700);
+	--epc-cp-sidebar-text: var(--epc-sidebar-text);
+	--epc-cp-sidebar-muted: var(--epc-sidebar-muted);
+	--epc-cp-sidebar-active: #ffffff;
+	--epc-cp-header-bg: rgba(255, 255, 255, 0.98);
+	--epc-cp-body-bg: var(--epc-blue-50);
+	--epc-cp-border-light: #f8fafc;
+	--epc-cp-gradient: linear-gradient(135deg, var(--epc-blue-900) 0%, var(--epc-cp-primary) 45%, var(--epc-blue-500) 100%);
+	--epc-cp-gradient-sidebar: linear-gradient(180deg, var(--epc-sidebar-from) 0%, var(--epc-sidebar-to) 100%);
+}
+
+/* Sidebar + header — unified blue (all industries / tenants) */
+body.epc-cp--blue-theme.epc-cp-shell #menu,
+body.epc-cp--blue-theme.epc-cp #menu {
+	background: var(--epc-cp-gradient-sidebar) !important;
+	border-right: 1px solid var(--epc-sidebar-border);
+}
+
+body.epc-cp--blue-theme.epc-cp #side-menu > li > a {
+	color: rgba(255, 255, 255, 0.9);
+}
+
+body.epc-cp--blue-theme.epc-cp #side-menu > li.active > a,
+body.epc-cp--blue-theme.epc-cp #side-menu > li > a:hover {
+	background: var(--epc-sidebar-active-bg);
+	color: #fff;
+	border-left-color: var(--epc-blue-400);
+}
+
+body.epc-cp--blue-theme.epc-cp #side-menu ul.nav-second-level {
+	background: rgba(8, 47, 73, 0.35);
+}
+
+body.epc-cp--blue-theme.epc-cp #wrapper {
+	background: var(--epc-cp-body-bg);
+}
+
+body.epc-cp--blue-theme.epc-cp #header {
+	background: var(--epc-cp-header-bg);
+	border-bottom: 1px solid #bae6fd;
+	box-shadow: 0 1px 0 rgba(14, 165, 233, 0.08), 0 4px 16px rgba(12, 74, 110, 0.06);
+}
+
+body.epc-cp--blue-theme.epc-cp .color-line {
+	background: linear-gradient(90deg, var(--epc-blue-700) 0%, var(--epc-blue-500) 50%, var(--epc-blue-400) 100%);
+}
+
+body.epc-cp--blue-theme .epc-cp-topbar-role--erp,
+body.epc-cp--blue-theme .epc-cp-page-header__role--client_erp,
+body.epc-cp--blue-theme .epc-cp-page-header__role--erp {
+	background: rgba(37, 99, 235, 0.1);
+	border-color: rgba(37, 99, 235, 0.28);
+	color: #1d4ed8;
+}
+
+body.epc-cp--blue-theme .epc-cp-topbar-role--super {
+	background: rgba(14, 165, 233, 0.12);
+	border-color: rgba(14, 165, 233, 0.35);
+	color: var(--epc-blue-700);
+}
+
+/* Main pane fit — full content column, no void / horizontal scroll */
+body.epc-cp--blue-theme.epc-cp-shell:not(.epc-erp-standalone) #wrapper {
+	box-sizing: border-box;
+	width: auto;
+	max-width: 100%;
+}
+
+body.epc-cp--blue-theme.epc-cp-shell:not(.epc-erp-standalone) .content {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	padding: 16px 20px 40px;
+	min-height: auto;
+}
+
+body.epc-cp--blue-theme.epc-cp-shell:not(.epc-erp-standalone) .content > .row {
+	width: 100%;
+	max-width: 100%;
+	margin-left: 0;
+	margin-right: 0;
+	min-height: auto;
+}
+
+body.epc-cp--blue-theme.epc-cp-shell .content > .row > [class*="col-"],
+body.epc-cp--blue-theme.epc-cp-shell .content > .row > div {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+body.epc-cp--blue-theme .epc-cp .hpanel > .panel-body,
+body.epc-cp--blue-theme .epc-cp .hpanel .panel-body {
+	border-color: #e0f2fe;
+	box-shadow: 0 1px 2px rgba(12, 74, 110, 0.05), 0 4px 16px rgba(12, 74, 110, 0.04);
+}
+
+body.epc-cp--blue-theme .epc-cp .btn-primary {
+	background: linear-gradient(135deg, var(--epc-cp-primary) 0%, var(--epc-blue-500) 100%);
+	border: none;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.32);
+}
+
+body.epc-cp--blue-theme .epc-cp-auth-tab.is-active {
+	border-color: var(--epc-blue-500);
+	color: var(--epc-blue-700);
+	box-shadow: 0 1px 4px rgba(14, 165, 233, 0.2);
+}
+
+.epc-cp-shell #header {
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.epc-cp-topbar-strip {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin-left: 4px;
+	padding: 6px 0;
+	vertical-align: middle;
+}
+
+.epc-cp-topbar-company {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--epc-cp-text, #0f172a);
+	letter-spacing: -0.01em;
+	max-width: 220px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.epc-cp-topbar-role {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 10px;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	border-radius: 999px;
+	background: rgba(14, 165, 233, 0.12);
+	border: 1px solid rgba(14, 165, 233, 0.35);
+	color: #0369a1;
+}
+
+.epc-cp-topbar-role--super {
+	background: rgba(99, 102, 241, 0.12);
+	border-color: rgba(99, 102, 241, 0.35);
+	color: #4338ca;
+}
+
+.epc-cp-topbar-role--erp {
+	background: rgba(37, 99, 235, 0.1);
+	border-color: rgba(37, 99, 235, 0.28);
+	color: #1d4ed8;
+}
+
+.epc-cp #side-menu > li.nav-header,
+.epc-cp #side-menu li.nav-header {
+	padding: 16px 18px 6px;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: rgba(148, 163, 184, 0.85);
+	background: transparent;
+	border-bottom: none;
+}
+
+.epc-cp #side-menu li.active > a {
+	box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.08);
+}
+
+.epc-cp #side-menu li.active > a i,
+.epc-cp #side-menu li.active > a .fa {
+	color: var(--epc-cp-accent, #0ea5e9);
+	text-shadow: 0 0 12px rgba(14, 165, 233, 0.45);
+}
+
+.epc-cp .navbar-right .dropdown-menu {
+	border-radius: 10px;
+	border: 1px solid var(--epc-cp-border, #e2e8f0);
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.epc-cp .content .hpanel > .panel-body,
+.epc-cp .content .hpanel .panel-body {
+	border-radius: 12px;
+}
+
+.epc-cp-login-hero .epc-cp-login-panel {
+	min-width: 280px;
+}
+
+/* Modern auth — password | email code | Google */
+.epc-cp-auth-modern {
+	margin-bottom: 16px;
+}
+.epc-cp-auth-tabs {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 14px;
+}
+.epc-cp-auth-tab {
+	flex: 1;
+	border: 1px solid #e4e7eb;
+	background: #f7f9fb;
+	color: #4a5568;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 8px 10px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.epc-cp-auth-tab.is-active {
+	background: #fff;
+	border-color: #1ab394;
+	color: #1a7f6e;
+	box-shadow: 0 1px 4px rgba(26, 179, 148, 0.15);
+}
+.epc-cp-auth-pane {
+	display: none;
+}
+.epc-cp-auth-pane.is-active {
+	display: block;
+}
+.epc-cp-auth-hint {
+	font-size: 12px;
+	color: #718096;
+	margin: 0 0 8px;
+}
+.epc-cp-auth-divider {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 14px 0;
+	color: #a0aec0;
+	font-size: 12px;
+}
+.epc-cp-auth-divider::before,
+.epc-cp-auth-divider::after {
+	content: '';
+	flex: 1;
+	height: 1px;
+	background: #e4e7eb;
+}
+.epc-cp-auth-google {
+	background: #fff;
+	border: 1px solid #dadce0;
+	color: #3c4043;
+	font-weight: 600;
+}
+.epc-cp-auth-google:hover {
+	background: #f8f9fa;
+	border-color: #c6c9cc;
+	color: #202124;
+}
+.epc-cp-auth-google.is-disabled {
+	opacity: 0.65;
+	cursor: not-allowed;
+}
+.epc-cp-auth-msg {
+	font-size: 12px;
+	margin: 10px 0 0;
+	min-height: 1.2em;
+}
+.epc-cp-auth-msg.is-ok {
+	color: #1a7f6e;
+}
+.epc-cp-auth-msg.is-err {
+	color: #c53030;
+}
+.epc-cp-auth-setup-note {
+	margin-top: 8px;
+}
+@media (max-width: 480px) {
+	.epc-cp-auth-tab {
+		font-size: 12px;
+		padding: 7px 6px;
+	}
+}
+
+@media (max-width: 768px) {
+	.epc-cp-topbar-strip {
+		display: none;
+	}
+}
+
+/* ══════════════════════════════════════
+   CP sidebar width — expanded by default; icon strip via .epc-cp-sidebar-collapsed
+   ══════════════════════════════════════ */
+
+/* Accordion section groups — show when parent li.active (JS toggle; not tied to .collapse.in) */
+.epc-cp #side-menu > li:not(.active) > ul.nav-second-level,
+.epc-cp-shell #side-menu > li:not(.active) > ul.nav-second-level,
+.epc-cp-shell #side-menu > li:not(.active) > ul.epc-cp-nav-section__children {
+	display: none;
+}
+.epc-cp #side-menu > li.active > ul.nav-second-level,
+.epc-cp-shell #side-menu > li.active > ul.nav-second-level,
+.epc-cp-shell #side-menu > li.active > ul.epc-cp-nav-section__children {
+	display: block !important;
+}
+.epc-cp-shell {
+	--epc-cp-sidebar-w-expanded: 220px;
+	--epc-cp-sidebar-w-collapsed: 56px;
+}
+
+/* Sidebar profile + editing mode + language — stacked blocks (no overlap with menu) */
+.epc-cp-shell #navigation .profile-picture {
+	position: static;
+	flex-shrink: 0;
+	z-index: auto;
+}
+.epc-cp-shell #navigation .epc-cp-sidebar-meta {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.epc-cp-shell #navigation .epc-cp-sidebar-meta > .text-center,
+.epc-cp-shell #navigation .epc-cp-sidebar-meta__edit {
+	padding: 8px 10px !important;
+	margin: 0;
+	font-size: 10px;
+	line-height: 1.4;
+	text-align: center;
+	word-wrap: break-word;
+	overflow-wrap: anywhere;
+	position: static !important;
+	border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+	border-bottom: none;
+	color: var(--epc-cp-sidebar-text, #94a3b8);
+}
+.epc-cp-shell #navigation .epc-cp-sidebar-meta .form-control {
+	font-size: 11px;
+	height: 30px;
+	padding: 4px 8px;
+	margin-top: 4px;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+.epc-cp-shell #side-menu {
+	flex-shrink: 0;
+	position: relative;
+	z-index: 1;
+}
+
+/* #menu = viewport column; #navigation = scroll child (not overflow:visible on menu) */
+.epc-cp-shell.fixed-sidebar #menu,
+.epc-cp-shell #menu {
+	transition: width 0.25s ease;
+	display: flex;
+	flex-direction: column;
+	top: 62px !important;
+	bottom: 0 !important;
+	height: calc(100vh - 62px) !important;
+	max-height: calc(100vh - 62px) !important;
+	min-height: 0;
+	overflow-x: hidden !important;
+	overflow-y: hidden !important;
+}
+
+.epc-cp-shell #menu > .epc-cp-sidebar-edge-toggle {
+	display: none !important;
+}
+
+.epc-cp-sidebar-toggle-tab {
+	position: fixed;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 1050;
+	pointer-events: auto !important;
+	width: 28px;
+	height: 56px;
+	padding: 0;
+	border: none;
+	border-radius: 8px 0 0 8px;
+	background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+	color: #fff;
+	cursor: pointer;
+	box-shadow: -2px 0 12px rgba(37, 99, 235, 0.35);
+	transition: background 0.18s, box-shadow 0.18s;
+}
+.epc-cp-sidebar-toggle-tab:hover {
+	background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+	color: #fff;
+	box-shadow: -3px 0 16px rgba(37, 99, 235, 0.45);
+}
+.epc-cp-sidebar-toggle-tab .fa {
+	font-size: 12px;
+	line-height: 56px;
+	display: block;
+	text-align: center;
+}
+
+.epc-cp-shell #navigation {
+	flex: 1 1 auto;
+	min-height: 0;
+	width: 100%;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+	scrollbar-width: auto;
+}
+.epc-cp-shell #wrapper {
+	transition: margin-left 0.25s ease;
+}
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell.fixed-sidebar #menu {
+	width: var(--epc-cp-sidebar-w-expanded) !important;
+	pointer-events: auto !important;
+	visibility: visible !important;
+}
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell #menu {
+	pointer-events: auto !important;
+	visibility: visible !important;
+}
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell #wrapper {
+	margin-left: var(--epc-cp-sidebar-w-expanded) !important;
+}
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell.fixed-footer .footer {
+	left: var(--epc-cp-sidebar-w-expanded) !important;
+}
+
+/* Classic admin: lock body, scroll main pane (#wrapper) — not ERP standalone shell */
+html.epc-cp-html-lock,
+html:has(body.epc-cp-shell:not(.epc-erp-standalone)) {
+	height: 100%;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) {
+	height: 100%;
+	overflow: hidden !important;
+}
+body.epc-cp-shell.fixed-navbar:not(.epc-erp-standalone) #wrapper {
+	margin-top: 62px;
+	top: 0 !important;
+	padding-top: 0 !important;
+	height: calc(100vh - 62px);
+	max-height: calc(100vh - 62px);
+	min-height: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior: contain;
+	display: block;
+	box-sizing: border-box;
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) .footer {
+	position: static !important;
+	left: auto !important;
+	right: auto !important;
+	bottom: auto !important;
+	width: auto !important;
+	margin-top: auto;
+	flex-shrink: 0;
+	z-index: auto;
+}
+body.epc-cp-shell.fixed-footer .footer {
+	position: static !important;
+	left: auto !important;
+	right: auto !important;
+}
+body.epc-cp-shell .content,
+body.epc-cp-shell:not(.epc-erp-standalone) .content {
+	display: block !important;
+	width: 100% !important;
+	min-height: auto !important;
+	flex: none !important;
+	overflow: visible;
+	float: none !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) .content > .row {
+	display: block !important;
+	width: 100% !important;
+	min-height: auto !important;
+	overflow: auto;
+	float: none !important;
+}
+body.epc-cp-shell .content .col-lg-12,
+body.epc-cp-shell .content .col-lg-9,
+body.epc-cp-shell:not(.epc-erp-standalone) .content [class*="col-"] {
+	float: none !important;
+	width: 100% !important;
+	display: block !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) .content .hpanel,
+body.epc-cp-shell:not(.epc-erp-standalone) .content .epc-erp-shell {
+	min-height: auto;
+	width: 100%;
+}
+/* Main pane visibility — never leave CP content at opacity 0 / zoomIn stall */
+body.epc-cp-shell .content.animate-panel,
+body.epc-cp-shell .content.animate-panel.opacity-0,
+body.epc-cp-shell .content .opacity-0,
+body.epc-cp-shell .content > .row > div,
+body.epc-cp-shell .content > .row > [class*="col-"],
+body.epc-cp-shell .content .zoomIn,
+body.epc-cp-shell .content .animated-panel {
+	opacity: 1 !important;
+	visibility: visible !important;
+	animation: none !important;
+	transform: none !important;
+}
+
+/* Tenant hub / shop pages — block layout (no flex/flow-root collapse) */
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane,
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .row {
+	display: block !important;
+	min-height: auto !important;
+	flex: none !important;
+	overflow: visible;
+	width: 100% !important;
+}
+body.epc-cp-shell .content.epc-cp-main-pane .epc-erp-shell,
+body.epc-cp-shell .content.epc-cp-main-pane .hpanel,
+body.epc-cp-shell .content.epc-cp-main-pane .panel-body,
+body.epc-cp-shell .content.epc-cp-main-pane .epc-th-hero {
+	display: block !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: 1px !important;
+	height: auto !important;
+}
+body.epc-cp-shell .content.epc-cp-main-pane .col-lg-12,
+body.epc-cp-shell .content.epc-cp-main-pane [class*="col-"] {
+	display: block !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: 0;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+.epc-cp-sidebar-edge-toggle {
+	position: absolute;
+	top: 50%;
+	right: -12px;
+	transform: translateY(-50%);
+	z-index: 1010;
+	width: 24px;
+	height: 44px;
+	padding: 0;
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 0 8px 8px 0;
+	background: var(--epc-cp-sidebar-mid, #1e293b);
+	color: rgba(255, 255, 255, 0.85);
+	cursor: pointer;
+	box-shadow: 2px 0 8px rgba(15, 23, 42, 0.25);
+	transition: background 0.18s, color 0.18s;
+}
+.epc-cp-sidebar-edge-toggle:hover {
+	background: var(--epc-cp-sidebar-hover, #334155);
+	color: #fff;
+}
+.epc-cp-sidebar-edge-toggle .fa {
+	font-size: 11px;
+	line-height: 42px;
+	transition: transform 0.25s ease;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-sidebar-edge-toggle .fa {
+	transform: rotate(180deg);
+}
+
+html.epc-cp-sidebar-collapsed .epc-cp-shell.fixed-sidebar #menu {
+	width: 0 !important;
+	min-width: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #menu {
+	width: 0 !important;
+	min-width: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #wrapper {
+	margin-left: 0 !important;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell.fixed-footer .footer {
+	left: 0 !important;
+}
+
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu .nav-label,
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu .fa.arrow,
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu ul.nav-second-level,
+html.epc-cp-sidebar-collapsed .epc-cp-shell #navigation > .text-center,
+html.epc-cp-sidebar-collapsed .epc-cp-shell .epc-cp-sidebar-meta,
+html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture .font-extra-bold,
+html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture .dropdown {
+	display: none !important;
+}
+
+html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture {
+	padding: 14px 8px 10px;
+	text-align: center;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture .stats-label::before {
+	content: '\f007';
+	font-family: FontAwesome;
+	font-size: 18px;
+	color: rgba(255, 255, 255, 0.92);
+	display: block;
+	line-height: 1;
+}
+
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li > a {
+	text-align: center;
+	padding: 13px 6px;
+	font-size: 0;
+	line-height: 1;
+	border-left-width: 0;
+	justify-content: center;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li > a::before {
+	font-family: FontAwesome;
+	font-size: 16px;
+	color: var(--epc-cp-sidebar-text, #94a3b8);
+	display: inline-block;
+	line-height: 1;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li:first-child > a::before {
+	content: '\f0e4';
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li > a[href^="javascript"]::before {
+	content: '\f07b';
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li.active > a::before {
+	color: var(--epc-cp-accent, #0ea5e9);
+}
+
+/* ERP inner sidebar: only icon-strip when CP #side-menu is present (not standalone ERP shell). */
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar {
+	width: var(--epc-cp-sidebar-w-collapsed, 56px) !important;
+}
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-brand,
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-label,
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-chevron,
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-sublist {
+	display: none !important;
+}
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-head {
+	justify-content: center;
+	padding: 12px 6px;
+}
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-group-hd {
+	justify-content: center;
+	padding: 12px 6px;
+}
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-icon {
+	margin: 0 !important;
+	font-size: 16px;
+}
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-close {
+	display: none !important;
+}
+
+.epc-erp-sidebar-collapse-toggle {
+	display: none;
+	background: transparent;
+	border: 0;
+	color: rgba(255, 255, 255, 0.75);
+	font-size: 14px;
+	cursor: pointer;
+	padding: 4px 8px;
+	margin-left: auto;
+}
+.epc-erp-sidebar-collapse-toggle .fa {
+	transition: transform 0.25s ease;
+}
+html.epc-cp-sidebar-collapsed .epc-erp-sidebar-collapse-toggle .fa {
+	transform: rotate(180deg);
+}
+@media (min-width: 769px) {
+	.epc-erp-sidebar-collapse-toggle {
+		display: inline-block;
+	}
+}
+
+@media (max-width: 768px) {
+	.epc-cp-sidebar-toggle-tab,
+	.epc-cp-sidebar-edge-toggle {
+		display: none;
+	}
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #menu {
+		width: 180px;
+		margin-left: 0;
+	}
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #wrapper {
+		margin-left: 0;
+	}
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu .nav-label,
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu .fa.arrow,
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu ul.nav-second-level,
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #navigation > .text-center,
+	html.epc-cp-sidebar-collapsed .epc-cp-shell .epc-cp-sidebar-meta,
+	html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture .font-extra-bold,
+	html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture .dropdown {
+		display: revert !important;
+	}
+	html.epc-cp-sidebar-collapsed .epc-cp-shell .profile-picture .stats-label::before {
+		display: none;
+	}
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li > a::before {
+		display: none;
+	}
+	html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li > a {
+		font-size: inherit;
+		text-align: left;
+		padding: 13px 18px;
+	}
+}
+
+/* ══════════════════════════════════════
+   Fixed topbar + content offset (single 62px — no double gap)
+   ══════════════════════════════════════ */
+
+body.epc-cp-shell.fixed-navbar #header,
+.epc-cp-shell.fixed-navbar #header {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0;
+	right: 0;
+	width: 100%;
+	margin: 0;
+	z-index: 1000;
+}
+
+/* Google Translate banner shifts body down — keep CP header flush to viewport */
+body.epc-cp-shell {
+	top: 0 !important;
+	position: relative !important;
+}
+body.epc-cp-shell .goog-te-banner-frame,
+body.epc-cp-shell .skiptranslate.goog-te-banner-frame,
+body > .skiptranslate:first-child iframe.goog-te-banner-frame {
+	display: none !important;
+	height: 0 !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+body.epc-cp-shell > .skiptranslate,
+body.epc-cp-shell > .skiptranslate iframe {
+	display: none !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	width: 0 !important;
+}
+body.epc-cp-shell.modal-open:not(.epc-cp-modal-active) {
+	overflow: auto !important;
+	padding-right: 0 !important;
+}
+
+.epc-cp-shell.fixed-navbar #wrapper,
+body.epc-cp-shell.fixed-navbar:not(.epc-erp-standalone) #wrapper {
+	top: 0 !important;
+	padding-top: 0 !important;
+	margin-top: 62px;
+	position: relative;
+	z-index: 1;
+	box-sizing: border-box;
+}
+
+.epc-cp-shell #header {
+	z-index: 1000;
+}
+
+/* Header flex row — cancel homer floats; icon strip scrolls instead of overlapping */
+.epc-cp-shell #header {
+	display: flex;
+	align-items: stretch;
+	flex-wrap: nowrap;
+	height: 62px;
+	min-height: 62px;
+	max-height: 62px;
+	overflow: hidden;
+}
+
+.epc-cp-shell #header > a[href] {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: stretch;
+}
+
+.epc-cp-shell #header #logo,
+.epc-cp-shell #header #logo.light-version {
+	flex: 0 0 auto;
+	float: none !important;
+	height: 62px;
+	min-height: 62px;
+}
+
+.epc-cp-shell #header .epc-cp-topbar-strip {
+	flex: 0 1 auto;
+	min-width: 0;
+	max-width: min(42vw, 320px);
+	overflow: hidden;
+	float: none !important;
+}
+
+.epc-cp-shell #header nav[role="navigation"] {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	align-items: stretch;
+	justify-content: flex-end;
+	float: none !important;
+	width: auto !important;
+	height: 62px;
+	min-height: 62px;
+	margin: 0;
+	padding: 0;
+	position: relative;
+}
+
+.epc-cp-shell #header nav .header-link.hide-menu {
+	float: none !important;
+	flex: 0 0 62px;
+	margin-right: 0;
+}
+
+.epc-cp-shell #header nav .small-logo,
+.epc-cp-shell #header nav .mobile-menu {
+	flex: 0 0 auto;
+	float: none !important;
+}
+
+.epc-cp-shell #header nav .navbar-right {
+	float: none !important;
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	justify-content: flex-end;
+	align-items: stretch;
+	height: 62px;
+	margin: 0;
+	position: static;
+}
+
+.epc-cp-shell #header nav .navbar-right > .nav.epc-cp-header-icons,
+.epc-cp-shell #header nav .navbar-right > .nav.navbar-nav {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	flex: 1 1 auto;
+	min-width: 0;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	float: none !important;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior: contain;
+	scrollbar-width: none;
+	gap: 0;
+}
+
+.epc-cp-shell #header nav .navbar-right > .nav.epc-cp-header-icons::-webkit-scrollbar,
+.epc-cp-shell #header nav .navbar-right > .nav.navbar-nav::-webkit-scrollbar {
+	display: none;
+	height: 0;
+}
+
+.epc-cp-shell #header nav .navbar-right .nav > li {
+	flex: 0 0 auto;
+	float: none !important;
+	position: relative;
+}
+
+.epc-cp-shell #header nav .navbar-right .nav > li > a {
+	white-space: nowrap;
+}
+
+.epc-cp-shell #header nav .navbar-right .nav > li > a .hidden-xs {
+	max-width: 120px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.epc-cp-shell .header-link.hide-menu {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 62px;
+	height: 62px;
+	color: var(--epc-cp-text-muted, #64748b);
+	font-size: 18px;
+	z-index: 2;
+}
+
+.epc-cp-shell .header-link.hide-menu:hover {
+	color: var(--epc-cp-primary, #2563eb);
+	background: rgba(37, 99, 235, 0.06);
+}
+
+.epc-cp-shell #logo.ech-logo-wrap {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 14px;
+	min-width: 0;
+}
+
+.epc-cp-shell .epc-cp-logo-label {
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.epc-cp-shell .epc-cp-topbar-strip {
+	padding: 0 12px;
+	margin-left: 0;
+	border-left: 1px solid var(--epc-cp-border, #e2e8f0);
+	min-height: 62px;
+}
+
+.epc-cp-shell .navbar-right .nav > li > a {
+	min-height: 62px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 12px;
+}
+
+/* Hide legacy clip / collapse junk in page header */
+.epc-cp .clip-header,
+.epc-cp .small-header-action,
+.epc-cp .normalheader .clip-header {
+	display: none !important;
+}
+
+/* Professional shell: no verbose SSL / email / SMS strips in top navbar */
+.epc-cp-shell .navbar-right .epc-cp-top-connectivity,
+.epc-cp-shell .navbar-right .epc-cp-stock-header-badge {
+	display: none !important;
+}
+
+.epc-cp-shell .navbar-right .epc-cp-quicknav-item > a {
+	min-width: 38px;
+	padding: 0 8px !important;
+}
+
+.epc-cp-shell .navbar-right .epc-cp-quicknav-item + .epc-cp-quicknav-item > a,
+.epc-cp-shell .navbar-right .nav > li.dropdown + li > a {
+	margin-left: 0;
+}
+
+.epc-cp-shell .navbar-right .nav > li > a {
+	padding: 0 10px !important;
+	font-size: 20px !important;
+}
+
+.epc-cp-shell .navbar-right .epc-cp-quicknav-item > a > i.fa {
+	font-size: 16px;
+	color: var(--epc-cp-text-secondary, #475569);
+}
+
+.epc-cp-shell .navbar-right .epc-cp-translate-nav {
+	display: flex;
+	align-items: center;
+	margin: 0;
+	padding: 0 4px;
+}
+.epc-cp-shell .navbar-right .epc-cp-translate-nav .epc-cp-translate__select {
+	height: 32px;
+	line-height: 30px;
+	max-width: 140px;
+	min-width: 100px;
+	margin: 0;
+}
+
+/* ══════════════════════════════════════
+   CP page header card (.epc-cp-page-header)
+   ══════════════════════════════════════ */
+
+.epc-cp-page-header {
+	position: static;
+	z-index: auto;
+	margin: 0;
+	padding: 12px 24px 0;
+	min-width: 0;
+	flex-shrink: 0;
+}
+
+.epc-cp #dp_news.normalheader {
+	position: static !important;
+	top: auto !important;
+	z-index: auto;
+}
+
+.epc-cp-page-header__card {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px 20px;
+	background: #fff;
+	border: 1px solid var(--epc-cp-border, #e2e8f0);
+	border-radius: 12px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+	padding: 18px 22px;
+}
+
+.epc-cp-page-header__main {
+	flex: 1 1 280px;
+	min-width: 0;
+}
+
+.epc-cp-page-header__aside {
+	flex: 0 1 auto;
+	min-width: 0;
+	max-width: 100%;
+	align-self: flex-start;
+	text-align: right;
+}
+
+.epc-cp-page-header__eyebrow {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 10px;
+	margin-bottom: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--epc-cp-text-muted, #64748b);
+}
+
+.epc-cp-page-header__eyebrow-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	background: rgba(14, 165, 233, 0.12);
+	color: #0284c7;
+	font-size: 13px;
+}
+
+.epc-cp-page-header__eyebrow-text {
+	color: var(--epc-cp-text-secondary, #334155);
+	font-weight: 700;
+}
+
+.epc-cp-page-header__role {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 10px;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+	border-radius: 999px;
+	background: rgba(99, 102, 241, 0.1);
+	border: 1px solid rgba(99, 102, 241, 0.28);
+	color: #4338ca;
+}
+
+.epc-cp-page-header__role--tenant {
+	background: rgba(37, 99, 235, 0.1);
+	border-color: rgba(37, 99, 235, 0.28);
+	color: #1d4ed8;
+}
+
+.epc-cp-page-header__role--client_erp,
+.epc-cp-page-header__role--erp {
+	background: rgba(37, 99, 235, 0.1);
+	border-color: rgba(37, 99, 235, 0.28);
+	color: #1d4ed8;
+}
+
+.epc-cp-page-header__title {
+	margin: 0 0 6px;
+	font-size: 24px;
+	font-weight: 800;
+	line-height: 1.2;
+	color: var(--epc-cp-text, #0f172a);
+	letter-spacing: -0.02em;
+}
+
+.epc-cp-page-header__desc {
+	margin: 0 0 12px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--epc-cp-text-muted, #64748b);
+	max-width: 720px;
+}
+
+.epc-cp-page-header__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 4px;
+}
+
+.epc-cp-page-header__pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--epc-cp-text-secondary, #334155);
+	background: var(--epc-cp-border-light, #f1f5f9);
+	border: 1px solid var(--epc-cp-border, #e2e8f0);
+	border-radius: 999px;
+	text-decoration: none !important;
+	transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.epc-cp-page-header__pill:hover {
+	background: #fff;
+	border-color: #cbd5e1;
+	color: var(--epc-cp-primary, #2563eb);
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.epc-cp-page-header__pill--primary {
+	background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.epc-cp-page-header__pill--primary:hover {
+	color: #fff;
+	filter: brightness(1.05);
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.epc-cp-page-header__breadcrumb {
+	display: block;
+	position: relative;
+	z-index: 0;
+}
+
+/* Breadcrumb must stay in page header card — never bleed into fixed topbar */
+.epc-cp-shell #header .hbreadcrumb,
+.epc-cp-shell #header .breadcrumb,
+.epc-cp-shell #header nav .hbreadcrumb {
+	display: none !important;
+}
+
+.epc-cp-page-header__breadcrumb .breadcrumb {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 2px 0;
+	background: transparent;
+	padding: 0;
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.epc-cp-page-header__breadcrumb .breadcrumb > li + li:before {
+	padding: 0 6px;
+	color: #94a3b8;
+}
+
+.epc-cp-page-header__breadcrumb .breadcrumb a {
+	color: var(--epc-cp-primary, #2563eb);
+	font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   Tenant hub + tab polish
+   ══════════════════════════════════════ */
+
+.epc-th-hero {
+	background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 45%, #0ea5e9 100%);
+	color: #fff;
+	border-radius: 12px;
+	padding: 20px 22px;
+	margin-bottom: 18px;
+	box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
+}
+
+.epc-th-hero h3 {
+	margin: 0 0 8px;
+	color: #fff;
+	font-weight: 700;
+	font-size: 18px;
+}
+
+.epc-th-kpi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 18px;
+}
+
+.epc-th-kpi .kpi {
+	flex: 1 1 140px;
+	background: #fff;
+	border: 1px solid #bae6fd;
+	border-radius: 12px;
+	padding: 14px 16px;
+	box-shadow: 0 1px 3px rgba(14, 165, 233, 0.08);
+}
+
+.epc-th-kpi .kpi .text-muted {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #64748b !important;
+}
+
+.epc-th-kpi .val {
+	font-size: 24px;
+	font-weight: 800;
+	color: #0369a1;
+	line-height: 1.1;
+}
+
+.epc-th-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 14px;
+}
+
+.epc-th-tabs .btn {
+	border-radius: 999px;
+	font-weight: 600;
+	font-size: 12px;
+	padding: 7px 14px;
+}
+
+.epc-th-tabs .btn-primary {
+	background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+	border: none;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.epc-th-tabs .btn-default {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	color: #334155;
+}
+
+.epc-th-tabs__secondary {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-left: auto;
+}
+
+@media (max-width: 768px) {
+	.epc-th-tabs__secondary {
+		margin-left: 0;
+		width: 100%;
+	}
+}
+
+.epc-th-badge-draft { background: #e2e8f0; color: #334155; }
+.epc-th-badge-dns { background: #fef3c7; color: #92400e; }
+.epc-th-badge-live { background: #dcfce7; color: #166534; }
+
+.epc-cp .panel_a_img {
+	border-radius: 12px;
+	background-size: cover !important;
+	background-position: center !important;
+}
+
+@media (max-width: 768px) {
+	.epc-cp-page-header {
+		padding: 12px 12px 0;
+	}
+	.epc-cp-page-header__card {
+		padding: 14px 16px;
+		flex-direction: column;
+	}
+	.epc-cp-page-header__aside {
+		width: 100%;
+		text-align: left;
+	}
+	.epc-cp-page-header__breadcrumb .breadcrumb {
+		justify-content: flex-start;
+	}
+	.epc-cp-page-header__title {
+		font-size: 20px;
+	}
+	.epc-cp-shell .epc-cp-topbar-strip {
+		display: none;
+	}
+}
+
+/* ══════════════════════════════════════
+   Super CP dashboard (home)
+   ══════════════════════════════════════ */
+
+.epc-scp-dashboard {
+	margin-bottom: 20px;
+}
+
+.epc-scp-dashboard__hero {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0ea5e9 100%);
+	color: #fff;
+	border-radius: 14px;
+	padding: 22px 24px;
+	margin-bottom: 18px;
+	box-shadow: 0 10px 28px rgba(14, 165, 233, 0.22);
+}
+
+.epc-scp-dashboard__badge {
+	display: inline-block;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.16);
+	border: 1px solid rgba(255, 255, 255, 0.28);
+	margin-bottom: 8px;
+}
+
+.epc-scp-dashboard__title {
+	margin: 0 0 6px;
+	font-size: 22px;
+	font-weight: 800;
+	color: #fff;
+}
+
+.epc-scp-dashboard__sub {
+	margin: 0;
+	opacity: 0.92;
+	max-width: 640px;
+	font-size: 13px;
+}
+
+.epc-scp-dashboard__hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.epc-scp-kpi {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.epc-scp-kpi__card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 14px 16px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.epc-scp-kpi__label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #64748b;
+	margin-bottom: 4px;
+}
+
+.epc-scp-kpi__val {
+	font-size: 28px;
+	font-weight: 800;
+	color: #0369a1;
+	line-height: 1.1;
+}
+
+.epc-scp-kpi__hint {
+	font-size: 11px;
+	color: #94a3b8;
+	margin-top: 4px;
+}
+
+.epc-scp-section-title {
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0 0 12px;
+}
+
+.epc-scp-quick-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: 10px;
+	margin-bottom: 18px;
+}
+
+.epc-scp-quick-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 10px;
+	min-height: 92px;
+	padding: 14px 14px 12px;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #0f172a;
+	text-decoration: none !important;
+	transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.epc-scp-quick-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+	border-color: #bae6fd;
+	color: #0f172a;
+}
+
+.epc-scp-quick-card__icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+}
+
+.epc-scp-quick-card__label {
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.25;
+}
+
+.epc-scp-quick-card__hint {
+	display: block;
+	font-size: 11px;
+	font-weight: 500;
+	color: #64748b;
+	margin-top: 4px;
+	line-height: 1.35;
+}
+
+.epc-scp-quick-card--orders .epc-scp-quick-card__icon { background: #dbeafe; color: #1d4ed8; }
+.epc-scp-quick-card--clients .epc-scp-quick-card__icon { background: #e0e7ff; color: #4338ca; }
+.epc-scp-quick-card--catalog .epc-scp-quick-card__icon { background: #fef3c7; color: #b45309; }
+.epc-scp-quick-card--prices .epc-scp-quick-card__icon { background: #fce7f3; color: #be185d; }
+.epc-scp-quick-card--warehouse .epc-scp-quick-card__icon { background: #d1fae5; color: #047857; }
+.epc-scp-quick-card--finance .epc-scp-quick-card__icon { background: #ecfccb; color: #3f6212; }
+.epc-scp-quick-card--platform .epc-scp-quick-card__icon { background: #e0f2fe; color: #0369a1; }
+.epc-scp-quick-card--governance .epc-scp-quick-card__icon { background: #ede9fe; color: #6d28d9; }
+.epc-scp-quick-card--auth .epc-scp-quick-card__icon { background: #ccfbf1; color: #0f766e; }
+.epc-scp-quick-card--docs .epc-scp-quick-card__icon { background: #f1f5f9; color: #475569; }
+.epc-scp-quick-card--health .epc-scp-quick-card__icon { background: #fee2e2; color: #b91c1c; }
+
+.epc-tcp-dashboard__hero {
+	background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 45%, #0ea5e9 100%);
+}
+
+.epc-scp-kpi__val--warn {
+	color: #d97706;
+}
+
+.epc-scp-auth-settings .epc-scp-status-table th {
+	width: 220px;
+	background: #f8fafc;
+}
+
+.epc-scp-auth-settings .table .label {
+	font-size: 11px;
+}
+
+/* ══════════════════════════════════════
+   Super CP operator panels (ABCP-style)
+   ══════════════════════════════════════ */
+
+.epc-scp-panel {
+	margin-bottom: 24px;
+}
+
+.epc-scp-panel__hero {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #0369a1 100%);
+	color: #fff;
+	border-radius: 14px;
+	padding: 20px 22px;
+	margin-bottom: 16px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
+}
+
+.epc-scp-panel__hero .epc-scp-dashboard__title,
+.epc-scp-panel__hero .epc-scp-dashboard__sub {
+	color: #fff;
+}
+
+.epc-scp-filter-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+}
+
+.epc-scp-filter-bar .form-inline {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.epc-scp-table-card,
+.epc-scp-form-card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 16px 18px;
+	margin-bottom: 14px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.epc-scp-table-card h4,
+.epc-scp-form-card h4 {
+	margin: 0 0 14px;
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+.epc-scp-data-table {
+	font-size: 13px;
+	margin-bottom: 0;
+}
+
+.epc-scp-data-table thead th {
+	background: #f1f5f9;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #475569;
+	border-bottom-width: 1px !important;
+}
+
+.epc-scp-data-table tbody tr:hover {
+	background: #f8fafc;
+}
+
+.epc-scp-actions-cell {
+	white-space: nowrap;
+}
+
+.epc-scp-actions-cell .btn {
+	margin-right: 2px;
+}
+
+.epc-scp-badge {
+	display: inline-block;
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #e0f2fe;
+	color: #0369a1;
+}
+
+.epc-scp-badge--tenant {
+	background: #e0e7ff;
+	color: #4338ca;
+}
+
+.epc-scp-badge--urgent {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+
+.epc-scp-badge--high {
+	background: #ffedd5;
+	color: #c2410c;
+}
+
+.epc-scp-badge--normal {
+	background: #f1f5f9;
+	color: #475569;
+}
+
+.epc-scp-pagination {
+	padding-top: 10px;
+}
+
+.epc-scp-pagination .btn {
+	margin-right: 4px;
+}
+
+/* Super CP (platform_host) — same blue shell; logo label tint only */
+body.epc-cp--platform_host.epc-cp--blue-theme .epc-cp-logo-label {
+	color: var(--epc-blue-100);
+}
+
+/* Custom & Shipping — declaration registry (ABCP order-list style) */
+.epc-cs-report-table .epc-scp-actions-cell {
+	text-align: right;
+}
+.epc-cs-report-table .epc-scp-actions-cell .btn {
+	margin-left: 2px;
+}
+.epc-cs-row-actions .btn-danger {
+	border-color: #fecaca;
+}
+.epc-cs-pdf-modal {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 10050;
+	background: rgba(15, 23, 42, 0.55);
+	padding: 24px;
+	align-items: center;
+	justify-content: center;
+}
+.epc-cs-pdf-modal.is-open {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ══════════════════════════════════════
+   Design system v2 — shared CP / ERP polish
+   (sidebar accordion: li.active rules above — do not override)
+   ══════════════════════════════════════ */
+
+/* Page title scale inside legacy panels */
+.epc-cp .content h2.font-light,
+.epc-cp .content .panel-body > h3:first-child {
+	font-size: 20px;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	color: var(--epc-cp-text, #0f172a);
+}
+.epc-cp .content .panel-body > h4 {
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--epc-cp-text-secondary, #334155);
+}
+
+/* Section cards */
+.epc-cp-section-card,
+.epc-scp-table-card__head {
+	border-bottom: 1px solid var(--epc-cp-border, #e2e8f0);
+	padding-bottom: 12px;
+	margin-bottom: 14px;
+}
+.epc-scp-table-card__head h4 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+}
+
+/* Form field groups */
+.epc-cp .epc-form-section,
+.epc-erp-shell .epc-form-section {
+	background: var(--epc-cp-border-light, #f8fafc);
+	border: 1px solid var(--epc-cp-border, #e2e8f0);
+	border-radius: var(--epc-cp-radius, 12px);
+	padding: 16px 18px;
+	margin-bottom: 16px;
+}
+.epc-cp .epc-form-section__title,
+.epc-erp-shell .epc-form-section__title {
+	margin: 0 0 14px;
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--epc-cp-text-secondary, #334155);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+.epc-cp .form-group label,
+.epc-erp-shell .form-group label {
+	font-weight: 600;
+	font-size: 12px;
+	color: var(--epc-cp-text-secondary, #334155);
+	margin-bottom: 5px;
+}
+.epc-cp .form-control:focus,
+.epc-erp-shell .form-control:focus {
+	border-color: var(--epc-cp-primary, #2563eb);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+	outline: none;
+}
+
+/* Buttons — sizing & danger */
+.epc-cp .btn-sm,
+.epc-erp-shell .btn-sm {
+	padding: 6px 12px;
+	font-size: 12px;
+	border-radius: 8px;
+}
+.epc-cp .btn-xs,
+.epc-erp-shell .btn-xs {
+	padding: 4px 9px;
+	font-size: 11px;
+	border-radius: 6px;
+}
+.epc-cp .btn-danger,
+.epc-erp-shell .btn-danger {
+	background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+	border: none;
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+.epc-cp .btn-danger:hover,
+.epc-erp-shell .btn-danger:hover {
+	background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+	color: #fff;
+	box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+.epc-cp .btn-secondary,
+.epc-erp-shell .btn-secondary {
+	background: #fff;
+	border: 1px solid var(--epc-cp-border, #e2e8f0);
+	color: var(--epc-cp-text-secondary, #334155);
+}
+
+/* Tables — professional density */
+.epc-cp .table-epc-pro,
+.epc-cp .epc-scp-data-table,
+.epc-erp-shell .table-epc,
+.epc-erp-shell .epc-erp-table,
+.epc-erp-shell .epc-erp-table-compact {
+	font-size: 12px;
+}
+.epc-cp .table-epc-pro > thead > tr > th,
+.epc-cp .epc-scp-data-table > thead > tr > th,
+.epc-erp-shell .table-epc > thead > tr > th {
+	background: #f1f5f9;
+	font-size: 10px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #475569;
+	border-bottom: 2px solid #e2e8f0;
+	padding: 10px 12px;
+	white-space: nowrap;
+}
+.epc-cp .table-epc-pro > tbody > tr > td,
+.epc-cp .epc-scp-data-table > tbody > tr > td,
+.epc-erp-shell .table-epc > tbody > tr > td {
+	padding: 9px 12px;
+	vertical-align: middle;
+}
+.epc-cp .table-epc-pro > tbody > tr:hover,
+.epc-cp .epc-scp-data-table > tbody > tr:hover,
+.epc-erp-shell .table-epc > tbody > tr:hover {
+	background: rgba(37, 99, 235, 0.04);
+}
+.epc-cp .table-striped > tbody > tr:nth-of-type(odd) {
+	background: rgba(248, 250, 252, 0.85);
+}
+
+/* Unified status badges */
+.epc-status-badge,
+.epc-scp-badge,
+.epc-cp .label.epc-status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 10px;
+	font-weight: 700;
+	padding: 3px 10px;
+	border-radius: 999px;
+	line-height: 1.3;
+	white-space: nowrap;
+	text-decoration: none !important;
+	border: 1px solid transparent;
+}
+.epc-status-badge--draft,
+.epc-scp-badge--normal,
+.epc-th-badge-draft { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+.epc-status-badge--pending,
+.epc-scp-badge--high,
+.epc-th-badge-dns { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.epc-status-badge--live,
+.epc-scp-badge--tenant,
+.epc-th-badge-live { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.epc-status-badge--urgent,
+.epc-scp-badge--urgent { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.epc-status-badge--info { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.epc-status-badge--paid { background: #ecfdf5; color: #047857; border-color: #6ee7b7; }
+.epc-status-badge--unpaid { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.epc-status-badge--partial { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+a.epc-scp-badge:hover,
+a.epc-status-badge:hover {
+	filter: brightness(0.97);
+	box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+/* Pill / underline tab nav (tenant hub, ERP subnav) */
+.epc-cp-tabs--pill,
+.epc-th-tabs.epc-cp-tabs--pill {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 14px;
+	padding-bottom: 0;
+	border-bottom: none;
+}
+.epc-cp-tabs--pill .btn,
+.epc-th-tabs.epc-cp-tabs--pill .btn {
+	border-radius: 999px;
+	font-weight: 600;
+	font-size: 12px;
+	padding: 6px 12px;
+	line-height: 1.25;
+	min-height: 30px;
+	margin: 0;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	color: #334155;
+	box-shadow: none;
+}
+.epc-cp-tabs--pill .btn-primary,
+.epc-th-tabs.epc-cp-tabs--pill .btn-primary {
+	background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+}
+.epc-cp-tabs--underline {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	border-bottom: 2px solid #e2e8f0;
+	margin-bottom: 18px;
+}
+.epc-cp-tabs--underline .btn {
+	border-radius: 8px 8px 0 0;
+	border: none;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	background: transparent;
+	color: #64748b;
+	font-weight: 600;
+	font-size: 12px;
+	padding: 10px 14px;
+	box-shadow: none;
+}
+.epc-cp-tabs--underline .btn-primary,
+.epc-cp-tabs--underline .btn.active {
+	color: #2563eb;
+	border-bottom-color: #2563eb;
+	background: rgba(37, 99, 235, 0.06);
+}
+
+/* KPI tiles — accent top border */
+.epc-scp-kpi__card,
+.epc-th-kpi__card,
+.epc-erp-kpi .kpi {
+	position: relative;
+	border-top: 3px solid #0ea5e9;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.epc-scp-kpi__card:hover,
+.epc-th-kpi__card:hover,
+.epc-erp-kpi .kpi:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+.epc-scp-kpi__card:nth-child(2) { border-top-color: #6366f1; }
+.epc-scp-kpi__card:nth-child(3) { border-top-color: #f59e0b; }
+.epc-scp-kpi__card:nth-child(4) { border-top-color: #10b981; }
+
+/* Tenant hub hero + KPI */
+.epc-th-hero__badge {
+	display: inline-block;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.18);
+	border: 1px solid rgba(255, 255, 255, 0.28);
+	margin-bottom: 10px;
+}
+.epc-th-hero__sub {
+	margin: 0;
+	opacity: 0.92;
+	font-size: 13px;
+	line-height: 1.55;
+	max-width: 720px;
+}
+.epc-th-kpi__card {
+	flex: 1 1 140px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 14px 16px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.epc-th-kpi__label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #64748b;
+	margin-bottom: 4px;
+}
+.epc-th-kpi__val {
+	font-size: 26px;
+	font-weight: 800;
+	color: #0369a1;
+	line-height: 1.1;
+}
+.epc-th-kpi__val--success { color: #047857; }
+.epc-th-kpi__val--warn { color: #c2410c; }
+.epc-th-kpi__val--sm {
+	font-size: 14px;
+	font-weight: 700;
+	font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+	letter-spacing: 0.02em;
+}
+.epc-th-kpi__card--mono .epc-th-kpi__val {
+	color: #334155;
+}
+
+/* Orders workspace — dual pane */
+.epc-scp-orders-page {
+	margin-bottom: 20px;
+}
+.epc-scp-orders-kpi {
+	margin-bottom: 14px;
+}
+.epc-scp-orders-filter .hpanel {
+	margin-bottom: 12px;
+}
+.epc-scp-orders-status-pills {
+	margin-bottom: 0;
+	border-radius: 0 0 12px 12px;
+	border-top: none;
+}
+.epc-scp-orders-status-pills .epc-scp-badge {
+	margin: 2px 4px 2px 0;
+	cursor: pointer;
+}
+.epc-scp-orders-workspace {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(280px, 38%);
+	gap: 14px;
+	align-items: start;
+	margin-top: 14px;
+}
+.epc-scp-orders-workspace__list {
+	min-width: 0;
+}
+.epc-scp-orders-workspace__detail {
+	position: sticky;
+	top: 12px;
+	min-width: 0;
+}
+.epc-scp-orders-detail {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+	min-height: 320px;
+	max-height: calc(100vh - 200px);
+	overflow-y: auto;
+}
+.epc-scp-orders-detail__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 48px 24px;
+	color: #64748b;
+	min-height: 280px;
+}
+.epc-scp-orders-detail__empty .fa {
+	font-size: 36px;
+	margin-bottom: 12px;
+	opacity: 0.45;
+	color: #94a3b8;
+}
+.epc-scp-orders-detail__empty p {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #334155;
+}
+.epc-scp-orders-workspace .table tbody tr.is-selected,
+.epc-scp-orders-workspace .table tbody tr.epc-order-row-selected {
+	background: rgba(37, 99, 235, 0.1) !important;
+	outline: 1px solid rgba(37, 99, 235, 0.25);
+}
+.epc-scp-orders-bulk {
+	margin-top: 18px;
+}
+
+/* ERP subnav in CP shell */
+.epc-erp-subnav.epc-cp-tabs--pill,
+.epc-crm-nav.epc-cp-tabs--pill {
+	margin-bottom: 16px;
+}
+.epc-erp-subnav.epc-cp-tabs--pill .btn,
+.epc-crm-nav.epc-cp-tabs--pill .btn {
+	margin: 0;
+}
+
+/* Mobile — stack sidebar + content */
+@media (max-width: 991px) {
+	.epc-scp-orders-workspace {
+		grid-template-columns: 1fr;
+	}
+	.epc-scp-orders-workspace__detail {
+		position: static;
+	}
+	.epc-scp-orders-detail {
+		max-height: none;
+	}
+	.epc-scp-kpi,
+	.epc-th-kpi,
+	.epc-erp-kpi {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+@media (max-width: 480px) {
+	.epc-scp-kpi,
+	.epc-th-kpi {
+		flex-direction: column;
+	}
+	.epc-scp-kpi__card,
+	.epc-th-kpi__card {
+		flex: 1 1 100%;
+	}
+}
+
+/* Operator sidebar group subtitle + second-level active (blue theme) */
+.epc-cp #side-menu .nav-label-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	line-height: 1.2;
+	min-width: 0;
+}
+.epc-cp #side-menu .epc-cp-group-subtitle {
+	display: block;
+	font-size: 10px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+	opacity: 0.72;
+	margin-top: 2px;
+	max-width: 160px;
+	white-space: normal;
+	line-height: 1.25;
+}
+body.epc-cp--blue-theme.epc-cp #side-menu > li.epc-cp-menu-group--operator.active > a {
+	border-left: 3px solid var(--epc-blue-400);
+}
+body.epc-cp--blue-theme.epc-cp #side-menu ul.nav-second-level li.active > a {
+	background: rgba(37, 99, 235, 0.22);
+	color: #fff;
+	border-radius: 6px;
+	margin: 1px 8px;
+	padding-left: 12px;
+}
+body.epc-cp--blue-theme.epc-cp #side-menu ul.nav-second-level li.active > a i {
+	color: #7dd3fc;
+}
+
+.epc-scp-intro-panel {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+	border: 1px solid #bae6fd;
+	border-radius: 10px;
+	padding: 12px 16px;
+	margin-bottom: 14px;
+}
+.epc-scp-intro-panel__body p {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: #334155;
+}
+.epc-scp-empty-state {
+	text-align: center;
+	padding: 20px 16px;
+}
+.epc-scp-empty-state__icon {
+	font-size: 28px;
+	color: #94a3b8;
+	margin-bottom: 8px;
+}
+.epc-scp-empty-state h4 {
+	margin: 0 0 6px;
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.epc-scp-empty-state p {
+	margin: 0 0 12px;
+	font-size: 13px;
+	color: #64748b;
+	max-width: 420px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.epc-scp-empty-state__actions .btn {
+	margin: 0 4px;
+}
+.epc-scp-empty-cell {
+	background: #f8fafc !important;
+	vertical-align: middle !important;
+}
+
+.epc-scp-guide-callout {
+	border-radius: 10px;
+	padding: 14px 18px;
+	margin-bottom: 14px;
+	border: 1px solid #e2e8f0;
+	background: #f8fafc;
+}
+.epc-scp-guide-callout--role {
+	border-left: 4px solid #2563eb;
+	background: #eff6ff;
+}
+.epc-scp-guide-callout--tenant {
+	border-left: 4px solid #0ea5e9;
+}
+.epc-scp-guide-callout h4 {
+	margin: 0 0 8px;
+	font-size: 15px;
+	font-weight: 700;
+}
+.epc-scp-guide-callout ul {
+	margin: 8px 0 0;
+	padding-left: 20px;
+}
+.epc-scp-guide-modules {
+	display: grid;
+	gap: 14px;
+}
+@media (min-width: 900px) {
+	.epc-scp-guide-modules {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+.epc-scp-guide-module {
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 14px 16px;
+	background: #fff;
+}
+.epc-scp-guide-module__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 12px;
+}
+.epc-scp-guide-module__icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	background: #dbeafe;
+	color: #1d4ed8;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	flex-shrink: 0;
+}
+.epc-scp-guide-module__head h4 {
+	margin: 0 0 4px;
+	font-size: 15px;
+}
+.epc-scp-guide-module__head p {
+	margin: 0;
+	font-size: 13px;
+	color: #64748b;
+	flex: 1 1 180px;
+}
+.epc-scp-guide-module__head .btn {
+	margin-left: auto;
+}
+.epc-scp-guide-module__steps {
+	margin: 10px 0 0;
+	padding-left: 20px;
+	font-size: 13px;
+	color: #334155;
+}
+.epc-scp-guide-flow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.epc-scp-guide-flow__step {
+	flex: 1 1 180px;
+	background: #f1f5f9;
+	border-radius: 8px;
+	padding: 10px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+}
+.epc-scp-guide-flow__step span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 999px;
+	background: #2563eb;
+	color: #fff;
+	font-size: 11px;
+	margin-right: 6px;
+}
+.epc-scp-dashboard__sub a {
+	color: #7dd3fc;
+	text-decoration: underline;
+}
+
+/* 20260606crossbrowser1 — nuclear block main-pane (Opera/Firefox/Chrome/Edge) */
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper {
+	display: block !important;
+	flex: none !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content.epc-cp-main-pane,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content > .row {
+	display: block !important;
+	float: none !important;
+	width: 100% !important;
+	flex: none !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: auto !important;
+	max-height: none !important;
+	height: auto !important;
+	overflow: visible !important;
+	transform: none !important;
+	animation: none !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .col-lg-12,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .col-lg-9,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content [class*="col-"],
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content > .row > div,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .hpanel,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .panel-body,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-erp-shell,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-th-hero {
+	display: block !important;
+	float: none !important;
+	width: 100% !important;
+	flex: none !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: 0 !important;
+	max-height: none !important;
+	height: auto !important;
+	overflow: visible !important;
+	transform: none !important;
+	animation: none !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-th-kpi {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	float: none !important;
+	width: 100% !important;
+	flex: none !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: 0 !important;
+	max-height: none !important;
+	height: auto !important;
+	overflow: visible !important;
+	transform: none !important;
+	animation: none !important;
+	align-items: stretch !important;
+	gap: 10px !important;
+}
+body.epc-cp-shell .content.animate-panel,
+body.epc-cp-shell .content.animate-panel.opacity-0,
+body.epc-cp-shell .content .zoomIn,
+body.epc-cp-shell .content .animated-panel,
+body.epc-cp-shell .content .opacity-0 {
+	opacity: 1 !important;
+	visibility: visible !important;
+	animation: none !important;
+	transform: none !important;
+}
+
+html.epc-cp-sidebar-collapsed .epc-cp-shell.fixed-sidebar #menu,
+html.epc-cp-sidebar-collapsed .epc-cp-shell #menu {
+	width: 0 !important;
+	min-width: 0 !important;
+	overflow: hidden !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+html.epc-cp-sidebar-collapsed .epc-cp-shell #wrapper {
+	margin-left: 0 !important;
+}
+
+/* ══════════════════════════════════════
+   20260606layoutpro1 — ultra-wide content measure
+   (does not override crossbrowser1 visibility / block layout)
+   ══════════════════════════════════════ */
+body.epc-cp-shell:not(.epc-erp-standalone) {
+	--epc-cp-content-max: 1520px;
+	--epc-cp-content-pad-x: clamp(16px, 2.5vw, 32px);
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .epc-cp-content-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) .content > .epc-cp-content-inner {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: var(--epc-cp-content-max);
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: var(--epc-cp-content-pad-x);
+	padding-right: var(--epc-cp-content-pad-x);
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane.epc-cp-has-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane:has(> .epc-cp-content-inner) {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-standalone) .epc-cp-content-inner {
+	max-width: var(--epc-cp-content-max);
+	margin-left: auto;
+	margin-right: auto;
+}
+
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-panel,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-hero,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section,
+body.epc-cp-shell .epc-cp-content-inner .hpanel,
+body.epc-cp-shell .epc-cp-content-inner .panel,
+body.epc-cp-shell .epc-cp-content-inner .epc-erp-shell {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+body.epc-cp-shell .epc-cp-content-inner .hpanel {
+	margin-bottom: 18px;
+}
+body.epc-cp-shell .epc-cp-content-inner .hpanel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body {
+	padding: 18px 20px;
+	min-height: 0;
+}
+
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-erp-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-orders-kpi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: stretch;
+}
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi .kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-erp-kpi .kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi__card {
+	flex: 1 1 160px;
+	min-width: 140px;
+	max-width: 320px;
+}
+
+body.epc-cp-shell .epc-cp-content-inner .epc-cp-form-grid,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-grid,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section.epc-cp-form-grid,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section--grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px 20px;
+	align-items: start;
+}
+@media (max-width: 1199px) {
+	body.epc-cp-shell .epc-cp-content-inner .epc-cp-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-section.epc-cp-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-section--grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 767px) {
+	body.epc-cp-shell .epc-cp-content-inner .epc-cp-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-section.epc-cp-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-section--grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+body.epc-cp-shell .epc-cp-content-inner .form-group .form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-group select.form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-group textarea.form-control {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+body.epc-cp-shell .epc-cp-content-inner textarea.form-control,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section textarea.form-control {
+	max-width: min(100%, 720px);
+}
+body.epc-cp-shell .epc-cp-content-inner input[type="text"].form-control.epc-cp-input-wide,
+body.epc-cp-shell .epc-cp-content-inner input[type="url"].form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="email"].form-control {
+	max-width: min(100%, 560px);
+}
+
+body.epc-cp-shell .epc-cp-content-inner .table-responsive {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 16px;
+}
+body.epc-cp-shell .epc-cp-content-inner .table-responsive > .table {
+	margin-bottom: 0;
+	width: 100%;
+	max-width: 100%;
+}
+body.epc-cp-shell .epc-cp-content-inner .table {
+	max-width: 100%;
+}
+
+body.epc-cp-shell .epc-cp-content-inner .help-block,
+body.epc-cp-shell .epc-cp-content-inner .text-muted.lead,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-hero__sub {
+	max-width: 72ch;
+}
+
+/* ══════════════════════════════════════
+   20260606tenanthubui1 — tenant hub tabs, table, onboard
+   ══════════════════════════════════════ */
+
+body.epc-cp-shell .content .epc-th-tabs,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-tabs {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	width: 100% !important;
+	min-height: 0 !important;
+	margin-bottom: 14px !important;
+	padding: 0 !important;
+}
+body.epc-cp-shell .content .epc-th-tabs .btn,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-tabs .btn {
+	margin: 0 !important;
+}
+body.epc-cp-shell .content .epc-th-tabs__secondary,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-tabs__secondary {
+	display: inline-flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	margin-left: auto !important;
+}
+
+body.epc-cp-shell .content .epc-th-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: stretch !important;
+	gap: 10px !important;
+	width: 100% !important;
+	min-height: 0 !important;
+	margin-bottom: 16px !important;
+}
+body.epc-cp-shell .content .epc-th-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi__card {
+	display: block !important;
+	flex: 1 1 150px !important;
+	min-width: 130px !important;
+	max-width: 100% !important;
+	box-sizing: border-box !important;
+	min-height: 0 !important;
+}
+
+.epc-th-shell .epc-th-hero,
+.epc-th-shell .epc-th-kpi,
+.epc-th-shell .epc-th-tabs,
+.epc-th-shell .epc-th-panel,
+.epc-th-shell .epc-th-table-wrap {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.epc-th-panel {
+	margin-bottom: 16px;
+	border-radius: 10px;
+	overflow: hidden;
+}
+.epc-th-panel > .panel-heading {
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.4;
+	word-break: break-word;
+}
+.epc-th-panel > .panel-body {
+	padding: 16px 18px;
+}
+.epc-th-register-form .row > [class*="col-"],
+.epc-th-onboard .row > [class*="col-"] {
+	min-width: 0;
+}
+.epc-th-register-form .form-group label,
+.epc-th-onboard .form-group label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	margin-bottom: 4px;
+	word-break: break-word;
+}
+.epc-th-register-form .form-control,
+.epc-th-onboard .form-control {
+	max-width: 100%;
+}
+
+.epc-th-table-wrap {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 16px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #fff;
+}
+.epc-th-table {
+	table-layout: fixed;
+	width: 100%;
+	margin-bottom: 0;
+	font-size: 12px;
+}
+.epc-th-table > thead > tr > th,
+.epc-th-table > tbody > tr > td {
+	vertical-align: top;
+	padding: 10px 12px;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+	hyphens: auto;
+}
+.epc-th-table > thead > tr > th {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #64748b;
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0;
+	white-space: nowrap;
+}
+.epc-th-table > thead > tr > th:nth-child(1),
+.epc-th-table > tbody > tr > td:nth-child(1) { width: 10%; }
+.epc-th-table > thead > tr > th:nth-child(2),
+.epc-th-table > tbody > tr > td:nth-child(2) { width: 18%; }
+.epc-th-table > thead > tr > th:nth-child(3),
+.epc-th-table > tbody > tr > td:nth-child(3) { width: 16%; }
+.epc-th-table > thead > tr > th:nth-child(4),
+.epc-th-table > tbody > tr > td:nth-child(4) { width: 11%; }
+.epc-th-table > thead > tr > th:nth-child(5),
+.epc-th-table > tbody > tr > td:nth-child(5) { width: 14%; }
+.epc-th-table > thead > tr > th:nth-child(6),
+.epc-th-table > tbody > tr > td:nth-child(6) { width: 9%; }
+.epc-th-table > thead > tr > th:nth-child(7),
+.epc-th-table > tbody > tr > td:nth-child(7) { width: 22%; }
+
+.epc-th-table__host strong,
+.epc-th-table__key code,
+.epc-th-table__db code {
+	word-break: break-all;
+	overflow-wrap: anywhere;
+}
+.epc-th-table__key code,
+.epc-th-table__db code {
+	font-size: 11px;
+	display: inline-block;
+	max-width: 100%;
+}
+.epc-th-table .label.epc-th-badge-draft,
+.epc-th-table .label.epc-th-badge-dns,
+.epc-th-table .label.epc-th-badge-live {
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+	max-width: 100%;
+}
+.epc-th-table__actions {
+	white-space: normal;
+}
+.epc-th-table__actions-inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 6px;
+}
+.epc-th-table__actions-inner .btn {
+	margin: 0 !important;
+	flex: 0 0 auto;
+}
+.epc-th-table__actions-inner form {
+	display: inline-flex;
+	align-items: center;
+	margin: 0;
+	flex: 0 1 auto;
+	min-width: 0;
+}
+.epc-th-table__actions-inner select.input-sm,
+.epc-th-table__actions-inner select.form-control {
+	max-width: 110px;
+	min-width: 88px;
+	height: 26px;
+	padding: 2px 6px;
+	font-size: 11px;
+	margin: 0;
+}
+
+.epc-th-onboard-intro {
+	background: linear-gradient(135deg, #14532d, #22c55e);
+	color: #fff;
+	border-radius: 12px;
+	padding: 20px 22px;
+	margin-bottom: 18px;
+	box-sizing: border-box;
+}
+.epc-th-onboard-intro h4 {
+	margin: 0 0 8px;
+	color: #fff;
+	font-size: 16px;
+	line-height: 1.35;
+}
+.epc-th-onboard-intro p {
+	margin: 0;
+	opacity: 0.92;
+	font-size: 13px;
+	line-height: 1.55;
+	max-width: 72ch;
+	word-break: break-word;
+}
+.epc-th-onboard-intro code {
+	word-break: break-all;
+}
+.epc-th-onboard .epc-th-step {
+	border-left: 4px solid #0ea5e9;
+	padding: 12px 16px;
+	margin: 12px 0;
+	background: #f8fafc;
+	border-radius: 0 6px 6px 0;
+	box-sizing: border-box;
+}
+.epc-th-onboard .epc-th-step h5 {
+	margin: 0 0 6px;
+	font-weight: 700;
+	font-size: 14px;
+}
+.epc-th-onboard input[type="email"].form-control,
+.epc-th-onboard input[type="url"].form-control,
+.epc-th-onboard .epc-th-onboard-intro code {
+	word-break: break-all;
+	overflow-wrap: anywhere;
+}
+.epc-th-checklist li {
+	margin: 8px 0;
+}
+.epc-th-checklist .done {
+	color: #166534;
+}
+.epc-th-checklist .pending {
+	color: #92400e;
+}
+
+@media (max-width: 991px) {
+	.epc-th-table > thead > tr > th:nth-child(3),
+	.epc-th-table > tbody > tr > td:nth-child(3),
+	.epc-th-table > thead > tr > th:nth-child(5),
+	.epc-th-table > tbody > tr > td:nth-child(5) {
+		width: 14%;
+	}
+	.epc-th-tabs__secondary {
+		margin-left: 0 !important;
+		width: 100%;
+	}
+}
+@media (max-width: 767px) {
+	.epc-th-table {
+		table-layout: auto;
+		min-width: 720px;
+	}
+}
+
+/* ══════════════════════════════════════
+   20260606cpcompact1 — global compact CP density
+   (Super CP + tenant CP; body.epc-cp-shell / blue theme)
+   ══════════════════════════════════════ */
+
+body.epc-cp-shell,
+body.epc-cp--blue-theme.epc-cp-shell {
+	--epc-cp-compact-body: 14px;
+	--epc-cp-compact-panel-pad: 14px 16px;
+	--epc-cp-compact-heading-pad: 10px 14px;
+	--epc-cp-compact-heading-size: 14px;
+	--epc-cp-compact-section-gap: 12px;
+	--epc-cp-compact-form-mb: 12px;
+	--epc-cp-compact-label-size: 13px;
+	--epc-cp-compact-table-pad: 8px 10px;
+	--epc-cp-compact-kpi-pad: 10px 12px;
+}
+
+/* Remove crossbrowser min-height bloat on inner panels (keep shell .content measure) */
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .hpanel,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .panel,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .panel-body,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-scp-panel,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-form-section,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-th-panel,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .well,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-scp-table-card,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-scp-form-card,
+body.epc-cp-shell:not(.epc-erp-standalone) .content .hpanel,
+body.epc-cp-shell:not(.epc-erp-standalone) .content .panel-body {
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+body.epc-cp-shell .content,
+body.epc-cp--blue-theme.epc-cp-shell:not(.epc-erp-standalone) .content {
+	font-size: var(--epc-cp-compact-body, 14px);
+	line-height: 1.45;
+}
+
+body.epc-cp-shell .content .hpanel,
+body.epc-cp-shell .epc-cp-content-inner .hpanel,
+body.epc-cp--blue-theme .epc-cp .hpanel {
+	margin-bottom: var(--epc-cp-compact-section-gap, 12px) !important;
+}
+
+body.epc-cp-shell .content .hpanel > .panel-body,
+body.epc-cp-shell .content .hpanel .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body,
+body.epc-cp--blue-theme .epc-cp .hpanel > .panel-body,
+body.epc-cp--blue-theme .epc-cp .hpanel .panel-body {
+	padding: var(--epc-cp-compact-panel-pad, 14px 16px) !important;
+	min-height: 0 !important;
+}
+
+body.epc-cp-shell .content .hpanel > .panel-heading,
+body.epc-cp-shell .content .hpanel .panel-heading,
+body.epc-cp-shell .epc-cp-content-inner .panel-heading,
+body.epc-cp--blue-theme .epc-cp .hpanel > .panel-heading,
+body.epc-cp--blue-theme .epc-cp .hpanel .panel-heading {
+	font-size: var(--epc-cp-compact-heading-size, 14px) !important;
+	padding: var(--epc-cp-compact-heading-pad, 10px 14px) !important;
+	line-height: 1.35;
+}
+
+body.epc-cp-shell .content .panel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .panel > .panel-body {
+	padding: var(--epc-cp-compact-panel-pad, 14px 16px) !important;
+	min-height: 0 !important;
+}
+
+body.epc-cp-shell .content .epc-scp-panel,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-panel {
+	margin-bottom: var(--epc-cp-compact-section-gap, 12px) !important;
+}
+
+body.epc-cp-shell .content .epc-scp-panel__hero,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-panel__hero {
+	padding: 14px 16px !important;
+	margin-bottom: var(--epc-cp-compact-section-gap, 12px) !important;
+	gap: 10px !important;
+}
+
+body.epc-cp-shell .content .epc-form-section,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section,
+body.epc-cp--blue-theme .epc-cp .epc-form-section {
+	padding: 12px 14px !important;
+	margin-bottom: var(--epc-cp-compact-section-gap, 12px) !important;
+	min-height: 0 !important;
+}
+
+body.epc-cp-shell .content .epc-form-section__title,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section__title {
+	margin-bottom: 10px !important;
+	font-size: 12px !important;
+}
+
+body.epc-cp-shell .content .epc-th-panel,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-panel {
+	margin-bottom: var(--epc-cp-compact-section-gap, 12px) !important;
+}
+body.epc-cp-shell .content .epc-th-panel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-panel > .panel-body {
+	padding: 12px 14px !important;
+}
+
+/* Typography — headings one step down in CP main pane */
+body.epc-cp-shell .content h1,
+body.epc-cp-shell .epc-cp-content-inner h1 { font-size: 22px !important; }
+body.epc-cp-shell .content h2,
+body.epc-cp-shell .epc-cp-content-inner h2,
+body.epc-cp-shell .content h2.font-light { font-size: 18px !important; }
+body.epc-cp-shell .content h3,
+body.epc-cp-shell .epc-cp-content-inner h3,
+body.epc-cp-shell .content .panel-body > h3:first-child { font-size: 16px !important; }
+body.epc-cp-shell .content h4,
+body.epc-cp-shell .epc-cp-content-inner h4,
+body.epc-cp-shell .content .panel-body > h4 { font-size: 14px !important; margin: 12px 0 8px !important; }
+body.epc-cp-shell .content h5,
+body.epc-cp-shell .epc-cp-content-inner h5 { font-size: 13px !important; margin: 10px 0 6px !important; }
+
+body.epc-cp-shell .content p,
+body.epc-cp-shell .epc-cp-content-inner p {
+	margin-bottom: 8px;
+	font-size: var(--epc-cp-compact-body, 14px);
+}
+
+/* Section spacing utilities */
+body.epc-cp-shell .content .mb-20,
+body.epc-cp-shell .epc-cp-content-inner .mb-20 { margin-bottom: 12px !important; }
+body.epc-cp-shell .content .m-b-20,
+body.epc-cp-shell .epc-cp-content-inner .m-b-20 { margin-bottom: 12px !important; }
+body.epc-cp-shell .content .m-b-md,
+body.epc-cp-shell .epc-cp-content-inner .m-b-md { margin-bottom: 12px !important; }
+
+/* Forms */
+body.epc-cp-shell .content .form-group,
+body.epc-cp-shell .epc-cp-content-inner .form-group {
+	margin-bottom: var(--epc-cp-compact-form-mb, 12px) !important;
+}
+body.epc-cp-shell .content .form-group label,
+body.epc-cp-shell .content .control-label,
+body.epc-cp-shell .epc-cp-content-inner .form-group label,
+body.epc-cp-shell .epc-cp-content-inner .control-label {
+	font-size: var(--epc-cp-compact-label-size, 13px) !important;
+	margin-bottom: 4px !important;
+}
+body.epc-cp-shell .content .form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-control {
+	font-size: 13px;
+	padding: 6px 10px;
+	min-height: 32px;
+	height: auto;
+}
+body.epc-cp-shell .content .form-inline .form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-inline .form-control,
+body.epc-cp-shell .content .form-inline input[type="email"].form-control,
+body.epc-cp-shell .content .form-inline input[type="text"].form-control {
+	width: auto;
+	max-width: min(100%, 280px);
+	display: inline-block;
+	vertical-align: middle;
+}
+body.epc-cp-shell .content select.form-control.input-sm,
+body.epc-cp-shell .epc-cp-content-inner select.form-control {
+	max-width: min(100%, 220px);
+}
+body.epc-cp-shell .content input[type="number"].form-control,
+body.epc-cp-shell .content input[type="date"].form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="number"].form-control {
+	max-width: min(100%, 160px);
+}
+body.epc-cp-shell .content textarea.form-control,
+body.epc-cp-shell .epc-cp-content-inner textarea.form-control {
+	max-width: min(100%, 640px);
+}
+
+/* Tables — compact rows */
+body.epc-cp-shell .content .table > thead > tr > th,
+body.epc-cp-shell .content .table > tbody > tr > td,
+body.epc-cp-shell .content .table > tfoot > tr > td,
+body.epc-cp-shell .epc-cp-content-inner .table > thead > tr > th,
+body.epc-cp-shell .epc-cp-content-inner .table > tbody > tr > td {
+	padding: var(--epc-cp-compact-table-pad, 8px 10px) !important;
+	font-size: 13px;
+	vertical-align: middle;
+}
+body.epc-cp-shell .content .table > thead > tr > th {
+	font-size: 11px;
+}
+body.epc-cp-shell .content .table-condensed > thead > tr > th,
+body.epc-cp-shell .content .table-condensed > tbody > tr > td {
+	padding: 6px 8px !important;
+}
+
+/* Tabs — global compact pills (tenant hub + legacy nav) */
+body.epc-cp-shell .content .nav-tabs,
+body.epc-cp-shell .epc-cp-content-inner .nav-tabs {
+	border-bottom: 1px solid #e2e8f0;
+	margin-bottom: 12px !important;
+	padding: 0 !important;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+body.epc-cp-shell .content .nav-tabs > li,
+body.epc-cp-shell .epc-cp-content-inner .nav-tabs > li {
+	margin-bottom: 0 !important;
+	float: none;
+}
+body.epc-cp-shell .content .nav-tabs > li > a,
+body.epc-cp-shell .epc-cp-content-inner .nav-tabs > li > a {
+	padding: 6px 12px !important;
+	font-size: 12px !important;
+	font-weight: 600;
+	border-radius: 8px !important;
+	margin: 0 !important;
+	border: 1px solid #e2e8f0 !important;
+	line-height: 1.3;
+}
+body.epc-cp-shell .content .nav-tabs > li.active > a,
+body.epc-cp-shell .epc-cp-content-inner .nav-tabs > li.active > a {
+	border-color: #2563eb !important;
+	background: rgba(37, 99, 235, 0.08) !important;
+	color: #1d4ed8 !important;
+}
+body.epc-cp-shell .content .nav-pills,
+body.epc-cp-shell .epc-cp-content-inner .nav-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .content .nav-pills > li > a,
+body.epc-cp-shell .epc-cp-content-inner .nav-pills > li > a {
+	padding: 6px 12px !important;
+	font-size: 12px !important;
+	border-radius: 8px !important;
+}
+body.epc-cp-shell .content .epc-cp-auth-tabs,
+body.epc-cp-shell .epc-cp-content-inner .epc-cp-auth-tabs {
+	gap: 4px !important;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .content .epc-cp-auth-tab,
+body.epc-cp-shell .epc-cp-content-inner .epc-cp-auth-tab {
+	padding: 6px 10px !important;
+	font-size: 12px !important;
+}
+
+/* KPI cards — proportional compact */
+body.epc-cp-shell .content .epc-scp-kpi,
+body.epc-cp-shell .content .epc-th-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi {
+	gap: 8px !important;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .content .epc-scp-kpi__card,
+body.epc-cp-shell .content .epc-th-kpi__card,
+body.epc-cp-shell .content .epc-th-kpi .kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi__card {
+	padding: var(--epc-cp-compact-kpi-pad, 10px 12px) !important;
+	min-height: 0 !important;
+}
+body.epc-cp-shell .content .epc-scp-kpi__val,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi__val {
+	font-size: 22px !important;
+	line-height: 1.15;
+}
+body.epc-cp-shell .content .epc-th-kpi__val,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi__val {
+	font-size: 20px !important;
+}
+body.epc-cp-shell .content .epc-scp-kpi__label,
+body.epc-cp-shell .content .epc-th-kpi__label,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi__label {
+	font-size: 10px !important;
+	margin-bottom: 2px !important;
+}
+body.epc-cp-shell .content .epc-scp-quick-card {
+	min-height: 0 !important;
+	padding: 10px 12px !important;
+	gap: 6px !important;
+}
+body.epc-cp-shell .content .epc-scp-filter-bar,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-filter-bar {
+	padding: 8px 10px !important;
+	margin-bottom: 10px !important;
+	gap: 6px !important;
+}
+
+/* Buttons — btn-sm default inside CP panels */
+body.epc-cp-shell .content .hpanel .btn:not(.btn-xs):not(.btn-lg):not(.btn-block),
+body.epc-cp-shell .content .panel-body .btn:not(.btn-xs):not(.btn-lg):not(.btn-block),
+body.epc-cp-shell .content .epc-scp-panel .btn:not(.btn-xs):not(.btn-lg):not(.btn-block),
+body.epc-cp-shell .epc-cp-content-inner .hpanel .btn:not(.btn-xs):not(.btn-lg):not(.btn-block),
+body.epc-cp-shell .epc-cp-content-inner .panel-body .btn:not(.btn-xs):not(.btn-lg):not(.btn-block) {
+	padding: 5px 10px !important;
+	font-size: 12px !important;
+	line-height: 1.35;
+	border-radius: 7px !important;
+}
+
+/* Wells / alerts compact */
+body.epc-cp-shell .content .well,
+body.epc-cp-shell .epc-cp-content-inner .well {
+	padding: 10px 12px !important;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .content .well.well-sm,
+body.epc-cp-shell .epc-cp-content-inner .well.well-sm {
+	padding: 8px 10px !important;
+}
+body.epc-cp-shell .content .alert,
+body.epc-cp-shell .epc-cp-content-inner .alert {
+	padding: 8px 12px !important;
+	margin-bottom: 10px !important;
+	font-size: 13px;
+}
+
+/* Super CP auth settings + status tables */
+body.epc-cp-shell .epc-scp-auth-settings .hpanel > .panel-body {
+	padding: 14px 16px !important;
+}
+body.epc-cp-shell .epc-scp-auth-settings h4 {
+	margin-top: 14px !important;
+}
+body.epc-cp-shell .epc-scp-auth-settings .epc-scp-status-table th {
+	width: 180px;
+	font-size: 12px;
+	padding: var(--epc-cp-compact-table-pad, 8px 10px) !important;
+}
+body.epc-cp-shell .epc-scp-auth-settings .epc-scp-status-table td {
+	padding: var(--epc-cp-compact-table-pad, 8px 10px) !important;
+	font-size: 13px;
+	word-break: break-word;
+}
+body.epc-cp-shell .epc-scp-auth-settings .form-inline {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .epc-scp-auth-settings .form-inline label {
+	margin: 0 4px 0 0;
+	font-size: 13px;
+}
+body.epc-cp-shell .epc-scp-auth-settings__toggles {
+	max-width: 640px;
+}
+body.epc-cp-shell .epc-scp-auth-settings__otp-code {
+	font-size: 16px;
+	letter-spacing: 3px;
+}
+
+/* Orders workspace / catalogue legacy panels */
+body.epc-cp-shell .content .epc-scp-orders-filter .hpanel,
+body.epc-cp-shell .content .epc-scp-table-card,
+body.epc-cp-shell .content .epc-scp-form-card {
+	padding: 12px 14px !important;
+	min-height: 0 !important;
+}
+body.epc-cp-shell .content .epc-scp-orders-board,
+body.epc-cp-shell .content .epc-scp-orders-detail {
+	min-height: 0 !important;
+}
+
+body.epc-cp--blue-theme.epc-cp-shell:not(.epc-erp-standalone) .content {
+	padding: 12px 16px 32px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606textfit1 — panels/boxes size to content (extends cpcompact1)
+   (Super CP + tenant CP; body.epc-cp-shell / blue theme)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Panels/cards — height follows content; KPI cards keep min touch target */
+body.epc-cp-shell .content .hpanel,
+body.epc-cp-shell .content .panel,
+body.epc-cp-shell .content .well,
+body.epc-cp-shell .content .epc-scp-table-card,
+body.epc-cp-shell .content .epc-scp-form-card,
+body.epc-cp-shell .epc-cp-content-inner .hpanel,
+body.epc-cp-shell .epc-cp-content-inner .well {
+	height: auto !important;
+	min-height: 0 !important;
+}
+body.epc-cp-shell .content .hpanel > .panel-body,
+body.epc-cp-shell .content .panel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel > .panel-body {
+	height: auto !important;
+	min-height: 0 !important;
+}
+body.epc-cp-shell .content .hpanel > .panel-body:has(> p:only-child),
+body.epc-cp-shell .content .hpanel > .panel-body:has(> .alert:only-child),
+body.epc-cp-shell .content .hpanel > .panel-body:has(> .text-muted:only-child),
+body.epc-cp-shell .epc-cp-content-inner .hpanel > .panel-body:has(> p:only-child) {
+	padding: 10px 14px !important;
+}
+
+/* Short labels / inline text — box width fits copy */
+body.epc-cp-shell .content .form-inline > label,
+body.epc-cp-shell .content .form-inline .control-label,
+body.epc-cp-shell .content th[width],
+body.epc-cp-shell .epc-cp-content-inner .form-inline > label,
+body.epc-cp-shell .epc-scp-auth-settings .form-inline label,
+body.epc-cp-shell .epc-scp-status-table th {
+	width: fit-content;
+	max-width: 100%;
+	white-space: normal;
+}
+
+/* Textareas — ~3 rows, not theme 200px bloat */
+body.epc-cp-shell .content textarea.form-control,
+body.epc-cp-shell .epc-cp-content-inner textarea.form-control {
+	min-height: calc(1.45em * 3 + 14px) !important;
+	height: auto !important;
+	max-height: none;
+	resize: vertical;
+	line-height: 1.45;
+}
+
+/* Inline form rows — label + input share baseline, no tall gaps */
+body.epc-cp-shell .content .form-inline,
+body.epc-cp-shell .epc-cp-content-inner .form-inline,
+body.epc-cp-shell .epc-scp-auth-settings .form-inline {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 10px !important;
+}
+body.epc-cp-shell .content .form-inline .form-group,
+body.epc-cp-shell .epc-cp-content-inner .form-inline .form-group {
+	margin-bottom: 0 !important;
+	display: inline-flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+body.epc-cp-shell .content .form-inline label,
+body.epc-cp-shell .epc-cp-content-inner .form-inline label {
+	margin-bottom: 0 !important;
+	line-height: 1.35;
+}
+
+/* Short fields — status/qty/select not full row width */
+body.epc-cp-shell .content select.form-control,
+body.epc-cp-shell .epc-cp-content-inner select.form-control {
+	width: auto;
+	max-width: min(100%, 240px);
+}
+body.epc-cp-shell .content select.form-control.input-sm,
+body.epc-cp-shell .content select.form-control[name*="status"],
+body.epc-cp-shell .content select.form-control[name*="Status"],
+body.epc-cp-shell .epc-cp-content-inner select.form-control.input-sm {
+	max-width: min(100%, 200px);
+}
+body.epc-cp-shell .content input[type="number"].form-control,
+body.epc-cp-shell .content input.form-control[name*="qty"],
+body.epc-cp-shell .content input.form-control[name*="quantity"],
+body.epc-cp-shell .epc-cp-content-inner input[type="number"].form-control {
+	width: auto;
+	max-width: min(100%, 120px);
+}
+body.epc-cp-shell .content input[type="date"].form-control,
+body.epc-cp-shell .content input[type="time"].form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="date"].form-control {
+	width: auto;
+	max-width: min(100%, 180px);
+}
+body.epc-cp-shell .content .form-inline .form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-inline .form-control,
+body.epc-cp-shell .content .form-inline input[type="email"].form-control,
+body.epc-cp-shell .content .form-inline input[type="text"].form-control {
+	width: auto;
+	max-width: min(100%, 280px);
+}
+body.epc-cp-shell .content input[type="text"].form-control:not(.epc-cp-input-wide):not([style*="width"]),
+body.epc-cp-shell .content input[type="email"].form-control:not([style*="width"]),
+body.epc-cp-shell .epc-cp-content-inner input[type="text"].form-control:not(.epc-cp-input-wide) {
+	width: auto;
+	max-width: min(100%, 280px);
+}
+
+/* Checkbox / radio — minimal vertical padding */
+body.epc-cp-shell .content .checkbox,
+body.epc-cp-shell .content .radio,
+body.epc-cp-shell .epc-cp-content-inner .checkbox,
+body.epc-cp-shell .epc-cp-content-inner .radio {
+	margin-top: 0 !important;
+	margin-bottom: 6px !important;
+	min-height: 0 !important;
+	padding: 2px 0 !important;
+}
+body.epc-cp-shell .content .checkbox label,
+body.epc-cp-shell .content .radio label,
+body.epc-cp-shell .epc-cp-content-inner .checkbox label,
+body.epc-cp-shell .epc-scp-auth-settings__toggles .checkbox label {
+	padding-left: 20px;
+	min-height: 0 !important;
+	line-height: 1.35 !important;
+	margin-bottom: 0 !important;
+}
+body.epc-cp-shell .content .checkbox input[type="checkbox"],
+body.epc-cp-shell .content .radio input[type="radio"] {
+	margin-top: 2px;
+}
+
+/* Status badges / pills — compact inline chips */
+body.epc-cp-shell .content .label,
+body.epc-cp-shell .content .badge,
+body.epc-cp-shell .content .epc-status-badge,
+body.epc-cp-shell .content .epc-scp-badge,
+body.epc-cp-shell .content .epc-th-badge-draft,
+body.epc-cp-shell .content .epc-th-badge-dns,
+body.epc-cp-shell .content .epc-th-badge-live,
+body.epc-cp-shell .epc-cp-content-inner .label,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-badge {
+	display: inline-block;
+	width: fit-content;
+	max-width: 100%;
+	white-space: nowrap;
+	vertical-align: baseline;
+	line-height: 1.25;
+	padding: 2px 8px !important;
+	font-size: 11px !important;
+	font-weight: 600;
+}
+body.epc-cp-shell .content .nav-tabs > li > a,
+body.epc-cp-shell .content .nav-pills > li > a,
+body.epc-cp-shell .content .epc-cp-auth-tab {
+	width: fit-content;
+}
+
+/* Tables — wrap text, row height = content */
+body.epc-cp-shell .content .table > thead > tr > th,
+body.epc-cp-shell .content .table > tbody > tr > td,
+body.epc-cp-shell .content .table > tfoot > tr > td,
+body.epc-cp-shell .epc-cp-content-inner .table > thead > tr > th,
+body.epc-cp-shell .epc-cp-content-inner .table > tbody > tr > td {
+	white-space: normal !important;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+	height: auto !important;
+	vertical-align: top;
+	line-height: 1.35;
+}
+body.epc-cp-shell .content .table > tbody > tr,
+body.epc-cp-shell .epc-cp-content-inner .table > tbody > tr {
+	height: auto !important;
+}
+body.epc-cp-shell .content .table .epc-scp-actions-cell,
+body.epc-cp-shell .content .table td:last-child:has(.btn) {
+	white-space: nowrap;
+	vertical-align: middle;
+}
+
+/* Wells / toggle blocks — shrink to content width when short */
+body.epc-cp-shell .content .well.well-sm,
+body.epc-cp-shell .epc-scp-auth-settings__toggles,
+body.epc-cp-shell .epc-cp-content-inner .well.well-sm {
+	width: fit-content;
+	max-width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606portals1 — portal settings / industry_settings compact
+   (extends textfit1; fixes crossbrowser1 col min-height bloat)
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner [class*="col-"],
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-portal-settings [class*="col-"],
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-portal-settings .row,
+body.epc-cp-shell:not(.epc-erp-standalone) .epc-cp-content-inner .epc-portal-settings .row {
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+body.epc-cp-shell .epc-portal-settings {
+	margin-top: 0;
+	margin-bottom: 16px;
+}
+body.epc-cp-shell .epc-portal-settings__hero {
+	padding: 14px 16px;
+	margin-bottom: 12px;
+	gap: 12px;
+	border-radius: 12px;
+}
+body.epc-cp-shell .epc-portal-settings__hero h2 {
+	font-size: 18px !important;
+	margin: 0 0 6px !important;
+}
+body.epc-cp-shell .epc-portal-settings__hero p {
+	font-size: 13px;
+	line-height: 1.4;
+}
+body.epc-cp-shell .epc-portal-settings__eyebrow {
+	margin-bottom: 6px;
+	font-size: 11px;
+}
+body.epc-cp-shell .epc-portal-settings__host-badge {
+	padding: 10px 12px;
+}
+body.epc-cp-shell .epc-portal-settings__host-badge strong {
+	font-size: 15px;
+}
+body.epc-cp-shell .epc-portal-settings__form > .row {
+	margin-left: 0;
+	margin-right: 0;
+}
+body.epc-cp-shell .epc-portal-settings .hpanel {
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .epc-portal-settings__actions {
+	margin-top: 12px;
+	gap: 10px;
+}
+body.epc-cp-shell .epc-portal-settings__styles {
+	gap: 8px;
+}
+body.epc-cp-shell .epc-portal-settings__style {
+	padding: 10px;
+	gap: 8px;
+}
+body.epc-cp-shell .epc-portal-settings__pack {
+	padding: 10px 12px;
+	gap: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606cppresent2 — restore professional data presentation
+   Reverts textfit1/cpcompact1/layoutpro1 over-constraints; keeps crossbrowser1 visibility
+   ═══════════════════════════════════════════════════════════ */
+
+/* Full-width controls in data forms (undo textfit1 width:auto / narrow max-width) */
+body.epc-cp-shell .content .form-group .form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-group .form-control,
+body.epc-cp-shell .content .hpanel .panel-body .form-control,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-control {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+body.epc-cp-shell .content select.form-control,
+body.epc-cp-shell .epc-cp-content-inner select.form-control,
+body.epc-cp-shell .content input[type="number"].form-control,
+body.epc-cp-shell .content input[type="date"].form-control,
+body.epc-cp-shell .content input[type="time"].form-control,
+body.epc-cp-shell .content input[type="text"].form-control,
+body.epc-cp-shell .content input[type="email"].form-control,
+body.epc-cp-shell .content input[type="url"].form-control,
+body.epc-cp-shell .epc-cp-content-inner select.form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="number"].form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="date"].form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="text"].form-control,
+body.epc-cp-shell .epc-cp-content-inner input[type="email"].form-control {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+body.epc-cp-shell .content textarea.form-control,
+body.epc-cp-shell .epc-cp-content-inner textarea.form-control {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-height: calc(1.45em * 3 + 14px);
+}
+body.epc-cp-shell .content .form-inline .form-control,
+body.epc-cp-shell .epc-cp-content-inner .form-inline .form-control {
+	width: auto;
+	max-width: min(100%, 420px);
+}
+
+/* KPI row — no artificial card cap */
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi .kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-erp-kpi .kpi {
+	max-width: none !important;
+}
+
+/* Tables — full width, readable headers (storage, orders, catalogue) */
+body.epc-cp-shell .content .table-responsive,
+body.epc-cp-shell .epc-cp-content-inner .table-responsive {
+	width: 100%;
+	max-width: 100%;
+}
+body.epc-cp-shell .content .table,
+body.epc-cp-shell .epc-cp-content-inner .table,
+body.epc-cp-shell .content .table-epc-pro,
+body.epc-cp-shell .content .epc-scp-data-table {
+	width: 100%;
+	max-width: 100%;
+}
+body.epc-cp-shell .content .table > thead > tr > th,
+body.epc-cp-shell .epc-cp-content-inner .table > thead > tr > th {
+	white-space: nowrap;
+	vertical-align: middle;
+}
+body.epc-cp-shell .content .table > tbody > tr > td,
+body.epc-cp-shell .epc-cp-content-inner .table > tbody > tr > td {
+	vertical-align: middle;
+	word-break: normal;
+	overflow-wrap: break-word;
+}
+
+/* Legacy homer horizontal forms — logistics/storage & similar hpanel layouts */
+body.epc-cp-shell .content .hpanel .panel-body .form-group,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin-bottom: 10px !important;
+	clear: both;
+}
+body.epc-cp-shell .content .hpanel .panel-body .form-group > .control-label,
+body.epc-cp-shell .content .hpanel .panel-body .form-group > label[class*="col-"],
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > .control-label,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > label[class*="col-"] {
+	flex: 0 0 38%;
+	max-width: 42%;
+	width: auto !important;
+	float: none !important;
+	margin-bottom: 0 !important;
+}
+body.epc-cp-shell .content .hpanel .panel-body .form-group > [class*="col-"]:not(label),
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > [class*="col-"]:not(label) {
+	flex: 1 1 50%;
+	min-width: 200px;
+	max-width: none !important;
+	width: auto !important;
+	float: none !important;
+	padding-left: 0;
+	padding-right: 0;
+}
+body.epc-cp-shell .content .hpanel .panel-body > .hr-line-dashed,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body > .hr-line-dashed {
+	display: none;
+}
+
+/* Panel padding — professional, not cramped */
+body.epc-cp-shell .content .hpanel > .panel-body,
+body.epc-cp-shell .content .hpanel .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body {
+	padding: 16px 20px !important;
+}
+
+/* industry_settings — align content, reduce top gap */
+body.epc-cp-shell .content .epc-portal-settings,
+body.epc-cp-shell .epc-cp-content-inner .epc-portal-settings {
+	margin-top: 0;
+}
+body.epc-cp-shell .epc-cp-page-header {
+	padding-top: 8px;
+}
+body.epc-cp-shell .epc-portal-settings__hero {
+	margin-top: 0;
+}
+
+@media (max-width: 767px) {
+	body.epc-cp-shell .content .hpanel .panel-body .form-group > .control-label,
+	body.epc-cp-shell .content .hpanel .panel-body .form-group > label[class*="col-"],
+	body.epc-cp-shell .content .hpanel .panel-body .form-group > [class*="col-"]:not(label),
+	body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > .control-label,
+	body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > label[class*="col-"],
+	body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > [class*="col-"]:not(label) {
+		flex: 1 1 100%;
+		max-width: 100%;
+	}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606cpgapfix1 — compact data-first CP layout (all tabs)
+   Reverts stretch-to-fit / max-width centering; keeps crossbrowser1 visibility
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell:not(.epc-erp-standalone) {
+	--epc-cp-content-max: 100%;
+	--epc-cp-content-pad-x: 12px;
+	--epc-cp-compact-section-gap: 10px;
+	--epc-cp-compact-panel-pad: 12px;
+	--epc-cp-compact-form-mb: 10px;
+}
+
+body.epc-cp--blue-theme.epc-cp-shell:not(.epc-erp-standalone) .content {
+	padding: 10px 12px 24px !important;
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .epc-cp-content-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) .content > .epc-cp-content-inner {
+	max-width: 100% !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	padding-left: var(--epc-cp-content-pad-x) !important;
+	padding-right: var(--epc-cp-content-pad-x) !important;
+}
+
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-standalone) .epc-cp-content-inner {
+	max-width: 100% !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+}
+
+body.epc-cp-shell .epc-cp-content-inner .hpanel {
+	margin-bottom: var(--epc-cp-compact-section-gap, 10px) !important;
+}
+
+body.epc-cp-shell .content .hpanel > .panel-body,
+body.epc-cp-shell .content .hpanel .panel-body,
+body.epc-cp-shell .content .panel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel > .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body,
+body.epc-cp-shell .epc-cp-content-inner .panel > .panel-body,
+body.epc-cp-shell .content .epc-th-panel > .panel-body,
+body.epc-cp-shell .content .epc-scp-table-card,
+body.epc-cp-shell .content .epc-scp-form-card {
+	padding: var(--epc-cp-compact-panel-pad, 12px) !important;
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+body.epc-cp-shell .content .epc-scp-panel,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-panel,
+body.epc-cp-shell .content .epc-th-panel,
+body.epc-cp-shell .content .epc-form-section,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section {
+	margin-bottom: var(--epc-cp-compact-section-gap, 10px) !important;
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+body.epc-cp-shell .content .epc-scp-panel__hero,
+body.epc-cp-shell .content .epc-th-hero,
+body.epc-cp-shell .content .epc-portal-settings__hero {
+	padding: 12px 14px !important;
+	margin-bottom: var(--epc-cp-compact-section-gap, 10px) !important;
+}
+
+body.epc-cp-shell .content .form-group,
+body.epc-cp-shell .epc-cp-content-inner .form-group {
+	margin-bottom: var(--epc-cp-compact-form-mb, 10px) !important;
+}
+
+/* Block forms in panels — undo cppresent2 flex label/input rows (excess horizontal gap) */
+body.epc-cp-shell .content .hpanel .panel-body .form-group:not(.form-horizontal .form-group),
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group:not(.form-horizontal .form-group),
+body.epc-cp-shell .content .epc-portal-settings .form-group,
+body.epc-cp-shell .epc-cp-content-inner .epc-portal-settings .form-group {
+	display: block !important;
+	clear: both;
+}
+body.epc-cp-shell .content .hpanel .panel-body .form-group > .control-label,
+body.epc-cp-shell .content .hpanel .panel-body .form-group > label,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > .control-label,
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > label {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
+	flex: none !important;
+	margin-bottom: 4px !important;
+}
+body.epc-cp-shell .content .hpanel .panel-body .form-group > [class*="col-"]:not(label),
+body.epc-cp-shell .epc-cp-content-inner .hpanel .panel-body .form-group > [class*="col-"]:not(label) {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
+	flex: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
+/* 2-col form grids — no 3-col empty columns */
+body.epc-cp-shell .epc-cp-content-inner .epc-cp-form-grid,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-grid,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section.epc-cp-form-grid,
+body.epc-cp-shell .epc-cp-content-inner .epc-form-section--grid,
+body.epc-cp-shell .content .epc-cp-form-grid,
+body.epc-cp-shell .content .epc-form-grid {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	gap: 10px 14px !important;
+	align-items: start;
+}
+@media (max-width: 767px) {
+	body.epc-cp-shell .epc-cp-content-inner .epc-cp-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-section.epc-cp-form-grid,
+	body.epc-cp-shell .epc-cp-content-inner .epc-form-section--grid,
+	body.epc-cp-shell .content .epc-cp-form-grid,
+	body.epc-cp-shell .content .epc-form-grid {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+/* KPI rows — equal flex, no 320px cap */
+body.epc-cp-shell .content .epc-th-kpi,
+body.epc-cp-shell .content .epc-scp-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-erp-kpi {
+	gap: 8px !important;
+	margin-bottom: 10px !important;
+}
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-kpi .kpi,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-kpi__card,
+body.epc-cp-shell .epc-cp-content-inner .epc-erp-kpi .kpi,
+body.epc-cp-shell .content .epc-th-kpi__card,
+body.epc-cp-shell .content .epc-scp-kpi__card {
+	flex: 1 1 130px !important;
+	min-width: 120px !important;
+	max-width: none !important;
+	min-height: 0 !important;
+	padding: 10px 12px !important;
+}
+
+/* Tabs — tight pill rows (undo textfit1 width:fit-content) */
+body.epc-cp-shell .content .epc-th-tabs,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-tabs,
+body.epc-cp-shell .content .epc-cp-tabs--pill,
+body.epc-cp-shell .content .epc-erp-subnav.epc-cp-tabs--pill,
+body.epc-cp-shell .content .epc-crm-nav.epc-cp-tabs--pill {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 4px !important;
+	margin-bottom: 10px !important;
+	width: 100% !important;
+}
+body.epc-cp-shell .content .epc-th-tabs__secondary,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-tabs__secondary {
+	gap: 4px !important;
+}
+body.epc-cp-shell .content .epc-th-tabs .btn,
+body.epc-cp-shell .content .epc-cp-tabs--pill .btn,
+body.epc-cp-shell .content .nav-tabs > li > a,
+body.epc-cp-shell .content .nav-pills > li > a,
+body.epc-cp-shell .content .epc-cp-auth-tab,
+body.epc-cp-shell .epc-cp-content-inner .epc-th-tabs .btn {
+	width: auto !important;
+	max-width: none !important;
+	flex: 0 0 auto !important;
+	margin: 0 !important;
+	white-space: nowrap;
+}
+body.epc-cp-shell .content .nav-tabs,
+body.epc-cp-shell .epc-cp-content-inner .nav-tabs {
+	gap: 4px !important;
+	margin-bottom: 10px !important;
+	border-bottom: 1px solid #e2e8f0;
+}
+body.epc-cp-shell .content .nav-tabs > li,
+body.epc-cp-shell .epc-cp-content-inner .nav-tabs > li {
+	margin-bottom: 0 !important;
+}
+
+/* Tables — full content width, compact rows */
+body.epc-cp-shell .content .table-responsive,
+body.epc-cp-shell .epc-cp-content-inner .table-responsive,
+body.epc-cp-shell .content .epc-th-table-wrap,
+body.epc-cp-shell .content .epc-scp-orders-workspace {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin-bottom: 10px !important;
+}
+body.epc-cp-shell .content .table,
+body.epc-cp-shell .epc-cp-content-inner .table {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+body.epc-cp-shell .content .table > thead > tr > th,
+body.epc-cp-shell .content .table > tbody > tr > td,
+body.epc-cp-shell .epc-cp-content-inner .table > thead > tr > th,
+body.epc-cp-shell .epc-cp-content-inner .table > tbody > tr > td {
+	padding: 8px 10px !important;
+	vertical-align: middle !important;
+}
+body.epc-cp-shell .content .table > thead > tr > th,
+body.epc-cp-shell .epc-cp-content-inner .table > thead > tr > th {
+	white-space: nowrap;
+}
+
+/* Orders workspace — no forced tall empty panes */
+body.epc-cp-shell .content .epc-scp-orders-workspace {
+	gap: 10px !important;
+	margin-top: 10px !important;
+}
+body.epc-cp-shell .content .epc-scp-orders-detail {
+	min-height: 0 !important;
+	max-height: calc(100vh - 180px);
+}
+body.epc-cp-shell .content .epc-scp-orders-detail__empty {
+	min-height: 0 !important;
+	padding: 28px 16px !important;
+}
+body.epc-cp-shell .content .epc-scp-filter-bar,
+body.epc-cp-shell .epc-cp-content-inner .epc-scp-filter-bar {
+	padding: 8px 10px !important;
+	margin-bottom: 8px !important;
+}
+
+/* Page header — less top air */
+body.epc-cp-shell .epc-cp-page-header {
+	padding: 8px 16px 0 !important;
+}
+body.epc-cp-shell .epc-cp-page-header__card {
+	padding: 12px 16px !important;
+	gap: 10px 14px !important;
+}
+body.epc-cp-shell .epc-cp-page-header__title {
+	margin-bottom: 4px !important;
+	font-size: 20px !important;
+}
+body.epc-cp-shell .epc-cp-page-header__desc {
+	margin-bottom: 8px !important;
+}
+
+/* Portal / industry settings */
+body.epc-cp-shell .epc-portal-settings {
+	margin-bottom: 10px !important;
+}
+body.epc-cp-shell .epc-portal-settings .hpanel {
+	margin-bottom: 10px !important;
+}
+
+/* Super CP dashboard density */
+body.epc-cp-shell .content .epc-scp-dashboard__hero {
+	padding: 14px 16px !important;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .content .epc-scp-quick-grid {
+	gap: 8px !important;
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell .content .epc-scp-quick-card {
+	min-height: 0 !important;
+	padding: 10px 12px !important;
+}
+
+/* Auth settings / operator modules */
+body.epc-cp-shell .epc-scp-auth-settings h4 {
+	margin-top: 10px !important;
+	margin-bottom: 8px !important;
+}
+body.epc-cp-shell .epc-scp-auth-settings .form-inline {
+	margin-bottom: 8px !important;
+	gap: 6px !important;
+}
+body.epc-cp-shell .epc-scp-auth-settings__toggles {
+	width: 100%;
+	max-width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606mainpane1 — restore CP main pane (cpgapfix1 collapse fix)
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content.epc-cp-main-pane,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content > .row,
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .epc-cp-content-inner {
+	min-height: auto !important;
+	height: auto !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+body.epc-cp-shell .content .epc-th-hero,
+body.epc-cp-shell .content .hpanel,
+body.epc-cp-shell .content .epc-erp-shell,
+body.epc-cp-shell .content .epc-cp-content-inner {
+	display: block !important;
+	min-height: 1px !important;
+	height: auto !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606mainpane3 — fix col min-height bloat pushing content below fold
+   Force portal + dashboard descendants visible after refresh
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-portal-settings,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .row,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .row > *,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner [class*="col-"],
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-scp-dashboard,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-th-hero {
+	display: block !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	flex: none !important;
+	min-height: 1px !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	animation: none !important;
+	transform: none !important;
+}
+body.epc-cp-shell .content .epc-cp-content-inner .epc-th-kpi,
+body.epc-cp-shell .content .epc-cp-content-inner .epc-scp-kpi,
+body.epc-cp-shell .content .epc-cp-content-inner .epc-th-tabs {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+body.epc-cp-shell .content .opacity-0,
+body.epc-cp-shell .content .zoomIn,
+body.epc-cp-shell .content .animated-panel,
+body.epc-cp-shell .content .stagger,
+body.epc-cp-shell .content .animate-panel,
+body.epc-cp-shell .content .epc-cp-content-inner .opacity-0,
+body.epc-cp-shell .content .epc-cp-content-inner .zoomIn {
+	opacity: 1 !important;
+	visibility: visible !important;
+	animation: none !important;
+	transform: none !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content [class*="col-"],
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner [class*="col-"] {
+	min-height: 0 !important;
+	height: auto !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content.epc-cp-main-pane,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content > .row,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner {
+	min-height: 0 !important;
+	padding-top: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606mainpane4 — fix epc-cp-content-inner row path + splash
+   nginx 404 on /cp/templates/css — served via epc_cp_professional_css.php
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell .splash,
+body.epc-cp-shell .splash.show {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	pointer-events: none !important;
+	position: absolute !important;
+	z-index: -1 !important;
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content.epc-cp-main-pane > .epc-cp-content-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner > .row,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner > .row > *,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .epc-portal-settings,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .epc-scp-dashboard,
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .epc-th-hero {
+	display: block !important;
+	float: none !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	flex: none !important;
+	min-height: 0 !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	animation: none !important;
+	transform: none !important;
+}
+
+body.epc-cp-shell .content .epc-cp-content-inner .epc-th-kpi,
+body.epc-cp-shell .content .epc-cp-content-inner .epc-scp-kpi,
+body.epc-cp-shell .content .epc-cp-content-inner .epc-th-tabs {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: 0 !important;
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner [class*="col-"] {
+	min-height: 0 !important;
+	height: auto !important;
+	max-height: none !important;
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content .epc-cp-content-inner .row {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+}
+
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper[style] {
+	min-height: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606mainpane5 — style.css 404: #menu not fixed → #wrapper stacks below sidebar
+   nginx blocks /cp/templates/* — use epc_cp_style_css.php proxy + inline rules here
+   ═══════════════════════════════════════════════════════════ */
+
+body.fixed-sidebar.epc-cp-shell #menu,
+.epc-cp-shell.fixed-sidebar #menu {
+	position: fixed !important;
+	left: 0 !important;
+	z-index: 100 !important;
+	float: none !important;
+}
+
+html:not(.epc-cp-sidebar-collapsed) body.fixed-sidebar.epc-cp-shell #wrapper,
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell.fixed-sidebar #wrapper {
+	margin-left: var(--epc-cp-sidebar-w-expanded, 220px) !important;
+	width: calc(100% - var(--epc-cp-sidebar-w-expanded, 220px)) !important;
+	max-width: calc(100% - var(--epc-cp-sidebar-w-expanded, 220px)) !important;
+	box-sizing: border-box !important;
+	float: none !important;
+	position: relative !important;
+}
+
+html.epc-cp-sidebar-collapsed body.fixed-sidebar.epc-cp-shell #wrapper,
+html.epc-cp-sidebar-collapsed .epc-cp-shell.fixed-sidebar #wrapper {
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+body.epc-cp-shell #wrapper .epc-cp-page-header,
+body.epc-cp-shell #wrapper .epc-cp-page-header__card,
+body.epc-cp-shell #wrapper .epc-cp-page-header.transition,
+body.epc-cp-shell #wrapper .epc-cp-page-header.animated,
+body.epc-cp-shell #wrapper .epc-cp-page-header.fadeIn {
+	display: block !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: 1px !important;
+	height: auto !important;
+	animation: none !important;
+	transform: none !important;
+	position: relative !important;
+	left: auto !important;
+	top: auto !important;
+}
+
+html.translated-ltr body.epc-cp-shell #wrapper,
+html.translated-rtl body.epc-cp-shell #wrapper,
+body.epc-cp-shell.translated-ltr #wrapper,
+body.epc-cp-shell.translated-rtl #wrapper {
+	margin-top: 62px !important;
+	top: 0 !important;
+}
+
+body.epc-cp-shell #wrapper .epc-cp-content-inner,
+body.epc-cp-shell #wrapper .content.epc-cp-main-pane {
+	min-height: 400px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EPC CP Modern UI — 20260606modern1
+   SaaS admin polish: motion, depth, typography (extends blue theme)
+   Does NOT override mainpane4/5 visibility — animates cards only
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-modern.epc-cp-shell {
+	--epc-modern-radius-sm: 8px;
+	--epc-modern-radius: 12px;
+	--epc-modern-radius-lg: 16px;
+	--epc-modern-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(12, 74, 110, 0.04);
+	--epc-modern-shadow: 0 4px 16px rgba(12, 74, 110, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+	--epc-modern-shadow-lg: 0 12px 32px rgba(12, 74, 110, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+	--epc-modern-gray-50: #f8fafc;
+	--epc-modern-gray-100: #f1f5f9;
+	--epc-modern-gray-200: #e2e8f0;
+	--epc-modern-gray-400: #94a3b8;
+	--epc-modern-gray-600: #475569;
+	--epc-modern-gray-800: #1e293b;
+	--epc-modern-gray-900: #0f172a;
+	--epc-modern-primary: #2563eb;
+	--epc-modern-primary-soft: #dbeafe;
+	--epc-modern-accent: #0ea5e9;
+	--epc-modern-ease: cubic-bezier(0.4, 0, 0.2, 1);
+	--epc-modern-dur-fast: 150ms;
+	--epc-modern-dur: 220ms;
+	--epc-modern-dur-slow: 320ms;
+	font-feature-settings: "kern" 1, "liga" 1;
+	-webkit-font-smoothing: antialiased;
+}
+
+@keyframes epcCpFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes epcCpSlideInUp {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes epcCpSlideInLeft {
+	from {
+		opacity: 0;
+		transform: translateX(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes epcCpStatPop {
+	0% {
+		opacity: 0;
+		transform: translateY(6px) scale(0.92);
+	}
+	70% {
+		transform: translateY(-2px) scale(1.02);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes epcCpPulseSoft {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.72; }
+}
+
+@keyframes epcCpShimmer {
+	0% { background-position: -200% 0; }
+	100% { background-position: 200% 0; }
+}
+
+/* Page shell — subtle ambient background */
+body.epc-cp-modern.epc-cp-shell #wrapper {
+	background:
+		radial-gradient(ellipse 80% 50% at 100% 0%, rgba(14, 165, 233, 0.06) 0%, transparent 55%),
+		radial-gradient(ellipse 60% 40% at 0% 100%, rgba(37, 99, 235, 0.04) 0%, transparent 50%),
+		var(--epc-cp-body-bg, #f0f9ff);
+	transition: margin-left var(--epc-modern-dur-slow) var(--epc-modern-ease),
+		width var(--epc-modern-dur-slow) var(--epc-modern-ease);
+}
+
+/* Header — glass polish */
+body.epc-cp-modern.epc-cp-shell #header {
+	background: rgba(255, 255, 255, 0.88) !important;
+	backdrop-filter: blur(12px) saturate(1.2);
+	-webkit-backdrop-filter: blur(12px) saturate(1.2);
+	border-bottom: 1px solid rgba(186, 230, 253, 0.65);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 4px 20px rgba(12, 74, 110, 0.06);
+	transition: box-shadow var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern.epc-cp-shell #header .navbar-right .nav > li > a {
+	border-radius: var(--epc-modern-radius-sm);
+	transition: background var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		color var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		transform var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern.epc-cp-shell #header .navbar-right .nav > li > a:hover {
+	background: var(--epc-modern-primary-soft);
+	transform: translateY(-1px);
+}
+
+body.epc-cp-modern .color-line {
+	height: 3px;
+	transition: opacity var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+/* Sidebar — slide active indicator + smooth collapse */
+body.epc-cp-modern.epc-cp-shell #menu {
+	transition: width var(--epc-modern-dur-slow) var(--epc-modern-ease),
+		transform var(--epc-modern-dur-slow) var(--epc-modern-ease),
+		opacity var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern.epc-cp #side-menu > li {
+	position: relative;
+}
+
+body.epc-cp-modern.epc-cp #side-menu > li > a {
+	position: relative;
+	border-left: 3px solid transparent;
+	border-radius: 0 var(--epc-modern-radius-sm) var(--epc-modern-radius-sm) 0;
+	margin-right: 8px;
+	padding-left: 14px;
+	transition: background var(--epc-modern-dur) var(--epc-modern-ease),
+		color var(--epc-modern-dur) var(--epc-modern-ease),
+		border-color var(--epc-modern-dur) var(--epc-modern-ease),
+		transform var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern.epc-cp #side-menu > li > a::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 50%;
+	width: 3px;
+	height: 0;
+	border-radius: 0 2px 2px 0;
+	background: linear-gradient(180deg, var(--epc-blue-400) 0%, var(--epc-modern-accent) 100%);
+	transform: translateY(-50%);
+	transition: height var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern.epc-cp #side-menu > li.active > a::after,
+body.epc-cp-modern.epc-cp #side-menu > li > a:hover::after {
+	height: 60%;
+}
+
+body.epc-cp-modern.epc-cp #side-menu > li > a:hover {
+	transform: translateX(2px);
+}
+
+body.epc-cp-modern.epc-cp #side-menu ul.nav-second-level li > a {
+	border-radius: var(--epc-modern-radius-sm);
+	margin: 1px 10px 1px 6px;
+	padding: 7px 12px;
+	transition: background var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		color var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		padding-left var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern.epc-cp #side-menu ul.nav-second-level li > a:hover,
+body.epc-cp-modern.epc-cp #side-menu ul.nav-second-level li.active > a {
+	padding-left: 16px;
+}
+
+body.epc-cp-modern .epc-cp-sidebar-edge-toggle,
+body.epc-cp-modern .epc-cp-sidebar-toggle-tab {
+	transition: background var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		transform var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		box-shadow var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp-sidebar-edge-toggle:hover,
+body.epc-cp-modern .epc-cp-sidebar-toggle-tab:hover {
+	transform: scale(1.04);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Typography hierarchy */
+body.epc-cp-modern.epc-cp-shell .content h1,
+body.epc-cp-modern.epc-cp-shell .content h2,
+body.epc-cp-modern.epc-cp-shell .content h3 {
+	color: var(--epc-modern-gray-900);
+	letter-spacing: -0.02em;
+	font-weight: 700;
+}
+
+body.epc-cp-modern.epc-cp-shell .content h4,
+body.epc-cp-modern.epc-cp-shell .content h5 {
+	color: var(--epc-modern-gray-800);
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+
+body.epc-cp-modern.epc-cp-shell .content label,
+body.epc-cp-modern.epc-cp-shell .content .control-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--epc-modern-gray-600);
+	letter-spacing: 0.02em;
+}
+
+body.epc-cp-modern.epc-cp-shell .content .help-block,
+body.epc-cp-modern.epc-cp-shell .content .text-muted {
+	color: var(--epc-modern-gray-400);
+	font-size: 12px;
+}
+
+/* Card components */
+body.epc-cp-modern .epc-cp-card,
+body.epc-cp-modern .epc-cp-stat {
+	border-radius: var(--epc-modern-radius);
+	transition: transform var(--epc-modern-dur) var(--epc-modern-ease),
+		box-shadow var(--epc-modern-dur) var(--epc-modern-ease),
+		border-color var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp-card:hover,
+body.epc-cp-modern .epc-cp-stat:hover {
+	transform: translateY(-3px);
+	box-shadow: var(--epc-modern-shadow-lg);
+}
+
+body.epc-cp-modern .epc-cp .hpanel {
+	border-radius: var(--epc-modern-radius-lg);
+	overflow: hidden;
+	border: 1px solid var(--epc-modern-gray-200);
+	box-shadow: var(--epc-modern-shadow-sm);
+	transition: transform var(--epc-modern-dur) var(--epc-modern-ease),
+		box-shadow var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp .hpanel:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--epc-modern-shadow);
+}
+
+body.epc-cp-modern .epc-cp .hpanel > .panel-heading,
+body.epc-cp-modern .epc-cp .hpanel .panel-heading {
+	font-weight: 700;
+	font-size: 14px;
+	letter-spacing: -0.01em;
+	border-bottom: 1px solid var(--epc-modern-gray-100);
+	background: linear-gradient(180deg, #fff 0%, var(--epc-modern-gray-50) 100%);
+}
+
+body.epc-cp-modern .epc-cp .hpanel > .panel-body,
+body.epc-cp-modern .epc-cp .hpanel .panel-body {
+	padding: 18px 20px;
+}
+
+/* Stat / KPI cards */
+body.epc-cp-modern .epc-scp-kpi__card,
+body.epc-cp-modern .epc-th-kpi__card,
+body.epc-cp-modern .epc-cp-stat {
+	background: #fff;
+	border: 1px solid var(--epc-modern-gray-200);
+	box-shadow: var(--epc-modern-shadow-sm);
+	position: relative;
+	overflow: hidden;
+}
+
+body.epc-cp-modern .epc-scp-kpi__card::before,
+body.epc-cp-modern .epc-th-kpi__card::before,
+body.epc-cp-modern .epc-cp-stat::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, var(--epc-modern-primary) 0%, var(--epc-modern-accent) 100%);
+	opacity: 0.85;
+}
+
+body.epc-cp-modern .epc-scp-kpi__val,
+body.epc-cp-modern .epc-th-kpi__val {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum" 1;
+}
+
+body.epc-cp-modern .epc-cp-stat.epc-cp-modern-in .epc-scp-kpi__val,
+body.epc-cp-modern .epc-cp-stat.epc-cp-modern-in .epc-th-kpi__val,
+body.epc-cp-modern .epc-cp-stat.epc-cp-modern-in [data-epc-stat] {
+	animation: epcCpStatPop 0.55s var(--epc-modern-ease) both;
+	animation-delay: calc(0.08s + var(--epc-cp-reveal-i, 0) * 0.05s);
+}
+
+/* Stagger reveal — cards only (not layout rows/cols) */
+body.epc-cp-modern .epc-cp-modern-in {
+	animation: epcCpSlideInUp 0.45s var(--epc-modern-ease) both;
+	animation-delay: calc(var(--epc-cp-reveal-i, 0) * 0.05s);
+}
+
+/* Main content loading skeleton (first paint) */
+body.epc-cp-modern.epc-cp-shell.is-content-loading .epc-cp-content-inner::before {
+	content: "";
+	display: block;
+	height: 4px;
+	margin: 0 0 16px;
+	border-radius: 999px;
+	background: linear-gradient(90deg, var(--epc-modern-gray-100) 25%, var(--epc-modern-gray-200) 50%, var(--epc-modern-gray-100) 75%);
+	background-size: 200% 100%;
+	animation: epcCpShimmer 1.4s ease-in-out infinite;
+}
+
+body.epc-cp-modern.epc-cp-shell:not(.is-content-loading) .epc-cp-content-inner {
+	animation: epcCpFadeIn 0.35s var(--epc-modern-ease) both;
+}
+
+/* Page header polish */
+body.epc-cp-modern .epc-cp-page-header__card {
+	border-radius: var(--epc-modern-radius-lg);
+	border: 1px solid var(--epc-modern-gray-200);
+	box-shadow: var(--epc-modern-shadow-sm);
+	background: linear-gradient(135deg, #fff 0%, var(--epc-modern-gray-50) 100%);
+	transition: box-shadow var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp-page-header__card:hover {
+	box-shadow: var(--epc-modern-shadow);
+}
+
+body.epc-cp-modern .epc-cp-page-header__pill {
+	border-radius: 999px;
+	transition: transform var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		box-shadow var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		background var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp-page-header__pill:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+}
+
+body.epc-cp-modern .epc-cp-page-header__pill:active {
+	transform: translateY(0) scale(0.98);
+}
+
+/* Buttons — micro-interactions */
+body.epc-cp-modern .epc-cp .btn {
+	border-radius: var(--epc-modern-radius-sm);
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	transition: transform var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		box-shadow var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		background var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		border-color var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp .btn:hover {
+	transform: translateY(-1px);
+}
+
+body.epc-cp-modern .epc-cp .btn:active {
+	transform: translateY(0) scale(0.98);
+}
+
+body.epc-cp-modern .epc-cp .btn-primary {
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+}
+
+body.epc-cp-modern .epc-cp .btn-primary:hover {
+	box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+/* Form inputs */
+body.epc-cp-modern .epc-cp .form-control,
+body.epc-cp-modern .epc-cp input[type="text"],
+body.epc-cp-modern .epc-cp input[type="email"],
+body.epc-cp-modern .epc-cp input[type="password"],
+body.epc-cp-modern .epc-cp input[type="number"],
+body.epc-cp-modern .epc-cp select,
+body.epc-cp-modern .epc-cp textarea {
+	border-radius: var(--epc-modern-radius-sm);
+	border: 1px solid var(--epc-modern-gray-200);
+	background: #fff;
+	transition: border-color var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		box-shadow var(--epc-modern-dur-fast) var(--epc-modern-ease),
+		background var(--epc-modern-dur-fast) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-cp .form-control:focus,
+body.epc-cp-modern .epc-cp input:focus,
+body.epc-cp-modern .epc-cp select:focus,
+body.epc-cp-modern .epc-cp textarea:focus {
+	border-color: var(--epc-modern-accent);
+	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+	outline: none;
+	background: #fff;
+}
+
+/* Tables — zebra + hover */
+body.epc-cp-modern .epc-cp .table > tbody > tr:nth-child(even) > td,
+body.epc-cp-modern .epc-cp .epc-scp-data-table > tbody > tr:nth-child(even) > td {
+	background: var(--epc-modern-gray-50);
+}
+
+body.epc-cp-modern .epc-cp .table > tbody > tr > td,
+body.epc-cp-modern .epc-cp .epc-scp-data-table > tbody > tr > td {
+	transition: background var(--epc-modern-dur-fast) var(--epc-modern-ease);
+	border-color: var(--epc-modern-gray-100);
+	font-size: 13px;
+}
+
+body.epc-cp-modern .epc-cp .table > tbody > tr:hover > td,
+body.epc-cp-modern .epc-cp .epc-scp-data-table > tbody > tr:hover > td {
+	background: var(--epc-modern-primary-soft) !important;
+}
+
+body.epc-cp-modern .epc-cp .table > thead > tr > th,
+body.epc-cp-modern .epc-cp .epc-scp-data-table > thead > tr > th {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--epc-modern-gray-600);
+	background: var(--epc-modern-gray-50);
+	border-bottom: 2px solid var(--epc-modern-gray-200);
+}
+
+/* Super CP dashboard enhancements */
+body.epc-cp-modern .epc-scp-dashboard__hero {
+	border-radius: var(--epc-modern-radius-lg);
+	box-shadow: var(--epc-modern-shadow-lg);
+	position: relative;
+	overflow: hidden;
+}
+
+body.epc-cp-modern .epc-scp-dashboard__hero::after {
+	content: "";
+	position: absolute;
+	top: -50%;
+	right: -20%;
+	width: 280px;
+	height: 280px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+	pointer-events: none;
+	animation: epcCpPulseSoft 4s ease-in-out infinite;
+}
+
+body.epc-cp-modern .epc-scp-dashboard__title {
+	font-size: 24px;
+	letter-spacing: -0.03em;
+}
+
+body.epc-cp-modern .epc-scp-quick-card {
+	border-radius: var(--epc-modern-radius);
+	box-shadow: var(--epc-modern-shadow-sm);
+}
+
+body.epc-cp-modern .epc-scp-quick-card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--epc-modern-shadow-lg);
+	border-color: rgba(14, 165, 233, 0.35);
+}
+
+body.epc-cp-modern .epc-scp-quick-card__icon {
+	transition: transform var(--epc-modern-dur) var(--epc-modern-ease);
+}
+
+body.epc-cp-modern .epc-scp-quick-card:hover .epc-scp-quick-card__icon {
+	transform: scale(1.08) rotate(-3deg);
+}
+
+body.epc-cp-modern .epc-scp-table-card,
+body.epc-cp-modern .epc-scp-form-card,
+body.epc-cp-modern .epc-scp-panel__hero {
+	border-radius: var(--epc-modern-radius-lg);
+	box-shadow: var(--epc-modern-shadow-sm);
+}
+
+/* Tenant hub KPI cards */
+body.epc-cp-modern .epc-th-kpi__card {
+	border-radius: var(--epc-modern-radius);
+}
+
+body.epc-cp-modern .epc-th-hero {
+	border-radius: var(--epc-modern-radius-lg);
+	box-shadow: var(--epc-modern-shadow);
+}
+
+/* Responsive — tablet */
+@media (max-width: 1024px) {
+	body.epc-cp-modern.epc-cp-shell:not(.epc-erp-standalone) .content {
+		padding: 14px 16px 32px;
+	}
+
+	body.epc-cp-modern .epc-scp-kpi,
+	body.epc-cp-modern .epc-th-kpi {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+
+	body.epc-cp-modern .epc-scp-quick-grid {
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	}
+
+	body.epc-cp-modern .epc-scp-dashboard__hero {
+		padding: 18px 20px;
+	}
+
+	body.epc-cp-modern .epc-scp-dashboard__title {
+		font-size: 20px;
+	}
+}
+
+@media (max-width: 768px) {
+	body.epc-cp-modern .epc-scp-kpi,
+	body.epc-cp-modern .epc-th-kpi {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	body.epc-cp-modern .epc-scp-quick-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	body.epc-cp-modern.epc-cp #side-menu > li > a:hover {
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body.epc-cp-modern .epc-cp-modern-in,
+	body.epc-cp-modern .epc-cp-stat.epc-cp-modern-in .epc-scp-kpi__val,
+	body.epc-cp-modern .epc-cp-stat.epc-cp-modern-in .epc-th-kpi__val,
+	body.epc-cp-modern .epc-cp-stat.epc-cp-modern-in [data-epc-stat],
+	body.epc-cp-modern.epc-cp-shell:not(.is-content-loading) .epc-cp-content-inner {
+		animation: none !important;
+	}
+
+	body.epc-cp-modern .epc-cp-card:hover,
+	body.epc-cp-modern .epc-cp-stat:hover,
+	body.epc-cp-modern .epc-cp .hpanel:hover,
+	body.epc-cp-modern .epc-scp-quick-card:hover {
+		transform: none;
+	}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606crossbrowser2 — cross-browser baseline & presentation
+   Vendor prefixes, @supports fallbacks, layout normalization
+   Preserves mainpane5 sidebar+wrapper; modern1 polish on cards only
+   ═══════════════════════════════════════════════════════════ */
+
+/* Box model — explicit reset for CP shell (Bootstrap 3 inheritance) */
+body.epc-cp-shell,
+body.epc-cp-shell #header,
+body.epc-cp-shell #menu,
+body.epc-cp-shell #wrapper,
+body.epc-cp-shell #navigation,
+body.epc-cp-shell .content,
+body.epc-cp-shell .epc-cp-content-inner,
+body.epc-cp-shell .epc-cp-page-header,
+body.epc-cp-shell .footer {
+	box-sizing: border-box;
+}
+
+body.epc-cp-shell *,
+body.epc-cp-shell *::before,
+body.epc-cp-shell *::after {
+	box-sizing: inherit;
+}
+
+/* Font rendering — macOS Safari/Firefox/Edge consistency */
+body.epc-cp-shell {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+/* CSS custom property fallbacks (sidebar width) */
+body.epc-cp-shell {
+	--epc-cp-sidebar-w-expanded: 220px;
+	--epc-cp-sidebar-w-collapsed: 0px;
+}
+
+html:not(.epc-cp-sidebar-collapsed) body.fixed-sidebar.epc-cp-shell #menu,
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell.fixed-sidebar #menu {
+	width: 220px;
+	width: var(--epc-cp-sidebar-w-expanded, 220px) !important;
+	min-width: 220px;
+	min-width: var(--epc-cp-sidebar-w-expanded, 220px) !important;
+	max-width: 220px;
+	max-width: var(--epc-cp-sidebar-w-expanded, 220px) !important;
+	flex-shrink: 0;
+}
+
+html:not(.epc-cp-sidebar-collapsed) body.fixed-sidebar.epc-cp-shell #wrapper,
+html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell.fixed-sidebar #wrapper {
+	margin-left: 220px;
+	margin-left: var(--epc-cp-sidebar-w-expanded, 220px) !important;
+	width: calc(100% - 220px);
+	width: calc(100% - var(--epc-cp-sidebar-w-expanded, 220px)) !important;
+	max-width: calc(100% - 220px);
+	max-width: calc(100% - var(--epc-cp-sidebar-w-expanded, 220px)) !important;
+}
+
+/* :has() fallback — html.epc-cp-html-lock set by first-paint script */
+html.epc-cp-html-lock {
+	height: 100%;
+}
+
+/* Google Translate — prevent body shift and layout break */
+body.epc-cp-shell,
+body.epc-cp-shell.translated-ltr,
+body.epc-cp-shell.translated-rtl,
+html.translated-ltr body.epc-cp-shell,
+html.translated-rtl body.epc-cp-shell {
+	top: 0 !important;
+	position: relative !important;
+	margin-top: 0 !important;
+	min-height: 100%;
+}
+
+body.epc-cp-shell > .skiptranslate,
+body.epc-cp-shell .skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	max-height: 0 !important;
+	pointer-events: none !important;
+	overflow: hidden !important;
+}
+
+/* Header glass — solid fallback when backdrop-filter unsupported */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	body.epc-cp-modern.epc-cp-shell #header {
+		background: rgba(255, 255, 255, 0.88) !important;
+		-webkit-backdrop-filter: blur(12px) saturate(1.2);
+		backdrop-filter: blur(12px) saturate(1.2);
+	}
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	body.epc-cp-modern.epc-cp-shell #header,
+	body.epc-cp--blue-theme.epc-cp #header,
+	body.epc-cp-shell #header {
+		background: #ffffff !important;
+		background: var(--epc-cp-header-bg, #ffffff) !important;
+	}
+}
+
+/* Vendor-prefixed keyframes (Safari / legacy WebKit) */
+@-webkit-keyframes epcCpFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@-webkit-keyframes epcCpSlideInUp {
+	from {
+		opacity: 0;
+		-webkit-transform: translateY(12px);
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		-webkit-transform: translateY(0);
+		transform: translateY(0);
+	}
+}
+
+@-webkit-keyframes epcCpSlideInLeft {
+	from {
+		opacity: 0;
+		-webkit-transform: translateX(-8px);
+		transform: translateX(-8px);
+	}
+	to {
+		opacity: 1;
+		-webkit-transform: translateX(0);
+		transform: translateX(0);
+	}
+}
+
+@-webkit-keyframes epcCpStatPop {
+	0% {
+		opacity: 0;
+		-webkit-transform: translateY(6px) scale(0.92);
+		transform: translateY(6px) scale(0.92);
+	}
+	70% {
+		-webkit-transform: translateY(-2px) scale(1.02);
+		transform: translateY(-2px) scale(1.02);
+	}
+	100% {
+		opacity: 1;
+		-webkit-transform: translateY(0) scale(1);
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* Layout containers — never animate (Firefox/Opera opacity stall) */
+body.epc-cp-shell #wrapper,
+body.epc-cp-shell #wrapper .content,
+body.epc-cp-shell #wrapper .content.epc-cp-main-pane,
+body.epc-cp-shell #wrapper .epc-cp-content-inner,
+body.epc-cp-shell #wrapper .content > .row,
+body.epc-cp-shell #menu,
+body.epc-cp-shell #wrapper .epc-cp-page-header {
+	animation: none !important;
+	-webkit-animation: none !important;
+	transform: none !important;
+	-webkit-transform: none !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+body.epc-cp-modern.epc-cp-shell:not(.is-content-loading) .epc-cp-content-inner {
+	animation: none !important;
+	-webkit-animation: none !important;
+}
+
+/* Safe flex — prevent overflow collapse in Firefox/Edge */
+body.epc-cp-shell #header,
+body.epc-cp-shell #header nav[role="navigation"],
+body.epc-cp-shell #header .navbar-right,
+body.epc-cp-shell #header .navbar-right > .nav,
+body.epc-cp-shell #menu,
+body.epc-cp-shell #navigation {
+	min-width: 0;
+}
+
+body.epc-cp-shell .epc-th-kpi,
+body.epc-cp-shell .epc-scp-kpi,
+body.epc-cp-shell .epc-scp-quick-grid,
+body.epc-cp-shell .epc-cp-page-header__actions {
+	min-width: 0;
+	flex-shrink: 1;
+}
+
+/* Flex gap fallback — Safari < 14.1, legacy Edge */
+@supports not (gap: 1px) {
+	body.epc-cp-shell .epc-th-kpi > * {
+		margin: 5px;
+	}
+	body.epc-cp-shell .epc-scp-kpi > * {
+		margin: 7px;
+	}
+	body.epc-cp-shell .epc-cp-page-header__actions > * {
+		margin-right: 8px;
+		margin-bottom: 8px;
+	}
+	body.epc-cp-shell .epc-cp-topbar-strip > * {
+		margin-right: 10px;
+	}
+}
+
+/* Bootstrap 3 float conflicts — block grid in main pane */
+body.epc-cp-shell:not(.epc-erp-standalone) #wrapper .content [class*="col-"] {
+	float: none !important;
+	min-width: 0;
+	position: relative;
+}
+
+/* Main pane — guaranteed visible min-height (all browsers) */
+body.epc-cp-shell #wrapper .content.epc-cp-main-pane,
+body.epc-cp-shell #wrapper .epc-cp-content-inner {
+	min-height: 400px !important;
+	min-height: max(400px, calc(100vh - 62px - 180px)) !important;
+}
+
+@supports not (min-height: max(0px, 0px)) {
+	body.epc-cp-shell #wrapper .content.epc-cp-main-pane,
+	body.epc-cp-shell #wrapper .epc-cp-content-inner {
+		min-height: 400px !important;
+	}
+}
+
+/* Content inner grid normalization */
+body.epc-cp-shell .epc-cp-content-inner {
+	width: 100%;
+	max-width: 100%;
+	overflow-x: auto;
+	overflow-y: visible;
+	-webkit-overflow-scrolling: touch;
+}
+
+body.epc-cp-shell .epc-cp-content-inner > .row {
+	width: 100%;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* Card hover transforms — Firefox subpixel / stacking fix */
+body.epc-cp-modern .epc-cp-card,
+body.epc-cp-modern .epc-cp-stat,
+body.epc-cp-modern .epc-cp .hpanel,
+body.epc-cp-modern .epc-scp-quick-card,
+body.epc-cp-modern .epc-scp-kpi__card,
+body.epc-cp-modern .epc-th-kpi__card {
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+
+/* Card-only reveal — safe with crossbrowser visibility rules */
+body.epc-cp-modern .epc-cp-modern-in {
+	animation: epcCpSlideInUp 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+	-webkit-animation: epcCpSlideInUp 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Scrollbar styling with fallbacks */
+body.epc-cp-shell #navigation {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(148, 163, 184, 0.92) rgba(15, 23, 42, 0.55);
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar-track {
+	background: rgba(15, 23, 42, 0.55);
+	border-radius: 4px;
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar-thumb {
+	background: rgba(148, 163, 184, 0.92);
+	border-radius: 4px;
+}
+
+body.epc-cp-shell.fixed-navbar #wrapper {
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+}
+
+body.epc-cp-shell.fixed-navbar #wrapper::-webkit-scrollbar {
+	width: 10px;
+}
+
+body.epc-cp-shell.fixed-navbar #wrapper::-webkit-scrollbar-thumb {
+	background: rgba(148, 163, 184, 0.55);
+	border-radius: 5px;
+}
+
+/* clamp() fallback for content padding */
+body.epc-cp-shell:not(.epc-erp-standalone) {
+	--epc-cp-content-pad-x: 16px;
+}
+
+@supports (padding: clamp(16px, 2.5vw, 32px)) {
+	body.epc-cp-shell:not(.epc-erp-standalone) {
+		--epc-cp-content-pad-x: clamp(16px, 2.5vw, 32px);
+	}
+}
+
+/* Tablet / mobile touch scroll */
+@media (max-width: 1024px) {
+	body.epc-cp-shell.fixed-sidebar #menu {
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body.epc-cp-shell.fixed-navbar #wrapper {
+		-webkit-overflow-scrolling: touch;
+		overflow-y: auto !important;
+	}
+}
+
+@media (max-width: 768px) {
+	html:not(.epc-cp-sidebar-collapsed) body.fixed-sidebar.epc-cp-shell #wrapper,
+	html:not(.epc-cp-sidebar-collapsed) .epc-cp-shell.fixed-sidebar #wrapper {
+		margin-left: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+
+	body.epc-cp-shell #menu {
+		-webkit-transform: translateZ(0);
+		transform: translateZ(0);
+	}
+}
+
+/* ══════════════════════════════════════
+   EPC CP Page Frame — 20260606cpframe1
+   Full-width tab content at all CP levels
+   ══════════════════════════════════════ */
+.epc-cp-page-frame {
+	box-sizing: border-box;
+	max-width: none;
+	padding: 0 16px 24px;
+	width: 100%;
+}
+
+body.epc-cp-modern.epc-cp-shell .epc-cp-page-frame,
+body.epc-cp-modern.epc-cp-shell .epc-cp-main-pane.epc-cp-page-frame {
+	max-width: none;
+	width: 100%;
+}
+
+body.epc-cp-modern .epc-cp-page-frame .epc-portal-settings,
+body.epc-cp-modern .epc-cp-page-frame .epc-scp-dashboard,
+body.epc-cp-modern .epc-cp-page-frame .epc-ffg,
+body.epc-cp-modern .epc-cp-page-frame .epc-pg,
+body.epc-cp-modern .epc-cp-page-frame .epc-phc,
+body.epc-cp-modern .epc-cp-page-frame .epc-adg,
+body.epc-cp-modern .epc-cp-page-frame .epc-eog,
+body.epc-cp-modern .epc-cp-page-frame .epc-csg-portal,
+body.epc-cp-modern .epc-cp-page-frame .epc-erp-shell,
+body.epc-cp-modern .epc-cp-page-frame .epc-vpe-workspace {
+	max-width: none;
+	width: 100%;
+}
+
+body.epc-cp-modern .epc-cp-page-frame .row {
+	margin-left: 0;
+	margin-right: 0;
+	max-width: 100%;
+}
+
+body.epc-cp-modern .epc-cp-page-frame .hpanel,
+body.epc-cp-modern .epc-cp-page-frame .epc-cp-card {
+	margin-bottom: 14px;
+}
+
+.epc-cp-page-header.epc-scp-dashboard__hero {
+	margin-bottom: 16px;
+}
+
+/* Reduced motion — cross-browser guard */
+@media (prefers-reduced-motion: reduce) {
+	body.epc-cp-shell *,
+	body.epc-cp-shell *::before,
+	body.epc-cp-shell *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EPC CP Page Frame — 20260606cpframe1
+   Full-width main pane; dashboard-style portal pages
+   Preserves mainpane5 + crossbrowser2 + modern1
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell .epc-cp-page-frame {
+	width: 100% !important;
+	max-width: none !important;
+	padding: 0 clamp(12px, 2vw, 24px) 24px;
+	box-sizing: border-box;
+	float: none !important;
+}
+
+body.epc-cp-shell #wrapper .content .epc-cp-page-frame,
+body.epc-cp-shell #wrapper .content .epc-cp-content-inner .epc-cp-page-frame {
+	display: block !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	min-height: 1px !important;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-portal-settings,
+body.epc-cp-shell .epc-cp-page-frame .epc-scp-dashboard,
+body.epc-cp-shell .epc-cp-page-frame .epc-scp-panel,
+body.epc-cp-shell .epc-cp-page-frame .epc-erp-shell {
+	width: 100% !important;
+	max-width: none !important;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-portal-settings__form > .row > [class*="col-"],
+body.epc-cp-shell .epc-cp-page-frame .row > .col-lg-6,
+body.epc-cp-shell .epc-cp-page-frame .row > .col-lg-4,
+body.epc-cp-shell .epc-cp-page-frame .row > .col-lg-8 {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+@media (min-width: 992px) {
+	body.epc-cp-shell .epc-cp-page-frame .epc-portal-settings__form > .row > .col-lg-6 {
+		width: 50% !important;
+		max-width: 50% !important;
+		float: left !important;
+	}
+}
+
+body.epc-cp-shell .epc-cp-page-frame .hpanel,
+body.epc-cp-shell .epc-cp-page-frame .epc-cp-card {
+	width: 100%;
+	max-width: none;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .table-responsive {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-scp-dashboard__hero,
+body.epc-cp-shell .epc-cp-page-frame .epc-cp-page-header {
+	margin-bottom: 16px;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-cpg-quick {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	margin-bottom: 18px;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-cpg-quick a {
+	display: block;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 14px 16px;
+	color: #1e293b;
+	text-decoration: none !important;
+	box-shadow: var(--epc-modern-shadow-sm, 0 2px 8px rgba(12, 74, 110, 0.04));
+	transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-cpg-quick a:hover {
+	border-color: #2563eb;
+	box-shadow: var(--epc-modern-shadow, 0 4px 16px rgba(12, 74, 110, 0.08));
+	transform: translateY(-1px);
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-ttk-hero,
+body.epc-cp-shell .epc-cp-page-frame .epc-pos-hero {
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+	color: #fff;
+	border-radius: 12px;
+	padding: 20px 22px;
+	margin-bottom: 16px;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-ttk-hero h3,
+body.epc-cp-shell .epc-cp-page-frame .epc-pos-hero h3 {
+	margin: 0 0 8px;
+	color: #fff;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-ttk-hero p,
+body.epc-cp-shell .epc-cp-page-frame .epc-pos-hero .sub {
+	margin: 0;
+	opacity: 0.92;
+	line-height: 1.55;
+}
+
+body.epc-cp-shell .epc-cp-page-frame .epc-ttk-rules {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 12px;
+	white-space: pre-wrap;
+	max-height: 320px;
+	overflow: auto;
+}
+
+/* Remove legacy narrow max-width on portal guide pages */
+body.epc-cp-shell .epc-cp-page-frame .epc-pg,
+body.epc-cp-shell .epc-cp-page-frame .epc-api-doc,
+body.epc-cp-shell .epc-cp-page-frame .epc-failover-guide {
+	max-width: none !important;
+	width: 100% !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606menusfix2 — reliable CP sidebar clicks (all CP levels)
+   pointer-events, z-index, wrapper/menu stacking, scroll hit area
+   ═══════════════════════════════════════════════════════════ */
+
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-shell.fixed-sidebar #menu,
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-shell #menu {
+	pointer-events: auto !important;
+	visibility: visible !important;
+	z-index: 110 !important;
+	isolation: isolate;
+}
+
+body.epc-cp-shell #navigation {
+	pointer-events: auto !important;
+	position: relative;
+	z-index: 2;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+body.epc-cp-shell #navigation #side-menu,
+body.epc-cp-shell #navigation #side-menu > li,
+body.epc-cp-shell #navigation #side-menu a {
+	pointer-events: auto !important;
+	cursor: pointer;
+	position: relative;
+	z-index: 1;
+}
+
+body.epc-cp-shell #navigation #side-menu ul.nav-second-level,
+body.epc-cp-shell #navigation #side-menu ul.nav-second-level a {
+	pointer-events: auto !important;
+}
+
+body.epc-cp-shell.fixed-sidebar #wrapper {
+	z-index: 1 !important;
+	position: relative !important;
+}
+
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-shell.fixed-sidebar #wrapper {
+	margin-left: var(--epc-cp-sidebar-w-expanded, 220px) !important;
+	width: calc(100% - var(--epc-cp-sidebar-w-expanded, 220px)) !important;
+	max-width: calc(100% - var(--epc-cp-sidebar-w-expanded, 220px)) !important;
+}
+
+body.epc-cp-shell .splash,
+body.epc-cp-shell .modal-backdrop:not(.in) {
+	pointer-events: none !important;
+}
+
+body.epc-cp-shell > .skiptranslate,
+body.epc-cp-shell iframe.goog-te-banner-frame {
+	pointer-events: none !important;
+	z-index: -1 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EPC CP Chrome Polish — 20260606chrome1
+   Header + sidebar only — do not touch main pane / content
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell.epc-cp-modern,
+body.epc-cp-shell.epc-cp--blue-theme {
+	--epc-cp-header-h: 56px;
+	--epc-cp-sidebar-w-expanded: 240px;
+	--epc-cp-chrome-font: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Header: single clean row ── */
+body.epc-cp-shell #header {
+	height: var(--epc-cp-header-h, 56px) !important;
+	min-height: var(--epc-cp-header-h, 56px) !important;
+	max-height: var(--epc-cp-header-h, 56px) !important;
+	font-family: var(--epc-cp-chrome-font);
+	background: #fff !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+	z-index: 1100 !important;
+}
+
+body.epc-cp-shell #header .color-line {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	z-index: 3;
+	pointer-events: none;
+}
+
+body.epc-cp-shell #header {
+	position: relative;
+}
+
+body.epc-cp-shell #header > a[href] {
+	text-decoration: none;
+}
+
+body.epc-cp-shell #header #logo.epc-cp-header-logo,
+body.epc-cp-shell #header #logo.light-version {
+	height: var(--epc-cp-header-h, 56px) !important;
+	min-height: var(--epc-cp-header-h, 56px) !important;
+	padding: 0 14px !important;
+	background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%) !important;
+	border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+body.epc-cp-shell #header .epc-cp-logo-label,
+body.epc-cp-shell #header .small-logo {
+	display: none !important;
+}
+
+body.epc-cp-shell #header .epc-cp-topbar-strip {
+	flex: 0 1 auto;
+	min-width: 0;
+	max-width: min(36vw, 280px);
+	padding: 0 14px !important;
+	margin: 0 !important;
+	border-left: none !important;
+	border-right: 1px solid #e2e8f0;
+	min-height: var(--epc-cp-header-h, 56px);
+	gap: 8px;
+	align-items: center;
+}
+
+body.epc-cp-shell #header .epc-cp-topbar-company {
+	font-size: 14px;
+	font-weight: 600;
+	color: #0f172a;
+	letter-spacing: -0.01em;
+}
+
+body.epc-cp-shell #header .epc-cp-topbar-role {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	padding: 3px 9px;
+	white-space: nowrap;
+}
+
+/* Header breadcrumb — single line ellipsis */
+body.epc-cp-shell #header .epc-cp-header-breadcrumb {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	padding: 0 16px;
+	overflow: hidden;
+	border-right: 1px solid #f1f5f9;
+}
+
+body.epc-cp-shell #header .epc-cp-header-breadcrumb__nav,
+body.epc-cp-shell #header .epc-cp-header-breadcrumb .breadcrumb,
+body.epc-cp-shell #header .epc-cp-header-breadcrumb .hbreadcrumb {
+	display: flex !important;
+	flex-wrap: nowrap !important;
+	align-items: center;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: #64748b;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	float: none !important;
+}
+
+body.epc-cp-shell #header .epc-cp-header-breadcrumb .breadcrumb > li,
+body.epc-cp-shell #header .epc-cp-header-breadcrumb .hbreadcrumb > li {
+	display: inline;
+	float: none !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+body.epc-cp-shell #header .epc-cp-header-breadcrumb .breadcrumb > li + li:before,
+body.epc-cp-shell #header .epc-cp-header-breadcrumb .hbreadcrumb > li + li:before {
+	padding: 0 8px;
+	color: #cbd5e1;
+	content: "/";
+}
+
+body.epc-cp-shell #header .epc-cp-header-breadcrumb a {
+	color: #2563eb;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+body.epc-cp-shell #header .epc-cp-header-breadcrumb a:hover {
+	text-decoration: underline;
+}
+
+body.epc-cp-shell #header nav[role="navigation"] {
+	height: var(--epc-cp-header-h, 56px) !important;
+	min-height: var(--epc-cp-header-h, 56px) !important;
+	flex: 0 0 auto;
+}
+
+body.epc-cp-shell #header nav .header-link.hide-menu {
+	width: var(--epc-cp-header-h, 56px);
+	height: var(--epc-cp-header-h, 56px);
+	font-size: 16px;
+	color: #64748b;
+	border-right: 1px solid #f1f5f9;
+}
+
+body.epc-cp-shell #header nav .navbar-right {
+	height: var(--epc-cp-header-h, 56px);
+}
+
+/* Hide legacy status clutter — keep language + site + logout only */
+body.epc-cp-shell #header .epc-cp-header-icons > li:not(.epc-cp-header-keep):not(.epc-cp-translate-nav) {
+	display: none !important;
+}
+
+body.epc-cp-shell #header .epc-cp-header-icons > li.epc-cp-header-keep,
+body.epc-cp-shell #header .epc-cp-header-icons > li.epc-cp-translate-nav {
+	display: flex !important;
+	align-items: stretch;
+}
+
+body.epc-cp-shell #header .navbar-right .nav > li > a {
+	height: var(--epc-cp-header-h, 56px) !important;
+	min-height: var(--epc-cp-header-h, 56px) !important;
+	padding: 0 12px !important;
+	font-size: 16px !important;
+	color: #475569 !important;
+	line-height: 1 !important;
+}
+
+body.epc-cp-shell #header .navbar-right .nav > li > a:hover {
+	color: #2563eb !important;
+	background: #f8fafc !important;
+}
+
+body.epc-cp-shell #header .navbar-right .epc-cp-translate-nav .epc-cp-translate__select {
+	height: 32px;
+	font-size: 13px;
+	font-weight: 500;
+	border-color: #e2e8f0;
+	border-radius: 6px;
+}
+
+body.epc-cp-shell #header .navbar-right .epc-cp-header-action--logout > a {
+	color: #64748b !important;
+}
+
+body.epc-cp-shell #header .navbar-right .epc-cp-header-action--logout > a:hover {
+	color: #dc2626 !important;
+	background: #fef2f2 !important;
+}
+
+/* Offset wrapper + sidebar for 56px header */
+body.epc-cp-shell.fixed-navbar #wrapper,
+body.epc-cp-shell.fixed-sidebar #menu {
+	margin-top: 0;
+	top: var(--epc-cp-header-h, 56px) !important;
+}
+
+body.epc-cp-shell.fixed-sidebar #menu {
+	height: calc(100vh - var(--epc-cp-header-h, 56px)) !important;
+	max-height: calc(100vh - var(--epc-cp-header-h, 56px)) !important;
+}
+
+body.epc-cp-shell.fixed-navbar:not(.epc-erp-standalone) #wrapper {
+	margin-top: var(--epc-cp-header-h, 56px) !important;
+	height: calc(100vh - var(--epc-cp-header-h, 56px));
+	max-height: calc(100vh - var(--epc-cp-header-h, 56px));
+}
+
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-shell.fixed-sidebar #wrapper {
+	margin-left: var(--epc-cp-sidebar-w-expanded, 240px) !important;
+	width: calc(100% - var(--epc-cp-sidebar-w-expanded, 240px)) !important;
+	max-width: calc(100% - var(--epc-cp-sidebar-w-expanded, 240px)) !important;
+}
+
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-shell.fixed-sidebar #menu,
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-shell #menu {
+	width: var(--epc-cp-sidebar-w-expanded, 240px) !important;
+}
+
+/* ── Sidebar: aligned nav items ── */
+body.epc-cp-shell #menu,
+body.epc-cp-shell #navigation {
+	font-family: var(--epc-cp-chrome-font);
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card {
+	padding: 0 !important;
+	margin: 0;
+	background: rgba(255, 255, 255, 0.06);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__body {
+	padding: 12px 16px !important;
+	margin: 0;
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-width: 0;
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__identity {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__name {
+	display: block;
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	line-height: 1.25;
+	color: #fff !important;
+	text-transform: none !important;
+	letter-spacing: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__role {
+	display: block;
+	font-size: 11px !important;
+	color: rgba(186, 230, 253, 0.85) !important;
+	line-height: 1.2;
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__quit {
+	flex: 0 0 auto;
+	padding: 4px 10px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.3;
+	color: #fff;
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.35);
+	border-radius: 999px;
+	cursor: pointer;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+body.epc-cp-shell #navigation .epc-cp-user-card__quit:hover {
+	background: rgba(255, 255, 255, 0.12);
+	border-color: rgba(255, 255, 255, 0.55);
+}
+
+body.epc-cp-shell #navigation .epc-cp-sidebar-meta {
+	padding: 0;
+	gap: 0;
+}
+
+body.epc-cp-shell #navigation .epc-cp-sidebar-meta__edit {
+	padding: 8px 16px !important;
+	font-size: 11px !important;
+	line-height: 1.35 !important;
+	text-align: left !important;
+	border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.epc-cp-shell #navigation .epc-cp-sidebar-meta .form-group,
+body.epc-cp-shell #navigation .epc-cp-sidebar-meta label {
+	margin: 0;
+	padding: 0 16px 10px;
+	font-size: 11px;
+	color: rgba(186, 230, 253, 0.9);
+}
+
+body.epc-cp-shell #navigation .epc-cp-sidebar-meta .form-control {
+	margin: 4px 16px 10px;
+	width: calc(100% - 32px);
+	max-width: calc(100% - 32px);
+	height: 32px;
+	font-size: 12px;
+	border-radius: 6px;
+}
+
+body.epc-cp-shell #side-menu {
+	padding: 4px 0 12px;
+}
+
+body.epc-cp-shell #side-menu > li {
+	border-bottom: none;
+	margin-top: 0;
+}
+
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section {
+	margin-top: 12px;
+}
+
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section:first-of-type,
+body.epc-cp-shell #side-menu > li.epc-cp-nav-item--home + li.epc-cp-nav-section {
+	margin-top: 8px;
+}
+
+body.epc-cp-shell #side-menu > li > a,
+body.epc-cp-shell #side-menu > li > a.epc-cp-nav-item__link,
+body.epc-cp-shell #side-menu > li > a.epc-cp-nav-section__toggle {
+	display: flex !important;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 44px;
+	padding: 0 16px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	letter-spacing: 0 !important;
+	line-height: 1.3 !important;
+	border-left: 3px solid transparent;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section > a .epc-cp-nav-section__label,
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section > a .nav-label {
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.08em !important;
+	text-transform: uppercase !important;
+	color: rgba(186, 230, 253, 0.95) !important;
+}
+
+body.epc-cp-shell #side-menu .nav-label-wrap {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 0;
+	line-height: 1.2;
+	padding-right: 8px;
+}
+
+body.epc-cp-shell #side-menu .epc-cp-group-subtitle,
+body.epc-cp-shell #side-menu .epc-cp-nav-section__sub {
+	display: block;
+	font-size: 10px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0 !important;
+	text-transform: none !important;
+	opacity: 0.72;
+	margin-top: 1px;
+	max-width: 100%;
+	white-space: nowrap !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	line-height: 1.2 !important;
+}
+
+body.epc-cp-shell #side-menu > li > a .fa.arrow {
+	flex: 0 0 auto;
+	font-size: 11px;
+	opacity: 0.75;
+	margin-left: 4px;
+}
+
+body.epc-cp-shell #side-menu > li.active > a,
+body.epc-cp-shell #side-menu > li.epc-cp-nav-item--home.active > a {
+	background: rgba(56, 189, 248, 0.18) !important;
+	border-left-color: #38bdf8 !important;
+	color: #fff !important;
+}
+
+body.epc-cp-shell #side-menu ul.nav-second-level,
+body.epc-cp-shell #side-menu ul.epc-cp-nav-section__children {
+	background: rgba(8, 47, 73, 0.35);
+	padding: 4px 0 6px;
+}
+
+body.epc-cp-shell #side-menu ul.nav-second-level li > a,
+body.epc-cp-shell #side-menu .epc-cp-nav-item--sub > a {
+	display: flex !important;
+	align-items: center;
+	gap: 8px;
+	min-height: 36px;
+	padding: 0 16px 0 20px !important;
+	font-size: 12px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0 !important;
+}
+
+body.epc-cp-shell #side-menu ul.nav-second-level li.active > a,
+body.epc-cp-shell #side-menu .epc-cp-nav-item--sub.active > a {
+	background: rgba(37, 99, 235, 0.28) !important;
+	border-left: 3px solid #38bdf8;
+	color: #fff !important;
+	border-radius: 0;
+	margin: 0;
+	padding-left: 17px !important;
+}
+
+body.epc-cp-shell #navigation {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(148, 163, 184, 0.75) rgba(15, 23, 42, 0.4);
+	scroll-behavior: smooth;
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar {
+	width: 8px;
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar-track {
+	background: rgba(15, 23, 42, 0.35);
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar-thumb {
+	background: rgba(148, 163, 184, 0.75);
+	border-radius: 8px;
+	border: 2px solid rgba(15, 23, 42, 0.35);
+}
+
+body.epc-cp-shell #navigation::-webkit-scrollbar-thumb:hover {
+	background: rgba(226, 232, 240, 0.9);
+}
+
+/* Page header card — hide duplicate breadcrumb column */
+body.epc-cp-shell .epc-cp-page-header__aside {
+	display: none !important;
+}
+
+@media (max-width: 991px) {
+	body.epc-cp-shell #header .epc-cp-header-breadcrumb {
+		display: none !important;
+	}
+	body.epc-cp-shell #header .epc-cp-topbar-strip {
+		max-width: min(50vw, 200px);
+	}
+}
+
+@media (max-width: 768px) {
+	body.epc-cp-shell #header .epc-cp-topbar-strip {
+		display: none !important;
+	}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260606menusfix3 — accordion open/close + chrome1 sidebar
+   JS toggles li.active; beat Bootstrap .collapse + chrome1 polish
+   ═══════════════════════════════════════════════════════════ */
+
+body.epc-cp-shell #side-menu > li:not(.active) > ul.nav-second-level,
+body.epc-cp-shell #side-menu > li:not(.active) > ul.epc-cp-nav-section__children,
+.epc-cp-shell #side-menu > li:not(.active) > ul.nav-second-level,
+.epc-cp-shell #side-menu > li:not(.active) > ul.epc-cp-nav-section__children {
+	display: none !important;
+	visibility: hidden !important;
+	height: 0 !important;
+	max-height: 0 !important;
+	overflow: hidden !important;
+	margin: 0 !important;
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	border: none !important;
+}
+
+body.epc-cp-shell #side-menu > li.active > ul.nav-second-level,
+body.epc-cp-shell #side-menu > li.active > ul.epc-cp-nav-section__children,
+.epc-cp-shell #side-menu > li.active > ul.nav-second-level,
+.epc-cp-shell #side-menu > li.active > ul.epc-cp-nav-section__children {
+	display: block !important;
+	visibility: visible !important;
+	height: auto !important;
+	max-height: none !important;
+	overflow: visible !important;
+}
+
+body.epc-cp-shell #side-menu > li.active > ul.collapse,
+body.epc-cp-shell #side-menu > li.active > ul.collapse.in,
+.epc-cp-shell #side-menu > li.active > ul.collapse,
+.epc-cp-shell #side-menu > li.active > ul.collapse.in {
+	display: block !important;
+	height: auto !important;
+}
+
+body.epc-cp-shell #side-menu > li > a.epc-cp-nav-section__toggle,
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section > a {
+	cursor: pointer !important;
+	pointer-events: auto !important;
+}
+
+body.epc-cp-shell #side-menu > li > a.epc-cp-nav-section__toggle .fa.arrow,
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section > a .fa.arrow {
+	display: inline-block !important;
+	visibility: visible !important;
+	opacity: 0.75 !important;
+}
+
+body.epc-cp-shell #side-menu > li.active > a.epc-cp-nav-section__toggle .fa.arrow::before,
+body.epc-cp-shell #side-menu > li.epc-cp-nav-section.active > a .fa.arrow::before {
+	content: "\f107" !important;
+}

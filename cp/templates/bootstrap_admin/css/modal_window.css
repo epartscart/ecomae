@@ -1,0 +1,75 @@
+/*Start СТИЛЬ МОДАЛЬНОГО ОКНА с простым деревом webix*/
+.popup__overlay_SimpleTree 
+{
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.7);
+    text-align: center;
+    z-index:999999;
+}
+.popup__overlay_SimpleTree:after 
+{
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    height: 100%;
+    width: 0;
+    vertical-align: middle;
+    content: '';
+}
+/* Added for IE<9 compatibility */
+.popup__overlay_ie_SimpleTree 
+{
+    background: #000;
+    opacity: .7;
+    filter: alpha(opacity=70);
+}
+.popup_SimpleTree 
+{
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    position: relative;
+    max-width: 80%;
+    padding: 20px;
+    border: 5px solid #fff;
+    border-radius: 15px;
+    box-shadow: inset 0 2px 2px 2px rgba(0,0,0,.4);
+    background: #fff;
+    vertical-align: middle;
+    z-index:999999;
+}
+.popup__close_SimpleTree 
+{
+    display: block;
+    position: absolute;
+    top: -20px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    padding: 8px;
+    border: 5px solid #fff;
+    border-radius: 50%;
+    -webkit-box-shadow: inset 0 2px 2px 2px rgba(0,0,0,.4),
+                              0 3px 3px     rgba(0,0,0,.4);
+    box-shadow:         inset 0 2px 2px 2px rgba(0,0,0,.4),
+                              0 3px 3px     rgba(0,0,0,.4);
+    cursor: pointer;
+    background: #fff;
+    text-align: center;
+    font-size: 12px;
+    line-height: 12px;
+    color: #444;
+    text-decoration: none;
+    font-weight: bold;
+    z-index:999999;
+}
+.popup__close_SimpleTree:hover 
+{
+    background: #ddd;
+}
+/*End СТИЛЬ МОДАЛЬНОГО ОКНА с простым деревом webix*/

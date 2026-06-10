@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#ffffff"/>
+  <rect x="64" y="64" width="384" height="384" rx="72" fill="#dc2626" opacity="0.08"/>
+  <g transform="translate(128 140)">
+    <path d="M48 42h176c15 0 25 14 21 28L228 208H132L48 42Z" fill="none" stroke="#dc2626" stroke-linejoin="round" stroke-width="28"/>
+    <path d="M48 42H0l-22-26" fill="none" stroke="#dc2626" stroke-linecap="round" stroke-linejoin="round" stroke-width="28"/>
+    <path d="M132 132h118l-16 48H148Z" fill="#dc2626"/>
+    <circle cx="144" cy="256" r="42" fill="#dc2626"/>
+    <circle cx="144" cy="256" r="22" fill="#fff"/>
+    <circle cx="266" cy="256" r="42" fill="#dc2626"/>
+    <circle cx="266" cy="256" r="22" fill="#fff"/>
+  </g>
+  <text x="256" y="448" text-anchor="middle" font-family="system-ui,sans-serif" font-size="48" font-weight="700" fill="#dc2626">eParts Cart</text>
+</svg>

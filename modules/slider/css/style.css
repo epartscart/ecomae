@@ -1,0 +1,112 @@
+.clearout {
+height:20px;
+clear:both;
+}
+
+.slider_box{
+	margin-top:30px;
+}
+
+#flexiselDemo1, #flexiselDemo2, #flexiselDemo3 {
+display:none;
+}
+
+.nbs-flexisel-container {
+    position:relative;
+    max-width:100%;
+}
+.nbs-flexisel-ul {
+    position:relative;
+    width:99999px;
+    margin:0px;
+    padding:0px;
+    list-style-type:none;   
+    text-align:center;
+}
+
+.nbs-flexisel-inner {
+    position: relative;
+    overflow: hidden;
+    float:left;
+    width:100%;
+    background:none;
+    border:none;
+    border-radius:0px;
+	margin:0px 0px;
+	padding: 0;
+    box-shadow: 0 0px 1px rgba(0, 0, 0, 1), inset 0 0 1px rgba(255, 255, 255, 0.75); 
+}
+
+.nbs-flexisel-item {
+    float:left;
+    margin:0px;
+    padding:0px;
+    cursor:pointer;
+    position:relative;
+    line-height:0px;
+	text-align:center;
+}
+.nbs-flexisel-item img {
+    max-width: 100%;
+    cursor: pointer;
+    position: relative;
+    margin: 0px;
+	display: inline-block;
+}
+
+/*** Navigation ***/
+
+.nbs-flexisel-nav-left,
+.nbs-flexisel-nav-right {
+    padding:5px 10px;
+    position: absolute;
+    cursor: pointer;
+    z-index: 4;
+    top:41%;
+    background: rgba(0,0,0,0.5);
+    color: #fff;   
+	
+	font-size: 20px;
+    color: #ffffff;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    opacity: 0.5;
+    filter: alpha(opacity=50);	
+}
+.nbs-flexisel-nav-left{
+	border-radius:0px 5px 5px 0px;
+    -moz-border-radius:0px 5px 5px 0px;
+    -webkit-border-radius:0px 5px 5px 0px;
+}
+
+.nbs-flexisel-nav-right{
+	border-radius:5px 0px 0px 5px;
+    -moz-border-radius:5px 0px 0px 5px;
+    -webkit-border-radius:5px 0px 0px 5px;
+}
+
+.nbs-flexisel-nav-left {
+    left: 0px;
+}
+
+.nbs-flexisel-nav-left:before {
+    content: "\e079";
+	font-family: 'Glyphicons Halflings';
+}
+
+.nbs-flexisel-nav-left.disabled {
+    opacity: 0.4;
+}
+
+.nbs-flexisel-nav-right {
+    right: 0px;    
+}
+
+.nbs-flexisel-nav-right:before {
+    content: "\e080";
+	font-family: 'Glyphicons Halflings';
+}
+
+.nbs-flexisel-nav-right.disabled {
+    opacity: 0.4;
+}

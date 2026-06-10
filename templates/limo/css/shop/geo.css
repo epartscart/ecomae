@@ -1,0 +1,30 @@
+.customer_city
+{
+    text-align:center;
+}
+.geo_list
+{
+    text-align:left;
+}
+.geo_top_level
+{
+    color:#313131;
+    border-bottom:1px dotted #313131;
+    font-weight:bold;
+    font-size:22px;
+    padding:4px;
+}
+.geo_second_level
+{
+    color:#313131;
+    border-bottom:1px dotted #313131;
+    font-size:20px;
+    padding:4px;
+    margin-left:18px;
+}
+.geo_default_level
+{
+    display:inline-block;
+    font-size:16px;
+    margin-left:20px;
+}

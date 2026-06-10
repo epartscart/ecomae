@@ -1,0 +1,5 @@
+{
+    "enabled_at": "2026-05-25T19:14:32+00:00",
+    "enabled_by_ip": "2001:8f8:172b:3d85:9ce1:d43d:5eb6:66cd",
+    "note": "Blocks public access to epc-*.php, extract-zip.php, chunk-receiver.php via .htaccess"
+}

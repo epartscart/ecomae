@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="42" fill="#ffffff"/>
+  <rect x="24" y="24" width="144" height="144" rx="28" fill="#dc2626" opacity="0.08"/>
+  <g transform="translate(48 52)">
+    <path d="M18 16h66c5.6 0 9.4 5.2 7.8 10.6L86 78H50L18 16Z" fill="none" stroke="#dc2626" stroke-linejoin="round" stroke-width="11"/>
+    <path d="M18 16H0l-8-10" fill="none" stroke="#dc2626" stroke-linecap="round" stroke-linejoin="round" stroke-width="11"/>
+    <path d="M50 50h44l-6 18H56Z" fill="#dc2626"/>
+    <circle cx="54" cy="96" r="16" fill="#dc2626"/>
+    <circle cx="54" cy="96" r="8" fill="#fff"/>
+    <circle cx="100" cy="96" r="16" fill="#dc2626"/>
+    <circle cx="100" cy="96" r="8" fill="#fff"/>
+  </g>
+  <text x="96" y="168" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#dc2626">eParts</text>
+</svg>

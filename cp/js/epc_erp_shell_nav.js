@@ -1,0 +1,288 @@
+/**
+ * ERP CP shell — sidebar accordion + shell navigation guard.
+ * Loaded from erp_desktop.php head (never inline in eval'd CP content pane).
+ */
+(function () {
+	'use strict';
+
+	var SHELL_Q = 'epc_erp_shell=1';
+	var erpKey = 'epc_erp_menu_groups_open';
+	var PLATFORM_ERP_SEG = '/platform-erp/';
+
+	function isPlatformErpPage() {
+		try {
+			return (location.pathname || '').indexOf(PLATFORM_ERP_SEG) !== -1;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function fixErpHrefRoutePrefix(href) {
+		if (!href || !isPlatformErpPage()) {
+			return href;
+		}
+		if (href.indexOf(PLATFORM_ERP_SEG) !== -1) {
+			return href;
+		}
+		try {
+			var u = document.createElement('a');
+			u.href = href;
+			var path = u.pathname || '';
+			if (path.indexOf('/shop/finance/erp') === -1) {
+				return href;
+			}
+			var fixed = path.replace(/(\/[^/]+)\/shop\/finance\/erp/, '$1/platform-erp/shop/finance/erp');
+			if (fixed === path) {
+				return href;
+			}
+			u.pathname = fixed;
+			return u.href;
+		} catch (e) {
+			return href.replace('/shop/finance/erp', '/platform-erp/shop/finance/erp');
+		}
+	}
+
+	function readSaved() {
+		try {
+			return JSON.parse(localStorage.getItem(erpKey) || 'null');
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function writeSaved() {
+		var open = [];
+		document.querySelectorAll('.epc-erp-sidebar-group.is-open').forEach(function (g) {
+			var area = g.getAttribute('data-area');
+			if (area) {
+				open.push(area);
+			}
+		});
+		try {
+			localStorage.setItem(erpKey, JSON.stringify(open));
+		} catch (e) {}
+	}
+
+	function setGroupOpen(grp, open, closeSiblings) {
+		if (!grp) {
+			return;
+		}
+		var btn = grp.querySelector('.epc-erp-sidebar-group-hd');
+		if (open && closeSiblings !== false) {
+			document.querySelectorAll('.epc-erp-sidebar-group.is-open').forEach(function (other) {
+				if (other !== grp) {
+					setGroupOpen(other, false, false);
+				}
+			});
+		}
+		grp.classList.toggle('is-open', open);
+		if (btn) {
+			btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+		}
+	}
+
+	window.epcErpMenuSectionsSave = writeSaved;
+
+	window.epcErpMenuSectionsInit = function () {
+		var activeGroup = document.querySelector('.epc-erp-sidebar-group.is-active-area');
+		document.querySelectorAll('.epc-erp-sidebar-group.is-open').forEach(function (g) {
+			g.classList.remove('is-open');
+			var h = g.querySelector('.epc-erp-sidebar-group-hd');
+			if (h) {
+				h.setAttribute('aria-expanded', 'false');
+			}
+		});
+		var saved = readSaved();
+		if (saved && saved.length) {
+			saved.forEach(function (areaKey) {
+				var g = document.querySelector('.epc-erp-sidebar-group[data-area="' + areaKey + '"]');
+				if (g) {
+					setGroupOpen(g, true, false);
+				}
+			});
+			return;
+		}
+		if (activeGroup) {
+			setGroupOpen(activeGroup, true, false);
+		}
+	};
+
+	function isErpFinancePath(href) {
+		if (!href) {
+			return false;
+		}
+		try {
+			var u = document.createElement('a');
+			u.href = href;
+			return (u.pathname || '').indexOf('/shop/finance/erp') !== -1;
+		} catch (e) {
+			return href.indexOf('/shop/finance/erp') !== -1;
+		}
+	}
+
+	function appendShellQuery(href) {
+		if (!href || href.indexOf('javascript') === 0 || href.indexOf('#') === 0) {
+			return href;
+		}
+		href = fixErpHrefRoutePrefix(href);
+		if (!isErpFinancePath(href)) {
+			return href;
+		}
+		if (href.indexOf('epc_erp_shell=') !== -1) {
+			return href;
+		}
+		return href + (href.indexOf('?') >= 0 ? '&' : '?') + SHELL_Q;
+	}
+
+	function isErpShellNavLink(a) {
+		if (!a) {
+			return false;
+		}
+		if (a.hasAttribute('data-epc-erp-shell')) {
+			return true;
+		}
+		return !!a.closest('.epc-erp-sidebar-item, .epc-erp-breadcrumb, .epc-erp-content-actions');
+	}
+
+	function ensureShellNavLinks() {
+		document.querySelectorAll(
+			'.epc-erp-sidebar-item a[href], .epc-erp-breadcrumb a[href], .epc-erp-content-actions a[href], a[data-epc-erp-shell]'
+		).forEach(function (a) {
+			var href = a.getAttribute('href') || '';
+			if (!href || href.indexOf('javascript') === 0 || href.indexOf('#') === 0) {
+				return;
+			}
+			if (!isErpFinancePath(href)) {
+				return;
+			}
+			var fixed = appendShellQuery(href);
+			if (fixed !== href) {
+				a.setAttribute('href', fixed);
+			}
+			a.setAttribute('data-epc-erp-shell', '1');
+		});
+	}
+
+	function interceptShellNav() {
+		if (document.body && document.body._epcErpShellNavBound) {
+			return;
+		}
+		if (document.body) {
+			document.body._epcErpShellNavBound = true;
+		}
+		document.addEventListener(
+			'click',
+			function (e) {
+				var a = e.target.closest('a[href]');
+				if (!a) {
+					return;
+				}
+				if (a.getAttribute('target') === '_blank') {
+					return;
+				}
+				if (!isErpShellNavLink(a)) {
+					return;
+				}
+				var href = a.getAttribute('href') || '';
+				if (!isErpFinancePath(href)) {
+					return;
+				}
+				var fixed = appendShellQuery(href);
+				e.preventDefault();
+				e.stopPropagation();
+				if (typeof e.stopImmediatePropagation === 'function') {
+					e.stopImmediatePropagation();
+				}
+				window.location.assign(fixed);
+			},
+			true
+		);
+	}
+
+	function bindAccordion() {
+		var sidebar = document.getElementById('epc_erp_sidebar');
+		if (!sidebar) {
+			return;
+		}
+		sidebar.style.setProperty('pointer-events', 'auto', 'important');
+		ensureShellNavLinks();
+		document.querySelectorAll('.epc-erp-sidebar-group-hd').forEach(function (btn) {
+			if (btn._epcErpAccordionBound) {
+				return;
+			}
+			btn._epcErpAccordionBound = true;
+			btn.addEventListener('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var grp = btn.closest('.epc-erp-sidebar-group');
+				if (!grp) {
+					return;
+				}
+				var wasOpen = grp.classList.contains('is-open');
+				setGroupOpen(grp, !wasOpen, true);
+				writeSaved();
+			});
+		});
+		window.epcErpMenuSectionsInit();
+	}
+
+	function bindMobileSidebar() {
+		var sidebar = document.getElementById('epc_erp_sidebar');
+		var backdrop = document.getElementById('epc_erp_sidebar_backdrop');
+		var toggleBtn = document.getElementById('epc_erp_sidebar_toggle');
+		var closeBtn = document.getElementById('epc_erp_sidebar_close');
+
+		function setSidebarOpen(open) {
+			if (!sidebar) {
+				return;
+			}
+			document.body.classList.toggle('epc-erp-sidebar-open', open);
+			if (toggleBtn) {
+				toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+			}
+		}
+
+		if (toggleBtn && !toggleBtn._epcErpToggleBound) {
+			toggleBtn._epcErpToggleBound = true;
+			toggleBtn.addEventListener('click', function () {
+				setSidebarOpen(true);
+			});
+		}
+		if (closeBtn && !closeBtn._epcErpCloseBound) {
+			closeBtn._epcErpCloseBound = true;
+			closeBtn.addEventListener('click', function () {
+				setSidebarOpen(false);
+			});
+		}
+		if (backdrop && !backdrop._epcErpBackdropBound) {
+			backdrop._epcErpBackdropBound = true;
+			backdrop.addEventListener('click', function () {
+				setSidebarOpen(false);
+			});
+		}
+	}
+
+	function clearCpCollapseForErp() {
+		document.documentElement.classList.remove('epc-cp-sidebar-collapsed');
+		if (document.body) {
+			document.body.classList.remove('epc-cp-sidebar-collapsed', 'hide-sidebar');
+		}
+		try {
+			localStorage.setItem('epc_cp_sidebar_collapsed', '0');
+		} catch (e) {}
+	}
+
+	function boot() {
+		clearCpCollapseForErp();
+		ensureShellNavLinks();
+		interceptShellNav();
+		bindAccordion();
+		bindMobileSidebar();
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', boot);
+	} else {
+		boot();
+	}
+})();

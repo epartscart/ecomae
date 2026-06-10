@@ -1,0 +1,1042 @@
+.radio_how_get,
+.label_how_get
+{
+    display:inline-block;
+}
+
+
+
+/*БЛОК ВЫБОРА ОФИСА ОБСЛУЖИВАНИЯ*/
+/*Блок с названием*/
+.office_box
+{
+    display: block;
+    font-size:12px;
+    /*border-radius:5px;*/
+    cursor:pointer;
+    width:auto;
+    padding:5px;
+}
+.office_box > span
+{
+    border-bottom:1px dotted #AAA;
+}
+.office_box:hover
+{
+    box-shadow: 0 1px 1px 1px rgba(0,0,0, .3);
+}
+.selected_office
+{
+    background-color:#5e5e5e;
+    color:#FFF;
+    margin-bottom:-1px;
+    cursor:default;
+}
+/*Блок с информацией по наличию и доставке*/
+.office_info
+{
+    display:block;
+    position:relative;
+    border:1px solid #DDD;
+}
+.hidden_info
+{
+    opacity:0;
+}
+.wrap_info
+{
+    padding:7px;
+}
+.loading_info
+{
+    width:100%;
+    text-align:center;
+    padding:7px;
+}
+/*Блок с условиями выполнения заказа*/
+.execute_info
+{
+    padding:10px;
+}
+.execute_info > .text
+{
+    font-size:20px;
+    color:#000;
+    padding:10px;
+    border-radius:5px;
+}
+.execute_info > .can_execute_now
+{
+    background-color:#c3e9a6;
+}
+.execute_info > .can_execute_wait
+{
+    background-color:#f1dc79;
+}
+.execute_info > .cant_execute
+{
+    background-color:#ffc2c2;
+}
+.execute_info > .buttons
+{
+    padding:10px;
+    text-align:center;
+}
+/*Схема и режим работы*/
+.timetable_show
+{
+    display:inline-block;
+    cursor:pointer;
+    padding:7px;
+}
+.timetable_show > span
+{
+    color:#88F;
+    border-bottom:1px dotted #88F;
+}
+.timetable_map
+{
+    padding:5px;
+}
+.timetable_map_hidden
+{
+    display:none;
+}
+@media screen and (max-width: 649px) {
+	.office_map,
+	.office_text
+	{
+		display:block;
+		vertical-align:top;
+		padding:5px;
+		width:100%;
+	}
+	.office_map_container
+	{
+		display:block;
+		width:200px;
+		height: 300px;
+	}
+}
+@media screen and (min-width: 650px) {
+	.office_map,
+	.office_text
+	{
+		display:inline-block;
+		vertical-align:top;
+		padding:10px;
+	}
+	.office_map_container
+	{
+		width:350px;
+		height: 300px
+	}
+}
+.office_text > h4
+{
+    color:#000;
+    font-weight:bold;
+    font-size:16px;
+}
+.office_text > .text_value
+{
+    color:#000;
+    font-size:14px;
+}
+
+
+
+
+
+
+/*Отображение заказов пользователя*/
+@media screen and (max-width: 520px) {
+	.my_order_box
+	{
+		position:relative;
+		display:block;
+		height:135px;
+	}
+	.my_order_box_healine
+	{
+		position:relative;
+		display:block;
+		height:135px;
+	}
+
+	/*Подкласс для оформления*/
+	.middle_order,
+	.last_order
+	{
+		border-top:1px dotted #777;
+	}
+
+	.my_order_box > .my_order_item_checkbox,
+	.my_order_box > .my_order_id,
+	.my_order_box > .my_order_time,
+	.my_order_box > .my_order_price_sum,
+	.my_order_box > .my_order_paid,
+	.my_order_box > .my_order_status,
+	.my_order_box > .my_order_how_get,
+	.my_order_box > .my_order_office_id,
+	.my_order_box_healine > .my_order_item_checkbox,
+	.my_order_box_healine > .my_order_id,
+	.my_order_box_healine > .my_order_time,
+	.my_order_box_healine > .my_order_price_sum,
+	.my_order_box_healine > .my_order_paid,
+	.my_order_box_healine > .my_order_status,
+	.my_order_box_healine > .my_order_how_get,
+	.my_order_box_healine > .my_order_office_id
+	{
+		position:absolute;
+	}
+
+	.my_order_item_checkbox
+	{
+		left:0;
+		width:20px;
+		text-align:center;
+		line-height:40px;
+	}
+	.my_order_id
+	{
+		left:20px;
+		width:50px;
+		text-align:center;
+		line-height:40px;
+	}
+	.my_order_box_healine > .my_order_time,
+	.my_order_box_healine > .my_order_price_sum,
+	.my_order_box_healine > .my_order_status,
+	.my_order_box_healine > .my_order_paid,
+	.my_order_box_healine > .my_order_office_id
+	{
+		line-height:40px;
+	}
+	.my_order_time
+	{
+		left:70px;
+		width:100px;
+		text-align:center;
+	}
+	.my_order_price_sum
+	{
+		left:170px;
+		width:100px;
+	}
+	.my_order_paid
+	{
+		left:0;
+		width:100px;
+		top:55px;
+	}
+	.my_order_status
+	{
+		left:100px;
+		top:55px;
+		width:100px;
+	}
+	.my_order_how_get
+	{
+		left:0;
+		bottom:0;
+		width:100px;
+	}
+	.my_order_office_id
+	{
+		right:0;
+		bottom:0;
+		width:200px;
+	}
+}
+@media screen and (min-width: 520px) and (max-width: 1200px) {
+	.my_order_box
+	{
+		position:relative;
+		display:block;
+		height:90px;
+	}
+	.my_order_box_healine
+	{
+		position:relative;
+		display:block;
+		height:90px;
+	}
+
+	/*Подкласс для оформления*/
+	.middle_order,
+	.last_order
+	{
+		border-top:1px dotted #777;
+	}
+
+	.my_order_box > .my_order_item_checkbox,
+	.my_order_box > .my_order_id,
+	.my_order_box > .my_order_time,
+	.my_order_box > .my_order_price_sum,
+	.my_order_box > .my_order_paid,
+	.my_order_box > .my_order_status,
+	.my_order_box > .my_order_how_get,
+	.my_order_box > .my_order_office_id,
+	.my_order_box_healine > .my_order_item_checkbox,
+	.my_order_box_healine > .my_order_id,
+	.my_order_box_healine > .my_order_time,
+	.my_order_box_healine > .my_order_price_sum,
+	.my_order_box_healine > .my_order_paid,
+	.my_order_box_healine > .my_order_status,
+	.my_order_box_healine > .my_order_how_get,
+	.my_order_box_healine > .my_order_office_id
+	{
+		position:absolute;
+	}
+
+	.my_order_item_checkbox
+	{
+		left:0;
+		width:20px;
+		text-align:center;
+		line-height:40px;
+	}
+	.my_order_id
+	{
+		left:20px;
+		width:50px;
+		text-align:center;
+		line-height:40px;
+	}
+	.my_order_box_healine > .my_order_time,
+	.my_order_box_healine > .my_order_price_sum,
+	.my_order_box_healine > .my_order_status,
+	.my_order_box_healine > .my_order_paid,
+	.my_order_box_healine > .my_order_office_id
+	{
+		line-height:40px;
+	}
+	.my_order_time
+	{
+		left:70px;
+		width:100px;
+		text-align:center;
+	}
+	.my_order_price_sum
+	{
+		left:170px;
+		width:100px;
+	}
+	.my_order_paid
+	{
+		right:400px;
+		width:100px;
+		bottom:0;
+	}
+	.my_order_status
+	{
+		right:300px;
+		bottom:0;
+		width:100px;
+	}
+	.my_order_how_get
+	{
+		right:200px;
+		bottom:0;
+		width:100px;
+	}
+	.my_order_office_id
+	{
+		right:0;
+		bottom:0;
+		width:200px;
+	}
+}
+@media screen and (min-width: 1200px) {
+	.my_order_box
+	{
+		position:relative;
+		display:block;
+		height:45px;
+	}
+	.my_order_box_healine
+	{
+		position:relative;
+		display:block;
+		height:45px;
+	}
+
+	/*Подкласс для оформления*/
+	.middle_order,
+	.last_order
+	{
+		border-top:1px dotted #777;
+	}
+
+	.my_order_box > .my_order_item_checkbox,
+	.my_order_box > .my_order_id,
+	.my_order_box > .my_order_time,
+	.my_order_box > .my_order_price_sum,
+	.my_order_box > .my_order_paid,
+	.my_order_box > .my_order_status,
+	.my_order_box > .my_order_how_get,
+	.my_order_box > .my_order_office_id,
+	.my_order_box_healine > .my_order_item_checkbox,
+	.my_order_box_healine > .my_order_id,
+	.my_order_box_healine > .my_order_time,
+	.my_order_box_healine > .my_order_price_sum,
+	.my_order_box_healine > .my_order_paid,
+	.my_order_box_healine > .my_order_status,
+	.my_order_box_healine > .my_order_how_get,
+	.my_order_box_healine > .my_order_office_id
+	{
+		position:absolute;
+	}
+
+	.my_order_item_checkbox
+	{
+		left:0;
+		width:20px;
+		text-align:center;
+		line-height:40px;
+	}
+	.my_order_id
+	{
+		left:20px;
+		width:50px;
+		text-align:center;
+		line-height:40px;
+	}
+	.my_order_box_healine > .my_order_time,
+	.my_order_box_healine > .my_order_price_sum,
+	.my_order_box_healine > .my_order_status,
+	.my_order_box_healine > .my_order_paid,
+	.my_order_box_healine > .my_order_office_id
+	{
+		line-height:40px;
+	}
+	.my_order_time
+	{
+		left:70px;
+		width:100px;
+		text-align:center;
+	}
+	.my_order_price_sum
+	{
+		left:170px;
+		width:100px;
+	}
+	.my_order_paid
+	{
+		right:400px;
+		width:100px;
+	}
+	.my_order_status
+	{
+		right:300px;
+		width:100px;
+	}
+	.my_order_how_get
+	{
+		right:200px;
+		width:100px;
+	}
+	.my_order_office_id
+	{
+		right:0;
+		width:200px;
+	}
+}
+
+
+
+
+
+
+
+
+/*СТРАНИЦА МОЙ ЗАКАЗ*/
+/*колонки позиций товаров*/
+@media screen and (max-width: 550px) {
+	.order_item_headline,
+	.order_item_record
+	{
+		position:relative;
+		display:block;
+		height:180px;
+	}
+	.order_item_headline > DIV,
+	.order_item_record > DIV
+	{
+		position:absolute;
+	}
+	.order_item_headline > DIV
+	{
+		font-weight:bold;
+	}
+	.order_item_checkbox
+	{
+		width:20px;
+		left:0px;
+		text-align:center;
+	}
+	.order_item_id
+	{
+		width:30px;
+		left:20px;
+		text-align:center;
+	}
+	.order_item_name
+	{
+		left:50px;
+		width:300px;
+		text-align:left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.order_item_price
+	{
+		width:80px;
+		top:30px;
+		left:10px;
+	}
+	.order_item_count_need
+	{
+		top:30px;
+		width:80px;
+		left:100px;
+	}
+	.order_item_price_sum
+	{
+		top:30px;
+		width:80px;
+		left:160px;
+	}
+	.order_item_time_to_exe
+	{
+		top:60px;
+		width:80px;
+		left:10px;
+	}
+	.order_item_status
+	{
+		top:60px;
+		width:120px;
+		left:150px;
+	}
+	.order_item_office
+	{
+		top:90px;
+		left:10px;
+	}
+	.order_item_order_id
+	{
+		top:120px;
+		left:10px;
+	}
+	.order_item_time
+	{
+		bottom:0;
+		left:10px;
+	}
+}
+@media screen and (min-width: 550px) and (max-width: 1200px) {
+	.order_item_headline,
+	.order_item_record
+	{
+		position:relative;
+		display:block;
+		height:90px;
+	}
+	.order_item_headline > DIV,
+	.order_item_record > DIV
+	{
+		position:absolute;
+	}
+	.order_item_headline > DIV
+	{
+		font-weight:bold;
+	}
+	.order_item_checkbox
+	{
+		width:20px;
+		left:0px;
+		text-align:center;
+	}
+	.order_item_id
+	{
+		width:30px;
+		left:20px;
+		text-align:center;
+	}
+	.order_item_name
+	{
+		left:50px;
+		width:300px;
+		text-align:left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.order_item_price
+	{
+		width:80px;
+		top:30px;
+		left:10px;
+	}
+	.order_item_count_need
+	{
+		top:30px;
+		width:80px;
+		left:100px;
+	}
+	.order_item_price_sum
+	{
+		top:30px;
+		width:80px;
+		left:160px;
+	}
+	.order_item_time_to_exe
+	{
+		top:30px;
+		width:80px;
+		left:220px;
+	}
+	.order_item_status
+	{
+		top:30px;
+		width:120px;
+		left:300px;
+	}
+	.order_item_office
+	{
+		bottom:0;
+		left:250px;
+	}
+	.order_item_order_id
+	{
+		bottom:0;
+		right:10px;
+	}
+	.order_item_time
+	{
+		bottom:0;
+		left:10px;
+	}
+}
+@media screen and (min-width: 1200px) {
+	.order_item_headline,
+	.order_item_record
+	{
+		position:relative;
+		display:block;
+		height:60px;
+	}
+	.order_item_headline > DIV,
+	.order_item_record > DIV
+	{
+		position:absolute;
+	}
+	.order_item_headline > DIV
+	{
+		font-weight:bold;
+	}
+	.order_item_checkbox
+	{
+		width:20px;
+		left:0px;
+		text-align:center;
+	}
+	.order_item_id
+	{
+		width:30px;
+		left:20px;
+		text-align:center;
+	}
+	.order_item_name
+	{
+		left:50px;
+		width:300px;
+		text-align:left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.order_item_price
+	{
+		width:80px;
+		right:440px;
+	}
+	.order_item_count_need
+	{
+		width:80px;
+		right:360px;
+	}
+	.order_item_price_sum
+	{
+		width:80px;
+		right:280px;
+	}
+	.order_item_time_to_exe
+	{
+		width:80px;
+		right:140px;
+	}
+	.order_item_status
+	{
+		width:120px;
+		right:0px;
+	}
+	.order_item_office
+	{
+		bottom:0;
+		left:250px;
+	}
+	.order_item_order_id
+	{
+		bottom:0;
+		right:10px;
+	}
+	.order_item_time
+	{
+		bottom:0;
+		left:10px;
+	}
+}
+
+
+
+
+
+
+
+
+/*Стили для чата на странице заказа*/
+#new_message_area
+{
+	width:100%;
+	height:100px;
+}
+/*Стиль для чата с покупателем*/
+.chat_block
+{
+	height:200px;
+	border:1px solid #EEE; 
+	border-radius:7px;
+	padding:10px;
+	overflow-y:scroll;
+}
+.chat_left_block
+{
+	background-color:#c7ffe0;
+	width:50%;
+	padding:4px;
+	border-radius:5px;
+	margin:5px;
+	display:block;
+	box-shadow: 0 0 6px #B2B2B2;
+}
+.chat_right_block
+{
+	background-color:#ffe7c7;
+	width:50%;
+	padding:4px;
+	border-radius:5px;
+	margin:5px;
+	display:block;
+	box-shadow: 0 0 6px #B2B2B2;
+}
+.bubble
+{
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    box-shadow: 0 0 6px #B2B2B2;
+    display: inline-block;
+    padding: 10px 18px;
+    position: relative;
+    vertical-align: top;
+    float: left;   
+    margin: 5px 45px 5px 20px; 
+	border-color: #cdecb0;
+}
+.bubble::before 
+{
+    background-color: #F2F2F2;
+    content: "\00a0";
+    display: block;
+    height: 16px;
+    position: absolute;
+    top: 11px;
+    transform:             rotate( 29deg ) skew( -35deg );
+        -moz-transform:    rotate( 29deg ) skew( -35deg );
+        -ms-transform:     rotate( 29deg ) skew( -35deg );
+        -o-transform:      rotate( 29deg ) skew( -35deg );
+        -webkit-transform: rotate( 29deg ) skew( -35deg );
+    width:  20px;
+    box-shadow: -2px 2px 2px 0 rgba( 178, 178, 178, .4 );
+    left: -9px; 
+}
+.bubble
+{
+	background-color: #F2F2F2;
+	border-radius: 5px;
+	box-shadow: 0 0 6px #B2B2B2;
+	display: inline-block;
+	padding: 10px 18px;
+	position: relative;
+	vertical-align: top;
+	margin: 10px 10px;
+	border-color: #cdecb0;
+	width: 60%;
+}
+.bubble2
+{
+    background-color: #dfeecf;
+    border-radius: 5px;
+    box-shadow: 0 0 6px #B2B2B2;
+    display: inline-block;
+    padding: 10px 18px;
+    position: relative;
+    vertical-align: top;
+    float: left;   
+    margin: 5px 45px 5px 20px; 
+	border-color: #cdecb0;
+}
+.bubble2::before 
+{
+	float:right;
+    background-color: #dfeecf;
+    content: "\00a0";
+    display: block;
+    height: 19px;
+    /*position: absolute;*/
+	position:relative;
+    left: 26px;
+	top: 11px;
+    transform:             rotate( 205deg ) skew( -35deg );
+        -moz-transform:    rotate( 205deg ) skew( -35deg );
+        -ms-transform:     rotate( 205deg ) skew( -35deg );
+        -o-transform:      rotate( 205deg ) skew( -35deg );
+        -webkit-transform: rotate( 205deg ) skew( -35deg );
+    width:  20px;
+    box-shadow: -2px 2px 2px 0 rgba( 178, 178, 178, .4 );
+}
+.bubble2
+{
+	float: right;
+	width: 60%;
+	background-color: #dfeecf;
+	border-radius: 5px;
+	box-shadow: 0 0 6px #B2B2B2;
+	display: inline-block;
+	padding: 10px 18px;
+	position: relative;
+	vertical-align: top;
+	margin: 10px 10px;
+	border-color: #cdecb0;
+}
+
+
+
+
+
+
+/*************************************************************************************************************************************
+**************************************************************************************************************************************
+*************************************************************************************************************************************/
+/*Страница с операциями пользователей*/
+@media screen and (max-width: 345px) {
+	.accounting_record
+	{
+		position:relative;
+		height:105px;
+	}
+	.accounting_record > .operation_id,
+	.accounting_record > .time,
+	.accounting_record > .user_id,
+	.accounting_record > .income,
+	.accounting_record > .issue,
+	.accounting_record > .name
+	{
+		position:absolute;
+	}
+
+	.accounting_record > .operation_id
+	{
+		left:0;
+		width:50px;
+		line-height:35px;
+		text-align:center;
+	}
+	.accounting_record > .time
+	{
+		left:50px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .user_id
+	{
+		left:200px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .income
+	{
+		top:35px;
+		left:10px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .issue
+	{
+		top:35px;
+		left:170px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .name
+	{
+		left:10px;
+		bottom:5px;
+		line-height:35px;
+	}
+}
+/*Страница с операциями пользователей*/
+@media screen and (min-width: 345px) and (max-width: 630px) {
+	.accounting_record
+	{
+		position:relative;
+		height:70px;
+	}
+	.accounting_record > .operation_id,
+	.accounting_record > .time,
+	.accounting_record > .user_id,
+	.accounting_record > .income,
+	.accounting_record > .issue,
+	.accounting_record > .name
+	{
+		position:absolute;
+	}
+
+	.accounting_record > .operation_id
+	{
+		left:0;
+		width:50px;
+		line-height:35px;
+		text-align:center;
+	}
+	.accounting_record > .time
+	{
+		left:50px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .user_id
+	{
+		left:200px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .income
+	{
+		top:35px;
+		left:10px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .issue
+	{
+		top:35px;
+		left:170px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .name
+	{
+		right:0;
+		width:150px;
+		line-height:35px;
+	}
+}
+@media screen and (min-width: 630px) {
+	.accounting_record
+	{
+		position:relative;
+		height:35px;
+	}
+	.accounting_record > .operation_id,
+	.accounting_record > .time,
+	.accounting_record > .user_id,
+	.accounting_record > .income,
+	.accounting_record > .issue,
+	.accounting_record > .name
+	{
+		position:absolute;
+	}
+
+	.accounting_record > .operation_id
+	{
+		left:0;
+		width:50px;
+		line-height:35px;
+		text-align:center;
+	}
+	.accounting_record > .time
+	{
+		left:50px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .user_id
+	{
+		left:200px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .income
+	{
+		right:300px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .issue
+	{
+		right:150px;
+		width:150px;
+		line-height:35px;
+	}
+	.accounting_record > .name
+	{
+		right:0;
+		width:150px;
+		line-height:35px;
+	}
+}
+
+
+
+
+
+
+/*Фильтры для списка заказов*/
+.filter_block_item
+{
+	display:block;
+	margin:30px 0;
+}
+.filter_block_item_name,
+.filter_block_item_input
+{
+	display:table-cell;
+}
+.filter_block_item_input_time
+{
+	height:25px;
+	width:200px;
+}
+.filter_block_item_input_time > input,
+.filter_block_item_input > select
+{
+	width:250px!important;
+}
+.filter_block_item_name
+{
+	width:150px;
+}

@@ -1,0 +1,45 @@
+AddDefaultCharset UTF-8
+
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+#Убираем / в конце URL
+RewriteEngine On
+RewriteBase /
+RewriteCond %{HTTP_HOST} (.*)
+RewriteCond %{REQUEST_URI} /$ [NC]
+RewriteRule ^(.*)(/)$ $1 [L,R=301]
+
+#Включаем модуль mod_rewrite
+RewriteEngine On
+#Переадресация на адрес без www, как наиболее актуальный
+RewriteCond %{HTTP_HOST} ^www\.localhost$ [NC]
+RewriteRule ^(.*)$ http://localhost/$1 [R=301,L]
+#Переадресация на единую точку входа (index.php в корне сайта)
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteRule (.*) index.php
+
+# --- eParts Cart security hardening ---
+<IfModule mod_authz_core.c>
+	<Files "config.php">
+		Require all denied
+	</Files>
+	<FilesMatch "^(deploy-remote|import-db)\.php$">
+		Require all denied
+	</FilesMatch>
+	<FilesMatch "^epc-(production-backup|erp-500-debug|set-email-config-raw|cp-route-content-dump|cp-guide-eval-test|test-imap|regenerate-issues-report|umapi-key-restore)\.php$">
+		Require all denied
+	</FilesMatch>
+</IfModule>
+
+	# Block all epc setup scripts when lockdown flag exists (run epc-security-lockdown.php after deploy)
+RewriteCond %{DOCUMENT_ROOT}/.epc-security-lockdown -f
+RewriteRule ^epc- - [F,L]
+
+<IfModule mod_headers.c>
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set X-Frame-Options "SAMEORIGIN"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>

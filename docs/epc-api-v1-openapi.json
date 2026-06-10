@@ -1,0 +1,336 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ECOM AE Public API",
+    "version": "1.0.0",
+    "description": "Phase 1 read-only REST JSON API for ECOM AE tenant integrations. Authenticated endpoints require X-API-Key scoped per tenant.",
+    "contact": {
+      "name": "ECOM AE",
+      "url": "https://www.ecomae.com/platform/contact"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://www.ecomae.com/epc-api/v1",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    { "name": "Platform", "description": "Public platform status" },
+    { "name": "Tenant", "description": "Tenant metadata (authenticated)" },
+    { "name": "Commerce", "description": "Orders and products (authenticated)" },
+    { "name": "ERP", "description": "ERP KPI summaries (authenticated)" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Platform"],
+        "summary": "Platform API health",
+        "description": "Public status — no authentication required.",
+        "responses": {
+          "200": {
+            "description": "API is online",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/capabilities": {
+      "get": {
+        "tags": ["Platform"],
+        "summary": "Platform capability areas",
+        "description": "Marketing-safe summary of platform capability catalog — no secrets.",
+        "responses": {
+          "200": {
+            "description": "Capability area list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CapabilitiesResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": ["Platform"],
+        "summary": "OpenAPI specification",
+        "responses": {
+          "200": {
+            "description": "This document",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/info": {
+      "get": {
+        "tags": ["Tenant"],
+        "summary": "Tenant profile",
+        "description": "Returns tenant name, industry, and access mode for the API key's tenant.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Tenant info",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TenantInfoResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": ["Commerce"],
+        "summary": "Recent orders",
+        "description": "List up to 20 recent successfully created shop orders from tenant database.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 20, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OrdersResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "tags": ["Commerce"],
+        "summary": "Search published products",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Search term (caption or alias)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 20, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product matches",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProductsSearchResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/erp/dashboard-summary": {
+      "get": {
+        "tags": ["ERP"],
+        "summary": "ERP dashboard KPI summary",
+        "description": "Read-only ERP KPIs for current month — revenue, profit, receivables, VAT.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "ERP KPI summary",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErpDashboardResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Tenant-scoped read-only API key issued via Super CP"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Insufficient scope or tenant not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Invalid request parameters",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "example": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "service": { "type": "string", "example": "epc-api" },
+          "version": { "type": "string", "example": "v1" },
+          "phase": { "type": "integer", "example": 1 },
+          "mode": { "type": "string", "example": "read-only" },
+          "time": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CapabilitiesResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "api_phase": { "type": "integer" },
+          "capability_areas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "area": { "type": "string" },
+                "capability_count": { "type": "integer" }
+              }
+            }
+          },
+          "total_capabilities": { "type": "integer" }
+        }
+      },
+      "TenantInfoResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "tenant": {
+            "type": "object",
+            "properties": {
+              "site_key": { "type": "string" },
+              "trade_name": { "type": "string" },
+              "hostname": { "type": "string" },
+              "industry_code": { "type": "string" },
+              "status": { "type": "string" },
+              "access_mode": { "type": "string" },
+              "erp_only_shared": { "type": "boolean" }
+            }
+          },
+          "scopes": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "OrdersResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "count": { "type": "integer" },
+          "orders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "time": { "type": "string", "format": "date-time" },
+                "user_id": { "type": "integer" },
+                "paid": { "type": "boolean" },
+                "status_name": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "ProductsSearchResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "query": { "type": "string" },
+          "count": { "type": "integer" },
+          "products": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "caption": { "type": "string" },
+                "alias": { "type": "string" },
+                "category_id": { "type": "integer" }
+              }
+            }
+          }
+        }
+      },
+      "ErpDashboardResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "kpis": {
+            "type": "object",
+            "properties": {
+              "order_count": { "type": "integer" },
+              "revenue_ex_vat": { "type": "number" },
+              "profit_ex_vat": { "type": "number" },
+              "receivable_due_orders": { "type": "number" },
+              "customer_ledger_balance": { "type": "number" },
+              "payable_balance": { "type": "number" },
+              "cash_bank_total": { "type": "number" },
+              "vat_net_payable": { "type": "number" },
+              "vat_net_status": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

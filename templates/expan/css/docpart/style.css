@@ -1,0 +1,422 @@
+.message_error{
+    background-color:#C33;
+    color:#FFF;
+}
+.RUB{
+    font-family: 'PT Sans', serif;/*Для знака рубля*/
+}
+
+
+
+/*......................................................................................................................*/
+
+
+
+/* ФИЛЬТР АВТОЗАПЧАСТЕЙ */
+
+.slider_ranges input{
+	text-align:center;
+}
+#filter_position, #filter_position label{
+	font-size:13px;
+}
+#filter_position .slider_container {
+    padding: 0px 10px;
+}
+
+
+@media screen and (min-width: 991px) and (max-width: 1200px) {
+	#filter_position, #filter_position label{
+		font-size:11px;
+	}
+	#filter_position .slider_container {
+		padding: 0px;
+	}
+	#products_table_mode_select{
+		font-size: 11px;
+		padding: 2px;
+	}
+}
+
+
+
+/*......................................................................................................................*/
+
+
+
+/* ТАБЛИЦА НАЙДЕННЫХ АВТОЗАПЧАСТЕЙ */
+
+#all_table_products{
+	width:100%;
+	font-size:12px;
+	color:#555;
+	line-height: 1.2em;
+	word-break: break-all;
+}
+#all_table_products .head{
+	font-size:12px;
+	color:#333;
+	background-color:#f8f5f0;
+	font-weight:bold;
+	border-bottom:2px solid #e7b035;
+	line-height:30px;
+}
+#all_table_products > thead > tr{
+	background:#eee;
+	border-bottom:1px solid #ddd;
+	vertical-align: bottom;
+	margin-bottom:5px;
+}
+#all_table_products > thead > tr > th{
+	white-space: nowrap;
+	padding:10px 7px;
+	background:none;
+	cursor:default;
+}
+#all_table_products > tbody > tr > td{
+	padding:0px 5px;
+}
+#all_table_products .td_add_to_cart .fa-plus, #all_table_products .td_add_to_cart .fa-minus{
+	color:#6f6f6f;
+}
+#all_table_products .td_add_to_cart .fa-plus:hover, #all_table_products .td_add_to_cart .fa-minus:hover{
+	color:#000;
+}
+#all_table_products .th_manufacturer,
+#all_table_products .th_article,
+#all_table_products .th_name,
+#all_table_products .th_exist,
+#all_table_products .th_time_to_exe,
+#all_table_products .th_price
+{
+	cursor:pointer;
+}
+#all_table_products .td_exist > span, #all_table_products .td_time_to_exe > span {
+    display: inline-block;
+    border-bottom: 1px dotted;
+    cursor: pointer;
+}
+#all_table_products .td_time_to_exe{
+	line-height: 2.1em;
+}
+
+
+.td_manufacturer,
+.td_article,
+.td_exist,
+.td_time_to_exe,
+.td_price{
+	white-space: nowrap;
+}
+
+
+.info_box{
+	background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 4px 2px;
+    display: block;
+    border-radius: 3px;
+    white-space: nowrap;
+	text-align: left;
+}
+.info_box a{
+	margin:0px 3px;
+}
+
+
+
+
+
+/* МОБИЛЬНОЕ ОТОБРАЖЕНИЕ ДАННЫХ */
+@media screen and (max-width: 767px) {
+	.show_hide_button{
+		position: absolute;
+		right: 15px;
+		top: 30px;
+	}
+	
+	#all_table_products .th_article,
+	#all_table_products .th_name,
+	#all_table_products .th_info,
+	#all_table_products .th_add_to_cart,
+	#all_table_products .th_color
+	{
+		display:none;
+	}
+	
+	#all_table_products .products_table_block_caption{
+		display:block;
+		text-align:center;
+		line-height: 1.4em;
+	}
+
+	#all_table_products .th_manufacturer:before{
+		content:'Сортировать:';
+		font-weight:bold;
+		color:#000;
+		display:block;
+		margin-bottom:2px;
+	}
+	
+	#all_table_products,
+	#all_table_products > thead,
+	#all_table_products > tbody,
+	#all_table_products > thead > tr,
+	#all_table_products > tbody > tr
+	{
+		display:block;
+		overflow:hidden;
+		width:100%;
+	}
+	
+	#all_table_products > tbody > tr{
+		text-align:right;
+		position: relative;
+		overflow: hidden;
+	}
+	
+	#all_table_products > thead > tr > th,
+	#all_table_products > tbody > tr > td
+	{
+		display:inline-block;
+		padding:5px;
+	}
+	
+	#all_table_products > tbody > tr > td
+	{
+		padding:0px;
+	}
+	
+	#all_table_products .td_manufacturer,
+	#all_table_products .td_article
+	{
+		float: left;
+		padding-right:15px;
+	}
+	
+	#all_table_products .td_manufacturer,
+	#all_table_products .td_article,
+	#all_table_products .td_name
+	{
+		border:none;
+	}
+	
+	#all_table_products .td_name
+	{
+		clear: both;
+		text-align: left;
+	}
+	
+	#all_table_products .td_name > span
+	{
+		display:block;
+		border-bottom:1px solid #ddd;
+		margin-bottom:5px;
+	}
+	
+	#all_table_products .td_name
+	{
+		display:block;
+		color: #7d7d7d;
+	}
+	
+	#all_table_products .td_price:after{
+		content:"";
+		display:block;
+	}
+	
+	#all_table_products .td_price
+	{
+		font-weight:bold;
+	}
+	
+	#all_table_products .td_color{
+		width: 5px;
+		padding: 0;
+		height: 50px;
+	}
+	
+	#all_table_products .td_exist
+	{
+		width:50px;
+	}
+	
+	#all_table_products .td_time_to_exe
+	{
+		width:80px;
+		text-align:center;
+	}
+	
+	#all_table_products .td_price
+	{
+		width: 75px;
+		padding-left: 0;
+		text-align:center;
+		color: #000;
+	}
+	
+	#all_table_products .td_add_to_cart
+	{
+		width:60px;
+	}
+	
+	.td_manufacturer,
+	.td_article{
+		color: #000;
+		font-weight:bold;
+	}
+	
+	.td_manufacturer > span,
+	.td_article > a{
+		margin-top: 30px;
+		display: inline-block;
+	}
+	
+	#all_table_products .next_page_box{
+		display:block;
+	}
+}
+
+
+
+/* ОБЫЧНОЕ ОТОБРАЖЕНИЕ ДАННЫХ */
+@media screen and (min-width: 768px) {
+	#all_table_products > tbody > tr > td,
+	#all_table_products > thead > tr > th{
+		padding:5px;
+	}
+	
+	#all_table_products .td_color, #all_table_products .th_color{
+		padding:2px;
+	}
+	
+	#all_table_products > tbody > tr > td{
+		border-top:1px solid #ddd;
+	}
+	
+	.th_name{
+		width:100%;
+	}
+
+	.th_info{
+		text-align:center;
+	}
+	
+	.td_name span{
+		cursor:help;
+	}
+	
+	.th_exist, .td_exist{
+		text-align:right;
+	}
+	
+	.th_time_to_exe, .td_time_to_exe{
+		text-align:center;
+	}
+	
+	.th_price, .td_price{
+		text-align:center;
+	}
+	
+	.td_price{
+		color:#000;
+		font-weight:bold;
+	}
+	
+	.td_manufacturer span{
+		cursor:help;
+	}
+	
+	.td_manufacturer,
+	.td_article
+	{
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 150px;
+	}
+	
+	#all_table_products .td_add_to_cart{
+		padding:2px 5px;
+	}
+	
+	#all_table_products .td_info{
+		padding-top:0px;
+		padding-bottom:0px;
+	}
+	
+	#all_table_products .hide_row .td_manufacturer,
+	#all_table_products .hide_row .td_article,
+	#all_table_products .hide_row .td_name{
+		border: none;
+	}
+	
+	.show_hide_button{
+		position: absolute;
+	}
+}
+
+
+
+
+
+
+
+
+
+/*Стиль для кнопки корзины*/
+.body > .basket > span,
+.body > .basket > A > span
+{
+	cursor: pointer;
+    display: inline-block;
+    background-size:contain;
+	margin:2px;
+	font-size:22px;
+}
+
+
+
+/*Пиктограммы колонки Инфо*/
+.body > .info > span,
+.body > .info > A > span
+{
+    cursor: pointer;
+    display: inline-block;
+    background-size:contain;
+	margin:2px;
+	font-size:15px;
+}
+.body > .info > A > span > span/*Строка "В закладках"*/
+{
+	display:none;
+}
+
+
+
+/*Название блока*/
+.products_table_block_caption
+{
+    padding:4px;
+    text-align:right;
+    font-weight:bold;
+    font-size:16px;
+    border-bottom:1px solid #e7b035;
+}
+
+
+
+/*Кнопка Показать/Скрыть*/
+.show_hide_button > span
+{
+    display: inline-block;
+    border-bottom: 1px dotted #58af4f;
+    color: #58af4f;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    font-size: 11px;
+    top: -2px;
+}
+
+
