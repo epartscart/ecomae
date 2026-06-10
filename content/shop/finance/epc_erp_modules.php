@@ -66,6 +66,7 @@ if (!function_exists('epc_mod_registry')) {
             'dataio' => array('label' => 'Excel/CSV import-export', 'category' => 'Platform', 'requires' => array('core')),
             'audit' => array('label' => 'Audit trail', 'category' => 'Platform', 'requires' => array('core')),
             'roles' => array('label' => 'Roles & permissions', 'category' => 'Platform', 'requires' => array('core')),
+            'control' => array('label' => 'Control tiers (user/admin/provider)', 'category' => 'Platform', 'requires' => array('core')),
             'notifications' => array('label' => 'Notifications', 'category' => 'Platform', 'requires' => array('core')),
             'questionnaire' => array('label' => 'Questionnaire / surveys', 'category' => 'Platform', 'requires' => array('core')),
             'dashboard' => array('label' => 'Dashboards & KPIs', 'category' => 'Platform', 'requires' => array('core')),
