@@ -117,6 +117,46 @@ $modules = array(
         ),
     ),
     array(
+        'title' => 'Advanced purchasing (RFQ)',
+        'icon' => 'fa-handshake-o',
+        'body' => 'Run a request-for-quotation: send line items to multiple suppliers, capture their prices and lead times, compare them side by side, and award the best supplier straight into a purchase order — no re-keying.',
+        'tips' => array(
+            'The cheapest supplier per line is highlighted automatically.',
+            'Suppliers are ranked by total quoted value.',
+            'Awarding an RFQ creates a draft PO using the winning prices.',
+        ),
+    ),
+    array(
+        'title' => 'Demand forecasting & planning',
+        'icon' => 'fa-line-chart',
+        'body' => 'The planner reads your real sales history to compute average daily demand, a trend (up / flat / down) and a moving-average forecast. It calculates a reorder point per item (lead time + safety stock) and suggests exactly how much to order to cover the next cycle.',
+        'tips' => array(
+            'Set lead time, safety stock and minimum order qty per item.',
+            'Suggestions respect your minimum order quantity.',
+            'Items below their reorder point are listed first.',
+        ),
+    ),
+    array(
+        'title' => 'Landed cost',
+        'icon' => 'fa-ship',
+        'body' => 'Spread freight, customs duty, insurance and other import charges across received items — by value, quantity or weight — so your stock cost reflects the true landed cost. Applying a voucher rolls the per-unit add-on into the weighted-average cost.',
+        'tips' => array(
+            'Choose value / qty / weight as the allocation basis.',
+            'Allocation always sums exactly to the charges entered.',
+            'Apply is idempotent — it cannot double-count.',
+        ),
+    ),
+    array(
+        'title' => 'Shipping & logistics',
+        'icon' => 'fa-plane',
+        'body' => 'Track inbound and outbound shipments with carriers, tracking numbers and ETAs. The logistics dashboard shows in-transit and overdue shipments, and receiving an inbound shipment books the goods straight into the right warehouse.',
+        'tips' => array(
+            'Carrier tracking links are built automatically from the tracking number.',
+            'Overdue shipments (ETA passed, not delivered) are flagged.',
+            'Receiving updates stock and weighted-average cost.',
+        ),
+    ),
+    array(
         'title' => 'Advanced CRM',
         'icon' => 'fa-users',
         'body' => 'Leads are automatically scored (hot / warm / cold) from status, contact details, value and activity. The pipeline gives a weighted forecast and win-rate, the Customer-360 view merges CRM with ERP sales, and quotes are priced with the same worldwide tax engine.',
