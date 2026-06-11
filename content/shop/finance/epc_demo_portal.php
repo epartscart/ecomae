@@ -112,6 +112,7 @@ if (!function_exists('epc_demo_classify_route')) {
         $stripped = preg_replace('#^(cp|backend|admin)/#', '', $p);
 
         $erpPrefixes = array(
+            'erp-demo',             // public frontend live-demo dashboard
             'shop/finance/erp',     // ERP dashboard, guide, modules
             'shop/finance/erp/',
         );
@@ -150,7 +151,7 @@ if (!function_exists('epc_demo_guard')) {
             return array('allow' => false, 'reason' => 'expired', 'redirect' => '/demo?expired=1');
         }
         if (!epc_demo_route_allowed($path)) {
-            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => '/shop/finance/erp/dashboard');
+            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => '/erp-demo?demo=1');
         }
         return array('allow' => true, 'reason' => 'ok', 'redirect' => '');
     }
@@ -172,13 +173,13 @@ if (!function_exists('epc_demo_launch_links')) {
                     'code' => $ind['code'],
                     'name' => $ind['name'],
                     'storefront' => $base . '/?demo=1&industry=' . rawurlencode($ind['code']),
-                    'erp' => $base . '/shop/finance/erp/dashboard?demo=1&industry=' . rawurlencode($ind['code']),
+                    'erp' => $base . '/erp-demo?demo=1&industry=' . rawurlencode($ind['code']),
                 );
             }
         }
         return array(
             'storefront' => $base . '/?demo=1',
-            'erp' => $base . '/shop/finance/erp/dashboard?demo=1',
+            'erp' => $base . '/erp-demo?demo=1',
             'industries' => $industries,
         );
     }

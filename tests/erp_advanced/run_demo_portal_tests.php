@@ -63,6 +63,8 @@ check('product page storefront', epc_demo_classify_route('/shop/product/123') ==
 check('ERP dashboard classified erp', epc_demo_classify_route('/cp/shop/finance/erp/dashboard') === 'erp');
 check('ERP guide classified erp', epc_demo_classify_route('cp/shop/finance/erp/guide') === 'erp');
 check('ERP without cp prefix still erp', epc_demo_classify_route('shop/finance/erp/dashboard') === 'erp');
+check('public erp-demo classified erp', epc_demo_classify_route('/erp-demo') === 'erp');
+check('public erp-demo allowed', epc_demo_route_allowed('/erp-demo?demo=1'));
 check('tenant CP home classified cp', epc_demo_classify_route('/cp/shop/control/home') === 'cp');
 check('usermanager CP classified cp', epc_demo_classify_route('cp/shop/usermanager/users') === 'cp');
 check('bare /cp classified cp', epc_demo_classify_route('/cp') === 'cp');
@@ -74,14 +76,14 @@ section('Guard decisions');
 $g1 = epc_demo_guard($sess, '/cp/shop/finance/erp/dashboard', $t0);
 check('valid+ERP -> allow', $g1['allow'] === true && $g1['reason'] === 'ok');
 $g2 = epc_demo_guard($sess, '/cp/shop/control/home', $t0);
-check('valid+CP -> deny, bounce to ERP', $g2['allow'] === false && $g2['reason'] === 'cp_blocked' && strpos($g2['redirect'], 'erp/dashboard') !== false);
+check('valid+CP -> deny, bounce to ERP', $g2['allow'] === false && $g2['reason'] === 'cp_blocked' && strpos($g2['redirect'], 'erp-demo') !== false);
 $g3 = epc_demo_guard($sess, '/cp/shop/finance/erp/dashboard', $t0 + 10 * 86400);
 check('expired -> deny regardless of route', $g3['allow'] === false && $g3['reason'] === 'expired');
 
 section('Launch links + marketing HTML');
 $links = epc_demo_launch_links('https://ecomae.com');
 check('storefront link has demo flag', strpos($links['storefront'], 'demo=1') !== false);
-check('erp link targets erp dashboard', strpos($links['erp'], 'shop/finance/erp/dashboard') !== false);
+check('erp link targets erp demo', strpos($links['erp'], 'erp-demo') !== false);
 check('industry launch links built (5)', count($links['industries']) === 5);
 check('industry erp link carries industry code', strpos($links['industries'][0]['erp'], 'industry=') !== false);
 $html = epc_demo_portal_html('https://ecomae.com');
