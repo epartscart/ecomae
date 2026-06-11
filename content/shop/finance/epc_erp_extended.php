@@ -248,7 +248,7 @@ function epc_erp_petty_cash_list(PDO $db)
 {
 	epc_erp_extended_ensure_schema($db);
 	return $db->query(
-		'SELECT pc.*, a.`name` AS account_name, a.`balance` AS account_balance
+		'SELECT pc.*, a.`name` AS account_name, a.`opening_balance` AS account_balance
 		 FROM `epc_erp_petty_cash` pc
 		 LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = pc.`account_id`
 		 WHERE pc.`active` = 1 ORDER BY pc.`name`'

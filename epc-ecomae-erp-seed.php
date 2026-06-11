@@ -256,5 +256,140 @@ foreach ($poSpecs as $spec) {
 }
 echo "Purchase orders: created $poCreated\n";
 
+// ---- CRM pipeline (leads / opportunities / quotes / tickets / projects) -----
+// Fills Sales → CRM and Sales → Proposals (quotes) in one shot.
+try {
+    require_once __DIR__ . '/content/shop/finance/epc_crm_schema.php';
+    epc_crm_ensure_schema($db);
+    $crmBefore = (int) $db->query('SELECT COUNT(*) FROM `epc_crm_leads`')->fetchColumn();
+    epc_crm_seed_sample_if_empty($db);
+    $crmAfter = (int) $db->query('SELECT COUNT(*) FROM `epc_crm_leads`')->fetchColumn();
+    $oppN = (int) $db->query('SELECT COUNT(*) FROM `epc_crm_opportunities`')->fetchColumn();
+    $qN = (int) $db->query('SELECT COUNT(*) FROM `epc_crm_quotes`')->fetchColumn();
+    // Quotes/proposals are only created by the bundled seeder when leads were
+    // empty. If leads pre-existed (so it skipped) but there are no quotes yet,
+    // seed proposals here so Sales -> Proposals shows records.
+    if ($qN === 0) {
+        // The live quotes table may predate newer columns (schema drift), so
+        // introspect the actual columns and insert only what exists.
+        $qcols = array();
+        foreach ($db->query('SHOW COLUMNS FROM `epc_crm_quotes`')->fetchAll(PDO::FETCH_ASSOC) as $cr) {
+            $qcols[strtolower($cr['Field'])] = true;
+        }
+        $amountCol = isset($qcols['subtotal']) ? 'subtotal' : (isset($qcols['total']) ? 'total' : (isset($qcols['amount']) ? 'amount' : ''));
+        $opps = $db->query('SELECT `id`, `lead_id`, `title`, `amount` FROM `epc_crm_opportunities` ORDER BY `id` LIMIT 3')->fetchAll(PDO::FETCH_ASSOC);
+        $now = time();
+        $statuses = array('sent', 'draft', 'accepted');
+        $seq = 1;
+        foreach ($opps as $i => $op) {
+            $qno = 'Q-' . date('Ym') . '-' . str_pad((string) ($seq++), 3, '0', STR_PAD_LEFT);
+            $sub = round((float) ($op['amount'] ?? 0) * 0.95, 2);
+            if ($sub <= 0) { $sub = 5000.00; }
+            $row = array();
+            if (isset($qcols['opportunity_id'])) { $row['opportunity_id'] = (int) $op['id']; }
+            if (isset($qcols['lead_id'])) { $row['lead_id'] = (int) $op['lead_id']; }
+            if (isset($qcols['quote_number'])) { $row['quote_number'] = $qno; }
+            if (isset($qcols['status'])) { $row['status'] = $statuses[$i % 3]; }
+            if ($amountCol !== '') { $row[$amountCol] = $sub; }
+            if (isset($qcols['notes'])) { $row['notes'] = 'Proposal for ' . ($op['title'] ?? 'opportunity') . ' [' . $SEED . ']'; }
+            if (isset($qcols['time_created'])) { $row['time_created'] = $now - $i * 3600; }
+            if (isset($qcols['time_updated'])) { $row['time_updated'] = $now - $i * 3600; }
+            if (isset($qcols['active'])) { $row['active'] = 1; }
+            $cols = array_keys($row);
+            $ph = implode(',', array_fill(0, count($cols), '?'));
+            $sql = 'INSERT INTO `epc_crm_quotes` (`' . implode('`,`', $cols) . '`) VALUES (' . $ph . ')';
+            $db->prepare($sql)->execute(array_values($row));
+            $qid = (int) $db->lastInsertId();
+            // Quote line (best-effort; ignore if table/columns differ).
+            try {
+                $db->prepare('INSERT INTO `epc_crm_quote_lines` (`quote_id`, `description`, `qty`, `unit_price`, `sort_order`) VALUES (?,?,?,?,0)')
+                   ->execute(array($qid, ($op['title'] ?? 'Supply package'), 1, $sub));
+            } catch (Throwable $e) { /* line table optional */ }
+        }
+        $qN = (int) $db->query('SELECT COUNT(*) FROM `epc_crm_quotes`')->fetchColumn();
+    }
+    echo "CRM: leads " . $crmBefore . " -> " . $crmAfter . "; opportunities $oppN; quotes/proposals $qN\n";
+} catch (Throwable $e) {
+    echo "CRM seed skipped: " . $e->getMessage() . "\n";
+}
+
+// ---- Cash account (needed by payment batches / petty cash) ------------------
+$cashAccounts = epc_erp_list_cash_accounts($db);
+if (empty($cashAccounts)) {
+    epc_erp_create_cash_account($db, array('name' => 'Main bank — AED [' . $SEED . ']', 'account_type' => 'bank', 'opening_balance' => 250000));
+    epc_erp_create_cash_account($db, array('name' => 'Cash on hand [' . $SEED . ']', 'account_type' => 'cash', 'opening_balance' => 15000));
+    $cashAccounts = epc_erp_list_cash_accounts($db);
+}
+$cashAcctId = !empty($cashAccounts) ? (int) $cashAccounts[0]['id'] : 0;
+
+// ---- Payment batches -------------------------------------------------------
+try {
+    $existingBatches = epc_erp_payment_batches_list($db);
+    if (count($existingBatches) === 0) {
+        epc_erp_payment_batch_save($db, array('batch_type' => 'local', 'account_id' => $cashAcctId, 'total_amount' => 28400.00, 'line_count' => 6, 'execution_date' => date('Y-m-d'), 'notes' => 'Supplier run — week ' . date('W') . ' [' . $SEED . ']'));
+        epc_erp_payment_batch_save($db, array('batch_type' => 'cheque', 'account_id' => $cashAcctId, 'total_amount' => 11750.00, 'line_count' => 3, 'execution_date' => date('Y-m-d', time() + 7 * 86400), 'notes' => 'Cheque batch — utilities & rent [' . $SEED . ']'));
+        echo "Payment batches: created 2\n";
+    } else {
+        echo "Payment batches: exist (" . count($existingBatches) . ")\n";
+    }
+} catch (Throwable $e) {
+    echo "Payment batch seed skipped: " . $e->getMessage() . "\n";
+}
+
+// ---- Petty cash floats -----------------------------------------------------
+try {
+    $existingFloats = epc_erp_petty_cash_list($db);
+    if (count($existingFloats) === 0) {
+        epc_erp_petty_cash_save($db, array('name' => 'Front desk float [' . $SEED . ']', 'float_amount' => 2000.00, 'custodian_user_id' => 0));
+        epc_erp_petty_cash_save($db, array('name' => 'Workshop float [' . $SEED . ']', 'float_amount' => 1500.00, 'custodian_user_id' => 0));
+        echo "Petty cash: created 2 floats\n";
+    } else {
+        echo "Petty cash: exist (" . count($existingFloats) . ")\n";
+    }
+} catch (Throwable $e) {
+    echo "Petty cash seed skipped: " . $e->getMessage() . "\n";
+}
+
+// ---- Expense reports -------------------------------------------------------
+try {
+    require_once __DIR__ . '/content/shop/finance/epc_erp_phase8.php';
+    epc_erp_phase8_ensure_schema($db);
+    $existingExp = epc_erp_expense_reports_list($db);
+    if (count($existingExp) === 0) {
+        $staffUid = !empty($custIds) ? (int) $custIds[0] : 0;
+        epc_erp_expense_report_save($db, array('staff_user_id' => $staffUid, 'title' => 'Client visit — Abu Dhabi [' . $SEED . ']', 'total_amount' => 845.50, 'period_from' => date('Y-m-01'), 'period_to' => date('Y-m-d'), 'notes' => 'Fuel, tolls, meals'));
+        epc_erp_expense_report_save($db, array('staff_user_id' => $staffUid, 'title' => 'Trade show booth — DWTC [' . $SEED . ']', 'total_amount' => 3200.00, 'period_from' => date('Y-m-01'), 'period_to' => date('Y-m-d'), 'notes' => 'Stand + materials'));
+        echo "Expense reports: created 2\n";
+    } else {
+        echo "Expense reports: exist (" . count($existingExp) . ")\n";
+    }
+} catch (Throwable $e) {
+    echo "Expense report seed skipped: " . $e->getMessage() . "\n";
+}
+
+// ---- Agenda events ---------------------------------------------------------
+try {
+    $existingEvents = epc_erp_agenda_list($db, date('Y-m'));
+    if (count($existingEvents) === 0) {
+        epc_erp_agenda_save($db, array('title' => 'Month-end close review [' . $SEED . ']', 'event_type' => 'finance', 'start_at' => date('Y-m-25 10:00:00'), 'end_at' => date('Y-m-25 11:30:00'), 'location' => 'Finance room'));
+        epc_erp_agenda_save($db, array('title' => 'Supplier negotiation — Gulf Auto [' . $SEED . ']', 'event_type' => 'meeting', 'start_at' => date('Y-m-d 14:00:00', time() + 2 * 86400), 'end_at' => date('Y-m-d 15:00:00', time() + 2 * 86400), 'location' => 'Meeting room A'));
+        epc_erp_agenda_save($db, array('title' => 'Stock count — main warehouse [' . $SEED . ']', 'event_type' => 'operations', 'start_at' => date('Y-m-d 09:00:00', time() + 5 * 86400), 'end_at' => date('Y-m-d 12:00:00', time() + 5 * 86400), 'location' => 'Warehouse'));
+        echo "Agenda: created 3 events\n";
+    } else {
+        echo "Agenda: exist (" . count($existingEvents) . ")\n";
+    }
+} catch (Throwable $e) {
+    echo "Agenda seed skipped: " . $e->getMessage() . "\n";
+}
+
+// ---- Knowledge base --------------------------------------------------------
+try {
+    epc_erp_kb_seed_defaults($db);
+    $kbN = (int) $db->query('SELECT COUNT(*) FROM `epc_erp_kb_articles`')->fetchColumn();
+    echo "Knowledge base: $kbN articles\n";
+} catch (Throwable $e) {
+    echo "KB seed skipped: " . $e->getMessage() . "\n";
+}
+
 echo str_repeat('=', 56) . "\n";
 echo "DONE.\n";
