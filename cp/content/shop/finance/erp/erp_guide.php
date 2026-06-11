@@ -91,6 +91,19 @@ $deptCfg = epc_erp_departments_config();
 				</tbody>
 			</table>
 
+			<h4><i class="fa fa-star"></i> What&#39;s new — enterprise capabilities</h4>
+			<div class="well well-sm">
+				<p>The ERP is now <strong>tenant-country aware</strong>: one setting on the company profile (Country) localizes the whole suite together.</p>
+				<ul>
+					<li><strong>Country master switch</strong> — set the company country once and currency, language (incl. Arabic/Urdu RTL), tax regime (VAT/GST label + rate + e-invoice scheme), fiscal-year start and the HR labour-law pack all switch together. UAE&rarr;AED/VAT 5%/FTA, KSA&rarr;SAR/VAT 15%/ZATCA, Pakistan&rarr;PKR/Sales Tax 18%/FBR, India&rarr;INR/GST.</li>
+					<li><strong>Country-aware HRMS</strong> — end-of-service <strong>gratuity</strong>, annual-leave entitlement and <strong>leave salary</strong> computed per each country&#39;s labour law. UAE: 21 days/yr first 5 years, 30 days/yr beyond, capped at 2 years&#39; pay (Federal Decree-Law 33/2021). See <a href="/erp/?area=people&amp;tab=hr">People &rarr; HR</a> for the live accrual table.</li>
+					<li><strong>Corporate Tax provision</strong> — the <a href="/erp/?area=finance&amp;tab=pl">P&amp;L</a> applies the UAE 9% CT with the AED 375,000 small-business threshold automatically.</li>
+					<li><strong>Accounting setup</strong> — <a href="/erp/?area=finance&amp;tab=coa">Chart of accounts</a>, <a href="/erp/?area=finance&amp;tab=opening_balances">Opening balances</a> (go-live migration), <a href="/erp/?area=finance&amp;tab=fixed_assets">Fixed assets</a> with depreciation, plus VAT return, Tax compliance and E-invoicing tabs.</li>
+					<li><strong>Professional theming</strong> — Blue &amp; White across the platform (marketing, CP, ERP); Red &amp; Black for the consumer storefront — driven by one central token layer.</li>
+					<li><strong>3-day live demo</strong> — shared credential on the marketing site opens storefront + ERP only (no CP), auto-expiring after 3 days.</li>
+				</ul>
+			</div>
+
 			<h4><i class="fa fa-sitemap"></i> End-to-end flows</h4>
 			<div class="well well-sm epc-erp-flow">
 				<p><strong>A. Sales &amp; revenue (customer side)</strong></p>

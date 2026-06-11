@@ -14,9 +14,15 @@ if (($_GET['token'] ?? '') !== 'epartscart-deploy-2026') {
 
 define('_ASTEXE_', 1);
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/content/general_pages/epc_portal.php';
+@require_once __DIR__ . '/content/general_pages/epc_portal_db.php';
+@require_once __DIR__ . '/content/general_pages/epc_portal_tenant.php';
 require_once __DIR__ . '/content/shop/finance/epc_erp_helpers.php';
 
 $cfg = new DP_Config();
+if (function_exists('epc_portal_apply_config')) {
+    epc_portal_apply_config($cfg);
+}
 $pdo = new PDO(
 	'mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8',
 	$cfg->user,
