@@ -25,3 +25,5 @@ if (!is_file($epc_guide_include)) {
 }
 
 include $epc_guide_include;
+
+?>

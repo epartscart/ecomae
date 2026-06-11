@@ -18,3 +18,5 @@ if (!empty($_GET['to'])) {
 }
 header('Location: /' . $backend . '/shop/finance/erp?' . $qs, true, 302);
 exit;
+
+?>
