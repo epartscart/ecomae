@@ -103,6 +103,15 @@ function epc_erp_portal_handle_ajax(PDO $db_link)
 function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 {
 	global $DP_Config;
+	// The portal serves both the logged-out sign-in page and the signed-in
+	// workspace from the same /erp/ URL (the response varies by auth cookie).
+	// Without an explicit cache policy some browsers/proxies serve a stale copy
+	// (e.g. an old unstyled sign-in page) after a deploy. Mark it non-cacheable
+	// so every visit fetches the current page.
+	if (!headers_sent()) {
+		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+		header('Pragma: no-cache');
+	}
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 	$pageTitle = isset($opts['title']) ? (string) $opts['title'] : 'ERP Finance';
 	$bodyClass = isset($opts['body_class']) ? (string) $opts['body_class'] : 'epc-erp-standalone';
