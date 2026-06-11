@@ -112,7 +112,7 @@ if (!function_exists('epc_demo_classify_route')) {
         $stripped = preg_replace('#^(cp|backend|admin)/#', '', $p);
 
         $erpPrefixes = array(
-            'erp-demo',             // public frontend live-demo dashboard
+            'shop/erp-demo',        // public frontend live-demo dashboard
             'shop/finance/erp',     // ERP dashboard, guide, modules
             'shop/finance/erp/',
         );
@@ -151,7 +151,7 @@ if (!function_exists('epc_demo_guard')) {
             return array('allow' => false, 'reason' => 'expired', 'redirect' => '/demo?expired=1');
         }
         if (!epc_demo_route_allowed($path)) {
-            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => epc_demo_lang_prefix() . '/erp-demo?demo=1');
+            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => epc_demo_lang_prefix() . '/shop/erp-demo?demo=1');
         }
         return array('allow' => true, 'reason' => 'ok', 'redirect' => '');
     }
@@ -185,7 +185,7 @@ if (!function_exists('epc_demo_launch_links')) {
     function epc_demo_launch_links(string $base = ''): array
     {
         $base = rtrim($base, '/');
-        $erp = $base . epc_demo_lang_prefix() . '/erp-demo';
+        $erp = $base . epc_demo_lang_prefix() . '/shop/erp-demo';
         $industries = array();
         if (function_exists('epc_demo_industries')) {
             foreach (epc_demo_industries() as $ind) {

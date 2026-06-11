@@ -31,11 +31,26 @@ try {
     exit(json_encode(array('status' => false, 'message' => 'DB connect failed')));
 }
 
-$url = 'erp-demo';
+$url = 'shop/erp-demo';
 $alias = 'erp-demo';
 $value = 'ERP live demo';
 $phpPath = '/content/shop/finance/erp_demo_dashboard.php';
 $now = time();
+
+// Nest under the storefront `shop` tree (top-level content pages are not routed
+// on the marketing host; pages under `shop` resolve at /<lang>/shop/...).
+$ps = $pdo->prepare('SELECT `id`, `level` FROM `content` WHERE `url` = ? AND `is_frontend` = 1 LIMIT 1');
+$ps->execute(array('shop'));
+$shop = $ps->fetch(PDO::FETCH_ASSOC);
+if (!$shop) {
+    http_response_code(500);
+    exit(json_encode(array('status' => false, 'message' => 'Frontend shop parent page not found')));
+}
+$parentId = (int) $shop['id'];
+$level = (int) $shop['level'] + 1;
+
+// Remove any orphaned top-level row from an earlier registration attempt.
+$pdo->prepare('DELETE FROM `content` WHERE `url` = ? AND `is_frontend` = 1')->execute(array('erp-demo'));
 
 $existing = $pdo->prepare('SELECT `id` FROM `content` WHERE `url` = ? AND `is_frontend` = 1 LIMIT 1');
 $existing->execute(array($url));
@@ -44,18 +59,18 @@ $contentId = (int) $existing->fetchColumn();
 if ($contentId > 0) {
     $pdo->prepare(
         'UPDATE `content` SET `published_flag` = 1, `content_type` = \'php\', `is_frontend` = 1, `system_flag` = 0,
-         `content` = ?, `title_tag` = ?, `description_tag` = ?, `parent` = 0, `level` = 1, `alias` = ?, `value` = ?, `time_edited` = ?, `robots_tag` = \'\'
+         `content` = ?, `title_tag` = ?, `description_tag` = ?, `parent` = ?, `level` = ?, `alias` = ?, `value` = ?, `time_edited` = ?, `robots_tag` = \'\'
          WHERE `id` = ?'
-    )->execute(array($phpPath, $value, $value, $alias, $value, $now, $contentId));
+    )->execute(array($phpPath, $value, $value, $parentId, $level, $alias, $value, $now, $contentId));
 } else {
     $pdo->prepare(
         'INSERT INTO `content`
         (`count`, `url`, `level`, `alias`, `value`, `parent`, `description`, `is_frontend`, `content_type`, `content`,
          `title_tag`, `description_tag`, `keywords_tag`, `author_tag`, `main_flag`, `modules_array`, `css_js`, `robots_tag`,
          `system_flag`, `published_flag`, `open`, `time_created`, `time_edited`, `order`)
-         VALUES (0, ?, 1, ?, ?, 0, ?, 1, \'php\', ?, ?, ?, \'0\', \'0\', 0, \'[]\', \'\', \'\', 0, 1, 0, ?, ?, 90)'
+         VALUES (0, ?, ?, ?, ?, ?, ?, 1, \'php\', ?, ?, ?, \'0\', \'0\', 0, \'[]\', \'\', \'\', 0, 1, 0, ?, ?, 90)'
     )->execute(array(
-        $url, $alias, $value, 'Public ERP live-demo dashboard (sample data)',
+        $url, $level, $alias, $value, $parentId, 'Public ERP live-demo dashboard (sample data)',
         $phpPath, $value, $value, $now, $now,
     ));
     $contentId = (int) $pdo->lastInsertId();
@@ -72,7 +87,6 @@ echo json_encode(array(
     'url' => $url,
     'php' => $phpPath,
     'links' => array(
-        'demo' => $base . '/erp-demo?demo=1',
-        'demo_en' => $base . '/en/erp-demo?demo=1',
+        'demo_en' => $base . '/en/shop/erp-demo?demo=1',
     ),
 ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);

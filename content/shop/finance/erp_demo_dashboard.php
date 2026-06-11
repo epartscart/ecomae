@@ -83,7 +83,7 @@ $themeTag = function_exists('epc_theme_style_tag_for_surface') ? epc_theme_style
   <div class="epcdemo-picker">
     <?php foreach ($industries as $ind) {
         $on = $ind['code'] === $industry ? ' on' : '';
-        echo '<a class="epcdemo-chip' . $on . '" href="' . $esc($langPrefix) . '/erp-demo?demo=1&industry=' . $esc(rawurlencode($ind['code'])) . '">' . $esc($ind['name']) . '</a>';
+        echo '<a class="epcdemo-chip' . $on . '" href="' . $esc($langPrefix) . '/shop/erp-demo?demo=1&industry=' . $esc(rawurlencode($ind['code'])) . '">' . $esc($ind['name']) . '</a>';
     } ?>
   </div>
 
