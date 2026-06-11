@@ -322,6 +322,13 @@ if (!function_exists('epc_guide_modules')) {
             'No posting; gates document progression.',
             array('All intra-tenant — no global inbox across tenants.'));
 
+        $g['localization'] = $E('localization', 'Country localization (one setting localizes the ERP)',
+            'The tenant country is the master switch. Set it once on the company profile and the whole ERP localizes: currency, language + text direction (RTL/LTR), tax regime (label + rate + e-invoice scheme), fiscal-year start, date format and the HR labour-law pack — all from one source.',
+            array('Open Company Profile → set Country. (Pakistan → PKR/Urdu/Sales Tax/Jul-Jun/FBR; UAE → AED/Arabic/VAT 5%/FTA; KSA → SAR/Arabic/VAT 15%/ZATCA.)', 'Optionally override currency/language for special cases.'),
+            array('Every module reads the country profile automatically — invoices use the right tax label and rate, payroll uses the right gratuity/leave rules, reports use the right fiscal year, and the UI shows the right language and direction.', 'Cross-border staff or documents can override per-record.'),
+            'No posting itself; it parameterizes tax, payroll and fiscal calendar so all figures follow the tenant country.',
+            array('Set the country before transacting so document numbering and fiscal periods start correctly.'));
+
         $g['hr_law'] = $E('hr_law', 'HRMS — country labour law (gratuity, leave)',
             'Applies each tenant\'s statutory HR rules automatically by country: end-of-service gratuity, annual-leave entitlement, leave salary, notice/probation and overtime. Date-effective, so a law change takes effect from its date while past settlements keep the old rule.',
             array('Set the company country (company profile) — it selects the labour-law pack (UAE, KSA, Qatar, Oman, Bahrain, Kuwait, India, or generic).', 'Optionally override country per employee for cross-border staff.'),

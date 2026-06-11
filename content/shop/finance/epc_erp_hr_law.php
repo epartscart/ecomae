@@ -34,6 +34,7 @@ if (!function_exists('epc_hr_law_countries')) {
             array('code' => 'BH', 'name' => 'Bahrain', 'gratuity' => 'GCC-style end of service'),
             array('code' => 'KW', 'name' => 'Kuwait', 'gratuity' => 'GCC-style end of service'),
             array('code' => 'IN', 'name' => 'India', 'gratuity' => 'Payment of Gratuity Act (15/26)'),
+            array('code' => 'PK', 'name' => 'Pakistan', 'gratuity' => '30 days wage per completed year (Standing Orders)'),
             array('code' => 'generic', 'name' => 'Generic / other', 'gratuity' => 'configurable days per year'),
         );
     }
@@ -44,7 +45,7 @@ if (!function_exists('epc_hr_resolve_country')) {
     function epc_hr_resolve_country(string $country): string
     {
         $c = strtoupper(trim($country));
-        $known = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW', 'IN');
+        $known = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW', 'IN', 'PK');
         return in_array($c, $known, true) ? $c : 'generic';
     }
 }
@@ -156,6 +157,19 @@ if (!function_exists('epc_hr_gratuity')) {
                 $out['notes'] = 'Qatar: minimum 3 weeks (21 days) basic wage per year.';
                 return $out;
 
+            case 'PK':
+                // Pakistan (Standing Orders): 30 days wage per completed year, after 1 year.
+                if ($years < 1.0) {
+                    $out['notes'] = 'Pakistan: eligible after 1 year.';
+                    return $out;
+                }
+                $days = $years * 30.0;
+                $out['eligible'] = true;
+                $out['days'] = round($days, 2);
+                $out['amount'] = round($days * $daily, 2);
+                $out['notes'] = 'Pakistan Standing Orders: 30 days wage per completed year of service.';
+                return $out;
+
             case 'OM':
             case 'BH':
             case 'KW':
@@ -220,6 +234,10 @@ if (!function_exists('epc_hr_leave_entitlement')) {
                 $annual = 18.0; // earned leave (varies by state; common ~18)
                 $notes = 'India: ~18 earned-leave days/year (state-dependent).';
                 break;
+            case 'PK':
+                $annual = 14.0; // annual leave after 12 months (Shops & Establishments)
+                $notes = 'Pakistan: 14 days annual leave after 12 months.';
+                break;
             default:
                 $annual = (float) ($opts['annual_days'] ?? 21);
                 $notes = 'Generic annual leave.';
@@ -261,6 +279,7 @@ if (!function_exists('epc_hr_policy')) {
             'BH' => array(30, 3, 48),
             'KW' => array(90, 3, 48),
             'IN' => array(30, 6, 48),
+            'PK' => array(30, 3, 48),
             'generic' => array(30, 3, 48),
         );
         $p = $map[$country] ?? $map['generic'];
@@ -281,8 +300,8 @@ if (!function_exists('epc_hr_overtime')) {
         $dailyHours = (float) ($opts['daily_hours'] ?? 8);
         $hourly = ($dailyBasis > 0 && $dailyHours > 0) ? ($basicSalary / $dailyBasis) / $dailyHours : 0.0;
         $rate = $nightOrRestDay ? 1.5 : 1.25;
-        if ($country === 'IN') {
-            $rate = 2.0; // India: OT typically 2x
+        if ($country === 'IN' || $country === 'PK') {
+            $rate = 2.0; // India/Pakistan: OT typically 2x
         }
         return array('hours' => round($hours, 2), 'hourly' => round($hourly, 4), 'rate' => $rate, 'amount' => round($hourly * $rate * $hours, 2));
     }
