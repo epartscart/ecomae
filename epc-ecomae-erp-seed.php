@@ -210,5 +210,45 @@ if (empty($custIds)) {
     echo "Sales orders: created $created\n";
 }
 
+// ---- Purchase orders -------------------------------------------------------
+require_once __DIR__ . '/content/shop/finance/epc_erp_extended.php';
+epc_erp_extended_ensure_schema($db);
+
+// Ensure at least two suppliers exist.
+$suppliers = epc_erp_list_suppliers($db);
+if (count($suppliers) < 2) {
+    epc_erp_create_supplier($db, array('name' => 'AL ARQAN Parts [' . $SEED . ']', 'contact_email' => 'seed.sup1@epartscart.local', 'trn' => '100000000000013'));
+    epc_erp_create_supplier($db, array('name' => 'Gulf Auto Supply [' . $SEED . ']', 'contact_email' => 'seed.sup2@epartscart.local', 'trn' => '100000000000014'));
+    $suppliers = epc_erp_list_suppliers($db);
+}
+$supA = (int) $suppliers[0]['id'];
+$supB = (int) (isset($suppliers[1]) ? $suppliers[1]['id'] : $suppliers[0]['id']);
+
+$poSpecs = array(
+    array('supplier' => $supA, 'title' => 'Brake parts replenishment [' . $SEED . ']', 'amount' => 12000.00, 'status' => 'approved'),
+    array('supplier' => $supB, 'title' => 'Filters & plugs stock-up [' . $SEED . ']', 'amount' => 7400.00, 'status' => 'received'),
+    array('supplier' => $supA, 'title' => 'Battery quarterly order [' . $SEED . ']', 'amount' => 9800.00, 'status' => 'draft'),
+);
+$poCreated = 0;
+foreach ($poSpecs as $spec) {
+    $chk = $db->prepare('SELECT `id` FROM `epc_erp_purchase_orders` WHERE `title` = ? LIMIT 1');
+    $chk->execute(array($spec['title']));
+    if ($chk->fetchColumn()) {
+        echo "PO exists: {$spec['title']}\n";
+        continue;
+    }
+    $poId = epc_erp_po_save($db, array(
+        'supplier_id' => $spec['supplier'],
+        'title' => $spec['title'],
+        'amount_ex_vat' => $spec['amount'],
+    ));
+    if ($spec['status'] !== 'draft') {
+        epc_erp_po_set_status($db, $poId, $spec['status']);
+    }
+    $poCreated++;
+    echo "PO created: {$spec['title']} (#$poId, {$spec['status']})\n";
+}
+echo "Purchase orders: created $poCreated\n";
+
 echo str_repeat('=', 56) . "\n";
 echo "DONE.\n";

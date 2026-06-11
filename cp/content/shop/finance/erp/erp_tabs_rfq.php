@@ -16,6 +16,9 @@ erp_page_header(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Payables', 'url' => epc_erp_tab_url($erpUrl, 'payables', $date_from_str, $date_to_str)),
 		array('label' => 'RFQ'),
+	),
+	array(
+		array('label' => 'New RFQ', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_rfq'),
 	)
 );
 erp_filter_bar($erpUrl, 'rfq', $date_from_str, $date_to_str,

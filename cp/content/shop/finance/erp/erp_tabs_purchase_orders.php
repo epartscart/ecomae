@@ -15,6 +15,9 @@ erp_page_header(
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Purchase orders'),
+	),
+	array(
+		array('label' => 'New purchase order', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_po'),
 	)
 );
 erp_stat_cards(array(
