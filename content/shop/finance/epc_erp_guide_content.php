@@ -322,6 +322,20 @@ if (!function_exists('epc_guide_modules')) {
             'No posting; gates document progression.',
             array('All intra-tenant — no global inbox across tenants.'));
 
+        $g['mrp'] = $E('mrp', 'MRP & demand planning',
+            'Material Requirements Planning (SAP MRP equivalent): nets demand against stock and incoming supply and proposes planned purchase/production orders.',
+            array('Maintain reorder qty (lot size), safety stock and lead time per item.', 'Enter or import demand (sales orders, forecast).'),
+            array('Run MRP → it computes net requirement = demand − (on-hand − safety) − on-order, rounds up to the lot size, and lists planned purchase orders (buy items) and planned production orders (make items) with lead times.', 'Convert planned orders to real POs / work orders.'),
+            'Planning only — postings happen when the resulting PO/work order is processed.',
+            array('Set safety stock to avoid st-outs; set lot size to match supplier MOQ.'));
+
+        $g['intercompany'] = $E('intercompany', 'Intercompany & consolidation',
+            'Multi-company postings with automatic elimination (SAP AA/consolidation equivalent), plus available-to-promise and asset depreciation.',
+            array('Set up your companies/branches and the financial year.', 'Define intercompany control accounts.'),
+            array('Post an intercompany transaction → balanced entries are created in both companies and tagged.', 'Run consolidation → tagged intercompany balances are eliminated so the group view isn\'t double-counted.', 'Asset depreciation schedules (straight-line / reducing-balance) post monthly; disposals book gain/loss.', 'Sales orders run an Available-to-Promise check (on-hand − reserved + incoming) before confirming.'),
+            'Depreciation and disposals post to the GL; intercompany pairs net to zero on consolidation.',
+            array('ATP prevents promising stock you don\'t have; consolidation keeps the group P&L clean.'));
+
         $g['datalink'] = $E('datalink', 'Live data-link (storefront → ERP)',
             'Pulls your existing e-commerce/CRM data — customers, orders, catalogue, stock and the native customer ledger — straight into the ERP so dashboards, AR and the document chain reflect real shop activity. Read-only on your storefront tables.',
             array(
