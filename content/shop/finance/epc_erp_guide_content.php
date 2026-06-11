@@ -322,6 +322,13 @@ if (!function_exists('epc_guide_modules')) {
             'No posting; gates document progression.',
             array('All intra-tenant — no global inbox across tenants.'));
 
+        $g['hr_law'] = $E('hr_law', 'HRMS — country labour law (gratuity, leave)',
+            'Applies each tenant\'s statutory HR rules automatically by country: end-of-service gratuity, annual-leave entitlement, leave salary, notice/probation and overtime. Date-effective, so a law change takes effect from its date while past settlements keep the old rule.',
+            array('Set the company country (company profile) — it selects the labour-law pack (UAE, KSA, Qatar, Oman, Bahrain, Kuwait, India, or generic).', 'Optionally override country per employee for cross-border staff.'),
+            array('On an employee exit, run gratuity → e.g. UAE pays 21 days basic/year for the first 5 years, 30 days/year beyond, capped at 2 years\' pay; KSA uses half/full month with the resignation factor; India uses (15/26) × wage × years after 5 years.', 'Accrue annual leave (UAE: 2 days/month for months 6-12, then 30 days/year) and pay leave salary on basic.', 'Compute overtime per country (UAE 125% normal, 150% night/rest day).'),
+            'Gratuity, leave salary and overtime post to payroll/GL; figures follow the country pack in force on the settlement date.',
+            array('Keep basic salary correct — gratuity & leave salary are based on basic, not gross.'));
+
         $g['mrp'] = $E('mrp', 'MRP & demand planning',
             'Material Requirements Planning (SAP MRP equivalent): nets demand against stock and incoming supply and proposes planned purchase/production orders.',
             array('Maintain reorder qty (lot size), safety stock and lead time per item.', 'Enter or import demand (sales orders, forecast).'),
