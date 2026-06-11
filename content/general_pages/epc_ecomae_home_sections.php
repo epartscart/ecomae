@@ -41,6 +41,18 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	$img = epc_ecomae_home_sections_img_base();
 	$h = 'epc_ecomae_h';
 
+	$demoBlock = '';
+	$demoDir = dirname(__DIR__) . '/shop/finance';
+	if (is_file($demoDir . '/epc_demo_portal.php')) {
+		if (is_file($demoDir . '/epc_erp_demo.php')) {
+			require_once $demoDir . '/epc_erp_demo.php';
+		}
+		require_once $demoDir . '/epc_demo_portal.php';
+		if (function_exists('epc_demo_portal_html')) {
+			$demoBlock = epc_demo_portal_html(rtrim($base, '/'));
+		}
+	}
+
 	$cpScreens = array(
 		array('id' => 'cp0', 'tab' => 'Dashboard', 'img' => 'cp_01_dashboard_30cbbb4714994afc9968d85c50f433cd.png', 'alt' => 'Super CP Dashboard', 'cap' => '<strong>Operator Console Dashboard.</strong> Live tenants, CP modules, and sandbox demos — quick-action tiles for every cross-tenant workflow.'),
 		array('id' => 'cp1', 'tab' => 'Tenant Hub', 'img' => 'cp_02_tenant_hub_9b5e91773a67434fbf300181dbfec704.png', 'alt' => 'Tenant Hub', 'cap' => '<strong>Tenant Hub &amp; DNS.</strong> Platform IP, DNS counts, client intro form, A-record guide, SSL issuance — all operator-driven.'),
@@ -69,6 +81,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		</div>
 	</section>
 	<div class="ehm-divider"></div>
+	<?php echo $demoBlock; ?>
 
 	<section id="platform" class="ehm-sec">
 		<div class="ehm-wrap">
