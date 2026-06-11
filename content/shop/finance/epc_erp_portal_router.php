@@ -42,6 +42,10 @@ function epc_erp_portal_match_request($requestUri = null)
 	if ($path === '/shop/erp' || $path === '/shop/erp/') {
 		return array('page' => 'main', 'lang_prefix' => $langPrefix, 'path_after' => '');
 	}
+	if ($path === '/erp-demo' || $path === '/erp-demo/'
+		|| $path === '/shop/erp-demo' || $path === '/shop/erp-demo/') {
+		return array('page' => 'demo', 'lang_prefix' => $langPrefix, 'path_after' => '');
+	}
 
 	return null;
 }
@@ -190,6 +194,13 @@ function epc_erp_portal_render_page(PDO $db_link, $page)
 		$multilang_params = multilang_init();
 	}
 
+	if ($page === 'demo') {
+		epc_erp_portal_render_shell(function () {
+			require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/erp_demo_dashboard.php';
+		}, array('title' => 'Live ERP demo', 'body_class' => 'epc-erp-standalone epc-erp-standalone--demo'));
+		return;
+	}
+
 	$title = ($page === 'guide') ? 'ERP guide' : 'ERP Finance';
 
 	epc_erp_portal_render_shell(function () use ($db_link, $page, $DP_Config) {
@@ -259,6 +270,13 @@ function epc_erp_portal_try_route()
 		http_response_code(405);
 		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode(array('status' => false, 'message' => 'POST required'));
+		return true;
+	}
+
+	// Public live-demo dashboard (no login). Rendered before the /shop/erp
+	// canonical redirect since /shop/erp-demo also contains "/shop/erp".
+	if ($match['page'] === 'demo') {
+		epc_erp_portal_render_page($db_link, 'demo');
 		return true;
 	}
 

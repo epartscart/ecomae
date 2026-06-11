@@ -112,7 +112,8 @@ if (!function_exists('epc_demo_classify_route')) {
         $stripped = preg_replace('#^(cp|backend|admin)/#', '', $p);
 
         $erpPrefixes = array(
-            'shop/erp-demo',        // public frontend live-demo dashboard
+            'erp-demo',             // public frontend live-demo dashboard
+            'shop/erp-demo',        // (alias path)
             'shop/finance/erp',     // ERP dashboard, guide, modules
             'shop/finance/erp/',
         );
@@ -151,28 +152,9 @@ if (!function_exists('epc_demo_guard')) {
             return array('allow' => false, 'reason' => 'expired', 'redirect' => '/demo?expired=1');
         }
         if (!epc_demo_route_allowed($path)) {
-            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => epc_demo_lang_prefix() . '/shop/erp-demo?demo=1');
+            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => '/erp-demo?demo=1');
         }
         return array('allow' => true, 'reason' => 'ok', 'redirect' => '');
-    }
-}
-
-if (!function_exists('epc_demo_lang_prefix')) {
-    /**
-     * Current language URL prefix (e.g. '/en'). The public erp-demo page is a
-     * standard content page, so it resolves at /<lang>/erp-demo (unlike /erp
-     * and /platform which have custom prefix-less routers in index.php).
-     */
-    function epc_demo_lang_prefix(): string
-    {
-        $href = '';
-        if (function_exists('epc_erp_lang_href')) {
-            $href = (string) epc_erp_lang_href();
-        } elseif (isset($GLOBALS['multilang_params']['lang_href'])) {
-            $href = (string) $GLOBALS['multilang_params']['lang_href'];
-        }
-        $href = trim($href, '/');
-        return $href !== '' ? '/' . $href : '/en';
     }
 }
 
@@ -185,7 +167,9 @@ if (!function_exists('epc_demo_launch_links')) {
     function epc_demo_launch_links(string $base = ''): array
     {
         $base = rtrim($base, '/');
-        $erp = $base . epc_demo_lang_prefix() . '/shop/erp-demo';
+        // /erp-demo is served by the standalone ERP portal router (like /erp),
+        // so it resolves prefix-less on the marketing host.
+        $erp = $base . '/erp-demo';
         $industries = array();
         if (function_exists('epc_demo_industries')) {
             foreach (epc_demo_industries() as $ind) {
