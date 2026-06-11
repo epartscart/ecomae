@@ -367,7 +367,7 @@ function epc_erp_inventory_resolve_item_id(PDO $db, string $sku, array $opts = a
 
 function epc_erp_inventory_stock_report(PDO $db, $warehouseId = 0)
 {
-	$sql = 'SELECT s.*, i.sku, i.name, i.item_type, w.name AS warehouse_name
+	$sql = 'SELECT s.*, i.sku, i.name, i.item_type, i.unit, w.name AS warehouse_name
 		FROM `epc_erp_inv_stock` s
 		INNER JOIN `epc_erp_inv_items` i ON i.id = s.item_id
 		INNER JOIN `epc_erp_inv_warehouses` w ON w.id = s.warehouse_id

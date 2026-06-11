@@ -91,6 +91,12 @@ $catalogue = array(
     array('sku' => 'BAT-70AH',    'name' => 'Battery 70Ah maintenance-free',   'cost' => 245.00, 'qty' => 45),
     array('sku' => 'WPR-BLD-24',  'name' => 'Wiper blade 24"',                 'cost' => 22.00, 'qty' => 300),
     array('sku' => 'CLT-KIT-STD', 'name' => 'Clutch kit — standard',           'cost' => 520.00, 'qty' => 20),
+    // Jewellery & bullion samples — demonstrate gram / carat / tola units
+    array('sku' => 'GOLD-22K-BAR', 'name' => 'Gold 22K — by weight',           'cost' => 232.00, 'qty' => 1500, 'unit' => 'gram'),
+    array('sku' => 'GOLD-18K-BAR', 'name' => 'Gold 18K — by weight',           'cost' => 190.00, 'qty' => 900,  'unit' => 'gram'),
+    array('sku' => 'SILVER-925',   'name' => 'Silver 925 — by weight',         'cost' => 3.10,   'qty' => 8000, 'unit' => 'gram'),
+    array('sku' => 'DIAMOND-VS1',  'name' => 'Diamond VS1 G — loose stones',   'cost' => 1400.00,'qty' => 35,   'unit' => 'carat'),
+    array('sku' => 'GOLD-BISCUIT', 'name' => 'Gold biscuit (bullion)',         'cost' => 2700.00,'qty' => 60,   'unit' => 'tola'),
 );
 
 $createdItems = 0;
@@ -105,7 +111,7 @@ foreach ($catalogue as $c) {
             'sku' => $sku,
             'name' => $c['name'],
             'item_type' => 'standard',
-            'unit' => 'pcs',
+            'unit' => $c['unit'] ?? 'pcs',
         ));
         $createdItems++;
     }

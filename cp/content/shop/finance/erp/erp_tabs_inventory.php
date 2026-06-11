@@ -45,6 +45,27 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 			<option value="serialized">Serialized</option>
 		</select>
 	</div></div>
+	<div class="form-group"><label class="col-sm-3">Unit of measure</label><div class="col-sm-9">
+		<select name="unit" class="form-control input-sm">
+			<optgroup label="General">
+				<option value="pcs" selected>pcs (pieces)</option>
+				<option value="pair">pair</option>
+				<option value="set">set</option>
+				<option value="box">box</option>
+				<option value="kg">kg</option>
+				<option value="litre">litre</option>
+				<option value="metre">metre</option>
+				<option value="hour">hour</option>
+			</optgroup>
+			<optgroup label="Jewellery &amp; bullion">
+				<option value="gram">gram (g)</option>
+				<option value="carat">carat (ct)</option>
+				<option value="tola">tola</option>
+				<option value="troy_oz">troy oz</option>
+			</optgroup>
+		</select>
+		<span class="help-block" style="margin:4px 0 0;font-size:11px;">Jewellery items: pick <strong>gram</strong> (gold/silver by weight), <strong>carat</strong> (diamonds/stones) or <strong>tola</strong>. Quantities and weighted-average cost are tracked in this unit.</span>
+	</div></div>
 	<?php foreach ($fieldDefs as $fd): ?>
 	<div class="form-group"><label class="col-sm-3"><?php echo epc_erp_h($fd['label']); ?></label>
 		<div class="col-sm-9"><input name="custom_<?php echo epc_erp_h($fd['field_key']); ?>" class="form-control input-sm" placeholder="<?php echo epc_erp_h($fd['field_type']); ?>"></div>
@@ -147,7 +168,7 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 	<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str)); ?>">All WH</a>
 </h4>
 <table class="table table-bordered table-condensed table-striped">
-	<thead><tr><th>Warehouse</th><th>SKU</th><th>Name</th><th>Type</th><th>Qty</th><th>Avg cost</th><th>Value</th><th>Batch</th><th>Expiry</th></tr></thead>
+	<thead><tr><th>Warehouse</th><th>SKU</th><th>Name</th><th>Type</th><th>Unit</th><th>Qty</th><th>Avg cost</th><th>Value</th><th>Batch</th><th>Expiry</th></tr></thead>
 	<tbody>
 	<?php foreach ($stock as $s):
 		$val = (float)$s['qty_on_hand'] * (float)$s['avg_unit_cost'];
@@ -157,6 +178,7 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 			<td><?php echo epc_erp_h($s['sku']); ?></td>
 			<td><?php echo epc_erp_h($s['name']); ?></td>
 			<td><?php echo epc_erp_h($s['item_type']); ?></td>
+			<td><?php echo epc_erp_h($s['unit'] ?? 'pcs'); ?></td>
 			<td><?php echo epc_erp_h(number_format((float)$s['qty_on_hand'], 3)); ?></td>
 			<td><?php echo epc_erp_money($s['avg_unit_cost']); ?></td>
 			<td><?php echo epc_erp_money($val); ?></td>
@@ -164,7 +186,7 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 			<td><?php echo !empty($s['expiry_date']) ? epc_erp_h($s['expiry_date']) : '—'; ?></td>
 		</tr>
 	<?php endforeach; ?>
-	<?php if (empty($stock)): ?><tr><td colspan="9" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
+	<?php if (empty($stock)): ?><tr><td colspan="10" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
 	</tbody>
 </table>
 <script>
