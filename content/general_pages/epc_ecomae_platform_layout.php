@@ -9,7 +9,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_plat
 
 function epc_ecomae_platform_logo_url()
 {
-	return '/content/files/images/ecomae-logo.png';
+	// Served by a .php endpoint (always served on every host) because the
+	// static PNG asset is not present in the docroot.
+	return '/content/general_pages/epc_ecomae_logo_svg.php';
 }
 
 function epc_ecomae_platform_pack_label($code)

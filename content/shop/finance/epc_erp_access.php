@@ -300,7 +300,12 @@ function epc_erp_configure_portal_urls($portal = 'cp')
 	$prefix = ($lang !== '' ? $lang : '');
 
 	if ($epc_erp_portal === 'frontend') {
-		$erpUrl = $prefix . '/erp';
+		// Trailing slash is required on the marketing host: nginx 301-redirects
+		// `/erp?query` -> `/erp/` and drops the query string, which would strip
+		// the area/tab module params and bounce every navigation to the
+		// dashboard. `/erp/?area=...` is the canonical form and is served
+		// directly with the query intact.
+		$erpUrl = $prefix . '/erp/';
 		$erpAjaxUrl = $prefix . '/erp/ajax';
 		$guideUrl = $prefix . '/erp/guide';
 		$ordersUrl = '';

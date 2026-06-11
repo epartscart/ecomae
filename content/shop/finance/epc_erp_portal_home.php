@@ -10,7 +10,9 @@ $backend = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
 $superCp = $base . '/' . $backend . '/shop/tenant_hub/tenant_hub';
 $platformUrl = $base . '/platform';
 $erpGuide = isset($portal_home) ? $portal_home . '/guide' : $base . '/erp/guide';
-$logo = '/content/files/images/ecomae-logo.png';
+$logo = function_exists('epc_ecomae_hub_logo_image_url')
+	? epc_ecomae_hub_logo_image_url()
+	: '/content/general_pages/epc_ecomae_logo_svg.php';
 ?>
 <section class="epc-erp-home-hero" aria-label="ECOM AE ERP portal">
 	<div class="epc-erp-home-hero__inner">
