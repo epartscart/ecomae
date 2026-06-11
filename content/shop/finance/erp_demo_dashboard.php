@@ -13,6 +13,9 @@ defined('_ASTEXE_') or die('No access');
 $doc = $_SERVER['DOCUMENT_ROOT'];
 require_once $doc . '/content/shop/finance/epc_erp_demo.php';
 @require_once $doc . '/content/shop/finance/epc_erp_theme.php';
+@require_once $doc . '/content/shop/finance/epc_demo_portal.php';
+
+$langPrefix = function_exists('epc_demo_lang_prefix') ? epc_demo_lang_prefix() : '/en';
 
 $industries = function_exists('epc_demo_industries') ? epc_demo_industries() : array();
 $codes = array();
@@ -80,7 +83,7 @@ $themeTag = function_exists('epc_theme_style_tag_for_surface') ? epc_theme_style
   <div class="epcdemo-picker">
     <?php foreach ($industries as $ind) {
         $on = $ind['code'] === $industry ? ' on' : '';
-        echo '<a class="epcdemo-chip' . $on . '" href="/erp-demo?demo=1&industry=' . $esc(rawurlencode($ind['code'])) . '">' . $esc($ind['name']) . '</a>';
+        echo '<a class="epcdemo-chip' . $on . '" href="' . $esc($langPrefix) . '/erp-demo?demo=1&industry=' . $esc(rawurlencode($ind['code'])) . '">' . $esc($ind['name']) . '</a>';
     } ?>
   </div>
 

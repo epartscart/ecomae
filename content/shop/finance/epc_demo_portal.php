@@ -151,9 +151,28 @@ if (!function_exists('epc_demo_guard')) {
             return array('allow' => false, 'reason' => 'expired', 'redirect' => '/demo?expired=1');
         }
         if (!epc_demo_route_allowed($path)) {
-            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => '/erp-demo?demo=1');
+            return array('allow' => false, 'reason' => 'cp_blocked', 'redirect' => epc_demo_lang_prefix() . '/erp-demo?demo=1');
         }
         return array('allow' => true, 'reason' => 'ok', 'redirect' => '');
+    }
+}
+
+if (!function_exists('epc_demo_lang_prefix')) {
+    /**
+     * Current language URL prefix (e.g. '/en'). The public erp-demo page is a
+     * standard content page, so it resolves at /<lang>/erp-demo (unlike /erp
+     * and /platform which have custom prefix-less routers in index.php).
+     */
+    function epc_demo_lang_prefix(): string
+    {
+        $href = '';
+        if (function_exists('epc_erp_lang_href')) {
+            $href = (string) epc_erp_lang_href();
+        } elseif (isset($GLOBALS['multilang_params']['lang_href'])) {
+            $href = (string) $GLOBALS['multilang_params']['lang_href'];
+        }
+        $href = trim($href, '/');
+        return $href !== '' ? '/' . $href : '/en';
     }
 }
 
@@ -166,6 +185,7 @@ if (!function_exists('epc_demo_launch_links')) {
     function epc_demo_launch_links(string $base = ''): array
     {
         $base = rtrim($base, '/');
+        $erp = $base . epc_demo_lang_prefix() . '/erp-demo';
         $industries = array();
         if (function_exists('epc_demo_industries')) {
             foreach (epc_demo_industries() as $ind) {
@@ -173,13 +193,13 @@ if (!function_exists('epc_demo_launch_links')) {
                     'code' => $ind['code'],
                     'name' => $ind['name'],
                     'storefront' => $base . '/?demo=1&industry=' . rawurlencode($ind['code']),
-                    'erp' => $base . '/erp-demo?demo=1&industry=' . rawurlencode($ind['code']),
+                    'erp' => $erp . '?demo=1&industry=' . rawurlencode($ind['code']),
                 );
             }
         }
         return array(
             'storefront' => $base . '/?demo=1',
-            'erp' => $base . '/erp-demo?demo=1',
+            'erp' => $erp . '?demo=1',
             'industries' => $industries,
         );
     }
