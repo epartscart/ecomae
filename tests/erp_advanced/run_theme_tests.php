@@ -38,8 +38,11 @@ $p = epc_theme_presets();
 check('blue preset', isset($p['blue']) && $p['blue']['name'] === 'Blue & Black');
 check('red preset', isset($p['red']) && $p['red']['name'] === 'Red & Black');
 check('teal preset', isset($p['teal']));
+check('blue_white preset', isset($p['blue_white']) && $p['blue_white']['name'] === 'Blue & White');
+check('blue_white is light (white card)', strtolower($p['blue_white']['card']) === '#ffffff');
+check('blue_white has dark text', strtolower($p['blue_white']['text']) === '#0d1b2a');
 check('each preset has accent + bg + glow', (function () use ($p) {
-    foreach (array('blue', 'red', 'teal') as $k) {
+    foreach (array('blue', 'blue_white', 'red', 'teal') as $k) {
         foreach (array('accent', 'accent2', 'bg0', 'glow', 'card_brd', 'text') as $f) {
             if (empty($p[$k][$f])) {
                 return false;
@@ -91,18 +94,20 @@ putenv('EPC_UI_THEME');
 putenv('EPC_UI_THEME_MARKETING');
 putenv('EPC_UI_THEME_STOREFRONT');
 $map = epc_theme_surface_map();
-check('platform surfaces are blue', $map['marketing'] === 'blue' && $map['supercp'] === 'blue' && $map['tenantcp'] === 'blue' && $map['erp'] === 'blue');
+check('platform surfaces are blue_white', $map['marketing'] === 'blue_white' && $map['supercp'] === 'blue_white' && $map['tenantcp'] === 'blue_white' && $map['erp'] === 'blue_white');
 check('storefront is red', $map['storefront'] === 'red');
-check('for_surface(erp) -> blue', epc_theme_for_surface('erp') === 'blue');
+check('for_surface(erp) -> blue_white', epc_theme_for_surface('erp') === 'blue_white');
 check('for_surface(storefront) -> red', epc_theme_for_surface('storefront') === 'red');
 check('unknown surface -> default', epc_theme_for_surface('zzz') === epc_theme_default());
 check('surface style tag carries right theme', strpos(epc_theme_style_tag_for_surface('storefront'), 'data-theme="red"') !== false);
+check('erp style tag is blue_white', strpos(epc_theme_style_tag_for_surface('erp'), 'data-theme="blue_white"') !== false);
 
 section('Overrides');
 putenv('EPC_UI_THEME_STOREFRONT=blue');
 check('per-surface override wins over map', epc_theme_for_surface('storefront') === 'blue');
 putenv('EPC_UI_THEME=red');
 check('global override wins over everything', epc_theme_for_surface('erp') === 'red' && epc_theme_for_surface('storefront') === 'red');
+putenv('EPC_UI_THEME');
 putenv('EPC_UI_THEME');
 putenv('EPC_UI_THEME_STOREFRONT');
 check('cleared -> back to map', epc_theme_for_surface('storefront') === 'red');

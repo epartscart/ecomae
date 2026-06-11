@@ -44,6 +44,22 @@ if (!function_exists('epc_theme_presets')) {
                 'up' => '#19d39a',
                 'down' => '#ff5d73',
             ),
+            'blue_white' => array(
+                'name' => 'Blue & White',
+                'bg0' => '#f3f7fd',
+                'bg1' => '#ffffff',
+                'bg2' => '#e9f1fc',
+                'accent' => '#1a56db',
+                'accent2' => '#2b8fff',
+                'accent3' => '#3f74e0',
+                'glow' => 'rgba(26,86,219,0.16)',
+                'card' => '#ffffff',
+                'card_brd' => '#d6e2f5',
+                'text' => '#0d1b2a',
+                'muted' => '#5b6b85',
+                'up' => '#0f9d6b',
+                'down' => '#e23b54',
+            ),
             'red' => array(
                 'name' => 'Red & Black',
                 'bg0' => '#0a0608',
@@ -198,10 +214,10 @@ if (!function_exists('epc_theme_surface_map')) {
     function epc_theme_surface_map(): array
     {
         return array(
-            'marketing' => 'blue',
-            'supercp' => 'blue',
-            'tenantcp' => 'blue',
-            'erp' => 'blue',
+            'marketing' => 'blue_white',
+            'supercp' => 'blue_white',
+            'tenantcp' => 'blue_white',
+            'erp' => 'blue_white',
             'storefront' => 'red',
         );
     }
