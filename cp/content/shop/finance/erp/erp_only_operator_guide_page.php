@@ -17,3 +17,5 @@ if (is_file($include)) {
 } else {
 	echo '<div class="alert alert-danger">Guide file not found.</div>';
 }
+
+?>

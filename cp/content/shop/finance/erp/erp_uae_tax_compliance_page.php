@@ -64,3 +64,5 @@ $openInErp = epc_erp_shell_append_query(epc_erp_tab_url($erpUrl, 'tax_compliance
 echo '<p><a class="btn btn-default btn-sm" href="' . htmlspecialchars($openInErp, ENT_QUOTES, 'UTF-8') . '"><i class="fa fa-briefcase"></i> Open in ERP</a></p>';
 require $_SERVER['DOCUMENT_ROOT'] . '/' . trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/') . '/content/shop/finance/erp/erp_tabs_tax_compliance.php';
 echo '</div>';
+
+?>

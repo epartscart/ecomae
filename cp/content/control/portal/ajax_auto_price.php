@@ -958,3 +958,5 @@ if ($action === 'country_info') {
 
 http_response_code(400);
 echo json_encode(array('ok' => false, 'message' => 'Unknown action: ' . $action));
+
+?>
