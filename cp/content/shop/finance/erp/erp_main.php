@@ -213,6 +213,7 @@ $erpTabIncludes = array(
 	'custom_shipping' => 'erp_tabs_custom_shipping.php',
 	'erp_setup' => 'erp_tabs_setup.php',
 	'data_import' => 'erp_tabs_data_import.php',
+	'aging' => 'erp_tabs_aging.php',
 );
 
 ?>

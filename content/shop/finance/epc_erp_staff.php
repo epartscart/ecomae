@@ -11,7 +11,7 @@ function epc_erp_staff_all_tabs()
 		'fulfilment', 'revenue', 'receivables',
 		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match',
 		'cash_bank', 'payment_batches', 'petty_cash',
-		'coa', 'gl', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
+		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
 		'inventory', 'fixed_assets', 'manufacturing', 'custom_shipping',
 		'staff', 'hr', 'payroll', 'expense_reports',
 		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit',

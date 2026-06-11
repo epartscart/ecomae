@@ -54,6 +54,7 @@ function epc_erp_nav_areas_config()
 				'payment_batches' => array('label' => 'Payment batches', 'icon' => 'fa-send'),
 				'petty_cash' => array('label' => 'Petty cash', 'icon' => 'fa-money'),
 				'gl' => array('label' => 'General ledger', 'icon' => 'fa-book'),
+				'aging' => array('label' => 'Aging (AR/AP/Inv)', 'icon' => 'fa-hourglass-half'),
 				'coa' => array('label' => 'COA', 'icon' => 'fa-list'),
 				'vat_return' => array('label' => 'UAE VAT', 'icon' => 'fa-percent'),
 				'tax_compliance' => array('label' => 'Tax compliance', 'icon' => 'fa-gavel'),
