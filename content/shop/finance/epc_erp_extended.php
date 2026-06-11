@@ -126,6 +126,7 @@ function epc_erp_extended_ensure_schema(PDO $db)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Tenant ERP platform toggles';");
 
 	epc_erp_schema_add_column_if_missing($db, 'epc_crm_quotes', 'quote_kind', "varchar(16) NOT NULL DEFAULT 'quote'");
+	epc_erp_schema_add_column_if_missing($db, 'epc_crm_quotes', 'subtotal', 'decimal(14,2) NOT NULL DEFAULT 0.00');
 }
 
 function epc_erp_po_list(PDO $db, $status = '', $limit = 100)

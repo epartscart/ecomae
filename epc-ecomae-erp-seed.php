@@ -308,6 +308,21 @@ try {
         }
         $qN = (int) $db->query('SELECT COUNT(*) FROM `epc_crm_quotes`')->fetchColumn();
     }
+    // Older live quotes tables predate the `subtotal` column the Proposals
+    // renderer reads, so amounts showed 0.00. Ensure the column exists (done in
+    // extended_ensure_schema) and backfill any zero subtotals from the linked
+    // opportunity amount so Sales -> Proposals shows real figures.
+    require_once __DIR__ . '/content/shop/finance/epc_erp_extended.php';
+    epc_erp_extended_ensure_schema($db);
+    try {
+        $db->exec('UPDATE `epc_crm_quotes` q
+            JOIN `epc_crm_opportunities` o ON o.`id` = q.`opportunity_id`
+            SET q.`subtotal` = ROUND(o.`amount` * 0.95, 2)
+            WHERE (q.`subtotal` IS NULL OR q.`subtotal` = 0) AND o.`amount` > 0');
+        echo "CRM: quote subtotals backfilled\n";
+    } catch (Throwable $e) {
+        echo "CRM quote subtotal backfill skipped: " . $e->getMessage() . "\n";
+    }
     echo "CRM: leads " . $crmBefore . " -> " . $crmAfter . "; opportunities $oppN; quotes/proposals $qN\n";
 } catch (Throwable $e) {
     echo "CRM seed skipped: " . $e->getMessage() . "\n";
