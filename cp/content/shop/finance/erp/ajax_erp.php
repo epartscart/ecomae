@@ -500,6 +500,11 @@ try {
 			$r = epc_erp_so_convert_to_invoice($db_link, (int) ($_POST['so_id'] ?? 0));
 			epc_erp_json(true, 'Sales invoice ' . $r['invoice_number'] . ' posted', $r);
 
+		case 'so_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			epc_erp_sales_order_delete($db_link, (int) ($_POST['so_id'] ?? 0));
+			epc_erp_json(true, 'Sales order deleted');
+
 		case 'receipt_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			$r = epc_erp_receipt_voucher($db_link, $_POST);
@@ -682,7 +687,7 @@ try {
 			}
 			epc_erp_json(false, 'Unknown action');
 	}
-} catch (Exception $e) {
+} catch (\Throwable $e) {
 	$extra = array('ok' => false);
 	if ($action === 'cs_import_declaration_pdf' && function_exists('epc_cs_pdf_pdftotext_diagnostics')) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_custom_declaration_pdf_import.php';

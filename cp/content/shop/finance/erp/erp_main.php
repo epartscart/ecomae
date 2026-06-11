@@ -765,6 +765,9 @@ if (!$epc_erp_shell_mode) {
 	document.querySelectorAll('.epc-erp-so-invoice').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('so_to_invoice', f); });
 	});
+	document.querySelectorAll('.epc-erp-so-delete').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); if (window.confirm('Delete this draft sales order? This cannot be undone.')) { postAction('so_delete', f); } });
+	});
 	bindForm('epc_erp_form_payment_batch', 'payment_batch_save');
 	bindForm('epc_erp_form_petty_cash', 'petty_cash_save');
 	bindForm('epc_erp_form_agenda', 'agenda_save');

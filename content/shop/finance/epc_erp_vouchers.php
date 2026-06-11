@@ -381,6 +381,38 @@ function epc_erp_sales_order_set_status(PDO $db, int $soId, string $status): boo
 	return true;
 }
 
+/**
+ * Delete a sales order. Only draft orders may be deleted; confirmed/invoiced
+ * orders are part of the audit trail and must be cancelled, not removed.
+ */
+function epc_erp_sales_order_delete(PDO $db, int $soId): bool
+{
+	epc_erp_vouchers_ensure_schema($db);
+	$st = $db->prepare('SELECT `status` FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1');
+	$st->execute(array($soId));
+	$status = $st->fetchColumn();
+	if ($status === false) {
+		throw new Exception('Sales order not found');
+	}
+	if ($status !== 'draft') {
+		throw new Exception('Only draft sales orders can be deleted');
+	}
+	$started = $db->beginTransaction();
+	try {
+		$db->prepare('DELETE FROM `epc_erp_sales_order_lines` WHERE `sales_order_id` = ?')->execute(array($soId));
+		$db->prepare('DELETE FROM `epc_erp_sales_orders` WHERE `id` = ?')->execute(array($soId));
+		if ($started) {
+			$db->commit();
+		}
+	} catch (Exception $e) {
+		if ($started && $db->inTransaction()) {
+			$db->rollBack();
+		}
+		throw $e;
+	}
+	return true;
+}
+
 function epc_erp_so_convert_to_invoice(PDO $db, int $soId): array
 {
 	epc_erp_vouchers_ensure_schema($db);

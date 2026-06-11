@@ -60,6 +60,11 @@ if ($erpOnly) {
 				echo '<input type="hidden" name="so_id" value="' . (int) $r['id'] . '">';
 				echo '<button type="submit" class="btn btn-xs btn-primary">→ Sales invoice</button></form>';
 			}
+			if ($r['status'] === 'draft') {
+				echo ' <form class="epc-erp-so-delete" style="display:inline;"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
+				echo '<input type="hidden" name="so_id" value="' . (int) $r['id'] . '">';
+				echo '<button type="submit" class="btn btn-xs btn-danger">Delete</button></form>';
+			}
 			echo '</td></tr>';
 		}
 		erp_table_close();

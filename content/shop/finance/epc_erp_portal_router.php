@@ -82,6 +82,10 @@ function epc_erp_portal_handle_ajax(PDO $db_link)
 		ob_end_clean();
 	}
 	header('Content-Type: application/json; charset=utf-8');
+	// DP_User::isAdmin() and other legacy helpers read the connection from the
+	// global $db_link, so it must be set before any access check runs — otherwise
+	// they call ->prepare() on null and the whole request fatals.
+	$GLOBALS['db_link'] = $db_link;
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 	if (!epc_erp_user_can_access($db_link)) {
