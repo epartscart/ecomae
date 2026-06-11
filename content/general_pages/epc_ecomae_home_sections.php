@@ -41,8 +41,18 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	$img = epc_ecomae_home_sections_img_base();
 	$h = 'epc_ecomae_h';
 
+	$themeTag = '';
 	$demoBlock = '';
 	$demoDir = dirname(__DIR__) . '/shop/finance';
+	if (is_file($demoDir . '/epc_erp_theme.php')) {
+		require_once $demoDir . '/epc_erp_theme.php';
+		if (function_exists('epc_theme_style_tag')) {
+			$activeTheme = function_exists('epc_theme_resolve_setting')
+				? epc_theme_resolve_setting(getenv('EPC_UI_THEME') ?: '')
+				: 'blue';
+			$themeTag = epc_theme_style_tag($activeTheme);
+		}
+	}
 	if (is_file($demoDir . '/epc_demo_portal.php')) {
 		if (is_file($demoDir . '/epc_erp_demo.php')) {
 			require_once $demoDir . '/epc_erp_demo.php';
@@ -67,6 +77,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	echo epc_ecomae_home_sections_enqueue();
 	?>
 <!-- ECOMAE-HOME-SECTIONS-v1 -->
+<?php echo $themeTag; ?>
 <div class="ehm-home" id="ehm-home-sections">
 	<section id="trust" class="ehm-trust" aria-label="Platform trust signals">
 		<div class="ehm-wrap">

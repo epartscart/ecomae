@@ -13,6 +13,7 @@ $doc = $_SERVER['DOCUMENT_ROOT'];
 require_once $doc . '/content/shop/finance/epc_erp_dashboard.php';
 @require_once $doc . '/content/shop/finance/epc_erp_modules.php';
 @require_once $doc . '/content/shop/finance/epc_erp_company.php';
+@require_once $doc . '/content/shop/finance/epc_erp_theme.php';
 
 if (!isset($db_link) || !($db_link instanceof PDO)) {
     try {
@@ -102,6 +103,7 @@ $jc = function ($v) {
 $initial = ($companyName !== '' ? strtoupper(substr($companyName, 0, 1)) : 'S');
 ?>
 <link rel="stylesheet" href="<?php echo $themeBase; ?>/erp_theme.css" />
+<?php if (function_exists('epc_theme_style_tag')) { echo epc_theme_style_tag(getenv('EPC_UI_THEME') ?: epc_theme_default()); } ?>
 <div class="erp-theme" style="background:transparent;min-height:auto">
 <div class="erp-orb a" style="position:absolute"></div>
 <div class="erp-dash" style="padding-top:6px">

@@ -14,6 +14,7 @@ $doc = $_SERVER['DOCUMENT_ROOT'];
 require_once $doc . '/content/shop/finance/epc_erp_guide_content.php';
 require_once $doc . '/content/shop/finance/epc_erp_process_flows.php';
 @require_once $doc . '/content/shop/finance/epc_erp_modules.php';
+@require_once $doc . '/content/shop/finance/epc_erp_theme.php';
 
 $backend = '/' . htmlspecialchars((string) $GLOBALS['DP_Config']->backend_dir, ENT_QUOTES, 'UTF-8');
 $themeBase = $backend . '/content/shop/finance/erp/theme';
@@ -55,6 +56,7 @@ try {
 }
 ?>
 <link rel="stylesheet" href="<?php echo $themeBase; ?>/erp_theme.css" />
+<?php if (function_exists('epc_theme_style_tag')) { echo epc_theme_style_tag(getenv('EPC_UI_THEME') ?: epc_theme_default()); } ?>
 <div class="erp-theme" style="background:transparent;min-height:auto">
 <div class="erp-dash" style="padding-top:6px">
     <div class="erp-topbar">
