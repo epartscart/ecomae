@@ -20,6 +20,9 @@ if ($erpOnly) {
 		array(
 			array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 			array('label' => 'Sales orders'),
+		),
+		array(
+			array('label' => 'New sales order', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_so'),
 		)
 	);
 	erp_stat_cards(array(
