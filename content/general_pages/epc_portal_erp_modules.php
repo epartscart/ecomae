@@ -300,6 +300,10 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 			$areas[$registry[$modId]['area']] = true;
 		}
 	}
+	// 'setup' (Accounting setup + Data import) is a core admin/config area every
+	// tenant must be able to reach, so it is always enabled regardless of the
+	// tenant's purchased module list.
+	$areas['setup'] = true;
 	return array_keys($areas);
 }
 
