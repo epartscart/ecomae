@@ -46,11 +46,8 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	$demoDir = dirname(__DIR__) . '/shop/finance';
 	if (is_file($demoDir . '/epc_erp_theme.php')) {
 		require_once $demoDir . '/epc_erp_theme.php';
-		if (function_exists('epc_theme_style_tag')) {
-			$activeTheme = function_exists('epc_theme_resolve_setting')
-				? epc_theme_resolve_setting(getenv('EPC_UI_THEME') ?: '')
-				: 'blue';
-			$themeTag = epc_theme_style_tag($activeTheme);
+		if (function_exists('epc_theme_style_tag_for_surface')) {
+			$themeTag = epc_theme_style_tag_for_surface('marketing');
 		}
 	}
 	if (is_file($demoDir . '/epc_demo_portal.php')) {

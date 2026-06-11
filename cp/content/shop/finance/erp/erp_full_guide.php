@@ -56,7 +56,7 @@ try {
 }
 ?>
 <link rel="stylesheet" href="<?php echo $themeBase; ?>/erp_theme.css" />
-<?php if (function_exists('epc_theme_style_tag')) { echo epc_theme_style_tag(getenv('EPC_UI_THEME') ?: epc_theme_default()); } ?>
+<?php if (function_exists('epc_theme_style_tag')) { echo epc_theme_style_tag_for_surface('erp'); } ?>
 <div class="erp-theme" style="background:transparent;min-height:auto">
 <div class="erp-dash" style="padding-top:6px">
     <div class="erp-topbar">

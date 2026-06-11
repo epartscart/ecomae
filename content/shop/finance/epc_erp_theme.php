@@ -186,3 +186,59 @@ if (!function_exists('epc_theme_resolve_setting')) {
         return epc_theme_default();
     }
 }
+
+if (!function_exists('epc_theme_surface_map')) {
+    /**
+     * Per-surface theme assignment. Professional scheme: the whole business
+     * platform is Blue & Black; only the consumer storefront is Red & Black so
+     * the shopper-facing site has a distinct identity.
+     *
+     * @return array<string,string> surface => preset key
+     */
+    function epc_theme_surface_map(): array
+    {
+        return array(
+            'marketing' => 'blue',
+            'supercp' => 'blue',
+            'tenantcp' => 'blue',
+            'erp' => 'blue',
+            'storefront' => 'red',
+        );
+    }
+}
+
+if (!function_exists('epc_theme_for_surface')) {
+    /**
+     * Resolve the active preset key for a given surface.
+     *
+     * Precedence: a global EPC_UI_THEME env override wins for every surface;
+     * otherwise a per-surface override EPC_UI_THEME_<SURFACE>; otherwise the
+     * surface map; otherwise the default.
+     */
+    function epc_theme_for_surface(string $surface): string
+    {
+        $global = getenv('EPC_UI_THEME');
+        if (is_string($global) && $global !== '') {
+            return epc_theme_get($global)['key'];
+        }
+        $s = strtolower(trim($surface));
+        $envKey = 'EPC_UI_THEME_' . strtoupper($s);
+        $perSurface = getenv($envKey);
+        if (is_string($perSurface) && $perSurface !== '') {
+            return epc_theme_get($perSurface)['key'];
+        }
+        $map = epc_theme_surface_map();
+        if (isset($map[$s])) {
+            return epc_theme_get($map[$s])['key'];
+        }
+        return epc_theme_default();
+    }
+}
+
+if (!function_exists('epc_theme_style_tag_for_surface')) {
+    /** Ready-to-inject <style> for a surface, honouring overrides + map. */
+    function epc_theme_style_tag_for_surface(string $surface): string
+    {
+        return epc_theme_style_tag(epc_theme_for_surface($surface));
+    }
+}

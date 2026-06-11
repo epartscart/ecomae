@@ -86,6 +86,27 @@ $sw = epc_theme_swatch_html('blue');
 check('swatch shows name', strpos($sw, 'Blue &amp; Black') !== false || strpos($sw, 'Blue & Black') !== false);
 check('swatch carries data-theme', strpos($sw, 'data-theme="blue"') !== false);
 
+section('Per-surface mapping (professional scheme)');
+putenv('EPC_UI_THEME');
+putenv('EPC_UI_THEME_MARKETING');
+putenv('EPC_UI_THEME_STOREFRONT');
+$map = epc_theme_surface_map();
+check('platform surfaces are blue', $map['marketing'] === 'blue' && $map['supercp'] === 'blue' && $map['tenantcp'] === 'blue' && $map['erp'] === 'blue');
+check('storefront is red', $map['storefront'] === 'red');
+check('for_surface(erp) -> blue', epc_theme_for_surface('erp') === 'blue');
+check('for_surface(storefront) -> red', epc_theme_for_surface('storefront') === 'red');
+check('unknown surface -> default', epc_theme_for_surface('zzz') === epc_theme_default());
+check('surface style tag carries right theme', strpos(epc_theme_style_tag_for_surface('storefront'), 'data-theme="red"') !== false);
+
+section('Overrides');
+putenv('EPC_UI_THEME_STOREFRONT=blue');
+check('per-surface override wins over map', epc_theme_for_surface('storefront') === 'blue');
+putenv('EPC_UI_THEME=red');
+check('global override wins over everything', epc_theme_for_surface('erp') === 'red' && epc_theme_for_surface('storefront') === 'red');
+putenv('EPC_UI_THEME');
+putenv('EPC_UI_THEME_STOREFRONT');
+check('cleared -> back to map', epc_theme_for_surface('storefront') === 'red');
+
 echo "\n========================================\n";
 echo "THEME TESTS: {$pass_count} passed, {$fail_count} failed\n";
 echo "========================================\n";

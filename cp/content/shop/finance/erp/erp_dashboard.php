@@ -103,7 +103,7 @@ $jc = function ($v) {
 $initial = ($companyName !== '' ? strtoupper(substr($companyName, 0, 1)) : 'S');
 ?>
 <link rel="stylesheet" href="<?php echo $themeBase; ?>/erp_theme.css" />
-<?php if (function_exists('epc_theme_style_tag')) { echo epc_theme_style_tag(getenv('EPC_UI_THEME') ?: epc_theme_default()); } ?>
+<?php if (function_exists('epc_theme_style_tag')) { echo epc_theme_style_tag_for_surface('erp'); } ?>
 <div class="erp-theme" style="background:transparent;min-height:auto">
 <div class="erp-orb a" style="position:absolute"></div>
 <div class="erp-dash" style="padding-top:6px">
