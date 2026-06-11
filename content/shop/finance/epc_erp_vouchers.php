@@ -22,6 +22,52 @@ function epc_erp_voucher_prefix_map(): array
 	);
 }
 
+/** @return array<string, string> voucher type => human label (for setup screen). */
+function epc_erp_voucher_type_labels(): array
+{
+	return array(
+		'SO' => 'Sales order',
+		'SI' => 'Sales invoice (tax invoice)',
+		'PO' => 'Purchase order',
+		'PI' => 'Purchase invoice',
+		'RV' => 'Receipt voucher',
+		'PV' => 'Payment voucher',
+		'GV' => 'General journal',
+		'TV' => 'Stock transfer',
+	);
+}
+
+/**
+ * Effective (tenant-configurable) prefix for a voucher type. Falls back to the
+ * built-in default when no per-tenant override is saved in Accounting setup.
+ */
+function epc_erp_voucher_prefix_for(PDO $db, string $type): string
+{
+	$map = epc_erp_voucher_prefix_map();
+	$default = $map[$type] ?? ($type . '-');
+	require_once __DIR__ . '/epc_erp_extended.php';
+	if (function_exists('epc_erp_platform_setting_get')) {
+		$ov = trim((string) epc_erp_platform_setting_get($db, 'voucher_prefix_' . $type, ''));
+		if ($ov !== '') {
+			return $ov;
+		}
+	}
+	return $default;
+}
+
+/** Effective zero-pad width for a voucher type (tenant-configurable, 1..10). */
+function epc_erp_voucher_pad_for(PDO $db, string $type): int
+{
+	require_once __DIR__ . '/epc_erp_extended.php';
+	if (function_exists('epc_erp_platform_setting_get')) {
+		$p = (int) epc_erp_platform_setting_get($db, 'voucher_pad_' . $type, '5');
+		if ($p >= 1 && $p <= 10) {
+			return $p;
+		}
+	}
+	return 5;
+}
+
 function epc_erp_is_erp_only_context(): bool
 {
 	if (function_exists('epc_portal_is_erp_only_tenant') && epc_portal_is_erp_only_tenant()) {
@@ -136,7 +182,8 @@ function epc_erp_next_voucher_no(PDO $db, string $type): string
 	if (!isset($map[$type])) {
 		throw new Exception('Unknown voucher type: ' . $type);
 	}
-	$prefix = $map[$type];
+	$prefix = epc_erp_voucher_prefix_for($db, $type);
+	$pad = epc_erp_voucher_pad_for($db, $type);
 	$year = (int) date('Y');
 	$started = $db->beginTransaction();
 	try {
@@ -166,7 +213,7 @@ function epc_erp_next_voucher_no(PDO $db, string $type): string
 		}
 		throw $e;
 	}
-	return $prefix . $year . '-' . str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
+	return $prefix . $year . '-' . str_pad((string) $seq, $pad, '0', STR_PAD_LEFT);
 }
 
 function epc_erp_manual_sales_orders_list(PDO $db, int $date_from = 0, int $date_to = 0, array $filters = array(), int $limit = 150): array

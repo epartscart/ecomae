@@ -421,6 +421,26 @@ function epc_erp_multi_entity_set(PDO $db, $enabled)
 	)->execute(array('multi_entity_enabled', $enabled ? '1' : '0', $now));
 }
 
+/** Generic tenant-scoped key/value setting read (epc_erp_platform_settings). */
+function epc_erp_platform_setting_get(PDO $db, $key, $default = '')
+{
+	epc_erp_extended_ensure_schema($db);
+	$st = $db->prepare('SELECT `setting_value` FROM `epc_erp_platform_settings` WHERE `setting_key` = ? LIMIT 1');
+	$st->execute(array((string) $key));
+	$v = $st->fetchColumn();
+	return ($v === false || $v === null) ? $default : (string) $v;
+}
+
+/** Generic tenant-scoped key/value setting write (epc_erp_platform_settings). */
+function epc_erp_platform_setting_set(PDO $db, $key, $value)
+{
+	epc_erp_extended_ensure_schema($db);
+	$db->prepare(
+		'INSERT INTO `epc_erp_platform_settings` (`setting_key`, `setting_value`, `time_updated`) VALUES (?,?,?)
+		 ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `time_updated` = VALUES(`time_updated`)'
+	)->execute(array((string) $key, (string) $value, time()));
+}
+
 function epc_erp_proposals_list(PDO $db, $kind = '', $limit = 100)
 {
 	epc_erp_extended_ensure_schema($db);

@@ -115,6 +115,15 @@ function epc_erp_nav_areas_config()
 				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
 			),
 		),
+		'setup' => array(
+			'label' => 'Setup &amp; Data',
+			'icon' => 'fa-sliders',
+			'desc' => 'Company, number sequences, valuation method and data import',
+			'tabs' => array(
+				'erp_setup' => array('label' => 'Accounting setup', 'icon' => 'fa-cogs'),
+				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
+			),
+		),
 	);
 }
 

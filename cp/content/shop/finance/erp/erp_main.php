@@ -211,6 +211,8 @@ $erpTabIncludes = array(
 	'knowledge_base' => 'erp_tabs_knowledge_base.php',
 	'multi_entity' => 'erp_tabs_multi_entity.php',
 	'custom_shipping' => 'erp_tabs_custom_shipping.php',
+	'erp_setup' => 'erp_tabs_setup.php',
+	'data_import' => 'erp_tabs_data_import.php',
 );
 
 ?>

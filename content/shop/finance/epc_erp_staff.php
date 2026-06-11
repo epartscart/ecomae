@@ -16,6 +16,7 @@ function epc_erp_staff_all_tabs()
 		'staff', 'hr', 'payroll', 'expense_reports',
 		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit',
 		'agenda', 'contacts', 'documents',
+		'erp_setup', 'data_import',
 	);
 }
 
