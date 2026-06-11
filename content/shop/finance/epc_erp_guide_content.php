@@ -322,6 +322,42 @@ if (!function_exists('epc_guide_modules')) {
             'No posting; gates document progression.',
             array('All intra-tenant — no global inbox across tenants.'));
 
+        $g['datalink'] = $E('datalink', 'Live data-link (storefront → ERP)',
+            'Pulls your existing e-commerce/CRM data — customers, orders, catalogue, stock and the native customer ledger — straight into the ERP so dashboards, AR and the document chain reflect real shop activity. Read-only on your storefront tables.',
+            array(
+                'Open ERP → Data-link. It auto-detects your native tables (shop_orders, users, catalogue, storages, accounting).',
+                'Review the coverage report (native rows vs linked) before syncing.',
+            ),
+            array(
+                'Click "Sync orders" → each native web order is linked into the ERP bridge (idempotent — re-running never duplicates).',
+                'Customers appear in CRM/AR from users + profiles; receivables come from the native customer ledger.',
+                'The ERP sales dashboard now shows live revenue, paid vs AR-outstanding, gross margin and top products from real orders.',
+            ),
+            'No new postings on link; once an order is advanced it posts like any sale (AR/Cash +, Revenue +, VAT +, Inventory −, COGS +).',
+            array('Linking is keyed on shoporder:<id> so a re-sync updates in place — safe to run repeatedly.',
+                'It never writes to your storefront tables; only the ERP bridge map is written.'));
+
+        $g['demo'] = $E('demo', 'Demo / sample data',
+            'Isolated, realistic multi-industry sample data (jewellery, trading, construction, retail/POS, manufacturing) to preview the ERP and power the marketing live-demo — never mixed with live tenant data.',
+            array('Pick an industry profile to load a demo dataset into an isolated demo space.'),
+            array('Explore dashboards and the full document chain with realistic numbers; reset any time.'),
+            'Demo only — no impact on any live tenant ledger.',
+            array('Use it to train new staff before going live with real data.'));
+
+        $g['mobile'] = $E('mobile', 'Mobile (Android & iOS / PWA)',
+            'Use the storefront, tenant CP and ERP on phones: installable PWA (home-screen icon, offline shell, push-ready) plus an optional native Android/iOS wrapper, all driven by the secure mobile REST API.',
+            array(
+                'Enable the PWA for the tenant (adds manifest + service worker; nothing auto-published).',
+                'For app stores, build the native wrapper and submit with your Apple Developer / Google Play accounts.',
+                'Issue a scoped API key for the mobile app (see Integration & API).',
+            ),
+            array(
+                'On a phone, open the site → "Add to Home Screen" to install; launch like an app, works offline for cached views.',
+                'Native app: native push + camera/barcode scan for POS and stock counts.',
+            ),
+            'No GL impact; presentation + access layer over the existing API.',
+            array('The crypto/fintech theme is responsive and RTL-aware, so the mobile UI flips correctly per language.'));
+
         return $g;
     }
 }
