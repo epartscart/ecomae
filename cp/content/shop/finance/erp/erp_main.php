@@ -269,6 +269,23 @@ if (!$epc_erp_shell_mode) {
 			<?php endif; ?>
 
 			<div class="epc-erp-content-body">
+			<?php
+			// The From/To range only makes sense on transactional lists and reports
+			// (ledgers, P&L, sales/purchase docs, aging). Master/setup screens
+			// (inventory, COA, contacts, HR, opening balances, etc.) show a current
+			// snapshot and must NOT carry a date filter — it confused users who saw
+			// a date bar on every screen. Whitelist the date-aware tabs only.
+			$epcErpDateFilterTabs = array(
+				'dashboard', 'proposals', 'sales_orders', 'revenue', 'receivables',
+				'delivery_notes', 'invoices', 'purchases', 'payables', 'rfq',
+				'purchase_orders', 'three_way_match', 'cash_bank', 'bank_recon',
+				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance',
+				'einvoice', 'pl', 'balance_sheet', 'reports', 'audit',
+				'expense_reports', 'marketing',
+			);
+			$epcErpShowDateFilter = in_array($tab, $epcErpDateFilterTabs, true);
+			?>
+			<?php if ($epcErpShowDateFilter): ?>
 			<form method="get" class="form-inline epc-erp-filter-bar">
 				<input type="hidden" name="area" value="<?php echo epc_erp_h($erpArea); ?>">
 				<input type="hidden" name="tab" value="<?php echo epc_erp_h($tab); ?>">
@@ -288,6 +305,7 @@ if (!$epc_erp_shell_mode) {
 				<input type="date" name="to" class="form-control input-sm" value="<?php echo epc_erp_h($date_to_str); ?>">
 				<button type="submit" class="btn btn-default btn-sm">Apply dates</button>
 			</form>
+			<?php endif; ?>
 
 			<div id="epc_erp_msg" class="alert epc-erp-msg"></div>
 			<?php
@@ -777,3 +795,17 @@ if (!$epc_erp_shell_mode) {
 	}
 })();
 </script>
+<?php
+// The /erp/ portal door renders this shell without the CP desktop template that
+// normally emits the sidebar navigation JS, so the left-menu module groups had
+// no click handler and never expanded (dead clicks). Inline the same idempotent
+// accordion + mobile-nav script here so navigation works on every door.
+$epcErpNavJsFile = $_SERVER['DOCUMENT_ROOT'] . '/cp/js/epc_erp_shell_nav.js';
+if (is_file($epcErpNavJsFile)) {
+	echo '<script id="epc-erp-shell-nav-js-inline">' . "\n";
+	echo file_get_contents($epcErpNavJsFile);
+	echo "\n" . '</script>' . "\n";
+} elseif (function_exists('epc_erp_shell_nav_script_tag')) {
+	echo epc_erp_shell_nav_script_tag();
+}
+?>
