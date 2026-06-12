@@ -65,30 +65,101 @@ if ($pfCaseId > 0):
 				<?php if ($case['status'] === 'open'): ?>Currently with <strong><?php echo epc_erp_h($case['assignee_name']); ?></strong>.<?php endif; ?>
 			</p>
 
-			<!-- GPS-style tracking route -->
+			<!-- GPS-style tracking route (animated, multi-level) -->
 			<?php
 			$deptName = function ($code) {
 				if ($code === '') { return ''; }
 				return function_exists('epc_erp_staff_department_name') ? (epc_erp_staff_department_name($code) ?: ucfirst($code)) : ucfirst($code);
 			};
-			$totalSteps = max(1, count($timeline));
-			$doneSteps = 0; $activeIdx = -1;
-			foreach ($timeline as $ti => $ts) {
-				if ($ts['status'] === 'approved') { $doneSteps++; }
-				if ($ts['status'] === 'active' && $activeIdx < 0) { $activeIdx = $ti; }
-			}
-			$reachedIdx = $activeIdx >= 0 ? $activeIdx : ($case['status'] === 'done' ? $totalSteps : $doneSteps);
-			$pct = $totalSteps > 1 ? round(($reachedIdx) / ($totalSteps - 1) * 100) : 100;
-			if ($case['status'] === 'done') { $pct = 100; }
 			$curLoc = (string) ($case['current_location'] ?? '');
+
+			// status of an aggregated node from its child steps
+			$aggStatus = function (array $kids) {
+				$has = function ($st) use ($kids) { foreach ($kids as $k) { if ($k['status'] === $st) return true; } return false; };
+				if ($has('active')) return 'active';
+				if ($has('rejected')) return 'rejected';
+				$allAppr = true; foreach ($kids as $k) { if ($k['status'] !== 'approved' && $k['status'] !== 'skipped') { $allAppr = false; break; } }
+				if ($allAppr) return 'done';
+				if ($has('approved')) return 'active';
+				return 'pending';
+			};
+			$nodeWhen = function (array $kids) {
+				$t = 0;
+				foreach ($kids as $k) { $t = max($t, (int) $k['completed_at'], (int) $k['activated_at']); }
+				return $t > 0 ? date('d M H:i', $t) : '';
+			};
+			// build the four zoom levels from the same timeline
+			$buildLevel = function ($level) use ($timeline, $deptName, $aggStatus, $nodeWhen, $case, $curLoc) {
+				$nodes = array();
+				if ($level === 'task') {
+					foreach ($timeline as $s) {
+						$nodes[] = array(
+							'title' => ((string) ($s['location'] ?? '')) ?: '—',
+							'sub' => $s['name'],
+							'meta' => trim($deptName((string) $s['department']) . ($s['assignee_name'] ? ' · ' . $s['assignee_name'] : ''), ' ·'),
+							'when' => ((int) $s['completed_at'] > 0 ? date('d M H:i', (int) $s['completed_at']) : ((int) $s['activated_at'] > 0 ? date('d M H:i', (int) $s['activated_at']) : '')),
+							'status' => $s['status'],
+						);
+					}
+				} elseif ($level === 'department' || $level === 'location') {
+					$keyFn = $level === 'department'
+						? function ($s) { return (string) $s['department']; }
+						: function ($s) { return (string) ($s['location'] ?? ''); };
+					$groups = array(); $cur = null; $curKey = null;
+					foreach ($timeline as $s) {
+						$k = $keyFn($s);
+						if ($cur === null || $k !== $curKey) { if ($cur !== null) $groups[] = $cur; $cur = array(); $curKey = $k; }
+						$cur[] = $s;
+					}
+					if ($cur !== null) $groups[] = $cur;
+					foreach ($groups as $g) {
+						$first = $g[0];
+						if ($level === 'department') {
+							$locs = array(); foreach ($g as $x) { $l = (string) ($x['location'] ?? ''); if ($l !== '' && !in_array($l, $locs, true)) $locs[] = $l; }
+							$title = $deptName((string) $first['department']) ?: '—';
+							$sub = count($g) . ' step' . (count($g) > 1 ? 's' : '') . ' · ' . $first['name'];
+							$meta = implode(' · ', $locs);
+						} else {
+							$deps = array(); foreach ($g as $x) { $d = $deptName((string) $x['department']); if ($d !== '' && !in_array($d, $deps, true)) $deps[] = $d; }
+							$title = ((string) ($first['location'] ?? '')) ?: '—';
+							$sub = implode(' · ', $deps);
+							$meta = count($g) . ' step' . (count($g) > 1 ? 's' : '');
+						}
+						$nodes[] = array('title' => $title, 'sub' => $sub, 'meta' => $meta, 'when' => $nodeWhen($g), 'status' => $aggStatus($g));
+					}
+				} else { // overall
+					$n = count($timeline);
+					$first = $timeline[0] ?? null;
+					$last = $timeline[$n - 1] ?? null;
+					$active = null; foreach ($timeline as $s) { if ($s['status'] === 'active') { $active = $s; break; } }
+					if ($first) $nodes[] = array('title' => 'Start', 'sub' => ((string) ($first['location'] ?? '')) ?: '—', 'meta' => $deptName((string) $first['department']), 'when' => ((int) $first['activated_at'] > 0 ? date('d M H:i', (int) $first['activated_at']) : ''), 'status' => 'done');
+					if ($case['status'] === 'open') {
+						$nodes[] = array('title' => 'In progress', 'sub' => $curLoc ?: 'Unassigned', 'meta' => $deptName((string) $case['current_department']) . ($case['assignee_name'] ? ' · ' . $case['assignee_name'] : ''), 'when' => ($active && (int) $active['activated_at'] > 0 ? date('d M H:i', (int) $active['activated_at']) : ''), 'status' => 'active');
+					}
+					if ($last) $nodes[] = array('title' => 'Finish', 'sub' => ((string) ($last['location'] ?? '')) ?: ($last['name'] ?? '—'), 'meta' => $deptName((string) $last['department']), 'when' => ((int) $last['completed_at'] > 0 ? date('d M H:i', (int) $last['completed_at']) : ''), 'status' => ($case['status'] === 'done' ? 'done' : 'pending'));
+				}
+				return $nodes;
+			};
+			$levels = array('overall' => 'Overall', 'location' => 'Location', 'department' => 'Department', 'task' => 'Task');
+			$dotMeta = array(
+				'approved' => array('done', 'fa-check'), 'done' => array('done', 'fa-check'),
+				'active' => array('active', 'fa-truck'), 'rejected' => array('rejected', 'fa-times'),
+				'pending' => array('pending', 'fa-map-marker'), 'skipped' => array('done', 'fa-angle-double-right'),
+			);
 			?>
 			<style>
-			.pf-track-wrap{background:#0f172a;border-radius:10px;padding:22px 18px 14px;margin:14px 0;overflow-x:auto;}
-			.pf-track-hd{color:#e2e8f0;font-size:13px;margin-bottom:18px;}
+			.pf-track-wrap{background:#0f172a;border-radius:10px;padding:16px 18px 14px;margin:14px 0;}
+			.pf-track-hd{color:#e2e8f0;font-size:13px;margin-bottom:6px;}
 			.pf-track-hd .pin{color:#38bdf8;}
-			.pf-route{position:relative;display:flex;min-width:680px;}
-			.pf-route .pf-line{position:absolute;top:20px;left:5%;right:5%;height:4px;background:#334155;border-radius:2px;}
-			.pf-route .pf-line-fill{position:absolute;top:20px;left:5%;height:4px;background:linear-gradient(90deg,#22c55e,#38bdf8);border-radius:2px;transition:width .4s;}
+			.pf-levels{margin:8px 0 18px;}
+			.pf-levels button{background:#1e293b;color:#cbd5e1;border:1px solid #334155;border-radius:6px;padding:4px 12px;font-size:12px;margin-right:6px;cursor:pointer;}
+			.pf-levels button.on{background:#38bdf8;color:#0f172a;border-color:#38bdf8;font-weight:700;}
+			.pf-route-scroll{overflow-x:auto;}
+			.pf-route{position:relative;display:none;min-width:680px;padding-top:6px;}
+			.pf-route.on{display:flex;}
+			.pf-route .pf-line{position:absolute;top:26px;height:4px;background:#334155;border-radius:2px;}
+			.pf-route .pf-line-fill{position:absolute;top:26px;height:4px;width:0;background:linear-gradient(90deg,#22c55e,#38bdf8);border-radius:2px;transition:width 1.3s ease;}
+			.pf-marker{position:absolute;top:12px;z-index:5;color:#38bdf8;font-size:20px;transition:left 1.3s ease;transform:translateX(-50%);}
 			.pf-node{position:relative;flex:1;text-align:center;z-index:2;padding:0 4px;}
 			.pf-dot{width:42px;height:42px;line-height:42px;border-radius:50%;margin:0 auto;color:#fff;font-size:16px;box-shadow:0 0 0 4px #0f172a;}
 			.pf-dot.done{background:#22c55e;} .pf-dot.active{background:#3b82f6;} .pf-dot.pending{background:#475569;color:#cbd5e1;} .pf-dot.rejected{background:#ef4444;}
@@ -109,33 +180,72 @@ if ($pfCaseId > 0):
 						Currently at <strong><?php echo epc_erp_h($curLoc ?: 'Unassigned'); ?></strong>
 						· <?php echo epc_erp_h($deptName((string) $case['current_department'])); ?>
 						· with <strong><?php echo epc_erp_h($case['assignee_name']); ?></strong>
-						&nbsp;<span style="color:#64748b;">(<?php echo (int) $pct; ?>% of route)</span>
 					<?php else: ?>
 						Route stopped (<?php echo epc_erp_h(strtoupper($case['status'])); ?>).
 					<?php endif; ?>
 				</div>
-				<div class="pf-route">
-					<div class="pf-line"></div>
-					<div class="pf-line-fill" style="width:<?php echo max(0, min(90, ($pct / 100) * 90)); ?>%;"></div>
-					<?php foreach ($timeline as $i => $s):
-						$cls = 'pending'; $icon = 'fa-map-marker';
-						if ($s['status'] === 'approved') { $cls = 'done'; $icon = 'fa-check'; }
-						elseif ($s['status'] === 'active') { $cls = 'active'; $icon = 'fa-truck'; }
-						elseif ($s['status'] === 'rejected') { $cls = 'rejected'; $icon = 'fa-times'; }
-						$loc = (string) ($s['location'] ?? '');
-						$when = (int) $s['completed_at'] > 0 ? date('d M H:i', (int) $s['completed_at']) : ((int) $s['activated_at'] > 0 ? date('d M H:i', (int) $s['activated_at']) : '');
-					?>
-						<div class="pf-node <?php echo $s['status'] === 'active' ? 'is-active' : ''; ?>">
-							<div class="pf-dot <?php echo $cls; ?>"><i class="fa <?php echo $icon; ?>"></i></div>
-							<div class="pf-loc"><?php echo epc_erp_h($loc ?: '—'); ?></div>
-							<div class="pf-step"><?php echo epc_erp_h($s['name']); ?></div>
-							<div class="pf-meta"><?php echo epc_erp_h($deptName((string) $s['department'])); ?><?php echo $s['assignee_name'] ? ' · ' . epc_erp_h($s['assignee_name']) : ''; ?></div>
-							<div class="pf-meta"><?php echo epc_erp_h($when); ?></div>
-							<?php if ($s['status'] === 'active'): ?><span class="pf-badge-here">YOU ARE HERE</span><?php endif; ?>
-						</div>
+				<div class="pf-levels">
+					<span style="color:#64748b;font-size:11px;margin-right:6px;">Zoom:</span>
+					<?php foreach ($levels as $lk => $lv): ?>
+						<button type="button" class="pf-level-btn <?php echo $lk === 'task' ? 'on' : ''; ?>" data-level="<?php echo $lk; ?>"><?php echo $lv; ?></button>
 					<?php endforeach; ?>
 				</div>
+				<div class="pf-route-scroll">
+				<?php foreach ($levels as $lk => $lv):
+					$nodes = $buildLevel($lk);
+					$n = max(1, count($nodes));
+					$reached = 0; $hasActive = false;
+					foreach ($nodes as $ix => $nd) { if ($nd['status'] === 'active') { $reached = $ix; $hasActive = true; break; } if ($nd['status'] === 'approved' || $nd['status'] === 'done' || $nd['status'] === 'skipped') { $reached = $ix; } }
+					if ($case['status'] === 'done') { $reached = $n - 1; }
+					$centerL = $n > 0 ? (0.5 / $n * 100) : 50;
+					$centerR = $n > 0 ? (($n - 0.5) / $n * 100) : 50;
+					$reachedPct = $n > 1 ? (($reached + 0.5) / $n * 100) : 50;
+					$lineW = $centerR - $centerL;
+					$fillW = max(0, $reachedPct - $centerL);
+				?>
+					<div class="pf-route <?php echo $lk === 'task' ? 'on' : ''; ?>" data-level="<?php echo $lk; ?>">
+						<div class="pf-line" style="left:<?php echo $centerL; ?>%; width:<?php echo $lineW; ?>%;"></div>
+						<div class="pf-line-fill" data-target="<?php echo round($fillW, 2); ?>" style="left:<?php echo $centerL; ?>%;"></div>
+						<?php if ($case['status'] === 'open'): ?><div class="pf-marker" data-target="<?php echo round($reachedPct, 2); ?>" style="left:<?php echo $centerL; ?>%;"><i class="fa fa-location-arrow"></i></div><?php endif; ?>
+						<?php foreach ($nodes as $nd):
+							$dm = $dotMeta[$nd['status']] ?? array('pending', 'fa-map-marker');
+						?>
+							<div class="pf-node <?php echo $nd['status'] === 'active' ? 'is-active' : ''; ?>">
+								<div class="pf-dot <?php echo $dm[0]; ?>"><i class="fa <?php echo $dm[1]; ?>"></i></div>
+								<div class="pf-loc"><?php echo epc_erp_h($nd['title']); ?></div>
+								<div class="pf-step"><?php echo epc_erp_h((string) $nd['sub']); ?></div>
+								<?php if (!empty($nd['meta'])): ?><div class="pf-meta"><?php echo epc_erp_h((string) $nd['meta']); ?></div><?php endif; ?>
+								<?php if (!empty($nd['when'])): ?><div class="pf-meta"><?php echo epc_erp_h((string) $nd['when']); ?></div><?php endif; ?>
+								<?php if ($nd['status'] === 'active'): ?><span class="pf-badge-here">YOU ARE HERE</span><?php endif; ?>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				<?php endforeach; ?>
+				</div>
 			</div>
+			<script>
+			(function(){
+				function animate(route){
+					if(!route) return;
+					route.querySelectorAll('.pf-line-fill').forEach(function(el){ el.style.width='0%'; });
+					var f=route.querySelector('.pf-line-fill'), m=route.querySelector('.pf-marker');
+					setTimeout(function(){
+						if(f) f.style.width=(f.getAttribute('data-target')||0)+'%';
+						if(m) m.style.left=(m.getAttribute('data-target')||0)+'%';
+					},120);
+				}
+				var btns=document.querySelectorAll('.pf-level-btn');
+				btns.forEach(function(b){
+					b.addEventListener('click',function(){
+						var lvl=b.getAttribute('data-level');
+						btns.forEach(function(x){x.classList.remove('on');}); b.classList.add('on');
+						document.querySelectorAll('.pf-route').forEach(function(r){ r.classList.toggle('on', r.getAttribute('data-level')===lvl); });
+						animate(document.querySelector('.pf-route.on'));
+					});
+				});
+				animate(document.querySelector('.pf-route.on'));
+			})();
+			</script>
 
 			<table class="table table-bordered table-condensed">
 				<thead><tr><th>#</th><th>Step</th><th>Assignee</th><th>Status</th><th>Acted by</th><th>When</th><th>Comment</th></tr></thead>

@@ -788,6 +788,31 @@ function epc_pf_seed_demo(PDO $db): array
 				array('name' => 'Finance set up payroll', 'assign_type' => 'dept_head', 'assign_department' => 'finance', 'sla_hours' => 24),
 			),
 		),
+		array(
+			'name' => 'Customer credit request',
+			'category' => 'demo',
+			'description' => 'Customer asks for a credit limit. Sales logs it, Sales head reviews, Finance runs a credit check, Finance head approves the limit, Sales confirms back to the customer.',
+			'steps' => array(
+				array('name' => 'Sales log credit request', 'assign_type' => 'department', 'assign_department' => 'sales', 'sla_hours' => 4),
+				array('name' => 'Sales head review', 'assign_type' => 'dept_head', 'assign_department' => 'sales', 'sla_hours' => 12),
+				array('name' => 'Finance credit check', 'assign_type' => 'department', 'assign_department' => 'finance', 'sla_hours' => 24),
+				array('name' => 'Finance head approve limit', 'assign_type' => 'dept_head', 'assign_department' => 'finance', 'sla_hours' => 24),
+				array('name' => 'Sales confirm to customer', 'assign_type' => 'initiator', 'assign_department' => 'sales', 'sla_hours' => 8),
+			),
+		),
+		array(
+			'name' => 'Goods delivery to customer',
+			'category' => 'demo',
+			'description' => 'Sales raises the delivery, Logistics arranges it, a driver dispatches and delivers, goods are unloaded, the customer confirms, and Sales records the signed delivery-note receipt.',
+			'steps' => array(
+				array('name' => 'Sales raise delivery order', 'assign_type' => 'department', 'assign_department' => 'sales', 'sla_hours' => 6),
+				array('name' => 'Logistics arrange delivery', 'assign_type' => 'dept_head', 'assign_department' => 'logistics', 'sla_hours' => 12),
+				array('name' => 'Driver dispatch & drive', 'assign_type' => 'department', 'assign_department' => 'logistics', 'sla_hours' => 24),
+				array('name' => 'Unload goods at customer', 'assign_type' => 'department', 'assign_department' => 'logistics', 'sla_hours' => 6),
+				array('name' => 'Customer confirms receipt', 'assign_type' => 'initiator', 'assign_department' => 'sales', 'sla_hours' => 12),
+				array('name' => 'Sales record delivery-note receipt', 'assign_type' => 'dept_head', 'assign_department' => 'sales', 'sla_hours' => 8),
+			),
+		),
 	);
 
 	$procIds = array();
@@ -814,24 +839,29 @@ function epc_pf_seed_demo(PDO $db): array
 		return (int) $demoEmps[array_rand($demoEmps)];
 	};
 
-	// start cases at various stages so the monitor + tracking views are alive
+	// start cases at various stages so the monitor + tracking views are alive.
+	// each row: title, priority, process index (into $procIds), steps to advance
 	$titles = array(
-		array('Restock packaging materials', 'high'),
-		array('Office laptops requisition', 'normal'),
-		array('Damaged shipment — order #10231', 'urgent'),
-		array('Late delivery complaint — order #10244', 'high'),
-		array('Onboard A. Khan (Sales exec)', 'normal'),
-		array('Onboard R. Mehta (Warehouse)', 'normal'),
-		array('Spare parts purchase — Abu Dhabi', 'high'),
-		array('Wrong item delivered — order #10310', 'urgent'),
-		array('Onboard S. Patel (Finance)', 'normal'),
-		array('Forklift maintenance requisition', 'normal'),
-		array('Refund dispute — order #10355', 'high'),
-		array('Onboard D. Joseph (IT support)', 'low'),
+		array('Restock packaging materials', 'high', 0, 0),
+		array('Office laptops requisition', 'normal', 0, 1),
+		array('Damaged shipment — order #10231', 'urgent', 1, 2),
+		array('Late delivery complaint — order #10244', 'high', 1, 3),
+		array('Onboard A. Khan (Sales exec)', 'normal', 2, 0),
+		array('Onboard R. Mehta (Warehouse)', 'normal', 2, 1),
+		array('Spare parts purchase — Abu Dhabi', 'high', 0, 2),
+		array('Wrong item delivered — order #10310', 'urgent', 1, 3),
+		array('Onboard S. Patel (Finance)', 'normal', 2, 0),
+		array('Forklift maintenance requisition', 'normal', 0, 1),
+		array('Refund dispute — order #10355', 'high', 1, 2),
+		array('Onboard D. Joseph (IT support)', 'low', 2, 3),
+		array('Credit request — Gulf Spare Parts LLC', 'high', 3, 2),
+		array('Credit request — Al Noor Motors', 'normal', 3, 4),
+		array('Delivery — order #10410 to Sharjah', 'urgent', 4, 3),
+		array('Delivery — order #10422 to Al Ain', 'high', 4, 5),
 	);
 	$cases = 0;
 	foreach ($titles as $i => $t) {
-		$pid = $procIds[$i % count($procIds)];
+		$pid = $procIds[$t[2]] ?? $procIds[$i % count($procIds)];
 		$cid = epc_pf_case_start($db, array(
 			'process_id' => $pid,
 			'title' => $t[0],
@@ -840,8 +870,8 @@ function epc_pf_seed_demo(PDO $db): array
 			'initiator_id' => $pickEmp(),
 		));
 		$cases++;
-		// advance a varying number of steps to spread cases across the chain
-		$advance = $i % 4; // 0..3 approvals
+		// advance the configured number of steps to spread cases across the chain
+		$advance = (int) $t[3];
 		for ($a = 0; $a < $advance; $a++) {
 			$res = epc_pf_case_act($db, $cid, 'approve', 'Reviewed and approved (sample data)', $adminUser);
 			if ($res['status'] !== 'open') {
