@@ -84,7 +84,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<div class="ehm-ti"><span class="ehm-ti-ico">📋</span><span><strong>UAE e-invoice</strong> (PINT-AE) built-in</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>19+ industry</strong> packs ready</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🌍</span><span><strong>195+</strong> tax jurisdictions</span></div>
-				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI</strong> demo guide (Layla)</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI advisor</strong> &amp; forecasting</span></div>
 			</div>
 		</div>
 	</section>
@@ -100,9 +100,9 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;max-width:460px;margin:0">Stop reconciling across disconnected tools. ECOM AE keeps storefront orders, GL entries, and VAT posting in one database — zero manual sync.</p>
 					<div class="ehm-layer-stack">
 						<div class="ehm-layer"><div class="ehm-l-num">1</div><div class="ehm-l-body"><h4>Commerce Layer</h4><p>Storefront, catalogue, checkout, B2B portal, multi-currency payments, WhatsApp.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">2</div><div class="ehm-l-body"><h4>Operations Layer</h4><p>Inventory, warehouses, procurement, logistics, RMA, delivery workflows.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">3</div><div class="ehm-l-body"><h4>Finance &amp; Compliance</h4><p>GL, AR/AP, bank reconciliation, UAE VAT and Peppol e-invoicing built in.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">4</div><div class="ehm-l-body"><h4>Intelligence Layer</h4><p>CRM pipeline, AI parts agent, demand signals, Auto Price AI, campaign hub.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">2</div><div class="ehm-l-body"><h4>Operations Layer</h4><p>Inventory ledger with lot, serial and barcode traceability, warehouses, procurement, RMA, delivery workflows.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">3</div><div class="ehm-l-body"><h4>Finance &amp; Compliance</h4><p>GL with immutable posting and period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT and Peppol e-invoicing.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">4</div><div class="ehm-l-body"><h4>Intelligence Layer</h4><p>Intelligent BOS AI advisor — revenue and cash-flow forecasting, predictive inventory, KPI recommendations — plus CRM pipeline and commerce AI.</p></div></div>
 					</div>
 				</div>
 				<div class="ehm-rev ehm-rev--2">
@@ -132,13 +132,13 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 			</div>
 			<div class="ehm-feat-grid">
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🛒</div><h4>E-Commerce &amp; Catalogue</h4><p>SKU management, variants, bulk CSV, B2B pricing, promo codes, multi-currency checkout.</p><div class="ehm-pills"><span class="ehm-pill">Storefront</span><span class="ehm-pill">B2B Portal</span><span class="ehm-pill">Multi-Currency</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">📦</div><h4>Inventory &amp; Logistics</h4><p>Multi-warehouse stock, pick/pack/ship, carrier integration, RMA, customs declarations.</p><div class="ehm-pills"><span class="ehm-pill">Multi-Warehouse</span><span class="ehm-pill">RMA</span><span class="ehm-pill">Carriers</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">📊</div><h4>ERP &amp; Finance</h4><p>Double-entry GL, AR/AP, bank reconciliation, P&amp;L, UAE VAT returns, multi-company.</p><div class="ehm-pills"><span class="ehm-pill">General Ledger</span><span class="ehm-pill">AR/AP</span><span class="ehm-pill">Fixed Assets</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">📦</div><h4>Inventory &amp; Logistics</h4><p>Multi-warehouse stock with a full inventory ledger, lot/serial/batch and barcode traceability, pick/pack/ship, RMA.</p><div class="ehm-pills"><span class="ehm-pill">Inventory Ledger</span><span class="ehm-pill">Lot / Serial</span><span class="ehm-pill">Barcode</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">📊</div><h4>ERP &amp; Finance</h4><p>Double-entry GL with immutable posting &amp; period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT.</p><div class="ehm-pills"><span class="ehm-pill">Immutable Posting</span><span class="ehm-pill">Period Locking</span><span class="ehm-pill">Consolidation</span></div></div>
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🤝</div><h4>CRM &amp; Customers</h4><p>Kanban pipeline, lead capture, 360° customer view, segments, approval workflows.</p><div class="ehm-pills"><span class="ehm-pill">Kanban</span><span class="ehm-pill">Leads</span><span class="ehm-pill">360° View</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🔧</div><h4>Procurement</h4><p>Supplier directory, purchase orders, RFQ, 3-way match, payables scheduling.</p><div class="ehm-pills"><span class="ehm-pill">Purchase Orders</span><span class="ehm-pill">RFQ</span><span class="ehm-pill">3-Way Match</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🛡️</div><h4>Compliance</h4><p>Tax regimes, e-invoicing, filing calendar with due dates, document retention, and an immutable audit trail.</p><div class="ehm-pills"><span class="ehm-pill">Filing Calendar</span><span class="ehm-pill">e-Invoice</span><span class="ehm-pill">Audit Trail</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🔧</div><h4>Procurement</h4><p>Supplier directory, purchase requisitions, RFQ &amp; vendor comparison, purchase orders, goods receipt, 3-way match.</p><div class="ehm-pills"><span class="ehm-pill">Requisition</span><span class="ehm-pill">RFQ</span><span class="ehm-pill">Vendor Compare</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🛡️</div><h4>Compliance &amp; Governance</h4><p>Tax regimes, e-invoicing, filing calendar, database-level integrity, and an enriched audit trail (old/new value, user, IP, device).</p><div class="ehm-pills"><span class="ehm-pill">Audit Trail</span><span class="ehm-pill">Data Integrity</span><span class="ehm-pill">e-Invoice</span></div></div>
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">⚡</div><h4>Workflow Automation</h4><p>Approval chains, spend thresholds, multi-step routing and triggers across orders, POs, journals and vouchers.</p><div class="ehm-pills"><span class="ehm-pill">Approvals</span><span class="ehm-pill">Thresholds</span><span class="ehm-pill">Triggers</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🧠</div><h4>Industry Intelligence</h4><p>Per-industry KPIs, operational dashboards and recommended controls — driven by your industry pack.</p><div class="ehm-pills"><span class="ehm-pill">Industry KPIs</span><span class="ehm-pill">Dashboards</span><span class="ehm-pill">Controls</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🧠</div><h4>Intelligent BOS &amp; AI</h4><p>The AI advisor that runs and advises the business — revenue &amp; cash-flow forecasting, predictive inventory, KPI recommendations, plus per-industry dashboards.</p><div class="ehm-pills"><span class="ehm-pill">AI Advisor</span><span class="ehm-pill">Forecasting</span><span class="ehm-pill">Recommendations</span></div></div>
 				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🏢</div><h4>Multi-Tenant SaaS</h4><p>Super CP for agencies — onboard tenants, push templates, monitor health, deploy industry packs.</p><div class="ehm-pills"><span class="ehm-pill">Super CP</span><span class="ehm-pill">Health Monitor</span><span class="ehm-pill">Templates</span></div></div>
 			</div>
 		</div>
@@ -169,14 +169,14 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		<div class="ehm-wrap">
 			<div class="ehm-ai-grid">
 				<div class="ehm-rev">
-					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>AI Capabilities</div>
-					<h2 style="margin:14px 0 12px">Intelligence<br>at every layer.</h2>
-					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">Operational intelligence woven into the stack — not a chatbot bolted on.</p>
+					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>Intelligent BOS · AI Layer</div>
+					<h2 style="margin:14px 0 12px">Runs and advises<br>the business.</h2>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">The Intelligent BOS reads your live data and tells you what to do next — forecasting, predictive inventory and recommendations woven into the stack, not a chatbot bolted on.</p>
 					<div class="ehm-ai-cards">
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">🔍</div><div><h4>AI Parts Agent</h4><p>Conversational parts expert — part number search, VIN decode, cross-references.</p></div></div>
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">🚗</div><div><h4>AI VIN Decode</h4><p>Narrows vehicle context before catalogue browse — fewer wrong parts.</p></div></div>
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">📈</div><div><h4>Demand Intelligence</h4><p>Search and order signals surface stock gaps and promotion opportunities.</p></div></div>
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">💰</div><div><h4>Auto Price AI</h4><p>Discover, compare, and import competitor pricing across market sources.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">🧠</div><div><h4>AI Advisor</h4><p>Ask the BOS in plain English — revenue, cash, stock, receivables — answered from your live data.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">📈</div><div><h4>Forecasting</h4><p>Revenue and cash-flow forecasts from your ledger — trend, confidence and liquidity alerts.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">📦</div><div><h4>Predictive Inventory</h4><p>Consumption rate → days of cover → recommended reorder quantity and value, per item.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">✅</div><div><h4>Automated Recommendations</h4><p>KPI- and forecast-driven actions, prioritised by severity — decision support, not dashboards alone.</p></div></div>
 					</div>
 				</div>
 				<div class="ehm-rev ehm-rev--2">
