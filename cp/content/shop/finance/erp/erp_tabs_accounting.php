@@ -73,6 +73,20 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 				<span class="text-muted" style="display:block;margin-top:4px;">Journals dated on or before the lock date are rejected at posting. Corrections use reversals, not edits.</span>
 			</form>
 		</div>
+		<div class="well well-sm" style="margin-bottom:12px;">
+			<form id="epc_erp_form_fx_reval" class="form-inline">
+				<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+				<strong><i class="fa fa-exchange"></i> FX revaluation</strong>
+				<label style="margin-left:6px;">As of
+					<input type="date" name="as_of" class="form-control input-sm" value="<?php echo epc_erp_h(date('Y-m-d')); ?>">
+				</label>
+				<label class="checkbox-inline" style="margin-left:6px;"><input type="checkbox" name="auto_reverse" checked> Auto-reverse next period</label>
+				<button type="button" class="btn btn-sm btn-default" id="epc_erp_fx_preview">Preview</button>
+				<button type="submit" class="btn btn-sm btn-info">Post revaluation</button>
+				<span class="text-muted" style="display:block;margin-top:4px;">Retranslates open foreign-currency receivables at the closing rate (IAS-21); posts the unrealised FX gain/loss and an optional auto-reversal.</span>
+				<div id="epc_erp_fx_preview_out" style="margin-top:6px;"></div>
+			</form>
+		</div>
 		<p>
 			<button type="button" class="btn btn-sm btn-default" id="epc_erp_gl_sync"><i class="fa fa-refresh"></i> Sync unposted purchases &amp; cash to GL</button>
 			<button type="button" class="btn btn-sm btn-primary" id="epc_erp_gl_post_sales"><i class="fa fa-shopping-cart"></i> Post sales orders to GL (date range)</button>
@@ -395,10 +409,49 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 			});
 		}
 	}
+	function bindFxReval() {
+		var form = document.getElementById('epc_erp_form_fx_reval');
+		if (!form) return;
+		var out = document.getElementById('epc_erp_fx_preview_out');
+		function run(action) {
+			var fd = new FormData();
+			fd.append('action', action);
+			fd.append('as_of', (form.querySelector('input[name="as_of"]') || {}).value || '');
+			fd.append('auto_reverse', form.querySelector('input[name="auto_reverse"]').checked ? '1' : '0');
+			var csrf = document.querySelector('input[name="csrf_guard_key"]');
+			if (csrf) fd.append('csrf_guard_key', csrf.value);
+			fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function(r){ return r.json(); })
+				.then(function(j){
+					if (action === 'fx_revaluation_preview') {
+						if (j.status && j.by_currency) {
+							var h = '<table class="table table-condensed table-bordered" style="margin:6px 0;font-size:12px;"><thead><tr><th>Currency</th><th>Open docs</th><th>Outstanding (FC)</th><th>Booked (base)</th><th>Closing (base)</th><th>Unrealised</th></tr></thead><tbody>';
+							if (!j.by_currency.length) { h += '<tr><td colspan="6" class="text-muted">No open foreign-currency receivables (or no rates set).</td></tr>'; }
+							j.by_currency.forEach(function(c){
+								h += '<tr><td>'+c.currency+'</td><td>'+c.count+'</td><td style="text-align:right;">'+Number(c.outstanding_fc).toFixed(2)+'</td><td style="text-align:right;">'+Number(c.booked_base).toFixed(2)+'</td><td style="text-align:right;">'+Number(c.current_base).toFixed(2)+'</td><td style="text-align:right;'+(c.unrealised>=0?'color:green;':'color:#c00;')+'">'+Number(c.unrealised).toFixed(2)+'</td></tr>';
+							});
+							h += '</tbody><tfoot><tr><th colspan="5" style="text-align:right;">Net unrealised ('+j.base+')</th><th style="text-align:right;'+(j.total_unrealised>=0?'color:green;':'color:#c00;')+'">'+Number(j.total_unrealised).toFixed(2)+'</th></tr></tfoot></table>';
+							out.innerHTML = h;
+						} else { out.innerHTML = '<span class="text-muted">'+(j.message||'No data')+'</span>'; }
+					} else {
+						showMsg(!!j.status, j.message);
+						if (j.status) setTimeout(function(){ location.reload(); }, 1200);
+					}
+				});
+		}
+		var pv = document.getElementById('epc_erp_fx_preview');
+		if (pv) pv.addEventListener('click', function(){ run('fx_revaluation_preview'); });
+		form.addEventListener('submit', function(ev){
+			ev.preventDefault();
+			if (!confirm('Post the FX revaluation to the GL?')) return;
+			run('fx_post_revaluation');
+		});
+	}
 	bindCoaForm();
 	bindGlManual();
 	bindGlButtons();
 	bindFiscalLock();
 	bindGlReverse();
+	bindFxReval();
 })();
 </script>

@@ -189,6 +189,35 @@ try {
 			epc_erp_fiscal_set_lock($db_link, $lockDate, (string) ($_POST['note'] ?? ''));
 			epc_erp_json(true, $lockDate > 0 ? ('Periods locked up to ' . date('Y-m-d', $lockDate)) : 'Fiscal lock cleared', array('lock_date' => $lockDate));
 
+		case 'ccy_set_rate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_currency.php';
+			$rFrom = strtoupper(trim((string) ($_POST['from'] ?? '')));
+			$rTo = strtoupper(trim((string) ($_POST['to'] ?? '')));
+			$rRate = (float) ($_POST['rate'] ?? 0);
+			$rAsOf = !empty($_POST['as_of']) ? (int) strtotime((string) $_POST['as_of'] . ' 12:00:00') : time();
+			if ($rFrom === '' || $rTo === '' || $rRate <= 0) {
+				epc_erp_json(false, 'Provide from, to and a positive rate');
+			}
+			epc_ccy_set_rate($db_link, $rFrom, $rTo, $rRate, $rAsOf);
+			epc_erp_json(true, 'Rate saved: 1 ' . $rFrom . ' = ' . $rRate . ' ' . $rTo . ' as of ' . date('Y-m-d', $rAsOf));
+
+		case 'fx_revaluation_preview':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ccy_revaluation.php';
+			$fxAsOf = !empty($_POST['as_of']) ? (int) strtotime((string) $_POST['as_of'] . ' 23:59:59') : time();
+			$fxPrev = epc_erp_fx_revaluation_preview($db_link, $fxAsOf);
+			epc_erp_json(true, 'Preview ready', array(
+				'base' => $fxPrev['base'],
+				'by_currency' => $fxPrev['by_currency'],
+				'total_unrealised' => $fxPrev['total_unrealised'],
+			));
+
+		case 'fx_post_revaluation':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ccy_revaluation.php';
+			$fxAsOf = !empty($_POST['as_of']) ? (int) strtotime((string) $_POST['as_of'] . ' 23:59:59') : time();
+			$fxAuto = !isset($_POST['auto_reverse']) || (string) $_POST['auto_reverse'] === '1';
+			$fxRes = epc_erp_fx_post_revaluation($db_link, $fxAsOf, $fxAuto);
+			epc_erp_json((bool) $fxRes['status'], $fxRes['message'], array('journal_id' => (int) $fxRes['journal_id'], 'reverse_journal_id' => (int) $fxRes['reverse_journal_id']));
+
 		case 'gl_post_sales':
 			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : strtotime(date('Y-m-01'));
 			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : time();
