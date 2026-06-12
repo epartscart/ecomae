@@ -125,9 +125,76 @@ function epc_erp_inventory_ensure_schema(PDO $db)
 
 	if (function_exists('epc_erp_schema_add_column_if_missing')) {
 		epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchases', 'inv_receipt_posted', 'tinyint(1) NOT NULL DEFAULT 0');
+		// Per-tenant product-field classification: each product/inventory field
+		// can be flagged as an inventory attribute (stock-tracked, part of the
+		// item master & valuation) or a non-inventory attribute (descriptive /
+		// catalogue only). Defaults are seeded from the industry pack at
+		// onboarding; the client can re-classify any field afterwards.
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_field_defs', 'field_role', "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_field_defs', 'source_pack', "varchar(64) NOT NULL DEFAULT ''");
 	}
 
 	epc_erp_inventory_seed_field_defs($db);
+}
+
+/**
+ * List every product/inventory field definition for this tenant.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function epc_erp_inv_field_defs_all(PDO $db)
+{
+	epc_erp_inventory_ensure_schema($db);
+	return $db->query(
+		'SELECT `id`,`field_key`,`label`,`field_type`,`options_json`,`sort_order`,`active`,`field_role`,`source_pack`
+		 FROM `epc_erp_inv_field_defs` ORDER BY `field_role` DESC, `sort_order`, `id`'
+	)->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+/** Set a field's role (inventory | non_inventory). */
+function epc_erp_inv_field_set_role(PDO $db, $fieldKey, $role)
+{
+	$role = ($role === 'non_inventory') ? 'non_inventory' : 'inventory';
+	$db->prepare('UPDATE `epc_erp_inv_field_defs` SET `field_role` = ? WHERE `field_key` = ?')
+		->execute(array($role, (string) $fieldKey));
+}
+
+/** Enable/disable a field. */
+function epc_erp_inv_field_set_active(PDO $db, $fieldKey, $active)
+{
+	$db->prepare('UPDATE `epc_erp_inv_field_defs` SET `active` = ? WHERE `field_key` = ?')
+		->execute(array($active ? 1 : 0, (string) $fieldKey));
+}
+
+/**
+ * Insert or update a single field definition.
+ *
+ * @param array<string,mixed> $def field_key,label,field_type,options(array),field_role,sort_order
+ */
+function epc_erp_inv_field_upsert(PDO $db, array $def)
+{
+	epc_erp_inventory_ensure_schema($db);
+	$key = substr(preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($def['field_key'] ?? ''))), 0, 32);
+	if ($key === '') {
+		return false;
+	}
+	$label = substr((string) ($def['label'] ?? $key), 0, 120);
+	$type = in_array($def['field_type'] ?? 'text', array('text', 'number', 'date', 'select'), true) ? (string) $def['field_type'] : 'text';
+	$role = (($def['field_role'] ?? 'inventory') === 'non_inventory') ? 'non_inventory' : 'inventory';
+	$optionsJson = null;
+	if ($type === 'select' && !empty($def['options']) && is_array($def['options'])) {
+		$optionsJson = json_encode(array_values($def['options']));
+	}
+	$sort = isset($def['sort_order']) ? (int) $def['sort_order'] : 0;
+	$pack = substr((string) ($def['source_pack'] ?? ''), 0, 64);
+	// Preserve an admin-chosen role on an existing field: only set role on insert.
+	$db->prepare(
+		'INSERT INTO `epc_erp_inv_field_defs` (`field_key`,`label`,`field_type`,`options_json`,`sort_order`,`active`,`field_role`,`source_pack`)
+		 VALUES (?,?,?,?,?,1,?,?)
+		 ON DUPLICATE KEY UPDATE `label`=VALUES(`label`), `field_type`=VALUES(`field_type`),
+			`options_json`=VALUES(`options_json`), `active`=1, `source_pack`=VALUES(`source_pack`)'
+	)->execute(array($key, $label, $type, $optionsJson, $sort, $role, $pack));
+	return true;
 }
 
 function epc_erp_inventory_seed_field_defs(PDO $db)

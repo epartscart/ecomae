@@ -306,6 +306,80 @@ if (!function_exists('epc_erp_industry_pack_keys')) {
     }
 }
 
+if (!function_exists('epc_erp_pack_inventory_fields')) {
+    /**
+     * Resolve the product / inventory field blueprint a pack releases. Fields are
+     * inherited from the pack's `base` industry catalog entry, and each is given
+     * a default classification (inventory vs non_inventory):
+     *   - a pack may override per field via an optional `field_roles` map;
+     *   - otherwise service-style bases default to non_inventory, goods to inventory.
+     *
+     * @return array<int,array<string,mixed>> each: field_key,label,field_type,options?,field_role
+     */
+    function epc_erp_pack_inventory_fields(string $packKey): array
+    {
+        $pack = epc_erp_industry_pack($packKey);
+        if ($pack === null) {
+            return array();
+        }
+        require_once __DIR__ . '/epc_erp_industry.php';
+        $baseKey = (string) ($pack['base'] ?? 'general');
+        $bp = function_exists('epc_erp_industry_blueprint') ? epc_erp_industry_blueprint($baseKey) : null;
+        if ($bp === null || empty($bp['fields'])) {
+            return array();
+        }
+        // Service-style industries describe non-stock items by default.
+        $serviceBases = array('services_professional', 'hospitality_fnb');
+        $defaultRole = in_array($baseKey, $serviceBases, true) ? 'non_inventory' : 'inventory';
+        $overrides = isset($pack['field_roles']) && is_array($pack['field_roles']) ? $pack['field_roles'] : array();
+
+        $out = array();
+        foreach ($bp['fields'] as $f) {
+            $key = (string) ($f['field_key'] ?? '');
+            if ($key === '') {
+                continue;
+            }
+            $role = isset($overrides[$key]) ? (string) $overrides[$key] : $defaultRole;
+            $role = ($role === 'non_inventory') ? 'non_inventory' : 'inventory';
+            $out[] = array(
+                'field_key' => $key,
+                'label' => (string) ($f['label'] ?? $key),
+                'field_type' => (string) ($f['field_type'] ?? 'text'),
+                'options' => isset($f['options']) && is_array($f['options']) ? $f['options'] : null,
+                'field_role' => $role,
+            );
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('epc_erp_pack_apply_fields')) {
+    /**
+     * Seed the pack's product/inventory field definitions into the tenant's
+     * field-def table. Additive + idempotent: re-applying refreshes labels/types
+     * but never deletes fields and never overwrites a role the admin has changed
+     * (role is only set when a field is first inserted).
+     *
+     * @return array<string,mixed>
+     */
+    function epc_erp_pack_apply_fields(PDO $db, string $packKey, int $adminId = 0): array
+    {
+        require_once __DIR__ . '/epc_erp_inventory.php';
+        $fields = epc_erp_pack_inventory_fields($packKey);
+        $seeded = 0;
+        $sort = 100;
+        foreach ($fields as $f) {
+            $sort += 10;
+            $f['sort_order'] = $sort;
+            $f['source_pack'] = $packKey;
+            if (epc_erp_inv_field_upsert($db, $f)) {
+                $seeded++;
+            }
+        }
+        return array('status' => true, 'fields_seeded' => $seeded);
+    }
+}
+
 /* ==========================================================================
  * Specialized, unit-tested accounting helpers
  * ======================================================================== */

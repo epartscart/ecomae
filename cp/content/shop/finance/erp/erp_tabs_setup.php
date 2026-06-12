@@ -92,9 +92,17 @@ if (!empty($_POST['setup_action'])) {
 					$pack = '';
 				}
 				epc_erp_platform_setting_set($db_link, 'active_industry_pack', $pack);
-				$setupMsg = $pack === ''
-					? 'Industry pack cleared (generic / multi-industry).'
-					: 'Industry pack set to ' . (string) (epc_erp_industry_pack($pack)['label'] ?? $pack) . '.';
+				if ($pack === '') {
+					$setupMsg = 'Industry pack cleared (generic / multi-industry).';
+				} else {
+					// Release the pack's product fields into the Product Information
+					// System (seeded as inventory field defs, classified per the
+					// pack; the client can re-classify them afterwards).
+					$seedRes = epc_erp_pack_apply_fields($db_link, $pack, 0);
+					$nf = (int) ($seedRes['fields_seeded'] ?? 0);
+					$setupMsg = 'Industry pack set to ' . (string) (epc_erp_industry_pack($pack)['label'] ?? $pack) . '.'
+						. ($nf > 0 ? ' ' . $nf . ' product field(s) released to Product Information System.' : '');
+				}
 			}
 		} catch (Exception $e) {
 			$setupErr = 'Could not save: ' . $e->getMessage();
@@ -213,10 +221,21 @@ foreach (epc_erp_voucher_prefix_map() as $vt => $defPrefix) {
 		</p>
 		<p><strong>Process flow:</strong> <?php echo epc_erp_h(implode('  →  ', (array) ($activePackDef['process_flow'] ?? array()))); ?></p>
 		<p><strong>Chart-of-accounts presets:</strong> <?php echo epc_erp_h(implode(', ', (array) ($activePackDef['coa_presets'] ?? array()))); ?></p>
-		<p style="margin-bottom:0;"><strong>Features:</strong>
+		<p><strong>Features:</strong>
 			<?php foreach ((array) ($activePackDef['features'] ?? array()) as $f): ?>
 			<span class="label label-default" style="margin-right:4px;"><?php echo epc_erp_h($f); ?></span>
 			<?php endforeach; ?>
+		</p>
+		<?php
+		$packFields = function_exists('epc_erp_pack_inventory_fields') ? epc_erp_pack_inventory_fields($activePack) : array();
+		$invF = array_filter($packFields, function ($f) { return ($f['field_role'] ?? 'inventory') === 'inventory'; });
+		$nonF = array_filter($packFields, function ($f) { return ($f['field_role'] ?? 'inventory') === 'non_inventory'; });
+		$pinfoUrl = epc_erp_tab_url($erpUrl, 'product_info', $date_from_str, $date_to_str, 'operations') . '&pm_view=fields';
+		?>
+		<p style="margin-bottom:0;"><strong>Product fields released:</strong>
+			<span class="label label-success"><?php echo count($invF); ?> inventory</span>
+			<span class="label label-default"><?php echo count($nonF); ?> non-inventory</span>
+			&nbsp;&rarr; manage in <a href="<?php echo epc_erp_h($pinfoUrl); ?>">Product Information System &rsaquo; Field setup</a>, where you can re-classify any field.
 		</p>
 	</div>
 </div>
