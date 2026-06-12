@@ -264,6 +264,43 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		</div>
 	</section>
 
+	<?php $opBase = '/epc-static.php?f=content/general_pages/marketing_screens/'; ?>
+	<section id="orderplanning" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Order Planning · Demand &amp; Replenishment</div>
+				<h2>Plan stock<br><span class="ehm-glow">like Syncron.</span></h2>
+				<p>A demand-driven planning engine built into the BOS: it forecasts demand from your sale-out history, computes safety stock and reorder point per item × warehouse, and recommends exactly how much to order — with ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions and KPIs.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				<span class="ehm-badge-pill">Demand forecasting</span>
+				<span class="ehm-badge-pill">Safety stock &amp; reorder point</span>
+				<span class="ehm-badge-pill">Recommended order qty</span>
+				<span class="ehm-badge-pill">ABC / XYZ classes</span>
+				<span class="ehm-badge-pill">Redistribution</span>
+				<span class="ehm-badge-pill">Service-level targets</span>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="<?php echo $h($opBase . 'op_recommend.png'); ?>" alt="Order line recommendations grid" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Order-line recommendations.</strong> Per item × warehouse: forecast, lead-time demand, safety stock, reorder point, recommended order qty (ROQ), days-of-cover, value and demand class — confirm or reject each line.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'op_policy.png'); ?>" alt="Inventory policy ABC/XYZ" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Inventory policy (ABC/XYZ).</strong> Classifies items by annual value and demand variability, with a recommended service level driving safety stock.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'op_exceptions.png'); ?>" alt="Exceptions and alerts" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Exceptions &amp; alerts.</strong> Severity-ranked stock-out risk, below-safety, dead-stock and excess — act before you run out or over-buy.</p></div>
+				</div>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-top:22px">
+				<img src="<?php echo $h($opBase . 'op_kpi.png'); ?>" alt="Stock analysis and KPIs" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Stock analysis &amp; KPIs.</strong> Inventory value, inventory turns, average days-of-cover, fill rate and ABC distribution at a glance.</p></div>
+			</div>
+		</div>
+	</section>
+
 	<section id="storefront" class="ehm-sec">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
