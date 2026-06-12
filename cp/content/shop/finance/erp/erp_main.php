@@ -211,6 +211,7 @@ $erpTabIncludes = array(
 	'audit' => 'erp_tabs_audit.php',
 	'reports' => 'erp_tabs_reports.php',
 	'expense_reports' => 'erp_tabs_expense_reports.php',
+	'hr_ops' => 'erp_tabs_hr_ops.php',
 	'manufacturing' => 'erp_tabs_manufacturing.php',
 	'agenda' => 'erp_tabs_agenda.php',
 	'projects' => 'erp_tabs_projects.php',

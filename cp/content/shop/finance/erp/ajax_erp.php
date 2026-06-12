@@ -352,6 +352,56 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'hr_emp_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
+			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['name'] ?? '')) === '') { throw new Exception('Code and name are required'); }
+			$data = $_POST;
+			if (!empty($_POST['join_date_str'])) { $data['join_date'] = strtotime((string)$_POST['join_date_str']) ?: time(); }
+			$empId = epc_hr_employee_save($db_link, $data, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Employee saved', array('id' => $empId));
+
+		case 'hr_attendance':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
+			$emp = (int)($_POST['employee_id'] ?? 0);
+			if ($emp <= 0) { throw new Exception('Select an employee'); }
+			$wd = !empty($_POST['work_date_str']) ? (strtotime((string)$_POST['work_date_str']) ?: time()) : time();
+			$aId = epc_hr_attendance_log($db_link, $emp, $wd, (float)($_POST['hours'] ?? 0), (string)($_POST['status'] ?? 'present'));
+			epc_erp_json(true, 'Attendance recorded', array('id' => $aId));
+
+		case 'hr_leave_request':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
+			$emp = (int)($_POST['employee_id'] ?? 0);
+			if ($emp <= 0) { throw new Exception('Select an employee'); }
+			$from = !empty($_POST['date_from_str']) ? (strtotime((string)$_POST['date_from_str']) ?: 0) : 0;
+			$to = !empty($_POST['date_to_str']) ? (strtotime((string)$_POST['date_to_str']) ?: 0) : 0;
+			$lId = epc_hr_leave_request($db_link, $emp, (string)($_POST['type'] ?? 'annual'), (float)($_POST['days'] ?? 0), $from, $to);
+			epc_erp_json(true, 'Leave request submitted', array('id' => $lId));
+
+		case 'hr_leave_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
+			epc_hr_leave_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'pending'));
+			epc_erp_json(true, 'Leave ' . (string)($_POST['status'] ?? ''));
+
+		case 'hr_expense_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
+			$emp = (int)($_POST['employee_id'] ?? 0);
+			if ($emp <= 0) { throw new Exception('Select an employee'); }
+			$hrLines = array();
+			if (isset($_POST['lines']) && is_array($_POST['lines'])) {
+				foreach ($_POST['lines'] as $ln) {
+					if (!is_array($ln) || (float)($ln['amount'] ?? 0) == 0.0) { continue; }
+					$hrLines[] = array('label' => (string)($ln['label'] ?? ''), 'amount' => (float)($ln['amount'] ?? 0));
+				}
+			}
+			if (empty($hrLines)) { throw new Exception('Add at least one expense line'); }
+			$res = epc_hr_expense_save($db_link, $emp, (string)($_POST['title'] ?? 'Expense claim'), $hrLines);
+			epc_erp_json(true, 'Expense claim saved — ' . number_format((float)$res['amount'], 2) . ' AED', $res);
+
+		case 'hr_expense_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
+			epc_hr_expense_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'draft'));
+			epc_erp_json(true, 'Expense ' . (string)($_POST['status'] ?? ''));
+
 		case 'prj_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_projects.php';
 			if (trim((string)($_POST['code'] ?? '')) === '') { throw new Exception('Project code is required'); }

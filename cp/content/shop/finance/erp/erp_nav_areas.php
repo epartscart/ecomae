@@ -128,12 +128,13 @@ function epc_erp_nav_areas_config()
 			'desc' => 'HR, payroll and staff',
 			'tabs' => array(
 				'hr' => array('label' => 'HR', 'icon' => 'fa-user-circle'),
+				'hr_ops' => array('label' => 'HR operations', 'icon' => 'fa-users'),
 				'payroll' => array('label' => 'Payroll', 'icon' => 'fa-money'),
 				'staff' => array('label' => 'Staff', 'icon' => 'fa-id-badge'),
 				'expense_reports' => array('label' => 'Expenses', 'icon' => 'fa-credit-card'),
 			),
 			'groups' => array(
-				'Common' => array('staff', 'hr'),
+				'Common' => array('staff', 'hr', 'hr_ops'),
 				'Journals' => array('payroll', 'expense_reports'),
 			),
 		),

@@ -175,6 +175,93 @@ if (!function_exists('epc_hr_leave_balance')) {
     }
 }
 
+if (!function_exists('epc_hr_employees_list')) {
+    /** @return array<int,array<string,mixed>> */
+    function epc_hr_employees_list(PDO $db, bool $activeOnly = false): array
+    {
+        epc_hr_ensure_schema($db);
+        $sql = "SELECT * FROM `epc_hr_employees` " . ($activeOnly ? "WHERE `status`='active' " : "") . "ORDER BY `name`";
+        return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_hr_leave_list')) {
+    /** @return array<int,array<string,mixed>> */
+    function epc_hr_leave_list(PDO $db, int $limit = 100): array
+    {
+        epc_hr_ensure_schema($db);
+        $sql = "SELECT l.*, e.`name` AS employee_name FROM `epc_hr_leave` l
+                LEFT JOIN `epc_hr_employees` e ON e.`id`=l.`employee_id`
+                ORDER BY l.`id` DESC LIMIT " . max(1, $limit);
+        return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_hr_expenses_list')) {
+    /** @return array<int,array<string,mixed>> */
+    function epc_hr_expenses_list(PDO $db, int $limit = 100): array
+    {
+        epc_hr_ensure_schema($db);
+        $sql = "SELECT x.*, e.`name` AS employee_name FROM `epc_hr_expenses` x
+                LEFT JOIN `epc_hr_employees` e ON e.`id`=x.`employee_id`
+                ORDER BY x.`id` DESC LIMIT " . max(1, $limit);
+        return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_hr_attendance_log')) {
+    /**
+     * Record an attendance entry (idempotent per employee+date — upserts hours/status).
+     */
+    function epc_hr_attendance_log(PDO $db, int $employeeId, int $workDate, float $hours, string $status = 'present'): int
+    {
+        epc_hr_ensure_schema($db);
+        // normalise to start of day
+        $day = strtotime(date('Y-m-d', $workDate > 0 ? $workDate : time()) . ' 00:00:00');
+        $ex = $db->prepare("SELECT `id` FROM `epc_hr_attendance` WHERE `employee_id`=? AND `work_date`=?");
+        $ex->execute(array($employeeId, $day));
+        $id = (int) $ex->fetchColumn();
+        if ($id > 0) {
+            $db->prepare("UPDATE `epc_hr_attendance` SET `hours`=?, `status`=? WHERE `id`=?")
+               ->execute(array(round($hours, 2), $status, $id));
+            return $id;
+        }
+        $db->prepare("INSERT INTO `epc_hr_attendance` (`employee_id`,`work_date`,`hours`,`status`) VALUES (?,?,?,?)")
+           ->execute(array($employeeId, $day, round($hours, 2), $status));
+        return (int) $db->lastInsertId();
+    }
+}
+
+if (!function_exists('epc_hr_attendance_list')) {
+    /** @return array<int,array<string,mixed>> */
+    function epc_hr_attendance_list(PDO $db, int $limit = 60): array
+    {
+        epc_hr_ensure_schema($db);
+        $sql = "SELECT a.*, e.`name` AS employee_name FROM `epc_hr_attendance` a
+                LEFT JOIN `epc_hr_employees` e ON e.`id`=a.`employee_id`
+                ORDER BY a.`work_date` DESC, a.`id` DESC LIMIT " . max(1, $limit);
+        return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_hr_ops_summary')) {
+    /**
+     * Headline counts for the HR operations dashboard.
+     *
+     * @return array{employees:int,pending_leave:int,pending_expense:float,present_today:int}
+     */
+    function epc_hr_ops_summary(PDO $db): array
+    {
+        epc_hr_ensure_schema($db);
+        $emp = (int) $db->query("SELECT COUNT(*) FROM `epc_hr_employees` WHERE `status`='active'")->fetchColumn();
+        $pl = (int) $db->query("SELECT COUNT(*) FROM `epc_hr_leave` WHERE `status`='pending'")->fetchColumn();
+        $pe = (float) $db->query("SELECT COALESCE(SUM(`amount`),0) FROM `epc_hr_expenses` WHERE `status` IN ('draft','submitted')")->fetchColumn();
+        $today = strtotime(date('Y-m-d') . ' 00:00:00');
+        $pt = (int) $db->query("SELECT COUNT(*) FROM `epc_hr_attendance` WHERE `work_date`=" . (int) $today . " AND `status`='present'")->fetchColumn();
+        return array('employees' => $emp, 'pending_leave' => $pl, 'pending_expense' => round($pe, 2), 'present_today' => $pt);
+    }
+}
+
 /* ------------------------------- Payroll ------------------------------ */
 
 if (!function_exists('epc_hr_gratuity_uae')) {
