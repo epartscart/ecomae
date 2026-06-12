@@ -102,7 +102,7 @@ if ($selTool === 'import') {
 		if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
 			$impError = 'Upload failed (error code ' . (int) ($file['error'] ?? -1) . '). Pick a .xlsx or .csv file under 64 MB.';
 		} else {
-			$rows = epc_ext_parse_table((string) $file['tmp_name'], (string) $file['name']);
+			$rows = epc_ext_parse_all_rows((string) $file['tmp_name'], (string) $file['name']);
 			if ($rows === null || count($rows) === 0) {
 				$impError = 'Could not read the file. Save it as .xlsx or .csv using the provided template and try again.';
 			} else {
@@ -129,19 +129,32 @@ if ($selTool === 'import') {
 	<div class="epc-erp-section" style="margin-bottom:14px;">
 		<h3 style="margin-top:0;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → Return (off-system)</h3>
 		<p class="text-muted" style="font-size:12.5px;max-width:900px;">
-			Prepare a VAT 201 or Corporate Tax return from an uploaded spreadsheet — <strong>summary figures only</strong> (box / line totals, no invoice detail).
+			Prepare a VAT 201 or Corporate Tax return from an uploaded spreadsheet. The <strong>complete multi-sheet workbook</strong> carries the
+			<strong>company &amp; TRN details</strong>, the box / line totals, invoice-wise detail sheets and a compliance checklist — the return is built from the totals
+			(<strong>summary</strong>, no invoice rows in the output) and stamped with the company's own TRN / address from the file.
 			This is completely <strong>outside the ERP</strong>: nothing is read from or written to your live data, so you can use it to check or report for other clients.
 			The output renders in the proper UAE format with compliance checks and the same professional Print / PDF.
 		</p>
 		<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:10px;">
 			<div style="flex:1;min-width:320px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
 				<div style="font-weight:700;color:#1d2740;margin-bottom:6px;">1 · Download a template</div>
-				<p class="text-muted" style="font-size:12px;">Fill the <code>Amount</code> (and VAT, for VAT) columns. Keep the <code>Code</code> column unchanged. Opens in Excel.</p>
-				<button type="button" class="btn btn-default btn-sm" onclick="epcDlCsv('epcTplVat','VAT201_import_template.csv')"><i class="fa fa-file-excel-o"></i> VAT 201 template</button>
-				<button type="button" class="btn btn-default btn-sm" onclick="epcDlCsv('epcTplCt','CT_return_import_template.csv')"><i class="fa fa-file-excel-o"></i> Corporate Tax template</button>
+				<p class="text-muted" style="font-size:12px;">Complete multi-sheet workbook — <strong>Company &amp; TRN</strong>, <strong>boxes / computation</strong>, <strong>invoice-wise detail</strong> and a <strong>compliance checklist</strong>. Keep the <code>Code</code> column unchanged; edit the values. Re-upload to build the return.</p>
+				<div style="margin-bottom:6px;">
+					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplVatX','VAT201_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.xlsx)</button>
+					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplCtX','CT_return_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.xlsx)</button>
+				</div>
+				<div>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplVat','VAT201_import_template.csv')"><i class="fa fa-file-text-o"></i> VAT CSV (summary only)</button>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplCt','CT_return_import_template.csv')"><i class="fa fa-file-text-o"></i> CT CSV (summary only)</button>
+				</div>
 				<textarea id="epcTplVat" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('vat')); ?></textarea>
 				<textarea id="epcTplCt" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('ct')); ?></textarea>
-				<script>function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob([t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}</script>
+				<textarea id="epcTplVatX" style="display:none;"><?php echo base64_encode(epc_ext_import_template_xlsx('vat')); ?></textarea>
+				<textarea id="epcTplCtX" style="display:none;"><?php echo base64_encode(epc_ext_import_template_xlsx('ct')); ?></textarea>
+				<script>
+				function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob([t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+				function epcDlB64(id,fn){var el=document.getElementById(id);if(!el)return;var b64=(el.value!==undefined?el.value:el.textContent).replace(/\s+/g,'');var bin=atob(b64);var len=bin.length;var bytes=new Uint8Array(len);for(var i=0;i<len;i++){bytes[i]=bin.charCodeAt(i);}var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+				</script>
 			</div>
 			<div style="flex:1;min-width:320px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
 				<div style="font-weight:700;color:#1d2740;margin-bottom:6px;">2 · Upload &amp; build</div>
@@ -167,6 +180,17 @@ if ($selTool === 'import') {
 		$impCo = $impMeta['META_LEGAL_NAME'] ?? 'Uploaded client';
 		$impTrn = $impMeta['META_TRN'] ?? '';
 		$impPerL = trim((string) ($impMeta['META_PERIOD_FROM'] ?? '')) !== '' ? (($impMeta['META_PERIOD_FROM'] ?? '') . '  —  ' . ($impMeta['META_PERIOD_TO'] ?? '')) : 'As uploaded';
+		$impAddrParts = array_filter(array(
+			trim((string) ($impMeta['META_ADDRESS'] ?? '')),
+			trim((string) ($impMeta['META_EMIRATE'] ?? '')),
+		), static function ($v) { return $v !== ''; });
+		$impAddr = implode(', ', $impAddrParts);
+		$impContact = array_filter(array(
+			trim((string) ($impMeta['META_PHONE'] ?? '')),
+			trim((string) ($impMeta['META_EMAIL'] ?? '')),
+		), static function ($v) { return $v !== ''; });
+		$impContactL = implode(' · ', $impContact);
+		if ($impAddr === '') { $impAddr = $impCountryName; }
 	?>
 		<div class="epc-erp-section" style="margin-bottom:14px;">
 			<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
@@ -180,8 +204,9 @@ if ($selTool === 'import') {
 				<div>
 					<div style="font-size:20px;font-weight:800;color:#1d2740;"><?php echo epc_erp_h((string) $impCo); ?></div>
 					<div class="text-muted" style="font-size:12px;">
-						<?php echo epc_erp_h($impCountryName); ?><?php if ($impTrn !== ''): ?> · TRN: <?php echo epc_erp_h((string) $impTrn); ?><?php endif; ?>
+						<?php echo epc_erp_h((string) $impAddr); ?><?php if ($impTrn !== ''): ?> · TRN: <?php echo epc_erp_h((string) $impTrn); ?><?php endif; ?>
 					</div>
+					<?php if ($impContactL !== ''): ?><div class="text-muted" style="font-size:12px;"><?php echo epc_erp_h((string) $impContactL); ?></div><?php endif; ?>
 				</div>
 				<div style="text-align:right;">
 					<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Imported return</div>
@@ -215,7 +240,7 @@ if ($selTool === 'import') {
 		<?php
 		echo epc_ext_print_ctx_js(array(
 			'co'    => (string) $impCo,
-			'addr'  => $impCountryName,
+			'addr'  => $impAddr . ($impContactL !== '' ? ' · ' . $impContactL : ''),
 			'trnL'  => 'TRN',
 			'trn'   => (string) $impTrn,
 			'ttl'   => (string) $impBuilt['title'],
@@ -300,7 +325,6 @@ if ($selTool === 'import') {
 				<?php if ($selBasis === 'custom'): ?>
 					<input type="date" name="pfrom" class="form-control input-sm" style="margin:0 4px;" value="<?php echo epc_erp_h(date('Y-m-d', $repFrom)); ?>" title="Period from">
 					<input type="date" name="pto" class="form-control input-sm" style="margin:0 4px;" value="<?php echo epc_erp_h(date('Y-m-d', $repTo)); ?>" title="Period to">
-					<button type="submit" class="btn btn-default btn-sm"><i class="fa fa-check"></i> Apply</button>
 				<?php else: ?>
 					<select name="period" class="form-control input-sm" style="margin-left:4px;" onchange="this.form.submit()">
 						<?php foreach ($period['options'] as $tok => $lbl): ?>
@@ -308,6 +332,7 @@ if ($selTool === 'import') {
 						<?php endforeach; ?>
 					</select>
 				<?php endif; ?>
+				<button type="submit" class="btn btn-success btn-sm" style="margin-left:6px;" title="Recalculate the return for the selected period"><i class="fa fa-calculator"></i> Run / Recalculate</button>
 			</form>
 			<?php if ($fetched): ?>
 				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.</span>

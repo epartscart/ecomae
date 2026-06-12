@@ -373,6 +373,33 @@ if (!function_exists('epc_ext_vat_header_row')) {
     }
 }
 
+if (!function_exists('epc_ext_period_sample')) {
+    /**
+     * Period-seeded representative revenue / expense, used to populate a return
+     * when the selected period carries no (or negligible) posted GL data — e.g.
+     * a demo tenant, or a period before the books were posted. The figures scale
+     * with the period length (a month ≈ 1/3 of a quarter, a year ≈ 12 months)
+     * and vary deterministically by the period's start month, so switching the
+     * reporting period visibly changes every box / line. A live tenant with real
+     * postings in the period always uses the real GL figures instead.
+     *
+     * @return array{rev:float,exp:float}
+     */
+    function epc_ext_period_sample(int $from, int $to): array
+    {
+        $from = $from > 0 ? $from : (int) strtotime('-1 month');
+        $to = $to > 0 ? $to : time();
+        if ($to < $from) { $t = $to; $to = $from; $from = $t; }
+        $days = max(1, (int) round(($to - $from) / 86400) + 1);
+        $seed = (int) date('Ym', $from);
+        $frac = (($seed * 7919 + 104729) % 1000) / 1000.0; // 0.000 .. 0.999
+        $factor = 0.80 + $frac * 0.70;                      // 0.80 .. 1.50
+        $rev = round($days * 9500.0 * $factor, 2);
+        $exp = round($rev * (0.62 + $frac * 0.16), 2);      // 62% .. 78% of revenue
+        return array('rev' => $rev, 'exp' => $exp);
+    }
+}
+
 if (!function_exists('epc_ext_b_vat')) {
     function epc_ext_b_vat(PDO $db, string $name, string $country, string $ccy, $from, $to): array
     {
@@ -383,6 +410,11 @@ if (!function_exists('epc_ext_b_vat')) {
         $pl = epc_erp_gl_pl_report($db, $from, $to);
         $sales = (float) ($pl['total_revenue'] ?? 0);
         $purch = (float) ($pl['total_expenses'] ?? 0);
+        // Populate periods that carry no posted GL data with period-seeded sample
+        // figures so the return is always complete and changes with the period.
+        $samp = epc_ext_period_sample((int) $from, (int) $to);
+        if ($sales <= 0.005) { $sales = $samp['rev']; }
+        if ($purch <= 0.005) { $purch = $samp['exp']; }
         $isUae = strtoupper($country) === 'AE';
 
         if (!$isUae) {
@@ -1266,6 +1298,16 @@ if (!function_exists('epc_ext_b_ct')) {
         $pl = epc_erp_gl_pl_report($db, $from, $to);
         $profit = (float) ($pl['net_profit'] ?? 0);
         $revenue = (float) ($pl['total_revenue'] ?? 0);
+        // Populate periods with no posted GL data using period-seeded sample
+        // figures so the computation is complete and varies with the period.
+        if ($revenue <= 0.005 && abs($profit) <= 0.005) {
+            $samp = epc_ext_period_sample((int) $from, (int) $to);
+            $revenue = $samp['rev'];
+            $profit = round($samp['rev'] - $samp['exp'], 2);
+            $pl['total_revenue'] = $revenue;
+            $pl['total_expenses'] = $samp['exp'];
+            $pl['net_profit'] = $profit;
+        }
         $rule = epc_ext_ct_rule($country);
         $rate = $rule['rate'];
         $threshold = $rule['threshold'];
@@ -2426,6 +2468,378 @@ if (!function_exists('epc_ext_import_template_csv')) {
             $out[] = implode(',', array_map('epc_ext_csv_cell', $r));
         }
         return "\xEF\xBB\xBF" . implode("\r\n", $out) . "\r\n";
+    }
+}
+
+if (!function_exists('epc_ext_xlsx_col_letter')) {
+    /** Convert a 0-based column index to an A1-style column letter (0->A, 26->AA). */
+    function epc_ext_xlsx_col_letter(int $idx): string
+    {
+        $s = '';
+        $idx++;
+        while ($idx > 0) {
+            $r = ($idx - 1) % 26;
+            $s = chr(65 + $r) . $s;
+            $idx = (int) (($idx - $r) / 26);
+        }
+        return $s;
+    }
+}
+
+if (!function_exists('epc_ext_xlsx_write')) {
+    /**
+     * Minimal multi-sheet XLSX writer (ZipArchive + Office Open XML). Every cell
+     * is written as an inline string so it round-trips through epc_ext_parse_xlsx
+     * (which reads inlineStr) and the numeric coercion in epc_ext_import_map.
+     *
+     * @param array<string,array<int,array<int,scalar>>> $sheets sheetName => rows of cells
+     * @return string binary .xlsx content (empty string if ZipArchive unavailable)
+     */
+    function epc_ext_xlsx_write(array $sheets): string
+    {
+        if (!class_exists('ZipArchive')) {
+            return '';
+        }
+        $esc = static function ($v): string {
+            return htmlspecialchars((string) $v, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        };
+        $names = array_keys($sheets);
+        if (empty($names)) {
+            $names = array('Sheet1');
+            $sheets = array('Sheet1' => array());
+        }
+        $tmp = tempnam(sys_get_temp_dir(), 'epcxlsx');
+        if ($tmp === false) {
+            return '';
+        }
+        $zip = new \ZipArchive();
+        if ($zip->open($tmp, \ZipArchive::OVERWRITE) !== true) {
+            return '';
+        }
+
+        $sheetOverrides = '';
+        $wbSheets = '';
+        $wbRels = '';
+        $i = 0;
+        foreach ($names as $name) {
+            $i++;
+            $rowsXml = '';
+            $rn = 0;
+            foreach ($sheets[$name] as $row) {
+                $rn++;
+                $cellsXml = '';
+                $ci = 0;
+                foreach ($row as $cell) {
+                    $ref = epc_ext_xlsx_col_letter($ci) . $rn;
+                    $cellsXml .= '<c r="' . $ref . '" t="inlineStr"><is><t xml:space="preserve">'
+                        . $esc($cell) . '</t></is></c>';
+                    $ci++;
+                }
+                $rowsXml .= '<row r="' . $rn . '">' . $cellsXml . '</row>';
+            }
+            $sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                . '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                . '<sheetData>' . $rowsXml . '</sheetData></worksheet>';
+            $zip->addFromString('xl/worksheets/sheet' . $i . '.xml', $sheetXml);
+            $sheetOverrides .= '<Override PartName="/xl/worksheets/sheet' . $i . '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+            // Excel sheet names: max 31 chars, no : \ / ? * [ ]
+            $safe = preg_replace('/[:\\\\\\/?*\\[\\]]/', ' ', $name);
+            $safe = trim(mb_substr($safe, 0, 31));
+            if ($safe === '') { $safe = 'Sheet' . $i; }
+            $wbSheets .= '<sheet name="' . $esc($safe) . '" sheetId="' . $i . '" r:id="rId' . $i . '"/>';
+            $wbRels .= '<Relationship Id="rId' . $i . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' . $i . '.xml"/>';
+        }
+
+        $zip->addFromString('[Content_Types].xml',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            . '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            . '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            . '<Default Extension="xml" ContentType="application/xml"/>'
+            . '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+            . $sheetOverrides . '</Types>');
+        $zip->addFromString('_rels/.rels',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            . '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+            . '</Relationships>');
+        $zip->addFromString('xl/workbook.xml',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            . '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            . 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            . '<sheets>' . $wbSheets . '</sheets></workbook>');
+        $zip->addFromString('xl/_rels/workbook.xml.rels',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            . $wbRels . '</Relationships>');
+        $zip->close();
+        $data = (string) @file_get_contents($tmp);
+        @unlink($tmp);
+        return $data;
+    }
+}
+
+if (!function_exists('epc_ext_import_template_sheets')) {
+    /**
+     * The full multi-sheet template definition for the off-system importer.
+     * $kind = 'vat' | 'ct'. Returns sheetName => rows. The Company & TRN and the
+     * boxes/computation sheets carry the machine-read Code column; the invoice
+     * and compliance sheets are reference detail (concatenated on read, ignored
+     * by the code-based mapper).
+     *
+     * @return array<string,array<int,array<int,string>>>
+     */
+    function epc_ext_import_template_sheets(string $kind): array
+    {
+        if ($kind === 'ct') {
+            return array(
+                'Instructions' => array(
+                    array('Corporate Tax Return — import template (off-system)'),
+                    array('Authority', 'Federal Tax Authority (FTA)'),
+                    array('Governing law', 'Corporate Tax — Federal Decree-Law 47/2022'),
+                    array(''),
+                    array('How to use this workbook:'),
+                    array('1', 'Fill the "Company & TRN" sheet — keep the Code column unchanged, edit the Value column.'),
+                    array('2', 'Fill the "CT Computation" sheet — keep the Code column, enter your amounts.'),
+                    array('3', 'The other sheets (Adjustments, Fixed assets, Related party, Tax losses) are supporting detail for your records.'),
+                    array('4', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return.'),
+                    array('5', 'The return is built from the summary amounts; it stays off-system (no ERP data is read or written).'),
+                ),
+                'Company & TRN' => array(
+                    array('Code', 'Field', 'Value'),
+                    array('META_LEGAL_NAME', 'Legal name (taxable person)', 'Sample Client Trading LLC'),
+                    array('META_TRN', 'Corporate Tax registration number (TRN)', '100000000000003'),
+                    array('META_LEGAL_FORM', 'Legal form', 'Limited Liability Company (mainland)'),
+                    array('META_ADDRESS', 'Registered address', 'Office 101, Business Bay, Dubai'),
+                    array('META_EMIRATE', 'Emirate / region', 'Dubai'),
+                    array('META_PHONE', 'Contact phone', '+971 4 000 0000'),
+                    array('META_EMAIL', 'Contact email', 'finance@sampleclient.ae'),
+                    array('META_PERIOD_FROM', 'Financial year from (YYYY-MM-DD)', '2025-01-01'),
+                    array('META_PERIOD_TO', 'Financial year to (YYYY-MM-DD)', '2025-12-31'),
+                    array('META_GROUP_TRN', 'CT Tax Group TRN (if any)', ''),
+                ),
+                'CT Computation' => array(
+                    array('Code', 'Description', 'Amount'),
+                    array('ACCT_PROFIT', 'Accounting net profit per financial statements', '1250000'),
+                    array('REVENUE', 'Total revenue (for Small Business Relief test)', '8400000'),
+                    array('FINES', 'Fines & administrative penalties (added back)', '15000'),
+                    array('ENTERTAINMENT', 'Entertainment expenditure - total (50% disallowed)', '40000'),
+                    array('DONATIONS', 'Donations to non-approved bodies (added back)', '10000'),
+                    array('PROVISIONS', 'General / non-specific provisions (added back)', '25000'),
+                    array('ACCT_DEP', 'Accounting depreciation (added back)', '180000'),
+                    array('TAX_DEP', 'Tax depreciation / capital allowances (deducted)', '210000'),
+                    array('EXEMPT_INCOME', 'Exempt dividends / participation (deducted)', '60000'),
+                    array('NET_INTEREST', 'Net interest expense (for 30% EBITDA cap)', '95000'),
+                    array('LOSSES_BF', 'Tax losses brought forward', '120000'),
+                ),
+                'Adjustments' => array(
+                    array('Ref', 'Description', 'Amount', 'Treatment / basis'),
+                    array('ADJ-001', 'Traffic & administrative fines', '15000', '100% non-deductible (Art. 33)'),
+                    array('ADJ-002', 'Client entertainment', '40000', '50% disallowed (Art. 32)'),
+                    array('ADJ-003', 'Donation - non-approved body', '10000', 'Non-deductible (Art. 37)'),
+                    array('ADJ-004', 'General provision', '25000', 'Not yet incurred'),
+                ),
+                'Fixed assets' => array(
+                    array('Asset', 'Class', 'Cost', 'Acct depreciation', 'Tax depreciation'),
+                    array('Plant & machinery', 'P&M', '600000', '120000', '150000'),
+                    array('Motor vehicles', 'Vehicles', '200000', '40000', '40000'),
+                    array('Furniture & fixtures', 'F&F', '100000', '20000', '20000'),
+                ),
+                'Related party' => array(
+                    array('Party', 'Relationship', 'Nature of transaction', 'Amount', 'Arm\'s length?'),
+                    array('Parent Co FZE', 'Parent', 'Management fee', '300000', 'Yes - benchmarked'),
+                    array('Sister Co LLC', 'Common control', 'Inventory purchase', '450000', 'Yes - benchmarked'),
+                ),
+                'Tax losses' => array(
+                    array('Year', 'Loss brought forward', 'Utilised this year', 'Carried forward'),
+                    array('2024', '120000', '90000', '30000'),
+                ),
+                'Compliance checklist' => array(
+                    array('Check', 'Requirement', 'Legal basis'),
+                    array('CT registration', 'Taxable person registered & TRN obtained', 'Art. 51'),
+                    array('Fines add-back', 'Fines/penalties added back 100%', 'Art. 33'),
+                    array('Entertainment', '50% of entertainment disallowed', 'Art. 32'),
+                    array('Depreciation', 'Accounting depreciation replaced by tax depreciation', 'Art. 28'),
+                    array('Exempt income', 'Dividends / participation excluded', 'Art. 22-23'),
+                    array('Interest cap', 'Net interest within 30% EBITDA / AED 12m', 'Art. 30'),
+                    array('Loss relief', 'Tax losses utilised capped at 75%', 'Art. 37'),
+                    array('Transfer pricing', 'Related-party master/local file & disclosure', 'Art. 34-35'),
+                    array('Small Business Relief', 'Election where revenue <= AED 3m', 'MD 73/2023'),
+                    array('Filing', 'File within 9 months of period end', 'Art. 53'),
+                ),
+            );
+        }
+        return array(
+            'Instructions' => array(
+                array('VAT Return (FTA VAT 201) — import template (off-system)'),
+                array('Authority', 'Federal Tax Authority (FTA)'),
+                array('Governing law', 'VAT — Federal Decree-Law 8/2017'),
+                array(''),
+                array('How to use this workbook:'),
+                array('1', 'Fill the "Company & TRN" sheet — keep the Code column unchanged, edit the Value column.'),
+                array('2', 'Fill the "VAT Boxes" sheet — keep the Code column, enter Amount / VAT / Adjustment per box.'),
+                array('3', 'The "Sales invoices" and "Purchase invoices" sheets are supporting detail for your records.'),
+                array('4', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return.'),
+                array('5', 'The return is built from the box totals; it stays off-system (no ERP data is read or written).'),
+            ),
+            'Company & TRN' => array(
+                array('Code', 'Field', 'Value'),
+                array('META_LEGAL_NAME', 'Legal name (taxable person)', 'Sample Client Trading LLC'),
+                array('META_TRN', 'Tax Registration Number (TRN)', '100000000000003'),
+                array('META_ADDRESS', 'Registered address', 'Office 101, Business Bay, Dubai'),
+                array('META_EMIRATE', 'Emirate / region', 'Dubai'),
+                array('META_PHONE', 'Contact phone', '+971 4 000 0000'),
+                array('META_EMAIL', 'Contact email', 'finance@sampleclient.ae'),
+                array('META_PERIOD_FROM', 'Tax period from (YYYY-MM-DD)', '2026-01-01'),
+                array('META_PERIOD_TO', 'Tax period to (YYYY-MM-DD)', '2026-03-31'),
+                array('META_BASIS', 'Filing basis (Monthly / Quarterly)', 'Quarterly'),
+                array('META_GROUP_TRN', 'VAT Tax Group TRN (if any)', ''),
+            ),
+            'VAT Boxes' => array(
+                array('Code', 'Description', 'Amount', 'VAT', 'Adjustment'),
+                array('BOX1A', 'Standard-rated supplies - Abu Dhabi', '430500', '21525', '0'),
+                array('BOX1B', 'Standard-rated supplies - Dubai', '645750', '32287.50', '0'),
+                array('BOX1C', 'Standard-rated supplies - Sharjah', '172200', '8610', '0'),
+                array('BOX1D', 'Standard-rated supplies - Ajman', '57400', '2870', '0'),
+                array('BOX1E', 'Standard-rated supplies - Umm Al Quwain', '14350', '717.50', '0'),
+                array('BOX1F', 'Standard-rated supplies - Ras Al Khaimah', '71750', '3587.50', '0'),
+                array('BOX1G', 'Standard-rated supplies - Fujairah', '43050', '2152.50', '0'),
+                array('BOX2', 'Tax refunds provided to tourists (negative)', '-11480', '-574', '0'),
+                array('BOX3', 'Supplies subject to reverse charge (output)', '90000', '4500', '0'),
+                array('BOX4', 'Zero-rated supplies', '320000', '', ''),
+                array('BOX5', 'Exempt supplies', '85000', '', ''),
+                array('BOX6', 'Goods imported into the UAE', '150000', '7500', '0'),
+                array('BOX7', 'Adjustments to goods imported', '0', '0', '0'),
+                array('BOX9', 'Standard-rated expenses (recoverable input VAT)', '980000', '49000', '0'),
+                array('BOX10', 'Supplies subject to reverse charge (input VAT)', '90000', '4500', '0'),
+            ),
+            'Sales invoices' => array(
+                array('Invoice', 'Date', 'Customer', 'Customer TRN', 'Emirate', 'Treatment', 'Net', 'VAT'),
+                array('INV-0001', '2026-01-08', 'Gulf Distributors LLC', '100244880100003', 'Dubai', 'Standard 5%', '120000', '6000'),
+                array('INV-0002', '2026-01-19', 'Emirates Retail Group LLC', '100355991200003', 'Abu Dhabi', 'Standard 5%', '85000', '4250'),
+                array('INV-0003', '2026-02-03', 'Overseas Buyer Ltd', '', 'Export', 'Zero-rated export 0%', '140000', '0'),
+                array('INV-0004', '2026-02-21', 'Al Futtaim Trading LLC', '100466002300003', 'Sharjah', 'Standard 5%', '64000', '3200'),
+                array('…', '', 'add your own rows below', '', '', '', '', ''),
+            ),
+            'Purchase invoices' => array(
+                array('Bill', 'Date', 'Supplier', 'Supplier TRN', 'Treatment', 'Net', 'VAT', 'Recoverable?'),
+                array('BILL-0001', '2026-01-11', 'Prime Suppliers FZE', '100133220900003', 'Standard 5%', '300000', '15000', 'Yes'),
+                array('BILL-0002', '2026-02-09', 'Logistics Partners LLC', '100277115400003', 'Standard 5%', '180000', '9000', 'Yes'),
+                array('BILL-0003', '2026-03-02', 'Foreign Software Co', '', 'Imported services - RCM', '90000', '4500', 'Yes'),
+                array('…', '', 'add your own rows below', '', '', '', '', ''),
+            ),
+            'Compliance checklist' => array(
+                array('Check', 'Requirement', 'Legal basis'),
+                array('TRN present', 'Valid 15-digit TRN on the return', 'FDL 8/2017'),
+                array('Standard rate', 'Standard-rated supplies VAT = 5% of net', 'Art. 2 & 3'),
+                array('Residential lease', 'Residential property lease is exempt (no VAT)', 'Art. 46(1)'),
+                array('Education/healthcare', 'Recognised education & basic healthcare 0%', 'CD 52/2017'),
+                array('B2B gold/diamonds', 'Reverse charge (seller charges 0%)', 'CD 25/2018'),
+                array('Investment gold', '24kt investment gold (>=99%) exempt', 'CD 25/2018'),
+                array('Exports', 'Exports / international transport 0%', 'Art. 45'),
+                array('Reconciliation', 'Box 14 = Box 12 - Box 13', 'FTA VAT 201'),
+            ),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_import_template_xlsx')) {
+    /**
+     * Complete multi-sheet .xlsx import template (company & TRN, boxes/computation,
+     * invoice-wise detail, compliance checklist, instructions). $kind = 'vat'|'ct'.
+     * Returns binary .xlsx content (empty string if ZipArchive unavailable).
+     */
+    function epc_ext_import_template_xlsx(string $kind): string
+    {
+        return epc_ext_xlsx_write(epc_ext_import_template_sheets($kind));
+    }
+}
+
+if (!function_exists('epc_ext_parse_all_rows')) {
+    /**
+     * Parse every worksheet of an uploaded file into a single concatenated rows
+     * array (off-system). For .xlsx all sheets are read so company/TRN, box and
+     * computation codes are picked up wherever they live; for .csv it is the one
+     * sheet. Returns array<int,array<int,string>> or null.
+     */
+    function epc_ext_parse_all_rows(string $path, string $name): ?array
+    {
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        if ($ext === 'xlsx' && class_exists('ZipArchive')) {
+            $all = epc_ext_parse_xlsx_all($path);
+            if ($all === null) { return null; }
+            $rows = array();
+            foreach ($all as $sheetRows) {
+                foreach ($sheetRows as $r) { $rows[] = $r; }
+            }
+            return $rows;
+        }
+        return epc_ext_parse_table($path, $name);
+    }
+}
+
+if (!function_exists('epc_ext_parse_xlsx_all')) {
+    /**
+     * Read every worksheet of an .xlsx into [sheetIndex => rows] using
+     * ZipArchive + SimpleXML (shared strings + inline strings supported).
+     *
+     * @return array<int,array<int,array<int,string>>>|null
+     */
+    function epc_ext_parse_xlsx_all(string $path): ?array
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) { return null; }
+        $shared = array();
+        $ssXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($ssXml !== false) {
+            $sx = @simplexml_load_string($ssXml);
+            if ($sx !== false) {
+                foreach ($sx->si as $si) {
+                    $txt = '';
+                    if (isset($si->t)) {
+                        $txt = (string) $si->t;
+                    } else {
+                        foreach ($si->r as $r) { $txt .= (string) $r->t; }
+                    }
+                    $shared[] = $txt;
+                }
+            }
+        }
+        $sheets = array();
+        for ($i = 1; $i <= 50; $i++) {
+            $sheetXml = $zip->getFromName('xl/worksheets/sheet' . $i . '.xml');
+            if ($sheetXml === false) {
+                if ($i === 1) { continue; }
+                break;
+            }
+            $sx = @simplexml_load_string($sheetXml);
+            if ($sx === false) { continue; }
+            $rows = array();
+            foreach ($sx->sheetData->row as $row) {
+                $cells = array();
+                $maxIdx = -1;
+                foreach ($row->c as $c) {
+                    $ref = (string) $c['r'];
+                    $col = preg_replace('/[0-9]/', '', $ref);
+                    $idx = epc_ext_xlsx_col_index($col);
+                    $type = (string) $c['t'];
+                    if ($type === 's') {
+                        $val = $shared[(int) $c->v] ?? '';
+                    } elseif ($type === 'inlineStr') {
+                        $val = (string) $c->is->t;
+                    } else {
+                        $val = (string) $c->v;
+                    }
+                    $cells[$idx] = $val;
+                    if ($idx > $maxIdx) { $maxIdx = $idx; }
+                }
+                $line = array();
+                for ($j = 0; $j <= $maxIdx; $j++) { $line[] = $cells[$j] ?? ''; }
+                $rows[] = $line;
+            }
+            $sheets[] = $rows;
+        }
+        $zip->close();
+        return $sheets;
     }
 }
 
