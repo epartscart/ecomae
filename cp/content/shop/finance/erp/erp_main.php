@@ -216,6 +216,7 @@ $erpTabIncludes = array(
 	'subscriptions' => 'erp_tabs_subscriptions.php',
 	'manufacturing' => 'erp_tabs_manufacturing.php',
 	'order_planning' => 'erp_tabs_order_planning.php',
+	'supplier_portal' => 'erp_tabs_supplier_portal.php',
 	'agenda' => 'erp_tabs_agenda.php',
 	'projects' => 'erp_tabs_projects.php',
 	'knowledge_base' => 'erp_tabs_knowledge_base.php',

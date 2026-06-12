@@ -9,7 +9,7 @@ function epc_erp_staff_all_tabs()
 	return array(
 		'dashboard', 'workflow', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
 		'fulfilment', 'revenue', 'subscriptions', 'receivables',
-		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match',
+		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match', 'supplier_portal',
 		'cash_bank', 'payment_batches', 'petty_cash',
 		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
 		'inventory', 'fixed_assets', 'manufacturing', 'order_planning', 'custom_shipping',
