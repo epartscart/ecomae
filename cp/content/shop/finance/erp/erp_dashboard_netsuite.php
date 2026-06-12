@@ -88,6 +88,13 @@ $nsMoney = function ($v) {
 $nsUrl = function ($tab, $area = '') use ($erpUrl, $date_from_str, $date_to_str) {
 	return epc_erp_h(epc_erp_tab_url($erpUrl, $tab, $date_from_str, $date_to_str, $area));
 };
+/** Deep-link straight into an External Reporting report (cat + rep, auto-fetch). */
+$nsExtUrl = function ($cat, $rep) use ($nsUrl) {
+	return $nsUrl('ext_reports', 'regrep')
+		. '&amp;cat=' . urlencode($cat)
+		. '&amp;rep=' . urlencode($rep)
+		. '&amp;fetch=1';
+};
 /** Change badge: returns html for % change current vs previous. */
 $nsChange = function ($cur, $prev, $goodWhenUp = true) {
 	$cur = (float) $cur;
@@ -161,15 +168,20 @@ $navGroups = array(
 		array('label' => 'General ledger', 'icon' => 'fa-book', 'url' => $nsUrl('gl', 'finance')),
 	),
 	'Reports' => array(
-		array('label' => 'A/R &amp; A/P aging', 'icon' => 'fa-hourglass-half', 'url' => $nsUrl('aging', 'finance')),
+		array('label' => 'Financial report (IFRS)', 'icon' => 'fa-file-text-o', 'url' => $nsExtUrl('audit', 'audit__external_audit_report')),
+		array('label' => 'VAT return (VAT 201)', 'icon' => 'fa-percent', 'url' => $nsExtUrl('tax', 'tax__vat_return')),
+		array('label' => 'Corporate tax return', 'icon' => 'fa-balance-scale', 'url' => $nsExtUrl('tax', 'tax__corporate_income_tax_return')),
 		array('label' => 'Profit &amp; loss', 'icon' => 'fa-line-chart', 'url' => $nsUrl('pl', 'insights')),
-		array('label' => 'Balance sheet', 'icon' => 'fa-balance-scale', 'url' => $nsUrl('balance_sheet', 'insights')),
-		array('label' => 'VAT return', 'icon' => 'fa-percent', 'url' => $nsUrl('vat_return', 'finance')),
 	),
 );
 
 // ---- Quick actions (visual icon cards, role-aware first row) ----
+// Statutory reports first — quick-open straight into the External Reporting pack
+// (tenant-country-driven: UAE -> IFRS/ISA + FTA VAT 201 / CT; auto-localises).
 $quickActions = array(
+	array('label' => 'Financial Report (IFRS)', 'icon' => 'fa-file-text-o', 'tone' => 'qa-indigo', 'url' => $nsExtUrl('audit', 'audit__external_audit_report')),
+	array('label' => 'VAT Return (VAT 201)', 'icon' => 'fa-percent', 'tone' => 'qa-green', 'url' => $nsExtUrl('tax', 'tax__vat_return')),
+	array('label' => 'Corporate Tax Return', 'icon' => 'fa-balance-scale', 'tone' => 'qa-rust', 'url' => $nsExtUrl('tax', 'tax__corporate_income_tax_return')),
 	array('label' => 'New Sales Order', 'icon' => 'fa-shopping-cart', 'tone' => 'qa-blue', 'url' => $nsUrl('sales_orders', 'sales')),
 	array('label' => 'New Purchase Order', 'icon' => 'fa-clipboard', 'tone' => 'qa-indigo', 'url' => $nsUrl('purchase_orders', 'purchasing')),
 	array('label' => 'New Item', 'icon' => 'fa-cubes', 'tone' => 'qa-amber', 'url' => $nsUrl('inventory', 'operations')),
