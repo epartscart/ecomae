@@ -176,9 +176,9 @@ if (!function_exists('epc_ext_reports_registry')) {
                 array('KYC Compliance Reporting', '', ''),
                 array('Customer Due Diligence Reporting', '', ''),
                 array('Enhanced Due Diligence Reporting', '', ''),
-                array('Suspicious Activity Report (SAR)', '', ''),
-                array('Suspicious Transaction Report (STR)', '', ''),
-                array('Suspicious Fund Transfer Report', '', ''),
+                array('Suspicious Activity Report (SAR)', 'aml', ''),
+                array('Suspicious Transaction Report (STR)', 'aml', ''),
+                array('Suspicious Fund Transfer Report', 'aml', ''),
                 array('Terrorist Financing Report', '', ''),
                 array('Sanctions Screening Report', '', ''),
                 array('Politically Exposed Person Reporting', '', ''),
@@ -353,7 +353,7 @@ if (!function_exists('epc_ext_reports_registry')) {
                 array('Gaming/Gambling Reporting (where legal)', '', ''),
                 array('Economic Substance Notification', 'esr_notify', ''),
                 array('Economic Substance Report', 'esr', ''),
-                array('AML goAML Reporting', '', ''),
+                array('AML goAML Reporting', 'aml', ''),
             ),
         );
 

@@ -224,15 +224,50 @@ check('VAT treatment catalog has invest_gold (0%) + gold_rcm (RCM)',
     && isset($vatCat['gold_rcm']) && !empty($vatCat['gold_rcm']['rcm']),
     'invest_gold ' . ($vatCat['invest_gold']['rate'] ?? '?') . '% / gold_rcm rcm=' . (int) ($vatCat['gold_rcm']['rcm'] ?? 0));
 $vatLines = epc_ext_vat_sample_supply_lines();
-check('VAT sample supply lines populated', count($vatLines) >= 8, count($vatLines) . ' lines');
+check('VAT sample supply lines cover multiple sectors', count($vatLines) >= 20, count($vatLines) . ' lines');
+$vatSectors = array();
+foreach ($vatLines as $vl) { $vatSectors[(string) ($vl['sector'] ?? '')] = true; }
+check('VAT sample data spans many industries', count($vatSectors) >= 10, count($vatSectors) . ' sectors');
 $vatChecks = epc_ext_vat_compliance($vatLines);
 $vatErr = 0; $vatOk = 0;
 foreach ($vatChecks as $vc) { if ($vc['status'] === 'error') { $vatErr++; } elseif ($vc['status'] === 'ok') { $vatOk++; } }
-check('VAT compliance flags 24kt-gold-taxed + gold-B2B-VAT errors', $vatErr === 2, $vatErr . ' errors / ' . $vatOk . ' pass');
+check('VAT compliance flags the deliberate cross-sector errors', $vatErr === 5, $vatErr . ' errors / ' . $vatOk . ' pass');
 // Correct treatment passes, wrong treatment fails
 $okGold = epc_ext_vat_compliance(array(array('doc' => 'T1', 'item' => '24kt', 'scheme' => 'invest_gold', 'net' => 1000.0, 'declared' => 0.0, 'margin' => 0.0, 'trn' => true)));
 $badGold = epc_ext_vat_compliance(array(array('doc' => 'T2', 'item' => '24kt', 'scheme' => 'invest_gold', 'net' => 1000.0, 'declared' => 50.0, 'margin' => 0.0, 'trn' => true)));
 check('Investment gold 0% passes, 5% fails', $okGold[0]['status'] === 'ok' && $badGold[0]['status'] === 'error', $okGold[0]['status'] . ' / ' . $badGold[0]['status']);
+
+// UAE CT full computation builds with adjustments schedule + compliance
+$ctBuild = epc_ext_b_ct($db, 'Corporate Income Tax Return', 'AE', 'AED', '2026-01-01', '2026-12-31');
+check('UAE CT report builds (live)', !empty($ctBuild['live']) && isset($ctBuild['summary']['CT payable']), 'live=' . (int) ($ctBuild['live'] ?? 0));
+check('UAE CT schedule shows statutory adjustments', strpos($ctBuild['body'], 'Entertainment') !== false && strpos($ctBuild['body'], 'Interest limitation') !== false && strpos($ctBuild['body'], 'Tax bands') !== false, 'adjustments present');
+check('UAE CT compliance panel present', strpos($ctBuild['body'], 'compliance checks') !== false && isset($ctBuild['summary']['Compliance']), 'compliance present');
+
+// FTA supporting schedules (TRN-wise / invoice-wise / supplier-wise / adjustments)
+$sched = epc_ext_vat_schedule_data();
+check('VAT schedule has output/input/adjust sets', !empty($sched['output']) && !empty($sched['input']) && !empty($sched['adjust']), count($sched['output']) . '/' . count($sched['input']) . '/' . count($sched['adjust']));
+$schedHtml = epc_ext_vat_schedules_html('AED');
+check('VAT schedules render downloads + TRN drill-down',
+    strpos($schedHtml, 'Invoice-wise') !== false && strpos($schedHtml, 'TRN-wise') !== false
+    && strpos($schedHtml, 'Supplier-wise') !== false && strpos($schedHtml, 'epcDlCsv') !== false,
+    'schedules present');
+
+// Field guides on VAT + CT
+$vatBuild = epc_ext_b_vat($db, 'VAT Return', 'AE', 'AED', '2026-01-01', '2026-12-31');
+check('VAT field guide explains each box', strpos($vatBuild['body'], 'Field guide') !== false && strpos($vatBuild['body'], 'Box 12 / 13 / 14') !== false, 'vat guide present');
+check('CT field guide explains each line', strpos($ctBuild['body'], 'Field guide') !== false && strpos($ctBuild['body'], 'Interest limitation') !== false, 'ct guide present');
+
+// AML / goAML SAR/STR builder
+$sar = epc_ext_b_aml($db, 'Suspicious Activity Report (SAR)', 'AE', 'AED');
+$str = epc_ext_b_aml($db, 'Suspicious Transaction Report (STR)', 'AE', 'AED');
+check('AML SAR builds with goAML format + KYC + grounds', !empty($sar['live']) && strpos($sar['body'], 'goAML') !== false && strpos($sar['body'], 'Grounds for suspicion') !== false && strpos($sar['body'], 'Field guide') !== false, 'SAR ok');
+check('AML STR detected as transaction report', $str['summary']['Report type'] === 'STR', $str['summary']['Report type']);
+
+// UAE complete-format template with full sample data for any category
+$corpRep = epc_ext_report_build($db, 'corp__annual_return_filing', 'AE', '2026-01-01', '2026-12-31');
+check('UAE corp filing renders complete format (live)', !empty($corpRep['body']) && $corpRep['live'] === true && strpos($corpRep['body'], 'Filing particulars') !== false && strpos($corpRep['body'], 'Field guide') !== false, 'corp live=' . (int) ($corpRep['live'] ?? 0));
+$customsRep = epc_ext_report_build($db, 'customs__customs_declaration', 'AE', '2026-01-01', '2026-12-31');
+check('UAE customs declaration has HS/CIF/duty schedule', strpos($customsRep['body'], 'HS code') !== false && strpos($customsRep['body'], 'CIF value') !== false, 'customs schedule present');
 
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";

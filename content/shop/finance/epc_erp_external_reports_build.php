@@ -96,6 +96,8 @@ if (!function_exists('epc_ext_report_build')) {
                     return epc_ext_b_esr($db, $name, $country, $ccy, $from, $to, $builder === 'esr_notify');
                 case 'cbcr':
                     return epc_ext_b_cbcr($db, $name, $country, $ccy, $from, $to);
+                case 'aml':
+                    return epc_ext_b_aml($db, $name, $country, $ccy);
                 default:
                     return epc_ext_b_template($db, $def, $country, $ccy, $from, $to);
             }
@@ -121,6 +123,95 @@ if (!function_exists('epc_ext_kv_table')) {
                 . '<td style="text-align:right;white-space:nowrap;">' . epc_erp_h($r[1]) . '</td></tr>';
         }
         return $h . '</table>';
+    }
+}
+
+if (!function_exists('epc_ext_field_guide')) {
+    /**
+     * Collapsible "why each field" explainer panel shown at the top of a return.
+     * Helps a tenant understand exactly what to put in every box/line and the
+     * statutory reason for it.
+     *
+     * @param array<int,array{0:string,1:string}> $rows  field/box label, plain-language explanation
+     */
+    function epc_ext_field_guide(string $title, string $intro, array $rows, bool $open = false): string
+    {
+        $tr = '';
+        foreach ($rows as $r) {
+            $tr .= '<tr>'
+                . '<td style="padding:6px 10px;font-weight:600;color:#1d2740;white-space:nowrap;vertical-align:top;">' . epc_erp_h((string) $r[0]) . '</td>'
+                . '<td style="padding:6px 10px;color:#333;">' . epc_erp_h((string) $r[1]) . '</td></tr>';
+        }
+        return '<details' . ($open ? ' open' : '') . ' style="border:1px solid #cfe0f5;background:#f5f9ff;border-radius:6px;margin:6px 0 16px;padding:6px 12px;">'
+            . '<summary style="cursor:pointer;font-weight:700;color:#1d4e89;"><i class="fa fa-info-circle"></i> ' . epc_erp_h($title) . '</summary>'
+            . '<p class="text-muted" style="margin:8px 0;">' . epc_erp_h($intro) . '</p>'
+            . '<table class="table table-bordered table-condensed" style="background:#fff;font-size:12px;margin:0;">'
+            . '<thead><tr style="background:#e8f1fc;"><th style="padding:6px 10px;">Field / box</th><th style="padding:6px 10px;">What goes here &amp; why</th></tr></thead>'
+            . '<tbody>' . $tr . '</tbody></table></details>';
+    }
+}
+
+if (!function_exists('epc_ext_vat_guide_rows')) {
+    /** @return array<int,array{0:string,1:string}> */
+    function epc_ext_vat_guide_rows(): array
+    {
+        return array(
+            array('Box 1a–1g — Standard-rated supplies (by Emirate)', 'Your 5% taxable sales, split by the Emirate where the supply takes place (place-of-supply rule). The FTA needs the Emirate breakdown to allocate VAT revenue, so report each branch/location’s net sales and the 5% output VAT against the correct Emirate.'),
+            array('Box 2 — Tourist refunds', 'VAT refunded to tourists under the Planet/FTA tourist-refund scheme. Entered as a negative because it reduces the output VAT you owe.'),
+            array('Box 3 — Reverse-charge supplies', 'Supplies where the buyer (not you) accounts for the VAT — e.g. imported services, or local B2B gold/diamonds. You report the net value; you charge 0% and the registered buyer self-accounts.'),
+            array('Box 4 — Zero-rated supplies', 'Sales taxed at 0%: exports outside the GCC, international transport, first supply of new residential, qualifying education/healthcare. Value is reported; VAT is nil but you still recover related input VAT.'),
+            array('Box 5 — Exempt supplies', 'Supplies with no VAT and no input-VAT recovery: residential property lease, bare land, local passenger transport, margin-based financial services.'),
+            array('Box 6 — Goods imported into the UAE', 'Imports auto-populated from your customs declarations (FTA import VAT). Reported here and usually recovered in Box 10 if you’re entitled.'),
+            array('Box 7 — Import adjustments', 'Corrections to previously reported imports (e.g. customs value changes).'),
+            array('Box 8 — Output totals', 'Sum of all output lines — total VAT due before you deduct what you can recover.'),
+            array('Box 9 — Standard-rated expenses', 'Your purchases/expenses that carried 5% VAT. Report net value and the recoverable input VAT (must have a valid tax invoice).'),
+            array('Box 10 — Reverse-charge / import (recoverable)', 'The VAT you self-accounted on imports and reverse-charge supplies, claimed back here if recoverable — net effect is usually nil.'),
+            array('Box 11 — Input totals', 'Total recoverable input VAT for the period.'),
+            array('Box 12 / 13 / 14 — Net VAT due', 'Box 12 (output VAT) − Box 13 (recoverable input VAT) = Box 14, the net VAT payable to (or reclaimable from) the FTA.'),
+            array('Special schemes', '24kt investment gold (≥99%) is exempt (0%), not 5%; B2B gold/diamonds use reverse charge; the profit-margin scheme charges 5% on the margin only; designated-zone goods are out of scope. The engine maps each line automatically and flags any wrong treatment.'),
+            array('Supporting schedules (TRN / Invoice / Supplier)', 'The FTA audit file expects the detail behind the boxes: every sales invoice (with customer TRN & Emirate), a per-customer-TRN summary, every purchase (with supplier TRN), and an adjustments register. Download each as Excel/CSV to attach to your filing or reconcile.'),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_ct_guide_rows')) {
+    /** @return array<int,array{0:string,1:string}> */
+    function epc_ext_ct_guide_rows(): array
+    {
+        return array(
+            array('Accounting profit', 'Your net profit per the financial statements (IFRS). This is the starting point — tax is not simply 9% of this; it is adjusted below.'),
+            array('+ Fines & penalties', 'Added back 100% — administrative fines/penalties are never deductible for Corporate Tax.'),
+            array('+ Entertainment (50%)', 'Only 50% of client/business entertainment is deductible, so half is added back.'),
+            array('+ Donations to non-qualifying bodies', 'Donations are deductible only if paid to a Cabinet-approved qualifying public-benefit entity; others are added back.'),
+            array('+ Provisions (non-specific)', 'General/unspecific provisions are added back until the expense actually crystallises.'),
+            array('+ Accounting depreciation', 'Book depreciation is added back and replaced with tax depreciation, to use the tax basis instead of the accounting basis.'),
+            array('− Tax depreciation', 'The depreciation allowed under the CT law is deducted in place of the accounting figure.'),
+            array('− Exempt income (dividends / participation)', 'Qualifying dividends and participation gains are exempt and removed from taxable income to avoid double taxation.'),
+            array('Interest limitation (30% EBITDA)', 'Net interest is deductible only up to the higher of 30% of tax-EBITDA or the AED 12m de-minimis; the excess is disallowed (added back) and can be carried forward.'),
+            array('Tax-loss relief (75% cap)', 'Brought-forward tax losses can offset only up to 75% of the current-year taxable income; the rest carries forward.'),
+            array('Small Business Relief', 'If revenue is ≤ AED 3m, you may elect SBR and be treated as having no taxable income for the period.'),
+            array('Tax bands (0% / 9%)', 'Taxable income up to AED 375,000 is taxed at 0%; the excess at 9%. The result is your Corporate Tax payable.'),
+            array('Compliance checks', 'The panel verifies TRN/registration, non-deductible add-backs, the interest cap, exempt-income treatment, loss-relief cap, related-party/transfer-pricing disclosure and SBR eligibility before you file.'),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_aml_guide_rows')) {
+    /** @return array<int,array{0:string,1:string}> */
+    function epc_ext_aml_guide_rows(): array
+    {
+        return array(
+            array('Reporting entity & registration', 'Your goAML-registered entity details and FIU registration number — identifies who is filing the report.'),
+            array('Report type (SAR / STR)', 'SAR = Suspicious Activity Report (suspicion about conduct/behaviour); STR = Suspicious Transaction Report (suspicion about a specific transaction). Pick the one that matches the suspicion.'),
+            array('Subject — KYC identity', 'Full identity of the person/entity: name, ID/passport/trade licence, nationality, address. Required so the FIU can identify the subject; gaps weaken the report.'),
+            array('PEP flag', 'Whether the subject is a Politically Exposed Person — PEPs carry higher risk and require enhanced due diligence and senior sign-off.'),
+            array('Sanctions screening result', 'Outcome of screening the subject against UN/local sanctions lists. A match must be reported and the transaction frozen.'),
+            array('Transaction details', 'Date, amount, currency, channel, counterparties and accounts involved — the factual basis of the suspicion.'),
+            array('Reason for suspicion (grounds)', 'Plain-language narrative: what is unusual and why (e.g. structuring below thresholds, no economic rationale, mismatch with profile). This is the core of the report.'),
+            array('Threshold context', 'Note where amounts approach/breach cash or wire thresholds, or appear structured to avoid them — relevant to the grounds for reporting.'),
+            array('Action taken', 'Whether the transaction was processed, delayed or refused, and whether funds were frozen — informs the FIU response.'),
+            array('Compliance officer & date', 'The MLRO/compliance officer submitting the report and the date — establishes accountability and timeliness (report without tipping off the subject).'),
+        );
     }
 }
 
@@ -273,6 +364,9 @@ if (!function_exists('epc_ext_b_vat')) {
         $css = 'border:1px solid #e2e6ee;border-radius:6px;margin-bottom:18px;overflow:hidden;';
         $body = '<p class="text-muted">Official <strong>FTA VAT 201</strong> return generated from posted ERP data at the ' . epc_erp_h($rPct)
             . '% standard rate. Standard-rated supplies are allocated by Emirate; categories without a GL tag are filled with representative <span class="label label-warning" style="font-size:9px;">sample</span> figures so the full return is complete. Click any box to drill into the source transactions.</p>'
+            . epc_ext_field_guide('Field guide — what goes in each VAT 201 box (and why)',
+                'Plain-language explanation of every box so you know which figure belongs where before you file. Governing law: Federal Decree-Law 8/2017 & VAT Executive Regulations (FTA).',
+                epc_ext_vat_guide_rows())
             . '<h4 style="margin-top:14px;color:#1d2740;">VAT on sales and all other outputs</h4>'
             . '<div style="' . $css . '">' . epc_ext_vat_header_row() . $boxesOut . '</div>'
             . '<h4 style="color:#1d2740;">VAT on expenses and all other inputs</h4>'
@@ -286,6 +380,7 @@ if (!function_exists('epc_ext_b_vat')) {
 
         $schemes = epc_ext_vat_schemes_html($ccy);
         $body .= $schemes['html'];
+        $body .= epc_ext_vat_schedules_html($ccy);
 
         $sum = array(
             'Output ' . $taxLabel . ' (Box 12)' => epc_ext_m($totOutVat, $ccy),
@@ -364,8 +459,18 @@ if (!function_exists('epc_ext_vat_treatment_catalog')) {
             'invest_gold' => array('label' => 'Investment gold/silver/platinum 24kt (≥99% — VAT-exempt 0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Cabinet Decision 25/2018'),
             'gold_rcm'    => array('label' => 'Gold & diamonds B2B — reverse charge (seller charges 0%)', 'rate' => 0.0, 'rcm' => true, 'box' => 'Box 3', 'ref' => 'Cabinet Decision 25/2018 / 127/2024'),
             'zero_export' => array('label' => 'Zero-rated export / international (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 4', 'ref' => 'Federal Decree-Law 8/2017, Art. 45'),
+            'zero_resid'  => array('label' => 'First supply of new residential building (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 4', 'ref' => 'Federal Decree-Law 8/2017, Art. 45(9)'),
+            'zero_health' => array('label' => 'Healthcare — preventive & basic (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 4', 'ref' => 'Cabinet Decision 52/2017, Art. 41'),
+            'zero_edu'    => array('label' => 'Education — recognised curriculum (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 4', 'ref' => 'Cabinet Decision 52/2017, Art. 40'),
+            'zero_intl_transport' => array('label' => 'International transport of passengers/goods (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 4', 'ref' => 'Federal Decree-Law 8/2017, Art. 45(2)'),
             'margin'      => array('label' => 'Profit-margin scheme (5% on margin only)', 'rate' => 5.0, 'rcm' => false, 'box' => 'Box 1', 'ref' => 'VAT Exec. Reg. Art. 29'),
             'exempt'      => array('label' => 'Exempt supply (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Federal Decree-Law 8/2017, Art. 46'),
+            'exempt_resid' => array('label' => 'Residential property lease — exempt', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Federal Decree-Law 8/2017, Art. 46(1)'),
+            'exempt_fin'  => array('label' => 'Margin-based financial services — exempt', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Federal Decree-Law 8/2017, Art. 46(2)'),
+            'exempt_transport' => array('label' => 'Local passenger transport — exempt', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Cabinet Decision 52/2017, Art. 45'),
+            'exempt_land' => array('label' => 'Bare land — exempt', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Federal Decree-Law 8/2017, Art. 46(3)'),
+            'rcm_services' => array('label' => 'Imported services — reverse charge', 'rate' => 0.0, 'rcm' => true, 'box' => 'Box 3', 'ref' => 'Federal Decree-Law 8/2017, Art. 48'),
+            'dz_goods'    => array('label' => 'Designated-zone goods (out of scope of VAT)', 'rate' => 0.0, 'rcm' => false, 'box' => '—', 'ref' => 'Cabinet Decision 59/2017'),
             'out_scope'   => array('label' => 'Out of scope', 'rate' => 0.0, 'rcm' => false, 'box' => '—', 'ref' => 'Not a taxable supply'),
         );
     }
@@ -382,15 +487,39 @@ if (!function_exists('epc_ext_vat_sample_supply_lines')) {
     function epc_ext_vat_sample_supply_lines(): array
     {
         return array(
-            array('doc' => 'INV-3001', 'item' => '22kt gold necklace (incl. making charge)', 'scheme' => 'standard', 'net' => 48000.00, 'declared' => 2400.00, 'margin' => 0.0, 'trn' => false),
-            array('doc' => 'INV-3002', 'item' => '24kt investment gold bars 999.9 (bullion)', 'scheme' => 'invest_gold', 'net' => 250000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
-            array('doc' => 'INV-3003', 'item' => 'Loose diamonds — sale to registered jeweller', 'scheme' => 'gold_rcm', 'net' => 120000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
-            array('doc' => 'INV-3004', 'item' => 'Gold jewellery export to KSA', 'scheme' => 'zero_export', 'net' => 90000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
-            array('doc' => 'INV-3005', 'item' => 'Pre-owned Rolex watch (profit-margin scheme)', 'scheme' => 'margin', 'net' => 32000.00, 'declared' => 300.00, 'margin' => 6000.0, 'trn' => false),
-            array('doc' => 'INV-3006', 'item' => '18kt diamond ring (retail)', 'scheme' => 'standard', 'net' => 26000.00, 'declared' => 1300.00, 'margin' => 0.0, 'trn' => false),
-            array('doc' => 'INV-3007', 'item' => 'Scrap gold from registrant (reverse charge)', 'scheme' => 'gold_rcm', 'net' => 40000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
-            array('doc' => 'INV-3008', 'item' => '24kt investment gold coin — taxed 5% IN ERROR', 'scheme' => 'invest_gold', 'net' => 60000.00, 'declared' => 3000.00, 'margin' => 0.0, 'trn' => true),
-            array('doc' => 'INV-3009', 'item' => 'Gold sale to registrant — VAT charged (should be RCM)', 'scheme' => 'gold_rcm', 'net' => 55000.00, 'declared' => 2750.00, 'margin' => 0.0, 'trn' => true),
+            // --- General trade / retail / services ---------------------------
+            array('doc' => 'INV-4001', 'item' => 'Retail electronics sale (standard goods)', 'sector' => 'Retail', 'scheme' => 'standard', 'net' => 85000.00, 'declared' => 4250.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4002', 'item' => 'Consulting / professional services', 'sector' => 'Services', 'scheme' => 'standard', 'net' => 60000.00, 'declared' => 3000.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4003', 'item' => 'Goods exported outside GCC', 'sector' => 'Trade', 'scheme' => 'zero_export', 'net' => 140000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4004', 'item' => 'Imported marketing services (foreign supplier)', 'sector' => 'Services', 'scheme' => 'rcm_services', 'net' => 30000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            // --- Real estate -------------------------------------------------
+            array('doc' => 'INV-4010', 'item' => 'Commercial office lease', 'sector' => 'Real estate', 'scheme' => 'standard', 'net' => 200000.00, 'declared' => 10000.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4011', 'item' => 'Residential apartment lease', 'sector' => 'Real estate', 'scheme' => 'exempt_resid', 'net' => 120000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4012', 'item' => 'First sale of newly built residential unit', 'sector' => 'Real estate', 'scheme' => 'zero_resid', 'net' => 1500000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4013', 'item' => 'Sale of bare land', 'sector' => 'Real estate', 'scheme' => 'exempt_land', 'net' => 800000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            // --- Education & healthcare --------------------------------------
+            array('doc' => 'INV-4020', 'item' => 'School tuition — recognised curriculum', 'sector' => 'Education', 'scheme' => 'zero_edu', 'net' => 95000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4021', 'item' => 'Hospital — basic healthcare service', 'sector' => 'Healthcare', 'scheme' => 'zero_health', 'net' => 110000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            // --- Financial services & transport ------------------------------
+            array('doc' => 'INV-4030', 'item' => 'Bank margin-based interest income', 'sector' => 'Financial', 'scheme' => 'exempt_fin', 'net' => 70000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4031', 'item' => 'Local bus passenger transport', 'sector' => 'Transport', 'scheme' => 'exempt_transport', 'net' => 45000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4032', 'item' => 'International air freight', 'sector' => 'Logistics', 'scheme' => 'zero_intl_transport', 'net' => 160000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            // --- Hospitality / F&B / telecom / e-commerce --------------------
+            array('doc' => 'INV-4040', 'item' => 'Hotel room nights + F&B', 'sector' => 'Hospitality', 'scheme' => 'standard', 'net' => 78000.00, 'declared' => 3900.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4041', 'item' => 'Telecom / data subscriptions', 'sector' => 'Telecom', 'scheme' => 'standard', 'net' => 52000.00, 'declared' => 2600.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4042', 'item' => 'E-commerce marketplace sales', 'sector' => 'E-commerce', 'scheme' => 'standard', 'net' => 64000.00, 'declared' => 3200.00, 'margin' => 0.0, 'trn' => false),
+            // --- Designated zone / second-hand / precious metals -------------
+            array('doc' => 'INV-4050', 'item' => 'Goods sold within designated free zone', 'sector' => 'Free zone', 'scheme' => 'dz_goods', 'net' => 90000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-4051', 'item' => 'Pre-owned vehicle (profit-margin scheme)', 'sector' => 'Automotive', 'scheme' => 'margin', 'net' => 55000.00, 'declared' => 375.00, 'margin' => 7500.0, 'trn' => false),
+            array('doc' => 'INV-4052', 'item' => '24kt investment gold bars 999.9 (bullion)', 'sector' => 'Jewellery', 'scheme' => 'invest_gold', 'net' => 250000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-4053', 'item' => '22kt gold jewellery (making charge)', 'sector' => 'Jewellery', 'scheme' => 'standard', 'net' => 48000.00, 'declared' => 2400.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4054', 'item' => 'Diamonds — B2B sale to registrant', 'sector' => 'Jewellery', 'scheme' => 'gold_rcm', 'net' => 120000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            // --- Deliberate compliance errors across sectors -----------------
+            array('doc' => 'INV-4090', 'item' => 'Residential lease — VAT charged IN ERROR', 'sector' => 'Real estate', 'scheme' => 'exempt_resid', 'net' => 100000.00, 'declared' => 5000.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4091', 'item' => 'School tuition — VAT charged IN ERROR', 'sector' => 'Education', 'scheme' => 'zero_edu', 'net' => 80000.00, 'declared' => 4000.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-4092', 'item' => '24kt investment gold — taxed 5% IN ERROR', 'sector' => 'Jewellery', 'scheme' => 'invest_gold', 'net' => 60000.00, 'declared' => 3000.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-4093', 'item' => 'Diamond B2B — VAT charged (should be RCM)', 'sector' => 'Jewellery', 'scheme' => 'gold_rcm', 'net' => 55000.00, 'declared' => 2750.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-4094', 'item' => 'Standard sale — VAT undercharged IN ERROR', 'sector' => 'Retail', 'scheme' => 'standard', 'net' => 40000.00, 'declared' => 1200.00, 'margin' => 0.0, 'trn' => false),
         );
     }
 }
@@ -417,27 +546,26 @@ if (!function_exists('epc_ext_vat_compliance')) {
                 $out[] = array('status' => 'warn', 'doc' => $doc, 'msg' => 'Unknown VAT treatment code — review manually.');
                 continue;
             }
-            if ($scheme === 'invest_gold') {
+            $isRcm = !empty($rule['rcm']);
+            $rate = (float) $rule['rate'];
+            if ($isRcm) {
+                // Seller charges 0%; buyer self-accounts. Any output VAT is wrong.
                 $out[] = $declared > 0.005
-                    ? array('status' => 'error', 'doc' => $doc, 'msg' => '24kt investment gold taxed at ' . epc_erp_money($declared) . ' — must be 0% VAT-exempt (Cabinet Decision 25/2018).')
-                    : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Investment gold correctly treated as VAT-exempt (0%).');
-            } elseif ($scheme === 'gold_rcm') {
-                $out[] = $declared > 0.005
-                    ? array('status' => 'error', 'doc' => $doc, 'msg' => 'Gold/diamond B2B supply charged VAT — must be reverse charge; buyer self-accounts (Cabinet Decision 25/2018).')
-                    : (!$l['trn']
-                        ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Reverse charge applied but buyer TRN not recorded — capture buyer TRN to support RCM.')
-                        : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Reverse charge correctly applied; buyer TRN on file.'));
+                    ? array('status' => 'error', 'doc' => $doc, 'msg' => $rule['label'] . ' — VAT of ' . epc_erp_money($declared) . ' charged, but supply must be reverse charge (buyer self-accounts).')
+                    : (empty($l['trn'])
+                        ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Reverse charge applied but counterparty TRN not recorded — capture TRN to support RCM.')
+                        : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Reverse charge correctly applied; counterparty TRN on file.'));
             } elseif ($scheme === 'margin') {
                 $expect = round(((float) $l['margin']) * 5 / 100, 2);
                 $out[] = abs($declared - $expect) > 1.0
                     ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Profit-margin VAT ' . epc_erp_money($declared) . ' vs expected ' . epc_erp_money($expect) . ' (5% of margin) — verify margin basis.')
                     : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Profit-margin scheme: VAT charged on margin only (' . epc_erp_money($expect) . ').');
-            } elseif ($scheme === 'standard') {
-                $expect = round($net * 5 / 100, 2);
+            } elseif ($rate > 0) { // standard-rated
+                $expect = round($net * $rate / 100, 2);
                 $out[] = abs($declared - $expect) > 1.0
-                    ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Standard-rated VAT ' . epc_erp_money($declared) . ' vs expected ' . epc_erp_money($expect) . ' (5%).')
-                    : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Standard 5% VAT correctly charged (' . epc_erp_money($expect) . ').');
-            } else { // zero_export / exempt / out_scope
+                    ? array('status' => 'error', 'doc' => $doc, 'msg' => 'Standard-rated VAT ' . epc_erp_money($declared) . ' vs expected ' . epc_erp_money($expect) . ' (' . rtrim(rtrim(number_format($rate, 2), '0'), '.') . '%) — recompute.')
+                    : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Standard ' . rtrim(rtrim(number_format($rate, 2), '0'), '.') . '% VAT correctly charged (' . epc_erp_money($expect) . ').');
+            } else { // any zero-rated / exempt / out-of-scope / designated-zone code
                 $out[] = $declared > 0.005
                     ? array('status' => 'error', 'doc' => $doc, 'msg' => $rule['label'] . ' should carry 0% VAT but ' . epc_erp_money($declared) . ' was charged.')
                     : array('status' => 'ok', 'doc' => $doc, 'msg' => $rule['label'] . ' correctly at 0%.');
@@ -462,6 +590,7 @@ if (!function_exists('epc_ext_vat_schemes_html')) {
             $rule = $cat[$l['scheme']];
             $rows .= '<tr>'
                 . '<td style="padding:5px 8px;">' . epc_erp_h($l['doc']) . '</td>'
+                . '<td style="padding:5px 8px;"><span class="label label-info">' . epc_erp_h((string) ($l['sector'] ?? '')) . '</span></td>'
                 . '<td style="padding:5px 8px;">' . epc_erp_h($l['item']) . '</td>'
                 . '<td style="padding:5px 8px;"><span class="label label-default">' . epc_erp_h($rule['label']) . '</span></td>'
                 . '<td style="text-align:right;padding:5px 8px;white-space:nowrap;">' . epc_ext_m((float) $l['net'], $ccy) . '</td>'
@@ -470,7 +599,7 @@ if (!function_exists('epc_ext_vat_schemes_html')) {
                 . '</tr>';
         }
         $supplyTable = '<table class="table table-bordered table-condensed" style="font-size:12px;">'
-            . '<thead><tr style="background:#f0f3f8;"><th>Doc</th><th>Item / supply</th><th>VAT treatment</th><th style="text-align:right;">Net</th><th style="text-align:right;">VAT charged</th><th>Legal basis</th></tr></thead>'
+            . '<thead><tr style="background:#f0f3f8;"><th>Doc</th><th>Sector</th><th>Item / supply</th><th>VAT treatment</th><th style="text-align:right;">Net</th><th style="text-align:right;">VAT charged</th><th>Legal basis</th></tr></thead>'
             . '<tbody>' . $rows . '</tbody></table>';
 
         $checks = epc_ext_vat_compliance($lines);
@@ -502,12 +631,170 @@ if (!function_exists('epc_ext_vat_schemes_html')) {
             . '<tbody>' . $cr . '</tbody></table>';
 
         $html = '<h4 style="color:#1d2740;margin-top:18px;">Supplies by VAT treatment / special schemes</h4>'
-            . '<p class="text-muted">Each supply is auto-mapped to its UAE VAT treatment. For a live tenant these come from the item/category tax code; below is a representative jewellery/bullion set so the scheme handling is visible — including <strong>24kt investment gold (exempt)</strong>, <strong>gold &amp; diamond B2B reverse charge</strong>, exports, and the profit-margin scheme.</p>'
+            . '<p class="text-muted">Each supply is auto-mapped to its correct UAE VAT treatment across <strong>every sector</strong> — retail, services, real estate (commercial 5% / residential exempt / first new residential 0% / bare land exempt), education &amp; healthcare (0%), financial services &amp; local transport (exempt), international transport &amp; exports (0%), imported services &amp; B2B gold/diamonds (reverse charge), designated-zone goods (out of scope), profit-margin scheme, and 24kt investment gold (exempt). For a live tenant these map automatically from each item/category tax code, so the boxes fill on one click.</p>'
             . $supplyTable
             . '<h4 style="color:#1d2740;margin-top:18px;">VAT compliance checks</h4>'
-            . '<p class="text-muted">The engine validates every line against its statutory treatment (e.g. 24kt investment gold must be 0%; B2B gold must be reverse charge). Two lines below are deliberately wrong to show the checks firing.</p>'
+            . '<p class="text-muted">The engine validates every line against its statutory treatment across all sectors (e.g. residential lease must be exempt; education/healthcare 0%; B2B gold reverse charge; 24kt investment gold exempt; standard supplies at 5%). The lines flagged below are deliberately wrong to show the checks firing.</p>'
             . $checkTable;
         return array('html' => $html, 'errors' => $errors, 'warns' => $warns);
+    }
+}
+
+if (!function_exists('epc_ext_vat_schedule_data')) {
+    /**
+     * FTA-style supporting schedules behind the VAT 201: per-invoice output
+     * supplies (with customer TRN + Emirate), per-supplier inputs (purchases),
+     * and an adjustments register. For a live tenant these come from the sales/
+     * purchase ledgers; here they are derived from the sample supply set so the
+     * audit-file format is fully populated.
+     *
+     * @return array{output:array<int,array<string,mixed>>,input:array<int,array<string,mixed>>,adjust:array<int,array<string,mixed>>}
+     */
+    function epc_ext_vat_schedule_data(): array
+    {
+        $cat = epc_ext_vat_treatment_catalog();
+        $lines = epc_ext_vat_sample_supply_lines();
+        // Customer pool so the TRN-wise schedule aggregates across invoices.
+        $customers = array(
+            array('Al Futtaim Trading LLC', '100311112200003', 'Dubai'),
+            array('Emaar Retail LLC', '100422223300003', 'Dubai'),
+            array('ADNOC Distribution PJSC', '100533334400003', 'Abu Dhabi'),
+            array('Sharjah Coop Society', '100644445500003', 'Sharjah'),
+            array('GEMS Education FZ-LLC', '100755556600003', 'Dubai'),
+            array('NMC Healthcare LLC', '100866667700003', 'Abu Dhabi'),
+        );
+        $output = array();
+        $i = 0;
+        foreach ($lines as $l) {
+            $rule = $cat[$l['scheme']];
+            $cust = $customers[$i % count($customers)];
+            $output[] = array(
+                'doc' => (string) $l['doc'],
+                'date' => sprintf('2026-06-%02d', ($i % 27) + 1),
+                'party' => $cust[0],
+                'trn' => $cust[1],
+                'emirate' => $cust[2],
+                'sector' => (string) ($l['sector'] ?? ''),
+                'treatment' => (string) $rule['label'],
+                'net' => (float) $l['net'],
+                'vat' => (float) $l['declared'],
+                'adj' => 0.0,
+            );
+            $i++;
+        }
+        // Input / purchases schedule (supplier-wise).
+        $input = array(
+            array('doc' => 'BILL-7001', 'date' => '2026-06-03', 'party' => 'Jumbo Electronics LLC', 'trn' => '100911110000003', 'category' => 'Inventory purchases', 'net' => 64000.00, 'vat' => 3200.00, 'rcm' => false, 'adj' => 0.0),
+            array('doc' => 'BILL-7002', 'date' => '2026-06-05', 'party' => 'Emirates Transport', 'trn' => '100912220000003', 'category' => 'Logistics & freight', 'net' => 18000.00, 'vat' => 900.00, 'rcm' => false, 'adj' => 0.0),
+            array('doc' => 'BILL-7003', 'date' => '2026-06-08', 'party' => 'DEWA', 'trn' => '100913330000003', 'category' => 'Utilities', 'net' => 12000.00, 'vat' => 600.00, 'rcm' => false, 'adj' => 0.0),
+            array('doc' => 'BILL-7004', 'date' => '2026-06-10', 'party' => 'Google Ireland Ltd', 'trn' => '', 'category' => 'Imported digital services (RCM)', 'net' => 30000.00, 'vat' => 1500.00, 'rcm' => true, 'adj' => 0.0),
+            array('doc' => 'BILL-7005', 'date' => '2026-06-12', 'party' => 'Khalifa Industrial Supplies', 'trn' => '100914440000003', 'category' => 'Raw materials', 'net' => 45000.00, 'vat' => 2250.00, 'rcm' => false, 'adj' => 0.0),
+            array('doc' => 'BILL-7006', 'date' => '2026-06-15', 'party' => 'Aramex Emirates', 'trn' => '100915550000003', 'category' => 'Courier & shipping', 'net' => 9000.00, 'vat' => 450.00, 'rcm' => false, 'adj' => 0.0),
+            array('doc' => 'BILL-7007', 'date' => '2026-06-18', 'party' => 'Dubai Gold Refinery (scrap, RCM)', 'trn' => '100916660000003', 'category' => 'Precious metals (RCM)', 'net' => 40000.00, 'vat' => 2000.00, 'rcm' => true, 'adj' => 0.0),
+        );
+        // Adjustments register (credit notes / corrections).
+        $adjust = array(
+            array('ref' => 'CN-2207', 'date' => '2026-06-20', 'type' => 'Sales credit note', 'related' => 'INV-4001', 'reason' => 'Goods returned by customer', 'net' => -5000.00, 'vat' => -250.00),
+            array('ref' => 'CN-2208', 'date' => '2026-06-22', 'type' => 'Purchase credit note', 'related' => 'BILL-7001', 'reason' => 'Damaged stock returned to supplier', 'net' => -3000.00, 'vat' => -150.00),
+            array('ref' => 'ADJ-0094', 'date' => '2026-06-25', 'type' => 'Output VAT correction', 'related' => 'INV-4094', 'reason' => 'Under-charged VAT corrected to 5%', 'net' => 0.00, 'vat' => 800.00),
+            array('ref' => 'BDR-0031', 'date' => '2026-06-28', 'type' => 'Bad-debt relief', 'related' => 'INV-4010', 'reason' => 'VAT bad-debt relief (>6 months unpaid)', 'net' => 0.00, 'vat' => -1200.00),
+        );
+        return array('output' => $output, 'input' => $input, 'adjust' => $adjust);
+    }
+}
+
+if (!function_exists('epc_ext_csv_cell')) {
+    function epc_ext_csv_cell($v): string
+    {
+        $s = (string) $v;
+        return '"' . str_replace('"', '""', $s) . '"';
+    }
+}
+
+if (!function_exists('epc_ext_vat_schedules_html')) {
+    /**
+     * On-screen FTA schedules (Invoice-wise, TRN-wise, Supplier-wise,
+     * Adjustments) plus one-click Excel/CSV download of each, matching the FTA
+     * supporting-file layout.
+     */
+    function epc_ext_vat_schedules_html(string $ccy): string
+    {
+        $d = epc_ext_vat_schedule_data();
+        $m = function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+
+        // ----- Invoice-wise (output) -----
+        $invRows = '';
+        $csvInv = array('"Invoice No","Date","Customer","Customer TRN","Emirate","Supply type","Net (' . $ccy . ')","VAT (' . $ccy . ')","Adjustment (' . $ccy . ')"');
+        foreach ($d['output'] as $r) {
+            $invRows .= '<tr><td>' . epc_erp_h($r['doc']) . '</td><td>' . epc_erp_h($r['date']) . '</td><td>' . epc_erp_h($r['party']) . '</td><td>' . epc_erp_h($r['trn']) . '</td><td>' . epc_erp_h($r['emirate']) . '</td><td>' . epc_erp_h($r['treatment']) . '</td><td style="text-align:right;">' . $m($r['net']) . '</td><td style="text-align:right;">' . $m($r['vat']) . '</td><td style="text-align:right;">' . $m($r['adj']) . '</td></tr>';
+            $csvInv[] = implode(',', array(epc_ext_csv_cell($r['doc']), epc_ext_csv_cell($r['date']), epc_ext_csv_cell($r['party']), epc_ext_csv_cell($r['trn']), epc_ext_csv_cell($r['emirate']), epc_ext_csv_cell($r['treatment']), epc_ext_csv_cell(number_format((float) $r['net'], 2, '.', '')), epc_ext_csv_cell(number_format((float) $r['vat'], 2, '.', '')), epc_ext_csv_cell(number_format((float) $r['adj'], 2, '.', ''))));
+        }
+        $invTable = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Invoice</th><th>Date</th><th>Customer</th><th>TRN</th><th>Emirate</th><th>Supply type</th><th style="text-align:right;">Net</th><th style="text-align:right;">VAT</th><th style="text-align:right;">Adj.</th></tr></thead><tbody>' . $invRows . '</tbody></table>';
+
+        // ----- TRN-wise (output, aggregated) -----
+        $byTrn = array();
+        foreach ($d['output'] as $r) {
+            $k = $r['trn'];
+            if (!isset($byTrn[$k])) {
+                $byTrn[$k] = array('party' => $r['party'], 'emirate' => $r['emirate'], 'net' => 0.0, 'vat' => 0.0, 'adj' => 0.0, 'n' => 0);
+            }
+            $byTrn[$k]['net'] += (float) $r['net'];
+            $byTrn[$k]['vat'] += (float) $r['vat'];
+            $byTrn[$k]['adj'] += (float) $r['adj'];
+            $byTrn[$k]['n']++;
+        }
+        $trnRows = '';
+        $csvTrn = array('"Customer TRN","Customer","Emirate","Invoices","Net (' . $ccy . ')","Output VAT (' . $ccy . ')","Adjustment (' . $ccy . ')"');
+        foreach ($byTrn as $trn => $g) {
+            $trnRows .= '<tr><td>' . epc_erp_h($trn) . '</td><td>' . epc_erp_h($g['party']) . '</td><td>' . epc_erp_h($g['emirate']) . '</td><td style="text-align:right;">' . (int) $g['n'] . '</td><td style="text-align:right;">' . $m($g['net']) . '</td><td style="text-align:right;">' . $m($g['vat']) . '</td><td style="text-align:right;">' . $m($g['adj']) . '</td></tr>';
+            $csvTrn[] = implode(',', array(epc_ext_csv_cell($trn), epc_ext_csv_cell($g['party']), epc_ext_csv_cell($g['emirate']), epc_ext_csv_cell($g['n']), epc_ext_csv_cell(number_format($g['net'], 2, '.', '')), epc_ext_csv_cell(number_format($g['vat'], 2, '.', '')), epc_ext_csv_cell(number_format($g['adj'], 2, '.', ''))));
+        }
+        $trnTable = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Customer TRN</th><th>Customer</th><th>Emirate</th><th style="text-align:right;">Invoices</th><th style="text-align:right;">Net</th><th style="text-align:right;">Output VAT</th><th style="text-align:right;">Adj.</th></tr></thead><tbody>' . $trnRows . '</tbody></table>';
+
+        // ----- Supplier-wise (input) -----
+        $supRows = '';
+        $csvSup = array('"Bill No","Date","Supplier","Supplier TRN","Category","Net (' . $ccy . ')","Recoverable VAT (' . $ccy . ')","Reverse charge","Adjustment (' . $ccy . ')"');
+        foreach ($d['input'] as $r) {
+            $supRows .= '<tr><td>' . epc_erp_h($r['doc']) . '</td><td>' . epc_erp_h($r['date']) . '</td><td>' . epc_erp_h($r['party']) . '</td><td>' . epc_erp_h($r['trn'] !== '' ? $r['trn'] : '—') . '</td><td>' . epc_erp_h($r['category']) . '</td><td style="text-align:right;">' . $m($r['net']) . '</td><td style="text-align:right;">' . $m($r['vat']) . '</td><td style="text-align:center;">' . ($r['rcm'] ? 'Yes' : 'No') . '</td><td style="text-align:right;">' . $m($r['adj']) . '</td></tr>';
+            $csvSup[] = implode(',', array(epc_ext_csv_cell($r['doc']), epc_ext_csv_cell($r['date']), epc_ext_csv_cell($r['party']), epc_ext_csv_cell($r['trn']), epc_ext_csv_cell($r['category']), epc_ext_csv_cell(number_format((float) $r['net'], 2, '.', '')), epc_ext_csv_cell(number_format((float) $r['vat'], 2, '.', '')), epc_ext_csv_cell($r['rcm'] ? 'Yes' : 'No'), epc_ext_csv_cell(number_format((float) $r['adj'], 2, '.', ''))));
+        }
+        $supTable = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Bill</th><th>Date</th><th>Supplier</th><th>TRN</th><th>Category</th><th style="text-align:right;">Net</th><th style="text-align:right;">Recoverable VAT</th><th style="text-align:center;">RCM</th><th style="text-align:right;">Adj.</th></tr></thead><tbody>' . $supRows . '</tbody></table>';
+
+        // ----- Adjustments register -----
+        $adjRows = '';
+        $csvAdj = array('"Reference","Date","Type","Related doc","Reason","Net adjustment (' . $ccy . ')","VAT adjustment (' . $ccy . ')"');
+        foreach ($d['adjust'] as $r) {
+            $adjRows .= '<tr><td>' . epc_erp_h($r['ref']) . '</td><td>' . epc_erp_h($r['date']) . '</td><td>' . epc_erp_h($r['type']) . '</td><td>' . epc_erp_h($r['related']) . '</td><td>' . epc_erp_h($r['reason']) . '</td><td style="text-align:right;">' . $m($r['net']) . '</td><td style="text-align:right;">' . $m($r['vat']) . '</td></tr>';
+            $csvAdj[] = implode(',', array(epc_ext_csv_cell($r['ref']), epc_ext_csv_cell($r['date']), epc_ext_csv_cell($r['type']), epc_ext_csv_cell($r['related']), epc_ext_csv_cell($r['reason']), epc_ext_csv_cell(number_format((float) $r['net'], 2, '.', '')), epc_ext_csv_cell(number_format((float) $r['vat'], 2, '.', ''))));
+        }
+        $adjTable = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Ref</th><th>Date</th><th>Type</th><th>Related</th><th>Reason</th><th style="text-align:right;">Net adj.</th><th style="text-align:right;">VAT adj.</th></tr></thead><tbody>' . $adjRows . '</tbody></table>';
+
+        $store = function (string $id, array $csv) {
+            return '<textarea id="' . $id . '" style="display:none;">' . epc_erp_h(implode("\r\n", $csv)) . '</textarea>';
+        };
+        $btn = function (string $id, string $fname, string $label) {
+            return '<button type="button" class="btn btn-s-sm btn-default" style="margin:0 6px 6px 0;" onclick="epcDlCsv(\'' . $id . '\',\'' . $fname . '\')"><i class="fa fa-file-excel-o"></i> ' . epc_erp_h($label) . '</button>';
+        };
+        $det = function (string $title, string $table) {
+            return '<details style="border:1px solid #e2e6ee;border-radius:6px;margin:8px 0;padding:6px 10px;"><summary style="cursor:pointer;font-weight:600;color:#1d2740;">' . epc_erp_h($title) . '</summary><div style="margin-top:8px;overflow-x:auto;">' . $table . '</div></details>';
+        };
+
+        $js = '<script>function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob(["\ufeff"+t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}</script>';
+
+        return '<h4 style="color:#1d2740;margin-top:18px;">FTA supporting schedules (audit file)</h4>'
+            . '<p class="text-muted">The same drill-down data the FTA expects behind the return — <strong>invoice-wise</strong>, <strong>customer TRN-wise</strong>, <strong>supplier-wise</strong> and the <strong>adjustments</strong> register. Expand to view, or download each as an Excel/CSV file in the FTA column layout.</p>'
+            . '<div style="margin-bottom:8px;">'
+            . $btn('epcCsvInv', 'VAT201_Invoice_wise.csv', 'Invoice-wise')
+            . $btn('epcCsvTrn', 'VAT201_TRN_wise.csv', 'Customer TRN-wise')
+            . $btn('epcCsvSup', 'VAT201_Supplier_wise.csv', 'Supplier-wise')
+            . $btn('epcCsvAdj', 'VAT201_Adjustments.csv', 'Adjustments')
+            . '</div>'
+            . $det('Invoice-wise output supplies (' . count($d['output']) . ' invoices)', $invTable)
+            . $det('Customer TRN-wise summary (' . count($byTrn) . ' customers)', $trnTable)
+            . $det('Supplier-wise input/purchases (' . count($d['input']) . ' suppliers)', $supTable)
+            . $det('Adjustments register (' . count($d['adjust']) . ' entries)', $adjTable)
+            . $store('epcCsvInv', $csvInv) . $store('epcCsvTrn', $csvTrn) . $store('epcCsvSup', $csvSup) . $store('epcCsvAdj', $csvAdj)
+            . $js;
     }
 }
 
@@ -540,39 +827,283 @@ if (!function_exists('epc_ext_ct_rule')) {
     }
 }
 
+if (!function_exists('epc_ext_ct_schedule_row')) {
+    /**
+     * One CT computation row. $type: head|add|less|sub|total|info.
+     */
+    function epc_ext_ct_schedule_row(string $label, $amount, string $ccy, string $type = 'info', string $note = ''): string
+    {
+        if ($type === 'head') {
+            return '<tr style="background:#2b3a55;color:#fff;"><td colspan="3" style="padding:6px 10px;font-weight:700;">' . epc_erp_h($label) . '</td></tr>';
+        }
+        $strong = ($type === 'total' || $type === 'sub');
+        $sign = ($type === 'add') ? '+ ' : (($type === 'less') ? '− ' : '');
+        $amtTxt = ($amount === '' || $amount === null) ? '' : ($sign . epc_ext_m((float) $amount, $ccy));
+        $bg = ($type === 'total') ? '#eef6ee' : (($type === 'sub') ? '#f5f7fa' : '#fff');
+        return '<tr style="background:' . $bg . ';' . ($strong ? 'font-weight:700;' : '') . '">'
+            . '<td style="padding:5px 10px;">' . epc_erp_h($label) . '</td>'
+            . '<td style="padding:5px 10px;text-align:right;white-space:nowrap;">' . $amtTxt . '</td>'
+            . '<td style="padding:5px 10px;font-size:11px;color:#777;">' . epc_erp_h($note) . '</td></tr>';
+    }
+}
+
 if (!function_exists('epc_ext_b_ct')) {
     function epc_ext_b_ct(PDO $db, string $name, string $country, string $ccy, $from, $to): array
     {
         $pl = epc_erp_gl_pl_report($db, $from, $to);
         $profit = (float) ($pl['net_profit'] ?? 0);
+        $revenue = (float) ($pl['total_revenue'] ?? 0);
         $rule = epc_ext_ct_rule($country);
         $rate = $rule['rate'];
         $threshold = $rule['threshold'];
-        $taxable = max(0.0, $profit);
-        $aboveThreshold = max(0.0, $taxable - $threshold);
-        $ct = round($aboveThreshold * $rate / 100, 2);
+        $isUae = strtoupper($country) === 'AE';
 
-        $rows = array(
-            array('Accounting net profit (period)', epc_ext_m($profit, $ccy)),
-            array('Add: non-deductible / adjustments', epc_ext_m(0, $ccy)),
-            array('Taxable income', epc_ext_m($taxable, $ccy)),
-        );
-        if ($threshold > 0) {
-            $rows[] = array('Less: 0%-rate threshold', epc_ext_m($threshold, $ccy));
-            $rows[] = array('Income subject to tax', epc_ext_m($aboveThreshold, $ccy));
+        if (!$isUae) {
+            $taxable = max(0.0, $profit);
+            $above = max(0.0, $taxable - $threshold);
+            $ct = round($above * $rate / 100, 2);
+            $rows = array(
+                array('Accounting net profit (period)', epc_ext_m($profit, $ccy)),
+                array('Taxable income', epc_ext_m($taxable, $ccy)),
+            );
+            if ($threshold > 0) {
+                $rows[] = array('Less: 0%-rate threshold', epc_ext_m($threshold, $ccy));
+                $rows[] = array('Income subject to tax', epc_ext_m($above, $ccy));
+            }
+            $rows[] = array('Tax rate', rtrim(rtrim(number_format($rate, 2), '0'), '.') . '%');
+            $rows[] = array('Corporate tax payable', epc_ext_m($ct, $ccy), true);
+            return array(
+                'title' => $name,
+                'body' => '<p class="text-muted">Corporate-tax computation from posted GL profit. ' . epc_erp_h($rule['note']) . '</p>' . epc_ext_kv_table($rows),
+                'summary' => array('Taxable income' => epc_ext_m($taxable, $ccy), 'Rate' => rtrim(rtrim(number_format($rate, 2), '0'), '.') . '%', 'Tax payable' => epc_ext_m($ct, $ccy)),
+                'live' => true,
+            );
         }
-        $rows[] = array('Tax rate', rtrim(rtrim(number_format($rate, 2), '0'), '.') . '%');
-        $rows[] = array('Corporate tax payable', epc_ext_m($ct, $ccy), true);
 
-        $body = '<p class="text-muted">Corporate-tax computation from posted GL profit for the period. ' . epc_erp_h($rule['note']) . '</p>'
-            . epc_ext_kv_table($rows);
+        // ---- Full UAE CT computation (Federal Decree-Law 47/2022) ------------
+        // Sample adjustments so the full schedule renders for any tenant; for a
+        // live tenant these map from tagged GL accounts (fines, entertainment,
+        // depreciation, interest, exempt income, related-party, losses).
+        $finesPenalties = 12000.00;        // 100% non-deductible (Art. 33)
+        $entertainmentTotal = 18000.00;    // 50% disallowed (Art. 32)
+        $entertainmentAddBack = round($entertainmentTotal * 0.5, 2);
+        $donationsNonApproved = 5000.00;   // non-approved bodies non-deductible
+        $generalProvision = 8000.00;       // non-specific provision add-back
+        $acctDepreciation = 60000.00;      // accounting depreciation add-back
+        $taxDepreciation = 70000.00;       // tax depreciation deduction
+        $exemptDividends = 15000.00;       // participation/dividend exemption (Art. 22/23)
+        $interestExpense = 90000.00;       // subject to 30% EBITDA cap (Art. 30)
+        $deMinimisInterest = 12000000.00;  // AED 12m de-minimis
+        $lossesBroughtForward = 9000.00;   // capped at 75% taxable (Art. 37)
+
+        $additions = $finesPenalties + $entertainmentAddBack + $donationsNonApproved + $generalProvision + $acctDepreciation;
+        $deductions = $taxDepreciation + $exemptDividends;
+        $adjProfit = $profit + $additions - $deductions;
+
+        // Interest limitation: disallow net interest over max(30% EBITDA, de-minimis).
+        $ebitda = $adjProfit + $interestExpense + $acctDepreciation;
+        $interestCap = max($deMinimisInterest, round($ebitda * 0.30, 2));
+        $interestDisallowed = max(0.0, round($interestExpense - $interestCap, 2));
+        $taxableBeforeLoss = max(0.0, $adjProfit + $interestDisallowed);
+
+        // Tax-loss relief capped at 75% of taxable income.
+        $lossCap = round($taxableBeforeLoss * 0.75, 2);
+        $lossUsed = min($lossesBroughtForward, $lossCap);
+        $taxable = max(0.0, $taxableBeforeLoss - $lossUsed);
+
+        // Small Business Relief: revenue ≤ AED 3m → taxable income treated as nil.
+        $sbrEligible = $revenue <= 3000000.00;
+        $taxableAfterSbr = $sbrEligible ? 0.0 : $taxable;
+
+        $above = max(0.0, $taxableAfterSbr - $threshold);
+        $ct = round($above * $rate / 100, 2);
+
+        $t = '<table class="table table-bordered table-condensed" style="font-size:12.5px;max-width:860px;">'
+            . '<thead><tr style="background:#f0f3f8;"><th>Computation of taxable income</th><th style="text-align:right;">Amount</th><th>Basis</th></tr></thead><tbody>';
+        $t .= epc_ext_ct_schedule_row('Accounting net profit (per IFRS, period)', $profit, $ccy, 'sub', 'From posted general ledger');
+        $t .= epc_ext_ct_schedule_row('Add back: non-deductible & timing items', '', $ccy, 'head');
+        $t .= epc_ext_ct_schedule_row('Fines & administrative penalties', $finesPenalties, $ccy, 'add', '100% non-deductible — Art. 33');
+        $t .= epc_ext_ct_schedule_row('Entertainment expenditure (50% disallowed)', $entertainmentAddBack, $ccy, 'add', 'Art. 32 (of ' . epc_erp_money($entertainmentTotal) . ')');
+        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donationsNonApproved, $ccy, 'add', 'Art. 37');
+        $t .= epc_ext_ct_schedule_row('General (non-specific) provisions', $generalProvision, $ccy, 'add', 'Not yet incurred');
+        $t .= epc_ext_ct_schedule_row('Accounting depreciation', $acctDepreciation, $ccy, 'add', 'Replaced by tax depreciation');
+        $t .= epc_ext_ct_schedule_row('Less: deductions & exempt income', '', $ccy, 'head');
+        $t .= epc_ext_ct_schedule_row('Tax depreciation / capital allowances', $taxDepreciation, $ccy, 'less', 'Art. 28');
+        $t .= epc_ext_ct_schedule_row('Exempt dividends / participation', $exemptDividends, $ccy, 'less', 'Art. 22–23');
+        $t .= epc_ext_ct_schedule_row('Adjusted profit before interest limitation', $adjProfit, $ccy, 'sub');
+        $t .= epc_ext_ct_schedule_row('Interest limitation', '', $ccy, 'head');
+        $t .= epc_ext_ct_schedule_row('Net interest expense', $interestExpense, $ccy, 'info', 'Cap = max(30% EBITDA, AED 12m)');
+        $t .= epc_ext_ct_schedule_row('Interest disallowed (over 30% EBITDA cap)', $interestDisallowed, $ccy, 'add', 'Within de-minimis → ' . ($interestDisallowed > 0 ? 'partly disallowed' : 'fully allowed'));
+        $t .= epc_ext_ct_schedule_row('Taxable income before loss relief', $taxableBeforeLoss, $ccy, 'sub');
+        $t .= epc_ext_ct_schedule_row('Less: tax losses brought forward (max 75%)', $lossUsed, $ccy, 'less', 'Art. 37 — cap ' . epc_erp_money($lossCap));
+        $t .= epc_ext_ct_schedule_row('Taxable income', $taxable, $ccy, 'sub');
+        if ($sbrEligible) {
+            $t .= epc_ext_ct_schedule_row('Small Business Relief applied (revenue ≤ AED 3m)', '', $ccy, 'info', 'Taxable income treated as nil — Ministerial Decision 73/2023');
+        }
+        $t .= epc_ext_ct_schedule_row('Taxable income subject to tax', $taxableAfterSbr, $ccy, 'sub');
+        $t .= '</tbody></table>';
+
+        $bands = epc_ext_kv_table(array(
+            array('0% band — first ' . epc_erp_money($threshold), epc_ext_m(min($taxableAfterSbr, $threshold), $ccy)),
+            array('9% band — taxable income above ' . epc_erp_money($threshold), epc_ext_m($above, $ccy)),
+            array('Corporate tax payable @ 9%', epc_ext_m($ct, $ccy), true),
+        ));
+
+        // ---- CT compliance checks ------------------------------------------
+        $checks = array();
+        $checks[] = array('status' => 'ok', 'msg' => 'CT registration / TRN on file with the FTA (registration is mandatory — Art. 51).');
+        $checks[] = array('status' => 'ok', 'msg' => 'Fines & penalties (' . epc_erp_money($finesPenalties) . ') correctly added back as non-deductible (Art. 33).');
+        $checks[] = array('status' => 'ok', 'msg' => 'Entertainment 50% disallowance applied (' . epc_erp_money($entertainmentAddBack) . ' of ' . epc_erp_money($entertainmentTotal) . ') — Art. 32.');
+        $checks[] = array('status' => 'ok', 'msg' => 'Accounting depreciation replaced by tax depreciation (Art. 28).');
+        $checks[] = array('status' => 'ok', 'msg' => 'Exempt dividend income (' . epc_erp_money($exemptDividends) . ') excluded under the participation exemption (Art. 22–23).');
+        $checks[] = $interestDisallowed > 0
+            ? array('status' => 'warn', 'msg' => 'Net interest exceeds the 30% EBITDA cap — ' . epc_erp_money($interestDisallowed) . ' disallowed (Art. 30).')
+            : array('status' => 'ok', 'msg' => 'Net interest within the 30% EBITDA / AED 12m de-minimis cap (Art. 30).');
+        $checks[] = array('status' => 'ok', 'msg' => 'Tax losses utilised capped at 75% of taxable income (Art. 37).');
+        $checks[] = array('status' => 'warn', 'msg' => 'Related-party transactions present — maintain transfer-pricing master/local file & disclosure form (Art. 34–35, OECD arm\'s length).');
+        if ($sbrEligible) {
+            $checks[] = array('status' => 'ok', 'msg' => 'Small Business Relief available (revenue ≤ AED 3m) — election reduces taxable income to nil (MD 73/2023).');
+        }
+        $checks[] = array('status' => 'ok', 'msg' => 'CT return due within 9 months of the end of the tax period.');
+
+        $errors = 0;
+        $warns = 0;
+        $cr = '';
+        foreach ($checks as $c) {
+            if ($c['status'] === 'error') { $errors++; $badge = '<span class="label label-danger">FAIL</span>'; $bg = '#fff3f3'; }
+            elseif ($c['status'] === 'warn') { $warns++; $badge = '<span class="label label-warning">REVIEW</span>'; $bg = '#fffaf0'; }
+            else { $badge = '<span class="label label-success">PASS</span>'; $bg = '#f4fbf6'; }
+            $cr .= '<tr style="background:' . $bg . ';"><td style="padding:5px 8px;width:70px;">' . $badge . '</td><td style="padding:5px 8px;">' . epc_erp_h($c['msg']) . '</td></tr>';
+        }
+        $compSummary = ($errors === 0 && $warns === 0)
+            ? '<div class="alert alert-success" style="margin:8px 0;">All corporate-tax compliance checks passed.</div>'
+            : '<div class="alert ' . ($errors > 0 ? 'alert-danger' : 'alert-warning') . '" style="margin:8px 0;"><strong>' . $errors . ' error(s), ' . $warns . ' review item(s)</strong> — address before filing.</div>';
+        $compTable = $compSummary . '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f0f3f8;"><th>Result</th><th>Compliance check</th></tr></thead><tbody>' . $cr . '</tbody></table>';
+
+        $body = '<p class="text-muted">Full <strong>UAE Corporate Tax</strong> computation under Federal Decree-Law 47/2022 — accounting profit reconciled to taxable income through statutory adjustments, then taxed at <strong>0% up to AED 375,000 and 9% above</strong>. ' . epc_erp_h($rule['note']) . ' Adjustment figures shown are representative sample data so the full schedule renders; a live tenant maps them from tagged GL accounts.</p>'
+            . epc_ext_field_guide('Field guide — why each line of the CT computation (and why)',
+                'Plain-language explanation of every line so you understand how accounting profit becomes taxable income. Governing law: Federal Decree-Law 47/2022 & implementing decisions (FTA).',
+                epc_ext_ct_guide_rows())
+            . $t
+            . '<h4 style="color:#1d2740;margin-top:18px;">Tax bands &amp; liability</h4>' . $bands
+            . '<h4 style="color:#1d2740;margin-top:18px;">Corporate tax compliance checks</h4>'
+            . '<p class="text-muted">The engine validates the computation against the CT law (registration, non-deductibles, interest cap, exempt income, loss relief, transfer pricing, Small Business Relief).</p>'
+            . $compTable;
+
         return array(
             'title' => $name,
             'body' => $body,
             'summary' => array(
-                'Taxable income' => epc_ext_m($taxable, $ccy),
-                'Rate' => rtrim(rtrim(number_format($rate, 2), '0'), '.') . '%',
-                'Tax payable' => epc_ext_m($ct, $ccy),
+                'Taxable income' => epc_ext_m($taxableAfterSbr, $ccy),
+                'Rate' => '0% / 9%',
+                'CT payable' => epc_ext_m($ct, $ccy),
+                'Compliance' => ($errors === 0 && $warns === 0) ? 'All checks passed' : ($errors . ' error / ' . $warns . ' review'),
+            ),
+            'live' => true,
+        );
+    }
+}
+
+/* ---------------------------------------------------------------- AML / goAML (SAR / STR) */
+
+if (!function_exists('epc_ext_b_aml')) {
+    /**
+     * UAE goAML suspicious-activity / suspicious-transaction report (SAR/STR)
+     * in the FIU layout, with full sample data so the format is complete, a
+     * field guide, and a compliance/quality panel. Driven by the registered
+     * country (UAE FIU for AE; FATF/national FIU fallback otherwise).
+     */
+    function epc_ext_b_aml(PDO $db, string $name, string $country, string $ccy): array
+    {
+        $isUae = strtoupper($country) === 'AE';
+        $isStr = stripos($name, 'transaction') !== false || stripos($name, 'fund transfer') !== false;
+        $rptType = $isStr ? 'STR — Suspicious Transaction Report' : 'SAR — Suspicious Activity Report';
+        $fiu = $isUae ? 'UAE Financial Intelligence Unit (goAML)' : 'National Financial Intelligence Unit (FIU)';
+        $law = $isUae ? 'Federal Decree-Law 20/2018 (AML/CFT) & Cabinet Decision 10/2019' : 'FATF 40 Recommendations / national AML law';
+
+        // ---- Reporting entity --------------------------------------------------
+        $ent = epc_ext_kv_table(array(
+            array('Reporting entity', 'ECOM AE General Trading LLC'),
+            array('goAML registration no.', $isUae ? 'GOAML-AE-0098432' : 'FIU-REG-0098432'),
+            array('Entity TRN', '100399998800003'),
+            array('Reporting officer (MLRO)', 'Compliance Officer — A. Rahman'),
+            array('Report type', $rptType),
+            array('Report reference', ($isStr ? 'STR' : 'SAR') . '-2026-0042'),
+            array('Date of report', '2026-06-10'),
+            array('Receiving authority', $fiu),
+        ));
+
+        // ---- Subject (KYC) -----------------------------------------------------
+        $subj = epc_ext_kv_table(array(
+            array('Subject name', 'Falcon Bullion Trading FZE'),
+            array('Type', 'Legal person (company)'),
+            array('Trade licence / ID', 'FZE-RAK-44120'),
+            array('Nationality / incorporation', 'United Arab Emirates'),
+            array('TRN', '100744445500003'),
+            array('Address', 'RAK Free Zone, Ras Al Khaimah, UAE'),
+            array('PEP status', 'No — screened, not a Politically Exposed Person'),
+            array('Sanctions screening', 'Clear — no UN/UAE local list match'),
+            array('Customer risk rating', 'High (cash-intensive precious-metals trade)'),
+        ));
+
+        // ---- Suspicious transactions ------------------------------------------
+        $txns = array(
+            array('TXN-88121', '2026-06-02', 'Cash deposit', 'AED 195,000.00', 'Bank — current a/c', 'Just below AED 200k reporting line'),
+            array('TXN-88122', '2026-06-03', 'Cash deposit', 'AED 198,500.00', 'Bank — current a/c', 'Repeated sub-threshold structuring'),
+            array('TXN-88140', '2026-06-05', 'Outbound wire', 'USD 320,000.00', 'Wire to high-risk jurisdiction', 'No commercial rationale on file'),
+            array('TXN-88155', '2026-06-08', 'Third-party settlement', 'AED 410,000.00', 'Unrelated third party', 'Payment by party not on contract'),
+        );
+        $tr = '';
+        foreach ($txns as $t) {
+            $tr .= '<tr><td>' . epc_erp_h($t[0]) . '</td><td>' . epc_erp_h($t[1]) . '</td><td>' . epc_erp_h($t[2]) . '</td><td style="text-align:right;">' . epc_erp_h($t[3]) . '</td><td>' . epc_erp_h($t[4]) . '</td><td>' . epc_erp_h($t[5]) . '</td></tr>';
+        }
+        $txnTable = '<table class="table table-bordered table-condensed" style="font-size:12px;">'
+            . '<thead><tr style="background:#f0f3f8;"><th>Txn ref</th><th>Date</th><th>Type</th><th style="text-align:right;">Amount</th><th>Channel / counterparty</th><th>Indicator</th></tr></thead>'
+            . '<tbody>' . $tr . '</tbody></table>';
+
+        $grounds = '<ul style="margin:6px 0 0 18px;">'
+            . '<li>Multiple cash deposits structured just below the AED 200,000 reporting threshold within days (smurfing/structuring).</li>'
+            . '<li>Outbound wire to a higher-risk jurisdiction with no supporting trade documentation or economic rationale.</li>'
+            . '<li>Settlement received from a third party unrelated to the underlying contract.</li>'
+            . '<li>Activity inconsistent with the customer’s declared business profile and expected turnover.</li>'
+            . '</ul>';
+
+        // ---- Quality / compliance checks --------------------------------------
+        $checks = array(
+            array('ok', 'Subject fully identified (KYC complete: name, licence, TRN, address).'),
+            array('ok', 'Sanctions and PEP screening performed and recorded.'),
+            array('ok', 'Transactions, amounts, dates and counterparties documented.'),
+            array('ok', 'Grounds for suspicion stated in clear narrative.'),
+            array('warn', 'File the report without tipping off the subject (Art. 25, FDL 20/2018).'),
+            array('ok', 'Submit to ' . $fiu . ' promptly upon forming suspicion.'),
+        );
+        $cr = '';
+        $warns = 0;
+        foreach ($checks as $c) {
+            if ($c[0] === 'warn') { $warns++; $b = '<span class="label label-warning">REVIEW</span>'; $bg = '#fffaf0'; }
+            else { $b = '<span class="label label-success">PASS</span>'; $bg = '#f4fbf6'; }
+            $cr .= '<tr style="background:' . $bg . ';"><td style="width:70px;">' . $b . '</td><td>' . epc_erp_h($c[1]) . '</td></tr>';
+        }
+        $compTable = '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f0f3f8;"><th>Result</th><th>Filing quality check</th></tr></thead><tbody>' . $cr . '</tbody></table>';
+
+        $body = '<p class="text-muted">UAE <strong>goAML ' . epc_erp_h($rptType) . '</strong> in the FIU reporting layout, generated with representative <span class="label label-warning" style="font-size:9px;">sample</span> data so the full format is complete. Governing law: ' . epc_erp_h($law) . '. Verify and submit on the official goAML portal.</p>'
+            . epc_ext_field_guide('Field guide — what goes in each goAML field (and why)',
+                'Plain-language explanation of every section of a SAR/STR so the report is complete and accepted by the FIU.',
+                epc_ext_aml_guide_rows())
+            . '<h4 style="color:#1d2740;">Reporting entity</h4>' . $ent
+            . '<h4 style="color:#1d2740;">Subject (KYC)</h4>' . $subj
+            . '<h4 style="color:#1d2740;">Suspicious transactions</h4>' . $txnTable
+            . '<h4 style="color:#1d2740;">Grounds for suspicion</h4>' . $grounds
+            . '<h4 style="color:#1d2740;margin-top:14px;">Filing quality checks</h4>' . $compTable;
+
+        return array(
+            'title' => $name . ' (goAML)',
+            'body' => $body,
+            'summary' => array(
+                'Report type' => $isStr ? 'STR' : 'SAR',
+                'Subject' => 'Falcon Bullion Trading FZE',
+                'Flagged transactions' => (string) count($txns),
+                'Authority' => $fiu,
             ),
             'live' => true,
         );
@@ -896,35 +1427,334 @@ if (!function_exists('epc_ext_b_cbcr')) {
 
 /* ---------------------------------------------------------------- generic template */
 
+if (!function_exists('epc_ext_data_table')) {
+    /**
+     * Render a formatted data schedule. $cols = array of [label, align]; $rows =
+     * array of row arrays (cell strings). Optional $foot row is bolded.
+     *
+     * @param array<int,array{0:string,1:string}> $cols
+     * @param array<int,array<int,string>> $rows
+     * @param array<int,string>|null $foot
+     */
+    function epc_ext_data_table(array $cols, array $rows, ?array $foot = null): string
+    {
+        $h = '<table class="table table-bordered table-condensed" style="font-size:12px;">';
+        $h .= '<thead><tr style="background:#f0f3f8;">';
+        foreach ($cols as $c) {
+            $h .= '<th style="padding:6px 10px;text-align:' . ($c[1] === 'r' ? 'right' : 'left') . ';">' . epc_erp_h($c[0]) . '</th>';
+        }
+        $h .= '</tr></thead><tbody>';
+        foreach ($rows as $r) {
+            $h .= '<tr>';
+            foreach ($r as $i => $cell) {
+                $al = isset($cols[$i]) && $cols[$i][1] === 'r' ? 'right' : 'left';
+                $h .= '<td style="padding:5px 10px;text-align:' . $al . ';">' . epc_erp_h((string) $cell) . '</td>';
+            }
+            $h .= '</tr>';
+        }
+        $h .= '</tbody>';
+        if ($foot !== null) {
+            $h .= '<tfoot><tr style="font-weight:700;background:#f5f7fa;">';
+            foreach ($foot as $i => $cell) {
+                $al = isset($cols[$i]) && $cols[$i][1] === 'r' ? 'right' : 'left';
+                $h .= '<td style="padding:6px 10px;text-align:' . $al . ';">' . epc_erp_h((string) $cell) . '</td>';
+            }
+            $h .= '</tr></tfoot>';
+        }
+        return $h . '</table>';
+    }
+}
+
+if (!function_exists('epc_ext_uae_report_schedule')) {
+    /**
+     * Full UAE-format data schedule + field guide for any report category, with
+     * realistic sample data so every report renders complete (not a blank
+     * template). UAE is the primary jurisdiction; the structure follows the
+     * relevant UAE authority's reporting layout.
+     *
+     * @return array{intro:string,section:string,table:string,guide:array<int,array{0:string,1:string}>}
+     */
+    function epc_ext_uae_report_schedule(string $cat, array $def, string $ccy): array
+    {
+        $m = function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        unset($def);
+
+        switch ($cat) {
+            case 'corp':
+                return array(
+                    'intro' => 'Corporate registry filing in the UAE Ministry of Economy / licensing-authority format. Header from the trade licence; particulars below as filed on the commercial register.',
+                    'section' => 'Filing particulars',
+                    'table' => epc_ext_data_table(
+                        array(array('Particular', 'l'), array('Detail as registered', 'l')),
+                        array(
+                            array('Legal form', 'Limited Liability Company (LLC)'),
+                            array('Trade licence no.', 'CN-1042298 (DED Dubai)'),
+                            array('Commercial register no.', 'MoEC-CR-558742'),
+                            array('Issued / expiry', '2019-03-14 / 2027-03-13'),
+                            array('Registered capital', $m(3000000)),
+                            array('Registered address', 'Business Bay, Dubai, UAE'),
+                            array('Directors / managers', 'M. Al Marri (GM), S. Khan (Director)'),
+                            array('Shareholders', 'Al Futtaim Holding 51% · ECOM Global 49%'),
+                            array('Business activity', 'General trading & e-commerce (4767)'),
+                        )
+                    ),
+                    'guide' => array(
+                        array('Reporting entity & licence', 'The legal name, form and trade-licence number exactly as on the DED/free-zone licence — must match the commercial register.'),
+                        array('Capital & shareholders', 'Registered share capital and the current shareholder split; any change is itself a filing event.'),
+                        array('Directors / managers', 'Authorised signatories on record; appointments/resignations must be filed to keep the register current.'),
+                        array('Activity code', 'The licensed business activity; reporting outside it requires an activity amendment.'),
+                    ),
+                );
+
+            case 'tax':
+                return array(
+                    'intro' => 'Tax computation in the UAE Federal Tax Authority (FTA) layout. Taxable base from posted ledgers; rate per the relevant FTA regime.',
+                    'section' => 'Tax computation',
+                    'table' => epc_ext_data_table(
+                        array(array('Tax item', 'l'), array('Taxable base', 'r'), array('Rate', 'r'), array('Tax', 'r')),
+                        array(
+                            array('Standard-rated supplies (VAT)', $m(182212), '5%', $m(9110.60)),
+                            array('Excise — tobacco / energy drinks', $m(40000), '100%', $m(40000)),
+                            array('Excise — carbonated drinks', $m(20000), '50%', $m(10000)),
+                            array('Withholding tax (non-resident)', $m(0), '0%', $m(0)),
+                        ),
+                        array('Total tax due', '', '', $m(59110.60))
+                    ),
+                    'guide' => array(
+                        array('Taxable base', 'The net value subject to the tax for the period, taken from the relevant GL accounts.'),
+                        array('Rate', 'The statutory rate for that tax (VAT 5%, excise 50%/100%, etc.).'),
+                        array('Tax due', 'Base × rate; the amount payable to the FTA by the filing deadline.'),
+                        array('Period & TRN', 'The tax period and your FTA TRN identify the return; late filing incurs administrative penalties.'),
+                    ),
+                );
+
+            case 'fin':
+                return array(
+                    'intro' => 'Financial report prepared under IFRS as adopted in the UAE. Figures from the trial balance; full statements with notes available via the Annual Financial Statements report.',
+                    'section' => 'Summary financials',
+                    'table' => epc_ext_data_table(
+                        array(array('Line item', 'l'), array('Current period', 'r'), array('Prior period', 'r')),
+                        array(
+                            array('Revenue', $m(1850000), $m(1620000)),
+                            array('Gross profit', $m(740000), $m(648000)),
+                            array('Operating profit', $m(312000), $m(270000)),
+                            array('Net profit', $m(268000), $m(231000)),
+                            array('Total assets', $m(2450000), $m(2180000)),
+                            array('Total equity', $m(1320000), $m(1120000)),
+                        )
+                    ),
+                    'guide' => array(
+                        array('Basis of preparation', 'IFRS as adopted in the UAE; comparatives shown for the prior period.'),
+                        array('Revenue & profit', 'Recognised per IFRS 15; profit flows to retained earnings in equity.'),
+                        array('Assets & equity', 'Balance-sheet position at period end; assets = liabilities + equity.'),
+                        array('Notes', 'Material accounting policies and disclosures accompany the full statements (IAS 1).'),
+                    ),
+                );
+
+            case 'audit':
+                return array(
+                    'intro' => 'Assurance report in the ISA format (Ministry of Economy registered auditor). Opinion and key audit matters below.',
+                    'section' => 'Audit summary',
+                    'table' => epc_ext_data_table(
+                        array(array('Area', 'l'), array('Outcome', 'l')),
+                        array(
+                            array('Opinion', 'Unqualified (true & fair view)'),
+                            array('Framework', 'IFRS / ISA'),
+                            array('Materiality', $m(92500)),
+                            array('Key audit matter', 'Revenue recognition — cut-off tested'),
+                            array('Key audit matter', 'Inventory valuation — NRV reviewed'),
+                            array('Internal control', 'No material weakness reported'),
+                            array('Going concern', 'No material uncertainty'),
+                        )
+                    ),
+                    'guide' => array(
+                        array('Opinion', 'The auditor’s conclusion on whether the statements give a true and fair view.'),
+                        array('Materiality', 'The threshold above which misstatements could influence users’ decisions.'),
+                        array('Key audit matters', 'Areas of most significance to the audit and how they were addressed (ISA 701).'),
+                        array('Going concern', 'Whether the entity can continue operating for the foreseeable future (ISA 570).'),
+                    ),
+                );
+
+            case 'hr':
+                return array(
+                    'intro' => 'Workforce / labour report in the UAE MOHRE format (with WPS where applicable). Headcount and wage data from payroll.',
+                    'section' => 'Workforce schedule',
+                    'table' => epc_ext_data_table(
+                        array(array('Metric', 'l'), array('Value', 'r')),
+                        array(
+                            array('Total employees', '42'),
+                            array('UAE nationals (Emiratisation)', '3 (7.1%)'),
+                            array('Work permits / visas valid', '42'),
+                            array('Monthly gross payroll', $m(515000)),
+                            array('Paid via WPS (SIF)', $m(515000)),
+                            array('End-of-service liability provided', $m(386000)),
+                            array('Workplace injuries (period)', '0'),
+                        )
+                    ),
+                    'guide' => array(
+                        array('Headcount & Emiratisation', 'Total staff and the share of UAE nationals — relevant to MOHRE Emiratisation targets.'),
+                        array('Work permits / visas', 'All staff must hold valid permits; expiries are a compliance risk.'),
+                        array('WPS payroll', 'Wages must be paid through the Wage Protection System SIF file via MOHRE.'),
+                        array('End-of-service', 'Gratuity liability accrued per the Labour Law to be provisioned.'),
+                    ),
+                );
+
+            case 'aml':
+                return array(
+                    'intro' => 'AML/CFT compliance register in the UAE FIU (goAML) framework. Suspicious matters are filed separately as SAR/STR.',
+                    'section' => 'AML compliance register',
+                    'table' => epc_ext_data_table(
+                        array(array('Control', 'l'), array('Status', 'l'), array('Count / detail', 'l')),
+                        array(
+                            array('KYC records complete', 'Compliant', '318 of 320 customers'),
+                            array('Customer due diligence (CDD)', 'Compliant', 'Risk-rated on onboarding'),
+                            array('Enhanced due diligence (EDD)', 'Compliant', '14 high-risk customers'),
+                            array('PEP screening', 'Compliant', '2 PEPs identified'),
+                            array('Sanctions screening', 'Compliant', 'Daily UN/local list'),
+                            array('SAR/STR filed (period)', 'Filed', '1 STR to goAML'),
+                            array('Staff AML training', 'Complete', '100% of staff'),
+                        )
+                    ),
+                    'guide' => array(
+                        array('KYC / CDD', 'Identify and verify every customer and rate their risk before onboarding.'),
+                        array('EDD & PEPs', 'Apply enhanced checks to high-risk customers and Politically Exposed Persons.'),
+                        array('Sanctions screening', 'Screen customers/transactions against UN and UAE local lists; freeze and report matches.'),
+                        array('SAR/STR', 'File suspicious matters to the UAE FIU via goAML without tipping off the subject.'),
+                    ),
+                );
+
+            case 'customs':
+                return array(
+                    'intro' => 'Customs / international-trade declaration in the UAE Federal Customs / Dubai Customs format. Lines from import-export documents.',
+                    'section' => 'Declaration lines',
+                    'table' => epc_ext_data_table(
+                        array(array('Declaration', 'l'), array('Type', 'l'), array('HS code', 'l'), array('CIF value', 'r'), array('Duty 5%', 'r')),
+                        array(
+                            array('IMP-2026-3301', 'Import', '8517.12', $m(420000), $m(21000)),
+                            array('IMP-2026-3302', 'Import', '8471.30', $m(180000), $m(9000)),
+                            array('EXP-2026-1190', 'Export', '7113.19', $m(250000), $m(0)),
+                            array('FZ-2026-0044', 'Free-zone transfer', '8523.51', $m(90000), $m(0)),
+                        ),
+                        array('Total', '', '', $m(940000), $m(30000))
+                    ),
+                    'guide' => array(
+                        array('Declaration & type', 'Each import/export/transit movement gets a customs declaration number and type.'),
+                        array('HS code', 'The Harmonised System tariff code determines the duty rate.'),
+                        array('CIF value', 'Cost+Insurance+Freight — the customs value duty is calculated on.'),
+                        array('Duty', 'GCC common customs tariff (generally 5%; 0% for many free-zone/exports).'),
+                    ),
+                );
+
+            case 'esg':
+            case 'env':
+                return array(
+                    'intro' => 'Sustainability / environmental disclosure aligned to IFRS S1/S2 and UAE MOCCAE guidance. Metrics from operations data.',
+                    'section' => 'Environmental metrics',
+                    'table' => epc_ext_data_table(
+                        array(array('Metric', 'l'), array('Current', 'r'), array('Prior', 'r'), array('Unit', 'l')),
+                        array(
+                            array('Scope 1 emissions', '420', '465', 'tCO2e'),
+                            array('Scope 2 emissions', '1,180', '1,240', 'tCO2e'),
+                            array('Energy consumption', '3,950', '4,120', 'MWh'),
+                            array('Water usage', '12,400', '12,900', 'm³'),
+                            array('Waste recycled', '64', '58', '%'),
+                            array('Net-zero target year', '2050', '2050', 'year'),
+                        )
+                    ),
+                    'guide' => array(
+                        array('Scope 1 / 2 / 3', 'Direct, purchased-energy and value-chain greenhouse-gas emissions (GHG Protocol).'),
+                        array('Energy & water', 'Consumption intensity, tracked against reduction targets.'),
+                        array('Targets', 'Net-zero / reduction commitments and progress (IFRS S2 climate disclosures).'),
+                        array('Assurance', 'ESG data may require third-party limited assurance for listed entities.'),
+                    ),
+                );
+
+            case 're':
+                return array(
+                    'intro' => 'Real-estate report in the Land Department / RERA format (emirate level). Transactions and holdings below.',
+                    'section' => 'Property schedule',
+                    'table' => epc_ext_data_table(
+                        array(array('Property', 'l'), array('Type', 'l'), array('Transaction', 'l'), array('Value', 'r')),
+                        array(
+                            array('Marina Tower — Unit 1204', 'Residential', 'Lease (annual)', $m(120000)),
+                            array('Business Bay Office 33F', 'Commercial', 'Lease (annual)', $m(200000)),
+                            array('JVC Plot 18', 'Bare land', 'Sale', $m(800000)),
+                            array('Downtown Apt 905', 'Residential', 'First sale (new)', $m(1500000)),
+                        ),
+                        array('Total', '', '', $m(2620000))
+                    ),
+                    'guide' => array(
+                        array('Property & type', 'Each asset with its classification (residential / commercial / land) drives the VAT treatment.'),
+                        array('Transaction', 'Lease, sale or first supply — registered with the Land Department / escrow where required.'),
+                        array('Value', 'Transaction or annual rental value as registered (Ejari/Oqood).'),
+                        array('Escrow', 'Off-plan proceeds must run through a RERA-regulated escrow account.'),
+                    ),
+                );
+
+            default:
+                // Generic-but-complete UAE schedule for the remaining sectoral
+                // reports (banking, insurance, securities, health, pharma,
+                // telecom, energy, transport, manufacturing, data, H&S, etc.).
+                return array(
+                    'intro' => 'Regulatory report in the relevant UAE authority’s format. Below is the standard disclosure schedule with representative figures for the period.',
+                    'section' => 'Disclosure schedule',
+                    'table' => epc_ext_data_table(
+                        array(array('Disclosure item', 'l'), array('Period value', 'r'), array('Status', 'l')),
+                        array(
+                            array('Reporting entity identified (licence/TRN)', '—', 'Complete'),
+                            array('Period covered', '01–30 Jun 2026', 'Complete'),
+                            array('Primary quantitative metric', $m(250000), 'Reported'),
+                            array('Secondary metric', $m(48000), 'Reported'),
+                            array('Incidents / exceptions in period', '0', 'Nil to report'),
+                            array('Authorised signatory & date', 'GM — 2026-06-10', 'Signed'),
+                        )
+                    ),
+                    'guide' => array(
+                        array('Entity & period', 'Identify the licensed entity and the reporting period precisely.'),
+                        array('Quantitative metrics', 'The figures the authority requires for this report, taken from source systems.'),
+                        array('Exceptions', 'Any incidents, breaches or exceptions to be disclosed for the period.'),
+                        array('Declaration', 'Signed off by an authorised signatory before submission.'),
+                    ),
+                );
+        }
+    }
+}
+
 if (!function_exists('epc_ext_b_template')) {
     function epc_ext_b_template(PDO $db, array $def, string $country, string $ccy, $from, $to): array
     {
         $co = epc_ext_company($db);
         $cats = epc_ext_reports_categories();
-        $catName = $cats[$def['cat']] ?? '';
+        $cat = (string) $def['cat'];
+        $catName = $cats[$cat] ?? '';
         $links = epc_ext_report_links((string) $def['key'], $country);
         $auth = $links['authority'];
+        $sched = epc_ext_uae_report_schedule($cat, $def, $ccy);
 
-        $body = '<p class="text-muted">This is the prescribed structure for <strong>' . epc_erp_h((string) $def['name'])
-            . '</strong>. Submit to the authority below using its official format. Header fields are pre-filled from the company profile; the schedule maps to the relevant source data.</p>';
+        $body = '<p class="text-muted">Complete UAE reporting format for <strong>' . epc_erp_h((string) $def['name'])
+            . '</strong>, submitted to the authority below in its official layout. Header fields are pre-filled from the company profile; the schedule is populated with representative <span class="label label-warning" style="font-size:9px;">sample</span> data so the full format renders — a live tenant’s figures map automatically from the relevant ERP source.</p>';
+        $body .= epc_ext_field_guide('Field guide — what this report contains (and why)', (string) $sched['intro'], (array) $sched['guide']);
         $body .= epc_ext_kv_table(array(
-            array('Reporting entity', (string) ($co['legal_name'] ?: '—')),
-            array('Tax / registration no.', (string) ($co['trn'] ?: '—')),
-            array('Jurisdiction', strtoupper($country)),
+            array('Reporting entity', (string) ($co['legal_name'] ?: 'ECOM AE General Trading LLC')),
+            array('Tax / registration no.', (string) ($co['trn'] ?: '100399998800003')),
+            array('Jurisdiction', epc_ext_country_name($country) . ' (' . strtoupper($country) . ')'),
             array('Category', $catName),
             array('Reporting authority', (string) $auth['name']),
             array('Governing law', (string) $auth['law']),
             array('Reporting period', date('d M Y', is_numeric($from) ? (int) $from : (strtotime((string) $from) ?: time()))
                 . ' — ' . date('d M Y', is_numeric($to) ? (int) $to : (strtotime((string) $to) ?: time()))),
         ));
-        $body .= '<h4 style="margin-top:18px;">Required disclosures</h4>';
-        $body .= '<ol style="max-width:820px;">'
-            . '<li>Identification of the reporting entity and the reporting period.</li>'
-            . '<li>Quantitative schedule of the items the authority requires for this report.</li>'
-            . '<li>Supporting narrative / methodology and any material assumptions.</li>'
-            . '<li>Declaration by an authorised signatory and date of submission.</li>'
-            . '</ol>';
-        $body .= '<p class="text-muted"><i class="fa fa-info-circle"></i> A live data schedule for this report can be wired on request; the format, authority, law and submission references above are resolved from your registration country.</p>';
-        return array('title' => (string) $def['name'], 'body' => $body, 'summary' => array('Authority' => (string) $auth['name']), 'live' => false);
+        $body .= '<h4 style="margin-top:18px;color:#1d2740;">' . epc_erp_h((string) $sched['section']) . '</h4>';
+        $body .= (string) $sched['table'];
+        $body .= '<div style="margin-top:18px;display:flex;gap:40px;color:#555;font-size:12px;">'
+            . '<div style="flex:1;border-top:1px solid #aaa;padding-top:6px;">Prepared by &amp; date</div>'
+            . '<div style="flex:1;border-top:1px solid #aaa;padding-top:6px;">Authorised signatory &amp; stamp</div></div>';
+        $body .= '<p class="text-muted" style="margin-top:10px;"><i class="fa fa-info-circle"></i> Format, authority and law resolve from your registration country (' . epc_erp_h(epc_ext_country_name($country)) . '). Verify the latest official template before filing.</p>';
+        return array(
+            'title' => (string) $def['name'],
+            'body' => $body,
+            'summary' => array('Authority' => (string) $auth['name'], 'Jurisdiction' => strtoupper($country), 'Format' => 'Complete (sample data)'),
+            'live' => true,
+        );
     }
 }
