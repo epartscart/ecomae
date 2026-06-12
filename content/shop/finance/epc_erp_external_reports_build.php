@@ -2480,14 +2480,29 @@ if (!function_exists('epc_ext_b_audit')) {
                 . '</tbody></table>');
         };
 
-        // ---- policy/basis/procedure block (recognition→measurement→law ref) -
+        // ---- policy/basis/procedure block, written in the Company's own voice -
+        // (reads as the audited entity's adopted accounting policy — "the Company
+        //  recognises / measures / discloses …" — rather than a description of the
+        //  standard; the standard is kept only as a small reference citation).
         $pol = function (array $rows, string $ref) {
-            $b = '<div style="border-left:3px solid #1d4e89;background:#f7f9fc;padding:6px 11px;margin:6px 0 4px;font-size:11.5px;line-height:1.55;">'
-                . '<p style="margin:0 0 3px;font-weight:700;color:#1d2740;">Accounting policy, basis &amp; procedure (per IFRS / law)</p>';
+            $lead = array(
+                'Recognition'            => 'Recognition policy adopted',
+                'Measurement'            => 'Measurement basis adopted',
+                'Initial measurement'    => 'Initial measurement basis adopted',
+                'Subsequent measurement' => 'Subsequent measurement basis adopted',
+                'Presentation'           => 'Presentation policy adopted',
+                'Procedure'              => 'How the Company applies the policy',
+                'Disclosure'             => 'What the Company discloses',
+            );
+            $b = '<div style="border-left:3px solid ' . '#b3122a' . ';background:#fdeef0;padding:7px 12px;margin:6px 0 4px;font-size:11.5px;line-height:1.55;">'
+                . '<p style="margin:0 0 4px;font-weight:700;color:#8f0f22;">Accounting policy adopted by the Company</p>'
+                . '<p style="margin:0 0 4px;">The Company has adopted, and applied consistently with the comparative period, the following accounting policy:</p>';
             foreach ($rows as $label => $txt) {
-                $b .= '<p style="margin:0 0 2px;"><strong>' . epc_erp_h((string) $label) . ':</strong> ' . $txt . '</p>';
+                $label = (string) $label;
+                $head = isset($lead[$label]) ? $lead[$label] : ('The Company ' . lcfirst($label));
+                $b .= '<p style="margin:0 0 3px;"><strong>' . epc_erp_h($head) . ':</strong> ' . $txt . '</p>';
             }
-            $b .= '<p style="margin:3px 0 0;color:#1d4e89;font-size:11px;"><i class="fa fa-book"></i> Reference: ' . $ref . '</p></div>';
+            $b .= '<p style="margin:4px 0 0;color:#8f0f22;font-size:11px;"><i class="fa fa-book"></i> The policy above is consistent with the requirements of ' . $ref . '</p></div>';
             return $b;
         };
 
@@ -3397,7 +3412,7 @@ if (!function_exists('epc_ext_std_block')) {
             $seen[$code] = true;
             $e = $reg[$code];
             $out .= '<details class="epc-std-explain" style="margin:6px 0 4px;border:1px solid #d7e0ec;border-radius:6px;background:#fbfcfe;">'
-                . '<summary style="cursor:pointer;padding:6px 11px;font-weight:700;color:#13294b;font-size:11.5px;">About the standard — ' . epc_erp_h($code) . ' <span style="font-weight:400;color:#1d4e89;">(objective, scope, recognition, measurement &amp; disclosure)</span></summary>'
+                . '<summary style="cursor:pointer;padding:6px 11px;font-weight:700;color:#13294b;font-size:11.5px;">For reference — about ' . epc_erp_h($code) . ' (background only) <span style="font-weight:400;color:#1d4e89;">(objective, scope, recognition, measurement &amp; disclosure)</span></summary>'
                 . '<div style="padding:4px 12px 9px;font-size:11.5px;line-height:1.55;color:#333;">'
                 . '<p style="margin:3px 0;"><strong>Objective:</strong> ' . epc_erp_h($e['objective']) . '</p>'
                 . '<p style="margin:3px 0;"><strong>Scope:</strong> ' . epc_erp_h($e['scope']) . '</p>'
