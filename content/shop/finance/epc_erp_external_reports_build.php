@@ -2338,21 +2338,51 @@ if (!function_exists('epc_ext_b_audit')) {
             ))
             . '</div>';
 
+        // ---- granular chart-of-accounts splits (each sub-account set sums
+        // exactly to its control total, so the SOFP still balances and the
+        // cash-flow / SOCE identities are preserved). The last row in each set
+        // absorbs any rounding so the subtotal ties to the control figure. ----
+        $split = function (float $curBucket, float $priBucket, array $ratios): array {
+            $rows = array(); $labels = array_keys($ratios); $n = count($labels); $accC = 0.0; $accP = 0.0;
+            foreach ($labels as $i => $lbl) {
+                if ($i === $n - 1) { $cv = round($curBucket - $accC, 2); $pv = round($priBucket - $accP, 2); }
+                else { $cv = round($curBucket * $ratios[$lbl], 2); $pv = round($priBucket * $ratios[$lbl], 2); $accC += $cv; $accP += $pv; }
+                $rows[] = array($lbl, $cv, $pv);
+            }
+            return $rows;
+        };
+        // PPE control total split across asset classes (incl. right-of-use & CWIP)
+        $ppeSplit = array('Land & buildings' => 0.34, 'Plant & machinery' => 0.24, 'Motor vehicles' => 0.10, 'Furniture & fixtures' => 0.07, 'IT & office equipment' => 0.08, 'Right-of-use assets (IFRS 16)' => 0.12, 'Capital work-in-progress' => 0.05);
+        $ncaOther = array('Intangible assets' => 1.0); // intangibles shown as one control line below
+        $recSplit = array('Trade receivables (net of ECL)' => 0.60, 'Other receivables' => 0.10, 'Prepayments & deposits' => 0.12, 'Advances to suppliers' => 0.08, 'VAT / tax recoverable' => 0.06, 'Due from related parties' => 0.04);
+        $cashSplit = array('Cash at bank — current accounts' => 0.70, 'Call & short-term deposits' => 0.24, 'Cash on hand / petty cash' => 0.06);
+        $invSplit = array('Raw materials' => 0.40, 'Work in progress' => 0.15, 'Finished goods' => 0.40, 'Goods in transit & consumables' => 0.05);
+        $resSplit = array('Share premium' => 0.30, 'Statutory reserve' => 0.40, 'Revaluation / fair-value reserve' => 0.30);
+        $paySplit = array('Trade payables' => 0.62, 'Accruals' => 0.14, 'Other payables' => 0.08, 'VAT / tax payable' => 0.06, 'Deferred income / contract liabilities' => 0.04, 'Due to related parties' => 0.03, 'Dividend payable' => 0.03);
+        $detail = function (array $rows) use (&$sofp, $line) {
+            foreach ($rows as $r) { $sofp .= $line('   ' . $r[0], $r[1], $r[2], ''); }
+        };
+
         // ============ 2 · Statement of Financial Position ====================
         $sofp = $tblOpen('Statement of Financial Position — as at 31 Dec');
         $sofp .= $line('Non-current assets', '', '', '', 'head');
         $sofp .= $line('Property, plant & equipment', $cur['ppe'], $pri['ppe'], 'IAS 16|Property, plant & equipment', 'row', epc_ext_ct_txns($cur['ppe'], $from2, $to2, 'FA', array('Buildings', 'Plant & machinery', 'Motor vehicles', 'Furniture & fixtures', 'IT equipment'), 'Fixed-asset NBV by class'));
+        $detail($split($cur['ppe'], $pri['ppe'], $ppeSplit));
         $sofp .= $line('Intangible assets', $cur['intang'], $pri['intang'], 'IAS 38|Intangible assets', 'row', epc_ext_ct_txns($cur['intang'], $from2, $to2, 'INT', array('ERP software licences', 'Trademarks', 'Development costs'), 'Intangible asset NBV'));
         $sofp .= $line('Total non-current assets', $cur['ppe'] + $cur['intang'], $pri['ppe'] + $pri['intang'], '', 'sub');
         $sofp .= $line('Current assets', '', '', '', 'head');
         $sofp .= $line('Inventories', $cur['inventory'], $pri['inventory'], 'IAS 2|Inventories', 'row', epc_ext_ct_txns($cur['inventory'], $from2, $to2, 'INV', array('Raw materials', 'Work in progress', 'Finished goods', 'Goods in transit'), 'Inventory by category'));
+        $detail($split($cur['inventory'], $pri['inventory'], $invSplit));
         $sofp .= $line('Trade & other receivables', $cur['receivables'], $pri['receivables'], 'IFRS 9|Trade & other receivables / financial instruments', 'row', epc_ext_ct_txns($cur['receivables'], $from2, $to2, 'AR', $custPool, 'Trade receivable balance'));
+        $detail($split($cur['receivables'], $pri['receivables'], $recSplit));
         $sofp .= $line('Cash & cash equivalents', $cur['cash'], $pri['cash'], 'IAS 7|Cash & cash equivalents', 'row', epc_ext_ct_txns($cur['cash'], $from2, $to2, 'BANK', array('Current account — ENBD', 'Current account — ADCB', 'Call deposit', 'Petty cash'), 'Cash & bank balance'));
+        $detail($split($cur['cash'], $pri['cash'], $cashSplit));
         $sofp .= $line('Total current assets', $cur['inventory'] + $cur['receivables'] + $cur['cash'], $pri['inventory'] + $pri['receivables'] + $pri['cash'], '', 'sub');
         $sofp .= $line('Total assets', $cur['totalAssets'], $pri['totalAssets'], '', 'total');
         $sofp .= $line('Equity', '', '', '', 'head');
         $sofp .= $line('Share capital', $cur['shareCap'], $pri['shareCap'], 'IAS 1|Capital management');
         $sofp .= $line('Other reserves', $cur['reserves'], $pri['reserves'], 'IAS 1|Capital management');
+        $detail($split($cur['reserves'], $pri['reserves'], $resSplit));
         $sofp .= $line('Retained earnings', $cur['retained'], $pri['retained'], 'IAS 1|Capital management');
         $sofp .= $line('Total equity', $cur['totalEquity'], $pri['totalEquity'], '', 'sub');
         $sofp .= $line('Non-current liabilities', '', '', '', 'head');
@@ -2362,6 +2392,7 @@ if (!function_exists('epc_ext_b_audit')) {
         $sofp .= $line('Total non-current liabilities', $cur['borrowNon'] + $cur['lease'] + $cur['provisions'], $pri['borrowNon'] + $pri['lease'] + $pri['provisions'], '', 'sub');
         $sofp .= $line('Current liabilities', '', '', '', 'head');
         $sofp .= $line('Trade & other payables', $cur['payables'], $pri['payables'], 'IFRS 9|Trade & other payables', 'row', epc_ext_ct_txns($cur['payables'], $from2, $to2, 'AP', $supPool, 'Trade payable balance'));
+        $detail($split($cur['payables'], $pri['payables'], $paySplit));
         $sofp .= $line('Current tax payable', $cur['tax'], $pri['tax'], 'IAS 12|Income tax');
         $sofp .= $line('Current portion of borrowings', $cur['borrowCur'], $pri['borrowCur'], 'IFRS 7|Borrowings');
         $sofp .= $line('Total current liabilities', $cur['payables'] + $cur['tax'] + $cur['borrowCur'], $pri['payables'] + $pri['tax'] + $pri['borrowCur'], '', 'sub');
@@ -2377,7 +2408,26 @@ if (!function_exists('epc_ext_b_audit')) {
         $sopl .= $line('Revenue', $cur['rev'], $pri['rev'], 'IFRS 15|Revenue', 'row', epc_ext_ct_txns($cur['rev'], $from2, $to2, 'INV', $custPool, 'Sales invoice — revenue'));
         $sopl .= $line('Cost of sales', -$cur['cogs'], -$pri['cogs'], 'IAS 2|Cost of sales', 'row', epc_ext_ct_txns($cur['cogs'], $from2, $to2, 'COGS', $supPool, 'Cost of goods sold'));
         $sopl .= $line('Gross profit', $cur['gross'], $pri['gross'], '', 'sub');
-        $sopl .= $line('Operating & administrative expenses', -$cur['opex'], -$pri['opex'], '', 'row', epc_ext_ct_txns($cur['opex'], $from2, $to2, 'OPEX', $supPool, 'Operating expense'));
+        $sopl .= $line('Operating & administrative expenses by nature', '', '', '', 'head');
+        $opexSplit = array(
+            'Staff costs (salaries, wages & benefits)' => 0.34,
+            'Rent & premises costs' => 0.12,
+            'Utilities (electricity, water, cooling)' => 0.05,
+            'Marketing, advertising & promotion' => 0.08,
+            'Travel, transport & entertainment' => 0.04,
+            'Legal & professional fees' => 0.06,
+            'Insurance' => 0.03,
+            'Repairs & maintenance' => 0.04,
+            'IT, software & communication' => 0.05,
+            'Bank charges & commissions' => 0.02,
+            'Allowance for expected credit losses (ECL)' => 0.03,
+            'Printing, stationery & office expenses' => 0.04,
+            'Other operating expenses' => 0.10,
+        );
+        foreach ($split($cur['opex'], $pri['opex'], $opexSplit) as $r) {
+            $sopl .= $line('   ' . $r[0], -$r[1], -$r[2], '');
+        }
+        $sopl .= $line('Total operating & administrative expenses', -$cur['opex'], -$pri['opex'], '', 'sub', epc_ext_ct_txns($cur['opex'], $from2, $to2, 'OPEX', $supPool, 'Operating expense'));
         $sopl .= $line('Depreciation & amortisation', -$cur['depr'], -$pri['depr'], 'IAS 16|Property, plant & equipment');
         $sopl .= $line('Operating profit (EBIT)', $cur['gross'] - $cur['opex'] - $cur['depr'], $pri['gross'] - $pri['opex'] - $pri['depr'], '', 'sub');
         $sopl .= $line('Finance costs', -$cur['interest'], -$pri['interest'], 'IFRS 7|Borrowings');
@@ -2411,13 +2461,22 @@ if (!function_exists('epc_ext_b_audit')) {
 
         // ============ 5 · Statement of Cash Flows (indirect) =================
         $scf = $tblOpen('Statement of Cash Flows — year ended 31 Dec (indirect method, IAS 7)');
+        $tradeRecMov = round(0.60 * $mov['dRec'], 2); $otherRecMov = round($mov['dRec'] - $tradeRecMov, 2);
+        $tradePayMov = round(0.62 * $mov['dPay'], 2); $otherPayMov = round($mov['dPay'] - $tradePayMov, 2);
+        $cashFromOps = round($cur['pbt'] + $cur['depr'] + $cur['interest'] - $mov['dRec'] - $mov['dInv'] + $mov['dPay'] + $mov['dProv'], 2);
         $scf .= $line('Operating activities', '', '', '', 'head');
         $scf .= $line('Profit before tax', $cur['pbt'], $pri['pbt'], '');
         $scf .= $line('Adjust: depreciation & amortisation', $cur['depr'], $pri['depr'], '');
-        $scf .= $line('(Increase) / decrease in receivables', -$mov['dRec'], '', '');
-        $scf .= $line('(Increase) / decrease in inventories', -$mov['dInv'], '', '');
-        $scf .= $line('Increase / (decrease) in payables', $mov['dPay'], '', '');
-        $scf .= $line('Increase in provisions', $mov['dProv'], '', '');
+        $scf .= $line('Adjust: finance costs', $cur['interest'], $pri['interest'], '');
+        $scf .= $line('Working capital changes', '', '', '', 'head');
+        $scf .= $line('   (Increase) / decrease in trade receivables', -$tradeRecMov, '', '');
+        $scf .= $line('   (Increase) / decrease in other receivables, prepayments & advances', -$otherRecMov, '', '');
+        $scf .= $line('   (Increase) / decrease in inventories', -$mov['dInv'], '', '');
+        $scf .= $line('   Increase / (decrease) in trade payables', $tradePayMov, '', '');
+        $scf .= $line('   Increase / (decrease) in accruals & other payables', $otherPayMov, '', '');
+        $scf .= $line('   Increase in employee end-of-service provisions', $mov['dProv'], '', '');
+        $scf .= $line('Cash generated from operations', $cashFromOps, '', '', 'sub');
+        $scf .= $line('Finance costs paid', -$cur['interest'], -$pri['interest'], '');
         $scf .= $line('Income tax paid', -$mov['taxPaid'], '', '');
         $scf .= $line('Net cash from operating activities', $cf['operating'], '', '', 'sub');
         $scf .= $line('Investing activities', '', '', '', 'head');
@@ -2616,6 +2675,16 @@ if (!function_exists('epc_ext_b_audit')) {
                 'Measurement' => 'Inventory cost on the weighted-average basis; directly attributable labour and a systematic allocation of fixed and variable production overheads are included.',
                 'Procedure' => 'Carrying amount written down to net realisable value where lower; the write-down is recognised within cost of sales.',
             ), 'IAS 2.10–16, 34.'));
+        $opexNoteRows = array();
+        foreach ($split($cur['opex'], $pri['opex'], $opexSplit) as $r) { $opexNoteRows[] = array($r[0], $r[1], $r[2]); }
+        $opexNoteRows[] = array('Total operating & administrative expenses', $cur['opex'], $pri['opex'], true);
+        $notes .= $note('Operating & administrative expenses (by nature)', 'IAS 1', '<p>Operating and administrative expenses are analysed by nature below. Each component is recognised on an accruals basis in the period to which it relates, and the total reconciles to the face of the statement of profit or loss.</p>'
+            . $ntbl($opexNoteRows, 'Expense by nature')
+            . $pol(array(
+                'Recognition' => 'Expenses are recognised on an accruals basis when the related goods or services are received, irrespective of the date of payment.',
+                'Measurement' => 'Measured at the fair value of the consideration paid or payable; staff costs include salaries, wages, and the period\'s end-of-service charge.',
+                'Procedure' => 'Expenses are presented by nature; the allowance for expected credit losses is recognised under IFRS 9 and reviewed at each reporting date.',
+            ), 'IAS 1.99–105.'));
         $notes .= $note('Property, plant & equipment', 'IAS 16', '<p>Property, plant &amp; equipment is carried at cost less accumulated depreciation. The movement in net book value during the year was:</p>'
             . $ntbl(array(
                 array('Opening net book value', $pri['ppe'], $ppeOpenP),
