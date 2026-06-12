@@ -4072,12 +4072,12 @@ function epcExtPrint(){
 	var COVBG = TH ? 'linear-gradient(135deg,#fff6f7,#fbe3e7)' : 'linear-gradient(180deg,#fbfdff,#eef4fc)';
 	var LT = TH ? '#fdeef0' : '#eef4fc';
 	var css =
-	'@page{size:A4;margin:16mm 14mm;}'
+	'@page{size:A4;margin:24mm 14mm 20mm;}'
 	+'*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
 	+'body{font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1f2733;font-size:11.5px;line-height:1.45;margin:0;}'
-	+'.mis-run{position:fixed;top:0;left:0;right:0;font-size:9px;color:#fff;background:'+GRAD+';padding:3px 8px;display:flex;justify-content:space-between;}'
-	+'.mis-foot{position:fixed;bottom:0;left:0;right:0;font-size:9px;color:#8a93a3;border-top:1px solid #d7dce5;padding:2px 8px;display:flex;justify-content:space-between;}'
-	+'.mis-body{padding-top:18px;}'
+	+'.mis-run{position:fixed;top:-18mm;left:0;right:0;font-size:9px;color:#fff;background:'+GRAD+';padding:3px 8px;display:flex;justify-content:space-between;border-radius:3px;}'
+	+'.mis-foot{position:fixed;bottom:-15mm;left:0;right:0;font-size:9px;color:#8a93a3;border-top:1px solid #d7dce5;padding:2px 8px;display:flex;justify-content:space-between;}'
+	+'.mis-body{padding-top:2px;}'
 	+'.mis-cover{height:248mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:2px solid '+P1+';border-top:14px solid '+P2+';border-radius:6px;padding:40px;page-break-after:always;background:'+COVBG+';}'
 	+'.mis-cover .badge{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;background:'+P1+';padding:4px 14px;border-radius:14px;}'
 	+'.mis-cover .co{font-size:30px;font-weight:800;color:'+P2+';margin:16px 0 2px;}'
@@ -4089,7 +4089,9 @@ function epcExtPrint(){
 	+'.mis-cover .meta{margin-top:46px;font-size:12px;color:#5b6577;line-height:1.8;}'
 	+'.mis-cover .rule{width:120px;border-top:3px solid #c2a14d;margin:24px auto;}'
 	+'h3{font-size:16px;color:'+P2+';border-bottom:3px solid #c2a14d;padding-bottom:5px;margin:0 0 8px;page-break-after:avoid;}'
-	+'h4{font-size:12.5px;color:#fff;margin:18px 0 6px;padding:6px 12px;background:'+HGRAD+';border-radius:4px;page-break-after:avoid;}'
+	+'h4{font-size:12.5px;color:#fff !important;margin:18px 0 6px;padding:6px 12px;background:'+HGRAD+';border-radius:4px;page-break-after:avoid;}'
+	+'.epc-aud-sec{page-break-before:always;break-before:page;}'
+	+'.epc-aud-sec:first-of-type{page-break-before:avoid;break-before:avoid;}'
 	+'.epc-line{display:flex;align-items:center;width:100%;gap:8px;padding:7px 6px;border-bottom:1px solid #edf0f5;}'
 	+'.epc-line:nth-of-type(even){background:#f7faff;}'
 	+'table{border-collapse:collapse;width:100%;margin:6px 0;}'
