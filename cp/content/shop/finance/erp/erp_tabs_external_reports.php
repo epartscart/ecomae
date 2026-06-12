@@ -38,6 +38,7 @@ $cats = epc_ext_reports_categories();
 $registry = epc_ext_reports_registry();
 $selCat = isset($_GET['cat']) ? preg_replace('/[^a-z]/', '', (string) $_GET['cat']) : '';
 $selRep = isset($_GET['rep']) ? preg_replace('/[^a-z0-9_]/', '', (string) $_GET['rep']) : '';
+$selTool = isset($_GET['tool']) ? preg_replace('/[^a-z]/', '', (string) $_GET['tool']) : '';
 
 $baseUrl = epc_erp_tab_url($erpUrl, 'ext_reports', $date_from_str, $date_to_str, 'regrep');
 $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
@@ -84,7 +85,152 @@ $countryOptions = array('AE','SA','QA','OM','BH','KW','IN','PK','BD','LK','SG','
 </div>
 
 <?php
-if ($selRep !== '' && isset($registry[$selRep])) {
+if ($selTool === 'import') {
+	// ------------------------------------------------ off-system Excel/CSV import
+	$impKind = (isset($_GET['kind']) && $_GET['kind'] === 'ct') ? 'ct' : (isset($_POST['imp_kind']) && $_POST['imp_kind'] === 'ct' ? 'ct' : 'vat');
+	$impCountry = $regCountry;
+	$impCountryName = $regName;
+	$impCcy = (string) ($regProf['currency'] ?? 'AED');
+	$impAuth = $impKind === 'ct'
+		? array('name' => 'Federal Tax Authority (FTA)', 'law' => 'Corporate Tax — Federal Decree-Law 47/2022', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae')
+		: array('name' => 'Federal Tax Authority (FTA)', 'law' => 'VAT — Federal Decree-Law 8/2017', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
+
+	$impBuilt = null;
+	$impError = '';
+	if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imp_file']) && is_array($_FILES['imp_file'])) {
+		$file = $_FILES['imp_file'];
+		if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+			$impError = 'Upload failed (error code ' . (int) ($file['error'] ?? -1) . '). Pick a .xlsx or .csv file under 64 MB.';
+		} else {
+			$rows = epc_ext_parse_table((string) $file['tmp_name'], (string) $file['name']);
+			if ($rows === null || count($rows) === 0) {
+				$impError = 'Could not read the file. Save it as .xlsx or .csv using the provided template and try again.';
+			} else {
+				$map = epc_ext_import_map($rows);
+				if ($impKind === 'ct') {
+					if (empty($map['values'])) {
+						$impError = 'No CT computation lines found. Use the CT template (Code column: ACCT_PROFIT, FINES, …).';
+					} else {
+						$impBuilt = epc_ext_b_ct_summary($map, $impCcy);
+					}
+				} else {
+					if (empty($map['vat'])) {
+						$impError = 'No VAT boxes found. Use the VAT template (Code column: BOX1A, BOX9, …).';
+					} else {
+						$impBuilt = epc_ext_b_vat_summary($map, $impCcy);
+					}
+				}
+			}
+		}
+	}
+	$impDlBase = $baseUrl . $sep . 'tool=import';
+	?>
+	<p style="margin-bottom:10px;"><a href="<?php echo epc_erp_h($baseUrl); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
+	<div class="epc-erp-section" style="margin-bottom:14px;">
+		<h3 style="margin-top:0;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → Return (off-system)</h3>
+		<p class="text-muted" style="font-size:12.5px;max-width:900px;">
+			Prepare a VAT 201 or Corporate Tax return from an uploaded spreadsheet — <strong>summary figures only</strong> (box / line totals, no invoice detail).
+			This is completely <strong>outside the ERP</strong>: nothing is read from or written to your live data, so you can use it to check or report for other clients.
+			The output renders in the proper UAE format with compliance checks and the same professional Print / PDF.
+		</p>
+		<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:10px;">
+			<div style="flex:1;min-width:320px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
+				<div style="font-weight:700;color:#1d2740;margin-bottom:6px;">1 · Download a template</div>
+				<p class="text-muted" style="font-size:12px;">Fill the <code>Amount</code> (and VAT, for VAT) columns. Keep the <code>Code</code> column unchanged. Opens in Excel.</p>
+				<button type="button" class="btn btn-default btn-sm" onclick="epcDlCsv('epcTplVat','VAT201_import_template.csv')"><i class="fa fa-file-excel-o"></i> VAT 201 template</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="epcDlCsv('epcTplCt','CT_return_import_template.csv')"><i class="fa fa-file-excel-o"></i> Corporate Tax template</button>
+				<textarea id="epcTplVat" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('vat')); ?></textarea>
+				<textarea id="epcTplCt" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('ct')); ?></textarea>
+				<script>function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob([t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}</script>
+			</div>
+			<div style="flex:1;min-width:320px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
+				<div style="font-weight:700;color:#1d2740;margin-bottom:6px;">2 · Upload &amp; build</div>
+				<form method="post" enctype="multipart/form-data" action="<?php echo epc_erp_h($impDlBase); ?>" class="form-inline" style="margin:0;">
+					<select name="imp_kind" class="form-control input-sm" style="margin:4px 6px 4px 0;">
+						<option value="vat" <?php echo $impKind === 'vat' ? 'selected' : ''; ?>>VAT Return (FTA VAT 201)</option>
+						<option value="ct" <?php echo $impKind === 'ct' ? 'selected' : ''; ?>>Corporate Tax Return</option>
+					</select>
+					<input type="file" name="imp_file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" required>
+					<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> Build return</button>
+				</form>
+				<p class="text-muted" style="font-size:11px;margin-top:8px;">Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — your file is parsed in-memory and not stored.</p>
+			</div>
+		</div>
+	</div>
+
+	<?php if ($impError !== ''): ?>
+		<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> <?php echo epc_erp_h($impError); ?></div>
+	<?php endif; ?>
+
+	<?php if ($impBuilt !== null):
+		$impMeta = $impBuilt['meta'] ?? array();
+		$impCo = $impMeta['META_LEGAL_NAME'] ?? 'Uploaded client';
+		$impTrn = $impMeta['META_TRN'] ?? '';
+		$impPerL = trim((string) ($impMeta['META_PERIOD_FROM'] ?? '')) !== '' ? (($impMeta['META_PERIOD_FROM'] ?? '') . '  —  ' . ($impMeta['META_PERIOD_TO'] ?? '')) : 'As uploaded';
+	?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+				<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-print"></i> Print / PDF</button>
+				<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($impAuth['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — <?php echo epc_erp_h($impAuth['name']); ?></a>
+				<span class="label label-info" style="font-size:11px;"><i class="fa fa-upload"></i> Off-system data</span>
+			</div>
+		</div>
+		<div id="epc_ext_doc" class="epc-erp-section" style="background:#fff;border:1px solid #e2e6ee;padding:26px;">
+			<div style="display:flex;justify-content:space-between;border-bottom:3px solid #2b3a55;padding-bottom:12px;margin-bottom:16px;">
+				<div>
+					<div style="font-size:20px;font-weight:800;color:#1d2740;"><?php echo epc_erp_h((string) $impCo); ?></div>
+					<div class="text-muted" style="font-size:12px;">
+						<?php echo epc_erp_h($impCountryName); ?><?php if ($impTrn !== ''): ?> · TRN: <?php echo epc_erp_h((string) $impTrn); ?><?php endif; ?>
+					</div>
+				</div>
+				<div style="text-align:right;">
+					<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Imported return</div>
+					<div style="font-weight:700;"><?php echo epc_erp_h($impCountryName); ?></div>
+					<div style="font-size:12px;color:#1d2740;font-weight:600;">Reporting period: <?php echo epc_erp_h((string) $impPerL); ?></div>
+				</div>
+			</div>
+			<h3 style="margin-top:0;color:#1d2740;"><?php echo epc_erp_h((string) $impBuilt['title']); ?></h3>
+			<div class="text-muted" style="font-size:12px;margin-bottom:6px;">
+				<strong>To:</strong> <?php echo epc_erp_h($impAuth['name']); ?> &nbsp;·&nbsp; <strong>Under:</strong> <?php echo epc_erp_h($impAuth['law']); ?>
+			</div>
+			<?php if (!empty($impBuilt['summary'])): ?>
+				<div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;">
+					<?php foreach ($impBuilt['summary'] as $k => $v): ?>
+						<div style="background:#f5f7fa;border:1px solid #e2e6ee;border-radius:6px;padding:8px 14px;min-width:140px;">
+							<div style="font-size:11px;color:#7a869a;text-transform:uppercase;letter-spacing:.5px;"><?php echo epc_erp_h((string) $k); ?></div>
+							<div style="font-size:16px;font-weight:700;color:#1d2740;"><?php echo epc_erp_h((string) $v); ?></div>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+			<?php echo $impBuilt['body']; ?>
+			<div style="margin-top:28px;display:flex;justify-content:space-between;gap:30px;">
+				<div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Prepared by &amp; date</div>
+				<div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Authorised signatory &amp; stamp</div>
+			</div>
+			<p class="text-muted" style="font-size:11px;margin-top:18px;border-top:1px dashed #ccc;padding-top:8px;">
+				Built by Ecom BOS External Reporting on <?php echo date('d M Y H:i'); ?> from an <strong>uploaded file</strong> (off-system). Informational — verify figures and the latest format against the official source (<?php echo epc_erp_h($impAuth['name']); ?>) before filing.
+			</p>
+		</div>
+		<?php
+		echo epc_ext_print_ctx_js(array(
+			'co'    => (string) $impCo,
+			'addr'  => $impCountryName,
+			'trnL'  => 'TRN',
+			'trn'   => (string) $impTrn,
+			'ttl'   => (string) $impBuilt['title'],
+			'juris' => $impCountryName,
+			'auth'  => (string) $impAuth['name'],
+			'law'   => (string) $impAuth['law'],
+			'perL'  => (string) $impPerL,
+			'perR'  => (string) $impPerL,
+			'gen'   => date('d M Y H:i'),
+		));
+		echo epc_ext_print_fn_js();
+		?>
+	<?php endif; ?>
+	<?php
+} elseif ($selRep !== '' && isset($registry[$selRep])) {
 	// ---------------------------------------------------------------- single report
 	// The report renders for the registered country by default. When the admin
 	// previews another jurisdiction the report re-localizes to it (an explicit
@@ -99,16 +245,26 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 
 	// Per-report reporting period (each return is scoped to its own statutory
 	// period — VAT = tax quarter, CT = financial year, WPS = month, etc.).
-	$periodType = epc_ext_report_period_type((string) $def['cat'], $selRep);
+	// The basis is user-selectable (monthly/quarterly/annual/custom) so monthly
+	// VAT filers or non-calendar CT years can pick the right cadence.
+	$naturalType = epc_ext_report_period_type((string) $def['cat'], $selRep);
+	$periodBases = epc_ext_period_bases($naturalType);
+	$selBasis = isset($_GET['basis']) && in_array($_GET['basis'], $periodBases, true) ? (string) $_GET['basis'] : $naturalType;
 	$selPeriod = isset($_GET['period']) ? preg_replace('/[^0-9A-Za-z\-]/', '', (string) $_GET['period']) : '';
-	$period = epc_ext_resolve_period($periodType, $selPeriod, $date_to ?: time());
+	$cFrom = isset($_GET['pfrom']) && $_GET['pfrom'] !== '' ? (int) strtotime((string) $_GET['pfrom']) : 0;
+	$cTo = isset($_GET['pto']) && $_GET['pto'] !== '' ? (int) strtotime((string) $_GET['pto']) : 0;
+	$resolveType = $selBasis === 'custom' ? 'custom' : $selBasis;
+	$period = epc_ext_resolve_period($resolveType, $selBasis === 'custom' ? 'custom' : $selPeriod, $date_to ?: time(), array('from' => $cFrom, 'to' => $cTo));
+	$periodType = $period['type'];
 	$repFrom = $period['from'];
 	$repTo = $period['to'];
 
 	$built = epc_ext_report_build($db_link, $selRep, $repCountry, $repFrom, $repTo);
 	$fetched = isset($_GET['fetch']);
-	$fetchUrl = $repUrl($selRep) . '&rep_country=' . urlencode($repCountry) . '&period=' . urlencode($period['token']) . '&fetch=' . time();
-	$periodTypeLabel = array('month' => 'Monthly', 'quarter' => 'Tax quarter', 'year' => 'Annual (financial year)');
+	$fetchUrl = $repUrl($selRep) . '&rep_country=' . urlencode($repCountry) . '&basis=' . urlencode($selBasis) . '&period=' . urlencode($period['token'])
+		. ($selBasis === 'custom' ? '&pfrom=' . urlencode(date('Y-m-d', $repFrom)) . '&pto=' . urlencode(date('Y-m-d', $repTo)) : '') . '&fetch=' . time();
+	$periodTypeLabel = array('month' => 'Monthly', 'quarter' => 'Quarterly (tax quarter)', 'year' => 'Annual (financial year)', 'custom' => 'Custom range');
+	$basisLabel = array('month' => 'Monthly', 'quarter' => 'Quarterly', 'year' => 'Annual', 'custom' => 'Custom range…');
 	$co = epc_co_profile_get($db_link);
 	?>
 	<?php if ($isPreview): ?>
@@ -132,15 +288,26 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 				<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($ifrs['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-book"></i> <?php echo epc_erp_h($ifrs['label']); ?></a>
 			<?php endif; ?>
 			<form method="get" class="form-inline" style="margin:0;display:inline-block;">
-				<?php foreach (array('area' => 'regrep', 'tab' => 'ext_reports', 'from' => $date_from_str, 'to' => $date_to_str, 'cat' => (string) $def['cat'], 'rep' => $selRep, 'rep_country' => $repCountry) as $k => $v): ?>
+				<?php foreach (array('area' => 'regrep', 'tab' => 'ext_reports', 'from' => $date_from_str, 'to' => $date_to_str, 'cat' => (string) $def['cat'], 'rep' => $selRep, 'rep_country' => $repCountry, 'fetch' => '1') as $k => $v): ?>
 					<input type="hidden" name="<?php echo epc_erp_h($k); ?>" value="<?php echo epc_erp_h((string) $v); ?>">
 				<?php endforeach; ?>
 				<label style="font-size:12px;margin:0 6px;"><i class="fa fa-calendar"></i> Reporting period</label>
-				<select name="period" class="form-control input-sm" onchange="this.form.submit()">
-					<?php foreach ($period['options'] as $tok => $lbl): ?>
-						<option value="<?php echo epc_erp_h((string) $tok); ?>" <?php echo $tok === $period['token'] ? 'selected' : ''; ?>><?php echo epc_erp_h((string) $lbl); ?></option>
+				<select name="basis" class="form-control input-sm" title="Filing basis" onchange="this.form.submit()">
+					<?php foreach ($periodBases as $b): ?>
+						<option value="<?php echo epc_erp_h($b); ?>" <?php echo $b === $selBasis ? 'selected' : ''; ?>><?php echo epc_erp_h($basisLabel[$b] ?? $b); ?></option>
 					<?php endforeach; ?>
 				</select>
+				<?php if ($selBasis === 'custom'): ?>
+					<input type="date" name="pfrom" class="form-control input-sm" style="margin:0 4px;" value="<?php echo epc_erp_h(date('Y-m-d', $repFrom)); ?>" title="Period from">
+					<input type="date" name="pto" class="form-control input-sm" style="margin:0 4px;" value="<?php echo epc_erp_h(date('Y-m-d', $repTo)); ?>" title="Period to">
+					<button type="submit" class="btn btn-default btn-sm"><i class="fa fa-check"></i> Apply</button>
+				<?php else: ?>
+					<select name="period" class="form-control input-sm" style="margin-left:4px;" onchange="this.form.submit()">
+						<?php foreach ($period['options'] as $tok => $lbl): ?>
+							<option value="<?php echo epc_erp_h((string) $tok); ?>" <?php echo $tok === $period['token'] ? 'selected' : ''; ?>><?php echo epc_erp_h((string) $lbl); ?></option>
+						<?php endforeach; ?>
+					</select>
+				<?php endif; ?>
 			</form>
 			<?php if ($fetched): ?>
 				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.</span>
@@ -198,95 +365,22 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 		</p>
 	</div>
 
-	<script>
-	function epcExtPrint(){
-		var doc = document.getElementById('epc_ext_doc');
-		if(!doc){ window.print(); return; }
-		var clone = doc.cloneNode(true);
-		/* expand every drill-down so the printed pack is complete */
-		var ds = clone.querySelectorAll('details'); for(var i=0;i<ds.length;i++){ ds[i].setAttribute('open','open'); }
-		var dr = clone.querySelectorAll('.epc-ct-drill'); for(var j=0;j<dr.length;j++){ dr[j].style.display='table-row'; }
-		/* drop interactive-only controls from the print copy */
-		var strip = clone.querySelectorAll('button, textarea, script, .btn'); for(var k=0;k<strip.length;k++){ if(strip[k].parentNode){ strip[k].parentNode.removeChild(strip[k]); } }
-		/* the on-screen letterhead is the first child — the cover replaces it */
-		if(clone.firstElementChild){ clone.firstElementChild.style.display='none'; }
-
-		var co   = <?php echo json_encode((string) ($co['legal_name'] ?: 'Company')); ?>;
-		var addr = <?php echo json_encode((string) ($co['address'] ?? '')); ?>;
-		var trnL = <?php echo json_encode((string) ($co['tax_label'] ?? 'TRN')); ?>;
-		var trn  = <?php echo json_encode((string) ($co['trn'] ?? '')); ?>;
-		var ttl  = <?php echo json_encode((string) $built['title']); ?>;
-		var juris= <?php echo json_encode((string) $repCountryName); ?>;
-		var auth = <?php echo json_encode((string) $auth['name']); ?>;
-		var law  = <?php echo json_encode((string) $auth['law']); ?>;
-		var perL = <?php echo json_encode((string) $period['label']); ?>;
-		var perR = <?php echo json_encode(date('d M Y', $repFrom) . '  —  ' . date('d M Y', $repTo)); ?>;
-		var gen  = <?php echo json_encode(date('d M Y H:i')); ?>;
-		var esc  = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
-		var trnLine = trn ? (esc(trnL)+': '+esc(trn)) : '';
-
-		var css =
-		'@page{size:A4;margin:16mm 14mm;}'
-		+'*{box-sizing:border-box;}'
-		+'body{font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1f2733;font-size:11.5px;line-height:1.45;margin:0;}'
-		+'.mis-run{position:fixed;top:0;left:0;right:0;font-size:9px;color:#8a93a3;border-bottom:.5px solid #d7dce5;padding:2px 0;display:flex;justify-content:space-between;}'
-		+'.mis-foot{position:fixed;bottom:0;left:0;right:0;font-size:9px;color:#8a93a3;border-top:.5px solid #d7dce5;padding:2px 0;display:flex;justify-content:space-between;}'
-		+'.mis-body{padding-top:16px;}'
-		+'.mis-cover{height:248mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:3px double #2b3a55;padding:40px;page-break-after:always;}'
-		+'.mis-cover .badge{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7a869a;}'
-		+'.mis-cover .co{font-size:30px;font-weight:800;color:#1d2740;margin:10px 0 2px;}'
-		+'.mis-cover .addr{font-size:12px;color:#5b6577;}'
-		+'.mis-cover .ttl{font-size:23px;font-weight:700;color:#2b3a55;margin:46px 0 6px;}'
-		+'.mis-cover .juris{font-size:14px;color:#1d2740;}'
-		+'.mis-cover .period{font-size:16px;font-weight:700;color:#2b3a55;margin-top:26px;}'
-		+'.mis-cover .perd{font-size:13px;color:#5b6577;}'
-		+'.mis-cover .meta{margin-top:46px;font-size:12px;color:#5b6577;line-height:1.8;}'
-		+'.mis-cover .rule{width:120px;border-top:2px solid #c2a14d;margin:24px auto;}'
-		+'h3{font-size:16px;color:#1d2740;border-bottom:2px solid #2b3a55;padding-bottom:5px;margin:0 0 6px;page-break-after:avoid;}'
-		+'h4{font-size:13px;color:#1d2740;margin:18px 0 6px;padding:4px 8px;background:#eef1f6;border-left:4px solid #2b3a55;page-break-after:avoid;}'
-		+'table{border-collapse:collapse;width:100%;margin:6px 0;}'
-		+'thead{display:table-header-group;}'
-		+'tr{page-break-inside:avoid;}'
-		+'td,th{border:1px solid #c7cedb;padding:5px 8px;font-size:11px;vertical-align:top;}'
-		+'th{background:#2b3a55;color:#fff;text-align:left;}'
-		+'details{display:block!important;}details>div{display:block!important;}'
-		+'.label{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;border:1px solid #b9c0cd;}'
-		+'.label-success{background:#e7f6ec;color:#1a7f37;border-color:#bfe3cb;}'
-		+'.label-warning{background:#fff5e0;color:#9a6700;border-color:#f0dca8;}'
-		+'.label-danger{background:#fdecec;color:#b42318;border-color:#f3c3bd;}'
-		+'.label-info{background:#e8f0fb;color:#1d4e94;border-color:#c4d6f3;}'
-		+'.alert{padding:8px 12px;border-radius:5px;margin:8px 0;font-size:11px;border:1px solid #ddd;}'
-		+'.alert-success{background:#e7f6ec;border-color:#bfe3cb;}'
-		+'.alert-warning{background:#fff5e0;border-color:#f0dca8;}'
-		+'.alert-danger{background:#fdecec;border-color:#f3c3bd;}'
-		+'.text-muted{color:#7a869a;}'
-		+'.mis-sign{margin-top:34px;display:flex;justify-content:space-between;gap:40px;page-break-inside:avoid;}'
-		+'.mis-sign>div{flex:1;border-top:1px solid #7a869a;padding-top:6px;font-size:11px;color:#5b6577;}';
-
-		var cover =
-		'<div class="mis-cover">'
-		+'<div class="badge">Statutory / Management Report</div>'
-		+'<div class="co">'+esc(co)+'</div>'
-		+'<div class="addr">'+esc(addr)+(trnLine?(' &nbsp;·&nbsp; '+trnLine):'')+'</div>'
-		+'<div class="rule"></div>'
-		+'<div class="ttl">'+esc(ttl)+'</div>'
-		+'<div class="juris">Jurisdiction: '+esc(juris)+'</div>'
-		+'<div class="period">Reporting period: '+esc(perL)+'</div>'
-		+'<div class="perd">'+esc(perR)+'</div>'
-		+'<div class="meta">Submitted to: '+esc(auth)+'<br>Governing law: '+esc(law)+'<br>Prepared on '+esc(gen)+' from posted ERP data</div>'
-		+'</div>';
-
-		var runHdr = '<div class="mis-run"><span>'+esc(co)+'</span><span>'+esc(ttl)+'</span></div>';
-		var runFt  = '<div class="mis-foot"><span>'+esc(perL)+' · '+esc(juris)+'</span><span>Generated by Ecom BOS External Reporting · '+esc(gen)+'</span></div>';
-		var sign   = '<div class="mis-sign"><div>Prepared by &amp; date</div><div>Reviewed by &amp; date</div><div>Authorised signatory &amp; stamp</div></div>';
-
-		var w = window.open('', '_blank');
-		w.document.write('<html><head><title>'+esc(ttl)+' — '+esc(co)+'</title><meta charset="utf-8"><style>'+css+'</style></head><body>'
-			+runHdr+runFt+cover+'<div class="mis-body">'+clone.innerHTML+sign+'</div></body></html>');
-		w.document.close();
-		setTimeout(function(){ w.focus(); w.print(); }, 350);
-	}
-	</script>
+	<?php
+	echo epc_ext_print_ctx_js(array(
+		'co'    => (string) ($co['legal_name'] ?: 'Company'),
+		'addr'  => (string) ($co['address'] ?? ''),
+		'trnL'  => (string) ($co['tax_label'] ?? 'TRN'),
+		'trn'   => (string) ($co['trn'] ?? ''),
+		'ttl'   => (string) $built['title'],
+		'juris' => (string) $repCountryName,
+		'auth'  => (string) $auth['name'],
+		'law'   => (string) $auth['law'],
+		'perL'  => (string) $period['label'],
+		'perR'  => date('d M Y', $repFrom) . '  —  ' . date('d M Y', $repTo),
+		'gen'   => date('d M Y H:i'),
+	));
+	echo epc_ext_print_fn_js();
+	?>
 	<?php
 } elseif ($selCat !== '' && isset($cats[$selCat])) {
 	// ---------------------------------------------------------------- one category
@@ -315,6 +409,13 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 	?>
 	<div class="epc-erp-section" style="margin-bottom:12px;">
 		<p class="text-muted" style="margin:0;"><strong><?php echo (int) count($cats); ?></strong> categories · <strong><?php echo (int) $total; ?></strong> report types. Priority statutory reports (VAT, Corporate Tax, IFRS financial statements, WPS, UBO, Economic Substance ...) build from live ERP data; the rest provide the formatted statutory structure with the correct authority, law &amp; format links for <?php echo epc_erp_h($regName); ?>.</p>
+	</div>
+	<div class="epc-erp-section" style="margin-bottom:14px;background:#f5f8ff;border:1px solid #d6e4ff;border-radius:8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+		<div>
+			<div style="font-weight:700;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → VAT / CT return (off-system)</div>
+			<div class="text-muted" style="font-size:12px;margin-top:4px;">Build a VAT 201 or Corporate Tax return from an uploaded spreadsheet (summary figures only) — for checking / reporting other clients, outside your ERP data.</div>
+		</div>
+		<a href="<?php echo epc_erp_h($baseUrl . $sep . 'tool=import'); ?>" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> Open import tool</a>
 	</div>
 	<div class="row">
 	<?php foreach ($cats as $ck => $cl):

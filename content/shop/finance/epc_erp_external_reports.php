@@ -631,6 +631,29 @@ if (!function_exists('epc_ext_report_period_type')) {
     }
 }
 
+if (!function_exists('epc_ext_period_bases')) {
+    /**
+     * The period bases a user may pick for a report, ordered with the report's
+     * natural/statutory basis first. Lets filers choose a different cadence
+     * (e.g. a monthly VAT filer, or a company with a non-calendar CT year)
+     * without leaving the report. 'custom' is always available.
+     *
+     * @return array<int,string> ordered subset of month|quarter|year|custom
+     */
+    function epc_ext_period_bases(string $natural): array
+    {
+        $labels = array('month', 'quarter', 'year');
+        $ordered = array($natural);
+        foreach ($labels as $l) {
+            if ($l !== $natural) {
+                $ordered[] = $l;
+            }
+        }
+        $ordered[] = 'custom';
+        return $ordered;
+    }
+}
+
 if (!function_exists('epc_ext_resolve_period')) {
     /**
      * Resolve a concrete reporting period (from/to timestamps + label + preset
@@ -639,7 +662,7 @@ if (!function_exists('epc_ext_resolve_period')) {
      *
      * @return array{type:string,token:string,label:string,from:int,to:int,options:array<string,string>}
      */
-    function epc_ext_resolve_period(string $type, ?string $sel, int $refTs = 0): array
+    function epc_ext_resolve_period(string $type, ?string $sel, int $refTs = 0, array $custom = array()): array
     {
         $ref = $refTs > 0 ? $refTs : time();
         $y = (int) date('Y', $ref);
@@ -648,6 +671,29 @@ if (!function_exists('epc_ext_resolve_period')) {
         $mk = function (int $fy, int $fm, int $fd, int $ty, int $tm, int $td): array {
             return array(mktime(0, 0, 0, $fm, $fd, $fy), mktime(23, 59, 59, $tm, $td, $ty));
         };
+
+        // Custom range — any from/to the user picks (e.g. a non-calendar
+        // financial year, a transitional first CT period, or an ad-hoc range).
+        if ($type === 'custom') {
+            $f = (int) ($custom['from'] ?? 0);
+            $t = (int) ($custom['to'] ?? 0);
+            if ($f <= 0 || $t <= 0 || $t < $f) {
+                $last = (int) date('t', $ref);
+                $f = mktime(0, 0, 0, $m, 1, $y);
+                $t = mktime(23, 59, 59, $m, $last, $y);
+            } else {
+                $f = mktime(0, 0, 0, (int) date('n', $f), (int) date('j', $f), (int) date('Y', $f));
+                $t = mktime(23, 59, 59, (int) date('n', $t), (int) date('j', $t), (int) date('Y', $t));
+            }
+            return array(
+                'type' => 'custom',
+                'token' => 'custom',
+                'label' => date('d M Y', $f) . ' — ' . date('d M Y', $t),
+                'from' => $f,
+                'to' => $t,
+                'options' => array('custom' => 'Custom range…'),
+            );
+        }
 
         $options = array();
         $build = function (string $tok) use ($type, $mk): array {
