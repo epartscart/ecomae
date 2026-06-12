@@ -43,7 +43,7 @@ function epc_ecomae_h($v)
 		<div class="inner">
 			<div class="epc-ecomae-badge"><i class="fa fa-globe"></i> E-Commerce · Arab Emirates</div>
 			<h1><?php echo epc_ecomae_h(epc_brand_system_name()); ?></h1>
-			<p class="lead"><strong>ecomae</strong> — hosted multi-industry commerce for the UAE and worldwide. Your client keeps <strong>only their domain</strong>; we run storefront, control panel, database, ERP, payments setup, and documents on our platform.</p>
+			<p class="lead"><strong>ecomae</strong> — a multi-tenant <strong>Business Operating System (BOS)</strong> combining ERP, commerce, compliance, workflows and industry-specific operational intelligence for organizations across industries worldwide. Your client keeps <strong>only their domain</strong>; we run the whole operating system on our platform.</p>
 			<div class="epc-ecomae-cta">
 				<a class="btn btn-primary btn-lg" href="#contact"><i class="fa fa-envelope"></i> Request demo</a>
 				<a class="btn btn-default btn-lg" href="<?php echo epc_ecomae_h($super_cp); ?>" style="color:#0f172a"><i class="fa fa-th-large"></i> Platform login</a>
@@ -66,8 +66,8 @@ function epc_ecomae_h($v)
 			<p>Auto parts, tax advisory, fashion, medical, consultancy — modular CP packs per vertical.</p>
 		</div>
 		<div class="epc-ecomae-card">
-			<h4><i class="fa fa-university text-primary"></i> ERP &amp; FTA</h4>
-			<p>UAE VAT, e-invoicing, document control, customer hub — enterprise-grade modules included.</p>
+			<h4><i class="fa fa-university text-primary"></i> ERP &amp; Compliance</h4>
+			<p>Finance, VAT, e-invoicing, filing calendar, document control, customer hub — enterprise-grade BOS modules included.</p>
 		</div>
 	</div>
 
@@ -101,7 +101,7 @@ function epc_ecomae_h($v)
 		</div>
 		<div class="epc-ecomae-price featured">
 			<h4>Business</h4>
-			<p>+ ERP · VAT · Documents<br>Payments · Customer hub</p>
+			<p>+ ERP · Compliance · Workflows<br>Payments · Customer hub</p>
 		</div>
 		<div class="epc-ecomae-price">
 			<h4>Enterprise</h4>

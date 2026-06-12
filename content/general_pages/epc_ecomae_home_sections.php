@@ -126,9 +126,9 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	<section id="features" class="ehm-sec ehm-sec--alt">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
-				<div class="ehm-tag"><span class="ehm-dot"></span>100+ Platform Features</div>
+				<div class="ehm-tag"><span class="ehm-dot"></span>One Business Operating System</div>
 				<h2>Everything your business<br><span class="ehm-glow">runs on.</span></h2>
-				<p>Six capability pillars, enterprise-grade, sharing one database — nothing needs to sync.</p>
+				<p>The capability pillars of the ECOM AE BOS — ERP, commerce, compliance, workflows and industry intelligence — enterprise-grade, sharing one database, nothing needs to sync.</p>
 			</div>
 			<div class="ehm-feat-grid">
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🛒</div><h4>E-Commerce &amp; Catalogue</h4><p>SKU management, variants, bulk CSV, B2B pricing, promo codes, multi-currency checkout.</p><div class="ehm-pills"><span class="ehm-pill">Storefront</span><span class="ehm-pill">B2B Portal</span><span class="ehm-pill">Multi-Currency</span></div></div>
@@ -136,6 +136,9 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">📊</div><h4>ERP &amp; Finance</h4><p>Double-entry GL, AR/AP, bank reconciliation, P&amp;L, UAE VAT returns, multi-company.</p><div class="ehm-pills"><span class="ehm-pill">General Ledger</span><span class="ehm-pill">AR/AP</span><span class="ehm-pill">Fixed Assets</span></div></div>
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🤝</div><h4>CRM &amp; Customers</h4><p>Kanban pipeline, lead capture, 360° customer view, segments, approval workflows.</p><div class="ehm-pills"><span class="ehm-pill">Kanban</span><span class="ehm-pill">Leads</span><span class="ehm-pill">360° View</span></div></div>
 				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🔧</div><h4>Procurement</h4><p>Supplier directory, purchase orders, RFQ, 3-way match, payables scheduling.</p><div class="ehm-pills"><span class="ehm-pill">Purchase Orders</span><span class="ehm-pill">RFQ</span><span class="ehm-pill">3-Way Match</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🛡️</div><h4>Compliance</h4><p>Tax regimes, e-invoicing, filing calendar with due dates, document retention, and an immutable audit trail.</p><div class="ehm-pills"><span class="ehm-pill">Filing Calendar</span><span class="ehm-pill">e-Invoice</span><span class="ehm-pill">Audit Trail</span></div></div>
+				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">⚡</div><h4>Workflow Automation</h4><p>Approval chains, spend thresholds, multi-step routing and triggers across orders, POs, journals and vouchers.</p><div class="ehm-pills"><span class="ehm-pill">Approvals</span><span class="ehm-pill">Thresholds</span><span class="ehm-pill">Triggers</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🧠</div><h4>Industry Intelligence</h4><p>Per-industry KPIs, operational dashboards and recommended controls — driven by your industry pack.</p><div class="ehm-pills"><span class="ehm-pill">Industry KPIs</span><span class="ehm-pill">Dashboards</span><span class="ehm-pill">Controls</span></div></div>
 				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🏢</div><h4>Multi-Tenant SaaS</h4><p>Super CP for agencies — onboard tenants, push templates, monitor health, deploy industry packs.</p><div class="ehm-pills"><span class="ehm-pill">Super CP</span><span class="ehm-pill">Health Monitor</span><span class="ehm-pill">Templates</span></div></div>
 			</div>
 		</div>

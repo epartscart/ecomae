@@ -79,12 +79,14 @@ try {
 
 		case 'payment_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$pv = epc_erp_payment_voucher($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($pv['cash_entry_id'] ?? 0), $_POST);
 			$pvMsg = 'Payment voucher ' . ($pv['voucher_no'] ?? '') . ' recorded';
 			if (!empty($pv['allocated'])) {
 				$pvMsg .= ' — ' . number_format((float) $pv['allocated'], 2) . ' settled against bills';
 			}
+			$pvMsg .= epc_bos_wf_maybe_raise($db_link, 'payment_voucher', (int) ($pv['cash_entry_id'] ?? 0), (string) ($pv['voucher_no'] ?? 'PV'), $_POST);
 			epc_erp_json(true, $pvMsg, $pv);
 
 		case 'settlement_open_docs':
@@ -177,6 +179,71 @@ try {
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_staff.php';
 			$cid = epc_erp_marketing_create($db_link, $_POST);
 			epc_erp_json(true, 'Campaign created', array('id' => $cid));
+
+		// ---- BOS Compliance pillar ----
+		case 'bos_compliance_file':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_compliance.php';
+			epc_bos_compliance_set_filing(
+				$db_link,
+				(int)($_POST['obligation_id'] ?? 0),
+				(string)($_POST['period_label'] ?? ''),
+				(int)($_POST['period_end'] ?? 0),
+				(int)($_POST['due_date'] ?? 0),
+				(string)($_POST['status'] ?? 'filed'),
+				(string)($_POST['reference'] ?? ''),
+				(string)($_POST['notes'] ?? '')
+			);
+			epc_erp_json(true, 'Filing status saved');
+
+		case 'bos_compliance_add_obligation':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_compliance.php';
+			$oid = epc_bos_compliance_add_obligation($db_link, $_POST);
+			epc_erp_json($oid > 0, $oid > 0 ? 'Obligation saved' : 'Title required', array('id' => $oid));
+
+		case 'bos_compliance_disable_obligation':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_compliance.php';
+			epc_bos_compliance_disable_obligation($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Obligation disabled');
+
+		case 'bos_compliance_save_retention':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_compliance.php';
+			$rid = epc_bos_retention_save($db_link, $_POST);
+			epc_erp_json($rid > 0, $rid > 0 ? 'Retention rule saved' : 'Label required', array('id' => $rid));
+
+		// ---- BOS Workflow / Approvals pillar ----
+		case 'bos_wf_save_rule':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
+			$rid = epc_bos_wf_save_rule($db_link, $_POST);
+			epc_erp_json($rid > 0, $rid > 0 ? 'Approval rule saved' : 'Name and document type required', array('id' => $rid));
+
+		case 'bos_wf_disable_rule':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
+			epc_bos_wf_disable_rule($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Rule disabled');
+
+		case 'bos_wf_decide':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
+			$res = epc_bos_wf_decide($db_link, (int)($_POST['request_id'] ?? 0), (string)($_POST['decision'] ?? 'approve'), (string)($_POST['comment'] ?? ''));
+			epc_erp_json(!empty($res['status']), (string)($res['message'] ?? 'Done'), $res);
+
+		case 'bos_wf_raise_test':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
+			$ref = (string)($_POST['entity_ref'] ?? 'TEST');
+			$reqId = epc_bos_wf_raise(
+				$db_link,
+				(string)($_POST['entity_type'] ?? 'purchase_order'),
+				(int)(time() % 1000000),
+				$ref,
+				(float)($_POST['amount'] ?? 0),
+				$ref
+			);
+			epc_erp_json(true, $reqId > 0 ? 'Approval request raised (#' . $reqId . ')' : 'No rule matched — no approval needed for this amount', array('request_id' => $reqId));
+
+		// ---- BOS Industry Intelligence pillar ----
+		case 'bos_intel_toggle_control':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_intelligence.php';
+			epc_bos_intel_set_control($db_link, (string)($_POST['code'] ?? ''), (int)($_POST['checked'] ?? 0) === 1);
+			epc_erp_json(true, 'Control updated');
 
 		case 'payroll_generate':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_payroll.php';
@@ -511,9 +578,11 @@ try {
 
 		case 'po_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$id = epc_erp_po_save($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'purchase_order', (int) $id, $_POST);
-			epc_erp_json(true, 'Purchase order created', array('id' => $id));
+			$poWf = epc_bos_wf_maybe_raise($db_link, 'purchase_order', (int) $id, 'PO #' . (int) $id, $_POST);
+			epc_erp_json(true, 'Purchase order created' . $poWf, array('id' => $id));
 
 		case 'po_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
@@ -533,9 +602,11 @@ try {
 
 		case 'so_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$id = epc_erp_sales_order_save($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'sales_order', (int) $id, $_POST);
-			epc_erp_json(true, 'Sales order saved', array('id' => $id));
+			$soWf = epc_bos_wf_maybe_raise($db_link, 'sales_order', (int) $id, 'SO #' . (int) $id, $_POST);
+			epc_erp_json(true, 'Sales order saved' . $soWf, array('id' => $id));
 
 		case 'so_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';

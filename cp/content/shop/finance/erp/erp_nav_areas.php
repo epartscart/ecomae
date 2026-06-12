@@ -14,9 +14,11 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'dashboard' => array('label' => 'Dashboard', 'icon' => 'fa-dashboard'),
 				'workflow' => array('label' => 'Workflow', 'icon' => 'fa-tasks'),
+				'approvals' => array('label' => 'Approvals', 'icon' => 'fa-check-square-o'),
 			),
 			'groups' => array(
 				'Workspaces' => array('dashboard', 'workflow'),
+				'Governance' => array('approvals'),
 			),
 		),
 		'sales' => array(
@@ -78,6 +80,7 @@ function epc_erp_nav_areas_config()
 				'coa' => array('label' => 'COA', 'icon' => 'fa-list'),
 				'vat_return' => array('label' => 'UAE VAT', 'icon' => 'fa-percent'),
 				'tax_compliance' => array('label' => 'Tax compliance', 'icon' => 'fa-gavel'),
+				'compliance' => array('label' => 'Compliance center', 'icon' => 'fa-shield'),
 				'einvoice' => array('label' => 'E-Invoicing', 'icon' => 'fa-file-code-o'),
 				'opening_balances' => array('label' => 'Opening balances', 'icon' => 'fa-flag-o'),
 				'document_control' => array('label' => 'Document Control', 'icon' => 'fa-print'),
@@ -86,7 +89,7 @@ function epc_erp_nav_areas_config()
 				'Common' => array('cash_bank', 'petty_cash'),
 				'Journals' => array('gl', 'payment_batches', 'opening_balances'),
 				'Inquiries and reports' => array('aging'),
-				'Tax and compliance' => array('vat_return', 'tax_compliance', 'einvoice'),
+				'Tax and compliance' => array('vat_return', 'tax_compliance', 'compliance', 'einvoice'),
 				'Setup' => array('coa', 'bank_setup', 'document_control'),
 			),
 		),
@@ -144,12 +147,14 @@ function epc_erp_nav_areas_config()
 				'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn'),
 				'knowledge_base' => array('label' => 'Knowledge base', 'icon' => 'fa-book'),
 				'multi_entity' => array('label' => 'Multi-entity', 'icon' => 'fa-sitemap'),
+				'industry_intel' => array('label' => 'Industry intelligence', 'icon' => 'fa-line-chart'),
 				'enterprise_reports' => array('label' => 'Trial balance / reports', 'icon' => 'fa-table'),
 				'consolidation_bu' => array('label' => 'Consolidation', 'icon' => 'fa-sitemap'),
 				'audit' => array('label' => 'Audit trail', 'icon' => 'fa-history'),
 			),
 			'groups' => array(
 				'Reports' => array('pl', 'balance_sheet', 'reports', 'enterprise_reports'),
+				'Intelligence' => array('industry_intel'),
 				'Inquiries' => array('consolidation_bu', 'multi_entity', 'audit'),
 				'Common' => array('marketing', 'knowledge_base'),
 			),

@@ -19,9 +19,9 @@ $logo = function_exists('epc_ecomae_hub_logo_image_url')
 		<div class="epc-erp-home-hero__copy">
 			<img class="epc-erp-home-hero__logo" src="<?php echo htmlspecialchars($logo, ENT_QUOTES, 'UTF-8'); ?>" alt="ECOM AE" width="72" height="72" />
 			<p class="epc-erp-home-hero__eyebrow">E-Commerce Arab Emirates</p>
-			<h1 class="epc-erp-home-hero__title">Unified ERP &amp; commerce cloud</h1>
+			<h1 class="epc-erp-home-hero__title">Unified Business Operating System</h1>
 			<p class="epc-erp-home-hero__lead">
-				Finance, inventory, VAT, CRM, and operations for your team — on the same tenant data as the control panel.
+				ERP, commerce, compliance, workflows, and industry intelligence for your team — on the same tenant data as the control panel.
 				Host clients on isolated databases with Super CP, or sign in below for department access.
 			</p>
 			<div class="epc-erp-home-hero__cta">
@@ -33,7 +33,7 @@ $logo = function_exists('epc_ecomae_hub_logo_image_url')
 		<div class="epc-erp-home-hero__stats">
 			<div class="epc-erp-home-stat"><strong>Storefront</strong><span>Industry templates &amp; checkout</span></div>
 			<div class="epc-erp-home-stat"><strong>Control panel</strong><span>Roles, orders, catalogue</span></div>
-			<div class="epc-erp-home-stat"><strong>ERP Finance</strong><span>GL, VAT, payables, stock</span></div>
+			<div class="epc-erp-home-stat"><strong>BOS pillars</strong><span>ERP, compliance, workflows</span></div>
 			<div class="epc-erp-home-stat"><strong>Super CP</strong><span>Tenant hub &amp; onboarding</span></div>
 		</div>
 	</div>

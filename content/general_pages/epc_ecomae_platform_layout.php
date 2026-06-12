@@ -97,9 +97,9 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 function epc_ecomae_platform_page_description($page, array $params = array()): string
 {
 	$descriptions = array(
-		'home' => 'ECOM AE — unified ERP, e-commerce, and CRM cloud for UAE businesses. Launch multi-tenant storefronts with Super CP and Peppol e-invoicing.',
-		'platform' => 'Explore the ECOM AE platform: multi-tenant commerce, ERP, CRM, and operator Super CP for UAE and GCC businesses.',
-		'capabilities' => 'Super CP capabilities — tenant management, pricing, ERP modules, and integrations for hosted commerce operators.',
+		'home' => 'ECOM AE — the multi-tenant Business Operating System (BOS) combining ERP, commerce, compliance, workflows and industry-specific operational intelligence for organizations across industries worldwide.',
+		'platform' => 'Explore the ECOM AE Business Operating System (BOS): ERP, commerce, compliance, workflows, CRM and industry intelligence on one multi-tenant cloud.',
+		'capabilities' => 'ECOM AE BOS capabilities — ERP, commerce, compliance, workflow automation, industry intelligence, and operator Super CP for hosted businesses.',
 		'auto_price_ai' => 'Auto Price AI — discover, compare, and import products across market sources with margin rules and catalogue sync.',
 		'faq' => '105 honest answers on automotive catalog, B2B, supply chain, UAE ERP, AI, infrastructure, and licensing.',
 		'pricing' => 'Transparent monthly rental plans for ECOM AE cloud — e-commerce, ERP, and CRM for UAE businesses.',
@@ -1061,9 +1061,9 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 	$nodes = epc_ecomae_platform_flow_nodes();
 	$continuityUrl = $base . 'platform/business-continuity';
 	$platformPills = array(
-		array('icon' => 'fa-clock-o', 'label' => 'ERP live in 24 hours'),
-		array('icon' => 'fa-file-text-o', 'label' => 'UAE e-invoice · Peppol'),
-		array('icon' => 'fa-sitemap', 'label' => 'E-commerce + ERP + CRM'),
+		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
+		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
+		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
 		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
 		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
 	);
@@ -1105,13 +1105,14 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 			<div class="epm-hub__core-glow" aria-hidden="true"></div>
 			<div class="epm-hub__core-pulse" aria-hidden="true"></div>
 			<img class="epm-hub__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="" />
-			<h1 class="epm-hub__headline" aria-label="E-commerce, ERP, CRM — One Cloud">
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">E-commerce</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack">ERP</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack">CRM</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE CLOUD</span>
+			<p class="epm-hub__pill" style="margin-bottom:10px"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
+			<h1 class="epm-hub__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">Business</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">Operating</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">System</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE BOS</span>
 			</h1>
-			<p class="epm-hub__tagline-sub">Go live in 24 hours · UAE e-invoice ready · <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(34,211,238,.5)">cloud + backup continuity</a></p>
+			<p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(34,211,238,.5)">backup continuity</a> built in.</p>
 			<p class="epm-hub__pill"><i class="fa fa-circle epm-hub__live-dot"></i> Data flowing · multi-tenant hub</p>
 			<div class="epm-hub__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
@@ -1143,8 +1144,8 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 		</div>
 
 		<div class="epm-hub__platform">
-			<p class="epm-hub__platform-title">Information flows through ECOM AE</p>
-			<p class="epm-hub__platform-sub">Storefront → CP → ERP → Super CP · one cloud, isolated tenants</p>
+			<p class="epm-hub__platform-title">One Business Operating System for the whole organization</p>
+			<p class="epm-hub__platform-sub">ECOM AE is a multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
 			<div class="epm-hub__platform-pills">
 				<?php foreach ($platformPills as $p) { ?>
 				<span class="epm-hub__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>
@@ -1165,9 +1166,9 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 	$logo = epc_ecomae_platform_logo_url();
 	$continuityUrl = $base . 'platform/business-continuity';
 	$platformPills = array(
-		array('icon' => 'fa-clock-o', 'label' => 'ERP live in 24 hours'),
-		array('icon' => 'fa-file-text-o', 'label' => 'UAE e-invoice · Peppol'),
-		array('icon' => 'fa-sitemap', 'label' => 'E-commerce + ERP + CRM'),
+		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
+		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
+		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
 		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
 		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
 	);
@@ -1178,13 +1179,14 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 		<div class="epm-static-hero__bg" aria-hidden="true"></div>
 		<div class="epm-static-hero__inner">
 			<img class="epm-static-hero__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="ECOM AE" width="200" height="auto" />
-			<h1 class="epm-static-hero__headline" aria-label="E-commerce, ERP, CRM — One Cloud">
-				<span class="epm-static-hero__line epm-static-hero__line--stack epm-static-hero__line--commerce">E-commerce</span>
-				<span class="epm-static-hero__line epm-static-hero__line--stack">ERP</span>
-				<span class="epm-static-hero__line epm-static-hero__line--stack">CRM</span>
-				<span class="epm-static-hero__line epm-static-hero__line--cloud">ONE CLOUD</span>
+			<p class="epm-static-hero__tagline" style="margin-bottom:8px;opacity:.92"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
+			<h1 class="epm-static-hero__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
+				<span class="epm-static-hero__line epm-static-hero__line--stack epm-static-hero__line--commerce">Business</span>
+				<span class="epm-static-hero__line epm-static-hero__line--stack">Operating</span>
+				<span class="epm-static-hero__line epm-static-hero__line--stack">System</span>
+				<span class="epm-static-hero__line epm-static-hero__line--cloud">ONE BOS</span>
 			</h1>
-			<p class="epm-static-hero__tagline">Go live in 24 hours · UAE e-invoice ready · <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity">cloud + backup continuity</a></p>
+			<p class="epm-static-hero__tagline">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity">backup continuity</a> built in.</p>
 			<div class="epm-static-hero__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h($superCp); ?>"><i class="fa fa-th-large"></i> Super CP</a>
@@ -1192,8 +1194,8 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 			</div>
 		</div>
 		<div class="epm-static-hero__platform">
-			<p class="epm-static-hero__platform-title">Information flows through ECOM AE</p>
-			<p class="epm-static-hero__platform-sub">Storefront → CP → ERP → Super CP · one cloud, isolated tenants</p>
+			<p class="epm-static-hero__platform-title">One Business Operating System for the whole organization</p>
+			<p class="epm-static-hero__platform-sub">A multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
 			<div class="epm-static-hero__platform-pills">
 				<?php foreach ($platformPills as $p) { ?>
 				<span class="epm-static-hero__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>

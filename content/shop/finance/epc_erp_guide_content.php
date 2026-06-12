@@ -409,6 +409,48 @@ if (!function_exists('epc_guide_modules')) {
             'No GL impact; presentation + access layer over the existing API.',
             array('The crypto/fintech theme is responsive and RTL-aware, so the mobile UI flips correctly per language.'));
 
+        // ---- BOS pillars (Phase 2) ----
+        $g['bos_compliance'] = $E('compliance', 'Compliance center (BOS pillar)',
+            'A config-driven obligations engine: tracks your filing obligations (VAT, corporate tax, ESR, etc.), a live filing calendar with due dates and status, and document-retention rules — all per tenant, seeded from your region and fully editable.',
+            array(
+                'Open Finance → Compliance center. Default obligations and retention rules are seeded once from your country/region.',
+                'On the Obligations tab, add/disable obligations and set frequency, lead days and required documents.',
+                'On Document retention, set retention years/basis/legal reference per document type.',
+            ),
+            array(
+                'Filing calendar projects each period with a due date and status (open / due soon / overdue / filed).',
+                'When a return is submitted, click "Mark filed" with a reference; the period drops out of the overdue/due-soon counts.',
+            ),
+            'No direct GL postings — a governance layer that tracks obligations and evidence alongside the ledger.',
+            array('Defaults are starting points: every obligation, due date and retention rule is editable per tenant, nothing is hard-coded.'));
+
+        $g['bos_approvals'] = $E('workflow', 'Approvals engine (BOS pillar)',
+            'A reusable approval & sign-off engine across documents: define threshold rules (e.g. "PO ≥ 10,000 needs Manager approval"), and high-value sales orders, purchase orders and payment vouchers are routed for multi-step approval with a full immutable audit trail.',
+            array(
+                'Open Overview → Approvals → Rules. Add a rule: pick the document type, condition (amount ≥ / > / any) and threshold, then one or more approver roles (the steps).',
+                'Use the Test rule tab to raise a sample request and confirm routing.',
+            ),
+            array(
+                'Raise SO/PO/payment vouchers as normal — if a rule matches, an approval request is raised automatically.',
+                'Approvers act on the Approval queue (Approve/Reject with a comment); multi-step rules advance to the next approver.',
+                'History & audit shows every decision with actor, timestamp and comment.',
+            ),
+            'No GL impact itself; gates the documents that do post, so unauthorised high-value transactions are caught before completion.',
+            array('Rules are per tenant and per document type — thresholds and approver chains are fully configurable, never hard-coded.'));
+
+        $g['bos_intel'] = $E('dashboard', 'Industry intelligence (BOS pillar)',
+            'Operational KPIs and recommended controls driven by your industry profile/pack: live financial KPIs (gross margin %, DSO, DPO, inventory turnover, current ratio) plus a best-practice control checklist tailored to your industry.',
+            array(
+                'Apply an industry pack in Accounting setup to unlock specialised controls (generic controls always apply).',
+                'Open Insights → Industry intelligence. KPIs compute live for the selected From/To period.',
+            ),
+            array(
+                'Review the KPI tiles (colour-coded against benchmarks) for the chosen period.',
+                'Work the recommended-controls checklist; tick the controls you have in place — the checklist is saved per tenant.',
+            ),
+            'No GL impact; reads live GL, aging and inventory data to surface KPIs and control gaps.',
+            array('KPIs and controls are selected by the active industry pack, so the same engine serves 50–100 industries without hard-coding.'));
+
         return $g;
     }
 }

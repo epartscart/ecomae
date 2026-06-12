@@ -189,6 +189,9 @@ $erpTabIncludes = array(
 	'fulfilment' => 'erp_tabs_fulfilment.php',
 	'staff' => 'erp_tabs_staff.php',
 	'workflow' => 'erp_tabs_workflow.php',
+	'approvals' => 'erp_tabs_approvals.php',
+	'compliance' => 'erp_tabs_compliance.php',
+	'industry_intel' => 'erp_tabs_industry_intel.php',
 	'marketing' => 'erp_tabs_marketing.php',
 	'crm' => 'erp_tabs_crm.php',
 	'hr' => 'erp_tabs_hr.php',
@@ -252,7 +255,7 @@ if (!$epc_erp_shell_mode) {
 	<div class="epc-erp-layout">
 		<aside class="epc-erp-sidebar" id="epc_erp_sidebar" aria-label="ERP navigation">
 			<div class="epc-erp-sidebar-head">
-				<span class="epc-erp-sidebar-brand"><i class="fa fa-briefcase"></i> ERP Suite</span>
+				<span class="epc-erp-sidebar-brand"><i class="fa fa-cubes"></i> Ecom BOS</span>
 				<button type="button" class="epc-erp-sidebar-collapse-toggle" id="epc_erp_sidebar_collapse_toggle" aria-expanded="true" aria-label="Collapse sidebar"><i class="fa fa-chevron-left"></i></button>
 				<button type="button" class="epc-erp-sidebar-close" id="epc_erp_sidebar_close" aria-label="Close menu"><i class="fa fa-times"></i></button>
 			</div>
@@ -304,6 +307,9 @@ if (!$epc_erp_shell_mode) {
 				// (consolidation_bu / master_planning are as-of snapshots, and the
 				// master-data modules are excluded, so they carry no date bar.)
 				'enterprise_reports', 'bank_setup',
+				// BOS pillars: compliance filing calendar (as-at due date) and
+				// industry intelligence KPIs both read the From/To range.
+				'compliance', 'industry_intel',
 			);
 			$epcErpShowDateFilter = in_array($tab, $epcErpDateFilterTabs, true);
 			?>
@@ -759,6 +765,10 @@ if (!$epc_erp_shell_mode) {
 	bindForm('epc_erp_form_supplier_settle', 'supplier_settlement');
 	bindForm('epc_erp_form_order_settle', 'order_settlement');
 	bindForm('epc_erp_form_workflow_create', 'workflow_create');
+	// BOS pillars (compliance, approvals, industry intelligence) — generic binder.
+	document.querySelectorAll('form[data-bos-action]').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction(f.getAttribute('data-bos-action'), f); });
+	});
 	bindForm('epc_erp_form_marketing_create', 'marketing_create');
 	bindForm('epc_erp_form_rfq', 'save_rfq');
 	bindForm('epc_erp_form_delivery_note', 'delivery_note_create');
