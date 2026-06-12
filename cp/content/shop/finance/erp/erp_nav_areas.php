@@ -14,10 +14,11 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'dashboard' => array('label' => 'Dashboard', 'icon' => 'fa-dashboard'),
 				'workflow' => array('label' => 'Workflow', 'icon' => 'fa-tasks'),
+				'processflow' => array('label' => 'Process flow', 'icon' => 'fa-sitemap'),
 				'approvals' => array('label' => 'Approvals', 'icon' => 'fa-check-square-o'),
 			),
 			'groups' => array(
-				'Workspaces' => array('dashboard', 'workflow'),
+				'Workspaces' => array('dashboard', 'workflow', 'processflow'),
 				'Governance' => array('approvals'),
 			),
 		),

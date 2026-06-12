@@ -194,6 +194,7 @@ $erpTabIncludes = array(
 	'fulfilment' => 'erp_tabs_fulfilment.php',
 	'staff' => 'erp_tabs_staff.php',
 	'workflow' => 'erp_tabs_workflow.php',
+	'processflow' => 'erp_tabs_processflow.php',
 	'approvals' => 'erp_tabs_approvals.php',
 	'compliance' => 'erp_tabs_compliance.php',
 	'industry_intel' => 'erp_tabs_industry_intel.php',
