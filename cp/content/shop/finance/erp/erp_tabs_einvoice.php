@@ -157,7 +157,7 @@ function epc_einv_url($base, $section, $extra = '')
 							<tr><td>Mode</td><td>Bank transfer (<?php echo epc_erp_h($doc['payment_means_code']); ?>)</td></tr>
 							<tr><td>Bank account</td><td><?php echo epc_erp_h($doc['bank_account'] ?: '—'); ?></td></tr>
 							<tr><td>Terms</td><td><?php echo epc_erp_h($doc['payment_terms'] ?: '—'); ?></td></tr>
-							<tr><td>Order</td><td><a href="/<?php echo epc_erp_h($GLOBALS['DP_Config']->backend_dir); ?>/shop/orders/order?id=<?php echo (int)$doc['order_id']; ?>">#<?php echo (int)$doc['order_id']; ?></a></td></tr>
+							<tr><td>Order</td><td><?php if (!empty($epc_erp_cp_links)): ?><a href="/<?php echo epc_erp_h($GLOBALS['DP_Config']->backend_dir); ?>/shop/orders/order?id=<?php echo (int)$doc['order_id']; ?>">#<?php echo (int)$doc['order_id']; ?></a><?php else: ?>#<?php echo (int)$doc['order_id']; ?><?php endif; ?></td></tr>
 						</table>
 					</div>
 				</div>

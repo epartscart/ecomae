@@ -439,19 +439,39 @@ function epc_crm_configure_urls($embedInErp = null)
 	$from = isset($_GET['from']) ? (string) $_GET['from'] : date('Y-m-01');
 	$to = isset($_GET['to']) ? (string) $_GET['to'] : date('Y-m-d');
 	$erpBase = $backend . '/shop/finance/erp';
-	if ($embedInErp) {
-		$crmUrl = $erpBase . '?tab=crm&from=' . rawurlencode($from) . '&to=' . rawurlencode($to);
-	} else {
-		$crmUrl = $backend . '/shop/finance/erp?tab=crm';
-	}
+	$ordersUrl = $backend . '/shop/orders/orders';
 	$crmAjax = $embedInErp
 		? $backend . '/content/shop/finance/erp/ajax_erp_endpoint.php'
 		: $backend . '/content/shop/crm/ajax_crm_endpoint.php';
+
+	// Keep CRM links + AJAX inside whichever ERP door the user opened. ERP-only
+	// tenants run on the standalone /erp/ door (portal=frontend) and must never
+	// be bounced to the /cp control panel; full tenants stay on /cp. Hardcoding
+	// the CP backend here is what dropped ERP-only users out to the control panel.
+	$portal = (isset($GLOBALS['epc_erp_portal']) && $GLOBALS['epc_erp_portal'] === 'frontend') ? 'frontend' : 'cp';
+	if ($portal === 'frontend' && function_exists('epc_erp_configure_portal_urls')) {
+		$resolved = epc_erp_configure_portal_urls('frontend');
+		if (!empty($resolved['erpUrl'])) {
+			$erpBase = (string) $resolved['erpUrl'];
+		}
+		if (!empty($resolved['erpAjaxEndpoint'])) {
+			$crmAjax = (string) $resolved['erpAjaxEndpoint'];
+		}
+		$ordersUrl = isset($resolved['ordersUrl']) ? (string) $resolved['ordersUrl'] : '';
+	}
+
+	if ($embedInErp) {
+		$sep = (strpos($erpBase, '?') !== false) ? '&' : '?';
+		$crmUrl = $erpBase . $sep . 'tab=crm&from=' . rawurlencode($from) . '&to=' . rawurlencode($to);
+	} else {
+		$sep = (strpos($erpBase, '?') !== false) ? '&' : '?';
+		$crmUrl = $erpBase . $sep . 'tab=crm';
+	}
 
 	return array(
 		'crmUrl' => $crmUrl,
 		'crmAjax' => $crmAjax,
 		'erpUrl' => $erpBase,
-		'ordersUrl' => $backend . '/shop/orders/orders',
+		'ordersUrl' => $ordersUrl,
 	);
 }

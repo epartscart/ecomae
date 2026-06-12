@@ -21,8 +21,10 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 	<div class="kpi"><div class="lbl">Stock lines</div><div class="val"><?php echo count($stock); ?></div></div>
 </div>
 <p>
+	<?php if (!empty($storagesUrl)): ?>
 	<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($storagesUrl); ?>"><i class="fa fa-archive"></i> Legacy shop storages</a>
 	<button type="button" class="btn btn-info btn-sm" id="epc_inv_sync_wh"><i class="fa fa-refresh"></i> Sync warehouses from shop storages</button>
+	<?php endif; ?>
 </p>
 
 <h4>Add warehouse</h4>

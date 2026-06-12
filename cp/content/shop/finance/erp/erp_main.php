@@ -659,7 +659,7 @@ if (!$epc_erp_shell_mode) {
 					</script>
 
 					<h4>Create purchase from order cost</h4>
-					<p class="text-muted">Allowed only when the order is in <strong>Completed</strong> status. Posts supplier bill from order purchase cost and, when order lines have article codes, auto-receives <strong>purchase_in</strong> stock lines (creates ERP SKUs if missing). Same action is available in <a href="/<?php echo epc_erp_h((string)$DP_Config->backend_dir); ?>/shop/procurement/procurement">Procurement</a>.</p>
+					<p class="text-muted">Allowed only when the order is in <strong>Completed</strong> status. Posts supplier bill from order purchase cost and, when order lines have article codes, auto-receives <strong>purchase_in</strong> stock lines (creates ERP SKUs if missing).<?php if (!empty($epc_erp_cp_links)): ?> Same action is available in <a href="/<?php echo epc_erp_h((string)$DP_Config->backend_dir); ?>/shop/procurement/procurement">Procurement</a>.<?php endif; ?></p>
 					<form id="epc_erp_form_purchase_order" class="form-inline">
 						<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
 						<input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" required>
@@ -697,6 +697,8 @@ if (!$epc_erp_shell_mode) {
 <script>
 (function(){
 	var erpPostUrl = <?php echo json_encode($erpAjaxEndpoint); ?>;
+	var erpDoorBase = <?php echo json_encode($erpUrl); ?>;
+	var erpIsFrontend = <?php echo (isset($epc_erp_portal) && $epc_erp_portal === 'frontend') ? 'true' : 'false'; ?>;
 	var msgEl = document.getElementById('epc_erp_msg');
 	function showMsg(ok, text) {
 		if (!msgEl) return;
@@ -719,8 +721,16 @@ if (!$epc_erp_shell_mode) {
 				showMsg(!!j.status, j.message || (j.status ? 'OK' : 'Error'));
 				if (j.status && j.redirect) {
 					var red = j.redirect;
-					if (red.indexOf('/shop/finance/erp') !== -1 && red.indexOf('epc_erp_shell=') === -1) {
-						red += (red.indexOf('?') >= 0 ? '&' : '?') + 'epc_erp_shell=1';
+					if (red.indexOf('/shop/finance/erp') !== -1) {
+						if (erpIsFrontend) {
+							// Keep ERP-only tenants on the standalone /erp/ door — never
+							// bounce a CP /cp/shop/finance/erp redirect into the control panel.
+							var qpos = red.indexOf('?');
+							var qs = qpos >= 0 ? red.substring(qpos + 1) : '';
+							red = erpDoorBase + (qs ? ((erpDoorBase.indexOf('?') >= 0 ? '&' : '?') + qs) : '');
+						} else if (red.indexOf('epc_erp_shell=') === -1) {
+							red += (red.indexOf('?') >= 0 ? '&' : '?') + 'epc_erp_shell=1';
+						}
 					}
 					setTimeout(function(){ location.href = red; }, 600);
 				} else if (j.status) {
