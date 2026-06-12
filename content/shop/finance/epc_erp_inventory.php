@@ -365,6 +365,64 @@ function epc_erp_inventory_resolve_item_id(PDO $db, string $sku, array $opts = a
 	));
 }
 
+/**
+ * Reconstruct per-item on-hand quantity and weighted-average value AS OF a given
+ * date by replaying the dated stock-movement ledger (epc_erp_inv_movements).
+ * This is the ERP "as-at date" inventory snapshot — e.g. on-hand at a fiscal
+ * year-end — independent of the current live snapshot. $asOf is a unix timestamp
+ * (use end of the chosen day). Returns array keyed by item_id =>
+ * array('qty', 'avg_cost', 'value'). Optional $warehouseId limits to one site.
+ */
+function epc_erp_inventory_on_hand_as_of(PDO $db, $asOf, $warehouseId = 0)
+{
+	epc_erp_inventory_ensure_schema($db);
+	$asOf = (int) $asOf;
+	$inTypes = array('opening', 'purchase_in', 'transfer_in', 'return_in');
+	$outTypes = array('sale_out', 'transfer_out', 'return_out');
+	$sql = "SELECT `item_id`, `movement_type`, `qty`, `unit_cost`, `movement_date`
+		FROM `epc_erp_inv_movements`
+		WHERE `active` = 1 AND `movement_date` <= ?";
+	$params = array($asOf);
+	if ((int) $warehouseId > 0) {
+		$sql .= " AND `warehouse_id` = ?";
+		$params[] = (int) $warehouseId;
+	}
+	$sql .= " ORDER BY `item_id` ASC, `movement_date` ASC, `id` ASC";
+	$st = $db->prepare($sql);
+	$st->execute($params);
+	$acc = array();
+	foreach ($st as $m) {
+		$item = (int) $m['item_id'];
+		if (!isset($acc[$item])) {
+			$acc[$item] = array('qty' => 0.0, 'avg' => 0.0);
+		}
+		$qty = (float) $m['qty'];
+		$cost = (float) $m['unit_cost'];
+		$type = (string) $m['movement_type'];
+		// Receipts (and adjustments — qty is stored as an absolute receipt) raise
+		// stock and re-average the cost; issues lower stock at the running average.
+		if (in_array($type, $inTypes, true) || $type === 'adjustment') {
+			$newAvg = epc_erp_inventory_apply_weighted_average($acc[$item]['qty'], $acc[$item]['avg'], $qty, $cost);
+			$acc[$item]['qty'] += $qty;
+			$acc[$item]['avg'] = $newAvg;
+		} elseif (in_array($type, $outTypes, true)) {
+			$acc[$item]['qty'] -= $qty;
+			if ($acc[$item]['qty'] < 0) {
+				$acc[$item]['qty'] = 0.0;
+			}
+		}
+	}
+	$out = array();
+	foreach ($acc as $item => $a) {
+		$out[$item] = array(
+			'qty' => round($a['qty'], 3),
+			'avg_cost' => round($a['avg'], 4),
+			'value' => round($a['qty'] * $a['avg'], 2),
+		);
+	}
+	return $out;
+}
+
 function epc_erp_inventory_stock_report(PDO $db, $warehouseId = 0)
 {
 	$sql = 'SELECT s.*, i.sku, i.name, i.item_type, i.unit, w.name AS warehouse_name
