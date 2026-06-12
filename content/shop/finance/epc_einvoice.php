@@ -671,6 +671,31 @@ function epc_einvoice_save_document(PDO $db, array $doc, int $admin_id = 0): int
 		}
 
 		$db->commit();
+
+		// Feed real sale-out demand into Order planning / SCM from posted sales
+		// invoices (online CP-portal orders and manual sales). Guarded so it can
+		// never break invoicing; skips credit notes (381).
+		if (($doc['doc_category'] ?? 'tax_invoice') === 'tax_invoice'
+			&& (string) ($doc['invoice_type_code'] ?? '380') !== '381') {
+			try {
+				$invFile = __DIR__ . '/epc_erp_inventory.php';
+				if (is_file($invFile)) {
+					require_once $invFile;
+					if (function_exists('epc_erp_inventory_record_sale_demand')) {
+						epc_erp_inventory_record_sale_demand(
+							$db,
+							$docId,
+							(int) ($doc['order_id'] ?? 0),
+							$doc['lines'] ?? array(),
+							(int) ($doc['issue_date'] ?? time())
+						);
+					}
+				}
+			} catch (Exception $e) {
+				// demand capture is best-effort; never block the invoice
+			}
+		}
+
 		return $docId;
 	} catch (Exception $e) {
 		if ($db->inTransaction()) {

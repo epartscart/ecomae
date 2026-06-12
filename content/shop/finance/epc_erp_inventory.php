@@ -815,6 +815,122 @@ function epc_erp_inventory_get_item_by_sku(PDO $db, $sku)
 	return $st->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
+/** Warehouse to draw a sale from: where the item holds most stock, else the first active warehouse. */
+function epc_erp_inventory_pick_warehouse_for_item(PDO $db, int $itemId): int
+{
+	$st = $db->prepare('SELECT `warehouse_id` FROM `epc_erp_inv_stock` WHERE `item_id` = ? ORDER BY `qty_on_hand` DESC LIMIT 1');
+	$st->execute(array($itemId));
+	$wh = (int) $st->fetchColumn();
+	if ($wh > 0) {
+		return $wh;
+	}
+	$row = $db->query('SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `active` = 1 ORDER BY `id` LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+	return $row ? (int) $row['id'] : 0;
+}
+
+/**
+ * Record real sale-out demand from a posted sales invoice so Order planning and
+ * SCM forecast from actual billed sales (online customer/CP-portal orders and
+ * manual sales alike). Each sold line writes a `sale_out` movement against the
+ * matching ERP item; stock is deducted best-effort (clamped, never throws) so a
+ * short-stock sale still registers as demand. Idempotent per invoice via the
+ * `SALEINV-<docId>` reference, so re-posting never double-counts.
+ *
+ * @param array<int,array<string,mixed>> $docLines invoice lines (fallback when no order_id)
+ * @return int number of demand movements recorded
+ */
+function epc_erp_inventory_record_sale_demand(PDO $db, int $docId, int $orderId = 0, array $docLines = array(), int $whenTs = 0): int
+{
+	if ($docId <= 0) {
+		return 0;
+	}
+	epc_erp_inventory_ensure_schema($db);
+
+	$ref = 'SALEINV-' . $docId;
+	$chk = $db->prepare("SELECT COUNT(*) FROM `epc_erp_inv_movements` WHERE `movement_type` = 'sale_out' AND `reference` = ?");
+	$chk->execute(array($ref));
+	if ((int) $chk->fetchColumn() > 0) {
+		return 0; // already recorded
+	}
+	if ($whenTs <= 0) {
+		$whenTs = time();
+	}
+
+	// item_id => demanded qty
+	$demand = array();
+	if ($orderId > 0) {
+		$st = $db->prepare('SELECT `product_id`, SUM(`count_need`) AS q FROM `shop_orders_items` WHERE `order_id` = ? AND `product_id` > 0 GROUP BY `product_id`');
+		$st->execute(array($orderId));
+		$lk = $db->prepare('SELECT `id` FROM `epc_erp_inv_items` WHERE `product_id` = ? AND `active` = 1 LIMIT 1');
+		foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+			$qty = (float) $r['q'];
+			if ($qty <= 0) {
+				continue;
+			}
+			$lk->execute(array((int) $r['product_id']));
+			$iid = (int) $lk->fetchColumn();
+			if ($iid > 0) {
+				$demand[$iid] = ($demand[$iid] ?? 0) + $qty;
+			}
+		}
+	}
+	if (empty($demand) && !empty($docLines)) {
+		$byName = $db->prepare('SELECT * FROM `epc_erp_inv_items` WHERE `name` = ? AND `active` = 1 LIMIT 1');
+		foreach ($docLines as $ln) {
+			$qty = (float) ($ln['quantity'] ?? 0);
+			if ($qty <= 0) {
+				continue;
+			}
+			$item = null;
+			$sku = trim((string) ($ln['item_sku'] ?? $ln['sku'] ?? ''));
+			if ($sku !== '') {
+				$item = epc_erp_inventory_get_item_by_sku($db, $sku);
+			}
+			if (!$item) {
+				$nm = trim((string) ($ln['item_name'] ?? ''));
+				if ($nm !== '') {
+					$byName->execute(array($nm));
+					$item = $byName->fetch(PDO::FETCH_ASSOC) ?: null;
+				}
+			}
+			if ($item) {
+				$iid = (int) $item['id'];
+				$demand[$iid] = ($demand[$iid] ?? 0) + $qty;
+			}
+		}
+	}
+	if (empty($demand)) {
+		return 0;
+	}
+
+	$ins = $db->prepare(
+		"INSERT INTO `epc_erp_inv_movements`
+		(`movement_type`,`warehouse_id`,`item_id`,`qty`,`unit_cost`,`total_cost`,`order_id`,`reference`,`note`,`movement_date`,`admin_id`,`active`)
+		VALUES ('sale_out',?,?,?,?,?,?,?,?,?,?,1)"
+	);
+	$recorded = 0;
+	foreach ($demand as $iid => $qty) {
+		$wh = epc_erp_inventory_pick_warehouse_for_item($db, (int) $iid);
+		if ($wh <= 0) {
+			continue;
+		}
+		$row = epc_erp_inventory_get_stock_row($db, $wh, (int) $iid);
+		$cost = $row ? (float) $row['avg_unit_cost'] : 0.0;
+		if ($row) {
+			$take = min((float) $row['qty_on_hand'], (float) $qty);
+			if ($take > 0) {
+				try {
+					epc_erp_inventory_upsert_stock($db, $wh, (int) $iid, -$take, $cost);
+				} catch (Exception $e) {
+				}
+			}
+		}
+		$ins->execute(array($wh, (int) $iid, (float) $qty, $cost, round((float) $qty * $cost, 2), $orderId, $ref, 'Sales invoice demand', $whenTs, epc_erp_admin_id()));
+		$recorded++;
+	}
+	return $recorded;
+}
+
 /**
  * Paired warehouse transfer at weighted-average cost from source.
  */
