@@ -192,6 +192,7 @@ $erpTabIncludes = array(
 	'approvals' => 'erp_tabs_approvals.php',
 	'compliance' => 'erp_tabs_compliance.php',
 	'industry_intel' => 'erp_tabs_industry_intel.php',
+	'ai_advisor' => 'erp_tabs_ai_advisor.php',
 	'marketing' => 'erp_tabs_marketing.php',
 	'crm' => 'erp_tabs_crm.php',
 	'hr' => 'erp_tabs_hr.php',

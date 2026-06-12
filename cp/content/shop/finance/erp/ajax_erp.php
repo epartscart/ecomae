@@ -557,6 +557,13 @@ try {
 			));
 			epc_erp_json(true, 'Inventory movement recorded', array('movement_id' => $id));
 
+		case 'ai_query':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_ai.php';
+			$aiFrom = !empty($_POST['date_from']) ? (int) strtotime((string) $_POST['date_from'] . ' 00:00:00') : strtotime(date('Y-m-01'));
+			$aiTo = !empty($_POST['date_to']) ? (int) strtotime((string) $_POST['date_to'] . ' 23:59:59') : time();
+			$aiAns = epc_bos_ai_answer($db_link, (string) ($_POST['q'] ?? ''), $aiFrom, $aiTo);
+			epc_erp_json(true, 'ok', $aiAns);
+
 		case 'integrity_scan':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_db_integrity.php';
 			epc_erp_json(true, 'Scan complete', array('relationships' => epc_erp_integrity_scan($db_link)));
