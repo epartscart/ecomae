@@ -224,11 +224,17 @@ if (!function_exists('epc_ext_print_css')) {
         $RED = '#b3122a'; $REDDK = '#8f0f22'; $REDLT = '#fdeef0';
         return '<style>'
             // ---- red corporate theme (screen + print) ----
-            . '.epc-aud-doc{font-family:Arial,Helvetica,sans-serif;color:#222;font-size:12px;line-height:1.55;}'
+            . '.epc-aud-doc{font-family:Arial,Helvetica,sans-serif;color:#222;font-size:12px;line-height:1.55;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1;}'
             . '.epc-aud-doc h4{color:' . $RED . ' !important;border-bottom:2px solid ' . $RED . ' !important;padding-bottom:5px;margin:0 0 12px;font-weight:700;letter-spacing:.2px;}'
             . '.epc-aud-doc h5{color:' . $REDDK . ' !important;font-weight:700;}'
             . '.epc-aud-doc th,.epc-aud-doc td{vertical-align:top;}'
             . '.epc-aud-doc thead th{background:' . $RED . ' !important;color:#fff !important;border-color:' . $REDDK . ' !important;}'
+            // professional numeric alignment: every numeric column header & cell right-aligned with tabular (lining) figures so digits line up vertically
+            . '.epc-aud-doc th[style*="text-align:right"],.epc-aud-doc td[style*="text-align:right"]{text-align:right !important;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1;}'
+            . '.epc-aud-doc td[style*="text-align:right"]{white-space:nowrap;}'
+            // highlighted, linked Note number badge on the face of the statements
+            . '.epc-note-badge{display:inline-block;min-width:20px;padding:0 7px;border-radius:10px;background:' . $RED . ' !important;color:#fff !important;font-weight:700;font-size:11px;line-height:17px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
+            . '.epc-note-no{display:inline-block;min-width:22px;padding:0 8px;margin-right:6px;border-radius:11px;background:' . $RED . ' !important;color:#fff !important;font-weight:700;font-size:12px;line-height:19px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
             // recolour the existing navy header/total bands to the red theme
             . '.epc-aud-doc tr[style*="#13294b"],.epc-aud-doc tr[style*="#2b3a55"],.epc-aud-doc tr[style*="#1d2740"]{background:' . $RED . ' !important;}'
             . '.epc-aud-doc tr[style*="#13294b"] td,.epc-aud-doc tr[style*="#13294b"] th,.epc-aud-doc tr[style*="#2b3a55"] td,.epc-aud-doc tr[style*="#2b3a55"] th{color:#fff !important;}'
@@ -253,6 +259,12 @@ if (!function_exists('epc_ext_print_css')) {
             // unified font + size across the whole printed pack
             . '.epc-aud-doc,.epc-aud-doc *{font-family:Arial,Helvetica,sans-serif !important;}'
             . '.epc-aud-doc p,.epc-aud-doc td,.epc-aud-doc th,.epc-aud-doc li,.epc-aud-doc span,.epc-aud-doc div{font-size:12px !important;line-height:1.5 !important;}'
+            // keep tabular/lining figures + right alignment in the printed pack for a clean professional look
+            . '.epc-aud-doc,.epc-aud-doc td,.epc-aud-doc th{font-variant-numeric:tabular-nums lining-nums !important;font-feature-settings:"tnum" 1,"lnum" 1 !important;}'
+            . '.epc-aud-doc th[style*="text-align:right"],.epc-aud-doc td[style*="text-align:right"]{text-align:right !important;}'
+            . '.epc-aud-doc table{border-collapse:collapse !important;}'
+            . '.epc-aud-doc table.table-bordered td,.epc-aud-doc table.table-bordered th{border:1px solid #e3c9ce !important;padding:4px 9px !important;}'
+            . '.epc-note-badge,.epc-note-no{background:' . $RED . ' !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
             . '.epc-aud-doc h4{font-size:16px !important;}'
             . '.epc-aud-doc h5{font-size:13.5px !important;}'
             . '.epc-aud-doc summary{font-size:12px !important;}'
@@ -2270,7 +2282,7 @@ if (!function_exists('epc_ext_b_audit')) {
                     list($stdTxt, $nkey) = explode('|', $ref, 2);
                     $sl = $slug($nkey);
                     $refCell = '<a href="#note-' . $sl . '" style="color:#1d4e89;text-decoration:none;border-bottom:1px dotted #9fb1ca;" title="Go to the ' . epc_erp_h($nkey) . ' note">'
-                        . epc_erp_h($stdTxt) . ' · Note&nbsp;{{N:' . $sl . '}}</a>';
+                        . epc_erp_h($stdTxt) . ' · Note&nbsp;<span class="epc-note-badge">{{N:' . $sl . '}}</span></a>';
                 } else {
                     $refCell = epc_erp_h($ref);
                 }
@@ -2432,7 +2444,7 @@ if (!function_exists('epc_ext_b_audit')) {
             $sl = $slug($title);
             $noteNum[$sl] = $noteN;
             return '<div id="note-' . $sl . '" style="margin:0 0 14px;scroll-margin-top:70px;">'
-                . '<p style="font-weight:700;margin:0 0 3px;color:#1d2740;">' . $noteN . '. ' . epc_erp_h($title)
+                . '<p style="font-weight:700;margin:0 0 3px;color:#1d2740;"><span class="epc-note-no">' . $noteN . '</span>' . epc_erp_h($title)
                 . ' <span style="font-weight:400;font-size:11px;color:#1d4e89;">(' . epc_erp_h($std) . ')</span>'
                 . ' <a href="#audit-statements" style="font-weight:400;font-size:10.5px;color:#8a97ad;text-decoration:none;" title="Back to the statements">&#8617; statements</a></p>'
                 . '<div style="font-size:12.5px;line-height:1.6;color:#333;">' . $body . epc_ext_std_block($std) . '</div></div>';
