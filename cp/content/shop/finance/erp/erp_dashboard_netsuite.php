@@ -22,6 +22,15 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aging.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_intelligence.php';
+
+// ---- Operational KPIs (BOS industry-intelligence engine, tenant-scoped) ----
+$opKpis = array();
+try {
+	$opKpis = epc_bos_intel_kpis($db_link, (int) $date_from, (int) $date_to);
+} catch (Throwable $e) {
+	$opKpis = array();
+}
 
 $nsCurrency = '';
 if (function_exists('epc_co_profile_get')) {
@@ -258,7 +267,18 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 .ns-bars .amt{font-size:10px;color:var(--ns-muted);margin-bottom:3px}
 .ns-bars .lab{font-size:10px;color:#27313b;margin-top:5px;text-align:center}
 .ns-total{text-align:right;font-size:12px;color:var(--ns-muted);margin-top:6px}
-@media(max-width:1100px){.ns-grid{grid-template-columns:1fr}.ns-tiles{grid-template-columns:repeat(2,1fr)}}
+.ns-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.ns-kpi-card{position:relative;border:1px solid var(--ns-bd);border-radius:6px;padding:12px 13px;background:#fff;border-left:4px solid #9fb0c0;overflow:hidden}
+.ns-kpi-card .kl{font-size:11px;color:var(--ns-muted);line-height:1.25;min-height:28px}
+.ns-kpi-card .kv{font-size:21px;font-weight:700;color:#1f3a52;margin-top:4px}
+.ns-kpi-card .kh{font-size:10px;color:var(--ns-muted);margin-top:3px}
+.ns-kpi-card.good{border-left-color:#3aa76d}
+.ns-kpi-card.warn{border-left-color:#e0a83a}
+.ns-kpi-card.bad{border-left-color:#c0563b}
+.ns-kpi-card.info{border-left-color:#3d7fc1}
+.ns-kpi-card .dot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%;background:#9fb0c0}
+.ns-kpi-card.good .dot{background:#3aa76d}.ns-kpi-card.warn .dot{background:#e0a83a}.ns-kpi-card.bad .dot{background:#c0563b}.ns-kpi-card.info .dot{background:#3d7fc1}
+@media(max-width:1100px){.ns-grid{grid-template-columns:1fr}.ns-tiles{grid-template-columns:repeat(2,1fr)}.ns-kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 
 <div class="ns-dash">
@@ -284,6 +304,26 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 			</div>
 		</div>
 	</div>
+
+	<?php if (!empty($opKpis)): ?>
+	<div class="ns-port">
+		<h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted);font-size:11px;">— live, period <?php echo epc_erp_h($date_from_str); ?> to <?php echo epc_erp_h($date_to_str); ?></span>
+			<a href="<?php echo $nsUrl('industry_intel', 'insights'); ?>" style="float:right;font-weight:400;font-size:11px;">Industry intelligence &raquo;</a>
+		</h4>
+		<div class="bd">
+			<div class="ns-kpi-grid">
+				<?php foreach ($opKpis as $k): $hc = epc_erp_h($k['health']); ?>
+					<div class="ns-kpi-card <?php echo $hc; ?>" title="<?php echo epc_erp_h($k['hint']); ?>">
+						<span class="dot"></span>
+						<div class="kl"><?php echo epc_erp_h($k['label']); ?></div>
+						<div class="kv"><?php echo epc_erp_h(epc_bos_intel_format((float) $k['value'], (string) $k['format'])); ?></div>
+						<div class="kh"><?php echo epc_erp_h($k['hint']); ?></div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</div>
+	<?php endif; ?>
 
 	<div class="ns-grid">
 		<!-- LEFT: reminders + nav shortcuts -->

@@ -15,6 +15,9 @@ defined('_ASTEXE_') or die('No access');
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_advanced.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_advanced.php';
+}
 
 /**
  * Regulatory-catalog version. Bump this whenever the seeded catalog of
