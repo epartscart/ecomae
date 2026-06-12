@@ -847,6 +847,155 @@ if (!function_exists('epc_ext_ct_schedule_row')) {
     }
 }
 
+if (!function_exists('epc_ext_csv_download_js')) {
+    /** Shared client-side CSV download helper (Excel-friendly, BOM-prefixed). */
+    function epc_ext_csv_download_js(): string
+    {
+        return '<script>if(!window.epcDlCsv){window.epcDlCsv=function(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob(["\ufeff"+t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);};}</script>';
+    }
+}
+
+if (!function_exists('epc_ext_ct_schedule_data')) {
+    /**
+     * Itemised CT schedule data (sample). Sums tie to the computation so the
+     * detailed schedules reconcile to the return. A live tenant maps each line
+     * from tagged GL accounts / fixed-asset register / related-party ledger.
+     */
+    function epc_ext_ct_schedule_data(): array
+    {
+        return array(
+            'addbacks' => array(
+                array('item' => 'Fines & administrative penalties', 'total' => 12000.0, 'addback' => 12000.0, 'basis' => '100% non-deductible — Art. 33'),
+                array('item' => 'Entertainment expenditure', 'total' => 18000.0, 'addback' => 9000.0, 'basis' => '50% disallowed — Art. 32'),
+                array('item' => 'Donations to non-approved bodies', 'total' => 5000.0, 'addback' => 5000.0, 'basis' => 'Non-qualifying donee — Art. 37'),
+                array('item' => 'General (non-specific) provisions', 'total' => 8000.0, 'addback' => 8000.0, 'basis' => 'Not yet incurred (timing)'),
+            ),
+            'assets' => array(
+                array('class' => 'Buildings & leasehold improvements', 'cost' => 600000.0, 'rate' => '4% SL', 'acct' => 24000.0, 'tax' => 24000.0),
+                array('class' => 'Plant & machinery', 'cost' => 250000.0, 'rate' => '10% SL', 'acct' => 18000.0, 'tax' => 25000.0),
+                array('class' => 'Motor vehicles', 'cost' => 120000.0, 'rate' => '20% RB', 'acct' => 12000.0, 'tax' => 15000.0),
+                array('class' => 'Furniture, fixtures & IT', 'cost' => 80000.0, 'rate' => '25% SL', 'acct' => 6000.0, 'tax' => 6000.0),
+            ),
+            'exempt' => array(
+                array('item' => 'Dividends from UAE resident subsidiaries', 'amount' => 9000.0, 'basis' => 'Exempt — Art. 22'),
+                array('item' => 'Participation exemption (foreign sub ≥5%, ≥12m)', 'amount' => 6000.0, 'basis' => 'Exempt — Art. 23'),
+            ),
+            'related' => array(
+                array('party' => 'Gulf Holding LLC', 'rel' => 'Parent (AE)', 'nature' => 'Sale of goods', 'amount' => 250000.0, 'method' => 'TNMM', 'arm' => 'Yes'),
+                array('party' => 'ECOM Global Ltd', 'rel' => 'Group co. (foreign)', 'nature' => 'Management fee paid', 'amount' => 120000.0, 'method' => 'CUP', 'arm' => 'Yes'),
+                array('party' => 'M. Al Marri (shareholder)', 'rel' => 'Connected person', 'nature' => 'Shareholder loan interest', 'amount' => 20000.0, 'method' => 'Arm’s-length rate', 'arm' => 'Yes'),
+            ),
+            'losses' => array('bf' => 9000.0),
+            'interest' => array('net' => 90000.0, 'deminimis' => 12000000.0),
+            'ftc' => array(
+                array('src' => 'Foreign branch — service income', 'income' => 40000.0, 'foreign_tax' => 2000.0),
+            ),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_ct_schedules_html')) {
+    /**
+     * Detailed, collapsible CT supporting schedules with one-click Excel/CSV
+     * downloads — the audit-file detail behind the CT return (add-backs,
+     * fixed-asset depreciation, exempt income, related-party/transfer-pricing,
+     * tax losses and foreign tax credit).
+     */
+    function epc_ext_ct_schedules_html(string $ccy): string
+    {
+        $d = epc_ext_ct_schedule_data();
+        $m = function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        $n2 = function ($v) { return number_format((float) $v, 2, '.', ''); };
+
+        // Schedule 1 — Add-backs
+        $rb = '';
+        $csvB = array('"Item","Total amount (' . $ccy . ')","Add-back (' . $ccy . ')","Basis"');
+        foreach ($d['addbacks'] as $r) {
+            $rb .= '<tr><td>' . epc_erp_h($r['item']) . '</td><td style="text-align:right;">' . $m($r['total']) . '</td><td style="text-align:right;">' . $m($r['addback']) . '</td><td style="font-size:11px;color:#777;">' . epc_erp_h($r['basis']) . '</td></tr>';
+            $csvB[] = implode(',', array(epc_ext_csv_cell($r['item']), epc_ext_csv_cell($n2($r['total'])), epc_ext_csv_cell($n2($r['addback'])), epc_ext_csv_cell($r['basis'])));
+        }
+        $tblB = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Disallowed / timing item</th><th style="text-align:right;">Total</th><th style="text-align:right;">Add-back</th><th>Basis</th></tr></thead><tbody>' . $rb . '</tbody></table>';
+
+        // Schedule 2 — Fixed-asset depreciation
+        $ra = '';
+        $sumCost = 0.0; $sumAcct = 0.0; $sumTax = 0.0;
+        $csvA = array('"Asset class","Cost (' . $ccy . ')","Method/rate","Accounting dep. (' . $ccy . ')","Tax dep. (' . $ccy . ')"');
+        foreach ($d['assets'] as $r) {
+            $sumCost += (float) $r['cost']; $sumAcct += (float) $r['acct']; $sumTax += (float) $r['tax'];
+            $ra .= '<tr><td>' . epc_erp_h($r['class']) . '</td><td style="text-align:right;">' . $m($r['cost']) . '</td><td>' . epc_erp_h($r['rate']) . '</td><td style="text-align:right;">' . $m($r['acct']) . '</td><td style="text-align:right;">' . $m($r['tax']) . '</td></tr>';
+            $csvA[] = implode(',', array(epc_ext_csv_cell($r['class']), epc_ext_csv_cell($n2($r['cost'])), epc_ext_csv_cell($r['rate']), epc_ext_csv_cell($n2($r['acct'])), epc_ext_csv_cell($n2($r['tax']))));
+        }
+        $tblA = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Asset class</th><th style="text-align:right;">Cost</th><th>Method/rate</th><th style="text-align:right;">Accounting dep.</th><th style="text-align:right;">Tax dep.</th></tr></thead><tbody>' . $ra
+            . '<tr style="font-weight:700;background:#f5f7fa;"><td>Total</td><td style="text-align:right;">' . $m($sumCost) . '</td><td></td><td style="text-align:right;">' . $m($sumAcct) . '</td><td style="text-align:right;">' . $m($sumTax) . '</td></tr></tbody></table>';
+
+        // Schedule 3 — Exempt income
+        $re = '';
+        $csvE = array('"Exempt income","Amount (' . $ccy . ')","Basis"');
+        foreach ($d['exempt'] as $r) {
+            $re .= '<tr><td>' . epc_erp_h($r['item']) . '</td><td style="text-align:right;">' . $m($r['amount']) . '</td><td style="font-size:11px;color:#777;">' . epc_erp_h($r['basis']) . '</td></tr>';
+            $csvE[] = implode(',', array(epc_ext_csv_cell($r['item']), epc_ext_csv_cell($n2($r['amount'])), epc_ext_csv_cell($r['basis'])));
+        }
+        $tblE = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Exempt income</th><th style="text-align:right;">Amount</th><th>Basis</th></tr></thead><tbody>' . $re . '</tbody></table>';
+
+        // Schedule 4 — Related party / transfer pricing
+        $rr = '';
+        $sumRel = 0.0;
+        $csvR = array('"Related party","Relationship","Nature","Amount (' . $ccy . ')","TP method","Arm\'s length"');
+        foreach ($d['related'] as $r) {
+            $sumRel += (float) $r['amount'];
+            $rr .= '<tr><td>' . epc_erp_h($r['party']) . '</td><td>' . epc_erp_h($r['rel']) . '</td><td>' . epc_erp_h($r['nature']) . '</td><td style="text-align:right;">' . $m($r['amount']) . '</td><td>' . epc_erp_h($r['method']) . '</td><td style="text-align:center;">' . epc_erp_h($r['arm']) . '</td></tr>';
+            $csvR[] = implode(',', array(epc_ext_csv_cell($r['party']), epc_ext_csv_cell($r['rel']), epc_ext_csv_cell($r['nature']), epc_ext_csv_cell($n2($r['amount'])), epc_ext_csv_cell($r['method']), epc_ext_csv_cell($r['arm'])));
+        }
+        $tblR = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Related party</th><th>Relationship</th><th>Nature</th><th style="text-align:right;">Amount</th><th>TP method</th><th style="text-align:center;">Arm\'s length</th></tr></thead><tbody>' . $rr . '</tbody></table>'
+            . '<p class="text-muted" style="font-size:11px;margin-top:4px;">Disclosure form required where aggregate related-party transactions ≥ AED 40m or connected-person payments ≥ AED 500k. Local file if ≥ AED 40m (and qualifying conditions); Master file & CbCR if MNE group revenue ≥ AED 3.15bn. Aggregate here: ' . epc_erp_h($m($sumRel)) . '.</p>';
+
+        // Schedule 5 — Tax losses
+        $bf = (float) $d['losses']['bf'];
+        $csvL = array('"Item","Amount (' . $ccy . ')"');
+        $csvL[] = implode(',', array(epc_ext_csv_cell('Losses brought forward'), epc_ext_csv_cell($n2($bf))));
+
+        // Schedule 6 — FTC
+        $rf = '';
+        $csvF = array('"Foreign source","Income (' . $ccy . ')","Foreign tax (' . $ccy . ')"');
+        foreach ($d['ftc'] as $r) {
+            $rf .= '<tr><td>' . epc_erp_h($r['src']) . '</td><td style="text-align:right;">' . $m($r['income']) . '</td><td style="text-align:right;">' . $m($r['foreign_tax']) . '</td></tr>';
+            $csvF[] = implode(',', array(epc_ext_csv_cell($r['src']), epc_ext_csv_cell($n2($r['income'])), epc_ext_csv_cell($n2($r['foreign_tax']))));
+        }
+        $tblF = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Foreign source</th><th style="text-align:right;">Income</th><th style="text-align:right;">Foreign tax</th></tr></thead><tbody>' . $rf . '</tbody></table>'
+            . '<p class="text-muted" style="font-size:11px;margin-top:4px;">Foreign tax credit is limited to the UAE CT that would be due on the same income (Art. 47).</p>';
+
+        $store = function (string $id, array $csv) {
+            return '<textarea id="' . $id . '" style="display:none;">' . epc_erp_h(implode("\r\n", $csv)) . '</textarea>';
+        };
+        $btn = function (string $id, string $fname, string $label) {
+            return '<button type="button" class="btn btn-s-sm btn-default" style="margin:0 6px 6px 0;" onclick="epcDlCsv(\'' . $id . '\',\'' . $fname . '\')"><i class="fa fa-file-excel-o"></i> ' . epc_erp_h($label) . '</button>';
+        };
+        $det = function (string $title, string $table) {
+            return '<details style="border:1px solid #e2e6ee;border-radius:6px;margin:8px 0;padding:6px 10px;"><summary style="cursor:pointer;font-weight:600;color:#1d2740;">' . epc_erp_h($title) . '</summary><div style="margin-top:8px;overflow-x:auto;">' . $table . '</div></details>';
+        };
+
+        return '<h4 style="color:#1d2740;margin-top:18px;">CT supporting schedules (audit file)</h4>'
+            . '<p class="text-muted">The detail behind the CT computation — disallowed items, fixed-asset depreciation, exempt income, related-party / transfer-pricing, tax losses and foreign tax credit. Expand to view, or download each as Excel/CSV.</p>'
+            . '<div style="margin-bottom:8px;">'
+            . $btn('epcCtCsvB', 'CT_Adjustments.csv', 'Adjustments-wise')
+            . $btn('epcCtCsvA', 'CT_Depreciation.csv', 'Fixed-asset / depreciation')
+            . $btn('epcCtCsvE', 'CT_Exempt_income.csv', 'Exempt income')
+            . $btn('epcCtCsvR', 'CT_Related_party.csv', 'Related-party / TP')
+            . $btn('epcCtCsvL', 'CT_Tax_losses.csv', 'Tax losses')
+            . $btn('epcCtCsvF', 'CT_Foreign_tax_credit.csv', 'Foreign tax credit')
+            . '</div>'
+            . $det('Schedule 1 — Adjustments / add-backs (' . count($d['addbacks']) . ' items)', $tblB)
+            . $det('Schedule 2 — Fixed-asset depreciation (' . count($d['assets']) . ' classes)', $tblA)
+            . $det('Schedule 3 — Exempt income (' . count($d['exempt']) . ' items)', $tblE)
+            . $det('Schedule 4 — Related-party & transfer pricing (' . count($d['related']) . ' parties)', $tblR)
+            . $det('Schedule 5 — Tax losses (b/f ' . $m($bf) . ')', '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><tbody><tr><td>Losses brought forward</td><td style="text-align:right;">' . $m($bf) . '</td></tr></tbody></table>')
+            . $det('Schedule 6 — Foreign tax credit (' . count($d['ftc']) . ' source)', $tblF)
+            . $store('epcCtCsvB', $csvB) . $store('epcCtCsvA', $csvA) . $store('epcCtCsvE', $csvE)
+            . $store('epcCtCsvR', $csvR) . $store('epcCtCsvL', $csvL) . $store('epcCtCsvF', $csvF)
+            . epc_ext_csv_download_js();
+    }
+}
+
 if (!function_exists('epc_ext_b_ct')) {
     function epc_ext_b_ct(PDO $db, string $name, string $country, string $ccy, $from, $to): array
     {
@@ -881,20 +1030,22 @@ if (!function_exists('epc_ext_b_ct')) {
         }
 
         // ---- Full UAE CT computation (Federal Decree-Law 47/2022) ------------
-        // Sample adjustments so the full schedule renders for any tenant; for a
-        // live tenant these map from tagged GL accounts (fines, entertainment,
-        // depreciation, interest, exempt income, related-party, losses).
-        $finesPenalties = 12000.00;        // 100% non-deductible (Art. 33)
-        $entertainmentTotal = 18000.00;    // 50% disallowed (Art. 32)
-        $entertainmentAddBack = round($entertainmentTotal * 0.5, 2);
-        $donationsNonApproved = 5000.00;   // non-approved bodies non-deductible
-        $generalProvision = 8000.00;       // non-specific provision add-back
-        $acctDepreciation = 60000.00;      // accounting depreciation add-back
-        $taxDepreciation = 70000.00;       // tax depreciation deduction
-        $exemptDividends = 15000.00;       // participation/dividend exemption (Art. 22/23)
-        $interestExpense = 90000.00;       // subject to 30% EBITDA cap (Art. 30)
-        $deMinimisInterest = 12000000.00;  // AED 12m de-minimis
-        $lossesBroughtForward = 9000.00;   // capped at 75% taxable (Art. 37)
+        // All figures derive from the itemised CT schedules so the computation
+        // reconciles to the supporting audit file; for a live tenant the same
+        // schedules map from tagged GL accounts / the fixed-asset & related-party
+        // registers.
+        $sd = epc_ext_ct_schedule_data();
+        $finesPenalties = (float) $sd['addbacks'][0]['addback'];
+        $entertainmentTotal = (float) $sd['addbacks'][1]['total'];
+        $entertainmentAddBack = (float) $sd['addbacks'][1]['addback'];
+        $donationsNonApproved = (float) $sd['addbacks'][2]['addback'];
+        $generalProvision = (float) $sd['addbacks'][3]['addback'];
+        $acctDepreciation = array_sum(array_column($sd['assets'], 'acct'));
+        $taxDepreciation = array_sum(array_column($sd['assets'], 'tax'));
+        $exemptDividends = array_sum(array_column($sd['exempt'], 'amount'));
+        $interestExpense = (float) $sd['interest']['net'];
+        $deMinimisInterest = (float) $sd['interest']['deminimis'];
+        $lossesBroughtForward = (float) $sd['losses']['bf'];
 
         $additions = $finesPenalties + $entertainmentAddBack + $donationsNonApproved + $generalProvision + $acctDepreciation;
         $deductions = $taxDepreciation + $exemptDividends;
@@ -980,12 +1131,44 @@ if (!function_exists('epc_ext_b_ct')) {
             : '<div class="alert ' . ($errors > 0 ? 'alert-danger' : 'alert-warning') . '" style="margin:8px 0;"><strong>' . $errors . ' error(s), ' . $warns . ' review item(s)</strong> — address before filing.</div>';
         $compTable = $compSummary . '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f0f3f8;"><th>Result</th><th>Compliance check</th></tr></thead><tbody>' . $cr . '</tbody></table>';
 
-        $body = '<p class="text-muted">Full <strong>UAE Corporate Tax</strong> computation under Federal Decree-Law 47/2022 — accounting profit reconciled to taxable income through statutory adjustments, then taxed at <strong>0% up to AED 375,000 and 9% above</strong>. ' . epc_erp_h($rule['note']) . ' Adjustment figures shown are representative sample data so the full schedule renders; a live tenant maps them from tagged GL accounts.</p>'
+        // ---- Taxpayer & tax period (return header) -------------------------
+        $fyFrom = is_numeric($from) ? (int) $from : strtotime((string) $from);
+        $fyTo = is_numeric($to) ? (int) $to : strtotime((string) $to);
+        $fyLabel = $fyFrom && $fyTo ? ('FY' . date('Y', $fyTo) . ' (' . date('d M Y', $fyFrom) . ' — ' . date('d M Y', $fyTo) . ')') : 'Current financial year';
+        $taxpayer = epc_ext_kv_table(array(
+            array('Taxpayer / legal name', 'ECOM AE General Trading LLC'),
+            array('Corporate Tax TRN', '100399998800003'),
+            array('Legal form', 'Limited Liability Company (mainland)'),
+            array('Tax period', $fyLabel),
+            array('Return type', 'Annual Corporate Tax return (first return)'),
+            array('Basis of accounting', 'Accrual (IFRS)'),
+            array('Resident person', 'Yes — incorporated in the UAE'),
+            array('Filing due date', $fyTo ? date('d M Y', strtotime('+9 months', $fyTo)) : 'Within 9 months of period end'),
+        ));
+
+        // ---- Elections (with statutory basis) ------------------------------
+        $electRow = function (string $label, string $val, string $basis) {
+            $col = (stripos($val, 'yes') !== false || stripos($val, 'elect') !== false) ? '#1a7f37' : '#777';
+            return '<tr><td style="padding:5px 10px;">' . epc_erp_h($label) . '</td><td style="padding:5px 10px;font-weight:600;color:' . $col . ';">' . epc_erp_h($val) . '</td><td style="padding:5px 10px;font-size:11px;color:#777;">' . epc_erp_h($basis) . '</td></tr>';
+        };
+        $elections = '<table class="table table-bordered table-condensed" style="font-size:12.5px;max-width:860px;"><thead><tr style="background:#f0f3f8;"><th>Election / relief</th><th>Status</th><th>Basis</th></tr></thead><tbody>'
+            . $electRow('Small Business Relief', ($sbrEligible ? 'Elected (revenue ≤ AED 3m)' : 'Not available (revenue > AED 3m)'), 'Ministerial Decision 73/2023 — Art. 21')
+            . $electRow('Free Zone — Qualifying Free Zone Person (0%)', 'No — mainland LLC', 'Cabinet Decision 100/2023; 0% on qualifying income, 9% otherwise')
+            . $electRow('Realisation basis (unrealised gains/losses)', 'Not elected', 'Ministerial Decision 134/2023 — Art. 20(3)')
+            . $electRow('Transfers within a Qualifying Group', 'Not applied', 'Art. 26 — no gain/loss on intra-group transfers')
+            . $electRow('Business Restructuring Relief', 'Not applied', 'Art. 27')
+            . $electRow('Foreign PE exemption', 'Not elected', 'Art. 24')
+            . '</tbody></table>';
+
+        $body = '<p class="text-muted">Full <strong>UAE Corporate Tax</strong> return under Federal Decree-Law 47/2022 — taxpayer & period, elections, accounting profit reconciled to taxable income through statutory adjustments &amp; schedules, then taxed at <strong>0% up to AED 375,000 and 9% above</strong>. ' . epc_erp_h($rule['note']) . ' Figures derive from the supporting schedules (sample data so the full return renders); a live tenant maps them from tagged GL accounts and the fixed-asset / related-party registers.</p>'
             . epc_ext_field_guide('Field guide — why each line of the CT computation (and why)',
                 'Plain-language explanation of every line so you understand how accounting profit becomes taxable income. Governing law: Federal Decree-Law 47/2022 & implementing decisions (FTA).',
                 epc_ext_ct_guide_rows())
-            . $t
-            . '<h4 style="color:#1d2740;margin-top:18px;">Tax bands &amp; liability</h4>' . $bands
+            . '<h4 style="color:#1d2740;margin-top:18px;">1 · Taxpayer &amp; tax period</h4>' . $taxpayer
+            . '<h4 style="color:#1d2740;margin-top:18px;">2 · Elections &amp; reliefs</h4>' . $elections
+            . '<h4 style="color:#1d2740;margin-top:18px;">3 · Computation of taxable income</h4>' . $t
+            . '<h4 style="color:#1d2740;margin-top:18px;">4 · Tax bands &amp; liability</h4>' . $bands
+            . epc_ext_ct_schedules_html($ccy)
             . '<h4 style="color:#1d2740;margin-top:18px;">Corporate tax compliance checks</h4>'
             . '<p class="text-muted">The engine validates the computation against the CT law (registration, non-deductibles, interest cap, exempt income, loss relief, transfer pricing, Small Business Relief).</p>'
             . $compTable;

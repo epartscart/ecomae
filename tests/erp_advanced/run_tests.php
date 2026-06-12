@@ -242,6 +242,12 @@ $ctBuild = epc_ext_b_ct($db, 'Corporate Income Tax Return', 'AE', 'AED', '2026-0
 check('UAE CT report builds (live)', !empty($ctBuild['live']) && isset($ctBuild['summary']['CT payable']), 'live=' . (int) ($ctBuild['live'] ?? 0));
 check('UAE CT schedule shows statutory adjustments', strpos($ctBuild['body'], 'Entertainment') !== false && strpos($ctBuild['body'], 'Interest limitation') !== false && strpos($ctBuild['body'], 'Tax bands') !== false, 'adjustments present');
 check('UAE CT compliance panel present', strpos($ctBuild['body'], 'compliance checks') !== false && isset($ctBuild['summary']['Compliance']), 'compliance present');
+check('UAE CT shows taxpayer & period + elections', strpos($ctBuild['body'], 'Taxpayer &amp; tax period') !== false && strpos($ctBuild['body'], 'Elections &amp; reliefs') !== false && strpos($ctBuild['body'], 'Small Business Relief') !== false, 'header/elections present');
+check('UAE CT supporting schedules + downloads present', strpos($ctBuild['body'], 'CT supporting schedules') !== false && strpos($ctBuild['body'], 'CT_Depreciation.csv') !== false && strpos($ctBuild['body'], 'CT_Related_party.csv') !== false && strpos($ctBuild['body'], 'Foreign tax credit') !== false, 'schedules present');
+$ctSd = epc_ext_ct_schedule_data();
+check('CT schedules reconcile (acct dep 60k, tax dep 70k, exempt 15k)', array_sum(array_column($ctSd['assets'], 'acct')) === 60000.0 && array_sum(array_column($ctSd['assets'], 'tax')) === 70000.0 && array_sum(array_column($ctSd['exempt'], 'amount')) === 15000.0, 'sums tie');
+$ctSchedHtml = epc_ext_ct_schedules_html('AED');
+check('CT schedules HTML has all 6 schedules', substr_count($ctSchedHtml, '<details') === 6 && strpos($ctSchedHtml, 'Transfer pricing') !== false || strpos($ctSchedHtml, 'transfer pricing') !== false, substr_count($ctSchedHtml, '<details') . ' details');
 
 // FTA supporting schedules (TRN-wise / invoice-wise / supplier-wise / adjustments)
 $sched = epc_ext_vat_schedule_data();
