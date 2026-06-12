@@ -129,6 +129,45 @@ $deptCfg = epc_erp_departments_config();
 				</ul>
 			</div>
 
+			<h4><i class="fa fa-rocket"></i> Order planning, Supplier portal &amp; Executive dashboard — step by step</h4>
+			<div class="well well-sm">
+				<p>Three new enterprise modules. Each step below lists the <strong>action</strong> and the <strong>result</strong> you should see.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-cubes"></i> Order planning — demand-driven replenishment (<a href="/erp/?area=operations&amp;tab=order_planning">Operations &rsaquo; Order planning</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">A Syncron-style engine that forecasts demand from sale-out history, computes safety stock and reorder point per item × warehouse, and recommends order quantities.</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open Operations → Order planning. <strong>Result:</strong> planning tables auto-create on first open (a brand-new tenant starts empty); the Recommended orders grid loads.</li>
+					<li><strong>Action:</strong> No demand history yet? Click <strong>Generate sample demand</strong>. <strong>Result:</strong> 12 months of mixed-pattern sale-out history are seeded (tagged <code>DEMO-DEMAND</code>, re-runnable, clearable) and the engine produces live recommendations.</li>
+					<li><strong>Action:</strong> Read the <strong>Recommended orders</strong> grid. <strong>Result:</strong> each item × warehouse shows forecast/month, lead-time demand, safety stock, reorder point (order level), recommended order qty (ROQ), days-of-cover, value and demand class (smooth / erratic / intermittent / lumpy); lines that need an order are highlighted.</li>
+					<li><strong>Action:</strong> Click an item to open its <strong>worksheet</strong>; edit lead-time, target service level, review period, min order qty / multiple and Save. <strong>Result:</strong> the safety stock, ROP and ROQ recalculate immediately, with a 12-month demand chart and stock balances (on-hand / effective / shortfall / excess).</li>
+					<li><strong>Action:</strong> Click <strong>Confirm</strong> on a line (or <strong>Confirm all due</strong>). <strong>Result:</strong> the recommendation status flips to confirmed, ready to raise as a purchase order.</li>
+					<li><strong>Action:</strong> Open the <strong>Inventory policy (ABC/XYZ)</strong> sub-tab. <strong>Result:</strong> items are classified A/B/C by cumulative annual value and X/Y/Z by demand variability, each with a recommended service level.</li>
+					<li><strong>Action:</strong> Open <strong>Redistribution</strong>. <strong>Result:</strong> suggested inter-warehouse transfers (move excess in one branch to cover a shortfall in another) before raising a PO.</li>
+					<li><strong>Action:</strong> Open <strong>Exceptions &amp; alerts</strong> and <strong>Stock analysis &amp; KPIs</strong>. <strong>Result:</strong> a severity-ranked exception list (stock-out risk / below-safety / dead / excess) and KPIs (inventory value, turns, avg days-of-cover, fill rate, ABC distribution).</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-handshake-o"></i> Supplier portal — performance scorecards (<a href="/erp/?area=purchasing&amp;tab=supplier_portal">Purchasing &rsaquo; Supplier portal</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">Per-supplier scorecards computed from your POs, goods receipts, RFQs and payables.</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open Purchasing → Supplier portal. <strong>Result:</strong> the scorecard grid lists every active supplier with a composite score (0–100) and A–D rating, # POs, total spend, on-time delivery %, average lead time, RFQ response %, RFQ win % and open payable balance.</li>
+					<li><strong>Action:</strong> Click a supplier. <strong>Result:</strong> a detail view with the score breakdown (on-time 40% + responsiveness 30% + activity 20% + win rate 10%), recent RFQs and the full PO list with per-PO lead time.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-dashboard"></i> Executive dashboard — cross-module KPI cockpit (<a href="/erp/?area=insights&amp;tab=exec_dashboard">Insights &rsaquo; Executive dashboard</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">One cockpit pulling cross-module KPIs into a single view.</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open Insights → Executive dashboard. <strong>Result:</strong> ten headline KPI cards (revenue, gross margin %, DSO, DPO, inventory turnover, current ratio, AR, AP, cash, inventory value), each colour-coded green/amber/red against benchmarks.</li>
+					<li><strong>Action:</strong> No sales history yet? Click <strong>Generate sample sales</strong>. <strong>Result:</strong> 6 months of completed orders are seeded (tagged, clearable) so the revenue KPIs and the trend populate.</li>
+					<li><strong>Action:</strong> Read the <strong>Revenue &amp; profit</strong> trend, <strong>Planning alerts</strong> and <strong>Top suppliers</strong>. <strong>Result:</strong> a 6-month revenue vs profit bar chart, exception counts (with a link to the exceptions view) and your highest-spend suppliers, plus quick links to AI advisor, P&amp;L, Order planning and Supplier portal.</li>
+				</ol>
+			</div>
+
 			<h4><i class="fa fa-sitemap"></i> End-to-end flows</h4>
 			<div class="well well-sm epc-erp-flow">
 				<p><strong>A. Sales &amp; revenue (customer side)</strong></p>

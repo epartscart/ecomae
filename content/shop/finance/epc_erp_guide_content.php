@@ -451,6 +451,50 @@ if (!function_exists('epc_guide_modules')) {
             'No GL impact; reads live GL, aging and inventory data to surface KPIs and control gaps.',
             array('KPIs and controls are selected by the active industry pack, so the same engine serves 50–100 industries without hard-coding.'));
 
+        $g['order_planning'] = $E('inventory', 'Order planning — demand-driven replenishment',
+            'A Syncron-style demand & replenishment engine over your inventory ledger: forecasts demand from sale-out history, computes safety stock and reorder point per item × warehouse, and recommends order quantities — plus ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions/alerts and stock-analysis KPIs.',
+            array(
+                'Open Operations → Order planning. Tables auto-create on first open; nothing to configure.',
+                'On any item worksheet, set the planning parameters (lead-time days, target service level, review period, min order qty, order multiple, manual buffer, supplier) and Save — the engine recalculates immediately.',
+                'No demand history yet? Click "Generate sample demand" to seed 12 months of mixed-pattern sale-out history (re-runnable; tagged DEMO-DEMAND, clearable).',
+            ),
+            array(
+                'Step 1 — Open the Recommended orders grid. Result: each item × warehouse shows forecast/month, lead-time demand, safety stock, reorder point (order level), recommended order qty (ROQ), days-of-cover, value, demand class (smooth/erratic/intermittent/lumpy) and status. Lines that need an order are highlighted.',
+                'Step 2 — Open an item worksheet (click the item). Result: a 12-month demand chart, stock balances (on-hand / effective / shortfall / excess), the computed safety stock, ROP and ROQ, and the editable planning-parameter form.',
+                'Step 3 — Confirm orders. Result: click Confirm on a line (or "Confirm all due") and the recommendation status flips to confirmed, ready to raise as a PO.',
+                'Step 4 — Inventory policy (ABC/XYZ). Result: items are classified A/B/C by cumulative annual value and X/Y/Z by demand variability, each with a recommended service level that drives safety stock.',
+                'Step 5 — Redistribution. Result: suggested inter-warehouse transfers (move excess in one branch to cover a shortfall of the same item in another) before raising a PO.',
+                'Step 6 — Exceptions & alerts. Result: a severity-ranked list — stock-out risk, below-safety, dead stock, excess.',
+                'Step 7 — Stock analysis & KPIs. Result: inventory value, inventory turns, average days-of-cover, fill rate and the ABC distribution.',
+            ),
+            'Planning only — no GL postings. Recommendations become real postings when you raise and receive the resulting purchase order.',
+            array('Set the target service level per item: higher service level → more safety stock → fewer stock-outs but more capital tied up.',
+                'Demand class tells you the forecastability: "smooth" items forecast well; "lumpy/erratic" items need more buffer.',
+                'Use redistribution first — moving stock between your own warehouses is cheaper than buying more.'));
+
+        $g['supplier_portal'] = $E('procurement', 'Supplier portal — performance scorecards',
+            'Per-supplier performance scorecards computed from your procurement data (purchase orders, goods receipts, RFQs, payables), with a per-supplier activity drill-down.',
+            array('Open Purchasing → Supplier portal. It reads your existing suppliers, POs and RFQs — nothing to set up.'),
+            array(
+                'Step 1 — Review the scorecard grid. Result: every active supplier shows a composite score (0–100) and A–D rating, # of POs, total spend, on-time delivery %, average delivery lead time, RFQ response %, RFQ win % and open payable balance.',
+                'Step 2 — Click a supplier. Result: a detail view with the score breakdown, recent RFQs, and the full purchase-order list (with per-PO delivery lead time).',
+            ),
+            'No GL impact; an analytics layer over purchasing and payables.',
+            array('The composite score weighs on-time delivery 40%, RFQ responsiveness 30%, purchasing activity 20% and RFQ win rate 10%.',
+                'On-time and lead-time metrics populate once POs are received with approved/received dates recorded.'));
+
+        $g['exec_dashboard'] = $E('dashboard', 'Executive dashboard — cross-module KPI cockpit',
+            'A single executive cockpit that pulls cross-module KPIs into one view: revenue, gross margin, DSO/DPO, inventory turnover, current ratio, AR/AP/cash/inventory, a 6-month revenue & profit trend, planning alerts and top suppliers.',
+            array('Open Insights → Executive dashboard. It reads your live, tenant-scoped data — nothing to configure.'),
+            array(
+                'Step 1 — Read the KPI cards. Result: ten headline KPIs, each colour-coded green/amber/red against benchmarks (e.g. gross margin, DSO, inventory turns, current ratio).',
+                'Step 2 — Read the trend. Result: a 6-month revenue vs profit bar chart shows the direction of the business.',
+                'Step 3 — Read planning alerts & top suppliers. Result: counts of stock-out/below-safety/excess/dead-stock exceptions and your highest-spend suppliers, with quick links to the underlying modules.',
+                'No sales history yet? Click "Generate sample sales" to seed 6 months of completed orders (tagged, clearable) so the revenue KPIs and trend populate.',
+            ),
+            'Read-only aggregates; no GL postings.',
+            array('KPIs are tenant-scoped, so a new tenant starts empty and fills in as real transactions are posted.'));
+
         return $g;
     }
 }
