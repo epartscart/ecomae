@@ -986,6 +986,16 @@ function epc_ecomae_platform_nav_dropdowns()
 				array('key' => 'demo', 'label' => '3-day demo', 'href' => $base . 'platform/demo'),
 			),
 		),
+		array(
+			'key' => 'resources',
+			'label' => 'Resources',
+			'items' => array(
+				array('key' => 'docs', 'label' => 'Documentation', 'href' => $base . 'documentation'),
+				array('key' => 'compare', 'label' => 'Compare', 'href' => $base . 'compare'),
+				array('key' => 'bos', 'label' => 'What is a BOS', 'href' => $base . 'bos'),
+				array('key' => 'solution', 'label' => 'Solutions', 'href' => $base . 'solutions'),
+			),
+		),
 	);
 }
 

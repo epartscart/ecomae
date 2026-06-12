@@ -209,6 +209,10 @@ function epc_ecomae_platform_layout_close()
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/pricing">Pricing</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/demo">Demo</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/faq">FAQ</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>documentation">Documentation</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>compare">Compare</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>bos">What is a BOS</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>solutions">Solutions</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/contact">Contact</a>
 		</div>
 		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> Electronic World Group · Dubai, UAE</p>
