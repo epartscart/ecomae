@@ -62,6 +62,7 @@ ob_start();
 		<input name="tracking_no" class="form-control input-sm" placeholder="Tracking"></div></div>
 	<div class="form-group"><label class="col-sm-3">Notes</label><div class="col-sm-9"><textarea name="notes" class="form-control input-sm" rows="2"></textarea></div></div>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><label><input type="checkbox" name="mark_shipped" value="1"> Mark shipped now</label></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create delivery note</button></div></div>
 </form>
 <?php

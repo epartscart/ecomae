@@ -86,6 +86,7 @@ ob_start();
 	<div class="form-group"><label class="col-sm-3">Address</label><div class="col-sm-9"><textarea name="address" class="form-control input-sm" rows="2"></textarea></div></div>
 	<div class="form-group"><label class="col-sm-3">Link user ID</label><div class="col-sm-9"><input name="linked_user_id" type="number" class="form-control input-sm" placeholder="Optional shop user"></div></div>
 	<div class="form-group"><label class="col-sm-3">Link supplier ID</label><div class="col-sm-9"><input name="linked_supplier_id" type="number" class="form-control input-sm" placeholder="Optional ERP supplier"></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Save contact</button></div></div>
 </form>
 <?php

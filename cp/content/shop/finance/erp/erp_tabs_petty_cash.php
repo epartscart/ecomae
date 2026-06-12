@@ -35,6 +35,7 @@ ob_start();
 	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
 	<div class="form-group"><label class="col-sm-3">Name</label><div class="col-sm-9"><input name="name" class="form-control input-sm" required placeholder="Office petty cash"></div></div>
 	<div class="form-group"><label class="col-sm-3">Float amount</label><div class="col-sm-9"><input name="float_amount" type="number" step="0.01" class="form-control input-sm" value="500"></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create float</button></div></div>
 </form>
 <?php

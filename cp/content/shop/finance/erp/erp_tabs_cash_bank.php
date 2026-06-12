@@ -45,6 +45,7 @@ ob_start();
 	<select name="account_type" class="form-control input-sm"><option value="cash">Cash</option><option value="bank">Bank</option></select>
 	<input type="text" name="bank_name" class="form-control input-sm" placeholder="Bank name">
 	<input type="number" step="0.01" name="opening_balance" class="form-control input-sm" placeholder="Opening" value="0">
+	<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
 	<button type="submit" class="btn btn-sm btn-primary">Create account</button>
 </form>
 <form id="epc_erp_form_entry" class="form-inline epc-erp-form-inline" style="margin-top:10px;">
@@ -56,6 +57,7 @@ ob_start();
 	<input type="number" step="0.01" name="amount" class="form-control input-sm" placeholder="Amount" required>
 	<input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID">
 	<input type="text" name="reference" class="form-control input-sm" placeholder="Reference">
+	<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
 	<button type="submit" class="btn btn-sm btn-success">Post entry</button>
 </form>
 <?php if ($erpOnlyCash): ?>
@@ -70,6 +72,7 @@ ob_start();
 	</select></div></div>
 	<div class="form-group"><label class="col-sm-3">Amount AED</label><div class="col-sm-9"><input type="number" step="0.01" name="amount" class="form-control input-sm" required></div></div>
 	<div class="form-group"><label class="col-sm-3">Sales order (opt.)</label><div class="col-sm-9"><input type="number" name="sales_order_id" class="form-control input-sm" placeholder="ERP SO id for VAT link"></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9">
 	<label class="checkbox-inline"><input type="checkbox" name="is_advance" value="1" checked> UAE advance receipt (VAT + liability GL 2050)</label>
 	<label class="checkbox-inline"><input type="checkbox" name="post_gl" value="1" checked> Post to GL</label>
@@ -87,7 +90,9 @@ ob_start();
 	</select></div></div>
 	<div class="form-group"><label class="col-sm-3">Amount</label><div class="col-sm-9 form-inline">
 	<input type="number" step="0.01" name="amount" class="form-control input-sm" required>
-	<button type="submit" class="btn btn-default btn-sm">Post TV transfer</button></div></div>
+	</div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
+	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-default btn-sm">Post TV transfer</button></div></div>
 </form>
 <?php endif; ?>
 <?php

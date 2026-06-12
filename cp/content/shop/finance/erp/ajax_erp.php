@@ -13,6 +13,7 @@ global $DP_Config;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cp_shell.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_dimensions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -43,6 +44,7 @@ try {
 	switch ($action) {
 		case 'create_supplier':
 			$id = epc_erp_create_supplier($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'vendor', (int) $id, $_POST);
 			epc_erp_json(true, 'Supplier created', array('id' => $id));
 
 		case 'sync_suppliers':
@@ -56,6 +58,7 @@ try {
 				$invMsg = ' (inventory receipt will post with invoice)';
 			}
 			$id = epc_erp_create_purchase($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'purchase', (int) $id, $_POST);
 			$extra = array('id' => $id);
 			if (!empty($_POST['receive_inventory'])) {
 				$pst = $db_link->prepare('SELECT `inv_receipt_posted` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
@@ -66,14 +69,17 @@ try {
 
 		case 'supplier_payment':
 			$id = epc_erp_supplier_payment($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) $id, $_POST);
 			epc_erp_json(true, 'Supplier payment recorded', array('cash_entry_id' => $id));
 
 		case 'cash_entry':
 			$id = epc_erp_cash_entry($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) $id, $_POST);
 			epc_erp_json(true, 'Cash/bank entry saved', array('id' => $id));
 
 		case 'create_account':
 			$id = epc_erp_create_cash_account($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_account', (int) $id, $_POST);
 			epc_erp_json(true, 'Account created', array('id' => $id));
 
 		case 'purchase_from_order':
@@ -96,10 +102,12 @@ try {
 
 		case 'create_coa':
 			$id = epc_erp_gl_create_coa($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'coa_account', (int) $id, $_POST);
 			epc_erp_json(true, 'COA account created', array('id' => $id));
 
 		case 'gl_manual_entry':
 			$id = epc_erp_gl_manual_entry($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'gl_entry', (int) $id, $_POST);
 			epc_erp_json(true, 'GL journal posted', array('journal_id' => $id));
 
 		case 'gl_post_sales':
@@ -279,6 +287,7 @@ try {
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
 			$adminId = class_exists('DP_User') ? (int)DP_User::getAdminId() : 0;
 			$id = epc_erp_invoice_save($db_link, $_POST, $adminId);
+			epc_erp_dim_save_from_post($db_link, 'invoice', (int) $id, $_POST);
 			$doc = epc_einvoice_get_document($db_link, $id);
 			$cfg = $GLOBALS['DP_Config'] ?? new DP_Config();
 			$redirect = epc_erp_cp_redirect_url('/' . $cfg->backend_dir . '/shop/finance/erp?area=sales&tab=invoices&inv_id=' . $id);
@@ -324,6 +333,7 @@ try {
 			$data = $_POST;
 			$data['custom_fields'] = $custom;
 			$id = epc_erp_inventory_create_item($db_link, $data);
+			epc_erp_dim_save_from_post($db_link, 'inventory_item', (int) $id, $_POST);
 			epc_erp_json(true, 'Inventory item created', array('id' => $id));
 
 		case 'inv_record_movement':
@@ -425,11 +435,13 @@ try {
 		case 'save_rfq':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 			$id = epc_erp_rfq_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'rfq', (int) $id, $_POST);
 			epc_erp_json(true, 'RFQ saved', array('id' => $id));
 
 		case 'delivery_note_create':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 			$r = epc_erp_delivery_note_create($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'delivery_note', (int) ($r['id'] ?? 0), $_POST);
 			epc_erp_json(true, 'Delivery note ' . $r['note_no'] . ' created', $r);
 
 		case 'bank_import':
@@ -446,6 +458,7 @@ try {
 		case 'save_contact':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 			$id = epc_erp_contact_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'contact', (int) $id, $_POST);
 			epc_erp_json(true, 'Contact saved', array('id' => $id));
 
 		case 'sync_contacts':
@@ -468,11 +481,13 @@ try {
 		case 'expense_report_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 			$id = epc_erp_expense_report_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'expense_report', (int) $id, $_POST);
 			epc_erp_json(true, 'Expense report submitted', array('id' => $id));
 
 		case 'po_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 			$id = epc_erp_po_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'purchase_order', (int) $id, $_POST);
 			epc_erp_json(true, 'Purchase order created', array('id' => $id));
 
 		case 'po_status':
@@ -488,11 +503,13 @@ try {
 		case 'customer_create':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 			$cid = epc_erp_customer_provision($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'customer', (int) $cid, $_POST);
 			epc_erp_json(true, 'Customer created', array('user_id' => $cid));
 
 		case 'so_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			$id = epc_erp_sales_order_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'sales_order', (int) $id, $_POST);
 			epc_erp_json(true, 'Sales order saved', array('id' => $id));
 
 		case 'so_status':
@@ -513,21 +530,25 @@ try {
 		case 'receipt_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			$r = epc_erp_receipt_voucher($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($r['cash_entry_id'] ?? 0), $_POST);
 			epc_erp_json(true, 'Receipt voucher ' . $r['voucher_no'] . ' recorded', $r);
 
 		case 'transfer_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			$r = epc_erp_transfer_voucher($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($r['out_id'] ?? 0), $_POST);
 			epc_erp_json(true, 'Transfer voucher ' . $r['voucher_no'] . ' recorded', $r);
 
 		case 'payment_batch_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 			$id = epc_erp_payment_batch_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'payment_batch', (int) $id, $_POST);
 			epc_erp_json(true, 'Payment batch draft created', array('id' => $id));
 
 		case 'petty_cash_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 			$id = epc_erp_petty_cash_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'petty_cash', (int) $id, $_POST);
 			epc_erp_json(true, 'Petty cash float created', array('id' => $id));
 
 		case 'agenda_save':
@@ -703,6 +724,7 @@ try {
 		case 'pm_listing_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
 			$lId = epc_erp_pm_listing_save($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'listing', (int) $lId, $_POST);
 			epc_erp_json(true, 'Listing saved', array('id' => $lId));
 
 		case 'pm_listing_attach':

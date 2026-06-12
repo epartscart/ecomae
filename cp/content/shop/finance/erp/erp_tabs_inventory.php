@@ -71,6 +71,7 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 		<div class="col-sm-9"><input name="custom_<?php echo epc_erp_h($fd['field_key']); ?>" class="form-control input-sm" placeholder="<?php echo epc_erp_h($fd['field_type']); ?>"></div>
 	</div>
 	<?php endforeach; ?>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-sm btn-success">Create item</button></div></div>
 </form>
 

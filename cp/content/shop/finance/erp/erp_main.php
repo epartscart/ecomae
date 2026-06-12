@@ -568,6 +568,7 @@ if (!$epc_erp_shell_mode) {
 						<div class="form-group"><input type="email" name="contact_email" class="form-control input-sm" placeholder="E-mail"></div>
 						<div class="form-group"><input type="text" name="trn" class="form-control input-sm" placeholder="TRN (UAE VAT)"></div>
 						<label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" checked> UAE VAT registered (5% input)</label>
+						<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
 						<button type="submit" class="btn btn-sm btn-primary">Save supplier</button>
 					</form>
 
@@ -588,6 +589,7 @@ if (!$epc_erp_shell_mode) {
 						</select>
 						<input type="number" step="0.01" name="amount" class="form-control input-sm" placeholder="Amount AED" required>
 						<input type="text" name="reference" class="form-control input-sm" placeholder="Reference">
+						<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
 						<button type="submit" class="btn btn-sm btn-warning">Post payment</button>
 					</form>
 				</div>
@@ -643,6 +645,7 @@ if (!$epc_erp_shell_mode) {
 								<textarea name="inventory_csv" class="form-control input-sm" rows="4" placeholder="sku,qty,unit_cost&#10;PART-001,10,25.50&#10;PART-002,5,12.00"></textarea>
 							</div>
 						</div>
+						<div class="form-inline" style="margin-bottom:10px;"><?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?></div>
 						<button type="submit" class="btn btn-sm btn-primary">Record purchase + optional stock receipt</button>
 					</form>
 					<script>

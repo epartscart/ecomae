@@ -166,6 +166,10 @@ elseif ($invAction === 'edit'):
 				<p class="text-muted col-sm-offset-4 col-sm-8">Seller: <strong><?php echo epc_erp_h($seller['seller_name'] ?: '—'); ?></strong> · TRN <?php echo epc_erp_h($seller['seller_trn'] ?: 'configure in E-Invoicing'); ?></p>
 			</div>
 		</div>
+		<?php
+		$invDimCurrent = ($editDoc && isset($editDoc['id'])) ? epc_erp_dim_current($db_link, 'invoice', (int) $editDoc['id']) : array();
+		echo epc_erp_dim_render_fields($db_link, $invDimCurrent);
+		?>
 		<h4>Line items</h4>
 		<table class="table table-bordered" id="epc_inv_lines_table">
 			<thead><tr><th>Description</th><th>Detail</th><th>Qty</th><th>Unit (ex VAT)</th><th>VAT %</th><th></th></tr></thead>

@@ -5,6 +5,7 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once __DIR__ . '/epc_erp_helpers.php';
+require_once __DIR__ . '/epc_erp_dimensions.php';
 
 function epc_erp_all_tabs_config()
 {

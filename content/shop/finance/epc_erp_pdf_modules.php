@@ -203,6 +203,40 @@ function epc_erp_pm_seed_defaults(PDO $db): void
 		array('code' => 'PROJECT', 'name' => 'Project', 'dim_type' => 'project'),
 		array('code' => 'COSTCENTER', 'name' => 'Cost centre', 'dim_type' => 'cost_center'),
 	));
+	// Seed a few editable dimension values so the financial-dimension pickers on
+	// the entry forms are immediately usable (cost centres, departments, …).
+	$dimValueSeed = array(
+		'COSTCENTER' => array(
+			array('CC-ADMIN', 'Administration'),
+			array('CC-SALES', 'Sales & marketing'),
+			array('CC-OPS', 'Operations'),
+		),
+		'DEPT' => array(
+			array('D-FIN', 'Finance'),
+			array('D-SALES', 'Sales'),
+			array('D-WH', 'Warehouse'),
+		),
+		'PROJECT' => array(
+			array('P-GEN', 'General'),
+		),
+	);
+	foreach ($dimValueSeed as $dimCode => $vals) {
+		$dq = $db->prepare("SELECT `id` FROM `epc_erp_pm_dimensions` WHERE `code` = ? LIMIT 1");
+		$dq->execute(array($dimCode));
+		$dimId = (int) $dq->fetchColumn();
+		if ($dimId <= 0) {
+			continue;
+		}
+		$cq = $db->prepare("SELECT COUNT(*) FROM `epc_erp_pm_dimension_values` WHERE `dimension_id` = ?");
+		$cq->execute(array($dimId));
+		if ((int) $cq->fetchColumn() > 0) {
+			continue;
+		}
+		$vins = $db->prepare("INSERT INTO `epc_erp_pm_dimension_values` (`dimension_id`,`code`,`name`,`active`,`time_created`,`time_updated`) VALUES (?,?,?,1,?,?)");
+		foreach ($vals as $v) {
+			$vins->execute(array($dimId, $v[0], $v[1], $now, $now));
+		}
+	}
 	$seedIf('epc_erp_pm_inv_groups', "SELECT COUNT(*) FROM `epc_erp_pm_inv_groups`", array(
 		array('code' => 'FG', 'name' => 'Finished goods', 'valuation' => 'weighted_avg'),
 		array('code' => 'RM', 'name' => 'Raw materials', 'valuation' => 'weighted_avg'),

@@ -27,6 +27,14 @@ echo '<div class="pm-field"><label>Qty</label><input type="number" step="any" na
 echo '<div class="pm-field"><label>Rate</label><input type="number" step="any" name="rate" class="form-control input-sm" value="0"></div>';
 echo '<div class="pm-field"><label>Voucher ref (optional)</label><input type="text" name="voucher_ref" class="form-control input-sm" placeholder="PO-2026-00001"></div>';
 echo '<div class="pm-field" style="flex:1 1 100%"><label>Description</label><input type="text" name="description" class="form-control input-sm"></div>';
+foreach (epc_erp_dim_specs($db_link) as $sp) {
+	echo '<div class="pm-field"><label>' . epc_erp_h($sp['label']) . '</label><select name="dim[' . epc_erp_h($sp['key']) . ']" class="form-control input-sm"><option value="">—</option>';
+	foreach ($sp['options'] as $o) {
+		$dimLbl = ((string) $o['code'] !== '' ? $o['code'] . ' — ' : '') . (string) $o['name'];
+		echo '<option value="' . (int) $o['id'] . '">' . epc_erp_h($dimLbl) . '</option>';
+	}
+	echo '</select></div>';
+}
 echo '<div class="pm-field pm-field--btn"><label>&nbsp;</label><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add listing</button></div>';
 echo '</div></form></div>';
 

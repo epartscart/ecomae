@@ -51,7 +51,7 @@ if ($erpOnly) {
 	if (empty($orders)) {
 		erp_empty_state('No sales orders yet. Create a draft SO below.');
 	} else {
-		erp_table_open(array('SO #', 'Date', 'Customer', 'Title', 'Total incl. VAT', 'Status', 'Invoice', 'Actions'));
+		erp_table_open(array('SO #', 'Date', 'Customer', 'Title', 'Total incl. VAT', 'Dimensions', 'Status', 'Invoice', 'Actions'));
 		foreach ($orders as $r) {
 			echo '<tr><td>' . epc_erp_h($r['so_no']) . '</td>';
 			echo '<td>' . epc_erp_h(date('Y-m-d', (int) $r['time_created'])) . '</td>';
@@ -68,6 +68,7 @@ if ($erpOnly) {
 			echo '<td>' . epc_erp_h($custLabel) . '</td>';
 			echo '<td>' . epc_erp_h($r['title']) . '</td>';
 			echo '<td>' . epc_erp_money($r['total_amount']) . '</td>';
+			echo '<td>' . epc_erp_dim_badges($db_link, 'sales_order', (int) $r['id']) . '</td>';
 			echo '<td><span class="label label-info">' . epc_erp_h($r['status']) . '</span></td>';
 			echo '<td>' . epc_erp_h($r['invoice_no'] ?: '—') . '</td><td class="epc-erp-form-inline">';
 			if (in_array($r['status'], array('draft', 'confirmed'), true)) {
@@ -120,6 +121,7 @@ if ($erpOnly) {
 			<input name="line_qty[]" type="number" step="0.001" value="1" class="form-control input-sm" style="width:70px">
 			<input name="line_unit[]" type="number" step="0.01" class="form-control input-sm" placeholder="Unit AED" required>
 		</div></div>
+		<?php echo epc_erp_dim_render_fields($db_link); ?>
 		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft SO</button></div></div>
 	</form>
 	<?php
@@ -147,6 +149,7 @@ if ($erpOnly) {
 			<?php endforeach; ?>
 			</select>
 		</div></div>
+		<?php echo epc_erp_dim_render_fields($db_link); ?>
 		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-success btn-sm"><i class="fa fa-user-plus"></i> Add customer</button></div></div>
 	</form>
 	<?php

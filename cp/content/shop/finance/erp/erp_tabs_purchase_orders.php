@@ -36,10 +36,11 @@ ob_start();
 if (empty($pos)) {
 	erp_empty_state('No purchase orders yet.', 'fa-clipboard');
 } else {
-	erp_table_open(array('PO #', 'Supplier', 'Title', 'Total AED', 'Status', 'Actions'));
+	erp_table_open(array('PO #', 'Supplier', 'Title', 'Total AED', 'Dimensions', 'Status', 'Actions'));
 	foreach ($pos as $p) {
 		echo '<tr><td>' . epc_erp_h($p['po_no']) . '</td><td>' . epc_erp_h($p['supplier_name']) . '</td>';
 		echo '<td>' . epc_erp_h($p['title']) . '</td><td>' . epc_erp_money($p['total_amount']) . '</td>';
+		echo '<td>' . epc_erp_dim_badges($db_link, 'purchase_order', (int) $p['id']) . '</td>';
 		echo '<td><span class="label label-info">' . epc_erp_h($p['status']) . '</span></td><td class="epc-erp-form-inline">';
 		if ($p['status'] === 'draft') {
 			echo '<form class="epc-erp-po-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
@@ -73,6 +74,7 @@ ob_start();
 	<div class="form-group"><label class="col-sm-3">Title / amount ex VAT</label><div class="col-sm-9 form-inline">
 		<input name="title" class="form-control input-sm" required placeholder="Description">
 		<input name="amount_ex_vat" type="number" step="0.01" class="form-control input-sm" placeholder="AED ex VAT"></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft PO</button></div></div>
 </form>
 <?php
