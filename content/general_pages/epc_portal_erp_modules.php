@@ -91,6 +91,15 @@ function epc_portal_erp_modules_registry(): array
 			'default_erp_only' => true,
 			'default_full' => true,
 		),
+		'erp_enterprise' => array(
+			'id' => 'erp_enterprise',
+			'label' => 'Enterprise',
+			'desc' => 'Business units, financial dimensions, budgeting and listings',
+			'area' => 'enterprise',
+			'icon' => 'fa-building-o',
+			'default_erp_only' => true,
+			'default_full' => true,
+		),
 	);
 }
 
@@ -302,8 +311,10 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 	}
 	// 'setup' (Accounting setup + Data import) is a core admin/config area every
 	// tenant must be able to reach, so it is always enabled regardless of the
-	// tenant's purchased module list.
+	// tenant's purchased module list. 'enterprise' (business units, financial
+	// dimensions, budgeting, listings) is likewise foundational master data.
 	$areas['setup'] = true;
+	$areas['enterprise'] = true;
 	return array_keys($areas);
 }
 
