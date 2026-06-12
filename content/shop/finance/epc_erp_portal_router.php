@@ -256,6 +256,29 @@ function epc_erp_portal_render_page(PDO $db_link, $page)
 	}
 
 	if ($page === 'demo') {
+		// Client demo: a separate public link that mirrors the full Super ERP
+		// (every module/tab) read-only, with no login. Restricted to the platform
+		// marketing/demo host so it can never expose a real tenant's workspace;
+		// other hosts keep the safe sample-data dashboard.
+		$epcDemoMirrorHost = function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname()
+			&& !(function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host());
+		if ($epcDemoMirrorHost) {
+			$GLOBALS['epc_erp_demo_mirror'] = true;
+			epc_erp_portal_render_shell(function () use ($db_link, $DP_Config) {
+				$user_session = epc_erp_resolve_user_session();
+				$epc_erp_portal = 'frontend';
+				extract(epc_erp_configure_portal_urls('frontend'));
+				$erp_include = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/finance/erp/erp_main.php';
+				if (!is_file($erp_include)) {
+					echo '<div class="alert alert-danger">ERP module files not found on server.</div>';
+					return;
+				}
+				echo '<div class="epc-erp-workspace epc-erp-workspace--demo">';
+				include $erp_include;
+				echo '</div>';
+			}, array('title' => 'Live Super ERP demo', 'body_class' => 'epc-erp-standalone epc-erp-standalone--demo epc-erp-standalone--mirror'));
+			return;
+		}
 		epc_erp_portal_render_shell(function () {
 			require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/erp_demo_dashboard.php';
 		}, array('title' => 'Live ERP demo', 'body_class' => 'epc-erp-standalone epc-erp-standalone--demo'));

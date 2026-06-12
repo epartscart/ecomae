@@ -19,6 +19,16 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cp_shell.php';
 require __DIR__ . '/erp_nav_areas.php';
 
+// Public client demo (/erp-demo) renders the full Super ERP read-only with no
+// login. Block every write so the shared demo workspace can never be mutated.
+$epc_erp_demo_mirror = !empty($GLOBALS['epc_erp_demo_mirror']);
+if ($epc_erp_demo_mirror && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	http_response_code(403);
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode(array('status' => false, 'message' => 'Demo is read-only. Sign in to make changes.'));
+	exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
 	$getAction = (string)$_GET['action'];
 	if ($getAction === 'invoice_print' || $getAction === 'invoice_download_json') {
@@ -82,12 +92,17 @@ epc_erp_full_ensure_schema($db_link);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 epc_erp_extended_ensure_schema($db_link);
 
-$userAllowedTabs = epc_erp_user_allowed_tabs($db_link);
-$modFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
-if (is_file($modFile)) {
-	require_once $modFile;
-	if (function_exists('epc_erp_filter_tabs_by_tenant_modules')) {
-		$userAllowedTabs = epc_erp_filter_tabs_by_tenant_modules($userAllowedTabs);
+if ($epc_erp_demo_mirror) {
+	// Mirror the complete Super ERP so prospects can browse every module.
+	$userAllowedTabs = epc_erp_staff_all_tabs();
+} else {
+	$userAllowedTabs = epc_erp_user_allowed_tabs($db_link);
+	$modFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
+	if (is_file($modFile)) {
+		require_once $modFile;
+		if (function_exists('epc_erp_filter_tabs_by_tenant_modules')) {
+			$userAllowedTabs = epc_erp_filter_tabs_by_tenant_modules($userAllowedTabs);
+		}
 	}
 }
 if (function_exists('epc_crm_pack_enabled') && epc_crm_pack_enabled() && epc_crm_user_can_access($db_link) && !in_array('crm', $userAllowedTabs, true)) {
@@ -128,6 +143,11 @@ if (!isset($epc_erp_portal)) {
 	extract(epc_erp_configure_portal_urls('cp'));
 } else {
 	extract(epc_erp_configure_portal_urls($epc_erp_portal));
+}
+if ($epc_erp_demo_mirror) {
+	// Keep all in-workspace navigation inside the public /erp-demo mirror so a
+	// client browsing without login is never bounced to the /erp sign-in page.
+	$erpUrl = '/erp-demo';
 }
 if (!isset($DP_Config) && isset($GLOBALS['DP_Config'])) {
 	$DP_Config = $GLOBALS['DP_Config'];
@@ -295,7 +315,15 @@ if (!$epc_erp_shell_mode) {
 				</div>
 			</div>
 
-			<?php if (!$epc_erp_shell_mode): ?>
+			<?php if ($epc_erp_demo_mirror): ?>
+			<div class="alert alert-warning epc-erp-demo-banner" style="margin-bottom:12px;">
+				<i class="fa fa-eye"></i> <strong>Live Super ERP demo (read-only).</strong>
+				You're browsing the complete Business OS with every module enabled — sample data, no sign-in. Changes are disabled.
+				<a class="btn btn-primary btn-xs" style="margin-left:8px;" href="<?php echo epc_erp_h($portal_home ?? '/erp'); ?>"><i class="fa fa-sign-in"></i> Sign in to your workspace</a>
+			</div>
+			<?php endif; ?>
+
+			<?php if (!$epc_erp_shell_mode && !$epc_erp_demo_mirror): ?>
 			<div class="alert alert-info epc-erp-context-banner">
 				<strong>Fulfilment:</strong> customer/supplier payment → stock → delivery → returns.
 				<strong>Finance:</strong> revenue &amp; AP when order <strong>Completed</strong>.
