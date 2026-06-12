@@ -211,6 +211,54 @@ if (!function_exists('epc_ext_cover_page')) {
     }
 }
 
+if (!function_exists('epc_ext_print_css')) {
+    /**
+     * Shared professional print stylesheet for the report documents (audit pack,
+     * off-system IFRS report). A4 page with equal margins on all four sides, a
+     * single unified font/size, a red corporate theme, and per-element page
+     * breaks (each statement/section starts on a new page). Returns a <style>
+     * block scoped to the .epc-aud-doc wrapper.
+     */
+    function epc_ext_print_css(): string
+    {
+        $RED = '#b3122a'; $REDDK = '#8f0f22'; $REDLT = '#fdeef0';
+        return '<style>'
+            // ---- red corporate theme (screen + print) ----
+            . '.epc-aud-doc{font-family:Arial,Helvetica,sans-serif;color:#222;font-size:12px;line-height:1.55;}'
+            . '.epc-aud-doc h4{color:' . $RED . ' !important;border-bottom:2px solid ' . $RED . ' !important;padding-bottom:5px;margin:0 0 12px;font-weight:700;letter-spacing:.2px;}'
+            . '.epc-aud-doc h5{color:' . $REDDK . ' !important;font-weight:700;}'
+            . '.epc-aud-doc th,.epc-aud-doc td{vertical-align:top;}'
+            . '.epc-aud-doc thead th{background:' . $RED . ' !important;color:#fff !important;border-color:' . $REDDK . ' !important;}'
+            // recolour the existing navy header/total bands to the red theme
+            . '.epc-aud-doc tr[style*="#13294b"],.epc-aud-doc tr[style*="#2b3a55"],.epc-aud-doc tr[style*="#1d2740"]{background:' . $RED . ' !important;}'
+            . '.epc-aud-doc tr[style*="#13294b"] td,.epc-aud-doc tr[style*="#13294b"] th,.epc-aud-doc tr[style*="#2b3a55"] td,.epc-aud-doc tr[style*="#2b3a55"] th{color:#fff !important;}'
+            . '.epc-aud-doc tr[style*="#eef2f8"],.epc-aud-doc tr[style*="#f4fbf6"]{background:' . $REDLT . ' !important;}'
+            . '@media print{'
+            . '@page{size:A4;margin:18mm;}'                 // A4 with equal margins on all four sides
+            . 'html,body{background:#fff !important;}'
+            . 'body{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
+            // unified font + size across the whole printed pack
+            . '.epc-aud-doc,.epc-aud-doc *{font-family:Arial,Helvetica,sans-serif !important;}'
+            . '.epc-aud-doc p,.epc-aud-doc td,.epc-aud-doc th,.epc-aud-doc li,.epc-aud-doc span,.epc-aud-doc div{font-size:12px !important;line-height:1.5 !important;}'
+            . '.epc-aud-doc h4{font-size:16px !important;}'
+            . '.epc-aud-doc h5{font-size:13.5px !important;}'
+            . '.epc-aud-doc summary{font-size:12px !important;}'
+            . '.epc-aud-sec{page-break-before:always;break-before:page;}'
+            . '.epc-aud-front{page-break-after:always;break-after:page;}'
+            . '.ext-cover{page-break-after:always;break-after:page;}'
+            . '.epc-aud-sec table{page-break-inside:auto;width:100%;}'
+            . '.epc-aud-sec tr{page-break-inside:avoid;}'
+            . '.epc-aud-sec thead{display:table-header-group;}'
+            . '.epc-aud-sec div[id^="note-"]{page-break-inside:avoid;}'
+            . 'details.epc-std-explain{page-break-inside:avoid;}'
+            . 'details.epc-std-explain[open] summary{margin-bottom:4px;}'
+            . 'details.epc-std-explain>div{display:block !important;}'
+            . '.epc-no-print,.btn{display:none !important;}'
+            . '}'
+            . '</style>';
+    }
+}
+
 if (!function_exists('epc_ext_vat_guide_rows')) {
     /** @return array<int,array{0:string,1:string}> */
     function epc_ext_vat_guide_rows(): array
@@ -3019,41 +3067,7 @@ if (!function_exists('epc_ext_b_audit')) {
 
         // Professional print layout — A4, equal margins, unified font, red corporate theme;
         // each element starts on a new page (like one sheet per element in Excel).
-        $RED = '#b3122a'; $REDDK = '#8f0f22'; $REDLT = '#fdeef0';
-        $printCss = '<style>'
-            // ---- red corporate theme (screen + print) ----
-            . '.epc-aud-doc{font-family:Arial,Helvetica,sans-serif;color:#222;font-size:12px;line-height:1.55;}'
-            . '.epc-aud-doc h4{color:' . $RED . ' !important;border-bottom:2px solid ' . $RED . ' !important;padding-bottom:5px;margin:0 0 12px;font-weight:700;letter-spacing:.2px;}'
-            . '.epc-aud-doc h5{color:' . $REDDK . ' !important;font-weight:700;}'
-            . '.epc-aud-doc th,.epc-aud-doc td{vertical-align:top;}'
-            . '.epc-aud-doc thead th{background:' . $RED . ' !important;color:#fff !important;border-color:' . $REDDK . ' !important;}'
-            // recolour the existing navy header/total bands to the red theme
-            . '.epc-aud-doc tr[style*="#13294b"],.epc-aud-doc tr[style*="#2b3a55"],.epc-aud-doc tr[style*="#1d2740"]{background:' . $RED . ' !important;}'
-            . '.epc-aud-doc tr[style*="#13294b"] td,.epc-aud-doc tr[style*="#13294b"] th,.epc-aud-doc tr[style*="#2b3a55"] td,.epc-aud-doc tr[style*="#2b3a55"] th{color:#fff !important;}'
-            . '.epc-aud-doc tr[style*="#eef2f8"],.epc-aud-doc tr[style*="#f4fbf6"]{background:' . $REDLT . ' !important;}'
-            . '@media print{'
-            . '@page{size:A4;margin:18mm;}'                 // A4 with equal margins on all four sides
-            . 'html,body{background:#fff !important;}'
-            . 'body{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
-            // unified font + size across the whole printed pack
-            . '.epc-aud-doc,.epc-aud-doc *{font-family:Arial,Helvetica,sans-serif !important;}'
-            . '.epc-aud-doc p,.epc-aud-doc td,.epc-aud-doc th,.epc-aud-doc li,.epc-aud-doc span,.epc-aud-doc div{font-size:12px !important;line-height:1.5 !important;}'
-            . '.epc-aud-doc h4{font-size:16px !important;}'
-            . '.epc-aud-doc h5{font-size:13.5px !important;}'
-            . '.epc-aud-doc summary{font-size:12px !important;}'
-            . '.epc-aud-sec{page-break-before:always;break-before:page;}'
-            . '.epc-aud-front{page-break-after:always;break-after:page;}'
-            . '.ext-cover{page-break-after:always;break-after:page;}'
-            . '.epc-aud-sec table{page-break-inside:auto;width:100%;}'
-            . '.epc-aud-sec tr{page-break-inside:avoid;}'
-            . '.epc-aud-sec thead{display:table-header-group;}'
-            . '.epc-aud-sec div[id^="note-"]{page-break-inside:avoid;}'
-            . 'details.epc-std-explain{page-break-inside:avoid;}'
-            . 'details.epc-std-explain[open] summary{margin-bottom:4px;}'
-            . 'details.epc-std-explain>div{display:block !important;}'
-            . '.epc-no-print,.btn{display:none !important;}'
-            . '}'
-            . '</style>';
+        $printCss = epc_ext_print_css();
 
         $body = '<div class="epc-aud-doc">' . $printCss . $cover
             . '<div class="epc-aud-front">'
@@ -5649,22 +5663,25 @@ if (!function_exists('epc_ext_b_fin_summary')) {
             )
         );
 
-        $body = $cover
+        $body = '<div class="epc-aud-doc">' . epc_ext_print_css() . $cover
+            . '<div class="epc-aud-front">'
             . '<div class="alert alert-info" style="font-size:12px;"><i class="fa fa-upload"></i> Built from your <strong>uploaded workbook</strong> (off-system, summary figures with prior-year comparatives — no transaction detail). For preparing / reviewing other clients\' accounts; it does not read or write ERP data.</div>'
             . epc_ext_field_guide('Field guide — what each statement &amp; note shows (and the standard behind it)',
                 'Plain-language explanation so a learner understands the pack. Framework: IFRS (IASB) + ISA (IAASB).',
                 epc_ext_audit_guide_rows())
-            . '<h4 style="color:#13294b;margin-top:16px;">1 · Independent Auditor\'s Report</h4>' . $audit
-            . '<h4 style="color:#13294b;margin-top:18px;">2 · Statement of Financial Position</h4>' . $sofp
-            . '<h4 style="color:#13294b;margin-top:18px;">3 · Statement of Profit or Loss &amp; Other Comprehensive Income</h4>' . $sopl
-            . '<h4 style="color:#13294b;margin-top:18px;">4 · Statement of Changes in Equity</h4>' . $soce
-            . '<h4 style="color:#13294b;margin-top:18px;">5 · Statement of Cash Flows</h4>' . $scf
-            . '<h4 style="color:#13294b;margin-top:18px;">6 · Notes to the Financial Statements</h4>' . $notes
-            . '<h4 style="color:#13294b;margin-top:18px;">Compliance checks</h4>' . $compSummary
+            . '</div>'
+            . '<section class="epc-aud-sec"><h4>1 · Independent Auditor\'s Report</h4>' . $audit . '</section>'
+            . '<section class="epc-aud-sec"><h4>2 · Statement of Financial Position</h4>' . $sofp . '</section>'
+            . '<section class="epc-aud-sec"><h4>3 · Statement of Profit or Loss &amp; Other Comprehensive Income</h4>' . $sopl . '</section>'
+            . '<section class="epc-aud-sec"><h4>4 · Statement of Changes in Equity</h4>' . $soce . '</section>'
+            . '<section class="epc-aud-sec"><h4>5 · Statement of Cash Flows</h4>' . $scf . '</section>'
+            . '<section class="epc-aud-sec"><h4>6 · Notes to the Financial Statements</h4>' . $notes . '</section>'
+            . '<section class="epc-aud-sec"><h4>Compliance checks</h4>' . $compSummary
             . '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f0f3f8;"><th>Result</th><th>Check</th></tr></thead><tbody>' . $cr . '</tbody></table>'
             . '<div style="display:flex;justify-content:space-between;margin-top:18px;border-top:1px solid #cfd8e6;padding-top:10px;font-size:12px;">'
             . '<div>Approved by the Board and signed on its behalf:<br><strong>' . epc_erp_h($director) . '</strong></div>'
-            . '<div style="text-align:right;">' . epc_erp_h($auditor) . '<br>' . epc_erp_h($opinionDate) . '</div></div>';
+            . '<div style="text-align:right;">' . epc_erp_h($auditor) . '<br>' . epc_erp_h($opinionDate) . '</div></div></section>'
+            . '</div>';
 
         return array(
             'title' => 'IFRS Financial Statements & Audit Report — imported',
