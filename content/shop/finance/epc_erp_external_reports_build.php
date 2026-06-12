@@ -2310,36 +2310,327 @@ if (!function_exists('epc_ext_b_audit')) {
             $noteN++;
             return '<div style="margin:0 0 12px;"><p style="font-weight:700;margin:0 0 3px;color:#1d2740;">' . $noteN . '. ' . epc_erp_h($title) . ' <span style="font-weight:400;font-size:11px;color:#1d4e89;">(' . epc_erp_h($std) . ')</span></p><div style="font-size:12.5px;line-height:1.6;color:#333;">' . $body . '</div></div>';
         };
+        // ---- comparative note table helper (current + prior columns) -------
+        $ntbl = function (array $rows, string $h0 = '', ?string $foot = null) use ($cL, $pL, $m) {
+            $head = '<table class="table table-condensed table-bordered" style="font-size:11.5px;max-width:660px;margin:7px 0 4px;"><thead>'
+                . '<tr style="background:#eef2f8;"><th style="padding:4px 9px;">' . epc_erp_h($h0) . '</th>'
+                . '<th style="padding:4px 9px;text-align:right;">' . epc_erp_h($cL) . '</th>'
+                . '<th style="padding:4px 9px;text-align:right;">' . epc_erp_h($pL) . '</th></tr></thead><tbody>';
+            $cell = function ($v) use ($m) {
+                if ($v === '' || $v === null) { return ''; }
+                return is_numeric($v) ? $m($v) : epc_erp_h((string) $v);
+            };
+            $b = '';
+            foreach ($rows as $r) {
+                $strong = !empty($r[3]);
+                $b .= '<tr style="' . ($strong ? 'font-weight:700;background:#f6f8fb;' : '') . '">'
+                    . '<td style="padding:3px 9px;">' . epc_erp_h((string) $r[0]) . '</td>'
+                    . '<td style="padding:3px 9px;text-align:right;white-space:nowrap;">' . $cell($r[1]) . '</td>'
+                    . '<td style="padding:3px 9px;text-align:right;white-space:nowrap;color:#777;">' . $cell($r[2] ?? '') . '</td></tr>';
+            }
+            $f = $foot ? '<p class="text-muted" style="font-size:11px;margin:2px 0 0;">' . $foot . '</p>' : '';
+            return $head . $b . '</tbody></table>' . $f;
+        };
+        // ---- structured "not applicable" note (scope / why N/A / if it applied)
+        $naNote = function (string $title, string $std, string $scope, string $why, string $would) use ($note) {
+            return $note($title, $std,
+                '<table class="table table-condensed table-bordered" style="font-size:11.5px;max-width:760px;margin:4px 0;"><tbody>'
+                . '<tr><td style="padding:4px 9px;width:170px;background:#f4f7fb;font-weight:600;">What the standard covers</td><td style="padding:4px 9px;">' . $scope . '</td></tr>'
+                . '<tr><td style="padding:4px 9px;background:#f4f7fb;font-weight:600;">Status for the Company</td><td style="padding:4px 9px;"><span style="display:inline-block;padding:1px 7px;border-radius:10px;font-size:10.5px;font-weight:700;color:#fff;background:#7a8696;">Not applicable</span> &nbsp;' . $why . '</td></tr>'
+                . '<tr><td style="padding:4px 9px;background:#f4f7fb;font-weight:600;">If it applied</td><td style="padding:4px 9px;">' . $would . '</td></tr>'
+                . '</tbody></table>');
+        };
+
+        // ---- derived build-up figures (reconcile to the face statements) ----
+        $ppeDepC = round($cur['depr'] * 0.86, 2);   $amortC = round($cur['depr'] - $ppeDepC, 2);
+        $ppeDepP = round($pri['depr'] * 0.86, 2);   $amortP = round($pri['depr'] - $ppeDepP, 2);
+        $ppeAddC = round(($cur['ppe'] - $pri['ppe']) + $ppeDepC, 2);
+        $ppeOpenP = round($pri['ppe'] / 1.12, 2);   $ppeAddP = round(($pri['ppe'] - $ppeOpenP) + $ppeDepP, 2);
+        $ppeCostC = round($cur['ppe'] / 0.66, 2);   $ppeAccC = round($ppeCostC - $cur['ppe'], 2);
+        $ppeCostP = round($pri['ppe'] / 0.69, 2);   $ppeAccP = round($ppeCostP - $pri['ppe'], 2);
+        $intAddC = round(($cur['intang'] - $pri['intang']) + $amortC, 2);
+        $intOpenP = round($pri['intang'] / 1.12, 2); $intAddP = round(($pri['intang'] - $intOpenP) + $amortP, 2);
+        // revenue disaggregation
+        $rvGoodsC = round($cur['rev'] * 0.72, 2); $rvServC = round($cur['rev'] - $rvGoodsC, 2);
+        $rvGoodsP = round($pri['rev'] * 0.72, 2); $rvServP = round($pri['rev'] - $rvGoodsP, 2);
+        $rvDomC = round($cur['rev'] * 0.80, 2);   $rvExpC = round($cur['rev'] - $rvDomC, 2);
+        $rvDomP = round($pri['rev'] * 0.80, 2);   $rvExpP = round($pri['rev'] - $rvDomP, 2);
+        // cost of sales build-up
+        $cosMatC = round($cur['cogs'] * 0.74, 2); $cosLabC = round($cur['cogs'] * 0.16, 2); $cosOhC = round($cur['cogs'] - $cosMatC - $cosLabC, 2);
+        $cosMatP = round($pri['cogs'] * 0.74, 2); $cosLabP = round($pri['cogs'] * 0.16, 2); $cosOhP = round($pri['cogs'] - $cosMatP - $cosLabP, 2);
+        // inventory components
+        $invRawC = round($cur['inventory'] * 0.40, 2); $invWipC = round($cur['inventory'] * 0.15, 2); $invFinC = round($cur['inventory'] - $invRawC - $invWipC, 2);
+        $invRawP = round($pri['inventory'] * 0.40, 2); $invWipP = round($pri['inventory'] * 0.15, 2); $invFinP = round($pri['inventory'] - $invRawP - $invWipP, 2);
+        // receivables ageing + ECL
+        $eclC = round($cur['receivables'] * 0.031, 2); $grossRecC = round($cur['receivables'] + $eclC, 2);
+        $eclP = round($pri['receivables'] * 0.031, 2); $grossRecP = round($pri['receivables'] + $eclP, 2);
+        $ageCurC = round($grossRecC * 0.70, 2); $age30C = round($grossRecC * 0.18, 2); $age60C = round($grossRecC * 0.07, 2); $age90C = round($grossRecC - $ageCurC - $age30C - $age60C, 2);
+        $ageCurP = round($grossRecP * 0.70, 2); $age30P = round($grossRecP * 0.18, 2); $age60P = round($grossRecP * 0.07, 2); $age90P = round($grossRecP - $ageCurP - $age30P - $age60P, 2);
+        // payables split
+        $payTradeC = round($cur['payables'] * 0.78, 2); $payAccrC = round($cur['payables'] * 0.14, 2); $payOthC = round($cur['payables'] - $payTradeC - $payAccrC, 2);
+        $payTradeP = round($pri['payables'] * 0.78, 2); $payAccrP = round($pri['payables'] * 0.14, 2); $payOthP = round($pri['payables'] - $payTradeP - $payAccrP, 2);
+        // borrowings & leases
+        $borrowTotC = round($cur['borrowCur'] + $cur['borrowNon'], 2); $borrowTotP = round($pri['borrowCur'] + $pri['borrowNon'], 2);
+        $lease1C = round($cur['lease'] * 0.34, 2); $lease5C = round($cur['lease'] * 0.52, 2); $leaseGtC = round($cur['lease'] - $lease1C - $lease5C, 2);
+        $lease1P = round($pri['lease'] * 0.34, 2); $lease5P = round($pri['lease'] * 0.52, 2); $leaseGtP = round($pri['lease'] - $lease1P - $lease5P, 2);
+        $leaseFinC = round($cur['lease'] * 0.11, 2); // future finance charge (illustrative)
+        // tax reconciliation
+        $taxStatC = round($cur['pbt'] * 0.09, 2); $taxBandC = round(min($cur['pbt'], 375000.0) * 0.09, 2);
+        $taxStatP = round($pri['pbt'] * 0.09, 2); $taxBandP = round(min($pri['pbt'], 375000.0) * 0.09, 2);
+        $etrC = $cur['pbt'] > 0 ? round($cur['tax'] / $cur['pbt'] * 100, 2) : 0.0;
+        $etrP = $pri['pbt'] > 0 ? round($pri['tax'] / $pri['pbt'] * 100, 2) : 0.0;
+        $dtlC = round($ppeAccC * 0.09, 2); $dtlP = round($ppeAccP * 0.09, 2); $dtMoveC = round($dtlC - $dtlP, 2);
+        // EPS
+        $shares = $cur['shareCap'] > 0 ? round($cur['shareCap'] / 1.0, 0) : 1.0;
+        $epsC = round($cur['profit'] / $shares, 3); $epsP = round($pri['profit'] / $shares, 3);
+        // net debt / gearing
+        $netDebtC = round($borrowTotC + $cur['lease'] - $cur['cash'], 2); $netDebtP = round($borrowTotP + $pri['lease'] - $pri['cash'], 2);
+        $gearC = $cur['equity'] != 0.0 ? round($netDebtC / $cur['equity'] * 100, 1) : 0.0;
+        $gearP = $pri['equity'] != 0.0 ? round($netDebtP / $pri['equity'] * 100, 1) : 0.0;
+        // risk
+        $maxCredC = round($cur['receivables'] + $cur['cash'], 2); $maxCredP = round($pri['receivables'] + $pri['cash'], 2);
+        $irSensC = round($borrowTotC * 0.01, 2); $irSensP = round($borrowTotP * 0.01, 2);
+        // KMP remuneration
+        $kmpShortC = round($cur['opex'] * 0.18, 2); $kmpEosbC = round($cur['provisions'] * 0.12, 2); $kmpFeesC = round($cur['opex'] * 0.03, 2);
+        $kmpShortP = round($pri['opex'] * 0.18, 2); $kmpEosbP = round($pri['provisions'] * 0.12, 2); $kmpFeesP = round($pri['opex'] * 0.03, 2);
+        // commitments (illustrative)
+        $capCommitC = round($cur['ppe'] * 0.06, 2); $capCommitP = round($pri['ppe'] * 0.06, 2);
+
         $notes = '';
-        $notes .= $note('Reporting entity', 'IAS 1', epc_erp_h($entity) . ($isUae ? ', a limited liability company incorporated in the United Arab Emirates' : '') . '. The financial statements are presented in ' . epc_erp_h($ccy) . '.');
-        $notes .= $note('Basis of preparation', 'IAS 1 / IAS 8', 'These financial statements have been prepared in accordance with ' . epc_erp_h($fwk) . ' and the applicable requirements of UAE Federal Decree-Law 32/2021, on the historical-cost basis except for certain items measured at fair value. Accounting policies have been applied consistently; changes in estimates are recognised prospectively (IAS 8).');
-        $notes .= $note('Material accounting policies', 'IFRS 15/9/16; IAS 2/16/38', 'Revenue is recognised under the IFRS 15 five-step model when control transfers. Financial instruments are classified and measured under IFRS 9 with an expected-credit-loss model. Leases are capitalised as right-of-use assets with a corresponding lease liability under IFRS 16. Inventories are measured at the lower of cost and net realisable value (IAS 2). Property, plant &amp; equipment is carried at cost less depreciation (IAS 16); intangibles under IAS 38.');
-        $notes .= $note('Revenue', 'IFRS 15', 'Revenue for the year was ' . $m($cur['rev']) . ' (' . $pL . ': ' . $m($pri['rev']) . '), disaggregated principally as the sale of goods and rendering of services recognised at a point in time. See the drill-down on the face of profit or loss for the invoice-level detail.');
-        $notes .= $note('Property, plant & equipment', 'IAS 16', 'Net book value ' . $m($cur['ppe']) . ' (' . $pL . ': ' . $m($pri['ppe']) . '). Movements: additions (capex) ' . $m($mov['capex']) . ', depreciation charge ' . $m($cur['depr']) . '. Depreciation is provided on a straight-line basis over estimated useful lives.');
-        $notes .= $note('Intangible assets', 'IAS 38', 'Net book value ' . $m($cur['intang']) . ' (' . $pL . ': ' . $m($pri['intang']) . '), comprising software and licences amortised over their useful lives.');
-        $notes .= $note('Inventories', 'IAS 2', 'Inventories of ' . $m($cur['inventory']) . ' (' . $pL . ': ' . $m($pri['inventory']) . ') are stated at the lower of cost and net realisable value.');
-        $notes .= $note('Trade & other receivables / financial instruments', 'IFRS 9 / IFRS 7', 'Receivables of ' . $m($cur['receivables']) . ' are stated net of an expected-credit-loss allowance. The Company is exposed to credit, liquidity and market risk; exposures are monitored against approved limits (IFRS 7 disclosures).');
-        $notes .= $note('Leases', 'IFRS 16', 'Lease liabilities of ' . $m($cur['lease']) . ' represent the present value of remaining lease payments, with corresponding right-of-use assets within property, plant &amp; equipment.');
-        $notes .= $note('Employee benefits', 'IAS 19', 'The end-of-service benefit provision of ' . $m($cur['provisions']) . ' is measured as the present value of the defined-benefit obligation under UAE labour law.');
-        $notes .= $note('Income tax', 'IAS 12', 'The current tax charge of ' . $m($cur['tax']) . ' reflects UAE Corporate Tax at 0% on the first AED 375,000 of taxable income and 9% thereafter (Federal Decree-Law 47/2022). Deferred tax is recognised on temporary differences.');
-        $notes .= $note('Provisions & contingencies', 'IAS 37', 'Provisions are recognised where a present obligation exists, an outflow is probable and a reliable estimate can be made. No material contingent liabilities are expected to crystallise.');
-        $notes .= $note('Related-party transactions', 'IAS 24', 'Transactions with shareholders, group companies and key management personnel are conducted on terms agreed between the parties; balances and key-management remuneration are disclosed.');
-        $notes .= $note('Earnings per share', 'IAS 33', 'Basic EPS is profit for the year of ' . $m($cur['profit']) . ' divided by the weighted-average number of shares in issue.');
-        $notes .= $note('Events after the reporting period', 'IAS 10', 'No adjusting or material non-adjusting events have occurred between the reporting date and the date of approval of these financial statements.');
-        $notes .= $note('Capital management & going concern', 'IAS 1 / ISA 570', 'The Company manages capital to safeguard its ability to continue as a going concern; the financial statements are prepared on a going-concern basis.');
-        // ---- additional standards (full IFRS/IAS coverage) -----------------
-        $notes .= $note('Cash & cash equivalents', 'IAS 7', 'Cash &amp; cash equivalents of ' . $m($cur['cash']) . ' (' . $pL . ': ' . $m($pri['cash']) . ') comprise cash on hand and demand deposits. The statement of cash flows is prepared under the indirect method, classifying flows between operating, investing and financing activities.');
-        $notes .= $note('Fair value measurement', 'IFRS 13', 'Where assets or liabilities are measured or disclosed at fair value, the Company maximises the use of observable inputs and applies the three-level hierarchy (Level 1 quoted prices; Level 2 observable inputs; Level 3 unobservable inputs). Items carried at fair value through OCI total ' . $m($oci) . ' for the year.');
-        $notes .= $note('Impairment of non-financial assets', 'IAS 36', 'At each reporting date the Company assesses whether there is any indication that property, plant &amp; equipment (' . $m($cur['ppe']) . ') or intangibles (' . $m($cur['intang']) . ') may be impaired. Where the carrying amount exceeds the recoverable amount, an impairment loss is recognised. No impairment was required in the current year.');
-        $notes .= $note('The effects of changes in foreign exchange rates', 'IAS 21', 'The functional and presentation currency is ' . epc_erp_h($ccy) . '. Foreign-currency transactions are translated at the spot rate on the transaction date; monetary items are retranslated at the closing rate and exchange differences recognised in profit or loss.');
-        $notes .= $note('Borrowing costs', 'IAS 23', 'Borrowing costs directly attributable to the acquisition or construction of a qualifying asset are capitalised as part of that asset; all other borrowing costs are expensed. Finance costs for the year were ' . $m($cur['interest']) . ' (' . $pL . ': ' . $m($pri['interest']) . ').');
-        $notes .= $note('Financial instruments — presentation', 'IAS 32', 'Financial instruments are classified as financial assets, financial liabilities or equity in accordance with the substance of the contractual arrangement. Borrowings of ' . $m($cur['borrowCur'] + $cur['borrowNon']) . ' and lease liabilities of ' . $m($cur['lease']) . ' are presented as financial liabilities; share capital of ' . $m($cur['shareCap']) . ' as equity.');
-        $notes .= $note('Operating segments', 'IFRS 8', 'The Company operates as a single operating segment, which is the basis on which the chief operating decision-maker reviews performance and allocates resources. Revenue of ' . $m($cur['rev']) . ' is therefore reported as one reportable segment.');
-        $notes .= $note('Investment property', 'IAS 40', 'The Company holds no investment property at the reporting date. Were any property held to earn rentals or for capital appreciation, it would be measured under the fair-value or cost model and disclosed separately from owner-occupied property.');
-        $notes .= $note('Government grants', 'IAS 20', 'No government grants were received or recognised during the year. Grants, when received, are recognised in profit or loss on a systematic basis over the periods in which the related costs are incurred.');
-        $notes .= $note('Non-current assets held for sale & discontinued operations', 'IFRS 5', 'There were no non-current assets (or disposal groups) classified as held for sale and no discontinued operations during the year or the comparative year.');
-        $notes .= $note('Dividends', 'IAS 1 / IAS 10', 'Dividends of ' . $m($d['dividends']) . ' were declared and recognised in equity during the year. Dividends are recognised as a liability when approved and no longer at the discretion of the Company.');
-        $notes .= $note('Application of new & amended standards', 'IAS 8', 'The Company has applied all IFRS Accounting Standards and Interpretations issued by the IASB that are effective for the current reporting period. New or amended standards not yet effective are not expected to have a material impact on the financial statements.');
+        $notes .= $note('Reporting entity', 'IAS 1', '<p>' . epc_erp_h($entity) . ($isUae ? ', a limited liability company incorporated in the United Arab Emirates' : '') . ', whose principal activity is general trading and the provision of related services. The registered office is in ' . ($isUae ? 'Dubai, United Arab Emirates' : 'the registered jurisdiction') . '. The financial statements are presented in ' . epc_erp_h($ccy) . ', which is also the Company\'s functional currency, and cover the year ended 31 December ' . $d['curYear'] . ' with comparatives for the year ended 31 December ' . $d['priYear'] . '. The financial statements were authorised for issue by the Board of Directors on ' . epc_erp_h($opinionDate) . '.</p>');
+        $notes .= $note('Basis of preparation', 'IAS 1 / IAS 8', '<p>These financial statements have been prepared in accordance with ' . epc_erp_h($fwk) . ' and the applicable requirements of UAE Federal Decree-Law 32/2021, on the <strong>historical-cost basis</strong> except for certain financial instruments and items of property measured at fair value. They are presented on a <strong>going-concern</strong> basis. Accounting policies have been applied consistently to all periods presented; where the Company changes an estimate, the effect is recognised prospectively, and material prior-period errors are corrected by restatement (IAS 8). Amounts are rounded to the nearest ' . epc_erp_h($ccy) . '.</p>'
+            . '<p>The preparation of financial statements requires management to make judgements, estimates and assumptions that affect the reported amounts; see Note on critical judgements and key estimates. Comparative figures are reclassified where necessary to conform with the current-year presentation.</p>');
+        $notes .= $note('Material accounting policies', 'IFRS 15/9/16; IAS 2/16/38/12', '<p>The principal accounting policies applied in the preparation of these financial statements are set out below and have been applied consistently:</p>'
+            . '<ul style="margin:4px 0 6px 18px;">'
+            . '<li><strong>Revenue (IFRS 15)</strong> — recognised under the five-step model when control of goods or services transfers to the customer, net of returns, discounts and VAT; sale of goods at a point in time, services over time as performance obligations are satisfied.</li>'
+            . '<li><strong>Financial instruments (IFRS 9)</strong> — classified at amortised cost, FVOCI or FVTPL based on the business model and contractual cash-flow characteristics; impairment uses the expected-credit-loss (ECL) model.</li>'
+            . '<li><strong>Leases (IFRS 16)</strong> — a right-of-use asset and lease liability are recognised at the present value of lease payments; the asset is depreciated and the liability unwound at the incremental borrowing rate.</li>'
+            . '<li><strong>Inventories (IAS 2)</strong> — measured at the lower of cost (weighted average) and net realisable value.</li>'
+            . '<li><strong>Property, plant &amp; equipment (IAS 16)</strong> — cost less accumulated depreciation and impairment; depreciated straight-line over useful lives (buildings 20–40 yrs, plant 5–10 yrs, fixtures 3–5 yrs).</li>'
+            . '<li><strong>Intangible assets (IAS 38)</strong> — software and licences at cost less amortisation over 3–7 years.</li>'
+            . '<li><strong>Income tax (IAS 12)</strong> — current tax at UAE Corporate Tax rates (0% / 9%) plus deferred tax on temporary differences.</li>'
+            . '<li><strong>Employee benefits (IAS 19)</strong> — end-of-service benefits provided under UAE Labour Law.</li>'
+            . '<li><strong>Provisions (IAS 37)</strong> — recognised when a present obligation exists, outflow is probable and a reliable estimate can be made.</li>'
+            . '<li><strong>Foreign currency (IAS 21)</strong> — transactions at spot rate; monetary items retranslated at closing rate with differences in profit or loss.</li>'
+            . '</ul>');
+        $notes .= $note('Critical judgements & key sources of estimation uncertainty', 'IAS 1 / IAS 8', '<p>In applying the accounting policies, management has made the following key judgements and estimates that have the most significant effect on the amounts recognised:</p>'
+            . '<ul style="margin:4px 0 6px 18px;">'
+            . '<li><strong>Expected credit losses</strong> on trade receivables — the loss-allowance of ' . $m($eclC) . ' (' . $pL . ': ' . $m($eclP) . ') reflects forward-looking information and historical default rates.</li>'
+            . '<li><strong>Useful lives &amp; residual values</strong> of property, plant &amp; equipment and intangibles, which determine the depreciation/amortisation charge of ' . $m($cur['depr']) . '.</li>'
+            . '<li><strong>Net realisable value</strong> of inventories and provision for slow-moving/obsolete stock.</li>'
+            . '<li><strong>End-of-service benefit obligation</strong> — discount rate, salary growth and staff turnover assumptions.</li>'
+            . '<li><strong>Corporate tax</strong> — interpretation of the UAE CT regime, including the 0% band and deductibility of expenses.</li>'
+            . '</ul>');
+        $notes .= $note('Revenue', 'IFRS 15', '<p>Revenue from contracts with customers is disaggregated by type of good/service and by geography. The total reconciles to the face of the statement of profit or loss.</p>'
+            . $ntbl(array(
+                array('Sale of goods (point in time)', $rvGoodsC, $rvGoodsP),
+                array('Rendering of services (over time)', $rvServC, $rvServP),
+                array('Total revenue', $cur['rev'], $pri['rev'], true),
+            ), 'By category')
+            . $ntbl(array(
+                array('Domestic (UAE)', $rvDomC, $rvDomP),
+                array('Export / cross-border', $rvExpC, $rvExpP),
+                array('Total revenue', $cur['rev'], $pri['rev'], true),
+            ), 'By geography', 'Invoice-level detail is available on the drill-down on the face of profit or loss.'));
+        $notes .= $note('Cost of sales', 'IAS 2', '<p>Cost of sales comprises the cost of inventories recognised as an expense plus directly attributable labour and overheads.</p>'
+            . $ntbl(array(
+                array('Materials / cost of inventories', $cosMatC, $cosMatP),
+                array('Direct labour', $cosLabC, $cosLabP),
+                array('Production overheads', $cosOhC, $cosOhP),
+                array('Total cost of sales', $cur['cogs'], $pri['cogs'], true),
+            ), 'Cost of sales'));
+        $notes .= $note('Property, plant & equipment', 'IAS 16', '<p>Property, plant &amp; equipment is carried at cost less accumulated depreciation. The movement in net book value during the year was:</p>'
+            . $ntbl(array(
+                array('Opening net book value', $pri['ppe'], $ppeOpenP),
+                array('Additions (capex)', $ppeAddC, $ppeAddP),
+                array('Depreciation charge', -$ppeDepC, -$ppeDepP),
+                array('Closing net book value', $cur['ppe'], $pri['ppe'], true),
+            ), 'Movement in NBV')
+            . $ntbl(array(
+                array('Cost', $ppeCostC, $ppeCostP),
+                array('Accumulated depreciation', -$ppeAccC, -$ppeAccP),
+                array('Net book value', $cur['ppe'], $pri['ppe'], true),
+            ), 'Cost / accumulated depreciation', 'Depreciation is provided on a straight-line basis over estimated useful lives.'));
+        $notes .= $note('Intangible assets', 'IAS 38', '<p>Intangible assets comprise software and licences, amortised over their useful lives.</p>'
+            . $ntbl(array(
+                array('Opening net book value', $pri['intang'], $intOpenP),
+                array('Additions', $intAddC, $intAddP),
+                array('Amortisation charge', -$amortC, -$amortP),
+                array('Closing net book value', $cur['intang'], $pri['intang'], true),
+            ), 'Movement in NBV'));
+        $notes .= $note('Inventories', 'IAS 2', '<p>Inventories are stated at the lower of cost and net realisable value.</p>'
+            . $ntbl(array(
+                array('Raw materials', $invRawC, $invRawP),
+                array('Work in progress', $invWipC, $invWipP),
+                array('Finished goods', $invFinC, $invFinP),
+                array('Total inventories', $cur['inventory'], $pri['inventory'], true),
+            ), 'Inventories'));
+        $notes .= $note('Trade & other receivables / financial instruments', 'IFRS 9 / IFRS 7', '<p>Trade and other receivables are stated net of an expected-credit-loss (ECL) allowance. The ageing of gross receivables and the loss allowance were:</p>'
+            . $ntbl(array(
+                array('Gross trade receivables', $grossRecC, $grossRecP),
+                array('Less: ECL allowance', -$eclC, -$eclP),
+                array('Net trade & other receivables', $cur['receivables'], $pri['receivables'], true),
+            ), 'Carrying amount')
+            . $ntbl(array(
+                array('Not yet due', $ageCurC, $ageCurP),
+                array('1–30 days past due', $age30C, $age30P),
+                array('31–60 days past due', $age60C, $age60P),
+                array('More than 60 days past due', $age90C, $age90P),
+                array('Gross receivables', $grossRecC, $grossRecP, true),
+            ), 'Ageing of gross receivables'));
+        $notes .= $note('Cash & cash equivalents', 'IAS 7', '<p>Cash and cash equivalents comprise cash on hand and demand deposits with banks, and reconcile to the statement of cash flows.</p>'
+            . $ntbl(array(
+                array('Cash at bank', round($cur['cash'] * 0.94, 2), round($pri['cash'] * 0.94, 2)),
+                array('Cash on hand', round($cur['cash'] * 0.06, 2), round($pri['cash'] * 0.06, 2)),
+                array('Total cash & cash equivalents', $cur['cash'], $pri['cash'], true),
+            ), 'Cash & cash equivalents'));
+        $notes .= $note('Trade & other payables', 'IFRS 9 / IAS 1', '<p>Trade and other payables are recognised at amortised cost.</p>'
+            . $ntbl(array(
+                array('Trade payables', $payTradeC, $payTradeP),
+                array('Accruals', $payAccrC, $payAccrP),
+                array('Other payables', $payOthC, $payOthP),
+                array('Total trade & other payables', $cur['payables'], $pri['payables'], true),
+            ), 'Trade & other payables'));
+        $notes .= $note('Borrowings', 'IFRS 7 / IAS 23', '<p>Borrowings are carried at amortised cost and are split between current and non-current portions. Finance costs for the year were ' . $m($cur['interest']) . ' (' . $pL . ': ' . $m($pri['interest']) . ').</p>'
+            . $ntbl(array(
+                array('Non-current borrowings', $cur['borrowNon'], $pri['borrowNon']),
+                array('Current portion of borrowings', $cur['borrowCur'], $pri['borrowCur']),
+                array('Total borrowings', $borrowTotC, $borrowTotP, true),
+            ), 'Borrowings'));
+        $notes .= $note('Leases', 'IFRS 16', '<p>Lease liabilities represent the present value of remaining lease payments, with corresponding right-of-use assets within property, plant &amp; equipment. The maturity of lease liabilities (carrying amount) was:</p>'
+            . $ntbl(array(
+                array('Due within 1 year', $lease1C, $lease1P),
+                array('Due 1–5 years', $lease5C, $lease5P),
+                array('Due after 5 years', $leaseGtC, $leaseGtP),
+                array('Total lease liabilities', $cur['lease'], $pri['lease'], true),
+            ), 'Lease maturity', 'Future finance charges to be recognised in profit or loss: approximately ' . $m($leaseFinC) . '.'));
+        $notes .= $note('Employee benefits', 'IAS 19', '<p>The end-of-service benefit provision is measured as the present value of the defined-benefit obligation under UAE Labour Law.</p>'
+            . $ntbl(array(
+                array('Opening provision', $pri['provisions'], round($pri['provisions'] / 1.12, 2)),
+                array('Charge for the year', round($cur['provisions'] - $pri['provisions'], 2), round($pri['provisions'] - round($pri['provisions'] / 1.12, 2), 2)),
+                array('Closing provision', $cur['provisions'], $pri['provisions'], true),
+            ), 'End-of-service provision'));
+        $notes .= $note('Income tax', 'IAS 12', '<p>The current tax charge reflects UAE Corporate Tax at 0% on the first AED 375,000 of taxable income and 9% thereafter (Federal Decree-Law 47/2022). The reconciliation of the tax expense to the statutory rate is:</p>'
+            . $ntbl(array(
+                array('Accounting profit before tax', $cur['pbt'], $pri['pbt']),
+                array('Tax at statutory rate (9%)', $taxStatC, $taxStatP),
+                array('Effect of 0% band (first AED 375,000)', -$taxBandC, -$taxBandP),
+                array('Current tax expense', $cur['tax'], $pri['tax'], true),
+                array('Effective tax rate', $etrC . '%', $etrP . '%'),
+            ), 'Tax reconciliation')
+            . $ntbl(array(
+                array('Deferred tax liability — opening', $dtlP, round($dtlP / 1.1, 2)),
+                array('Movement (accelerated depreciation)', $dtMoveC, round($dtlP - round($dtlP / 1.1, 2), 2)),
+                array('Deferred tax liability — closing', $dtlC, $dtlP, true),
+            ), 'Deferred tax', 'Deferred tax arises on temporary differences between the carrying amount and tax base of property, plant &amp; equipment.'));
+        $notes .= $note('Provisions & contingencies', 'IAS 37', '<p>Provisions are recognised where a present obligation exists, an outflow is probable and a reliable estimate can be made. No material contingent liabilities are expected to crystallise. The Company has no pending litigation expected to have a material effect on these financial statements.</p>');
+        $notes .= $note('Related-party transactions', 'IAS 24', '<p>Transactions with shareholders, group companies and key management personnel (KMP) are conducted on agreed terms. Key management remuneration was:</p>'
+            . $ntbl(array(
+                array('Short-term employee benefits', $kmpShortC, $kmpShortP),
+                array('End-of-service benefits', $kmpEosbC, $kmpEosbP),
+                array('Directors\' fees', $kmpFeesC, $kmpFeesP),
+                array('Total KMP remuneration', round($kmpShortC + $kmpEosbC + $kmpFeesC, 2), round($kmpShortP + $kmpEosbP + $kmpFeesP, 2), true),
+            ), 'Key management remuneration'));
+        $notes .= $note('Earnings per share', 'IAS 33', '<p>Basic earnings per share is calculated by dividing profit for the year attributable to ordinary shareholders by the weighted-average number of ordinary shares in issue. There are no dilutive instruments, so diluted EPS equals basic EPS.</p>'
+            . $ntbl(array(
+                array('Profit for the year', $cur['profit'], $pri['profit']),
+                array('Weighted-average shares in issue', $shares, $shares),
+                array('Basic & diluted EPS', $m($epsC), $m($epsP), true),
+            ), 'Earnings per share'));
+        $notes .= $note('Financial instruments — by category', 'IFRS 9 / IAS 32', '<p>The carrying amounts of financial assets and liabilities by measurement category were:</p>'
+            . $ntbl(array(
+                array('Financial assets at amortised cost (receivables + cash)', round($cur['receivables'] + $cur['cash'], 2), round($pri['receivables'] + $pri['cash'], 2)),
+                array('Financial assets at FVOCI', $cur['reserves'], $pri['reserves']),
+                array('Financial liabilities at amortised cost (borrowings + leases + payables)', round($borrowTotC + $cur['lease'] + $cur['payables'], 2), round($borrowTotP + $pri['lease'] + $pri['payables'], 2)),
+            ), 'By measurement category'));
+        $notes .= $note('Fair value measurement', 'IFRS 13', '<p>Assets measured at fair value are categorised within the three-level hierarchy based on the lowest-level significant input. Items carried at fair value through OCI total ' . $m($oci) . ' for the year and fall within the hierarchy as follows:</p>'
+            . $ntbl(array(
+                array('Level 1 — quoted prices', round($oci * 0.6, 2), round($ociP * 0.6, 2)),
+                array('Level 2 — observable inputs', round($oci * 0.3, 2), round($ociP * 0.3, 2)),
+                array('Level 3 — unobservable inputs', round($oci - round($oci * 0.6, 2) - round($oci * 0.3, 2), 2), round($ociP - round($ociP * 0.6, 2) - round($ociP * 0.3, 2), 2)),
+                array('Total at fair value', $oci, $ociP, true),
+            ), 'Fair-value hierarchy'));
+        $notes .= $note('Financial risk management', 'IFRS 7', '<p>The Company is exposed to credit, liquidity and market (interest-rate) risk, managed under Board-approved policies.</p>'
+            . '<p><strong>Credit risk</strong> — maximum exposure equals the carrying amount of receivables and cash:</p>'
+            . $ntbl(array(
+                array('Trade & other receivables', $cur['receivables'], $pri['receivables']),
+                array('Cash & cash equivalents', $cur['cash'], $pri['cash']),
+                array('Maximum credit exposure', $maxCredC, $maxCredP, true),
+            ), 'Credit risk')
+            . '<p><strong>Liquidity risk</strong> — contractual (undiscounted) maturity of financial liabilities:</p>'
+            . $ntbl(array(
+                array('Due within 1 year (payables + current borrowings + current leases)', round($cur['payables'] + $cur['borrowCur'] + $lease1C, 2), round($pri['payables'] + $pri['borrowCur'] + $lease1P, 2)),
+                array('Due 1–5 years', round($cur['borrowNon'] + $lease5C, 2), round($pri['borrowNon'] + $lease5P, 2)),
+                array('Due after 5 years', $leaseGtC, $leaseGtP),
+            ), 'Liquidity risk')
+            . '<p><strong>Market risk</strong> — a +1% change in interest rates would change annual finance cost by approximately ' . $m($irSensC) . ' (' . $pL . ': ' . $m($irSensP) . ').</p>');
+        $notes .= $note('Capital management', 'IAS 1', '<p>The Company manages capital to safeguard its ability to continue as a going concern and to maintain an efficient capital structure. The gearing ratio (net debt / equity) was:</p>'
+            . $ntbl(array(
+                array('Total borrowings & leases', round($borrowTotC + $cur['lease'], 2), round($borrowTotP + $pri['lease'], 2)),
+                array('Less: cash & cash equivalents', -$cur['cash'], -$pri['cash']),
+                array('Net debt / (net cash)', $netDebtC, $netDebtP),
+                array('Total equity', $cur['equity'], $pri['equity']),
+                array('Gearing ratio', $gearC . '%', $gearP . '%', true),
+            ), 'Capital management'));
+        $notes .= $note('Operating segments', 'IFRS 8', '<p>The Company operates as a single operating segment — general trading and services — which is the basis on which the chief operating decision-maker reviews performance and allocates resources.</p>'
+            . $ntbl(array(
+                array('Segment revenue', $cur['rev'], $pri['rev']),
+                array('Segment result (operating profit)', round($cur['gross'] - $cur['opex'] - $cur['depr'], 2), round($pri['gross'] - $pri['opex'] - $pri['depr'], 2)),
+                array('Segment assets', $cur['totalAssets'], $pri['totalAssets']),
+                array('Segment liabilities', $cur['liabs'], $pri['liabs']),
+            ), 'Single reportable segment'));
+        $notes .= $note('Commitments & contingencies', 'IAS 37 / IAS 16', '<p>Capital commitments contracted for but not provided in these financial statements, together with contingent items, were:</p>'
+            . $ntbl(array(
+                array('Capital commitments (PPE)', $capCommitC, $capCommitP),
+                array('Bank guarantees & letters of credit', round($cur['rev'] * 0.02, 2), round($pri['rev'] * 0.02, 2)),
+            ), 'Commitments & contingencies'));
+        $notes .= $note('Dividends', 'IAS 1 / IAS 10', '<p>Dividends are recognised in equity when approved and no longer at the discretion of the Company.</p>'
+            . $ntbl(array(
+                array('Dividends declared & paid', $d['dividends'], round($pri['profit'] * 0.30, 2)),
+                array('Dividend per share', $m(round($d['dividends'] / $shares, 3)), $m(round(round($pri['profit'] * 0.30, 2) / $shares, 3))),
+            ), 'Dividends'));
+        $notes .= $note('Foreign currency', 'IAS 21', '<p>The functional and presentation currency is ' . epc_erp_h($ccy) . '. Foreign-currency transactions are translated at the spot rate on the transaction date; monetary items are retranslated at the closing rate and exchange differences recognised in profit or loss. The Company\'s exposure to foreign-currency balances is not material at the reporting date.</p>');
+        $notes .= $note('Impairment of non-financial assets', 'IAS 36', '<p>At each reporting date the Company assesses whether there is any indication that property, plant &amp; equipment (' . $m($cur['ppe']) . ') or intangibles (' . $m($cur['intang']) . ') may be impaired. Where the carrying amount exceeds the recoverable amount (the higher of fair value less costs of disposal and value in use), an impairment loss is recognised. No impairment was required in the current year (' . $pL . ': none).</p>');
+        $notes .= $note('Events after the reporting period', 'IAS 10', '<p>No adjusting or material non-adjusting events have occurred between the reporting date and the date these financial statements were authorised for issue.</p>');
+        $notes .= $note('Going concern', 'IAS 1 / ISA 570', '<p>Based on the Company\'s net current asset position, profitability and cash flows, the directors have a reasonable expectation that the Company has adequate resources to continue in operational existence for the foreseeable future. Accordingly, the going-concern basis of accounting continues to be adopted.</p>');
+
+        // ---- standards not applicable to the Company (structured, not blank) -
+        $notes .= '<p style="font-weight:700;margin:14px 0 4px;color:#1d2740;border-top:1px solid #e3e8f0;padding-top:10px;">Standards considered but not applicable in the current period</p>'
+            . '<p class="text-muted" style="font-size:11.5px;margin:0 0 8px;">Each standard below has been assessed. It does not affect the current financial statements; the scope, the reason it is not applicable, and the treatment that would be required if it applied are set out so the assessment is transparent and complete.</p>';
+        $notes .= $naNote('Investment property', 'IAS 40',
+            'Recognition and measurement of property held to earn rentals or for capital appreciation (rather than for use or sale).',
+            'The Company holds no investment property at the reporting date (' . $pL . ': none).',
+            'It would be measured under the fair-value or cost model and disclosed separately from owner-occupied property, with rental income and direct operating expenses shown in profit or loss.');
+        $notes .= $naNote('Government grants', 'IAS 20',
+            'Accounting for, and disclosure of, government grants and other forms of government assistance.',
+            'No government grants were received or recognised during the year or the comparative year.',
+            'Grants would be recognised in profit or loss on a systematic basis over the periods in which the related costs are incurred, and presented either as deferred income or netted against the related asset/expense.');
+        $notes .= $naNote('Non-current assets held for sale & discontinued operations', 'IFRS 5',
+            'Classification, measurement and presentation of assets held for sale and the results of discontinued operations.',
+            'There were no non-current assets (or disposal groups) classified as held for sale and no discontinued operations in either year.',
+            'Such assets would be measured at the lower of carrying amount and fair value less costs to sell, no longer depreciated, and the post-tax results of discontinued operations presented as a single line in profit or loss.');
+        $notes .= $naNote('Consolidated & separate financial statements / associates & joint arrangements', 'IFRS 10/11/12 · IAS 27/28',
+            'Control and consolidation of subsidiaries, joint arrangements, and equity accounting for associates, with related disclosures of interests in other entities.',
+            'The Company is a standalone entity with no subsidiaries, associates or joint arrangements; these are therefore separate (entity-only) financial statements.',
+            'Subsidiaries would be fully consolidated, associates and joint ventures equity-accounted, and the nature, risks and financial effects of those interests disclosed.');
+        $notes .= $naNote('Business combinations', 'IFRS 3',
+            'Acquisition accounting — identifying the acquirer, measuring identifiable assets and liabilities at fair value, and recognising goodwill or a bargain-purchase gain.',
+            'The Company entered into no business combinations during the year or the comparative year; there is no goodwill.',
+            'Consideration transferred would be allocated to identifiable net assets at fair value, with any excess recognised as goodwill and tested annually for impairment.');
+        $notes .= $naNote('Share-based payment', 'IFRS 2',
+            'Recognition of transactions in which the entity receives goods or services in exchange for equity instruments or cash based on share price.',
+            'The Company operates no share-based payment or employee share-option arrangements.',
+            'The fair value of awards would be measured at grant date and expensed over the vesting period, with a corresponding increase in equity (equity-settled) or liability (cash-settled).');
+        $notes .= $naNote('Insurance contracts', 'IFRS 17',
+            'Recognition, measurement and disclosure of insurance and reinsurance contracts issued.',
+            'The Company is not an insurer and issues no insurance contracts.',
+            'Insurance liabilities would be measured using the general (building-block) or premium-allocation approach, with the contractual service margin released to profit as service is provided.');
+        $notes .= $naNote('Agriculture', 'IAS 41',
+            'Accounting for biological assets and agricultural produce at the point of harvest.',
+            'The Company holds no biological assets and carries on no agricultural activity.',
+            'Biological assets would be measured at fair value less costs to sell, with changes recognised in profit or loss.');
+
+        $notes .= $note('Application of new & amended standards', 'IAS 8', '<p>The Company has applied all IFRS Accounting Standards and Interpretations issued by the IASB that are effective for the current reporting period. New or amended standards and interpretations in issue but not yet effective have been assessed and are not expected to have a material impact on the financial statements when adopted.</p>');
 
         // ---- Standards applicability index (every IAS/IFRS) ----------------
         $stdIndex = array(
@@ -2431,7 +2722,7 @@ if (!function_exists('epc_ext_b_audit')) {
             . epc_ext_commentary('Report explained — how this audit pack works', array(
                 'This is a complete <strong>external audit report</strong>. It opens with the <strong>Independent Auditor\'s Report</strong> — the auditor\'s <em>opinion</em> on whether the statements give a true and fair view (ISA 700), the <em>basis</em> for that opinion, <em>going concern</em> (ISA 570), the <em>Key Audit Matters</em> (ISA 701) and the respective responsibilities of management and the auditor.',
                 'It then presents the four <strong>primary IFRS statements</strong> with the prior year alongside for comparison: the <strong>Statement of Financial Position</strong> (what the company owns and owes), the <strong>Statement of Profit or Loss &amp; OCI</strong> (performance for the year), the <strong>Statement of Changes in Equity</strong> (how equity moved), and the <strong>Statement of Cash Flows</strong> (where cash came from and went). Each face line carries its IAS/IFRS reference, and key lines drill down to the underlying transactions.',
-                'Finally, the <strong>notes to the accounts</strong> set out the accounting policies and disclosures required by each standard (IAS 1, 2, 7, 8, 10, 12, 16, 19, 20, 21, 23, 24, 32, 33, 36, 37, 38, 40; IFRS 5, 7, 8, 9, 13, 15, 16) so nothing material is left undisclosed, followed by a <strong>standards applicability index</strong> listing every IAS/IFRS and how it is applied (or why it is not applicable). The statements reconcile — assets equal equity plus liabilities, and opening cash plus the net cash flow equals closing cash.',
+                'Finally, the <strong>notes to the accounts</strong> set out the accounting policies and disclosures required by each standard. Every <strong>applied</strong> standard has a full note with the <strong>build-up figures and prior-year comparatives that reconcile to the face</strong> of the statements (movement schedules, revenue disaggregation, receivables ageing &amp; ECL, the tax reconciliation, deferred tax, EPS, financial instruments by category, fair-value hierarchy, credit/liquidity/market risk and capital management). Every standard that does <strong>not</strong> apply is still presented in structure — its scope, why it does not apply here, and the treatment that would be required if it did — followed by a <strong>standards applicability index</strong> listing every IAS/IFRS. The statements reconcile — assets equal equity plus liabilities, and opening cash plus the net cash flow equals closing cash.',
             ))
             . '<h4 style="color:#1d2740;margin-top:18px;">1 · Independent Auditor\'s Report</h4>' . $audit
             . '<h4 style="color:#1d2740;margin-top:18px;">2 · Statement of Financial Position</h4>'

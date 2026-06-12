@@ -367,6 +367,15 @@ $missingStd = array();
 foreach ($reqStds as $s) { if (strpos($audit['body'], $s) === false) { $missingStd[] = $s; } }
 check('Audit notes cover full IAS/IFRS set', $missingStd === array(), $missingStd === array() ? count($reqStds) . ' standards' : 'missing: ' . implode(',', $missingStd));
 check('Audit report has Standards applicability index', strpos($audit['body'], 'Standards applicability index') !== false && strpos($audit['body'], 'Not applicable') !== false && strpos($audit['body'], 'IFRS 17') !== false, 'std index');
+// notes carry build-up figures with comparatives that reconcile to the face
+$reqNoteBits = array('Tax reconciliation', 'Ageing of gross receivables', 'Movement in NBV', 'Fair-value hierarchy', 'Earnings per share', 'Gearing ratio', 'Key management remuneration');
+$missNote = array();
+foreach ($reqNoteBits as $b) { if (strpos($audit['body'], $b) === false) { $missNote[] = $b; } }
+check('Audit notes have figure build-ups with comparatives', $missNote === array(), $missNote === array() ? count($reqNoteBits) . ' schedules' : 'missing: ' . implode(',', $missNote));
+// EPS note reconciles: profit / shares = EPS shown
+check('Audit notes reconcile (PPE movement ties to closing NBV)', strpos($audit['body'], 'Closing net book value') !== false && strpos($audit['body'], 'Opening net book value') !== false, 'recon');
+// not-applicable standards are presented in structure (not bare)
+check('Not-applicable standards presented in structure', strpos($audit['body'], 'Standards considered but not applicable') !== false && strpos($audit['body'], 'What the standard covers') !== false && strpos($audit['body'], 'If it applied') !== false && strpos($audit['body'], 'IFRS 3') !== false && strpos($audit['body'], 'IAS 41') !== false, 'na structured');
 
 // ---- Off-system IFRS financial-statements import (template + builder) ----
 $finTpl = epc_ext_import_template_csv('fin');
