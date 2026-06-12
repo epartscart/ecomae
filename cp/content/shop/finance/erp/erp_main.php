@@ -98,6 +98,11 @@ if (!in_array('bank_recon', $userAllowedTabs, true) && in_array('cash_bank', $us
 }
 
 $tab = isset($_GET['tab']) ? (string) $_GET['tab'] : 'dashboard';
+// Executive dashboard and Industry intelligence are now folded into the main
+// dashboard; alias their old links so existing bookmarks keep working.
+if ($tab === 'exec_dashboard' || $tab === 'industry_intel') {
+	$tab = 'dashboard';
+}
 $erpArea = isset($_GET['area']) ? (string) $_GET['area'] : epc_erp_tab_to_area($tab);
 if (!isset(epc_erp_nav_areas_config()[$erpArea])) {
 	$erpArea = epc_erp_tab_to_area($tab);

@@ -159,10 +159,10 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5><i class="fa fa-dashboard"></i> Executive dashboard — cross-module KPI cockpit (<a href="/erp/?area=insights&amp;tab=exec_dashboard">Insights &rsaquo; Executive dashboard</a>)</h5>
-				<p style="margin:6px 0 8px;opacity:.85;">One cockpit pulling cross-module KPIs into a single view.</p>
+				<h5><i class="fa fa-dashboard"></i> Main dashboard — full-system analytics cockpit (<a href="/erp/">ERP home</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">The main dashboard is the single analytics view for the whole system — the former Executive dashboard and Industry intelligence are folded in here.</p>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
-					<li><strong>Action:</strong> Open Insights → Executive dashboard. <strong>Result:</strong> ten headline KPI cards (revenue, gross margin %, DSO, DPO, inventory turnover, current ratio, AR, AP, cash, inventory value), each colour-coded green/amber/red against benchmarks.</li>
+					<li><strong>Action:</strong> Open ERP (the home dashboard). <strong>Result:</strong> NetSuite-style portlets (quick tiles, reminders, financials, KPI meter, A/R aging) plus an Operational KPI ribbon (revenue, gross margin %, DSO, DPO, inventory turnover, current ratio, AR, AP, cash, inventory value), each colour-coded green/amber/red against benchmarks.</li>
 					<li><strong>Action:</strong> No sales history yet? Click <strong>Generate sample sales</strong>. <strong>Result:</strong> 6 months of completed orders are seeded (tagged, clearable) so the revenue KPIs and the trend populate.</li>
 					<li><strong>Action:</strong> Read the <strong>Revenue &amp; profit</strong> trend, <strong>Planning alerts</strong> and <strong>Top suppliers</strong>. <strong>Result:</strong> a 6-month revenue vs profit bar chart, exception counts (with a link to the exceptions view) and your highest-spend suppliers, plus quick links to AI advisor, P&amp;L, Order planning and Supplier portal.</li>
 				</ol>

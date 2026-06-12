@@ -308,7 +308,7 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 	<?php if (!empty($opKpis)): ?>
 	<div class="ns-port">
 		<h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted);font-size:11px;">— live, period <?php echo epc_erp_h($date_from_str); ?> to <?php echo epc_erp_h($date_to_str); ?></span>
-			<a href="<?php echo $nsUrl('industry_intel', 'insights'); ?>" style="float:right;font-weight:400;font-size:11px;">Industry intelligence &raquo;</a>
+			<a href="#ns-industry-controls" style="float:right;font-weight:400;font-size:11px;">Industry controls &darr;</a>
 		</h4>
 		<div class="bd">
 			<div class="ns-kpi-grid">
@@ -446,4 +446,183 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 			</div>
 		</div>
 	</div>
+</div>
+
+<?php
+/* ------------------------------------------------------------------ *
+ * Unified executive + industry-intelligence cockpit.
+ * Folds the former Executive dashboard and Industry intelligence tabs
+ * into the main dashboard so /erp/ is the single analytics view.
+ * All figures are tenant-scoped; empty tenants render empty, not error.
+ * ------------------------------------------------------------------ */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_exec_dashboard.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_intelligence.php';
+
+$nsCsrf = isset($csrf) ? (string) $csrf : '';
+$nsTrend = array();
+$nsTopSup = array();
+$nsAlerts = array('danger' => 0, 'warning' => 0, 'info' => 0, 'default' => 0, 'total' => 0);
+$nsControls = array();
+$nsCtrlState = array();
+$nsIntelCtx = array('pack_label' => '', 'profile_label' => '');
+try { $nsTrend = epc_exec_trend($db_link, 6); } catch (Throwable $e) { $nsTrend = array(); }
+try { $nsTopSup = epc_exec_top_suppliers($db_link, 5); } catch (Throwable $e) { $nsTopSup = array(); }
+try { $nsAlerts = epc_exec_planning_alerts($db_link); } catch (Throwable $e) {}
+try {
+	$nsIntelCtx = epc_bos_intel_context($db_link);
+	$nsControls = epc_bos_intel_controls($db_link, $nsIntelCtx);
+	$nsCtrlState = epc_bos_intel_control_state($db_link);
+} catch (Throwable $e) { $nsControls = array(); }
+
+$nsTrendMax = 0.0;
+foreach ($nsTrend as $t) {
+	$nsTrendMax = max($nsTrendMax, (float) $t['revenue'], (float) $t['profit']);
+}
+if ($nsTrendMax <= 0) { $nsTrendMax = 1.0; }
+
+$nsCtrlDone = 0;
+foreach ($nsControls as $c) {
+	if (!empty($nsCtrlState[$c['code']])) { $nsCtrlDone++; }
+}
+$nsIndustryLabel = '';
+if (!empty($nsIntelCtx['pack_label'])) { $nsIndustryLabel = (string) $nsIntelCtx['pack_label']; }
+elseif (!empty($nsIntelCtx['profile_label'])) { $nsIndustryLabel = (string) $nsIntelCtx['profile_label']; }
+if ($nsIndustryLabel === '') { $nsIndustryLabel = 'General (no industry pack applied)'; }
+$nsCtrlHealth = array('good' => '#27ae60', 'warn' => '#e67e22', 'bad' => '#c0392b', 'info' => '#2980b9');
+?>
+<style>
+.ns-exec{margin-top:18px;}
+.ns-exec h3.ns-exec-h{font-size:16px;font-weight:700;color:#1f3a52;margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid #eef2f6;}
+.ns-exec h3.ns-exec-h .fa{color:#2bb3c0;margin-right:6px;}
+.ns-exec-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start;}
+@media(max-width:1100px){.ns-exec-grid{grid-template-columns:1fr;}}
+.ns-bars2{display:flex;align-items:flex-end;gap:14px;height:190px;padding:12px 8px;border:1px solid #eef2f6;border-radius:8px;background:#fafbfc;}
+.ns-bars2 .col{flex:1;text-align:center;}
+.ns-bars2 .pair{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:140px;}
+.ns-bars2 .b{width:16px;border-radius:3px 3px 0 0;}
+.ns-bars2 .cap{font-size:11px;color:#8a97a8;margin-top:6px;}
+.ns-leg{font-size:12px;color:#8a97a8;margin-top:8px;}
+.ns-leg .sq{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;}
+</style>
+
+<div class="ns-dash ns-exec">
+	<h3 class="ns-exec-h"><i class="fa fa-dashboard"></i> Executive cockpit — full-system analytics</h3>
+	<div id="epc_erp_msg" class="alert" style="display:none;"></div>
+	<div style="margin-bottom:14px;">
+		<form data-bos-action="demo_seed_sales" style="display:inline-block;margin:0;">
+			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($nsCsrf); ?>">
+			<button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-database"></i> Generate sample sales</button>
+		</form>
+		<form data-bos-action="demo_clear_sales" style="display:inline-block;margin:0;">
+			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($nsCsrf); ?>">
+			<button type="submit" class="btn btn-sm btn-default"><i class="fa fa-eraser"></i> Clear sample sales</button>
+		</form>
+		<span class="text-muted" style="margin-left:8px;font-size:12px;">Seeds 6 months of completed orders (tagged, re-runnable) so the revenue trend and KPIs populate.</span>
+	</div>
+
+	<div class="ns-exec-grid">
+		<div class="ns-port">
+			<h4><i class="fa fa-line-chart"></i> Revenue &amp; profit — last 6 months</h4>
+			<div class="bd">
+				<div class="ns-bars2">
+					<?php foreach ($nsTrend as $t):
+						$rh = (int) round(140 * ((float) $t['revenue']) / $nsTrendMax);
+						$ph = (int) round(140 * max(0, (float) $t['profit']) / $nsTrendMax); ?>
+						<div class="col">
+							<div class="pair">
+								<div class="b" style="height:<?php echo $rh; ?>px;background:#2bb3c0;" title="Revenue <?php echo epc_erp_h(number_format((float) $t['revenue'], 0)); ?>"></div>
+								<div class="b" style="height:<?php echo $ph; ?>px;background:#0a7d33;" title="Profit <?php echo epc_erp_h(number_format((float) $t['profit'], 0)); ?>"></div>
+							</div>
+							<div class="cap"><?php echo epc_erp_h($t['label']); ?></div>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<div class="ns-leg"><span class="sq" style="background:#2bb3c0;"></span>Revenue &nbsp; <span class="sq" style="background:#0a7d33;"></span>Profit (ex-VAT)</div>
+			</div>
+		</div>
+		<div class="ns-port">
+			<h4><i class="fa fa-exclamation-triangle"></i> Planning alerts</h4>
+			<div class="bd">
+				<table class="table table-condensed table-bordered" style="margin-bottom:8px;">
+					<tbody>
+						<tr class="danger"><th>Stock-out / critical</th><td class="text-right"><?php echo (int) $nsAlerts['danger']; ?></td></tr>
+						<tr class="warning"><th>Below safety stock</th><td class="text-right"><?php echo (int) $nsAlerts['warning']; ?></td></tr>
+						<tr class="info"><th>Excess stock</th><td class="text-right"><?php echo (int) $nsAlerts['info']; ?></td></tr>
+						<tr><th>Dead stock</th><td class="text-right"><?php echo (int) $nsAlerts['default']; ?></td></tr>
+						<tr><th>Total exceptions</th><td class="text-right"><strong><?php echo (int) $nsAlerts['total']; ?></strong></td></tr>
+					</tbody>
+				</table>
+				<a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'order_planning', $date_from_str, $date_to_str) . '&opl_view=exceptions'); ?>">View exceptions &raquo;</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="ns-exec-grid" style="margin-top:16px;">
+		<div class="ns-port">
+			<h4><i class="fa fa-truck"></i> Top suppliers by spend</h4>
+			<div class="bd">
+				<?php if (empty($nsTopSup)): ?>
+					<p class="text-muted">No supplier spend recorded yet.</p>
+				<?php else: ?>
+				<table class="table table-condensed table-bordered table-hover" style="margin-bottom:0;">
+					<thead><tr><th>Supplier</th><th class="text-center">Rating</th><th class="text-right">Spend</th><th class="text-right">POs</th><th class="text-right">Score</th></tr></thead>
+					<tbody>
+					<?php foreach ($nsTopSup as $s): ?>
+						<tr>
+							<td><?php echo epc_erp_h($s['name']); ?></td>
+							<td class="text-center"><?php echo epc_erp_h($s['rating']); ?></td>
+							<td class="text-right"><?php echo epc_erp_money($s['spend']); ?></td>
+							<td class="text-right"><?php echo (int) $s['po_count']; ?></td>
+							<td class="text-right"><?php echo epc_erp_money($s['score']); ?></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<?php endif; ?>
+			</div>
+		</div>
+		<div class="ns-port">
+			<h4><i class="fa fa-link"></i> Quick links</h4>
+			<div class="bd">
+				<div class="list-group" style="margin-bottom:0;">
+					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'ai_advisor', $date_from_str, $date_to_str)); ?>"><i class="fa fa-magic"></i> AI advisor &amp; forecasts</a>
+					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'pl', $date_from_str, $date_to_str)); ?>"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
+					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'order_planning', $date_from_str, $date_to_str)); ?>"><i class="fa fa-cubes"></i> Order planning</a>
+					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'supplier_portal', $date_from_str, $date_to_str)); ?>"><i class="fa fa-handshake-o"></i> Supplier portal</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<?php if (!empty($nsControls)): ?>
+	<h3 class="ns-exec-h" id="ns-industry-controls" style="margin-top:22px;"><i class="fa fa-check-square-o"></i> Industry intelligence — recommended controls
+		<small class="text-muted" style="font-weight:400;">· <?php echo epc_erp_h($nsIndustryLabel); ?> · <?php echo $nsCtrlDone; ?>/<?php echo count($nsControls); ?> in place</small>
+	</h3>
+	<div class="ns-port">
+		<div class="bd">
+			<p class="text-muted" style="margin-top:0;">Best-practice operational controls for your industry. Tick the ones you have in place; the checklist is saved per tenant.</p>
+			<table class="table table-bordered table-condensed" style="margin-bottom:0;">
+				<thead><tr><th style="width:70px;">In place</th><th>Control</th><th>What to do</th></tr></thead>
+				<tbody>
+				<?php foreach ($nsControls as $c): $checked = !empty($nsCtrlState[$c['code']]); ?>
+					<tr class="<?php echo $checked ? 'success' : ''; ?>">
+						<td style="text-align:center;">
+							<form data-bos-action="bos_intel_toggle_control" style="margin:0;">
+								<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($nsCsrf); ?>">
+								<input type="hidden" name="code" value="<?php echo epc_erp_h($c['code']); ?>">
+								<input type="hidden" name="checked" value="<?php echo $checked ? '0' : '1'; ?>">
+								<button type="submit" class="btn btn-xs <?php echo $checked ? 'btn-success' : 'btn-default'; ?>">
+									<i class="fa fa-<?php echo $checked ? 'check-square-o' : 'square-o'; ?>"></i>
+								</button>
+							</form>
+						</td>
+						<td><strong><?php echo epc_erp_h($c['title']); ?></strong></td>
+						<td><small class="text-muted"><?php echo epc_erp_h($c['desc']); ?></small></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<?php endif; ?>
 </div>
