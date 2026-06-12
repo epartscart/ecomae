@@ -557,6 +557,18 @@ try {
 			));
 			epc_erp_json(true, 'Inventory movement recorded', array('movement_id' => $id));
 
+		case 'integrity_scan':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_db_integrity.php';
+			epc_erp_json(true, 'Scan complete', array('relationships' => epc_erp_integrity_scan($db_link)));
+
+		case 'integrity_apply_fks':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_db_integrity.php';
+			$fkRes = epc_erp_integrity_apply_fks($db_link);
+			$msg = count($fkRes['applied']) . ' foreign key(s) applied, '
+				. count($fkRes['skipped']) . ' skipped'
+				. (count($fkRes['errors']) ? ', ' . count($fkRes['errors']) . ' error(s)' : '');
+			epc_erp_json(empty($fkRes['errors']), $msg, $fkRes);
+
 		case 'inv_scan_lookup':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
 			$item = epc_erp_inventory_find_by_barcode($db_link, (string) ($_POST['code'] ?? ''));
