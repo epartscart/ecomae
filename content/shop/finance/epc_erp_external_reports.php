@@ -544,6 +544,34 @@ if (!function_exists('epc_ext_report_links')) {
     }
 }
 
+if (!function_exists('epc_ext_country_name')) {
+    /**
+     * Display name for an ISO-2 country code (independent of whether a full
+     * localization pack exists), so preview labels read correctly worldwide.
+     */
+    function epc_ext_country_name(string $country): string
+    {
+        $c = strtoupper(trim($country));
+        $names = array(
+            'AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia', 'QA' => 'Qatar', 'OM' => 'Oman',
+            'BH' => 'Bahrain', 'KW' => 'Kuwait', 'IN' => 'India', 'PK' => 'Pakistan',
+            'BD' => 'Bangladesh', 'LK' => 'Sri Lanka', 'NP' => 'Nepal', 'SG' => 'Singapore',
+            'MY' => 'Malaysia', 'ID' => 'Indonesia', 'PH' => 'Philippines', 'TH' => 'Thailand',
+            'CN' => 'China', 'HK' => 'Hong Kong', 'JP' => 'Japan', 'KR' => 'South Korea',
+            'GB' => 'United Kingdom', 'US' => 'United States', 'CA' => 'Canada', 'DE' => 'Germany',
+            'FR' => 'France', 'NL' => 'Netherlands', 'IE' => 'Ireland', 'AU' => 'Australia',
+            'NZ' => 'New Zealand', 'ZA' => 'South Africa', 'NG' => 'Nigeria', 'KE' => 'Kenya',
+            'EG' => 'Egypt', 'JO' => 'Jordan', 'LB' => 'Lebanon', 'MA' => 'Morocco', 'TR' => 'Turkey',
+        );
+        if (isset($names[$c])) {
+            return $names[$c];
+        }
+        $prof = function_exists('epc_country_profile') ? epc_country_profile($c) : array();
+        $n = (string) ($prof['name'] ?? '');
+        return ($n !== '' && strcasecmp($n, 'Generic') !== 0) ? $n : $c;
+    }
+}
+
 if (!function_exists('epc_ext_report_frequency')) {
     function epc_ext_report_frequency(string $cat): string
     {

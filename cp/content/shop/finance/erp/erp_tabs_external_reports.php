@@ -26,7 +26,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 $erpCo = function_exists('epc_co_profile_get') ? epc_co_profile_get($db_link) : array();
 $regCountry = !empty($erpCo['country']) ? strtoupper(substr((string) $erpCo['country'], 0, 2)) : 'AE';
 $regProf = epc_country_profile($regCountry);
-$regName = (string) ($regProf['name'] ?? $regCountry);
+$regName = epc_ext_country_name($regCountry);
 
 // Preview country (look-up only). Defaults to the registered country.
 $prevCountry = isset($_GET['rep_country']) ? strtoupper(preg_replace('/[^A-Za-z]/', '', (string) $_GET['rep_country'])) : $regCountry;
@@ -75,8 +75,8 @@ $countryOptions = array('AE','SA','QA','OM','BH','KW','IN','PK','BD','LK','SG','
 			<?php if ($selRep !== ''): ?><input type="hidden" name="rep" value="<?php echo epc_erp_h($selRep); ?>"><?php endif; ?>
 			<label style="font-size:12px;margin-right:6px;">Preview jurisdiction</label>
 			<select name="rep_country" class="form-control input-sm" onchange="this.form.submit()">
-				<?php foreach ($countryOptions as $cc): $cp = epc_country_profile($cc); ?>
-					<option value="<?php echo epc_erp_h($cc); ?>" <?php echo $cc === $prevCountry ? 'selected' : ''; ?>><?php echo epc_erp_h(($cp['name'] ?? $cc) . ' (' . $cc . ')'); ?></option>
+				<?php foreach ($countryOptions as $cc): ?>
+					<option value="<?php echo epc_erp_h($cc); ?>" <?php echo $cc === $prevCountry ? 'selected' : ''; ?>><?php echo epc_erp_h(epc_ext_country_name($cc) . ' (' . $cc . ')'); ?></option>
 				<?php endforeach; ?>
 			</select>
 		</form>
@@ -92,7 +92,7 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 	$def = $registry[$selRep];
 	$repCountry = $prevCountry !== '' ? $prevCountry : $regCountry;
 	$isPreview = strtoupper($repCountry) !== strtoupper($regCountry);
-	$repCountryName = (string) (epc_country_profile($repCountry)['name'] ?? $repCountry);
+	$repCountryName = epc_ext_country_name($repCountry);
 	$links = epc_ext_report_links($selRep, $repCountry);
 	$auth = $links['authority'];
 	$ifrs = $links['ifrs'];
