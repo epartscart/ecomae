@@ -320,30 +320,7 @@ if (!$epc_erp_shell_mode) {
 			?>
 
 			<?php if ($tab === 'dashboard'): ?>
-				<?php
-				$erpQuickLinks = epc_erp_dashboard_quick_links($erpUrl, $date_from_str, $date_to_str, $guideUrl, $userAllowedTabs);
-				epc_erp_render_dashboard_quick_actions($erpQuickLinks);
-				?>
-				<div class="epc-th-hero epc-erp-hero epc-erp-dashboard-hero">
-					<span class="epc-th-hero__badge">Finance overview</span>
-					<h3><i class="fa fa-dashboard"></i> Finance overview</h3>
-					<p class="epc-th-hero__sub"><?php echo epc_erp_h(date('d M Y', $date_from)); ?> — <?php echo epc_erp_h(date('d M Y', $date_to)); ?> · <?php echo (int)$fulfilment_summary['total_orders']; ?> orders in period · <?php echo (int)$fulfilment_summary['pipeline']['delivery_done']; ?> delivered · <?php echo (int)$fulfilment_summary['pipeline']['returns_open']; ?> returns</p>
-				</div>
-				<div class="epc-th-kpi epc-erp-kpi">
-					<div class="kpi"><div class="lbl">Revenue (ex VAT)</div><div class="val"><?php echo epc_erp_money($dashboard['revenue_ex_vat']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Purchase cost</div><div class="val"><?php echo epc_erp_money($dashboard['purchase_ex_vat']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Margin</div><div class="val green"><?php echo epc_erp_money($dashboard['profit_ex_vat']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Output VAT (sales)</div><div class="val"><?php echo epc_erp_money($dashboard['vat_output']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Input VAT (purchases)</div><div class="val"><?php echo epc_erp_money($dashboard['vat_input']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Net VAT <?php echo ($dashboard['vat_net_payable'] ?? 0) >= 0 ? 'payable' : 'recoverable'; ?></div><div class="val <?php echo ($dashboard['vat_net_payable'] ?? 0) >= 0 ? 'red' : 'green'; ?>"><?php echo epc_erp_money($dashboard['vat_net_payable']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Sales incl. VAT</div><div class="val"><?php echo epc_erp_money($dashboard['sales_incl_vat'] ?? 0); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Completed orders</div><div class="val"><?php echo (int)$dashboard['order_count']; ?></div></div>
-					<div class="kpi"><div class="lbl">Due on completed orders (incl. VAT)</div><div class="val red"><?php echo epc_erp_money($dashboard['receivable_due_orders']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Customer ledger balance</div><div class="val"><?php echo epc_erp_money($dashboard['customer_ledger_balance']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Supplier payable</div><div class="val red"><?php echo epc_erp_money($dashboard['payable_balance']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Cash &amp; bank total</div><div class="val green"><?php echo epc_erp_money($dashboard['cash_bank_total']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">GL net profit (P&amp;L)</div><div class="val <?php echo $dashboard_pl['net_profit'] >= 0 ? 'green' : 'red'; ?>"><?php echo epc_erp_money($dashboard_pl['net_profit']); ?> AED</div></div>
-				</div>
+				<?php require __DIR__ . '/erp_dashboard_netsuite.php'; ?>
 				<?php if (!empty($crmDash)): ?>
 				<div class="alert alert-info" style="margin-top:12px;">
 					<strong><i class="fa fa-address-book"></i> CRM pipeline:</strong>
