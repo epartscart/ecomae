@@ -235,30 +235,32 @@ if (!function_exists('epc_demo_portal_html')) {
   </div>
 </section>
 <style>
-.epc-demo-portal{padding:48px 16px;display:flex;justify-content:center}
-.epc-demo-card{max-width:760px;width:100%;background:linear-gradient(160deg,var(--epc-bg,#0b1220),var(--epc-bg-1,#111a2e));
-  border:1px solid var(--epc-glow,rgba(0,229,176,.25));border-radius:20px;padding:32px;color:var(--epc-text,#e8eef7);
-  box-shadow:0 20px 60px rgba(0,0,0,.45)}
-.epc-demo-badge{display:inline-block;font-size:12px;letter-spacing:.12em;font-weight:700;
-  color:#04140f;background:var(--epc-accent,#00e5b0);padding:6px 12px;border-radius:999px;margin-bottom:14px}
-.epc-demo-card h2{margin:0 0 8px;font-size:30px}
-.epc-demo-sub{margin:0 0 20px;color:#9fb2c9}
+.epc-demo-portal{padding:40px 16px;display:flex;justify-content:center;background:#091525}
+.epc-demo-card{max-width:760px;width:100%;background:linear-gradient(160deg,#0d1e33,#122540);
+  border:1px solid rgba(0,204,255,.13);border-radius:20px;padding:32px;color:#e8f4fd;
+  font-family:"DM Sans",system-ui,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.epc-demo-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;letter-spacing:1.8px;font-weight:700;
+  text-transform:uppercase;color:#00ccff;background:rgba(0,204,255,.07);border:1px solid rgba(0,204,255,.13);
+  padding:5px 14px;border-radius:100px;margin-bottom:14px}
+.epc-demo-card h2{margin:0 0 8px;font-size:30px;font-weight:800;color:#e8f4fd;font-family:"Syne",system-ui,sans-serif}
+.epc-demo-sub{margin:0 0 20px;color:#6b8fae;line-height:1.7}
+.epc-demo-sub strong{color:#e8f4fd}
 .epc-demo-cred{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.epc-demo-cred>div{flex:1 1 220px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+.epc-demo-cred>div{flex:1 1 220px;background:#091525;border:1px solid rgba(0,204,255,.13);
   border-radius:12px;padding:12px 14px}
-.epc-demo-cred span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#7e93ad;margin-bottom:6px}
-.epc-demo-cred code{font-size:18px;color:var(--epc-accent,#00e5b0);font-weight:700}
+.epc-demo-cred span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#4a6782;margin-bottom:6px}
+.epc-demo-cred code{font-size:18px;color:#00ccff;font-weight:700}
 .epc-demo-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
-.epc-demo-btn{padding:12px 22px;border-radius:12px;font-weight:600;text-decoration:none;
-  border:1px solid rgba(255,255,255,.18);color:#e8eef7;transition:.2s}
-.epc-demo-btn.primary{background:linear-gradient(90deg,var(--epc-accent,#00e5b0),var(--epc-accent-2,#00b894));color:#04140f;border:0}
-.epc-demo-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px var(--epc-glow,rgba(0,229,176,.25))}
+.epc-demo-btn{padding:12px 22px;border-radius:12px;font-weight:600;text-decoration:none;font-family:"Syne",system-ui,sans-serif;
+  border:1.5px solid rgba(0,204,255,.25);color:#00ccff;background:transparent;transition:.2s}
+.epc-demo-btn.primary{background:linear-gradient(135deg,#00ccff,#0099cc);color:#050d1a;border:0;box-shadow:0 0 30px rgba(0,204,255,.2)}
+.epc-demo-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,204,255,.22)}
 .epc-demo-industries{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.epc-demo-industries>span{color:#7e93ad;font-size:13px}
-.epc-demo-chip{padding:6px 12px;border-radius:999px;background:var(--epc-glow,rgba(0,229,176,.08));
-  border:1px solid var(--epc-glow,rgba(0,229,176,.25));color:var(--epc-text,#cfe);text-decoration:none;font-size:13px}
-.epc-demo-chip:hover{filter:brightness(1.3)}
-.epc-demo-note{margin:8px 0 0;color:#6f839b;font-size:12px}
+.epc-demo-industries>span{color:#4a6782;font-size:13px}
+.epc-demo-chip{padding:6px 12px;border-radius:999px;background:rgba(0,204,255,.07);
+  border:1px solid rgba(0,204,255,.13);color:#b8d4ea;text-decoration:none;font-size:13px;transition:.2s}
+.epc-demo-chip:hover{border-color:rgba(0,204,255,.25);color:#00ccff}
+.epc-demo-note{margin:8px 0 0;color:#4a6782;font-size:12px}
 </style>';
     }
 }
