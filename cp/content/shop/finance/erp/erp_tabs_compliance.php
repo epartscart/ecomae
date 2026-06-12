@@ -14,6 +14,9 @@ $summary = epc_bos_compliance_summary($db_link, $asOf);
 $calendar = epc_bos_compliance_calendar($db_link, $asOf);
 $obligations = epc_bos_compliance_obligations($db_link);
 $retention = epc_bos_retention_rules($db_link);
+$cmpCountry = strtoupper((string) epc_bos_compliance_company_country($db_link));
+$cmpDnfbp = epc_bos_compliance_dnfbp_profile($db_link);
+$cmpSync = epc_bos_compliance_sync_status($db_link);
 $csrfLocal = isset($csrf) ? $csrf : '';
 
 $cmpUrl = function ($panel) use ($erpUrl, $date_from_str, $date_to_str) {
@@ -30,8 +33,20 @@ $statusLabel = array(
 
 <div class="epc-erp-section">
 	<div class="alert alert-info" style="margin-bottom:14px;">
-		<strong><i class="fa fa-shield"></i> Compliance pillar</strong> — config-driven obligations, filing calendar and document retention for this tenant.
-		Defaults are seeded from your region; add, edit or disable any item. As-at date: <strong><?php echo epc_erp_h(date('d M Y', $asOf)); ?></strong>.
+		<div class="pull-right" style="text-align:right;">
+			<form data-bos-action="bos_compliance_fetch" style="display:inline;">
+				<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+				<button class="btn btn-sm btn-primary" type="submit"><i class="fa fa-cloud-download"></i> Fetch latest updates</button>
+			</form>
+			<div class="text-muted" style="font-size:11px;margin-top:4px;">
+				Catalog <strong><?php echo epc_erp_h($cmpSync['current']); ?></strong>
+				<?php if ($cmpSync['up_to_date']): ?><span class="label label-success">up to date</span><?php else: ?><span class="label label-warning">update available</span><?php endif; ?>
+				<?php if ((int) $cmpSync['last_fetch'] > 0): ?><br>Last fetched <?php echo epc_erp_h(date('d M Y H:i', (int) $cmpSync['last_fetch'])); ?><?php endif; ?>
+			</div>
+		</div>
+		<strong><i class="fa fa-shield"></i> Compliance pillar</strong> — config-driven obligations, filing calendar and document retention, keyed to your tax jurisdiction.
+		Tax area / country: <strong><?php echo epc_erp_h($cmpCountry); ?></strong><?php if ($cmpDnfbp['is_dnfbp']): ?> · <span class="label label-warning">AML/CFT applies (DNFBP)</span><?php endif; ?>.
+		Add, edit or disable any item. As-at date: <strong><?php echo epc_erp_h(date('d M Y', $asOf)); ?></strong>.
 	</div>
 
 	<div class="row" style="margin-bottom:16px;">

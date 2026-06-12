@@ -53,6 +53,7 @@ try {
 
 		case 'create_purchase':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$invMsg = '';
 			if (!empty($_POST['receive_inventory']) || !empty($_POST['inventory_lines']) || !empty($_POST['inventory_csv'])) {
 				$invMsg = ' (inventory receipt will post with invoice)';
@@ -65,16 +66,19 @@ try {
 				$pst->execute(array($id));
 				$extra['inv_receipt_posted'] = (int) $pst->fetchColumn();
 			}
-			epc_erp_json(true, 'Purchase invoice recorded' . $invMsg, $extra);
+			$piWf = epc_bos_wf_maybe_raise($db_link, 'purchase_invoice', (int) $id, 'BILL #' . (int) $id, $_POST);
+			epc_erp_json(true, 'Purchase invoice recorded' . $invMsg . $piWf, $extra);
 
 		case 'supplier_payment':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$pv = epc_erp_payment_voucher($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($pv['cash_entry_id'] ?? 0), $_POST);
 			$pvMsg = 'Supplier payment ' . ($pv['voucher_no'] ?? '') . ' recorded';
 			if (!empty($pv['allocated'])) {
 				$pvMsg .= ' — ' . number_format((float) $pv['allocated'], 2) . ' settled against bills';
 			}
+			$pvMsg .= epc_bos_wf_maybe_raise($db_link, 'payment_voucher', (int) ($pv['cash_entry_id'] ?? 0), (string) ($pv['voucher_no'] ?? 'PV'), $_POST);
 			epc_erp_json(true, $pvMsg, $pv);
 
 		case 'payment_voucher':
@@ -133,9 +137,11 @@ try {
 			epc_erp_json(true, 'COA account created', array('id' => $id));
 
 		case 'gl_manual_entry':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$id = epc_erp_gl_manual_entry($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'gl_entry', (int) $id, $_POST);
-			epc_erp_json(true, 'GL journal posted', array('journal_id' => $id));
+			$glWf = epc_bos_wf_maybe_raise($db_link, 'gl_journal', (int) $id, 'JV #' . (int) $id, $_POST);
+			epc_erp_json(true, 'GL journal posted' . $glWf, array('journal_id' => $id));
 
 		case 'gl_post_sales':
 			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : strtotime(date('Y-m-01'));
@@ -209,6 +215,21 @@ try {
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_compliance.php';
 			$rid = epc_bos_retention_save($db_link, $_POST);
 			epc_erp_json($rid > 0, $rid > 0 ? 'Retention rule saved' : 'Label required', array('id' => $rid));
+
+		case 'bos_compliance_fetch':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_compliance.php';
+			$fetch = epc_bos_compliance_fetch_updates($db_link);
+			$fc = (int) $fetch['added_count'];
+			$uc = (int) $fetch['updated_count'];
+			if ($fc === 0 && $uc === 0) {
+				$fmsg = 'Compliance catalog is up to date — no changes (version ' . $fetch['version'] . ').';
+			} else {
+				$parts = array();
+				if ($fc > 0) { $parts[] = $fc . ' added (' . implode(', ', array_slice($fetch['added'], 0, 6)) . ($fc > 6 ? '…' : '') . ')'; }
+				if ($uc > 0) { $parts[] = $uc . ' updated (' . implode(', ', array_slice($fetch['updated'], 0, 6)) . ($uc > 6 ? '…' : '') . ')'; }
+				$fmsg = 'Fetched catalog ' . $fetch['version'] . ' — ' . implode('; ', $parts) . '.';
+			}
+			epc_erp_json(true, $fmsg, $fetch);
 
 		// ---- BOS Workflow / Approvals pillar ----
 		case 'bos_wf_save_rule':
@@ -377,13 +398,15 @@ try {
 
 		case 'invoice_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$adminId = class_exists('DP_User') ? (int)DP_User::getAdminId() : 0;
 			$id = epc_erp_invoice_save($db_link, $_POST, $adminId);
 			epc_erp_dim_save_from_post($db_link, 'invoice', (int) $id, $_POST);
+			$siWf = epc_bos_wf_maybe_raise($db_link, 'sales_invoice', (int) $id, 'INV #' . (int) $id, $_POST);
 			$doc = epc_einvoice_get_document($db_link, $id);
 			$cfg = $GLOBALS['DP_Config'] ?? new DP_Config();
 			$redirect = epc_erp_cp_redirect_url('/' . $cfg->backend_dir . '/shop/finance/erp?area=sales&tab=invoices&inv_id=' . $id);
-			epc_erp_json(true, !empty($doc['validation_ok']) ? 'Invoice saved and validated' : 'Invoice saved as draft — review validation',
+			epc_erp_json(true, (!empty($doc['validation_ok']) ? 'Invoice saved and validated' : 'Invoice saved as draft — review validation') . $siWf,
 				array('invoice_id' => $id, 'redirect' => $redirect));
 
 		case 'invoice_list':
@@ -572,9 +595,11 @@ try {
 
 		case 'expense_report_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$id = epc_erp_expense_report_save($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'expense_report', (int) $id, $_POST);
-			epc_erp_json(true, 'Expense report submitted', array('id' => $id));
+			$exWf = epc_bos_wf_maybe_raise($db_link, 'expense', (int) $id, 'EXP #' . (int) $id, $_POST);
+			epc_erp_json(true, 'Expense report submitted' . $exWf, array('id' => $id));
 
 		case 'po_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
@@ -625,9 +650,11 @@ try {
 
 		case 'receipt_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
 			$r = epc_erp_receipt_voucher($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($r['cash_entry_id'] ?? 0), $_POST);
-			epc_erp_json(true, 'Receipt voucher ' . $r['voucher_no'] . ' recorded', $r);
+			$rvWf = epc_bos_wf_maybe_raise($db_link, 'receipt_voucher', (int) ($r['cash_entry_id'] ?? 0), (string) ($r['voucher_no'] ?? 'RV'), $_POST);
+			epc_erp_json(true, 'Receipt voucher ' . $r['voucher_no'] . ' recorded' . $rvWf, $r);
 
 		case 'transfer_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
