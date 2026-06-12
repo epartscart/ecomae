@@ -564,6 +564,138 @@ function epc_pf_cases(PDO $db, array $filters = array()): array
 	return $rows;
 }
 
+/**
+ * Bird's-eye data for the Organization Process Map (Verizon Reveal-style live map):
+ * every process with its ordered steps + all open cases positioned at their current step.
+ * The view renders departments/employees/tasks as nodes with live counts and animated arrows.
+ */
+function epc_pf_orgmap_data(PDO $db): array
+{
+	epc_pf_ensure_schema($db);
+	$deptCfg = function_exists('epc_erp_departments_config') ? epc_erp_departments_config() : array();
+	$deptName = function ($code) use ($deptCfg) {
+		$code = (string) $code;
+		if ($code === '') { return 'Unassigned'; }
+		if (isset($deptCfg[$code]['name'])) { return $deptCfg[$code]['name']; }
+		return function_exists('epc_erp_staff_department_name') ? (epc_erp_staff_department_name($code) ?: ucfirst($code)) : ucfirst($code);
+	};
+
+	$procs = array();
+	foreach (epc_pf_processes($db) as $p) {
+		$pid = (int) $p['id'];
+		$steps = array();
+		foreach (epc_pf_process_steps($db, $pid) as $s) {
+			$steps[] = array(
+				'no' => (int) $s['step_no'],
+				'name' => (string) $s['name'],
+				'dept' => (string) $s['assign_department'],
+				'deptName' => $deptName((string) $s['assign_department']),
+			);
+		}
+		$procs[$pid] = array(
+			'id' => $pid,
+			'name' => (string) $p['name'],
+			'steps' => $steps,
+			'cases' => array(),
+		);
+	}
+
+	$now = time();
+	$openCases = epc_pf_cases($db, array('status' => 'open', 'limit' => 500));
+	foreach ($openCases as $c) {
+		$pid = (int) $c['process_id'];
+		if (!isset($procs[$pid])) { continue; }
+		$procs[$pid]['cases'][] = array(
+			'id' => (int) $c['id'],
+			'ref' => (string) $c['reference'],
+			'title' => (string) $c['title'],
+			'priority' => (string) $c['priority'],
+			'stepNo' => (int) $c['current_step_no'],
+			'stepName' => (string) ($c['current_step_name'] ?? ''),
+			'dept' => (string) $c['current_department'],
+			'deptName' => $deptName((string) $c['current_department']),
+			'location' => (string) ($c['current_location'] ?? ''),
+			'assigneeId' => (int) $c['current_assignee_id'],
+			'assignee' => (string) ($c['assignee_name'] ?? ''),
+			'overdue' => (bool) $c['overdue'],
+			'started' => (int) $c['started_at'],
+		);
+	}
+
+	// drop processes with neither steps nor open cases to keep the map tidy
+	$out = array();
+	foreach ($procs as $p) {
+		if (!empty($p['steps']) || !empty($p['cases'])) { $out[] = $p; }
+	}
+	return array(
+		'processes' => $out,
+		'generated' => $now,
+	);
+}
+
+/**
+ * Whole-workforce snapshot: every active employee with their department, location,
+ * and live workload (how many open cases they hold and on which task). Powers the
+ * "see all ~200 staff in one view — who's busy on what" workforce board.
+ */
+function epc_pf_workforce_data(PDO $db): array
+{
+	epc_pf_ensure_schema($db);
+	$deptCfg = function_exists('epc_erp_departments_config') ? epc_erp_departments_config() : array();
+	$deptName = function ($code) use ($deptCfg) {
+		$code = (string) $code;
+		if ($code === '') { return 'Unassigned'; }
+		if (isset($deptCfg[$code]['name'])) { return $deptCfg[$code]['name']; }
+		return function_exists('epc_erp_staff_department_name') ? (epc_erp_staff_department_name($code) ?: ucfirst($code)) : ucfirst($code);
+	};
+
+	// open workload keyed by assignee
+	$work = array();
+	foreach (epc_pf_cases($db, array('status' => 'open', 'limit' => 1000)) as $c) {
+		$aid = (int) $c['current_assignee_id'];
+		if ($aid <= 0) { continue; }
+		if (!isset($work[$aid])) { $work[$aid] = array(); }
+		$work[$aid][] = array(
+			'id' => (int) $c['id'],
+			'title' => (string) $c['title'],
+			'step' => (string) ($c['current_step_name'] ?? ''),
+			'ref' => (string) $c['reference'],
+			'priority' => (string) $c['priority'],
+			'overdue' => (bool) $c['overdue'],
+		);
+	}
+
+	$staff = array();
+	try {
+		$rows = $db->query("SELECT `user_id`,`display_name`,`department_code`,`job_title`,`location` FROM `epc_erp_staff_profiles` WHERE `active` = 1 ORDER BY `department_code`, `display_name`")->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Exception $e) {
+		$rows = array();
+	}
+	$busy = 0;
+	foreach ($rows as $r) {
+		$uid = (int) $r['user_id'];
+		$tasks = isset($work[$uid]) ? $work[$uid] : array();
+		if (!empty($tasks)) { $busy++; }
+		$staff[] = array(
+			'uid' => $uid,
+			'name' => (string) $r['display_name'],
+			'dept' => (string) $r['department_code'],
+			'deptName' => $deptName((string) $r['department_code']),
+			'title' => (string) $r['job_title'],
+			'location' => (string) $r['location'],
+			'busy' => count($tasks),
+			'tasks' => $tasks,
+		);
+	}
+
+	return array(
+		'staff' => $staff,
+		'total' => count($staff),
+		'busy' => $busy,
+		'idle' => count($staff) - $busy,
+	);
+}
+
 function epc_pf_case_get(PDO $db, int $caseId): ?array
 {
 	epc_pf_ensure_schema($db);

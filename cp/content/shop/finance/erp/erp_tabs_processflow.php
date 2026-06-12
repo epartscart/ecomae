@@ -30,7 +30,7 @@ $tabBase = epc_erp_tab_url($erpUrl, 'processflow', $date_from_str, $date_to_str)
 $sep = strpos($tabBase, '?') === false ? '?' : '&';
 function pf_url($tabBase, $sep, $view, $extra = '') { return $tabBase . $sep . 'pf_view=' . $view . $extra; }
 
-$views = array('monitor' => 'Monitor', 'inbox' => 'My inbox', 'processes' => 'Processes', 'heads' => 'Department heads');
+$views = array('monitor' => 'Monitor', 'orgmap' => 'Org map', 'workforce' => 'Workforce', 'inbox' => 'My inbox', 'processes' => 'Processes', 'heads' => 'Department heads');
 ?>
 <div id="epc_erp_msg" class="alert" style="display:none;"></div>
 
@@ -275,6 +275,397 @@ if ($pfCaseId > 0):
 			<?php endif; ?>
 		</div>
 	</div>
+
+<?php
+/* =================== ORG MAP (Verizon Reveal-style live process map) =================== */
+elseif ($pfView === 'orgmap'):
+	$orgmap = epc_pf_orgmap_data($db_link);
+	$omJson = json_encode($orgmap, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+	$omCaseBase = pf_url($tabBase, $sep, 'monitor', '&pf_case=');
+?>
+	<style>
+	.pf-om-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;}
+	.pf-om-bar .seg{display:inline-flex;border:1px solid #cbd5e1;border-radius:7px;overflow:hidden;}
+	.pf-om-bar .seg button{background:#fff;color:#334155;border:0;border-right:1px solid #e2e8f0;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+	.pf-om-bar .seg button:last-child{border-right:0;}
+	.pf-om-bar .seg button.on{background:#2563eb;color:#fff;}
+	.pf-om-bar select{border:1px solid #cbd5e1;border-radius:7px;padding:6px 10px;font-size:12px;}
+	.pf-om-bar .tot{margin-left:auto;color:#475569;font-size:12px;}
+	.pf-om-bar .tot strong{color:#0f172a;font-size:15px;}
+	.pf-om-wrap{display:flex;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;height:660px;background:#fff;}
+	.pf-om-side{width:330px;min-width:330px;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;}
+	.pf-om-shd{padding:10px;border-bottom:1px solid #eef2f7;}
+	.pf-om-shd input,.pf-om-shd select{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:6px 9px;font-size:12px;margin-bottom:6px;}
+	.pf-om-scount{font-size:11px;color:#64748b;padding:0 10px 6px;}
+	.pf-om-list{overflow-y:auto;flex:1;}
+	.pf-om-li{display:flex;gap:9px;padding:10px;border-bottom:1px solid #f1f5f9;cursor:pointer;}
+	.pf-om-li:hover{background:#f8fafc;}
+	.pf-om-li.sel{background:#eff6ff;}
+	.pf-om-pri{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:0 0 8px;}
+	.pri-urgent{background:#dc2626;} .pri-high{background:#f59e0b;} .pri-normal{background:#3b82f6;} .pri-low{background:#94a3b8;}
+	.pf-om-li .t{font-size:12px;font-weight:600;color:#0f172a;line-height:1.25;}
+	.pf-om-li .m{font-size:11px;color:#64748b;margin-top:2px;}
+	.pf-om-li .od{color:#dc2626;font-weight:600;}
+	.pf-om-canvas{flex:1;overflow:auto;background:#f8fafc;background-image:linear-gradient(#eef2f7 1px,transparent 1px),linear-gradient(90deg,#eef2f7 1px,transparent 1px);background-size:26px 26px;padding:16px 18px;}
+	.pf-om-lane{margin-bottom:26px;}
+	.pf-om-lane h5{margin:0 0 12px;font-size:13px;color:#0f172a;font-weight:700;}
+	.pf-om-lane h5 .pill{background:#e2e8f0;color:#334155;border-radius:10px;font-size:11px;padding:1px 8px;margin-left:6px;font-weight:600;}
+	.pf-om-flow{display:flex;align-items:stretch;min-width:max-content;}
+	.pf-om-node{width:172px;min-width:172px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 1px 2px rgba(15,23,42,.06);overflow:hidden;cursor:pointer;transition:box-shadow .15s,transform .15s;}
+	.pf-om-node:hover{box-shadow:0 6px 16px rgba(37,99,235,.16);transform:translateY(-1px);}
+	.pf-om-node.live{border-color:#2563eb;}
+	.pf-om-node.sel{border-color:#1d4ed8;box-shadow:0 0 0 2px rgba(37,99,235,.25);}
+	.pf-om-nhd{padding:7px 10px;color:#fff;font-size:11px;font-weight:700;letter-spacing:.2px;display:flex;justify-content:space-between;align-items:center;}
+	.pf-om-nbody{padding:9px 10px;}
+	.pf-om-nname{font-size:12px;color:#0f172a;font-weight:600;line-height:1.25;min-height:30px;}
+	.pf-om-nsub{font-size:11px;color:#64748b;margin-top:3px;}
+	.pf-om-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;background:rgba(255,255,255,.25);font-size:12px;padding:0 6px;}
+	.pf-om-node.empty .pf-om-nhd{background:#94a3b8 !important;}
+	.pf-om-emp{margin-top:7px;border-top:1px dashed #e2e8f0;padding-top:6px;}
+	.pf-om-emp .r{display:flex;justify-content:space-between;font-size:11px;color:#334155;padding:2px 0;}
+	.pf-om-emp .r b{background:#eff6ff;color:#1d4ed8;border-radius:8px;padding:0 6px;font-size:10px;}
+	.pf-om-emp .none{font-size:11px;color:#94a3b8;}
+	.pf-om-conn{width:46px;min-width:46px;position:relative;align-self:center;height:4px;}
+	.pf-om-conn .ln{position:absolute;top:0;left:0;right:6px;height:4px;background:#cbd5e1;border-radius:2px;}
+	.pf-om-conn.flow .ln{background:linear-gradient(90deg,#22c55e,#2563eb);}
+	.pf-om-conn .hd{position:absolute;right:-1px;top:-4px;color:#94a3b8;font-size:12px;}
+	.pf-om-conn.flow .hd{color:#2563eb;}
+	.pf-om-conn .dot{position:absolute;top:-2px;left:0;width:8px;height:8px;border-radius:50%;background:#2563eb;box-shadow:0 0 6px rgba(37,99,235,.8);}
+	.pf-om-conn.flow .dot{animation:pfmove 1.6s linear infinite;}
+	@keyframes pfmove{0%{left:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{left:38px;opacity:0;}}
+	.pf-om-empty-lane{color:#94a3b8;font-size:12px;padding:10px;}
+	</style>
+
+	<div class="pf-om-bar">
+		<label style="font-size:12px;color:#475569;margin:0;">Process</label>
+		<select id="pf_om_proc"></select>
+		<label style="font-size:12px;color:#475569;margin:0 0 0 8px;">View level</label>
+		<div class="seg" id="pf_om_level">
+			<button data-lvl="overall">Overall</button>
+			<button data-lvl="department" class="on">Department</button>
+			<button data-lvl="user">User</button>
+			<button data-lvl="task">Task</button>
+			<button data-lvl="location">Location</button>
+		</div>
+		<span class="tot" id="pf_om_tot"></span>
+	</div>
+
+	<div class="pf-om-wrap">
+		<div class="pf-om-side">
+			<div class="pf-om-shd">
+				<input type="text" id="pf_om_search" placeholder="Search cases, ref, person…">
+				<select id="pf_om_sort">
+					<option value="priority">Sort: Priority</option>
+					<option value="recent">Sort: Most recent</option>
+					<option value="dept">Sort: Department</option>
+					<option value="title">Sort: Title A–Z</option>
+				</select>
+			</div>
+			<div class="pf-om-scount" id="pf_om_scount"></div>
+			<div class="pf-om-list" id="pf_om_list"></div>
+		</div>
+		<div class="pf-om-canvas" id="pf_om_canvas"></div>
+	</div>
+
+	<script>
+	(function(){
+		var DATA = <?php echo $omJson ?: '{"processes":[]}'; ?>;
+		var CASE_BASE = <?php echo json_encode($omCaseBase); ?>;
+		var procs = DATA.processes || [];
+		var COLORS = {sales:'#2563eb',logistics:'#0891b2',finance:'#16a34a',marketing:'#db2777',hr:'#7c3aed',it:'#0ea5e9',purchase:'#ea580c',accounts:'#ca8a04'};
+		function colorFor(code){ return COLORS[code] || '#475569'; }
+		var state = {proc:'all', level:'department', search:'', sort:'priority', node:null};
+
+		// ---- process selector
+		var sel = document.getElementById('pf_om_proc');
+		var optAll = document.createElement('option'); optAll.value='all'; optAll.textContent='All processes ('+procs.length+')'; sel.appendChild(optAll);
+		procs.forEach(function(p){ var o=document.createElement('option'); o.value=String(p.id); o.textContent=p.name+' ('+(p.cases?p.cases.length:0)+')'; sel.appendChild(o); });
+		sel.value='all';
+
+		function laneNodes(p, level){
+			var steps=p.steps||[], cases=p.cases||[];
+			function casesInStep(no){ return cases.filter(function(c){return c.stepNo===no;}); }
+			if(level==='task'){
+				return steps.map(function(s){ var cs=casesInStep(s.no); return {key:'s'+s.no, title:s.name, sub:s.deptName, dept:s.dept, count:cs.length, cases:cs}; });
+			}
+			if(level==='location'){
+				var order=['Dubai HQ','Abu Dhabi Branch','Sharjah Branch','Jebel Ali Warehouse','Al Ain Branch'];
+				var byLoc={};
+				cases.forEach(function(c){ var l=c.location||'Unassigned'; (byLoc[l]=byLoc[l]||[]).push(c); });
+				var keys=Object.keys(byLoc).sort(function(a,b){ var ia=order.indexOf(a),ib=order.indexOf(b); if(ia<0)ia=99; if(ib<0)ib=99; return ia-ib||a.localeCompare(b); });
+				return keys.map(function(l){ return {key:'l_'+l, title:l, sub:'branch', dept:'', isLoc:true, count:byLoc[l].length, cases:byLoc[l]}; });
+			}
+			if(level==='overall'){
+				if(!steps.length) return [];
+				var last=steps[steps.length-1].no;
+				var atStart=cases.filter(function(c){return c.stepNo===steps[0].no;});
+				var atEnd=cases.filter(function(c){return c.stepNo===last;});
+				var mid=cases.filter(function(c){return c.stepNo!==steps[0].no && c.stepNo!==last;});
+				return [
+					{key:'start',title:'Start',sub:steps[0].deptName,dept:steps[0].dept,count:atStart.length,cases:atStart},
+					{key:'prog',title:'In progress',sub:'Being worked',dept:'',count:mid.length,cases:mid},
+					{key:'fin',title:'Finish',sub:steps[last-1]?steps[last-1].deptName:'',dept:steps[steps.length-1].dept,count:atEnd.length,cases:atEnd}
+				];
+			}
+			// department / user: collapse consecutive steps by department
+			var stages=[], cur=null;
+			steps.forEach(function(s){
+				if(!cur || cur.dept!==s.dept){ cur={dept:s.dept,deptName:s.deptName,nos:[],names:[]}; stages.push(cur); }
+				cur.nos.push(s.no); cur.names.push(s.name);
+			});
+			return stages.map(function(st,i){
+				var cs=cases.filter(function(c){return st.nos.indexOf(c.stepNo)>=0;});
+				var node={key:'d'+i+'_'+st.dept, title:st.deptName, sub:st.names.length+' step'+(st.names.length>1?'s':''), dept:st.dept, count:cs.length, cases:cs};
+				if(level==='user'){
+					var by={};
+					cs.forEach(function(c){ var k=c.assignee||'Unassigned'; by[k]=(by[k]||0)+1; });
+					node.emp=Object.keys(by).map(function(k){return {name:k,count:by[k]};}).sort(function(a,b){return b.count-a.count;});
+				}
+				return node;
+			});
+		}
+
+		function selectedProcs(){ return state.proc==='all' ? procs : procs.filter(function(p){return String(p.id)===state.proc;}); }
+
+		function renderCanvas(){
+			var box=document.getElementById('pf_om_canvas'); box.innerHTML='';
+			var sp=selectedProcs(), totNodes=0, totCases=0;
+			if(!sp.length){ box.innerHTML='<div class="pf-om-empty-lane">No processes yet — seed sample data from the Monitor tab.</div>'; }
+			sp.forEach(function(p){
+				var nodes=laneNodes(p, state.level);
+				var open=(p.cases||[]).length; totCases+=open;
+				var lane=document.createElement('div'); lane.className='pf-om-lane';
+				var h=document.createElement('h5'); h.innerHTML=esc(p.name)+'<span class="pill">'+open+' open</span>'; lane.appendChild(h);
+				if(!nodes.length){ var e=document.createElement('div'); e.className='pf-om-empty-lane'; e.textContent='No steps defined.'; lane.appendChild(e); box.appendChild(lane); return; }
+				var flow=document.createElement('div'); flow.className='pf-om-flow';
+				nodes.forEach(function(n,i){
+					totNodes++;
+					var node=document.createElement('div');
+					node.className='pf-om-node'+(n.count>0?' live':' empty')+((state.node && state.node.proc===p.id && state.node.key===n.key)?' sel':'');
+					var col=n.isLoc?'#0891b2':(n.dept?colorFor(n.dept):'#475569');
+					var emp='';
+					if(state.level==='user'){
+						if(n.emp && n.emp.length){ emp='<div class="pf-om-emp">'+n.emp.map(function(e){return '<div class="r"><span>'+esc(e.name)+'</span><b>'+e.count+'</b></div>';}).join('')+'</div>'; }
+						else { emp='<div class="pf-om-emp"><span class="none">No one holding work here</span></div>'; }
+					}
+					node.innerHTML='<div class="pf-om-nhd" style="background:'+col+';"><span>'+esc(n.title)+'</span><span class="pf-om-count">'+n.count+'</span></div>'+
+						'<div class="pf-om-nbody"><div class="pf-om-nname">'+esc(state.level==='task'?n.title:(state.level==='overall'?n.title:n.title))+'</div><div class="pf-om-nsub">'+esc(n.sub||'')+'</div>'+emp+'</div>';
+					(function(nn){ node.addEventListener('click', function(){ state.node=(state.node && state.node.proc===p.id && state.node.key===nn.key)?null:{proc:p.id,key:nn.key,cases:nn.cases}; renderCanvas(); renderList(); }); })(n);
+					flow.appendChild(node);
+					if(i<nodes.length-1){
+						var nextLive=nodes[i+1].count>0 || n.count>0;
+						var c=document.createElement('div'); c.className='pf-om-conn'+(nextLive?' flow':'');
+						c.innerHTML='<div class="ln"></div>'+(nextLive?'<div class="dot"></div>':'')+'<div class="hd"><i class="fa fa-caret-right"></i></div>';
+						flow.appendChild(c);
+					}
+				});
+				lane.appendChild(flow); box.appendChild(lane);
+			});
+			document.getElementById('pf_om_tot').innerHTML='<strong>'+totCases+'</strong> open tasks · <strong>'+totNodes+'</strong> nodes';
+		}
+
+		function activeCases(){
+			var sp=selectedProcs(), list=[];
+			if(state.node){
+				var p=procs.filter(function(x){return x.id===state.node.proc;})[0];
+				list=(state.node.cases||[]).map(function(c){ c.__p=p?p.name:''; return c; });
+			} else {
+				sp.forEach(function(p){ (p.cases||[]).forEach(function(c){ c.__p=p.name; list.push(c); }); });
+			}
+			var q=state.search.toLowerCase();
+			if(q){ list=list.filter(function(c){ return (c.title+' '+c.ref+' '+c.assignee+' '+c.deptName+' '+c.location+' '+c.stepName).toLowerCase().indexOf(q)>=0; }); }
+			var pr={urgent:0,high:1,normal:2,low:3};
+			list.sort(function(a,b){
+				if(state.sort==='priority') return (pr[a.priority]-pr[b.priority])||(b.started-a.started);
+				if(state.sort==='recent') return b.started-a.started;
+				if(state.sort==='dept') return (a.deptName||'').localeCompare(b.deptName||'');
+				return (a.title||'').localeCompare(b.title||'');
+			});
+			return list;
+		}
+		function renderList(){
+			var list=activeCases(), box=document.getElementById('pf_om_list'); box.innerHTML='';
+			document.getElementById('pf_om_scount').textContent=list.length+' case'+(list.length!==1?'s':'')+(state.node?' at selected node':'')+(state.node?' · ':'')+(state.node?'(click node again to clear)':'');
+			list.forEach(function(c){
+				var li=document.createElement('div'); li.className='pf-om-li';
+				li.innerHTML='<span class="pf-om-pri pri-'+esc(c.priority)+'"></span>'+
+					'<div style="flex:1;"><div class="t">'+esc(c.title)+'</div>'+
+					'<div class="m"><i class="fa fa-map-marker"></i> '+esc(c.location||'—')+' · '+esc(c.deptName)+(c.assignee?(' · '+esc(c.assignee)):'')+'</div>'+
+					'<div class="m">Step: '+esc(c.stepName||'—')+(c.overdue?' · <span class="od">OVERDUE</span>':'')+'</div></div>';
+				li.addEventListener('click', function(){ window.location.href=CASE_BASE+c.id; });
+				box.appendChild(li);
+			});
+			if(!list.length){ box.innerHTML='<div class="pf-om-empty-lane">No cases match.</div>'; }
+		}
+		function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+
+		document.querySelectorAll('#pf_om_level button').forEach(function(b){
+			b.addEventListener('click', function(){
+				document.querySelectorAll('#pf_om_level button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on');
+				state.level=b.getAttribute('data-lvl'); state.node=null; renderCanvas(); renderList();
+			});
+		});
+		sel.addEventListener('change', function(){ state.proc=sel.value; state.node=null; renderCanvas(); renderList(); });
+		document.getElementById('pf_om_search').addEventListener('input', function(e){ state.search=e.target.value; renderList(); });
+		document.getElementById('pf_om_sort').addEventListener('change', function(e){ state.sort=e.target.value; renderList(); });
+		renderCanvas(); renderList();
+	})();
+	</script>
+
+<?php
+/* =================== WORKFORCE (all staff in one view: busy on which task, by dept/location/task) =================== */
+elseif ($pfView === 'workforce'):
+	$wf = epc_pf_workforce_data($db_link);
+	$wfJson = json_encode($wf, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+	$wfCaseBase = pf_url($tabBase, $sep, 'monitor', '&pf_case=');
+?>
+	<style>
+	.pf-wf-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;}
+	.pf-wf-bar select,.pf-wf-bar input{border:1px solid #cbd5e1;border-radius:7px;padding:6px 10px;font-size:12px;}
+	.pf-wf-bar .seg{display:inline-flex;border:1px solid #cbd5e1;border-radius:7px;overflow:hidden;}
+	.pf-wf-bar .seg button{background:#fff;color:#334155;border:0;border-right:1px solid #e2e8f0;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+	.pf-wf-bar .seg button:last-child{border-right:0;}
+	.pf-wf-bar .seg button.on{background:#2563eb;color:#fff;}
+	.pf-wf-kpis{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+	.pf-wf-kpi{flex:1;min-width:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;}
+	.pf-wf-kpi .l{font-size:11px;color:#6b7280;}
+	.pf-wf-kpi .v{font-size:24px;font-weight:700;}
+	.pf-wf-group{margin-bottom:18px;}
+	.pf-wf-ghd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#0f172a;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;}
+	.pf-wf-ghd .cnt{font-weight:600;font-size:11px;color:#64748b;}
+	.pf-wf-ghd .bz{background:#fee2e2;color:#b91c1c;border-radius:10px;font-size:11px;padding:1px 8px;font-weight:600;}
+	.pf-wf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:8px;}
+	.pf-wf-card{border:1px solid #e5e7eb;border-radius:9px;padding:9px 10px;background:#fff;}
+	.pf-wf-card.busy{border-left:4px solid #dc2626;}
+	.pf-wf-card.idle{border-left:4px solid #cbd5e1;}
+	.pf-wf-nm{font-size:12px;font-weight:700;color:#0f172a;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+	.pf-wf-st{font-size:10px;font-weight:700;border-radius:9px;padding:1px 7px;white-space:nowrap;}
+	.pf-wf-st.b{background:#fee2e2;color:#b91c1c;} .pf-wf-st.i{background:#f1f5f9;color:#64748b;}
+	.pf-wf-meta{font-size:11px;color:#64748b;margin-top:2px;}
+	.pf-wf-tasks{margin-top:6px;border-top:1px dashed #e5e7eb;padding-top:5px;}
+	.pf-wf-tk{font-size:11px;color:#334155;line-height:1.3;cursor:pointer;}
+	.pf-wf-tk:hover{color:#1d4ed8;}
+	.pf-wf-tk .s{color:#64748b;}
+	.pf-wf-tk .od{color:#dc2626;font-weight:600;}
+	</style>
+
+	<div class="pf-wf-kpis">
+		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-users"></i> Total staff</div><div class="v" style="color:#2563eb;" id="wf_total">0</div></div>
+		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-spinner"></i> Busy now</div><div class="v" style="color:#dc2626;" id="wf_busy">0</div></div>
+		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-coffee"></i> Idle / available</div><div class="v" style="color:#16a34a;" id="wf_idle">0</div></div>
+		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-tasks"></i> Open tasks assigned</div><div class="v" style="color:#0891b2;" id="wf_tasks">0</div></div>
+		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-eye"></i> Showing</div><div class="v" style="color:#334155;" id="wf_shown">0</div></div>
+	</div>
+
+	<div class="pf-wf-bar">
+		<label style="font-size:12px;color:#475569;margin:0;">Group by</label>
+		<div class="seg" id="wf_group">
+			<button data-g="department" class="on">Department</button>
+			<button data-g="location">Location</button>
+			<button data-g="task">Task</button>
+			<button data-g="none">Flat</button>
+		</div>
+		<select id="wf_dept"><option value="">All departments</option></select>
+		<select id="wf_loc"><option value="">All locations</option></select>
+		<select id="wf_status">
+			<option value="">All staff</option>
+			<option value="busy">Busy only</option>
+			<option value="idle">Idle only</option>
+		</select>
+		<input type="text" id="wf_search" placeholder="Search name / title / task…" style="min-width:200px;">
+	</div>
+
+	<div id="wf_body"></div>
+
+	<script>
+	(function(){
+		var WF = <?php echo $wfJson ?: '{"staff":[],"total":0,"busy":0,"idle":0}'; ?>;
+		var CASE_BASE = <?php echo json_encode($wfCaseBase); ?>;
+		var staff = WF.staff || [];
+		var state = {group:'department', dept:'', loc:'', status:'', search:''};
+		function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+
+		// populate filters
+		var depts={}, locs={};
+		staff.forEach(function(s){ if(s.deptName)depts[s.deptName]=s.dept; if(s.location)locs[s.location]=1; });
+		var dsel=document.getElementById('wf_dept');
+		Object.keys(depts).sort().forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; dsel.appendChild(o); });
+		var lsel=document.getElementById('wf_loc');
+		Object.keys(locs).sort().forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; lsel.appendChild(o); });
+
+		var totalTasks=staff.reduce(function(a,s){return a+s.busy;},0);
+		document.getElementById('wf_total').textContent=WF.total;
+		document.getElementById('wf_busy').textContent=WF.busy;
+		document.getElementById('wf_idle').textContent=WF.idle;
+		document.getElementById('wf_tasks').textContent=totalTasks;
+
+		function filtered(){
+			var q=state.search.toLowerCase();
+			return staff.filter(function(s){
+				if(state.dept && s.deptName!==state.dept) return false;
+				if(state.loc && s.location!==state.loc) return false;
+				if(state.status==='busy' && s.busy===0) return false;
+				if(state.status==='idle' && s.busy>0) return false;
+				if(q){
+					var hay=(s.name+' '+s.title+' '+s.deptName+' '+s.location+' '+s.tasks.map(function(t){return t.title+' '+t.step;}).join(' ')).toLowerCase();
+					if(hay.indexOf(q)<0) return false;
+				}
+				return true;
+			});
+		}
+		function card(s){
+			var cls=s.busy>0?'busy':'idle';
+			var st=s.busy>0?'<span class="pf-wf-st b">BUSY · '+s.busy+'</span>':'<span class="pf-wf-st i">IDLE</span>';
+			var tasks='';
+			if(s.busy>0){
+				tasks='<div class="pf-wf-tasks">'+s.tasks.map(function(t){
+					return '<div class="pf-wf-tk" data-case="'+t.id+'"><i class="fa fa-circle" style="font-size:6px;vertical-align:middle;"></i> '+esc(t.title)+' <span class="s">· '+esc(t.step||'')+'</span>'+(t.overdue?' <span class="od">!</span>':'')+'</div>';
+				}).join('')+'</div>';
+			}
+			return '<div class="pf-wf-card '+cls+'"><div class="pf-wf-nm"><span>'+esc(s.name)+'</span>'+st+'</div>'+
+				'<div class="pf-wf-meta">'+esc(s.title||'')+'</div>'+
+				'<div class="pf-wf-meta"><i class="fa fa-building-o"></i> '+esc(s.deptName)+' · <i class="fa fa-map-marker"></i> '+esc(s.location||'—')+'</div>'+tasks+'</div>';
+		}
+		function groupKeyList(list){
+			var groups={};
+			if(state.group==='none'){ groups['All staff']=list.slice(); }
+			else if(state.group==='task'){
+				list.forEach(function(s){
+					if(s.busy>0){ s.tasks.forEach(function(t){ (groups[t.title]=groups[t.title]||[]).push(s); }); }
+					else { (groups['Available (idle)']=groups['Available (idle)']||[]).push(s); }
+				});
+			} else {
+				var f=state.group==='location'?function(s){return s.location||'Unassigned';}:function(s){return s.deptName;};
+				list.forEach(function(s){ var k=f(s); (groups[k]=groups[k]||[]).push(s); });
+			}
+			return groups;
+		}
+		function render(){
+			var list=filtered(), groups=groupKeyList(list), body=document.getElementById('wf_body');
+			document.getElementById('wf_shown').textContent=list.length;
+			var keys=Object.keys(groups).sort(function(a,b){
+				if(a.indexOf('Available')>=0) return 1; if(b.indexOf('Available')>=0) return -1;
+				return groups[b].length-groups[a].length || a.localeCompare(b);
+			});
+			body.innerHTML='';
+			if(!list.length){ body.innerHTML='<div style="color:#94a3b8;padding:14px;">No staff match these filters.</div>'; return; }
+			keys.forEach(function(k){
+				var arr=groups[k], busy=arr.filter(function(s){return s.busy>0;}).length;
+				var g=document.createElement('div'); g.className='pf-wf-group';
+				g.innerHTML='<div class="pf-wf-ghd">'+esc(k)+' <span class="cnt">· '+arr.length+' staff</span>'+(busy>0?' <span class="bz">'+busy+' busy</span>':'')+'</div>'+
+					'<div class="pf-wf-grid">'+arr.map(card).join('')+'</div>';
+				body.appendChild(g);
+			});
+			body.querySelectorAll('.pf-wf-tk').forEach(function(t){ t.addEventListener('click', function(){ window.location.href=CASE_BASE+t.getAttribute('data-case'); }); });
+		}
+		document.querySelectorAll('#wf_group button').forEach(function(b){ b.addEventListener('click', function(){ document.querySelectorAll('#wf_group button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); state.group=b.getAttribute('data-g'); render(); }); });
+		dsel.addEventListener('change', function(e){ state.dept=e.target.value; render(); });
+		lsel.addEventListener('change', function(e){ state.loc=e.target.value; render(); });
+		document.getElementById('wf_status').addEventListener('change', function(e){ state.status=e.target.value; render(); });
+		document.getElementById('wf_search').addEventListener('input', function(e){ state.search=e.target.value; render(); });
+		render();
+	})();
+	</script>
 
 <?php
 /* =================== MONITOR =================== */
