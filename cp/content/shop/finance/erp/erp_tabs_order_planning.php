@@ -2,7 +2,7 @@
 defined('_ASTEXE_') or die('No access');
 /**
  * Order Planning — replenishment recommendations grid + item inventory
- * analytics worksheet (inspired by Syncron Parts Planning).
+ * analytics worksheet.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';

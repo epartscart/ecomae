@@ -136,7 +136,7 @@ $deptCfg = epc_erp_departments_config();
 
 			<div class="epc-erp-guide-step">
 				<h5><i class="fa fa-cubes"></i> Order planning — demand-driven replenishment (<a href="/erp/?area=operations&amp;tab=order_planning">Operations &rsaquo; Order planning</a>)</h5>
-				<p style="margin:6px 0 8px;opacity:.85;">A Syncron-style engine that forecasts demand from sale-out history, computes safety stock and reorder point per item × warehouse, and recommends order quantities.</p>
+				<p style="margin:6px 0 8px;opacity:.85;">A demand-driven planning engine that forecasts demand from sale-out history, computes safety stock and reorder point per item × warehouse, and recommends order quantities.</p>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li><strong>Action:</strong> Open Operations → Order planning. <strong>Result:</strong> planning tables auto-create on first open (a brand-new tenant starts empty); the Recommended orders grid loads.</li>
 					<li><strong>Action:</strong> No demand history yet? Click <strong>Generate sample demand</strong>. <strong>Result:</strong> 12 months of mixed-pattern sale-out history are seeded (tagged <code>DEMO-DEMAND</code>, re-runnable, clearable) and the engine produces live recommendations.</li>

@@ -269,7 +269,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
 				<div class="ehm-tag"><span class="ehm-dot"></span>Order Planning · Demand &amp; Replenishment</div>
-				<h2>Plan stock<br><span class="ehm-glow">like Syncron.</span></h2>
+				<h2>Plan stock<br><span class="ehm-glow">with precision.</span></h2>
 				<p>A demand-driven planning engine built into the BOS: it forecasts demand from your sale-out history, computes safety stock and reorder point per item × warehouse, and recommends exactly how much to order — with ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions and KPIs.</p>
 			</div>
 			<div class="ehm-badges ehm-rev">

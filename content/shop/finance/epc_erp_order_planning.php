@@ -2,7 +2,7 @@
 defined('_ASTEXE_') or die('No access');
 /**
  * Order Planning — demand-driven replenishment recommendations and an item
- * inventory-analytics worksheet (inspired by Syncron Parts Planning).
+ * inventory-analytics worksheet.
  *
  * For each stocked item × warehouse it derives, natively from the inventory
  * ledger:

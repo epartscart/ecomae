@@ -452,7 +452,7 @@ if (!function_exists('epc_guide_modules')) {
             array('KPIs and controls are selected by the active industry pack, so the same engine serves 50–100 industries without hard-coding.'));
 
         $g['order_planning'] = $E('inventory', 'Order planning — demand-driven replenishment',
-            'A Syncron-style demand & replenishment engine over your inventory ledger: forecasts demand from sale-out history, computes safety stock and reorder point per item × warehouse, and recommends order quantities — plus ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions/alerts and stock-analysis KPIs.',
+            'A demand-driven replenishment engine over your inventory ledger: forecasts demand from sale-out history, computes safety stock and reorder point per item × warehouse, and recommends order quantities — plus ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions/alerts and stock-analysis KPIs.',
             array(
                 'Open Operations → Order planning. Tables auto-create on first open; nothing to configure.',
                 'On any item worksheet, set the planning parameters (lead-time days, target service level, review period, min order qty, order multiple, manual buffer, supplier) and Save — the engine recalculates immediately.',
