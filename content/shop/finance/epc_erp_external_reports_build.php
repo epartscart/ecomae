@@ -4144,8 +4144,12 @@ function epcExtPrint(){
 	'@page{size:A4;margin:24mm 14mm 20mm;}'
 	+'*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
 	+'body{font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1f2733;font-size:11.5px;line-height:1.45;margin:0;}'
-	+'.mis-run{position:fixed;top:-18mm;left:0;right:0;font-size:9px;color:#fff;background:'+GRAD+';padding:3px 8px;display:flex;justify-content:space-between;border-radius:3px;}'
-	+'.mis-foot{position:fixed;bottom:-15mm;left:0;right:0;font-size:9px;color:#8a93a3;border-top:1px solid #d7dce5;padding:2px 8px;display:flex;justify-content:space-between;}'
+	+'.mis-page{width:100%;border-collapse:collapse;}'
+	+'.mis-page>thead{display:table-header-group;}'
+	+'.mis-page>tfoot{display:table-footer-group;}'
+	+'.mis-page>thead>tr>td,.mis-page>tfoot>tr>td,.mis-page>tbody>tr>td{border:none !important;padding:0;background:none;}'
+	+'.mis-run{font-size:9px;color:#fff;background:'+GRAD+';padding:3px 8px;display:flex;justify-content:space-between;border-radius:3px;margin-bottom:4px;}'
+	+'.mis-foot{font-size:9px;color:#8a93a3;border-top:1px solid #d7dce5;padding:3px 8px 0;display:flex;justify-content:space-between;margin-top:4px;}'
 	+'.mis-body{padding-top:2px;}'
 	+'.mis-cover{height:248mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:2px solid '+P1+';border-top:14px solid '+P2+';border-radius:6px;padding:40px;page-break-after:always;background:'+COVBG+';}'
 	+'.mis-cover .badge{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;background:'+P1+';padding:4px 14px;border-radius:14px;}'
@@ -4203,7 +4207,11 @@ function epcExtPrint(){
 	var sign   = '<div class="mis-sign"><div>Prepared by &amp; date</div><div>Reviewed by &amp; date</div><div>Authorised signatory &amp; stamp</div></div>';
 	var w = window.open('', '_blank');
 	w.document.write('<html><head><title>'+esc(c.ttl)+' — '+esc(c.co)+'</title><meta charset="utf-8"><style>'+css+'</style></head><body>'
-		+runHdr+runFt+cover+'<div class="mis-body">'+clone.innerHTML+sign+'</div></body></html>');
+		+cover
+		+'<table class="mis-page"><thead><tr><td>'+runHdr+'</td></tr></thead>'
+		+'<tfoot><tr><td>'+runFt+'</td></tr></tfoot>'
+		+'<tbody><tr><td><div class="mis-body">'+clone.innerHTML+sign+'</div></td></tr></tbody></table>'
+		+'</body></html>');
 	w.document.close();
 	setTimeout(function(){ w.focus(); w.print(); }, 350);
 }
