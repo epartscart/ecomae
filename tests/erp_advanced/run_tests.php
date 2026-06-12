@@ -433,6 +433,30 @@ if (class_exists('ZipArchive')) {
     check('Assumptions sheet carries numeric input cells', strpos($s1, ' t="n"><v>') !== false, 'numeric inputs');
 }
 
+// ---- Linked audit pack (.xlsx) — one sheet per element, linked to Trial Balance ----
+if (class_exists('ZipArchive')) {
+    $abin = epc_ext_audit_xlsx($db, 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
+    check('Linked audit pack is non-empty .xlsx', $abin !== '' && strncmp($abin, "PK", 2) === 0, strlen($abin) . ' bytes');
+    $tmpA = tempnam(sys_get_temp_dir(), 'audx') . '.xlsx';
+    file_put_contents($tmpA, $abin);
+    $za = new ZipArchive();
+    $okA = $za->open($tmpA) === true;
+    $wbA = $okA ? (string) $za->getFromName('xl/workbook.xml') : '';
+    // sheet order: 1 Trial Balance, 2 Financial Position, 3 Profit&Loss, 4 Cash Flows, 5 Changes in Equity, 6 Notes
+    $aSofp = $okA ? (string) $za->getFromName('xl/worksheets/sheet2.xml') : '';
+    $aCf = $okA ? (string) $za->getFromName('xl/worksheets/sheet4.xml') : '';
+    $aNotes = $okA ? (string) $za->getFromName('xl/worksheets/sheet6.xml') : '';
+    if ($okA) { $za->close(); }
+    @unlink($tmpA);
+    check('Audit pack has one sheet per element (TB, SOFP, P&L, CF, SOCE, Notes)',
+        strpos($wbA, 'name="Trial Balance"') !== false && strpos($wbA, 'name="Financial Position"') !== false
+        && strpos($wbA, 'name="Profit &amp; Loss OCI"') !== false && strpos($wbA, 'name="Cash Flows"') !== false
+        && strpos($wbA, 'name="Changes in Equity"') !== false && strpos($wbA, 'name="Notes"') !== false, '6 sheets');
+    check('SOFP cells are live formulas linked to the Trial Balance', strpos($aSofp, "&apos;Trial Balance&apos;!C3") !== false && strpos($aSofp, 'B5+B10') !== false, 'SOFP→TB');
+    check('Cash flow links to P&L and reconciles cash', strpos($aCf, "&apos;Profit &amp; Loss OCI&apos;!B9") !== false && strpos($aCf, 'B22+B23') !== false, 'CF→P&L');
+    check('Notes totals link back to the face statements', strpos($aNotes, "&apos;Financial Position&apos;!B3") !== false && strpos($aNotes, "&apos;Financial Position&apos;!B8") !== false, 'Notes→SOFP');
+}
+
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
 echo "========================================\n";

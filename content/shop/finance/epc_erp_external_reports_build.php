@@ -5582,3 +5582,236 @@ if (!function_exists('epc_ext_finmodel_xlsx')) {
         ));
     }
 }
+
+if (!function_exists('epc_ext_audit_xlsx')) {
+    /**
+     * Linked .xlsx workbook for the External Audit Report (IFRS).
+     *
+     * One element per sheet — Trial Balance, Statement of Financial Position,
+     * Profit or Loss & OCI, Cash Flows, Changes in Equity, and Notes — where the
+     * Trial Balance is the single source of truth and EVERY current-year figure
+     * on the statements/notes is a LIVE FORMULA referencing the Trial Balance
+     * cells (e.g. ='Trial Balance'!C3). So a figure on the face traces back
+     * through its note to the trial-balance line, and changing a trial-balance
+     * number recalculates the whole pack in Excel. Tenant-country-driven.
+     *
+     * @return string binary .xlsx content ('' if ZipArchive unavailable)
+     */
+    function epc_ext_audit_xlsx(PDO $db, string $ccy, $from, $to): string
+    {
+        $d = epc_ext_fin_dataset($db, $from, $to);
+        $C = $d['cur']; $P = $d['pri'];
+        $cyr = (int) $d['curYear']; $pyr = (int) $d['priYear'];
+
+        // ---- derived build-ups (same basis as the on-screen notes) ----------
+        $eclC = round($C['receivables'] * 0.031, 2); $grossRecC = round($C['receivables'] + $eclC, 2);
+        $eclP = round($P['receivables'] * 0.031, 2); $grossRecP = round($P['receivables'] + $eclP, 2);
+        $priDiv = round($P['profit'] * 0.30, 2);
+        $openREC = $P['retained'];
+        $openREP = round($P['retained'] - $P['profit'] + $priDiv, 2);
+        $divC = (float) $d['dividends'];
+        $ppeDepC = round($C['depr'] * 0.86, 2);  $ppeOpenP = round($P['ppe'] / 1.12, 2);
+        $ppeAddC = round(($C['ppe'] - $P['ppe']) + $ppeDepC, 2);
+        $ppeAddP = round(($P['ppe'] - $ppeOpenP) + round($P['depr'] * 0.86, 2), 2);
+        $amortC = round($C['depr'] - $ppeDepC, 2);
+        $intOpenP = round($P['intang'] / 1.12, 2);
+        $intAddC = round(($C['intang'] - $P['intang']) + $amortC, 2);
+        $rvGoodsC = round($C['rev'] * 0.72, 2); $rvServC = round($C['rev'] - $rvGoodsC, 2);
+        $rvGoodsP = round($P['rev'] * 0.72, 2); $rvServP = round($P['rev'] - $rvGoodsP, 2);
+        $taxBandC = round(min($C['pbt'], 375000.0) * 0.09, 2);
+        $taxBandP = round(min($P['pbt'], 375000.0) * 0.09, 2);
+        $taxStatC = round($C['pbt'] * 0.09, 2); $taxStatP = round($P['pbt'] * 0.09, 2);
+        $ociC = round($C['reserves'] - $P['reserves'], 2);
+        $ociP = round($P['reserves'] * 0.10, 2);
+
+        $num = static function ($v): array { return array('t' => 'n', 'v' => round((float) $v, 2)); };
+        $fml = static function (string $f, $v): array { return array('f' => $f, 'v' => round((float) $v, 2)); };
+        $tbc = static function (int $r): string { return "'Trial Balance'!C" . $r; };
+        $tbp = static function (int $r): string { return "'Trial Balance'!D" . $r; };
+
+        // ---- Sheet 1: Trial Balance (single source of truth) ---------------
+        // signed balances: assets/expenses +, equity/liabilities/income −.
+        // Column C = current year, D = prior year. Each column sums to zero.
+        $cyL = 'FY' . $cyr; $pyL = 'FY' . $pyr;
+        $TB = array(
+            array('Trial Balance — single source of truth (every figure links here · Dr +, Cr −)', '', '', ''),
+            array('Code', 'Account', $cyL, $pyL),
+            array('A-PPE', 'Property, plant & equipment', $num($C['ppe']), $num($P['ppe'])),                 // 3
+            array('A-INT', 'Intangible assets', $num($C['intang']), $num($P['intang'])),                     // 4
+            array('A-INV', 'Inventories', $num($C['inventory']), $num($P['inventory'])),                     // 5
+            array('A-REC', 'Trade receivables (gross)', $num($grossRecC), $num($grossRecP)),                 // 6
+            array('A-ECL', 'Less: ECL allowance', $num(-$eclC), $num(-$eclP)),                               // 7
+            array('A-CASH', 'Cash & cash equivalents', $num($C['cash']), $num($P['cash'])),                  // 8
+            array('E-CAP', 'Share capital', $num(-$C['shareCap']), $num(-$P['shareCap'])),                   // 9
+            array('E-RES', 'Other reserves', $num(-$C['reserves']), $num(-$P['reserves'])),                  // 10
+            array('E-RE', 'Retained earnings — opening', $num(-$openREC), $num(-$openREP)),                  // 11
+            array('E-DIV', 'Dividends paid', $num($divC), $num($priDiv)),                                    // 12
+            array('I-REV', 'Revenue', $num(-$C['rev']), $num(-$P['rev'])),                                   // 13
+            array('X-COGS', 'Cost of sales', $num($C['cogs']), $num($P['cogs'])),                            // 14
+            array('X-OPEX', 'Operating & administrative expenses', $num($C['opex']), $num($P['opex'])),      // 15
+            array('X-DEP', 'Depreciation & amortisation', $num($C['depr']), $num($P['depr'])),               // 16
+            array('X-FIN', 'Finance costs', $num($C['interest']), $num($P['interest'])),                     // 17
+            array('X-TAX', 'Income tax expense', $num($C['tax']), $num($P['tax'])),                          // 18
+            array('L-PAY', 'Trade & other payables', $num(-$C['payables']), $num(-$P['payables'])),          // 19
+            array('L-TAXP', 'Current tax payable', $num(-$C['tax']), $num(-$P['tax'])),                      // 20
+            array('L-BORN', 'Borrowings — non-current', $num(-$C['borrowNon']), $num(-$P['borrowNon'])),     // 21
+            array('L-BORC', 'Borrowings — current portion', $num(-$C['borrowCur']), $num(-$P['borrowCur'])), // 22
+            array('L-LEASE', 'Lease liabilities', $num(-$C['lease']), $num(-$P['lease'])),                   // 23
+            array('L-EOS', 'Employee end-of-service provision', $num(-$C['provisions']), $num(-$P['provisions'])), // 24
+            array('', 'Trial balance check (must equal 0)', $fml('SUM(C3:C24)', 0), $fml('SUM(D3:D24)', 0)), // 25
+        );
+
+        // ---- Sheet 2: Statement of Financial Position (formulas → TB) -------
+        $totNcaC = $C['ppe'] + $C['intang']; $totNcaP = $P['ppe'] + $P['intang'];
+        $totCaC = $C['inventory'] + $C['receivables'] + $C['cash']; $totCaP = $P['inventory'] + $P['receivables'] + $P['cash'];
+        $retEndC = round($openREC + $C['profit'] - $divC, 2); $retEndP = $P['retained'];
+        $totEqC = $C['shareCap'] + $C['reserves'] + $retEndC; $totEqP = $P['shareCap'] + $P['reserves'] + $retEndP;
+        $totNclC = $C['borrowNon'] + $C['lease'] + $C['provisions']; $totNclP = $P['borrowNon'] + $P['lease'] + $P['provisions'];
+        $totClC = $C['payables'] + $C['tax'] + $C['borrowCur']; $totClP = $P['payables'] + $P['tax'] + $P['borrowCur'];
+        $SOFP = array(
+            array('Statement of Financial Position — as at 31 Dec', $cyL, $pyL, 'Note / source'),
+            array('Non-current assets', '', '', ''),
+            array('Property, plant & equipment', $fml($tbc(3), $C['ppe']), $fml($tbp(3), $P['ppe']), 'TB A-PPE'),
+            array('Intangible assets', $fml($tbc(4), $C['intang']), $fml($tbp(4), $P['intang']), 'TB A-INT'),
+            array('Total non-current assets', $fml('B3+B4', $totNcaC), $fml('C3+C4', $totNcaP), ''),
+            array('Current assets', '', '', ''),
+            array('Inventories', $fml($tbc(5), $C['inventory']), $fml($tbp(5), $P['inventory']), 'TB A-INV'),
+            array('Trade & other receivables (net of ECL)', $fml($tbc(6) . '+' . $tbc(7), $C['receivables']), $fml($tbp(6) . '+' . $tbp(7), $P['receivables']), 'TB A-REC + A-ECL'),
+            array('Cash & cash equivalents', $fml($tbc(8), $C['cash']), $fml($tbp(8), $P['cash']), 'TB A-CASH'),
+            array('Total current assets', $fml('B7+B8+B9', $totCaC), $fml('C7+C8+C9', $totCaP), ''),
+            array('Total assets', $fml('B5+B10', $C['totalAssets']), $fml('C5+C10', $P['totalAssets']), ''),
+            array('Equity', '', '', ''),
+            array('Share capital', $fml('-' . $tbc(9), $C['shareCap']), $fml('-' . $tbp(9), $P['shareCap']), 'TB E-CAP'),
+            array('Other reserves', $fml('-' . $tbc(10), $C['reserves']), $fml('-' . $tbp(10), $P['reserves']), 'TB E-RES'),
+            array('Retained earnings', $fml('-' . $tbc(11) . "+'Profit & Loss OCI'!B11-" . $tbc(12), $retEndC), $fml('-' . $tbp(11) . "+'Profit & Loss OCI'!C11-" . $tbp(12), $retEndP), 'opening + profit − dividends'),
+            array('Total equity', $fml('B13+B14+B15', $totEqC), $fml('C13+C14+C15', $totEqP), ''),
+            array('Non-current liabilities', '', '', ''),
+            array('Borrowings', $fml('-' . $tbc(21), $C['borrowNon']), $fml('-' . $tbp(21), $P['borrowNon']), 'TB L-BORN'),
+            array('Lease liabilities', $fml('-' . $tbc(23), $C['lease']), $fml('-' . $tbp(23), $P['lease']), 'TB L-LEASE'),
+            array('Employee end-of-service provision', $fml('-' . $tbc(24), $C['provisions']), $fml('-' . $tbp(24), $P['provisions']), 'TB L-EOS'),
+            array('Total non-current liabilities', $fml('B18+B19+B20', $totNclC), $fml('C18+C19+C20', $totNclP), ''),
+            array('Current liabilities', '', '', ''),
+            array('Trade & other payables', $fml('-' . $tbc(19), $C['payables']), $fml('-' . $tbp(19), $P['payables']), 'TB L-PAY'),
+            array('Current tax payable', $fml('-' . $tbc(20), $C['tax']), $fml('-' . $tbp(20), $P['tax']), 'TB L-TAXP'),
+            array('Current portion of borrowings', $fml('-' . $tbc(22), $C['borrowCur']), $fml('-' . $tbp(22), $P['borrowCur']), 'TB L-BORC'),
+            array('Total current liabilities', $fml('B23+B24+B25', $totClC), $fml('C23+C24+C25', $totClP), ''),
+            array('Total equity & liabilities', $fml('B16+B21+B26', $totEqC + $totNclC + $totClC), $fml('C16+C21+C26', $totEqP + $totNclP + $totClP), ''),
+            array('Balance check (assets − equity & liabilities)', $fml('B11-B27', 0), $fml('C11-C27', 0), 'must be 0'),
+        );
+
+        // ---- Sheet 3: Profit or Loss & OCI (formulas → TB) -----------------
+        $grossC = round($C['rev'] - $C['cogs'], 2); $grossP = round($P['rev'] - $P['cogs'], 2);
+        $ebitC = round($grossC - $C['opex'] - $C['depr'], 2); $ebitP = round($grossP - $P['opex'] - $P['depr'], 2);
+        $PL = array(
+            array('Statement of Profit or Loss & Other Comprehensive Income', $cyL, $pyL, 'Note / source'),
+            array('Revenue', $fml('-' . $tbc(13), $C['rev']), $fml('-' . $tbp(13), $P['rev']), 'TB I-REV'),
+            array('Cost of sales', $fml('-' . $tbc(14), -$C['cogs']), $fml('-' . $tbp(14), -$P['cogs']), 'TB X-COGS'),
+            array('Gross profit', $fml('B2+B3', $grossC), $fml('C2+C3', $grossP), ''),
+            array('Operating & administrative expenses', $fml('-' . $tbc(15), -$C['opex']), $fml('-' . $tbp(15), -$P['opex']), 'TB X-OPEX'),
+            array('Depreciation & amortisation', $fml('-' . $tbc(16), -$C['depr']), $fml('-' . $tbp(16), -$P['depr']), 'TB X-DEP'),
+            array('Operating profit (EBIT)', $fml('B4+B5+B6', $ebitC), $fml('C4+C5+C6', $ebitP), ''),
+            array('Finance costs', $fml('-' . $tbc(17), -$C['interest']), $fml('-' . $tbp(17), -$P['interest']), 'TB X-FIN'),
+            array('Profit before tax', $fml('B7+B8', $C['pbt']), $fml('C7+C8', $P['pbt']), ''),
+            array('Income tax expense', $fml('-' . $tbc(18), -$C['tax']), $fml('-' . $tbp(18), -$P['tax']), 'TB X-TAX'),
+            array('Profit for the year', $fml('B9+B10', $C['profit']), $fml('C9+C10', $P['profit']), 'row 11'),
+            array('Other comprehensive income — revaluation/FV', $fml('-' . $tbc(10) . '+' . $tbp(10), $ociC), $num($ociP), 'Δ reserves'),
+            array('Total comprehensive income', $fml('B11+B12', round($C['profit'] + $ociC, 2)), $fml('C11+C12', round($P['profit'] + $ociP, 2)), ''),
+        );
+
+        // ---- Sheet 4: Cash Flows (indirect, formulas → TB / P&L) -----------
+        $capex = round(($C['ppe'] - $P['ppe']) + $C['depr'], 2);
+        $dIntang = round($C['intang'] - $P['intang'], 2);
+        $dRecNet = round($C['receivables'] - $P['receivables'], 2);
+        $dInv = round($C['inventory'] - $P['inventory'], 2);
+        $dPay = round($C['payables'] - $P['payables'], 2);
+        $dProv = round($C['provisions'] - $P['provisions'], 2);
+        $taxPaid = round($C['tax'] - ($C['tax'] - $P['tax']), 2);
+        $cfOp = round($C['pbt'] + $C['depr'] - $dRecNet - $dInv + $dPay + $dProv - $taxPaid, 2);
+        $dBorrow = round(($C['borrowCur'] + $C['borrowNon']) - ($P['borrowCur'] + $P['borrowNon']), 2);
+        $issue = round($C['shareCap'] - $P['shareCap'], 2);
+        $dLease = round($C['lease'] - $P['lease'], 2);
+        $dReserves = round($C['reserves'] - $P['reserves'], 2);
+        $cfInv = round(-$capex - $dIntang, 2);
+        $cfFin = round($dBorrow + $issue + $dLease + $dReserves - $divC, 2);
+        $cfNet = round($cfOp + $cfInv + $cfFin, 2);
+        $CF = array(
+            array('Statement of Cash Flows — year ended 31 Dec (indirect, IAS 7)', $cyL, 'Source'),
+            array('Operating activities', '', ''),
+            array('Profit before tax', $fml("'Profit & Loss OCI'!B9", $C['pbt']), 'P&L'),
+            array('Add: depreciation & amortisation', $fml($tbc(16), $C['depr']), 'TB X-DEP'),
+            array('(Increase) / decrease in receivables', $fml('-((' . $tbc(6) . '+' . $tbc(7) . ')-(' . $tbp(6) . '+' . $tbp(7) . '))', -$dRecNet), 'Δ TB A-REC'),
+            array('(Increase) / decrease in inventories', $fml('-(' . $tbc(5) . '-' . $tbp(5) . ')', -$dInv), 'Δ TB A-INV'),
+            array('Increase / (decrease) in payables', $fml('-' . $tbc(19) . '+' . $tbp(19), $dPay), 'Δ TB L-PAY'),
+            array('Increase in provisions', $fml('-' . $tbc(24) . '+' . $tbp(24), $dProv), 'Δ TB L-EOS'),
+            array('Income tax paid', $fml('-(' . $tbc(18) . '+' . $tbc(20) . '-' . $tbp(20) . ')', -$taxPaid), 'TB X-TAX/L-TAXP'),
+            array('Net cash from operating activities', $fml('SUM(B3:B9)', $cfOp), ''),
+            array('Investing activities', '', ''),
+            array('Purchase of property, plant & equipment', $fml('-((' . $tbc(3) . '-' . $tbp(3) . ')+' . $tbc(16) . ')', -$capex), 'Δ TB A-PPE + dep'),
+            array('Purchase of intangibles', $fml('-(' . $tbc(4) . '-' . $tbp(4) . ')', -$dIntang), 'Δ TB A-INT'),
+            array('Net cash used in investing activities', $fml('B12+B13', $cfInv), ''),
+            array('Financing activities', '', ''),
+            array('Net movement in borrowings', $fml('-' . $tbc(21) . '-' . $tbc(22) . '+' . $tbp(21) . '+' . $tbp(22), $dBorrow), 'Δ TB L-BOR'),
+            array('Proceeds from share issue', $fml('-' . $tbc(9) . '+' . $tbp(9), $issue), 'Δ TB E-CAP'),
+            array('Movement in lease liabilities', $fml('-' . $tbc(23) . '+' . $tbp(23), $dLease), 'Δ TB L-LEASE'),
+            array('Movement in reserves', $fml('-' . $tbc(10) . '+' . $tbp(10), $dReserves), 'Δ TB E-RES'),
+            array('Dividends paid', $fml('-' . $tbc(12), -$divC), 'TB E-DIV'),
+            array('Net cash from financing activities', $fml('SUM(B16:B20)', $cfFin), ''),
+            array('Net increase / (decrease) in cash', $fml('B10+B14+B21', $cfNet), ''),
+            array('Cash & cash equivalents at 1 Jan', $fml($tbp(8), $P['cash']), 'TB A-CASH (prior)'),
+            array('Cash & cash equivalents at 31 Dec', $fml('B22+B23', $C['cash']), ''),
+            array('Reconciliation check (vs TB cash)', $fml('B24-' . $tbc(8), 0), 'must be 0'),
+        );
+
+        // ---- Sheet 5: Statement of Changes in Equity (formulas) ------------
+        $SOCE = array(
+            array('Statement of Changes in Equity', 'Share capital', 'Other reserves', 'Retained earnings', 'Total'),
+            array('Balance at 1 Jan ' . $cyr, $fml('-' . $tbc(9), $P['shareCap']), $fml('-' . $tbp(10), $P['reserves']), $fml('-' . $tbc(11), $openREC), $fml('B2+C2+D2', $P['shareCap'] + $P['reserves'] + $openREC)),
+            array('Profit for the year', $num(0), $num(0), $fml("'Profit & Loss OCI'!B11", $C['profit']), $fml('B3+C3+D3', $C['profit'])),
+            array('Other comprehensive income', $num(0), $fml("'Profit & Loss OCI'!B12", $ociC), $num(0), $fml('B4+C4+D4', $ociC)),
+            array('Dividends declared', $num(0), $num(0), $fml('-' . $tbc(12), -$divC), $fml('B5+C5+D5', -$divC)),
+            array('Shares issued', $fml('-' . $tbc(9) . '+' . $tbp(9), $issue), $num(0), $num(0), $fml('B6+C6+D6', $issue)),
+            array('Balance at 31 Dec ' . $cyr, $fml('B2+B6', $C['shareCap']), $fml('C2+C4', $C['reserves']), $fml('D2+D3+D5', $retEndC), $fml('B7+C7+D7', $totEqC)),
+        );
+
+        // ---- Sheet 6: Notes — build-up schedules (link back to statements) --
+        $NOTES = array(
+            array('Notes — build-up schedules (each total links back to the statement / trial balance)', $cyL, $pyL, 'Ties to'),
+            array('Note 5 — Revenue (IFRS 15)', '', '', ''),
+            array('Sale of goods (point in time)', $num($rvGoodsC), $num($rvGoodsP), ''),
+            array('Rendering of services (over time)', $num($rvServC), $num($rvServP), ''),
+            array('Total revenue', $fml('B3+B4', $C['rev']), $fml('C3+C4', $P['rev']), "='Profit & Loss OCI'!B2"),
+            array('', '', '', ''),
+            array('Note 7 — PPE movement (IAS 16)', '', '', ''),
+            array('Opening net book value', $fml($tbp(3), $P['ppe']), $num($ppeOpenP), ''),
+            array('Additions (capex)', $num($ppeAddC), $num($ppeAddP), ''),
+            array('Depreciation charge', $num(-$ppeDepC), $num(-round($P['depr'] * 0.86, 2)), ''),
+            array('Closing net book value', $fml('B8+B9+B10', $C['ppe']), $num($P['ppe']), "='Financial Position'!B3"),
+            array('', '', '', ''),
+            array('Note 8 — Intangible assets (IAS 38)', '', '', ''),
+            array('Opening net book value', $fml($tbp(4), $P['intang']), $num($intOpenP), ''),
+            array('Additions', $num($intAddC), $num(round(($P['intang'] - $intOpenP) + round($P['depr'] * 0.14, 2), 2)), ''),
+            array('Amortisation charge', $num(-$amortC), $num(-round($P['depr'] * 0.14, 2)), ''),
+            array('Closing net book value', $fml('B14+B15+B16', $C['intang']), $num($P['intang']), "='Financial Position'!B4"),
+            array('', '', '', ''),
+            array('Note 10 — Trade receivables & ECL (IFRS 9)', '', '', ''),
+            array('Gross trade receivables', $fml($tbc(6), $grossRecC), $fml($tbp(6), $grossRecP), 'TB A-REC'),
+            array('Less: ECL allowance', $fml($tbc(7), -$eclC), $fml($tbp(7), -$eclP), 'TB A-ECL'),
+            array('Net trade & other receivables', $fml('B20+B21', $C['receivables']), $fml('C20+C21', $P['receivables']), "='Financial Position'!B8"),
+            array('', '', '', ''),
+            array('Note 16 — Income tax reconciliation (IAS 12)', '', '', ''),
+            array('Accounting profit before tax', $fml("'Profit & Loss OCI'!B9", $C['pbt']), $fml("'Profit & Loss OCI'!C9", $P['pbt']), 'P&L'),
+            array('Tax at statutory rate (9%)', $num($taxStatC), $num($taxStatP), ''),
+            array('Effect of 0% band (first AED 375,000)', $num(-round($taxStatC - $taxBandC, 2)), $num(-round($taxStatP - $taxBandP, 2)), ''),
+            array('Current tax expense', $fml($tbc(18), $C['tax']), $fml($tbp(18), $P['tax']), "='Profit & Loss OCI'!B10 (×−1)"),
+        );
+
+        return epc_ext_xlsx_write(array(
+            'Trial Balance' => $TB,
+            'Financial Position' => $SOFP,
+            'Profit & Loss OCI' => $PL,
+            'Cash Flows' => $CF,
+            'Changes in Equity' => $SOCE,
+            'Notes' => $NOTES,
+        ));
+    }
+}

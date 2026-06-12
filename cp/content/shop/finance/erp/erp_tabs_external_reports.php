@@ -337,6 +337,18 @@ if ($selTool === 'import') {
 				}
 				</script>
 			<?php endif; ?>
+			<?php if ($selRep === 'audit__external_audit_report' && class_exists('ZipArchive')):
+				$audXlsxCcy = (string) ($regProf['currency'] ?? 'AED');
+				$audXlsxName = 'External_Audit_Report_IFRS_FY' . date('Y', $repFrom) . '.xlsx';
+			?>
+				<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcAuditX', '<?php echo epc_erp_h($audXlsxName); ?>')" title="Download a linked Excel workbook — one sheet per element (Trial Balance, SOFP, P&amp;L &amp; OCI, Cash Flows, Changes in Equity, Notes) where every figure links back to the Trial Balance"><i class="fa fa-file-excel-o"></i> Download Excel (linked audit pack)</button>
+				<textarea id="epcAuditX" style="display:none;"><?php echo base64_encode(epc_ext_audit_xlsx($db_link, $audXlsxCcy, $repFrom, $repTo)); ?></textarea>
+				<script>
+				if (typeof epcDlB64 !== 'function') {
+					function epcDlB64(id,fn){var el=document.getElementById(id);if(!el)return;var b64=(el.value!==undefined?el.value:el.textContent).replace(/\s+/g,'');var bin=atob(b64);var len=bin.length;var bytes=new Uint8Array(len);for(var i=0;i<len;i++){bytes[i]=bin.charCodeAt(i);}var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+				}
+				</script>
+			<?php endif; ?>
 			<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($auth['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — <?php echo epc_erp_h($auth['name']); ?></a>
 			<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($auth['format']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Official format / filing portal</a>
 			<?php if ($ifrs): ?>
