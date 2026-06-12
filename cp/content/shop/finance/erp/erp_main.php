@@ -207,6 +207,7 @@ $erpTabIncludes = array(
 	'opening_balances' => 'erp_tabs_opening.php',
 	'contacts' => 'erp_tabs_contacts.php',
 	'documents' => 'erp_tabs_documents.php',
+	'contracts' => 'erp_tabs_contracts.php',
 	'document_control' => 'erp_tabs_document_control.php',
 	'audit' => 'erp_tabs_audit.php',
 	'reports' => 'erp_tabs_reports.php',

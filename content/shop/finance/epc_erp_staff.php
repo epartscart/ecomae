@@ -15,7 +15,7 @@ function epc_erp_staff_all_tabs()
 		'inventory', 'fixed_assets', 'manufacturing', 'custom_shipping',
 		'staff', 'hr', 'hr_ops', 'payroll', 'expense_reports',
 		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit',
-		'agenda', 'projects', 'contacts', 'documents',
+		'agenda', 'projects', 'contacts', 'documents', 'contracts',
 		'erp_setup', 'data_import',
 		// D365 F&O-style modules
 		'business_units', 'listing', 'budgeting',

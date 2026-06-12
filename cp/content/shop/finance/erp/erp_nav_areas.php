@@ -171,10 +171,11 @@ function epc_erp_nav_areas_config()
 				'projects' => array('label' => 'Projects', 'icon' => 'fa-tasks'),
 				'contacts' => array('label' => 'Contacts', 'icon' => 'fa-address-book-o'),
 				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
+				'contracts' => array('label' => 'Contracts &amp; e-sign', 'icon' => 'fa-file-text-o'),
 				'doc_formats' => array('label' => 'Document formats', 'icon' => 'fa-files-o'),
 			),
 			'groups' => array(
-				'Common' => array('agenda', 'projects', 'contacts', 'documents'),
+				'Common' => array('agenda', 'projects', 'contacts', 'documents', 'contracts'),
 				'Setup' => array('doc_formats'),
 			),
 		),

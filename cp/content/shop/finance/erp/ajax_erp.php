@@ -352,6 +352,32 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'ctr_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_contracts.php';
+			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['title'] ?? '')) === '') { throw new Exception('Code and title are required'); }
+			$cd = $_POST;
+			if (!empty($_POST['start_date_str'])) { $cd['start_date'] = strtotime((string)$_POST['start_date_str']) ?: 0; }
+			if (!empty($_POST['end_date_str'])) { $cd['end_date'] = strtotime((string)$_POST['end_date_str']) ?: 0; }
+			$ctrId = epc_ctr_save($db_link, $cd, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Contract saved', array('id' => $ctrId));
+
+		case 'ctr_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_contracts.php';
+			epc_ctr_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'draft'));
+			epc_erp_json(true, 'Contract ' . (string)($_POST['status'] ?? ''));
+
+		case 'ctr_sign':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_contracts.php';
+			if (trim((string)($_POST['signer_name'] ?? '')) === '') { throw new Exception('Signer name is required'); }
+			$ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+			$sig = epc_ctr_sign($db_link, (int)($_POST['contract_id'] ?? 0), (string)$_POST['signer_name'], (string)($_POST['signer_email'] ?? ''), $ip);
+			epc_erp_json(true, 'Signed — ' . substr($sig['hash'], 0, 16) . '…', $sig);
+
+		case 'ctr_ocr':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_contracts.php';
+			epc_ctr_ocr_store($db_link, (int)($_POST['contract_id'] ?? 0), (string)($_POST['text'] ?? ''));
+			epc_erp_json(true, 'OCR text saved');
+
 		case 'hr_emp_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
 			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['name'] ?? '')) === '') { throw new Exception('Code and name are required'); }
