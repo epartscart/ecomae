@@ -445,8 +445,8 @@ try {
 
 		case 'pf_sync_orders':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
-			$pfSynced = epc_pf_sync_all_order_cases($db_link, 300);
-			epc_erp_json(true, $pfSynced . ' customer order(s) tracked in the Order → Delivery process');
+			$pfSyncAll = epc_pf_sync_all_tasks($db_link, 300);
+			epc_erp_json(true, (int) $pfSyncAll['orders'] . ' customer order(s) and ' . (int) $pfSyncAll['purchase_orders'] . ' purchase order(s) tracked across the process flow');
 
 		case 'demo_seed_sales':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_demo_sales.php';

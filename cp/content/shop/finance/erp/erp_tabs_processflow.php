@@ -14,6 +14,13 @@ $pfCaseId = (int) ($_GET['pf_case'] ?? 0);
 $pfProcId = (int) ($_GET['pf_proc'] ?? 0);
 $me = epc_pf_user_id();
 
+// optional reporting window from the ERP date bar (from / to in the URL).
+// Scopes performance counts (tasks completed) and completed/cycle metrics.
+$pfRangeFrom = (isset($_GET['from']) && $_GET['from'] !== '') ? (int) strtotime((string) $_GET['from'] . ' 00:00:00') : 0;
+$pfRangeTo = (isset($_GET['to']) && $_GET['to'] !== '') ? (int) strtotime((string) $_GET['to'] . ' 23:59:59') : 0;
+$pfRange = array('from' => $pfRangeFrom, 'to' => $pfRangeTo);
+$pfHasRange = ($pfRangeFrom > 0 || $pfRangeTo > 0);
+
 $deptCfg = epc_erp_departments_config();
 $staff = epc_erp_staff_list($db_link);
 
@@ -30,7 +37,7 @@ $tabBase = epc_erp_tab_url($erpUrl, 'processflow', $date_from_str, $date_to_str)
 $sep = strpos($tabBase, '?') === false ? '?' : '&';
 function pf_url($tabBase, $sep, $view, $extra = '') { return $tabBase . $sep . 'pf_view=' . $view . $extra; }
 
-$views = array('monitor' => 'Monitor', 'orgmap' => 'Org map', 'workforce' => 'Workforce', 'inbox' => 'My inbox', 'processes' => 'Processes', 'heads' => 'Department heads');
+$views = array('monitor' => 'Monitor', 'orgmap' => 'Org map', 'hierarchy' => 'Hierarchy', 'workforce' => 'Workforce', 'inbox' => 'My inbox', 'processes' => 'Processes', 'heads' => 'Department heads');
 ?>
 <div id="epc_erp_msg" class="alert" style="display:none;"></div>
 
@@ -41,6 +48,20 @@ $views = array('monitor' => 'Monitor', 'orgmap' => 'Org map', 'workforce' => 'Wo
 		</a></li>
 	<?php endforeach; ?>
 </ul>
+
+<?php
+if ($pfHasRange):
+	$rangeLabel = trim((string) ($date_from_str ?? '')) . ' → ' . trim((string) ($date_to_str ?? ''));
+	$clearUrl = preg_replace('/&?(from|to)=[^&]*/', '', $tabBase);
+	$clearUrl = rtrim((string) $clearUrl, '?&');
+	$clearUrl .= (strpos($clearUrl, '?') === false ? '?' : '&') . 'pf_view=' . rawurlencode($pfView);
+?>
+<div class="alert" style="background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;padding:8px 12px;border-radius:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+	<i class="fa fa-calendar"></i>
+	<span>Reporting period: <strong><?php echo epc_erp_h($rangeLabel); ?></strong> — performance (tasks completed), completed cases and average cycle are scoped to this range.</span>
+	<a href="<?php echo epc_erp_h($clearUrl); ?>" class="btn btn-xs btn-default" style="margin-left:auto;"><i class="fa fa-times"></i> Clear period</a>
+</div>
+<?php endif; ?>
 
 <?php
 /* =================== CASE DETAIL =================== */
@@ -558,9 +579,141 @@ elseif ($pfView === 'orgmap'):
 	</script>
 
 <?php
+/* =================== HIERARCHY (org tree: legal entity > BU > department > location > employee, with rolled-up task counts) =================== */
+elseif ($pfView === 'hierarchy'):
+	$hw = epc_pf_workforce_data($db_link, $pfRange);
+	$hwJson = json_encode($hw, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+	$hCaseBase = pf_url($tabBase, $sep, 'monitor', '&pf_case=');
+?>
+	<style>
+	.pf-hr-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+	.pf-hr-toolbar .seg{display:inline-flex;border:1px solid #cbd5e1;border-radius:7px;overflow:hidden;}
+	.pf-hr-toolbar .seg button{background:#fff;color:#334155;border:0;border-right:1px solid #e2e8f0;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;}
+	.pf-hr-toolbar .seg button:last-child{border-right:0;}
+	.pf-hr-toolbar .seg button.on{background:#2563eb;color:#fff;}
+	.pf-hr-toolbar input{border:1px solid #cbd5e1;border-radius:7px;padding:6px 10px;font-size:12px;min-width:200px;}
+	.pf-hr-toolbar .btn-mini{font-size:11px;padding:5px 9px;border:1px solid #cbd5e1;background:#fff;border-radius:7px;cursor:pointer;color:#334155;}
+	.pf-tree{font-size:13px;}
+	.pf-node{margin:2px 0;}
+	.pf-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;border:1px solid #eef2f7;background:#fff;}
+	.pf-row:hover{background:#f8fafc;}
+	.pf-row.lv0{border-left:4px solid #7c3aed;}
+	.pf-row.lv1{border-left:4px solid #f59e0b;}
+	.pf-row.lv2{border-left:4px solid #2563eb;}
+	.pf-row.lv3{border-left:4px solid #0891b2;}
+	.pf-row.lv4{border-left:4px solid #94a3b8;}
+	.pf-tw{width:16px;text-align:center;color:#64748b;cursor:pointer;flex:0 0 auto;font-size:12px;}
+	.pf-lbl{font-weight:700;color:#0f172a;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+	.pf-lbl .sub{font-weight:500;color:#64748b;font-size:11px;}
+	.pf-badges{display:flex;gap:5px;flex:0 0 auto;}
+	.pf-b{font-size:11px;font-weight:700;border-radius:9px;padding:1px 8px;white-space:nowrap;}
+	.pf-b.staff{background:#eef2ff;color:#3730a3;}
+	.pf-b.open{background:#fee2e2;color:#b91c1c;}
+	.pf-b.done{background:#ede9fe;color:#6d28d9;}
+	.pf-kids{margin-left:18px;border-left:1px dashed #e2e8f0;padding-left:8px;}
+	.pf-av{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:700;overflow:hidden;flex:0 0 auto;}
+	.pf-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+	</style>
+
+	<div class="pf-hr-toolbar">
+		<label style="font-size:12px;color:#475569;margin:0;">Drill order</label>
+		<div class="seg" id="hr_mode">
+			<button data-m="le-bu-dept-loc-emp" class="on">Entity ▸ BU ▸ Dept ▸ Location ▸ Staff</button>
+			<button data-m="bu-dept-emp">BU ▸ Dept ▸ Staff</button>
+			<button data-m="loc-dept-emp">Location ▸ Dept ▸ Staff</button>
+			<button data-m="dept-emp">Dept ▸ Staff</button>
+		</div>
+		<button class="btn-mini" id="hr_expand"><i class="fa fa-plus-square-o"></i> Expand all</button>
+		<button class="btn-mini" id="hr_collapse"><i class="fa fa-minus-square-o"></i> Collapse all</button>
+		<input type="text" id="hr_search" placeholder="Search staff / dept / location…">
+	</div>
+	<div class="pf-tree" id="hr_tree"></div>
+
+	<script>
+	(function(){
+		var HW = <?php echo $hwJson ?: '{"staff":[]}'; ?>;
+		var CASE_BASE = <?php echo json_encode($hCaseBase); ?>;
+		var staff = HW.staff || [];
+		var mode = 'le-bu-dept-loc-emp', search='', expanded={};
+		function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+		function initials(n){ n=(n||'').trim().split(/\s+/); return ((n[0]||'?')[0]+(n.length>1?n[n.length-1][0]:'')).toUpperCase(); }
+		function avColor(n){ var h=0; n=n||''; for(var i=0;i<n.length;i++){h=(h*31+n.charCodeAt(i))%360;} return 'hsl('+h+',55%,45%)'; }
+		function av(name,url,sz){ sz=sz||24; var u=url||('https://api.dicebear.com/7.x/avataaars/svg?radius=50&seed='+encodeURIComponent(name||'staff')); return '<span class="pf-av" style="width:'+sz+'px;height:'+sz+'px;font-size:'+Math.round(sz*0.36)+'px;background:'+avColor(name)+';">'+esc(initials(name))+'<img src="'+esc(u)+'" alt="" onerror="this.remove()"></span>'; }
+		function dims(){
+			return {'le':function(s){return s.legalEntity||'Unassigned entity';},
+				'bu':function(s){return s.bu||'Unassigned BU';},
+				'dept':function(s){return s.deptName||'Unassigned';},
+				'loc':function(s){return s.location||'No location';}};
+		}
+		function levelKeys(){ return mode.split('-'); }
+		function matchSearch(s){ if(!search) return true; var h=(s.name+' '+s.title+' '+s.deptName+' '+s.location+' '+s.bu+' '+s.legalEntity).toLowerCase(); return h.indexOf(search)>=0; }
+		// build nested tree from staff using the chosen drill order; last level "emp" = leaves
+		function build(list){
+			var keys=levelKeys(), D=dims();
+			function rec(items, depth){
+				if(keys[depth]==='emp' || depth>=keys.length){
+					return items.map(function(s){ return {leaf:true, s:s}; });
+				}
+				var f=D[keys[depth]], groups={};
+				items.forEach(function(s){ var k=f(s); (groups[k]=groups[k]||[]).push(s); });
+				return Object.keys(groups).sort(function(a,b){return groups[b].length-groups[a].length||a.localeCompare(b);}).map(function(k){
+					var arr=groups[k];
+					return {leaf:false, key:k, depth:depth, items:arr, children:rec(arr, depth+1),
+						staff:arr.length,
+						open:arr.reduce(function(a,s){return a+(s.busy||0);},0),
+						done:arr.reduce(function(a,s){return a+(s.done||0);},0)};
+				});
+			}
+			return rec(list, 0);
+		}
+		function path(depth,key){ return depth+'::'+key; }
+		function nodeHtml(n, lvl){
+			if(n.leaf){
+				var s=n.s;
+				var tk = s.busy>0 ? '<span class="pf-b open">'+s.busy+' open</span>' : '';
+				var dn = (s.done||0)>0 ? '<span class="pf-b done">'+s.done+' done</span>' : '';
+				return '<div class="pf-node"><div class="pf-row lv4"'+(s.busy>0?' data-case="'+s.tasks[0].id+'" style="cursor:pointer;"':'')+'>'+
+					'<span class="pf-tw"></span>'+av(s.name,s.avatar,24)+
+					'<span class="pf-lbl">'+esc(s.name)+' <span class="sub">· '+esc(s.title||'')+'</span></span>'+
+					'<span class="pf-badges">'+tk+dn+'</span></div></div>';
+			}
+			var id=path(n.depth,n.key), isOpen=!!expanded[id];
+			var tw=isOpen?'<i class="fa fa-caret-down"></i>':'<i class="fa fa-caret-right"></i>';
+			var html='<div class="pf-node"><div class="pf-row lv'+Math.min(lvl,4)+'" data-toggle="'+esc(id)+'">'+
+				'<span class="pf-tw">'+tw+'</span>'+
+				'<span class="pf-lbl">'+esc(n.key)+'</span>'+
+				'<span class="pf-badges"><span class="pf-b staff">'+n.staff+' staff</span>'+
+				(n.open>0?'<span class="pf-b open">'+n.open+' open</span>':'')+
+				(n.done>0?'<span class="pf-b done">'+n.done+' done</span>':'')+'</span></div>';
+			if(isOpen){ html+='<div class="pf-kids">'+n.children.map(function(c){return nodeHtml(c, lvl+1);}).join('')+'</div>'; }
+			return html+'</div>';
+		}
+		function render(){
+			var list=staff.filter(matchSearch);
+			var tree=build(list), box=document.getElementById('hr_tree');
+			box.innerHTML = tree.length ? tree.map(function(n){return nodeHtml(n,0);}).join('') : '<div style="color:#94a3b8;padding:14px;">No staff match.</div>';
+			box.querySelectorAll('[data-toggle]').forEach(function(r){ r.addEventListener('click', function(e){ if(e.target.closest('[data-case]'))return; var id=r.getAttribute('data-toggle'); expanded[id]=!expanded[id]; render(); }); });
+			box.querySelectorAll('[data-case]').forEach(function(c){ c.addEventListener('click', function(e){ e.stopPropagation(); window.location.href=CASE_BASE+c.getAttribute('data-case'); }); });
+		}
+		function allIds(){
+			var ids={}, keys=levelKeys(), D=dims(), list=staff.filter(matchSearch);
+			function rec(items,depth){ if(keys[depth]==='emp'||depth>=keys.length)return; var f=D[keys[depth]],g={}; items.forEach(function(s){var k=f(s);(g[k]=g[k]||[]).push(s);}); Object.keys(g).forEach(function(k){ids[path(depth,k)]=1; rec(g[k],depth+1);}); }
+			rec(list,0); return ids;
+		}
+		document.querySelectorAll('#hr_mode button').forEach(function(b){ b.addEventListener('click', function(){ document.querySelectorAll('#hr_mode button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); mode=b.getAttribute('data-m'); expanded={}; render(); }); });
+		document.getElementById('hr_expand').addEventListener('click', function(){ expanded=allIds(); render(); });
+		document.getElementById('hr_collapse').addEventListener('click', function(){ expanded={}; render(); });
+		document.getElementById('hr_search').addEventListener('input', function(e){ search=e.target.value.toLowerCase(); render(); });
+		// open the first level by default
+		(function(){ var t=build(staff); t.forEach(function(n){ if(!n.leaf) expanded[path(n.depth,n.key)]=1; }); })();
+		render();
+	})();
+	</script>
+
+<?php
 /* =================== WORKFORCE (all staff in one view: busy on which task, by dept/location/task) =================== */
 elseif ($pfView === 'workforce'):
-	$wf = epc_pf_workforce_data($db_link);
+	$wf = epc_pf_workforce_data($db_link, $pfRange);
 	$wfJson = json_encode($wf, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 	$wfCaseBase = pf_url($tabBase, $sep, 'monitor', '&pf_case=');
 ?>
@@ -752,7 +905,7 @@ elseif ($pfView === 'workforce'):
 <?php
 /* =================== MONITOR =================== */
 elseif ($pfView === 'monitor'):
-	$sum = epc_pf_monitor_summary($db_link);
+	$sum = epc_pf_monitor_summary($db_link, $pfRange);
 	$fStatus = (string) ($_GET['f_status'] ?? 'open');
 	$cases = epc_pf_cases($db_link, array('status' => $fStatus !== 'all' ? $fStatus : '', 'limit' => 300));
 	$processes = epc_pf_processes($db_link, true);

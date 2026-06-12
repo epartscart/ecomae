@@ -166,6 +166,7 @@ function epc_erp_po_save(PDO $db, array $data)
 		$db->prepare(
 			'UPDATE `epc_erp_purchase_orders` SET `supplier_id`=?, `title`=?, `amount_ex_vat`=?, `vat_amount`=?, `total_amount`=?, `status`=?, `notes`=?, `time_updated`=? WHERE `id`=?'
 		)->execute(array($supplierId, $title, $amountEx, $vat, $total, $status, trim((string) ($data['notes'] ?? '')), $now, $id));
+		epc_erp_po_pf_sync($db, $id);
 		return $id;
 	}
 	require_once __DIR__ . '/epc_erp_vouchers.php';
@@ -175,7 +176,22 @@ function epc_erp_po_save(PDO $db, array $data)
 		'INSERT INTO `epc_erp_purchase_orders` (`po_no`, `voucher_no`, `supplier_id`, `title`, `amount_ex_vat`, `vat_amount`, `total_amount`, `status`, `notes`, `admin_id`, `time_created`, `time_updated`)
 		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
 	)->execute(array($poNo, $poNo, $supplierId, $title, $amountEx, $vat, $total, 'draft', trim((string) ($data['notes'] ?? '')), epc_erp_admin_id(), $now, $now));
-	return (int) $db->lastInsertId();
+	$newPoId = (int) $db->lastInsertId();
+	epc_erp_po_pf_sync($db, $newPoId);
+	return $newPoId;
+}
+
+/** Best-effort: keep the procurement process-flow case in step with a PO. Never throws. */
+function epc_erp_po_pf_sync(PDO $db, int $poId): void
+{
+	try {
+		$pf = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+		if ($poId > 0 && is_file($pf)) {
+			require_once $pf;
+			if (function_exists('epc_pf_sync_po_case')) { epc_pf_sync_po_case($db, $poId); }
+		}
+	} catch (Exception $e) {
+	}
 }
 
 function epc_erp_po_set_status(PDO $db, $poId, $status)
@@ -195,6 +211,15 @@ function epc_erp_po_set_status(PDO $db, $poId, $status)
 		$extra = ', `received_at` = ' . $now;
 	}
 	$db->exec('UPDATE `epc_erp_purchase_orders` SET `status` = ' . $db->quote($status) . ', `time_updated` = ' . $now . $extra . ' WHERE `id` = ' . $poId);
+	// best-effort: keep the procurement process-flow case in step with the PO status
+	try {
+		$pf = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+		if (is_file($pf)) {
+			require_once $pf;
+			if (function_exists('epc_pf_sync_po_case')) { epc_pf_sync_po_case($db, $poId); }
+		}
+	} catch (Exception $e) {
+	}
 	return true;
 }
 

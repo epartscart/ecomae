@@ -288,6 +288,9 @@ function epc_erp_order_fulfillment_create_po_for_supplier(
 		$now,
 	));
 	$poId = (int) $db->lastInsertId();
+	if (function_exists('epc_pf_sync_po_case')) {
+		try { epc_pf_sync_po_case($db, $poId); } catch (Exception $e) {}
+	}
 
 	$ins = $db->prepare(
 		'INSERT INTO `epc_erp_po_lines`
