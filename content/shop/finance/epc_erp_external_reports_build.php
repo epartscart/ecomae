@@ -3272,8 +3272,22 @@ if (!function_exists('epc_ext_xlsx_write')) {
                 $ci = 0;
                 foreach ($row as $cell) {
                     $ref = epc_ext_xlsx_col_letter($ci) . $rn;
-                    $cellsXml .= '<c r="' . $ref . '" t="inlineStr"><is><t xml:space="preserve">'
-                        . $esc($cell) . '</t></is></c>';
+                    if (is_array($cell)) {
+                        // typed cell: formula array('f'=>'A1*B1','v'=>cached) or number array('t'=>'n','v'=>123)
+                        if (isset($cell['f'])) {
+                            $fml = ltrim((string) $cell['f'], '=');
+                            $cv = array_key_exists('v', $cell) ? '<v>' . $esc($cell['v']) . '</v>' : '';
+                            $cellsXml .= '<c r="' . $ref . '"><f>' . $esc($fml) . '</f>' . $cv . '</c>';
+                        } elseif (($cell['t'] ?? '') === 'n') {
+                            $cellsXml .= '<c r="' . $ref . '" t="n"><v>' . $esc($cell['v'] ?? 0) . '</v></c>';
+                        } else {
+                            $cellsXml .= '<c r="' . $ref . '" t="inlineStr"><is><t xml:space="preserve">'
+                                . $esc($cell['v'] ?? '') . '</t></is></c>';
+                        }
+                    } else {
+                        $cellsXml .= '<c r="' . $ref . '" t="inlineStr"><is><t xml:space="preserve">'
+                            . $esc($cell) . '</t></is></c>';
+                    }
                     $ci++;
                 }
                 $rowsXml .= '<row r="' . $rn . '">' . $cellsXml . '</row>';
@@ -4574,7 +4588,8 @@ if (!function_exists('epc_ext_fin_projection')) {
         $base = array(
             'year' => $baseYear, 'rev' => $cur['rev'], 'gross' => $cur['gross'],
             'opex' => $cur['opex'], 'ebitda' => $cur['ebitda'], 'depr' => $cur['depr'],
-            'ebit' => round($cur['ebitda'] - $cur['depr'], 2), 'pbt' => $cur['pbt'],
+            'ebit' => round($cur['ebitda'] - $cur['depr'], 2),
+            'interest' => (float) ($cur['interest'] ?? 0), 'pbt' => $cur['pbt'],
             'tax' => $cur['tax'], 'profit' => $cur['profit'],
         );
         return array('assume' => $assume, 'years' => $years, 'base' => $base);
@@ -4647,26 +4662,30 @@ if (!function_exists('epc_ext_b_finmodel')) {
             . $rowF('Operating expenses', 'opex', $base, $years, $m)
             . $rowF('EBITDA', 'ebitda', $base, $years, $m, 'sub')
             . $rowF('Depreciation & amortisation', 'depr', $base, $years, $m)
+            . $rowF('Operating profit (EBIT)', 'ebit', $base, $years, $m, 'sub')
+            . $rowF('Finance costs', 'interest', $base, $years, $m)
             . $rowF('Profit before tax', 'pbt', $base, $years, $m, 'sub')
             . $rowF('Income tax', 'tax', $base, $years, $m)
             . $rowF('Net profit', 'profit', $base, $years, $m, 'total')
             . '</tbody></table></div>';
 
-        // FCF table
+        // FCF table (forecast years only — no base/actual column)
         $hdr2 = '<th>&nbsp;</th>';
         foreach ($years as $y) { $hdr2 .= '<th style="text-align:right;">FY' . $y['year'] . '</th>'; }
+        $rowY = static function (string $label, string $key, array $years, callable $m, string $kind = '') {
+            $w = $kind === 'sub' ? 'font-weight:700;border-top:1px solid #cfd8e6;' : ($kind === 'total' ? 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;' : '');
+            $r = '<tr><td style="padding:4px 8px;' . $w . '">' . $label . '</td>';
+            foreach ($years as $y) { $r .= '<td style="padding:4px 8px;text-align:right;' . $w . '">' . $m($y[$key]) . '</td>'; }
+            return $r . '</tr>';
+        };
         $fcf = '<div style="overflow-x:auto;"><table class="table table-condensed" style="font-size:12px;min-width:620px;"><thead><tr style="background:#13294b;color:#fff;">' . $hdr2 . '</tr></thead><tbody>'
-            . $rowF('EBIT', 'ebit', array('ebit' => ''), $years, $m)
-            . $rowF('NOPAT (EBIT × (1−t))', 'nopat', array('nopat' => ''), $years, $m)
-            . $rowF('add: depreciation', 'depr', array('depr' => ''), $years, $m)
-            . $rowF('less: capex', 'capex', array('capex' => ''), $years, $m)
-            . $rowF('less: Δ working capital', 'dWc', array('dWc' => ''), $years, $m)
-            . $rowF('Free cash flow', 'fcf', array('fcf' => ''), $years, $m, 'total')
+            . $rowY('EBIT', 'ebit', $years, $m)
+            . $rowY('NOPAT (EBIT × (1−t))', 'nopat', $years, $m, 'sub')
+            . $rowY('add: depreciation', 'depr', $years, $m)
+            . $rowY('less: capex', 'capex', $years, $m)
+            . $rowY('less: Δ working capital', 'dWc', $years, $m)
+            . $rowY('Free cash flow', 'fcf', $years, $m, 'total')
             . '</tbody></table></div>';
-        // remove the empty leading actual column produced by '' base above
-        $fcf = str_replace('<td style="padding:4px 8px;text-align:right;"></td>', '', $fcf);
-        $fcf = str_replace('<td style="padding:4px 8px;text-align:right;font-weight:700;border-top:1px solid #cfd8e6;"></td>', '', $fcf);
-        $fcf = str_replace('<td style="padding:4px 8px;text-align:right;font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;"></td>', '', $fcf);
 
         // ratios on base year
         $ratios = epc_ext_kv_table(array(
@@ -4756,6 +4775,39 @@ if (!function_exists('epc_ext_b_valuation')) {
         $netDebt = round(($cur['borrowCur'] + $cur['borrowNon'] + $cur['lease']) - $cur['cash'], 2);
         $equityDcf = round($evDcf - $netDebt, 2);
 
+        // ---- net-debt build (EV → equity bridge) ---------------------------
+        $netDebtTbl = epc_ext_kv_table(array(
+            array('Borrowings — current', $m($cur['borrowCur'])),
+            array('Borrowings — non-current', $m($cur['borrowNon'])),
+            array('Lease liabilities (IFRS 16)', $m($cur['lease'])),
+            array('less: cash & cash equivalents', '(' . $m($cur['cash']) . ')'),
+            array('Net debt', $m($netDebt), true),
+        ));
+
+        // ---- sensitivity: equity value (DCF) vs WACC × terminal growth -----
+        $waccSteps = array($wacc - 0.02, $wacc - 0.01, $wacc, $wacc + 0.01, $wacc + 0.02);
+        $gSteps = array($g - 0.01, $g, $g + 0.01);
+        $sensHdr = '<th style="text-align:left;">WACC \\ g →</th>';
+        foreach ($gSteps as $gs) { $sensHdr .= '<th style="text-align:right;">' . $pct($gs) . '</th>'; }
+        $sensRows = '';
+        foreach ($waccSteps as $ws) {
+            $sensRows .= '<tr><td style="padding:4px 8px;font-weight:600;">' . $pct($ws) . '</td>';
+            foreach ($gSteps as $gs) {
+                if ($ws <= $gs) { $sensRows .= '<td style="padding:4px 8px;text-align:right;color:#999;">n/m</td>'; continue; }
+                $pvS = 0.0;
+                foreach ($years as $y) { $pvS += $y['fcf'] / pow(1 + $ws, $y['n']); }
+                $tv = ($fcf5 * (1 + $gs)) / ($ws - $gs);
+                $evS = $pvS + $tv / pow(1 + $ws, 5);
+                $eqS = round($evS - $netDebt, 2);
+                $hl = (abs($ws - $wacc) < 1e-9 && abs($gs - $g) < 1e-9) ? 'background:#f4fbf6;font-weight:800;' : '';
+                $sensRows .= '<td style="padding:4px 8px;text-align:right;' . $hl . '">' . $m($eqS) . '</td>';
+            }
+            $sensRows .= '</tr>';
+        }
+        $sensTbl = '<div style="overflow-x:auto;"><table class="table table-condensed" style="font-size:12px;min-width:460px;"><thead><tr style="background:#13294b;color:#fff;">'
+            . $sensHdr . '</tr></thead><tbody>' . $sensRows . '</tbody></table></div>'
+            . '<p class="text-muted" style="font-size:11px;">Equity value (DCF) under different discount-rate (WACC) and terminal-growth (g) assumptions; the shaded cell is the base case. "n/m" where g ≥ WACC (Gordon model undefined).</p>';
+
         $dcf = '<div style="overflow-x:auto;"><table class="table table-condensed" style="font-size:12px;min-width:560px;"><thead><tr style="background:#13294b;color:#fff;">'
             . '<th>Year</th><th style="text-align:right;">Free cash flow</th><th style="text-align:right;">Discount factor</th><th style="text-align:right;">Present value</th></tr></thead><tbody>'
             . $dcfRows
@@ -4817,8 +4869,10 @@ if (!function_exists('epc_ext_b_valuation')) {
             array(
                 array('1', 'Valuation summary'),
                 array('2', 'Discounted cash flow (DCF)'),
-                array('3', 'Market multiples'),
-                array('4', 'Net assets / book value'),
+                array('3', 'Net-debt build (EV → equity bridge)'),
+                array('4', 'Sensitivity — WACC × terminal growth'),
+                array('5', 'Market multiples'),
+                array('6', 'Net assets / book value'),
             )
         );
 
@@ -4844,8 +4898,10 @@ if (!function_exists('epc_ext_b_valuation')) {
             . '<h4 style="color:#13294b;margin-top:16px;">1 · Valuation summary</h4>' . $summaryTbl
             . '<h4 style="color:#13294b;margin-top:18px;">2 · Discounted cash flow (DCF)</h4>' . $dcf
             . '<p class="text-muted" style="font-size:11.5px;">Enterprise value ' . $m($evDcf) . ' − net debt ' . $m($netDebt) . ' = equity value ' . $m($equityDcf) . '.</p>'
-            . '<h4 style="color:#13294b;margin-top:18px;">3 · Market multiples</h4>' . $multiples
-            . '<h4 style="color:#13294b;margin-top:18px;">4 · Net assets / book value</h4>' . $netAssetsTbl;
+            . '<h4 style="color:#13294b;margin-top:18px;">3 · Net-debt build (EV → equity bridge)</h4>' . $netDebtTbl
+            . '<h4 style="color:#13294b;margin-top:18px;">4 · Sensitivity — WACC × terminal growth</h4>' . $sensTbl
+            . '<h4 style="color:#13294b;margin-top:18px;">5 · Market multiples</h4>' . $multiples
+            . '<h4 style="color:#13294b;margin-top:18px;">6 · Net assets / book value</h4>' . $netAssetsTbl;
 
         return array(
             'title' => 'Business Valuation Report',
@@ -4859,5 +4915,192 @@ if (!function_exists('epc_ext_b_valuation')) {
             ),
             'live' => (bool) ($d['live'] ?? false),
         );
+    }
+}
+
+if (!function_exists('epc_ext_finmodel_xlsx')) {
+    /**
+     * Linked .xlsx workbook for the Financial Model & Business Valuation.
+     *
+     * Three sheets — Assumptions, Calculations, Results — where every cell on the
+     * Calculations and Results sheets is a LIVE FORMULA referencing the
+     * Assumptions sheet (e.g. =Assumptions!$B$3*(1+Assumptions!$B$4)). Cached
+     * values mirror the projection in epc_ext_fin_projection() so the figures
+     * tie out to the on-screen report; changing any assumption in Excel
+     * recalculates the whole model and valuation. Tenant-country-driven.
+     *
+     * @return string binary .xlsx content ('' if ZipArchive unavailable)
+     */
+    function epc_ext_finmodel_xlsx(PDO $db, string $ccy, $from, $to): string
+    {
+        $d = epc_ext_fin_dataset($db, $from, $to);
+        $proj = epc_ext_fin_projection($d);
+        $a = $proj['assume']; $years = $proj['years']; $base = $proj['base'];
+        $cur = $d['cur'];
+        $baseYear = (int) $base['year'];
+
+        $evEbitdaMult = 7.0; $peMult = 12.0;
+        $baseRev = (float) $base['rev'];
+        $netDebt = round(($cur['borrowCur'] + $cur['borrowNon'] + $cur['lease']) - $cur['cash'], 2);
+        $baseEbitda = (float) $base['ebitda'];
+        $baseProfit = (float) $base['profit'];
+        $totalAssets = (float) $cur['totalAssets'];
+        $totalLiab = (float) $cur['totalLiab'];
+
+        $num = static function ($v): array { return array('t' => 'n', 'v' => round((float) $v, 6)); };
+        $fml = static function (string $f, $v): array { return array('f' => $f, 'v' => round((float) $v, 6)); };
+
+        // ---- Sheet 1: Assumptions (the only inputs) ------------------------
+        $A = array(
+            array('Financial Model & Valuation — Assumptions', 'Value', 'Notes'),
+            array('Driver', 'Value', 'Notes'),
+            array('Base-year revenue (FY' . $baseYear . ' actual)', $num($baseRev), 'from the general ledger'),
+            array('Revenue growth (CAGR)', $num($a['growth']), 'applied to each forecast year'),
+            array('Gross margin', $num($a['grossMargin']), '× revenue = gross profit'),
+            array('Operating expenses (% revenue)', $num($a['opexPct']), ''),
+            array('Depreciation (% revenue)', $num($a['deprPct']), ''),
+            array('Finance cost (% revenue)', $num($a['interestPct']), ''),
+            array('Capex (% revenue)', $num($a['capexPct']), 'cash outflow in FCF'),
+            array('Incremental working capital (% of Δrevenue)', $num($a['wcPct']), ''),
+            array('Corporate tax rate', $num($a['taxRate']), 'on profit above threshold'),
+            array('Tax-free threshold', $num($a['taxFree']), 'UAE CT 0% band'),
+            array('WACC (discount rate)', $num($a['wacc']), 'DCF discounting'),
+            array('Terminal growth rate', $num($a['terminalGrowth']), 'Gordon growth'),
+            array('EV/EBITDA multiple (comparable)', $num($evEbitdaMult), 'market multiple'),
+            array('P/E multiple (comparable)', $num($peMult), 'market multiple'),
+            array('Net debt (borrowings + leases − cash)', $num($netDebt), 'EV → equity bridge'),
+            array('Total assets (actual)', $num($totalAssets), 'net-asset method'),
+            array('Total liabilities (actual)', $num($totalLiab), 'net-asset method'),
+            array('Base-year EBITDA (actual)', $num($baseEbitda), 'EV/EBITDA method'),
+            array('Base-year net profit (actual)', $num($baseProfit), 'P/E method'),
+        );
+        // Assumption cell map (1-based row in sheet):
+        //  B3 baseRev  B4 growth  B5 grossM  B6 opex%  B7 depr%  B8 fin%
+        //  B9 capex%  B10 wc%  B11 taxRate  B12 taxFree  B13 WACC  B14 g
+        //  B15 EV/EBITDA  B16 P/E  B17 netDebt  B18 tAssets  B19 tLiab
+        //  B20 baseEBITDA  B21 baseProfit
+
+        // ---- Sheet 2: Calculations (live formulas) -------------------------
+        $cols = array('B', 'C', 'D', 'E', 'F'); // FY+1 .. FY+5
+        $hdr = array('Line \\ Year');
+        foreach ($years as $y) { $hdr[] = 'FY' . $y['year']; }
+
+        // helper: build a row whose forecast cells are formulas
+        $mkRow = function (string $label, callable $cellFn) use ($cols, $years) {
+            $row = array($label);
+            foreach ($cols as $i => $col) { $row[] = $cellFn($i, $col); }
+            return $row;
+        };
+
+        $rev = $mkRow('Revenue', function ($i, $col) use ($fml, $years) {
+            $f = $i === 0 ? 'Assumptions!$B$3*(1+Assumptions!$B$4)'
+                          : chr(ord('B') + $i - 1) . '3*(1+Assumptions!$B$4)';
+            return $fml($f, $years[$i]['rev']);
+        });
+        $gross = $mkRow('Gross profit', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '3*Assumptions!$B$5', $years[$i]['gross']);
+        });
+        $opex = $mkRow('Operating expenses', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '3*Assumptions!$B$6', $years[$i]['opex']);
+        });
+        $ebitda = $mkRow('EBITDA', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '4-' . $col . '5', $years[$i]['ebitda']);
+        });
+        $depr = $mkRow('Depreciation & amortisation', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '3*Assumptions!$B$7', $years[$i]['depr']);
+        });
+        $ebit = $mkRow('Operating profit (EBIT)', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '6-' . $col . '7', $years[$i]['ebit']);
+        });
+        $fin = $mkRow('Finance costs', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '3*Assumptions!$B$8', $years[$i]['interest']);
+        });
+        $pbt = $mkRow('Profit before tax', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '8-' . $col . '9', $years[$i]['pbt']);
+        });
+        $tax = $mkRow('Income tax', function ($i, $col) use ($fml, $years) {
+            return $fml('MAX(0,' . $col . '10-Assumptions!$B$12)*Assumptions!$B$11', $years[$i]['tax']);
+        });
+        $profit = $mkRow('Net profit', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '10-' . $col . '11', $years[$i]['profit']);
+        });
+        $nopat = $mkRow('NOPAT (EBIT × (1−t))', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '8*(1-Assumptions!$B$11)', $years[$i]['nopat']);
+        });
+        $deprAdd = $mkRow('add: depreciation', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '7', $years[$i]['depr']);
+        });
+        $capex = $mkRow('less: capex', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '3*Assumptions!$B$9', $years[$i]['capex']);
+        });
+        $dWc = $mkRow('less: Δ working capital', function ($i, $col) use ($fml, $years) {
+            $prev = $i === 0 ? 'Assumptions!$B$3' : chr(ord('B') + $i - 1) . '3';
+            return $fml('(' . $col . '3-' . $prev . ')*Assumptions!$B$10', $years[$i]['dWc']);
+        });
+        $fcf = $mkRow('Free cash flow', function ($i, $col) use ($fml, $years) {
+            return $fml($col . '13+' . $col . '14-' . $col . '15-' . $col . '16', $years[$i]['fcf']);
+        });
+        $dfRow = $mkRow('Discount factor 1/(1+WACC)^n', function ($i, $col) use ($fml, $a) {
+            $n = $i + 1;
+            return $fml('1/(1+Assumptions!$B$13)^' . $n, 1 / pow(1 + $a['wacc'], $n));
+        });
+        $pvRow = $mkRow('PV of free cash flow', function ($i, $col) use ($fml, $years, $a) {
+            $n = $i + 1;
+            return $fml($col . '17*' . $col . '18', $years[$i]['fcf'] / pow(1 + $a['wacc'], $n));
+        });
+
+        // cached DCF aggregates
+        $wacc = (float) $a['wacc']; $g = (float) $a['terminalGrowth'];
+        $pvSum = 0.0; foreach ($years as $y) { $pvSum += $y['fcf'] / pow(1 + $wacc, $y['n']); }
+        $fcf5 = (float) $years[4]['fcf'];
+        $terminal = ($fcf5 * (1 + $g)) / ($wacc - $g);
+        $pvTerm = $terminal / pow(1 + $wacc, 5);
+        $evDcf = $pvSum + $pvTerm;
+        $equityDcf = $evDcf - $netDebt;
+
+        $C = array(
+            array('Calculations — projected P&L, free cash flow & DCF (all forecast cells are live formulas → Assumptions)'),
+            $hdr,                                   // row 2
+            $rev, $gross, $opex, $ebitda, $depr,    // rows 3-7
+            $ebit, $fin, $pbt, $tax, $profit,       // rows 8-12
+            $nopat, $deprAdd, $capex, $dWc, $fcf,   // rows 13-17
+            $dfRow, $pvRow,                         // rows 18-19
+            array(''),                              // row 20
+            array('Sum of PV of explicit FCF', $fml('SUM(B19:F19)', $pvSum)),                                              // 21
+            array('Terminal value = FCF5×(1+g)/(WACC−g)', $fml('F17*(1+Assumptions!$B$14)/(Assumptions!$B$13-Assumptions!$B$14)', $terminal)), // 22
+            array('PV of terminal value', $fml('B22/(1+Assumptions!$B$13)^5', $pvTerm)),                                   // 23
+            array('Enterprise value (DCF)', $fml('B21+B23', $evDcf)),                                                      // 24
+            array('less: net debt', $fml('Assumptions!$B$17', $netDebt)),                                                  // 25
+            array('Equity value (DCF)', $fml('B24-B25', $equityDcf)),                                                      // 26
+        );
+
+        // ---- Sheet 3: Results (links to Calculations & Assumptions) --------
+        $equityMult = $baseEbitda * $evEbitdaMult - $netDebt;
+        $equityPe = $baseProfit * $peMult;
+        $netAssets = $totalAssets - $totalLiab;
+        $R = array(
+            array('Results — model summary & valuation', ''),
+            array('Model summary', ''),
+            array('Base-year revenue', $fml('Assumptions!$B$3', $baseRev)),                          // 3
+            array('Year-5 revenue', $fml('Calculations!F3', $years[4]['rev'])),                      // 4
+            array('Year-5 EBITDA', $fml('Calculations!F6', $years[4]['ebitda'])),                    // 5
+            array('Year-1 free cash flow', $fml('Calculations!B17', $years[0]['fcf'])),              // 6
+            array('Year-5 free cash flow', $fml('Calculations!F17', $years[4]['fcf'])),              // 7
+            array('', ''),                                                                            // 8
+            array('Valuation summary', 'Equity value'),                                              // 9
+            array('Discounted cash flow (DCF)', $fml('Calculations!B26', $equityDcf)),               // 10
+            array('Market multiples — EV/EBITDA', $fml('Assumptions!$B$20*Assumptions!$B$15-Assumptions!$B$17', $equityMult)), // 11
+            array('Market multiples — P/E', $fml('Assumptions!$B$21*Assumptions!$B$16', $equityPe)), // 12
+            array('Net assets / book value', $fml('Assumptions!$B$18-Assumptions!$B$19', $netAssets)), // 13
+            array('Indicative range — low', $fml('MIN(B10:B13)', min($equityDcf, $equityMult, $equityPe, $netAssets))),    // 14
+            array('Indicative range — high', $fml('MAX(B10:B13)', max($equityDcf, $equityMult, $equityPe, $netAssets))),   // 15
+            array('Central estimate (average)', $fml('AVERAGE(B10:B13)', ($equityDcf + $equityMult + $equityPe + $netAssets) / 4)), // 16
+        );
+
+        return epc_ext_xlsx_write(array(
+            'Assumptions' => $A,
+            'Calculations' => $C,
+            'Results' => $R,
+        ));
     }
 }

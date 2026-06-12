@@ -393,6 +393,30 @@ $val = epc_ext_b_valuation($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'),
 check('Valuation has DCF + multiples + net assets', strpos($val['body'], 'Discounted cash flow') !== false && strpos($val['body'], 'Market multiples') !== false && strpos($val['body'], 'Net assets') !== false, $val['title']);
 check('Valuation summary has EV + equity + central value', isset($val['summary']['Enterprise value (DCF)'], $val['summary']['Equity value (DCF)'], $val['summary']['Central equity value']), implode(',', array_keys($val['summary'])));
 
+// ---- Advanced detail: model finance/EBIT lines + valuation net-debt + sensitivity ----
+check('Financial model P&L shows EBIT + finance costs', strpos($fm['body'], 'Operating profit (EBIT)') !== false && strpos($fm['body'], 'Finance costs') !== false, 'pl lines');
+check('Valuation has net-debt build + sensitivity table', strpos($val['body'], 'Net-debt build') !== false && strpos($val['body'], 'Sensitivity') !== false && strpos($val['body'], 'WACC \\ g') !== false, 'advanced detail');
+
+// ---- Linked Excel (.xlsx) export — Assumptions / Calculations / Results, live formulas ----
+if (class_exists('ZipArchive')) {
+    $xbin = epc_ext_finmodel_xlsx($db, 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
+    check('Linked model workbook is non-empty .xlsx', $xbin !== '' && strncmp($xbin, "PK", 2) === 0, strlen($xbin) . ' bytes');
+    $tmpX = tempnam(sys_get_temp_dir(), 'finx') . '.xlsx';
+    file_put_contents($tmpX, $xbin);
+    $z = new ZipArchive();
+    $okZip = $z->open($tmpX) === true;
+    $s1 = $okZip ? (string) $z->getFromName('xl/worksheets/sheet1.xml') : '';
+    $s2 = $okZip ? (string) $z->getFromName('xl/worksheets/sheet2.xml') : '';
+    $s3 = $okZip ? (string) $z->getFromName('xl/worksheets/sheet3.xml') : '';
+    $wb = $okZip ? (string) $z->getFromName('xl/workbook.xml') : '';
+    if ($okZip) { $z->close(); }
+    @unlink($tmpX);
+    check('Workbook has Assumptions / Calculations / Results sheets', strpos($wb, 'name="Assumptions"') !== false && strpos($wb, 'name="Calculations"') !== false && strpos($wb, 'name="Results"') !== false, '3 sheets');
+    check('Calculations cells are live formulas referencing Assumptions', strpos($s2, '<f>Assumptions!$B$3*(1+Assumptions!$B$4)</f>') !== false && strpos($s2, '<f>SUM(B19:F19)</f>') !== false, 'formulas');
+    check('Results valuation cells are live formulas', strpos($s3, '<f>Calculations!B26</f>') !== false && strpos($s3, '<f>AVERAGE(B10:B13)</f>') !== false, 'result formulas');
+    check('Assumptions sheet carries numeric input cells', strpos($s1, ' t="n"><v>') !== false, 'numeric inputs');
+}
+
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
 echo "========================================\n";

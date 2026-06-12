@@ -323,6 +323,20 @@ if ($selTool === 'import') {
 		<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
 			<a class="btn btn-primary btn-sm" href="<?php echo epc_erp_h($fetchUrl); ?>" title="Re-fetch ERP data and rebuild this report"><i class="fa fa-refresh"></i> Fetch &amp; build</a>
 			<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-print"></i> Print / PDF</button>
+			<?php
+			$isFinModelRep = in_array($selRep, array('fin__financial_model_forecast', 'fin__business_valuation_report'), true);
+			if ($isFinModelRep):
+				$finXlsxCcy = (string) ($regProf['currency'] ?? 'AED');
+				$finXlsxName = ($selRep === 'fin__business_valuation_report' ? 'Business_Valuation_Model' : 'Financial_Model') . '_FY' . date('Y', $repFrom) . '.xlsx';
+			?>
+				<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcFinModelX', '<?php echo epc_erp_h($finXlsxName); ?>')" title="Download a linked Excel workbook — Assumptions / Calculations / Results with live formulas"><i class="fa fa-file-excel-o"></i> Download Excel (linked model)</button>
+				<textarea id="epcFinModelX" style="display:none;"><?php echo base64_encode(epc_ext_finmodel_xlsx($db_link, $finXlsxCcy, $repFrom, $repTo)); ?></textarea>
+				<script>
+				if (typeof epcDlB64 !== 'function') {
+					function epcDlB64(id,fn){var el=document.getElementById(id);if(!el)return;var b64=(el.value!==undefined?el.value:el.textContent).replace(/\s+/g,'');var bin=atob(b64);var len=bin.length;var bytes=new Uint8Array(len);for(var i=0;i<len;i++){bytes[i]=bin.charCodeAt(i);}var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+				}
+				</script>
+			<?php endif; ?>
 			<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($auth['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — <?php echo epc_erp_h($auth['name']); ?></a>
 			<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($auth['format']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Official format / filing portal</a>
 			<?php if ($ifrs): ?>
