@@ -535,6 +535,63 @@ if (!function_exists('epc_guide_modules')) {
             'Read-only aggregates; no GL postings.',
             array('KPIs are tenant-scoped, so a new tenant starts empty and fills in as real transactions are posted.'));
 
+        $g['ext_reporting'] = $E('core', 'External Reporting — statutory returns (VAT, CT, AML & more)',
+            'A country-driven statutory reporting centre that auto-builds filing-ready returns from your ERP data, localized to your registration country (UAE by default: FTA · MOHRE · goAML · MoEC). It covers the full FTA VAT 201, the full Corporate Tax computation with schedules, IFRS financial statements, WPS, goAML SAR/STR, ESR, UBO, CbCR and more — each with the official format, full sample data so nothing is ever blank, in-place drill-down to transaction level, a compliance engine, a professional colour PDF, and an off-system Excel import tool for checking other clients.',
+            array(
+                'Open External Reporting → Report centre. The registration country is taken automatically from the Company profile (Setup → Company) — it drives the format, authority links and compliance rules.',
+                'Pick a report (e.g. UAE VAT Return, Corporate Income Tax Return) and a reporting period (basis: Monthly / Quarterly / Annual / Custom range), then click Run / Recalculate.',
+                'Nothing else to configure — figures come from posted GL/transactions for the period; periods with no postings fall back to period-seeded sample data so the full return always renders.',
+            ),
+            array(
+                'Step 1 — Choose the report + period. Result: the document rebuilds for that exact period and stamps "Reporting period: <from> — <to>" in the header.',
+                'Step 2 — Drill down in place. Result: click any figure to expand its source — a box/line opens its breakdown, an item opens its invoices/entries, and a single invoice opens its supply/GL lines, recursively down to individual transaction level.',
+                'Step 3 — Review compliance. Result: the built-in engine validates every figure against the law (e.g. VAT reverse-charge / 24kt gold 0%; CT add-backs, interest cap, loss relief) and shows PASS / REVIEW / FAIL.',
+                'Step 4 — Download supporting schedules. Result: one-click Excel/CSV audit files (VAT: invoice-wise, TRN-wise, supplier-wise, adjustments; CT: adjustments, fixed-asset, exempt income, related-party, losses, FTC).',
+                'Step 5 — Print / PDF. Result: a professional, colour, MIS-style filing pack with a cover page, the summary schedules and a plain-language commentary — invoice-level detail is excluded so a 10k-invoice tenant gets a clean summary.',
+                'Step 6 — Off-system import (other clients). Result: open the Import tool → download the multi-sheet Excel template (Company & TRN, boxes/lines, invoice detail, compliance, instructions) → fill it → upload → it builds the full VAT/CT return + PDF entirely outside the ERP.',
+            ),
+            'No GL postings — a read/format layer over posted data (plus a fully off-system mode for the Excel import).',
+            array('Everything is tenant-country-driven: a UAE tenant gets the FTA/UAE format automatically; the jurisdiction selector is preview/look-up only.',
+                'Each report has its own statutory period model (VAT monthly/quarterly, CT financial year, WPS monthly, etc.) — change the basis at the top to match your filing.',
+                'The PDF is summary-only by design; use the Excel/CSV downloads when you need the full invoice-level audit file.'));
+
+        $g['vat_return'] = $E('core', 'VAT Return (FTA VAT 201) — guide',
+            'The complete UAE FTA VAT 201: output VAT on sales (Boxes 1a–1g standard-rated per Emirate, Box 2 tourist refunds, Box 3 reverse charge, Box 4 zero-rated, Box 5 exempt, Box 6/7 imports, Box 8 totals) netted against recoverable input VAT (Box 9 expenses, Box 10 reverse-charge recoverable, Box 11 totals) to the net payable/refundable (Box 12/13/14). Includes special-scheme handling (investment-gold 0%, B2B gold/diamond reverse charge, profit-margin scheme), group/intercompany VAT, a field guide, a "Report explained" commentary and a compliance engine.',
+            array(
+                'Open External Reporting → UAE VAT Return. Set the basis (Monthly or Quarterly are the usual VAT filing cycles) and the period, then Run / Recalculate.',
+                'Make sure the Company profile carries your Tax TRN and address — they print on the return; for a tax group, record the group TRN and members.',
+            ),
+            array(
+                'Step 1 — Read the field guide ("what goes in each box and why") and the commentary so you understand how output VAT − input VAT = net due.',
+                'Step 2 — Work each box top to bottom; click a box to drill to its invoices, then an invoice to its supply/GL lines (transaction level). The invoice list reconciles to the box total.',
+                'Step 3 — Check the special schemes are right: 24kt investment gold 0%, B2B gold/diamonds reverse charge, exports 0%, residential lease exempt — the compliance panel flags any line taxed incorrectly.',
+                'Step 4 — Confirm it reconciles: Box 12 (output) − Box 13 (input) = Box 14 (net payable / refundable).',
+                'Step 5 — Download the audit files (invoice-wise, TRN-wise, supplier-wise, adjustments) and/or Print the summary PDF for filing.',
+            ),
+            'No GL postings — reads output/input VAT from posted sales & purchases for the period.',
+            array('VAT is not always quarterly — monthly filers just switch the basis to Monthly.',
+                'Reverse-charge and import VAT appear on both the output and input side and net to zero — that is correct.',
+                'Intra-group (intercompany) supplies under one tax group are disregarded and excluded from the return.'));
+
+        $g['ct_return'] = $E('core', 'Corporate Tax Return (Federal Decree-Law 47/2022) — guide',
+            'The full UAE Corporate Tax return: taxpayer & period, elections/reliefs (Small Business Relief, QFZP 0%/9%, realisation basis, group transfers), the computation that reconciles accounting net profit to taxable income (add-backs: fines 100%, entertainment 50%, donations, provisions, accounting depreciation; deductions: tax depreciation, exempt dividends/participation; interest limitation 30% EBITDA / AED 12m; tax-loss relief 75% cap), then 0% up to AED 375,000 and 9% above. Includes six supporting schedules, tax-group/intercompany handling, a field guide, a "Report explained" commentary and a compliance engine.',
+            array(
+                'Open External Reporting → Corporate Income Tax Return. Set the basis to Annual (or Custom range for a non-calendar / transitional first year) and pick the financial year, then Run / Recalculate.',
+                'Ensure the Company profile has the CT TRN, legal form and address — they print on the return.',
+            ),
+            array(
+                'Step 1 — Read the field guide and the commentary to see how accounting profit becomes taxable income through statutory adjustments.',
+                'Step 2 — Review Section 2 elections/reliefs (e.g. Small Business Relief eligibility, free-zone status) — these change the whole computation.',
+                'Step 3 — Work Section 3 line by line; click any line to drill to its breakdown (e.g. depreciation by asset class), then a sub-line to reach the individual asset or journal entry (transaction level).',
+                'Step 4 — Check Section 4 bands: 0% on the first AED 375,000, 9% above, giving CT payable.',
+                'Step 5 — Expand Schedules 1–6 (adjustments, fixed-asset depreciation, exempt income, related-party/TP, tax losses, foreign tax credit) and download them as Excel/CSV.',
+                'Step 6 — Clear the compliance panel (registration, non-deductibles, interest cap, exempt income, loss relief, transfer pricing) and Print the summary PDF.',
+            ),
+            'No GL postings — reconciles posted accounting profit to taxable income; figures map from tagged GL accounts and the fixed-asset / related-party registers.',
+            array('Different companies have different financial years — use Custom range for a non-December year-end or a transitional first period.',
+                'A CT Tax Group is one taxable person: intra-group (intercompany) transactions are eliminated on consolidation.',
+                'Related-party transactions trigger a transfer-pricing review item — keep your master/local file and disclosure form.'));
+
         return $g;
     }
 }

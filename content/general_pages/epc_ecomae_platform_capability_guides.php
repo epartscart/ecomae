@@ -1081,4 +1081,86 @@ return array(
 			array('title' => 'Share OpenAPI with developers', 'body' => 'Download /epc-api/v1/openapi.json for codegen and contract tests — Phase 2 will add webhooks and write APIs.'),
 		),
 	),
+	'ext-reporting-centre' => array(
+		'intro' => 'A country-driven statutory reporting centre that auto-builds filing-ready returns from your ERP data, localized to your registration country (UAE by default: FTA, MOHRE, goAML, MoEC). One catalogue covers tax, financial, audit, HR/WPS, AML and corporate filings — each in the official format with full sample data so nothing is ever blank.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'Country drives the format', 'body' => 'The registration country on the company profile selects the authority, official format, governing law and compliance rules — UAE tenants get the FTA/MOHRE/goAML layout automatically; the jurisdiction selector is preview only.'),
+			array('title' => 'Pick report + period', 'body' => 'Choose a report and reporting period (Monthly / Quarterly / Annual / Custom range) and click Run / Recalculate — the document rebuilds for that exact period and stamps the dates in the header.'),
+			array('title' => 'Always complete', 'body' => 'Figures come from posted GL/transactions; periods with no postings fall back to period-seeded sample data so the full return always renders end-to-end.'),
+			array('title' => 'One-click filing pack', 'body' => 'Download the Excel/CSV audit schedules or print the professional summary PDF — ready to file or hand to an advisor.'),
+		),
+	),
+	'ext-ct-return' => array(
+		'intro' => 'The complete UAE Corporate Tax return under Federal Decree-Law 47/2022 — taxpayer & period, elections/reliefs, accounting profit reconciled to taxable income through statutory adjustments, then 0% up to AED 375,000 and 9% above, with six supporting schedules and tax-group/intercompany handling.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'Elections & reliefs', 'body' => 'Section 2 captures Small Business Relief eligibility, Qualifying Free Zone Person status (0%/9%), realisation basis and group transfer relief — these reshape the whole computation.'),
+			array('title' => 'Profit to taxable income', 'body' => 'Section 3 adds back non-deductibles (fines 100%, entertainment 50%, donations, provisions, accounting depreciation) and deducts tax depreciation and exempt dividends, then applies the 30% EBITDA interest cap and 75% loss relief.'),
+			array('title' => 'Bands & liability', 'body' => 'Section 4 applies 0% on the first AED 375,000 and 9% above to give CT payable.'),
+			array('title' => 'Schedules & compliance', 'body' => 'Schedules 1–6 (adjustments, fixed-asset depreciation, exempt income, related-party/TP, tax losses, foreign tax credit) evidence every figure, and the compliance engine flags anything to review before filing.'),
+		),
+	),
+	'ext-drill-txn' => array(
+		'intro' => 'Every figure on a return is clickable in place: a box or computation line expands to its breakdown, a line expands to its invoices or entries, and a single invoice expands to its individual supply / GL lines — recursively, until you reach the individual transaction behind the number.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'Click any figure', 'body' => 'On the VAT or CT return, click an underlined figure to expand its source rows right inside the return — no separate report.'),
+			array('title' => 'Keep drilling', 'body' => 'Each sub-line is itself expandable: e.g. Accounting depreciation → asset class → the individual fixed-asset entry; or a VAT box → invoice → its supply/GL lines.'),
+			array('title' => 'Always reconciles', 'body' => 'Every breakdown sums exactly to its parent figure, so you can trace any total down to the transactions that make it up.'),
+		),
+	),
+	'ext-compliance-engine' => array(
+		'intro' => 'Each return is validated against the law with PASS / REVIEW / FAIL flags — VAT special schemes and CT conditions — so nothing is left to check before filing.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'VAT checks', 'body' => '24kt investment gold taxed 0%, B2B gold/diamonds under reverse charge, exports 0%, residential lease exempt, TRN present, and the return reconciles (Box 12 − Box 13 = Box 14).'),
+			array('title' => 'CT checks', 'body' => 'Non-deductibles added back, 30% EBITDA / AED 12m interest cap, exempt income excluded, 75% loss-relief cap, transfer-pricing disclosure for related parties, and Small Business Relief eligibility.'),
+			array('title' => 'Clear before filing', 'body' => 'Each finding cites its statutory basis and shows PASS / REVIEW / FAIL — work the list to green before you submit.'),
+		),
+	),
+	'ext-period-control' => array(
+		'intro' => 'Each report carries its own statutory period model — VAT monthly or quarterly, Corporate Tax by financial year (including non-calendar / transitional first periods via a custom range), WPS monthly, financials annual.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'Right basis per report', 'body' => 'The basis selector defaults to the report\'s statutory cycle and offers Monthly / Quarterly / Annual / Custom range as appropriate.'),
+			array('title' => 'Custom year-ends', 'body' => 'Use Custom range for a non-December financial year or a transitional first CT period — any From/To works.'),
+			array('title' => 'Run / Recalculate', 'body' => 'Changing the period rebuilds every figure and the drill-downs for that exact period, and stamps the dates on the document and PDF.'),
+		),
+	),
+	'ext-audit-schedules' => array(
+		'intro' => 'One-click Excel/CSV supporting schedules in the FTA layout — for both VAT and Corporate Tax — so you have the audit file behind every return.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'VAT audit files', 'body' => 'Download invoice-wise, customer TRN-wise, supplier-wise and adjustments schedules in the FTA column layout.'),
+			array('title' => 'CT audit files', 'body' => 'Download adjustments, fixed-asset depreciation, exempt income, related-party / transfer pricing, tax losses and foreign tax credit schedules.'),
+			array('title' => 'Excel-ready', 'body' => 'Each file opens directly in Excel with a UTF-8 BOM, ready to attach to a filing or review per invoice / TRN / supplier.'),
+		),
+	),
+	'ext-pro-pdf' => array(
+		'intro' => 'A colour, MIS-style filing pack with cover page, section numbering, the summary schedules and a plain-language "report explained" commentary on both VAT and CT so a learner understands every figure.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'Professional cover + sections', 'body' => 'The PDF opens with a branded cover (company, TRN, period, authority, governing law) and clean numbered sections with running header/footer.'),
+			array('title' => 'Schedules + commentary included', 'body' => 'Summary supporting schedules and a narrative commentary explaining how each figure was derived print in the pack.'),
+			array('title' => 'Summary, not 10k rows', 'body' => 'Invoice-level detail is excluded so a tenant with thousands of invoices still gets a clean summary — the full detail stays in the Excel/CSV downloads.'),
+		),
+	),
+	'ext-offsystem-import' => array(
+		'intro' => 'Check or file other clients without touching the ERP: download a multi-sheet Excel template, fill it, upload, and the tool builds the full VAT/CT return and PDF entirely from the uploaded data.',
+		'guide_area' => 'overview',
+		'image' => 'guide-super-cp',
+		'steps' => array(
+			array('title' => 'Download the template', 'body' => 'A multi-sheet Excel workbook: Company & TRN, the boxes/computation lines, invoice detail, a compliance checklist and instructions for every column.'),
+			array('title' => 'Fill & upload', 'body' => 'Enter the client\'s own TRN/address and summary figures, then upload the .xlsx or .csv — no ERP/GL data is touched.'),
+			array('title' => 'Built return + PDF', 'body' => 'The tool builds the full FTA VAT 201 / CT computation with the client\'s details, runs the compliance checks and produces the professional PDF.'),
+		),
+	),
 );
