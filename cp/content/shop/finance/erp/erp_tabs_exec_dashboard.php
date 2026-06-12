@@ -18,6 +18,7 @@ erp_page_header(
 $periodFrom = isset($date_from) && $date_from > 0 ? (int) $date_from : strtotime(date('Y-m-01 00:00:00'));
 $periodTo = isset($date_to) && $date_to > 0 ? (int) $date_to : time();
 
+$csrfLocal = isset($csrf) ? $csrf : '';
 $kpis = epc_bos_intel_kpis($db_link, $periodFrom, $periodTo);
 $trend = epc_exec_trend($db_link, 6);
 $topSup = epc_exec_top_suppliers($db_link, 5);
@@ -48,6 +49,13 @@ if ($maxRev <= 0) {
 .epc-exec-bars .b{width:14px;border-radius:2px 2px 0 0;}
 .epc-exec-bars .cap{font-size:11px;color:#8a97a8;margin-top:5px;}
 </style>
+
+<div id="epc_erp_msg" class="alert" style="display:none;"></div>
+<div style="margin-bottom:14px;">
+	<button type="button" id="epc_exec_seed" class="btn btn-sm btn-primary"><i class="fa fa-database"></i> Generate sample sales</button>
+	<button type="button" id="epc_exec_clear" class="btn btn-sm btn-default"><i class="fa fa-eraser"></i> Clear sample sales</button>
+	<span class="text-muted" style="margin-left:8px;font-size:12px;">Seeds 6 months of completed orders (tagged, re-runnable) so revenue KPIs and the trend populate.</span>
+</div>
 
 <div class="epc-exec-kpis">
 	<?php foreach ($kpis as $k):
@@ -125,3 +133,19 @@ if ($maxRev <= 0) {
 		</div>
 	</div>
 </div>
+<?php
+$endpoint = isset($GLOBALS['erpAjaxEndpoint']) ? $GLOBALS['erpAjaxEndpoint'] : ('/' . (isset($GLOBALS['DP_Config']->backend_dir) ? $GLOBALS['DP_Config']->backend_dir : 'cp') . '/content/shop/finance/erp/ajax_erp_endpoint.php');
+$endpointJson = json_encode($endpoint);
+$csrfJson = json_encode($csrfLocal);
+echo <<<HTML
+<script>
+(function(){
+	var url = {$endpointJson};
+	var csrf = {$csrfJson};
+	function post(action){ var fd=new FormData(); fd.append('action',action); fd.append('csrf_guard_key',csrf); return fetch(url,{method:'POST',body:fd,credentials:'same-origin'}).then(function(r){return r.json();}); }
+	function msg(j){ var el=document.getElementById('epc_erp_msg'); if(el){ el.className='alert alert-'+(j.status?'success':'danger'); el.textContent=j.message||''; el.style.display='block'; el.scrollIntoView({behavior:'smooth',block:'center'}); } if(j.status) setTimeout(function(){ location.reload(); }, 900); }
+	var sd=document.getElementById('epc_exec_seed'); if(sd) sd.addEventListener('click', function(){ if(!confirm('Generate 6 months of sample completed sales orders? (re-runnable; tagged demo)')) return; sd.disabled=true; sd.innerHTML='Generating…'; post('demo_seed_sales').then(msg).catch(function(){ sd.disabled=false; sd.textContent='Generate sample sales'; }); });
+	var cl=document.getElementById('epc_exec_clear'); if(cl) cl.addEventListener('click', function(){ if(!confirm('Clear all sample sales orders?')) return; post('demo_clear_sales').then(msg); });
+})();
+</script>
+HTML;

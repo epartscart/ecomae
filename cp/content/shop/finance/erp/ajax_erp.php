@@ -381,6 +381,16 @@ try {
 			$cleared = epc_opl_clear_demo_demand($db_link);
 			epc_erp_json(true, 'Cleared ' . (int)$cleared . ' seeded demand movements');
 
+		case 'demo_seed_sales':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_demo_sales.php';
+			$sres = epc_demo_seed_sales($db_link, 6);
+			epc_erp_json(true, 'Seeded ' . (int)$sres['orders'] . ' sample orders (' . (int)$sres['lines'] . ' lines, ' . number_format((float)$sres['revenue'], 0) . ' AED revenue)');
+
+		case 'demo_clear_sales':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_demo_sales.php';
+			$scleared = epc_demo_clear_sales($db_link);
+			epc_erp_json(true, 'Cleared ' . (int)$scleared . ' sample orders');
+
 		case 'sub_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_subscriptions.php';
 			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['customer'] ?? '')) === '') { throw new Exception('Code and customer are required'); }
