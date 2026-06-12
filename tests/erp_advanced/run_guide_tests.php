@@ -44,6 +44,9 @@ foreach ($required as $code) {
     }
     check("guide covers module '$code'", $found);
 }
+foreach (array('ext_reporting', 'vat_return', 'ct_return', 'audit_report', 'fin_import', 'fin_model', 'valuation') as $key) {
+    check("guide has entry '$key'", isset($g[$key]) && trim($g[$key]['title']) !== '');
+}
 
 section('Every guide entry is well-formed (step-by-step)');
 $bad = 0;

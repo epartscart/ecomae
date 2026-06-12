@@ -592,6 +592,70 @@ if (!function_exists('epc_guide_modules')) {
                 'A CT Tax Group is one taxable person: intra-group (intercompany) transactions are eliminated on consolidation.',
                 'Related-party transactions trigger a transfer-pricing review item — keep your master/local file and disclosure form.'));
 
+        $g['audit_report'] = $E('core', 'External Audit Report (ISA 700, IFRS) — guide',
+            'A complete IFRS assurance pack: a professional cover page + table of contents, the Independent Auditor\'s Report (opinion, basis for opinion, going concern, key audit matters and responsibilities under ISA 700/701/705/570/720), and the full set of IFRS financial statements with prior-year comparatives — Statement of Financial Position, Statement of Profit or Loss & Other Comprehensive Income, Statement of Changes in Equity and Statement of Cash Flows — followed by detailed notes referencing each IAS/IFRS standard. Period-aware, with drill-down to transaction level, a field guide, commentary, per-line IFRS references and a Fetch button to refresh against the live IFRS/ISA source.',
+            array(
+                'Open External Reporting → External Audit Report. The reporting framework and auditor register are taken from the Company profile country (UAE → SCA/IFRS + MoE-registered auditor; auto-localizes elsewhere).',
+                'Set the basis to Annual and pick the financial year, then Run / Recalculate. Figures map from tagged GL accounts; a period with no postings falls back to a fully reconciling sample so every statement renders.',
+            ),
+            array(
+                'Step 1 — Read the cover page and table of contents, then the Independent Auditor\'s Report (opinion → basis → going concern → key audit matters → responsibilities).',
+                'Step 2 — Work the four primary statements; each shows the reporting period beside the comparative period, and every line carries its IAS/IFRS reference. The statements cross-foot (assets = equity + liabilities; SOCE rolls forward; cash flow reconciles).',
+                'Step 3 — Drill any figure down to its source — line → ledger account → individual journal/transaction.',
+                'Step 4 — Read the notes to the accounts (accounting policies + disclosures) and the "Report explained" commentary so a learner understands the pack.',
+                'Step 5 — Use the Fetch button to refresh the standards references, then Print the professional colour PDF.',
+            ),
+            'No GL postings — a read/format/assurance layer over posted balances; localizes to the tenant country.',
+            array('Tenant-country-driven: the framework, auditor oversight authority and presentation default from the company country.',
+                'The four primary statements and the notes are all required under IFRS — the pack includes them with prior-year comparatives so nothing is missing.'));
+
+        $g['fin_import'] = $E('core', 'IFRS financial statements — off-system Excel import — guide',
+            'An off-system tool (like the VAT/CT import) to build a ready audit/IFRS report for any client without touching the ERP. Download a multi-sheet workbook (Instructions · Company & details/TRN · Financial data with Current + Prior columns · Notes inputs · Compliance checklist), fill it, upload it, and it produces the full Audited Financial Statements pack — cover page, Independent Auditor\'s Report, all four primary statements with comparatives, notes and compliance checks — stamped with the client\'s own TRN/address.',
+            array(
+                'Open External Reporting → Import tool → choose "IFRS Financial Statements & Audit Report".',
+                'Download the .xlsx workbook (or CSV). Keep the Code column unchanged; enter Current-year and Prior-year amounts. Off-system: nothing is read from or written to your ERP.',
+            ),
+            array(
+                'Step 1 — Fill the Company & details sheet (legal name, TRN, address, period, auditor) and the Financial data sheet (revenue, costs, assets, liabilities, equity — current + prior).',
+                'Step 2 — Optionally complete the Notes inputs and Compliance checklist sheets.',
+                'Step 3 — Save as .xlsx (or .csv) and upload it under "Build return".',
+                'Step 4 — Review the built pack: it shows the client\'s TRN/address, all statements with comparatives, notes, and a compliance panel (SOFP balances, SOCE rolls forward, cash flow reconciles).',
+                'Step 5 — Print the professional colour PDF for the client.',
+            ),
+            'Fully off-system — no ERP/GL is read or written; ideal for preparing or reviewing other clients\' accounts.',
+            array('Enter amounts as positive numbers; the builder applies the correct sign on each statement.',
+                'Cash is set so the sample workbook balances — replace all figures with the client\'s real numbers and the compliance panel will re-check that it still balances.'));
+
+        $g['fin_model'] = $E('core', 'Financial Model & Five-Year Forecast — guide',
+            'A five-year financial model built from the live GL actuals for the selected period, with an explicit assumptions block (revenue growth, margins, capex, working capital, tax, WACC), a projected profit & loss, an EBITDA and free-cash-flow build, and key ratios. The free-cash-flow line drives the Business Valuation report so the two stay consistent.',
+            array(
+                'Open External Reporting → Financial Model & Forecast. Pick the base year (the latest actuals anchor the model), then Run / Recalculate.',
+            ),
+            array(
+                'Step 1 — Read the assumptions block; every projected figure is driven by these.',
+                'Step 2 — Review the projected P&L (revenue grown at the CAGR; costs scaled by their margins; tax at the corporate rate).',
+                'Step 3 — Read the EBITDA & free-cash-flow build (NOPAT + depreciation − capex − ΔWC).',
+                'Step 4 — Check the key ratios (gross/EBITDA/net margin, revenue CAGR, year-5 figures).',
+            ),
+            'No GL postings — projects forward from posted actuals; feeds the valuation.',
+            array('Tenant-country-driven tax (e.g. UAE CT 0% up to AED 375k, 9% above).',
+                'Change any assumption and the whole model — and the valuation — moves with it.'));
+
+        $g['valuation'] = $E('core', 'Business Valuation Report (DCF / multiples / net assets) — guide',
+            'Values the business by three methods that all draw on the same financial model: discounted cash flow (WACC discounting of projected free cash flow + a Gordon-growth terminal value), market multiples (EV/EBITDA and P/E comparables) and net assets / book value. Produces an enterprise-value → equity-value bridge with an indicative range and a central estimate, plus a field guide and commentary.',
+            array(
+                'Open External Reporting → Business Valuation Report. It builds on the five-year financial model for the selected base year — Run / Recalculate.',
+            ),
+            array(
+                'Step 1 — Read the valuation summary (the three methods + the indicative range and central equity value).',
+                'Step 2 — Work through the DCF: projected free cash flows are discounted at the WACC; the terminal value captures cash beyond the forecast; the sum is enterprise value, and enterprise value − net debt = equity value.',
+                'Step 3 — Cross-check with market multiples (EV/EBITDA, P/E) and net assets / book value.',
+                'Step 4 — Print the professional colour PDF.',
+            ),
+            'No GL postings — an analytical layer over the financial model.',
+            array('The methods rarely agree exactly; the range and central estimate communicate the uncertainty honestly.',
+                'Net debt = borrowings + lease liabilities − cash; it bridges enterprise value to equity value.'));
+
         return $g;
     }
 }
