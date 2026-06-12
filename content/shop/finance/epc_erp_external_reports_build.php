@@ -151,6 +151,27 @@ if (!function_exists('epc_ext_field_guide')) {
     }
 }
 
+if (!function_exists('epc_ext_commentary')) {
+    /**
+     * Plain-language commentary / narrative panel for a return — a short
+     * "report explained" section so a learner understands what the return
+     * shows, how the headline figure was derived and why each part matters.
+     * Renders on-screen and is KEPT in the Print/PDF (class mis-commentary).
+     *
+     * @param array<int,string> $paras  HTML-safe-ish paragraph strings (may contain <strong>)
+     */
+    function epc_ext_commentary(string $title, array $paras): string
+    {
+        $p = '';
+        foreach ($paras as $para) {
+            $p .= '<p style="margin:0 0 8px;">' . $para . '</p>';
+        }
+        return '<div class="mis-commentary" style="background:#f7faff;border:1px solid #d8e3f4;border-left:4px solid #2b6cb0;border-radius:6px;padding:12px 16px;margin:10px 0 16px;line-height:1.6;color:#33415c;font-size:13px;">'
+            . '<h5 style="margin:0 0 8px;font-size:14px;color:#1d2740;"><i class="fa fa-book"></i> ' . epc_erp_h($title) . '</h5>'
+            . $p . '</div>';
+    }
+}
+
 if (!function_exists('epc_ext_vat_guide_rows')) {
     /** @return array<int,array{0:string,1:string}> */
     function epc_ext_vat_guide_rows(): array
@@ -255,8 +276,26 @@ if (!function_exists('epc_ext_vat_box')) {
             foreach ($invoices as $iv) {
                 $tn += (float) $iv['net'];
                 $tv += (float) $iv['vat'];
+                $docCell = epc_erp_h((string) $iv['doc']);
+                $lineRow = '';
+                $lines = epc_ext_inv_lines((float) $iv['net'], (float) $iv['vat'], (string) $iv['doc']);
+                if (!empty($lines)) {
+                    $lr = '';
+                    foreach ($lines as $ln) {
+                        $lr .= '<tr>'
+                            . '<td style="padding:3px 10px;">' . epc_erp_h((string) $ln['item']) . '</td>'
+                            . '<td style="padding:3px 10px;color:#888;white-space:nowrap;">' . epc_erp_h((string) $ln['qty']) . '</td>'
+                            . '<td ' . $cell . '>' . epc_ext_m((float) $ln['net'], $ccy) . '</td>'
+                            . '<td ' . $cell . '>' . epc_ext_m((float) $ln['vat'], $ccy) . '</td></tr>';
+                    }
+                    $docCell = '<details class="epc-box-drill" style="display:inline-block;"><summary style="cursor:pointer;list-style:none;color:#1d2740;border-bottom:1px dotted #8a97ad;">'
+                        . epc_erp_h((string) $iv['doc']) . ' <span class="epc-drill-hint" style="font-size:9px;color:#2b6cb0;">▸ ' . count($lines) . ' line' . (count($lines) === 1 ? '' : 's') . '</span></summary>'
+                        . '<table class="table table-condensed" style="margin:4px 0 2px;background:#fff;border:1px solid #e6eaf1;font-size:10.5px;min-width:360px;">'
+                        . '<thead><tr style="background:#eef1f6;"><th style="padding:3px 10px;">Supply / GL line</th><th style="padding:3px 10px;">Qty × unit</th><th style="text-align:right;padding:3px 10px;">Net</th><th style="text-align:right;padding:3px 10px;">VAT</th></tr></thead>'
+                        . '<tbody>' . $lr . '</tbody></table></details>';
+                }
                 $rows .= '<tr>'
-                    . '<td style="padding:4px 10px;font-weight:600;color:#1d2740;">' . epc_erp_h((string) $iv['doc']) . '</td>'
+                    . '<td style="padding:4px 10px;font-weight:600;color:#1d2740;">' . $docCell . '</td>'
                     . '<td style="padding:4px 10px;white-space:nowrap;">' . epc_erp_h((string) $iv['date']) . '</td>'
                     . '<td style="padding:4px 10px;">' . epc_erp_h((string) $iv['party']) . '</td>'
                     . '<td style="padding:4px 10px;color:#777;">' . epc_erp_h((string) ($iv['trn'] ?? '')) . '</td>'
@@ -354,6 +393,52 @@ if (!function_exists('epc_ext_box_invoices')) {
                 'date' => date('d M Y', $ts),
                 'party' => $p[0],
                 'trn' => $p[1],
+                'net' => $n,
+                'vat' => $v,
+            );
+        }
+        return $rows;
+    }
+}
+
+if (!function_exists('epc_ext_inv_lines')) {
+    /**
+     * Synthesize the GL / supply lines behind a single VAT invoice, summing
+     * exactly to ($net, $vat), so a box → invoice can drill one level further
+     * to the individual goods/service lines (transaction level). Deterministic
+     * from the invoice document number. Sample data — for a live tenant these
+     * are the actual posted invoice lines / GL postings.
+     *
+     * @return array<int,array{item:string,qty:string,net:float,vat:float}>
+     */
+    function epc_ext_inv_lines(float $net, float $vat, string $doc): array
+    {
+        if (abs($net) < 0.005 && abs($vat) < 0.005) {
+            return array();
+        }
+        $items = array('Goods supplied', 'Service charge', 'Delivery / freight', 'Ancillary items');
+        $seed = 0;
+        $len = strlen($doc);
+        for ($i = 0; $i < $len; $i++) { $seed += ord($doc[$i]); }
+        $count = 1 + ($seed % 3); // 1..3 lines
+        $rows = array();
+        $accN = 0.0;
+        $accV = 0.0;
+        for ($i = 0; $i < $count; $i++) {
+            if ($i === $count - 1) {
+                $n = round($net - $accN, 2);
+                $v = round($vat - $accV, 2);
+            } else {
+                $w = (1.0 + 0.30 * ((($seed + $i) % 3) - 1)) / $count;
+                $n = round($net * $w, 2);
+                $v = round($vat * $w, 2);
+                $accN += $n;
+                $accV += $v;
+            }
+            $qty = 1 + (($seed + $i * 7) % 9);
+            $rows[] = array(
+                'item' => $items[$i % count($items)],
+                'qty' => (string) $qty . ' × ' . epc_erp_money(round(($n != 0.0 ? $n : 1.0) / max(1, $qty), 2)),
                 'net' => $n,
                 'vat' => $v,
             );
@@ -497,6 +582,11 @@ if (!function_exists('epc_ext_b_vat')) {
             . epc_ext_field_guide('Field guide — what goes in each VAT 201 box (and why)',
                 'Plain-language explanation of every box so you know which figure belongs where before you file. Governing law: Federal Decree-Law 8/2017 & VAT Executive Regulations (FTA).',
                 epc_ext_vat_guide_rows())
+            . epc_ext_commentary('Report explained — how this VAT return works', array(
+                'This is the UAE <strong>FTA VAT 201</strong> return for the reporting period shown above. It nets the VAT you charged customers (<strong>output VAT</strong>, the "sales" section) against the VAT you paid suppliers and can reclaim (<strong>input VAT</strong>, the "expenses" section). The difference is what you pay to — or reclaim from — the Federal Tax Authority.',
+                'On the output side, standard-rated sales are taxed at ' . epc_erp_h($rPct) . '% and split by Emirate (Boxes 1a–1g) because VAT is allocated to the Emirate where the supply takes place. Zero-rated supplies (exports, qualifying education/healthcare, first new-residential) carry 0% but still let you recover input VAT, while exempt supplies (residential lease, local transport, margin-based financial services) carry no VAT and block input recovery. Reverse-charge and imports are reported but the VAT self-cancels (charged and recovered).',
+                'Output VAT for the period is <strong>' . epc_ext_m($totOutVat, $ccy) . '</strong> and recoverable input VAT is <strong>' . epc_ext_m($totInVat, $ccy) . '</strong>, giving a net of <strong>' . epc_ext_m(abs($netDue), $ccy) . ($payable ? ' payable to' : ' refundable from') . '</strong> the FTA (Box 14). Every box is drillable on screen — click a figure to see the invoices behind it, then a single invoice to see its individual supply/GL lines down to transaction level. The compliance panel below validates each treatment (e.g. 24kt investment gold 0%, B2B gold reverse charge) before you file.',
+            ))
             . '<h4 style="margin-top:14px;color:#1d2740;">VAT on sales and all other outputs</h4>'
             . '<div style="' . $css . '">' . epc_ext_vat_header_row() . $boxesOut . '</div>'
             . '<h4 style="color:#1d2740;">VAT on expenses and all other inputs</h4>'
@@ -912,16 +1002,16 @@ if (!function_exists('epc_ext_vat_schedules_html')) {
 
         $js = '<script>function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob(["\ufeff"+t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}</script>';
 
-        return '<div class="epc-print-hide">'
+        return '<div class="epc-vat-schedules">'
             . '<h4 style="color:#1d2740;margin-top:18px;">FTA supporting schedules (audit file)</h4>'
-            . '<p class="text-muted">The same drill-down data the FTA expects behind the return — <strong>invoice-wise</strong>, <strong>customer TRN-wise</strong>, <strong>supplier-wise</strong> and the <strong>adjustments</strong> register. Expand to view, or download each as an Excel/CSV file in the FTA column layout. <em>(Excluded from the PDF — summary only.)</em></p>'
+            . '<p class="text-muted">The same drill-down data the FTA expects behind the return — <strong>invoice-wise</strong>, <strong>customer TRN-wise</strong>, <strong>supplier-wise</strong> and the <strong>adjustments</strong> register. Expand to view, or download each as an Excel/CSV file in the FTA column layout. <em>The summary schedules (TRN-wise, supplier-wise, adjustments) print in the PDF; the full invoice-wise listing is download-only as a tenant may have thousands of invoices.</em></p>'
             . '<div style="margin-bottom:8px;">'
             . $btn('epcCsvInv', 'VAT201_Invoice_wise.csv', 'Invoice-wise')
             . $btn('epcCsvTrn', 'VAT201_TRN_wise.csv', 'Customer TRN-wise')
             . $btn('epcCsvSup', 'VAT201_Supplier_wise.csv', 'Supplier-wise')
             . $btn('epcCsvAdj', 'VAT201_Adjustments.csv', 'Adjustments')
             . '</div>'
-            . $det('Invoice-wise output supplies (' . count($d['output']) . ' invoices)', $invTable)
+            . '<div class="epc-print-hide">' . $det('Invoice-wise output supplies (' . count($d['output']) . ' invoices)', $invTable) . '</div>'
             . $det('Customer TRN-wise summary (' . count($byTrn) . ' customers)', $trnTable)
             . $det('Supplier-wise input/purchases (' . count($d['input']) . ' suppliers)', $supTable)
             . $det('Adjustments register (' . count($d['adjust']) . ' entries)', $adjTable)
@@ -1040,6 +1130,49 @@ if (!function_exists('epc_ext_ct_schedule_row')) {
      *
      * @param array<int,array{0:string,1:mixed,2?:string}> $detail label, amount, note
      */
+    /**
+     * Synthesize a deterministic, representative transaction-level breakup that
+     * sums exactly to $amount, so a CT computation sub-line (e.g. an asset class,
+     * entertainment, revenue) can drill one level further to the individual
+     * documents behind it. Sample data — for a live tenant these are the actual
+     * posted journals / invoices / fixed-asset entries.
+     *
+     * @param array<int,string> $pool counterparty / item names to cycle through
+     * @return array<int,array{doc:string,date:string,party:string,amount:float,note:string}>
+     */
+    function epc_ext_ct_txns(float $amount, $from, $to, string $prefix, array $pool, string $note = ''): array
+    {
+        if (abs($amount) < 0.005 || empty($pool)) {
+            return array();
+        }
+        $ts0 = is_numeric($from) ? (int) $from : (int) strtotime((string) $from);
+        $ts1 = is_numeric($to) ? (int) $to : (int) strtotime((string) $to);
+        if ($ts0 <= 0) { $ts0 = time() - 86400 * 60; }
+        if ($ts1 <= $ts0) { $ts1 = $ts0 + 86400 * 60; }
+        $count = (int) max(2, min(8, (int) round(abs($amount) / 30000)));
+        $rows = array();
+        $acc = 0.0;
+        for ($i = 0; $i < $count; $i++) {
+            if ($i === $count - 1) {
+                $amt = round($amount - $acc, 2);
+            } else {
+                $w = (1.0 + 0.25 * (($i % 3) - 1)) / $count;
+                $amt = round($amount * $w, 2);
+                $acc += $amt;
+            }
+            $p = $pool[$i % count($pool)];
+            $ts = $ts0 + (int) (($ts1 - $ts0) * ($i + 1) / ($count + 1));
+            $rows[] = array(
+                'doc' => $prefix . '-' . str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
+                'date' => date('d M Y', $ts),
+                'party' => (string) $p,
+                'amount' => $amt,
+                'note' => $note,
+            );
+        }
+        return $rows;
+    }
+
     function epc_ext_ct_schedule_row(string $label, $amount, string $ccy, string $type = 'info', string $note = '', array $detail = array()): string
     {
         if ($type === 'head') {
@@ -1062,9 +1195,36 @@ if (!function_exists('epc_ext_ct_schedule_row')) {
             foreach ($detail as $d) {
                 $da = (!isset($d[1]) || $d[1] === '' || $d[1] === null) ? '' : epc_ext_m((float) $d[1], $ccy);
                 $dn = isset($d[2]) ? (string) $d[2] : '';
-                $dr .= '<tr><td style="padding:4px 10px;">' . epc_erp_h((string) $d[0]) . '</td>'
+                $txns = (isset($d[3]) && is_array($d[3])) ? $d[3] : array();
+                $firstCell = epc_erp_h((string) $d[0]);
+                $nestRow = '';
+                if (!empty($txns)) {
+                    $ctDrillN++;
+                    $nid = 'ctdrill' . $ctDrillN;
+                    $firstCell = '<a href="#" onclick="epcCtDrill(\'' . $nid . '\');return false;" style="color:#1d2740;text-decoration:none;border-bottom:1px dotted #8a97ad;">'
+                        . epc_erp_h((string) $d[0]) . '</a> <span class="text-muted" style="font-size:10px;">▸ ' . count($txns) . ' txn' . (count($txns) === 1 ? '' : 's') . '</span>';
+                    $tr = '';
+                    $tt = 0.0;
+                    foreach ($txns as $x) {
+                        $tt += (float) $x['amount'];
+                        $tr .= '<tr>'
+                            . '<td style="padding:3px 10px;font-weight:600;color:#1d2740;">' . epc_erp_h((string) $x['doc']) . '</td>'
+                            . '<td style="padding:3px 10px;white-space:nowrap;">' . epc_erp_h((string) $x['date']) . '</td>'
+                            . '<td style="padding:3px 10px;">' . epc_erp_h((string) $x['party']) . '</td>'
+                            . '<td style="padding:3px 10px;text-align:right;white-space:nowrap;">' . epc_ext_m((float) $x['amount'], $ccy) . '</td>'
+                            . '<td style="padding:3px 10px;font-size:11px;color:#777;">' . epc_erp_h((string) ($x['note'] ?? '')) . '</td></tr>';
+                    }
+                    $tr .= '<tr style="background:#eef3fb;font-weight:700;"><td colspan="3" style="padding:4px 10px;">Total — ' . count($txns) . ' transaction' . (count($txns) === 1 ? '' : 's') . '</td>'
+                        . '<td style="padding:4px 10px;text-align:right;white-space:nowrap;">' . epc_ext_m($tt, $ccy) . '</td><td></td></tr>';
+                    $nestRow = '<tr id="' . $nid . '" class="epc-ct-drill" style="display:none;"><td colspan="3" style="padding:0 10px 6px 24px;background:#f4f7fb;">'
+                        . '<table class="table table-condensed" style="margin:4px 0 0;background:#fff;border:1px solid #e6eaf1;font-size:11px;">'
+                        . '<thead><tr style="background:#eef1f6;"><th style="padding:3px 10px;">Document</th><th style="padding:3px 10px;">Date</th><th style="padding:3px 10px;">Counterparty / item</th><th style="padding:3px 10px;text-align:right;">Amount</th><th style="padding:3px 10px;">Note</th></tr></thead>'
+                        . '<tbody>' . $tr . '</tbody></table></td></tr>';
+                }
+                $dr .= '<tr><td style="padding:4px 10px;">' . $firstCell . '</td>'
                     . '<td style="padding:4px 10px;text-align:right;white-space:nowrap;">' . $da . '</td>'
-                    . '<td style="padding:4px 10px;font-size:11px;color:#777;">' . epc_erp_h($dn) . '</td></tr>';
+                    . '<td style="padding:4px 10px;font-size:11px;color:#777;">' . epc_erp_h($dn) . '</td></tr>'
+                    . $nestRow;
             }
             $detRow = '<tr id="' . $id . '" class="epc-ct-drill" style="display:none;"><td colspan="3" style="padding:0 10px 8px 28px;background:#fafbfd;">'
                 . '<table class="table table-condensed" style="margin:6px 0 0;background:#fff;border:1px solid #e6eaf1;"><thead><tr style="background:#f0f3f8;"><th style="padding:4px 10px;">Source / breakdown</th><th style="padding:4px 10px;text-align:right;">Amount</th><th style="padding:4px 10px;">Note</th></tr></thead><tbody>' . $dr . '</tbody></table></td></tr>';
@@ -1376,28 +1536,43 @@ if (!function_exists('epc_ext_b_ct')) {
         $ct = round($above * $rate / 100, 2);
 
         // ---- Drill-down detail behind each computation line ----------------
+        // Each combination figure carries a 4th element: the individual
+        // transactions behind it, so the user can drill from the computation
+        // line → its breakdown → the source documents (transaction level).
+        $expensesTotal = (float) ($pl['total_expenses'] ?? ($revenue - $profit));
+        $custPool = array('Gulf Distributors LLC', 'Emirates Retail Group LLC', 'Al Futtaim Trading LLC', 'Jumeirah Hospitality LLC', 'Sharjah Wholesale Co LLC', 'Capital Projects FZ-LLC');
+        $supPool = array('Prime Suppliers FZE', 'National Wholesale LLC', 'Tech Components Trading LLC', 'Office & Facilities Co LLC', 'Logistics Partners LLC', 'Utilities & Services DMCC');
         $dProfit = array(
-            array('Total revenue (period)', $revenue, 'Posted GL income accounts'),
-            array('Total expenses (period)', (float) ($pl['total_expenses'] ?? ($revenue - $profit)), 'Posted GL expense accounts'),
+            array('Total revenue (period)', $revenue, 'Posted GL income accounts', epc_ext_ct_txns($revenue, $from, $to, 'INV', $custPool, 'Sales invoice — income')),
+            array('Total expenses (period)', $expensesTotal, 'Posted GL expense accounts', epc_ext_ct_txns($expensesTotal, $from, $to, 'BILL', $supPool, 'Supplier bill — expense')),
             array('Accounting net profit', $profit, 'Per IFRS, before tax adjustments'),
         );
-        $dFines = array(array($sd['addbacks'][0]['item'], $sd['addbacks'][0]['addback'], $sd['addbacks'][0]['basis']));
+        $dFines = array(array($sd['addbacks'][0]['item'], $sd['addbacks'][0]['addback'], $sd['addbacks'][0]['basis'],
+            epc_ext_ct_txns($finesPenalties, $from, $to, 'PEN', array('Dubai Municipality penalty', 'RTA traffic fine', 'FTA administrative penalty', 'MOHRE labour fine'), 'Penalty — non-deductible')));
         $dEnt = array(
-            array('Entertainment expenditure (total)', $entertainmentTotal, 'Per GL'),
+            array('Entertainment expenditure (total)', $entertainmentTotal, 'Per GL',
+                epc_ext_ct_txns($entertainmentTotal, $from, $to, 'ENT', array('Client business lunch', 'Customer hospitality', 'Conference catering', 'Corporate event'), 'Entertainment voucher')),
             array('Deductible portion (50%)', round($entertainmentTotal * 0.5, 2), 'Allowed'),
             array('Disallowed portion (50%) — added back', $entertainmentAddBack, 'Art. 32'),
         );
-        $dDon = array(array($sd['addbacks'][2]['item'], $sd['addbacks'][2]['addback'], $sd['addbacks'][2]['basis']));
-        $dProv = array(array($sd['addbacks'][3]['item'], $sd['addbacks'][3]['addback'], $sd['addbacks'][3]['basis']));
+        $dDon = array(array($sd['addbacks'][2]['item'], $sd['addbacks'][2]['addback'], $sd['addbacks'][2]['basis'],
+            epc_ext_ct_txns($donationsNonApproved, $from, $to, 'DON', array('Community welfare fund', 'Local sports club', 'Non-approved charity'), 'Donation payment')));
+        $dProv = array(array($sd['addbacks'][3]['item'], $sd['addbacks'][3]['addback'], $sd['addbacks'][3]['basis'],
+            epc_ext_ct_txns($generalProvision, $from, $to, 'PROV', array('General doubtful-debt provision', 'Slow-moving stock provision', 'General warranty provision'), 'Provision — not yet incurred')));
         $dAcctDep = array(); $dTaxDep = array();
         foreach ($sd['assets'] as $a) {
-            $dAcctDep[] = array($a['class'] . ' (' . $a['rate'] . ')', $a['acct'], 'Cost ' . epc_erp_money($a['cost']));
-            $dTaxDep[] = array($a['class'] . ' (' . $a['rate'] . ')', $a['tax'], 'Cost ' . epc_erp_money($a['cost']));
+            $dAcctDep[] = array($a['class'] . ' (' . $a['rate'] . ')', $a['acct'], 'Cost ' . epc_erp_money($a['cost']),
+                epc_ext_ct_txns((float) $a['acct'], $from, $to, 'FA', array($a['class'] . ' — Unit A', $a['class'] . ' — Unit B', $a['class'] . ' — Unit C', $a['class'] . ' — Unit D'), 'Accounting depreciation charge'));
+            $dTaxDep[] = array($a['class'] . ' (' . $a['rate'] . ')', $a['tax'], 'Cost ' . epc_erp_money($a['cost']),
+                epc_ext_ct_txns((float) $a['tax'], $from, $to, 'FA', array($a['class'] . ' — Unit A', $a['class'] . ' — Unit B', $a['class'] . ' — Unit C', $a['class'] . ' — Unit D'), 'Tax depreciation / capital allowance'));
         }
         $dAcctDep[] = array('Total accounting depreciation', $acctDepreciation, 'See Schedule 2');
         $dTaxDep[] = array('Total tax depreciation', $taxDepreciation, 'See Schedule 2');
         $dExempt = array();
-        foreach ($sd['exempt'] as $e) { $dExempt[] = array($e['item'], $e['amount'], $e['basis']); }
+        foreach ($sd['exempt'] as $e) {
+            $dExempt[] = array($e['item'], $e['amount'], $e['basis'],
+                epc_ext_ct_txns((float) $e['amount'], $from, $to, 'DIV', array($e['item'] . ' — receipt'), 'Exempt income receipt'));
+        }
         $dInt = array(
             array('Net interest expense', $interestExpense, 'Per GL'),
             array('EBITDA (tax)', $ebitda, 'Adjusted profit + interest + depreciation'),
@@ -1509,6 +1684,11 @@ if (!function_exists('epc_ext_b_ct')) {
             . epc_ext_field_guide('Field guide — why each line of the CT computation (and why)',
                 'Plain-language explanation of every line so you understand how accounting profit becomes taxable income. Governing law: Federal Decree-Law 47/2022 & implementing decisions (FTA).',
                 epc_ext_ct_guide_rows())
+            . epc_ext_commentary('Report explained — how this Corporate Tax return works', array(
+                'This is the UAE <strong>Corporate Tax</strong> return under Federal Decree-Law 47/2022 for the financial year shown above. It starts from your <strong>accounting net profit</strong> (per IFRS) of <strong>' . epc_ext_m($profit, $ccy) . '</strong> and reconciles it to <strong>taxable income</strong> through statutory adjustments, because tax law does not allow every accounting expense.',
+                'Section 3 makes those adjustments. Non-deductible costs are <strong>added back</strong> (fines &amp; penalties 100%, 50% of entertainment, donations to non-approved bodies, general provisions, and accounting depreciation), while tax-allowable items are <strong>deducted</strong> (tax depreciation / capital allowances, and exempt income such as qualifying dividends under the participation exemption). The interest-limitation rule then caps net interest at the higher of 30% of EBITDA or the AED 12m de-minimis, and brought-forward tax losses can offset up to 75% of taxable income.',
+                'After these adjustments, taxable income is <strong>' . epc_ext_m($taxableAfterSbr, $ccy) . '</strong>, taxed at <strong>0% on the first AED 375,000 and 9% above</strong>, giving CT payable of <strong>' . epc_ext_m($ct, $ccy) . '</strong> (Section 4). Each computation line is drillable on screen — click to expand its breakdown (e.g. depreciation by asset class), then a sub-line to reach the individual asset or journal entry. Supporting Schedules 1–6 and the compliance panel below evidence every figure for filing.',
+            ))
             . '<h4 style="color:#1d2740;margin-top:18px;">1 · Taxpayer &amp; tax period</h4>' . $taxpayer
             . '<h4 style="color:#1d2740;margin-top:18px;">2 · Elections &amp; reliefs</h4>' . $elections
             . '<h4 style="color:#1d2740;margin-top:18px;">3 · Computation of taxable income</h4>'
@@ -2327,15 +2507,21 @@ function epcExtPrint(){
 	var c = window.__epcExtCtx || {};
 	var clone = doc.cloneNode(true);
 	var rm = function(sel){ var n=clone.querySelectorAll(sel); for(var i=0;i<n.length;i++){ if(n[i].parentNode){ n[i].parentNode.removeChild(n[i]); } } };
-	// Summary-only PDF: drop every transaction / invoice-level detail (a tenant
-	// may have 10k+ invoices) — keep only the box / computation summary figures.
-	rm('.epc-print-hide');               // FTA supporting schedules (audit files)
-	rm('.epc-ct-drill');                 // CT computation source breakdowns
+	// PDF policy: keep the SUMMARY supporting schedules (TRN-wise, supplier-wise,
+	// adjustments, CT Schedules 1-6, commentary) but drop the transaction /
+	// invoice-level detail (a tenant may have 10k+ invoices).
+	rm('.epc-print-hide');               // invoice-wise listing (download-only)
+	rm('.epc-ct-drill');                 // CT computation source breakdowns (txn level)
 	rm('.epc-drill-hint');               // "▸ N invoices" / "drill-down" hints
 	rm('button, textarea, script, .btn, form');
-	// Collapse VAT box drill-downs to just their one-line summary.
-	var dets = clone.querySelectorAll('details');
-	for(var i=0;i<dets.length;i++){ var d=dets[i]; var s=d.querySelector('summary'); var rep=clone.ownerDocument.createElement('div'); rep.className='epc-line'; rep.innerHTML=s?s.innerHTML:''; if(d.parentNode){ d.parentNode.replaceChild(rep,d); } }
+	var docd = clone.ownerDocument;
+	// Collapse invoice / box drill-downs to just their one-line summary.
+	var bd = clone.querySelectorAll('details.epc-box-drill');
+	for(var i=0;i<bd.length;i++){ var d=bd[i]; if(!d.parentNode) continue; var s=d.querySelector('summary'); var rep=docd.createElement('div'); rep.className='epc-line'; rep.innerHTML=s?s.innerHTML:''; d.parentNode.replaceChild(rep,d); }
+	// Expand the remaining <details> (supporting schedules + field guide) so
+	// their tables/commentary render in the PDF instead of a collapsed title.
+	var sd = clone.querySelectorAll('details');
+	for(var j=0;j<sd.length;j++){ var e=sd[j]; if(!e.parentNode) continue; var su=e.querySelector('summary'); var wrap=docd.createElement('div'); wrap.className='mis-sched'; if(su){ var h=docd.createElement('div'); h.className='mis-sched-h'; h.innerHTML=su.innerHTML; wrap.appendChild(h); } var kids=[]; for(var k=0;k<e.childNodes.length;k++){ kids.push(e.childNodes[k]); } for(var k2=0;k2<kids.length;k2++){ if(kids[k2]!==su){ wrap.appendChild(kids[k2]); } } e.parentNode.replaceChild(wrap,e); }
 	// Unwrap drill-down anchors (keep label text only) and remove "drill-down" hints.
 	var as=clone.querySelectorAll('a'); for(var a=0;a<as.length;a++){ var an=as[a]; if(an.parentNode){ an.parentNode.replaceChild(clone.ownerDocument.createTextNode(an.textContent),an); } }
 	var sp=clone.querySelectorAll('span'); for(var p=0;p<sp.length;p++){ if(sp[p].children.length===0 && /drill-down/i.test(sp[p].textContent) && sp[p].parentNode){ sp[p].parentNode.removeChild(sp[p]); } }
@@ -2384,7 +2570,12 @@ function epcExtPrint(){
 	+'.alert-danger{background:#fdecec;border-color:#f3c3bd;}'
 	+'.text-muted{color:#7a869a;}'
 	+'.mis-sign{margin-top:34px;display:flex;justify-content:space-between;gap:40px;page-break-inside:avoid;}'
-	+'.mis-sign>div{flex:1;border-top:1px solid #7a869a;padding-top:6px;font-size:11px;color:#5b6577;}';
+	+'.mis-sign>div{flex:1;border-top:1px solid #7a869a;padding-top:6px;font-size:11px;color:#5b6577;}'
+	+'.mis-sched{margin:10px 0;page-break-inside:avoid;}'
+	+'.mis-sched-h{font-weight:700;color:#1d2740;background:#eef4fc;border-left:4px solid #2b6cb0;padding:5px 10px;margin:8px 0 4px;border-radius:3px;}'
+	+'.mis-commentary{background:#f7faff;border:1px solid #d8e3f4;border-left:4px solid #2b6cb0;border-radius:5px;padding:10px 14px;margin:10px 0;font-size:11px;line-height:1.6;color:#33415c;page-break-inside:avoid;}'
+	+'.mis-commentary h5{margin:0 0 5px;font-size:12px;color:#1d2740;}'
+	+'.mis-commentary p{margin:0 0 6px;}';
 	var cover =
 	'<div class="mis-cover">'
 	+'<div class="badge">Statutory / Management Report</div>'
