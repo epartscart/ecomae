@@ -43,6 +43,12 @@ body.epc-erp-standalone a:hover,body.epc-erp-standalone a:focus{color:var(--ep-a
 .epc-erp-main{max-width:1180px;margin:0 auto;padding:26px 22px 40px;}
 .epc-erp-foot{max-width:1180px;margin:0 auto;padding:18px 22px 34px;color:var(--ep-muted);font-size:12.5px;border-top:1px solid var(--ep-brd);}
 
+/* When the ERP application shell (sidebar + content) is on the page, let it use
+   the full screen width — only the marketing/login pages stay centred. */
+body.epc-erp-standalone:has(.epc-erp-shell--layout) .epc-erp-main{max-width:none;padding:0;}
+body.epc-erp-standalone:has(.epc-erp-shell--layout) .epc-erp-topbar__inner{max-width:none;}
+body.epc-erp-standalone:has(.epc-erp-shell--layout) .epc-erp-foot{max-width:none;}
+
 /* Home hero */
 .epc-erp-home-hero{background:linear-gradient(135deg,#ffffff 0%,#eef4fe 100%);border:1px solid var(--ep-brd);border-radius:18px;padding:30px 32px;margin-bottom:22px;}
 .epc-erp-home-hero__inner{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;}
