@@ -579,6 +579,12 @@ const EPC_PF_ORDER_CATEGORY = 'order_lifecycle';
 /** Stable category tag for the built-in procurement (purchase order) lifecycle process. */
 const EPC_PF_PO_CATEGORY = 'po_lifecycle';
 
+/** Stable category tag for the built-in supplier payment (AP) lifecycle process. */
+const EPC_PF_PAY_CATEGORY = 'payment_lifecycle';
+
+/** Stable category tag for the built-in staff expense-claim lifecycle process. */
+const EPC_PF_EXP_CATEGORY = 'expense_lifecycle';
+
 /**
  * Ensure the built-in "Customer Order → Delivery" process exists (idempotent).
  * Every tenant gets it automatically; it drives the auto-created case per order.
@@ -942,17 +948,322 @@ function epc_pf_sync_all_po_cases(PDO $db, int $limit = 200): int
 	return $n;
 }
 
+/* ---------- automatic supplier payment (accounts payable) process ---------- */
+
 /**
- * Master sync for every auto-tracked task type (customer orders + purchase
- * orders, extensible). Returns per-type counts. Fully guarded.
+ * Ensure the built-in "Supplier payment → Settlement" process exists (idempotent).
+ * Drives the auto-created case per outbound payment batch. Returns the process id.
+ */
+function epc_pf_ensure_pay_process(PDO $db): int
+{
+	epc_pf_ensure_schema($db);
+	$id = (int) $db->query("SELECT `id` FROM `epc_pf_processes` WHERE `category` = '" . EPC_PF_PAY_CATEGORY . "' ORDER BY `id` LIMIT 1")->fetchColumn();
+	if ($id > 0) {
+		return $id;
+	}
+	$pid = epc_pf_process_save($db, array(
+		'name' => 'Supplier payment → Settlement',
+		'description' => 'Runs automatically for every outbound supplier payment batch. The case is created when the batch is prepared and advances by itself as it is submitted for release and the payment is processed.',
+		'category' => EPC_PF_PAY_CATEGORY,
+	));
+	$steps = array(
+		array('Payment batch prepared', 'department', 'accounts', 8),
+		array('Submitted for release', 'dept_head', 'accounts', 24),
+		array('Payment processed & settled', 'dept_head', 'finance', 24),
+	);
+	$no = 1;
+	foreach ($steps as $s) {
+		epc_pf_step_save($db, array(
+			'process_id' => $pid,
+			'step_no' => $no++,
+			'name' => $s[0],
+			'assign_type' => $s[1],
+			'assign_department' => $s[2],
+			'sla_hours' => $s[3],
+		));
+	}
+	return $pid;
+}
+
+/** Gather lifecycle signals for one payment batch. Best-effort, never throws. */
+function epc_pf_pay_facts(PDO $db, int $batchId): array
+{
+	$f = array('exists' => false, 'submitted' => false, 'processed' => false, 'cancelled' => false, 'batch_no' => '');
+	try {
+		$st = $db->prepare("SELECT `status`, `batch_no` FROM `epc_erp_payment_batches` WHERE `id` = ? LIMIT 1");
+		$st->execute(array($batchId));
+		$r = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$r) { return $f; }
+		$f['exists'] = true;
+		$f['batch_no'] = (string) ($r['batch_no'] ?? '');
+		$status = (string) ($r['status'] ?? 'draft');
+		$f['cancelled'] = ($status === 'cancelled');
+		$f['submitted'] = in_array($status, array('submitted', 'processed'), true);
+		$f['processed'] = ($status === 'processed');
+	} catch (Exception $e) {
+	}
+	return $f;
+}
+
+/** Map payment-batch facts to a target stage (1..3) and completion flag. */
+function epc_pf_pay_target_stage(array $f): array
+{
+	$step = 1;
+	if (!empty($f['submitted'])) { $step = max($step, 2); }
+	$done = false;
+	if (!empty($f['processed'])) { $step = 3; $done = true; }
+	return array('step' => $step, 'done' => $done);
+}
+
+/**
+ * Create (if missing) and auto-advance the process case for a payment batch so
+ * it mirrors the batch's real status. Idempotent and fully guarded. Returns case id.
+ */
+function epc_pf_sync_pay_case(PDO $db, int $batchId): int
+{
+	if ($batchId <= 0) {
+		return 0;
+	}
+	try {
+		epc_pf_ensure_schema($db);
+		$f = epc_pf_pay_facts($db, $batchId);
+		if (empty($f['exists'])) {
+			return 0;
+		}
+		$pid = epc_pf_ensure_pay_process($db);
+		$cst = $db->prepare("SELECT `id`, `status` FROM `epc_pf_cases` WHERE `subject_type` = 'erp_payment' AND `subject_id` = ? AND `process_id` = ? ORDER BY `id` LIMIT 1");
+		$cst->execute(array($batchId, $pid));
+		$case = $cst->fetch(PDO::FETCH_ASSOC);
+		if (!$case) {
+			$title = 'Supplier payment ' . ($f['batch_no'] !== '' ? $f['batch_no'] : ('#' . $batchId));
+			$caseId = epc_pf_case_start($db, array(
+				'process_id' => $pid,
+				'title' => $title,
+				'reference' => ($f['batch_no'] !== '' ? $f['batch_no'] : ('PAY #' . $batchId)),
+				'priority' => 'normal',
+				'subject_type' => 'erp_payment',
+				'subject_id' => $batchId,
+				'initiator_id' => epc_pf_admin_id(),
+			));
+		} else {
+			$caseId = (int) $case['id'];
+			if ((string) $case['status'] !== 'open') {
+				return $caseId;
+			}
+		}
+		if (!empty($f['cancelled'])) {
+			if (function_exists('epc_pf_case_cancel')) {
+				try { epc_pf_case_cancel($db, $caseId); } catch (Exception $e) {}
+			}
+			return $caseId;
+		}
+		$target = epc_pf_pay_target_stage($f);
+		$goal = $target['done'] ? 99 : (int) $target['step'];
+		epc_pf_auto_advance_case($db, $caseId, $goal, 'Auto-advanced from payment-batch status');
+		return $caseId;
+	} catch (Exception $e) {
+		return 0;
+	}
+}
+
+/** Backfill / refresh payment cases for recent payment batches. Returns count synced. */
+function epc_pf_sync_all_pay_cases(PDO $db, int $limit = 200): int
+{
+	$n = 0;
+	try {
+		$ids = $db->query("SELECT `id` FROM `epc_erp_payment_batches` ORDER BY `id` DESC LIMIT " . max(1, (int) $limit))->fetchAll(PDO::FETCH_COLUMN);
+		foreach ($ids as $bid) {
+			if (epc_pf_sync_pay_case($db, (int) $bid) > 0) { $n++; }
+		}
+	} catch (Exception $e) {
+	}
+	return $n;
+}
+
+/* ---------- automatic staff expense-claim process ---------- */
+
+/**
+ * Ensure the built-in "Expense claim → Reimbursement" process exists (idempotent).
+ * Drives the auto-created case per staff expense report. Returns the process id.
+ */
+function epc_pf_ensure_exp_process(PDO $db): int
+{
+	epc_pf_ensure_schema($db);
+	$id = (int) $db->query("SELECT `id` FROM `epc_pf_processes` WHERE `category` = '" . EPC_PF_EXP_CATEGORY . "' ORDER BY `id` LIMIT 1")->fetchColumn();
+	if ($id > 0) {
+		return $id;
+	}
+	$pid = epc_pf_process_save($db, array(
+		'name' => 'Expense claim → Reimbursement',
+		'description' => 'Runs automatically for every staff expense report. The case is created when the claim is submitted and advances by itself as it is approved by the manager and reimbursed by accounts.',
+		'category' => EPC_PF_EXP_CATEGORY,
+	));
+	$steps = array(
+		array('Expense claim submitted', 'initiator', '', 8),
+		array('Manager approval', 'dept_head', 'hr', 24),
+		array('Reimbursed by accounts', 'dept_head', 'accounts', 24),
+	);
+	$no = 1;
+	foreach ($steps as $s) {
+		epc_pf_step_save($db, array(
+			'process_id' => $pid,
+			'step_no' => $no++,
+			'name' => $s[0],
+			'assign_type' => $s[1],
+			'assign_department' => $s[2],
+			'sla_hours' => $s[3],
+		));
+	}
+	return $pid;
+}
+
+/** Gather lifecycle signals for one expense report. Best-effort, never throws. */
+function epc_pf_exp_facts(PDO $db, int $reportId): array
+{
+	$f = array('exists' => false, 'submitted' => false, 'approved' => false, 'paid' => false, 'rejected' => false, 'report_no' => '', 'staff_id' => 0, 'title' => '');
+	try {
+		$st = $db->prepare("SELECT `status`, `report_no`, `staff_user_id`, `title` FROM `epc_erp_expense_reports` WHERE `id` = ? LIMIT 1");
+		$st->execute(array($reportId));
+		$r = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$r) { return $f; }
+		$f['exists'] = true;
+		$f['report_no'] = (string) ($r['report_no'] ?? '');
+		$f['staff_id'] = (int) ($r['staff_user_id'] ?? 0);
+		$f['title'] = (string) ($r['title'] ?? '');
+		$status = (string) ($r['status'] ?? 'draft');
+		$f['rejected'] = ($status === 'rejected');
+		$f['submitted'] = in_array($status, array('submitted', 'approved', 'paid'), true);
+		$f['approved'] = in_array($status, array('approved', 'paid'), true);
+		$f['paid'] = ($status === 'paid');
+	} catch (Exception $e) {
+	}
+	return $f;
+}
+
+/** Map expense-report facts to a target stage (1..3) and completion flag. */
+function epc_pf_exp_target_stage(array $f): array
+{
+	$step = 1;
+	if (!empty($f['approved'])) { $step = max($step, 2); }
+	$done = false;
+	if (!empty($f['paid'])) { $step = 3; $done = true; }
+	return array('step' => $step, 'done' => $done);
+}
+
+/**
+ * Create (if missing) and auto-advance the process case for a staff expense
+ * report so it mirrors the report's real status. The claiming employee is the
+ * case initiator. Idempotent and fully guarded. Returns case id.
+ */
+function epc_pf_sync_exp_case(PDO $db, int $reportId): int
+{
+	if ($reportId <= 0) {
+		return 0;
+	}
+	try {
+		epc_pf_ensure_schema($db);
+		$f = epc_pf_exp_facts($db, $reportId);
+		if (empty($f['exists'])) {
+			return 0;
+		}
+		// A claim only becomes a tracked task once the employee submits it.
+		if (empty($f['submitted']) && empty($f['rejected'])) {
+			return 0;
+		}
+		$pid = epc_pf_ensure_exp_process($db);
+		$cst = $db->prepare("SELECT `id`, `status` FROM `epc_pf_cases` WHERE `subject_type` = 'erp_expense' AND `subject_id` = ? AND `process_id` = ? ORDER BY `id` LIMIT 1");
+		$cst->execute(array($reportId, $pid));
+		$case = $cst->fetch(PDO::FETCH_ASSOC);
+		if (!$case) {
+			$label = $f['title'] !== '' ? $f['title'] : 'Expense claim';
+			$title = $label . ' ' . ($f['report_no'] !== '' ? $f['report_no'] : ('#' . $reportId));
+			$caseId = epc_pf_case_start($db, array(
+				'process_id' => $pid,
+				'title' => $title,
+				'reference' => ($f['report_no'] !== '' ? $f['report_no'] : ('EXP #' . $reportId)),
+				'priority' => 'normal',
+				'subject_type' => 'erp_expense',
+				'subject_id' => $reportId,
+				'initiator_id' => $f['staff_id'] > 0 ? $f['staff_id'] : epc_pf_admin_id(),
+			));
+		} else {
+			$caseId = (int) $case['id'];
+			if ((string) $case['status'] !== 'open') {
+				return $caseId;
+			}
+		}
+		if (!empty($f['rejected'])) {
+			if (function_exists('epc_pf_case_cancel')) {
+				try { epc_pf_case_cancel($db, $caseId); } catch (Exception $e) {}
+			}
+			return $caseId;
+		}
+		$target = epc_pf_exp_target_stage($f);
+		$goal = $target['done'] ? 99 : (int) $target['step'];
+		epc_pf_auto_advance_case($db, $caseId, $goal, 'Auto-advanced from expense-claim status');
+		return $caseId;
+	} catch (Exception $e) {
+		return 0;
+	}
+}
+
+/** Backfill / refresh expense cases for recent expense reports. Returns count synced. */
+function epc_pf_sync_all_exp_cases(PDO $db, int $limit = 200): int
+{
+	$n = 0;
+	try {
+		$ids = $db->query("SELECT `id` FROM `epc_erp_expense_reports` ORDER BY `id` DESC LIMIT " . max(1, (int) $limit))->fetchAll(PDO::FETCH_COLUMN);
+		foreach ($ids as $rid) {
+			if (epc_pf_sync_exp_case($db, (int) $rid) > 0) { $n++; }
+		}
+	} catch (Exception $e) {
+	}
+	return $n;
+}
+
+/**
+ * Shared helper: auto-advance an open case toward $goal by approving the active
+ * step as its assignee (so each step is credited to a real employee). Fully
+ * guarded against infinite loops. Used by every auto-tracked task type.
+ */
+function epc_pf_auto_advance_case(PDO $db, int $caseId, int $goal, string $comment): void
+{
+	$guard = 0;
+	while ($guard++ < 8) {
+		$c = $db->prepare("SELECT `current_step_no`, `status` FROM `epc_pf_cases` WHERE `id` = ?");
+		$c->execute(array($caseId));
+		$cur = $c->fetch(PDO::FETCH_ASSOC);
+		if (!$cur || (string) $cur['status'] !== 'open') {
+			break;
+		}
+		if ((int) $cur['current_step_no'] >= $goal) {
+			break;
+		}
+		$as = $db->prepare("SELECT `assignee_id` FROM `epc_pf_case_steps` WHERE `case_id` = ? AND `step_no` = ? AND `status` = 'active' LIMIT 1");
+		$as->execute(array($caseId, (int) $cur['current_step_no']));
+		$actor = (int) $as->fetchColumn();
+		if ($actor <= 0) { $actor = epc_pf_admin_id(); }
+		$res = epc_pf_case_act($db, $caseId, 'approve', $comment, $actor);
+		if ((string) $res['status'] !== 'open') {
+			break;
+		}
+	}
+}
+
+/**
+ * Master sync for every auto-tracked task type (customer orders, purchase
+ * orders, supplier payments and staff expense claims; extensible). Returns
+ * per-type counts. Fully guarded.
  *
  * @return array<string,int>
  */
 function epc_pf_sync_all_tasks(PDO $db, int $limit = 300): array
 {
-	$out = array('orders' => 0, 'purchase_orders' => 0);
+	$out = array('orders' => 0, 'purchase_orders' => 0, 'payments' => 0, 'expenses' => 0);
 	try { $out['orders'] = epc_pf_sync_all_order_cases($db, $limit); } catch (Exception $e) {}
 	try { $out['purchase_orders'] = epc_pf_sync_all_po_cases($db, $limit); } catch (Exception $e) {}
+	try { $out['payments'] = epc_pf_sync_all_pay_cases($db, $limit); } catch (Exception $e) {}
+	try { $out['expenses'] = epc_pf_sync_all_exp_cases($db, $limit); } catch (Exception $e) {}
 	return $out;
 }
 
@@ -968,7 +1279,7 @@ function epc_pf_case_documents(PDO $db, array $case): array
 	$docs = array();
 	$type = (string) ($case['subject_type'] ?? '');
 	$sid = (int) ($case['subject_id'] ?? 0);
-	if ($sid <= 0 || !in_array($type, array('shop_order', 'erp_po'), true)) {
+	if ($sid <= 0 || !in_array($type, array('shop_order', 'erp_po', 'erp_payment', 'erp_expense'), true)) {
 		return $docs;
 	}
 	$base = '';
@@ -976,6 +1287,14 @@ function epc_pf_case_documents(PDO $db, array $case): array
 		$base = epc_erp_cp_redirect_url('/' . $GLOBALS['cfg']->backend_dir . '/shop/finance/erp');
 	} else {
 		$base = '/shop/finance/erp';
+	}
+	if ($type === 'erp_payment') {
+		$docs[] = array('label' => 'Payment batch', 'url' => $base . '?area=finance&tab=payment_batches&batch_id=' . $sid, 'icon' => 'fa-money');
+		return $docs;
+	}
+	if ($type === 'erp_expense') {
+		$docs[] = array('label' => 'Expense report', 'url' => $base . '?area=finance&tab=expense_reports&report_id=' . $sid, 'icon' => 'fa-receipt');
+		return $docs;
 	}
 	if ($type === 'erp_po') {
 		$docs[] = array('label' => 'Purchase order', 'url' => $base . '?area=purchasing&tab=purchase_orders&po_id=' . $sid, 'icon' => 'fa-clipboard');
@@ -1287,6 +1606,9 @@ function epc_pf_demo_locations(): array
 const EPC_PF_DEMO_EMAIL = '@pf-demo.local';
 const EPC_PF_DEMO_UID_BASE = 700000;
 
+/** Marker stored in seeded finance records so demo data can be cleared safely. */
+const EPC_PF_DEMO_TAG = '[PF-DEMO]';
+
 /**
  * Seed a realistic employee population (~200) spread across every department and
  * multiple physical locations, so workflow cases visibly route between people,
@@ -1383,7 +1705,68 @@ function epc_pf_clear_demo(PDO $db): int
 		$db->exec("DELETE FROM `epc_erp_staff_profiles` WHERE `email` LIKE '%" . EPC_PF_DEMO_EMAIL . "'");
 	} catch (Exception $e) {
 	}
+	// demo finance task records (supplier payments + expense claims) + their cases
+	try {
+		$payIds = $db->query("SELECT `id` FROM `epc_erp_payment_batches` WHERE `notes` LIKE '%" . EPC_PF_DEMO_TAG . "%'")->fetchAll(PDO::FETCH_COLUMN);
+		$expIds = $db->query("SELECT `id` FROM `epc_erp_expense_reports` WHERE `notes` LIKE '%" . EPC_PF_DEMO_TAG . "%'")->fetchAll(PDO::FETCH_COLUMN);
+		$kill = function (string $subjectType, array $subjectIds) use ($db) {
+			foreach ($subjectIds as $sid) {
+				$cids = $db->prepare("SELECT `id` FROM `epc_pf_cases` WHERE `subject_type` = ? AND `subject_id` = ?");
+				$cids->execute(array($subjectType, (int) $sid));
+				foreach ($cids->fetchAll(PDO::FETCH_COLUMN) as $cid) {
+					$db->prepare("DELETE FROM `epc_pf_case_steps` WHERE `case_id` = ?")->execute(array((int) $cid));
+					$db->prepare("DELETE FROM `epc_pf_cases` WHERE `id` = ?")->execute(array((int) $cid));
+				}
+			}
+		};
+		$kill('erp_payment', $payIds);
+		$kill('erp_expense', $expIds);
+		$db->exec("DELETE FROM `epc_erp_payment_batches` WHERE `notes` LIKE '%" . EPC_PF_DEMO_TAG . "%'");
+		$db->exec("DELETE FROM `epc_erp_expense_reports` WHERE `notes` LIKE '%" . EPC_PF_DEMO_TAG . "%'");
+	} catch (Exception $e) {
+	}
 	return $n;
+}
+
+/**
+ * Seed a few real supplier-payment batches and staff expense claims with varied
+ * statuses so the auto task-engine creates and advances cases for those types.
+ * Records are tagged with EPC_PF_DEMO_TAG so epc_pf_clear_demo can remove them.
+ */
+function epc_pf_seed_demo_finance_tasks(PDO $db, array $demoEmps, int $adminUser): void
+{
+	$tag = EPC_PF_DEMO_TAG;
+	$now = time();
+	// guard: only seed once per tenant
+	$have = (int) $db->query("SELECT COUNT(*) FROM `epc_erp_payment_batches` WHERE `notes` LIKE '%" . $tag . "%'")->fetchColumn();
+	if ($have === 0) {
+		$batches = array(
+			array('PAY-' . $now . '-1', 'sepa', 18450.00, 6, 'processed'),
+			array('PAY-' . $now . '-2', 'local', 7320.50, 3, 'submitted'),
+			array('PAY-' . $now . '-3', 'cheque', 2150.00, 1, 'draft'),
+		);
+		$ins = $db->prepare("INSERT INTO `epc_erp_payment_batches` (`batch_no`,`batch_type`,`account_id`,`total_amount`,`line_count`,`status`,`execution_date`,`notes`,`admin_id`,`time_created`,`time_updated`) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+		foreach ($batches as $b) {
+			$ins->execute(array($b[0], $b[1], 0, $b[2], $b[3], $b[4], $now, 'Supplier settlement run ' . $tag, $adminUser, $now, $now));
+		}
+	}
+	$haveE = (int) $db->query("SELECT COUNT(*) FROM `epc_erp_expense_reports` WHERE `notes` LIKE '%" . $tag . "%'")->fetchColumn();
+	if ($haveE === 0) {
+		$pick = function () use ($demoEmps, $adminUser) {
+			if (empty($demoEmps)) { return $adminUser; }
+			return (int) $demoEmps[array_rand($demoEmps)];
+		};
+		$reports = array(
+			array('EXP-' . $now . '-1', 'Client visit — Abu Dhabi', 845.50, 'paid'),
+			array('EXP-' . $now . '-2', 'Trade show booth — DWTC', 3200.00, 'approved'),
+			array('EXP-' . $now . '-3', 'Courier & customs charges', 612.75, 'submitted'),
+			array('EXP-' . $now . '-4', 'Team training materials', 1480.00, 'submitted'),
+		);
+		$insE = $db->prepare("INSERT INTO `epc_erp_expense_reports` (`report_no`,`staff_user_id`,`title`,`total_amount`,`status`,`period_from`,`period_to`,`notes`,`admin_id`,`time_created`,`time_updated`) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+		foreach ($reports as $r) {
+			$insE->execute(array($r[0], $pick(), $r[1], $r[2], $r[3], $now - 20 * 86400, $now, 'Expense claim ' . $tag, $adminUser, $now, $now));
+		}
+	}
 }
 
 /**
@@ -1538,6 +1921,19 @@ function epc_pf_seed_demo(PDO $db): array
 				break;
 			}
 		}
+	}
+
+	// Seed a few real finance records (supplier payments + staff expense claims)
+	// with varied statuses so the auto task-engine creates and advances cases for
+	// those task types too. Tagged + guarded so re-seeding never duplicates.
+	try {
+		epc_pf_seed_demo_finance_tasks($db, $demoEmps, $adminUser);
+	} catch (Exception $e) {
+	}
+	// Backfill the auto-tracked task types (orders, POs, payments, expenses).
+	try {
+		epc_pf_sync_all_tasks($db, 300);
+	} catch (Exception $e) {
 	}
 
 	return array('processes' => count($procIds), 'cases' => $cases, 'employees' => (int) $emp['count']);

@@ -267,7 +267,11 @@ function epc_erp_payment_batch_save(PDO $db, array $data)
 		$now,
 		$now,
 	));
-	return (int) $db->lastInsertId();
+	$batchId = (int) $db->lastInsertId();
+	if (function_exists('epc_pf_sync_pay_case')) {
+		try { epc_pf_sync_pay_case($db, $batchId); } catch (Exception $e) {}
+	}
+	return $batchId;
 }
 
 function epc_erp_petty_cash_list(PDO $db)

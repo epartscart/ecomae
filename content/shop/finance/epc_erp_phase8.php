@@ -814,7 +814,11 @@ function epc_erp_expense_report_save(PDO $db, array $data)
 		$now,
 		$now,
 	));
-	return (int)$db->lastInsertId();
+	$reportId = (int)$db->lastInsertId();
+	if (function_exists('epc_pf_sync_exp_case')) {
+		try { epc_pf_sync_exp_case($db, $reportId); } catch (Exception $e) {}
+	}
+	return $reportId;
 }
 
 function epc_erp_dashboard_dept_widgets(PDO $db, $date_from, $date_to)
