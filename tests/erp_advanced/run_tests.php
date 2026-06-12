@@ -239,7 +239,7 @@ check('Investment gold 0% passes, 5% fails', $okGold[0]['status'] === 'ok' && $b
 
 // UAE CT full computation builds with adjustments schedule + compliance
 $ctBuild = epc_ext_b_ct($db, 'Corporate Income Tax Return', 'AE', 'AED', '2026-01-01', '2026-12-31');
-check('UAE CT report builds (live)', !empty($ctBuild['live']) && isset($ctBuild['summary']['CT payable']), 'live=' . (int) ($ctBuild['live'] ?? 0));
+check('UAE CT report builds (live)', !empty($ctBuild['live']) && isset($ctBuild['summary']['Net CT payable']) && isset($ctBuild['summary']['CT before credits']), 'live=' . (int) ($ctBuild['live'] ?? 0));
 check('UAE CT schedule shows statutory adjustments', strpos($ctBuild['body'], 'Entertainment') !== false && strpos($ctBuild['body'], 'Interest limitation') !== false && strpos($ctBuild['body'], 'Tax bands') !== false, 'adjustments present');
 check('UAE CT compliance panel present', strpos($ctBuild['body'], 'compliance checks') !== false && isset($ctBuild['summary']['Compliance']), 'compliance present');
 check('UAE CT shows taxpayer & period + elections', strpos($ctBuild['body'], 'Taxpayer &amp; tax period') !== false && strpos($ctBuild['body'], 'Elections &amp; reliefs') !== false && strpos($ctBuild['body'], 'Small Business Relief') !== false, 'header/elections present');
@@ -327,7 +327,7 @@ $mapC = epc_ext_import_map($rowsC ?: array());
 check('Parse CT CSV -> values + meta', ($mapC['values']['ACCT_PROFIT'] ?? 0) == 1250000.0 && ($mapC['meta']['META_LEGAL_NAME'] ?? '') !== '', count($mapC['values']) . ' lines');
 $impCt = epc_ext_b_ct_summary($mapC, 'AED');
 check('Import CT builds computation + bands + compliance', strpos($impCt['body'], 'Computation of taxable income') !== false && strpos($impCt['body'], 'Corporate tax compliance checks') !== false, $impCt['title']);
-check('Import CT applies 0%/9% bands', isset($impCt['summary']['CT payable']) && isset($impCt['summary']['Taxable income']), implode(',', array_keys($impCt['summary'])));
+check('Import CT applies 0%/9% bands', isset($impCt['summary']['Net CT payable']) && isset($impCt['summary']['Taxable income']), implode(',', array_keys($impCt['summary'])));
 
 // ---- Full multi-sheet .xlsx template round-trip (schedules + compliance) ----
 if (class_exists('ZipArchive')) {

@@ -1535,6 +1535,19 @@ if (!function_exists('epc_ext_b_ct')) {
         $above = max(0.0, $taxableAfterSbr - $threshold);
         $ct = round($above * $rate / 100, 2);
 
+        // ---- Tax credits: foreign tax credit (Art. 47) + withholding tax ----
+        // FTC is limited to the UAE CT that would arise on the same foreign
+        // income (lower of foreign tax paid and income × 9%).
+        $ftcClaimed = 0.0;
+        $ftcForeignTax = 0.0;
+        foreach ($sd['ftc'] as $f) {
+            $ftcForeignTax += (float) $f['foreign_tax'];
+            $ftcClaimed += min((float) $f['foreign_tax'], round((float) $f['income'] * $rate / 100, 2));
+        }
+        $ftcClaimed = round(min($ftcClaimed, $ct), 2); // cannot exceed CT due
+        $whtSuffered = 0.0; // UAE levies no domestic withholding tax (0% — Art. 45)
+        $netCt = max(0.0, round($ct - $ftcClaimed - $whtSuffered, 2));
+
         // ---- Drill-down detail behind each computation line ----------------
         // Each combination figure carries a 4th element: the individual
         // transactions behind it, so the user can drill from the computation
@@ -1616,7 +1629,10 @@ if (!function_exists('epc_ext_b_ct')) {
         $bands = epc_ext_kv_table(array(
             array('0% band — first ' . epc_erp_money($threshold), epc_ext_m(min($taxableAfterSbr, $threshold), $ccy)),
             array('9% band — taxable income above ' . epc_erp_money($threshold), epc_ext_m($above, $ccy)),
-            array('Corporate tax payable @ 9%', epc_ext_m($ct, $ccy), true),
+            array('Corporate tax before credits', epc_ext_m($ct, $ccy)),
+            array('Less: foreign tax credit (Art. 47, capped at UAE CT on that income)', '(' . epc_ext_m($ftcClaimed, $ccy) . ')'),
+            array('Less: UAE withholding tax suffered (0% — Art. 45)', '(' . epc_ext_m($whtSuffered, $ccy) . ')'),
+            array('Net corporate tax payable', epc_ext_m($netCt, $ccy), true),
         ));
 
         // ---- CT compliance checks ------------------------------------------
@@ -1630,6 +1646,10 @@ if (!function_exists('epc_ext_b_ct')) {
             ? array('status' => 'warn', 'msg' => 'Net interest exceeds the 30% EBITDA cap — ' . epc_erp_money($interestDisallowed) . ' disallowed (Art. 30).')
             : array('status' => 'ok', 'msg' => 'Net interest within the 30% EBITDA / AED 12m de-minimis cap (Art. 30).');
         $checks[] = array('status' => 'ok', 'msg' => 'Tax losses utilised capped at 75% of taxable income (Art. 37).');
+        $checks[] = $ftcClaimed > 0
+            ? array('status' => 'ok', 'msg' => 'Foreign tax credit (' . epc_erp_money($ftcClaimed) . ' of ' . epc_erp_money($ftcForeignTax) . ' foreign tax) credited, capped at the UAE CT on that income (Art. 47).')
+            : array('status' => 'ok', 'msg' => 'No foreign tax credit claimed for the period (Art. 47).');
+        $checks[] = array('status' => 'ok', 'msg' => 'No UAE domestic withholding tax — current WHT rate is 0% (Art. 45).');
         $checks[] = array('status' => 'warn', 'msg' => 'Related-party transactions present — maintain transfer-pricing master/local file & disclosure form (Art. 34–35, OECD arm\'s length).');
         $checks[] = array('status' => 'ok', 'msg' => 'CT Tax Group treated as a single taxable person — intercompany transactions eliminated on consolidation (Art. 40–42).');
         if ($sbrEligible) {
@@ -1687,14 +1707,14 @@ if (!function_exists('epc_ext_b_ct')) {
             . epc_ext_commentary('Report explained — how this Corporate Tax return works', array(
                 'This is the UAE <strong>Corporate Tax</strong> return under Federal Decree-Law 47/2022 for the financial year shown above. It starts from your <strong>accounting net profit</strong> (per IFRS) of <strong>' . epc_ext_m($profit, $ccy) . '</strong> and reconciles it to <strong>taxable income</strong> through statutory adjustments, because tax law does not allow every accounting expense.',
                 'Section 3 makes those adjustments. Non-deductible costs are <strong>added back</strong> (fines &amp; penalties 100%, 50% of entertainment, donations to non-approved bodies, general provisions, and accounting depreciation), while tax-allowable items are <strong>deducted</strong> (tax depreciation / capital allowances, and exempt income such as qualifying dividends under the participation exemption). The interest-limitation rule then caps net interest at the higher of 30% of EBITDA or the AED 12m de-minimis, and brought-forward tax losses can offset up to 75% of taxable income.',
-                'After these adjustments, taxable income is <strong>' . epc_ext_m($taxableAfterSbr, $ccy) . '</strong>, taxed at <strong>0% on the first AED 375,000 and 9% above</strong>, giving CT payable of <strong>' . epc_ext_m($ct, $ccy) . '</strong> (Section 4). Each computation line is drillable on screen — click to expand its breakdown (e.g. depreciation by asset class), then a sub-line to reach the individual asset or journal entry. Supporting Schedules 1–6 and the compliance panel below evidence every figure for filing.',
+                'After these adjustments, taxable income is <strong>' . epc_ext_m($taxableAfterSbr, $ccy) . '</strong>, taxed at <strong>0% on the first AED 375,000 and 9% above</strong>, giving corporate tax before credits of <strong>' . epc_ext_m($ct, $ccy) . '</strong>. The <strong>foreign tax credit</strong> (' . epc_ext_m($ftcClaimed, $ccy) . ', capped at the UAE CT on that income — Art. 47) and any withholding tax suffered (0% in the UAE) are then deducted to give the <strong>net CT payable of ' . epc_ext_m($netCt, $ccy) . '</strong> (Section 4). Each computation line is drillable on screen — click to expand its breakdown (e.g. depreciation by asset class), then a sub-line to reach the individual asset or journal entry. Supporting Schedules 1–6 and the compliance panel below evidence every figure for filing.',
             ))
             . '<h4 style="color:#1d2740;margin-top:18px;">1 · Taxpayer &amp; tax period</h4>' . $taxpayer
             . '<h4 style="color:#1d2740;margin-top:18px;">2 · Elections &amp; reliefs</h4>' . $elections
             . '<h4 style="color:#1d2740;margin-top:18px;">3 · Computation of taxable income</h4>'
             . '<p class="text-muted" style="font-size:11.5px;margin:0 0 4px;">Click any underlined line to drill down to the source figures behind it.</p>'
             . epc_ext_ct_drill_js() . $t
-            . '<h4 style="color:#1d2740;margin-top:18px;">4 · Tax bands &amp; liability</h4>' . $bands
+            . '<h4 style="color:#1d2740;margin-top:18px;">4 · Tax bands, credits &amp; net liability</h4>' . $bands
             . epc_ext_ct_group_html($ccy)
             . '<h4 style="color:#1d2740;margin-top:18px;">6 · Supporting schedules</h4>'
             . epc_ext_ct_schedules_html($ccy)
@@ -1708,7 +1728,8 @@ if (!function_exists('epc_ext_b_ct')) {
             'summary' => array(
                 'Taxable income' => epc_ext_m($taxableAfterSbr, $ccy),
                 'Rate' => '0% / 9%',
-                'CT payable' => epc_ext_m($ct, $ccy),
+                'CT before credits' => epc_ext_m($ct, $ccy),
+                'Net CT payable' => epc_ext_m($netCt, $ccy),
                 'Compliance' => ($errors === 0 && $warns === 0) ? 'All checks passed' : ($errors . ' error / ' . $warns . ' review'),
             ),
             'live' => true,
@@ -3466,6 +3487,7 @@ if (!function_exists('epc_ext_b_ct_summary')) {
         $exempt = $val('EXEMPT_INCOME');
         $interest = $val('NET_INTEREST');
         $lossesBf = $val('LOSSES_BF');
+        $ftcInput = $val('FTC');
 
         $additions = $fines + $entAdd + $donations + $provisions + $acctDep;
         $deductions = $taxDep + $exempt;
@@ -3482,6 +3504,8 @@ if (!function_exists('epc_ext_b_ct_summary')) {
         $threshold = 375000.0;
         $above = max(0.0, $taxableAfterSbr - $threshold);
         $ct = round($above * 0.09, 2);
+        $ftcClaimed = round(min($ftcInput, $ct), 2);
+        $netCt = max(0.0, round($ct - $ftcClaimed, 2));
 
         $t = '<table class="table table-bordered table-condensed" style="font-size:12.5px;max-width:860px;">'
             . '<thead><tr style="background:#f0f3f8;"><th>Computation of taxable income</th><th style="text-align:right;">Amount</th><th>Basis</th></tr></thead><tbody>';
@@ -3511,7 +3535,9 @@ if (!function_exists('epc_ext_b_ct_summary')) {
         $bands = epc_ext_kv_table(array(
             array('0% band — first ' . epc_erp_money($threshold), epc_ext_m(min($taxableAfterSbr, $threshold), $ccy)),
             array('9% band — taxable income above ' . epc_erp_money($threshold), epc_ext_m($above, $ccy)),
-            array('Corporate tax payable @ 9%', epc_ext_m($ct, $ccy), true),
+            array('Corporate tax before credits', epc_ext_m($ct, $ccy)),
+            array('Less: foreign tax credit (Art. 47, capped at CT due)', '(' . epc_ext_m($ftcClaimed, $ccy) . ')'),
+            array('Net corporate tax payable', epc_ext_m($netCt, $ccy), true),
         ));
 
         $checks = array();
@@ -3535,7 +3561,7 @@ if (!function_exists('epc_ext_b_ct_summary')) {
                 'Plain-language explanation of every line. Governing law: Federal Decree-Law 47/2022 & implementing decisions (FTA).',
                 epc_ext_ct_guide_rows())
             . '<h4 style="color:#1d2740;margin-top:14px;">Computation of taxable income</h4>' . $t
-            . '<h4 style="color:#1d2740;margin-top:18px;">Tax bands &amp; liability</h4>' . $bands
+            . '<h4 style="color:#1d2740;margin-top:18px;">Tax bands, credits &amp; net liability</h4>' . $bands
             . '<h4 style="color:#1d2740;margin-top:18px;">Corporate tax compliance checks</h4>' . $compSummary
             . '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f0f3f8;"><th>Result</th><th>Check</th></tr></thead><tbody>' . $cr . '</tbody></table>';
 
@@ -3545,7 +3571,8 @@ if (!function_exists('epc_ext_b_ct_summary')) {
             'summary' => array(
                 'Taxable income' => epc_ext_m($taxableAfterSbr, $ccy),
                 'Rate' => '0% / 9%',
-                'CT payable' => epc_ext_m($ct, $ccy),
+                'CT before credits' => epc_ext_m($ct, $ccy),
+                'Net CT payable' => epc_ext_m($netCt, $ccy),
                 'Compliance' => ($errors === 0 && $warns === 0) ? 'All passed' : ($errors . ' err / ' . $warns . ' review'),
             ),
             'meta' => $map['meta'],
