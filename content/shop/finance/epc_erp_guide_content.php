@@ -473,21 +473,26 @@ if (!function_exists('epc_guide_modules')) {
                 'Use redistribution first — moving stock between your own warehouses is cheaper than buying more.'));
 
         $g['process_flow'] = $E('core', 'Process flow — workflow automation & live tracking',
-            'Define any business process as a chain of steps that auto-routes from one person/department head to the next, then track where every case has reached on a GPS-style map, see the whole organization\'s flow, and view your entire team\'s workload — all with staff photos.',
+            'Define any business process as a chain of steps that auto-routes from one person/department head to the next, then track where every case has reached on a GPS-style map, see the whole organization\'s flow, and view your entire team\'s workload — all with staff photos. Real ERP work tracks itself too: customer orders, purchase orders, supplier payments and staff expense claims each auto-create a case and advance through their stages automatically, so you can measure every employee by the actual tasks they handled.',
             array(
                 'Open Overview → Process flow → Processes → Create process (e.g. "Customer credit request", "Goods delivery to customer"). Tables auto-create on first open; a brand-new tenant starts empty.',
                 'On the process click Manage steps → Add step; for each step set the step name, Routes to (Specific person / Department head / Anyone in department / Back to initiator), Department and SLA hours. Steps run top-to-bottom.',
-                'New tenant with no data? Click Seed to create demo staff across departments & branches plus example processes and running cases (clearable via Clear).',
+                'New tenant with no data? Click Seed to create demo staff across departments & branches plus example processes and running cases, including auto-tracked customer orders, purchase orders, supplier payments and expense claims (clearable via Clear).',
+                'Click Sync to backfill the auto-tracked task types from your real records — it reports how many customer orders, purchase orders, supplier payments and expense claims are now tracked.',
             ),
             array(
                 'Step 1 — Start a case on a process and click "Approve & route to next". Result: the case auto-hands off to the next step\'s person/department head; SLA/overdue is tracked.',
                 'Step 2 — Monitor tab → open a case. Result: a GPS-style tracker (completed stops, pulsing "you are here" marker, staff photo at each step, full audit timeline) with a Zoom switch — Overall / Location / Department / Task.',
-                'Step 3 — Org map tab. Result: every process flows through nodes with animated arrows and live case counts; switch View level (Overall / Department / User / Task / Location). At User level each employee\'s photo and case count show inside their department node; the left list of cases is searchable/sortable and each opens its document.',
-                'Step 4 — Workforce tab. Result: the entire team in one view with photos — who is busy and on which task; group by Department / Location / Task and filter by busy/idle; click a person to open their case.',
+                'Step 3 — Org map tab. Result: every process flows through nodes with animated arrows and live case counts; switch View level (Overall / Legal entity / Business unit / Department / User / Task / Location). At User level each employee\'s photo and case count show inside their department node; the left list of cases is searchable/sortable and each opens its document.',
+                'Step 4 — Workforce tab. Result: the entire team in one view with photos — who is busy and on which task plus tasks completed; group by Department / Location / Task / Business unit / Legal entity and filter by busy/idle; click a person to open their case. A top-performers leaderboard ranks staff by tasks managed.',
+                'Step 5 — Hierarchy tab. Result: an expandable org tree (Legal entity ▸ Business unit ▸ Department ▸ Location ▸ Employee) with rolled-up open and completed task counts at every level, so you can drill from the whole company down to one person.',
+                'Step 6 — Scope by date. Result: add &from=YYYY-MM-DD&to=YYYY-MM-DD to the URL (or use the date range) and the Monitor, Workforce, Org map and performance counts honor that reporting period, with a banner and Clear button.',
             ),
             'No GL impact — an operational workflow/tracking layer over staff, departments and locations.',
             array('Define routing per step: "Department head" lets work move without naming an individual; "Specific person" pins it to one employee.',
                 'Use the Org map User/Workforce views to balance load — see who is overloaded vs idle at a glance.',
+                'Auto-tracked task types (orders, POs, supplier payments, expense claims) advance on their own as the underlying record changes status — no manual approval needed — and each completed step is credited to the employee who acted, feeding the performance leaderboard.',
+                'Scope any view to a reporting period with the date range to run a fair, period-bound performance review.',
                 'Upload a staff photo on the employee profile and it replaces the generated avatar everywhere on the map.'));
 
         $g['supplier_portal'] = $E('procurement', 'Supplier portal — performance scorecards',

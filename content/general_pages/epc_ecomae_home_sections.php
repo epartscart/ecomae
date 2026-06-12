@@ -306,19 +306,21 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 			<div class="ehm-sec-head ehm-rev">
 				<div class="ehm-tag"><span class="ehm-dot"></span>Process Flow · Workflow Automation</div>
 				<h2>See where work<br><span class="ehm-glow">has reached.</span></h2>
-				<p>Define any business process as a chain of steps — each step auto-hands the case to the next person or department head, with SLAs. Then watch it move on a live, GPS-style map: track every case across departments, employees and branches, and see your whole team's workload in one screen.</p>
+				<p>Define any business process as a chain of steps — each step auto-hands the case to the next person or department head, with SLAs. Real work tracks itself: customer orders, purchase orders, supplier payments and staff expense claims each auto-create a case and advance through their stages automatically. Watch it move on a live, GPS-style map across departments, employees and branches — and measure every employee by the real tasks they actually handled.</p>
 			</div>
 			<div class="ehm-badges ehm-rev">
 				<span class="ehm-badge-pill">Build your own processes</span>
+				<span class="ehm-badge-pill">Auto-tracked orders, POs, payments &amp; expenses</span>
 				<span class="ehm-badge-pill">Automatic hand-off &amp; routing</span>
 				<span class="ehm-badge-pill">GPS-style case tracking</span>
-				<span class="ehm-badge-pill">Org map: overall / dept / user / task / location</span>
+				<span class="ehm-badge-pill">Org map: entity / BU / dept / user / task / location</span>
+				<span class="ehm-badge-pill">Employee performance leaderboard</span>
 				<span class="ehm-badge-pill">Workforce board</span>
 				<span class="ehm-badge-pill">SLA &amp; overdue alerts</span>
 			</div>
 			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
 				<img src="<?php echo $h($opBase . 'pf_orgmap.png' . $opVer); ?>" alt="Organization process map" loading="lazy" />
-				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Live organization process map.</strong> Every process flows left-to-right through nodes with animated arrows and live case counts. Switch level — Overall, Department, User, Task or Location — to zoom in, with employee photos showing exactly who is holding each case.</p></div>
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Live organization process map.</strong> Every process flows left-to-right through nodes with animated arrows and live case counts. Switch level — Overall, Legal entity, Business unit, Department, User, Task or Location — to zoom in, with employee photos showing exactly who is holding each case.</p></div>
 			</div>
 			<div class="ehm-sf-pair ehm-rev">
 				<div class="ehm-ss">
