@@ -315,6 +315,9 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 	// dimensions, budgeting, listings) is likewise foundational master data.
 	$areas['setup'] = true;
 	$areas['enterprise'] = true;
+	// 'regrep' (External Reporting) is a foundational, country-driven statutory
+	// reporting centre that every tenant must be able to reach for compliance.
+	$areas['regrep'] = true;
 	return array_keys($areas);
 }
 
