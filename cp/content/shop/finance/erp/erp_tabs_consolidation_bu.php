@@ -9,15 +9,19 @@ defined('_ASTEXE_') or die('No access');
 require_once __DIR__ . '/erp_pm_render.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aging.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
 epc_erp_pm_inline_assets();
 
-$view = isset($_GET['pm_view']) ? (string) $_GET['pm_view'] : 'customer';
+$view = isset($_GET['pm_view']) ? (string) $_GET['pm_view'] : 'group';
 $subs = array(
-	'customer' => 'Customer consolidation',
-	'vendor' => 'Vendor consolidation',
-	'item' => 'Item consolidation',
+	'group' => 'Group consolidation',
+	'intercompany' => 'Intercompany',
+	'customer' => 'Customer (by BU)',
+	'vendor' => 'Vendor (by BU)',
+	'item' => 'Item (by BU)',
 	'all' => 'All-combination report',
 );
+$csrfLocal = isset($csrf) ? $csrf : '';
 
 echo '<div class="epc-erp-section"><h3 style="margin-top:0;"><i class="fa fa-sitemap"></i> Consolidation</h3>';
 echo '<p class="text-muted">Consolidated customer, vendor and item balances across all business units in this tenant — with a combined all-in-one report. A single shared COA keeps every BU on the same accounts.</p></div>';
@@ -68,6 +72,12 @@ try {
 }
 
 switch ($view) {
+	case 'group':
+		require __DIR__ . '/erp_tabs_consolidation_group.php';
+		break;
+	case 'intercompany':
+		require __DIR__ . '/erp_tabs_consolidation_ic.php';
+		break;
 	case 'vendor':
 		echo '<div class="epc-erp-section"><h4><i class="fa fa-truck"></i> Vendor consolidation (payables)</h4>';
 		epc_pm_cons_table($apRows, 'Vendor', 'Outstanding payable');

@@ -352,6 +352,31 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'cons_entity_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
+			$cid = epc_cons_entity_save($db_link, $_POST, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Group entity saved', array('id' => $cid));
+
+		case 'cons_entity_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
+			epc_cons_entity_delete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Entity removed');
+
+		case 'cons_figures_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
+			epc_cons_figures_save($db_link, $_POST);
+			epc_erp_json(true, 'Financials saved for ' . strtoupper((string)($_POST['entity_code'] ?? '')));
+
+		case 'cons_ic_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
+			$icid = epc_cons_ic_save($db_link, $_POST);
+			epc_erp_json(true, 'Intercompany transaction recorded', array('id' => $icid));
+
+		case 'cons_ic_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
+			epc_cons_ic_delete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Intercompany transaction removed');
+
 		case 'mfg_bom_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_manufacturing.php';
 			$mfgLines = array();
