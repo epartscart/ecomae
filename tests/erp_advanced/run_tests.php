@@ -248,6 +248,13 @@ $ctSd = epc_ext_ct_schedule_data();
 check('CT schedules reconcile (acct dep 60k, tax dep 70k, exempt 15k)', array_sum(array_column($ctSd['assets'], 'acct')) === 60000.0 && array_sum(array_column($ctSd['assets'], 'tax')) === 70000.0 && array_sum(array_column($ctSd['exempt'], 'amount')) === 15000.0, 'sums tie');
 $ctSchedHtml = epc_ext_ct_schedules_html('AED');
 check('CT schedules HTML has all 6 schedules', substr_count($ctSchedHtml, '<details') === 6 && strpos($ctSchedHtml, 'Transfer pricing') !== false || strpos($ctSchedHtml, 'transfer pricing') !== false, substr_count($ctSchedHtml, '<details') . ' details');
+// Group VAT + intercompany
+$vatGroupBuild = epc_ext_b_vat($db, 'VAT Return', 'AE', 'AED', '2026-04-01', '2026-06-30');
+check('VAT shows Tax Group + intercompany eliminations', strpos($vatGroupBuild['body'], 'VAT Tax Group') !== false && strpos($vatGroupBuild['body'], 'Intercompany supplies eliminated') !== false && strpos($vatGroupBuild['body'], 'disregarded') !== false, 'group vat present');
+$vatGroupHtml = epc_ext_vat_group_html('AED');
+check('VAT group has members + intercompany download', strpos($vatGroupHtml, 'Representative member') !== false && strpos($vatGroupHtml, 'VAT_Group_Intercompany_eliminations.csv') !== false, 'vat group members/csv');
+check('CT shows Tax Group + intercompany eliminations', strpos($ctBuild['body'], 'Tax Group &amp; intercompany') !== false && strpos($ctBuild['body'], 'CT_Group_Intercompany_eliminations.csv') !== false && strpos($ctBuild['body'], 'single taxable person') !== false, 'group ct present');
+check('CT compliance covers tax group', strpos($ctBuild['body'], 'single taxable person — intercompany transactions eliminated') !== false, 'ct group check');
 
 // FTA supporting schedules (TRN-wise / invoice-wise / supplier-wise / adjustments)
 $sched = epc_ext_vat_schedule_data();

@@ -378,6 +378,7 @@ if (!function_exists('epc_ext_b_vat')) {
                 array('Box 14 — Net ' . $taxLabel . ' ' . ($payable ? 'payable' : 'reclaimable'), epc_ext_m(abs($netDue), $ccy), true),
             ));
 
+        $body .= epc_ext_vat_group_html($ccy);
         $schemes = epc_ext_vat_schemes_html($ccy);
         $body .= $schemes['html'];
         $body .= epc_ext_vat_schedules_html($ccy);
@@ -798,6 +799,78 @@ if (!function_exists('epc_ext_vat_schedules_html')) {
     }
 }
 
+if (!function_exists('epc_ext_vat_group_data')) {
+    /**
+     * VAT Tax Group (group registration) + intercompany supplies. Members share
+     * one group TRN; intra-group (intercompany) supplies between members are
+     * DISREGARDED for VAT (FTA Tax Group — Art. 9, FDL 8/2017) and excluded from
+     * the return. Sample data so the structure renders for any tenant.
+     */
+    function epc_ext_vat_group_data(): array
+    {
+        return array(
+            'group_trn' => '100399998800003',
+            'members' => array(
+                array('name' => 'ECOM AE General Trading LLC', 'trn' => '100399998800003', 'role' => 'Representative member'),
+                array('name' => 'ECOM AE Logistics LLC', 'trn' => '100399998800011', 'role' => 'Member'),
+                array('name' => 'ECOM AE Retail LLC', 'trn' => '100399998800029', 'role' => 'Member'),
+            ),
+            // Intercompany supplies between group members — disregarded for VAT.
+            'intercompany' => array(
+                array('doc' => 'IC-2026-101', 'date' => '2026-04-12', 'from' => 'ECOM AE General Trading LLC', 'to' => 'ECOM AE Retail LLC', 'nature' => 'Inventory transfer', 'net' => 180000.0, 'vat_if_taxable' => 9000.0),
+                array('doc' => 'IC-2026-102', 'date' => '2026-05-03', 'from' => 'ECOM AE Logistics LLC', 'to' => 'ECOM AE General Trading LLC', 'nature' => 'Freight & handling', 'net' => 45000.0, 'vat_if_taxable' => 2250.0),
+                array('doc' => 'IC-2026-103', 'date' => '2026-06-20', 'from' => 'ECOM AE General Trading LLC', 'to' => 'ECOM AE Logistics LLC', 'nature' => 'Management recharge', 'net' => 30000.0, 'vat_if_taxable' => 1500.0),
+            ),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_vat_group_html')) {
+    /**
+     * Group-VAT panel: member list under one TRN + the intercompany-eliminations
+     * schedule (intra-group supplies disregarded), with one-click Excel/CSV.
+     */
+    function epc_ext_vat_group_html(string $ccy): string
+    {
+        $g = epc_ext_vat_group_data();
+        $m = function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        $n2 = function ($v) { return number_format((float) $v, 2, '.', ''); };
+
+        $mr = '';
+        foreach ($g['members'] as $r) {
+            $mr .= '<tr><td>' . epc_erp_h($r['name']) . '</td><td>' . epc_erp_h($r['trn']) . '</td><td>' . epc_erp_h($r['role']) . '</td></tr>';
+        }
+        $memberTbl = '<table class="table table-bordered table-condensed" style="font-size:12px;max-width:760px;"><thead><tr style="background:#f0f3f8;"><th>Group member</th><th>Member TRN</th><th>Role</th></tr></thead><tbody>' . $mr . '</tbody></table>';
+
+        $ir = '';
+        $sumNet = 0.0; $sumVat = 0.0;
+        $csvIC = array('"Document","Date","From member","To member","Nature","Net (' . $ccy . ')","VAT if taxable (' . $ccy . ')","VAT treatment"');
+        foreach ($g['intercompany'] as $r) {
+            $sumNet += (float) $r['net']; $sumVat += (float) $r['vat_if_taxable'];
+            $ir .= '<tr><td>' . epc_erp_h($r['doc']) . '</td><td>' . epc_erp_h($r['date']) . '</td><td>' . epc_erp_h($r['from']) . '</td><td>' . epc_erp_h($r['to']) . '</td><td>' . epc_erp_h($r['nature']) . '</td><td style="text-align:right;">' . $m($r['net']) . '</td><td style="text-align:right;color:#999;">' . $m($r['vat_if_taxable']) . '</td><td style="text-align:center;"><span class="label label-default">Disregarded</span></td></tr>';
+            $csvIC[] = implode(',', array(epc_ext_csv_cell($r['doc']), epc_ext_csv_cell($r['date']), epc_ext_csv_cell($r['from']), epc_ext_csv_cell($r['to']), epc_ext_csv_cell($r['nature']), epc_ext_csv_cell($n2($r['net'])), epc_ext_csv_cell($n2($r['vat_if_taxable'])), epc_ext_csv_cell('Disregarded (intra-group)')));
+        }
+        $icTbl = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Doc</th><th>Date</th><th>From member</th><th>To member</th><th>Nature</th><th style="text-align:right;">Net</th><th style="text-align:right;">VAT if taxable</th><th style="text-align:center;">Treatment</th></tr></thead><tbody>' . $ir
+            . '<tr style="font-weight:700;background:#f5f7fa;"><td colspan="5">Total intercompany supplies eliminated</td><td style="text-align:right;">' . $m($sumNet) . '</td><td style="text-align:right;color:#999;">' . $m($sumVat) . '</td><td style="text-align:center;">—</td></tr></tbody></table>';
+
+        $btn = '<button type="button" class="btn btn-s-sm btn-default" style="margin:0 6px 6px 0;" onclick="epcDlCsv(\'epcVatICsv\',\'VAT_Group_Intercompany_eliminations.csv\')"><i class="fa fa-file-excel-o"></i> Intercompany eliminations</button>';
+        $store = '<textarea id="epcVatICsv" style="display:none;">' . epc_erp_h(implode("\r\n", $csvIC)) . '</textarea>';
+        $det = '<details style="border:1px solid #e2e6ee;border-radius:6px;margin:8px 0;padding:6px 10px;"><summary style="cursor:pointer;font-weight:600;color:#1d2740;">Intercompany supplies eliminated (' . count($g['intercompany']) . ' — disregarded for VAT)</summary><div style="margin-top:8px;overflow-x:auto;">' . $icTbl . '</div></details>';
+
+        return '<h4 style="color:#1d2740;margin-top:18px;">VAT Tax Group (group registration)</h4>'
+            . '<p class="text-muted">This return is filed for a <strong>VAT Tax Group</strong> under a single group TRN <strong>' . epc_erp_h($g['group_trn']) . '</strong>. Supplies <strong>between group members</strong> (intercompany) are <strong>disregarded</strong> for VAT and excluded from boxes 1–14 — only supplies to/from parties outside the group are reported. Governing law: Federal Decree-Law 8/2017, Art. 9 &amp; Executive Regulations Art. 9–11.</p>'
+            . $memberTbl
+            . '<div style="margin:8px 0;">' . $btn . '</div>'
+            . $det
+            . '<table class="table table-condensed" style="font-size:12px;max-width:760px;"><tbody>'
+            . '<tr style="background:#f4fbf6;"><td style="width:70px;"><span class="label label-success">PASS</span></td><td>Intercompany supplies between group members (' . $m($sumNet) . ' net / ' . $m($sumVat) . ' VAT) are <strong>disregarded</strong> and excluded from boxes 1–14 (Art. 9).</td></tr>'
+            . '<tr style="background:#f4fbf6;"><td><span class="label label-success">PASS</span></td><td>One consolidated return filed under the group representative member\'s TRN ' . epc_erp_h($g['group_trn']) . '.</td></tr>'
+            . '</tbody></table>'
+            . $store
+            . epc_ext_csv_download_js();
+    }
+}
+
 /* ---------------------------------------------------------------- Corporate tax */
 
 if (!function_exists('epc_ext_ct_rule')) {
@@ -996,6 +1069,60 @@ if (!function_exists('epc_ext_ct_schedules_html')) {
     }
 }
 
+if (!function_exists('epc_ext_ct_group_html')) {
+    /**
+     * CT Tax Group panel — a CT Tax Group is treated as a SINGLE taxable person
+     * (Art. 40, FDL 47/2022); intra-group (intercompany) transactions are
+     * eliminated on consolidation. Includes the member list + an
+     * intercompany-eliminations schedule with one-click Excel/CSV.
+     */
+    function epc_ext_ct_group_html(string $ccy): string
+    {
+        $m = function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        $n2 = function ($v) { return number_format((float) $v, 2, '.', ''); };
+
+        $members = array(
+            array('name' => 'ECOM AE General Trading LLC', 'trn' => '100399998800003', 'role' => 'Parent / representative'),
+            array('name' => 'ECOM AE Logistics LLC', 'trn' => '100399998800011', 'role' => 'Subsidiary (100%)'),
+            array('name' => 'ECOM AE Retail LLC', 'trn' => '100399998800029', 'role' => 'Subsidiary (100%)'),
+        );
+        $intercompany = array(
+            array('desc' => 'Intra-group sales of goods', 'from' => 'General Trading LLC', 'to' => 'Retail LLC', 'amount' => 180000.0),
+            array('desc' => 'Intra-group management fee', 'from' => 'General Trading LLC', 'to' => 'Logistics LLC', 'amount' => 30000.0),
+            array('desc' => 'Intra-group interest', 'from' => 'Logistics LLC', 'to' => 'General Trading LLC', 'amount' => 12000.0),
+        );
+
+        $mr = '';
+        foreach ($members as $r) {
+            $mr .= '<tr><td>' . epc_erp_h($r['name']) . '</td><td>' . epc_erp_h($r['trn']) . '</td><td>' . epc_erp_h($r['role']) . '</td></tr>';
+        }
+        $memberTbl = '<table class="table table-bordered table-condensed" style="font-size:12px;max-width:760px;"><thead><tr style="background:#f0f3f8;"><th>Group member</th><th>TRN</th><th>Role</th></tr></thead><tbody>' . $mr . '</tbody></table>';
+
+        $ir = '';
+        $sum = 0.0;
+        $csv = array('"Description","From member","To member","Amount eliminated (' . $ccy . ')","Treatment"');
+        foreach ($intercompany as $r) {
+            $sum += (float) $r['amount'];
+            $ir .= '<tr><td>' . epc_erp_h($r['desc']) . '</td><td>' . epc_erp_h($r['from']) . '</td><td>' . epc_erp_h($r['to']) . '</td><td style="text-align:right;">' . $m($r['amount']) . '</td><td style="text-align:center;"><span class="label label-default">Eliminated</span></td></tr>';
+            $csv[] = implode(',', array(epc_ext_csv_cell($r['desc']), epc_ext_csv_cell($r['from']), epc_ext_csv_cell($r['to']), epc_ext_csv_cell($n2($r['amount'])), epc_ext_csv_cell('Eliminated on consolidation')));
+        }
+        $icTbl = '<table class="table table-bordered table-condensed" style="font-size:11.5px;"><thead><tr style="background:#f0f3f8;"><th>Intercompany transaction</th><th>From</th><th>To</th><th style="text-align:right;">Amount</th><th style="text-align:center;">Treatment</th></tr></thead><tbody>' . $ir
+            . '<tr style="font-weight:700;background:#f5f7fa;"><td colspan="3">Total intercompany eliminated</td><td style="text-align:right;">' . $m($sum) . '</td><td style="text-align:center;">—</td></tr></tbody></table>';
+
+        $btn = '<button type="button" class="btn btn-s-sm btn-default" style="margin:0 6px 6px 0;" onclick="epcDlCsv(\'epcCtICsv\',\'CT_Group_Intercompany_eliminations.csv\')"><i class="fa fa-file-excel-o"></i> Intercompany eliminations</button>';
+        $store = '<textarea id="epcCtICsv" style="display:none;">' . epc_erp_h(implode("\r\n", $csv)) . '</textarea>';
+        $det = '<details style="border:1px solid #e2e6ee;border-radius:6px;margin:8px 0;padding:6px 10px;"><summary style="cursor:pointer;font-weight:600;color:#1d2740;">Intercompany transactions eliminated (' . count($intercompany) . ')</summary><div style="margin-top:8px;overflow-x:auto;">' . $icTbl . '</div></details>';
+
+        return '<h4 style="color:#1d2740;margin-top:18px;">5 · Tax Group &amp; intercompany</h4>'
+            . '<p class="text-muted">A <strong>CT Tax Group</strong> is treated as a <strong>single taxable person</strong> filing one consolidated return; <strong>intercompany</strong> transactions between members are <strong>eliminated</strong> on consolidation (no CT effect). Transfers within a qualifying group are also relieved (Art. 26). Governing law: Federal Decree-Law 47/2022, Art. 40–42.</p>'
+            . $memberTbl
+            . '<div style="margin:8px 0;">' . $btn . '</div>'
+            . $det
+            . $store
+            . epc_ext_csv_download_js();
+    }
+}
+
 if (!function_exists('epc_ext_b_ct')) {
     function epc_ext_b_ct(PDO $db, string $name, string $country, string $ccy, $from, $to): array
     {
@@ -1112,6 +1239,7 @@ if (!function_exists('epc_ext_b_ct')) {
             : array('status' => 'ok', 'msg' => 'Net interest within the 30% EBITDA / AED 12m de-minimis cap (Art. 30).');
         $checks[] = array('status' => 'ok', 'msg' => 'Tax losses utilised capped at 75% of taxable income (Art. 37).');
         $checks[] = array('status' => 'warn', 'msg' => 'Related-party transactions present — maintain transfer-pricing master/local file & disclosure form (Art. 34–35, OECD arm\'s length).');
+        $checks[] = array('status' => 'ok', 'msg' => 'CT Tax Group treated as a single taxable person — intercompany transactions eliminated on consolidation (Art. 40–42).');
         if ($sbrEligible) {
             $checks[] = array('status' => 'ok', 'msg' => 'Small Business Relief available (revenue ≤ AED 3m) — election reduces taxable income to nil (MD 73/2023).');
         }
@@ -1168,8 +1296,10 @@ if (!function_exists('epc_ext_b_ct')) {
             . '<h4 style="color:#1d2740;margin-top:18px;">2 · Elections &amp; reliefs</h4>' . $elections
             . '<h4 style="color:#1d2740;margin-top:18px;">3 · Computation of taxable income</h4>' . $t
             . '<h4 style="color:#1d2740;margin-top:18px;">4 · Tax bands &amp; liability</h4>' . $bands
+            . epc_ext_ct_group_html($ccy)
+            . '<h4 style="color:#1d2740;margin-top:18px;">6 · Supporting schedules</h4>'
             . epc_ext_ct_schedules_html($ccy)
-            . '<h4 style="color:#1d2740;margin-top:18px;">Corporate tax compliance checks</h4>'
+            . '<h4 style="color:#1d2740;margin-top:18px;">7 · Corporate tax compliance checks</h4>'
             . '<p class="text-muted">The engine validates the computation against the CT law (registration, non-deductibles, interest cap, exempt income, loss relief, transfer pricing, Small Business Relief).</p>'
             . $compTable;
 
