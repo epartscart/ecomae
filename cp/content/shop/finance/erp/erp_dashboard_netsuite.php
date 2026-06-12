@@ -213,12 +213,16 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 .ns-rem .cnt.zero{background:#9fb0c0}
 .ns-rem a{color:#27313b;text-decoration:none}
 .ns-rem a:hover{color:#1f6fb2;text-decoration:underline}
-.ns-nav h5{margin:10px 0 4px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ns-muted)}
-.ns-nav ul{list-style:none;margin:0 0 6px;padding:0}
-.ns-nav li{padding:3px 0}
-.ns-nav li a{color:#1f6fb2;text-decoration:none;display:flex;align-items:center;gap:8px}
-.ns-nav li a .fa{width:15px;text-align:center;color:#6b7a8d}
-.ns-nav a:hover{text-decoration:underline}
+.ns-nav h5{margin:11px 0 6px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ns-muted)}
+.ns-nav h5:first-child{margin-top:0}
+.ns-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.ns-mini{display:flex;align-items:center;gap:8px;padding:8px 9px;border:1px solid var(--ns-bd);border-radius:8px;text-decoration:none;color:#27313b;background:#fff;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.ns-mini:hover{border-color:#c3d2e0;box-shadow:0 4px 10px rgba(31,58,82,.12);transform:translateY(-1px);color:#27313b}
+.ns-mini .mi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex:0 0 28px}
+.ns-mini .ml{font-size:11.5px;font-weight:600;line-height:1.2}
+.ns-mi-teal{background:linear-gradient(135deg,#2fa8a0,#1f7d77)}
+.ns-mi-blue{background:linear-gradient(135deg,#2f82d6,#1f6fb2)}
+.ns-mi-amber{background:linear-gradient(135deg,#e0a83a,#c98a1c)}
 /* Quick actions — visual icon cards */
 .ns-qa-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px}
 .ns-qa{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;text-align:center;padding:16px 8px;background:#fff;border:1px solid var(--ns-bd);border-radius:8px;text-decoration:none;color:#27313b;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
@@ -300,13 +304,17 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 			<div class="ns-port ns-nav">
 				<h4><i class="fa fa-bars"></i> Navigation shortcuts</h4>
 				<div class="bd">
-					<?php foreach ($navGroups as $grp => $links): ?>
+					<?php
+					$navTones = array('Lists' => 'ns-mi-teal', 'Transactions' => 'ns-mi-blue', 'Reports' => 'ns-mi-amber');
+					foreach ($navGroups as $grp => $links):
+						$tone = $navTones[$grp] ?? 'ns-mi-blue';
+					?>
 						<h5><?php echo $grp; ?></h5>
-						<ul>
+						<div class="ns-mini-grid">
 							<?php foreach ($links as $l): ?>
-								<li><a href="<?php echo $l['url']; ?>"><i class="fa <?php echo epc_erp_h($l['icon']); ?>"></i> <?php echo $l['label']; ?></a></li>
+								<a class="ns-mini" href="<?php echo $l['url']; ?>"><span class="mi <?php echo $tone; ?>"><i class="fa <?php echo epc_erp_h($l['icon']); ?>"></i></span><span class="ml"><?php echo $l['label']; ?></span></a>
 							<?php endforeach; ?>
-						</ul>
+						</div>
 					<?php endforeach; ?>
 				</div>
 			</div>

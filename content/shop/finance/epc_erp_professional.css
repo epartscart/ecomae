@@ -284,6 +284,17 @@ body.epc-erp-cp-shell {
 
 .epc-erp-sidebar-item--external a { opacity: 0.85; font-style: italic; }
 
+/* D365 F&O sub-module group heading inside an area sublist */
+.epc-erp-sidebar-subhead {
+	padding: 9px 16px 3px 18px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.4);
+}
+.epc-erp-sidebar-subhead:first-child { padding-top: 5px; }
+
 .epc-erp-sidebar-backdrop {
 	display: none;
 	position: fixed;
@@ -345,9 +356,9 @@ body.epc-erp-cp-shell {
 .epc-erp-content-toolbar {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: 10px 14px;
-	padding: 14px 20px 10px;
+	align-items: center;
+	gap: 8px 14px;
+	padding: 8px 20px 7px;
 	background: #fff;
 	border-bottom: 1px solid #e2e8f0;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -395,7 +406,7 @@ body.epc-erp-cp-shell {
 }
 
 .epc-erp-content-body {
-	padding: 16px 20px 28px;
+	padding: 10px 20px 24px;
 	flex: 1;
 }
 

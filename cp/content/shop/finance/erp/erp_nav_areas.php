@@ -15,6 +15,9 @@ function epc_erp_nav_areas_config()
 				'dashboard' => array('label' => 'Dashboard', 'icon' => 'fa-dashboard'),
 				'workflow' => array('label' => 'Workflow', 'icon' => 'fa-tasks'),
 			),
+			'groups' => array(
+				'Workspaces' => array('dashboard', 'workflow'),
+			),
 		),
 		'sales' => array(
 			'label' => 'Sales',
@@ -31,6 +34,12 @@ function epc_erp_nav_areas_config()
 				'delivery_notes' => array('label' => 'Delivery notes', 'icon' => 'fa-truck'),
 				'invoices' => array('label' => 'Invoices (e-invoice)', 'icon' => 'fa-file-text-o'),
 			),
+			'groups' => array(
+				'Common' => array('crm', 'receivables'),
+				'Journals' => array('proposals', 'sales_orders', 'delivery_notes', 'invoices'),
+				'Inquiries and reports' => array('revenue', 'fulfilment'),
+				'Setup' => array('ar_setup'),
+			),
 		),
 		'purchasing' => array(
 			'label' => 'Purchasing',
@@ -45,6 +54,13 @@ function epc_erp_nav_areas_config()
 				'ap_setup' => array('label' => 'A/P setup', 'icon' => 'fa-credit-card'),
 				'landed_cost' => array('label' => 'Landed cost', 'icon' => 'fa-ship'),
 				'procurement_link' => array('label' => 'Procurement CP', 'icon' => 'fa-external-link', 'external' => true),
+			),
+			'groups' => array(
+				'Common' => array('payables'),
+				'Journals' => array('rfq', 'purchase_orders', 'purchases', 'three_way_match'),
+				'Periodic' => array('landed_cost'),
+				'Setup' => array('ap_setup'),
+				'Links' => array('procurement_link'),
 			),
 		),
 		'finance' => array(
@@ -66,6 +82,13 @@ function epc_erp_nav_areas_config()
 				'opening_balances' => array('label' => 'Opening balances', 'icon' => 'fa-flag-o'),
 				'document_control' => array('label' => 'Document Control', 'icon' => 'fa-print'),
 			),
+			'groups' => array(
+				'Common' => array('cash_bank', 'petty_cash'),
+				'Journals' => array('gl', 'payment_batches', 'opening_balances'),
+				'Inquiries and reports' => array('aging'),
+				'Tax and compliance' => array('vat_return', 'tax_compliance', 'einvoice'),
+				'Setup' => array('coa', 'bank_setup', 'document_control'),
+			),
 		),
 		'operations' => array(
 			'label' => 'Operations',
@@ -79,6 +102,12 @@ function epc_erp_nav_areas_config()
 				'retail_barcode' => array('label' => 'Retail barcode', 'icon' => 'fa-barcode'),
 				'fixed_assets' => array('label' => 'Fixed assets', 'icon' => 'fa-building'),
 				'manufacturing' => array('label' => 'Manufacturing', 'icon' => 'fa-cogs'),
+			),
+			'groups' => array(
+				'Common' => array('inventory', 'product_info', 'inv_groups'),
+				'Journals' => array('manufacturing'),
+				'Periodic' => array('master_planning'),
+				'Setup' => array('retail_barcode', 'fixed_assets'),
 			),
 		),
 		'custom_shipping' => array(
@@ -99,6 +128,10 @@ function epc_erp_nav_areas_config()
 				'staff' => array('label' => 'Staff', 'icon' => 'fa-id-badge'),
 				'expense_reports' => array('label' => 'Expenses', 'icon' => 'fa-credit-card'),
 			),
+			'groups' => array(
+				'Common' => array('staff', 'hr'),
+				'Journals' => array('payroll', 'expense_reports'),
+			),
 		),
 		'insights' => array(
 			'label' => 'Insights',
@@ -115,6 +148,11 @@ function epc_erp_nav_areas_config()
 				'consolidation_bu' => array('label' => 'Consolidation', 'icon' => 'fa-sitemap'),
 				'audit' => array('label' => 'Audit trail', 'icon' => 'fa-history'),
 			),
+			'groups' => array(
+				'Reports' => array('pl', 'balance_sheet', 'reports', 'enterprise_reports'),
+				'Inquiries' => array('consolidation_bu', 'multi_entity', 'audit'),
+				'Common' => array('marketing', 'knowledge_base'),
+			),
 		),
 		'collaboration' => array(
 			'label' => 'Collaboration',
@@ -126,6 +164,10 @@ function epc_erp_nav_areas_config()
 				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
 				'doc_formats' => array('label' => 'Document formats', 'icon' => 'fa-files-o'),
 			),
+			'groups' => array(
+				'Common' => array('agenda', 'contacts', 'documents'),
+				'Setup' => array('doc_formats'),
+			),
 		),
 		'enterprise' => array(
 			'label' => 'Enterprise',
@@ -136,6 +178,10 @@ function epc_erp_nav_areas_config()
 				'listing' => array('label' => 'Listing', 'icon' => 'fa-list-alt'),
 				'budgeting' => array('label' => 'Budgeting', 'icon' => 'fa-pie-chart'),
 			),
+			'groups' => array(
+				'Setup' => array('business_units', 'listing'),
+				'Periodic' => array('budgeting'),
+			),
 		),
 		'setup' => array(
 			'label' => 'Setup &amp; Data',
@@ -144,6 +190,9 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'erp_setup' => array('label' => 'Accounting setup', 'icon' => 'fa-cogs'),
 				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
+			),
+			'groups' => array(
+				'Setup' => array('erp_setup', 'data_import'),
 			),
 		),
 	);
@@ -334,27 +383,63 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 		echo '<i class="fa fa-chevron-right epc-erp-sidebar-chevron" aria-hidden="true"></i>';
 		echo '</button>';
 		echo '<ul class="epc-erp-sidebar-sublist">';
-		foreach ($visibleTabs as $tabKey => $meta) {
-			if (!empty($meta['external']) || $tabKey === 'procurement_link') {
-				echo '<li class="epc-erp-sidebar-item epc-erp-sidebar-item--external">';
-				echo '<a href="' . epc_erp_h(epc_erp_procurement_url()) . '" target="_blank" rel="noopener">';
-				echo '<i class="fa fa-external-link"></i> ' . epc_erp_h(epc_erp_nav_label_plain($meta['label'] ?? 'Procurement')) . '</a></li>';
-				continue;
+		// D365 F&O style: group sub-modules (Common / Journals / Inquiries and
+		// reports / Setup / Periodic …) when the area defines a 'groups' map.
+		if (!empty($area['groups']) && is_array($area['groups'])) {
+			$rendered = array();
+			foreach ($area['groups'] as $groupLabel => $groupTabKeys) {
+				$groupItems = array();
+				foreach ((array) $groupTabKeys as $tabKey) {
+					if (isset($visibleTabs[$tabKey])) {
+						$groupItems[$tabKey] = $visibleTabs[$tabKey];
+					}
+				}
+				if (empty($groupItems)) {
+					continue;
+				}
+				echo '<li class="epc-erp-sidebar-subhead" aria-hidden="true">' . epc_erp_h((string) $groupLabel) . '</li>';
+				foreach ($groupItems as $tabKey => $meta) {
+					echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
+					$rendered[$tabKey] = true;
+				}
 			}
-			$hrefTab = ($tabKey === 'bank_recon') ? 'cash_bank' : $tabKey;
-			$isActive = ($activeTab === $tabKey)
-				|| ($tabKey === 'bank_recon' && $activeTab === 'cash_bank' && !empty($_GET['account_id']));
-			$lbl = !empty($meta['raw']) ? $meta['label'] : epc_erp_h(epc_erp_nav_label_plain($meta['label']));
-			echo '<li class="epc-erp-sidebar-item' . ($isActive ? ' is-active' : '') . '">';
-			echo '<a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, $hrefTab, $from, $to, $areaKey)) . '"' . epc_erp_nav_shell_link_attrs() . '>';
-			if (empty($meta['raw'])) {
-				echo '<i class="fa ' . epc_erp_h($meta['icon']) . '"></i> ';
+			// Any visible tab not covered by a group falls under "More".
+			$leftover = array_diff_key($visibleTabs, $rendered);
+			if (!empty($leftover)) {
+				echo '<li class="epc-erp-sidebar-subhead" aria-hidden="true">More</li>';
+				foreach ($leftover as $tabKey => $meta) {
+					echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
+				}
 			}
-			echo $lbl . '</a></li>';
+		} else {
+			foreach ($visibleTabs as $tabKey => $meta) {
+				echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
+			}
 		}
 		echo '</ul></li>';
 	}
 	echo '</ul></nav>';
+}
+
+/** Render a single sidebar sub-module <li>. */
+function epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, array $meta, $activeTab, $from, $to)
+{
+	if (!empty($meta['external']) || $tabKey === 'procurement_link') {
+		return '<li class="epc-erp-sidebar-item epc-erp-sidebar-item--external">'
+			. '<a href="' . epc_erp_h(epc_erp_procurement_url()) . '" target="_blank" rel="noopener">'
+			. '<i class="fa fa-external-link"></i> ' . epc_erp_h(epc_erp_nav_label_plain($meta['label'] ?? 'Procurement')) . '</a></li>';
+	}
+	$hrefTab = ($tabKey === 'bank_recon') ? 'cash_bank' : $tabKey;
+	$isActive = ($activeTab === $tabKey)
+		|| ($tabKey === 'bank_recon' && $activeTab === 'cash_bank' && !empty($_GET['account_id']));
+	$lbl = !empty($meta['raw']) ? $meta['label'] : epc_erp_h(epc_erp_nav_label_plain($meta['label']));
+	$out = '<li class="epc-erp-sidebar-item' . ($isActive ? ' is-active' : '') . '">';
+	$out .= '<a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, $hrefTab, $from, $to, $areaKey)) . '"' . epc_erp_nav_shell_link_attrs() . '>';
+	if (empty($meta['raw'])) {
+		$out .= '<i class="fa ' . epc_erp_h($meta['icon']) . '"></i> ';
+	}
+	$out .= $lbl . '</a></li>';
+	return $out;
 }
 
 function epc_erp_render_content_header($erpUrl, $activeArea, $activeTab, $from, $to)
