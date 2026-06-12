@@ -225,8 +225,9 @@ if (!function_exists('epc_ext_print_css')) {
         return '<style>'
             // ---- red corporate theme (screen + print) ----
             . '.epc-aud-doc{font-family:Arial,Helvetica,sans-serif;color:#222;font-size:12px;line-height:1.55;font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1;}'
-            . '.epc-aud-doc h4{color:' . $RED . ' !important;border-bottom:2px solid ' . $RED . ' !important;padding-bottom:5px;margin:0 0 12px;font-weight:700;letter-spacing:.2px;}'
-            . '.epc-aud-doc h5{color:' . $REDDK . ' !important;font-weight:700;}'
+            // section headings render as a solid red band with white text (overrides any inherited blue gradient background so text is always readable)
+            . '.epc-aud-doc h4{color:#fff !important;background:' . $RED . ' !important;background-image:none !important;border:0 !important;border-radius:5px;padding:7px 13px !important;margin:0 0 12px;font-weight:700;letter-spacing:.2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
+            . '.epc-aud-doc h5{color:' . $REDDK . ' !important;background:transparent !important;background-image:none !important;font-weight:700;}'
             . '.epc-aud-doc th,.epc-aud-doc td{vertical-align:top;}'
             . '.epc-aud-doc thead th{background:' . $RED . ' !important;color:#fff !important;border-color:' . $REDDK . ' !important;}'
             // professional numeric alignment: every numeric column header & cell right-aligned with tabular (lining) figures so digits line up vertically
