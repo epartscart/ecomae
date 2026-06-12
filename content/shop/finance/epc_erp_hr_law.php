@@ -354,10 +354,63 @@ if (!function_exists('epc_hr_law_profile')) {
     {
         $c = strtoupper(trim($country));
         $P = epc_hr_law_profiles_all();
-        if (isset($P[$c])) {
-            return array('country' => $c) + $P[$c];
-        }
-        return array('country' => $c !== '' ? $c : 'XX') + $P['generic'];
+        $base = isset($P[$c]) ? $P[$c] : $P['generic'];
+        $code = isset($P[$c]) ? $c : ($c !== '' ? $c : 'XX');
+        return array('country' => $code, 'authority_url' => epc_hr_law_authority_url($code)) + $base;
+    }
+}
+
+if (!function_exists('epc_hr_law_authority_url')) {
+    /**
+     * Official government / labour-authority website for a country, so the
+     * statutory figures can be verified and refreshed against the source.
+     *
+     * Worldwide coverage (all built-in country packs) with a safe fallback to
+     * the International Labour Organization for any unknown jurisdiction.
+     */
+    function epc_hr_law_authority_url(string $country): string
+    {
+        $c = strtoupper(trim($country));
+        $map = array(
+            // GCC
+            'AE' => 'https://www.mohre.gov.ae',
+            'SA' => 'https://www.hrsd.gov.sa',
+            'QA' => 'https://www.adlsa.gov.qa',
+            'OM' => 'https://www.mol.gov.om',
+            'BH' => 'https://www.mlsd.gov.bh',
+            'KW' => 'https://www.pam.gov.kw',
+            // South Asia
+            'IN' => 'https://labour.gov.in',
+            'PK' => 'https://ophrd.gov.pk',
+            'BD' => 'https://mole.gov.bd',
+            'LK' => 'https://labourdept.gov.lk',
+            'NP' => 'https://www.dol.gov.np',
+            // MENA
+            'EG' => 'https://www.manpower.gov.eg',
+            'JO' => 'https://mol.gov.jo',
+            'LB' => 'https://www.labor.gov.lb',
+            'MA' => 'https://www.travail.gov.ma',
+            'TR' => 'https://www.csgb.gov.tr',
+            // Europe
+            'GB' => 'https://www.gov.uk/browse/working',
+            'DE' => 'https://www.bmas.de',
+            'FR' => 'https://travail-emploi.gouv.fr',
+            'NL' => 'https://business.gov.nl/regulation/employment-law/',
+            'IE' => 'https://www.workplacerelations.ie',
+            // Americas
+            'US' => 'https://www.dol.gov',
+            'CA' => 'https://www.canada.ca/en/services/jobs/workplace.html',
+            // APAC
+            'PH' => 'https://www.dole.gov.ph',
+            'SG' => 'https://www.mom.gov.sg',
+            'MY' => 'https://www.mohr.gov.my',
+            'AU' => 'https://www.fairwork.gov.au',
+            // Africa
+            'ZA' => 'https://www.labour.gov.za',
+            'NG' => 'https://labour.gov.ng',
+            'KE' => 'https://www.labour.go.ke',
+        );
+        return isset($map[$c]) ? $map[$c] : 'https://www.ilo.org/global/standards';
     }
 }
 

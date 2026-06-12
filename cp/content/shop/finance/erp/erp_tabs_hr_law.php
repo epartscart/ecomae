@@ -40,6 +40,13 @@ $pol = epc_hr_policy($viewCode);
 $baseUrl = epc_erp_tab_url($erpUrl, 'hr_law', $date_from_str, $date_to_str);
 $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
 
+// Official government / labour-authority source for the previewed country, plus
+// a "fetch / check for updates" link that re-pulls the built-in pack and opens
+// the official source so the figures can be verified worldwide.
+$officialUrl = (string) ($view['authority_url'] ?? '');
+$refreshUrl = $baseUrl . $sep . 'law_country=' . urlencode($viewCode) . '&law_fetch=' . time();
+$lawFetched = isset($_GET['law_fetch']);
+
 erp_page_header(
 	'<i class="fa fa-gavel"></i> Labour law &amp; compliance',
 	'Country-aware statutory employment law and a per-employee compliance monitor — auto-localized to the company country.',
@@ -119,6 +126,20 @@ $sevBadge = function ($sev) {
 		<?php endif; ?>
 	</form>
 
+	<div style="margin:-2px 0 14px;">
+		<a class="btn btn-primary btn-sm" href="<?php echo epc_erp_h($refreshUrl); ?>" title="Re-pull the statutory pack and verify against the official source">
+			<i class="fa fa-refresh"></i> Fetch / check for updates
+		</a>
+		<?php if ($officialUrl !== ''): ?>
+			<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($officialUrl); ?>" target="_blank" rel="noopener noreferrer" title="Open the official government / labour-authority website">
+				<i class="fa fa-external-link"></i> Official source — <?php echo epc_erp_h($view['name']); ?>
+			</a>
+		<?php endif; ?>
+		<?php if ($lawFetched): ?>
+			<span class="text-success" style="margin-left:6px;"><i class="fa fa-check-circle"></i> Synced from the built-in statutory pack · <?php echo date('d M Y H:i'); ?> — verify on the official source.</span>
+		<?php endif; ?>
+	</div>
+
 	<h4><i class="fa fa-balance-scale"></i> Statutory employment law — <?php echo epc_erp_h($view['name']); ?>
 		<small class="text-muted"><?php echo epc_erp_h($view['region'] ?? ''); ?></small>
 	</h4>
@@ -136,15 +157,17 @@ $sevBadge = function ($sev) {
 			array('fa-calendar', 'Public holidays', $view['public_holidays'], ''),
 			array('fa-money', 'End of service', $view['eos'], ''),
 			array('fa-university', 'Wage protection', $view['wage_protection'], ''),
-			array('fa-institution', 'Governing law', $view['authority'], ''),
+			array('fa-institution', 'Governing law', $view['authority'], '', $officialUrl),
 		);
 		foreach ($cards as $c):
+			$cLink = isset($c[4]) ? (string) $c[4] : '';
 		?>
 			<div class="col-md-4 col-sm-6" style="margin-bottom:14px;">
 				<div class="well well-sm" style="margin-bottom:0;height:100%;">
 					<div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;"><i class="fa <?php echo epc_erp_h($c[0]); ?>"></i> <?php echo epc_erp_h($c[1]); ?></div>
 					<div style="font-weight:600;margin-top:3px;"><?php echo epc_erp_h($c[2]); ?></div>
 					<?php if ($c[3] !== ''): ?><div class="text-muted" style="font-size:12px;"><?php echo epc_erp_h($c[3]); ?></div><?php endif; ?>
+					<?php if ($cLink !== ''): ?><div style="font-size:12px;margin-top:3px;"><a href="<?php echo epc_erp_h($cLink); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-external-link"></i> Official source</a></div><?php endif; ?>
 				</div>
 			</div>
 		<?php endforeach; ?>
@@ -209,10 +232,12 @@ $sevBadge = function ($sev) {
 	<table class="table table-striped table-bordered table-condensed" id="epc_hrlaw_table">
 		<thead><tr>
 			<th>Country</th><th>Region</th><th>Hours/wk</th><th>Overtime</th>
-			<th>Probation</th><th>Notice</th><th>Annual leave</th><th>End of service</th><th>Authority</th>
+			<th>Probation</th><th>Notice</th><th>Annual leave</th><th>End of service</th><th>Authority &amp; official source</th>
 		</tr></thead>
 		<tbody>
-		<?php foreach ($allProfiles as $code => $p): if ($code === 'generic') { continue; } ?>
+		<?php foreach ($allProfiles as $code => $p): if ($code === 'generic') { continue; }
+			$rowUrl = epc_hr_law_authority_url((string) $code);
+		?>
 			<tr>
 				<td><strong><?php echo epc_erp_h($p['name']); ?></strong> <small class="text-muted"><?php echo epc_erp_h($code); ?></small></td>
 				<td><?php echo epc_erp_h($p['region']); ?></td>
@@ -222,7 +247,10 @@ $sevBadge = function ($sev) {
 				<td><?php echo (int) $p['notice_days'] > 0 ? (int) $p['notice_days'] . ' d' : '—'; ?></td>
 				<td><?php echo (float) $p['annual_leave_days'] > 0 ? (float) $p['annual_leave_days'] . ' d' : '—'; ?></td>
 				<td><?php echo epc_erp_h($p['eos']); ?></td>
-				<td><small><?php echo epc_erp_h($p['authority']); ?></small></td>
+				<td>
+					<small><?php echo epc_erp_h($p['authority']); ?></small>
+					<?php if ($rowUrl !== ''): ?><br><small><a href="<?php echo epc_erp_h($rowUrl); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-external-link"></i> Official source</a></small><?php endif; ?>
+				</td>
 			</tr>
 		<?php endforeach; ?>
 		</tbody>

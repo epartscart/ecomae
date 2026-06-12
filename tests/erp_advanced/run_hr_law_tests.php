@@ -147,6 +147,16 @@ $fr = epc_hr_law_profile('FR');
 check('France 35h week', (int) $fr['weekly_hours'] === 35);
 $unknown = epc_hr_law_profile('ZZ');
 check('unknown country -> generic profile', (string) $unknown['eos_model'] === 'generic');
+check('AE official source -> mohre.gov.ae', stripos(epc_hr_law_authority_url('AE'), 'mohre.gov.ae') !== false);
+check('every country pack has an official source URL', (function () use ($profAll) {
+    foreach (array_keys($profAll) as $code) {
+        if ($code === 'generic') { continue; }
+        $u = epc_hr_law_authority_url((string) $code);
+        if (strpos($u, 'http') !== 0) { return false; }
+    }
+    return true;
+})());
+check('profile carries authority_url + unknown falls back to ILO', stripos((string) $ae['authority_url'], 'http') === 0 && stripos(epc_hr_law_authority_url('ZZ'), 'ilo.org') !== false);
 
 section('Per-employee compliance checks');
 $now = time();
