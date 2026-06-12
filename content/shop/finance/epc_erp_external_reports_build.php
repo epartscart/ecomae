@@ -190,19 +190,19 @@ if (!function_exists('epc_ext_cover_page')) {
     {
         $rows = '';
         foreach ($meta as $label => $value) {
-            $rows .= '<tr><td style="padding:6px 14px;color:#f3c2c8;font-weight:600;white-space:nowrap;">' . epc_erp_h((string) $label) . '</td>'
-                . '<td style="padding:6px 14px;color:#fff;font-weight:600;">' . epc_erp_h((string) $value) . '</td></tr>';
+            $rows .= '<tr><td style="padding:6px 14px;color:#ffe2e6;font-weight:600;white-space:nowrap;">' . epc_erp_h((string) $label) . '</td>'
+                . '<td style="padding:6px 14px;color:#fff;font-weight:700;">' . epc_erp_h((string) $value) . '</td></tr>';
         }
         $tocRows = '';
         foreach ($toc as $i => $t) {
             $tocRows .= '<tr><td style="padding:5px 10px;color:#b3122a;font-weight:700;width:46px;">' . epc_erp_h((string) $t[0]) . '</td>'
                 . '<td style="padding:5px 10px;color:#1d2740;">' . epc_erp_h((string) $t[1]) . '</td></tr>';
         }
-        $cover = '<div class="ext-cover" style="page-break-after:always;background:linear-gradient(135deg,#7a0c1c 0%,#b3122a 55%,#d6334b 100%);color:#fff;border-radius:10px;padding:40px 44px;margin:0 0 22px;box-shadow:0 6px 22px rgba(122,12,28,.28);-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
-            . '<div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#f3c2c8;margin-bottom:30px;">' . epc_erp_h($subtitle) . '</div>'
-            . '<div style="font-size:30px;font-weight:800;line-height:1.2;margin-bottom:6px;">' . epc_erp_h($entity) . '</div>'
+        $cover = '<div class="ext-cover" style="page-break-after:always;background-color:#b3122a;background:#b3122a linear-gradient(135deg,#7a0c1c 0%,#b3122a 55%,#d6334b 100%);color:#fff;border-radius:10px;padding:40px 44px;margin:0 0 22px;box-shadow:0 6px 22px rgba(122,12,28,.28);-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;">'
+            . '<div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#ffe2e6;margin-bottom:30px;">' . epc_erp_h($subtitle) . '</div>'
+            . '<div style="font-size:30px;font-weight:800;line-height:1.2;margin-bottom:6px;color:#fff;">' . epc_erp_h($entity) . '</div>'
             . '<div style="font-size:20px;font-weight:600;color:#ffe2e6;margin-bottom:34px;">' . epc_erp_h($title) . '</div>'
-            . '<table style="border-collapse:collapse;border-top:1px solid rgba(255,255,255,.25);">' . $rows . '</table>'
+            . '<table style="border-collapse:collapse;border-top:1px solid rgba(255,255,255,.35);">' . $rows . '</table>'
             . '</div>';
         $contents = '<div class="ext-toc" style="page-break-after:always;border:1px solid #e7c3c9;border-radius:8px;padding:18px 22px;margin:0 0 22px;max-width:680px;">'
             . '<h4 style="margin:0 0 10px;color:#b3122a;border-bottom:2px solid #b3122a;padding-bottom:6px;">Table of contents</h4>'
@@ -233,10 +233,23 @@ if (!function_exists('epc_ext_print_css')) {
             . '.epc-aud-doc tr[style*="#13294b"],.epc-aud-doc tr[style*="#2b3a55"],.epc-aud-doc tr[style*="#1d2740"]{background:' . $RED . ' !important;}'
             . '.epc-aud-doc tr[style*="#13294b"] td,.epc-aud-doc tr[style*="#13294b"] th,.epc-aud-doc tr[style*="#2b3a55"] td,.epc-aud-doc tr[style*="#2b3a55"] th{color:#fff !important;}'
             . '.epc-aud-doc tr[style*="#eef2f8"],.epc-aud-doc tr[style*="#f4fbf6"]{background:' . $REDLT . ' !important;}'
+            // recolour the remaining blue accent boxes (commentary / field guide / info alerts) to the red theme with readable dark body text
+            . '.epc-aud-doc .ext-cover *{color:#fff !important;}'
+            . '.epc-aud-doc .ext-cover td[style*="#ffe2e6"]{color:#ffe2e6 !important;}'
+            . '.epc-aud-doc .mis-commentary{background:' . $REDLT . ' !important;border-color:#e7c3c9 !important;border-left:4px solid ' . $RED . ' !important;color:#222 !important;}'
+            . '.epc-aud-doc .mis-commentary h5,.epc-aud-doc .mis-commentary h4{color:' . $RED . ' !important;}'
+            . '.epc-aud-doc .alert,.epc-aud-doc .alert-info{background:' . $REDLT . ' !important;border-color:#e7c3c9 !important;color:#222 !important;}'
+            . '.epc-aud-doc details{border-color:#e7c3c9 !important;background:' . $REDLT . ' !important;}'
+            . '.epc-aud-doc details>summary{color:' . $REDDK . ' !important;}'
+            // light blue/grey table bands and bordered boxes → light red
+            . '.epc-aud-doc [style*="#f0f3f8"],.epc-aud-doc [style*="#f5f7fa"],.epc-aud-doc [style*="#f5f9ff"],.epc-aud-doc [style*="#f7faff"],.epc-aud-doc [style*="#eef6ee"]{background-color:' . $REDLT . ' !important;}'
+            . '.epc-aud-doc [style*="#cfe0f5"],.epc-aud-doc [style*="#d8e3f4"],.epc-aud-doc [style*="#2b6cb0"]{border-color:#e7c3c9 !important;}'
             . '@media print{'
             . '@page{size:A4;margin:18mm;}'                 // A4 with equal margins on all four sides
             . 'html,body{background:#fff !important;}'
             . 'body{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
+            // solid red cover in print (gradients are often dropped by print engines — keep it red, not white)
+            . '.epc-aud-doc .ext-cover{background:#b3122a !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}'
             // unified font + size across the whole printed pack
             . '.epc-aud-doc,.epc-aud-doc *{font-family:Arial,Helvetica,sans-serif !important;}'
             . '.epc-aud-doc p,.epc-aud-doc td,.epc-aud-doc th,.epc-aud-doc li,.epc-aud-doc span,.epc-aud-doc div{font-size:12px !important;line-height:1.5 !important;}'
@@ -256,6 +269,53 @@ if (!function_exists('epc_ext_print_css')) {
             . '.epc-no-print,.btn{display:none !important;}'
             . '}'
             . '</style>';
+    }
+}
+
+if (!function_exists('epc_ext_standards_index')) {
+    /**
+     * Full IAS/IFRS applicability index — every standard with its status and
+     * treatment. Shared by the on-screen audit report and the linked Excel
+     * audit pack so both present identical, complete framework coverage.
+     *
+     * @return array<int,array{0:string,1:string,2:string,3:string}>
+     */
+    function epc_ext_standards_index(): array
+    {
+        return array(
+            // [standard, title, status, treatment]
+            array('IAS 1', 'Presentation of financial statements', 'Applied', 'Full set of statements + comparatives + notes.'),
+            array('IAS 2', 'Inventories', 'Applied', 'Lower of cost and NRV — Note on inventories.'),
+            array('IAS 7', 'Statement of cash flows', 'Applied', 'Indirect-method cash-flow statement.'),
+            array('IAS 8', 'Accounting policies, estimates & errors', 'Applied', 'Consistent policies; prospective estimate changes.'),
+            array('IAS 10', 'Events after the reporting period', 'Applied', 'No adjusting/non-adjusting events note.'),
+            array('IAS 12', 'Income taxes', 'Applied', 'UAE CT 0%/9% current + deferred tax.'),
+            array('IAS 16', 'Property, plant & equipment', 'Applied', 'Cost less depreciation; movement note.'),
+            array('IAS 19', 'Employee benefits', 'Applied', 'End-of-service provision.'),
+            array('IAS 20', 'Government grants', 'Not applicable', 'No grants received.'),
+            array('IAS 21', 'Foreign exchange rates', 'Applied', 'Functional/presentation currency policy.'),
+            array('IAS 23', 'Borrowing costs', 'Applied', 'Capitalised on qualifying assets; else expensed.'),
+            array('IAS 24', 'Related-party disclosures', 'Applied', 'Related-party & KMP note.'),
+            array('IAS 27/28', 'Separate FS / Associates', 'Not applicable', 'No subsidiaries/associates (standalone).'),
+            array('IAS 32', 'Financial instruments — presentation', 'Applied', 'Liability vs equity classification.'),
+            array('IAS 33', 'Earnings per share', 'Applied', 'Basic EPS note.'),
+            array('IAS 36', 'Impairment of assets', 'Applied', 'Annual indicator assessment.'),
+            array('IAS 37', 'Provisions & contingencies', 'Applied', 'Recognition criteria note.'),
+            array('IAS 38', 'Intangible assets', 'Applied', 'Software/licences amortised.'),
+            array('IAS 40', 'Investment property', 'Not applicable', 'No investment property held.'),
+            array('IAS 41', 'Agriculture', 'Not applicable', 'No biological assets.'),
+            array('IFRS 5', 'Held for sale & discontinued ops', 'Not applicable', 'None in current/comparative year.'),
+            array('IFRS 7', 'Financial instruments — disclosures', 'Applied', 'Credit/liquidity/market-risk disclosures.'),
+            array('IFRS 8', 'Operating segments', 'Applied', 'Single reportable segment.'),
+            array('IFRS 9', 'Financial instruments', 'Applied', 'Classification + expected credit loss.'),
+            array('IFRS 10/11/12', 'Consolidation / joint arrangements', 'Not applicable', 'Standalone entity (no group).'),
+            array('IFRS 13', 'Fair value measurement', 'Applied', 'Three-level fair-value hierarchy.'),
+            array('IFRS 15', 'Revenue from contracts with customers', 'Applied', 'Five-step model; disaggregation.'),
+            array('IFRS 16', 'Leases', 'Applied', 'Right-of-use asset + lease liability.'),
+            array('IFRS 17', 'Insurance contracts', 'Not applicable', 'Not an insurer.'),
+            array('IFRS 2', 'Share-based payment', 'Not applicable', 'No share-based payment arrangements.'),
+            array('IFRS 3', 'Business combinations', 'Not applicable', 'No business combinations in the period.'),
+        );
     }
 }
 
@@ -2821,40 +2881,7 @@ if (!function_exists('epc_ext_b_audit')) {
         $notes .= $note('Application of new & amended standards', 'IAS 8', '<p>The Company has applied all IFRS Accounting Standards and Interpretations issued by the IASB that are effective for the current reporting period. New or amended standards and interpretations in issue but not yet effective have been assessed and are not expected to have a material impact on the financial statements when adopted.</p>');
 
         // ---- Standards applicability index (every IAS/IFRS) ----------------
-        $stdIndex = array(
-            // [standard, title, status, treatment]
-            array('IAS 1', 'Presentation of financial statements', 'Applied', 'Full set of statements + comparatives + notes.'),
-            array('IAS 2', 'Inventories', 'Applied', 'Lower of cost and NRV — Note on inventories.'),
-            array('IAS 7', 'Statement of cash flows', 'Applied', 'Indirect-method cash-flow statement.'),
-            array('IAS 8', 'Accounting policies, estimates & errors', 'Applied', 'Consistent policies; prospective estimate changes.'),
-            array('IAS 10', 'Events after the reporting period', 'Applied', 'No adjusting/non-adjusting events note.'),
-            array('IAS 12', 'Income taxes', 'Applied', 'UAE CT 0%/9% current + deferred tax.'),
-            array('IAS 16', 'Property, plant & equipment', 'Applied', 'Cost less depreciation; movement note.'),
-            array('IAS 19', 'Employee benefits', 'Applied', 'End-of-service provision.'),
-            array('IAS 20', 'Government grants', 'Not applicable', 'No grants received.'),
-            array('IAS 21', 'Foreign exchange rates', 'Applied', 'Functional/presentation currency policy.'),
-            array('IAS 23', 'Borrowing costs', 'Applied', 'Capitalised on qualifying assets; else expensed.'),
-            array('IAS 24', 'Related-party disclosures', 'Applied', 'Related-party & KMP note.'),
-            array('IAS 27/28', 'Separate FS / Associates', 'Not applicable', 'No subsidiaries/associates (standalone).'),
-            array('IAS 32', 'Financial instruments — presentation', 'Applied', 'Liability vs equity classification.'),
-            array('IAS 33', 'Earnings per share', 'Applied', 'Basic EPS note.'),
-            array('IAS 36', 'Impairment of assets', 'Applied', 'Annual indicator assessment.'),
-            array('IAS 37', 'Provisions & contingencies', 'Applied', 'Recognition criteria note.'),
-            array('IAS 38', 'Intangible assets', 'Applied', 'Software/licences amortised.'),
-            array('IAS 40', 'Investment property', 'Not applicable', 'No investment property held.'),
-            array('IAS 41', 'Agriculture', 'Not applicable', 'No biological assets.'),
-            array('IFRS 5', 'Held for sale & discontinued ops', 'Not applicable', 'None in current/comparative year.'),
-            array('IFRS 7', 'Financial instruments — disclosures', 'Applied', 'Credit/liquidity/market-risk disclosures.'),
-            array('IFRS 8', 'Operating segments', 'Applied', 'Single reportable segment.'),
-            array('IFRS 9', 'Financial instruments', 'Applied', 'Classification + expected credit loss.'),
-            array('IFRS 10/11/12', 'Consolidation / joint arrangements', 'Not applicable', 'Standalone entity (no group).'),
-            array('IFRS 13', 'Fair value measurement', 'Applied', 'Three-level fair-value hierarchy.'),
-            array('IFRS 15', 'Revenue from contracts with customers', 'Applied', 'Five-step model; disaggregation.'),
-            array('IFRS 16', 'Leases', 'Applied', 'Right-of-use asset + lease liability.'),
-            array('IFRS 17', 'Insurance contracts', 'Not applicable', 'Not an insurer.'),
-            array('IFRS 2', 'Share-based payment', 'Not applicable', 'No share-based payment arrangements.'),
-            array('IFRS 3', 'Business combinations', 'Not applicable', 'No business combinations in the period.'),
-        );
+        $stdIndex = epc_ext_standards_index();
         $stdRows = '';
         foreach ($stdIndex as $r) {
             $applied = stripos($r[2], 'Applied') !== false;
@@ -6494,13 +6521,206 @@ if (!function_exists('epc_ext_audit_xlsx')) {
             array('Current tax expense', $fml($tbc(18), $C['tax']), $fml($tbp(18), $P['tax']), "='Profit & Loss OCI'!B10 (×−1)"),
         );
 
+        // ---- tenant / report identity (same basis as the on-screen report) -
+        $co = epc_ext_company($db);
+        $entity = (string) ($co['legal_name'] ?: 'ECOM AE General Trading LLC');
+        $country = strtoupper((string) ($co['country'] ?? ''));
+        $isUae = ($country === 'AE' || $country === '');
+        $trn = (string) ($co['trn'] ?? '');
+        $auditor = $isUae ? 'Gulf Audit & Assurance (Chartered Accountants)' : 'Independent Registered Auditors';
+        $authority = $isUae ? 'Ministry of Economy — UAE Auditors Register' : 'national audit oversight authority';
+        $fwk = 'International Financial Reporting Standards (IFRS) as issued by the IASB';
+        $toTs = is_int($to) ? $to : (int) strtotime((string) $to);
+        $repDate = date('j F Y', $toTs);
+        $opinionDate = date('j F Y', (int) strtotime('+3 months', $toTs));
+
+        // ---- Sheet: Cover & Contents (mirrors PDF cover page + TOC) --------
+        $COVER = array(
+            array('EXTERNAL AUDIT REPORT — INDEPENDENT AUDITOR\'S REPORT & IFRS FINANCIAL STATEMENTS', '', ''),
+            array('', '', ''),
+            array('Entity', $entity, ''),
+            array('Tax registration number (TRN)', ($trn !== '' ? $trn : '—'), ''),
+            array('Reporting framework', $fwk, ''),
+            array('Auditing framework', 'International Standards on Auditing (ISA) as issued by the IAASB', ''),
+            array('Reporting period', $cyL . ' — year ended ' . $repDate, ''),
+            array('Comparative period', $pyL, ''),
+            array('Presentation currency', $ccy, ''),
+            array('Independent auditor', $auditor, ''),
+            array('Oversight authority', $authority, ''),
+            array('Date of report', $opinionDate, ''),
+            array('', '', ''),
+            array('CONTENTS — one element per sheet (mirrors the PDF report; every figure links to the Trial Balance)', '', ''),
+            array('Sheet', 'Section', ''),
+            array('Auditor\'s Report', '1 · Independent Auditor\'s Report (ISA 700 / 701 / 705 / 570 / 720)', ''),
+            array('Trial Balance', '2 · Trial balance — single source of truth (Dr +, Cr −)', ''),
+            array('Financial Position', '3 · Statement of Financial Position (SOFP)', ''),
+            array('Profit & Loss OCI', '4 · Statement of Profit or Loss & Other Comprehensive Income', ''),
+            array('Cash Flows', '5 · Statement of Cash Flows (indirect, IAS 7)', ''),
+            array('Changes in Equity', '6 · Statement of Changes in Equity', ''),
+            array('Notes', '7 · Notes to the financial statements — build-up schedules', ''),
+            array('Standards Index', '8 · Standards applicability index — every IAS/IFRS', ''),
+            array('Consolidation', '9 · Consolidated & separate (individual) financial statements', ''),
+            array('Financial Analysis', '10 · Financial analysis & commentary (FY vs FY, impact-graded)', ''),
+        );
+
+        // ---- Sheet: Independent Auditor's Report (full ISA text) -----------
+        $AUD = array(
+            array('INDEPENDENT AUDITOR\'S REPORT'),
+            array('To the Shareholders of ' . $entity),
+            array(''),
+            array('Opinion'),
+            array('We have audited the financial statements of ' . $entity . ' (the "Company"), which comprise the statement of financial position as at ' . $repDate . ', and the statement of profit or loss and other comprehensive income, statement of changes in equity and statement of cash flows for the year then ended, and notes to the financial statements, including a summary of material accounting policies.'),
+            array('In our opinion, the accompanying financial statements present fairly, in all material respects, the financial position of the Company as at ' . $repDate . ', and its financial performance and its cash flows for the year then ended in accordance with ' . $fwk . '.'),
+            array(''),
+            array('Basis for Opinion'),
+            array('We conducted our audit in accordance with International Standards on Auditing (ISAs). Our responsibilities under those standards are further described in the Auditor\'s Responsibilities section of our report. We are independent of the Company in accordance with the IESBA Code of Ethics together with the ethical requirements relevant to our audit, and we have fulfilled our other ethical responsibilities. We believe that the audit evidence we have obtained is sufficient and appropriate to provide a basis for our opinion.'),
+            array(''),
+            array('Material Uncertainty Related to Going Concern (ISA 570)'),
+            array('The financial statements have been prepared on a going-concern basis. Based on the audit evidence obtained, no material uncertainty exists that may cast significant doubt on the Company\'s ability to continue as a going concern.'),
+            array(''),
+            array('Key Audit Matters (ISA 701)'),
+            array('Revenue recognition (IFRS 15) — risk that revenue is recognised in the wrong period; we tested cut-off and the five-step model.'),
+            array('Expected credit losses on receivables (IFRS 9) — judgement in the ECL allowance; we re-performed the provision matrix.'),
+            array('Carrying value of property, plant & equipment (IAS 16 / IAS 36) — we assessed depreciation and impairment indicators.'),
+            array(''),
+            array('Responsibilities of Management and Those Charged with Governance'),
+            array('Management is responsible for the preparation and fair presentation of the financial statements in accordance with IFRS, and for such internal control as management determines is necessary to enable the preparation of financial statements that are free from material misstatement, whether due to fraud or error, and for assessing the Company\'s ability to continue as a going concern.'),
+            array(''),
+            array('Auditor\'s Responsibilities for the Audit of the Financial Statements'),
+            array('Our objectives are to obtain reasonable assurance about whether the financial statements as a whole are free from material misstatement, whether due to fraud or error, and to issue an auditor\'s report that includes our opinion. Reasonable assurance is a high level of assurance but is not a guarantee that an audit conducted in accordance with ISAs will always detect a material misstatement when it exists.'),
+            array(''),
+            array('Report on Other Legal and Regulatory Requirements'),
+            array('We further confirm that the Company has maintained proper books of account, and that the financial statements comply with the applicable provisions of the relevant Commercial Companies Law and the Corporate Tax Law.'),
+            array(''),
+            array($auditor),
+            array($authority),
+            array('Date: ' . $opinionDate),
+        );
+
+        // ---- Sheet: Standards applicability index -------------------------
+        $STD = array(
+            array('Standards applicability index — every IAS/IFRS (full framework coverage)', '', '', ''),
+            array('Standard', 'Title', 'Status', 'How it is applied / why not applicable'),
+        );
+        foreach (epc_ext_standards_index() as $r) {
+            $STD[] = array((string) $r[0], (string) $r[1], (string) $r[2], (string) $r[3]);
+        }
+
+        // ---- Sheet: Consolidation worksheet (same math as on-screen §9) ----
+        $ckf = 0.30;
+        $subf = static function ($v) use ($ckf) { return round((float) $v * $ckf, 2); };
+        $icBal = round(min($C['receivables'], $C['payables']) * 0.15, 2);
+        $icSales = round(min($C['rev'], $subf($C['rev'])) * 0.20, 2);
+        $sShareCap = $subf($C['shareCap']); $sReserves = $subf($C['reserves']); $sRetained = $subf($C['retained']);
+        $sEquity = round($sShareCap + $sReserves + $sRetained, 2);
+        $sPPE = $subf($C['ppe']); $sIntang = $subf($C['intang']); $sInv = $subf($C['inventory']); $sRec = $subf($C['receivables']);
+        $sBorrow = $subf($C['borrowNon'] + $C['borrowCur']); $sLease = $subf($C['lease']); $sProv = $subf($C['provisions']); $sPay = $subf($C['payables']); $sTax = $subf($C['tax']);
+        $sLiab = round($sBorrow + $sLease + $sProv + $sPay + $sTax, 2);
+        $sCash = round(($sEquity + $sLiab) - ($sPPE + $sIntang + $sInv + $sRec), 2);
+        $pInvest = $sEquity; $pCash = round($C['cash'] - $pInvest, 2);
+        $totLiabC = $C['payables'] + $C['tax'] + $C['borrowCur'] + $C['borrowNon'] + $C['lease'] + $C['provisions'];
+        // row helper: Parent (B) + Subsidiary (C) − Eliminations (D) = Consolidated (E, formula)
+        $crow = static function (string $label, $p, $s, $e) use ($num) {
+            $tot = round((float) $p + (float) $s + (float) $e, 2);
+            return array($label, ($p === '' ? '' : $num($p)), ($s === '' ? '' : $num($s)), ($e === '' ? '' : $num($e)),
+                array('f' => 'B' . '%R%' . '+C%R%+D%R%', 'v' => $tot));
+        };
+        // Note: %R% placeholders are replaced with the row number below.
+        $CONS = array();
+        $CONS[] = array($entity . ' group — consolidation worksheet (Parent + Subsidiary − Eliminations = Consolidated)', '', '', '', '');
+        $CONS[] = array('Statement of financial position (' . $cyL . ')', 'Parent (separate)', 'Subsidiary', 'Eliminations', 'Consolidated');
+        $CONS[] = $crow('Property, plant & equipment', $C['ppe'], $sPPE, 0);
+        $CONS[] = $crow('Intangible assets', $C['intang'], $sIntang, 0);
+        $CONS[] = $crow('Investment in subsidiary (at cost)', $pInvest, 0, -$pInvest);
+        $CONS[] = $crow('Inventories', $C['inventory'], $sInv, 0);
+        $CONS[] = $crow('Trade & other receivables', $C['receivables'], $sRec, -$icBal);
+        $CONS[] = $crow('Cash & cash equivalents', $pCash, $sCash, 0);
+        $pAssetsTot = round($C['ppe'] + $C['intang'] + $pInvest + $C['inventory'] + $C['receivables'] + $pCash, 2);
+        $sAssetsTot = round($sPPE + $sIntang + $sInv + $sRec + $sCash, 2);
+        $CONS[] = $crow('Total assets', $pAssetsTot, $sAssetsTot, -($pInvest + $icBal));
+        $CONS[] = $crow('Share capital', $C['shareCap'], $sShareCap, -$sShareCap);
+        $CONS[] = $crow('Other reserves', $C['reserves'], $sReserves, -$sReserves);
+        $CONS[] = $crow('Retained earnings', $C['retained'], $sRetained, -$sRetained);
+        $CONS[] = $crow('Total equity', $C['totalEquity'], $sEquity, -$sEquity);
+        $CONS[] = $crow('Borrowings (incl. current portion)', $C['borrowNon'] + $C['borrowCur'], $sBorrow, 0);
+        $CONS[] = $crow('Lease liabilities', $C['lease'], $sLease, 0);
+        $CONS[] = $crow('Employee end-of-service provision', $C['provisions'], $sProv, 0);
+        $CONS[] = $crow('Trade & other payables', $C['payables'], $sPay, -$icBal);
+        $CONS[] = $crow('Current tax payable', $C['tax'], $sTax, 0);
+        $pEqLiabTot = round($C['totalEquity'] + $totLiabC, 2);
+        $sEqLiabTot = round($sEquity + $sLiab, 2);
+        $CONS[] = $crow('Total equity & liabilities', $pEqLiabTot, $sEqLiabTot, -($sEquity + $icBal));
+        $CONS[] = array('', '', '', '', '');
+        $CONS[] = array('Statement of profit or loss (' . $cyL . ')', 'Parent (separate)', 'Subsidiary', 'Eliminations', 'Consolidated');
+        $CONS[] = $crow('Revenue', $C['rev'], $subf($C['rev']), -$icSales);
+        $CONS[] = $crow('Cost of sales', -$C['cogs'], -$subf($C['cogs']), $icSales);
+        $CONS[] = $crow('Operating & administrative expenses', -$C['opex'], -$subf($C['opex']), 0);
+        $CONS[] = $crow('Depreciation & amortisation', -$C['depr'], -$subf($C['depr']), 0);
+        $CONS[] = $crow('Finance costs', -$C['interest'], -$subf($C['interest']), 0);
+        $CONS[] = $crow('Profit before tax', $C['pbt'], $subf($C['pbt']), 0);
+        $CONS[] = $crow('Income tax expense', -$C['tax'], -$subf($C['tax']), 0);
+        $CONS[] = $crow('Profit for the year', $C['profit'], $subf($C['profit']), 0);
+        // resolve the %R% row-number placeholders in the consolidation formulas
+        foreach ($CONS as $ri => $cells) {
+            $rowNo = $ri + 1;
+            foreach ($cells as $ci => $cell) {
+                if (is_array($cell) && isset($cell['f']) && strpos($cell['f'], '%R%') !== false) {
+                    $CONS[$ri][$ci]['f'] = str_replace('%R%', (string) $rowNo, $cell['f']);
+                }
+            }
+        }
+
+        // ---- Sheet: Financial analysis & commentary (same calcs as §9) ----
+        $pctOf = static function ($n, $d) { return ((float) $d == 0.0) ? 0.0 : ((float) $n / (float) $d); };
+        $fPct = static function ($r) { return number_format($r * 100, 1) . '%'; };
+        $fRat = static function ($r) { return number_format($r, 2) . 'x'; };
+        $fDays = static function ($r) { return number_format($r, 0) . ' days'; };
+        $dpp = static function ($a, $b) { return number_format(($a - $b) * 100, 1) . ' pp'; };
+        $grade = static function (float $chg, float $hi, float $mid) { $a = abs($chg); return ($a >= $hi) ? 'High' : (($a >= $mid) ? 'Medium' : 'Low'); };
+        $mfmt = static function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        $grossC = $C['rev'] - $C['cogs']; $grossP = $P['rev'] - $P['cogs'];
+        $ca_c = $C['inventory'] + $C['receivables'] + $C['cash']; $cl_c = $C['payables'] + $C['tax'] + $C['borrowCur'];
+        $ca_p = $P['inventory'] + $P['receivables'] + $P['cash']; $cl_p = $P['payables'] + $P['tax'] + $P['borrowCur'];
+        $debt_c = $C['borrowNon'] + $C['borrowCur'] + $C['lease']; $debt_p = $P['borrowNon'] + $P['borrowCur'] + $P['lease'];
+        $revG = $pctOf($C['rev'] - $P['rev'], $P['rev']);
+        $gmC = $pctOf($grossC, $C['rev']); $gmP = $pctOf($grossP, $P['rev']);
+        $ebC = $grossC - $C['opex'] - $C['depr']; $ebP = $grossP - $P['opex'] - $P['depr'];
+        $profG = $pctOf($C['profit'] - $P['profit'], $P['profit']);
+        $npC = $pctOf($C['profit'], $C['rev']); $npP = $pctOf($P['profit'], $P['rev']);
+        $crC = $pctOf($ca_c, $cl_c); $crP = $pctOf($ca_p, $cl_p);
+        $wcC = $ca_c - $cl_c; $wcP = $ca_p - $cl_p;
+        $gearC = $pctOf($debt_c, $C['totalEquity']); $gearP = $pctOf($debt_p, $P['totalEquity']);
+        $arC = $pctOf($C['receivables'], $C['rev']) * 365; $arP = $pctOf($P['receivables'], $P['rev']) * 365;
+        $ivC = $pctOf($C['inventory'], $C['cogs']) * 365; $ivP = $pctOf($P['inventory'], $P['cogs']) * 365;
+        $cashG = $pctOf($C['cash'] - $P['cash'], $P['cash']);
+        $FA = array(
+            array('Financial analysis & commentary — ' . $cyL . ' vs ' . $pyL . ' (impact-graded)', '', '', '', '', ''),
+            array('Metric', $cyL, $pyL, 'Change', 'Impact', 'Commentary'),
+            array('Revenue', $mfmt($C['rev']), $mfmt($P['rev']), $fPct($revG), $grade($revG, 0.15, 0.05), 'Revenue ' . ($revG >= 0 ? 'grew' : 'fell') . ' ' . $fPct(abs($revG)) . ' year-on-year — the primary driver of overall performance.'),
+            array('Gross profit margin', $fPct($gmC), $fPct($gmP), $dpp($gmC, $gmP), $grade($gmC - $gmP, 0.05, 0.02), 'Gross margin moved ' . $dpp($gmC, $gmP) . ' — ' . ($gmC >= $gmP ? 'margin improvement supports profitability' : 'margin erosion warrants cost review') . '.'),
+            array('Operating profit (EBIT)', $mfmt($ebC), $mfmt($ebP), $fPct($pctOf($ebC - $ebP, $ebP)), $grade($pctOf($ebC - $ebP, $ebP), 0.15, 0.05), 'Core operating profitability before financing and tax; ' . ($ebC >= $ebP ? 'improving operating leverage' : 'operating profit under pressure') . '.'),
+            array('Profit for the year', $mfmt($C['profit']), $mfmt($P['profit']), $fPct($profG), $grade($profG, 0.15, 0.05), 'Bottom-line result ' . ($profG >= 0 ? 'increased' : 'decreased') . ' ' . $fPct(abs($profG)) . ' — the headline measure of the year.'),
+            array('Net profit margin', $fPct($npC), $fPct($npP), $dpp($npC, $npP), $grade($npC - $npP, 0.04, 0.015), 'Profit retained per unit of revenue; ' . ($npC >= $npP ? 'efficiency gains' : 'thinner conversion of sales to profit') . '.'),
+            array('Current ratio (liquidity)', $fRat($crC), $fRat($crP), $fRat($crC - $crP), $grade($pctOf($crC - $crP, $crP), 0.20, 0.08), 'Current assets cover current liabilities ' . $fRat($crC) . '; ' . ($crC >= 1.0 ? 'comfortable short-term liquidity' : 'below 1.0 — monitor working-capital funding') . '.'),
+            array('Working capital', $mfmt($wcC), $mfmt($wcP), $mfmt($wcC - $wcP), $grade($pctOf($wcC - $wcP, $wcP), 0.20, 0.08), 'Net current assets available to fund operations ' . ($wcC >= $wcP ? 'strengthened' : 'tightened') . ' versus the prior year.'),
+            array('Gearing (debt / equity)', $fPct($gearC), $fPct($gearP), $dpp($gearC, $gearP), $grade($gearC - $gearP, 0.15, 0.05), 'Financial leverage and solvency; ' . ($gearC <= $gearP ? 'deleveraging reduces financial risk' : 'rising leverage increases interest exposure and risk') . '.'),
+            array('Receivables collection', $fDays($arC), $fDays($arP), $fDays($arC - $arP), $grade($pctOf($arC - $arP, $arP), 0.20, 0.08), 'Average days to collect from customers; ' . ($arC <= $arP ? 'faster collection improves cash conversion' : 'slower collection ties up cash and raises credit risk') . '.'),
+            array('Inventory holding', $fDays($ivC), $fDays($ivP), $fDays($ivC - $ivP), $grade($pctOf($ivC - $ivP, $ivP), 0.20, 0.08), 'Average days inventory is held; ' . ($ivC <= $ivP ? 'leaner stock improves liquidity' : 'higher holding increases obsolescence and storage cost') . '.'),
+            array('Cash & cash equivalents', $mfmt($C['cash']), $mfmt($P['cash']), $fPct($cashG), $grade($cashG, 0.20, 0.08), 'Closing cash position ' . ($cashG >= 0 ? 'increased' : 'decreased') . ' ' . $fPct(abs($cashG)) . ' — see the statement of cash flows for the split.'),
+        );
+
         return epc_ext_xlsx_write(array(
+            'Cover & Contents' => $COVER,
+            'Auditor\'s Report' => $AUD,
             'Trial Balance' => $TB,
             'Financial Position' => $SOFP,
             'Profit & Loss OCI' => $PL,
             'Cash Flows' => $CF,
             'Changes in Equity' => $SOCE,
             'Notes' => $NOTES,
+            'Standards Index' => $STD,
+            'Consolidation' => $CONS,
+            'Financial Analysis' => $FA,
         ));
     }
 }

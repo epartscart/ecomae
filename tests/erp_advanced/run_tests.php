@@ -464,10 +464,25 @@ if (class_exists('ZipArchive')) {
     $za = new ZipArchive();
     $okA = $za->open($tmpA) === true;
     $wbA = $okA ? (string) $za->getFromName('xl/workbook.xml') : '';
-    // sheet order: 1 Trial Balance, 2 Financial Position, 3 Profit&Loss, 4 Cash Flows, 5 Changes in Equity, 6 Notes
-    $aSofp = $okA ? (string) $za->getFromName('xl/worksheets/sheet2.xml') : '';
-    $aCf = $okA ? (string) $za->getFromName('xl/worksheets/sheet4.xml') : '';
-    $aNotes = $okA ? (string) $za->getFromName('xl/worksheets/sheet6.xml') : '';
+    // resolve each worksheet by its display name (position-independent): sheets
+    // appear in workbook.xml in file order, so name index N maps to sheetN.xml.
+    $sheetByName = static function (string $name) use ($za, $wbA, $okA): string {
+        if (!$okA) { return ''; }
+        if (preg_match_all('/<sheet name="([^"]*)"/', $wbA, $mm)) {
+            foreach ($mm[1] as $idx => $nm) {
+                if ($nm === $name) { return (string) $za->getFromName('xl/worksheets/sheet' . ($idx + 1) . '.xml'); }
+            }
+        }
+        return '';
+    };
+    $aSofp = $sheetByName('Financial Position');
+    $aCf = $sheetByName('Cash Flows');
+    $aNotes = $sheetByName('Notes');
+    $aCover = $sheetByName('Cover &amp; Contents');
+    $aAud = $sheetByName('Auditor&apos;s Report');
+    $aStd = $sheetByName('Standards Index');
+    $aCons = $sheetByName('Consolidation');
+    $aFa = $sheetByName('Financial Analysis');
     if ($okA) { $za->close(); }
     @unlink($tmpA);
     check('Audit pack has one sheet per element (TB, SOFP, P&L, CF, SOCE, Notes)',
@@ -477,6 +492,16 @@ if (class_exists('ZipArchive')) {
     check('SOFP cells are live formulas linked to the Trial Balance', strpos($aSofp, "&apos;Trial Balance&apos;!C3") !== false && strpos($aSofp, 'B5+B10') !== false, 'SOFP→TB');
     check('Cash flow links to P&L and reconciles cash', strpos($aCf, "&apos;Profit &amp; Loss OCI&apos;!B9") !== false && strpos($aCf, 'B22+B23') !== false, 'CF→P&L');
     check('Notes totals link back to the face statements', strpos($aNotes, "&apos;Financial Position&apos;!B3") !== false && strpos($aNotes, "&apos;Financial Position&apos;!B8") !== false, 'Notes→SOFP');
+    // ---- Excel = full PDF parity (cover, auditor's report, standards index, consolidation, analysis) ----
+    check('Audit pack mirrors PDF (11 sheets incl. cover, auditor report, standards, consolidation, analysis)',
+        strpos($wbA, 'name="Cover &amp; Contents"') !== false && strpos($wbA, 'name="Auditor') !== false
+        && strpos($wbA, 'name="Standards Index"') !== false && strpos($wbA, 'name="Consolidation"') !== false
+        && strpos($wbA, 'name="Financial Analysis"') !== false, 'parity sheets');
+    check('Cover sheet carries entity + framework + contents', strpos($aCover, 'EXTERNAL AUDIT REPORT') !== false && strpos($aCover, 'CONTENTS') !== false, 'cover');
+    check('Auditor report sheet has ISA opinion text', strpos($aAud, 'INDEPENDENT AUDITOR') !== false && strpos($aAud, 'Basis for Opinion') !== false, 'ISA text');
+    check('Standards index lists every IAS/IFRS', strpos($aStd, 'IAS 1') !== false && strpos($aStd, 'IFRS 17') !== false, 'std index');
+    check('Consolidation worksheet has Parent/Subsidiary/Eliminations and formula total', strpos($aCons, 'Subsidiary') !== false && strpos($aCons, 'Eliminations') !== false && strpos($aCons, '+C') !== false && strpos($aCons, '+D') !== false, 'consolidation');
+    check('Financial analysis sheet grades impact (High/Medium/Low)', strpos($aFa, 'Impact') !== false && (strpos($aFa, 'High') !== false || strpos($aFa, 'Medium') !== false || strpos($aFa, 'Low') !== false), 'analysis');
 }
 
 echo "\n========================================\n";
