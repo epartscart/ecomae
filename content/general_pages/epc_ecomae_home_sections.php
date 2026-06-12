@@ -341,7 +341,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
 				<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>See The Result — eParts Cart Live</div>
-				<h2>This is what<br><span class="ehm-glow-a">client gets.</span></h2>
+				<h2>This is what<br><span class="ehm-glow-a">client gets on Frontend.</span></h2>
 				<p>eParts Cart is a live ECOM AE tenant — auto spare parts B2B/B2C store running Storefront + CP + ERP on one database.</p>
 			</div>
 			<div class="ehm-badges ehm-rev">
