@@ -128,6 +128,13 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 	$cpUrl = '/' . $backend . '/shop/finance/erp?epc_erp_shell=1';
 	$showStore = function_exists('epc_portal_storefront_enabled') && epc_portal_storefront_enabled();
 	$platformHost = function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname();
+	// ERP-only tenants must never be linked out to the CP control panel or Super
+	// CP — they live entirely inside the standalone /erp/ door. Full tenants keep
+	// both escape hatches.
+	if (!function_exists('epc_erp_is_erp_only_context')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+	}
+	$isErpOnly = function_exists('epc_erp_is_erp_only_context') && epc_erp_is_erp_only_context();
 	$cssVer = '20260530a';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
 	?>
@@ -188,11 +195,13 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 		<nav class="epc-erp-topbar__nav">
 			<a href="<?php echo $erpBase; ?>"><i class="fa fa-dashboard"></i> ERP</a>
 			<a href="<?php echo htmlspecialchars($guideUrl, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-book"></i> Guide</a>
+			<?php if (!$isErpOnly): ?>
 			<a href="<?php echo htmlspecialchars($cpUrl, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-cog"></i> Control panel (advanced)</a>
+			<?php endif; ?>
 			<?php if ($showStore): ?>
 			<a href="/"><i class="fa fa-globe"></i> Website</a>
 			<?php endif; ?>
-			<?php if ($platformHost): ?>
+			<?php if ($platformHost && !$isErpOnly): ?>
 			<a href="https://www.ecomae.com/cp/shop/tenant_hub/tenant_hub"><i class="fa fa-cloud"></i> Super CP</a>
 			<?php endif; ?>
 		</nav>
