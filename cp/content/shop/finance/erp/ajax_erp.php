@@ -743,6 +743,7 @@ try {
 				'won_hint', 'save_activity', 'toggle_activity', 'dashboard', 'pipeline',
 			), true)) {
 				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_crm_access.php';
+				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_crm_helpers.php';
 				$r = epc_crm_handle_ajax_action($db_link, $action, $_POST);
 				$msg = $r['message'] ?? 'OK';
 				unset($r['message']);
