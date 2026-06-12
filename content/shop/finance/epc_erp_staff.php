@@ -7,7 +7,7 @@ defined('_ASTEXE_') or die('No access');
 function epc_erp_staff_all_tabs()
 {
 	return array(
-		'dashboard', 'workflow', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
+		'dashboard', 'workflow', 'processflow', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
 		'fulfilment', 'revenue', 'subscriptions', 'receivables',
 		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match', 'supplier_portal',
 		'cash_bank', 'payment_batches', 'petty_cash',

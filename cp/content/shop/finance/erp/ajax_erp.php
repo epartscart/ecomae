@@ -393,6 +393,56 @@ try {
 			$cleared = epc_opl_clear_demo_demand($db_link);
 			epc_erp_json(true, 'Cleared ' . (int)$cleared . ' seeded demand movements');
 
+		case 'pf_process_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfPid = epc_pf_process_save($db_link, $_POST);
+			epc_erp_json(true, 'Process saved', array('id' => $pfPid));
+
+		case 'pf_step_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfSid = epc_pf_step_save($db_link, $_POST);
+			epc_erp_json(true, 'Step added', array('id' => $pfSid));
+
+		case 'pf_step_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			epc_pf_step_delete($db_link, (int)($_POST['step_id'] ?? 0));
+			epc_erp_json(true, 'Step removed');
+
+		case 'pf_set_dept_head':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			epc_pf_set_dept_head($db_link, (string)($_POST['department_code'] ?? ''), (int)($_POST['head_user_id'] ?? 0));
+			epc_erp_json(true, 'Department head saved');
+
+		case 'pf_case_start':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfCid = epc_pf_case_start($db_link, $_POST);
+			epc_erp_json(true, 'Case started — routed to first assignee', array('id' => $pfCid));
+
+		case 'pf_case_act':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfRes = epc_pf_case_act($db_link, (int)($_POST['case_id'] ?? 0), (string)($_POST['decision'] ?? 'approve'), (string)($_POST['comment'] ?? ''));
+			epc_erp_json(true, (string)$pfRes['message'], $pfRes);
+
+		case 'pf_case_reassign':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			epc_pf_case_reassign($db_link, (int)($_POST['case_id'] ?? 0), (int)($_POST['user_id'] ?? 0));
+			epc_erp_json(true, 'Case reassigned');
+
+		case 'pf_case_cancel':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			epc_pf_case_cancel($db_link, (int)($_POST['case_id'] ?? 0));
+			epc_erp_json(true, 'Case cancelled');
+
+		case 'pf_seed_demo':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfSeed = epc_pf_seed_demo($db_link);
+			epc_erp_json(true, 'Seeded ' . (int)$pfSeed['processes'] . ' processes, ' . (int)$pfSeed['cases'] . ' running cases and ' . (int)($pfSeed['employees'] ?? 0) . ' employees across multiple departments & locations');
+
+		case 'pf_clear_demo':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfClr = epc_pf_clear_demo($db_link);
+			epc_erp_json(true, 'Cleared ' . (int)$pfClr . ' sample cases (and demo processes)');
+
 		case 'demo_seed_sales':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_demo_sales.php';
 			$sres = epc_demo_seed_sales($db_link, 6);
