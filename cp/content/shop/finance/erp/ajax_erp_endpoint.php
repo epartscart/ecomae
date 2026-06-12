@@ -12,6 +12,12 @@ if (ob_get_level()) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 $DP_Config = new DP_Config();
 $GLOBALS['DP_Config'] = $DP_Config;
+
+$epc_erp_sec = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_security.php';
+if (is_file($epc_erp_sec)) {
+	require_once $epc_erp_sec;
+	epc_erp_send_security_headers(false);
+}
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 if (function_exists('epc_portal_apply_config')) {
 	epc_portal_apply_config($DP_Config);

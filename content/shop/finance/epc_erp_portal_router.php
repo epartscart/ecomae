@@ -116,6 +116,8 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 		header('Pragma: no-cache');
 	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_security.php';
+	epc_erp_send_security_headers(true);
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 	$pageTitle = isset($opts['title']) ? (string) $opts['title'] : 'ERP Finance';
 	$bodyClass = isset($opts['body_class']) ? (string) $opts['body_class'] : 'epc-erp-standalone';
