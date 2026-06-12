@@ -140,23 +140,35 @@ $tiles = $tilesByRole[$nsRole];
 // ---- Navigation shortcut group ----
 $navGroups = array(
 	'Lists' => array(
-		array('label' => 'Items', 'url' => $nsUrl('inventory', 'operations')),
-		array('label' => 'Customers', 'url' => $nsUrl('receivables', 'sales')),
-		array('label' => 'Vendors', 'url' => $nsUrl('payables', 'purchasing')),
-		array('label' => 'Contacts', 'url' => $nsUrl('contacts', 'collaboration')),
+		array('label' => 'Items', 'icon' => 'fa-cubes', 'url' => $nsUrl('inventory', 'operations')),
+		array('label' => 'Customers', 'icon' => 'fa-users', 'url' => $nsUrl('receivables', 'sales')),
+		array('label' => 'Vendors', 'icon' => 'fa-truck', 'url' => $nsUrl('payables', 'purchasing')),
+		array('label' => 'Contacts', 'icon' => 'fa-address-book-o', 'url' => $nsUrl('contacts', 'collaboration')),
 	),
 	'Transactions' => array(
-		array('label' => 'Sales order', 'url' => $nsUrl('sales_orders', 'sales')),
-		array('label' => 'Purchase order', 'url' => $nsUrl('purchase_orders', 'purchasing')),
-		array('label' => 'Receipt voucher', 'url' => $nsUrl('cash_bank', 'finance')),
-		array('label' => 'General ledger', 'url' => $nsUrl('gl', 'finance')),
+		array('label' => 'Sales order', 'icon' => 'fa-shopping-cart', 'url' => $nsUrl('sales_orders', 'sales')),
+		array('label' => 'Purchase order', 'icon' => 'fa-clipboard', 'url' => $nsUrl('purchase_orders', 'purchasing')),
+		array('label' => 'Receipt voucher', 'icon' => 'fa-money', 'url' => $nsUrl('cash_bank', 'finance')),
+		array('label' => 'General ledger', 'icon' => 'fa-book', 'url' => $nsUrl('gl', 'finance')),
 	),
 	'Reports' => array(
-		array('label' => 'A/R &amp; A/P aging', 'url' => $nsUrl('aging', 'finance')),
-		array('label' => 'Profit &amp; loss', 'url' => $nsUrl('pl', 'insights')),
-		array('label' => 'Balance sheet', 'url' => $nsUrl('balance_sheet', 'insights')),
-		array('label' => 'VAT return', 'url' => $nsUrl('vat_return', 'finance')),
+		array('label' => 'A/R &amp; A/P aging', 'icon' => 'fa-hourglass-half', 'url' => $nsUrl('aging', 'finance')),
+		array('label' => 'Profit &amp; loss', 'icon' => 'fa-line-chart', 'url' => $nsUrl('pl', 'insights')),
+		array('label' => 'Balance sheet', 'icon' => 'fa-balance-scale', 'url' => $nsUrl('balance_sheet', 'insights')),
+		array('label' => 'VAT return', 'icon' => 'fa-percent', 'url' => $nsUrl('vat_return', 'finance')),
 	),
+);
+
+// ---- Quick actions (visual icon cards, role-aware first row) ----
+$quickActions = array(
+	array('label' => 'New Sales Order', 'icon' => 'fa-shopping-cart', 'tone' => 'qa-blue', 'url' => $nsUrl('sales_orders', 'sales')),
+	array('label' => 'New Purchase Order', 'icon' => 'fa-clipboard', 'tone' => 'qa-indigo', 'url' => $nsUrl('purchase_orders', 'purchasing')),
+	array('label' => 'New Item', 'icon' => 'fa-cubes', 'tone' => 'qa-amber', 'url' => $nsUrl('inventory', 'operations')),
+	array('label' => 'New Customer', 'icon' => 'fa-user-plus', 'tone' => 'qa-pink', 'url' => $nsUrl('receivables', 'sales')),
+	array('label' => 'New Vendor', 'icon' => 'fa-truck', 'tone' => 'qa-teal', 'url' => $nsUrl('payables', 'purchasing')),
+	array('label' => 'Receipt Voucher', 'icon' => 'fa-money', 'tone' => 'qa-green', 'url' => $nsUrl('cash_bank', 'finance')),
+	array('label' => 'General Ledger', 'icon' => 'fa-book', 'tone' => 'qa-slate', 'url' => $nsUrl('gl', 'finance')),
+	array('label' => 'VAT Return', 'icon' => 'fa-percent', 'tone' => 'qa-rust', 'url' => $nsUrl('vat_return', 'finance')),
 );
 
 // ---- KPI table values ----
@@ -204,8 +216,25 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 .ns-nav h5{margin:10px 0 4px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ns-muted)}
 .ns-nav ul{list-style:none;margin:0 0 6px;padding:0}
 .ns-nav li{padding:3px 0}
-.ns-nav a{color:#1f6fb2;text-decoration:none}
+.ns-nav li a{color:#1f6fb2;text-decoration:none;display:flex;align-items:center;gap:8px}
+.ns-nav li a .fa{width:15px;text-align:center;color:#6b7a8d}
 .ns-nav a:hover{text-decoration:underline}
+/* Quick actions — visual icon cards */
+.ns-qa-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px}
+.ns-qa{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;text-align:center;padding:16px 8px;background:#fff;border:1px solid var(--ns-bd);border-radius:8px;text-decoration:none;color:#27313b;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.ns-qa:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(31,58,82,.16);border-color:#c3d2e0;color:#27313b}
+.ns-qa .qa-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.14)}
+.ns-qa .qa-lb{font-size:12px;font-weight:600;line-height:1.25}
+.ns-qa .qa-blue{background:linear-gradient(135deg,#2f82d6,#1f6fb2)}
+.ns-qa .qa-indigo{background:linear-gradient(135deg,#5a67d8,#434aa8)}
+.ns-qa .qa-amber{background:linear-gradient(135deg,#e0a83a,#c98a1c)}
+.ns-qa .qa-pink{background:linear-gradient(135deg,#d6608f,#b23d6c)}
+.ns-qa .qa-teal{background:linear-gradient(135deg,#2fa8a0,#1f7d77)}
+.ns-qa .qa-green{background:linear-gradient(135deg,#3f9b6d,#2f7d54)}
+.ns-qa .qa-slate{background:linear-gradient(135deg,#5a6b7b,#41505d)}
+.ns-qa .qa-rust{background:linear-gradient(135deg,#c2693a,#9c4f29)}
+@media(max-width:1100px){.ns-qa-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.ns-qa-grid{grid-template-columns:repeat(2,1fr)}}
 .ns-kpi-tbl{width:100%;border-collapse:collapse}
 .ns-kpi-tbl th,.ns-kpi-tbl td{padding:8px 10px;border-bottom:1px solid #eef2f6;text-align:right}
 .ns-kpi-tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ns-muted);background:#f9fbfd}
@@ -238,6 +267,20 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 		<?php endforeach; ?>
 	</div>
 
+	<div class="ns-port">
+		<h4><i class="fa fa-bolt"></i> Quick actions</h4>
+		<div class="bd">
+			<div class="ns-qa-grid">
+				<?php foreach ($quickActions as $qa): ?>
+					<a class="ns-qa" href="<?php echo $qa['url']; ?>">
+						<span class="qa-ic <?php echo epc_erp_h($qa['tone']); ?>"><i class="fa <?php echo epc_erp_h($qa['icon']); ?>"></i></span>
+						<span class="qa-lb"><?php echo epc_erp_h($qa['label']); ?></span>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</div>
+
 	<div class="ns-grid">
 		<!-- LEFT: reminders + nav shortcuts -->
 		<div class="ns-col-left">
@@ -261,7 +304,7 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 						<h5><?php echo $grp; ?></h5>
 						<ul>
 							<?php foreach ($links as $l): ?>
-								<li><a href="<?php echo $l['url']; ?>"><?php echo $l['label']; ?></a></li>
+								<li><a href="<?php echo $l['url']; ?>"><i class="fa <?php echo epc_erp_h($l['icon']); ?>"></i> <?php echo $l['label']; ?></a></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endforeach; ?>

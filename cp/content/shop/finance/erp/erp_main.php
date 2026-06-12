@@ -294,7 +294,7 @@ if (!$epc_erp_shell_mode) {
 			// snapshot and must NOT carry a date filter — it confused users who saw
 			// a date bar on every screen. Whitelist the date-aware tabs only.
 			$epcErpDateFilterTabs = array(
-				'dashboard', 'proposals', 'sales_orders', 'revenue', 'receivables',
+				'proposals', 'sales_orders', 'revenue', 'receivables',
 				'delivery_notes', 'invoices', 'purchases', 'payables', 'rfq',
 				'purchase_orders', 'three_way_match', 'cash_bank', 'bank_recon',
 				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance',
@@ -332,7 +332,7 @@ if (!$epc_erp_shell_mode) {
 			<div id="epc_erp_msg" class="alert epc-erp-msg"></div>
 			<?php
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_vat.php';
-			$ftaBannerTabs = array('dashboard', 'purchases', 'revenue', 'sales_orders', 'vat_return', 'tax_compliance', 'einvoice', 'invoices', 'payables');
+			$ftaBannerTabs = array('purchases', 'revenue', 'sales_orders', 'vat_return', 'tax_compliance', 'einvoice', 'invoices', 'payables');
 			if (in_array($tab, $ftaBannerTabs, true)) {
 				echo epc_uae_fta_erp_banner_html($db_link, $erpUrl);
 			}
