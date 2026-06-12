@@ -78,6 +78,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && function_exists('epc_ecomae_
 		exit;
 	}
 }
+if (function_exists('epc_ecomae_marketing_serve_seo_file') && epc_ecomae_marketing_serve_seo_file()) {
+	exit;
+}
 if (function_exists('epc_is_ecomae_marketing_root_request') && epc_is_ecomae_marketing_root_request()) {
 	epc_render_ecomae_marketing_home_and_exit();
 }

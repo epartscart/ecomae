@@ -11,6 +11,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_plat
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_home_sections.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_faq.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_pages.php';
 
 if (!function_exists('epc_ecomae_platform_get_industry_groups')) {
 	function epc_ecomae_platform_get_industry_groups()
@@ -66,7 +67,15 @@ function epc_ecomae_platform_render_page($page, array $params = array(), $mode =
 	$title = epc_ecomae_platform_page_title($page, $params);
 	$description = epc_ecomae_platform_page_description($page, $params);
 	$canonicalPath = '/';
-	if ($page === 'platform') {
+	$mktSlugPages = array('docs', 'compare', 'bos', 'solution');
+	if (in_array($page, $mktSlugPages, true)) {
+		$meta = epc_ecomae_marketing_meta($page, $params);
+		if ($meta) { $title = $meta[0]; $description = $meta[1]; }
+		$segMap = array('solution' => 'solutions', 'docs' => 'documentation');
+		$seg = $segMap[$page] ?? $page;
+		$slug = isset($params['slug']) ? preg_replace('/[^a-z0-9\-]/', '', (string) $params['slug']) : '';
+		$canonicalPath = '/' . $seg . ($slug !== '' ? '/' . $slug : '');
+	} elseif ($page === 'platform') {
 		$canonicalPath = '/platform';
 	} elseif ($page !== '' && $page !== 'home') {
 		$canonicalPath = '/platform/' . str_replace('_', '-', $page);

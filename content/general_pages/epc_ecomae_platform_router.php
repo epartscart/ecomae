@@ -76,6 +76,52 @@ function epc_render_ecomae_marketing_home_and_exit()
 	exit;
 }
 
+/**
+ * Serve /sitemap.xml and /robots.txt for the marketing host. Returns true if it
+ * emitted a response (caller should exit). Lightweight: no MySQL needed.
+ */
+function epc_ecomae_marketing_serve_seo_file()
+{
+	if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET' || !epc_ecomae_is_marketing_platform_host()) {
+		return false;
+	}
+	$path = epc_ecomae_platform_normalize_path($_SERVER['REQUEST_URI'] ?? '/');
+	$base = rtrim(epc_ecomae_platform_base_url(), '/');
+
+	if ($path === '/robots.txt') {
+		if (function_exists('epc_ecomae_platform_send_marketing_headers')) {
+			epc_ecomae_platform_send_marketing_headers();
+		}
+		header('Content-Type: text/plain; charset=utf-8');
+		echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\nSitemap: " . $base . "/sitemap.xml\n";
+		return true;
+	}
+
+	if ($path === '/sitemap.xml') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_content.php';
+		$urls = array('/', '/platform', '/platform/pricing', '/platform/industries', '/platform/api-documentation', '/platform/faq',
+			'/documentation', '/compare', '/bos', '/solutions');
+		foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $urls[] = '/documentation/' . $s; }
+		foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $urls[] = '/compare/' . $s; }
+		foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $urls[] = '/bos/' . $s; }
+		foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $urls[] = '/solutions/' . $s; }
+		if (function_exists('epc_ecomae_platform_send_marketing_headers')) {
+			epc_ecomae_platform_send_marketing_headers();
+		}
+		header('Content-Type: application/xml; charset=utf-8');
+		$now = date('Y-m-d');
+		echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+		foreach ($urls as $u) {
+			echo '<url><loc>' . htmlspecialchars($base . $u, ENT_QUOTES) . '</loc><lastmod>' . $now . '</lastmod></url>' . "\n";
+		}
+		echo '</urlset>' . "\n";
+		return true;
+	}
+
+	return false;
+}
+
 function epc_ecomae_platform_normalize_path($path)
 {
 	$path = (string) $path;
@@ -95,6 +141,19 @@ function epc_ecomae_platform_match_path($path)
 	$path = epc_ecomae_platform_normalize_path($path);
 	if ($path === '/' || $path === '/index.php') {
 		return array('page' => 'home', 'params' => array());
+	}
+	// Marketing / SEO + AI-visibility content (top-level, not under /platform).
+	if (preg_match('#^/documentation(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'docs', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (preg_match('#^/compare(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'compare', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (preg_match('#^/bos(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'bos', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (preg_match('#^/solutions(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'solution', 'params' => array('slug' => $m[1] ?? ''));
 	}
 	if (!preg_match('#^/platform(?:/|$)#', $path)) {
 		return null;
@@ -241,11 +300,24 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 			$title = $industries[$code]['name'] . ' — ecomae';
 		}
 	}
+	$mktDesc = '';
+	if (in_array($match['page'], array('docs', 'compare', 'bos', 'solution'), true)
+		&& function_exists('epc_ecomae_marketing_meta')) {
+		$meta = epc_ecomae_marketing_meta($match['page'], $match['params']);
+		if ($meta) {
+			$title = $meta[0];
+			$mktDesc = $meta[1];
+		}
+	}
 
 	$DP_Content->content_type = 'text';
 	$DP_Content->value = $title;
 	$DP_Content->title_tag = $title;
 	$DP_Content->main_flag = false;
+	if ($mktDesc !== '') {
+		$DP_Content->meta_description = $mktDesc;
+		$DP_Content->description = $mktDesc;
+	}
 	$DP_Content->content = epc_ecomae_platform_render_page($match['page'], $match['params'], 'inner');
 	unset($DP_Content->service_data['error_page']);
 	$DP_Content->service_data['epc_platform_marketing'] = true;
