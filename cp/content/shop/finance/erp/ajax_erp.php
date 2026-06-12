@@ -266,6 +266,17 @@ try {
 			epc_bos_intel_set_control($db_link, (string)($_POST['code'] ?? ''), (int)($_POST['checked'] ?? 0) === 1);
 			epc_erp_json(true, 'Control updated');
 
+		// ---- BOS VAT / tourist refund register (country-aware) ----
+		case 'bos_vat_refund_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_vat_refund.php';
+			$rr = epc_bos_vat_refund_save($db_link, $_POST);
+			epc_erp_json(true, 'Refund record saved (refund ' . number_format((float) $rr['refund'], 2) . ')', $rr);
+
+		case 'bos_vat_refund_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_vat_refund.php';
+			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
+			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
+
 		case 'payroll_generate':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_payroll.php';
 			$label = trim((string)($_POST['period_label'] ?? date('Y-m')));

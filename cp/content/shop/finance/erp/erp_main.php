@@ -198,6 +198,7 @@ $erpTabIncludes = array(
 	'payroll' => 'erp_tabs_payroll.php',
 	'vat_return' => 'erp_tabs_vat.php',
 	'tax_compliance' => 'erp_tabs_tax_compliance.php',
+	'vat_refund' => 'erp_tabs_vat_refund.php',
 	'einvoice' => 'erp_tabs_einvoice.php',
 	'invoices' => 'erp_tabs_invoices.php',
 	'inventory' => 'erp_tabs_inventory.php',
@@ -300,7 +301,7 @@ if (!$epc_erp_shell_mode) {
 				'proposals', 'sales_orders', 'revenue', 'receivables',
 				'delivery_notes', 'invoices', 'purchases', 'payables', 'rfq',
 				'purchase_orders', 'three_way_match', 'cash_bank', 'bank_recon',
-				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance',
+				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance', 'vat_refund',
 				'einvoice', 'pl', 'balance_sheet', 'reports', 'audit',
 				'expense_reports', 'marketing',
 				// D365 F&O period reports that filter by the From/To range.
