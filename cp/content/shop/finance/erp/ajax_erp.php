@@ -679,6 +679,42 @@ try {
 				'declaration_number' => $declNo,
 			));
 
+		case 'pm_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			$pmTable = (string) ($_POST['pm_table'] ?? '');
+			$pmId = epc_erp_pm_save($db_link, $pmTable, $_POST);
+			epc_erp_json(true, 'Saved', array('id' => $pmId));
+
+		case 'pm_toggle':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			epc_erp_pm_toggle($db_link, (string) ($_POST['pm_table'] ?? ''), (int) ($_POST['id'] ?? 0), (int) ($_POST['active'] ?? 0));
+			epc_erp_json(true, 'Updated');
+
+		case 'pm_budget_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			$bId = epc_erp_pm_budget_save($db_link, $_POST);
+			epc_erp_json(true, 'Budget saved', array('id' => $bId));
+
+		case 'pm_budget_line_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			$blId = epc_erp_pm_budget_line_save($db_link, $_POST);
+			epc_erp_json(true, 'Budget line added', array('id' => $blId));
+
+		case 'pm_listing_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			$lId = epc_erp_pm_listing_save($db_link, $_POST);
+			epc_erp_json(true, 'Listing saved', array('id' => $lId));
+
+		case 'pm_listing_attach':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			epc_erp_pm_listing_attach($db_link, (int) ($_POST['id'] ?? 0), (string) ($_POST['voucher_ref'] ?? ''));
+			epc_erp_json(true, 'Listing attached to voucher');
+
+		case 'pm_cheque_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
+			$chId = epc_erp_pm_cheque_save($db_link, $_POST);
+			epc_erp_json(true, 'Cheque recorded', array('id' => $chId));
+
 		default:
 			if (strpos($action, 'crm_') === 0 || in_array($action, array(
 				'save_lead', 'delete_lead', 'save_opportunity', 'update_stage', 'convert_lead',

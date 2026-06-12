@@ -214,6 +214,21 @@ $erpTabIncludes = array(
 	'erp_setup' => 'erp_tabs_setup.php',
 	'data_import' => 'erp_tabs_data_import.php',
 	'aging' => 'erp_tabs_aging.php',
+	// D365 F&O-style structural / master-data modules
+	'business_units' => 'erp_tabs_business_units.php',
+	'listing' => 'erp_tabs_listing.php',
+	'product_info' => 'erp_tabs_product_info.php',
+	'inv_groups' => 'erp_tabs_inv_groups.php',
+	'ap_setup' => 'erp_tabs_ap_setup.php',
+	'ar_setup' => 'erp_tabs_ar_setup.php',
+	'budgeting' => 'erp_tabs_budgeting.php',
+	'bank_setup' => 'erp_tabs_bank_setup.php',
+	'consolidation_bu' => 'erp_tabs_consolidation_bu.php',
+	'enterprise_reports' => 'erp_tabs_enterprise_reports.php',
+	'landed_cost' => 'erp_tabs_landed_cost.php',
+	'master_planning' => 'erp_tabs_master_planning.php',
+	'retail_barcode' => 'erp_tabs_retail_barcode.php',
+	'doc_formats' => 'erp_tabs_doc_formats.php',
 );
 
 ?>
@@ -746,6 +761,21 @@ if (!$epc_erp_shell_mode) {
 	});
 	document.querySelectorAll('.epc-erp-so-delete').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); if (window.confirm('Delete this draft sales order? This cannot be undone.')) { postAction('so_delete', f); } });
+	});
+	document.querySelectorAll('.epc-erp-pm-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-budget-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_budget_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-budgetline-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_budget_line_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-listing-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_listing_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-cheque-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_cheque_save', f); });
 	});
 	bindForm('epc_erp_form_payment_batch', 'payment_batch_save');
 	bindForm('epc_erp_form_petty_cash', 'petty_cash_save');
