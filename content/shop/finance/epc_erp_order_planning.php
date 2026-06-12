@@ -49,6 +49,15 @@ if (!function_exists('epc_opl_ensure_schema')) {
             PRIMARY KEY (`id`),
             UNIQUE KEY `x_item_wh` (`item_id`,`warehouse_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Replenishment recommendation status'");
+        // Links a confirmed recommendation to the draft PO raised from it, so
+        // re-running "Create draft POs" never double-orders the same line.
+        try {
+            $col = $db->query("SHOW COLUMNS FROM `epc_erp_order_recommendations` LIKE 'ordered_po_id'")->fetch();
+            if (!$col) {
+                $db->exec("ALTER TABLE `epc_erp_order_recommendations` ADD `ordered_po_id` int(11) NOT NULL DEFAULT 0");
+            }
+        } catch (Exception $e) {
+        }
     }
 }
 
@@ -405,6 +414,134 @@ if (!function_exists('epc_opl_confirm_all')) {
             $n++;
         }
         return $n;
+    }
+}
+
+if (!function_exists('epc_opl_create_draft_pos')) {
+    /**
+     * Raise draft purchase orders from confirmed recommendation lines, grouped
+     * by supplier. Each confirmed line is matched to a supplier (by the planning
+     * supplier name; unmatched lines fall under one "supplier to assign" draft
+     * against the first active supplier) and rolled into one draft PO per
+     * supplier, ready for review in Purchasing before sending. Lines already
+     * linked to a PO are skipped so the action is safely re-runnable.
+     *
+     * @return array{pos:int,lines:int,value:float,skipped:int,assign:int,message:string}
+     */
+    function epc_opl_create_draft_pos(PDO $db, int $warehouseId = 0): array
+    {
+        epc_opl_ensure_schema($db);
+        require_once __DIR__ . '/epc_erp_extended.php';
+
+        // active suppliers, name -> id (case/space-insensitive)
+        $supById = array();
+        $supByName = array();
+        foreach ($db->query("SELECT `id`, `name` FROM `epc_erp_suppliers` WHERE `active` = 1 ORDER BY `id`")->fetchAll(PDO::FETCH_ASSOC) as $s) {
+            $sid = (int) $s['id'];
+            $supById[$sid] = (string) $s['name'];
+            $supByName[strtolower(trim((string) $s['name']))] = $sid;
+        }
+        if (empty($supById)) {
+            return array('pos' => 0, 'lines' => 0, 'value' => 0.0, 'skipped' => 0, 'assign' => 0,
+                'message' => 'No suppliers defined yet — add a supplier first, then raise POs.');
+        }
+        $fallbackSid = (int) array_key_first($supById);
+
+        // recommendations already linked to a PO (avoid double-ordering)
+        $orderedMap = array();
+        foreach ($db->query("SELECT `item_id`, `warehouse_id`, `ordered_po_id` FROM `epc_erp_order_recommendations`")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $orderedMap[(int) $r['item_id'] . ':' . (int) $r['warehouse_id']] = (int) $r['ordered_po_id'];
+        }
+
+        $recs = epc_opl_recommendations($db, array('warehouse_id' => $warehouseId, 'status' => 'confirmed'));
+        $groups = array();   // supplier_id => array of lines
+        $assignCount = 0;
+        foreach ($recs as $r) {
+            if ((float) $r['roq'] <= 0) {
+                continue;
+            }
+            $key = (int) $r['item_id'] . ':' . (int) $r['warehouse_id'];
+            if (!empty($orderedMap[$key])) {
+                continue; // already raised
+            }
+            $supName = strtolower(trim((string) $r['supplier']));
+            if ($supName !== '' && isset($supByName[$supName])) {
+                $sid = $supByName[$supName];
+            } else {
+                $sid = $fallbackSid;
+                $assignCount++;
+            }
+            if (!isset($groups[$sid])) {
+                $groups[$sid] = array();
+            }
+            $groups[$sid][] = $r;
+        }
+
+        $posCreated = 0;
+        $linesTotal = 0;
+        $valueTotal = 0.0;
+        $today = date('Y-m-d');
+        foreach ($groups as $sid => $lines) {
+            $hasUnassigned = false;
+            $sumEx = 0.0;
+            $noteLines = array();
+            foreach ($lines as $r) {
+                $supName = strtolower(trim((string) $r['supplier']));
+                if ($supName === '' || !isset($supByName[$supName])) {
+                    $hasUnassigned = true;
+                }
+                $qty = (float) $r['roq'];
+                $val = (float) $r['value'];
+                $sumEx += $val;
+                $noteLines[] = sprintf(
+                    '%s %s — qty %s @ %s = %s%s',
+                    (string) $r['sku'] !== '' ? (string) $r['sku'] : ('#' . (int) $r['item_id']),
+                    (string) $r['name'],
+                    rtrim(rtrim(number_format($qty, 3, '.', ''), '0'), '.'),
+                    number_format((float) $r['unit_cost'], 2),
+                    number_format($val, 2),
+                    !empty($r['warehouse_name']) ? (' [' . (string) $r['warehouse_name'] . ']') : ''
+                );
+            }
+            $supLabel = $supById[$sid] ?? ('Supplier #' . $sid);
+            $title = ($hasUnassigned && count($groups) === 1 && $sid === $fallbackSid)
+                ? ('Replenishment ' . $today . ' (supplier to assign)')
+                : ('Replenishment ' . $today . ' — ' . $supLabel);
+            $notes = "Auto-drafted from Order planning confirmed recommendations.\n";
+            if ($hasUnassigned) {
+                $notes .= "NOTE: some lines had no supplier set on the item worksheet — please verify/assign before sending.\n";
+            }
+            $notes .= "\n" . implode("\n", $noteLines);
+
+            $poId = (int) epc_erp_po_save($db, array(
+                'supplier_id' => $sid,
+                'title' => $title,
+                'amount_ex_vat' => round($sumEx, 2),
+                'notes' => $notes,
+                'status' => 'draft',
+            ));
+            if ($poId > 0) {
+                $posCreated++;
+                $upd = $db->prepare("UPDATE `epc_erp_order_recommendations` SET `ordered_po_id` = ? WHERE `item_id` = ? AND `warehouse_id` = ?");
+                foreach ($lines as $r) {
+                    $upd->execute(array($poId, (int) $r['item_id'], (int) $r['warehouse_id']));
+                    $linesTotal++;
+                    $valueTotal += (float) $r['value'];
+                }
+            }
+        }
+
+        if ($posCreated === 0) {
+            return array('pos' => 0, 'lines' => 0, 'value' => 0.0, 'skipped' => 0, 'assign' => 0,
+                'message' => 'No new confirmed lines to order — confirm recommendations first (or they are already on a draft PO).');
+        }
+        $msg = sprintf('Created %d draft PO%s covering %d line%s (%s AED). Review them in Purchasing → Purchase orders before sending.',
+            $posCreated, $posCreated === 1 ? '' : 's', $linesTotal, $linesTotal === 1 ? '' : 's', number_format($valueTotal, 2));
+        if ($assignCount > 0) {
+            $msg .= sprintf(' %d line%s had no supplier set — grouped into a "supplier to assign" draft.', $assignCount, $assignCount === 1 ? '' : 's');
+        }
+        return array('pos' => $posCreated, 'lines' => $linesTotal, 'value' => round($valueTotal, 2),
+            'skipped' => 0, 'assign' => $assignCount, 'message' => $msg);
     }
 }
 

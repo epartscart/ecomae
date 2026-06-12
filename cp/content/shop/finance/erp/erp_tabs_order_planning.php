@@ -217,6 +217,8 @@ erp_stat_cards(array(
 	<input type="text" name="opl_search" class="form-control input-sm" placeholder="SKU / name" value="<?php echo epc_erp_h($oplSearch); ?>">
 	<button type="submit" class="btn btn-default btn-sm">Filter</button>
 	<button type="button" class="btn btn-success btn-sm" id="epc_opl_confirm_all"><i class="fa fa-check"></i> Confirm all due</button>
+	<button type="button" class="btn btn-primary btn-sm" id="epc_opl_create_pos"><i class="fa fa-file-text-o"></i> Create draft POs from confirmed</button>
+	<button type="button" class="btn btn-warning btn-sm" id="epc_opl_autoplan"><i class="fa fa-magic"></i> Auto-plan: confirm due + draft POs</button>
 	<span class="pull-right">
 		<button type="button" class="btn btn-info btn-sm" id="epc_opl_seed"><i class="fa fa-flask"></i> Generate sample demand</button>
 		<button type="button" class="btn btn-link btn-sm text-muted" id="epc_opl_clear">Clear sample</button>
@@ -278,6 +280,8 @@ function epc_opl_worksheet_script(string $csrfLocal): string
 	document.querySelectorAll('.epc-opl-act').forEach(function(b){ b.addEventListener('click', function(){ var fd=new FormData(); fd.append('csrf_guard_key',csrf); fd.append('item_id',b.getAttribute('data-item')); fd.append('warehouse_id',b.getAttribute('data-wh')); fd.append('roq',b.getAttribute('data-roq')); fd.append('value',b.getAttribute('data-value')); fd.append('supplier',b.getAttribute('data-supplier')||''); fd.append('status',b.getAttribute('data-status')); post('opl_set_status', fd).then(msg); }); });
 	function whVal(){ var w=document.querySelector('[name=opl_wh]'); return w?w.value:'0'; }
 	var ca=document.getElementById('epc_opl_confirm_all'); if(ca) ca.addEventListener('click', function(){ var fd=new FormData(); fd.append('csrf_guard_key',csrf); fd.append('warehouse_id', whVal()); post('opl_confirm_all', fd).then(msg); });
+	var cp=document.getElementById('epc_opl_create_pos'); if(cp) cp.addEventListener('click', function(){ if(!confirm('Create draft purchase orders (grouped by supplier) from all confirmed recommendations? They stay as drafts in Purchasing for review before sending.')) return; cp.disabled=true; var fd=new FormData(); fd.append('csrf_guard_key',csrf); fd.append('warehouse_id', whVal()); post('opl_create_pos', fd).then(msg); });
+	var ap=document.getElementById('epc_opl_autoplan'); if(ap) ap.addEventListener('click', function(){ if(!confirm('Auto-plan: confirm every due recommendation and raise draft POs grouped by supplier? Drafts stay in Purchasing for review before sending.')) return; ap.disabled=true; var fd=new FormData(); fd.append('csrf_guard_key',csrf); fd.append('warehouse_id', whVal()); post('opl_autoplan', fd).then(msg); });
 	var sd=document.getElementById('epc_opl_seed'); if(sd) sd.addEventListener('click', function(){ if(!confirm('Generate 12 months of sample sale-out demand across stocked items? (re-runnable; tagged DEMO-DEMAND)')) return; sd.disabled=true; sd.textContent='Generating…'; var fd=new FormData(); fd.append('csrf_guard_key',csrf); fd.append('warehouse_id', whVal()); post('opl_seed_demo', fd).then(msg); });
 	var cl=document.getElementById('epc_opl_clear'); if(cl) cl.addEventListener('click', function(){ if(!confirm('Clear seeded sample demand and recommendation statuses?')) return; var fd=new FormData(); fd.append('csrf_guard_key',csrf); post('opl_clear_demo', fd).then(msg); });
 })();

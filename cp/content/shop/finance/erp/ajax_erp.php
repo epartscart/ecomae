@@ -371,6 +371,18 @@ try {
 			$n = epc_opl_confirm_all($db_link, (int)($_POST['warehouse_id'] ?? 0));
 			epc_erp_json(true, $n . ' recommendation(s) confirmed');
 
+		case 'opl_create_pos':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$poRes = epc_opl_create_draft_pos($db_link, (int)($_POST['warehouse_id'] ?? 0));
+			epc_erp_json((int)$poRes['pos'] > 0, (string)$poRes['message']);
+
+		case 'opl_autoplan':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$apWh = (int)($_POST['warehouse_id'] ?? 0);
+			$apN = epc_opl_confirm_all($db_link, $apWh);
+			$apRes = epc_opl_create_draft_pos($db_link, $apWh);
+			epc_erp_json((int)$apRes['pos'] > 0, 'Confirmed ' . $apN . ' due line(s). ' . (string)$apRes['message']);
+
 		case 'opl_seed_demo':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
 			$res = epc_opl_seed_demo_demand($db_link, 12, (int)($_POST['warehouse_id'] ?? 0));
