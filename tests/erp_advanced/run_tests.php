@@ -255,6 +255,11 @@ $vatGroupHtml = epc_ext_vat_group_html('AED');
 check('VAT group has members + intercompany download', strpos($vatGroupHtml, 'Representative member') !== false && strpos($vatGroupHtml, 'VAT_Group_Intercompany_eliminations.csv') !== false, 'vat group members/csv');
 check('CT shows Tax Group + intercompany eliminations', strpos($ctBuild['body'], 'Tax Group &amp; intercompany') !== false && strpos($ctBuild['body'], 'CT_Group_Intercompany_eliminations.csv') !== false && strpos($ctBuild['body'], 'single taxable person') !== false, 'group ct present');
 check('CT compliance covers tax group', strpos($ctBuild['body'], 'single taxable person — intercompany transactions eliminated') !== false, 'ct group check');
+// CT in-place drill-down on the computation lines
+check('CT computation lines drill down in place',
+    strpos($ctBuild['body'], 'epcCtDrill') !== false && strpos($ctBuild['body'], 'epc-ct-drill') !== false
+    && strpos($ctBuild['body'], 'Source / breakdown') !== false,
+    'ct drill present');
 
 // FTA supporting schedules (TRN-wise / invoice-wise / supplier-wise / adjustments)
 $sched = epc_ext_vat_schedule_data();

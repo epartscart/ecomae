@@ -903,8 +903,12 @@ if (!function_exists('epc_ext_ct_rule')) {
 if (!function_exists('epc_ext_ct_schedule_row')) {
     /**
      * One CT computation row. $type: head|add|less|sub|total|info.
+     * If $detail is non-empty the line becomes a drill-down: clicking the label
+     * toggles a nested table of the source figures behind it.
+     *
+     * @param array<int,array{0:string,1:mixed,2?:string}> $detail label, amount, note
      */
-    function epc_ext_ct_schedule_row(string $label, $amount, string $ccy, string $type = 'info', string $note = ''): string
+    function epc_ext_ct_schedule_row(string $label, $amount, string $ccy, string $type = 'info', string $note = '', array $detail = array()): string
     {
         if ($type === 'head') {
             return '<tr style="background:#2b3a55;color:#fff;"><td colspan="3" style="padding:6px 10px;font-weight:700;">' . epc_erp_h($label) . '</td></tr>';
@@ -913,10 +917,43 @@ if (!function_exists('epc_ext_ct_schedule_row')) {
         $sign = ($type === 'add') ? '+ ' : (($type === 'less') ? '− ' : '');
         $amtTxt = ($amount === '' || $amount === null) ? '' : ($sign . epc_ext_m((float) $amount, $ccy));
         $bg = ($type === 'total') ? '#eef6ee' : (($type === 'sub') ? '#f5f7fa' : '#fff');
+        $hasDrill = !empty($detail);
+
+        $labelCell = epc_erp_h($label);
+        $detRow = '';
+        if ($hasDrill) {
+            static $ctDrillN = 0;
+            $ctDrillN++;
+            $id = 'ctdrill' . $ctDrillN;
+            $labelCell = '<a href="#" onclick="epcCtDrill(\'' . $id . '\');return false;" style="color:#1d2740;text-decoration:none;border-bottom:1px dotted #8a97ad;">' . epc_erp_h($label) . '</a> <span class="text-muted" style="font-size:10px;">▸ drill-down</span>';
+            $dr = '';
+            foreach ($detail as $d) {
+                $da = (!isset($d[1]) || $d[1] === '' || $d[1] === null) ? '' : epc_ext_m((float) $d[1], $ccy);
+                $dn = isset($d[2]) ? (string) $d[2] : '';
+                $dr .= '<tr><td style="padding:4px 10px;">' . epc_erp_h((string) $d[0]) . '</td>'
+                    . '<td style="padding:4px 10px;text-align:right;white-space:nowrap;">' . $da . '</td>'
+                    . '<td style="padding:4px 10px;font-size:11px;color:#777;">' . epc_erp_h($dn) . '</td></tr>';
+            }
+            $detRow = '<tr id="' . $id . '" class="epc-ct-drill" style="display:none;"><td colspan="3" style="padding:0 10px 8px 28px;background:#fafbfd;">'
+                . '<table class="table table-condensed" style="margin:6px 0 0;background:#fff;border:1px solid #e6eaf1;"><thead><tr style="background:#f0f3f8;"><th style="padding:4px 10px;">Source / breakdown</th><th style="padding:4px 10px;text-align:right;">Amount</th><th style="padding:4px 10px;">Note</th></tr></thead><tbody>' . $dr . '</tbody></table></td></tr>';
+        }
+
         return '<tr style="background:' . $bg . ';' . ($strong ? 'font-weight:700;' : '') . '">'
-            . '<td style="padding:5px 10px;">' . epc_erp_h($label) . '</td>'
+            . '<td style="padding:5px 10px;">' . $labelCell . '</td>'
             . '<td style="padding:5px 10px;text-align:right;white-space:nowrap;">' . $amtTxt . '</td>'
-            . '<td style="padding:5px 10px;font-size:11px;color:#777;">' . epc_erp_h($note) . '</td></tr>';
+            . '<td style="padding:5px 10px;font-size:11px;color:#777;">' . epc_erp_h($note) . '</td></tr>'
+            . $detRow;
+    }
+}
+
+if (!function_exists('epc_ext_ct_drill_js')) {
+    /** Toggle helper for in-place CT computation drill-down rows. */
+    function epc_ext_ct_drill_js(): string
+    {
+        static $done = false;
+        if ($done) { return ''; }
+        $done = true;
+        return '<script>function epcCtDrill(id){var r=document.getElementById(id);if(!r)return;r.style.display=(r.style.display==="table-row")?"none":"table-row";}</script>';
     }
 }
 
@@ -1196,24 +1233,62 @@ if (!function_exists('epc_ext_b_ct')) {
         $above = max(0.0, $taxableAfterSbr - $threshold);
         $ct = round($above * $rate / 100, 2);
 
+        // ---- Drill-down detail behind each computation line ----------------
+        $dProfit = array(
+            array('Total revenue (period)', $revenue, 'Posted GL income accounts'),
+            array('Total expenses (period)', (float) ($pl['total_expenses'] ?? ($revenue - $profit)), 'Posted GL expense accounts'),
+            array('Accounting net profit', $profit, 'Per IFRS, before tax adjustments'),
+        );
+        $dFines = array(array($sd['addbacks'][0]['item'], $sd['addbacks'][0]['addback'], $sd['addbacks'][0]['basis']));
+        $dEnt = array(
+            array('Entertainment expenditure (total)', $entertainmentTotal, 'Per GL'),
+            array('Deductible portion (50%)', round($entertainmentTotal * 0.5, 2), 'Allowed'),
+            array('Disallowed portion (50%) — added back', $entertainmentAddBack, 'Art. 32'),
+        );
+        $dDon = array(array($sd['addbacks'][2]['item'], $sd['addbacks'][2]['addback'], $sd['addbacks'][2]['basis']));
+        $dProv = array(array($sd['addbacks'][3]['item'], $sd['addbacks'][3]['addback'], $sd['addbacks'][3]['basis']));
+        $dAcctDep = array(); $dTaxDep = array();
+        foreach ($sd['assets'] as $a) {
+            $dAcctDep[] = array($a['class'] . ' (' . $a['rate'] . ')', $a['acct'], 'Cost ' . epc_erp_money($a['cost']));
+            $dTaxDep[] = array($a['class'] . ' (' . $a['rate'] . ')', $a['tax'], 'Cost ' . epc_erp_money($a['cost']));
+        }
+        $dAcctDep[] = array('Total accounting depreciation', $acctDepreciation, 'See Schedule 2');
+        $dTaxDep[] = array('Total tax depreciation', $taxDepreciation, 'See Schedule 2');
+        $dExempt = array();
+        foreach ($sd['exempt'] as $e) { $dExempt[] = array($e['item'], $e['amount'], $e['basis']); }
+        $dInt = array(
+            array('Net interest expense', $interestExpense, 'Per GL'),
+            array('EBITDA (tax)', $ebitda, 'Adjusted profit + interest + depreciation'),
+            array('30% of EBITDA', round($ebitda * 0.30, 2), 'Art. 30'),
+            array('De-minimis threshold', $deMinimisInterest, 'AED 12m'),
+            array('Applicable cap (higher of the two)', $interestCap, ''),
+            array('Interest disallowed', $interestDisallowed, $interestDisallowed > 0 ? 'Carried forward' : 'Within cap — fully allowed'),
+        );
+        $dLoss = array(
+            array('Tax losses brought forward', $lossesBroughtForward, 'Prior periods'),
+            array('75% of taxable income (cap)', $lossCap, 'Art. 37'),
+            array('Losses utilised this period', $lossUsed, 'Lower of b/f and cap'),
+            array('Losses carried forward', max(0.0, $lossesBroughtForward - $lossUsed), 'To future periods'),
+        );
+
         $t = '<table class="table table-bordered table-condensed" style="font-size:12.5px;max-width:860px;">'
             . '<thead><tr style="background:#f0f3f8;"><th>Computation of taxable income</th><th style="text-align:right;">Amount</th><th>Basis</th></tr></thead><tbody>';
-        $t .= epc_ext_ct_schedule_row('Accounting net profit (per IFRS, period)', $profit, $ccy, 'sub', 'From posted general ledger');
+        $t .= epc_ext_ct_schedule_row('Accounting net profit (per IFRS, period)', $profit, $ccy, 'sub', 'From posted general ledger', $dProfit);
         $t .= epc_ext_ct_schedule_row('Add back: non-deductible & timing items', '', $ccy, 'head');
-        $t .= epc_ext_ct_schedule_row('Fines & administrative penalties', $finesPenalties, $ccy, 'add', '100% non-deductible — Art. 33');
-        $t .= epc_ext_ct_schedule_row('Entertainment expenditure (50% disallowed)', $entertainmentAddBack, $ccy, 'add', 'Art. 32 (of ' . epc_erp_money($entertainmentTotal) . ')');
-        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donationsNonApproved, $ccy, 'add', 'Art. 37');
-        $t .= epc_ext_ct_schedule_row('General (non-specific) provisions', $generalProvision, $ccy, 'add', 'Not yet incurred');
-        $t .= epc_ext_ct_schedule_row('Accounting depreciation', $acctDepreciation, $ccy, 'add', 'Replaced by tax depreciation');
+        $t .= epc_ext_ct_schedule_row('Fines & administrative penalties', $finesPenalties, $ccy, 'add', '100% non-deductible — Art. 33', $dFines);
+        $t .= epc_ext_ct_schedule_row('Entertainment expenditure (50% disallowed)', $entertainmentAddBack, $ccy, 'add', 'Art. 32 (of ' . epc_erp_money($entertainmentTotal) . ')', $dEnt);
+        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donationsNonApproved, $ccy, 'add', 'Art. 37', $dDon);
+        $t .= epc_ext_ct_schedule_row('General (non-specific) provisions', $generalProvision, $ccy, 'add', 'Not yet incurred', $dProv);
+        $t .= epc_ext_ct_schedule_row('Accounting depreciation', $acctDepreciation, $ccy, 'add', 'Replaced by tax depreciation', $dAcctDep);
         $t .= epc_ext_ct_schedule_row('Less: deductions & exempt income', '', $ccy, 'head');
-        $t .= epc_ext_ct_schedule_row('Tax depreciation / capital allowances', $taxDepreciation, $ccy, 'less', 'Art. 28');
-        $t .= epc_ext_ct_schedule_row('Exempt dividends / participation', $exemptDividends, $ccy, 'less', 'Art. 22–23');
+        $t .= epc_ext_ct_schedule_row('Tax depreciation / capital allowances', $taxDepreciation, $ccy, 'less', 'Art. 28', $dTaxDep);
+        $t .= epc_ext_ct_schedule_row('Exempt dividends / participation', $exemptDividends, $ccy, 'less', 'Art. 22–23', $dExempt);
         $t .= epc_ext_ct_schedule_row('Adjusted profit before interest limitation', $adjProfit, $ccy, 'sub');
         $t .= epc_ext_ct_schedule_row('Interest limitation', '', $ccy, 'head');
-        $t .= epc_ext_ct_schedule_row('Net interest expense', $interestExpense, $ccy, 'info', 'Cap = max(30% EBITDA, AED 12m)');
+        $t .= epc_ext_ct_schedule_row('Net interest expense', $interestExpense, $ccy, 'info', 'Cap = max(30% EBITDA, AED 12m)', $dInt);
         $t .= epc_ext_ct_schedule_row('Interest disallowed (over 30% EBITDA cap)', $interestDisallowed, $ccy, 'add', 'Within de-minimis → ' . ($interestDisallowed > 0 ? 'partly disallowed' : 'fully allowed'));
         $t .= epc_ext_ct_schedule_row('Taxable income before loss relief', $taxableBeforeLoss, $ccy, 'sub');
-        $t .= epc_ext_ct_schedule_row('Less: tax losses brought forward (max 75%)', $lossUsed, $ccy, 'less', 'Art. 37 — cap ' . epc_erp_money($lossCap));
+        $t .= epc_ext_ct_schedule_row('Less: tax losses brought forward (max 75%)', $lossUsed, $ccy, 'less', 'Art. 37 — cap ' . epc_erp_money($lossCap), $dLoss);
         $t .= epc_ext_ct_schedule_row('Taxable income', $taxable, $ccy, 'sub');
         if ($sbrEligible) {
             $t .= epc_ext_ct_schedule_row('Small Business Relief applied (revenue ≤ AED 3m)', '', $ccy, 'info', 'Taxable income treated as nil — Ministerial Decision 73/2023');
@@ -1294,7 +1369,9 @@ if (!function_exists('epc_ext_b_ct')) {
                 epc_ext_ct_guide_rows())
             . '<h4 style="color:#1d2740;margin-top:18px;">1 · Taxpayer &amp; tax period</h4>' . $taxpayer
             . '<h4 style="color:#1d2740;margin-top:18px;">2 · Elections &amp; reliefs</h4>' . $elections
-            . '<h4 style="color:#1d2740;margin-top:18px;">3 · Computation of taxable income</h4>' . $t
+            . '<h4 style="color:#1d2740;margin-top:18px;">3 · Computation of taxable income</h4>'
+            . '<p class="text-muted" style="font-size:11.5px;margin:0 0 4px;">Click any underlined line to drill down to the source figures behind it.</p>'
+            . epc_ext_ct_drill_js() . $t
             . '<h4 style="color:#1d2740;margin-top:18px;">4 · Tax bands &amp; liability</h4>' . $bands
             . epc_ext_ct_group_html($ccy)
             . '<h4 style="color:#1d2740;margin-top:18px;">6 · Supporting schedules</h4>'

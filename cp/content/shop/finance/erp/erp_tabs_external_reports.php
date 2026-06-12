@@ -202,13 +202,89 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 	function epcExtPrint(){
 		var doc = document.getElementById('epc_ext_doc');
 		if(!doc){ window.print(); return; }
+		var clone = doc.cloneNode(true);
+		/* expand every drill-down so the printed pack is complete */
+		var ds = clone.querySelectorAll('details'); for(var i=0;i<ds.length;i++){ ds[i].setAttribute('open','open'); }
+		var dr = clone.querySelectorAll('.epc-ct-drill'); for(var j=0;j<dr.length;j++){ dr[j].style.display='table-row'; }
+		/* drop interactive-only controls from the print copy */
+		var strip = clone.querySelectorAll('button, textarea, script, .btn'); for(var k=0;k<strip.length;k++){ if(strip[k].parentNode){ strip[k].parentNode.removeChild(strip[k]); } }
+		/* the on-screen letterhead is the first child — the cover replaces it */
+		if(clone.firstElementChild){ clone.firstElementChild.style.display='none'; }
+
+		var co   = <?php echo json_encode((string) ($co['legal_name'] ?: 'Company')); ?>;
+		var addr = <?php echo json_encode((string) ($co['address'] ?? '')); ?>;
+		var trnL = <?php echo json_encode((string) ($co['tax_label'] ?? 'TRN')); ?>;
+		var trn  = <?php echo json_encode((string) ($co['trn'] ?? '')); ?>;
+		var ttl  = <?php echo json_encode((string) $built['title']); ?>;
+		var juris= <?php echo json_encode((string) $repCountryName); ?>;
+		var auth = <?php echo json_encode((string) $auth['name']); ?>;
+		var law  = <?php echo json_encode((string) $auth['law']); ?>;
+		var perL = <?php echo json_encode((string) $period['label']); ?>;
+		var perR = <?php echo json_encode(date('d M Y', $repFrom) . '  —  ' . date('d M Y', $repTo)); ?>;
+		var gen  = <?php echo json_encode(date('d M Y H:i')); ?>;
+		var esc  = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+		var trnLine = trn ? (esc(trnL)+': '+esc(trn)) : '';
+
+		var css =
+		'@page{size:A4;margin:16mm 14mm;}'
+		+'*{box-sizing:border-box;}'
+		+'body{font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:#1f2733;font-size:11.5px;line-height:1.45;margin:0;}'
+		+'.mis-run{position:fixed;top:0;left:0;right:0;font-size:9px;color:#8a93a3;border-bottom:.5px solid #d7dce5;padding:2px 0;display:flex;justify-content:space-between;}'
+		+'.mis-foot{position:fixed;bottom:0;left:0;right:0;font-size:9px;color:#8a93a3;border-top:.5px solid #d7dce5;padding:2px 0;display:flex;justify-content:space-between;}'
+		+'.mis-body{padding-top:16px;}'
+		+'.mis-cover{height:248mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:3px double #2b3a55;padding:40px;page-break-after:always;}'
+		+'.mis-cover .badge{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7a869a;}'
+		+'.mis-cover .co{font-size:30px;font-weight:800;color:#1d2740;margin:10px 0 2px;}'
+		+'.mis-cover .addr{font-size:12px;color:#5b6577;}'
+		+'.mis-cover .ttl{font-size:23px;font-weight:700;color:#2b3a55;margin:46px 0 6px;}'
+		+'.mis-cover .juris{font-size:14px;color:#1d2740;}'
+		+'.mis-cover .period{font-size:16px;font-weight:700;color:#2b3a55;margin-top:26px;}'
+		+'.mis-cover .perd{font-size:13px;color:#5b6577;}'
+		+'.mis-cover .meta{margin-top:46px;font-size:12px;color:#5b6577;line-height:1.8;}'
+		+'.mis-cover .rule{width:120px;border-top:2px solid #c2a14d;margin:24px auto;}'
+		+'h3{font-size:16px;color:#1d2740;border-bottom:2px solid #2b3a55;padding-bottom:5px;margin:0 0 6px;page-break-after:avoid;}'
+		+'h4{font-size:13px;color:#1d2740;margin:18px 0 6px;padding:4px 8px;background:#eef1f6;border-left:4px solid #2b3a55;page-break-after:avoid;}'
+		+'table{border-collapse:collapse;width:100%;margin:6px 0;}'
+		+'thead{display:table-header-group;}'
+		+'tr{page-break-inside:avoid;}'
+		+'td,th{border:1px solid #c7cedb;padding:5px 8px;font-size:11px;vertical-align:top;}'
+		+'th{background:#2b3a55;color:#fff;text-align:left;}'
+		+'details{display:block!important;}details>div{display:block!important;}'
+		+'.label{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;border:1px solid #b9c0cd;}'
+		+'.label-success{background:#e7f6ec;color:#1a7f37;border-color:#bfe3cb;}'
+		+'.label-warning{background:#fff5e0;color:#9a6700;border-color:#f0dca8;}'
+		+'.label-danger{background:#fdecec;color:#b42318;border-color:#f3c3bd;}'
+		+'.label-info{background:#e8f0fb;color:#1d4e94;border-color:#c4d6f3;}'
+		+'.alert{padding:8px 12px;border-radius:5px;margin:8px 0;font-size:11px;border:1px solid #ddd;}'
+		+'.alert-success{background:#e7f6ec;border-color:#bfe3cb;}'
+		+'.alert-warning{background:#fff5e0;border-color:#f0dca8;}'
+		+'.alert-danger{background:#fdecec;border-color:#f3c3bd;}'
+		+'.text-muted{color:#7a869a;}'
+		+'.mis-sign{margin-top:34px;display:flex;justify-content:space-between;gap:40px;page-break-inside:avoid;}'
+		+'.mis-sign>div{flex:1;border-top:1px solid #7a869a;padding-top:6px;font-size:11px;color:#5b6577;}';
+
+		var cover =
+		'<div class="mis-cover">'
+		+'<div class="badge">Statutory / Management Report</div>'
+		+'<div class="co">'+esc(co)+'</div>'
+		+'<div class="addr">'+esc(addr)+(trnLine?(' &nbsp;·&nbsp; '+trnLine):'')+'</div>'
+		+'<div class="rule"></div>'
+		+'<div class="ttl">'+esc(ttl)+'</div>'
+		+'<div class="juris">Jurisdiction: '+esc(juris)+'</div>'
+		+'<div class="period">Reporting period: '+esc(perL)+'</div>'
+		+'<div class="perd">'+esc(perR)+'</div>'
+		+'<div class="meta">Submitted to: '+esc(auth)+'<br>Governing law: '+esc(law)+'<br>Prepared on '+esc(gen)+' from posted ERP data</div>'
+		+'</div>';
+
+		var runHdr = '<div class="mis-run"><span>'+esc(co)+'</span><span>'+esc(ttl)+'</span></div>';
+		var runFt  = '<div class="mis-foot"><span>'+esc(perL)+' · '+esc(juris)+'</span><span>Generated by Ecom BOS External Reporting · '+esc(gen)+'</span></div>';
+		var sign   = '<div class="mis-sign"><div>Prepared by &amp; date</div><div>Reviewed by &amp; date</div><div>Authorised signatory &amp; stamp</div></div>';
+
 		var w = window.open('', '_blank');
-		w.document.write('<html><head><title><?php echo epc_erp_h(addslashes($built['title'])); ?></title>');
-		w.document.write('<style>body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:24px;} table{border-collapse:collapse;width:100%;} td,th{border:1px solid #bbb;padding:6px 8px;font-size:13px;} h3,h4{color:#1d2740;} details>div{display:block!important;}</style>');
-		w.document.write('</head><body>'+doc.innerHTML+'</body></html>');
+		w.document.write('<html><head><title>'+esc(ttl)+' — '+esc(co)+'</title><meta charset="utf-8"><style>'+css+'</style></head><body>'
+			+runHdr+runFt+cover+'<div class="mis-body">'+clone.innerHTML+sign+'</div></body></html>');
 		w.document.close();
-		var ds = w.document.querySelectorAll('details'); for(var i=0;i<ds.length;i++){ ds[i].setAttribute('open','open'); }
-		setTimeout(function(){ w.focus(); w.print(); }, 300);
+		setTimeout(function(){ w.focus(); w.print(); }, 350);
 	}
 	</script>
 	<?php
