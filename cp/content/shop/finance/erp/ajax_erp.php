@@ -143,6 +143,17 @@ try {
 			$glWf = epc_bos_wf_maybe_raise($db_link, 'gl_journal', (int) $id, 'JV #' . (int) $id, $_POST);
 			epc_erp_json(true, 'GL journal posted' . $glWf, array('journal_id' => $id));
 
+		case 'gl_reverse_journal':
+			$revDate = !empty($_POST['reverse_date']) ? (int) strtotime((string) $_POST['reverse_date'] . ' 12:00:00') : 0;
+			$revId = epc_erp_gl_reverse_journal($db_link, (int) ($_POST['journal_id'] ?? 0), $revDate, (string) ($_POST['note'] ?? ''));
+			epc_erp_json(true, 'Journal reversed (new journal #' . $revId . ')', array('journal_id' => $revId));
+
+		case 'fiscal_set_lock':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fiscal_periods.php';
+			$lockDate = !empty($_POST['lock_date']) ? (int) strtotime((string) $_POST['lock_date'] . ' 23:59:59') : 0;
+			epc_erp_fiscal_set_lock($db_link, $lockDate, (string) ($_POST['note'] ?? ''));
+			epc_erp_json(true, $lockDate > 0 ? ('Periods locked up to ' . date('Y-m-d', $lockDate)) : 'Fiscal lock cleared', array('lock_date' => $lockDate));
+
 		case 'gl_post_sales':
 			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : strtotime(date('Y-m-01'));
 			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : time();

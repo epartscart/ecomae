@@ -328,11 +328,24 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 		throw new Exception('Journal amount must be greater than zero');
 	}
 
+	// Fiscal-period lock: refuse posting into a closed period (opt-in — no lock
+	// set means no restriction).
+	require_once __DIR__ . '/epc_erp_fiscal_periods.php';
+	$jdateForLock = !empty($header['journal_date']) ? (int)$header['journal_date'] : time();
+	if (epc_erp_fiscal_is_locked($db, $jdateForLock)) {
+		throw new Exception('Period is closed: cannot post on or before ' . date('Y-m-d', epc_erp_fiscal_lock_date($db)));
+	}
+
+	// Resolve the journal number BEFORE opening the transaction: it lazily runs
+	// CREATE TABLE IF NOT EXISTS (DDL), which MySQL implicitly commits. Doing it
+	// inside the transaction would break atomicity and make the later commit()
+	// throw "no active transaction".
+	$journal_no = !empty($header['journal_no']) ? (string)$header['journal_no'] : epc_erp_gl_next_journal_no($db);
+
 	if (!$db->beginTransaction()) {
 		throw new Exception('Transaction start failed');
 	}
 	try {
-		$journal_no = !empty($header['journal_no']) ? (string)$header['journal_no'] : epc_erp_gl_next_journal_no($db);
 		$jdate = !empty($header['journal_date']) ? (int)$header['journal_date'] : time();
 		$legRef = (string)($header['uae_tax_legislation_ref'] ?? $vatCheck['legislation_ref'] ?? '');
 		$vatTreatment = trim((string)($header['uae_vat_treatment'] ?? ''));
@@ -375,6 +388,49 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 		}
 		throw $e;
 	}
+}
+
+/**
+ * Reverse a posted journal by creating a mirror journal (debits/credits
+ * swapped). Posted journals are never edited or deleted — the reversal is the
+ * audited correction mechanism. Returns the new (reversing) journal id.
+ */
+function epc_erp_gl_reverse_journal(PDO $db, $journal_id, $reverse_date = 0, $note = '')
+{
+	epc_erp_gl_ensure_schema($db);
+	$journal_id = (int)$journal_id;
+	$jstmt = $db->prepare('SELECT * FROM `epc_erp_gl_journals` WHERE `id` = ? AND `active` = 1 LIMIT 1');
+	$jstmt->execute(array($journal_id));
+	$journal = $jstmt->fetch(PDO::FETCH_ASSOC);
+	if (!$journal) {
+		throw new Exception('Journal not found or already reversed');
+	}
+	$lstmt = $db->prepare('SELECT `coa_id`, `debit`, `credit`, `line_note` FROM `epc_erp_gl_lines` WHERE `journal_id` = ?');
+	$lstmt->execute(array($journal_id));
+	$lines = $lstmt->fetchAll(PDO::FETCH_ASSOC);
+	if (!$lines) {
+		throw new Exception('Journal has no lines to reverse');
+	}
+	$reversed = array();
+	foreach ($lines as $l) {
+		$reversed[] = array(
+			'coa_id' => (int)$l['coa_id'],
+			'debit' => round((float)$l['credit'], 2),
+			'credit' => round((float)$l['debit'], 2),
+			'line_note' => 'Reversal — ' . (string)$l['line_note'],
+		);
+	}
+	$newId = epc_erp_gl_post_journal($db, array(
+		'journal_date' => (int)$reverse_date > 0 ? (int)$reverse_date : time(),
+		'reference' => 'REV of ' . (string)$journal['journal_no'],
+		'description' => trim((string)$note) !== '' ? trim((string)$note) : ('Reversal of ' . (string)$journal['journal_no']),
+		'source_type' => 'adjustment',
+		'source_id' => $journal_id,
+	), $reversed);
+	if (function_exists('epc_erp_audit_log')) {
+		epc_erp_audit_log($db, 'gl_reverse', 'gl_journal', $journal_id, 'Reversed by journal #' . $newId);
+	}
+	return $newId;
 }
 
 function epc_erp_gl_create_coa(PDO $db, array $data)

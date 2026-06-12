@@ -13,6 +13,9 @@ $bs = epc_erp_gl_balance_sheet($db_link, $date_to);
 $trial = epc_erp_gl_trial_balance($db_link, $date_to);
 $view_journal = isset($_GET['journal_id']) ? (int)$_GET['journal_id'] : 0;
 $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_journal) : array();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fiscal_periods.php';
+$fiscal_lock = epc_erp_fiscal_lock_date($db_link);
+$fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 ?>
 
 <?php if ($tab === 'coa'): ?>
@@ -53,6 +56,23 @@ $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_jo
 <?php elseif ($tab === 'gl'): ?>
 	<div class="epc-erp-section">
 		<h4><i class="fa fa-book"></i> General ledger</h4>
+		<div class="well well-sm" style="margin-bottom:12px;">
+			<form id="epc_erp_form_fiscal_lock" class="form-inline">
+				<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+				<strong><i class="fa fa-lock"></i> Period close</strong>
+				<?php if ($fiscal_lock > 0): ?>
+					<span class="label label-warning" style="margin:0 6px;">Locked up to <?php echo epc_erp_h($fiscal_lock_str); ?></span>
+				<?php else: ?>
+					<span class="label label-default" style="margin:0 6px;">No lock — all periods open</span>
+				<?php endif; ?>
+				<label style="margin-left:6px;">Lock on/before
+					<input type="date" name="lock_date" class="form-control input-sm" value="<?php echo epc_erp_h($fiscal_lock_str); ?>">
+				</label>
+				<button type="submit" class="btn btn-sm btn-warning">Set lock</button>
+				<button type="button" class="btn btn-sm btn-default" id="epc_erp_fiscal_clear">Clear lock</button>
+				<span class="text-muted" style="display:block;margin-top:4px;">Journals dated on or before the lock date are rejected at posting. Corrections use reversals, not edits.</span>
+			</form>
+		</div>
 		<p>
 			<button type="button" class="btn btn-sm btn-default" id="epc_erp_gl_sync"><i class="fa fa-refresh"></i> Sync unposted purchases &amp; cash to GL</button>
 			<button type="button" class="btn btn-sm btn-primary" id="epc_erp_gl_post_sales"><i class="fa fa-shopping-cart"></i> Post sales orders to GL (date range)</button>
@@ -68,7 +88,10 @@ $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_jo
 					<td><?php echo epc_erp_h($j['reference']); ?></td>
 					<td><?php echo epc_erp_h($j['description']); ?></td>
 					<td><?php echo epc_erp_money($j['total_debit']); ?></td>
-					<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str) . '&journal_id=' . (int)$j['id']); ?>">Lines</a></td>
+					<td>
+						<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str) . '&journal_id=' . (int)$j['id']); ?>">Lines</a>
+						<button type="button" class="btn btn-xs btn-warning epc-erp-gl-reverse" data-journal-id="<?php echo (int)$j['id']; ?>" data-journal-no="<?php echo epc_erp_h($j['journal_no']); ?>" title="Post a reversing journal">Reverse</button>
+					</td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -338,8 +361,44 @@ $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_jo
 				.then(function(j){ showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 800); });
 		});
 	}
+	function bindFiscalLock() {
+		var f = document.getElementById('epc_erp_form_fiscal_lock');
+		if (f) f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('fiscal_set_lock', f); });
+		var clr = document.getElementById('epc_erp_fiscal_clear');
+		if (clr) clr.addEventListener('click', function(){
+			if (!confirm('Clear the fiscal lock and re-open all periods?')) return;
+			var fd = new FormData();
+			fd.append('action', 'fiscal_set_lock');
+			fd.append('lock_date', '');
+			var csrf = document.querySelector('input[name="csrf_guard_key"]');
+			if (csrf) fd.append('csrf_guard_key', csrf.value);
+			fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function(r){ return r.json(); })
+				.then(function(j){ showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 800); });
+		});
+	}
+	function bindGlReverse() {
+		var btns = document.querySelectorAll('.epc-erp-gl-reverse');
+		for (var i = 0; i < btns.length; i++) {
+			btns[i].addEventListener('click', function(){
+				var id = this.getAttribute('data-journal-id');
+				var no = this.getAttribute('data-journal-no') || ('#' + id);
+				if (!confirm('Post a reversing journal for ' + no + '? The original stays on record.')) return;
+				var fd = new FormData();
+				fd.append('action', 'gl_reverse_journal');
+				fd.append('journal_id', id);
+				var csrf = document.querySelector('input[name="csrf_guard_key"]');
+				if (csrf) fd.append('csrf_guard_key', csrf.value);
+				fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+					.then(function(r){ return r.json(); })
+					.then(function(j){ showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 1000); });
+			});
+		}
+	}
 	bindCoaForm();
 	bindGlManual();
 	bindGlButtons();
+	bindFiscalLock();
+	bindGlReverse();
 })();
 </script>

@@ -223,6 +223,44 @@ function epc_erp_document_upload(PDO $db, array $data, array $file)
 	if ((int)($file['size'] ?? 0) > $maxBytes) {
 		throw new Exception('File too large (max 25 MB)');
 	}
+	// Magic-byte (content sniff) check: the real MIME of the uploaded bytes must
+	// be consistent with its claimed extension, so a renamed script/binary
+	// (e.g. shell.php → shell.pdf) is rejected even though the extension passed.
+	if (function_exists('finfo_open')) {
+		$fi = finfo_open(FILEINFO_MIME_TYPE);
+		$realMime = $fi ? (string) finfo_file($fi, $file['tmp_name']) : '';
+		if ($fi) {
+			finfo_close($fi);
+		}
+		$extMime = array(
+			'pdf' => array('application/pdf'),
+			'jpg' => array('image/jpeg'), 'jpeg' => array('image/jpeg'),
+			'png' => array('image/png'), 'gif' => array('image/gif'),
+			'webp' => array('image/webp'), 'bmp' => array('image/bmp', 'image/x-ms-bmp'),
+			'tif' => array('image/tiff'), 'tiff' => array('image/tiff'),
+			'svg' => array('image/svg+xml', 'text/xml', 'text/plain'),
+			'csv' => array('text/plain', 'text/csv', 'application/csv'),
+			'txt' => array('text/plain'),
+			'xml' => array('text/xml', 'application/xml', 'text/plain'),
+			'json' => array('application/json', 'text/plain'),
+			'zip' => array('application/zip', 'application/octet-stream'),
+			'eml' => array('message/rfc822', 'text/plain'),
+			'doc' => array('application/msword', 'application/octet-stream'),
+			'xls' => array('application/vnd.ms-excel', 'application/octet-stream'),
+			'ppt' => array('application/vnd.ms-powerpoint', 'application/octet-stream'),
+			'docx' => array('application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream'),
+			'xlsx' => array('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', 'application/octet-stream'),
+			'pptx' => array('application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip', 'application/octet-stream'),
+			'rtf' => array('application/rtf', 'text/rtf', 'text/plain'),
+		);
+		$dangerousMimes = array('text/x-php', 'application/x-php', 'application/x-httpd-php', 'text/x-shellscript', 'application/x-executable', 'application/x-dosexec', 'text/html');
+		if ($realMime !== '' && in_array($realMime, $dangerousMimes, true)) {
+			throw new Exception('File content rejected (detected ' . $realMime . ')');
+		}
+		if ($realMime !== '' && isset($extMime[$ext]) && !in_array($realMime, $extMime[$ext], true)) {
+			throw new Exception('File content (' . $realMime . ') does not match .' . $ext);
+		}
+	}
 	$dir = $_SERVER['DOCUMENT_ROOT'] . '/content/files/epc_erp_documents';
 	if (!is_dir($dir)) {
 		@mkdir($dir, 0755, true);
