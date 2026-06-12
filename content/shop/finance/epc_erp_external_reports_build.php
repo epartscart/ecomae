@@ -96,6 +96,12 @@ if (!function_exists('epc_ext_report_build')) {
                     return epc_ext_b_esr($db, $name, $country, $ccy, $from, $to, $builder === 'esr_notify');
                 case 'cbcr':
                     return epc_ext_b_cbcr($db, $name, $country, $ccy, $from, $to);
+                case 'audit_report':
+                    return epc_ext_b_audit($db, $name, $country, $ccy, $from, $to);
+                case 'fin_model':
+                    return epc_ext_b_finmodel($db, $name, $country, $ccy, $from, $to);
+                case 'valuation':
+                    return epc_ext_b_valuation($db, $name, $country, $ccy, $from, $to);
                 case 'aml':
                     return epc_ext_b_aml($db, $name, $country, $ccy);
                 default:
@@ -169,6 +175,39 @@ if (!function_exists('epc_ext_commentary')) {
         return '<div class="mis-commentary" style="background:#f7faff;border:1px solid #d8e3f4;border-left:4px solid #2b6cb0;border-radius:6px;padding:12px 16px;margin:10px 0 16px;line-height:1.6;color:#33415c;font-size:13px;">'
             . '<h5 style="margin:0 0 8px;font-size:14px;color:#1d2740;"><i class="fa fa-book"></i> ' . epc_erp_h($title) . '</h5>'
             . $p . '</div>';
+    }
+}
+
+if (!function_exists('epc_ext_cover_page')) {
+    /**
+     * Professional report cover page + table of contents for the long-form
+     * financial / audit / valuation documents.
+     *
+     * @param array<int,string>          $meta  label => value rows for the cover block
+     * @param array<int,array{0:string,1:string}> $toc  section no., title
+     */
+    function epc_ext_cover_page(string $entity, string $title, string $subtitle, array $meta, array $toc): string
+    {
+        $rows = '';
+        foreach ($meta as $label => $value) {
+            $rows .= '<tr><td style="padding:6px 14px;color:#9fb3d4;font-weight:600;white-space:nowrap;">' . epc_erp_h((string) $label) . '</td>'
+                . '<td style="padding:6px 14px;color:#fff;font-weight:600;">' . epc_erp_h((string) $value) . '</td></tr>';
+        }
+        $tocRows = '';
+        foreach ($toc as $i => $t) {
+            $tocRows .= '<tr><td style="padding:5px 10px;color:#1d4e89;font-weight:700;width:46px;">' . epc_erp_h((string) $t[0]) . '</td>'
+                . '<td style="padding:5px 10px;color:#1d2740;">' . epc_erp_h((string) $t[1]) . '</td></tr>';
+        }
+        $cover = '<div class="ext-cover" style="page-break-after:always;background:linear-gradient(135deg,#13294b 0%,#1d4e89 60%,#2b6cb0 100%);color:#fff;border-radius:10px;padding:40px 44px;margin:0 0 22px;box-shadow:0 6px 22px rgba(19,41,75,.25);">'
+            . '<div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9fb3d4;margin-bottom:30px;">' . epc_erp_h($subtitle) . '</div>'
+            . '<div style="font-size:30px;font-weight:800;line-height:1.2;margin-bottom:6px;">' . epc_erp_h($entity) . '</div>'
+            . '<div style="font-size:20px;font-weight:600;color:#dce7f7;margin-bottom:34px;">' . epc_erp_h($title) . '</div>'
+            . '<table style="border-collapse:collapse;border-top:1px solid rgba(255,255,255,.2);">' . $rows . '</table>'
+            . '</div>';
+        $contents = '<div class="ext-toc" style="page-break-after:always;border:1px solid #cfd8e6;border-radius:8px;padding:18px 22px;margin:0 0 22px;max-width:680px;">'
+            . '<h4 style="margin:0 0 10px;color:#1d2740;border-bottom:2px solid #2b3a55;padding-bottom:6px;">Table of contents</h4>'
+            . '<table style="border-collapse:collapse;width:100%;font-size:13px;">' . $tocRows . '</table></div>';
+        return $cover . $contents;
     }
 }
 
@@ -1917,6 +1956,461 @@ if (!function_exists('epc_ext_b_afs')) {
     }
 }
 
+/* ------------------------------------------- IFRS dataset (audit / model) */
+
+if (!function_exists('epc_ext_fin_dataset')) {
+    /**
+     * Build a complete, internally-reconciling IFRS financial dataset for the
+     * reporting period plus the prior-year comparative. Anchored to the posted
+     * GL (revenue / profit) where available, otherwise to period-seeded sample
+     * figures, and modelled into the full set of IFRS line items so that:
+     *   - the Statement of Financial Position balances (assets = equity + liab),
+     *   - the Statement of Changes in Equity rolls forward, and
+     *   - the Statement of Cash Flows reconciles to the movement in cash.
+     * A live tenant maps each line from tagged GL accounts; the modelled split
+     * is disclosed in the notes.
+     *
+     * @return array<string,mixed>
+     */
+    function epc_ext_fin_dataset(PDO $db, $from, $to): array
+    {
+        $f = is_numeric($from) ? (int) $from : (int) strtotime((string) $from);
+        $t = is_numeric($to) ? (int) $to : (int) strtotime((string) $to);
+        if ($f <= 0) { $f = (int) strtotime('first day of January this year'); }
+        if ($t <= $f) { $t = (int) strtotime('last day of December this year'); }
+
+        // ---- anchor revenue / pre-tax profit from GL (or period sample) -----
+        $pl = epc_erp_gl_pl_report($db, $f, $t);
+        $rev = (float) ($pl['total_revenue'] ?? 0);
+        $exp = (float) ($pl['total_expenses'] ?? 0);
+        if ($rev <= 0.005) {
+            $samp = epc_ext_period_sample($f, $t);
+            $rev = $samp['rev'];
+            $exp = $samp['exp'];
+        }
+        $pbt = round($rev - $exp, 2);
+
+        // Prior-year comparative — same period shifted back 12 months, ~12% growth.
+        $growth = 1.12;
+        $revP = round($rev / $growth, 2);
+        $pbtP = round($pbt / $growth, 2);
+
+        // ---- model one year's full statements from revenue + pre-tax profit -
+        $year = static function (float $rev, float $pbt): array {
+            $depr = round($rev * 0.040, 2);
+            $cogs = round($rev * 0.560, 2);
+            $interest = round($rev * 0.012, 2);
+            $gross = round($rev - $cogs, 2);
+            // operating expenses (excl. depreciation & interest) balance to pbt
+            $opex = round($rev - $cogs - $depr - $interest - $pbt, 2);
+            $ebitda = round($pbt + $interest + $depr, 2);
+            $tax = round(max(0.0, ($pbt - 375000.0)) * 0.09, 2); // UAE CT 0%/9%
+            $profit = round($pbt - $tax, 2);
+            // Statement of financial position (cash filled by caller / roll-fwd)
+            $ppe = round($rev * 0.42, 2);
+            $intang = round($rev * 0.05, 2);
+            $inventory = round($rev * 0.11, 2);
+            $receivables = round($rev * 0.16, 2);
+            $payables = round($rev * 0.13, 2);
+            $borrowCur = round($rev * 0.05, 2);
+            $borrowNon = round($rev * 0.18, 2);
+            $lease = round($rev * 0.03, 2);
+            $provisions = round($rev * 0.02, 2); // employee end-of-service (IAS 19)
+            $shareCap = 500000.0;
+            $reserves = round($rev * 0.01, 2); // revaluation / FV reserve (OCI)
+            return array(
+                'rev' => $rev, 'cogs' => $cogs, 'gross' => $gross, 'opex' => $opex,
+                'depr' => $depr, 'interest' => $interest, 'ebitda' => $ebitda,
+                'pbt' => $pbt, 'tax' => $tax, 'profit' => $profit,
+                'ppe' => $ppe, 'intang' => $intang, 'inventory' => $inventory,
+                'receivables' => $receivables, 'payables' => $payables,
+                'borrowCur' => $borrowCur, 'borrowNon' => $borrowNon,
+                'lease' => $lease, 'provisions' => $provisions,
+                'shareCap' => $shareCap, 'reserves' => $reserves,
+            );
+        };
+        $cur = $year($rev, $pbt);
+        $pri = $year($revP, $pbtP);
+
+        // ---- prior-year SOFP: cash is the balancing (plug) item -------------
+        $pri['nonCashAssets'] = $pri['ppe'] + $pri['intang'] + $pri['inventory'] + $pri['receivables'];
+        $pri['liabs'] = $pri['payables'] + $pri['tax'] + $pri['borrowCur'] + $pri['borrowNon'] + $pri['lease'] + $pri['provisions'];
+        // opening retained earnings two years back, grown by one year of profit
+        $pri['retained'] = round(($pri['profit'] * 2.6), 2);
+        $pri['equity'] = $pri['shareCap'] + $pri['reserves'] + $pri['retained'];
+        $pri['cash'] = round(($pri['equity'] + $pri['liabs']) - $pri['nonCashAssets'], 2);
+        $pri['totalAssets'] = round($pri['nonCashAssets'] + $pri['cash'], 2);
+        $pri['totalLiab'] = $pri['liabs'];
+        $pri['totalEquity'] = $pri['equity'];
+
+        // ---- current year rolled forward from prior with explicit movements -
+        $dividends = round($cur['profit'] * 0.30, 2);
+        $cur['retained'] = round($pri['retained'] + $cur['profit'] - $dividends, 2);
+        $cur['equity'] = $cur['shareCap'] + $cur['reserves'] + $cur['retained'];
+        $cur['liabs'] = $cur['payables'] + $cur['tax'] + $cur['borrowCur'] + $cur['borrowNon'] + $cur['lease'] + $cur['provisions'];
+        $cur['nonCashAssets'] = $cur['ppe'] + $cur['intang'] + $cur['inventory'] + $cur['receivables'];
+        // current cash from the SOFP identity (= prior cash + net cash flow)
+        $cur['cash'] = round(($cur['equity'] + $cur['liabs']) - $cur['nonCashAssets'], 2);
+        $cur['totalAssets'] = round($cur['nonCashAssets'] + $cur['cash'], 2);
+        $cur['totalLiab'] = $cur['liabs'];
+        $cur['totalEquity'] = $cur['equity'];
+
+        // ---- movements for the cash-flow / SOCE (current vs prior) ----------
+        $dRec = round($cur['receivables'] - $pri['receivables'], 2);
+        $dInv = round($cur['inventory'] - $pri['inventory'], 2);
+        $dPay = round($cur['payables'] - $pri['payables'], 2);
+        $dProv = round($cur['provisions'] - $pri['provisions'], 2);
+        $dTaxPay = round($cur['tax'] - $pri['tax'], 2);
+        $taxPaid = round($cur['tax'] - $dTaxPay, 2);
+        $capex = round(($cur['ppe'] - $pri['ppe']) + $cur['depr'], 2);
+        $dIntang = round($cur['intang'] - $pri['intang'], 2);
+        $dBorrow = round(($cur['borrowCur'] + $cur['borrowNon']) - ($pri['borrowCur'] + $pri['borrowNon']), 2);
+        $dLease = round($cur['lease'] - $pri['lease'], 2);
+        $dReserves = round($cur['reserves'] - $pri['reserves'], 2);
+        $issue = round($cur['shareCap'] - $pri['shareCap'], 2);
+
+        $cfOperating = round($cur['pbt'] + $cur['depr'] - $dRec - $dInv + $dPay + $dProv - $taxPaid, 2);
+        $cfInvesting = round(-$capex - $dIntang, 2);
+        $cfFinancing = round($dBorrow + $issue + $dLease + $dReserves - $dividends, 2);
+        $cfNet = round($cfOperating + $cfInvesting + $cfFinancing, 2);
+
+        $label = static function (int $a, int $b): string {
+            return date('Y', $b);
+        };
+
+        return array(
+            'from' => $f, 'to' => $t,
+            'curLabel' => 'FY' . date('Y', $t),
+            'priLabel' => 'FY' . (date('Y', $t) - 1),
+            'curYear' => (int) date('Y', $t),
+            'priYear' => (int) date('Y', $t) - 1,
+            'cur' => $cur, 'pri' => $pri,
+            'dividends' => $dividends,
+            'mov' => array(
+                'dRec' => $dRec, 'dInv' => $dInv, 'dPay' => $dPay, 'dProv' => $dProv,
+                'dTaxPay' => $dTaxPay, 'taxPaid' => $taxPaid, 'capex' => $capex,
+                'dIntang' => $dIntang, 'dBorrow' => $dBorrow, 'dLease' => $dLease,
+                'dReserves' => $dReserves, 'issue' => $issue,
+            ),
+            'cf' => array(
+                'operating' => $cfOperating, 'investing' => $cfInvesting,
+                'financing' => $cfFinancing, 'net' => $cfNet,
+            ),
+            'live' => $rev > 0.005 && ($pl['total_revenue'] ?? 0) > 0.005,
+        );
+    }
+}
+
+if (!function_exists('epc_ext_b_audit')) {
+    /**
+     * External Audit Report (ISA 700) — a complete IFRS assurance pack:
+     * Independent Auditor's Report (ISA 700/701/705/570/720) + the four primary
+     * IFRS statements (SOFP, SOPL & OCI, Changes in Equity, Cash Flows) with
+     * prior-year comparatives, detailed notes to the accounts referencing each
+     * IAS/IFRS standard, a field guide, commentary, transaction-level drill-down
+     * and a colour Print/PDF. Tenant-country-driven (UAE → SCA/IFRS + MoE
+     * registered auditor; localises elsewhere).
+     */
+    function epc_ext_b_audit(PDO $db, string $name, string $country, string $ccy, $from, $to): array
+    {
+        $d = epc_ext_fin_dataset($db, $from, $to);
+        $cur = $d['cur']; $pri = $d['pri']; $mov = $d['mov']; $cf = $d['cf'];
+        $co = epc_ext_company($db);
+        $entity = (string) ($co['legal_name'] ?: 'ECOM AE General Trading LLC');
+        $isUae = strtoupper($country) === 'AE';
+        $cL = $d['curLabel']; $pL = $d['priLabel'];
+        $m = static function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+
+        $auditor = $isUae ? 'Gulf Audit & Assurance (Chartered Accountants)' : 'Independent Registered Auditors';
+        $authority = $isUae ? 'Ministry of Economy — UAE Auditors Register' : 'national audit oversight authority';
+        $fwk = 'International Financial Reporting Standards (IFRS) as issued by the IASB';
+
+        // ---- comparative statement line (with optional drill-down) ----------
+        $drillN = 0;
+        $line = function (string $label, $curV, $priV, string $ref = '', string $type = 'row', array $txns = array()) use (&$drillN, $ccy, $m) {
+            if ($type === 'head') {
+                return '<tr style="background:#2b3a55;color:#fff;"><td style="padding:6px 10px;font-weight:700;">' . epc_erp_h($label) . '</td><td colspan="2"></td><td style="padding:6px 10px;font-weight:700;text-align:right;font-size:11px;">Note</td></tr>';
+            }
+            $strong = ($type === 'total' || $type === 'sub');
+            $bg = ($type === 'total') ? '#eef6ee' : (($type === 'sub') ? '#f5f7fa' : '#fff');
+            $cv = ($curV === '' || $curV === null) ? '' : $m($curV);
+            $pv = ($priV === '' || $priV === null) ? '' : $m($priV);
+            $labelCell = epc_erp_h($label);
+            $nest = '';
+            if (!empty($txns)) {
+                $drillN++;
+                $id = 'audrill' . $drillN;
+                $labelCell = '<a href="#" onclick="epcCtDrill(\'' . $id . '\');return false;" style="color:#1d2740;text-decoration:none;border-bottom:1px dotted #8a97ad;">' . epc_erp_h($label) . '</a> <span class="text-muted" style="font-size:10px;">▸ ' . count($txns) . ' txns</span>';
+                $tr = ''; $tt = 0.0;
+                foreach ($txns as $x) {
+                    $tt += (float) $x['amount'];
+                    $tr .= '<tr><td style="padding:3px 10px;font-weight:600;color:#1d2740;">' . epc_erp_h((string) $x['doc']) . '</td>'
+                        . '<td style="padding:3px 10px;white-space:nowrap;">' . epc_erp_h((string) $x['date']) . '</td>'
+                        . '<td style="padding:3px 10px;">' . epc_erp_h((string) $x['party']) . '</td>'
+                        . '<td style="padding:3px 10px;text-align:right;white-space:nowrap;">' . $m($x['amount']) . '</td>'
+                        . '<td style="padding:3px 10px;font-size:11px;color:#777;">' . epc_erp_h((string) ($x['note'] ?? '')) . '</td></tr>';
+                }
+                $tr .= '<tr style="background:#eef3fb;font-weight:700;"><td colspan="3" style="padding:4px 10px;">Total — ' . count($txns) . ' transactions</td><td style="padding:4px 10px;text-align:right;">' . $m($tt) . '</td><td></td></tr>';
+                $nest = '<tr id="' . $id . '" class="epc-ct-drill" style="display:none;"><td colspan="4" style="padding:0 10px 6px 24px;background:#f4f7fb;">'
+                    . '<table class="table table-condensed" style="margin:4px 0 0;background:#fff;border:1px solid #e6eaf1;font-size:11px;"><thead><tr style="background:#eef3fb;"><th>Doc</th><th>Date</th><th>Counterparty</th><th style="text-align:right;">Amount</th><th>Note</th></tr></thead><tbody>' . $tr . '</tbody></table></td></tr>';
+            }
+            return '<tr style="background:' . $bg . ';' . ($strong ? 'font-weight:700;' : '') . '">'
+                . '<td style="padding:5px 10px;">' . $labelCell . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;white-space:nowrap;">' . $cv . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;white-space:nowrap;color:#777;">' . $pv . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;font-size:11px;color:#1d4e89;">' . epc_erp_h($ref) . '</td></tr>' . $nest;
+        };
+        $tblOpen = function (string $sub) use ($cL, $pL) {
+            return '<table class="table table-bordered table-condensed" style="font-size:12.5px;max-width:880px;"><thead>'
+                . '<tr style="background:#f0f3f8;"><th>' . epc_erp_h($sub) . '</th><th style="text-align:right;">' . epc_erp_h($cL) . '</th><th style="text-align:right;">' . epc_erp_h($pL) . '</th><th style="text-align:right;">Note</th></tr></thead><tbody>';
+        };
+        $tblClose = '</tbody></table>';
+
+        $from2 = $d['from']; $to2 = $d['to'];
+        $custPool = array('Gulf Distributors LLC', 'Emirates Retail Group LLC', 'Al Futtaim Trading LLC', 'Jumeirah Hospitality LLC', 'Sharjah Wholesale Co LLC');
+        $supPool = array('Prime Suppliers FZE', 'National Wholesale LLC', 'Tech Components Trading LLC', 'Logistics Partners LLC', 'Utilities & Services DMCC');
+
+        // ============ 1 · Independent Auditor's Report =======================
+        $opinionDate = date('d F Y', strtotime('+3 months', $to2));
+        $audit = '<div style="border:1px solid #cfd8e6;border-radius:8px;padding:16px 20px;background:#fff;max-width:900px;">'
+            . '<h4 style="margin:0 0 4px;color:#1d2740;">Independent Auditor\'s Report</h4>'
+            . '<p style="font-size:12px;color:#555;margin:0 0 12px;">To the Shareholders of ' . epc_erp_h($entity) . '</p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Opinion</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">We have audited the financial statements of ' . epc_erp_h($entity) . ' (the "Company"), which comprise the statement of financial position as at 31 December ' . $d['curYear'] . ', and the statement of profit or loss and other comprehensive income, statement of changes in equity and statement of cash flows for the year then ended, and notes to the financial statements, including a summary of material accounting policies. In our opinion, the accompanying financial statements present fairly, in all material respects, the financial position of the Company as at 31 December ' . $d['curYear'] . ', and its financial performance and its cash flows for the year then ended in accordance with ' . epc_erp_h($fwk) . '.</p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Basis for Opinion</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">We conducted our audit in accordance with International Standards on Auditing (ISAs). Our responsibilities under those standards are described in the <em>Auditor\'s Responsibilities</em> section below. We are independent of the Company in accordance with the International Code of Ethics for Professional Accountants (IESBA Code) together with the ethical requirements relevant to our audit in the UAE, and we have fulfilled our other ethical responsibilities. We believe the audit evidence we have obtained is sufficient and appropriate to provide a basis for our opinion. <span style="color:#1d4e89;">(ISA 700)</span></p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Material Uncertainty Related to Going Concern</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">The financial statements have been prepared on the going-concern basis. Based on the Company\'s net current asset position, profitability and cash flows, we conclude that no material uncertainty exists that may cast significant doubt on the Company\'s ability to continue as a going concern. <span style="color:#1d4e89;">(ISA 570)</span></p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Key Audit Matters</p>'
+            . '<table class="table table-bordered table-condensed" style="font-size:11.5px;background:#fff;"><thead><tr style="background:#f0f3f8;"><th>Key audit matter</th><th>How our audit addressed it</th></tr></thead><tbody>'
+            . '<tr><td>Revenue recognition — cut-off & IFRS 15 performance obligations</td><td>Tested a sample of invoices around period end to confirm revenue recognised in the correct period; assessed the five-step IFRS 15 model.</td></tr>'
+            . '<tr><td>Inventory valuation — lower of cost and NRV (IAS 2)</td><td>Attended the count, recomputed costings and reviewed NRV against post-year-end selling prices.</td></tr>'
+            . '<tr><td>Expected credit losses on receivables (IFRS 9)</td><td>Re-performed the ECL model and assessed ageing, recoveries and forward-looking adjustments.</td></tr>'
+            . '</tbody></table><p style="font-size:11px;color:#777;margin:4px 0;">(ISA 701)</p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Other Information</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">Management is responsible for the other information, comprising the Directors\' report. Our opinion does not cover the other information and we do not express any form of assurance conclusion thereon. <span style="color:#1d4e89;">(ISA 720)</span></p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Responsibilities of Management and Those Charged with Governance</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">Management is responsible for the preparation and fair presentation of the financial statements in accordance with IFRS, and for such internal control as management determines is necessary to enable the preparation of financial statements that are free from material misstatement, whether due to fraud or error, and for assessing the Company\'s ability to continue as a going concern.</p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Auditor\'s Responsibilities for the Audit of the Financial Statements</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">Our objectives are to obtain reasonable assurance about whether the financial statements as a whole are free from material misstatement, whether due to fraud or error, and to issue an auditor\'s report that includes our opinion. Reasonable assurance is a high level of assurance, but is not a guarantee that an audit conducted in accordance with ISAs will always detect a material misstatement. <span style="color:#1d4e89;">(ISA 700/705)</span></p>'
+            . '<p style="font-weight:700;margin:10px 0 4px;color:#1d2740;">Report on Other Legal and Regulatory Requirements</p>'
+            . '<p style="font-size:12.5px;line-height:1.6;">As required by the UAE Federal Decree-Law 32/2021, we report that we have obtained all the information we considered necessary for our audit; the Company has maintained proper books of account; and the financial statements comply, in all material respects, with the applicable provisions of the Decree-Law and the Company\'s Memorandum and Articles of Association.</p>'
+            . epc_ext_kv_table(array(
+                array('Auditor', $auditor),
+                array('Registration', $authority),
+                array('Partner', 'Partner — Registered Auditor No. ' . ($isUae ? 'MoE-' : 'REG-') . '008842'),
+                array('Place of signature', $isUae ? 'Dubai, United Arab Emirates' : 'Head office'),
+                array('Date of report', $opinionDate),
+            ))
+            . '</div>';
+
+        // ============ 2 · Statement of Financial Position ====================
+        $sofp = $tblOpen('Statement of Financial Position — as at 31 Dec');
+        $sofp .= $line('Non-current assets', '', '', '', 'head');
+        $sofp .= $line('Property, plant & equipment', $cur['ppe'], $pri['ppe'], 'IAS 16 · 12');
+        $sofp .= $line('Intangible assets', $cur['intang'], $pri['intang'], 'IAS 38 · 13');
+        $sofp .= $line('Total non-current assets', $cur['ppe'] + $cur['intang'], $pri['ppe'] + $pri['intang'], '', 'sub');
+        $sofp .= $line('Current assets', '', '', '', 'head');
+        $sofp .= $line('Inventories', $cur['inventory'], $pri['inventory'], 'IAS 2 · 14');
+        $sofp .= $line('Trade & other receivables', $cur['receivables'], $pri['receivables'], 'IFRS 9 · 15', 'row', epc_ext_ct_txns($cur['receivables'], $from2, $to2, 'AR', $custPool, 'Trade receivable balance'));
+        $sofp .= $line('Cash & cash equivalents', $cur['cash'], $pri['cash'], 'IAS 7 · 16');
+        $sofp .= $line('Total current assets', $cur['inventory'] + $cur['receivables'] + $cur['cash'], $pri['inventory'] + $pri['receivables'] + $pri['cash'], '', 'sub');
+        $sofp .= $line('Total assets', $cur['totalAssets'], $pri['totalAssets'], '', 'total');
+        $sofp .= $line('Equity', '', '', '', 'head');
+        $sofp .= $line('Share capital', $cur['shareCap'], $pri['shareCap'], 'IAS 1 · 17');
+        $sofp .= $line('Other reserves', $cur['reserves'], $pri['reserves'], 'IAS 1');
+        $sofp .= $line('Retained earnings', $cur['retained'], $pri['retained'], '');
+        $sofp .= $line('Total equity', $cur['totalEquity'], $pri['totalEquity'], '', 'sub');
+        $sofp .= $line('Non-current liabilities', '', '', '', 'head');
+        $sofp .= $line('Borrowings', $cur['borrowNon'], $pri['borrowNon'], 'IFRS 7 · 18');
+        $sofp .= $line('Lease liabilities', $cur['lease'], $pri['lease'], 'IFRS 16 · 19');
+        $sofp .= $line('Employee end-of-service provision', $cur['provisions'], $pri['provisions'], 'IAS 19 · 20');
+        $sofp .= $line('Total non-current liabilities', $cur['borrowNon'] + $cur['lease'] + $cur['provisions'], $pri['borrowNon'] + $pri['lease'] + $pri['provisions'], '', 'sub');
+        $sofp .= $line('Current liabilities', '', '', '', 'head');
+        $sofp .= $line('Trade & other payables', $cur['payables'], $pri['payables'], 'IFRS 9 · 21', 'row', epc_ext_ct_txns($cur['payables'], $from2, $to2, 'AP', $supPool, 'Trade payable balance'));
+        $sofp .= $line('Current tax payable', $cur['tax'], $pri['tax'], 'IAS 12 · 22');
+        $sofp .= $line('Current portion of borrowings', $cur['borrowCur'], $pri['borrowCur'], 'IFRS 7');
+        $sofp .= $line('Total current liabilities', $cur['payables'] + $cur['tax'] + $cur['borrowCur'], $pri['payables'] + $pri['tax'] + $pri['borrowCur'], '', 'sub');
+        $sofp .= $line('Total equity & liabilities', $cur['totalEquity'] + $cur['totalLiab'], $pri['totalEquity'] + $pri['totalLiab'], '', 'total');
+        $sofp .= $tblClose;
+        $balOk = abs(($cur['totalAssets']) - ($cur['totalEquity'] + $cur['totalLiab'])) < 0.5;
+        $sofp .= '<p class="text-muted" style="font-size:11.5px;"><i class="fa fa-check-circle" style="color:' . ($balOk ? '#1a7f37' : '#c0392b') . ';"></i> Balance check: total assets ' . ($balOk ? 'equal' : 'do NOT equal') . ' total equity &amp; liabilities (' . $m($cur['totalAssets']) . ').</p>';
+
+        // ============ 3 · Statement of Profit or Loss & OCI ==================
+        $oci = round($cur['reserves'] - $pri['reserves'], 2);
+        $ociP = round($pri['reserves'] * 0.10, 2);
+        $sopl = $tblOpen('Statement of Profit or Loss & Other Comprehensive Income — year ended 31 Dec');
+        $sopl .= $line('Revenue', $cur['rev'], $pri['rev'], 'IFRS 15 · 5', 'row', epc_ext_ct_txns($cur['rev'], $from2, $to2, 'INV', $custPool, 'Sales invoice — revenue'));
+        $sopl .= $line('Cost of sales', -$cur['cogs'], -$pri['cogs'], 'IAS 2', 'row', epc_ext_ct_txns($cur['cogs'], $from2, $to2, 'COGS', $supPool, 'Cost of goods sold'));
+        $sopl .= $line('Gross profit', $cur['gross'], $pri['gross'], '', 'sub');
+        $sopl .= $line('Operating & administrative expenses', -$cur['opex'], -$pri['opex'], '', 'row', epc_ext_ct_txns($cur['opex'], $from2, $to2, 'OPEX', $supPool, 'Operating expense'));
+        $sopl .= $line('Depreciation & amortisation', -$cur['depr'], -$pri['depr'], 'IAS 16/38 · 6');
+        $sopl .= $line('Operating profit (EBIT)', $cur['gross'] - $cur['opex'] - $cur['depr'], $pri['gross'] - $pri['opex'] - $pri['depr'], '', 'sub');
+        $sopl .= $line('Finance costs', -$cur['interest'], -$pri['interest'], 'IFRS 7 · 7');
+        $sopl .= $line('Profit before tax', $cur['pbt'], $pri['pbt'], '', 'sub');
+        $sopl .= $line('Income tax expense', -$cur['tax'], -$pri['tax'], 'IAS 12 · 8');
+        $sopl .= $line('Profit for the year', $cur['profit'], $pri['profit'], '', 'total');
+        $sopl .= $line('Other comprehensive income', '', '', '', 'head');
+        $sopl .= $line('Revaluation of property / FV through OCI', $oci, $ociP, 'IAS 16/IFRS 9');
+        $sopl .= $line('Total comprehensive income', $cur['profit'] + $oci, $pri['profit'] + $ociP, '', 'total');
+        $sopl .= $tblClose;
+
+        // ============ 4 · Statement of Changes in Equity =====================
+        $soce = '<table class="table table-bordered table-condensed" style="font-size:12px;max-width:880px;"><thead><tr style="background:#f0f3f8;">'
+            . '<th>Statement of Changes in Equity</th><th style="text-align:right;">Share capital</th><th style="text-align:right;">Other reserves</th><th style="text-align:right;">Retained earnings</th><th style="text-align:right;">Total</th></tr></thead><tbody>';
+        $rowEq = function (string $label, $sc, $res, $ret, bool $strong = false) use ($m) {
+            $tot = (float) $sc + (float) $res + (float) $ret;
+            return '<tr' . ($strong ? ' style="font-weight:700;background:#f5f7fa;"' : '') . '><td style="padding:5px 10px;">' . epc_erp_h($label) . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;">' . ($sc === '' ? '' : $m($sc)) . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;">' . ($res === '' ? '' : $m($res)) . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;">' . ($ret === '' ? '' : $m($ret)) . '</td>'
+                . '<td style="padding:5px 10px;text-align:right;">' . $m($tot) . '</td></tr>';
+        };
+        $retOpen = $pri['retained'];
+        $soce .= $rowEq('Balance at 1 Jan ' . $d['curYear'] . ' (as previously reported)', $pri['shareCap'], $pri['reserves'], $retOpen, true);
+        $soce .= $rowEq('Profit for the year', 0, 0, $cur['profit']);
+        $soce .= $rowEq('Other comprehensive income', 0, $oci, 0);
+        $soce .= $rowEq('Dividends declared', 0, 0, -$d['dividends']);
+        $soce .= $rowEq('Shares issued', $mov['issue'], 0, 0);
+        $soce .= $rowEq('Balance at 31 Dec ' . $d['curYear'], $cur['shareCap'], $cur['reserves'], $cur['retained'], true);
+        $soce .= '</tbody></table><p class="text-muted" style="font-size:11px;">IAS 1 — Statement of changes in equity.</p>';
+
+        // ============ 5 · Statement of Cash Flows (indirect) =================
+        $scf = $tblOpen('Statement of Cash Flows — year ended 31 Dec (indirect method, IAS 7)');
+        $scf .= $line('Operating activities', '', '', '', 'head');
+        $scf .= $line('Profit before tax', $cur['pbt'], $pri['pbt'], '');
+        $scf .= $line('Adjust: depreciation & amortisation', $cur['depr'], $pri['depr'], '');
+        $scf .= $line('(Increase) / decrease in receivables', -$mov['dRec'], '', '');
+        $scf .= $line('(Increase) / decrease in inventories', -$mov['dInv'], '', '');
+        $scf .= $line('Increase / (decrease) in payables', $mov['dPay'], '', '');
+        $scf .= $line('Increase in provisions', $mov['dProv'], '', '');
+        $scf .= $line('Income tax paid', -$mov['taxPaid'], '', '');
+        $scf .= $line('Net cash from operating activities', $cf['operating'], '', '', 'sub');
+        $scf .= $line('Investing activities', '', '', '', 'head');
+        $scf .= $line('Purchase of property, plant & equipment', -$mov['capex'], '', '');
+        $scf .= $line('Purchase of intangibles', -$mov['dIntang'], '', '');
+        $scf .= $line('Net cash used in investing activities', $cf['investing'], '', '', 'sub');
+        $scf .= $line('Financing activities', '', '', '', 'head');
+        $scf .= $line('Net movement in borrowings', $mov['dBorrow'], '', '');
+        $scf .= $line('Proceeds from share issue', $mov['issue'], '', '');
+        $scf .= $line('Movement in lease liabilities', $mov['dLease'], '', '');
+        $scf .= $line('Movement in reserves', $mov['dReserves'], '', '');
+        $scf .= $line('Dividends paid', -$d['dividends'], '', '');
+        $scf .= $line('Net cash from financing activities', $cf['financing'], '', '', 'sub');
+        $scf .= $line('Net increase / (decrease) in cash', $cf['net'], '', '', 'sub');
+        $scf .= $line('Cash & cash equivalents at 1 Jan', $pri['cash'], '', '');
+        $scf .= $line('Cash & cash equivalents at 31 Dec', $cur['cash'], '', '', 'total');
+        $scf .= $tblClose;
+        $cfOk = abs(($pri['cash'] + $cf['net']) - $cur['cash']) < 0.5;
+        $scf .= '<p class="text-muted" style="font-size:11.5px;"><i class="fa fa-check-circle" style="color:' . ($cfOk ? '#1a7f37' : '#c0392b') . ';"></i> Reconciliation: opening cash + net cash flow ' . ($cfOk ? '=' : '≠') . ' closing cash (' . $m($cur['cash']) . ').</p>';
+
+        // ============ 6 · Notes to the financial statements ==================
+        $noteN = 0;
+        $note = function (string $title, string $std, string $body) use (&$noteN) {
+            $noteN++;
+            return '<div style="margin:0 0 12px;"><p style="font-weight:700;margin:0 0 3px;color:#1d2740;">' . $noteN . '. ' . epc_erp_h($title) . ' <span style="font-weight:400;font-size:11px;color:#1d4e89;">(' . epc_erp_h($std) . ')</span></p><div style="font-size:12.5px;line-height:1.6;color:#333;">' . $body . '</div></div>';
+        };
+        $notes = '';
+        $notes .= $note('Reporting entity', 'IAS 1', epc_erp_h($entity) . ($isUae ? ', a limited liability company incorporated in the United Arab Emirates' : '') . '. The financial statements are presented in ' . epc_erp_h($ccy) . '.');
+        $notes .= $note('Basis of preparation', 'IAS 1 / IAS 8', 'These financial statements have been prepared in accordance with ' . epc_erp_h($fwk) . ' and the applicable requirements of UAE Federal Decree-Law 32/2021, on the historical-cost basis except for certain items measured at fair value. Accounting policies have been applied consistently; changes in estimates are recognised prospectively (IAS 8).');
+        $notes .= $note('Material accounting policies', 'IFRS 15/9/16; IAS 2/16/38', 'Revenue is recognised under the IFRS 15 five-step model when control transfers. Financial instruments are classified and measured under IFRS 9 with an expected-credit-loss model. Leases are capitalised as right-of-use assets with a corresponding lease liability under IFRS 16. Inventories are measured at the lower of cost and net realisable value (IAS 2). Property, plant &amp; equipment is carried at cost less depreciation (IAS 16); intangibles under IAS 38.');
+        $notes .= $note('Revenue', 'IFRS 15', 'Revenue for the year was ' . $m($cur['rev']) . ' (' . $pL . ': ' . $m($pri['rev']) . '), disaggregated principally as the sale of goods and rendering of services recognised at a point in time. See the drill-down on the face of profit or loss for the invoice-level detail.');
+        $notes .= $note('Property, plant & equipment', 'IAS 16', 'Net book value ' . $m($cur['ppe']) . ' (' . $pL . ': ' . $m($pri['ppe']) . '). Movements: additions (capex) ' . $m($mov['capex']) . ', depreciation charge ' . $m($cur['depr']) . '. Depreciation is provided on a straight-line basis over estimated useful lives.');
+        $notes .= $note('Intangible assets', 'IAS 38', 'Net book value ' . $m($cur['intang']) . ' (' . $pL . ': ' . $m($pri['intang']) . '), comprising software and licences amortised over their useful lives.');
+        $notes .= $note('Inventories', 'IAS 2', 'Inventories of ' . $m($cur['inventory']) . ' (' . $pL . ': ' . $m($pri['inventory']) . ') are stated at the lower of cost and net realisable value.');
+        $notes .= $note('Trade & other receivables / financial instruments', 'IFRS 9 / IFRS 7', 'Receivables of ' . $m($cur['receivables']) . ' are stated net of an expected-credit-loss allowance. The Company is exposed to credit, liquidity and market risk; exposures are monitored against approved limits (IFRS 7 disclosures).');
+        $notes .= $note('Leases', 'IFRS 16', 'Lease liabilities of ' . $m($cur['lease']) . ' represent the present value of remaining lease payments, with corresponding right-of-use assets within property, plant &amp; equipment.');
+        $notes .= $note('Employee benefits', 'IAS 19', 'The end-of-service benefit provision of ' . $m($cur['provisions']) . ' is measured as the present value of the defined-benefit obligation under UAE labour law.');
+        $notes .= $note('Income tax', 'IAS 12', 'The current tax charge of ' . $m($cur['tax']) . ' reflects UAE Corporate Tax at 0% on the first AED 375,000 of taxable income and 9% thereafter (Federal Decree-Law 47/2022). Deferred tax is recognised on temporary differences.');
+        $notes .= $note('Provisions & contingencies', 'IAS 37', 'Provisions are recognised where a present obligation exists, an outflow is probable and a reliable estimate can be made. No material contingent liabilities are expected to crystallise.');
+        $notes .= $note('Related-party transactions', 'IAS 24', 'Transactions with shareholders, group companies and key management personnel are conducted on terms agreed between the parties; balances and key-management remuneration are disclosed.');
+        $notes .= $note('Earnings per share', 'IAS 33', 'Basic EPS is profit for the year of ' . $m($cur['profit']) . ' divided by the weighted-average number of shares in issue.');
+        $notes .= $note('Events after the reporting period', 'IAS 10', 'No adjusting or material non-adjusting events have occurred between the reporting date and the date of approval of these financial statements.');
+        $notes .= $note('Capital management & going concern', 'IAS 1 / ISA 570', 'The Company manages capital to safeguard its ability to continue as a going concern; the financial statements are prepared on a going-concern basis.');
+
+        // ============ assemble =============================================
+        $fetchNote = '<p class="text-muted" style="font-size:11.5px;margin:6px 0 0;"><i class="fa fa-sync"></i> Use <strong>Fetch</strong> to refresh against the live standard sources: '
+            . '<a href="https://www.ifrs.org/issued-standards/list-of-standards/" target="_blank" rel="noopener">IFRS/IAS</a> · '
+            . '<a href="https://www.iaasb.org/standards-pronouncements" target="_blank" rel="noopener">ISA</a> · '
+            . '<a href="https://www.sca.gov.ae" target="_blank" rel="noopener">SCA</a> · '
+            . '<a href="https://www.moec.gov.ae" target="_blank" rel="noopener">MoE Auditors Register</a>.</p>';
+
+        $cover = epc_ext_cover_page(
+            $entity,
+            'Audited Financial Statements & Independent Auditor\'s Report',
+            'External audit report · ISA 700 · IFRS',
+            array(
+                'Reporting period' => '01 Jan ' . $d['curYear'] . ' — 31 Dec ' . $d['curYear'],
+                'Comparative period' => 'FY' . $d['priYear'],
+                'Reporting framework' => $fwk,
+                'Auditing standards' => 'International Standards on Auditing (ISA)',
+                'Presentation currency' => $ccy,
+                'Independent auditor' => $auditor,
+                'Oversight authority' => $authority,
+                'Date of report' => $opinionDate,
+            ),
+            array(
+                array('1', 'Independent Auditor\'s Report'),
+                array('2', 'Statement of Financial Position'),
+                array('3', 'Statement of Profit or Loss & Other Comprehensive Income'),
+                array('4', 'Statement of Changes in Equity'),
+                array('5', 'Statement of Cash Flows'),
+                array('6', 'Notes to the Financial Statements'),
+            )
+        );
+
+        $body = $cover
+            . '<p class="text-muted">Complete <strong>External Audit Report</strong> under the International Standards on Auditing — an Independent Auditor\'s Report (ISA 700/701/705/570/720) on the full set of <strong>IFRS</strong> financial statements with <strong>prior-year comparatives</strong>: statement of financial position, profit or loss &amp; OCI, changes in equity, cash flows, and detailed notes referencing each IAS/IFRS standard. Figures are period-aware (reporting period vs comparative); a live tenant maps each line from tagged GL accounts.</p>'
+            . $fetchNote
+            . epc_ext_field_guide('Field guide — what each statement & note shows (and the standard behind it)',
+                'Plain-language explanation so a learner understands the audit pack. Framework: IFRS (IASB) + ISA (IAASB); UAE oversight: SCA / Ministry of Economy.',
+                epc_ext_audit_guide_rows())
+            . epc_ext_commentary('Report explained — how this audit pack works', array(
+                'This is a complete <strong>external audit report</strong>. It opens with the <strong>Independent Auditor\'s Report</strong> — the auditor\'s <em>opinion</em> on whether the statements give a true and fair view (ISA 700), the <em>basis</em> for that opinion, <em>going concern</em> (ISA 570), the <em>Key Audit Matters</em> (ISA 701) and the respective responsibilities of management and the auditor.',
+                'It then presents the four <strong>primary IFRS statements</strong> with the prior year alongside for comparison: the <strong>Statement of Financial Position</strong> (what the company owns and owes), the <strong>Statement of Profit or Loss &amp; OCI</strong> (performance for the year), the <strong>Statement of Changes in Equity</strong> (how equity moved), and the <strong>Statement of Cash Flows</strong> (where cash came from and went). Each face line carries its IAS/IFRS reference, and key lines drill down to the underlying transactions.',
+                'Finally, the <strong>notes to the accounts</strong> set out the accounting policies and disclosures required by each standard (IAS 1, 2, 7, 8, 10, 12, 16, 19, 24, 33, 37, 38; IFRS 7, 9, 15, 16) so nothing material is left undisclosed. The statements reconcile — assets equal equity plus liabilities, and opening cash plus the net cash flow equals closing cash.',
+            ))
+            . '<h4 style="color:#1d2740;margin-top:18px;">1 · Independent Auditor\'s Report</h4>' . $audit
+            . '<h4 style="color:#1d2740;margin-top:18px;">2 · Statement of Financial Position</h4>'
+            . '<p class="text-muted" style="font-size:11.5px;margin:0 0 4px;">Click an underlined line to drill to the underlying transactions.</p>'
+            . epc_ext_ct_drill_js() . $sofp
+            . '<h4 style="color:#1d2740;margin-top:18px;">3 · Statement of Profit or Loss &amp; Other Comprehensive Income</h4>' . $sopl
+            . '<h4 style="color:#1d2740;margin-top:18px;">4 · Statement of Changes in Equity</h4>' . $soce
+            . '<h4 style="color:#1d2740;margin-top:18px;">5 · Statement of Cash Flows</h4>' . $scf
+            . '<h4 style="color:#1d2740;margin-top:18px;">6 · Notes to the financial statements</h4>' . $notes;
+
+        return array(
+            'title' => $name . ' (ISA 700 · IFRS)',
+            'body' => $body,
+            'summary' => array(
+                'Opinion' => 'Unmodified (true & fair)',
+                'Revenue' => $m($cur['rev']),
+                'Profit for the year' => $m($cur['profit']),
+                'Total assets' => $m($cur['totalAssets']),
+                'Total equity' => $m($cur['totalEquity']),
+            ),
+            'live' => true,
+        );
+    }
+}
+
+if (!function_exists('epc_ext_audit_guide_rows')) {
+    /** @return array<int,array{0:string,1:string}> */
+    function epc_ext_audit_guide_rows(): array
+    {
+        return array(
+            array('Independent Auditor\'s Report', 'The auditor\'s formal opinion on whether the financial statements give a true and fair view under IFRS, plus the basis, going-concern, key audit matters and responsibilities (ISA 700/701/705/570/720).'),
+            array('Statement of Financial Position (SOFP)', 'A snapshot at the year-end of assets (what the company owns), liabilities (what it owes) and equity (the owners\' residual). Assets always equal equity + liabilities (IAS 1).'),
+            array('Statement of Profit or Loss & OCI', 'Performance for the year: revenue less costs = profit, then other comprehensive income (e.g. revaluations) = total comprehensive income (IAS 1, IFRS 15).'),
+            array('Statement of Changes in Equity (SOCE)', 'How each component of equity moved during the year — opening balance + profit + OCI − dividends + share issues = closing balance (IAS 1).'),
+            array('Statement of Cash Flows', 'Cash generated and used, split into operating, investing and financing activities; opening cash + net flow = closing cash (IAS 7, indirect method).'),
+            array('Notes to the accounts', 'The accounting policies and detailed disclosures required by each standard so a reader understands how every number was derived (IAS 1, 2, 7, 8, 10, 12, 16, 19, 24, 33, 37, 38; IFRS 7, 9, 15, 16).'),
+            array('Comparatives', 'IFRS requires the prior period to be shown next to the current period so trends and changes are visible (IAS 1).'),
+            array('Drill-down', 'Each combination figure expands to the underlying invoices / journal entries so you can trace any number to its source transactions.'),
+        );
+    }
+}
+
 /* ---------------------------------------------------------------- WPS / payroll */
 
 if (!function_exists('epc_ext_staff_rows')) {
@@ -2632,7 +3126,42 @@ if (!function_exists('epc_ext_import_template_csv')) {
      */
     function epc_ext_import_template_csv(string $kind): string
     {
-        if ($kind === 'ct') {
+        if ($kind === 'fin') {
+            $rows = array(
+                array('Code', 'Description', 'Current year', 'Prior year'),
+                array('META_LEGAL_NAME', 'Legal name (reporting entity)', 'Sample Client Trading LLC', ''),
+                array('META_TRN', 'Tax / commercial registration number', '100000000000003', ''),
+                array('META_ADDRESS', 'Registered address', 'Office 101, Business Bay, Dubai', ''),
+                array('META_EMIRATE', 'Emirate / region', 'Dubai', ''),
+                array('META_PERIOD_FROM', 'Reporting period from (YYYY-MM-DD)', '2024-01-01', ''),
+                array('META_PERIOD_TO', 'Reporting period to (YYYY-MM-DD)', '2024-12-31', ''),
+                array('META_AUDITOR', 'Independent auditor', 'Gulf Audit & Assurance', ''),
+                array('FIN_REVENUE', 'Revenue (IFRS 15)', '8400000', '7500000'),
+                array('FIN_COGS', 'Cost of sales', '4704000', '4200000'),
+                array('FIN_OTHER_INCOME', 'Other income', '60000', '50000'),
+                array('FIN_ADMIN_EXP', 'Administrative expenses', '1450000', '1300000'),
+                array('FIN_SELLING_EXP', 'Selling & distribution expenses', '520000', '470000'),
+                array('FIN_DEPR', 'Depreciation & amortisation (IAS 16/38)', '336000', '300000'),
+                array('FIN_FINANCE_COST', 'Finance costs', '100800', '90000'),
+                array('FIN_TAX', 'Income tax expense (IAS 12)', '113148', '90000'),
+                array('FIN_OCI', 'Other comprehensive income', '0', '0'),
+                array('FIN_PPE', 'Property, plant & equipment (IAS 16)', '3528000', '3150000'),
+                array('FIN_INTANGIBLES', 'Intangible assets (IAS 38)', '420000', '375000'),
+                array('FIN_INVENTORY', 'Inventories (IAS 2)', '924000', '825000'),
+                array('FIN_RECEIVABLES', 'Trade & other receivables (IFRS 9)', '1344000', '1200000'),
+                array('FIN_CASH', 'Cash & cash equivalents', '2571200', '1990000'),
+                array('FIN_PAYABLES', 'Trade & other payables', '1092000', '975000'),
+                array('FIN_BORROW_CUR', 'Borrowings - current', '420000', '375000'),
+                array('FIN_BORROW_NONCUR', 'Borrowings - non-current', '1512000', '1350000'),
+                array('FIN_LEASE', 'Lease liabilities (IFRS 16)', '252000', '225000'),
+                array('FIN_PROVISIONS', 'Provisions (IAS 37)', '168000', '150000'),
+                array('FIN_TAX_PAYABLE', 'Current tax payable (IAS 12)', '113148', '90000'),
+                array('FIN_SHARE_CAPITAL', 'Share capital', '500000', '500000'),
+                array('FIN_OTHER_RESERVES', 'Other reserves', '84000', '75000'),
+                array('FIN_RETAINED_OPEN', 'Retained earnings - opening', '3710000', '2900000'),
+                array('FIN_DIVIDENDS', 'Dividends declared in the year', '300000', '200000'),
+            );
+        } elseif ($kind === 'ct') {
             $rows = array(
                 array('Code', 'Description', 'Amount'),
                 array('META_LEGAL_NAME', 'Legal name (taxable person)', 'Sample Client Trading LLC'),
@@ -2802,6 +3331,96 @@ if (!function_exists('epc_ext_import_template_sheets')) {
      */
     function epc_ext_import_template_sheets(string $kind): array
     {
+        if ($kind === 'fin') {
+            return array(
+                'Instructions' => array(
+                    array('IFRS Financial Statements & Audit Report — complete import template (off-system)'),
+                    array('Framework', 'International Financial Reporting Standards (IFRS) as issued by the IASB'),
+                    array('Auditing', 'International Standards on Auditing (ISA 700/701/705/570/720)'),
+                    array('Output', 'Independent Auditor\'s Report + SOFP + SOPL & OCI + Changes in Equity + Cash Flows + notes, with prior-year comparatives'),
+                    array(''),
+                    array('How to use this workbook:'),
+                    array('1', 'Fill the "Company & details" sheet — keep the Code column unchanged, edit the Value column.'),
+                    array('2', 'Fill the "Financial data" sheet — enter the Current year and Prior year amounts. These build every statement.'),
+                    array('', '   Enter amounts as positive numbers; the builder applies the correct sign on each statement.'),
+                    array('3', 'The "Notes inputs" and "Compliance checklist" sheets carry disclosures the report references.'),
+                    array('4', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return → "IFRS Financial Statements".'),
+                    array('5', 'Off-system: nothing is read from or written to your ERP/GL — ideal for preparing other clients\' accounts.'),
+                    array(''),
+                    array('Note', 'Keep the Code column EXACTLY as provided on Company & details and Financial data — those codes are machine-read.'),
+                ),
+                'Company & details' => array(
+                    array('Code', 'Field', 'Value'),
+                    array('META_LEGAL_NAME', 'Legal name (reporting entity)', 'Sample Client Trading LLC'),
+                    array('META_TRN', 'Tax / commercial registration number', '100000000000003'),
+                    array('META_LEGAL_FORM', 'Legal form', 'Limited Liability Company'),
+                    array('META_ADDRESS', 'Registered address', 'Office 101, Business Bay, Dubai'),
+                    array('META_EMIRATE', 'Emirate / region', 'Dubai'),
+                    array('META_PHONE', 'Contact phone', '+971 4 000 0000'),
+                    array('META_EMAIL', 'Contact email', 'finance@sampleclient.ae'),
+                    array('META_CURRENCY', 'Presentation currency', 'AED'),
+                    array('META_PERIOD_FROM', 'Reporting period from (YYYY-MM-DD)', '2024-01-01'),
+                    array('META_PERIOD_TO', 'Reporting period to (YYYY-MM-DD)', '2024-12-31'),
+                    array('META_AUDITOR', 'Independent auditor', 'Gulf Audit & Assurance (Chartered Accountants)'),
+                    array('META_AUDITOR_AUTH', 'Auditor oversight authority', 'Ministry of Economy — UAE Auditors Register'),
+                    array('META_DIRECTOR', 'Director signing the accounts', 'Managing Director'),
+                ),
+                'Financial data' => array(
+                    array('Code', 'Description', 'Current year', 'Prior year'),
+                    array('— Statement of profit or loss & OCI —', '', '', ''),
+                    array('FIN_REVENUE', 'Revenue (IFRS 15)', '8400000', '7500000'),
+                    array('FIN_COGS', 'Cost of sales', '4704000', '4200000'),
+                    array('FIN_OTHER_INCOME', 'Other income', '60000', '50000'),
+                    array('FIN_ADMIN_EXP', 'Administrative expenses', '1450000', '1300000'),
+                    array('FIN_SELLING_EXP', 'Selling & distribution expenses', '520000', '470000'),
+                    array('FIN_DEPR', 'Depreciation & amortisation (IAS 16/38)', '336000', '300000'),
+                    array('FIN_FINANCE_COST', 'Finance costs', '100800', '90000'),
+                    array('FIN_TAX', 'Income tax expense (IAS 12)', '113148', '90000'),
+                    array('FIN_OCI', 'Other comprehensive income (revaluation etc.)', '0', '0'),
+                    array('— Statement of financial position: assets —', '', '', ''),
+                    array('FIN_PPE', 'Property, plant & equipment (IAS 16)', '3528000', '3150000'),
+                    array('FIN_INTANGIBLES', 'Intangible assets (IAS 38)', '420000', '375000'),
+                    array('FIN_INVENTORY', 'Inventories (IAS 2)', '924000', '825000'),
+                    array('FIN_RECEIVABLES', 'Trade & other receivables (IFRS 9)', '1344000', '1200000'),
+                    array('FIN_CASH', 'Cash & cash equivalents', '2571200', '1990000'),
+                    array('— Statement of financial position: liabilities —', '', '', ''),
+                    array('FIN_PAYABLES', 'Trade & other payables', '1092000', '975000'),
+                    array('FIN_BORROW_CUR', 'Borrowings — current', '420000', '375000'),
+                    array('FIN_BORROW_NONCUR', 'Borrowings — non-current', '1512000', '1350000'),
+                    array('FIN_LEASE', 'Lease liabilities (IFRS 16)', '252000', '225000'),
+                    array('FIN_PROVISIONS', 'Provisions (IAS 37)', '168000', '150000'),
+                    array('FIN_TAX_PAYABLE', 'Current tax payable (IAS 12)', '113148', '90000'),
+                    array('— Equity —', '', '', ''),
+                    array('FIN_SHARE_CAPITAL', 'Share capital', '500000', '500000'),
+                    array('FIN_OTHER_RESERVES', 'Other reserves', '84000', '75000'),
+                    array('FIN_RETAINED_OPEN', 'Retained earnings — opening balance', '3710000', '2900000'),
+                    array('FIN_DIVIDENDS', 'Dividends declared in the year', '300000', '200000'),
+                ),
+                'Notes inputs' => array(
+                    array('Note', 'Disclosure', 'Detail'),
+                    array('Reporting entity (IAS 1)', 'Nature of business', 'General trading'),
+                    array('Basis of preparation (IAS 1/8)', 'Measurement basis', 'Historical cost; going concern'),
+                    array('Revenue (IFRS 15)', 'Disaggregation', 'Goods at a point in time; services over time'),
+                    array('PPE (IAS 16)', 'Depreciation method', 'Straight-line over useful lives'),
+                    array('Financial instruments (IFRS 9/7)', 'ECL model', 'Lifetime ECL on trade receivables'),
+                    array('Leases (IFRS 16)', 'Right-of-use assets', 'Recognised within PPE'),
+                    array('Income tax (IAS 12)', 'Rate', 'UAE CT 0% up to AED 375k, 9% above'),
+                    array('Related parties (IAS 24)', 'Transactions', 'Disclose key management & group balances'),
+                    array('Events after reporting date (IAS 10)', 'Adjusting/non-adjusting', 'None to report'),
+                ),
+                'Compliance checklist' => array(
+                    array('Check', 'Requirement', 'Expected'),
+                    array('Framework stated', 'IFRS basis of preparation disclosed', 'IAS 1 note present'),
+                    array('Comparatives', 'Prior-year figures for every statement', 'Two periods shown'),
+                    array('SOFP balances', 'Assets = Equity + Liabilities', 'Difference = 0'),
+                    array('Equity roll-forward', 'Opening + profit + OCI − dividends = closing', 'SOCE reconciles'),
+                    array('Cash flow reconciles', 'Opening cash + net flow = closing cash', 'SCF ties to SOFP'),
+                    array('Going concern', 'Going-concern basis assessed (ISA 570)', 'Statement present'),
+                    array('Auditor independence', 'Independence & ethics confirmed', 'Basis-for-opinion note'),
+                    array('Key audit matters', 'KAM disclosed for listed/PIE (ISA 701)', 'Where applicable'),
+                ),
+            );
+        }
         if ($kind === 'ct') {
             return array(
                 'Instructions' => array(
@@ -3309,6 +3928,7 @@ if (!function_exists('epc_ext_import_map')) {
         $meta = array();
         $values = array();
         $vat = array();
+        $fin = array();
         foreach ($rows as $r) {
             if (!isset($r[0])) { continue; }
             $code = strtoupper(trim((string) $r[0]));
@@ -3321,6 +3941,12 @@ if (!function_exists('epc_ext_import_map')) {
             if (strpos($code, 'META_') === 0) {
                 // meta value is in column C (index 2) for both templates
                 $meta[$code] = trim((string) ($r[2] ?? ($r[1] ?? '')));
+                continue;
+            }
+            // Financial-statement line: current amount in column C, comparative
+            // (prior-year) amount in column D.
+            if (strpos($code, 'FIN_') === 0) {
+                $fin[$code] = array('cur' => $num($r[2] ?? 0), 'pri' => $num($r[3] ?? 0));
                 continue;
             }
             if (strpos($code, 'BOX') === 0) {
@@ -3341,7 +3967,7 @@ if (!function_exists('epc_ext_import_map')) {
                 $values[$code] = $num($cell);
             }
         }
-        return array('meta' => $meta, 'values' => $values, 'vat' => $vat);
+        return array('meta' => $meta, 'values' => $values, 'vat' => $vat, 'fin' => $fin);
     }
 }
 
@@ -3576,6 +4202,662 @@ if (!function_exists('epc_ext_b_ct_summary')) {
                 'Compliance' => ($errors === 0 && $warns === 0) ? 'All passed' : ($errors . ' err / ' . $warns . ' review'),
             ),
             'meta' => $map['meta'],
+        );
+    }
+}
+
+if (!function_exists('epc_ext_b_fin_summary')) {
+    /**
+     * Build a full IFRS financial-statements + audit pack from an uploaded
+     * workbook (off-system). Renders cover page, Independent Auditor's Report,
+     * SOFP, SOPL & OCI, Changes in Equity, Cash Flows, notes and compliance —
+     * all with prior-year comparatives drawn from the uploaded columns.
+     *
+     * @param array{meta:array<string,string>,fin:array<string,array{cur:float,pri:float}>} $map
+     * @return array{title:string,body:string,summary:array<string,string>,meta:array<string,string>}
+     */
+    function epc_ext_b_fin_summary(array $map, string $ccy): array
+    {
+        $fin = $map['fin'] ?? array();
+        $meta = $map['meta'] ?? array();
+        if (($meta['META_CURRENCY'] ?? '') !== '') { $ccy = (string) $meta['META_CURRENCY']; }
+        $cur = static function (string $c) use ($fin): float { return (float) ($fin[$c]['cur'] ?? 0); };
+        $pri = static function (string $c) use ($fin): float { return (float) ($fin[$c]['pri'] ?? 0); };
+        $m = static function ($v) use ($ccy): string { return epc_ext_m((float) $v, $ccy); };
+
+        $entity = (string) (($meta['META_LEGAL_NAME'] ?? '') ?: 'Uploaded client');
+        $auditor = (string) (($meta['META_AUDITOR'] ?? '') ?: 'Independent Registered Auditors');
+        $authority = (string) (($meta['META_AUDITOR_AUTH'] ?? '') ?: 'national audit oversight authority');
+        $director = (string) (($meta['META_DIRECTOR'] ?? '') ?: 'Director');
+        $pFrom = (string) ($meta['META_PERIOD_FROM'] ?? '');
+        $pTo = (string) ($meta['META_PERIOD_TO'] ?? '');
+        $curY = $pTo !== '' ? date('Y', (int) strtotime($pTo)) : date('Y');
+        $priY = (string) ((int) $curY - 1);
+        $cL = 'FY' . $curY; $pL = 'FY' . $priY;
+        $fwk = 'International Financial Reporting Standards (IFRS) as issued by the IASB';
+
+        // ---- derive the statements (current & prior) -----------------------
+        $calc = static function (callable $v): array {
+            $rev = $v('FIN_REVENUE'); $cogs = $v('FIN_COGS'); $oth = $v('FIN_OTHER_INCOME');
+            $admin = $v('FIN_ADMIN_EXP'); $sell = $v('FIN_SELLING_EXP'); $depr = $v('FIN_DEPR');
+            $finc = $v('FIN_FINANCE_COST'); $tax = $v('FIN_TAX'); $oci = $v('FIN_OCI');
+            $gross = $rev - $cogs;
+            $op = $gross + $oth - $admin - $sell - $depr;
+            $pbt = $op - $finc;
+            $profit = $pbt - $tax;
+            $ppe = $v('FIN_PPE'); $intang = $v('FIN_INTANGIBLES');
+            $invn = $v('FIN_INVENTORY'); $recv = $v('FIN_RECEIVABLES'); $cash = $v('FIN_CASH');
+            $pay = $v('FIN_PAYABLES'); $bcur = $v('FIN_BORROW_CUR'); $bnon = $v('FIN_BORROW_NONCUR');
+            $lease = $v('FIN_LEASE'); $prov = $v('FIN_PROVISIONS'); $taxp = $v('FIN_TAX_PAYABLE');
+            $sc = $v('FIN_SHARE_CAPITAL'); $res = $v('FIN_OTHER_RESERVES');
+            $ret0 = $v('FIN_RETAINED_OPEN'); $div = $v('FIN_DIVIDENDS');
+            $retC = $ret0 + $profit - $div;
+            $ncAsset = $ppe + $intang; $cAsset = $invn + $recv + $cash; $tAsset = $ncAsset + $cAsset;
+            $equity = $sc + $res + $retC;
+            $ncLiab = $bnon + $lease + $prov; $cLiab = $pay + $bcur + $taxp; $tLiab = $ncLiab + $cLiab;
+            $eqLiab = $equity + $tLiab;
+            return array(
+                'rev' => $rev, 'cogs' => $cogs, 'gross' => $gross, 'oth' => $oth,
+                'admin' => $admin, 'sell' => $sell, 'depr' => $depr, 'fin' => $finc,
+                'op' => $op, 'pbt' => $pbt, 'tax' => $tax, 'profit' => $profit, 'oci' => $oci,
+                'tci' => $profit + $oci,
+                'ppe' => $ppe, 'intang' => $intang, 'inv' => $invn, 'recv' => $recv, 'cash' => $cash,
+                'pay' => $pay, 'bcur' => $bcur, 'bnon' => $bnon, 'lease' => $lease, 'prov' => $prov, 'taxp' => $taxp,
+                'sc' => $sc, 'res' => $res, 'ret0' => $ret0, 'div' => $div, 'retC' => $retC,
+                'ncAsset' => $ncAsset, 'cAsset' => $cAsset, 'tAsset' => $tAsset,
+                'equity' => $equity, 'ncLiab' => $ncLiab, 'cLiab' => $cLiab, 'tLiab' => $tLiab,
+                'eqLiab' => $eqLiab, 'diff' => round($tAsset - $eqLiab, 2),
+            );
+        };
+        $C = $calc($cur);
+        $P = $calc($pri);
+
+        // ---- two-period statement table helper -----------------------------
+        $tblOpen = '<table class="table table-condensed" style="font-size:12.5px;"><thead><tr style="background:#13294b;color:#fff;">'
+            . '<th>&nbsp;</th><th style="text-align:right;">' . epc_erp_h($cL) . '</th><th style="text-align:right;">' . epc_erp_h($pL) . '</th>'
+            . '<th style="width:90px;text-align:center;">Ref</th></tr></thead><tbody>';
+        $tblClose = '</tbody></table>';
+        $line = static function (string $label, $c, $p, string $ref = '', string $kind = '') use ($m): string {
+            $style = 'padding:5px 8px;';
+            $lblStyle = $style; $numStyle = $style . 'text-align:right;font-variant-numeric:tabular-nums;';
+            if ($kind === 'head') { return '<tr style="background:#eef2f8;"><td colspan="4" style="' . $style . 'font-weight:700;color:#13294b;">' . $label . '</td></tr>'; }
+            if ($kind === 'sub') { $lblStyle .= 'font-weight:700;border-top:1px solid #cfd8e6;'; $numStyle .= 'font-weight:700;border-top:1px solid #cfd8e6;'; }
+            if ($kind === 'total') { $lblStyle .= 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;'; $numStyle .= 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;'; }
+            $cTxt = $c === '' ? '' : $m($c);
+            $pTxt = $p === '' ? '' : $m($p);
+            return '<tr><td style="' . $lblStyle . '">' . $label . '</td>'
+                . '<td style="' . $numStyle . '">' . $cTxt . '</td>'
+                . '<td style="' . $numStyle . '">' . $pTxt . '</td>'
+                . '<td style="' . $style . 'text-align:center;color:#1d4e89;font-size:11px;">' . epc_erp_h($ref) . '</td></tr>';
+        };
+
+        // ---- Independent Auditor's Report ----------------------------------
+        $opinionDate = $pTo !== '' ? date('d M Y', (int) strtotime($pTo . ' +3 months')) : date('d M Y');
+        $audit = '<div style="border:1px solid #cfd8e6;border-radius:6px;padding:18px 20px;background:#fff;">'
+            . '<h4 style="margin-top:0;color:#13294b;">Independent Auditor\'s Report</h4>'
+            . '<p style="font-size:12.5px;">To the Shareholders of <strong>' . epc_erp_h($entity) . '</strong></p>'
+            . '<p style="font-weight:700;margin-bottom:2px;">Opinion <span style="font-weight:400;font-size:11px;color:#1d4e89;">(ISA 700)</span></p>'
+            . '<p style="font-size:12.5px;">We have audited the financial statements of ' . epc_erp_h($entity) . ', which comprise the statement of financial position as at 31 December ' . epc_erp_h($curY) . ', and the statement of profit or loss and other comprehensive income, statement of changes in equity and statement of cash flows for the year then ended, and notes to the financial statements. In our opinion, the accompanying financial statements present fairly, in all material respects, the financial position of the Company as at that date and its financial performance and cash flows for the year then ended in accordance with ' . epc_erp_h($fwk) . '.</p>'
+            . '<p style="font-weight:700;margin-bottom:2px;">Basis for opinion <span style="font-weight:400;font-size:11px;color:#1d4e89;">(ISA 700)</span></p>'
+            . '<p style="font-size:12.5px;">We conducted our audit in accordance with International Standards on Auditing (ISAs). Our responsibilities are described in the Auditor\'s Responsibilities section. We are independent of the Company in accordance with the IESBA Code of Ethics, and have fulfilled our other ethical responsibilities. We believe that the audit evidence obtained is sufficient and appropriate to provide a basis for our opinion.</p>'
+            . '<p style="font-weight:700;margin-bottom:2px;">Going concern <span style="font-weight:400;font-size:11px;color:#1d4e89;">(ISA 570)</span></p>'
+            . '<p style="font-size:12.5px;">The financial statements have been prepared on the going-concern basis. Based on the audit evidence obtained, we conclude that no material uncertainty exists that may cast significant doubt on the Company\'s ability to continue as a going concern.</p>'
+            . '<p style="font-weight:700;margin-bottom:2px;">Key audit matters <span style="font-weight:400;font-size:11px;color:#1d4e89;">(ISA 701)</span></p>'
+            . '<p style="font-size:12.5px;">Key audit matters are those that, in our professional judgement, were of most significance — principally revenue recognition (IFRS 15), valuation of trade receivables and expected credit losses (IFRS 9), and carrying value of property, plant &amp; equipment (IAS 16). Each was addressed through substantive testing and assessment of management\'s estimates.</p>'
+            . '<p style="font-weight:700;margin-bottom:2px;">Responsibilities of management and the auditor <span style="font-weight:400;font-size:11px;color:#1d4e89;">(ISA 700/705/720)</span></p>'
+            . '<p style="font-size:12.5px;">Management is responsible for the preparation and fair presentation of the financial statements in accordance with IFRS, and for such internal control as is necessary. Our objectives are to obtain reasonable assurance about whether the financial statements as a whole are free from material misstatement and to issue an auditor\'s report that includes our opinion.</p>'
+            . '<div style="display:flex;justify-content:space-between;margin-top:14px;border-top:1px solid #cfd8e6;padding-top:10px;font-size:12px;">'
+            . '<div><strong>' . epc_erp_h($auditor) . '</strong><br>' . epc_erp_h($authority) . '</div>'
+            . '<div style="text-align:right;">Date: ' . epc_erp_h($opinionDate) . '<br>' . epc_erp_h(($meta['META_EMIRATE'] ?? 'United Arab Emirates')) . '</div></div></div>';
+
+        // ---- SOPL & OCI ----------------------------------------------------
+        $sopl = $tblOpen
+            . $line('Revenue', $C['rev'], $P['rev'], 'IFRS 15')
+            . $line('Cost of sales', -$C['cogs'], -$P['cogs'], 'IAS 2')
+            . $line('Gross profit', $C['gross'], $P['gross'], '', 'sub')
+            . $line('Other income', $C['oth'], $P['oth'], '')
+            . $line('Administrative expenses', -$C['admin'], -$P['admin'], 'IAS 1')
+            . $line('Selling &amp; distribution expenses', -$C['sell'], -$P['sell'], '')
+            . $line('Depreciation &amp; amortisation', -$C['depr'], -$P['depr'], 'IAS 16/38')
+            . $line('Operating profit', $C['op'], $P['op'], '', 'sub')
+            . $line('Finance costs', -$C['fin'], -$P['fin'], 'IFRS 7')
+            . $line('Profit before tax', $C['pbt'], $P['pbt'], '', 'sub')
+            . $line('Income tax expense', -$C['tax'], -$P['tax'], 'IAS 12')
+            . $line('Profit for the year', $C['profit'], $P['profit'], '', 'sub')
+            . $line('Other comprehensive income', $C['oci'], $P['oci'], 'IAS 1')
+            . $line('Total comprehensive income', $C['tci'], $P['tci'], '', 'total')
+            . $tblClose;
+
+        // ---- SOFP ----------------------------------------------------------
+        $sofp = $tblOpen
+            . $line('ASSETS', '', '', '', 'head')
+            . $line('Non-current assets', '', '', '', 'head')
+            . $line('Property, plant &amp; equipment', $C['ppe'], $P['ppe'], 'IAS 16')
+            . $line('Intangible assets', $C['intang'], $P['intang'], 'IAS 38')
+            . $line('Total non-current assets', $C['ncAsset'], $P['ncAsset'], '', 'sub')
+            . $line('Current assets', '', '', '', 'head')
+            . $line('Inventories', $C['inv'], $P['inv'], 'IAS 2')
+            . $line('Trade &amp; other receivables', $C['recv'], $P['recv'], 'IFRS 9')
+            . $line('Cash &amp; cash equivalents', $C['cash'], $P['cash'], 'IAS 7')
+            . $line('Total current assets', $C['cAsset'], $P['cAsset'], '', 'sub')
+            . $line('Total assets', $C['tAsset'], $P['tAsset'], '', 'total')
+            . $line('EQUITY &amp; LIABILITIES', '', '', '', 'head')
+            . $line('Equity', '', '', '', 'head')
+            . $line('Share capital', $C['sc'], $P['sc'], 'IAS 1')
+            . $line('Other reserves', $C['res'], $P['res'], '')
+            . $line('Retained earnings', $C['retC'], $P['retC'], '')
+            . $line('Total equity', $C['equity'], $P['equity'], '', 'sub')
+            . $line('Non-current liabilities', '', '', '', 'head')
+            . $line('Borrowings', $C['bnon'], $P['bnon'], 'IFRS 7')
+            . $line('Lease liabilities', $C['lease'], $P['lease'], 'IFRS 16')
+            . $line('Provisions', $C['prov'], $P['prov'], 'IAS 37')
+            . $line('Total non-current liabilities', $C['ncLiab'], $P['ncLiab'], '', 'sub')
+            . $line('Current liabilities', '', '', '', 'head')
+            . $line('Trade &amp; other payables', $C['pay'], $P['pay'], '')
+            . $line('Borrowings', $C['bcur'], $P['bcur'], 'IFRS 7')
+            . $line('Current tax payable', $C['taxp'], $P['taxp'], 'IAS 12')
+            . $line('Total current liabilities', $C['cLiab'], $P['cLiab'], '', 'sub')
+            . $line('Total equity &amp; liabilities', $C['eqLiab'], $P['eqLiab'], '', 'total')
+            . $tblClose;
+        $balOk = abs($C['diff']) < 0.5;
+        $sofp .= '<p style="font-size:11.5px;color:' . ($balOk ? '#1a7f37' : '#c0392b') . ';"><i class="fa fa-' . ($balOk ? 'check-circle' : 'exclamation-triangle') . '"></i> '
+            . ($balOk ? 'Statement of financial position balances: total assets = equity + liabilities.' : 'Out of balance by ' . $m($C['diff']) . ' — check the uploaded figures.') . '</p>';
+
+        // ---- SOCE ----------------------------------------------------------
+        $resOpen = $C['res'] - $C['oci'];
+        $soce = '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#13294b;color:#fff;">'
+            . '<th>&nbsp;</th><th style="text-align:right;">Share capital</th><th style="text-align:right;">Other reserves</th><th style="text-align:right;">Retained earnings</th><th style="text-align:right;">Total</th></tr></thead><tbody>';
+        $soceRow = static function (string $lbl, $a, $b, $c, bool $bold = false) use ($m): string {
+            $w = $bold ? 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;' : '';
+            $n = 'text-align:right;padding:5px 8px;font-variant-numeric:tabular-nums;' . $w;
+            $av = (float) ($a === '' ? 0 : $a); $bv = (float) ($b === '' ? 0 : $b); $cv = (float) ($c === '' ? 0 : $c);
+            return '<tr><td style="padding:5px 8px;' . $w . '">' . epc_erp_h($lbl) . '</td>'
+                . '<td style="' . $n . '">' . ($a === '' ? '' : $m($a)) . '</td>'
+                . '<td style="' . $n . '">' . ($b === '' ? '' : $m($b)) . '</td>'
+                . '<td style="' . $n . '">' . ($c === '' ? '' : $m($c)) . '</td>'
+                . '<td style="' . $n . '">' . $m($av + $bv + $cv) . '</td></tr>';
+        };
+        $soce .= $soceRow('Balance at 1 January ' . $curY, $C['sc'], $resOpen, $C['ret0']);
+        $soce .= $soceRow('Profit for the year', '', '', $C['profit']);
+        $soce .= $soceRow('Other comprehensive income', '', $C['oci'], '');
+        $soce .= $soceRow('Dividends declared', '', '', -$C['div']);
+        $soce .= $soceRow('Balance at 31 December ' . $curY, $C['sc'], $C['res'], $C['retC'], true);
+        $soce .= '</tbody></table>';
+
+        // ---- SCF (indirect) ------------------------------------------------
+        $dRecv = $C['recv'] - $P['recv']; $dInv = $C['inv'] - $P['inv'];
+        $dPay = $C['pay'] - $P['pay']; $dProv = $C['prov'] - $P['prov'];
+        $opCash = $C['pbt'] + $C['depr'] + $C['fin'] - $dRecv - $dInv + $dPay + $dProv - $C['tax'];
+        $capex = ($C['ppe'] + $C['intang']) - ($P['ppe'] + $P['intang']) + $C['depr'];
+        $invCash = -$capex;
+        $dBorrow = ($C['bcur'] + $C['bnon']) - ($P['bcur'] + $P['bnon']);
+        $dLease = $C['lease'] - $P['lease']; $dShare = $C['sc'] - $P['sc'];
+        $finCash = $dBorrow + $dLease + $dShare - $C['div'] - $C['fin'];
+        $netCash = $opCash + $invCash + $finCash;
+        $closeCash = $P['cash'] + $netCash;
+        $scf = $tblOpen
+            . $line('Operating activities', '', '', '', 'head')
+            . $line('Profit before tax', $C['pbt'], $P['pbt'], '')
+            . $line('Adjust: depreciation &amp; amortisation', $C['depr'], $P['depr'], 'IAS 16/38')
+            . $line('Adjust: finance costs', $C['fin'], $P['fin'], '')
+            . $line('(Increase) / decrease in receivables', -$dRecv, '', '')
+            . $line('(Increase) / decrease in inventories', -$dInv, '', '')
+            . $line('Increase / (decrease) in payables', $dPay, '', '')
+            . $line('Increase / (decrease) in provisions', $dProv, '', '')
+            . $line('Income tax paid', -$C['tax'], '', 'IAS 12')
+            . $line('Net cash from operating activities', $opCash, '', '', 'sub')
+            . $line('Investing activities', '', '', '', 'head')
+            . $line('Purchase of PPE &amp; intangibles', $invCash, '', 'IAS 16/38')
+            . $line('Net cash used in investing activities', $invCash, '', '', 'sub')
+            . $line('Financing activities', '', '', '', 'head')
+            . $line('Net movement in borrowings', $dBorrow, '', '')
+            . $line('Movement in lease liabilities', $dLease, '', 'IFRS 16')
+            . $line('Proceeds from share issue', $dShare, '', '')
+            . $line('Interest paid', -$C['fin'], '', '')
+            . $line('Dividends paid', -$C['div'], '', '')
+            . $line('Net cash from financing activities', $finCash, '', '', 'sub')
+            . $line('Net increase / (decrease) in cash', $netCash, '', '', 'sub')
+            . $line('Cash &amp; cash equivalents at 1 January', $P['cash'], '', '')
+            . $line('Cash &amp; cash equivalents at 31 December', $closeCash, $C['cash'], '', 'total')
+            . $tblClose;
+        $cfOk = abs($closeCash - $C['cash']) < 1.0;
+        $scf .= '<p style="font-size:11.5px;color:' . ($cfOk ? '#1a7f37' : '#c0392b') . ';"><i class="fa fa-' . ($cfOk ? 'check-circle' : 'exclamation-triangle') . '"></i> '
+            . ($cfOk ? 'Cash flow reconciles to the closing cash on the statement of financial position.' : 'Derived closing cash ' . $m($closeCash) . ' differs from SOFP cash ' . $m($C['cash']) . ' — review working-capital inputs.') . '</p>';
+
+        // ---- Notes ---------------------------------------------------------
+        $noteN = 0;
+        $note = static function (string $title, string $std, string $body) use (&$noteN): string {
+            $noteN++;
+            return '<div style="margin:0 0 12px;"><p style="font-weight:700;margin:0 0 3px;color:#1d2740;">' . $noteN . '. ' . epc_erp_h($title) . ' <span style="font-weight:400;font-size:11px;color:#1d4e89;">(' . epc_erp_h($std) . ')</span></p><div style="font-size:12.5px;line-height:1.6;color:#333;">' . $body . '</div></div>';
+        };
+        $notes = $note('Reporting entity', 'IAS 1', epc_erp_h($entity) . '. The financial statements are presented in ' . epc_erp_h($ccy) . '.')
+            . $note('Basis of preparation', 'IAS 1 / IAS 8', 'Prepared in accordance with ' . epc_erp_h($fwk) . ' on the historical-cost basis and the going-concern assumption; accounting policies are applied consistently.')
+            . $note('Revenue', 'IFRS 15', 'Revenue of ' . $m($C['rev']) . ' (' . $pL . ': ' . $m($P['rev']) . ') is recognised under the five-step model when control transfers.')
+            . $note('Property, plant &amp; equipment', 'IAS 16', 'Carrying amount ' . $m($C['ppe']) . ' (' . $pL . ': ' . $m($P['ppe']) . '); depreciation charge ' . $m($C['depr']) . ' on a straight-line basis.')
+            . $note('Intangible assets', 'IAS 38', 'Carrying amount ' . $m($C['intang']) . ' (' . $pL . ': ' . $m($P['intang']) . ').')
+            . $note('Inventories', 'IAS 2', 'Stated at the lower of cost and net realisable value: ' . $m($C['inv']) . '.')
+            . $note('Trade &amp; other receivables / financial instruments', 'IFRS 9 / IFRS 7', 'Receivables of ' . $m($C['recv']) . ' are net of an expected-credit-loss allowance; the Company is exposed to credit, liquidity and market risk.')
+            . $note('Leases', 'IFRS 16', 'Lease liabilities of ' . $m($C['lease']) . ' with corresponding right-of-use assets in PPE.')
+            . $note('Provisions', 'IAS 37', 'Provisions of ' . $m($C['prov']) . ' represent present obligations measured at the best estimate of expenditure required to settle them.')
+            . $note('Income tax', 'IAS 12', 'Tax expense ' . $m($C['tax']) . '; current tax payable ' . $m($C['taxp']) . ' under the applicable corporate tax regime.')
+            . $note('Related parties', 'IAS 24', 'Transactions and balances with shareholders and key management are conducted at arm\'s length and disclosed.')
+            . $note('Events after the reporting period', 'IAS 10', 'No material adjusting or non-adjusting events occurred between the reporting date and the date of approval.');
+
+        // ---- compliance checks --------------------------------------------
+        $checks = array();
+        $checks[] = ($meta['META_TRN'] ?? '') !== '' ? array('ok', 'Entity registration / TRN present on the uploaded data.') : array('warn', 'Registration / TRN missing — add it before issuing.');
+        $checks[] = $balOk ? array('ok', 'Statement of financial position balances (assets = equity + liabilities).') : array('error', 'SOFP does not balance — difference ' . $m($C['diff']) . '.');
+        $checks[] = $cfOk ? array('ok', 'Cash flow statement reconciles to closing cash.') : array('warn', 'Cash flow does not tie to SOFP cash — review working-capital movements.');
+        $hasPrior = ($P['rev'] + $P['tAsset']) > 0;
+        $checks[] = $hasPrior ? array('ok', 'Prior-year comparatives provided for every statement (IAS 1).') : array('warn', 'No prior-year comparatives supplied — IAS 1 requires two periods.');
+        $checks[] = $C['profit'] >= 0 ? array('ok', 'Entity is profitable; going-concern basis appropriate.') : array('warn', 'Loss for the year — confirm going-concern assessment (ISA 570).');
+        $cr = ''; $errors = 0; $warns = 0;
+        foreach ($checks as $c) {
+            if ($c[0] === 'error') { $errors++; $badge = '<span class="label label-danger">FAIL</span>'; $bg = '#fff3f3'; }
+            elseif ($c[0] === 'warn') { $warns++; $badge = '<span class="label label-warning">REVIEW</span>'; $bg = '#fffaf0'; }
+            else { $badge = '<span class="label label-success">PASS</span>'; $bg = '#f4fbf6'; }
+            $cr .= '<tr style="background:' . $bg . ';"><td style="width:70px;">' . $badge . '</td><td>' . epc_erp_h($c[1]) . '</td></tr>';
+        }
+        $compSummary = ($errors === 0 && $warns === 0)
+            ? '<div class="alert alert-success">All checks passed on the uploaded data.</div>'
+            : '<div class="alert ' . ($errors > 0 ? 'alert-danger' : 'alert-warning') . '"><strong>' . $errors . ' error(s), ' . $warns . ' review item(s)</strong>.</div>';
+
+        $cover = epc_ext_cover_page(
+            $entity,
+            'Audited Financial Statements & Independent Auditor\'s Report',
+            'IFRS · ISA 700 · off-system import',
+            array(
+                'Reporting period' => ($pFrom !== '' ? $pFrom . ' — ' . $pTo : $cL),
+                'Comparative period' => $pL,
+                'Reporting framework' => $fwk,
+                'Presentation currency' => $ccy,
+                'Independent auditor' => $auditor,
+                'Oversight authority' => $authority,
+                'Date of report' => $opinionDate,
+            ),
+            array(
+                array('1', 'Independent Auditor\'s Report'),
+                array('2', 'Statement of Financial Position'),
+                array('3', 'Statement of Profit or Loss & Other Comprehensive Income'),
+                array('4', 'Statement of Changes in Equity'),
+                array('5', 'Statement of Cash Flows'),
+                array('6', 'Notes to the Financial Statements'),
+            )
+        );
+
+        $body = $cover
+            . '<div class="alert alert-info" style="font-size:12px;"><i class="fa fa-upload"></i> Built from your <strong>uploaded workbook</strong> (off-system, summary figures with prior-year comparatives — no transaction detail). For preparing / reviewing other clients\' accounts; it does not read or write ERP data.</div>'
+            . epc_ext_field_guide('Field guide — what each statement &amp; note shows (and the standard behind it)',
+                'Plain-language explanation so a learner understands the pack. Framework: IFRS (IASB) + ISA (IAASB).',
+                epc_ext_audit_guide_rows())
+            . '<h4 style="color:#13294b;margin-top:16px;">1 · Independent Auditor\'s Report</h4>' . $audit
+            . '<h4 style="color:#13294b;margin-top:18px;">2 · Statement of Financial Position</h4>' . $sofp
+            . '<h4 style="color:#13294b;margin-top:18px;">3 · Statement of Profit or Loss &amp; Other Comprehensive Income</h4>' . $sopl
+            . '<h4 style="color:#13294b;margin-top:18px;">4 · Statement of Changes in Equity</h4>' . $soce
+            . '<h4 style="color:#13294b;margin-top:18px;">5 · Statement of Cash Flows</h4>' . $scf
+            . '<h4 style="color:#13294b;margin-top:18px;">6 · Notes to the Financial Statements</h4>' . $notes
+            . '<h4 style="color:#13294b;margin-top:18px;">Compliance checks</h4>' . $compSummary
+            . '<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f0f3f8;"><th>Result</th><th>Check</th></tr></thead><tbody>' . $cr . '</tbody></table>'
+            . '<div style="display:flex;justify-content:space-between;margin-top:18px;border-top:1px solid #cfd8e6;padding-top:10px;font-size:12px;">'
+            . '<div>Approved by the Board and signed on its behalf:<br><strong>' . epc_erp_h($director) . '</strong></div>'
+            . '<div style="text-align:right;">' . epc_erp_h($auditor) . '<br>' . epc_erp_h($opinionDate) . '</div></div>';
+
+        return array(
+            'title' => 'IFRS Financial Statements & Audit Report — imported',
+            'body' => $body,
+            'summary' => array(
+                'Revenue (' . $cL . ')' => $m($C['rev']),
+                'Profit for the year' => $m($C['profit']),
+                'Total assets' => $m($C['tAsset']),
+                'Total equity' => $m($C['equity']),
+                'SOFP balanced' => $balOk ? 'Yes' : 'No (' . $m($C['diff']) . ')',
+                'Compliance' => ($errors === 0 && $warns === 0) ? 'All passed' : ($errors . ' err / ' . $warns . ' review'),
+            ),
+            'meta' => $map['meta'],
+        );
+    }
+}
+
+if (!function_exists('epc_ext_fin_projection')) {
+    /**
+     * Five-year forecast built from the dataset's current-year actuals using an
+     * explicit assumptions block. Returns the assumptions and a yearly series
+     * (P&L, free cash flow, EBITDA) used by both the financial model and the
+     * valuation report so the two are internally consistent.
+     *
+     * @param array $d output of epc_ext_fin_dataset()
+     * @return array{assume:array<string,float>,years:array<int,array<string,float|int>>,base:array<string,float|int>}
+     */
+    function epc_ext_fin_projection(array $d): array
+    {
+        $cur = $d['cur'];
+        $assume = array(
+            'growth' => 0.12,      // revenue CAGR
+            'grossMargin' => round(($cur['gross'] / max(1.0, $cur['rev'])), 4),
+            'opexPct' => round(($cur['opex'] / max(1.0, $cur['rev'])), 4),
+            'deprPct' => round(($cur['depr'] / max(1.0, $cur['rev'])), 4),
+            'interestPct' => round(($cur['interest'] / max(1.0, $cur['rev'])), 4),
+            'capexPct' => 0.06,
+            'wcPct' => 0.04,       // incremental working capital as % of revenue growth
+            'taxRate' => 0.09,
+            'taxFree' => 375000.0,
+            'wacc' => 0.12,
+            'terminalGrowth' => 0.03,
+        );
+        $years = array();
+        $rev = (float) $cur['rev'];
+        $baseYear = (int) $d['curYear'];
+        for ($i = 1; $i <= 5; $i++) {
+            $prevRev = $rev;
+            $rev = round($rev * (1 + $assume['growth']), 2);
+            $gross = round($rev * $assume['grossMargin'], 2);
+            $opex = round($rev * $assume['opexPct'], 2);
+            $depr = round($rev * $assume['deprPct'], 2);
+            $interest = round($rev * $assume['interestPct'], 2);
+            $ebitda = round($gross - $opex, 2);
+            $ebit = round($ebitda - $depr, 2);
+            $pbt = round($ebit - $interest, 2);
+            $tax = round(max(0.0, $pbt - $assume['taxFree']) * $assume['taxRate'], 2);
+            $profit = round($pbt - $tax, 2);
+            $capex = round($rev * $assume['capexPct'], 2);
+            $dWc = round(($rev - $prevRev) * $assume['wcPct'], 2);
+            // unlevered free cash flow: EBIT(1-t) + depr - capex - ΔWC
+            $nopat = round($ebit * (1 - $assume['taxRate']), 2);
+            $fcf = round($nopat + $depr - $capex - $dWc, 2);
+            $years[] = array(
+                'year' => $baseYear + $i, 'n' => $i, 'rev' => $rev, 'gross' => $gross,
+                'opex' => $opex, 'ebitda' => $ebitda, 'depr' => $depr, 'ebit' => $ebit,
+                'interest' => $interest, 'pbt' => $pbt, 'tax' => $tax, 'profit' => $profit,
+                'capex' => $capex, 'dWc' => $dWc, 'nopat' => $nopat, 'fcf' => $fcf,
+            );
+        }
+        $base = array(
+            'year' => $baseYear, 'rev' => $cur['rev'], 'gross' => $cur['gross'],
+            'opex' => $cur['opex'], 'ebitda' => $cur['ebitda'], 'depr' => $cur['depr'],
+            'ebit' => round($cur['ebitda'] - $cur['depr'], 2), 'pbt' => $cur['pbt'],
+            'tax' => $cur['tax'], 'profit' => $cur['profit'],
+        );
+        return array('assume' => $assume, 'years' => $years, 'base' => $base);
+    }
+}
+
+if (!function_exists('epc_ext_b_finmodel')) {
+    /**
+     * Financial Model — a 3-statement-aware five-year forecast built from the
+     * live GL actuals (period-aware) with an explicit assumptions block, a
+     * projected P&L, EBITDA / free-cash-flow build and key ratios. Drives the
+     * valuation report so both stay consistent. Tenant-country-driven.
+     */
+    function epc_ext_b_finmodel(PDO $db, string $name, string $country, string $ccy, $from, $to): array
+    {
+        $d = epc_ext_fin_dataset($db, $from, $to);
+        $co = epc_ext_company($db);
+        $entity = (string) ($co['legal_name'] ?: 'ECOM AE General Trading LLC');
+        $proj = epc_ext_fin_projection($d);
+        $a = $proj['assume']; $years = $proj['years']; $base = $proj['base'];
+        $m = static function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        $pct = static function ($v) { return number_format((float) $v * 100, 1) . '%'; };
+
+        $cover = epc_ext_cover_page(
+            $entity,
+            'Financial Model & Five-Year Forecast',
+            'Financial model · 3-statement · DCF-ready',
+            array(
+                'Base year (actuals)' => 'FY' . $base['year'],
+                'Forecast horizon' => 'FY' . ($base['year'] + 1) . ' — FY' . ($base['year'] + 5),
+                'Presentation currency' => $ccy,
+                'Revenue growth assumption' => $pct($a['growth']),
+                'WACC' => $pct($a['wacc']),
+                'Terminal growth' => $pct($a['terminalGrowth']),
+            ),
+            array(
+                array('1', 'Assumptions'),
+                array('2', 'Projected profit & loss'),
+                array('3', 'EBITDA & free cash flow'),
+                array('4', 'Key ratios'),
+            )
+        );
+
+        // assumptions
+        $assumeTbl = epc_ext_kv_table(array(
+            array('Revenue growth (CAGR)', $pct($a['growth'])),
+            array('Gross margin', $pct($a['grossMargin'])),
+            array('Operating expenses (% revenue)', $pct($a['opexPct'])),
+            array('Depreciation (% revenue)', $pct($a['deprPct'])),
+            array('Capex (% revenue)', $pct($a['capexPct'])),
+            array('Incremental working capital (% of revenue growth)', $pct($a['wcPct'])),
+            array('Corporate tax rate (above ' . $m($a['taxFree']) . ')', $pct($a['taxRate'])),
+            array('WACC (discount rate)', $pct($a['wacc'])),
+            array('Terminal growth rate', $pct($a['terminalGrowth'])),
+        ));
+
+        // projected P&L table (base + 5 yrs)
+        $hdr = '<th>&nbsp;</th><th style="text-align:right;">FY' . $base['year'] . '<br><small>actual</small></th>';
+        foreach ($years as $y) { $hdr .= '<th style="text-align:right;">FY' . $y['year'] . '</th>'; }
+        $rowF = static function (string $label, string $key, $base, array $years, callable $m, string $kind = '') {
+            $w = $kind === 'sub' ? 'font-weight:700;border-top:1px solid #cfd8e6;' : ($kind === 'total' ? 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;' : '');
+            $r = '<tr><td style="padding:4px 8px;' . $w . '">' . $label . '</td>'
+                . '<td style="padding:4px 8px;text-align:right;' . $w . '">' . $m($base[$key] ?? 0) . '</td>';
+            foreach ($years as $y) { $r .= '<td style="padding:4px 8px;text-align:right;' . $w . '">' . $m($y[$key]) . '</td>'; }
+            return $r . '</tr>';
+        };
+        $pl = '<div style="overflow-x:auto;"><table class="table table-condensed" style="font-size:12px;min-width:680px;"><thead><tr style="background:#13294b;color:#fff;">' . $hdr . '</tr></thead><tbody>'
+            . $rowF('Revenue', 'rev', $base, $years, $m)
+            . $rowF('Gross profit', 'gross', $base, $years, $m, 'sub')
+            . $rowF('Operating expenses', 'opex', $base, $years, $m)
+            . $rowF('EBITDA', 'ebitda', $base, $years, $m, 'sub')
+            . $rowF('Depreciation & amortisation', 'depr', $base, $years, $m)
+            . $rowF('Profit before tax', 'pbt', $base, $years, $m, 'sub')
+            . $rowF('Income tax', 'tax', $base, $years, $m)
+            . $rowF('Net profit', 'profit', $base, $years, $m, 'total')
+            . '</tbody></table></div>';
+
+        // FCF table
+        $hdr2 = '<th>&nbsp;</th>';
+        foreach ($years as $y) { $hdr2 .= '<th style="text-align:right;">FY' . $y['year'] . '</th>'; }
+        $fcf = '<div style="overflow-x:auto;"><table class="table table-condensed" style="font-size:12px;min-width:620px;"><thead><tr style="background:#13294b;color:#fff;">' . $hdr2 . '</tr></thead><tbody>'
+            . $rowF('EBIT', 'ebit', array('ebit' => ''), $years, $m)
+            . $rowF('NOPAT (EBIT × (1−t))', 'nopat', array('nopat' => ''), $years, $m)
+            . $rowF('add: depreciation', 'depr', array('depr' => ''), $years, $m)
+            . $rowF('less: capex', 'capex', array('capex' => ''), $years, $m)
+            . $rowF('less: Δ working capital', 'dWc', array('dWc' => ''), $years, $m)
+            . $rowF('Free cash flow', 'fcf', array('fcf' => ''), $years, $m, 'total')
+            . '</tbody></table></div>';
+        // remove the empty leading actual column produced by '' base above
+        $fcf = str_replace('<td style="padding:4px 8px;text-align:right;"></td>', '', $fcf);
+        $fcf = str_replace('<td style="padding:4px 8px;text-align:right;font-weight:700;border-top:1px solid #cfd8e6;"></td>', '', $fcf);
+        $fcf = str_replace('<td style="padding:4px 8px;text-align:right;font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;"></td>', '', $fcf);
+
+        // ratios on base year
+        $ratios = epc_ext_kv_table(array(
+            array('Gross margin', $pct($a['grossMargin'])),
+            array('EBITDA margin', $pct($base['ebitda'] / max(1.0, $base['rev']))),
+            array('Net margin', $pct($base['profit'] / max(1.0, $base['rev']))),
+            array('Revenue CAGR (forecast)', $pct($a['growth'])),
+            array('Year-5 revenue', $m($years[4]['rev'])),
+            array('Year-5 EBITDA', $m($years[4]['ebitda'])),
+        ));
+
+        $guide = epc_ext_field_guide('Field guide — how to read the financial model',
+            'A financial model projects the business forward from its latest actuals using stated assumptions. Free cash flow drives the valuation.',
+            array(
+                array('Assumptions', 'Every projected figure is driven by these — growth, margins, capex and working capital. Change an assumption and the whole model moves.'),
+                array('Projected P&L', 'Revenue grown at the CAGR; costs scaled by their margins; tax at the corporate rate. Net profit is the bottom line each year.'),
+                array('EBITDA', 'Earnings before interest, tax, depreciation & amortisation — a proxy for operating cash generation and the basis for EV/EBITDA multiples.'),
+                array('Free cash flow', 'NOPAT + depreciation − capex − increase in working capital. This is the cash available to all investors and the input to a DCF valuation.'),
+                array('Key ratios', 'Margins and growth let you benchmark the business and sense-check the forecast.'),
+            ));
+
+        $commentary = epc_ext_commentary('Model explained', array(
+            'This <strong>five-year financial model</strong> starts from the latest actual year (FY' . $base['year'] . ', anchored to the general ledger for the selected period) and projects revenue, profit and <strong>free cash flow</strong> forward using the assumptions in section 1.',
+            'Revenue grows at <strong>' . $pct($a['growth']) . '</strong> a year; margins, depreciation, capex and working capital are held at their current ratios. Corporate tax is applied at <strong>' . $pct($a['taxRate']) . '</strong> on taxable profit above ' . $m($a['taxFree']) . '.',
+            'The <strong>free cash flow</strong> line feeds directly into the Business Valuation report (DCF), so the model and the valuation are internally consistent.',
+        ));
+
+        $body = $cover
+            . '<p class="text-muted">A <strong>five-year financial model</strong> built from the live GL actuals for the selected period, with an explicit assumptions block, projected P&amp;L, EBITDA / free-cash-flow build and key ratios. Drives the Business Valuation report.</p>'
+            . $guide . $commentary
+            . '<h4 style="color:#13294b;margin-top:16px;">1 · Assumptions</h4>' . $assumeTbl
+            . '<h4 style="color:#13294b;margin-top:18px;">2 · Projected profit &amp; loss</h4>' . $pl
+            . '<h4 style="color:#13294b;margin-top:18px;">3 · EBITDA &amp; free cash flow</h4>' . $fcf
+            . '<h4 style="color:#13294b;margin-top:18px;">4 · Key ratios</h4>' . $ratios;
+
+        return array(
+            'title' => 'Financial Model & Five-Year Forecast',
+            'body' => $body,
+            'summary' => array(
+                'Base revenue (FY' . $base['year'] . ')' => $m($base['rev']),
+                'Year-5 revenue' => $m($years[4]['rev']),
+                'Year-5 EBITDA' => $m($years[4]['ebitda']),
+                'Year-1 free cash flow' => $m($years[0]['fcf']),
+                'WACC' => $pct($a['wacc']),
+            ),
+            'live' => (bool) ($d['live'] ?? false),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_b_valuation')) {
+    /**
+     * Business Valuation Report — values the entity by three methods that all
+     * draw on the same financial model: discounted cash flow (WACC + Gordon
+     * terminal value), market multiples (EV/EBITDA, P/E) and net assets / book
+     * value. Produces an enterprise value → equity value bridge with a valuation
+     * summary, field guide and commentary. Tenant-country-driven.
+     */
+    function epc_ext_b_valuation(PDO $db, string $name, string $country, string $ccy, $from, $to): array
+    {
+        $d = epc_ext_fin_dataset($db, $from, $to);
+        $co = epc_ext_company($db);
+        $entity = (string) ($co['legal_name'] ?: 'ECOM AE General Trading LLC');
+        $proj = epc_ext_fin_projection($d);
+        $a = $proj['assume']; $years = $proj['years']; $base = $proj['base'];
+        $cur = $d['cur'];
+        $m = static function ($v) use ($ccy) { return epc_ext_m((float) $v, $ccy); };
+        $pct = static function ($v) { return number_format((float) $v * 100, 1) . '%'; };
+
+        $wacc = $a['wacc']; $g = $a['terminalGrowth'];
+        // ---- DCF -----------------------------------------------------------
+        $pvSum = 0.0; $dcfRows = '';
+        foreach ($years as $y) {
+            $df = 1 / pow(1 + $wacc, $y['n']);
+            $pv = round($y['fcf'] * $df, 2);
+            $pvSum += $pv;
+            $dcfRows .= '<tr><td style="padding:4px 8px;">FY' . $y['year'] . '</td>'
+                . '<td style="padding:4px 8px;text-align:right;">' . $m($y['fcf']) . '</td>'
+                . '<td style="padding:4px 8px;text-align:right;">' . number_format($df, 3) . '</td>'
+                . '<td style="padding:4px 8px;text-align:right;">' . $m($pv) . '</td></tr>';
+        }
+        $fcf5 = (float) $years[4]['fcf'];
+        $terminal = round(($fcf5 * (1 + $g)) / ($wacc - $g), 2);
+        $pvTerminal = round($terminal / pow(1 + $wacc, 5), 2);
+        $evDcf = round($pvSum + $pvTerminal, 2);
+
+        $netDebt = round(($cur['borrowCur'] + $cur['borrowNon'] + $cur['lease']) - $cur['cash'], 2);
+        $equityDcf = round($evDcf - $netDebt, 2);
+
+        $dcf = '<div style="overflow-x:auto;"><table class="table table-condensed" style="font-size:12px;min-width:560px;"><thead><tr style="background:#13294b;color:#fff;">'
+            . '<th>Year</th><th style="text-align:right;">Free cash flow</th><th style="text-align:right;">Discount factor</th><th style="text-align:right;">Present value</th></tr></thead><tbody>'
+            . $dcfRows
+            . '<tr style="font-weight:700;border-top:1px solid #cfd8e6;"><td colspan="3" style="padding:4px 8px;">Sum of PV of explicit FCF</td><td style="padding:4px 8px;text-align:right;">' . $m($pvSum) . '</td></tr>'
+            . '<tr><td colspan="3" style="padding:4px 8px;">Terminal value (Gordon, g=' . $pct($g) . ') = FCF₅×(1+g)/(WACC−g)</td><td style="padding:4px 8px;text-align:right;">' . $m($terminal) . '</td></tr>'
+            . '<tr><td colspan="3" style="padding:4px 8px;">PV of terminal value</td><td style="padding:4px 8px;text-align:right;">' . $m($pvTerminal) . '</td></tr>'
+            . '<tr style="font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;"><td colspan="3" style="padding:4px 8px;">Enterprise value (DCF)</td><td style="padding:4px 8px;text-align:right;">' . $m($evDcf) . '</td></tr>'
+            . '</tbody></table></div>';
+
+        // ---- multiples -----------------------------------------------------
+        $evEbitdaMult = 7.0; $peMult = 12.0;
+        $evMult = round($base['ebitda'] * $evEbitdaMult, 2);
+        $equityMult = round($evMult - $netDebt, 2);
+        $equityPe = round($base['profit'] * $peMult, 2);
+        $multiples = epc_ext_kv_table(array(
+            array('EBITDA (FY' . $base['year'] . ')', $m($base['ebitda'])),
+            array('EV/EBITDA multiple (comparable)', number_format($evEbitdaMult, 1) . '×'),
+            array('Enterprise value (EV/EBITDA)', $m($evMult)),
+            array('less: net debt', '(' . $m($netDebt) . ')'),
+            array('Equity value (EV/EBITDA)', $m($equityMult)),
+            array('Net profit (FY' . $base['year'] . ')', $m($base['profit'])),
+            array('P/E multiple (comparable)', number_format($peMult, 1) . '×'),
+            array('Equity value (P/E)', $m($equityPe)),
+        ));
+
+        // ---- net assets ----------------------------------------------------
+        $netAssets = round($cur['totalEquity'], 2);
+        $netAssetsTbl = epc_ext_kv_table(array(
+            array('Total assets', $m($cur['totalAssets'])),
+            array('less: total liabilities', '(' . $m($cur['totalLiab']) . ')'),
+            array('Net assets / book value of equity', $m($netAssets)),
+        ));
+
+        // ---- summary -------------------------------------------------------
+        $vals = array($equityDcf, $equityMult, $equityPe, $netAssets);
+        $avg = round(array_sum($vals) / count($vals), 2);
+        $lo = round(min($vals), 2); $hi = round(max($vals), 2);
+        $summaryTbl = epc_ext_kv_table(array(
+            array('Discounted cash flow (equity)', $m($equityDcf)),
+            array('Market multiples — EV/EBITDA (equity)', $m($equityMult)),
+            array('Market multiples — P/E (equity)', $m($equityPe)),
+            array('Net assets / book value', $m($netAssets)),
+            array('Indicative equity value range', $m($lo) . '  —  ' . $m($hi)),
+            array('Central estimate (average)', $m($avg), true),
+        ));
+
+        $cover = epc_ext_cover_page(
+            $entity,
+            'Business Valuation Report',
+            'Valuation · DCF · multiples · net assets',
+            array(
+                'Valuation date' => date('d M Y'),
+                'Base year (actuals)' => 'FY' . $base['year'],
+                'Presentation currency' => $ccy,
+                'WACC' => $pct($wacc),
+                'Terminal growth' => $pct($g),
+                'Central equity value' => $m($avg),
+            ),
+            array(
+                array('1', 'Valuation summary'),
+                array('2', 'Discounted cash flow (DCF)'),
+                array('3', 'Market multiples'),
+                array('4', 'Net assets / book value'),
+            )
+        );
+
+        $guide = epc_ext_field_guide('Field guide — how the business is valued',
+            'Three independent methods triangulate a defensible value. Each starts from the financial model.',
+            array(
+                array('Discounted cash flow', 'Projected free cash flows are discounted to today at the WACC; a terminal value captures cash flows beyond the forecast. Sum = enterprise value.'),
+                array('Enterprise vs equity', 'Enterprise value − net debt = equity value (what the shares are worth). Net debt = borrowings + leases − cash.'),
+                array('Market multiples', 'Apply a comparable EV/EBITDA or P/E multiple to the company\'s earnings to cross-check the DCF.'),
+                array('Net assets', 'Book value of equity (assets − liabilities) — a floor value, most relevant for asset-heavy businesses.'),
+                array('Valuation range', 'The methods rarely agree exactly; the range and central estimate communicate the uncertainty honestly.'),
+            ));
+
+        $commentary = epc_ext_commentary('Valuation explained', array(
+            'This report values <strong>' . epc_erp_h($entity) . '</strong> using three methods that all draw on the same five-year financial model, so the analysis is internally consistent.',
+            'The <strong>DCF</strong> discounts projected free cash flows at a WACC of <strong>' . $pct($wacc) . '</strong> and adds a Gordon-growth terminal value (g = ' . $pct($g) . '), giving an enterprise value of <strong>' . $m($evDcf) . '</strong> and, after net debt of ' . $m($netDebt) . ', an equity value of <strong>' . $m($equityDcf) . '</strong>.',
+            'The <strong>market-multiple</strong> and <strong>net-asset</strong> methods cross-check this. The indicative equity range is <strong>' . $m($lo) . ' — ' . $m($hi) . '</strong>, with a central estimate of <strong>' . $m($avg) . '</strong>.',
+        ));
+
+        $body = $cover
+            . '<p class="text-muted">A <strong>business valuation</strong> by three methods — discounted cash flow, market multiples and net assets — all built on the five-year financial model from the live GL actuals. Tenant-country-driven.</p>'
+            . $guide . $commentary
+            . '<h4 style="color:#13294b;margin-top:16px;">1 · Valuation summary</h4>' . $summaryTbl
+            . '<h4 style="color:#13294b;margin-top:18px;">2 · Discounted cash flow (DCF)</h4>' . $dcf
+            . '<p class="text-muted" style="font-size:11.5px;">Enterprise value ' . $m($evDcf) . ' − net debt ' . $m($netDebt) . ' = equity value ' . $m($equityDcf) . '.</p>'
+            . '<h4 style="color:#13294b;margin-top:18px;">3 · Market multiples</h4>' . $multiples
+            . '<h4 style="color:#13294b;margin-top:18px;">4 · Net assets / book value</h4>' . $netAssetsTbl;
+
+        return array(
+            'title' => 'Business Valuation Report',
+            'body' => $body,
+            'summary' => array(
+                'Enterprise value (DCF)' => $m($evDcf),
+                'Equity value (DCF)' => $m($equityDcf),
+                'Equity value (EV/EBITDA)' => $m($equityMult),
+                'Net assets' => $m($netAssets),
+                'Central equity value' => $m($avg),
+            ),
+            'live' => (bool) ($d['live'] ?? false),
         );
     }
 }

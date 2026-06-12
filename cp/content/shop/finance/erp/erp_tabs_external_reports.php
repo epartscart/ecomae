@@ -87,13 +87,18 @@ $countryOptions = array('AE','SA','QA','OM','BH','KW','IN','PK','BD','LK','SG','
 <?php
 if ($selTool === 'import') {
 	// ------------------------------------------------ off-system Excel/CSV import
-	$impKind = (isset($_GET['kind']) && $_GET['kind'] === 'ct') ? 'ct' : (isset($_POST['imp_kind']) && $_POST['imp_kind'] === 'ct' ? 'ct' : 'vat');
+	$impKindReq = (string) ($_GET['kind'] ?? ($_POST['imp_kind'] ?? ''));
+	$impKind = in_array($impKindReq, array('vat', 'ct', 'fin'), true) ? $impKindReq : 'vat';
 	$impCountry = $regCountry;
 	$impCountryName = $regName;
 	$impCcy = (string) ($regProf['currency'] ?? 'AED');
-	$impAuth = $impKind === 'ct'
-		? array('name' => 'Federal Tax Authority (FTA)', 'law' => 'Corporate Tax — Federal Decree-Law 47/2022', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae')
-		: array('name' => 'Federal Tax Authority (FTA)', 'law' => 'VAT — Federal Decree-Law 8/2017', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
+	if ($impKind === 'fin') {
+		$impAuth = array('name' => 'IFRS Foundation (IASB)', 'law' => 'IFRS as issued by the IASB · ISA (IAASB)', 'url' => 'https://www.ifrs.org', 'format' => 'https://www.iaasb.org/standards-pronouncements');
+	} elseif ($impKind === 'ct') {
+		$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'Corporate Tax — Federal Decree-Law 47/2022', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
+	} else {
+		$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'VAT — Federal Decree-Law 8/2017', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
+	}
 
 	$impBuilt = null;
 	$impError = '';
@@ -107,7 +112,13 @@ if ($selTool === 'import') {
 				$impError = 'Could not read the file. Save it as .xlsx or .csv using the provided template and try again.';
 			} else {
 				$map = epc_ext_import_map($rows);
-				if ($impKind === 'ct') {
+				if ($impKind === 'fin') {
+					if (empty($map['fin'])) {
+						$impError = 'No financial-statement lines found. Use the IFRS Financials template (Code column: FIN_REVENUE, FIN_PPE, …).';
+					} else {
+						$impBuilt = epc_ext_b_fin_summary($map, $impCcy);
+					}
+				} elseif ($impKind === 'ct') {
 					if (empty($map['values'])) {
 						$impError = 'No CT computation lines found. Use the CT template (Code column: ACCT_PROFIT, FINES, …).';
 					} else {
@@ -142,15 +153,19 @@ if ($selTool === 'import') {
 				<div style="margin-bottom:6px;">
 					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplVatX','VAT201_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.xlsx)</button>
 					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplCtX','CT_return_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.xlsx)</button>
+					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplFinX','IFRS_financials_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> IFRS Financials workbook (.xlsx)</button>
 				</div>
 				<div>
 					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplVat','VAT201_import_template.csv')"><i class="fa fa-file-text-o"></i> VAT CSV (summary only)</button>
 					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplCt','CT_return_import_template.csv')"><i class="fa fa-file-text-o"></i> CT CSV (summary only)</button>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplFin','IFRS_financials_import_template.csv')"><i class="fa fa-file-text-o"></i> Financials CSV (summary only)</button>
 				</div>
 				<textarea id="epcTplVat" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('vat')); ?></textarea>
 				<textarea id="epcTplCt" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('ct')); ?></textarea>
+				<textarea id="epcTplFin" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('fin')); ?></textarea>
 				<textarea id="epcTplVatX" style="display:none;"><?php echo base64_encode(epc_ext_import_template_xlsx('vat')); ?></textarea>
 				<textarea id="epcTplCtX" style="display:none;"><?php echo base64_encode(epc_ext_import_template_xlsx('ct')); ?></textarea>
+				<textarea id="epcTplFinX" style="display:none;"><?php echo base64_encode(epc_ext_import_template_xlsx('fin')); ?></textarea>
 				<script>
 				function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob([t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
 				function epcDlB64(id,fn){var el=document.getElementById(id);if(!el)return;var b64=(el.value!==undefined?el.value:el.textContent).replace(/\s+/g,'');var bin=atob(b64);var len=bin.length;var bytes=new Uint8Array(len);for(var i=0;i<len;i++){bytes[i]=bin.charCodeAt(i);}var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
@@ -162,6 +177,7 @@ if ($selTool === 'import') {
 					<select name="imp_kind" class="form-control input-sm" style="margin:4px 6px 4px 0;">
 						<option value="vat" <?php echo $impKind === 'vat' ? 'selected' : ''; ?>>VAT Return (FTA VAT 201)</option>
 						<option value="ct" <?php echo $impKind === 'ct' ? 'selected' : ''; ?>>Corporate Tax Return</option>
+						<option value="fin" <?php echo $impKind === 'fin' ? 'selected' : ''; ?>>IFRS Financial Statements &amp; Audit Report</option>
 					</select>
 					<input type="file" name="imp_file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" required>
 					<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> Build return</button>

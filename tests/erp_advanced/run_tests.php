@@ -357,6 +357,42 @@ if (class_exists('ZipArchive')) {
 check('XLSX column index A=0, B=1, AA=26', epc_ext_xlsx_col_index('A') === 0 && epc_ext_xlsx_col_index('B') === 1 && epc_ext_xlsx_col_index('AA') === 26, 'col idx');
 check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('co' => 'X')), '__epcExtCtx') !== false && strpos(epc_ext_print_fn_js(), 'function epcExtPrint') !== false, 'print js');
 
+// ---- External Audit Report (ISA 700) — cover page + full IFRS pack ----
+$audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
+check('Audit report has cover page + table of contents', strpos($audit['body'], 'ext-cover') !== false && strpos($audit['body'], 'Table of contents') !== false, 'cover');
+check('Audit report has all four IFRS statements', strpos($audit['body'], 'Statement of Financial Position') !== false && strpos($audit['body'], 'Other Comprehensive Income') !== false && strpos($audit['body'], 'Changes in Equity') !== false && strpos($audit['body'], 'Cash Flows') !== false, 'statements');
+check('Audit report has Independent Auditor\'s Report', strpos($audit['body'], 'Independent Auditor') !== false && strpos($audit['body'], 'ISA 700') !== false, 'opinion');
+
+// ---- Off-system IFRS financial-statements import (template + builder) ----
+$finTpl = epc_ext_import_template_csv('fin');
+check('FIN import template has Code header + lines', strpos($finTpl, 'FIN_REVENUE') !== false && strpos($finTpl, 'FIN_PPE') !== false && strpos($finTpl, 'Prior year') !== false, 'fin tpl');
+$tmpF = tempnam(sys_get_temp_dir(), 'fin') . '.csv';
+file_put_contents($tmpF, $finTpl);
+$mapF = epc_ext_import_map(epc_ext_parse_table($tmpF, 'sample.csv') ?: array());
+@unlink($tmpF);
+check('Parse FIN CSV -> current + prior + meta', ($mapF['fin']['FIN_REVENUE']['cur'] ?? 0) == 8400000.0 && ($mapF['fin']['FIN_REVENUE']['pri'] ?? 0) == 7500000.0 && ($mapF['meta']['META_TRN'] ?? '') === '100000000000003', count($mapF['fin']) . ' lines');
+$impFin = epc_ext_b_fin_summary($mapF, 'AED');
+check('Import FIN builds full IFRS pack + cover', strpos($impFin['body'], 'ext-cover') !== false && strpos($impFin['body'], 'Independent Auditor') !== false && strpos($impFin['body'], 'Statement of Cash Flows') !== false, $impFin['title']);
+check('Import FIN SOFP balances', ($impFin['summary']['SOFP balanced'] ?? '') === 'Yes', $impFin['summary']['SOFP balanced'] ?? 'NA');
+check('Import FIN is off-system', strpos($impFin['body'], 'off-system') !== false && strpos($impFin['body'], 'uploaded workbook') !== false, 'off-system note');
+if (class_exists('ZipArchive')) {
+    $finSheets = epc_ext_import_template_sheets('fin');
+    check('FIN workbook carries all statement sheets', isset($finSheets['Company & details'], $finSheets['Financial data'], $finSheets['Notes inputs'], $finSheets['Compliance checklist']), count($finSheets) . ' sheets');
+    $tmpFx = tempnam(sys_get_temp_dir(), 'finx') . '.xlsx';
+    file_put_contents($tmpFx, epc_ext_import_template_xlsx('fin'));
+    $mapFx = epc_ext_import_map(epc_ext_parse_all_rows($tmpFx, 'wb.xlsx') ?: array());
+    @unlink($tmpFx);
+    check('XLSX FIN round-trip reads figures + comparatives', ($mapFx['fin']['FIN_PPE']['cur'] ?? 0) == 3528000.0 && ($mapFx['fin']['FIN_PPE']['pri'] ?? 0) == 3150000.0 && ($mapFx['meta']['META_AUDITOR'] ?? '') !== '', count($mapFx['fin']) . ' lines');
+}
+
+// ---- Financial Model + Business Valuation ----
+$fm = epc_ext_b_finmodel($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
+check('Financial model has assumptions + projection + FCF', strpos($fm['body'], 'Assumptions') !== false && strpos($fm['body'], 'free cash flow') !== false && strpos($fm['body'], 'EBITDA') !== false, $fm['title']);
+check('Financial model summary has year-5 figures', isset($fm['summary']['Year-5 revenue'], $fm['summary']['Year-1 free cash flow']), implode(',', array_keys($fm['summary'])));
+$val = epc_ext_b_valuation($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
+check('Valuation has DCF + multiples + net assets', strpos($val['body'], 'Discounted cash flow') !== false && strpos($val['body'], 'Market multiples') !== false && strpos($val['body'], 'Net assets') !== false, $val['title']);
+check('Valuation summary has EV + equity + central value', isset($val['summary']['Enterprise value (DCF)'], $val['summary']['Equity value (DCF)'], $val['summary']['Central equity value']), implode(',', array_keys($val['summary'])));
+
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
 echo "========================================\n";
