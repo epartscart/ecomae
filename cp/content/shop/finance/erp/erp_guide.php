@@ -119,6 +119,16 @@ $deptCfg = epc_erp_departments_config();
 				</ul>
 			</div>
 
+			<h4><i class="fa fa-cubes"></i> Ecom BOS — Business Operating System pillars</h4>
+			<div class="well well-sm">
+				<p>The suite is now a multi-tenant <strong>Business Operating System (BOS)</strong>: ERP is one pillar alongside commerce, compliance, workflows and industry intelligence. Three new operational pillars ship natively (config-driven, per-tenant &mdash; nothing hard-coded):</p>
+				<ul>
+					<li><strong>Compliance center</strong> (<a href="/erp/?area=finance&amp;tab=compliance">Finance &rsaquo; Compliance center</a>) &mdash; a config-driven obligations engine: filing obligations (VAT, corporate tax, ESR, e-invoicing, WPS&hellip;) seeded from your region, a live <strong>filing calendar</strong> with due dates and status (open / due soon / overdue / filed), and <strong>document-retention</strong> rules. Add, edit or disable any item; mark a return filed with a reference and it drops out of the overdue/due-soon counts.</li>
+					<li><strong>Approvals engine</strong> (<a href="/erp/?area=overview&amp;tab=approvals">Overview &rsaquo; Approvals</a>) &mdash; a reusable threshold approval engine across documents. Define rules per document type (e.g. <em>PO &ge; 10,000 &rarr; Manager approval</em>) with multi-step approver chains; high-value sales orders, purchase orders and payment vouchers are routed automatically for sign-off with a full <strong>immutable audit trail</strong>. Approve/reject with comments from the queue.</li>
+					<li><strong>Industry intelligence</strong> (<a href="/erp/?area=insights&amp;tab=industry_intel">Insights &rsaquo; Industry intelligence</a>) &mdash; live operational KPIs (gross margin %, DSO, DPO, inventory turnover, current ratio, AR/AP/cash/inventory) plus a best-practice <strong>recommended-controls checklist</strong> tailored to the active industry pack and saved per tenant.</li>
+				</ul>
+			</div>
+
 			<h4><i class="fa fa-sitemap"></i> End-to-end flows</h4>
 			<div class="well well-sm epc-erp-flow">
 				<p><strong>A. Sales &amp; revenue (customer side)</strong></p>
