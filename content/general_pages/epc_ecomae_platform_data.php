@@ -960,8 +960,6 @@ function epc_ecomae_platform_nav()
 		array('key' => 'platform', 'label' => 'Platform', 'href' => $base . 'platform'),
 		array('key' => 'industries', 'label' => 'Industries', 'href' => $base . 'platform/industries'),
 		array('key' => 'capabilities', 'label' => 'Capabilities', 'href' => $base . 'platform/capabilities'),
-		array('key' => 'api_services', 'label' => 'API services', 'href' => $base . 'platform/api-services'),
-		array('key' => 'api_documentation', 'label' => 'Tenant API', 'href' => $base . 'platform/api-documentation'),
 		array('key' => 'pricing', 'label' => 'Pricing', 'href' => $base . 'platform/pricing'),
 		array('key' => 'about', 'label' => 'About', 'href' => $base . 'platform/about'),
 		array('key' => 'contact', 'label' => 'Contact', 'href' => $base . 'platform/contact'),
