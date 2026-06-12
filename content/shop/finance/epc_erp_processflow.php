@@ -571,6 +571,247 @@ function epc_pf_case_cancel(PDO $db, int $caseId): void
 		->execute(array(time(), time(), $caseId));
 }
 
+/* ---------- automatic order-to-delivery process ---------- */
+
+/** Stable category tag for the built-in order lifecycle process. */
+const EPC_PF_ORDER_CATEGORY = 'order_lifecycle';
+
+/**
+ * Ensure the built-in "Customer Order → Delivery" process exists (idempotent).
+ * Every tenant gets it automatically; it drives the auto-created case per order.
+ * Returns the process id.
+ */
+function epc_pf_ensure_order_process(PDO $db): int
+{
+	epc_pf_ensure_schema($db);
+	$id = (int) $db->query("SELECT `id` FROM `epc_pf_processes` WHERE `category` = '" . EPC_PF_ORDER_CATEGORY . "' ORDER BY `id` LIMIT 1")->fetchColumn();
+	if ($id > 0) {
+		return $id;
+	}
+	$pid = epc_pf_process_save($db, array(
+		'name' => 'Customer Order → Delivery',
+		'description' => 'Runs automatically for every customer order (online portal or manual). The case is created when the order arrives and advances by itself as the order is quoted, paid, procured, dispatched, delivered and invoiced.',
+		'category' => EPC_PF_ORDER_CATEGORY,
+	));
+	$steps = array(
+		array('Order received', 'department', 'sales', 4),
+		array('Quotation confirmed', 'dept_head', 'sales', 12),
+		array('Payment received', 'dept_head', 'finance', 24),
+		array('Goods ready / procured', 'dept_head', 'purchase', 48),
+		array('Out for delivery', 'dept_head', 'logistics', 12),
+		array('Delivered', 'department', 'logistics', 24),
+		array('Invoiced & closed', 'dept_head', 'accounts', 12),
+	);
+	$no = 1;
+	foreach ($steps as $s) {
+		epc_pf_step_save($db, array(
+			'process_id' => $pid,
+			'step_no' => $no++,
+			'name' => $s[0],
+			'assign_type' => $s[1],
+			'assign_department' => $s[2],
+			'sla_hours' => $s[3],
+		));
+	}
+	return $pid;
+}
+
+/**
+ * Gather the lifecycle signals for one commerce order from the ERP
+ * (sales order, fulfilment status, completion, sales invoice). Best-effort and
+ * never throws — missing signals simply leave that stage un-reached.
+ */
+function epc_pf_order_facts(PDO $db, int $orderId): array
+{
+	$f = array(
+		'exists' => false, 'so' => false, 'paid' => false, 'procured' => false,
+		'fulfilled' => false, 'delivered' => false, 'invoiced' => false,
+		'customer' => '', 'so_id' => 0, 'invoice_id' => 0,
+	);
+	if ($orderId <= 0) {
+		return $f;
+	}
+	try {
+		$o = $db->prepare("SELECT * FROM `shop_orders` WHERE `id` = ? AND `successfully_created` = 1 LIMIT 1");
+		$o->execute(array($orderId));
+		$row = $o->fetch(PDO::FETCH_ASSOC);
+		if ($row) {
+			$f['exists'] = true;
+			$cust = trim((string) (($row['name'] ?? '') . ' ' . ($row['surname'] ?? '')));
+			if ($cust === '') { $cust = trim((string) ($row['email'] ?? '')); }
+			$f['customer'] = $cust;
+		}
+	} catch (Exception $e) {
+	}
+	if (!$f['exists']) {
+		return $f;
+	}
+	try {
+		$ff = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_fulfillment.php';
+		if (is_file($ff)) {
+			require_once $ff;
+			if (function_exists('epc_erp_order_fulfillment_find_sales_order')) {
+				$so = epc_erp_order_fulfillment_find_sales_order($db, $orderId);
+				if ($so) {
+					$f['so'] = true;
+					$f['so_id'] = (int) ($so['id'] ?? 0);
+					$f['invoice_id'] = (int) ($so['sales_invoice_id'] ?? 0);
+					if ($f['invoice_id'] > 0 || (string) ($so['status'] ?? '') === 'invoiced') {
+						$f['invoiced'] = true;
+					}
+					$fs = (string) ($so['fulfillment_status'] ?? 'open');
+					if (in_array($fs, array('partial', 'fulfilled'), true)) { $f['procured'] = true; }
+					if ($fs === 'fulfilled') { $f['fulfilled'] = true; }
+				}
+			}
+		}
+	} catch (Exception $e) {
+	}
+	try {
+		if (function_exists('epc_erp_order_is_complete') && epc_erp_order_is_complete($db, $orderId)) {
+			$f['delivered'] = true;
+			$f['fulfilled'] = true;
+			$f['procured'] = true;
+		}
+	} catch (Exception $e) {
+	}
+	// payment is implied once the order has progressed past procurement
+	if ($f['procured'] || $f['fulfilled'] || $f['delivered'] || $f['invoiced']) {
+		$f['paid'] = true;
+	}
+	return $f;
+}
+
+/** Furthest step number (1..7) reached for an order + whether it is fully closed. */
+function epc_pf_order_target_stage(array $f): array
+{
+	$step = 1;
+	if (!empty($f['so'])) { $step = 2; }
+	if (!empty($f['paid'])) { $step = max($step, 3); }
+	if (!empty($f['procured'])) { $step = max($step, 4); }
+	if (!empty($f['fulfilled'])) { $step = max($step, 5); }
+	if (!empty($f['delivered'])) { $step = max($step, 6); }
+	$done = false;
+	if (!empty($f['invoiced'])) { $step = 7; $done = true; }
+	return array('step' => $step, 'done' => $done);
+}
+
+/**
+ * Create (if missing) and auto-advance the process case for a commerce order so
+ * it mirrors the order's real status. Each auto-advanced step is credited to the
+ * employee who held it, so it counts toward their task tally. Idempotent and
+ * fully guarded — never breaks the calling order/invoice flow. Returns case id.
+ */
+function epc_pf_sync_order_case(PDO $db, int $orderId): int
+{
+	if ($orderId <= 0) {
+		return 0;
+	}
+	try {
+		epc_pf_ensure_schema($db);
+		$f = epc_pf_order_facts($db, $orderId);
+		if (empty($f['exists'])) {
+			return 0;
+		}
+		$pid = epc_pf_ensure_order_process($db);
+		$cst = $db->prepare("SELECT `id`, `status` FROM `epc_pf_cases` WHERE `subject_type` = 'shop_order' AND `subject_id` = ? AND `process_id` = ? ORDER BY `id` LIMIT 1");
+		$cst->execute(array($orderId, $pid));
+		$case = $cst->fetch(PDO::FETCH_ASSOC);
+		if (!$case) {
+			$title = 'Customer order #' . $orderId . ($f['customer'] !== '' ? ' — ' . $f['customer'] : '');
+			$caseId = epc_pf_case_start($db, array(
+				'process_id' => $pid,
+				'title' => $title,
+				'reference' => 'Order #' . $orderId,
+				'priority' => 'normal',
+				'subject_type' => 'shop_order',
+				'subject_id' => $orderId,
+				'initiator_id' => epc_pf_admin_id(),
+			));
+		} else {
+			$caseId = (int) $case['id'];
+			if ((string) $case['status'] !== 'open') {
+				return $caseId; // already closed/cancelled/rejected
+			}
+		}
+		$target = epc_pf_order_target_stage($f);
+		$goal = $target['done'] ? 99 : (int) $target['step'];
+		$guard = 0;
+		while ($guard++ < 12) {
+			$c = $db->prepare("SELECT `current_step_no`, `status` FROM `epc_pf_cases` WHERE `id` = ?");
+			$c->execute(array($caseId));
+			$cur = $c->fetch(PDO::FETCH_ASSOC);
+			if (!$cur || (string) $cur['status'] !== 'open') {
+				break;
+			}
+			$curNo = (int) $cur['current_step_no'];
+			if ($curNo >= $goal) {
+				break;
+			}
+			$as = $db->prepare("SELECT `assignee_id` FROM `epc_pf_case_steps` WHERE `case_id` = ? AND `step_no` = ? AND `status` = 'active' LIMIT 1");
+			$as->execute(array($caseId, $curNo));
+			$actor = (int) $as->fetchColumn();
+			if ($actor <= 0) { $actor = epc_pf_admin_id(); }
+			$res = epc_pf_case_act($db, $caseId, 'approve', 'Auto-advanced from order status', $actor);
+			if ((string) $res['status'] !== 'open') {
+				break;
+			}
+		}
+		return $caseId;
+	} catch (Exception $e) {
+		return 0;
+	}
+}
+
+/**
+ * Backfill / refresh order cases for recent commerce orders (used by the manual
+ * "Sync order cases" button and first-time backfill). Returns count synced.
+ */
+function epc_pf_sync_all_order_cases(PDO $db, int $limit = 200): int
+{
+	$n = 0;
+	try {
+		$ids = $db->query("SELECT `id` FROM `shop_orders` WHERE `successfully_created` = 1 ORDER BY `id` DESC LIMIT " . max(1, (int) $limit))->fetchAll(PDO::FETCH_COLUMN);
+		foreach ($ids as $oid) {
+			if (epc_pf_sync_order_case($db, (int) $oid) > 0) { $n++; }
+		}
+	} catch (Exception $e) {
+	}
+	return $n;
+}
+
+/**
+ * Document links for a case, derived from its subject. For order cases this
+ * resolves the Fulfilment, Sales order and Invoice ERP pages so the real
+ * document opens straight from the process flow.
+ *
+ * @return array<int,array{label:string,url:string,icon:string}>
+ */
+function epc_pf_case_documents(PDO $db, array $case): array
+{
+	$docs = array();
+	$type = (string) ($case['subject_type'] ?? '');
+	$sid = (int) ($case['subject_id'] ?? 0);
+	if ($type !== 'shop_order' || $sid <= 0) {
+		return $docs;
+	}
+	$base = '';
+	if (function_exists('epc_erp_cp_redirect_url') && isset($GLOBALS['cfg']) && isset($GLOBALS['cfg']->backend_dir)) {
+		$base = epc_erp_cp_redirect_url('/' . $GLOBALS['cfg']->backend_dir . '/shop/finance/erp');
+	} else {
+		$base = '/shop/finance/erp';
+	}
+	$f = epc_pf_order_facts($db, $sid);
+	$docs[] = array('label' => 'Fulfilment (order #' . $sid . ')', 'url' => $base . '?area=sales&tab=fulfilment&order_id=' . $sid, 'icon' => 'fa-random');
+	if (!empty($f['so_id'])) {
+		$docs[] = array('label' => 'Sales order', 'url' => $base . '?area=sales&tab=sales_orders&so_id=' . (int) $f['so_id'], 'icon' => 'fa-shopping-cart');
+	}
+	if (!empty($f['invoice_id'])) {
+		$docs[] = array('label' => 'Sales invoice', 'url' => $base . '?area=sales&tab=invoices&inv_id=' . (int) $f['invoice_id'], 'icon' => 'fa-file-text-o');
+	}
+	return $docs;
+}
+
 /** List cases for the monitor, with process name + current step name + step count. */
 function epc_pf_cases(PDO $db, array $filters = array()): array
 {
@@ -721,6 +962,15 @@ function epc_pf_workforce_data(PDO $db): array
 		);
 	}
 
+	// performance: tasks completed (steps this person approved/acted on)
+	$done = array();
+	try {
+		foreach ($db->query("SELECT `acted_by` AS u, COUNT(*) AS c FROM `epc_pf_case_steps` WHERE `status` = 'approved' AND `acted_by` > 0 GROUP BY `acted_by`")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+			$done[(int) $r['u']] = (int) $r['c'];
+		}
+	} catch (Exception $e) {
+	}
+
 	$staff = array();
 	try {
 		$rows = $db->query("SELECT `user_id`,`display_name`,`department_code`,`job_title`,`location`,`photo_url`,`business_unit`,`legal_entity` FROM `epc_erp_staff_profiles` WHERE `active` = 1 ORDER BY `department_code`, `display_name`")->fetchAll(PDO::FETCH_ASSOC);
@@ -728,10 +978,13 @@ function epc_pf_workforce_data(PDO $db): array
 		$rows = array();
 	}
 	$busy = 0;
+	$doneTotal = 0;
 	foreach ($rows as $r) {
 		$uid = (int) $r['user_id'];
 		$tasks = isset($work[$uid]) ? $work[$uid] : array();
 		if (!empty($tasks)) { $busy++; }
+		$tasksDone = isset($done[$uid]) ? (int) $done[$uid] : 0;
+		$doneTotal += $tasksDone;
 		$staff[] = array(
 			'uid' => $uid,
 			'name' => (string) $r['display_name'],
@@ -743,6 +996,7 @@ function epc_pf_workforce_data(PDO $db): array
 			'legalEntity' => ((string) ($r['legal_entity'] ?? '') !== '') ? (string) $r['legal_entity'] : epc_pf_legal_entity_for_location((string) $r['location']),
 			'avatar' => epc_pf_avatar_url((string) $r['display_name'], (string) ($r['photo_url'] ?? '')),
 			'busy' => count($tasks),
+			'done' => $tasksDone,
 			'tasks' => $tasks,
 		);
 	}
@@ -752,6 +1006,7 @@ function epc_pf_workforce_data(PDO $db): array
 		'total' => count($staff),
 		'busy' => $busy,
 		'idle' => count($staff) - $busy,
+		'doneTotal' => $doneTotal,
 	);
 }
 
@@ -1061,10 +1316,17 @@ function epc_pf_seed_demo(PDO $db): array
 			'initiator_id' => $pickEmp(),
 		));
 		$cases++;
-		// advance the configured number of steps to spread cases across the chain
+		// advance the configured number of steps to spread cases across the chain.
+		// credit each completed step to the employee who held it so the Workforce
+		// performance leaderboard reflects real task counts.
 		$advance = (int) $t[3];
 		for ($a = 0; $a < $advance; $a++) {
-			$res = epc_pf_case_act($db, $cid, 'approve', 'Reviewed and approved (sample data)', $adminUser);
+			$curC = $db->query("SELECT `current_step_no` FROM `epc_pf_cases` WHERE `id` = " . (int) $cid)->fetchColumn();
+			$asq = $db->prepare("SELECT `assignee_id` FROM `epc_pf_case_steps` WHERE `case_id` = ? AND `step_no` = ? AND `status` = 'active' LIMIT 1");
+			$asq->execute(array($cid, (int) $curC));
+			$actor = (int) $asq->fetchColumn();
+			if ($actor <= 0) { $actor = $adminUser; }
+			$res = epc_pf_case_act($db, $cid, 'approve', 'Reviewed and approved (sample data)', $actor);
 			if ($res['status'] !== 'open') {
 				break;
 			}

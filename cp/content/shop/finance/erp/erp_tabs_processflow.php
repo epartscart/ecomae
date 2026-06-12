@@ -65,6 +65,17 @@ if ($pfCaseId > 0):
 				<?php if ($case['status'] === 'open'): ?>Currently with <strong><?php echo epc_erp_h($case['assignee_name']); ?></strong>.<?php endif; ?>
 			</p>
 
+			<?php
+			$pfDocs = function_exists('epc_pf_case_documents') ? epc_pf_case_documents($db_link, $case) : array();
+			if (!empty($pfDocs)): ?>
+			<div class="pf-docs" style="margin:0 0 14px;padding:10px 12px;background:#f6f8fb;border:1px solid #e3e9f1;border-radius:6px;">
+				<strong style="margin-right:6px;"><i class="fa fa-folder-open-o"></i> Open document:</strong>
+				<?php foreach ($pfDocs as $d): ?>
+					<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h($d['url']); ?>" target="_blank" rel="noopener" style="margin:2px 4px 2px 0;"><i class="fa <?php echo epc_erp_h($d['icon']); ?>"></i> <?php echo epc_erp_h($d['label']); ?></a>
+				<?php endforeach; ?>
+			</div>
+			<?php endif; ?>
+
 			<!-- GPS-style tracking route (animated, multi-level) -->
 			<?php
 			$deptName = function ($code) {
@@ -590,8 +601,11 @@ elseif ($pfView === 'workforce'):
 		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-spinner"></i> Busy now</div><div class="v" style="color:#dc2626;" id="wf_busy">0</div></div>
 		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-coffee"></i> Idle / available</div><div class="v" style="color:#16a34a;" id="wf_idle">0</div></div>
 		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-tasks"></i> Open tasks assigned</div><div class="v" style="color:#0891b2;" id="wf_tasks">0</div></div>
+		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-trophy"></i> Tasks completed</div><div class="v" style="color:#7c3aed;" id="wf_done">0</div></div>
 		<div class="pf-wf-kpi"><div class="l"><i class="fa fa-eye"></i> Showing</div><div class="v" style="color:#334155;" id="wf_shown">0</div></div>
 	</div>
+
+	<div id="wf_leaders" style="margin-bottom:14px;"></div>
 
 	<div class="pf-wf-bar">
 		<label style="font-size:12px;color:#475569;margin:0;">Group by</label>
@@ -639,6 +653,24 @@ elseif ($pfView === 'workforce'):
 		document.getElementById('wf_busy').textContent=WF.busy;
 		document.getElementById('wf_idle').textContent=WF.idle;
 		document.getElementById('wf_tasks').textContent=totalTasks;
+		document.getElementById('wf_done').textContent=(WF.doneTotal!=null?WF.doneTotal:staff.reduce(function(a,s){return a+(s.done||0);},0));
+
+		function leaderboard(list){
+			var ranked=list.filter(function(s){return (s.done||0)>0;}).sort(function(a,b){return (b.done||0)-(a.done||0);}).slice(0,10);
+			var el=document.getElementById('wf_leaders');
+			if(!ranked.length){ el.innerHTML=''; return; }
+			var medal=['#f59e0b','#94a3b8','#b45309'];
+			var rows=ranked.map(function(s,i){
+				var c=i<3?medal[i]:'#cbd5e1';
+				return '<div'+(s.busy>0?' data-case="'+s.tasks[0].id+'"':'')+' style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:#fff;border:1px solid #eef2f7;'+(s.busy>0?'cursor:pointer;':'')+'">'+
+					'<span style="width:20px;height:20px;border-radius:50%;background:'+c+';color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;">'+(i+1)+'</span>'+
+					av(s.name,s.avatar,26)+
+					'<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(s.name)+'</div><div style="font-size:10px;color:#64748b;">'+esc(s.deptName||'')+' · '+esc(s.location||'')+'</div></div>'+
+					'<span style="font-size:13px;font-weight:800;color:#7c3aed;white-space:nowrap;">'+(s.done||0)+' <span style="font-size:9px;font-weight:600;color:#94a3b8;">done</span></span></div>';
+			}).join('');
+			el.innerHTML='<div class="pf-wf-group" style="margin-bottom:0;"><div class="pf-wf-ghd"><i class="fa fa-trophy" style="color:#f59e0b;"></i> Top performers — tasks completed <span class="cnt">(by selected filters)</span></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;">'+rows+'</div></div>';
+			el.querySelectorAll('[data-case]').forEach(function(c){ c.addEventListener('click', function(){ window.location.href=CASE_BASE+c.getAttribute('data-case'); }); });
+		}
 
 		function filtered(){
 			var q=state.search.toLowerCase();
@@ -657,6 +689,7 @@ elseif ($pfView === 'workforce'):
 		function card(s){
 			var cls=s.busy>0?'busy':'idle';
 			var st=s.busy>0?'<span class="pf-wf-st b">BUSY · '+s.busy+'</span>':'<span class="pf-wf-st i">IDLE</span>';
+			if((s.done||0)>0){ st+=' <span class="pf-wf-st" style="background:#ede9fe;color:#6d28d9;" title="Tasks completed">'+s.done+' done</span>'; }
 			var tasks='';
 			if(s.busy>0){
 				tasks='<div class="pf-wf-tasks">'+s.tasks.map(function(t){
@@ -690,6 +723,7 @@ elseif ($pfView === 'workforce'):
 		function render(){
 			var list=filtered(), groups=groupKeyList(list), body=document.getElementById('wf_body');
 			document.getElementById('wf_shown').textContent=list.length;
+			leaderboard(list);
 			var keys=Object.keys(groups).sort(function(a,b){
 				if(a.indexOf('Available')>=0) return 1; if(b.indexOf('Available')>=0) return -1;
 				return groups[b].length-groups[a].length || a.localeCompare(b);
@@ -747,6 +781,11 @@ elseif ($pfView === 'monitor'):
 				<button class="btn btn-xs btn-link" id="pf_clear">Clear</button>
 			</div>
 		</div>
+	</div>
+
+	<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+		<span style="font-size:12px;color:#1e3a8a;"><i class="fa fa-truck"></i> <strong>Customer Order → Delivery</strong> runs automatically for every order (online &amp; manual): quote → payment → procured → out for delivery → delivered → invoiced. Each completed stage is credited to the responsible employee.</span>
+		<button class="btn btn-xs btn-primary" id="pf_sync_orders" style="margin-left:auto;"><i class="fa fa-refresh"></i> Track customer orders now</button>
 	</div>
 
 	<!-- start a case -->
@@ -989,5 +1028,6 @@ $pfEndpoint = isset($GLOBALS['erpAjaxEndpoint']) ? $GLOBALS['erpAjaxEndpoint'] :
 
 	var sd=document.getElementById('pf_seed'); if(sd) sd.addEventListener('click', function(){ if(!confirm('Seed sample processes and running cases?')) return; sd.disabled=true; sd.textContent='…'; post('pf_seed_demo', new FormData()).then(msg); });
 	var cl=document.getElementById('pf_clear'); if(cl) cl.addEventListener('click', function(){ if(!confirm('Clear sample cases and demo processes?')) return; post('pf_clear_demo', new FormData()).then(msg); });
+	var so=document.getElementById('pf_sync_orders'); if(so) so.addEventListener('click', function(){ so.disabled=true; var o=so.innerHTML; so.innerHTML='<i class="fa fa-spinner fa-spin"></i> Tracking…'; post('pf_sync_orders', new FormData()).then(function(r){ msg(r); so.disabled=false; so.innerHTML=o; }); });
 })();
 </script>

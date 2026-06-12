@@ -694,6 +694,18 @@ function epc_einvoice_save_document(PDO $db, array $doc, int $admin_id = 0): int
 			} catch (Exception $e) {
 				// demand capture is best-effort; never block the invoice
 			}
+			// advance the order's process-flow case to "Invoiced & closed"
+			try {
+				$pfFile = __DIR__ . '/epc_erp_processflow.php';
+				if ((int) ($doc['order_id'] ?? 0) > 0 && is_file($pfFile)) {
+					require_once $pfFile;
+					if (function_exists('epc_pf_sync_order_case')) {
+						epc_pf_sync_order_case($db, (int) $doc['order_id']);
+					}
+				}
+			} catch (Exception $e) {
+				// process-flow sync is best-effort; never block the invoice
+			}
 		}
 
 		return $docId;

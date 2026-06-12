@@ -443,6 +443,11 @@ try {
 			$pfClr = epc_pf_clear_demo($db_link);
 			epc_erp_json(true, 'Cleared ' . (int)$pfClr . ' sample cases (and demo processes)');
 
+		case 'pf_sync_orders':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+			$pfSynced = epc_pf_sync_all_order_cases($db_link, 300);
+			epc_erp_json(true, $pfSynced . ' customer order(s) tracked in the Order → Delivery process');
+
 		case 'demo_seed_sales':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_demo_sales.php';
 			$sres = epc_demo_seed_sales($db_link, 6);
