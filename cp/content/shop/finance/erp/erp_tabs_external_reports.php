@@ -445,6 +445,7 @@ if ($selTool === 'import') {
 		'perL'  => (string) $period['label'],
 		'perR'  => date('d M Y', $repFrom) . '  —  ' . date('d M Y', $repTo),
 		'gen'   => date('d M Y H:i'),
+		'theme' => ($selRep === 'audit__external_audit_report' ? 'red' : ''),
 	));
 	echo epc_ext_print_fn_js();
 	?>
