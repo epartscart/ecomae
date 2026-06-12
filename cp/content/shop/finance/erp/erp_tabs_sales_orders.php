@@ -2,6 +2,9 @@
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_countries.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_countries.php';
+}
 
 $erpOnly = epc_erp_is_erp_only_context();
 $filters = array(
@@ -11,8 +14,15 @@ $filters = array(
 $orders = epc_erp_sales_orders_list($db_link, $date_from, $date_to, $filters, 200);
 
 if ($erpOnly) {
+	// Customer master = users rows; show the linked ERP contact name when present
+	// so a standalone tenant sees friendly names, not synthesized emails.
 	$customers = $db_link->query(
-		'SELECT `user_id`, `email` FROM `users` WHERE `user_id` > 0 ORDER BY `email` LIMIT 500'
+		"SELECT u.`user_id`, u.`email`, c.`name` AS contact_name, c.`company` AS contact_company
+		 FROM `users` u
+		 LEFT JOIN `epc_erp_contacts` c ON c.`linked_user_id` = u.`user_id`
+		 WHERE u.`user_id` > 0
+		 ORDER BY (c.`name` IS NULL OR c.`name` = ''), c.`name`, u.`email`
+		 LIMIT 500"
 	)->fetchAll(PDO::FETCH_ASSOC);
 	erp_page_header(
 		'<i class="fa fa-shopping-cart"></i> Sales orders',
@@ -45,7 +55,17 @@ if ($erpOnly) {
 		foreach ($orders as $r) {
 			echo '<tr><td>' . epc_erp_h($r['so_no']) . '</td>';
 			echo '<td>' . epc_erp_h(date('Y-m-d', (int) $r['time_created'])) . '</td>';
-			echo '<td>' . epc_erp_h($r['customer_email'] ?: ('User #' . (int) $r['customer_user_id'])) . '</td>';
+			$custLabel = trim((string) ($r['customer_name'] ?? ''));
+			if ($custLabel === '') {
+				$custLabel = trim((string) ($r['customer_company'] ?? ''));
+			}
+			if ($custLabel === '') {
+				$custLabel = (string) ($r['customer_email'] ?? '');
+			}
+			if ($custLabel === '') {
+				$custLabel = 'User #' . (int) $r['customer_user_id'];
+			}
+			echo '<td>' . epc_erp_h($custLabel) . '</td>';
 			echo '<td>' . epc_erp_h($r['title']) . '</td>';
 			echo '<td>' . epc_erp_money($r['total_amount']) . '</td>';
 			echo '<td><span class="label label-info">' . epc_erp_h($r['status']) . '</span></td>';
@@ -77,9 +97,23 @@ if ($erpOnly) {
 		<div class="form-group"><label class="col-sm-3">Customer</label><div class="col-sm-9">
 			<select name="customer_user_id" class="form-control input-sm" required><option value="">—</option>
 			<?php foreach ($customers as $c): ?>
-				<option value="<?php echo (int) $c['user_id']; ?>"><?php echo epc_erp_h($c['email'] ?: ('User #' . (int) $c['user_id'])); ?></option>
+				<?php
+				$cLabel = trim((string) ($c['contact_name'] ?? ''));
+				if ($cLabel === '') {
+					$cLabel = (string) ($c['email'] ?? '');
+				}
+				if ($cLabel === '' || strpos($cLabel, '@erp.local') !== false) {
+					$cLabel = 'Customer #' . (int) $c['user_id'];
+				}
+				if (!empty($c['contact_company'])) {
+					$cLabel .= ' (' . $c['contact_company'] . ')';
+				}
+				?>
+				<option value="<?php echo (int) $c['user_id']; ?>"><?php echo epc_erp_h($cLabel); ?></option>
 			<?php endforeach; ?>
-			</select></div></div>
+			</select>
+			<p class="help-block" style="margin:4px 0 0;">No customer yet? Add one with <strong>New customer</strong> below — works fully standalone, no storefront needed.</p>
+			</div></div>
 		<div class="form-group"><label class="col-sm-3">Title</label><div class="col-sm-9"><input name="title" class="form-control input-sm" required></div></div>
 		<div class="form-group"><label class="col-sm-3">Line (ex VAT)</label><div class="col-sm-9 form-inline">
 			<input name="line_desc[]" class="form-control input-sm" placeholder="Description" required>
@@ -90,6 +124,33 @@ if ($erpOnly) {
 	</form>
 	<?php
 	erp_section_card('New sales order', ob_get_clean(), array('icon' => 'fa-plus'));
+
+	// Standalone customer creation — an ERP-only tenant can add a customer master
+	// here without any storefront registration; it appears in the picker above.
+	$soaCountries = function_exists('epc_countries_iso3166_alpha2')
+		? epc_countries_iso3166_alpha2()
+		: array('AE' => 'United Arab Emirates', 'SA' => 'Saudi Arabia', 'OM' => 'Oman', 'IN' => 'India', 'GB' => 'United Kingdom', 'US' => 'United States');
+	ob_start();
+	?>
+	<form id="epc_erp_form_customer" class="form-horizontal" style="max-width:760px;">
+		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+		<div class="form-group"><label class="col-sm-3">Name</label><div class="col-sm-9"><input name="name" class="form-control input-sm" placeholder="Customer / company name" required></div></div>
+		<div class="form-group"><label class="col-sm-3">Email / Phone</label><div class="col-sm-9 form-inline">
+			<input name="email" type="email" class="form-control input-sm" placeholder="Email (optional)">
+			<input name="phone" class="form-control input-sm" placeholder="Phone (optional)">
+		</div></div>
+		<div class="form-group"><label class="col-sm-3">TRN / Country</label><div class="col-sm-9 form-inline">
+			<input name="trn" class="form-control input-sm" placeholder="Tax / TRN no.">
+			<select name="country_code" class="form-control input-sm" style="width:200px;">
+			<?php foreach ($soaCountries as $cc => $cname): ?>
+				<option value="<?php echo epc_erp_h($cc); ?>"<?php echo $cc === 'AE' ? ' selected' : ''; ?>><?php echo epc_erp_h($cc . ' — ' . $cname); ?></option>
+			<?php endforeach; ?>
+			</select>
+		</div></div>
+		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-success btn-sm"><i class="fa fa-user-plus"></i> Add customer</button></div></div>
+	</form>
+	<?php
+	erp_section_card('New customer (standalone)', ob_get_clean(), array('icon' => 'fa-user-plus'));
 	return;
 }
 

@@ -219,9 +219,10 @@ function epc_erp_next_voucher_no(PDO $db, string $type): string
 function epc_erp_manual_sales_orders_list(PDO $db, int $date_from = 0, int $date_to = 0, array $filters = array(), int $limit = 150): array
 {
 	epc_erp_vouchers_ensure_schema($db);
-	$sql = 'SELECT so.*, u.`email` AS customer_email, d.`invoice_number` AS invoice_no
+	$sql = 'SELECT so.*, u.`email` AS customer_email, c.`name` AS customer_name, c.`company` AS customer_company, d.`invoice_number` AS invoice_no
 		FROM `epc_erp_sales_orders` so
 		LEFT JOIN `users` u ON u.`user_id` = so.`customer_user_id`
+		LEFT JOIN `epc_erp_contacts` c ON c.`linked_user_id` = so.`customer_user_id`
 		LEFT JOIN `epc_einvoice_documents` d ON d.`id` = so.`sales_invoice_id`
 		WHERE 1=1';
 	$params = array();

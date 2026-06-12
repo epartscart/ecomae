@@ -485,6 +485,11 @@ try {
 			$r = epc_erp_po_convert_to_purchase($db_link, (int) ($_POST['po_id'] ?? 0));
 			epc_erp_json(true, 'Purchase invoice ' . $r['voucher_no'] . ' created', $r);
 
+		case 'customer_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
+			$cid = epc_erp_customer_provision($db_link, $_POST);
+			epc_erp_json(true, 'Customer created', array('user_id' => $cid));
+
 		case 'so_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			$id = epc_erp_sales_order_save($db_link, $_POST);

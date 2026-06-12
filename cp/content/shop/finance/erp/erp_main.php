@@ -755,6 +755,7 @@ if (!$epc_erp_shell_mode) {
 	bindForm('epc_erp_form_delivery_note', 'delivery_note_create');
 	bindForm('epc_erp_form_po', 'po_save');
 	bindForm('epc_erp_form_so', 'so_save');
+	bindForm('epc_erp_form_customer', 'customer_create');
 	bindForm('epc_erp_form_receipt_voucher', 'receipt_voucher');
 	bindForm('epc_erp_form_transfer_voucher', 'transfer_voucher');
 	document.querySelectorAll('.epc-erp-po-invoice').forEach(function(f){

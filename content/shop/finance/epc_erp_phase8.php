@@ -319,6 +319,69 @@ function epc_erp_contact_save(PDO $db, array $data)
 	return $newId;
 }
 
+/**
+ * Provision a standalone ERP customer (no storefront required).
+ *
+ * Customers are modelled as `users` rows (the customer master shared by the AR
+ * ledger, sales orders, invoices and tax profiles). For an ERP-only tenant that
+ * has never used the e-commerce storefront there may be no `users` rows at all,
+ * so this lets the client create a customer purely inside the ERP: it finds or
+ * creates the `users` master, links an `epc_erp_contacts` record (name / TRN /
+ * country) and returns the customer user id ready to use on a sales order.
+ *
+ * No password/login is set up — the row is a master record, not a shop login.
+ *
+ * @param array<string,mixed> $data name, email, phone, company, trn, country_code
+ * @return int customer user_id
+ */
+function epc_erp_customer_provision(PDO $db, array $data): int
+{
+	epc_erp_phase8_ensure_schema($db);
+	$name = trim((string)($data['name'] ?? ''));
+	$email = strtolower(trim((string)($data['email'] ?? '')));
+	$phone = trim((string)($data['phone'] ?? ''));
+	if ($name === '' && $email === '') {
+		throw new Exception('Customer name or email is required');
+	}
+
+	$userId = 0;
+	if ($email !== '') {
+		$q = $db->prepare('SELECT `user_id` FROM `users` WHERE `email` = ? LIMIT 1');
+		$q->execute(array($email));
+		$userId = (int)$q->fetchColumn();
+	}
+	if ($userId <= 0) {
+		// Synthesize a unique address when the client only gave a name, so the
+		// users table (which keys on email) stays consistent.
+		$regEmail = $email !== '' ? $email : ('erp-cust-' . substr(md5(uniqid('', true)), 0, 12) . '@erp.local');
+		$db->prepare(
+			'INSERT INTO `users` (`reg_variant`, `email`, `email_confirmed`, `phone`, `phone_confirmed`, `password`, `unlocked`, `time_registered`, `admin_created`)
+			 VALUES (1, ?, 1, ?, 0, ?, 1, ?, 1)'
+		)->execute(array($regEmail, $phone !== '' ? $phone : null, md5(uniqid('erpc', true)), time()));
+		$userId = (int)$db->lastInsertId();
+	}
+
+	$chk = $db->prepare('SELECT `id` FROM `epc_erp_contacts` WHERE `linked_user_id` = ? LIMIT 1');
+	$chk->execute(array($userId));
+	$contactId = (int)$chk->fetchColumn();
+	epc_erp_contact_save($db, array(
+		'id' => $contactId,
+		'party_type' => 'customer',
+		'name' => $name !== '' ? $name : $email,
+		'company' => (string)($data['company'] ?? ''),
+		'email' => $email,
+		'phone' => $phone,
+		'trn' => (string)($data['trn'] ?? ''),
+		'address' => (string)($data['address'] ?? ''),
+		'city' => (string)($data['city'] ?? ''),
+		'country_code' => (string)($data['country_code'] ?? 'AE'),
+		'currency_code' => (string)($data['currency_code'] ?? 'AED'),
+		'linked_user_id' => $userId,
+	));
+
+	return $userId;
+}
+
 function epc_erp_contacts_sync_from_masters(PDO $db)
 {
 	epc_erp_phase8_ensure_schema($db);
