@@ -408,6 +408,222 @@ if (!function_exists('epc_opl_confirm_all')) {
     }
 }
 
+if (!function_exists('epc_opl_abc_xyz')) {
+    /**
+     * Classify each position: ABC by cumulative annual demand value (80/15/5),
+     * XYZ by demand variability (CV²), and a recommended class service level.
+     *
+     * @param array<int,array<string,mixed>> $rows output of epc_opl_recommendations
+     * @return array<int,array<string,mixed>> rows enriched with abc, xyz, class_service_level
+     */
+    function epc_opl_abc_xyz(array $rows): array
+    {
+        $total = 0.0;
+        foreach ($rows as $r) {
+            $total += (float) $r['annual_value'];
+        }
+        // sort copy by annual value desc to assign ABC
+        usort($rows, static function ($a, $b) {
+            return $b['annual_value'] <=> $a['annual_value'];
+        });
+        $cum = 0.0;
+        foreach ($rows as &$r) {
+            $cum += (float) $r['annual_value'];
+            $pct = $total > 0 ? ($cum / $total) : 1.0;
+            if ($pct <= 0.80) {
+                $abc = 'A';
+            } elseif ($pct <= 0.95) {
+                $abc = 'B';
+            } else {
+                $abc = 'C';
+            }
+            if ((float) $r['annual_value'] <= 0) {
+                $abc = 'C';
+            }
+            $cv2 = (float) $r['cv2'];
+            if ($cv2 < 0.25) {
+                $xyz = 'X';
+            } elseif ($cv2 < 1.0) {
+                $xyz = 'Y';
+            } else {
+                $xyz = 'Z';
+            }
+            // higher service level for high-value (A) and stable (X) items
+            $base = ($abc === 'A') ? 95.0 : (($abc === 'B') ? 92.5 : 90.0);
+            if ($xyz === 'Z') {
+                $base -= 2.5; // erratic items: relax target to avoid over-stocking
+            }
+            $r['abc'] = $abc;
+            $r['xyz'] = $xyz;
+            $r['class'] = $abc . $xyz;
+            $r['class_service_level'] = round(max(85.0, min(99.0, $base)), 1);
+        }
+        unset($r);
+        return $rows;
+    }
+}
+
+if (!function_exists('epc_opl_redistribution')) {
+    /**
+     * Suggest stock transfers: move excess of an item in one warehouse to
+     * cover a shortfall of the same item in another warehouse.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_opl_redistribution(PDO $db): array
+    {
+        $rows = epc_opl_recommendations($db, array());
+        $byItem = array();
+        foreach ($rows as $r) {
+            $byItem[(int) $r['item_id']][] = $r;
+        }
+        $out = array();
+        foreach ($byItem as $itemId => $positions) {
+            if (count($positions) < 2) {
+                continue;
+            }
+            $sources = array(); // excess
+            $dests = array();    // shortfall
+            foreach ($positions as $p) {
+                if ((float) $p['excess'] > 0) {
+                    $sources[] = $p;
+                } elseif ((float) $p['shortfall'] > 0) {
+                    $dests[] = $p;
+                }
+            }
+            foreach ($dests as $d) {
+                $need = (float) $d['shortfall'];
+                foreach ($sources as &$s) {
+                    if ($need <= 0) {
+                        break;
+                    }
+                    $avail = (float) $s['excess'];
+                    if ($avail <= 0) {
+                        continue;
+                    }
+                    $move = min($need, $avail);
+                    if ($move < 1) {
+                        continue;
+                    }
+                    $out[] = array(
+                        'item_id' => $itemId,
+                        'sku' => $d['sku'],
+                        'name' => $d['name'],
+                        'from_wh' => $s['warehouse_name'],
+                        'to_wh' => $d['warehouse_name'],
+                        'qty' => round($move, 2),
+                        'value' => round($move * (float) $d['unit_cost'], 2),
+                        'from_excess' => round((float) $s['excess'], 2),
+                        'to_shortfall' => round((float) $d['shortfall'], 2),
+                    );
+                    $s['excess'] = $avail - $move;
+                    $need -= $move;
+                }
+                unset($s);
+            }
+        }
+        usort($out, static function ($a, $b) {
+            return $b['value'] <=> $a['value'];
+        });
+        return $out;
+    }
+}
+
+if (!function_exists('epc_opl_exceptions')) {
+    /**
+     * Exception / alert list across positions.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_opl_exceptions(PDO $db, int $warehouseId = 0): array
+    {
+        $rows = epc_opl_recommendations($db, array('warehouse_id' => $warehouseId));
+        $out = array();
+        foreach ($rows as $r) {
+            $alerts = array();
+            if ($r['coverage_days'] !== null && $r['coverage_days'] < $r['lead_time_days'] && $r['monthly_demand'] > 0) {
+                $alerts[] = array('type' => 'Stock-out risk', 'sev' => 'danger', 'detail' => 'Cover ' . $r['coverage_days'] . 'd < lead time ' . $r['lead_time_days'] . 'd');
+            }
+            if ($r['effective_stock'] < $r['safety_stock'] && $r['safety_stock'] > 0) {
+                $alerts[] = array('type' => 'Below safety stock', 'sev' => 'warning', 'detail' => 'On hand ' . $r['effective_stock'] . ' < safety ' . $r['safety_stock']);
+            }
+            if ($r['monthly_demand'] <= 0 && $r['on_hand'] > 0) {
+                $alerts[] = array('type' => 'Dead stock (no demand)', 'sev' => 'default', 'detail' => $r['on_hand'] . ' units, no demand in 12 months');
+            }
+            if ($r['excess'] > 0 && $r['monthly_demand'] > 0 && $r['excess'] > $r['monthly_demand']) {
+                $alerts[] = array('type' => 'Excess stock', 'sev' => 'info', 'detail' => 'Excess ' . $r['excess'] . ' (> 1 month demand)');
+            }
+            foreach ($alerts as $a) {
+                $out[] = array_merge(array(
+                    'item_id' => $r['item_id'], 'warehouse_id' => $r['warehouse_id'],
+                    'sku' => $r['sku'], 'name' => $r['name'], 'warehouse_name' => $r['warehouse_name'],
+                ), $a);
+            }
+        }
+        $sevRank = array('danger' => 0, 'warning' => 1, 'info' => 2, 'default' => 3);
+        usort($out, static function ($a, $b) use ($sevRank) {
+            return ($sevRank[$a['sev']] ?? 9) <=> ($sevRank[$b['sev']] ?? 9);
+        });
+        return $out;
+    }
+}
+
+if (!function_exists('epc_opl_kpis')) {
+    /**
+     * Stock-analysis KPIs across positions.
+     *
+     * @return array<string,mixed>
+     */
+    function epc_opl_kpis(PDO $db, int $warehouseId = 0): array
+    {
+        $rows = epc_opl_abc_xyz(epc_opl_recommendations($db, array('warehouse_id' => $warehouseId)));
+        $invValue = 0.0;
+        $excessValue = 0.0;
+        $orderValue = 0.0;
+        $annualDemandValue = 0.0;
+        $coverSum = 0.0;
+        $coverN = 0;
+        $risk = 0;
+        $due = 0;
+        $classCount = array();
+        foreach ($rows as $r) {
+            $invValue += (float) $r['on_hand'] * (float) $r['unit_cost'];
+            $excessValue += (float) $r['excess'] * (float) $r['unit_cost'];
+            $orderValue += (float) $r['value'];
+            $annualDemandValue += (float) $r['annual_value'];
+            if ($r['coverage_days'] !== null && $r['monthly_demand'] > 0) {
+                $coverSum += (float) $r['coverage_days'];
+                $coverN++;
+            }
+            if ($r['coverage_days'] !== null && $r['coverage_days'] < $r['lead_time_days'] && $r['monthly_demand'] > 0) {
+                $risk++;
+            }
+            if ($r['roq'] > 0) {
+                $due++;
+            }
+            $cls = (string) $r['abc'];
+            $classCount[$cls] = ($classCount[$cls] ?? 0) + 1;
+        }
+        $cogs = $annualDemandValue; // annual demand at cost ≈ COGS
+        $turns = $invValue > 0 ? ($cogs / $invValue) : 0.0;
+        $activeLines = count($rows);
+        $fillRate = $activeLines > 0 ? (100.0 * ($activeLines - $risk) / $activeLines) : 100.0;
+        return array(
+            'lines' => $activeLines,
+            'inventory_value' => round($invValue, 2),
+            'excess_value' => round($excessValue, 2),
+            'suggested_order_value' => round($orderValue, 2),
+            'annual_demand_value' => round($annualDemandValue, 2),
+            'inventory_turns' => round($turns, 2),
+            'avg_cover_days' => $coverN > 0 ? round($coverSum / $coverN, 1) : 0.0,
+            'stockout_risk' => $risk,
+            'due' => $due,
+            'fill_rate' => round($fillRate, 1),
+            'class_count' => $classCount,
+        );
+    }
+}
+
 if (!function_exists('epc_opl_seed_demo_demand')) {
     /**
      * Seed realistic 12-month sale-out demand history across stocked items so

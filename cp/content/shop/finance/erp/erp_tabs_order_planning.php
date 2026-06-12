@@ -15,6 +15,7 @@ $oplItem   = (int) ($_GET['opl_item'] ?? 0);
 $oplStatus = (string) ($_GET['opl_status'] ?? '');
 $oplDue    = isset($_GET['opl_due']) ? (int) $_GET['opl_due'] : 1;
 $oplSearch = trim((string) ($_GET['opl_search'] ?? ''));
+$oplView   = (string) ($_GET['opl_view'] ?? 'recommendations');
 $warehouses = epc_erp_inventory_list_warehouses($db_link);
 
 erp_page_header(
@@ -135,6 +136,48 @@ if ($oplItem > 0) {
 	return;
 }
 
+/* ---------- Sub-view navigation ---------- */
+$views = array(
+	'recommendations' => array('Recommended orders', 'fa-list'),
+	'policy' => array('Inventory policy (ABC/XYZ)', 'fa-sitemap'),
+	'redistribution' => array('Redistribution', 'fa-exchange'),
+	'exceptions' => array('Exceptions & alerts', 'fa-exclamation-triangle'),
+	'kpi' => array('Stock analysis & KPIs', 'fa-bar-chart'),
+);
+if (!isset($views[$oplView])) {
+	$oplView = 'recommendations';
+}
+$viewUrl = static function ($v) use ($tabBase, $sep, $oplWh) {
+	return $tabBase . $sep . 'opl_view=' . $v . ($oplWh > 0 ? '&opl_wh=' . $oplWh : '');
+};
+echo '<ul class="nav nav-tabs" style="margin-bottom:14px;">';
+foreach ($views as $key => $meta) {
+	$active = $oplView === $key ? ' class="active"' : '';
+	echo '<li' . $active . '><a href="' . epc_erp_h($viewUrl($key)) . '"><i class="fa ' . $meta[1] . '"></i> ' . epc_erp_h($meta[0]) . '</a></li>';
+}
+echo '</ul>';
+
+if ($oplView === 'policy') {
+	echo epc_opl_render_policy($db_link, $oplWh, $tabBase, $sep);
+	echo epc_opl_worksheet_script($csrfLocal);
+	return;
+}
+if ($oplView === 'redistribution') {
+	echo epc_opl_render_redistribution($db_link);
+	echo epc_opl_worksheet_script($csrfLocal);
+	return;
+}
+if ($oplView === 'exceptions') {
+	echo epc_opl_render_exceptions($db_link, $oplWh, $tabBase, $sep);
+	echo epc_opl_worksheet_script($csrfLocal);
+	return;
+}
+if ($oplView === 'kpi') {
+	echo epc_opl_render_kpi($db_link, $oplWh);
+	echo epc_opl_worksheet_script($csrfLocal);
+	return;
+}
+
 /* ---------- Recommendations grid ---------- */
 $summary = epc_opl_summary($db_link, $oplWh);
 $recs = epc_opl_recommendations($db_link, array(
@@ -240,4 +283,153 @@ function epc_opl_worksheet_script(string $csrfLocal): string
 })();
 </script>
 HTML;
+}
+
+function epc_opl_render_policy(PDO $db, int $oplWh, string $tabBase, string $sep): string
+{
+	$rows = epc_opl_abc_xyz(epc_opl_recommendations($db, array('warehouse_id' => $oplWh)));
+	// class distribution counts
+	$dist = array();
+	foreach ($rows as $r) {
+		$c = (string) $r['class'];
+		$dist[$c] = ($dist[$c] ?? 0) + 1;
+	}
+	ksort($dist);
+	ob_start();
+	?>
+	<p class="text-muted">ABC by cumulative annual demand value (A=top 80%, B=next 15%, C=rest); XYZ by demand variability (X stable · Y variable · Z erratic). The recommended class service level drives safety stock — raise/lower it per item on the worksheet.</p>
+	<div style="margin-bottom:12px;">
+		<?php foreach ($dist as $c => $n): ?>
+			<span class="label label-default" style="font-size:90%;margin-right:6px;"><?php echo epc_erp_h($c); ?>: <?php echo (int) $n; ?></span>
+		<?php endforeach; ?>
+	</div>
+	<div class="table-responsive">
+	<table class="table table-bordered table-condensed table-hover">
+		<thead><tr><th>Item</th><th>Warehouse</th><th>Demand class</th><th class="text-right">Annual value</th><th class="text-center">ABC</th><th class="text-center">XYZ</th><th class="text-center">Class</th><th class="text-right">Rec. service level</th><th class="text-right">Safety</th><th class="text-right">Order lvl</th></tr></thead>
+		<tbody>
+		<?php foreach ($rows as $r):
+			$wsUrl = $tabBase . $sep . 'opl_item=' . (int) $r['item_id'] . '&opl_wh=' . (int) $r['warehouse_id'];
+			$abcColor = $r['abc'] === 'A' ? 'success' : ($r['abc'] === 'B' ? 'info' : 'default'); ?>
+			<tr>
+				<td><a href="<?php echo epc_erp_h($wsUrl); ?>"><strong><?php echo epc_erp_h($r['sku']); ?></strong></a><br><small class="text-muted"><?php echo epc_erp_h($r['name']); ?></small></td>
+				<td><small><?php echo epc_erp_h($r['warehouse_name']); ?></small></td>
+				<td><span class="label label-default"><?php echo epc_erp_h($r['demand_class']); ?></span></td>
+				<td class="text-right"><?php echo epc_erp_money($r['annual_value']); ?></td>
+				<td class="text-center"><span class="label label-<?php echo $abcColor; ?>"><?php echo epc_erp_h($r['abc']); ?></span></td>
+				<td class="text-center"><?php echo epc_erp_h($r['xyz']); ?></td>
+				<td class="text-center"><strong><?php echo epc_erp_h($r['class']); ?></strong></td>
+				<td class="text-right"><?php echo epc_erp_money($r['class_service_level']); ?>%</td>
+				<td class="text-right"><?php echo epc_erp_money($r['safety_stock']); ?></td>
+				<td class="text-right"><?php echo epc_erp_money($r['order_level']); ?></td>
+			</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	</div>
+	<?php
+	return (string) ob_get_clean();
+}
+
+function epc_opl_render_redistribution(PDO $db): string
+{
+	$rows = epc_opl_redistribution($db);
+	ob_start();
+	?>
+	<p class="text-muted">Move excess stock of an item in one warehouse to cover a shortfall of the same item in another — before raising a purchase order.</p>
+	<?php if (empty($rows)): ?>
+		<div class="alert alert-info">No redistribution opportunities — no item has excess in one warehouse and a shortfall in another.</div>
+	<?php else: ?>
+	<div class="table-responsive">
+	<table class="table table-bordered table-condensed table-hover">
+		<thead><tr><th>Item</th><th>From warehouse</th><th>To warehouse</th><th class="text-right">Transfer qty</th><th class="text-right">Value</th><th class="text-right">Source excess</th><th class="text-right">Dest shortfall</th></tr></thead>
+		<tbody>
+		<?php foreach ($rows as $r): ?>
+			<tr>
+				<td><strong><?php echo epc_erp_h($r['sku']); ?></strong><br><small class="text-muted"><?php echo epc_erp_h($r['name']); ?></small></td>
+				<td><?php echo epc_erp_h($r['from_wh']); ?></td>
+				<td><?php echo epc_erp_h($r['to_wh']); ?></td>
+				<td class="text-right"><strong><?php echo epc_erp_money($r['qty']); ?></strong></td>
+				<td class="text-right"><?php echo epc_erp_money($r['value']); ?></td>
+				<td class="text-right"><?php echo epc_erp_money($r['from_excess']); ?></td>
+				<td class="text-right"><?php echo epc_erp_money($r['to_shortfall']); ?></td>
+			</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	</div>
+	<?php endif;
+	return (string) ob_get_clean();
+}
+
+function epc_opl_render_exceptions(PDO $db, int $oplWh, string $tabBase, string $sep): string
+{
+	$rows = epc_opl_exceptions($db, $oplWh);
+	ob_start();
+	?>
+	<p class="text-muted">Planning exceptions requiring attention — ordered by severity.</p>
+	<?php if (empty($rows)): ?>
+		<div class="alert alert-success">No exceptions — all positions are within policy.</div>
+	<?php else: ?>
+	<div class="table-responsive">
+	<table class="table table-bordered table-condensed table-hover">
+		<thead><tr><th>Severity</th><th>Alert</th><th>Item</th><th>Warehouse</th><th>Detail</th></tr></thead>
+		<tbody>
+		<?php foreach ($rows as $r):
+			$wsUrl = $tabBase . $sep . 'opl_item=' . (int) $r['item_id'] . '&opl_wh=' . (int) $r['warehouse_id']; ?>
+			<tr>
+				<td><span class="label label-<?php echo epc_erp_h($r['sev']); ?>"><?php echo epc_erp_h(strtoupper($r['sev'])); ?></span></td>
+				<td><?php echo epc_erp_h($r['type']); ?></td>
+				<td><a href="<?php echo epc_erp_h($wsUrl); ?>"><strong><?php echo epc_erp_h($r['sku']); ?></strong></a> <small class="text-muted"><?php echo epc_erp_h($r['name']); ?></small></td>
+				<td><small><?php echo epc_erp_h($r['warehouse_name']); ?></small></td>
+				<td><small><?php echo epc_erp_h($r['detail']); ?></small></td>
+			</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	</div>
+	<?php endif;
+	return (string) ob_get_clean();
+}
+
+function epc_opl_render_kpi(PDO $db, int $oplWh): string
+{
+	$k = epc_opl_kpis($db, $oplWh);
+	ob_start();
+	erp_stat_cards(array(
+		array('label' => 'Inventory value', 'value' => epc_erp_money($k['inventory_value']) . ' AED'),
+		array('label' => 'Annual demand value', 'value' => epc_erp_money($k['annual_demand_value']) . ' AED'),
+		array('label' => 'Inventory turns', 'value' => epc_erp_money($k['inventory_turns']) . '×'),
+		array('label' => 'Avg days of cover', 'value' => epc_erp_money($k['avg_cover_days'])),
+		array('label' => 'Fill rate', 'value' => epc_erp_money($k['fill_rate']) . '%'),
+	));
+	?>
+	<div class="row" style="margin-top:10px;">
+		<div class="col-md-6">
+			<table class="table table-bordered table-condensed">
+				<tbody>
+					<tr><th style="width:60%;">Planning lines</th><td class="text-right"><?php echo (int) $k['lines']; ?></td></tr>
+					<tr><th>Lines due to order</th><td class="text-right"><?php echo (int) $k['due']; ?></td></tr>
+					<tr><th>Suggested order value</th><td class="text-right"><?php echo epc_erp_money($k['suggested_order_value']); ?> AED</td></tr>
+					<tr class="warning"><th>Excess stock value</th><td class="text-right"><?php echo epc_erp_money($k['excess_value']); ?> AED</td></tr>
+					<tr class="danger"><th>Stock-out-risk items</th><td class="text-right"><?php echo (int) $k['stockout_risk']; ?></td></tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="col-md-6">
+			<div class="well well-sm">
+				<h5><i class="fa fa-sitemap"></i> ABC distribution</h5>
+				<?php foreach (array('A','B','C') as $c): $n = (int) ($k['class_count'][$c] ?? 0); ?>
+					<div style="margin:4px 0;">
+						<strong><?php echo $c; ?></strong>
+						<div style="display:inline-block;width:70%;background:#eee;border-radius:3px;vertical-align:middle;">
+							<div style="background:<?php echo $c === 'A' ? '#0a7d33' : ($c === 'B' ? '#2bb3c0' : '#999'); ?>;height:14px;width:<?php echo $k['lines'] > 0 ? round(100 * $n / $k['lines']) : 0; ?>%;border-radius:3px;"></div>
+						</div>
+						<?php echo $n; ?> items
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</div>
+	<?php
+	return (string) ob_get_clean();
 }
