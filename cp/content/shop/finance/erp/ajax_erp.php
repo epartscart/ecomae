@@ -352,6 +352,29 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'sub_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_subscriptions.php';
+			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['customer'] ?? '')) === '') { throw new Exception('Code and customer are required'); }
+			$sd = $_POST;
+			if (!empty($_POST['start_date_str'])) { $sd['start_date'] = strtotime((string)$_POST['start_date_str']) ?: time(); }
+			$subId = epc_sub_save($db_link, $sd, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Subscription saved', array('id' => $subId));
+
+		case 'sub_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_subscriptions.php';
+			epc_sub_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'active'));
+			epc_erp_json(true, 'Subscription ' . (string)($_POST['status'] ?? ''));
+
+		case 'sub_generate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_subscriptions.php';
+			$inv = epc_sub_generate_invoice($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Cycle invoice #' . $inv['id'] . ' generated — ' . number_format($inv['amount'], 2) . ' AED', $inv);
+
+		case 'sub_invoice_paid':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_subscriptions.php';
+			epc_sub_invoice_set_status($db_link, (int)($_POST['id'] ?? 0), 'paid');
+			epc_erp_json(true, 'Invoice marked paid');
+
 		case 'ctr_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_contracts.php';
 			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['title'] ?? '')) === '') { throw new Exception('Code and title are required'); }

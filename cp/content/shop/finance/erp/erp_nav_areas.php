@@ -31,6 +31,7 @@ function epc_erp_nav_areas_config()
 				'sales_orders' => array('label' => 'Sales orders', 'icon' => 'fa-shopping-cart'),
 				'ar_setup' => array('label' => 'A/R setup', 'icon' => 'fa-handshake-o'),
 				'revenue' => array('label' => 'Revenue', 'icon' => 'fa-money'),
+				'subscriptions' => array('label' => 'Subscriptions', 'icon' => 'fa-refresh'),
 				'receivables' => array('label' => 'Receivables', 'icon' => 'fa-users'),
 				'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-random'),
 				'delivery_notes' => array('label' => 'Delivery notes', 'icon' => 'fa-truck'),
@@ -38,7 +39,7 @@ function epc_erp_nav_areas_config()
 			),
 			'groups' => array(
 				'Common' => array('crm', 'receivables'),
-				'Journals' => array('proposals', 'sales_orders', 'delivery_notes', 'invoices'),
+				'Journals' => array('proposals', 'sales_orders', 'delivery_notes', 'invoices', 'subscriptions'),
 				'Inquiries and reports' => array('revenue', 'fulfilment'),
 				'Setup' => array('ar_setup'),
 			),
