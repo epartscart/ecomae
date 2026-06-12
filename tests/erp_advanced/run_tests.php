@@ -362,6 +362,11 @@ $audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), s
 check('Audit report has cover page + table of contents', strpos($audit['body'], 'ext-cover') !== false && strpos($audit['body'], 'Table of contents') !== false, 'cover');
 check('Audit report has all four IFRS statements', strpos($audit['body'], 'Statement of Financial Position') !== false && strpos($audit['body'], 'Other Comprehensive Income') !== false && strpos($audit['body'], 'Changes in Equity') !== false && strpos($audit['body'], 'Cash Flows') !== false, 'statements');
 check('Audit report has Independent Auditor\'s Report', strpos($audit['body'], 'Independent Auditor') !== false && strpos($audit['body'], 'ISA 700') !== false, 'opinion');
+$reqStds = array('IAS 7', 'IAS 21', 'IAS 23', 'IAS 32', 'IAS 36', 'IAS 40', 'IFRS 8', 'IFRS 13', 'IFRS 5', 'IAS 20', 'IAS 12', 'IAS 19', 'IAS 24', 'IAS 33', 'IFRS 9', 'IFRS 15', 'IFRS 16');
+$missingStd = array();
+foreach ($reqStds as $s) { if (strpos($audit['body'], $s) === false) { $missingStd[] = $s; } }
+check('Audit notes cover full IAS/IFRS set', $missingStd === array(), $missingStd === array() ? count($reqStds) . ' standards' : 'missing: ' . implode(',', $missingStd));
+check('Audit report has Standards applicability index', strpos($audit['body'], 'Standards applicability index') !== false && strpos($audit['body'], 'Not applicable') !== false && strpos($audit['body'], 'IFRS 17') !== false, 'std index');
 
 // ---- Off-system IFRS financial-statements import (template + builder) ----
 $finTpl = epc_ext_import_template_csv('fin');
