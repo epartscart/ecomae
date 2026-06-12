@@ -2534,7 +2534,7 @@ if (!function_exists('epc_ext_b_audit')) {
         $notes .= $note('Earnings per share', 'IAS 33', '<p>Basic earnings per share is calculated by dividing profit for the year attributable to ordinary shareholders by the weighted-average number of ordinary shares in issue. There are no dilutive instruments, so diluted EPS equals basic EPS.</p>'
             . $ntbl(array(
                 array('Profit for the year', $cur['profit'], $pri['profit']),
-                array('Weighted-average shares in issue', $shares, $shares),
+                array('Weighted-average shares in issue', number_format($shares), number_format($shares)),
                 array('Basic & diluted EPS', $m($epsC), $m($epsP), true),
             ), 'Earnings per share'));
         $notes .= $note('Financial instruments — by category', 'IFRS 9 / IAS 32', '<p>The carrying amounts of financial assets and liabilities by measurement category were:</p>'
