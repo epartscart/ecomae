@@ -126,6 +126,8 @@ function epc_pf_ensure_schema(PDO $db): void
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_schema.php';
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_staff_profiles', 'location', "varchar(80) NOT NULL DEFAULT ''");
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_staff_profiles', 'photo_url', "varchar(255) NOT NULL DEFAULT ''");
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_staff_profiles', 'business_unit', "varchar(80) NOT NULL DEFAULT ''");
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_staff_profiles', 'legal_entity', "varchar(120) NOT NULL DEFAULT ''");
 	epc_erp_schema_add_column_if_missing($db, 'epc_pf_cases', 'current_location', "varchar(80) NOT NULL DEFAULT ''");
 	epc_erp_schema_add_column_if_missing($db, 'epc_pf_case_steps', 'location', "varchar(80) NOT NULL DEFAULT ''");
 }
@@ -154,6 +156,30 @@ function epc_pf_user_photo(PDO $db, int $userId): string
 	}
 	$cache[$userId] = $photo;
 	return $photo;
+}
+
+/**
+ * Business unit for a department (a functional division that cuts across branches).
+ * Used as a fallback when a staff profile has no explicit business_unit set.
+ */
+function epc_pf_bu_for_dept(string $deptCode): string
+{
+	$map = array(
+		'sales' => 'Retail BU', 'marketing' => 'Retail BU',
+		'purchase' => 'Distribution BU', 'logistics' => 'Distribution BU',
+		'finance' => 'Corporate BU', 'accounts' => 'Corporate BU',
+		'hr' => 'Corporate BU', 'it' => 'Corporate BU',
+	);
+	$deptCode = strtolower(trim($deptCode));
+	return $map[$deptCode] ?? 'Corporate BU';
+}
+
+/** Legal entity for a location/branch. Fallback when no explicit legal_entity is set. */
+function epc_pf_legal_entity_for_location(string $location): string
+{
+	$fze = array('Sharjah Branch', 'Jebel Ali Warehouse');
+	if (in_array($location, $fze, true)) { return 'ECOM AE FZE'; }
+	return 'ECOM AE Trading LLC';
 }
 
 /** Distinct work locations/branches, drawn from seeded/real staff. */
@@ -642,6 +668,8 @@ function epc_pf_orgmap_data(PDO $db): array
 			'dept' => (string) $c['current_department'],
 			'deptName' => $deptName((string) $c['current_department']),
 			'location' => (string) ($c['current_location'] ?? ''),
+			'bu' => epc_pf_bu_for_dept((string) $c['current_department']),
+			'legalEntity' => epc_pf_legal_entity_for_location((string) ($c['current_location'] ?? '')),
 			'assigneeId' => (int) $c['current_assignee_id'],
 			'assignee' => (string) ($c['assignee_name'] ?? ''),
 			'avatar' => epc_pf_avatar_url((string) ($c['assignee_name'] ?? ''), epc_pf_user_photo($db, (int) $c['current_assignee_id'])),
@@ -695,7 +723,7 @@ function epc_pf_workforce_data(PDO $db): array
 
 	$staff = array();
 	try {
-		$rows = $db->query("SELECT `user_id`,`display_name`,`department_code`,`job_title`,`location`,`photo_url` FROM `epc_erp_staff_profiles` WHERE `active` = 1 ORDER BY `department_code`, `display_name`")->fetchAll(PDO::FETCH_ASSOC);
+		$rows = $db->query("SELECT `user_id`,`display_name`,`department_code`,`job_title`,`location`,`photo_url`,`business_unit`,`legal_entity` FROM `epc_erp_staff_profiles` WHERE `active` = 1 ORDER BY `department_code`, `display_name`")->fetchAll(PDO::FETCH_ASSOC);
 	} catch (Exception $e) {
 		$rows = array();
 	}
@@ -711,6 +739,8 @@ function epc_pf_workforce_data(PDO $db): array
 			'deptName' => $deptName((string) $r['department_code']),
 			'title' => (string) $r['job_title'],
 			'location' => (string) $r['location'],
+			'bu' => ((string) ($r['business_unit'] ?? '') !== '') ? (string) $r['business_unit'] : epc_pf_bu_for_dept((string) $r['department_code']),
+			'legalEntity' => ((string) ($r['legal_entity'] ?? '') !== '') ? (string) $r['legal_entity'] : epc_pf_legal_entity_for_location((string) $r['location']),
 			'avatar' => epc_pf_avatar_url((string) $r['display_name'], (string) ($r['photo_url'] ?? '')),
 			'busy' => count($tasks),
 			'tasks' => $tasks,
@@ -833,8 +863,8 @@ function epc_pf_seed_employees(PDO $db): array
 	$count = 0;
 	$now = time();
 	$ins = $db->prepare("INSERT INTO `epc_erp_staff_profiles`
-		(`user_id`,`department_code`,`display_name`,`job_title`,`email`,`phone`,`location`,`active`,`time_created`)
-		VALUES (?,?,?,?,?,?,?,1,?)");
+		(`user_id`,`department_code`,`display_name`,`job_title`,`email`,`phone`,`location`,`business_unit`,`legal_entity`,`active`,`time_created`)
+		VALUES (?,?,?,?,?,?,?,?,?,1,?)");
 
 	foreach ($deptCodes as $d => $code) {
 		$deptName = isset($deptCfg[$code]['name']) ? $deptCfg[$code]['name'] : ucfirst($code);
@@ -845,7 +875,7 @@ function epc_pf_seed_employees(PDO $db): array
 		$uid++; $seq++;
 		$hName = $first[$seq % count($first)] . ' ' . $last[$seq % count($last)];
 		$hEmail = strtolower(str_replace(' ', '.', $hName)) . '.' . $seq . EPC_PF_DEMO_EMAIL;
-		$ins->execute(array($uid, $code, $hName, 'Head of ' . $deptName, $hEmail, '+9715' . (1000000 + $seq), $headLoc, $now));
+		$ins->execute(array($uid, $code, $hName, 'Head of ' . $deptName, $hEmail, '+9715' . (1000000 + $seq), $headLoc, epc_pf_bu_for_dept($code), epc_pf_legal_entity_for_location($headLoc), $now));
 		$heads[$code] = $uid;
 		$count++;
 
@@ -857,7 +887,7 @@ function epc_pf_seed_employees(PDO $db): array
 				$name = $first[$seq % count($first)] . ' ' . $last[($seq * 3) % count($last)];
 				$email = strtolower(str_replace(' ', '.', $name)) . '.' . $seq . EPC_PF_DEMO_EMAIL;
 				$title = $titles[$k % count($titles)];
-				$ins->execute(array($uid, $code, $name, $title, $email, '+9715' . (1000000 + $seq), $loc, $now));
+				$ins->execute(array($uid, $code, $name, $title, $email, '+9715' . (1000000 + $seq), $loc, epc_pf_bu_for_dept($code), epc_pf_legal_entity_for_location($loc), $now));
 				$count++;
 			}
 		}

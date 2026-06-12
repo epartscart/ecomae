@@ -195,6 +195,8 @@ if ($pfCaseId > 0):
 					<?php elseif ($case['status'] === 'open'): ?>
 						Currently at <strong><?php echo epc_erp_h($curLoc ?: 'Unassigned'); ?></strong>
 						· <?php echo epc_erp_h($deptName((string) $case['current_department'])); ?>
+						· <?php echo epc_erp_h(epc_pf_bu_for_dept((string) $case['current_department'])); ?>
+						· <?php echo epc_erp_h(epc_pf_legal_entity_for_location((string) $curLoc)); ?>
 						· with <?php echo $avatarHtml((string) $case['assignee_name'], (int) $case['current_assignee_id'], 24); ?> <strong><?php echo epc_erp_h($case['assignee_name']); ?></strong>
 					<?php else: ?>
 						Route stopped (<?php echo epc_erp_h(strtoupper($case['status'])); ?>).
@@ -362,6 +364,8 @@ elseif ($pfView === 'orgmap'):
 		<label style="font-size:12px;color:#475569;margin:0 0 0 8px;">View level</label>
 		<div class="seg" id="pf_om_level">
 			<button data-lvl="overall">Overall</button>
+			<button data-lvl="legalentity">Legal entity</button>
+			<button data-lvl="bu">Business unit</button>
 			<button data-lvl="department" class="on">Department</button>
 			<button data-lvl="user">User</button>
 			<button data-lvl="task">Task</button>
@@ -415,6 +419,13 @@ elseif ($pfView === 'orgmap'):
 				var keys=Object.keys(byLoc).sort(function(a,b){ var ia=order.indexOf(a),ib=order.indexOf(b); if(ia<0)ia=99; if(ib<0)ib=99; return ia-ib||a.localeCompare(b); });
 				return keys.map(function(l){ return {key:'l_'+l, title:l, sub:'branch', dept:'', isLoc:true, count:byLoc[l].length, cases:byLoc[l]}; });
 			}
+			if(level==='bu' || level==='legalentity'){
+				var fld=level==='bu'?'bu':'legalEntity', sub=level==='bu'?'business unit':'legal entity';
+				var by={};
+				cases.forEach(function(c){ var k=c[fld]||'Unassigned'; (by[k]=by[k]||[]).push(c); });
+				var keys=Object.keys(by).sort(function(a,b){ return by[b].length-by[a].length || a.localeCompare(b); });
+				return keys.map(function(k){ return {key:level+'_'+k, title:k, sub:sub, dept:'', isOrg:true, count:by[k].length, cases:by[k]}; });
+			}
 			if(level==='overall'){
 				if(!steps.length) return [];
 				var last=steps[steps.length-1].no;
@@ -462,7 +473,7 @@ elseif ($pfView === 'orgmap'):
 					totNodes++;
 					var node=document.createElement('div');
 					node.className='pf-om-node'+(n.count>0?' live':' empty')+((state.node && state.node.proc===p.id && state.node.key===n.key)?' sel':'');
-					var col=n.isLoc?'#0891b2':(n.dept?colorFor(n.dept):'#475569');
+					var col=n.isLoc?'#0891b2':(n.isOrg?(state.level==='legalentity'?'#7c3aed':'#ea580c'):(n.dept?colorFor(n.dept):'#475569'));
 					var emp='';
 					if(state.level==='user'){
 						if(n.emp && n.emp.length){ emp='<div class="pf-om-emp">'+n.emp.map(function(e){return '<div class="r">'+av(e.name,e.avatar,20)+'<span style="flex:1;">'+esc(e.name)+'</span><b>'+e.count+'</b></div>';}).join('')+'</div>'; }
@@ -586,6 +597,8 @@ elseif ($pfView === 'workforce'):
 		<label style="font-size:12px;color:#475569;margin:0;">Group by</label>
 		<div class="seg" id="wf_group">
 			<button data-g="department" class="on">Department</button>
+			<button data-g="bu">Business unit</button>
+			<button data-g="legalentity">Legal entity</button>
 			<button data-g="location">Location</button>
 			<button data-g="task">Task</button>
 			<button data-g="none">Flat</button>
@@ -654,7 +667,8 @@ elseif ($pfView === 'workforce'):
 			return '<div class="pf-wf-card '+cls+'"'+clickable+'><div style="display:flex;gap:8px;align-items:flex-start;">'+av(s.name,s.avatar,36)+
 				'<div style="flex:1;min-width:0;"><div class="pf-wf-nm"><span>'+esc(s.name)+'</span>'+st+'</div>'+
 				'<div class="pf-wf-meta">'+esc(s.title||'')+'</div>'+
-				'<div class="pf-wf-meta"><i class="fa fa-building-o"></i> '+esc(s.deptName)+' · <i class="fa fa-map-marker"></i> '+esc(s.location||'—')+'</div></div></div>'+tasks+'</div>';
+				'<div class="pf-wf-meta"><i class="fa fa-building-o"></i> '+esc(s.deptName)+' · <i class="fa fa-map-marker"></i> '+esc(s.location||'—')+'</div>'+
+				'<div class="pf-wf-meta"><i class="fa fa-sitemap"></i> '+esc(s.bu||'—')+' · <i class="fa fa-bank"></i> '+esc(s.legalEntity||'—')+'</div></div></div>'+tasks+'</div>';
 		}
 		function groupKeyList(list){
 			var groups={};
@@ -665,7 +679,10 @@ elseif ($pfView === 'workforce'):
 					else { (groups['Available (idle)']=groups['Available (idle)']||[]).push(s); }
 				});
 			} else {
-				var f=state.group==='location'?function(s){return s.location||'Unassigned';}:function(s){return s.deptName;};
+				var f=state.group==='location'?function(s){return s.location||'Unassigned';}
+					:state.group==='bu'?function(s){return s.bu||'Unassigned';}
+					:state.group==='legalentity'?function(s){return s.legalEntity||'Unassigned';}
+					:function(s){return s.deptName;};
 				list.forEach(function(s){ var k=f(s); (groups[k]=groups[k]||[]).push(s); });
 			}
 			return groups;

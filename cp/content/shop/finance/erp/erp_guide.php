@@ -150,6 +150,20 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-sitemap"></i> Process flow — workflow automation &amp; live tracking (<a href="/erp/?area=overview&amp;tab=processflow">Overview &rsaquo; Process flow</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">Define any business process as a chain of steps; each approval auto-hands the case to the next person or department head. Then watch where every case has reached on a GPS-style map, see the whole organization's flow, and view your entire team's workload — all with staff photos.</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open Overview → Process flow → <strong>Processes</strong> tab → <strong>Create process</strong> (e.g. "Customer credit request", "Goods delivery to customer"). <strong>Result:</strong> a new process is created (tables auto-create on first open; a brand-new tenant starts empty).</li>
+					<li><strong>Action:</strong> On the process click <strong>Manage steps → Add step</strong>. For each step set the <em>step name</em>, <em>Routes to</em> (Specific person / Department head / Anyone in department / Back to initiator), <em>Department</em> and <em>SLA hours</em>. <strong>Result:</strong> the ordered step chain is saved; steps run top-to-bottom.</li>
+					<li><strong>Action:</strong> New tenant with no data? Click <strong>Seed</strong>. <strong>Result:</strong> demo staff across departments &amp; branches, two example processes and running cases are created (clearable via <strong>Clear</strong>) so you can explore immediately.</li>
+					<li><strong>Action:</strong> Start a case on a process, then <strong>Approve &amp; route to next</strong>. <strong>Result:</strong> the case automatically hands off to the next step's person/department head; SLA/overdue is tracked.</li>
+					<li><strong>Action:</strong> Open the <strong>Monitor</strong> tab and click any case. <strong>Result:</strong> a GPS-style tracker shows the route — completed stops, a pulsing "you are here" marker, the staff photo at each step, and the full audit timeline. Use the <em>Zoom</em> switch (Overall / Location / Department / Task) to redraw the same journey at any level.</li>
+					<li><strong>Action:</strong> Open the <strong>Org map</strong> tab. <strong>Result:</strong> every process flows left-to-right through nodes with animated arrows and live case counts. Switch <em>View level</em> (Overall / Department / User / Task / Location); at User level each employee's photo and case count appear inside their department node. The left list shows all cases — searchable, sortable, and click any to open its document.</li>
+					<li><strong>Action:</strong> Open the <strong>Workforce</strong> tab. <strong>Result:</strong> your entire team in one view with photos — who is busy and on which task; group by Department / Location / Task and filter by busy/idle. Click a person to open the case they are working on.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
 				<h5><i class="fa fa-handshake-o"></i> Supplier portal — performance scorecards (<a href="/erp/?area=purchasing&amp;tab=supplier_portal">Purchasing &rsaquo; Supplier portal</a>)</h5>
 				<p style="margin:6px 0 8px;opacity:.85;">Per-supplier scorecards computed from your POs, goods receipts, RFQs and payables.</p>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">

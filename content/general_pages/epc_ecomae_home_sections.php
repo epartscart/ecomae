@@ -301,6 +301,42 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		</div>
 	</section>
 
+	<section id="workflow" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Process Flow · Workflow Automation</div>
+				<h2>See where work<br><span class="ehm-glow">has reached.</span></h2>
+				<p>Define any business process as a chain of steps — each step auto-hands the case to the next person or department head, with SLAs. Then watch it move on a live, GPS-style map: track every case across departments, employees and branches, and see your whole team's workload in one screen.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				<span class="ehm-badge-pill">Build your own processes</span>
+				<span class="ehm-badge-pill">Automatic hand-off &amp; routing</span>
+				<span class="ehm-badge-pill">GPS-style case tracking</span>
+				<span class="ehm-badge-pill">Org map: overall / dept / user / task / location</span>
+				<span class="ehm-badge-pill">Workforce board</span>
+				<span class="ehm-badge-pill">SLA &amp; overdue alerts</span>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="<?php echo $h($opBase . 'pf_orgmap.png'); ?>" alt="Organization process map" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Live organization process map.</strong> Every process flows left-to-right through nodes with animated arrows and live case counts. Switch level — Overall, Department, User, Task or Location — to zoom in, with employee photos showing exactly who is holding each case.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'pf_tracker.png'); ?>" alt="GPS-style case tracker" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>GPS-style case tracker.</strong> Open any case to see its route like a parcel: completed stops, a pulsing "you are here" marker, the staff member at each step and the full audit timeline.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'pf_workforce.png'); ?>" alt="Workforce board" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Workforce board.</strong> Your entire team in one view — who's busy and on which task, grouped by department, location or task, with photos and busy/idle status.</p></div>
+				</div>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-top:22px">
+				<img src="<?php echo $h($opBase . 'pf_location.png'); ?>" alt="Process map by location" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Across every branch.</strong> The same processes mapped by location — follow work as it physically moves between sites, with live counts at each branch.</p></div>
+			</div>
+		</div>
+	</section>
+
 	<section id="storefront" class="ehm-sec">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
