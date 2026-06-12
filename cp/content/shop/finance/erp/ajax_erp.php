@@ -352,6 +352,35 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'opl_params_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$oItem = (int)($_POST['item_id'] ?? 0); $oWh = (int)($_POST['warehouse_id'] ?? 0);
+			if ($oItem <= 0 || $oWh <= 0) { throw new Exception('Item and warehouse required'); }
+			epc_opl_params_save($db_link, $oItem, $oWh, $_POST);
+			epc_erp_json(true, 'Parameters saved — recalculated');
+
+		case 'opl_set_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$oItem = (int)($_POST['item_id'] ?? 0); $oWh = (int)($_POST['warehouse_id'] ?? 0);
+			if ($oItem <= 0 || $oWh <= 0) { throw new Exception('Item and warehouse required'); }
+			epc_opl_set_status($db_link, $oItem, $oWh, (string)($_POST['status'] ?? 'pending'), (float)($_POST['roq'] ?? 0), (float)($_POST['value'] ?? 0), (string)($_POST['supplier'] ?? ''));
+			epc_erp_json(true, 'Recommendation ' . (string)($_POST['status'] ?? ''));
+
+		case 'opl_confirm_all':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$n = epc_opl_confirm_all($db_link, (int)($_POST['warehouse_id'] ?? 0));
+			epc_erp_json(true, $n . ' recommendation(s) confirmed');
+
+		case 'opl_seed_demo':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$res = epc_opl_seed_demo_demand($db_link, 12, (int)($_POST['warehouse_id'] ?? 0));
+			epc_erp_json(true, 'Seeded ' . (int)$res['movements'] . ' demand movements across ' . (int)$res['items'] . ' items');
+
+		case 'opl_clear_demo':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_planning.php';
+			$cleared = epc_opl_clear_demo_demand($db_link);
+			epc_erp_json(true, 'Cleared ' . (int)$cleared . ' seeded demand movements');
+
 		case 'sub_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_subscriptions.php';
 			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['customer'] ?? '')) === '') { throw new Exception('Code and customer are required'); }
