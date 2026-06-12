@@ -378,6 +378,11 @@ check('Audit notes reconcile (PPE movement ties to closing NBV)', strpos($audit[
 check('Not-applicable standards presented in structure', strpos($audit['body'], 'Standards considered but not applicable') !== false && strpos($audit['body'], 'What the standard covers') !== false && strpos($audit['body'], 'If it applied') !== false && strpos($audit['body'], 'IFRS 3') !== false && strpos($audit['body'], 'IAS 41') !== false, 'na structured');
 // notes cite policy, basis & procedure with standard + law references
 check('Applied notes carry policy/basis/procedure + law references', strpos($audit['body'], 'Accounting policy, basis &amp; procedure') !== false && strpos($audit['body'], 'IFRS 15.31') !== false && strpos($audit['body'], 'IAS 16.7') !== false && strpos($audit['body'], 'Federal Decree-Law 47/2022') !== false && strpos($audit['body'], 'Federal Decree-Law 33/2021') !== false, 'policy refs');
+// section 9 — financial analysis & commentary with impact grading
+check('Audit report has financial analysis section + impact grades', strpos($audit['body'], 'Financial analysis') !== false && (strpos($audit['body'], '>High<') !== false || strpos($audit['body'], '>Medium<') !== false || strpos($audit['body'], '>Low<') !== false), 'analysis sec');
+// PDF print layout — A4, equal margins, unified font, red corporate theme
+check('Audit PDF is A4 with equal margins + per-element page breaks', strpos($audit['body'], 'size:A4') !== false && strpos($audit['body'], 'margin:18mm') !== false && strpos($audit['body'], 'page-break-before:always') !== false, 'A4 print');
+check('Audit PDF uses unified red corporate theme', strpos($audit['body'], '#b3122a') !== false && strpos($audit['body'], 'print-color-adjust:exact') !== false, 'red theme');
 
 // ---- Off-system IFRS financial-statements import (template + builder) ----
 $finTpl = epc_ext_import_template_csv('fin');
@@ -400,6 +405,23 @@ if (class_exists('ZipArchive')) {
     @unlink($tmpFx);
     check('XLSX FIN round-trip reads figures + comparatives', ($mapFx['fin']['FIN_PPE']['cur'] ?? 0) == 3528000.0 && ($mapFx['fin']['FIN_PPE']['pri'] ?? 0) == 3150000.0 && ($mapFx['meta']['META_AUDITOR'] ?? '') !== '', count($mapFx['fin']) . ' lines');
 }
+
+// ---- Expanded IFRS Financials upload workbook (maximum input) ----
+$finSheetsX = epc_ext_import_template_sheets('fin');
+$reqFinSheets = array('Company & details', 'Financial data', 'Revenue & segments', 'PPE & intangible movement', 'Receivables, inventory & ECL', 'Tax reconciliation', 'Leases, borrowings & risk', 'Equity, EPS & dividends', 'Related parties & KMP', 'Other disclosures', 'Notes inputs', 'Compliance checklist');
+$missFinSheet = array();
+foreach ($reqFinSheets as $s) { if (!isset($finSheetsX[$s])) { $missFinSheet[] = $s; } }
+check('FIN workbook is comprehensive (12 input sheets)', $missFinSheet === array(), $missFinSheet === array() ? count($finSheetsX) . ' sheets' : 'missing: ' . implode(',', $missFinSheet));
+$finFlat = json_encode($finSheetsX);
+check('FIN workbook carries granular detail codes', strpos($finFlat, 'FIN_REV_GOODS') !== false && strpos($finFlat, 'FIN_PPE_ADDITIONS') !== false && strpos($finFlat, 'FIN_RECEIVABLES_GROSS') !== false && strpos($finFlat, 'FIN_TAX_DEFERRED') !== false && strpos($finFlat, 'FIN_SHARES_WEIGHTED') !== false && strpos($finFlat, 'META_INDUSTRY') !== false, 'detail codes');
+// detail codes feed the report notes (round-trip through the off-system builder)
+$tmpFx2 = tempnam(sys_get_temp_dir(), 'finx2') . '.xlsx';
+file_put_contents($tmpFx2, epc_ext_import_template_xlsx('fin'));
+$mapFx2 = epc_ext_import_map(epc_ext_parse_all_rows($tmpFx2, 'wb.xlsx') ?: array());
+@unlink($tmpFx2);
+check('FIN detail codes round-trip (revenue split, gross rec, KMP)', ($mapFx2['fin']['FIN_REV_GOODS']['cur'] ?? 0) == 6048000.0 && ($mapFx2['fin']['FIN_RECEIVABLES_GROSS']['cur'] ?? 0) == 1387000.0 && ($mapFx2['fin']['FIN_KMP_SALARIES']['cur'] ?? 0) == 720000.0 && ($mapFx2['meta']['META_INDUSTRY'] ?? '') !== '', count($mapFx2['fin']) . ' lines');
+$impFin2 = epc_ext_b_fin_summary($mapFx2, 'AED');
+check('Off-system notes use detail inputs (disaggregation, EPS, KMP, segments)', strpos($impFin2['body'], 'Sale of goods (point in time)') !== false && strpos($impFin2['body'], 'Earnings per share') !== false && strpos($impFin2['body'], 'Key management personnel remuneration') !== false && strpos($impFin2['body'], 'Operating segments') !== false, 'wired notes');
 
 // ---- Financial Model + Business Valuation ----
 $fm = epc_ext_b_finmodel($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
