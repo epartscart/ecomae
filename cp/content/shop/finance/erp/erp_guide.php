@@ -104,6 +104,21 @@ $deptCfg = epc_erp_departments_config();
 				</ul>
 			</div>
 
+			<h4><i class="fa fa-rocket"></i> What&#39;s new — latest release</h4>
+			<div class="well well-sm">
+				<p>Recent additions across navigation, presentation and the industry/inventory model:</p>
+				<ul>
+					<li><strong>Industry pack drives Product Information</strong> — applying an industry pack in <a href="/erp/?area=finance&amp;tab=setup">Accounting setup</a> now <em>releases that pack&#39;s product fields</em> into <a href="/erp/?area=operations&amp;tab=product_info&amp;pm_view=fields">Product Information &rsaquo; Field setup</a> (e.g. Jewellery &rarr; metal, purity, gross weight, stone type, stone carat, hallmark). Scales to 50&ndash;100 industries from the per-tenant industry catalogue.</li>
+					<li><strong>Inventory vs non-inventory classification</strong> — on Product Information &rsaquo; Field setup each field can be flipped <strong>Inventory</strong> (stock + accounting / item master) &harr; <strong>Non-inventory</strong> (catalogue/info only), enabled/disabled, and shows its source pack. Defaults come from the pack at onboarding but are editable any time; re-applying a pack preserves your classification (idempotent, never overwrites). You can also add custom fields.</li>
+					<li><strong>Period / as-of-date reporting</strong> — balances reconstruct to a chosen date from the dated movement ledger: <a href="/erp/?area=operations&amp;tab=inv_groups&amp;pm_view=stock">Inventory on hand as at [date]</a> (qty + weighted-avg cost + value for any day or fiscal year-end), with From/To period filters on flow reports and no date bar on master/setup screens.</li>
+					<li><strong>Receivables / Payables / Inventory aging</strong> — <a href="/erp/?area=finance&amp;tab=aging&amp;aging_view=ar">AR</a>, <a href="/erp/?area=finance&amp;tab=aging&amp;aging_view=ap">AP</a> and <a href="/erp/?area=finance&amp;tab=aging&amp;aging_view=inventory">inventory</a> aging with configurable buckets and distribution bars.</li>
+					<li><strong>Customer / Vendor Statements of Account</strong> — opening + invoices &minus; receipts = closing, with ageing, on tenant letterhead + TRN; open-item mode available.</li>
+					<li><strong>14 enterprise (D365 F&amp;O) modules</strong> — <a href="/erp/?area=enterprise&amp;tab=business_units">Business unit</a>, <a href="/erp/?area=enterprise&amp;tab=listing">Listing</a>, Product Information, Inventory groups/status, <a href="/erp/?area=purchasing&amp;tab=ap_setup">A/P setup</a>, <a href="/erp/?area=sales&amp;tab=ar_setup">A/R setup</a>, <a href="/erp/?area=enterprise&amp;tab=budgeting">Budgeting</a>, <a href="/erp/?area=finance&amp;tab=bank_setup">Bank account</a>, <a href="/erp/?area=insights&amp;tab=consolidation_bu">Consolidation</a>, <a href="/erp/?area=insights&amp;tab=enterprise_reports">Report</a>, <a href="/erp/?area=purchasing&amp;tab=landed_cost">Landed cost</a>, <a href="/erp/?area=operations&amp;tab=master_planning">Master planning</a>, <a href="/erp/?area=operations&amp;tab=retail_barcode">Retail barcode</a> and <a href="/erp/?area=collaboration&amp;tab=doc_formats">Documents</a> — each per-tenant (writes to the tenant&#39;s own DB).</li>
+					<li><strong>Standalone ERP</strong> — an ERP-only client can create customers, inventory items and sales orders with no e-commerce storefront dependency.</li>
+					<li><strong>NetSuite-style home + D365 F&amp;O inside</strong> — portlet dashboard (tiles, KPI gauge, A/R aging chart, reminders, quick actions) with a D365-style grouped, collapsible left nav (Common / Journals / Setup / Periodic) and Action Pane + FastTab entry forms.</li>
+				</ul>
+			</div>
+
 			<h4><i class="fa fa-sitemap"></i> End-to-end flows</h4>
 			<div class="well well-sm epc-erp-flow">
 				<p><strong>A. Sales &amp; revenue (customer side)</strong></p>

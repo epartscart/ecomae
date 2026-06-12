@@ -91,6 +91,29 @@ if (!function_exists('epc_guide_modules')) {
             'GRN: Inventory +, GR/IR +. Delivery/Sale: Inventory −, COGS +. Adjustments post to a variance account.',
             array('Enable batch/expiry for pharma & F&B; serial/IMEI for electronics; weight & purity for jewellery.'));
 
+        $g['product_info'] = $E('inventory', 'Product Information System (industry-pack fields)',
+            'Industry-pack-driven product/inventory field structure with per-tenant inventory vs non-inventory classification. Applying an industry pack releases that pack\'s specialized product fields; each tenant decides which fields are stock-tracked (inventory) and which are catalogue-only (non-inventory). Scales to 50-100 industries from the per-tenant industry catalogue.',
+            array(
+                'In Accounting setup, apply your industry pack — it seeds that pack\'s product fields into Product Information (e.g. Jewellery: metal, purity, gross weight, stone type, stone carat, hallmark; Oil & gas: barrel/MT specs).',
+                'Open Product Information > Field setup to review every released field and its source pack.',
+                'Set each field\'s role: Inventory (part of item master, stock + accounting/valuation) or Non-inventory (descriptive/catalogue only). Defaults come from the pack but are fully editable.',
+                'Add any custom fields (text/number/date/select) the tenant needs beyond the pack.',
+            ),
+            array(
+                'Create items using the industry fields shown; inventory-classified fields feed stock, valuation and the item master, non-inventory fields stay descriptive.',
+                'Re-classify a field any time (Inventory <-> Non-inventory) or enable/disable it — changes apply immediately, per tenant.',
+                'Re-applying the same pack refreshes labels/types but never overwrites a classification you changed (idempotent, additive).',
+            ),
+            'Inventory-classified fields participate in stock movements and valuation (Inventory +/-, COGS, GR/IR); non-inventory fields carry no GL impact.',
+            array('Onboarding sets sensible defaults from the pack so a new tenant starts correctly, then the client tailors the inventory/non-inventory split without any code change.'));
+
+        $g['aging'] = $E('gl', 'Aging — receivables, payables & inventory',
+            'Bucketed aging for AR, AP and inventory with configurable bucket sizes (from Accounting setup) and distribution bars, as-of any date.',
+            array('Confirm your aging bucket sizes (e.g. 0-30 / 31-60 / 61-90 / 90+) in Accounting setup.'),
+            array('Open Finance > Aging and switch the view: Receivables (by customer), Payables (by supplier) or Inventory (by item) — each shows per-bucket totals and a distribution bar as at the chosen date.'),
+            'Read-only over AR/AP subledgers and the inventory ledger; no new postings.',
+            array('Use AR aging for collections priority, AP aging for payment planning, and inventory aging to spot slow/dead stock.'));
+
         $g['procurement'] = $E('procurement', 'Procurement & purchasing',
             'The buy-side document chain: requisition → RFQ → PO/LPO → GRN → bill → payment.',
             array('Add suppliers and payment terms.', 'Enable approval workflow for POs above a threshold (optional).'),
