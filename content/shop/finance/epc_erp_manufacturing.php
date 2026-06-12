@@ -275,6 +275,87 @@ if (!function_exists('epc_mfg_wo_get')) {
     }
 }
 
+if (!function_exists('epc_mfg_bom_list')) {
+    /**
+     * List BOM headers with finished-product name and component count.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_mfg_bom_list(PDO $db): array
+    {
+        epc_mfg_ensure_schema($db);
+        $sql = "SELECT b.*, i.`sku` AS product_sku, i.`name` AS product_name,
+                       (SELECT COUNT(*) FROM `epc_mfg_bom_lines` l WHERE l.`bom_id` = b.`id`) AS line_count
+                FROM `epc_mfg_bom` b
+                LEFT JOIN `epc_erp_inv_items` i ON i.`id` = b.`product_item_id`
+                ORDER BY b.`id` DESC";
+        try {
+            return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return $db->query("SELECT * FROM `epc_mfg_bom` ORDER BY `id` DESC")->fetchAll(PDO::FETCH_ASSOC);
+        }
+    }
+}
+
+if (!function_exists('epc_mfg_bom_lines_get')) {
+    /**
+     * Component lines for a BOM, with component SKU/name resolved.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_mfg_bom_lines_get(PDO $db, int $bomId): array
+    {
+        epc_mfg_ensure_schema($db);
+        $sql = "SELECT l.*, i.`sku` AS component_sku, i.`name` AS component_name
+                FROM `epc_mfg_bom_lines` l
+                LEFT JOIN `epc_erp_inv_items` i ON i.`id` = l.`component_item_id`
+                WHERE l.`bom_id` = ? ORDER BY l.`id`";
+        $st = $db->prepare($sql);
+        $st->execute(array($bomId));
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_mfg_wo_list')) {
+    /**
+     * List work orders newest-first with product name and BOM label.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_mfg_wo_list(PDO $db, int $limit = 200): array
+    {
+        epc_mfg_ensure_schema($db);
+        $limit = max(1, min(1000, $limit));
+        $sql = "SELECT w.*, i.`sku` AS product_sku, i.`name` AS product_name, b.`name` AS bom_name
+                FROM `epc_mfg_work_orders` w
+                LEFT JOIN `epc_erp_inv_items` i ON i.`id` = w.`product_item_id`
+                LEFT JOIN `epc_mfg_bom` b ON b.`id` = w.`bom_id`
+                ORDER BY w.`id` DESC LIMIT " . $limit;
+        try {
+            return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return $db->query("SELECT * FROM `epc_mfg_work_orders` ORDER BY `id` DESC LIMIT " . $limit)->fetchAll(PDO::FETCH_ASSOC);
+        }
+    }
+}
+
+if (!function_exists('epc_mfg_summary')) {
+    /**
+     * Headline counts for the manufacturing dashboard cards.
+     *
+     * @return array{boms:int,wo_open:int,wo_done:int,wip_value:float}
+     */
+    function epc_mfg_summary(PDO $db): array
+    {
+        epc_mfg_ensure_schema($db);
+        $boms = (int) $db->query("SELECT COUNT(*) FROM `epc_mfg_bom`")->fetchColumn();
+        $open = (int) $db->query("SELECT COUNT(*) FROM `epc_mfg_work_orders` WHERE `status` IN ('planned','in_progress')")->fetchColumn();
+        $done = (int) $db->query("SELECT COUNT(*) FROM `epc_mfg_work_orders` WHERE `status`='completed'")->fetchColumn();
+        $wip = (float) $db->query("SELECT COALESCE(SUM(`material_cost`+`labour_cost`+`overhead_cost`),0) FROM `epc_mfg_work_orders` WHERE `status`='in_progress'")->fetchColumn();
+        return array('boms' => $boms, 'wo_open' => $open, 'wo_done' => $done, 'wip_value' => round($wip, 2));
+    }
+}
+
 if (!function_exists('epc_mfg_item_cost')) {
     /**
      * Best-effort component unit cost from inventory stock; 0 if unavailable.

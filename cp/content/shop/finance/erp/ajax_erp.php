@@ -352,6 +352,40 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'mfg_bom_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_manufacturing.php';
+			$mfgLines = array();
+			if (isset($_POST['lines']) && is_array($_POST['lines'])) {
+				foreach ($_POST['lines'] as $ln) {
+					if (!is_array($ln) || (int)($ln['component_item_id'] ?? 0) <= 0) { continue; }
+					$mfgLines[] = array(
+						'component_item_id' => (int) $ln['component_item_id'],
+						'qty_per' => (float) ($ln['qty_per'] ?? 0),
+						'scrap_percent' => (float) ($ln['scrap_percent'] ?? 0),
+					);
+				}
+			}
+			if ((int)($_POST['product_item_id'] ?? 0) <= 0) { throw new Exception('Select a finished product'); }
+			if (empty($mfgLines)) { throw new Exception('Add at least one component'); }
+			$bomId = epc_mfg_bom_save($db_link, $_POST, $mfgLines, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'BOM saved (#' . $bomId . ') with ' . count($mfgLines) . ' component(s)', array('id' => $bomId));
+
+		case 'mfg_wo_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_manufacturing.php';
+			$woId = epc_mfg_wo_create($db_link, $_POST);
+			$wo = epc_mfg_wo_get($db_link, $woId);
+			epc_erp_json(true, 'Work order ' . ($wo['wo_no'] ?? ('#' . $woId)) . ' created', array('id' => $woId));
+
+		case 'mfg_wo_issue':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_manufacturing.php';
+			$res = epc_mfg_wo_issue_materials($db_link, (int)($_POST['wo_id'] ?? 0));
+			epc_erp_json(true, 'Materials issued — cost ' . number_format((float)$res['material_cost'], 2) . ' AED', $res);
+
+		case 'mfg_wo_complete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_manufacturing.php';
+			$res = epc_mfg_wo_complete($db_link, (int)($_POST['wo_id'] ?? 0), (float)($_POST['qty_produced'] ?? 0));
+			epc_erp_json(true, 'Work order completed — unit cost ' . number_format((float)$res['unit_cost'], 4) . ' AED', $res);
+
 		case 'payroll_generate':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_payroll.php';
 			$label = trim((string)($_POST['period_label'] ?? date('Y-m')));
