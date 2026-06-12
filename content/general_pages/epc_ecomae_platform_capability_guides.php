@@ -538,6 +538,57 @@ return array(
 			array('title' => 'CRM inside ERP', 'body' => 'Pipeline kanban, quotes, and support tickets live in the same ERP module — consultancies run sales and billing without a separate CRM subscription.'),
 		),
 	),
+	'business-unit-dimensions' => array(
+		'intro' => 'D365-style financial dimensions — business unit, cost centre, department, project and custom tenant dimensions — selectable on every entry so clients segregate and report results by any dimension combination.', 
+		'guide_area' => 'erp-finance', 
+		'image' => 'guide-erp-finance', 
+		'steps' => array(
+			array('title' => 'Define dimensions once', 'body' => 'Enterprise → Business unit sets up business units, cost centres, departments, projects and any custom financial dimensions in the tenant master — nothing is hard-coded.'),
+			array('title' => 'Tag on every entry', 'body' => 'The dimension picker appears on sales orders, purchase orders, customers, vendors, invoices, receipt & payment vouchers, journals, inventory items, listings and more — pick the business unit and sub-dimensions when you create the record.'),
+			array('title' => 'See it on lists', 'body' => 'Saved dimensions show as badges in list/grid views (e.g. a sales order tagged "Retail Division / Sales") so you can scan segregation at a glance.'),
+			array('title' => 'Report by dimension', 'body' => 'Trial balance, consolidation and dimension reporting slice results by business unit and any dimension combination — shared COA across all business units.'),
+		),
+	),
+	'enterprise-modules-d365' => array(
+		'intro' => 'Fourteen config-driven enterprise modules with sub-modules, each writing to the tenant\'s own database — no storefront required for an ERP-only client.', 
+		'guide_area' => 'erp-finance', 
+		'image' => 'guide-erp-finance', 
+		'steps' => array(
+			array('title' => 'Enterprise area in the nav', 'body' => 'The ERP shell adds Business unit, Listing, Budgeting, Consolidation and Reporting under Enterprise; the rest slot into Sales, Purchasing, Finance and Operations.'),
+			array('title' => 'Per-tenant, config-driven', 'body' => 'Each module and sub-module is driven by per-tenant configuration — enable only what a client licenses, with masters seeded from the chosen industry pack.'),
+			array('title' => 'Standalone create', 'body' => 'Create a business unit, item, budget or document entirely inside ERP — it instantly appears in dependent dropdowns (Budgeting, Trial balance) without touching e-commerce.'),
+		),
+	),
+	'netsuite-d365-ux' => array(
+		'intro' => 'NetSuite-style role dashboard with a Dynamics 365 Finance & Operations inner experience across every module.', 
+		'guide_area' => 'erp-finance', 
+		'image' => 'guide-erp-finance', 
+		'steps' => array(
+			array('title' => 'NetSuite-style home', 'body' => 'The landing dashboard uses tiles, a KPI gauge, an A/R aging chart, reminders and visual quick-action cards (New sales order, New item, Receipt voucher, VAT return).'),
+			array('title' => 'D365 sliding nav', 'body' => 'The left pane is a D365 navigation tree grouped into Common / Journals / Inquiries / Setup / Periodic, and collapses to an icon rail with flyout submenus.'),
+			array('title' => 'Action pane & FastTabs', 'body' => 'Entry forms use a top action-pane command bar (New / Save) and collapsible FastTab sections; list pages use the grid styling with a hyperlink first column.'),
+		),
+	),
+	'period-asof-reporting' => array(
+		'intro' => 'True point-in-time ERP reporting reconstructed from dated movement ledgers, with a per-tenant fiscal calendar driving every year.', 
+		'guide_area' => 'erp-finance', 
+		'image' => 'guide-erp-finance', 
+		'steps' => array(
+			array('title' => 'As-at single date', 'body' => 'Inventory → Stock in hand has an "Inventory on hand as at [date]" picker that replays each receipt and issue to that day for historical quantity, weighted-average cost and value.'),
+			array('title' => 'From/To period flows', 'body' => 'P&L, ledgers, sales/purchase lists and bank transaction reports use a From/To period bar; master/setup screens have no date bar, following standard ERP rules.'),
+			array('title' => 'Fiscal calendar', 'body' => 'A per-tenant fiscal-year/period calendar lets you pick FY2024, FY2025 or a month for closing snapshots across every year.'),
+		),
+	),
+	'aging-statements' => array(
+		'intro' => 'Config-driven AR / AP / inventory aging plus customer and vendor statements of account on tenant letterhead.', 
+		'guide_area' => 'erp-finance', 
+		'image' => 'guide-erp-finance', 
+		'steps' => array(
+			array('title' => 'Aging by bucket', 'body' => 'Finance → Aging shows Receivables, Payables and Inventory aging with per-bucket totals and a distribution bar — bucket sizes come from Accounting setup, nothing hard-coded.'),
+			array('title' => 'Statement of account', 'body' => 'Generate a customer or vendor statement rendered with the tenant letterhead, logo and TRN for collections and audit.'),
+			array('title' => 'Drill to documents', 'body' => 'Each aged balance ties back to its source invoices, receipts and payments for fast reconciliation.'),
+		),
+	),
 	'general-ledger' => array(
 		'intro' => 'Double-entry GL with journal entries, period close, and audit-friendly posting history. Commerce and ERP share customer and SKU master data — no re-keying invoices.', 
 		'guide_area' => 'erp-finance', 

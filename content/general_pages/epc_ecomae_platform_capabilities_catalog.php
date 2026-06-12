@@ -1,6 +1,6 @@
 <?php
 /**
- * Super CP capabilities catalog — 96 customer-facing items (included from data.php).
+ * Super CP capabilities catalog — 105 customer-facing items (included from data.php).
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -69,7 +69,7 @@ return array(
 	array('id' => 'supplier-payments', 'category' => 'Procurement & suppliers', 'title' => 'Supplier payables', 'summary' => 'Track amounts owed to suppliers and schedule settlement from ERP payables tab. Aging reports help finance prioritise cash outflows.', 'icon' => 'fa-credit-card'),
 	array('id' => 'procurement-workflows', 'category' => 'Procurement & suppliers', 'title' => 'Procurement workflows', 'summary' => 'End-to-end buy-side process from demand signal through PO, receipt, and invoice. Integrated with auto-parts SAO and ERP purchasing areas.', 'icon' => 'fa-sitemap'),
 
-	// Finance & ERP (11)
+	// Finance & ERP (17)
 	array('id' => 'worldwide-tax-toolkit', 'category' => 'Finance & ERP', 'title' => 'Worldwide Tax Toolkit', 'summary' => 'Complete business taxation for 195+ countries — VAT/GST, corporate income tax (CIT), import/export customs duty, withholding, double taxation & foreign tax credits, plus ERP hooks for purchase inventory, sales output tax, and profit CIT estimates. One-click Update refreshes seed rates and UAE FTA legislation. Tenant jurisdiction drives all tax defaults.', 'icon' => 'fa-globe'),
 	array('id' => 'erp-dashboard', 'category' => 'Finance & ERP', 'title' => 'ERP dashboard & KPIs', 'summary' => 'Live KPIs across sales, stock, and finance on one dashboard — plus cross-department workflow view. Standalone /erp portal option for client finance teams.', 'icon' => 'fa-dashboard'),
 	array('id' => 'general-ledger', 'category' => 'Finance & ERP', 'title' => 'General ledger', 'summary' => 'Double-entry GL with journal entries, period close, and audit-friendly posting history. Commerce and ERP share customer and SKU master data — no re-keying invoices.', 'icon' => 'fa-book'),
@@ -82,6 +82,11 @@ return array(
 	array('id' => 'pl-balance-sheet', 'category' => 'Finance & ERP', 'title' => 'P&L & balance sheet', 'summary' => 'Standard financial statements from posted GL — filter by period and export for advisors. Tax firms use this alongside VAT return data for client reporting.', 'icon' => 'fa-bar-chart'),
 	array('id' => 'erp-workflow', 'category' => 'Finance & ERP', 'title' => 'Cross-department workflow', 'summary' => 'Visual workflow across sales, purchasing, finance, and operations — see bottlenecks before month-end. Native ERP tabs replace disconnected spreadsheets for growing tenants.', 'icon' => 'fa-tasks'),
 	array('id' => 'multi-company-erp-access', 'category' => 'Finance & ERP', 'title' => 'Multi-company ERP access', 'summary' => 'Username/password sign-in per department user with company-scoped customs declarations, cost summaries, and entity fields — one hosted tenant serves multiple legal entities without a storefront account.', 'icon' => 'fa-sitemap'),
+	array('id' => 'business-unit-dimensions', 'category' => 'Finance & ERP', 'title' => 'Business unit & financial dimensions', 'summary' => 'D365-style financial dimensions — business unit, cost centre, department, project and custom tenant dimensions — selectable on every entry (sales orders, purchase orders, customers, vendors, invoices, receipt & payment vouchers, journals, inventory, listings and more). Each transaction is tagged and reportable so clients segregate results by any dimension combination.', 'icon' => 'fa-tags'),
+	array('id' => 'enterprise-modules-d365', 'category' => 'Finance & ERP', 'title' => 'Enterprise modules (D365-style)', 'summary' => 'Fourteen config-driven enterprise modules with sub-modules — Business unit, Listing, Product information, Inventory, AP, AR, Budgeting, Bank, Consolidation, Reporting, Landed cost, Master planning, Retail barcode and Documents — each writing to the tenant\'s own database, no storefront required.', 'icon' => 'fa-th-large'),
+	array('id' => 'netsuite-d365-ux', 'category' => 'Finance & ERP', 'title' => 'NetSuite dashboard + D365 forms', 'summary' => 'NetSuite-style role dashboard (tiles, KPI gauge, aging chart, quick actions) with Dynamics 365 Finance & Operations inner experience — sliding navigation pane, action-pane command bars, FastTab entry forms and grid list pages across every module.', 'icon' => 'fa-window-maximize'),
+	array('id' => 'period-asof-reporting', 'category' => 'Finance & ERP', 'title' => 'Period & as-of-date reporting', 'summary' => 'True point-in-time ERP reporting — inventory on hand, stock value and balances reconstructed as at any date or fiscal period from dated movement ledgers, with From/To period flows on P&L, ledgers and transaction reports. Per-tenant fiscal calendar drives every year.', 'icon' => 'fa-calendar-check-o'),
+	array('id' => 'aging-statements', 'category' => 'Finance & ERP', 'title' => 'Aging & statements of account', 'summary' => 'Config-driven AR / AP / inventory aging with per-bucket totals and distribution bars, plus customer and vendor statements of account rendered with tenant letterhead and TRN for collections and audit.', 'icon' => 'fa-clock-o'),
 
 	// UAE e-invoicing & VAT (5)
 	array('id' => 'uae-vat-returns', 'category' => 'UAE e-invoicing & VAT', 'title' => 'UAE VAT returns', 'summary' => 'Prepare VAT return data from posted sales and purchases with TRN-aware totals. Export-friendly views for tax advisors and in-house finance on UAE mainland entities.', 'icon' => 'fa-percent'),

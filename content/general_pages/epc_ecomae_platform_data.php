@@ -1133,7 +1133,7 @@ function epc_ecomae_platform_industry_full($code)
 }
 
 /**
- * Full Super CP / client CP capability catalog for marketing (96 items).
+ * Full Super CP / client CP capability catalog for marketing (105 items).
  */
 function epc_ecomae_platform_super_cp_capabilities_catalog()
 {
