@@ -123,8 +123,33 @@ function epc_erp_inventory_ensure_schema(PDO $db)
 		KEY `x_item` (`item_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
+	// Serial-number register — one row per serialized unit, tracked through its
+	// lifecycle (in_stock -> sold/returned/scrapped) with the movement refs.
+	$db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_inv_serials` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`item_id` int(11) NOT NULL,
+		`serial_no` varchar(128) NOT NULL,
+		`warehouse_id` int(11) NOT NULL DEFAULT 0,
+		`batch_no` varchar(64) DEFAULT NULL,
+		`status` enum('in_stock','sold','returned','scrapped','in_transit') NOT NULL DEFAULT 'in_stock',
+		`in_movement_id` int(11) NOT NULL DEFAULT 0,
+		`out_movement_id` int(11) NOT NULL DEFAULT 0,
+		`unit_cost` decimal(14,4) NOT NULL DEFAULT 0.0000,
+		`note` varchar(255) DEFAULT NULL,
+		`time_created` int(11) NOT NULL DEFAULT 0,
+		`time_updated` int(11) NOT NULL DEFAULT 0,
+		PRIMARY KEY (`id`),
+		UNIQUE KEY `x_item_serial` (`item_id`,`serial_no`),
+		KEY `x_status` (`status`),
+		KEY `x_wh` (`warehouse_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Serial-number register'");
+
 	if (function_exists('epc_erp_schema_add_column_if_missing')) {
 		epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchases', 'inv_receipt_posted', 'tinyint(1) NOT NULL DEFAULT 0');
+		// Barcode (EAN/UPC/QR payload) on the item master for scan lookups, and
+		// serial capture on movements for serialized goods.
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'barcode', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_movements', 'serial_no', "varchar(128) DEFAULT NULL");
 		// Per-tenant product-field classification: each product/inventory field
 		// can be flagged as an inventory attribute (stock-tracked, part of the
 		// item master & valuation) or a non-inventory attribute (descriptive /
@@ -357,25 +382,197 @@ function epc_erp_inventory_record_movement(PDO $db, array $data)
 
 	$total = round($qtyAbs * $unitCost, 2);
 	$mdate = !empty($data['movement_date']) ? strtotime((string) $data['movement_date'] . ' 12:00:00') : time();
-	$db->prepare(
-		'INSERT INTO `epc_erp_inv_movements`
-		(`movement_type`,`warehouse_id`,`item_id`,`qty`,`unit_cost`,`total_cost`,`transfer_warehouse_id`,`purchase_id`,`order_id`,
-		`batch_no`,`expiry_date`,`reference`,`note`,`movement_date`,`admin_id`,`opening_batch_id`)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-	)->execute(array(
-		$type, $wh, $itemId, $qtyAbs, $unitCost, $total,
-		(int) ($data['transfer_warehouse_id'] ?? 0),
-		(int) ($data['purchase_id'] ?? 0),
-		(int) ($data['order_id'] ?? 0),
-		$batch !== '' ? $batch : null,
-		$expiry,
-		trim((string) ($data['reference'] ?? '')),
-		trim((string) ($data['note'] ?? '')),
-		$mdate ?: time(),
-		epc_erp_admin_id(),
-		(int) ($data['opening_batch_id'] ?? 0),
-	));
-	return (int) $db->lastInsertId();
+	$serial = trim((string) ($data['serial_no'] ?? ''));
+	$hasSerialCol = epc_erp_inventory_has_column($db, 'epc_erp_inv_movements', 'serial_no');
+	if ($hasSerialCol) {
+		$db->prepare(
+			'INSERT INTO `epc_erp_inv_movements`
+			(`movement_type`,`warehouse_id`,`item_id`,`qty`,`unit_cost`,`total_cost`,`transfer_warehouse_id`,`purchase_id`,`order_id`,
+			`batch_no`,`expiry_date`,`serial_no`,`reference`,`note`,`movement_date`,`admin_id`,`opening_batch_id`)
+			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+		)->execute(array(
+			$type, $wh, $itemId, $qtyAbs, $unitCost, $total,
+			(int) ($data['transfer_warehouse_id'] ?? 0),
+			(int) ($data['purchase_id'] ?? 0),
+			(int) ($data['order_id'] ?? 0),
+			$batch !== '' ? $batch : null,
+			$expiry,
+			$serial !== '' ? $serial : null,
+			trim((string) ($data['reference'] ?? '')),
+			trim((string) ($data['note'] ?? '')),
+			$mdate ?: time(),
+			epc_erp_admin_id(),
+			(int) ($data['opening_batch_id'] ?? 0),
+		));
+	} else {
+		$db->prepare(
+			'INSERT INTO `epc_erp_inv_movements`
+			(`movement_type`,`warehouse_id`,`item_id`,`qty`,`unit_cost`,`total_cost`,`transfer_warehouse_id`,`purchase_id`,`order_id`,
+			`batch_no`,`expiry_date`,`reference`,`note`,`movement_date`,`admin_id`,`opening_batch_id`)
+			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+		)->execute(array(
+			$type, $wh, $itemId, $qtyAbs, $unitCost, $total,
+			(int) ($data['transfer_warehouse_id'] ?? 0),
+			(int) ($data['purchase_id'] ?? 0),
+			(int) ($data['order_id'] ?? 0),
+			$batch !== '' ? $batch : null,
+			$expiry,
+			trim((string) ($data['reference'] ?? '')),
+			trim((string) ($data['note'] ?? '')),
+			$mdate ?: time(),
+			epc_erp_admin_id(),
+			(int) ($data['opening_batch_id'] ?? 0),
+		));
+	}
+	$movementId = (int) $db->lastInsertId();
+
+	// Maintain the serial register for serialized goods.
+	if ($serial !== '') {
+		$incoming = in_array($type, array('opening', 'purchase_in', 'transfer_in', 'return_in'), true)
+			|| ($type === 'adjustment' && $qty > 0);
+		epc_erp_inventory_register_serial($db, array(
+			'item_id' => $itemId,
+			'serial_no' => $serial,
+			'warehouse_id' => $wh,
+			'batch_no' => $batch,
+			'unit_cost' => $unitCost,
+			'movement_id' => $movementId,
+			'incoming' => $incoming,
+		));
+	}
+	return $movementId;
+}
+
+/** Lightweight column-existence cache to keep movement inserts portable. */
+function epc_erp_inventory_has_column(PDO $db, $table, $column)
+{
+	static $cache = array();
+	$key = $table . '.' . $column;
+	if (isset($cache[$key])) {
+		return $cache[$key];
+	}
+	try {
+		$st = $db->prepare(
+			'SELECT COUNT(*) FROM information_schema.COLUMNS
+			 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+		);
+		$st->execute(array($table, $column));
+		$cache[$key] = ((int) $st->fetchColumn() > 0);
+	} catch (Exception $e) {
+		$cache[$key] = false;
+	}
+	return $cache[$key];
+}
+
+/** Upsert a serial record and flip its status on in/out movements. */
+function epc_erp_inventory_register_serial(PDO $db, array $data)
+{
+	$itemId = (int) ($data['item_id'] ?? 0);
+	$serial = trim((string) ($data['serial_no'] ?? ''));
+	if ($itemId <= 0 || $serial === '') {
+		return;
+	}
+	$incoming = !empty($data['incoming']);
+	$now = time();
+	if ($incoming) {
+		$db->prepare(
+			"INSERT INTO `epc_erp_inv_serials`
+			 (`item_id`,`serial_no`,`warehouse_id`,`batch_no`,`status`,`in_movement_id`,`unit_cost`,`time_created`,`time_updated`)
+			 VALUES (?,?,?,?, 'in_stock', ?, ?, ?, ?)
+			 ON DUPLICATE KEY UPDATE `status`='in_stock', `warehouse_id`=VALUES(`warehouse_id`),
+			   `batch_no`=VALUES(`batch_no`), `in_movement_id`=VALUES(`in_movement_id`),
+			   `unit_cost`=VALUES(`unit_cost`), `time_updated`=VALUES(`time_updated`)"
+		)->execute(array($itemId, $serial, (int) ($data['warehouse_id'] ?? 0),
+			($data['batch_no'] ?? '') !== '' ? $data['batch_no'] : null,
+			(int) ($data['movement_id'] ?? 0), (float) ($data['unit_cost'] ?? 0), $now, $now));
+	} else {
+		$db->prepare(
+			"UPDATE `epc_erp_inv_serials`
+			 SET `status`='sold', `out_movement_id`=?, `time_updated`=?
+			 WHERE `item_id`=? AND `serial_no`=?"
+		)->execute(array((int) ($data['movement_id'] ?? 0), $now, $itemId, $serial));
+	}
+}
+
+/**
+ * Stock ledger: movements for an item (and optional warehouse) with a running
+ * on-hand balance, oldest first.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function epc_erp_inventory_ledger(PDO $db, $itemId = 0, $warehouseId = 0, $limit = 500)
+{
+	epc_erp_inventory_ensure_schema($db);
+	$where = array('m.`active` = 1');
+	$args = array();
+	if ((int) $itemId > 0) { $where[] = 'm.`item_id` = ?'; $args[] = (int) $itemId; }
+	if ((int) $warehouseId > 0) { $where[] = 'm.`warehouse_id` = ?'; $args[] = (int) $warehouseId; }
+	$serialSel = epc_erp_inventory_has_column($db, 'epc_erp_inv_movements', 'serial_no') ? 'm.`serial_no`' : "'' AS serial_no";
+	$sql = 'SELECT m.`id`, m.`movement_type`, m.`warehouse_id`, m.`item_id`, m.`qty`, m.`unit_cost`,
+			m.`total_cost`, m.`batch_no`, ' . $serialSel . ', m.`reference`, m.`movement_date`,
+			i.`sku`, i.`name` AS item_name, w.`name` AS warehouse_name
+		 FROM `epc_erp_inv_movements` m
+		 LEFT JOIN `epc_erp_inv_items` i ON i.`id` = m.`item_id`
+		 LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = m.`warehouse_id`
+		 WHERE ' . implode(' AND ', $where) . '
+		 ORDER BY m.`movement_date` ASC, m.`id` ASC
+		 LIMIT ' . (int) $limit;
+	$st = $db->prepare($sql);
+	$st->execute($args);
+	$rows = $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+	$inTypes = array('opening', 'purchase_in', 'transfer_in', 'return_in');
+	$balByKey = array();
+	foreach ($rows as &$r) {
+		$key = $r['item_id'] . ':' . $r['warehouse_id'];
+		if (!isset($balByKey[$key])) { $balByKey[$key] = 0.0; }
+		$signed = in_array($r['movement_type'], $inTypes, true) ? (float) $r['qty'] : -(float) $r['qty'];
+		$balByKey[$key] += $signed;
+		$r['signed_qty'] = $signed;
+		$r['running_balance'] = round($balByKey[$key], 3);
+	}
+	unset($r);
+	return array_reverse($rows);
+}
+
+/** Resolve an item by barcode (then SKU) for scan-based lookups. */
+function epc_erp_inventory_find_by_barcode(PDO $db, $code)
+{
+	epc_erp_inventory_ensure_schema($db);
+	$code = trim((string) $code);
+	if ($code === '') {
+		return null;
+	}
+	if (epc_erp_inventory_has_column($db, 'epc_erp_inv_items', 'barcode')) {
+		$st = $db->prepare('SELECT * FROM `epc_erp_inv_items` WHERE `barcode` = ? AND `active` = 1 LIMIT 1');
+		$st->execute(array($code));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if ($row) { return $row; }
+	}
+	$st = $db->prepare('SELECT * FROM `epc_erp_inv_items` WHERE `sku` = ? AND `active` = 1 LIMIT 1');
+	$st->execute(array($code));
+	$row = $st->fetch(PDO::FETCH_ASSOC);
+	return $row ?: null;
+}
+
+/** Serial register listing (optionally filtered by item/status/search). */
+function epc_erp_inventory_serials(PDO $db, $itemId = 0, $status = '', $search = '', $limit = 300)
+{
+	epc_erp_inventory_ensure_schema($db);
+	$where = array('1=1');
+	$args = array();
+	if ((int) $itemId > 0) { $where[] = 's.`item_id` = ?'; $args[] = (int) $itemId; }
+	if ($status !== '') { $where[] = 's.`status` = ?'; $args[] = $status; }
+	if ($search !== '') { $where[] = 's.`serial_no` LIKE ?'; $args[] = '%' . $search . '%'; }
+	$sql = 'SELECT s.*, i.`sku`, i.`name` AS item_name, w.`name` AS warehouse_name
+		 FROM `epc_erp_inv_serials` s
+		 LEFT JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id`
+		 LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = s.`warehouse_id`
+		 WHERE ' . implode(' AND ', $where) . '
+		 ORDER BY s.`time_updated` DESC, s.`id` DESC
+		 LIMIT ' . (int) $limit;
+	$st = $db->prepare($sql);
+	$st->execute($args);
+	return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
 
 function epc_erp_inventory_create_item(PDO $db, array $data)
@@ -388,13 +585,22 @@ function epc_erp_inventory_create_item(PDO $db, array $data)
 	$itemType = in_array((string) ($data['item_type'] ?? ''), array('perishable', 'serialized'), true)
 		? (string) $data['item_type'] : 'standard';
 	$trackExpiry = !empty($data['track_expiry']) || $itemType === 'perishable' ? 1 : 0;
-	$db->prepare(
-		'INSERT INTO `epc_erp_inv_items` (`sku`,`name`,`product_id`,`item_type`,`track_expiry`,`unit`,`time_created`) VALUES (?,?,?,?,?,?,?)'
-	)->execute(array(
-		$sku, $name, (int) ($data['product_id'] ?? 0), $itemType, $trackExpiry,
-		substr((string) ($data['unit'] ?? 'pcs'), 0, 16),
-		time(),
-	));
+	$barcode = trim((string) ($data['barcode'] ?? ''));
+	if ($barcode !== '' && epc_erp_inventory_has_column($db, 'epc_erp_inv_items', 'barcode')) {
+		$db->prepare(
+			'INSERT INTO `epc_erp_inv_items` (`sku`,`name`,`product_id`,`item_type`,`track_expiry`,`unit`,`barcode`,`time_created`) VALUES (?,?,?,?,?,?,?,?)'
+		)->execute(array(
+			$sku, $name, (int) ($data['product_id'] ?? 0), $itemType, $trackExpiry,
+			substr((string) ($data['unit'] ?? 'pcs'), 0, 16), substr($barcode, 0, 128), time(),
+		));
+	} else {
+		$db->prepare(
+			'INSERT INTO `epc_erp_inv_items` (`sku`,`name`,`product_id`,`item_type`,`track_expiry`,`unit`,`time_created`) VALUES (?,?,?,?,?,?,?)'
+		)->execute(array(
+			$sku, $name, (int) ($data['product_id'] ?? 0), $itemType, $trackExpiry,
+			substr((string) ($data['unit'] ?? 'pcs'), 0, 16), time(),
+		));
+	}
 	$id = (int) $db->lastInsertId();
 	foreach ((array) ($data['custom_fields'] ?? array()) as $key => $val) {
 		$key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));

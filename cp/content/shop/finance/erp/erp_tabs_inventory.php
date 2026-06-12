@@ -9,6 +9,9 @@ $items = epc_erp_inventory_list_items($db_link);
 $stock = epc_erp_inventory_stock_report($db_link, $whFilter);
 $valuation = epc_erp_inventory_valuation_total($db_link, $whFilter);
 $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `active` = 1 ORDER BY `sort_order`')->fetchAll(PDO::FETCH_ASSOC);
+$ledgerItem = (int)($_GET['ledger_item'] ?? 0);
+$ledgerRows = epc_erp_inventory_ledger($db_link, $ledgerItem, $whFilter, 200);
+$serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 ?>
 <div class="epc-erp-hero">
 	<h3><i class="fa fa-cubes"></i> Inventory management</h3>
@@ -40,6 +43,7 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
 	<div class="form-group"><label class="col-sm-3">SKU</label><div class="col-sm-9"><input name="sku" class="form-control input-sm" required></div></div>
 	<div class="form-group"><label class="col-sm-3">Name</label><div class="col-sm-9"><input name="name" class="form-control input-sm" required></div></div>
+	<div class="form-group"><label class="col-sm-3">Barcode <small>(EAN/UPC/QR)</small></label><div class="col-sm-9"><input name="barcode" class="form-control input-sm" placeholder="Scan or type barcode"></div></div>
 	<div class="form-group"><label class="col-sm-3">Type</label><div class="col-sm-9">
 		<select name="item_type" class="form-control input-sm">
 			<option value="standard">Standard</option>
@@ -149,8 +153,16 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 	<input type="number" step="0.0001" name="unit_cost" class="form-control input-sm" placeholder="Unit cost (purchases)">
 	<input type="text" name="batch_no" class="form-control input-sm" placeholder="Batch">
 	<input type="date" name="expiry_date" class="form-control input-sm" placeholder="Expiry">
+	<input type="text" name="serial_no" class="form-control input-sm" placeholder="Serial no (serialized)">
 	<input type="text" name="reference" class="form-control input-sm" placeholder="Ref">
 	<button type="submit" class="btn btn-sm btn-primary">Post movement</button>
+</form>
+
+<h4><i class="fa fa-barcode"></i> Scan / lookup by barcode</h4>
+<form id="epc_inv_form_scan" class="form-inline" style="margin-bottom:8px;">
+	<input type="text" id="epc_inv_scan_code" class="form-control input-sm" placeholder="Scan barcode or type SKU" autocomplete="off" style="min-width:260px;">
+	<button type="submit" class="btn btn-sm btn-default">Lookup</button>
+	<span id="epc_inv_scan_out" style="margin-left:10px;"></span>
 </form>
 
 <h4>Period closing snapshot</h4>
@@ -192,6 +204,62 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 	<?php if (empty($stock)): ?><tr><td colspan="10" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
 	</tbody>
 </table>
+
+<h4><i class="fa fa-list-alt"></i> Stock ledger <small>(every movement with running balance)</small>
+	<form method="get" class="form-inline" style="display:inline-block;margin-left:10px;">
+		<?php foreach ($_GET as $gk => $gv): if (in_array($gk, array('ledger_item'), true) || !is_scalar($gv)) continue; ?>
+		<input type="hidden" name="<?php echo epc_erp_h($gk); ?>" value="<?php echo epc_erp_h((string)$gv); ?>">
+		<?php endforeach; ?>
+		<select name="ledger_item" class="form-control input-sm" onchange="this.form.submit()">
+			<option value="0">All items</option>
+			<?php foreach ($items as $it): ?>
+			<option value="<?php echo (int)$it['id']; ?>" <?php echo $ledgerItem === (int)$it['id'] ? 'selected' : ''; ?>><?php echo epc_erp_h($it['sku'] . ' — ' . $it['name']); ?></option>
+			<?php endforeach; ?>
+		</select>
+	</form>
+</h4>
+<table class="table table-bordered table-condensed table-striped">
+	<thead><tr><th>Date</th><th>Type</th><th>Warehouse</th><th>SKU</th><th>Batch</th><th>Serial</th><th class="text-right">Qty</th><th class="text-right">Unit cost</th><th class="text-right">Balance</th><th>Ref</th></tr></thead>
+	<tbody>
+	<?php foreach ($ledgerRows as $m):
+		$isIn = (float)$m['signed_qty'] >= 0; ?>
+		<tr>
+			<td><?php echo epc_erp_h(date('Y-m-d', (int)$m['movement_date'])); ?></td>
+			<td><span class="label label-<?php echo $isIn ? 'success' : 'warning'; ?>"><?php echo epc_erp_h($m['movement_type']); ?></span></td>
+			<td><?php echo epc_erp_h($m['warehouse_name'] ?? ''); ?></td>
+			<td><?php echo epc_erp_h($m['sku'] ?? ''); ?></td>
+			<td><?php echo epc_erp_h($m['batch_no'] ?? '—'); ?></td>
+			<td><?php echo epc_erp_h(($m['serial_no'] ?? '') !== '' ? $m['serial_no'] : '—'); ?></td>
+			<td class="text-right" style="color:<?php echo $isIn ? 'green' : '#c00'; ?>;"><?php echo epc_erp_h(number_format((float)$m['signed_qty'], 3)); ?></td>
+			<td class="text-right"><?php echo epc_erp_money($m['unit_cost']); ?></td>
+			<td class="text-right"><strong><?php echo epc_erp_h(number_format((float)$m['running_balance'], 3)); ?></strong></td>
+			<td><?php echo epc_erp_h($m['reference'] ?? ''); ?></td>
+		</tr>
+	<?php endforeach; ?>
+	<?php if (empty($ledgerRows)): ?><tr><td colspan="10" class="text-muted">No movements recorded yet.</td></tr><?php endif; ?>
+	</tbody>
+</table>
+
+<h4><i class="fa fa-tags"></i> Serial register <small>(serialized units &amp; lifecycle)</small></h4>
+<table class="table table-bordered table-condensed table-striped">
+	<thead><tr><th>Serial no</th><th>SKU</th><th>Item</th><th>Warehouse</th><th>Batch</th><th>Status</th><th class="text-right">Unit cost</th><th>Updated</th></tr></thead>
+	<tbody>
+	<?php foreach ($serialRows as $sr):
+		$stColor = array('in_stock' => 'success', 'sold' => 'default', 'returned' => 'info', 'scrapped' => 'danger', 'in_transit' => 'warning'); ?>
+		<tr>
+			<td><code><?php echo epc_erp_h($sr['serial_no']); ?></code></td>
+			<td><?php echo epc_erp_h($sr['sku'] ?? ''); ?></td>
+			<td><?php echo epc_erp_h($sr['item_name'] ?? ''); ?></td>
+			<td><?php echo epc_erp_h($sr['warehouse_name'] ?? ''); ?></td>
+			<td><?php echo epc_erp_h($sr['batch_no'] ?? '—'); ?></td>
+			<td><span class="label label-<?php echo $stColor[$sr['status']] ?? 'default'; ?>"><?php echo epc_erp_h($sr['status']); ?></span></td>
+			<td class="text-right"><?php echo epc_erp_money($sr['unit_cost']); ?></td>
+			<td><?php echo epc_erp_h(date('Y-m-d', (int)$sr['time_updated'])); ?></td>
+		</tr>
+	<?php endforeach; ?>
+	<?php if (empty($serialRows)): ?><tr><td colspan="8" class="text-muted">No serialized units yet — post a movement with a serial number.</td></tr><?php endif; ?>
+	</tbody>
+</table>
 <script>
 (function(){
 	function bind(id, action) {
@@ -207,6 +275,29 @@ $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `acti
 	bind('epc_inv_form_transfer', 'inv_transfer');
 	bind('epc_inv_form_move', 'inv_record_movement');
 	bind('epc_inv_form_close', 'inv_run_closing');
+	var scanForm = document.getElementById('epc_inv_form_scan');
+	if (scanForm) {
+		scanForm.addEventListener('submit', function(e){
+			e.preventDefault();
+			var code = (document.getElementById('epc_inv_scan_code') || {}).value || '';
+			var out = document.getElementById('epc_inv_scan_out');
+			var fd = new FormData();
+			fd.append('action', 'inv_scan_lookup');
+			fd.append('code', code);
+			fd.append('csrf_guard_key', <?php echo json_encode($csrf); ?>);
+			fetch(<?php echo json_encode($erpAjaxEndpoint); ?>, { method:'POST', body:fd, credentials:'same-origin' })
+				.then(function(r){ return r.json(); })
+				.then(function(j){
+					if (j.status && j.item) {
+						out.innerHTML = '<span class="label label-success">'+j.item.sku+'</span> '+j.item.name+
+							' &middot; on hand: <strong>'+Number(j.on_hand||0).toFixed(3)+'</strong>'+
+							(j.item.barcode ? ' &middot; barcode '+j.item.barcode : '');
+						var mv = document.querySelector('#epc_inv_form_move select[name="item_id"]');
+						if (mv) mv.value = j.item.id;
+					} else { out.innerHTML = '<span class="text-danger">'+(j.message||'Not found')+'</span>'; }
+				});
+		});
+	}
 	var csvForm = document.getElementById('epc_inv_form_csv');
 	if (csvForm) {
 		csvForm.addEventListener('submit', function(e){

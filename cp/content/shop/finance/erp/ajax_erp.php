@@ -552,9 +552,29 @@ try {
 				'unit_cost' => (float) ($_POST['unit_cost'] ?? 0),
 				'batch_no' => (string) ($_POST['batch_no'] ?? ''),
 				'expiry_date' => (string) ($_POST['expiry_date'] ?? ''),
+				'serial_no' => (string) ($_POST['serial_no'] ?? ''),
 				'reference' => (string) ($_POST['reference'] ?? ''),
 			));
 			epc_erp_json(true, 'Inventory movement recorded', array('movement_id' => $id));
+
+		case 'inv_scan_lookup':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+			$item = epc_erp_inventory_find_by_barcode($db_link, (string) ($_POST['code'] ?? ''));
+			if (!$item) {
+				epc_erp_json(false, 'No item matches that barcode/SKU');
+			}
+			$onHandMap = epc_erp_inventory_on_hand_as_of($db_link, time(), 0);
+			$onHand = isset($onHandMap[(int) $item['id']]) ? (float) $onHandMap[(int) $item['id']]['qty'] : 0.0;
+			epc_erp_json(true, 'Item found', array(
+				'item' => array(
+					'id' => (int) $item['id'],
+					'sku' => (string) $item['sku'],
+					'name' => (string) $item['name'],
+					'barcode' => (string) ($item['barcode'] ?? ''),
+					'item_type' => (string) ($item['item_type'] ?? 'standard'),
+				),
+				'on_hand' => $onHand,
+			));
 
 		case 'inv_transfer':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
