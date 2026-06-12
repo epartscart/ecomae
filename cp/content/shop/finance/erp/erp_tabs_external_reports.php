@@ -413,12 +413,22 @@ if ($selTool === 'import') {
 		<?php if (!empty($built['summary'])): ?>
 			<div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;">
 				<?php foreach ($built['summary'] as $k => $v): ?>
-					<div style="background:#f5f7fa;border:1px solid #e2e6ee;border-radius:6px;padding:8px 14px;min-width:140px;">
+					<?php
+						$bv = is_array($v) ? ($v['val'] ?? '') : (string) $v;
+						$bc = is_array($v) ? ($v['cmp'] ?? '') : '';
+						$bn = is_array($v) ? ($v['note'] ?? '') : '';
+						$bcol = is_array($v) && !empty($v['color']) ? (string) $v['color'] : '#1d2740';
+					?>
+					<div style="background:#fff;border:1px solid #e2e6ee;border-top:3px solid <?php echo epc_erp_h($bcol); ?>;border-radius:6px;padding:8px 14px;min-width:150px;">
 						<div style="font-size:11px;color:#7a869a;text-transform:uppercase;letter-spacing:.5px;"><?php echo epc_erp_h((string) $k); ?></div>
-						<div style="font-size:16px;font-weight:700;color:#1d2740;"><?php echo epc_erp_h((string) $v); ?></div>
+						<div style="font-size:16px;font-weight:700;color:<?php echo epc_erp_h($bcol); ?>;"><?php echo epc_erp_h((string) $bv); ?></div>
+						<?php if ($bc !== ''): ?><div style="font-size:11px;color:#5b6577;margin-top:2px;"><?php echo epc_erp_h((string) $bc); ?></div><?php endif; ?>
+						<?php if ($bn !== ''): ?><div style="font-size:10px;color:#9aa3b2;margin-top:1px;"><?php echo epc_erp_h((string) $bn); ?></div><?php endif; ?>
 					</div>
 				<?php endforeach; ?>
 			</div>
+			<?php $hasCards = false; foreach ($built['summary'] as $sv) { if (is_array($sv)) { $hasCards = true; break; } } ?>
+			<?php if ($hasCards): ?><div class="text-muted" style="font-size:11px;margin:-2px 0 10px;">Each card shows the current reporting period with the prior-year comparative beneath and the governing standard / source note.</div><?php endif; ?>
 		<?php endif; ?>
 
 		<?php echo $built['body']; ?>

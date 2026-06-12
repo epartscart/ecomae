@@ -190,8 +190,8 @@ if (!function_exists('epc_ext_cover_page')) {
     {
         $rows = '';
         foreach ($meta as $label => $value) {
-            $rows .= '<tr><td style="padding:6px 14px;color:#ffe2e6;font-weight:600;white-space:nowrap;">' . epc_erp_h((string) $label) . '</td>'
-                . '<td style="padding:6px 14px;color:#fff;font-weight:700;">' . epc_erp_h((string) $value) . '</td></tr>';
+            $rows .= '<tr style="background:transparent !important;"><td style="padding:6px 14px;color:#ffe2e6 !important;font-weight:600;white-space:nowrap;background:transparent !important;border:0;border-bottom:1px solid rgba(255,255,255,.18);">' . epc_erp_h((string) $label) . '</td>'
+                . '<td style="padding:6px 14px;color:#fff !important;font-weight:700;background:transparent !important;border:0;border-bottom:1px solid rgba(255,255,255,.18);">' . epc_erp_h((string) $value) . '</td></tr>';
         }
         $tocRows = '';
         foreach ($toc as $i => $t) {
@@ -3229,11 +3229,11 @@ if (!function_exists('epc_ext_b_audit')) {
             'title' => $name . ' (ISA 700 · IFRS)',
             'body' => $body,
             'summary' => array(
-                'Opinion' => 'Unmodified (true & fair)',
-                'Revenue' => $m($cur['rev']),
-                'Profit for the year' => $m($cur['profit']),
-                'Total assets' => $m($cur['totalAssets']),
-                'Total equity' => $m($cur['totalEquity']),
+                'Opinion' => array('val' => 'Unmodified (true & fair)', 'note' => 'ISA 700 — true & fair view', 'color' => '#1d6fb8'),
+                'Revenue' => array('val' => $m($cur['rev']), 'cmp' => $pL . ': ' . $m($pri['rev']), 'note' => 'IFRS 15 · Note 1', 'color' => '#1a7f37'),
+                'Profit for the year' => array('val' => $m($cur['profit']), 'cmp' => $pL . ': ' . $m($pri['profit']), 'note' => 'after tax (IAS 12)', 'color' => '#b8860b'),
+                'Total assets' => array('val' => $m($cur['totalAssets']), 'cmp' => $pL . ': ' . $m($pri['totalAssets']), 'note' => 'IAS 1 · SOFP', 'color' => '#6f42c1'),
+                'Total equity' => array('val' => $m($cur['totalEquity']), 'cmp' => $pL . ': ' . $m($pri['totalEquity']), 'note' => 'net assets (IAS 1)', 'color' => '#b3122a'),
             ),
             'live' => true,
         );
