@@ -262,7 +262,7 @@ body.epc-erp-cp-shell {
 	align-items: center;
 	gap: 8px;
 	padding: 9px 16px 9px 44px;
-	color: rgba(255, 255, 255, 0.55);
+	color: #eaf6ff;
 	font-size: 12px;
 	font-weight: 500;
 	text-decoration: none !important;
@@ -272,7 +272,8 @@ body.epc-erp-cp-shell {
 
 .epc-erp-sidebar-item a:hover {
 	color: #fff;
-	background: rgba(255, 255, 255, 0.05);
+	background: rgba(255, 255, 255, 0.12);
+	border-left-color: rgba(255, 255, 255, 0.4);
 }
 
 .epc-erp-sidebar-item.is-active a {
@@ -291,7 +292,7 @@ body.epc-erp-cp-shell {
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: rgba(255, 255, 255, 0.4);
+	color: #7fd1f7;
 }
 .epc-erp-sidebar-subhead:first-child { padding-top: 5px; }
 
