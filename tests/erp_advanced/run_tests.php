@@ -329,6 +329,30 @@ $impCt = epc_ext_b_ct_summary($mapC, 'AED');
 check('Import CT builds computation + bands + compliance', strpos($impCt['body'], 'Computation of taxable income') !== false && strpos($impCt['body'], 'Corporate tax compliance checks') !== false, $impCt['title']);
 check('Import CT applies 0%/9% bands', isset($impCt['summary']['CT payable']) && isset($impCt['summary']['Taxable income']), implode(',', array_keys($impCt['summary'])));
 
+// ---- Full multi-sheet .xlsx template round-trip (schedules + compliance) ----
+if (class_exists('ZipArchive')) {
+    $vatSheets = epc_ext_import_template_sheets('vat');
+    $ctSheets = epc_ext_import_template_sheets('ct');
+    check('VAT workbook carries all schedule sheets', isset($vatSheets['VAT Boxes'], $vatSheets['Customer TRN-wise'], $vatSheets['Supplier-wise'], $vatSheets['Adjustments'], $vatSheets['Supplies by treatment'], $vatSheets['Tax group & intercompany'], $vatSheets['Compliance checklist']), count($vatSheets) . ' sheets');
+    check('CT workbook carries all 6 schedules + compliance', isset($ctSheets['CT Computation'], $ctSheets['Elections & reliefs'], $ctSheets['Sch 1 Adjustments'], $ctSheets['Sch 2 Fixed assets'], $ctSheets['Sch 3 Exempt income'], $ctSheets['Sch 4 Related party'], $ctSheets['Sch 5 Tax losses'], $ctSheets['Sch 6 Foreign tax credit'], $ctSheets['Tax group & intercompany'], $ctSheets['Compliance checklist']), count($ctSheets) . ' sheets');
+
+    $tmpVx = tempnam(sys_get_temp_dir(), 'vatx') . '.xlsx';
+    file_put_contents($tmpVx, epc_ext_import_template_xlsx('vat'));
+    $mapVx = epc_ext_import_map(epc_ext_parse_all_rows($tmpVx, 'wb.xlsx') ?: array());
+    @unlink($tmpVx);
+    check('XLSX VAT round-trip reads boxes + TRN/address', !empty($mapVx['vat']) && ($mapVx['meta']['META_TRN'] ?? '') === '100000000000003' && ($mapVx['meta']['META_ADDRESS'] ?? '') !== '', count($mapVx['vat']) . ' boxes');
+
+    $tmpCx = tempnam(sys_get_temp_dir(), 'ctx') . '.xlsx';
+    file_put_contents($tmpCx, epc_ext_import_template_xlsx('ct'));
+    $mapCx = epc_ext_import_map(epc_ext_parse_all_rows($tmpCx, 'wb.xlsx') ?: array());
+    @unlink($tmpCx);
+    // Regression: compliance-checklist rows labelled "Entertainment"/"Donations"/
+    // "Provisions" must NOT overwrite the real computation figures.
+    check('XLSX CT round-trip: schedule rows do not clobber computation', ($mapCx['values']['ENTERTAINMENT'] ?? 0) == 40000.0 && ($mapCx['values']['DONATIONS'] ?? 0) == 10000.0 && ($mapCx['values']['PROVISIONS'] ?? 0) == 25000.0 && ($mapCx['values']['ACCT_PROFIT'] ?? 0) == 1250000.0, 'ent=' . ($mapCx['values']['ENTERTAINMENT'] ?? 'NA'));
+    $impCtx = epc_ext_b_ct_summary($mapCx, 'AED');
+    check('XLSX CT round-trip builds correct taxable income', ($impCtx['summary']['Taxable income'] ?? '') === 'AED 1,110,000.00', $impCtx['summary']['Taxable income'] ?? 'NA');
+}
+
 // column-letter helper + print helpers
 check('XLSX column index A=0, B=1, AA=26', epc_ext_xlsx_col_index('A') === 0 && epc_ext_xlsx_col_index('B') === 1 && epc_ext_xlsx_col_index('AA') === 26, 'col idx');
 check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('co' => 'X')), '__epcExtCtx') !== false && strpos(epc_ext_print_fn_js(), 'function epcExtPrint') !== false, 'print js');

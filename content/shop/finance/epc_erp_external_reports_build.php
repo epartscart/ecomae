@@ -2784,16 +2784,22 @@ if (!function_exists('epc_ext_import_template_sheets')) {
         if ($kind === 'ct') {
             return array(
                 'Instructions' => array(
-                    array('Corporate Tax Return — import template (off-system)'),
+                    array('Corporate Tax Return — complete import template (off-system)'),
                     array('Authority', 'Federal Tax Authority (FTA)'),
                     array('Governing law', 'Corporate Tax — Federal Decree-Law 47/2022'),
+                    array('Format', 'Full CT return: taxpayer, elections, computation, Schedules 1-6, tax group & compliance'),
                     array(''),
                     array('How to use this workbook:'),
                     array('1', 'Fill the "Company & TRN" sheet — keep the Code column unchanged, edit the Value column.'),
-                    array('2', 'Fill the "CT Computation" sheet — keep the Code column, enter your amounts.'),
-                    array('3', 'The other sheets (Adjustments, Fixed assets, Related party, Tax losses) are supporting detail for your records.'),
-                    array('4', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return.'),
-                    array('5', 'The return is built from the summary amounts; it stays off-system (no ERP data is read or written).'),
+                    array('2', 'Fill the "CT Computation" sheet — keep the Code column, enter your amounts. This drives the return.'),
+                    array('3', 'Complete the supporting schedules so the return is fully evidenced:'),
+                    array('', '   Sch 1 Adjustments · Sch 2 Fixed assets/depreciation · Sch 3 Exempt income · Sch 4 Related party/TP · Sch 5 Tax losses · Sch 6 Foreign tax credit'),
+                    array('4', 'Set the "Elections & reliefs" and "Tax group & intercompany" sheets for your taxpayer.'),
+                    array('5', 'Review the "Compliance checklist" — the engine validates each point against the figures you enter.'),
+                    array('6', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return.'),
+                    array('7', 'The return is built from the summary amounts; it stays off-system (no ERP data is read or written).'),
+                    array(''),
+                    array('Note', 'Keep the Code column EXACTLY as provided on Company & TRN and CT Computation — those codes are machine-read.'),
                 ),
                 'Company & TRN' => array(
                     array('Code', 'Field', 'Value'),
@@ -2804,15 +2810,28 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('META_EMIRATE', 'Emirate / region', 'Dubai'),
                     array('META_PHONE', 'Contact phone', '+971 4 000 0000'),
                     array('META_EMAIL', 'Contact email', 'finance@sampleclient.ae'),
+                    array('META_RESIDENT', 'Resident person? (Yes/No)', 'Yes'),
+                    array('META_BASIS_ACCT', 'Basis of accounting', 'Accrual (IFRS)'),
+                    array('META_RETURN_TYPE', 'Return type', 'Annual Corporate Tax return'),
                     array('META_PERIOD_FROM', 'Financial year from (YYYY-MM-DD)', '2025-01-01'),
                     array('META_PERIOD_TO', 'Financial year to (YYYY-MM-DD)', '2025-12-31'),
+                    array('META_FILING_DUE', 'Filing due date (YYYY-MM-DD)', '2026-09-30'),
                     array('META_GROUP_TRN', 'CT Tax Group TRN (if any)', ''),
+                ),
+                'Elections & reliefs' => array(
+                    array('Election / relief', 'Status', 'Basis'),
+                    array('Small Business Relief', 'Not available (revenue > AED 3m)', 'Ministerial Decision 73/2023 — Art. 21'),
+                    array('Free Zone — Qualifying Free Zone Person (0%)', 'No — mainland LLC', 'Cabinet Decision 100/2023'),
+                    array('Realisation basis (unrealised gains/losses)', 'Not elected', 'Ministerial Decision 134/2023 — Art. 20(3)'),
+                    array('Transfers within a Qualifying Group', 'Not applied', 'Art. 26 — no gain/loss on intra-group transfers'),
+                    array('Business Restructuring Relief', 'Not applied', 'Art. 27'),
+                    array('Foreign PE exemption', 'Not elected', 'Art. 24'),
                 ),
                 'CT Computation' => array(
                     array('Code', 'Description', 'Amount'),
                     array('ACCT_PROFIT', 'Accounting net profit per financial statements', '1250000'),
                     array('REVENUE', 'Total revenue (for Small Business Relief test)', '8400000'),
-                    array('FINES', 'Fines & administrative penalties (added back)', '15000'),
+                    array('FINES', 'Fines & administrative penalties (added back 100%)', '15000'),
                     array('ENTERTAINMENT', 'Entertainment expenditure - total (50% disallowed)', '40000'),
                     array('DONATIONS', 'Donations to non-approved bodies (added back)', '10000'),
                     array('PROVISIONS', 'General / non-specific provisions (added back)', '25000'),
@@ -2820,57 +2839,97 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('TAX_DEP', 'Tax depreciation / capital allowances (deducted)', '210000'),
                     array('EXEMPT_INCOME', 'Exempt dividends / participation (deducted)', '60000'),
                     array('NET_INTEREST', 'Net interest expense (for 30% EBITDA cap)', '95000'),
+                    array('EBITDA', 'EBITDA (for interest limitation, optional)', '1900000'),
                     array('LOSSES_BF', 'Tax losses brought forward', '120000'),
+                    array('FTC', 'Foreign tax credit claimed (deducted from liability)', '0'),
                 ),
-                'Adjustments' => array(
+                'Sch 1 Adjustments' => array(
                     array('Ref', 'Description', 'Amount', 'Treatment / basis'),
                     array('ADJ-001', 'Traffic & administrative fines', '15000', '100% non-deductible (Art. 33)'),
                     array('ADJ-002', 'Client entertainment', '40000', '50% disallowed (Art. 32)'),
                     array('ADJ-003', 'Donation - non-approved body', '10000', 'Non-deductible (Art. 37)'),
                     array('ADJ-004', 'General provision', '25000', 'Not yet incurred'),
+                    array('…', 'add your own add-back rows below', '', ''),
                 ),
-                'Fixed assets' => array(
-                    array('Asset', 'Class', 'Cost', 'Acct depreciation', 'Tax depreciation'),
-                    array('Plant & machinery', 'P&M', '600000', '120000', '150000'),
-                    array('Motor vehicles', 'Vehicles', '200000', '40000', '40000'),
-                    array('Furniture & fixtures', 'F&F', '100000', '20000', '20000'),
+                'Sch 2 Fixed assets' => array(
+                    array('Asset', 'Class', 'Rate / method', 'Cost', 'Acct depreciation', 'Tax depreciation'),
+                    array('Buildings & leasehold improvements', 'Buildings', '4% SL', '600000', '24000', '24000'),
+                    array('Plant & machinery', 'P&M', '10% SL', '250000', '18000', '25000'),
+                    array('Motor vehicles', 'Vehicles', '20% RB', '120000', '12000', '12000'),
+                    array('Furniture, fixtures & IT', 'F&F', '25% SL', '80000', '6000', '9000'),
+                    array('…', 'add your own asset rows below', '', '', '', ''),
                 ),
-                'Related party' => array(
-                    array('Party', 'Relationship', 'Nature of transaction', 'Amount', 'Arm\'s length?'),
-                    array('Parent Co FZE', 'Parent', 'Management fee', '300000', 'Yes - benchmarked'),
-                    array('Sister Co LLC', 'Common control', 'Inventory purchase', '450000', 'Yes - benchmarked'),
+                'Sch 3 Exempt income' => array(
+                    array('Ref', 'Source', 'Nature', 'Amount', 'Basis'),
+                    array('EX-001', 'Subsidiary FZE', 'Dividend from UAE subsidiary', '45000', 'Participation exemption (Art. 23)'),
+                    array('EX-002', 'Foreign holding', 'Qualifying dividend', '15000', 'Participation exemption (Art. 22-23)'),
+                    array('…', 'add your own exempt-income rows below', '', '', ''),
                 ),
-                'Tax losses' => array(
-                    array('Year', 'Loss brought forward', 'Utilised this year', 'Carried forward'),
-                    array('2024', '120000', '90000', '30000'),
+                'Sch 4 Related party' => array(
+                    array('Party', 'Relationship', 'Nature of transaction', 'Amount', 'Arm\'s length?', 'TP method'),
+                    array('Parent Co FZE', 'Parent', 'Management fee', '300000', 'Yes - benchmarked', 'TNMM'),
+                    array('Sister Co LLC', 'Common control', 'Inventory purchase', '450000', 'Yes - benchmarked', 'CUP'),
+                    array('Director', 'Connected person', 'Remuneration', '600000', 'Yes - market rate', 'Comparable'),
+                    array('…', 'add your own related-party rows below', '', '', '', ''),
+                ),
+                'Sch 5 Tax losses' => array(
+                    array('Year', 'Loss brought forward', 'Utilised this year', 'Carried forward', 'Cap (75% of taxable income)'),
+                    array('2024', '120000', '90000', '30000', 'see computation'),
+                    array('…', 'add prior-year loss rows below', '', '', ''),
+                ),
+                'Sch 6 Foreign tax credit' => array(
+                    array('Ref', 'Foreign jurisdiction', 'Income type', 'Foreign tax paid', 'Credit claimed'),
+                    array('FTC-001', 'KSA', 'Branch profit', '0', '0'),
+                    array('…', 'add your own FTC rows below', '', '', ''),
+                ),
+                'Tax group & intercompany' => array(
+                    array('Group member', 'TRN', 'Role'),
+                    array('Sample Client Trading LLC', '100000000000003', 'Parent / representative'),
+                    array('Sample Client Logistics LLC', '100000000000011', 'Subsidiary (100%)'),
+                    array('Sample Client Retail LLC', '100000000000029', 'Subsidiary (100%)'),
+                    array(''),
+                    array('Intercompany transactions (eliminated on consolidation)', 'Amount', 'Note'),
+                    array('Intra-group management fee', '200000', 'Eliminated (Art. 40-42)'),
+                    array('Intra-group sale of goods', '350000', 'Eliminated (Art. 40-42)'),
                 ),
                 'Compliance checklist' => array(
-                    array('Check', 'Requirement', 'Legal basis'),
-                    array('CT registration', 'Taxable person registered & TRN obtained', 'Art. 51'),
-                    array('Fines add-back', 'Fines/penalties added back 100%', 'Art. 33'),
-                    array('Entertainment', '50% of entertainment disallowed', 'Art. 32'),
-                    array('Depreciation', 'Accounting depreciation replaced by tax depreciation', 'Art. 28'),
-                    array('Exempt income', 'Dividends / participation excluded', 'Art. 22-23'),
-                    array('Interest cap', 'Net interest within 30% EBITDA / AED 12m', 'Art. 30'),
-                    array('Loss relief', 'Tax losses utilised capped at 75%', 'Art. 37'),
-                    array('Transfer pricing', 'Related-party master/local file & disclosure', 'Art. 34-35'),
-                    array('Small Business Relief', 'Election where revenue <= AED 3m', 'MD 73/2023'),
-                    array('Filing', 'File within 9 months of period end', 'Art. 53'),
+                    array('Check', 'Requirement', 'Expected', 'Legal basis'),
+                    array('CT registration', 'Taxable person registered & TRN obtained', 'TRN on file', 'Art. 51'),
+                    array('Fines add-back', 'Fines/penalties added back 100%', 'FINES fully added back', 'Art. 33'),
+                    array('Entertainment', '50% of entertainment disallowed', 'ENTERTAINMENT x 50% added back', 'Art. 32'),
+                    array('Donations', 'Donations to non-approved bodies added back', 'DONATIONS added back', 'Art. 37'),
+                    array('Provisions', 'General provisions added back', 'PROVISIONS added back', 'Art. 28'),
+                    array('Depreciation', 'Accounting depreciation replaced by tax depreciation', 'ACCT_DEP back, TAX_DEP deducted', 'Art. 28'),
+                    array('Exempt income', 'Dividends / participation excluded', 'EXEMPT_INCOME deducted', 'Art. 22-23'),
+                    array('Interest cap', 'Net interest within 30% EBITDA / AED 12m de-minimis', 'NET_INTEREST <= cap', 'Art. 30'),
+                    array('Loss relief', 'Tax losses utilised capped at 75% of taxable income', 'LOSSES utilised <= 75%', 'Art. 37'),
+                    array('Transfer pricing', 'Related-party master/local file & disclosure form', 'Sch 4 completed', 'Art. 34-35'),
+                    array('Tax group', 'Intercompany eliminated on consolidation', 'Eliminations applied', 'Art. 40-42'),
+                    array('Small Business Relief', 'Election where revenue <= AED 3m', 'REVENUE > 3m -> not available', 'MD 73/2023'),
+                    array('Tax bands', '0% up to AED 375,000; 9% above', 'Liability = 9% x (TI - 375k)', 'Art. 3'),
+                    array('Filing', 'File within 9 months of period end', 'Due 9m after period end', 'Art. 53'),
                 ),
             );
         }
         return array(
             'Instructions' => array(
-                array('VAT Return (FTA VAT 201) — import template (off-system)'),
+                array('VAT Return (FTA VAT 201) — complete import template (off-system)'),
                 array('Authority', 'Federal Tax Authority (FTA)'),
                 array('Governing law', 'VAT — Federal Decree-Law 8/2017'),
+                array('Format', 'Full VAT 201: company, boxes 1-14, invoice/TRN/supplier/adjustment schedules, tax group, supplies-by-treatment & compliance'),
                 array(''),
                 array('How to use this workbook:'),
                 array('1', 'Fill the "Company & TRN" sheet — keep the Code column unchanged, edit the Value column.'),
-                array('2', 'Fill the "VAT Boxes" sheet — keep the Code column, enter Amount / VAT / Adjustment per box.'),
-                array('3', 'The "Sales invoices" and "Purchase invoices" sheets are supporting detail for your records.'),
-                array('4', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return.'),
-                array('5', 'The return is built from the box totals; it stays off-system (no ERP data is read or written).'),
+                array('2', 'Fill the "VAT Boxes" sheet — keep the Code column, enter Amount / VAT / Adjustment per box. This drives the return.'),
+                array('3', 'Complete the supporting schedules (the FTA audit-file detail behind the return):'),
+                array('', '   Sales invoices (invoice-wise) · Purchase invoices · Customer TRN-wise · Supplier-wise · Adjustments register'),
+                array('4', 'Use "Supplies by treatment" to map each supply to its correct UAE VAT scheme (the compliance engine checks these).'),
+                array('5', 'Set the "Tax group & intercompany" sheet if you file as a VAT group (intra-group supplies are disregarded).'),
+                array('6', 'Review the "Compliance checklist" — the engine validates each point against the figures you enter.'),
+                array('7', 'Save as .xlsx (or .csv) and upload it back under Import from Excel → Build return.'),
+                array('8', 'The return is built from the box totals; it stays off-system (no ERP data is read or written).'),
+                array(''),
+                array('Note', 'Keep the Code column EXACTLY as provided on Company & TRN and VAT Boxes — those codes are machine-read.'),
             ),
             'Company & TRN' => array(
                 array('Code', 'Field', 'Value'),
@@ -2896,12 +2955,17 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                 array('BOX1G', 'Standard-rated supplies - Fujairah', '43050', '2152.50', '0'),
                 array('BOX2', 'Tax refunds provided to tourists (negative)', '-11480', '-574', '0'),
                 array('BOX3', 'Supplies subject to reverse charge (output)', '90000', '4500', '0'),
-                array('BOX4', 'Zero-rated supplies', '320000', '', ''),
-                array('BOX5', 'Exempt supplies', '85000', '', ''),
+                array('BOX4', 'Zero-rated supplies', '320000', '0', '0'),
+                array('BOX5', 'Exempt supplies', '85000', '0', '0'),
                 array('BOX6', 'Goods imported into the UAE', '150000', '7500', '0'),
                 array('BOX7', 'Adjustments to goods imported', '0', '0', '0'),
+                array('BOX8', 'Totals — VAT on sales & all outputs (auto)', '1423520', '74248.50', '0'),
                 array('BOX9', 'Standard-rated expenses (recoverable input VAT)', '980000', '49000', '0'),
                 array('BOX10', 'Supplies subject to reverse charge (input VAT)', '90000', '4500', '0'),
+                array('BOX11', 'Totals — VAT on expenses & all inputs (auto)', '1070000', '53500', '0'),
+                array('BOX12', 'Total value of due tax for the period (auto)', '', '74248.50', ''),
+                array('BOX13', 'Total value of recoverable tax for the period (auto)', '', '53500', ''),
+                array('BOX14', 'Net VAT payable / (reclaimable) (auto)', '', '20748.50', ''),
             ),
             'Sales invoices' => array(
                 array('Invoice', 'Date', 'Customer', 'Customer TRN', 'Emirate', 'Treatment', 'Net', 'VAT'),
@@ -2918,16 +2982,78 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                 array('BILL-0003', '2026-03-02', 'Foreign Software Co', '', 'Imported services - RCM', '90000', '4500', 'Yes'),
                 array('…', '', 'add your own rows below', '', '', '', '', ''),
             ),
+            'Customer TRN-wise' => array(
+                array('Customer', 'Customer TRN', 'Emirate', 'Net (output)', 'VAT (output)', 'Invoices'),
+                array('Gulf Distributors LLC', '100244880100003', 'Dubai', '120000', '6000', '1'),
+                array('Emirates Retail Group LLC', '100355991200003', 'Abu Dhabi', '85000', '4250', '1'),
+                array('Al Futtaim Trading LLC', '100466002300003', 'Sharjah', '64000', '3200', '1'),
+                array('Overseas Buyer Ltd', '(non-resident)', 'Export', '140000', '0', '1'),
+                array('…', 'add your own customer summary rows below', '', '', '', ''),
+            ),
+            'Supplier-wise' => array(
+                array('Supplier', 'Supplier TRN', 'Treatment', 'Net (input)', 'VAT (input)', 'Bills'),
+                array('Prime Suppliers FZE', '100133220900003', 'Standard 5%', '300000', '15000', '1'),
+                array('Logistics Partners LLC', '100277115400003', 'Standard 5%', '180000', '9000', '1'),
+                array('Foreign Software Co', '(non-resident)', 'Imported services - RCM', '90000', '4500', '1'),
+                array('…', 'add your own supplier summary rows below', '', '', '', ''),
+            ),
+            'Adjustments' => array(
+                array('Ref', 'Date', 'Type', 'Description', 'Net adjustment', 'VAT adjustment', 'Basis'),
+                array('ADJ-001', '2026-02-15', 'Credit note', 'Sales return - Gulf Distributors', '-8000', '-400', 'Output VAT adjustment'),
+                array('ADJ-002', '2026-03-05', 'Bad debt relief', 'Receivable > 6 months written off', '-12000', '-600', 'Art. 64 bad-debt relief'),
+                array('ADJ-003', '2026-03-20', 'Input correction', 'Prior-period under-claimed input VAT', '5000', '250', 'Voluntary correction'),
+                array('…', '', 'add your own adjustment rows below', '', '', '', ''),
+            ),
+            'Supplies by treatment' => array(
+                array('Doc', 'Sector', 'Item / supply', 'VAT treatment', 'Net', 'VAT charged', 'Legal basis'),
+                array('INV-4001', 'Retail', 'Retail electronics sale', 'Standard-rated (5%)', '85000', '4250', 'FDL 8/2017, Art. 2 & 3'),
+                array('INV-4003', 'Trade', 'Goods exported outside GCC', 'Zero-rated export (0%)', '140000', '0', 'Art. 45'),
+                array('INV-4004', 'Services', 'Imported marketing services', 'Reverse charge', '30000', '0', 'Art. 48'),
+                array('INV-4011', 'Real estate', 'Residential apartment lease', 'Residential lease — exempt', '120000', '0', 'Art. 46(1)'),
+                array('INV-4012', 'Real estate', 'First sale of new residential', 'First new residential (0%)', '1500000', '0', 'Art. 45(9)'),
+                array('INV-4013', 'Real estate', 'Sale of bare land', 'Bare land — exempt', '800000', '0', 'Art. 46(3)'),
+                array('INV-4020', 'Education', 'Recognised curriculum tuition', 'Education (0%)', '95000', '0', 'CD 52/2017, Art. 40'),
+                array('INV-4021', 'Healthcare', 'Basic healthcare service', 'Healthcare (0%)', '110000', '0', 'CD 52/2017, Art. 41'),
+                array('INV-4030', 'Financial', 'Margin-based interest income', 'Financial services — exempt', '70000', '0', 'Art. 46(2)'),
+                array('INV-4031', 'Transport', 'Local passenger transport', 'Local transport — exempt', '45000', '0', 'CD 52/2017, Art. 45'),
+                array('INV-4032', 'Logistics', 'International air freight', 'International transport (0%)', '160000', '0', 'Art. 45(2)'),
+                array('INV-4050', 'Free zone', 'Goods within designated zone', 'Designated zone (out of scope)', '90000', '0', 'CD 59/2017'),
+                array('INV-4051', 'Automotive', 'Pre-owned vehicle', 'Profit-margin scheme (5% on margin)', '55000', '375', 'Exec. Reg. Art. 29'),
+                array('INV-4052', 'Jewellery', '24kt investment gold bullion', 'Investment gold 24kt — exempt', '250000', '0', 'CD 25/2018'),
+                array('INV-4054', 'Jewellery', 'Diamonds B2B to registrant', 'Gold & diamonds B2B — reverse charge', '120000', '0', 'CD 25/2018 / 127/2024'),
+                array('…', '', 'add your own supply rows below', '', '', '', ''),
+            ),
+            'Tax group & intercompany' => array(
+                array('Group member', 'Member TRN', 'Role'),
+                array('Sample Client Trading LLC', '100000000000003', 'Representative member'),
+                array('Sample Client Logistics LLC', '100000000000011', 'Member'),
+                array('Sample Client Retail LLC', '100000000000029', 'Member'),
+                array(''),
+                array('Intercompany supplies (disregarded for VAT)', 'Net', 'VAT', 'Note'),
+                array('Intra-group goods transfer', '155000', '7750', 'Disregarded — excluded from boxes 1-14 (Art. 9)'),
+                array('Intra-group services', '100000', '5000', 'Disregarded — excluded from boxes 1-14 (Art. 9)'),
+            ),
             'Compliance checklist' => array(
-                array('Check', 'Requirement', 'Legal basis'),
-                array('TRN present', 'Valid 15-digit TRN on the return', 'FDL 8/2017'),
-                array('Standard rate', 'Standard-rated supplies VAT = 5% of net', 'Art. 2 & 3'),
-                array('Residential lease', 'Residential property lease is exempt (no VAT)', 'Art. 46(1)'),
-                array('Education/healthcare', 'Recognised education & basic healthcare 0%', 'CD 52/2017'),
-                array('B2B gold/diamonds', 'Reverse charge (seller charges 0%)', 'CD 25/2018'),
-                array('Investment gold', '24kt investment gold (>=99%) exempt', 'CD 25/2018'),
-                array('Exports', 'Exports / international transport 0%', 'Art. 45'),
-                array('Reconciliation', 'Box 14 = Box 12 - Box 13', 'FTA VAT 201'),
+                array('Check', 'Requirement', 'Expected', 'Legal basis'),
+                array('TRN present', 'Valid 15-digit TRN on the return', 'META_TRN set', 'FDL 8/2017'),
+                array('Standard rate', 'Standard-rated supplies VAT = 5% of net', 'VAT = Net x 5%', 'Art. 2 & 3'),
+                array('Residential lease', 'Residential property lease is exempt (no VAT)', '0% VAT', 'Art. 46(1)'),
+                array('First new residential', 'First supply of new residential building 0%', '0% VAT', 'Art. 45(9)'),
+                array('Bare land', 'Sale of bare land is exempt', '0% VAT', 'Art. 46(3)'),
+                array('Commercial property', 'Commercial lease / sale standard-rated', 'VAT = Net x 5%', 'Art. 2 & 3'),
+                array('Education/healthcare', 'Recognised education & basic healthcare 0%', '0% VAT', 'CD 52/2017'),
+                array('Financial services', 'Margin-based financial services exempt', '0% VAT', 'Art. 46(2)'),
+                array('Local vs intl transport', 'Local passenger transport exempt; international 0%', '0% VAT', 'CD 52/2017 / Art. 45'),
+                array('Designated zone', 'Goods within a designated zone out of scope', 'Out of scope', 'CD 59/2017'),
+                array('Profit-margin scheme', 'Pre-owned goods: 5% on margin only', 'VAT on margin', 'Exec. Reg. Art. 29'),
+                array('B2B gold/diamonds', 'Reverse charge (seller charges 0%)', '0% VAT, buyer self-accounts', 'CD 25/2018 / 127/2024'),
+                array('Investment gold', '24kt investment gold (>=99%) exempt', '0% VAT', 'CD 25/2018'),
+                array('Imports / RCM', 'Reverse charge & imports self-cancel', 'Output = input VAT', 'Art. 48'),
+                array('Exports', 'Exports / international transport 0%', '0% VAT', 'Art. 45'),
+                array('Tax group', 'Intra-group supplies disregarded (single TRN)', 'Excluded from boxes 1-14', 'Art. 9'),
+                array('Input recovery', 'Input VAT only on taxable (not exempt) supplies', 'Block on exempt', 'Art. 54'),
+                array('Reconciliation', 'Box 14 = Box 12 - Box 13', 'Net = output - input', 'FTA VAT 201'),
+                array('Filing & payment', 'File & pay within 28 days of period end', 'By 28th of next month', 'Art. 64'),
             ),
         );
     }
@@ -3151,6 +3277,14 @@ if (!function_exists('epc_ext_import_map')) {
      */
     function epc_ext_import_map(array $rows): array
     {
+        // Known CT computation codes — only these are read as computation values
+        // so that supporting-schedule / compliance-checklist rows (which can share
+        // a label such as "Entertainment") never overwrite a real figure.
+        static $ctCodes = array(
+            'ACCT_PROFIT', 'REVENUE', 'FINES', 'ENTERTAINMENT', 'DONATIONS',
+            'PROVISIONS', 'ACCT_DEP', 'TAX_DEP', 'EXEMPT_INCOME', 'NET_INTEREST',
+            'EBITDA', 'LOSSES_BF', 'FTC',
+        );
         $meta = array();
         $values = array();
         $vat = array();
@@ -3176,8 +3310,15 @@ if (!function_exists('epc_ext_import_map')) {
                 );
                 continue;
             }
-            // CT line: amount in column C
-            $values[$code] = $num($r[2] ?? ($r[1] ?? 0));
+            // CT line: amount in column C — only recognised computation codes,
+            // and never blank out a value already captured from the computation
+            // sheet with a non-numeric cell from a later (schedule) sheet.
+            if (in_array($code, $ctCodes, true)) {
+                $cell = $r[2] ?? ($r[1] ?? 0);
+                $cellTrim = str_replace(array(',', ' ', "\xC2\xA0"), '', trim((string) $cell));
+                if (!is_numeric($cellTrim) && isset($values[$code])) { continue; }
+                $values[$code] = $num($cell);
+            }
         }
         return array('meta' => $meta, 'values' => $values, 'vat' => $vat);
     }
