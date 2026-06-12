@@ -181,9 +181,10 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 		if(!doc){ window.print(); return; }
 		var w = window.open('', '_blank');
 		w.document.write('<html><head><title><?php echo epc_erp_h(addslashes($built['title'])); ?></title>');
-		w.document.write('<style>body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:24px;} table{border-collapse:collapse;width:100%;} td,th{border:1px solid #bbb;padding:6px 8px;font-size:13px;} h3,h4{color:#1d2740;}</style>');
+		w.document.write('<style>body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:24px;} table{border-collapse:collapse;width:100%;} td,th{border:1px solid #bbb;padding:6px 8px;font-size:13px;} h3,h4{color:#1d2740;} details>div{display:block!important;}</style>');
 		w.document.write('</head><body>'+doc.innerHTML+'</body></html>');
 		w.document.close();
+		var ds = w.document.querySelectorAll('details'); for(var i=0;i<ds.length;i++){ ds[i].setAttribute('open','open'); }
 		setTimeout(function(){ w.focus(); w.print(); }, 300);
 	}
 	</script>

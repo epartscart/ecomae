@@ -217,6 +217,23 @@ $ctSa = epc_ext_ct_rule('SA');
 check('CT rule UAE 9% / threshold 375k', $ctAe['rate'] === 9.0 && $ctAe['threshold'] === 375000.0, $ctAe['rate'] . '% / ' . $ctAe['threshold']);
 check('CT rule KSA 20%', $ctSa['rate'] === 20.0, $ctSa['rate'] . '%');
 
+// UAE VAT special-scheme + compliance engine
+$vatCat = epc_ext_vat_treatment_catalog();
+check('VAT treatment catalog has invest_gold (0%) + gold_rcm (RCM)',
+    isset($vatCat['invest_gold']) && $vatCat['invest_gold']['rate'] === 0.0
+    && isset($vatCat['gold_rcm']) && !empty($vatCat['gold_rcm']['rcm']),
+    'invest_gold ' . ($vatCat['invest_gold']['rate'] ?? '?') . '% / gold_rcm rcm=' . (int) ($vatCat['gold_rcm']['rcm'] ?? 0));
+$vatLines = epc_ext_vat_sample_supply_lines();
+check('VAT sample supply lines populated', count($vatLines) >= 8, count($vatLines) . ' lines');
+$vatChecks = epc_ext_vat_compliance($vatLines);
+$vatErr = 0; $vatOk = 0;
+foreach ($vatChecks as $vc) { if ($vc['status'] === 'error') { $vatErr++; } elseif ($vc['status'] === 'ok') { $vatOk++; } }
+check('VAT compliance flags 24kt-gold-taxed + gold-B2B-VAT errors', $vatErr === 2, $vatErr . ' errors / ' . $vatOk . ' pass');
+// Correct treatment passes, wrong treatment fails
+$okGold = epc_ext_vat_compliance(array(array('doc' => 'T1', 'item' => '24kt', 'scheme' => 'invest_gold', 'net' => 1000.0, 'declared' => 0.0, 'margin' => 0.0, 'trn' => true)));
+$badGold = epc_ext_vat_compliance(array(array('doc' => 'T2', 'item' => '24kt', 'scheme' => 'invest_gold', 'net' => 1000.0, 'declared' => 50.0, 'margin' => 0.0, 'trn' => true)));
+check('Investment gold 0% passes, 5% fails', $okGold[0]['status'] === 'ok' && $badGold[0]['status'] === 'error', $okGold[0]['status'] . ' / ' . $badGold[0]['status']);
+
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
 echo "========================================\n";

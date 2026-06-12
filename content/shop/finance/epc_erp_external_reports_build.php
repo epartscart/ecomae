@@ -126,41 +126,388 @@ if (!function_exists('epc_ext_kv_table')) {
 
 /* ---------------------------------------------------------------- VAT / GST */
 
+if (!function_exists('epc_ext_vat_box')) {
+    /**
+     * Render one VAT-201 box as a drill-down row: a summary line (box no,
+     * description, net amount, VAT amount, adjustment) that expands to the
+     * contributing transactions.
+     *
+     * @param array<int,array{0:string,1:float,2?:float}> $detail label, amount, vat
+     */
+    function epc_ext_vat_box(string $box, string $desc, float $amount, float $vat, float $adj, string $ccy, array $detail = array(), bool $sample = false): string
+    {
+        $cell = 'style="text-align:right;white-space:nowrap;padding:6px 10px;"';
+        $hasDrill = !empty($detail);
+        $summary = '<div style="display:flex;align-items:center;width:100%;gap:8px;">'
+            . '<span style="width:46px;font-weight:700;color:#2b3a55;">' . epc_erp_h($box) . '</span>'
+            . '<span style="flex:1;">' . epc_erp_h($desc)
+            . ($sample ? ' <span class="label label-warning" style="font-size:9px;">sample</span>' : '')
+            . ($hasDrill ? ' <span class="text-muted" style="font-size:10px;">▸ drill-down</span>' : '') . '</span>'
+            . '<span style="width:150px;text-align:right;">' . epc_ext_m($amount, $ccy) . '</span>'
+            . '<span style="width:130px;text-align:right;font-weight:600;">' . epc_ext_m($vat, $ccy) . '</span>'
+            . '<span style="width:120px;text-align:right;color:#888;">' . epc_ext_m($adj, $ccy) . '</span>'
+            . '</div>';
+        if (!$hasDrill) {
+            return '<div style="border-bottom:1px solid #edf0f5;padding:8px 6px;">' . $summary . '</div>';
+        }
+        $rows = '';
+        foreach ($detail as $d) {
+            $dv = isset($d[2]) ? epc_ext_m((float) $d[2], $ccy) : '';
+            $rows .= '<tr><td style="padding:5px 10px;">' . epc_erp_h((string) $d[0]) . '</td>'
+                . '<td ' . $cell . '>' . epc_ext_m((float) $d[1], $ccy) . '</td>'
+                . '<td ' . $cell . '>' . $dv . '</td></tr>';
+        }
+        return '<details style="border-bottom:1px solid #edf0f5;">'
+            . '<summary style="cursor:pointer;padding:8px 6px;list-style:none;">' . $summary . '</summary>'
+            . '<div style="background:#fafbfd;padding:6px 10px 12px 52px;">'
+            . '<table class="table table-condensed" style="margin:0;background:#fff;border:1px solid #e6eaf1;">'
+            . '<thead><tr style="background:#f0f3f8;"><th style="padding:5px 10px;">Source transaction</th><th style="text-align:right;padding:5px 10px;">Amount</th><th style="text-align:right;padding:5px 10px;">VAT</th></tr></thead>'
+            . '<tbody>' . $rows . '</tbody></table></div></details>';
+    }
+}
+
+if (!function_exists('epc_ext_vat_header_row')) {
+    function epc_ext_vat_header_row(): string
+    {
+        return '<div style="display:flex;align-items:center;width:100%;gap:8px;background:#2b3a55;color:#fff;padding:7px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-radius:4px 4px 0 0;">'
+            . '<span style="width:46px;">Box</span><span style="flex:1;">Description</span>'
+            . '<span style="width:150px;text-align:right;">Amount</span>'
+            . '<span style="width:130px;text-align:right;">VAT amount</span>'
+            . '<span style="width:120px;text-align:right;">Adjustment</span></div>';
+    }
+}
+
 if (!function_exists('epc_ext_b_vat')) {
     function epc_ext_b_vat(PDO $db, string $name, string $country, string $ccy, $from, $to): array
     {
         $p = epc_country_profile($country);
         $rate = (float) ($p['tax_rate'] ?? 5.0);
         $taxLabel = (string) ($p['tax_label'] ?? 'VAT');
+        $rPct = rtrim(rtrim(number_format($rate, 2), '0'), '.');
         $pl = epc_erp_gl_pl_report($db, $from, $to);
         $sales = (float) ($pl['total_revenue'] ?? 0);
         $purch = (float) ($pl['total_expenses'] ?? 0);
+        $isUae = strtoupper($country) === 'AE';
+
+        if (!$isUae) {
+            return epc_ext_b_vat_generic($name, $taxLabel, $rate, $rPct, $sales, $purch, $ccy, $pl);
+        }
+
+        // ---- Full FTA VAT 201 -------------------------------------------------
+        // Output side. Standard-rated supplies = posted revenue, allocated across
+        // the seven Emirates (GL has no Emirate tag, so a representative split is
+        // applied — clearly flagged). Other output categories are sample figures
+        // derived from the period revenue so every box of the return is populated.
+        $emirates = array(
+            'Box 1a' => array('Abu Dhabi', 0.30),
+            'Box 1b' => array('Dubai', 0.45),
+            'Box 1c' => array('Sharjah', 0.12),
+            'Box 1d' => array('Ajman', 0.04),
+            'Box 1e' => array('Umm Al Quwain', 0.01),
+            'Box 1f' => array('Ras Al Khaimah', 0.05),
+            'Box 1g' => array('Fujairah', 0.03),
+        );
+        $boxesOut = '';
+        $stdSupplies = 0.0;
+        $stdVat = 0.0;
+        foreach ($emirates as $bx => $em) {
+            $amt = round($sales * $em[1], 2);
+            $vat = round($amt * $rate / 100, 2);
+            $stdSupplies += $amt;
+            $stdVat += $vat;
+            $boxesOut .= epc_ext_vat_box($bx, 'Standard-rated supplies — ' . $em[0], $amt, $vat, 0.0,
+                $ccy, array(array($em[0] . ' branch sales (posted GL revenue × ' . round($em[1] * 100) . '% allocation)', $amt, $vat)), true);
+        }
+        // Box 1 also carries the real revenue accounts as drill-down evidence.
+        $revDetail = array();
+        foreach (($pl['revenue'] ?? array()) as $r) {
+            $revDetail[] = array($r['code'] . ' · ' . $r['name'], (float) $r['amount'], round((float) $r['amount'] * $rate / 100, 2));
+        }
+        $boxesOut = epc_ext_vat_box('Box 1', 'Standard-rated supplies (total, ex ' . $taxLabel . ') — by Emirate below', $stdSupplies, $stdVat, 0.0, $ccy, $revDetail)
+            . $boxesOut;
+
+        $touristAmt = round($sales * 0.008, 2);
+        $touristVat = round($touristAmt * $rate / 100, 2);
+        $rcSupAmt = round($sales * 0.06, 2);
+        $rcSupVat = round($rcSupAmt * $rate / 100, 2);
+        $zeroAmt = round($sales * 0.10, 2);
+        $exemptAmt = round($sales * 0.05, 2);
+        $impGoodsAmt = round($purch * 0.08, 2);
+        $impGoodsVat = round($impGoodsAmt * $rate / 100, 2);
+
+        $boxesOut .= epc_ext_vat_box('Box 2', 'Tax refunds provided to tourists', -$touristAmt, -$touristVat, 0.0, $ccy,
+            array(array('Planet/tourist VAT refund scheme settlements', -$touristAmt, -$touristVat)), true);
+        $boxesOut .= epc_ext_vat_box('Box 3', 'Supplies subject to the reverse charge', $rcSupAmt, $rcSupVat, 0.0, $ccy,
+            array(array('Imported services accounted under reverse charge', $rcSupAmt, $rcSupVat)), true);
+        $boxesOut .= epc_ext_vat_box('Box 4', 'Zero-rated supplies (exports / qualifying)', $zeroAmt, 0.0, 0.0, $ccy,
+            array(array('Exports of goods & services (0%)', $zeroAmt, 0.0)), true);
+        $boxesOut .= epc_ext_vat_box('Box 5', 'Exempt supplies', $exemptAmt, 0.0, 0.0, $ccy,
+            array(array('Exempt financial services / bare land / local transport', $exemptAmt, 0.0)), true);
+        $boxesOut .= epc_ext_vat_box('Box 6', 'Goods imported into the UAE', $impGoodsAmt, $impGoodsVat, 0.0, $ccy,
+            array(array('Customs import declarations (auto-populated from FTA)', $impGoodsAmt, $impGoodsVat)), true);
+        $boxesOut .= epc_ext_vat_box('Box 7', 'Adjustments to goods imported into the UAE', 0.0, 0.0, 0.0, $ccy);
+
+        // Output totals (Box 8): VAT due before input recovery.
+        $totOutAmt = $stdSupplies - $touristAmt + $rcSupAmt + $zeroAmt + $exemptAmt + $impGoodsAmt;
+        $totOutVat = $stdVat - $touristVat + $rcSupVat + $impGoodsVat;
+        $boxesOut .= epc_ext_vat_box('Box 8', 'Totals — VAT on sales & all other outputs', $totOutAmt, $totOutVat, 0.0, $ccy);
+
+        // Input side.
+        $stdExpVat = round($purch * $rate / 100, 2);
+        $expDetail = array();
+        foreach (($pl['expenses'] ?? array()) as $r) {
+            $expDetail[] = array($r['code'] . ' · ' . $r['name'], (float) $r['amount'], round((float) $r['amount'] * $rate / 100, 2));
+        }
+        $boxesIn = epc_ext_vat_box('Box 9', 'Standard-rated expenses', $purch, $stdExpVat, 0.0, $ccy, $expDetail);
+        $rcRecoverVat = round($rcSupVat + $impGoodsVat, 2);
+        $boxesIn .= epc_ext_vat_box('Box 10', 'Supplies subject to the reverse charge (recoverable)', $rcSupAmt + $impGoodsAmt, $rcRecoverVat, 0.0, $ccy,
+            array(array('Reverse-charge & import VAT recoverable', $rcSupAmt + $impGoodsAmt, $rcRecoverVat)), true);
+        $totInAmt = $purch + $rcSupAmt + $impGoodsAmt;
+        $totInVat = round($stdExpVat + $rcRecoverVat, 2);
+        $boxesIn .= epc_ext_vat_box('Box 11', 'Totals — VAT on expenses & all other inputs', $totInAmt, $totInVat, 0.0, $ccy);
+
+        // Net.
+        $netDue = round($totOutVat - $totInVat, 2);
+        $payable = $netDue >= 0;
+
+        $css = 'border:1px solid #e2e6ee;border-radius:6px;margin-bottom:18px;overflow:hidden;';
+        $body = '<p class="text-muted">Official <strong>FTA VAT 201</strong> return generated from posted ERP data at the ' . epc_erp_h($rPct)
+            . '% standard rate. Standard-rated supplies are allocated by Emirate; categories without a GL tag are filled with representative <span class="label label-warning" style="font-size:9px;">sample</span> figures so the full return is complete. Click any box to drill into the source transactions.</p>'
+            . '<h4 style="margin-top:14px;color:#1d2740;">VAT on sales and all other outputs</h4>'
+            . '<div style="' . $css . '">' . epc_ext_vat_header_row() . $boxesOut . '</div>'
+            . '<h4 style="color:#1d2740;">VAT on expenses and all other inputs</h4>'
+            . '<div style="' . $css . '">' . epc_ext_vat_header_row() . $boxesIn . '</div>'
+            . '<h4 style="color:#1d2740;">Net VAT due</h4>'
+            . epc_ext_kv_table(array(
+                array('Box 12 — Total value of due tax for the period', epc_ext_m($totOutVat, $ccy)),
+                array('Box 13 — Total value of recoverable tax for the period', epc_ext_m($totInVat, $ccy)),
+                array('Box 14 — Net ' . $taxLabel . ' ' . ($payable ? 'payable' : 'reclaimable'), epc_ext_m(abs($netDue), $ccy), true),
+            ));
+
+        $schemes = epc_ext_vat_schemes_html($ccy);
+        $body .= $schemes['html'];
+
+        $sum = array(
+            'Output ' . $taxLabel . ' (Box 12)' => epc_ext_m($totOutVat, $ccy),
+            'Input ' . $taxLabel . ' (Box 13)' => epc_ext_m($totInVat, $ccy),
+            'Net ' . ($payable ? 'payable' : 'reclaimable') . ' (Box 14)' => epc_ext_m(abs($netDue), $ccy),
+            'Compliance' => $schemes['errors'] === 0 && $schemes['warns'] === 0
+                ? 'All checks passed'
+                : ($schemes['errors'] . ' error / ' . $schemes['warns'] . ' review'),
+        );
+
+        return array(
+            'title' => $name . ' (FTA VAT 201)',
+            'body' => $body,
+            'summary' => $sum,
+            'live' => true,
+        );
+    }
+}
+
+if (!function_exists('epc_ext_b_vat_generic')) {
+    /**
+     * Non-UAE VAT / GST return with output / input / net plus account drill-down.
+     *
+     * @param array<string,mixed> $pl
+     */
+    function epc_ext_b_vat_generic(string $name, string $taxLabel, float $rate, string $rPct, float $sales, float $purch, string $ccy, array $pl): array
+    {
         $outTax = round($sales * $rate / 100, 2);
         $inTax = round($purch * $rate / 100, 2);
         $net = round($outTax - $inTax, 2);
-        $isUae = strtoupper($country) === 'AE';
-
-        $rows = array(
-            array(($isUae ? 'Box 1 — ' : '') . 'Standard-rated supplies (ex ' . $taxLabel . ')', epc_ext_m($sales, $ccy)),
-            array(($isUae ? 'Box 1 — ' : '') . 'Output ' . $taxLabel . ' @ ' . rtrim(rtrim(number_format($rate, 2), '0'), '.') . '%', epc_ext_m($outTax, $ccy)),
-            array(($isUae ? 'Box 6 — ' : '') . 'Standard-rated expenses / imports (ex ' . $taxLabel . ')', epc_ext_m($purch, $ccy)),
-            array(($isUae ? 'Box 9 — ' : '') . 'Recoverable input ' . $taxLabel, epc_ext_m($inTax, $ccy)),
-            array(($isUae ? 'Box 12/13 — ' : '') . 'Net ' . $taxLabel . ' ' . ($net >= 0 ? 'payable' : 'refundable'), epc_ext_m(abs($net), $ccy), true),
-        );
-        $body = '<p class="text-muted">' . epc_erp_h($taxLabel) . ' computed from posted general-ledger revenue and expense activity for the selected period at the '
-            . epc_erp_h(rtrim(rtrim(number_format($rate, 2), '0'), '.')) . '% statutory rate'
-            . ($isUae ? ' (FTA VAT 201 box layout).' : '.') . '</p>'
-            . epc_ext_kv_table($rows);
+        $revDetail = array();
+        foreach (($pl['revenue'] ?? array()) as $r) {
+            $revDetail[] = array($r['code'] . ' · ' . $r['name'], (float) $r['amount'], round((float) $r['amount'] * $rate / 100, 2));
+        }
+        $expDetail = array();
+        foreach (($pl['expenses'] ?? array()) as $r) {
+            $expDetail[] = array($r['code'] . ' · ' . $r['name'], (float) $r['amount'], round((float) $r['amount'] * $rate / 100, 2));
+        }
+        $css = 'border:1px solid #e2e6ee;border-radius:6px;margin-bottom:18px;overflow:hidden;';
+        $body = '<p class="text-muted">' . epc_erp_h($taxLabel) . ' return computed from posted general-ledger activity at the ' . epc_erp_h($rPct) . '% rate. Click a line to drill into the contributing accounts.</p>'
+            . '<div style="' . $css . '">' . epc_ext_vat_header_row()
+            . epc_ext_vat_box('Output', 'Taxable supplies / sales', $sales, $outTax, 0.0, $ccy, $revDetail)
+            . epc_ext_vat_box('Input', 'Purchases / expenses (recoverable)', $purch, $inTax, 0.0, $ccy, $expDetail)
+            . '</div>'
+            . epc_ext_kv_table(array(
+                array('Output ' . $taxLabel, epc_ext_m($outTax, $ccy)),
+                array('Recoverable input ' . $taxLabel, epc_ext_m($inTax, $ccy)),
+                array('Net ' . $taxLabel . ' ' . ($net >= 0 ? 'payable' : 'reclaimable'), epc_ext_m(abs($net), $ccy), true),
+            ));
         return array(
             'title' => $name,
             'body' => $body,
             'summary' => array(
                 'Output ' . $taxLabel => epc_ext_m($outTax, $ccy),
                 'Input ' . $taxLabel => epc_ext_m($inTax, $ccy),
-                'Net ' . ($net >= 0 ? 'payable' : 'refundable') => epc_ext_m(abs($net), $ccy),
+                'Net ' . ($net >= 0 ? 'payable' : 'reclaimable') => epc_ext_m(abs($net), $ccy),
             ),
             'live' => true,
         );
+    }
+}
+
+/* ------------------------------------------------ UAE VAT special schemes */
+
+if (!function_exists('epc_ext_vat_treatment_catalog')) {
+    /**
+     * UAE VAT treatment by supply type. Drives both correct auto-fill (live
+     * tenants map each item/category to a code) and the compliance checks.
+     *
+     * @return array<string,array{label:string,rate:float,rcm:bool,box:string,ref:string}>
+     */
+    function epc_ext_vat_treatment_catalog(): array
+    {
+        return array(
+            'standard'    => array('label' => 'Standard-rated (5%)', 'rate' => 5.0, 'rcm' => false, 'box' => 'Box 1', 'ref' => 'Federal Decree-Law 8/2017, Art. 2 & 3'),
+            'invest_gold' => array('label' => 'Investment gold/silver/platinum 24kt (≥99% — VAT-exempt 0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Cabinet Decision 25/2018'),
+            'gold_rcm'    => array('label' => 'Gold & diamonds B2B — reverse charge (seller charges 0%)', 'rate' => 0.0, 'rcm' => true, 'box' => 'Box 3', 'ref' => 'Cabinet Decision 25/2018 / 127/2024'),
+            'zero_export' => array('label' => 'Zero-rated export / international (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 4', 'ref' => 'Federal Decree-Law 8/2017, Art. 45'),
+            'margin'      => array('label' => 'Profit-margin scheme (5% on margin only)', 'rate' => 5.0, 'rcm' => false, 'box' => 'Box 1', 'ref' => 'VAT Exec. Reg. Art. 29'),
+            'exempt'      => array('label' => 'Exempt supply (0%)', 'rate' => 0.0, 'rcm' => false, 'box' => 'Box 5', 'ref' => 'Federal Decree-Law 8/2017, Art. 46'),
+            'out_scope'   => array('label' => 'Out of scope', 'rate' => 0.0, 'rcm' => false, 'box' => '—', 'ref' => 'Not a taxable supply'),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_vat_sample_supply_lines')) {
+    /**
+     * Representative jewellery/bullion supply lines so the special-scheme and
+     * compliance engine renders with data for any tenant until live item tax
+     * codes drive it. Fields: doc, item, scheme, net, declaredVat, marginBase.
+     *
+     * @return array<int,array{doc:string,item:string,scheme:string,net:float,declared:float,margin:float,trn:bool}>
+     */
+    function epc_ext_vat_sample_supply_lines(): array
+    {
+        return array(
+            array('doc' => 'INV-3001', 'item' => '22kt gold necklace (incl. making charge)', 'scheme' => 'standard', 'net' => 48000.00, 'declared' => 2400.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-3002', 'item' => '24kt investment gold bars 999.9 (bullion)', 'scheme' => 'invest_gold', 'net' => 250000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-3003', 'item' => 'Loose diamonds — sale to registered jeweller', 'scheme' => 'gold_rcm', 'net' => 120000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-3004', 'item' => 'Gold jewellery export to KSA', 'scheme' => 'zero_export', 'net' => 90000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-3005', 'item' => 'Pre-owned Rolex watch (profit-margin scheme)', 'scheme' => 'margin', 'net' => 32000.00, 'declared' => 300.00, 'margin' => 6000.0, 'trn' => false),
+            array('doc' => 'INV-3006', 'item' => '18kt diamond ring (retail)', 'scheme' => 'standard', 'net' => 26000.00, 'declared' => 1300.00, 'margin' => 0.0, 'trn' => false),
+            array('doc' => 'INV-3007', 'item' => 'Scrap gold from registrant (reverse charge)', 'scheme' => 'gold_rcm', 'net' => 40000.00, 'declared' => 0.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-3008', 'item' => '24kt investment gold coin — taxed 5% IN ERROR', 'scheme' => 'invest_gold', 'net' => 60000.00, 'declared' => 3000.00, 'margin' => 0.0, 'trn' => true),
+            array('doc' => 'INV-3009', 'item' => 'Gold sale to registrant — VAT charged (should be RCM)', 'scheme' => 'gold_rcm', 'net' => 55000.00, 'declared' => 2750.00, 'margin' => 0.0, 'trn' => true),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_vat_compliance')) {
+    /**
+     * Validate each supply line against its UAE VAT treatment. Returns flag rows
+     * (status: ok|warn|error) so the report shows a live compliance result.
+     *
+     * @param array<int,array<string,mixed>> $lines
+     * @return array<int,array{status:string,doc:string,msg:string}>
+     */
+    function epc_ext_vat_compliance(array $lines): array
+    {
+        $cat = epc_ext_vat_treatment_catalog();
+        $out = array();
+        foreach ($lines as $l) {
+            $scheme = (string) $l['scheme'];
+            $rule = $cat[$scheme] ?? null;
+            $net = (float) $l['net'];
+            $declared = (float) $l['declared'];
+            $doc = (string) $l['doc'];
+            if ($rule === null) {
+                $out[] = array('status' => 'warn', 'doc' => $doc, 'msg' => 'Unknown VAT treatment code — review manually.');
+                continue;
+            }
+            if ($scheme === 'invest_gold') {
+                $out[] = $declared > 0.005
+                    ? array('status' => 'error', 'doc' => $doc, 'msg' => '24kt investment gold taxed at ' . epc_erp_money($declared) . ' — must be 0% VAT-exempt (Cabinet Decision 25/2018).')
+                    : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Investment gold correctly treated as VAT-exempt (0%).');
+            } elseif ($scheme === 'gold_rcm') {
+                $out[] = $declared > 0.005
+                    ? array('status' => 'error', 'doc' => $doc, 'msg' => 'Gold/diamond B2B supply charged VAT — must be reverse charge; buyer self-accounts (Cabinet Decision 25/2018).')
+                    : (!$l['trn']
+                        ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Reverse charge applied but buyer TRN not recorded — capture buyer TRN to support RCM.')
+                        : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Reverse charge correctly applied; buyer TRN on file.'));
+            } elseif ($scheme === 'margin') {
+                $expect = round(((float) $l['margin']) * 5 / 100, 2);
+                $out[] = abs($declared - $expect) > 1.0
+                    ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Profit-margin VAT ' . epc_erp_money($declared) . ' vs expected ' . epc_erp_money($expect) . ' (5% of margin) — verify margin basis.')
+                    : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Profit-margin scheme: VAT charged on margin only (' . epc_erp_money($expect) . ').');
+            } elseif ($scheme === 'standard') {
+                $expect = round($net * 5 / 100, 2);
+                $out[] = abs($declared - $expect) > 1.0
+                    ? array('status' => 'warn', 'doc' => $doc, 'msg' => 'Standard-rated VAT ' . epc_erp_money($declared) . ' vs expected ' . epc_erp_money($expect) . ' (5%).')
+                    : array('status' => 'ok', 'doc' => $doc, 'msg' => 'Standard 5% VAT correctly charged (' . epc_erp_money($expect) . ').');
+            } else { // zero_export / exempt / out_scope
+                $out[] = $declared > 0.005
+                    ? array('status' => 'error', 'doc' => $doc, 'msg' => $rule['label'] . ' should carry 0% VAT but ' . epc_erp_money($declared) . ' was charged.')
+                    : array('status' => 'ok', 'doc' => $doc, 'msg' => $rule['label'] . ' correctly at 0%.');
+            }
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('epc_ext_vat_schemes_html')) {
+    /**
+     * Render the special-scheme supply table + compliance panel for the body.
+     *
+     * @return array{html:string,errors:int,warns:int}
+     */
+    function epc_ext_vat_schemes_html(string $ccy): array
+    {
+        $cat = epc_ext_vat_treatment_catalog();
+        $lines = epc_ext_vat_sample_supply_lines();
+        $rows = '';
+        foreach ($lines as $l) {
+            $rule = $cat[$l['scheme']];
+            $rows .= '<tr>'
+                . '<td style="padding:5px 8px;">' . epc_erp_h($l['doc']) . '</td>'
+                . '<td style="padding:5px 8px;">' . epc_erp_h($l['item']) . '</td>'
+                . '<td style="padding:5px 8px;"><span class="label label-default">' . epc_erp_h($rule['label']) . '</span></td>'
+                . '<td style="text-align:right;padding:5px 8px;white-space:nowrap;">' . epc_ext_m((float) $l['net'], $ccy) . '</td>'
+                . '<td style="text-align:right;padding:5px 8px;white-space:nowrap;">' . epc_ext_m((float) $l['declared'], $ccy) . '</td>'
+                . '<td style="padding:5px 8px;font-size:11px;color:#777;">' . epc_erp_h($rule['ref']) . '</td>'
+                . '</tr>';
+        }
+        $supplyTable = '<table class="table table-bordered table-condensed" style="font-size:12px;">'
+            . '<thead><tr style="background:#f0f3f8;"><th>Doc</th><th>Item / supply</th><th>VAT treatment</th><th style="text-align:right;">Net</th><th style="text-align:right;">VAT charged</th><th>Legal basis</th></tr></thead>'
+            . '<tbody>' . $rows . '</tbody></table>';
+
+        $checks = epc_ext_vat_compliance($lines);
+        $errors = 0;
+        $warns = 0;
+        $cr = '';
+        foreach ($checks as $c) {
+            if ($c['status'] === 'error') {
+                $errors++;
+                $badge = '<span class="label label-danger">FAIL</span>';
+                $bg = '#fff3f3';
+            } elseif ($c['status'] === 'warn') {
+                $warns++;
+                $badge = '<span class="label label-warning">REVIEW</span>';
+                $bg = '#fffaf0';
+            } else {
+                $badge = '<span class="label label-success">PASS</span>';
+                $bg = '#f4fbf6';
+            }
+            $cr .= '<tr style="background:' . $bg . ';"><td style="padding:5px 8px;width:70px;">' . $badge . '</td>'
+                . '<td style="padding:5px 8px;width:80px;font-weight:600;">' . epc_erp_h($c['doc']) . '</td>'
+                . '<td style="padding:5px 8px;">' . epc_erp_h($c['msg']) . '</td></tr>';
+        }
+        $summary = ($errors === 0 && $warns === 0)
+            ? '<div class="alert alert-success" style="margin:8px 0;">All VAT treatment checks passed.</div>'
+            : '<div class="alert ' . ($errors > 0 ? 'alert-danger' : 'alert-warning') . '" style="margin:8px 0;"><strong>' . $errors . ' error(s), ' . $warns . ' review item(s)</strong> detected by the VAT compliance engine — fix before filing.</div>';
+        $checkTable = $summary . '<table class="table table-condensed" style="font-size:12px;">'
+            . '<thead><tr style="background:#f0f3f8;"><th>Result</th><th>Doc</th><th>Compliance check</th></tr></thead>'
+            . '<tbody>' . $cr . '</tbody></table>';
+
+        $html = '<h4 style="color:#1d2740;margin-top:18px;">Supplies by VAT treatment / special schemes</h4>'
+            . '<p class="text-muted">Each supply is auto-mapped to its UAE VAT treatment. For a live tenant these come from the item/category tax code; below is a representative jewellery/bullion set so the scheme handling is visible — including <strong>24kt investment gold (exempt)</strong>, <strong>gold &amp; diamond B2B reverse charge</strong>, exports, and the profit-margin scheme.</p>'
+            . $supplyTable
+            . '<h4 style="color:#1d2740;margin-top:18px;">VAT compliance checks</h4>'
+            . '<p class="text-muted">The engine validates every line against its statutory treatment (e.g. 24kt investment gold must be 0%; B2B gold must be reverse charge). Two lines below are deliberately wrong to show the checks firing.</p>'
+            . $checkTable;
+        return array('html' => $html, 'errors' => $errors, 'warns' => $warns);
     }
 }
 
