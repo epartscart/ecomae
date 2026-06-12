@@ -257,12 +257,15 @@ body.epc-erp-cp-shell {
 
 .epc-erp-sidebar-group.is-open .epc-erp-sidebar-sublist { display: block; }
 
-.epc-erp-sidebar-item a {
+/* High specificity + !important: the standalone theme sets
+   `body.epc-erp-standalone a { color: var(--ep-accent) }` which otherwise
+   overrides these sub-menu links and renders them as low-contrast blue. */
+.epc-erp-sidebar-nav .epc-erp-sidebar-item a {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	padding: 9px 16px 9px 44px;
-	color: #eaf6ff;
+	color: #eaf6ff !important;
 	font-size: 12px;
 	font-weight: 500;
 	text-decoration: none !important;
@@ -270,14 +273,17 @@ body.epc-erp-cp-shell {
 	transition: all .12s ease;
 }
 
-.epc-erp-sidebar-item a:hover {
-	color: #fff;
+.epc-erp-sidebar-nav .epc-erp-sidebar-item a i { color: inherit !important; }
+
+.epc-erp-sidebar-nav .epc-erp-sidebar-item a:hover,
+.epc-erp-sidebar-nav .epc-erp-sidebar-item a:focus {
+	color: #ffffff !important;
 	background: rgba(255, 255, 255, 0.12);
 	border-left-color: rgba(255, 255, 255, 0.4);
 }
 
-.epc-erp-sidebar-item.is-active a {
-	color: #fff;
+.epc-erp-sidebar-nav .epc-erp-sidebar-item.is-active a {
+	color: #ffffff !important;
 	background: var(--epc-sidebar-active-bg, rgba(56, 189, 248, 0.22));
 	border-left-color: var(--epc-blue-400, #38bdf8);
 	font-weight: 600;
