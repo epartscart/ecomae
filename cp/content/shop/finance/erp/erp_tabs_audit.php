@@ -22,13 +22,30 @@ ob_start();
 if (empty($rows)) {
 	erp_empty_state('No audit events yet. Actions such as purchases, GL posts, and bank matches appear here.', 'fa-history');
 } else {
-	erp_table_open(array('When', 'Action', 'Entity', 'Summary', 'Admin'));
+	erp_table_open(array('When', 'Action', 'Entity', 'Summary', 'Changes (old → new)', 'Admin', 'IP / device'));
 	foreach ($rows as $r) {
+		$changeHtml = '<span class="text-muted">—</span>';
+		$old = !empty($r['old_json']) ? json_decode((string)$r['old_json'], true) : null;
+		$new = !empty($r['new_json']) ? json_decode((string)$r['new_json'], true) : null;
+		if (is_array($new) && $new) {
+			$parts = array();
+			foreach ($new as $k => $nv) {
+				$ov = is_array($old) && array_key_exists($k, $old) ? $old[$k] : '';
+				$parts[] = '<div><code>' . epc_erp_h($k) . '</code>: <span class="text-danger">' . epc_erp_h((string)$ov)
+					. '</span> → <span class="text-success">' . epc_erp_h((string)$nv) . '</span></div>';
+			}
+			$changeHtml = implode('', $parts);
+		}
+		$ua = (string)($r['user_agent'] ?? '');
+		$device = $ua !== '' ? epc_erp_h(mb_substr($ua, 0, 60)) : '';
+		$ipDevice = epc_erp_h((string)($r['ip_address'] ?? '')) . ($device !== '' ? '<br><small class="text-muted" title="' . epc_erp_h($ua) . '">' . $device . '</small>' : '');
 		echo '<tr><td>' . epc_erp_h(date('Y-m-d H:i', (int)$r['time'])) . '</td>';
 		echo '<td><code>' . epc_erp_h($r['action']) . '</code></td>';
 		echo '<td>' . epc_erp_h($r['entity_type'] . ($r['entity_id'] ? ' #' . (int)$r['entity_id'] : '')) . '</td>';
 		echo '<td>' . epc_erp_h($r['summary']) . '</td>';
-		echo '<td>' . (int)$r['admin_id'] . '</td></tr>';
+		echo '<td style="font-size:11px;">' . $changeHtml . '</td>';
+		echo '<td>' . (int)$r['admin_id'] . '</td>';
+		echo '<td style="font-size:11px;">' . ($ipDevice !== '' ? $ipDevice : '<span class="text-muted">—</span>') . '</td></tr>';
 	}
 	erp_table_close();
 }

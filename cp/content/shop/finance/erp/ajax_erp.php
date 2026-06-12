@@ -20,6 +20,41 @@ header('Content-Type: application/json; charset=utf-8');
 
 function epc_erp_json($ok, $message, $extra = array())
 {
+	// Central audit hook: every successful mutating action is recorded with the
+	// actor, IP and device plus a sanitised payload snapshot. Read-only lookups
+	// are skipped to keep the trail signal-rich.
+	if ($ok && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+		$act = isset($GLOBALS['action']) ? (string)$GLOBALS['action'] : '';
+		$readOnlyPrefixes = array('list_', 'load_', 'get_', 'fetch_', 'search_', 'lookup_', 'open_docs', 'preview_', 'report_', 'export_');
+		$readOnlyExact = array('settlement_open_docs', 'gl_preview', 'aging', 'trial_balance');
+		$skip = in_array($act, $readOnlyExact, true);
+		foreach ($readOnlyPrefixes as $p) {
+			if (strncmp($act, $p, strlen($p)) === 0) { $skip = true; break; }
+		}
+		if ($act !== '' && !$skip) {
+			try {
+				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_audit.php';
+				$snapshot = array();
+				foreach ($_POST as $k => $v) {
+					if (in_array($k, array('csrf_guard_key', 'action', 'password', 'pass', 'pwd'), true)) {
+						continue;
+					}
+					if (is_scalar($v)) {
+						$snapshot[$k] = mb_substr((string)$v, 0, 200);
+					} elseif (is_array($v)) {
+						$snapshot[$k] = '[' . count($v) . ' items]';
+					}
+				}
+				$eid = 0;
+				if (isset($extra['id'])) { $eid = (int)$extra['id']; }
+				elseif (isset($extra['journal_id'])) { $eid = (int)$extra['journal_id']; }
+				elseif (isset($extra['cash_entry_id'])) { $eid = (int)$extra['cash_entry_id']; }
+				epc_erp_audit_log($GLOBALS['db_link'], $act, 'erp_action', $eid, mb_substr((string)$message, 0, 200), $snapshot);
+			} catch (Throwable $auditErr) {
+				// never let auditing break the actual response
+			}
+		}
+	}
 	echo json_encode(array_merge(array('status' => (bool)$ok, 'message' => (string)$message), $extra));
 	exit;
 }
