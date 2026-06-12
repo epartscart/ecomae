@@ -167,6 +167,17 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-gavel"></i> Labour law &amp; compliance — worldwide statutory engine (<a href="/erp/?area=people&amp;tab=hr_law">People &rsaquo; Labour law &amp; compliance</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">A country-aware employment-law engine that localizes statutory rules to your company country — working hours, overtime, probation cap, notice, annual/sick/maternity/paternity leave, public holidays, end-of-service and wage protection — across 25+ countries (UAE + GCC, South Asia, MENA, Europe, Americas, APAC, Africa). It also runs every employee through those rules and flags issues plus the accrued end-of-service liability. Informational only — confirm with local counsel.</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open People → Labour law &amp; compliance. <strong>Result:</strong> the active country is taken automatically from the Company profile; the statutory card shows working week, overtime, probation cap, notice, leave (annual/sick/maternity/paternity), public holidays, end-of-service basis, wage protection (e.g. WPS) and the governing authority.</li>
+					<li><strong>Action:</strong> Pick a country from the dropdown, or filter the <strong>Worldwide statutory reference</strong> table. <strong>Result:</strong> preview and compare any jurisdiction's rules.</li>
+					<li><strong>Action:</strong> Read the <strong>Employee compliance monitor</strong>. <strong>Result:</strong> every employee is checked against the company-country rules — probation status (with end date), excess leave balance, missing data and accrued end-of-service liability — each finding citing its statutory basis.</li>
+					<li><strong>Action:</strong> Read the KPI strip. <strong>Result:</strong> employees checked, in probation, "needs attention" count and total end-of-service liability to provision.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
 				<h5><i class="fa fa-handshake-o"></i> Supplier portal — performance scorecards (<a href="/erp/?area=purchasing&amp;tab=supplier_portal">Purchasing &rsaquo; Supplier portal</a>)</h5>
 				<p style="margin:6px 0 8px;opacity:.85;">Per-supplier scorecards computed from your POs, goods receipts, RFQs and payables.</p>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">

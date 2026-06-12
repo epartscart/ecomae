@@ -26,16 +26,16 @@ if (!function_exists('epc_hr_law_countries')) {
      */
     function epc_hr_law_countries(): array
     {
+        $out = array();
+        if (function_exists('epc_hr_law_profiles_all')) {
+            foreach (epc_hr_law_profiles_all() as $code => $p) {
+                $out[] = array('code' => $code, 'name' => (string) $p['name'], 'region' => (string) ($p['region'] ?? ''), 'gratuity' => (string) ($p['eos'] ?? ''));
+            }
+            return $out;
+        }
         return array(
-            array('code' => 'AE', 'name' => 'United Arab Emirates', 'gratuity' => '21/30 days, 2-year cap'),
-            array('code' => 'SA', 'name' => 'Saudi Arabia', 'gratuity' => 'half/full month + resignation factor'),
-            array('code' => 'QA', 'name' => 'Qatar', 'gratuity' => '3 weeks per year'),
-            array('code' => 'OM', 'name' => 'Oman', 'gratuity' => 'GCC-style end of service'),
-            array('code' => 'BH', 'name' => 'Bahrain', 'gratuity' => 'GCC-style end of service'),
-            array('code' => 'KW', 'name' => 'Kuwait', 'gratuity' => 'GCC-style end of service'),
-            array('code' => 'IN', 'name' => 'India', 'gratuity' => 'Payment of Gratuity Act (15/26)'),
-            array('code' => 'PK', 'name' => 'Pakistan', 'gratuity' => '30 days wage per completed year (Standing Orders)'),
-            array('code' => 'generic', 'name' => 'Generic / other', 'gratuity' => 'configurable days per year'),
+            array('code' => 'AE', 'name' => 'United Arab Emirates', 'region' => 'GCC', 'gratuity' => '21/30 days, 2-year cap'),
+            array('code' => 'generic', 'name' => 'Generic / other', 'region' => 'Other', 'gratuity' => 'configurable days per year'),
         );
     }
 }
@@ -331,5 +331,197 @@ if (!function_exists('epc_hr_resolve_rule_version')) {
             }
         }
         return $best;
+    }
+}
+
+/* ------------------------------------- Worldwide statutory law profiles --- */
+
+if (!function_exists('epc_hr_law_profile')) {
+    /**
+     * Worldwide statutory employment-law reference profile for a country.
+     *
+     * A structured, country-aware knowledge base of the key statutory minimums
+     * an employer must comply with: working hours, overtime, probation cap,
+     * notice, annual / sick / maternity / paternity leave, public holidays,
+     * end-of-service basis, wage-protection scheme and the governing authority.
+     *
+     * Informational only — figures are representative statutory minimums and
+     * must be confirmed against current local law and any collective agreement.
+     *
+     * @return array<string,mixed>
+     */
+    function epc_hr_law_profile(string $country): array
+    {
+        $c = strtoupper(trim($country));
+        $P = epc_hr_law_profiles_all();
+        if (isset($P[$c])) {
+            return array('country' => $c) + $P[$c];
+        }
+        return array('country' => $c !== '' ? $c : 'XX') + $P['generic'];
+    }
+}
+
+if (!function_exists('epc_hr_law_profiles_all')) {
+    /**
+     * All built-in statutory profiles, keyed by ISO-2 (plus 'generic').
+     *
+     * Fields per country: name, region, weekly_hours, workweek, overtime,
+     * probation_max_months, notice_days, annual_leave_days, sick_leave,
+     * maternity, paternity, public_holidays, eos (text), eos_model,
+     * wage_protection, authority.
+     *
+     * @return array<string,array<string,mixed>>
+     */
+    function epc_hr_law_profiles_all(): array
+    {
+        return array(
+            // ---------------------------------------------------------- GCC ---
+            'AE' => array('name' => 'United Arab Emirates', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Mon–Fri (Sat/Sun weekend)', 'overtime' => '125% normal · 150% night (22:00–04:00) / rest day', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 30, 'sick_leave' => '90 days/yr (15 full · 30 half · 45 unpaid)', 'maternity' => '60 days (45 full + 15 half)', 'paternity' => '5 working days', 'public_holidays' => '~14 days', 'eos' => '21 days/yr first 5 yrs, 30 days/yr beyond; capped at 2 yrs pay', 'eos_model' => 'AE', 'wage_protection' => 'WPS mandatory (MOHRE)', 'authority' => 'MOHRE — Federal Decree-Law 33/2021'),
+            'SA' => array('name' => 'Saudi Arabia', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu (Fri/Sat weekend); 36h Ramadan', 'overtime' => '150% (basic + 50%)', 'probation_max_months' => 3, 'notice_days' => 60, 'annual_leave_days' => 21, 'sick_leave' => '120 days (30 full · 60 at 75% · 30 unpaid)', 'maternity' => '10 weeks', 'paternity' => '3 days', 'public_holidays' => '~4 official', 'eos' => 'Half month/yr first 5 yrs, full month/yr after; resignation factor (art.85)', 'eos_model' => 'SA', 'wage_protection' => 'WPS / Mudad mandatory', 'authority' => 'MHRSD — Saudi Labor Law'),
+            'QA' => array('name' => 'Qatar', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu; 36h Ramadan', 'overtime' => '125% · 150% night', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 21, 'sick_leave' => '2 weeks full + 4 weeks half', 'maternity' => '50 days', 'paternity' => '—', 'public_holidays' => '~3 official', 'eos' => 'Min 3 weeks (21 days) basic per year, after 1 year', 'eos_model' => 'QA', 'wage_protection' => 'WPS mandatory', 'authority' => 'MOL — Law 14/2004'),
+            'OM' => array('name' => 'Oman', 'region' => 'GCC', 'weekly_hours' => 45, 'workweek' => 'Sun–Thu', 'overtime' => '125% · 150% night / rest day', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 30, 'sick_leave' => 'Up to 10 weeks (graded)', 'maternity' => '98 days', 'paternity' => '7 days', 'public_holidays' => '~9 days', 'eos' => 'GCC end-of-service: 15 days/yr first 3 yrs, 30 days/yr after (non-Omanis)', 'eos_model' => 'OM', 'wage_protection' => 'WPS (Oman) mandatory', 'authority' => 'MOL — Labour Law 53/2023'),
+            'BH' => array('name' => 'Bahrain', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu; 6h Ramadan', 'overtime' => '125% · 150% night / rest day', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 30, 'sick_leave' => '55 days (15 full · 20 half · 20 unpaid)', 'maternity' => '60 days paid + 15 unpaid', 'paternity' => '1 day', 'public_holidays' => '~10 days', 'eos' => 'Leaving indemnity: 15 days/yr first 3 yrs, 30 days/yr after (expats); SIO for Bahrainis', 'eos_model' => 'BH', 'wage_protection' => 'WPS (Bahrain) mandatory', 'authority' => 'MOL — Law 36/2012'),
+            'KW' => array('name' => 'Kuwait', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu', 'overtime' => '125% · 150% rest day', 'probation_max_months' => 3, 'notice_days' => 90, 'annual_leave_days' => 30, 'sick_leave' => '75 days (graded 15+10+10+10+30)', 'maternity' => '70 days', 'paternity' => '—', 'public_holidays' => '~13 days', 'eos' => '15 days/yr first 5 yrs, 1 month/yr after (indemnity)', 'eos_model' => 'KW', 'wage_protection' => 'WPS mandatory', 'authority' => 'PAM — Law 6/2010'),
+            // -------------------------------------------------- South Asia ---
+            'IN' => array('name' => 'India', 'region' => 'South Asia', 'weekly_hours' => 48, 'workweek' => 'Mon–Sat', 'overtime' => '200% (twice ordinary wage)', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 18, 'sick_leave' => 'State-dependent (~12 days)', 'maternity' => '26 weeks (Maternity Benefit Act)', 'paternity' => '—  (govt: 15 days)', 'public_holidays' => 'State-dependent', 'eos' => 'Payment of Gratuity Act: (15/26) × wage × yrs, after 5 yrs; cap ₹2,000,000', 'eos_model' => 'IN', 'wage_protection' => 'Wages paid via bank (Code on Wages)', 'authority' => 'Central Labour Codes + State Shops Acts'),
+            'PK' => array('name' => 'Pakistan', 'region' => 'South Asia', 'weekly_hours' => 48, 'workweek' => 'Mon–Sat', 'overtime' => '200% (twice ordinary wage)', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 14, 'sick_leave' => '16 days (8 at full pay)', 'maternity' => '12 weeks', 'paternity' => '—', 'public_holidays' => '~13 days', 'eos' => 'Gratuity 30 days wage per completed year, or EOBI pension', 'eos_model' => 'PK', 'wage_protection' => 'Provincial wage rules', 'authority' => 'Provincial Standing Orders / Shops Acts'),
+            'BD' => array('name' => 'Bangladesh', 'region' => 'South Asia', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu/Sat', 'overtime' => '200%', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 18, 'sick_leave' => '14 days full pay', 'maternity' => '16 weeks', 'paternity' => '—', 'public_holidays' => '~11 days', 'eos' => 'Gratuity/compensation 30 days wage per year (≥10 yrs higher)', 'eos_model' => 'gratuity_generic', 'wage_protection' => 'Wages Act', 'authority' => 'Bangladesh Labour Act 2006'),
+            'LK' => array('name' => 'Sri Lanka', 'region' => 'South Asia', 'weekly_hours' => 45, 'workweek' => 'Mon–Sat', 'overtime' => '150%', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 14, 'sick_leave' => '7 days', 'maternity' => '84 working days', 'paternity' => '—', 'public_holidays' => '~25 (poya)', 'eos' => 'Gratuity ½ month/yr after 5 yrs (Payment of Gratuity Act); EPF/ETF', 'eos_model' => 'gratuity_generic', 'wage_protection' => 'EPF/ETF contributions', 'authority' => 'Shop & Office Employees Act'),
+            'NP' => array('name' => 'Nepal', 'region' => 'South Asia', 'weekly_hours' => 48, 'workweek' => 'Sun–Fri', 'overtime' => '150%', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 18, 'sick_leave' => '12 days', 'maternity' => '14 weeks (98 days)', 'paternity' => '—', 'public_holidays' => '~13 days', 'eos' => 'Gratuity via Social Security Fund (8.33% monthly contribution)', 'eos_model' => 'gratuity_generic', 'wage_protection' => 'SSF contributions', 'authority' => 'Labour Act 2017'),
+            // --------------------------------------------------------- MENA ---
+            'EG' => array('name' => 'Egypt', 'region' => 'MENA', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu', 'overtime' => '135% day · 170% night', 'probation_max_months' => 3, 'notice_days' => 60, 'annual_leave_days' => 21, 'sick_leave' => 'Graded via social insurance', 'maternity' => '90 days (4 months effective)', 'paternity' => '—', 'public_holidays' => '~14 days', 'eos' => 'End-of-service via social insurance; severance on arbitrary dismissal', 'eos_model' => 'severance', 'wage_protection' => 'Social insurance', 'authority' => 'Labour Law 12/2003'),
+            'JO' => array('name' => 'Jordan', 'region' => 'MENA', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu', 'overtime' => '125% · 150% rest day/holiday', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 14, 'sick_leave' => '14 days (extendable)', 'maternity' => '10 weeks', 'paternity' => '3 days', 'public_holidays' => '~13 days', 'eos' => 'End-of-service via Social Security; severance on dismissal', 'eos_model' => 'severance', 'wage_protection' => 'Social Security Corporation', 'authority' => 'Labour Law 8/1996'),
+            'LB' => array('name' => 'Lebanon', 'region' => 'MENA', 'weekly_hours' => 48, 'workweek' => 'Mon–Sat', 'overtime' => '150%', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 15, 'sick_leave' => 'By tenure (½–2.5 months)', 'maternity' => '10 weeks', 'paternity' => '—', 'public_holidays' => '~16 days', 'eos' => 'End-of-service indemnity via NSSF', 'eos_model' => 'severance', 'wage_protection' => 'NSSF', 'authority' => 'Lebanese Labour Code'),
+            'MA' => array('name' => 'Morocco', 'region' => 'MENA', 'weekly_hours' => 44, 'workweek' => 'Mon–Fri/Sat', 'overtime' => '125%–200% (by hour/day)', 'probation_max_months' => 3, 'notice_days' => 60, 'annual_leave_days' => 18, 'sick_leave' => 'Via CNSS', 'maternity' => '14 weeks', 'paternity' => '3 days', 'public_holidays' => '~13 days', 'eos' => 'Severance (indemnité de licenciement) by seniority', 'eos_model' => 'severance', 'wage_protection' => 'CNSS', 'authority' => 'Labour Code 65-99'),
+            'TR' => array('name' => 'Turkey', 'region' => 'MENA', 'weekly_hours' => 45, 'workweek' => 'Mon–Sat', 'overtime' => '150% (max 270h/yr)', 'probation_max_months' => 2, 'notice_days' => 42, 'annual_leave_days' => 14, 'sick_leave' => 'Via SGK', 'maternity' => '16 weeks', 'paternity' => '5 days', 'public_holidays' => '~15 days', 'eos' => 'Severance pay (kıdem) 30 days/yr + notice (≥1 yr)', 'eos_model' => 'severance', 'wage_protection' => 'SGK', 'authority' => 'Labour Law 4857'),
+            // ------------------------------------------------------- Europe ---
+            'GB' => array('name' => 'United Kingdom', 'region' => 'Europe', 'weekly_hours' => 48, 'workweek' => 'Mon–Fri (48h avg, opt-out)', 'overtime' => 'No statutory premium (contractual)', 'probation_max_months' => 6, 'notice_days' => 7, 'annual_leave_days' => 28, 'sick_leave' => 'SSP up to 28 weeks', 'maternity' => '52 weeks (39 paid)', 'paternity' => '2 weeks', 'public_holidays' => '8 bank holidays', 'eos' => 'Statutory redundancy pay by age & tenure (≥2 yrs)', 'eos_model' => 'severance', 'wage_protection' => 'PAYE / NMW enforced', 'authority' => 'Employment Rights Act / ACAS'),
+            'DE' => array('name' => 'Germany', 'region' => 'Europe', 'weekly_hours' => 48, 'workweek' => 'Mon–Sat (max 8h/day)', 'overtime' => 'By agreement / works council', 'probation_max_months' => 6, 'notice_days' => 28, 'annual_leave_days' => 20, 'sick_leave' => '6 weeks full pay, then health-insurance', 'maternity' => '14 weeks', 'paternity' => 'Parental leave up to 3 yrs', 'public_holidays' => '9–13 (by Land)', 'eos' => 'No general severance; redundancy/social plan (Sozialplan), ~0.5 month/yr', 'eos_model' => 'severance', 'wage_protection' => 'Minimum wage enforced', 'authority' => 'BGB / Kündigungsschutzgesetz'),
+            'FR' => array('name' => 'France', 'region' => 'Europe', 'weekly_hours' => 35, 'workweek' => 'Mon–Fri (35h legal)', 'overtime' => '125% (first 8h) · 150% beyond', 'probation_max_months' => 4, 'notice_days' => 30, 'annual_leave_days' => 25, 'sick_leave' => 'Via Sécurité sociale + employer top-up', 'maternity' => '16 weeks', 'paternity' => '28 days', 'public_holidays' => '11 days', 'eos' => 'Severance (indemnité de licenciement) ≥8 months, ~¼ month/yr', 'eos_model' => 'severance', 'wage_protection' => 'SMIC enforced', 'authority' => 'Code du travail'),
+            'NL' => array('name' => 'Netherlands', 'region' => 'Europe', 'weekly_hours' => 40, 'workweek' => 'Mon–Fri', 'overtime' => 'By agreement', 'probation_max_months' => 2, 'notice_days' => 30, 'annual_leave_days' => 20, 'sick_leave' => 'Up to 104 weeks at ≥70%', 'maternity' => '16 weeks', 'paternity' => 'Up to 6 weeks', 'public_holidays' => '~11 days', 'eos' => 'Transition payment (transitievergoeding) ⅓ month/yr', 'eos_model' => 'severance', 'wage_protection' => 'Minimum wage enforced', 'authority' => 'Dutch Civil Code (BW 7)'),
+            'IE' => array('name' => 'Ireland', 'region' => 'Europe', 'weekly_hours' => 48, 'workweek' => 'Mon–Fri (48h avg)', 'overtime' => 'No statutory premium (contractual)', 'probation_max_months' => 6, 'notice_days' => 7, 'annual_leave_days' => 20, 'sick_leave' => 'Statutory sick pay (rising)', 'maternity' => '26 weeks + 16 unpaid', 'paternity' => '2 weeks', 'public_holidays' => '10 days', 'eos' => 'Statutory redundancy 2 weeks/yr + 1 week (≥2 yrs)', 'eos_model' => 'severance', 'wage_protection' => 'NMW enforced', 'authority' => 'Organisation of Working Time Act'),
+            // ----------------------------------------------------- Americas ---
+            'US' => array('name' => 'United States', 'region' => 'Americas', 'weekly_hours' => 40, 'workweek' => 'Mon–Fri (FLSA)', 'overtime' => '150% over 40h/week (non-exempt)', 'probation_max_months' => 0, 'notice_days' => 0, 'annual_leave_days' => 0, 'sick_leave' => 'No federal mandate (state/city vary)', 'maternity' => 'FMLA 12 weeks unpaid', 'paternity' => 'FMLA 12 weeks unpaid', 'public_holidays' => '~11 federal (unpaid by default)', 'eos' => 'At-will: no statutory severance; WARN Act for mass layoffs', 'eos_model' => 'none', 'wage_protection' => 'FLSA minimum wage', 'authority' => 'FLSA / DOL (+ state law)'),
+            'CA' => array('name' => 'Canada', 'region' => 'Americas', 'weekly_hours' => 40, 'workweek' => 'Mon–Fri (varies by province)', 'overtime' => '150% over 40–44h/week', 'probation_max_months' => 3, 'notice_days' => 14, 'annual_leave_days' => 10, 'sick_leave' => 'Province-dependent', 'maternity' => 'EI up to 18 months (mat+parental)', 'paternity' => 'Shared parental EI', 'public_holidays' => '~9–10 statutory', 'eos' => 'Termination/severance pay by ESA (e.g. ON ≥5 yrs: 1 week/yr)', 'eos_model' => 'severance', 'wage_protection' => 'Provincial minimum wage', 'authority' => 'Provincial ESA / Canada Labour Code'),
+            // --------------------------------------------------------- APAC ---
+            'PH' => array('name' => 'Philippines', 'region' => 'APAC', 'weekly_hours' => 48, 'workweek' => 'Mon–Sat', 'overtime' => '125% + holiday/night differentials', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 5, 'sick_leave' => 'Combined in 5-day service incentive leave', 'maternity' => '105 days', 'paternity' => '7 days', 'public_holidays' => '~18 days', 'eos' => 'Retirement pay ½ month/yr at 60 & ≥5 yrs; separation pay on authorised causes', 'eos_model' => 'severance', 'wage_protection' => '13th-month pay mandatory; SSS', 'authority' => 'Labor Code / DOLE'),
+            'SG' => array('name' => 'Singapore', 'region' => 'APAC', 'weekly_hours' => 44, 'workweek' => 'Mon–Fri/Sat', 'overtime' => '150% (≤ S$2,600 / workmen)', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 7, 'sick_leave' => '14 outpatient / 60 hospitalisation', 'maternity' => '16 weeks', 'paternity' => '4 weeks', 'public_holidays' => '11 days', 'eos' => 'No statutory severance; retrenchment benefit by contract/norm (2 weeks–1 month/yr)', 'eos_model' => 'none', 'wage_protection' => 'CPF contributions', 'authority' => 'Employment Act / MOM'),
+            'MY' => array('name' => 'Malaysia', 'region' => 'APAC', 'weekly_hours' => 45, 'workweek' => 'Mon–Fri/Sat', 'overtime' => '150% normal day', 'probation_max_months' => 6, 'notice_days' => 28, 'annual_leave_days' => 8, 'sick_leave' => '14–22 days by tenure', 'maternity' => '98 days', 'paternity' => '7 days', 'public_holidays' => '~14 days', 'eos' => 'Termination & layoff benefits 10–20 days/yr by tenure', 'eos_model' => 'severance', 'wage_protection' => 'EPF/SOCSO', 'authority' => 'Employment Act 1955'),
+            'AU' => array('name' => 'Australia', 'region' => 'APAC', 'weekly_hours' => 38, 'workweek' => 'Mon–Fri (38h + reasonable OT)', 'overtime' => 'Penalty rates by award', 'probation_max_months' => 6, 'notice_days' => 28, 'annual_leave_days' => 20, 'sick_leave' => '10 days personal/carer', 'maternity' => '12 months unpaid + 18 wks govt pay', 'paternity' => 'Shared parental', 'public_holidays' => '~10–13 days', 'eos' => 'Redundancy pay 4–16 weeks by tenure (NES)', 'eos_model' => 'severance', 'wage_protection' => 'National minimum wage + super 11%+', 'authority' => 'Fair Work Act / NES'),
+            // ------------------------------------------------------- Africa ---
+            'ZA' => array('name' => 'South Africa', 'region' => 'Africa', 'weekly_hours' => 45, 'workweek' => 'Mon–Fri/Sat', 'overtime' => '150% (max 10h/week OT)', 'probation_max_months' => 3, 'notice_days' => 28, 'annual_leave_days' => 21, 'sick_leave' => '30 days per 3-yr cycle', 'maternity' => '4 months', 'paternity' => '10 days parental', 'public_holidays' => '12 days', 'eos' => 'Severance 1 week/yr on retrenchment', 'eos_model' => 'severance', 'wage_protection' => 'National minimum wage', 'authority' => 'BCEA / LRA'),
+            'NG' => array('name' => 'Nigeria', 'region' => 'Africa', 'weekly_hours' => 40, 'workweek' => 'Mon–Fri', 'overtime' => 'By contract', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 6, 'sick_leave' => '12 days', 'maternity' => '12 weeks', 'paternity' => '—', 'public_holidays' => '~11 days', 'eos' => 'Gratuity/pension by contract; redundancy by agreement', 'eos_model' => 'severance', 'wage_protection' => 'National minimum wage; pension', 'authority' => 'Labour Act'),
+            'KE' => array('name' => 'Kenya', 'region' => 'Africa', 'weekly_hours' => 45, 'workweek' => 'Mon–Sat', 'overtime' => '150% · 200% rest day/holiday', 'probation_max_months' => 6, 'notice_days' => 28, 'annual_leave_days' => 21, 'sick_leave' => '14 days full + 14 half', 'maternity' => '3 months', 'paternity' => '2 weeks', 'public_holidays' => '~12 days', 'eos' => 'Service/severance pay 15 days/yr on redundancy', 'eos_model' => 'severance', 'wage_protection' => 'Minimum wage; NSSF', 'authority' => 'Employment Act 2007'),
+            // ------------------------------------------------------ Generic ---
+            'generic' => array('name' => 'Generic / other', 'region' => 'Other', 'weekly_hours' => 48, 'workweek' => 'Mon–Fri', 'overtime' => '125% (configurable)', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 21, 'sick_leave' => 'Configurable', 'maternity' => 'Configurable', 'paternity' => 'Configurable', 'public_holidays' => 'Configurable', 'eos' => 'Configurable end-of-service (default 30 days/yr after 1 yr)', 'eos_model' => 'generic', 'wage_protection' => 'Configurable', 'authority' => 'Local labour law (configure)'),
+        );
+    }
+}
+
+/* ------------------------------------------- Per-employee compliance --- */
+
+if (!function_exists('epc_hr_compliance_check')) {
+    /**
+     * Run one employee against their country's statutory rules and return a
+     * list of compliance flags plus the accrued end-of-service liability.
+     *
+     * @param string $country ISO-2 (or 'generic')
+     * @param array  $emp      {hire_date:int(ts), basic_salary:float,
+     *                          allowances:float, leave_balance_days:float,
+     *                          name:string}
+     * @param int    $asOf     timestamp for the calculation (0 = now)
+     * @return array{flags:array<int,array{severity:string,code:string,message:string,basis:string}>,
+     *               service_years:float,in_probation:bool,probation_ends:int,
+     *               eos_eligible:bool,eos_liability:float,eos_text:string}
+     */
+    function epc_hr_compliance_check(string $country, array $emp, int $asOf = 0): array
+    {
+        $asOf = $asOf > 0 ? $asOf : time();
+        $prof = epc_hr_law_profile($country);
+        $hire = (int) ($emp['hire_date'] ?? 0);
+        $basic = (float) ($emp['basic_salary'] ?? 0);
+        $leaveBal = (float) ($emp['leave_balance_days'] ?? 0);
+        $years = $hire > 0 ? epc_hr_service_years($hire, $asOf) : 0.0;
+        $flags = array();
+
+        // --- data completeness ------------------------------------------------
+        if ($hire <= 0) {
+            $flags[] = array('severity' => 'error', 'code' => 'no_hire_date', 'message' => 'No hire date on record — statutory entitlements cannot be computed.', 'basis' => 'Record completeness');
+        }
+        if ($basic <= 0) {
+            $flags[] = array('severity' => 'warn', 'code' => 'no_basic', 'message' => 'No basic salary recorded — gratuity / leave-salary cannot be computed.', 'basis' => 'Record completeness');
+        }
+
+        // --- probation --------------------------------------------------------
+        $probMonths = (int) ($prof['probation_max_months'] ?? 0);
+        $probEnds = 0;
+        $inProbation = false;
+        if ($hire > 0 && $probMonths > 0) {
+            $probEnds = strtotime('+' . $probMonths . ' months', $hire);
+            if ($asOf < $probEnds) {
+                $inProbation = true;
+                $daysLeft = (int) ceil(($probEnds - $asOf) / 86400);
+                $sev = $daysLeft <= 14 ? 'warn' : 'info';
+                $flags[] = array('severity' => $sev, 'code' => 'probation', 'message' => 'In probation — ends ' . date('d M Y', $probEnds) . ' (' . $daysLeft . ' day' . ($daysLeft === 1 ? '' : 's') . ' left). Confirm or act before the statutory cap.', 'basis' => 'Max probation ' . $probMonths . ' months (' . $prof['authority'] . ')');
+            }
+        }
+
+        // --- end-of-service liability ----------------------------------------
+        $eosModel = (string) ($prof['eos_model'] ?? 'generic');
+        $eosEligible = false;
+        $eosLiability = 0.0;
+        $eosText = (string) ($prof['eos'] ?? '');
+        $computed = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW', 'IN', 'PK');
+        if ($basic > 0 && $years > 0) {
+            if (in_array($eosModel, $computed, true)) {
+                $g = epc_hr_gratuity($eosModel, $basic, $years);
+                $eosEligible = !empty($g['eligible']);
+                $eosLiability = (float) $g['amount'];
+            } elseif ($eosModel === 'gratuity_generic' || $eosModel === 'generic') {
+                $g = epc_hr_gratuity('generic', $basic, $years);
+                $eosEligible = !empty($g['eligible']);
+                $eosLiability = (float) $g['amount'];
+            }
+            // 'severance' / 'none' carry no ongoing accrual — surfaced as text.
+        }
+        if ($eosEligible && $eosLiability > 0) {
+            $flags[] = array('severity' => 'info', 'code' => 'eos_accrued', 'message' => 'End-of-service liability accrued — ensure it is provisioned in the accounts.', 'basis' => $eosText);
+        }
+
+        // --- annual-leave balance --------------------------------------------
+        $annual = (float) ($prof['annual_leave_days'] ?? 0);
+        if ($annual > 0 && $leaveBal > ($annual * 1.5)) {
+            $flags[] = array('severity' => 'warn', 'code' => 'leave_excess', 'message' => 'Leave balance (' . number_format($leaveBal, 1) . ' d) exceeds 1.5× the annual entitlement (' . number_format($annual, 0) . ' d) — plan leave or encashment to respect carry-over limits.', 'basis' => 'Statutory annual leave ' . number_format($annual, 0) . ' days');
+        }
+
+        if (empty($flags)) {
+            $flags[] = array('severity' => 'ok', 'code' => 'ok', 'message' => 'No statutory issues detected.', 'basis' => $prof['authority']);
+        }
+
+        return array(
+            'flags' => $flags,
+            'service_years' => round($years, 2),
+            'in_probation' => $inProbation,
+            'probation_ends' => $probEnds,
+            'eos_eligible' => $eosEligible,
+            'eos_liability' => round($eosLiability, 2),
+            'eos_text' => $eosText,
+        );
+    }
+}
+
+if (!function_exists('epc_hr_compliance_worst_severity')) {
+    /** Highest-priority severity in a flag list. */
+    function epc_hr_compliance_worst_severity(array $flags): string
+    {
+        $rank = array('ok' => 0, 'info' => 1, 'warn' => 2, 'error' => 3);
+        $worst = 'ok';
+        foreach ($flags as $f) {
+            $s = (string) ($f['severity'] ?? 'ok');
+            if (($rank[$s] ?? 0) > ($rank[$worst] ?? 0)) {
+                $worst = $s;
+            }
+        }
+        return $worst;
     }
 }

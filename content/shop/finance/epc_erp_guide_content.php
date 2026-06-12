@@ -495,6 +495,23 @@ if (!function_exists('epc_guide_modules')) {
                 'Scope any view to a reporting period with the date range to run a fair, period-bound performance review.',
                 'Upload a staff photo on the employee profile and it replaces the generated avatar everywhere on the map.'));
 
+        $g['hr_law'] = $E('core', 'Labour law & compliance — worldwide statutory engine',
+            'A country-aware employment-law engine that localizes the statutory rules to your company country — working hours, overtime, probation cap, notice, annual/sick/maternity/paternity leave, public holidays, end-of-service and wage protection — across 25+ countries (UAE + GCC, South Asia, MENA, Europe, Americas, APAC, Africa) with a safe generic fallback. It also runs every employee through those rules and flags issues plus the accrued end-of-service liability.',
+            array(
+                'Open People → Labour law & compliance. The active country is taken automatically from the Company profile (Setup → Company); change the company country to switch the whole rule-set.',
+                'Nothing to configure — it reads your existing HR/staff records (hire date, basic salary, leave balance) to compute entitlements and compliance.',
+            ),
+            array(
+                'Step 1 — Read the statutory card for your company country. Result: working week, overtime rates, probation cap, notice, annual/sick/maternity/paternity leave, public holidays, end-of-service basis, wage-protection scheme (e.g. WPS) and the governing authority.',
+                'Step 2 — Look up any country. Result: pick a country from the dropdown to preview its statutory rules; use the worldwide reference table (with filter) to compare jurisdictions.',
+                'Step 3 — Employee compliance monitor. Result: every employee is checked against the company-country rules — probation status (with end date), excess leave balance, missing data, and accrued end-of-service liability — each finding cites its statutory basis.',
+                'Step 4 — Read the KPI strip. Result: employees checked, in probation, "needs attention" count, and total end-of-service liability to provision.',
+            ),
+            'No GL postings — a compliance/advisory layer. End-of-service amounts feed your provisioning; book them via Payroll / journals.',
+            array('It is auto-localized: a UAE tenant sees UAE Federal Decree-Law 33/2021 rules; a Saudi tenant sees KSA Labor Law; an India tenant the Payment of Gratuity Act, etc.',
+                'End-of-service shows an accrued liability only where the jurisdiction uses accrual-based gratuity (GCC, India, Pakistan, etc.); severance-only jurisdictions (e.g. UK redundancy, US at-will) show the basis instead.',
+                'Figures are representative statutory minimums — always confirm against current local law, collective agreements and qualified counsel before acting.'));
+
         $g['supplier_portal'] = $E('procurement', 'Supplier portal — performance scorecards',
             'Per-supplier performance scorecards computed from your procurement data (purchase orders, goods receipts, RFQs, payables), with a per-supplier activity drill-down.',
             array('Open Purchasing → Supplier portal. It reads your existing suppliers, POs and RFQs — nothing to set up.'),

@@ -219,6 +219,7 @@ $erpTabIncludes = array(
 	'reports' => 'erp_tabs_reports.php',
 	'expense_reports' => 'erp_tabs_expense_reports.php',
 	'hr_ops' => 'erp_tabs_hr_ops.php',
+	'hr_law' => 'erp_tabs_hr_law.php',
 	'subscriptions' => 'erp_tabs_subscriptions.php',
 	'manufacturing' => 'erp_tabs_manufacturing.php',
 	'order_planning' => 'erp_tabs_order_planning.php',

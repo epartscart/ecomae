@@ -133,12 +133,14 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'hr' => array('label' => 'HR', 'icon' => 'fa-user-circle'),
 				'hr_ops' => array('label' => 'HR operations', 'icon' => 'fa-users'),
+				'hr_law' => array('label' => 'Labour law &amp; compliance', 'icon' => 'fa-gavel'),
 				'payroll' => array('label' => 'Payroll', 'icon' => 'fa-money'),
 				'staff' => array('label' => 'Staff', 'icon' => 'fa-id-badge'),
 				'expense_reports' => array('label' => 'Expenses', 'icon' => 'fa-credit-card'),
 			),
 			'groups' => array(
 				'Common' => array('staff', 'hr', 'hr_ops'),
+				'Compliance' => array('hr_law'),
 				'Journals' => array('payroll', 'expense_reports'),
 			),
 		),

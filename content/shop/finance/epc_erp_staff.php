@@ -13,7 +13,7 @@ function epc_erp_staff_all_tabs()
 		'cash_bank', 'payment_batches', 'petty_cash',
 		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
 		'inventory', 'fixed_assets', 'manufacturing', 'order_planning', 'custom_shipping',
-		'staff', 'hr', 'hr_ops', 'payroll', 'expense_reports',
+		'staff', 'hr', 'hr_ops', 'hr_law', 'payroll', 'expense_reports',
 		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit', 'exec_dashboard',
 		'agenda', 'projects', 'contacts', 'documents', 'contracts',
 		'erp_setup', 'data_import',

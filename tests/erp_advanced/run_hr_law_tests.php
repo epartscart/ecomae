@@ -132,6 +132,43 @@ check('country switch: AE vs IN give different gratuity', !approx(
     epc_hr_gratuity('IN', 26000, 10.0)['amount']
 ));
 
+section('Worldwide statutory profiles');
+$profAll = epc_hr_law_profiles_all();
+check('>=25 country packs + generic', count($profAll) >= 26 && isset($profAll['generic']));
+check('catalogue covers GB/US/PH worldwide', (function () {
+    $codes = array_column(epc_hr_law_countries(), 'code');
+    return in_array('GB', $codes, true) && in_array('US', $codes, true) && in_array('PH', $codes, true);
+})());
+$ae = epc_hr_law_profile('AE');
+check('AE profile: 48h, probation 6, WPS', (int) $ae['weekly_hours'] === 48 && (int) $ae['probation_max_months'] === 6 && stripos((string) $ae['wage_protection'], 'WPS') !== false);
+$us = epc_hr_law_profile('US');
+check('US profile: at-will, no statutory severance', (string) $us['eos_model'] === 'none' && (int) $us['notice_days'] === 0);
+$fr = epc_hr_law_profile('FR');
+check('France 35h week', (int) $fr['weekly_hours'] === 35);
+$unknown = epc_hr_law_profile('ZZ');
+check('unknown country -> generic profile', (string) $unknown['eos_model'] === 'generic');
+
+section('Per-employee compliance checks');
+$now = time();
+// New joiner (2 months) in UAE -> in probation
+$probEmp = epc_hr_compliance_check('AE', array('hire_date' => strtotime('-2 months', $now), 'basic_salary' => 6000, 'leave_balance_days' => 5), $now);
+check('UAE 2-month joiner flagged in probation', $probEmp['in_probation'] === true);
+// 6-year UAE employee -> EOS liability accrued and > 0
+$eosEmp = epc_hr_compliance_check('AE', array('hire_date' => strtotime('-6 years', $now), 'basic_salary' => 6000, 'leave_balance_days' => 10), $now);
+check('UAE 6yr -> EOS liability accrued', $eosEmp['eos_eligible'] === true && $eosEmp['eos_liability'] > 0);
+// US 6-year employee -> no statutory accrual
+$usEmp = epc_hr_compliance_check('US', array('hire_date' => strtotime('-6 years', $now), 'basic_salary' => 6000, 'leave_balance_days' => 0), $now);
+check('US 6yr -> no EOS accrual', $usEmp['eos_eligible'] === false && approx($usEmp['eos_liability'], 0.0));
+// Missing hire date -> error flag
+$noHire = epc_hr_compliance_check('AE', array('hire_date' => 0, 'basic_salary' => 6000), $now);
+check('missing hire date -> error', epc_hr_compliance_worst_severity($noHire['flags']) === 'error');
+// Excess leave balance -> warn
+$excess = epc_hr_compliance_check('AE', array('hire_date' => strtotime('-3 years', $now), 'basic_salary' => 6000, 'leave_balance_days' => 90), $now);
+check('excess leave balance -> warn flag', (function ($f) {
+    foreach ($f as $x) { if ($x['code'] === 'leave_excess') { return true; } }
+    return false;
+})($excess['flags']));
+
 echo "\n========================================\n";
 echo "HRMS LABOUR-LAW TESTS: {$pass_count} passed, {$fail_count} failed\n";
 echo "========================================\n";
