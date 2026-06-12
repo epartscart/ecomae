@@ -489,6 +489,47 @@ if (!empty($nsIntelCtx['pack_label'])) { $nsIndustryLabel = (string) $nsIntelCtx
 elseif (!empty($nsIntelCtx['profile_label'])) { $nsIndustryLabel = (string) $nsIntelCtx['profile_label']; }
 if ($nsIndustryLabel === '') { $nsIndustryLabel = 'General (no industry pack applied)'; }
 $nsCtrlHealth = array('good' => '#27ae60', 'warn' => '#e67e22', 'bad' => '#c0392b', 'info' => '#2980b9');
+
+/* ---- Process-flow task analytics (defensive; degrades to empty) ---- */
+$pfSummary = array('open' => 0, 'done' => 0, 'overdue' => 0, 'avg_cycle_hours' => 0.0, 'by_department' => array(), 'headcount' => 0);
+$pfTop = array();
+$pfBusy = 0;
+$pfDoneTotal = 0;
+$pfDeptName = function ($code) { return $code === '' ? 'Unassigned' : ucfirst((string) $code); };
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+	if (function_exists('epc_erp_staff_department_name')) {
+		$pfDeptName = function ($code) {
+			$code = (string) $code;
+			return $code === '' ? 'Unassigned' : (epc_erp_staff_department_name($code) ?: ucfirst($code));
+		};
+	}
+	$pfRange = array('from' => (int) $date_from, 'to' => (int) $date_to);
+	if (function_exists('epc_pf_monitor_summary')) {
+		$pfSummary = epc_pf_monitor_summary($db_link, $pfRange);
+	}
+	if (function_exists('epc_pf_workforce_data')) {
+		$wf = epc_pf_workforce_data($db_link, $pfRange);
+		$pfBusy = (int) ($wf['busy'] ?? 0);
+		$pfDoneTotal = (int) ($wf['doneTotal'] ?? 0);
+		$people = $wf['staff'] ?? array();
+		usort($people, function ($a, $b) { return (int) $b['done'] <=> (int) $a['done']; });
+		foreach ($people as $p) {
+			if ((int) $p['done'] <= 0) { continue; }
+			$pfTop[] = $p;
+			if (count($pfTop) >= 8) { break; }
+		}
+	}
+} catch (Throwable $e) {
+}
+$pfDeptRows = $pfSummary['by_department'] ?? array();
+arsort($pfDeptRows);
+$pfDeptMax = $pfDeptRows ? max($pfDeptRows) : 0;
+$pfTopMax = $pfTop ? max(array_map(function ($p) { return (int) $p['done']; }, $pfTop)) : 0;
+$pfHasTasks = (((int) $pfSummary['open']) + ((int) $pfSummary['done']) + ((int) $pfSummary['overdue']) + $pfDoneTotal) > 0;
+$pfUrl = function ($view = 'monitor') use ($erpUrl, $date_from_str, $date_to_str) {
+	return epc_erp_h(epc_erp_tab_url($erpUrl, 'processflow', $date_from_str, $date_to_str) . '&pf_view=' . $view);
+};
 ?>
 <style>
 .ns-exec{margin-top:18px;}
@@ -503,6 +544,28 @@ $nsCtrlHealth = array('good' => '#27ae60', 'warn' => '#e67e22', 'bad' => '#c0392
 .ns-bars2 .cap{font-size:11px;color:#8a97a8;margin-top:6px;}
 .ns-leg{font-size:12px;color:#8a97a8;margin-top:8px;}
 .ns-leg .sq{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;}
+.ns-pf-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:1100px){.ns-pf-kpis{grid-template-columns:repeat(2,1fr);}}
+.ns-pf-card{background:#fff;border:1px solid #eef2f6;border-left:4px solid #2bb3c0;border-radius:8px;padding:12px 14px;}
+.ns-pf-card.good{border-left-color:#0a7d33;}
+.ns-pf-card.bad{border-left-color:#c0392b;}
+.ns-pf-card .v{font-size:26px;font-weight:700;color:#1f3a52;line-height:1;}
+.ns-pf-card .v small{font-size:13px;font-weight:600;color:#8a97a8;}
+.ns-pf-card .l{font-size:12px;color:#8a97a8;margin-top:6px;}
+.ns-pf-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ns-pf-bar .nm{width:130px;font-size:13px;color:#1f3a52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ns-pf-bar .tr,.ns-pf-perf .tr{flex:1;background:#eef2f6;border-radius:6px;height:14px;overflow:hidden;}
+.ns-pf-bar .fl{height:100%;background:linear-gradient(90deg,#2bb3c0,#0a7d33);border-radius:6px;}
+.ns-pf-bar .ct{width:36px;text-align:right;font-size:13px;font-weight:700;color:#1f3a52;}
+.ns-pf-perf{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.ns-pf-perf .rk{width:16px;text-align:right;font-size:12px;color:#8a97a8;}
+.ns-pf-perf img{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;border:1px solid #eef2f6;}
+.ns-pf-perf .who{width:150px;min-width:0;}
+.ns-pf-perf .who .n{display:block;font-size:13px;color:#1f3a52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ns-pf-perf .who .d{display:block;font-size:11px;color:#8a97a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ns-pf-perf .tr{height:10px;}
+.ns-pf-perf .fl{height:100%;background:linear-gradient(90deg,#e67e22,#0a7d33);border-radius:6px;}
+.ns-pf-perf .ct{width:28px;text-align:right;font-size:13px;font-weight:700;color:#0a7d33;}
 </style>
 
 <div class="ns-dash ns-exec">
@@ -593,6 +656,56 @@ $nsCtrlHealth = array('good' => '#27ae60', 'warn' => '#e67e22', 'bad' => '#c0392
 			</div>
 		</div>
 	</div>
+
+	<h3 class="ns-exec-h" id="ns-task-analytics" style="margin-top:22px;"><i class="fa fa-sitemap"></i> Task analytics — process flow across every department
+		<small class="text-muted" style="font-weight:400;">· auto-tracked customer orders, purchase orders &amp; your own processes</small>
+		<a href="<?php echo $pfUrl('monitor'); ?>" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
+	</h3>
+	<?php if (!$pfHasTasks): ?>
+	<div class="ns-port"><div class="bd">
+		<p class="text-muted" style="margin:0;">No tasks tracked yet. Customer orders, purchase orders and your own processes auto-create cases and appear here as soon as work starts flowing. <a href="<?php echo $pfUrl('monitor'); ?>">Open process flow &raquo;</a></p>
+	</div></div>
+	<?php else: ?>
+	<div class="ns-pf-kpis">
+		<div class="ns-pf-card"><div class="v"><?php echo (int) $pfSummary['open']; ?></div><div class="l">Open tasks</div></div>
+		<div class="ns-pf-card <?php echo ((int) $pfSummary['overdue'] > 0) ? 'bad' : ''; ?>"><div class="v"><?php echo (int) $pfSummary['overdue']; ?></div><div class="l">Overdue (SLA)</div></div>
+		<div class="ns-pf-card good"><div class="v"><?php echo (int) $pfDoneTotal; ?></div><div class="l">Tasks completed in period</div></div>
+		<div class="ns-pf-card"><div class="v"><?php echo (int) round((float) $pfSummary['avg_cycle_hours']); ?><small>h</small></div><div class="l">Avg cycle time</div></div>
+		<div class="ns-pf-card"><div class="v"><?php echo (int) $pfBusy; ?><small>/<?php echo (int) ($pfSummary['headcount'] ?: 0); ?></small></div><div class="l">Staff busy now</div></div>
+	</div>
+	<div class="ns-exec-grid" style="margin-top:16px;">
+		<div class="ns-port">
+			<h4><i class="fa fa-building-o"></i> Open workload by department</h4>
+			<div class="bd">
+				<?php if (empty($pfDeptRows)): ?>
+					<p class="text-muted" style="margin:0;">No open tasks.</p>
+				<?php else: foreach ($pfDeptRows as $code => $cnt): $w = $pfDeptMax > 0 ? max(4, round(($cnt / $pfDeptMax) * 100)) : 0; ?>
+					<div class="ns-pf-bar">
+						<div class="nm"><?php echo epc_erp_h($pfDeptName((string) $code)); ?></div>
+						<div class="tr"><div class="fl" style="width:<?php echo (int) $w; ?>%;"></div></div>
+						<div class="ct"><?php echo (int) $cnt; ?></div>
+					</div>
+				<?php endforeach; endif; ?>
+			</div>
+		</div>
+		<div class="ns-port">
+			<h4><i class="fa fa-trophy"></i> Top performers <small class="text-muted" style="font-weight:400;">(tasks completed)</small></h4>
+			<div class="bd">
+				<?php if (empty($pfTop)): ?>
+					<p class="text-muted" style="margin:0;">No completed tasks in this period yet.</p>
+				<?php else: $rank = 0; foreach ($pfTop as $p): $rank++; $w = $pfTopMax > 0 ? max(4, round(((int) $p['done'] / $pfTopMax) * 100)) : 0; ?>
+					<div class="ns-pf-perf">
+						<span class="rk"><?php echo (int) $rank; ?></span>
+						<img src="<?php echo epc_erp_h((string) $p['avatar']); ?>" alt="" />
+						<div class="who"><span class="n"><?php echo epc_erp_h((string) $p['name']); ?></span><span class="d"><?php echo epc_erp_h((string) $p['deptName'] . ($p['location'] !== '' ? ' · ' . $p['location'] : '')); ?></span></div>
+						<div class="tr"><div class="fl" style="width:<?php echo (int) $w; ?>%;"></div></div>
+						<span class="ct"><?php echo (int) $p['done']; ?></span>
+					</div>
+				<?php endforeach; endif; ?>
+			</div>
+		</div>
+	</div>
+	<?php endif; ?>
 
 	<?php if (!empty($nsControls)): ?>
 	<h3 class="ns-exec-h" id="ns-industry-controls" style="margin-top:22px;"><i class="fa fa-check-square-o"></i> Industry intelligence — recommended controls

@@ -95,6 +95,44 @@ if ($invForAge && function_exists('epc_dash_ar_ageing')) {
     }
 }
 
+// --- Process-flow task analytics (defensive; degrades to empty) ---
+$pfSummary = array('open' => 0, 'done' => 0, 'overdue' => 0, 'avg_cycle_hours' => 0.0, 'by_department' => array(), 'headcount' => 0);
+$pfTop = array();
+$pfBusy = 0;
+$pfDeptName = function ($code) { return $code === '' ? 'Unassigned' : ucfirst((string) $code); };
+try {
+    require_once $doc . '/content/shop/finance/epc_erp_processflow.php';
+    if (function_exists('epc_erp_staff_department_name')) {
+        $pfDeptName = function ($code) {
+            $code = (string) $code;
+            return $code === '' ? 'Unassigned' : (epc_erp_staff_department_name($code) ?: ucfirst($code));
+        };
+    }
+    $pfRange = array();
+    if (isset($_GET['from']) && $_GET['from'] !== '') { $pfRange['from'] = (int) strtotime(((string) $_GET['from']) . ' 00:00:00'); }
+    if (isset($_GET['to']) && $_GET['to'] !== '') { $pfRange['to'] = (int) strtotime(((string) $_GET['to']) . ' 23:59:59'); }
+    if (function_exists('epc_pf_monitor_summary')) {
+        $pfSummary = epc_pf_monitor_summary($db_link, $pfRange);
+    }
+    if (function_exists('epc_pf_workforce_data')) {
+        $wf = epc_pf_workforce_data($db_link, $pfRange);
+        $pfBusy = (int) ($wf['busy'] ?? 0);
+        $people = $wf['staff'] ?? array();
+        usort($people, function ($a, $b) { return (int) $b['done'] <=> (int) $a['done']; });
+        foreach ($people as $p) {
+            if ((int) $p['done'] <= 0) { continue; }
+            $pfTop[] = $p;
+            if (count($pfTop) >= 8) { break; }
+        }
+    }
+} catch (Exception $e) {
+}
+$pfDeptRows = $pfSummary['by_department'] ?? array();
+arsort($pfDeptRows);
+$pfDeptMax = $pfDeptRows ? max($pfDeptRows) : 0;
+$pfTopMax = $pfTop ? max(array_map(function ($p) { return (int) $p['done']; }, $pfTop)) : 0;
+$pfHasTasks = (((int) $pfSummary['open']) + ((int) $pfSummary['done']) + ((int) $pfSummary['overdue'])) > 0;
+
 $hasData = ($cashPos + $arOutstanding + $apOutstanding + $stockValue) > 0 || !empty($salesData);
 
 $jc = function ($v) {
@@ -144,6 +182,57 @@ $initial = ($companyName !== '' ? strtoupper(substr($companyName, 0, 1)) : 'S');
     <div class="erp-panels">
         <div class="erp-panel" style="animation-delay:.2s"><h3>Sales Trend <span>&mdash; recent periods</span></h3><canvas id="cSales" height="120"></canvas></div>
         <div class="erp-panel" style="animation-delay:.3s"><h3>AR Ageing <span>&mdash; buckets</span></h3><canvas id="cAgeing" height="120"></canvas></div>
+    </div>
+
+    <?php $pfLink = $backend . '/shop/finance/erp?area=overview&tab=processflow'; ?>
+    <div class="erp-panel" style="margin-top:16px;animation-delay:.36s">
+        <h3>Task analytics <span>&mdash; process flow across every department</span>
+            <a class="erp-chip" style="float:right;text-decoration:none;font-size:11px" href="<?php echo htmlspecialchars($pfLink, ENT_QUOTES, 'UTF-8'); ?>"><b>Open process flow &rarr;</b></a>
+        </h3>
+        <?php if (!$pfHasTasks): ?>
+        <div style="color:var(--erp-muted);font-size:13px;line-height:1.7">
+            No tasks tracked yet. Customer orders, purchase orders and your own processes auto-create cases and appear here as soon as work starts flowing.
+        </div>
+        <?php else: ?>
+        <div class="erp-grid" style="margin:6px 0 14px">
+            <div class="erp-kpi" style="animation-delay:.05s"><div class="lbl">Open tasks</div><div class="val" data-count="<?php echo (int) $pfSummary['open']; ?>">0</div><div class="delta up">in progress</div></div>
+            <div class="erp-kpi" style="animation-delay:.1s"><div class="lbl">Overdue (SLA)</div><div class="val" data-count="<?php echo (int) $pfSummary['overdue']; ?>">0</div><div class="delta <?php echo ((int) $pfSummary['overdue'] > 0) ? 'down' : 'up'; ?>">breached</div></div>
+            <div class="erp-kpi" style="animation-delay:.15s"><div class="lbl">Completed</div><div class="val" data-count="<?php echo (int) $pfSummary['done']; ?>">0</div><div class="delta up">in period</div></div>
+            <div class="erp-kpi" style="animation-delay:.2s"><div class="lbl">Avg cycle (h)</div><div class="val" data-count="<?php echo (int) round((float) $pfSummary['avg_cycle_hours']); ?>">0</div><div class="delta up">per case</div></div>
+            <div class="erp-kpi" style="animation-delay:.25s"><div class="lbl">Staff busy</div><div class="val" data-count="<?php echo (int) $pfBusy; ?>">0</div><div class="delta up">of <?php echo (int) ($pfSummary['headcount'] ?: 0); ?></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+            <div>
+                <div style="font-size:12px;color:var(--erp-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Open workload by department</div>
+                <?php if (empty($pfDeptRows)): ?>
+                    <div style="color:var(--erp-muted);font-size:13px">No open tasks.</div>
+                <?php else: foreach ($pfDeptRows as $code => $cnt): $w = $pfDeptMax > 0 ? max(4, round(($cnt / $pfDeptMax) * 100)) : 0; ?>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+                        <div style="width:120px;font-size:12px;color:#cdd9ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?php echo htmlspecialchars($pfDeptName((string) $code), ENT_QUOTES, 'UTF-8'); ?></div>
+                        <div style="flex:1;background:rgba(120,160,220,0.08);border-radius:6px;height:14px;overflow:hidden"><div style="width:<?php echo (int) $w; ?>%;height:100%;background:linear-gradient(90deg,#3b82f6,#16e0a3);border-radius:6px"></div></div>
+                        <div style="width:34px;text-align:right;font-size:12px;font-weight:700;color:#eaf1ff"><?php echo (int) $cnt; ?></div>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+            <div>
+                <div style="font-size:12px;color:var(--erp-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Top performers <span style="text-transform:none;letter-spacing:0">(tasks completed)</span></div>
+                <?php if (empty($pfTop)): ?>
+                    <div style="color:var(--erp-muted);font-size:13px">No completed tasks in this period yet.</div>
+                <?php else: $rank = 0; foreach ($pfTop as $p): $rank++; $w = $pfTopMax > 0 ? max(4, round(((int) $p['done'] / $pfTopMax) * 100)) : 0; ?>
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+                        <div style="width:16px;text-align:right;font-size:11px;color:var(--erp-muted)"><?php echo (int) $rank; ?></div>
+                        <img src="<?php echo htmlspecialchars((string) $p['avatar'], ENT_QUOTES, 'UTF-8'); ?>" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex:none" />
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:12px;color:#eaf1ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?php echo htmlspecialchars((string) $p['name'], ENT_QUOTES, 'UTF-8'); ?></div>
+                            <div style="font-size:10px;color:var(--erp-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?php echo htmlspecialchars((string) $p['deptName'] . ($p['location'] !== '' ? ' · ' . $p['location'] : ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                        </div>
+                        <div style="width:60px;background:rgba(120,160,220,0.08);border-radius:6px;height:8px;overflow:hidden"><div style="width:<?php echo (int) $w; ?>%;height:100%;background:linear-gradient(90deg,#f59e0b,#16e0a3);border-radius:6px"></div></div>
+                        <div style="width:26px;text-align:right;font-size:12px;font-weight:700;color:#16e0a3"><?php echo (int) $p['done']; ?></div>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 </div>
