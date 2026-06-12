@@ -14,7 +14,7 @@ function epc_erp_staff_all_tabs()
 		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
 		'inventory', 'fixed_assets', 'manufacturing', 'order_planning', 'custom_shipping',
 		'staff', 'hr', 'hr_ops', 'payroll', 'expense_reports',
-		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit',
+		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit', 'exec_dashboard',
 		'agenda', 'projects', 'contacts', 'documents', 'contracts',
 		'erp_setup', 'data_import',
 		// D365 F&O-style modules

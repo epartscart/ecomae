@@ -146,6 +146,7 @@ function epc_erp_nav_areas_config()
 			'icon' => 'fa-bar-chart',
 			'desc' => 'Reports, marketing and knowledge',
 			'tabs' => array(
+				'exec_dashboard' => array('label' => 'Executive dashboard', 'icon' => 'fa-dashboard'),
 				'pl' => array('label' => 'P&amp;L', 'icon' => 'fa-bar-chart'),
 				'balance_sheet' => array('label' => 'Balance sheet', 'icon' => 'fa-balance-scale'),
 				'reports' => array('label' => 'Reports', 'icon' => 'fa-table'),
@@ -160,7 +161,7 @@ function epc_erp_nav_areas_config()
 			),
 			'groups' => array(
 				'Reports' => array('pl', 'balance_sheet', 'reports', 'enterprise_reports'),
-				'Intelligence' => array('industry_intel', 'ai_advisor'),
+				'Intelligence' => array('exec_dashboard', 'industry_intel', 'ai_advisor'),
 				'Inquiries' => array('consolidation_bu', 'multi_entity', 'audit'),
 				'Common' => array('marketing', 'knowledge_base'),
 			),
