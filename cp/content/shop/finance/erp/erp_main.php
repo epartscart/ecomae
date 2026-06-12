@@ -766,6 +766,7 @@ if (!$epc_erp_shell_mode) {
 	bindForm('epc_erp_form_so', 'so_save');
 	bindForm('epc_erp_form_customer', 'customer_create');
 	bindForm('epc_erp_form_receipt_voucher', 'receipt_voucher');
+	bindForm('epc_erp_form_payment_voucher', 'payment_voucher');
 	bindForm('epc_erp_form_transfer_voucher', 'transfer_voucher');
 	document.querySelectorAll('.epc-erp-po-invoice').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('po_to_invoice', f); });
@@ -824,6 +825,10 @@ if (!$epc_erp_shell_mode) {
 				});
 		});
 	}
+	// Expose the door-aware AJAX endpoint + poster so per-tab scripts (e.g. the
+	// receipt/payment voucher settlement grids) can call the same endpoint.
+	window.epcErpPostUrl = erpPostUrl;
+	window.epcErpPost = postAction;
 })();
 </script>
 <?php

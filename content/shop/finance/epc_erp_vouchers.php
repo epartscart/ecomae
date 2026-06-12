@@ -558,15 +558,27 @@ function epc_erp_receipt_voucher(PDO $db, array $data): array
 {
 	epc_erp_vouchers_ensure_schema($db);
 	require_once __DIR__ . '/epc_erp_advances.php';
+	require_once __DIR__ . '/epc_erp_settlement.php';
 	epc_erp_advances_ensure_schema($db);
+	epc_erp_settlement_ensure_schema($db);
 	$userId = (int) ($data['user_id'] ?? $data['customer_user_id'] ?? 0);
 	$accountId = (int) ($data['account_id'] ?? 0);
 	$amount = round((float) ($data['amount'] ?? 0), 2);
-	$isAdvance = !isset($data['is_advance']) || !empty($data['is_advance']);
 	$salesOrderId = (int) ($data['sales_order_id'] ?? 0);
 	if ($userId <= 0 || $accountId <= 0 || $amount <= 0) {
 		throw new Exception('Customer, bank account, and amount required');
 	}
+
+	// Resolve which open invoices this receipt settles (explicit lines, or FIFO
+	// against the customer's open invoices when "auto allocate" is requested).
+	$alloc = epc_erp_settlement_parse_allocations($data);
+	if (empty($alloc) && !empty($data['auto_allocate'])) {
+		$alloc = epc_erp_settlement_fifo(epc_erp_open_customer_invoices($db, $userId), $amount);
+	}
+	$hasAlloc = !empty($alloc);
+
+	// A receipt that settles invoices is NOT an advance — it knocks off AR.
+	$isAdvance = $hasAlloc ? false : (!isset($data['is_advance']) || !empty($data['is_advance']));
 	$voucherNo = epc_erp_next_voucher_no($db, 'RV');
 	$time = !empty($data['time']) ? (int) $data['time'] : time();
 	$reference = trim((string) ($data['reference'] ?? $voucherNo));
@@ -598,12 +610,20 @@ function epc_erp_receipt_voucher(PDO $db, array $data): array
 		'user_id' => $userId,
 		'amount' => $amount,
 		'direction' => 'debit',
-		'entry_kind' => $isAdvance ? 'settlement' : 'settlement',
+		'entry_kind' => 'settlement',
 		'reference' => $voucherNo,
 		'note' => $note,
-		'post_gl' => !empty($data['post_gl']) && !$isAdvance,
+		// When invoices are being knocked off, the cash entry GL below posts the
+		// real Dr Bank / Cr AR movement, so we must NOT also post the AR
+		// settlement journal here (that would double-touch AR).
+		'post_gl' => $hasAlloc ? false : (!empty($data['post_gl']) && !$isAdvance),
 		'order_id' => (int) ($data['order_id'] ?? 0),
 	));
+
+	$allocated = 0.0;
+	if ($hasAlloc) {
+		$allocated = epc_erp_apply_receipt_allocations($db, $cashId, $voucherNo, $userId, $alloc, $time, $amount);
+	}
 
 	if ($isAdvance) {
 		epc_uae_vat_record_advance_on_receipt($db, $cashId, $userId, $amount, $salesOrderId, $time);
@@ -623,22 +643,71 @@ function epc_erp_receipt_voucher(PDO $db, array $data): array
 		'cash_entry_id' => $cashId,
 		'ledger_id' => $settle['ledger_id'] ?? 0,
 		'is_advance' => $isAdvance ? 1 : 0,
+		'allocated' => $allocated,
+		'unallocated' => round($amount - $allocated, 2),
 	);
 }
 
 function epc_erp_payment_voucher(PDO $db, array $data): array
 {
 	epc_erp_vouchers_ensure_schema($db);
+	require_once __DIR__ . '/epc_erp_settlement.php';
+	epc_erp_settlement_ensure_schema($db);
 	$data['reference'] = trim((string) ($data['reference'] ?? ''));
-	if ($data['reference'] === '') {
-		$data['reference'] = epc_erp_next_voucher_no($db, 'PV');
-	} elseif (strpos($data['reference'], 'PV-') !== 0) {
+	if ($data['reference'] === '' || strpos($data['reference'], 'PV-') !== 0) {
 		$data['reference'] = epc_erp_next_voucher_no($db, 'PV');
 	}
-	$cashId = epc_erp_supplier_payment($db, $data);
-	$db->prepare('UPDATE `epc_erp_cash_bank_entries` SET `voucher_no` = ? WHERE `id` = ?')
-		->execute(array($data['reference'], $cashId));
-	return array('voucher_no' => $data['reference'], 'cash_entry_id' => $cashId);
+	$pvNo = $data['reference'];
+	$supplierId = (int) ($data['supplier_id'] ?? 0);
+	$amount = round((float) ($data['amount'] ?? 0), 2);
+
+	// Resolve which open bills this payment settles (explicit lines, or FIFO
+	// against the supplier's open bills when "auto allocate" is requested).
+	$alloc = epc_erp_settlement_parse_allocations($data);
+	if (empty($alloc) && !empty($data['auto_allocate']) && $supplierId > 0) {
+		$alloc = epc_erp_settlement_fifo(epc_erp_open_supplier_bills($db, $supplierId), $amount);
+	}
+
+	if (empty($alloc)) {
+		// No bill allocation — keep the existing single-row supplier payment
+		// (which may still carry one purchase_id for a direct bill payment).
+		$cashId = epc_erp_supplier_payment($db, $data);
+		$db->prepare('UPDATE `epc_erp_cash_bank_entries` SET `voucher_no` = ? WHERE `id` = ?')
+			->execute(array($pvNo, $cashId));
+		return array('voucher_no' => $pvNo, 'cash_entry_id' => $cashId, 'allocated' => 0.0, 'unallocated' => $amount);
+	}
+
+	// Allocation path: one cash entry, per-bill payable knock-off, remainder kept
+	// on account (supplier advance) so the net payable still moves by the full
+	// amount. GL: Dr AP / Cr Bank (via gl_post_cash_entry).
+	$accountId = (int) ($data['account_id'] ?? 0);
+	if ($supplierId <= 0 || $accountId <= 0 || $amount <= 0) {
+		throw new Exception('Supplier, bank account, and amount required');
+	}
+	$time = !empty($data['time']) ? (int) $data['time'] : time();
+	$note = trim((string) ($data['note'] ?? ('Supplier payment ' . $pvNo)));
+	$db->prepare(
+		'INSERT INTO `epc_erp_cash_bank_entries`
+		(`account_id`, `time`, `entry_type`, `direction`, `amount`, `counterparty_type`, `counterparty_id`, `reference`, `note`, `voucher_no`, `is_advance`, `admin_id`)
+		VALUES (?, ?, \'payment\', 0, ?, \'supplier\', ?, ?, ?, ?, 0, ?)'
+	)->execute(array($accountId, $time, $amount, $supplierId, $pvNo, $note, $pvNo, epc_erp_admin_id()));
+	$cashId = (int) $db->lastInsertId();
+
+	$allocated = epc_erp_apply_payment_allocations($db, $cashId, $pvNo, $supplierId, $alloc, $time, $amount);
+	$remainder = round($amount - $allocated, 2);
+	if ($remainder > 0.005) {
+		$db->prepare(
+			'INSERT INTO `epc_erp_supplier_accounting`
+			(`supplier_id`, `time`, `is_credit`, `amount`, `purchase_id`, `cash_entry_id`, `reference`, `note`, `admin_id`, `entry_kind`)
+			VALUES (?, ?, 0, ?, 0, ?, ?, ?, ?, \'settlement\')'
+		)->execute(array($supplierId, $time, $remainder, $cashId, $pvNo, 'On-account payment ' . $pvNo, epc_erp_admin_id()));
+	}
+	try {
+		epc_erp_gl_post_cash_entry($db, $cashId);
+	} catch (Exception $e) {
+	}
+
+	return array('voucher_no' => $pvNo, 'cash_entry_id' => $cashId, 'allocated' => $allocated, 'unallocated' => $remainder);
 }
 
 function epc_erp_transfer_voucher(PDO $db, array $data): array

@@ -68,9 +68,34 @@ try {
 			epc_erp_json(true, 'Purchase invoice recorded' . $invMsg, $extra);
 
 		case 'supplier_payment':
-			$id = epc_erp_supplier_payment($db_link, $_POST);
-			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) $id, $_POST);
-			epc_erp_json(true, 'Supplier payment recorded', array('cash_entry_id' => $id));
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			$pv = epc_erp_payment_voucher($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($pv['cash_entry_id'] ?? 0), $_POST);
+			$pvMsg = 'Supplier payment ' . ($pv['voucher_no'] ?? '') . ' recorded';
+			if (!empty($pv['allocated'])) {
+				$pvMsg .= ' — ' . number_format((float) $pv['allocated'], 2) . ' settled against bills';
+			}
+			epc_erp_json(true, $pvMsg, $pv);
+
+		case 'payment_voucher':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+			$pv = epc_erp_payment_voucher($db_link, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'cash_entry', (int) ($pv['cash_entry_id'] ?? 0), $_POST);
+			$pvMsg = 'Payment voucher ' . ($pv['voucher_no'] ?? '') . ' recorded';
+			if (!empty($pv['allocated'])) {
+				$pvMsg .= ' — ' . number_format((float) $pv['allocated'], 2) . ' settled against bills';
+			}
+			epc_erp_json(true, $pvMsg, $pv);
+
+		case 'settlement_open_docs':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_settlement.php';
+			$sdType = (string) ($_POST['doc_type'] ?? 'ar');
+			if ($sdType === 'ap') {
+				$docs = epc_erp_open_supplier_bills($db_link, (int) ($_POST['counterparty_id'] ?? 0));
+			} else {
+				$docs = epc_erp_open_customer_invoices($db_link, (int) ($_POST['counterparty_id'] ?? 0));
+			}
+			epc_erp_json(true, 'OK', array('docs' => $docs));
 
 		case 'cash_entry':
 			$id = epc_erp_cash_entry($db_link, $_POST);

@@ -5,6 +5,14 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 $erpOnlyCash = epc_erp_is_erp_only_context();
 $customersCash = $erpOnlyCash ? $db_link->query('SELECT `user_id`, `email` FROM `users` WHERE `user_id` > 0 ORDER BY `email` LIMIT 300')->fetchAll(PDO::FETCH_ASSOC) : array();
+$suppliersCash = array();
+if ($erpOnlyCash) {
+	try {
+		$suppliersCash = $db_link->query('SELECT `id`, `name` FROM `epc_erp_suppliers` WHERE `active` = 1 ORDER BY `name` LIMIT 300')->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Exception $e) {
+		$suppliersCash = array();
+	}
+}
 
 $viewAccount = isset($_GET['account_id']) ? (int)$_GET['account_id'] : 0;
 $entries = epc_erp_list_cash_entries($db_link, $viewAccount);
@@ -71,12 +79,38 @@ ob_start();
 	<?php foreach ($accounts as $a): ?><option value="<?php echo (int)$a['id']; ?>"><?php echo epc_erp_h($a['name']); ?></option><?php endforeach; ?>
 	</select></div></div>
 	<div class="form-group"><label class="col-sm-3">Amount AED</label><div class="col-sm-9"><input type="number" step="0.01" name="amount" class="form-control input-sm" required></div></div>
+	<div class="form-group"><label class="col-sm-3">Settle invoices</label><div class="col-sm-9">
+		<button type="button" class="btn btn-default btn-xs epc-settle-load" data-doc="ar" data-party="user_id" data-grid="epc_rv_alloc">Load open invoices</button>
+		<label class="checkbox-inline" style="margin-left:8px;"><input type="checkbox" name="auto_allocate" value="1"> Auto-allocate (oldest first)</label>
+		<div id="epc_rv_alloc" class="epc-settle-grid" data-doc="ar" style="margin-top:8px;"></div>
+		<p class="help-block" style="margin:4px 0 0;">Leave empty for an advance/on-account receipt; allocate to knock off specific invoices.</p>
+	</div></div>
 	<div class="form-group"><label class="col-sm-3">Sales order (opt.)</label><div class="col-sm-9"><input type="number" name="sales_order_id" class="form-control input-sm" placeholder="ERP SO id for VAT link"></div></div>
 	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9">
-	<label class="checkbox-inline"><input type="checkbox" name="is_advance" value="1" checked> UAE advance receipt (VAT + liability GL 2050)</label>
+	<label class="checkbox-inline"><input type="checkbox" name="is_advance" value="1" checked> UAE advance receipt (VAT + liability GL 2050) — ignored when invoices are allocated</label>
 	<label class="checkbox-inline"><input type="checkbox" name="post_gl" value="1" checked> Post to GL</label>
 	<button type="submit" class="btn btn-primary btn-sm">Post RV voucher</button></div></div>
+</form>
+<form id="epc_erp_form_payment_voucher" class="form-horizontal" style="margin-top:14px;max-width:760px;">
+	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+	<h5>Payment voucher (PV-)</h5>
+	<div class="form-group"><label class="col-sm-3">Supplier</label><div class="col-sm-9"><select name="supplier_id" class="form-control input-sm" required><option value="">—</option>
+	<?php foreach ($suppliersCash as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_erp_h($s['name']); ?></option><?php endforeach; ?>
+	</select></div></div>
+	<div class="form-group"><label class="col-sm-3">Bank account</label><div class="col-sm-9"><select name="account_id" class="form-control input-sm" required><option value="">—</option>
+	<?php foreach ($accounts as $a): ?><option value="<?php echo (int)$a['id']; ?>"><?php echo epc_erp_h($a['name']); ?></option><?php endforeach; ?>
+	</select></div></div>
+	<div class="form-group"><label class="col-sm-3">Amount AED</label><div class="col-sm-9"><input type="number" step="0.01" name="amount" class="form-control input-sm" required></div></div>
+	<div class="form-group"><label class="col-sm-3">Settle bills</label><div class="col-sm-9">
+		<button type="button" class="btn btn-default btn-xs epc-settle-load" data-doc="ap" data-party="supplier_id" data-grid="epc_pv_alloc">Load open bills</button>
+		<label class="checkbox-inline" style="margin-left:8px;"><input type="checkbox" name="auto_allocate" value="1"> Auto-allocate (oldest first)</label>
+		<div id="epc_pv_alloc" class="epc-settle-grid" data-doc="ap" style="margin-top:8px;"></div>
+		<p class="help-block" style="margin:4px 0 0;">Leave empty for an advance/on-account payment; allocate to knock off specific bills.</p>
+	</div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
+	<div class="form-group"><div class="col-sm-offset-3 col-sm-9">
+	<button type="submit" class="btn btn-primary btn-sm">Post PV voucher</button></div></div>
 </form>
 <form id="epc_erp_form_transfer_voucher" class="form-horizontal" style="margin-top:14px;max-width:760px;">
 	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
@@ -157,3 +191,69 @@ if (empty($entries)) {
 	erp_table_close();
 }
 erp_section_card('Recent entries', ob_get_clean(), array('icon' => 'fa-list-alt'));
+
+if ($erpOnlyCash):
+?>
+<script>
+(function(){
+	function fmt(n){ return (Math.round((parseFloat(n)||0)*100)/100).toFixed(2); }
+	function post(action, params){
+		var url = window.epcErpPostUrl || '';
+		var fd = new FormData();
+		fd.append('action', action);
+		var csrf = document.querySelector('input[name="csrf_guard_key"]');
+		if (csrf) fd.append('csrf_guard_key', csrf.value);
+		Object.keys(params).forEach(function(k){ fd.append(k, params[k]); });
+		return fetch(url, { method: 'POST', body: fd, credentials: 'same-origin' }).then(function(r){ return r.json(); });
+	}
+	function render(grid, docs){
+		var isAr = grid.getAttribute('data-doc') === 'ar';
+		if (!docs || !docs.length){
+			grid.innerHTML = '<p class="text-muted" style="margin:4px 0;">No open ' + (isAr ? 'invoices' : 'bills') + ' for this party.</p>';
+			return;
+		}
+		var h = '<table class="table table-condensed" style="margin-bottom:4px;"><thead><tr>'
+			+ '<th></th><th>' + (isAr ? 'Invoice' : 'Bill') + '</th><th>Date</th><th class="text-right">Outstanding</th><th class="text-right">Allocate</th></tr></thead><tbody>';
+		docs.forEach(function(d){
+			var dt = d.payment_due_date && parseInt(d.payment_due_date,10) > 0 ? d.payment_due_date : (d.issue_date || d.purchase_date || 0);
+			var dstr = parseInt(dt,10) > 0 ? new Date(parseInt(dt,10)*1000).toISOString().slice(0,10) : '—';
+			var num = d.invoice_number || ('#' + d.id);
+			h += '<tr>'
+				+ '<td><input type="checkbox" class="epc-alloc-chk" data-id="' + d.id + '"></td>'
+				+ '<td>' + num + '</td><td>' + dstr + '</td>'
+				+ '<td class="text-right">' + fmt(d.outstanding) + '</td>'
+				+ '<td class="text-right"><input type="hidden" name="alloc_invoice_id[]" value="' + d.id + '" disabled>'
+				+ '<input type="number" step="0.01" name="alloc_amount[]" class="form-control input-sm epc-alloc-amt" style="width:120px;display:inline-block;" data-out="' + fmt(d.outstanding) + '" value="' + fmt(d.outstanding) + '" disabled></td>'
+				+ '</tr>';
+		});
+		h += '</tbody></table>';
+		grid.innerHTML = h;
+		grid.querySelectorAll('.epc-alloc-chk').forEach(function(chk){
+			chk.addEventListener('change', function(){
+				var row = chk.closest('tr');
+				var idIn = row.querySelector('input[name="alloc_invoice_id[]"]');
+				var amtIn = row.querySelector('input[name="alloc_amount[]"]');
+				idIn.disabled = !chk.checked;
+				amtIn.disabled = !chk.checked;
+			});
+		});
+	}
+	document.querySelectorAll('.epc-settle-load').forEach(function(btn){
+		btn.addEventListener('click', function(){
+			var form = btn.closest('form');
+			var partyField = btn.getAttribute('data-party');
+			var docType = btn.getAttribute('data-doc');
+			var grid = document.getElementById(btn.getAttribute('data-grid'));
+			var sel = form.querySelector('[name="' + partyField + '"]');
+			var cp = sel ? sel.value : '';
+			if (!cp){ grid.innerHTML = '<p class="text-danger" style="margin:4px 0;">Pick a ' + (docType === 'ar' ? 'customer' : 'supplier') + ' first.</p>'; return; }
+			grid.innerHTML = '<p class="text-muted" style="margin:4px 0;">Loading…</p>';
+			post('settlement_open_docs', { doc_type: docType, counterparty_id: cp }).then(function(j){
+				render(grid, (j && j.docs) ? j.docs : []);
+			}).catch(function(){ grid.innerHTML = '<p class="text-danger">Failed to load.</p>'; });
+		});
+	});
+})();
+</script>
+<?php
+endif;
