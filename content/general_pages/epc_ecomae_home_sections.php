@@ -264,7 +264,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		</div>
 	</section>
 
-	<?php $opBase = '/epc-static.php?f=content/general_pages/marketing_screens/'; ?>
+	<?php $opBase = '/epc-static.php?f=content/general_pages/marketing_screens/'; $opVer = '&v=20260610b'; ?>
 	<section id="orderplanning" class="ehm-sec">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
@@ -281,21 +281,21 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<span class="ehm-badge-pill">Service-level targets</span>
 			</div>
 			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
-				<img src="<?php echo $h($opBase . 'op_recommend.png'); ?>" alt="Order line recommendations grid" loading="lazy" />
+				<img src="<?php echo $h($opBase . 'op_recommend.png' . $opVer); ?>" alt="Order line recommendations grid" loading="lazy" />
 				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Order-line recommendations.</strong> Per item × warehouse: forecast, lead-time demand, safety stock, reorder point, recommended order qty (ROQ), days-of-cover, value and demand class — confirm or reject each line.</p></div>
 			</div>
 			<div class="ehm-sf-pair ehm-rev">
 				<div class="ehm-ss">
-					<img src="<?php echo $h($opBase . 'op_policy.png'); ?>" alt="Inventory policy ABC/XYZ" loading="lazy" />
+					<img src="<?php echo $h($opBase . 'op_policy.png' . $opVer); ?>" alt="Inventory policy ABC/XYZ" loading="lazy" />
 					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Inventory policy (ABC/XYZ).</strong> Classifies items by annual value and demand variability, with a recommended service level driving safety stock.</p></div>
 				</div>
 				<div class="ehm-ss">
-					<img src="<?php echo $h($opBase . 'op_exceptions.png'); ?>" alt="Exceptions and alerts" loading="lazy" />
+					<img src="<?php echo $h($opBase . 'op_exceptions.png' . $opVer); ?>" alt="Exceptions and alerts" loading="lazy" />
 					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Exceptions &amp; alerts.</strong> Severity-ranked stock-out risk, below-safety, dead-stock and excess — act before you run out or over-buy.</p></div>
 				</div>
 			</div>
 			<div class="ehm-ss ehm-rev" style="margin-top:22px">
-				<img src="<?php echo $h($opBase . 'op_kpi.png'); ?>" alt="Stock analysis and KPIs" loading="lazy" />
+				<img src="<?php echo $h($opBase . 'op_kpi.png' . $opVer); ?>" alt="Stock analysis and KPIs" loading="lazy" />
 				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Stock analysis &amp; KPIs.</strong> Inventory value, inventory turns, average days-of-cover, fill rate and ABC distribution at a glance.</p></div>
 			</div>
 		</div>
@@ -317,21 +317,21 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<span class="ehm-badge-pill">SLA &amp; overdue alerts</span>
 			</div>
 			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
-				<img src="<?php echo $h($opBase . 'pf_orgmap.png'); ?>" alt="Organization process map" loading="lazy" />
+				<img src="<?php echo $h($opBase . 'pf_orgmap.png' . $opVer); ?>" alt="Organization process map" loading="lazy" />
 				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Live organization process map.</strong> Every process flows left-to-right through nodes with animated arrows and live case counts. Switch level — Overall, Department, User, Task or Location — to zoom in, with employee photos showing exactly who is holding each case.</p></div>
 			</div>
 			<div class="ehm-sf-pair ehm-rev">
 				<div class="ehm-ss">
-					<img src="<?php echo $h($opBase . 'pf_tracker.png'); ?>" alt="GPS-style case tracker" loading="lazy" />
+					<img src="<?php echo $h($opBase . 'pf_tracker.png' . $opVer); ?>" alt="GPS-style case tracker" loading="lazy" />
 					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>GPS-style case tracker.</strong> Open any case to see its route like a parcel: completed stops, a pulsing "you are here" marker, the staff member at each step and the full audit timeline.</p></div>
 				</div>
 				<div class="ehm-ss">
-					<img src="<?php echo $h($opBase . 'pf_workforce.png'); ?>" alt="Workforce board" loading="lazy" />
+					<img src="<?php echo $h($opBase . 'pf_workforce.png' . $opVer); ?>" alt="Workforce board" loading="lazy" />
 					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Workforce board.</strong> Your entire team in one view — who's busy and on which task, grouped by department, location or task, with photos and busy/idle status.</p></div>
 				</div>
 			</div>
 			<div class="ehm-ss ehm-rev" style="margin-top:22px">
-				<img src="<?php echo $h($opBase . 'pf_location.png'); ?>" alt="Process map by location" loading="lazy" />
+				<img src="<?php echo $h($opBase . 'pf_location.png' . $opVer); ?>" alt="Process map by location" loading="lazy" />
 				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Across every branch.</strong> The same processes mapped by location — follow work as it physically moves between sites, with live counts at each branch.</p></div>
 			</div>
 		</div>

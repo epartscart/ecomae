@@ -40,22 +40,34 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 	$base = rtrim(epc_ecomae_platform_base_url(), '/');
 	$canonical = epc_ecomae_h($base . ($canonicalPath === '/' ? '/' : $canonicalPath));
 	$desc = epc_ecomae_h($description !== '' ? $description : 'ECOM AE — hosted e-commerce, ERP, and CRM cloud for UAE businesses. Multi-tenant storefronts, Super CP (operator control panel), and Peppol e-invoicing.');
-	$ogImg = epc_ecomae_h($base . '/content/files/images/ecomae-logo.png');
-	return '<!DOCTYPE html><html lang="en"><head><!-- ECOMAE-MARKETING-HOME-v7 -->'
+	$ogImg = epc_ecomae_h($base . '/epc-static.php?f=content/general_pages/marketing_screens/og_cover.png');
+	$ogAlt = epc_ecomae_h('ECOM AE — One Business Operating System: ERP, commerce, compliance, workflows and CRM.');
+	return '<!DOCTYPE html><html lang="en"><head><!-- ECOMAE-MARKETING-HOME-v8 -->'
 		. '<meta charset="utf-8">'
 		. '<meta name="viewport" content="width=device-width,initial-scale=1">'
+		. '<meta name="theme-color" content="#080b14">'
 		. '<title>' . $t . '</title>'
 		. '<meta name="description" content="' . $desc . '">'
-		. '<meta name="robots" content="index, follow">'
+		. '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">'
+		. '<meta name="author" content="ECOM AE">'
 		. '<link rel="canonical" href="' . $canonical . '">'
 		. '<meta property="og:type" content="website">'
+		. '<meta property="og:site_name" content="ECOM AE">'
+		. '<meta property="og:locale" content="en_US">'
 		. '<meta property="og:title" content="' . $t . '">'
 		. '<meta property="og:description" content="' . $desc . '">'
 		. '<meta property="og:url" content="' . $canonical . '">'
 		. '<meta property="og:image" content="' . $ogImg . '">'
+		. '<meta property="og:image:secure_url" content="' . $ogImg . '">'
+		. '<meta property="og:image:type" content="image/png">'
+		. '<meta property="og:image:width" content="1200">'
+		. '<meta property="og:image:height" content="630">'
+		. '<meta property="og:image:alt" content="' . $ogAlt . '">'
 		. '<meta name="twitter:card" content="summary_large_image">'
 		. '<meta name="twitter:title" content="' . $t . '">'
 		. '<meta name="twitter:description" content="' . $desc . '">'
+		. '<meta name="twitter:image" content="' . $ogImg . '">'
+		. '<meta name="twitter:image:alt" content="' . $ogAlt . '">'
 		. '<script type="application/ld+json">' . json_encode(array(
 			'@context' => 'https://schema.org',
 			'@graph' => array(

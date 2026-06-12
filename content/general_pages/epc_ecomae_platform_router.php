@@ -99,12 +99,37 @@ function epc_ecomae_marketing_serve_seo_file()
 
 	if ($path === '/sitemap.xml') {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_content.php';
-		$urls = array('/', '/platform', '/platform/pricing', '/platform/industries', '/platform/api-documentation', '/platform/faq',
-			'/documentation', '/compare', '/bos', '/solutions');
-		foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $urls[] = '/documentation/' . $s; }
-		foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $urls[] = '/compare/' . $s; }
-		foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $urls[] = '/bos/' . $s; }
-		foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $urls[] = '/solutions/' . $s; }
+		// core marketing pages with crawl priority + change cadence
+		$urls = array(
+			array('/', '1.0', 'daily'),
+			array('/platform', '0.9', 'weekly'),
+			array('/platform/capabilities', '0.8', 'weekly'),
+			array('/platform/industries', '0.8', 'weekly'),
+			array('/platform/pricing', '0.8', 'weekly'),
+			array('/platform/demo', '0.8', 'weekly'),
+			array('/platform/customer-results', '0.7', 'weekly'),
+			array('/platform/about', '0.6', 'monthly'),
+			array('/platform/contact', '0.6', 'monthly'),
+			array('/platform/business-continuity', '0.6', 'monthly'),
+			array('/platform/platform-guides', '0.6', 'monthly'),
+			array('/platform/api-documentation', '0.6', 'monthly'),
+			array('/platform/api-services', '0.6', 'monthly'),
+			array('/platform/auto-price-ai', '0.6', 'monthly'),
+			array('/platform/faq', '0.7', 'weekly'),
+			array('/documentation', '0.7', 'weekly'),
+			array('/compare', '0.7', 'weekly'),
+			array('/bos', '0.7', 'weekly'),
+			array('/solutions', '0.7', 'weekly'),
+		);
+		foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $urls[] = array('/documentation/' . $s, '0.6', 'monthly'); }
+		foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $urls[] = array('/compare/' . $s, '0.6', 'monthly'); }
+		foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $urls[] = array('/bos/' . $s, '0.6', 'monthly'); }
+		foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $urls[] = array('/solutions/' . $s, '0.7', 'monthly'); }
+		if (function_exists('epc_ecomae_platform_industry_marketing')) {
+			foreach (array_keys(epc_ecomae_platform_industry_marketing()) as $code) {
+				$urls[] = array('/platform/industry/' . $code, '0.7', 'monthly');
+			}
+		}
 		if (function_exists('epc_ecomae_platform_send_marketing_headers')) {
 			epc_ecomae_platform_send_marketing_headers();
 		}
@@ -113,7 +138,10 @@ function epc_ecomae_marketing_serve_seo_file()
 		echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 		foreach ($urls as $u) {
-			echo '<url><loc>' . htmlspecialchars($base . $u, ENT_QUOTES) . '</loc><lastmod>' . $now . '</lastmod></url>' . "\n";
+			echo '<url><loc>' . htmlspecialchars($base . $u[0], ENT_QUOTES) . '</loc>'
+				. '<lastmod>' . $now . '</lastmod>'
+				. '<changefreq>' . $u[2] . '</changefreq>'
+				. '<priority>' . $u[1] . '</priority></url>' . "\n";
 		}
 		echo '</urlset>' . "\n";
 		return true;
