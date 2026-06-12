@@ -301,6 +301,38 @@ check('Period offers preset options', count($pq['options']) >= 4 && count($py['o
 $pbad = epc_ext_resolve_period('quarter', 'garbage', mktime(0, 0, 0, 6, 15, 2026));
 check('Invalid period falls back to current', $pbad['token'] === '2026-Q2', $pbad['token']);
 
+// ---- Off-system Excel/CSV import (VAT + CT from uploaded summary) ----
+$vatTpl = epc_ext_import_template_csv('vat');
+$ctTpl = epc_ext_import_template_csv('ct');
+check('VAT import template has Code header + boxes', strpos($vatTpl, 'Code') !== false && strpos($vatTpl, 'Adjustment') !== false && strpos($vatTpl, 'BOX1A') !== false && strpos($vatTpl, 'BOX9') !== false, 'vat tpl');
+check('CT import template has Code header + lines', strpos($ctTpl, 'ACCT_PROFIT') !== false && strpos($ctTpl, 'NET_INTEREST') !== false && strpos($ctTpl, 'LOSSES_BF') !== false, 'ct tpl');
+
+// round-trip: write template to temp, parse it back, build returns
+$tmpV = tempnam(sys_get_temp_dir(), 'vat') . '.csv';
+file_put_contents($tmpV, $vatTpl);
+$rowsV = epc_ext_parse_table($tmpV, 'sample.csv');
+@unlink($tmpV);
+$mapV = epc_ext_import_map($rowsV ?: array());
+check('Parse VAT CSV -> boxes + meta', !empty($mapV['vat']['BOX1B']) && ($mapV['meta']['META_TRN'] ?? '') === '100000000000003', count($mapV['vat']) . ' boxes');
+$impVat = epc_ext_b_vat_summary($mapV, 'AED');
+check('Import VAT builds FTA 201 + reconciles + compliance', strpos($impVat['body'], 'FTA') !== false || strpos($impVat['title'], 'VAT') !== false, $impVat['title']);
+check('Import VAT net = output - input', isset($impVat['summary']['Output VAT']) && isset($impVat['summary']['Input VAT']), implode(',', array_keys($impVat['summary'])));
+check('Import VAT is off-system (no ERP read)', strpos($impVat['body'], 'off-system') !== false && strpos($impVat['body'], 'uploaded file') !== false, 'off-system note');
+
+$tmpC = tempnam(sys_get_temp_dir(), 'ct') . '.csv';
+file_put_contents($tmpC, $ctTpl);
+$rowsC = epc_ext_parse_table($tmpC, 'sample.csv');
+@unlink($tmpC);
+$mapC = epc_ext_import_map($rowsC ?: array());
+check('Parse CT CSV -> values + meta', ($mapC['values']['ACCT_PROFIT'] ?? 0) == 1250000.0 && ($mapC['meta']['META_LEGAL_NAME'] ?? '') !== '', count($mapC['values']) . ' lines');
+$impCt = epc_ext_b_ct_summary($mapC, 'AED');
+check('Import CT builds computation + bands + compliance', strpos($impCt['body'], 'Computation of taxable income') !== false && strpos($impCt['body'], 'Corporate tax compliance checks') !== false, $impCt['title']);
+check('Import CT applies 0%/9% bands', isset($impCt['summary']['CT payable']) && isset($impCt['summary']['Taxable income']), implode(',', array_keys($impCt['summary'])));
+
+// column-letter helper + print helpers
+check('XLSX column index A=0, B=1, AA=26', epc_ext_xlsx_col_index('A') === 0 && epc_ext_xlsx_col_index('B') === 1 && epc_ext_xlsx_col_index('AA') === 26, 'col idx');
+check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('co' => 'X')), '__epcExtCtx') !== false && strpos(epc_ext_print_fn_js(), 'function epcExtPrint') !== false, 'print js');
+
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
 echo "========================================\n";
