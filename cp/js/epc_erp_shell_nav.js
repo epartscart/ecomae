@@ -262,6 +262,43 @@
 		}
 	}
 
+	var NAV_COLLAPSE_KEY = 'epc_erp_nav_collapsed';
+
+	function applyNavCollapsed(collapsed) {
+		if (!document.body) {
+			return;
+		}
+		document.body.classList.toggle('epc-erp-nav-collapsed', collapsed);
+		var btn = document.getElementById('epc_erp_sidebar_collapse_toggle');
+		if (btn) {
+			btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+			var ic = btn.querySelector('.fa');
+			if (ic) {
+				ic.classList.toggle('fa-chevron-left', !collapsed);
+				ic.classList.toggle('fa-chevron-right', collapsed);
+			}
+		}
+	}
+
+	function bindNavCollapse() {
+		var btn = document.getElementById('epc_erp_sidebar_collapse_toggle');
+		var saved = false;
+		try {
+			saved = localStorage.getItem(NAV_COLLAPSE_KEY) === '1';
+		} catch (e) {}
+		applyNavCollapsed(saved);
+		if (btn && !btn._epcErpCollapseBound) {
+			btn._epcErpCollapseBound = true;
+			btn.addEventListener('click', function () {
+				var next = !document.body.classList.contains('epc-erp-nav-collapsed');
+				applyNavCollapsed(next);
+				try {
+					localStorage.setItem(NAV_COLLAPSE_KEY, next ? '1' : '0');
+				} catch (e) {}
+			});
+		}
+	}
+
 	function clearCpCollapseForErp() {
 		document.documentElement.classList.remove('epc-cp-sidebar-collapsed');
 		if (document.body) {
@@ -278,6 +315,7 @@
 		interceptShellNav();
 		bindAccordion();
 		bindMobileSidebar();
+		bindNavCollapse();
 	}
 
 	if (document.readyState === 'loading') {

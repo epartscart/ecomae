@@ -61,25 +61,37 @@ if (!function_exists('epc_erp_pm_section')) {
 		} catch (Exception $e) {
 			$rows = array();
 		}
-		echo '<div class="epc-erp-section pm-section" style="margin-bottom:22px;">';
-		echo '<h4><i class="fa ' . epc_erp_h($icon) . '"></i> ' . epc_erp_h($title) . ' <span class="badge">' . count($rows) . '</span></h4>';
+		$count = count($rows);
+		echo '<div class="epc-erp-section pm-section epc-d365-form" data-pm-section style="margin-bottom:22px;">';
 
-		// form
-		echo '<form class="pm-form epc-erp-pm-form" data-pm-table="' . epc_erp_h($table) . '">';
+		// D365 Action Pane (tab strip + command toolbar)
+		echo '<div class="epc-d365-actionpane">';
+		echo '<div class="epc-d365-ap-tabstrip"><span class="epc-d365-ap-tab is-active">' . epc_erp_h($title) . '</span></div>';
+		echo '<div class="epc-d365-ap-toolbar">';
+		echo '<button type="button" class="epc-d365-cmd epc-d365-cmd--primary" data-pm-new><i class="fa fa-plus-circle"></i><span>New</span></button>';
+		echo '<button type="button" class="epc-d365-cmd" data-pm-save><i class="fa fa-save"></i><span>Save</span></button>';
+		echo '<span class="epc-d365-ap-count"><i class="fa ' . epc_erp_h($icon) . '"></i> ' . $count . ' record' . ($count === 1 ? '' : 's') . '</span>';
+		echo '</div></div>';
+
+		// New-record panel rendered as a D365 FastTab (hidden until "New")
+		echo '<form class="pm-form epc-erp-pm-form epc-d365-newpanel" data-pm-table="' . epc_erp_h($table) . '">';
 		echo '<input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
 		echo '<input type="hidden" name="pm_table" value="' . epc_erp_h($table) . '">';
-		echo '<div class="pm-fields">';
+		echo '<div class="epc-d365-fasttab is-open" data-fasttab>';
+		echo '<button type="button" class="epc-d365-fasttab-hd" data-fasttab-toggle><i class="fa fa-caret-down epc-d365-fasttab-caret"></i> <span>General</span> <small class="epc-d365-fasttab-sum">New record details</small></button>';
+		echo '<div class="epc-d365-fasttab-bd"><div class="pm-fields">';
 		foreach ($fields as $f) {
 			echo epc_erp_pm_field_html($f);
 		}
-		echo '<div class="pm-field pm-field--btn"><label>&nbsp;</label><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add</button></div>';
-		echo '</div></form>';
+		echo '</div>';
+		echo '<div class="epc-d365-newpanel-actions"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-check"></i> Save record</button> <button type="button" class="btn btn-default btn-sm" data-pm-cancel>Cancel</button></div>';
+		echo '</div></div></form>';
 
-		// list
+		// D365 grid list page
 		if (empty($rows)) {
-			echo '<p class="text-muted" style="margin-top:8px;">No records yet — add the first one above.</p>';
+			echo '<div class="epc-d365-grid-empty"><i class="fa ' . epc_erp_h($icon) . '"></i><p>No records yet — choose <strong>New</strong> to add the first one.</p></div>';
 		} else {
-			echo '<div class="table-responsive" style="margin-top:10px;"><table class="table table-striped table-bordered table-condensed">';
+			echo '<div class="table-responsive epc-d365-grid-wrap"><table class="table table-condensed epc-d365-grid">';
 			echo '<thead><tr>';
 			foreach ($columns as $c) {
 				echo '<th>' . epc_erp_h($c['label']) . '</th>';
@@ -87,12 +99,15 @@ if (!function_exists('epc_erp_pm_section')) {
 			echo '<th>Status</th></tr></thead><tbody>';
 			foreach ($rows as $r) {
 				echo '<tr>';
+				$first = true;
 				foreach ($columns as $c) {
 					$v = $r[$c['key']] ?? '';
-					echo '<td>' . epc_erp_h((string) $v) . '</td>';
+					$cls = $first ? ' class="epc-d365-grid-link"' : '';
+					echo '<td' . $cls . '>' . epc_erp_h((string) $v) . '</td>';
+					$first = false;
 				}
 				$active = (int) ($r['active'] ?? 1) === 1;
-				echo '<td>' . ($active ? '<span class="label label-success">Active</span>' : '<span class="label label-default">Inactive</span>') . '</td>';
+				echo '<td>' . ($active ? '<span class="epc-d365-pill epc-d365-pill--on">Active</span>' : '<span class="epc-d365-pill">Inactive</span>') . '</td>';
 				echo '</tr>';
 			}
 			echo '</tbody></table></div>';
@@ -112,16 +127,77 @@ if (!function_exists('epc_erp_pm_inline_assets')) {
 		$done = true;
 		?>
 <style>
-.pm-section h4 .badge{background:#64748b;margin-left:6px}
-.pm-fields{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px}
-.pm-field{display:flex;flex-direction:column;gap:3px;min-width:150px;flex:1 1 150px}
-.pm-field label{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:#64748b;margin:0}
+/* ── Dynamics 365 Finance & Operations form styling ── */
+/* Sub-module strip = D365 form tab pages */
+.pm-module-tabs{display:flex;flex-wrap:wrap;gap:0;margin:0 0 18px;border-bottom:1px solid #c8c6c4;padding:0}
+.pm-module-tabs a{padding:9px 16px;font-size:13px;font-weight:600;color:#605e5c;text-decoration:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent}
+.pm-module-tabs a.active{color:#0f6cbd;border-bottom-color:#0f6cbd}
+.pm-module-tabs a:hover{color:#0f6cbd;background:#f3f2f1}
+
+/* Action Pane (top command bar) */
+.epc-d365-form{background:#fff;border:1px solid #e1dfdd;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.epc-d365-actionpane{border-bottom:1px solid #edebe9;background:#faf9f8}
+.epc-d365-ap-tabstrip{display:flex;gap:0;padding:0 8px;border-bottom:1px solid #edebe9}
+.epc-d365-ap-tab{padding:8px 14px 7px;font-size:13px;font-weight:600;color:#201f1e;border-bottom:2px solid #0f6cbd}
+.epc-d365-ap-toolbar{display:flex;align-items:center;gap:2px;padding:5px 8px;flex-wrap:wrap}
+.epc-d365-cmd{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;border-radius:2px;padding:5px 11px;font-size:13px;color:#201f1e;cursor:pointer;line-height:1.2}
+.epc-d365-cmd .fa{font-size:14px;color:#0f6cbd}
+.epc-d365-cmd:hover{background:#f3f2f1;border-color:#edebe9}
+.epc-d365-cmd--primary .fa{color:#107c10}
+.epc-d365-ap-count{margin-left:auto;font-size:12px;color:#605e5c;padding:0 8px}
+.epc-d365-ap-count .fa{margin-right:5px;color:#8a8886}
+
+/* FastTab (collapsible section) */
+.epc-d365-newpanel{display:none;border-bottom:1px solid #edebe9}
+.epc-d365-form.is-creating .epc-d365-newpanel{display:block}
+.epc-d365-fasttab{border-top:1px solid #f3f2f1}
+.epc-d365-fasttab-hd{width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid #edebe9;padding:10px 16px;font-size:14px;font-weight:600;color:#201f1e;cursor:pointer}
+.epc-d365-fasttab-hd:hover{background:#faf9f8}
+.epc-d365-fasttab-caret{color:#605e5c;transition:transform .15s ease;margin-right:6px}
+.epc-d365-fasttab:not(.is-open) .epc-d365-fasttab-caret{transform:rotate(-90deg)}
+.epc-d365-fasttab-sum{font-weight:400;color:#a19f9d;margin-left:10px;font-size:12px}
+.epc-d365-fasttab-bd{display:none;padding:14px 16px 16px}
+.epc-d365-fasttab.is-open .epc-d365-fasttab-bd{display:block}
+.epc-d365-newpanel-actions{margin-top:12px}
+
+/* Form fields (D365 single-column-ish grid of labelled inputs) */
+.pm-fields{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;background:transparent;border:0;border-radius:0;padding:0}
+.pm-field{display:flex;flex-direction:column;gap:4px;min-width:200px;flex:0 1 240px}
+.pm-field label{font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;color:#323130;margin:0}
+.pm-field .form-control{border-radius:2px;border:1px solid #8a8886;box-shadow:none}
+.pm-field .form-control:focus{border-color:#0f6cbd;box-shadow:0 0 0 1px #0f6cbd}
 .pm-field--btn{flex:0 0 auto;min-width:auto}
-.pm-module-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px;border-bottom:2px solid #e2e8f0;padding-bottom:0}
-.pm-module-tabs a{padding:8px 14px;font-size:13px;font-weight:600;color:#475569;text-decoration:none;border-radius:6px 6px 0 0;border:1px solid transparent;border-bottom:none;margin-bottom:-2px}
-.pm-module-tabs a.active{color:#1d4ed8;background:#fff;border-color:#e2e8f0;border-bottom:2px solid #fff}
-.pm-module-tabs a:hover{color:#1d4ed8}
+
+/* Grid list page */
+.epc-d365-grid-wrap{margin:0}
+.epc-d365-grid{margin:0;font-size:13px;border:0}
+.epc-d365-grid thead th{background:#faf9f8;color:#605e5c;font-weight:600;font-size:12px;border-top:0;border-bottom:1px solid #c8c6c4 !important;padding:8px 12px;white-space:nowrap}
+.epc-d365-grid tbody td{border-top:0;border-bottom:1px solid #f3f2f1;padding:8px 12px;vertical-align:middle}
+.epc-d365-grid tbody tr:hover{background:#f3f9fd}
+.epc-d365-grid-link{color:#0f6cbd;font-weight:600;cursor:pointer}
+.epc-d365-grid-link:hover{text-decoration:underline}
+.epc-d365-pill{display:inline-block;font-size:11px;font-weight:600;color:#605e5c;background:#f3f2f1;border-radius:2px;padding:2px 8px}
+.epc-d365-pill--on{color:#0b6a0b;background:#dff6dd}
+.epc-d365-grid-empty{text-align:center;color:#605e5c;padding:34px 18px}
+.epc-d365-grid-empty .fa{font-size:30px;color:#c8c6c4;display:block;margin-bottom:10px}
+.epc-d365-grid-empty p{margin:0}
 </style>
+<script>
+(function(){
+	if(window.__epcD365PmBound){return;}
+	window.__epcD365PmBound=true;
+	document.addEventListener('click',function(ev){
+		var n=ev.target.closest('[data-pm-new]');
+		if(n){ev.preventDefault();var s=n.closest('[data-pm-section]');if(s){var open=s.classList.toggle('is-creating');if(open){var i=s.querySelector('.pm-fields input:not([type=hidden]),.pm-fields select');if(i){try{i.focus();}catch(e){}}}}return;}
+		var c=ev.target.closest('[data-pm-cancel]');
+		if(c){ev.preventDefault();var s2=c.closest('[data-pm-section]');if(s2){s2.classList.remove('is-creating');}return;}
+		var sv=ev.target.closest('[data-pm-save]');
+		if(sv){ev.preventDefault();var s3=sv.closest('[data-pm-section]');if(s3){s3.classList.add('is-creating');var f=s3.querySelector('form.pm-form');if(f){if(f.requestSubmit){f.requestSubmit();}else{var b=f.querySelector('[type=submit]');if(b){b.click();}}}}return;}
+		var t=ev.target.closest('[data-fasttab-toggle]');
+		if(t){var tb=t.closest('[data-fasttab]');if(tb){tb.classList.toggle('is-open');}return;}
+	});
+})();
+</script>
 		<?php
 	}
 }

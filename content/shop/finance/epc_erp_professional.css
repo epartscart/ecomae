@@ -292,6 +292,46 @@ body.epc-erp-cp-shell {
 	z-index: 90;
 }
 
+/* D365 F&O nav-pane collapse toggle + icon rail with hover flyout */
+.epc-erp-sidebar-collapse-toggle {
+	display: inline-flex;
+	background: transparent;
+	border: 0;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 13px;
+	cursor: pointer;
+	padding: 4px 8px;
+	line-height: 1;
+}
+.epc-erp-sidebar-collapse-toggle:hover { color: #fff; }
+
+@media (min-width: 992px) {
+	body.epc-erp-nav-collapsed .epc-erp-sidebar { width: 52px; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-brand { display: none; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-head { justify-content: center; padding: 14px 0; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-label,
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-chevron { display: none; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-group-hd { justify-content: center; padding: 12px 0; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-icon { width: auto; font-size: 16px; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-sublist { display: none; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-group { position: relative; }
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-group:hover > .epc-erp-sidebar-sublist {
+		display: block;
+		position: absolute;
+		left: 52px;
+		top: 0;
+		min-width: 230px;
+		background: var(--epc-sidebar-mid, #075985);
+		box-shadow: 6px 6px 18px rgba(15, 23, 42, 0.32);
+		border-radius: 0 8px 8px 0;
+		z-index: 200;
+		padding: 6px 0;
+	}
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-group:hover > .epc-erp-sidebar-sublist .epc-erp-sidebar-item a {
+		padding-left: 18px;
+	}
+}
+
 /* Main content panel */
 .epc-erp-content {
 	flex: 1;
