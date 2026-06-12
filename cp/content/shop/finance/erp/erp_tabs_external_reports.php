@@ -86,15 +86,28 @@ $countryOptions = array('AE','SA','QA','OM','BH','KW','IN','PK','BD','LK','SG','
 <?php
 if ($selRep !== '' && isset($registry[$selRep])) {
 	// ---------------------------------------------------------------- single report
+	// The report renders for the registered country by default. When the admin
+	// previews another jurisdiction the report re-localizes to it (an explicit
+	// look-up) — compliance of record still keys off the registered country.
 	$def = $registry[$selRep];
-	$links = epc_ext_report_links($selRep, $regCountry);
+	$repCountry = $prevCountry !== '' ? $prevCountry : $regCountry;
+	$isPreview = strtoupper($repCountry) !== strtoupper($regCountry);
+	$repCountryName = (string) (epc_country_profile($repCountry)['name'] ?? $repCountry);
+	$links = epc_ext_report_links($selRep, $repCountry);
 	$auth = $links['authority'];
 	$ifrs = $links['ifrs'];
-	$built = epc_ext_report_build($db_link, $selRep, $regCountry, $date_from, $date_to);
+	$built = epc_ext_report_build($db_link, $selRep, $repCountry, $date_from, $date_to);
 	$fetched = isset($_GET['fetch']);
-	$fetchUrl = $repUrl($selRep) . '&fetch=' . time();
+	$fetchUrl = $repUrl($selRep) . '&rep_country=' . urlencode($repCountry) . '&fetch=' . time();
 	$co = epc_co_profile_get($db_link);
 	?>
+	<?php if ($isPreview): ?>
+	<div class="alert alert-info" style="padding:8px 12px;margin-bottom:10px;">
+		<i class="fa fa-eye"></i> <strong>Preview — <?php echo epc_erp_h($repCountryName); ?>.</strong>
+		Figures, rates, authority &amp; format are localized to <?php echo epc_erp_h($repCountry); ?> for evaluation.
+		Your compliance country of record is <strong><?php echo epc_erp_h($regName); ?></strong> (set it in Setup → Company).
+	</div>
+	<?php endif; ?>
 	<p style="margin-bottom:10px;">
 		<a href="<?php echo epc_erp_h($baseUrl . $sep . 'cat=' . urlencode((string) $def['cat'])); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> Back to <?php echo epc_erp_h($cats[$def['cat']] ?? 'catalogue'); ?></a>
 	</p>
@@ -130,7 +143,7 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 			</div>
 			<div style="text-align:right;">
 				<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Statutory report</div>
-				<div style="font-weight:700;"><?php echo epc_erp_h($regName); ?></div>
+				<div style="font-weight:700;"><?php echo epc_erp_h($repCountryName); ?></div>
 				<div class="text-muted" style="font-size:12px;"><?php echo epc_erp_h($date_from_str . '  —  ' . $date_to_str); ?></div>
 			</div>
 		</div>
