@@ -24,6 +24,8 @@ function epc_erp_staff_all_tabs()
 		'consolidation_bu', 'enterprise_reports', 'landed_cost', 'doc_formats',
 		// BOS pillars (Phase 2)
 		'compliance', 'approvals', 'industry_intel', 'ai_advisor', 'vat_refund',
+		// External Reporting
+		'ext_reports',
 	);
 }
 

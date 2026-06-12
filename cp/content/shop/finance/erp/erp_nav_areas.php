@@ -198,6 +198,17 @@ function epc_erp_nav_areas_config()
 				'Periodic' => array('budgeting'),
 			),
 		),
+		'regrep' => array(
+			'label' => 'External Reporting',
+			'icon' => 'fa-file-text-o',
+			'desc' => 'Statutory &amp; regulatory reports — country-driven, auto-formatted',
+			'tabs' => array(
+				'ext_reports' => array('label' => 'Report centre', 'icon' => 'fa-file-text-o'),
+			),
+			'groups' => array(
+				'Reports' => array('ext_reports'),
+			),
+		),
 		'setup' => array(
 			'label' => 'Setup &amp; Data',
 			'icon' => 'fa-sliders',

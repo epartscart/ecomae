@@ -268,6 +268,7 @@ $erpTabIncludes = array(
 	'master_planning' => 'erp_tabs_master_planning.php',
 	'retail_barcode' => 'erp_tabs_retail_barcode.php',
 	'doc_formats' => 'erp_tabs_doc_formats.php',
+	'ext_reports' => 'erp_tabs_external_reports.php',
 );
 
 ?>

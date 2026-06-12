@@ -21,6 +21,9 @@ define('_ASTEXE_', 1);
 
 $root = dirname(__DIR__, 2);
 $fin = $root . '/content/shop/finance';
+if (empty($_SERVER['DOCUMENT_ROOT'])) {
+    $_SERVER['DOCUMENT_ROOT'] = $root;
+}
 
 require_once $fin . '/epc_erp_advanced.php';
 require_once $fin . '/epc_erp_industry.php';
@@ -174,6 +177,45 @@ $reg = epc_erp_adv_register_guides($db, 'cp');
 check('guide page registered', isset($reg[0]['status']) && $reg[0]['status'] === true, $reg[0]['message'] ?? '');
 $cnt = (int) $db->query("SELECT COUNT(*) FROM `content` WHERE `url`='shop/finance/erp/advanced-guide'")->fetchColumn();
 check('advanced-guide content row exists', $cnt === 1);
+
+echo "\n=== 5. External Reporting registry + country-driven links ===\n";
+require_once $fin . '/epc_erp_external_reports.php';
+$extCats = epc_ext_reports_categories();
+check('26 reporting categories', count($extCats) === 26, count($extCats) . ' categories');
+$extReg = epc_ext_reports_registry();
+check('report registry populated (>= 200)', count($extReg) >= 200, count($extReg) . ' report types');
+$extLive = 0;
+foreach ($extReg as $r) {
+    if ($r['builder'] !== '') {
+        $extLive++;
+    }
+}
+check('live-builder reports present', $extLive >= 20, $extLive . ' live builders');
+// every report resolves an authority url for the tenant country (worldwide rule)
+$missing = 0;
+foreach (array('AE', 'SA', 'IN', 'SG', 'GB', 'US') as $cc) {
+    foreach ($extReg as $k => $r) {
+        $l = epc_ext_report_links($k, $cc);
+        if (empty($l['authority']['url']) || empty($l['authority']['law'])) {
+            $missing++;
+        }
+    }
+}
+check('all reports resolve law + authority for AE/SA/IN/SG/GB/US', $missing === 0, $missing . ' missing');
+// UAE sub-layer precision
+$uaeTax = epc_ext_authority('AE', 'tax');
+check('UAE tax → FTA + Decree-Law 47/2022', strpos($uaeTax['name'], 'FTA') !== false && strpos($uaeTax['law'], '47/2022') !== false, $uaeTax['name']);
+$uaeHr = epc_ext_authority('AE', 'hr');
+check('UAE HR → MOHRE + WPS', strpos($uaeHr['name'], 'MOHRE') !== false && strpos($uaeHr['law'], 'WPS') !== false, $uaeHr['name']);
+// IFRS link for financial statements
+$ifrs = epc_ext_ifrs_link('IAS1');
+check('IFRS IAS 1 link resolves', is_array($ifrs) && strpos($ifrs['url'], 'ifrs.org') !== false, $ifrs['url'] ?? 'none');
+// corporate-tax rule re-localizes per country
+require_once $fin . '/epc_erp_external_reports_build.php';
+$ctAe = epc_ext_ct_rule('AE');
+$ctSa = epc_ext_ct_rule('SA');
+check('CT rule UAE 9% / threshold 375k', $ctAe['rate'] === 9.0 && $ctAe['threshold'] === 375000.0, $ctAe['rate'] . '% / ' . $ctAe['threshold']);
+check('CT rule KSA 20%', $ctSa['rate'] === 20.0, $ctSa['rate'] . '%');
 
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
