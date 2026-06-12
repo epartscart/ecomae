@@ -94,6 +94,12 @@ function epc_erp_gl_ensure_schema(PDO $db)
 	epc_erp_gl_add_column_if_missing($db, 'epc_erp_cash_bank_entries', 'gl_journal_id', 'int(11) NOT NULL DEFAULT 0');
 	epc_erp_gl_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'coa_id', 'int(11) NOT NULL DEFAULT 0');
 
+	// Covering / composite indexes for the hot reporting paths (trial balance,
+	// P&L, balance sheet, per-account activity). Added idempotently so existing
+	// tenant DBs (created before these keys existed) are upgraded in place.
+	epc_erp_gl_add_index_if_missing($db, 'epc_erp_gl_lines', 'x_coa_cover', '(`coa_id`,`journal_id`,`debit`,`credit`)');
+	epc_erp_gl_add_index_if_missing($db, 'epc_erp_gl_journals', 'x_active_date', '(`active`,`journal_date`)');
+
 	epc_erp_gl_seed_coa($db);
 }
 
@@ -107,6 +113,59 @@ function epc_erp_gl_add_column_if_missing(PDO $db, $table, $column, $definition)
 		}
 	} catch (Exception $e) {
 	}
+}
+
+/**
+ * Add an index to a table only if no index with that name already exists.
+ * Idempotent and safe to call on every request (cheap SHOW INDEX check).
+ * $table/$indexName are internal literals; $columnsSpec is a literal column list.
+ */
+function epc_erp_gl_add_index_if_missing(PDO $db, $table, $indexName, $columnsSpec)
+{
+	if (!preg_match('/^[a-zA-Z0-9_]+$/', (string)$table) || !preg_match('/^[a-zA-Z0-9_]+$/', (string)$indexName)) {
+		return;
+	}
+	try {
+		$q = $db->prepare('SHOW INDEX FROM `' . $table . '` WHERE `Key_name` = ?');
+		$q->execute(array($indexName));
+		if (!$q->fetch()) {
+			$db->exec('ALTER TABLE `' . $table . '` ADD INDEX `' . $indexName . '` ' . $columnsSpec);
+		}
+	} catch (Exception $e) {
+	}
+}
+
+/**
+ * Batched per-account GL activity (debits/credits) up to a date, in a single
+ * grouped query — replaces the N+1 of calling epc_erp_gl_coa_activity() per
+ * account when building the trial balance / COA list.
+ *
+ * @return array<int,array{debits:float,credits:float}> keyed by coa_id
+ */
+function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0)
+{
+	$sql = 'SELECT l.`coa_id` AS coa_id,
+			IFNULL(SUM(l.`debit`),0) AS debits,
+			IFNULL(SUM(l.`credit`),0) AS credits
+		FROM `epc_erp_gl_lines` l
+		INNER JOIN `epc_erp_gl_journals` j ON j.id = l.journal_id
+		WHERE j.active = 1';
+	$params = array();
+	if ((int)$date_to > 0) {
+		$sql .= ' AND j.journal_date <= ?';
+		$params[] = (int)$date_to;
+	}
+	$sql .= ' GROUP BY l.`coa_id`';
+	$stmt = $db->prepare($sql);
+	$stmt->execute($params);
+	$map = array();
+	foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+		$map[(int)$r['coa_id']] = array(
+			'debits' => (float)$r['debits'],
+			'credits' => (float)$r['credits'],
+		);
+	}
+	return $map;
 }
 
 function epc_erp_gl_seed_coa(PDO $db)
@@ -163,14 +222,22 @@ function epc_erp_gl_coa_by_code(PDO $db, $code)
 	return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
-function epc_erp_gl_list_coa(PDO $db)
+function epc_erp_gl_list_coa(PDO $db, $as_of = 0)
 {
 	epc_erp_gl_ensure_schema($db);
 	$rows = $db->query(
 		'SELECT * FROM `epc_erp_coa_accounts` WHERE `active` = 1 ORDER BY `code` ASC'
 	)->fetchAll(PDO::FETCH_ASSOC);
+	// Single batched aggregation instead of one query per account (N+1).
+	$activity = epc_erp_gl_all_coa_activity($db, $as_of > 0 ? (int)$as_of : time());
 	foreach ($rows as &$row) {
-		$row['balance'] = epc_erp_gl_coa_balance($db, (int)$row['id']);
+		$act = $activity[(int)$row['id']] ?? array('debits' => 0.0, 'credits' => 0.0);
+		$row['balance'] = epc_erp_gl_signed_balance(
+			$row['opening_balance'],
+			$act['debits'],
+			$act['credits'],
+			$row['normal_side']
+		);
 	}
 	unset($row);
 	return $rows;
@@ -663,12 +730,13 @@ function epc_erp_gl_balance_sheet(PDO $db, $as_of)
 function epc_erp_gl_trial_balance(PDO $db, $as_of)
 {
 	epc_erp_gl_ensure_schema($db);
-	$rows = epc_erp_gl_list_coa($db);
+	// list_coa now computes per-account balances in a single batched query.
+	$rows = epc_erp_gl_list_coa($db, $as_of);
 	$out = array();
 	$td = 0.0;
 	$tc = 0.0;
 	foreach ($rows as $a) {
-		$bal = epc_erp_gl_coa_balance($db, (int)$a['id'], $as_of);
+		$bal = (float)$a['balance'];
 		if (abs($bal) < 0.005) {
 			continue;
 		}

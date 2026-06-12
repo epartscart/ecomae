@@ -63,9 +63,16 @@ function epc_erp_dim_specs(PDO $db): array
 		'legal_entity'  => array('Legal entity', 'epc_erp_pm_legal_entities'),
 		'class_unit'    => array('Class', 'epc_erp_pm_class_units'),
 	);
+	$allowedTables = array('epc_erp_pm_business_units', 'epc_erp_pm_legal_entities', 'epc_erp_pm_class_units');
 	foreach ($fixed as $key => $info) {
+		$table = (string) $info[1];
+		// Defence in depth: the table name comes from a fixed internal map, but
+		// validate it against an explicit allow-list before interpolation.
+		if (!in_array($table, $allowedTables, true) || !preg_match('/^[a-z0-9_]+$/', $table)) {
+			continue;
+		}
 		try {
-			$rows = $db->query("SELECT `id`,`code`,`name` FROM `{$info[1]}` WHERE `active`=1 ORDER BY `code`,`name`")
+			$rows = $db->query("SELECT `id`,`code`,`name` FROM `{$table}` WHERE `active`=1 ORDER BY `code`,`name`")
 				->fetchAll(PDO::FETCH_ASSOC);
 		} catch (Exception $e) {
 			$rows = array();

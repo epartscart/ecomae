@@ -60,6 +60,14 @@ function epc_bos_intel_context(PDO $db): array
  */
 function epc_bos_intel_kpis(PDO $db, int $dateFrom, int $dateTo): array
 {
+	// Per-request memoization: the KPI set is rendered both on the home
+	// dashboard portlet and the Industry Intelligence tab, and aggregates GL +
+	// P&L + inventory. Cache by period so it is computed at most once per load.
+	static $memo = array();
+	$key = $dateFrom . ':' . $dateTo;
+	if (isset($memo[$key])) {
+		return $memo[$key];
+	}
 	$dash = epc_erp_dashboard($db, $dateFrom, $dateTo);
 	$pl = function_exists('epc_erp_gl_pl_report') ? epc_erp_gl_pl_report($db, $dateFrom, $dateTo) : array();
 	$invValue = 0.0;
@@ -98,7 +106,7 @@ function epc_bos_intel_kpis(PDO $db, int $dateFrom, int $dateTo): array
 		return 'bad';
 	};
 
-	return array(
+	$memo[$key] = array(
 		array('key' => 'revenue', 'label' => 'Revenue (period)', 'value' => $revenue, 'format' => 'money', 'health' => $revenue > 0 ? 'good' : 'warn', 'hint' => 'Net sales excl. VAT'),
 		array('key' => 'gross_margin', 'label' => 'Gross margin %', 'value' => $grossMargin, 'format' => 'pct', 'health' => $flag($grossMargin, 25, 12, true), 'hint' => 'Profit / revenue'),
 		array('key' => 'dso', 'label' => 'DSO (days sales outstanding)', 'value' => $dso, 'format' => 'days', 'health' => $flag($dso, 30, 60, false), 'hint' => 'Lower is faster collection'),
@@ -110,6 +118,7 @@ function epc_bos_intel_kpis(PDO $db, int $dateFrom, int $dateTo): array
 		array('key' => 'cash', 'label' => 'Cash & bank', 'value' => $cash, 'format' => 'money', 'health' => $cash >= 0 ? 'good' : 'bad', 'hint' => 'Liquidity position'),
 		array('key' => 'inventory', 'label' => 'Inventory value', 'value' => $invValue, 'format' => 'money', 'health' => 'info', 'hint' => 'Stock at weighted-avg cost'),
 	);
+	return $memo[$key];
 }
 
 /**

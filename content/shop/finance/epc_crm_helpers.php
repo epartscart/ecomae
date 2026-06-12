@@ -274,10 +274,12 @@ function epc_crm_dashboard(PDO $db)
 {
 	epc_crm_ensure_schema($db);
 	$openStages = array('prospect', 'qualified', 'proposal', 'negotiation');
-	$in = "'" . implode("','", $openStages) . "'";
-	$pipelineValue = (float)$db->query(
-		"SELECT IFNULL(SUM(`amount` * `probability` / 100), 0) FROM `epc_crm_opportunities` WHERE `active` = 1 AND `stage` IN ({$in})"
-	)->fetchColumn();
+	$inPlaceholders = implode(',', array_fill(0, count($openStages), '?'));
+	$pipelineStmt = $db->prepare(
+		"SELECT IFNULL(SUM(`amount` * `probability` / 100), 0) FROM `epc_crm_opportunities` WHERE `active` = 1 AND `stage` IN ({$inPlaceholders})"
+	);
+	$pipelineStmt->execute($openStages);
+	$pipelineValue = (float)$pipelineStmt->fetchColumn();
 	$wonMonth = (float)$db->query(
 		"SELECT IFNULL(SUM(`amount`), 0) FROM `epc_crm_opportunities` WHERE `active` = 1 AND `stage` = 'won' AND `time_updated` >= " . (int)strtotime(date('Y-m-01 00:00:00'))
 	)->fetchColumn();
@@ -291,7 +293,11 @@ function epc_crm_dashboard(PDO $db)
 	return array(
 		'leads_total' => (int)$db->query("SELECT COUNT(*) FROM `epc_crm_leads` WHERE `active` = 1")->fetchColumn(),
 		'leads_new' => (int)$db->query("SELECT COUNT(*) FROM `epc_crm_leads` WHERE `active` = 1 AND `status` = 'new'")->fetchColumn(),
-		'opportunities_open' => (int)$db->query("SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE `active` = 1 AND `stage` IN ({$in})")->fetchColumn(),
+		'opportunities_open' => (int)(function (PDO $db, array $stages, string $ph) {
+			$s = $db->prepare("SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE `active` = 1 AND `stage` IN ({$ph})");
+			$s->execute($stages);
+			return $s->fetchColumn();
+		})($db, $openStages, $inPlaceholders),
 		'pipeline_weighted' => $pipelineValue,
 		'won_mtd' => $wonMonth,
 		'activities_due' => (int)$db->query("SELECT COUNT(*) FROM `epc_crm_activities` WHERE `active` = 1 AND `done` = 0 AND `due_date` <= " . (time() + 86400 * 7))->fetchColumn(),
