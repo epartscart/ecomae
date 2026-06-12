@@ -179,6 +179,85 @@ if (!function_exists('epc_prj_summary')) {
     }
 }
 
+if (!function_exists('epc_prj_list')) {
+    /**
+     * Projects newest-first, each with its live summary (cost/budget/margin/%).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_prj_list(PDO $db, int $limit = 200): array
+    {
+        epc_prj_ensure_schema($db);
+        $rows = $db->query("SELECT * FROM `epc_prj_projects` ORDER BY `id` DESC LIMIT " . max(1, $limit))->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            try {
+                $r['summary'] = epc_prj_summary($db, (int) $r['id']);
+            } catch (Throwable $e) {
+                $r['summary'] = array('cost' => 0, 'billable_value' => 0, 'margin' => 0, 'percent_complete' => 0, 'hours' => 0, 'over_budget' => false, 'revenue_recognized' => 0, 'cost_variance' => 0, 'budget_cost' => (float) $r['budget_cost']);
+            }
+        }
+        unset($r);
+        return $rows;
+    }
+}
+
+if (!function_exists('epc_prj_get')) {
+    /** @return array<string,mixed>|null */
+    function epc_prj_get(PDO $db, int $id): ?array
+    {
+        epc_prj_ensure_schema($db);
+        $st = $db->prepare("SELECT * FROM `epc_prj_projects` WHERE `id`=?");
+        $st->execute(array($id));
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+}
+
+if (!function_exists('epc_prj_tasks_list')) {
+    /** @return array<int,array<string,mixed>> */
+    function epc_prj_tasks_list(PDO $db, int $projectId): array
+    {
+        epc_prj_ensure_schema($db);
+        $st = $db->prepare("SELECT * FROM `epc_prj_tasks` WHERE `project_id`=? ORDER BY `id`");
+        $st->execute(array($projectId));
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_prj_timesheets_list')) {
+    /** @return array<int,array<string,mixed>> */
+    function epc_prj_timesheets_list(PDO $db, int $projectId, int $limit = 100): array
+    {
+        epc_prj_ensure_schema($db);
+        $st = $db->prepare("SELECT t.*, k.`name` AS task_name FROM `epc_prj_timesheets` t
+                            LEFT JOIN `epc_prj_tasks` k ON k.`id`=t.`task_id`
+                            WHERE t.`project_id`=? ORDER BY t.`id` DESC LIMIT " . max(1, $limit));
+        $st->execute(array($projectId));
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+if (!function_exists('epc_prj_portfolio')) {
+    /**
+     * Portfolio headline totals across all projects.
+     *
+     * @return array{projects:int,open:int,cost:float,billable:float,margin:float}
+     */
+    function epc_prj_portfolio(PDO $db): array
+    {
+        $rows = epc_prj_list($db, 500);
+        $cost = $bill = $margin = 0.0;
+        $open = 0;
+        foreach ($rows as $r) {
+            $cost += (float) $r['summary']['cost'];
+            $bill += (float) $r['summary']['billable_value'];
+            $margin += (float) $r['summary']['margin'];
+            if ((string) $r['status'] === 'open') { $open++; }
+        }
+        return array('projects' => count($rows), 'open' => $open, 'cost' => round($cost, 2), 'billable' => round($bill, 2), 'margin' => round($margin, 2));
+    }
+}
+
 /* --------------------------- Quality control -------------------------- */
 
 if (!function_exists('epc_qc_inspect')) {

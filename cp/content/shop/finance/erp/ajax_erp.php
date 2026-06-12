@@ -352,6 +352,29 @@ try {
 			$ok = epc_bos_vat_refund_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''));
 			epc_erp_json($ok, $ok ? 'Status updated' : 'Invalid status');
 
+		case 'prj_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_projects.php';
+			if (trim((string)($_POST['code'] ?? '')) === '') { throw new Exception('Project code is required'); }
+			$prjId = epc_prj_save($db_link, $_POST, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Project saved', array('id' => $prjId));
+
+		case 'prj_task_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_projects.php';
+			$prjPid = (int)($_POST['project_id'] ?? 0);
+			if ($prjPid <= 0) { throw new Exception('Select a project'); }
+			$tId = epc_prj_task_save($db_link, $prjPid, $_POST, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Task saved', array('id' => $tId));
+
+		case 'prj_log_time':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_projects.php';
+			$prjPid2 = (int)($_POST['project_id'] ?? 0);
+			if ($prjPid2 <= 0) { throw new Exception('Select a project'); }
+			$data = $_POST;
+			$data['work_date'] = time();
+			$data['billable'] = !empty($_POST['billable']) ? 1 : 0;
+			$logId = epc_prj_log_time($db_link, $prjPid2, $data);
+			epc_erp_json(true, 'Time logged', array('id' => $logId));
+
 		case 'cons_entity_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_consolidation.php';
 			$cid = epc_cons_entity_save($db_link, $_POST, (int)($_POST['id'] ?? 0));

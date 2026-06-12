@@ -213,6 +213,7 @@ $erpTabIncludes = array(
 	'expense_reports' => 'erp_tabs_expense_reports.php',
 	'manufacturing' => 'erp_tabs_manufacturing.php',
 	'agenda' => 'erp_tabs_agenda.php',
+	'projects' => 'erp_tabs_projects.php',
 	'knowledge_base' => 'erp_tabs_knowledge_base.php',
 	'multi_entity' => 'erp_tabs_multi_entity.php',
 	'custom_shipping' => 'erp_tabs_custom_shipping.php',

@@ -167,12 +167,13 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Agenda, contacts and documents',
 			'tabs' => array(
 				'agenda' => array('label' => 'Agenda', 'icon' => 'fa-calendar'),
+				'projects' => array('label' => 'Projects', 'icon' => 'fa-tasks'),
 				'contacts' => array('label' => 'Contacts', 'icon' => 'fa-address-book-o'),
 				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
 				'doc_formats' => array('label' => 'Document formats', 'icon' => 'fa-files-o'),
 			),
 			'groups' => array(
-				'Common' => array('agenda', 'contacts', 'documents'),
+				'Common' => array('agenda', 'projects', 'contacts', 'documents'),
 				'Setup' => array('doc_formats'),
 			),
 		),
