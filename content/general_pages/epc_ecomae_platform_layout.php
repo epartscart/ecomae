@@ -146,15 +146,21 @@ function epc_ecomae_platform_layout_open($active = '')
 				<a class="epm-nav__link<?php echo $isActive ? ' is-active' : ''; ?>" href="<?php echo epc_ecomae_h($href); ?>"><?php echo epc_ecomae_h($item['label']); ?></a>
 				<?php }
 				foreach (epc_ecomae_platform_nav_dropdowns() as $drop) {
+					$groupActive = false;
+					foreach ($drop['items'] as $sub) {
+						if ($active !== '' && (string) ($sub['key'] ?? '') === $active) { $groupActive = true; break; }
+					}
 					?>
 				<div class="epm-nav__group">
-					<span class="epm-nav__group-label"><?php echo epc_ecomae_h($drop['label']); ?></span>
+					<button type="button" class="epm-nav__group-trigger<?php echo $groupActive ? ' is-active' : ''; ?>" aria-expanded="false"><?php echo epc_ecomae_h($drop['label']); ?><span class="epm-nav__caret" aria-hidden="true">&#9662;</span></button>
+					<div class="epm-nav__panel">
 					<?php foreach ($drop['items'] as $sub) {
 						$sk = (string) ($sub['key'] ?? '');
 						$subActive = ($active !== '' && $sk === $active);
 						?>
-					<a class="epm-nav__link epm-nav__link--sub<?php echo $subActive ? ' is-active' : ''; ?>" href="<?php echo epc_ecomae_h($sub['href']); ?>"><?php echo epc_ecomae_h($sub['label']); ?></a>
+						<a class="epm-nav__panel-link<?php echo $subActive ? ' is-active' : ''; ?>" href="<?php echo epc_ecomae_h($sub['href']); ?>"><?php echo epc_ecomae_h($sub['label']); ?></a>
 					<?php } ?>
+					</div>
 				</div>
 				<?php } ?>
 			</nav>
@@ -181,6 +187,18 @@ function epc_ecomae_platform_layout_open($active = '')
 		document.body.classList.toggle('epm-nav-open',open);
 	});
 	drawer.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){drawer.classList.remove('is-open');btn.setAttribute('aria-expanded','false');document.body.classList.remove('epm-nav-open');});});
+	var groups=drawer.querySelectorAll('.epm-nav__group');
+	groups.forEach(function(g){
+		var t=g.querySelector('.epm-nav__group-trigger');
+		if(!t)return;
+		t.addEventListener('click',function(e){
+			e.stopPropagation();
+			var open=!g.classList.contains('is-open');
+			groups.forEach(function(o){o.classList.remove('is-open');var ot=o.querySelector('.epm-nav__group-trigger');if(ot)ot.setAttribute('aria-expanded','false');});
+			if(open){g.classList.add('is-open');t.setAttribute('aria-expanded','true');}
+		});
+	});
+	document.addEventListener('click',function(){groups.forEach(function(o){o.classList.remove('is-open');var ot=o.querySelector('.epm-nav__group-trigger');if(ot)ot.setAttribute('aria-expanded','false');});});
 })();
 </script>
 <main class="epm-main">
@@ -1403,13 +1421,27 @@ function epc_ecomae_platform_styles()
 .epm-nav-drawer{display:flex;flex:1;align-items:center;gap:16px;flex-wrap:wrap}
 .epm-topbar__cta-row{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .epm-nav-drawer__cta{display:none}
-.epm-nav{display:flex;flex-wrap:wrap;gap:4px 14px;flex:1}
-.epm-nav__group{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
-.epm-nav__group-label{font-size:11px;font-weight:700;color:var(--epm-muted);text-transform:uppercase;letter-spacing:.08em;margin-right:4px}
-.epm-nav__link--sub{font-size:12px}
-.epm-nav__link{color:var(--epm-muted);text-decoration:none;font-size:13px;font-weight:600;padding:6px 0;border-bottom:2px solid transparent}
+.epm-nav{display:flex;flex-wrap:nowrap;align-items:center;gap:2px 18px;flex:1}
+.epm-nav__link{color:var(--epm-muted);text-decoration:none;font-size:13px;font-weight:600;padding:6px 0;border-bottom:2px solid transparent;white-space:nowrap}
 .epm-nav__link:hover,.epm-nav__link.is-active{color:var(--epm-cyan);border-bottom-color:var(--epm-cyan)}
+.epm-nav__group{position:relative}
+.epm-nav__group-trigger{background:transparent;border:0;color:var(--epm-muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:6px 0;display:inline-flex;align-items:center;gap:5px;border-bottom:2px solid transparent;white-space:nowrap}
+.epm-nav__group-trigger:hover,.epm-nav__group.is-open .epm-nav__group-trigger,.epm-nav__group-trigger.is-active{color:var(--epm-cyan)}
+.epm-nav__caret{font-size:9px;transition:transform .15s;opacity:.8}
+.epm-nav__group.is-open .epm-nav__caret{transform:rotate(180deg)}
+.epm-nav__panel{position:absolute;top:calc(100% + 10px);left:0;min-width:230px;background:rgba(2,6,23,.98);border:1px solid var(--epm-border);border-radius:12px;padding:8px;display:none;flex-direction:column;gap:2px;box-shadow:0 18px 44px rgba(0,0,0,.5);z-index:120}
+.epm-nav__panel::before{content:"";position:absolute;top:-10px;left:0;right:0;height:10px}
+.epm-nav__group:hover .epm-nav__panel,.epm-nav__group.is-open .epm-nav__panel,.epm-nav__group:focus-within .epm-nav__panel{display:flex}
+.epm-nav__group:last-child .epm-nav__panel{left:auto;right:0}
+.epm-nav__panel-link{color:#cbd5e1;text-decoration:none;font-size:13px;font-weight:500;padding:9px 12px;border-radius:8px;white-space:nowrap}
+.epm-nav__panel-link:hover,.epm-nav__panel-link.is-active{background:rgba(56,189,248,.12);color:var(--epm-cyan)}
+@media(max-width:1180px){.epm-nav{gap:2px 12px}.epm-nav__link,.epm-nav__group-trigger{font-size:12px}}
 @media(max-width:900px){
+.epm-nav__group{width:100%}
+.epm-nav__group-trigger{width:100%;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(148,163,184,.12);font-size:15px}
+.epm-nav__panel{position:static;display:flex;min-width:0;border:0;box-shadow:none;background:transparent;padding:4px 0 8px 14px;border-radius:0}
+.epm-nav__panel::before{display:none}
+.epm-nav__panel-link{font-size:14px;padding:8px 0}
 .epm-nav-toggle{display:block}
 .epm-topbar__cta-row{display:none}
 .epm-nav-drawer{position:fixed;inset:56px 0 auto 0;max-height:calc(100vh - 56px);overflow:auto;background:rgba(2,6,23,.97);border-bottom:1px solid var(--epm-border);flex-direction:column;align-items:stretch;padding:16px 20px 24px;transform:translateY(-8px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99}
