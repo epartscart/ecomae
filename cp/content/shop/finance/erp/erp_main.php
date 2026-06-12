@@ -300,6 +300,10 @@ if (!$epc_erp_shell_mode) {
 				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance',
 				'einvoice', 'pl', 'balance_sheet', 'reports', 'audit',
 				'expense_reports', 'marketing',
+				// D365 F&O period reports that filter by the From/To range.
+				// (consolidation_bu / master_planning are as-of snapshots, and the
+				// master-data modules are excluded, so they carry no date bar.)
+				'enterprise_reports', 'bank_setup',
 			);
 			$epcErpShowDateFilter = in_array($tab, $epcErpDateFilterTabs, true);
 			?>
