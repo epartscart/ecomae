@@ -125,8 +125,35 @@ function epc_pf_ensure_schema(PDO $db): void
 	// location columns (GPS-style tracking across branches/sites)
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_schema.php';
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_staff_profiles', 'location', "varchar(80) NOT NULL DEFAULT ''");
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_staff_profiles', 'photo_url', "varchar(255) NOT NULL DEFAULT ''");
 	epc_erp_schema_add_column_if_missing($db, 'epc_pf_cases', 'current_location', "varchar(80) NOT NULL DEFAULT ''");
 	epc_erp_schema_add_column_if_missing($db, 'epc_pf_case_steps', 'location', "varchar(80) NOT NULL DEFAULT ''");
+}
+
+/** Photo/avatar URL for a person: stored profile photo if present, else a deterministic generated face. */
+function epc_pf_avatar_url(string $name, string $photo = ''): string
+{
+	$photo = trim($photo);
+	if ($photo !== '') { return $photo; }
+	$seed = rawurlencode($name !== '' ? $name : 'staff');
+	return 'https://api.dicebear.com/7.x/avataaars/svg?radius=50&backgroundType=gradientLinear&seed=' . $seed;
+}
+
+/** Photo URL for a user id (looks up their staff profile). */
+function epc_pf_user_photo(PDO $db, int $userId): string
+{
+	if ($userId <= 0) { return ''; }
+	static $cache = array();
+	if (array_key_exists($userId, $cache)) { return $cache[$userId]; }
+	$photo = '';
+	try {
+		$st = $db->prepare("SELECT `photo_url` FROM `epc_erp_staff_profiles` WHERE `user_id` = ? LIMIT 1");
+		$st->execute(array($userId));
+		$photo = (string) $st->fetchColumn();
+	} catch (Exception $e) {
+	}
+	$cache[$userId] = $photo;
+	return $photo;
 }
 
 /** Distinct work locations/branches, drawn from seeded/real staff. */
@@ -617,6 +644,7 @@ function epc_pf_orgmap_data(PDO $db): array
 			'location' => (string) ($c['current_location'] ?? ''),
 			'assigneeId' => (int) $c['current_assignee_id'],
 			'assignee' => (string) ($c['assignee_name'] ?? ''),
+			'avatar' => epc_pf_avatar_url((string) ($c['assignee_name'] ?? ''), epc_pf_user_photo($db, (int) $c['current_assignee_id'])),
 			'overdue' => (bool) $c['overdue'],
 			'started' => (int) $c['started_at'],
 		);
@@ -667,7 +695,7 @@ function epc_pf_workforce_data(PDO $db): array
 
 	$staff = array();
 	try {
-		$rows = $db->query("SELECT `user_id`,`display_name`,`department_code`,`job_title`,`location` FROM `epc_erp_staff_profiles` WHERE `active` = 1 ORDER BY `department_code`, `display_name`")->fetchAll(PDO::FETCH_ASSOC);
+		$rows = $db->query("SELECT `user_id`,`display_name`,`department_code`,`job_title`,`location`,`photo_url` FROM `epc_erp_staff_profiles` WHERE `active` = 1 ORDER BY `department_code`, `display_name`")->fetchAll(PDO::FETCH_ASSOC);
 	} catch (Exception $e) {
 		$rows = array();
 	}
@@ -683,6 +711,7 @@ function epc_pf_workforce_data(PDO $db): array
 			'deptName' => $deptName((string) $r['department_code']),
 			'title' => (string) $r['job_title'],
 			'location' => (string) $r['location'],
+			'avatar' => epc_pf_avatar_url((string) $r['display_name'], (string) ($r['photo_url'] ?? '')),
 			'busy' => count($tasks),
 			'tasks' => $tasks,
 		);

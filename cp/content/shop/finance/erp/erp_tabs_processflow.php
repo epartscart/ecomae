@@ -72,6 +72,18 @@ if ($pfCaseId > 0):
 				return function_exists('epc_erp_staff_department_name') ? (epc_erp_staff_department_name($code) ?: ucfirst($code)) : ucfirst($code);
 			};
 			$curLoc = (string) ($case['current_location'] ?? '');
+			// staff photo/avatar chip
+			$avatarHtml = function ($name, $userId = 0, $size = 22) use ($db_link) {
+				$name = (string) $name;
+				if ($name === '' || $name === '—') { return ''; }
+				$url = epc_pf_avatar_url($name, epc_pf_user_photo($db_link, (int) $userId));
+				$ini = '';
+				$parts = preg_split('/\s+/', trim($name));
+				if (!empty($parts)) { $ini = strtoupper(substr($parts[0], 0, 1) . (count($parts) > 1 ? substr($parts[count($parts) - 1], 0, 1) : '')); }
+				$h = 0; for ($i = 0; $i < strlen($name); $i++) { $h = ($h * 31 + ord($name[$i])) % 360; }
+				$fs = (int) round($size * 0.38);
+				return '<span class="pf-av" style="width:' . (int) $size . 'px;height:' . (int) $size . 'px;font-size:' . $fs . 'px;background:hsl(' . $h . ',55%,45%);">' . epc_erp_h($ini) . '<img src="' . epc_erp_h($url) . '" alt="" onerror="this.remove()"></span>';
+			};
 
 			// status of an aggregated node from its child steps
 			$aggStatus = function (array $kids) {
@@ -89,7 +101,7 @@ if ($pfCaseId > 0):
 				return $t > 0 ? date('d M H:i', $t) : '';
 			};
 			// build the four zoom levels from the same timeline
-			$buildLevel = function ($level) use ($timeline, $deptName, $aggStatus, $nodeWhen, $case, $curLoc) {
+			$buildLevel = function ($level) use ($timeline, $deptName, $aggStatus, $nodeWhen, $case, $curLoc, $avatarHtml) {
 				$nodes = array();
 				if ($level === 'task') {
 					foreach ($timeline as $s) {
@@ -97,6 +109,7 @@ if ($pfCaseId > 0):
 							'title' => ((string) ($s['location'] ?? '')) ?: '—',
 							'sub' => $s['name'],
 							'meta' => trim($deptName((string) $s['department']) . ($s['assignee_name'] ? ' · ' . $s['assignee_name'] : ''), ' ·'),
+							'avatar' => $avatarHtml((string) $s['assignee_name'], (int) $s['assignee_id'], 30),
 							'when' => ((int) $s['completed_at'] > 0 ? date('d M H:i', (int) $s['completed_at']) : ((int) $s['activated_at'] > 0 ? date('d M H:i', (int) $s['activated_at']) : '')),
 							'status' => $s['status'],
 						);
@@ -168,6 +181,9 @@ if ($pfCaseId > 0):
 			.pf-loc{color:#f1f5f9;font-weight:600;font-size:12px;margin-top:8px;}
 			.pf-step{color:#cbd5e1;font-size:11px;margin-top:2px;}
 			.pf-meta{color:#94a3b8;font-size:10px;margin-top:1px;}
+			.pf-av{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:700;overflow:hidden;vertical-align:middle;}
+			.pf-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+			.pf-node .pf-av{margin:4px auto 0;}
 			.pf-node.is-active .pf-loc{color:#38bdf8;}
 			.pf-badge-here{display:inline-block;background:#38bdf8;color:#0f172a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-top:4px;letter-spacing:.5px;}
 			</style>
@@ -179,7 +195,7 @@ if ($pfCaseId > 0):
 					<?php elseif ($case['status'] === 'open'): ?>
 						Currently at <strong><?php echo epc_erp_h($curLoc ?: 'Unassigned'); ?></strong>
 						· <?php echo epc_erp_h($deptName((string) $case['current_department'])); ?>
-						· with <strong><?php echo epc_erp_h($case['assignee_name']); ?></strong>
+						· with <?php echo $avatarHtml((string) $case['assignee_name'], (int) $case['current_assignee_id'], 24); ?> <strong><?php echo epc_erp_h($case['assignee_name']); ?></strong>
 					<?php else: ?>
 						Route stopped (<?php echo epc_erp_h(strtoupper($case['status'])); ?>).
 					<?php endif; ?>
@@ -214,6 +230,7 @@ if ($pfCaseId > 0):
 								<div class="pf-dot <?php echo $dm[0]; ?>"><i class="fa <?php echo $dm[1]; ?>"></i></div>
 								<div class="pf-loc"><?php echo epc_erp_h($nd['title']); ?></div>
 								<div class="pf-step"><?php echo epc_erp_h((string) $nd['sub']); ?></div>
+								<?php if (!empty($nd['avatar'])): ?><?php echo $nd['avatar']; ?><?php endif; ?>
 								<?php if (!empty($nd['meta'])): ?><div class="pf-meta"><?php echo epc_erp_h((string) $nd['meta']); ?></div><?php endif; ?>
 								<?php if (!empty($nd['when'])): ?><div class="pf-meta"><?php echo epc_erp_h((string) $nd['when']); ?></div><?php endif; ?>
 								<?php if ($nd['status'] === 'active'): ?><span class="pf-badge-here">YOU ARE HERE</span><?php endif; ?>
@@ -254,7 +271,7 @@ if ($pfCaseId > 0):
 					<tr class="<?php echo $s['status'] === 'active' ? 'info' : ''; ?>">
 						<td><?php echo (int)$s['step_no']; ?></td>
 						<td><?php echo epc_erp_h($s['name']); ?></td>
-						<td><?php echo epc_erp_h($s['assignee_name']); ?></td>
+						<td><?php echo $avatarHtml((string) $s['assignee_name'], (int) $s['assignee_id'], 20); ?> <?php echo epc_erp_h($s['assignee_name']); ?></td>
 						<td><?php echo epc_erp_h(ucfirst($s['status'])); ?></td>
 						<td><?php echo epc_erp_h($s['acted_by_name'] ?: '—'); ?></td>
 						<td><?php echo (int)$s['completed_at'] > 0 ? epc_erp_h(date('Y-m-d H:i', (int)$s['completed_at'])) : '—'; ?></td>
@@ -334,6 +351,9 @@ elseif ($pfView === 'orgmap'):
 	.pf-om-conn.flow .dot{animation:pfmove 1.6s linear infinite;}
 	@keyframes pfmove{0%{left:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{left:38px;opacity:0;}}
 	.pf-om-empty-lane{color:#94a3b8;font-size:12px;padding:10px;}
+	.pf-av{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:700;overflow:hidden;flex:0 0 auto;vertical-align:middle;}
+	.pf-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+	.pf-om-emp .r{align-items:center;gap:5px;}
 	</style>
 
 	<div class="pf-om-bar">
@@ -418,8 +438,8 @@ elseif ($pfView === 'orgmap'):
 				var node={key:'d'+i+'_'+st.dept, title:st.deptName, sub:st.names.length+' step'+(st.names.length>1?'s':''), dept:st.dept, count:cs.length, cases:cs};
 				if(level==='user'){
 					var by={};
-					cs.forEach(function(c){ var k=c.assignee||'Unassigned'; by[k]=(by[k]||0)+1; });
-					node.emp=Object.keys(by).map(function(k){return {name:k,count:by[k]};}).sort(function(a,b){return b.count-a.count;});
+					cs.forEach(function(c){ var k=c.assignee||'Unassigned'; if(!by[k])by[k]={name:k,count:0,avatar:c.avatar}; by[k].count++; });
+					node.emp=Object.keys(by).map(function(k){return by[k];}).sort(function(a,b){return b.count-a.count;});
 				}
 				return node;
 			});
@@ -445,7 +465,7 @@ elseif ($pfView === 'orgmap'):
 					var col=n.isLoc?'#0891b2':(n.dept?colorFor(n.dept):'#475569');
 					var emp='';
 					if(state.level==='user'){
-						if(n.emp && n.emp.length){ emp='<div class="pf-om-emp">'+n.emp.map(function(e){return '<div class="r"><span>'+esc(e.name)+'</span><b>'+e.count+'</b></div>';}).join('')+'</div>'; }
+						if(n.emp && n.emp.length){ emp='<div class="pf-om-emp">'+n.emp.map(function(e){return '<div class="r">'+av(e.name,e.avatar,20)+'<span style="flex:1;">'+esc(e.name)+'</span><b>'+e.count+'</b></div>';}).join('')+'</div>'; }
 						else { emp='<div class="pf-om-emp"><span class="none">No one holding work here</span></div>'; }
 					}
 					node.innerHTML='<div class="pf-om-nhd" style="background:'+col+';"><span>'+esc(n.title)+'</span><span class="pf-om-count">'+n.count+'</span></div>'+
@@ -488,7 +508,7 @@ elseif ($pfView === 'orgmap'):
 			document.getElementById('pf_om_scount').textContent=list.length+' case'+(list.length!==1?'s':'')+(state.node?' at selected node':'')+(state.node?' · ':'')+(state.node?'(click node again to clear)':'');
 			list.forEach(function(c){
 				var li=document.createElement('div'); li.className='pf-om-li';
-				li.innerHTML='<span class="pf-om-pri pri-'+esc(c.priority)+'"></span>'+
+				li.innerHTML='<span class="pf-om-pri pri-'+esc(c.priority)+'"></span>'+av(c.assignee,c.avatar,30)+
 					'<div style="flex:1;"><div class="t">'+esc(c.title)+'</div>'+
 					'<div class="m"><i class="fa fa-map-marker"></i> '+esc(c.location||'—')+' · '+esc(c.deptName)+(c.assignee?(' · '+esc(c.assignee)):'')+'</div>'+
 					'<div class="m">Step: '+esc(c.stepName||'—')+(c.overdue?' · <span class="od">OVERDUE</span>':'')+'</div></div>';
@@ -498,6 +518,9 @@ elseif ($pfView === 'orgmap'):
 			if(!list.length){ box.innerHTML='<div class="pf-om-empty-lane">No cases match.</div>'; }
 		}
 		function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+		function initials(n){ n=(n||'').trim().split(/\s+/); return ((n[0]||'?')[0]+(n.length>1?n[n.length-1][0]:'')).toUpperCase(); }
+		function avColor(n){ var h=0; n=n||''; for(var i=0;i<n.length;i++){h=(h*31+n.charCodeAt(i))%360;} return 'hsl('+h+',55%,45%)'; }
+		function av(name,url,sz){ sz=sz||22; var u=url||('https://api.dicebear.com/7.x/avataaars/svg?radius=50&seed='+encodeURIComponent(name||'staff')); return '<span class="pf-av" style="width:'+sz+'px;height:'+sz+'px;font-size:'+Math.round(sz*0.38)+'px;background:'+avColor(name)+';">'+esc(initials(name))+'<img src="'+esc(u)+'" alt="" onerror="this.remove()"></span>'; }
 
 		document.querySelectorAll('#pf_om_level button').forEach(function(b){
 			b.addEventListener('click', function(){
@@ -547,6 +570,8 @@ elseif ($pfView === 'workforce'):
 	.pf-wf-tk:hover{color:#1d4ed8;}
 	.pf-wf-tk .s{color:#64748b;}
 	.pf-wf-tk .od{color:#dc2626;font-weight:600;}
+	.pf-av{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:700;overflow:hidden;flex:0 0 auto;}
+	.pf-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 	</style>
 
 	<div class="pf-wf-kpis">
@@ -584,6 +609,9 @@ elseif ($pfView === 'workforce'):
 		var staff = WF.staff || [];
 		var state = {group:'department', dept:'', loc:'', status:'', search:''};
 		function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+		function initials(n){ n=(n||'').trim().split(/\s+/); return ((n[0]||'?')[0]+(n.length>1?n[n.length-1][0]:'')).toUpperCase(); }
+		function avColor(n){ var h=0; n=n||''; for(var i=0;i<n.length;i++){h=(h*31+n.charCodeAt(i))%360;} return 'hsl('+h+',55%,45%)'; }
+		function av(name,url,sz){ sz=sz||34; var u=url||('https://api.dicebear.com/7.x/avataaars/svg?radius=50&seed='+encodeURIComponent(name||'staff')); return '<span class="pf-av" style="width:'+sz+'px;height:'+sz+'px;font-size:'+Math.round(sz*0.36)+'px;background:'+avColor(name)+';">'+esc(initials(name))+'<img src="'+esc(u)+'" alt="" onerror="this.remove()"></span>'; }
 
 		// populate filters
 		var depts={}, locs={};
@@ -622,9 +650,11 @@ elseif ($pfView === 'workforce'):
 					return '<div class="pf-wf-tk" data-case="'+t.id+'"><i class="fa fa-circle" style="font-size:6px;vertical-align:middle;"></i> '+esc(t.title)+' <span class="s">· '+esc(t.step||'')+'</span>'+(t.overdue?' <span class="od">!</span>':'')+'</div>';
 				}).join('')+'</div>';
 			}
-			return '<div class="pf-wf-card '+cls+'"><div class="pf-wf-nm"><span>'+esc(s.name)+'</span>'+st+'</div>'+
+			var clickable=s.busy>0?(' data-case="'+s.tasks[0].id+'" style="cursor:pointer;"'):'';
+			return '<div class="pf-wf-card '+cls+'"'+clickable+'><div style="display:flex;gap:8px;align-items:flex-start;">'+av(s.name,s.avatar,36)+
+				'<div style="flex:1;min-width:0;"><div class="pf-wf-nm"><span>'+esc(s.name)+'</span>'+st+'</div>'+
 				'<div class="pf-wf-meta">'+esc(s.title||'')+'</div>'+
-				'<div class="pf-wf-meta"><i class="fa fa-building-o"></i> '+esc(s.deptName)+' · <i class="fa fa-map-marker"></i> '+esc(s.location||'—')+'</div>'+tasks+'</div>';
+				'<div class="pf-wf-meta"><i class="fa fa-building-o"></i> '+esc(s.deptName)+' · <i class="fa fa-map-marker"></i> '+esc(s.location||'—')+'</div></div></div>'+tasks+'</div>';
 		}
 		function groupKeyList(list){
 			var groups={};
@@ -656,7 +686,8 @@ elseif ($pfView === 'workforce'):
 					'<div class="pf-wf-grid">'+arr.map(card).join('')+'</div>';
 				body.appendChild(g);
 			});
-			body.querySelectorAll('.pf-wf-tk').forEach(function(t){ t.addEventListener('click', function(){ window.location.href=CASE_BASE+t.getAttribute('data-case'); }); });
+			body.querySelectorAll('.pf-wf-tk').forEach(function(t){ t.addEventListener('click', function(e){ e.stopPropagation(); window.location.href=CASE_BASE+t.getAttribute('data-case'); }); });
+			body.querySelectorAll('.pf-wf-card[data-case]').forEach(function(c){ c.addEventListener('click', function(){ window.location.href=CASE_BASE+c.getAttribute('data-case'); }); });
 		}
 		document.querySelectorAll('#wf_group button').forEach(function(b){ b.addEventListener('click', function(){ document.querySelectorAll('#wf_group button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); state.group=b.getAttribute('data-g'); render(); }); });
 		dsel.addEventListener('change', function(e){ state.dept=e.target.value; render(); });
