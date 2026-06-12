@@ -376,6 +376,8 @@ check('Audit notes have figure build-ups with comparatives', $missNote === array
 check('Audit notes reconcile (PPE movement ties to closing NBV)', strpos($audit['body'], 'Closing net book value') !== false && strpos($audit['body'], 'Opening net book value') !== false, 'recon');
 // not-applicable standards are presented in structure (not bare)
 check('Not-applicable standards presented in structure', strpos($audit['body'], 'Standards considered but not applicable') !== false && strpos($audit['body'], 'What the standard covers') !== false && strpos($audit['body'], 'If it applied') !== false && strpos($audit['body'], 'IFRS 3') !== false && strpos($audit['body'], 'IAS 41') !== false, 'na structured');
+// notes cite policy, basis & procedure with standard + law references
+check('Applied notes carry policy/basis/procedure + law references', strpos($audit['body'], 'Accounting policy, basis &amp; procedure') !== false && strpos($audit['body'], 'IFRS 15.31') !== false && strpos($audit['body'], 'IAS 16.7') !== false && strpos($audit['body'], 'Federal Decree-Law 47/2022') !== false && strpos($audit['body'], 'Federal Decree-Law 33/2021') !== false, 'policy refs');
 
 // ---- Off-system IFRS financial-statements import (template + builder) ----
 $finTpl = epc_ext_import_template_csv('fin');
