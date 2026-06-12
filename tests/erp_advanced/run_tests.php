@@ -269,6 +269,20 @@ check('UAE corp filing renders complete format (live)', !empty($corpRep['body'])
 $customsRep = epc_ext_report_build($db, 'customs__customs_declaration', 'AE', '2026-01-01', '2026-12-31');
 check('UAE customs declaration has HS/CIF/duty schedule', strpos($customsRep['body'], 'HS code') !== false && strpos($customsRep['body'], 'CIF value') !== false, 'customs schedule present');
 
+// Per-report reporting period model
+check('VAT period type = quarter', epc_ext_report_period_type('tax', 'tax__vat_return') === 'quarter', epc_ext_report_period_type('tax', 'tax__vat_return'));
+check('CT period type = year', epc_ext_report_period_type('tax', 'tax__corporate_income_tax_return') === 'year', epc_ext_report_period_type('tax', 'tax__corporate_income_tax_return'));
+check('WPS period type = month', epc_ext_report_period_type('hr', 'hr__wage_protection_reporting') === 'month', epc_ext_report_period_type('hr', 'hr__wage_protection_reporting'));
+$pq = epc_ext_resolve_period('quarter', '2026-Q2', mktime(0, 0, 0, 6, 15, 2026));
+check('Quarter Q2-2026 resolves Apr 1 – Jun 30', date('Y-m-d', $pq['from']) === '2026-04-01' && date('Y-m-d', $pq['to']) === '2026-06-30' && $pq['label'] === 'Q2 2026', $pq['label'] . ' ' . date('Y-m-d', $pq['from']) . '..' . date('Y-m-d', $pq['to']));
+$py = epc_ext_resolve_period('year', '2025', mktime(0, 0, 0, 6, 15, 2026));
+check('FY2025 resolves Jan 1 – Dec 31', date('Y-m-d', $py['from']) === '2025-01-01' && date('Y-m-d', $py['to']) === '2025-12-31' && $py['label'] === 'FY2025', $py['label']);
+$pm = epc_ext_resolve_period('month', '2026-02', mktime(0, 0, 0, 6, 15, 2026));
+check('Feb 2026 resolves last day 28', date('Y-m-d', $pm['to']) === '2026-02-28', date('Y-m-d', $pm['to']));
+check('Period offers preset options', count($pq['options']) >= 4 && count($py['options']) >= 4, count($pq['options']) . '/' . count($py['options']));
+$pbad = epc_ext_resolve_period('quarter', 'garbage', mktime(0, 0, 0, 6, 15, 2026));
+check('Invalid period falls back to current', $pbad['token'] === '2026-Q2', $pbad['token']);
+
 echo "\n========================================\n";
 echo "RESULT: $pass_n passed, $fail_n failed\n";
 echo "========================================\n";

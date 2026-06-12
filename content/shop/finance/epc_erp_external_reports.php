@@ -586,3 +586,129 @@ if (!function_exists('epc_ext_report_frequency')) {
         return $map[$cat] ?? 'Periodic / on event';
     }
 }
+
+if (!function_exists('epc_ext_report_period_type')) {
+    /**
+     * The reporting-period granularity for a given report — so each return is
+     * scoped to its own statutory period (VAT = tax quarter, CT = financial
+     * year, WPS/payroll = month, financial statements = year, etc.).
+     *
+     * @return string one of 'month' | 'quarter' | 'year'
+     */
+    function epc_ext_report_period_type(string $cat, string $key): string
+    {
+        $k = strtolower($key);
+        // Key-level overrides (most specific first).
+        if (strpos($k, 'vat_return') !== false || strpos($k, 'gst_return') !== false
+            || strpos($k, 'sales_tax') !== false || strpos($k, 'use_tax') !== false) {
+            return 'quarter';
+        }
+        if (strpos($k, 'corporate_income_tax') !== false || strpos($k, 'corporate_tax') !== false
+            || strpos($k, 'transfer_pricing') !== false || strpos($k, 'country_by_country') !== false
+            || strpos($k, 'capital_gains') !== false || strpos($k, 'annual_return') !== false
+            || strpos($k, 'annual_financial') !== false || strpos($k, 'consolidated') !== false) {
+            return 'year';
+        }
+        if (strpos($k, 'interim') !== false) {
+            return 'quarter';
+        }
+        if (strpos($k, 'excise') !== false || strpos($k, 'withholding') !== false
+            || strpos($k, 'wage_protection') !== false || strpos($k, 'wps') !== false
+            || strpos($k, 'payroll') !== false || strpos($k, 'customs') !== false) {
+            return 'month';
+        }
+        // Category defaults.
+        $map = array(
+            'tax' => 'quarter', 'fin' => 'year', 'audit' => 'year', 'hr' => 'month',
+            'aml' => 'month', 'bank' => 'quarter', 'ins' => 'quarter', 'sec' => 'quarter',
+            'customs' => 'month', 'esg' => 'year', 'env' => 'year', 'hs' => 'month',
+            'data' => 'month', 're' => 'year', 'health' => 'month', 'pharma' => 'year',
+            'telecom' => 'quarter', 'energy' => 'month', 'transport' => 'month',
+            'mfg' => 'month', 'consumer' => 'month', 'govt' => 'year', 'stats' => 'year',
+            'crisis' => 'month', 'sector' => 'year', 'corp' => 'year',
+        );
+        return $map[$cat] ?? 'year';
+    }
+}
+
+if (!function_exists('epc_ext_resolve_period')) {
+    /**
+     * Resolve a concrete reporting period (from/to timestamps + label + preset
+     * options) for a period type. The selected token is validated; otherwise the
+     * current period is used. So every report fetches only its own period's data.
+     *
+     * @return array{type:string,token:string,label:string,from:int,to:int,options:array<string,string>}
+     */
+    function epc_ext_resolve_period(string $type, ?string $sel, int $refTs = 0): array
+    {
+        $ref = $refTs > 0 ? $refTs : time();
+        $y = (int) date('Y', $ref);
+        $m = (int) date('n', $ref);
+
+        $mk = function (int $fy, int $fm, int $fd, int $ty, int $tm, int $td): array {
+            return array(mktime(0, 0, 0, $fm, $fd, $fy), mktime(23, 59, 59, $tm, $td, $ty));
+        };
+
+        $options = array();
+        $build = function (string $tok) use ($type, $mk): array {
+            if ($type === 'month') {
+                $yy = (int) substr($tok, 0, 4);
+                $mm = (int) substr($tok, 5, 2);
+                $last = (int) date('t', mktime(0, 0, 0, $mm, 1, $yy));
+                list($f, $t) = $mk($yy, $mm, 1, $yy, $mm, $last);
+                return array('label' => date('M Y', $f), 'from' => $f, 'to' => $t);
+            }
+            if ($type === 'quarter') {
+                $yy = (int) substr($tok, 0, 4);
+                $q = (int) substr($tok, 6, 1);
+                $fm = ($q - 1) * 3 + 1;
+                $tm = $fm + 2;
+                $last = (int) date('t', mktime(0, 0, 0, $tm, 1, $yy));
+                list($f, $t) = $mk($yy, $fm, 1, $yy, $tm, $last);
+                return array('label' => 'Q' . $q . ' ' . $yy, 'from' => $f, 'to' => $t);
+            }
+            $yy = (int) substr($tok, 0, 4);
+            list($f, $t) = $mk($yy, 1, 1, $yy, 12, 31);
+            return array('label' => 'FY' . $yy, 'from' => $f, 'to' => $t);
+        };
+
+        // Build the option list (current period first, then previous ones).
+        if ($type === 'month') {
+            for ($i = 0; $i < 12; $i++) {
+                $tok = date('Y-m', mktime(0, 0, 0, $m - $i, 1, $y));
+                $options[$tok] = $build($tok)['label'];
+            }
+            $cur = date('Y-m', $ref);
+        } elseif ($type === 'quarter') {
+            $cq = (int) ceil($m / 3);
+            for ($i = 0; $i < 6; $i++) {
+                $qq = $cq - $i;
+                $yy = $y;
+                while ($qq <= 0) { $qq += 4; $yy--; }
+                $tok = $yy . '-Q' . $qq;
+                $options[$tok] = $build($tok)['label'];
+            }
+            $cur = $y . '-Q' . $cq;
+        } else {
+            for ($i = 0; $i < 5; $i++) {
+                $tok = (string) ($y - $i);
+                $options[$tok] = $build($tok)['label'];
+            }
+            $cur = (string) $y;
+        }
+
+        $tok = ($sel !== null && $sel !== '' && isset($options[$sel])) ? $sel : $cur;
+        if (!isset($options[$tok])) {
+            $options = array($tok => $build($tok)['label']) + $options;
+        }
+        $r = $build($tok);
+        return array(
+            'type' => $type,
+            'token' => $tok,
+            'label' => $r['label'],
+            'from' => $r['from'],
+            'to' => $r['to'],
+            'options' => $options,
+        );
+    }
+}

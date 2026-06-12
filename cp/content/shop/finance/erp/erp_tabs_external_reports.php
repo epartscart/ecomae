@@ -96,9 +96,19 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 	$links = epc_ext_report_links($selRep, $repCountry);
 	$auth = $links['authority'];
 	$ifrs = $links['ifrs'];
-	$built = epc_ext_report_build($db_link, $selRep, $repCountry, $date_from, $date_to);
+
+	// Per-report reporting period (each return is scoped to its own statutory
+	// period — VAT = tax quarter, CT = financial year, WPS = month, etc.).
+	$periodType = epc_ext_report_period_type((string) $def['cat'], $selRep);
+	$selPeriod = isset($_GET['period']) ? preg_replace('/[^0-9A-Za-z\-]/', '', (string) $_GET['period']) : '';
+	$period = epc_ext_resolve_period($periodType, $selPeriod, $date_to ?: time());
+	$repFrom = $period['from'];
+	$repTo = $period['to'];
+
+	$built = epc_ext_report_build($db_link, $selRep, $repCountry, $repFrom, $repTo);
 	$fetched = isset($_GET['fetch']);
-	$fetchUrl = $repUrl($selRep) . '&rep_country=' . urlencode($repCountry) . '&fetch=' . time();
+	$fetchUrl = $repUrl($selRep) . '&rep_country=' . urlencode($repCountry) . '&period=' . urlencode($period['token']) . '&fetch=' . time();
+	$periodTypeLabel = array('month' => 'Monthly', 'quarter' => 'Tax quarter', 'year' => 'Annual (financial year)');
 	$co = epc_co_profile_get($db_link);
 	?>
 	<?php if ($isPreview): ?>
@@ -121,13 +131,25 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 			<?php if ($ifrs): ?>
 				<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($ifrs['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-book"></i> <?php echo epc_erp_h($ifrs['label']); ?></a>
 			<?php endif; ?>
+			<form method="get" class="form-inline" style="margin:0;display:inline-block;">
+				<?php foreach (array('area' => 'regrep', 'tab' => 'ext_reports', 'from' => $date_from_str, 'to' => $date_to_str, 'cat' => (string) $def['cat'], 'rep' => $selRep, 'rep_country' => $repCountry) as $k => $v): ?>
+					<input type="hidden" name="<?php echo epc_erp_h($k); ?>" value="<?php echo epc_erp_h((string) $v); ?>">
+				<?php endforeach; ?>
+				<label style="font-size:12px;margin:0 6px;"><i class="fa fa-calendar"></i> Reporting period</label>
+				<select name="period" class="form-control input-sm" onchange="this.form.submit()">
+					<?php foreach ($period['options'] as $tok => $lbl): ?>
+						<option value="<?php echo epc_erp_h((string) $tok); ?>" <?php echo $tok === $period['token'] ? 'selected' : ''; ?>><?php echo epc_erp_h((string) $lbl); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</form>
 			<?php if ($fetched): ?>
 				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.</span>
 			<?php endif; ?>
 		</div>
 		<div style="margin-top:8px;font-size:12px;" class="text-muted">
 			<strong>Governing law:</strong> <?php echo epc_erp_h($auth['law']); ?>
-			&nbsp;·&nbsp; <strong>Frequency:</strong> <?php echo epc_erp_h(epc_ext_report_frequency((string) $def['cat'])); ?>
+			&nbsp;·&nbsp; <strong>Frequency:</strong> <?php echo epc_erp_h($periodTypeLabel[$periodType] ?? epc_ext_report_frequency((string) $def['cat'])); ?>
+			&nbsp;·&nbsp; <strong>Period:</strong> <?php echo epc_erp_h($period['label'] . ' (' . date('d M Y', $repFrom) . ' — ' . date('d M Y', $repTo) . ')'); ?>
 			&nbsp;·&nbsp; <?php echo $built['live'] ? '<span class="label label-success">Live data</span>' : '<span class="label label-default">Formatted template</span>'; ?>
 		</div>
 	</div>
@@ -144,7 +166,8 @@ if ($selRep !== '' && isset($registry[$selRep])) {
 			<div style="text-align:right;">
 				<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Statutory report</div>
 				<div style="font-weight:700;"><?php echo epc_erp_h($repCountryName); ?></div>
-				<div class="text-muted" style="font-size:12px;"><?php echo epc_erp_h($date_from_str . '  —  ' . $date_to_str); ?></div>
+				<div style="font-size:12px;color:#1d2740;font-weight:600;">Reporting period: <?php echo epc_erp_h($period['label']); ?></div>
+				<div class="text-muted" style="font-size:12px;"><?php echo epc_erp_h(date('d M Y', $repFrom) . '  —  ' . date('d M Y', $repTo)); ?></div>
 			</div>
 		</div>
 
