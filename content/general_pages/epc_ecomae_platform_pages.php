@@ -440,10 +440,13 @@ function epc_ecomae_platform_page_pricing()
 			?>
 		<div class="<?php echo $cls; ?>">
 			<h4><?php echo epc_ecomae_h($plan['name']); ?></h4>
+			<?php if (!empty($plan['tagline'])) { ?>
+			<div style="font-size:13px;color:var(--epm-muted);margin:-4px 0 8px"><?php echo epc_ecomae_h($plan['tagline']); ?></div>
+			<?php } ?>
 			<?php if ($plan['price_aed'] === null) { ?>
 			<div class="amt">Custom</div>
 			<?php } else { ?>
-			<div class="amt">AED <?php echo (int) $plan['price_aed']; ?><small style="font-size:14px;font-weight:600;color:var(--epm-muted)"> / <?php echo epc_ecomae_h($plan['period']); ?></small></div>
+			<div class="amt">AED <?php echo number_format((int) $plan['price_aed']); ?><small style="font-size:14px;font-weight:600;color:var(--epm-muted)"> / <?php echo epc_ecomae_h($plan['period']); ?></small></div>
 			<?php } ?>
 			<ul><?php foreach ($plan['items'] as $item) { ?><li><?php echo epc_ecomae_h($item); ?></li><?php } ?></ul>
 			<div class="epm-cta" style="margin-top:14px">
@@ -452,7 +455,43 @@ function epc_ecomae_platform_page_pricing()
 		</div>
 		<?php } ?>
 	</div>
-	<p style="color:var(--epm-muted);font-size:14px;margin-top:20px">Prices are indicative for operators — final commercial terms per client contract. All plans include SSL, tenant isolation, and Super CP onboarding tools.</p>
+	<p style="color:var(--epm-muted);font-size:14px;margin-top:20px">All plans include SSL, tenant isolation, country-driven compliance, unlimited users and BOS onboarding tools. Prices are indicative — final commercial terms per client contract.</p>
+	<?php
+	$bench = function_exists('epc_ecomae_platform_price_benchmark') ? epc_ecomae_platform_price_benchmark() : null;
+	if ($bench) { ?>
+	<div class="epm-section" style="margin-top:40px">
+		<div class="epm-badge">How we compare</div>
+		<h2 style="margin:8px 0 4px">Enterprise ERP &amp; commerce — without the enterprise bill</h2>
+		<p class="lead" style="margin-bottom:18px">The same multi-tenant, multi-vendor, multi-warehouse, multichannel control the big platforms charge per user for — flat per tenant, unlimited users, no implementation fee.</p>
+		<div style="overflow-x:auto">
+		<table class="epm-cmp" style="width:100%;border-collapse:collapse;font-size:14px">
+			<thead>
+				<tr style="text-align:left;border-bottom:2px solid rgba(148,163,184,.25)">
+					<th style="padding:10px 12px">Platform</th>
+					<th style="padding:10px 12px">Indicative price</th>
+					<th style="padding:10px 12px">Model</th>
+					<th style="padding:10px 12px">Setup</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach ($bench['rows'] as $r) {
+				$rowStyle = !empty($r['highlight'])
+					? 'background:linear-gradient(90deg,rgba(2,132,199,.16),rgba(2,132,199,.04));font-weight:700'
+					: '';
+				?>
+				<tr style="border-bottom:1px solid rgba(148,163,184,.15);<?php echo $rowStyle; ?>">
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['name']); ?></td>
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['price']); ?></td>
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['model']); ?></td>
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['setup']); ?></td>
+				</tr>
+			<?php } ?>
+			</tbody>
+		</table>
+		</div>
+		<p style="color:var(--epm-muted);font-size:12px;margin-top:12px"><?php echo epc_ecomae_h($bench['note']); ?></p>
+	</div>
+	<?php } ?>
 	<?php echo epc_ecomae_platform_go_live_24_section(); ?>
 	<div class="epm-cta">
 		<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo">Try free demo first</a>

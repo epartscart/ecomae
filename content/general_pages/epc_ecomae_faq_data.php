@@ -606,7 +606,7 @@ function epc_ecomae_faq_modules(): array
 					'num' => 91,
 					'q' => 'What is the exact licensing model (e.g., monthly SaaS subscription, tier-based seats, or percentage fee of GMV)?',
 					'status' => 'Yes',
-					'a' => 'Monthly SaaS rental in AED: Starter AED 299, Business AED 599, Enterprise custom — see our pricing page. No GMV percentage in standard plans.',
+					'a' => 'Monthly SaaS rental in AED, per tenant with unlimited users: Launch AED 399, Growth AED 999, Scale AED 2,499, Enterprise/BOS Operator custom — see our pricing page. No GMV percentage in standard plans, and no per-seat or implementation fees.',
 				),
 				array(
 					'num' => 92,

@@ -96,16 +96,16 @@ function epc_ecomae_h($v)
 	<h3 id="pricing" style="margin-top:32px"><i class="fa fa-tags"></i> Typical plans</h3>
 	<div class="epc-ecomae-pricing">
 		<div class="epc-ecomae-price">
-			<h4>Starter</h4>
-			<p>Storefront + CP + orders<br>Separate DB · SSL</p>
+			<h4>Launch — AED 399/mo</h4>
+			<p>Storefront + CP + ERP-lite<br>Dedicated DB · SSL · unlimited users</p>
 		</div>
 		<div class="epc-ecomae-price featured">
-			<h4>Business</h4>
-			<p>+ ERP · Compliance · Workflows<br>Payments · Customer hub</p>
+			<h4>Growth — AED 999/mo</h4>
+			<p>+ Full ERP · country-driven VAT<br>Multi-warehouse/vendor · POS · CRM</p>
 		</div>
 		<div class="epc-ecomae-price">
-			<h4>Enterprise</h4>
-			<p>+ Logistics · Marketing<br>Custom industry · SLA</p>
+			<h4>Scale / Enterprise</h4>
+			<p>+ Multichannel OMS · AI · API<br>BOS operator fleet · custom · SLA</p>
 		</div>
 	</div>
 
