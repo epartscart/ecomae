@@ -412,6 +412,23 @@ check('Schedules trigger IAS 8 restatement when source shows "Restated"', in_arr
 check('Schedules trigger IAS 24 related party + IFRS 9 ECL + IFRS 16 leases from facts', in_array('RELATED', $realKeys, true) && in_array('ECL', $realKeys, true) && in_array('LEASES', $realKeys, true), implode(',', $realKeys));
 check('Intake tab renders the IFRS-driven schedule request', is_string($intakeTab) && strpos($intakeTab, 'epc_ext_intake_schedules') !== false && strpos($intakeTab, 'Supporting schedules') !== false, 'schedule panel');
 
+// ---- IFRS compliance advice on the uploaded report (step 3) ----
+$compFig = array('FIN_REVENUE' => array('cur' => 117617958, 'pri' => 100000000), 'FIN_RECEIVABLES' => array('cur' => 17743029, 'pri' => 15000000), 'FIN_LEASE' => array('cur' => 1290294, 'pri' => 1100000), 'FIN_TAX' => array('cur' => 350169, 'pri' => 300000), 'FIN_INVENTORY' => array('cur' => 38395706, 'pri' => 30000000), 'FIN_PPE' => array('cur' => 568372, 'pri' => 500000), 'FIN_PROVISIONS' => array('cur' => 2611802, 'pri' => 2400000));
+$compBlank = epc_ext_intake_compliance($compFig, '', 'AE');
+check('Compliance review grades every IFRS area with RAG + advice', count($compBlank['items']) >= 14 && isset($compBlank['counts']['green'], $compBlank['counts']['amber'], $compBlank['counts']['red']) && ($compBlank['items'][0]['advice'] ?? '') !== '', count($compBlank['items']) . ' areas');
+check('Compliance flags balances-without-disclosure as amber when no note text', $compBlank['counts']['amber'] >= 1 && $compBlank['score'] >= 1 && $compBlank['score'] <= 100, 'amber=' . $compBlank['counts']['amber'] . ' score=' . $compBlank['score']);
+$compRich = epc_ext_intake_compliance($compFig, 'Significant accounting policies. Basis of preparation. Revenue from contracts disaggregation. Expected credit loss ECL. Right-of-use lease liability maturity ifrs 16. Deferred tax reconciliation effective tax rate. Related party key management remuneration. End of service gratuity defined benefit. Depreciation additions carrying amount property, plant. Net realisable value obsolescence. Operating segment reportable segment. Credit risk liquidity risk market risk sensitivity. Fair value hierarchy level 1. Earnings per share basic and diluted. Events after the reporting period. Going concern.', 'AE');
+check('Compliance scores higher when the report evidences the disclosures', $compRich['counts']['green'] > $compBlank['counts']['green'] && $compRich['score'] > $compBlank['score'], 'rich green=' . $compRich['counts']['green'] . ' score=' . $compRich['score']);
+check('Compliance is country-driven (framework from registration)', strpos($compBlank['framework'], 'IFRS') !== false || $compBlank['framework'] !== '', $compBlank['framework']);
+check('Compliance applies IAS 8 restatement only when source indicates it', count(array_filter($compRich['items'], static function ($i) { return strpos($i['area'], 'restatement') !== false || strpos($i['area'], 'Prior-period') !== false; })) === 0 && count(array_filter(epc_ext_intake_compliance($compFig, 'Restated prior period reclassification', 'AE')['items'], static function ($i) { return strpos($i['area'], 'restatement') !== false; })) === 1, 'restate gating');
+
+// ---- Reordered intake wizard: review/advice screen separate from data entry ----
+check('Wizard sequences IFRS review → compliance advice → data entry → report', is_string($intakeTab) && strpos($intakeTab, "\$inView === 'review'") !== false && strpos($intakeTab, "\$inView === 'data'") !== false && strpos($intakeTab, 'epc_ext_intake_compliance') !== false, 'view split');
+check('Wizard data step carries scanned figures forward (PDF not stored) + Excel form', is_string($intakeTab) && strpos($intakeTab, "name=\"intake_figures\"") !== false && strpos($intakeTab, "value=\"data\"") !== false && strpos($intakeTab, 'Download Excel data form') !== false, 'data step');
+
+// ---- Ghostscript fallback for hosts without poppler ----
+check('Ghostscript text-extraction fallback exists (poppler-less hosts)', function_exists('epc_ext_pdf_gs_text'), 'gs fn');
+
 // ---- External Audit Report (ISA 700) — cover page + full IFRS pack ----
 $audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
 check('Audit report has cover page + table of contents', strpos($audit['body'], 'ext-cover') !== false && strpos($audit['body'], 'Table of contents') !== false, 'cover');

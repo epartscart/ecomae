@@ -6098,6 +6098,13 @@ if (!function_exists('epc_ext_pdf_to_text')) {
                 proc_close($proc);
             }
         }
+        // Hosts without poppler can still extract a digital text layer with
+        // Ghostscript (txtwrite), which is far more commonly present. Try it
+        // before falling back to OCR so text-based PDFs read on those hosts too.
+        if (strlen(trim(preg_replace('/\s+/', '', $out))) < 40) {
+            $gsTxt = epc_ext_pdf_gs_text($path);
+            if (strlen(trim(preg_replace('/\s+/', '', $gsTxt))) >= 40) { return $gsTxt; }
+        }
         // Scanned/signed copies (e.g. ScanSnap output) carry no text layer, so
         // pdftotext returns blank. Fall back to OCR so the reader still works
         // on image-only PDFs. Degrades to '' (guided manual entry) if the OCR
@@ -6106,6 +6113,35 @@ if (!function_exists('epc_ext_pdf_to_text')) {
             $ocr = epc_ext_pdf_ocr($path);
             if (trim($ocr) !== '') { return $ocr; }
         }
+        return $out;
+    }
+}
+
+if (!function_exists('epc_ext_pdf_gs_text')) {
+    /**
+     * Extract a PDF's digital text layer with Ghostscript's txtwrite device.
+     * Used as a fallback on hosts that have Ghostscript but not poppler's
+     * pdftotext (a common production setup). Returns '' when gs is unavailable
+     * or the PDF has no text layer (scanned/image-only). Does not OCR.
+     */
+    function epc_ext_pdf_gs_text(string $path): string
+    {
+        if ($path === '' || !is_readable($path) || !function_exists('proc_open')) { return ''; }
+        $gs = epc_ext_locate_bin('gs');
+        if ($gs === '') { return ''; }
+        $base = function_exists('sys_get_temp_dir') ? sys_get_temp_dir() : '/tmp';
+        $tmp  = rtrim($base, '/') . '/epc_gs_' . bin2hex(random_bytes(6)) . '.txt';
+        $cmd  = escapeshellarg($gs) . ' -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=txtwrite '
+            . '-o ' . escapeshellarg($tmp) . ' ' . escapeshellarg($path);
+        $desc = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+        $proc = @proc_open($cmd, $desc, $pipes);
+        if (is_resource($proc)) {
+            stream_get_contents($pipes[1]); stream_get_contents($pipes[2]);
+            fclose($pipes[1]); fclose($pipes[2]);
+            proc_close($proc);
+        }
+        $out = is_readable($tmp) ? (string) @file_get_contents($tmp) : '';
+        @unlink($tmp);
         return $out;
     }
 }
@@ -6136,8 +6172,11 @@ if (!function_exists('epc_ext_pdf_ocr')) {
     {
         if ($path === '' || !is_readable($path) || !function_exists('proc_open')) { return ''; }
         $ppm  = epc_ext_locate_bin('pdftoppm');
+        $gs   = epc_ext_locate_bin('gs');
         $tess = epc_ext_locate_bin('tesseract');
-        if ($ppm === '' || $tess === '') { return ''; }
+        // Tesseract is mandatory; pages can be rasterised by poppler (pdftoppm)
+        // or, where poppler is absent, by Ghostscript.
+        if ($tess === '' || ($ppm === '' && $gs === '')) { return ''; }
         $run = static function (string $cmd): void {
             $desc = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
             $proc = @proc_open($cmd, $desc, $pipes);
@@ -6151,8 +6190,14 @@ if (!function_exists('epc_ext_pdf_ocr')) {
         if (!@mkdir($dir, 0700, true)) { return ''; }
         $out = '';
         try {
-            $run(escapeshellarg($ppm) . ' -r 200 -png -f 1 -l ' . max(1, (int) $maxPages)
-                . ' ' . escapeshellarg($path) . ' ' . escapeshellarg($dir . '/pg'));
+            if ($ppm !== '') {
+                $run(escapeshellarg($ppm) . ' -r 200 -png -f 1 -l ' . max(1, (int) $maxPages)
+                    . ' ' . escapeshellarg($path) . ' ' . escapeshellarg($dir . '/pg'));
+            } else {
+                $run(escapeshellarg($gs) . ' -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=png16m -r200 '
+                    . '-dFirstPage=1 -dLastPage=' . max(1, (int) $maxPages)
+                    . ' -o ' . escapeshellarg($dir . '/pg-%03d.png') . ' ' . escapeshellarg($path));
+            }
             $imgs = glob($dir . '/pg*.png') ?: array();
             sort($imgs, SORT_NATURAL);
             foreach ($imgs as $img) {
@@ -6488,6 +6533,156 @@ if (!function_exists('epc_ext_intake_schedules')) {
         if ($dividends)  { $rows[] = array('key' => 'DIVIDENDS',   'label' => 'Dividends declared / paid',                                   'std' => 'IAS 10', 'why' => 'Dividend movement detected.',                                                              'status' => 'triggered', 'prefilled' => $has('FIN_DIVIDENDS')); }
         if ($fvr)        { $rows[] = array('key' => 'FVOCI',       'label' => 'Fair-value reserve / investment fair-value hierarchy',        'std' => 'IFRS 13','why' => 'Fair-value reserve / investments detected — fair-value hierarchy required.',                'status' => 'triggered', 'prefilled' => true); }
         return $rows;
+    }
+}
+
+if (!function_exists('epc_ext_intake_compliance')) {
+    /**
+     * IFRS compliance review of the UPLOADED report (step 3). For each key
+     * disclosure area it grades how the uploaded accounts measure up against
+     * full IFRS — green (evidenced in the upload), amber (the balance exists but
+     * the required note/disclosure was not clearly evidenced), red (applicable
+     * but not found). Each item carries a plain-language finding + advice so the
+     * user understands what to improve before the new report is built. The
+     * grading is driven by IFRS requirements (applies-if), not by the sample.
+     *
+     * @param array<string,array{cur:float,pri:float}> $fig scanned figures
+     * @param string $rawText raw extracted/OCR text (used to look for note evidence)
+     * @param string $country registered country (drives framework/legal context)
+     * @return array{items:array<int,array{area:string,std:string,rag:string,finding:string,advice:string}>,counts:array{green:int,amber:int,red:int},score:int,framework:string}
+     */
+    function epc_ext_intake_compliance(array $fig, string $rawText, string $country): array
+    {
+        $has = static function (string $c) use ($fig): bool { return isset($fig[$c]) && (abs($fig[$c]['cur']) > 0.0001 || abs($fig[$c]['pri']) > 0.0001); };
+        $txt = ' ' . strtolower((string) $rawText) . ' ';
+        $kw  = static function (string $re) use ($txt, $rawText): bool { return $rawText !== '' && (bool) preg_match($re, $txt); };
+
+        // Each area: applies-if (always true unless gated), evidence keyword(s),
+        // and the balance that would make it applicable.
+        $spec = array(
+            array('area' => 'Primary statements present (SOFP, P&L/OCI, SOCE, cash flows)', 'std' => 'IAS 1/7',
+                'applies' => true, 'bal' => true,
+                'evid' => '/cash ?flow|changes in equity|comprehensive income|financial position|balance sheet/i',
+                'redAdv' => 'A full IFRS set needs all four primary statements plus notes — the new report will generate them.',
+                'amberAdv' => 'Confirm all four primary statements + notes are carried into the new report.',
+                'greenAdv' => 'Primary statements evidenced; the new report will reproduce the full set.'),
+            array('area' => 'Accounting-policies & basis-of-preparation note', 'std' => 'IAS 1/8',
+                'applies' => true, 'bal' => true,
+                'evid' => '/significant accounting polic|basis of preparation|material accounting polic/i',
+                'redAdv' => 'No clear accounting-policies note was evidenced — IAS 1 requires one; the new report includes it.',
+                'amberAdv' => 'Ensure the policies note reflects the standards actually applied.',
+                'greenAdv' => 'Accounting-policies note evidenced.'),
+            array('area' => 'Revenue recognition & disaggregation', 'std' => 'IFRS 15',
+                'applies' => true, 'bal' => $has('FIN_REVENUE'),
+                'evid' => '/disaggregat|revenue from contract|performance obligation|timing of revenue/i',
+                'redAdv' => 'Revenue present but no disaggregation/recognition note evidenced — IFRS 15 requires it.',
+                'amberAdv' => 'Add revenue disaggregation (by stream/geography/timing) to be IFRS 15 compliant.',
+                'greenAdv' => 'Revenue disaggregation evidenced.'),
+            array('area' => 'Expected credit losses on receivables', 'std' => 'IFRS 9',
+                'applies' => true, 'bal' => $has('FIN_RECEIVABLES'),
+                'evid' => '/expected credit loss|ecl|doubtful|loss allowance|impairment of (trade )?receivable/i',
+                'redAdv' => 'Receivables present but no ECL / loss-allowance note evidenced — IFRS 9 requires an ECL model.',
+                'amberAdv' => 'Provide receivables ageing + ECL matrix so the new report carries the IFRS 9 disclosure.',
+                'greenAdv' => 'ECL / impairment of receivables evidenced.'),
+            array('area' => 'Leases — right-of-use assets & maturity', 'std' => 'IFRS 16',
+                'applies' => true, 'bal' => $has('FIN_LEASE'),
+                'evid' => '/right[\s\-]*of[\s\-]*use|lease liabilit|ifrs ?16|lease maturit/i',
+                'redAdv' => 'No lease/right-of-use disclosure evidenced — if the entity leases premises/vehicles, IFRS 16 applies.',
+                'amberAdv' => 'Provide ROU movement + lease-liability maturity to complete the IFRS 16 note.',
+                'greenAdv' => 'Right-of-use / lease balances evidenced.'),
+            array('area' => 'Income tax reconciliation & deferred tax', 'std' => 'IAS 12',
+                'applies' => true, 'bal' => ($has('FIN_TAX') || $has('FIN_TAX_PAYABLE')),
+                'evid' => '/deferred tax|tax reconcil|effective tax rate|current tax/i',
+                'redAdv' => 'No tax reconciliation / deferred-tax note evidenced — IAS 12 requires it where tax applies (UAE CT now in force).',
+                'amberAdv' => 'Provide the tax reconciliation + deferred-tax movement for IAS 12 compliance.',
+                'greenAdv' => 'Tax reconciliation / deferred tax evidenced.'),
+            array('area' => 'Related-party & key-management disclosures', 'std' => 'IAS 24',
+                'applies' => true, 'bal' => true,
+                'evid' => '/related part|key management|kmp|due (from|to) (a )?related|managerial remuneration|shareholders.{0,6}current/i',
+                'redAdv' => 'No related-party / KMP disclosure evidenced — IAS 24 requires it for groups & owner-managed entities.',
+                'amberAdv' => 'Provide related-party balances/transactions + KMP remuneration.',
+                'greenAdv' => 'Related-party / KMP disclosure evidenced.'),
+            array('area' => 'Employee end-of-service / defined benefits', 'std' => 'IAS 19',
+                'applies' => true, 'bal' => $has('FIN_PROVISIONS'),
+                'evid' => '/end of service|gratuity|employee.{0,3}benefit|eosb|defined benefit/i',
+                'redAdv' => 'No employee-benefit (EOSB) movement evidenced — IAS 19 requires it where staff are employed.',
+                'amberAdv' => 'Provide the EOSB / defined-benefit movement and actuarial basis.',
+                'greenAdv' => 'Employee end-of-service provision evidenced.'),
+            array('area' => 'PPE movement reconciliation', 'std' => 'IAS 16',
+                'applies' => true, 'bal' => $has('FIN_PPE'),
+                'evid' => '/depreciation|additions|carrying amount|property, plant/i',
+                'redAdv' => 'PPE present but no cost/accumulated-depreciation movement evidenced — IAS 16 requires the reconciliation.',
+                'amberAdv' => 'Provide PPE movement (cost, additions, disposals, depreciation, NBV).',
+                'greenAdv' => 'PPE movement evidenced.'),
+            array('area' => 'Inventory measurement & write-downs', 'std' => 'IAS 2',
+                'applies' => true, 'bal' => $has('FIN_INVENTORY'),
+                'evid' => '/net realisable value|nrv|obsolesc|inventory.{0,12}provision|write[\s\-]*down/i',
+                'redAdv' => 'Inventory present but no NRV / obsolescence basis evidenced — IAS 2 requires it.',
+                'amberAdv' => 'Provide inventory ageing + NRV/obsolescence provision.',
+                'greenAdv' => 'Inventory measurement / write-down basis evidenced.'),
+            array('area' => 'Operating segments / business-unit breakdown', 'std' => 'IFRS 8',
+                'applies' => true, 'bal' => true,
+                'evid' => '/operating segment|segment (information|report|result)|business unit|reportable segment/i',
+                'redAdv' => 'No segment information evidenced — required where management reviews results by unit/division.',
+                'amberAdv' => 'If results are reviewed unit-wise, enter the multi-unit trial balance to drive the IFRS 8 note.',
+                'greenAdv' => 'Segment information evidenced.'),
+            array('area' => 'Financial instruments & risk (credit/liquidity/market)', 'std' => 'IFRS 7',
+                'applies' => true, 'bal' => true,
+                'evid' => '/credit risk|liquidity risk|market risk|financial (instrument|risk)|sensitivity analysis/i',
+                'redAdv' => 'No financial-instruments / risk disclosure evidenced — IFRS 7 requires credit/liquidity/market risk.',
+                'amberAdv' => 'The new report will add the IFRS 7 risk disclosures; confirm exposures.',
+                'greenAdv' => 'Financial-instruments / risk disclosure evidenced.'),
+            array('area' => 'Fair-value measurement hierarchy', 'std' => 'IFRS 13',
+                'applies' => true, 'bal' => true,
+                'evid' => '/fair value (hierarchy|measurement)|level [123]|fvoci|fvtpl/i',
+                'redAdv' => 'No fair-value hierarchy evidenced — required where assets/liabilities are measured at fair value.',
+                'amberAdv' => 'If any item is at fair value, provide the level 1/2/3 hierarchy.',
+                'greenAdv' => 'Fair-value hierarchy evidenced.'),
+            array('area' => 'Earnings per share', 'std' => 'IAS 33',
+                'applies' => true, 'bal' => true,
+                'evid' => '/earnings per share|\beps\b|basic and diluted/i',
+                'redAdv' => 'No EPS evidenced — required for entities with listed/quoted instruments (optional otherwise).',
+                'amberAdv' => 'Provide EPS if the entity has quoted instruments.',
+                'greenAdv' => 'Earnings per share evidenced.'),
+            array('area' => 'Events after the reporting period', 'std' => 'IAS 10',
+                'applies' => true, 'bal' => true,
+                'evid' => '/events after|subsequent event|after the reporting (period|date)/i',
+                'redAdv' => 'No subsequent-events note evidenced — IAS 10 requires the disclosure (even if "none").',
+                'amberAdv' => 'Confirm any events after year-end for the IAS 10 note.',
+                'greenAdv' => 'Events-after-reporting note evidenced.'),
+            array('area' => 'Going-concern assessment', 'std' => 'IAS 1',
+                'applies' => true, 'bal' => true,
+                'evid' => '/going concern/i',
+                'redAdv' => 'No going-concern statement evidenced — IAS 1 requires management to assess and disclose it.',
+                'amberAdv' => 'Confirm the going-concern basis for the new report.',
+                'greenAdv' => 'Going-concern assessment evidenced.'),
+            array('area' => 'Prior-period restatement / reclassification', 'std' => 'IAS 8',
+                'applies' => $kw('/restat|reclassif|prior[\s\-]*period (error|adjust)/i'), 'bal' => true,
+                'evid' => '/restat|reclassif|prior[\s\-]*period (error|adjust)/i',
+                'redAdv' => 'Restatement indicated — IAS 8 needs a restatement note + three-date statement of financial position.',
+                'amberAdv' => 'Provide the restatement reconciliation and opening (third) balance sheet.',
+                'greenAdv' => 'Restatement disclosure evidenced.'),
+        );
+
+        $items = array();
+        $counts = array('green' => 0, 'amber' => 0, 'red' => 0);
+        foreach ($spec as $s) {
+            if (empty($s['applies'])) { continue; }
+            $evid = $kw($s['evid']);
+            if ($evid) {
+                $rag = 'green'; $finding = 'Disclosure evidenced in the uploaded report.'; $advice = $s['greenAdv'];
+            } elseif (!empty($s['bal'])) {
+                $rag = 'amber'; $finding = 'The balance/area exists but the required IFRS disclosure was not clearly evidenced.'; $advice = $s['amberAdv'];
+            } else {
+                $rag = 'red'; $finding = 'Not evidenced in the uploaded report.'; $advice = $s['redAdv'];
+            }
+            $counts[$rag]++;
+            $items[] = array('area' => $s['area'], 'std' => $s['std'], 'rag' => $rag, 'finding' => $finding, 'advice' => $advice);
+        }
+        $total = max(1, count($items));
+        $score = (int) round((($counts['green'] + 0.5 * $counts['amber']) / $total) * 100);
+        $legal = epc_ext_intake_legal($country);
+        return array('items' => $items, 'counts' => $counts, 'score' => $score, 'framework' => (string) ($legal['Framework'] ?? 'IFRS'));
     }
 }
 

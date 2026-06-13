@@ -297,9 +297,11 @@ if ($selTool === 'import') {
 	$review     = null;
 	$reqRows    = array();
 	$inSchedules = array();
+	$inCompliance = null;
 	$inRawText  = '';
 	$inBuilt    = null;
 	$inExtras   = array();
+	$inView     = 'upload';   // upload → review (IFRS review + compliance advice) → data (entry form) → report
 	$inLegal    = epc_ext_intake_legal($inCountry);
 	$nclean = static function ($v): float {
 		$v = trim((string) $v);
@@ -353,6 +355,23 @@ if ($selTool === 'import') {
 		$review  = epc_ext_intake_review($scan['figures'], $inCountry);
 		$reqRows = epc_ext_intake_request_rows($scan['figures']);
 		$inSchedules = epc_ext_intake_schedules($scan['figures'], $inRawText);
+		$inCompliance = epc_ext_intake_compliance($scan['figures'], $inRawText, $inCountry);
+		$inView  = 'review';
+	} elseif ($inStage === 'data' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+		// Step 4 — the data-entry form. The PDF is never stored, so the figures
+		// the system read on the review step are carried forward as JSON and
+		// rebuilt here purely to pre-fill the comparative column.
+		$figJson = (string) ($_POST['intake_figures'] ?? '');
+		$figIn = json_decode($figJson, true);
+		if (is_array($figIn)) {
+			foreach ($figIn as $code => $vv) {
+				if (!is_array($vv)) { continue; }
+				$scan['figures'][(string) $code] = array('cur' => (float) ($vv['cur'] ?? 0), 'pri' => (float) ($vv['pri'] ?? 0));
+			}
+		}
+		$scan['found'] = count($scan['figures']);
+		$reqRows = epc_ext_intake_request_rows($scan['figures']);
+		$inView  = 'data';
 	} elseif ($inStage === 'build' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		$curIn  = (array) ($_POST['cur'] ?? array());
 		$priIn  = (array) ($_POST['pri'] ?? array());
@@ -398,11 +417,12 @@ if ($selTool === 'import') {
 			'fin' => $fin, 'values' => array(), 'vat' => array(),
 		);
 		$inBuilt = epc_ext_b_fin_summary($map, $inCcy);
+		$inView  = 'report';
 	}
 	$inBase = $baseUrl . $sep . 'tool=intake';
-	// step number for the indicator
-	$inStep = ($inBuilt !== null) ? 4 : (($review !== null) ? 2 : 1);
-	$stepName = array(1 => 'Upload prior financials', 2 => 'System review & data request', 3 => 'Provide new-year data', 4 => 'Compliant report');
+	// step number for the indicator (review + advice share the analysis screen)
+	$stepName = array(1 => 'Upload financials', 2 => 'IFRS review', 3 => 'Compliance advice', 4 => 'Provide new-year data', 5 => 'Compliant report');
+	$inStepMax = ($inView === 'report') ? 5 : (($inView === 'data') ? 4 : (($inView === 'review') ? 3 : 1));
 	?>
 	<p style="margin-bottom:10px;"><a href="<?php echo epc_erp_h($baseUrl); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
 	<div class="epc-erp-section" style="margin-bottom:14px;">
@@ -414,8 +434,8 @@ if ($selTool === 'import') {
 			Country &amp; law resolve from your registration: <strong><?php echo epc_erp_h($regName . ' (' . $regCountry . ')'); ?></strong>.
 		</p>
 		<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-			<?php foreach (array(1, 2, 3, 4) as $sn): ?>
-				<span class="label" style="font-size:12px;padding:6px 10px;<?php echo $sn <= $inStep ? 'background:#b3122a;color:#fff;' : 'background:#f1e3e6;color:#7a0c1c;'; ?>">
+			<?php foreach (array(1, 2, 3, 4, 5) as $sn): ?>
+				<span class="label" style="font-size:12px;padding:6px 10px;<?php echo $sn <= $inStepMax ? 'background:#b3122a;color:#fff;' : 'background:#f1e3e6;color:#7a0c1c;'; ?>">
 					<?php echo $sn; ?> · <?php echo epc_erp_h($stepName[$sn]); ?>
 				</span>
 			<?php endforeach; ?>
@@ -426,7 +446,7 @@ if ($selTool === 'import') {
 		<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> <?php echo epc_erp_h($inErr); ?></div>
 	<?php endif; ?>
 
-	<?php if ($inBuilt === null && $review === null): // -------- Step 1: upload ?>
+	<?php if ($inView === 'upload'): // -------- Step 1: upload ?>
 		<div class="epc-erp-section" style="margin-bottom:14px;">
 			<form method="post" enctype="multipart/form-data" action="<?php echo epc_erp_h($inBase); ?>">
 				<input type="hidden" name="intake_stage" value="review">
@@ -456,7 +476,7 @@ if ($selTool === 'import') {
 			</form>
 		</div>
 
-	<?php elseif ($review !== null): // -------- Step 2 + 3: review + data request ?>
+	<?php elseif ($inView === 'review'): // -------- Step 2 + 3: IFRS review + compliance advice ?>
 		<?php if ($inNotice !== ''): ?>
 			<div class="alert <?php echo $scan['found'] > 0 ? 'alert-success' : 'alert-warning'; ?>" style="font-size:12.5px;"><i class="fa fa-info-circle"></i> <?php echo epc_erp_h($inNotice); ?></div>
 		<?php endif; ?>
@@ -556,8 +576,82 @@ if ($selTool === 'import') {
 		</div>
 
 		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-balance-scale"></i> IFRS compliance advice — how your report measures up against full IFRS</h4>
+			<p class="text-muted" style="font-size:12px;">The system analysed your uploaded report against <strong><?php echo epc_erp_h($inCompliance['framework']); ?></strong> and your country's requirements. Each disclosure area is graded: <span class="label" style="background:#1a7f37;font-size:10px;">Compliant</span> evidenced in your report · <span class="label" style="background:#9a6700;font-size:10px;">Needs review</span> the balance exists but the required IFRS disclosure wasn't clearly evidenced · <span class="label" style="background:#b3122a;font-size:10px;">Gap</span> applicable under IFRS but not found. The new report closes these so it is fully IFRS-compliant even if the source wasn't.</p>
+			<div style="display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;">
+				<div style="flex:1;min-width:150px;border-left:4px solid #1a7f37;background:#f0faf3;padding:10px;border-radius:4px;"><div style="font-size:11px;color:#1a7f37;">Compliant</div><div style="font-size:20px;font-weight:800;color:#1a7f37;"><?php echo (int) $inCompliance['counts']['green']; ?></div></div>
+				<div style="flex:1;min-width:150px;border-left:4px solid #9a6700;background:#fbf6e9;padding:10px;border-radius:4px;"><div style="font-size:11px;color:#9a6700;">Needs review</div><div style="font-size:20px;font-weight:800;color:#9a6700;"><?php echo (int) $inCompliance['counts']['amber']; ?></div></div>
+				<div style="flex:1;min-width:150px;border-left:4px solid #b3122a;background:#fdeef0;padding:10px;border-radius:4px;"><div style="font-size:11px;color:#b3122a;">Gaps to close</div><div style="font-size:20px;font-weight:800;color:#b3122a;"><?php echo (int) $inCompliance['counts']['red']; ?></div></div>
+				<div style="flex:1;min-width:150px;border-left:4px solid #1d4e94;background:#e8f0fb;padding:10px;border-radius:4px;"><div style="font-size:11px;color:#1d4e94;">IFRS coverage score</div><div style="font-size:20px;font-weight:800;color:#1d4e94;"><?php echo (int) $inCompliance['score']; ?>%</div></div>
+			</div>
+			<table class="table table-condensed" style="font-size:12px;">
+				<thead><tr style="background:#7a0c1c;color:#fff;"><th>Disclosure area</th><th>Standard</th><th>Status</th><th>Finding &amp; advice (how it should be per IFRS)</th></tr></thead>
+				<tbody>
+				<?php foreach ($inCompliance['items'] as $ci):
+					$rc = $ci['rag'] === 'green' ? array('#1a7f37', 'Compliant') : ($ci['rag'] === 'amber' ? array('#9a6700', 'Needs review') : array('#b3122a', 'Gap'));
+				?>
+					<tr>
+						<td><?php echo epc_erp_h($ci['area']); ?></td>
+						<td><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h($ci['std']); ?></span></td>
+						<td><span class="label" style="background:<?php echo $rc[0]; ?>;font-size:10px;"><?php echo $rc[1]; ?></span></td>
+						<td class="text-muted" style="font-size:11px;"><?php echo epc_erp_h($ci['finding']); ?> <strong style="color:#7a0c1c;"><?php echo epc_erp_h($ci['advice']); ?></strong></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+
+		<?php if (!empty($inSchedules)):
+			$schReq = array(); $schTrig = array();
+			foreach ($inSchedules as $sc) { if (($sc['status'] ?? '') === 'triggered') { $schTrig[] = $sc; } else { $schReq[] = $sc; } }
+		?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-tasks"></i> Supporting schedules the system needs (driven by IFRS — not by your sample)</h4>
+			<p class="text-muted" style="font-size:12px;">These are the disclosure schedules an <strong>IFRS-compliant</strong> FY<?php echo (int) $inTargetY; ?> report requires. <span class="label label-danger" style="font-size:10px;">Required</span> apply to every report; <span class="label label-warning" style="font-size:10px;">Triggered</span> are switched on because the system detected the matching fact pattern in your uploaded accounts (so the report is compliant even if the source wasn't). Items marked <em>pre-filled</em> already have a figure lifted from your upload.</p>
+			<table class="table table-condensed" style="font-size:12px;">
+				<thead><tr style="background:#7a0c1c;color:#fff;"><th>Schedule</th><th>Standard</th><th>Status</th><th>Why the system asks</th></tr></thead>
+				<tbody>
+				<?php foreach (array_merge($schTrig, $schReq) as $sc): ?>
+					<tr>
+						<td><?php echo epc_erp_h($sc['label']); ?> <?php if (!empty($sc['prefilled'])): ?><span class="label label-success" style="font-size:9px;">pre-filled</span><?php endif; ?></td>
+						<td><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h($sc['std']); ?></span></td>
+						<td><?php echo ($sc['status'] === 'triggered') ? '<span class="label label-warning" style="font-size:10px;">Triggered</span>' : '<span class="label label-danger" style="font-size:10px;">Required</span>'; ?></td>
+						<td class="text-muted" style="font-size:11px;"><?php echo epc_erp_h($sc['why']); ?></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+			<div style="font-size:11px;color:#7a0c1c;background:#fdeef0;border-radius:4px;padding:8px 10px;">The IFRS Financials workbook upload already carries an input sheet for each of these — fill the buckets there, or the system derives them from the trial-balance totals where you don't.</div>
+		</div>
+		<?php endif; ?>
+
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<form method="post" action="<?php echo epc_erp_h($inBase); ?>">
+				<input type="hidden" name="intake_stage" value="data">
+				<input type="hidden" name="intake_target_y" value="<?php echo (int) $inTargetY; ?>">
+				<input type="hidden" name="intake_entity" value="<?php echo epc_erp_h($inEntity); ?>">
+				<input type="hidden" name="intake_units" value="<?php echo epc_erp_h($inUnitsRaw); ?>">
+				<input type="hidden" name="intake_figures" value="<?php echo epc_erp_h((string) json_encode($scan['figures'])); ?>">
+				<p class="text-muted" style="font-size:12px;margin-bottom:8px;">Reviewed the analysis above? Continue and the system hands you the exact <strong>data-entry form</strong> it needs to build the IFRS-compliant FY<?php echo (int) $inTargetY; ?> report — with your FY<?php echo (int) $inPriorY; ?> comparative pre-filled — or you can complete it in Excel and upload.</p>
+				<button type="submit" class="btn btn-primary btn-sm" style="background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-arrow-right"></i> Continue → provide the data the system needs</button>
+				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm">Start over</a>
+			</form>
+		</div>
+
+	<?php elseif ($inView === 'data'): // -------- Step 4: provide new-year data (system form or Excel) ?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
 			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-list-alt"></i> The data the system needs to build your FY<?php echo (int) $inTargetY; ?> report</h4>
-			<p class="text-muted" style="font-size:12px;">This is the system's <strong>Trial Balance request</strong> — only the lines the IFRS report needs. The <strong>FY<?php echo (int) $inPriorY; ?> (comparative)</strong> column is pre-filled from your uploaded report (edit if needed); enter the <strong>FY<?php echo (int) $inTargetY; ?></strong> figures. Add any extra accounts your new report has at the bottom — the system will analyse and include them.</p>
+			<p class="text-muted" style="font-size:12px;">This is the system's <strong>Trial Balance request</strong> — only the lines the IFRS report needs. The <strong>FY<?php echo (int) $inPriorY; ?> (comparative)</strong> column is pre-filled from your uploaded report (edit if needed); enter the <strong>FY<?php echo (int) $inTargetY; ?></strong> figures. Add any extra accounts your new report has at the bottom — the system will analyse and include them. Prefer Excel? Download the full IFRS workbook, fill it offline and upload it on the import screen.</p>
+			<div style="margin-bottom:10px;">
+				<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplFinX2','IFRS_financials_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> Download Excel data form (.xlsx)</button>
+				<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplFin2','IFRS_financials_import_template.csv')"><i class="fa fa-file-text-o"></i> CSV (summary only)</button>
+				<textarea id="epcTplFin2" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('fin')); ?></textarea>
+				<textarea id="epcTplFinX2" style="display:none;"><?php echo base64_encode(epc_ext_import_template_xlsx('fin')); ?></textarea>
+				<script>
+				if(typeof epcDlCsv!=='function'){function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob([t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}}
+				if(typeof epcDlB64!=='function'){function epcDlB64(id,fn){var el=document.getElementById(id);if(!el)return;var b64=(el.value!==undefined?el.value:el.textContent).replace(/\s+/g,'');var bin=atob(b64);var len=bin.length;var bytes=new Uint8Array(len);for(var i=0;i<len;i++){bytes[i]=bin.charCodeAt(i);}var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}}
+				</script>
+			</div>
 			<?php if ($multiUnit): ?>
 				<div class="alert alert-info" style="font-size:12px;"><i class="fa fa-sitemap"></i> Multi-unit mode: enter each line per business unit (<strong><?php echo epc_erp_h(implode(' · ', $inUnits)); ?></strong>). Use the <strong>Eliminations</strong> column for inter-unit balances (enter negatives). The <strong>Consolidated</strong> column totals live and is what drives the report.</div>
 			<?php endif; ?>
@@ -618,31 +712,7 @@ if ($selTool === 'import') {
 			</form>
 		</div>
 
-		<?php if (!empty($inSchedules)):
-			$schReq = array(); $schTrig = array();
-			foreach ($inSchedules as $sc) { if (($sc['status'] ?? '') === 'triggered') { $schTrig[] = $sc; } else { $schReq[] = $sc; } }
-		?>
-		<div class="epc-erp-section" style="margin-bottom:14px;">
-			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-tasks"></i> Supporting schedules the system needs (driven by IFRS — not by your sample)</h4>
-			<p class="text-muted" style="font-size:12px;">These are the disclosure schedules an <strong>IFRS-compliant</strong> FY<?php echo (int) $inTargetY; ?> report requires. <span class="label label-danger" style="font-size:10px;">Required</span> apply to every report; <span class="label label-warning" style="font-size:10px;">Triggered</span> are switched on because the system detected the matching fact pattern in your uploaded accounts (so the report is compliant even if the source wasn't). Items marked <em>pre-filled</em> already have a figure lifted from your upload.</p>
-			<table class="table table-condensed" style="font-size:12px;">
-				<thead><tr style="background:#7a0c1c;color:#fff;"><th>Schedule</th><th>Standard</th><th>Status</th><th>Why the system asks</th></tr></thead>
-				<tbody>
-				<?php foreach (array_merge($schTrig, $schReq) as $sc): ?>
-					<tr>
-						<td><?php echo epc_erp_h($sc['label']); ?> <?php if (!empty($sc['prefilled'])): ?><span class="label label-success" style="font-size:9px;">pre-filled</span><?php endif; ?></td>
-						<td><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h($sc['std']); ?></span></td>
-						<td><?php echo ($sc['status'] === 'triggered') ? '<span class="label label-warning" style="font-size:10px;">Triggered</span>' : '<span class="label label-danger" style="font-size:10px;">Required</span>'; ?></td>
-						<td class="text-muted" style="font-size:11px;"><?php echo epc_erp_h($sc['why']); ?></td>
-					</tr>
-				<?php endforeach; ?>
-				</tbody>
-			</table>
-			<div style="font-size:11px;color:#7a0c1c;background:#fdeef0;border-radius:4px;padding:8px 10px;">The IFRS Financials workbook upload already carries an input sheet for each of these — fill the buckets there, or the system derives them from the trial-balance totals where you don't.</div>
-		</div>
-		<?php endif; ?>
-
-	<?php else: // -------- Step 4: generated report ?>
+	<?php else: // -------- Step 5: generated report ?>
 		<?php
 		$inMeta   = $inBuilt['meta'] ?? array();
 		$inCo     = $inMeta['META_LEGAL_NAME'] ?? 'Client entity';
