@@ -50,6 +50,7 @@ if (!function_exists('epc_boc_groups')) {
             'command'      => array('label' => 'Command Center', 'icon' => 'fa-tachometer', 'blurb' => 'Live fleet health, KPIs, alerts'),
             'lifecycle'    => array('label' => 'Tenant Lifecycle', 'icon' => 'fa-rocket', 'blurb' => 'Onboard, control, features, demos'),
             'reliability'  => array('label' => 'Operations & Reliability', 'icon' => 'fa-heartbeat', 'blurb' => 'Health, governance, incidents'),
+            'supply'       => array('label' => 'Supply & Channels', 'icon' => 'fa-cubes', 'blurb' => 'Vendors, warehouses, channels — fleet-wide'),
             'commerce'     => array('label' => 'Commerce & Pricing', 'icon' => 'fa-tags', 'blurb' => 'Pricing AI, API clients, POS'),
             'growth'       => array('label' => 'Growth & Marketing', 'icon' => 'fa-bullhorn', 'blurb' => 'Broadcast, social, CMS'),
             'finance'      => array('label' => 'Finance & Compliance', 'icon' => 'fa-balance-scale', 'blurb' => 'Tax, ERP — country-driven'),
@@ -89,6 +90,10 @@ if (!function_exists('epc_boc_areas')) {
             'governance'        => $a('Governance', 'reliability', 'fa-gavel', 'control/portal/epc_platform_governance', 'governance', 'boc.ops.manage', $ALL, 'Policies & rules'),
             'audit_log'         => $a('Audit log', 'reliability', 'fa-history', 'control/portal/epc_boc_audit_log', 'governance', 'boc.ops.view', $ALL, 'Who did what, when'),
             'failover'          => $a('Failover runbook', 'reliability', 'fa-life-ring', 'control/portal/epc_platform_failover_guide', 'governance', 'boc.ops.view', $ALL, 'Incident steps'),
+
+            'vendor_control'    => $a('Vendor & sourcing', 'supply', 'fa-truck', 'control/portal/epc_boc_vendor_control', 'orders', 'boc.supply.view', array('commerce', 'erp_only'), 'Fleet-wide suppliers, RFQs, spend'),
+            'warehouse_control' => $a('Warehouse & inventory', 'supply', 'fa-cubes', 'control/portal/epc_boc_warehouse_control', 'orders', 'boc.supply.view', array('commerce', 'erp_only'), 'Stock value, locations, replenishment risk'),
+            'channel_control'   => $a('Channels & orders (OMS)', 'supply', 'fa-sitemap', 'control/portal/epc_boc_channel_control', 'orders', 'boc.supply.view', array('commerce', 'demo'), 'Web / POS / API / marketplace surfaces'),
 
             'auto_price'        => $a('Auto Price AI', 'commerce', 'fa-chart-line', 'control/portal/epc_auto_price_engine', 'prices', 'boc.commerce.manage', array('commerce'), 'Multi-source compare, cross-list'),
             'price_configs'     => $a('Price configs', 'commerce', 'fa-percent', 'control/portal/epc_super_cp_price_configs', 'prices', 'boc.commerce.manage', array('commerce'), 'Markup rules'),

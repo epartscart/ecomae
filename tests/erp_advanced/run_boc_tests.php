@@ -18,6 +18,7 @@ $pass = getenv('DB_PASS') ?: 'erp';
 
 require_once dirname(__DIR__, 2) . '/content/shop/finance/epc_erp_governance.php';
 require_once dirname(__DIR__, 2) . '/content/general_pages/epc_boc_kernel.php';
+require_once dirname(__DIR__, 2) . '/content/general_pages/epc_boc_advanced.php';
 
 $db = new PDO("mysql:host=$host;dbname=$name;charset=utf8", $user, $pass, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
 
@@ -36,7 +37,11 @@ function check(string $label, bool $cond, string $extra = ''): void
 }
 function section(string $t): void { echo "\n== $t ==\n"; }
 
-foreach (array('epc_boc_audit', 'epc_gov_user_roles', 'epc_gov_roles') as $t) {
+foreach (array(
+    'epc_boc_audit', 'epc_gov_user_roles', 'epc_gov_roles',
+    'epc_erp_suppliers', 'epc_scm_rfq', 'epc_erp_purchases',
+    'epc_erp_inv_warehouses', 'epc_erp_inv_items', 'epc_erp_inv_stock', 'epc_scm_item_planning',
+) as $t) {
     try { $db->exec("DROP TABLE IF EXISTS `$t`"); } catch (Throwable $e) {}
 }
 
@@ -121,6 +126,68 @@ check('summary totals correct', $sum['total'] === 5);
 check('summary by type correct', $sum['by_type']['commerce'] === 2 && $sum['by_type']['erp_only'] === 1 && $sum['by_type']['demo'] === 2);
 check('summary by health correct', $sum['by_health']['green'] === 3 && $sum['by_health']['amber'] === 1 && $sum['by_health']['red'] === 1);
 check('type labels', epc_boc_type_label('erp_only') === 'ERP-only' && epc_boc_type_label('demo') === 'Demo' && epc_boc_type_label('commerce') === 'Commerce');
+
+section('Advanced — money formatting (pure)');
+check('millions compacted', epc_boc_adv_money(117617958.0) === 'AED 117.6M');
+check('thousands compacted', epc_boc_adv_money(38395.0) === 'AED 38.4K');
+check('small numbers verbatim', epc_boc_adv_money(742.0) === 'AED 742');
+check('trailing zero trimmed', epc_boc_adv_money(2000000.0) === 'AED 2M');
+check('currency overrideable', epc_boc_adv_money(5000.0, 'USD') === 'USD 5K');
+
+section('Advanced — vendor rollup (pure)');
+$vr = epc_boc_vendor_rollup(array(
+    array('site_key' => 'a', 'label' => 'A', 'type' => 'commerce', 'ok' => true, 'vendors' => 12, 'active_vendors' => 10, 'rfq_open' => 3, 'spend' => 1000000.0),
+    array('site_key' => 'b', 'label' => 'B', 'type' => 'erp_only', 'ok' => true, 'vendors' => 40, 'active_vendors' => 38, 'rfq_open' => 1, 'spend' => 500000.0),
+    array('site_key' => 'c', 'label' => 'C', 'type' => 'commerce', 'ok' => false),
+));
+check('vendor totals summed', $vr['totals']['vendors'] === 52 && $vr['totals']['active_vendors'] === 48 && $vr['totals']['rfq_open'] === 4);
+check('vendor spend summed', abs($vr['totals']['spend'] - 1500000.0) < 0.01);
+check('vendor reachable counted', $vr['totals']['reachable'] === 2 && $vr['totals']['tenants'] === 3);
+check('vendor rows sorted by vendor count desc', $vr['rows'][0]['site_key'] === 'b' && $vr['rows'][1]['site_key'] === 'a');
+check('unreachable vendor row carries ok=false', $vr['rows'][2]['ok'] === false);
+
+section('Advanced — warehouse rollup (pure + RAG)');
+$wr = epc_boc_warehouse_rollup(array(
+    array('site_key' => 'a', 'type' => 'commerce', 'ok' => true, 'warehouses' => 3, 'skus' => 1200, 'stock_value' => 5000000.0, 'low_stock' => 0, 'out_of_stock' => 0),
+    array('site_key' => 'b', 'type' => 'commerce', 'ok' => true, 'warehouses' => 2, 'skus' => 800, 'stock_value' => 2000000.0, 'low_stock' => 5, 'out_of_stock' => 0),
+    array('site_key' => 'c', 'type' => 'erp_only', 'ok' => true, 'warehouses' => 1, 'skus' => 50, 'stock_value' => 100000.0, 'low_stock' => 0, 'out_of_stock' => 4),
+    array('site_key' => 'd', 'type' => 'commerce', 'ok' => false),
+));
+check('warehouse totals summed', $wr['totals']['warehouses'] === 6 && $wr['totals']['skus'] === 2050);
+check('stock value summed', abs($wr['totals']['stock_value'] - 7100000.0) < 0.01);
+check('healthy warehouse green', $wr['rows'][0]['rag'] === 'green');
+$byKey = array();
+foreach ($wr['rows'] as $row) { $byKey[$row['site_key']] = $row; }
+check('low-stock tenant amber', $byKey['b']['rag'] === 'amber');
+check('out-of-stock tenant red', $byKey['c']['rag'] === 'red');
+check('unreachable tenant red', $byKey['d']['rag'] === 'red');
+check('warehouse rows sorted by stock value desc', $wr['rows'][0]['site_key'] === 'a');
+
+section('Advanced — channel rollup (pure)');
+$cr = epc_boc_channel_rollup(array(
+    array('site_key' => 'a', 'type' => 'commerce', 'ok' => true, 'web' => true, 'pos' => true, 'api' => true, 'marketplaces' => 3, 'arbitrage' => true),
+    array('site_key' => 'b', 'type' => 'commerce', 'ok' => true, 'web' => true, 'pos' => false, 'api' => false, 'marketplaces' => 1, 'arbitrage' => false),
+    array('site_key' => 'c', 'type' => 'erp_only', 'ok' => true, 'web' => false, 'pos' => false, 'api' => true, 'marketplaces' => 0, 'arbitrage' => false),
+));
+check('channel count per tenant (web+pos+api+mkt)', $cr['rows'][0]['channels'] === 6);
+check('channel totals summed', $cr['totals']['channels'] === 9 && $cr['totals']['web'] === 2 && $cr['totals']['pos'] === 1 && $cr['totals']['api'] === 2 && $cr['totals']['marketplaces'] === 4);
+check('arbitrage tenants counted', $cr['totals']['arbitrage'] === 1);
+check('channel rows sorted by channel count desc', $cr['rows'][0]['site_key'] === 'a');
+
+section('Advanced — collectors defensive on empty DB');
+$vc = epc_boc_collect_vendor($db);
+check('vendor collector returns zeros when no ERP tables', $vc['vendors'] === 0 && $vc['rfq_open'] === 0 && $vc['has_erp'] === false);
+$wc = epc_boc_collect_warehouse($db);
+check('warehouse collector returns zeros when no ERP tables', $wc['warehouses'] === 0 && $wc['stock_value'] === 0.0 && $wc['has_erp'] === false);
+check('table-exists is false for missing table', epc_boc_adv_table_exists($db, 'epc_does_not_exist_xyz') === false);
+
+section('Advanced — supply group + areas registered');
+$areas2 = epc_boc_areas();
+$groups2 = epc_boc_groups();
+check('supply group exists', isset($groups2['supply']));
+check('vendor/warehouse/channel areas registered in supply group', isset($areas2['vendor_control']) && $areas2['vendor_control']['group'] === 'supply' && $areas2['warehouse_control']['group'] === 'supply' && $areas2['channel_control']['group'] === 'supply');
+check('supply areas carry boc.supply.view perm', $areas2['vendor_control']['perm'] === 'boc.supply.view');
+check('channel area routes to its page', strpos($areas2['channel_control']['path'], 'epc_boc_channel_control') !== false);
 
 echo "\n========================================\n";
 echo "BOC TESTS: {$pass_count} passed, {$fail_count} failed\n";
