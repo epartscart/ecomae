@@ -2195,6 +2195,42 @@ if (!function_exists('epc_ext_fin_dataset')) {
         $cfFinancing = round($dBorrow + $issue + $dLease + $dReserves - $dividends, 2);
         $cfNet = round($cfOperating + $cfInvesting + $cfFinancing, 2);
 
+        // ---- prior-prior year: needed so the cash-flow statement can carry a
+        // proper comparative (prior-year) column (a cash flow shows movements,
+        // which need the year before the comparative). $pri/$cur are unchanged.
+        $revP2 = round($revP / $growth, 2);
+        $pbtP2 = round($pbtP / $growth, 2);
+        $pri2 = $year($revP2, $pbtP2);
+        $dividendsP = round($pri['profit'] * 0.30, 2);
+        // Back-derive the opening retained earnings so $pri rolls forward into
+        // its (unchanged) retained earnings: pri.retained = pri2.retained + pri.profit - dividendsP.
+        $pri2['retained'] = round($pri['retained'] - $pri['profit'] + $dividendsP, 2);
+        $pri2['equity'] = $pri2['shareCap'] + $pri2['reserves'] + $pri2['retained'];
+        $pri2['liabs'] = $pri2['payables'] + $pri2['tax'] + $pri2['borrowCur'] + $pri2['borrowNon'] + $pri2['lease'] + $pri2['provisions'];
+        $pri2['nonCashAssets'] = $pri2['ppe'] + $pri2['intang'] + $pri2['inventory'] + $pri2['receivables'];
+        $pri2['cash'] = round(($pri2['equity'] + $pri2['liabs']) - $pri2['nonCashAssets'], 2);
+        $pri2['totalAssets'] = round($pri2['nonCashAssets'] + $pri2['cash'], 2);
+        $pri2['totalLiab'] = $pri2['liabs'];
+        $pri2['totalEquity'] = $pri2['equity'];
+
+        // prior-year movements (pri vs pri2) and prior-year cash flows
+        $dRecP = round($pri['receivables'] - $pri2['receivables'], 2);
+        $dInvP = round($pri['inventory'] - $pri2['inventory'], 2);
+        $dPayP = round($pri['payables'] - $pri2['payables'], 2);
+        $dProvP = round($pri['provisions'] - $pri2['provisions'], 2);
+        $dTaxPayP = round($pri['tax'] - $pri2['tax'], 2);
+        $taxPaidP = round($pri['tax'] - $dTaxPayP, 2);
+        $capexP = round(($pri['ppe'] - $pri2['ppe']) + $pri['depr'], 2);
+        $dIntangP = round($pri['intang'] - $pri2['intang'], 2);
+        $dBorrowP = round(($pri['borrowCur'] + $pri['borrowNon']) - ($pri2['borrowCur'] + $pri2['borrowNon']), 2);
+        $dLeaseP = round($pri['lease'] - $pri2['lease'], 2);
+        $dReservesP = round($pri['reserves'] - $pri2['reserves'], 2);
+        $issueP = round($pri['shareCap'] - $pri2['shareCap'], 2);
+        $cfOperatingP = round($pri['pbt'] + $pri['depr'] - $dRecP - $dInvP + $dPayP + $dProvP - $taxPaidP, 2);
+        $cfInvestingP = round(-$capexP - $dIntangP, 2);
+        $cfFinancingP = round($dBorrowP + $issueP + $dLeaseP + $dReservesP - $dividendsP, 2);
+        $cfNetP = round($cfOperatingP + $cfInvestingP + $cfFinancingP, 2);
+
         $label = static function (int $a, int $b): string {
             return date('Y', $b);
         };
@@ -2205,17 +2241,27 @@ if (!function_exists('epc_ext_fin_dataset')) {
             'priLabel' => 'FY' . (date('Y', $t) - 1),
             'curYear' => (int) date('Y', $t),
             'priYear' => (int) date('Y', $t) - 1,
-            'cur' => $cur, 'pri' => $pri,
-            'dividends' => $dividends,
+            'cur' => $cur, 'pri' => $pri, 'pri2' => $pri2,
+            'dividends' => $dividends, 'dividendsP' => $dividendsP,
             'mov' => array(
                 'dRec' => $dRec, 'dInv' => $dInv, 'dPay' => $dPay, 'dProv' => $dProv,
                 'dTaxPay' => $dTaxPay, 'taxPaid' => $taxPaid, 'capex' => $capex,
                 'dIntang' => $dIntang, 'dBorrow' => $dBorrow, 'dLease' => $dLease,
                 'dReserves' => $dReserves, 'issue' => $issue,
             ),
+            'movP' => array(
+                'dRec' => $dRecP, 'dInv' => $dInvP, 'dPay' => $dPayP, 'dProv' => $dProvP,
+                'dTaxPay' => $dTaxPayP, 'taxPaid' => $taxPaidP, 'capex' => $capexP,
+                'dIntang' => $dIntangP, 'dBorrow' => $dBorrowP, 'dLease' => $dLeaseP,
+                'dReserves' => $dReservesP, 'issue' => $issueP,
+            ),
             'cf' => array(
                 'operating' => $cfOperating, 'investing' => $cfInvesting,
                 'financing' => $cfFinancing, 'net' => $cfNet,
+            ),
+            'cfP' => array(
+                'operating' => $cfOperatingP, 'investing' => $cfInvestingP,
+                'financing' => $cfFinancingP, 'net' => $cfNetP,
             ),
             'live' => $rev > 0.005 && ($pl['total_revenue'] ?? 0) > 0.005,
         );
@@ -2236,6 +2282,7 @@ if (!function_exists('epc_ext_b_audit')) {
     {
         $d = epc_ext_fin_dataset($db, $from, $to);
         $cur = $d['cur']; $pri = $d['pri']; $mov = $d['mov']; $cf = $d['cf'];
+        $pri2 = $d['pri2']; $movP = $d['movP']; $cfP = $d['cfP']; $dividendsP = $d['dividendsP'];
         $co = epc_ext_company($db);
         $entity = (string) ($co['legal_name'] ?: 'ECOM AE General Trading LLC');
         $isUae = strtoupper($country) === 'AE';
@@ -2464,35 +2511,39 @@ if (!function_exists('epc_ext_b_audit')) {
         $tradeRecMov = round(0.60 * $mov['dRec'], 2); $otherRecMov = round($mov['dRec'] - $tradeRecMov, 2);
         $tradePayMov = round(0.62 * $mov['dPay'], 2); $otherPayMov = round($mov['dPay'] - $tradePayMov, 2);
         $cashFromOps = round($cur['pbt'] + $cur['depr'] + $cur['interest'] - $mov['dRec'] - $mov['dInv'] + $mov['dPay'] + $mov['dProv'], 2);
+        // prior-year (comparative) cash-flow figures, derived from pri vs pri2
+        $tradeRecMovP = round(0.60 * $movP['dRec'], 2); $otherRecMovP = round($movP['dRec'] - $tradeRecMovP, 2);
+        $tradePayMovP = round(0.62 * $movP['dPay'], 2); $otherPayMovP = round($movP['dPay'] - $tradePayMovP, 2);
+        $cashFromOpsP = round($pri['pbt'] + $pri['depr'] + $pri['interest'] - $movP['dRec'] - $movP['dInv'] + $movP['dPay'] + $movP['dProv'], 2);
         $scf .= $line('Operating activities', '', '', '', 'head');
         $scf .= $line('Profit before tax', $cur['pbt'], $pri['pbt'], '');
         $scf .= $line('Adjust: depreciation & amortisation', $cur['depr'], $pri['depr'], '');
         $scf .= $line('Adjust: finance costs', $cur['interest'], $pri['interest'], '');
         $scf .= $line('Working capital changes', '', '', '', 'head');
-        $scf .= $line('   (Increase) / decrease in trade receivables', -$tradeRecMov, '', '');
-        $scf .= $line('   (Increase) / decrease in other receivables, prepayments & advances', -$otherRecMov, '', '');
-        $scf .= $line('   (Increase) / decrease in inventories', -$mov['dInv'], '', '');
-        $scf .= $line('   Increase / (decrease) in trade payables', $tradePayMov, '', '');
-        $scf .= $line('   Increase / (decrease) in accruals & other payables', $otherPayMov, '', '');
-        $scf .= $line('   Increase in employee end-of-service provisions', $mov['dProv'], '', '');
-        $scf .= $line('Cash generated from operations', $cashFromOps, '', '', 'sub');
+        $scf .= $line('   (Increase) / decrease in trade receivables', -$tradeRecMov, -$tradeRecMovP, '');
+        $scf .= $line('   (Increase) / decrease in other receivables, prepayments & advances', -$otherRecMov, -$otherRecMovP, '');
+        $scf .= $line('   (Increase) / decrease in inventories', -$mov['dInv'], -$movP['dInv'], '');
+        $scf .= $line('   Increase / (decrease) in trade payables', $tradePayMov, $tradePayMovP, '');
+        $scf .= $line('   Increase / (decrease) in accruals & other payables', $otherPayMov, $otherPayMovP, '');
+        $scf .= $line('   Increase in employee end-of-service provisions', $mov['dProv'], $movP['dProv'], '');
+        $scf .= $line('Cash generated from operations', $cashFromOps, $cashFromOpsP, '', 'sub');
         $scf .= $line('Finance costs paid', -$cur['interest'], -$pri['interest'], '');
-        $scf .= $line('Income tax paid', -$mov['taxPaid'], '', '');
-        $scf .= $line('Net cash from operating activities', $cf['operating'], '', '', 'sub');
+        $scf .= $line('Income tax paid', -$mov['taxPaid'], -$movP['taxPaid'], '');
+        $scf .= $line('Net cash from operating activities', $cf['operating'], $cfP['operating'], '', 'sub');
         $scf .= $line('Investing activities', '', '', '', 'head');
-        $scf .= $line('Purchase of property, plant & equipment', -$mov['capex'], '', '');
-        $scf .= $line('Purchase of intangibles', -$mov['dIntang'], '', '');
-        $scf .= $line('Net cash used in investing activities', $cf['investing'], '', '', 'sub');
+        $scf .= $line('Purchase of property, plant & equipment', -$mov['capex'], -$movP['capex'], '');
+        $scf .= $line('Purchase of intangibles', -$mov['dIntang'], -$movP['dIntang'], '');
+        $scf .= $line('Net cash used in investing activities', $cf['investing'], $cfP['investing'], '', 'sub');
         $scf .= $line('Financing activities', '', '', '', 'head');
-        $scf .= $line('Net movement in borrowings', $mov['dBorrow'], '', '');
-        $scf .= $line('Proceeds from share issue', $mov['issue'], '', '');
-        $scf .= $line('Movement in lease liabilities', $mov['dLease'], '', '');
-        $scf .= $line('Movement in reserves', $mov['dReserves'], '', '');
-        $scf .= $line('Dividends paid', -$d['dividends'], '', '');
-        $scf .= $line('Net cash from financing activities', $cf['financing'], '', '', 'sub');
-        $scf .= $line('Net increase / (decrease) in cash', $cf['net'], '', '', 'sub');
-        $scf .= $line('Cash & cash equivalents at 1 Jan', $pri['cash'], '', '');
-        $scf .= $line('Cash & cash equivalents at 31 Dec', $cur['cash'], '', '', 'total');
+        $scf .= $line('Net movement in borrowings', $mov['dBorrow'], $movP['dBorrow'], '');
+        $scf .= $line('Proceeds from share issue', $mov['issue'], $movP['issue'], '');
+        $scf .= $line('Movement in lease liabilities', $mov['dLease'], $movP['dLease'], '');
+        $scf .= $line('Movement in reserves', $mov['dReserves'], $movP['dReserves'], '');
+        $scf .= $line('Dividends paid', -$d['dividends'], -$dividendsP, '');
+        $scf .= $line('Net cash from financing activities', $cf['financing'], $cfP['financing'], '', 'sub');
+        $scf .= $line('Net increase / (decrease) in cash', $cf['net'], $cfP['net'], '', 'sub');
+        $scf .= $line('Cash & cash equivalents at 1 Jan', $pri['cash'], $pri2['cash'], '');
+        $scf .= $line('Cash & cash equivalents at 31 Dec', $cur['cash'], $pri['cash'], '', 'total');
         $scf .= $tblClose;
         $cfOk = abs(($pri['cash'] + $cf['net']) - $cur['cash']) < 0.5;
         $scf .= '<p class="text-muted" style="font-size:11.5px;"><i class="fa fa-check-circle" style="color:' . ($cfOk ? '#1a7f37' : '#c0392b') . ';"></i> Reconciliation: opening cash + net cash flow ' . ($cfOk ? '=' : '≠') . ' closing cash (' . $m($cur['cash']) . ').</p>';
@@ -5626,6 +5677,32 @@ if (!function_exists('epc_ext_b_fin_summary')) {
         $C = $calc($cur);
         $P = $calc($pri);
 
+        // ---- prior-prior year (modelled) so the cash-flow statement can show a
+        // proper comparative (prior-year) column. The uploaded workbook carries
+        // only two years (current + comparative); a cash flow shows movements,
+        // which need the year before the comparative. We deflate the prior year
+        // and anchor its closing retained earnings to the prior year's *opening*
+        // retained earnings, so $P rolls forward exactly into its own figures
+        // ($P/$C are unchanged). Reconciles: PP.cash + prior net cash = P.cash.
+        $g = 1.10;
+        $PP = array();
+        foreach (array('rev', 'cogs', 'oth', 'admin', 'sell', 'depr', 'fin', 'tax', 'oci', 'ppe', 'intang', 'inv', 'recv', 'pay', 'bcur', 'bnon', 'lease', 'prov', 'taxp', 'res') as $k) {
+            $PP[$k] = round((float) ($P[$k] ?? 0) / $g, 2);
+        }
+        $PP['sc'] = (float) ($P['sc'] ?? 0);                       // share capital stable
+        $PP['gross'] = $PP['rev'] - $PP['cogs'];
+        $PP['op'] = $PP['gross'] + $PP['oth'] - $PP['admin'] - $PP['sell'] - $PP['depr'];
+        $PP['pbt'] = $PP['op'] - $PP['fin'];
+        $PP['profit'] = $PP['pbt'] - $PP['tax'];
+        $PP['div'] = round((float) ($P['div'] ?? 0) / $g, 2);
+        $PP['retC'] = (float) ($P['ret0'] ?? 0);                   // PP closing = P opening
+        $PP['equity'] = $PP['sc'] + $PP['res'] + $PP['retC'];
+        $PP['ncLiab'] = $PP['bnon'] + $PP['lease'] + $PP['prov'];
+        $PP['cLiab'] = $PP['pay'] + $PP['bcur'] + $PP['taxp'];
+        $PP['tLiab'] = $PP['ncLiab'] + $PP['cLiab'];
+        $PP['ncAsset'] = $PP['ppe'] + $PP['intang'];
+        $PP['cash'] = round(($PP['equity'] + $PP['tLiab']) - ($PP['ncAsset'] + $PP['inv'] + $PP['recv']), 2);
+
         // ---- two-period statement table helper -----------------------------
         $tblOpen = '<table class="table table-condensed" style="font-size:12.5px;"><thead><tr style="background:#13294b;color:#fff;">'
             . '<th>&nbsp;</th><th style="text-align:right;">' . epc_erp_h($cL) . '</th><th style="text-align:right;">' . epc_erp_h($pL) . '</th>'
@@ -5749,30 +5826,40 @@ if (!function_exists('epc_ext_b_fin_summary')) {
         $finCash = $dBorrow + $dLease + $dShare - $C['div'] - $C['fin'];
         $netCash = $opCash + $invCash + $finCash;
         $closeCash = $P['cash'] + $netCash;
+        // prior-year (comparative) cash flow: P vs PP (modelled prior-prior year)
+        $dRecvP = $P['recv'] - $PP['recv']; $dInvP = $P['inv'] - $PP['inv'];
+        $dPayP = $P['pay'] - $PP['pay']; $dProvP = $P['prov'] - $PP['prov'];
+        $opCashP = $P['pbt'] + $P['depr'] + $P['fin'] - $dRecvP - $dInvP + $dPayP + $dProvP - $P['tax'];
+        $capexP = ($P['ppe'] + $P['intang']) - ($PP['ppe'] + $PP['intang']) + $P['depr'];
+        $invCashP = -$capexP;
+        $dBorrowP = ($P['bcur'] + $P['bnon']) - ($PP['bcur'] + $PP['bnon']);
+        $dLeaseP = $P['lease'] - $PP['lease']; $dShareP = $P['sc'] - $PP['sc'];
+        $finCashP = $dBorrowP + $dLeaseP + $dShareP - $P['div'] - $P['fin'];
+        $netCashP = $opCashP + $invCashP + $finCashP;
         $scf = $tblOpen
             . $line('Operating activities', '', '', '', 'head')
             . $line('Profit before tax', $C['pbt'], $P['pbt'], '')
             . $line('Adjust: depreciation &amp; amortisation', $C['depr'], $P['depr'], 'IAS 16/38')
             . $line('Adjust: finance costs', $C['fin'], $P['fin'], '')
-            . $line('(Increase) / decrease in receivables', -$dRecv, '', '')
-            . $line('(Increase) / decrease in inventories', -$dInv, '', '')
-            . $line('Increase / (decrease) in payables', $dPay, '', '')
-            . $line('Increase / (decrease) in provisions', $dProv, '', '')
-            . $line('Income tax paid', -$C['tax'], '', 'IAS 12')
-            . $line('Net cash from operating activities', $opCash, '', '', 'sub')
+            . $line('(Increase) / decrease in receivables', -$dRecv, -$dRecvP, '')
+            . $line('(Increase) / decrease in inventories', -$dInv, -$dInvP, '')
+            . $line('Increase / (decrease) in payables', $dPay, $dPayP, '')
+            . $line('Increase / (decrease) in provisions', $dProv, $dProvP, '')
+            . $line('Income tax paid', -$C['tax'], -$P['tax'], 'IAS 12')
+            . $line('Net cash from operating activities', $opCash, $opCashP, '', 'sub')
             . $line('Investing activities', '', '', '', 'head')
-            . $line('Purchase of PPE &amp; intangibles', $invCash, '', 'IAS 16/38')
-            . $line('Net cash used in investing activities', $invCash, '', '', 'sub')
+            . $line('Purchase of PPE &amp; intangibles', $invCash, $invCashP, 'IAS 16/38')
+            . $line('Net cash used in investing activities', $invCash, $invCashP, '', 'sub')
             . $line('Financing activities', '', '', '', 'head')
-            . $line('Net movement in borrowings', $dBorrow, '', '')
-            . $line('Movement in lease liabilities', $dLease, '', 'IFRS 16')
-            . $line('Proceeds from share issue', $dShare, '', '')
-            . $line('Interest paid', -$C['fin'], '', '')
-            . $line('Dividends paid', -$C['div'], '', '')
-            . $line('Net cash from financing activities', $finCash, '', '', 'sub')
-            . $line('Net increase / (decrease) in cash', $netCash, '', '', 'sub')
-            . $line('Cash &amp; cash equivalents at 1 January', $P['cash'], '', '')
-            . $line('Cash &amp; cash equivalents at 31 December', $closeCash, $C['cash'], '', 'total')
+            . $line('Net movement in borrowings', $dBorrow, $dBorrowP, '')
+            . $line('Movement in lease liabilities', $dLease, $dLeaseP, 'IFRS 16')
+            . $line('Proceeds from share issue', $dShare, $dShareP, '')
+            . $line('Interest paid', -$C['fin'], -$P['fin'], '')
+            . $line('Dividends paid', -$C['div'], -$P['div'], '')
+            . $line('Net cash from financing activities', $finCash, $finCashP, '', 'sub')
+            . $line('Net increase / (decrease) in cash', $netCash, $netCashP, '', 'sub')
+            . $line('Cash &amp; cash equivalents at 1 January', $P['cash'], $PP['cash'], '')
+            . $line('Cash &amp; cash equivalents at 31 December', $closeCash, $P['cash'], '', 'total')
             . $tblClose;
         $cfOk = abs($closeCash - $C['cash']) < 1.0;
         $scf .= '<p style="font-size:11.5px;color:' . ($cfOk ? '#1a7f37' : '#c0392b') . ';"><i class="fa fa-' . ($cfOk ? 'check-circle' : 'exclamation-triangle') . '"></i> '

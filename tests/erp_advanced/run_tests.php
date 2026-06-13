@@ -438,6 +438,18 @@ check('Audit report has financial analysis section + impact grades', strpos($aud
 // PDF print layout — A4, equal margins, unified font, red corporate theme
 check('Audit PDF is A4 with equal margins + per-element page breaks', strpos($audit['body'], 'size:A4') !== false && strpos($audit['body'], 'margin:18mm') !== false && strpos($audit['body'], 'page-break-before:always') !== false, 'A4 print');
 check('Audit PDF uses unified red corporate theme', strpos($audit['body'], '#b3122a') !== false && strpos($audit['body'], 'print-color-adjust:exact') !== false, 'red theme');
+// Cash-flow statement carries a proper comparative (prior-year) column that
+// reconciles (prior-prior cash + prior net cash flow = prior closing cash).
+$ds = epc_ext_fin_dataset($db, strtotime('2024-01-01'), strtotime('2024-12-31'));
+$cfReconP = abs(($ds['pri2']['cash'] + $ds['cfP']['net']) - $ds['pri']['cash']) < 0.5;
+check('Cash flow comparative reconciles (pri2 cash + prior net = prior cash)', $cfReconP, 'recon ' . round($ds['pri2']['cash'] + $ds['cfP']['net'] - $ds['pri']['cash'], 2));
+// the comparative column must actually render figures (current + prior) on the
+// operating-cash line, and the opening-cash line must carry the prior-prior cash
+$aOp = strpos($audit['body'], 'Net cash from operating activities');
+$aOpRow = $aOp !== false ? substr($audit['body'], $aOp, 360) : '';
+$aOpen = strpos($audit['body'], 'cash equivalents at 1 Jan');
+$aOpenRow = $aOpen !== false ? substr($audit['body'], $aOpen, 360) : '';
+check('Cash flow comparative column is populated in the report', substr_count($aOpRow, 'AED') >= 2 && strpos($aOpenRow, epc_ext_m($ds['pri2']['cash'], 'AED')) !== false, 'op cols=' . substr_count($aOpRow, 'AED'));
 
 // ---- Off-system IFRS financial-statements import (template + builder) ----
 $finTpl = epc_ext_import_template_csv('fin');
@@ -451,6 +463,10 @@ $impFin = epc_ext_b_fin_summary($mapF, 'AED');
 check('Import FIN builds full IFRS pack + cover', strpos($impFin['body'], 'ext-cover') !== false && strpos($impFin['body'], 'Independent Auditor') !== false && strpos($impFin['body'], 'Statement of Cash Flows') !== false, $impFin['title']);
 check('Import FIN SOFP balances', ($impFin['summary']['SOFP balanced'] ?? '') === 'Yes', $impFin['summary']['SOFP balanced'] ?? 'NA');
 check('Import FIN is off-system', strpos($impFin['body'], 'off-system') !== false && strpos($impFin['body'], 'uploaded workbook') !== false, 'off-system note');
+// the uploaded-report cash flow must also carry a populated comparative column
+$opPos = strpos($impFin['body'], 'Net cash from operating activities');
+$opRow = $opPos !== false ? substr($impFin['body'], $opPos, 360) : '';
+check('Import FIN cash flow has comparative column populated', $opRow !== '' && substr_count($opRow, 'AED') >= 2 && strpos($impFin['body'], 'at 1 January') !== false, 'scf prior cols=' . substr_count($opRow, 'AED'));
 if (class_exists('ZipArchive')) {
     $finSheets = epc_ext_import_template_sheets('fin');
     check('FIN workbook carries all statement sheets', isset($finSheets['Company & details'], $finSheets['Financial data'], $finSheets['Notes inputs'], $finSheets['Compliance checklist']), count($finSheets) . ' sheets');
