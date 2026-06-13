@@ -50,11 +50,10 @@ function epc_electronics_retail_img(string $keyOrPath, int $w = 400, int $h = 0)
 	if ($catalog === null) {
 		$catalog = epc_electronics_retail_image_catalog();
 	}
-	$path = $keyOrPath;
 	if (isset($catalog[$keyOrPath])) {
-		$path = $catalog[$keyOrPath]['id'];
+		return '/content/files/images/storefronts/electronics/' . $keyOrPath . '.jpg';
 	}
-	$path = ltrim((string) $path, '/');
+	$path = ltrim((string) $keyOrPath, '/');
 	$url = 'https://images.unsplash.com/' . $path . '?auto=format&fit=crop&w=' . (int) $w . '&q=82';
 	if ($h > 0) {
 		$url .= '&h=' . (int) $h;
