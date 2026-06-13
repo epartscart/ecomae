@@ -395,6 +395,21 @@ check('Merge builds a multi-year history (2025/2024/2023)', $merged['years'] ===
 check('Merge uses latest year as comparative + prior-comparative', $merged['latest'] === 2025 && $merged['prev'] === 2024 && abs($merged['figures']['FIN_REVENUE']['cur'] - 14250000) < 0.01 && abs($merged['figures']['FIN_REVENUE']['pri'] - 12100000) < 0.01, 'cur/pri');
 check('Merge keeps each year value across reports (own current wins)', abs(($merged['history']['FIN_REVENUE'][2024] ?? 0) - 12100000) < 0.01 && abs(($merged['history']['FIN_REVENUE'][2023] ?? 0) - 10400000) < 0.01, '2024+2023');
 
+// ---- Report-year detection handles ordinal / scanned date formats ----
+check('Year detect reads "31ST DECEMBER, 2025" as 2025 (not the comparative)', epc_ext_pdf_year("FOR THE YEAR ENDED 31ST DECEMBER, 2025\nyear ended 31 December 2024 Restated") === 2025, (string) epc_ext_pdf_year("FOR THE YEAR ENDED 31ST DECEMBER, 2025\nyear ended 31 December 2024"));
+check('Year detect ignores non-date noise (scan metadata)', epc_ext_pdf_year("AS ON 31ST DECEMBER, 2025\nProduced 2026 invoice 2031") === 2025, (string) epc_ext_pdf_year("AS ON 31ST DECEMBER, 2025\nProduced 2026"));
+
+// ---- IFRS-driven schedule request (not limited to the sample) ----
+check('OCR fallback function exists for scanned PDFs', function_exists('epc_ext_pdf_ocr') && function_exists('epc_ext_locate_bin'), 'ocr fns');
+$schAll = epc_ext_intake_schedules(array(), '');
+$schKeys = array_map(static function ($r) { return $r['key']; }, $schAll);
+check('Schedules always require the IFRS core set (PPE/SOCE/cashflow/segments/events)', count(array_intersect(array('PPE_MOVE', 'EQUITY_MOVE', 'CASHFLOW', 'SEGMENTS', 'EVENTS', 'FIN_INSTR'), $schKeys)) === 6, implode(',', $schKeys));
+$schReal = epc_ext_intake_schedules(array('FIN_RECEIVABLES' => array('cur' => 17743029, 'pri' => 10951490), 'FIN_LEASE' => array('cur' => 1184044, 'pri' => 1300294)), 'COMBINED STATEMENT Restated columns due from related party doubtful debts right of use bank borrowings end of service dividend deferred tax fair value reserve');
+$realKeys = array_column($schReal, 'key');
+check('Schedules trigger IAS 8 restatement when source shows "Restated"', in_array('RESTATEMENT', $realKeys, true), implode(',', $realKeys));
+check('Schedules trigger IAS 24 related party + IFRS 9 ECL + IFRS 16 leases from facts', in_array('RELATED', $realKeys, true) && in_array('ECL', $realKeys, true) && in_array('LEASES', $realKeys, true), implode(',', $realKeys));
+check('Intake tab renders the IFRS-driven schedule request', is_string($intakeTab) && strpos($intakeTab, 'epc_ext_intake_schedules') !== false && strpos($intakeTab, 'Supporting schedules') !== false, 'schedule panel');
+
 // ---- External Audit Report (ISA 700) — cover page + full IFRS pack ----
 $audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
 check('Audit report has cover page + table of contents', strpos($audit['body'], 'ext-cover') !== false && strpos($audit['body'], 'Table of contents') !== false, 'cover');

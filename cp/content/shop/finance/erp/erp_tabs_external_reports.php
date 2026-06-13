@@ -296,6 +296,8 @@ if ($selTool === 'import') {
 	$inSources  = array();
 	$review     = null;
 	$reqRows    = array();
+	$inSchedules = array();
+	$inRawText  = '';
 	$inBuilt    = null;
 	$inExtras   = array();
 	$inLegal    = epc_ext_intake_legal($inCountry);
@@ -325,6 +327,7 @@ if ($selTool === 'import') {
 			$scansForMerge = array();
 			foreach ($pdfFiles as $pf) {
 				$text = epc_ext_pdf_to_text($pf['tmp']);
+				$inRawText .= "\n" . $text;
 				$one  = epc_ext_pdf_scan($text);
 				$yr   = epc_ext_pdf_year($text);
 				if ($yr <= 0) { $yr = $inPriorY; }
@@ -349,6 +352,7 @@ if ($selTool === 'import') {
 		}
 		$review  = epc_ext_intake_review($scan['figures'], $inCountry);
 		$reqRows = epc_ext_intake_request_rows($scan['figures']);
+		$inSchedules = epc_ext_intake_schedules($scan['figures'], $inRawText);
 	} elseif ($inStage === 'build' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		$curIn  = (array) ($_POST['cur'] ?? array());
 		$priIn  = (array) ($_POST['pri'] ?? array());
@@ -613,6 +617,30 @@ if ($selTool === 'import') {
 				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm" style="margin-top:10px;">Start over</a>
 			</form>
 		</div>
+
+		<?php if (!empty($inSchedules)):
+			$schReq = array(); $schTrig = array();
+			foreach ($inSchedules as $sc) { if (($sc['status'] ?? '') === 'triggered') { $schTrig[] = $sc; } else { $schReq[] = $sc; } }
+		?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-tasks"></i> Supporting schedules the system needs (driven by IFRS — not by your sample)</h4>
+			<p class="text-muted" style="font-size:12px;">These are the disclosure schedules an <strong>IFRS-compliant</strong> FY<?php echo (int) $inTargetY; ?> report requires. <span class="label label-danger" style="font-size:10px;">Required</span> apply to every report; <span class="label label-warning" style="font-size:10px;">Triggered</span> are switched on because the system detected the matching fact pattern in your uploaded accounts (so the report is compliant even if the source wasn't). Items marked <em>pre-filled</em> already have a figure lifted from your upload.</p>
+			<table class="table table-condensed" style="font-size:12px;">
+				<thead><tr style="background:#7a0c1c;color:#fff;"><th>Schedule</th><th>Standard</th><th>Status</th><th>Why the system asks</th></tr></thead>
+				<tbody>
+				<?php foreach (array_merge($schTrig, $schReq) as $sc): ?>
+					<tr>
+						<td><?php echo epc_erp_h($sc['label']); ?> <?php if (!empty($sc['prefilled'])): ?><span class="label label-success" style="font-size:9px;">pre-filled</span><?php endif; ?></td>
+						<td><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h($sc['std']); ?></span></td>
+						<td><?php echo ($sc['status'] === 'triggered') ? '<span class="label label-warning" style="font-size:10px;">Triggered</span>' : '<span class="label label-danger" style="font-size:10px;">Required</span>'; ?></td>
+						<td class="text-muted" style="font-size:11px;"><?php echo epc_erp_h($sc['why']); ?></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+			<div style="font-size:11px;color:#7a0c1c;background:#fdeef0;border-radius:4px;padding:8px 10px;">The IFRS Financials workbook upload already carries an input sheet for each of these — fill the buckets there, or the system derives them from the trial-balance totals where you don't.</div>
+		</div>
+		<?php endif; ?>
 
 	<?php else: // -------- Step 4: generated report ?>
 		<?php

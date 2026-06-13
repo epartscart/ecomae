@@ -6295,6 +6295,69 @@ if (!function_exists('epc_ext_intake_request_rows')) {
     }
 }
 
+if (!function_exists('epc_ext_intake_schedules')) {
+    /**
+     * The IFRS-driven supporting-schedule request. This is deliberately built
+     * from the IFRS/IAS requirement set — NOT from whatever the uploaded sample
+     * happened to contain — so the generated report is compliant even when the
+     * source accounts were not. Each schedule is marked:
+     *   - required: always needed for a general-purpose IFRS report; or
+     *   - triggered: conditionally required because the scanned figures reveal
+     *     the fact pattern (e.g. a doubtful-debt movement → IFRS 9 ECL; a
+     *     "Restated" column → IAS 8 prior-period restatement).
+     * "prefilled" flags that the system already lifted a figure from the upload.
+     *
+     * @param array<string,array{cur:float,pri:float}> $fig scanned figures
+     * @param string $rawText raw extracted/OCR text (used for fact-pattern triggers)
+     * @return array<int,array{key:string,label:string,std:string,why:string,status:string,prefilled:bool}>
+     */
+    function epc_ext_intake_schedules(array $fig, string $rawText = ''): array
+    {
+        $has = static function (string $c) use ($fig): bool { return isset($fig[$c]) && (abs($fig[$c]['cur']) > 0.0001 || abs($fig[$c]['pri']) > 0.0001); };
+        $txt = ' ' . strtolower($rawText) . ' ';
+        $kw = static function (string $re) use ($txt, $rawText): bool { return $rawText !== '' && (bool) preg_match($re, $txt); };
+
+        // Fact-pattern triggers read from the scanned figures / text.
+        $restated   = $kw('/restat|reclassif|prior[\s\-]*period (error|adjust)/i');
+        $relParty   = $has('FIN_RECEIVABLES') || $kw('/related part|due (from|to) (a )?related|key management|managerial remuneration|shareholders.{0,5}current/i');
+        $ecl        = $has('FIN_RECEIVABLES') || $kw('/doubtful|expected credit loss|impairment of (trade )?receivable|provision for (bad|doubtful)/i');
+        $leases     = $has('FIN_LEASE') || $kw('/right[\s\-]*of[\s\-]*use|lease liabilit|ifrs ?16/i');
+        $invObsol   = $has('FIN_INVENTORY');
+        $borrowings = $has('FIN_BORROW_CUR') || $has('FIN_BORROW_NONCUR') || $kw('/borrowing|bank (loan|facilit|overdraft)|term loan/i');
+        $eosb       = $has('FIN_PROVISIONS') || $kw('/end of service|gratuity|employee.{0,3}benefit|eosb/i');
+        $tax        = $has('FIN_TAX') || $has('FIN_TAX_PAYABLE') || $kw('/corporate tax|income tax|deferred tax|ias ?12/i');
+        $dividends  = $has('FIN_DIVIDENDS') || $kw('/dividend/i');
+        $fvr        = $kw('/fair value reserve|fvoci|fvtpl|investment (in|at) (securit|fair)/i');
+
+        $rows = array(
+            // Always required for any general-purpose IFRS report.
+            array('key' => 'PPE_MOVE',     'label' => 'PPE movement (cost, additions, disposals, depreciation, NBV)',           'std' => 'IAS 16',    'why' => 'Required reconciliation of carrying amount.',                 'status' => 'required',  'prefilled' => $has('FIN_PPE')),
+            array('key' => 'REV_DISAGG',   'label' => 'Revenue disaggregation (by stream / geography / timing)',                 'std' => 'IFRS 15',   'why' => 'Mandatory disaggregation of revenue from contracts.',         'status' => 'required',  'prefilled' => $has('FIN_REVENUE')),
+            array('key' => 'OPEX_NATURE',  'label' => 'Expenses analysed by nature or function',                                 'std' => 'IAS 1',     'why' => 'Required analysis of expenses.',                              'status' => 'required',  'prefilled' => false),
+            array('key' => 'EQUITY_MOVE',  'label' => 'Statement of changes in equity (movements by component)',                 'std' => 'IAS 1',     'why' => 'Primary statement — movement in each equity component.',      'status' => 'required',  'prefilled' => $has('FIN_SHARE_CAPITAL')),
+            array('key' => 'CASHFLOW',     'label' => 'Cash-flow inputs (interest/tax paid, capex, financing flows)',           'std' => 'IAS 7',     'why' => 'Primary statement — cash flows by activity.',                 'status' => 'required',  'prefilled' => $has('FIN_CASH')),
+            array('key' => 'FIN_INSTR',    'label' => 'Financial instruments by category + credit/liquidity/market risk',       'std' => 'IFRS 7/9',  'why' => 'Required risk & category disclosures.',                       'status' => 'required',  'prefilled' => false),
+            array('key' => 'SEGMENTS',     'label' => 'Operating segments / business-unit breakdown',                           'std' => 'IFRS 8',    'why' => 'Required where unit-wise results are reviewed by management.', 'status' => 'required',  'prefilled' => false),
+            array('key' => 'EVENTS',       'label' => 'Events after the reporting period',                                       'std' => 'IAS 10',    'why' => 'Required disclosure of subsequent events.',                   'status' => 'required',  'prefilled' => false),
+            array('key' => 'GOING_CONC',   'label' => 'Going-concern assessment',                                                'std' => 'IAS 1',     'why' => 'Required management assessment.',                             'status' => 'required',  'prefilled' => false),
+            array('key' => 'COMMITMENTS',  'label' => 'Commitments & contingencies',                                            'std' => 'IAS 37',    'why' => 'Required disclosure of commitments / contingent items.',      'status' => 'required',  'prefilled' => false),
+            array('key' => 'EPS',          'label' => 'Earnings per share (if applicable)',                                     'std' => 'IAS 33',    'why' => 'Required for entities with listed/quoted instruments.',       'status' => 'required',  'prefilled' => false),
+        );
+        // Conditionally required — triggered by the uploaded report's facts.
+        if ($restated)   { $rows[] = array('key' => 'RESTATEMENT', 'label' => 'Prior-period restatement / reclassification reconciliation', 'std' => 'IAS 8',  'why' => 'Source statements show "Restated" columns — restatement note & three-date SOFP required.', 'status' => 'triggered', 'prefilled' => true); }
+        if ($relParty)   { $rows[] = array('key' => 'RELATED',     'label' => 'Related-party balances, transactions & KMP remuneration',     'std' => 'IAS 24', 'why' => 'Related-party / due-from-to / managerial remuneration detected.',                          'status' => 'triggered', 'prefilled' => $has('FIN_RECEIVABLES')); }
+        if ($ecl)        { $rows[] = array('key' => 'ECL',         'label' => 'Receivables ageing + expected credit loss (ECL) matrix',      'std' => 'IFRS 9', 'why' => 'Doubtful-debt / receivables exposure detected — ECL model required.',                       'status' => 'triggered', 'prefilled' => $has('FIN_RECEIVABLES')); }
+        if ($leases)     { $rows[] = array('key' => 'LEASES',      'label' => 'Right-of-use assets & lease-liability maturity',              'std' => 'IFRS 16','why' => 'Right-of-use / lease balances detected.',                                                  'status' => 'triggered', 'prefilled' => $has('FIN_LEASE')); }
+        if ($invObsol)   { $rows[] = array('key' => 'INVENTORY',   'label' => 'Inventory ageing + obsolescence / NRV provision',             'std' => 'IAS 2',  'why' => 'Inventory balance detected — ageing & NRV provision required.',                             'status' => 'triggered', 'prefilled' => $has('FIN_INVENTORY')); }
+        if ($borrowings) { $rows[] = array('key' => 'BORROWINGS',  'label' => 'Borrowings schedule (terms, security, maturity)',             'std' => 'IFRS 7', 'why' => 'Bank borrowings / loans detected.',                                                        'status' => 'triggered', 'prefilled' => true); }
+        if ($eosb)       { $rows[] = array('key' => 'EOSB',        'label' => 'Employee end-of-service / defined-benefit movement',          'std' => 'IAS 19', 'why' => 'End-of-service / employee-benefit provision detected.',                                     'status' => 'triggered', 'prefilled' => $has('FIN_PROVISIONS')); }
+        if ($tax)        { $rows[] = array('key' => 'TAX',         'label' => 'Tax reconciliation + deferred tax movement',                  'std' => 'IAS 12', 'why' => 'Tax charge / liability detected — recon & deferred tax required.',                          'status' => 'triggered', 'prefilled' => $has('FIN_TAX')); }
+        if ($dividends)  { $rows[] = array('key' => 'DIVIDENDS',   'label' => 'Dividends declared / paid',                                   'std' => 'IAS 10', 'why' => 'Dividend movement detected.',                                                              'status' => 'triggered', 'prefilled' => $has('FIN_DIVIDENDS')); }
+        if ($fvr)        { $rows[] = array('key' => 'FVOCI',       'label' => 'Fair-value reserve / investment fair-value hierarchy',        'std' => 'IFRS 13','why' => 'Fair-value reserve / investments detected — fair-value hierarchy required.',                'status' => 'triggered', 'prefilled' => true); }
+        return $rows;
+    }
+}
+
 if (!function_exists('epc_ext_fin_projection')) {
     /**
      * Five-year forecast built from the dataset's current-year actuals using an
