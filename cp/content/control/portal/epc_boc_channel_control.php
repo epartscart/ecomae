@@ -31,7 +31,10 @@ if (!isset($db_link) || !($db_link instanceof PDO)) {
 $backend = (string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp');
 $base = '/' . trim($backend, '/');
 $operatorName = (class_exists('DP_User') && method_exists('DP_User', 'getName') && (string) DP_User::getName() !== '') ? (string) DP_User::getName() : 'Operator';
+$opId = (class_exists('DP_User') && method_exists('DP_User', 'getUserId')) ? (int) DP_User::getUserId() : 0;
+$nav = function_exists('epc_boc_nav_for_user') ? epc_boc_nav_for_user($db_link, $opId) : epc_boc_nav();
 
-epc_boc_console_open(array('active' => 'channel_control', 'title' => 'Channels & Orders', 'base' => $base, 'operator' => $operatorName, 'env' => 'Production'));
+epc_boc_console_open(array('active' => 'channel_control', 'title' => 'Channels & Orders', 'base' => $base, 'operator' => $operatorName, 'env' => 'Production', 'nav' => $nav, 'scope' => 'All units · Fleet'));
 epc_boc_render_channel_control($db_link, $base);
 epc_boc_console_close();
+?>

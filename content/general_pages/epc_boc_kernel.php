@@ -23,11 +23,40 @@ if (!function_exists('epc_boc_brand')) {
     function epc_boc_brand(): array
     {
         return array(
-            'name'    => 'Business Operation Control',
-            'short'   => 'BOC',
+            'name'    => 'Business Operation System',
+            'short'   => 'BOS',
+            'control' => 'Control',
             'legacy'  => 'Super CP',
-            'tagline' => 'Unified control over every tenant, ERP-only client and demo — one operations spine.',
+            'tagline' => 'One BOS for every tenant, ERP-only client and demo — operators control the whole fleet, each tenant sees only their own area.',
         );
+    }
+}
+
+if (!function_exists('epc_boc_nav_for_user')) {
+    /**
+     * Nav filtered to the areas a given user may access (role-scoped). This is
+     * what makes BOS "one console, many scopes": a platform operator with the
+     * wildcard role sees every group; a scoped/tenant user sees only their
+     * permitted areas. Groups with no visible areas are dropped.
+     *
+     * @return array<string,array{group:array{label:string,icon:string,blurb:string},areas:array<string,mixed>}>
+     */
+    function epc_boc_nav_for_user(PDO $db, int $userId): array
+    {
+        $nav = epc_boc_nav();
+        $out = array();
+        foreach ($nav as $gid => $g) {
+            $areas = array();
+            foreach ($g['areas'] as $id => $area) {
+                if (epc_boc_can($db, $userId, $id)) {
+                    $areas[$id] = $area;
+                }
+            }
+            if ($areas) {
+                $out[$gid] = array('group' => $g['group'], 'areas' => $areas);
+            }
+        }
+        return $out;
     }
 }
 

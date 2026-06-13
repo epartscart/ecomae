@@ -47,8 +47,9 @@ foreach (array(
 
 section('Branding');
 $brand = epc_boc_brand();
-check('brand name is Business Operation Control', $brand['name'] === 'Business Operation Control');
-check('brand short is BOC', $brand['short'] === 'BOC');
+check('brand name is Business Operation System', $brand['name'] === 'Business Operation System');
+check('brand short is BOS', $brand['short'] === 'BOS');
+check('brand control scope label present', ($brand['control'] ?? '') === 'Control');
 check('legacy name retained for continuity', $brand['legacy'] === 'Super CP');
 
 section('Area registry + nav (single source of truth)');
@@ -87,6 +88,21 @@ check('wildcard operator can access any area', epc_boc_can($db, 10, 'auto_price'
 check('ops viewer can see audit log (boc.ops.view)', epc_boc_can($db, 11, 'audit_log') === true);
 check('ops viewer CANNOT manage commerce', epc_boc_can($db, 11, 'auto_price') === false);
 check('unknown area is denied for a scoped user', epc_boc_can($db, 11, 'does_not_exist') === false);
+
+section('Role-scoped nav (one BOS console, many scopes)');
+$navOp = epc_boc_nav_for_user($db, 10);   // full operator
+$navOpCount = 0; foreach ($navOp as $g) { $navOpCount += count($g['areas']); }
+check('wildcard operator sees every area', $navOpCount === count($areas), "op nav=$navOpCount areas=" . count($areas));
+$navView = epc_boc_nav_for_user($db, 11); // ops viewer only
+$navViewIds = array();
+foreach ($navView as $g) { foreach ($g['areas'] as $id => $a) { $navViewIds[] = $id; } }
+check('scoped user sees only permitted areas', in_array('audit_log', $navViewIds, true) && !in_array('auto_price', $navViewIds, true));
+check('scoped nav drops empty groups', !isset($navView['commerce']));
+check('legacy (no-role) user still gets full nav', (function () use ($db, $areas) {
+    $n = epc_boc_nav_for_user($db, 991001);
+    $c = 0; foreach ($n as $g) { $c += count($g['areas']); }
+    return $c === count($areas);
+})());
 
 section('Audit log');
 epc_boc_audit_ensure_schema($db);

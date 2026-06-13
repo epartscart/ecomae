@@ -392,7 +392,7 @@ if (!function_exists('epc_boc_render_vendor_control')) {
         echo epc_boc_adv_tile('Reachable units', $t['reachable'] . ' / ' . $t['tenants']);
         echo '</div>';
         echo '<div class="epc-boc__panel"><div class="epc-boc__panel-h"><i class="fa fa-list"></i> By tenant</div>';
-        echo '<table><thead><tr><th>Tenant</th><th>Type</th><th>Vendors</th><th>Active</th><th>Open RFQs</th><th>Spend</th><th>Status</th></tr></thead><tbody>';
+        echo '<table class="epc-boc__grid--metric"><thead><tr><th>Tenant</th><th>Type</th><th>Vendors</th><th>Active</th><th>Open RFQs</th><th>Spend</th><th>Status</th></tr></thead><tbody>';
         foreach ($r['rows'] as $row) {
             echo '<tr><td><strong>' . epc_boc_h($row['label']) . '</strong><br><code>' . epc_boc_h($row['site_key']) . '</code></td>';
             echo '<td>' . epc_boc_h(epc_boc_type_label($row['type'])) . '</td>';
@@ -427,7 +427,7 @@ if (!function_exists('epc_boc_render_warehouse_control')) {
         echo epc_boc_adv_tile('Out of stock', number_format($t['out_of_stock']), $t['out_of_stock'] > 0 ? 'red' : 'green');
         echo '</div>';
         echo '<div class="epc-boc__panel"><div class="epc-boc__panel-h"><i class="fa fa-list"></i> By tenant</div>';
-        echo '<table><thead><tr><th>Tenant</th><th>Type</th><th>Warehouses</th><th>SKUs</th><th>Stock value</th><th>Low</th><th>Out</th><th>Health</th></tr></thead><tbody>';
+        echo '<table class="epc-boc__grid--metric"><thead><tr><th>Tenant</th><th>Type</th><th>Warehouses</th><th>SKUs</th><th>Stock value</th><th>Low</th><th>Out</th><th>Health</th></tr></thead><tbody>';
         foreach ($r['rows'] as $row) {
             echo '<tr><td><strong>' . epc_boc_h($row['label']) . '</strong><br><code>' . epc_boc_h($row['site_key']) . '</code></td>';
             echo '<td>' . epc_boc_h(epc_boc_type_label($row['type'])) . '</td>';
@@ -466,7 +466,7 @@ if (!function_exists('epc_boc_render_channel_control')) {
         echo epc_boc_adv_tile('Arbitrage on', number_format($t['arbitrage']));
         echo '</div>';
         echo '<div class="epc-boc__panel"><div class="epc-boc__panel-h"><i class="fa fa-list"></i> By tenant</div>';
-        echo '<table><thead><tr><th>Tenant</th><th>Type</th><th>Web</th><th>POS</th><th>API</th><th>Marketplaces</th><th>Arbitrage</th><th>Channels</th></tr></thead><tbody>';
+        echo '<table class="epc-boc__grid--metric"><thead><tr><th>Tenant</th><th>Type</th><th>Web</th><th>POS</th><th>API</th><th>Marketplaces</th><th>Arbitrage</th><th>Channels</th></tr></thead><tbody>';
         foreach ($r['rows'] as $row) {
             echo '<tr><td><strong>' . epc_boc_h($row['label']) . '</strong><br><code>' . epc_boc_h($row['site_key']) . '</code></td>';
             echo '<td>' . epc_boc_h(epc_boc_type_label($row['type'])) . '</td>';
