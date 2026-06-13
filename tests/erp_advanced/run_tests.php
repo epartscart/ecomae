@@ -359,6 +359,8 @@ $printFn = epc_ext_print_fn_js();
 check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('co' => 'X')), '__epcExtCtx') !== false && strpos($printFn, 'function epcExtPrint') !== false, 'print js');
 check('Print/Word share one doc builder', strpos($printFn, 'function epcExtBuildDoc') !== false, 'builder');
 check('MS Word export emits .doc with msword MIME + WordSection', strpos($printFn, 'function epcExtWord') !== false && strpos($printFn, 'application/msword') !== false && strpos($printFn, 'WordSection1') !== false, 'word export');
+check('Word export converts flex rows to tables for alignment', strpos($printFn, 'if(WORD){') !== false && strpos($printFn, 'isFlexRow') !== false && strpos($printFn, 'MS Word ignores CSS flexbox') !== false, 'word flex->table');
+check('Word running header/footer/signatures use aligned tables', strpos($printFn, "Word ignores flex (justify-content:space-between)") !== false && strpos($printFn, 'class="mis-run" style="width:100%') !== false && strpos($printFn, 'class="mis-sign" style="width:100%') !== false, 'word hdr/ft/sign');
 
 // ---- Guided IFRS intake engine (PDF → review → TB request) ----
 $intakeText = "Consolidated statement of financial position\n"
