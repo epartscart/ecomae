@@ -132,6 +132,9 @@ if (!function_exists('epc_boc_console_open')) {
         $nav = (isset($ctx['nav']) && is_array($ctx['nav'])) ? $ctx['nav'] : epc_boc_nav();
         $h = 'epc_boc_h';
         $initials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $operator) ?: 'OP', 0, 2));
+        // Flag the page as a BOC console so the CP template can hide the legacy
+        // chrome before first paint (eliminates the blue-flash before the dark shell).
+        $GLOBALS['epc_cp_boc_page'] = true;
         echo "<style>" . epc_boc_console_css() . "</style>\n";
         echo "<script>(function(){try{document.body.classList.add('epc-boc-mode');}catch(e){}})();</script>\n";
         echo '<div class="epc-boc" style="display:flex!important;position:fixed!important;inset:0!important;z-index:3000!important;overflow:auto!important;width:100%!important;float:none!important;">';
