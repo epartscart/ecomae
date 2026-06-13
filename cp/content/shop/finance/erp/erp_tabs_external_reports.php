@@ -322,7 +322,9 @@ if ($selTool === 'import') {
 	<div class="epc-erp-section" style="margin-bottom:14px;">
 		<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
 			<a class="btn btn-primary btn-sm" href="<?php echo epc_erp_h($fetchUrl); ?>" title="Re-fetch ERP data and rebuild this report"><i class="fa fa-refresh"></i> Fetch &amp; build</a>
-			<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-print"></i> Print / PDF</button>
+			<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
+			<?php $docName = preg_replace('/[^A-Za-z0-9]+/', '_', (string) $def['name']) . '_FY' . date('Y', $repFrom); ?>
+			<button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('<?php echo epc_erp_h($docName); ?>');" title="Download this report as an editable Microsoft Word document (same layout, theme and tables)"><i class="fa fa-file-word-o"></i> Download Word</button>
 			<?php
 			$isFinModelRep = in_array($selRep, array('fin__financial_model_forecast', 'fin__business_valuation_report'), true);
 			if ($isFinModelRep):

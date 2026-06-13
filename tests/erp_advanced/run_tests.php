@@ -355,7 +355,10 @@ if (class_exists('ZipArchive')) {
 
 // column-letter helper + print helpers
 check('XLSX column index A=0, B=1, AA=26', epc_ext_xlsx_col_index('A') === 0 && epc_ext_xlsx_col_index('B') === 1 && epc_ext_xlsx_col_index('AA') === 26, 'col idx');
-check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('co' => 'X')), '__epcExtCtx') !== false && strpos(epc_ext_print_fn_js(), 'function epcExtPrint') !== false, 'print js');
+$printFn = epc_ext_print_fn_js();
+check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('co' => 'X')), '__epcExtCtx') !== false && strpos($printFn, 'function epcExtPrint') !== false, 'print js');
+check('Print/Word share one doc builder', strpos($printFn, 'function epcExtBuildDoc') !== false, 'builder');
+check('MS Word export emits .doc with msword MIME + WordSection', strpos($printFn, 'function epcExtWord') !== false && strpos($printFn, 'application/msword') !== false && strpos($printFn, 'WordSection1') !== false, 'word export');
 
 // ---- External Audit Report (ISA 700) — cover page + full IFRS pack ----
 $audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
