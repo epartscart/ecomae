@@ -6044,6 +6044,82 @@ if (!function_exists('epc_ext_pdf_scan')) {
     }
 }
 
+if (!function_exists('epc_ext_pdf_year')) {
+    /**
+     * Best-effort detection of the financial year an uploaded report covers —
+     * the latest 4-digit year near a "year ended" / "31 December" anchor, else
+     * the largest plausible year anywhere in the text. Used to align several
+     * prior-year reports (e.g. 2024 + 2025) into one multi-year history.
+     */
+    function epc_ext_pdf_year(string $text): int
+    {
+        $best = 0;
+        if (preg_match_all('/(?:year[\s\-]*end(?:ed|ing)?|as at|31\s+december|period\s+end(?:ed|ing)?)[^0-9]{0,20}((?:19|20)\d{2})/i', $text, $m)) {
+            foreach ($m[1] as $y) { $y = (int) $y; if ($y > $best) { $best = $y; } }
+        }
+        if ($best === 0 && preg_match_all('/\b((?:19|20)\d{2})\b/', $text, $m2)) {
+            $thisY = (int) date('Y') + 1;
+            foreach ($m2[1] as $y) { $y = (int) $y; if ($y >= 1990 && $y <= $thisY && $y > $best) { $best = $y; } }
+        }
+        return $best;
+    }
+}
+
+if (!function_exists('epc_ext_intake_merge')) {
+    /**
+     * Merge several uploaded prior-year reports into a single multi-year history
+     * so the system "studies all the latest reports" together. Each report
+     * contributes its current-year column (authoritative for its own year) and
+     * its comparative column (used for the year before, unless a dedicated report
+     * for that year was also supplied). The two most recent years become the new
+     * report's comparative + prior-comparative.
+     *
+     * @param array<int,array{year:int,scan:array}> $scans
+     * @return array{figures:array<string,array{cur:float,pri:float}>,history:array<string,array<int,float>>,years:array<int,int>,found:int,consolidated:bool,combined:bool,prior_auditor:string,latest:int,prev:int}
+     */
+    function epc_ext_intake_merge(array $scans): array
+    {
+        // newest report first so its consolidated/auditor flags win
+        usort($scans, static function ($a, $b) { return $b['year'] <=> $a['year']; });
+        $history = array();
+        $consolidated = false; $combined = false; $priorAuditor = '';
+        // pass 1: each report's own current-year column is authoritative for its year
+        foreach ($scans as $s) {
+            $y = (int) $s['year'];
+            $consolidated = $consolidated || !empty($s['scan']['consolidated']);
+            $combined = $combined || !empty($s['scan']['combined']);
+            if ($priorAuditor === '' && !empty($s['scan']['prior_auditor'])) { $priorAuditor = (string) $s['scan']['prior_auditor']; }
+            if ($y <= 0) { continue; }
+            foreach ((array) $s['scan']['figures'] as $code => $f) { $history[$code][$y] = (float) $f['cur']; }
+        }
+        // pass 2: fill earlier years from comparative columns where not already set
+        foreach ($scans as $s) {
+            $y = (int) $s['year'];
+            if ($y <= 0) { continue; }
+            foreach ((array) $s['scan']['figures'] as $code => $f) {
+                if (!isset($history[$code][$y - 1])) { $history[$code][$y - 1] = (float) $f['pri']; }
+            }
+        }
+        $years = array();
+        foreach ($history as $code => $byYear) { foreach (array_keys($byYear) as $y) { $years[$y] = true; } }
+        $years = array_keys($years);
+        rsort($years);
+        $latest = $years[0] ?? 0;
+        $prev = $years[1] ?? 0;
+        $figures = array();
+        foreach ($history as $code => $byYear) {
+            $cur = isset($byYear[$latest]) ? (float) $byYear[$latest] : 0.0;
+            $pri = isset($byYear[$prev]) ? (float) $byYear[$prev] : 0.0;
+            if (abs($cur) > 0.0001 || abs($pri) > 0.0001) { $figures[$code] = array('cur' => $cur, 'pri' => $pri); }
+        }
+        return array(
+            'figures' => $figures, 'history' => $history, 'years' => $years,
+            'found' => count($figures), 'consolidated' => $consolidated, 'combined' => $combined,
+            'prior_auditor' => $priorAuditor, 'latest' => $latest, 'prev' => $prev,
+        );
+    }
+}
+
 if (!function_exists('epc_ext_intake_review')) {
     /**
      * Review what was found in the uploaded prior-year report against the IFRS

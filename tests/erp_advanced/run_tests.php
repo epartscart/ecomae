@@ -380,6 +380,20 @@ check('Intake legal resolver is country-driven (AE vs GB differ)', (epc_ext_inta
 $intakeTab = file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_external_reports.php');
 check('External Reporting tab wires the guided intake flow', is_string($intakeTab) && strpos($intakeTab, "tool=intake") !== false && strpos($intakeTab, "intake_stage") !== false, 'intake tab');
 check('Intake supports multi-business-unit consolidation (units + eliminations)', is_string($intakeTab) && strpos($intakeTab, 'multiUnit') !== false && strpos($intakeTab, "name=\"unit[") !== false && strpos($intakeTab, "name=\"elim[") !== false, 'multi-unit');
+check('Intake accepts multiple prior-year PDFs (multi-year study)', is_string($intakeTab) && strpos($intakeTab, "intake_pdf[]") !== false && strpos($intakeTab, 'epc_ext_intake_merge') !== false, 'multi-pdf');
+
+// ---- Multi-year merge: study several prior reports (e.g. 2024 + 2025) ----
+$mk = static function (array $cur, array $pri): array {
+    $fig = array();
+    foreach ($cur as $code => $v) { $fig[$code] = array('cur' => (float) $v, 'pri' => (float) ($pri[$code] ?? 0)); }
+    return array('figures' => $fig, 'found' => count($fig), 'consolidated' => true, 'combined' => false, 'prior_auditor' => 'Deloitte & Co.');
+};
+$scan2024 = $mk(array('FIN_REVENUE' => 12100000, 'FIN_PPE' => 6100000), array('FIN_REVENUE' => 10400000, 'FIN_PPE' => 5500000));
+$scan2025 = $mk(array('FIN_REVENUE' => 14250000, 'FIN_PPE' => 6800000), array('FIN_REVENUE' => 12100000, 'FIN_PPE' => 6100000));
+$merged = epc_ext_intake_merge(array(array('year' => 2024, 'scan' => $scan2024), array('year' => 2025, 'scan' => $scan2025)));
+check('Merge builds a multi-year history (2025/2024/2023)', $merged['years'] === array(2025, 2024, 2023), implode(',', $merged['years']));
+check('Merge uses latest year as comparative + prior-comparative', $merged['latest'] === 2025 && $merged['prev'] === 2024 && abs($merged['figures']['FIN_REVENUE']['cur'] - 14250000) < 0.01 && abs($merged['figures']['FIN_REVENUE']['pri'] - 12100000) < 0.01, 'cur/pri');
+check('Merge keeps each year value across reports (own current wins)', abs(($merged['history']['FIN_REVENUE'][2024] ?? 0) - 12100000) < 0.01 && abs(($merged['history']['FIN_REVENUE'][2023] ?? 0) - 10400000) < 0.01, '2024+2023');
 
 // ---- External Audit Report (ISA 700) — cover page + full IFRS pack ----
 $audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));

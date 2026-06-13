@@ -291,6 +291,9 @@ if ($selTool === 'import') {
 	$inErr      = '';
 	$inNotice   = '';
 	$scan       = array('figures' => array(), 'matched' => array(), 'found' => 0);
+	$inHistory  = array();
+	$inYears    = array();
+	$inSources  = array();
 	$review     = null;
 	$reqRows    = array();
 	$inBuilt    = null;
@@ -304,13 +307,42 @@ if ($selTool === 'import') {
 	};
 
 	if ($inStage === 'review' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-		if (isset($_FILES['intake_pdf']) && ($_FILES['intake_pdf']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
-			$text = epc_ext_pdf_to_text((string) $_FILES['intake_pdf']['tmp_name']);
-			$scan = epc_ext_pdf_scan($text);
-			if ($scan['found'] === 0) {
-				$inNotice = 'The system could not auto-read figures from this PDF (it may be a scanned image or an unusual layout). No problem — the data-request form below is ready for you to complete manually.';
+		// Accept one or several prior-year reports (e.g. 2024 + 2025) so the
+		// system studies the latest reports together and builds a multi-year
+		// history. The two most recent years become the new report's
+		// comparative + prior-comparative.
+		$pdfFiles = array();
+		if (isset($_FILES['intake_pdf']) && is_array($_FILES['intake_pdf']['name'] ?? null)) {
+			$n = count($_FILES['intake_pdf']['name']);
+			for ($fi = 0; $fi < $n; $fi++) {
+				if ((int) ($_FILES['intake_pdf']['error'][$fi] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) { continue; }
+				$pdfFiles[] = array('tmp' => (string) $_FILES['intake_pdf']['tmp_name'][$fi], 'name' => (string) $_FILES['intake_pdf']['name'][$fi]);
+			}
+		} elseif (isset($_FILES['intake_pdf']) && ((int) ($_FILES['intake_pdf']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK)) {
+			$pdfFiles[] = array('tmp' => (string) $_FILES['intake_pdf']['tmp_name'], 'name' => (string) $_FILES['intake_pdf']['name']);
+		}
+		if (count($pdfFiles) > 0) {
+			$scansForMerge = array();
+			foreach ($pdfFiles as $pf) {
+				$text = epc_ext_pdf_to_text($pf['tmp']);
+				$one  = epc_ext_pdf_scan($text);
+				$yr   = epc_ext_pdf_year($text);
+				if ($yr <= 0) { $yr = $inPriorY; }
+				$scansForMerge[] = array('year' => $yr, 'scan' => $one);
+				$inSources[] = array('name' => $pf['name'], 'year' => $yr, 'found' => (int) $one['found'], 'consolidated' => !empty($one['consolidated']), 'combined' => !empty($one['combined']));
+			}
+			$merged = epc_ext_intake_merge($scansForMerge);
+			$scan = array(
+				'figures' => $merged['figures'], 'matched' => array(), 'found' => (int) $merged['found'],
+				'consolidated' => $merged['consolidated'], 'combined' => $merged['combined'], 'prior_auditor' => $merged['prior_auditor'],
+			);
+			$inHistory = $merged['history'];
+			$inYears   = $merged['years'];
+			if ($merged['found'] === 0) {
+				$inNotice = 'The system could not auto-read figures from the uploaded PDF(s) (they may be scanned images or an unusual layout). No problem — the data-request form below is ready for you to complete manually.';
 			} else {
-				$inNotice = 'The system read ' . (int) $scan['found'] . ' line item(s) from your uploaded report. Please confirm/adjust them on the request form below — anything not detected is left blank for you to enter.';
+				$yrTxt = count($inYears) > 1 ? (' across ' . count($inYears) . ' year(s) (' . implode(', ', array_map('intval', $inYears)) . ')') : '';
+				$inNotice = 'The system studied ' . count($pdfFiles) . ' report(s) and read ' . (int) $merged['found'] . ' line item(s)' . $yrTxt . '. The latest year (FY' . (int) $merged['latest'] . ') is used as your comparative; confirm/adjust on the request form below.';
 			}
 		} else {
 			$inNotice = 'No PDF was attached — continuing with a blank data-request form for manual entry.';
@@ -397,8 +429,9 @@ if ($selTool === 'import') {
 				<div style="display:flex;flex-wrap:wrap;gap:18px;">
 					<div style="flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
 						<div style="font-weight:700;color:#b3122a;margin-bottom:8px;">1 · Your latest signed financials (PDF)</div>
-						<p class="text-muted" style="font-size:12px;">Attach the most recent accounts (e.g. <strong>FY<?php echo (int) $inPriorY; ?></strong> with its comparative). The system extracts the figures to use as the new report's comparatives and reviews them for IFRS compliance.</p>
-						<input type="file" name="intake_pdf" accept="application/pdf,.pdf" class="form-control input-sm" required>
+						<p class="text-muted" style="font-size:12px;">Attach the most recent accounts (e.g. <strong>FY<?php echo (int) $inPriorY; ?></strong> with its comparative). You can attach <strong>several prior years at once</strong> (e.g. FY<?php echo (int) ($inPriorY - 1); ?> + FY<?php echo (int) $inPriorY; ?>) — the system studies them together, builds a multi-year history and uses the latest year as your comparative.</p>
+						<input type="file" name="intake_pdf[]" accept="application/pdf,.pdf" class="form-control input-sm" multiple required>
+						<div class="text-muted" style="font-size:11px;margin-top:3px;">Tip: select multiple PDFs (hold Ctrl/Cmd) to give the system the full history.</div>
 					</div>
 					<div style="flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
 						<div style="font-weight:700;color:#b3122a;margin-bottom:8px;">2 · The report you need</div>
@@ -431,6 +464,48 @@ if ($selTool === 'import') {
 				The system detected a group report and read the <strong>consolidated/group column</strong> — these become your new report's comparatives.
 				<?php if (!empty($scan['prior_auditor'])): ?> Prior auditor detected: <strong><?php echo epc_erp_h($scan['prior_auditor']); ?></strong>.<?php endif; ?>
 				If the uploaded report had per-entity columns, confirm the figures below are the consolidated/group ones.
+			</div>
+		<?php endif; ?>
+		<?php if (count($inSources) > 1 || count($inYears) > 1): ?>
+			<div class="epc-erp-section" style="margin-bottom:14px;">
+				<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-history"></i> Multi-year study — the system read your prior reports together</h4>
+				<?php if (!empty($inSources)): ?>
+					<p class="text-muted" style="font-size:12px;margin-bottom:6px;">Reports studied:
+						<?php $sp = array(); foreach ($inSources as $sc) { $sp[] = epc_erp_h($sc['name']) . ' → FY' . (int) $sc['year'] . ' (' . (int) $sc['found'] . ' lines' . (!empty($sc['consolidated']) ? ', consolidated' : '') . ')'; } echo implode(' · ', $sp); ?>.
+					</p>
+				<?php endif; ?>
+				<?php
+					$histYears = $inYears; // already sorted desc
+					$histYears = array_slice($histYears, 0, 4);
+				?>
+				<table class="table table-condensed" style="font-size:12px;">
+					<thead><tr style="background:#7a0c1c;color:#fff;"><th>Line item</th><th>Std</th>
+						<?php foreach ($histYears as $hy): ?><th style="text-align:right;">FY<?php echo (int) $hy; ?></th><?php endforeach; ?>
+						<?php if (count($histYears) >= 2): ?><th style="text-align:right;">YoY %</th><?php endif; ?>
+					</tr></thead>
+					<tbody>
+					<?php foreach (epc_ext_fin_line_spec() as $sp):
+						$code = $sp['code'];
+						if (empty($inHistory[$code])) { continue; }
+						$y0 = $histYears[0] ?? 0; $y1 = $histYears[1] ?? 0;
+						$v0 = isset($inHistory[$code][$y0]) ? (float) $inHistory[$code][$y0] : 0.0;
+						$v1 = isset($inHistory[$code][$y1]) ? (float) $inHistory[$code][$y1] : 0.0;
+						$yoy = (abs($v1) > 0.0001) ? (($v0 - $v1) / abs($v1)) * 100 : null;
+					?>
+						<tr>
+							<td><?php echo epc_erp_h($sp['label']); ?></td>
+							<td><span class="label label-info" style="font-size:9.5px;"><?php echo epc_erp_h($sp['std']); ?></span></td>
+							<?php foreach ($histYears as $hy): ?>
+								<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo isset($inHistory[$code][$hy]) ? epc_erp_h(epc_ext_m((float) $inHistory[$code][$hy], $inCcy)) : '—'; ?></td>
+							<?php endforeach; ?>
+							<?php if (count($histYears) >= 2): ?>
+								<td style="text-align:right;font-variant-numeric:tabular-nums;color:<?php echo $yoy === null ? '#888' : ($yoy >= 0 ? '#1a7f37' : '#b3122a'); ?>;"><?php echo $yoy === null ? '—' : (($yoy >= 0 ? '+' : '') . number_format($yoy, 1) . '%'); ?></td>
+							<?php endif; ?>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<div class="text-muted" style="font-size:11px;">The latest year becomes your FY<?php echo (int) $inTargetY; ?> comparative; the year-on-year movement feeds the financial-analysis commentary in the generated report.</div>
 			</div>
 		<?php endif; ?>
 		<div class="epc-erp-section" style="margin-bottom:14px;">
