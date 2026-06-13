@@ -360,6 +360,27 @@ check('Print helpers emit ctx + shared fn', strpos(epc_ext_print_ctx_js(array('c
 check('Print/Word share one doc builder', strpos($printFn, 'function epcExtBuildDoc') !== false, 'builder');
 check('MS Word export emits .doc with msword MIME + WordSection', strpos($printFn, 'function epcExtWord') !== false && strpos($printFn, 'application/msword') !== false && strpos($printFn, 'WordSection1') !== false, 'word export');
 
+// ---- Guided IFRS intake engine (PDF → review → TB request) ----
+$intakeText = "Consolidated statement of financial position\n"
+    . "Revenue                                  3,394,456.40   3,030,764.64\n"
+    . "Cost of sales                           (1,200,000.00) (1,050,000.00)\n"
+    . "Property, plant and equipment            2,100,000.00   1,800,000.00\n"
+    . "Report of the independent auditors\nDeloitte & Co. Chartered Accountants\n";
+$scan = epc_ext_pdf_scan($intakeText);
+check('Intake PDF scan extracts figures (cur/pri)', isset($scan['figures']['FIN_REVENUE']) && abs($scan['figures']['FIN_REVENUE']['cur'] - 3394456.40) < 0.01 && abs($scan['figures']['FIN_REVENUE']['pri'] - 3030764.64) < 0.01, 'revenue ' . ($scan['found'] ?? 0) . ' found');
+check('Intake scan detects consolidated report + prior auditor', !empty($scan['consolidated']) && strpos((string) $scan['prior_auditor'], 'Deloitte') !== false, (string) $scan['prior_auditor']);
+$intakeReview = epc_ext_intake_review($scan['figures'], 'AE');
+check('Intake review reports present/total + legal framework', $intakeReview['present'] >= 3 && $intakeReview['total'] === count(epc_ext_fin_line_spec()) && isset($intakeReview['legal']['Companies law']), $intakeReview['present'] . '/' . $intakeReview['total']);
+$intakeRows = epc_ext_intake_request_rows($scan['figures']);
+$preRev = null;
+foreach ($intakeRows as $rr) { if ($rr['code'] === 'FIN_REVENUE') { $preRev = $rr; break; } }
+check('Intake TB-request pre-fills comparative from uploaded figure', $preRev !== null && $preRev['prefilled'] === true && abs($preRev['prior'] - 3394456.40) < 0.01, 'prior prefilled');
+check('Intake legal resolver is country-driven (AE vs GB differ)', (epc_ext_intake_legal('AE')['Companies law'] ?? '') !== (epc_ext_intake_legal('GB')['Companies law'] ?? ''), 'AE≠GB');
+// the intake UI tab exposes the wizard + multi-business-unit consolidation
+$intakeTab = file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_external_reports.php');
+check('External Reporting tab wires the guided intake flow', is_string($intakeTab) && strpos($intakeTab, "tool=intake") !== false && strpos($intakeTab, "intake_stage") !== false, 'intake tab');
+check('Intake supports multi-business-unit consolidation (units + eliminations)', is_string($intakeTab) && strpos($intakeTab, 'multiUnit') !== false && strpos($intakeTab, "name=\"unit[") !== false && strpos($intakeTab, "name=\"elim[") !== false, 'multi-unit');
+
 // ---- External Audit Report (ISA 700) — cover page + full IFRS pack ----
 $audit = epc_ext_b_audit($db, 'Demo Co', 'AE', 'AED', strtotime('2024-01-01'), strtotime('2024-12-31'));
 check('Audit report has cover page + table of contents', strpos($audit['body'], 'ext-cover') !== false && strpos($audit['body'], 'Table of contents') !== false, 'cover');

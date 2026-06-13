@@ -271,6 +271,359 @@ if ($selTool === 'import') {
 		?>
 	<?php endif; ?>
 	<?php
+} elseif ($selTool === 'intake') {
+	// ----------------------------- Guided IFRS intake: upload prior PDF → system
+	// review → system-generated Trial Balance / data request → compliant report.
+	// Off-system: the PDF is parsed in-memory (never stored); the scanned figures
+	// flow forward as form fields. Country/law resolve from the registered tenant.
+	$inCcy      = (string) ($regProf['currency'] ?? 'AED');
+	$inCountry  = $regCountry;
+	$inStage    = preg_replace('/[^a-z]/', '', (string) ($_POST['intake_stage'] ?? ''));
+	$inTargetY  = (int) ($_POST['intake_target_y'] ?? (int) date('Y'));
+	if ($inTargetY < 2000 || $inTargetY > 2100) { $inTargetY = (int) date('Y'); }
+	$inPriorY   = $inTargetY - 1;
+	$inEntity   = trim((string) ($_POST['intake_entity'] ?? (string) ($erpCo['legal_name'] ?? '')));
+	$inUnitsRaw = trim((string) ($_POST['intake_units'] ?? ''));
+	$inUnits    = array();
+	foreach (explode(',', $inUnitsRaw) as $u) { $u = trim($u); if ($u !== '') { $inUnits[] = $u; } }
+	$multiUnit  = count($inUnits) > 1;
+	$inUnitBreak = array();
+	$inErr      = '';
+	$inNotice   = '';
+	$scan       = array('figures' => array(), 'matched' => array(), 'found' => 0);
+	$review     = null;
+	$reqRows    = array();
+	$inBuilt    = null;
+	$inExtras   = array();
+	$inLegal    = epc_ext_intake_legal($inCountry);
+	$nclean = static function ($v): float {
+		$v = trim((string) $v);
+		$neg = (strpos($v, '(') !== false);
+		$v = str_replace(array(',', ' ', "\xC2\xA0", '(', ')'), '', $v);
+		return is_numeric($v) ? ($neg ? -1 : 1) * (float) $v : 0.0;
+	};
+
+	if ($inStage === 'review' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+		if (isset($_FILES['intake_pdf']) && ($_FILES['intake_pdf']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+			$text = epc_ext_pdf_to_text((string) $_FILES['intake_pdf']['tmp_name']);
+			$scan = epc_ext_pdf_scan($text);
+			if ($scan['found'] === 0) {
+				$inNotice = 'The system could not auto-read figures from this PDF (it may be a scanned image or an unusual layout). No problem — the data-request form below is ready for you to complete manually.';
+			} else {
+				$inNotice = 'The system read ' . (int) $scan['found'] . ' line item(s) from your uploaded report. Please confirm/adjust them on the request form below — anything not detected is left blank for you to enter.';
+			}
+		} else {
+			$inNotice = 'No PDF was attached — continuing with a blank data-request form for manual entry.';
+		}
+		$review  = epc_ext_intake_review($scan['figures'], $inCountry);
+		$reqRows = epc_ext_intake_request_rows($scan['figures']);
+	} elseif ($inStage === 'build' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+		$curIn  = (array) ($_POST['cur'] ?? array());
+		$priIn  = (array) ($_POST['pri'] ?? array());
+		$unitIn = (array) ($_POST['unit'] ?? array());
+		$elimIn = (array) ($_POST['elim'] ?? array());
+		$fin = array();
+		foreach (epc_ext_fin_line_spec() as $s) {
+			$code = $s['code'];
+			if ($multiUnit) {
+				// New-period TB is entered per business unit/division across columns;
+				// the system consolidates (sum of units + eliminations) to the report figure.
+				$perUnit = array();
+				$sum = 0.0;
+				foreach ($inUnits as $ui => $uname) {
+					$val = $nclean((string) ($unitIn[$code][$ui] ?? '0'));
+					$perUnit[$ui] = $val;
+					$sum += $val;
+				}
+				$elim = $nclean((string) ($elimIn[$code] ?? '0'));
+				$cur = $sum + $elim;
+				$inUnitBreak[$code] = array('units' => $perUnit, 'elim' => $elim, 'total' => $cur);
+			} else {
+				$cur = $nclean((string) ($curIn[$code] ?? '0'));
+			}
+			$fin[$code] = array('cur' => $cur, 'pri' => $nclean((string) ($priIn[$code] ?? '0')));
+		}
+		$exLbl = (array) ($_POST['extra_label'] ?? array());
+		$exCur = (array) ($_POST['extra_cur'] ?? array());
+		$exPri = (array) ($_POST['extra_pri'] ?? array());
+		foreach ($exLbl as $i => $lbl) {
+			$lbl = trim((string) $lbl);
+			if ($lbl === '') { continue; }
+			$inExtras[] = array('label' => $lbl, 'cur' => $nclean((string) ($exCur[$i] ?? '0')), 'pri' => $nclean((string) ($exPri[$i] ?? '0')));
+		}
+		$map = array(
+			'meta' => array(
+				'META_LEGAL_NAME'   => $inEntity !== '' ? $inEntity : 'Client entity',
+				'META_CURRENCY'     => $inCcy,
+				'META_PERIOD_FROM'  => $inTargetY . '-01-01',
+				'META_PERIOD_TO'    => $inTargetY . '-12-31',
+				'META_AUDITOR_AUTH' => (string) ($inLegal['Authority'] ?? ''),
+			),
+			'fin' => $fin, 'values' => array(), 'vat' => array(),
+		);
+		$inBuilt = epc_ext_b_fin_summary($map, $inCcy);
+	}
+	$inBase = $baseUrl . $sep . 'tool=intake';
+	// step number for the indicator
+	$inStep = ($inBuilt !== null) ? 4 : (($review !== null) ? 2 : 1);
+	$stepName = array(1 => 'Upload prior financials', 2 => 'System review & data request', 3 => 'Provide new-year data', 4 => 'Compliant report');
+	?>
+	<p style="margin-bottom:10px;"><a href="<?php echo epc_erp_h($baseUrl); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
+	<div class="epc-erp-section" style="margin-bottom:14px;">
+		<h3 style="margin-top:0;color:#b3122a;"><i class="fa fa-magic"></i> Guided IFRS report builder — upload your accounts, the system tells you what it needs</h3>
+		<p class="text-muted" style="font-size:12.5px;max-width:980px;">
+			A multi-step engagement: <strong>upload your latest financials (PDF)</strong> → the system <strong>reviews them against IFRS and your country's legal requirements</strong> →
+			it then <strong>requests exactly the Trial Balance / data it needs</strong> to build the new period's report (prior figures pre-filled from your upload) →
+			it <strong>generates a fully IFRS-compliant report</strong>, even if the uploaded accounts weren't. Off-system: your PDF is read in memory and not stored.
+			Country &amp; law resolve from your registration: <strong><?php echo epc_erp_h($regName . ' (' . $regCountry . ')'); ?></strong>.
+		</p>
+		<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+			<?php foreach (array(1, 2, 3, 4) as $sn): ?>
+				<span class="label" style="font-size:12px;padding:6px 10px;<?php echo $sn <= $inStep ? 'background:#b3122a;color:#fff;' : 'background:#f1e3e6;color:#7a0c1c;'; ?>">
+					<?php echo $sn; ?> · <?php echo epc_erp_h($stepName[$sn]); ?>
+				</span>
+			<?php endforeach; ?>
+		</div>
+	</div>
+
+	<?php if ($inErr !== ''): ?>
+		<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> <?php echo epc_erp_h($inErr); ?></div>
+	<?php endif; ?>
+
+	<?php if ($inBuilt === null && $review === null): // -------- Step 1: upload ?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<form method="post" enctype="multipart/form-data" action="<?php echo epc_erp_h($inBase); ?>">
+				<input type="hidden" name="intake_stage" value="review">
+				<div style="display:flex;flex-wrap:wrap;gap:18px;">
+					<div style="flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
+						<div style="font-weight:700;color:#b3122a;margin-bottom:8px;">1 · Your latest signed financials (PDF)</div>
+						<p class="text-muted" style="font-size:12px;">Attach the most recent accounts (e.g. <strong>FY<?php echo (int) $inPriorY; ?></strong> with its comparative). The system extracts the figures to use as the new report's comparatives and reviews them for IFRS compliance.</p>
+						<input type="file" name="intake_pdf" accept="application/pdf,.pdf" class="form-control input-sm" required>
+					</div>
+					<div style="flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
+						<div style="font-weight:700;color:#b3122a;margin-bottom:8px;">2 · The report you need</div>
+						<label style="font-size:12px;display:block;margin-bottom:4px;">Entity legal name</label>
+						<input type="text" name="intake_entity" value="<?php echo epc_erp_h($inEntity); ?>" class="form-control input-sm" style="margin-bottom:8px;" placeholder="e.g. Acme Trading LLC">
+						<label style="font-size:12px;display:block;margin-bottom:4px;">Target reporting year</label>
+						<select name="intake_target_y" class="form-control input-sm">
+							<?php for ($yy = (int) date('Y') + 1; $yy >= (int) date('Y') - 4; $yy--): ?>
+								<option value="<?php echo $yy; ?>" <?php echo $yy === $inTargetY ? 'selected' : ''; ?>>FY<?php echo $yy; ?> (comparative FY<?php echo $yy - 1; ?>)</option>
+							<?php endfor; ?>
+						</select>
+						<label style="font-size:12px;display:block;margin:8px 0 4px;">Business units / divisions <span class="text-muted">(optional — comma-separated)</span></label>
+						<input type="text" name="intake_units" value="<?php echo epc_erp_h($inUnitsRaw); ?>" class="form-control input-sm" placeholder="e.g. Trading, Contracting, Real Estate">
+						<div class="text-muted" style="font-size:11px;margin-top:3px;">If your new trial balance is unit-wise, list the units — the request form gives you a column per unit and the system consolidates them (with an eliminations column) to the report figure.</div>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-search"></i> Upload &amp; review against IFRS</button>
+			</form>
+		</div>
+
+	<?php elseif ($review !== null): // -------- Step 2 + 3: review + data request ?>
+		<?php if ($inNotice !== ''): ?>
+			<div class="alert <?php echo $scan['found'] > 0 ? 'alert-success' : 'alert-warning'; ?>" style="font-size:12.5px;"><i class="fa fa-info-circle"></i> <?php echo epc_erp_h($inNotice); ?></div>
+		<?php endif; ?>
+		<?php if (!empty($scan['consolidated']) || !empty($scan['combined']) || !empty($scan['prior_auditor'])): ?>
+			<div class="alert alert-info" style="font-size:12.5px;">
+				<i class="fa fa-sitemap"></i>
+				<?php if (!empty($scan['consolidated'])): ?><span class="label label-primary" style="font-size:10px;">Consolidated report</span> <?php endif; ?>
+				<?php if (!empty($scan['combined'])): ?><span class="label label-primary" style="font-size:10px;">Combined report</span> <?php endif; ?>
+				The system detected a group report and read the <strong>consolidated/group column</strong> — these become your new report's comparatives.
+				<?php if (!empty($scan['prior_auditor'])): ?> Prior auditor detected: <strong><?php echo epc_erp_h($scan['prior_auditor']); ?></strong>.<?php endif; ?>
+				If the uploaded report had per-entity columns, confirm the figures below are the consolidated/group ones.
+			</div>
+		<?php endif; ?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-check-square-o"></i> System review of your uploaded report</h4>
+			<div style="display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;">
+				<div style="flex:1;min-width:180px;border-left:4px solid #b3122a;background:#fdeef0;padding:10px;border-radius:4px;">
+					<div style="font-size:11px;color:#7a0c1c;">Line items detected</div>
+					<div style="font-size:20px;font-weight:800;color:#b3122a;"><?php echo (int) $review['present']; ?> / <?php echo (int) $review['total']; ?></div>
+				</div>
+				<div style="flex:1;min-width:180px;border-left:4px solid <?php echo $review['balance']['diff'] ? '#9a6700' : '#1a7f37'; ?>;background:#f7faff;padding:10px;border-radius:4px;">
+					<div style="font-size:11px;color:#555;">Position balances (A = E + L)</div>
+					<div style="font-size:16px;font-weight:800;color:<?php echo $review['balance']['diff'] ? '#9a6700' : '#1a7f37'; ?>;">
+						<?php echo $review['balance']['diff'] ? 'Review needed' : 'Balanced'; ?>
+					</div>
+					<div style="font-size:10px;color:#888;">Assets <?php echo epc_erp_h(epc_ext_m($review['balance']['assets'], $inCcy)); ?> · E+L <?php echo epc_erp_h(epc_ext_m($review['balance']['eqliab'], $inCcy)); ?></div>
+				</div>
+				<div style="flex:1;min-width:180px;border-left:4px solid #1d4e94;background:#e8f0fb;padding:10px;border-radius:4px;">
+					<div style="font-size:11px;color:#1d4e94;">Standards seen / to collect</div>
+					<div style="font-size:16px;font-weight:800;color:#1d4e94;"><?php echo count($review['standards']); ?> seen · <?php echo count($review['missing_std']); ?> to collect</div>
+				</div>
+			</div>
+			<table class="table table-condensed" style="font-size:12px;">
+				<thead><tr style="background:#7a0c1c;color:#fff;"><th>Line item</th><th>Group</th><th>Standard</th><th style="text-align:right;">Detected (FY<?php echo (int) $inPriorY; ?>)</th><th>Status</th></tr></thead>
+				<tbody>
+				<?php foreach ($review['lines'] as $ln): ?>
+					<tr>
+						<td><?php echo epc_erp_h($ln['label']); ?>
+							<?php if (!empty($scan['matched'][$ln['code']])): ?><div class="text-muted" style="font-size:9.5px;">read: <?php echo epc_erp_h(mb_strimwidth($scan['matched'][$ln['code']], 0, 80, '…')); ?></div><?php endif; ?>
+						</td>
+						<td><?php echo epc_erp_h($ln['group']); ?></td>
+						<td><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h($ln['std']); ?></span></td>
+						<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo $ln['status'] === 'found' ? epc_erp_h(epc_ext_m($ln['value'], $inCcy)) : '—'; ?></td>
+						<td><?php echo $ln['status'] === 'found' ? '<span class="label label-success" style="font-size:10px;">Found</span>' : '<span class="label label-warning" style="font-size:10px;">System will request</span>'; ?></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+			<div style="margin-top:8px;font-size:12px;background:#f7faff;border:1px solid #e2e6ee;border-radius:5px;padding:10px;">
+				<strong style="color:#7a0c1c;">Legal / framework requirements applied (from your registration country):</strong>
+				<ul style="margin:6px 0 0;padding-left:18px;">
+					<?php foreach ($inLegal as $k => $v): ?><li><strong><?php echo epc_erp_h($k); ?>:</strong> <?php echo epc_erp_h($v); ?></li><?php endforeach; ?>
+				</ul>
+			</div>
+		</div>
+
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-list-alt"></i> The data the system needs to build your FY<?php echo (int) $inTargetY; ?> report</h4>
+			<p class="text-muted" style="font-size:12px;">This is the system's <strong>Trial Balance request</strong> — only the lines the IFRS report needs. The <strong>FY<?php echo (int) $inPriorY; ?> (comparative)</strong> column is pre-filled from your uploaded report (edit if needed); enter the <strong>FY<?php echo (int) $inTargetY; ?></strong> figures. Add any extra accounts your new report has at the bottom — the system will analyse and include them.</p>
+			<?php if ($multiUnit): ?>
+				<div class="alert alert-info" style="font-size:12px;"><i class="fa fa-sitemap"></i> Multi-unit mode: enter each line per business unit (<strong><?php echo epc_erp_h(implode(' · ', $inUnits)); ?></strong>). Use the <strong>Eliminations</strong> column for inter-unit balances (enter negatives). The <strong>Consolidated</strong> column totals live and is what drives the report.</div>
+			<?php endif; ?>
+			<form method="post" action="<?php echo epc_erp_h($inBase); ?>">
+				<input type="hidden" name="intake_stage" value="build">
+				<input type="hidden" name="intake_target_y" value="<?php echo (int) $inTargetY; ?>">
+				<input type="hidden" name="intake_entity" value="<?php echo epc_erp_h($inEntity); ?>">
+				<input type="hidden" name="intake_units" value="<?php echo epc_erp_h($inUnitsRaw); ?>">
+				<?php $grp = ''; $grpOpen = false; foreach ($reqRows as $r): ?>
+					<?php if ($r['group'] !== $grp): if ($grpOpen) { echo '</tbody></table>'; } $grp = $r['group']; $grpOpen = true; ?>
+						<div style="font-weight:700;color:#7a0c1c;background:#fdeef0;padding:5px 10px;border-radius:3px;margin:10px 0 4px;"><?php echo epc_erp_h($grp); ?></div>
+						<table class="table table-condensed" style="font-size:12px;margin-bottom:0;"><thead><tr style="background:#f1e3e6;">
+							<th>Line item</th><th>Std</th>
+							<?php if ($multiUnit): ?>
+								<?php foreach ($inUnits as $uname): ?><th style="text-align:right;">FY<?php echo (int) $inTargetY; ?> · <?php echo epc_erp_h($uname); ?></th><?php endforeach; ?>
+								<th style="text-align:right;">Eliminations</th>
+								<th style="text-align:right;background:#fdeef0;">FY<?php echo (int) $inTargetY; ?> consolidated</th>
+							<?php else: ?>
+								<th style="text-align:right;">FY<?php echo (int) $inTargetY; ?> (new)</th>
+							<?php endif; ?>
+							<th style="text-align:right;">FY<?php echo (int) $inPriorY; ?> (comparative)</th>
+						</tr></thead><tbody>
+					<?php endif; ?>
+						<tr data-code="<?php echo epc_erp_h($r['code']); ?>">
+							<td><?php echo epc_erp_h($r['label']); ?></td>
+							<td><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h($r['std']); ?></span></td>
+							<?php if ($multiUnit): ?>
+								<?php foreach ($inUnits as $ui => $uname): ?>
+									<td style="text-align:right;"><input type="text" name="unit[<?php echo epc_erp_h($r['code']); ?>][<?php echo (int) $ui; ?>]" class="form-control input-sm epc-u" style="text-align:right;" placeholder="0.00" oninput="epcRowTotal(this)"></td>
+								<?php endforeach; ?>
+								<td style="text-align:right;"><input type="text" name="elim[<?php echo epc_erp_h($r['code']); ?>]" class="form-control input-sm epc-u" style="text-align:right;" placeholder="0.00" oninput="epcRowTotal(this)"></td>
+								<td style="text-align:right;font-weight:700;background:#f4fbf6;font-variant-numeric:tabular-nums;"><span class="epc-tot">0.00</span></td>
+							<?php else: ?>
+								<td style="text-align:right;"><input type="text" name="cur[<?php echo epc_erp_h($r['code']); ?>]" class="form-control input-sm" style="text-align:right;" placeholder="0.00"></td>
+							<?php endif; ?>
+							<td style="text-align:right;"><input type="text" name="pri[<?php echo epc_erp_h($r['code']); ?>]" class="form-control input-sm" style="text-align:right;<?php echo $r['prefilled'] ? 'background:#f4fbf6;' : ''; ?>" value="<?php echo $r['prefilled'] ? epc_erp_h(number_format($r['prior'], 2, '.', '')) : ''; ?>"></td>
+						</tr>
+				<?php endforeach; ?>
+				<?php if ($grpOpen) { echo '</tbody></table>'; } ?>
+				<?php if ($multiUnit): ?>
+				<script>
+				function epcRowTotal(el){var tr=el.closest('tr');if(!tr)return;var ins=tr.querySelectorAll('input.epc-u');var s=0;for(var i=0;i<ins.length;i++){var raw=(ins[i].value||'').trim();var neg=/^\(/.test(raw);var v=parseFloat(raw.replace(/[(),\s]/g,''))||0;if(neg)v=-Math.abs(v);s+=v;}var t=tr.querySelector('.epc-tot');if(t)t.textContent=s.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+				</script>
+				<?php endif; ?>
+				<div style="font-weight:700;color:#7a0c1c;background:#fdeef0;padding:5px 10px;border-radius:3px;margin:12px 0 4px;">Extra accounts in the new report (optional)</div>
+				<table class="table table-condensed" style="font-size:12px;"><thead><tr style="background:#f1e3e6;"><th style="width:46%;">Account / line description</th><th style="width:14%;">&nbsp;</th><th style="width:20%;text-align:right;">FY<?php echo (int) $inTargetY; ?></th><th style="width:20%;text-align:right;">FY<?php echo (int) $inPriorY; ?></th></tr></thead><tbody>
+					<?php for ($x = 0; $x < 4; $x++): ?>
+						<tr>
+							<td><input type="text" name="extra_label[]" class="form-control input-sm" placeholder="e.g. Investment property"></td>
+							<td class="text-muted" style="font-size:10px;">analysed by system</td>
+							<td style="text-align:right;"><input type="text" name="extra_cur[]" class="form-control input-sm" style="text-align:right;" placeholder="0.00"></td>
+							<td style="text-align:right;"><input type="text" name="extra_pri[]" class="form-control input-sm" style="text-align:right;" placeholder="0.00"></td>
+						</tr>
+					<?php endfor; ?>
+				</tbody></table>
+				<button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-cogs"></i> Generate IFRS-compliant FY<?php echo (int) $inTargetY; ?> report</button>
+				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm" style="margin-top:10px;">Start over</a>
+			</form>
+		</div>
+
+	<?php else: // -------- Step 4: generated report ?>
+		<?php
+		$inMeta   = $inBuilt['meta'] ?? array();
+		$inCo     = $inMeta['META_LEGAL_NAME'] ?? 'Client entity';
+		$inPerL   = 'FY' . (int) $inTargetY . '  (FY' . (int) $inPriorY . ' comparative)';
+		$inDocName = preg_replace('/[^A-Za-z0-9]+/', '_', (string) $inCo) . '_IFRS_FY' . (int) $inTargetY;
+		?>
+		<div class="epc-erp-section" style="margin-bottom:14px;">
+			<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+				<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('<?php echo epc_erp_h($inDocName); ?>');"><i class="fa fa-file-word-o"></i> Download Word</button>
+				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i> New engagement</a>
+				<span class="label label-success" style="font-size:11px;"><i class="fa fa-magic"></i> Built from guided intake · IFRS-compliant</span>
+			</div>
+		</div>
+		<?php if (!empty($inExtras)): ?>
+			<div class="alert alert-info" style="font-size:12.5px;">
+				<strong><i class="fa fa-plus-circle"></i> Extra accounts analysed:</strong>
+				<?php $ex = array(); foreach ($inExtras as $e) { $ex[] = epc_erp_h($e['label']) . ' (' . epc_erp_h(epc_ext_m($e['cur'], $inCcy)) . ')'; } echo implode(' · ', $ex); ?>.
+				These were captured outside the standard chart — review whether each needs its own IFRS line/note in the final pack.
+			</div>
+		<?php endif; ?>
+		<?php if ($multiUnit && !empty($inUnitBreak)):
+			$assetCodes = array();
+			foreach (epc_ext_fin_line_spec() as $sg) { if ($sg['group'] === 'Assets') { $assetCodes[] = $sg['code']; } }
+			$rev = isset($inUnitBreak['FIN_REVENUE']) ? $inUnitBreak['FIN_REVENUE'] : array('units' => array(), 'elim' => 0.0, 'total' => 0.0);
+			$assetUnit = array(); $assetElim = 0.0; $assetTot = 0.0;
+			foreach ($assetCodes as $ac) { if (!isset($inUnitBreak[$ac])) { continue; } foreach ($inUnitBreak[$ac]['units'] as $ui => $v) { $assetUnit[$ui] = ($assetUnit[$ui] ?? 0.0) + $v; } $assetElim += $inUnitBreak[$ac]['elim']; $assetTot += $inUnitBreak[$ac]['total']; }
+		?>
+			<div class="epc-erp-section" style="margin-bottom:14px;">
+				<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-sitemap"></i> Business-unit / segment breakdown (IFRS 8) — consolidated for the report</h4>
+				<p class="text-muted" style="font-size:12px;">Your unit-wise trial balance was consolidated (units + eliminations) into the figures driving the report. Segment summary:</p>
+				<table class="table table-condensed" style="font-size:12px;">
+					<thead><tr style="background:#7a0c1c;color:#fff;"><th>Segment / unit</th><th style="text-align:right;">Revenue (IFRS 15)</th><th style="text-align:right;">Total assets</th></tr></thead>
+					<tbody>
+					<?php foreach ($inUnits as $ui => $uname): ?>
+						<tr><td><?php echo epc_erp_h($uname); ?></td>
+							<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo epc_erp_h(epc_ext_m((float) ($rev['units'][$ui] ?? 0.0), $inCcy)); ?></td>
+							<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo epc_erp_h(epc_ext_m((float) ($assetUnit[$ui] ?? 0.0), $inCcy)); ?></td>
+						</tr>
+					<?php endforeach; ?>
+						<tr style="color:#9a6700;"><td>Eliminations</td>
+							<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo epc_erp_h(epc_ext_m((float) $rev['elim'], $inCcy)); ?></td>
+							<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo epc_erp_h(epc_ext_m($assetElim, $inCcy)); ?></td>
+						</tr>
+						<tr style="font-weight:800;background:#fdeef0;color:#7a0c1c;"><td>Consolidated</td>
+							<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo epc_erp_h(epc_ext_m((float) $rev['total'], $inCcy)); ?></td>
+							<td style="text-align:right;font-variant-numeric:tabular-nums;"><?php echo epc_erp_h(epc_ext_m($assetTot, $inCcy)); ?></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		<?php endif; ?>
+		<div id="epc_ext_doc" class="epc-erp-section" style="background:#fff;border:1px solid #e2e6ee;padding:26px;">
+			<div style="display:flex;justify-content:space-between;border-bottom:3px solid #b3122a;padding-bottom:12px;margin-bottom:16px;">
+				<div>
+					<div style="font-size:20px;font-weight:800;color:#7a0c1c;"><?php echo epc_erp_h((string) $inCo); ?></div>
+					<div class="text-muted" style="font-size:12px;"><?php echo epc_erp_h($regName); ?> · <?php echo epc_erp_h($inPerL); ?></div>
+				</div>
+				<div style="text-align:right;font-size:12px;color:#7a0c1c;"><strong><?php echo epc_erp_h((string) $inBuilt['title']); ?></strong><br><?php echo date('d M Y H:i'); ?></div>
+			</div>
+			<?php echo $inBuilt['body']; ?>
+			<p class="text-muted" style="font-size:11px;margin-top:18px;border-top:1px dashed #ccc;padding-top:8px;">
+				Built by Ecom BOS guided IFRS intake on <?php echo date('d M Y H:i'); ?> from your uploaded prior accounts + the data you provided (off-system). Verify figures against the official source before filing.
+			</p>
+		</div>
+		<?php
+		echo epc_ext_print_ctx_js(array(
+			'co'    => (string) $inCo,
+			'addr'  => $regName,
+			'trnL'  => 'TRN',
+			'trn'   => (string) ($inMeta['META_TRN'] ?? ''),
+			'ttl'   => (string) $inBuilt['title'],
+			'juris' => $regName,
+			'auth'  => (string) ($inLegal['Authority'] ?? ''),
+			'law'   => (string) ($inLegal['Companies law'] ?? ''),
+			'perL'  => $inPerL,
+			'perR'  => $inPerL,
+			'gen'   => date('d M Y H:i'),
+			'theme' => 'red',
+		));
+		echo epc_ext_print_fn_js();
+		?>
+	<?php endif; ?>
+	<?php
 } elseif ($selRep !== '' && isset($registry[$selRep])) {
 	// ---------------------------------------------------------------- single report
 	// The report renders for the registered country by default. When the admin
@@ -496,6 +849,13 @@ if ($selTool === 'import') {
 			<div class="text-muted" style="font-size:12px;margin-top:4px;">Build a VAT 201 or Corporate Tax return from an uploaded spreadsheet (summary figures only) — for checking / reporting other clients, outside your ERP data.</div>
 		</div>
 		<a href="<?php echo epc_erp_h($baseUrl . $sep . 'tool=import'); ?>" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> Open import tool</a>
+	</div>
+	<div class="epc-erp-section" style="margin-bottom:14px;background:#fdeef0;border:1px solid #f0c6cd;border-radius:8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+		<div>
+			<div style="font-weight:700;color:#7a0c1c;"><i class="fa fa-magic"></i> Guided IFRS report builder (upload prior PDF → system reviews → requests data → builds report)</div>
+			<div class="text-muted" style="font-size:12px;margin-top:4px;">Upload your latest accounts (PDF — incl. consolidated/combined). The system reviews them against IFRS &amp; <?php echo epc_erp_h($regName); ?> law, then asks for exactly the trial balance / data it needs (multi-business-unit supported) and builds a fully compliant report.</div>
+		</div>
+		<a href="<?php echo epc_erp_h($baseUrl . $sep . 'tool=intake'); ?>" class="btn btn-sm" style="background:#b3122a;border-color:#7a0c1c;color:#fff;"><i class="fa fa-magic"></i> Start guided intake</a>
 	</div>
 	<div class="row">
 	<?php foreach ($cats as $ck => $cl):

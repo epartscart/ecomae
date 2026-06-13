@@ -5895,6 +5895,255 @@ if (!function_exists('epc_ext_b_fin_summary')) {
     }
 }
 
+/* ========================================== Guided IFRS intake (PDF → report) */
+
+if (!function_exists('epc_ext_fin_line_spec')) {
+    /**
+     * Canonical chart of the figures the IFRS report builder consumes — the
+     * single source for (a) the PDF figure scan, (b) the compliance review and
+     * (c) the system-generated Trial Balance request form. Each entry:
+     * code, label, group, std (governing standard), patterns (regex fragments
+     * used to locate the line in an uploaded PDF), sign (statement sign).
+     *
+     * @return array<int,array{code:string,label:string,group:string,std:string,patterns:string}>
+     */
+    function epc_ext_fin_line_spec(): array
+    {
+        return array(
+            // ---- Statement of profit or loss & OCI ----
+            array('code' => 'FIN_REVENUE',        'label' => 'Revenue',                              'group' => 'Profit or loss',           'std' => 'IFRS 15', 'patterns' => 'revenue|turnover|sales income|net sales'),
+            array('code' => 'FIN_COGS',           'label' => 'Cost of sales',                        'group' => 'Profit or loss',           'std' => 'IAS 2',   'patterns' => 'cost of sales|cost of goods sold|cost of revenue'),
+            array('code' => 'FIN_OTHER_INCOME',   'label' => 'Other income',                         'group' => 'Profit or loss',           'std' => 'IAS 1',   'patterns' => 'other income|other operating income|sundry income'),
+            array('code' => 'FIN_ADMIN_EXP',      'label' => 'Administrative expenses',              'group' => 'Profit or loss',           'std' => 'IAS 1',   'patterns' => 'administrative expenses|general and administ|admin expenses'),
+            array('code' => 'FIN_SELLING_EXP',    'label' => 'Selling & distribution expenses',     'group' => 'Profit or loss',           'std' => 'IAS 1',   'patterns' => 'selling and distribution|selling & distribution|distribution (costs|expenses)|marketing expenses'),
+            array('code' => 'FIN_DEPR',           'label' => 'Depreciation & amortisation',         'group' => 'Profit or loss',           'std' => 'IAS 16/38', 'patterns' => 'depreciation and amortis|depreciation & amortis|depreciation and amortization'),
+            array('code' => 'FIN_FINANCE_COST',   'label' => 'Finance costs',                        'group' => 'Profit or loss',           'std' => 'IFRS 7',  'patterns' => 'finance costs|finance cost|interest expense|finance expense'),
+            array('code' => 'FIN_TAX',            'label' => 'Income tax expense',                  'group' => 'Profit or loss',           'std' => 'IAS 12',  'patterns' => 'income tax expense|tax expense|taxation charge|corporate tax'),
+            array('code' => 'FIN_OCI',            'label' => 'Other comprehensive income',          'group' => 'Profit or loss',           'std' => 'IAS 1',   'patterns' => 'other comprehensive income'),
+            // ---- Statement of financial position: assets ----
+            array('code' => 'FIN_PPE',            'label' => 'Property, plant & equipment',         'group' => 'Assets',                   'std' => 'IAS 16',  'patterns' => 'property, plant and equipment|property, plant & equipment|property plant'),
+            array('code' => 'FIN_INTANGIBLES',    'label' => 'Intangible assets',                   'group' => 'Assets',                   'std' => 'IAS 38',  'patterns' => 'intangible assets|intangibles|goodwill'),
+            array('code' => 'FIN_INVENTORY',      'label' => 'Inventories',                         'group' => 'Assets',                   'std' => 'IAS 2',   'patterns' => 'inventories|inventory|stock in trade'),
+            array('code' => 'FIN_RECEIVABLES',    'label' => 'Trade & other receivables (net)',     'group' => 'Assets',                   'std' => 'IFRS 9',  'patterns' => 'trade and other receivables|trade receivables|accounts receivable|trade debtors'),
+            array('code' => 'FIN_CASH',           'label' => 'Cash & cash equivalents',             'group' => 'Assets',                   'std' => 'IAS 7',   'patterns' => 'cash and cash equivalents|cash and bank|cash at bank|bank balances'),
+            // ---- Statement of financial position: liabilities ----
+            array('code' => 'FIN_PAYABLES',       'label' => 'Trade & other payables',              'group' => 'Liabilities',              'std' => 'IFRS 9',  'patterns' => 'trade and other payables|trade payables|accounts payable|trade creditors'),
+            array('code' => 'FIN_BORROW_CUR',     'label' => 'Borrowings — current',                'group' => 'Liabilities',              'std' => 'IFRS 7',  'patterns' => 'current borrowings|borrowings - current|short-term borrowings|short term loans'),
+            array('code' => 'FIN_BORROW_NONCUR',  'label' => 'Borrowings — non-current',            'group' => 'Liabilities',              'std' => 'IFRS 7',  'patterns' => 'non-current borrowings|long-term borrowings|long term loans|term loan'),
+            array('code' => 'FIN_LEASE',          'label' => 'Lease liabilities',                   'group' => 'Liabilities',              'std' => 'IFRS 16', 'patterns' => 'lease liabilit'),
+            array('code' => 'FIN_PROVISIONS',     'label' => 'Provisions / employee benefits',       'group' => 'Liabilities',              'std' => 'IAS 19/37', 'patterns' => 'provisions|employees end of service|end-of-service|employee benefits|gratuity'),
+            array('code' => 'FIN_TAX_PAYABLE',    'label' => 'Current tax payable',                 'group' => 'Liabilities',              'std' => 'IAS 12',  'patterns' => 'tax payable|current tax liabilit|provision for tax'),
+            // ---- Equity ----
+            array('code' => 'FIN_SHARE_CAPITAL',  'label' => 'Share capital',                       'group' => 'Equity',                   'std' => 'IAS 1',   'patterns' => 'share capital|issued capital|paid-up capital'),
+            array('code' => 'FIN_OTHER_RESERVES', 'label' => 'Other reserves',                      'group' => 'Equity',                   'std' => 'IAS 1',   'patterns' => 'other reserves|statutory reserve|legal reserve|revaluation reserve'),
+            array('code' => 'FIN_RETAINED_OPEN',  'label' => 'Retained earnings — opening',          'group' => 'Equity',                   'std' => 'IAS 1',   'patterns' => 'retained earnings|accumulated (profits|losses)|retained profit'),
+            array('code' => 'FIN_DIVIDENDS',      'label' => 'Dividends declared in the year',       'group' => 'Equity',                   'std' => 'IAS 10',  'patterns' => 'dividends declared|dividend paid|dividends paid|dividend declared'),
+        );
+    }
+}
+
+if (!function_exists('epc_ext_pdf_to_text')) {
+    /**
+     * Extract the visible text from an uploaded PDF using poppler's pdftotext
+     * (layout-preserving so figure columns stay on the same line). Returns ''
+     * if the binary is unavailable or shell execution is disabled — callers
+     * degrade gracefully to a blank (guided-entry) request form.
+     */
+    function epc_ext_pdf_to_text(string $path): string
+    {
+        if ($path === '' || !is_readable($path)) { return ''; }
+        if (!function_exists('proc_open')) { return ''; }
+        $bin = '/usr/bin/pdftotext';
+        if (!is_executable($bin)) {
+            $which = '';
+            if (function_exists('shell_exec')) { $which = trim((string) @shell_exec('command -v pdftotext 2>/dev/null')); }
+            $bin = $which !== '' ? $which : 'pdftotext';
+        }
+        $cmd = escapeshellarg($bin) . ' -layout -enc UTF-8 -nopgbrk ' . escapeshellarg($path) . ' -';
+        $desc = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+        $proc = @proc_open($cmd, $desc, $pipes);
+        if (!is_resource($proc)) { return ''; }
+        $out = (string) stream_get_contents($pipes[1]);
+        fclose($pipes[1]); fclose($pipes[2]);
+        proc_close($proc);
+        return $out;
+    }
+}
+
+if (!function_exists('epc_ext_pdf_scan')) {
+    /**
+     * Scan extracted PDF text for each canonical line and pull its figures.
+     * Heuristic: first line matching the line's pattern that carries
+     * thousand-separated or decimal numbers — first number = latest year,
+     * second = prior year. Returns figures keyed by code plus the raw matched
+     * line (so the confirm screen can show provenance) and a confidence count.
+     *
+     * @return array{figures:array<string,array{cur:float,pri:float}>,matched:array<string,string>,found:int,consolidated:bool,combined:bool,prior_auditor:string}
+     */
+    function epc_ext_pdf_scan(string $text): array
+    {
+        $figures = array();
+        $matched = array();
+        $found = 0;
+        $consolidated = (bool) preg_match('/consolidated (statement|financial|income|balance|statements of)/i', $text);
+        $combined = (bool) preg_match('/\bcombined (financial|statement|statements)\b/i', $text);
+        // Best-effort prior-auditor name: a short stand-alone line ending in a
+        // firm suffix (avoids matching narrative sentences in the audit opinion).
+        $priorAuditor = '';
+        foreach (preg_split('/\r\n|\r|\n/', $text) ?: array() as $al) {
+            $alt = trim(preg_replace('/\s{2,}/', ' ', $al));
+            if ($alt === '' || strlen($alt) > 55) { continue; }
+            if (!preg_match('/(LLP|Chartered Accountants|& Co\.?|Associates|Partners|Auditors)\s*$/', $alt)) { continue; }
+            if (preg_match('/\b(we|have|our|opinion|statement|statements|financial|audited|report|company|consolidated|members|directors|basis)\b/i', $alt)) { continue; }
+            if (!preg_match('/^[A-Z]/', $alt)) { continue; }
+            $priorAuditor = $alt;
+            break;
+        }
+        if (trim($text) === '') { return array('figures' => $figures, 'matched' => $matched, 'found' => 0, 'consolidated' => false, 'combined' => false, 'prior_auditor' => ''); }
+        $lines = preg_split('/\r\n|\r|\n/', $text) ?: array();
+        $numOf = static function (string $tok): float {
+            $neg = (strpos($tok, '(') !== false);
+            $tok = str_replace(array('(', ')', ',', ' ', "\xC2\xA0", 'AED', 'USD'), '', $tok);
+            if (!is_numeric($tok)) { return 0.0; }
+            $v = (float) $tok;
+            return $neg ? -$v : $v;
+        };
+        // thousand-separated (1,234 / 1,234.56) or decimal (1234.56) or parenthesised negatives
+        $numRe = '/\(?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?|\(?\d+\.\d{2}\)?/';
+        $nLines = count($lines);
+        $allRe = array();
+        foreach (epc_ext_fin_line_spec() as $spec) { $allRe[$spec['code']] = '/(' . $spec['patterns'] . ')/i'; }
+        foreach (epc_ext_fin_line_spec() as $spec) {
+            $code = $spec['code'];
+            $re = $allRe[$code];
+            for ($i = 0; $i < $nLines; $i++) {
+                if (!preg_match($re, $lines[$i])) { continue; }
+                $src = $lines[$i];
+                // numbers on the label line?
+                if (!preg_match_all($numRe, $src, $mm) || count($mm[0]) === 0) {
+                    // some PDF layouts place the figures on the following line(s);
+                    // look ahead up to 2 lines, but stop if a different label appears.
+                    $mm = null;
+                    for ($k = 1; $k <= 2 && ($i + $k) < $nLines; $k++) {
+                        $peek = $lines[$i + $k];
+                        $isLabel = false;
+                        foreach ($allRe as $oc => $ore) { if ($oc !== $code && preg_match($ore, $peek)) { $isLabel = true; break; } }
+                        if ($isLabel) { break; }
+                        if (preg_match_all($numRe, $peek, $mmp) && count($mmp[0]) > 0) { $mm = $mmp; $src = trim($lines[$i]) . '  ' . $peek; break; }
+                    }
+                    if ($mm === null) { continue; }
+                }
+                $nums = array_map($numOf, $mm[0]);
+                $figures[$code] = array('cur' => $nums[0], 'pri' => isset($nums[1]) ? $nums[1] : 0.0);
+                $matched[$code] = trim(preg_replace('/\s{2,}/', '  ', $src));
+                $found++;
+                break;
+            }
+        }
+        return array('figures' => $figures, 'matched' => $matched, 'found' => $found, 'consolidated' => $consolidated, 'combined' => $combined, 'prior_auditor' => $priorAuditor);
+    }
+}
+
+if (!function_exists('epc_ext_intake_review')) {
+    /**
+     * Review what was found in the uploaded prior-year report against the IFRS
+     * framework and the tenant's country: which lines/standards are present,
+     * which are missing, whether the position balances, and the governing law.
+     * Drives the on-screen "system review" before the data request.
+     *
+     * @param array<string,array{cur:float,pri:float}> $fig
+     * @return array{lines:array<int,array{code:string,label:string,group:string,std:string,status:string,value:float,note:string}>,present:int,total:int,balance:array{assets:float,eqliab:float,diff:bool},standards:array<int,string>,missing_std:array<int,string>,legal:array<string,string>}
+     */
+    function epc_ext_intake_review(array $fig, string $country): array
+    {
+        $spec = epc_ext_fin_line_spec();
+        $lines = array();
+        $present = 0;
+        $stdSeen = array();
+        $stdMiss = array();
+        foreach ($spec as $s) {
+            $code = $s['code'];
+            $val = isset($fig[$code]) ? (float) $fig[$code]['cur'] : 0.0;
+            $has = isset($fig[$code]) && (abs($fig[$code]['cur']) > 0.0001 || abs($fig[$code]['pri']) > 0.0001);
+            if ($has) { $present++; $stdSeen[$s['std']] = true; }
+            else { $stdMiss[$s['std']] = true; }
+            $lines[] = array(
+                'code' => $code, 'label' => $s['label'], 'group' => $s['group'], 'std' => $s['std'],
+                'status' => $has ? 'found' : 'missing', 'value' => $val,
+                'note' => $has ? '' : 'Not detected in the uploaded report — the system will request it.',
+            );
+        }
+        $g = static function (string $c) use ($fig): float { return isset($fig[$c]) ? (float) $fig[$c]['cur'] : 0.0; };
+        $assets = $g('FIN_PPE') + $g('FIN_INTANGIBLES') + $g('FIN_INVENTORY') + $g('FIN_RECEIVABLES') + $g('FIN_CASH');
+        $profit = $g('FIN_REVENUE') - $g('FIN_COGS') + $g('FIN_OTHER_INCOME') - $g('FIN_ADMIN_EXP') - $g('FIN_SELLING_EXP') - $g('FIN_DEPR') - $g('FIN_FINANCE_COST') - $g('FIN_TAX');
+        $retC = $g('FIN_RETAINED_OPEN') + $profit - $g('FIN_DIVIDENDS');
+        $equity = $g('FIN_SHARE_CAPITAL') + $g('FIN_OTHER_RESERVES') + $retC;
+        $liab = $g('FIN_PAYABLES') + $g('FIN_BORROW_CUR') + $g('FIN_BORROW_NONCUR') + $g('FIN_LEASE') + $g('FIN_PROVISIONS') + $g('FIN_TAX_PAYABLE');
+        $eqliab = $equity + $liab;
+        $legal = epc_ext_intake_legal($country);
+        return array(
+            'lines' => $lines,
+            'present' => $present,
+            'total' => count($spec),
+            'balance' => array('assets' => $assets, 'eqliab' => $eqliab, 'diff' => abs($assets - $eqliab) > 1.0),
+            'standards' => array_keys($stdSeen),
+            'missing_std' => array_values(array_diff(array_keys($stdMiss), array_keys($stdSeen))),
+            'legal' => $legal,
+        );
+    }
+}
+
+if (!function_exists('epc_ext_intake_legal')) {
+    /**
+     * Tenant-country-driven legal / framework requirements for the report,
+     * resolved from the registered country (never hard-coded to one country).
+     *
+     * @return array<string,string>
+     */
+    function epc_ext_intake_legal(string $country): array
+    {
+        $country = strtoupper(trim($country));
+        $prof = function_exists('epc_country_profile') ? epc_country_profile($country) : array();
+        $framework = (string) ($prof['gaap'] ?? 'International Financial Reporting Standards (IFRS) as issued by the IASB');
+        $audit = 'International Standards on Auditing (ISA 700/701/705/570/720)';
+        $map = array(
+            'AE' => array('Companies law' => 'UAE Federal Decree-Law 32/2021 (Commercial Companies)', 'Tax law' => 'UAE Federal Decree-Law 47/2022 (Corporate Tax); FDL 8/2017 (VAT)', 'Authority' => 'Ministry of Economy — UAE Auditors Register'),
+            'SA' => array('Companies law' => 'Saudi Companies Law (Royal Decree M/132)', 'Tax law' => 'ZATCA Corporate Income Tax / Zakat; VAT Law', 'Authority' => 'SOCPA — Saudi Organization for Chartered & Professional Accountants'),
+            'GB' => array('Companies law' => 'UK Companies Act 2006', 'Tax law' => 'UK Corporation Tax Act 2009/2010; VATA 1994', 'Authority' => 'Financial Reporting Council (FRC)'),
+            'IN' => array('Companies law' => 'Indian Companies Act 2013', 'Tax law' => 'Income-tax Act 1961; CGST Act 2017', 'Authority' => 'ICAI — Institute of Chartered Accountants of India'),
+        );
+        $base = $map[$country] ?? array('Companies law' => 'Local companies / commercial law of the registered country', 'Tax law' => 'Local corporate tax & VAT/GST law', 'Authority' => 'National audit oversight authority');
+        return array_merge(array('Framework' => $framework, 'Auditing' => $audit), $base);
+    }
+}
+
+if (!function_exists('epc_ext_intake_request_rows')) {
+    /**
+     * Build the system-generated Trial Balance / data request — every line the
+     * report needs, with the prior-year (comparative) column pre-filled from the
+     * uploaded report where it was detected and the new (target-year) column
+     * left blank for the client to complete.
+     *
+     * @param array<string,array{cur:float,pri:float}> $fig figures scanned from the uploaded report
+     * @return array<int,array{code:string,label:string,group:string,std:string,prior:float,prefilled:bool}>
+     */
+    function epc_ext_intake_request_rows(array $fig): array
+    {
+        $rows = array();
+        foreach (epc_ext_fin_line_spec() as $s) {
+            $code = $s['code'];
+            // The latest year detected in the uploaded report becomes the new
+            // report's comparative (prior) column.
+            $prior = isset($fig[$code]) ? (float) $fig[$code]['cur'] : 0.0;
+            $rows[] = array(
+                'code' => $code, 'label' => $s['label'], 'group' => $s['group'], 'std' => $s['std'],
+                'prior' => $prior, 'prefilled' => (abs($prior) > 0.0001),
+            );
+        }
+        return $rows;
+    }
+}
+
 if (!function_exists('epc_ext_fin_projection')) {
     /**
      * Five-year forecast built from the dataset's current-year actuals using an
