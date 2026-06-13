@@ -408,7 +408,7 @@ if (class_exists('ZipArchive')) {
 
 // ---- Expanded IFRS Financials upload workbook (maximum input) ----
 $finSheetsX = epc_ext_import_template_sheets('fin');
-$reqFinSheets = array('Company & details', 'Financial data', 'Revenue & segments', 'PPE & intangible movement', 'Receivables, inventory & ECL', 'Tax reconciliation', 'Leases, borrowings & risk', 'Equity, EPS & dividends', 'Related parties & KMP', 'Other disclosures', 'Notes inputs', 'Compliance checklist');
+$reqFinSheets = array('Company & details', 'Financial data', 'Revenue & segments', 'PPE & intangible movement', 'Receivables, payables, inventory & ECL', 'Tax reconciliation', 'Leases, borrowings & risk', 'Equity, EPS & dividends', 'Related parties & KMP', 'Other disclosures', 'Notes inputs', 'Compliance checklist');
 $missFinSheet = array();
 foreach ($reqFinSheets as $s) { if (!isset($finSheetsX[$s])) { $missFinSheet[] = $s; } }
 check('FIN workbook is comprehensive (12 input sheets)', $missFinSheet === array(), $missFinSheet === array() ? count($finSheetsX) . ' sheets' : 'missing: ' . implode(',', $missFinSheet));
