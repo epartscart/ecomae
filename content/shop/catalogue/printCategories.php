@@ -63,8 +63,11 @@ if($category_block_type == 1){
 		$img = '/content/files/images/no_image.png';
 		if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_storefront.php')) {
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_storefront.php';
-			if ($db_link instanceof PDO && function_exists('epc_epartscart_catalog_placeholder_url')) {
+			if ($db_link instanceof PDO && function_exists('epc_epartscart_use_neutral_product_image')
+				&& epc_epartscart_use_neutral_product_image($db_link) && function_exists('epc_epartscart_catalog_placeholder_url')) {
 				$img = epc_epartscart_catalog_placeholder_url($db_link);
+			} elseif (function_exists('epc_storefront_catalog_placeholder_for_hint')) {
+				$img = epc_storefront_catalog_placeholder_for_hint((string) ($subcategory["url"] ?? '') . ' ' . (string) ($_SERVER['REQUEST_URI'] ?? ''));
 			}
 		}
 		$background_size = 'background-size: contain;';

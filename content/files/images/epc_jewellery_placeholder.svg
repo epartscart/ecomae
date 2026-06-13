@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Jewellery">
+  <rect width="120" height="120" fill="#f1f5f9"/>
+  <g fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 38h40l16 18-36 40-36-40z"/>
+    <path d="M24 56h72M52 38l-8 18 16 40M68 38l8 18-16 40"/>
+  </g>
+</svg>

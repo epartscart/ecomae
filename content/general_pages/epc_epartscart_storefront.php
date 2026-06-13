@@ -82,6 +82,35 @@ function epc_epartscart_use_neutral_product_image(PDO $pdo): bool
 }
 
 /**
+ * Clean, language-neutral catalogue placeholder chosen from a context hint
+ * (category url / alias / industry key). Replaces the legacy Russian no_image.png
+ * for any storefront so products without a photo still look intentional.
+ */
+function epc_storefront_catalog_placeholder_for_hint(string $hint): string
+{
+	$base = '/content/files/images/';
+	$h = strtolower($hint);
+	if (strpos($h, 'electronic') !== false) {
+		return $base . 'epc_electronics_placeholder.svg';
+	}
+	if (strpos($h, 'fashion') !== false || strpos($h, 'apparel') !== false || strpos($h, 'clothing') !== false) {
+		return $base . 'epc_fashion_placeholder.svg';
+	}
+	if (strpos($h, 'jewel') !== false) {
+		return $base . 'epc_jewellery_placeholder.svg';
+	}
+	if (strpos($h, 'svc-') !== false || strpos($h, 'tax') !== false || strpos($h, 'advisor') !== false
+		|| strpos($h, 'audit') !== false || strpos($h, 'accounting') !== false || strpos($h, 'consult') !== false
+		|| strpos($h, 'service') !== false) {
+		return $base . 'epc_services_placeholder.svg';
+	}
+	if (strpos($h, 'auto') !== false || strpos($h, 'part') !== false) {
+		return $base . 'epc_autoparts_placeholder.svg';
+	}
+	return $base . 'epc_catalog_placeholder.svg';
+}
+
+/**
  * Hide APAI branches from the left-panel catalogue tree; keep legacy roots (Tires, Rims, …).
  *
  * @param array<int,array<string,mixed>> $tree

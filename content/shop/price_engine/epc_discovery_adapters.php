@@ -1233,18 +1233,39 @@ function epc_disc_demo_products_for_node(string $nodeName, string $slug, array $
 				array('title' => 'Toyota Oil Filter 04152-YZZA6', 'brand' => 'Toyota', 'article_number' => '04152YZZA6', 'price' => 45, 'cost' => 32, 'img' => 'https://m.media-amazon.com/images/I/31lmcNasPol._AC_SL1000_.jpg'),
 				array('title' => 'Nissan Oil Filter 15208-65F0E', 'brand' => 'Nissan', 'article_number' => '1520865F0E', 'price' => 38, 'cost' => 26, 'img' => 'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg'),
 				array('title' => 'Toyota Air Filter 17801-31090', 'brand' => 'Toyota', 'article_number' => '1780131090', 'price' => 89, 'cost' => 62, 'img' => 'https://m.media-amazon.com/images/I/61S+J4NfYLL._AC_SL1500_.jpg'),
+				array('title' => 'Bosch Cabin Air Filter 1987432095', 'brand' => 'Bosch', 'article_number' => '1987432095', 'price' => 65, 'cost' => 44),
+				array('title' => 'Mann Fuel Filter WK820/17', 'brand' => 'Mann', 'article_number' => 'WK82017', 'price' => 120, 'cost' => 88),
 			),
 			'auto-brakes-pads' => array(
 				array('title' => 'Toyota Brake Pad 04465-33471', 'brand' => 'Toyota', 'article_number' => '0446533471', 'price' => 320, 'cost' => 245),
 				array('title' => 'Nissan Brake Pad D1060-1MA0A', 'brand' => 'Nissan', 'article_number' => 'D10601MA0A', 'price' => 185, 'cost' => 140),
+				array('title' => 'Brembo Brake Disc 09.A427.11', 'brand' => 'Brembo', 'article_number' => '09A42711', 'price' => 410, 'cost' => 305),
+				array('title' => 'Bosch Brake Pad Set BP1234', 'brand' => 'Bosch', 'article_number' => 'BP1234', 'price' => 240, 'cost' => 175),
+			),
+			'auto-electrical-batteries' => array(
+				array('title' => 'AC Delco Battery 80Ah DIN80', 'brand' => 'AC Delco', 'article_number' => 'DIN80', 'price' => 420, 'cost' => 320),
+				array('title' => 'Varta Blue Dynamic 72Ah', 'brand' => 'Varta', 'article_number' => 'E43', 'price' => 480, 'cost' => 360),
+				array('title' => 'Bosch S4 Battery 60Ah', 'brand' => 'Bosch', 'article_number' => 'S4005', 'price' => 360, 'cost' => 270),
+			),
+			'auto-engine-spark' => array(
+				array('title' => 'NGK Iridium Spark Plug ILKAR7B11', 'brand' => 'NGK', 'article_number' => 'ILKAR7B11', 'price' => 55, 'cost' => 38),
+				array('title' => 'Denso Iridium Spark Plug IK20', 'brand' => 'Denso', 'article_number' => 'IK20', 'price' => 48, 'cost' => 33),
+				array('title' => 'Bosch Double Platinum Plug FR7NPP332', 'brand' => 'Bosch', 'article_number' => 'FR7NPP332', 'price' => 60, 'cost' => 42),
+			),
+			'auto-suspension-shocks' => array(
+				array('title' => 'KYB Excel-G Shock Absorber 339234', 'brand' => 'KYB', 'article_number' => '339234', 'price' => 290, 'cost' => 215),
+				array('title' => 'Monroe OESpectrum Shock 37328', 'brand' => 'Monroe', 'article_number' => '37328', 'price' => 320, 'cost' => 240),
+				array('title' => 'Toyota Control Arm 48068-09180', 'brand' => 'Toyota', 'article_number' => '4806809180', 'price' => 540, 'cost' => 410),
 			),
 			'auto-oem-toyota' => array(
 				array('title' => 'Toyota Spark Plug 1310154101', 'brand' => 'Toyota', 'article_number' => '1310154101', 'price' => 75, 'cost' => 52),
 				array('title' => 'Toyota Water Pump 16100-39466', 'brand' => 'Toyota', 'article_number' => '1610039466', 'price' => 890, 'cost' => 720),
+				array('title' => 'Toyota Timing Belt 13568-09070', 'brand' => 'Toyota', 'article_number' => '1356809070', 'price' => 240, 'cost' => 175),
 			),
 			'auto-body-lights' => array(
 				array('title' => 'Toyota Headlight 81110-33C80', 'brand' => 'Toyota', 'article_number' => '8111033C80', 'price' => 890, 'cost' => 720),
 				array('title' => 'Osram Bulb H7 64210', 'brand' => 'Osram', 'article_number' => '64210', 'price' => 75, 'cost' => 52),
+				array('title' => 'Philips X-tremeVision H4 Bulb', 'brand' => 'Philips', 'article_number' => '12342XV', 'price' => 95, 'cost' => 66),
 			),
 		),
 		'electronics' => array(
@@ -1252,56 +1273,189 @@ function epc_disc_demo_products_for_node(string $nodeName, string $slug, array $
 				array('title' => 'Samsung Galaxy S24 Ultra 256GB — Titanium Gray', 'price' => 4299, 'cost' => 3650, 'img' => 'https://images.samsung.com/is/image/samsung/p6pim/ae/2401/gallery/ae-galaxy-s24-ultra-sm-s928bztheua-thumb-539864570'),
 				array('title' => 'Apple iPhone 15 Pro 128GB — Natural Titanium', 'price' => 3999, 'cost' => 3400, 'img' => 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-naturaltitanium'),
 				array('title' => 'Google Pixel 8 Pro 128GB — Obsidian', 'price' => 3499, 'cost' => 2950, 'img' => 'https://lh3.googleusercontent.com/pixel8pro'),
-			),
-			'computers-tablets' => array(
-				array('title' => 'Samsung Galaxy Tab S9 128GB WiFi — Graphite', 'price' => 2499, 'cost' => 2100),
-				array('title' => 'Apple iPad Air 11" M2 128GB — Space Gray', 'price' => 2799, 'cost' => 2380),
+				array('title' => 'Xiaomi 14 512GB — Black', 'price' => 2799, 'cost' => 2300),
+				array('title' => 'OnePlus 12 256GB — Flowy Emerald', 'price' => 2699, 'cost' => 2250),
 			),
 			'headphones' => array(
 				array('title' => 'Sony WH-1000XM5 Wireless Noise Cancelling', 'price' => 1299, 'cost' => 1050),
 				array('title' => 'Apple AirPods Pro (2nd generation) USB-C', 'price' => 899, 'cost' => 750),
+				array('title' => 'Bose QuietComfort Ultra Headphones', 'price' => 1699, 'cost' => 1350),
+				array('title' => 'JBL Tune 770NC Wireless', 'price' => 399, 'cost' => 280),
+				array('title' => 'Sennheiser Momentum 4 Wireless', 'price' => 1199, 'cost' => 950),
+			),
+			'computers-laptops' => array(
+				array('title' => 'Apple MacBook Air 13" M3 256GB — Midnight', 'price' => 4699, 'cost' => 4050),
+				array('title' => 'Dell XPS 13 9340 Intel Core Ultra 7 512GB', 'price' => 5499, 'cost' => 4700),
+				array('title' => 'Lenovo ThinkPad X1 Carbon Gen 12', 'price' => 6299, 'cost' => 5400),
+				array('title' => 'ASUS Zenbook 14 OLED Ryzen 7 512GB', 'price' => 3799, 'cost' => 3150),
+				array('title' => 'HP Spectre x360 14 2-in-1', 'price' => 5199, 'cost' => 4450),
+			),
+			'computers-tablets' => array(
+				array('title' => 'Samsung Galaxy Tab S9 128GB WiFi — Graphite', 'price' => 2499, 'cost' => 2100),
+				array('title' => 'Apple iPad Air 11" M2 128GB — Space Gray', 'price' => 2799, 'cost' => 2380),
+				array('title' => 'Lenovo Tab P12 256GB', 'price' => 1399, 'cost' => 1100),
 			),
 			'tv-video-televisions' => array(
 				array('title' => 'Samsung 55" Crystal UHD 4K Smart TV CU8000', 'price' => 1899, 'cost' => 1550),
 				array('title' => 'LG 65" OLED C3 4K Smart TV', 'price' => 5499, 'cost' => 4700),
+				array('title' => 'Sony BRAVIA XR 65" X90L 4K', 'price' => 4999, 'cost' => 4250),
+				array('title' => 'TCL 55" QLED 4K C645', 'price' => 1699, 'cost' => 1350),
+				array('title' => 'Hisense 65" ULED U7K 4K', 'price' => 2799, 'cost' => 2300),
 			),
 			'gaming-consoles' => array(
 				array('title' => 'Sony PlayStation 5 Slim Console — UAE Version', 'price' => 1899, 'cost' => 1650),
 				array('title' => 'Xbox Series X 1TB Console', 'price' => 1799, 'cost' => 1550),
+				array('title' => 'Nintendo Switch OLED — White', 'price' => 1349, 'cost' => 1100),
+				array('title' => 'Steam Deck OLED 512GB', 'price' => 2199, 'cost' => 1850),
+				array('title' => 'Xbox Series S 1TB Console', 'price' => 1199, 'cost' => 980),
+			),
+			'smart-home' => array(
+				array('title' => 'Amazon Echo Dot (5th Gen) — Charcoal', 'price' => 199, 'cost' => 145),
+				array('title' => 'Google Nest Hub 2nd Gen — Chalk', 'price' => 349, 'cost' => 280),
+				array('title' => 'Philips Hue White & Colour Starter Kit', 'price' => 549, 'cost' => 420),
+				array('title' => 'TP-Link Tapo Smart Camera C200', 'price' => 99, 'cost' => 68),
+				array('title' => 'Ring Video Doorbell 4', 'price' => 599, 'cost' => 460),
 			),
 			'smart-home-assistants' => array(
 				array('title' => 'Amazon Echo Dot (5th Gen) — Charcoal', 'price' => 199, 'cost' => 145),
 				array('title' => 'Google Nest Hub 2nd Gen — Chalk', 'price' => 349, 'cost' => 280),
+				array('title' => 'Apple HomePod mini — Space Gray', 'price' => 379, 'cost' => 300),
+			),
+			'wearables-smartwatches' => array(
+				array('title' => 'Apple Watch Series 9 GPS 45mm — Midnight', 'price' => 1799, 'cost' => 1500),
+				array('title' => 'Samsung Galaxy Watch6 44mm — Graphite', 'price' => 1199, 'cost' => 950),
+				array('title' => 'Garmin Venu 3 GPS Smartwatch', 'price' => 1699, 'cost' => 1350),
+				array('title' => 'Fitbit Charge 6 Fitness Tracker', 'price' => 599, 'cost' => 440),
+				array('title' => 'Huawei Watch GT 4 46mm', 'price' => 999, 'cost' => 780),
+			),
+			'pc-components-gpu' => array(
+				array('title' => 'NVIDIA GeForce RTX 4070 12GB', 'price' => 2599, 'cost' => 2150),
+				array('title' => 'NVIDIA GeForce RTX 4080 Super 16GB', 'price' => 4499, 'cost' => 3850),
+				array('title' => 'AMD Radeon RX 7800 XT 16GB', 'price' => 2299, 'cost' => 1900),
+				array('title' => 'NVIDIA GeForce RTX 4060 Ti 8GB', 'price' => 1799, 'cost' => 1450),
+				array('title' => 'AMD Radeon RX 7700 XT 12GB', 'price' => 1899, 'cost' => 1550),
 			),
 		),
 		'fashion' => array(
 			'fashion-men-shirts' => array(
 				array('title' => 'Calvin Klein Slim Fit Cotton Shirt — White', 'price' => 249, 'cost' => 165),
 				array('title' => 'Tommy Hilfiger Regular Fit Polo — Navy', 'price' => 199, 'cost' => 130),
+				array('title' => 'Ralph Lauren Custom Fit Oxford — Blue', 'price' => 399, 'cost' => 260),
+				array('title' => 'Hugo Boss Slim Formal Shirt — White', 'price' => 459, 'cost' => 300),
+				array('title' => 'Levi\'s Classic Western Denim Shirt', 'price' => 279, 'cost' => 180),
 			),
 			'fashion-women-dresses' => array(
 				array('title' => 'Mango Satin Midi Dress — Emerald', 'price' => 299, 'cost' => 195),
 				array('title' => 'Zara Linen Blend Abaya — Sand', 'price' => 349, 'cost' => 220),
+				array('title' => 'H&M Floral Maxi Dress — Cream', 'price' => 179, 'cost' => 110),
+				array('title' => 'Massimo Dutti Wrap Dress — Black', 'price' => 449, 'cost' => 290),
+				array('title' => 'Karen Millen Bodycon Dress — Ruby', 'price' => 599, 'cost' => 380),
+			),
+			'fashion-men-footwear' => array(
+				array('title' => 'Nike Air Max 270 — Black/White', 'price' => 499, 'cost' => 330),
+				array('title' => 'Adidas Ultraboost Light — Core Black', 'price' => 699, 'cost' => 460),
+				array('title' => 'Clarks Tilden Walk Leather Loafers', 'price' => 449, 'cost' => 290),
+				array('title' => 'Puma RS-X Sneakers — White', 'price' => 379, 'cost' => 250),
+				array('title' => 'Timberland 6-Inch Premium Boots — Wheat', 'price' => 799, 'cost' => 540),
+			),
+			'fashion-women-activewear' => array(
+				array('title' => 'Nike Pro Dri-FIT Leggings — Black', 'price' => 229, 'cost' => 150),
+				array('title' => 'Adidas Believe This Sports Bra', 'price' => 159, 'cost' => 100),
+				array('title' => 'Lululemon Align High-Rise Pant 25"', 'price' => 449, 'cost' => 300),
+				array('title' => 'Puma Train Favourite Tights', 'price' => 189, 'cost' => 120),
+				array('title' => 'Under Armour Tech Twist Top', 'price' => 139, 'cost' => 88),
+			),
+			'fashion-accessories-bags' => array(
+				array('title' => 'Michael Kors Jet Set Tote — Brown', 'price' => 1299, 'cost' => 850),
+				array('title' => 'Guess Noelle Crossbody — Black', 'price' => 549, 'cost' => 360),
+				array('title' => 'Charles & Keith Structured Clutch', 'price' => 249, 'cost' => 160),
+				array('title' => 'Aldo Logo Backpack — Tan', 'price' => 299, 'cost' => 190),
+				array('title' => 'Fossil Carmen Leather Satchel', 'price' => 799, 'cost' => 520),
 			),
 		),
 		'jewellery' => array(
 			'jewellery-rings-gold-22k' => array(
 				array('title' => '22K Gold Ring — Classic Band 4g', 'price' => 1450, 'cost' => 1180),
 				array('title' => 'Malabar 22K Gold Ring — Floral design', 'price' => 1890, 'cost' => 1540),
+				array('title' => 'Diamond Solitaire Ring 0.5ct 18K', 'price' => 6900, 'cost' => 5400),
+				array('title' => 'Tanishq 22K Bridal Gold Ring', 'price' => 2750, 'cost' => 2250),
+				array('title' => 'White Gold Eternity Ring 18K', 'price' => 3200, 'cost' => 2550),
 			),
 			'jewellery-watches-luxury' => array(
 				array('title' => 'Citizen Eco-Drive Classic — Silver dial', 'price' => 899, 'cost' => 620),
 				array('title' => 'Fossil Gen 6 Hybrid Smartwatch — Rose gold', 'price' => 749, 'cost' => 520),
+				array('title' => 'Tissot PRX Powermatic 80 — Blue', 'price' => 2650, 'cost' => 1950),
+				array('title' => 'Seiko 5 Sports Automatic — Black', 'price' => 1150, 'cost' => 820),
+				array('title' => 'Casio Edifice Chronograph — Steel', 'price' => 699, 'cost' => 480),
+			),
+			'jewellery-necklaces-pendant' => array(
+				array('title' => '22K Gold Chain Necklace 8g', 'price' => 2900, 'cost' => 2350),
+				array('title' => 'Diamond Pendant 0.25ct 18K White Gold', 'price' => 3400, 'cost' => 2650),
+				array('title' => 'Freshwater Pearl Necklace — 18"', 'price' => 1250, 'cost' => 850),
+				array('title' => 'Rose Gold Heart Locket 18K', 'price' => 1850, 'cost' => 1450),
+				array('title' => 'Platinum Curb Chain 950 — 20"', 'price' => 4200, 'cost' => 3400),
 			),
 		),
 		'general_retail' => array(
 			'retail-home-appliances-coffee' => array(
 				array('title' => 'De\'Longhi Magnifica S ECAM22.110 — Espresso machine', 'price' => 1299, 'cost' => 980),
 				array('title' => 'Nespresso Vertuo Next — Matte black', 'price' => 599, 'cost' => 420),
+				array('title' => 'Breville Barista Express BES870', 'price' => 2499, 'cost' => 1950),
+				array('title' => 'Philips 3200 LatteGo Fully Automatic', 'price' => 1799, 'cost' => 1350),
+				array('title' => 'De\'Longhi Dedica Style EC685', 'price' => 699, 'cost' => 490),
 			),
 			'retail-health-vitamins' => array(
 				array('title' => 'Centrum Adults Multivitamin — 100 tablets', 'price' => 89, 'cost' => 58),
 				array('title' => 'Nature Made Vitamin D3 5000 IU — 180 softgels', 'price' => 75, 'cost' => 48),
+				array('title' => 'Optimum Nutrition Gold Standard Whey 2lb', 'price' => 199, 'cost' => 140),
+				array('title' => 'NOW Foods Omega-3 1000mg — 200 softgels', 'price' => 95, 'cost' => 62),
+				array('title' => 'Solgar Vitamin B12 1000mcg — 100 tablets', 'price' => 110, 'cost' => 72),
+			),
+			'retail-garden-tools' => array(
+				array('title' => 'Bosch EasyGrassCut 18-230 Trimmer', 'price' => 449, 'cost' => 320),
+				array('title' => 'Gardena Comfort FLEX Hose 20m', 'price' => 199, 'cost' => 130),
+				array('title' => 'Fiskars PowerGear X Bypass Pruner', 'price' => 149, 'cost' => 95),
+				array('title' => 'Karcher K5 Premium Pressure Washer', 'price' => 1299, 'cost' => 980),
+				array('title' => 'Black+Decker 36V Cordless Lawn Mower', 'price' => 1199, 'cost' => 890),
+			),
+			'retail-industrial-power-tools' => array(
+				array('title' => 'Makita 18V LXT Cordless Drill DHP484Z', 'price' => 549, 'cost' => 410),
+				array('title' => 'Bosch GWS 750 Angle Grinder', 'price' => 299, 'cost' => 210),
+				array('title' => 'DeWalt 20V MAX Impact Driver DCF887', 'price' => 699, 'cost' => 520),
+				array('title' => 'Milwaukee M18 FUEL Circular Saw', 'price' => 1199, 'cost' => 920),
+				array('title' => 'Stanley 210-Piece Mechanics Tool Set', 'price' => 599, 'cost' => 420),
+			),
+		),
+		'tax_advisory' => array(
+			'svc-tax-vat-registration' => array(
+				array('title' => 'VAT Registration (FTA) — Standard package', 'price' => 1500, 'cost' => 600),
+				array('title' => 'VAT Registration — Group/branch entities', 'price' => 2500, 'cost' => 1000),
+				array('title' => 'VAT De-registration & final return', 'price' => 1200, 'cost' => 480),
+			),
+			'svc-tax-ct-registration' => array(
+				array('title' => 'Corporate Tax Registration — FTA', 'price' => 1500, 'cost' => 600),
+				array('title' => 'Corporate Tax Impact Assessment', 'price' => 4500, 'cost' => 1800),
+				array('title' => 'Transfer Pricing Documentation', 'price' => 9500, 'cost' => 4200),
+			),
+			'svc-accounting-monthly-basic' => array(
+				array('title' => 'Monthly Bookkeeping — Basic (up to 100 txns)', 'price' => 1200, 'cost' => 500),
+				array('title' => 'Monthly Bookkeeping — Growth (up to 400 txns)', 'price' => 2800, 'cost' => 1150),
+				array('title' => 'Payroll Processing — up to 25 staff (WPS)', 'price' => 1500, 'cost' => 620),
+			),
+			'svc-audit-statutory' => array(
+				array('title' => 'Statutory Audit — SME package', 'price' => 6000, 'cost' => 2600),
+				array('title' => 'Statutory Audit — Mid-market', 'price' => 15000, 'cost' => 6800),
+				array('title' => 'Agreed-Upon Procedures / review engagement', 'price' => 4500, 'cost' => 1900),
+			),
+			'svc-advisory-company-setup' => array(
+				array('title' => 'Company Setup Advisory — Mainland LLC', 'price' => 3500, 'cost' => 1400),
+				array('title' => 'Free Zone Company Formation — Advisory', 'price' => 4200, 'cost' => 1700),
+				array('title' => 'PRO & Visa Processing Package', 'price' => 2800, 'cost' => 1150),
+			),
+			'svc-consulting-retainer' => array(
+				array('title' => 'CFO Advisory Retainer — Monthly', 'price' => 5000, 'cost' => 2000),
+				array('title' => 'Management Accounts & MIS — Monthly', 'price' => 3500, 'cost' => 1400),
+				array('title' => 'Feasibility Study & Business Plan', 'price' => 12000, 'cost' => 5200),
 			),
 		),
 	);
@@ -1320,7 +1474,7 @@ function epc_disc_demo_products_for_node(string $nodeName, string $slug, array $
 		$key = array_key_first($indCatalog);
 	}
 	$items = $indCatalog[$key] ?? array();
-	$maxItems = ($industryKey === 'auto_parts' || $industryKey === 'electronics') ? 3 : 2;
+	$maxItems = 5;
 
 	$out = array();
 	$i = 0;
