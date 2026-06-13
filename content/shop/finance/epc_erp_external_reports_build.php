@@ -5953,19 +5953,85 @@ if (!function_exists('epc_ext_pdf_to_text')) {
     {
         if ($path === '' || !is_readable($path)) { return ''; }
         if (!function_exists('proc_open')) { return ''; }
-        $bin = '/usr/bin/pdftotext';
-        if (!is_executable($bin)) {
-            $which = '';
-            if (function_exists('shell_exec')) { $which = trim((string) @shell_exec('command -v pdftotext 2>/dev/null')); }
-            $bin = $which !== '' ? $which : 'pdftotext';
+        $bin = epc_ext_locate_bin('pdftotext');
+        $out = '';
+        if ($bin !== '') {
+            $cmd = escapeshellarg($bin) . ' -layout -enc UTF-8 -nopgbrk ' . escapeshellarg($path) . ' -';
+            $desc = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+            $proc = @proc_open($cmd, $desc, $pipes);
+            if (is_resource($proc)) {
+                $out = (string) stream_get_contents($pipes[1]);
+                fclose($pipes[1]); fclose($pipes[2]);
+                proc_close($proc);
+            }
         }
-        $cmd = escapeshellarg($bin) . ' -layout -enc UTF-8 -nopgbrk ' . escapeshellarg($path) . ' -';
-        $desc = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
-        $proc = @proc_open($cmd, $desc, $pipes);
-        if (!is_resource($proc)) { return ''; }
-        $out = (string) stream_get_contents($pipes[1]);
-        fclose($pipes[1]); fclose($pipes[2]);
-        proc_close($proc);
+        // Scanned/signed copies (e.g. ScanSnap output) carry no text layer, so
+        // pdftotext returns blank. Fall back to OCR so the reader still works
+        // on image-only PDFs. Degrades to '' (guided manual entry) if the OCR
+        // tools aren't installed on the host.
+        if (strlen(trim(preg_replace('/\s+/', '', $out))) < 40) {
+            $ocr = epc_ext_pdf_ocr($path);
+            if (trim($ocr) !== '') { return $ocr; }
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('epc_ext_locate_bin')) {
+    /** Resolve an external binary path (absolute first, then PATH). */
+    function epc_ext_locate_bin(string $name): string
+    {
+        $abs = '/usr/bin/' . $name;
+        if (is_executable($abs)) { return $abs; }
+        if (function_exists('shell_exec')) {
+            $which = trim((string) @shell_exec('command -v ' . escapeshellarg($name) . ' 2>/dev/null'));
+            if ($which !== '' && is_executable($which)) { return $which; }
+        }
+        return '';
+    }
+}
+
+if (!function_exists('epc_ext_pdf_ocr')) {
+    /**
+     * OCR an image-only PDF: render each page to PNG (poppler's pdftoppm) and
+     * run Tesseract over it, then concatenate the recognised text. Used as the
+     * automatic fallback for scanned reports that have no embedded text layer.
+     * Returns '' (so callers degrade to guided manual entry) when the OCR
+     * binaries are unavailable. Pages are capped to keep the request bounded.
+     */
+    function epc_ext_pdf_ocr(string $path, int $maxPages = 60): string
+    {
+        if ($path === '' || !is_readable($path) || !function_exists('proc_open')) { return ''; }
+        $ppm  = epc_ext_locate_bin('pdftoppm');
+        $tess = epc_ext_locate_bin('tesseract');
+        if ($ppm === '' || $tess === '') { return ''; }
+        $run = static function (string $cmd): void {
+            $desc = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+            $proc = @proc_open($cmd, $desc, $pipes);
+            if (!is_resource($proc)) { return; }
+            stream_get_contents($pipes[1]); stream_get_contents($pipes[2]);
+            fclose($pipes[1]); fclose($pipes[2]);
+            proc_close($proc);
+        };
+        $base = function_exists('sys_get_temp_dir') ? sys_get_temp_dir() : '/tmp';
+        $dir  = rtrim($base, '/') . '/epc_ocr_' . bin2hex(random_bytes(6));
+        if (!@mkdir($dir, 0700, true)) { return ''; }
+        $out = '';
+        try {
+            $run(escapeshellarg($ppm) . ' -r 200 -png -f 1 -l ' . max(1, (int) $maxPages)
+                . ' ' . escapeshellarg($path) . ' ' . escapeshellarg($dir . '/pg'));
+            $imgs = glob($dir . '/pg*.png') ?: array();
+            sort($imgs, SORT_NATURAL);
+            foreach ($imgs as $img) {
+                $stem = preg_replace('/\.png$/', '', $img);
+                $run(escapeshellarg($tess) . ' ' . escapeshellarg($img) . ' ' . escapeshellarg($stem) . ' --psm 6 2>/dev/null');
+                $txt = @file_get_contents($stem . '.txt');
+                if (is_string($txt)) { $out .= $txt . "\n"; }
+            }
+        } finally {
+            foreach (glob($dir . '/*') ?: array() as $f) { @unlink($f); }
+            @rmdir($dir);
+        }
         return $out;
     }
 }
@@ -6053,12 +6119,21 @@ if (!function_exists('epc_ext_pdf_year')) {
      */
     function epc_ext_pdf_year(string $text): int
     {
+        $thisY = (int) date('Y') + 1;
         $best = 0;
-        if (preg_match_all('/(?:year[\s\-]*end(?:ed|ing)?|as at|31\s+december|period\s+end(?:ed|ing)?)[^0-9]{0,20}((?:19|20)\d{2})/i', $text, $m)) {
-            foreach ($m[1] as $y) { $y = (int) $y; if ($y > $best) { $best = $y; } }
+        // Pass 1: take the latest plausible year that appears on a "reporting
+        // date" line — handles "AS ON 31ST DECEMBER, 2025", "FOR THE YEAR ENDED
+        // 31ST DECEMBER, 2025", "as at 31 December 2024", etc. The current year
+        // is the latest such date; comparative-period headers carry the prior
+        // year, so taking the max across these lines yields the report year.
+        $ctx = '/(year[\s\-]*end(?:ed|ing)?|period[\s\-]*end(?:ed|ing)?|as[\s]+(?:at|on|of)|statement of financial position|balance sheet)/i';
+        foreach (preg_split('/\r\n|\r|\n/', $text) ?: array() as $ln) {
+            if (!preg_match($ctx, $ln)) { continue; }
+            if (!preg_match_all('/((?:19|20)\d{2})/', $ln, $ym)) { continue; }
+            foreach ($ym[1] as $y) { $y = (int) $y; if ($y >= 1990 && $y <= $thisY && $y > $best) { $best = $y; } }
         }
+        // Pass 2: fall back to the largest plausible year anywhere in the text.
         if ($best === 0 && preg_match_all('/\b((?:19|20)\d{2})\b/', $text, $m2)) {
-            $thisY = (int) date('Y') + 1;
             foreach ($m2[1] as $y) { $y = (int) $y; if ($y >= 1990 && $y <= $thisY && $y > $best) { $best = $y; } }
         }
         return $best;
