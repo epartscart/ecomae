@@ -340,14 +340,17 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Suppliers, RFQ, purchase orders and matching',
 			'tabs' => array(
 				'supplier_portal' => array('label' => 'Supplier portal', 'icon' => 'fa-handshake-o'),
+				'purchase_requisitions' => array('label' => 'Purchase requisitions', 'icon' => 'fa-list-alt'),
 				'rfq' => array('label' => 'RFQ', 'icon' => 'fa-envelope-o'),
 				'purchase_orders' => array('label' => 'Purchase orders', 'icon' => 'fa-clipboard'),
 				'purchases' => array('label' => 'Purchases', 'icon' => 'fa-file-text-o'),
 				'three_way_match' => array('label' => '3-way match', 'icon' => 'fa-check-square-o'),
+				'procurement_categories' => array('label' => 'Categories & policies', 'icon' => 'fa-sitemap'),
 			),
 			'groups' => array(
-				'Common' => array('supplier_portal'),
+				'Common' => array('supplier_portal', 'purchase_requisitions'),
 				'Orders' => array('rfq', 'purchase_orders', 'purchases', 'three_way_match'),
+				'Setup' => array('procurement_categories'),
 			),
 		),
 		'pim' => array(

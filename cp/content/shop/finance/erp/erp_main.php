@@ -311,6 +311,9 @@ $erpTabIncludes = array(
 	'platform' => 'erp_tabs_platform.php',
 	// Year-end closing
 	'year_end' => 'erp_tabs_year_end.php',
+	// Procurement & sourcing depth
+	'purchase_requisitions' => 'erp_tabs_purchase_requisitions.php',
+	'procurement_categories' => 'erp_tabs_procurement_categories.php',
 );
 
 ?>

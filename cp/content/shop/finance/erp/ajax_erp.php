@@ -753,6 +753,52 @@ try {
 			epc_coll_hold_set($db_link, epc_erp_active_company_id($db_link), (int)($_POST['customer_id'] ?? 0), (int)($_POST['place'] ?? 1) === 1, (string)($_POST['reason'] ?? ''), (string)($_SESSION['admin_username'] ?? ''));
 			epc_erp_json(true, 'Credit hold updated');
 
+		case 'proc_category_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$pcData = $_POST;
+			$pcData['company_id'] = epc_erp_active_company_id($db_link);
+			$pcData['active'] = isset($_POST['active']) ? $_POST['active'] : 1;
+			$pcId = epc_proc_category_save($db_link, $pcData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Category saved', array('id' => $pcId));
+
+		case 'proc_policy_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$ppData = $_POST;
+			$ppData['company_id'] = epc_erp_active_company_id($db_link);
+			$ppData['active'] = isset($_POST['active']) ? $_POST['active'] : 1;
+			$ppId = epc_proc_policy_save($db_link, $ppData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Policy saved', array('id' => $ppId));
+
+		case 'proc_req_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$prData = $_POST;
+			$prData['company_id'] = epc_erp_active_company_id($db_link);
+			$prId = epc_proc_req_save($db_link, $prData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Requisition saved', array('id' => $prId));
+
+		case 'proc_req_add_line':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			$prLineId = epc_proc_req_add_line($db_link, (int)($_POST['req_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Line added', array('id' => $prLineId));
+
+		case 'proc_req_submit':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			$prSt = epc_proc_req_submit($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, $prSt === 'approved' ? 'Requisition approved (within policy)' : 'Requisition submitted for approval');
+
+		case 'proc_req_decision':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			epc_proc_req_decision($db_link, (int)($_POST['id'] ?? 0), (int)($_POST['approve'] ?? 0) === 1, (string)($_SESSION['admin_username'] ?? ''), (string)($_POST['note'] ?? ''));
+			epc_erp_json(true, (int)($_POST['approve'] ?? 0) === 1 ? 'Requisition approved' : 'Requisition rejected');
+
+		case 'proc_req_convert':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_procurement.php';
+			$prPo = epc_proc_req_convert($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Converted to ' . $prPo, array('po_ref' => $prPo));
+
 		case 'customer_master_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_credit.php';
 			$cmCust = (int) ($_POST['customer_id'] ?? 0);
