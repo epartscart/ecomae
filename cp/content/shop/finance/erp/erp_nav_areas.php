@@ -246,9 +246,11 @@ function epc_erp_nav_areas_config()
 			'icon' => 'fa-shield',
 			'desc' => 'Organization administration, security roles and platform / cross-cutting services',
 			'tabs' => array(
+				'org_admin' => array('label' => 'Organization administration', 'icon' => 'fa-sitemap'),
 				'security_roles' => array('label' => 'Security roles', 'icon' => 'fa-shield'),
 			),
 			'groups' => array(
+				'Organization' => array('org_admin'),
 				'Security' => array('security_roles'),
 			),
 		),

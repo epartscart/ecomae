@@ -292,6 +292,8 @@ $erpTabIncludes = array(
 	'retail_commerce' => 'erp_tabs_retail_commerce.php',
 	// Platform — security roles
 	'security_roles' => 'erp_tabs_security_roles.php',
+	// Organization administration / Enterprise
+	'org_admin' => 'erp_tabs_org_admin.php',
 );
 
 ?>

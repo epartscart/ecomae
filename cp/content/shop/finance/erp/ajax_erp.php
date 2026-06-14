@@ -814,6 +814,33 @@ try {
 			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
 			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
 
+		case 'oa_party_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_orgadmin.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$oapId = epc_oa_party_save($db_link, epc_erp_active_company_id($db_link), $_POST, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Party saved', array('id' => $oapId));
+
+		case 'oa_address_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_orgadmin.php';
+			$oaaId = epc_oa_address_save($db_link, (int)($_POST['party_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Address saved', array('id' => $oaaId));
+
+		case 'oa_contact_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_orgadmin.php';
+			$oacId = epc_oa_contact_save($db_link, (int)($_POST['party_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Contact saved', array('id' => $oacId));
+
+		case 'oa_calendar_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_orgadmin.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$oaclId = epc_oa_calendar_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Calendar saved', array('id' => $oaclId));
+
+		case 'oa_holiday_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_orgadmin.php';
+			epc_oa_holiday_add($db_link, (int)($_POST['calendar_id'] ?? 0), (string)($_POST['holiday_date'] ?? ''), (string)($_POST['name'] ?? ''));
+			epc_erp_json(true, 'Holiday added');
+
 		case 'rbac_priv_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
