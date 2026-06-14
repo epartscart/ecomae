@@ -407,6 +407,8 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'crm' => array('label' => 'CRM', 'icon' => 'fa-handshake-o', 'raw' => true),
 				'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn'),
+				'leads' => array('label' => 'Prospects & leads', 'icon' => 'fa-user-plus'),
+				'opportunities' => array('label' => 'Opportunities', 'icon' => 'fa-filter'),
 				'proposals' => array('label' => 'Sales quotations', 'icon' => 'fa-file-text'),
 				'sales_orders' => array('label' => 'Sales orders', 'icon' => 'fa-shopping-cart'),
 				'subscriptions' => array('label' => 'Subscriptions', 'icon' => 'fa-refresh'),
@@ -417,6 +419,7 @@ function epc_erp_nav_areas_config()
 			),
 			'groups' => array(
 				'Common' => array('crm', 'marketing'),
+				'Pipeline' => array('leads', 'opportunities'),
 				'Orders' => array('proposals', 'sales_orders', 'subscriptions', 'delivery_notes', 'invoices'),
 				'Inquiries and reports' => array('revenue', 'fulfilment'),
 			),

@@ -7,7 +7,7 @@ defined('_ASTEXE_') or die('No access');
 function epc_erp_staff_all_tabs()
 {
 	return array(
-		'dashboard', 'workflow', 'processflow', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
+		'dashboard', 'workflow', 'processflow', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
 		'fulfilment', 'revenue', 'subscriptions', 'receivables',
 		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match', 'supplier_portal',
 		'cash_bank', 'payment_batches', 'petty_cash',
@@ -58,7 +58,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_SALES',
 			'icon' => 'fa-line-chart',
 			'color' => '#2563eb',
-			'tabs' => array('dashboard', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices', 'fulfilment', 'revenue', 'receivables', 'documents', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices', 'fulfilment', 'revenue', 'receivables', 'documents', 'workflow', 'staff'),
 			'workflows' => array(
 				'Qualify customer / credit check',
 				'Confirm order & payment terms',

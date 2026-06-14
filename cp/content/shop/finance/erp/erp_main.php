@@ -203,6 +203,8 @@ $userDeptName = $userDeptCode !== '' ? epc_erp_staff_department_name($userDeptCo
 
 $erpTabIncludes = array(
 	'sales_orders' => 'erp_tabs_sales_orders.php',
+	'leads' => 'erp_tabs_leads.php',
+	'opportunities' => 'erp_tabs_opportunities.php',
 	'proposals' => 'erp_tabs_proposals.php',
 	'delivery_notes' => 'erp_tabs_delivery_notes.php',
 	'rfq' => 'erp_tabs_rfq.php',
