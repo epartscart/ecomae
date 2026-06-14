@@ -176,6 +176,162 @@ function erp_action_pane(array $groups)
 }
 
 /**
+ * Render the full D365 F&O two-row Action Pane ribbon: Row 1 = menu tabs that
+ * switch Row 2 = the active tab's command groups (exactly like F&O).
+ *
+ * @param array $tabs [ ['label'=>'Sales order','key'=>'so','active'=>true,
+ *     'groups'=>[ ['label'=>'New','buttons'=>[ ... ]] ]] ]
+ */
+function erp_action_pane_ribbon(array $tabs)
+{
+	$tabs = array_values(array_filter($tabs, function ($t) {
+		return !empty($t['groups']);
+	}));
+	if (empty($tabs)) {
+		return;
+	}
+	$hasActive = false;
+	foreach ($tabs as $t) {
+		if (!empty($t['active'])) {
+			$hasActive = true;
+			break;
+		}
+	}
+	echo '<div class="epc-d365-ribbon">';
+	// Row 1 — menu tabs
+	echo '<div class="epc-d365-aptabs" role="tablist">';
+	$i = 0;
+	foreach ($tabs as $t) {
+		$key = $t['key'] ?? ('apt' . $i);
+		$active = !empty($t['active']) || (!$hasActive && $i === 0);
+		echo '<button type="button" class="epc-d365-aptab' . ($active ? ' is-active' : '') . '"'
+			. ' data-aptab="' . epc_erp_h($key) . '" role="tab" aria-selected="' . ($active ? 'true' : 'false') . '">'
+			. epc_erp_h($t['label'] ?? '') . '</button>';
+		$i++;
+	}
+	echo '</div>';
+	// Row 2 — per-tab command groups (only active visible)
+	$i = 0;
+	foreach ($tabs as $t) {
+		$key = $t['key'] ?? ('apt' . $i);
+		$active = !empty($t['active']) || (!$hasActive && $i === 0);
+		echo '<div class="epc-d365-ap-row' . ($active ? ' is-active' : '') . '" data-aptab="' . epc_erp_h($key) . '">';
+		erp_action_pane($t['groups']);
+		echo '</div>';
+		$i++;
+	}
+	echo '</div>';
+}
+
+/**
+ * Horizontal tab strip — used for the Lines|Header view toggle and the
+ * line-detail secondary tab strip (General|Setup|Address|...). Tabs switch
+ * sibling panels opened with erp_tabpanel_open() sharing the same $group key.
+ *
+ * @param array  $tabs [ ['label'=>'Lines','target'=>'#id','active'=>true,'icon'=>'fa-..'] ]
+ * @param string $group unique group key
+ * @param array  $opts ['variant'=>'view'|'sub']
+ */
+function erp_tabstrip(array $tabs, $group, array $opts = array())
+{
+	if (empty($tabs)) {
+		return;
+	}
+	$variant = $opts['variant'] ?? 'view';
+	$hasActive = false;
+	foreach ($tabs as $t) {
+		if (!empty($t['active'])) {
+			$hasActive = true;
+			break;
+		}
+	}
+	echo '<div class="epc-d365-tabstrip epc-d365-tabstrip--' . epc_erp_h($variant) . '" role="tablist">';
+	$i = 0;
+	foreach ($tabs as $t) {
+		$active = !empty($t['active']) || (!$hasActive && $i === 0);
+		$tgt = $t['target'] ?? '';
+		$icon = !empty($t['icon']) ? '<i class="fa ' . epc_erp_h($t['icon']) . '"></i> ' : '';
+		echo '<button type="button" class="epc-d365-tab' . ($active ? ' is-active' : '') . '" role="tab"'
+			. ' data-tabgroup="' . epc_erp_h($group) . '"'
+			. ($tgt !== '' ? ' data-target="' . epc_erp_h($tgt) . '"' : '')
+			. ' aria-selected="' . ($active ? 'true' : 'false') . '">'
+			. $icon . epc_erp_h($t['label'] ?? '') . '</button>';
+		$i++;
+	}
+	echo '</div>';
+}
+
+/**
+ * Open a tab panel toggled by erp_tabstrip(). Must share the $group key with
+ * the strip; $id matches the strip tab's target (without the leading '#').
+ */
+function erp_tabpanel_open($id, $group, $active = false)
+{
+	echo '<div class="epc-d365-tabpanel' . ($active ? ' is-active' : '') . '"'
+		. ' id="' . epc_erp_h($id) . '" data-tabpanel="' . epc_erp_h($group) . '" role="tabpanel">';
+}
+
+function erp_tabpanel_close()
+{
+	echo '</div>';
+}
+
+/**
+ * D365 list filter strip: saved-view selector, "Show" dropdown and a live
+ * client-side quick filter. The selectors are presentational look-ups; the
+ * quick filter hides non-matching rows of the table named in search.target.
+ *
+ * @param array $opts [
+ *     'views'  => ['My view','All orders'],
+ *     'show'   => ['label'=>'Show','options'=>['Open','Posted','All']],
+ *     'search' => ['placeholder'=>'Filter','target'=>'#tableId'],
+ *     'right'  => 'raw html',
+ * ]
+ */
+function erp_list_toolbar(array $opts = array())
+{
+	echo '<div class="epc-d365-listbar">';
+	echo '<div class="epc-d365-listbar-left">';
+	if (!empty($opts['views']) && is_array($opts['views'])) {
+		echo '<span class="epc-d365-view-sel"><i class="fa fa-th-list"></i> <select>';
+		foreach ($opts['views'] as $v) {
+			echo '<option>' . epc_erp_h($v) . '</option>';
+		}
+		echo '</select></span>';
+	}
+	if (!empty($opts['show']) && is_array($opts['show'])) {
+		$s = $opts['show'];
+		echo '<span class="epc-d365-show"><span class="lbl">' . epc_erp_h($s['label'] ?? 'Show') . ':</span> <select>';
+		foreach (($s['options'] ?? array()) as $o) {
+			echo '<option>' . epc_erp_h($o) . '</option>';
+		}
+		echo '</select></span>';
+	}
+	echo '</div>';
+	echo '<div class="epc-d365-listbar-right">';
+	if (!empty($opts['search']) && is_array($opts['search'])) {
+		$se = $opts['search'];
+		$ph = epc_erp_h($se['placeholder'] ?? 'Filter');
+		$tgt = !empty($se['target']) ? ' data-quickfilter="' . epc_erp_h($se['target']) . '"' : '';
+		echo '<span class="epc-d365-quickfilter"><i class="fa fa-search"></i>'
+			. '<input type="text" placeholder="' . $ph . '"' . $tgt . ' autocomplete="off"></span>';
+	}
+	if (!empty($opts['right'])) {
+		echo $opts['right'];
+	}
+	echo '</div>';
+	echo '</div>';
+}
+
+/**
+ * D365 status dot for the grid status column.
+ */
+function erp_status_dot($tone = 'muted')
+{
+	return '<span class="epc-d365-dot epc-d365-dot--' . epc_erp_h($tone) . '" aria-hidden="true"></span>';
+}
+
+/**
  * Open a D365 FastTab (collapsible section).
  *
  * @param string $title
@@ -204,21 +360,29 @@ function erp_fasttab_close()
 }
 
 /**
+ * Derive a D365 tone (ok/info/warn/bad/muted) from a status word.
+ */
+function erp_status_tone($label)
+{
+	$k = strtolower(trim((string) $label));
+	$map = array(
+		'posted' => 'ok', 'paid' => 'ok', 'invoiced' => 'ok', 'confirmed' => 'info',
+		'approved' => 'ok', 'completed' => 'ok', 'complete' => 'ok', 'active' => 'ok', 'received' => 'ok',
+		'open' => 'info', 'draft' => 'muted', 'pending' => 'warn', 'on hold' => 'warn',
+		'overdue' => 'bad', 'cancelled' => 'bad', 'canceled' => 'bad', 'rejected' => 'bad',
+		'failed' => 'bad', 'due' => 'warn', 'closed' => 'muted', 'partial' => 'warn',
+	);
+	return $map[$k] ?? 'muted';
+}
+
+/**
  * D365 status pill. Tone auto-derived from common status words when omitted.
  */
 function erp_status_pill($label, $tone = '')
 {
 	$label = (string) $label;
 	if ($tone === '') {
-		$k = strtolower(trim($label));
-		$map = array(
-			'posted' => 'ok', 'paid' => 'ok', 'invoiced' => 'ok', 'confirmed' => 'info',
-			'approved' => 'ok', 'completed' => 'ok', 'active' => 'ok', 'received' => 'ok',
-			'open' => 'info', 'draft' => 'muted', 'pending' => 'warn', 'on hold' => 'warn',
-			'overdue' => 'bad', 'cancelled' => 'bad', 'canceled' => 'bad', 'rejected' => 'bad',
-			'failed' => 'bad', 'closed' => 'muted', 'partial' => 'warn',
-		);
-		$tone = $map[$k] ?? 'muted';
+		$tone = erp_status_tone($label);
 	}
 	return '<span class="epc-d365-pill epc-d365-pill--' . epc_erp_h($tone) . '">' . epc_erp_h($label) . '</span>';
 }
@@ -267,10 +431,25 @@ function erp_d365_assets()
 	echo "function ready(fn){if(document.readyState!='loading'){fn();}else{document.addEventListener('DOMContentLoaded',fn);}}\n";
 	echo "ready(function(){\n";
 	echo "  document.addEventListener('click',function(e){\n";
+	// FastTab header collapse/expand
 	echo "    var hd=e.target.closest&&e.target.closest('.epc-d365-ft-hd');\n";
 	echo "    if(hd){var ft=hd.parentNode;var open=ft.classList.toggle('is-open');hd.setAttribute('aria-expanded',open?'true':'false');return;}\n";
+	// Action Pane Row-1 menu tab → swap Row-2 command groups
+	echo "    var apt=e.target.closest&&e.target.closest('.epc-d365-aptab');\n";
+	echo "    if(apt){var rb=apt.closest('.epc-d365-ribbon');if(rb){var k=apt.getAttribute('data-aptab');rb.querySelectorAll('.epc-d365-aptab').forEach(function(x){var on=x===apt;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',on?'true':'false');});rb.querySelectorAll('.epc-d365-ap-row').forEach(function(r){r.classList.toggle('is-active',r.getAttribute('data-aptab')===k);});}return;}\n";
+	// Generic tab strip (Lines|Header view toggle, line-detail subtabs) → swap panels in the group
+	echo "    var tb=e.target.closest&&e.target.closest('.epc-d365-tab[data-target]');\n";
+	echo "    if(tb){var grp=tb.getAttribute('data-tabgroup');var strip=tb.closest('.epc-d365-tabstrip');if(strip){strip.querySelectorAll('.epc-d365-tab').forEach(function(x){var on=x===tb;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',on?'true':'false');});}if(grp){document.querySelectorAll('.epc-d365-tabpanel[data-tabpanel=\"'+grp+'\"]').forEach(function(p){p.classList.remove('is-active');});}var sel=tb.getAttribute('data-target');var t=sel&&document.querySelector(sel);if(t){t.classList.add('is-active');}return;}\n";
+	// Sortable column header (client-side, presentational)
+	echo "    var th=e.target.closest&&e.target.closest('.epc-erp-table th[data-sort]');\n";
+	echo "    if(th){var table=th.closest('table');var row=th.parentNode;var idx=Array.prototype.indexOf.call(row.children,th);var dir=th.getAttribute('data-sortdir')==='asc'?'desc':'asc';row.querySelectorAll('th').forEach(function(h){h.removeAttribute('data-sortdir');h.classList.remove('is-sorted-asc','is-sorted-desc');});th.setAttribute('data-sortdir',dir);th.classList.add(dir==='asc'?'is-sorted-asc':'is-sorted-desc');var tbody=table.tBodies[0];if(!tbody)return;var rows=Array.prototype.slice.call(tbody.rows).filter(function(r){return !r.classList.contains('epc-d365-sumrow');});var num=th.getAttribute('data-sort')==='num';rows.sort(function(a,b){var x=(a.cells[idx]?a.cells[idx].textContent:'').trim();var y=(b.cells[idx]?b.cells[idx].textContent:'').trim();if(num){x=parseFloat(x.replace(/[^0-9.\\-]/g,''))||0;y=parseFloat(y.replace(/[^0-9.\\-]/g,''))||0;return dir==='asc'?x-y:y-x;}return dir==='asc'?x.localeCompare(y):y.localeCompare(x);});rows.forEach(function(r){tbody.appendChild(r);});return;}\n";
+	// Action Pane button with a scroll target (opens its FastTab, scrolls + focuses)
 	echo "    var ap=e.target.closest&&e.target.closest('.epc-d365-ap-btn[data-d365-target]');\n";
 	echo "    if(ap){var sel=ap.getAttribute('data-d365-target');var t=sel&&document.querySelector(sel);if(t){var s=t.closest('.epc-d365-fasttab');if(s&&!s.classList.contains('is-open')){s.classList.add('is-open');var b=s.querySelector('.epc-d365-ft-hd');if(b){b.setAttribute('aria-expanded','true');}}t.scrollIntoView({behavior:'smooth',block:'center'});if(t.focus){try{t.focus({preventScroll:true});}catch(_e){t.focus();}}}}\n";
+	echo "  });\n";
+	// Live quick filter (hides non-matching rows of the targeted table)
+	echo "  document.addEventListener('input',function(e){\n";
+	echo "    var qf=e.target.closest&&e.target.closest('input[data-quickfilter]');if(!qf)return;var sel=qf.getAttribute('data-quickfilter');var tbl=sel&&document.querySelector(sel);if(!tbl)return;var q=qf.value.toLowerCase();var b=tbl.tBodies[0];if(!b)return;Array.prototype.forEach.call(b.rows,function(r){if(r.classList.contains('epc-d365-sumrow'))return;r.style.display=(!q||r.textContent.toLowerCase().indexOf(q)>-1)?'':'none';});\n";
 	echo "  });\n";
 	echo "});\n";
 	echo "})();</script>\n";
@@ -369,18 +548,43 @@ function erp_empty_state($message, $icon = 'fa-inbox')
 	echo '<div class="epc-erp-empty"><i class="fa ' . epc_erp_h($icon) . '"></i><p>' . epc_erp_h($message) . '</p></div>';
 }
 
-function erp_table_open($headers, $tableClass = 'table table-striped table-bordered table-condensed table-epc epc-erp-table')
+/**
+ * Open a data grid. Each header may be a plain string (rendered as-is) or an
+ * array for D365 grids: ['label'=>'Total','sort'=>'num'|'text','class'=>'num'].
+ * Pass $tableId to enable the live quick filter / column sort targeting.
+ */
+function erp_table_open($headers, $tableClass = 'table table-striped table-bordered table-condensed table-epc epc-erp-table', $tableId = '')
 {
-	echo '<div class="table-responsive epc-erp-table-wrap"><table class="' . epc_erp_h($tableClass) . '"><thead><tr>';
+	$idAttr = $tableId !== '' ? ' id="' . epc_erp_h($tableId) . '"' : '';
+	echo '<div class="table-responsive epc-erp-table-wrap"><table class="' . epc_erp_h($tableClass) . '"' . $idAttr . '><thead><tr>';
 	foreach ($headers as $h) {
-		echo '<th>' . $h . '</th>';
+		if (is_array($h)) {
+			$attrs = '';
+			if (!empty($h['sort'])) {
+				$attrs .= ' data-sort="' . epc_erp_h($h['sort']) . '"';
+			}
+			if (!empty($h['class'])) {
+				$attrs .= ' class="' . epc_erp_h($h['class']) . '"';
+			}
+			echo '<th' . $attrs . '>' . ($h['label'] ?? '') . '</th>';
+		} else {
+			echo '<th>' . $h . '</th>';
+		}
 	}
 	echo '</tr></thead><tbody>';
 }
 
-function erp_table_close()
+/**
+ * Close a data grid. Pass $footerHtml (e.g. a Sum row) to emit a <tfoot>.
+ * The footer row should carry class="epc-d365-sumrow" so sort/filter skip it.
+ */
+function erp_table_close($footerHtml = '')
 {
-	echo '</tbody></table></div>';
+	echo '</tbody>';
+	if ($footerHtml !== '') {
+		echo '<tfoot>' . $footerHtml . '</tfoot>';
+	}
+	echo '</table></div>';
 }
 
 /**

@@ -36,19 +36,32 @@ if ($erpOnly) {
 		)
 	);
 	erp_d365_assets();
-	erp_action_pane(array(
-		array('label' => 'New', 'buttons' => array(
-			array('label' => 'Sales order', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_so'),
-			array('label' => 'Customer', 'icon' => 'fa-user-plus', 'target' => '#epc_erp_form_customer'),
+	erp_action_pane_ribbon(array(
+		array('label' => 'Sales order', 'key' => 'so', 'active' => true, 'groups' => array(
+			array('label' => 'New', 'buttons' => array(
+				array('label' => 'Sales order', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_so'),
+				array('label' => 'Customer', 'icon' => 'fa-user-plus', 'target' => '#epc_erp_form_customer'),
+			)),
+			array('label' => 'View', 'buttons' => array(
+				array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'sales_orders', $date_from_str, $date_to_str)),
+			)),
 		)),
-		array('label' => 'Process', 'buttons' => array(
-			array('label' => 'Confirm', 'icon' => 'fa-check'),
-			array('label' => 'Generate invoice', 'icon' => 'fa-file-text-o'),
+		array('label' => 'Sell', 'key' => 'sell', 'groups' => array(
+			array('label' => 'Process', 'buttons' => array(
+				array('label' => 'Confirm', 'icon' => 'fa-check', 'target' => '#epc_erp_so_tbl'),
+			)),
 		)),
-		array('label' => 'View', 'buttons' => array(
-			array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'sales_orders', $date_from_str, $date_to_str)),
+		array('label' => 'Invoice', 'key' => 'inv', 'groups' => array(
+			array('label' => 'Generate', 'buttons' => array(
+				array('label' => 'Generate invoice', 'icon' => 'fa-file-text-o', 'class' => 'is-primary', 'target' => '#epc_erp_so_tbl'),
+			)),
 		)),
 	));
+	erp_tabstrip(array(
+		array('label' => 'Lines', 'target' => '#epc_erp_so_lines', 'active' => true, 'icon' => 'fa-list'),
+		array('label' => 'Header', 'target' => '#epc_erp_so_header', 'icon' => 'fa-id-card-o'),
+	), 'epc_erp_so_view');
+	erp_tabpanel_open('epc_erp_so_lines', 'epc_erp_so_view', true);
 	erp_stat_cards(array(
 		array('label' => 'Orders in list', 'value' => (string) count($orders)),
 		array('label' => 'Open (draft/confirmed)', 'value' => (string) count(array_filter($orders, function ($o) {
@@ -61,13 +74,31 @@ if ($erpOnly) {
 		. '<option value="invoiced">Invoiced</option></select>'
 		. ' <input type="text" name="q" class="form-control input-sm" placeholder="SO # or customer" value="' . epc_erp_h($filters['q']) . '">'
 	);
+	erp_list_toolbar(array(
+		'views' => array('My view', 'All sales orders'),
+		'search' => array('placeholder' => 'Filter list', 'target' => '#epc_erp_so_tbl'),
+	));
 	ob_start();
 	if (empty($orders)) {
 		erp_empty_state('No sales orders yet. Create a draft SO below.');
 	} else {
-		erp_table_open(array('SO #', 'Date', 'Customer', 'Title', 'Total incl. VAT', 'Dimensions', 'Status', 'Invoice', 'Actions'));
+		erp_table_open(array(
+			array('label' => '', 'class' => 'epc-d365-statcol'),
+			array('label' => 'SO #', 'sort' => 'text'),
+			array('label' => 'Date', 'sort' => 'text'),
+			array('label' => 'Customer', 'sort' => 'text'),
+			array('label' => 'Title', 'sort' => 'text'),
+			array('label' => 'Total incl. VAT', 'sort' => 'num', 'class' => 'num'),
+			'Dimensions',
+			array('label' => 'Status', 'sort' => 'text'),
+			'Invoice',
+			'Actions',
+		), 'table table-bordered table-condensed table-epc epc-erp-table', 'epc_erp_so_tbl');
+		$epcSoSum = 0.0;
 		foreach ($orders as $r) {
-			echo '<tr><td>' . epc_erp_h($r['so_no']) . '</td>';
+			$epcSoSum += (float) $r['total_amount'];
+			echo '<tr><td class="epc-d365-statcol">' . erp_status_dot(erp_status_tone($r['status'])) . '</td>';
+			echo '<td>' . epc_erp_h($r['so_no']) . '</td>';
 			echo '<td>' . epc_erp_h(date('Y-m-d', (int) $r['time_created'])) . '</td>';
 			$custLabel = trim((string) ($r['customer_name'] ?? ''));
 			if ($custLabel === '') {
@@ -81,7 +112,7 @@ if ($erpOnly) {
 			}
 			echo '<td>' . epc_erp_h($custLabel) . '</td>';
 			echo '<td>' . epc_erp_h($r['title']) . '</td>';
-			echo '<td>' . epc_erp_money($r['total_amount']) . '</td>';
+			echo '<td class="num">' . epc_erp_money($r['total_amount']) . '</td>';
 			echo '<td>' . epc_erp_dim_badges($db_link, 'sales_order', (int) $r['id']) . '</td>';
 			echo '<td>' . erp_status_pill($r['status']) . '</td>';
 			echo '<td>' . epc_erp_h($r['invoice_no'] ?: '—') . '</td><td class="epc-erp-form-inline">';
@@ -102,7 +133,11 @@ if ($erpOnly) {
 			}
 			echo '</td></tr>';
 		}
-		erp_table_close();
+		$epcSoFoot = '<tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td>'
+			. '<td colspan="4">Sum (' . count($orders) . ' orders)</td>'
+			. '<td class="num">' . epc_erp_money($epcSoSum) . '</td>'
+			. '<td colspan="4"></td></tr>';
+		erp_table_close($epcSoFoot);
 	}
 	erp_section_card('Sales order list', ob_get_clean(), array('icon' => 'fa-list'));
 	ob_start();
@@ -141,7 +176,20 @@ if ($erpOnly) {
 	<?php
 	$epcSoFormHtml = ob_get_clean();
 	erp_fasttab_open('New sales order', array('open' => false, 'icon' => 'fa-plus'));
+	erp_tabstrip(array(
+		array('label' => 'General', 'target' => '#epc_erp_so_ld_gen', 'active' => true),
+		array('label' => 'Delivery', 'target' => '#epc_erp_so_ld_del'),
+		array('label' => 'Price and discount', 'target' => '#epc_erp_so_ld_price'),
+	), 'epc_erp_so_ld', array('variant' => 'sub'));
+	erp_tabpanel_open('epc_erp_so_ld_gen', 'epc_erp_so_ld', true);
 	echo $epcSoFormHtml;
+	erp_tabpanel_close();
+	erp_tabpanel_open('epc_erp_so_ld_del', 'epc_erp_so_ld');
+	echo '<p class="text-muted">Delivery address, mode of delivery and requested ship date default from the customer master and the order header.</p>';
+	erp_tabpanel_close();
+	erp_tabpanel_open('epc_erp_so_ld_price', 'epc_erp_so_ld');
+	echo '<p class="text-muted">Net amount is computed from the unit price on the General tab; VAT is applied automatically per the tenant country profile.</p>';
+	erp_tabpanel_close();
 	erp_fasttab_close();
 
 	// Standalone customer creation — an ERP-only tenant can add a customer master
@@ -174,6 +222,45 @@ if ($erpOnly) {
 	erp_fasttab_open('New customer (standalone)', array('open' => false, 'icon' => 'fa-user-plus'));
 	echo $epcCustFormHtml;
 	erp_fasttab_close();
+	erp_tabpanel_close(); // Lines view
+
+	// Header view — F&O "Header" toggle showing the order header form layout.
+	erp_tabpanel_open('epc_erp_so_header', 'epc_erp_so_view');
+	$epcSoHead = !empty($orders) ? $orders[0] : null;
+	$epcSoHeadId = $epcSoHead ? (string) ($epcSoHead['so_no'] ?? '') : 'New order';
+	$epcSoHeadCust = '';
+	if ($epcSoHead) {
+		$epcSoHeadCust = trim((string) ($epcSoHead['customer_name'] ?? $epcSoHead['customer_company'] ?? $epcSoHead['customer_email'] ?? ''));
+	}
+	echo '<div class="epc-d365-titleblock"><div><span class="epc-d365-recid">' . epc_erp_h($epcSoHeadId) . '</span>'
+		. ($epcSoHeadCust !== '' ? '<span class="epc-d365-recsub">' . epc_erp_h($epcSoHeadCust) . '</span>' : '') . '</div>'
+		. ($epcSoHead ? erp_status_pill($epcSoHead['status']) : '') . '</div>';
+	$epcSoCurrency = 'AED';
+	if (function_exists('epc_co_profile_get') && function_exists('epc_country_profile')) {
+		try {
+			$epcSoCo = epc_co_profile_get($db_link);
+			if (!empty($epcSoCo['currency'])) {
+				$epcSoCurrency = (string) $epcSoCo['currency'];
+			} else {
+				$epcSoProf = epc_country_profile((string) ($epcSoCo['country'] ?? ''));
+				if (!empty($epcSoProf['currency'])) {
+					$epcSoCurrency = (string) $epcSoProf['currency'];
+				}
+			}
+		} catch (\Throwable $e) {
+			// keep default
+		}
+	}
+	erp_fasttab_open('General', array('open' => true, 'icon' => 'fa-id-card-o'));
+	echo '<div class="epc-d365-subhd">Customer</div>';
+	echo '<div class="epc-d365-fieldgrid">'
+		. '<div class="epc-d365-field"><span class="lbl">Customer account</span><span class="val">' . epc_erp_h($epcSoHeadCust ?: '—') . '</span></div>'
+		. '<div class="epc-d365-field"><span class="lbl">Currency</span><span class="val">' . epc_erp_h($epcSoCurrency) . '</span></div>'
+		. '<div class="epc-d365-field"><span class="lbl">Order status</span><span class="val">' . ($epcSoHead ? erp_status_pill($epcSoHead['status']) : '—') . '</span></div>'
+		. '</div>';
+	echo '<p class="text-muted" style="margin-top:8px;">Switch back to <strong>Lines</strong> to edit the order grid and create new sales orders. This Header view mirrors the Dynamics 365 order header layout.</p>';
+	erp_fasttab_close();
+	erp_tabpanel_close(); // Header view
 	return;
 }
 

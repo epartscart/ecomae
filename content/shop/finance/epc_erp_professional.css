@@ -973,7 +973,140 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 .epc-erp-d365 .epc-erp-table .label-danger { background: #fde7e9; color: #a4262c; }
 .epc-erp-d365 .epc-erp-table .label-default { background: #f3f2f1; color: #605e5c; }
 
+/* ── Two-row Action Pane ribbon (Row 1 menu tabs → Row 2 command groups) ── */
+.epc-d365-ribbon { margin: 0 0 14px; }
+.epc-d365-aptabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	background: var(--d365-band);
+	border: 1px solid var(--d365-line);
+	border-bottom: 0;
+	border-radius: 2px 2px 0 0;
+	padding: 0 4px;
+}
+.epc-d365-aptab {
+	border: 0;
+	background: transparent;
+	padding: 8px 14px 7px;
+	font-size: 12px;
+	color: var(--d365-ink-soft);
+	cursor: pointer;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+}
+.epc-d365-aptab:hover { color: var(--d365-ink); }
+.epc-d365-aptab.is-active {
+	color: var(--d365-accent);
+	font-weight: 600;
+	border-bottom-color: var(--d365-accent);
+	background: #fff;
+}
+.epc-d365-ap-row { display: none; }
+.epc-d365-ap-row.is-active { display: block; }
+.epc-d365-ap-row .epc-d365-actionpane {
+	margin: 0;
+	border-radius: 0 0 2px 2px;
+}
+
+/* ── Tab strips (Lines|Header view toggle + line-detail subtabs) ── */
+.epc-d365-tabstrip {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	border-bottom: 1px solid var(--d365-line);
+	margin: 0 0 12px;
+}
+.epc-d365-tab {
+	border: 0;
+	background: transparent;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: var(--d365-ink-soft);
+	cursor: pointer;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+}
+.epc-d365-tab .fa { margin-right: 5px; color: var(--d365-ink-soft); }
+.epc-d365-tab:hover { color: var(--d365-ink); }
+.epc-d365-tab.is-active { color: var(--d365-accent); font-weight: 600; border-bottom-color: var(--d365-accent); }
+.epc-d365-tab.is-active .fa { color: var(--d365-accent); }
+.epc-d365-tabstrip--sub { border-bottom-color: var(--d365-line-soft); }
+.epc-d365-tabstrip--sub .epc-d365-tab { font-size: 12px; padding: 6px 12px; }
+.epc-d365-tabpanel { display: none; }
+.epc-d365-tabpanel.is-active { display: block; }
+
+/* ── List filter strip ── */
+.epc-d365-listbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 8px;
+	background: var(--d365-band);
+	border: 1px solid var(--d365-line);
+	border-radius: 2px;
+	padding: 6px 10px;
+	margin: 0 0 10px;
+}
+.epc-d365-listbar-left, .epc-d365-listbar-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.epc-d365-listbar .lbl { font-size: 11px; color: var(--d365-ink-soft); }
+.epc-d365-view-sel, .epc-d365-show { font-size: 12px; color: var(--d365-ink); display: inline-flex; align-items: center; gap: 5px; }
+.epc-d365-view-sel .fa, .epc-d365-quickfilter .fa { color: var(--d365-accent); }
+.epc-d365-listbar select {
+	border: 0;
+	border-bottom: 1px solid var(--d365-line);
+	background: transparent;
+	font-size: 12px;
+	padding: 2px 4px;
+	color: var(--d365-ink);
+}
+.epc-d365-quickfilter {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #fff;
+	border: 1px solid var(--d365-line);
+	border-radius: 2px;
+	padding: 3px 8px;
+}
+.epc-d365-quickfilter input { border: 0; outline: 0; font-size: 12px; min-width: 180px; background: transparent; }
+
+/* ── Grid status-dot + checkbox columns, sortable headers, sum row ── */
+.epc-d365-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--d365-ink-soft); }
+.epc-d365-dot--ok { background: #107c10; }
+.epc-d365-dot--info { background: #0078d4; }
+.epc-d365-dot--warn { background: #c19c00; }
+.epc-d365-dot--bad { background: #a4262c; }
+.epc-d365-dot--muted { background: #a19f9d; }
+.epc-erp-d365 .epc-erp-table th.epc-d365-statcol,
+.epc-erp-d365 .epc-erp-table td.epc-d365-statcol { width: 26px; text-align: center; padding-left: 6px; padding-right: 6px; }
+.epc-erp-d365 .epc-erp-table th.epc-d365-checkcol,
+.epc-erp-d365 .epc-erp-table td.epc-d365-checkcol { width: 30px; text-align: center; padding-left: 8px; padding-right: 4px; }
+.epc-erp-d365 .epc-erp-table th[data-sort] { cursor: pointer; user-select: none; }
+.epc-erp-d365 .epc-erp-table th[data-sort]:hover { background: #f0eeec; }
+.epc-erp-d365 .epc-erp-table th[data-sort]::after { content: "\f0dc"; font-family: FontAwesome; font-size: 9px; color: #c8c6c4; margin-left: 5px; }
+.epc-erp-d365 .epc-erp-table th.is-sorted-asc::after { content: "\f0de"; color: var(--d365-accent); }
+.epc-erp-d365 .epc-erp-table th.is-sorted-desc::after { content: "\f0dd"; color: var(--d365-accent); }
+.epc-erp-d365 .epc-erp-table tr.epc-d365-sumrow td { font-weight: 700; background: var(--d365-band); border-top: 2px solid var(--d365-line); }
+.epc-erp-d365 .epc-erp-table a { color: var(--d365-accent); }
+
+/* ── Detail title block + status pill ── */
+.epc-d365-titleblock {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	padding: 4px 0 10px;
+	border-bottom: 1px solid var(--d365-line-soft);
+	margin-bottom: 10px;
+}
+.epc-d365-titleblock .epc-d365-recid { font-size: 15px; font-weight: 600; color: var(--d365-ink); }
+.epc-d365-titleblock .epc-d365-recsub { font-size: 12px; color: var(--d365-ink-soft); margin-left: 8px; }
+
 @media (max-width: 900px) {
 	.epc-d365-split { flex-direction: column; }
 	.epc-d365-factbox { width: 100%; flex-basis: auto; }
+	.epc-d365-listbar { flex-direction: column; align-items: stretch; }
 }

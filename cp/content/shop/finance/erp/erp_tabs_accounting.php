@@ -59,21 +59,27 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 		<h4><i class="fa fa-book"></i> General journal &amp; ledger</h4>
 		<?php
 		erp_d365_assets();
-		erp_action_pane(array(
-			array('label' => 'New', 'buttons' => array(
-				array('label' => 'Journal entry', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_gl_manual'),
+		erp_action_pane_ribbon(array(
+			array('label' => 'General journal', 'key' => 'gl', 'active' => true, 'groups' => array(
+				array('label' => 'New', 'buttons' => array(
+					array('label' => 'Journal entry', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_gl_manual'),
+				)),
+				array('label' => 'View', 'buttons' => array(
+					array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str)),
+				)),
 			)),
-			array('label' => 'Post', 'buttons' => array(
-				array('label' => 'Post journal', 'icon' => 'fa-check', 'target' => '#epc_erp_form_gl_manual'),
-				array('label' => 'Sync to GL', 'icon' => 'fa-refresh', 'target' => '#epc_erp_gl_sync'),
-				array('label' => 'Post sales to GL', 'icon' => 'fa-shopping-cart', 'target' => '#epc_erp_gl_post_sales'),
+			array('label' => 'Post', 'key' => 'post', 'groups' => array(
+				array('label' => 'Posting', 'buttons' => array(
+					array('label' => 'Post journal', 'icon' => 'fa-check', 'class' => 'is-primary', 'target' => '#epc_erp_form_gl_manual'),
+					array('label' => 'Sync to GL', 'icon' => 'fa-refresh', 'target' => '#epc_erp_gl_sync'),
+					array('label' => 'Post sales to GL', 'icon' => 'fa-shopping-cart', 'target' => '#epc_erp_gl_post_sales'),
+				)),
 			)),
-			array('label' => 'Period', 'buttons' => array(
-				array('label' => 'Period close', 'icon' => 'fa-lock', 'target' => '#epc_erp_form_fiscal_lock'),
-				array('label' => 'FX revaluation', 'icon' => 'fa-exchange', 'target' => '#epc_erp_form_fx_reval'),
-			)),
-			array('label' => 'View', 'buttons' => array(
-				array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str)),
+			array('label' => 'Period', 'key' => 'period', 'groups' => array(
+				array('label' => 'Period end', 'buttons' => array(
+					array('label' => 'Period close', 'icon' => 'fa-lock', 'target' => '#epc_erp_form_fiscal_lock'),
+					array('label' => 'FX revaluation', 'icon' => 'fa-exchange', 'target' => '#epc_erp_form_fx_reval'),
+				)),
 			)),
 		));
 		erp_fasttab_open('Period controls — close & FX revaluation', array('open' => false, 'icon' => 'fa-sliders'));
@@ -114,11 +120,16 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 			<button type="button" class="btn btn-sm btn-default" id="epc_erp_gl_sync"><i class="fa fa-refresh"></i> Sync unposted purchases &amp; cash to GL</button>
 			<button type="button" class="btn btn-sm btn-primary" id="epc_erp_gl_post_sales"><i class="fa fa-shopping-cart"></i> Post sales orders to GL (date range)</button>
 		</p>
-		<table class="table table-striped table-bordered table-condensed epc-erp-table">
-			<thead><tr><th>Journal no.</th><th>Date</th><th>Source</th><th>Reference</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead>
+		<?php erp_list_toolbar(array(
+			'views' => array('All journals', 'My journals'),
+			'search' => array('placeholder' => 'Filter journals', 'target' => '#epc_erp_gl_journals_tbl'),
+		)); ?>
+		<table class="table table-striped table-bordered table-condensed epc-erp-table" id="epc_erp_gl_journals_tbl">
+			<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Journal no.</th><th data-sort="text">Date</th><th data-sort="text">Source</th><th data-sort="text">Reference</th><th data-sort="text">Description</th><th class="num" data-sort="num">Amount</th><th></th></tr></thead>
 			<tbody>
-			<?php foreach ($gl_journals as $j): ?>
+			<?php $epcGlSum = 0.0; foreach ($gl_journals as $j): $epcGlSum += (float)$j['total_debit']; ?>
 				<tr>
+					<td class="epc-d365-statcol"><?php echo erp_status_dot('info'); ?></td>
 					<td><?php echo epc_erp_h($j['journal_no']); ?></td>
 					<td><?php echo epc_erp_h(date('Y-m-d', (int)$j['journal_date'])); ?></td>
 					<td><?php echo epc_erp_h($j['source_type']); ?></td>
@@ -132,14 +143,17 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
+			<?php if (!empty($gl_journals)): ?>
+			<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="5">Sum (<?php echo count($gl_journals); ?> journals)</td><td class="num"><?php echo epc_erp_money($epcGlSum); ?></td><td></td></tr></tfoot>
+			<?php endif; ?>
 		</table>
 
 		<?php if ($view_journal > 0): ?>
 			<h4>Journal lines #<?php echo (int)$view_journal; ?></h4>
 			<table class="table table-bordered table-condensed epc-erp-table">
-				<thead><tr><th>Code</th><th>Account</th><th>Type</th><th class="num">Debit</th><th class="num">Credit</th><th>Note</th></tr></thead>
+				<thead><tr><th data-sort="text">Code</th><th data-sort="text">Account</th><th data-sort="text">Type</th><th class="num" data-sort="num">Debit</th><th class="num" data-sort="num">Credit</th><th>Note</th></tr></thead>
 				<tbody>
-				<?php foreach ($journal_lines as $ln): ?>
+				<?php $epcGlLnDr = 0.0; $epcGlLnCr = 0.0; foreach ($journal_lines as $ln): $epcGlLnDr += (float)$ln['debit']; $epcGlLnCr += (float)$ln['credit']; ?>
 					<tr>
 						<td><?php echo epc_erp_h($ln['coa_code']); ?></td>
 						<td><?php echo epc_erp_h($ln['coa_name']); ?></td>
@@ -150,6 +164,9 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 					</tr>
 				<?php endforeach; ?>
 				</tbody>
+				<?php if (!empty($journal_lines)): ?>
+				<tfoot><tr class="epc-d365-sumrow"><td colspan="3">Sum</td><td class="num"><?php echo epc_erp_money($epcGlLnDr); ?></td><td class="num"><?php echo epc_erp_money($epcGlLnCr); ?></td><td></td></tr></tfoot>
+				<?php endif; ?>
 			</table>
 		<?php endif; ?>
 

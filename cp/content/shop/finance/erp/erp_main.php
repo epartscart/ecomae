@@ -492,22 +492,31 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 					<h4><i class="fa fa-users"></i> Customer receivable balances</h4>
 					<?php
 					erp_d365_assets();
-					erp_action_pane(array(
-						array('label' => 'View', 'buttons' => array(
-							array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'receivables', $date_from_str, $date_to_str)),
+					erp_action_pane_ribbon(array(
+						array('label' => 'Customer', 'key' => 'ar', 'active' => true, 'groups' => array(
+							array('label' => 'View', 'buttons' => array(
+								array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'receivables', $date_from_str, $date_to_str)),
+							)),
 						)),
-						array('label' => 'Collect', 'buttons' => array(
-							array('label' => 'Statement', 'icon' => 'fa-file-text-o', 'disabled' => true),
-							array('label' => 'Settlement', 'icon' => 'fa-balance-scale', 'disabled' => true),
+						array('label' => 'Collect', 'key' => 'collect', 'groups' => array(
+							array('label' => 'Collections', 'buttons' => array(
+								array('label' => 'Statement', 'icon' => 'fa-file-text-o', 'disabled' => true),
+								array('label' => 'Settlement', 'icon' => 'fa-balance-scale', 'disabled' => true),
+							)),
 						)),
+					));
+					erp_list_toolbar(array(
+						'views' => array('All customers', 'Open balances'),
+						'search' => array('placeholder' => 'Filter customers', 'target' => '#epc_erp_ar_tbl'),
 					));
 					?>
 					<p class="text-muted">Ledger balance = customer account credits minus debits (top-ups, payments). <strong>Order due</strong> counts only completed orders. Receivable/settlement entries for an order require Completed status.</p>
-					<table class="table table-striped table-bordered table-condensed epc-erp-table">
-						<thead><tr><th>Customer</th><th class="num">Orders</th><th class="num">Completed</th><th class="num">Ledger balance</th><th class="num">Order due (complete)</th><th></th></tr></thead>
+					<table class="table table-striped table-bordered table-condensed epc-erp-table" id="epc_erp_ar_tbl">
+						<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Customer</th><th class="num" data-sort="num">Orders</th><th class="num" data-sort="num">Completed</th><th class="num" data-sort="num">Ledger balance</th><th class="num" data-sort="num">Order due (complete)</th><th></th></tr></thead>
 						<tbody>
-						<?php foreach ($customers as $c): ?>
+						<?php $epcArBal = 0.0; $epcArDue = 0.0; foreach ($customers as $c): $epcArBal += (float)$c['balance']; $epcArDue += (float)$c['order_receivable_due']; ?>
 							<tr>
+								<td class="epc-d365-statcol"><?php echo erp_status_dot((float)$c['order_receivable_due'] > 0 ? 'warn' : 'ok'); ?></td>
 								<td><?php echo epc_erp_h($c['email'] ?: ('User #' . (int)$c['user_id'])); ?></td>
 								<td class="num"><?php echo (int)$c['order_count']; ?></td>
 								<td class="num"><?php echo (int)$c['complete_order_count']; ?></td>
@@ -517,6 +526,9 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
+						<?php if (!empty($customers)): ?>
+						<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="3">Sum (<?php echo count($customers); ?> customers)</td><td class="num"><?php echo epc_erp_money($epcArBal); ?></td><td class="num"><?php echo epc_erp_money($epcArDue); ?></td><td></td></tr></tfoot>
+						<?php endif; ?>
 					</table>
 					<?php if ($view_user > 0): ?>
 						<h4>Customer statement — user #<?php echo (int)$view_user; ?></h4>
@@ -566,27 +578,36 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 					<h4><i class="fa fa-truck"></i> Supplier payable balances</h4>
 					<?php
 					erp_d365_assets();
-					erp_action_pane(array(
-						array('label' => 'New', 'buttons' => array(
-							array('label' => 'Supplier', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_supplier'),
+					erp_action_pane_ribbon(array(
+						array('label' => 'Vendor', 'key' => 'ap', 'active' => true, 'groups' => array(
+							array('label' => 'New', 'buttons' => array(
+								array('label' => 'Supplier', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_supplier'),
+							)),
+							array('label' => 'Data', 'buttons' => array(
+								array('label' => 'Sync from warehouses', 'icon' => 'fa-refresh', 'target' => '#epc_erp_sync_suppliers'),
+							)),
 						)),
-						array('label' => 'Pay', 'buttons' => array(
-							array('label' => 'Record payment', 'icon' => 'fa-money', 'target' => '#epc_erp_form_supplier_pay'),
+						array('label' => 'Pay', 'key' => 'pay', 'groups' => array(
+							array('label' => 'Payments', 'buttons' => array(
+								array('label' => 'Record payment', 'icon' => 'fa-money', 'class' => 'is-primary', 'target' => '#epc_erp_form_supplier_pay'),
+							)),
 						)),
-						array('label' => 'Data', 'buttons' => array(
-							array('label' => 'Sync from warehouses', 'icon' => 'fa-refresh', 'target' => '#epc_erp_sync_suppliers'),
-						)),
+					));
+					erp_list_toolbar(array(
+						'views' => array('All suppliers', 'Open balances'),
+						'search' => array('placeholder' => 'Filter suppliers', 'target' => '#epc_erp_ap_tbl'),
 					));
 					?>
 					<p class="text-muted">Payable excludes purchase/AP entries linked to orders that are not yet <strong>Completed</strong> in CP.</p>
 					<p>
 						<button type="button" class="btn btn-sm btn-default" id="epc_erp_sync_suppliers"><i class="fa fa-refresh"></i> Sync from warehouses</button>
 					</p>
-					<table class="table table-striped table-bordered table-condensed epc-erp-table">
-						<thead><tr><th>Supplier</th><th>Country</th><th>TRN</th><th>Storage ID</th><th class="num">Payable balance (AED)</th><th></th></tr></thead>
+					<table class="table table-striped table-bordered table-condensed epc-erp-table" id="epc_erp_ap_tbl">
+						<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Supplier</th><th data-sort="text">Country</th><th data-sort="text">TRN</th><th data-sort="text">Storage ID</th><th class="num" data-sort="num">Payable balance (AED)</th><th></th></tr></thead>
 						<tbody>
-						<?php foreach ($suppliers as $s): ?>
+						<?php $epcApBal = 0.0; foreach ($suppliers as $s): $epcApBal += (float)$s['balance']; ?>
 							<tr>
+								<td class="epc-d365-statcol"><?php echo erp_status_dot((float)$s['balance'] > 0 ? 'warn' : 'ok'); ?></td>
 								<td><?php echo epc_erp_h($s['name']); ?></td>
 								<td><?php echo epc_erp_h(isset($s['country_code']) ? $s['country_code'] : 'AE'); ?>
 									<?php if (!empty($s['vat_registered'])): ?><span class="label label-success">VAT</span><?php else: ?><span class="label label-default">No VAT</span><?php endif; ?>
@@ -598,6 +619,9 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
+						<?php if (!empty($suppliers)): ?>
+						<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="4">Sum (<?php echo count($suppliers); ?> suppliers)</td><td class="num"><?php echo epc_erp_money($epcApBal); ?></td><td></td></tr></tfoot>
+						<?php endif; ?>
 					</table>
 					<?php
 					$view_sup = isset($_GET['supplier_id']) ? (int)$_GET['supplier_id'] : 0;

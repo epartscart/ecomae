@@ -32,22 +32,28 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 </p>
 <?php
 erp_d365_assets();
-erp_action_pane(array(
-	array('label' => 'New', 'buttons' => array(
-		array('label' => 'Item', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_inv_form_item'),
-		array('label' => 'Warehouse', 'icon' => 'fa-archive', 'target' => '#epc_inv_form_wh'),
+erp_action_pane_ribbon(array(
+	array('label' => 'Manage', 'key' => 'manage', 'active' => true, 'groups' => array(
+		array('label' => 'New', 'buttons' => array(
+			array('label' => 'Item', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_inv_form_item'),
+			array('label' => 'Warehouse', 'icon' => 'fa-archive', 'target' => '#epc_inv_form_wh'),
+		)),
+		array('label' => 'View', 'buttons' => array(
+			array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str)),
+		)),
 	)),
-	array('label' => 'Transactions', 'buttons' => array(
-		array('label' => 'Post movement', 'icon' => 'fa-exchange', 'target' => '#epc_inv_form_move'),
-		array('label' => 'Transfer', 'icon' => 'fa-random', 'target' => '#epc_inv_form_transfer'),
-		array('label' => 'Period closing', 'icon' => 'fa-lock', 'target' => '#epc_inv_form_close'),
+	array('label' => 'Transactions', 'key' => 'txn', 'groups' => array(
+		array('label' => 'Inventory', 'buttons' => array(
+			array('label' => 'Post movement', 'icon' => 'fa-exchange', 'target' => '#epc_inv_form_move'),
+			array('label' => 'Transfer', 'icon' => 'fa-random', 'target' => '#epc_inv_form_transfer'),
+			array('label' => 'Period closing', 'icon' => 'fa-lock', 'target' => '#epc_inv_form_close'),
+		)),
 	)),
-	array('label' => 'Data', 'buttons' => array(
-		array('label' => 'Import CSV', 'icon' => 'fa-upload', 'target' => '#epc_inv_form_csv'),
-		array('label' => 'Scan / lookup', 'icon' => 'fa-barcode', 'target' => '#epc_inv_form_scan'),
-	)),
-	array('label' => 'View', 'buttons' => array(
-		array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str)),
+	array('label' => 'Data', 'key' => 'data', 'groups' => array(
+		array('label' => 'Tools', 'buttons' => array(
+			array('label' => 'Import CSV', 'icon' => 'fa-upload', 'target' => '#epc_inv_form_csv'),
+			array('label' => 'Scan / lookup', 'icon' => 'fa-barcode', 'target' => '#epc_inv_form_scan'),
+		)),
 	)),
 ));
 erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'icon' => 'fa-database'));
@@ -208,13 +214,20 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	<?php if ($whFilter): ?> — filtered<?php endif; ?>
 	<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str)); ?>">All WH</a>
 </h4>
-<table class="table table-bordered table-condensed table-striped epc-erp-table">
-	<thead><tr><th>Warehouse</th><th>SKU</th><th>Name</th><th>Type</th><th>Unit</th><th class="num">Qty</th><th class="num">Avg cost</th><th class="num">Value</th><th>Batch</th><th>Expiry</th></tr></thead>
+<?php erp_list_toolbar(array(
+	'views' => array('On-hand by warehouse', 'All items'),
+	'search' => array('placeholder' => 'Filter stock', 'target' => '#epc_inv_stock_tbl'),
+)); ?>
+<table class="table table-bordered table-condensed table-striped epc-erp-table" id="epc_inv_stock_tbl">
+	<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Warehouse</th><th data-sort="text">SKU</th><th data-sort="text">Name</th><th data-sort="text">Type</th><th>Unit</th><th class="num" data-sort="num">Qty</th><th class="num" data-sort="num">Avg cost</th><th class="num" data-sort="num">Value</th><th>Batch</th><th>Expiry</th></tr></thead>
 	<tbody>
-	<?php foreach ($stock as $s):
+	<?php $epcInvVal = 0.0; foreach ($stock as $s):
 		$val = (float)$s['qty_on_hand'] * (float)$s['avg_unit_cost'];
+		$epcInvVal += $val;
+		$epcInvTone = ((float)$s['qty_on_hand'] <= 0) ? 'bad' : ((float)$s['qty_on_hand'] < 5 ? 'warn' : 'ok');
 	?>
 		<tr>
+			<td class="epc-d365-statcol"><?php echo erp_status_dot($epcInvTone); ?></td>
 			<td><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str) . '&wh=' . (int)$s['warehouse_id']); ?>"><?php echo epc_erp_h($s['warehouse_name']); ?></a></td>
 			<td><?php echo epc_erp_h($s['sku']); ?></td>
 			<td><?php echo epc_erp_h($s['name']); ?></td>
@@ -227,8 +240,11 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 			<td><?php echo !empty($s['expiry_date']) ? epc_erp_h($s['expiry_date']) : '—'; ?></td>
 		</tr>
 	<?php endforeach; ?>
-	<?php if (empty($stock)): ?><tr><td colspan="10" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
+	<?php if (empty($stock)): ?><tr><td colspan="11" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
 	</tbody>
+	<?php if (!empty($stock)): ?>
+	<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="7">Sum (<?php echo count($stock); ?> stock lines)</td><td class="num"><?php echo epc_erp_money($epcInvVal); ?></td><td colspan="2"></td></tr></tfoot>
+	<?php endif; ?>
 </table>
 
 <h4><i class="fa fa-list-alt"></i> Stock ledger <small>(every movement with running balance)</small>
