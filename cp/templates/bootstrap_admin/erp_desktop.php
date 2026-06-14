@@ -56,6 +56,14 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php echo htmlspecialchars((string) ($DP_Content->value ?? 'ERP Suite'), ENT_QUOTES, 'UTF-8'); ?> — <?php echo htmlspecialchars((string) ($brand['product_name'] ?? 'ERP'), ENT_QUOTES, 'UTF-8'); ?></title>
+<?php
+	// ECOM AE brand mark as tab icon on the operator/platform ERP shell.
+	if ($platformHost || $isPlatformErp || $isPlatformOperator) {
+		$epcErpFaviconUrl = '/content/general_pages/epc_ecomae_logo_svg.php';
+		echo "\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"" . htmlspecialchars($epcErpFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
+		echo "\t<link rel=\"apple-touch-icon\" href=\"" . htmlspecialchars($epcErpFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
+	}
+?>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="<?php echo htmlspecialchars(epc_erp_shell_asset_href('/' . $backend . '/templates/bootstrap_admin/css/epc_cp_ui.css', '/content/general_pages/epc_cp_ui_css.php'), ENT_QUOTES, 'UTF-8'); ?>" />
