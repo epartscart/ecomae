@@ -215,14 +215,16 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 .ns-dash{--ns-bd:#d9e1ea;--ns-head:#1f3a52;--ns-muted:#6b7a8d;font-size:13px;color:#27313b}
 .ns-dash *{box-sizing:border-box}
 .ns-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:4px 0 16px}
-.ns-tile{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:104px;border-radius:6px;padding:14px;color:#fff;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.18);overflow:hidden;transition:transform .12s ease,box-shadow .12s ease}
-.ns-tile:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.22);color:#fff}
-.ns-tile .ic{position:absolute;top:12px;right:14px;font-size:30px;opacity:.32}
-.ns-tile .tl{font-size:15px;font-weight:600;line-height:1.2}
-.ns-tile.gold{background:linear-gradient(135deg,#caa23a,#a8821f)}
-.ns-tile.green{background:linear-gradient(135deg,#3f9b6d,#2f7d54)}
-.ns-tile.rust{background:linear-gradient(135deg,#c2693a,#9c4f29)}
-.ns-tile.slate{background:linear-gradient(135deg,#5a6b7b,#41505d)}
+.ns-tile{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:104px;border-radius:8px;padding:14px;text-decoration:none;box-shadow:0 2px 6px rgba(15,30,50,.20);overflow:hidden;transition:transform .12s ease,box-shadow .12s ease}
+.ns-tile,.ns-tile:link,.ns-tile:visited,.ns-tile:hover,.ns-tile:focus,.ns-tile .tl,.ns-tile .ic{color:#fff!important}
+.ns-tile:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,30,50,.30)}
+.ns-tile .ic{position:absolute;top:12px;right:14px;font-size:30px;opacity:.40;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.ns-tile .tl{position:relative;z-index:1;font-size:15px;font-weight:700;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.ns-tile::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 45%);pointer-events:none}
+.ns-tile.gold{background:linear-gradient(135deg,#e6ad34,#b9831a)}
+.ns-tile.green{background:linear-gradient(135deg,#37b277,#1f8a59)}
+.ns-tile.rust{background:linear-gradient(135deg,#e0743c,#b14a27)}
+.ns-tile.slate{background:linear-gradient(135deg,#64788c,#3a4956)}
 .ns-grid{display:grid;grid-template-columns:240px 1fr 320px;gap:16px;align-items:start}
 .ns-port{background:#fff;border:1px solid var(--ns-bd);border-radius:6px;margin-bottom:16px}
 .ns-port>h4{margin:0;padding:9px 13px;font-size:13px;font-weight:700;color:var(--ns-head);border-bottom:1px solid var(--ns-bd);background:#f5f8fb;border-radius:6px 6px 0 0}
@@ -249,7 +251,8 @@ $arColors = array('#3aa76d', '#e0a83a', '#d98032', '#c0563b', '#9b3b3b');
 .ns-qa{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;text-align:center;padding:16px 8px;background:#fff;border:1px solid var(--ns-bd);border-radius:8px;text-decoration:none;color:#27313b;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
 .ns-qa:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(31,58,82,.16);border-color:#c3d2e0;color:#27313b}
 .ns-qa .qa-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.14)}
-.ns-qa .qa-lb{font-size:12px;font-weight:600;line-height:1.25}
+.ns-qa,.ns-qa:link,.ns-qa:visited,.ns-qa:hover,.ns-qa:focus,.ns-qa .qa-lb{color:#1f3a52!important}
+.ns-qa .qa-lb{font-size:12px;font-weight:700;line-height:1.25}
 .ns-qa .qa-blue{background:linear-gradient(135deg,#2f82d6,#1f6fb2)}
 .ns-qa .qa-indigo{background:linear-gradient(135deg,#5a67d8,#434aa8)}
 .ns-qa .qa-amber{background:linear-gradient(135deg,#e0a83a,#c98a1c)}
