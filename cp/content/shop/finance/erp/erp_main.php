@@ -272,6 +272,8 @@ $erpTabIncludes = array(
 	// Risk & Insurance
 	'insurance' => 'erp_tabs_insurance.php',
 	'doc_expiry' => 'erp_tabs_doc_expiry.php',
+	// Advanced WMS
+	'wms' => 'erp_tabs_wms.php',
 );
 
 ?>

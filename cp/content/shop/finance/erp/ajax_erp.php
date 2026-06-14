@@ -568,6 +568,44 @@ try {
 			$claimId = epc_ins_claim_save($db_link, $ic, (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, 'Claim logged', array('id' => $claimId));
 
+		case 'wms_location_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_wms.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$wl = $_POST;
+			$wl['company_id'] = epc_erp_active_company_id($db_link);
+			$wlId = epc_wms_location_save($db_link, $wl, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Location saved', array('id' => $wlId));
+
+		case 'wms_location_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_wms.php';
+			epc_wms_location_delete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Location deleted');
+
+		case 'wms_receive':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_wms.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			if (trim((string)($_POST['item'] ?? '')) === '') { throw new Exception('Item is required'); }
+			$wr = epc_wms_receive($db_link, epc_erp_active_company_id($db_link), (string)$_POST['item'], (float)($_POST['qty'] ?? 0), (int)($_POST['receive_location_id'] ?? 0), (int)($_POST['putaway_location_id'] ?? 0), (string)($_POST['reference'] ?? ''), (string)($_POST['lp_code'] ?? ''));
+			epc_erp_json(true, 'Received — put-away work raised', $wr);
+
+		case 'wms_wave_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_wms.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$wmsCo = epc_erp_active_company_id($db_link);
+			$waveId = epc_wms_wave_create($db_link, $wmsCo, (string)($_POST['reference'] ?? ''));
+			epc_wms_wave_add_pick($db_link, $waveId, (string)($_POST['item'] ?? ''), (float)($_POST['qty'] ?? 0), (int)($_POST['from_location_id'] ?? 0), (int)($_POST['to_location_id'] ?? 0));
+			epc_erp_json(true, 'Wave created with pick work', array('id' => $waveId));
+
+		case 'wms_wave_release':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_wms.php';
+			epc_wms_wave_release($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Wave released');
+
+		case 'wms_work_complete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_wms.php';
+			epc_wms_work_complete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Work confirmed');
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));

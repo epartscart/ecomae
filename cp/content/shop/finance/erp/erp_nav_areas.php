@@ -103,6 +103,7 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Inventory, assets and manufacturing',
 			'tabs' => array(
 				'inventory' => array('label' => 'Inventory', 'icon' => 'fa-cubes'),
+				'wms' => array('label' => 'Advanced WMS', 'icon' => 'fa-cubes'),
 				'product_info' => array('label' => 'Product information', 'icon' => 'fa-cube'),
 				'inv_groups' => array('label' => 'Inventory (stock/groups)', 'icon' => 'fa-object-group'),
 				'master_planning' => array('label' => 'Master planning', 'icon' => 'fa-random'),
@@ -112,7 +113,7 @@ function epc_erp_nav_areas_config()
 				'manufacturing' => array('label' => 'Manufacturing', 'icon' => 'fa-cogs'),
 			),
 			'groups' => array(
-				'Common' => array('inventory', 'product_info', 'inv_groups', 'order_planning'),
+				'Common' => array('inventory', 'wms', 'product_info', 'inv_groups', 'order_planning'),
 				'Journals' => array('manufacturing'),
 				'Periodic' => array('master_planning'),
 				'Setup' => array('retail_barcode', 'fixed_assets'),
