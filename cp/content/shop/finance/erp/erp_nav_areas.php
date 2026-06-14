@@ -69,6 +69,17 @@ function epc_erp_nav_areas_config()
 				'Links' => array('procurement_link'),
 			),
 		),
+		'retail' => array(
+			'label' => 'Retail &amp; Commerce',
+			'icon' => 'fa-shopping-cart',
+			'desc' => 'Channels, assortments, retail pricing, POS and statements',
+			'tabs' => array(
+				'retail_commerce' => array('label' => 'Retail &amp; Commerce', 'icon' => 'fa-shopping-cart'),
+			),
+			'groups' => array(
+				'Common' => array('retail_commerce'),
+			),
+		),
 		'finance' => array(
 			'label' => 'Finance',
 			'icon' => 'fa-university',

@@ -288,6 +288,8 @@ $erpTabIncludes = array(
 	'integration' => 'erp_tabs_integration.php',
 	// Quality management
 	'quality' => 'erp_tabs_quality.php',
+	// Retail & Commerce
+	'retail_commerce' => 'erp_tabs_retail_commerce.php',
 );
 
 ?>

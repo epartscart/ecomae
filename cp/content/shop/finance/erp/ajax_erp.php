@@ -814,6 +814,31 @@ try {
 			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
 			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
 
+		case 'rtl_channel_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_retail.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rcId = epc_rtl_channel_save($db_link, epc_erp_active_company_id($db_link), $_POST, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Channel saved', array('id' => $rcId));
+
+		case 'rtl_assortment_set':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_retail.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			epc_rtl_assortment_set($db_link, epc_erp_active_company_id($db_link), (int)($_POST['channel_id'] ?? 0), (int)($_POST['item_id'] ?? 0), (int)($_POST['active'] ?? 1) === 1);
+			epc_erp_json(true, 'Assortment updated');
+
+		case 'rtl_discount_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_retail.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rdId = epc_rtl_discount_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Discount saved', array('id' => $rdId));
+
+		case 'rtl_pos_sale':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_retail.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rsLines = array(array('item_id' => (int)($_POST['item_id'] ?? 0), 'qty' => (float)($_POST['qty'] ?? 0), 'unit_price' => (float)($_POST['unit_price'] ?? 0)));
+			$rsRes = epc_rtl_pos_sale($db_link, epc_erp_active_company_id($db_link), (int)($_POST['channel_id'] ?? 0), $rsLines, (string)($_POST['tender'] ?? 'cash'), (float)($_POST['tax_rate'] ?? 0));
+			epc_erp_json(true, 'Sale recorded · total ' . number_format($rsRes['total'], 2), array('res' => $rsRes));
+
 		case 'qm_plan_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
