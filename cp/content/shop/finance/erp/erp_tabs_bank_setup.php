@@ -132,9 +132,27 @@ switch ($view) {
 		if (empty($bankAccts)) {
 			echo '<p class="text-muted">No bank accounts yet — add them under Finance → Cash &amp; Bank.</p>';
 		} else {
-			echo '<div class="table-responsive"><table class="table table-striped table-bordered table-condensed"><thead><tr><th>Name</th><th>Bank</th><th>Account number</th><th>Currency</th><th style="text-align:right;">Opening balance</th></tr></thead><tbody>';
+			$buNameMapBS = array();
+			try {
+				foreach ($db_link->query("SELECT `id`, `name` FROM `epc_erp_pm_business_units`")->fetchAll(PDO::FETCH_ASSOC) as $bu) {
+					$buNameMapBS[(int) $bu['id']] = (string) $bu['name'];
+				}
+			} catch (Exception $e) {
+			}
+			echo '<div class="table-responsive"><table class="table table-striped table-bordered table-condensed"><thead><tr><th>Name</th><th>Business unit</th><th>Bank</th><th>Branch</th><th>Account number</th><th>IBAN</th><th>SWIFT/BIC</th><th>Currency</th><th>Status</th><th style="text-align:right;">Opening balance</th></tr></thead><tbody>';
 			foreach ($bankAccts as $a) {
-				echo '<tr><td>' . epc_erp_h((string) $a['name']) . '</td><td>' . epc_erp_h((string) ($a['bank_name'] ?? '')) . '</td><td>' . epc_erp_h((string) ($a['account_number'] ?? '')) . '</td><td>' . epc_erp_h((string) $a['currency_code']) . '</td><td style="text-align:right;">' . epc_erp_money((float) $a['opening_balance']) . '</td></tr>';
+				$buId = (int) ($a['business_unit_id'] ?? 0);
+				$buName = $buId > 0 && isset($buNameMapBS[$buId]) ? $buNameMapBS[$buId] : '—';
+				echo '<tr><td>' . epc_erp_h((string) $a['name']) . '</td>'
+					. '<td>' . epc_erp_h($buName) . '</td>'
+					. '<td>' . epc_erp_h((string) ($a['bank_name'] ?? '')) . '</td>'
+					. '<td>' . epc_erp_h((string) ($a['bank_branch'] ?? '')) . '</td>'
+					. '<td>' . epc_erp_h((string) ($a['account_number'] ?? '')) . '</td>'
+					. '<td>' . epc_erp_h((string) ($a['iban'] ?? '')) . '</td>'
+					. '<td>' . epc_erp_h((string) ($a['swift_bic'] ?? '')) . '</td>'
+					. '<td>' . epc_erp_h((string) $a['currency_code']) . '</td>'
+					. '<td>' . epc_erp_h(ucfirst((string) ($a['status'] ?? 'active'))) . '</td>'
+					. '<td style="text-align:right;">' . epc_erp_money((float) $a['opening_balance']) . '</td></tr>';
 			}
 			echo '</tbody></table></div>';
 		}

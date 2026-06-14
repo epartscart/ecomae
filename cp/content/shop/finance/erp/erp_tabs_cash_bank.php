@@ -31,30 +31,103 @@ erp_stat_cards(array(
 	array('label' => 'Accounts', 'value' => (string)count($accounts)),
 	array('label' => 'Unmatched statement lines', 'value' => (string)count($stmtLines), 'class' => count($stmtLines) ? 'red' : 'green'),
 ));
+// Resolve business-unit / legal-entity names for the account list.
+$buNameMap = array();
+$leNameMap = array();
+try {
+	foreach ($db_link->query("SELECT `id`, `name` FROM `epc_erp_pm_business_units`")->fetchAll(PDO::FETCH_ASSOC) as $bu) {
+		$buNameMap[(int) $bu['id']] = (string) $bu['name'];
+	}
+} catch (Exception $e) {
+}
+try {
+	foreach ($db_link->query("SELECT `id`, `name` FROM `epc_erp_pm_legal_entities`")->fetchAll(PDO::FETCH_ASSOC) as $le) {
+		$leNameMap[(int) $le['id']] = (string) $le['name'];
+	}
+} catch (Exception $e) {
+}
 ob_start();
-erp_table_open(array('Account', 'Type', 'Currency', 'Opening', 'Balance', ''));
+erp_table_open(array('Account', 'Business unit', 'Account no / IBAN', 'Currency', 'Opening', 'Balance', ''));
 foreach ($accounts as $a) {
 	echo '<tr><td>' . epc_erp_h($a['name']);
-	if ($a['bank_name']) {
-		echo ' — ' . epc_erp_h($a['bank_name']);
+	if (!empty($a['bank_name'])) {
+		echo ' <small class="text-muted">— ' . epc_erp_h($a['bank_name']) . '</small>';
 	}
-	echo '</td><td>' . epc_erp_h($a['account_type']) . '</td><td>' . epc_erp_h($a['currency_code']) . '</td>';
+	$buId = (int) ($a['business_unit_id'] ?? 0);
+	$leId = (int) ($a['legal_entity_id'] ?? 0);
+	$buCell = $buId > 0 && isset($buNameMap[$buId]) ? $buNameMap[$buId] : ($leId > 0 && isset($leNameMap[$leId]) ? $leNameMap[$leId] : '—');
+	$acctNo = (string) ($a['account_number'] ?? '');
+	$iban = (string) ($a['iban'] ?? '');
+	$acctCell = $acctNo !== '' ? $acctNo : '—';
+	if ($iban !== '') {
+		$acctCell .= ' <small class="text-muted">' . epc_erp_h($iban) . '</small>';
+	}
+	echo '</td><td>' . epc_erp_h($buCell) . '</td>';
+	echo '<td>' . $acctCell . '</td>';
+	echo '<td>' . epc_erp_h($a['currency_code']) . '</td>';
 	echo '<td>' . epc_erp_money($a['opening_balance']) . '</td><td><strong>' . epc_erp_money($a['balance']) . '</strong></td>';
 	echo '<td><a class="btn btn-xs btn-default" href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'cash_bank', $date_from_str, $date_to_str) . '&account_id=' . (int)$a['id']) . '">Reconcile</a></td></tr>';
 }
 erp_table_close();
 erp_section_card('Accounts', ob_get_clean(), array('icon' => 'fa-list'));
 
+// Legal entity / business unit options for the bank account form.
+$leOptsCB = array();
+$buOptsCB = array();
+$glOptsCB = array();
+try {
+	foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_pm_legal_entities` WHERE `active` = 1 ORDER BY `name`")->fetchAll(PDO::FETCH_ASSOC) as $le) {
+		$leOptsCB[(int) $le['id']] = $le['code'] . ' · ' . $le['name'];
+	}
+} catch (Exception $e) {
+}
+try {
+	foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_pm_business_units` WHERE `active` = 1 ORDER BY `name`")->fetchAll(PDO::FETCH_ASSOC) as $bu) {
+		$buOptsCB[(int) $bu['id']] = $bu['code'] . ' · ' . $bu['name'];
+	}
+} catch (Exception $e) {
+}
+try {
+	foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_coa_accounts` WHERE `active` = 1 AND `account_type` IN ('asset','bank') ORDER BY `code`")->fetchAll(PDO::FETCH_ASSOC) as $coa) {
+		$glOptsCB[(int) $coa['id']] = $coa['code'] . ' · ' . $coa['name'];
+	}
+} catch (Exception $e) {
+}
 ob_start();
 ?>
-<form id="epc_erp_form_account" class="form-inline epc-erp-form-inline">
+<form id="epc_erp_form_account" class="form-horizontal epc-erp-form-inline" style="max-width:920px;">
 	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
-	<input type="text" name="name" class="form-control input-sm" placeholder="Account name" required>
-	<select name="account_type" class="form-control input-sm"><option value="cash">Cash</option><option value="bank">Bank</option></select>
-	<input type="text" name="bank_name" class="form-control input-sm" placeholder="Bank name">
-	<input type="number" step="0.01" name="opening_balance" class="form-control input-sm" placeholder="Opening" value="0">
-	<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
-	<button type="submit" class="btn btn-sm btn-primary">Create account</button>
+	<div class="row">
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Account name *</label><div class="col-sm-8"><input type="text" name="name" class="form-control input-sm" placeholder="e.g. Operating account" required></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Account type</label><div class="col-sm-8"><select name="account_type" class="form-control input-sm"><option value="cash">Cash</option><option value="bank">Bank</option></select></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Legal entity</label><div class="col-sm-8"><select name="legal_entity_id" class="form-control input-sm"><option value="0">— none —</option>
+			<?php foreach ($leOptsCB as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+		</select></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Business unit</label><div class="col-sm-8"><select name="business_unit_id" class="form-control input-sm"><option value="0">— none —</option>
+			<?php foreach ($buOptsCB as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+		</select>
+		<?php if (empty($buOptsCB)): ?><span class="help-block" style="margin:2px 0 0;font-size:11px;">No business units yet — add them under <a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'business_units', $date_from_str, $date_to_str, 'enterprise')); ?>">Business Unit</a>.</span><?php endif; ?>
+		</div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank name</label><div class="col-sm-8"><input type="text" name="bank_name" class="form-control input-sm" placeholder="e.g. Emirates NBD"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Branch</label><div class="col-sm-8"><input type="text" name="bank_branch" class="form-control input-sm" placeholder="Branch name / number"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Account number</label><div class="col-sm-8"><input type="text" name="account_number" class="form-control input-sm"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">IBAN</label><div class="col-sm-8"><input type="text" name="iban" class="form-control input-sm"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">SWIFT / BIC</label><div class="col-sm-8"><input type="text" name="swift_bic" class="form-control input-sm"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Routing / sort code</label><div class="col-sm-8"><input type="text" name="routing_code" class="form-control input-sm"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Currency</label><div class="col-sm-8"><input type="text" name="currency_code" class="form-control input-sm" value="AED" maxlength="8"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Opening balance</label><div class="col-sm-8"><input type="number" step="0.01" name="opening_balance" class="form-control input-sm" value="0"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">GL main account</label><div class="col-sm-8"><select name="gl_account_id" class="form-control input-sm"><option value="0">— auto —</option>
+			<?php foreach ($glOptsCB as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+		</select></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Status</label><div class="col-sm-8"><select name="status" class="form-control input-sm"><option value="active">Active</option><option value="inactive">Inactive</option><option value="closed">Closed</option></select></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Contact name</label><div class="col-sm-8"><input type="text" name="contact_name" class="form-control input-sm"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Contact phone</label><div class="col-sm-8"><input type="text" name="contact_phone" class="form-control input-sm"></div></div>
+		<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Contact email</label><div class="col-sm-8"><input type="email" name="contact_email" class="form-control input-sm"></div></div>
+		<div class="col-sm-12 form-group"><label class="col-sm-2 control-label">Bank address</label><div class="col-sm-10"><input type="text" name="address" class="form-control input-sm" placeholder="Street, city, country"></div></div>
+		<div class="col-sm-12 form-group"><label class="col-sm-2 control-label">Notes</label><div class="col-sm-10"><input type="text" name="notes" class="form-control input-sm"></div></div>
+	</div>
+	<div class="form-group"><div class="col-sm-12"><?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?></div></div>
+	<div class="form-group"><div class="col-sm-12"><button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-plus"></i> Create account</button></div></div>
 </form>
 <form id="epc_erp_form_entry" class="form-inline epc-erp-form-inline" style="margin-top:10px;">
 	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">

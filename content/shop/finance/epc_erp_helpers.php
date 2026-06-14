@@ -792,10 +792,16 @@ function epc_erp_create_cash_account(PDO $db, array $data)
 {
 	epc_erp_ensure_schema($db);
 	$type = ($data['account_type'] ?? 'cash') === 'bank' ? 'bank' : 'cash';
+	$status = trim((string)($data['status'] ?? 'active'));
+	if (!in_array($status, array('active', 'inactive', 'closed'), true)) {
+		$status = 'active';
+	}
 	$stmt = $db->prepare(
 		'INSERT INTO `epc_erp_cash_bank_accounts`
-		(`name`, `account_type`, `bank_name`, `account_number`, `currency_code`, `opening_balance`, `office_id`, `time_created`)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+		(`name`, `account_type`, `bank_name`, `account_number`, `currency_code`, `opening_balance`, `office_id`,
+		 `legal_entity_id`, `business_unit_id`, `gl_account_id`, `iban`, `swift_bic`, `bank_branch`, `routing_code`,
+		 `address`, `contact_name`, `contact_phone`, `contact_email`, `status`, `notes`, `time_created`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 	);
 	$stmt->execute(array(
 		trim((string)$data['name']),
@@ -805,6 +811,19 @@ function epc_erp_create_cash_account(PDO $db, array $data)
 		trim((string)($data['currency_code'] ?? 'AED')),
 		round((float)($data['opening_balance'] ?? 0), 2),
 		(int)($data['office_id'] ?? 0),
+		(int)($data['legal_entity_id'] ?? 0),
+		(int)($data['business_unit_id'] ?? 0),
+		(int)($data['gl_account_id'] ?? 0),
+		trim((string)($data['iban'] ?? '')),
+		trim((string)($data['swift_bic'] ?? '')),
+		trim((string)($data['bank_branch'] ?? '')),
+		trim((string)($data['routing_code'] ?? '')),
+		trim((string)($data['address'] ?? '')),
+		trim((string)($data['contact_name'] ?? '')),
+		trim((string)($data['contact_phone'] ?? '')),
+		trim((string)($data['contact_email'] ?? '')),
+		$status,
+		trim((string)($data['notes'] ?? '')),
 		time(),
 	));
 	return (int)$db->lastInsertId();

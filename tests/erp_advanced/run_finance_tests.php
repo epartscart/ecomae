@@ -184,6 +184,46 @@ check('India profile = GST-IRN', $invIn['profile'] === 'GST-IRN');
 $json = epc_einv_to_json($inv);
 check('serialises to JSON', strlen($json) > 50 && strpos($json, 'INV-2026-001') !== false);
 
+section('Bank account — extended fields (legal entity / business unit + bank details)');
+$baId = epc_erp_create_cash_account($db, array(
+    'name' => 'Operating account ' . $now,
+    'account_type' => 'bank',
+    'bank_name' => 'Emirates NBD',
+    'bank_branch' => 'Deira Main',
+    'account_number' => '0123456789',
+    'iban' => 'AE070331234567890123456',
+    'swift_bic' => 'EBILAEAD',
+    'routing_code' => '302620122',
+    'currency_code' => 'AED',
+    'opening_balance' => 12500.50,
+    'legal_entity_id' => 7,
+    'business_unit_id' => 3,
+    'gl_account_id' => 11,
+    'address' => 'Baniyas Road, Dubai, UAE',
+    'contact_name' => 'Relationship Mgr',
+    'contact_phone' => '+9714000000',
+    'contact_email' => 'rm@bank.example',
+    'status' => 'active',
+    'notes' => 'Primary AED current account',
+));
+check('bank account created', $baId > 0);
+$row = $db->query("SELECT * FROM `epc_erp_cash_bank_accounts` WHERE `id` = " . (int) $baId)->fetch(PDO::FETCH_ASSOC);
+check('legal_entity_id persisted', (int) $row['legal_entity_id'] === 7);
+check('business_unit_id persisted', (int) $row['business_unit_id'] === 3);
+check('gl_account_id persisted', (int) $row['gl_account_id'] === 11);
+check('iban persisted', $row['iban'] === 'AE070331234567890123456');
+check('swift_bic persisted', $row['swift_bic'] === 'EBILAEAD');
+check('bank_branch persisted', $row['bank_branch'] === 'Deira Main');
+check('routing_code persisted', $row['routing_code'] === '302620122');
+check('contact_email persisted', $row['contact_email'] === 'rm@bank.example');
+check('status persisted', $row['status'] === 'active');
+check('opening balance persisted', abs((float) $row['opening_balance'] - 12500.50) < 0.01);
+
+$baId2 = epc_erp_create_cash_account($db, array('name' => 'Petty cash ' . $now, 'account_type' => 'cash', 'status' => 'bogus'));
+$row2 = $db->query("SELECT * FROM `epc_erp_cash_bank_accounts` WHERE `id` = " . (int) $baId2)->fetch(PDO::FETCH_ASSOC);
+check('invalid status falls back to active', $row2['status'] === 'active');
+check('cash account defaults legal/business unit to 0', (int) $row2['legal_entity_id'] === 0 && (int) $row2['business_unit_id'] === 0);
+
 echo "\n========================================\n";
 echo "FINANCE TESTS: {$pass_count} passed, {$fail_count} failed\n";
 echo "========================================\n";
