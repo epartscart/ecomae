@@ -113,6 +113,75 @@ if (!function_exists('epc_hr_ensure_schema')) {
             KEY `x_year` (`fiscal_year`),
             KEY `x_acct` (`account`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Budget lines'");
+
+        // Employee/worker master — extended fields (D365 worker depth: identity,
+        // employment, organisation, personal, contact, address, statutory IDs,
+        // payroll banking). Added lazily so existing installs migrate in place.
+        $hrCols = array(
+            'first_name' => "varchar(80) NOT NULL DEFAULT ''",
+            'last_name' => "varchar(80) NOT NULL DEFAULT ''",
+            'worker_type' => "varchar(24) NOT NULL DEFAULT 'employee'",
+            'employment_type' => "varchar(32) NOT NULL DEFAULT ''",
+            'legal_entity_id' => 'int(11) NOT NULL DEFAULT 0',
+            'business_unit_id' => 'int(11) NOT NULL DEFAULT 0',
+            'position_title' => "varchar(120) NOT NULL DEFAULT ''",
+            'job_title' => "varchar(120) NOT NULL DEFAULT ''",
+            'manager_id' => 'int(11) NOT NULL DEFAULT 0',
+            'termination_date' => 'int(11) NOT NULL DEFAULT 0',
+            'seniority_date' => 'int(11) NOT NULL DEFAULT 0',
+            'gender' => "varchar(12) NOT NULL DEFAULT ''",
+            'date_of_birth' => 'int(11) NOT NULL DEFAULT 0',
+            'marital_status' => "varchar(16) NOT NULL DEFAULT ''",
+            'nationality' => "varchar(64) NOT NULL DEFAULT ''",
+            'personal_email' => "varchar(128) NOT NULL DEFAULT ''",
+            'work_email' => "varchar(128) NOT NULL DEFAULT ''",
+            'work_phone' => "varchar(40) NOT NULL DEFAULT ''",
+            'mobile' => "varchar(40) NOT NULL DEFAULT ''",
+            'address' => "varchar(512) NOT NULL DEFAULT ''",
+            'city' => "varchar(128) NOT NULL DEFAULT ''",
+            'country_code' => "varchar(8) NOT NULL DEFAULT ''",
+            'national_id' => "varchar(64) NOT NULL DEFAULT ''",
+            'passport_no' => "varchar(64) NOT NULL DEFAULT ''",
+            'visa_no' => "varchar(64) NOT NULL DEFAULT ''",
+            'visa_expiry' => 'int(11) NOT NULL DEFAULT 0',
+            'emergency_contact' => "varchar(160) NOT NULL DEFAULT ''",
+            'emergency_phone' => "varchar(40) NOT NULL DEFAULT ''",
+            'bank_name' => "varchar(160) NOT NULL DEFAULT ''",
+            'bank_iban' => "varchar(64) NOT NULL DEFAULT ''",
+            'bank_account_no' => "varchar(64) NOT NULL DEFAULT ''",
+        );
+        $added = false;
+        foreach ($hrCols as $col => $def) {
+            if (!epc_hr_has_column($db, $col)) {
+                try {
+                    $db->exec("ALTER TABLE `epc_hr_employees` ADD COLUMN `$col` $def");
+                    $added = true;
+                } catch (Exception $e) {
+                }
+            }
+        }
+        if ($added) {
+            // Invalidate the column cache so a save in the same request sees the
+            // freshly added columns.
+            $GLOBALS['_epc_hr_cols_cache'] = null;
+        }
+    }
+}
+
+if (!function_exists('epc_hr_has_column')) {
+    /** Whether a column exists on the employee master (cached per request). */
+    function epc_hr_has_column(PDO $db, string $col): bool
+    {
+        if (!isset($GLOBALS['_epc_hr_cols_cache']) || $GLOBALS['_epc_hr_cols_cache'] === null) {
+            $GLOBALS['_epc_hr_cols_cache'] = array();
+            try {
+                foreach ($db->query('SHOW COLUMNS FROM `epc_hr_employees`')->fetchAll(PDO::FETCH_ASSOC) as $c) {
+                    $GLOBALS['_epc_hr_cols_cache'][(string) $c['Field']] = true;
+                }
+            } catch (Exception $e) {
+            }
+        }
+        return isset($GLOBALS['_epc_hr_cols_cache'][$col]);
     }
 }
 
@@ -125,13 +194,58 @@ if (!function_exists('epc_hr_employee_save')) {
     function epc_hr_employee_save(PDO $db, array $data, int $id = 0): int
     {
         epc_hr_ensure_schema($db);
+        // Build the set of extended (D365-depth) columns present in $data that
+        // exist on the table. String, int and date(int-ts) typed.
+        $extStr = array(
+            'first_name', 'last_name', 'worker_type', 'employment_type', 'position_title',
+            'job_title', 'gender', 'marital_status', 'nationality', 'personal_email',
+            'work_email', 'work_phone', 'mobile', 'address', 'city', 'country_code',
+            'national_id', 'passport_no', 'visa_no', 'emergency_contact', 'emergency_phone',
+            'bank_name', 'bank_iban', 'bank_account_no',
+        );
+        $extInt = array('legal_entity_id', 'business_unit_id', 'manager_id');
+        $extDate = array('termination_date', 'seniority_date', 'date_of_birth', 'visa_expiry');
+        $setCols = array();
+        $setVals = array();
+        foreach ($extStr as $col) {
+            if (array_key_exists($col, $data) && epc_hr_has_column($db, $col)) {
+                $setCols[] = $col;
+                $setVals[] = (string) $data[$col];
+            }
+        }
+        foreach ($extInt as $col) {
+            if (array_key_exists($col, $data) && epc_hr_has_column($db, $col)) {
+                $setCols[] = $col;
+                $setVals[] = (int) $data[$col];
+            }
+        }
+        foreach ($extDate as $col) {
+            if (array_key_exists($col, $data) && epc_hr_has_column($db, $col)) {
+                $setCols[] = $col;
+                $v = $data[$col];
+                $setVals[] = is_numeric($v) ? (int) $v : ($v !== '' ? (int) strtotime((string) $v) : 0);
+            }
+        }
         if ($id > 0) {
-            $db->prepare("UPDATE `epc_hr_employees` SET `name`=?, `department`=?, `branch_id`=?, `basic_salary`=?, `allowances`=?, `currency`=?, `annual_leave_days`=?, `status`=? WHERE `id`=?")
-               ->execute(array((string) ($data['name'] ?? ''), (string) ($data['department'] ?? ''), (int) ($data['branch_id'] ?? 0), (float) ($data['basic_salary'] ?? 0), (float) ($data['allowances'] ?? 0), (string) ($data['currency'] ?? 'AED'), (float) ($data['annual_leave_days'] ?? 30), (string) ($data['status'] ?? 'active'), $id));
+            $base = "`name`=?, `department`=?, `branch_id`=?, `basic_salary`=?, `allowances`=?, `currency`=?, `annual_leave_days`=?, `status`=?";
+            $vals = array((string) ($data['name'] ?? ''), (string) ($data['department'] ?? ''), (int) ($data['branch_id'] ?? 0), (float) ($data['basic_salary'] ?? 0), (float) ($data['allowances'] ?? 0), (string) ($data['currency'] ?? 'AED'), (float) ($data['annual_leave_days'] ?? 30), (string) ($data['status'] ?? 'active'));
+            foreach ($setCols as $i => $col) {
+                $base .= ", `$col`=?";
+                $vals[] = $setVals[$i];
+            }
+            $vals[] = $id;
+            $db->prepare("UPDATE `epc_hr_employees` SET $base WHERE `id`=?")->execute($vals);
             return $id;
         }
-        $db->prepare("INSERT INTO `epc_hr_employees` (`code`,`name`,`department`,`branch_id`,`join_date`,`basic_salary`,`allowances`,`currency`,`annual_leave_days`,`status`,`time_created`) VALUES (?,?,?,?,?,?,?,?,?, 'active', ?)")
-           ->execute(array((string) $data['code'], (string) ($data['name'] ?? ''), (string) ($data['department'] ?? ''), (int) ($data['branch_id'] ?? 0), (int) ($data['join_date'] ?? time()), (float) ($data['basic_salary'] ?? 0), (float) ($data['allowances'] ?? 0), (string) ($data['currency'] ?? 'AED'), (float) ($data['annual_leave_days'] ?? 30), time()));
+        $cols = array('code', 'name', 'department', 'branch_id', 'join_date', 'basic_salary', 'allowances', 'currency', 'annual_leave_days', 'status', 'time_created');
+        $vals = array((string) $data['code'], (string) ($data['name'] ?? ''), (string) ($data['department'] ?? ''), (int) ($data['branch_id'] ?? 0), (int) ($data['join_date'] ?? time()), (float) ($data['basic_salary'] ?? 0), (float) ($data['allowances'] ?? 0), (string) ($data['currency'] ?? 'AED'), (float) ($data['annual_leave_days'] ?? 30), 'active', time());
+        foreach ($setCols as $i => $col) {
+            $cols[] = $col;
+            $vals[] = $setVals[$i];
+        }
+        $ph = implode(',', array_fill(0, count($cols), '?'));
+        $colList = '`' . implode('`,`', $cols) . '`';
+        $db->prepare("INSERT INTO `epc_hr_employees` ($colList) VALUES ($ph)")->execute($vals);
         return (int) $db->lastInsertId();
     }
 }

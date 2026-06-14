@@ -49,6 +49,60 @@ $e1 = epc_hr_employee_save($db, array('code' => 'E001', 'name' => 'Ahmed', 'depa
 $e2 = epc_hr_employee_save($db, array('code' => 'E002', 'name' => 'Bilal', 'department' => 'Warehouse', 'branch_id' => 1, 'basic_salary' => 4000, 'allowances' => 1000, 'annual_leave_days' => 30));
 check('two employees created', $e1 > 0 && $e2 > 0);
 
+section('Employee master — extended field depth');
+foreach (array(
+    'first_name', 'last_name', 'worker_type', 'employment_type', 'legal_entity_id',
+    'business_unit_id', 'position_title', 'job_title', 'manager_id', 'termination_date',
+    'seniority_date', 'gender', 'date_of_birth', 'marital_status', 'nationality',
+    'personal_email', 'work_email', 'work_phone', 'mobile', 'address', 'city',
+    'country_code', 'national_id', 'passport_no', 'visa_no', 'visa_expiry',
+    'emergency_contact', 'emergency_phone', 'bank_name', 'bank_iban', 'bank_account_no',
+) as $col) {
+    check("employee column $col present", epc_hr_has_column($db, $col));
+}
+$eFull = epc_hr_employee_save($db, array(
+    'code' => 'E100', 'name' => 'Sara Khan', 'department' => 'Finance',
+    'basic_salary' => 9000, 'allowances' => 3000,
+    'first_name' => 'Sara', 'last_name' => 'Khan', 'worker_type' => 'employee',
+    'employment_type' => 'full_time', 'legal_entity_id' => 3, 'business_unit_id' => 2,
+    'position_title' => 'Senior Accountant', 'job_title' => 'Accountant', 'manager_id' => $e1,
+    'seniority_date' => '2020-06-01', 'date_of_birth' => '1990-03-15', 'gender' => 'female',
+    'marital_status' => 'married', 'nationality' => 'Pakistani',
+    'personal_email' => 'sara@example.com', 'work_email' => 'sara@corp.example',
+    'work_phone' => '04-1234567', 'mobile' => '050-9876543', 'address' => '12 Marina St',
+    'city' => 'Dubai', 'country_code' => 'AE', 'national_id' => '784-1990-1234567-1',
+    'passport_no' => 'AB1234567', 'visa_no' => 'V-555', 'visa_expiry' => '2027-12-31',
+    'emergency_contact' => 'Imran Khan', 'emergency_phone' => '055-1112223',
+    'bank_name' => 'Emirates NBD', 'bank_iban' => 'AE070331234567890123456', 'bank_account_no' => '1234567890',
+));
+check('full employee created', $eFull > 0);
+$ef = $db->query("SELECT * FROM epc_hr_employees WHERE id=$eFull")->fetch(PDO::FETCH_ASSOC);
+check('first_name persisted', $ef['first_name'] === 'Sara');
+check('last_name persisted', $ef['last_name'] === 'Khan');
+check('employment_type persisted', $ef['employment_type'] === 'full_time');
+check('legal_entity_id persisted', (int) $ef['legal_entity_id'] === 3);
+check('business_unit_id persisted', (int) $ef['business_unit_id'] === 2);
+check('position_title persisted', $ef['position_title'] === 'Senior Accountant');
+check('manager_id persisted', (int) $ef['manager_id'] === $e1);
+check('seniority_date persisted as ts', (int) $ef['seniority_date'] === (int) strtotime('2020-06-01'));
+check('date_of_birth persisted as ts', (int) $ef['date_of_birth'] === (int) strtotime('1990-03-15'));
+check('gender persisted', $ef['gender'] === 'female');
+check('nationality persisted', $ef['nationality'] === 'Pakistani');
+check('work_email persisted', $ef['work_email'] === 'sara@corp.example');
+check('mobile persisted', $ef['mobile'] === '050-9876543');
+check('national_id persisted', $ef['national_id'] === '784-1990-1234567-1');
+check('passport_no persisted', $ef['passport_no'] === 'AB1234567');
+check('visa_expiry persisted as ts', (int) $ef['visa_expiry'] === (int) strtotime('2027-12-31'));
+check('bank_iban persisted', $ef['bank_iban'] === 'AE070331234567890123456');
+// Update preserves extended fields and changes supplied ones.
+epc_hr_employee_save($db, array('name' => 'Sara Khan', 'department' => 'Finance', 'job_title' => 'Finance Lead', 'city' => 'Abu Dhabi'), $eFull);
+$ef2 = $db->query("SELECT * FROM epc_hr_employees WHERE id=$eFull")->fetch(PDO::FETCH_ASSOC);
+check('update changed job_title', $ef2['job_title'] === 'Finance Lead');
+check('update changed city', $ef2['city'] === 'Abu Dhabi');
+// Remove the master-test employee so it doesn't affect the active-employee
+// payroll assertions below (which expect exactly the two seed employees).
+$db->exec("DELETE FROM epc_hr_employees WHERE id=$eFull");
+
 section('Leave request, approve, balance');
 $lv = epc_hr_leave_request($db, $e1, 'annual', 5, 100, 105);
 epc_hr_leave_set_status($db, $lv, 'approved');

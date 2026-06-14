@@ -58,6 +58,76 @@ foreach ($hrEmps as $e) {
 					<div class="col-xs-6 form-group"><label>Annual leave (d)</label><input type="number" step="0.5" name="annual_leave_days" class="form-control input-sm" value="30"></div>
 					<div class="col-xs-6 form-group"><label>Join date</label><input type="date" name="join_date_str" class="form-control input-sm" value="<?php echo date('Y-m-d'); ?>"></div>
 				</div>
+				<a href="#" onclick="var d=document.getElementById('epc_hr_more');d.style.display=(d.style.display==='none'?'block':'none');return false;" style="font-size:12px;"><i class="fa fa-plus-square-o"></i> More details (worker, personal, contact, IDs, banking)</a>
+				<div id="epc_hr_more" style="display:none;margin-top:8px;">
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>First name</label><input type="text" name="first_name" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Last name</label><input type="text" name="last_name" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Worker type</label>
+							<select name="worker_type" class="form-control input-sm"><option value="employee">Employee</option><option value="contractor">Contractor</option></select>
+						</div>
+						<div class="col-xs-6 form-group"><label>Employment type</label>
+							<select name="employment_type" class="form-control input-sm"><option value="">—</option><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="temporary">Temporary</option><option value="intern">Intern</option></select>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Position title</label><input type="text" name="position_title" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Job title</label><input type="text" name="job_title" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Manager (employee ID)</label><input type="number" name="manager_id" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Legal entity ID</label><input type="number" name="legal_entity_id" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Business unit ID</label><input type="number" name="business_unit_id" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Seniority date</label><input type="date" name="seniority_date" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Termination date</label><input type="date" name="termination_date" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Date of birth</label><input type="date" name="date_of_birth" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Gender</label>
+							<select name="gender" class="form-control input-sm"><option value="">—</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
+						</div>
+						<div class="col-xs-6 form-group"><label>Marital status</label>
+							<select name="marital_status" class="form-control input-sm"><option value="">—</option><option value="single">Single</option><option value="married">Married</option><option value="divorced">Divorced</option><option value="widowed">Widowed</option></select>
+						</div>
+					</div>
+					<div class="form-group"><label>Nationality</label><input type="text" name="nationality" class="form-control input-sm"></div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Personal email</label><input type="email" name="personal_email" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Work email</label><input type="email" name="work_email" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Work phone</label><input type="text" name="work_phone" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Mobile</label><input type="text" name="mobile" class="form-control input-sm"></div>
+					</div>
+					<div class="form-group"><label>Address</label><input type="text" name="address" class="form-control input-sm"></div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>City</label><input type="text" name="city" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Country code</label><input type="text" name="country_code" class="form-control input-sm" placeholder="AE"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>National ID</label><input type="text" name="national_id" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Passport no.</label><input type="text" name="passport_no" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Visa no.</label><input type="text" name="visa_no" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Visa expiry</label><input type="date" name="visa_expiry" class="form-control input-sm"></div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Emergency contact</label><input type="text" name="emergency_contact" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Emergency phone</label><input type="text" name="emergency_phone" class="form-control input-sm"></div>
+					</div>
+					<div class="form-group"><label>Bank name</label><input type="text" name="bank_name" class="form-control input-sm"></div>
+					<div class="row">
+						<div class="col-xs-6 form-group"><label>Bank IBAN</label><input type="text" name="bank_iban" class="form-control input-sm"></div>
+						<div class="col-xs-6 form-group"><label>Bank account no.</label><input type="text" name="bank_account_no" class="form-control input-sm"></div>
+					</div>
+				</div>
 				<button type="submit" class="btn btn-primary btn-sm">Save employee</button>
 			</form>
 		</div>
