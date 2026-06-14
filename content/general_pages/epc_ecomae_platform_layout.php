@@ -127,6 +127,11 @@ function epc_ecomae_platform_page_description($page, array $params = array()): s
 			return (string) $industries[$code]['tagline'];
 		}
 	}
+	if ($page === 'free_tools') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		$seo = epc_free_tools_seo((string) ($params['tool'] ?? ''));
+		return $seo['description'];
+	}
 	return $descriptions[$page] ?? 'ECOM AE cloud platform for e-commerce, ERP, and CRM in UAE.';
 }
 

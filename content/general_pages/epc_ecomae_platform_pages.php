@@ -78,6 +78,12 @@ function epc_ecomae_platform_render_page($page, array $params = array(), $mode =
 		$canonicalPath = '/' . $seg . ($slug !== '' ? '/' . $slug : '');
 	} elseif ($page === 'platform') {
 		$canonicalPath = '/platform';
+	} elseif ($page === 'free_tools') {
+		$canonicalPath = '/platform/free-tools';
+		$tool = isset($params['tool']) ? preg_replace('/[^a-z]/', '', (string) $params['tool']) : '';
+		if ($tool !== '') {
+			$canonicalPath .= '/' . $tool;
+		}
 	} elseif ($page !== '' && $page !== 'home') {
 		$canonicalPath = '/platform/' . str_replace('_', '-', $page);
 		if ($page === 'industry' && !empty($params['slug'])) {

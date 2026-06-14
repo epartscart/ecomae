@@ -234,6 +234,85 @@ check('generic currency USD', $xx['currency'] === 'USD');
 $bad = epc_free_tools_compute('nope', 'AE', array());
 check('unknown tool returns not ok', empty($bad['ok']));
 
+section('Auth — email + password (validation, DB-independent)');
+check('register fn exists', function_exists('epc_free_tools_register'));
+check('login fn exists', function_exists('epc_free_tools_login'));
+$rBadEmail = epc_free_tools_register('not-an-email', 'Acme', 'AE', 'secret1');
+check('register rejects invalid email', empty($rBadEmail['ok']) && strpos($rBadEmail['message'], 'valid email') !== false);
+$rShortPw = epc_free_tools_register('user@acme.com', 'Acme', 'AE', '123');
+check('register rejects short password', empty($rShortPw['ok']) && strpos($rShortPw['message'], '6 characters') !== false);
+$lNoEmail = epc_free_tools_login('', 'whatever');
+check('login rejects empty/invalid email', empty($lNoEmail['ok']) && strpos($lNoEmail['message'], 'valid email') !== false);
+$lNoPw = epc_free_tools_login('user@acme.com', '');
+check('login requires a password', empty($lNoPw['ok']) && strpos($lNoPw['message'], 'password') !== false);
+
+section('Password reset — code flow (validation, DB-independent)');
+check('request_reset fn exists', function_exists('epc_free_tools_request_reset'));
+check('confirm_reset fn exists', function_exists('epc_free_tools_confirm_reset'));
+$rsBad = epc_free_tools_request_reset('nope');
+check('request_reset rejects invalid email', empty($rsBad['ok']));
+$crShort = epc_free_tools_confirm_reset('user@acme.com', '123456', 'abc');
+check('confirm_reset rejects short new password', empty($crShort['ok']) && strpos($crShort['message'], '6 characters') !== false);
+
+section('Secure delete — cross-code required (DB-independent)');
+check('request_delete fn exists', function_exists('epc_free_tools_request_delete'));
+check('confirm_delete fn exists', function_exists('epc_free_tools_confirm_delete'));
+$dReq = epc_free_tools_request_delete('');
+check('delete request needs a session token', empty($dReq['ok']) && strpos($dReq['message'], 'sign in') !== false);
+$dConf = epc_free_tools_confirm_delete('', '000000');
+check('delete confirm needs a session token', empty($dConf['ok']) && strpos($dConf['message'], 'sign in') !== false);
+
+section('Tool activation control');
+check('is_active fn exists', function_exists('epc_free_tools_is_active'));
+check('set_active fn exists', function_exists('epc_free_tools_set_active'));
+check('disabled_map fn exists', function_exists('epc_free_tools_disabled_map'));
+check('default disabled map empty (no DB) → tools active', epc_free_tools_is_active('vat') === true);
+check('disabled_map returns array', is_array(epc_free_tools_disabled_map()));
+
+section('Usage stats (BOS dashboard)');
+check('usage_stats fn exists', function_exists('epc_free_tools_usage_stats'));
+$us = epc_free_tools_usage_stats();
+check('usage_stats returns array', is_array($us));
+check('usage_stats not ok without DB', empty($us['ok']));
+check('touch_account fn exists', function_exists('epc_free_tools_touch_account'));
+
+section('SEO — titles, descriptions, structured data');
+check('seo fn exists', function_exists('epc_free_tools_seo'));
+$seoHub = epc_free_tools_seo('');
+check('hub SEO has title + description + faq', $seoHub['title'] !== '' && $seoHub['description'] !== '' && !empty($seoHub['faq']));
+$seoVat = epc_free_tools_seo('vat');
+check('vat SEO title is unique vs hub', $seoVat['title'] !== $seoHub['title']);
+check('vat SEO title keyword-rich', stripos($seoVat['title'], 'VAT') !== false && stripos($seoVat['title'], 'free') !== false);
+$titlesSeen = array();
+$dupTitle = false;
+foreach (array_keys($cat) as $tk) {
+	$t = epc_free_tools_seo($tk)['title'];
+	if (isset($titlesSeen[$t])) { $dupTitle = true; }
+	$titlesSeen[$t] = true;
+}
+check('every tool has a unique SEO title', !$dupTitle && count($titlesSeen) === count($cat));
+$ld = epc_free_tools_jsonld('https://www.ecomae.com', 'vat');
+$ldJson = preg_replace('#</?script[^>]*>#', '', $ld);
+$ldArr = json_decode($ldJson, true);
+check('tool JSON-LD is valid JSON', json_last_error() === JSON_ERROR_NONE && isset($ldArr['@graph']));
+$types = array();
+foreach ($ldArr['@graph'] as $g) { $types[] = $g['@type']; }
+check('tool JSON-LD has SoftwareApplication + Breadcrumb + FAQ', in_array('SoftwareApplication', $types, true) && in_array('BreadcrumbList', $types, true) && in_array('FAQPage', $types, true));
+$hubLd = json_decode(preg_replace('#</?script[^>]*>#', '', epc_free_tools_jsonld('https://www.ecomae.com', '')), true);
+$hubHasList = false; $listN = 0;
+foreach ($hubLd['@graph'] as $g) { if ($g['@type'] === 'ItemList') { $hubHasList = true; $listN = count($g['itemListElement']); } }
+check('hub JSON-LD ItemList lists all 14 tools', $hubHasList && $listN === 14);
+$faqHtml = epc_free_tools_faq_html('vat');
+check('FAQ HTML renders details/summary', strpos($faqHtml, '<details') !== false && strpos($faqHtml, '<summary') !== false);
+check('FAQ HTML escapes / no PHP error', strpos($faqHtml, '<?php') === false);
+
+section('Branded transactional email helpers');
+check('send_mail fn exists', function_exists('epc_free_tools_send_mail'));
+check('mail_shell fn exists', function_exists('epc_free_tools_mail_shell'));
+$shell = epc_free_tools_mail_shell('Hi', '<p>Body</p>');
+check('mail shell wraps body', strpos($shell, 'Body') !== false);
+check('mail shell escapes / no PHP error', strpos($shell, '<?php') === false);
+
 echo "\n========================================\n";
 echo "FREE TOOLS TESTS: {$pass_count} passed, {$fail_count} failed\n";
 echo "========================================\n";

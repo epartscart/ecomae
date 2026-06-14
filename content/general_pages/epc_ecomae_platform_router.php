@@ -105,12 +105,6 @@ function epc_ecomae_marketing_serve_seo_file()
 			array('/platform', '0.9', 'weekly'),
 			array('/platform/capabilities', '0.8', 'weekly'),
 			array('/platform/free-tools', '0.9', 'weekly'),
-			array('/platform/free-tools/vat', '0.7', 'monthly'),
-			array('/platform/free-tools/ct', '0.7', 'monthly'),
-			array('/platform/free-tools/payroll', '0.7', 'monthly'),
-			array('/platform/free-tools/ifrs', '0.7', 'monthly'),
-			array('/platform/free-tools/einvoice', '0.7', 'monthly'),
-			array('/platform/free-tools/workflow', '0.7', 'monthly'),
 			array('/platform/industries', '0.8', 'weekly'),
 			array('/platform/pricing', '0.8', 'weekly'),
 			array('/platform/demo', '0.8', 'weekly'),
@@ -128,6 +122,8 @@ function epc_ecomae_marketing_serve_seo_file()
 			array('/bos', '0.7', 'weekly'),
 			array('/solutions', '0.7', 'weekly'),
 		);
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		foreach (array_keys(epc_free_tools_catalog()) as $tk) { $urls[] = array('/platform/free-tools/' . $tk, '0.8', 'monthly'); }
 		foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $urls[] = array('/documentation/' . $s, '0.6', 'monthly'); }
 		foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $urls[] = array('/compare/' . $s, '0.6', 'monthly'); }
 		foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $urls[] = array('/bos/' . $s, '0.6', 'monthly'); }
@@ -401,6 +397,11 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		if (isset($industries[$code])) {
 			$title = $industries[$code]['name'] . ' — ecomae';
 		}
+	}
+	if ($page === 'free_tools') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		$seo = epc_free_tools_seo((string) ($params['tool'] ?? ''));
+		$title = $seo['title'];
 	}
 	return $title;
 }

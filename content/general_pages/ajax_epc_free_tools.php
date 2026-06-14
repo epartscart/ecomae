@@ -39,7 +39,38 @@ switch ($action) {
 		epc_free_tools_out(epc_free_tools_register(
 			(string) ($body['email'] ?? ''),
 			(string) ($body['company'] ?? ''),
-			(string) ($body['country'] ?? '')
+			(string) ($body['country'] ?? ''),
+			(string) ($body['password'] ?? '')
+		));
+		break;
+
+	case 'login':
+		epc_free_tools_out(epc_free_tools_login(
+			(string) ($body['email'] ?? ''),
+			(string) ($body['password'] ?? '')
+		));
+		break;
+
+	case 'request_reset':
+		epc_free_tools_out(epc_free_tools_request_reset((string) ($body['email'] ?? '')));
+		break;
+
+	case 'confirm_reset':
+		epc_free_tools_out(epc_free_tools_confirm_reset(
+			(string) ($body['email'] ?? ''),
+			(string) ($body['code'] ?? ''),
+			(string) ($body['password'] ?? '')
+		));
+		break;
+
+	case 'request_delete':
+		epc_free_tools_out(epc_free_tools_request_delete((string) ($body['token'] ?? '')));
+		break;
+
+	case 'confirm_delete':
+		epc_free_tools_out(epc_free_tools_confirm_delete(
+			(string) ($body['token'] ?? ''),
+			(string) ($body['code'] ?? '')
 		));
 		break;
 
@@ -59,8 +90,12 @@ switch ($action) {
 			epc_free_tools_out(array('ok' => false, 'message' => 'Please register first.'));
 		}
 		$tool = preg_replace('/[^a-z]/', '', (string) ($body['tool'] ?? ''));
+		if (!epc_free_tools_is_active($tool)) {
+			epc_free_tools_out(array('ok' => false, 'message' => 'This tool is temporarily unavailable. Please check back soon.'));
+		}
 		$country = (string) ($body['country'] ?? $acc['country'] ?? 'XX');
 		$inputs = isset($body['inputs']) && is_array($body['inputs']) ? $body['inputs'] : array();
+		epc_free_tools_touch_account((int) $acc['id']);
 		epc_free_tools_out(epc_free_tools_compute($tool, $country, $inputs));
 		break;
 

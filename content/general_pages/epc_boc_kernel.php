@@ -134,6 +134,7 @@ if (!function_exists('epc_boc_areas')) {
             'info_blocks'       => $a('Info blocks (CMS)', 'growth', 'fa-newspaper-o', 'control/portal/epc_super_cp_info_blocks', 'docs', 'boc.growth.manage', $ALL, 'Storefront & CP blocks'),
             'visual_editor'     => $a('Visual editor', 'growth', 'fa-magic', 'control/portal/epc_visual_page_editor', 'platform', 'boc.growth.manage', $ALL, 'Block layout & preview'),
             'mobile_apps'       => $a('Mobile apps', 'growth', 'fa-mobile', 'control/portal/epc_mobile_apps', 'platform', 'boc.growth.manage', array('commerce'), 'Android/iOS/PWA'),
+            'free_tools'        => $a('Free Tools', 'growth', 'fa-magic', 'control/portal/epc_free_tools_admin', 'platform', 'boc.growth.manage', $ALL, 'Usage + activate/deactivate tools'),
 
             'tax_toolkit'       => $a('Tax Toolkit', 'finance', 'fa-balance-scale', 'control/portal/epc_tax_toolkit_manage', 'finance', 'boc.finance.manage', $ALL, 'Country-driven VAT/GST kits'),
             'erp_finance'       => $a('ERP & finance', 'finance', 'fa-university', 'shop/finance/erp?epc_erp_shell=1', 'finance', 'boc.finance.view', array('erp_only', 'commerce'), 'Platform ERP'),

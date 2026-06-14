@@ -188,6 +188,236 @@ if (!function_exists('epc_free_tools_catalog')) {
 	}
 }
 
+if (!function_exists('epc_free_tools_seo')) {
+	/**
+	 * SEO metadata per tool (and the hub when $tool is ''). Keyword-rich,
+	 * worldwide-intent titles + meta descriptions + an FAQ used both on-page
+	 * and as FAQPage structured data.
+	 *
+	 * @return array{title:string,description:string,keywords:string,h1:string,intro:string,faq:array<int,array{q:string,a:string}>}
+	 */
+	function epc_free_tools_seo(string $tool = ''): array
+	{
+		$brand = ' | ECOM AE';
+		$map = array(
+			'vat' => array(
+				'title' => 'Free VAT / GST Return Calculator (Worldwide, Country-Driven)',
+				'description' => 'Free online VAT/GST return calculator. Work out output tax, recoverable input tax and net VAT payable or refundable at your own country rate (UAE 5%, Saudi 15%, UK 20% and more). Upload a CSV for an instant compliance check. Register free.',
+				'keywords' => 'free VAT calculator, GST return calculator, UAE VAT 201, Saudi VAT, VAT return online, input tax output tax, VAT compliance check',
+				'intro' => 'Prepare a filing-ready VAT or GST return for any period — free. Enter your standard, zero-rated and exempt sales plus recoverable purchases, or upload a ledger CSV, and get net VAT payable or refundable at your registered country\'s rate, with a compliance check that flags missing TRN, rate mismatches and negative lines.',
+			),
+			'ct' => array(
+				'title' => 'Free Corporate Tax Calculator (Country-Driven, Worldwide)',
+				'description' => 'Free corporate income tax calculator. Estimate taxable profit and tax due using your country rate and small-business relief band (e.g. UAE 0% on first AED 375,000 then 9%). Upload a P&L/trial-balance CSV. Register free and save your results.',
+				'keywords' => 'free corporate tax calculator, UAE corporate tax 9%, small business relief, taxable profit, company tax estimate, corporate income tax',
+				'intro' => 'Estimate corporate income tax for a year — free. Enter revenue, deductible expenses and adjustments, or upload a P&L/trial-balance CSV, and get taxable profit and tax after your country\'s small-business relief band.',
+			),
+			'payroll' => array(
+				'title' => 'Free Payroll & End-of-Service Gratuity Calculator (Worldwide)',
+				'description' => 'Free payroll and end-of-service gratuity calculator driven by your country\'s labour law (UAE gratuity, Saudi end-of-service and more). Compute net pay, gratuity and statutory entitlements. Register free.',
+				'keywords' => 'free payroll calculator, end of service gratuity calculator, UAE gratuity, Saudi end of service, net salary calculator, WPS',
+				'intro' => 'Compute net pay and end-of-service gratuity — free — using the labour law of the country you register with, including statutory leave, notice and gratuity accrual.',
+			),
+			'ifrs' => array(
+				'title' => 'Free IFRS Financial Statements Generator (Trial Balance to Accounts)',
+				'description' => 'Free IFRS financial statements tool. Turn a trial balance into an IFRS-style Income Statement and Balance Sheet with a built-in balance check. Upload your trial-balance CSV. Register free and save.',
+				'keywords' => 'free IFRS financial statements, trial balance to balance sheet, income statement generator, IFRS reporting, financial statements online',
+				'intro' => 'Turn a trial balance into an IFRS-style Income Statement and Balance Sheet — free. Upload a trial-balance CSV (account, debit, credit) and get a structured set of accounts with a completeness and balance check.',
+			),
+			'einvoice' => array(
+				'title' => 'Free E-Invoice Generator — FTA, ZATCA & Peppol (Country-Driven)',
+				'description' => 'Free electronic invoice generator that auto-picks your country e-invoicing scheme — UAE FTA / PINT-AE, Saudi ZATCA / FATOORA, EU Peppol and more. Create a compliant e-invoice for your company. Register free.',
+				'keywords' => 'free e-invoice generator, ZATCA invoice, FATOORA, UAE FTA e-invoice, Peppol PINT, electronic invoicing, tax invoice generator',
+				'intro' => 'Create a compliant electronic invoice — free. The tool automatically applies your registered country\'s e-invoicing scheme (UAE FTA/PINT-AE, Saudi ZATCA/FATOORA, EU Peppol) with the right fields and tax treatment.',
+			),
+			'extreport' => array(
+				'title' => 'Free External Reporting — VAT 201 & Corporate Tax Returns (Worldwide)',
+				'description' => 'Free external reporting tool that formats your VAT return (e.g. UAE VAT 201) and corporate tax return to your country\'s scheme. Upload a CSV and download a filing-ready report. Register free.',
+				'keywords' => 'free VAT 201, external reporting, corporate tax return, statutory reporting, country tax return generator',
+				'intro' => 'Produce filing-ready statutory returns — free. The tool formats your VAT return (such as the UAE VAT 201) and corporate tax return to the scheme of the country you register with.',
+			),
+			'customs' => array(
+				'title' => 'Free Customs Duty & Landed Cost Calculator (HS Code, Worldwide)',
+				'description' => 'Free customs duty and landed cost calculator. Compute CIF, HS-code duty, import VAT and landed cost per line from an invoice CSV, with a compliance check for unknown HS codes and zero-value lines. Register free.',
+				'keywords' => 'free landed cost calculator, customs duty calculator, HS code duty, import VAT, CIF value, customs clearance estimate',
+				'intro' => 'Work out import duty and landed cost — free. Enter or upload an invoice/line CSV (HS code, quantity, value, freight, insurance) and get CIF, HS-driven duty, import VAT and landed cost per line.',
+			),
+			'insurance' => array(
+				'title' => 'Free Business Insurance Premium & Renewal Tool (Worldwide)',
+				'description' => 'Free insurance tool to estimate cover and premium and track policy renewals/expiry for your company, localized to your country. Register free and save your policies.',
+				'keywords' => 'free insurance calculator, business insurance premium, policy renewal tracker, sum insured, insurance expiry',
+				'intro' => 'Estimate cover and premium and keep on top of renewals — free — for the country you register with.',
+			),
+			'docexpiry' => array(
+				'title' => 'Free Document Expiry Tracker with Reminders (Worldwide)',
+				'description' => 'Free document expiry tracker for licences, visas, trade permits and contracts, with country-driven reminder lead times. Upload a CSV and never miss a renewal. Register free.',
+				'keywords' => 'free document expiry tracker, licence renewal reminder, visa expiry, trade licence, compliance calendar',
+				'intro' => 'Track every licence, visa, permit and contract expiry — free — with reminder lead days driven by your registered country.',
+			),
+			'valuation' => array(
+				'title' => 'Free Business Valuation Calculator — DCF & Multiples (Worldwide)',
+				'description' => 'Free business valuation calculator. Value your company by DCF, EBITDA multiple and revenue multiple with an equity-value bridge, in your country currency. Upload a P&L CSV. Register free.',
+				'keywords' => 'free business valuation, company valuation calculator, DCF, EBITDA multiple, revenue multiple, equity value',
+				'intro' => 'Value a business — free — by DCF, EBITDA multiple and revenue multiple, with an EV-to-equity bridge in your country\'s currency.',
+			),
+			'finmodel' => array(
+				'title' => 'Free Financial Model & 5-Year Projection Tool (Worldwide)',
+				'description' => 'Free financial modelling tool. Build a 3–5 year P&L projection (revenue, gross profit, EBITDA, net profit) plus a cash snapshot, downloadable as CSV, in your country currency. Register free.',
+				'keywords' => 'free financial model, 5 year projection, P&L forecast, EBITDA projection, startup financial model, cash flow forecast',
+				'intro' => 'Build a multi-year financial projection — free. Enter base revenue, growth, margin and horizon and get a 3–5 year P&L plus cash snapshot you can download.',
+			),
+			'taxkit' => array(
+				'title' => 'Free Worldwide Tax Kit — VAT, Corporate Tax & E-Invoice by Country',
+				'description' => 'Free worldwide tax snapshot for your country: VAT/GST rate, corporate tax rate and relief threshold, e-invoice scheme, filing authority, return names and fiscal year. Compare countries. Register free.',
+				'keywords' => 'worldwide tax kit, country tax rates, VAT rate by country, corporate tax rate, e-invoice scheme, tax authority',
+				'intro' => 'Get a one-screen tax snapshot — free — for the country you register with: VAT/GST and corporate tax rates, relief thresholds, e-invoice scheme, filing authority and fiscal year.',
+			),
+			'hrcompliance' => array(
+				'title' => 'Free HR Compliance Tool — Labour Law by Country (Worldwide)',
+				'description' => 'Free HR compliance tool driven by your country labour law: gratuity/end-of-service, statutory leave, notice, probation, WPS/social-security flags and the official authority link. Register free.',
+				'keywords' => 'free HR compliance, labour law by country, statutory leave, end of service, WPS, probation notice period, MOHRE HRSD',
+				'intro' => 'Check labour-law compliance — free — for the country you register with: end-of-service, statutory leave, notice, probation and WPS/social-security flags, with the official authority link.',
+			),
+			'workflow' => array(
+				'title' => 'Free Approval Workflow Builder — Spend Thresholds (Worldwide)',
+				'description' => 'Free approval workflow builder. Design a spend-approval matrix with thresholds and approver tiers in your country currency, ready to adopt. Register free.',
+				'keywords' => 'free approval workflow, spend approval matrix, purchase requisition approval, approver tiers, procurement workflow',
+				'intro' => 'Design a spend-approval workflow — free — with thresholds and approver tiers in your country\'s currency that you can adopt today.',
+			),
+		);
+		$faqCommon = array(
+			array('q' => 'Are these tools really free?', 'a' => 'Yes. Register once with your email and password and use every tool free for your own company — no card required.'),
+			array('q' => 'Do the tools work for my country?', 'a' => 'Yes. Every tool is worldwide and auto-localises to the country you register with — currency, tax rate, e-invoice scheme and labour law — with a safe generic fallback for any country.'),
+			array('q' => 'Do I need to register for each tool?', 'a' => 'No. One email is one account, and that single free account unlocks all the tools. You cannot register the same email twice — we simply sign you back in.'),
+			array('q' => 'Is my data safe?', 'a' => 'Yes. Your saved results are tied to your account and your data cannot be deleted without an email confirmation cross-code sent to you first.'),
+		);
+		if ($tool === '' || !isset($map[$tool])) {
+			$names = array();
+			foreach (epc_free_tools_catalog() as $m) { $names[] = $m['name']; }
+			return array(
+				'title' => 'Free Business Tools — VAT, Corporate Tax, IFRS, Payroll & E-Invoice Calculators' . $brand,
+				'description' => 'Free worldwide business tools that work to your registered country\'s rules: VAT/GST and corporate tax calculators, IFRS financial statements, payroll & gratuity, e-invoicing (FTA, ZATCA, Peppol), customs & landed cost, business valuation, financial models, HR compliance and more. Register free.',
+				'keywords' => 'free business tools, free VAT calculator, free corporate tax calculator, free IFRS financials, free payroll calculator, free e-invoice generator, worldwide tax tools',
+				'h1' => 'Free business tools for your company',
+				'intro' => 'A suite of free, worldwide business tools that automatically work to the rules of the country you register with.',
+				'faq' => array_merge(array(
+					array('q' => 'What tools are included?', 'a' => 'You get ' . count($names) . ' tools, including ' . implode(', ', array_slice($names, 0, 6)) . ' and more.'),
+				), $faqCommon),
+			);
+		}
+		$m = $map[$tool];
+		$cat = epc_free_tools_catalog();
+		$h1 = isset($cat[$tool]['name']) ? $cat[$tool]['name'] : $m['title'];
+		return array(
+			'title' => $m['title'] . $brand,
+			'description' => $m['description'],
+			'keywords' => $m['keywords'],
+			'h1' => $h1,
+			'intro' => $m['intro'],
+			'faq' => $faqCommon,
+		);
+	}
+}
+
+if (!function_exists('epc_free_tools_jsonld')) {
+	/** Page-specific JSON-LD (ItemList/SoftwareApplication + FAQ + Breadcrumb) for the hub or a tool. */
+	function epc_free_tools_jsonld(string $base, string $tool = ''): string
+	{
+		$base = rtrim($base, '/');
+		$site = rtrim(epc_free_tools_site_base($base), '/');
+		$seo = epc_free_tools_seo($tool);
+		$graph = array();
+		$crumbs = array(
+			array('@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $site . '/'),
+			array('@type' => 'ListItem', 'position' => 2, 'name' => 'Free Tools', 'item' => $site . '/platform/free-tools'),
+		);
+		if ($tool === '') {
+			$items = array();
+			$i = 0;
+			foreach (epc_free_tools_catalog() as $k => $meta) {
+				$i++;
+				$items[] = array(
+					'@type' => 'ListItem',
+					'position' => $i,
+					'name' => $meta['name'],
+					'description' => $meta['blurb'],
+					'url' => $site . '/platform/free-tools/' . $k,
+				);
+			}
+			$graph[] = array(
+				'@type' => 'WebApplication',
+				'name' => 'ECOM AE Free Business Tools',
+				'url' => $site . '/platform/free-tools',
+				'applicationCategory' => 'BusinessApplication',
+				'operatingSystem' => 'Web',
+				'description' => $seo['description'],
+				'offers' => array('@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'),
+			);
+			$graph[] = array('@type' => 'ItemList', 'name' => 'Free business tools', 'itemListElement' => $items);
+		} else {
+			$cat = epc_free_tools_catalog();
+			$name = isset($cat[$tool]['name']) ? $cat[$tool]['name'] : $seo['h1'];
+			$graph[] = array(
+				'@type' => 'SoftwareApplication',
+				'name' => $name . ' — Free Tool',
+				'url' => $site . '/platform/free-tools/' . $tool,
+				'applicationCategory' => 'BusinessApplication',
+				'operatingSystem' => 'Web',
+				'description' => $seo['description'],
+				'offers' => array('@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'),
+			);
+			$crumbs[] = array('@type' => 'ListItem', 'position' => 3, 'name' => $name, 'item' => $site . '/platform/free-tools/' . $tool);
+		}
+		$graph[] = array('@type' => 'BreadcrumbList', 'itemListElement' => $crumbs);
+		if (!empty($seo['faq'])) {
+			$faqEls = array();
+			foreach ($seo['faq'] as $f) {
+				$faqEls[] = array(
+					'@type' => 'Question',
+					'name' => $f['q'],
+					'acceptedAnswer' => array('@type' => 'Answer', 'text' => $f['a']),
+				);
+			}
+			$graph[] = array('@type' => 'FAQPage', 'mainEntity' => $faqEls);
+		}
+		$doc = array('@context' => 'https://schema.org', '@graph' => $graph);
+		return '<script type="application/ld+json">' . json_encode($doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+	}
+}
+
+if (!function_exists('epc_free_tools_site_base')) {
+	/** Absolute site origin (scheme+host) for canonical/structured-data URLs. */
+	function epc_free_tools_site_base(string $fallback = ''): string
+	{
+		if (function_exists('epc_ecomae_platform_base_url')) {
+			$u = (string) epc_ecomae_platform_base_url();
+			if ($u !== '') { return $u; }
+		}
+		$host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+		if ($host !== '') {
+			$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'https';
+			return $scheme . '://' . $host;
+		}
+		return $fallback !== '' ? $fallback : 'https://www.ecomae.com';
+	}
+}
+
+if (!function_exists('epc_free_tools_faq_html')) {
+	/** Visible FAQ section (mirrors the FAQPage JSON-LD) for on-page SEO. */
+	function epc_free_tools_faq_html(string $tool = ''): string
+	{
+		$seo = epc_free_tools_seo($tool);
+		if (empty($seo['faq'])) { return ''; }
+		$h = 'epc_free_tools_h';
+		$out = '<section class="eft-faq" aria-label="Frequently asked questions"><h2>Frequently asked questions</h2>';
+		foreach ($seo['faq'] as $f) {
+			$out .= '<details class="eft-faq__item"><summary>' . $h($f['q']) . '</summary><div class="eft-faq__a">' . $h($f['a']) . '</div></details>';
+		}
+		$out .= '</section>';
+		return $out;
+	}
+}
+
 if (!function_exists('epc_free_tools_round')) {
 	function epc_free_tools_round($v): float
 	{
@@ -1442,7 +1672,12 @@ if (!function_exists('epc_free_tools_db')) {
 			return $pdo ?: null;
 		}
 		try {
-			require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+			$cfgFile = $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+			if (!is_file($cfgFile)) {
+				$pdo = false;
+				return null;
+			}
+			require_once $cfgFile;
 			$cfg = new DP_Config();
 			$pdo = new PDO('mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8', $cfg->user, $cfg->password);
 			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -1485,20 +1720,95 @@ if (!function_exists('epc_free_tools_ensure_schema')) {
 				KEY `account_id` (`account_id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Free Tools saved results'"
 		);
+		// Password login: add the column to legacy installs without dropping data.
+		try {
+			$has = $db->query("SHOW COLUMNS FROM `epc_free_tool_accounts` LIKE 'pass_hash'")->fetch();
+			if (!$has) {
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `pass_hash` varchar(255) DEFAULT NULL");
+			}
+			$hasLogin = $db->query("SHOW COLUMNS FROM `epc_free_tool_accounts` LIKE 'time_last_login'")->fetch();
+			if (!$hasLogin) {
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `time_last_login` int(11) DEFAULT NULL");
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `login_count` int(11) DEFAULT 0");
+			}
+			$hasDel = $db->query("SHOW COLUMNS FROM `epc_free_tool_accounts` LIKE 'del_code_hash'")->fetch();
+			if (!$hasDel) {
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `del_code_hash` varchar(255) DEFAULT NULL");
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `del_code_expires` int(11) DEFAULT NULL");
+			}
+			$hasReset = $db->query("SHOW COLUMNS FROM `epc_free_tool_accounts` LIKE 'reset_code_hash'")->fetch();
+			if (!$hasReset) {
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `reset_code_hash` varchar(255) DEFAULT NULL");
+				$db->exec("ALTER TABLE `epc_free_tool_accounts` ADD COLUMN `reset_code_expires` int(11) DEFAULT NULL");
+			}
+		} catch (Throwable $e) {
+			// Non-fatal: schema upgrade is best-effort.
+		}
+		// Platform-wide config (e.g. which tools are active). One row per setting.
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS `epc_free_tool_settings` (
+				`name` varchar(64) NOT NULL,
+				`val` text,
+				`time_updated` int(11) DEFAULT NULL,
+				PRIMARY KEY (`name`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Free Tools platform settings'"
+		);
+	}
+}
+
+if (!function_exists('epc_free_tools_send_mail')) {
+	/** Best-effort transactional email via the platform SMTP (ecomaedxb@gmail.com). */
+	function epc_free_tools_send_mail(string $to, string $subject, string $html): bool
+	{
+		$f = ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/content/general_pages/epc_auth_smtp.php';
+		if (!is_file($f)) {
+			return false;
+		}
+		require_once $f;
+		if (!function_exists('epc_auth_smtp_send_html')) {
+			return false;
+		}
+		try {
+			$r = epc_auth_smtp_send_html($to, $subject, $html);
+			return !empty($r['ok']);
+		} catch (Throwable $e) {
+			return false;
+		}
+	}
+}
+
+if (!function_exists('epc_free_tools_mail_shell')) {
+	/** Branded HTML wrapper for Free Tools emails. */
+	function epc_free_tools_mail_shell(string $title, string $bodyHtml): string
+	{
+		$t = epc_free_tools_h($title);
+		return '<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">'
+			. '<div style="background:#0f172a;color:#fff;padding:18px 22px;border-radius:12px 12px 0 0">'
+			. '<strong style="font-size:18px">ECOM AE</strong> &middot; Free business tools'
+			. '</div>'
+			. '<div style="border:1px solid #e2e8f0;border-top:0;border-radius:0 0 12px 12px;padding:22px">'
+			. '<h2 style="margin:0 0 12px;font-size:18px">' . $t . '</h2>'
+			. $bodyHtml
+			. '<p style="margin-top:22px;font-size:12px;color:#64748b">You are receiving this because you registered for ECOM AE free tools at '
+			. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#0ea5e9">ecomae.com</a>.</p>'
+			. '</div></div>';
 	}
 }
 
 if (!function_exists('epc_free_tools_register')) {
 	/**
-	 * Create or refresh a free-tools account, returning the token.
+	 * Create a free-tools account (email + password). One email = one account.
 	 *
-	 * @return array{ok:bool,token?:string,message?:string,account?:array}
+	 * @return array{ok:bool,token?:string,message?:string,account?:array,exists?:bool}
 	 */
-	function epc_free_tools_register(string $email, string $company, string $country): array
+	function epc_free_tools_register(string $email, string $company, string $country, string $password = ''): array
 	{
 		$email = strtolower(trim($email));
 		if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			return array('ok' => false, 'message' => 'Enter a valid email address.');
+		}
+		if (strlen($password) < 6) {
+			return array('ok' => false, 'message' => 'Choose a password of at least 6 characters.');
 		}
 		$db = epc_free_tools_db();
 		if ($db === null) {
@@ -1510,27 +1820,182 @@ if (!function_exists('epc_free_tools_register')) {
 		$st = $db->prepare("SELECT * FROM `epc_free_tool_accounts` WHERE `email`=? LIMIT 1");
 		$st->execute(array($email));
 		$row = $st->fetch(PDO::FETCH_ASSOC);
-		$returning = false;
+		$hash = password_hash($password, PASSWORD_DEFAULT);
 		if ($row) {
-			// One email = one account. Never create a duplicate — recognise the
-			// existing account and sign them straight back in (saved results kept).
-			$returning = true;
+			// One email = one account. If it already has a password, send them to log in.
+			if (!empty($row['pass_hash'])) {
+				return array('ok' => false, 'exists' => true, 'message' => 'This email is already registered — please log in instead.');
+			}
+			// Legacy account (created before passwords): claim it by setting the password.
 			$token = (string) $row['token'];
 			$company = $company !== '' ? $company : (string) $row['company'];
 			$country = $country !== 'XX' ? $country : (string) $row['country'];
-			$db->prepare("UPDATE `epc_free_tool_accounts` SET `company`=?,`country`=?,`time_last_seen`=?,`use_count`=`use_count`+1 WHERE `id`=?")
-				->execute(array($company, $country, $now, (int) $row['id']));
+			$db->prepare("UPDATE `epc_free_tool_accounts` SET `company`=?,`country`=?,`pass_hash`=?,`time_last_seen`=?,`time_last_login`=?,`login_count`=`login_count`+1 WHERE `id`=?")
+				->execute(array($company, $country, $hash, $now, $now, (int) $row['id']));
 		} else {
 			$token = bin2hex(random_bytes(24));
-			$db->prepare("INSERT INTO `epc_free_tool_accounts` (`token`,`email`,`company`,`country`,`time_created`,`time_last_seen`,`use_count`) VALUES (?,?,?,?,?,?,1)")
-				->execute(array($token, $email, $company, $country, $now, $now));
+			$db->prepare("INSERT INTO `epc_free_tool_accounts` (`token`,`email`,`company`,`country`,`pass_hash`,`time_created`,`time_last_seen`,`time_last_login`,`use_count`,`login_count`) VALUES (?,?,?,?,?,?,?,?,1,1)")
+				->execute(array($token, $email, $company, $country, $hash, $now, $now, $now));
 		}
+		epc_free_tools_send_mail(
+			$email,
+			'Your ECOM AE free tools account',
+			epc_free_tools_mail_shell(
+				'Welcome to ECOM AE free tools',
+				'<p>Hi' . ($company !== '' ? ' ' . epc_free_tools_h($company) : '') . ',</p>'
+				. '<p>Your free account is ready. One login unlocks <strong>every</strong> free tool, and your results are saved so you can keep working on them daily.</p>'
+				. '<p><strong>Email:</strong> ' . epc_free_tools_h($email) . '<br><strong>Sign in:</strong> '
+				. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#0ea5e9">ecomae.com/platform/free-tools</a> &rarr; <em>Log in</em></p>'
+				. '<p>Every tool localises automatically to your registered country (' . epc_free_tools_h($country) . ').</p>'
+			)
+		);
 		return array(
 			'ok' => true,
 			'token' => $token,
-			'returning' => $returning,
-			'message' => $returning ? 'Welcome back — your free account is already set up; all tools are unlocked.' : 'Account created — all free tools unlocked.',
+			'returning' => false,
+			'message' => 'Account created — all free tools unlocked. A confirmation email is on its way.',
 			'account' => array('email' => $email, 'company' => $company, 'country' => $country),
+		);
+	}
+}
+
+if (!function_exists('epc_free_tools_login')) {
+	/**
+	 * Log a returning user in with email + password.
+	 *
+	 * @return array{ok:bool,token?:string,message?:string,account?:array}
+	 */
+	function epc_free_tools_login(string $email, string $password): array
+	{
+		$email = strtolower(trim($email));
+		if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			return array('ok' => false, 'message' => 'Enter a valid email address.');
+		}
+		if ($password === '') {
+			return array('ok' => false, 'message' => 'Enter your password.');
+		}
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array('ok' => false, 'message' => 'Service unavailable, please try again.');
+		}
+		epc_free_tools_ensure_schema($db);
+		$st = $db->prepare("SELECT * FROM `epc_free_tool_accounts` WHERE `email`=? LIMIT 1");
+		$st->execute(array($email));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$row) {
+			return array('ok' => false, 'message' => 'No free account found for this email — please register.');
+		}
+		if (empty($row['pass_hash'])) {
+			// Legacy account with no password yet: let them set one via Register.
+			return array('ok' => false, 'needs_register' => true, 'message' => 'This account has no password yet — please use Register to set one.');
+		}
+		if (!password_verify($password, (string) $row['pass_hash'])) {
+			return array('ok' => false, 'message' => 'Incorrect password. Please try again.');
+		}
+		$now = time();
+		$db->prepare("UPDATE `epc_free_tool_accounts` SET `time_last_seen`=?,`time_last_login`=?,`login_count`=`login_count`+1 WHERE `id`=?")
+			->execute(array($now, $now, (int) $row['id']));
+		epc_free_tools_send_mail(
+			$email,
+			'New sign-in to your ECOM AE free tools account',
+			epc_free_tools_mail_shell(
+				'You just signed in',
+				'<p>We noticed a sign-in to your ECOM AE free tools account (' . epc_free_tools_h($email) . ').</p>'
+				. '<p>If this was you, no action is needed. If you did not sign in, please reply to this email so we can help secure your account.</p>'
+			)
+		);
+		return array(
+			'ok' => true,
+			'token' => (string) $row['token'],
+			'message' => 'Welcome back — all your saved results are here.',
+			'account' => array('email' => $email, 'company' => (string) $row['company'], 'country' => (string) $row['country']),
+		);
+	}
+}
+
+if (!function_exists('epc_free_tools_request_reset')) {
+	/** Email a one-time code so the user can reset a forgotten password. */
+	function epc_free_tools_request_reset(string $email): array
+	{
+		$email = strtolower(trim($email));
+		// Generic response either way so we never disclose which emails exist.
+		$generic = array('ok' => true, 'message' => 'If that email has an account, we have sent a reset code to it.');
+		if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			return array('ok' => false, 'message' => 'Enter a valid email address.');
+		}
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array('ok' => false, 'message' => 'Service unavailable, please try again.');
+		}
+		epc_free_tools_ensure_schema($db);
+		$st = $db->prepare("SELECT * FROM `epc_free_tool_accounts` WHERE `email`=? LIMIT 1");
+		$st->execute(array($email));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$row) {
+			return $generic;
+		}
+		$code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+		$db->prepare("UPDATE `epc_free_tool_accounts` SET `reset_code_hash`=?,`reset_code_expires`=? WHERE `id`=?")
+			->execute(array(password_hash($code, PASSWORD_DEFAULT), time() + 1800, (int) $row['id']));
+		epc_free_tools_send_mail(
+			$email,
+			'Reset your ECOM AE free tools password',
+			epc_free_tools_mail_shell(
+				'Password reset code',
+				'<p>We received a request to reset the password for your ECOM AE free tools account.</p>'
+				. '<p>Your reset code is:</p>'
+				. '<p style="font-size:26px;font-weight:bold;letter-spacing:4px;color:#0ea5e9">' . epc_free_tools_h($code) . '</p>'
+				. '<p>Enter it on the login screen with your new password. It expires in 30 minutes. '
+				. 'If you did not request this, ignore this email — your password stays unchanged.</p>'
+			)
+		);
+		return $generic;
+	}
+}
+
+if (!function_exists('epc_free_tools_confirm_reset')) {
+	/** Verify the reset code and set a new password, signing the user in. */
+	function epc_free_tools_confirm_reset(string $email, string $code, string $password): array
+	{
+		$email = strtolower(trim($email));
+		if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			return array('ok' => false, 'message' => 'Enter a valid email address.');
+		}
+		if (strlen($password) < 6) {
+			return array('ok' => false, 'message' => 'Choose a new password of at least 6 characters.');
+		}
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array('ok' => false, 'message' => 'Service unavailable, please try again.');
+		}
+		epc_free_tools_ensure_schema($db);
+		$st = $db->prepare("SELECT * FROM `epc_free_tool_accounts` WHERE `email`=? LIMIT 1");
+		$st->execute(array($email));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		$code = preg_replace('/[^0-9]/', '', $code);
+		if (!$row || empty($row['reset_code_hash']) || (int) $row['reset_code_expires'] < time()) {
+			return array('ok' => false, 'message' => 'No active reset code — request a new one.');
+		}
+		if (!password_verify($code, (string) $row['reset_code_hash'])) {
+			return array('ok' => false, 'message' => 'Incorrect reset code. Please check the email and try again.');
+		}
+		$now = time();
+		$db->prepare("UPDATE `epc_free_tool_accounts` SET `pass_hash`=?,`reset_code_hash`=NULL,`reset_code_expires`=NULL,`time_last_seen`=?,`time_last_login`=?,`login_count`=`login_count`+1 WHERE `id`=?")
+			->execute(array(password_hash($password, PASSWORD_DEFAULT), $now, $now, (int) $row['id']));
+		epc_free_tools_send_mail(
+			$email,
+			'Your ECOM AE free tools password was changed',
+			epc_free_tools_mail_shell(
+				'Password changed',
+				'<p>The password for your ECOM AE free tools account (' . epc_free_tools_h($email) . ') was just changed.</p>'
+				. '<p>If this was not you, please reply to this email right away.</p>'
+			)
+		);
+		return array(
+			'ok' => true,
+			'token' => (string) $row['token'],
+			'message' => 'Password updated — you are now signed in.',
+			'account' => array('email' => $email, 'company' => (string) $row['company'], 'country' => (string) $row['country']),
 		);
 	}
 }
@@ -1551,6 +2016,20 @@ if (!function_exists('epc_free_tools_account_by_token')) {
 		$st->execute(array($token));
 		$row = $st->fetch(PDO::FETCH_ASSOC);
 		return $row ?: null;
+	}
+}
+
+if (!function_exists('epc_free_tools_touch_account')) {
+	/** Record activity (a tool run) for usage metrics. */
+	function epc_free_tools_touch_account(int $accountId): void
+	{
+		$db = epc_free_tools_db();
+		if ($db === null || $accountId <= 0) {
+			return;
+		}
+		epc_free_tools_ensure_schema($db);
+		$db->prepare("UPDATE `epc_free_tool_accounts` SET `time_last_seen`=?,`use_count`=`use_count`+1 WHERE `id`=?")
+			->execute(array(time(), $accountId));
 	}
 }
 
@@ -1581,6 +2060,178 @@ if (!function_exists('epc_free_tools_list_saves')) {
 		$st->bindValue(2, $limit, PDO::PARAM_INT);
 		$st->execute();
 		return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Tool activation (controlled from Super CP)                         *
+ * ------------------------------------------------------------------ */
+
+if (!function_exists('epc_free_tools_disabled_map')) {
+	/** @return array<string,bool> map of tool key => true when disabled. */
+	function epc_free_tools_disabled_map(): array
+	{
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array();
+		}
+		epc_free_tools_ensure_schema($db);
+		$st = $db->query("SELECT `val` FROM `epc_free_tool_settings` WHERE `name`='disabled_tools' LIMIT 1");
+		$val = $st ? $st->fetchColumn() : false;
+		if (!$val) {
+			return array();
+		}
+		$arr = json_decode((string) $val, true);
+		$out = array();
+		if (is_array($arr)) {
+			foreach ($arr as $k) {
+				$out[(string) $k] = true;
+			}
+		}
+		return $out;
+	}
+}
+
+if (!function_exists('epc_free_tools_is_active')) {
+	function epc_free_tools_is_active(string $tool): bool
+	{
+		$map = epc_free_tools_disabled_map();
+		return empty($map[$tool]);
+	}
+}
+
+if (!function_exists('epc_free_tools_set_active')) {
+	/** Enable/disable a tool. Returns the new disabled map. */
+	function epc_free_tools_set_active(string $tool, bool $active): array
+	{
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array();
+		}
+		epc_free_tools_ensure_schema($db);
+		$map = epc_free_tools_disabled_map();
+		if ($active) {
+			unset($map[$tool]);
+		} else {
+			$map[$tool] = true;
+		}
+		$keys = array_keys($map);
+		$db->prepare("REPLACE INTO `epc_free_tool_settings` (`name`,`val`,`time_updated`) VALUES ('disabled_tools',?,?)")
+			->execute(array(json_encode(array_values($keys)), time()));
+		return $map;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Account deletion (requires email cross-code confirmation)          *
+ * ------------------------------------------------------------------ */
+
+if (!function_exists('epc_free_tools_request_delete')) {
+	/** Email a one-time cross-code the user must enter to delete their data. */
+	function epc_free_tools_request_delete(string $token): array
+	{
+		$acc = epc_free_tools_account_by_token($token);
+		if (!$acc) {
+			return array('ok' => false, 'message' => 'Please sign in first.');
+		}
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array('ok' => false, 'message' => 'Service unavailable.');
+		}
+		$code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+		$hash = password_hash($code, PASSWORD_DEFAULT);
+		$expires = time() + 1800; // 30 minutes
+		$db->prepare("UPDATE `epc_free_tool_accounts` SET `del_code_hash`=?,`del_code_expires`=? WHERE `id`=?")
+			->execute(array($hash, $expires, (int) $acc['id']));
+		$sent = epc_free_tools_send_mail(
+			(string) $acc['email'],
+			'Confirm deletion of your ECOM AE free tools data',
+			epc_free_tools_mail_shell(
+				'Confirm data deletion',
+				'<p>We received a request to delete your ECOM AE free tools account and all saved data.</p>'
+				. '<p>Your confirmation cross-code is:</p>'
+				. '<p style="font-size:26px;font-weight:bold;letter-spacing:4px;color:#dc2626">' . epc_free_tools_h($code) . '</p>'
+				. '<p>Enter this code in the tool to permanently delete your data. It expires in 30 minutes. '
+				. '<strong>If you did not request this, ignore this email — nothing will be deleted.</strong></p>'
+			)
+		);
+		return array('ok' => true, 'sent' => $sent, 'message' => $sent
+			? 'We emailed a confirmation cross-code to ' . $acc['email'] . '. Enter it to confirm deletion.'
+			: 'Could not send the confirmation email. Please try again later.');
+	}
+}
+
+if (!function_exists('epc_free_tools_confirm_delete')) {
+	/** Verify the cross-code and permanently delete the account + saved data. */
+	function epc_free_tools_confirm_delete(string $token, string $code): array
+	{
+		$acc = epc_free_tools_account_by_token($token);
+		if (!$acc) {
+			return array('ok' => false, 'message' => 'Please sign in first.');
+		}
+		$code = preg_replace('/[^0-9]/', '', $code);
+		if (empty($acc['del_code_hash']) || (int) $acc['del_code_expires'] < time()) {
+			return array('ok' => false, 'message' => 'No active code — request a new confirmation code.');
+		}
+		if (!password_verify($code, (string) $acc['del_code_hash'])) {
+			return array('ok' => false, 'message' => 'Incorrect code. Please check the email and try again.');
+		}
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array('ok' => false, 'message' => 'Service unavailable.');
+		}
+		$db->prepare("DELETE FROM `epc_free_tool_saves` WHERE `account_id`=?")->execute(array((int) $acc['id']));
+		$db->prepare("DELETE FROM `epc_free_tool_accounts` WHERE `id`=?")->execute(array((int) $acc['id']));
+		epc_free_tools_send_mail(
+			(string) $acc['email'],
+			'Your ECOM AE free tools data has been deleted',
+			epc_free_tools_mail_shell(
+				'Data deleted',
+				'<p>Your ECOM AE free tools account and all saved results have been permanently deleted, as you confirmed.</p>'
+				. '<p>You are welcome back any time — just register again at '
+				. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#0ea5e9">ecomae.com/platform/free-tools</a>.</p>'
+			)
+		);
+		return array('ok' => true, 'message' => 'Your account and all saved data have been permanently deleted.');
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ *  Usage stats (for Super CP)                                         *
+ * ------------------------------------------------------------------ */
+
+if (!function_exists('epc_free_tools_usage_stats')) {
+	/** @return array{ok:bool,accounts:int,with_password:int,active_30d:int,saves:int,by_country:array,by_tool:array,recent:array} */
+	function epc_free_tools_usage_stats(): array
+	{
+		$db = epc_free_tools_db();
+		if ($db === null) {
+			return array('ok' => false);
+		}
+		epc_free_tools_ensure_schema($db);
+		$one = function ($sql, $params = array()) use ($db) {
+			$st = $db->prepare($sql);
+			$st->execute($params);
+			return (int) $st->fetchColumn();
+		};
+		$cut = time() - 30 * 86400;
+		$accounts = $one("SELECT COUNT(*) FROM `epc_free_tool_accounts`");
+		$withPw = $one("SELECT COUNT(*) FROM `epc_free_tool_accounts` WHERE `pass_hash` IS NOT NULL AND `pass_hash`<>''");
+		$active = $one("SELECT COUNT(*) FROM `epc_free_tool_accounts` WHERE `time_last_seen`>=?", array($cut));
+		$saves = $one("SELECT COUNT(*) FROM `epc_free_tool_saves`");
+		$byCountry = $db->query("SELECT `country`,COUNT(*) c FROM `epc_free_tool_accounts` GROUP BY `country` ORDER BY c DESC")->fetchAll(PDO::FETCH_ASSOC) ?: array();
+		$byTool = $db->query("SELECT `tool`,COUNT(*) c FROM `epc_free_tool_saves` GROUP BY `tool` ORDER BY c DESC")->fetchAll(PDO::FETCH_ASSOC) ?: array();
+		$recent = $db->query("SELECT `email`,`company`,`country`,`time_created`,`time_last_seen`,`use_count`,`login_count` FROM `epc_free_tool_accounts` ORDER BY `id` DESC LIMIT 25")->fetchAll(PDO::FETCH_ASSOC) ?: array();
+		return array(
+			'ok' => true,
+			'accounts' => $accounts,
+			'with_password' => $withPw,
+			'active_30d' => $active,
+			'saves' => $saves,
+			'by_country' => $byCountry,
+			'by_tool' => $byTool,
+			'recent' => $recent,
+		);
 	}
 }
 
@@ -1619,16 +2270,17 @@ if (!function_exists('epc_free_tools_render_hub')) {
 		<p class="eft-rules"><i class="fa fa-check-circle"></i> <strong>Register once</strong> with your email &mdash; that single free account unlocks <strong>every tool</strong>. One email = one account (you can't register the same email twice; we just sign you back in). Many tools accept a <strong>CSV upload</strong> for instant compliance checks and reports. <i class="fa fa-book"></i> Open any tool to read its <strong>guide</strong> (what it does, what you get and the CSV format) before you register.</p>
 	</div>
 	<div class="eft-grid">
-		<?php foreach ($catalog as $key => $t): ?>
-		<a class="eft-card" href="<?php echo epc_free_tools_h($base); ?>platform/free-tools/<?php echo epc_free_tools_h($key); ?>">
+		<?php $disabled = epc_free_tools_disabled_map(); foreach ($catalog as $key => $t): $off = !empty($disabled[$key]); ?>
+		<a class="eft-card<?php echo $off ? ' eft-card--off' : ''; ?>" href="<?php echo epc_free_tools_h($base); ?>platform/free-tools/<?php echo epc_free_tools_h($key); ?>">
 			<span class="eft-card__tag"><?php echo epc_free_tools_h($t['tag']); ?></span>
 			<i class="fa <?php echo epc_free_tools_h($t['icon']); ?>" aria-hidden="true"></i>
 			<h3><?php echo epc_free_tools_h($t['name']); ?></h3>
 			<p><?php echo epc_free_tools_h($t['blurb']); ?></p>
-			<span class="eft-card__cta">Open tool <i class="fa fa-arrow-right"></i></span>
+			<?php if ($off): ?><span class="eft-card__cta eft-card__cta--off"><i class="fa fa-clock-o"></i> Temporarily unavailable</span><?php else: ?><span class="eft-card__cta">Open tool <i class="fa fa-arrow-right"></i></span><?php endif; ?>
 		</a>
 		<?php endforeach; ?>
 	</div>
+	<?php echo epc_free_tools_faq_html(''); ?>
 	<div class="eft-upsell">
 		<h3>Ready for the full picture?</h3>
 		<p>These tools are a taste of the ECOM AE Business Operating System — full ERP, commerce, compliance and CRM, with your data carried across when you upgrade.</p>
@@ -1638,6 +2290,7 @@ if (!function_exists('epc_free_tools_render_hub')) {
 		</div>
 	</div>
 </div>
+<?php echo epc_free_tools_jsonld($base, ''); ?>
 		<?php
 		return ob_get_clean();
 	}
@@ -1785,34 +2438,89 @@ if (!function_exists('epc_free_tools_render_tool')) {
 	function epc_free_tools_render_tool(string $key, array $meta, string $base): string
 	{
 		$countries = epc_free_tools_countries();
+		$active = epc_free_tools_is_active($key);
 		ob_start();
 		?>
-<div class="epm-wrap eft-wrap" data-eft-tool="<?php echo epc_free_tools_h($key); ?>">
+<div class="epm-wrap eft-wrap" data-eft-tool="<?php echo epc_free_tools_h($key); ?>"<?php echo $active ? '' : ' data-eft-inactive="1"'; ?>>
 	<a class="eft-back" href="<?php echo epc_free_tools_h($base); ?>platform/free-tools"><i class="fa fa-arrow-left"></i> All free tools</a>
+	<?php $eftSeo = epc_free_tools_seo($key); ?>
 	<div class="eft-tool-head">
 		<i class="fa <?php echo epc_free_tools_h($meta['icon']); ?>" aria-hidden="true"></i>
 		<div>
-			<h1><?php echo epc_free_tools_h($meta['name']); ?></h1>
-			<p><?php echo epc_free_tools_h($meta['blurb']); ?></p>
+			<h1><?php echo epc_free_tools_h($meta['name']); ?> &mdash; free, worldwide</h1>
+			<p><?php echo epc_free_tools_h($eftSeo['intro']); ?></p>
 		</div>
 	</div>
+<?php if (!$active): ?>
+	<div class="eft-unavailable">
+		<i class="fa fa-clock-o"></i>
+		<div>
+			<strong>This tool is temporarily unavailable.</strong>
+			<span>We're improving it right now. Please check back soon — the other free tools are still available.</span>
+		</div>
+	</div>
+	<?php echo epc_free_tools_guide_html($key, $meta); ?>
+	<?php echo epc_free_tools_faq_html($key); ?>
+</div>
+<?php echo epc_free_tools_jsonld($base, $key); ?>
+<?php
+		return ob_get_clean();
+endif;
+?>
 
 	<div class="eft-gate" id="eft_gate">
-		<h3><i class="fa fa-unlock-alt"></i> Register free to use this tool</h3>
-		<p>Enter your details once — it's free, no card. We localise the tool to your country and let you save results.</p>
-		<div class="eft-form-row">
-			<label>Work email<input type="email" id="eft_email" placeholder="you@company.com" autocomplete="email" /></label>
-			<label>Company<input type="text" id="eft_company" placeholder="Your company name" autocomplete="organization" /></label>
-			<label>Country
-				<select id="eft_country">
-					<?php foreach ($countries as $cc => $cn): ?>
-					<option value="<?php echo epc_free_tools_h($cc); ?>"<?php echo $cc === 'AE' ? ' selected' : ''; ?>><?php echo epc_free_tools_h($cn); ?></option>
-					<?php endforeach; ?>
-				</select>
-			</label>
+		<div class="eft-gate__tabs">
+			<button type="button" class="eft-tab is-active" id="eft_tab_register"><i class="fa fa-user-plus"></i> Register free</button>
+			<button type="button" class="eft-tab" id="eft_tab_login"><i class="fa fa-sign-in"></i> Log in</button>
 		</div>
-		<button type="button" class="epm-btn epm-btn--primary" id="eft_register"><i class="fa fa-check"></i> Start using free</button>
-		<p class="eft-msg" id="eft_gate_msg"></p>
+
+		<div class="eft-pane" id="eft_pane_register">
+			<h3><i class="fa fa-unlock-alt"></i> Register free to use this tool</h3>
+			<p>Create your free account once — no card. One login unlocks every tool, saves your work and localises to your country.</p>
+			<div class="eft-form-row">
+				<label>Work email<input type="email" id="eft_email" placeholder="you@company.com" autocomplete="email" /></label>
+				<label>Company<input type="text" id="eft_company" placeholder="Your company name" autocomplete="organization" /></label>
+				<label>Country
+					<select id="eft_country">
+						<?php foreach ($countries as $cc => $cn): ?>
+						<option value="<?php echo epc_free_tools_h($cc); ?>"<?php echo $cc === 'AE' ? ' selected' : ''; ?>><?php echo epc_free_tools_h($cn); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</label>
+				<label>Password (min 6 chars)
+					<span class="eft-pass"><input type="password" id="eft_password" placeholder="Create a password" autocomplete="new-password" /><button type="button" class="eft-eye" data-eye="eft_password"><i class="fa fa-eye"></i></button></span>
+				</label>
+			</div>
+			<button type="button" class="epm-btn epm-btn--primary" id="eft_register"><i class="fa fa-check"></i> Create free account</button>
+			<p class="eft-msg" id="eft_gate_msg"></p>
+		</div>
+
+		<div class="eft-pane" id="eft_pane_login" hidden>
+			<h3><i class="fa fa-sign-in"></i> Log in to your free account</h3>
+			<p>Welcome back — sign in to pick up your saved work across all tools.</p>
+			<div class="eft-form-row">
+				<label>Work email<input type="email" id="eft_login_email" placeholder="you@company.com" autocomplete="email" /></label>
+				<label>Password
+					<span class="eft-pass"><input type="password" id="eft_login_password" placeholder="Your password" autocomplete="current-password" /><button type="button" class="eft-eye" data-eye="eft_login_password"><i class="fa fa-eye"></i></button></span>
+				</label>
+			</div>
+			<button type="button" class="epm-btn epm-btn--primary" id="eft_login"><i class="fa fa-sign-in"></i> Log in</button>
+			<button type="button" class="eft-link" id="eft_forgot">Forgot password?</button>
+			<p class="eft-msg" id="eft_login_msg"></p>
+
+			<div class="eft-reset" id="eft_reset" hidden>
+				<h4>Reset password</h4>
+				<p>Enter the 6-digit code we emailed you, plus a new password.</p>
+				<div class="eft-form-row">
+					<label>Reset code<input type="text" id="eft_reset_code" inputmode="numeric" placeholder="6-digit code" /></label>
+					<label>New password
+						<span class="eft-pass"><input type="password" id="eft_reset_password" placeholder="New password" autocomplete="new-password" /><button type="button" class="eft-eye" data-eye="eft_reset_password"><i class="fa fa-eye"></i></button></span>
+					</label>
+				</div>
+				<button type="button" class="epm-btn epm-btn--primary" id="eft_reset_submit"><i class="fa fa-key"></i> Set new password &amp; sign in</button>
+				<p class="eft-msg" id="eft_reset_msg"></p>
+			</div>
+		</div>
 	</div>
 
 	<?php echo epc_free_tools_guide_html($key, $meta); ?>
@@ -1820,7 +2528,24 @@ if (!function_exists('epc_free_tools_render_tool')) {
 	<div class="eft-app" id="eft_app" hidden>
 		<div class="eft-app__bar">
 			<span id="eft_who"></span>
-			<span class="eft-country-pill">Country: <strong id="eft_country_label"></strong> · <button type="button" class="eft-link" id="eft_change_country">change</button></span>
+			<span class="eft-app__menu">
+				<span class="eft-country-pill">Country: <strong id="eft_country_label"></strong> · <button type="button" class="eft-link" id="eft_change_country">change</button></span>
+				<button type="button" class="eft-link" id="eft_my_saves"><i class="fa fa-folder-open"></i> My saved results</button>
+				<button type="button" class="eft-link" id="eft_logout"><i class="fa fa-sign-out"></i> Log out</button>
+				<button type="button" class="eft-link eft-link--danger" id="eft_delete"><i class="fa fa-trash"></i> Delete my data</button>
+			</span>
+		</div>
+		<div class="eft-saves" id="eft_saves" hidden></div>
+		<div class="eft-danger" id="eft_delete_box" hidden>
+			<h4><i class="fa fa-shield"></i> Delete your account &amp; all data</h4>
+			<p>For your security, deletion needs email confirmation. We'll email a one-time <strong>cross-code</strong> to your address; nothing is deleted until you enter it below.</p>
+			<button type="button" class="epm-btn epm-btn--ghost" id="eft_delete_send"><i class="fa fa-envelope"></i> Email me a confirmation code</button>
+			<div class="eft-form-row" id="eft_delete_confirm" hidden>
+				<label>Confirmation cross-code<input type="text" id="eft_delete_code" inputmode="numeric" placeholder="6-digit code" /></label>
+			</div>
+			<button type="button" class="epm-btn epm-btn--danger" id="eft_delete_confirm_btn" hidden><i class="fa fa-trash"></i> Permanently delete my data</button>
+			<button type="button" class="eft-link" id="eft_delete_cancel">Cancel</button>
+			<p class="eft-msg" id="eft_delete_msg"></p>
 		</div>
 		<div class="eft-split">
 			<form class="eft-inputs" id="eft_form" onsubmit="return false;">
@@ -1832,7 +2557,9 @@ if (!function_exists('epc_free_tools_render_tool')) {
 			</div>
 		</div>
 	</div>
+	<?php echo epc_free_tools_faq_html($key); ?>
 </div>
+<?php echo epc_free_tools_jsonld($base, $key); ?>
 		<?php
 		return ob_get_clean();
 	}
@@ -1993,6 +2720,13 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-card p{color:var(--epm-muted,#94a3b8);font-size:.92rem;margin:0;flex:1}
 .eft-card__tag{align-self:flex-start;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:999px;background:rgba(34,211,238,.14);color:var(--epm-cyan,#22d3ee)}
 .eft-card__cta{font-weight:700;color:var(--epm-cyan,#22d3ee);font-size:.9rem}
+.eft-card--off{opacity:.62}
+.eft-card__cta--off{color:#fbbf24}
+.eft-faq{max-width:820px;margin:34px auto 0}
+.eft-faq h2{font-size:1.4rem;margin:0 0 14px;color:var(--epm-ink,#e6edf6)}
+.eft-faq__item{border:1px solid rgba(148,163,184,.22);border-radius:10px;padding:12px 16px;margin-bottom:10px;background:rgba(148,163,184,.05)}
+.eft-faq__item summary{cursor:pointer;font-weight:700;color:var(--epm-ink,#e6edf6);font-size:.98rem}
+.eft-faq__a{color:var(--epm-muted,#94a3b8);font-size:.92rem;margin-top:8px;line-height:1.55}
 .eft-upsell{margin:34px auto 0;max-width:760px;text-align:center;padding:24px;border:1px dashed rgba(148,163,184,.3);border-radius:14px}
 .eft-back{display:inline-block;margin-bottom:14px;color:var(--epm-muted,#94a3b8);text-decoration:none;font-weight:600;font-size:.9rem}
 .eft-tool-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
@@ -2051,6 +2785,28 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-guide__list li i{color:#34d399;margin-top:3px}
 .eft-guide__how i{color:var(--epm-cyan,#22d3ee)}
 .eft-guide__csv code{display:block;font-size:.8rem;background:rgba(2,6,23,.6);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:8px 10px;color:#a5f3fc;overflow-x:auto}
+.eft-gate__tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(148,163,184,.2)}
+.eft-tab{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--epm-muted,#94a3b8);font:inherit;font-weight:700;font-size:.92rem;padding:8px 14px;cursor:pointer}
+.eft-tab.is-active{color:var(--epm-cyan,#22d3ee);border-bottom-color:var(--epm-cyan,#22d3ee)}
+.eft-pass{position:relative;display:flex}
+.eft-pass input{flex:1;padding-right:38px}
+.eft-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:var(--epm-muted,#94a3b8);cursor:pointer;padding:4px}
+.eft-reset{margin-top:14px;padding-top:14px;border-top:1px dashed rgba(148,163,184,.25)}
+.eft-reset h4{margin:0 0 4px;color:#e2e8f0;font-size:.95rem}
+.eft-app__menu{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.eft-link--danger{color:#f87171}
+.eft-unavailable{display:flex;gap:14px;align-items:center;padding:18px 20px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.08);border-radius:14px;margin-bottom:8px}
+.eft-unavailable i{font-size:26px;color:#fbbf24}
+.eft-unavailable strong{display:block;color:#fde68a;font-size:1rem}
+.eft-unavailable span{color:var(--epm-muted,#94a3b8);font-size:.9rem}
+.eft-danger{margin:0 0 16px;padding:16px 18px;border:1px solid rgba(248,113,113,.35);background:rgba(248,113,113,.06);border-radius:12px}
+.eft-danger h4{margin:0 0 6px;color:#fecaca;font-size:.98rem}
+.eft-danger p{color:var(--epm-muted,#94a3b8);font-size:.88rem;margin:0 0 10px}
+.epm-btn--danger{background:#dc2626;border-color:#dc2626;color:#fff}
+.eft-saves{margin:0 0 16px;padding:14px 16px;border:1px solid rgba(148,163,184,.25);border-radius:12px;background:rgba(2,6,23,.4)}
+.eft-saves h4{margin:0 0 8px;color:#e2e8f0;font-size:.95rem}
+.eft-saves table{width:100%;border-collapse:collapse;font-size:.86rem}
+.eft-saves td{padding:6px 4px;border-bottom:1px solid rgba(148,163,184,.14)}
 @media(max-width:760px){.eft-split{grid-template-columns:1fr}.eft-guide__grid{grid-template-columns:1fr;gap:8px}}
 </style>';
 	}
@@ -2072,26 +2828,117 @@ if (!function_exists('epc_free_tools_scripts')) {
 		return fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){return r.json();});
 	}
 	function el(id){return document.getElementById(id);}
+	function esch(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+	var curAcc=null;
 	function showApp(acc){
-		el('eft_gate').hidden=true;el('eft_app').hidden=false;
+		curAcc=acc;
+		if(el('eft_gate'))el('eft_gate').hidden=true;
+		el('eft_app').hidden=false;
 		el('eft_who').textContent=acc.company?('Signed in: '+acc.company+' ('+acc.email+')'):('Signed in: '+acc.email);
 		el('eft_country_label').textContent=acc.country;
 		wrap.setAttribute('data-eft-country',acc.country);
 	}
+	function showGate(){if(el('eft_app'))el('eft_app').hidden=true;if(el('eft_gate'))el('eft_gate').hidden=false;}
+	if(wrap.getAttribute('data-eft-inactive')){return;}
 	var saved=localStorage.getItem(tokenKey);
 	if(saved){
 		post('whoami',{token:saved}).then(function(r){if(r&&r.ok){showApp(r.account);}});
 	}
+	// Show/hide password fields.
+	wrap.querySelectorAll('.eft-eye').forEach(function(b){
+		b.addEventListener('click',function(){
+			var inp=el(b.getAttribute('data-eye'));if(!inp)return;
+			inp.type=inp.type==='password'?'text':'password';
+			var ic=b.querySelector('i');if(ic)ic.className=inp.type==='password'?'fa fa-eye':'fa fa-eye-slash';
+		});
+	});
+	// Register / Log in tabs.
+	var tabR=el('eft_tab_register'),tabL=el('eft_tab_login');
+	function selectTab(login){
+		if(!tabR)return;
+		tabR.classList.toggle('is-active',!login);tabL.classList.toggle('is-active',login);
+		el('eft_pane_register').hidden=login;el('eft_pane_login').hidden=!login;
+	}
+	if(tabR)tabR.addEventListener('click',function(){selectTab(false);});
+	if(tabL)tabL.addEventListener('click',function(){selectTab(true);});
+	// Register.
 	var reg=el('eft_register');
 	if(reg)reg.addEventListener('click',function(){
 		var msg=el('eft_gate_msg');msg.className='eft-msg';msg.textContent='Working…';
-		post('register',{email:el('eft_email').value,company:el('eft_company').value,country:el('eft_country').value}).then(function(r){
+		post('register',{email:el('eft_email').value,company:el('eft_company').value,country:el('eft_country').value,password:el('eft_password').value}).then(function(r){
 			if(r&&r.ok){localStorage.setItem(tokenKey,r.token);msg.className='eft-msg is-ok';msg.textContent=r.message||'';showApp(r.account);}
-			else{msg.className='eft-msg is-err';msg.textContent=(r&&r.message)||'Could not register.';}
+			else{msg.className='eft-msg is-err';msg.textContent=(r&&r.message)||'Could not register.';if(r&&r.exists){selectTab(true);el('eft_login_email').value=el('eft_email').value;}}
+		}).catch(function(){msg.className='eft-msg is-err';msg.textContent='Network error.';});
+	});
+	// Log in.
+	var lg=el('eft_login');
+	if(lg)lg.addEventListener('click',function(){
+		var msg=el('eft_login_msg');msg.className='eft-msg';msg.textContent='Signing in…';
+		post('login',{email:el('eft_login_email').value,password:el('eft_login_password').value}).then(function(r){
+			if(r&&r.ok){localStorage.setItem(tokenKey,r.token);msg.className='eft-msg is-ok';msg.textContent=r.message||'';showApp(r.account);}
+			else{msg.className='eft-msg is-err';msg.textContent=(r&&r.message)||'Could not sign in.';if(r&&r.needs_register){selectTab(false);el('eft_email').value=el('eft_login_email').value;}}
+		}).catch(function(){msg.className='eft-msg is-err';msg.textContent='Network error.';});
+	});
+	// Forgot password -> request reset code.
+	var fg=el('eft_forgot');
+	if(fg)fg.addEventListener('click',function(){
+		var msg=el('eft_login_msg');var em=el('eft_login_email').value;
+		if(!em){msg.className='eft-msg is-err';msg.textContent='Enter your email above first.';return;}
+		msg.className='eft-msg';msg.textContent='Sending reset code…';
+		post('request_reset',{email:em}).then(function(r){
+			msg.className='eft-msg '+(r&&r.ok?'is-ok':'is-err');msg.textContent=(r&&r.message)||'Could not send code.';
+			if(r&&r.ok){el('eft_reset').hidden=false;}
+		}).catch(function(){msg.className='eft-msg is-err';msg.textContent='Network error.';});
+	});
+	// Confirm reset.
+	var rs=el('eft_reset_submit');
+	if(rs)rs.addEventListener('click',function(){
+		var msg=el('eft_reset_msg');msg.className='eft-msg';msg.textContent='Updating…';
+		post('confirm_reset',{email:el('eft_login_email').value,code:el('eft_reset_code').value,password:el('eft_reset_password').value}).then(function(r){
+			if(r&&r.ok){localStorage.setItem(tokenKey,r.token);msg.className='eft-msg is-ok';msg.textContent=r.message||'';showApp(r.account);}
+			else{msg.className='eft-msg is-err';msg.textContent=(r&&r.message)||'Could not reset.';}
+		}).catch(function(){msg.className='eft-msg is-err';msg.textContent='Network error.';});
+	});
+	// Log out.
+	var lo=el('eft_logout');
+	if(lo)lo.addEventListener('click',function(){localStorage.removeItem(tokenKey);curAcc=null;showGate();selectTab(true);if(el('eft_login_msg')){el('eft_login_msg').className='eft-msg is-ok';el('eft_login_msg').textContent='Signed out.';}});
+	// My saved results.
+	var ms=el('eft_my_saves');
+	if(ms)ms.addEventListener('click',function(){
+		var box=el('eft_saves');
+		if(!box.hidden){box.hidden=true;return;}
+		box.hidden=false;box.innerHTML='<h4>My saved results</h4><p>Loading…</p>';
+		post('list',{token:localStorage.getItem(tokenKey)}).then(function(r){
+			if(!r||!r.ok){box.innerHTML='<h4>My saved results</h4><p>Could not load.</p>';return;}
+			if(!r.saves||!r.saves.length){box.innerHTML='<h4>My saved results</h4><p>No saved results yet. Run a calculation and press <strong>Save</strong>.</p>';return;}
+			var h='<h4>My saved results ('+r.saves.length+')</h4><table>';
+			r.saves.forEach(function(s){var d=new Date((s.time_created||0)*1000);h+='<tr><td>'+esch(s.title||s.tool)+'</td><td>'+esch(s.tool)+'</td><td>'+esch(s.country||'')+'</td><td>'+(isNaN(d)?'':d.toISOString().slice(0,10))+'</td></tr>';});
+			box.innerHTML=h+'</table>';
+		});
+	});
+	// Delete my data (cross-code confirmed).
+	var dl0=el('eft_delete');
+	if(dl0)dl0.addEventListener('click',function(){var b=el('eft_delete_box');b.hidden=!b.hidden;});
+	var dcancel=el('eft_delete_cancel');
+	if(dcancel)dcancel.addEventListener('click',function(){el('eft_delete_box').hidden=true;});
+	var dsend=el('eft_delete_send');
+	if(dsend)dsend.addEventListener('click',function(){
+		var msg=el('eft_delete_msg');msg.className='eft-msg';msg.textContent='Emailing your confirmation code…';
+		post('request_delete',{token:localStorage.getItem(tokenKey)}).then(function(r){
+			msg.className='eft-msg '+(r&&r.ok?'is-ok':'is-err');msg.textContent=(r&&r.message)||'Could not send code.';
+			if(r&&r.ok){el('eft_delete_confirm').hidden=false;el('eft_delete_confirm_btn').hidden=false;}
+		}).catch(function(){msg.className='eft-msg is-err';msg.textContent='Network error.';});
+	});
+	var dconf=el('eft_delete_confirm_btn');
+	if(dconf)dconf.addEventListener('click',function(){
+		var msg=el('eft_delete_msg');msg.className='eft-msg';msg.textContent='Deleting…';
+		post('confirm_delete',{token:localStorage.getItem(tokenKey),code:el('eft_delete_code').value}).then(function(r){
+			if(r&&r.ok){localStorage.removeItem(tokenKey);curAcc=null;msg.className='eft-msg is-ok';msg.textContent=r.message||'Deleted.';setTimeout(function(){showGate();selectTab(false);},1200);}
+			else{msg.className='eft-msg is-err';msg.textContent=(r&&r.message)||'Could not delete.';}
 		}).catch(function(){msg.className='eft-msg is-err';msg.textContent='Network error.';});
 	});
 	var chg=el('eft_change_country');
-	if(chg)chg.addEventListener('click',function(){el('eft_app').hidden=true;el('eft_gate').hidden=false;});
+	if(chg)chg.addEventListener('click',function(){showGate();});
 	var addLine=el('eft_add_line');
 	if(addLine)addLine.addEventListener('click',function(){
 		var d=document.createElement('div');d.className='eft-line';
