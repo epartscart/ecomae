@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Financial depth — D365 F&O-style period management, FX revaluation, ledger
+ * Financial depth — period management, FX revaluation, ledger
  * allocation rules, and accrual schemes.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
@@ -16,7 +16,7 @@ $summary = epc_fin_adv_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-sliders"></i> Financial depth',
-	'D365 F&amp;O-style fiscal period management, foreign-currency revaluation, ledger allocation rules and accrual schemes.',
+	'Enterprise fiscal period management, foreign-currency revaluation, ledger allocation rules and accrual schemes.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Financial depth'),

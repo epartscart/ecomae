@@ -291,7 +291,7 @@ body.epc-erp-cp-shell {
 
 .epc-erp-sidebar-item--external a { opacity: 0.85; font-style: italic; }
 
-/* D365 F&O sub-module group heading inside an area sublist */
+/* enterprise sub-module group heading inside an area sublist */
 .epc-erp-sidebar-subhead {
 	padding: 9px 16px 3px 18px;
 	font-size: 10px;
@@ -310,7 +310,7 @@ body.epc-erp-cp-shell {
 	z-index: 90;
 }
 
-/* D365 F&O nav-pane collapse toggle + icon rail with hover flyout */
+/* enterprise nav-pane collapse toggle + icon rail with hover flyout */
 .epc-erp-sidebar-collapse-toggle {
 	display: inline-flex;
 	background: transparent;
@@ -714,9 +714,9 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Dynamics 365 Finance & Operations entry-module theme
-   Scoped under .epc-erp-d365 so only ERP entry modules adopt the F&O look.
-   Tokens mirror F&O: dense, flat, Segoe-family, #0078d4 accent, hairline grids.
+   enterprise entry-module theme
+   Scoped under .epc-erp-d365 so only ERP entry modules adopt the enterprise look.
+   Tokens mirror enterprise: dense, flat, Segoe-family, #0078d4 accent, hairline grids.
    ══════════════════════════════════════════════════════════════════════════ */
 .epc-erp-d365 {
 	--d365-accent: #0078d4;
@@ -733,7 +733,7 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	color: var(--d365-ink);
 }
 
-/* Page header → F&O title band */
+/* Page header → title band */
 .epc-erp-d365 .epc-erp-page-hd {
 	margin-bottom: 8px;
 	padding-bottom: 6px;
@@ -861,7 +861,7 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 .epc-d365-field .lbl { display: block; font-size: 11px; color: var(--d365-ink-soft); margin-bottom: 2px; }
 .epc-d365-field .val { font-size: 13px; color: var(--d365-ink); border-bottom: 1px solid var(--d365-line); padding-bottom: 3px; min-height: 20px; }
 
-/* ── Dense F&O data grid ── */
+/* ── Dense data grid ── */
 .epc-erp-d365 .epc-erp-section-card { border-radius: 2px; box-shadow: none; border-color: var(--d365-line); }
 .epc-erp-d365 .epc-erp-section-card-hd { background: var(--d365-band); padding: 9px 14px; }
 .epc-erp-d365 .epc-erp-section-card-hd h4 { font-size: 13px; font-weight: 600; }
@@ -959,7 +959,7 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 }
 .epc-erp-d365 .epc-erp-filter-bar label { font-size: 11px; }
 
-/* Map Bootstrap labels used in legacy module markup onto F&O pills */
+/* Map Bootstrap labels used in legacy module markup onto pills */
 .epc-erp-d365 .epc-erp-table .label {
 	display: inline-block;
 	padding: 1px 9px;

@@ -1,8 +1,8 @@
 <?php
 /**
- * Platform — role-based security (D365 F&O-style privileges → duties → roles).
+ * Platform — role-based security (enterprise privileges → duties → roles).
  *
- * Mirrors the D365 security hierarchy:
+ * Mirrors the enterprise security hierarchy:
  *   privilege  : granular access to a function at an access level
  *                (read < update < create < delete < full)
  *   duty       : a job task = a set of privileges

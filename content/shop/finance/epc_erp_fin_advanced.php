@@ -1,6 +1,6 @@
 <?php
 /**
- * Financial depth — D365 F&O-style period management, foreign-currency
+ * Financial depth — enterprise period management, foreign-currency
  * revaluation, ledger allocation rules, and accrual schemes.
  *
  * Additive: new epc_fin_* tables. Pure compute helpers (period generation,

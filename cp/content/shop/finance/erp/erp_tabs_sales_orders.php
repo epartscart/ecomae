@@ -224,7 +224,7 @@ if ($erpOnly) {
 	erp_fasttab_close();
 	erp_tabpanel_close(); // Lines view
 
-	// Header view — F&O "Header" toggle showing the order header form layout.
+	// Header view — "Header" toggle showing the order header form layout.
 	erp_tabpanel_open('epc_erp_so_header', 'epc_erp_so_view');
 	$epcSoHead = !empty($orders) ? $orders[0] : null;
 	$epcSoHeadId = $epcSoHead ? (string) ($epcSoHead['so_no'] ?? '') : 'New order';
@@ -258,7 +258,7 @@ if ($erpOnly) {
 		. '<div class="epc-d365-field"><span class="lbl">Currency</span><span class="val">' . epc_erp_h($epcSoCurrency) . '</span></div>'
 		. '<div class="epc-d365-field"><span class="lbl">Order status</span><span class="val">' . ($epcSoHead ? erp_status_pill($epcSoHead['status']) : '—') . '</span></div>'
 		. '</div>';
-	echo '<p class="text-muted" style="margin-top:8px;">Switch back to <strong>Lines</strong> to edit the order grid and create new sales orders. This Header view mirrors the Dynamics 365 order header layout.</p>';
+	echo '<p class="text-muted" style="margin-top:8px;">Switch back to <strong>Lines</strong> to edit the order grid and create new sales orders. This Header view mirrors the standard order header layout.</p>';
 	erp_fasttab_close();
 	erp_tabpanel_close(); // Header view
 	return;

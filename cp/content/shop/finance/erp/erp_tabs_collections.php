@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Collections & credit management — D365 F&O-style collections workspace:
+ * Collections & credit management — collections workspace:
  * cases, activities, promise-to-pay, dunning runs and credit-hold log.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
@@ -16,7 +16,7 @@ $summary = epc_coll_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-gavel"></i> Collections',
-	'D365 F&amp;O-style collections workspace — cases, activities, promise-to-pay, dunning runs and credit holds, on top of the credit/ageing engine.',
+	'Enterprise collections workspace — cases, activities, promise-to-pay, dunning runs and credit holds, on top of the credit/ageing engine.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Collections'),

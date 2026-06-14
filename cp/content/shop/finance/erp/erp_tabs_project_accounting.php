@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Project accounting depth — D365 F&O-style project budgets vs actuals, WIP and
+ * Project accounting depth — project budgets vs actuals, WIP and
  * revenue recognition (PoC / completed-contract / straight-line).
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_project_accounting.php';
@@ -18,7 +18,7 @@ $selPid = (int) ($_GET['pid'] ?? (isset($projects[0]) ? (int) $projects[0]['id']
 
 erp_page_header(
 	'<i class="fa fa-pie-chart"></i> Project accounting',
-	'D365 F&amp;O-style project budgets vs actuals, work-in-progress (WIP) and revenue recognition (percentage-of-completion / completed-contract / straight-line).',
+	'Enterprise project budgets vs actuals, work-in-progress (WIP) and revenue recognition (percentage-of-completion / completed-contract / straight-line).',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Project accounting'),

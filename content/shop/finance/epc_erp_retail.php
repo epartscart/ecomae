@@ -1,6 +1,6 @@
 <?php
 /**
- * Retail / Commerce — D365 F&O Commerce-style channels, assortments, retail
+ * Retail / Commerce — Commerce channels, assortments, retail
  * pricing & periodic discounts, POS transactions and end-of-day statements.
  *
  * - Channels: retail stores / online channels (currency, type).

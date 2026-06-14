@@ -8,7 +8,7 @@
  * Design notes
  * ------------
  *  - Multi-company aware: every record is stamped with the active company id
- *    (D365 F&O-style legal entity) so each company keeps its own register.
+ *    (enterprise legal entity) so each company keeps its own register.
  *  - Country-driven compliance (hard platform rule): the statutory document
  *    checklist + default reminder lead times are resolved from the tenant's
  *    REGISTRATION COUNTRY via epc_co_profile_get() — never hard-coded, with a

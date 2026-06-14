@@ -352,13 +352,13 @@ function epc_cs_field_definitions($category = '')
 		$extra = array(
 			'supplier_code_customs' => array('label' => 'Supplier code (customs)', 'type' => 'text'),
 			'custom_inspection' => array('label' => 'Custom inspection', 'type' => 'select', 'options' => array('', 'YES', 'NO')),
-			'd365_po_reference' => array('label' => 'D365 PO reference', 'type' => 'text'),
+			'd365_po_reference' => array('label' => 'ERP PO reference', 'type' => 'text'),
 		);
 	} elseif ($category === 'export' || $category === 'transit' || $category === 'temp_admission' || $category === 'transfer') {
 		$extra = array(
 			'import_reexport_declaration_ref' => array('label' => 'Import (re-export) declaration ref #', 'type' => 'text'),
 			'document_expiry_date' => array('label' => 'Document expiry date', 'type' => 'date'),
-			'd365_so_reference' => array('label' => 'D365 SO reference', 'type' => 'text'),
+			'd365_so_reference' => array('label' => 'ERP SO reference', 'type' => 'text'),
 			'customer_ref' => array('label' => 'Customer ref', 'type' => 'text'),
 			'customer_country' => array('label' => 'Customer country', 'type' => 'text'),
 		);

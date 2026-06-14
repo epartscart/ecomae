@@ -1,6 +1,6 @@
 <?php
 /**
- * Module: Business Unit (D365 F&O style).
+ * Module: Business Unit (enterprise style).
  * Sub-modules: Business units, Class units, Legal entities, Financial
  * dimensions (+ values), Cost centres, Listing reference.
  * All per-tenant, config-driven via epc_erp_pm_* masters.

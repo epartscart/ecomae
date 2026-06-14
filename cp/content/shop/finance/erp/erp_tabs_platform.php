@@ -17,7 +17,7 @@ $summary = epc_plt_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-cogs"></i> Platform services',
-	'Cross-cutting platform: batch jobs, feature management, workflow and data entities (D365 F&amp;O platform layer).',
+	'Cross-cutting platform: batch jobs, feature management, workflow and data entities (enterprise platform layer).',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Platform services'),

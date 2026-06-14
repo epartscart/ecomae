@@ -1,6 +1,6 @@
 <?php
 /**
- * Organization administration / Enterprise — D365 F&O-style global address book
+ * Organization administration / Enterprise — enterprise global address book
  * (parties, postal addresses, electronic contacts) and working calendars
  * (working-week + holidays with due-date arithmetic).
  *

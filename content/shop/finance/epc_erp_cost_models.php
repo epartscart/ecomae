@@ -1,6 +1,6 @@
 <?php
 /**
- * Costing value-models — D365 F&O-style inventory valuation methods with
+ * Costing value-models — enterprise inventory valuation methods with
  * inventory recalculation / closing.
  *
  * Supports Standard, FIFO, LIFO and Moving-average costing. Pure compute

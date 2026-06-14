@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Manufacturing depth — D365 F&O-style work centers, routes/operations with a
+ * Manufacturing depth — work centers, routes/operations with a
  * finite-capacity schedule preview, and a regenerative multi-level MRP run.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_mfg_routing.php';
@@ -22,7 +22,7 @@ foreach ($wcs as $w) {
 
 erp_page_header(
 	'<i class="fa fa-cogs"></i> Manufacturing planning',
-	'D365 F&amp;O-style routes &amp; operations, work-center capacity scheduling, and a regenerative multi-level MRP run with level-by-level netting.',
+	'Enterprise routes &amp; operations, work-center capacity scheduling, and a regenerative multi-level MRP run with level-by-level netting.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Manufacturing planning'),
@@ -178,7 +178,7 @@ $views = array('mrp' => 'MRP', 'routes' => 'Routes & ops', 'workcenters' => 'Wor
 			<thead><tr><th>Item</th><th>Type</th><th class="text-right">Qty</th><th class="text-right">Level</th><th>Status</th><th></th></tr></thead>
 			<tbody>
 			<?php if (empty($planned)): ?>
-				<tr><td colspan="6" class="text-muted">No plan. Enter demand and regenerate — lowest-level items are sequenced first (D365 low-level coding).</td></tr>
+				<tr><td colspan="6" class="text-muted">No plan. Enter demand and regenerate — lowest-level items are sequenced first (low-level coding).</td></tr>
 			<?php else: foreach ($planned as $p): ?>
 				<tr>
 					<td><strong><?php echo (int) $p['item_id']; ?></strong></td>

@@ -95,7 +95,7 @@ if (!empty($_POST['setup_action'])) {
 				if ($pack !== '' && epc_erp_industry_pack($pack) === null) {
 					$pack = '';
 				}
-				// Persist per active company (D365-style); the setter also syncs
+				// Persist per active company; the setter also syncs
 				// the tenant-wide default for legacy read paths.
 				epc_erp_company_industry_pack_set($db_link, epc_erp_active_company_id($db_link), $pack);
 				if ($pack === '') {
@@ -256,7 +256,7 @@ foreach (epc_erp_voucher_prefix_map() as $vt => $defPrefix) {
 			<?php else: ?>
 				<span class="text-muted">no product dimensions active</span>
 			<?php endif; ?>
-			&nbsp;&rarr; set up <a href="<?php echo epc_erp_h($dimsUrl); ?>">Dimensions &amp; variants</a> (D365-style Size / Colour / Style / Configuration).
+			&nbsp;&rarr; set up <a href="<?php echo epc_erp_h($dimsUrl); ?>">Dimensions &amp; variants</a> (Size / Colour / Style / Configuration).
 		</p>
 	</div>
 </div>

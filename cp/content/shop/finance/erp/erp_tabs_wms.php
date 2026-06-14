@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Advanced WMS — D365 F&O-style warehousing: locations/bins, license plates,
+ * Advanced WMS — warehousing: locations/bins, license plates,
  * work pool (put-away / pick / move / count) with a mobile "RF" complete
  * action, inbound receive, and outbound waves.
  */
@@ -25,7 +25,7 @@ foreach ($locations as $l) {
 
 erp_page_header(
 	'<i class="fa fa-cubes"></i> Advanced WMS',
-	'D365 F&amp;O-style warehouse management — locations &amp; bins, license plates, wave processing and a mobile RF work pool (put-away, pick, move, cycle count).',
+	'Enterprise warehouse management — locations &amp; bins, license plates, wave processing and a mobile RF work pool (put-away, pick, move, cycle count).',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Advanced WMS'),

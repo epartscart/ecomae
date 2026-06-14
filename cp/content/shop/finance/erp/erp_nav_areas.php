@@ -459,7 +459,7 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 		echo '<i class="fa fa-chevron-right epc-erp-sidebar-chevron" aria-hidden="true"></i>';
 		echo '</button>';
 		echo '<ul class="epc-erp-sidebar-sublist">';
-		// D365 F&O style: group sub-modules (Common / Journals / Inquiries and
+		// Enterprise style: group sub-modules (Common / Journals / Inquiries and
 		// reports / Setup / Periodic …) when the area defines a 'groups' map.
 		if (!empty($area['groups']) && is_array($area['groups'])) {
 			$rendered = array();
@@ -537,7 +537,7 @@ function epc_erp_render_content_header($erpUrl, $activeArea, $activeTab, $from, 
 	}
 	$dashUrl = epc_erp_h(epc_erp_tab_url($erpUrl, 'dashboard', $from, $to, 'overview'));
 	echo '<div class="epc-erp-content-header">';
-	// D365-style company (legal-entity) picker, top-right of the header.
+	// Company (legal-entity) picker, top-right of the header.
 	$companyPicker = '';
 	if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
 		if (!function_exists('epc_erp_company_picker_html')) {

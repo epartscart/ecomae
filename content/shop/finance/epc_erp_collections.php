@@ -1,6 +1,6 @@
 <?php
 /**
- * Collections & credit management — D365 F&O-style collections workspace on top
+ * Collections & credit management — enterprise collections workspace on top
  * of the existing credit/ageing engine.
  *
  * Adds: collection cases (status + promise-to-pay), a collections activity log,

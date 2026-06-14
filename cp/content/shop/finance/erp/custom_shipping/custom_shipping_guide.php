@@ -105,9 +105,9 @@ function epc_csg_required_labels($category)
 						<h5><i class="fa <?php echo epc_cs_h($catMeta['icon'] ?? 'fa-folder'); ?>" style="color:<?php echo epc_cs_h($catMeta['color'] ?? '#64748b'); ?>;"></i> <?php echo epc_cs_h($catMeta['label']); ?></h5>
 						<p><strong>Required:</strong> <?php echo epc_cs_h(implode(', ', $req)); ?></p>
 						<?php if ($catKey === 'import'): ?>
-							<p class="text-muted" style="margin:0;">Also capture supplier code (customs), custom inspection, and D365 PO reference. HS codes and origins go on declaration line items (see Step 6).</p>
+							<p class="text-muted" style="margin:0;">Also capture supplier code (customs), custom inspection, and ERP PO reference. HS codes and origins go on declaration line items (see Step 6).</p>
 						<?php elseif (in_array($catKey, array('export', 'transit', 'temp_admission', 'transfer'), true)): ?>
-							<p class="text-muted" style="margin:0;">Also capture import (re-export) declaration ref #, document expiry date, D365 SO reference, customer ref, and customer country where applicable.</p>
+							<p class="text-muted" style="margin:0;">Also capture import (re-export) declaration ref #, document expiry date, ERP SO reference, customer ref, and customer country where applicable.</p>
 						<?php elseif ($catKey === 'lgp'): ?>
 							<p class="text-muted" style="margin:0;">LGP is the local gate pass / warehouse intake workflow — no customs declaration type dropdown.</p>
 						<?php endif; ?>
@@ -173,7 +173,7 @@ function epc_csg_required_labels($category)
 			</div>
 
 			<div class="alert alert-warning" style="margin-top:18px;">
-				<strong>Phase 3 (deferred):</strong> Full Excel Cost Summary (LC/bank charges, marine insurance, 18-line cost breakdown), automated duty calculations, VAT document tracking, company/supplier master lists, D365 PO/SO sync, and Excel formula parity.
+				<strong>Phase 3 (deferred):</strong> Full Excel Cost Summary (LC/bank charges, marine insurance, 18-line cost breakdown), automated duty calculations, VAT document tracking, company/supplier master lists, ERP PO/SO sync, and Excel formula parity.
 			</div>
 
 		</div>

@@ -114,20 +114,20 @@ function epc_erp_render_tab_nav($erpUrl, $activeTab, $from, $to, array $allowedT
 
 /**
  * ──────────────────────────────────────────────────────────────────────────
- * D365 Finance & Operations entry-module chrome
+ * enterprise entry-module chrome
  *
  * Reusable building blocks that give our ERP entry modules (Sales order,
  * Purchase order, Inventory, Receivables, Payables, General journal) the
- * Dynamics 365 F&O look & feel: a command Action Pane, collapsible FastTabs,
+ * enterprise enterprise look & feel: a command Action Pane, collapsible FastTabs,
  * status pills, dense data grids and a FactBox rail. These are pure
  * presentation helpers — they emit markup only and never touch business logic.
- * All D365 styling is scoped under the `.epc-erp-d365` wrapper that the ERP
+ * All enterprise styling is scoped under the `.epc-erp-d365` wrapper that the ERP
  * workspace shell carries, so other CP modules are unaffected.
  * ──────────────────────────────────────────────────────────────────────────
  */
 
 /**
- * Render a D365-style Action Pane (command ribbon).
+ * Render a enterprise-style Action Pane (command ribbon).
  *
  * @param array $groups [ ['label'=>'Maintain', 'buttons'=>[
  *     ['label'=>'New','icon'=>'fa-plus','url'|'id'=>...,'class'=>'is-primary','target'=>'#anchor'],
@@ -176,8 +176,8 @@ function erp_action_pane(array $groups)
 }
 
 /**
- * Render the full D365 F&O two-row Action Pane ribbon: Row 1 = menu tabs that
- * switch Row 2 = the active tab's command groups (exactly like F&O).
+ * Render the full enterprise two-row Action Pane ribbon: Row 1 = menu tabs that
+ * switch Row 2 = the active tab's command groups (exactly like the reference UI).
  *
  * @param array $tabs [ ['label'=>'Sales order','key'=>'so','active'=>true,
  *     'groups'=>[ ['label'=>'New','buttons'=>[ ... ]] ]] ]
@@ -277,7 +277,7 @@ function erp_tabpanel_close()
 }
 
 /**
- * D365 list filter strip: saved-view selector, "Show" dropdown and a live
+ * enterprise list filter strip: saved-view selector, "Show" dropdown and a live
  * client-side quick filter. The selectors are presentational look-ups; the
  * quick filter hides non-matching rows of the table named in search.target.
  *
@@ -324,7 +324,7 @@ function erp_list_toolbar(array $opts = array())
 }
 
 /**
- * D365 status dot for the grid status column.
+ * enterprise status dot for the grid status column.
  */
 function erp_status_dot($tone = 'muted')
 {
@@ -332,7 +332,7 @@ function erp_status_dot($tone = 'muted')
 }
 
 /**
- * Open a D365 FastTab (collapsible section).
+ * Open a enterprise FastTab (collapsible section).
  *
  * @param string $title
  * @param array  $opts ['open'=>bool, 'summary'=>string, 'icon'=>'fa-...', 'id'=>string]
@@ -360,7 +360,7 @@ function erp_fasttab_close()
 }
 
 /**
- * Derive a D365 tone (ok/info/warn/bad/muted) from a status word.
+ * Derive a enterprise tone (ok/info/warn/bad/muted) from a status word.
  */
 function erp_status_tone($label)
 {
@@ -376,7 +376,7 @@ function erp_status_tone($label)
 }
 
 /**
- * D365 status pill. Tone auto-derived from common status words when omitted.
+ * enterprise status pill. Tone auto-derived from common status words when omitted.
  */
 function erp_status_pill($label, $tone = '')
 {
@@ -550,7 +550,7 @@ function erp_empty_state($message, $icon = 'fa-inbox')
 
 /**
  * Open a data grid. Each header may be a plain string (rendered as-is) or an
- * array for D365 grids: ['label'=>'Total','sort'=>'num'|'text','class'=>'num'].
+ * array for enterprise grids: ['label'=>'Total','sort'=>'num'|'text','class'=>'num'].
  * Pass $tableId to enable the live quick filter / column sort targeting.
  */
 function erp_table_open($headers, $tableClass = 'table table-striped table-bordered table-condensed table-epc epc-erp-table', $tableId = '')

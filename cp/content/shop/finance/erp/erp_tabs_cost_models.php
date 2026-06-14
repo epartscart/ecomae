@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Costing value-models — D365 F&O-style Standard / FIFO / LIFO / Moving-average
+ * Costing value-models — Standard / FIFO / LIFO / Moving-average
  * inventory valuation with recalculation / closing.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cost_models.php';
@@ -16,7 +16,7 @@ $summary = epc_costm_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-balance-scale"></i> Costing value-models',
-	'D365 F&amp;O-style inventory valuation — Standard / FIFO / LIFO / Moving-average with recalculation &amp; closing. Analysis layer; live valuation is unchanged.',
+	'Enterprise inventory valuation — Standard / FIFO / LIFO / Moving-average with recalculation &amp; closing. Analysis layer; live valuation is unchanged.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Costing value-models'),

@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Retail / Commerce — D365 F&O Commerce-style channels, assortments, periodic
+ * Retail / Commerce — Commerce channels, assortments, periodic
  * discounts, POS sales and end-of-day statements.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_retail.php';
@@ -16,7 +16,7 @@ $summary = epc_rtl_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-shopping-cart"></i> Retail &amp; Commerce',
-	'D365 F&amp;O Commerce-style channels, assortments, periodic discounts, POS sales and end-of-day statements.',
+	'Commerce channels, assortments, periodic discounts, POS sales and end-of-day statements.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Retail &amp; Commerce'),

@@ -1,6 +1,6 @@
 <?php
 /**
- * Shared renderer for the D365-style master-data modules.
+ * Shared renderer for the enterprise master-data modules.
  *
  * epc_erp_pm_section() renders one "code + name + extra fields" master as a
  * create form + live list, posting through the generic `pm_save` AJAX action.
@@ -64,7 +64,7 @@ if (!function_exists('epc_erp_pm_section')) {
 		$count = count($rows);
 		echo '<div class="epc-erp-section pm-section epc-d365-form" data-pm-section style="margin-bottom:22px;">';
 
-		// D365 Action Pane (tab strip + command toolbar)
+		// Action Pane (tab strip + command toolbar)
 		echo '<div class="epc-d365-actionpane">';
 		echo '<div class="epc-d365-ap-tabstrip"><span class="epc-d365-ap-tab is-active">' . epc_erp_h($title) . '</span></div>';
 		echo '<div class="epc-d365-ap-toolbar">';
@@ -73,7 +73,7 @@ if (!function_exists('epc_erp_pm_section')) {
 		echo '<span class="epc-d365-ap-count"><i class="fa ' . epc_erp_h($icon) . '"></i> ' . $count . ' record' . ($count === 1 ? '' : 's') . '</span>';
 		echo '</div></div>';
 
-		// New-record panel rendered as a D365 FastTab (hidden until "New")
+		// New-record panel rendered as a FastTab (hidden until "New")
 		echo '<form class="pm-form epc-erp-pm-form epc-d365-newpanel" data-pm-table="' . epc_erp_h($table) . '">';
 		echo '<input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
 		echo '<input type="hidden" name="pm_table" value="' . epc_erp_h($table) . '">';
@@ -87,7 +87,7 @@ if (!function_exists('epc_erp_pm_section')) {
 		echo '<div class="epc-d365-newpanel-actions"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-check"></i> Save record</button> <button type="button" class="btn btn-default btn-sm" data-pm-cancel>Cancel</button></div>';
 		echo '</div></div></form>';
 
-		// D365 grid list page
+		// Grid list page
 		if (empty($rows)) {
 			echo '<div class="epc-d365-grid-empty"><i class="fa ' . epc_erp_h($icon) . '"></i><p>No records yet — choose <strong>New</strong> to add the first one.</p></div>';
 		} else {
@@ -127,8 +127,8 @@ if (!function_exists('epc_erp_pm_inline_assets')) {
 		$done = true;
 		?>
 <style>
-/* ── Dynamics 365 Finance & Operations form styling ── */
-/* Sub-module strip = D365 form tab pages */
+/* ── Enterprise form styling ── */
+/* Sub-module strip = form tab pages */
 .pm-module-tabs{display:flex;flex-wrap:wrap;gap:0;margin:0 0 18px;border-bottom:1px solid #c8c6c4;padding:0}
 .pm-module-tabs a{padding:9px 16px;font-size:13px;font-weight:600;color:#605e5c;text-decoration:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent}
 .pm-module-tabs a.active{color:#0f6cbd;border-bottom-color:#0f6cbd}
@@ -160,7 +160,7 @@ if (!function_exists('epc_erp_pm_inline_assets')) {
 .epc-d365-fasttab.is-open .epc-d365-fasttab-bd{display:block}
 .epc-d365-newpanel-actions{margin-top:12px}
 
-/* Form fields (D365 single-column-ish grid of labelled inputs) */
+/* Form fields (single-column-ish grid of labelled inputs) */
 .pm-fields{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;background:transparent;border:0;border-radius:0;padding:0}
 .pm-field{display:flex;flex-direction:column;gap:4px;min-width:200px;flex:0 1 240px}
 .pm-field label{font-size:12px;font-weight:600;text-transform:none;letter-spacing:0;color:#323130;margin:0}

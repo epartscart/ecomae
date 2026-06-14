@@ -1,6 +1,6 @@
 <?php
 /**
- * Manufacturing depth — D365 F&O-style routes/operations, work centers
+ * Manufacturing depth — enterprise routes/operations, work centers
  * (resources), finite/infinite capacity scheduling, and a regenerative,
  * multi-level MRP run with level-by-level netting against on-hand.
  *
@@ -390,7 +390,7 @@ if (!function_exists('epc_mfgr_mrp_run')) {
         $ins = $db->prepare("INSERT INTO `epc_mfg_planned` (`company_id`,`item_id`,`order_type`,`qty`,`level`,`due_date`,`source`,`status`,`time_created`) VALUES (?,?,?,?,?,?,?,?,?)");
         $now = time();
         $result = array();
-        // order by level desc so lowest-level (raw materials) come first, like D365 low-level coding
+        // order by level desc so lowest-level (raw materials) come first, like low-level coding
         usort($agg, static function ($a, $b) { return $b['level'] <=> $a['level']; });
         foreach ($agg as $o) {
             $ins->execute(array($companyId, (int) $o['item_id'], (string) $o['order_type'], (float) $o['qty'], (int) $o['level'], $dueTs, 'mrp', 'planned', $now));

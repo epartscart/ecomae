@@ -1,6 +1,6 @@
 <?php
 /**
- * Quality management — D365 F&O-style test plans, quality orders and
+ * Quality management — enterprise test plans, quality orders and
  * non-conformance (NCR).
  *
  * - Test plans: a named set of tests, each with a measurement type

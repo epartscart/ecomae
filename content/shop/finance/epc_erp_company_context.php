@@ -1,8 +1,8 @@
 <?php
 /**
- * Advanced ERP — Company context (D365 F&O-style multi-company / legal-entity).
+ * Advanced ERP — Company context (enterprise multi-company / legal-entity).
  *
- * D365 lets one installation hold many legal entities (companies); a top-bar
+ * enterprise lets one installation hold many legal entities (companies); a top-bar
  * company picker selects the active company and the whole app works in that
  * context. This layer adds that concept on top of the existing, user-managed
  * legal-entity master (`epc_erp_pm_legal_entities`, configured under
@@ -11,7 +11,7 @@
  *     first legal entity (auto-seeded from the tenant company profile),
  *   - per-company settings (industry pack, …) override the tenant-wide
  *     defaults, so each company can be a different industry / structure —
- *     exactly the D365 flexibility.
+ *     exactly the enterprise flexibility.
  *
  * Additive + backward compatible: when no per-company override exists, the
  * existing tenant-wide platform setting is used, so current single-company
@@ -194,7 +194,7 @@ if (!function_exists('epc_erp_company_switch_url')) {
 
 if (!function_exists('epc_erp_company_picker_html')) {
     /**
-     * Render the D365-style top-bar company picker (a small dropdown of the
+     * Render the enterprise-style top-bar company picker (a small dropdown of the
      * tenant's legal entities, current one highlighted).
      */
     function epc_erp_company_picker_html(PDO $db): string

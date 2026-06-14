@@ -20,7 +20,7 @@ foreach ($years as $y) {
 
 erp_page_header(
 	'<i class="fa fa-calendar-check-o"></i> Year-end closing',
-	'Fiscal years &amp; periods, close P&amp;L to retained earnings, carry opening balances forward (D365 F&amp;O period close).',
+	'Fiscal years &amp; periods, close P&amp;L to retained earnings, carry opening balances forward (enterprise year-end period close).',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Year-end closing'),

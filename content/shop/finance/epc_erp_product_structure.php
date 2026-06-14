@@ -1,8 +1,8 @@
 <?php
 /**
- * Advanced ERP — Product structure (D365 F&O-style product dimensions + variants).
+ * Advanced ERP — Product structure (enterprise product dimensions + variants).
  *
- * D365 models an item's structure with three dimension categories:
+ * enterprise models an item's structure with three dimension categories:
  *   - Product dimensions  : Configuration, Size, Colour, Style, Version
  *   - Storage dimensions  : Site, Warehouse, Location
  *   - Tracking dimensions : Batch, Serial
@@ -22,7 +22,7 @@ defined('_ASTEXE_') or die('No access');
 if (!function_exists('epc_erp_prod_dimension_catalog')) {
     /**
      * The fixed catalog of dimension categories and the dimensions inside each,
-     * mirroring D365 F&O.
+     * mirroring enterprise.
      *
      * @return array<string,array<string,mixed>>
      */

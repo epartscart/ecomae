@@ -18,7 +18,7 @@ $summary = epc_oa_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-sitemap"></i> Organization administration',
-	'Legal entities &amp; org hierarchy, global address book, and working calendars (D365 F&amp;O Enterprise).',
+	'Legal entities &amp; org hierarchy, global address book, and working calendars (Enterprise organization administration).',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Organization administration'),

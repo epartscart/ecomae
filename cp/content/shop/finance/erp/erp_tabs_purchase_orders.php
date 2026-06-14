@@ -144,7 +144,7 @@ erp_tabpanel_close();
 erp_fasttab_close();
 erp_tabpanel_close(); // Lines view
 
-// Header view — F&O "Header" toggle.
+// Header view — "Header" toggle.
 erp_tabpanel_open('epc_erp_po_header', 'epc_erp_po_view');
 $epcPoHead = !empty($pos) ? $pos[0] : null;
 echo '<div class="epc-d365-titleblock"><div><span class="epc-d365-recid">' . epc_erp_h($epcPoHead ? ($epcPoHead['po_no'] ?? 'New PO') : 'New PO') . '</span>'
@@ -156,6 +156,6 @@ echo '<div class="epc-d365-fieldgrid">'
 	. '<div class="epc-d365-field"><span class="lbl">Vendor account</span><span class="val">' . epc_erp_h($epcPoHead ? ($epcPoHead['supplier_name'] ?? '—') : '—') . '</span></div>'
 	. '<div class="epc-d365-field"><span class="lbl">Purchase status</span><span class="val">' . ($epcPoHead ? erp_status_pill($epcPoHead['status']) : '—') . '</span></div>'
 	. '</div>';
-echo '<p class="text-muted" style="margin-top:8px;">Switch back to <strong>Lines</strong> to edit the PO grid. This Header view mirrors the Dynamics 365 purchase order header.</p>';
+echo '<p class="text-muted" style="margin-top:8px;">Switch back to <strong>Lines</strong> to edit the PO grid. This Header view mirrors the standard purchase order header.</p>';
 erp_fasttab_close();
 erp_tabpanel_close(); // Header view

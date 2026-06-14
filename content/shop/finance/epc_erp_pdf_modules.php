@@ -1,6 +1,6 @@
 <?php
 /**
- * Advanced ERP — D365 F&O-style structural / master-data modules.
+ * Advanced ERP — enterprise structural / master-data modules.
  *
  * Implements the module + sub-module set requested by the client (PDF):
  *   - Business Unit (business units, class units, financial dimensions,

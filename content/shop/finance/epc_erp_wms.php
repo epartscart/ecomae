@@ -1,13 +1,13 @@
 <?php
 /**
- * Advanced Warehouse Management (WMS) — D365 F&O-style warehousing layer:
+ * Advanced Warehouse Management (WMS) — enterprise warehousing layer:
  * warehouse locations / bins (zones), license plates (LP / pallets), work
  * pool (put-away, pick, count, move), wave processing for outbound orders,
  * and mobile "RF" step actions (scan-driven complete).
  *
  * Multi-company aware (company_id stamping + filtering). Additive — does not
  * change posting/GL; inventory quantity-on-hand is reflected by LP balances
- * per location, mirroring D365's on-hand-by-location model.
+ * per location, mirroring the platform's on-hand-by-location model.
  */
 
 declare(strict_types=1);

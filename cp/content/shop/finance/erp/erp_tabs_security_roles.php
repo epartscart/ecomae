@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Platform — role-based security (D365 F&O-style privileges -> duties -> roles
+ * Platform — role-based security (privileges -> duties -> roles
  * -> user assignment) with an effective-access explorer.
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
@@ -16,7 +16,7 @@ $summary = epc_rbac_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-shield"></i> Security roles',
-	'D365 F&amp;O-style role-based security: privileges → duties → roles → user assignment, with an effective-access explorer.',
+	'Enterprise role-based security: privileges → duties → roles → user assignment, with an effective-access explorer.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Security roles'),

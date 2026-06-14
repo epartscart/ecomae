@@ -17,7 +17,7 @@ function epc_erp_staff_all_tabs()
 		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit', 'exec_dashboard',
 		'agenda', 'projects', 'contacts', 'documents', 'contracts',
 		'erp_setup', 'data_import',
-		// D365 F&O-style modules
+		// enterprise modules
 		'business_units', 'listing', 'budgeting',
 		'product_info', 'inv_groups', 'master_planning', 'retail_barcode',
 		'ap_setup', 'ar_setup', 'bank_setup',

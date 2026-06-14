@@ -242,7 +242,7 @@ if ($view === 'fields') {
 	$activeProd = (array) $group['product'];
 
 	echo '<div class="epc-erp-section"><h4><i class="fa fa-object-group"></i> Product structure — dimensions &amp; variants</h4>';
-	echo '<p class="text-muted">D365-style product structure. A <strong>dimension group</strong> selects which dimensions an item uses. <strong>Product dimensions</strong> (Configuration / Size / Colour / Style / Version), crossed with their registered values, generate the item\'s <strong>variants</strong>. Storage and tracking dimensions describe where/how stock is held and do not create variants.</p>';
+	echo '<p class="text-muted">Advanced product structure. A <strong>dimension group</strong> selects which dimensions an item uses. <strong>Product dimensions</strong> (Configuration / Size / Colour / Style / Version), crossed with their registered values, generate the item\'s <strong>variants</strong>. Storage and tracking dimensions describe where/how stock is held and do not create variants.</p>';
 
 	// 1) Dimension group configuration.
 	echo '<form method="post" action="">';

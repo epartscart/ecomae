@@ -1,6 +1,6 @@
 <?php
 /**
- * Enterprise-parity gap modules (SAP / Oracle / Dynamics 365 equivalents that
+ * Enterprise-parity gap modules (SAP / Oracle / enterprise equivalents that
  * weren't yet explicit):
  *
  *   - MRP / demand planning  (SAP MRP)            : net requirements + planned orders

@@ -1,6 +1,6 @@
 <?php
 /**
- * Platform / cross-cutting services — D365 F&O-style batch jobs (batch job
+ * Platform / cross-cutting services — enterprise batch jobs (batch job
  * definitions + run history + recurrence) and feature management (feature
  * flags toggled per company).
  *

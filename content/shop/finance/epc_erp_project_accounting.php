@@ -1,6 +1,6 @@
 <?php
 /**
- * Project accounting depth — D365 F&O-style project budgets vs actuals,
+ * Project accounting depth — enterprise project budgets vs actuals,
  * cost/revenue transactions, work-in-progress (WIP), and revenue recognition
  * (percentage-of-completion, completed-contract, straight-line).
  *

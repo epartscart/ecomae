@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Quality management — D365 F&O-style test plans, quality orders and
+ * Quality management — test plans, quality orders and
  * non-conformance (NCR).
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
@@ -16,7 +16,7 @@ $summary = epc_qm_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-check-circle"></i> Quality management',
-	'D365 F&amp;O-style test plans, quality orders (inspection results &amp; verdict) and non-conformance (NCR) with corrective actions.',
+	'Enterprise test plans, quality orders (inspection results &amp; verdict) and non-conformance (NCR) with corrective actions.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Quality management'),

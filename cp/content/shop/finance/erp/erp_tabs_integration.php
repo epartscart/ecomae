@@ -1,7 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 /**
- * Data & integration framework — D365 F&O-style data entities, OData-style query
+ * Data & integration framework — data entities, OData-style query
  * explorer, and business events (subscriptions + dispatch log).
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_integration.php';
@@ -16,7 +16,7 @@ $summary = epc_intg_summary($db_link, $companyId);
 
 erp_page_header(
 	'<i class="fa fa-plug"></i> Data &amp; integration',
-	'D365 F&amp;O-style data entities, an OData-style query layer ($select/$filter/$orderby/$top), and business events (subscriptions + dispatch log).',
+	'Enterprise data entities, an OData-style query layer ($select/$filter/$orderby/$top), and business events (subscriptions + dispatch log).',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Data &amp; integration'),

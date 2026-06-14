@@ -253,7 +253,7 @@ $erpTabIncludes = array(
 	'erp_setup' => 'erp_tabs_setup.php',
 	'data_import' => 'erp_tabs_data_import.php',
 	'aging' => 'erp_tabs_aging.php',
-	// D365 F&O-style structural / master-data modules
+	// Enterprise structural / master-data modules
 	'business_units' => 'erp_tabs_business_units.php',
 	'listing' => 'erp_tabs_listing.php',
 	'product_info' => 'erp_tabs_product_info.php',
@@ -315,8 +315,8 @@ if (!$epc_erp_shell_mode) {
 	echo epc_cp_sidebar_early_init_script();
 	echo epc_cp_menu_sections_script();
 }
-// D365 F&O-styled entry modules: Sales order, Purchase order, Inventory,
-// Receivables, Payables and General journal adopt the Dynamics 365 look (action
+// Enterprise-styled entry modules: Sales order, Purchase order, Inventory,
+// Receivables, Payables and General journal adopt the enterprise look (action
 // pane, FastTabs, dense grids). The theme is scoped under `.epc-erp-d365`.
 $epcErpD365Tabs = array('sales_orders', 'purchase_orders', 'inventory', 'receivables', 'payables', 'gl');
 $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
@@ -382,7 +382,7 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance', 'vat_refund',
 				'einvoice', 'pl', 'balance_sheet', 'reports', 'audit',
 				'expense_reports', 'marketing',
-				// D365 F&O period reports that filter by the From/To range.
+				// Period reports that filter by the From/To range.
 				// (consolidation_bu / master_planning are as-of snapshots, and the
 				// master-data modules are excluded, so they carry no date bar.)
 				'enterprise_reports', 'bank_setup',
