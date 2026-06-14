@@ -28,8 +28,8 @@ function epc_erp_staff_all_tabs()
 		'ext_reports',
 		// Risk & Insurance
 		'insurance', 'doc_expiry',
-		// Advanced WMS
-		'wms',
+		// Advanced WMS + Manufacturing depth
+		'wms', 'mfg_planning',
 	);
 }
 

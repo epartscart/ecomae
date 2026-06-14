@@ -606,6 +606,56 @@ try {
 			epc_wms_work_complete($db_link, (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, 'Work confirmed');
 
+		case 'mfgr_wc_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_mfg_routing.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$mw = $_POST;
+			$mw['company_id'] = epc_erp_active_company_id($db_link);
+			$mwId = epc_mfgr_wc_save($db_link, $mw, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Work center saved', array('id' => $mwId));
+
+		case 'mfgr_route_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_mfg_routing.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rOps = array();
+			$opNos = isset($_POST['op_no']) && is_array($_POST['op_no']) ? $_POST['op_no'] : array();
+			foreach ($opNos as $i => $opNo) {
+				$wcId = (int)($_POST['workcenter_id'][$i] ?? 0);
+				$runv = (float)($_POST['run_min_per_unit'][$i] ?? 0);
+				$setv = (float)($_POST['setup_min'][$i] ?? 0);
+				if ($wcId <= 0 && $runv == 0 && $setv == 0) { continue; }
+				$rOps[] = array('op_no' => (int)$opNo, 'workcenter_id' => $wcId, 'setup_min' => $setv, 'run_min_per_unit' => $runv, 'description' => (string)($_POST['op_desc'][$i] ?? ''));
+			}
+			$rData = array('company_id' => epc_erp_active_company_id($db_link), 'product_item_id' => (int)($_POST['product_item_id'] ?? 0), 'name' => (string)($_POST['name'] ?? ''));
+			$rId = epc_mfgr_route_save($db_link, $rData, $rOps, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Route saved', array('id' => $rId));
+
+		case 'mfgr_mrp_run':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_mfg_routing.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$demand = array();
+			foreach (preg_split('/[\r\n]+/', (string)($_POST['demand'] ?? '')) as $line) {
+				$line = trim($line);
+				if ($line === '' || strpos($line, '=') === false) { continue; }
+				list($k, $v) = explode('=', $line, 2);
+				$demand[(int)trim($k)] = (float)trim($v);
+			}
+			$onhand = array();
+			foreach (preg_split('/[\r\n]+/', (string)($_POST['onhand'] ?? '')) as $line) {
+				$line = trim($line);
+				if ($line === '' || strpos($line, ':') === false) { continue; }
+				list($k, $v) = explode(':', $line, 2);
+				$onhand[(int)trim($k)] = (float)trim($v);
+			}
+			if (empty($demand)) { throw new Exception('Enter at least one demand line (itemId=qty)'); }
+			$mrp = epc_mfgr_mrp_run($db_link, epc_erp_active_company_id($db_link), $demand, $onhand, time());
+			epc_erp_json(true, 'MRP regenerated — ' . count($mrp) . ' planned order(s)', array('count' => count($mrp)));
+
+		case 'mfgr_planned_firm':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_mfg_routing.php';
+			epc_mfgr_planned_firm($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Planned order firmed');
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));
