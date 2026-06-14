@@ -3,6 +3,7 @@
  * ERP tabs: COA, General Ledger, P&L, Balance Sheet.
  */
 defined('_ASTEXE_') or die('No access');
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
 $coa_list = epc_erp_gl_list_coa($db_link);
 $gl_journals = epc_erp_gl_list_journals($db_link, $date_from, $date_to);
@@ -55,7 +56,28 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 
 <?php elseif ($tab === 'gl'): ?>
 	<div class="epc-erp-section">
-		<h4><i class="fa fa-book"></i> General ledger</h4>
+		<h4><i class="fa fa-book"></i> General journal &amp; ledger</h4>
+		<?php
+		erp_d365_assets();
+		erp_action_pane(array(
+			array('label' => 'New', 'buttons' => array(
+				array('label' => 'Journal entry', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_gl_manual'),
+			)),
+			array('label' => 'Post', 'buttons' => array(
+				array('label' => 'Post journal', 'icon' => 'fa-check', 'target' => '#epc_erp_form_gl_manual'),
+				array('label' => 'Sync to GL', 'icon' => 'fa-refresh', 'target' => '#epc_erp_gl_sync'),
+				array('label' => 'Post sales to GL', 'icon' => 'fa-shopping-cart', 'target' => '#epc_erp_gl_post_sales'),
+			)),
+			array('label' => 'Period', 'buttons' => array(
+				array('label' => 'Period close', 'icon' => 'fa-lock', 'target' => '#epc_erp_form_fiscal_lock'),
+				array('label' => 'FX revaluation', 'icon' => 'fa-exchange', 'target' => '#epc_erp_form_fx_reval'),
+			)),
+			array('label' => 'View', 'buttons' => array(
+				array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str)),
+			)),
+		));
+		erp_fasttab_open('Period controls — close & FX revaluation', array('open' => false, 'icon' => 'fa-sliders'));
+		?>
 		<div class="well well-sm" style="margin-bottom:12px;">
 			<form id="epc_erp_form_fiscal_lock" class="form-inline">
 				<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
@@ -87,12 +109,13 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 				<div id="epc_erp_fx_preview_out" style="margin-top:6px;"></div>
 			</form>
 		</div>
+		<?php erp_fasttab_close(); ?>
 		<p>
 			<button type="button" class="btn btn-sm btn-default" id="epc_erp_gl_sync"><i class="fa fa-refresh"></i> Sync unposted purchases &amp; cash to GL</button>
 			<button type="button" class="btn btn-sm btn-primary" id="epc_erp_gl_post_sales"><i class="fa fa-shopping-cart"></i> Post sales orders to GL (date range)</button>
 		</p>
-		<table class="table table-striped table-bordered table-condensed">
-			<thead><tr><th>Journal no.</th><th>Date</th><th>Source</th><th>Reference</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+		<table class="table table-striped table-bordered table-condensed epc-erp-table">
+			<thead><tr><th>Journal no.</th><th>Date</th><th>Source</th><th>Reference</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead>
 			<tbody>
 			<?php foreach ($gl_journals as $j): ?>
 				<tr>
@@ -101,7 +124,7 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 					<td><?php echo epc_erp_h($j['source_type']); ?></td>
 					<td><?php echo epc_erp_h($j['reference']); ?></td>
 					<td><?php echo epc_erp_h($j['description']); ?></td>
-					<td><?php echo epc_erp_money($j['total_debit']); ?></td>
+					<td class="num"><?php echo epc_erp_money($j['total_debit']); ?></td>
 					<td>
 						<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str) . '&journal_id=' . (int)$j['id']); ?>">Lines</a>
 						<button type="button" class="btn btn-xs btn-warning epc-erp-gl-reverse" data-journal-id="<?php echo (int)$j['id']; ?>" data-journal-no="<?php echo epc_erp_h($j['journal_no']); ?>" title="Post a reversing journal">Reverse</button>
@@ -113,16 +136,16 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 
 		<?php if ($view_journal > 0): ?>
 			<h4>Journal lines #<?php echo (int)$view_journal; ?></h4>
-			<table class="table table-bordered table-condensed">
-				<thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th><th>Note</th></tr></thead>
+			<table class="table table-bordered table-condensed epc-erp-table">
+				<thead><tr><th>Code</th><th>Account</th><th>Type</th><th class="num">Debit</th><th class="num">Credit</th><th>Note</th></tr></thead>
 				<tbody>
 				<?php foreach ($journal_lines as $ln): ?>
 					<tr>
 						<td><?php echo epc_erp_h($ln['coa_code']); ?></td>
 						<td><?php echo epc_erp_h($ln['coa_name']); ?></td>
 						<td><?php echo epc_erp_h($ln['account_type']); ?></td>
-						<td><?php echo epc_erp_money($ln['debit']); ?></td>
-						<td><?php echo epc_erp_money($ln['credit']); ?></td>
+						<td class="num"><?php echo epc_erp_money($ln['debit']); ?></td>
+						<td class="num"><?php echo epc_erp_money($ln['credit']); ?></td>
 						<td><?php echo epc_erp_h($ln['line_note']); ?></td>
 					</tr>
 				<?php endforeach; ?>
@@ -130,7 +153,7 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 			</table>
 		<?php endif; ?>
 
-		<h4>Manual journal entry (double-entry)</h4>
+		<?php erp_fasttab_open('Manual journal entry (double-entry)', array('open' => true, 'icon' => 'fa-plus')); ?>
 		<form id="epc_erp_form_gl_manual">
 			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
 			<div class="form-inline" style="margin-bottom:8px;">
@@ -158,6 +181,7 @@ $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 			<button type="button" class="btn btn-xs btn-default" id="epc_gl_add_line">+ Add line</button>
 			<button type="submit" class="btn btn-sm btn-success">Post journal</button>
 		</form>
+		<?php erp_fasttab_close(); ?>
 	</div>
 
 <?php elseif ($tab === 'pl'): ?>

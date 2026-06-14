@@ -35,6 +35,20 @@ if ($erpOnly) {
 			array('label' => 'New sales order', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_so'),
 		)
 	);
+	erp_d365_assets();
+	erp_action_pane(array(
+		array('label' => 'New', 'buttons' => array(
+			array('label' => 'Sales order', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_so'),
+			array('label' => 'Customer', 'icon' => 'fa-user-plus', 'target' => '#epc_erp_form_customer'),
+		)),
+		array('label' => 'Process', 'buttons' => array(
+			array('label' => 'Confirm', 'icon' => 'fa-check'),
+			array('label' => 'Generate invoice', 'icon' => 'fa-file-text-o'),
+		)),
+		array('label' => 'View', 'buttons' => array(
+			array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'sales_orders', $date_from_str, $date_to_str)),
+		)),
+	));
 	erp_stat_cards(array(
 		array('label' => 'Orders in list', 'value' => (string) count($orders)),
 		array('label' => 'Open (draft/confirmed)', 'value' => (string) count(array_filter($orders, function ($o) {
@@ -69,7 +83,7 @@ if ($erpOnly) {
 			echo '<td>' . epc_erp_h($r['title']) . '</td>';
 			echo '<td>' . epc_erp_money($r['total_amount']) . '</td>';
 			echo '<td>' . epc_erp_dim_badges($db_link, 'sales_order', (int) $r['id']) . '</td>';
-			echo '<td><span class="label label-info">' . epc_erp_h($r['status']) . '</span></td>';
+			echo '<td>' . erp_status_pill($r['status']) . '</td>';
 			echo '<td>' . epc_erp_h($r['invoice_no'] ?: '—') . '</td><td class="epc-erp-form-inline">';
 			if (in_array($r['status'], array('draft', 'confirmed'), true)) {
 				if ($r['status'] === 'draft') {
@@ -125,7 +139,10 @@ if ($erpOnly) {
 		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft SO</button></div></div>
 	</form>
 	<?php
-	erp_section_card('New sales order', ob_get_clean(), array('icon' => 'fa-plus'));
+	$epcSoFormHtml = ob_get_clean();
+	erp_fasttab_open('New sales order', array('open' => false, 'icon' => 'fa-plus'));
+	echo $epcSoFormHtml;
+	erp_fasttab_close();
 
 	// Standalone customer creation — an ERP-only tenant can add a customer master
 	// here without any storefront registration; it appears in the picker above.
@@ -153,7 +170,10 @@ if ($erpOnly) {
 		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-success btn-sm"><i class="fa fa-user-plus"></i> Add customer</button></div></div>
 	</form>
 	<?php
-	erp_section_card('New customer (standalone)', ob_get_clean(), array('icon' => 'fa-user-plus'));
+	$epcCustFormHtml = ob_get_clean();
+	erp_fasttab_open('New customer (standalone)', array('open' => false, 'icon' => 'fa-user-plus'));
+	echo $epcCustFormHtml;
+	erp_fasttab_close();
 	return;
 }
 

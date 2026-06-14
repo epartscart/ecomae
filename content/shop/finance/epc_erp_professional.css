@@ -712,3 +712,268 @@ body.epc-cp-shell .epc-cp-content-inner .epc-form-section {
 body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	max-width: min(100%, 280px);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Dynamics 365 Finance & Operations entry-module theme
+   Scoped under .epc-erp-d365 so only ERP entry modules adopt the F&O look.
+   Tokens mirror F&O: dense, flat, Segoe-family, #0078d4 accent, hairline grids.
+   ══════════════════════════════════════════════════════════════════════════ */
+.epc-erp-d365 {
+	--d365-accent: #0078d4;
+	--d365-accent-dark: #005a9e;
+	--d365-band: #f5f6f7;
+	--d365-line: #e1e1e1;
+	--d365-line-soft: #edebe9;
+	--d365-ink: #201f1e;
+	--d365-ink-soft: #605e5c;
+	--d365-hover: #f3f9fd;
+	--d365-sel: #cfe4fa;
+	--d365-grid-head: #faf9f8;
+	font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+	color: var(--d365-ink);
+}
+
+/* Page header → F&O title band */
+.epc-erp-d365 .epc-erp-page-hd {
+	margin-bottom: 8px;
+	padding-bottom: 6px;
+}
+.epc-erp-d365 .epc-erp-page-title {
+	font-size: 20px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: var(--d365-ink);
+}
+.epc-erp-d365 .epc-erp-page-sub { font-size: 12px; color: var(--d365-ink-soft); }
+.epc-erp-d365 .epc-erp-breadcrumb { font-size: 11px; }
+.epc-erp-d365 .epc-erp-breadcrumb a,
+.epc-erp-d365 a.epc-d365-link { color: var(--d365-accent); }
+
+/* ── Action Pane (command ribbon) ── */
+.epc-d365-actionpane {
+	display: flex;
+	align-items: stretch;
+	flex-wrap: wrap;
+	gap: 0;
+	background: var(--d365-band);
+	border: 1px solid var(--d365-line);
+	border-radius: 2px;
+	padding: 4px 2px;
+	margin: 0 0 14px;
+}
+.epc-d365-ap-group {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 2px 10px;
+	border-right: 1px solid var(--d365-line-soft);
+}
+.epc-d365-ap-group:last-child { border-right: 0; }
+.epc-d365-ap-buttons { display: flex; align-items: center; gap: 2px; min-height: 30px; }
+.epc-d365-ap-label {
+	text-align: center;
+	font-size: 10px;
+	color: var(--d365-ink-soft);
+	text-transform: none;
+	margin-top: 3px;
+	letter-spacing: .01em;
+}
+.epc-d365-ap-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 10px;
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--d365-ink);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 2px;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.epc-d365-ap-btn .fa { font-size: 13px; color: var(--d365-accent); }
+.epc-d365-ap-btn:hover { background: #eaeaea; text-decoration: none; color: var(--d365-ink); }
+.epc-d365-ap-btn:active { background: #dadada; }
+.epc-d365-ap-btn.is-primary { font-weight: 600; }
+.epc-d365-ap-btn.is-primary .fa { color: var(--d365-accent-dark); }
+.epc-d365-ap-btn.is-disabled { color: #a19f9d; cursor: default; }
+.epc-d365-ap-btn.is-disabled .fa { color: #c8c6c4; }
+
+/* ── FastTabs ── */
+.epc-d365-fasttab {
+	border: 1px solid var(--d365-line);
+	border-radius: 2px;
+	background: #fff;
+	margin-bottom: 8px;
+}
+.epc-d365-ft-hd {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	border: 0;
+	background: #fff;
+	padding: 10px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--d365-ink);
+	text-align: left;
+	cursor: pointer;
+}
+.epc-d365-ft-hd:hover { background: var(--d365-hover); }
+.epc-d365-ft-caret { font-size: 10px; color: var(--d365-ink-soft); transition: transform .15s ease; }
+.epc-d365-fasttab.is-open > .epc-d365-ft-hd .epc-d365-ft-caret { transform: rotate(90deg); }
+.epc-d365-ft-title { flex: 0 0 auto; }
+.epc-d365-ft-title .fa { color: var(--d365-accent); margin-right: 4px; }
+.epc-d365-ft-summary {
+	flex: 1 1 auto;
+	text-align: right;
+	font-weight: 400;
+	font-size: 12px;
+	color: var(--d365-ink-soft);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.epc-d365-ft-bd { display: none; padding: 14px 16px; border-top: 1px solid var(--d365-line-soft); }
+.epc-d365-fasttab.is-open > .epc-d365-ft-bd { display: block; }
+
+/* Sub-group header inside a FastTab */
+.epc-d365-subhd {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	color: var(--d365-ink-soft);
+	font-weight: 600;
+	margin: 4px 0 8px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid var(--d365-line-soft);
+}
+.epc-d365-fieldgrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 4px 24px;
+	margin-bottom: 14px;
+}
+.epc-d365-field { padding: 4px 0; }
+.epc-d365-field .lbl { display: block; font-size: 11px; color: var(--d365-ink-soft); margin-bottom: 2px; }
+.epc-d365-field .val { font-size: 13px; color: var(--d365-ink); border-bottom: 1px solid var(--d365-line); padding-bottom: 3px; min-height: 20px; }
+
+/* ── Dense F&O data grid ── */
+.epc-erp-d365 .epc-erp-section-card { border-radius: 2px; box-shadow: none; border-color: var(--d365-line); }
+.epc-erp-d365 .epc-erp-section-card-hd { background: var(--d365-band); padding: 9px 14px; }
+.epc-erp-d365 .epc-erp-section-card-hd h4 { font-size: 13px; font-weight: 600; }
+.epc-erp-d365 .epc-erp-section-card-bd { padding: 0; }
+.epc-erp-d365 .epc-erp-section-card-bd > .epc-erp-table-wrap { margin: 0; }
+.epc-erp-d365 .epc-erp-table,
+.epc-erp-d365 .table-epc {
+	font-size: 12px;
+	margin-bottom: 0;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+.epc-erp-d365 .epc-erp-table > thead > tr > th,
+.epc-erp-d365 .table-epc > thead > tr > th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: var(--d365-grid-head);
+	color: var(--d365-ink);
+	font-weight: 600;
+	font-size: 11px;
+	text-transform: none;
+	border-bottom: 1px solid var(--d365-line);
+	border-top: 0;
+	padding: 7px 10px;
+	white-space: nowrap;
+}
+.epc-erp-d365 .epc-erp-table > tbody > tr > td,
+.epc-erp-d365 .table-epc > tbody > tr > td {
+	padding: 6px 10px;
+	border-top: 0;
+	border-bottom: 1px solid var(--d365-line-soft);
+	vertical-align: middle;
+}
+.epc-erp-d365 .epc-erp-table > tbody > tr:hover > td,
+.epc-erp-d365 .table-epc > tbody > tr:hover > td { background: var(--d365-hover); }
+.epc-erp-d365 .epc-erp-table > tbody > tr.is-selected > td { background: var(--d365-sel); }
+.epc-erp-d365 .epc-erp-table.table-striped > tbody > tr:nth-of-type(odd) > td { background: transparent; }
+.epc-erp-d365 .epc-erp-table td.num,
+.epc-erp-d365 .epc-erp-table th.num,
+.epc-erp-d365 .epc-num { text-align: right; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.epc-erp-d365 .epc-erp-table tfoot td,
+.epc-erp-d365 .epc-d365-totalrow td {
+	font-weight: 700;
+	background: var(--d365-band);
+	border-top: 2px solid var(--d365-line);
+}
+
+/* ── Status pills ── */
+.epc-d365-pill {
+	display: inline-block;
+	padding: 1px 9px;
+	border-radius: 10px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 17px;
+	border: 1px solid transparent;
+}
+.epc-d365-pill--ok { background: #dff6dd; color: #0b6a0b; border-color: #b6e2b3; }
+.epc-d365-pill--info { background: #deecf9; color: #005a9e; border-color: #b3d3ef; }
+.epc-d365-pill--warn { background: #fff4ce; color: #8a6d00; border-color: #f3e2a0; }
+.epc-d365-pill--bad { background: #fde7e9; color: #a4262c; border-color: #f1bcc0; }
+.epc-d365-pill--muted { background: #f3f2f1; color: #605e5c; border-color: #e1dfdd; }
+
+/* ── FactBox rail + layout ── */
+.epc-d365-split { display: flex; align-items: flex-start; gap: 16px; }
+.epc-d365-split-main { flex: 1 1 auto; min-width: 0; }
+.epc-d365-factbox {
+	flex: 0 0 280px;
+	width: 280px;
+	border: 1px solid var(--d365-line);
+	border-radius: 2px;
+	background: #fff;
+}
+.epc-d365-fb-hd {
+	background: var(--d365-band);
+	padding: 8px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	border-bottom: 1px solid var(--d365-line);
+}
+.epc-d365-fb-hd .fa { color: var(--d365-accent); margin-right: 5px; }
+.epc-d365-fb-bd { padding: 10px 12px; font-size: 12px; }
+.epc-d365-fb-list { margin: 0; }
+.epc-d365-fb-list dt { font-size: 11px; color: var(--d365-ink-soft); font-weight: 400; margin-top: 6px; }
+.epc-d365-fb-list dt:first-child { margin-top: 0; }
+.epc-d365-fb-list dd { margin: 0 0 4px; font-size: 13px; color: var(--d365-ink); font-weight: 600; }
+
+/* ── Filter strip ── */
+.epc-erp-d365 .epc-erp-filter-bar {
+	background: var(--d365-band);
+	border-radius: 2px;
+	border-color: var(--d365-line);
+	padding: 7px 10px;
+}
+.epc-erp-d365 .epc-erp-filter-bar label { font-size: 11px; }
+
+/* Map Bootstrap labels used in legacy module markup onto F&O pills */
+.epc-erp-d365 .epc-erp-table .label {
+	display: inline-block;
+	padding: 1px 9px;
+	border-radius: 10px;
+	font-size: 11px;
+	font-weight: 600;
+}
+.epc-erp-d365 .epc-erp-table .label-info { background: #deecf9; color: #005a9e; }
+.epc-erp-d365 .epc-erp-table .label-success { background: #dff6dd; color: #0b6a0b; }
+.epc-erp-d365 .epc-erp-table .label-warning { background: #fff4ce; color: #8a6d00; }
+.epc-erp-d365 .epc-erp-table .label-danger { background: #fde7e9; color: #a4262c; }
+.epc-erp-d365 .epc-erp-table .label-default { background: #f3f2f1; color: #605e5c; }
+
+@media (max-width: 900px) {
+	.epc-d365-split { flex-direction: column; }
+	.epc-d365-factbox { width: 100%; flex-basis: auto; }
+}

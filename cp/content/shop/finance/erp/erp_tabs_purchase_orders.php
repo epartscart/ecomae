@@ -20,6 +20,22 @@ erp_page_header(
 		array('label' => 'New purchase order', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_po'),
 	)
 );
+erp_d365_assets();
+erp_action_pane(array(
+	array('label' => 'New', 'buttons' => array(
+		array('label' => 'Purchase order', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_po'),
+	)),
+	array('label' => 'Purchase', 'buttons' => array(
+		array('label' => 'Approve', 'icon' => 'fa-check'),
+		array('label' => 'Receive', 'icon' => 'fa-download'),
+	)),
+	array('label' => 'Invoice', 'buttons' => array(
+		array('label' => 'Generate invoice', 'icon' => 'fa-file-text-o'),
+	)),
+	array('label' => 'View', 'buttons' => array(
+		array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'purchase_orders', $date_from_str, $date_to_str)),
+	)),
+));
 erp_stat_cards(array(
 	array('label' => 'Open POs', 'value' => (string) count(array_filter($pos, function ($p) {
 		return in_array($p['status'] ?? '', array('draft', 'approved', 'partial'), true);
@@ -41,7 +57,7 @@ if (empty($pos)) {
 		echo '<tr><td>' . epc_erp_h($p['po_no']) . '</td><td>' . epc_erp_h($p['supplier_name']) . '</td>';
 		echo '<td>' . epc_erp_h($p['title']) . '</td><td>' . epc_erp_money($p['total_amount']) . '</td>';
 		echo '<td>' . epc_erp_dim_badges($db_link, 'purchase_order', (int) $p['id']) . '</td>';
-		echo '<td><span class="label label-info">' . epc_erp_h($p['status']) . '</span></td><td class="epc-erp-form-inline">';
+		echo '<td>' . erp_status_pill($p['status']) . '</td><td class="epc-erp-form-inline">';
 		if ($p['status'] === 'draft') {
 			echo '<form class="epc-erp-po-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
 			echo '<input type="hidden" name="po_id" value="' . (int) $p['id'] . '"><input type="hidden" name="status" value="approved">';
@@ -78,4 +94,7 @@ ob_start();
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft PO</button></div></div>
 </form>
 <?php
-erp_section_card('New purchase order', ob_get_clean(), array('icon' => 'fa-plus'));
+$epcPoFormHtml = ob_get_clean();
+erp_fasttab_open('New purchase order', array('open' => false, 'icon' => 'fa-plus'));
+echo $epcPoFormHtml;
+erp_fasttab_close();

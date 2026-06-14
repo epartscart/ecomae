@@ -1,6 +1,7 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
 epc_erp_inventory_ensure_schema($db_link);
 $whFilter = (int)($_GET['wh'] ?? 0);
@@ -29,6 +30,28 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 	<button type="button" class="btn btn-info btn-sm" id="epc_inv_sync_wh"><i class="fa fa-refresh"></i> Sync warehouses from shop storages</button>
 	<?php endif; ?>
 </p>
+<?php
+erp_d365_assets();
+erp_action_pane(array(
+	array('label' => 'New', 'buttons' => array(
+		array('label' => 'Item', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_inv_form_item'),
+		array('label' => 'Warehouse', 'icon' => 'fa-archive', 'target' => '#epc_inv_form_wh'),
+	)),
+	array('label' => 'Transactions', 'buttons' => array(
+		array('label' => 'Post movement', 'icon' => 'fa-exchange', 'target' => '#epc_inv_form_move'),
+		array('label' => 'Transfer', 'icon' => 'fa-random', 'target' => '#epc_inv_form_transfer'),
+		array('label' => 'Period closing', 'icon' => 'fa-lock', 'target' => '#epc_inv_form_close'),
+	)),
+	array('label' => 'Data', 'buttons' => array(
+		array('label' => 'Import CSV', 'icon' => 'fa-upload', 'target' => '#epc_inv_form_csv'),
+		array('label' => 'Scan / lookup', 'icon' => 'fa-barcode', 'target' => '#epc_inv_form_scan'),
+	)),
+	array('label' => 'View', 'buttons' => array(
+		array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str)),
+	)),
+));
+erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'icon' => 'fa-database'));
+?>
 
 <h4>Add warehouse</h4>
 <form id="epc_inv_form_wh" class="form-inline" style="margin-bottom:16px;">
@@ -80,6 +103,8 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-sm btn-success">Create item</button></div></div>
 </form>
+<?php erp_fasttab_close(); ?>
+<?php erp_fasttab_open('Stock operations — movements, transfers, import & closing', array('open' => false, 'icon' => 'fa-exchange')); ?>
 
 <h4>Warehouse transfer <small>(paired out + in at source average cost)</small></h4>
 <form id="epc_inv_form_transfer" class="form-inline" style="margin-bottom:18px;">
@@ -177,13 +202,14 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 	</select>
 	<button type="submit" class="btn btn-sm btn-warning">Run closing</button>
 </form>
+<?php erp_fasttab_close(); ?>
 
 <h4>Stock on hand <small>(weighted average)</small>
 	<?php if ($whFilter): ?> — filtered<?php endif; ?>
 	<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str)); ?>">All WH</a>
 </h4>
-<table class="table table-bordered table-condensed table-striped">
-	<thead><tr><th>Warehouse</th><th>SKU</th><th>Name</th><th>Type</th><th>Unit</th><th>Qty</th><th>Avg cost</th><th>Value</th><th>Batch</th><th>Expiry</th></tr></thead>
+<table class="table table-bordered table-condensed table-striped epc-erp-table">
+	<thead><tr><th>Warehouse</th><th>SKU</th><th>Name</th><th>Type</th><th>Unit</th><th class="num">Qty</th><th class="num">Avg cost</th><th class="num">Value</th><th>Batch</th><th>Expiry</th></tr></thead>
 	<tbody>
 	<?php foreach ($stock as $s):
 		$val = (float)$s['qty_on_hand'] * (float)$s['avg_unit_cost'];
@@ -194,9 +220,9 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 			<td><?php echo epc_erp_h($s['name']); ?></td>
 			<td><?php echo epc_erp_h($s['item_type']); ?></td>
 			<td><?php echo epc_erp_h($s['unit'] ?? 'pcs'); ?></td>
-			<td><?php echo epc_erp_h(number_format((float)$s['qty_on_hand'], 3)); ?></td>
-			<td><?php echo epc_erp_money($s['avg_unit_cost']); ?></td>
-			<td><?php echo epc_erp_money($val); ?></td>
+			<td class="num"><?php echo epc_erp_h(number_format((float)$s['qty_on_hand'], 3)); ?></td>
+			<td class="num"><?php echo epc_erp_money($s['avg_unit_cost']); ?></td>
+			<td class="num"><?php echo epc_erp_money($val); ?></td>
 			<td><?php echo epc_erp_h($s['batch_no'] ?? '—'); ?></td>
 			<td><?php echo !empty($s['expiry_date']) ? epc_erp_h($s['expiry_date']) : '—'; ?></td>
 		</tr>
@@ -218,8 +244,8 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 		</select>
 	</form>
 </h4>
-<table class="table table-bordered table-condensed table-striped">
-	<thead><tr><th>Date</th><th>Type</th><th>Warehouse</th><th>SKU</th><th>Batch</th><th>Serial</th><th class="text-right">Qty</th><th class="text-right">Unit cost</th><th class="text-right">Balance</th><th>Ref</th></tr></thead>
+<table class="table table-bordered table-condensed table-striped epc-erp-table">
+	<thead><tr><th>Date</th><th>Type</th><th>Warehouse</th><th>SKU</th><th>Batch</th><th>Serial</th><th class="text-right num">Qty</th><th class="text-right num">Unit cost</th><th class="text-right num">Balance</th><th>Ref</th></tr></thead>
 	<tbody>
 	<?php foreach ($ledgerRows as $m):
 		$isIn = (float)$m['signed_qty'] >= 0; ?>
@@ -241,8 +267,8 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 </table>
 
 <h4><i class="fa fa-tags"></i> Serial register <small>(serialized units &amp; lifecycle)</small></h4>
-<table class="table table-bordered table-condensed table-striped">
-	<thead><tr><th>Serial no</th><th>SKU</th><th>Item</th><th>Warehouse</th><th>Batch</th><th>Status</th><th class="text-right">Unit cost</th><th>Updated</th></tr></thead>
+<table class="table table-bordered table-condensed table-striped epc-erp-table">
+	<thead><tr><th>Serial no</th><th>SKU</th><th>Item</th><th>Warehouse</th><th>Batch</th><th>Status</th><th class="text-right num">Unit cost</th><th>Updated</th></tr></thead>
 	<tbody>
 	<?php foreach ($serialRows as $sr):
 		$stColor = array('in_stock' => 'success', 'sold' => 'default', 'returned' => 'info', 'scrapped' => 'danger', 'in_transit' => 'warning'); ?>

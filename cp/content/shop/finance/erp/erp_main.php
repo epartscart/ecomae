@@ -286,9 +286,14 @@ if (!$epc_erp_shell_mode) {
 	echo epc_cp_sidebar_early_init_script();
 	echo epc_cp_menu_sections_script();
 }
+// D365 F&O-styled entry modules: Sales order, Purchase order, Inventory,
+// Receivables, Payables and General journal adopt the Dynamics 365 look (action
+// pane, FastTabs, dense grids). The theme is scoped under `.epc-erp-d365`.
+$epcErpD365Tabs = array('sales_orders', 'purchase_orders', 'inventory', 'receivables', 'payables', 'gl');
+$epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 ?>
 
-<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?>">
+<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?><?php echo $epcErpD365Tab ? ' epc-erp-d365' : ''; ?>">
 	<div class="epc-erp-layout">
 		<aside class="epc-erp-sidebar" id="epc_erp_sidebar" aria-label="ERP navigation">
 			<div class="epc-erp-sidebar-head">
@@ -485,17 +490,29 @@ if (!$epc_erp_shell_mode) {
 				?>
 				<div class="epc-erp-section">
 					<h4><i class="fa fa-users"></i> Customer receivable balances</h4>
+					<?php
+					erp_d365_assets();
+					erp_action_pane(array(
+						array('label' => 'View', 'buttons' => array(
+							array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'receivables', $date_from_str, $date_to_str)),
+						)),
+						array('label' => 'Collect', 'buttons' => array(
+							array('label' => 'Statement', 'icon' => 'fa-file-text-o', 'disabled' => true),
+							array('label' => 'Settlement', 'icon' => 'fa-balance-scale', 'disabled' => true),
+						)),
+					));
+					?>
 					<p class="text-muted">Ledger balance = customer account credits minus debits (top-ups, payments). <strong>Order due</strong> counts only completed orders. Receivable/settlement entries for an order require Completed status.</p>
-					<table class="table table-striped table-bordered table-condensed">
-						<thead><tr><th>Customer</th><th>Orders</th><th>Completed</th><th>Ledger balance</th><th>Order due (complete)</th><th></th></tr></thead>
+					<table class="table table-striped table-bordered table-condensed epc-erp-table">
+						<thead><tr><th>Customer</th><th class="num">Orders</th><th class="num">Completed</th><th class="num">Ledger balance</th><th class="num">Order due (complete)</th><th></th></tr></thead>
 						<tbody>
 						<?php foreach ($customers as $c): ?>
 							<tr>
 								<td><?php echo epc_erp_h($c['email'] ?: ('User #' . (int)$c['user_id'])); ?></td>
-								<td><?php echo (int)$c['order_count']; ?></td>
-								<td><?php echo (int)$c['complete_order_count']; ?></td>
-								<td><strong><?php echo epc_erp_money($c['balance']); ?></strong></td>
-								<td><?php echo epc_erp_money($c['order_receivable_due']); ?></td>
+								<td class="num"><?php echo (int)$c['order_count']; ?></td>
+								<td class="num"><?php echo (int)$c['complete_order_count']; ?></td>
+								<td class="num"><strong><?php echo epc_erp_money($c['balance']); ?></strong></td>
+								<td class="num"><?php echo epc_erp_money($c['order_receivable_due']); ?></td>
 								<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'receivables', $date_from_str, $date_to_str) . '&user_id=' . (int)$c['user_id']); ?>">Statement</a></td>
 							</tr>
 						<?php endforeach; ?>
@@ -547,12 +564,26 @@ if (!$epc_erp_shell_mode) {
 			<?php elseif ($tab === 'payables'): ?>
 				<div class="epc-erp-section">
 					<h4><i class="fa fa-truck"></i> Supplier payable balances</h4>
+					<?php
+					erp_d365_assets();
+					erp_action_pane(array(
+						array('label' => 'New', 'buttons' => array(
+							array('label' => 'Supplier', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_supplier'),
+						)),
+						array('label' => 'Pay', 'buttons' => array(
+							array('label' => 'Record payment', 'icon' => 'fa-money', 'target' => '#epc_erp_form_supplier_pay'),
+						)),
+						array('label' => 'Data', 'buttons' => array(
+							array('label' => 'Sync from warehouses', 'icon' => 'fa-refresh', 'target' => '#epc_erp_sync_suppliers'),
+						)),
+					));
+					?>
 					<p class="text-muted">Payable excludes purchase/AP entries linked to orders that are not yet <strong>Completed</strong> in CP.</p>
 					<p>
 						<button type="button" class="btn btn-sm btn-default" id="epc_erp_sync_suppliers"><i class="fa fa-refresh"></i> Sync from warehouses</button>
 					</p>
-					<table class="table table-striped table-bordered table-condensed">
-						<thead><tr><th>Supplier</th><th>Country</th><th>TRN</th><th>Storage ID</th><th>Payable balance (AED)</th><th></th></tr></thead>
+					<table class="table table-striped table-bordered table-condensed epc-erp-table">
+						<thead><tr><th>Supplier</th><th>Country</th><th>TRN</th><th>Storage ID</th><th class="num">Payable balance (AED)</th><th></th></tr></thead>
 						<tbody>
 						<?php foreach ($suppliers as $s): ?>
 							<tr>
@@ -562,7 +593,7 @@ if (!$epc_erp_shell_mode) {
 								</td>
 								<td><?php echo epc_erp_h($s['trn'] ?: '—'); ?></td>
 								<td><?php echo $s['storage_id'] ? (int)$s['storage_id'] : '—'; ?></td>
-								<td><strong><?php echo epc_erp_money($s['balance']); ?></strong></td>
+								<td class="num"><strong><?php echo epc_erp_money($s['balance']); ?></strong></td>
 								<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'payables', $date_from_str, $date_to_str) . '&supplier_id=' . (int)$s['id']); ?>">Ledger</a></td>
 							</tr>
 						<?php endforeach; ?>

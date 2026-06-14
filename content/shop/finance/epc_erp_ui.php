@@ -113,6 +113,170 @@ function epc_erp_render_tab_nav($erpUrl, $activeTab, $from, $to, array $allowedT
 }
 
 /**
+ * ──────────────────────────────────────────────────────────────────────────
+ * D365 Finance & Operations entry-module chrome
+ *
+ * Reusable building blocks that give our ERP entry modules (Sales order,
+ * Purchase order, Inventory, Receivables, Payables, General journal) the
+ * Dynamics 365 F&O look & feel: a command Action Pane, collapsible FastTabs,
+ * status pills, dense data grids and a FactBox rail. These are pure
+ * presentation helpers — they emit markup only and never touch business logic.
+ * All D365 styling is scoped under the `.epc-erp-d365` wrapper that the ERP
+ * workspace shell carries, so other CP modules are unaffected.
+ * ──────────────────────────────────────────────────────────────────────────
+ */
+
+/**
+ * Render a D365-style Action Pane (command ribbon).
+ *
+ * @param array $groups [ ['label'=>'Maintain', 'buttons'=>[
+ *     ['label'=>'New','icon'=>'fa-plus','url'|'id'=>...,'class'=>'is-primary','target'=>'#anchor'],
+ * ]] ]
+ */
+function erp_action_pane(array $groups)
+{
+	if (empty($groups)) {
+		return;
+	}
+	echo '<div class="epc-d365-actionpane" role="toolbar">';
+	foreach ($groups as $g) {
+		$btns = isset($g['buttons']) && is_array($g['buttons']) ? $g['buttons'] : array();
+		if (empty($btns)) {
+			continue;
+		}
+		echo '<div class="epc-d365-ap-group">';
+		echo '<div class="epc-d365-ap-buttons">';
+		foreach ($btns as $b) {
+			$lbl = epc_erp_h($b['label'] ?? '');
+			$icon = !empty($b['icon']) ? '<i class="fa ' . epc_erp_h($b['icon']) . '"></i>' : '';
+			$cls = 'epc-d365-ap-btn';
+			if (!empty($b['class'])) {
+				$cls .= ' ' . epc_erp_h($b['class']);
+			}
+			if (!empty($b['disabled'])) {
+				echo '<span class="' . $cls . ' is-disabled" aria-disabled="true">' . $icon . '<span>' . $lbl . '</span></span>';
+			} elseif (!empty($b['url'])) {
+				echo '<a class="' . $cls . '" href="' . epc_erp_h($b['url']) . '">' . $icon . '<span>' . $lbl . '</span></a>';
+			} else {
+				$attrs = '';
+				if (!empty($b['id'])) {
+					$attrs .= ' id="' . epc_erp_h($b['id']) . '"';
+				}
+				if (!empty($b['target'])) {
+					$attrs .= ' data-d365-target="' . epc_erp_h($b['target']) . '"';
+				}
+				echo '<button type="button" class="' . $cls . '"' . $attrs . '>' . $icon . '<span>' . $lbl . '</span></button>';
+			}
+		}
+		echo '</div>';
+		echo '<div class="epc-d365-ap-label">' . epc_erp_h($g['label'] ?? '') . '</div>';
+		echo '</div>';
+	}
+	echo '</div>';
+}
+
+/**
+ * Open a D365 FastTab (collapsible section).
+ *
+ * @param string $title
+ * @param array  $opts ['open'=>bool, 'summary'=>string, 'icon'=>'fa-...', 'id'=>string]
+ */
+function erp_fasttab_open($title, array $opts = array())
+{
+	$open = !array_key_exists('open', $opts) || !empty($opts['open']);
+	$summary = trim((string) ($opts['summary'] ?? ''));
+	$icon = !empty($opts['icon']) ? '<i class="fa ' . epc_erp_h($opts['icon']) . '"></i> ' : '';
+	$idAttr = !empty($opts['id']) ? ' id="' . epc_erp_h($opts['id']) . '"' : '';
+	echo '<section class="epc-d365-fasttab' . ($open ? ' is-open' : '') . '"' . $idAttr . '>';
+	echo '<button type="button" class="epc-d365-ft-hd" aria-expanded="' . ($open ? 'true' : 'false') . '">';
+	echo '<i class="fa fa-chevron-right epc-d365-ft-caret"></i>';
+	echo '<span class="epc-d365-ft-title">' . $icon . epc_erp_h($title) . '</span>';
+	if ($summary !== '') {
+		echo '<span class="epc-d365-ft-summary">' . epc_erp_h($summary) . '</span>';
+	}
+	echo '</button>';
+	echo '<div class="epc-d365-ft-bd">';
+}
+
+function erp_fasttab_close()
+{
+	echo '</div></section>';
+}
+
+/**
+ * D365 status pill. Tone auto-derived from common status words when omitted.
+ */
+function erp_status_pill($label, $tone = '')
+{
+	$label = (string) $label;
+	if ($tone === '') {
+		$k = strtolower(trim($label));
+		$map = array(
+			'posted' => 'ok', 'paid' => 'ok', 'invoiced' => 'ok', 'confirmed' => 'info',
+			'approved' => 'ok', 'completed' => 'ok', 'active' => 'ok', 'received' => 'ok',
+			'open' => 'info', 'draft' => 'muted', 'pending' => 'warn', 'on hold' => 'warn',
+			'overdue' => 'bad', 'cancelled' => 'bad', 'canceled' => 'bad', 'rejected' => 'bad',
+			'failed' => 'bad', 'closed' => 'muted', 'partial' => 'warn',
+		);
+		$tone = $map[$k] ?? 'muted';
+	}
+	return '<span class="epc-d365-pill epc-d365-pill--' . epc_erp_h($tone) . '">' . epc_erp_h($label) . '</span>';
+}
+
+/**
+ * Open a FactBox rail. Wrap module content + the FactBox in erp_d365_layout_*.
+ */
+function erp_factbox_open($title, $icon = 'fa-info-circle')
+{
+	echo '<aside class="epc-d365-factbox">';
+	echo '<div class="epc-d365-fb-hd"><i class="fa ' . epc_erp_h($icon) . '"></i> ' . epc_erp_h($title) . '</div>';
+	echo '<div class="epc-d365-fb-bd">';
+}
+
+function erp_factbox_close()
+{
+	echo '</div></aside>';
+}
+
+/**
+ * Render a list of label/value rows inside a FactBox body.
+ *
+ * @param array $rows [ ['label'=>'', 'value'=>'' , 'value_html'=>''] ]
+ */
+function erp_factbox_rows(array $rows)
+{
+	echo '<dl class="epc-d365-fb-list">';
+	foreach ($rows as $r) {
+		echo '<dt>' . epc_erp_h($r['label'] ?? '') . '</dt>';
+		echo '<dd>' . ($r['value_html'] ?? epc_erp_h($r['value'] ?? '')) . '</dd>';
+	}
+	echo '</dl>';
+}
+
+/**
+ * Print the FastTab / Action-pane interaction JS + a marker once per request.
+ * Safe to call from every module; it self-guards against duplication.
+ */
+function erp_d365_assets()
+{
+	if (!empty($GLOBALS['__epc_d365_assets_done'])) {
+		return;
+	}
+	$GLOBALS['__epc_d365_assets_done'] = true;
+	echo "\n<script id=\"epc-d365-js\">(function(){\n";
+	echo "function ready(fn){if(document.readyState!='loading'){fn();}else{document.addEventListener('DOMContentLoaded',fn);}}\n";
+	echo "ready(function(){\n";
+	echo "  document.addEventListener('click',function(e){\n";
+	echo "    var hd=e.target.closest&&e.target.closest('.epc-d365-ft-hd');\n";
+	echo "    if(hd){var ft=hd.parentNode;var open=ft.classList.toggle('is-open');hd.setAttribute('aria-expanded',open?'true':'false');return;}\n";
+	echo "    var ap=e.target.closest&&e.target.closest('.epc-d365-ap-btn[data-d365-target]');\n";
+	echo "    if(ap){var sel=ap.getAttribute('data-d365-target');var t=sel&&document.querySelector(sel);if(t){var s=t.closest('.epc-d365-fasttab');if(s&&!s.classList.contains('is-open')){s.classList.add('is-open');var b=s.querySelector('.epc-d365-ft-hd');if(b){b.setAttribute('aria-expanded','true');}}t.scrollIntoView({behavior:'smooth',block:'center'});if(t.focus){try{t.focus({preventScroll:true});}catch(_e){t.focus();}}}}\n";
+	echo "  });\n";
+	echo "});\n";
+	echo "})();</script>\n";
+}
+
+/**
  * @param string $title
  * @param string $subtitle
  * @param array $breadcrumbs [ ['label'=>'', 'url'=>''] ]
