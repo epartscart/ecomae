@@ -697,16 +697,64 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 						</form>
 					<?php endif; ?>
 
-					<h4>Add supplier</h4>
-					<form id="epc_erp_form_supplier" class="epc-erp-form-inline">
+					<?php
+						// Legal entity / business unit options for the vendor master form.
+						$leOptsVnd = array();
+						$buOptsVnd = array();
+						try {
+							foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_pm_legal_entities` WHERE `active` = 1 ORDER BY `name`")->fetchAll(PDO::FETCH_ASSOC) as $le) {
+								$leOptsVnd[(int) $le['id']] = $le['code'] . ' · ' . $le['name'];
+							}
+						} catch (Exception $e) {
+						}
+						try {
+							foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_pm_business_units` WHERE `active` = 1 ORDER BY `name`")->fetchAll(PDO::FETCH_ASSOC) as $bu) {
+								$buOptsVnd[(int) $bu['id']] = $bu['code'] . ' · ' . $bu['name'];
+							}
+						} catch (Exception $e) {
+						}
+					?>
+					<h4>Add vendor</h4>
+					<form id="epc_erp_form_supplier" class="form-horizontal epc-erp-form-inline" style="max-width:960px;">
 						<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
-						<div class="form-group"><input type="text" name="name" class="form-control input-sm" placeholder="Supplier name" required></div>
-						<div class="form-group"><input type="text" name="country_code" class="form-control input-sm" placeholder="Country (AE)" value="AE"></div>
-						<div class="form-group"><input type="email" name="contact_email" class="form-control input-sm" placeholder="E-mail"></div>
-						<div class="form-group"><input type="text" name="trn" class="form-control input-sm" placeholder="TRN (UAE VAT)"></div>
+						<div class="row">
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor name *</label><div class="col-sm-8"><input type="text" name="name" class="form-control input-sm" placeholder="Vendor name" required></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor account</label><div class="col-sm-8"><input type="text" name="vendor_account" class="form-control input-sm" placeholder="e.g. V-0001"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor group</label><div class="col-sm-8"><input type="text" name="vendor_group" class="form-control input-sm" placeholder="e.g. Local / Import / Service"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Legal entity</label><div class="col-sm-8"><select name="legal_entity_id" class="form-control input-sm"><option value="0">— none —</option>
+								<?php foreach ($leOptsVnd as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+							</select></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Business unit</label><div class="col-sm-8"><select name="business_unit_id" class="form-control input-sm"><option value="0">— none —</option>
+								<?php foreach ($buOptsVnd as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+							</select></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Currency</label><div class="col-sm-8"><input type="text" name="currency_code" class="form-control input-sm" value="AED"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Country</label><div class="col-sm-8"><input type="text" name="country_code" class="form-control input-sm" placeholder="Country (AE)" value="AE"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">TRN / Tax reg.</label><div class="col-sm-8"><input type="text" name="trn" class="form-control input-sm" placeholder="TRN (UAE VAT)"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Registration no.</label><div class="col-sm-8"><input type="text" name="registration_number" class="form-control input-sm" placeholder="Commercial / company reg."></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Payment terms</label><div class="col-sm-8"><input type="text" name="payment_terms" class="form-control input-sm" placeholder="e.g. Net 30"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Payment method</label><div class="col-sm-8"><input type="text" name="payment_method" class="form-control input-sm" placeholder="e.g. Bank transfer / Cheque"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Delivery terms</label><div class="col-sm-8"><input type="text" name="delivery_terms" class="form-control input-sm" placeholder="Incoterms e.g. CIF / FOB"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Delivery mode</label><div class="col-sm-8"><input type="text" name="delivery_mode" class="form-control input-sm" placeholder="e.g. Sea / Air / Road"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Credit limit</label><div class="col-sm-8"><input type="number" step="0.01" name="credit_limit" class="form-control input-sm" placeholder="0.00"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">On hold</label><div class="col-sm-8"><select name="on_hold" class="form-control input-sm"><option value="no">No</option><option value="invoice">Invoice</option><option value="payment">Payment</option><option value="all">All</option></select></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank name</label><div class="col-sm-8"><input type="text" name="bank_name" class="form-control input-sm" placeholder="e.g. Emirates NBD"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank account no.</label><div class="col-sm-8"><input type="text" name="bank_account_number" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">IBAN</label><div class="col-sm-8"><input type="text" name="iban" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">SWIFT / BIC</label><div class="col-sm-8"><input type="text" name="swift_bic" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Contact person</label><div class="col-sm-8"><input type="text" name="contact_person" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">E-mail</label><div class="col-sm-8"><input type="email" name="contact_email" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Phone</label><div class="col-sm-8"><input type="text" name="contact_phone" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Website</label><div class="col-sm-8"><input type="text" name="website" class="form-control input-sm" placeholder="https://"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Address</label><div class="col-sm-8"><input type="text" name="address" class="form-control input-sm" placeholder="Street, building"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">City</label><div class="col-sm-8"><input type="text" name="city" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">State / region</label><div class="col-sm-8"><input type="text" name="state_region" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Postal code</label><div class="col-sm-8"><input type="text" name="postal_code" class="form-control input-sm"></div></div>
+							<div class="col-sm-12 form-group"><label class="col-sm-2 control-label">Notes</label><div class="col-sm-10"><input type="text" name="notes" class="form-control input-sm"></div></div>
+						</div>
 						<label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" checked> UAE VAT registered (5% input)</label>
+						<label class="checkbox-inline"><input type="checkbox" name="tax_exempt" value="1"> Tax exempt</label>
 						<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
-						<button type="submit" class="btn btn-sm btn-primary">Save supplier</button>
+						<div style="margin-top:8px;"><button type="submit" class="btn btn-sm btn-primary">Save vendor</button></div>
 					</form>
 
 					<h4>Record supplier payment</h4>

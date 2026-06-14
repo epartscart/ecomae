@@ -524,13 +524,21 @@ function epc_erp_sync_suppliers_from_storages(PDO $db)
 function epc_erp_create_supplier(PDO $db, array $data)
 {
 	epc_erp_ensure_schema($db);
-	$stmt = $db->prepare(
-		'INSERT INTO `epc_erp_suppliers`
-		(`storage_id`, `name`, `contact_email`, `contact_phone`, `trn`, `currency_code`, `country_code`, `vat_registered`, `time_created`)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-	);
 	$country = epc_uae_vat_normalize_country($data['country_code'] ?? 'AE');
 	$vatReg = !isset($data['vat_registered']) || $data['vat_registered'] === '' || $data['vat_registered'] === '1' || $data['vat_registered'] === 1;
+	$onHold = trim((string)($data['on_hold'] ?? 'no'));
+	if (!in_array($onHold, array('no', 'invoice', 'payment', 'all'), true)) {
+		$onHold = 'no';
+	}
+	$stmt = $db->prepare(
+		'INSERT INTO `epc_erp_suppliers`
+		(`storage_id`, `name`, `contact_email`, `contact_phone`, `trn`, `currency_code`, `country_code`, `vat_registered`,
+		 `vendor_account`, `vendor_group`, `legal_entity_id`, `business_unit_id`, `registration_number`,
+		 `payment_terms`, `payment_method`, `delivery_terms`, `delivery_mode`, `credit_limit`, `on_hold`, `tax_exempt`,
+		 `bank_name`, `bank_account_number`, `iban`, `swift_bic`, `contact_person`, `website`,
+		 `address`, `city`, `state_region`, `postal_code`, `notes`, `time_created`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+	);
 	$stmt->execute(array(
 		!empty($data['storage_id']) ? (int)$data['storage_id'] : null,
 		trim((string)$data['name']),
@@ -540,6 +548,29 @@ function epc_erp_create_supplier(PDO $db, array $data)
 		trim((string)($data['currency_code'] ?? 'AED')),
 		$country,
 		$vatReg ? 1 : 0,
+		trim((string)($data['vendor_account'] ?? '')),
+		trim((string)($data['vendor_group'] ?? '')),
+		(int)($data['legal_entity_id'] ?? 0),
+		(int)($data['business_unit_id'] ?? 0),
+		trim((string)($data['registration_number'] ?? '')),
+		trim((string)($data['payment_terms'] ?? '')),
+		trim((string)($data['payment_method'] ?? '')),
+		trim((string)($data['delivery_terms'] ?? '')),
+		trim((string)($data['delivery_mode'] ?? '')),
+		round((float)($data['credit_limit'] ?? 0), 2),
+		$onHold,
+		!empty($data['tax_exempt']) ? 1 : 0,
+		trim((string)($data['bank_name'] ?? '')),
+		trim((string)($data['bank_account_number'] ?? '')),
+		trim((string)($data['iban'] ?? '')),
+		trim((string)($data['swift_bic'] ?? '')),
+		trim((string)($data['contact_person'] ?? '')),
+		trim((string)($data['website'] ?? '')),
+		trim((string)($data['address'] ?? '')),
+		trim((string)($data['city'] ?? '')),
+		trim((string)($data['state_region'] ?? '')),
+		trim((string)($data['postal_code'] ?? '')),
+		trim((string)($data['notes'] ?? '')),
 		time(),
 	));
 	return (int)$db->lastInsertId();

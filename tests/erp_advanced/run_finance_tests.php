@@ -224,6 +224,59 @@ $row2 = $db->query("SELECT * FROM `epc_erp_cash_bank_accounts` WHERE `id` = " . 
 check('invalid status falls back to active', $row2['status'] === 'active');
 check('cash account defaults legal/business unit to 0', (int) $row2['legal_entity_id'] === 0 && (int) $row2['business_unit_id'] === 0);
 
+section('Vendor master — extended fields (D365 depth: identity, dimensions, terms, banking, address)');
+$vId = epc_erp_create_supplier($db, array(
+    'name' => 'Gulf Auto Supply ' . $now,
+    'vendor_account' => 'V-0007',
+    'vendor_group' => 'Import',
+    'legal_entity_id' => 4,
+    'business_unit_id' => 2,
+    'registration_number' => 'CN-1234567',
+    'payment_terms' => 'Net 30',
+    'payment_method' => 'Bank transfer',
+    'delivery_terms' => 'CIF',
+    'delivery_mode' => 'Sea',
+    'credit_limit' => 75000.25,
+    'on_hold' => 'invoice',
+    'tax_exempt' => '1',
+    'bank_name' => 'Emirates NBD',
+    'bank_account_number' => '0123456789',
+    'iban' => 'AE070331234567890123456',
+    'swift_bic' => 'EBILAEAD',
+    'contact_person' => 'Ahmed Khan',
+    'contact_email' => 'ahmed@gulfauto.example',
+    'contact_phone' => '+97150000000',
+    'website' => 'https://gulfauto.example',
+    'address' => 'Industrial Area 1',
+    'city' => 'Sharjah',
+    'state_region' => 'Sharjah',
+    'postal_code' => '12345',
+    'notes' => 'Preferred vendor',
+    'trn' => '100123456700003',
+));
+check('vendor created', $vId > 0);
+$vrow = $db->query("SELECT * FROM `epc_erp_suppliers` WHERE `id` = " . (int) $vId)->fetch(PDO::FETCH_ASSOC);
+check('vendor_account persisted', $vrow['vendor_account'] === 'V-0007');
+check('vendor_group persisted', $vrow['vendor_group'] === 'Import');
+check('vendor legal_entity_id persisted', (int) $vrow['legal_entity_id'] === 4);
+check('vendor business_unit_id persisted', (int) $vrow['business_unit_id'] === 2);
+check('vendor registration_number persisted', $vrow['registration_number'] === 'CN-1234567');
+check('vendor payment_terms persisted', $vrow['payment_terms'] === 'Net 30');
+check('vendor payment_method persisted', $vrow['payment_method'] === 'Bank transfer');
+check('vendor delivery_terms persisted', $vrow['delivery_terms'] === 'CIF');
+check('vendor credit_limit persisted', abs((float) $vrow['credit_limit'] - 75000.25) < 0.01);
+check('vendor on_hold persisted', $vrow['on_hold'] === 'invoice');
+check('vendor tax_exempt persisted', (int) $vrow['tax_exempt'] === 1);
+check('vendor iban persisted', $vrow['iban'] === 'AE070331234567890123456');
+check('vendor swift_bic persisted', $vrow['swift_bic'] === 'EBILAEAD');
+check('vendor contact_person persisted', $vrow['contact_person'] === 'Ahmed Khan');
+check('vendor city persisted', $vrow['city'] === 'Sharjah');
+
+$vId2 = epc_erp_create_supplier($db, array('name' => 'Minimal Vendor ' . $now, 'on_hold' => 'bogus'));
+$vrow2 = $db->query("SELECT * FROM `epc_erp_suppliers` WHERE `id` = " . (int) $vId2)->fetch(PDO::FETCH_ASSOC);
+check('vendor invalid on_hold falls back to no', $vrow2['on_hold'] === 'no');
+check('vendor defaults legal/business unit to 0', (int) $vrow2['legal_entity_id'] === 0 && (int) $vrow2['business_unit_id'] === 0);
+
 echo "\n========================================\n";
 echo "FINANCE TESTS: {$pass_count} passed, {$fail_count} failed\n";
 echo "========================================\n";
