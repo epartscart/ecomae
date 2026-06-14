@@ -83,33 +83,46 @@ function epc_erp_nav_areas_config()
 		'finance' => array(
 			'label' => 'Finance',
 			'icon' => 'fa-university',
-			'desc' => 'Treasury, GL, VAT and e-invoicing',
+			'desc' => 'General ledger, tax, compliance and period close',
 			'tabs' => array(
-				'cash_bank' => array('label' => 'Cash & bank', 'icon' => 'fa-university'),
-				'bank_recon' => array('label' => 'Bank recon', 'icon' => 'fa-check-square'),
-				'payment_batches' => array('label' => 'Payment batches', 'icon' => 'fa-send'),
-				'petty_cash' => array('label' => 'Petty cash', 'icon' => 'fa-money'),
 				'gl' => array('label' => 'General ledger', 'icon' => 'fa-book'),
-				'bank_setup' => array('label' => 'Bank account', 'icon' => 'fa-university'),
-				'aging' => array('label' => 'Aging (AR/AP/Inv)', 'icon' => 'fa-hourglass-half'),
 				'coa' => array('label' => 'COA', 'icon' => 'fa-list'),
+				'opening_balances' => array('label' => 'Opening balances', 'icon' => 'fa-flag-o'),
+				'aging' => array('label' => 'Aging (AR/AP/Inv)', 'icon' => 'fa-hourglass-half'),
 				'vat_return' => array('label' => 'UAE VAT', 'icon' => 'fa-percent'),
 				'tax_compliance' => array('label' => 'Tax compliance', 'icon' => 'fa-gavel'),
 				'vat_refund' => array('label' => 'Tourist VAT refunds', 'icon' => 'fa-plane'),
 				'compliance' => array('label' => 'Compliance center', 'icon' => 'fa-shield'),
 				'einvoice' => array('label' => 'E-Invoicing', 'icon' => 'fa-file-code-o'),
-				'opening_balances' => array('label' => 'Opening balances', 'icon' => 'fa-flag-o'),
 				'document_control' => array('label' => 'Document Control', 'icon' => 'fa-print'),
 				'fin_advanced' => array('label' => 'Financial depth', 'icon' => 'fa-sliders'),
 				'year_end' => array('label' => 'Year-end closing', 'icon' => 'fa-calendar-check-o'),
 			),
 			'groups' => array(
-				'Common' => array('cash_bank', 'petty_cash'),
-				'Journals' => array('gl', 'payment_batches', 'opening_balances'),
+				'Common' => array('gl'),
+				'Journals' => array('opening_balances'),
 				'Inquiries and reports' => array('aging'),
 				'Periodic' => array('fin_advanced', 'year_end'),
 				'Tax and compliance' => array('vat_return', 'tax_compliance', 'vat_refund', 'compliance', 'einvoice'),
-				'Setup' => array('coa', 'bank_setup', 'document_control'),
+				'Setup' => array('coa', 'document_control'),
+			),
+		),
+		'banking' => array(
+			'label' => 'Cash &amp; Bank Management',
+			'icon' => 'fa-money',
+			'desc' => 'Bank accounts, cash, payments and reconciliation',
+			'tabs' => array(
+				'cash_bank' => array('label' => 'Cash & bank', 'icon' => 'fa-university'),
+				'petty_cash' => array('label' => 'Petty cash', 'icon' => 'fa-money'),
+				'payment_batches' => array('label' => 'Payment batches', 'icon' => 'fa-send'),
+				'bank_recon' => array('label' => 'Bank recon', 'icon' => 'fa-check-square'),
+				'bank_setup' => array('label' => 'Bank account', 'icon' => 'fa-university'),
+			),
+			'groups' => array(
+				'Common' => array('cash_bank', 'petty_cash'),
+				'Journals' => array('payment_batches'),
+				'Inquiries and reports' => array('bank_recon'),
+				'Setup' => array('bank_setup'),
 			),
 		),
 		'operations' => array(
@@ -283,7 +296,7 @@ function epc_erp_tab_to_area($tab)
 {
 	$tab = (string) $tab;
 	if ($tab === 'bank_recon') {
-		return 'finance';
+		return 'banking';
 	}
 	foreach (epc_erp_nav_areas_config() as $areaKey => $area) {
 		if (isset($area['tabs'][$tab])) {

@@ -1289,7 +1289,7 @@ function epc_pf_case_documents(PDO $db, array $case): array
 		$base = '/shop/finance/erp';
 	}
 	if ($type === 'erp_payment') {
-		$docs[] = array('label' => 'Payment batch', 'url' => $base . '?area=finance&tab=payment_batches&batch_id=' . $sid, 'icon' => 'fa-money');
+		$docs[] = array('label' => 'Payment batch', 'url' => $base . '?area=banking&tab=payment_batches&batch_id=' . $sid, 'icon' => 'fa-money');
 		return $docs;
 	}
 	if ($type === 'erp_expense') {
