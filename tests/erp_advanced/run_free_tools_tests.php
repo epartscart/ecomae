@@ -38,9 +38,12 @@ function section(string $t): void
 
 section('Catalog & countries');
 $cat = epc_free_tools_catalog();
-check('catalog has 6 tools', count($cat) === 6);
+check('catalog has 14 tools', count($cat) === 14);
 check('catalog includes einvoice', isset($cat['einvoice']));
 check('catalog includes workflow', isset($cat['workflow']));
+foreach (array('extreport', 'customs', 'insurance', 'docexpiry', 'valuation', 'finmodel', 'taxkit', 'hrcompliance') as $nt) {
+	check("catalog includes $nt", isset($cat[$nt]));
+}
 $countries = epc_free_tools_countries();
 check('countries include AE', isset($countries['AE']));
 check('countries include generic XX', isset($countries['XX']));
@@ -114,6 +117,115 @@ $wf = epc_free_tools_compute('workflow', 'AE', array('tier1' => 5000, 'tier2' =>
 check('workflow ok', $wf['ok'] === true);
 check('three tiers', count($wf['steps']) === 3);
 check('tier uses AED currency', strpos($wf['steps'][0]['range'], 'AED') !== false);
+
+section('VAT — CSV upload + compliance');
+$vatCsv = "type,category,amount,trn\nsale,standard,1000,100123456700003\nsale,standard,500,\nsale,zero,2000,TRN1\npurchase,standard,400,";
+$vc = epc_free_tools_compute('vat', 'AE', array('csv' => $vatCsv));
+check('VAT CSV ok', $vc['ok'] === true);
+check('VAT CSV has compliance findings', isset($vc['compliance']) && count($vc['compliance']) > 0);
+$hasTrnWarn = false;
+foreach ($vc['compliance'] as $f) { if (strpos($f['message'], 'TRN') !== false || strpos($f['message'], 'registration') !== false) { $hasTrnWarn = true; } }
+check('VAT CSV flags missing TRN', $hasTrnWarn);
+// output = 5% of (1000+500 standard sales)=75; input = 5% of 400 = 20 -> net 55
+check('VAT CSV net = 55', approx((float) $vc['net'], 55.0));
+
+section('CT — CSV upload + compliance');
+$ctCsv = "type,amount\nrevenue,1000000\nexpense,400000\nadjustment,25000";
+$ctc = epc_free_tools_compute('ct', 'AE', array('csv' => $ctCsv));
+check('CT CSV ok', $ctc['ok'] === true);
+// taxable profit = 1,000,000 - 400,000 + 25,000 = 625,000; 9% on (625k-375k)=250k => 22,500
+check('CT CSV net = 22500', approx((float) $ctc['net'], 22500.0));
+
+section('IFRS — CSV trial balance + balance check');
+$tb = "account,debit,credit,classification\nSales,0,500000,revenue\nCOGS,300000,0,cogs\nOpex,80000,0,opex\nFixed assets,200000,0,non_current_assets\nCash,150000,0,current_assets\nCapital,0,230000,equity\nPayables,0,100000,current_liabilities\nLoan,0,0,non_current_liabilities\nSuspense,0,300000,equity";
+$if = epc_free_tools_compute('ifrs', 'GB', array('csv' => $tb));
+check('IFRS CSV ok', $if['ok'] === true);
+check('IFRS CSV produces compliance', isset($if['compliance']) && count($if['compliance']) > 0);
+$tbTotalsSeen = false;
+foreach ($if['compliance'] as $f) { if (stripos($f['message'], 'trial balance') !== false) { $tbTotalsSeen = true; } }
+check('IFRS CSV reports trial-balance check', $tbTotalsSeen);
+
+section('External Reporting — country authority + nested packs');
+$ext = epc_free_tools_compute('extreport', 'AE', array('standard_sales' => 100000, 'standard_purchases' => 40000, 'revenue' => 1000000, 'expenses' => 400000));
+check('extreport ok', $ext['ok'] === true);
+check('extreport names FTA authority', strpos((string) $ext['authority'], 'FTA') !== false);
+check('extreport VAT return name VAT 201', $ext['vat_return_name'] === 'VAT 201');
+check('extreport carries nested vat pack', isset($ext['vat']['rows']));
+check('extreport carries nested ct pack', isset($ext['ct']['rows']));
+$extSa = epc_free_tools_compute('extreport', 'SA', array('standard_sales' => 1000));
+check('extreport SA names ZATCA', strpos((string) $extSa['authority'], 'ZATCA') !== false);
+
+section('Customs & Logistics — CIF/duty/import VAT');
+$cust = epc_free_tools_compute('customs', 'AE', array('hs_code' => '8516', 'qty' => 10, 'unit_value' => 250, 'freight' => 300, 'insurance' => 100));
+check('customs ok', $cust['ok'] === true);
+check('customs net payable positive', (float) $cust['net'] > 0);
+check('customs landed cost present', isset($cust['landed_cost']));
+$custCsv = epc_free_tools_compute('customs', 'AE', array('csv' => "hs_code,qty,unit_value\n8516,10,250\n,5,100"));
+check('customs CSV ok', $custCsv['ok'] === true);
+$custHsWarn = false;
+foreach ($custCsv['compliance'] as $f) { if (stripos($f['message'], 'HS code') !== false) { $custHsWarn = true; } }
+check('customs CSV flags missing HS code', $custHsWarn);
+
+section('Insurance — country cover + renewal');
+$ins = epc_free_tools_compute('insurance', 'AE', array('sum_insured' => 1000000, 'rate' => 0.5, 'expiry' => date('Y-m-d', time() + 10 * 86400)));
+check('insurance ok', $ins['ok'] === true);
+check('insurance premium = 5000', approx((float) $ins['net'], 5000.0));
+check('insurance lists recommended cover', isset($ins['recommended']) && count($ins['recommended']) >= 0);
+$insExpiringFlag = false;
+foreach ($ins['compliance'] as $f) { if ($f['level'] === 'warn' && stripos($f['message'], 'renew') !== false) { $insExpiringFlag = true; } }
+check('insurance flags imminent renewal', $insExpiringFlag);
+
+section('Document Expiry — status + reminders');
+$dx = epc_free_tools_compute('docexpiry', 'AE', array('csv' => "title,expiry,reminder_days\nTrade Licence," . date('Y-m-d', time() + 20 * 86400) . ",90,60,30\nPassport," . date('Y-m-d', time() - 5 * 86400) . ",90"));
+check('docexpiry ok', $dx['ok'] === true);
+check('docexpiry tracks 2 docs', isset($dx['doc_rows']) && count($dx['doc_rows']) === 2);
+$dxExpired = false;
+foreach ($dx['compliance'] as $f) { if ($f['level'] === 'fail' && stripos($f['message'], 'EXPIRED') !== false) { $dxExpired = true; } }
+check('docexpiry flags expired doc', $dxExpired);
+
+section('Business Valuation — DCF + multiples');
+$val = epc_free_tools_compute('valuation', 'AE', array('revenue' => 5000000, 'ebitda' => 1000000, 'net_debt' => 500000, 'growth' => 5, 'discount' => 15, 'ebitda_multiple' => 6, 'revenue_multiple' => 1.5));
+check('valuation ok', $val['ok'] === true);
+check('valuation equity less than EV (net debt subtracted)', (float) $val['net'] > 0);
+// EBITDA EV = 6,000,000; Rev EV = 7,500,000; DCF = 1,000,000*1.05/0.10 = 10,500,000; avg = 8,000,000; equity = 7,500,000
+check('valuation equity = 7,500,000', approx((float) $val['net'], 7500000.0));
+
+section('Financial Model — projection');
+$fm = epc_free_tools_compute('finmodel', 'AE', array('revenue' => 1000000, 'growth' => 10, 'gross_margin' => 40, 'opex_pct' => 25, 'tax_rate' => 9, 'years' => 5));
+check('finmodel ok', $fm['ok'] === true);
+check('finmodel projects 5 years', count($fm['projection']) === 5);
+check('finmodel year1 revenue = base', approx((float) $fm['projection'][0]['revenue'], 1000000.0));
+check('finmodel year2 revenue = +10%', approx((float) $fm['projection'][1]['revenue'], 1100000.0));
+
+section('Tax Worldwide Kit — country snapshot');
+$tk = epc_free_tools_compute('taxkit', 'AE', array());
+check('taxkit ok', $tk['ok'] === true);
+check('taxkit net = VAT rate 5', approx((float) $tk['net'], 5.0));
+check('taxkit rows present', isset($tk['rows_text']) && count($tk['rows_text']) > 0);
+$tkSa = epc_free_tools_compute('taxkit', 'SA', array());
+check('taxkit SA VAT rate 15', approx((float) $tkSa['net'], 15.0));
+
+section('HR Compliance Worldwide — labour card + EOS');
+$hr = epc_free_tools_compute('hrcompliance', 'AE', array('basic_salary' => 10000, 'hire_date' => date('Y-m-d', time() - 3 * 365 * 86400)));
+check('hrcompliance ok', $hr['ok'] === true);
+check('hrcompliance has labour card rows', isset($hr['rows_text']) && count($hr['rows_text']) > 0);
+check('hrcompliance has authority url', isset($hr['authority_url']) && $hr['authority_url'] !== '');
+check('hrcompliance EOS liability positive', (float) $hr['net'] > 0);
+$hrSa = epc_free_tools_compute('hrcompliance', 'SA', array());
+check('hrcompliance SA card resolves', $hrSa['ok'] === true && count($hrSa['rows_text']) > 0);
+
+section('Pre-registration guides');
+$gOk = true;
+foreach (array_keys($cat) as $tkey) {
+	$g = epc_free_tools_guide($tkey);
+	if (($g['what'] ?? '') === '' || empty($g['get']) || ($g['how'] ?? '') === '') { $gOk = false; }
+}
+check('every tool has a guide (what/get/how)', $gOk);
+$gv = epc_free_tools_guide('vat');
+check('VAT guide documents CSV format', isset($gv['csv']) && strpos($gv['csv'], 'trn') !== false);
+$ghtml = epc_free_tools_guide_html('ifrs', $cat['ifrs']);
+check('guide HTML renders for a tool', strpos($ghtml, 'What it does') !== false && strpos($ghtml, 'eft-guide') !== false);
+check('guide HTML escapes / has no PHP error', strpos($ghtml, '<?php') === false);
 
 section('Generic fallback');
 $xx = epc_free_tools_compute('vat', 'XX', array('standard_sales' => 1000));
