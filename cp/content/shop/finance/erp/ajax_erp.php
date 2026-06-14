@@ -814,6 +814,29 @@ try {
 			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
 			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
 
+		case 'fy_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_closing.php';
+			$fyStart = strtotime((string)($_POST['start_date'] ?? '')) ?: 0;
+			$fyEnd = strtotime((string)($_POST['end_date'] ?? '')) ?: 0;
+			if ($fyStart <= 0 || $fyEnd <= 0 || $fyEnd < $fyStart) { epc_erp_json(false, 'Valid start and end dates are required'); }
+			$fyId = epc_fy_create_year($db_link, (string)($_POST['label'] ?? ''), $fyStart, $fyEnd, !empty($_POST['monthly']));
+			epc_erp_json(true, 'Fiscal year created', array('id' => $fyId));
+
+		case 'fy_close':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_closing.php';
+			$fyRes = epc_fy_close_year($db_link, (int)($_POST['year_id'] ?? 0));
+			epc_erp_json(true, 'Year closed · ' . $fyRes['result'] . ' net P&L ' . number_format((float)$fyRes['net_pl'], 2), array('res' => $fyRes));
+
+		case 'fy_reopen':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_closing.php';
+			epc_fy_reopen_year($db_link, (int)($_POST['year_id'] ?? 0));
+			epc_erp_json(true, 'Year reopened');
+
+		case 'fy_period_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_closing.php';
+			epc_fy_set_period_status($db_link, (int)($_POST['year_id'] ?? 0), (int)($_POST['period_no'] ?? 0), (string)($_POST['status'] ?? 'open'));
+			epc_erp_json(true, 'Period status updated');
+
 		case 'plt_job_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_platform.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';

@@ -296,6 +296,8 @@ $erpTabIncludes = array(
 	'org_admin' => 'erp_tabs_org_admin.php',
 	// Platform / cross-cutting services
 	'platform' => 'erp_tabs_platform.php',
+	// Year-end closing
+	'year_end' => 'erp_tabs_year_end.php',
 );
 
 ?>

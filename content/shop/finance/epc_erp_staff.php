@@ -32,6 +32,8 @@ function epc_erp_staff_all_tabs()
 		'wms', 'mfg_planning', 'fin_advanced', 'collections', 'project_accounting', 'cost_models', 'integration', 'quality', 'retail_commerce',
 		// Platform / Administration
 		'security_roles', 'org_admin', 'platform',
+		// Year-end closing
+		'year_end',
 	);
 }
 
