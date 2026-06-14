@@ -776,6 +776,24 @@ try {
 			$prRec = epc_prja_recognition_run($db_link, epc_erp_active_company_id($db_link), (int)($_POST['project_id'] ?? 0), (string)($_POST['method'] ?? 'poc'), (float)($_POST['fraction'] ?? 0), time());
 			epc_erp_json(true, 'Recognized revenue ' . number_format($prRec['recognized_revenue'], 2) . ' · WIP ' . number_format($prRec['wip'], 2), array('rec' => $prRec));
 
+		case 'costm_item_set':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cost_models.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			epc_costm_item_set($db_link, epc_erp_active_company_id($db_link), (int)($_POST['item_id'] ?? 0), (string)($_POST['model'] ?? 'moving_avg'), (float)($_POST['std_cost'] ?? 0));
+			epc_erp_json(true, 'Costing model saved');
+
+		case 'costm_txn_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cost_models.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$ctId = epc_costm_txn_add($db_link, epc_erp_active_company_id($db_link), (int)($_POST['item_id'] ?? 0), (string)($_POST['txn_type'] ?? 'receipt'), (float)($_POST['qty'] ?? 0), (float)($_POST['unit_cost'] ?? 0), time());
+			epc_erp_json(true, 'Transaction added', array('id' => $ctId));
+
+		case 'costm_close_run':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cost_models.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$ccRes = epc_costm_close_run($db_link, epc_erp_active_company_id($db_link), (int)($_POST['item_id'] ?? 0), (string)($_POST['label'] ?? ''));
+			epc_erp_json(true, 'Closing: COGS ' . number_format($ccRes['cogs'], 2) . ' · closing value ' . number_format($ccRes['closing_value'], 2), array('res' => $ccRes));
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));

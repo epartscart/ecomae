@@ -115,11 +115,12 @@ function epc_erp_nav_areas_config()
 				'fixed_assets' => array('label' => 'Fixed assets', 'icon' => 'fa-building'),
 				'manufacturing' => array('label' => 'Manufacturing', 'icon' => 'fa-cogs'),
 				'mfg_planning' => array('label' => 'Manufacturing planning', 'icon' => 'fa-cogs'),
+				'cost_models' => array('label' => 'Costing value-models', 'icon' => 'fa-balance-scale'),
 			),
 			'groups' => array(
 				'Common' => array('inventory', 'wms', 'product_info', 'inv_groups', 'order_planning'),
 				'Journals' => array('manufacturing'),
-				'Periodic' => array('master_planning', 'mfg_planning'),
+				'Periodic' => array('master_planning', 'mfg_planning', 'cost_models'),
 				'Setup' => array('retail_barcode', 'fixed_assets'),
 			),
 		),

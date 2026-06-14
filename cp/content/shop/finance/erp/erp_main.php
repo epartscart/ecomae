@@ -282,6 +282,8 @@ $erpTabIncludes = array(
 	'collections' => 'erp_tabs_collections.php',
 	// Project accounting depth
 	'project_accounting' => 'erp_tabs_project_accounting.php',
+	// Costing value-models
+	'cost_models' => 'erp_tabs_cost_models.php',
 );
 
 ?>
