@@ -799,6 +799,29 @@ try {
 			$prPo = epc_proc_req_convert($db_link, (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, 'Converted to ' . $prPo, array('po_ref' => $prPo));
 
+		case 'bplan_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_budget_planning.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$bpData = $_POST;
+			$bpData['company_id'] = epc_erp_active_company_id($db_link);
+			$bpId = epc_bplan_save($db_link, $bpData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Budget plan saved', array('id' => $bpId));
+
+		case 'bplan_line_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_budget_planning.php';
+			$bpLineId = epc_bplan_line_add($db_link, (int)($_POST['plan_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Worksheet line added', array('id' => $bpLineId));
+
+		case 'bplan_position_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_budget_planning.php';
+			$bpPosId = epc_bplan_position_add($db_link, (int)($_POST['plan_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Forecast position added', array('id' => $bpPosId));
+
+		case 'bplan_advance':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_budget_planning.php';
+			$bpStage = epc_bplan_advance_stage($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, $bpStage === 'published' ? 'Budget plan published' : 'Budget plan advanced to ' . $bpStage);
+
 		case 'customer_master_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_credit.php';
 			$cmCust = (int) ($_POST['customer_id'] ?? 0);

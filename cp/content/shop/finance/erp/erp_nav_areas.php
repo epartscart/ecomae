@@ -76,9 +76,11 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Budget registers, control and budget vs actual',
 			'tabs' => array(
 				'budgeting' => array('label' => 'Budgeting', 'icon' => 'fa-pie-chart'),
+				'budget_planning' => array('label' => 'Budget planning', 'icon' => 'fa-line-chart'),
 			),
 			'groups' => array(
 				'Common' => array('budgeting'),
+				'Periodic' => array('budget_planning'),
 			),
 		),
 		'banking' => array(

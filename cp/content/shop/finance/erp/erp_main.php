@@ -314,6 +314,8 @@ $erpTabIncludes = array(
 	// Procurement & sourcing depth
 	'purchase_requisitions' => 'erp_tabs_purchase_requisitions.php',
 	'procurement_categories' => 'erp_tabs_procurement_categories.php',
+	// Budgeting depth
+	'budget_planning' => 'erp_tabs_budget_planning.php',
 );
 
 ?>
