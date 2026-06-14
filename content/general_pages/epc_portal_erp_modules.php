@@ -303,26 +303,39 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 {
 	$registry = epc_portal_erp_modules_registry();
 	$enabled = epc_portal_erp_modules_enabled($settings);
+	// Each purchased module historically mapped to one broad area. The left rail
+	// now follows the standard module taxonomy, so a single purchased module
+	// spans several of the finer-grained areas; expand to that full set so no
+	// previously-reachable tab disappears for a non-full-access tenant.
+	$expand = array(
+		'overview' => array('overview'),
+		'sales' => array('sales', 'ar'),
+		'purchasing' => array('purchasing', 'ap'),
+		'finance' => array('finance', 'tax', 'fixed_assets', 'budgeting', 'banking'),
+		'operations' => array('inventory_mgmt', 'pim', 'warehouse', 'production', 'master_planning_area', 'cost_mgmt', 'retail'),
+		'custom_shipping' => array('purchasing'),
+		'people' => array('people', 'expense'),
+		'insights' => array('finance', 'sales', 'enterprise', 'setup'),
+		'collaboration' => array('projects', 'enterprise'),
+		'enterprise' => array('enterprise', 'budgeting'),
+	);
 	$areas = array();
 	foreach ($enabled as $modId) {
-		if (isset($registry[$modId]['area'])) {
-			$areas[$registry[$modId]['area']] = true;
+		$base = isset($registry[$modId]['area']) ? $registry[$modId]['area'] : '';
+		if ($base === '') {
+			continue;
+		}
+		foreach (isset($expand[$base]) ? $expand[$base] : array($base) as $a) {
+			$areas[$a] = true;
 		}
 	}
-	// Cash & Bank Management is split out of the Finance module as its own area,
-	// so a tenant entitled to Finance is also entitled to banking.
-	if (isset($areas['finance'])) {
-		$areas['banking'] = true;
-	}
-	// 'setup' (Accounting setup + Data import) is a core admin/config area every
-	// tenant must be able to reach, so it is always enabled regardless of the
-	// tenant's purchased module list. 'enterprise' (business units, financial
-	// dimensions, budgeting, listings) is likewise foundational master data.
+	// 'setup' (System administration) and 'enterprise' (Organization
+	// administration) are core admin/config areas every tenant must reach,
+	// regardless of purchased modules. 'tax' carries the country-driven
+	// statutory reporting centre, also foundational for compliance.
 	$areas['setup'] = true;
 	$areas['enterprise'] = true;
-	// 'regrep' (External Reporting) is a foundational, country-driven statutory
-	// reporting centre that every tenant must be able to reach for compliance.
-	$areas['regrep'] = true;
+	$areas['tax'] = true;
 	return array_keys($areas);
 }
 
