@@ -138,7 +138,7 @@ try {
 	function bind(id, action) {
 		var f = document.getElementById(id);
 		if (!f) return;
-		f.addEventListener('submit', function(e){ e.preventDefault(); if (typeof postAction === 'function') postAction(action, f); });
+		f.addEventListener('submit', function(e){ e.preventDefault(); var fn = (typeof window.epcErpPost === 'function') ? window.epcErpPost : (typeof postAction === 'function' ? postAction : null); if (fn) fn(action, f); });
 	}
 	bind('epc_fa_form_asset', 'fa_create_asset');
 	bind('epc_fa_form_dep', 'fa_run_depreciation');

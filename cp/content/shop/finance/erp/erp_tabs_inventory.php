@@ -352,7 +352,8 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 		if (!f) return;
 		f.addEventListener('submit', function(e){
 			e.preventDefault();
-			if (typeof postAction === 'function') postAction(action, f);
+			var fn = (typeof window.epcErpPost === 'function') ? window.epcErpPost : (typeof postAction === 'function' ? postAction : null);
+			if (fn) fn(action, f);
 		});
 	}
 	bind('epc_inv_form_wh', 'inv_create_warehouse');
