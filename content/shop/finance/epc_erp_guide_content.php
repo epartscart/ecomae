@@ -656,6 +656,136 @@ if (!function_exists('epc_guide_modules')) {
             array('The methods rarely agree exactly; the range and central estimate communicate the uncertainty honestly.',
                 'Net debt = borrowings + lease liabilities − cash; it bridges enterprise value to equity value.'));
 
+        $g['purchase_requisitions'] = $E('procurement', 'Purchase requisitions (req → approval → PO)',
+            'Internal demand capture: staff raise a requisition, it routes for approval, then converts to a purchase order — so spend is authorised before it is committed.',
+            array(
+                'Set approval limits/thresholds under Procurement and sourcing → Setup so requisitions route to the right approver.',
+                'Define the requesting business units / departments that can raise requisitions.',
+                'Confirm the requisition number sequence (Setup → number sequences).',
+            ),
+            array(
+                'Procurement and sourcing → Purchase requisitions → New: add lines (item, qty, need-by date, business unit).',
+                'Submit for approval; the approver approves or rejects with a note.',
+                'Convert the approved requisition to a purchase order in one click.',
+            ),
+            'No GL posting at requisition stage; commitment/accrual begins when the resulting PO is received/invoiced.',
+            array('Requisitions are the control point — approve here, not after the money is spent.'));
+
+        $g['procurement_categories'] = $E('procurement', 'Procurement categories & policies',
+            'A category tree and sourcing policies that classify what you buy and apply the right rules (preferred vendors, approval routing, default accounts) by category.',
+            array(
+                'Procurement and sourcing → Setup → Categories: build your category hierarchy.',
+                'Attach preferred/approved vendors and default purchase accounts per category.',
+                'Set per-category policies (approval thresholds, catalogue restrictions).',
+            ),
+            array(
+                'Pick a category on requisition/PO lines so policy and default accounts apply automatically.',
+                'Review category spend in Procurement reports & inquiries.',
+            ),
+            'Categories drive the default purchase/expense account used when the PO posts.',
+            array('Keep the tree shallow and meaningful — categories are for policy and analysis, not a second item master.'));
+
+        $g['budget_planning'] = $E('budgeting', 'Budget planning & forecast positions',
+            'Prepare budgets by account/dimension and period, capture forecast positions, then track actual-vs-budget as the year runs.',
+            array(
+                'Budgeting → Setup: define budget models, cycles and the accounts/dimensions in scope.',
+                'Choose the planning period (monthly/quarterly) and base currency.',
+            ),
+            array(
+                'Budgeting → Budget planning → enter or import budget figures by account and period.',
+                'Record forecast positions (planned headcount/spend) where used.',
+                'Review budget-vs-actual variance in Budgeting reports & inquiries.',
+            ),
+            'Budgets do not post to the GL; they are the comparison baseline for actuals in reports.',
+            array('Lock the budget once approved so variance analysis is against a stable plan.'));
+
+        $g['recruitment'] = $E('hr', 'Recruitment (requisition → applicant → hire)',
+            'The hiring funnel: open a job requisition, track applicants through stages, and convert the selected candidate into an employee.',
+            array(
+                'Human resources → Setup: define job positions, departments and recruitment stages.',
+            ),
+            array(
+                'Human resources → Recruitment → raise a job requisition (role, business unit, count).',
+                'Add applicants and move them through the stages (screen → interview → offer).',
+                'Hire the selected applicant — this creates the employee master record.',
+            ),
+            'No GL posting; payroll cost begins once the hired worker is paid.',
+            array('Capture the requisition first so headcount is approved before offers go out.'));
+
+        $g['performance'] = $E('hr', 'Performance management (goals & reviews)',
+            'Set employee goals and run review cycles with ratings, so appraisals and development are tracked in one place.',
+            array(
+                'Human resources → Setup: define the review cycle (period) and rating scale.',
+            ),
+            array(
+                'Human resources → Performance → set goals per employee.',
+                'Run the review cycle: managers record ratings and comments.',
+                'Review completion and rating distribution in HR reports & inquiries.',
+            ),
+            'No GL posting; ratings can inform payroll/increment decisions outside the ledger.',
+            array('Agree goals at the start of the cycle so reviews measure against something concrete.'));
+
+        $g['cash_forecast'] = $E('treasury', 'Cash flow forecast',
+            'A forward view of cash: expected inflows (receivables) and outflows (payables, payroll, tax) by period so you can see liquidity ahead of time.',
+            array(
+                'Cash and bank management → Setup: confirm bank accounts and opening cash positions.',
+            ),
+            array(
+                'Cash and bank management → Cash flow forecast: review projected closing balance per period.',
+                'Adjust assumptions (collection days, planned payments) and re-run.',
+            ),
+            'Analytical only — no GL posting; it reads ledger balances and open items.',
+            array('Use it before committing large payments so you do not run the bank balance negative.'));
+
+        $g['bank_instruments'] = $E('treasury', 'Bank instruments (LC / bank guarantee)',
+            'Track letters of credit and bank guarantees through their lifecycle (issued → amended → utilised → expired/closed) with limits and expiry reminders.',
+            array(
+                'Cash and bank management → Setup: record your facility limits per bank.',
+            ),
+            array(
+                'Cash and bank management → Bank instruments → New: capture type, beneficiary, amount, issue/expiry date.',
+                'Update status as the instrument is amended, utilised or closed.',
+                'Watch upcoming expiries in the instruments list / Document expiry tracker.',
+            ),
+            'Off-balance-sheet until called; margin/charges post to the relevant bank and expense accounts when incurred.',
+            array('Expiry dates feed reminders — set them accurately to avoid lapsed guarantees.'));
+
+        $g['withholding'] = $E('tax', 'Withholding tax (codes & certificates)',
+            'Withhold tax at source on applicable payments using configurable codes/rates, and produce the withholding register for filing.',
+            array(
+                'Tax → Setup → Withholding: create codes with rate % and the GL account to accrue the withheld amount.',
+            ),
+            array(
+                'Tax → Withholding tax → apply a code on a payment (vendor, base amount) to compute the withheld value.',
+                'Review accrued vs settled in the withholding register; export for filing.',
+            ),
+            'Posts the withheld portion to the configured withholding liability account; the net is paid to the vendor.',
+            array('Set the code rate from the tenant country’s rules — never hard-code a single jurisdiction.'));
+
+        $g['elec_reporting'] = $E('tax', 'Electronic reporting (statutory file formats)',
+            'Define output formats (CSV/XML/JSON) for statutory/electronic submissions so generated files match the authority’s required layout.',
+            array(
+                'Tax → Electronic reporting → New format: set code, name, output type, and root/row elements.',
+            ),
+            array(
+                'Pick a format and generate the file for the period; download and submit to the authority/portal.',
+            ),
+            'No GL posting; it transforms ledger/return data into the required file layout.',
+            array('Keep one format per authority requirement so generated files stay submission-ready.'));
+
+        $g['report_center'] = $E('core', 'Reports & inquiries (per-module report center)',
+            'Every module has its own “Reports & inquiries” tab listing its standard reports. Pick a report, filter rows live, and export to CSV.',
+            array(
+                'No setup needed — the report list appears automatically on each module that has reports.',
+            ),
+            array(
+                'Open a module → Reports & inquiries (under “Inquiries and reports”).',
+                'Click a report on the left to run it; type in the filter box to narrow rows.',
+                'Click CSV to export the visible rows.',
+            ),
+            'Read-only — reports query existing data and never post to the GL.',
+            array('Filter first, then export — the CSV contains exactly the rows you can see.'));
+
         return $g;
     }
 }

@@ -43,11 +43,15 @@ $portal_home = epc_erp_portal_canonical_base($lang);
 	$epc_erp_portal = 'frontend';
 	extract(epc_erp_configure_portal_urls('frontend'));
 	$guide_include = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/finance/erp/erp_guide.php';
+	$full_guide_include = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/finance/erp/erp_full_guide.php';
 	if (!is_file($guide_include)) {
 		echo '<div class="alert alert-danger">ERP guide file not found.</div>';
 	} else {
 		echo '<div class="epc-erp-workspace">';
 		include $guide_include;
+		if (is_file($full_guide_include)) {
+			include $full_guide_include;
+		}
 		echo '</div>';
 	}
 	?>

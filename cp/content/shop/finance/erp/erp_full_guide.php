@@ -75,10 +75,32 @@ try {
             <b>industry document chains</b> show exactly which document is prepared at which stage (LPO/PO &rarr; GRN &rarr; SO &rarr; DO &rarr; Invoice).
         </p>
         <div style="margin-top:12px">
+            <a href="#g-firstrun" class="erp-chip" style="display:inline-block;margin:3px 4px;text-decoration:none"><b>First-time setup &amp; configuration</b></a>
             <?php foreach ($sections as $key => $e): ?>
                 <a href="#g-<?php echo $esc($key); ?>" class="erp-chip" style="display:inline-block;margin:3px 4px;text-decoration:none"><?php echo $esc($e['title']); ?></a>
             <?php endforeach; ?>
         </div>
+    </div>
+
+    <div class="erp-panel" id="g-firstrun" style="animation-delay:.06s">
+        <h3>First-time setup &amp; configuration <span>&mdash; do these in order</span></h3>
+        <p style="color:var(--erp-muted);line-height:1.7;margin:6px 0 12px">
+            New tenant? Work top to bottom once — each step unlocks the next. After this the modules below are ready for daily use.
+        </p>
+        <ol style="color:var(--erp-text);line-height:1.9;padding-left:20px;margin:0">
+            <li><b>Company profile</b> — legal/trade name, logo, address, TRN/VAT, trade licence and bank pay-to details. These print on every document.</li>
+            <li><b>Country</b> — set the company country once; currency, language (incl. RTL), tax regime (VAT/GST rate + e-invoice scheme), fiscal-year start and the labour-law pack all localise together.</li>
+            <li><b>Financial year &amp; periods</b> — set the year start and open the accounting periods (Fixed assets / Year-end closing → Setup).</li>
+            <li><b>Chart of accounts</b> — load or adjust the COA every module posts to (General ledger → Setup).</li>
+            <li><b>Number sequences</b> — confirm the voucher/document sequences (invoices, POs, requisitions, journals).</li>
+            <li><b>Tax setup</b> — confirm the tax/VAT codes and rates for your country; add withholding codes if you withhold at source (Tax → Setup).</li>
+            <li><b>Business units / legal entities</b> — define them so masters (bank accounts, vendors, customers, assets, employees) can be attached to the right unit.</li>
+            <li><b>Bank accounts</b> — create your cash and bank accounts with full details (IBAN, SWIFT/BIC, GL account, business unit).</li>
+            <li><b>Master data</b> — add vendors (Accounts payable), customers (Accounts receivable), items (Product information) and fixed assets to full depth.</li>
+            <li><b>Opening balances</b> — enter go-live balances (trial balance, customer/vendor open items, stock on hand) as at your migration date.</li>
+            <li><b>Users &amp; roles</b> — create users and assign roles/permissions; set approval thresholds and workflow (System administration).</li>
+            <li><b>Go live</b> — start daily transactions; use each module’s <b>Reports &amp; inquiries</b> tab to monitor, and Year-end closing when the period ends.</li>
+        </ol>
     </div>
 
     <?php foreach ($sections as $key => $e): ?>
