@@ -707,6 +707,52 @@ try {
 			$acId = epc_fin_accrual_save($db_link, array('company_id' => epc_erp_active_company_id($db_link), 'code' => (string)($_POST['code'] ?? ''), 'description' => (string)($_POST['description'] ?? ''), 'total_amount' => (float)($_POST['total_amount'] ?? 0), 'periods' => (int)($_POST['periods'] ?? 1), 'start_fy' => (int)($_POST['start_fy'] ?? 0), 'start_period' => (int)($_POST['start_period'] ?? 1)), (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, 'Accrual scheme created', array('id' => $acId));
 
+		case 'coll_case_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$cc = $_POST;
+			$cc['company_id'] = epc_erp_active_company_id($db_link);
+			$ccId = epc_coll_case_save($db_link, $cc, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Case saved', array('id' => $ccId));
+
+		case 'coll_case_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
+			epc_coll_case_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'new'));
+			epc_erp_json(true, 'Case status updated');
+
+		case 'coll_case_promise':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
+			$pd = (string)($_POST['promise_date'] ?? '');
+			$pts = $pd !== '' ? (int)strtotime($pd) : 0;
+			epc_coll_case_promise($db_link, (int)($_POST['id'] ?? 0), (float)($_POST['amount'] ?? 0), $pts);
+			epc_erp_json(true, 'Promise to pay recorded');
+
+		case 'coll_activity_log':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
+			epc_coll_activity_log($db_link, (int)($_POST['case_id'] ?? 0), (string)($_POST['type'] ?? 'note'), (string)($_POST['outcome'] ?? ''), (float)($_POST['amount'] ?? 0), 0);
+			epc_erp_json(true, 'Activity logged');
+
+		case 'coll_dunning_run':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$custs = array();
+			foreach (preg_split('/[\r\n]+/', (string)($_POST['customers'] ?? '')) as $line) {
+				$line = trim($line);
+				if ($line === '' || strpos($line, '|') === false) { continue; }
+				$p = array_map('trim', explode('|', $line));
+				if (count($p) < 5) { continue; }
+				$custs[] = array('customer_id' => (int)$p[0], 'buckets' => array('current' => 0.0, 'd1_30' => (float)$p[1], 'd31_60' => (float)$p[2], 'd61_90' => (float)$p[3], 'd90_plus' => (float)$p[4]));
+			}
+			if (empty($custs)) { throw new Exception('Enter at least one customer line (customerId|d1_30|d31_60|d61_90|d90_plus)'); }
+			$dr = epc_coll_dunning_run($db_link, epc_erp_active_company_id($db_link), $custs);
+			epc_erp_json(true, 'Dunning run #' . $dr['run_id'] . ' — ' . count($dr['entries']) . ' notice(s)', array('run_id' => $dr['run_id']));
+
+		case 'coll_hold_set':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_collections.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			epc_coll_hold_set($db_link, epc_erp_active_company_id($db_link), (int)($_POST['customer_id'] ?? 0), (int)($_POST['place'] ?? 1) === 1, (string)($_POST['reason'] ?? ''), (string)($_SESSION['admin_username'] ?? ''));
+			epc_erp_json(true, 'Credit hold updated');
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));

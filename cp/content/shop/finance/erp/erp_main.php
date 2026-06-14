@@ -278,6 +278,8 @@ $erpTabIncludes = array(
 	'mfg_planning' => 'erp_tabs_mfg_planning.php',
 	// Financial depth
 	'fin_advanced' => 'erp_tabs_fin_advanced.php',
+	// Collections & credit management
+	'collections' => 'erp_tabs_collections.php',
 );
 
 ?>
