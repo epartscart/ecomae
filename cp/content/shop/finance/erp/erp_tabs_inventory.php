@@ -101,6 +101,49 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 		</select>
 		<span class="help-block" style="margin:4px 0 0;font-size:11px;">Jewellery items: pick <strong>gram</strong> (gold/silver by weight), <strong>carat</strong> (diamonds/stones) or <strong>tola</strong>. Quantities and weighted-average cost are tracked in this unit.</span>
 	</div></div>
+	<div class="form-group"><label class="col-sm-3">Search name</label><div class="col-sm-9"><input name="search_name" class="form-control input-sm" placeholder="Short / alternate name"></div></div>
+	<div class="form-group"><label class="col-sm-3">Product type</label><div class="col-sm-9">
+		<select name="product_type" class="form-control input-sm"><option value="item">Item</option><option value="service">Service</option></select>
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Item group</label><div class="col-sm-9"><input name="item_group" class="form-control input-sm" placeholder="e.g. Finished goods / Raw material"></div></div>
+	<div class="form-group"><label class="col-sm-3">Item model group</label><div class="col-sm-9"><input name="item_model_group" class="form-control input-sm" placeholder="e.g. FIFO / STD"></div></div>
+	<div class="form-group"><label class="col-sm-3">Costing method</label><div class="col-sm-9">
+		<select name="costing_method" class="form-control input-sm"><option value="">— inherit —</option><option value="weighted_avg">Weighted average</option><option value="fifo">FIFO</option><option value="lifo">LIFO</option><option value="standard">Standard cost</option></select>
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Storage dimension group</label><div class="col-sm-9"><input name="storage_dim_group" class="form-control input-sm" placeholder="e.g. Site-WH"></div></div>
+	<div class="form-group"><label class="col-sm-3">Tracking dimension group</label><div class="col-sm-9"><input name="tracking_dim_group" class="form-control input-sm" placeholder="e.g. Batch / Serial"></div></div>
+	<div class="form-group"><label class="col-sm-3">Purchase unit</label><div class="col-sm-9"><input name="purchase_unit" class="form-control input-sm" placeholder="e.g. box"></div></div>
+	<div class="form-group"><label class="col-sm-3">Sales unit</label><div class="col-sm-9"><input name="sales_unit" class="form-control input-sm" placeholder="e.g. pcs"></div></div>
+	<div class="form-group"><label class="col-sm-3">Default warehouse</label><div class="col-sm-9">
+		<select name="default_warehouse_id" class="form-control input-sm"><option value="0">— none —</option>
+		<?php foreach ($warehouses as $w): ?><option value="<?php echo (int) $w['id']; ?>"><?php echo epc_erp_h($w['code'] . ' · ' . $w['name']); ?></option><?php endforeach; ?>
+		</select>
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Default vendor ID</label><div class="col-sm-9"><input type="number" name="default_vendor_id" class="form-control input-sm" placeholder="Vendor (supplier) ID"></div></div>
+	<div class="form-group"><label class="col-sm-3">Sales tax group</label><div class="col-sm-9"><input name="sales_tax_group" class="form-control input-sm" placeholder="e.g. STD"></div></div>
+	<div class="form-group"><label class="col-sm-3">Purchase tax group</label><div class="col-sm-9"><input name="purchase_tax_group" class="form-control input-sm" placeholder="e.g. STD"></div></div>
+	<div class="form-group"><label class="col-sm-3">Buyer group</label><div class="col-sm-9"><input name="buyer_group" class="form-control input-sm"></div></div>
+	<div class="form-group"><label class="col-sm-3">Coverage (planning) group</label><div class="col-sm-9"><input name="coverage_group" class="form-control input-sm" placeholder="e.g. Min/Max"></div></div>
+	<div class="form-group"><label class="col-sm-3">ABC code</label><div class="col-sm-9">
+		<select name="abc_code" class="form-control input-sm"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Net / Gross / Tare weight</label><div class="col-sm-9" style="display:flex;gap:6px;">
+		<input type="number" step="0.001" name="net_weight" class="form-control input-sm" placeholder="Net">
+		<input type="number" step="0.001" name="gross_weight" class="form-control input-sm" placeholder="Gross">
+		<input type="number" step="0.001" name="tare_weight" class="form-control input-sm" placeholder="Tare">
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Volume / Depth / Width / Height</label><div class="col-sm-9" style="display:flex;gap:6px;">
+		<input type="number" step="0.001" name="volume" class="form-control input-sm" placeholder="Vol">
+		<input type="number" step="0.001" name="gross_depth" class="form-control input-sm" placeholder="Depth">
+		<input type="number" step="0.001" name="gross_width" class="form-control input-sm" placeholder="Width">
+		<input type="number" step="0.001" name="gross_height" class="form-control input-sm" placeholder="Height">
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Standard cost / Sales / Purchase price</label><div class="col-sm-9" style="display:flex;gap:6px;">
+		<input type="number" step="0.0001" name="standard_cost" class="form-control input-sm" placeholder="Std cost">
+		<input type="number" step="0.0001" name="sales_price" class="form-control input-sm" placeholder="Sales price">
+		<input type="number" step="0.0001" name="purchase_price" class="form-control input-sm" placeholder="Purchase price">
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Notes</label><div class="col-sm-9"><input name="notes" class="form-control input-sm"></div></div>
 	<?php foreach ($fieldDefs as $fd): ?>
 	<div class="form-group"><label class="col-sm-3"><?php echo epc_erp_h($fd['label']); ?></label>
 		<div class="col-sm-9"><input name="custom_<?php echo epc_erp_h($fd['field_key']); ?>" class="form-control input-sm" placeholder="<?php echo epc_erp_h($fd['field_type']); ?>"></div>

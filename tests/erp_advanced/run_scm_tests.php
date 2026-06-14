@@ -222,6 +222,49 @@ check('item B stock increased by 30 after receive', abs(($bAfter - $bBefore) - 3
 $shipStatus = $db->query("SELECT status FROM epc_scm_shipments WHERE id=$shipId")->fetchColumn();
 check('shipment marked delivered after receive', $shipStatus === 'delivered');
 
+/* ----------------------------------------------- item master (field depth) */
+section('Item master — extended field depth');
+$mItem = (int) epc_erp_inventory_create_item($db, array(
+    'sku' => 'MASTER-1', 'name' => 'Steel Rod 12mm', 'unit' => 'pcs',
+    'search_name' => 'Rod12', 'product_type' => 'item', 'item_group' => 'Raw material',
+    'item_model_group' => 'FIFO', 'costing_method' => 'fifo',
+    'storage_dim_group' => 'Site-WH', 'tracking_dim_group' => 'Batch',
+    'purchase_unit' => 'box', 'sales_unit' => 'pcs',
+    'default_warehouse_id' => $wh, 'default_vendor_id' => 77,
+    'sales_tax_group' => 'STD', 'purchase_tax_group' => 'STD',
+    'buyer_group' => 'METAL', 'coverage_group' => 'MinMax', 'abc_code' => 'A',
+    'net_weight' => 1.2, 'gross_weight' => 1.5, 'tare_weight' => 0.3, 'volume' => 0.02,
+    'gross_depth' => 12, 'gross_width' => 2, 'gross_height' => 2,
+    'standard_cost' => 4.5, 'sales_price' => 7.25, 'purchase_price' => 4.0,
+    'notes' => 'Construction grade',
+));
+check('item master created', $mItem > 0);
+$mr = $db->query("SELECT * FROM epc_erp_inv_items WHERE id=$mItem")->fetch(PDO::FETCH_ASSOC);
+check('item master search_name persisted', $mr['search_name'] === 'Rod12');
+check('item master product_type persisted', $mr['product_type'] === 'item');
+check('item master item_group persisted', $mr['item_group'] === 'Raw material');
+check('item master item_model_group persisted', $mr['item_model_group'] === 'FIFO');
+check('item master costing_method persisted', $mr['costing_method'] === 'fifo');
+check('item master storage_dim_group persisted', $mr['storage_dim_group'] === 'Site-WH');
+check('item master tracking_dim_group persisted', $mr['tracking_dim_group'] === 'Batch');
+check('item master purchase_unit persisted', $mr['purchase_unit'] === 'box');
+check('item master sales_unit persisted', $mr['sales_unit'] === 'pcs');
+check('item master default_warehouse_id persisted', (int) $mr['default_warehouse_id'] === $wh);
+check('item master default_vendor_id persisted', (int) $mr['default_vendor_id'] === 77);
+check('item master sales_tax_group persisted', $mr['sales_tax_group'] === 'STD');
+check('item master abc_code persisted', $mr['abc_code'] === 'A');
+check('item master net_weight persisted', abs((float) $mr['net_weight'] - 1.2) < 0.001);
+check('item master gross_weight persisted', abs((float) $mr['gross_weight'] - 1.5) < 0.001);
+check('item master volume persisted', abs((float) $mr['volume'] - 0.02) < 0.001);
+check('item master standard_cost persisted', abs((float) $mr['standard_cost'] - 4.5) < 0.0001);
+check('item master sales_price persisted', abs((float) $mr['sales_price'] - 7.25) < 0.0001);
+check('item master purchase_price persisted', abs((float) $mr['purchase_price'] - 4.0) < 0.0001);
+check('item master notes persisted', $mr['notes'] === 'Construction grade');
+// Minimal create still works (extended fields default, not required).
+$mItem2 = (int) epc_erp_inventory_create_item($db, array('sku' => 'MASTER-2', 'name' => 'Plain Item'));
+$mr2 = $db->query("SELECT * FROM epc_erp_inv_items WHERE id=$mItem2")->fetch(PDO::FETCH_ASSOC);
+check('minimal item create still works', $mItem2 > 0 && $mr2['product_type'] === 'item');
+
 /* ---------------------------------------------------------------- summary */
 echo "\n========================================\n";
 echo "SCM TESTS: {$pass_count} passed, {$fail_count} failed\n";

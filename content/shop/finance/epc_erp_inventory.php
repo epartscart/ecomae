@@ -157,6 +157,36 @@ function epc_erp_inventory_ensure_schema(PDO $db)
 		// onboarding; the client can re-classify any field afterwards.
 		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_field_defs', 'field_role', "enum('inventory','non_inventory') NOT NULL DEFAULT 'inventory'");
 		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_field_defs', 'source_pack', "varchar(64) NOT NULL DEFAULT ''");
+
+		// Item master — extended fields (released-product depth: identity, groups,
+		// dimension/costing groups, units, tax, planning, physical dims, prices).
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'search_name', "varchar(255) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'product_type', "varchar(16) NOT NULL DEFAULT 'item'");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'item_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'item_model_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'costing_method', "varchar(24) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'storage_dim_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'tracking_dim_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'purchase_unit', "varchar(16) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'sales_unit', "varchar(16) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'default_warehouse_id', 'int(11) NOT NULL DEFAULT 0');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'default_vendor_id', 'int(11) NOT NULL DEFAULT 0');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'sales_tax_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'purchase_tax_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'buyer_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'coverage_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'abc_code', "varchar(8) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'net_weight', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'gross_weight', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'tare_weight', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'volume', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'gross_depth', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'gross_width', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'gross_height', 'decimal(14,3) NOT NULL DEFAULT 0.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'standard_cost', 'decimal(14,4) NOT NULL DEFAULT 0.0000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'sales_price', 'decimal(14,4) NOT NULL DEFAULT 0.0000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'purchase_price', 'decimal(14,4) NOT NULL DEFAULT 0.0000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_items', 'notes', "varchar(1000) NOT NULL DEFAULT ''");
 	}
 
 	epc_erp_inventory_seed_field_defs($db);
@@ -586,21 +616,47 @@ function epc_erp_inventory_create_item(PDO $db, array $data)
 		? (string) $data['item_type'] : 'standard';
 	$trackExpiry = !empty($data['track_expiry']) || $itemType === 'perishable' ? 1 : 0;
 	$barcode = trim((string) ($data['barcode'] ?? ''));
-	if ($barcode !== '' && epc_erp_inventory_has_column($db, 'epc_erp_inv_items', 'barcode')) {
-		$db->prepare(
-			'INSERT INTO `epc_erp_inv_items` (`sku`,`name`,`product_id`,`item_type`,`track_expiry`,`unit`,`barcode`,`time_created`) VALUES (?,?,?,?,?,?,?,?)'
-		)->execute(array(
-			$sku, $name, (int) ($data['product_id'] ?? 0), $itemType, $trackExpiry,
-			substr((string) ($data['unit'] ?? 'pcs'), 0, 16), substr($barcode, 0, 128), time(),
-		));
-	} else {
-		$db->prepare(
-			'INSERT INTO `epc_erp_inv_items` (`sku`,`name`,`product_id`,`item_type`,`track_expiry`,`unit`,`time_created`) VALUES (?,?,?,?,?,?,?)'
-		)->execute(array(
-			$sku, $name, (int) ($data['product_id'] ?? 0), $itemType, $trackExpiry,
-			substr((string) ($data['unit'] ?? 'pcs'), 0, 16), time(),
-		));
+
+	// Released-product (item master) extended fields — only persist the columns
+	// that exist (schema is migrated lazily via ensure_schema).
+	$cols = array('sku', 'name', 'product_id', 'item_type', 'track_expiry', 'unit', 'time_created');
+	$vals = array(
+		$sku, $name, (int) ($data['product_id'] ?? 0), $itemType, $trackExpiry,
+		substr((string) ($data['unit'] ?? 'pcs'), 0, 16), time(),
+	);
+	$extendedStr = array(
+		'barcode' => 128, 'search_name' => 255, 'product_type' => 16, 'item_group' => 64,
+		'item_model_group' => 64, 'costing_method' => 24, 'storage_dim_group' => 64,
+		'tracking_dim_group' => 64, 'purchase_unit' => 16, 'sales_unit' => 16,
+		'sales_tax_group' => 64, 'purchase_tax_group' => 64, 'buyer_group' => 64,
+		'coverage_group' => 64, 'abc_code' => 8, 'notes' => 1000,
+	);
+	foreach ($extendedStr as $col => $len) {
+		if (isset($data[$col]) && epc_erp_inventory_has_column($db, 'epc_erp_inv_items', $col)) {
+			$cols[] = $col;
+			$vals[] = substr((string) $data[$col], 0, $len);
+		}
 	}
+	$extendedInt = array('default_warehouse_id', 'default_vendor_id');
+	foreach ($extendedInt as $col) {
+		if (isset($data[$col]) && epc_erp_inventory_has_column($db, 'epc_erp_inv_items', $col)) {
+			$cols[] = $col;
+			$vals[] = (int) $data[$col];
+		}
+	}
+	$extendedDec = array(
+		'net_weight', 'gross_weight', 'tare_weight', 'volume', 'gross_depth',
+		'gross_width', 'gross_height', 'standard_cost', 'sales_price', 'purchase_price',
+	);
+	foreach ($extendedDec as $col) {
+		if (isset($data[$col]) && $data[$col] !== '' && epc_erp_inventory_has_column($db, 'epc_erp_inv_items', $col)) {
+			$cols[] = $col;
+			$vals[] = (float) $data[$col];
+		}
+	}
+	$placeholders = implode(',', array_fill(0, count($cols), '?'));
+	$colList = '`' . implode('`,`', $cols) . '`';
+	$db->prepare("INSERT INTO `epc_erp_inv_items` ($colList) VALUES ($placeholders)")->execute($vals);
 	$id = (int) $db->lastInsertId();
 	foreach ((array) ($data['custom_fields'] ?? array()) as $key => $val) {
 		$key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));
