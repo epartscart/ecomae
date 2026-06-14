@@ -84,6 +84,45 @@ epc_credit_set_profile($db, $cust, array('credit_limit' => 5000, 'terms_days' =>
 $p = epc_credit_get_profile($db, $cust);
 check('credit profile persisted (limit 5000)', abs((float) $p['credit_limit'] - 5000.0) < 0.01);
 
+// Customer master (D365 depth) — extended fields persisted, credit fields preserved on partial update.
+epc_credit_set_master($db, $cust, array(
+    'customer_account' => 'C-0042',
+    'customer_name' => 'Falcon Trading',
+    'customer_group' => 'WHOLESALE',
+    'legal_entity_id' => 3,
+    'business_unit_id' => 2,
+    'currency_code' => 'AED',
+    'payment_method' => 'Bank transfer',
+    'delivery_terms' => 'CIF',
+    'delivery_mode' => 'Road',
+    'trn' => '100999888700003',
+    'tax_exempt' => '1',
+    'sales_tax_group' => 'STD',
+    'contact_person' => 'Sara Ali',
+    'contact_email' => 'sara@falcon.example',
+    'city' => 'Dubai',
+    'credit_limit' => 12000,
+    'terms_days' => 45,
+));
+$pm = epc_credit_get_profile($db, $cust);
+check('customer master account persisted', $pm['customer_account'] === 'C-0042');
+check('customer master name persisted', $pm['customer_name'] === 'Falcon Trading');
+check('customer master legal_entity_id persisted', (int) $pm['legal_entity_id'] === 3);
+check('customer master business_unit_id persisted', (int) $pm['business_unit_id'] === 2);
+check('customer master delivery_terms persisted', $pm['delivery_terms'] === 'CIF');
+check('customer master trn persisted', $pm['trn'] === '100999888700003');
+check('customer master tax_exempt persisted', (int) $pm['tax_exempt'] === 1);
+check('customer master credit limit updated to 12000', abs((float) $pm['credit_limit'] - 12000.0) < 0.01);
+check('customer master terms updated to 45', (int) $pm['terms_days'] === 45);
+// Partial update preserves previously set master fields.
+epc_credit_set_master($db, $cust, array('city' => 'Sharjah'));
+$pm2 = epc_credit_get_profile($db, $cust);
+check('partial master update changes city', $pm2['city'] === 'Sharjah');
+check('partial master update preserves account', $pm2['customer_account'] === 'C-0042');
+check('partial master update preserves credit limit', abs((float) $pm2['credit_limit'] - 12000.0) < 0.01);
+// Restore credit fields used by the ageing assertions below.
+epc_credit_set_profile($db, $cust, array('credit_limit' => 5000, 'terms_days' => 30, 'risk_band' => 'watch'));
+
 $age = epc_credit_ageing($db, $cust, $now);
 // 9001: total 1000 - 500 paid = 500 outstanding, 10 days old (<30 terms) -> current
 // 9002: 2000, 75 days old -> 45 past due -> d31_60

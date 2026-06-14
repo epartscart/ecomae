@@ -30,6 +30,111 @@ if (!function_exists('epc_credit_ensure_schema')) {
             PRIMARY KEY (`id`),
             UNIQUE KEY `x_customer` (`customer_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Customer credit profiles'");
+
+        // Customer master — extended fields (D365 depth: identity, dimensions, terms, tax, contact, address).
+        $cols = array(
+            'customer_account' => "varchar(32) DEFAULT NULL",
+            'customer_name' => "varchar(255) DEFAULT NULL",
+            'customer_group' => "varchar(64) DEFAULT NULL",
+            'legal_entity_id' => "int(11) NOT NULL DEFAULT 0",
+            'business_unit_id' => "int(11) NOT NULL DEFAULT 0",
+            'currency_code' => "varchar(8) DEFAULT NULL",
+            'payment_method' => "varchar(32) DEFAULT NULL",
+            'delivery_terms' => "varchar(32) DEFAULT NULL",
+            'delivery_mode' => "varchar(32) DEFAULT NULL",
+            'trn' => "varchar(64) DEFAULT NULL",
+            'tax_exempt' => "tinyint(1) NOT NULL DEFAULT 0",
+            'sales_tax_group' => "varchar(64) DEFAULT NULL",
+            'contact_person' => "varchar(255) DEFAULT NULL",
+            'contact_email' => "varchar(128) DEFAULT NULL",
+            'contact_phone' => "varchar(64) DEFAULT NULL",
+            'website' => "varchar(255) DEFAULT NULL",
+            'address' => "varchar(512) DEFAULT NULL",
+            'city' => "varchar(128) DEFAULT NULL",
+            'state_region' => "varchar(128) DEFAULT NULL",
+            'postal_code' => "varchar(32) DEFAULT NULL",
+            'country_code' => "varchar(8) DEFAULT NULL",
+        );
+        foreach ($cols as $col => $def) {
+            try {
+                $chk = $db->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_credit_profiles' AND COLUMN_NAME = ?");
+                $chk->execute(array($col));
+                if ((int) $chk->fetchColumn() === 0) {
+                    $db->exec("ALTER TABLE `epc_credit_profiles` ADD COLUMN `$col` $def");
+                }
+            } catch (Exception $e) {
+            }
+        }
+    }
+}
+
+if (!function_exists('epc_credit_set_master')) {
+    /**
+     * Persist the full D365-style customer master for a customer (user) id.
+     * Preserves credit fields not supplied. Returns nothing.
+     *
+     * @param array<string,mixed> $data
+     */
+    function epc_credit_set_master(PDO $db, int $customerId, array $data): void
+    {
+        epc_credit_ensure_schema($db);
+        $existing = epc_credit_get_profile($db, $customerId);
+        $now = time();
+        $get = function (string $k, $default = null) use ($data, $existing) {
+            if (array_key_exists($k, $data) && $data[$k] !== '') {
+                return $data[$k];
+            }
+            return $existing[$k] ?? $default;
+        };
+        $db->prepare(
+            "INSERT INTO `epc_credit_profiles`
+             (`customer_id`,`credit_limit`,`terms_days`,`on_hold`,`risk_band`,`notes`,
+              `customer_account`,`customer_name`,`customer_group`,`legal_entity_id`,`business_unit_id`,`currency_code`,
+              `payment_method`,`delivery_terms`,`delivery_mode`,`trn`,`tax_exempt`,`sales_tax_group`,
+              `contact_person`,`contact_email`,`contact_phone`,`website`,`address`,`city`,`state_region`,`postal_code`,`country_code`,
+              `time_created`,`time_updated`)
+             VALUES (?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?, ?,?)
+             ON DUPLICATE KEY UPDATE
+              `credit_limit`=VALUES(`credit_limit`), `terms_days`=VALUES(`terms_days`), `on_hold`=VALUES(`on_hold`),
+              `risk_band`=VALUES(`risk_band`), `notes`=VALUES(`notes`),
+              `customer_account`=VALUES(`customer_account`), `customer_name`=VALUES(`customer_name`), `customer_group`=VALUES(`customer_group`),
+              `legal_entity_id`=VALUES(`legal_entity_id`), `business_unit_id`=VALUES(`business_unit_id`), `currency_code`=VALUES(`currency_code`),
+              `payment_method`=VALUES(`payment_method`), `delivery_terms`=VALUES(`delivery_terms`), `delivery_mode`=VALUES(`delivery_mode`),
+              `trn`=VALUES(`trn`), `tax_exempt`=VALUES(`tax_exempt`), `sales_tax_group`=VALUES(`sales_tax_group`),
+              `contact_person`=VALUES(`contact_person`), `contact_email`=VALUES(`contact_email`), `contact_phone`=VALUES(`contact_phone`),
+              `website`=VALUES(`website`), `address`=VALUES(`address`), `city`=VALUES(`city`), `state_region`=VALUES(`state_region`),
+              `postal_code`=VALUES(`postal_code`), `country_code`=VALUES(`country_code`), `time_updated`=VALUES(`time_updated`)"
+        )->execute(array(
+            $customerId,
+            round((float) $get('credit_limit', 0), 2),
+            (int) $get('terms_days', 30),
+            !empty($data['on_hold']) ? 1 : (int) ($existing['on_hold'] ?? 0),
+            (string) $get('risk_band', 'normal'),
+            (string) $get('notes', ''),
+            ($get('customer_account') !== null) ? (string) $get('customer_account') : null,
+            ($get('customer_name') !== null) ? (string) $get('customer_name') : null,
+            ($get('customer_group') !== null) ? (string) $get('customer_group') : null,
+            (int) $get('legal_entity_id', 0),
+            (int) $get('business_unit_id', 0),
+            ($get('currency_code') !== null) ? (string) $get('currency_code') : null,
+            ($get('payment_method') !== null) ? (string) $get('payment_method') : null,
+            ($get('delivery_terms') !== null) ? (string) $get('delivery_terms') : null,
+            ($get('delivery_mode') !== null) ? (string) $get('delivery_mode') : null,
+            ($get('trn') !== null) ? (string) $get('trn') : null,
+            !empty($data['tax_exempt']) ? 1 : (int) ($existing['tax_exempt'] ?? 0),
+            ($get('sales_tax_group') !== null) ? (string) $get('sales_tax_group') : null,
+            ($get('contact_person') !== null) ? (string) $get('contact_person') : null,
+            ($get('contact_email') !== null) ? (string) $get('contact_email') : null,
+            ($get('contact_phone') !== null) ? (string) $get('contact_phone') : null,
+            ($get('website') !== null) ? (string) $get('website') : null,
+            ($get('address') !== null) ? (string) $get('address') : null,
+            ($get('city') !== null) ? (string) $get('city') : null,
+            ($get('state_region') !== null) ? (string) $get('state_region') : null,
+            ($get('postal_code') !== null) ? (string) $get('postal_code') : null,
+            ($get('country_code') !== null) ? (string) $get('country_code') : null,
+            $now,
+            $now,
+        ));
     }
 }
 

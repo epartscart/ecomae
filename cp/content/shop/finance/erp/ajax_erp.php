@@ -753,6 +753,16 @@ try {
 			epc_coll_hold_set($db_link, epc_erp_active_company_id($db_link), (int)($_POST['customer_id'] ?? 0), (int)($_POST['place'] ?? 1) === 1, (string)($_POST['reason'] ?? ''), (string)($_SESSION['admin_username'] ?? ''));
 			epc_erp_json(true, 'Credit hold updated');
 
+		case 'customer_master_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_credit.php';
+			$cmCust = (int) ($_POST['customer_id'] ?? 0);
+			if ($cmCust <= 0) {
+				epc_erp_json(false, 'A customer ID is required');
+			}
+			epc_credit_set_master($db_link, $cmCust, $_POST);
+			epc_erp_dim_save_from_post($db_link, 'customer', $cmCust, $_POST);
+			epc_erp_json(true, 'Customer master saved', array('customer_id' => $cmCust));
+
 		case 'prja_budget_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_project_accounting.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
