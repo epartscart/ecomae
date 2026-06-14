@@ -104,6 +104,13 @@ function epc_ecomae_marketing_serve_seo_file()
 			array('/', '1.0', 'daily'),
 			array('/platform', '0.9', 'weekly'),
 			array('/platform/capabilities', '0.8', 'weekly'),
+			array('/platform/free-tools', '0.9', 'weekly'),
+			array('/platform/free-tools/vat', '0.7', 'monthly'),
+			array('/platform/free-tools/ct', '0.7', 'monthly'),
+			array('/platform/free-tools/payroll', '0.7', 'monthly'),
+			array('/platform/free-tools/ifrs', '0.7', 'monthly'),
+			array('/platform/free-tools/einvoice', '0.7', 'monthly'),
+			array('/platform/free-tools/workflow', '0.7', 'monthly'),
 			array('/platform/industries', '0.8', 'weekly'),
 			array('/platform/pricing', '0.8', 'weekly'),
 			array('/platform/demo', '0.8', 'weekly'),
@@ -235,6 +242,12 @@ function epc_ecomae_platform_match_path($path)
 		}
 		return array('page' => 'api_services', 'params' => array('focus' => $focus));
 	}
+	if ($rest === 'free-tools' || $rest === 'tools') {
+		return array('page' => 'free_tools', 'params' => array());
+	}
+	if (preg_match('#^free-tools/([a-z]+)$#', $rest, $m)) {
+		return array('page' => 'free_tools', 'params' => array('tool' => $m[1]));
+	}
 	if (preg_match('#^industry/([a-z0-9_]+)$#', $rest, $m)) {
 		return array('page' => 'industry', 'params' => array('code' => $m[1]));
 	}
@@ -318,6 +331,7 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		'pricing' => 'Monthly rental plans',
 		'demo' => '3-day industry demo',
 		'contact' => 'Contact ecomae',
+		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
 	);
 	$title = isset($titles[$match['page']]) ? $titles[$match['page']] : 'ecomae platform';
@@ -377,6 +391,7 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		'pricing' => 'Monthly rental plans',
 		'demo' => '3-day industry demo',
 		'contact' => 'Contact ecomae',
+		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
 	);
 	$title = isset($titles[$page]) ? $titles[$page] : 'ecomae platform';

@@ -118,6 +118,7 @@ function epc_ecomae_platform_page_description($page, array $params = array()): s
 		'demo' => 'Request a 3-day industry demo tenant on ECOM AE — explore storefront, ERP, and Super CP workflows.',
 		'contact' => 'Contact ECOM AE for platform demos, tenant onboarding, and ERP cloud consultations in UAE.',
 		'industries' => 'Industry-specific ECOM AE solutions — auto parts, retail, electronics, fashion, and more.',
+		'free_tools' => 'Free, country-driven business tools — VAT/GST return, corporate tax, payroll & gratuity, IFRS financials, e-invoice and approval workflow. Register free and use for your own company.',
 	);
 	if ($page === 'industry') {
 		$industries = epc_ecomae_platform_industry_marketing();

@@ -12,6 +12,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_home
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_faq.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_pages.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
 
 if (!function_exists('epc_ecomae_platform_get_industry_groups')) {
 	function epc_ecomae_platform_get_industry_groups()

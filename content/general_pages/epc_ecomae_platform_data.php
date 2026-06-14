@@ -994,6 +994,7 @@ function epc_ecomae_platform_nav()
 		array('key' => 'platform', 'label' => 'Platform', 'href' => $base . 'platform'),
 		array('key' => 'industries', 'label' => 'Industries', 'href' => $base . 'platform/industries'),
 		array('key' => 'capabilities', 'label' => 'Capabilities', 'href' => $base . 'platform/capabilities'),
+		array('key' => 'free_tools', 'label' => 'Free Tools', 'href' => $base . 'platform/free-tools'),
 		array('key' => 'pricing', 'label' => 'Pricing', 'href' => $base . 'platform/pricing'),
 		array('key' => 'about', 'label' => 'About', 'href' => $base . 'platform/about'),
 		array('key' => 'contact', 'label' => 'Contact', 'href' => $base . 'platform/contact'),
