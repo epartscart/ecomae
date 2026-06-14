@@ -198,6 +198,17 @@ if (!isset($user_session) || !is_array($user_session)) {
 	$user_session = epc_erp_resolve_user_session();
 }
 $csrf = isset($user_session['csrf_guard_key']) ? (string)$user_session['csrf_guard_key'] : '';
+// On the standalone /erp portal the AJAX CSRF guard validates against the guest
+// storefront session (stop_csrf uses the user session for /erp referer requests),
+// so render that token even when an admin (CP) session cookie is also present —
+// otherwise forms fail with "CSRF 4" once the operator is logged into CP.
+if (!empty($epc_erp_shell_mode)) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	$erpPortalUserSess = DP_User::getUserSession();
+	if (is_array($erpPortalUserSess) && !empty($erpPortalUserSess['csrf_guard_key'])) {
+		$csrf = (string) $erpPortalUserSess['csrf_guard_key'];
+	}
+}
 $userDeptCode = epc_erp_staff_primary_department($db_link);
 $userDeptName = $userDeptCode !== '' ? epc_erp_staff_department_name($userDeptCode) : '';
 
