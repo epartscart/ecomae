@@ -434,6 +434,181 @@ $deptCfg = epc_erp_departments_config();
 				<p class="epc-erp-flow">Tab <a href="<?php echo epc_erp_h($erpUrl . '?tab=opening_balances'); ?>">Opening balances</a>: create batch with <em>as of date</em>, add COA and inventory lines, then <strong>Post</strong>. Register fixed assets with opening accumulated depreciation on the <a href="<?php echo epc_erp_h($erpUrl . '?tab=fixed_assets'); ?>">Fixed assets</a> tab.</p>
 			</div>
 
+			<h4 id="epc-erp-full-setup"><i class="fa fa-cogs"></i> Complete platform setup &amp; configuration — every module, step by step</h4>
+			<div class="well well-sm">
+				<p style="margin:0 0 6px;">This is the full walkthrough for a brand-new company: first do the <strong>one-time platform setup</strong> (Section&nbsp;A) in order, then configure and run <strong>each module</strong> (Section&nbsp;B). Everything is per-company and country-driven — set your country once and currency, tax, fiscal year and labour law follow. Each step lists the <strong>action</strong> and the <strong>result</strong> you should see.</p>
+				<p style="margin:0;"><strong>Recommended order:</strong> Company profile &amp; country &rarr; Companies/legal entities &rarr; Industry pack &rarr; Chart of accounts &rarr; Number sequences &rarr; Financial dimensions &rarr; Currency &amp; tax &rarr; Product dimensions &amp; variants &rarr; Opening balances &rarr; Users, departments &amp; security roles. Then open each operational module.</p>
+			</div>
+
+			<h4 style="margin-top:4px;"><i class="fa fa-flag-checkered"></i> Section A — One-time platform setup (do these first, in order)</h4>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-globe"></i> A1. Company profile &amp; country (the master switch)</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=setup&amp;tab=erp_setup">Setup &amp; Data &rsaquo; Accounting setup</a> and set the company <strong>base currency, TRN/tax number and fiscal-year start</strong>; set the registration <strong>Country</strong> on the company profile. <strong>Result:</strong> currency, language (incl. Arabic/Urdu RTL), the tax regime (VAT/GST label, rate and e-invoice scheme), fiscal-year start and the HR labour-law pack all localize together (UAE&rarr;AED/VAT&nbsp;5%, KSA&rarr;SAR/VAT&nbsp;15%, Pakistan&rarr;PKR/Sales&nbsp;Tax&nbsp;18%, India&rarr;INR/GST).</li>
+					<li><strong>Action:</strong> Confirm the inventory <strong>valuation method</strong> (weighted average) on the same screen. <strong>Result:</strong> all stock movements value consistently from go-live.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-building"></i> A2. Companies / legal entities &amp; the company picker</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=enterprise&amp;tab=business_units">Enterprise &rsaquo; Business unit &rsaquo; Legal entities</a> and add each legal entity (company) you operate. <strong>Result:</strong> a default <code>MAIN</code> company is seeded from your profile; new entities appear in the top-bar <strong>company picker</strong>.</li>
+					<li><strong>Action:</strong> Use the <strong>company picker</strong> (top-right of the ERP header) to switch the active company; set a different industry pack / structure per company if needed. <strong>Result:</strong> the active configuration context (industry, structure, sequences) follows the selected company; unset values fall back to the tenant default.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-industry"></i> A3. Industry pack (auto-configures your structure)</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> In <a href="/erp/?area=setup&amp;tab=erp_setup">Accounting setup &rsaquo; Industry</a> pick your industry pack (Jewellery, Oil &amp; Gas, Trading, Manufacturing, Auto parts&hellip;). <strong>Result:</strong> the pack releases its product fields into <a href="/erp/?area=operations&amp;tab=product_info&amp;pm_view=fields">Product Information &rsaquo; Field setup</a> (e.g. Jewellery &rarr; metal, purity, gross weight, stone type/carat, hallmark) plus suggested COA/sequences/dimensions.</li>
+					<li><strong>Action:</strong> Review each released field and flip <strong>Inventory</strong> &harr; <strong>Non-inventory</strong>, enable/disable, or add custom fields. <strong>Result:</strong> your item master matches your trade; re-applying a pack is idempotent and never overwrites your edits.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-list"></i> A4. Chart of accounts (COA)</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=finance&amp;tab=coa">Finance &rsaquo; COA</a>. <strong>Result:</strong> a country-aware COA seeds on first open (with the correct VAT/GST accounts). Add, rename or deactivate accounts and set account types (asset / liability / equity / income / expense).</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-list-ol"></i> A5. Number sequences (document numbering)</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=setup&amp;tab=erp_setup">Accounting setup &rsaquo; Number sequences</a> and set the prefix and next number per voucher type (sales order, purchase order, invoice, journal, payment&hellip;). <strong>Result:</strong> new documents number with those prefixes immediately, per company and per year.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-sitemap"></i> A6. Financial dimensions</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=enterprise&amp;tab=business_units">Enterprise &rsaquo; Business unit</a> and define your <strong>financial dimensions</strong> (and values) plus cost centres — e.g. Department, Branch, Project. <strong>Result:</strong> postings can be tagged for analytical reporting and consolidation.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-percent"></i> A7. Currency &amp; tax / VAT</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Confirm base currency in Accounting setup; review the tax regime under <a href="/erp/?area=finance&amp;tab=vat_return">Finance &rsaquo; UAE VAT</a> / <a href="/erp/?area=finance&amp;tab=tax_compliance">Tax compliance</a>. <strong>Result:</strong> output/input tax rates and the e-invoice scheme are set from your country; the filing calendar (<a href="/erp/?area=finance&amp;tab=compliance">Compliance center</a>) lists due dates.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-cube"></i> A8. Product dimensions &amp; variants</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=operations&amp;tab=product_info&amp;pm_view=dimensions">Operations &rsaquo; Product information &rsaquo; Dimensions &amp; variants</a>. Tick the product dimensions you use (Configuration / Size / Colour / Style / Version) and register their values (e.g. S/M/L, Red/Blue). <strong>Result:</strong> the dimension group and storage/tracking groups are saved.</li>
+					<li><strong>Action:</strong> Pick an item and click <strong>Generate variants</strong>. <strong>Result:</strong> the Cartesian set of variants is created with deterministic SKUs (e.g. <code>SHIRT-M-RED</code>); re-running is idempotent (no duplicates).</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-flag-o"></i> A9. Opening balances (go-live migration)</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open <a href="/erp/?area=finance&amp;tab=opening_balances">Finance &rsaquo; Opening balances</a>, create a batch with your <em>as-of date</em>, add COA and inventory lines, then <strong>Post</strong>. Register fixed assets with opening accumulated depreciation in <a href="/erp/?area=operations&amp;tab=fixed_assets">Operations &rsaquo; Fixed assets</a>. <strong>Result:</strong> your migrated balances become the starting position for GL, stock and assets.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-shield"></i> A10. Users, departments &amp; security roles</h5>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Set up staff and departments in <a href="/erp/?area=people&amp;tab=staff">People &rsaquo; Staff</a>; departments control which tabs each user sees. <strong>Result:</strong> staff see only their department's modules.</li>
+					<li><strong>Action:</strong> Open <a href="/erp/?area=administration&amp;tab=security_roles">Administration &rsaquo; Security roles</a> and build <strong>privileges &rarr; duties &rarr; roles</strong>, then assign roles to users; use the effective-access explorer to verify. <strong>Result:</strong> fine-grained access control across the platform.</li>
+				</ol>
+			</div>
+
+			<h4 style="margin-top:10px;"><i class="fa fa-th-list"></i> Section B — Each module: configuration &amp; daily use</h4>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-th-large"></i> Overview — dashboard, workflow, process flow, approvals (<a href="/erp/?area=overview&amp;tab=dashboard">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> define approval rules in <a href="/erp/?area=overview&amp;tab=approvals">Approvals</a> (e.g. PO &ge; 10,000 &rarr; Manager) and processes in <a href="/erp/?area=overview&amp;tab=processflow">Process flow</a>.</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> watch KPIs on the dashboard; clear your approval queue; track live cases on the Process-flow GPS map / Org map / Workforce views.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-line-chart"></i> Sales — CRM, orders, receivables, collections (<a href="/erp/?area=sales&amp;tab=sales_orders">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> configure <a href="/erp/?area=sales&amp;tab=ar_setup">A/R setup</a> (payment terms, credit limits, posting profiles) and customers (Customers &rsaquo; Customer management).</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> create a <a href="/erp/?area=sales&amp;tab=sales_orders">Sales order</a> (Lines/Header views, Action Pane) &rarr; deliver (<a href="/erp/?area=sales&amp;tab=delivery_notes">Delivery notes</a>) &rarr; raise <a href="/erp/?area=sales&amp;tab=invoices">Invoice (e-invoice)</a> &rarr; track <a href="/erp/?area=sales&amp;tab=receivables">Receivables</a> &rarr; chase overdue in <a href="/erp/?area=sales&amp;tab=collections">Collections</a> (cases, promise-to-pay, dunning, credit holds).</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-shopping-basket"></i> Purchasing — vendors, RFQ, POs, payables (<a href="/erp/?area=purchasing&amp;tab=purchase_orders">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> configure <a href="/erp/?area=purchasing&amp;tab=ap_setup">A/P setup</a> (terms, posting) and suppliers (Procurement panel).</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> issue <a href="/erp/?area=purchasing&amp;tab=rfq">RFQ</a> &rarr; raise a <a href="/erp/?area=purchasing&amp;tab=purchase_orders">Purchase order</a> &rarr; receive goods &rarr; run <a href="/erp/?area=purchasing&amp;tab=three_way_match">3-way match</a> &rarr; record the supplier invoice in <a href="/erp/?area=purchasing&amp;tab=purchases">Purchases</a> &rarr; settle in <a href="/erp/?area=purchasing&amp;tab=payables">Payables</a>; apportion <a href="/erp/?area=purchasing&amp;tab=landed_cost">Landed cost</a> as needed.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-shopping-cart"></i> Retail &amp; Commerce — channels, POS, statements (<a href="/erp/?area=retail&amp;tab=retail_commerce">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> define channels (store/online/call-center), build <strong>assortments</strong> (items sellable per channel) and <strong>periodic discounts</strong> (percent/amount, date-effective).</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> ring up <strong>POS sales</strong> (best discount + country-driven tax auto-applied) and close the day with the <strong>end-of-day (Z) statement</strong> (gross/discount/net/tax/total by tender).</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-university"></i> Finance — GL, COA, tax, period close (<a href="/erp/?area=finance&amp;tab=gl">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> COA (A4), opening balances (A9), tax regime (A7); configure fiscal periods in <a href="/erp/?area=finance&amp;tab=fin_advanced">Financial depth</a>.</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily / periodic:</strong> post <a href="/erp/?area=finance&amp;tab=gl">General ledger</a> journals; review <a href="/erp/?area=finance&amp;tab=aging">Aging</a>; file <a href="/erp/?area=finance&amp;tab=vat_return">VAT</a> and track the <a href="/erp/?area=finance&amp;tab=compliance">Compliance center</a> calendar; run FX revaluation / allocations / accruals in <a href="/erp/?area=finance&amp;tab=fin_advanced">Financial depth</a>; close the year in <a href="/erp/?area=finance&amp;tab=year_end">Year-end closing</a> (close P&amp;L to retained earnings, carry opening balances forward).</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-money"></i> Cash &amp; Bank Management — accounts, payments, reconciliation (<a href="/erp/?area=banking&amp;tab=cash_bank">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> create bank accounts in <a href="/erp/?area=banking&amp;tab=bank_setup">Bank account</a>.</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> record receipts/payments in <a href="/erp/?area=banking&amp;tab=cash_bank">Cash &amp; bank</a> and <a href="/erp/?area=banking&amp;tab=petty_cash">Petty cash</a>; run <a href="/erp/?area=banking&amp;tab=payment_batches">Payment batches</a> to pay suppliers; reconcile against statements in <a href="/erp/?area=banking&amp;tab=bank_recon">Bank recon</a>.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-cubes"></i> Operations — inventory, manufacturing, WMS, quality (<a href="/erp/?area=operations&amp;tab=inventory">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> item master &amp; <a href="/erp/?area=operations&amp;tab=product_info">Product information</a> (fields, dimensions/variants), <a href="/erp/?area=operations&amp;tab=inv_groups">inventory groups/status</a>, warehouses/locations &amp; bins in <a href="/erp/?area=operations&amp;tab=wms">Advanced WMS</a>, work centers &amp; routes in <a href="/erp/?area=operations&amp;tab=mfg_planning">Manufacturing planning</a>, valuation models in <a href="/erp/?area=operations&amp;tab=cost_models">Costing value-models</a>, and test plans in <a href="/erp/?area=operations&amp;tab=quality">Quality management</a>.</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> manage <a href="/erp/?area=operations&amp;tab=inventory">Inventory</a> movements; run <a href="/erp/?area=operations&amp;tab=order_planning">Order planning</a> / <a href="/erp/?area=operations&amp;tab=master_planning">Master planning</a> (MRP); process WMS work (put-away/pick/move/count via RF confirm); release production &amp; record quality orders / non-conformances; recalc costing at period end.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-ship"></i> Custom &amp; Shipping — customs &amp; logistics (<a href="/erp/?area=custom_shipping&amp;tab=custom_shipping">open</a>)</h5>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> capture import/export/transit declarations with the required customs fields (HS codes, origins, declaration refs) and link the ERP PO/SO references; document expiries feed the Risk &amp; Insurance tracker.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-users"></i> People — HR, payroll, labour law (<a href="/erp/?area=people&amp;tab=hr">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> add employees in <a href="/erp/?area=people&amp;tab=hr">HR</a> / <a href="/erp/?area=people&amp;tab=staff">Staff</a>; the <a href="/erp/?area=people&amp;tab=hr_law">Labour law &amp; compliance</a> pack is country-driven (gratuity, leave entitlement, leave salary).</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily / monthly:</strong> manage <a href="/erp/?area=people&amp;tab=hr_ops">HR operations</a>; run <a href="/erp/?area=people&amp;tab=payroll">Payroll</a> (generate &rarr; approve &rarr; pay); process <a href="/erp/?area=people&amp;tab=expense_reports">Expenses</a>.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-bar-chart"></i> Insights — reports, consolidation, audit (<a href="/erp/?area=insights&amp;tab=pl">open</a>)</h5>
+				<p style="margin:0;opacity:.85;"><strong>Daily / periodic:</strong> read <a href="/erp/?area=insights&amp;tab=pl">P&amp;L</a> and <a href="/erp/?area=insights&amp;tab=balance_sheet">Balance sheet</a>, the trial balance &amp; <a href="/erp/?area=insights&amp;tab=enterprise_reports">reports</a>, <a href="/erp/?area=insights&amp;tab=consolidation_bu">Consolidation</a> across entities, <a href="/erp/?area=insights&amp;tab=multi_entity">Multi-entity</a> views, the <a href="/erp/?area=insights&amp;tab=audit">Audit trail</a>, and the <a href="/erp/?area=insights&amp;tab=ai_advisor">AI advisor</a>.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-calendar"></i> Collaboration — projects, documents, contracts (<a href="/erp/?area=collaboration&amp;tab=projects">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> create projects and budgets in <a href="/erp/?area=collaboration&amp;tab=project_accounting">Project accounting</a>; define <a href="/erp/?area=collaboration&amp;tab=doc_formats">Document formats</a>.</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> manage <a href="/erp/?area=collaboration&amp;tab=agenda">Agenda</a>, <a href="/erp/?area=collaboration&amp;tab=contacts">Contacts</a>, <a href="/erp/?area=collaboration&amp;tab=documents">Documents</a> and <a href="/erp/?area=collaboration&amp;tab=contracts">Contracts &amp; e-sign</a>; track project budget vs actual, WIP and revenue recognition.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-shield"></i> Risk &amp; Insurance — policies, claims, document expiry (<a href="/erp/?area=risk&amp;tab=insurance">open</a>)</h5>
+				<p style="margin:6px 0 6px;opacity:.85;"><strong>Setup:</strong> add policies in <a href="/erp/?area=risk&amp;tab=insurance">Insurance</a> (insurer, sum insured, premium, period, renewal reminder timeframe) across all classes (Marine, Property All-Risk, Public Liability, Medical, Fidelity&hellip;); register expiring documents in <a href="/erp/?area=risk&amp;tab=doc_expiry">Document expiry</a> with lead-time reminders.</p>
+				<p style="margin:0;opacity:.85;"><strong>Daily:</strong> log and track claims (Notified &rarr; Survey &rarr; Documents &rarr; Assessed &rarr; Settled); run reminder emails (safe to schedule daily — each reminder fires once). Active policies auto-feed the expiry tracker.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-building-o"></i> Enterprise — business units, dimensions, budgeting (<a href="/erp/?area=enterprise&amp;tab=business_units">open</a>)</h5>
+				<p style="margin:0;opacity:.85;"><strong>Setup / periodic:</strong> maintain <a href="/erp/?area=enterprise&amp;tab=business_units">Business units</a> &amp; financial dimensions, the <a href="/erp/?area=enterprise&amp;tab=listing">Listing</a> reference, and <a href="/erp/?area=enterprise&amp;tab=budgeting">Budgeting</a> (budget vs actual).</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-file-text-o"></i> External Reporting — statutory &amp; regulatory (<a href="/erp/?area=regrep&amp;tab=ext_reports">open</a>)</h5>
+				<p style="margin:0;opacity:.85;"><strong>Periodic:</strong> generate country-driven, auto-formatted statutory reports from the Report centre.</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-cogs"></i> Administration — org admin, security, platform (<a href="/erp/?area=administration&amp;tab=org_admin">open</a>)</h5>
+				<p style="margin:0;opacity:.85;"><strong>Setup:</strong> <a href="/erp/?area=administration&amp;tab=org_admin">Organization administration</a> (legal entities &amp; org hierarchy, global address book, working calendars, number sequences), <a href="/erp/?area=administration&amp;tab=security_roles">Security roles</a> (privileges/duties/roles), and <a href="/erp/?area=administration&amp;tab=platform">Platform services</a> (batch jobs, feature management, workflow, data entities).</p>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-sliders"></i> Setup &amp; Data — accounting setup, import, integration (<a href="/erp/?area=setup&amp;tab=erp_setup">open</a>)</h5>
+				<p style="margin:0;opacity:.85;"><strong>Setup:</strong> <a href="/erp/?area=setup&amp;tab=erp_setup">Accounting setup</a> (number sequences, valuation, company defaults, industry pack), <a href="/erp/?area=setup&amp;tab=data_import">Data import</a> (bulk load masters/transactions), and <a href="/erp/?area=setup&amp;tab=integration">Data &amp; integration</a> (data entities + an OData-style query layer + business events/webhooks).</p>
+			</div>
+
 			<h4><i class="fa fa-question-circle"></i> FAQ</h4>
 			<dl class="epc-erp-flow">
 				<dt>Inventory costing method?</dt>
