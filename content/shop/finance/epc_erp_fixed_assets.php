@@ -89,6 +89,36 @@ function epc_erp_fa_ensure_schema(PDO $db)
 		KEY `x_asset` (`asset_id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
+	// Fixed asset master — extended fields (D365 asset depth: identity, dimensions,
+	// type taxonomy, service dates, depreciation convention/profile, vendor &
+	// purchase, insurance/warranty, custodian, GL account mapping).
+	if (function_exists('epc_erp_schema_add_column_if_missing')) {
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'asset_group', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'legal_entity_id', 'int(11) NOT NULL DEFAULT 0');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'business_unit_id', 'int(11) NOT NULL DEFAULT 0');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'asset_type', "varchar(24) NOT NULL DEFAULT 'tangible'");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'major_type', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'property_type', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'quantity', 'decimal(14,3) NOT NULL DEFAULT 1.000');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'placed_in_service_date', 'date DEFAULT NULL');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'disposal_date', 'date DEFAULT NULL');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'depreciation_convention', "varchar(32) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'posting_profile', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'barcode', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'make', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'model', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'manufacturer', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'supplier_vendor_id', 'int(11) NOT NULL DEFAULT 0');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'purchase_invoice_ref', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'insurance_policy_no', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'insured_value', 'decimal(14,2) NOT NULL DEFAULT 0.00');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'warranty_expiry', 'date DEFAULT NULL');
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'custodian', "varchar(128) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'gl_asset_account', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'gl_depreciation_account', "varchar(64) NOT NULL DEFAULT ''");
+		epc_erp_schema_add_column_if_missing($db, 'epc_erp_fa_assets', 'gl_accum_depr_account', "varchar(64) NOT NULL DEFAULT ''");
+	}
+
 	epc_erp_fa_seed_categories($db);
 }
 
@@ -121,6 +151,22 @@ function epc_erp_fa_refresh_book_value(PDO $db, $assetId)
 	$db->prepare('UPDATE `epc_erp_fa_assets` SET `book_value` = ? WHERE `id` = ?')->execute(array(round($bv, 2), (int) $assetId));
 }
 
+/** Whether a column exists on the fixed-asset master table (cached per request). */
+function epc_erp_fa_has_column(PDO $db, $col)
+{
+	static $cache = null;
+	if ($cache === null) {
+		$cache = array();
+		try {
+			foreach ($db->query('SHOW COLUMNS FROM `epc_erp_fa_assets`')->fetchAll(PDO::FETCH_ASSOC) as $c) {
+				$cache[(string) $c['Field']] = true;
+			}
+		} catch (Exception $e) {
+		}
+	}
+	return isset($cache[(string) $col]);
+}
+
 function epc_erp_fa_create_asset(PDO $db, array $data)
 {
 	$code = trim((string) ($data['asset_code'] ?? ''));
@@ -135,12 +181,12 @@ function epc_erp_fa_create_asset(PDO $db, array $data)
 	}
 	$acq = !empty($data['acquisition_date']) ? date('Y-m-d', strtotime((string) $data['acquisition_date'])) : date('Y-m-d');
 	$openAccum = round((float) ($data['accumulated_depreciation'] ?? 0), 2);
-	$db->prepare(
-		'INSERT INTO `epc_erp_fa_assets`
-		(`asset_code`,`name`,`category_id`,`acquisition_date`,`cost`,`salvage_value`,`useful_life_months`,`depreciation_method`,
-		`accumulated_depreciation`,`book_value`,`location`,`tracking_id`,`serial_no`,`opening_batch_id`,`note`,`time_created`)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-	)->execute(array(
+	$cols = array(
+		'asset_code', 'name', 'category_id', 'acquisition_date', 'cost', 'salvage_value',
+		'useful_life_months', 'depreciation_method', 'accumulated_depreciation', 'book_value',
+		'location', 'tracking_id', 'serial_no', 'opening_batch_id', 'note', 'time_created',
+	);
+	$vals = array(
 		$code, $name, (int) ($data['category_id'] ?? 0), $acq, $cost,
 		round((float) ($data['salvage_value'] ?? 0), 2),
 		max(1, (int) ($data['useful_life_months'] ?? 60)),
@@ -151,7 +197,47 @@ function epc_erp_fa_create_asset(PDO $db, array $data)
 		(int) ($data['opening_batch_id'] ?? 0),
 		trim((string) ($data['note'] ?? '')),
 		time(),
-	));
+	);
+	// Extended (D365-depth) fields — persisted only where the column exists.
+	$extStr = array(
+		'asset_group' => 64, 'major_type' => 64, 'property_type' => 64,
+		'depreciation_convention' => 32, 'posting_profile' => 64, 'barcode' => 128,
+		'make' => 128, 'model' => 128, 'manufacturer' => 128, 'purchase_invoice_ref' => 128,
+		'insurance_policy_no' => 128, 'custodian' => 128, 'gl_asset_account' => 64,
+		'gl_depreciation_account' => 64, 'gl_accum_depr_account' => 64,
+	);
+	foreach ($extStr as $col => $len) {
+		if (isset($data[$col]) && epc_erp_fa_has_column($db, $col)) {
+			$cols[] = $col;
+			$vals[] = substr(trim((string) $data[$col]), 0, $len);
+		}
+	}
+	if (isset($data['asset_type']) && epc_erp_fa_has_column($db, 'asset_type')) {
+		$at = (string) $data['asset_type'];
+		$cols[] = 'asset_type';
+		$vals[] = in_array($at, array('tangible', 'intangible'), true) ? $at : 'tangible';
+	}
+	foreach (array('legal_entity_id', 'business_unit_id', 'supplier_vendor_id') as $col) {
+		if (isset($data[$col]) && epc_erp_fa_has_column($db, $col)) {
+			$cols[] = $col;
+			$vals[] = (int) $data[$col];
+		}
+	}
+	foreach (array('quantity', 'insured_value') as $col) {
+		if (isset($data[$col]) && $data[$col] !== '' && epc_erp_fa_has_column($db, $col)) {
+			$cols[] = $col;
+			$vals[] = (float) $data[$col];
+		}
+	}
+	foreach (array('placed_in_service_date', 'disposal_date', 'warranty_expiry') as $col) {
+		if (!empty($data[$col]) && epc_erp_fa_has_column($db, $col)) {
+			$cols[] = $col;
+			$vals[] = date('Y-m-d', strtotime((string) $data[$col]));
+		}
+	}
+	$placeholders = implode(',', array_fill(0, count($cols), '?'));
+	$colList = '`' . implode('`,`', $cols) . '`';
+	$db->prepare("INSERT INTO `epc_erp_fa_assets` ($colList) VALUES ($placeholders)")->execute($vals);
 	$id = (int) $db->lastInsertId();
 	epc_erp_fa_refresh_book_value($db, $id);
 	if (!empty($data['location'])) {
