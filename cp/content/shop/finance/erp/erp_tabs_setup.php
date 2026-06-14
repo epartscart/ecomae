@@ -14,10 +14,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_industry_packs.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_product_structure.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
 
 epc_erp_extended_ensure_schema($db_link);
 epc_co_ensure_schema($db_link);
 epc_erp_prod_structure_ensure_schema($db_link);
+epc_erp_company_context_ensure($db_link);
 
 $setupMsg = '';
 $setupErr = '';
@@ -93,7 +95,9 @@ if (!empty($_POST['setup_action'])) {
 				if ($pack !== '' && epc_erp_industry_pack($pack) === null) {
 					$pack = '';
 				}
-				epc_erp_platform_setting_set($db_link, 'active_industry_pack', $pack);
+				// Persist per active company (D365-style); the setter also syncs
+				// the tenant-wide default for legacy read paths.
+				epc_erp_company_industry_pack_set($db_link, epc_erp_active_company_id($db_link), $pack);
 				if ($pack === '') {
 					$setupMsg = 'Industry pack cleared (generic / multi-industry).';
 				} else {
@@ -118,7 +122,8 @@ $valMethod = epc_erp_platform_setting_get($db_link, 'inventory_valuation_method'
 if (!isset($validMethods[$valMethod])) {
 	$valMethod = 'weighted_avg';
 }
-$activePack = epc_erp_platform_setting_get($db_link, 'active_industry_pack', '');
+$activeCompanyId = epc_erp_active_company_id($db_link);
+$activePack = epc_erp_company_industry_pack($db_link, $activeCompanyId);
 if ($activePack !== '' && epc_erp_industry_pack($activePack) === null) {
 	$activePack = '';
 }

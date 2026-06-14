@@ -487,6 +487,21 @@ function epc_erp_render_content_header($erpUrl, $activeArea, $activeTab, $from, 
 	}
 	$dashUrl = epc_erp_h(epc_erp_tab_url($erpUrl, 'dashboard', $from, $to, 'overview'));
 	echo '<div class="epc-erp-content-header">';
+	// D365-style company (legal-entity) picker, top-right of the header.
+	$companyPicker = '';
+	if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+		if (!function_exists('epc_erp_company_picker_html')) {
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+		}
+		try {
+			$companyPicker = epc_erp_company_picker_html($GLOBALS['db_link']);
+		} catch (Throwable $e) {
+			$companyPicker = '';
+		}
+	}
+	if ($companyPicker !== '') {
+		echo '<div class="epc-erp-company-scope" style="float:right;margin-top:2px;">' . $companyPicker . '</div>';
+	}
 	echo '<nav class="epc-erp-breadcrumb" aria-label="Breadcrumb">';
 	echo '<a href="' . $dashUrl . '"' . epc_erp_nav_shell_link_attrs() . '>ERP</a>';
 	echo ' <span class="sep">/</span> <span>' . epc_erp_h($areaLabel) . '</span>';

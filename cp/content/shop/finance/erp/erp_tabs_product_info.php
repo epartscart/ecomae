@@ -16,10 +16,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventor
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_industry_packs.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_product_structure.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
 epc_erp_pm_inline_assets();
 
 epc_erp_inventory_ensure_schema($db_link);
 epc_erp_prod_structure_ensure_schema($db_link);
+epc_erp_company_context_ensure($db_link);
 
 $view = isset($_GET['pm_view']) ? (string) $_GET['pm_view'] : 'all';
 $subs = array(
@@ -118,7 +120,7 @@ if (!empty($_POST['pinfo_action'])) {
 }
 
 // ----- Active pack + field-classification summary --------------------------
-$activePack = epc_erp_platform_setting_get($db_link, 'active_industry_pack', '');
+$activePack = epc_erp_company_industry_pack($db_link, epc_erp_active_company_id($db_link));
 if ($activePack !== '' && epc_erp_industry_pack($activePack) === null) {
 	$activePack = '';
 }
