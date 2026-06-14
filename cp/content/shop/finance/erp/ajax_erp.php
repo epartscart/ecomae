@@ -794,6 +794,26 @@ try {
 			$ccRes = epc_costm_close_run($db_link, epc_erp_active_company_id($db_link), (int)($_POST['item_id'] ?? 0), (string)($_POST['label'] ?? ''));
 			epc_erp_json(true, 'Closing: COGS ' . number_format($ccRes['cogs'], 2) . ' · closing value ' . number_format($ccRes['closing_value'], 2), array('res' => $ccRes));
 
+		case 'intg_entity_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_integration.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$ieId = epc_intg_entity_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Data entity saved', array('id' => $ieId));
+
+		case 'intg_sub_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_integration.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$isId = epc_intg_sub_save($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), (string)($_POST['target_type'] ?? 'webhook'), (string)($_POST['target'] ?? ''), true);
+			epc_erp_json(true, 'Subscription saved', array('id' => $isId));
+
+		case 'intg_event_raise':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_integration.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$iePayload = json_decode((string)($_POST['payload'] ?? ''), true);
+			if (!is_array($iePayload)) { $iePayload = array('raw' => (string)($_POST['payload'] ?? '')); }
+			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
+			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));

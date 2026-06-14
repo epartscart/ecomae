@@ -236,9 +236,11 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'erp_setup' => array('label' => 'Accounting setup', 'icon' => 'fa-cogs'),
 				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
+				'integration' => array('label' => 'Data &amp; integration', 'icon' => 'fa-plug'),
 			),
 			'groups' => array(
 				'Setup' => array('erp_setup', 'data_import'),
+				'Integration' => array('integration'),
 			),
 		),
 	);
