@@ -1,14 +1,43 @@
 <?php
 /**
- * Free Tools admin AJAX (Super CP) — activate/deactivate a public free tool.
+ * Free Tools admin AJAX (Super CP) — activate/deactivate a public free tool
+ * and return usage stats. Bootstraps config + DB ($db_link) so the admin
+ * session check works, then mirrors the operator auth used by other BOC ajax.
  */
 define('_ASTEXE_', 1);
 header('Content-Type: application/json; charset=utf-8');
+if (ob_get_level()) {
+    ob_end_clean();
+}
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
+require_once $docRoot . '/config.php';
+$DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
+require_once $docRoot . '/content/general_pages/epc_portal.php';
+require_once $docRoot . '/content/general_pages/epc_portal_db.php';
+if (function_exists('epc_portal_apply_config')) {
+    epc_portal_apply_config($DP_Config);
+}
+
+$dbHost = trim((string) $DP_Config->host);
+if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+    $dbHost = '127.0.0.1';
+}
+global $db_link;
+try {
+    $db_link = new PDO(
+        'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
+        $DP_Config->user,
+        $DP_Config->password,
+        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+    );
+} catch (Throwable $e) {
+    exit(json_encode(array('ok' => false, 'message' => 'Database connection failed')));
+}
+
+require_once $docRoot . '/content/users/dp_user.php';
+require_once $docRoot . '/content/general_pages/epc_ecomae_free_tools.php';
 
 if ((int) DP_User::getAdminId() <= 0) {
     http_response_code(403);
@@ -29,12 +58,9 @@ if ($action === 'toggle') {
     }
     $active = (string) ($_POST['active'] ?? '') === '1';
     epc_free_tools_set_active($tool, $active);
-    @include_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_kernel.php';
-    if (function_exists('epc_boc_audit_log')) {
-        global $db_link;
-        if (isset($db_link) && $db_link instanceof PDO) {
-            epc_boc_audit_log($db_link, (int) DP_User::getAdminId(), 'free_tools', $active ? 'tool_activate' : 'tool_deactivate', $tool);
-        }
+    @include_once $docRoot . '/content/general_pages/epc_boc_kernel.php';
+    if (function_exists('epc_boc_audit_log') && isset($db_link) && $db_link instanceof PDO) {
+        epc_boc_audit_log($db_link, (int) DP_User::getAdminId(), 'free_tools', $active ? 'tool_activate' : 'tool_deactivate', $tool);
     }
     exit(json_encode(array(
         'ok' => true,
