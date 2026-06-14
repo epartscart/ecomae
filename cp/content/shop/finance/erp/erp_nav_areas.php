@@ -22,65 +22,10 @@ function epc_erp_nav_areas_config()
 				'Governance' => array('approvals'),
 			),
 		),
-		'sales' => array(
-			'label' => 'Sales and marketing',
-			'icon' => 'fa-line-chart',
-			'desc' => 'CRM, prospects, quotations, sales orders, delivery and invoicing',
-			'tabs' => array(
-				'crm' => array('label' => 'CRM', 'icon' => 'fa-handshake-o', 'raw' => true),
-				'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn'),
-				'proposals' => array('label' => 'Sales quotations', 'icon' => 'fa-file-text'),
-				'sales_orders' => array('label' => 'Sales orders', 'icon' => 'fa-shopping-cart'),
-				'subscriptions' => array('label' => 'Subscriptions', 'icon' => 'fa-refresh'),
-				'delivery_notes' => array('label' => 'Delivery notes', 'icon' => 'fa-truck'),
-				'invoices' => array('label' => 'Invoices (e-invoice)', 'icon' => 'fa-file-text-o'),
-				'revenue' => array('label' => 'Revenue', 'icon' => 'fa-money'),
-				'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-random'),
-			),
-			'groups' => array(
-				'Common' => array('crm', 'marketing'),
-				'Orders' => array('proposals', 'sales_orders', 'subscriptions', 'delivery_notes', 'invoices'),
-				'Inquiries and reports' => array('revenue', 'fulfilment'),
-			),
-		),
-		'ar' => array(
-			'label' => 'Accounts receivable',
-			'icon' => 'fa-users',
-			'desc' => 'Customer receivables, collections and AR setup',
-			'tabs' => array(
-				'receivables' => array('label' => 'Receivables', 'icon' => 'fa-users'),
-				'collections' => array('label' => 'Collections', 'icon' => 'fa-gavel'),
-				'ar_setup' => array('label' => 'Customer setup', 'icon' => 'fa-handshake-o'),
-			),
-			'groups' => array(
-				'Common' => array('receivables', 'collections'),
-				'Setup' => array('ar_setup'),
-			),
-		),
-		'purchasing' => array(
-			'label' => 'Procurement and sourcing',
-			'icon' => 'fa-shopping-basket',
-			'desc' => 'Suppliers, RFQ, purchase orders, landed cost, customs and logistics',
-			'tabs' => array(
-				'supplier_portal' => array('label' => 'Supplier portal', 'icon' => 'fa-handshake-o'),
-				'rfq' => array('label' => 'RFQ', 'icon' => 'fa-envelope-o'),
-				'purchase_orders' => array('label' => 'Purchase orders', 'icon' => 'fa-clipboard'),
-				'purchases' => array('label' => 'Purchases', 'icon' => 'fa-file-text-o'),
-				'three_way_match' => array('label' => '3-way match', 'icon' => 'fa-check-square-o'),
-				'landed_cost' => array('label' => 'Landed cost', 'icon' => 'fa-ship'),
-				'custom_shipping' => array('label' => 'Customs & shipping', 'icon' => 'fa-ship'),
-				'procurement_link' => array('label' => 'Procurement CP', 'icon' => 'fa-external-link', 'external' => true),
-			),
-			'groups' => array(
-				'Common' => array('supplier_portal'),
-				'Orders' => array('rfq', 'purchase_orders', 'purchases', 'three_way_match'),
-				'Logistics' => array('landed_cost', 'custom_shipping', 'procurement_link'),
-			),
-		),
 		'ap' => array(
 			'label' => 'Accounts payable',
 			'icon' => 'fa-credit-card',
-			'desc' => 'Supplier payables and AP setup',
+			'desc' => 'Vendor invoices, payments and AP setup',
 			'tabs' => array(
 				'payables' => array('label' => 'Payables', 'icon' => 'fa-truck'),
 				'ap_setup' => array('label' => 'Vendor setup', 'icon' => 'fa-credit-card'),
@@ -88,6 +33,52 @@ function epc_erp_nav_areas_config()
 			'groups' => array(
 				'Common' => array('payables'),
 				'Setup' => array('ap_setup'),
+			),
+		),
+		'ar' => array(
+			'label' => 'Accounts receivable',
+			'icon' => 'fa-users',
+			'desc' => 'Customer invoices, settlements and AR setup',
+			'tabs' => array(
+				'receivables' => array('label' => 'Receivables', 'icon' => 'fa-users'),
+				'ar_setup' => array('label' => 'Customer setup', 'icon' => 'fa-handshake-o'),
+			),
+			'groups' => array(
+				'Common' => array('receivables'),
+				'Setup' => array('ar_setup'),
+			),
+		),
+		'asset_mgmt' => array(
+			'label' => 'Asset management',
+			'icon' => 'fa-wrench',
+			'desc' => 'Asset register, maintenance and lifecycle',
+			'tabs' => array(
+				'fixed_assets' => array('label' => 'Fixed assets', 'icon' => 'fa-building'),
+			),
+			'groups' => array(
+				'Common' => array('fixed_assets'),
+			),
+		),
+		'audit_wb' => array(
+			'label' => 'Audit workbench',
+			'icon' => 'fa-history',
+			'desc' => 'Audit policies, cases and audit trail',
+			'tabs' => array(
+				'audit' => array('label' => 'Audit trail', 'icon' => 'fa-history'),
+			),
+			'groups' => array(
+				'Inquiries and reports' => array('audit'),
+			),
+		),
+		'budgeting' => array(
+			'label' => 'Budgeting',
+			'icon' => 'fa-pie-chart',
+			'desc' => 'Budget registers, control and budget vs actual',
+			'tabs' => array(
+				'budgeting' => array('label' => 'Budgeting', 'icon' => 'fa-pie-chart'),
+			),
+			'groups' => array(
+				'Common' => array('budgeting'),
 			),
 		),
 		'banking' => array(
@@ -106,6 +97,101 @@ function epc_erp_nav_areas_config()
 				'Journals' => array('payment_batches'),
 				'Inquiries and reports' => array('bank_recon'),
 				'Setup' => array('bank_setup'),
+			),
+		),
+		'common' => array(
+			'label' => 'Common',
+			'icon' => 'fa-th',
+			'desc' => 'Shared agenda, contacts, documents and knowledge',
+			'tabs' => array(
+				'agenda' => array('label' => 'Agenda', 'icon' => 'fa-calendar'),
+				'contacts' => array('label' => 'Contacts', 'icon' => 'fa-address-book-o'),
+				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
+				'knowledge_base' => array('label' => 'Knowledge base', 'icon' => 'fa-book'),
+				'ai_advisor' => array('label' => 'AI advisor', 'icon' => 'fa-magic'),
+			),
+			'groups' => array(
+				'Common' => array('agenda', 'contacts', 'documents'),
+				'Inquiries and reports' => array('knowledge_base', 'ai_advisor'),
+			),
+		),
+		'risk' => array(
+			'label' => 'Compliance',
+			'icon' => 'fa-shield',
+			'desc' => 'Insurance policies, claims and document expiry tracking',
+			'tabs' => array(
+				'insurance' => array('label' => 'Insurance', 'icon' => 'fa-shield'),
+				'doc_expiry' => array('label' => 'Document expiry', 'icon' => 'fa-calendar-times-o'),
+			),
+			'groups' => array(
+				'Common' => array('insurance', 'doc_expiry'),
+			),
+		),
+		'consolidations' => array(
+			'label' => 'Consolidations',
+			'icon' => 'fa-sitemap',
+			'desc' => 'Multi-entity consolidation and eliminations',
+			'tabs' => array(
+				'consolidation_bu' => array('label' => 'Consolidation', 'icon' => 'fa-sitemap'),
+				'multi_entity' => array('label' => 'Multi-entity', 'icon' => 'fa-sitemap'),
+			),
+			'groups' => array(
+				'Common' => array('consolidation_bu', 'multi_entity'),
+			),
+		),
+		'cost_acct' => array(
+			'label' => 'Cost accounting',
+			'icon' => 'fa-calculator',
+			'desc' => 'Cost allocations, accruals and cost analysis',
+			'tabs' => array(
+				'fin_advanced' => array('label' => 'Financial depth', 'icon' => 'fa-sliders'),
+			),
+			'groups' => array(
+				'Periodic' => array('fin_advanced'),
+			),
+		),
+		'cost_mgmt' => array(
+			'label' => 'Cost management',
+			'icon' => 'fa-balance-scale',
+			'desc' => 'Inventory costing value models and analysis',
+			'tabs' => array(
+				'cost_models' => array('label' => 'Costing value-models', 'icon' => 'fa-balance-scale'),
+			),
+			'groups' => array(
+				'Common' => array('cost_models'),
+			),
+		),
+		'credit_coll' => array(
+			'label' => 'Credit and collections',
+			'icon' => 'fa-gavel',
+			'desc' => 'Collection cases, dunning and credit holds',
+			'tabs' => array(
+				'collections' => array('label' => 'Collections', 'icon' => 'fa-gavel'),
+			),
+			'groups' => array(
+				'Common' => array('collections'),
+			),
+		),
+		'expense' => array(
+			'label' => 'Expense management',
+			'icon' => 'fa-credit-card',
+			'desc' => 'Employee expense reports and reimbursements',
+			'tabs' => array(
+				'expense_reports' => array('label' => 'Expense reports', 'icon' => 'fa-credit-card'),
+			),
+			'groups' => array(
+				'Common' => array('expense_reports'),
+			),
+		),
+		'fixed_assets' => array(
+			'label' => 'Fixed assets',
+			'icon' => 'fa-building',
+			'desc' => 'Asset register, depreciation and disposals',
+			'tabs' => array(
+				'fixed_assets' => array('label' => 'Fixed assets', 'icon' => 'fa-building'),
+			),
+			'groups' => array(
+				'Common' => array('fixed_assets'),
 			),
 		),
 		'finance' => array(
@@ -132,6 +218,238 @@ function epc_erp_nav_areas_config()
 				'Setup' => array('coa'),
 			),
 		),
+		'people' => array(
+			'label' => 'Human resources',
+			'icon' => 'fa-users',
+			'desc' => 'Workers, organization and labour-law compliance',
+			'tabs' => array(
+				'staff' => array('label' => 'Workers', 'icon' => 'fa-id-badge'),
+				'hr' => array('label' => 'HR', 'icon' => 'fa-user-circle'),
+				'hr_ops' => array('label' => 'HR operations', 'icon' => 'fa-users'),
+				'hr_law' => array('label' => 'Labour law & compliance', 'icon' => 'fa-gavel', 'raw' => true),
+			),
+			'groups' => array(
+				'Common' => array('staff', 'hr', 'hr_ops'),
+				'Compliance' => array('hr_law'),
+			),
+		),
+		'inventory_mgmt' => array(
+			'label' => 'Inventory management',
+			'icon' => 'fa-cubes',
+			'desc' => 'Stock, item groups, order planning and barcodes',
+			'tabs' => array(
+				'inventory' => array('label' => 'Inventory', 'icon' => 'fa-cubes'),
+				'inv_groups' => array('label' => 'Inventory (stock/groups)', 'icon' => 'fa-object-group'),
+				'order_planning' => array('label' => 'Order planning', 'icon' => 'fa-cubes'),
+				'retail_barcode' => array('label' => 'Retail barcode', 'icon' => 'fa-barcode'),
+			),
+			'groups' => array(
+				'Common' => array('inventory', 'inv_groups'),
+				'Periodic' => array('order_planning'),
+				'Setup' => array('retail_barcode'),
+			),
+		),
+		'landed_cost_area' => array(
+			'label' => 'Landed cost',
+			'icon' => 'fa-ship',
+			'desc' => 'Voyages, landed cost allocation and apportionment',
+			'tabs' => array(
+				'landed_cost' => array('label' => 'Landed cost', 'icon' => 'fa-ship'),
+			),
+			'groups' => array(
+				'Common' => array('landed_cost'),
+			),
+		),
+		'leave_abs' => array(
+			'label' => 'Leave and absence',
+			'icon' => 'fa-calendar-minus-o',
+			'desc' => 'Leave plans, requests and absence tracking',
+			'tabs' => array(
+				'hr_ops' => array('label' => 'HR operations', 'icon' => 'fa-users'),
+			),
+			'groups' => array(
+				'Common' => array('hr_ops'),
+			),
+		),
+		'logistics' => array(
+			'label' => 'Logistics',
+			'icon' => 'fa-truck',
+			'desc' => 'Customs, shipping and inbound/outbound logistics',
+			'tabs' => array(
+				'custom_shipping' => array('label' => 'Customs & shipping', 'icon' => 'fa-ship'),
+				'procurement_link' => array('label' => 'Procurement CP', 'icon' => 'fa-external-link', 'external' => true),
+			),
+			'groups' => array(
+				'Common' => array('custom_shipping'),
+				'Setup' => array('procurement_link'),
+			),
+		),
+		'master_planning_area' => array(
+			'label' => 'Master planning',
+			'icon' => 'fa-random',
+			'desc' => 'Master scheduling and material requirements planning',
+			'tabs' => array(
+				'master_planning' => array('label' => 'Master planning', 'icon' => 'fa-random'),
+			),
+			'groups' => array(
+				'Common' => array('master_planning'),
+			),
+		),
+		'mhei' => array(
+			'label' => 'Material handling equipment interface',
+			'icon' => 'fa-cubes',
+			'desc' => 'Material handling and warehouse equipment integration',
+			'tabs' => array(
+				'wms' => array('label' => 'Warehouse management', 'icon' => 'fa-cubes'),
+			),
+			'groups' => array(
+				'Common' => array('wms'),
+			),
+		),
+		'enterprise' => array(
+			'label' => 'Organization administration',
+			'icon' => 'fa-building-o',
+			'desc' => 'Legal entities, business units, contracts and documents',
+			'tabs' => array(
+				'business_units' => array('label' => 'Business unit', 'icon' => 'fa-sitemap'),
+				'org_admin' => array('label' => 'Organization administration', 'icon' => 'fa-sitemap'),
+				'contracts' => array('label' => 'Contracts & e-sign', 'icon' => 'fa-file-text-o'),
+				'doc_formats' => array('label' => 'Document formats', 'icon' => 'fa-files-o'),
+				'listing' => array('label' => 'Listing', 'icon' => 'fa-list-alt'),
+			),
+			'groups' => array(
+				'Organization' => array('business_units', 'org_admin'),
+				'Documents' => array('contracts', 'doc_formats'),
+				'Setup' => array('listing'),
+			),
+		),
+		'payroll_area' => array(
+			'label' => 'Payroll',
+			'icon' => 'fa-money',
+			'desc' => 'Payroll runs, earnings and statutory deductions',
+			'tabs' => array(
+				'payroll' => array('label' => 'Payroll', 'icon' => 'fa-money'),
+			),
+			'groups' => array(
+				'Common' => array('payroll'),
+			),
+		),
+		'purchasing' => array(
+			'label' => 'Procurement and sourcing',
+			'icon' => 'fa-shopping-basket',
+			'desc' => 'Suppliers, RFQ, purchase orders and matching',
+			'tabs' => array(
+				'supplier_portal' => array('label' => 'Supplier portal', 'icon' => 'fa-handshake-o'),
+				'rfq' => array('label' => 'RFQ', 'icon' => 'fa-envelope-o'),
+				'purchase_orders' => array('label' => 'Purchase orders', 'icon' => 'fa-clipboard'),
+				'purchases' => array('label' => 'Purchases', 'icon' => 'fa-file-text-o'),
+				'three_way_match' => array('label' => '3-way match', 'icon' => 'fa-check-square-o'),
+			),
+			'groups' => array(
+				'Common' => array('supplier_portal'),
+				'Orders' => array('rfq', 'purchase_orders', 'purchases', 'three_way_match'),
+			),
+		),
+		'pim' => array(
+			'label' => 'Product information management',
+			'icon' => 'fa-cube',
+			'desc' => 'Products, dimensions and variant structures',
+			'tabs' => array(
+				'product_info' => array('label' => 'Product information', 'icon' => 'fa-cube'),
+			),
+			'groups' => array(
+				'Common' => array('product_info'),
+			),
+		),
+		'production' => array(
+			'label' => 'Production control',
+			'icon' => 'fa-cogs',
+			'desc' => 'Production orders, routes, operations and quality',
+			'tabs' => array(
+				'manufacturing' => array('label' => 'Production', 'icon' => 'fa-cogs'),
+				'mfg_planning' => array('label' => 'Production planning', 'icon' => 'fa-cogs'),
+				'quality' => array('label' => 'Quality management', 'icon' => 'fa-check-circle'),
+			),
+			'groups' => array(
+				'Common' => array('manufacturing'),
+				'Periodic' => array('mfg_planning'),
+				'Quality' => array('quality'),
+			),
+		),
+		'projects' => array(
+			'label' => 'Project management and accounting',
+			'icon' => 'fa-tasks',
+			'desc' => 'Projects, budgets, WIP and revenue recognition',
+			'tabs' => array(
+				'projects' => array('label' => 'Projects', 'icon' => 'fa-tasks'),
+				'project_accounting' => array('label' => 'Project accounting', 'icon' => 'fa-pie-chart'),
+			),
+			'groups' => array(
+				'Common' => array('projects'),
+				'Periodic' => array('project_accounting'),
+			),
+		),
+		'retail' => array(
+			'label' => 'Retail and commerce',
+			'icon' => 'fa-shopping-cart',
+			'desc' => 'Channels, assortments, retail pricing, POS and statements',
+			'tabs' => array(
+				'retail_commerce' => array('label' => 'Retail & commerce', 'icon' => 'fa-shopping-cart', 'raw' => true),
+			),
+			'groups' => array(
+				'Common' => array('retail_commerce'),
+			),
+		),
+		'sales' => array(
+			'label' => 'Sales and marketing',
+			'icon' => 'fa-line-chart',
+			'desc' => 'CRM, prospects, quotations, sales orders, delivery and invoicing',
+			'tabs' => array(
+				'crm' => array('label' => 'CRM', 'icon' => 'fa-handshake-o', 'raw' => true),
+				'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn'),
+				'proposals' => array('label' => 'Sales quotations', 'icon' => 'fa-file-text'),
+				'sales_orders' => array('label' => 'Sales orders', 'icon' => 'fa-shopping-cart'),
+				'subscriptions' => array('label' => 'Subscriptions', 'icon' => 'fa-refresh'),
+				'delivery_notes' => array('label' => 'Delivery notes', 'icon' => 'fa-truck'),
+				'invoices' => array('label' => 'Invoices (e-invoice)', 'icon' => 'fa-file-text-o'),
+				'revenue' => array('label' => 'Revenue', 'icon' => 'fa-money'),
+				'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-random'),
+			),
+			'groups' => array(
+				'Common' => array('crm', 'marketing'),
+				'Orders' => array('proposals', 'sales_orders', 'subscriptions', 'delivery_notes', 'invoices'),
+				'Inquiries and reports' => array('revenue', 'fulfilment'),
+			),
+		),
+		'service_mgmt' => array(
+			'label' => 'Service management',
+			'icon' => 'fa-life-ring',
+			'desc' => 'Service agreements, contracts and service delivery',
+			'tabs' => array(
+				'contracts' => array('label' => 'Contracts & e-sign', 'icon' => 'fa-file-text-o'),
+			),
+			'groups' => array(
+				'Common' => array('contracts'),
+			),
+		),
+		'setup' => array(
+			'label' => 'System administration',
+			'icon' => 'fa-sliders',
+			'desc' => 'Company setup, security, batch/platform services, data and integration',
+			'tabs' => array(
+				'erp_setup' => array('label' => 'Accounting setup', 'icon' => 'fa-cogs'),
+				'security_roles' => array('label' => 'Security roles', 'icon' => 'fa-shield'),
+				'platform' => array('label' => 'Platform services', 'icon' => 'fa-cogs'),
+				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
+				'integration' => array('label' => 'Data & integration', 'icon' => 'fa-plug'),
+			),
+			'groups' => array(
+				'Setup' => array('erp_setup'),
+				'Security' => array('security_roles'),
+				'Platform' => array('platform'),
+				'Data management' => array('data_import', 'integration'),
+			),
+		),
 		'tax' => array(
 			'label' => 'Tax',
 			'icon' => 'fa-percent',
@@ -152,55 +470,6 @@ function epc_erp_nav_areas_config()
 				'Setup' => array('document_control'),
 			),
 		),
-		'fixed_assets' => array(
-			'label' => 'Fixed assets',
-			'icon' => 'fa-building',
-			'desc' => 'Asset register, depreciation and disposals',
-			'tabs' => array(
-				'fixed_assets' => array('label' => 'Fixed assets', 'icon' => 'fa-building'),
-			),
-			'groups' => array(
-				'Common' => array('fixed_assets'),
-			),
-		),
-		'budgeting' => array(
-			'label' => 'Budgeting',
-			'icon' => 'fa-pie-chart',
-			'desc' => 'Budget registers, control and budget vs actual',
-			'tabs' => array(
-				'budgeting' => array('label' => 'Budgeting', 'icon' => 'fa-pie-chart'),
-			),
-			'groups' => array(
-				'Common' => array('budgeting'),
-			),
-		),
-		'inventory_mgmt' => array(
-			'label' => 'Inventory management',
-			'icon' => 'fa-cubes',
-			'desc' => 'Stock, item groups, order planning and barcodes',
-			'tabs' => array(
-				'inventory' => array('label' => 'Inventory', 'icon' => 'fa-cubes'),
-				'inv_groups' => array('label' => 'Inventory (stock/groups)', 'icon' => 'fa-object-group'),
-				'order_planning' => array('label' => 'Order planning', 'icon' => 'fa-cubes'),
-				'retail_barcode' => array('label' => 'Retail barcode', 'icon' => 'fa-barcode'),
-			),
-			'groups' => array(
-				'Common' => array('inventory', 'inv_groups'),
-				'Periodic' => array('order_planning'),
-				'Setup' => array('retail_barcode'),
-			),
-		),
-		'pim' => array(
-			'label' => 'Product information management',
-			'icon' => 'fa-cube',
-			'desc' => 'Products, dimensions and variant structures',
-			'tabs' => array(
-				'product_info' => array('label' => 'Product information', 'icon' => 'fa-cube'),
-			),
-			'groups' => array(
-				'Common' => array('product_info'),
-			),
-		),
 		'warehouse' => array(
 			'label' => 'Warehouse management',
 			'icon' => 'fa-cubes',
@@ -210,152 +479,6 @@ function epc_erp_nav_areas_config()
 			),
 			'groups' => array(
 				'Common' => array('wms'),
-			),
-		),
-		'production' => array(
-			'label' => 'Production control',
-			'icon' => 'fa-cogs',
-			'desc' => 'Production orders, routes, operations and quality',
-			'tabs' => array(
-				'manufacturing' => array('label' => 'Production', 'icon' => 'fa-cogs'),
-				'mfg_planning' => array('label' => 'Production planning', 'icon' => 'fa-cogs'),
-				'quality' => array('label' => 'Quality management', 'icon' => 'fa-check-circle'),
-			),
-			'groups' => array(
-				'Common' => array('manufacturing'),
-				'Periodic' => array('mfg_planning'),
-				'Quality' => array('quality'),
-			),
-		),
-		'master_planning_area' => array(
-			'label' => 'Master planning',
-			'icon' => 'fa-random',
-			'desc' => 'Master scheduling and material requirements planning',
-			'tabs' => array(
-				'master_planning' => array('label' => 'Master planning', 'icon' => 'fa-random'),
-			),
-			'groups' => array(
-				'Common' => array('master_planning'),
-			),
-		),
-		'cost_mgmt' => array(
-			'label' => 'Cost management',
-			'icon' => 'fa-balance-scale',
-			'desc' => 'Inventory costing value models and analysis',
-			'tabs' => array(
-				'cost_models' => array('label' => 'Costing value-models', 'icon' => 'fa-balance-scale'),
-			),
-			'groups' => array(
-				'Common' => array('cost_models'),
-			),
-		),
-		'retail' => array(
-			'label' => 'Retail and commerce',
-			'icon' => 'fa-shopping-cart',
-			'desc' => 'Channels, assortments, retail pricing, POS and statements',
-			'tabs' => array(
-				'retail_commerce' => array('label' => 'Retail & commerce', 'icon' => 'fa-shopping-cart', 'raw' => true),
-			),
-			'groups' => array(
-				'Common' => array('retail_commerce'),
-			),
-		),
-		'people' => array(
-			'label' => 'Human resources',
-			'icon' => 'fa-users',
-			'desc' => 'Employees, payroll and labour-law compliance',
-			'tabs' => array(
-				'staff' => array('label' => 'Workers', 'icon' => 'fa-id-badge'),
-				'hr' => array('label' => 'HR', 'icon' => 'fa-user-circle'),
-				'hr_ops' => array('label' => 'HR operations', 'icon' => 'fa-users'),
-				'hr_law' => array('label' => 'Labour law & compliance', 'icon' => 'fa-gavel', 'raw' => true),
-				'payroll' => array('label' => 'Payroll', 'icon' => 'fa-money'),
-			),
-			'groups' => array(
-				'Common' => array('staff', 'hr', 'hr_ops'),
-				'Compliance' => array('hr_law'),
-				'Payroll' => array('payroll'),
-			),
-		),
-		'expense' => array(
-			'label' => 'Expense management',
-			'icon' => 'fa-credit-card',
-			'desc' => 'Employee expense reports and reimbursements',
-			'tabs' => array(
-				'expense_reports' => array('label' => 'Expense reports', 'icon' => 'fa-credit-card'),
-			),
-			'groups' => array(
-				'Common' => array('expense_reports'),
-			),
-		),
-		'projects' => array(
-			'label' => 'Project management and accounting',
-			'icon' => 'fa-tasks',
-			'desc' => 'Projects, budgets, WIP and revenue recognition',
-			'tabs' => array(
-				'projects' => array('label' => 'Projects', 'icon' => 'fa-tasks'),
-				'project_accounting' => array('label' => 'Project accounting', 'icon' => 'fa-pie-chart'),
-			),
-			'groups' => array(
-				'Common' => array('projects'),
-				'Periodic' => array('project_accounting'),
-			),
-		),
-		'risk' => array(
-			'label' => 'Compliance',
-			'icon' => 'fa-shield',
-			'desc' => 'Insurance policies, claims and document expiry tracking',
-			'tabs' => array(
-				'insurance' => array('label' => 'Insurance', 'icon' => 'fa-shield'),
-				'doc_expiry' => array('label' => 'Document expiry', 'icon' => 'fa-calendar-times-o'),
-			),
-			'groups' => array(
-				'Common' => array('insurance', 'doc_expiry'),
-			),
-		),
-		'enterprise' => array(
-			'label' => 'Organization administration',
-			'icon' => 'fa-building-o',
-			'desc' => 'Legal entities, business units, dimensions, address book and documents',
-			'tabs' => array(
-				'business_units' => array('label' => 'Business unit', 'icon' => 'fa-sitemap'),
-				'org_admin' => array('label' => 'Organization administration', 'icon' => 'fa-sitemap'),
-				'multi_entity' => array('label' => 'Multi-entity', 'icon' => 'fa-sitemap'),
-				'consolidation_bu' => array('label' => 'Consolidation', 'icon' => 'fa-sitemap'),
-				'agenda' => array('label' => 'Agenda', 'icon' => 'fa-calendar'),
-				'contacts' => array('label' => 'Contacts', 'icon' => 'fa-address-book-o'),
-				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
-				'contracts' => array('label' => 'Contracts & e-sign', 'icon' => 'fa-file-text-o'),
-				'doc_formats' => array('label' => 'Document formats', 'icon' => 'fa-files-o'),
-				'knowledge_base' => array('label' => 'Knowledge base', 'icon' => 'fa-book'),
-				'ai_advisor' => array('label' => 'AI advisor', 'icon' => 'fa-magic'),
-				'listing' => array('label' => 'Listing', 'icon' => 'fa-list-alt'),
-			),
-			'groups' => array(
-				'Organization' => array('business_units', 'org_admin', 'multi_entity', 'consolidation_bu'),
-				'Documents' => array('agenda', 'contacts', 'documents', 'contracts', 'doc_formats'),
-				'Knowledge' => array('knowledge_base', 'ai_advisor'),
-				'Setup' => array('listing'),
-			),
-		),
-		'setup' => array(
-			'label' => 'System administration',
-			'icon' => 'fa-sliders',
-			'desc' => 'Company setup, security roles, batch/platform services, data and integration',
-			'tabs' => array(
-				'erp_setup' => array('label' => 'Accounting setup', 'icon' => 'fa-cogs'),
-				'security_roles' => array('label' => 'Security roles', 'icon' => 'fa-shield'),
-				'platform' => array('label' => 'Platform services', 'icon' => 'fa-cogs'),
-				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
-				'integration' => array('label' => 'Data & integration', 'icon' => 'fa-plug'),
-				'audit' => array('label' => 'Audit trail', 'icon' => 'fa-history'),
-			),
-			'groups' => array(
-				'Setup' => array('erp_setup'),
-				'Security' => array('security_roles'),
-				'Platform' => array('platform'),
-				'Data management' => array('data_import', 'integration'),
-				'Inquiries' => array('audit'),
 			),
 		),
 	);
@@ -371,6 +494,20 @@ function epc_erp_tab_to_area($tab)
 	$tab = (string) $tab;
 	if ($tab === 'bank_recon') {
 		return 'banking';
+	}
+	// Some tabs are surfaced under more than one standard module (e.g. the asset
+	// register appears under both Fixed assets and Asset management). Pin each to
+	// its canonical owning module so breadcrumbs/highlighting stay stable when no
+	// explicit area is supplied in the URL.
+	static $canonical = array(
+		'fixed_assets' => 'fixed_assets',
+		'fin_advanced' => 'finance',
+		'hr_ops' => 'people',
+		'wms' => 'warehouse',
+		'contracts' => 'enterprise',
+	);
+	if (isset($canonical[$tab])) {
+		return $canonical[$tab];
 	}
 	foreach (epc_erp_nav_areas_config() as $areaKey => $area) {
 		if (isset($area['tabs'][$tab])) {

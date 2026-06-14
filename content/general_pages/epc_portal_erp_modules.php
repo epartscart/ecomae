@@ -309,15 +309,15 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 	// previously-reachable tab disappears for a non-full-access tenant.
 	$expand = array(
 		'overview' => array('overview'),
-		'sales' => array('sales', 'ar'),
-		'purchasing' => array('purchasing', 'ap'),
-		'finance' => array('finance', 'tax', 'fixed_assets', 'budgeting', 'banking'),
-		'operations' => array('inventory_mgmt', 'pim', 'warehouse', 'production', 'master_planning_area', 'cost_mgmt', 'retail'),
-		'custom_shipping' => array('purchasing'),
-		'people' => array('people', 'expense'),
-		'insights' => array('finance', 'sales', 'enterprise', 'setup'),
-		'collaboration' => array('projects', 'enterprise'),
-		'enterprise' => array('enterprise', 'budgeting'),
+		'sales' => array('sales', 'ar', 'credit_coll', 'service_mgmt'),
+		'purchasing' => array('purchasing', 'ap', 'landed_cost_area', 'logistics'),
+		'finance' => array('finance', 'tax', 'banking', 'fixed_assets', 'asset_mgmt', 'budgeting', 'consolidations', 'cost_acct', 'cost_mgmt', 'audit_wb'),
+		'operations' => array('inventory_mgmt', 'pim', 'warehouse', 'mhei', 'production', 'master_planning_area', 'retail'),
+		'custom_shipping' => array('logistics', 'purchasing'),
+		'people' => array('people', 'payroll_area', 'leave_abs', 'expense'),
+		'insights' => array('finance', 'sales', 'enterprise', 'setup', 'common'),
+		'collaboration' => array('projects', 'enterprise', 'common', 'service_mgmt'),
+		'enterprise' => array('enterprise', 'budgeting', 'common', 'consolidations'),
 	);
 	$areas = array();
 	foreach ($enabled as $modId) {
@@ -336,6 +336,8 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 	$areas['setup'] = true;
 	$areas['enterprise'] = true;
 	$areas['tax'] = true;
+	$areas['common'] = true;
+	$areas['risk'] = true;
 	return array_keys($areas);
 }
 
