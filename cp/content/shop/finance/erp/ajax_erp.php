@@ -822,6 +822,42 @@ try {
 			$bpStage = epc_bplan_advance_stage($db_link, (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, $bpStage === 'published' ? 'Budget plan published' : 'Budget plan advanced to ' . $bpStage);
 
+		case 'hrt_job_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr_talent.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$htData = $_POST;
+			$htData['company_id'] = epc_erp_active_company_id($db_link);
+			$htJob = epc_hrt_job_save($db_link, $htData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Job requisition saved', array('id' => $htJob));
+
+		case 'hrt_applicant_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr_talent.php';
+			$htApp = epc_hrt_applicant_add($db_link, (int)($_POST['job_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Applicant added', array('id' => $htApp));
+
+		case 'hrt_applicant_stage':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr_talent.php';
+			epc_hrt_applicant_set_stage($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['stage'] ?? 'applied'));
+			epc_erp_json(true, 'Applicant moved to ' . (string)($_POST['stage'] ?? ''));
+
+		case 'hrt_review_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr_talent.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$hrData = $_POST;
+			$hrData['company_id'] = epc_erp_active_company_id($db_link);
+			$htRev = epc_hrt_review_save($db_link, $hrData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Review saved', array('id' => $htRev));
+
+		case 'hrt_goal_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr_talent.php';
+			$htGoal = epc_hrt_goal_add($db_link, (int)($_POST['review_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Goal added', array('id' => $htGoal));
+
+		case 'hrt_review_finalize':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr_talent.php';
+			$htOverall = epc_hrt_review_finalize($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Review finalized — overall ' . number_format($htOverall, 2), array('overall' => $htOverall));
+
 		case 'customer_master_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_credit.php';
 			$cmCust = (int) ($_POST['customer_id'] ?? 0);

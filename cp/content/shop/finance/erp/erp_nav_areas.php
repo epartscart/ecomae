@@ -228,10 +228,13 @@ function epc_erp_nav_areas_config()
 				'staff' => array('label' => 'Workers', 'icon' => 'fa-id-badge'),
 				'hr' => array('label' => 'HR', 'icon' => 'fa-user-circle'),
 				'hr_ops' => array('label' => 'HR operations', 'icon' => 'fa-users'),
+				'recruitment' => array('label' => 'Recruitment', 'icon' => 'fa-user-plus'),
+				'performance' => array('label' => 'Performance management', 'icon' => 'fa-star-half-o'),
 				'hr_law' => array('label' => 'Labour law & compliance', 'icon' => 'fa-gavel', 'raw' => true),
 			),
 			'groups' => array(
 				'Common' => array('staff', 'hr', 'hr_ops'),
+				'Talent' => array('recruitment', 'performance'),
 				'Compliance' => array('hr_law'),
 			),
 		),

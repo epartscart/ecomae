@@ -316,6 +316,9 @@ $erpTabIncludes = array(
 	'procurement_categories' => 'erp_tabs_procurement_categories.php',
 	// Budgeting depth
 	'budget_planning' => 'erp_tabs_budget_planning.php',
+	// HR depth — talent
+	'recruitment' => 'erp_tabs_recruitment.php',
+	'performance' => 'erp_tabs_performance.php',
 );
 
 ?>
