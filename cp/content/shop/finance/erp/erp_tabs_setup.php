@@ -13,9 +13,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_industry_packs.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_product_structure.php';
 
 epc_erp_extended_ensure_schema($db_link);
 epc_co_ensure_schema($db_link);
+epc_erp_prod_structure_ensure_schema($db_link);
 
 $setupMsg = '';
 $setupErr = '';
@@ -236,6 +238,20 @@ foreach (epc_erp_voucher_prefix_map() as $vt => $defPrefix) {
 			<span class="label label-success"><?php echo count($invF); ?> inventory</span>
 			<span class="label label-default"><?php echo count($nonF); ?> non-inventory</span>
 			&nbsp;&rarr; manage in <a href="<?php echo epc_erp_h($pinfoUrl); ?>">Product Information System &rsaquo; Field setup</a>, where you can re-classify any field.
+		</p>
+		<?php
+		$dimGroup = epc_erp_prod_dim_group_get($db_link);
+		$dimProd = (array) $dimGroup['product'];
+		$dimsUrl = epc_erp_tab_url($erpUrl, 'product_info', $date_from_str, $date_to_str, 'operations') . '&pm_view=dimensions';
+		?>
+		<p style="margin-bottom:0;margin-top:6px;"><strong>Product structure:</strong>
+			<span class="label label-primary"><?php echo epc_erp_h((string) $dimGroup['code']); ?> &middot; <?php echo epc_erp_h((string) $dimGroup['name']); ?></span>
+			<?php if ($dimProd): ?>
+				<?php foreach ($dimProd as $dk): ?><span class="label label-info"><?php echo epc_erp_h(epc_erp_prod_dimension_label('product', (string) $dk)); ?></span> <?php endforeach; ?>
+			<?php else: ?>
+				<span class="text-muted">no product dimensions active</span>
+			<?php endif; ?>
+			&nbsp;&rarr; set up <a href="<?php echo epc_erp_h($dimsUrl); ?>">Dimensions &amp; variants</a> (D365-style Size / Colour / Style / Configuration).
 		</p>
 	</div>
 </div>
