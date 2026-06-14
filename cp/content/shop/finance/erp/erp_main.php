@@ -286,6 +286,8 @@ $erpTabIncludes = array(
 	'cost_models' => 'erp_tabs_cost_models.php',
 	// Data & integration framework
 	'integration' => 'erp_tabs_integration.php',
+	// Quality management
+	'quality' => 'erp_tabs_quality.php',
 );
 
 ?>

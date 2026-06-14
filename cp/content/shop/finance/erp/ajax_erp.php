@@ -814,6 +814,40 @@ try {
 			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
 			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
 
+		case 'qm_plan_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$qpId = epc_qm_plan_save($db_link, epc_erp_active_company_id($db_link), $_POST, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Test plan saved', array('id' => $qpId));
+
+		case 'qm_test_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
+			$qtId = epc_qm_test_add($db_link, (int)($_POST['plan_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Test added', array('id' => $qtId));
+
+		case 'qm_order_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$qoId = epc_qm_order_create($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Quality order created', array('id' => $qoId));
+
+		case 'qm_order_record':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
+			$qmVals = isset($_POST['v']) && is_array($_POST['v']) ? $_POST['v'] : array();
+			$qmRec = epc_qm_order_record($db_link, (int)($_POST['order_id'] ?? 0), $qmVals);
+			epc_erp_json(true, 'Results saved · verdict: ' . ($qmRec['verdict'] ?: 'n/a'), array('rec' => $qmRec));
+
+		case 'qm_ncr_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$qnId = epc_qm_ncr_create($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Non-conformance raised', array('id' => $qnId));
+
+		case 'qm_ncr_update':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_quality.php';
+			epc_qm_ncr_update($db_link, (int)($_POST['id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Non-conformance updated');
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));

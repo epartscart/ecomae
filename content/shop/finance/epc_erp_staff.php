@@ -28,8 +28,8 @@ function epc_erp_staff_all_tabs()
 		'ext_reports',
 		// Risk & Insurance
 		'insurance', 'doc_expiry',
-		// Advanced WMS + Manufacturing depth + Financial depth + Collections + Project accounting + Costing + Integration
-		'wms', 'mfg_planning', 'fin_advanced', 'collections', 'project_accounting', 'cost_models', 'integration',
+		// Advanced WMS + Manufacturing depth + Financial depth + Collections + Project accounting + Costing + Integration + Quality
+		'wms', 'mfg_planning', 'fin_advanced', 'collections', 'project_accounting', 'cost_models', 'integration', 'quality',
 	);
 }
 

@@ -116,10 +116,11 @@ function epc_erp_nav_areas_config()
 				'manufacturing' => array('label' => 'Manufacturing', 'icon' => 'fa-cogs'),
 				'mfg_planning' => array('label' => 'Manufacturing planning', 'icon' => 'fa-cogs'),
 				'cost_models' => array('label' => 'Costing value-models', 'icon' => 'fa-balance-scale'),
+				'quality' => array('label' => 'Quality management', 'icon' => 'fa-check-circle'),
 			),
 			'groups' => array(
 				'Common' => array('inventory', 'wms', 'product_info', 'inv_groups', 'order_planning'),
-				'Journals' => array('manufacturing'),
+				'Journals' => array('manufacturing', 'quality'),
 				'Periodic' => array('master_planning', 'mfg_planning', 'cost_models'),
 				'Setup' => array('retail_barcode', 'fixed_assets'),
 			),
