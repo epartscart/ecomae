@@ -179,6 +179,7 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'agenda' => array('label' => 'Agenda', 'icon' => 'fa-calendar'),
 				'projects' => array('label' => 'Projects', 'icon' => 'fa-tasks'),
+				'project_accounting' => array('label' => 'Project accounting', 'icon' => 'fa-pie-chart'),
 				'contacts' => array('label' => 'Contacts', 'icon' => 'fa-address-book-o'),
 				'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o'),
 				'contracts' => array('label' => 'Contracts &amp; e-sign', 'icon' => 'fa-file-text-o'),
@@ -186,6 +187,7 @@ function epc_erp_nav_areas_config()
 			),
 			'groups' => array(
 				'Common' => array('agenda', 'projects', 'contacts', 'documents', 'contracts'),
+				'Periodic' => array('project_accounting'),
 				'Setup' => array('doc_formats'),
 			),
 		),

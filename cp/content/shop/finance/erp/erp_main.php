@@ -280,6 +280,8 @@ $erpTabIncludes = array(
 	'fin_advanced' => 'erp_tabs_fin_advanced.php',
 	// Collections & credit management
 	'collections' => 'erp_tabs_collections.php',
+	// Project accounting depth
+	'project_accounting' => 'erp_tabs_project_accounting.php',
 );
 
 ?>

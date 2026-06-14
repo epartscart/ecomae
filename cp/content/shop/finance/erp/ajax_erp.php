@@ -753,6 +753,29 @@ try {
 			epc_coll_hold_set($db_link, epc_erp_active_company_id($db_link), (int)($_POST['customer_id'] ?? 0), (int)($_POST['place'] ?? 1) === 1, (string)($_POST['reason'] ?? ''), (string)($_SESSION['admin_username'] ?? ''));
 			epc_erp_json(true, 'Credit hold updated');
 
+		case 'prja_budget_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_project_accounting.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$pb = $_POST;
+			$pb['company_id'] = epc_erp_active_company_id($db_link);
+			$pbId = epc_prja_budget_save($db_link, $pb, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Budget line saved', array('id' => $pbId));
+
+		case 'prja_txn_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_project_accounting.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$pt = $_POST;
+			$pt['company_id'] = epc_erp_active_company_id($db_link);
+			$pt['txn_date'] = time();
+			$ptId = epc_prja_txn_add($db_link, $pt);
+			epc_erp_json(true, 'Transaction posted', array('id' => $ptId));
+
+		case 'prja_recognize':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_project_accounting.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$prRec = epc_prja_recognition_run($db_link, epc_erp_active_company_id($db_link), (int)($_POST['project_id'] ?? 0), (string)($_POST['method'] ?? 'poc'), (float)($_POST['fraction'] ?? 0), time());
+			epc_erp_json(true, 'Recognized revenue ' . number_format($prRec['recognized_revenue'], 2) . ' · WIP ' . number_format($prRec['wip'], 2), array('rec' => $prRec));
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));
