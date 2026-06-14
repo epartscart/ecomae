@@ -2280,6 +2280,15 @@ if (!function_exists('epc_free_tools_render_hub')) {
 		</a>
 		<?php endforeach; ?>
 	</div>
+	<div class="eft-gallery">
+		<h2><i class="fa fa-eye"></i> See what you get — before you register</h2>
+		<p class="eft-gallery__lead">Real sample results from our most popular tools. Register free to run any of them for <strong>your own company</strong>, localised to your country.</p>
+		<div class="eft-gallery__grid">
+			<?php foreach (array('vat', 'ct', 'extreport', 'payroll', 'valuation', 'taxkit') as $gk): if (empty($catalog[$gk])) { continue; } ?>
+			<a class="eft-gallery__item" href="<?php echo epc_free_tools_h($base); ?>platform/free-tools/<?php echo epc_free_tools_h($gk); ?>"><?php echo epc_free_tools_preview_html($gk, $catalog[$gk]); ?></a>
+			<?php endforeach; ?>
+		</div>
+	</div>
 	<?php echo epc_free_tools_faq_html(''); ?>
 	<div class="eft-upsell">
 		<h3>Ready for the full picture?</h3>
@@ -2404,6 +2413,121 @@ if (!function_exists('epc_free_tools_guide')) {
 	}
 }
 
+if (!function_exists('epc_free_tools_preview')) {
+	/**
+	 * A representative "what you'll get" sample result per tool, shown BEFORE
+	 * registration so a visitor can see the real output style and be drawn to
+	 * register. Figures are a UAE example (clearly labelled "sample"); the live
+	 * tool recomputes everything from the visitor's own inputs and registered
+	 * country, so the preview mirrors the actual result layout.
+	 *
+	 * @return array{head:array{label:string,value:string},rows:array<int,array{0:string,1:string}>,chip:string}
+	 */
+	function epc_free_tools_preview(string $key): array
+	{
+		$p = array(
+			'vat' => array(
+				'head' => array('label' => 'Net VAT payable', 'value' => 'AED 3,000'),
+				'rows' => array(array('Output VAT (5%)', 'AED 5,000'), array('Recoverable input VAT', 'AED 2,000'), array('Standard-rated sales', 'AED 100,000')),
+				'chip' => 'Pass · computed at the 5% country rate (UAE FTA)',
+			),
+			'ct' => array(
+				'head' => array('label' => 'Corporate tax (9%)', 'value' => 'AED 20,250'),
+				'rows' => array(array('Taxable profit', 'AED 600,000'), array('Relief (0%) band', 'AED 375,000'), array('Taxable above relief', 'AED 225,000')),
+				'chip' => 'Pass · UAE small-business relief applied',
+			),
+			'payroll' => array(
+				'head' => array('label' => 'Net monthly pay', 'value' => 'AED 9,200'),
+				'rows' => array(array('Gross pay', 'AED 10,000'), array('Deductions', 'AED 800'), array('End-of-service gratuity (3 yrs)', 'AED 5,250')),
+				'chip' => 'UAE Federal Decree-Law 33/2021',
+			),
+			'ifrs' => array(
+				'head' => array('label' => 'Balance check', 'value' => 'Balanced ✓'),
+				'rows' => array(array('Revenue', 'AED 1,000,000'), array('Gross profit', 'AED 620,000'), array('Operating profit', 'AED 240,000')),
+				'chip' => 'Assets = equity + liabilities',
+			),
+			'einvoice' => array(
+				'head' => array('label' => 'Invoice total', 'value' => 'AED 10,500'),
+				'rows' => array(array('Subtotal', 'AED 10,000'), array('VAT (5%)', 'AED 500'), array('Scheme', 'FTA (PINT-AE) + QR')),
+				'chip' => 'Country e-invoice scheme applied',
+			),
+			'extreport' => array(
+				'head' => array('label' => 'VAT 201 net payable', 'value' => 'AED 814'),
+				'rows' => array(array('Output VAT (Box 12)', 'AED 8,052'), array('Input VAT (Box 13)', 'AED 7,238'), array('Compliance', '5 issues flagged')),
+				'chip' => 'FTA VAT 201 format · drill-down',
+			),
+			'customs' => array(
+				'head' => array('label' => 'Landed cost', 'value' => 'AED 13,450'),
+				'rows' => array(array('CIF value', 'AED 11,000'), array('Customs duty (5%)', 'AED 550'), array('Import VAT (5%)', 'AED 578')),
+				'chip' => 'HS-code driven duty',
+			),
+			'insurance' => array(
+				'head' => array('label' => 'Cover & renewal', 'value' => '3 covers · 1 due'),
+				'rows' => array(array('Compulsory covers', '2'), array('Recommended covers', '3'), array('Next renewal', 'in 28 days')),
+				'chip' => 'Country cover profile',
+			),
+			'docexpiry' => array(
+				'head' => array('label' => 'Expiring soon', 'value' => '2 documents'),
+				'rows' => array(array('Trade licence', '18 days · Warning'), array('Visa', '45 days · OK'), array('Reminder lead', '30 days')),
+				'chip' => 'Country reminder lead days',
+			),
+			'valuation' => array(
+				'head' => array('label' => 'Equity value', 'value' => 'AED 4.2M'),
+				'rows' => array(array('Enterprise value (EBITDA ×6)', 'AED 4,800,000'), array('Net debt', 'AED 600,000'), array('Revenue multiple', '3.0x')),
+				'chip' => 'DCF + EBITDA + revenue multiples',
+			),
+			'finmodel' => array(
+				'head' => array('label' => '5-year projection', 'value' => 'Net AED 248k'),
+				'rows' => array(array('Year 1 revenue', 'AED 1,000,000'), array('Year 5 revenue', 'AED 1,610,000'), array('Year 5 EBITDA', 'AED 332,000')),
+				'chip' => 'Multi-year P&L + cash snapshot',
+			),
+			'taxkit' => array(
+				'head' => array('label' => 'UAE tax snapshot', 'value' => 'VAT 5% · CT 9%'),
+				'rows' => array(array('Corporate tax relief', 'first AED 375,000'), array('E-invoice scheme', 'FTA (PINT-AE)'), array('Authority', 'Federal Tax Authority')),
+				'chip' => 'Country-driven snapshot',
+			),
+			'hrcompliance' => array(
+				'head' => array('label' => 'UAE labour card', 'value' => 'Compliant'),
+				'rows' => array(array('Gratuity', '21 / 30 days per year'), array('Annual leave', '30 days'), array('Authority', 'MOHRE')),
+				'chip' => 'Country labour law',
+			),
+			'workflow' => array(
+				'head' => array('label' => 'Approval matrix', 'value' => '3 tiers'),
+				'rows' => array(array('Up to AED 5,000', 'Manager'), array('Up to AED 50,000', 'Finance'), array('Above AED 50,000', 'CFO · SLA 24h')),
+				'chip' => 'Adopt today',
+			),
+		);
+		return $p[$key] ?? array('head' => array('label' => '', 'value' => ''), 'rows' => array(), 'chip' => '');
+	}
+}
+
+if (!function_exists('epc_free_tools_preview_html')) {
+	/** Render the "sample output" preview card (pre-registration). */
+	function epc_free_tools_preview_html(string $key, array $meta): string
+	{
+		$pv = epc_free_tools_preview($key);
+		if (($pv['head']['value'] ?? '') === '') {
+			return '';
+		}
+		$h = '<div class="eft-preview" id="eft_preview">';
+		$h .= '<div class="eft-preview__bar"><span class="eft-preview__dot"></span><span class="eft-preview__dot"></span><span class="eft-preview__dot"></span><span class="eft-preview__title">' . epc_free_tools_h($meta['name']) . ' — sample result</span><span class="eft-preview__badge">SAMPLE · UAE example</span></div>';
+		$h .= '<div class="eft-preview__body">';
+		$h .= '<div class="eft-preview__head"><span class="eft-preview__hlabel">' . epc_free_tools_h($pv['head']['label']) . '</span><span class="eft-preview__hvalue">' . epc_free_tools_h($pv['head']['value']) . '</span></div>';
+		$h .= '<table class="eft-preview__tbl"><tbody>';
+		foreach ($pv['rows'] as $row) {
+			$h .= '<tr><td>' . epc_free_tools_h($row[0]) . '</td><td>' . epc_free_tools_h($row[1]) . '</td></tr>';
+		}
+		$h .= '</tbody></table>';
+		if (!empty($pv['chip'])) {
+			$h .= '<div class="eft-preview__chip"><i class="fa fa-check-circle"></i> ' . epc_free_tools_h($pv['chip']) . '</div>';
+		}
+		$h .= '</div>';
+		$h .= '<div class="eft-preview__foot"><i class="fa fa-lock"></i> Register free to run this for <strong>your own company</strong> &amp; your country&rsquo;s rules.</div>';
+		$h .= '</div>';
+		return $h;
+	}
+}
+
 if (!function_exists('epc_free_tools_guide_html')) {
 	/** Render the pre-registration guide card for a tool. */
 	function epc_free_tools_guide_html(string $key, array $meta): string
@@ -2451,6 +2575,7 @@ if (!function_exists('epc_free_tools_render_tool')) {
 			<p><?php echo epc_free_tools_h($eftSeo['intro']); ?></p>
 		</div>
 	</div>
+	<?php echo epc_free_tools_preview_html($key, $meta); ?>
 <?php if (!$active): ?>
 	<div class="eft-unavailable">
 		<i class="fa fa-clock-o"></i>
@@ -2785,6 +2910,31 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-guide__list li i{color:#34d399;margin-top:3px}
 .eft-guide__how i{color:var(--epm-cyan,#22d3ee)}
 .eft-guide__csv code{display:block;font-size:.8rem;background:rgba(2,6,23,.6);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:8px 10px;color:#a5f3fc;overflow-x:auto}
+.eft-preview{margin:16px 0 22px;border:1px solid rgba(148,163,184,.28);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(15,23,42,.7),rgba(2,6,23,.5));box-shadow:0 10px 30px rgba(2,6,23,.35)}
+.eft-preview__bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(2,6,23,.55);border-bottom:1px solid rgba(148,163,184,.18)}
+.eft-preview__dot{width:10px;height:10px;border-radius:50%;background:#475569}
+.eft-preview__dot:nth-child(1){background:#f87171}.eft-preview__dot:nth-child(2){background:#fbbf24}.eft-preview__dot:nth-child(3){background:#34d399}
+.eft-preview__title{margin-left:8px;font-size:.82rem;font-weight:700;color:#cbd5e1;letter-spacing:.01em}
+.eft-preview__badge{margin-left:auto;font-size:.66rem;font-weight:800;letter-spacing:.06em;color:#0b1220;background:#fbbf24;border-radius:999px;padding:3px 9px}
+.eft-preview__body{padding:16px 18px}
+.eft-preview__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed rgba(148,163,184,.25)}
+.eft-preview__hlabel{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8}
+.eft-preview__hvalue{font-size:1.5rem;font-weight:800;color:#34d399}
+.eft-preview__tbl{width:100%;border-collapse:collapse}
+.eft-preview__tbl td{padding:6px 0;font-size:.9rem;color:#cbd5e1;border-bottom:1px solid rgba(148,163,184,.1)}
+.eft-preview__tbl td:last-child{text-align:right;font-weight:700;color:#e2e8f0}
+.eft-preview__chip{margin-top:12px;display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:#34d399;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:999px;padding:5px 12px}
+.eft-preview__foot{padding:11px 18px;font-size:.85rem;color:#cbd5e1;background:rgba(2,6,23,.45);border-top:1px solid rgba(148,163,184,.18)}
+.eft-preview__foot i{color:var(--epm-cyan,#22d3ee);margin-right:6px}
+.eft-gallery{margin:34px 0 8px;text-align:center}
+.eft-gallery>h2{margin:0 0 6px;font-size:1.4rem;color:#e2e8f0;display:flex;gap:9px;align-items:center;justify-content:center}
+.eft-gallery>h2 i{color:var(--epm-cyan,#22d3ee)}
+.eft-gallery__lead{max-width:640px;margin:0 auto 20px;color:#94a3b8;font-size:.95rem}
+.eft-gallery__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;text-align:left}
+.eft-gallery__item{text-decoration:none;color:inherit;display:block;transition:transform .15s}
+.eft-gallery__item:hover{transform:translateY(-4px)}
+.eft-gallery__item .eft-preview{margin:0;height:100%}
+@media(max-width:640px){.eft-guide__grid{grid-template-columns:1fr}}
 .eft-gate__tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(148,163,184,.2)}
 .eft-tab{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--epm-muted,#94a3b8);font:inherit;font-weight:700;font-size:.92rem;padding:8px 14px;cursor:pointer}
 .eft-tab.is-active{color:var(--epm-cyan,#22d3ee);border-bottom-color:var(--epm-cyan,#22d3ee)}

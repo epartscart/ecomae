@@ -227,6 +227,21 @@ $ghtml = epc_free_tools_guide_html('ifrs', $cat['ifrs']);
 check('guide HTML renders for a tool', strpos($ghtml, 'What it does') !== false && strpos($ghtml, 'eft-guide') !== false);
 check('guide HTML escapes / has no PHP error', strpos($ghtml, '<?php') === false);
 
+section('Pre-registration previews');
+$pvMissing = 0;
+foreach ($cat as $pk => $pmeta) {
+	$pv = epc_free_tools_preview($pk);
+	if (($pv['head']['value'] ?? '') === '' || count($pv['rows']) < 1) { $pvMissing++; }
+}
+check('every tool has a sample preview', $pvMissing === 0);
+$pvVat = epc_free_tools_preview('vat');
+check('VAT preview headline figure present', $pvVat['head']['value'] === 'AED 3,000');
+$phtml = epc_free_tools_preview_html('ct', $cat['ct']);
+check('preview HTML renders sample card', strpos($phtml, 'eft-preview') !== false && strpos($phtml, 'SAMPLE') !== false);
+check('preview HTML has Register CTA', stripos($phtml, 'Register free to run this') !== false);
+check('preview HTML has no PHP error', strpos($phtml, '<?php') === false);
+check('unknown tool preview is empty', epc_free_tools_preview('nope')['head']['value'] === '');
+
 section('Generic fallback');
 $xx = epc_free_tools_compute('vat', 'XX', array('standard_sales' => 1000));
 check('generic VAT 0% rate', approx((float) $xx['rate'], 0.0));
