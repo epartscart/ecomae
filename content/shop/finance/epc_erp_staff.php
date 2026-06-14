@@ -26,6 +26,8 @@ function epc_erp_staff_all_tabs()
 		'compliance', 'approvals', 'industry_intel', 'ai_advisor', 'vat_refund',
 		// External Reporting
 		'ext_reports',
+		// Risk & Insurance
+		'insurance', 'doc_expiry',
 	);
 }
 

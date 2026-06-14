@@ -269,6 +269,9 @@ $erpTabIncludes = array(
 	'retail_barcode' => 'erp_tabs_retail_barcode.php',
 	'doc_formats' => 'erp_tabs_doc_formats.php',
 	'ext_reports' => 'erp_tabs_external_reports.php',
+	// Risk & Insurance
+	'insurance' => 'erp_tabs_insurance.php',
+	'doc_expiry' => 'erp_tabs_doc_expiry.php',
 );
 
 ?>

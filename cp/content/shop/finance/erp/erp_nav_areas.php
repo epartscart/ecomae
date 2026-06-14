@@ -184,6 +184,18 @@ function epc_erp_nav_areas_config()
 				'Setup' => array('doc_formats'),
 			),
 		),
+		'risk' => array(
+			'label' => 'Risk &amp; Insurance',
+			'icon' => 'fa-shield',
+			'desc' => 'Insurance policies, claims and document expiry tracking',
+			'tabs' => array(
+				'insurance' => array('label' => 'Insurance', 'icon' => 'fa-shield'),
+				'doc_expiry' => array('label' => 'Document expiry', 'icon' => 'fa-calendar-times-o'),
+			),
+			'groups' => array(
+				'Common' => array('insurance', 'doc_expiry'),
+			),
+		),
 		'enterprise' => array(
 			'label' => 'Enterprise',
 			'icon' => 'fa-building-o',

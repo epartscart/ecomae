@@ -507,6 +507,72 @@ try {
 			epc_ctr_ocr_store($db_link, (int)($_POST['contract_id'] ?? 0), (string)($_POST['text'] ?? ''));
 			epc_erp_json(true, 'OCR text saved');
 
+		case 'docx_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_expiry.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			if (trim((string)($_POST['doc_type'] ?? '')) === '') { throw new Exception('Document type is required'); }
+			if (empty($_POST['expiry_date_str'])) { throw new Exception('Expiry date is required'); }
+			$dx = $_POST;
+			$dx['company_id'] = epc_erp_active_company_id($db_link);
+			$dx['issue_date'] = !empty($_POST['issue_date_str']) ? (strtotime((string)$_POST['issue_date_str']) ?: 0) : 0;
+			$dx['expiry_date'] = strtotime((string)$_POST['expiry_date_str']) ?: 0;
+			$dx['active'] = 1;
+			$dxId = epc_docx_save($db_link, $dx, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Document saved to register', array('id' => $dxId));
+
+		case 'docx_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_expiry.php';
+			epc_docx_delete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Document removed from register');
+
+		case 'docx_run_reminders':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_expiry.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/usefull/epc_admin_notifications.php';
+			$dxRun = epc_docx_run_reminders($db_link, epc_erp_active_company_id($db_link));
+			epc_erp_json(true, 'Reminders: ' . (int)$dxRun['sent'] . ' sent, ' . (int)$dxRun['checked'] . ' checked, ' . (int)$dxRun['skipped'] . ' not due', $dxRun);
+
+		case 'ins_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			if (trim((string)($_POST['policy_no'] ?? '')) === '') { throw new Exception('Policy number is required'); }
+			if (empty($_POST['expiry_date_str'])) { throw new Exception('Expiry date is required'); }
+			$ip = $_POST;
+			$ip['company_id'] = epc_erp_active_company_id($db_link);
+			$ip['start_date'] = !empty($_POST['start_date_str']) ? (strtotime((string)$_POST['start_date_str']) ?: 0) : 0;
+			$ip['expiry_date'] = strtotime((string)$_POST['expiry_date_str']) ?: 0;
+			$insId = epc_ins_save($db_link, $ip, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Policy saved', array('id' => $insId));
+
+		case 'ins_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
+			epc_ins_delete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Policy deleted');
+
+		case 'ins_doc_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
+			$insDocId = epc_ins_doc_add($db_link, (int)($_POST['policy_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Document added', array('id' => $insDocId));
+
+		case 'ins_doc_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
+			epc_ins_doc_delete($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Document removed');
+
+		case 'ins_claim_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
+			$ic = $_POST;
+			$ic['loss_date'] = !empty($_POST['loss_date_str']) ? (strtotime((string)$_POST['loss_date_str']) ?: 0) : 0;
+			$ic['notified_date'] = !empty($_POST['notified_date_str']) ? (strtotime((string)$_POST['notified_date_str']) ?: 0) : time();
+			$ic['deadline_date'] = !empty($_POST['deadline_date_str']) ? (strtotime((string)$_POST['deadline_date_str']) ?: 0) : 0;
+			$claimId = epc_ins_claim_save($db_link, $ic, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Claim logged', array('id' => $claimId));
+
+		case 'ins_claim_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
+			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));
+			epc_erp_json(true, 'Claim status updated');
+
 		case 'hr_emp_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_hr.php';
 			if (trim((string)($_POST['code'] ?? '')) === '' || trim((string)($_POST['name'] ?? '')) === '') { throw new Exception('Code and name are required'); }
