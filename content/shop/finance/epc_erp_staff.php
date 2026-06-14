@@ -6,7 +6,7 @@ defined('_ASTEXE_') or die('No access');
 
 function epc_erp_staff_all_tabs()
 {
-	return array(
+	$tabs = array(
 		'dashboard', 'workflow', 'processflow', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
 		'fulfilment', 'revenue', 'subscriptions', 'receivables',
 		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match', 'supplier_portal',
@@ -34,7 +34,26 @@ function epc_erp_staff_all_tabs()
 		'security_roles', 'org_admin', 'platform',
 		// Year-end closing
 		'year_end',
+		// D365 coverage waves — procurement, budgeting, HR talent, cash & treasury, tax
+		'purchase_requisitions', 'procurement_categories',
+		'budget_planning',
+		'recruitment', 'performance',
+		'cash_forecast', 'bank_instruments',
+		'withholding', 'elec_reporting',
 	);
+	// Report center: one "Reports & inquiries" tab per module that has reports.
+	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';
+	if (is_file($rc)) {
+		require_once $rc;
+		if (function_exists('epc_rc_registry')) {
+			$areas = array();
+			foreach (epc_rc_registry() as $r) {
+				$areas['rc_' . $r['area']] = true;
+			}
+			$tabs = array_merge($tabs, array_keys($areas));
+		}
+	}
+	return $tabs;
 }
 
 function epc_erp_departments_config()

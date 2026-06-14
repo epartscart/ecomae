@@ -6,7 +6,7 @@ defined('_ASTEXE_') or die('No access');
 
 function epc_erp_nav_areas_config()
 {
-	return array(
+	$epc_erp_nav_cfg = array(
 		'overview' => array(
 			'label' => 'Home',
 			'icon' => 'fa-th-large',
@@ -497,6 +497,46 @@ function epc_erp_nav_areas_config()
 			),
 		),
 	);
+	return epc_erp_nav_inject_reports($epc_erp_nav_cfg);
+}
+
+/**
+ * Auto-inject a "Reports & inquiries" tab into every module that has reports
+ * registered in the report center, under an "Inquiries and reports" group.
+ */
+function epc_erp_nav_inject_reports(array $areas)
+{
+	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';
+	if (!is_file($rc)) {
+		return $areas;
+	}
+	require_once $rc;
+	if (!function_exists('epc_rc_reports_for')) {
+		return $areas;
+	}
+	foreach ($areas as $areaKey => &$area) {
+		if ($areaKey === 'overview' || empty(epc_rc_reports_for($areaKey))) {
+			continue;
+		}
+		$tabKey = 'rc_' . $areaKey;
+		if (!isset($area['tabs'])) {
+			$area['tabs'] = array();
+		}
+		if (isset($area['tabs'][$tabKey])) {
+			continue;
+		}
+		$area['tabs'][$tabKey] = array('label' => 'Reports & inquiries', 'icon' => 'fa-table');
+		if (!isset($area['groups']) || !is_array($area['groups'])) {
+			$area['groups'] = array();
+		}
+		$grp = 'Inquiries and reports';
+		if (!isset($area['groups'][$grp])) {
+			$area['groups'][$grp] = array();
+		}
+		$area['groups'][$grp][] = $tabKey;
+	}
+	unset($area);
+	return $areas;
 }
 
 function epc_erp_nav_label_plain($label)

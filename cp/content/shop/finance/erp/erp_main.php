@@ -487,6 +487,9 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 			<?php elseif (isset($erpTabIncludes[$tab])): ?>
 				<?php require __DIR__ . '/' . $erpTabIncludes[$tab]; ?>
 
+			<?php elseif (strpos($tab, 'rc_') === 0): ?>
+				<?php require __DIR__ . '/erp_tabs_reports.php'; ?>
+
 			<?php elseif ($tab === 'revenue'): ?>
 				<?php $rows = epc_erp_revenue_report($db_link, $date_from, $date_to); ?>
 				<div class="epc-erp-section">
