@@ -88,11 +88,13 @@ function epc_erp_nav_areas_config()
 				'einvoice' => array('label' => 'E-Invoicing', 'icon' => 'fa-file-code-o'),
 				'opening_balances' => array('label' => 'Opening balances', 'icon' => 'fa-flag-o'),
 				'document_control' => array('label' => 'Document Control', 'icon' => 'fa-print'),
+				'fin_advanced' => array('label' => 'Financial depth', 'icon' => 'fa-sliders'),
 			),
 			'groups' => array(
 				'Common' => array('cash_bank', 'petty_cash'),
 				'Journals' => array('gl', 'payment_batches', 'opening_balances'),
 				'Inquiries and reports' => array('aging'),
+				'Periodic' => array('fin_advanced'),
 				'Tax and compliance' => array('vat_return', 'tax_compliance', 'vat_refund', 'compliance', 'einvoice'),
 				'Setup' => array('coa', 'bank_setup', 'document_control'),
 			),

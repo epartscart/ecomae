@@ -276,6 +276,8 @@ $erpTabIncludes = array(
 	'wms' => 'erp_tabs_wms.php',
 	// Manufacturing depth
 	'mfg_planning' => 'erp_tabs_mfg_planning.php',
+	// Financial depth
+	'fin_advanced' => 'erp_tabs_fin_advanced.php',
 );
 
 ?>

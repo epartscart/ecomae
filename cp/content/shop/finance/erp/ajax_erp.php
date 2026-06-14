@@ -656,6 +656,57 @@ try {
 			epc_mfgr_planned_firm($db_link, (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, 'Planned order firmed');
 
+		case 'fin_periods_generate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$fn = epc_fin_periods_generate($db_link, epc_erp_active_company_id($db_link), (int)($_POST['fy'] ?? 0), (int)($_POST['start_month'] ?? 1));
+			epc_erp_json(true, 'Generated ' . $fn . ' periods');
+
+		case 'fin_period_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			epc_fin_period_set_status($db_link, epc_erp_active_company_id($db_link), (int)($_POST['fy'] ?? 0), (int)($_POST['period_no'] ?? 0), (string)($_POST['status'] ?? 'open'));
+			epc_erp_json(true, 'Period status updated');
+
+		case 'fin_fx_revalue':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$bal = array();
+			foreach (preg_split('/[\r\n]+/', (string)($_POST['balances'] ?? '')) as $line) {
+				$line = trim($line);
+				if ($line === '' || strpos($line, '|') === false) { continue; }
+				$p = array_map('trim', explode('|', $line));
+				if (count($p) < 5) { continue; }
+				$bal[] = array('account' => $p[0], 'currency' => $p[1], 'fc_amount' => (float)$p[2], 'book_lc' => (float)$p[3], 'rate' => (float)$p[4]);
+			}
+			if (empty($bal)) { throw new Exception('Enter at least one balance line (account|currency|fc_amount|book_lc|rate)'); }
+			$fxr = epc_fin_fx_revalue($db_link, epc_erp_active_company_id($db_link), $bal, time());
+			epc_erp_json(true, 'Revaluation run #' . $fxr['run_id'] . ' — net delta ' . number_format($fxr['total_delta'], 2), array('run_id' => $fxr['run_id']));
+
+		case 'fin_alloc_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$basis = array();
+			foreach (preg_split('/[\r\n]+/', (string)($_POST['basis'] ?? '')) as $line) {
+				$line = trim($line);
+				if ($line === '' || strpos($line, '|') === false) { continue; }
+				list($d, $w) = array_map('trim', explode('|', $line, 2));
+				if ($d !== '') { $basis[$d] = (float)$w; }
+			}
+			$arId = epc_fin_alloc_rule_save($db_link, array('company_id' => epc_erp_active_company_id($db_link), 'code' => (string)($_POST['code'] ?? ''), 'name' => (string)($_POST['name'] ?? ''), 'source_account' => (string)($_POST['source_account'] ?? ''), 'basis' => $basis), (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Allocation rule saved', array('id' => $arId));
+
+		case 'fin_alloc_run':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
+			$alLines = epc_fin_alloc_run($db_link, (int)($_POST['rule_id'] ?? 0), (float)($_POST['amount'] ?? 0));
+			epc_erp_json(true, 'Allocated across ' . count($alLines) . ' destination(s)', array('lines' => $alLines));
+
+		case 'fin_accrual_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fin_advanced.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$acId = epc_fin_accrual_save($db_link, array('company_id' => epc_erp_active_company_id($db_link), 'code' => (string)($_POST['code'] ?? ''), 'description' => (string)($_POST['description'] ?? ''), 'total_amount' => (float)($_POST['total_amount'] ?? 0), 'periods' => (int)($_POST['periods'] ?? 1), 'start_fy' => (int)($_POST['start_fy'] ?? 0), 'start_period' => (int)($_POST['start_period'] ?? 1)), (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Accrual scheme created', array('id' => $acId));
+
 		case 'ins_claim_status':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_insurance.php';
 			epc_ins_claim_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? 'notified'));
