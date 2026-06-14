@@ -858,6 +858,32 @@ try {
 			$htOverall = epc_hrt_review_finalize($db_link, (int)($_POST['id'] ?? 0));
 			epc_erp_json(true, 'Review finalized — overall ' . number_format($htOverall, 2), array('overall' => $htOverall));
 
+		case 'cft_forecast_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cash_treasury.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$cfData = $_POST;
+			$cfData['company_id'] = epc_erp_active_company_id($db_link);
+			$cfId = epc_cft_forecast_save($db_link, $cfData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Forecast saved', array('id' => $cfId));
+
+		case 'cft_line_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cash_treasury.php';
+			$cfLine = epc_cft_line_add($db_link, (int)($_POST['forecast_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Forecast line added', array('id' => $cfLine));
+
+		case 'cft_instrument_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cash_treasury.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$ciData = $_POST;
+			$ciData['company_id'] = epc_erp_active_company_id($db_link);
+			$ciId = epc_cft_instrument_save($db_link, $ciData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Instrument saved', array('id' => $ciId));
+
+		case 'cft_instrument_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cash_treasury.php';
+			epc_cft_instrument_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''), (string)($_POST['detail'] ?? ''), (float)($_POST['amount'] ?? 0));
+			epc_erp_json(true, 'Instrument moved to ' . (string)($_POST['status'] ?? ''));
+
 		case 'customer_master_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_credit.php';
 			$cmCust = (int) ($_POST['customer_id'] ?? 0);

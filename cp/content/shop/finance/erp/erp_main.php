@@ -319,6 +319,9 @@ $erpTabIncludes = array(
 	// HR depth — talent
 	'recruitment' => 'erp_tabs_recruitment.php',
 	'performance' => 'erp_tabs_performance.php',
+	// Cash & treasury depth
+	'cash_forecast' => 'erp_tabs_cash_forecast.php',
+	'bank_instruments' => 'erp_tabs_bank_instruments.php',
 );
 
 ?>
