@@ -814,6 +814,40 @@ try {
 			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
 			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
 
+		case 'rbac_priv_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rbpId = epc_rbac_privilege_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Privilege saved', array('id' => $rbpId));
+
+		case 'rbac_duty_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rbdId = epc_rbac_duty_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Duty saved', array('id' => $rbdId));
+
+		case 'rbac_duty_priv':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
+			epc_rbac_duty_attach_priv($db_link, (int)($_POST['duty_id'] ?? 0), (int)($_POST['privilege_id'] ?? 0), (int)($_POST['attach'] ?? 1) === 1);
+			epc_erp_json(true, 'Duty privileges updated');
+
+		case 'rbac_role_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$rbrId = epc_rbac_role_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Role saved', array('id' => $rbrId));
+
+		case 'rbac_role_duty':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
+			epc_rbac_role_attach_duty($db_link, (int)($_POST['role_id'] ?? 0), (int)($_POST['duty_id'] ?? 0), (int)($_POST['attach'] ?? 1) === 1);
+			epc_erp_json(true, 'Role duties updated');
+
+		case 'rbac_user_role':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_rbac.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			epc_rbac_user_assign_role($db_link, epc_erp_active_company_id($db_link), (int)($_POST['user_id'] ?? 0), (int)($_POST['role_id'] ?? 0), (int)($_POST['assign'] ?? 1) === 1);
+			epc_erp_json(true, 'User role updated');
+
 		case 'rtl_channel_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_retail.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';

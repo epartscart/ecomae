@@ -241,6 +241,17 @@ function epc_erp_nav_areas_config()
 				'Reports' => array('ext_reports'),
 			),
 		),
+		'administration' => array(
+			'label' => 'Administration',
+			'icon' => 'fa-shield',
+			'desc' => 'Organization administration, security roles and platform / cross-cutting services',
+			'tabs' => array(
+				'security_roles' => array('label' => 'Security roles', 'icon' => 'fa-shield'),
+			),
+			'groups' => array(
+				'Security' => array('security_roles'),
+			),
+		),
 		'setup' => array(
 			'label' => 'Setup &amp; Data',
 			'icon' => 'fa-sliders',

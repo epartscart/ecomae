@@ -30,6 +30,8 @@ function epc_erp_staff_all_tabs()
 		'insurance', 'doc_expiry',
 		// Advanced WMS + Manufacturing depth + Financial depth + Collections + Project accounting + Costing + Integration + Quality + Retail
 		'wms', 'mfg_planning', 'fin_advanced', 'collections', 'project_accounting', 'cost_models', 'integration', 'quality', 'retail_commerce',
+		// Platform / Administration
+		'security_roles',
 	);
 }
 

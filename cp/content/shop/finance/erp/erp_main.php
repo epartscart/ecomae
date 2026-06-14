@@ -290,6 +290,8 @@ $erpTabIncludes = array(
 	'quality' => 'erp_tabs_quality.php',
 	// Retail & Commerce
 	'retail_commerce' => 'erp_tabs_retail_commerce.php',
+	// Platform — security roles
+	'security_roles' => 'erp_tabs_security_roles.php',
 );
 
 ?>
