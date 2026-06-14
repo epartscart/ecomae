@@ -248,10 +248,12 @@ function epc_erp_nav_areas_config()
 			'tabs' => array(
 				'org_admin' => array('label' => 'Organization administration', 'icon' => 'fa-sitemap'),
 				'security_roles' => array('label' => 'Security roles', 'icon' => 'fa-shield'),
+				'platform' => array('label' => 'Platform services', 'icon' => 'fa-cogs'),
 			),
 			'groups' => array(
 				'Organization' => array('org_admin'),
 				'Security' => array('security_roles'),
+				'Platform' => array('platform'),
 			),
 		),
 		'setup' => array(

@@ -814,6 +814,23 @@ try {
 			$ieRes = epc_intg_event_raise($db_link, epc_erp_active_company_id($db_link), (string)($_POST['event'] ?? ''), $iePayload);
 			epc_erp_json(true, 'Event raised · ' . (int)$ieRes['deliveries'] . ' delivery(ies) queued', array('res' => $ieRes));
 
+		case 'plt_job_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_platform.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$pljId = epc_plt_batch_job_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Batch job saved', array('id' => $pljId));
+
+		case 'plt_job_run':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_platform.php';
+			$plrRes = epc_plt_batch_run($db_link, (int)($_POST['job_id'] ?? 0), (string)($_POST['status'] ?? 'ended'), (string)($_POST['message'] ?? 'Manual run'));
+			epc_erp_json(true, 'Batch job executed (' . $plrRes['status'] . ')', array('res' => $plrRes));
+
+		case 'plt_feature_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_platform.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$plfId = epc_plt_feature_save($db_link, epc_erp_active_company_id($db_link), $_POST);
+			epc_erp_json(true, 'Feature saved', array('id' => $plfId));
+
 		case 'oa_party_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_orgadmin.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';

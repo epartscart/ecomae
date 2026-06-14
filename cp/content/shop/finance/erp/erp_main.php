@@ -294,6 +294,8 @@ $erpTabIncludes = array(
 	'security_roles' => 'erp_tabs_security_roles.php',
 	// Organization administration / Enterprise
 	'org_admin' => 'erp_tabs_org_admin.php',
+	// Platform / cross-cutting services
+	'platform' => 'erp_tabs_platform.php',
 );
 
 ?>
