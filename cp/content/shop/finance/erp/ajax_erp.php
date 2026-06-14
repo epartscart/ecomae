@@ -884,6 +884,45 @@ try {
 			epc_cft_instrument_set_status($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['status'] ?? ''), (string)($_POST['detail'] ?? ''), (float)($_POST['amount'] ?? 0));
 			epc_erp_json(true, 'Instrument moved to ' . (string)($_POST['status'] ?? ''));
 
+		case 'wht_code_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_withholding.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$whtData = $_POST;
+			$whtData['company_id'] = epc_erp_active_company_id($db_link);
+			$whtCode = epc_wht_code_save($db_link, $whtData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Withholding code saved', array('id' => $whtCode));
+
+		case 'wht_record':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_withholding.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$whtTx = $_POST;
+			$whtTx['company_id'] = epc_erp_active_company_id($db_link);
+			$whtTxId = epc_wht_record($db_link, $whtTx);
+			epc_erp_json(true, 'Withholding applied', array('id' => $whtTxId));
+
+		case 'wht_certificate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_withholding.php';
+			$whtCert = epc_wht_certificate_issue($db_link, (int)($_POST['id'] ?? 0), (string)($_POST['certificate_no'] ?? ''));
+			epc_erp_json(true, 'Certificate issued: ' . $whtCert, array('certificate_no' => $whtCert));
+
+		case 'wht_settle':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_withholding.php';
+			epc_wht_settle($db_link, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Withholding settled to authority');
+
+		case 'er_format_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_elec_reporting.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$erData = $_POST;
+			$erData['company_id'] = epc_erp_active_company_id($db_link);
+			$erFmt = epc_er_format_save($db_link, $erData, (int)($_POST['id'] ?? 0));
+			epc_erp_json(true, 'Format saved', array('id' => $erFmt));
+
+		case 'er_field_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_elec_reporting.php';
+			$erField = epc_er_field_add($db_link, (int)($_POST['format_id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Field added', array('id' => $erField));
+
 		case 'customer_master_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_credit.php';
 			$cmCust = (int) ($_POST['customer_id'] ?? 0);

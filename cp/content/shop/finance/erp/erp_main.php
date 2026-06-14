@@ -322,6 +322,9 @@ $erpTabIncludes = array(
 	// Cash & treasury depth
 	'cash_forecast' => 'erp_tabs_cash_forecast.php',
 	'bank_instruments' => 'erp_tabs_bank_instruments.php',
+	// Tax depth
+	'withholding' => 'erp_tabs_withholding.php',
+	'elec_reporting' => 'erp_tabs_elec_reporting.php',
 );
 
 ?>
