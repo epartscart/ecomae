@@ -11,6 +11,9 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once __DIR__ . '/epc_boc_kernel.php';
+if (is_file(__DIR__ . '/epc_cp_translate.php')) {
+    require_once __DIR__ . '/epc_cp_translate.php';
+}
 
 if (!function_exists('epc_boc_console_css')) {
     /** The BOC design system. Scoped under .epc-boc / body.epc-boc-mode. */
@@ -60,6 +63,9 @@ body.epc-cp-shell .content .epc-boc__rail,.epc-cp-shell .epc-boc__rail{flex:0 0 
 .epc-boc__search input:focus{border-color:var(--boc-accent-2);background:#fff;box-shadow:0 0 0 3px rgba(47,109,246,.14);}
 .epc-boc__search .fa{position:absolute;left:12px;top:9px;color:#94a3b8;font-size:13px;}
 .epc-boc__topbar-actions{margin-left:auto;display:flex;align-items:center;gap:9px;}
+.epc-boc__lang{display:inline-flex;align-items:center;}
+.epc-boc__lang>.epc-cp-translate-nav,.epc-boc__lang>.epc-cp-translate{list-style:none;margin:0;padding:0;display:inline-flex;align-items:center;}
+.epc-boc__lang select.epc-cp-translate__select{height:32px;font-size:12px;min-width:118px;}
 .epc-boc__env{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0a7d3c;background:#e7f6ec;border:1px solid #bfe6cd;border-radius:20px;padding:3px 10px;}
 .epc-boc__scope{font-size:11px;font-weight:700;color:var(--boc-ink-2);background:#eef2f7;border:1px solid #dde4ee;border-radius:20px;padding:3px 11px;display:inline-flex;align-items:center;gap:6px;}
 .epc-boc__scope .fa{color:var(--boc-accent-2);font-size:11px;}
@@ -158,12 +164,17 @@ if (!function_exists('epc_boc_console_open')) {
         echo '<div class="epc-boc__crumb">' . $h($title) . '<small>' . $h($brand['name']) . '</small></div>';
         echo '<div class="epc-boc__search"><i class="fa fa-search"></i><input type="search" id="epc-boc-search" placeholder="Search tenants, orders, settings… (global)"></div>';
         echo '<div class="epc-boc__topbar-actions">';
+        $langSwitcher = function_exists('epc_cp_translate_render') ? epc_cp_translate_render('erp') : '';
+        echo '<span class="epc-boc__lang" id="epc-boc-lang-slot" title="Change language">' . $langSwitcher . '</span>';
         echo '<span class="epc-boc__scope" title="What this login can see"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
         echo '<span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> ' . $h($env) . '</span>';
         echo '<a class="epc-boc__btn epc-boc__btn--ai" href="#" id="epc-boc-copilot"><i class="fa fa-magic"></i> AI Copilot</a>';
         echo '<a class="epc-boc__btn" href="#" title="Notifications"><i class="fa fa-bell"></i></a>';
         echo '<span class="epc-boc__avatar" title="' . $h($operator) . '">' . $h($initials) . '</span>';
         echo '</div></div>';
+        // The legacy CP language switcher renders (hidden) inside #header on live
+        // CP pages; relocate it into the BOS topbar so language can be changed.
+        echo '<script>(function(){function go(){var s=document.getElementById("epc-boc-lang-slot");if(!s){return;}if(s.querySelector("select")){return;}var w=document.querySelector(".epc-cp-translate-nav,.epc-cp-translate");if(w){s.appendChild(w);}}if(document.readyState!=="loading"){go();}else{document.addEventListener("DOMContentLoaded",go);}setTimeout(go,900);})();</script>';
         echo '<div class="epc-boc__canvas">';
     }
 }
