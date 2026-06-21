@@ -172,6 +172,10 @@ function epc_platform_erp_apply_config($DP_Config): void
 
 /**
  * Strip /cp/platform-erp/ prefix so normal CP routing handles ERP pages.
+ *
+ * On the ecomae.com platform host the standalone /erp/ portal is the
+ * canonical ERP entry — redirect /cp/platform-erp/ there so operators
+ * see only one link.
  */
 function epc_platform_erp_bootstrap(): void
 {
@@ -181,6 +185,21 @@ function epc_platform_erp_bootstrap(): void
 	$parsed = epc_platform_erp_parse_request();
 	if ($parsed === null) {
 		return;
+	}
+
+	if (function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname()) {
+		$target = '/erp/';
+		if (!empty($parsed['sub_path'])) {
+			$target = '/erp/' . ltrim($parsed['sub_path'], '/');
+		}
+		$query = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
+		if ($query !== null && $query !== '') {
+			$target .= '?' . $query;
+		}
+		if (!headers_sent()) {
+			header('Location: ' . $target, true, 301);
+		}
+		exit;
 	}
 
 	$GLOBALS['epc_platform_erp_context'] = true;

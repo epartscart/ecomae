@@ -347,8 +347,11 @@ function epc_cp_page_header_context(): array
 	$here = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
 
 	if ($isPlatformOp) {
+		$erpUrl = (function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname())
+			? '/erp/'
+			: '/' . $backend . '/platform-erp/';
 		$actions[] = array(
-			'url' => '/' . $backend . '/platform-erp/',
+			'url' => $erpUrl,
 			'label' => 'Platform ERP',
 			'icon' => 'fa-chart-line',
 			'primary' => true,
