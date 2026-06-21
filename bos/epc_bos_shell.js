@@ -204,54 +204,76 @@
         }
     });
 
-    /* ═══════════════════ PARTICLE SYSTEM ═══════════════════ */
+    /* ═══════════════════ PARTICLE SYSTEM — MATRIX RAIN ═══════════════════ */
     function bosCreateParticles() {
         var container = document.getElementById('bosParticles');
         if (!container) return;
         var colors = [
-            'rgba(14, 165, 233, .7)',   // sky blue
-            'rgba(14, 165, 233, .5)',   // sky blue lighter
+            'rgba(14, 165, 233, .8)',   // sky blue bright
+            'rgba(14, 165, 233, .5)',   // sky blue mid
+            'rgba(14, 165, 233, .3)',   // sky blue faint
+            'rgba(56, 189, 248, .7)',   // light blue
+            'rgba(56, 189, 248, .4)',   // light blue faint
             'rgba(99, 102, 241, .6)',   // indigo
-            'rgba(99, 102, 241, .4)',   // indigo lighter
+            'rgba(99, 102, 241, .3)',   // indigo faint
             'rgba(168, 85, 247, .5)',   // purple
             'rgba(16, 185, 129, .4)',   // emerald
-            'rgba(56, 189, 248, .6)',   // light blue
-            'rgba(255, 255, 255, .3)'   // white
+            'rgba(255, 255, 255, .4)',  // white bright
+            'rgba(255, 255, 255, .15)'  // white faint
         ];
-        for (var i = 0; i < 80; i++) {
+        var animations = ['bosFloat', 'bosFloatDrift', 'bosFloatStreak'];
+        var totalParticles = 220;
+        for (var i = 0; i < totalParticles; i++) {
             var p = document.createElement('div');
             p.className = 'bos-login__particle';
             p.style.left = Math.random() * 100 + '%';
-            // Varied speeds: some very fast (4s), some very slow (25s)
+            p.style.top = Math.random() * 10 + '%';
+            // Speed distribution: 30% fast, 40% medium, 30% slow
             var speed = Math.random();
             var duration;
-            if (speed < 0.2) {
-                duration = 4 + Math.random() * 4; // fast: 4-8s
-            } else if (speed < 0.5) {
-                duration = 8 + Math.random() * 6; // medium: 8-14s
+            if (speed < 0.3) {
+                duration = 2.5 + Math.random() * 3.5; // fast: 2.5-6s
+            } else if (speed < 0.7) {
+                duration = 6 + Math.random() * 6; // medium: 6-12s
             } else {
-                duration = 14 + Math.random() * 12; // slow: 14-26s
+                duration = 12 + Math.random() * 14; // slow: 12-26s
             }
             p.style.animationDuration = duration + 's';
-            p.style.animationDelay = (Math.random() * 15) + 's';
-            // Varied sizes: tiny (1px) to large (7px)
+            // Stagger starts so rain is constant, not in waves
+            p.style.animationDelay = (Math.random() * duration) + 's';
+            // Size distribution: 50% tiny, 30% medium, 15% large, 5% streak
             var sizeRand = Math.random();
             var size;
-            if (sizeRand < 0.4) {
-                size = 1 + Math.random() * 2; // tiny: 1-3px
-            } else if (sizeRand < 0.75) {
-                size = 3 + Math.random() * 2; // medium: 3-5px
+            if (sizeRand < 0.50) {
+                size = 1 + Math.random() * 1.5; // tiny: 1-2.5px
+            } else if (sizeRand < 0.80) {
+                size = 2.5 + Math.random() * 2; // medium: 2.5-4.5px
+            } else if (sizeRand < 0.95) {
+                size = 4.5 + Math.random() * 3.5; // large: 4.5-8px
             } else {
-                size = 5 + Math.random() * 3; // large: 5-8px
+                size = 1.5 + Math.random() * 1; // streak particles (thin, elongated)
             }
-            p.style.width = p.style.height = size + 'px';
-            // Random color
+            p.style.width = size + 'px';
+            p.style.height = (sizeRand >= 0.95 ? size * 4 : size) + 'px';
+            if (sizeRand >= 0.95) {
+                p.style.borderRadius = size + 'px';
+            }
+            // Animation type: streaks for thin ones, drift for some, default for rest
+            var anim;
+            if (sizeRand >= 0.95) {
+                anim = 'bosFloatStreak';
+            } else if (Math.random() < 0.35) {
+                anim = 'bosFloatDrift';
+            } else {
+                anim = 'bosFloat';
+            }
+            p.style.animationName = anim;
             var color = colors[Math.floor(Math.random() * colors.length)];
             p.style.background = color;
-            // Larger particles get a stronger glow
+            // Glow effect — stronger for larger particles
             if (size > 4) {
-                p.style.boxShadow = '0 0 ' + (size * 3) + 'px ' + color + ', 0 0 ' + (size * 6) + 'px ' + color.replace(/[\d.]+\)$/, '0.2)');
-            } else {
+                p.style.boxShadow = '0 0 ' + (size * 3) + 'px ' + color + ', 0 0 ' + (size * 6) + 'px ' + color.replace(/[\d.]+\)$/, '0.15)');
+            } else if (size > 2) {
                 p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
             }
             container.appendChild(p);
