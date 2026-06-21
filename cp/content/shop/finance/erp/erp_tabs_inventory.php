@@ -150,6 +150,23 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	</div>
 	<?php endforeach; ?>
 	<?php echo epc_erp_dim_render_fields($db_link); ?>
+	<?php
+	// PIM custom attributes — rendered from epc_erp_pim_custom_fields.php
+	$pimCustomFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pim_custom_fields.php';
+	if (is_file($pimCustomFile)) {
+		require_once $pimCustomFile;
+		if (function_exists('epc_pim_ensure_schema')) {
+			epc_pim_ensure_schema($db_link);
+		}
+		if (function_exists('epc_pim_render_form_fields')) {
+			$pimHtml = epc_pim_render_form_fields($db_link, 'inventory');
+			if ($pimHtml !== '') {
+				echo '<div class="form-group"><div class="col-sm-12"><hr style="margin:8px 0;"><h5 style="margin:6px 0;"><i class="fa fa-tags"></i> PIM custom attributes</h5></div></div>';
+				echo '<div class="col-sm-offset-1 col-sm-10" style="margin-bottom:12px;">' . $pimHtml . '</div>';
+			}
+		}
+	}
+	?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-sm btn-success">Create item</button></div></div>
 </form>
 <?php erp_fasttab_close(); ?>

@@ -17,11 +17,18 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_industry_packs.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_product_structure.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+$pimFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pim_custom_fields.php';
+if (is_file($pimFile)) {
+	require_once $pimFile;
+}
 epc_erp_pm_inline_assets();
 
 epc_erp_inventory_ensure_schema($db_link);
 epc_erp_prod_structure_ensure_schema($db_link);
 epc_erp_company_context_ensure($db_link);
+if (function_exists('epc_pim_ensure_schema')) {
+	epc_pim_ensure_schema($db_link);
+}
 
 $view = isset($_GET['pm_view']) ? (string) $_GET['pm_view'] : 'all';
 $subs = array(
@@ -30,6 +37,7 @@ $subs = array(
 	'released' => 'Release product',
 	'dimensions' => 'Dimensions &amp; variants',
 	'fields' => 'Field setup',
+	'pim_attrs' => 'PIM attributes',
 );
 
 $pinfoMsg = '';
@@ -88,6 +96,55 @@ if (!empty($_POST['pinfo_action'])) {
 					$pinfoMsg = 'Variants for ' . epc_erp_h($bsku) . ': ' . (int) $gres['generated'] . ' generated, ' . (int) $gres['existing'] . ' already existed (' . count($gres['variants']) . ' total).';
 				} else {
 					$pinfoErr = 'Pick a product and ensure it has a SKU before generating variants.';
+				}
+			} elseif ($act === 'pim_create_field') {
+				if (function_exists('epc_pim_field_save')) {
+					$fName = trim((string) ($_POST['pim_name'] ?? ''));
+					$fType = (string) ($_POST['pim_type'] ?? 'text');
+					if ($fName === '') {
+						$pinfoErr = 'Field name is required.';
+					} else {
+						$fId = epc_pim_field_save($db_link, array(
+							'name' => $fName,
+							'field_type' => $fType,
+							'description' => trim((string) ($_POST['pim_desc'] ?? '')),
+							'required' => !empty($_POST['pim_required']) ? 1 : 0,
+							'show_inventory' => !empty($_POST['pim_show_inventory']) ? 1 : 0,
+							'show_sales' => !empty($_POST['pim_show_sales']) ? 1 : 0,
+							'show_purchase' => !empty($_POST['pim_show_purchase']) ? 1 : 0,
+						));
+						if ($fId > 0 && in_array($fType, array('single_option', 'multi_option'), true)) {
+							$rawOpts = (string) ($_POST['pim_options'] ?? '');
+							$pos = 0;
+							foreach (preg_split('/[\r\n,]+/', $rawOpts) as $o) {
+								$o = trim($o);
+								if ($o !== '') {
+									epc_pim_field_option_save($db_link, $fId, $o, $o, $pos++);
+								}
+							}
+						}
+						$pinfoMsg = 'PIM attribute "' . $fName . '" created (type: ' . $fType . ').';
+					}
+				} else {
+					$pinfoErr = 'PIM module not available — file epc_erp_pim_custom_fields.php missing.';
+				}
+			} elseif ($act === 'pim_delete_field') {
+				if (function_exists('epc_pim_field_delete')) {
+					epc_pim_field_delete($db_link, (int) ($_POST['pim_field_id'] ?? 0));
+					$pinfoMsg = 'PIM attribute deactivated.';
+				}
+			} elseif ($act === 'pim_add_option') {
+				if (function_exists('epc_pim_field_option_save')) {
+					$optLabel = trim((string) ($_POST['opt_label'] ?? ''));
+					if ($optLabel !== '') {
+						epc_pim_field_option_save($db_link, (int) ($_POST['pim_field_id'] ?? 0), $optLabel);
+						$pinfoMsg = 'Option "' . $optLabel . '" added.';
+					}
+				}
+			} elseif ($act === 'pim_delete_option') {
+				if (function_exists('epc_pim_field_option_delete')) {
+					epc_pim_field_option_delete($db_link, (int) ($_POST['opt_id'] ?? 0));
+					$pinfoMsg = 'Option removed.';
 				}
 			} elseif ($act === 'add_field') {
 				$opts = array();
@@ -337,6 +394,103 @@ if ($view === 'fields') {
 		echo '</tbody></table></div>';
 	}
 	echo '</div>';
+} elseif ($view === 'pim_attrs') {
+	if (!function_exists('epc_pim_field_list')) {
+		echo '<div class="epc-erp-section"><div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> PIM module file missing — <code>epc_erp_pim_custom_fields.php</code> not found. Deploy the latest code.</div></div>';
+	} else {
+		$pimFields = epc_pim_field_list($db_link);
+		$pimTypeLabels = array(
+			'text' => 'Text', 'number' => 'Number', 'date' => 'Date',
+			'boolean' => 'Yes/No', 'single_option' => 'Dropdown (single)',
+			'multi_option' => 'Checkboxes (multi)',
+		);
+
+		echo '<div class="epc-erp-section">';
+		echo '<h4><i class="fa fa-tags"></i> PIM custom attributes <span class="badge">' . count($pimFields) . '</span></h4>';
+		echo '<p class="text-muted">Create unlimited custom product attributes with any field type. Each attribute can be shown on <strong>Inventory</strong>, <strong>Sales</strong>, and/or <strong>Purchase</strong> module forms. Options are managed per field for dropdown and checkbox types.</p>';
+
+		// --- Create new field form ---
+		echo '<div style="background:#f4f8fc;border:1px solid #dbe6f1;border-radius:8px;padding:14px;margin-bottom:16px;">';
+		echo '<h5 style="margin-top:0;"><i class="fa fa-plus-circle"></i> Create new attribute</h5>';
+		echo '<form method="post" action="">';
+		echo '<input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
+		echo '<input type="hidden" name="pinfo_action" value="pim_create_field">';
+		echo '<div class="row">';
+		echo '<div class="form-group col-sm-4" style="padding:6px;"><label>Field name <span style="color:red">*</span></label><input type="text" name="pim_name" class="form-control input-sm" placeholder="e.g. Inventory Type" required></div>';
+		echo '<div class="form-group col-sm-3" style="padding:6px;"><label>Type</label>';
+		echo '<select name="pim_type" class="form-control input-sm" onchange="document.getElementById(\'pim_opts_row\').style.display=(this.value===\'single_option\'||this.value===\'multi_option\')?\'block\':\'none\';">';
+		foreach ($pimTypeLabels as $tk => $tl) {
+			echo '<option value="' . $tk . '">' . epc_erp_h($tl) . '</option>';
+		}
+		echo '</select></div>';
+		echo '<div class="form-group col-sm-5" style="padding:6px;"><label>Description</label><input type="text" name="pim_desc" class="form-control input-sm" placeholder="Optional help text"></div>';
+		echo '</div>';
+		echo '<div class="row">';
+		echo '<div class="col-sm-4" style="padding:6px;"><label>Show on modules</label><div>';
+		echo '<label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_inventory" value="1" checked> Inventory</label>';
+		echo '<label style="display:inline-block;margin-right:10px;font-weight:normal;"><input type="checkbox" name="pim_show_sales" value="1" checked> Sales</label>';
+		echo '<label style="display:inline-block;font-weight:normal;"><input type="checkbox" name="pim_show_purchase" value="1" checked> Purchase</label>';
+		echo '</div></div>';
+		echo '<div class="col-sm-2" style="padding:6px;"><label>&nbsp;</label><div><label style="font-weight:normal;"><input type="checkbox" name="pim_required" value="1"> Required</label></div></div>';
+		echo '</div>';
+		echo '<div id="pim_opts_row" style="display:none;padding:6px;">';
+		echo '<label>Options (comma-separated for dropdown/checkbox fields)</label>';
+		echo '<textarea name="pim_options" class="form-control input-sm" rows="2" placeholder="e.g. Inventory, Non-Inventory, Service"></textarea>';
+		echo '</div>';
+		echo '<div style="padding:6px;"><button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Create attribute</button></div>';
+		echo '</form></div>';
+
+		// --- Existing fields table ---
+		echo '<div class="table-responsive"><table class="table table-bordered table-condensed table-striped" style="background:#fff;">';
+		echo '<thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Inventory</th><th>Sales</th><th>Purchase</th><th>Required</th><th>Options</th><th>Actions</th></tr></thead><tbody>';
+		if (empty($pimFields)) {
+			echo '<tr><td colspan="9" class="text-muted">No PIM attributes yet. Use the form above to create one.</td></tr>';
+		}
+		foreach ($pimFields as $pf) {
+			$pfId = (int) $pf['id'];
+			$opts = epc_pim_field_options($db_link, $pfId);
+			echo '<tr>';
+			echo '<td><strong>' . epc_erp_h((string) $pf['name']) . '</strong>';
+			if ((string) $pf['description'] !== '') {
+				echo '<br><small class="text-muted">' . epc_erp_h((string) $pf['description']) . '</small>';
+			}
+			echo '</td>';
+			echo '<td><code>' . epc_erp_h((string) $pf['code']) . '</code></td>';
+			echo '<td>' . epc_erp_h($pimTypeLabels[(string) $pf['field_type']] ?? (string) $pf['field_type']) . '</td>';
+			echo '<td style="text-align:center;">' . ((int) $pf['show_inventory'] ? '<i class="fa fa-check text-success"></i>' : '<i class="fa fa-minus text-muted"></i>') . '</td>';
+			echo '<td style="text-align:center;">' . ((int) $pf['show_sales'] ? '<i class="fa fa-check text-success"></i>' : '<i class="fa fa-minus text-muted"></i>') . '</td>';
+			echo '<td style="text-align:center;">' . ((int) $pf['show_purchase'] ? '<i class="fa fa-check text-success"></i>' : '<i class="fa fa-minus text-muted"></i>') . '</td>';
+			echo '<td style="text-align:center;">' . ((int) $pf['required'] ? 'Yes' : 'No') . '</td>';
+			echo '<td>';
+			if (!empty($opts)) {
+				foreach ($opts as $oi => $o) {
+					echo '<span class="label label-info" style="margin:1px;display:inline-block;">' . epc_erp_h((string) $o['label']);
+					echo ' <a href="#" onclick="document.getElementById(\'pim_delopt_' . (int) $o['id'] . '\').submit();return false;" style="color:#fff;opacity:.7;" title="Remove">&times;</a>';
+					echo '</span>';
+					echo '<form id="pim_delopt_' . (int) $o['id'] . '" method="post" style="display:none;"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '"><input type="hidden" name="pinfo_action" value="pim_delete_option"><input type="hidden" name="opt_id" value="' . (int) $o['id'] . '"></form>';
+				}
+			}
+			if (in_array((string) $pf['field_type'], array('single_option', 'multi_option'), true)) {
+				echo '<form method="post" class="form-inline" style="margin-top:4px;display:inline-flex;gap:2px;">';
+				echo '<input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
+				echo '<input type="hidden" name="pinfo_action" value="pim_add_option">';
+				echo '<input type="hidden" name="pim_field_id" value="' . $pfId . '">';
+				echo '<input type="text" name="opt_label" class="form-control input-sm" placeholder="Add option" style="width:100px;">';
+				echo '<button type="submit" class="btn btn-default btn-xs"><i class="fa fa-plus"></i></button>';
+				echo '</form>';
+			} else {
+				echo '<span class="text-muted">-</span>';
+			}
+			echo '</td>';
+			echo '<td>';
+			echo '<form method="post" style="display:inline;"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '"><input type="hidden" name="pinfo_action" value="pim_delete_field"><input type="hidden" name="pim_field_id" value="' . $pfId . '">';
+			echo '<button type="submit" class="btn btn-danger btn-xs" onclick="return confirm(\'Deactivate this attribute?\');"><i class="fa fa-trash"></i></button></form>';
+			echo '</td>';
+			echo '</tr>';
+		}
+		echo '</tbody></table></div>';
+		echo '</div>';
+	}
 } elseif ($view === 'devkit') {
 	echo '<div class="epc-erp-section"><h4><i class="fa fa-flask"></i> Product dev kit</h4>';
 	echo '<p class="text-muted">Design new products: define SKU, type, unit and specialized attributes before releasing. Items with no stock movement yet are shown as in-development.</p>';
