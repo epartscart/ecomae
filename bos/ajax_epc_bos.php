@@ -35,7 +35,7 @@ switch ($action) {
         break;
 
     default:
-        $response = array('ok' => false, 'error' => 'Invalid action: ' . $action);
+        $response = array('ok' => false, 'error' => 'Invalid action');
 }
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
@@ -90,8 +90,6 @@ function epc_bos_ajax_login(): array
             $passOk = true;
         } elseif (md5($password) === $storedPass) {
             $passOk = true;
-        } elseif ($storedPass === $password) {
-            $passOk = true;
         }
     }
 
@@ -107,6 +105,8 @@ function epc_bos_ajax_login(): array
         $role = 'tenant';
         $tenantSiteKey = $userRow['site_key'];
     }
+
+    session_regenerate_id(true);
 
     epc_bos_set_context(array(
         'role'       => $role,
