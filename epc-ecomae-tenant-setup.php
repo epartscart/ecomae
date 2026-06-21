@@ -82,45 +82,34 @@ if ($existingRow) {
     exit(0);
 }
 
-// Provision new database for ecomae_corp
+// Database credentials for ecomae_corp
+// The DB + user must be pre-created on MySQL before running this script:
+//   sudo mysql -e "CREATE DATABASE IF NOT EXISTS \`ecomae_corp\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+//   sudo mysql -e "CREATE USER IF NOT EXISTS 'ecomae_corp'@'localhost' IDENTIFIED BY 'EcomAE2026SecurE!';"
+//   sudo mysql -e "GRANT ALL PRIVILEGES ON \`ecomae_corp\`.* TO 'ecomae_corp'@'localhost'; FLUSH PRIVILEGES;"
 $dbName = 'ecomae_corp';
 $dbUser = 'ecomae_corp';
+$dbPass = 'EcomAE2026SecurE!';
+
+echo "Connecting to database: $dbName (user: $dbUser)\n";
+
+// Verify the database is accessible
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant_control.php';
-$dbPass = epc_portal_tenant_control_generate_password();
-
-echo "Provisioning database: $dbName (user: $dbUser)\n";
-
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_demo.php';
-$prov = epc_portal_demo_provision_database_raw($dbName, $dbUser, $dbPass);
-
-if (empty($prov['ok'])) {
-    // Database might already exist — try connecting directly
-    echo "WARN: auto-provision returned: " . json_encode($prov) . "\n";
-    echo "Attempting direct connection test...\n";
-
-    try {
-        $testPdo = new PDO(
-            'mysql:host=127.0.0.1;dbname=' . $dbName . ';charset=utf8mb4',
-            $dbUser,
-            $dbPass,
-            array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-        );
-        echo "OK: direct connection works — DB already existed\n";
-    } catch (Exception $e) {
-        echo "FAIL: cannot provision or connect to DB '$dbName': " . $e->getMessage() . "\n";
-        echo "\nManual fix: create the database and user on the MySQL server:\n";
-        echo "  CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\n";
-        echo "  CREATE USER IF NOT EXISTS '$dbUser'@'localhost' IDENTIFIED BY '<password>';\n";
-        echo "  GRANT ALL PRIVILEGES ON `$dbName`.* TO '$dbUser'@'localhost';\n";
-        echo "  FLUSH PRIVILEGES;\n";
-        exit(1);
-    }
-} else {
-    echo "OK: database provisioned\n";
-    if (!empty($prov['db_name'])) {
-        $dbName = (string) $prov['db_name'];
-        echo "  actual db_name: $dbName\n";
-    }
+try {
+    $testPdo = new PDO(
+        'mysql:host=127.0.0.1;dbname=' . $dbName . ';charset=utf8mb4',
+        $dbUser,
+        $dbPass,
+        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+    );
+    echo "OK: database connection verified\n";
+} catch (Exception $e) {
+    echo "FAIL: cannot connect to DB '$dbName': " . $e->getMessage() . "\n";
+    echo "\nPlease create the database and user first:\n";
+    echo "  sudo mysql -e \"CREATE DATABASE IF NOT EXISTS \`$dbName\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\"\n";
+    echo "  sudo mysql -e \"CREATE USER IF NOT EXISTS '$dbUser'@'localhost' IDENTIFIED BY '$dbPass';\"\n";
+    echo "  sudo mysql -e \"GRANT ALL PRIVILEGES ON \`$dbName\`.* TO '$dbUser'@'localhost'; FLUSH PRIVILEGES;\"\n";
+    exit(1);
 }
 
 // Register the tenant
