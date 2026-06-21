@@ -57,7 +57,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 /* ═══════════════════ LOGIN SCREEN ═══════════════════ */
 .bos-body--login {
-    background: #050a18;
+    background: linear-gradient(135deg, #020617 0%, #0c1222 30%, #091428 60%, #050d1a 100%);
     min-height: 100vh;
     overflow: hidden;
 }
@@ -79,8 +79,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(14,165,233,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(14,165,233,.04) 1px, transparent 1px);
+        linear-gradient(rgba(14,165,233,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,.07) 1px, transparent 1px);
     background-size: 60px 60px;
     animation: bosGridDrift 20s linear infinite;
 }
@@ -96,8 +96,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     position: absolute;
     width: 3px;
     height: 3px;
-    background: rgba(14, 165, 233, .5);
+    background: rgba(14, 165, 233, .7);
     border-radius: 50%;
+    box-shadow: 0 0 6px rgba(14,165,233,.4);
     animation: bosFloat linear infinite;
 }
 @keyframes bosFloat {
@@ -110,7 +111,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: .3;
+    opacity: .45;
 }
 .bos-login__glow--1 {
     width: 600px; height: 600px;
@@ -167,13 +168,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     width: 100px;
     height: 100px;
     border-radius: 24px;
-    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #a855f7 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 40px;
-    box-shadow: 0 8px 32px rgba(14,165,233,.4);
+    box-shadow: 0 8px 40px rgba(14,165,233,.5), 0 0 60px rgba(99,102,241,.2);
     position: relative;
     z-index: 2;
     animation: bosPulseIcon 3s ease-in-out infinite;
@@ -205,15 +206,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     font-size: 56px;
     font-weight: 800;
     letter-spacing: -2px;
-    color: #fff;
+    background: linear-gradient(135deg, #ffffff 0%, #0ea5e9 50%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1;
 }
 .bos-login__brand-tagline {
     font-size: 16px;
-    color: #64748b;
+    color: #93c5fd;
     margin-top: 8px;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     text-transform: uppercase;
+    font-weight: 500;
 }
 
 /* ─── Capabilities ─── */
@@ -228,10 +233,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     align-items: center;
     gap: 16px;
     padding: 16px 20px;
-    background: rgba(255,255,255,.03);
-    border: 1px solid rgba(255,255,255,.06);
+    background: rgba(14,165,233,.06);
+    border: 1px solid rgba(14,165,233,.12);
     border-radius: 12px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
     transition: all .3s ease;
     opacity: 0;
     animation: bosCapFadeIn .6s ease forwards;
@@ -245,31 +250,34 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     to { opacity: 1; transform: translateX(0); }
 }
 .bos-login__cap-item:hover {
-    background: rgba(14,165,233,.08);
-    border-color: rgba(14,165,233,.2);
+    background: rgba(14,165,233,.14);
+    border-color: rgba(14,165,233,.3);
     transform: translateX(6px);
+    box-shadow: 0 4px 20px rgba(14,165,233,.15);
 }
 .bos-login__cap-icon {
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(14,165,233,.15), rgba(99,102,241,.1));
+    background: linear-gradient(135deg, rgba(14,165,233,.25), rgba(99,102,241,.2));
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #0ea5e9;
+    color: #38bdf8;
     font-size: 18px;
     flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(14,165,233,.15);
 }
 .bos-login__cap-text strong {
     display: block;
-    color: #e2e8f0;
-    font-size: 14px;
-    font-weight: 600;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
 }
 .bos-login__cap-text span {
-    color: #64748b;
-    font-size: 12px;
+    color: #94a3b8;
+    font-size: 13px;
 }
 
 /* ─── Stats bar ─── */
@@ -278,12 +286,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     align-items: center;
     justify-content: center;
     gap: 24px;
-    padding: 20px;
-    background: rgba(255,255,255,.03);
-    border: 1px solid rgba(255,255,255,.06);
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(14,165,233,.08), rgba(99,102,241,.06));
+    border: 1px solid rgba(14,165,233,.15);
     border-radius: 16px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
     animation: bosSlideUp .8s ease .9s both;
+    box-shadow: 0 4px 24px rgba(14,165,233,.08);
 }
 @keyframes bosSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .bos-login__stat {
@@ -291,23 +300,27 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .bos-login__stat-num {
     display: block;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 800;
-    color: #0ea5e9;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1;
     letter-spacing: -1px;
 }
 .bos-login__stat-label {
     font-size: 11px;
-    color: #64748b;
+    color: #cbd5e1;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 4px;
+    letter-spacing: 1.2px;
+    margin-top: 6px;
+    font-weight: 600;
 }
 .bos-login__stat-divider {
     width: 1px;
     height: 36px;
-    background: rgba(255,255,255,.08);
+    background: linear-gradient(to bottom, transparent, rgba(14,165,233,.3), transparent);
 }
 
 /* ─── Login panel (right side) ─── */
@@ -319,10 +332,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     justify-content: center;
     position: relative;
     z-index: 1;
-    background: rgba(15,23,42,.6);
-    backdrop-filter: blur(40px);
-    border-left: 1px solid rgba(255,255,255,.06);
+    background: linear-gradient(180deg, rgba(15,23,42,.85) 0%, rgba(15,23,42,.75) 50%, rgba(15,23,42,.85) 100%);
+    backdrop-filter: blur(50px) saturate(1.2);
+    border-left: 1px solid rgba(14,165,233,.12);
     animation: bosSlideLeft .6s cubic-bezier(.16,1,.3,1) both;
+    box-shadow: -20px 0 60px rgba(0,0,0,.3);
 }
 @keyframes bosSlideLeft {
     from { opacity: 0; transform: translateX(40px); }
@@ -338,36 +352,37 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .bos-login__role-tabs {
     display: flex;
     gap: 4px;
-    background: rgba(255,255,255,.04);
-    border-radius: 12px;
-    padding: 4px;
+    background: rgba(255,255,255,.06);
+    border-radius: 14px;
+    padding: 5px;
     margin-bottom: 32px;
+    border: 1px solid rgba(255,255,255,.06);
 }
 .bos-login__role-tab {
     flex: 1;
-    padding: 12px 16px;
-    border-radius: 10px;
+    padding: 13px 16px;
+    border-radius: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    color: #64748b;
+    color: #94a3b8;
     transition: all .3s ease;
     border: 1px solid transparent;
 }
 .bos-login__role-tab:hover {
-    color: #94a3b8;
-    background: rgba(255,255,255,.03);
+    color: #e2e8f0;
+    background: rgba(255,255,255,.05);
 }
 .bos-login__role-tab--active {
-    background: rgba(14,165,233,.12);
-    color: #0ea5e9;
-    border-color: rgba(14,165,233,.2);
-    box-shadow: 0 2px 12px rgba(14,165,233,.15);
+    background: linear-gradient(135deg, rgba(14,165,233,.2), rgba(99,102,241,.15));
+    color: #38bdf8;
+    border-color: rgba(14,165,233,.3);
+    box-shadow: 0 4px 16px rgba(14,165,233,.2), inset 0 1px 0 rgba(255,255,255,.05);
 }
-.bos-login__role-tab i { font-size: 14px; }
+.bos-login__role-tab i { font-size: 15px; }
 
 /* ─── Form wrap ─── */
 .bos-login__form-wrap {
@@ -383,14 +398,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     margin-bottom: 28px;
 }
 .bos-login__form-header h2 {
-    font-size: 24px;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 6px;
+    font-size: 26px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
 }
 .bos-login__form-header p {
     font-size: 14px;
-    color: #64748b;
+    color: #94a3b8;
+    line-height: 1.5;
 }
 
 /* ─── Fields ─── */
@@ -402,27 +419,27 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     display: flex;
     align-items: center;
     gap: 6px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 12px;
-    color: #64748b;
+    color: #94a3b8;
     margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
 }
-.bos-login__field label i { font-size: 12px; color: #475569; }
+.bos-login__field label i { font-size: 13px; color: #38bdf8; }
 .bos-login__field input {
     width: 100%;
-    padding: 14px 16px;
-    border: 1.5px solid rgba(255,255,255,.08);
-    border-radius: 10px;
+    padding: 15px 18px;
+    border: 1.5px solid rgba(14,165,233,.15);
+    border-radius: 12px;
     font-size: 15px;
     font-family: var(--bos-font);
     transition: all .3s ease;
     outline: none;
-    background: rgba(255,255,255,.04);
-    color: #f1f5f9;
+    background: rgba(255,255,255,.06);
+    color: #ffffff;
 }
-.bos-login__field input::placeholder { color: #475569; }
+.bos-login__field input::placeholder { color: #64748b; }
 .bos-login__field input:focus {
     border-color: rgba(14,165,233,.5);
     box-shadow: 0 0 0 3px rgba(14,165,233,.1), 0 0 20px rgba(14,165,233,.05);
@@ -457,18 +474,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ─── Submit button ─── */
 .bos-login__btn {
     width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    padding: 16px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
     color: #fff;
     border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     transition: all .3s ease;
-    box-shadow: 0 4px 16px rgba(14,165,233,.3);
+    box-shadow: 0 6px 24px rgba(14,165,233,.35), 0 0 40px rgba(99,102,241,.1);
     position: relative;
     overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0,0,0,.2);
 }
 .bos-login__btn::before {
     content: '';
@@ -485,11 +503,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .bos-login__btn:active { transform: translateY(0); }
 .bos-login__btn--erp {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    box-shadow: 0 4px 16px rgba(99,102,241,.3);
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%);
+    box-shadow: 0 6px 24px rgba(99,102,241,.35), 0 0 40px rgba(139,92,246,.1);
 }
 .bos-login__btn--erp:hover {
-    box-shadow: 0 6px 24px rgba(99,102,241,.4);
+    box-shadow: 0 8px 32px rgba(99,102,241,.45), 0 0 60px rgba(139,92,246,.15);
 }
 .bos-login__btn-loading { display: none; }
 .bos-login__btn--loading .bos-login__btn-text { display: none; }
@@ -498,33 +516,33 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ─── Secure badge ─── */
 .bos-login__secure-badge {
     text-align: center;
-    margin-top: 20px;
-    font-size: 11px;
-    color: #475569;
+    margin-top: 24px;
+    font-size: 12px;
+    color: #64748b;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
 }
-.bos-login__secure-badge i { color: #10b981; font-size: 12px; }
+.bos-login__secure-badge i { color: #34d399; font-size: 13px; }
 
 /* ─── ERP features list ─── */
 .bos-login__erp-features {
     margin-top: 24px;
     padding: 20px;
-    background: rgba(99,102,241,.05);
-    border: 1px solid rgba(99,102,241,.1);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(99,102,241,.08), rgba(139,92,246,.05));
+    border: 1px solid rgba(99,102,241,.15);
+    border-radius: 14px;
 }
 .bos-login__erp-feat {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 0;
-    font-size: 12px;
-    color: #94a3b8;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #cbd5e1;
 }
-.bos-login__erp-feat i { color: #6366f1; font-size: 13px; }
+.bos-login__erp-feat i { color: #a78bfa; font-size: 14px; }
 
 /* ─── Footer ─── */
 .bos-login__footer {
@@ -536,19 +554,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-size: 12px;
-    color: #475569;
+    font-size: 13px;
+    color: #64748b;
 }
 .bos-login__footer-logo {
     font-weight: 800;
-    font-size: 14px;
-    color: #64748b;
+    font-size: 15px;
+    color: #94a3b8;
     letter-spacing: -0.5px;
 }
 .bos-login__footer-logo span {
-    color: #0ea5e9;
+    color: #38bdf8;
 }
-.bos-login__footer-sep { color: #334155; }
+.bos-login__footer-sep { color: #475569; }
 
 /* ─── Responsive login ─── */
 @media (max-width: 960px) {
