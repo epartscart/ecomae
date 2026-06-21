@@ -554,7 +554,7 @@ Copyright (c) 2015 Daniel Eden
   .button-caution-flat.is-active {
     background-color: #f64c59;
     border-color: #f64c59;
-    color: #ff1022; }
+    color: #0284c7; }
 
 .button-royal,
 .button-royal-flat {
@@ -1032,7 +1032,7 @@ Copyright (c) 2015 Daniel Eden
     background: -webkit-gradient(linear, left top, left bottom, from(#ff6c77), to(#ff1f30));
     background: linear-gradient(top, #ff6c77, #ff1f30); }
   .button-raised.button-caution:active, .button-raised.button-caution.active, .button-raised.button-caution.is-active {
-    border-color: #ff1022;
+    border-color: #0284c7;
     background: #f64c59; }
 .button-raised.button-royal {
   border-color: #665ce6;
@@ -1121,8 +1121,8 @@ Copyright (c) 2015 Daniel Eden
     -webkit-box-shadow: 0 2px 0 #b27401, 0 3px 3px rgba(0, 0, 0, 0.2);
             box-shadow: 0 2px 0 #b27401, 0 3px 3px rgba(0, 0, 0, 0.2); }
 .button-3d.button-caution {
-  -webkit-box-shadow: 0 7px 0 #ff1022, 0 8px 3px rgba(0, 0, 0, 0.3);
-          box-shadow: 0 7px 0 #ff1022, 0 8px 3px rgba(0, 0, 0, 0.3); }
+  -webkit-box-shadow: 0 7px 0 #0284c7, 0 8px 3px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 7px 0 #0284c7, 0 8px 3px rgba(0, 0, 0, 0.3); }
   .button-3d.button-caution:hover, .button-3d.button-caution:focus {
     -webkit-box-shadow: 0 7px 0 #ff0618, 0 8px 3px rgba(0, 0, 0, 0.3);
             box-shadow: 0 7px 0 #ff0618, 0 8px 3px rgba(0, 0, 0, 0.3); }
@@ -1551,7 +1551,7 @@ Copyright (c) 2015 Daniel Eden
       background: #fea502; }
 .button-dropdown.button-dropdown-caution .button-dropdown-list {
   background: rgba(255, 67, 81, 0.95);
-  border-color: #ff1022; }
+  border-color: #0284c7; }
   .button-dropdown.button-dropdown-caution .button-dropdown-list .button-dropdown-divider {
     border-color: #ff1f30; }
   .button-dropdown.button-dropdown-caution .button-dropdown-list > li > a {
@@ -1687,7 +1687,7 @@ Copyright (c) 2015 Daniel Eden
       text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
   .button-longshadow.button-caution,
   .button-longshadow-right.button-caution {
-    text-shadow: 0px 0px #ff1022, 1px 1px #ff1022, 2px 2px #ff1022, 3px 3px #ff1022, 4px 4px #ff1022, 5px 5px #ff1022, 6px 6px #ff1022, 7px 7px #ff1022, 8px 8px #ff1022, 9px 9px #ff1022, 10px 10px #ff1022, 11px 11px #ff1022, 12px 12px #ff1022, 13px 13px #ff1022, 14px 14px #ff1022, 15px 15px #ff1022, 16px 16px #ff1022, 17px 17px #ff1022, 18px 18px #ff1022, 19px 19px #ff1022, 20px 20px #ff1022, 21px 21px #ff1022, 22px 22px #ff1022, 23px 23px #ff1022, 24px 24px #ff1022, 25px 25px #ff1022, 26px 26px #ff1022, 27px 27px #ff1022, 28px 28px #ff1022, 29px 29px #ff1022, 30px 30px #ff1022, 31px 31px #ff1022, 32px 32px #ff1022, 33px 33px #ff1022, 34px 34px #ff1022, 35px 35px #ff1022, 36px 36px #ff1022, 37px 37px #ff1022, 38px 38px #ff1022, 39px 39px #ff1022, 40px 40px #ff1022, 41px 41px #ff1022, 42px 42px #ff1022, 43px 43px #ff1022, 44px 44px #ff1022, 45px 45px #ff1022, 46px 46px #ff1022, 47px 47px #ff1022, 48px 48px #ff1022, 49px 49px #ff1022, 50px 50px #ff1022, 51px 51px #ff1022, 52px 52px #ff1022, 53px 53px #ff1022, 54px 54px #ff1022, 55px 55px #ff1022, 56px 56px #ff1022, 57px 57px #ff1022, 58px 58px #ff1022, 59px 59px #ff1022, 60px 60px #ff1022, 61px 61px #ff1022, 62px 62px #ff1022, 63px 63px #ff1022, 64px 64px #ff1022, 65px 65px #ff1022, 66px 66px #ff1022, 67px 67px #ff1022, 68px 68px #ff1022, 69px 69px #ff1022, 70px 70px #ff1022, 71px 71px #ff1022, 72px 72px #ff1022, 73px 73px #ff1022, 74px 74px #ff1022, 75px 75px #ff1022, 76px 76px #ff1022, 77px 77px #ff1022, 78px 78px #ff1022, 79px 79px #ff1022, 80px 80px #ff1022, 81px 81px #ff1022, 82px 82px #ff1022, 83px 83px #ff1022, 84px 84px #ff1022, 85px 85px #ff1022; }
+    text-shadow: 0px 0px #0284c7, 1px 1px #0284c7, 2px 2px #0284c7, 3px 3px #0284c7, 4px 4px #0284c7, 5px 5px #0284c7, 6px 6px #0284c7, 7px 7px #0284c7, 8px 8px #0284c7, 9px 9px #0284c7, 10px 10px #0284c7, 11px 11px #0284c7, 12px 12px #0284c7, 13px 13px #0284c7, 14px 14px #0284c7, 15px 15px #0284c7, 16px 16px #0284c7, 17px 17px #0284c7, 18px 18px #0284c7, 19px 19px #0284c7, 20px 20px #0284c7, 21px 21px #0284c7, 22px 22px #0284c7, 23px 23px #0284c7, 24px 24px #0284c7, 25px 25px #0284c7, 26px 26px #0284c7, 27px 27px #0284c7, 28px 28px #0284c7, 29px 29px #0284c7, 30px 30px #0284c7, 31px 31px #0284c7, 32px 32px #0284c7, 33px 33px #0284c7, 34px 34px #0284c7, 35px 35px #0284c7, 36px 36px #0284c7, 37px 37px #0284c7, 38px 38px #0284c7, 39px 39px #0284c7, 40px 40px #0284c7, 41px 41px #0284c7, 42px 42px #0284c7, 43px 43px #0284c7, 44px 44px #0284c7, 45px 45px #0284c7, 46px 46px #0284c7, 47px 47px #0284c7, 48px 48px #0284c7, 49px 49px #0284c7, 50px 50px #0284c7, 51px 51px #0284c7, 52px 52px #0284c7, 53px 53px #0284c7, 54px 54px #0284c7, 55px 55px #0284c7, 56px 56px #0284c7, 57px 57px #0284c7, 58px 58px #0284c7, 59px 59px #0284c7, 60px 60px #0284c7, 61px 61px #0284c7, 62px 62px #0284c7, 63px 63px #0284c7, 64px 64px #0284c7, 65px 65px #0284c7, 66px 66px #0284c7, 67px 67px #0284c7, 68px 68px #0284c7, 69px 69px #0284c7, 70px 70px #0284c7, 71px 71px #0284c7, 72px 72px #0284c7, 73px 73px #0284c7, 74px 74px #0284c7, 75px 75px #0284c7, 76px 76px #0284c7, 77px 77px #0284c7, 78px 78px #0284c7, 79px 79px #0284c7, 80px 80px #0284c7, 81px 81px #0284c7, 82px 82px #0284c7, 83px 83px #0284c7, 84px 84px #0284c7, 85px 85px #0284c7; }
     .button-longshadow.button-caution:active, .button-longshadow.button-caution.active, .button-longshadow.button-caution.is-active,
     .button-longshadow-right.button-caution:active,
     .button-longshadow-right.button-caution.active,
@@ -1729,7 +1729,7 @@ Copyright (c) 2015 Daniel Eden
     .button-longshadow-left.button-highlight:active, .button-longshadow-left.button-highlight.active, .button-longshadow-left.button-highlight.is-active {
       text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
   .button-longshadow-left.button-caution {
-    text-shadow: 0px 0px #ff1022, -1px 1px #ff1022, -2px 2px #ff1022, -3px 3px #ff1022, -4px 4px #ff1022, -5px 5px #ff1022, -6px 6px #ff1022, -7px 7px #ff1022, -8px 8px #ff1022, -9px 9px #ff1022, -10px 10px #ff1022, -11px 11px #ff1022, -12px 12px #ff1022, -13px 13px #ff1022, -14px 14px #ff1022, -15px 15px #ff1022, -16px 16px #ff1022, -17px 17px #ff1022, -18px 18px #ff1022, -19px 19px #ff1022, -20px 20px #ff1022, -21px 21px #ff1022, -22px 22px #ff1022, -23px 23px #ff1022, -24px 24px #ff1022, -25px 25px #ff1022, -26px 26px #ff1022, -27px 27px #ff1022, -28px 28px #ff1022, -29px 29px #ff1022, -30px 30px #ff1022, -31px 31px #ff1022, -32px 32px #ff1022, -33px 33px #ff1022, -34px 34px #ff1022, -35px 35px #ff1022, -36px 36px #ff1022, -37px 37px #ff1022, -38px 38px #ff1022, -39px 39px #ff1022, -40px 40px #ff1022, -41px 41px #ff1022, -42px 42px #ff1022, -43px 43px #ff1022, -44px 44px #ff1022, -45px 45px #ff1022, -46px 46px #ff1022, -47px 47px #ff1022, -48px 48px #ff1022, -49px 49px #ff1022, -50px 50px #ff1022, -51px 51px #ff1022, -52px 52px #ff1022, -53px 53px #ff1022, -54px 54px #ff1022, -55px 55px #ff1022, -56px 56px #ff1022, -57px 57px #ff1022, -58px 58px #ff1022, -59px 59px #ff1022, -60px 60px #ff1022, -61px 61px #ff1022, -62px 62px #ff1022, -63px 63px #ff1022, -64px 64px #ff1022, -65px 65px #ff1022, -66px 66px #ff1022, -67px 67px #ff1022, -68px 68px #ff1022, -69px 69px #ff1022, -70px 70px #ff1022, -71px 71px #ff1022, -72px 72px #ff1022, -73px 73px #ff1022, -74px 74px #ff1022, -75px 75px #ff1022, -76px 76px #ff1022, -77px 77px #ff1022, -78px 78px #ff1022, -79px 79px #ff1022, -80px 80px #ff1022, -81px 81px #ff1022, -82px 82px #ff1022, -83px 83px #ff1022, -84px 84px #ff1022, -85px 85px #ff1022; }
+    text-shadow: 0px 0px #0284c7, -1px 1px #0284c7, -2px 2px #0284c7, -3px 3px #0284c7, -4px 4px #0284c7, -5px 5px #0284c7, -6px 6px #0284c7, -7px 7px #0284c7, -8px 8px #0284c7, -9px 9px #0284c7, -10px 10px #0284c7, -11px 11px #0284c7, -12px 12px #0284c7, -13px 13px #0284c7, -14px 14px #0284c7, -15px 15px #0284c7, -16px 16px #0284c7, -17px 17px #0284c7, -18px 18px #0284c7, -19px 19px #0284c7, -20px 20px #0284c7, -21px 21px #0284c7, -22px 22px #0284c7, -23px 23px #0284c7, -24px 24px #0284c7, -25px 25px #0284c7, -26px 26px #0284c7, -27px 27px #0284c7, -28px 28px #0284c7, -29px 29px #0284c7, -30px 30px #0284c7, -31px 31px #0284c7, -32px 32px #0284c7, -33px 33px #0284c7, -34px 34px #0284c7, -35px 35px #0284c7, -36px 36px #0284c7, -37px 37px #0284c7, -38px 38px #0284c7, -39px 39px #0284c7, -40px 40px #0284c7, -41px 41px #0284c7, -42px 42px #0284c7, -43px 43px #0284c7, -44px 44px #0284c7, -45px 45px #0284c7, -46px 46px #0284c7, -47px 47px #0284c7, -48px 48px #0284c7, -49px 49px #0284c7, -50px 50px #0284c7, -51px 51px #0284c7, -52px 52px #0284c7, -53px 53px #0284c7, -54px 54px #0284c7, -55px 55px #0284c7, -56px 56px #0284c7, -57px 57px #0284c7, -58px 58px #0284c7, -59px 59px #0284c7, -60px 60px #0284c7, -61px 61px #0284c7, -62px 62px #0284c7, -63px 63px #0284c7, -64px 64px #0284c7, -65px 65px #0284c7, -66px 66px #0284c7, -67px 67px #0284c7, -68px 68px #0284c7, -69px 69px #0284c7, -70px 70px #0284c7, -71px 71px #0284c7, -72px 72px #0284c7, -73px 73px #0284c7, -74px 74px #0284c7, -75px 75px #0284c7, -76px 76px #0284c7, -77px 77px #0284c7, -78px 78px #0284c7, -79px 79px #0284c7, -80px 80px #0284c7, -81px 81px #0284c7, -82px 82px #0284c7, -83px 83px #0284c7, -84px 84px #0284c7, -85px 85px #0284c7; }
     .button-longshadow-left.button-caution:active, .button-longshadow-left.button-caution.active, .button-longshadow-left.button-caution.is-active {
       text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
   .button-longshadow-left.button-royal {
