@@ -13,7 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260609cplogin2';
+$ver = '20260621bosMatrix';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

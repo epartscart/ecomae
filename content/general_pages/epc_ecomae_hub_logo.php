@@ -47,12 +47,12 @@ function epc_cp_login_hero_css_href()
 
 function epc_cp_login_hero_css_version()
 {
-	return '20260609cplogin2';
+	return '20260621bosMatrix';
 }
 
 function epc_cp_login_css_version()
 {
-	return '20260609cplogin2';
+	return '20260621bosMatrix';
 }
 
 function epc_cp_login_enqueue()
