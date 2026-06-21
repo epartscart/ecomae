@@ -1121,7 +1121,7 @@ body.bos-sidebar-collapsed .bos-main {
     background: var(--bos-surface);
     border: 1px solid var(--bos-border);
     border-radius: var(--bos-radius-lg);
-    padding: 24px;
+    padding: 24px 24px 24px 28px;
     position: relative;
     overflow: hidden;
     transition: all .3s cubic-bezier(.4,0,.2,1);
@@ -1129,18 +1129,26 @@ body.bos-sidebar-collapsed .bos-main {
 .bos-stat-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    border-radius: var(--bos-radius-lg) var(--bos-radius-lg) 0 0;
+    top: 0; left: 0; bottom: 0;
+    width: 5px;
+    border-radius: var(--bos-radius-lg) 0 0 var(--bos-radius-lg);
+}
+.bos-stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 40%;
+    opacity: .04;
+    pointer-events: none;
 }
 .bos-stat-card:hover {
     box-shadow: var(--bos-shadow-lg);
     transform: translateY(-4px);
 }
 .bos-stat-card__number {
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 800;
-    letter-spacing: -1px;
+    letter-spacing: -1.5px;
     line-height: 1;
 }
 .bos-stat-card__label {
@@ -1149,33 +1157,38 @@ body.bos-sidebar-collapsed .bos-main {
     font-weight: 600;
     margin-top: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
 }
 .bos-stat-card__icon {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    top: 18px;
+    right: 18px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 24px;
     color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
 }
-.bos-stat-card--total::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.bos-stat-card--total::before { background: linear-gradient(180deg, #0ea5e9, #0284c7); }
+.bos-stat-card--total::after { background: linear-gradient(135deg, transparent 40%, #0ea5e9); }
 .bos-stat-card--total .bos-stat-card__number { color: #0ea5e9; }
-.bos-stat-card--total .bos-stat-card__icon { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
-.bos-stat-card--commerce::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.bos-stat-card--total .bos-stat-card__icon { background: linear-gradient(135deg, #0ea5e9, #06b6d4); box-shadow: 0 4px 14px rgba(14,165,233,.35); }
+.bos-stat-card--commerce::before { background: linear-gradient(180deg, #10b981, #059669); }
+.bos-stat-card--commerce::after { background: linear-gradient(135deg, transparent 40%, #10b981); }
 .bos-stat-card--commerce .bos-stat-card__number { color: #10b981; }
-.bos-stat-card--commerce .bos-stat-card__icon { background: linear-gradient(135deg, #10b981, #34d399); }
-.bos-stat-card--erp::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.bos-stat-card--commerce .bos-stat-card__icon { background: linear-gradient(135deg, #10b981, #34d399); box-shadow: 0 4px 14px rgba(16,185,129,.35); }
+.bos-stat-card--erp::before { background: linear-gradient(180deg, #6366f1, #4f46e5); }
+.bos-stat-card--erp::after { background: linear-gradient(135deg, transparent 40%, #6366f1); }
 .bos-stat-card--erp .bos-stat-card__number { color: #6366f1; }
-.bos-stat-card--erp .bos-stat-card__icon { background: linear-gradient(135deg, #6366f1, #818cf8); }
-.bos-stat-card--demo::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.bos-stat-card--erp .bos-stat-card__icon { background: linear-gradient(135deg, #6366f1, #818cf8); box-shadow: 0 4px 14px rgba(99,102,241,.35); }
+.bos-stat-card--demo::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.bos-stat-card--demo::after { background: linear-gradient(135deg, transparent 40%, #f59e0b); }
 .bos-stat-card--demo .bos-stat-card__number { color: #f59e0b; }
-.bos-stat-card--demo .bos-stat-card__icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.bos-stat-card--demo .bos-stat-card__icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); box-shadow: 0 4px 14px rgba(245,158,11,.35); }
 
 /* ─── Tenant grid ─── */
 .bos-tenant-grid {
@@ -1192,11 +1205,14 @@ body.bos-sidebar-collapsed .bos-main {
     text-decoration: none;
     color: var(--bos-text);
     display: block;
+    position: relative;
+    border-left: 4px solid var(--tenant-color, var(--bos-primary));
 }
 .bos-tenant-card:hover {
-    border-color: var(--bos-primary);
-    box-shadow: var(--bos-shadow);
-    transform: translateY(-2px);
+    border-color: var(--bos-border);
+    border-left-color: var(--tenant-color, var(--bos-primary));
+    box-shadow: var(--bos-shadow-lg);
+    transform: translateY(-3px);
 }
 .bos-tenant-card__header {
     display: flex;
@@ -1205,13 +1221,22 @@ body.bos-sidebar-collapsed .bos-main {
     margin-bottom: 12px;
 }
 .bos-tenant-card__icon {
-    font-size: 24px;
-    color: var(--bos-primary);
+    font-size: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--tenant-color, var(--bos-primary));
+    box-shadow: 0 3px 10px rgba(0,0,0,.12);
 }
 .bos-tenant-card__name {
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 8px;
+    color: var(--bos-text);
 }
 .bos-tenant-card__meta {
     display: flex;
@@ -1251,6 +1276,7 @@ body.bos-sidebar-collapsed .bos-main {
     gap: 10px;
 }
 .bos-industry-card {
+    border-left: 3px solid var(--industry-color, var(--bos-border));
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1263,6 +1289,8 @@ body.bos-sidebar-collapsed .bos-main {
     color: var(--bos-text-muted);
 }
 .bos-industry-card--active {
+    background: linear-gradient(135deg, rgba(14,165,233,.04), rgba(14,165,233,.08));
+    border-left-color: var(--industry-color, var(--bos-primary));
     border-color: var(--bos-primary);
     color: var(--bos-text);
 }
@@ -1473,10 +1501,22 @@ body.bos-sidebar-collapsed .bos-main {
     transform: scale(1.15);
 }
 .bos-module-tile i {
-    font-size: 15px;
-    width: 20px;
-    text-align: center;
-    transition: transform .2s ease;
+    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--module-color, var(--bos-primary)) 12%, transparent);
+    color: var(--module-color, var(--bos-primary));
+    transition: all .2s ease;
+    flex-shrink: 0;
+}
+.bos-module-tile:hover i {
+    background: var(--module-color, var(--bos-primary));
+    color: #fff;
+    transform: scale(1.1);
 }
 
 /* ═══════════════════ MODULE VIEW (embedded CP) ═══════════════════ */

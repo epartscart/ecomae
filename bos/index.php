@@ -646,10 +646,12 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
 
             <h3 class="bos-dashboard__subtitle"><i class="fa fa-list"></i> Tenant Fleet</h3>
             <div class="bos-tenant-grid" id="bosTenantGrid">
-                <?php foreach ($tenants as $t): ?>
-                <a href="/bos/?t=<?php echo epc_bos_h($t['site_key']); ?>" class="bos-tenant-card" data-type="<?php echo epc_bos_h($t['type']); ?>">
+                <?php foreach ($tenants as $t):
+                    $tColor = epc_bos_industry_color($t['industry']);
+                ?>
+                <a href="/bos/?t=<?php echo epc_bos_h($t['site_key']); ?>" class="bos-tenant-card" data-type="<?php echo epc_bos_h($t['type']); ?>" style="--tenant-color: <?php echo $tColor; ?>">
                     <div class="bos-tenant-card__header">
-                        <i class="fa <?php echo epc_bos_h($t['industry_icon']); ?> bos-tenant-card__icon"></i>
+                        <span class="bos-tenant-card__icon"><i class="fa <?php echo epc_bos_h($t['industry_icon']); ?>"></i></span>
                         <span class="bos-badge <?php echo epc_bos_tenant_badge_class($t['type']); ?>"><?php echo epc_bos_h(epc_bos_tenant_type_label($t['type'])); ?></span>
                     </div>
                     <div class="bos-tenant-card__name"><?php echo epc_bos_h($t['trade_name'] ?: $t['site_key']); ?></div>
@@ -678,8 +680,8 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 foreach ($industries as $code => $ind):
                     $count = $indCounts[$code] ?? 0;
                 ?>
-                <div class="bos-industry-card<?php echo $count > 0 ? ' bos-industry-card--active' : ''; ?>">
-                    <i class="fa <?php echo epc_bos_h($ind['icon']); ?>"></i>
+                <div class="bos-industry-card<?php echo $count > 0 ? ' bos-industry-card--active' : ''; ?>" style="--industry-color: <?php echo epc_bos_industry_color($code); ?>">
+                    <i class="fa <?php echo epc_bos_h($ind['icon']); ?>" style="color: <?php echo epc_bos_industry_color($code); ?>"></i>
                     <span class="bos-industry-card__name"><?php echo epc_bos_h($ind['name']); ?></span>
                     <span class="bos-industry-card__count"><?php echo $count; ?></span>
                 </div>
