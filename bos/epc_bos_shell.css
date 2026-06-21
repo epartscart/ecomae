@@ -249,14 +249,15 @@ body.bos-body.bos-body--login {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 20px;
-    background: rgba(14,165,233,.12);
-    border: 1px solid rgba(14,165,233,.22);
+    padding: 18px 22px;
+    background: rgba(14,165,233,.15);
+    border: 1px solid rgba(14,165,233,.3);
     border-radius: 12px;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
     transition: all .3s ease;
     opacity: 0;
     animation: bosCapFadeIn .6s ease forwards;
+    box-shadow: 0 2px 12px rgba(0,0,0,.2);
 }
 .bos-login__cap-item--1 { animation-delay: .3s; }
 .bos-login__cap-item--2 { animation-delay: .45s; }
@@ -267,10 +268,10 @@ body.bos-body.bos-body--login {
     to { opacity: 1; transform: translateX(0); }
 }
 .bos-login__cap-item:hover {
-    background: rgba(14,165,233,.14);
-    border-color: rgba(14,165,233,.3);
+    background: rgba(14,165,233,.22);
+    border-color: rgba(14,165,233,.5);
     transform: translateX(6px);
-    box-shadow: 0 4px 20px rgba(14,165,233,.15);
+    box-shadow: 0 4px 24px rgba(14,165,233,.25);
 }
 .bos-login__cap-icon {
     width: 54px;
@@ -310,8 +311,9 @@ body.bos-body.bos-body--login {
     text-shadow: 0 1px 4px rgba(0,0,0,.4);
 }
 .bos-login__cap-text span {
-    color: #cbd5e1;
+    color: #bae6fd;
     font-size: 13px;
+    font-weight: 500;
 }
 
 /* ─── Stats bar ─── */
