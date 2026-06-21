@@ -37,6 +37,92 @@ function translate_str_by_key($str_key, $lang_code=null)
 		$lang_code = get_work_lang();
 	}
 	
+	// --- In-memory translation cache (bulk-load on first call per language) ---
+	static $__translationCache = array();
+	static $__errorStrings = array();
+	static $__cacheLoaded = array();
+	
+	if (empty($__cacheLoaded[$lang_code]) && $db_link instanceof PDO) {
+		$__cacheLoaded[$lang_code] = true;
+		try {
+			// Bulk-load error flags
+			$errStmt = $db_link->query("SELECT `str_key`, `is_error`, `same` FROM `lang_text_strings`");
+			if ($errStmt) {
+				while ($row = $errStmt->fetch(PDO::FETCH_ASSOC)) {
+					$k = (string) $row['str_key'];
+					$__errorStrings[$k] = array(
+						'is_error' => (int) $row['is_error'],
+						'same'     => $row['same'],
+					);
+				}
+			}
+			// Bulk-load translations for requested language
+			$trStmt = $db_link->prepare("SELECT `str_key`, `lang_code`, `value` FROM `lang_text_strings_translation` WHERE `lang_code` = ?");
+			$trStmt->execute(array($lang_code));
+			while ($row = $trStmt->fetch(PDO::FETCH_ASSOC)) {
+				$__translationCache[$row['lang_code'] . ':' . $row['str_key']] = (string) $row['value'];
+			}
+			// Also load English translations for error strings
+			if ($lang_code !== 'en') {
+				$trStmtEn = $db_link->prepare("SELECT `str_key`, `value` FROM `lang_text_strings_translation` WHERE `lang_code` = 'en'");
+				$trStmtEn->execute();
+				while ($row = $trStmtEn->fetch(PDO::FETCH_ASSOC)) {
+					$__translationCache['en:' . $row['str_key']] = (string) $row['value'];
+				}
+			}
+		} catch (Exception $e) {
+			$__cacheLoaded[$lang_code] = false;
+		}
+	}
+	
+	// Try cached lookup first
+	if (!empty($__cacheLoaded[$lang_code])) {
+		$isError = isset($__errorStrings[$str_key]) ? (int) $__errorStrings[$str_key]['is_error'] : 0;
+		$effectiveLang = $lang_code;
+		if ($isError === 1) {
+			$effectiveLang = 'en';
+		} elseif (isset($__errorStrings[$str_key]['same']) && $__errorStrings[$str_key]['same'] !== null && $__errorStrings[$str_key]['same'] !== '') {
+			$effectiveLang = (string) $__errorStrings[$str_key]['same'];
+			// Ensure translations for the 'same' language are loaded
+			if (empty($__cacheLoaded[$effectiveLang]) && $db_link instanceof PDO) {
+				$__cacheLoaded[$effectiveLang] = true;
+				try {
+					$sameLangStmt = $db_link->prepare("SELECT `str_key`, `value` FROM `lang_text_strings_translation` WHERE `lang_code` = ?");
+					$sameLangStmt->execute(array($effectiveLang));
+					while ($row = $sameLangStmt->fetch(PDO::FETCH_ASSOC)) {
+						$__translationCache[$effectiveLang . ':' . $row['str_key']] = (string) $row['value'];
+					}
+				} catch (Exception $e) {
+					$__cacheLoaded[$effectiveLang] = false;
+				}
+			}
+		}
+		
+		$cacheKey = $effectiveLang . ':' . $str_key;
+		$str = isset($__translationCache[$cacheKey]) ? $__translationCache[$cacheKey] : null;
+		
+		if( $str === null )
+		{
+			if( isset($DP_Config->multilang_highlight_empty_strings) && $DP_Config->multilang_highlight_empty_strings == true )
+			{
+				$str = '==Empty string==';
+			}
+		}
+		
+		if( $isError === 1 )
+		{
+			$str = "ERROR STR_KEY: ".$str_key.". ".$str;
+		}
+		
+		if( isset($DP_Config->multilang_debug) && $DP_Config->multilang_debug == true )
+		{
+			$str = $str." (".$str_key.")";
+		}
+		
+		return $str;
+	}
+	// --- End cache ---
+	
 	
 	//Определяем, является ли данная строка текстом ошибки (такие строки выводим ВСЕГДА только на английском языке. Поле same у таких строк игнорируется)
 	$is_error_query = $db_link->prepare("SELECT `is_error` FROM `lang_text_strings` WHERE `str_key` = ?;");
