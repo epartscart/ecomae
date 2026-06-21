@@ -306,6 +306,15 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		return false;
 	}
 
+	// BOS app: bypass marketing template and load the BOS shell directly
+	if ($match['page'] === 'bos') {
+		$bosApp = $_SERVER['DOCUMENT_ROOT'] . '/bos/index.php';
+		if (file_exists($bosApp)) {
+			require $bosApp;
+			exit;
+		}
+	}
+
 	$state = epc_ecomae_platform_route_state();
 	$state['page'] = $match['page'];
 	$state['params'] = $match['params'];
