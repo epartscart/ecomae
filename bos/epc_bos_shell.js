@@ -5,36 +5,70 @@
 (function () {
     'use strict';
 
-    /* ═══════════════════ LOGIN ═══════════════════ */
+    /* ═══════════════════ LOGIN PAGE ═══════════════════ */
     var loginForm = document.getElementById('bosLoginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            var errEl = document.getElementById('bosLoginError');
-            var btn = loginForm.querySelector('button[type="submit"]');
-            errEl.textContent = '';
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Signing in...';
+    var loginFormErp = document.getElementById('bosLoginFormErp');
 
-            var fd = new FormData(loginForm);
-            fetch('/bos/?action=login', { method: 'POST', body: fd })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (data.ok) {
-                        window.location.href = data.redirect || '/bos/';
-                    } else {
-                        errEl.textContent = data.error || 'Login failed';
+    if (loginForm || loginFormErp) {
+        // Particle generator
+        bosCreateParticles();
+
+        // Animated counter
+        bosAnimateCounters();
+
+        // Role tab switching
+        var tabProvider = document.getElementById('bosTabProvider');
+        var tabErp = document.getElementById('bosTabErp');
+        var formProvider = document.getElementById('bosFormProvider');
+        var formErp = document.getElementById('bosFormErp');
+
+        if (tabProvider && tabErp) {
+            tabProvider.addEventListener('click', function () {
+                tabProvider.classList.add('bos-login__role-tab--active');
+                tabErp.classList.remove('bos-login__role-tab--active');
+                formProvider.classList.add('bos-login__form-wrap--active');
+                formErp.classList.remove('bos-login__form-wrap--active');
+            });
+            tabErp.addEventListener('click', function () {
+                tabErp.classList.add('bos-login__role-tab--active');
+                tabProvider.classList.remove('bos-login__role-tab--active');
+                formErp.classList.add('bos-login__form-wrap--active');
+                formProvider.classList.remove('bos-login__form-wrap--active');
+            });
+        }
+
+        // Attach submit handler to both forms
+        [loginForm, loginFormErp].forEach(function (form) {
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var btn = form.querySelector('button[type="submit"]');
+                var errEl = form.querySelector('.bos-login__error');
+                if (errEl) errEl.textContent = '';
+                btn.classList.add('bos-login__btn--loading');
+                btn.disabled = true;
+
+                var fd = new FormData(form);
+                fetch('/bos/?action=login', { method: 'POST', body: fd })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.ok) {
+                            window.location.href = data.redirect || '/bos/';
+                        } else {
+                            if (errEl) errEl.innerHTML = '<i class="fa fa-exclamation-circle"></i> ' + (data.error || 'Login failed');
+                            btn.classList.remove('bos-login__btn--loading');
+                            btn.disabled = false;
+                        }
+                    })
+                    .catch(function () {
+                        if (errEl) errEl.innerHTML = '<i class="fa fa-exclamation-circle"></i> Network error — please try again';
+                        btn.classList.remove('bos-login__btn--loading');
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fa fa-sign-in"></i> Sign In';
-                    }
-                })
-                .catch(function () {
-                    errEl.textContent = 'Network error — please try again';
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa fa-sign-in"></i> Sign In';
-                });
+                    });
+            });
         });
-        return;
+
+        return; // login page — don't initialize dashboard JS
     }
 
     /* ═══════════════════ SIDEBAR TOGGLE ═══════════════════ */
@@ -169,5 +203,49 @@
             switcherBtn.click();
         }
     });
+
+    /* ═══════════════════ PARTICLE SYSTEM ═══════════════════ */
+    function bosCreateParticles() {
+        var container = document.getElementById('bosParticles');
+        if (!container) return;
+        for (var i = 0; i < 30; i++) {
+            var p = document.createElement('div');
+            p.className = 'bos-login__particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = (8 + Math.random() * 12) + 's';
+            p.style.animationDelay = (Math.random() * 10) + 's';
+            p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+            if (Math.random() > 0.5) {
+                p.style.background = 'rgba(99, 102, 241, .4)';
+            }
+            container.appendChild(p);
+        }
+    }
+
+    /* ═══════════════════ ANIMATED COUNTERS ═══════════════════ */
+    function bosAnimateCounters() {
+        var counters = document.querySelectorAll('.bos-login__stat-num[data-count]');
+        if (!counters.length) return;
+        setTimeout(function () {
+            counters.forEach(function (el) {
+                var target = parseInt(el.getAttribute('data-count'), 10);
+                var duration = 2000;
+                var start = 0;
+                var startTime = null;
+                function step(ts) {
+                    if (!startTime) startTime = ts;
+                    var progress = Math.min((ts - startTime) / duration, 1);
+                    var eased = 1 - Math.pow(1 - progress, 3);
+                    el.textContent = Math.floor(eased * target);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        el.textContent = target + '+';
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        }, 1000);
+    }
 
 })();
