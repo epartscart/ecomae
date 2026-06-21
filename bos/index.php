@@ -115,28 +115,172 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
 <?php if (!$isLoggedIn): ?>
 <!-- ═══════════════════ LOGIN SCREEN ═══════════════════ -->
 <div class="bos-login">
-    <div class="bos-login__card">
-        <div class="bos-login__logo">
-            <div class="bos-login__logo-icon"><i class="fa fa-th-large"></i></div>
-            <h1 class="bos-login__title">BOS</h1>
-            <p class="bos-login__subtitle">Business Operating System</p>
+    <!-- Animated background -->
+    <div class="bos-login__bg">
+        <div class="bos-login__grid-lines"></div>
+        <div class="bos-login__particles" id="bosParticles"></div>
+        <div class="bos-login__glow bos-login__glow--1"></div>
+        <div class="bos-login__glow bos-login__glow--2"></div>
+        <div class="bos-login__glow bos-login__glow--3"></div>
+    </div>
+
+    <!-- Left side: branding & capabilities -->
+    <div class="bos-login__hero">
+        <div class="bos-login__hero-content">
+            <div class="bos-login__brand-mark">
+                <div class="bos-login__brand-icon">
+                    <div class="bos-login__brand-icon-inner">
+                        <i class="fa fa-th-large"></i>
+                    </div>
+                    <div class="bos-login__brand-ring"></div>
+                    <div class="bos-login__brand-ring bos-login__brand-ring--2"></div>
+                </div>
+                <h1 class="bos-login__brand-title">BOS</h1>
+                <p class="bos-login__brand-tagline">Business Operating System</p>
+            </div>
+
+            <div class="bos-login__capabilities">
+                <div class="bos-login__cap-item bos-login__cap-item--1">
+                    <div class="bos-login__cap-icon"><i class="fa fa-university"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>Enterprise ERP</strong>
+                        <span>Finance, HR, Inventory, Production</span>
+                    </div>
+                </div>
+                <div class="bos-login__cap-item bos-login__cap-item--2">
+                    <div class="bos-login__cap-icon"><i class="fa fa-shopping-cart"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>eCommerce Platform</strong>
+                        <span>Multi-tenant, Multi-industry</span>
+                    </div>
+                </div>
+                <div class="bos-login__cap-item bos-login__cap-item--3">
+                    <div class="bos-login__cap-icon"><i class="fa fa-globe"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>Worldwide Compliance</strong>
+                        <span>Auto-localized per country</span>
+                    </div>
+                </div>
+                <div class="bos-login__cap-item bos-login__cap-item--4">
+                    <div class="bos-login__cap-icon"><i class="fa fa-magic"></i></div>
+                    <div class="bos-login__cap-text">
+                        <strong>AI-Powered Operations</strong>
+                        <span>Price engine, CRM, Automation</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bos-login__stats-bar">
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="225">0</span>
+                    <span class="bos-login__stat-label">Tenants</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="11">0</span>
+                    <span class="bos-login__stat-label">Industries</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="95">0</span>
+                    <span class="bos-login__stat-label">ERP Modules</span>
+                </div>
+                <div class="bos-login__stat-divider"></div>
+                <div class="bos-login__stat">
+                    <span class="bos-login__stat-num" data-count="15">0</span>
+                    <span class="bos-login__stat-label">Countries</span>
+                </div>
+            </div>
         </div>
-        <form class="bos-login__form" id="bosLoginForm" method="post" action="/bos/?action=login">
-            <div class="bos-login__field">
-                <label for="bosEmail">Email</label>
-                <input type="email" id="bosEmail" name="email" required autocomplete="email" placeholder="operator@ecomae.com">
+    </div>
+
+    <!-- Right side: login forms -->
+    <div class="bos-login__panel">
+        <div class="bos-login__panel-inner">
+            <!-- Role selector tabs -->
+            <div class="bos-login__role-tabs">
+                <button class="bos-login__role-tab bos-login__role-tab--active" data-role="provider" id="bosTabProvider">
+                    <i class="fa fa-shield"></i>
+                    <span>Platform Operator</span>
+                </button>
+                <button class="bos-login__role-tab" data-role="erp" id="bosTabErp">
+                    <i class="fa fa-university"></i>
+                    <span>ERP Customer</span>
+                </button>
             </div>
-            <div class="bos-login__field">
-                <label for="bosPassword">Password</label>
-                <input type="password" id="bosPassword" name="password" required autocomplete="current-password" placeholder="Enter password">
+
+            <!-- Provider login form -->
+            <div class="bos-login__form-wrap bos-login__form-wrap--active" id="bosFormProvider">
+                <div class="bos-login__form-header">
+                    <h2>Operator Access</h2>
+                    <p>Manage your entire tenant fleet from one dashboard</p>
+                </div>
+                <form class="bos-login__form" id="bosLoginForm" method="post" action="/bos/?action=login">
+                    <input type="hidden" name="login_role" value="provider">
+                    <div class="bos-login__field">
+                        <label for="bosEmail"><i class="fa fa-envelope-o"></i> Email</label>
+                        <input type="email" id="bosEmail" name="email" required autocomplete="email" placeholder="operator@ecomae.com">
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="bosPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="bosPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password">
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__error" id="bosLoginError"></div>
+                    <button type="submit" class="bos-login__btn">
+                        <span class="bos-login__btn-text"><i class="fa fa-sign-in"></i> Sign In to BOS</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
+                    </button>
+                </form>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-lock"></i> 256-bit encrypted &middot; Session isolated &middot; Audit logged
+                </div>
             </div>
-            <div class="bos-login__error" id="bosLoginError"></div>
-            <button type="submit" class="bos-login__btn">
-                <i class="fa fa-sign-in"></i> Sign In
-            </button>
-        </form>
-        <div class="bos-login__footer">
-            <span>ECOM AE Platform</span> &middot; <span>Secure operator access</span>
+
+            <!-- ERP Customer login form -->
+            <div class="bos-login__form-wrap" id="bosFormErp">
+                <div class="bos-login__form-header">
+                    <h2>ERP Access</h2>
+                    <p>Access your enterprise resource planning system</p>
+                </div>
+                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="/bos/?action=login">
+                    <input type="hidden" name="login_role" value="erp">
+                    <div class="bos-login__field">
+                        <label for="bosErpEmail"><i class="fa fa-envelope-o"></i> Business Email</label>
+                        <input type="email" id="bosErpEmail" name="email" required autocomplete="email" placeholder="finance@yourcompany.com">
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__field">
+                        <label for="bosErpPassword"><i class="fa fa-lock"></i> Password</label>
+                        <input type="password" id="bosErpPassword" name="password" required autocomplete="current-password" placeholder="Enter your password">
+                        <div class="bos-login__field-line"></div>
+                    </div>
+                    <div class="bos-login__error" id="bosLoginErrorErp"></div>
+                    <button type="submit" class="bos-login__btn bos-login__btn--erp">
+                        <span class="bos-login__btn-text"><i class="fa fa-university"></i> Access ERP System</span>
+                        <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Connecting...</span>
+                    </button>
+                </form>
+                <div class="bos-login__erp-features">
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> General Ledger & Financial Reporting</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Accounts Payable & Receivable</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> HR, Payroll & Workforce Management</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Inventory, Production & Warehouse</div>
+                    <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> Tax Compliance & E-Invoicing</div>
+                </div>
+                <div class="bos-login__secure-badge">
+                    <i class="fa fa-shield"></i> Database isolated &middot; Country-compliant &middot; Enterprise grade
+                </div>
+            </div>
+
+            <div class="bos-login__footer">
+                <div class="bos-login__footer-brand">
+                    <span class="bos-login__footer-logo">ECOM<span>AE</span></span>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <span>Business Operating System v<?php echo EPC_BOS_VERSION; ?></span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
