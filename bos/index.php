@@ -3,11 +3,11 @@
  * BOS — Business Operating System
  * Unified entry point: ecomae.com/bos/
  */
-define('_ASTEXE_', 1);
-define('EPC_BOS_ENTRY', true);
+if (!defined('_ASTEXE_')) { define('_ASTEXE_', 1); }
+if (!defined('EPC_BOS_ENTRY')) { define('EPC_BOS_ENTRY', true); }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-$DP_Config = new DP_Config();
+if (!isset($DP_Config)) { $DP_Config = new DP_Config(); }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_unified.php';
