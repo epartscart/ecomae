@@ -433,7 +433,184 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
     </div>
 
     <div class="bos-main__content" id="bosContent">
-        <?php if (!$activeTenant && epc_bos_is_provider()): ?>
+        <?php if ($isModuleView && $activeModuleInfo): ?>
+        <!-- Module Content View (works for both provider and tenant context) -->
+        <?php
+            $modColor = epc_bos_module_color($activeModuleInfo['section']);
+            $isErpModule = strpos($activeModuleInfo['path'], 'shop/finance/erp') === 0;
+            $tenantHostname = is_array($tenantInfo) ? ($tenantInfo['hostname'] ?? '') : '';
+            $tenantName = is_array($tenantInfo) ? ($tenantInfo['trade_name'] ?? $activeTenant) : '';
+            $cpBaseUrl = $tenantHostname ? 'https://' . $tenantHostname . '/cp/' : '';
+            $erpBaseUrl = $tenantHostname ? 'https://' . $tenantHostname . '/cp/client-erp/asap/' : '';
+            $backUrl = $activeTenant ? '/bos/?t=' . epc_bos_h($activeTenant) : '/bos/';
+            $contextLabel = $activeTenant ? ($tenantName ?: $activeTenant) : 'Platform';
+            $isPlatformModule = !$activeTenant;
+
+            $moduleDescriptions = array(
+                'command_center'   => 'Monitor all tenants, system health, and platform metrics in real time.',
+                'platform_health'  => 'Health checks, uptime monitoring, and infrastructure diagnostics.',
+                'governance'       => 'Compliance rules, audit policies, and platform governance settings.',
+                'audit_log'        => 'Complete audit trail of all administrative actions across the platform.',
+                'failover'         => 'Disaster recovery procedures, failover runbook, and backup status.',
+                'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
+                'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
+                'tenant_features'  => 'Feature matrix showing capabilities enabled for each tenant.',
+                'demo_tenants'     => 'Manage demo/trial tenants for sales and onboarding.',
+                'industry_packs'   => 'Configure industry-specific feature packs and ERP module bundles.',
+                'customer_board'   => 'Customer relationship overview across all tenants.',
+                'integrations'     => 'Third-party integrations, API keys, and webhook management.',
+                'orders'           => 'View, manage, and process customer orders. Track fulfillment status.',
+                'customers'        => 'Customer database, profiles, purchase history, and segmentation.',
+                'payments'         => 'Payment processing, transaction history, and settlement tracking.',
+                'returns'          => 'Return requests, refund processing, and RMA management.',
+                'quotes'           => 'Quote requests from customers, pricing negotiation, and approvals.',
+                'channels'         => 'Multi-channel sales: marketplace integrations and channel management.',
+                'pos'              => 'Point of Sale terminal for in-store transactions.',
+                'statistics'       => 'Sales analytics, conversion rates, revenue reports, and trends.',
+                'products'         => 'Product catalog management: items, categories, and attributes.',
+                'prices_edit'      => 'Edit prices directly for individual products and price lists.',
+                'prices_upload'    => 'Bulk price upload via CSV/Excel for warehouses and suppliers.',
+                'prices_send'      => 'Send price updates to channels, marketplaces, and partners.',
+                'pricing'          => 'Pricing rules: markups, discounts, customer-specific pricing.',
+                'logistics'        => 'Shipping, delivery management, and carrier integrations.',
+                'procurement'      => 'Purchase orders, supplier management, and procurement workflows.',
+                'marketing'        => 'Marketing campaigns, promotions, and discount code management.',
+                'broadcast'        => 'Email/SMS broadcast to customers and leads.',
+                'social'           => 'Social media integration and management tools.',
+                'seo'              => 'Search engine optimization settings, meta tags, and sitemaps.',
+                'crm'              => 'Customer relationship management: leads, deals, and pipeline.',
+                'documents'        => 'Document management and control for business processes.',
+                'parts_agent'      => 'AI-powered parts inquiry chat agent for customer support.',
+                'erp_home'         => 'ERP overview dashboard with key financial metrics and KPIs.',
+                'erp_gl'           => 'General Ledger: chart of accounts, journal entries, and trial balance.',
+                'erp_ap'           => 'Accounts Payable: vendor invoices, payments, and aging reports.',
+                'erp_ar'           => 'Accounts Receivable: customer invoices, collections, and aging.',
+                'erp_cash'         => 'Cash and bank management: bank accounts, reconciliation, and cash flow.',
+                'erp_tax'          => 'Tax compliance: VAT/GST returns, tax codes, and filing preparation.',
+                'erp_sales'        => 'Sales management: quotations, sales orders, and CRM integration.',
+                'erp_purchasing'   => 'Purchase management: purchase orders, vendor selection, and RFQs.',
+                'erp_inventory'    => 'Inventory management: stock levels, warehouses, and stock movements.',
+                'erp_hr'           => 'Human resources: employee records, leave, attendance, and HR law.',
+                'erp_payroll'      => 'Payroll processing: salary calculation, deductions, and payslips.',
+                'erp_production'   => 'Production planning: BOMs, work orders, and manufacturing.',
+                'erp_projects'     => 'Project management: tasks, milestones, and project accounting.',
+                'erp_warehouse'    => 'Warehouse management: locations, bin management, and picking.',
+                'erp_fixed_assets' => 'Fixed asset register: depreciation, disposal, and asset tracking.',
+                'erp_budgeting'    => 'Budget planning: departmental budgets, variance analysis, and forecasts.',
+                'crosses'          => 'Part cross-references: OEM/aftermarket number matching.',
+                'demand'           => 'Demand analysis by country: popular parts and regional trends.',
+                'auto_price'       => 'AI-powered automatic pricing engine for auto parts.',
+                'synonyms'         => 'Brand synonym mapping for search and matching.',
+                'tax_toolkit'      => 'Tax calculation toolkit for advisory clients.',
+                'free_tools'       => 'Public free tools administration and configuration.',
+                'portal_settings'  => 'Portal configuration: branding, domains, and global settings.',
+                'modern_auth'      => 'Authentication settings: password policies and session management.',
+                'communication'    => 'Communication tools: notifications, messages, and announcements.',
+                'api_docs'         => 'API documentation and developer guide.',
+                'operator_guide'   => 'Platform operator guide and administration manual.',
+            );
+            $modDesc = $moduleDescriptions[$activeModuleInfo['id']] ?? 'Module for ' . $activeModuleInfo['section'] . ' operations.';
+            $moduleType = $isPlatformModule ? 'Platform Module' : ($isErpModule ? 'ERP Module' : 'CP Module');
+            $moduleTypeIcon = $isPlatformModule ? 'fa-server' : ($isErpModule ? 'fa-university' : 'fa-cog');
+        ?>
+        <div class="bos-module-view" id="bosModuleView">
+            <div class="bos-module-view__header">
+                <div class="bos-module-view__title">
+                    <a href="<?php echo $backUrl; ?>" class="bos-module-view__back" title="Back">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+                    <div class="bos-module-view__icon" style="background: <?php echo $modColor; ?>;">
+                        <i class="fa <?php echo epc_bos_h($activeModuleInfo['icon']); ?>"></i>
+                    </div>
+                    <div>
+                        <h2><?php echo epc_bos_h($activeModuleInfo['label']); ?></h2>
+                        <span class="bos-module-view__section">
+                            <i class="fa <?php echo epc_bos_h($activeModuleInfo['section_icon']); ?>"></i>
+                            <?php echo epc_bos_h($activeModuleInfo['section']); ?>
+                        </span>
+                    </div>
+                </div>
+                <?php if ($tenantHostname): ?>
+                <div class="bos-module-view__actions">
+                    <?php if ($isErpModule): ?>
+                    <a href="<?php echo $erpBaseUrl; ?>" target="_blank" class="bos-btn bos-btn--primary">
+                        <i class="fa fa-external-link"></i> Open ERP
+                    </a>
+                    <?php else: ?>
+                    <a href="<?php echo $cpBaseUrl; ?>" target="_blank" class="bos-btn bos-btn--primary">
+                        <i class="fa fa-external-link"></i> Open in CP
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            <div class="bos-module-view__body">
+                <div class="bos-module-view__content">
+                    <div class="bos-module-view__hero" style="--mod-color: <?php echo $modColor; ?>;">
+                        <div class="bos-module-view__hero-icon">
+                            <i class="fa <?php echo epc_bos_h($activeModuleInfo['icon']); ?>"></i>
+                        </div>
+                        <div class="bos-module-view__hero-info">
+                            <h3><?php echo epc_bos_h($activeModuleInfo['label']); ?></h3>
+                            <p><?php echo epc_bos_h($modDesc); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="bos-module-view__details">
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Section</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa <?php echo epc_bos_h($activeModuleInfo['section_icon']); ?>" style="color: <?php echo $modColor; ?>;"></i>
+                                <?php echo epc_bos_h($activeModuleInfo['section']); ?>
+                            </div>
+                        </div>
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label"><?php echo $isPlatformModule ? 'Context' : 'Tenant'; ?></div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa <?php echo $isPlatformModule ? 'fa-server' : 'fa-building'; ?>" style="color: var(--bos-primary);"></i>
+                                <?php echo epc_bos_h($contextLabel); ?>
+                            </div>
+                        </div>
+                        <?php if ($tenantHostname): ?>
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Access</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa fa-globe" style="color: var(--bos-success);"></i>
+                                <?php echo epc_bos_h($tenantHostname); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Type</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa <?php echo $moduleTypeIcon; ?>" style="color: <?php echo $modColor; ?>;"></i>
+                                <?php echo $moduleType; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if ($tenantHostname): ?>
+                    <div class="bos-module-view__launch">
+                        <?php if ($isErpModule): ?>
+                        <a href="<?php echo $erpBaseUrl; ?>" target="_blank" class="bos-module-view__launch-btn" style="--mod-color: <?php echo $modColor; ?>;">
+                            <i class="fa fa-rocket"></i>
+                            <span>Launch <?php echo epc_bos_h($activeModuleInfo['label']); ?> in ERP</span>
+                            <i class="fa fa-arrow-right"></i>
+                        </a>
+                        <?php else: ?>
+                        <a href="<?php echo $cpBaseUrl; ?>" target="_blank" class="bos-module-view__launch-btn" style="--mod-color: <?php echo $modColor; ?>;">
+                            <i class="fa fa-rocket"></i>
+                            <span>Launch <?php echo epc_bos_h($activeModuleInfo['label']); ?> in Control Panel</span>
+                            <i class="fa fa-arrow-right"></i>
+                        </a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <?php elseif (!$activeTenant && epc_bos_is_provider()): ?>
         <!-- Fleet Dashboard -->
         <div class="bos-dashboard">
             <h2 class="bos-dashboard__title"><i class="fa fa-tachometer"></i> Fleet Command Center</h2>
@@ -507,176 +684,6 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                     <span class="bos-industry-card__count"><?php echo $count; ?></span>
                 </div>
                 <?php endforeach; ?>
-            </div>
-        </div>
-
-        <?php elseif ($activeTenant && $isModuleView && $activeModuleInfo): ?>
-        <!-- Module Content View -->
-        <?php
-            $modColor = epc_bos_module_color($activeModuleInfo['section']);
-            $isErpModule = strpos($activeModuleInfo['path'], 'shop/finance/erp') === 0;
-            $cpBaseUrl = $tenantInfo['hostname'] ? 'https://' . $tenantInfo['hostname'] . '/cp/' : '';
-            $erpBaseUrl = $tenantInfo['hostname'] ? 'https://' . $tenantInfo['hostname'] . '/cp/client-erp/asap/' : '';
-
-            $moduleDescriptions = array(
-                'command_center'   => 'Monitor all tenants, system health, and platform metrics in real time.',
-                'platform_health'  => 'Health checks, uptime monitoring, and infrastructure diagnostics.',
-                'governance'       => 'Compliance rules, audit policies, and platform governance settings.',
-                'audit_log'        => 'Complete audit trail of all administrative actions across the platform.',
-                'failover'         => 'Disaster recovery procedures, failover runbook, and backup status.',
-                'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
-                'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
-                'tenant_features'  => 'Feature matrix showing capabilities enabled for each tenant.',
-                'demo_tenants'     => 'Manage demo/trial tenants for sales and onboarding.',
-                'industry_packs'   => 'Configure industry-specific feature packs and ERP module bundles.',
-                'customer_board'   => 'Customer relationship overview across all tenants.',
-                'integrations'     => 'Third-party integrations, API keys, and webhook management.',
-                'orders'           => 'View, manage, and process customer orders. Track fulfillment status.',
-                'customers'        => 'Customer database, profiles, purchase history, and segmentation.',
-                'payments'         => 'Payment processing, transaction history, and settlement tracking.',
-                'returns'          => 'Return requests, refund processing, and RMA management.',
-                'quotes'           => 'Quote requests from customers, pricing negotiation, and approvals.',
-                'channels'         => 'Multi-channel sales: marketplace integrations and channel management.',
-                'pos'              => 'Point of Sale terminal for in-store transactions.',
-                'statistics'       => 'Sales analytics, conversion rates, revenue reports, and trends.',
-                'products'         => 'Product catalog management: items, categories, and attributes.',
-                'prices_edit'      => 'Edit prices directly for individual products and price lists.',
-                'prices_upload'    => 'Bulk price upload via CSV/Excel for warehouses and suppliers.',
-                'prices_send'      => 'Send price updates to channels, marketplaces, and partners.',
-                'pricing'          => 'Pricing rules: markups, discounts, customer-specific pricing.',
-                'logistics'        => 'Shipping, delivery management, and carrier integrations.',
-                'procurement'      => 'Purchase orders, supplier management, and procurement workflows.',
-                'marketing'        => 'Marketing campaigns, promotions, and discount code management.',
-                'broadcast'        => 'Email/SMS broadcast to customers and leads.',
-                'social'           => 'Social media integration and management tools.',
-                'seo'              => 'Search engine optimization settings, meta tags, and sitemaps.',
-                'crm'              => 'Customer relationship management: leads, deals, and pipeline.',
-                'documents'        => 'Document management and control for business processes.',
-                'parts_agent'      => 'AI-powered parts inquiry chat agent for customer support.',
-                'erp_home'         => 'ERP overview dashboard with key financial metrics and KPIs.',
-                'erp_gl'           => 'General Ledger: chart of accounts, journal entries, and trial balance.',
-                'erp_ap'           => 'Accounts Payable: vendor invoices, payments, and aging reports.',
-                'erp_ar'           => 'Accounts Receivable: customer invoices, collections, and aging.',
-                'erp_cash'         => 'Cash and bank management: bank accounts, reconciliation, and cash flow.',
-                'erp_tax'          => 'Tax compliance: VAT/GST returns, tax codes, and filing preparation.',
-                'erp_sales'        => 'Sales management: quotations, sales orders, and CRM integration.',
-                'erp_purchasing'   => 'Purchase management: purchase orders, vendor selection, and RFQs.',
-                'erp_inventory'    => 'Inventory management: stock levels, warehouses, and stock movements.',
-                'erp_hr'           => 'Human resources: employee records, leave, attendance, and HR law.',
-                'erp_payroll'      => 'Payroll processing: salary calculation, deductions, and payslips.',
-                'erp_production'   => 'Production planning: BOMs, work orders, and manufacturing.',
-                'erp_projects'     => 'Project management: tasks, milestones, and project accounting.',
-                'erp_warehouse'    => 'Warehouse management: locations, bin management, and picking.',
-                'erp_fixed_assets' => 'Fixed asset register: depreciation, disposal, and asset tracking.',
-                'erp_budgeting'    => 'Budget planning: departmental budgets, variance analysis, and forecasts.',
-                'crosses'          => 'Part cross-references: OEM/aftermarket number matching.',
-                'demand'           => 'Demand analysis by country: popular parts and regional trends.',
-                'auto_price'       => 'AI-powered automatic pricing engine for auto parts.',
-                'synonyms'         => 'Brand synonym mapping for search and matching.',
-                'tax_toolkit'      => 'Tax calculation toolkit for advisory clients.',
-                'free_tools'       => 'Public free tools administration and configuration.',
-                'portal_settings'  => 'Portal configuration: branding, domains, and global settings.',
-                'modern_auth'      => 'Authentication settings: password policies and session management.',
-                'communication'    => 'Communication tools: notifications, messages, and announcements.',
-                'api_docs'         => 'API documentation and developer guide.',
-                'operator_guide'   => 'Platform operator guide and administration manual.',
-            );
-            $modDesc = $moduleDescriptions[$activeModuleInfo['id']] ?? 'Module for ' . $activeModuleInfo['section'] . ' operations.';
-        ?>
-        <div class="bos-module-view" id="bosModuleView">
-            <div class="bos-module-view__header">
-                <div class="bos-module-view__title">
-                    <a href="/bos/?t=<?php echo epc_bos_h($activeTenant); ?>" class="bos-module-view__back" title="Back to modules">
-                        <i class="fa fa-arrow-left"></i>
-                    </a>
-                    <div class="bos-module-view__icon" style="background: <?php echo $modColor; ?>;">
-                        <i class="fa <?php echo epc_bos_h($activeModuleInfo['icon']); ?>"></i>
-                    </div>
-                    <div>
-                        <h2><?php echo epc_bos_h($activeModuleInfo['label']); ?></h2>
-                        <span class="bos-module-view__section">
-                            <i class="fa <?php echo epc_bos_h($activeModuleInfo['section_icon']); ?>"></i>
-                            <?php echo epc_bos_h($activeModuleInfo['section']); ?>
-                        </span>
-                    </div>
-                </div>
-                <?php if ($tenantInfo['hostname']): ?>
-                <div class="bos-module-view__actions">
-                    <?php if ($isErpModule): ?>
-                    <a href="<?php echo $erpBaseUrl; ?>" target="_blank" class="bos-btn bos-btn--primary">
-                        <i class="fa fa-external-link"></i> Open ERP
-                    </a>
-                    <?php else: ?>
-                    <a href="<?php echo $cpBaseUrl; ?>" target="_blank" class="bos-btn bos-btn--primary">
-                        <i class="fa fa-external-link"></i> Open in CP
-                    </a>
-                    <?php endif; ?>
-                </div>
-                <?php endif; ?>
-            </div>
-            <div class="bos-module-view__body">
-                <div class="bos-module-view__content">
-                    <div class="bos-module-view__hero" style="--mod-color: <?php echo $modColor; ?>;">
-                        <div class="bos-module-view__hero-icon">
-                            <i class="fa <?php echo epc_bos_h($activeModuleInfo['icon']); ?>"></i>
-                        </div>
-                        <div class="bos-module-view__hero-info">
-                            <h3><?php echo epc_bos_h($activeModuleInfo['label']); ?></h3>
-                            <p><?php echo epc_bos_h($modDesc); ?></p>
-                        </div>
-                    </div>
-
-                    <div class="bos-module-view__details">
-                        <div class="bos-module-view__detail-card">
-                            <div class="bos-module-view__detail-label">Section</div>
-                            <div class="bos-module-view__detail-value">
-                                <i class="fa <?php echo epc_bos_h($activeModuleInfo['section_icon']); ?>" style="color: <?php echo $modColor; ?>;"></i>
-                                <?php echo epc_bos_h($activeModuleInfo['section']); ?>
-                            </div>
-                        </div>
-                        <div class="bos-module-view__detail-card">
-                            <div class="bos-module-view__detail-label">Tenant</div>
-                            <div class="bos-module-view__detail-value">
-                                <i class="fa fa-building" style="color: var(--bos-primary);"></i>
-                                <?php echo epc_bos_h($tenantInfo['trade_name'] ?: $activeTenant); ?>
-                            </div>
-                        </div>
-                        <?php if ($tenantInfo['hostname']): ?>
-                        <div class="bos-module-view__detail-card">
-                            <div class="bos-module-view__detail-label">Access</div>
-                            <div class="bos-module-view__detail-value">
-                                <i class="fa fa-globe" style="color: var(--bos-success);"></i>
-                                <?php echo epc_bos_h($tenantInfo['hostname']); ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        <div class="bos-module-view__detail-card">
-                            <div class="bos-module-view__detail-label">Type</div>
-                            <div class="bos-module-view__detail-value">
-                                <i class="fa <?php echo $isErpModule ? 'fa-university' : 'fa-cog'; ?>" style="color: <?php echo $modColor; ?>;"></i>
-                                <?php echo $isErpModule ? 'ERP Module' : 'CP Module'; ?>
-                            </div>
-                        </div>
-                    </div>
-
-                    <?php if ($tenantInfo['hostname']): ?>
-                    <div class="bos-module-view__launch">
-                        <?php if ($isErpModule): ?>
-                        <a href="<?php echo $erpBaseUrl; ?>" target="_blank" class="bos-module-view__launch-btn" style="--mod-color: <?php echo $modColor; ?>;">
-                            <i class="fa fa-rocket"></i>
-                            <span>Launch <?php echo epc_bos_h($activeModuleInfo['label']); ?> in ERP</span>
-                            <i class="fa fa-arrow-right"></i>
-                        </a>
-                        <?php else: ?>
-                        <a href="<?php echo $cpBaseUrl; ?>" target="_blank" class="bos-module-view__launch-btn" style="--mod-color: <?php echo $modColor; ?>;">
-                            <i class="fa fa-rocket"></i>
-                            <span>Launch <?php echo epc_bos_h($activeModuleInfo['label']); ?> in Control Panel</span>
-                            <i class="fa fa-arrow-right"></i>
-                        </a>
-                        <?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
             </div>
         </div>
 

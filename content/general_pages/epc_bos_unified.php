@@ -14,7 +14,7 @@ require_once __DIR__ . '/epc_portal_cp_menu.php';
 
 /* ───────────────────── constants ───────────────────── */
 
-define('EPC_BOS_VERSION', '1.3.0');
+define('EPC_BOS_VERSION', '1.3.1');
 define('EPC_BOS_SESSION_KEY', 'epc_bos_context');
 
 /* ───────────────────── session bridge ───────────────────── */
