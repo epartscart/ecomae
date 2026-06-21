@@ -208,15 +208,51 @@
     function bosCreateParticles() {
         var container = document.getElementById('bosParticles');
         if (!container) return;
-        for (var i = 0; i < 30; i++) {
+        var colors = [
+            'rgba(14, 165, 233, .7)',   // sky blue
+            'rgba(14, 165, 233, .5)',   // sky blue lighter
+            'rgba(99, 102, 241, .6)',   // indigo
+            'rgba(99, 102, 241, .4)',   // indigo lighter
+            'rgba(168, 85, 247, .5)',   // purple
+            'rgba(16, 185, 129, .4)',   // emerald
+            'rgba(56, 189, 248, .6)',   // light blue
+            'rgba(255, 255, 255, .3)'   // white
+        ];
+        for (var i = 0; i < 80; i++) {
             var p = document.createElement('div');
             p.className = 'bos-login__particle';
             p.style.left = Math.random() * 100 + '%';
-            p.style.animationDuration = (8 + Math.random() * 12) + 's';
-            p.style.animationDelay = (Math.random() * 10) + 's';
-            p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
-            if (Math.random() > 0.5) {
-                p.style.background = 'rgba(99, 102, 241, .4)';
+            // Varied speeds: some very fast (4s), some very slow (25s)
+            var speed = Math.random();
+            var duration;
+            if (speed < 0.2) {
+                duration = 4 + Math.random() * 4; // fast: 4-8s
+            } else if (speed < 0.5) {
+                duration = 8 + Math.random() * 6; // medium: 8-14s
+            } else {
+                duration = 14 + Math.random() * 12; // slow: 14-26s
+            }
+            p.style.animationDuration = duration + 's';
+            p.style.animationDelay = (Math.random() * 15) + 's';
+            // Varied sizes: tiny (1px) to large (7px)
+            var sizeRand = Math.random();
+            var size;
+            if (sizeRand < 0.4) {
+                size = 1 + Math.random() * 2; // tiny: 1-3px
+            } else if (sizeRand < 0.75) {
+                size = 3 + Math.random() * 2; // medium: 3-5px
+            } else {
+                size = 5 + Math.random() * 3; // large: 5-8px
+            }
+            p.style.width = p.style.height = size + 'px';
+            // Random color
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            p.style.background = color;
+            // Larger particles get a stronger glow
+            if (size > 4) {
+                p.style.boxShadow = '0 0 ' + (size * 3) + 'px ' + color + ', 0 0 ' + (size * 6) + 'px ' + color.replace(/[\d.]+\)$/, '0.2)');
+            } else {
+                p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
             }
             container.appendChild(p);
         }
