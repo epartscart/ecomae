@@ -6,6 +6,10 @@ defined('_ASTEXE_') or die('No access');
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");//Класс пользователь
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/general_pages/epc_portal_shared_erp.php");
+$epc_rate_limit_file = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_login_rate_limit.php';
+if (is_file($epc_rate_limit_file)) { require_once $epc_rate_limit_file; }
+$epc_pwd_upgrade_file = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+if (is_file($epc_pwd_upgrade_file)) { require_once $epc_pwd_upgrade_file; }
 $clientErpRouterFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_client_erp_router.php';
 if (is_file($clientErpRouterFile)) {
 	require_once $clientErpRouterFile;
@@ -39,6 +43,19 @@ if(DP_User::isAdmin() == 0)//Если не авторизован...
 			$contact_type = $_POST["auth_contact_select"];
 			$password = $_POST["password"];
             $auth_result = false;//Результат аутентификации
+            $sharedLoginMessage = '';
+            $demoAuthDetail = '';
+
+			// Rate limiting — block brute-force attempts
+			if (function_exists('epc_login_rate_limit_check')) {
+				$rlResult = epc_login_rate_limit_check($db_link, $auth_contact);
+				if (!empty($rlResult['blocked'])) {
+					$auth_result = false;
+					$retryMin = max(1, (int) ceil(($rlResult['retry_after'] ?? 900) / 60));
+					$sharedLoginMessage = 'Too many failed attempts. Please wait ' . $retryMin . ' minutes before trying again.';
+					goto epc_auth_result_check;
+				}
+			}
             
 			
 			//$contact_type используется в SQL-запросах. Проверяем значение
@@ -52,9 +69,26 @@ if(DP_User::isAdmin() == 0)//Если не авторизован...
             //Проверка логина и пароль
 			$demoCpLogin = function_exists('epc_portal_demo_is_cp_context') && epc_portal_demo_is_cp_context();
 			$demoAuthDetail = '';
-			$check_user_query = $db_link->prepare('SELECT * FROM `users` WHERE `'.$contact_type.'`=? AND `'.$contact_type.'_confirmed`=? AND `password`=? AND `unlocked`=?;');
-			$check_user_query->execute( array(htmlentities($auth_contact), 1, md5($password.$DP_Config->secret_succession), 1) );
-			$user_record = $check_user_query->fetch();//Запись пользователя
+			// Try both legacy MD5 and bcrypt hashing
+			$check_user_query = $db_link->prepare('SELECT * FROM `users` WHERE `'.$contact_type.'`=? AND `'.$contact_type.'_confirmed`=? AND `unlocked`=?;');
+			$check_user_query->execute( array(htmlentities($auth_contact), 1, 1) );
+			$user_record = $check_user_query->fetch();
+			if ($user_record) {
+				$storedPw = (string) ($user_record['password'] ?? '');
+				$pwOk = false;
+				if (password_verify($password, $storedPw)) {
+					$pwOk = true;
+				} elseif (md5($password . $DP_Config->secret_succession) === $storedPw) {
+					$pwOk = true;
+					// Transparent upgrade to bcrypt
+					if (function_exists('epc_password_upgrade_if_needed')) {
+						epc_password_upgrade_if_needed($db_link, (int) $user_record['user_id'], $password, $storedPw);
+					}
+				}
+				if (!$pwOk) {
+					$user_record = false;
+				}
+			}
             if($user_record == false)
             {
                 $auth_result = false;
@@ -192,6 +226,7 @@ if(DP_User::isAdmin() == 0)//Если не авторизован...
                 }
             }
 
+            epc_auth_result_check:
             //ЗДЕСЬ ИДЕТ ПРОВЕРКА ФЛАГА $auth_result...
             if($auth_result == false && $auth_result !== 'pick')
             {
@@ -206,6 +241,10 @@ if(DP_User::isAdmin() == 0)//Если не авторизован...
 
             if($auth_result == false)
             {
+                // Record failed attempt for rate limiting
+                if (function_exists('epc_login_rate_limit_record')) {
+                    epc_login_rate_limit_record($db_link, $auth_contact, false);
+                }
                 //ЗАПРЕЩЕНО!!!
                 //ДИНАМИЧЕСКИ МЕНЯЕМ ШАБЛОН СТРАНИЦЫ - ФОРМА ВХОДА С СООБЩЕНИЕ О НЕПРАВИЛНЫХ УЧЕТНЫХ ДАННЫХ
                 //Путь с файлу шаблона
@@ -270,6 +309,14 @@ if(DP_User::isAdmin() == 0)//Если не авторизован...
             }
             else if($auth_result == true)//Успешная аутентификация
             {
+                // Clear rate limit counter on successful login
+                if (function_exists('epc_login_rate_limit_clear')) {
+                    epc_login_rate_limit_clear($db_link, $auth_contact);
+                }
+                if (function_exists('epc_login_rate_limit_record')) {
+                    epc_login_rate_limit_record($db_link, $auth_contact, true);
+                }
+
                 $time = time();
                 
                 $session_succession = md5($auth_contact.$time.$DP_Config->secret_succession);//Код сессии - собираем его из логина, текущего дампа времени и секретной последовательности
