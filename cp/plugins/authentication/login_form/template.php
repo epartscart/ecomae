@@ -60,6 +60,8 @@ $epcLoginCentered = in_array($epcLogin['type'], array('tenant', 'super', 'client
 
 <div class="color-line"></div>
 
+<div id="epcCpParticles" class="epc-cp-particles"></div>
+
 <div class="epc-cp-login-shell">
 	<div class="epc-cp-login-brand">
 		<div class="epc-cp-login-brand-inner">
@@ -188,6 +190,71 @@ if (is_file($epcAuthSocialFile)) {
 //Маска ввода телефона
 require_once($_SERVER["DOCUMENT_ROOT"]."/lib/inputmask/phone_mask.php");
 ?>
+
+<script>
+(function(){
+    var container = document.getElementById('epcCpParticles');
+    if (!container) return;
+    var colors = [
+        'rgba(14, 165, 233, .8)',
+        'rgba(14, 165, 233, .5)',
+        'rgba(14, 165, 233, .3)',
+        'rgba(56, 189, 248, .7)',
+        'rgba(56, 189, 248, .4)',
+        'rgba(99, 102, 241, .6)',
+        'rgba(99, 102, 241, .3)',
+        'rgba(168, 85, 247, .5)',
+        'rgba(16, 185, 129, .4)',
+        'rgba(255, 255, 255, .4)',
+        'rgba(255, 255, 255, .15)'
+    ];
+    var totalParticles = 180;
+    for (var i = 0; i < totalParticles; i++) {
+        var dot = document.createElement('span');
+        var rnd = Math.random();
+        var size, speed, animName;
+        if (rnd < 0.5) {
+            size = 1 + Math.random() * 1.5;
+        } else if (rnd < 0.8) {
+            size = 2.5 + Math.random() * 2;
+        } else if (rnd < 0.95) {
+            size = 4.5 + Math.random() * 3.5;
+        } else {
+            size = 1 + Math.random();
+        }
+        var spdRnd = Math.random();
+        if (spdRnd < 0.3) {
+            speed = 2.5 + Math.random() * 3.5;
+        } else if (spdRnd < 0.7) {
+            speed = 6 + Math.random() * 6;
+        } else {
+            speed = 12 + Math.random() * 14;
+        }
+        var animRnd = Math.random();
+        if (rnd >= 0.95) {
+            animName = 'epcCpFloatStreak';
+        } else if (animRnd < 0.5) {
+            animName = 'epcCpFloat';
+        } else {
+            animName = 'epcCpFloatDrift';
+        }
+        dot.className = 'epc-cp-particle';
+        var color = colors[Math.floor(Math.random() * colors.length)];
+        var left = Math.random() * 100;
+        var delay = -(Math.random() * speed);
+        var glow = size > 4 ? '0 0 ' + Math.round(size * 2) + 'px ' + color : 'none';
+        var scaleY = rnd >= 0.95 ? (3 + Math.random() * 4) : 1;
+        dot.style.cssText = 'width:' + size + 'px;height:' + size + 'px;'
+            + 'left:' + left + '%;top:-' + (size + 4) + 'px;'
+            + 'background:' + color + ';box-shadow:' + glow + ';'
+            + 'animation:' + animName + ' ' + speed + 's linear ' + delay + 's infinite;'
+            + 'transform:scaleY(' + scaleY + ');'
+            + 'border-radius:' + (rnd >= 0.95 ? '1px' : '50%') + ';'
+            + 'opacity:' + (0.4 + Math.random() * 0.6) + ';';
+        container.appendChild(dot);
+    }
+})();
+</script>
 
 </body>
 </html>

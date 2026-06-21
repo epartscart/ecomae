@@ -514,3 +514,55 @@
 		padding: 24px 20px 22px;
 	}
 }
+
+/* ── Matrix-style particle rain (BOS-inspired) ── */
+.epc-cp-particles {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.epc-cp-particle {
+	position: absolute;
+	border-radius: 50%;
+	will-change: transform;
+}
+
+.epc-cp-login-hero .epc-cp-login-shell {
+	position: relative;
+	z-index: 1;
+}
+
+.epc-cp-login-hero .color-line {
+	position: relative;
+	z-index: 1;
+}
+
+@keyframes epcCpFloat {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(calc(100vh + 20px)); }
+}
+
+@keyframes epcCpFloatDrift {
+	0% { transform: translateY(0) translateX(0); }
+	25% { transform: translateY(25vh) translateX(12px); }
+	50% { transform: translateY(50vh) translateX(-8px); }
+	75% { transform: translateY(75vh) translateX(6px); }
+	100% { transform: translateY(calc(100vh + 20px)) translateX(0); }
+}
+
+@keyframes epcCpFloatStreak {
+	0% { transform: translateY(0) scaleY(var(--sy, 4)); opacity: 0.7; }
+	15% { opacity: 1; }
+	85% { opacity: 0.8; }
+	100% { transform: translateY(calc(100vh + 40px)) scaleY(var(--sy, 4)); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.epc-cp-particle {
+		animation: none !important;
+		display: none;
+	}
+}
