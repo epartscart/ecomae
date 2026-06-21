@@ -306,8 +306,8 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		return false;
 	}
 
-	// BOS app: bypass marketing template and load the BOS shell directly
-	if ($match['page'] === 'bos') {
+	// BOS app: only intercept /bos (no slug) — /bos/article-slug stays as marketing content
+	if ($match['page'] === 'bos' && empty($match['params']['slug'])) {
 		$bosApp = $_SERVER['DOCUMENT_ROOT'] . '/bos/index.php';
 		if (file_exists($bosApp)) {
 			require $bosApp;
@@ -533,8 +533,8 @@ function epc_ecomae_platform_render_standalone($path = null)
 	if ($match === null) {
 		return false;
 	}
-	// BOS app: bypass marketing and load the BOS shell directly
-	if ($match['page'] === 'bos') {
+	// BOS app: only intercept /bos (no slug) — /bos/article-slug stays as marketing content
+	if ($match['page'] === 'bos' && empty($match['params']['slug'])) {
 		$bosApp = $_SERVER['DOCUMENT_ROOT'] . '/bos/index.php';
 		if (file_exists($bosApp)) {
 			require $bosApp;
