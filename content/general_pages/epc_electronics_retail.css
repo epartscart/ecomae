@@ -1,0 +1,1116 @@
+/**
+ * Virgin Megastore–style electronics retail theme.
+ * Scoped to data-epc-storefront="electronics_retail_virgin" (other electronics tenants unaffected).
+ */
+html[data-epc-storefront="electronics_retail_virgin"],
+html[data-epc-industry="electronics"][data-epc-storefront="electronics_retail_virgin"] {
+	--epc-er-red: #e10a0a;
+	--epc-er-red-dark: #b00808;
+	--epc-er-black: #000;
+	--epc-er-gray: #f5f5f5;
+	--epc-er-text: #222;
+	--epc-er-muted: #666;
+	--epc-er-border: #e5e5e5;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] body {
+	background: #fff;
+	color: var(--epc-er-text);
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-portal-tenant-brand-hero,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-tenant-brand-hero,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-portal-hero,
+html[data-epc-storefront="electronics_retail_virgin"] #epc-parts-agent-root,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-parts-agent,
+html[data-epc-storefront="electronics_retail_virgin"] #vinModal,
+html[data-epc-storefront="electronics_retail_virgin"] .section-vin {
+	display: none !important;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-text-logo--electronics {
+	color: var(--epc-er-black);
+	font-size: 26px;
+	font-weight: 900;
+	letter-spacing: -.02em;
+	text-transform: uppercase;
+}
+
+/* Legacy nero header hidden when Virgin chrome is active */
+html[data-epc-storefront="electronics_retail_virgin"] header:not(.epc-er-header):not(.epc-er-header-mobile),
+html[data-epc-storefront="electronics_retail_virgin"] .header-box-mobile:not(.epc-er-header-mobile),
+html[data-epc-storefront="electronics_retail_virgin"] #footer-widgets,
+html[data-epc-storefront="electronics_retail_virgin"] footer#footer:not(.epc-er-footer) {
+	display: none !important;
+}
+
+/* ===== Virgin header chrome ===== */
+.epc-er-utility {
+	background: var(--epc-er-black);
+	border-bottom: 3px solid var(--epc-er-red);
+	color: #fff;
+	font-size: 12px;
+	padding: 8px 0;
+}
+.epc-er-utility .container {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: space-between;
+}
+.epc-er-utility__nav,
+.epc-er-utility__actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+}
+.epc-er-utility__link {
+	color: #fff !important;
+	font-weight: 600;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-er-utility__link:hover {
+	color: var(--epc-er-red) !important;
+}
+.epc-er-utility__link .fa {
+	margin-right: 4px;
+}
+.epc-er-utility__currency select {
+	background: #1a1a1a;
+	border: 1px solid #333;
+	border-radius: 4px;
+	color: #fff;
+	font-size: 11px;
+	height: 28px;
+	padding: 0 8px;
+}
+.epc-er-utility__login .dropdown-menu {
+	min-width: 280px;
+	padding: 12px;
+}
+
+.epc-er-logo-row {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-er-border);
+	padding: 16px 0;
+}
+.epc-er-logo-row__grid {
+	align-items: center;
+	display: grid;
+	gap: 16px;
+	grid-template-columns: minmax(120px, 200px) 1fr auto;
+}
+.epc-er-logo {
+	display: block;
+}
+.epc-er-logo img,
+.epc-er-logo svg {
+	max-height: 52px;
+	width: auto;
+}
+.epc-er-search__form {
+	display: flex;
+	gap: 0;
+}
+.epc-er-search__input {
+	border: 2px solid var(--epc-er-black) !important;
+	border-radius: 4px 0 0 4px !important;
+	box-shadow: none !important;
+	font-size: 14px;
+	height: 44px;
+}
+.epc-er-search__btn {
+	border-radius: 0 4px 4px 0 !important;
+	height: 44px;
+	min-width: 52px;
+	padding: 0 16px;
+}
+.epc-er-logo-row__icons {
+	display: flex;
+	gap: 12px;
+}
+.epc-er-icon-btn {
+	align-items: center;
+	color: var(--epc-er-black) !important;
+	display: inline-flex;
+	font-size: 22px;
+	height: 44px;
+	justify-content: center;
+	position: relative;
+	text-decoration: none !important;
+	width: 44px;
+}
+.epc-er-icon-btn:hover {
+	color: var(--epc-er-red) !important;
+}
+.epc-er-icon-btn__count {
+	background: var(--epc-er-red);
+	border-radius: 999px;
+	color: #fff;
+	font-size: 10px;
+	font-weight: 800;
+	line-height: 1;
+	min-width: 18px;
+	padding: 3px 5px;
+	position: absolute;
+	right: 0;
+	top: 2px;
+}
+
+.epc-er-mega {
+	background: #fff;
+	border-bottom: 2px solid var(--epc-er-black);
+	position: relative;
+}
+.epc-er-mega .container {
+	align-items: center;
+	display: flex;
+	gap: 8px;
+}
+.epc-er-mega__all {
+	background: var(--epc-er-black);
+	border: 0;
+	border-radius: 0;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 800;
+	padding: 14px 18px;
+	text-transform: uppercase;
+}
+.epc-er-mega__all:hover {
+	background: var(--epc-er-red);
+}
+.epc-er-mega__list {
+	display: flex;
+	flex: 1;
+	flex-wrap: wrap;
+	gap: 0;
+	list-style: none;
+	margin: 0;
+	overflow-x: auto;
+	padding: 0;
+}
+.epc-er-mega__item a {
+	color: var(--epc-er-black) !important;
+	display: block;
+	font-size: 12px;
+	font-weight: 700;
+	padding: 14px 12px;
+	text-decoration: none !important;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+.epc-er-mega__item a:hover,
+.epc-er-mega__item--deal a {
+	color: var(--epc-er-red) !important;
+}
+.epc-er-mega__panel {
+	background: #fff;
+	border-top: 1px solid var(--epc-er-border);
+	display: none;
+}
+.epc-er-mega__panel.is-open {
+	display: block;
+}
+
+.epc-er-header-mobile {
+	background: #fff;
+	border-bottom: 2px solid var(--epc-er-black);
+	position: sticky;
+	top: 0;
+	z-index: 220;
+}
+.epc-er-mobile-bar {
+	align-items: center;
+	display: flex;
+	gap: 10px;
+	justify-content: space-between;
+	padding: 10px 15px;
+}
+.epc-er-mobile-bar__toggle {
+	background: transparent;
+	border: 1px solid var(--epc-er-border);
+	margin: 0;
+}
+.epc-er-mobile-bar__logo img,
+.epc-er-mobile-bar__logo svg {
+	max-height: 36px;
+}
+.epc-er-mobile-bar__cart {
+	color: var(--epc-er-black);
+	font-size: 22px;
+	position: relative;
+}
+.epc-er-mobile-search {
+	background: #fff;
+	border-bottom: 1px solid var(--epc-er-border);
+	padding-bottom: 12px;
+	position: sticky;
+	top: 56px;
+	z-index: 219;
+}
+.epc-er-mobile-nav {
+	background: var(--epc-er-gray);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-er-mobile-nav a {
+	border-bottom: 1px solid var(--epc-er-border);
+	color: var(--epc-er-text) !important;
+	display: block;
+	font-weight: 700;
+	padding: 12px 16px;
+	text-decoration: none !important;
+}
+
+/* ===== Virgin footer ===== */
+.epc-er-footer {
+	margin-top: 40px;
+}
+.epc-er-footer__main {
+	background: var(--epc-er-black);
+	color: #ccc;
+	padding: 40px 0 24px;
+}
+.epc-er-footer__grid {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	margin-bottom: 28px;
+}
+.epc-er-footer__title {
+	color: #fff;
+	font-size: 14px;
+	font-weight: 800;
+	margin: 0 0 12px;
+	text-transform: uppercase;
+}
+.epc-er-footer__links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-er-footer__links a {
+	color: #ccc !important;
+	display: block;
+	font-size: 13px;
+	padding: 4px 0;
+	text-decoration: none !important;
+}
+.epc-er-footer__links a:hover {
+	color: #fff !important;
+	text-decoration: underline !important;
+}
+.epc-er-footer__social-row {
+	align-items: center;
+	border-top: 1px solid #333;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	justify-content: space-between;
+	padding-top: 20px;
+}
+.epc-er-footer__social-label {
+	color: #999;
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+}
+.epc-er-footer__social-icon {
+	align-items: center;
+	background: #222;
+	border-radius: 50%;
+	color: #fff !important;
+	display: inline-flex;
+	height: 36px;
+	justify-content: center;
+	margin-right: 8px;
+	text-decoration: none !important;
+	width: 36px;
+}
+.epc-er-footer__social-icon:hover {
+	background: var(--epc-er-red);
+}
+.epc-er-footer__pay-icons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.epc-er-footer__pay img {
+	background: #fff;
+	border-radius: 4px;
+	display: block;
+	height: 32px;
+	object-fit: contain;
+	width: 48px;
+}
+.epc-er-footer__bar {
+	background: #111;
+	border-top: 3px solid var(--epc-er-red);
+	padding: 14px 0;
+}
+.epc-er-footer__copy {
+	color: #888;
+	font-size: 12px;
+	margin: 0;
+	text-align: center;
+}
+.epc-er-footer__copy a {
+	color: #ccc !important;
+}
+
+/* Product badges */
+.epc-er-badge {
+	border-radius: 2px;
+	font-size: 10px;
+	font-weight: 800;
+	left: 8px;
+	letter-spacing: .06em;
+	padding: 4px 8px;
+	position: absolute;
+	text-transform: uppercase;
+	top: 8px;
+	z-index: 2;
+}
+.epc-er-badge--sale {
+	background: var(--epc-er-red);
+	color: #fff;
+}
+.epc-er-badge--new {
+	background: var(--epc-er-black);
+	color: #fff;
+}
+.epc-er-product-card__img {
+	position: relative;
+}
+
+/* Catalog PLP — Virgin product tiles */
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile {
+	background: #fff;
+	border: 1px solid var(--epc-er-border);
+	border-radius: 4px;
+	box-shadow: none;
+	position: relative;
+	transition: box-shadow .2s ease, transform .2s ease;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile:hover {
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .1);
+	transform: translateY(-2px);
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_div_manufacturer {
+	color: var(--epc-er-muted);
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_div_price > .price,
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_price {
+	color: var(--epc-er-red) !important;
+	font-size: 16px;
+	font-weight: 800;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_div_price_crossed_out {
+	color: var(--epc-er-muted);
+	font-size: 13px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile.epc-er-has-sale::before {
+	background: var(--epc-er-red);
+	border-radius: 2px;
+	color: #fff;
+	content: "Sale";
+	font-size: 10px;
+	font-weight: 800;
+	left: 8px;
+	letter-spacing: .06em;
+	padding: 4px 8px;
+	position: absolute;
+	text-transform: uppercase;
+	top: 8px;
+	z-index: 2;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_div_image_wrap,
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_list_photo .product_div_image_wrap {
+	background: #fafafa;
+	border-radius: 4px 4px 0 0;
+	overflow: hidden;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_div_image_wrap img,
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_list_photo .product_div_image_wrap img {
+	transition: transform .4s ease, opacity .35s ease;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile:hover .product_div_image_wrap img,
+html[data-epc-storefront="electronics_retail_virgin"] .product_div_list_photo:hover .product_div_image_wrap img {
+	transform: scale(1.05);
+}
+
+/* Product detail page */
+html[data-epc-storefront="electronics_retail_virgin"] .product_page_wrap .btn-primary,
+html[data-epc-storefront="electronics_retail_virgin"] .product-info-wrap .btn-primary {
+	background: var(--epc-er-red) !important;
+	border-color: var(--epc-er-red) !important;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .product_page_wrap h1,
+html[data-epc-storefront="electronics_retail_virgin"] .product-info-wrap h1 {
+	font-weight: 800;
+}
+
+/* Header — black utility bar, white main, red accents (legacy nero when package off) */
+html[data-epc-industry="electronics"]:not([data-epc-storefront="electronics_retail_virgin"]) .top-menu-line {
+	background: var(--epc-er-black) !important;
+	border-bottom: 3px solid var(--epc-er-red);
+}
+html[data-epc-industry="electronics"] .top-menu-line,
+html[data-epc-industry="electronics"] .top-menu-line a,
+html[data-epc-industry="electronics"] .top-menu-line .navbar-nav > li > a {
+	color: #fff !important;
+}
+html[data-epc-industry="electronics"] .top-menu-line a:hover {
+	color: var(--epc-er-red) !important;
+}
+html[data-epc-industry="electronics"] .logo-line {
+	background: #fff !important;
+	border-bottom: 1px solid var(--epc-er-border);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+}
+html[data-epc-industry="electronics"] .schearch-line,
+html[data-epc-industry="electronics"] .schearch-line #dp_menu {
+	background: #fff !important;
+	border-bottom: 2px solid var(--epc-er-black);
+}
+html[data-epc-industry="electronics"] .schearch-line .navbar-nav > li > a,
+html[data-epc-industry="electronics"] .schearch-line #dp_menu a {
+	color: var(--epc-er-black) !important;
+	font-weight: 700;
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+html[data-epc-industry="electronics"] .schearch-line .navbar-nav > li > a:hover,
+html[data-epc-industry="electronics"] .schearch-line #dp_menu a:hover {
+	color: var(--epc-er-red) !important;
+}
+html[data-epc-industry="electronics"] .btn-primary,
+html[data-epc-industry="electronics"] .btn-ar.btn-primary,
+html[data-epc-industry="electronics"] button.btn-primary {
+	background: var(--epc-er-red) !important;
+	border-color: var(--epc-er-red) !important;
+}
+html[data-epc-industry="electronics"] .btn-primary:hover {
+	background: var(--epc-er-red-dark) !important;
+	border-color: var(--epc-er-red-dark) !important;
+}
+html[data-epc-industry="electronics"] .header-cart-box,
+html[data-epc-industry="electronics"] .header-cart-box i {
+	color: var(--epc-er-black);
+}
+html[data-epc-industry="electronics"] .header-cart-box:hover {
+	color: var(--epc-er-red);
+}
+
+/* Product tiles on catalog pages */
+html[data-epc-industry="electronics"] .product_div_tile {
+	background: #fff;
+	border: 1px solid var(--epc-er-border);
+	border-radius: 4px;
+	box-shadow: none;
+	transition: box-shadow .2s ease, transform .2s ease;
+}
+html[data-epc-industry="electronics"] .product_div_tile:hover {
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .1);
+	transform: translateY(-2px);
+}
+html[data-epc-industry="electronics"] .product_div_tile .product_caption,
+html[data-epc-industry="electronics"] .product_div_tile .product_price {
+	color: var(--epc-er-text);
+}
+html[data-epc-industry="electronics"] .product_div_tile .product_price {
+	color: var(--epc-er-red);
+	font-weight: 800;
+}
+
+/* Hide generic industry hero when retail home is active */
+html[data-epc-industry="electronics"] .epc-portal-hero {
+	display: none;
+}
+
+/* ===== Homepage blocks ===== */
+.epc-er-home {
+	margin: 0 0 32px;
+	padding: 0;
+}
+
+.epc-er-promo-strip {
+	background: var(--epc-er-red);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 700;
+	padding: 10px 0;
+}
+.epc-er-promo-strip__track {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 24px;
+	justify-content: center;
+}
+.epc-er-promo-strip__item {
+	color: #fff !important;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+.epc-er-promo-strip__item:hover {
+	opacity: .85;
+	text-decoration: underline !important;
+}
+
+.epc-er-hero {
+	min-height: 320px;
+	margin: 0 0 20px;
+	padding: 16px 0 0;
+}
+.epc-er-hero__carousel {
+	position: relative;
+}
+.epc-er-hero__slides {
+	min-height: 340px;
+	position: relative;
+}
+.epc-er-hero__slide {
+	align-items: center;
+	background: var(--epc-er-black);
+	border-radius: 8px;
+	color: #fff;
+	display: grid;
+	gap: 24px;
+	grid-template-columns: 1fr 1fr;
+	min-height: 340px;
+	opacity: 0;
+	overflow: hidden;
+	padding: 36px 40px;
+	position: absolute;
+	transition: opacity .55s ease;
+	visibility: hidden;
+	width: 100%;
+	z-index: 0;
+}
+.epc-er-hero__slide.is-active {
+	opacity: 1;
+	position: relative;
+	visibility: visible;
+	z-index: 1;
+}
+.epc-er-hero__slide--light {
+	background: var(--epc-er-gray);
+	color: var(--epc-er-text);
+}
+.epc-er-hero__copy h1 {
+	color: inherit;
+	font-size: clamp(26px, 4vw, 36px);
+	font-weight: 800;
+	line-height: 1.15;
+	margin: 0 0 12px;
+}
+.epc-er-hero__copy p {
+	font-size: 16px;
+	line-height: 1.5;
+	margin: 0 0 20px;
+	opacity: .9;
+}
+.epc-er-hero__media-frame {
+	border-radius: 8px;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+	overflow: hidden;
+	position: relative;
+}
+.epc-er-hero__photo {
+	display: block;
+	height: 300px;
+	object-fit: cover;
+	width: 100%;
+}
+.epc-er-hero__slide.is-active .epc-er-hero__photo {
+	animation: epc-er-kenburns 16s ease-out forwards;
+}
+@keyframes epc-er-kenburns {
+	from {
+		transform: scale(1);
+	}
+	to {
+		transform: scale(1.09);
+	}
+}
+.epc-er-hero__slide:not(.is-active) .epc-er-hero__photo {
+	animation: none;
+	transform: scale(1);
+}
+.epc-er-hero__dots {
+	bottom: 14px;
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	left: 0;
+	position: absolute;
+	right: 0;
+}
+.epc-er-hero__dot {
+	background: rgba(255, 255, 255, .4);
+	border: 0;
+	border-radius: 50%;
+	cursor: pointer;
+	height: 10px;
+	padding: 0;
+	width: 10px;
+}
+.epc-er-hero__dot.is-active {
+	background: var(--epc-er-red);
+}
+
+.epc-er-btn {
+	border-radius: 4px;
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 800;
+	padding: 12px 22px;
+	text-decoration: none !important;
+	text-transform: uppercase;
+}
+.epc-er-btn--primary {
+	background: var(--epc-er-red);
+	color: #fff !important;
+}
+.epc-er-btn--primary:hover {
+	background: var(--epc-er-red-dark);
+}
+
+/* Trust badges — delivery, warranty, returns */
+.epc-er-trust {
+	background: var(--epc-er-gray);
+	border-bottom: 1px solid var(--epc-er-border);
+	border-top: 1px solid var(--epc-er-border);
+	margin-bottom: 24px;
+	padding: 20px 0;
+}
+.epc-er-trust__grid {
+	display: grid;
+	gap: 16px 24px;
+	grid-template-columns: repeat(4, 1fr);
+}
+.epc-er-trust__item {
+	align-items: flex-start;
+	display: flex;
+	gap: 12px;
+}
+.epc-er-trust__item i {
+	color: var(--epc-er-red);
+	flex-shrink: 0;
+	font-size: 22px;
+	margin-top: 2px;
+}
+.epc-er-trust__item strong {
+	color: var(--epc-er-black);
+	display: block;
+	font-size: 13px;
+	font-weight: 800;
+	line-height: 1.25;
+	margin-bottom: 2px;
+	text-transform: uppercase;
+}
+.epc-er-trust__item span {
+	color: var(--epc-er-muted);
+	display: block;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.epc-er-section {
+	margin-bottom: 36px;
+}
+.epc-er-section__head {
+	align-items: baseline;
+	display: flex;
+	gap: 16px;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+.epc-er-section__title {
+	font-size: 22px;
+	font-weight: 800;
+	margin: 0 0 8px;
+	text-transform: capitalize;
+}
+.epc-er-section__lead {
+	color: var(--epc-er-muted);
+	font-size: 14px;
+	margin: 0 0 16px;
+	max-width: 52em;
+}
+.epc-er-section__head .epc-er-section__title {
+	margin-bottom: 0;
+}
+.epc-er-section__link {
+	color: var(--epc-er-red) !important;
+	font-size: 14px;
+	font-weight: 700;
+	text-decoration: none !important;
+}
+.epc-er-section__link:hover {
+	text-decoration: underline !important;
+}
+
+.epc-er-cat-scroll {
+	display: flex;
+	gap: 16px;
+	overflow-x: auto;
+	padding-bottom: 8px;
+	scrollbar-width: thin;
+}
+.epc-er-cat-tile {
+	align-items: center;
+	background: #fff;
+	border: 1px solid var(--epc-er-border);
+	border-radius: 8px;
+	color: var(--epc-er-text) !important;
+	display: flex;
+	flex: 0 0 130px;
+	flex-direction: column;
+	gap: 10px;
+	padding: 16px 12px;
+	text-align: center;
+	text-decoration: none !important;
+	transition: border-color .2s, box-shadow .2s;
+}
+.epc-er-cat-tile:hover {
+	border-color: var(--epc-er-red);
+	box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+}
+.epc-er-cat-tile__img {
+	border-radius: 10px;
+	height: 96px;
+	overflow: hidden;
+	width: 96px;
+}
+.epc-er-cat-tile__img img {
+	height: 100%;
+	object-fit: cover;
+	transition: transform .4s ease, opacity .35s ease;
+	width: 100%;
+}
+.epc-er-cat-tile:hover .epc-er-cat-tile__img img {
+	transform: scale(1.1);
+}
+.epc-er-cat-tile__name {
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.epc-er-product-row {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.epc-er-product-card {
+	background: #fff;
+	border: 1px solid var(--epc-er-border);
+	border-radius: 4px;
+	overflow: hidden;
+	transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.epc-er-product-card:hover {
+	border-color: rgba(225, 10, 10, .35);
+	box-shadow: 0 10px 24px rgba(0, 0, 0, .1);
+	transform: translateY(-3px);
+}
+.epc-er-product-card__link {
+	color: inherit !important;
+	display: block;
+	padding: 12px;
+	text-decoration: none !important;
+}
+.epc-er-product-card__img {
+	align-items: center;
+	aspect-ratio: 1;
+	background: #fafafa;
+	display: flex;
+	justify-content: center;
+	margin-bottom: 10px;
+	min-height: 180px;
+	overflow: hidden;
+}
+.epc-er-product-card__img img {
+	display: block;
+	max-height: 180px;
+	min-height: 120px;
+	max-width: 100%;
+	object-fit: contain;
+	opacity: 1;
+	transition: transform .4s ease, opacity .35s ease;
+}
+.epc-er-product-card:hover .epc-er-product-card__img img {
+	opacity: 1;
+	transform: scale(1.07);
+}
+.epc-er-product-card__brand {
+	color: var(--epc-er-muted);
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: .06em;
+	margin-bottom: 4px;
+	text-transform: uppercase;
+}
+.epc-er-product-card__sku {
+	color: var(--epc-er-muted);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: .06em;
+	margin-bottom: 4px;
+	opacity: .85;
+	text-transform: uppercase;
+}
+.epc-er-product-card__name {
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.35;
+	margin: 0 0 8px;
+	min-height: 2.7em;
+}
+.epc-er-product-card__price strong {
+	color: var(--epc-er-red);
+	font-size: 16px;
+	font-weight: 800;
+}
+.epc-er-product-card__price s {
+	color: var(--epc-er-muted);
+	font-size: 13px;
+	margin-left: 6px;
+}
+
+.epc-er-brand-strip {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.epc-er-brand-pill {
+	background: #fff;
+	border: 1px solid var(--epc-er-border);
+	border-radius: 999px;
+	color: var(--epc-er-text) !important;
+	font-size: 13px;
+	font-weight: 700;
+	padding: 10px 20px;
+	text-decoration: none !important;
+	transition: all .2s;
+}
+.epc-er-brand-pill:hover {
+	background: var(--epc-er-black);
+	border-color: var(--epc-er-black);
+	color: #fff !important;
+}
+
+.epc-er-featured-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.epc-er-featured-card {
+	border-radius: 8px;
+	display: block;
+	overflow: hidden;
+	position: relative;
+	text-decoration: none !important;
+}
+.epc-er-featured-card img {
+	display: block;
+	height: 160px;
+	object-fit: cover;
+	transition: transform .45s ease;
+	width: 100%;
+}
+.epc-er-featured-card:hover img {
+	transform: scale(1.06);
+}
+.epc-er-featured-card__label {
+	background: linear-gradient(transparent, rgba(0, 0, 0, .75));
+	bottom: 0;
+	color: #fff;
+	font-size: 16px;
+	font-weight: 800;
+	left: 0;
+	padding: 24px 14px 12px;
+	position: absolute;
+	right: 0;
+}
+
+.epc-er-services {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.epc-er-service-card {
+	align-items: flex-start;
+	background: var(--epc-er-gray);
+	border: 1px solid var(--epc-er-border);
+	border-radius: 8px;
+	color: var(--epc-er-text) !important;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 20px;
+	text-decoration: none !important;
+	transition: border-color .2s;
+}
+.epc-er-service-card:hover {
+	border-color: var(--epc-er-red);
+}
+.epc-er-service-card i {
+	color: var(--epc-er-red);
+	font-size: 24px;
+}
+.epc-er-service-card strong {
+	font-size: 15px;
+}
+.epc-er-service-card span {
+	color: var(--epc-er-muted);
+	font-size: 13px;
+}
+
+/* Footer tint */
+html[data-epc-industry="electronics"] footer#footer,
+html[data-epc-industry="electronics"] footer.footer {
+	background: var(--epc-er-black) !important;
+	color: #ccc !important;
+}
+html[data-epc-industry="electronics"] footer#footer a,
+html[data-epc-industry="electronics"] footer.footer a {
+	color: #fff !important;
+}
+
+/* Scroll reveal — always visible */
+.epc-er-reveal {
+	opacity: 1;
+	transform: none;
+	transition: opacity .55s ease, transform .55s ease;
+}
+.epc-er-reveal.is-visible {
+	opacity: 1;
+	transform: none;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] body {
+	background: #fff !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	height: auto !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] #preloader {
+	display: none !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] #sb-site .boxed > .container {
+	min-height: 0 !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] #sb-site #Container > .epc-goods-catalog,
+html[data-epc-storefront="electronics_retail_virgin"] #sb-site .news_box,
+html[data-epc-storefront="electronics_retail_virgin"] #sb-site .section-news {
+	display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.epc-er-reveal {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
+	.epc-er-hero__slide {
+		transition: none;
+	}
+	.epc-er-hero__slide.is-active .epc-er-hero__photo,
+	.epc-er-hero__photo {
+		animation: none !important;
+		transform: none !important;
+	}
+	.epc-er-product-card,
+	.epc-er-product-card__img img,
+	.epc-er-product-card:hover,
+	.epc-er-cat-tile__img img,
+	.epc-er-featured-card img,
+	html[data-epc-storefront="electronics_retail_virgin"] .product_div_tile .product_div_image_wrap img {
+		transform: none !important;
+		transition: none !important;
+	}
+}
+
+@media (max-width: 768px) {
+	.epc-er-trust__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.epc-er-hero__slide {
+		grid-template-columns: 1fr;
+		min-height: auto;
+		padding: 24px 20px 48px;
+	}
+	.epc-er-hero__copy h1 {
+		font-size: 26px;
+	}
+	.epc-er-hero__media {
+		order: -1;
+	}
+	.epc-er-product-row {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Full-width storefront — override site_professional_shell grey boxed squash */
+html[data-epc-storefront="electronics_retail_virgin"] {
+	--epc-max-w: min(1728px, 98vw);
+	--epc-pad-x: clamp(12px, 1vw, 24px);
+}
+html[data-epc-storefront="electronics_retail_virgin"] body {
+	background: #fff !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] #sb-site,
+html[data-epc-storefront="electronics_retail_virgin"] .boxed {
+	background: #fff !important;
+	box-shadow: none !important;
+	margin: 0 !important;
+	max-width: 100% !important;
+	padding: 0 !important;
+	width: 100% !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .top-menu-line > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .logo-line > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .schearch-line > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .schearch-line #dp_menu > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .main-header > .container,
+html[data-epc-storefront="electronics_retail_virgin"] #sb-site .boxed > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-home-pro .container,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-home-banners .container,
+html[data-epc-storefront="electronics_retail_virgin"] .section-vin > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .container.epart-front-original-data,
+html[data-epc-storefront="electronics_retail_virgin"] header .container,
+html[data-epc-storefront="electronics_retail_virgin"] #footer-widgets > .container,
+html[data-epc-storefront="electronics_retail_virgin"] footer#footer .container,
+html[data-epc-storefront="electronics_retail_virgin"] footer.footer .container,
+html[data-epc-storefront="electronics_retail_virgin"] body > .container,
+html[data-epc-storefront="electronics_retail_virgin"] .alert .container,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-home .container,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-home,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-header,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-footer {
+	max-width: var(--epc-max-w) !important;
+	width: 98% !important;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-home,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-header,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-footer {
+	max-width: 100% !important;
+	width: 100% !important;
+}

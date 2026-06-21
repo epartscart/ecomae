@@ -1,0 +1,153 @@
+/**
+ * Electronicae product-line storefront — homepage grid, hero fallbacks, empty states.
+ */
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	margin-top: 8px;
+}
+@media (min-width: 576px) {
+	html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+@media (min-width: 992px) {
+	html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 20px;
+	}
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card {
+	background: #fff;
+	border: 1px solid var(--epc-er-border, #e5e5e5);
+	border-radius: 16px;
+	color: var(--epc-er-text, #222);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	text-decoration: none !important;
+	transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card:hover {
+	border-color: var(--epc-el-accent, #e10a0a);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .08);
+	transform: translateY(-3px);
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__media {
+	align-items: center;
+	aspect-ratio: 1;
+	background: linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%);
+	display: flex;
+	justify-content: center;
+	overflow: hidden;
+	position: relative;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__media img {
+	height: 100%;
+	object-fit: contain;
+	padding: 16px;
+	width: 100%;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__icon {
+	align-items: center;
+	color: var(--epc-el-accent, #e10a0a);
+	display: flex;
+	font-size: 42px;
+	height: 100%;
+	justify-content: center;
+	width: 100%;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__body {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 14px 16px 16px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__name {
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.25;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__meta {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	font-size: 12px;
+	gap: 8px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__count {
+	color: var(--epc-er-muted, #666);
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__soon {
+	color: var(--epc-er-muted, #666);
+	font-style: italic;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-pl-card__hot {
+	background: #fff3e0;
+	border-radius: 999px;
+	color: #e65100;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .04em;
+	padding: 2px 8px;
+	text-transform: uppercase;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-hero-icon-slide .epc-er-hero__media-frame {
+	align-items: center;
+	background: linear-gradient(135deg, #111 0%, #333 100%);
+	display: flex;
+	justify-content: center;
+	min-height: 320px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-hero-icon-slide .epc-el-hero-fallback {
+	color: #fff;
+	font-size: 96px;
+	opacity: .92;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-empty-category {
+	padding: 48px 16px 64px;
+	text-align: center;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-empty-category__inner {
+	background: #fafafa;
+	border: 1px dashed var(--epc-er-border, #e5e5e5);
+	border-radius: 16px;
+	margin: 0 auto;
+	max-width: 520px;
+	padding: 40px 28px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-empty-category__inner .fa {
+	color: var(--epc-er-red, #e10a0a);
+	font-size: 36px;
+	margin-bottom: 12px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-empty-category__inner h3 {
+	font-size: 22px;
+	font-weight: 800;
+	margin: 0 0 8px;
+}
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-empty-category__inner p {
+	color: var(--epc-er-muted, #666);
+	margin: 0 0 20px;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-mega__item-count {
+	background: #eee;
+	border-radius: 999px;
+	color: #555;
+	font-size: 10px;
+	font-weight: 700;
+	margin-left: 4px;
+	padding: 1px 6px;
+	vertical-align: middle;
+}
+
+html[data-epc-storefront="electronics_retail_virgin"] .epc-el-demo-fallback {
+	display: none !important;
+}

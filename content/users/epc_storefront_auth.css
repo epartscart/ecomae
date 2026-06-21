@@ -1,0 +1,135 @@
+/* Storefront login & registration — centered card layout (all tenants) */
+.epc-auth-page {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 480px;
+	margin: 0 auto;
+	padding: 28px 16px 48px;
+}
+
+.epc-auth-page--wide {
+	max-width: 720px;
+}
+
+.epc-auth-page .panel {
+	margin-bottom: 16px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.epc-auth-page .panel:last-of-type {
+	margin-bottom: 0;
+}
+
+.epc-auth-page .epc-reg-social-panel {
+	margin-bottom: 14px;
+}
+
+.epc-auth-page #regform > button,
+.epc-auth-page #captcha {
+	display: block;
+	max-width: 100%;
+}
+
+.epc-auth-page #regform > button {
+	margin: 16px auto 0;
+	min-width: 200px;
+}
+
+.epc-auth-page #captcha {
+	margin: 16px 0;
+	text-align: center;
+}
+
+.epc-auth-page .epc-reg-type-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 0;
+}
+
+.epc-auth-page .epc-reg-type-tabs > li {
+	float: none;
+	margin-bottom: -1px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.epc-auth-page .epc-reg-type-tabs > li > a {
+	white-space: normal;
+	text-align: center;
+	padding: 8px 10px;
+	font-size: 13px;
+}
+
+.epc-auth-page .epc-reg-account-panel .tab-content {
+	overflow: hidden;
+}
+
+.epc-auth-page .epc-reg-account-panel .nav-tabs {
+	max-width: 100%;
+}
+
+@media (min-width: 768px) {
+	.epc-auth-page .form-group .control-label {
+		padding-top: 7px;
+	}
+}
+
+@media (max-width: 767px) {
+	.epc-auth-page {
+		padding: 20px 16px 40px;
+	}
+
+	.epc-auth-page .form-group .control-label {
+		text-align: left;
+		margin-bottom: 4px;
+	}
+
+	.epc-auth-page .form-group > [class*="col-"] {
+		width: 100%;
+		float: none;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+}
+
+.epc-auth-page > .panel-primary.epc-login-page {
+	margin-bottom: 0;
+}
+
+.epc-auth-page .epc-social-divider {
+	margin: 12px 0;
+}
+
+.epc-auth-page .login_form--page {
+	margin: 0;
+}
+
+.epc-auth-page .login_form--page > .col-lg-12 {
+	padding-left: 0;
+	padding-right: 0;
+	float: none;
+	width: 100%;
+}
+
+.epc-auth-page .login_form--page .tab-content,
+.epc-auth-page .login_form--page .tab-pane,
+.epc-auth-page .login_form--page .panel-body.no-auth {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.epc-auth-page .epc-pass-login .login-input,
+.epc-auth-page .epc-pass-login .form-control {
+	max-width: 100%;
+}
+
+.epc-auth-page .epc-pass-login .btn_auth,
+.epc-auth-page .epc-pass-login .btn_reg,
+.epc-auth-page .epc-pass-login .btn_forget {
+	margin-bottom: 6px;
+}
+
+.epc-auth-page .epc-social-top {
+	margin: 0 0 12px;
+}

@@ -1,0 +1,149 @@
+{
+    "ok": true,
+    "tested_at": "2026-05-24T18:57:39+02:00",
+    "overall_grade": "A",
+    "summary": {
+        "storefront_pages": 6,
+        "avg_storefront_ms": 382,
+        "avg_api_ms": 323,
+        "grade_counts": {
+            "A": 9,
+            "B": 1,
+            "C": 1,
+            "D": 0
+        }
+    },
+    "results": [
+        {
+            "url": "https:\/\/www.epartscart.com\/en\/",
+            "http": 200,
+            "time_ms": 674,
+            "bytes": 334059,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "A",
+            "group": "storefront",
+            "label": "\/en\/"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/en\/umapi_catalog",
+            "http": 200,
+            "time_ms": 118,
+            "bytes": 287436,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "A",
+            "group": "storefront",
+            "label": "\/en\/umapi_catalog"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/en\/vehicle-catalog",
+            "http": 200,
+            "time_ms": 142,
+            "bytes": 309570,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "A",
+            "group": "storefront",
+            "label": "\/en\/vehicle-catalog"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/en\/parts\/555\/SB2162",
+            "http": 200,
+            "time_ms": 1112,
+            "bytes": 644970,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "C",
+            "group": "storefront",
+            "label": "\/en\/parts\/555\/SB2162"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/en\/shop\/cart",
+            "http": 200,
+            "time_ms": 122,
+            "bytes": 255965,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "A",
+            "group": "storefront",
+            "label": "\/en\/shop\/cart"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/en\/available-brands",
+            "http": 200,
+            "time_ms": 122,
+            "bytes": 268174,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "A",
+            "group": "storefront",
+            "label": "\/en\/available-brands"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/api\/umapi_proxy.php?action=manufacturers&section=passenger&language=en&region=WWW",
+            "http": 200,
+            "time_ms": 199,
+            "bytes": 160737,
+            "content_encoding": "br",
+            "cache_control": "public, max-age=7200, stale-while-revalidate=86400",
+            "grade": "A",
+            "group": "api",
+            "label": "\/api\/umapi_proxy.php?action=manufacturers&section=passenger&language=en&region=WWW"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/api\/umapi_proxy.php?action=status",
+            "http": 200,
+            "time_ms": 8,
+            "bytes": 568,
+            "content_encoding": "br",
+            "cache_control": "public, max-age=60, stale-while-revalidate=86400",
+            "grade": "A",
+            "group": "api",
+            "label": "\/api\/umapi_proxy.php?action=status"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/api\/crossbase_status.php",
+            "http": 200,
+            "time_ms": 762,
+            "bytes": 390,
+            "content_encoding": "br",
+            "cache_control": "",
+            "grade": "A",
+            "group": "api",
+            "label": "\/api\/crossbase_status.php"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/templates\/nero\/assets\/css\/style_all.css",
+            "http": 200,
+            "time_ms": 21,
+            "bytes": 537283,
+            "content_encoding": "br",
+            "cache_control": "max-age=315360000",
+            "grade": "B",
+            "group": "static",
+            "label": "\/templates\/nero\/assets\/css\/style_all.css"
+        },
+        {
+            "url": "https:\/\/www.epartscart.com\/templates\/nero\/assets\/js\/vendors_main.js",
+            "http": 200,
+            "time_ms": 10,
+            "bytes": 123002,
+            "content_encoding": "br",
+            "cache_control": "max-age=315360000",
+            "grade": "A",
+            "group": "static",
+            "label": "\/templates\/nero\/assets\/js\/vendors_main.js"
+        }
+    ],
+    "notes": [
+        "Grades: A ≤1.5s & ≤400KB HTML, B ≤3s & ≤600KB, C ≤6s, D slower\/larger.",
+        "Storefront HTML is PHP-dynamic (Cloudflare cf-cache-status: DYNAMIC) — focus on payload size + deferred JS.",
+        "UMAPI catalog APIs should use browser cache (Cache-Control) when served from DB\/cache.",
+        "Static CSS\/JS should have long cache (already max-age on template assets)."
+    ],
+    "cp_links": {
+        "orders_guide": "\/cp\/shop\/orders\/guide",
+        "config": "\/cp\/control\/config"
+    }
+}

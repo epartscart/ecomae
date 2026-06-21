@@ -1,0 +1,32 @@
+textarea {
+    width: 100%; /* Ширина поля в процентах */
+    height: 200px; /* Высота поля в пикселах */
+    resize: none; /* Запрещаем изменять размер */
+}
+
+.notification {
+	background: #e97575;
+	color: white;
+	text-shadow: 0 0 1px black;
+	padding: 10px;
+	font-size: 14px;
+}
+
+.place_return_item_img {
+    overflow: hidden;
+    width: 70px;
+    height: 70px;
+    margin-right: 5px;
+}
+
+.return_item_img {
+    min-height: 70px;
+    width: 100%;
+    border: 1px solid lightgrey;
+    cursor: pointer;
+}
+
+.place_return_item_img:hover {
+    transition-duration: 0.4s;
+    transform: scale(1.2);
+}

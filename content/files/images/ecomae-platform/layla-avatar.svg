@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-label="Layla — ECOM AE AI demo specialist">
+  <defs>
+    <linearGradient id="layla-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0e7490"/>
+      <stop offset="55%" stop-color="#164e63"/>
+      <stop offset="100%" stop-color="#171717"/>
+    </linearGradient>
+    <linearGradient id="layla-skin" x1="0.35" y1="0" x2="0.65" y2="1">
+      <stop offset="0%" stop-color="#fde8d8"/>
+      <stop offset="40%" stop-color="#f5cbb8"/>
+      <stop offset="100%" stop-color="#e8b49a"/>
+    </linearGradient>
+    <linearGradient id="layla-skin-shadow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d4a088" stop-opacity=".35"/>
+      <stop offset="50%" stop-color="#f5cbb8" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#c98872" stop-opacity=".3"/>
+    </linearGradient>
+    <linearGradient id="layla-hair" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#5c4033"/>
+      <stop offset="50%" stop-color="#3d2914"/>
+      <stop offset="100%" stop-color="#2a1a0e"/>
+    </linearGradient>
+    <linearGradient id="layla-cyan" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#b01722"/>
+      <stop offset="100%" stop-color="#e11d2a"/>
+    </linearGradient>
+    <radialGradient id="layla-glow" cx="50%" cy="34%" r="55%">
+      <stop offset="0%" stop-color="#fca5a5" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#fca5a5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="layla-suit" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#171717"/>
+    </linearGradient>
+    <linearGradient id="layla-iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6b4423"/>
+      <stop offset="100%" stop-color="#3d2314"/>
+    </linearGradient>
+    <linearGradient id="layla-lip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4847a"/>
+      <stop offset="100%" stop-color="#b85c5a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient halo (soft, not horror void) -->
+  <ellipse cx="240" cy="268" rx="205" ry="225" fill="url(#layla-glow)"/>
+  <circle cx="240" cy="268" r="212" fill="none" stroke="url(#layla-cyan)" stroke-width="2" opacity=".32"/>
+  <circle cx="240" cy="268" r="200" fill="none" stroke="url(#layla-cyan)" stroke-width="1" opacity=".18" stroke-dasharray="5 9"/>
+  <circle cx="240" cy="268" r="188" fill="url(#layla-bg)"/>
+
+  <!-- Shoulders / blazer -->
+  <path d="M88 430 Q115 365 175 348 L305 348 Q365 365 392 430 L392 530 L88 530 Z" fill="url(#layla-suit)"/>
+  <path d="M130 410 Q240 392 350 410 L332 530 L148 530 Z" fill="#243b5c" opacity=".82"/>
+  <path d="M205 352 L240 438 L275 352" fill="none" stroke="#e11d2a" stroke-width="1.8" opacity=".4"/>
+  <rect x="108" y="398" width="28" height="18" rx="4" fill="#171717" stroke="#e11d2a" stroke-width="1" opacity=".65"/>
+  <rect x="344" y="398" width="28" height="18" rx="4" fill="#171717" stroke="#e11d2a" stroke-width="1" opacity=".65"/>
+
+  <!-- Neck -->
+  <path d="M198 338 Q240 358 282 338 L272 378 Q240 388 208 378 Z" fill="url(#layla-skin)"/>
+  <ellipse cx="240" cy="368" rx="34" ry="22" fill="url(#layla-skin)"/>
+
+  <!-- Hair back layer -->
+  <path d="M148 205 Q152 108 240 92 Q328 108 332 205 Q318 175 240 162 Q162 175 148 205 Z" fill="url(#layla-hair)"/>
+  <path d="M162 138 Q240 112 318 138 Q292 122 240 118 Q188 122 162 138 Z" fill="#4a3428" opacity=".4"/>
+
+  <!-- Face -->
+  <ellipse cx="240" cy="248" rx="88" ry="98" fill="url(#layla-skin)"/>
+  <ellipse cx="240" cy="252" rx="88" ry="98" fill="url(#layla-skin-shadow)"/>
+
+  <!-- Hair side framing -->
+  <path d="M124 250 Q108 300 118 348 Q136 302 150 268 Z" fill="#3d2914"/>
+  <path d="M356 250 Q372 300 362 348 Q344 302 330 268 Z" fill="#3d2914"/>
+  <path d="M158 188 Q188 168 240 164 Q292 168 322 188 Q298 176 240 172 Q182 176 158 188 Z" fill="#4a3428" opacity=".55"/>
+
+  <!-- Ears (subtle) -->
+  <ellipse cx="154" cy="258" rx="10" ry="14" fill="#e8b49a"/>
+  <ellipse cx="326" cy="258" rx="10" ry="14" fill="#e8b49a"/>
+
+  <!-- Cheeks -->
+  <ellipse cx="178" cy="278" rx="22" ry="12" fill="#f0a0a0" opacity=".22"/>
+  <ellipse cx="302" cy="278" rx="22" ry="12" fill="#f0a0a0" opacity=".22"/>
+
+  <!-- Eyebrows -->
+  <path d="M178 222 Q198 214 218 220" fill="none" stroke="#4a3428" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M262 220 Q282 214 302 222" fill="none" stroke="#4a3428" stroke-width="3.2" stroke-linecap="round"/>
+
+  <!-- Eyes — natural iris & pupil (no glow) -->
+  <ellipse cx="198" cy="248" rx="20" ry="14" fill="#fff"/>
+  <ellipse cx="282" cy="248" rx="20" ry="14" fill="#fff"/>
+  <ellipse cx="200" cy="249" rx="11" ry="12" fill="url(#layla-iris)"/>
+  <ellipse cx="284" cy="249" rx="11" ry="12" fill="url(#layla-iris)"/>
+  <circle cx="202" cy="250" r="5" fill="#1a1208"/>
+  <circle cx="286" cy="250" r="5" fill="#1a1208"/>
+  <circle cx="204" cy="246" r="2.2" fill="#fff" opacity=".92"/>
+  <circle cx="288" cy="246" r="2.2" fill="#fff" opacity=".92"/>
+  <path d="M178 238 Q198 232 218 238" fill="none" stroke="#3d2914" stroke-width="2" stroke-linecap="round" opacity=".35"/>
+  <path d="M262 238 Q282 232 302 238" fill="none" stroke="#3d2914" stroke-width="2" stroke-linecap="round" opacity=".35"/>
+
+  <!-- Nose -->
+  <path d="M240 258 L236 276 Q240 282 244 276 Z" fill="#d4a088" opacity=".45"/>
+
+  <!-- Smile (lip-sync target — single path only) -->
+  <g class="layla-mouth">
+    <path d="M208 292 Q240 312 272 292 Q240 302 208 292 Z" fill="url(#layla-lip)" stroke="#a85a52" stroke-width="1"/>
+  </g>
+  <path d="M218 294 Q240 300 262 294" fill="#fff" opacity=".75"/>
+
+  <!-- Subtle tech cheek accents -->
+  <path d="M168 288 Q176 282 184 288" fill="none" stroke="#e11d2a" stroke-width="1.2" opacity=".28" stroke-linecap="round"/>
+  <path d="M296 288 Q304 282 312 288" fill="none" stroke="#e11d2a" stroke-width="1.2" opacity=".28" stroke-linecap="round"/>
+
+  <!-- Headset -->
+  <path d="M120 250 Q120 192 240 178 Q360 192 360 250" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
+  <path d="M120 250 Q120 192 240 178 Q360 192 360 250" fill="none" stroke="url(#layla-cyan)" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <rect x="104" y="240" width="26" height="42" rx="9" fill="#1e293b" stroke="url(#layla-cyan)" stroke-width="1.8"/>
+  <rect x="350" y="240" width="26" height="42" rx="9" fill="#1e293b" stroke="url(#layla-cyan)" stroke-width="1.8"/>
+  <circle cx="117" cy="261" r="4.5" fill="#e11d2a" opacity=".85">
+    <animate attributeName="opacity" values=".85;.45;.85" dur="2.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="363" cy="261" r="4.5" fill="#e11d2a" opacity=".85">
+    <animate attributeName="opacity" values=".85;.45;.85" dur="2.4s" repeatCount="indefinite"/>
+  </circle>
+  <path d="M348 284 Q318 308 286 300" fill="none" stroke="#475569" stroke-width="2.8" stroke-linecap="round"/>
+  <circle cx="282" cy="300" r="6.5" fill="#1e293b" stroke="#e11d2a" stroke-width="1.4"/>
+
+  <!-- AI badge -->
+  <g transform="translate(298,112)">
+    <rect x="0" y="0" width="88" height="34" rx="17" fill="#171717" stroke="url(#layla-cyan)" stroke-width="1.8" opacity=".92"/>
+    <circle cx="17" cy="17" r="5" fill="#e11d2a" opacity=".9">
+      <animate attributeName="opacity" values=".9;.4;.9" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="30" y="22" fill="#e11d2a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">AI DEMO</text>
+  </g>
+
+  <!-- Neck LED strip -->
+  <rect x="222" y="338" width="36" height="5" rx="2.5" fill="#171717" stroke="#e11d2a" stroke-width="1" opacity=".75"/>
+  <rect x="228" y="339.5" width="7" height="2" rx="1" fill="#e11d2a" opacity=".85"/>
+  <rect x="240" y="339.5" width="7" height="2" rx="1" fill="#e11d2a" opacity=".55"/>
+  <rect x="252" y="339.5" width="7" height="2" rx="1" fill="#e11d2a" opacity=".3"/>
+</svg>

@@ -1,0 +1,346 @@
+{
+    "ok": true,
+    "dry_run": false,
+    "run": true,
+    "generated_at": "2026-05-24 18:26:22",
+    "test_customer": {
+        "user_id": 4,
+        "email": "786yawer@gmail.com",
+        "phone": "+971500000001",
+        "password": "EpcCommTest2026!",
+        "login_url": "https:\/\/www.epartscart.com\/en\/users\/login",
+        "trade_status": "approved",
+        "created": false,
+        "note": "Use these credentials to log in as test customer on storefront."
+    },
+    "test_order": {
+        "order_id": 18,
+        "cp_url": "https:\/\/www.epartscart.com\/cp\/shop\/orders\/order?order_id=18",
+        "storefront_url": "https:\/\/www.epartscart.com\/en\/shop\/orders\/order?order_id=18",
+        "lines": [
+            {
+                "item_id": 36,
+                "storage_id": 6,
+                "storage_name": "S-UAE",
+                "article": "EPCCOMM1"
+            },
+            {
+                "item_id": 37,
+                "storage_id": 7,
+                "storage_name": "R-UAE",
+                "article": "EPCCOMM2"
+            },
+            {
+                "item_id": 38,
+                "storage_id": 8,
+                "storage_name": "RK-UAE",
+                "article": "EPCCOMM3"
+            }
+        ],
+        "office_id": 1
+    },
+    "smtp": {
+        "mode": 1,
+        "host": "smtp.gmail.com",
+        "from": "epartscart@gmail.com",
+        "admin_inbox": "epartscart@gmail.com"
+    },
+    "notification_catalog": [
+        {
+            "key": "new_order_to_manager",
+            "channel": "E-mail",
+            "trigger": "Checkout — new order",
+            "recipient": "Admin + office managers + CRM",
+            "cp_path": "Control panel → Notifications",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "new_order_to_user",
+            "channel": "E-mail",
+            "trigger": "Checkout — new order",
+            "recipient": "Customer (registered or guest e-mail)",
+            "cp_path": "Control panel → Notifications",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "lpo_to_supplier",
+            "channel": "E-mail",
+            "trigger": "Checkout — new order",
+            "recipient": "Supplier inbox per warehouse (LPO # = order ID)",
+            "cp_path": "Logistics → Warehouses → Supplier order email (LPO)",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 0
+        },
+        {
+            "key": "order_message_to_manager",
+            "channel": "E-mail",
+            "trigger": "Customer sends message on order page",
+            "recipient": "Admin + office managers",
+            "cp_path": "Order card → Messages",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_message_to_customer",
+            "channel": "E-mail",
+            "trigger": "Manager replies on order page",
+            "recipient": "Customer",
+            "cp_path": "Order card → Messages",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_status_to_manager",
+            "channel": "E-mail",
+            "trigger": "Order status changed (if enabled on status)",
+            "recipient": "Managers",
+            "cp_path": "Orders → Statuses → order status flags",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_status_to_customer",
+            "channel": "E-mail",
+            "trigger": "Order status changed (if enabled on status)",
+            "recipient": "Customer",
+            "cp_path": "Orders → Statuses → order status flags",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_item_status_to_manager",
+            "channel": "E-mail",
+            "trigger": "Line item status changed (if enabled)",
+            "recipient": "Managers",
+            "cp_path": "Orders → Statuses → line item status flags",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_item_status_to_customer",
+            "channel": "E-mail",
+            "trigger": "Line item status changed (if enabled)",
+            "recipient": "Customer",
+            "cp_path": "Orders → Statuses → line item status flags",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_pay_to_manager",
+            "channel": "E-mail",
+            "trigger": "Payment recorded on order",
+            "recipient": "Managers",
+            "cp_path": "Order card → Payment",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "order_pay_to_customer",
+            "channel": "E-mail",
+            "trigger": "Payment recorded on order",
+            "recipient": "Customer",
+            "cp_path": "Order card → Payment",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "reg_notify_admin",
+            "channel": "E-mail",
+            "trigger": "New customer registration",
+            "recipient": "Admin \/ staff",
+            "cp_path": "Storefront registration",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 1
+        },
+        {
+            "key": "vin_zapros",
+            "channel": "E-mail",
+            "trigger": "VIN request form submitted",
+            "recipient": "Admin",
+            "cp_path": "VIN request page",
+            "registered": true,
+            "email_on": 1,
+            "sms_on": 0
+        }
+    ],
+    "tests": [
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "source": "checkout_bundle",
+            "log": "Supplier LPO to 786yawer@gmail.com (RK-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "source": "checkout_bundle",
+            "log": "Supplier LPO to 786yawer@gmail.com (R-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "source": "checkout_bundle",
+            "log": "Supplier LPO to epartscart@gmail.com (S-UAE, LPO #18): sent"
+        },
+        {
+            "name": "new_order_to_user",
+            "sent": true,
+            "detail": "786yawer@gmail.com=sent;",
+            "source": "checkout_bundle",
+            "log": "Order email to customer (user #4): sent"
+        },
+        {
+            "name": "new_order_to_manager",
+            "sent": true,
+            "detail": "786yawer@gmail.com=sent;",
+            "source": "checkout_bundle",
+            "log": "Order email to admin epartscart@gmail.com: sent"
+        },
+        {
+            "name": "new_order_to_manager (direct)",
+            "sent": true,
+            "detail": "epartscart@gmail.com=sent; user#1=FAILED;"
+        },
+        {
+            "name": "new_order_to_user (direct)",
+            "sent": null,
+            "detail": "user#4=sent;"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "log": "Supplier LPO to 786yawer@gmail.com (RK-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "log": "Supplier LPO to 786yawer@gmail.com (R-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "log": "Supplier LPO to epartscart@gmail.com (S-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "log": "Supplier LPO to 786yawer@gmail.com (RK-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "log": "Supplier LPO to 786yawer@gmail.com (R-UAE, LPO #18): sent"
+        },
+        {
+            "name": "lpo_to_supplier",
+            "sent": true,
+            "detail": "",
+            "log": "Supplier LPO to epartscart@gmail.com (S-UAE, LPO #18): sent"
+        },
+        {
+            "name": "order_message_to_manager",
+            "sent": null,
+            "detail": "user#1=FAILED;"
+        },
+        {
+            "name": "order_message_to_customer",
+            "sent": null,
+            "detail": "user#4=sent;"
+        },
+        {
+            "name": "order_status_to_manager",
+            "sent": null,
+            "detail": "user#1=FAILED;",
+            "status_id": 1
+        },
+        {
+            "name": "order_status_to_customer",
+            "sent": null,
+            "detail": "user#4=sent;",
+            "status_id": 1
+        },
+        {
+            "name": "order_item_status_to_manager",
+            "sent": null,
+            "detail": "user#1=FAILED;"
+        },
+        {
+            "name": "order_item_status_to_customer",
+            "sent": null,
+            "detail": "user#4=sent;"
+        },
+        {
+            "name": "order_pay_to_manager",
+            "sent": null,
+            "detail": "user#1=FAILED;"
+        },
+        {
+            "name": "order_pay_to_customer",
+            "sent": null,
+            "detail": "user#4=sent;"
+        }
+    ],
+    "order_logs": [
+        {
+            "text": "Supplier LPO to 786yawer@gmail.com (RK-UAE, LPO #18): sent",
+            "time": 1779639982
+        },
+        {
+            "text": "Supplier LPO to 786yawer@gmail.com (R-UAE, LPO #18): sent",
+            "time": 1779639982
+        },
+        {
+            "text": "Supplier LPO to epartscart@gmail.com (S-UAE, LPO #18): sent",
+            "time": 1779639982
+        },
+        {
+            "text": "Order email to customer (user #4): sent",
+            "time": 1779639982
+        },
+        {
+            "text": "Order email to admin epartscart@gmail.com: sent",
+            "time": 1779639982
+        },
+        {
+            "text": "EPC communication test order created (safe to delete after review).",
+            "time": 1779639982
+        }
+    ],
+    "cp_links": {
+        "guide": "\/cp\/shop\/orders\/guide",
+        "orders": "\/cp\/shop\/orders\/orders",
+        "notifications": "\/cp\/control\/notifications"
+    },
+    "summary": {
+        "total_checks": 21,
+        "sent_ok": 12,
+        "sent_failed": 0,
+        "unknown_or_log_only": 9,
+        "check_inboxes": [
+            "786yawer@gmail.com",
+            "epartscart@gmail.com"
+        ]
+    }
+}

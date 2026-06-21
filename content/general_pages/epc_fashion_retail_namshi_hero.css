@@ -1,0 +1,261 @@
+/**
+ * Fashion animated hero banner — scoped to fashion_retail_namshi.
+ */
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner.epc-home-pro,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner.epc-home-pro {
+	background: transparent;
+	color: #fff;
+	margin: 0 0 8px;
+	overflow: hidden;
+	padding: 14px 0 0;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .container,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .container {
+	background: #1e1b4b;
+	border: 1px solid rgba(236, 72, 153, .18);
+	border-radius: 22px;
+	box-shadow: 0 24px 70px rgba(107, 33, 168, .22);
+	overflow: hidden;
+	position: relative;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .container:before,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .container:before {
+	background:
+		radial-gradient(circle at 20% 25%, rgba(249, 168, 212, .35), transparent 28%),
+		radial-gradient(circle at 80% 15%, rgba(168, 85, 247, .28), transparent 32%),
+		linear-gradient(135deg, #1e1b4b, #6b21a8);
+	content: "";
+	inset: 0;
+	position: absolute;
+	z-index: 0;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .container > *,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .container > * {
+	position: relative;
+	z-index: 1;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__grid,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__grid {
+	align-items: stretch;
+	display: grid;
+	gap: 22px;
+	grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+	padding: 36px 0;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__eyebrow,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__eyebrow {
+	align-items: center;
+	background: rgba(236, 72, 153, .16);
+	border: 1px solid rgba(249, 168, 212, .24);
+	border-radius: 999px;
+	color: #fce7f3;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	margin-bottom: 16px;
+	padding: 8px 14px;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner h2,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner h2 {
+	color: #fff;
+	font-size: 38px;
+	font-weight: 800;
+	line-height: 1.08;
+	margin: 0 0 14px;
+	max-width: 720px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__copy,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__copy {
+	color: rgba(255, 255, 255, .82);
+	font-size: 16px;
+	line-height: 1.65;
+	margin-bottom: 22px;
+	max-width: 640px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__actions,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 22px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__btn,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__btn {
+	align-items: center;
+	border-radius: 10px;
+	display: inline-flex;
+	font-weight: 800;
+	gap: 9px;
+	padding: 13px 18px;
+	text-decoration: none !important;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__btn--primary,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__btn--primary {
+	background: #ec4899;
+	box-shadow: 0 14px 28px rgba(236, 72, 153, .28);
+	color: #fff !important;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__btn--ghost,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__btn--ghost {
+	background: rgba(255, 255, 255, .1);
+	border: 1px solid rgba(255, 255, 255, .18);
+	color: #fff !important;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stats,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stats {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 720px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stat,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stat {
+	background: rgba(255, 255, 255, .09);
+	border: 1px solid rgba(255, 255, 255, .12);
+	border-radius: 14px;
+	padding: 14px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stat strong,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stat strong {
+	color: #fff;
+	display: block;
+	font-size: 20px;
+	margin-bottom: 6px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stat span,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__stat span {
+	color: rgba(255, 255, 255, .72);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__visual,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__visual {
+	background: linear-gradient(160deg, rgba(236, 72, 153, .18), rgba(255, 255, 255, .06));
+	border: 1px solid rgba(249, 168, 212, .2);
+	border-radius: 22px;
+	min-height: 320px;
+	overflow: hidden;
+	padding: 18px;
+	position: relative;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__video-card,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__video-card {
+	background: rgba(30, 27, 75, .88);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(236, 72, 153, .22);
+	border-radius: 16px;
+	bottom: 28px;
+	left: 28px;
+	padding: 16px;
+	position: absolute;
+	right: 28px;
+	z-index: 3;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__play,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__play {
+	align-items: center;
+	animation: epcFrnPlayPulse 1.35s ease-in-out infinite;
+	background: #ec4899;
+	border-radius: 999px;
+	box-shadow: 0 12px 28px rgba(236, 72, 153, .38);
+	display: inline-flex;
+	height: 44px;
+	justify-content: center;
+	margin-right: 10px;
+	width: 44px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__play i,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__play i {
+	color: #fff;
+	font-size: 14px;
+	margin-left: 2px;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__video-card strong,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__video-card strong {
+	color: #fff;
+	display: inline-block;
+	font-size: 15px;
+	vertical-align: middle;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__video-card p,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__video-card p {
+	color: rgba(255, 255, 255, .72);
+	font-size: 12px;
+	margin: 10px 0 0;
+}
+.epc-frn-hero-anim {
+	align-items: center;
+	background:
+		radial-gradient(circle at 70% 30%, rgba(236, 72, 153, .28), transparent 32%),
+		linear-gradient(135deg, rgba(30, 27, 75, .92), rgba(107, 33, 168, .75));
+	border-radius: 16px;
+	display: flex;
+	gap: 14px;
+	height: 100%;
+	justify-content: center;
+	min-height: 284px;
+	position: relative;
+}
+.epc-frn-hero-anim__chip {
+	animation: epcFrnChipFloat 2.4s ease-in-out infinite;
+	background: rgba(236, 72, 153, .18);
+	border: 1px solid rgba(236, 72, 153, .45);
+	border-radius: 999px;
+	color: #fce7f3;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 8px 14px;
+}
+.epc-frn-hero-anim__chip--alt {
+	animation-delay: .5s;
+	background: rgba(190, 24, 93, .15);
+	color: #fbcfe8;
+}
+.epc-frn-hero-anim__dress {
+	animation: epcFrnDressSway 3s ease-in-out infinite;
+	background: linear-gradient(180deg, #ec4899, #be185d);
+	border-radius: 18px 18px 8px 8px;
+	height: 72px;
+	transform-origin: top center;
+	width: 52px;
+}
+.epc-frn-hero-anim__runway {
+	background: linear-gradient(90deg, transparent, rgba(249, 168, 212, .35), transparent);
+	bottom: 48px;
+	height: 2px;
+	left: 12%;
+	position: absolute;
+	right: 12%;
+}
+.epc-frn-hero-anim__label {
+	bottom: 14px;
+	color: rgba(255, 255, 255, .72);
+	font-size: 11px;
+	font-weight: 700;
+	left: 16px;
+	position: absolute;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero,
+html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero {
+	display: none !important;
+}
+@keyframes epcFrnChipFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes epcFrnDressSway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes epcFrnPlayPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (max-width: 991px) {
+	html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__grid,
+	html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner .epc-home-pro__grid {
+		grid-template-columns: 1fr;
+	}
+	html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner h2,
+	html[data-epc-industry="fashion"][data-epc-storefront="fashion_retail_namshi"] .epc-frn-hero-banner h2 {
+		font-size: 30px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.epc-frn-hero-anim * { animation: none !important; }
+}

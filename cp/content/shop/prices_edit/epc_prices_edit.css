@@ -1,0 +1,90 @@
+.bgtd {
+	background: #eee;
+	font-weight: bold;
+}
+.center {
+	text-align: center;
+}
+.right {
+	text-align: right;
+}
+.row-add .panel-body > div {
+	margin-bottom: 5px;
+}
+.panel-body > div {
+	padding-left: 0;
+	padding-right: 10px;
+}
+.panel-body > div:last-child {
+	padding-right: 0;
+}
+@media screen and (max-width: 1200px) {
+	.panel-body > div {
+		padding-right: 0;
+	}
+}
+.panel-footer .btn {
+	margin-right: 5px;
+}
+.table td:last-child,
+.table th:last-child {
+	text-align: right;
+}
+.pagination_box {
+	text-align: center;
+}
+.pagination_box a {
+	font-size: 14px;
+	display: inline-block;
+	background: #eee;
+	border-radius: 2px;
+	color: #333;
+	padding: 2px 8px;
+	margin-right: 2px;
+	border: 1px solid #333;
+}
+.pagination_active {
+	background: #34495e !important;
+	color: #fff !important;
+}
+#div_table table {
+	font-size: 12px;
+}
+#div_table > .panel-footer {
+	color: inherit;
+	border: 1px solid #e4e5e7;
+	border-top: none;
+	font-size: 90%;
+	background: #f7f9fa;
+	padding: 10px 15px;
+}
+#div_table > .panel-body {
+	overflow-x: auto;
+	max-height: 70vh;
+}
+#div_table .epc-prices-table thead th {
+	position: sticky;
+	top: 0;
+	background: #f7f9fa;
+	z-index: 2;
+	box-shadow: 0 1px 0 #e4e5e7;
+}
+#div_table tr.epc-edit-row td {
+	background: #fffde7;
+	position: relative;
+	z-index: 3;
+}
+#div_table .col-site {
+	white-space: nowrap;
+	text-align: center;
+}
+#div_table .col-warehouse {
+	max-width: 140px;
+	font-size: 11px;
+}
+.table {
+	margin-bottom: 0;
+}
+.table td {
+	vertical-align: middle !important;
+}

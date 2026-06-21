@@ -1,0 +1,23 @@
+{
+  "id": "consulting_primeinvest",
+  "label": "Prime Invest consulting (tax & advisory)",
+  "industry_code": "tax_advisory",
+  "theme_template": "modern",
+  "access_mode": "consultancy",
+  "enabled_packs": ["core", "erp", "professional", "tax_advisory"],
+  "tagline": "Tax & advisory services — UAE corporate tax, VAT and business compliance",
+  "contact": {
+    "storefront_package": "consulting_primeinvest",
+    "use_animated_hub_logo": true
+  },
+  "theme": {
+    "primary": "#227a40",
+    "primary_dark": "#1a6233",
+    "accent": "#848484",
+    "sidebar_from": "#191919",
+    "sidebar_to": "#2d2d2d",
+    "hero_from": "#191919",
+    "hero_to": "#227a40"
+  },
+  "notes": "Assign via contact.storefront_package=consulting_primeinvest or tax_advisory + theme_template modern. GPL PrimeInvest layout patterns only — no WordPress core."
+}

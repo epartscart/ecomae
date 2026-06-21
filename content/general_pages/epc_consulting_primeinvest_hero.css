@@ -1,0 +1,248 @@
+/**
+ * Consulting animated hero banner — scoped to consulting_primeinvest.
+ */
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner.epc-home-pro,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner.epc-home-pro {
+	background: transparent;
+	color: #fff;
+	margin: 0 0 8px;
+	overflow: hidden;
+	padding: 14px 0 0;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .container,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .container {
+	background: #0f172a;
+	border: 1px solid rgba(212, 175, 55, .18);
+	border-radius: 22px;
+	box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+	overflow: hidden;
+	position: relative;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .container:before,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .container:before {
+	background:
+		radial-gradient(circle at 22% 18%, rgba(212, 175, 55, .24), transparent 30%),
+		linear-gradient(135deg, #0f172a, #1e3a5f);
+	content: "";
+	inset: 0;
+	position: absolute;
+	z-index: 0;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .container > *,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .container > * {
+	position: relative;
+	z-index: 1;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__grid,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__grid {
+	align-items: stretch;
+	display: grid;
+	gap: 22px;
+	grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+	padding: 36px 0;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__eyebrow,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__eyebrow {
+	align-items: center;
+	background: rgba(30, 64, 175, .22);
+	border: 1px solid rgba(212, 175, 55, .24);
+	border-radius: 999px;
+	color: #fde68a;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	margin-bottom: 16px;
+	padding: 8px 14px;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner h2,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner h2 {
+	color: #fff;
+	font-size: 38px;
+	font-weight: 800;
+	line-height: 1.08;
+	margin: 0 0 14px;
+	max-width: 720px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__copy,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__copy {
+	color: rgba(255, 255, 255, .8);
+	font-size: 16px;
+	line-height: 1.65;
+	margin-bottom: 22px;
+	max-width: 640px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__actions,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 22px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__btn,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__btn {
+	align-items: center;
+	border-radius: 10px;
+	display: inline-flex;
+	font-weight: 800;
+	gap: 9px;
+	padding: 13px 18px;
+	text-decoration: none !important;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__btn--primary,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__btn--primary {
+	background: linear-gradient(135deg, #d4af37, #b8860b);
+	box-shadow: 0 14px 28px rgba(212, 175, 55, .28);
+	color: #0f172a !important;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__btn--ghost,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__btn--ghost {
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .16);
+	color: #fff !important;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stats,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stats {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 720px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stat,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stat {
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 14px;
+	padding: 14px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stat strong,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stat strong {
+	color: #fff;
+	display: block;
+	font-size: 20px;
+	margin-bottom: 6px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stat span,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__stat span {
+	color: rgba(255, 255, 255, .68);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__visual,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__visual {
+	background: linear-gradient(160deg, rgba(30, 64, 175, .16), rgba(212, 175, 55, .08));
+	border: 1px solid rgba(212, 175, 55, .18);
+	border-radius: 22px;
+	min-height: 320px;
+	overflow: hidden;
+	padding: 18px;
+	position: relative;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__video-card,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__video-card {
+	background: rgba(15, 23, 42, .88);
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(212, 175, 55, .22);
+	border-radius: 16px;
+	bottom: 28px;
+	left: 28px;
+	padding: 16px;
+	position: absolute;
+	right: 28px;
+	z-index: 3;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__play,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__play {
+	align-items: center;
+	animation: epcCpiPlayPulse 1.35s ease-in-out infinite;
+	background: linear-gradient(135deg, #d4af37, #b8860b);
+	border-radius: 999px;
+	box-shadow: 0 12px 28px rgba(212, 175, 55, .38);
+	display: inline-flex;
+	height: 44px;
+	justify-content: center;
+	margin-right: 10px;
+	width: 44px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__play i,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__play i {
+	color: #0f172a;
+	font-size: 14px;
+	margin-left: 2px;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__video-card strong,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__video-card strong {
+	color: #fff;
+	display: inline-block;
+	font-size: 15px;
+	vertical-align: middle;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__video-card p,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__video-card p {
+	color: rgba(255, 255, 255, .72);
+	font-size: 12px;
+	margin: 10px 0 0;
+}
+.epc-cpi-hero-anim {
+	align-items: flex-end;
+	background: linear-gradient(135deg, rgba(15, 23, 42, .95), rgba(30, 58, 95, .85));
+	border-radius: 16px;
+	display: flex;
+	gap: 12px;
+	height: 100%;
+	justify-content: center;
+	min-height: 284px;
+	padding: 0 24px 48px;
+	position: relative;
+}
+.epc-cpi-hero-anim__bar {
+	animation: epcCpiBarGrow 2s ease-in-out infinite;
+	border-radius: 4px 4px 0 0;
+	transform-origin: bottom;
+	width: 22px;
+}
+.epc-cpi-hero-anim__bar:nth-child(1) {
+	background: linear-gradient(180deg, #d4af37, #1e40af);
+	height: 72px;
+}
+.epc-cpi-hero-anim__bar:nth-child(2) {
+	animation-delay: .2s;
+	background: linear-gradient(180deg, #1e40af, #d4af37);
+	height: 108px;
+}
+.epc-cpi-hero-anim__bar:nth-child(3) {
+	animation-delay: .4s;
+	background: linear-gradient(180deg, #d4af37, #1e40af);
+	height: 88px;
+}
+.epc-cpi-hero-anim__bar:nth-child(4) {
+	animation-delay: .6s;
+	background: linear-gradient(180deg, #1e40af, #d4af37);
+	height: 56px;
+}
+.epc-cpi-hero-anim__label {
+	bottom: 14px;
+	color: rgba(255, 255, 255, .68);
+	font-size: 11px;
+	font-weight: 700;
+	left: 16px;
+	position: absolute;
+	text-transform: uppercase;
+}
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-slider,
+html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-slider {
+	display: none !important;
+}
+@keyframes epcCpiBarGrow { 0%, 100% { transform: scaleY(.65); opacity: .7; } 50% { transform: scaleY(1); opacity: 1; } }
+@keyframes epcCpiPlayPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@media (max-width: 991px) {
+	html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__grid,
+	html[data-epc-industry="tax_advisory"][data-epc-storefront="consulting_primeinvest"] .epc-cpi-hero-banner .epc-home-pro__grid {
+		grid-template-columns: 1fr;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.epc-cpi-hero-anim * { animation: none !important; }
+}

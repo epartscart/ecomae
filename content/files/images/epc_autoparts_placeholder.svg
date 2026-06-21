@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Auto part">
+  <rect width="120" height="120" fill="#f1f5f9"/>
+  <g fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="60" cy="60" r="22"/>
+    <path d="M60 38v-10M60 82v10M38 60h-10M82 60h10M44 44l-7-7M76 76l7 7M76 44l7-7M44 76l-7 7"/>
+  </g>
+</svg>

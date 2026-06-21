@@ -1,0 +1,43 @@
+/**
+ * Animated SVG storefront logos — scoped per package.
+ */
+.epc-sf-logo {
+	align-items: center;
+	display: inline-flex;
+	gap: 10px;
+	font-weight: 800;
+	letter-spacing: .02em;
+	line-height: 1;
+}
+.epc-sf-logo__mark {
+	display: block;
+	height: 38px;
+	width: auto;
+}
+.epc-sf-logo__text {
+	font-size: 22px;
+	white-space: nowrap;
+}
+.epc-sf-logo--fashion .epc-sf-logo__text { color: #be185d; }
+.epc-sf-logo--fashion .epc-sf-logo__dress { animation: epcSfDressSway 2.8s ease-in-out infinite; transform-origin: top center; }
+.epc-sf-logo--electronics .epc-sf-logo__text { color: #e10a0a; }
+.epc-sf-logo--electronics .epc-sf-logo__pulse { animation: epcSfPulse 1.6s ease-in-out infinite; transform-origin: center; }
+.epc-sf-logo--consulting .epc-sf-logo__text { color: #1e40af; }
+.epc-sf-logo--consulting .epc-sf-logo__bar { animation: epcSfBarGrow 2.2s ease-in-out infinite; transform-origin: bottom; }
+.epc-sf-logo--consulting .epc-sf-logo__bar:nth-child(2) { animation-delay: .25s; }
+.epc-sf-logo--consulting .epc-sf-logo__bar:nth-child(3) { animation-delay: .5s; }
+.epc-sf-logo--jewellery .epc-sf-logo__text { color: #b8860b; }
+.epc-sf-logo--jewellery .epc-sf-logo__spark { animation: epcSfSparkle 1.8s ease-in-out infinite; transform-origin: center; }
+html[data-epc-storefront="fashion_retail_namshi"] .epc-frn-logo .epc-sf-logo__text,
+html[data-epc-storefront="electronics_retail_virgin"] .epc-er-logo .epc-sf-logo__text,
+html[data-epc-storefront="consulting_primeinvest"] .epc-cpi-logo .epc-sf-logo__text,
+html[data-epc-storefront="jewellery_retail_kiyasha"] .epc-jrk-logo .epc-sf-logo__text {
+	font-size: 20px;
+}
+@keyframes epcSfDressSway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes epcSfPulse { 0%, 100% { opacity: .45; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.05); } }
+@keyframes epcSfBarGrow { 0%, 100% { transform: scaleY(.65); opacity: .7; } 50% { transform: scaleY(1); opacity: 1; } }
+@keyframes epcSfSparkle { 0%, 100% { opacity: .25; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) {
+	.epc-sf-logo * { animation: none !important; }
+}

@@ -1,0 +1,64 @@
+/* Shared portal module / guide pages (20260606cpframe1) */
+.epc-pg,
+.epc-api-doc,
+.epc-failover-guide,
+.epc-erp-onboard-guide,
+.epc-custom-ship-guide {
+	width: 100%;
+	max-width: none;
+}
+
+.epc-pg-hero,
+.epc-api-doc__hero,
+.epc-guide-hero {
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+	color: #fff;
+	border-radius: 12px;
+	padding: 20px 22px;
+	margin-bottom: 16px;
+}
+
+.epc-pg-hero h2,
+.epc-api-doc__hero h2,
+.epc-guide-hero h2 {
+	margin: 0 0 8px;
+	color: #fff;
+	font-size: 20px;
+}
+
+.epc-pg-hero p,
+.epc-api-doc__hero p,
+.epc-guide-hero p {
+	margin: 0;
+	opacity: 0.92;
+	line-height: 1.55;
+}
+
+.epc-pg-card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 16px 18px;
+	margin-bottom: 14px;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.epc-pg-card h4 {
+	margin: 0 0 10px;
+	font-size: 15px;
+}
+
+.epc-pg-code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 10px 12px;
+	white-space: pre-wrap;
+}
+
+.epc-pg-table-wrap {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}

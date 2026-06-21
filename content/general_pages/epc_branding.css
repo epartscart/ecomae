@@ -1,0 +1,47 @@
+/**
+ * Mandatory ECOM AE platform attribution (client tenants only).
+ */
+.epc-hosted-by {
+	display: block;
+	margin-top: 0.4em;
+	font-size: 12px;
+	line-height: 1.5;
+	opacity: 0.78;
+	letter-spacing: 0.02em;
+	font-weight: 400;
+}
+
+.epc-hosted-by a {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.epc-hosted-by a:hover {
+	opacity: 1;
+}
+
+.epc-text-logo {
+	display: inline-block;
+	font-size: 22px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	line-height: 1.1;
+	color: #0f766e;
+	text-transform: none;
+}
+
+html[data-epc-commerce="off"] .schearch-line,
+html[data-epc-commerce="off"] .mobile-search-div,
+html[data-epc-commerce="off"] .header-bulk-upload-box,
+html[data-epc-commerce="off"] .mobile-box-bulk-upload,
+html[data-epc-commerce="off"] .header-cart-box,
+html[data-epc-commerce="off"] .mobile-box-cart,
+html[data-epc-commerce="off"] docpart[type="module"][name="top_menu_catalog"],
+html[data-epc-commerce="off"] .ucats-h-1,
+html[data-epc-commerce="off"] .epc-brands,
+html[data-epc-commerce="off"] .epart-front-original-data,
+html[data-epc-commerce="off"] .epc-home-banners,
+html[data-epc-commerce="off"] .section-vin {
+	display: none !important;
+}

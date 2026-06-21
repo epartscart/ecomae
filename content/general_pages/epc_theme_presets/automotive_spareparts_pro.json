@@ -1,0 +1,48 @@
+{
+  "id": "automotive_spareparts_pro",
+  "label": "Automotive spare parts pro (eParts Cart legacy)",
+  "industry_code": "auto_parts",
+  "theme_template": "classic",
+  "access_mode": "full",
+  "enabled_packs": ["core", "commerce", "auto_parts", "logistics", "erp", "professional", "marketing"],
+  "tagline": "Auto parts & commerce",
+  "contact": {
+    "storefront_package": "automotive_spareparts_pro",
+    "use_animated_hub_logo": false,
+    "use_tenant_brand": false,
+    "head_office_address": "Dubai, United Arab Emirates",
+    "city": "Dubai"
+  },
+  "theme": {
+    "primary": "#dc2626",
+    "primary_dark": "#991b1b",
+    "accent": "#f97316",
+    "sidebar_from": "#0f172a",
+    "sidebar_to": "#1e293b",
+    "hero_from": "#0b1220",
+    "hero_to": "#1e3a5f"
+  },
+  "docpart_clone_tables": [
+    "lang_languages",
+    "lang_text_strings",
+    "lang_text_strings_translation",
+    "groups",
+    "users_groups_bind",
+    "shop_offices",
+    "shop_geo",
+    "shop_offices_geo_map",
+    "menu",
+    "shop_catalogue_categories",
+    "templates",
+    "content",
+    "modules",
+    "plugins",
+    "shop_storages",
+    "shop_storages_data"
+  ],
+  "header_verify": {
+    "location": "Dubai",
+    "hours": "Mon-Fri from 9:00"
+  },
+  "notes": "Layla auto_parts demos: epc_demo_autoparts_bootstrap_apply() clones docpart header tables (shop_geo, shop_offices, menu, catalog) on every provision and theme-fix. Nero desktop.php renders Dubai via geo_point module + hours via shop_offices.timetable lang string."
+}

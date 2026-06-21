@@ -8,7 +8,6 @@ db-info.php
 .env
 *.env
 .epc-backups/
-content/
 .well-known/
 *.log
 *.bak
@@ -20,3 +19,18 @@ __pycache__/
 venv/
 .venv/
 node_modules/
+/content/**
+!/content/**/
+!/content/**/*.php
+!/content/**/*.phtml
+!/content/**/*.inc
+!/content/**/*.css
+!/content/**/*.js
+!/content/**/*.json
+!/content/**/*.tpl
+!/content/**/*.svg
+!/content/**/*.sql
+!/content/**/*.md
+config.epc-smtp.php
+epc-operator-update.php
+epc-operator-probe.php
