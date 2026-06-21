@@ -21,8 +21,8 @@
       <stop offset="100%" stop-color="#2a1a0e"/>
     </linearGradient>
     <linearGradient id="layla-cyan" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#b01722"/>
-      <stop offset="100%" stop-color="#e11d2a"/>
+      <stop offset="0%" stop-color="#075985"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
     </linearGradient>
     <radialGradient id="layla-glow" cx="50%" cy="34%" r="55%">
       <stop offset="0%" stop-color="#fca5a5" stop-opacity=".18"/>
@@ -51,9 +51,9 @@
   <!-- Shoulders / blazer -->
   <path d="M88 430 Q115 365 175 348 L305 348 Q365 365 392 430 L392 530 L88 530 Z" fill="url(#layla-suit)"/>
   <path d="M130 410 Q240 392 350 410 L332 530 L148 530 Z" fill="#243b5c" opacity=".82"/>
-  <path d="M205 352 L240 438 L275 352" fill="none" stroke="#e11d2a" stroke-width="1.8" opacity=".4"/>
-  <rect x="108" y="398" width="28" height="18" rx="4" fill="#171717" stroke="#e11d2a" stroke-width="1" opacity=".65"/>
-  <rect x="344" y="398" width="28" height="18" rx="4" fill="#171717" stroke="#e11d2a" stroke-width="1" opacity=".65"/>
+  <path d="M205 352 L240 438 L275 352" fill="none" stroke="#0ea5e9" stroke-width="1.8" opacity=".4"/>
+  <rect x="108" y="398" width="28" height="18" rx="4" fill="#171717" stroke="#0ea5e9" stroke-width="1" opacity=".65"/>
+  <rect x="344" y="398" width="28" height="18" rx="4" fill="#171717" stroke="#0ea5e9" stroke-width="1" opacity=".65"/>
 
   <!-- Neck -->
   <path d="M198 338 Q240 358 282 338 L272 378 Q240 388 208 378 Z" fill="url(#layla-skin)"/>
@@ -106,35 +106,35 @@
   <path d="M218 294 Q240 300 262 294" fill="#fff" opacity=".75"/>
 
   <!-- Subtle tech cheek accents -->
-  <path d="M168 288 Q176 282 184 288" fill="none" stroke="#e11d2a" stroke-width="1.2" opacity=".28" stroke-linecap="round"/>
-  <path d="M296 288 Q304 282 312 288" fill="none" stroke="#e11d2a" stroke-width="1.2" opacity=".28" stroke-linecap="round"/>
+  <path d="M168 288 Q176 282 184 288" fill="none" stroke="#0ea5e9" stroke-width="1.2" opacity=".28" stroke-linecap="round"/>
+  <path d="M296 288 Q304 282 312 288" fill="none" stroke="#0ea5e9" stroke-width="1.2" opacity=".28" stroke-linecap="round"/>
 
   <!-- Headset -->
   <path d="M120 250 Q120 192 240 178 Q360 192 360 250" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
   <path d="M120 250 Q120 192 240 178 Q360 192 360 250" fill="none" stroke="url(#layla-cyan)" stroke-width="2" stroke-linecap="round" opacity=".55"/>
   <rect x="104" y="240" width="26" height="42" rx="9" fill="#1e293b" stroke="url(#layla-cyan)" stroke-width="1.8"/>
   <rect x="350" y="240" width="26" height="42" rx="9" fill="#1e293b" stroke="url(#layla-cyan)" stroke-width="1.8"/>
-  <circle cx="117" cy="261" r="4.5" fill="#e11d2a" opacity=".85">
+  <circle cx="117" cy="261" r="4.5" fill="#0ea5e9" opacity=".85">
     <animate attributeName="opacity" values=".85;.45;.85" dur="2.4s" repeatCount="indefinite"/>
   </circle>
-  <circle cx="363" cy="261" r="4.5" fill="#e11d2a" opacity=".85">
+  <circle cx="363" cy="261" r="4.5" fill="#0ea5e9" opacity=".85">
     <animate attributeName="opacity" values=".85;.45;.85" dur="2.4s" repeatCount="indefinite"/>
   </circle>
   <path d="M348 284 Q318 308 286 300" fill="none" stroke="#475569" stroke-width="2.8" stroke-linecap="round"/>
-  <circle cx="282" cy="300" r="6.5" fill="#1e293b" stroke="#e11d2a" stroke-width="1.4"/>
+  <circle cx="282" cy="300" r="6.5" fill="#1e293b" stroke="#0ea5e9" stroke-width="1.4"/>
 
   <!-- AI badge -->
   <g transform="translate(298,112)">
     <rect x="0" y="0" width="88" height="34" rx="17" fill="#171717" stroke="url(#layla-cyan)" stroke-width="1.8" opacity=".92"/>
-    <circle cx="17" cy="17" r="5" fill="#e11d2a" opacity=".9">
+    <circle cx="17" cy="17" r="5" fill="#0ea5e9" opacity=".9">
       <animate attributeName="opacity" values=".9;.4;.9" dur="2.2s" repeatCount="indefinite"/>
     </circle>
-    <text x="30" y="22" fill="#e11d2a" font-family="system-ui,sans-serif" font-size="11" font-weight="700">AI DEMO</text>
+    <text x="30" y="22" fill="#0ea5e9" font-family="system-ui,sans-serif" font-size="11" font-weight="700">AI DEMO</text>
   </g>
 
   <!-- Neck LED strip -->
-  <rect x="222" y="338" width="36" height="5" rx="2.5" fill="#171717" stroke="#e11d2a" stroke-width="1" opacity=".75"/>
-  <rect x="228" y="339.5" width="7" height="2" rx="1" fill="#e11d2a" opacity=".85"/>
-  <rect x="240" y="339.5" width="7" height="2" rx="1" fill="#e11d2a" opacity=".55"/>
-  <rect x="252" y="339.5" width="7" height="2" rx="1" fill="#e11d2a" opacity=".3"/>
+  <rect x="222" y="338" width="36" height="5" rx="2.5" fill="#171717" stroke="#0ea5e9" stroke-width="1" opacity=".75"/>
+  <rect x="228" y="339.5" width="7" height="2" rx="1" fill="#0ea5e9" opacity=".85"/>
+  <rect x="240" y="339.5" width="7" height="2" rx="1" fill="#0ea5e9" opacity=".55"/>
+  <rect x="252" y="339.5" width="7" height="2" rx="1" fill="#0ea5e9" opacity=".3"/>
 </svg>

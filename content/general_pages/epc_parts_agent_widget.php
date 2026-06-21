@@ -69,11 +69,11 @@ $epc_agent_stack_above = !empty($epc_agent_branding['is_marketing']);
 
 <style>
 .epc-parts-agent {
-	--epc-agent-accent: #ef3b47;
-	--epc-agent-accent-dark: #b01722;
+	--epc-agent-accent: #0284c7;
+	--epc-agent-accent-dark: #075985;
 	--epc-agent-accent-deep: #8a131c;
 	--epc-agent-accent-glow: rgba(14, 165, 233, .55);
-	--epc-agent-head-bg: linear-gradient(135deg, #5a0f16 0%, #8a131c 45%, #ef3b47 100%);
+	--epc-agent-head-bg: linear-gradient(135deg, #5a0f16 0%, #8a131c 45%, #0284c7 100%);
 	--epc-agent-panel: #fff;
 	position: fixed;
 	right: 18px;
@@ -89,7 +89,7 @@ $epc_agent_stack_above = !empty($epc_agent_branding['is_marketing']);
 	border: 2px solid rgba(255, 255, 255, .35);
 	border-radius: 999px;
 	padding: 13px 20px 13px 14px;
-	background: linear-gradient(120deg, #ef3b47 0%, #ef3b47 35%, #b01722 100%);
+	background: linear-gradient(120deg, #0284c7 0%, #0284c7 35%, #075985 100%);
 	background-size: 200% 200%;
 	color: #fff;
 	box-shadow:

@@ -1790,7 +1790,7 @@ if (!function_exists('epc_free_tools_mail_shell')) {
 			. '<h2 style="margin:0 0 12px;font-size:18px">' . $t . '</h2>'
 			. $bodyHtml
 			. '<p style="margin-top:22px;font-size:12px;color:#64748b">You are receiving this because you registered for ECOM AE free tools at '
-			. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#ef3b47">ecomae.com</a>.</p>'
+			. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#0284c7">ecomae.com</a>.</p>'
 			. '</div></div>';
 	}
 }
@@ -1845,7 +1845,7 @@ if (!function_exists('epc_free_tools_register')) {
 				'<p>Hi' . ($company !== '' ? ' ' . epc_free_tools_h($company) : '') . ',</p>'
 				. '<p>Your free account is ready. One login unlocks <strong>every</strong> free tool, and your results are saved so you can keep working on them daily.</p>'
 				. '<p><strong>Email:</strong> ' . epc_free_tools_h($email) . '<br><strong>Sign in:</strong> '
-				. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#ef3b47">ecomae.com/platform/free-tools</a> &rarr; <em>Log in</em></p>'
+				. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#0284c7">ecomae.com/platform/free-tools</a> &rarr; <em>Log in</em></p>'
 				. '<p>Every tool localises automatically to your registered country (' . epc_free_tools_h($country) . ').</p>'
 			)
 		);
@@ -1944,7 +1944,7 @@ if (!function_exists('epc_free_tools_request_reset')) {
 				'Password reset code',
 				'<p>We received a request to reset the password for your ECOM AE free tools account.</p>'
 				. '<p>Your reset code is:</p>'
-				. '<p style="font-size:26px;font-weight:bold;letter-spacing:4px;color:#ef3b47">' . epc_free_tools_h($code) . '</p>'
+				. '<p style="font-size:26px;font-weight:bold;letter-spacing:4px;color:#0284c7">' . epc_free_tools_h($code) . '</p>'
 				. '<p>Enter it on the login screen with your new password. It expires in 30 minutes. '
 				. 'If you did not request this, ignore this email — your password stays unchanged.</p>'
 			)
@@ -2189,7 +2189,7 @@ if (!function_exists('epc_free_tools_confirm_delete')) {
 				'Data deleted',
 				'<p>Your ECOM AE free tools account and all saved results have been permanently deleted, as you confirmed.</p>'
 				. '<p>You are welcome back any time — just register again at '
-				. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#ef3b47">ecomae.com/platform/free-tools</a>.</p>'
+				. '<a href="https://www.ecomae.com/platform/free-tools" style="color:#0284c7">ecomae.com/platform/free-tools</a>.</p>'
 			)
 		);
 		return array('ok' => true, 'message' => 'Your account and all saved data have been permanently deleted.');
@@ -2839,12 +2839,12 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-hero h1{font-family:Syne,sans-serif;font-size:2.1rem;margin:10px 0}
 .eft-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
 .eft-card{display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid rgba(148,163,184,.25);border-radius:14px;background:linear-gradient(160deg,rgba(23,23,23,.6),rgba(31,31,31,.4));text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
-.eft-card:hover{transform:translateY(-3px);border-color:var(--epm-cyan,#e11d2a)}
-.eft-card>i{font-size:26px;color:var(--epm-cyan,#e11d2a)}
+.eft-card:hover{transform:translateY(-3px);border-color:var(--epm-cyan,#0ea5e9)}
+.eft-card>i{font-size:26px;color:var(--epm-cyan,#0ea5e9)}
 .eft-card h3{margin:2px 0;font-size:1.15rem}
 .eft-card p{color:var(--epm-muted,#94a3b8);font-size:.92rem;margin:0;flex:1}
-.eft-card__tag{align-self:flex-start;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:999px;background:rgba(225,29,42,.14);color:var(--epm-cyan,#e11d2a)}
-.eft-card__cta{font-weight:700;color:var(--epm-cyan,#e11d2a);font-size:.9rem}
+.eft-card__tag{align-self:flex-start;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:999px;background:rgba(14,165,233,.14);color:var(--epm-cyan,#0ea5e9)}
+.eft-card__cta{font-weight:700;color:var(--epm-cyan,#0ea5e9);font-size:.9rem}
 .eft-card--off{opacity:.62}
 .eft-card__cta--off{color:#fbbf24}
 .eft-faq{max-width:820px;margin:34px auto 0}
@@ -2855,7 +2855,7 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-upsell{margin:34px auto 0;max-width:760px;text-align:center;padding:24px;border:1px dashed rgba(148,163,184,.3);border-radius:14px}
 .eft-back{display:inline-block;margin-bottom:14px;color:var(--epm-muted,#94a3b8);text-decoration:none;font-weight:600;font-size:.9rem}
 .eft-tool-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
-.eft-tool-head>i{font-size:30px;color:var(--epm-cyan,#e11d2a);margin-top:6px}
+.eft-tool-head>i{font-size:30px;color:var(--epm-cyan,#0ea5e9);margin-top:6px}
 .eft-tool-head h1{font-family:Syne,sans-serif;margin:0 0 4px;font-size:1.7rem}
 .eft-tool-head p{color:var(--epm-muted,#94a3b8);margin:0;max-width:640px}
 .eft-gate,.eft-app{border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:22px;background:rgba(23,23,23,.5)}
@@ -2871,15 +2871,15 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-result table{width:100%;border-collapse:collapse;font-size:.92rem}
 .eft-result td{padding:7px 4px;border-bottom:1px solid rgba(148,163,184,.14)}
 .eft-result td:last-child{text-align:right;font-variant-numeric:tabular-nums}
-.eft-result .eft-total{font-weight:800;font-size:1.05rem;color:var(--epm-cyan,#e11d2a)}
+.eft-result .eft-total{font-weight:800;font-size:1.05rem;color:var(--epm-cyan,#0ea5e9)}
 .eft-app__bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;font-size:.85rem;color:var(--epm-muted,#94a3b8)}
-.eft-link{background:transparent;border:0;color:var(--epm-cyan,#e11d2a);cursor:pointer;font:inherit;font-weight:600;padding:0}
+.eft-link{background:transparent;border:0;color:var(--epm-cyan,#0ea5e9);cursor:pointer;font:inherit;font-weight:600;padding:0}
 .eft-msg{font-size:.85rem;margin-top:8px;min-height:18px}
 .eft-msg.is-err{color:#f87171}.eft-msg.is-ok{color:#34d399}
 .eft-result__actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .eft-result__actions button{font-size:.82rem;padding:7px 12px}
-.eft-rules{max-width:740px;margin:8px auto 0;font-size:.9rem;color:var(--epm-muted,#94a3b8);background:rgba(225,29,42,.06);border:1px solid rgba(225,29,42,.18);border-radius:10px;padding:10px 14px}
-.eft-rules i{color:var(--epm-cyan,#e11d2a)}
+.eft-rules{max-width:740px;margin:8px auto 0;font-size:.9rem;color:var(--epm-muted,#94a3b8);background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.18);border-radius:10px;padding:10px 14px}
+.eft-rules i{color:var(--epm-cyan,#0ea5e9)}
 .eft-hint{font-size:.8rem;color:var(--epm-muted,#94a3b8);margin:2px 0 0;font-weight:500}
 .eft-wrap textarea{padding:9px 11px;border-radius:9px;border:1px solid rgba(148,163,184,.3);background:rgba(10,10,10,.6);color:#e2e8f0;font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;resize:vertical}
 .eft-csv input[type=file]{padding:7px;background:rgba(10,10,10,.4)}
@@ -2890,7 +2890,7 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-find li.is-fail{background:rgba(248,113,113,.12);color:#fecaca}
 .eft-find li i{margin-top:2px}
 .eft-result h4{margin:14px 0 4px;font-size:.95rem;color:#e2e8f0}
-.eft-result a{color:var(--epm-cyan,#e11d2a)}
+.eft-result a{color:var(--epm-cyan,#0ea5e9)}
 .eft-prev-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:8px 0 4px}
 .eft-prev-gallery figure{margin:0;border:1px solid rgba(148,163,184,.25);border-radius:12px;overflow:hidden;background:rgba(10,10,10,.4)}
 .eft-prev-gallery img{width:100%;display:block;height:150px;object-fit:cover;object-position:top}
@@ -2900,15 +2900,15 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-prev figcaption{padding:8px 12px;font-size:.82rem;color:var(--epm-muted,#94a3b8);background:rgba(10,10,10,.4)}
 .eft-guide{margin:18px 0;padding:18px 20px;border:1px solid rgba(148,163,184,.22);border-radius:14px;background:linear-gradient(180deg,rgba(23,23,23,.5),rgba(10,10,10,.3))}
 .eft-guide>h3{margin:0 0 12px;font-size:1.05rem;color:#e2e8f0;display:flex;align-items:center;gap:8px}
-.eft-guide>h3 i{color:var(--epm-cyan,#e11d2a)}
+.eft-guide>h3 i{color:var(--epm-cyan,#0ea5e9)}
 .eft-guide__grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.eft-guide__col h4{margin:12px 0 4px;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--epm-cyan,#e11d2a)}
+.eft-guide__col h4{margin:12px 0 4px;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--epm-cyan,#0ea5e9)}
 .eft-guide__col h4:first-child{margin-top:0}
 .eft-guide__col p{margin:0;font-size:.9rem;line-height:1.55;color:#cbd5e1}
 .eft-guide__list{list-style:none;padding:0;margin:0}
 .eft-guide__list li{font-size:.9rem;color:#cbd5e1;padding:3px 0;display:flex;gap:8px;align-items:flex-start}
 .eft-guide__list li i{color:#34d399;margin-top:3px}
-.eft-guide__how i{color:var(--epm-cyan,#e11d2a)}
+.eft-guide__how i{color:var(--epm-cyan,#0ea5e9)}
 .eft-guide__csv code{display:block;font-size:.8rem;background:rgba(10,10,10,.6);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:8px 10px;color:#fca5a5;overflow-x:auto}
 .eft-preview{margin:16px 0 22px;border:1px solid rgba(148,163,184,.28);border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(23,23,23,.7),rgba(10,10,10,.5));box-shadow:0 10px 30px rgba(10,10,10,.35)}
 .eft-preview__bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(10,10,10,.55);border-bottom:1px solid rgba(148,163,184,.18)}
@@ -2925,10 +2925,10 @@ if (!function_exists('epc_free_tools_styles')) {
 .eft-preview__tbl td:last-child{text-align:right;font-weight:700;color:#e2e8f0}
 .eft-preview__chip{margin-top:12px;display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:#34d399;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:999px;padding:5px 12px}
 .eft-preview__foot{padding:11px 18px;font-size:.85rem;color:#cbd5e1;background:rgba(10,10,10,.45);border-top:1px solid rgba(148,163,184,.18)}
-.eft-preview__foot i{color:var(--epm-cyan,#e11d2a);margin-right:6px}
+.eft-preview__foot i{color:var(--epm-cyan,#0ea5e9);margin-right:6px}
 .eft-gallery{margin:34px 0 8px;text-align:center}
 .eft-gallery>h2{margin:0 0 6px;font-size:1.4rem;color:#e2e8f0;display:flex;gap:9px;align-items:center;justify-content:center}
-.eft-gallery>h2 i{color:var(--epm-cyan,#e11d2a)}
+.eft-gallery>h2 i{color:var(--epm-cyan,#0ea5e9)}
 .eft-gallery__lead{max-width:640px;margin:0 auto 20px;color:#94a3b8;font-size:.95rem}
 .eft-gallery__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;text-align:left}
 .eft-gallery__item{text-decoration:none;color:inherit;display:block;transition:transform .15s}
@@ -2937,7 +2937,7 @@ if (!function_exists('epc_free_tools_styles')) {
 @media(max-width:640px){.eft-guide__grid{grid-template-columns:1fr}}
 .eft-gate__tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(148,163,184,.2)}
 .eft-tab{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--epm-muted,#94a3b8);font:inherit;font-weight:700;font-size:.92rem;padding:8px 14px;cursor:pointer}
-.eft-tab.is-active{color:var(--epm-cyan,#e11d2a);border-bottom-color:var(--epm-cyan,#e11d2a)}
+.eft-tab.is-active{color:var(--epm-cyan,#0ea5e9);border-bottom-color:var(--epm-cyan,#0ea5e9)}
 .eft-pass{position:relative;display:flex}
 .eft-pass input{flex:1;padding-right:38px}
 .eft-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:var(--epm-muted,#94a3b8);cursor:pointer;padding:4px}
