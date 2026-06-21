@@ -14,7 +14,7 @@ require_once __DIR__ . '/epc_portal_cp_menu.php';
 
 /* ───────────────────── constants ───────────────────── */
 
-define('EPC_BOS_VERSION', '1.3.1');
+define('EPC_BOS_VERSION', '1.4.0');
 define('EPC_BOS_SESSION_KEY', 'epc_bos_context');
 
 /* ───────────────────── session bridge ───────────────────── */
@@ -477,6 +477,27 @@ function epc_bos_tenant_type_label(string $type): string
         'platform'  => 'Platform',
     );
     return $map[$type] ?? 'Tenant';
+}
+
+/**
+ * Industry color for tenant cards.
+ */
+function epc_bos_industry_color(string $industryCode): string
+{
+    $map = array(
+        'auto_parts'        => '#ef4444',
+        'tax_advisory'      => '#f97316',
+        'fashion_apparel'   => '#ec4899',
+        'electronics'       => '#6366f1',
+        'jewellery'         => '#eab308',
+        'medical_supplies'  => '#14b8a6',
+        'health_wellness'   => '#10b981',
+        'consultancy'       => '#8b5cf6',
+        'erp_only'          => '#3b82f6',
+        'platform_host'     => '#64748b',
+        'rental_leasing'    => '#06b6d4',
+    );
+    return $map[$industryCode] ?? '#0ea5e9';
 }
 
 /**
