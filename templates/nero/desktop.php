@@ -1,6 +1,14 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 
+// Enable gzip compression for large storefront pages (reduces 1.5MB → ~200KB transfer)
+if (!ini_get('zlib.output_compression') && function_exists('ob_gzhandler')
+    && strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false
+    && !headers_sent()) {
+    @ini_set('zlib.output_compression', 'On');
+    @ini_set('zlib.output_compression_level', '6');
+}
+
 //Для работы с пользователем
 require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 $user_session = DP_User::getUserSession();
