@@ -432,7 +432,7 @@ function epc_ecomae_platform_page_pricing()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#b01722 60%,#0a0a0a)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#075985 60%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge">Monthly rental</div>
 			<h1>Platform rental — per client tenant</h1>
