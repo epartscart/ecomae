@@ -259,11 +259,11 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	if( ! $DP_Content->main_flag || isset($_COOKIE["session"])){
 	?>
 	<!-- JS -->
-	<script src="assets/js/vendors.js" defer></script>
+	<script src="assets/js/vendors.js"></script>
 	<?php
 	}else{
 	?>
-	<script src="assets/js/vendors_main.js" defer></script>
+	<script src="assets/js/vendors_main.js"></script>
 	<?php
 	}
 	?>
