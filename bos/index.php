@@ -149,28 +149,36 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
 
             <div class="bos-login__capabilities">
                 <div class="bos-login__cap-item bos-login__cap-item--1">
-                    <div class="bos-login__cap-icon"><i class="fa fa-university"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--erp">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="3" y="6" width="22" height="16" rx="2" fill="url(#erpG)"/><rect x="6" y="9" width="6" height="4" rx="1" fill="rgba(255,255,255,.9)"/><rect x="14" y="9" width="8" height="2" rx="1" fill="rgba(255,255,255,.6)"/><rect x="14" y="13" width="5" height="2" rx="1" fill="rgba(255,255,255,.4)"/><rect x="6" y="15" width="16" height="2" rx="1" fill="rgba(255,255,255,.3)"/><rect x="6" y="19" width="10" height="2" rx="1" fill="rgba(255,255,255,.2)"/><defs><linearGradient id="erpG" x1="3" y1="6" x2="25" y2="22"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs></svg>
+                    </div>
                     <div class="bos-login__cap-text">
                         <strong>Enterprise ERP</strong>
                         <span>Finance, HR, Inventory, Production</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--2">
-                    <div class="bos-login__cap-icon"><i class="fa fa-shopping-cart"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ecom">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="12" r="9" fill="url(#ecomG)"/><path d="M8 10h12l-2 7H10L8 10z" fill="rgba(255,255,255,.9)"/><circle cx="11" cy="20" r="1.5" fill="rgba(255,255,255,.8)"/><circle cx="17" cy="20" r="1.5" fill="rgba(255,255,255,.8)"/><path d="M7 8l-1-3" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="ecomG" x1="5" y1="3" x2="23" y2="21"><stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/></linearGradient></defs></svg>
+                    </div>
                     <div class="bos-login__cap-text">
                         <strong>eCommerce Platform</strong>
                         <span>Multi-tenant, Multi-industry</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--3">
-                    <div class="bos-login__cap-icon"><i class="fa fa-globe"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--compliance">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="11" fill="url(#compG)" opacity=".9"/><ellipse cx="14" cy="14" rx="11" ry="5" stroke="rgba(255,255,255,.5)" stroke-width="1" fill="none"/><ellipse cx="14" cy="14" rx="5" ry="11" stroke="rgba(255,255,255,.4)" stroke-width="1" fill="none"/><circle cx="14" cy="14" r="2" fill="rgba(255,255,255,.9)"/><circle cx="14" cy="3" r="1.2" fill="#fbbf24"/><circle cx="14" cy="25" r="1.2" fill="#34d399"/><circle cx="3" cy="14" r="1.2" fill="#f472b6"/><circle cx="25" cy="14" r="1.2" fill="#60a5fa"/><defs><linearGradient id="compG" x1="3" y1="3" x2="25" y2="25"><stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs></svg>
+                    </div>
                     <div class="bos-login__cap-text">
                         <strong>Worldwide Compliance</strong>
                         <span>Auto-localized per country</span>
                     </div>
                 </div>
                 <div class="bos-login__cap-item bos-login__cap-item--4">
-                    <div class="bos-login__cap-icon"><i class="fa fa-magic"></i></div>
+                    <div class="bos-login__cap-icon bos-login__cap-icon--ai">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="4" fill="url(#aiG)"/><circle cx="10" cy="11" r="2" fill="rgba(255,255,255,.8)"/><circle cx="18" cy="11" r="2" fill="rgba(255,255,255,.8)"/><path d="M10 17q4 3 8 0" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="14" cy="2" r="1.5" fill="#fbbf24"/><line x1="14" y1="2" x2="14" y2="4" stroke="#fbbf24" stroke-width="1"/><circle cx="4" cy="8" r="1" fill="rgba(255,255,255,.4)"/><circle cx="24" cy="8" r="1" fill="rgba(255,255,255,.4)"/><defs><linearGradient id="aiG" x1="4" y1="4" x2="24" y2="24"><stop stop-color="#f59e0b"/><stop offset="1" stop-color="#d97706"/></linearGradient></defs></svg>
+                    </div>
                     <div class="bos-login__cap-text">
                         <strong>AI-Powered Operations</strong>
                         <span>Price engine, CRM, Automation</span>

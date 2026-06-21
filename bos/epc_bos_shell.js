@@ -204,19 +204,71 @@
         }
     });
 
-    /* ═══════════════════ PARTICLE SYSTEM ═══════════════════ */
+    /* ═══════════════════ PARTICLE SYSTEM — MATRIX RAIN ═══════════════════ */
     function bosCreateParticles() {
         var container = document.getElementById('bosParticles');
         if (!container) return;
-        for (var i = 0; i < 30; i++) {
+        var colors = [
+            'rgba(14, 165, 233, .8)',   // sky blue bright
+            'rgba(14, 165, 233, .5)',   // sky blue mid
+            'rgba(14, 165, 233, .3)',   // sky blue faint
+            'rgba(56, 189, 248, .7)',   // light blue
+            'rgba(56, 189, 248, .4)',   // light blue faint
+            'rgba(99, 102, 241, .6)',   // indigo
+            'rgba(99, 102, 241, .3)',   // indigo faint
+            'rgba(168, 85, 247, .5)',   // purple
+            'rgba(16, 185, 129, .4)',   // emerald
+            'rgba(255, 255, 255, .4)',  // white bright
+            'rgba(255, 255, 255, .15)'  // white faint
+        ];
+        var totalParticles = 220;
+        for (var i = 0; i < totalParticles; i++) {
             var p = document.createElement('div');
             p.className = 'bos-login__particle';
             p.style.left = Math.random() * 100 + '%';
-            p.style.animationDuration = (8 + Math.random() * 12) + 's';
-            p.style.animationDelay = (Math.random() * 10) + 's';
-            p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
-            if (Math.random() > 0.5) {
-                p.style.background = 'rgba(99, 102, 241, .4)';
+            p.style.top = Math.random() * 10 + '%';
+            var speed = Math.random();
+            var duration;
+            if (speed < 0.3) {
+                duration = 2.5 + Math.random() * 3.5;
+            } else if (speed < 0.7) {
+                duration = 6 + Math.random() * 6;
+            } else {
+                duration = 12 + Math.random() * 14;
+            }
+            p.style.animationDuration = duration + 's';
+            p.style.animationDelay = (Math.random() * duration) + 's';
+            var sizeRand = Math.random();
+            var size;
+            if (sizeRand < 0.50) {
+                size = 1 + Math.random() * 1.5;
+            } else if (sizeRand < 0.80) {
+                size = 2.5 + Math.random() * 2;
+            } else if (sizeRand < 0.95) {
+                size = 4.5 + Math.random() * 3.5;
+            } else {
+                size = 1.5 + Math.random() * 1;
+            }
+            p.style.width = size + 'px';
+            p.style.height = (sizeRand >= 0.95 ? size * 4 : size) + 'px';
+            if (sizeRand >= 0.95) {
+                p.style.borderRadius = size + 'px';
+            }
+            var anim;
+            if (sizeRand >= 0.95) {
+                anim = 'bosFloatStreak';
+            } else if (Math.random() < 0.35) {
+                anim = 'bosFloatDrift';
+            } else {
+                anim = 'bosFloat';
+            }
+            p.style.animationName = anim;
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            p.style.background = color;
+            if (size > 4) {
+                p.style.boxShadow = '0 0 ' + (size * 3) + 'px ' + color + ', 0 0 ' + (size * 6) + 'px ' + color.replace(/[\d.]+\)$/, '0.15)');
+            } else if (size > 2) {
+                p.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + color;
             }
             container.appendChild(p);
         }
