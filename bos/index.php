@@ -12,6 +12,14 @@ if (!isset($DP_Config)) { $DP_Config = new DP_Config(); }
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_unified.php';
 
+// Security headers (nginx ignores .htaccess so we set them in PHP)
+header('X-Robots-Tag: noindex, nofollow, noarchive');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; frame-ancestors 'none'");
+
 epc_bos_session_start();
 
 $bosAction = isset($_GET['action']) ? trim($_GET['action']) : '';
