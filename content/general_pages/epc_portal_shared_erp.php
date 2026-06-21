@@ -390,14 +390,33 @@ function epc_portal_shared_erp_find_by_credentials(string $authContact, string $
 			continue;
 		}
 		try {
+			// Dual auth: bcrypt first, fall back to legacy MD5
 			$st = $pdo->prepare(
-				'SELECT `user_id` FROM `users`
-				 WHERE `' . $contactType . '` = ? AND `' . $contactType . '_confirmed` = 1 AND `password` = ? AND `unlocked` = 1
+				'SELECT `user_id`, `password` FROM `users`
+				 WHERE `' . $contactType . '` = ? AND `' . $contactType . '_confirmed` = 1 AND `unlocked` = 1
 				 LIMIT 1'
 			);
-			$st->execute(array(htmlentities($authContact), $hash));
-			$userId = (int) $st->fetchColumn();
-			if ($userId <= 0) {
+			$st->execute(array(htmlentities($authContact)));
+			$uRow = $st->fetch(PDO::FETCH_ASSOC);
+			if (!$uRow) {
+				continue;
+			}
+			$userId = (int) $uRow['user_id'];
+			$storedPw = (string) ($uRow['password'] ?? '');
+			$pwOk = false;
+			if (password_verify($password, $storedPw)) {
+				$pwOk = true;
+			} elseif ($hash === $storedPw) {
+				$pwOk = true;
+				$upgFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+				if (is_file($upgFile)) {
+					require_once $upgFile;
+					if (function_exists('epc_password_upgrade_if_needed') && function_exists('epc_password_is_legacy_md5') && epc_password_is_legacy_md5($storedPw)) {
+						epc_password_upgrade_if_needed($pdo, $userId, $password, $storedPw);
+					}
+				}
+			}
+			if (!$pwOk || $userId <= 0) {
 				continue;
 			}
 			$bg = $pdo->query('SELECT `id` FROM `groups` WHERE `for_backend` = 1 LIMIT 1')->fetch(PDO::FETCH_ASSOC);

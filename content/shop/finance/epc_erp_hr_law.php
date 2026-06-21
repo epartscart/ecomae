@@ -45,7 +45,17 @@ if (!function_exists('epc_hr_resolve_country')) {
     function epc_hr_resolve_country(string $country): string
     {
         $c = strtoupper(trim($country));
-        $known = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW', 'IN', 'PK');
+        if ($c === '' || $c === 'GENERIC') {
+            return 'generic';
+        }
+        if (function_exists('epc_hr_law_profiles_all')) {
+            $all = epc_hr_law_profiles_all();
+            return isset($all[$c]) ? $c : 'generic';
+        }
+        $known = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW', 'IN', 'PK',
+            'BD', 'LK', 'NP', 'EG', 'JO', 'LB', 'MA', 'TR',
+            'GB', 'DE', 'FR', 'NL', 'IE', 'US', 'CA',
+            'PH', 'SG', 'MY', 'AU', 'ZA', 'NG', 'KE');
         return in_array($c, $known, true) ? $c : 'generic';
     }
 }

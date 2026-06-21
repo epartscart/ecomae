@@ -1613,7 +1613,12 @@ function epc_portal_demo_create_cp_user(PDO $tenantPdo, string $email, string $p
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 	$cfg = new DP_Config();
 	$groups = epc_portal_demo_cp_backend_group_ids($tenantPdo);
-	$hash = md5($password . $cfg->secret_succession);
+	// Use bcrypt for new/reset passwords; fall back to MD5 only if bcrypt unavailable
+	$upgFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+	if (is_file($upgFile)) {
+		require_once $upgFile;
+	}
+	$hash = function_exists('epc_password_hash') ? epc_password_hash($password) : md5($password . $cfg->secret_succession);
 	$st = $tenantPdo->prepare('SELECT `user_id` FROM `users` WHERE `email` = ? LIMIT 1');
 	$st->execute(array($email));
 	$row = $st->fetch(PDO::FETCH_ASSOC);

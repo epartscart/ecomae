@@ -531,11 +531,32 @@ function epc_erp_portal_handle_auth_post(PDO $db_link)
 		}
 	} else {
 		$password = isset($_POST['password']) ? (string) $_POST['password'] : '';
+		// Dual auth: try bcrypt first, fall back to legacy MD5
 		$authQuery = $db_link->prepare(
-			'SELECT * FROM `users` WHERE `' . $authContactType . '` = ? AND `' . $authContactType . '_confirmed` = ? AND `unlocked` = ? AND `password` = ?;'
+			'SELECT * FROM `users` WHERE `' . $authContactType . '` = ? AND `' . $authContactType . '_confirmed` = ? AND `unlocked` = ?;'
 		);
-		$authQuery->execute(array($authContact, 1, 1, md5($password . $DP_Config->secret_succession)));
+		$authQuery->execute(array($authContact, 1, 1));
 		$authRecord = $authQuery->fetch();
+		if ($authRecord) {
+			$storedPw = (string) ($authRecord['password'] ?? '');
+			$pwOk = false;
+			if (function_exists('password_verify') && password_verify($password, $storedPw)) {
+				$pwOk = true;
+			} elseif (md5($password . $DP_Config->secret_succession) === $storedPw) {
+				$pwOk = true;
+				// Transparent upgrade to bcrypt
+				$upgFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+				if (is_file($upgFile)) {
+					require_once $upgFile;
+					if (function_exists('epc_password_upgrade_if_needed') && function_exists('epc_password_is_legacy_md5') && epc_password_is_legacy_md5($storedPw)) {
+						epc_password_upgrade_if_needed($db_link, (int) $authRecord['user_id'], $password, $storedPw);
+					}
+				}
+			}
+			if (!$pwOk) {
+				$authRecord = false;
+			}
+		}
 	}
 
 	if ($authRecord === false) {

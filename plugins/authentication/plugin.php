@@ -193,9 +193,29 @@ if( ! isBot() )
 				- пользователь не заблокирован админом
 				- пароль от учетной записи указан верно
 				*/
-				$auth_query = $db_link->prepare('SELECT * FROM `users` WHERE `'.$auth_contact_type.'`=? AND `'.$auth_contact_type.'_confirmed` = ? AND `unlocked` =? AND `password`=?;');
-				$auth_query->execute( array($auth_contact, 1, 1,  md5($password.$DP_Config->secret_succession) ) );
+				// Dual auth: bcrypt first, fall back to legacy MD5 with transparent upgrade
+				$auth_query = $db_link->prepare('SELECT * FROM `users` WHERE `'.$auth_contact_type.'`=? AND `'.$auth_contact_type.'_confirmed` = ? AND `unlocked` =?;');
+				$auth_query->execute( array($auth_contact, 1, 1) );
 				$auth_record = $auth_query->fetch();
+				if ($auth_record) {
+					$_storedPw = (string) ($auth_record['password'] ?? '');
+					$_pwOk = false;
+					if (password_verify($password, $_storedPw)) {
+						$_pwOk = true;
+					} elseif (md5($password.$DP_Config->secret_succession) === $_storedPw) {
+						$_pwOk = true;
+						$_upgFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+						if (is_file($_upgFile)) {
+							require_once $_upgFile;
+							if (function_exists('epc_password_upgrade_if_needed') && function_exists('epc_password_is_legacy_md5') && epc_password_is_legacy_md5($_storedPw)) {
+								epc_password_upgrade_if_needed($db_link, (int) $auth_record['user_id'], $password, $_storedPw);
+							}
+						}
+					}
+					if (!$_pwOk) {
+						$auth_record = false;
+					}
+				}
 			}
 			
 			if( $auth_record == false )

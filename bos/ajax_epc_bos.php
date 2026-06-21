@@ -34,6 +34,14 @@ switch ($action) {
         $response = epc_bos_ajax_tenant_info();
         break;
 
+    case 'fleet_health':
+        $response = epc_bos_ajax_fleet_health();
+        break;
+
+    case 'tenant_compliance':
+        $response = epc_bos_ajax_tenant_compliance();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -121,6 +129,16 @@ function epc_bos_ajax_login(): array
 
     if (!$passOk) {
         return array('ok' => false, 'error' => 'Invalid credentials');
+    }
+
+    // Transparent password upgrade: MD5 → bcrypt on successful login
+    $upgradeFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+    if (is_file($upgradeFile)) {
+        require_once $upgradeFile;
+        $userId_ = (int) ($userRow['id'] ?? $userRow['ID'] ?? $userRow['user_id'] ?? 0);
+        if ($userId_ > 0 && $authPdo && epc_password_is_legacy_md5($storedPass)) {
+            epc_password_upgrade_if_needed($authPdo, $userId_, $password, $storedPass);
+        }
     }
 
     $userId = (int) ($userRow['id'] ?? $userRow['ID'] ?? $userRow['user_id'] ?? 0);
@@ -274,5 +292,219 @@ function epc_bos_ajax_tenant_info(): array
         'settings' => $settings,
         'sections' => array_values($sections),
         'country_profile' => $country,
+    );
+}
+
+/* ───────────────────── fleet health ───────────────────── */
+
+function epc_bos_ajax_fleet_health(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $tenants = epc_bos_tenant_list($platformPdo);
+    $fleet = array();
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_localization.php';
+
+    foreach ($tenants as $t) {
+        $siteKey = $t['site_key'] ?? ($t['key'] ?? '');
+        if ($siteKey === '') {
+            continue;
+        }
+
+        $health = array(
+            'site_key' => $siteKey,
+            'trade_name' => $t['trade_name'] ?? $siteKey,
+            'hostname' => $t['hostname'] ?? '',
+            'status' => 'unknown',
+            'country' => '',
+            'currency' => '',
+            'users' => 0,
+            'products' => 0,
+            'orders' => 0,
+            'erp_tables' => 0,
+        );
+
+        $conn = epc_bos_tenant_connect($platformPdo, $siteKey);
+        if ($conn['pdo'] === null) {
+            $health['status'] = 'offline';
+            $fleet[] = $health;
+            continue;
+        }
+
+        $health['status'] = 'online';
+        $tPdo = $conn['pdo'];
+
+        try {
+            $coSt = $tPdo->query("SELECT `value` FROM `epc_co_profile` WHERE `field` = 'country' LIMIT 1");
+            $coRow = $coSt ? $coSt->fetch(PDO::FETCH_ASSOC) : null;
+            $c = $coRow ? (string) $coRow['value'] : '';
+            if ($c !== '') {
+                $prof = epc_country_profile($c);
+                $health['country'] = $prof['name'];
+                $health['currency'] = $prof['currency'];
+            }
+        } catch (Exception $e) {}
+
+        try { $health['users'] = (int) $tPdo->query("SELECT COUNT(*) FROM `users`")->fetchColumn(); } catch (Exception $e) {}
+        try { $health['products'] = (int) $tPdo->query("SELECT COUNT(*) FROM `shop_products`")->fetchColumn(); } catch (Exception $e) {}
+        try { $health['orders'] = (int) $tPdo->query("SELECT COUNT(*) FROM `shop_orders`")->fetchColumn(); } catch (Exception $e) {}
+
+        try {
+            $erpSt = $tPdo->query("SHOW TABLES LIKE 'epc_erp_%'");
+            $health['erp_tables'] = $erpSt ? $erpSt->rowCount() : 0;
+        } catch (Exception $e) {}
+
+        $fleet[] = $health;
+    }
+
+    $online = count(array_filter($fleet, function($f) { return $f['status'] === 'online'; }));
+    $offline = count(array_filter($fleet, function($f) { return $f['status'] === 'offline'; }));
+
+    return array(
+        'ok' => true,
+        'fleet' => $fleet,
+        'summary' => array(
+            'total' => count($fleet),
+            'online' => $online,
+            'offline' => $offline,
+            'total_users' => array_sum(array_column($fleet, 'users')),
+            'total_products' => array_sum(array_column($fleet, 'products')),
+            'total_orders' => array_sum(array_column($fleet, 'orders')),
+        ),
+    );
+}
+
+/* ───────────────────── tenant compliance ───────────────────── */
+
+function epc_bos_ajax_tenant_compliance(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] === 'guest') {
+        return array('ok' => false, 'error' => 'Not authenticated');
+    }
+
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim((string) ($_POST['site_key'] ?? $_GET['site_key'] ?? ''))));
+    if ($siteKey === '') {
+        return array('ok' => false, 'error' => 'site_key required');
+    }
+
+    if ($ctx['role'] === 'tenant' && $ctx['tenant_key'] !== $siteKey) {
+        return array('ok' => false, 'error' => 'Access denied');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_localization.php';
+
+    $conn = epc_bos_tenant_connect($platformPdo, $siteKey);
+    if ($conn['pdo'] === null) {
+        return array('ok' => false, 'error' => 'Cannot connect to tenant');
+    }
+
+    $tPdo = $conn['pdo'];
+    $checks = array();
+
+    // 1. Company profile completeness
+    $profileFields = array('company_name', 'country', 'currency', 'address', 'phone', 'tax_number');
+    $profileSet = 0;
+    foreach ($profileFields as $f) {
+        try {
+            $st = $tPdo->prepare("SELECT `value` FROM `epc_co_profile` WHERE `field` = ? LIMIT 1");
+            $st->execute(array($f));
+            $v = $st->fetchColumn();
+            if ($v !== false && trim((string) $v) !== '') {
+                $profileSet++;
+            }
+        } catch (Exception $e) {}
+    }
+    $checks[] = array(
+        'category' => 'Company profile',
+        'check' => 'Profile completeness',
+        'status' => $profileSet >= 5 ? 'pass' : ($profileSet >= 3 ? 'warn' : 'fail'),
+        'detail' => $profileSet . '/' . count($profileFields) . ' fields set',
+    );
+
+    // 2. Country configuration
+    $country = '';
+    try {
+        $st = $tPdo->prepare("SELECT `value` FROM `epc_co_profile` WHERE `field` = 'country' LIMIT 1");
+        $st->execute();
+        $country = (string) $st->fetchColumn();
+    } catch (Exception $e) {}
+    $checks[] = array(
+        'category' => 'Localization',
+        'check' => 'Registration country',
+        'status' => $country !== '' ? 'pass' : 'fail',
+        'detail' => $country !== '' ? epc_country_profile($country)['name'] : 'Not set — all tax/currency/compliance defaults to generic',
+    );
+
+    // 3. Chart of Accounts
+    $coaCount = 0;
+    try { $coaCount = (int) $tPdo->query("SELECT COUNT(*) FROM `epc_erp_coa`")->fetchColumn(); } catch (Exception $e) {}
+    $checks[] = array(
+        'category' => 'Accounting',
+        'check' => 'Chart of Accounts',
+        'status' => $coaCount > 10 ? 'pass' : ($coaCount > 0 ? 'warn' : 'fail'),
+        'detail' => $coaCount . ' accounts',
+    );
+
+    // 4. ERP schema tables
+    $erpTables = 0;
+    try {
+        $erpSt = $tPdo->query("SHOW TABLES LIKE 'epc_erp_%'");
+        $erpTables = $erpSt ? $erpSt->rowCount() : 0;
+    } catch (Exception $e) {}
+    $checks[] = array(
+        'category' => 'ERP',
+        'check' => 'ERP schema deployed',
+        'status' => $erpTables > 20 ? 'pass' : ($erpTables > 0 ? 'warn' : 'fail'),
+        'detail' => $erpTables . ' ERP tables',
+    );
+
+    // 5. Admin users
+    $adminCount = 0;
+    try { $adminCount = (int) $tPdo->query("SELECT COUNT(*) FROM `users` WHERE `unlocked` = 1")->fetchColumn(); } catch (Exception $e) {}
+    $checks[] = array(
+        'category' => 'Security',
+        'check' => 'Active users',
+        'status' => $adminCount > 0 ? 'pass' : 'fail',
+        'detail' => $adminCount . ' active users',
+    );
+
+    // 6. Password hash quality
+    $md5Count = 0;
+    $bcryptCount = 0;
+    try {
+        $md5Count = (int) $tPdo->query("SELECT COUNT(*) FROM `users` WHERE LENGTH(`password`) = 32")->fetchColumn();
+        $bcryptCount = (int) $tPdo->query("SELECT COUNT(*) FROM `users` WHERE `password` LIKE '\$2y\$%'")->fetchColumn();
+    } catch (Exception $e) {}
+    $checks[] = array(
+        'category' => 'Security',
+        'check' => 'Password hashing',
+        'status' => $md5Count === 0 ? 'pass' : ($bcryptCount > 0 ? 'warn' : 'fail'),
+        'detail' => $bcryptCount . ' bcrypt, ' . $md5Count . ' legacy MD5',
+    );
+
+    $pass = count(array_filter($checks, function($c) { return $c['status'] === 'pass'; }));
+    $warn = count(array_filter($checks, function($c) { return $c['status'] === 'warn'; }));
+    $fail = count(array_filter($checks, function($c) { return $c['status'] === 'fail'; }));
+
+    return array(
+        'ok' => true,
+        'tenant' => $siteKey,
+        'checks' => $checks,
+        'score' => array('pass' => $pass, 'warn' => $warn, 'fail' => $fail, 'total' => count($checks)),
     );
 }

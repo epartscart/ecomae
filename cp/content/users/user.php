@@ -126,9 +126,12 @@ if( isset($_POST["save_action"]) )
 			{
 				throw new Exception(translate_str_by_id(3911));
 			}
-			//Пароль
+			//Пароль — bcrypt preferred, MD5 fallback
 			$password = $_POST["password"];
-			if( ! $db_link->prepare("INSERT INTO `users` (`reg_variant`, `email`, `email_confirmed`, `phone`, `phone_confirmed`, `password`, `unlocked`, `time_registered`, `admin_created`) VALUES (?,?,?,?,?,?,?,?,?);")->execute( array( (int)$_POST["reg_variant"], $email, $email_confirmed, $phone, $phone_confirmed, md5($password.$DP_Config->secret_succession), $unlocked, time(), 1) ) )
+			$_pwUpgFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+			if (is_file($_pwUpgFile)) { require_once $_pwUpgFile; }
+			$_pwHash = function_exists('epc_password_hash') ? epc_password_hash($password) : md5($password.$DP_Config->secret_succession);
+			if( ! $db_link->prepare("INSERT INTO `users` (`reg_variant`, `email`, `email_confirmed`, `phone`, `phone_confirmed`, `password`, `unlocked`, `time_registered`, `admin_created`) VALUES (?,?,?,?,?,?,?,?,?);")->execute( array( (int)$_POST["reg_variant"], $email, $email_confirmed, $phone, $phone_confirmed, $_pwHash, $unlocked, time(), 1) ) )
 			{
 				throw new Exception(translate_str_by_id(3912));
 			}
@@ -303,7 +306,10 @@ if( isset($_POST["save_action"]) )
 			$SQL_UPDATE .= " WHERE `user_id` = ?";
 			if($password != "")
 			{
-				$binding_values = array( $email, $email_confirmed, $phone, $phone_confirmed, md5($password.$DP_Config->secret_succession), $unlocked, (int)$_POST["reg_variant"], (int)$_POST["user_id"] );
+				$_pwUpgFile2 = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+				if (is_file($_pwUpgFile2)) { require_once $_pwUpgFile2; }
+				$_pwHash2 = function_exists('epc_password_hash') ? epc_password_hash($password) : md5($password.$DP_Config->secret_succession);
+				$binding_values = array( $email, $email_confirmed, $phone, $phone_confirmed, $_pwHash2, $unlocked, (int)$_POST["reg_variant"], (int)$_POST["user_id"] );
 			}
 			else
 			{
