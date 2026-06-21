@@ -35,8 +35,15 @@ if (!defined('_ASTEXE_')) {
 
 echo "=== ecomae.com tenant self-registration ===\n\n";
 
-// Load platform PDO
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_platform_data.php';
+// Load platform PDO — need the full dependency chain
+try {
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_platform_data.php';
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant.php';
+} catch (Throwable $e) {
+    echo "FAIL: could not load platform libraries: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
 $platformPdo = epc_portal_platform_pdo();
 if (!$platformPdo instanceof PDO) {
     echo "FAIL: cannot connect to platform database\n";
