@@ -143,10 +143,10 @@ function epc_syncron_demand_moving_avg(PDO $db, int $itemId, int $warehouseId, i
 	$cutoff = date('Y-m-d', time() - ($windowDays * 86400));
 	$st = $db->prepare(
 		'SELECT COALESCE(SUM(ABS(`qty`)), 0) AS total_demand,
-		        COUNT(DISTINCT DATE(`created_at`)) AS active_days
+		        COUNT(DISTINCT DATE(FROM_UNIXTIME(`movement_date`))) AS active_days
 		 FROM `epc_erp_inv_movements`
 		 WHERE `item_id` = ? AND `warehouse_id` = ? AND `movement_type` IN ("sale_out","adjustment")
-		   AND `created_at` >= UNIX_TIMESTAMP(?)
+		   AND `movement_date` >= UNIX_TIMESTAMP(?)
 		 LIMIT 1'
 	);
 	$st->execute(array($itemId, $warehouseId, $cutoff));
@@ -160,10 +160,10 @@ function epc_syncron_demand_exponential(PDO $db, int $itemId, int $warehouseId, 
 {
 	$cutoff = date('Y-m-d', time() - ($windowDays * 86400));
 	$st = $db->prepare(
-		'SELECT DATE(FROM_UNIXTIME(`created_at`)) AS d, COALESCE(SUM(ABS(`qty`)), 0) AS qty
+		'SELECT DATE(FROM_UNIXTIME(`movement_date`)) AS d, COALESCE(SUM(ABS(`qty`)), 0) AS qty
 		 FROM `epc_erp_inv_movements`
 		 WHERE `item_id` = ? AND `warehouse_id` = ? AND `movement_type` IN ("sale_out","adjustment")
-		   AND `created_at` >= UNIX_TIMESTAMP(?)
+		   AND `movement_date` >= UNIX_TIMESTAMP(?)
 		 GROUP BY d ORDER BY d ASC'
 	);
 	$st->execute(array($itemId, $warehouseId, $cutoff));
@@ -297,12 +297,12 @@ function epc_syncron_recommend_policies(PDO $db, int $warehouseId = 0)
 function epc_syncron_run_forecast(PDO $db, int $warehouseId = 0)
 {
 	epc_syncron_policy_ensure_schema($db);
-	$wFilter = $warehouseId > 0 ? ' WHERE wh.`id` = ' . (int) $warehouseId : '';
+	$wFilter = $warehouseId > 0 ? ' AND wh.`id` = ' . (int) $warehouseId : '';
 	$items = $db->query(
 		'SELECT it.`id`, it.`sku`, wh.`id` AS wh_id
 		 FROM `epc_erp_inv_items` it
-		 CROSS JOIN `epc_erp_inv_warehouses` wh' . $wFilter . '
-		 WHERE it.`active` = 1'
+		 CROSS JOIN `epc_erp_inv_warehouses` wh
+		 WHERE it.`active` = 1' . $wFilter
 	)->fetchAll(PDO::FETCH_ASSOC);
 
 	$now = time();

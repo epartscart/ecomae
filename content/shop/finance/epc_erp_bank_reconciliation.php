@@ -194,9 +194,6 @@ function epc_erp_bank_recon_auto_match(PDO $db, int $sessionId)
 function epc_erp_bank_recon_finalize(PDO $db, int $sessionId, int $userId)
 {
 	$now = time();
-	$unmatchedCount = (int) $db->prepare(
-		'SELECT COUNT(*) FROM `epc_erp_bank_recon_statement_lines` WHERE `session_id` = ? AND `matched` = 0'
-	)->execute(array($sessionId)) ? 0 : 0;
 	$st = $db->prepare('SELECT COUNT(*) FROM `epc_erp_bank_recon_statement_lines` WHERE `session_id` = ? AND `matched` = 0');
 	$st->execute(array($sessionId));
 	$unmatchedCount = (int) $st->fetchColumn();
@@ -213,7 +210,7 @@ function epc_erp_bank_recon_finalize(PDO $db, int $sessionId, int $userId)
 	$matchedSt->execute(array($sessionId));
 	$matchedNet = (float) $matchedSt->fetchColumn();
 
-	$adjusted = $stmtBal;
+	$adjusted = $stmtBal - $matchedNet;
 	$diff = round($adjusted - (float) ($sess['book_balance'] ?? 0), 2);
 
 	$db->prepare(

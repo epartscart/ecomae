@@ -390,9 +390,9 @@ function epc_pim_render_form_fields(PDO $db, string $module, int $itemId = 0)
 	return $html;
 }
 
-function epc_pim_save_from_post(PDO $db, int $itemId, array $postData)
+function epc_pim_save_from_post(PDO $db, int $itemId, array $postData, string $module = '')
 {
-	$fields = epc_pim_field_list($db);
+	$fields = epc_pim_field_list($db, $module);
 	foreach ($fields as $f) {
 		$fid = (int) $f['id'];
 		$key = 'pim_field_' . $fid;

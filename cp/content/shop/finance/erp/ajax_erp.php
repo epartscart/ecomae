@@ -1479,7 +1479,7 @@ try {
 			if (is_file($pimFile) && $id > 0) {
 				require_once $pimFile;
 				if (function_exists('epc_pim_save_from_post')) {
-					epc_pim_save_from_post($db_link, (int) $id, $_POST);
+					epc_pim_save_from_post($db_link, (int) $id, $_POST, 'inventory');
 				}
 			}
 			epc_erp_json(true, 'Inventory item created', array('id' => $id));
