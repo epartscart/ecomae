@@ -52,29 +52,53 @@ function epc_bos_ajax_login(): array
         return array('ok' => false, 'error' => 'Email and password required');
     }
 
+    $secretSuccession = '';
+    $mainPdo = null;
+    try {
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+        $cfg = new \DP_Config();
+        $secretSuccession = (string) ($cfg->secret_succession ?? '');
+        $mainPdo = new PDO(
+            'mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8',
+            $cfg->user,
+            $cfg->password,
+            array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+        );
+    } catch (Exception $e) {
+        $mainPdo = null;
+    }
+
+    $platformPdo = null;
     try {
         $platformPdo = epc_portal_platform_operator_pdo();
-        if (!$platformPdo) {
-            return array('ok' => false, 'error' => 'Platform database unavailable');
-        }
     } catch (Exception $e) {
+        $platformPdo = null;
+    }
+
+    if (!$mainPdo && !$platformPdo) {
         return array('ok' => false, 'error' => 'Platform database unavailable');
     }
 
     $userRow = null;
-    $tables = array('admin', 'users', 'epc_cp_users');
-    foreach ($tables as $table) {
-        try {
-            $st = $platformPdo->prepare("SELECT * FROM `{$table}` WHERE `email` = ? LIMIT 1");
-            $st->execute(array($email));
-            $row = $st->fetch(PDO::FETCH_ASSOC);
-            if ($row) {
-                $userRow = $row;
-                $userRow['_table'] = $table;
-                break;
+    $authPdo = null;
+    $tables = array('users', 'admin', 'epc_cp_users');
+    $pdoSources = array_filter(array($mainPdo, $platformPdo));
+
+    foreach ($pdoSources as $tryPdo) {
+        foreach ($tables as $table) {
+            try {
+                $st = $tryPdo->prepare("SELECT * FROM `{$table}` WHERE `email` = ? LIMIT 1");
+                $st->execute(array($email));
+                $row = $st->fetch(PDO::FETCH_ASSOC);
+                if ($row) {
+                    $userRow = $row;
+                    $userRow['_table'] = $table;
+                    $authPdo = $tryPdo;
+                    break 2;
+                }
+            } catch (Exception $e) {
+                continue;
             }
-        } catch (Exception $e) {
-            continue;
         }
     }
 
@@ -87,6 +111,8 @@ function epc_bos_ajax_login(): array
 
     if ($storedPass !== '') {
         if (password_verify($password, $storedPass)) {
+            $passOk = true;
+        } elseif ($secretSuccession !== '' && md5($password . $secretSuccession) === $storedPass) {
             $passOk = true;
         } elseif (md5($password) === $storedPass) {
             $passOk = true;
@@ -118,7 +144,10 @@ function epc_bos_ajax_login(): array
     require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_kernel.php';
     if (function_exists('epc_boc_audit_log')) {
         try {
-            epc_boc_audit_log($platformPdo, $userId, 'bos', 'login', '', array('role' => $role), $email);
+            $auditPdo = $platformPdo ?: $mainPdo;
+            if ($auditPdo) {
+                epc_boc_audit_log($auditPdo, $userId, 'bos', 'login', '', array('role' => $role), $email);
+            }
         } catch (Exception $e) {
             // audit log failure should not block login
         }
