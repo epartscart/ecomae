@@ -18,7 +18,7 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; frame-src https:; frame-ancestors 'none'");
 
 epc_bos_session_start();
 
@@ -99,6 +99,14 @@ if ($isLoggedIn) {
             $sections = array_filter($sections, function($s) { return empty($s['provider_only']); });
         }
     }
+}
+
+// Resolve active module metadata
+$activeModuleInfo = null;
+$isModuleView = false;
+if ($activeModule !== '' && $activeModule !== 'command_center' && !empty($sections)) {
+    $activeModuleInfo = epc_bos_resolve_module($sections, $activeModule);
+    $isModuleView = ($activeModuleInfo !== null);
 }
 
 $tenantsJson = json_encode($tenants, JSON_UNESCAPED_UNICODE);
@@ -440,22 +448,22 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 <div class="bos-stat-card bos-stat-card--total">
                     <div class="bos-stat-card__number"><?php echo count($tenants); ?></div>
                     <div class="bos-stat-card__label">Total Tenants</div>
-                    <i class="fa fa-th-large bos-stat-card__icon"></i>
+                    <div class="bos-stat-card__icon"><i class="fa fa-th-large"></i></div>
                 </div>
                 <div class="bos-stat-card bos-stat-card--commerce">
                     <div class="bos-stat-card__number"><?php echo $countByType['commerce']; ?></div>
                     <div class="bos-stat-card__label">Commerce</div>
-                    <i class="fa fa-shopping-cart bos-stat-card__icon"></i>
+                    <div class="bos-stat-card__icon"><i class="fa fa-shopping-cart"></i></div>
                 </div>
                 <div class="bos-stat-card bos-stat-card--erp">
                     <div class="bos-stat-card__number"><?php echo $countByType['erp_only']; ?></div>
                     <div class="bos-stat-card__label">ERP Only</div>
-                    <i class="fa fa-university bos-stat-card__icon"></i>
+                    <div class="bos-stat-card__icon"><i class="fa fa-university"></i></div>
                 </div>
                 <div class="bos-stat-card bos-stat-card--demo">
                     <div class="bos-stat-card__number"><?php echo $countByType['demo']; ?></div>
                     <div class="bos-stat-card__label">Demo</div>
-                    <i class="fa fa-flask bos-stat-card__icon"></i>
+                    <div class="bos-stat-card__icon"><i class="fa fa-flask"></i></div>
                 </div>
             </div>
 
@@ -502,8 +510,178 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
             </div>
         </div>
 
+        <?php elseif ($activeTenant && $isModuleView && $activeModuleInfo): ?>
+        <!-- Module Content View -->
+        <?php
+            $modColor = epc_bos_module_color($activeModuleInfo['section']);
+            $isErpModule = strpos($activeModuleInfo['path'], 'shop/finance/erp') === 0;
+            $cpBaseUrl = $tenantInfo['hostname'] ? 'https://' . $tenantInfo['hostname'] . '/cp/' : '';
+            $erpBaseUrl = $tenantInfo['hostname'] ? 'https://' . $tenantInfo['hostname'] . '/cp/client-erp/asap/' : '';
+
+            $moduleDescriptions = array(
+                'command_center'   => 'Monitor all tenants, system health, and platform metrics in real time.',
+                'platform_health'  => 'Health checks, uptime monitoring, and infrastructure diagnostics.',
+                'governance'       => 'Compliance rules, audit policies, and platform governance settings.',
+                'audit_log'        => 'Complete audit trail of all administrative actions across the platform.',
+                'failover'         => 'Disaster recovery procedures, failover runbook, and backup status.',
+                'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
+                'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
+                'tenant_features'  => 'Feature matrix showing capabilities enabled for each tenant.',
+                'demo_tenants'     => 'Manage demo/trial tenants for sales and onboarding.',
+                'industry_packs'   => 'Configure industry-specific feature packs and ERP module bundles.',
+                'customer_board'   => 'Customer relationship overview across all tenants.',
+                'integrations'     => 'Third-party integrations, API keys, and webhook management.',
+                'orders'           => 'View, manage, and process customer orders. Track fulfillment status.',
+                'customers'        => 'Customer database, profiles, purchase history, and segmentation.',
+                'payments'         => 'Payment processing, transaction history, and settlement tracking.',
+                'returns'          => 'Return requests, refund processing, and RMA management.',
+                'quotes'           => 'Quote requests from customers, pricing negotiation, and approvals.',
+                'channels'         => 'Multi-channel sales: marketplace integrations and channel management.',
+                'pos'              => 'Point of Sale terminal for in-store transactions.',
+                'statistics'       => 'Sales analytics, conversion rates, revenue reports, and trends.',
+                'products'         => 'Product catalog management: items, categories, and attributes.',
+                'prices_edit'      => 'Edit prices directly for individual products and price lists.',
+                'prices_upload'    => 'Bulk price upload via CSV/Excel for warehouses and suppliers.',
+                'prices_send'      => 'Send price updates to channels, marketplaces, and partners.',
+                'pricing'          => 'Pricing rules: markups, discounts, customer-specific pricing.',
+                'logistics'        => 'Shipping, delivery management, and carrier integrations.',
+                'procurement'      => 'Purchase orders, supplier management, and procurement workflows.',
+                'marketing'        => 'Marketing campaigns, promotions, and discount code management.',
+                'broadcast'        => 'Email/SMS broadcast to customers and leads.',
+                'social'           => 'Social media integration and management tools.',
+                'seo'              => 'Search engine optimization settings, meta tags, and sitemaps.',
+                'crm'              => 'Customer relationship management: leads, deals, and pipeline.',
+                'documents'        => 'Document management and control for business processes.',
+                'parts_agent'      => 'AI-powered parts inquiry chat agent for customer support.',
+                'erp_home'         => 'ERP overview dashboard with key financial metrics and KPIs.',
+                'erp_gl'           => 'General Ledger: chart of accounts, journal entries, and trial balance.',
+                'erp_ap'           => 'Accounts Payable: vendor invoices, payments, and aging reports.',
+                'erp_ar'           => 'Accounts Receivable: customer invoices, collections, and aging.',
+                'erp_cash'         => 'Cash and bank management: bank accounts, reconciliation, and cash flow.',
+                'erp_tax'          => 'Tax compliance: VAT/GST returns, tax codes, and filing preparation.',
+                'erp_sales'        => 'Sales management: quotations, sales orders, and CRM integration.',
+                'erp_purchasing'   => 'Purchase management: purchase orders, vendor selection, and RFQs.',
+                'erp_inventory'    => 'Inventory management: stock levels, warehouses, and stock movements.',
+                'erp_hr'           => 'Human resources: employee records, leave, attendance, and HR law.',
+                'erp_payroll'      => 'Payroll processing: salary calculation, deductions, and payslips.',
+                'erp_production'   => 'Production planning: BOMs, work orders, and manufacturing.',
+                'erp_projects'     => 'Project management: tasks, milestones, and project accounting.',
+                'erp_warehouse'    => 'Warehouse management: locations, bin management, and picking.',
+                'erp_fixed_assets' => 'Fixed asset register: depreciation, disposal, and asset tracking.',
+                'erp_budgeting'    => 'Budget planning: departmental budgets, variance analysis, and forecasts.',
+                'crosses'          => 'Part cross-references: OEM/aftermarket number matching.',
+                'demand'           => 'Demand analysis by country: popular parts and regional trends.',
+                'auto_price'       => 'AI-powered automatic pricing engine for auto parts.',
+                'synonyms'         => 'Brand synonym mapping for search and matching.',
+                'tax_toolkit'      => 'Tax calculation toolkit for advisory clients.',
+                'free_tools'       => 'Public free tools administration and configuration.',
+                'portal_settings'  => 'Portal configuration: branding, domains, and global settings.',
+                'modern_auth'      => 'Authentication settings: password policies and session management.',
+                'communication'    => 'Communication tools: notifications, messages, and announcements.',
+                'api_docs'         => 'API documentation and developer guide.',
+                'operator_guide'   => 'Platform operator guide and administration manual.',
+            );
+            $modDesc = $moduleDescriptions[$activeModuleInfo['id']] ?? 'Module for ' . $activeModuleInfo['section'] . ' operations.';
+        ?>
+        <div class="bos-module-view" id="bosModuleView">
+            <div class="bos-module-view__header">
+                <div class="bos-module-view__title">
+                    <a href="/bos/?t=<?php echo epc_bos_h($activeTenant); ?>" class="bos-module-view__back" title="Back to modules">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+                    <div class="bos-module-view__icon" style="background: <?php echo $modColor; ?>;">
+                        <i class="fa <?php echo epc_bos_h($activeModuleInfo['icon']); ?>"></i>
+                    </div>
+                    <div>
+                        <h2><?php echo epc_bos_h($activeModuleInfo['label']); ?></h2>
+                        <span class="bos-module-view__section">
+                            <i class="fa <?php echo epc_bos_h($activeModuleInfo['section_icon']); ?>"></i>
+                            <?php echo epc_bos_h($activeModuleInfo['section']); ?>
+                        </span>
+                    </div>
+                </div>
+                <?php if ($tenantInfo['hostname']): ?>
+                <div class="bos-module-view__actions">
+                    <?php if ($isErpModule): ?>
+                    <a href="<?php echo $erpBaseUrl; ?>" target="_blank" class="bos-btn bos-btn--primary">
+                        <i class="fa fa-external-link"></i> Open ERP
+                    </a>
+                    <?php else: ?>
+                    <a href="<?php echo $cpBaseUrl; ?>" target="_blank" class="bos-btn bos-btn--primary">
+                        <i class="fa fa-external-link"></i> Open in CP
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            <div class="bos-module-view__body">
+                <div class="bos-module-view__content">
+                    <div class="bos-module-view__hero" style="--mod-color: <?php echo $modColor; ?>;">
+                        <div class="bos-module-view__hero-icon">
+                            <i class="fa <?php echo epc_bos_h($activeModuleInfo['icon']); ?>"></i>
+                        </div>
+                        <div class="bos-module-view__hero-info">
+                            <h3><?php echo epc_bos_h($activeModuleInfo['label']); ?></h3>
+                            <p><?php echo epc_bos_h($modDesc); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="bos-module-view__details">
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Section</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa <?php echo epc_bos_h($activeModuleInfo['section_icon']); ?>" style="color: <?php echo $modColor; ?>;"></i>
+                                <?php echo epc_bos_h($activeModuleInfo['section']); ?>
+                            </div>
+                        </div>
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Tenant</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa fa-building" style="color: var(--bos-primary);"></i>
+                                <?php echo epc_bos_h($tenantInfo['trade_name'] ?: $activeTenant); ?>
+                            </div>
+                        </div>
+                        <?php if ($tenantInfo['hostname']): ?>
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Access</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa fa-globe" style="color: var(--bos-success);"></i>
+                                <?php echo epc_bos_h($tenantInfo['hostname']); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        <div class="bos-module-view__detail-card">
+                            <div class="bos-module-view__detail-label">Type</div>
+                            <div class="bos-module-view__detail-value">
+                                <i class="fa <?php echo $isErpModule ? 'fa-university' : 'fa-cog'; ?>" style="color: <?php echo $modColor; ?>;"></i>
+                                <?php echo $isErpModule ? 'ERP Module' : 'CP Module'; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if ($tenantInfo['hostname']): ?>
+                    <div class="bos-module-view__launch">
+                        <?php if ($isErpModule): ?>
+                        <a href="<?php echo $erpBaseUrl; ?>" target="_blank" class="bos-module-view__launch-btn" style="--mod-color: <?php echo $modColor; ?>;">
+                            <i class="fa fa-rocket"></i>
+                            <span>Launch <?php echo epc_bos_h($activeModuleInfo['label']); ?> in ERP</span>
+                            <i class="fa fa-arrow-right"></i>
+                        </a>
+                        <?php else: ?>
+                        <a href="<?php echo $cpBaseUrl; ?>" target="_blank" class="bos-module-view__launch-btn" style="--mod-color: <?php echo $modColor; ?>;">
+                            <i class="fa fa-rocket"></i>
+                            <span>Launch <?php echo epc_bos_h($activeModuleInfo['label']); ?> in Control Panel</span>
+                            <i class="fa fa-arrow-right"></i>
+                        </a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
         <?php elseif ($activeTenant): ?>
-        <!-- Tenant Context Active -->
+        <!-- Tenant Home — Module Grid -->
         <div class="bos-tenant-home" id="bosTenantHome">
             <div class="bos-tenant-home__header">
                 <div class="bos-tenant-home__info">
@@ -569,25 +747,44 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
             <div class="bos-tenant-home__modules">
                 <h3><i class="fa fa-th"></i> Available Modules</h3>
                 <div class="bos-module-grid">
+                    <?php
+                    $sectionColors = array(
+                        'Fleet Command'      => array('bg' => '#0ea5e9', 'gradient' => 'linear-gradient(135deg, #0ea5e9, #0284c7)'),
+                        'Tenant Operations'  => array('bg' => '#8b5cf6', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'),
+                        'Commerce'           => array('bg' => '#10b981', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'),
+                        'Catalogue'          => array('bg' => '#f59e0b', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'),
+                        'Logistics'          => array('bg' => '#6366f1', 'gradient' => 'linear-gradient(135deg, #6366f1, #4f46e5)'),
+                        'Marketing'          => array('bg' => '#ec4899', 'gradient' => 'linear-gradient(135deg, #ec4899, #db2777)'),
+                        'Professional'       => array('bg' => '#14b8a6', 'gradient' => 'linear-gradient(135deg, #14b8a6, #0d9488)'),
+                        'ERP Finance'        => array('bg' => '#3b82f6', 'gradient' => 'linear-gradient(135deg, #3b82f6, #2563eb)'),
+                        'Auto Parts'         => array('bg' => '#ef4444', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'),
+                        'Tax & Advisory'     => array('bg' => '#f97316', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'),
+                        'Platform'           => array('bg' => '#64748b', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)'),
+                    );
+                    $sIdx = 0;
+                    ?>
                     <?php foreach ($sections as $section): ?>
                     <?php if (!empty($section['provider_only']) && !epc_bos_is_provider()) continue; ?>
-                    <div class="bos-module-group">
+                    <?php $sColor = $sectionColors[$section['label']] ?? array('bg' => '#64748b', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)'); ?>
+                    <div class="bos-module-group" style="--module-color: <?php echo $sColor['bg']; ?>; --module-gradient: <?php echo $sColor['gradient']; ?>;">
                         <div class="bos-module-group__header">
-                            <i class="fa <?php echo epc_bos_h($section['icon']); ?>"></i>
-                            <?php echo epc_bos_h($section['label']); ?>
+                            <div class="bos-module-group__header-icon" style="background: <?php echo $sColor['gradient']; ?>;">
+                                <i class="fa <?php echo epc_bos_h($section['icon']); ?>"></i>
+                            </div>
+                            <span class="bos-module-group__header-label"><?php echo epc_bos_h($section['label']); ?></span>
                             <span class="bos-module-group__count"><?php echo count($section['items']); ?></span>
                         </div>
                         <div class="bos-module-group__items">
                             <?php foreach ($section['items'] as $item): ?>
                             <a href="/bos/?t=<?php echo epc_bos_h($activeTenant); ?>&m=<?php echo epc_bos_h($item['id']); ?>"
                                class="bos-module-tile" data-module="<?php echo epc_bos_h($item['id']); ?>">
-                                <i class="fa <?php echo epc_bos_h($item['icon']); ?>"></i>
+                                <i class="fa <?php echo epc_bos_h($item['icon']); ?>" style="color: <?php echo $sColor['bg']; ?>;"></i>
                                 <span><?php echo epc_bos_h($item['label']); ?></span>
                             </a>
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php $sIdx++; endforeach; ?>
                 </div>
             </div>
         </div>

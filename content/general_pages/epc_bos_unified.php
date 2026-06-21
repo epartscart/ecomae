@@ -14,7 +14,7 @@ require_once __DIR__ . '/epc_portal_cp_menu.php';
 
 /* ───────────────────── constants ───────────────────── */
 
-define('EPC_BOS_VERSION', '1.2.0');
+define('EPC_BOS_VERSION', '1.3.0');
 define('EPC_BOS_SESSION_KEY', 'epc_bos_context');
 
 /* ───────────────────── session bridge ───────────────────── */
@@ -477,4 +477,66 @@ function epc_bos_tenant_type_label(string $type): string
         'platform'  => 'Platform',
     );
     return $map[$type] ?? 'Tenant';
+}
+
+/**
+ * Section color for module view header icons.
+ */
+function epc_bos_module_color(string $sectionLabel): string
+{
+    $map = array(
+        'Fleet Command'      => '#0ea5e9',
+        'Tenant Operations'  => '#8b5cf6',
+        'Commerce'           => '#10b981',
+        'Catalogue'          => '#f59e0b',
+        'Logistics'          => '#6366f1',
+        'Marketing'          => '#ec4899',
+        'Professional'       => '#14b8a6',
+        'ERP Finance'        => '#3b82f6',
+        'Auto Parts'         => '#ef4444',
+        'Tax & Advisory'     => '#f97316',
+        'Platform'           => '#64748b',
+    );
+    return $map[$sectionLabel] ?? '#64748b';
+}
+
+/**
+ * Resolve active module info (label, icon, path, section) from sidebar sections.
+ */
+function epc_bos_resolve_module(array $sections, string $moduleId): ?array
+{
+    foreach ($sections as $section) {
+        foreach ($section['items'] as $item) {
+            if ($item['id'] === $moduleId) {
+                return array(
+                    'id'      => $item['id'],
+                    'label'   => $item['label'],
+                    'icon'    => $item['icon'],
+                    'path'    => $item['path'],
+                    'section' => $section['label'],
+                    'section_icon' => $section['icon'],
+                );
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Build the iframe URL for a CP module.
+ * Fleet/platform modules use the platform host; tenant modules use the tenant host.
+ */
+function epc_bos_module_cp_url(string $hostname, string $path): string
+{
+    $host = $hostname ?: 'www.ecomae.com';
+    if (strpos($path, 'shop/finance/erp') === 0) {
+        $qs = '';
+        $qPos = strpos($path, '?');
+        if ($qPos !== false) {
+            $qs = substr($path, $qPos);
+            $path = substr($path, 0, $qPos);
+        }
+        return 'https://' . $host . '/cp/content/' . $path . '.php' . $qs . '&bos_embed=1';
+    }
+    return 'https://' . $host . '/cp/content/' . $path . '.php?bos_embed=1';
 }
