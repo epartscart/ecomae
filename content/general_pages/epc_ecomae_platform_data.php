@@ -23,13 +23,10 @@ function epc_ecomae_platform_super_cp_url()
 	return 'https://www.ecomae.com/' . $dir;
 }
 
-/** Platform company ERP (ecomae DB) — Super CP operators only. */
+/** Platform company ERP (ecomae DB) — canonical entry is /erp/. */
 function epc_ecomae_platform_company_erp_url()
 {
-	if (function_exists('epc_platform_erp_login_url')) {
-		return 'https://www.ecomae.com' . epc_platform_erp_login_url();
-	}
-	return epc_ecomae_platform_super_cp_url() . '/platform-erp/';
+	return 'https://www.ecomae.com/erp/';
 }
 
 /** Demo client ERP portal (ASAP tenant DB). */
