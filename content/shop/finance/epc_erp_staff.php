@@ -611,10 +611,13 @@ function epc_erp_staff_create_user(PDO $db, $cfg, array $spec)
 	$existing->execute(array($email));
 	$userId = (int)$existing->fetchColumn();
 	if ($userId <= 0) {
+		$_upgStaff = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
+		if (is_file($_upgStaff)) { require_once $_upgStaff; }
+		$_staffPwHash = function_exists('epc_password_hash') ? epc_password_hash($password) : md5($password . $cfg->secret_succession);
 		$db->prepare(
 			'INSERT INTO `users` (`reg_variant`, `email`, `email_confirmed`, `phone`, `phone_confirmed`, `password`, `unlocked`, `time_registered`, `admin_created`)
 			 VALUES (1, ?, 1, NULL, 0, ?, 1, ?, 1)'
-		)->execute(array($email, md5($password . $cfg->secret_succession), time()));
+		)->execute(array($email, $_staffPwHash, time()));
 		$userId = (int)$db->lastInsertId();
 	}
 	$groupIds = isset($spec['group_ids']) ? $spec['group_ids'] : array();
