@@ -533,6 +533,14 @@ function epc_ecomae_platform_render_standalone($path = null)
 	if ($match === null) {
 		return false;
 	}
+	// BOS app: bypass marketing and load the BOS shell directly
+	if ($match['page'] === 'bos') {
+		$bosApp = $_SERVER['DOCUMENT_ROOT'] . '/bos/index.php';
+		if (file_exists($bosApp)) {
+			require $bosApp;
+			return true;
+		}
+	}
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_platform_pages.php';
 	epc_ecomae_platform_send_marketing_headers();
 	echo epc_ecomae_platform_render_page($match['page'], $match['params']);
