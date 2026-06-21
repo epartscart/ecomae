@@ -103,10 +103,25 @@ body.bos-body.bos-body--login {
     animation: bosFloat linear infinite;
 }
 @keyframes bosFloat {
-    0% { transform: translateY(100vh) scale(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    0% { transform: translateY(-10vh) translateX(0) scale(0); opacity: 0; }
+    5% { opacity: 1; transform: translateY(-5vh) translateX(2px) scale(.6); }
+    50% { opacity: .9; transform: translateY(45vh) translateX(-8px) scale(1); }
+    95% { opacity: .6; }
+    100% { transform: translateY(105vh) translateX(4px) scale(.3); opacity: 0; }
+}
+@keyframes bosFloatDrift {
+    0% { transform: translateY(-10vh) translateX(0) scale(0); opacity: 0; }
+    8% { opacity: 1; }
+    25% { transform: translateY(20vh) translateX(15px) scale(1); }
+    50% { transform: translateY(50vh) translateX(-10px) scale(.8); opacity: .8; }
+    75% { transform: translateY(75vh) translateX(20px) scale(.6); }
+    100% { transform: translateY(110vh) translateX(-5px) scale(.2); opacity: 0; }
+}
+@keyframes bosFloatStreak {
+    0% { transform: translateY(-5vh) scaleY(1); opacity: 0; }
+    5% { opacity: 1; }
+    50% { transform: translateY(50vh) scaleY(3); opacity: .7; }
+    100% { transform: translateY(110vh) scaleY(1); opacity: 0; }
 }
 .bos-login__glow {
     position: absolute;
