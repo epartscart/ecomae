@@ -264,3 +264,225 @@ function epc_pm_dashboard(PDO $db, int $companyId): array
 
 	return array_merge($eqRow, $woRow, $overdueRow, $dtRow, array('mtbf_hours' => round((float) ($mtbfRow['mtbf_hours'] ?? 0), 1)));
 }
+
+function epc_pm_ensure_depth_schema(PDO $db): void
+{
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_pm_meter_readings` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`equipment_id`  INT UNSIGNED NOT NULL DEFAULT 0,
+		`meter_type`    ENUM("hours","km","cycles","units","temperature","pressure","vibration") NOT NULL DEFAULT "hours",
+		`reading_value` DECIMAL(14,3) NOT NULL DEFAULT 0.000,
+		`reading_date`  DATETIME NOT NULL,
+		`recorded_by`   VARCHAR(100) NOT NULL DEFAULT "",
+		`notes`         TEXT,
+		INDEX `idx_equipment` (`equipment_id`),
+		INDEX `idx_date` (`reading_date`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_pm_calibrations` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`    INT UNSIGNED NOT NULL DEFAULT 0,
+		`equipment_id`  INT UNSIGNED NOT NULL DEFAULT 0,
+		`calibration_no` VARCHAR(30) NOT NULL DEFAULT "",
+		`standard_ref`  VARCHAR(100) NOT NULL DEFAULT "",
+		`tolerance`     VARCHAR(60) NOT NULL DEFAULT "",
+		`measured_value` VARCHAR(60) NOT NULL DEFAULT "",
+		`result`        ENUM("pass","fail","adjusted","out_of_range") NOT NULL DEFAULT "pass",
+		`calibrated_by` VARCHAR(100) NOT NULL DEFAULT "",
+		`lab_name`      VARCHAR(200) NOT NULL DEFAULT "",
+		`certificate_no` VARCHAR(60) NOT NULL DEFAULT "",
+		`calibration_date` DATE DEFAULT NULL,
+		`next_due`      DATE DEFAULT NULL,
+		`cost`          DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+		`currency`      CHAR(3) NOT NULL DEFAULT "AED",
+		`created_at`    INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_equipment` (`equipment_id`),
+		INDEX `idx_due` (`next_due`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_pm_wo_materials` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`wo_id`         INT UNSIGNED NOT NULL DEFAULT 0,
+		`item_id`       INT UNSIGNED NOT NULL DEFAULT 0,
+		`part_name`     VARCHAR(200) NOT NULL DEFAULT "",
+		`part_number`   VARCHAR(60) NOT NULL DEFAULT "",
+		`qty_required`  DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+		`qty_issued`    DECIMAL(10,3) NOT NULL DEFAULT 0.000,
+		`unit_cost`     DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+		`total_cost`    DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+		`currency`      CHAR(3) NOT NULL DEFAULT "AED",
+		`warehouse_id`  INT UNSIGNED DEFAULT NULL,
+		INDEX `idx_wo` (`wo_id`),
+		INDEX `idx_item` (`item_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_pm_failure_codes` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`    INT UNSIGNED NOT NULL DEFAULT 0,
+		`code`          VARCHAR(20) NOT NULL DEFAULT "",
+		`description`   VARCHAR(200) NOT NULL DEFAULT "",
+		`category`      ENUM("mechanical","electrical","hydraulic","pneumatic","electronic","structural","software","operator_error","wear","corrosion","other") NOT NULL DEFAULT "mechanical",
+		`active`        TINYINT(1) NOT NULL DEFAULT 1,
+		UNIQUE KEY `uk_code` (`company_id`,`code`),
+		INDEX `idx_category` (`category`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_pm_warranty_claims` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`    INT UNSIGNED NOT NULL DEFAULT 0,
+		`equipment_id`  INT UNSIGNED NOT NULL DEFAULT 0,
+		`wo_id`         INT UNSIGNED DEFAULT NULL,
+		`claim_no`      VARCHAR(30) NOT NULL DEFAULT "",
+		`manufacturer`  VARCHAR(200) NOT NULL DEFAULT "",
+		`failure_description` TEXT,
+		`claim_amount`  DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+		`settled_amount` DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+		`currency`      CHAR(3) NOT NULL DEFAULT "AED",
+		`status`        ENUM("draft","submitted","under_review","approved","rejected","settled") NOT NULL DEFAULT "draft",
+		`submitted_date` DATE DEFAULT NULL,
+		`settled_date`  DATE DEFAULT NULL,
+		`created_at`    INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_equipment` (`equipment_id`),
+		INDEX `idx_status` (`status`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+}
+
+function epc_pm_meter_record(PDO $db, int $equipmentId, string $meterType, float $value, string $recordedBy = ''): int
+{
+	$db->prepare('INSERT INTO `epc_erp_pm_meter_readings` (`equipment_id`,`meter_type`,`reading_value`,`reading_date`,`recorded_by`) VALUES (?,?,?,NOW(),?)')
+		->execute(array($equipmentId, $meterType, $value, $recordedBy));
+	$readingId = (int) $db->lastInsertId();
+	$schedules = $db->prepare('SELECT * FROM `epc_erp_pm_schedules` WHERE `equipment_id` = ? AND `type` = "meter_based" AND `active` = 1 AND `meter_unit` = ?');
+	$schedules->execute(array($equipmentId, $meterType));
+	foreach ($schedules->fetchAll(PDO::FETCH_ASSOC) as $sched) {
+		if ((float) $sched['meter_trigger'] > 0 && $value >= (float) $sched['meter_trigger']) {
+			$db->prepare('UPDATE `epc_erp_pm_schedules` SET `next_due` = CURDATE() WHERE `id` = ?')
+				->execute(array($sched['id']));
+		}
+	}
+	return $readingId;
+}
+
+function epc_pm_meter_history(PDO $db, int $equipmentId, string $meterType = '', int $limit = 100): array
+{
+	$sql = 'SELECT * FROM `epc_erp_pm_meter_readings` WHERE `equipment_id` = ?';
+	$params = array($equipmentId);
+	if ($meterType !== '') {
+		$sql .= ' AND `meter_type` = ?';
+		$params[] = $meterType;
+	}
+	$sql .= ' ORDER BY `reading_date` DESC LIMIT ' . (int) $limit;
+	$st = $db->prepare($sql);
+	$st->execute($params);
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function epc_pm_calibration_save(PDO $db, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_pm_calibrations` (`company_id`,`equipment_id`,`calibration_no`,`standard_ref`,`tolerance`,`measured_value`,`result`,`calibrated_by`,`lab_name`,`certificate_no`,`calibration_date`,`next_due`,`cost`,`currency`,`created_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['company_id'] ?? 0), (int) ($data['equipment_id'] ?? 0), $data['calibration_no'] ?? '', $data['standard_ref'] ?? '', $data['tolerance'] ?? '', $data['measured_value'] ?? '', $data['result'] ?? 'pass', $data['calibrated_by'] ?? '', $data['lab_name'] ?? '', $data['certificate_no'] ?? '', $data['calibration_date'] ?? date('Y-m-d'), $data['next_due'] ?? null, $data['cost'] ?? 0, $data['currency'] ?? 'AED', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_pm_calibration_due(PDO $db, int $companyId, int $days = 30): array
+{
+	$st = $db->prepare('SELECT c.*, eq.`name` AS equipment_name, eq.`code` AS equipment_code FROM `epc_erp_pm_calibrations` c INNER JOIN `epc_erp_pm_equipment` eq ON eq.`id` = c.`equipment_id` WHERE c.`company_id` = ? AND c.`next_due` BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY) ORDER BY c.`next_due`');
+	$st->execute(array($companyId, $days));
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function epc_pm_wo_material_add(PDO $db, int $woId, array $data): int
+{
+	$totalCost = round((float) ($data['qty_required'] ?? 0) * (float) ($data['unit_cost'] ?? 0), 2);
+	$db->prepare('INSERT INTO `epc_erp_pm_wo_materials` (`wo_id`,`item_id`,`part_name`,`part_number`,`qty_required`,`unit_cost`,`total_cost`,`currency`,`warehouse_id`) VALUES (?,?,?,?,?,?,?,?,?)')
+		->execute(array($woId, (int) ($data['item_id'] ?? 0), $data['part_name'] ?? '', $data['part_number'] ?? '', $data['qty_required'] ?? 0, $data['unit_cost'] ?? 0, $totalCost, $data['currency'] ?? 'AED', $data['warehouse_id'] ?? null));
+	return (int) $db->lastInsertId();
+}
+
+function epc_pm_wo_material_issue(PDO $db, int $materialId, float $qtyIssued): void
+{
+	$db->prepare('UPDATE `epc_erp_pm_wo_materials` SET `qty_issued` = `qty_issued` + ?, `total_cost` = `qty_issued` * `unit_cost` WHERE `id` = ?')
+		->execute(array($qtyIssued, $materialId));
+	$mat = $db->prepare('SELECT `wo_id` FROM `epc_erp_pm_wo_materials` WHERE `id` = ?');
+	$mat->execute(array($materialId));
+	$woId = (int) $mat->fetchColumn();
+	if ($woId > 0) {
+		$total = $db->prepare('SELECT SUM(`total_cost`) FROM `epc_erp_pm_wo_materials` WHERE `wo_id` = ?');
+		$total->execute(array($woId));
+		$db->prepare('UPDATE `epc_erp_pm_work_orders` SET `material_cost` = ?, `total_cost` = `labour_cost` + ?, `updated_at` = ? WHERE `id` = ?')
+			->execute(array((float) $total->fetchColumn(), (float) $total->fetchColumn(), time(), $woId));
+	}
+}
+
+function epc_pm_failure_code_save(PDO $db, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_pm_failure_codes` (`company_id`,`code`,`description`,`category`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE `description`=VALUES(`description`),`category`=VALUES(`category`)')
+		->execute(array((int) ($data['company_id'] ?? 0), $data['code'] ?? '', $data['description'] ?? '', $data['category'] ?? 'mechanical'));
+	return (int) $db->lastInsertId();
+}
+
+function epc_pm_warranty_claim_save(PDO $db, array $data, int $id = 0): int
+{
+	if ($id > 0) {
+		$db->prepare('UPDATE `epc_erp_pm_warranty_claims` SET `failure_description`=?,`claim_amount`=?,`settled_amount`=?,`status`=?,`settled_date`=? WHERE `id`=?')
+			->execute(array($data['failure_description'] ?? '', $data['claim_amount'] ?? 0, $data['settled_amount'] ?? 0, $data['status'] ?? 'draft', $data['settled_date'] ?? null, $id));
+		return $id;
+	}
+	$db->prepare('INSERT INTO `epc_erp_pm_warranty_claims` (`company_id`,`equipment_id`,`wo_id`,`claim_no`,`manufacturer`,`failure_description`,`claim_amount`,`currency`,`status`,`submitted_date`,`created_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['company_id'] ?? 0), (int) ($data['equipment_id'] ?? 0), $data['wo_id'] ?? null, $data['claim_no'] ?? '', $data['manufacturer'] ?? '', $data['failure_description'] ?? '', $data['claim_amount'] ?? 0, $data['currency'] ?? 'AED', 'draft', null, time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_pm_equipment_hierarchy(PDO $db, int $companyId, int $parentId = 0): array
+{
+	$sql = 'SELECT * FROM `epc_erp_pm_equipment` WHERE `company_id` = ? AND `status` != "decommissioned"';
+	if ($parentId > 0) {
+		$sql .= ' AND `parent_id` = ' . (int) $parentId;
+	} else {
+		$sql .= ' AND (`parent_id` IS NULL OR `parent_id` = 0)';
+	}
+	$sql .= ' ORDER BY `name`';
+	$st = $db->prepare($sql);
+	$st->execute(array($companyId));
+	$rows = $st->fetchAll(PDO::FETCH_ASSOC);
+	foreach ($rows as &$row) {
+		$row['children'] = epc_pm_equipment_hierarchy($db, $companyId, (int) $row['id']);
+	}
+	return $rows;
+}
+
+function epc_pm_downtime_end(PDO $db, int $downtimeId): void
+{
+	$db->prepare('UPDATE `epc_erp_pm_downtime` SET `end_time` = NOW(), `duration_hours` = TIMESTAMPDIFF(MINUTE, `start_time`, NOW()) / 60.0 WHERE `id` = ? AND `end_time` IS NULL')
+		->execute(array($downtimeId));
+}
+
+function epc_pm_equipment_cost_history(PDO $db, int $equipmentId, int $months = 12): array
+{
+	$st = $db->prepare('SELECT DATE_FORMAT(`planned_start`, "%Y-%m") AS period, COUNT(*) AS wo_count, SUM(`total_cost`) AS total_cost, SUM(`labour_hours`) AS total_hours FROM `epc_erp_pm_work_orders` WHERE `equipment_id` = ? AND `status` = "completed" AND `planned_start` >= DATE_SUB(CURDATE(), INTERVAL ? MONTH) GROUP BY period ORDER BY period');
+	$st->execute(array($equipmentId, $months));
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function epc_pm_reliability_metrics(PDO $db, int $equipmentId): array
+{
+	$mtbf = $db->prepare('SELECT AVG(TIMESTAMPDIFF(HOUR, d1.`end_time`, d2.`start_time`)) AS mtbf FROM `epc_erp_pm_downtime` d1 INNER JOIN `epc_erp_pm_downtime` d2 ON d2.`equipment_id` = d1.`equipment_id` AND d2.`start_time` > d1.`end_time` AND d2.`type` = "unplanned" WHERE d1.`equipment_id` = ? AND d1.`type` = "unplanned" AND d1.`end_time` IS NOT NULL');
+	$mtbf->execute(array($equipmentId));
+	$mtbfVal = round((float) ($mtbf->fetchColumn() ?: 0), 1);
+
+	$mttr = $db->prepare('SELECT AVG(`duration_hours`) AS mttr FROM `epc_erp_pm_downtime` WHERE `equipment_id` = ? AND `type` = "unplanned" AND `end_time` IS NOT NULL');
+	$mttr->execute(array($equipmentId));
+	$mttrVal = round((float) ($mttr->fetchColumn() ?: 0), 1);
+
+	$availability = ($mtbfVal + $mttrVal > 0) ? round($mtbfVal / ($mtbfVal + $mttrVal) * 100, 1) : 100;
+
+	$totalCost = $db->prepare('SELECT SUM(`total_cost`) FROM `epc_erp_pm_work_orders` WHERE `equipment_id` = ? AND `status` = "completed"');
+	$totalCost->execute(array($equipmentId));
+
+	return array(
+		'mtbf_hours' => $mtbfVal,
+		'mttr_hours' => $mttrVal,
+		'availability_pct' => $availability,
+		'total_maintenance_cost' => round((float) ($totalCost->fetchColumn() ?: 0), 2),
+	);
+}

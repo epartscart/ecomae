@@ -254,3 +254,253 @@ function epc_tms_carrier_performance(PDO $db, int $carrierId): array
 	$row['on_time_pct'] = ($row['delivered'] > 0) ? round($row['on_time'] / $row['delivered'] * 100, 1) : 0;
 	return $row;
 }
+
+function epc_tms_ensure_depth_schema(PDO $db): void
+{
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_shipment_events` (
+		`id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`shipment_id`  INT UNSIGNED NOT NULL DEFAULT 0,
+		`event_type`   ENUM("created","picked_up","departed","arrived_hub","customs_hold","customs_cleared","out_for_delivery","delivered","exception","returned") NOT NULL DEFAULT "created",
+		`location`     VARCHAR(200) NOT NULL DEFAULT "",
+		`description`  TEXT,
+		`event_time`   DATETIME NOT NULL,
+		`recorded_by`  VARCHAR(100) NOT NULL DEFAULT "",
+		`created_at`   INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_shipment` (`shipment_id`),
+		INDEX `idx_time` (`event_time`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_tms_claims` (
+		`id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`   INT UNSIGNED NOT NULL DEFAULT 0,
+		`shipment_id`  INT UNSIGNED NOT NULL DEFAULT 0,
+		`carrier_id`   INT UNSIGNED NOT NULL DEFAULT 0,
+		`claim_no`     VARCHAR(30) NOT NULL DEFAULT "",
+		`type`         ENUM("damage","loss","delay","overcharge","shortage","other") NOT NULL DEFAULT "damage",
+		`description`  TEXT,
+		`amount_claimed` DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+		`amount_settled` DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+		`currency`     CHAR(3) NOT NULL DEFAULT "AED",
+		`evidence`     TEXT,
+		`status`       ENUM("filed","under_review","accepted","rejected","settled") NOT NULL DEFAULT "filed",
+		`filed_date`   DATE DEFAULT NULL,
+		`settled_date` DATE DEFAULT NULL,
+		`created_at`   INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_shipment` (`shipment_id`),
+		INDEX `idx_carrier` (`carrier_id`),
+		INDEX `idx_status` (`status`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_tms_load_plans` (
+		`id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`   INT UNSIGNED NOT NULL DEFAULT 0,
+		`plan_no`      VARCHAR(30) NOT NULL DEFAULT "",
+		`vehicle_type` VARCHAR(60) NOT NULL DEFAULT "",
+		`max_weight_kg` DECIMAL(12,3) NOT NULL DEFAULT 0.000,
+		`max_volume_cbm` DECIMAL(12,4) NOT NULL DEFAULT 0.0000,
+		`max_pallets`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+		`used_weight_kg` DECIMAL(12,3) NOT NULL DEFAULT 0.000,
+		`used_volume_cbm` DECIMAL(12,4) NOT NULL DEFAULT 0.0000,
+		`used_pallets` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+		`utilization_pct` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+		`shipment_ids` TEXT,
+		`status`       ENUM("planning","optimized","dispatched","completed") NOT NULL DEFAULT "planning",
+		`created_at`   INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_company` (`company_id`),
+		INDEX `idx_status` (`status`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_tms_tenders` (
+		`id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`   INT UNSIGNED NOT NULL DEFAULT 0,
+		`tender_no`    VARCHAR(30) NOT NULL DEFAULT "",
+		`title`        VARCHAR(200) NOT NULL DEFAULT "",
+		`route_origin` VARCHAR(100) NOT NULL DEFAULT "",
+		`route_dest`   VARCHAR(100) NOT NULL DEFAULT "",
+		`mode`         ENUM("road","sea","air","rail","courier","multimodal") NOT NULL DEFAULT "road",
+		`volume_estimate` VARCHAR(100) NOT NULL DEFAULT "",
+		`valid_from`   DATE DEFAULT NULL,
+		`valid_to`     DATE DEFAULT NULL,
+		`status`       ENUM("draft","published","evaluation","awarded","cancelled") NOT NULL DEFAULT "draft",
+		`awarded_carrier_id` INT UNSIGNED DEFAULT NULL,
+		`created_at`   INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_company` (`company_id`),
+		INDEX `idx_status` (`status`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_tms_tender_bids` (
+		`id`           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`tender_id`    INT UNSIGNED NOT NULL DEFAULT 0,
+		`carrier_id`   INT UNSIGNED NOT NULL DEFAULT 0,
+		`rate_amount`  DECIMAL(12,4) NOT NULL DEFAULT 0.0000,
+		`rate_type`    ENUM("per_kg","per_cbm","per_unit","flat","per_km") NOT NULL DEFAULT "flat",
+		`transit_days` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+		`notes`        TEXT,
+		`score`        DECIMAL(5,2) DEFAULT NULL,
+		`status`       ENUM("submitted","shortlisted","awarded","rejected") NOT NULL DEFAULT "submitted",
+		`submitted_at` INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_tender` (`tender_id`),
+		INDEX `idx_carrier` (`carrier_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+}
+
+function epc_tms_shipment_event_add(PDO $db, int $shipmentId, string $eventType, string $location, string $description = ''): int
+{
+	$db->prepare('INSERT INTO `epc_erp_shipment_events` (`shipment_id`,`event_type`,`location`,`description`,`event_time`,`created_at`) VALUES (?,?,?,?,NOW(),?)')
+		->execute(array($shipmentId, $eventType, $location, $description, time()));
+	$statusMap = array('picked_up' => 'dispatched', 'departed' => 'in_transit', 'arrived_hub' => 'in_transit', 'out_for_delivery' => 'in_transit', 'delivered' => 'delivered');
+	if (isset($statusMap[$eventType])) {
+		$db->prepare('UPDATE `epc_erp_shipments` SET `status` = ?, `updated_at` = ? WHERE `id` = ?')
+			->execute(array($statusMap[$eventType], time(), $shipmentId));
+	}
+	return (int) $db->lastInsertId();
+}
+
+function epc_tms_shipment_events(PDO $db, int $shipmentId): array
+{
+	$st = $db->prepare('SELECT * FROM `epc_erp_shipment_events` WHERE `shipment_id` = ? ORDER BY `event_time`');
+	$st->execute(array($shipmentId));
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function epc_tms_consolidate_shipments(PDO $db, array $shipmentIds, array $masterData): int
+{
+	$masterId = epc_tms_shipment_save($db, $masterData);
+	foreach ($shipmentIds as $sid) {
+		$lines = $db->prepare('SELECT * FROM `epc_erp_shipment_lines` WHERE `shipment_id` = ?');
+		$lines->execute(array((int) $sid));
+		foreach ($lines->fetchAll(PDO::FETCH_ASSOC) as $line) {
+			unset($line['id']);
+			$line['shipment_id'] = $masterId;
+			epc_tms_shipment_line_add($db, $masterId, $line);
+		}
+		$db->prepare('UPDATE `epc_erp_shipments` SET `status` = "cancelled", `notes` = CONCAT(IFNULL(`notes`,""), " [consolidated into #' . (int) $masterId . ']"), `updated_at` = ? WHERE `id` = ?')
+			->execute(array(time(), (int) $sid));
+	}
+	$totals = $db->prepare('SELECT SUM(`weight_kg`) AS w, SUM(`volume_cbm`) AS v, SUM(`packages`) AS p FROM `epc_erp_shipment_lines` WHERE `shipment_id` = ?');
+	$totals->execute(array($masterId));
+	$t = $totals->fetch(PDO::FETCH_ASSOC);
+	$db->prepare('UPDATE `epc_erp_shipments` SET `total_weight_kg` = ?, `total_volume_cbm` = ?, `total_packages` = ? WHERE `id` = ?')
+		->execute(array($t['w'] ?? 0, $t['v'] ?? 0, (int) ($t['p'] ?? 0), $masterId));
+	return $masterId;
+}
+
+function epc_tms_claim_save(PDO $db, array $data, int $id = 0): int
+{
+	if ($id > 0) {
+		$db->prepare('UPDATE `epc_erp_tms_claims` SET `type`=?,`description`=?,`amount_claimed`=?,`amount_settled`=?,`evidence`=?,`status`=?,`settled_date`=? WHERE `id`=?')
+			->execute(array($data['type'] ?? 'damage', $data['description'] ?? '', $data['amount_claimed'] ?? 0, $data['amount_settled'] ?? 0, $data['evidence'] ?? '', $data['status'] ?? 'filed', $data['settled_date'] ?? null, $id));
+		return $id;
+	}
+	$db->prepare('INSERT INTO `epc_erp_tms_claims` (`company_id`,`shipment_id`,`carrier_id`,`claim_no`,`type`,`description`,`amount_claimed`,`currency`,`evidence`,`status`,`filed_date`,`created_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['company_id'] ?? 0), (int) ($data['shipment_id'] ?? 0), (int) ($data['carrier_id'] ?? 0), $data['claim_no'] ?? '', $data['type'] ?? 'damage', $data['description'] ?? '', $data['amount_claimed'] ?? 0, $data['currency'] ?? 'AED', $data['evidence'] ?? '', 'filed', date('Y-m-d'), time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_tms_load_plan_create(PDO $db, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_tms_load_plans` (`company_id`,`plan_no`,`vehicle_type`,`max_weight_kg`,`max_volume_cbm`,`max_pallets`,`status`,`created_at`) VALUES (?,?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['company_id'] ?? 0), $data['plan_no'] ?? '', $data['vehicle_type'] ?? '', $data['max_weight_kg'] ?? 0, $data['max_volume_cbm'] ?? 0, (int) ($data['max_pallets'] ?? 0), 'planning', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_tms_load_plan_optimize(PDO $db, int $planId, array $shipmentIds): array
+{
+	$plan = $db->prepare('SELECT * FROM `epc_erp_tms_load_plans` WHERE `id` = ?');
+	$plan->execute(array($planId));
+	$p = $plan->fetch(PDO::FETCH_ASSOC);
+	if (!$p) {
+		return array('error' => 'Plan not found');
+	}
+	$totalW = 0;
+	$totalV = 0;
+	$totalP = 0;
+	$fitted = array();
+	foreach ($shipmentIds as $sid) {
+		$sh = $db->prepare('SELECT `total_weight_kg`,`total_volume_cbm`,`total_packages` FROM `epc_erp_shipments` WHERE `id` = ?');
+		$sh->execute(array((int) $sid));
+		$s = $sh->fetch(PDO::FETCH_ASSOC);
+		if (!$s) {
+			continue;
+		}
+		$newW = $totalW + (float) $s['total_weight_kg'];
+		$newV = $totalV + (float) $s['total_volume_cbm'];
+		$newP = $totalP + (int) $s['total_packages'];
+		if ($newW > (float) $p['max_weight_kg'] || $newV > (float) $p['max_volume_cbm']) {
+			continue;
+		}
+		$totalW = $newW;
+		$totalV = $newV;
+		$totalP = $newP;
+		$fitted[] = (int) $sid;
+	}
+	$maxDim = max((float) $p['max_weight_kg'], 1);
+	$util = round($totalW / $maxDim * 100, 2);
+	$db->prepare('UPDATE `epc_erp_tms_load_plans` SET `used_weight_kg`=?,`used_volume_cbm`=?,`used_pallets`=?,`utilization_pct`=?,`shipment_ids`=?,`status`="optimized" WHERE `id`=?')
+		->execute(array($totalW, $totalV, $totalP, $util, implode(',', $fitted), $planId));
+	return array('fitted' => $fitted, 'weight' => $totalW, 'volume' => $totalV, 'utilization_pct' => $util);
+}
+
+function epc_tms_tender_save(PDO $db, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_tms_tenders` (`company_id`,`tender_no`,`title`,`route_origin`,`route_dest`,`mode`,`volume_estimate`,`valid_from`,`valid_to`,`status`,`created_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['company_id'] ?? 0), $data['tender_no'] ?? '', $data['title'] ?? '', $data['route_origin'] ?? '', $data['route_dest'] ?? '', $data['mode'] ?? 'road', $data['volume_estimate'] ?? '', $data['valid_from'] ?? null, $data['valid_to'] ?? null, 'draft', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_tms_tender_bid_submit(PDO $db, int $tenderId, int $carrierId, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_tms_tender_bids` (`tender_id`,`carrier_id`,`rate_amount`,`rate_type`,`transit_days`,`notes`,`status`,`submitted_at`) VALUES (?,?,?,?,?,?,?,?)')
+		->execute(array($tenderId, $carrierId, $data['rate_amount'] ?? 0, $data['rate_type'] ?? 'flat', (int) ($data['transit_days'] ?? 0), $data['notes'] ?? '', 'submitted', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_tms_tender_award(PDO $db, int $tenderId, int $bidId): void
+{
+	$bid = $db->prepare('SELECT * FROM `epc_erp_tms_tender_bids` WHERE `id` = ?');
+	$bid->execute(array($bidId));
+	$b = $bid->fetch(PDO::FETCH_ASSOC);
+	if (!$b) {
+		return;
+	}
+	$db->prepare('UPDATE `epc_erp_tms_tender_bids` SET `status` = "rejected" WHERE `tender_id` = ? AND `id` != ?')
+		->execute(array($tenderId, $bidId));
+	$db->prepare('UPDATE `epc_erp_tms_tender_bids` SET `status` = "awarded" WHERE `id` = ?')
+		->execute(array($bidId));
+	$db->prepare('UPDATE `epc_erp_tms_tenders` SET `status` = "awarded", `awarded_carrier_id` = ? WHERE `id` = ?')
+		->execute(array((int) $b['carrier_id'], $tenderId));
+}
+
+function epc_tms_freight_invoice_approve(PDO $db, int $invoiceId): void
+{
+	$db->prepare('UPDATE `epc_erp_freight_invoices` SET `status` = "approved" WHERE `id` = ? AND `status` = "draft"')
+		->execute(array($invoiceId));
+}
+
+function epc_tms_freight_gl_post(PDO $db, int $invoiceId, int $glJournalId): void
+{
+	$db->prepare('UPDATE `epc_erp_freight_invoices` SET `gl_posted` = 1 WHERE `id` = ?')
+		->execute(array($invoiceId));
+}
+
+function epc_tms_dashboard(PDO $db, int $companyId): array
+{
+	$shipments = $db->prepare('SELECT COUNT(*) AS total, SUM(CASE WHEN `status`="in_transit" THEN 1 ELSE 0 END) AS in_transit, SUM(CASE WHEN `status`="delivered" THEN 1 ELSE 0 END) AS delivered, SUM(CASE WHEN `status`="planned" THEN 1 ELSE 0 END) AS planned, SUM(`freight_cost`) AS total_freight FROM `epc_erp_shipments` WHERE `company_id` = ?');
+	$shipments->execute(array($companyId));
+	$shRow = $shipments->fetch(PDO::FETCH_ASSOC);
+
+	$onTime = $db->prepare('SELECT COUNT(*) AS delivered, SUM(CASE WHEN `actual_delivery` <= `eta` THEN 1 ELSE 0 END) AS on_time FROM `epc_erp_shipments` WHERE `company_id` = ? AND `status` = "delivered" AND `actual_delivery` IS NOT NULL');
+	$onTime->execute(array($companyId));
+	$otRow = $onTime->fetch(PDO::FETCH_ASSOC);
+	$otRow['on_time_pct'] = ((int) $otRow['delivered'] > 0) ? round((int) $otRow['on_time'] / (int) $otRow['delivered'] * 100, 1) : 0;
+
+	$claims = $db->prepare('SELECT COUNT(*) AS open_claims, SUM(`amount_claimed`) AS claims_value FROM `epc_erp_tms_claims` WHERE `company_id` = ? AND `status` IN ("filed","under_review")');
+	$claims->execute(array($companyId));
+	$clRow = $claims->fetch(PDO::FETCH_ASSOC);
+
+	$unpaid = $db->prepare('SELECT COUNT(*) AS unpaid_invoices, SUM(`amount`) AS unpaid_amount FROM `epc_erp_freight_invoices` WHERE `company_id` = ? AND `status` IN ("draft","approved")');
+	$unpaid->execute(array($companyId));
+	$invRow = $unpaid->fetch(PDO::FETCH_ASSOC);
+
+	return array_merge($shRow, $otRow, $clRow ?: array(), $invRow ?: array());
+}
