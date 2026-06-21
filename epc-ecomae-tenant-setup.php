@@ -28,6 +28,11 @@ $_SERVER['DOCUMENT_ROOT'] = $isCli
     ? dirname(__FILE__)
     : ($_SERVER['DOCUMENT_ROOT'] ?? dirname(__FILE__));
 
+// Define the access constant required by platform includes
+if (!defined('_ASTEXE_')) {
+    define('_ASTEXE_', 1);
+}
+
 echo "=== ecomae.com tenant self-registration ===\n\n";
 
 // Load platform PDO
