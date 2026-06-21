@@ -194,3 +194,203 @@ function epc_plm_dashboard(PDO $db, int $companyId): array
 		'expiring_certs' => (int) ($certRow['expiring_certs'] ?? 0),
 	);
 }
+
+function epc_plm_ensure_depth_schema(PDO $db): void
+{
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_plm_bom_versions` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`plm_product_id` INT UNSIGNED NOT NULL DEFAULT 0,
+		`eco_id`        INT UNSIGNED DEFAULT NULL,
+		`version`       VARCHAR(20) NOT NULL DEFAULT "1.0",
+		`effective_date` DATE DEFAULT NULL,
+		`status`        ENUM("draft","active","superseded") NOT NULL DEFAULT "draft",
+		`created_at`    INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_product` (`plm_product_id`),
+		INDEX `idx_eco` (`eco_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_plm_bom_lines` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`bom_version_id` INT UNSIGNED NOT NULL DEFAULT 0,
+		`line_no`       SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+		`component_item_id` INT UNSIGNED NOT NULL DEFAULT 0,
+		`component_name` VARCHAR(200) NOT NULL DEFAULT "",
+		`quantity`      DECIMAL(12,4) NOT NULL DEFAULT 1.0000,
+		`unit`          VARCHAR(20) NOT NULL DEFAULT "EA",
+		`scrap_pct`     DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+		`substitute_item_id` INT UNSIGNED DEFAULT NULL,
+		`notes`         TEXT,
+		INDEX `idx_bom` (`bom_version_id`),
+		INDEX `idx_component` (`component_item_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_plm_quality_gates` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`plm_product_id` INT UNSIGNED NOT NULL DEFAULT 0,
+		`gate_name`     VARCHAR(100) NOT NULL DEFAULT "",
+		`phase_from`    VARCHAR(20) NOT NULL DEFAULT "",
+		`phase_to`      VARCHAR(20) NOT NULL DEFAULT "",
+		`checklist`     TEXT,
+		`reviewer`      VARCHAR(100) NOT NULL DEFAULT "",
+		`review_date`   DATE DEFAULT NULL,
+		`decision`      ENUM("pending","approved","conditional","rejected") NOT NULL DEFAULT "pending",
+		`conditions`    TEXT,
+		`created_at`    INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_product` (`plm_product_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_plm_eco_approvals` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`eco_id`        INT UNSIGNED NOT NULL DEFAULT 0,
+		`approver`      VARCHAR(100) NOT NULL DEFAULT "",
+		`role`          VARCHAR(60) NOT NULL DEFAULT "",
+		`decision`      ENUM("pending","approved","rejected","deferred") NOT NULL DEFAULT "pending",
+		`comments`      TEXT,
+		`decided_at`    INT UNSIGNED DEFAULT NULL,
+		`created_at`    INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_eco` (`eco_id`),
+		INDEX `idx_decision` (`decision`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+
+	$db->exec('CREATE TABLE IF NOT EXISTS `epc_erp_plm_competitors` (
+		`id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+		`company_id`    INT UNSIGNED NOT NULL DEFAULT 0,
+		`plm_product_id` INT UNSIGNED NOT NULL DEFAULT 0,
+		`competitor_name` VARCHAR(200) NOT NULL DEFAULT "",
+		`competitor_product` VARCHAR(200) NOT NULL DEFAULT "",
+		`competitor_price` DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+		`currency`      CHAR(3) NOT NULL DEFAULT "AED",
+		`strengths`     TEXT,
+		`weaknesses`    TEXT,
+		`market_share_pct` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+		`last_updated`  DATE DEFAULT NULL,
+		`created_at`    INT UNSIGNED NOT NULL DEFAULT 0,
+		INDEX `idx_product` (`plm_product_id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+}
+
+function epc_plm_bom_version_create(PDO $db, int $productId, string $version, int $ecoId = 0): int
+{
+	$db->prepare('UPDATE `epc_erp_plm_bom_versions` SET `status` = "superseded" WHERE `plm_product_id` = ? AND `status` = "active"')
+		->execute(array($productId));
+	$db->prepare('INSERT INTO `epc_erp_plm_bom_versions` (`plm_product_id`,`eco_id`,`version`,`effective_date`,`status`,`created_at`) VALUES (?,?,?,CURDATE(),?,?)')
+		->execute(array($productId, $ecoId > 0 ? $ecoId : null, $version, 'active', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_plm_bom_line_add(PDO $db, int $bomVersionId, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_plm_bom_lines` (`bom_version_id`,`line_no`,`component_item_id`,`component_name`,`quantity`,`unit`,`scrap_pct`,`substitute_item_id`,`notes`) VALUES (?,?,?,?,?,?,?,?,?)')
+		->execute(array($bomVersionId, (int) ($data['line_no'] ?? 0), (int) ($data['component_item_id'] ?? 0), $data['component_name'] ?? '', $data['quantity'] ?? 1, $data['unit'] ?? 'EA', $data['scrap_pct'] ?? 0, $data['substitute_item_id'] ?? null, $data['notes'] ?? ''));
+	return (int) $db->lastInsertId();
+}
+
+function epc_plm_bom_active(PDO $db, int $productId): array
+{
+	$bom = $db->prepare('SELECT * FROM `epc_erp_plm_bom_versions` WHERE `plm_product_id` = ? AND `status` = "active" LIMIT 1');
+	$bom->execute(array($productId));
+	$header = $bom->fetch(PDO::FETCH_ASSOC);
+	if (!$header) {
+		return array();
+	}
+	$lines = $db->prepare('SELECT * FROM `epc_erp_plm_bom_lines` WHERE `bom_version_id` = ? ORDER BY `line_no`');
+	$lines->execute(array((int) $header['id']));
+	$header['lines'] = $lines->fetchAll(PDO::FETCH_ASSOC);
+	return $header;
+}
+
+function epc_plm_quality_gate_save(PDO $db, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_plm_quality_gates` (`plm_product_id`,`gate_name`,`phase_from`,`phase_to`,`checklist`,`reviewer`,`created_at`) VALUES (?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['plm_product_id'] ?? 0), $data['gate_name'] ?? '', $data['phase_from'] ?? '', $data['phase_to'] ?? '', $data['checklist'] ?? '', $data['reviewer'] ?? '', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_plm_quality_gate_decide(PDO $db, int $gateId, string $decision, string $conditions = ''): void
+{
+	$db->prepare('UPDATE `epc_erp_plm_quality_gates` SET `decision` = ?, `conditions` = ?, `review_date` = CURDATE() WHERE `id` = ?')
+		->execute(array($decision, $conditions, $gateId));
+	if ($decision === 'approved') {
+		$gate = $db->prepare('SELECT `plm_product_id`, `phase_to` FROM `epc_erp_plm_quality_gates` WHERE `id` = ?');
+		$gate->execute(array($gateId));
+		$g = $gate->fetch(PDO::FETCH_ASSOC);
+		if ($g && $g['phase_to'] !== '') {
+			epc_plm_phase_advance($db, (int) $g['plm_product_id'], $g['phase_to']);
+		}
+	}
+}
+
+function epc_plm_eco_approval_request(PDO $db, int $ecoId, string $approver, string $role = ''): int
+{
+	$db->prepare('INSERT INTO `epc_erp_plm_eco_approvals` (`eco_id`,`approver`,`role`,`decision`,`created_at`) VALUES (?,?,?,?,?)')
+		->execute(array($ecoId, $approver, $role, 'pending', time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_plm_eco_approval_decide(PDO $db, int $approvalId, string $decision, string $comments = ''): void
+{
+	$db->prepare('UPDATE `epc_erp_plm_eco_approvals` SET `decision` = ?, `comments` = ?, `decided_at` = ? WHERE `id` = ?')
+		->execute(array($decision, $comments, time(), $approvalId));
+	$appr = $db->prepare('SELECT `eco_id` FROM `epc_erp_plm_eco_approvals` WHERE `id` = ?');
+	$appr->execute(array($approvalId));
+	$ecoId = (int) $appr->fetchColumn();
+	if ($ecoId > 0 && $decision === 'approved') {
+		$pending = $db->prepare('SELECT COUNT(*) FROM `epc_erp_plm_eco_approvals` WHERE `eco_id` = ? AND `decision` = "pending"');
+		$pending->execute(array($ecoId));
+		if ((int) $pending->fetchColumn() === 0) {
+			$db->prepare('UPDATE `epc_erp_plm_change_orders` SET `status` = "approved", `approved_by` = "all", `updated_at` = ? WHERE `id` = ?')
+				->execute(array(time(), $ecoId));
+		}
+	} elseif ($decision === 'rejected') {
+		$db->prepare('UPDATE `epc_erp_plm_change_orders` SET `status` = "rejected", `updated_at` = ? WHERE `id` = ?')
+			->execute(array(time(), $ecoId));
+	}
+}
+
+function epc_plm_competitor_save(PDO $db, array $data): int
+{
+	$db->prepare('INSERT INTO `epc_erp_plm_competitors` (`company_id`,`plm_product_id`,`competitor_name`,`competitor_product`,`competitor_price`,`currency`,`strengths`,`weaknesses`,`market_share_pct`,`last_updated`,`created_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+		->execute(array((int) ($data['company_id'] ?? 0), (int) ($data['plm_product_id'] ?? 0), $data['competitor_name'] ?? '', $data['competitor_product'] ?? '', $data['competitor_price'] ?? 0, $data['currency'] ?? 'AED', $data['strengths'] ?? '', $data['weaknesses'] ?? '', $data['market_share_pct'] ?? 0, date('Y-m-d'), time()));
+	return (int) $db->lastInsertId();
+}
+
+function epc_plm_cert_renew(PDO $db, int $certId, array $data): int
+{
+	$db->prepare('UPDATE `epc_erp_plm_certifications` SET `status` = "expired" WHERE `id` = ?')
+		->execute(array($certId));
+	$old = $db->prepare('SELECT * FROM `epc_erp_plm_certifications` WHERE `id` = ?');
+	$old->execute(array($certId));
+	$row = $old->fetch(PDO::FETCH_ASSOC);
+	if (!$row) {
+		return 0;
+	}
+	return epc_plm_cert_save($db, array_merge($row, $data, array('status' => 'active')));
+}
+
+function epc_plm_document_list(PDO $db, int $productId, string $type = ''): array
+{
+	$sql = 'SELECT * FROM `epc_erp_plm_documents` WHERE `plm_product_id` = ? AND `status` != "archived"';
+	$params = array($productId);
+	if ($type !== '') {
+		$sql .= ' AND `type` = ?';
+		$params[] = $type;
+	}
+	$sql .= ' ORDER BY `created_at` DESC';
+	$st = $db->prepare($sql);
+	$st->execute($params);
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function epc_plm_eco_list(PDO $db, int $companyId, string $status = ''): array
+{
+	$sql = 'SELECT c.*, p.`sku`, p.`version` AS product_version FROM `epc_erp_plm_change_orders` c LEFT JOIN `epc_erp_plm_products` p ON p.`id` = c.`plm_product_id` WHERE c.`company_id` = ?';
+	$params = array($companyId);
+	if ($status !== '') {
+		$sql .= ' AND c.`status` = ?';
+		$params[] = $status;
+	}
+	$sql .= ' ORDER BY c.`updated_at` DESC';
+	$st = $db->prepare($sql);
+	$st->execute($params);
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
