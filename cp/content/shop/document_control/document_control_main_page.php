@@ -34,3 +34,5 @@ if ($include === '') {
 }
 
 include $include;
+
+?>

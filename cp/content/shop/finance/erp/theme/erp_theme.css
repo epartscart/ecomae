@@ -1,0 +1,190 @@
+/*
+ * Spare247 ERP — crypto/fintech dashboard theme.
+ * Dark, glassy, animated. Pure CSS (no paid deps). RTL-aware.
+ * Used by the animated login and the executive dashboard.
+ */
+
+:root {
+    --erp-bg-0: #070b14;
+    --erp-bg-1: #0c1322;
+    --erp-bg-2: #111c30;
+    --erp-card: rgba(20, 30, 50, 0.55);
+    --erp-card-brd: rgba(120, 160, 220, 0.16);
+    --erp-accent: #16e0a3;
+    --erp-accent-2: #2bb8ff;
+    --erp-accent-3: #9b6bff;
+    --erp-text: #e8f0ff;
+    --erp-muted: #8aa0c4;
+    --erp-up: #16e0a3;
+    --erp-down: #ff5d73;
+}
+
+.erp-theme {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--erp-text);
+    background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(43, 184, 255, 0.12), transparent 60%),
+        radial-gradient(900px 500px at 0% 100%, rgba(155, 107, 255, 0.12), transparent 55%),
+        linear-gradient(160deg, var(--erp-bg-0), var(--erp-bg-1) 55%, var(--erp-bg-2));
+    overflow-x: hidden;
+}
+
+/* animated grid + particles backdrop */
+.erp-bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(120, 160, 220, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 160, 220, 0.06) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 40%, #000 30%, transparent 80%);
+    animation: erp-grid-pan 22s linear infinite;
+    z-index: 0;
+}
+@keyframes erp-grid-pan {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 46px 92px, 92px 46px; }
+}
+.erp-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    z-index: 0;
+    animation: erp-float 14s ease-in-out infinite;
+}
+.erp-orb.a { width: 320px; height: 320px; background: var(--erp-accent); top: -60px; right: 10%; }
+.erp-orb.b { width: 280px; height: 280px; background: var(--erp-accent-2); bottom: -40px; left: 6%; animation-delay: -5s; }
+.erp-orb.c { width: 220px; height: 220px; background: var(--erp-accent-3); top: 40%; left: 45%; animation-delay: -9s; }
+@keyframes erp-float {
+    0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+    50% { transform: translateY(-26px) translateX(18px) scale(1.06); }
+}
+
+/* ---------------- Login ---------------- */
+.erp-login-wrap {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+.erp-login-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--erp-card);
+    border: 1px solid var(--erp-card-brd);
+    border-radius: 20px;
+    padding: 38px 34px 30px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    animation: erp-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes erp-rise {
+    from { opacity: 0; transform: translateY(26px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.erp-logo {
+    width: 64px; height: 64px; margin: 0 auto 16px;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800; color: #04110d;
+    background: linear-gradient(135deg, var(--erp-accent), var(--erp-accent-2));
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 12px 30px rgba(22, 224, 163, 0.4);
+    animation: erp-pulse 3s ease-in-out infinite;
+}
+@keyframes erp-pulse {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 12px 30px rgba(22, 224, 163, 0.35); }
+    50% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 16px 44px rgba(43, 184, 255, 0.55); }
+}
+.erp-login-card h1 { font-size: 21px; text-align: center; margin: 4px 0 2px; letter-spacing: 0.2px; }
+.erp-login-card .sub { text-align: center; color: var(--erp-muted); font-size: 13px; margin-bottom: 24px; }
+.erp-field { position: relative; margin-bottom: 16px; }
+.erp-field label { display: block; font-size: 12px; color: var(--erp-muted); margin-bottom: 6px; }
+.erp-field input {
+    width: 100%; box-sizing: border-box;
+    background: rgba(8, 14, 26, 0.7);
+    border: 1px solid rgba(120, 160, 220, 0.2);
+    border-radius: 12px; padding: 13px 14px; color: var(--erp-text); font-size: 14px;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.1s;
+}
+.erp-field input:focus {
+    outline: none;
+    border-color: var(--erp-accent);
+    box-shadow: 0 0 0 4px rgba(22, 224, 163, 0.16);
+}
+.erp-btn {
+    width: 100%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--erp-accent), var(--erp-accent-2));
+    color: #04110d; font-weight: 700; font-size: 15px;
+    padding: 14px; border-radius: 12px; margin-top: 6px;
+    transition: transform 0.12s, box-shadow 0.25s, filter 0.2s;
+    box-shadow: 0 10px 30px rgba(22, 224, 163, 0.35);
+}
+.erp-btn:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 16px 40px rgba(43, 184, 255, 0.5); }
+.erp-btn:active { transform: translateY(0) scale(0.99); }
+.erp-login-foot { text-align: center; margin-top: 18px; font-size: 12px; color: var(--erp-muted); }
+.erp-shake { animation: erp-shake 0.4s; }
+@keyframes erp-shake {
+    10%, 90% { transform: translateX(-2px); }
+    30%, 70% { transform: translateX(5px); }
+    50% { transform: translateX(-7px); }
+}
+
+/* ---------------- Dashboard ---------------- */
+.erp-dash { position: relative; z-index: 2; padding: 22px 26px 40px; max-width: 1240px; margin: 0 auto; }
+.erp-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+.erp-brand { display: flex; align-items: center; gap: 12px; }
+.erp-brand .mark {
+    width: 40px; height: 40px; border-radius: 12px; font-weight: 800; color: #04110d;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--erp-accent), var(--erp-accent-2));
+}
+.erp-brand .name { font-weight: 700; font-size: 17px; }
+.erp-brand .name small { display: block; font-weight: 500; color: var(--erp-muted); font-size: 11px; }
+.erp-chip {
+    background: rgba(20, 30, 50, 0.6); border: 1px solid var(--erp-card-brd);
+    border-radius: 20px; padding: 7px 14px; font-size: 12px; color: var(--erp-muted);
+}
+.erp-chip b { color: var(--erp-accent); }
+
+.erp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
+.erp-kpi {
+    background: var(--erp-card); border: 1px solid var(--erp-card-brd);
+    border-radius: 16px; padding: 18px; backdrop-filter: blur(14px);
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s;
+    animation: erp-rise 0.6s both;
+}
+.erp-kpi:hover { transform: translateY(-4px); border-color: rgba(22, 224, 163, 0.4); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); }
+.erp-kpi::after {
+    content: ""; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px;
+    background: radial-gradient(circle, rgba(22, 224, 163, 0.25), transparent 70%);
+}
+.erp-kpi .lbl { font-size: 12px; color: var(--erp-muted); margin-bottom: 8px; }
+.erp-kpi .val { font-size: 26px; font-weight: 800; letter-spacing: 0.3px; }
+.erp-kpi .delta { font-size: 12px; margin-top: 6px; font-weight: 600; }
+.erp-kpi .delta.up { color: var(--erp-up); }
+.erp-kpi .delta.down { color: var(--erp-down); }
+
+.erp-panels { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.erp-panel {
+    background: var(--erp-card); border: 1px solid var(--erp-card-brd);
+    border-radius: 16px; padding: 18px; backdrop-filter: blur(14px);
+    animation: erp-rise 0.7s both;
+}
+.erp-panel h3 { margin: 0 0 14px; font-size: 14px; font-weight: 600; color: var(--erp-text); }
+.erp-panel h3 span { color: var(--erp-muted); font-weight: 400; font-size: 12px; }
+
+@media (max-width: 980px) {
+    .erp-grid { grid-template-columns: repeat(2, 1fr); }
+    .erp-panels { grid-template-columns: 1fr; }
+}
+
+/* RTL support (Arabic) */
+html[dir="rtl"] .erp-kpi::after { right: auto; left: -30px; }

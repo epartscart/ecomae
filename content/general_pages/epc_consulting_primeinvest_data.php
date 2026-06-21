@@ -76,7 +76,7 @@ function epc_cpi_credentials(): array
 
 function epc_cpi_about_image_url(): string
 {
-	return 'https://images.unsplash.com/photo-1454165804606-220107c9a589?auto=format&fit=crop&w=960&h=640&q=82';
+	return '/content/files/images/storefronts/consulting/photo-1454165804606-220107c9a589.jpg';
 }
 
 function epc_cpi_services(): array
@@ -280,18 +280,18 @@ function epc_cpi_format_aed($amount): string
 function epc_cpi_service_packages(): array
 {
 	$packages = array(
-		array('sku' => 'TF-VAT-001', 'category' => 'VAT Compliance', 'name' => 'VAT Registration & FTA Setup', 'price' => 2500, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1454165804606-220107c9a589?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-CT-002', 'category' => 'Corporate Tax', 'name' => 'Corporate Tax Registration Package', 'price' => 3500, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480&h=320&q=82', 'is_new' => true),
-		array('sku' => 'TF-VAT-003', 'category' => 'VAT Compliance', 'name' => 'Monthly VAT Return Filing', 'price' => 850, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-CT-004', 'category' => 'Corporate Tax', 'name' => 'Annual Corporate Tax Return', 'price' => 4500, 'was' => 5200, 'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-ACC-005', 'category' => 'Accounting', 'name' => 'Bookkeeping Starter — 50 transactions/mo', 'price' => 1200, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1507679799987-c73779587eea?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-ACC-006', 'category' => 'Accounting', 'name' => 'Management Accounts Pack — Quarterly', 'price' => 2800, 'was' => 3200, 'image' => 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-ADV-007', 'category' => 'Advisory', 'name' => 'Business Advisory Strategy Session', 'price' => 950, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=480&h=320&q=82', 'is_new' => true),
-		array('sku' => 'TF-ENT-008', 'category' => 'Entity Setup', 'name' => 'Mainland LLC Entity Formation', 'price' => 8500, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-ERP-009', 'category' => 'ERP Portal', 'name' => 'Client ERP Portal Onboarding', 'price' => 1500, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-PAY-010', 'category' => 'Payroll', 'name' => 'Payroll Processing — up to 10 staff', 'price' => 650, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-AUD-011', 'category' => 'Audit Ready', 'name' => 'Pre-Audit Readiness Review', 'price' => 3200, 'was' => 3600, 'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=480&h=320&q=82'),
-		array('sku' => 'TF-PLN-012', 'category' => 'Advisory', 'name' => 'Cash-Flow Forecast Workshop', 'price' => 1800, 'was' => 0, 'image' => 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=480&h=320&q=82', 'is_new' => true),
+		array('sku' => 'TF-VAT-001', 'category' => 'VAT Compliance', 'name' => 'VAT Registration & FTA Setup', 'price' => 2500, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1454165804606-220107c9a589.jpg'),
+		array('sku' => 'TF-CT-002', 'category' => 'Corporate Tax', 'name' => 'Corporate Tax Registration Package', 'price' => 3500, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1554224155-6726b3ff858f.jpg', 'is_new' => true),
+		array('sku' => 'TF-VAT-003', 'category' => 'VAT Compliance', 'name' => 'Monthly VAT Return Filing', 'price' => 850, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1556761175-5973dc0f32e7.jpg'),
+		array('sku' => 'TF-CT-004', 'category' => 'Corporate Tax', 'name' => 'Annual Corporate Tax Return', 'price' => 4500, 'was' => 5200, 'image' => '/content/files/images/storefronts/consulting/photo-1460925895917-afdab827c52f.jpg'),
+		array('sku' => 'TF-ACC-005', 'category' => 'Accounting', 'name' => 'Bookkeeping Starter — 50 transactions/mo', 'price' => 1200, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1507679799987-c73779587eea.jpg'),
+		array('sku' => 'TF-ACC-006', 'category' => 'Accounting', 'name' => 'Management Accounts Pack — Quarterly', 'price' => 2800, 'was' => 3200, 'image' => '/content/files/images/storefronts/consulting/photo-1551836022-d5d88e9218df.jpg'),
+		array('sku' => 'TF-ADV-007', 'category' => 'Advisory', 'name' => 'Business Advisory Strategy Session', 'price' => 950, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1521737711867-e3b97375f902.jpg', 'is_new' => true),
+		array('sku' => 'TF-ENT-008', 'category' => 'Entity Setup', 'name' => 'Mainland LLC Entity Formation', 'price' => 8500, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1486406146926-c627a92ad1ab.jpg'),
+		array('sku' => 'TF-ERP-009', 'category' => 'ERP Portal', 'name' => 'Client ERP Portal Onboarding', 'price' => 1500, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1551288049-bebda4e38f71.jpg'),
+		array('sku' => 'TF-PAY-010', 'category' => 'Payroll', 'name' => 'Payroll Processing — up to 10 staff', 'price' => 650, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1573164713714-d95e436ab8d6.jpg'),
+		array('sku' => 'TF-AUD-011', 'category' => 'Audit Ready', 'name' => 'Pre-Audit Readiness Review', 'price' => 3200, 'was' => 3600, 'image' => '/content/files/images/storefronts/consulting/photo-1450101499163-c8848c66ca85.jpg'),
+		array('sku' => 'TF-PLN-012', 'category' => 'Advisory', 'name' => 'Cash-Flow Forecast Workshop', 'price' => 1800, 'was' => 0, 'image' => '/content/files/images/storefronts/consulting/photo-1554224155-8d04cb21cd6c.jpg', 'is_new' => true),
 	);
 	return epc_cpi_stamp_skus($packages, 'TF');
 }

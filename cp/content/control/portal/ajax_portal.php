@@ -231,6 +231,40 @@ if ($action === 'tenant_set_active' || $action === 'tenant_reset_password') {
 	)));
 }
 
+if ($action === 'tenant_reveal_password') {
+	if (!function_exists('epc_portal_is_super_cp_host') || !epc_portal_is_super_cp_host()) {
+		http_response_code(403);
+		exit(json_encode(array('status' => false, 'message' => 'Super CP only')));
+	}
+	$siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+	if ($siteKey === '') {
+		exit(json_encode(array('status' => false, 'message' => 'Invalid site key')));
+	}
+	$pwd = '';
+	try {
+		$st = $pdo->prepare('SELECT `operator_temp_password` FROM `epc_portal_tenants` WHERE `site_key` = ? LIMIT 1');
+		$st->execute(array($siteKey));
+		$pwd = (string) $st->fetchColumn();
+	} catch (Throwable $e) {
+		$pwd = '';
+	}
+	$bocKernel = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_kernel.php';
+	if (is_file($bocKernel)) {
+		require_once $bocKernel;
+		if (function_exists('epc_boc_audit_log')) {
+			$actor = '';
+			if (class_exists('DP_User') && method_exists('DP_User', 'getName')) {
+				$actor = (string) DP_User::getName();
+			}
+			epc_boc_audit_log($pdo, (int) DP_User::getAdminId(), 'tenant_control', 'reveal_credential', $siteKey, array('via' => 'tenant_control_center'), $actor);
+		}
+	}
+	if ($pwd === '') {
+		exit(json_encode(array('status' => false, 'message' => 'No stored credential for this tenant. Use Reset to generate one.')));
+	}
+	exit(json_encode(array('status' => true, 'password' => $pwd)));
+}
+
 if ($action === 'tenant_demo_access_load' || $action === 'tenant_demo_access_save') {
 	if (!function_exists('epc_portal_is_super_cp_host') || !epc_portal_is_super_cp_host()) {
 		http_response_code(403);

@@ -164,7 +164,7 @@ foreach ($tenants as $t) {
 						$inReg = !empty($t['in_registry']);
 						$isOn = !empty($t['is_active_flag']);
 						$rowClass = !empty($t['access_blocked']) ? 'warning' : '';
-						$pwd = (string) ($t['stored_password'] ?? '');
+						$hasPwd = trim((string) ($t['stored_password'] ?? '')) !== '';
 						$urls = is_array($t['urls'] ?? null) ? $t['urls'] : array();
 						?>
 						<tr class="<?php echo epc_tcc_h($rowClass); ?>" data-site-key="<?php echo epc_tcc_h($key); ?>">
@@ -216,11 +216,11 @@ foreach ($tenants as $t) {
 								<a href="<?php echo epc_tcc_h($erpLogin); ?>" target="_blank" rel="noopener" class="small"><?php echo epc_tcc_h($erpLogin); ?></a>
 								<?php else: ?><span class="text-muted">—</span><?php endif; ?>
 							</td>
-							<td class="epc-tcc-pwd-cell"<?php if ($pwd !== ''): ?> data-pwd="<?php echo epc_tcc_h($pwd); ?>"<?php endif; ?>>
-								<?php if ($pwd !== ''): ?>
+							<td class="epc-tcc-pwd-cell" data-key="<?php echo epc_tcc_h($key); ?>">
+								<?php if ($hasPwd): ?>
 								<span class="epc-tcc-pwd-mask">••••••••</span>
-								<span class="epc-tcc-pwd-plain"><?php echo epc_tcc_h($pwd); ?></span>
-								<button type="button" class="btn btn-xs btn-link epc-tcc-reveal">Show</button>
+								<span class="epc-tcc-pwd-plain"></span>
+								<button type="button" class="btn btn-xs btn-link epc-tcc-reveal" data-key="<?php echo epc_tcc_h($key); ?>">Show</button>
 								<?php elseif ($inReg): ?>
 								<button type="button" class="btn btn-xs btn-warning epc-tcc-reset" data-key="<?php echo epc_tcc_h($key); ?>">Reset</button>
 								<?php else: ?>
@@ -297,19 +297,39 @@ foreach ($tenants as $t) {
 			var cell = btn.closest('.epc-tcc-pwd-cell');
 			if (!cell) return;
 			var plain = cell.querySelector('.epc-tcc-pwd-plain');
-			if (!plain) {
-				var dp = cell.getAttribute('data-pwd') || '';
-				if (dp) {
-					plain = document.createElement('span');
-					plain.className = 'epc-tcc-pwd-plain';
-					plain.textContent = dp;
-					btn.parentNode.insertBefore(plain, btn);
-				}
-			}
 			if (!plain) return;
-			var show = !cell.classList.contains('is-revealed');
-			cell.classList.toggle('is-revealed', show);
-			btn.textContent = show ? 'Hide' : 'Show';
+			// Hide if currently shown.
+			if (cell.classList.contains('is-revealed')) {
+				cell.classList.remove('is-revealed');
+				plain.textContent = '';
+				btn.textContent = 'Show';
+				return;
+			}
+			// Reveal: fetch the credential on demand (audited server-side); never
+			// embed plaintext in the page source.
+			if (!ajaxUrl) { showFlash(false, 'No endpoint'); return; }
+			var key = btn.getAttribute('data-key') || cell.getAttribute('data-key') || '';
+			if (!key) return;
+			var prev = btn.textContent;
+			btn.textContent = '…';
+			btn.disabled = true;
+			var body = new URLSearchParams();
+			body.append('action', 'tenant_reveal_password');
+			body.append('site_key', key);
+			fetch(ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (res) {
+					btn.disabled = false;
+					if (res && res.status && res.password) {
+						plain.textContent = res.password;
+						cell.classList.add('is-revealed');
+						btn.textContent = 'Hide';
+					} else {
+						btn.textContent = prev;
+						showFlash(false, (res && res.message) ? res.message : 'Could not reveal');
+					}
+				})
+				.catch(function () { btn.disabled = false; btn.textContent = prev; showFlash(false, 'Request failed'); });
 		});
 	}
 	document.querySelectorAll('.epc-tcc-reveal').forEach(bindReveal);

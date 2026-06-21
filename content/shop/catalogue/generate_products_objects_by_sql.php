@@ -81,6 +81,9 @@ while( $product_record = $stmt->fetch() )
 			} else {
 				$products_objects[$product_record["id"]]["image"] = "/content/files/images/products_images/".$product_record["file_name"];
 			}
+		} elseif (function_exists('epc_storefront_catalog_placeholder_for_hint')) {
+			$hint = (string) ($product_record["category_url"] ?? '') . ' ' . (string) ($product_record["alias"] ?? '');
+			$products_objects[$product_record["id"]]["image"] = epc_storefront_catalog_placeholder_for_hint($hint);
 		} else {
 			$products_objects[$product_record["id"]]["image"] = "/content/files/images/no_image.png";
 		}

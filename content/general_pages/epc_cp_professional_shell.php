@@ -9,7 +9,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 
 function epc_cp_shell_css_version()
 {
-	return '20260609erpquick1';
+	return '20260610d365ui2';
 }
 
 /** True on www.ecomae.com where nginx often 404s static /cp/templates/*.css. */
@@ -1333,15 +1333,15 @@ function epc_cp_login_context()
 	if ($isSuper) {
 		return array(
 			'type' => 'super',
-			'badge' => 'Super CP',
-			'heading' => 'ECOM AE Super CP',
-			'sub' => 'Tenant hub, onboarding & platform control',
-			'tagline' => 'Operator console · isolated client tenants',
+			'badge' => 'BOS · Control',
+			'heading' => 'BOS — Business Operation System',
+			'sub' => 'One login · operators control the whole fleet, tenants see only their own area',
+			'tagline' => 'Unified control over every tenant, ERP-only client and demo',
 			'body_class' => 'epc-cp-login--super',
 			'features' => array(
-				'fa-cloud' => 'Tenant hub & DNS provisioning',
-				'fa-rocket' => 'Industry templates & module packs',
-				'fa-shield' => 'Platform health & failover tools',
+				'fa-globe' => 'Fleet command — commerce, ERP-only & demo',
+				'fa-rocket' => 'Tenant onboarding, templates & module packs',
+				'fa-shield' => 'Platform health, governance & failover',
 			),
 		);
 	}
@@ -1375,7 +1375,7 @@ function epc_cp_shell_context()
 	if ($login['type'] === 'super') {
 		return array(
 			'type' => 'super',
-			'label' => 'Super CP Operator',
+			'label' => 'BOS · Operator',
 			'company' => 'ECOM AE',
 		);
 	}

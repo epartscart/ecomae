@@ -47,6 +47,7 @@ ob_start();
 		<input name="total_amount" type="number" step="0.01" class="form-control input-sm" placeholder="Total AED">
 		<input name="line_count" type="number" class="form-control input-sm" placeholder="Lines" value="1"></div></div>
 	<div class="form-group"><label class="col-sm-3">Execution date</label><div class="col-sm-9"><input name="execution_date" type="date" class="form-control input-sm"></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft batch</button></div></div>
 </form>
 <p class="text-muted"><small>Bank file export is a stub — batches are stored for workflow tracking only.</small></p>

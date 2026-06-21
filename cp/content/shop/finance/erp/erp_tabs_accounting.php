@@ -3,6 +3,7 @@
  * ERP tabs: COA, General Ledger, P&L, Balance Sheet.
  */
 defined('_ASTEXE_') or die('No access');
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
 $coa_list = epc_erp_gl_list_coa($db_link);
 $gl_journals = epc_erp_gl_list_journals($db_link, $date_from, $date_to);
@@ -13,6 +14,9 @@ $bs = epc_erp_gl_balance_sheet($db_link, $date_to);
 $trial = epc_erp_gl_trial_balance($db_link, $date_to);
 $view_journal = isset($_GET['journal_id']) ? (int)$_GET['journal_id'] : 0;
 $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_journal) : array();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fiscal_periods.php';
+$fiscal_lock = epc_erp_fiscal_lock_date($db_link);
+$fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 ?>
 
 <?php if ($tab === 'coa'): ?>
@@ -52,48 +56,121 @@ $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_jo
 
 <?php elseif ($tab === 'gl'): ?>
 	<div class="epc-erp-section">
-		<h4><i class="fa fa-book"></i> General ledger</h4>
+		<h4><i class="fa fa-book"></i> General journal &amp; ledger</h4>
+		<?php
+		erp_d365_assets();
+		erp_action_pane_ribbon(array(
+			array('label' => 'General journal', 'key' => 'gl', 'active' => true, 'groups' => array(
+				array('label' => 'New', 'buttons' => array(
+					array('label' => 'Journal entry', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_gl_manual'),
+				)),
+				array('label' => 'View', 'buttons' => array(
+					array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str)),
+				)),
+			)),
+			array('label' => 'Post', 'key' => 'post', 'groups' => array(
+				array('label' => 'Posting', 'buttons' => array(
+					array('label' => 'Post journal', 'icon' => 'fa-check', 'class' => 'is-primary', 'target' => '#epc_erp_form_gl_manual'),
+					array('label' => 'Sync to GL', 'icon' => 'fa-refresh', 'target' => '#epc_erp_gl_sync'),
+					array('label' => 'Post sales to GL', 'icon' => 'fa-shopping-cart', 'target' => '#epc_erp_gl_post_sales'),
+				)),
+			)),
+			array('label' => 'Period', 'key' => 'period', 'groups' => array(
+				array('label' => 'Period end', 'buttons' => array(
+					array('label' => 'Period close', 'icon' => 'fa-lock', 'target' => '#epc_erp_form_fiscal_lock'),
+					array('label' => 'FX revaluation', 'icon' => 'fa-exchange', 'target' => '#epc_erp_form_fx_reval'),
+				)),
+			)),
+		));
+		erp_fasttab_open('Period controls — close & FX revaluation', array('open' => false, 'icon' => 'fa-sliders'));
+		?>
+		<div class="well well-sm" style="margin-bottom:12px;">
+			<form id="epc_erp_form_fiscal_lock" class="form-inline">
+				<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+				<strong><i class="fa fa-lock"></i> Period close</strong>
+				<?php if ($fiscal_lock > 0): ?>
+					<span class="label label-warning" style="margin:0 6px;">Locked up to <?php echo epc_erp_h($fiscal_lock_str); ?></span>
+				<?php else: ?>
+					<span class="label label-default" style="margin:0 6px;">No lock — all periods open</span>
+				<?php endif; ?>
+				<label style="margin-left:6px;">Lock on/before
+					<input type="date" name="lock_date" class="form-control input-sm" value="<?php echo epc_erp_h($fiscal_lock_str); ?>">
+				</label>
+				<button type="submit" class="btn btn-sm btn-warning">Set lock</button>
+				<button type="button" class="btn btn-sm btn-default" id="epc_erp_fiscal_clear">Clear lock</button>
+				<span class="text-muted" style="display:block;margin-top:4px;">Journals dated on or before the lock date are rejected at posting. Corrections use reversals, not edits.</span>
+			</form>
+		</div>
+		<div class="well well-sm" style="margin-bottom:12px;">
+			<form id="epc_erp_form_fx_reval" class="form-inline">
+				<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+				<strong><i class="fa fa-exchange"></i> FX revaluation</strong>
+				<label style="margin-left:6px;">As of
+					<input type="date" name="as_of" class="form-control input-sm" value="<?php echo epc_erp_h(date('Y-m-d')); ?>">
+				</label>
+				<label class="checkbox-inline" style="margin-left:6px;"><input type="checkbox" name="auto_reverse" checked> Auto-reverse next period</label>
+				<button type="button" class="btn btn-sm btn-default" id="epc_erp_fx_preview">Preview</button>
+				<button type="submit" class="btn btn-sm btn-info">Post revaluation</button>
+				<span class="text-muted" style="display:block;margin-top:4px;">Retranslates open foreign-currency receivables at the closing rate (IAS-21); posts the unrealised FX gain/loss and an optional auto-reversal.</span>
+				<div id="epc_erp_fx_preview_out" style="margin-top:6px;"></div>
+			</form>
+		</div>
+		<?php erp_fasttab_close(); ?>
 		<p>
 			<button type="button" class="btn btn-sm btn-default" id="epc_erp_gl_sync"><i class="fa fa-refresh"></i> Sync unposted purchases &amp; cash to GL</button>
 			<button type="button" class="btn btn-sm btn-primary" id="epc_erp_gl_post_sales"><i class="fa fa-shopping-cart"></i> Post sales orders to GL (date range)</button>
 		</p>
-		<table class="table table-striped table-bordered table-condensed">
-			<thead><tr><th>Journal no.</th><th>Date</th><th>Source</th><th>Reference</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+		<?php erp_list_toolbar(array(
+			'views' => array('All journals', 'My journals'),
+			'search' => array('placeholder' => 'Filter journals', 'target' => '#epc_erp_gl_journals_tbl'),
+		)); ?>
+		<table class="table table-striped table-bordered table-condensed epc-erp-table" id="epc_erp_gl_journals_tbl">
+			<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Journal no.</th><th data-sort="text">Date</th><th data-sort="text">Source</th><th data-sort="text">Reference</th><th data-sort="text">Description</th><th class="num" data-sort="num">Amount</th><th></th></tr></thead>
 			<tbody>
-			<?php foreach ($gl_journals as $j): ?>
+			<?php $epcGlSum = 0.0; foreach ($gl_journals as $j): $epcGlSum += (float)$j['total_debit']; ?>
 				<tr>
+					<td class="epc-d365-statcol"><?php echo erp_status_dot('info'); ?></td>
 					<td><?php echo epc_erp_h($j['journal_no']); ?></td>
 					<td><?php echo epc_erp_h(date('Y-m-d', (int)$j['journal_date'])); ?></td>
 					<td><?php echo epc_erp_h($j['source_type']); ?></td>
 					<td><?php echo epc_erp_h($j['reference']); ?></td>
 					<td><?php echo epc_erp_h($j['description']); ?></td>
-					<td><?php echo epc_erp_money($j['total_debit']); ?></td>
-					<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str) . '&journal_id=' . (int)$j['id']); ?>">Lines</a></td>
+					<td class="num"><?php echo epc_erp_money($j['total_debit']); ?></td>
+					<td>
+						<a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str) . '&journal_id=' . (int)$j['id']); ?>">Lines</a>
+						<button type="button" class="btn btn-xs btn-warning epc-erp-gl-reverse" data-journal-id="<?php echo (int)$j['id']; ?>" data-journal-no="<?php echo epc_erp_h($j['journal_no']); ?>" title="Post a reversing journal">Reverse</button>
+					</td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
+			<?php if (!empty($gl_journals)): ?>
+			<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="5">Sum (<?php echo count($gl_journals); ?> journals)</td><td class="num"><?php echo epc_erp_money($epcGlSum); ?></td><td></td></tr></tfoot>
+			<?php endif; ?>
 		</table>
 
 		<?php if ($view_journal > 0): ?>
 			<h4>Journal lines #<?php echo (int)$view_journal; ?></h4>
-			<table class="table table-bordered table-condensed">
-				<thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th><th>Note</th></tr></thead>
+			<table class="table table-bordered table-condensed epc-erp-table">
+				<thead><tr><th data-sort="text">Code</th><th data-sort="text">Account</th><th data-sort="text">Type</th><th class="num" data-sort="num">Debit</th><th class="num" data-sort="num">Credit</th><th>Note</th></tr></thead>
 				<tbody>
-				<?php foreach ($journal_lines as $ln): ?>
+				<?php $epcGlLnDr = 0.0; $epcGlLnCr = 0.0; foreach ($journal_lines as $ln): $epcGlLnDr += (float)$ln['debit']; $epcGlLnCr += (float)$ln['credit']; ?>
 					<tr>
 						<td><?php echo epc_erp_h($ln['coa_code']); ?></td>
 						<td><?php echo epc_erp_h($ln['coa_name']); ?></td>
 						<td><?php echo epc_erp_h($ln['account_type']); ?></td>
-						<td><?php echo epc_erp_money($ln['debit']); ?></td>
-						<td><?php echo epc_erp_money($ln['credit']); ?></td>
+						<td class="num"><?php echo epc_erp_money($ln['debit']); ?></td>
+						<td class="num"><?php echo epc_erp_money($ln['credit']); ?></td>
 						<td><?php echo epc_erp_h($ln['line_note']); ?></td>
 					</tr>
 				<?php endforeach; ?>
 				</tbody>
+				<?php if (!empty($journal_lines)): ?>
+				<tfoot><tr class="epc-d365-sumrow"><td colspan="3">Sum</td><td class="num"><?php echo epc_erp_money($epcGlLnDr); ?></td><td class="num"><?php echo epc_erp_money($epcGlLnCr); ?></td><td></td></tr></tfoot>
+				<?php endif; ?>
 			</table>
 		<?php endif; ?>
 
-		<h4>Manual journal entry (double-entry)</h4>
+		<?php erp_fasttab_open('Manual journal entry (double-entry)', array('open' => true, 'icon' => 'fa-plus')); ?>
 		<form id="epc_erp_form_gl_manual">
 			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
 			<div class="form-inline" style="margin-bottom:8px;">
@@ -121,6 +198,7 @@ $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_jo
 			<button type="button" class="btn btn-xs btn-default" id="epc_gl_add_line">+ Add line</button>
 			<button type="submit" class="btn btn-sm btn-success">Post journal</button>
 		</form>
+		<?php erp_fasttab_close(); ?>
 	</div>
 
 <?php elseif ($tab === 'pl'): ?>
@@ -338,8 +416,83 @@ $journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_jo
 				.then(function(j){ showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 800); });
 		});
 	}
+	function bindFiscalLock() {
+		var f = document.getElementById('epc_erp_form_fiscal_lock');
+		if (f) f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('fiscal_set_lock', f); });
+		var clr = document.getElementById('epc_erp_fiscal_clear');
+		if (clr) clr.addEventListener('click', function(){
+			if (!confirm('Clear the fiscal lock and re-open all periods?')) return;
+			var fd = new FormData();
+			fd.append('action', 'fiscal_set_lock');
+			fd.append('lock_date', '');
+			var csrf = document.querySelector('input[name="csrf_guard_key"]');
+			if (csrf) fd.append('csrf_guard_key', csrf.value);
+			fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function(r){ return r.json(); })
+				.then(function(j){ showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 800); });
+		});
+	}
+	function bindGlReverse() {
+		var btns = document.querySelectorAll('.epc-erp-gl-reverse');
+		for (var i = 0; i < btns.length; i++) {
+			btns[i].addEventListener('click', function(){
+				var id = this.getAttribute('data-journal-id');
+				var no = this.getAttribute('data-journal-no') || ('#' + id);
+				if (!confirm('Post a reversing journal for ' + no + '? The original stays on record.')) return;
+				var fd = new FormData();
+				fd.append('action', 'gl_reverse_journal');
+				fd.append('journal_id', id);
+				var csrf = document.querySelector('input[name="csrf_guard_key"]');
+				if (csrf) fd.append('csrf_guard_key', csrf.value);
+				fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+					.then(function(r){ return r.json(); })
+					.then(function(j){ showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 1000); });
+			});
+		}
+	}
+	function bindFxReval() {
+		var form = document.getElementById('epc_erp_form_fx_reval');
+		if (!form) return;
+		var out = document.getElementById('epc_erp_fx_preview_out');
+		function run(action) {
+			var fd = new FormData();
+			fd.append('action', action);
+			fd.append('as_of', (form.querySelector('input[name="as_of"]') || {}).value || '');
+			fd.append('auto_reverse', form.querySelector('input[name="auto_reverse"]').checked ? '1' : '0');
+			var csrf = document.querySelector('input[name="csrf_guard_key"]');
+			if (csrf) fd.append('csrf_guard_key', csrf.value);
+			fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function(r){ return r.json(); })
+				.then(function(j){
+					if (action === 'fx_revaluation_preview') {
+						if (j.status && j.by_currency) {
+							var h = '<table class="table table-condensed table-bordered" style="margin:6px 0;font-size:12px;"><thead><tr><th>Currency</th><th>Open docs</th><th>Outstanding (FC)</th><th>Booked (base)</th><th>Closing (base)</th><th>Unrealised</th></tr></thead><tbody>';
+							if (!j.by_currency.length) { h += '<tr><td colspan="6" class="text-muted">No open foreign-currency receivables (or no rates set).</td></tr>'; }
+							j.by_currency.forEach(function(c){
+								h += '<tr><td>'+c.currency+'</td><td>'+c.count+'</td><td style="text-align:right;">'+Number(c.outstanding_fc).toFixed(2)+'</td><td style="text-align:right;">'+Number(c.booked_base).toFixed(2)+'</td><td style="text-align:right;">'+Number(c.current_base).toFixed(2)+'</td><td style="text-align:right;'+(c.unrealised>=0?'color:green;':'color:#c00;')+'">'+Number(c.unrealised).toFixed(2)+'</td></tr>';
+							});
+							h += '</tbody><tfoot><tr><th colspan="5" style="text-align:right;">Net unrealised ('+j.base+')</th><th style="text-align:right;'+(j.total_unrealised>=0?'color:green;':'color:#c00;')+'">'+Number(j.total_unrealised).toFixed(2)+'</th></tr></tfoot></table>';
+							out.innerHTML = h;
+						} else { out.innerHTML = '<span class="text-muted">'+(j.message||'No data')+'</span>'; }
+					} else {
+						showMsg(!!j.status, j.message);
+						if (j.status) setTimeout(function(){ location.reload(); }, 1200);
+					}
+				});
+		}
+		var pv = document.getElementById('epc_erp_fx_preview');
+		if (pv) pv.addEventListener('click', function(){ run('fx_revaluation_preview'); });
+		form.addEventListener('submit', function(ev){
+			ev.preventDefault();
+			if (!confirm('Post the FX revaluation to the GL?')) return;
+			run('fx_post_revaluation');
+		});
+	}
 	bindCoaForm();
 	bindGlManual();
 	bindGlButtons();
+	bindFiscalLock();
+	bindGlReverse();
+	bindFxReval();
 })();
 </script>

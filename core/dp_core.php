@@ -621,16 +621,23 @@ if ($epcCpScriptRelocate) {
 $DP_Template->html = str_replace("<docpart type=\"main\" name=\"main\" />", $DP_Content->content, $DP_Template->html);
 $css_js_tags .= $DP_Content->css_js;
 $title = "";
+// Operator console (super-CP host) is the platform's Business Operation System,
+// not a tenant storefront — present it as "ECOM AE · BOS" instead of inheriting
+// the tenant site name. Tenant storefronts/CPs keep their own name untouched.
+$epc_title_site_name = translate_str_by_id($DP_Config->site_name);
+if (function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host()) {
+    $epc_title_site_name = "ECOM AE \xC2\xB7 BOS";
+}
 if(filter_var($DP_Config->show_page_title, FILTER_VALIDATE_BOOLEAN) && filter_var($DP_Config->show_site_name, FILTER_VALIDATE_BOOLEAN)) {
     if(filter_var($DP_Config->page_title_first, FILTER_VALIDATE_BOOLEAN)) {
-        $title = $DP_Content->title_tag . " - " . translate_str_by_id($DP_Config->site_name);
+        $title = $DP_Content->title_tag . " - " . $epc_title_site_name;
     } else {
-        $title = translate_str_by_id($DP_Config->site_name) . " - " . $DP_Content->title_tag;
+        $title = $epc_title_site_name . " - " . $DP_Content->title_tag;
     }
 } elseif(filter_var($DP_Config->show_page_title, FILTER_VALIDATE_BOOLEAN)) {
     $title = $DP_Content->title_tag;
 } elseif(filter_var($DP_Config->show_site_name, FILTER_VALIDATE_BOOLEAN)) {
-    $title = translate_str_by_id($DP_Config->site_name);
+    $title = $epc_title_site_name;
 }
 if($title != "") {
     $title = "<title>" . $title . "</title>\n";

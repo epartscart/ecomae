@@ -2,8 +2,8 @@
  * ECOM AE animated hub logo — compact variants for CP / ERP surfaces.
  */
 .ech-hub {
-	--ech-cyan: #22d3ee;
-	--ech-blue: #0ea5e9;
+	--ech-cyan: #e11d2a;
+	--ech-blue: #ef3b47;
 	--ech-muted: #94a3b8;
 	--ech-orbit-r: 118px;
 	--ech-orbit-duration: 40s;
@@ -649,7 +649,7 @@
 }
 
 .ech-static__ae {
-	color: #22d3ee;
+	color: #e11d2a;
 }
 
 .ech-static__tagline {

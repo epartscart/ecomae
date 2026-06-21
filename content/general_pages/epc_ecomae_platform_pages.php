@@ -11,6 +11,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_plat
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_home_sections.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_faq.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_pages.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
 
 if (!function_exists('epc_ecomae_platform_get_industry_groups')) {
 	function epc_ecomae_platform_get_industry_groups()
@@ -66,8 +68,22 @@ function epc_ecomae_platform_render_page($page, array $params = array(), $mode =
 	$title = epc_ecomae_platform_page_title($page, $params);
 	$description = epc_ecomae_platform_page_description($page, $params);
 	$canonicalPath = '/';
-	if ($page === 'platform') {
+	$mktSlugPages = array('docs', 'compare', 'bos', 'solution');
+	if (in_array($page, $mktSlugPages, true)) {
+		$meta = epc_ecomae_marketing_meta($page, $params);
+		if ($meta) { $title = $meta[0]; $description = $meta[1]; }
+		$segMap = array('solution' => 'solutions', 'docs' => 'documentation');
+		$seg = $segMap[$page] ?? $page;
+		$slug = isset($params['slug']) ? preg_replace('/[^a-z0-9\-]/', '', (string) $params['slug']) : '';
+		$canonicalPath = '/' . $seg . ($slug !== '' ? '/' . $slug : '');
+	} elseif ($page === 'platform') {
 		$canonicalPath = '/platform';
+	} elseif ($page === 'free_tools') {
+		$canonicalPath = '/platform/free-tools';
+		$tool = isset($params['tool']) ? preg_replace('/[^a-z]/', '', (string) $params['tool']) : '';
+		if ($tool !== '') {
+			$canonicalPath .= '/' . $tool;
+		}
 	} elseif ($page !== '' && $page !== 'home') {
 		$canonicalPath = '/platform/' . str_replace('_', '-', $page);
 		if ($page === 'industry' && !empty($params['slug'])) {
@@ -163,9 +179,9 @@ function epc_ecomae_platform_page_platform()
 		<img class="epm-hero__img" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=75" alt="" loading="lazy" />
 		<div class="epm-hero__shade"></div>
 		<div class="epm-hero__content">
-			<div class="epm-badge">Complete platform overview</div>
-			<h1>Everything in ECOM AE — by area</h1>
-			<p class="lead">One cloud: <strong>e-commerce + ERP + CRM</strong> — go live in <strong>24 hours</strong> with UAE <strong>e-invoice</strong> built in. Below: what the storefront, CP, and Super CP deliver per capability.</p>
+			<div class="epm-badge">Business Operating System · complete overview</div>
+			<h1>Everything in the ECOM AE BOS — by area</h1>
+			<p class="lead">One Business Operating System: <strong>ERP + commerce + compliance + workflows + CRM + industry intelligence</strong> — go live in <strong>24 hours</strong> with <strong>e-invoice</strong> built in. Below: what the storefront, CP, and Super CP deliver per capability.</p>
 			<div class="epm-cta">
 				<a class="epm-btn epm-btn--primary" href="#super-cp">Super CP</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h($base); ?>platform/platform-guides">Super CP guides</a>
@@ -267,7 +283,7 @@ function epc_ecomae_platform_page_industries()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525,#0c4a6e 50%,#020617)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 50%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-industry"></i> <?php echo count($industries); ?> verticals</div>
 			<h1>Every industry, its own solution page</h1>
@@ -416,7 +432,7 @@ function epc_ecomae_platform_page_pricing()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525,#0284c7 60%,#020617)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#b01722 60%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge">Monthly rental</div>
 			<h1>Platform rental — per client tenant</h1>
@@ -431,10 +447,13 @@ function epc_ecomae_platform_page_pricing()
 			?>
 		<div class="<?php echo $cls; ?>">
 			<h4><?php echo epc_ecomae_h($plan['name']); ?></h4>
+			<?php if (!empty($plan['tagline'])) { ?>
+			<div style="font-size:13px;color:var(--epm-muted);margin:-4px 0 8px"><?php echo epc_ecomae_h($plan['tagline']); ?></div>
+			<?php } ?>
 			<?php if ($plan['price_aed'] === null) { ?>
 			<div class="amt">Custom</div>
 			<?php } else { ?>
-			<div class="amt">AED <?php echo (int) $plan['price_aed']; ?><small style="font-size:14px;font-weight:600;color:var(--epm-muted)"> / <?php echo epc_ecomae_h($plan['period']); ?></small></div>
+			<div class="amt">AED <?php echo number_format((int) $plan['price_aed']); ?><small style="font-size:14px;font-weight:600;color:var(--epm-muted)"> / <?php echo epc_ecomae_h($plan['period']); ?></small></div>
 			<?php } ?>
 			<ul><?php foreach ($plan['items'] as $item) { ?><li><?php echo epc_ecomae_h($item); ?></li><?php } ?></ul>
 			<div class="epm-cta" style="margin-top:14px">
@@ -443,7 +462,43 @@ function epc_ecomae_platform_page_pricing()
 		</div>
 		<?php } ?>
 	</div>
-	<p style="color:var(--epm-muted);font-size:14px;margin-top:20px">Prices are indicative for operators — final commercial terms per client contract. All plans include SSL, tenant isolation, and Super CP onboarding tools.</p>
+	<p style="color:var(--epm-muted);font-size:14px;margin-top:20px">All plans include SSL, tenant isolation, country-driven compliance, unlimited users and BOS onboarding tools. Prices are indicative — final commercial terms per client contract.</p>
+	<?php
+	$bench = function_exists('epc_ecomae_platform_price_benchmark') ? epc_ecomae_platform_price_benchmark() : null;
+	if ($bench) { ?>
+	<div class="epm-section" style="margin-top:40px">
+		<div class="epm-badge">How we compare</div>
+		<h2 style="margin:8px 0 4px">Enterprise ERP &amp; commerce — without the enterprise bill</h2>
+		<p class="lead" style="margin-bottom:18px">The same multi-tenant, multi-vendor, multi-warehouse, multichannel control the big platforms charge per user for — flat per tenant, unlimited users, no implementation fee.</p>
+		<div style="overflow-x:auto">
+		<table class="epm-cmp" style="width:100%;border-collapse:collapse;font-size:14px">
+			<thead>
+				<tr style="text-align:left;border-bottom:2px solid rgba(148,163,184,.25)">
+					<th style="padding:10px 12px">Platform</th>
+					<th style="padding:10px 12px">Indicative price</th>
+					<th style="padding:10px 12px">Model</th>
+					<th style="padding:10px 12px">Setup</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach ($bench['rows'] as $r) {
+				$rowStyle = !empty($r['highlight'])
+					? 'background:linear-gradient(90deg,rgba(2,132,199,.16),rgba(2,132,199,.04));font-weight:700'
+					: '';
+				?>
+				<tr style="border-bottom:1px solid rgba(148,163,184,.15);<?php echo $rowStyle; ?>">
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['name']); ?></td>
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['price']); ?></td>
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['model']); ?></td>
+					<td style="padding:10px 12px"><?php echo epc_ecomae_h($r['setup']); ?></td>
+				</tr>
+			<?php } ?>
+			</tbody>
+		</table>
+		</div>
+		<p style="color:var(--epm-muted);font-size:12px;margin-top:12px"><?php echo epc_ecomae_h($bench['note']); ?></p>
+	</div>
+	<?php } ?>
 	<?php echo epc_ecomae_platform_go_live_24_section(); ?>
 	<div class="epm-cta">
 		<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo">Try free demo first</a>
@@ -518,7 +573,7 @@ function epc_ecomae_platform_page_contact()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero" style="min-height:200px">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525,#0c4a6e)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16)"></div>
 		<div class="epm-hero__content">
 			<h1>Contact ECOM AE</h1>
 			<p class="lead">Demo requests, rental quotes, and operator support. Response within one business day.</p>
@@ -592,7 +647,7 @@ function epc_ecomae_platform_page_about()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero" style="min-height:220px">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525,#0c4a6e 50%,#020617)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 50%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
 			<h1>About ECOM AE</h1>
 			<p class="lead">Built by Electronic World Group in Dubai — one cloud for commerce, ERP, CRM, and UAE e-invoicing.</p>
@@ -632,7 +687,7 @@ function epc_ecomae_platform_page_platform_guides()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525 0%,#0c4a6e 42%,#020617 100%)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-th-large"></i> Super CP capability map</div>
 			<h1>What you get in Super CP — by area</h1>
@@ -690,7 +745,7 @@ function epc_ecomae_platform_page_capabilities()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525 0%,#0c4a6e 42%,#020617 100%)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-th"></i> <?php echo (int) $count; ?> capabilities</div>
 			<h1>Super CP — full capability catalog</h1>
@@ -724,7 +779,7 @@ function epc_ecomae_platform_page_business_continuity()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525 0%,#0c4a6e 42%,#020617 100%)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407 0%,#5a0f16 42%,#0a0a0a 100%)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-shield"></i> Business continuity</div>
 			<h1><?php echo epc_ecomae_h($bc['headline']); ?></h1>
@@ -744,7 +799,7 @@ function epc_ecomae_platform_page_customer_results()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#041525,#0c4a6e 55%,#020617)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 55%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-trophy"></i> Live implementation proof</div>
 			<h1>Customer results across live tenants</h1>
@@ -788,7 +843,7 @@ function epc_ecomae_platform_page_auto_price_ai()
 </style>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0f766e 0%,#115e59 45%,#020617 100%)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0f766e 0%,#115e59 45%,#0a0a0a 100%)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-magic"></i> Discover · Price · Import · Sell</div>
 			<h1>Auto Price AI — discover, price, and list across markets</h1>
@@ -848,7 +903,7 @@ function epc_ecomae_platform_page_api_documentation()
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1e1b4b 0%,#7c3aed 45%,#020617 100%)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1e1b4b 0%,#7c3aed 45%,#0a0a0a 100%)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-code"></i> Phase 1 — read-only</div>
 			<h1>API documentation</h1>
@@ -868,7 +923,7 @@ function epc_ecomae_platform_page_api_documentation()
 	<div class="epm-card" style="overflow-x:auto;padding:0">
 		<table style="width:100%;border-collapse:collapse;font-size:14px">
 			<thead>
-				<tr style="background:#0f172a;color:#e2e8f0">
+				<tr style="background:#171717;color:#e2e8f0">
 					<th style="padding:12px;text-align:left">Method</th>
 					<th style="padding:12px;text-align:left">Path</th>
 					<th style="padding:12px;text-align:left">Auth</th>
@@ -901,7 +956,7 @@ function epc_ecomae_platform_page_api_documentation()
 		</div>
 		<div class="epm-card">
 			<h4><i class="fa fa-terminal text-primary"></i> Example curl (safe placeholders)</h4>
-			<pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:0"># Public health — no key
+			<pre style="background:#171717;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:0"># Public health — no key
 curl -s https://www.ecomae.com/epc-api/v1/health
 
 # Tenant info — replace placeholder
@@ -973,7 +1028,7 @@ function epc_ecomae_platform_page_api_services(array $params = array())
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#0c4a6e 0%,#0369a1 40%,#020617 100%)"></div>
+		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#5a0f16 0%,#8a131c 40%,#0a0a0a 100%)"></div>
 		<div class="epm-hero__content">
 			<div class="epm-badge"><i class="fa fa-plug"></i> For your own website — not a tenant</div>
 			<h1>Autoparts Catalog &amp; Price PRO API</h1>
@@ -1008,7 +1063,7 @@ function epc_ecomae_platform_page_api_services(array $params = array())
 	<div class="epm-card" style="overflow-x:auto;padding:0;margin-bottom:20px">
 		<table style="width:100%;border-collapse:collapse;font-size:14px">
 			<thead>
-				<tr style="background:#0f172a;color:#e2e8f0">
+				<tr style="background:#171717;color:#e2e8f0">
 					<th style="padding:12px;text-align:left">Query param <code>action</code></th>
 					<th style="padding:12px;text-align:left">Purpose</th>
 				</tr>
@@ -1027,7 +1082,7 @@ function epc_ecomae_platform_page_api_services(array $params = array())
 		<div class="epm-card">
 			<h4><i class="fa fa-link text-primary"></i> Base URL (keys issued on onboarding)</h4>
 			<p>After onboarding you receive an <code>X-API-Key</code> (prefix <code>epc_catalog_</code>…) and daily quota. Public entry point:</p>
-			<pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:12px 0 0">GET https://www.ecomae.com/api/v1/catalog.php?action=manufacturers&amp;section=passenger
+			<pre style="background:#171717;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:12px 0 0">GET https://www.ecomae.com/api/v1/catalog.php?action=manufacturers&amp;section=passenger
 Header: X-API-Key: epc_catalog_YOUR_CLIENT_KEY</pre>
 			<p style="font-size:13px;color:var(--epm-muted);margin-top:10px">Hosted ECOM AE storefronts use the built-in catalog widget on your domain. Third-party sites and apps should call <code>/api/v1/catalog.php</code> only.</p>
 		</div>
@@ -1041,7 +1096,7 @@ Header: X-API-Key: epc_catalog_YOUR_CLIENT_KEY</pre>
 			</ol>
 		</div>
 	</div>
-	<pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:16px 0"># Manufacturers (passenger cars) — replace YOUR_CLIENT_KEY after onboarding
+	<pre style="background:#171717;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:16px 0"># Manufacturers (passenger cars) — replace YOUR_CLIENT_KEY after onboarding
 curl -s -H "X-API-Key: epc_catalog_YOUR_CLIENT_KEY" \
   "https://www.ecomae.com/api/v1/catalog.php?action=manufacturers&amp;section=passenger"
 
@@ -1058,7 +1113,7 @@ curl -s -H "X-API-Key: epc_catalog_YOUR_CLIENT_KEY" \
 	<div class="epm-split">
 		<div class="epm-card epm-card--accent">
 			<h4><i class="fa fa-cogs text-primary"></i> Price PRO endpoint (beta)</h4>
-			<pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:0">GET https://www.ecomae.com/api/v1/price/lookup.php?brand=BOSCH&amp;article=0986424590
+			<pre style="background:#171717;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:0">GET https://www.ecomae.com/api/v1/price/lookup.php?brand=BOSCH&amp;article=0986424590
 Header: X-API-Key: epc_pricepro_YOUR_CLIENT_KEY
 
 Response: { "ok": true, "beta": true, "offers": [ { "supplier", "price", "currency", "stock_hint" } ] }</pre>
@@ -1073,7 +1128,7 @@ Response: { "ok": true, "beta": true, "offers": [ { "supplier", "price", "curren
 			</ul>
 		</div>
 	</div>
-	<pre style="background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:16px 0"># Price PRO — supplier offers for brand + article
+	<pre style="background:#171717;color:#e2e8f0;padding:14px;border-radius:8px;font-size:12px;overflow-x:auto;margin:16px 0"># Price PRO — supplier offers for brand + article
 curl -s -H "X-API-Key: epc_pricepro_YOUR_CLIENT_KEY" \
   "https://www.ecomae.com/api/v1/price/lookup.php?brand=BOSCH&amp;article=0986424590"</pre>
 

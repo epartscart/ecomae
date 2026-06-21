@@ -686,9 +686,16 @@ function epc_ape_source_product_save(PDO $pdo, int $sourceId, array $data, int $
 	$params[] = $now;
 	$pdo->prepare(
 		'INSERT INTO `epc_price_source_products` (`source_id`, `product_id`, `external_sku`, `external_url`, `title`, `last_price`, `last_currency`, `warehouse_cost`, `last_stock_hint`, `updated_at`, `created_at`)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 ON DUPLICATE KEY UPDATE `product_id`=VALUES(`product_id`), `external_url`=VALUES(`external_url`), `title`=VALUES(`title`), `last_price`=VALUES(`last_price`), `last_currency`=VALUES(`last_currency`), `warehouse_cost`=VALUES(`warehouse_cost`), `last_stock_hint`=VALUES(`last_stock_hint`), `updated_at`=VALUES(`updated_at`)'
 	)->execute($params);
-	return (int) $pdo->lastInsertId();
+	$newId = (int) $pdo->lastInsertId();
+	if ($newId > 0) {
+		return $newId;
+	}
+	$lookup = $pdo->prepare('SELECT `id` FROM `epc_price_source_products` WHERE `source_id` = ? AND `external_sku` = ? LIMIT 1');
+	$lookup->execute(array($sourceId, trim((string) ($data['external_sku'] ?? ''))));
+	return (int) $lookup->fetchColumn();
 }
 
 function epc_ape_update_source_product_price(PDO $pdo, int $id, float $price, string $currency, string $status, string $message = ''): void
@@ -5875,7 +5882,10 @@ function epc_disc_queue_approve_import(PDO $pdo, string $siteKey, int $queueId, 
 		$imageUrls = array();
 	}
 	$imageImport = array('imported' => 0, 'warnings' => array(), 'fallback_urls' => array(), 'local_paths' => array());
-	if (is_file(__DIR__ . '/epc_auto_price_images.php')) {
+	if (!empty($options['skip_images'])) {
+		// Bulk seeding: keep external URL as fallback instead of downloading (fast path).
+		$imageImport['fallback_urls'] = $imageUrls;
+	} elseif (is_file(__DIR__ . '/epc_auto_price_images.php')) {
 		require_once __DIR__ . '/epc_auto_price_images.php';
 		$imageImport = epc_auto_price_import_images($pdo, $siteKey, $productId, $imageUrls);
 	}

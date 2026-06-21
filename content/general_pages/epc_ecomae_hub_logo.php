@@ -27,7 +27,7 @@ function epc_ecomae_hub_logo_image_url()
 	if (function_exists('epc_ecomae_platform_logo_url')) {
 		return epc_ecomae_platform_logo_url();
 	}
-	return '/content/files/images/ecomae-logo.png';
+	return '/content/general_pages/epc_ecomae_logo_svg.php';
 }
 
 function epc_ecomae_hub_logo_css_href()

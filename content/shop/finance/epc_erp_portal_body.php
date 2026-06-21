@@ -27,6 +27,10 @@ if ($logged_in && isset($db_link) && $db_link instanceof PDO) {
 $fe = epc_erp_frontend_urls();
 $lang = epc_erp_lang_href();
 $portal_home = epc_erp_portal_canonical_base($lang);
+if (!function_exists('epc_erp_is_erp_only_context')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+}
+$epc_erp_is_erp_only = function_exists('epc_erp_is_erp_only_context') && epc_erp_is_erp_only_context();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
 ?>
 <div class="epc-erp-portal-wrap">
@@ -65,6 +69,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_
 						?>
 					</div>
 				</div>
+				<?php if (!$epc_erp_is_erp_only): ?>
 				<p class="text-muted text-center epc-erp-login-footnote" style="margin-top:12px;font-size:12px;">
 					Administrators:
 					<a href="/<?php echo htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/finance/erp?epc_erp_shell=1">Control panel (advanced)</a>
@@ -72,14 +77,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_
 					· <a href="/">E-commerce website</a>
 					<?php endif; ?>
 				</p>
+				<?php endif; ?>
 			</div>
 		</div>
 	</div>
 <?php elseif (!$has_access): ?>
 	<div class="alert alert-warning">
 		<strong>Access denied.</strong> Your account is signed in but is not in an ERP department or finance team group.
-		Contact your administrator or open
-		<a href="/<?php echo htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/finance/erp">CP ERP</a>.
+		Contact your administrator<?php if (!$epc_erp_is_erp_only): ?> or open
+		<a href="/<?php echo htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/finance/erp">CP ERP</a><?php endif; ?>.
 	</div>
 <?php else: ?>
 	<?php

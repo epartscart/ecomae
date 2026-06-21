@@ -84,3 +84,5 @@ if (is_file($guidePanelPath)) {
 }
 
 epc_cp_page_frame_close();
+
+?>

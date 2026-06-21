@@ -91,6 +91,15 @@ function epc_portal_erp_modules_registry(): array
 			'default_erp_only' => true,
 			'default_full' => true,
 		),
+		'erp_enterprise' => array(
+			'id' => 'erp_enterprise',
+			'label' => 'Enterprise',
+			'desc' => 'Business units, financial dimensions, budgeting and listings',
+			'area' => 'enterprise',
+			'icon' => 'fa-building-o',
+			'default_erp_only' => true,
+			'default_full' => true,
+		),
 	);
 }
 
@@ -294,12 +303,41 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 {
 	$registry = epc_portal_erp_modules_registry();
 	$enabled = epc_portal_erp_modules_enabled($settings);
+	// Each purchased module historically mapped to one broad area. The left rail
+	// now follows the standard module taxonomy, so a single purchased module
+	// spans several of the finer-grained areas; expand to that full set so no
+	// previously-reachable tab disappears for a non-full-access tenant.
+	$expand = array(
+		'overview' => array('overview'),
+		'sales' => array('sales', 'ar', 'credit_coll', 'service_mgmt'),
+		'purchasing' => array('purchasing', 'ap', 'landed_cost_area', 'logistics'),
+		'finance' => array('finance', 'tax', 'banking', 'fixed_assets', 'asset_mgmt', 'budgeting', 'consolidations', 'cost_acct', 'cost_mgmt', 'audit_wb'),
+		'operations' => array('inventory_mgmt', 'pim', 'warehouse', 'mhei', 'production', 'master_planning_area', 'retail'),
+		'custom_shipping' => array('logistics', 'purchasing'),
+		'people' => array('people', 'payroll_area', 'leave_abs', 'expense'),
+		'insights' => array('finance', 'sales', 'enterprise', 'setup', 'common'),
+		'collaboration' => array('projects', 'enterprise', 'common', 'service_mgmt'),
+		'enterprise' => array('enterprise', 'budgeting', 'common', 'consolidations'),
+	);
 	$areas = array();
 	foreach ($enabled as $modId) {
-		if (isset($registry[$modId]['area'])) {
-			$areas[$registry[$modId]['area']] = true;
+		$base = isset($registry[$modId]['area']) ? $registry[$modId]['area'] : '';
+		if ($base === '') {
+			continue;
+		}
+		foreach (isset($expand[$base]) ? $expand[$base] : array($base) as $a) {
+			$areas[$a] = true;
 		}
 	}
+	// 'setup' (System administration) and 'enterprise' (Organization
+	// administration) are core admin/config areas every tenant must reach,
+	// regardless of purchased modules. 'tax' carries the country-driven
+	// statutory reporting centre, also foundational for compliance.
+	$areas['setup'] = true;
+	$areas['enterprise'] = true;
+	$areas['tax'] = true;
+	$areas['common'] = true;
+	$areas['risk'] = true;
 	return array_keys($areas);
 }
 

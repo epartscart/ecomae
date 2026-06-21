@@ -63,7 +63,12 @@ if( isset( $_POST["forgot_password_contact"] ) )
 		//В зависимости от типа контакта: формируем код, определяем тип уведомления и формируем значения переменных для данного уведомления
 		if( $type == "email" )
 		{
-			$forgot_password_code = md5(md5($DP_Config->secret_succession.$user_record['time_registered'].$user_record['time_last_visit']).time().rand(10000,99999));
+			//Криптостойкий одноразовый код (вместо предсказуемого md5(time/rand))
+			try {
+				$forgot_password_code = bin2hex(random_bytes(32));
+			} catch (Exception $e) {
+				$forgot_password_code = hash('sha256', $DP_Config->secret_succession.$user_record['time_registered'].$user_record['time_last_visit'].microtime(true).mt_rand());
+			}
 			
 			$notify_name = 'forgot_password_by_email';//Тип уведомления
 			

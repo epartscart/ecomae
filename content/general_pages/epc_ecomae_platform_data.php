@@ -656,28 +656,62 @@ function epc_ecomae_platform_rental_plans()
 {
 	return array(
 		array(
-			'code' => 'starter',
-			'name' => 'Starter',
-			'price_aed' => 299,
+			'code' => 'launch',
+			'name' => 'Launch',
+			'price_aed' => 399,
 			'period' => 'month',
 			'featured' => false,
-			'items' => array('Storefront + client CP', 'Dedicated MySQL database', 'SSL & DNS onboarding', 'Email support'),
+			'tagline' => 'Go live on your own domain',
+			'items' => array('Hosted storefront + client CP', 'ERP-lite (orders, catalogue, invoicing)', 'Dedicated MySQL database', 'SSL & DNS onboarding', 'Unlimited products & users', 'Email support'),
 		),
 		array(
-			'code' => 'business',
-			'name' => 'Business',
-			'price_aed' => 599,
+			'code' => 'growth',
+			'name' => 'Growth',
+			'price_aed' => 999,
 			'period' => 'month',
 			'featured' => true,
-			'items' => array('Everything in Starter', 'ERP & finance pack', 'UAE VAT / e-invoicing modules', 'Document control', 'Priority onboarding'),
+			'tagline' => 'Full ERP + commerce, country-driven',
+			'items' => array('Everything in Launch', 'Full ERP & finance suite', 'Country-driven VAT / e-invoicing', 'Multi-warehouse + multi-vendor', 'POS + CRM', 'Priority onboarding', 'Unlimited users — no per-seat fees'),
+		),
+		array(
+			'code' => 'scale',
+			'name' => 'Scale',
+			'price_aed' => 2499,
+			'period' => 'month',
+			'featured' => false,
+			'tagline' => 'Multichannel, automation & API',
+			'items' => array('Everything in Growth', 'Multichannel OMS (web/POS/API/marketplace)', 'Marketing automation + AI tools', 'Open API & integrations hub', 'Advanced analytics & multi-branch', 'Dedicated success manager'),
 		),
 		array(
 			'code' => 'enterprise',
-			'name' => 'Enterprise',
+			'name' => 'Enterprise / BOS Operator',
 			'price_aed' => null,
 			'period' => 'month',
 			'featured' => false,
-			'items' => array('Multi-tenant SLA', 'Logistics & marketing packs', 'Custom industry template', 'Dedicated operator support', 'Migration assistance'),
+			'tagline' => 'Run your own tenant fleet',
+			'items' => array('BOS operator console — control a fleet of tenants', 'White-label & custom industry templates', 'Multi-tenant SLA + governance + audit', 'SSO / operator MFA', 'Migration assistance', 'Dedicated operator support'),
+		),
+	);
+}
+
+/**
+ * Indicative market benchmark vs major ERP/commerce platforms. Figures are
+ * public-list estimates (converted to AED, approx) and vary by region, edition,
+ * user count and contract; shown to position ECOM AE's all-inclusive value.
+ *
+ * @return array{note:string,rows:array<int,array{name:string,price:string,model:string,setup:string,highlight:bool}>}
+ */
+function epc_ecomae_platform_price_benchmark()
+{
+	return array(
+		'note' => 'Indicative public-list estimates in AED, normalised to a small/mid team. Actual ERP pricing is per-user and varies widely by region, edition and contract. ECOM AE is all-inclusive (hosting + storefront + CP + ERP + database) with unlimited users and no implementation fee.',
+		'rows' => array(
+			array('name' => 'Oracle NetSuite', 'price' => 'from ~AED 3,500 / user / mo', 'model' => 'Per user + base license', 'setup' => '~AED 75,000–180,000 implementation', 'highlight' => false),
+			array('name' => 'Oracle Fusion Cloud ERP', 'price' => 'from ~AED 640 / user / mo', 'model' => 'Per user, enterprise minimums', 'setup' => 'Large SI implementation', 'highlight' => false),
+			array('name' => 'SAP S/4HANA Cloud', 'price' => 'from ~AED 550 / user / mo', 'model' => 'Per user, enterprise minimums', 'setup' => 'Large SI implementation', 'highlight' => false),
+			array('name' => 'SAP Business One', 'price' => 'from ~AED 340 / user / mo', 'model' => 'Per user + maintenance', 'setup' => '~AED 30,000–90,000 + license', 'highlight' => false),
+			array('name' => 'Microsoft Dynamics 365 BC', 'price' => 'from ~AED 260 / user / mo', 'model' => 'Per user (Essentials/Premium)', 'setup' => 'Partner implementation', 'highlight' => false),
+			array('name' => 'ECOM AE — all-inclusive', 'price' => 'from AED 399 / mo (flat)', 'model' => 'Per tenant — unlimited users', 'setup' => 'No implementation fee · 3-day free demo', 'highlight' => true),
 		),
 	);
 }
@@ -960,8 +994,7 @@ function epc_ecomae_platform_nav()
 		array('key' => 'platform', 'label' => 'Platform', 'href' => $base . 'platform'),
 		array('key' => 'industries', 'label' => 'Industries', 'href' => $base . 'platform/industries'),
 		array('key' => 'capabilities', 'label' => 'Capabilities', 'href' => $base . 'platform/capabilities'),
-		array('key' => 'api_services', 'label' => 'API services', 'href' => $base . 'platform/api-services'),
-		array('key' => 'api_documentation', 'label' => 'Tenant API', 'href' => $base . 'platform/api-documentation'),
+		array('key' => 'free_tools', 'label' => 'Free Tools', 'href' => $base . 'platform/free-tools'),
 		array('key' => 'pricing', 'label' => 'Pricing', 'href' => $base . 'platform/pricing'),
 		array('key' => 'about', 'label' => 'About', 'href' => $base . 'platform/about'),
 		array('key' => 'contact', 'label' => 'Contact', 'href' => $base . 'platform/contact'),
@@ -984,6 +1017,16 @@ function epc_ecomae_platform_nav_dropdowns()
 				array('key' => 'customer_results', 'label' => 'Customer results', 'href' => $base . 'platform/customer-results'),
 				array('key' => 'business_continuity', 'label' => 'Continuity', 'href' => $base . 'platform/business-continuity'),
 				array('key' => 'demo', 'label' => '3-day demo', 'href' => $base . 'platform/demo'),
+			),
+		),
+		array(
+			'key' => 'resources',
+			'label' => 'Resources',
+			'items' => array(
+				array('key' => 'docs', 'label' => 'Documentation', 'href' => $base . 'documentation'),
+				array('key' => 'compare', 'label' => 'Compare', 'href' => $base . 'compare'),
+				array('key' => 'bos', 'label' => 'What is a BOS', 'href' => $base . 'bos'),
+				array('key' => 'solution', 'label' => 'Solutions', 'href' => $base . 'solutions'),
 			),
 		),
 	);
@@ -1133,7 +1176,7 @@ function epc_ecomae_platform_industry_full($code)
 }
 
 /**
- * Full Super CP / client CP capability catalog for marketing (96 items).
+ * Full Super CP / client CP capability catalog for marketing (105 items).
  */
 function epc_ecomae_platform_super_cp_capabilities_catalog()
 {

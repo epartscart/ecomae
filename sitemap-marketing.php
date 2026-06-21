@@ -29,6 +29,45 @@ $paths = array(
 	'/platform/api-services' => array('monthly', '0.7'),
 );
 
+// SEO content hubs + their entries (documentation, comparisons, BOS articles,
+// solution pages, industry verticals). Guarded so the sitemap never breaks.
+$paths['/documentation'] = array('weekly', '0.7');
+$paths['/compare'] = array('weekly', '0.7');
+$paths['/bos'] = array('weekly', '0.7');
+$paths['/solutions'] = array('weekly', '0.7');
+
+try {
+	if (!defined('_ASTEXE_')) {
+		define('_ASTEXE_', 1);
+	}
+	$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? __DIR__), '/');
+	$mc = $docRoot . '/content/general_pages/epc_ecomae_marketing_content.php';
+	$pd = $docRoot . '/content/general_pages/epc_ecomae_platform_data.php';
+	if (is_file($mc)) {
+		require_once $mc;
+		if (function_exists('epc_ecomae_docs_catalog')) {
+			foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $paths['/documentation/' . $s] = array('monthly', '0.6'); }
+		}
+		if (function_exists('epc_ecomae_compare_catalog')) {
+			foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $paths['/compare/' . $s] = array('monthly', '0.6'); }
+		}
+		if (function_exists('epc_ecomae_bos_articles_catalog')) {
+			foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $paths['/bos/' . $s] = array('monthly', '0.6'); }
+		}
+		if (function_exists('epc_ecomae_solutions_catalog')) {
+			foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $paths['/solutions/' . $s] = array('monthly', '0.7'); }
+		}
+	}
+	if (is_file($pd)) {
+		require_once $pd;
+		if (function_exists('epc_ecomae_platform_industry_marketing')) {
+			foreach (array_keys(epc_ecomae_platform_industry_marketing()) as $code) { $paths['/platform/industry/' . $code] = array('monthly', '0.7'); }
+		}
+	}
+} catch (Throwable $e) {
+	// keep the static path list if dynamic catalogs are unavailable
+}
+
 foreach ($paths as $path => $meta) {
 	epc_sitemap_add_entry(
 		$entries,

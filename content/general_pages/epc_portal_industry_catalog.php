@@ -58,6 +58,10 @@ function epc_portal_industry_catalog_section_title($profile)
 
 function epc_portal_industry_catalog_unsplash($photoId, $w = 400, $h = 400)
 {
+	$local = $_SERVER['DOCUMENT_ROOT'] . '/content/files/images/storefronts/catalog/' . $photoId . '.jpg';
+	if (is_file($local)) {
+		return '/content/files/images/storefronts/catalog/' . $photoId . '.jpg';
+	}
 	return 'https://images.unsplash.com/' . $photoId . '?auto=format&fit=crop&w=' . (int) $w . '&h=' . (int) $h . '&q=80';
 }
 

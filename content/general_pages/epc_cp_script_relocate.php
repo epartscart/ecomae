@@ -88,8 +88,48 @@ function epc_cp_finalize_cp_html(string $html): string
 {
 	$html = epc_cp_relocate_main_pane_scripts($html);
 	$html = epc_cp_strip_main_pane_markers($html);
+	$html = epc_cp_boc_first_paint_patch($html);
 	if (function_exists('epc_portal_demo_cp_rewrite_nav_urls')) {
 		$html = epc_portal_demo_cp_rewrite_nav_urls($html);
+	}
+	return $html;
+}
+
+/**
+ * Eliminate the blue legacy-CP flash on BOS/BOC console pages: when the rendered
+ * page contains the BOC console, mark <body> as epc-boc-mode and inject a tiny
+ * first-paint <style> into <head> so the legacy chrome is hidden and the dark
+ * control-room background paints immediately (no flash before the JS/body style
+ * lower in the document is reached).
+ */
+function epc_cp_boc_first_paint_patch(string $html): string
+{
+	if (strpos($html, 'class="epc-boc"') === false || stripos($html, 'epc-boc-first-paint') !== false) {
+		return $html;
+	}
+	// Add the mode class to <body> (idempotent) so head CSS can target it.
+	$html = preg_replace_callback(
+		'/<body\b[^>]*\bclass\s*=\s*"([^"]*)"/i',
+		function ($m) {
+			if (strpos($m[0], 'epc-boc-mode') !== false) {
+				return $m[0];
+			}
+			return str_replace('class="' . $m[1] . '"', 'class="' . $m[1] . ' epc-boc-mode"', $m[0]);
+		},
+		$html,
+		1
+	);
+	$css = '<style id="epc-boc-first-paint">'
+		. 'html:has(body.epc-boc-mode),body.epc-boc-mode{background:#0b1220!important;}'
+		. 'body.epc-boc-mode #header,body.epc-boc-mode #menu,body.epc-boc-mode .navbar-static-side,'
+		. 'body.epc-boc-mode nav.navbar-default,body.epc-boc-mode #top-navigation,body.epc-boc-mode .epc-cp-topbar,'
+		. 'body.epc-boc-mode .footer,body.epc-boc-mode #right-sidebar,body.epc-boc-mode .splash,'
+		. 'body.epc-boc-mode #navigation{display:none!important;}'
+		. 'body.epc-boc-mode #wrapper,body.epc-boc-mode .content{margin:0!important;padding:0!important;'
+		. 'width:100%!important;max-width:100%!important;min-height:100vh!important;background:#0b1220!important;}'
+		. '</style>';
+	if (stripos($html, '</head>') !== false) {
+		$html = preg_replace('/<\/head>/i', $css . '</head>', $html, 1);
 	}
 	return $html;
 }

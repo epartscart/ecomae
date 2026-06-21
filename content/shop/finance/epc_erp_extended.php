@@ -126,6 +126,7 @@ function epc_erp_extended_ensure_schema(PDO $db)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Tenant ERP platform toggles';");
 
 	epc_erp_schema_add_column_if_missing($db, 'epc_crm_quotes', 'quote_kind', "varchar(16) NOT NULL DEFAULT 'quote'");
+	epc_erp_schema_add_column_if_missing($db, 'epc_crm_quotes', 'subtotal', 'decimal(14,2) NOT NULL DEFAULT 0.00');
 }
 
 function epc_erp_po_list(PDO $db, $status = '', $limit = 100)
@@ -165,6 +166,7 @@ function epc_erp_po_save(PDO $db, array $data)
 		$db->prepare(
 			'UPDATE `epc_erp_purchase_orders` SET `supplier_id`=?, `title`=?, `amount_ex_vat`=?, `vat_amount`=?, `total_amount`=?, `status`=?, `notes`=?, `time_updated`=? WHERE `id`=?'
 		)->execute(array($supplierId, $title, $amountEx, $vat, $total, $status, trim((string) ($data['notes'] ?? '')), $now, $id));
+		epc_erp_po_pf_sync($db, $id);
 		return $id;
 	}
 	require_once __DIR__ . '/epc_erp_vouchers.php';
@@ -174,7 +176,22 @@ function epc_erp_po_save(PDO $db, array $data)
 		'INSERT INTO `epc_erp_purchase_orders` (`po_no`, `voucher_no`, `supplier_id`, `title`, `amount_ex_vat`, `vat_amount`, `total_amount`, `status`, `notes`, `admin_id`, `time_created`, `time_updated`)
 		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
 	)->execute(array($poNo, $poNo, $supplierId, $title, $amountEx, $vat, $total, 'draft', trim((string) ($data['notes'] ?? '')), epc_erp_admin_id(), $now, $now));
-	return (int) $db->lastInsertId();
+	$newPoId = (int) $db->lastInsertId();
+	epc_erp_po_pf_sync($db, $newPoId);
+	return $newPoId;
+}
+
+/** Best-effort: keep the procurement process-flow case in step with a PO. Never throws. */
+function epc_erp_po_pf_sync(PDO $db, int $poId): void
+{
+	try {
+		$pf = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+		if ($poId > 0 && is_file($pf)) {
+			require_once $pf;
+			if (function_exists('epc_pf_sync_po_case')) { epc_pf_sync_po_case($db, $poId); }
+		}
+	} catch (Exception $e) {
+	}
 }
 
 function epc_erp_po_set_status(PDO $db, $poId, $status)
@@ -194,6 +211,15 @@ function epc_erp_po_set_status(PDO $db, $poId, $status)
 		$extra = ', `received_at` = ' . $now;
 	}
 	$db->exec('UPDATE `epc_erp_purchase_orders` SET `status` = ' . $db->quote($status) . ', `time_updated` = ' . $now . $extra . ' WHERE `id` = ' . $poId);
+	// best-effort: keep the procurement process-flow case in step with the PO status
+	try {
+		$pf = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+		if (is_file($pf)) {
+			require_once $pf;
+			if (function_exists('epc_pf_sync_po_case')) { epc_pf_sync_po_case($db, $poId); }
+		}
+	} catch (Exception $e) {
+	}
 	return true;
 }
 
@@ -241,14 +267,18 @@ function epc_erp_payment_batch_save(PDO $db, array $data)
 		$now,
 		$now,
 	));
-	return (int) $db->lastInsertId();
+	$batchId = (int) $db->lastInsertId();
+	if (function_exists('epc_pf_sync_pay_case')) {
+		try { epc_pf_sync_pay_case($db, $batchId); } catch (Exception $e) {}
+	}
+	return $batchId;
 }
 
 function epc_erp_petty_cash_list(PDO $db)
 {
 	epc_erp_extended_ensure_schema($db);
 	return $db->query(
-		'SELECT pc.*, a.`name` AS account_name, a.`balance` AS account_balance
+		'SELECT pc.*, a.`name` AS account_name, a.`opening_balance` AS account_balance
 		 FROM `epc_erp_petty_cash` pc
 		 LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = pc.`account_id`
 		 WHERE pc.`active` = 1 ORDER BY pc.`name`'
@@ -418,6 +448,26 @@ function epc_erp_multi_entity_set(PDO $db, $enabled)
 		'INSERT INTO `epc_erp_platform_settings` (`setting_key`, `setting_value`, `time_updated`) VALUES (?,?,?)
 		 ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `time_updated` = VALUES(`time_updated`)'
 	)->execute(array('multi_entity_enabled', $enabled ? '1' : '0', $now));
+}
+
+/** Generic tenant-scoped key/value setting read (epc_erp_platform_settings). */
+function epc_erp_platform_setting_get(PDO $db, $key, $default = '')
+{
+	epc_erp_extended_ensure_schema($db);
+	$st = $db->prepare('SELECT `setting_value` FROM `epc_erp_platform_settings` WHERE `setting_key` = ? LIMIT 1');
+	$st->execute(array((string) $key));
+	$v = $st->fetchColumn();
+	return ($v === false || $v === null) ? $default : (string) $v;
+}
+
+/** Generic tenant-scoped key/value setting write (epc_erp_platform_settings). */
+function epc_erp_platform_setting_set(PDO $db, $key, $value)
+{
+	epc_erp_extended_ensure_schema($db);
+	$db->prepare(
+		'INSERT INTO `epc_erp_platform_settings` (`setting_key`, `setting_value`, `time_updated`) VALUES (?,?,?)
+		 ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`), `time_updated` = VALUES(`time_updated`)'
+	)->execute(array((string) $key, (string) $value, time()));
 }
 
 function epc_erp_proposals_list(PDO $db, $kind = '', $limit = 100)

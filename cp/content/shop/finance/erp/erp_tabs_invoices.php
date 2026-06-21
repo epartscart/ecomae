@@ -166,6 +166,10 @@ elseif ($invAction === 'edit'):
 				<p class="text-muted col-sm-offset-4 col-sm-8">Seller: <strong><?php echo epc_erp_h($seller['seller_name'] ?: '—'); ?></strong> · TRN <?php echo epc_erp_h($seller['seller_trn'] ?: 'configure in E-Invoicing'); ?></p>
 			</div>
 		</div>
+		<?php
+		$invDimCurrent = ($editDoc && isset($editDoc['id'])) ? epc_erp_dim_current($db_link, 'invoice', (int) $editDoc['id']) : array();
+		echo epc_erp_dim_render_fields($db_link, $invDimCurrent);
+		?>
 		<h4>Line items</h4>
 		<table class="table table-bordered" id="epc_inv_lines_table">
 			<thead><tr><th>Description</th><th>Detail</th><th>Qty</th><th>Unit (ex VAT)</th><th>VAT %</th><th></th></tr></thead>
@@ -219,12 +223,13 @@ else:
 		erp_empty_state('No customer invoices in this period. Create one manually or generate from a completed sales order.');
 		echo '<p><a href="' . epc_erp_h($invBase . '&inv_action=edit') . '" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Create invoice</a></p>';
 	} else {
-		erp_table_open(array('Invoice', 'Date', 'Order', 'Customer', 'Ex VAT', 'VAT', 'Incl VAT', 'Due', 'Status', ''));
+		erp_table_open(array('Invoice', 'Date', 'Order', 'Customer', 'Dimensions', 'Ex VAT', 'VAT', 'Incl VAT', 'Due', 'Status', ''));
 		foreach ($invoices as $d) {
 			echo '<tr><td><strong>' . epc_erp_h($d['invoice_number']) . '</strong></td>';
 			echo '<td>' . epc_erp_h(date('Y-m-d', (int)$d['issue_date'])) . '</td>';
 			echo '<td>' . ((int)$d['order_id'] ? ('#' . (int)$d['order_id']) : '—') . '</td>';
 			echo '<td>' . epc_erp_h($d['customer_email'] ?: ((int)$d['user_id'] ? 'User ' . (int)$d['user_id'] : 'Guest')) . '</td>';
+			echo '<td>' . epc_erp_dim_badges($db_link, 'invoice', (int) $d['id']) . '</td>';
 			echo '<td>' . epc_erp_money($d['subtotal_ex_vat']) . '</td>';
 			echo '<td>' . epc_erp_money($d['total_vat']) . '</td>';
 			echo '<td>' . epc_erp_money($d['total_incl_vat']) . '</td>';

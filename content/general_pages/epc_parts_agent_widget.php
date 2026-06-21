@@ -69,11 +69,11 @@ $epc_agent_stack_above = !empty($epc_agent_branding['is_marketing']);
 
 <style>
 .epc-parts-agent {
-	--epc-agent-accent: #0ea5e9;
-	--epc-agent-accent-dark: #0284c7;
-	--epc-agent-accent-deep: #0369a1;
+	--epc-agent-accent: #ef3b47;
+	--epc-agent-accent-dark: #b01722;
+	--epc-agent-accent-deep: #8a131c;
 	--epc-agent-accent-glow: rgba(14, 165, 233, .55);
-	--epc-agent-head-bg: linear-gradient(135deg, #0c4a6e 0%, #0369a1 45%, #0ea5e9 100%);
+	--epc-agent-head-bg: linear-gradient(135deg, #5a0f16 0%, #8a131c 45%, #ef3b47 100%);
 	--epc-agent-panel: #fff;
 	position: fixed;
 	right: 18px;
@@ -89,7 +89,7 @@ $epc_agent_stack_above = !empty($epc_agent_branding['is_marketing']);
 	border: 2px solid rgba(255, 255, 255, .35);
 	border-radius: 999px;
 	padding: 13px 20px 13px 14px;
-	background: linear-gradient(120deg, #38bdf8 0%, #0ea5e9 35%, #0284c7 100%);
+	background: linear-gradient(120deg, #ef3b47 0%, #ef3b47 35%, #b01722 100%);
 	background-size: 200% 200%;
 	color: #fff;
 	box-shadow:
@@ -265,7 +265,7 @@ $epc_agent_stack_above = !empty($epc_agent_branding['is_marketing']);
 }
 .epc-parts-agent__teaser-body { font-size: 13px; line-height: 1.45; color: #334155; }
 .epc-parts-agent--stacked { bottom: 96px; }
-.epc-parts-agent__teaser-body strong { display: block; color: #0f172a; margin-bottom: 2px; }
+.epc-parts-agent__teaser-body strong { display: block; color: #171717; margin-bottom: 2px; }
 .epc-parts-agent__panel {
 	position: absolute;
 	right: 0;
@@ -356,8 +356,8 @@ $epc_agent_stack_above = !empty($epc_agent_branding['is_marketing']);
 	padding: 5px 10px;
 	border-radius: 999px;
 	background: #f0f9ff;
-	border: 1px solid #7dd3fc;
-	color: #0369a1 !important;
+	border: 1px solid #fca5a5;
+	color: #8a131c !important;
 	font-size: 12px;
 	font-weight: 600;
 	text-decoration: none !important;

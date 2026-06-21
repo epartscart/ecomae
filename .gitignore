@@ -31,3 +31,6 @@ node_modules/
 !/content/**/*.svg
 !/content/**/*.sql
 !/content/**/*.md
+config.epc-smtp.php
+epc-operator-update.php
+epc-operator-probe.php

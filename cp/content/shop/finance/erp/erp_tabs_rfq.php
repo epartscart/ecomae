@@ -16,6 +16,9 @@ erp_page_header(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Payables', 'url' => epc_erp_tab_url($erpUrl, 'payables', $date_from_str, $date_to_str)),
 		array('label' => 'RFQ'),
+	),
+	array(
+		array('label' => 'New RFQ', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_rfq'),
 	)
 );
 erp_filter_bar($erpUrl, 'rfq', $date_from_str, $date_to_str,
@@ -52,6 +55,7 @@ ob_start();
 		<input name="due_date" type="date" class="form-control input-sm"></div></div>
 	<div class="form-group"><label class="col-sm-3">Order ID</label><div class="col-sm-9"><input name="order_id" type="number" class="form-control input-sm"></div></div>
 	<div class="form-group"><label class="col-sm-3">Description</label><div class="col-sm-9"><textarea name="description" class="form-control input-sm" rows="3"></textarea></div></div>
+	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create RFQ</button></div></div>
 </form>
 <?php

@@ -94,6 +94,14 @@ $epcThCssVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_ve
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professional_shell.php';
 ?>
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_ui.css?v=<?php echo epc_th_h($epcThCssVer); ?>">
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_kernel.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_console.php';
+$bocOperator = (class_exists('DP_User') && method_exists('DP_User', 'getName') && (string) DP_User::getName() !== '') ? (string) DP_User::getName() : 'Operator';
+$bocOpId = (class_exists('DP_User') && method_exists('DP_User', 'getUserId')) ? (int) DP_User::getUserId() : 0;
+$bocNav = function_exists('epc_boc_nav_for_user') ? epc_boc_nav_for_user($db_link, $bocOpId) : (function_exists('epc_boc_nav') ? epc_boc_nav() : array());
+epc_boc_console_open(array('active' => 'tenant_hub', 'title' => 'Tenant hub / onboard', 'base' => '/' . trim($backend, '/'), 'operator' => $bocOperator, 'env' => 'Production', 'nav' => $bocNav, 'scope' => 'All units · Fleet'));
+?>
 
 <div class="col-lg-12 epc-erp-shell epc-th-shell">
 	<div class="hpanel">
@@ -387,6 +395,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professi
 	</div>
 </div>
 <?php
+epc_boc_console_close();
 }
 
 epc_tenant_hub_render_main();

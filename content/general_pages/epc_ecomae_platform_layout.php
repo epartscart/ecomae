@@ -9,7 +9,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_plat
 
 function epc_ecomae_platform_logo_url()
 {
-	return '/content/files/images/ecomae-logo.png';
+	// Served by a .php endpoint (always served on every host) because the
+	// static PNG asset is not present in the docroot.
+	return '/content/general_pages/epc_ecomae_logo_svg.php';
 }
 
 function epc_ecomae_platform_pack_label($code)
@@ -38,22 +40,34 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 	$base = rtrim(epc_ecomae_platform_base_url(), '/');
 	$canonical = epc_ecomae_h($base . ($canonicalPath === '/' ? '/' : $canonicalPath));
 	$desc = epc_ecomae_h($description !== '' ? $description : 'ECOM AE — hosted e-commerce, ERP, and CRM cloud for UAE businesses. Multi-tenant storefronts, Super CP (operator control panel), and Peppol e-invoicing.');
-	$ogImg = epc_ecomae_h($base . '/content/files/images/ecomae-logo.png');
-	return '<!DOCTYPE html><html lang="en"><head><!-- ECOMAE-MARKETING-HOME-v7 -->'
+	$ogImg = epc_ecomae_h($base . '/epc-static.php?f=content/general_pages/marketing_screens/og_cover.png');
+	$ogAlt = epc_ecomae_h('ECOM AE — One Business Operating System: ERP, commerce, compliance, workflows and CRM.');
+	return '<!DOCTYPE html><html lang="en"><head><!-- ECOMAE-MARKETING-HOME-v8 -->'
 		. '<meta charset="utf-8">'
 		. '<meta name="viewport" content="width=device-width,initial-scale=1">'
+		. '<meta name="theme-color" content="#080b14">'
 		. '<title>' . $t . '</title>'
 		. '<meta name="description" content="' . $desc . '">'
-		. '<meta name="robots" content="index, follow">'
+		. '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">'
+		. '<meta name="author" content="ECOM AE">'
 		. '<link rel="canonical" href="' . $canonical . '">'
 		. '<meta property="og:type" content="website">'
+		. '<meta property="og:site_name" content="ECOM AE">'
+		. '<meta property="og:locale" content="en_US">'
 		. '<meta property="og:title" content="' . $t . '">'
 		. '<meta property="og:description" content="' . $desc . '">'
 		. '<meta property="og:url" content="' . $canonical . '">'
 		. '<meta property="og:image" content="' . $ogImg . '">'
+		. '<meta property="og:image:secure_url" content="' . $ogImg . '">'
+		. '<meta property="og:image:type" content="image/png">'
+		. '<meta property="og:image:width" content="1200">'
+		. '<meta property="og:image:height" content="630">'
+		. '<meta property="og:image:alt" content="' . $ogAlt . '">'
 		. '<meta name="twitter:card" content="summary_large_image">'
 		. '<meta name="twitter:title" content="' . $t . '">'
 		. '<meta name="twitter:description" content="' . $desc . '">'
+		. '<meta name="twitter:image" content="' . $ogImg . '">'
+		. '<meta name="twitter:image:alt" content="' . $ogAlt . '">'
 		. '<script type="application/ld+json">' . json_encode(array(
 			'@context' => 'https://schema.org',
 			'@graph' => array(
@@ -95,15 +109,16 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 function epc_ecomae_platform_page_description($page, array $params = array()): string
 {
 	$descriptions = array(
-		'home' => 'ECOM AE — unified ERP, e-commerce, and CRM cloud for UAE businesses. Launch multi-tenant storefronts with Super CP and Peppol e-invoicing.',
-		'platform' => 'Explore the ECOM AE platform: multi-tenant commerce, ERP, CRM, and operator Super CP for UAE and GCC businesses.',
-		'capabilities' => 'Super CP capabilities — tenant management, pricing, ERP modules, and integrations for hosted commerce operators.',
+		'home' => 'ECOM AE — the multi-tenant Business Operating System (BOS) combining ERP, commerce, compliance, workflows and industry-specific operational intelligence for organizations across industries worldwide.',
+		'platform' => 'Explore the ECOM AE Business Operating System (BOS): ERP, commerce, compliance, workflows, CRM and industry intelligence on one multi-tenant cloud.',
+		'capabilities' => 'ECOM AE BOS capabilities — ERP, commerce, compliance, workflow automation, industry intelligence, and operator Super CP for hosted businesses.',
 		'auto_price_ai' => 'Auto Price AI — discover, compare, and import products across market sources with margin rules and catalogue sync.',
 		'faq' => '105 honest answers on automotive catalog, B2B, supply chain, UAE ERP, AI, infrastructure, and licensing.',
 		'pricing' => 'Transparent monthly rental plans for ECOM AE cloud — e-commerce, ERP, and CRM for UAE businesses.',
 		'demo' => 'Request a 3-day industry demo tenant on ECOM AE — explore storefront, ERP, and Super CP workflows.',
 		'contact' => 'Contact ECOM AE for platform demos, tenant onboarding, and ERP cloud consultations in UAE.',
 		'industries' => 'Industry-specific ECOM AE solutions — auto parts, retail, electronics, fashion, and more.',
+		'free_tools' => 'Free, country-driven business tools — VAT/GST return, corporate tax, payroll & gratuity, IFRS financials, e-invoice and approval workflow. Register free and use for your own company.',
 	);
 	if ($page === 'industry') {
 		$industries = epc_ecomae_platform_industry_marketing();
@@ -111,6 +126,11 @@ function epc_ecomae_platform_page_description($page, array $params = array()): s
 		if (isset($industries[$code]['tagline'])) {
 			return (string) $industries[$code]['tagline'];
 		}
+	}
+	if ($page === 'free_tools') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		$seo = epc_free_tools_seo((string) ($params['tool'] ?? ''));
+		return $seo['description'];
 	}
 	return $descriptions[$page] ?? 'ECOM AE cloud platform for e-commerce, ERP, and CRM in UAE.';
 }
@@ -144,15 +164,21 @@ function epc_ecomae_platform_layout_open($active = '')
 				<a class="epm-nav__link<?php echo $isActive ? ' is-active' : ''; ?>" href="<?php echo epc_ecomae_h($href); ?>"><?php echo epc_ecomae_h($item['label']); ?></a>
 				<?php }
 				foreach (epc_ecomae_platform_nav_dropdowns() as $drop) {
+					$groupActive = false;
+					foreach ($drop['items'] as $sub) {
+						if ($active !== '' && (string) ($sub['key'] ?? '') === $active) { $groupActive = true; break; }
+					}
 					?>
 				<div class="epm-nav__group">
-					<span class="epm-nav__group-label"><?php echo epc_ecomae_h($drop['label']); ?></span>
+					<button type="button" class="epm-nav__group-trigger<?php echo $groupActive ? ' is-active' : ''; ?>" aria-expanded="false"><?php echo epc_ecomae_h($drop['label']); ?><span class="epm-nav__caret" aria-hidden="true">&#9662;</span></button>
+					<div class="epm-nav__panel">
 					<?php foreach ($drop['items'] as $sub) {
 						$sk = (string) ($sub['key'] ?? '');
 						$subActive = ($active !== '' && $sk === $active);
 						?>
-					<a class="epm-nav__link epm-nav__link--sub<?php echo $subActive ? ' is-active' : ''; ?>" href="<?php echo epc_ecomae_h($sub['href']); ?>"><?php echo epc_ecomae_h($sub['label']); ?></a>
+						<a class="epm-nav__panel-link<?php echo $subActive ? ' is-active' : ''; ?>" href="<?php echo epc_ecomae_h($sub['href']); ?>"><?php echo epc_ecomae_h($sub['label']); ?></a>
 					<?php } ?>
+					</div>
 				</div>
 				<?php } ?>
 			</nav>
@@ -179,6 +205,18 @@ function epc_ecomae_platform_layout_open($active = '')
 		document.body.classList.toggle('epm-nav-open',open);
 	});
 	drawer.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){drawer.classList.remove('is-open');btn.setAttribute('aria-expanded','false');document.body.classList.remove('epm-nav-open');});});
+	var groups=drawer.querySelectorAll('.epm-nav__group');
+	groups.forEach(function(g){
+		var t=g.querySelector('.epm-nav__group-trigger');
+		if(!t)return;
+		t.addEventListener('click',function(e){
+			e.stopPropagation();
+			var open=!g.classList.contains('is-open');
+			groups.forEach(function(o){o.classList.remove('is-open');var ot=o.querySelector('.epm-nav__group-trigger');if(ot)ot.setAttribute('aria-expanded','false');});
+			if(open){g.classList.add('is-open');t.setAttribute('aria-expanded','true');}
+		});
+	});
+	document.addEventListener('click',function(){groups.forEach(function(o){o.classList.remove('is-open');var ot=o.querySelector('.epm-nav__group-trigger');if(ot)ot.setAttribute('aria-expanded','false');});});
 })();
 </script>
 <main class="epm-main">
@@ -207,6 +245,10 @@ function epc_ecomae_platform_layout_close()
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/pricing">Pricing</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/demo">Demo</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/faq">FAQ</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>documentation">Documentation</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>compare">Compare</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>bos">What is a BOS</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>solutions">Solutions</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/contact">Contact</a>
 		</div>
 		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> Electronic World Group · Dubai, UAE</p>
@@ -386,20 +428,20 @@ function epc_ecomae_platform_flow_svg($variant = 'hub')
 <svg class="epm-flow-svg<?php echo $compact ? ' epm-flow-svg--compact' : ''; ?>" viewBox="0 0 <?php echo $compact ? '400 400' : '700 700'; ?>" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
 	<defs>
 		<linearGradient id="<?php echo $uid; ?>Grad" x1="0%" y1="0%" x2="100%" y2="0%">
-			<stop offset="0%" stop-color="#0ea5e9" stop-opacity=".25"/>
-			<stop offset="50%" stop-color="#22d3ee" stop-opacity="1"/>
-			<stop offset="100%" stop-color="#0ea5e9" stop-opacity=".25"/>
+			<stop offset="0%" stop-color="#ef3b47" stop-opacity=".25"/>
+			<stop offset="50%" stop-color="#e11d2a" stop-opacity="1"/>
+			<stop offset="100%" stop-color="#ef3b47" stop-opacity=".25"/>
 		</linearGradient>
 		<radialGradient id="<?php echo $uid; ?>Core" cx="50%" cy="50%" r="50%">
-			<stop offset="0%" stop-color="#22d3ee" stop-opacity=".45"/>
-			<stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+			<stop offset="0%" stop-color="#e11d2a" stop-opacity=".45"/>
+			<stop offset="100%" stop-color="#e11d2a" stop-opacity="0"/>
 		</radialGradient>
 		<filter id="<?php echo $uid; ?>Glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 	</defs>
 	<ellipse cx="<?php echo $cx; ?>" cy="<?php echo $cy; ?>" rx="<?php echo (int) ($rxO * 0.55); ?>" ry="<?php echo (int) ($ryO * 0.55); ?>" fill="url(#<?php echo $uid; ?>Core)" class="epm-flow-svg__pulse"/>
 	<path id="<?php echo $uid; ?>Outer" d="<?php echo epc_ecomae_h($outer); ?>" fill="none" stroke="url(#<?php echo $uid; ?>Grad)" stroke-width="<?php echo $compact ? 2 : 3; ?>" stroke-linecap="round" class="epm-flow-svg__ring epm-flow-svg__ring--outer"/>
-	<path d="<?php echo epc_ecomae_h($outer); ?>" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="6 8" class="epm-flow-svg__dash"/>
-	<path id="<?php echo $uid; ?>Inner" d="<?php echo epc_ecomae_h($inner); ?>" fill="none" stroke="rgba(34,211,238,.35)" stroke-width="1" stroke-dasharray="4 6" class="epm-flow-svg__ring epm-flow-svg__ring--inner"/>
+	<path d="<?php echo epc_ecomae_h($outer); ?>" fill="none" stroke="#e11d2a" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="6 8" class="epm-flow-svg__dash"/>
+	<path id="<?php echo $uid; ?>Inner" d="<?php echo epc_ecomae_h($inner); ?>" fill="none" stroke="rgba(225,29,42,.35)" stroke-width="1" stroke-dasharray="4 6" class="epm-flow-svg__ring epm-flow-svg__ring--inner"/>
 	<?php
 	$spokeN = $compact ? 8 : 12;
 	for ($s = 0; $s < $spokeN; $s++) {
@@ -420,11 +462,11 @@ function epc_ecomae_platform_flow_svg($variant = 'hub')
 		$r = $compact ? 4.5 : 5.5;
 		?>
 	<g filter="url(#<?php echo $uid; ?>Glow)">
-		<circle r="<?php echo $r; ?>" fill="#22d3ee" class="epm-flow-svg__packet">
+		<circle r="<?php echo $r; ?>" fill="#e11d2a" class="epm-flow-svg__packet">
 			<animateMotion dur="<?php echo $dur; ?>s" repeatCount="indefinite" begin="<?php echo $begin; ?>" path="<?php echo epc_ecomae_h($outer); ?>"/>
 		</circle>
 		<?php if (!$compact && $p % 2 === 0) { ?>
-		<text class="epm-flow-svg__label" dy="-11" font-size="9" fill="#a5f3fc" text-anchor="middle">
+		<text class="epm-flow-svg__label" dy="-11" font-size="9" fill="#fca5a5" text-anchor="middle">
 			<animateMotion dur="<?php echo $dur; ?>s" repeatCount="indefinite" begin="<?php echo $begin; ?>" path="<?php echo epc_ecomae_h($outer); ?>"/>
 			<tspan><?php echo epc_ecomae_h($lbl); ?></tspan>
 		</text>
@@ -436,13 +478,13 @@ function epc_ecomae_platform_flow_svg($variant = 'hub')
 	for ($p = 0; $p < $innerCount; $p++) {
 		$dur = $compact ? (3.5 + $p * 0.4) : (2.8 + $p * 0.35);
 		?>
-	<circle r="<?php echo $compact ? 3.5 : 4.5; ?>" fill="#0ea5e9" opacity=".9" class="epm-flow-svg__packet epm-flow-svg__packet--inner">
+	<circle r="<?php echo $compact ? 3.5 : 4.5; ?>" fill="#ef3b47" opacity=".9" class="epm-flow-svg__packet epm-flow-svg__packet--inner">
 		<animateMotion dur="<?php echo $dur; ?>s" repeatCount="indefinite" begin="<?php echo ($p * 0.32); ?>s" path="<?php echo epc_ecomae_h($inner); ?>"/>
 	</circle>
 		<?php
 	}
 	?>
-	<circle cx="<?php echo $cx; ?>" cy="<?php echo $cy; ?>" r="<?php echo $compact ? 22 : 34; ?>" fill="none" stroke="#22d3ee" stroke-width="1" class="epm-flow-svg__core-ring"/>
+	<circle cx="<?php echo $cx; ?>" cy="<?php echo $cy; ?>" r="<?php echo $compact ? 22 : 34; ?>" fill="none" stroke="#e11d2a" stroke-width="1" class="epm-flow-svg__core-ring"/>
 </svg>
 	<?php
 	return ob_get_clean();
@@ -925,44 +967,44 @@ function epc_ecomae_platform_failover_flow_diagram($variant = 'home')
 	<svg class="epm-failover-flow__svg" viewBox="0 0 880 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
 		<defs>
 			<linearGradient id="epmFfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-				<stop offset="0%" stop-color="#0ea5e9"/>
-				<stop offset="50%" stop-color="#22d3ee"/>
-				<stop offset="100%" stop-color="#0ea5e9"/>
+				<stop offset="0%" stop-color="#ef3b47"/>
+				<stop offset="50%" stop-color="#e11d2a"/>
+				<stop offset="100%" stop-color="#ef3b47"/>
 			</linearGradient>
 			<marker id="epmFfArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-				<path d="M0,0 L8,4 L0,8 Z" fill="#22d3ee"/>
+				<path d="M0,0 L8,4 L0,8 Z" fill="#e11d2a"/>
 			</marker>
 		</defs>
 		<path class="epm-failover-flow__path epm-failover-flow__path--shop-cloud" d="M 168 150 L 318 150" fill="none" stroke="url(#epmFfGrad)" stroke-width="3" marker-end="url(#epmFfArrow)"/>
-		<path class="epm-failover-flow__path epm-failover-flow__path--cloud-backup" d="M 562 150 L 712 150" fill="none" stroke="rgba(34,211,238,.55)" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#epmFfArrow)"/>
-		<path class="epm-failover-flow__path epm-failover-flow__path--backup-cloud" d="M 712 178 L 562 178" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#epmFfArrow)"/>
+		<path class="epm-failover-flow__path epm-failover-flow__path--cloud-backup" d="M 562 150 L 712 150" fill="none" stroke="rgba(225,29,42,.55)" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#epmFfArrow)"/>
+		<path class="epm-failover-flow__path epm-failover-flow__path--backup-cloud" d="M 712 178 L 562 178" fill="none" stroke="rgba(225,29,42,.45)" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#epmFfArrow)"/>
 		<path class="epm-failover-flow__path epm-failover-flow__path--sync-back" d="M 440 198 Q 300 248 168 198" fill="none" stroke="rgba(52,211,153,.5)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#epmFfArrow)"/>
-		<circle class="epm-failover-flow__packet epm-failover-flow__packet--a" r="5" fill="#22d3ee">
+		<circle class="epm-failover-flow__packet epm-failover-flow__packet--a" r="5" fill="#e11d2a">
 			<animateMotion dur="2.8s" repeatCount="indefinite" path="M 168 150 L 318 150"/>
 		</circle>
-		<circle class="epm-failover-flow__packet epm-failover-flow__packet--b" r="4.5" fill="#0ea5e9">
+		<circle class="epm-failover-flow__packet epm-failover-flow__packet--b" r="4.5" fill="#ef3b47">
 			<animateMotion dur="2.4s" repeatCount="indefinite" begin="0.6s" path="M 562 150 L 712 150"/>
 		</circle>
 		<circle class="epm-failover-flow__packet epm-failover-flow__packet--c" r="4" fill="#34d399">
 			<animateMotion dur="3.2s" repeatCount="indefinite" begin="1.1s" path="M 712 178 L 562 178"/>
 		</circle>
 		<g class="epm-failover-flow__node epm-failover-flow__node--shop">
-			<rect x="24" y="108" width="144" height="84" rx="14" fill="#0f172a" stroke="rgba(34,211,238,.45)" stroke-width="1.5"/>
+			<rect x="24" y="108" width="144" height="84" rx="14" fill="#171717" stroke="rgba(225,29,42,.45)" stroke-width="1.5"/>
 			<text x="96" y="142" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Customer</text>
 			<text x="96" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">Storefront</text>
 		</g>
 		<g class="epm-failover-flow__node epm-failover-flow__node--cloud">
-			<rect x="318" y="88" width="244" height="124" rx="16" fill="#0f172a" stroke="rgba(34,211,238,.65)" stroke-width="2"/>
+			<rect x="318" y="88" width="244" height="124" rx="16" fill="#171717" stroke="rgba(225,29,42,.65)" stroke-width="2"/>
 			<text x="440" y="128" text-anchor="middle" fill="#fff" font-size="14" font-weight="800">Primary cloud</text>
-			<text x="440" y="148" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="700" letter-spacing=".12em">ECOM AE · ALWAYS ON</text>
+			<text x="440" y="148" text-anchor="middle" fill="#e11d2a" font-size="10" font-weight="700" letter-spacing=".12em">ECOM AE · ALWAYS ON</text>
 			<text x="440" y="168" text-anchor="middle" fill="#94a3b8" font-size="10">Store · CP · ERP</text>
 		</g>
 		<g class="epm-failover-flow__node epm-failover-flow__node--backup">
-			<rect x="712" y="108" width="144" height="84" rx="14" fill="#0f172a" stroke="rgba(14,165,233,.5)" stroke-width="1.5"/>
+			<rect x="712" y="108" width="144" height="84" rx="14" fill="#171717" stroke="rgba(225,29,42,.5)" stroke-width="1.5"/>
 			<text x="784" y="142" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Backup</text>
 			<text x="784" y="162" text-anchor="middle" fill="#94a3b8" font-size="10">On-prem / mirror</text>
 		</g>
-		<text class="epm-failover-flow__phase-label" x="440" y="36" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="700" letter-spacing=".14em">NORMAL · DETECT · BACKUP · SYNC</text>
+		<text class="epm-failover-flow__phase-label" x="440" y="36" text-anchor="middle" fill="#e11d2a" font-size="11" font-weight="700" letter-spacing=".14em">NORMAL · DETECT · BACKUP · SYNC</text>
 	</svg>
 	<ol class="epm-failover-flow__steps" aria-hidden="false">
 		<li class="epm-failover-flow__step epm-failover-flow__step--1"><span>1</span> Shop on cloud</li>
@@ -1059,9 +1101,9 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 	$nodes = epc_ecomae_platform_flow_nodes();
 	$continuityUrl = $base . 'platform/business-continuity';
 	$platformPills = array(
-		array('icon' => 'fa-clock-o', 'label' => 'ERP live in 24 hours'),
-		array('icon' => 'fa-file-text-o', 'label' => 'UAE e-invoice · Peppol'),
-		array('icon' => 'fa-sitemap', 'label' => 'E-commerce + ERP + CRM'),
+		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
+		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
+		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
 		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
 		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
 	);
@@ -1103,13 +1145,14 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 			<div class="epm-hub__core-glow" aria-hidden="true"></div>
 			<div class="epm-hub__core-pulse" aria-hidden="true"></div>
 			<img class="epm-hub__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="" />
-			<h1 class="epm-hub__headline" aria-label="E-commerce, ERP, CRM — One Cloud">
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">E-commerce</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack">ERP</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack">CRM</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE CLOUD</span>
+			<p class="epm-hub__pill" style="margin-bottom:10px"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
+			<h1 class="epm-hub__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">Business</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">Operating</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">System</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE BOS</span>
 			</h1>
-			<p class="epm-hub__tagline-sub">Go live in 24 hours · UAE e-invoice ready · <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(34,211,238,.5)">cloud + backup continuity</a></p>
+			<p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(225,29,42,.5)">backup continuity</a> built in.</p>
 			<p class="epm-hub__pill"><i class="fa fa-circle epm-hub__live-dot"></i> Data flowing · multi-tenant hub</p>
 			<div class="epm-hub__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
@@ -1141,8 +1184,8 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 		</div>
 
 		<div class="epm-hub__platform">
-			<p class="epm-hub__platform-title">Information flows through ECOM AE</p>
-			<p class="epm-hub__platform-sub">Storefront → CP → ERP → Super CP · one cloud, isolated tenants</p>
+			<p class="epm-hub__platform-title">One Business Operating System for the whole organization</p>
+			<p class="epm-hub__platform-sub">ECOM AE is a multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
 			<div class="epm-hub__platform-pills">
 				<?php foreach ($platformPills as $p) { ?>
 				<span class="epm-hub__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>
@@ -1163,9 +1206,9 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 	$logo = epc_ecomae_platform_logo_url();
 	$continuityUrl = $base . 'platform/business-continuity';
 	$platformPills = array(
-		array('icon' => 'fa-clock-o', 'label' => 'ERP live in 24 hours'),
-		array('icon' => 'fa-file-text-o', 'label' => 'UAE e-invoice · Peppol'),
-		array('icon' => 'fa-sitemap', 'label' => 'E-commerce + ERP + CRM'),
+		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
+		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
+		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
 		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
 		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
 	);
@@ -1176,13 +1219,14 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 		<div class="epm-static-hero__bg" aria-hidden="true"></div>
 		<div class="epm-static-hero__inner">
 			<img class="epm-static-hero__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="ECOM AE" width="200" height="auto" />
-			<h1 class="epm-static-hero__headline" aria-label="E-commerce, ERP, CRM — One Cloud">
-				<span class="epm-static-hero__line epm-static-hero__line--stack epm-static-hero__line--commerce">E-commerce</span>
-				<span class="epm-static-hero__line epm-static-hero__line--stack">ERP</span>
-				<span class="epm-static-hero__line epm-static-hero__line--stack">CRM</span>
-				<span class="epm-static-hero__line epm-static-hero__line--cloud">ONE CLOUD</span>
+			<p class="epm-static-hero__tagline" style="margin-bottom:8px;opacity:.92"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
+			<h1 class="epm-static-hero__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
+				<span class="epm-static-hero__line epm-static-hero__line--stack epm-static-hero__line--commerce">Business</span>
+				<span class="epm-static-hero__line epm-static-hero__line--stack">Operating</span>
+				<span class="epm-static-hero__line epm-static-hero__line--stack">System</span>
+				<span class="epm-static-hero__line epm-static-hero__line--cloud">ONE BOS</span>
 			</h1>
-			<p class="epm-static-hero__tagline">Go live in 24 hours · UAE e-invoice ready · <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity">cloud + backup continuity</a></p>
+			<p class="epm-static-hero__tagline">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity">backup continuity</a> built in.</p>
 			<div class="epm-static-hero__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h($superCp); ?>"><i class="fa fa-th-large"></i> Super CP</a>
@@ -1190,8 +1234,8 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 			</div>
 		</div>
 		<div class="epm-static-hero__platform">
-			<p class="epm-static-hero__platform-title">Information flows through ECOM AE</p>
-			<p class="epm-static-hero__platform-sub">Storefront → CP → ERP → Super CP · one cloud, isolated tenants</p>
+			<p class="epm-static-hero__platform-title">One Business Operating System for the whole organization</p>
+			<p class="epm-static-hero__platform-sub">A multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
 			<div class="epm-static-hero__platform-pills">
 				<?php foreach ($platformPills as $p) { ?>
 				<span class="epm-static-hero__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>
@@ -1367,89 +1411,109 @@ function epc_ecomae_platform_styles()
 	$css = <<<'CSS'
 <style>
 :root{
---epm-bg:#020617;
---epm-bg2:#0b1220;
---epm-card:#0f172a;
---epm-card2:#111827;
---epm-border:rgba(56,189,248,.18);
---epm-cyan:#22d3ee;
---epm-blue:#0ea5e9;
---epm-blue-dark:#0284c7;
---epm-text:#e2e8f0;
---epm-muted:#94a3b8;
---epm-glow:0 0 40px rgba(34,211,238,.15);
+--epm-bg:#0a0a0a;
+--epm-bg2:#141414;
+--epm-card:#171717;
+--epm-card2:#1f1f1f;
+--epm-border:rgba(225,29,42,.22);
+--epm-cyan:#e11d2a;
+--epm-blue:#ef3b47;
+--epm-blue-dark:#b01722;
+--epm-text:#f5f5f5;
+--epm-muted:#b3b3b3;
+--epm-glow:0 0 40px rgba(225,29,42,.18);
 --epm-max-w:1440px;
 --epm-pad-x:clamp(20px,3vw,40px);
 }
-.epm-body{margin:0;background:radial-gradient(ellipse 120% 80% at 50% -20%,#0c4a6e 0%,var(--epm-bg) 55%);color:var(--epm-text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}
-.epm-topbar{position:sticky;top:0;z-index:100;background:rgba(2,6,23,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--epm-border)}
-.epm-topbar__inner{max-width:var(--epm-max-w);width:100%;margin:0 auto;padding:10px var(--epm-pad-x);box-sizing:border-box;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.epm-body{margin:0;background:radial-gradient(ellipse 120% 80% at 50% -20%,#3a0a0e 0%,var(--epm-bg) 55%);color:var(--epm-text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+.epm-topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--epm-border)}
+.epm-topbar__inner{max-width:var(--epm-max-w);width:100%;margin:0 auto;padding:10px var(--epm-pad-x);box-sizing:border-box;display:flex;align-items:center;gap:16px;flex-wrap:nowrap}
 .epm-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--epm-text)}
 .epm-brand__logo{height:48px;width:auto;display:block}
 .epm-brand__text{display:flex;flex-direction:column;line-height:1.15}
 .epm-brand__text strong{font-size:15px;letter-spacing:.06em}
 .epm-brand__ae{color:var(--epm-cyan)}
-.epm-brand__text small{font-size:10px;color:var(--epm-muted);text-transform:uppercase;letter-spacing:.12em}
+.epm-brand__text small{font-size:10px;color:var(--epm-muted);text-transform:uppercase;letter-spacing:.12em;white-space:nowrap}
 .epm-nav-toggle{display:none;background:transparent;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:8px 10px;cursor:pointer;margin-left:auto}
 .epm-nav-toggle span{display:block;width:20px;height:2px;background:#e2e8f0;margin:4px 0;border-radius:2px}
-.epm-nav-drawer{display:flex;flex:1;align-items:center;gap:16px;flex-wrap:wrap}
-.epm-topbar__cta-row{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.epm-nav-drawer{display:flex;flex:0 1 auto;min-width:0;align-items:center;gap:16px;flex-wrap:nowrap}
+.epm-topbar__cta-row{display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:auto}
 .epm-nav-drawer__cta{display:none}
-.epm-nav{display:flex;flex-wrap:wrap;gap:4px 14px;flex:1}
-.epm-nav__group{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
-.epm-nav__group-label{font-size:11px;font-weight:700;color:var(--epm-muted);text-transform:uppercase;letter-spacing:.08em;margin-right:4px}
-.epm-nav__link--sub{font-size:12px}
-.epm-nav__link{color:var(--epm-muted);text-decoration:none;font-size:13px;font-weight:600;padding:6px 0;border-bottom:2px solid transparent}
+.epm-nav{display:flex;flex-wrap:nowrap;align-items:center;gap:2px 18px;flex:0 1 auto}
+.epm-nav__link{color:var(--epm-muted);text-decoration:none;font-size:13px;font-weight:600;padding:6px 0;border-bottom:2px solid transparent;white-space:nowrap}
 .epm-nav__link:hover,.epm-nav__link.is-active{color:var(--epm-cyan);border-bottom-color:var(--epm-cyan)}
-@media(max-width:900px){
+.epm-nav__group{position:relative}
+.epm-nav__group-trigger{background:transparent;border:0;color:var(--epm-muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:6px 0;display:inline-flex;align-items:center;gap:5px;border-bottom:2px solid transparent;white-space:nowrap}
+.epm-nav__group-trigger:hover,.epm-nav__group.is-open .epm-nav__group-trigger,.epm-nav__group-trigger.is-active{color:var(--epm-cyan)}
+.epm-nav__caret{font-size:9px;transition:transform .15s;opacity:.8}
+.epm-nav__group.is-open .epm-nav__caret{transform:rotate(180deg)}
+.epm-nav__panel{position:absolute;top:calc(100% + 10px);left:0;min-width:230px;background:rgba(10,10,10,.98);border:1px solid var(--epm-border);border-radius:12px;padding:8px;display:none;flex-direction:column;gap:2px;box-shadow:0 18px 44px rgba(0,0,0,.5);z-index:120}
+.epm-nav__panel::before{content:"";position:absolute;top:-10px;left:0;right:0;height:10px}
+.epm-nav__group:hover .epm-nav__panel,.epm-nav__group.is-open .epm-nav__panel,.epm-nav__group:focus-within .epm-nav__panel{display:flex}
+.epm-nav__group:last-child .epm-nav__panel{left:auto;right:0}
+.epm-nav__panel-link{color:#cbd5e1;text-decoration:none;font-size:13px;font-weight:500;padding:9px 12px;border-radius:8px;white-space:nowrap}
+.epm-nav__panel-link:hover,.epm-nav__panel-link.is-active{background:rgba(225,29,42,.12);color:var(--epm-cyan)}
+@media(max-width:1500px){.epm-brand__text small{display:none}}
+@media(max-width:1440px){.epm-nav{gap:2px 12px}.epm-nav__link,.epm-nav__group-trigger{font-size:12px}.epm-topbar__cta{font-size:11px;padding:7px 10px}.epm-topbar__cta-row{gap:6px}}
+@media(max-width:1280px){
 .epm-nav-toggle{display:block}
 .epm-topbar__cta-row{display:none}
-.epm-nav-drawer{position:fixed;inset:56px 0 auto 0;max-height:calc(100vh - 56px);overflow:auto;background:rgba(2,6,23,.97);border-bottom:1px solid var(--epm-border);flex-direction:column;align-items:stretch;padding:16px 20px 24px;transform:translateY(-8px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99}
+.epm-nav-drawer{position:fixed;inset:56px 0 auto 0;max-height:calc(100vh - 56px);overflow:auto;background:rgba(10,10,10,.97);border-bottom:1px solid var(--epm-border);flex-direction:column;align-items:stretch;flex-wrap:wrap;padding:16px 20px 24px;transform:translateY(-8px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99}
 .epm-nav-drawer.is-open{opacity:1;pointer-events:auto;transform:translateY(0)}
-.epm-nav{flex-direction:column;align-items:stretch;gap:0}
+.epm-nav{flex-direction:column;align-items:stretch;flex-wrap:wrap;gap:0}
 .epm-nav__link{padding:12px 0;border-bottom:1px solid rgba(148,163,184,.12);font-size:15px}
 .epm-nav-drawer__cta{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.epm-brand__text small{display:block}
+}
+@media(max-width:1280px){
+.epm-nav__group{width:100%}
+.epm-nav__group-trigger{width:100%;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(148,163,184,.12);font-size:15px}
+.epm-nav__panel{position:static;display:flex;min-width:0;border:0;box-shadow:none;background:transparent;padding:4px 0 8px 14px;border-radius:0}
+.epm-nav__panel::before{display:none}
+.epm-nav__panel-link{font-size:14px;padding:8px 0}
+}
+@media(max-width:900px){
 .epm-hero h1{font-size:clamp(22px,7vw,36px);overflow-wrap:anywhere;word-break:break-word}
 .epm-hero .lead{font-size:14px;max-width:100%;overflow-wrap:anywhere}
 .epm-brand__text strong{font-size:14px;white-space:nowrap}
 }
-.epm-topbar__cta{background:linear-gradient(135deg,var(--epm-blue),var(--epm-cyan));color:#020617!important;font-weight:700;font-size:12px;padding:8px 14px;border-radius:999px;text-decoration:none;white-space:nowrap}
+.epm-topbar__cta{background:linear-gradient(135deg,var(--epm-blue),var(--epm-cyan));color:#0a0a0a!important;font-weight:700;font-size:12px;padding:8px 14px;border-radius:999px;text-decoration:none;white-space:nowrap}
 .epm-topbar__cta--ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#e2e8f0!important;margin-right:8px}
 .epm-topbar__cta--ghost:hover{background:rgba(255,255,255,.08);color:#fff!important}
 .epm-main{min-height:60vh}
 .epm-wrap{max-width:var(--epm-max-w);width:100%;margin:0 auto;padding:0 var(--epm-pad-x) 48px;box-sizing:border-box}
 .epm-hero{position:relative;border-radius:24px;overflow:hidden;margin:24px 0 28px;border:1px solid var(--epm-border);box-shadow:var(--epm-glow)}
-.epm-hero--home{min-height:420px;display:grid;grid-template-columns:1fr 1fr;align-items:center;background:linear-gradient(135deg,#041525 0%,#0c4a6e 45%,#020617 100%)}
+.epm-hero--home{min-height:420px;display:grid;grid-template-columns:1fr 1fr;align-items:center;background:linear-gradient(135deg,#041525 0%,#3a0a0e 45%,#0a0a0a 100%)}
 @media(max-width:900px){.epm-hero--home{grid-template-columns:1fr;text-align:center}}
 .epm-hero__visual{padding:32px;display:flex;justify-content:center;align-items:center}
-.epm-hero__visual img{max-width:100%;max-height:340px;filter:drop-shadow(0 20px 40px rgba(34,211,238,.25))}
+.epm-hero__visual img{max-width:100%;max-height:340px;filter:drop-shadow(0 20px 40px rgba(225,29,42,.25))}
 .epm-hero__body{padding:36px 32px 40px}
 .epm-hero__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.28}
-.epm-hero__shade{position:absolute;inset:0;background:linear-gradient(135deg,rgba(2,6,23,.92),rgba(14,165,233,.35))}
+.epm-hero__shade{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,10,10,.92),rgba(225,29,42,.35))}
 .epm-hero__content{position:relative;z-index:1;padding:40px 36px}
 .epm-hero h1{font-size:clamp(28px,4vw,42px);font-weight:800;margin:0 0 12px;color:#fff;line-height:1.15}
 .epm-hero .lead{font-size:17px;line-height:1.65;max-width:640px;color:#cbd5e1;margin:0}
-.epm-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;color:var(--epm-cyan)}
+.epm-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(225,29,42,.12);border:1px solid rgba(225,29,42,.35);padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;color:var(--epm-cyan)}
 .epm-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
 .epm-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid transparent}
-.epm-btn--primary{background:linear-gradient(135deg,var(--epm-blue),var(--epm-cyan));color:#020617!important}
+.epm-btn--primary{background:linear-gradient(135deg,var(--epm-blue),var(--epm-cyan));color:#0a0a0a!important}
 .epm-btn--ghost{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#fff!important}
 .epm-btn--outline{background:transparent;border-color:var(--epm-cyan);color:var(--epm-cyan)!important}
 .epm-section-title{font-size:clamp(22px,3vw,30px);font-weight:800;color:#fff;margin:36px 0 12px}
 .epm-section-lead{color:var(--epm-muted);font-size:16px;margin:-4px 0 22px;max-width:min(100%,900px)}
 .epm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin:24px 0}
 .epm-card{background:var(--epm-card);border:1px solid var(--epm-border);border-radius:16px;padding:22px;box-shadow:var(--epm-glow);transition:border-color .2s,transform .2s}
-.epm-card:hover{border-color:rgba(34,211,238,.45)}
+.epm-card:hover{border-color:rgba(225,29,42,.45)}
 .epm-card h3,.epm-card h4{margin:0 0 10px;color:#fff;font-weight:700}
 .epm-card p{margin:0;color:var(--epm-muted);font-size:14px;line-height:1.6}
 .epm-tenant-logo-wrap{height:72px;display:flex;align-items:center;justify-content:flex-start;margin-bottom:12px}
-.epm-tenant-logo{max-width:100%;max-height:56px;width:auto;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(2,6,23,.45))}
-.epm-tenant-logo-fallback{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:56px;padding:0 12px;border-radius:12px;background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.38);color:var(--epm-cyan);font-weight:800;letter-spacing:.08em}
+.epm-tenant-logo{max-width:100%;max-height:56px;width:auto;height:auto;display:block;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(10,10,10,.45))}
+.epm-tenant-logo-fallback{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:56px;padding:0 12px;border-radius:12px;background:rgba(225,29,42,.14);border:1px solid rgba(225,29,42,.38);color:var(--epm-cyan);font-weight:800;letter-spacing:.08em}
 .epm-card--photo{padding:0;overflow:hidden;text-decoration:none;color:inherit;display:block}
 .epm-card--photo:hover{transform:translateY(-3px)}
 .epm-card--photo img{width:100%;height:170px;object-fit:cover;display:block;opacity:.85}
 .epm-card--photo .epm-card__inner{padding:18px 20px 22px}
-.epm-card--accent{border-color:rgba(34,211,238,.35);background:linear-gradient(145deg,rgba(14,165,233,.08),var(--epm-card))}
+.epm-card--accent{border-color:rgba(225,29,42,.35);background:linear-gradient(145deg,rgba(225,29,42,.08),var(--epm-card))}
 .epm-split{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:start;margin:32px 0}
 @media(max-width:900px){.epm-split{grid-template-columns:1fr}}
 .epm-feature-list{list-style:none;padding:0;margin:0}
@@ -1457,30 +1521,30 @@ function epc_ecomae_platform_styles()
 .epm-feature-list li:before{content:"\f00c";font-family:FontAwesome;position:absolute;left:0;top:12px;color:var(--epm-cyan);font-size:14px}
 .epm-steps{counter-reset:epmstep;list-style:none;padding:0;margin:0}
 .epm-steps li{counter-increment:epmstep;padding:14px 0 14px 52px;position:relative;border-bottom:1px solid rgba(148,163,184,.12);color:#cbd5e1;line-height:1.55}
-.epm-steps li:before{content:counter(epmstep);position:absolute;left:0;top:14px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--epm-blue),var(--epm-cyan));color:#020617;text-align:center;line-height:36px;font-weight:800;font-size:14px}
-.epm-pill{display:inline-block;background:rgba(34,211,238,.12);color:var(--epm-cyan);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;margin:0 6px 8px 0;border:1px solid rgba(34,211,238,.25)}
+.epm-steps li:before{content:counter(epmstep);position:absolute;left:0;top:14px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--epm-blue),var(--epm-cyan));color:#0a0a0a;text-align:center;line-height:36px;font-weight:800;font-size:14px}
+.epm-pill{display:inline-block;background:rgba(225,29,42,.12);color:var(--epm-cyan);font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;margin:0 6px 8px 0;border:1px solid rgba(225,29,42,.25)}
 .epm-pill i{margin-right:4px}
 .epm-module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:20px 0}
 .epm-module{background:var(--epm-card2);border:1px solid var(--epm-border);border-radius:14px;padding:16px}
 .epm-module i{color:var(--epm-cyan);font-size:18px;margin-bottom:8px;display:block}
 .epm-module strong{display:block;color:#fff;font-size:14px;margin-bottom:4px}
 .epm-module small{color:var(--epm-muted);font-size:12px;line-height:1.45}
-.epm-ecosystem{padding:40px 0 36px;border-top:1px solid var(--epm-border);border-bottom:1px solid var(--epm-border);background:rgba(15,23,42,.55);margin:32px 0}
+.epm-ecosystem{padding:40px 0 36px;border-top:1px solid var(--epm-border);border-bottom:1px solid var(--epm-border);background:rgba(23,23,23,.55);margin:32px 0}
 .epm-ecosystem__eyebrow{text-align:center;color:var(--epm-cyan);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px}
 .epm-ecosystem__lead{text-align:center;color:var(--epm-muted);font-size:15px;line-height:1.6;max-width:min(100%,780px);margin:0 auto 28px;padding:0 var(--epm-pad-x);box-sizing:border-box}
 .epm-ecosystem__viz{position:relative;max-width:min(100%,920px);width:100%;margin:0 auto;min-height:480px;display:flex;align-items:center;justify-content:center;--hub-orbit-r:min(28vw,240px)}
-.epm-ecosystem__core-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;font-size:22px;font-weight:800;color:#fff;letter-spacing:.06em;text-shadow:0 0 24px rgba(34,211,238,.5);pointer-events:none}
+.epm-ecosystem__core-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;font-size:22px;font-weight:800;color:#fff;letter-spacing:.06em;text-shadow:0 0 24px rgba(225,29,42,.5);pointer-events:none}
 .epm-ecosystem__orbit-spin{position:absolute;inset:0;z-index:3;animation:epmHubOrbitSpin 48s linear infinite}
 .epm-ecosystem__node{position:absolute;left:50%;top:50%;width:96px;margin-left:-48px;text-align:center;transform:rotate(var(--hub-i)) translateY(calc(-1 * var(--hub-orbit-r, 200px)))}
 .epm-ecosystem__node-inner{transform:rotate(calc(-1 * var(--hub-i)));animation:epmHubNodeUpright 48s linear infinite}
-.epm-ecosystem__icon{display:inline-flex;width:42px;height:42px;border-radius:12px;align-items:center;justify-content:center;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.4);color:var(--epm-cyan);margin-bottom:6px;box-shadow:0 0 16px rgba(34,211,238,.2)}
+.epm-ecosystem__icon{display:inline-flex;width:42px;height:42px;border-radius:12px;align-items:center;justify-content:center;background:rgba(225,29,42,.12);border:1px solid rgba(225,29,42,.4);color:var(--epm-cyan);margin-bottom:6px;box-shadow:0 0 16px rgba(225,29,42,.2)}
 .epm-ecosystem__node strong{display:block;font-size:11px;color:#fff;font-weight:800;text-transform:uppercase}
 .epm-ecosystem__node small{display:block;font-size:9px;color:var(--epm-muted);line-height:1.3;margin-top:2px}
-.epm-ecosystem__data-tag{display:block;margin-top:4px;font-size:8px;font-style:normal;font-weight:700;color:var(--epm-cyan);letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:999px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25)}
+.epm-ecosystem__data-tag{display:block;margin-top:4px;font-size:8px;font-style:normal;font-weight:700;color:var(--epm-cyan);letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:999px;background:rgba(225,29,42,.12);border:1px solid rgba(225,29,42,.25)}
 .epm-ecosystem__legend{list-style:none;margin:24px auto 0;padding:0;max-width:520px;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 24px;font-size:12px;color:var(--epm-muted)}
 .epm-ecosystem__legend li{display:flex;align-items:center;gap:8px}
-.epm-ecosystem__dot{width:8px;height:8px;border-radius:50%;background:#22d3ee;box-shadow:0 0 8px #22d3ee;animation:epmPacketBlink 2s ease-in-out infinite}
-.epm-ecosystem__dot--inner{background:#0ea5e9;animation-delay:.6s}
+.epm-ecosystem__dot{width:8px;height:8px;border-radius:50%;background:#e11d2a;box-shadow:0 0 8px #e11d2a;animation:epmPacketBlink 2s ease-in-out infinite}
+.epm-ecosystem__dot--inner{background:#ef3b47;animation-delay:.6s}
 .epm-flow-svg{position:absolute;left:50%;top:50%;width:100%;max-width:min(100%,720px);transform:translate(-50%,-50%);z-index:1;pointer-events:none}
 .epm-flow-svg--compact{max-width:100%}
 .epm-flow-svg__pulse{animation:epmHubGlow 4s ease-in-out infinite}
@@ -1488,7 +1552,7 @@ function epc_ecomae_platform_styles()
 .epm-flow-svg__ring--outer{animation:epmFlowRingPulse 3s ease-in-out infinite}
 .epm-flow-svg__ring--inner{animation:epmFlowRingPulse 3s ease-in-out infinite reverse}
 .epm-flow-svg__dash{animation:epmHubArcDash 5s linear infinite}
-.epm-flow-svg__spoke{stroke:rgba(34,211,238,.2);stroke-width:1;stroke-dasharray:4 8;animation:epmSpokePulse 2.8s ease-in-out infinite;animation-delay:var(--spoke-delay,0s)}
+.epm-flow-svg__spoke{stroke:rgba(225,29,42,.2);stroke-width:1;stroke-dasharray:4 8;animation:epmSpokePulse 2.8s ease-in-out infinite;animation-delay:var(--spoke-delay,0s)}
 .epm-flow-svg__packet{opacity:.95;animation:epmPacketTrail .8s ease-in-out infinite}
 .epm-flow-svg__packet--inner{opacity:.85;animation:epmPacketTrail .55s ease-in-out infinite}
 .epm-flow-svg__label{font-family:system-ui,sans-serif;font-weight:700;pointer-events:none;opacity:.9}
@@ -1498,15 +1562,15 @@ function epc_ecomae_platform_styles()
 @keyframes epmFlowRingPulse{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes epmSpokePulse{0%,100%{stroke-opacity:.15}50%{stroke-opacity:.55;stroke-dashoffset:0}}
 @keyframes epmPacketBlink{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1.35)}}
-@keyframes epmPacketTrail{0%,100%{opacity:.55}50%{opacity:1;filter:drop-shadow(0 0 6px #22d3ee)}}
+@keyframes epmPacketTrail{0%,100%{opacity:.55}50%{opacity:1;filter:drop-shadow(0 0 6px #e11d2a)}}
 @keyframes epmCoreRingSpin{to{transform:rotate(360deg)}}
 @keyframes epmMatrixFall{0%{transform:translateY(-110%);opacity:0}8%{opacity:.85}92%{opacity:.75}100%{transform:translateY(110vh);opacity:0}}
 .epm-industry-hero{min-height:320px}
-.epm-industry-accent{height:4px;border-radius:999px;margin:0 0 24px;background:linear-gradient(90deg,var(--ind-accent,#0ea5e9),var(--epm-cyan))}
+.epm-industry-accent{height:4px;border-radius:999px;margin:0 0 24px;background:linear-gradient(90deg,var(--ind-accent,#ef3b47),var(--epm-cyan))}
 .epm-three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:24px 0}
 @media(max-width:900px){.epm-three-col{grid-template-columns:1fr}}
 .epm-price{border:1px solid var(--epm-border);border-radius:16px;padding:24px;text-align:center;background:var(--epm-card)}
-.epm-price.featured{border-color:var(--epm-cyan);background:linear-gradient(180deg,rgba(34,211,238,.08),var(--epm-card));box-shadow:var(--epm-glow)}
+.epm-price.featured{border-color:var(--epm-cyan);background:linear-gradient(180deg,rgba(225,29,42,.08),var(--epm-card));box-shadow:var(--epm-glow)}
 .epm-price h4{margin:0 0 8px;font-size:22px;color:#fff}
 .epm-price .amt{font-size:36px;font-weight:800;color:var(--epm-cyan);margin:8px 0}
 .epm-price ul{text-align:left;margin:16px 0 0;padding-left:18px;color:var(--epm-muted);font-size:14px}
@@ -1515,10 +1579,10 @@ function epc_ecomae_platform_styles()
 .epm-alert.err{background:rgba(239,68,68,.12);border:1px solid rgba(248,113,113,.35);color:#fca5a5}
 .epm-form .form-group{margin-bottom:14px}
 .epm-form label{font-weight:600;color:#cbd5e1;font-size:13px;display:block;margin-bottom:4px}
-.epm-form .form-control{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--epm-border);background:#0b1220;color:#fff;box-sizing:border-box}
-.epm-highlight{background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(34,211,238,.06));border-radius:16px;padding:24px;margin:24px 0;border:1px solid var(--epm-border)}
+.epm-form .form-control{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--epm-border);background:#141414;color:#fff;box-sizing:border-box}
+.epm-highlight{background:linear-gradient(135deg,rgba(225,29,42,.12),rgba(225,29,42,.06));border-radius:16px;padding:24px;margin:24px 0;border:1px solid var(--epm-border)}
 .epm-highlight h3{margin-top:0;color:#fff}
-.epm-footer{border-top:1px solid var(--epm-border);background:#020617;padding:32px var(--epm-pad-x) 40px;margin-top:48px}
+.epm-footer{border-top:1px solid var(--epm-border);background:#0a0a0a;padding:32px var(--epm-pad-x) 40px;margin-top:48px}
 .epm-footer__inner{max-width:var(--epm-max-w);width:100%;margin:0 auto;box-sizing:border-box;display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start}
 @media(max-width:700px){.epm-footer__inner{grid-template-columns:1fr}}
 .epm-footer__logo{height:40px;margin-bottom:10px}
@@ -1542,26 +1606,26 @@ function epc_ecomae_platform_styles()
 		radial-gradient(ellipse 60% 50% at 15% 15%,rgba(0,204,255,.07),transparent 55%),
 		radial-gradient(ellipse 50% 40% at 85% 85%,rgba(0,255,178,.05),transparent 55%),
 		radial-gradient(ellipse 40% 30% at 50% 50%,rgba(0,204,255,.03),transparent 60%),
-		linear-gradient(180deg,#041525 0%,#050d1a 45%,#020617 100%);
+		linear-gradient(180deg,#041525 0%,#050d1a 45%,#0a0a0a 100%);
 }
 .epm-static-hero__inner{position:relative;z-index:1;text-align:center;max-width:min(92vw,640px);margin:0 auto;padding:0 12px;box-sizing:border-box}
-.epm-static-hero__logo{max-width:min(200px,42vw);height:auto;display:block;margin:0 auto 20px;filter:drop-shadow(0 16px 40px rgba(34,211,238,.35))}
+.epm-static-hero__logo{max-width:min(200px,42vw);height:auto;display:block;margin:0 auto 20px;filter:drop-shadow(0 16px 40px rgba(225,29,42,.35))}
 .epm-static-hero__headline{font-family:'Syne',system-ui,sans-serif;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:0 0 16px;display:flex;flex-direction:column;align-items:center}
 .epm-static-hero__line{display:block;font-size:clamp(28px,4.8vw,58px)}
 .epm-static-hero__line--stack{color:#f8fafc;text-shadow:0 2px 28px rgba(0,0,0,.55),0 0 20px rgba(226,232,240,.18)}
 .epm-static-hero__line--commerce{white-space:nowrap}
 .epm-static-hero__line--cloud{
 	font-size:clamp(34px,5.8vw,76px);margin-top:8px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
-	background:linear-gradient(135deg,#fbbf24 0%,#22d3ee 38%,#a78bfa 68%,#fcd34d 100%);
+	background:linear-gradient(135deg,#fbbf24 0%,#e11d2a 38%,#a78bfa 68%,#fcd34d 100%);
 	-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-	filter:drop-shadow(0 0 18px rgba(251,191,36,.5)) drop-shadow(0 0 36px rgba(34,211,238,.4));
+	filter:drop-shadow(0 0 18px rgba(251,191,36,.5)) drop-shadow(0 0 36px rgba(225,29,42,.4));
 }
 .epm-static-hero__tagline{margin:0 0 22px;font-size:14px;font-weight:600;color:var(--epm-cyan);letter-spacing:.04em;line-height:1.6}
-.epm-static-hero__tagline a{color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(34,211,238,.5)}
+.epm-static-hero__tagline a{color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(225,29,42,.5)}
 .epm-static-hero__cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:clamp(28px,4vh,40px)}
 .epm-static-hero__platform{
 	position:relative;z-index:1;width:min(96%,960px);margin:0 auto;padding:16px 20px 18px;text-align:center;
-	background:linear-gradient(180deg,rgba(15,23,42,.75),rgba(2,6,23,.92));
+	background:linear-gradient(180deg,rgba(23,23,23,.75),rgba(10,10,10,.92));
 	border:1px solid var(--epm-border);border-radius:16px;box-shadow:var(--epm-glow);box-sizing:border-box;
 }
 .epm-static-hero__platform-title{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff}
@@ -1587,43 +1651,43 @@ function epc_ecomae_platform_styles()
 .epm-hub__matrix-col{
 	position:absolute;top:0;bottom:0;width:2.2%;min-width:14px;max-width:22px;
 	font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.15;font-weight:600;
-	color:rgba(34,211,238,.55);text-shadow:0 0 8px rgba(34,211,238,.5);
+	color:rgba(225,29,42,.55);text-shadow:0 0 8px rgba(225,29,42,.5);
 	white-space:pre;text-align:center;
 	animation:epmMatrixFall var(--fall-dur,2s) linear infinite;
 	animation-delay:var(--fall-delay,0s);
 }
-.epm-hub__map{position:absolute;left:0;top:0;width:42%;height:45%;opacity:.35;background:radial-gradient(circle at 30% 40%,rgba(34,211,238,.08) 0%,transparent 55%),repeating-radial-gradient(circle at 2px 2px,rgba(56,189,248,.15) 0 1px,transparent 1px 12px);mask-image:linear-gradient(135deg,#000 20%,transparent 70%);pointer-events:none}
+.epm-hub__map{position:absolute;left:0;top:0;width:42%;height:45%;opacity:.35;background:radial-gradient(circle at 30% 40%,rgba(225,29,42,.08) 0%,transparent 55%),repeating-radial-gradient(circle at 2px 2px,rgba(225,29,42,.15) 0 1px,transparent 1px 12px);mask-image:linear-gradient(135deg,#000 20%,transparent 70%);pointer-events:none}
 .epm-hub__cloud{position:absolute;right:4%;top:6%;display:flex;flex-direction:column;align-items:center;gap:6px;animation:epmHubCloud 4s ease-in-out infinite;pointer-events:none;z-index:5}
-.epm-hub__cloud-shape{font-size:42px;color:rgba(34,211,238,.5);text-shadow:0 0 24px rgba(34,211,238,.4)}
-.epm-hub__servers{display:flex;gap:4px;padding:6px 10px;background:rgba(15,23,42,.85);border:1px solid rgba(34,211,238,.35);border-radius:8px;box-shadow:0 0 20px rgba(34,211,238,.2)}
-.epm-hub__servers span{display:block;width:14px;height:28px;background:linear-gradient(180deg,#1e3a5f,#0ea5e9);border-radius:3px;animation:epmHubServer 2s ease-in-out infinite}
+.epm-hub__cloud-shape{font-size:42px;color:rgba(225,29,42,.5);text-shadow:0 0 24px rgba(225,29,42,.4)}
+.epm-hub__servers{display:flex;gap:4px;padding:6px 10px;background:rgba(23,23,23,.85);border:1px solid rgba(225,29,42,.35);border-radius:8px;box-shadow:0 0 20px rgba(225,29,42,.2)}
+.epm-hub__servers span{display:block;width:14px;height:28px;background:linear-gradient(180deg,#1e3a5f,#ef3b47);border-radius:3px;animation:epmHubServer 2s ease-in-out infinite}
 .epm-hub__servers span:nth-child(2){animation-delay:.25s}
 .epm-hub__servers span:nth-child(3){animation-delay:.5s}
 @keyframes epmHubCloud{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes epmHubServer{0%,100%{opacity:.7}50%{opacity:1;box-shadow:0 0 8px rgba(34,211,238,.6)}}
+@keyframes epmHubServer{0%,100%{opacity:.7}50%{opacity:1;box-shadow:0 0 8px rgba(225,29,42,.6)}}
 @keyframes epmHubArcDash{to{stroke-dashoffset:-120}}
 @keyframes epmHubGlow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}
 @keyframes epmHubCoreIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
 .epm-hub__flow-layer{position:absolute;left:50%;top:44%;width:min(78vw,calc(var(--epm-max-w) - 80px));transform:translate(-50%,-50%);z-index:2;pointer-events:none}
-.epm-hub__flow-layer .epm-flow-svg{position:relative;left:auto;top:auto;transform:none;max-width:100%;width:100%;filter:drop-shadow(0 0 28px rgba(34,211,238,.25))}
+.epm-hub__flow-layer .epm-flow-svg{position:relative;left:auto;top:auto;transform:none;max-width:100%;width:100%;filter:drop-shadow(0 0 28px rgba(225,29,42,.25))}
 
 .epm-hub__core{position:relative;z-index:6;text-align:center;max-width:min(92vw,560px);margin-top:-4vh;animation:epmHubCoreIn 1s ease-out;padding:0 12px;box-sizing:border-box}
-.epm-hub__core-glow{position:absolute;left:50%;top:40%;width:300px;height:300px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(14,165,233,.3) 0%,transparent 70%);animation:epmHubGlow 3s ease-in-out infinite;pointer-events:none}
-.epm-hub__core-pulse{position:absolute;left:50%;top:40%;width:120px;height:120px;transform:translate(-50%,-50%);border:2px solid rgba(34,211,238,.35);border-radius:50%;animation:epmCorePulseOut 2.5s ease-out infinite;pointer-events:none}
+.epm-hub__core-glow{position:absolute;left:50%;top:40%;width:300px;height:300px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(225,29,42,.3) 0%,transparent 70%);animation:epmHubGlow 3s ease-in-out infinite;pointer-events:none}
+.epm-hub__core-pulse{position:absolute;left:50%;top:40%;width:120px;height:120px;transform:translate(-50%,-50%);border:2px solid rgba(225,29,42,.35);border-radius:50%;animation:epmCorePulseOut 2.5s ease-out infinite;pointer-events:none}
 @keyframes epmCorePulseOut{0%{transform:translate(-50%,-50%) scale(.6);opacity:.8}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 
-.epm-hub__logo{max-width:min(200px,42vw);height:auto;display:block;margin:0 auto 8px;filter:drop-shadow(0 16px 40px rgba(34,211,238,.35));animation:epmHubLogoFloat 5s ease-in-out infinite}
+.epm-hub__logo{max-width:min(200px,42vw);height:auto;display:block;margin:0 auto 8px;filter:drop-shadow(0 16px 40px rgba(225,29,42,.35));animation:epmHubLogoFloat 5s ease-in-out infinite}
 @keyframes epmHubLogoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .epm-hub__headline{font-family:'Syne',system-ui,sans-serif;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:0 0 12px;display:flex;flex-direction:column;align-items:center}
 .epm-hub__headline-line{display:block;font-size:clamp(28px,4.8vw,58px)}
 .epm-hub__headline-line--stack{color:#f8fafc;text-shadow:0 2px 28px rgba(0,0,0,.55),0 0 20px rgba(226,232,240,.18)}
 .epm-hub__headline-line--commerce{white-space:nowrap}
-.epm-hub__headline-line--cloud{font-size:clamp(34px,5.8vw,76px);margin-top:8px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;background:linear-gradient(135deg,#fbbf24 0%,#22d3ee 38%,#a78bfa 68%,#fcd34d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 18px rgba(251,191,36,.5)) drop-shadow(0 0 36px rgba(34,211,238,.4))}
+.epm-hub__headline-line--cloud{font-size:clamp(34px,5.8vw,76px);margin-top:8px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;background:linear-gradient(135deg,#fbbf24 0%,#e11d2a 38%,#a78bfa 68%,#fcd34d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 18px rgba(251,191,36,.5)) drop-shadow(0 0 36px rgba(225,29,42,.4))}
 .epm-hub__title{font-size:clamp(32px,5vw,48px);font-weight:800;margin:0 0 6px;letter-spacing:.04em;color:#fff;line-height:1.1}
-.epm-hub__ae{color:var(--epm-cyan);text-shadow:0 0 30px rgba(34,211,238,.45)}
+.epm-hub__ae{color:var(--epm-cyan);text-shadow:0 0 30px rgba(225,29,42,.45)}
 .epm-hub__tagline{margin:0 0 12px;font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#cbd5e1}
-.epm-hub__pill{display:inline-flex;align-items:center;gap:8px;margin:0 0 18px;padding:8px 18px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--epm-cyan);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);box-shadow:0 0 20px rgba(34,211,238,.15)}
+.epm-hub__pill{display:inline-flex;align-items:center;gap:8px;margin:0 0 18px;padding:8px 18px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--epm-cyan);background:rgba(225,29,42,.1);border:1px solid rgba(225,29,42,.4);box-shadow:0 0 20px rgba(225,29,42,.15)}
 .epm-hub__live-dot{font-size:8px;color:#34d399;animation:epmPacketBlink 1.5s ease-in-out infinite}
 .epm-hub__cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 
@@ -1631,32 +1695,32 @@ function epc_ecomae_platform_styles()
 .epm-hub__node{position:absolute;left:50%;top:44%;width:112px;margin-left:-56px;text-decoration:none;color:#fff;pointer-events:auto;transform:rotate(var(--hub-i)) translateY(calc(-1 * var(--hub-orbit-r)));animation:epmHubNodeIn .8s ease-out backwards;animation-delay:var(--hub-delay)}
 .epm-hub__node-inner{text-align:center;transform:rotate(calc(-1 * var(--hub-i)));animation:epmHubNodeUpright var(--hub-orbit-duration) linear infinite}
 .epm-hub__node--featured{width:124px;margin-left:-62px}
-.epm-hub__node--featured .epm-hub__node-tile{width:64px;height:64px;font-size:26px;border-color:rgba(34,211,238,.7);box-shadow:0 0 32px rgba(34,211,238,.4)}
+.epm-hub__node--featured .epm-hub__node-tile{width:64px;height:64px;font-size:26px;border-color:rgba(225,29,42,.7);box-shadow:0 0 32px rgba(225,29,42,.4)}
 @keyframes epmHubNodeIn{from{opacity:0;transform:rotate(var(--hub-i)) translateY(calc(-1 * var(--hub-orbit-r) + 40px)) scale(.85)}to{opacity:1;transform:rotate(var(--hub-i)) translateY(calc(-1 * var(--hub-orbit-r))) scale(1)}}
-.epm-hub__node-tile{display:flex;align-items:center;justify-content:center;width:56px;height:56px;margin:0 auto 8px;border-radius:14px;background:linear-gradient(145deg,rgba(14,165,233,.4),rgba(15,23,42,.95));border:1px solid rgba(34,211,238,.5);font-size:22px;color:#fff;transition:transform .25s,box-shadow .25s,border-color .25s;animation:epmNodeTilePulse 1.6s ease-in-out infinite;animation-delay:var(--hub-delay)}
-@keyframes epmNodeTilePulse{0%,100%{box-shadow:0 0 14px rgba(34,211,238,.25)}50%{box-shadow:0 0 28px rgba(34,211,238,.65)}}
+.epm-hub__node-tile{display:flex;align-items:center;justify-content:center;width:56px;height:56px;margin:0 auto 8px;border-radius:14px;background:linear-gradient(145deg,rgba(225,29,42,.4),rgba(23,23,23,.95));border:1px solid rgba(225,29,42,.5);font-size:22px;color:#fff;transition:transform .25s,box-shadow .25s,border-color .25s;animation:epmNodeTilePulse 1.6s ease-in-out infinite;animation-delay:var(--hub-delay)}
+@keyframes epmNodeTilePulse{0%,100%{box-shadow:0 0 14px rgba(225,29,42,.25)}50%{box-shadow:0 0 28px rgba(225,29,42,.65)}}
 .epm-hub__node:hover .epm-hub__node-tile{transform:scale(1.1);border-color:var(--epm-cyan)}
 .epm-hub__node strong{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
 .epm-hub__node small{display:block;margin-top:3px;font-size:9px;color:var(--epm-muted);line-height:1.3;letter-spacing:.03em}
-.epm-hub__data-chip{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:999px;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a5f3fc;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.35);animation:epmDataChipGlow 1.1s ease-in-out infinite;animation-delay:var(--hub-delay)}
-@keyframes epmDataChipGlow{0%,100%{opacity:.65}50%{opacity:1;box-shadow:0 0 14px rgba(34,211,238,.55)}}
+.epm-hub__data-chip{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:999px;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fca5a5;background:rgba(225,29,42,.15);border:1px solid rgba(225,29,42,.35);animation:epmDataChipGlow 1.1s ease-in-out infinite;animation-delay:var(--hub-delay)}
+@keyframes epmDataChipGlow{0%,100%{opacity:.65}50%{opacity:1;box-shadow:0 0 14px rgba(225,29,42,.55)}}
 
-.epm-hub__platform{position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:4;width:min(96%,960px);padding:16px 20px 18px;text-align:center;background:linear-gradient(180deg,rgba(15,23,42,.75),rgba(2,6,23,.92));border:1px solid var(--epm-border);border-radius:16px;box-shadow:var(--epm-glow);animation:epmHubCoreIn 1s ease-out .5s backwards}
+.epm-hub__platform{position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:4;width:min(96%,960px);padding:16px 20px 18px;text-align:center;background:linear-gradient(180deg,rgba(23,23,23,.75),rgba(10,10,10,.92));border:1px solid var(--epm-border);border-radius:16px;box-shadow:var(--epm-glow);animation:epmHubCoreIn 1s ease-out .5s backwards}
 .epm-hub__platform-title{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff}
 .epm-hub__platform-sub{margin:0 0 12px;font-size:11px;color:var(--epm-muted)}
 .epm-hub__platform-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px}
 .epm-hub__platform-pill{font-size:10px;font-weight:600;color:var(--epm-cyan);text-transform:uppercase;letter-spacing:.05em}
 .epm-hub__platform-pill i{margin-right:4px;opacity:.9}
 
-.epm-toc{position:sticky;top:62px;z-index:50;background:rgba(2,6,23,.92);backdrop-filter:blur(10px);border:1px solid var(--epm-border);border-radius:14px;padding:14px 18px;margin:0 0 28px}
+.epm-toc{position:sticky;top:62px;z-index:50;background:rgba(10,10,10,.92);backdrop-filter:blur(10px);border:1px solid var(--epm-border);border-radius:14px;padding:14px 18px;margin:0 0 28px}
 .epm-toc__title{margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--epm-cyan)}
 .epm-toc__links{display:flex;flex-wrap:wrap;gap:8px 12px}
 .epm-toc__links a{color:var(--epm-muted);text-decoration:none;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid transparent}
-.epm-toc__links a:hover{color:var(--epm-cyan);border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.08)}
+.epm-toc__links a:hover{color:var(--epm-cyan);border-color:rgba(225,29,42,.35);background:rgba(225,29,42,.08)}
 .epm-area{margin:48px 0;padding:0 0 40px;border-bottom:1px solid rgba(148,163,184,.12)}
 .epm-area:last-of-type{border-bottom:0}
 .epm-area__head{display:flex;gap:20px;align-items:flex-start;margin-bottom:28px}
-.epm-area__icon{flex:0 0 56px;width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(14,165,233,.25),rgba(34,211,238,.1));border:1px solid var(--epm-border);color:var(--epm-cyan);font-size:22px}
+.epm-area__icon{flex:0 0 56px;width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(225,29,42,.25),rgba(225,29,42,.1));border:1px solid var(--epm-border);color:var(--epm-cyan);font-size:22px}
 .epm-area__head h2{margin:0 0 10px;font-size:clamp(22px,3vw,28px);color:#fff;font-weight:800}
 .epm-area__summary{margin:0 0 12px;color:var(--epm-muted);font-size:16px;line-height:1.65;max-width:820px}
 .epm-area__packs{margin:0 0 12px}
@@ -1667,14 +1731,14 @@ function epc_ecomae_platform_styles()
 .epm-area__shots--flip .epm-preview:last-child{order:1}
 @media(max-width:900px){.epm-area__shots{grid-template-columns:1fr}.epm-area__shots--flip .epm-preview{order:unset}}
 .epm-preview{margin:0}
-.epm-preview__browser{border-radius:14px;overflow:hidden;border:1px solid var(--epm-border);box-shadow:var(--epm-glow);background:#020617}
-.epm-preview__chrome{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#0f172a;border-bottom:1px solid var(--epm-border)}
+.epm-preview__browser{border-radius:14px;overflow:hidden;border:1px solid var(--epm-border);box-shadow:var(--epm-glow);background:#0a0a0a}
+.epm-preview__chrome{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#171717;border-bottom:1px solid var(--epm-border)}
 .epm-preview__chrome span{width:10px;height:10px;border-radius:50%;background:#334155}
 .epm-preview__chrome span:nth-child(1){background:#ef4444}
 .epm-preview__chrome span:nth-child(2){background:#eab308}
 .epm-preview__chrome span:nth-child(3){background:#22c55e}
 .epm-preview__chrome em{margin-left:auto;font-size:11px;font-style:normal;color:var(--epm-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-.epm-preview__shot{line-height:0;background:#0b1220}
+.epm-preview__shot{line-height:0;background:#141414}
 .epm-preview__shot img{width:100%;height:auto;display:block;vertical-align:middle}
 .epm-preview figcaption{padding:14px 4px 0}
 .epm-preview figcaption strong{display:block;color:#fff;font-size:14px;margin-bottom:4px}
@@ -1712,32 +1776,32 @@ function epc_ecomae_platform_styles()
 .epm-eco-model__meta p:last-child{margin-bottom:0}
 @media(max-width:900px){.epm-eco-model__grid{grid-template-columns:1fr}}
 
-.epm-super-cp-guides{margin:0 auto 24px;padding:28px 0 12px;border-top:1px solid var(--epm-border);border-bottom:1px solid var(--epm-border);background:rgba(15,23,42,.45)}
+.epm-super-cp-guides{margin:0 auto 24px;padding:28px 0 12px;border-top:1px solid var(--epm-border);border-bottom:1px solid var(--epm-border);background:rgba(23,23,23,.45)}
 .epm-super-cp-guides--home{margin-top:-4px}
 .epm-super-cp-guides__head{margin-bottom:20px}
 .epm-super-cp-guides__grid{margin-bottom:8px}
 .epm-super-cp-guides__card{text-decoration:none;color:inherit;display:block;transition:transform .2s,border-color .2s}
-.epm-super-cp-guides__card:hover{transform:translateY(-3px);border-color:rgba(34,211,238,.55)}
-.epm-super-cp-guides__icon{display:inline-flex;width:44px;height:44px;border-radius:12px;align-items:center;justify-content:center;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);color:var(--epm-cyan);font-size:18px;margin-bottom:12px}
+.epm-super-cp-guides__card:hover{transform:translateY(-3px);border-color:rgba(225,29,42,.55)}
+.epm-super-cp-guides__icon{display:inline-flex;width:44px;height:44px;border-radius:12px;align-items:center;justify-content:center;background:rgba(225,29,42,.12);border:1px solid rgba(225,29,42,.35);color:var(--epm-cyan);font-size:18px;margin-bottom:12px}
 .epm-super-cp-guides__cta{margin-top:16px}
 
 .epm-cap-chips{display:flex;flex-wrap:wrap;gap:8px 10px;margin:12px 0 4px}
 .epm-cap-chips--strip{margin-bottom:18px}
-.epm-cap-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;color:var(--epm-cyan);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.28);cursor:pointer;transition:border-color .2s,background .2s,color .2s;font-family:inherit}
-a.epm-cap-chip:hover,button.epm-cap-chip:hover{border-color:rgba(34,211,238,.55);background:rgba(34,211,238,.14);color:#fff}
-.epm-cap-chip.is-active{background:linear-gradient(135deg,rgba(14,165,233,.35),rgba(34,211,238,.2));border-color:var(--epm-cyan);color:#fff}
-.epm-cap-chip__count{font-size:10px;opacity:.85;padding:1px 6px;border-radius:999px;background:rgba(2,6,23,.35)}
+.epm-cap-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;color:var(--epm-cyan);background:rgba(225,29,42,.08);border:1px solid rgba(225,29,42,.28);cursor:pointer;transition:border-color .2s,background .2s,color .2s;font-family:inherit}
+a.epm-cap-chip:hover,button.epm-cap-chip:hover{border-color:rgba(225,29,42,.55);background:rgba(225,29,42,.14);color:#fff}
+.epm-cap-chip.is-active{background:linear-gradient(135deg,rgba(225,29,42,.35),rgba(225,29,42,.2));border-color:var(--epm-cyan);color:#fff}
+.epm-cap-chip__count{font-size:10px;opacity:.85;padding:1px 6px;border-radius:999px;background:rgba(10,10,10,.35)}
 
 .epm-cap-browser{margin:8px 0 32px}
 .epm-cap-browser__toolbar{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
 .epm-cap-browser__search-wrap{flex:0 1 320px;min-width:200px}
-.epm-cap-browser__search{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--epm-border);background:#0b1220;color:#fff;font-size:14px;box-sizing:border-box}
-.epm-cap-browser__search:focus{outline:none;border-color:var(--epm-cyan);box-shadow:0 0 0 2px rgba(34,211,238,.15)}
+.epm-cap-browser__search{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--epm-border);background:#141414;color:#fff;font-size:14px;box-sizing:border-box}
+.epm-cap-browser__search:focus{outline:none;border-color:var(--epm-cyan);box-shadow:0 0 0 2px rgba(225,29,42,.15)}
 .epm-cap-browser__status{font-size:13px;color:var(--epm-muted);margin:0 0 14px}
 .epm-cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:0 0 24px}
 .epm-cap-card{background:var(--epm-card);border:1px solid var(--epm-border);border-radius:16px;padding:20px 20px 18px;box-shadow:var(--epm-glow);transition:border-color .2s,transform .2s}
-.epm-cap-card:hover{border-color:rgba(34,211,238,.45);transform:translateY(-2px)}
-.epm-cap-card__icon{display:inline-flex;width:40px;height:40px;border-radius:12px;align-items:center;justify-content:center;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);color:var(--epm-cyan);font-size:16px;margin-bottom:10px}
+.epm-cap-card:hover{border-color:rgba(225,29,42,.45);transform:translateY(-2px)}
+.epm-cap-card__icon{display:inline-flex;width:40px;height:40px;border-radius:12px;align-items:center;justify-content:center;background:rgba(225,29,42,.12);border:1px solid rgba(225,29,42,.35);color:var(--epm-cyan);font-size:16px;margin-bottom:10px}
 .epm-cap-card__badge{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--epm-muted);margin-bottom:8px;line-height:1.3}
 .epm-cap-card__title{margin:0 0 8px;font-size:16px;font-weight:800;color:#fff;line-height:1.3}
 .epm-cap-card__summary{margin:0;font-size:13px;color:var(--epm-muted);line-height:1.55}
@@ -1754,11 +1818,11 @@ a.epm-cap-chip:hover,button.epm-cap-chip:hover{border-color:rgba(34,211,238,.55)
 .epm-guide-area__example a{color:var(--epm-cyan)}
 
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.epm-continuity{margin:0 auto 20px;padding:28px 0 8px;border-top:1px solid var(--epm-border);border-bottom:1px solid var(--epm-border);background:linear-gradient(180deg,rgba(15,23,42,.65),rgba(2,6,23,.4))}
+.epm-continuity{margin:0 auto 20px;padding:28px 0 8px;border-top:1px solid var(--epm-border);border-bottom:1px solid var(--epm-border);background:linear-gradient(180deg,rgba(23,23,23,.65),rgba(10,10,10,.4))}
 .epm-continuity--home{margin-top:-8px}
 .epm-continuity__head{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
 .epm-continuity__head-cta{flex:0 0 auto}
-.epm-continuity__viz{margin:8px 0 24px;padding:20px 16px 12px;border-radius:20px;border:1px solid var(--epm-border);background:rgba(2,6,23,.55);box-shadow:var(--epm-glow)}
+.epm-continuity__viz{margin:8px 0 24px;padding:20px 16px 12px;border-radius:20px;border:1px solid var(--epm-border);background:rgba(10,10,10,.55);box-shadow:var(--epm-glow)}
 .epm-continuity__pillars .epm-card h4{font-size:15px}
 .epm-continuity__pillars{margin-bottom:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 .epm-continuity__splash{margin-top:8px}
@@ -1774,24 +1838,24 @@ a.epm-cap-chip:hover,button.epm-cap-chip:hover{border-color:rgba(34,211,238,.55)
 .epm-failover-flow__node--backup>rect{animation:epmFfBackupPulse 16s ease-in-out infinite}
 .epm-failover-flow__phase-label{animation:epmFfPhaseLabel 16s steps(4,end) infinite}
 .epm-failover-flow__steps{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;list-style:none;margin:18px 0 0;padding:0}
-.epm-failover-flow__step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--epm-muted);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;border-radius:999px;border:1px solid rgba(148,163,184,.2);background:rgba(15,23,42,.6)}
-.epm-failover-flow__step span{display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;background:rgba(34,211,238,.15);color:var(--epm-cyan);font-size:11px}
+.epm-failover-flow__step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--epm-muted);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;border-radius:999px;border:1px solid rgba(148,163,184,.2);background:rgba(23,23,23,.6)}
+.epm-failover-flow__step span{display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;background:rgba(225,29,42,.15);color:var(--epm-cyan);font-size:11px}
 .epm-failover-flow__step--1{animation:epmFfStepOn 16s steps(4,end) infinite}
 .epm-failover-flow__step--2{animation:epmFfStepOn 16s steps(4,end) infinite;animation-delay:-12s}
 .epm-failover-flow__step--3{animation:epmFfStepOn 16s steps(4,end) infinite;animation-delay:-8s}
 .epm-failover-flow__step--4{animation:epmFfStepOn 16s steps(4,end) infinite;animation-delay:-4s}
-@keyframes epmFfPathGlow{0%,100%{stroke-opacity:.7}50%{stroke-opacity:1;filter:drop-shadow(0 0 6px #22d3ee)}}
+@keyframes epmFfPathGlow{0%,100%{stroke-opacity:.7}50%{stroke-opacity:1;filter:drop-shadow(0 0 6px #e11d2a)}}
 @keyframes epmFfPathFailover{0%,22%{stroke-opacity:.2}28%,52%{stroke-opacity:1;stroke:#fbbf24}58%,100%{stroke-opacity:.35}}
 @keyframes epmFfPathSync{0%,68%{stroke-opacity:.15}74%,92%{stroke-opacity:1;stroke:#34d399}100%{stroke-opacity:.2}}
-@keyframes epmFfCloudPulse{0%,22%{stroke-color:rgba(34,211,238,.65)}28%,52%{stroke-color:#fbbf24}58%,68%{stroke-color:rgba(34,211,238,.4)}74%,100%{stroke-color:#34d399}}
-@keyframes epmFfBackupPulse{0%,28%{stroke-color:rgba(14,165,233,.45);filter:none}32%,58%{stroke-color:#22d3ee;filter:drop-shadow(0 0 12px rgba(34,211,238,.55))}62%,100%{stroke-color:rgba(14,165,233,.45)}}
+@keyframes epmFfCloudPulse{0%,22%{stroke-color:rgba(225,29,42,.65)}28%,52%{stroke-color:#fbbf24}58%,68%{stroke-color:rgba(225,29,42,.4)}74%,100%{stroke-color:#34d399}}
+@keyframes epmFfBackupPulse{0%,28%{stroke-color:rgba(225,29,42,.45);filter:none}32%,58%{stroke-color:#e11d2a;filter:drop-shadow(0 0 12px rgba(225,29,42,.55))}62%,100%{stroke-color:rgba(225,29,42,.45)}}
 @keyframes epmFfPhaseLabel{0%,24%{opacity:1}25%,100%{opacity:.85}}
-@keyframes epmFfStepOn{0%,24%{color:var(--epm-muted);border-color:rgba(148,163,184,.2)}25%,49%{color:#fde68a;border-color:rgba(251,191,36,.45)}50%,74%{color:var(--epm-cyan);border-color:rgba(34,211,238,.55)}75%,100%{color:#6ee7b7;border-color:rgba(52,211,153,.45)}}
+@keyframes epmFfStepOn{0%,24%{color:var(--epm-muted);border-color:rgba(148,163,184,.2)}25%,49%{color:#fde68a;border-color:rgba(251,191,36,.45)}50%,74%{color:var(--epm-cyan);border-color:rgba(225,29,42,.55)}75%,100%{color:#6ee7b7;border-color:rgba(52,211,153,.45)}}
 @media(prefers-reduced-motion:reduce){
 .epm-failover-flow__path,.epm-failover-flow__node--cloud>rect,.epm-failover-flow__node--backup>rect,.epm-failover-flow__phase-label,.epm-failover-flow__step{animation:none!important}
 .epm-failover-flow__packet{display:none}
 .epm-failover-flow__path{stroke-opacity:1!important}
-.epm-failover-flow__step--3{color:var(--epm-cyan);border-color:rgba(34,211,238,.45)}
+.epm-failover-flow__step--3{color:var(--epm-cyan);border-color:rgba(225,29,42,.45)}
 }
 
 .epm-anim-paused,.epm-anim-paused *{animation-play-state:paused!important}
@@ -1810,7 +1874,7 @@ a.epm-cap-chip:hover,button.epm-cap-chip:hover{border-color:rgba(34,211,238,.55)
 }
 .epm-cap-card{cursor:pointer}
 .epm-cap-card:focus{outline:2px solid var(--epm-cyan);outline-offset:2px}
-.epm-cap-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,23,.82);backdrop-filter:blur(6px)}
+.epm-cap-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,10,10,.82);backdrop-filter:blur(6px)}
 .epm-cap-modal.is-open{display:flex}
 .epm-cap-modal__panel{max-width:720px;width:100%;max-height:90vh;overflow-y:auto;background:var(--epm-card);border:1px solid var(--epm-border);border-radius:18px;padding:24px 28px;box-shadow:var(--epm-glow);position:relative}
 .epm-cap-modal__close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;line-height:1;z-index:2}

@@ -41,6 +41,25 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	$img = epc_ecomae_home_sections_img_base();
 	$h = 'epc_ecomae_h';
 
+	$themeTag = '';
+	$demoBlock = '';
+	$demoDir = dirname(__DIR__) . '/shop/finance';
+	if (is_file($demoDir . '/epc_erp_theme.php')) {
+		require_once $demoDir . '/epc_erp_theme.php';
+		if (function_exists('epc_theme_style_tag_for_surface')) {
+			$themeTag = epc_theme_style_tag_for_surface('marketing');
+		}
+	}
+	if (is_file($demoDir . '/epc_demo_portal.php')) {
+		if (is_file($demoDir . '/epc_erp_demo.php')) {
+			require_once $demoDir . '/epc_erp_demo.php';
+		}
+		require_once $demoDir . '/epc_demo_portal.php';
+		if (function_exists('epc_demo_portal_html')) {
+			$demoBlock = epc_demo_portal_html(rtrim($base, '/'));
+		}
+	}
+
 	$cpScreens = array(
 		array('id' => 'cp0', 'tab' => 'Dashboard', 'img' => 'cp_01_dashboard_30cbbb4714994afc9968d85c50f433cd.png', 'alt' => 'Super CP Dashboard', 'cap' => '<strong>Operator Console Dashboard.</strong> Live tenants, CP modules, and sandbox demos — quick-action tiles for every cross-tenant workflow.'),
 		array('id' => 'cp1', 'tab' => 'Tenant Hub', 'img' => 'cp_02_tenant_hub_9b5e91773a67434fbf300181dbfec704.png', 'alt' => 'Tenant Hub', 'cap' => '<strong>Tenant Hub &amp; DNS.</strong> Platform IP, DNS counts, client intro form, A-record guide, SSL issuance — all operator-driven.'),
@@ -55,6 +74,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	echo epc_ecomae_home_sections_enqueue();
 	?>
 <!-- ECOMAE-HOME-SECTIONS-v1 -->
+<?php echo $themeTag; ?>
 <div class="ehm-home" id="ehm-home-sections">
 	<section id="trust" class="ehm-trust" aria-label="Platform trust signals">
 		<div class="ehm-wrap">
@@ -62,13 +82,14 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<div class="ehm-ti"><span class="ehm-ti-ico">⚡</span><span>Go live in <strong>24 hours</strong></span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🔒</span><span>Isolated <strong>MySQL per tenant</strong></span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">📋</span><span><strong>UAE e-invoice</strong> (PINT-AE) built-in</span></div>
-				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>8 industry</strong> templates ready</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>19+ industry</strong> packs ready</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🌍</span><span><strong>195+</strong> tax jurisdictions</span></div>
-				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI</strong> demo guide (Layla)</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI advisor</strong> &amp; forecasting</span></div>
 			</div>
 		</div>
 	</section>
 	<div class="ehm-divider"></div>
+	<?php echo $demoBlock; ?>
 
 	<section id="platform" class="ehm-sec">
 		<div class="ehm-wrap">
@@ -79,9 +100,9 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;max-width:460px;margin:0">Stop reconciling across disconnected tools. ECOM AE keeps storefront orders, GL entries, and VAT posting in one database — zero manual sync.</p>
 					<div class="ehm-layer-stack">
 						<div class="ehm-layer"><div class="ehm-l-num">1</div><div class="ehm-l-body"><h4>Commerce Layer</h4><p>Storefront, catalogue, checkout, B2B portal, multi-currency payments, WhatsApp.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">2</div><div class="ehm-l-body"><h4>Operations Layer</h4><p>Inventory, warehouses, procurement, logistics, RMA, delivery workflows.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">3</div><div class="ehm-l-body"><h4>Finance &amp; Compliance</h4><p>GL, AR/AP, bank reconciliation, UAE VAT and Peppol e-invoicing built in.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">4</div><div class="ehm-l-body"><h4>Intelligence Layer</h4><p>CRM pipeline, AI parts agent, demand signals, Auto Price AI, campaign hub.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">2</div><div class="ehm-l-body"><h4>Operations Layer</h4><p>Inventory ledger with lot, serial and barcode traceability, warehouses, procurement, RMA, delivery workflows.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">3</div><div class="ehm-l-body"><h4>Finance &amp; Compliance</h4><p>GL with immutable posting and period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT and Peppol e-invoicing.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">4</div><div class="ehm-l-body"><h4>Intelligence Layer</h4><p>Intelligent BOS AI advisor — revenue and cash-flow forecasting, predictive inventory, KPI recommendations — plus CRM pipeline and commerce AI.</p></div></div>
 					</div>
 				</div>
 				<div class="ehm-rev ehm-rev--2">
@@ -105,16 +126,20 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	<section id="features" class="ehm-sec ehm-sec--alt">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
-				<div class="ehm-tag"><span class="ehm-dot"></span>100+ Platform Features</div>
+				<div class="ehm-tag"><span class="ehm-dot"></span>One Business Operating System</div>
 				<h2>Everything your business<br><span class="ehm-glow">runs on.</span></h2>
-				<p>Six capability pillars, enterprise-grade, sharing one database — nothing needs to sync.</p>
+				<p>The capability pillars of the ECOM AE BOS — ERP, commerce, compliance, workflows and industry intelligence — enterprise-grade, sharing one database, nothing needs to sync.</p>
 			</div>
 			<div class="ehm-feat-grid">
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🛒</div><h4>E-Commerce &amp; Catalogue</h4><p>SKU management, variants, bulk CSV, B2B pricing, promo codes, multi-currency checkout.</p><div class="ehm-pills"><span class="ehm-pill">Storefront</span><span class="ehm-pill">B2B Portal</span><span class="ehm-pill">Multi-Currency</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">📦</div><h4>Inventory &amp; Logistics</h4><p>Multi-warehouse stock, pick/pack/ship, carrier integration, RMA, customs declarations.</p><div class="ehm-pills"><span class="ehm-pill">Multi-Warehouse</span><span class="ehm-pill">RMA</span><span class="ehm-pill">Carriers</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">📊</div><h4>ERP &amp; Finance</h4><p>Double-entry GL, AR/AP, bank reconciliation, P&amp;L, UAE VAT returns, multi-company.</p><div class="ehm-pills"><span class="ehm-pill">General Ledger</span><span class="ehm-pill">AR/AP</span><span class="ehm-pill">Fixed Assets</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">📦</div><h4>Inventory &amp; Logistics</h4><p>Multi-warehouse stock with a full inventory ledger, lot/serial/batch and barcode traceability, pick/pack/ship, RMA.</p><div class="ehm-pills"><span class="ehm-pill">Inventory Ledger</span><span class="ehm-pill">Lot / Serial</span><span class="ehm-pill">Barcode</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">📊</div><h4>ERP &amp; Finance</h4><p>Double-entry GL with immutable posting &amp; period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT.</p><div class="ehm-pills"><span class="ehm-pill">Immutable Posting</span><span class="ehm-pill">Period Locking</span><span class="ehm-pill">Consolidation</span></div></div>
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🤝</div><h4>CRM &amp; Customers</h4><p>Kanban pipeline, lead capture, 360° customer view, segments, approval workflows.</p><div class="ehm-pills"><span class="ehm-pill">Kanban</span><span class="ehm-pill">Leads</span><span class="ehm-pill">360° View</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🔧</div><h4>Procurement</h4><p>Supplier directory, purchase orders, RFQ, 3-way match, payables scheduling.</p><div class="ehm-pills"><span class="ehm-pill">Purchase Orders</span><span class="ehm-pill">RFQ</span><span class="ehm-pill">3-Way Match</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🔧</div><h4>Procurement</h4><p>Supplier directory, purchase requisitions, RFQ &amp; vendor comparison, purchase orders, goods receipt, 3-way match.</p><div class="ehm-pills"><span class="ehm-pill">Requisition</span><span class="ehm-pill">RFQ</span><span class="ehm-pill">Vendor Compare</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🛡️</div><h4>Compliance &amp; Governance</h4><p>Tax regimes, e-invoicing, filing calendar, database-level integrity, and an enriched audit trail (old/new value, user, IP, device).</p><div class="ehm-pills"><span class="ehm-pill">Audit Trail</span><span class="ehm-pill">Data Integrity</span><span class="ehm-pill">e-Invoice</span></div></div>
+				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">⚡</div><h4>Workflow Automation</h4><p>Approval chains, spend thresholds, multi-step routing and triggers across orders, POs, journals and vouchers.</p><div class="ehm-pills"><span class="ehm-pill">Approvals</span><span class="ehm-pill">Thresholds</span><span class="ehm-pill">Triggers</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🧠</div><h4>Intelligent BOS &amp; AI</h4><p>The AI advisor that runs and advises the business — revenue &amp; cash-flow forecasting, predictive inventory, KPI recommendations, plus per-industry dashboards.</p><div class="ehm-pills"><span class="ehm-pill">AI Advisor</span><span class="ehm-pill">Forecasting</span><span class="ehm-pill">Recommendations</span></div></div>
+				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">⚖️</div><h4>HR &amp; Labour Law</h4><p>Country-aware employment-law engine — gratuity / end-of-service, leave, notice, probation, working hours &amp; WPS — across 25+ countries, with a per-employee compliance monitor that flags issues and accrued liability.</p><div class="ehm-pills"><span class="ehm-pill">UAE Labour Law</span><span class="ehm-pill">Worldwide</span><span class="ehm-pill">Compliance Monitor</span></div></div>
 				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🏢</div><h4>Multi-Tenant SaaS</h4><p>Super CP for agencies — onboard tenants, push templates, monitor health, deploy industry packs.</p><div class="ehm-pills"><span class="ehm-pill">Super CP</span><span class="ehm-pill">Health Monitor</span><span class="ehm-pill">Templates</span></div></div>
 			</div>
 		</div>
@@ -145,14 +170,14 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		<div class="ehm-wrap">
 			<div class="ehm-ai-grid">
 				<div class="ehm-rev">
-					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>AI Capabilities</div>
-					<h2 style="margin:14px 0 12px">Intelligence<br>at every layer.</h2>
-					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">Operational intelligence woven into the stack — not a chatbot bolted on.</p>
+					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>Intelligent BOS · AI Layer</div>
+					<h2 style="margin:14px 0 12px">Runs and advises<br>the business.</h2>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">The Intelligent BOS reads your live data and tells you what to do next — forecasting, predictive inventory and recommendations woven into the stack, not a chatbot bolted on.</p>
 					<div class="ehm-ai-cards">
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">🔍</div><div><h4>AI Parts Agent</h4><p>Conversational parts expert — part number search, VIN decode, cross-references.</p></div></div>
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">🚗</div><div><h4>AI VIN Decode</h4><p>Narrows vehicle context before catalogue browse — fewer wrong parts.</p></div></div>
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">📈</div><div><h4>Demand Intelligence</h4><p>Search and order signals surface stock gaps and promotion opportunities.</p></div></div>
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">💰</div><div><h4>Auto Price AI</h4><p>Discover, compare, and import competitor pricing across market sources.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">🧠</div><div><h4>AI Advisor</h4><p>Ask the BOS in plain English — revenue, cash, stock, receivables — answered from your live data.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">📈</div><div><h4>Forecasting</h4><p>Revenue and cash-flow forecasts from your ledger — trend, confidence and liquidity alerts.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">📦</div><div><h4>Predictive Inventory</h4><p>Consumption rate → days of cover → recommended reorder quantity and value, per item.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">✅</div><div><h4>Automated Recommendations</h4><p>KPI- and forecast-driven actions, prioritised by severity — decision support, not dashboards alone.</p></div></div>
 					</div>
 				</div>
 				<div class="ehm-rev ehm-rev--2">
@@ -240,11 +265,86 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		</div>
 	</section>
 
+	<?php $opBase = '/epc-static.php?f=content/general_pages/marketing_screens/'; $opVer = '&v=20260610b'; ?>
+	<section id="orderplanning" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Order Planning · Demand &amp; Replenishment</div>
+				<h2>Plan stock<br><span class="ehm-glow">with precision.</span></h2>
+				<p>A demand-driven planning engine built into the BOS: it forecasts demand from your sale-out history, computes safety stock and reorder point per item × warehouse, and recommends exactly how much to order — with ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions and KPIs.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				<span class="ehm-badge-pill">Demand forecasting</span>
+				<span class="ehm-badge-pill">Safety stock &amp; reorder point</span>
+				<span class="ehm-badge-pill">Recommended order qty</span>
+				<span class="ehm-badge-pill">ABC / XYZ classes</span>
+				<span class="ehm-badge-pill">Redistribution</span>
+				<span class="ehm-badge-pill">Service-level targets</span>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="<?php echo $h($opBase . 'op_recommend.png' . $opVer); ?>" alt="Order line recommendations grid" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Order-line recommendations.</strong> Per item × warehouse: forecast, lead-time demand, safety stock, reorder point, recommended order qty (ROQ), days-of-cover, value and demand class — confirm or reject each line.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'op_policy.png' . $opVer); ?>" alt="Inventory policy ABC/XYZ" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Inventory policy (ABC/XYZ).</strong> Classifies items by annual value and demand variability, with a recommended service level driving safety stock.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'op_exceptions.png' . $opVer); ?>" alt="Exceptions and alerts" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Exceptions &amp; alerts.</strong> Severity-ranked stock-out risk, below-safety, dead-stock and excess — act before you run out or over-buy.</p></div>
+				</div>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-top:22px">
+				<img src="<?php echo $h($opBase . 'op_kpi.png' . $opVer); ?>" alt="Stock analysis and KPIs" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Stock analysis &amp; KPIs.</strong> Inventory value, inventory turns, average days-of-cover, fill rate and ABC distribution at a glance.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<section id="workflow" class="ehm-sec">
+		<div class="ehm-wrap">
+			<div class="ehm-sec-head ehm-rev">
+				<div class="ehm-tag"><span class="ehm-dot"></span>Process Flow · Workflow Automation</div>
+				<h2>See where work<br><span class="ehm-glow">has reached.</span></h2>
+				<p>Define any business process as a chain of steps — each step auto-hands the case to the next person or department head, with SLAs. Real work tracks itself: customer orders, purchase orders, supplier payments and staff expense claims each auto-create a case and advance through their stages automatically. Watch it move on a live, GPS-style map across departments, employees and branches — and measure every employee by the real tasks they actually handled.</p>
+			</div>
+			<div class="ehm-badges ehm-rev">
+				<span class="ehm-badge-pill">Build your own processes</span>
+				<span class="ehm-badge-pill">Auto-tracked orders, POs, payments &amp; expenses</span>
+				<span class="ehm-badge-pill">Automatic hand-off &amp; routing</span>
+				<span class="ehm-badge-pill">GPS-style case tracking</span>
+				<span class="ehm-badge-pill">Org map: entity / BU / dept / user / task / location</span>
+				<span class="ehm-badge-pill">Employee performance leaderboard</span>
+				<span class="ehm-badge-pill">Workforce board</span>
+				<span class="ehm-badge-pill">SLA &amp; overdue alerts</span>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-bottom:22px">
+				<img src="<?php echo $h($opBase . 'pf_orgmap.png' . $opVer); ?>" alt="Organization process map" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Live organization process map.</strong> Every process flows left-to-right through nodes with animated arrows and live case counts. Switch level — Overall, Legal entity, Business unit, Department, User, Task or Location — to zoom in, with employee photos showing exactly who is holding each case.</p></div>
+			</div>
+			<div class="ehm-sf-pair ehm-rev">
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'pf_tracker.png' . $opVer); ?>" alt="GPS-style case tracker" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>GPS-style case tracker.</strong> Open any case to see its route like a parcel: completed stops, a pulsing "you are here" marker, the staff member at each step and the full audit timeline.</p></div>
+				</div>
+				<div class="ehm-ss">
+					<img src="<?php echo $h($opBase . 'pf_workforce.png' . $opVer); ?>" alt="Workforce board" loading="lazy" />
+					<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Workforce board.</strong> Your entire team in one view — who's busy and on which task, grouped by department, location or task, with photos and busy/idle status.</p></div>
+				</div>
+			</div>
+			<div class="ehm-ss ehm-rev" style="margin-top:22px">
+				<img src="<?php echo $h($opBase . 'pf_location.png' . $opVer); ?>" alt="Process map by location" loading="lazy" />
+				<div class="ehm-ss-cap"><div class="ehm-ss-cap-dot"></div><p class="ehm-ss-cap-txt"><strong>Across every branch.</strong> The same processes mapped by location — follow work as it physically moves between sites, with live counts at each branch.</p></div>
+			</div>
+		</div>
+	</section>
+
 	<section id="storefront" class="ehm-sec">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
 				<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>See The Result — eParts Cart Live</div>
-				<h2>This is what<br><span class="ehm-glow-a">client gets.</span></h2>
+				<h2>This is what<br><span class="ehm-glow-a">client gets on Frontend.</span></h2>
 				<p>eParts Cart is a live ECOM AE tenant — auto spare parts B2B/B2C store running Storefront + CP + ERP on one database.</p>
 			</div>
 			<div class="ehm-badges ehm-rev">
@@ -346,7 +446,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 					<span class="ehm-cc">Go live in 24 hours</span>
 					<span class="ehm-cc">UAE compliance built-in</span>
 					<span class="ehm-cc">112 CP modules</span>
-					<span class="ehm-cc">8 industry templates</span>
+					<span class="ehm-cc">19+ industry packs</span>
 				</div>
 			</div>
 		</div>

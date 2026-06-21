@@ -36,6 +36,16 @@ $epcApaiPage = !empty($GLOBALS['epc_cp_apai_page']);
 	
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!--<link rel="shortcut icon" type="image/ico" href="favicon.ico" />-->
+<?php
+    // Operator console (super-CP host) is the ECOM AE platform, not a tenant
+    // storefront — show the ECOM AE brand mark as the tab icon. Tenant CPs keep
+    // their own favicon (the root /favicon.ico).
+    if (function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host()) {
+        $epcBosFaviconUrl = '/content/general_pages/epc_ecomae_logo_svg.php';
+        echo "\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"" . htmlspecialchars($epcBosFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
+        echo "\t<link rel=\"apple-touch-icon\" href=\"" . htmlspecialchars($epcBosFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
+    }
+?>
 
     <!-- Vendor styles -->
     <link rel="stylesheet" href="vendor/fontawesome/css/font-awesome.css" />

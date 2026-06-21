@@ -495,6 +495,10 @@ function epc_electronicae_category_sql_in(PDO $pdo, int $categoryId): string
 	return implode(',', array_map('intval', $ids));
 }
 
+/**
+ * True when a category (or any published descendant) has at least one published product.
+ */
+function epc_electronicae_category_has_products(PDO $pdo, int $categoryId): bool
 {
 	if ($categoryId <= 0) {
 		return false;

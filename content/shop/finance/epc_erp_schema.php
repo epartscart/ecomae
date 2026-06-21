@@ -104,8 +104,48 @@ function epc_erp_ensure_schema(PDO $db)
 
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'country_code', "varchar(8) NOT NULL DEFAULT 'AE'");
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'vat_registered', 'tinyint(1) NOT NULL DEFAULT 1');
+
+	// Vendor master — extended fields (D365-style depth: identity, dimensions, terms, banking, address, contact).
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'vendor_account', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'vendor_group', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'legal_entity_id', 'int(11) NOT NULL DEFAULT 0');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'business_unit_id', 'int(11) NOT NULL DEFAULT 0');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'registration_number', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'payment_terms', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'payment_method', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'delivery_terms', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'delivery_mode', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'credit_limit', 'decimal(14,2) NOT NULL DEFAULT 0.00');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'on_hold', "varchar(16) NOT NULL DEFAULT 'no'");
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'tax_exempt', 'tinyint(1) NOT NULL DEFAULT 0');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'bank_name', 'varchar(255) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'bank_account_number', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'iban', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'swift_bic', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'contact_person', 'varchar(255) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'website', 'varchar(255) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'address', 'varchar(512) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'city', 'varchar(128) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'state_region', 'varchar(128) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'postal_code', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_suppliers', 'notes', 'varchar(1000) DEFAULT NULL');
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchases', 'vat_applicable', 'tinyint(1) NOT NULL DEFAULT 1');
 	epc_erp_schema_add_column_if_missing($db, 'epc_erp_purchases', 'vat_rate', 'decimal(5,2) NOT NULL DEFAULT 5.00');
+
+	// Bank account master — extended fields (legal entity / business unit + full bank details).
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'legal_entity_id', 'int(11) NOT NULL DEFAULT 0');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'business_unit_id', 'int(11) NOT NULL DEFAULT 0');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'gl_account_id', 'int(11) NOT NULL DEFAULT 0');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'iban', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'swift_bic', 'varchar(32) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'bank_branch', 'varchar(255) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'routing_code', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'address', 'varchar(512) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'contact_name', 'varchar(255) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'contact_phone', 'varchar(64) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'contact_email', 'varchar(128) DEFAULT NULL');
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'status', "varchar(16) NOT NULL DEFAULT 'active'");
+	epc_erp_schema_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'notes', 'varchar(1000) DEFAULT NULL');
 
 	epc_erp_seed_defaults($db);
 }

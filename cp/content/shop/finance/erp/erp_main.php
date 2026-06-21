@@ -19,6 +19,16 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cp_shell.php';
 require __DIR__ . '/erp_nav_areas.php';
 
+// Public client demo (/erp-demo) renders the full Super ERP read-only with no
+// login. Block every write so the shared demo workspace can never be mutated.
+$epc_erp_demo_mirror = !empty($GLOBALS['epc_erp_demo_mirror']);
+if ($epc_erp_demo_mirror && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	http_response_code(403);
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode(array('status' => false, 'message' => 'Demo is read-only. Sign in to make changes.'));
+	exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
 	$getAction = (string)$_GET['action'];
 	if ($getAction === 'invoice_print' || $getAction === 'invoice_download_json') {
@@ -82,12 +92,17 @@ epc_erp_full_ensure_schema($db_link);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 epc_erp_extended_ensure_schema($db_link);
 
-$userAllowedTabs = epc_erp_user_allowed_tabs($db_link);
-$modFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
-if (is_file($modFile)) {
-	require_once $modFile;
-	if (function_exists('epc_erp_filter_tabs_by_tenant_modules')) {
-		$userAllowedTabs = epc_erp_filter_tabs_by_tenant_modules($userAllowedTabs);
+if ($epc_erp_demo_mirror) {
+	// Mirror the complete Super ERP so prospects can browse every module.
+	$userAllowedTabs = epc_erp_staff_all_tabs();
+} else {
+	$userAllowedTabs = epc_erp_user_allowed_tabs($db_link);
+	$modFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
+	if (is_file($modFile)) {
+		require_once $modFile;
+		if (function_exists('epc_erp_filter_tabs_by_tenant_modules')) {
+			$userAllowedTabs = epc_erp_filter_tabs_by_tenant_modules($userAllowedTabs);
+		}
 	}
 }
 if (function_exists('epc_crm_pack_enabled') && epc_crm_pack_enabled() && epc_crm_user_can_access($db_link) && !in_array('crm', $userAllowedTabs, true)) {
@@ -98,6 +113,11 @@ if (!in_array('bank_recon', $userAllowedTabs, true) && in_array('cash_bank', $us
 }
 
 $tab = isset($_GET['tab']) ? (string) $_GET['tab'] : 'dashboard';
+// Executive dashboard and Industry intelligence are now folded into the main
+// dashboard; alias their old links so existing bookmarks keep working.
+if ($tab === 'exec_dashboard' || $tab === 'industry_intel') {
+	$tab = 'dashboard';
+}
 $erpArea = isset($_GET['area']) ? (string) $_GET['area'] : epc_erp_tab_to_area($tab);
 if (!isset(epc_erp_nav_areas_config()[$erpArea])) {
 	$erpArea = epc_erp_tab_to_area($tab);
@@ -123,6 +143,11 @@ if (!isset($epc_erp_portal)) {
 	extract(epc_erp_configure_portal_urls('cp'));
 } else {
 	extract(epc_erp_configure_portal_urls($epc_erp_portal));
+}
+if ($epc_erp_demo_mirror) {
+	// Keep all in-workspace navigation inside the public /erp-demo mirror so a
+	// client browsing without login is never bounced to the /erp sign-in page.
+	$erpUrl = '/erp-demo';
 }
 if (!isset($DP_Config) && isset($GLOBALS['DP_Config'])) {
 	$DP_Config = $GLOBALS['DP_Config'];
@@ -173,11 +198,24 @@ if (!isset($user_session) || !is_array($user_session)) {
 	$user_session = epc_erp_resolve_user_session();
 }
 $csrf = isset($user_session['csrf_guard_key']) ? (string)$user_session['csrf_guard_key'] : '';
+// On the standalone /erp portal the AJAX CSRF guard validates against the guest
+// storefront session (stop_csrf uses the user session for /erp referer requests),
+// so render that token even when an admin (CP) session cookie is also present —
+// otherwise forms fail with "CSRF 4" once the operator is logged into CP.
+if (!empty($epc_erp_shell_mode)) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	$erpPortalUserSess = DP_User::getUserSession();
+	if (is_array($erpPortalUserSess) && !empty($erpPortalUserSess['csrf_guard_key'])) {
+		$csrf = (string) $erpPortalUserSess['csrf_guard_key'];
+	}
+}
 $userDeptCode = epc_erp_staff_primary_department($db_link);
 $userDeptName = $userDeptCode !== '' ? epc_erp_staff_department_name($userDeptCode) : '';
 
 $erpTabIncludes = array(
 	'sales_orders' => 'erp_tabs_sales_orders.php',
+	'leads' => 'erp_tabs_leads.php',
+	'opportunities' => 'erp_tabs_opportunities.php',
 	'proposals' => 'erp_tabs_proposals.php',
 	'delivery_notes' => 'erp_tabs_delivery_notes.php',
 	'rfq' => 'erp_tabs_rfq.php',
@@ -189,12 +227,18 @@ $erpTabIncludes = array(
 	'fulfilment' => 'erp_tabs_fulfilment.php',
 	'staff' => 'erp_tabs_staff.php',
 	'workflow' => 'erp_tabs_workflow.php',
+	'processflow' => 'erp_tabs_processflow.php',
+	'approvals' => 'erp_tabs_approvals.php',
+	'compliance' => 'erp_tabs_compliance.php',
+	'industry_intel' => 'erp_tabs_industry_intel.php',
+	'ai_advisor' => 'erp_tabs_ai_advisor.php',
 	'marketing' => 'erp_tabs_marketing.php',
 	'crm' => 'erp_tabs_crm.php',
 	'hr' => 'erp_tabs_hr.php',
 	'payroll' => 'erp_tabs_payroll.php',
 	'vat_return' => 'erp_tabs_vat.php',
 	'tax_compliance' => 'erp_tabs_tax_compliance.php',
+	'vat_refund' => 'erp_tabs_vat_refund.php',
 	'einvoice' => 'erp_tabs_einvoice.php',
 	'invoices' => 'erp_tabs_invoices.php',
 	'inventory' => 'erp_tabs_inventory.php',
@@ -202,15 +246,85 @@ $erpTabIncludes = array(
 	'opening_balances' => 'erp_tabs_opening.php',
 	'contacts' => 'erp_tabs_contacts.php',
 	'documents' => 'erp_tabs_documents.php',
+	'contracts' => 'erp_tabs_contracts.php',
 	'document_control' => 'erp_tabs_document_control.php',
 	'audit' => 'erp_tabs_audit.php',
 	'reports' => 'erp_tabs_reports.php',
 	'expense_reports' => 'erp_tabs_expense_reports.php',
+	'hr_ops' => 'erp_tabs_hr_ops.php',
+	'hr_law' => 'erp_tabs_hr_law.php',
+	'subscriptions' => 'erp_tabs_subscriptions.php',
 	'manufacturing' => 'erp_tabs_manufacturing.php',
+	'order_planning' => 'erp_tabs_order_planning.php',
+	'supplier_portal' => 'erp_tabs_supplier_portal.php',
+	'exec_dashboard' => 'erp_tabs_exec_dashboard.php',
 	'agenda' => 'erp_tabs_agenda.php',
+	'projects' => 'erp_tabs_projects.php',
 	'knowledge_base' => 'erp_tabs_knowledge_base.php',
 	'multi_entity' => 'erp_tabs_multi_entity.php',
 	'custom_shipping' => 'erp_tabs_custom_shipping.php',
+	'erp_setup' => 'erp_tabs_setup.php',
+	'data_import' => 'erp_tabs_data_import.php',
+	'aging' => 'erp_tabs_aging.php',
+	// Enterprise structural / master-data modules
+	'business_units' => 'erp_tabs_business_units.php',
+	'listing' => 'erp_tabs_listing.php',
+	'product_info' => 'erp_tabs_product_info.php',
+	'inv_groups' => 'erp_tabs_inv_groups.php',
+	'ap_setup' => 'erp_tabs_ap_setup.php',
+	'ar_setup' => 'erp_tabs_ar_setup.php',
+	'budgeting' => 'erp_tabs_budgeting.php',
+	'bank_setup' => 'erp_tabs_bank_setup.php',
+	'consolidation_bu' => 'erp_tabs_consolidation_bu.php',
+	'enterprise_reports' => 'erp_tabs_enterprise_reports.php',
+	'landed_cost' => 'erp_tabs_landed_cost.php',
+	'master_planning' => 'erp_tabs_master_planning.php',
+	'retail_barcode' => 'erp_tabs_retail_barcode.php',
+	'doc_formats' => 'erp_tabs_doc_formats.php',
+	'ext_reports' => 'erp_tabs_external_reports.php',
+	// Risk & Insurance
+	'insurance' => 'erp_tabs_insurance.php',
+	'doc_expiry' => 'erp_tabs_doc_expiry.php',
+	// Advanced WMS
+	'wms' => 'erp_tabs_wms.php',
+	// Manufacturing depth
+	'mfg_planning' => 'erp_tabs_mfg_planning.php',
+	// Financial depth
+	'fin_advanced' => 'erp_tabs_fin_advanced.php',
+	// Collections & credit management
+	'collections' => 'erp_tabs_collections.php',
+	// Project accounting depth
+	'project_accounting' => 'erp_tabs_project_accounting.php',
+	// Costing value-models
+	'cost_models' => 'erp_tabs_cost_models.php',
+	// Data & integration framework
+	'integration' => 'erp_tabs_integration.php',
+	// Quality management
+	'quality' => 'erp_tabs_quality.php',
+	// Retail & Commerce
+	'retail_commerce' => 'erp_tabs_retail_commerce.php',
+	// Platform — security roles
+	'security_roles' => 'erp_tabs_security_roles.php',
+	// Organization administration / Enterprise
+	'org_admin' => 'erp_tabs_org_admin.php',
+	// Platform / cross-cutting services
+	'platform' => 'erp_tabs_platform.php',
+	// Year-end closing
+	'year_end' => 'erp_tabs_year_end.php',
+	// Procurement & sourcing depth
+	'purchase_requisitions' => 'erp_tabs_purchase_requisitions.php',
+	'procurement_categories' => 'erp_tabs_procurement_categories.php',
+	// Budgeting depth
+	'budget_planning' => 'erp_tabs_budget_planning.php',
+	// HR depth — talent
+	'recruitment' => 'erp_tabs_recruitment.php',
+	'performance' => 'erp_tabs_performance.php',
+	// Cash & treasury depth
+	'cash_forecast' => 'erp_tabs_cash_forecast.php',
+	'bank_instruments' => 'erp_tabs_bank_instruments.php',
+	// Tax depth
+	'withholding' => 'erp_tabs_withholding.php',
+	'elec_reporting' => 'erp_tabs_elec_reporting.php',
 );
 
 ?>
@@ -228,13 +342,18 @@ if (!$epc_erp_shell_mode) {
 	echo epc_cp_sidebar_early_init_script();
 	echo epc_cp_menu_sections_script();
 }
+// Enterprise-styled entry modules: Sales order, Purchase order, Inventory,
+// Receivables, Payables and General journal adopt the enterprise look (action
+// pane, FastTabs, dense grids). The theme is scoped under `.epc-erp-d365`.
+$epcErpD365Tabs = array('sales_orders', 'purchase_orders', 'inventory', 'receivables', 'payables', 'gl');
+$epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 ?>
 
-<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?>">
+<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?><?php echo $epcErpD365Tab ? ' epc-erp-d365' : ''; ?>">
 	<div class="epc-erp-layout">
 		<aside class="epc-erp-sidebar" id="epc_erp_sidebar" aria-label="ERP navigation">
 			<div class="epc-erp-sidebar-head">
-				<span class="epc-erp-sidebar-brand"><i class="fa fa-briefcase"></i> ERP Suite</span>
+				<span class="epc-erp-sidebar-brand"><i class="fa fa-cubes"></i> Ecom BOS</span>
 				<button type="button" class="epc-erp-sidebar-collapse-toggle" id="epc_erp_sidebar_collapse_toggle" aria-expanded="true" aria-label="Collapse sidebar"><i class="fa fa-chevron-left"></i></button>
 				<button type="button" class="epc-erp-sidebar-close" id="epc_erp_sidebar_close" aria-label="Close menu"><i class="fa fa-times"></i></button>
 			</div>
@@ -258,7 +377,15 @@ if (!$epc_erp_shell_mode) {
 				</div>
 			</div>
 
-			<?php if (!$epc_erp_shell_mode): ?>
+			<?php if ($epc_erp_demo_mirror): ?>
+			<div class="alert alert-warning epc-erp-demo-banner" style="margin-bottom:12px;">
+				<i class="fa fa-eye"></i> <strong>Live Super ERP demo (read-only).</strong>
+				You're browsing the complete Business OS with every module enabled — sample data, no sign-in. Changes are disabled.
+				<a class="btn btn-primary btn-xs" style="margin-left:8px;" href="<?php echo epc_erp_h($portal_home ?? '/erp'); ?>"><i class="fa fa-sign-in"></i> Sign in to your workspace</a>
+			</div>
+			<?php endif; ?>
+
+			<?php if (!$epc_erp_shell_mode && !$epc_erp_demo_mirror): ?>
 			<div class="alert alert-info epc-erp-context-banner">
 				<strong>Fulfilment:</strong> customer/supplier payment → stock → delivery → returns.
 				<strong>Finance:</strong> revenue &amp; AP when order <strong>Completed</strong>.
@@ -269,6 +396,30 @@ if (!$epc_erp_shell_mode) {
 			<?php endif; ?>
 
 			<div class="epc-erp-content-body">
+			<?php
+			// The From/To range only makes sense on transactional lists and reports
+			// (ledgers, P&L, sales/purchase docs, aging). Master/setup screens
+			// (inventory, COA, contacts, HR, opening balances, etc.) show a current
+			// snapshot and must NOT carry a date filter — it confused users who saw
+			// a date bar on every screen. Whitelist the date-aware tabs only.
+			$epcErpDateFilterTabs = array(
+				'proposals', 'sales_orders', 'revenue', 'receivables',
+				'delivery_notes', 'invoices', 'purchases', 'payables', 'rfq',
+				'purchase_orders', 'three_way_match', 'cash_bank', 'bank_recon',
+				'payment_batches', 'petty_cash', 'gl', 'vat_return', 'tax_compliance', 'vat_refund',
+				'einvoice', 'pl', 'balance_sheet', 'reports', 'audit',
+				'expense_reports', 'marketing',
+				// Period reports that filter by the From/To range.
+				// (consolidation_bu / master_planning are as-of snapshots, and the
+				// master-data modules are excluded, so they carry no date bar.)
+				'enterprise_reports', 'bank_setup',
+				// BOS pillars: compliance filing calendar (as-at due date) and
+				// industry intelligence KPIs both read the From/To range.
+				'compliance', 'industry_intel',
+			);
+			$epcErpShowDateFilter = in_array($tab, $epcErpDateFilterTabs, true);
+			?>
+			<?php if ($epcErpShowDateFilter): ?>
 			<form method="get" class="form-inline epc-erp-filter-bar">
 				<input type="hidden" name="area" value="<?php echo epc_erp_h($erpArea); ?>">
 				<input type="hidden" name="tab" value="<?php echo epc_erp_h($tab); ?>">
@@ -288,41 +439,19 @@ if (!$epc_erp_shell_mode) {
 				<input type="date" name="to" class="form-control input-sm" value="<?php echo epc_erp_h($date_to_str); ?>">
 				<button type="submit" class="btn btn-default btn-sm">Apply dates</button>
 			</form>
+			<?php endif; ?>
 
 			<div id="epc_erp_msg" class="alert epc-erp-msg"></div>
 			<?php
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_vat.php';
-			$ftaBannerTabs = array('dashboard', 'purchases', 'revenue', 'sales_orders', 'vat_return', 'tax_compliance', 'einvoice', 'invoices', 'payables');
+			$ftaBannerTabs = array('purchases', 'revenue', 'sales_orders', 'vat_return', 'tax_compliance', 'einvoice', 'invoices', 'payables');
 			if (in_array($tab, $ftaBannerTabs, true)) {
 				echo epc_uae_fta_erp_banner_html($db_link, $erpUrl);
 			}
 			?>
 
 			<?php if ($tab === 'dashboard'): ?>
-				<?php
-				$erpQuickLinks = epc_erp_dashboard_quick_links($erpUrl, $date_from_str, $date_to_str, $guideUrl, $userAllowedTabs);
-				epc_erp_render_dashboard_quick_actions($erpQuickLinks);
-				?>
-				<div class="epc-th-hero epc-erp-hero epc-erp-dashboard-hero">
-					<span class="epc-th-hero__badge">Finance overview</span>
-					<h3><i class="fa fa-dashboard"></i> Finance overview</h3>
-					<p class="epc-th-hero__sub"><?php echo epc_erp_h(date('d M Y', $date_from)); ?> — <?php echo epc_erp_h(date('d M Y', $date_to)); ?> · <?php echo (int)$fulfilment_summary['total_orders']; ?> orders in period · <?php echo (int)$fulfilment_summary['pipeline']['delivery_done']; ?> delivered · <?php echo (int)$fulfilment_summary['pipeline']['returns_open']; ?> returns</p>
-				</div>
-				<div class="epc-th-kpi epc-erp-kpi">
-					<div class="kpi"><div class="lbl">Revenue (ex VAT)</div><div class="val"><?php echo epc_erp_money($dashboard['revenue_ex_vat']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Purchase cost</div><div class="val"><?php echo epc_erp_money($dashboard['purchase_ex_vat']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Margin</div><div class="val green"><?php echo epc_erp_money($dashboard['profit_ex_vat']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Output VAT (sales)</div><div class="val"><?php echo epc_erp_money($dashboard['vat_output']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Input VAT (purchases)</div><div class="val"><?php echo epc_erp_money($dashboard['vat_input']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Net VAT <?php echo ($dashboard['vat_net_payable'] ?? 0) >= 0 ? 'payable' : 'recoverable'; ?></div><div class="val <?php echo ($dashboard['vat_net_payable'] ?? 0) >= 0 ? 'red' : 'green'; ?>"><?php echo epc_erp_money($dashboard['vat_net_payable']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Sales incl. VAT</div><div class="val"><?php echo epc_erp_money($dashboard['sales_incl_vat'] ?? 0); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Completed orders</div><div class="val"><?php echo (int)$dashboard['order_count']; ?></div></div>
-					<div class="kpi"><div class="lbl">Due on completed orders (incl. VAT)</div><div class="val red"><?php echo epc_erp_money($dashboard['receivable_due_orders']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Customer ledger balance</div><div class="val"><?php echo epc_erp_money($dashboard['customer_ledger_balance']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Supplier payable</div><div class="val red"><?php echo epc_erp_money($dashboard['payable_balance']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">Cash &amp; bank total</div><div class="val green"><?php echo epc_erp_money($dashboard['cash_bank_total']); ?> AED</div></div>
-					<div class="kpi"><div class="lbl">GL net profit (P&amp;L)</div><div class="val <?php echo $dashboard_pl['net_profit'] >= 0 ? 'green' : 'red'; ?>"><?php echo epc_erp_money($dashboard_pl['net_profit']); ?> AED</div></div>
-				</div>
+				<?php require __DIR__ . '/erp_dashboard_netsuite.php'; ?>
 				<?php if (!empty($crmDash)): ?>
 				<div class="alert alert-info" style="margin-top:12px;">
 					<strong><i class="fa fa-address-book"></i> CRM pipeline:</strong>
@@ -357,6 +486,9 @@ if (!$epc_erp_shell_mode) {
 
 			<?php elseif (isset($erpTabIncludes[$tab])): ?>
 				<?php require __DIR__ . '/' . $erpTabIncludes[$tab]; ?>
+
+			<?php elseif (strpos($tab, 'rc_') === 0): ?>
+				<?php require __DIR__ . '/erp_tabs_reports.php'; ?>
 
 			<?php elseif ($tab === 'revenue'): ?>
 				<?php $rows = epc_erp_revenue_report($db_link, $date_from, $date_to); ?>
@@ -417,21 +549,45 @@ if (!$epc_erp_shell_mode) {
 				?>
 				<div class="epc-erp-section">
 					<h4><i class="fa fa-users"></i> Customer receivable balances</h4>
+					<?php
+					erp_d365_assets();
+					erp_action_pane_ribbon(array(
+						array('label' => 'Customer', 'key' => 'ar', 'active' => true, 'groups' => array(
+							array('label' => 'View', 'buttons' => array(
+								array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'receivables', $date_from_str, $date_to_str)),
+							)),
+						)),
+						array('label' => 'Collect', 'key' => 'collect', 'groups' => array(
+							array('label' => 'Collections', 'buttons' => array(
+								array('label' => 'Statement', 'icon' => 'fa-file-text-o', 'disabled' => true),
+								array('label' => 'Settlement', 'icon' => 'fa-balance-scale', 'disabled' => true),
+							)),
+						)),
+					));
+					erp_list_toolbar(array(
+						'views' => array('All customers', 'Open balances'),
+						'search' => array('placeholder' => 'Filter customers', 'target' => '#epc_erp_ar_tbl'),
+					));
+					?>
 					<p class="text-muted">Ledger balance = customer account credits minus debits (top-ups, payments). <strong>Order due</strong> counts only completed orders. Receivable/settlement entries for an order require Completed status.</p>
-					<table class="table table-striped table-bordered table-condensed">
-						<thead><tr><th>Customer</th><th>Orders</th><th>Completed</th><th>Ledger balance</th><th>Order due (complete)</th><th></th></tr></thead>
+					<table class="table table-striped table-bordered table-condensed epc-erp-table" id="epc_erp_ar_tbl">
+						<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Customer</th><th class="num" data-sort="num">Orders</th><th class="num" data-sort="num">Completed</th><th class="num" data-sort="num">Ledger balance</th><th class="num" data-sort="num">Order due (complete)</th><th></th></tr></thead>
 						<tbody>
-						<?php foreach ($customers as $c): ?>
+						<?php $epcArBal = 0.0; $epcArDue = 0.0; foreach ($customers as $c): $epcArBal += (float)$c['balance']; $epcArDue += (float)$c['order_receivable_due']; ?>
 							<tr>
+								<td class="epc-d365-statcol"><?php echo erp_status_dot((float)$c['order_receivable_due'] > 0 ? 'warn' : 'ok'); ?></td>
 								<td><?php echo epc_erp_h($c['email'] ?: ('User #' . (int)$c['user_id'])); ?></td>
-								<td><?php echo (int)$c['order_count']; ?></td>
-								<td><?php echo (int)$c['complete_order_count']; ?></td>
-								<td><strong><?php echo epc_erp_money($c['balance']); ?></strong></td>
-								<td><?php echo epc_erp_money($c['order_receivable_due']); ?></td>
+								<td class="num"><?php echo (int)$c['order_count']; ?></td>
+								<td class="num"><?php echo (int)$c['complete_order_count']; ?></td>
+								<td class="num"><strong><?php echo epc_erp_money($c['balance']); ?></strong></td>
+								<td class="num"><?php echo epc_erp_money($c['order_receivable_due']); ?></td>
 								<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'receivables', $date_from_str, $date_to_str) . '&user_id=' . (int)$c['user_id']); ?>">Statement</a></td>
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
+						<?php if (!empty($customers)): ?>
+						<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="3">Sum (<?php echo count($customers); ?> customers)</td><td class="num"><?php echo epc_erp_money($epcArBal); ?></td><td class="num"><?php echo epc_erp_money($epcArDue); ?></td><td></td></tr></tfoot>
+						<?php endif; ?>
 					</table>
 					<?php if ($view_user > 0): ?>
 						<h4>Customer statement — user #<?php echo (int)$view_user; ?></h4>
@@ -479,26 +635,52 @@ if (!$epc_erp_shell_mode) {
 			<?php elseif ($tab === 'payables'): ?>
 				<div class="epc-erp-section">
 					<h4><i class="fa fa-truck"></i> Supplier payable balances</h4>
+					<?php
+					erp_d365_assets();
+					erp_action_pane_ribbon(array(
+						array('label' => 'Vendor', 'key' => 'ap', 'active' => true, 'groups' => array(
+							array('label' => 'New', 'buttons' => array(
+								array('label' => 'Supplier', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#epc_erp_form_supplier'),
+							)),
+							array('label' => 'Data', 'buttons' => array(
+								array('label' => 'Sync from warehouses', 'icon' => 'fa-refresh', 'target' => '#epc_erp_sync_suppliers'),
+							)),
+						)),
+						array('label' => 'Pay', 'key' => 'pay', 'groups' => array(
+							array('label' => 'Payments', 'buttons' => array(
+								array('label' => 'Record payment', 'icon' => 'fa-money', 'class' => 'is-primary', 'target' => '#epc_erp_form_supplier_pay'),
+							)),
+						)),
+					));
+					erp_list_toolbar(array(
+						'views' => array('All suppliers', 'Open balances'),
+						'search' => array('placeholder' => 'Filter suppliers', 'target' => '#epc_erp_ap_tbl'),
+					));
+					?>
 					<p class="text-muted">Payable excludes purchase/AP entries linked to orders that are not yet <strong>Completed</strong> in CP.</p>
 					<p>
 						<button type="button" class="btn btn-sm btn-default" id="epc_erp_sync_suppliers"><i class="fa fa-refresh"></i> Sync from warehouses</button>
 					</p>
-					<table class="table table-striped table-bordered table-condensed">
-						<thead><tr><th>Supplier</th><th>Country</th><th>TRN</th><th>Storage ID</th><th>Payable balance (AED)</th><th></th></tr></thead>
+					<table class="table table-striped table-bordered table-condensed epc-erp-table" id="epc_erp_ap_tbl">
+						<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Supplier</th><th data-sort="text">Country</th><th data-sort="text">TRN</th><th data-sort="text">Storage ID</th><th class="num" data-sort="num">Payable balance (AED)</th><th></th></tr></thead>
 						<tbody>
-						<?php foreach ($suppliers as $s): ?>
+						<?php $epcApBal = 0.0; foreach ($suppliers as $s): $epcApBal += (float)$s['balance']; ?>
 							<tr>
+								<td class="epc-d365-statcol"><?php echo erp_status_dot((float)$s['balance'] > 0 ? 'warn' : 'ok'); ?></td>
 								<td><?php echo epc_erp_h($s['name']); ?></td>
 								<td><?php echo epc_erp_h(isset($s['country_code']) ? $s['country_code'] : 'AE'); ?>
 									<?php if (!empty($s['vat_registered'])): ?><span class="label label-success">VAT</span><?php else: ?><span class="label label-default">No VAT</span><?php endif; ?>
 								</td>
 								<td><?php echo epc_erp_h($s['trn'] ?: '—'); ?></td>
 								<td><?php echo $s['storage_id'] ? (int)$s['storage_id'] : '—'; ?></td>
-								<td><strong><?php echo epc_erp_money($s['balance']); ?></strong></td>
+								<td class="num"><strong><?php echo epc_erp_money($s['balance']); ?></strong></td>
 								<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'payables', $date_from_str, $date_to_str) . '&supplier_id=' . (int)$s['id']); ?>">Ledger</a></td>
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
+						<?php if (!empty($suppliers)): ?>
+						<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="4">Sum (<?php echo count($suppliers); ?> suppliers)</td><td class="num"><?php echo epc_erp_money($epcApBal); ?></td><td></td></tr></tfoot>
+						<?php endif; ?>
 					</table>
 					<?php
 					$view_sup = isset($_GET['supplier_id']) ? (int)$_GET['supplier_id'] : 0;
@@ -543,15 +725,64 @@ if (!$epc_erp_shell_mode) {
 						</form>
 					<?php endif; ?>
 
-					<h4>Add supplier</h4>
-					<form id="epc_erp_form_supplier" class="epc-erp-form-inline">
+					<?php
+						// Legal entity / business unit options for the vendor master form.
+						$leOptsVnd = array();
+						$buOptsVnd = array();
+						try {
+							foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_pm_legal_entities` WHERE `active` = 1 ORDER BY `name`")->fetchAll(PDO::FETCH_ASSOC) as $le) {
+								$leOptsVnd[(int) $le['id']] = $le['code'] . ' · ' . $le['name'];
+							}
+						} catch (Exception $e) {
+						}
+						try {
+							foreach ($db_link->query("SELECT `id`, `code`, `name` FROM `epc_erp_pm_business_units` WHERE `active` = 1 ORDER BY `name`")->fetchAll(PDO::FETCH_ASSOC) as $bu) {
+								$buOptsVnd[(int) $bu['id']] = $bu['code'] . ' · ' . $bu['name'];
+							}
+						} catch (Exception $e) {
+						}
+					?>
+					<h4>Add vendor</h4>
+					<form id="epc_erp_form_supplier" class="form-horizontal epc-erp-form-inline" style="max-width:960px;">
 						<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
-						<div class="form-group"><input type="text" name="name" class="form-control input-sm" placeholder="Supplier name" required></div>
-						<div class="form-group"><input type="text" name="country_code" class="form-control input-sm" placeholder="Country (AE)" value="AE"></div>
-						<div class="form-group"><input type="email" name="contact_email" class="form-control input-sm" placeholder="E-mail"></div>
-						<div class="form-group"><input type="text" name="trn" class="form-control input-sm" placeholder="TRN (UAE VAT)"></div>
+						<div class="row">
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor name *</label><div class="col-sm-8"><input type="text" name="name" class="form-control input-sm" placeholder="Vendor name" required></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor account</label><div class="col-sm-8"><input type="text" name="vendor_account" class="form-control input-sm" placeholder="e.g. V-0001"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Vendor group</label><div class="col-sm-8"><input type="text" name="vendor_group" class="form-control input-sm" placeholder="e.g. Local / Import / Service"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Legal entity</label><div class="col-sm-8"><select name="legal_entity_id" class="form-control input-sm"><option value="0">— none —</option>
+								<?php foreach ($leOptsVnd as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+							</select></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Business unit</label><div class="col-sm-8"><select name="business_unit_id" class="form-control input-sm"><option value="0">— none —</option>
+								<?php foreach ($buOptsVnd as $v => $t): ?><option value="<?php echo (int) $v; ?>"><?php echo epc_erp_h($t); ?></option><?php endforeach; ?>
+							</select></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Currency</label><div class="col-sm-8"><input type="text" name="currency_code" class="form-control input-sm" value="AED"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Country</label><div class="col-sm-8"><input type="text" name="country_code" class="form-control input-sm" placeholder="Country (AE)" value="AE"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">TRN / Tax reg.</label><div class="col-sm-8"><input type="text" name="trn" class="form-control input-sm" placeholder="TRN (UAE VAT)"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Registration no.</label><div class="col-sm-8"><input type="text" name="registration_number" class="form-control input-sm" placeholder="Commercial / company reg."></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Payment terms</label><div class="col-sm-8"><input type="text" name="payment_terms" class="form-control input-sm" placeholder="e.g. Net 30"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Payment method</label><div class="col-sm-8"><input type="text" name="payment_method" class="form-control input-sm" placeholder="e.g. Bank transfer / Cheque"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Delivery terms</label><div class="col-sm-8"><input type="text" name="delivery_terms" class="form-control input-sm" placeholder="Incoterms e.g. CIF / FOB"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Delivery mode</label><div class="col-sm-8"><input type="text" name="delivery_mode" class="form-control input-sm" placeholder="e.g. Sea / Air / Road"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Credit limit</label><div class="col-sm-8"><input type="number" step="0.01" name="credit_limit" class="form-control input-sm" placeholder="0.00"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">On hold</label><div class="col-sm-8"><select name="on_hold" class="form-control input-sm"><option value="no">No</option><option value="invoice">Invoice</option><option value="payment">Payment</option><option value="all">All</option></select></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank name</label><div class="col-sm-8"><input type="text" name="bank_name" class="form-control input-sm" placeholder="e.g. Emirates NBD"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Bank account no.</label><div class="col-sm-8"><input type="text" name="bank_account_number" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">IBAN</label><div class="col-sm-8"><input type="text" name="iban" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">SWIFT / BIC</label><div class="col-sm-8"><input type="text" name="swift_bic" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Contact person</label><div class="col-sm-8"><input type="text" name="contact_person" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">E-mail</label><div class="col-sm-8"><input type="email" name="contact_email" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Phone</label><div class="col-sm-8"><input type="text" name="contact_phone" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Website</label><div class="col-sm-8"><input type="text" name="website" class="form-control input-sm" placeholder="https://"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Address</label><div class="col-sm-8"><input type="text" name="address" class="form-control input-sm" placeholder="Street, building"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">City</label><div class="col-sm-8"><input type="text" name="city" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">State / region</label><div class="col-sm-8"><input type="text" name="state_region" class="form-control input-sm"></div></div>
+							<div class="col-sm-6 form-group"><label class="col-sm-4 control-label">Postal code</label><div class="col-sm-8"><input type="text" name="postal_code" class="form-control input-sm"></div></div>
+							<div class="col-sm-12 form-group"><label class="col-sm-2 control-label">Notes</label><div class="col-sm-10"><input type="text" name="notes" class="form-control input-sm"></div></div>
+						</div>
 						<label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" checked> UAE VAT registered (5% input)</label>
-						<button type="submit" class="btn btn-sm btn-primary">Save supplier</button>
+						<label class="checkbox-inline"><input type="checkbox" name="tax_exempt" value="1"> Tax exempt</label>
+						<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
+						<div style="margin-top:8px;"><button type="submit" class="btn btn-sm btn-primary">Save vendor</button></div>
 					</form>
 
 					<h4>Record supplier payment</h4>
@@ -571,6 +802,7 @@ if (!$epc_erp_shell_mode) {
 						</select>
 						<input type="number" step="0.01" name="amount" class="form-control input-sm" placeholder="Amount AED" required>
 						<input type="text" name="reference" class="form-control input-sm" placeholder="Reference">
+						<?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?>
 						<button type="submit" class="btn btn-sm btn-warning">Post payment</button>
 					</form>
 				</div>
@@ -626,6 +858,7 @@ if (!$epc_erp_shell_mode) {
 								<textarea name="inventory_csv" class="form-control input-sm" rows="4" placeholder="sku,qty,unit_cost&#10;PART-001,10,25.50&#10;PART-002,5,12.00"></textarea>
 							</div>
 						</div>
+						<div class="form-inline" style="margin-bottom:10px;"><?php echo epc_erp_dim_render_fields($db_link, array(), array('layout' => 'inline')); ?></div>
 						<button type="submit" class="btn btn-sm btn-primary">Record purchase + optional stock receipt</button>
 					</form>
 					<script>
@@ -639,7 +872,7 @@ if (!$epc_erp_shell_mode) {
 					</script>
 
 					<h4>Create purchase from order cost</h4>
-					<p class="text-muted">Allowed only when the order is in <strong>Completed</strong> status. Posts supplier bill from order purchase cost and, when order lines have article codes, auto-receives <strong>purchase_in</strong> stock lines (creates ERP SKUs if missing). Same action is available in <a href="/<?php echo epc_erp_h((string)$DP_Config->backend_dir); ?>/shop/procurement/procurement">Procurement</a>.</p>
+					<p class="text-muted">Allowed only when the order is in <strong>Completed</strong> status. Posts supplier bill from order purchase cost and, when order lines have article codes, auto-receives <strong>purchase_in</strong> stock lines (creates ERP SKUs if missing).<?php if (!empty($epc_erp_cp_links)): ?> Same action is available in <a href="/<?php echo epc_erp_h((string)$DP_Config->backend_dir); ?>/shop/procurement/procurement">Procurement</a>.<?php endif; ?></p>
 					<form id="epc_erp_form_purchase_order" class="form-inline">
 						<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
 						<input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" required>
@@ -677,6 +910,8 @@ if (!$epc_erp_shell_mode) {
 <script>
 (function(){
 	var erpPostUrl = <?php echo json_encode($erpAjaxEndpoint); ?>;
+	var erpDoorBase = <?php echo json_encode($erpUrl); ?>;
+	var erpIsFrontend = <?php echo (isset($epc_erp_portal) && $epc_erp_portal === 'frontend') ? 'true' : 'false'; ?>;
 	var msgEl = document.getElementById('epc_erp_msg');
 	function showMsg(ok, text) {
 		if (!msgEl) return;
@@ -699,8 +934,16 @@ if (!$epc_erp_shell_mode) {
 				showMsg(!!j.status, j.message || (j.status ? 'OK' : 'Error'));
 				if (j.status && j.redirect) {
 					var red = j.redirect;
-					if (red.indexOf('/shop/finance/erp') !== -1 && red.indexOf('epc_erp_shell=') === -1) {
-						red += (red.indexOf('?') >= 0 ? '&' : '?') + 'epc_erp_shell=1';
+					if (red.indexOf('/shop/finance/erp') !== -1) {
+						if (erpIsFrontend) {
+							// Keep ERP-only tenants on the standalone /erp/ door — never
+							// bounce a CP /cp/shop/finance/erp redirect into the control panel.
+							var qpos = red.indexOf('?');
+							var qs = qpos >= 0 ? red.substring(qpos + 1) : '';
+							red = erpDoorBase + (qs ? ((erpDoorBase.indexOf('?') >= 0 ? '&' : '?') + qs) : '');
+						} else if (red.indexOf('epc_erp_shell=') === -1) {
+							red += (red.indexOf('?') >= 0 ? '&' : '?') + 'epc_erp_shell=1';
+						}
 					}
 					setTimeout(function(){ location.href = red; }, 600);
 				} else if (j.status) {
@@ -729,12 +972,18 @@ if (!$epc_erp_shell_mode) {
 	bindForm('epc_erp_form_supplier_settle', 'supplier_settlement');
 	bindForm('epc_erp_form_order_settle', 'order_settlement');
 	bindForm('epc_erp_form_workflow_create', 'workflow_create');
+	// BOS pillars (compliance, approvals, industry intelligence) — generic binder.
+	document.querySelectorAll('form[data-bos-action]').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction(f.getAttribute('data-bos-action'), f); });
+	});
 	bindForm('epc_erp_form_marketing_create', 'marketing_create');
 	bindForm('epc_erp_form_rfq', 'save_rfq');
 	bindForm('epc_erp_form_delivery_note', 'delivery_note_create');
 	bindForm('epc_erp_form_po', 'po_save');
 	bindForm('epc_erp_form_so', 'so_save');
+	bindForm('epc_erp_form_customer', 'customer_create');
 	bindForm('epc_erp_form_receipt_voucher', 'receipt_voucher');
+	bindForm('epc_erp_form_payment_voucher', 'payment_voucher');
 	bindForm('epc_erp_form_transfer_voucher', 'transfer_voucher');
 	document.querySelectorAll('.epc-erp-po-invoice').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('po_to_invoice', f); });
@@ -744,6 +993,24 @@ if (!$epc_erp_shell_mode) {
 	});
 	document.querySelectorAll('.epc-erp-so-invoice').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('so_to_invoice', f); });
+	});
+	document.querySelectorAll('.epc-erp-so-delete').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); if (window.confirm('Delete this draft sales order? This cannot be undone.')) { postAction('so_delete', f); } });
+	});
+	document.querySelectorAll('.epc-erp-pm-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-budget-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_budget_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-budgetline-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_budget_line_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-listing-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_listing_save', f); });
+	});
+	document.querySelectorAll('.epc-erp-pm-cheque-form').forEach(function(f){
+		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_cheque_save', f); });
 	});
 	bindForm('epc_erp_form_payment_batch', 'payment_batch_save');
 	bindForm('epc_erp_form_petty_cash', 'petty_cash_save');
@@ -775,5 +1042,23 @@ if (!$epc_erp_shell_mode) {
 				});
 		});
 	}
+	// Expose the door-aware AJAX endpoint + poster so per-tab scripts (e.g. the
+	// receipt/payment voucher settlement grids) can call the same endpoint.
+	window.epcErpPostUrl = erpPostUrl;
+	window.epcErpPost = postAction;
 })();
 </script>
+<?php
+// The /erp/ portal door renders this shell without the CP desktop template that
+// normally emits the sidebar navigation JS, so the left-menu module groups had
+// no click handler and never expanded (dead clicks). Inline the same idempotent
+// accordion + mobile-nav script here so navigation works on every door.
+$epcErpNavJsFile = $_SERVER['DOCUMENT_ROOT'] . '/cp/js/epc_erp_shell_nav.js';
+if (is_file($epcErpNavJsFile)) {
+	echo '<script id="epc-erp-shell-nav-js-inline">' . "\n";
+	echo file_get_contents($epcErpNavJsFile);
+	echo "\n" . '</script>' . "\n";
+} elseif (function_exists('epc_erp_shell_nav_script_tag')) {
+	echo epc_erp_shell_nav_script_tag();
+}
+?>

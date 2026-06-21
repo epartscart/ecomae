@@ -6,17 +6,54 @@ defined('_ASTEXE_') or die('No access');
 
 function epc_erp_staff_all_tabs()
 {
-	return array(
-		'dashboard', 'workflow', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
-		'fulfilment', 'revenue', 'receivables',
-		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match',
+	$tabs = array(
+		'dashboard', 'workflow', 'processflow', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
+		'fulfilment', 'revenue', 'subscriptions', 'receivables',
+		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match', 'supplier_portal',
 		'cash_bank', 'payment_batches', 'petty_cash',
-		'coa', 'gl', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
-		'inventory', 'fixed_assets', 'manufacturing', 'custom_shipping',
-		'staff', 'hr', 'payroll', 'expense_reports',
-		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit',
-		'agenda', 'contacts', 'documents',
+		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
+		'inventory', 'fixed_assets', 'manufacturing', 'order_planning', 'custom_shipping',
+		'staff', 'hr', 'hr_ops', 'hr_law', 'payroll', 'expense_reports',
+		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit', 'exec_dashboard',
+		'agenda', 'projects', 'contacts', 'documents', 'contracts',
+		'erp_setup', 'data_import',
+		// enterprise modules
+		'business_units', 'listing', 'budgeting',
+		'product_info', 'inv_groups', 'master_planning', 'retail_barcode',
+		'ap_setup', 'ar_setup', 'bank_setup',
+		'consolidation_bu', 'enterprise_reports', 'landed_cost', 'doc_formats',
+		// BOS pillars (Phase 2)
+		'compliance', 'approvals', 'industry_intel', 'ai_advisor', 'vat_refund',
+		// External Reporting
+		'ext_reports',
+		// Risk & Insurance
+		'insurance', 'doc_expiry',
+		// Advanced WMS + Manufacturing depth + Financial depth + Collections + Project accounting + Costing + Integration + Quality + Retail
+		'wms', 'mfg_planning', 'fin_advanced', 'collections', 'project_accounting', 'cost_models', 'integration', 'quality', 'retail_commerce',
+		// Platform / Administration
+		'security_roles', 'org_admin', 'platform',
+		// Year-end closing
+		'year_end',
+		// D365 coverage waves — procurement, budgeting, HR talent, cash & treasury, tax
+		'purchase_requisitions', 'procurement_categories',
+		'budget_planning',
+		'recruitment', 'performance',
+		'cash_forecast', 'bank_instruments',
+		'withholding', 'elec_reporting',
 	);
+	// Report center: one "Reports & inquiries" tab per module that has reports.
+	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';
+	if (is_file($rc)) {
+		require_once $rc;
+		if (function_exists('epc_rc_registry')) {
+			$areas = array();
+			foreach (epc_rc_registry() as $r) {
+				$areas['rc_' . $r['area']] = true;
+			}
+			$tabs = array_merge($tabs, array_keys($areas));
+		}
+	}
+	return $tabs;
 }
 
 function epc_erp_departments_config()
@@ -40,7 +77,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_SALES',
 			'icon' => 'fa-line-chart',
 			'color' => '#2563eb',
-			'tabs' => array('dashboard', 'crm', 'proposals', 'sales_orders', 'delivery_notes', 'invoices', 'fulfilment', 'revenue', 'receivables', 'documents', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices', 'fulfilment', 'revenue', 'receivables', 'documents', 'workflow', 'staff'),
 			'workflows' => array(
 				'Qualify customer / credit check',
 				'Confirm order & payment terms',

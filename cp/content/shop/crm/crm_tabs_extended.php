@@ -24,7 +24,7 @@ if ($tab === 'quotes'): ?>
 					<td><?php echo epc_crm_h($q['opp_title'] ?: ('#' . (int)$q['opportunity_id'])); ?></td>
 					<td><span class="label label-info"><?php echo epc_crm_h($q['status']); ?></span></td>
 					<td><?php echo epc_crm_money($q['subtotal']); ?> AED</td>
-					<td><?php echo (int)$q['shop_order_id'] ? ('<a href="' . epc_crm_h($ordersUrl) . '?order_id=' . (int)$q['shop_order_id'] . '">#' . (int)$q['shop_order_id'] . '</a>') : '—'; ?></td>
+					<td><?php echo (int)$q['shop_order_id'] ? (($ordersUrl !== '') ? ('<a href="' . epc_crm_h($ordersUrl) . '?order_id=' . (int)$q['shop_order_id'] . '">#' . (int)$q['shop_order_id'] . '</a>') : ('#' . (int)$q['shop_order_id'])) : '—'; ?></td>
 					<td>
 						<button type="button" class="btn btn-xs btn-default epc-crm-quote-preview" data-id="<?php echo (int)$q['id']; ?>">Preview</button>
 						<button type="button" class="btn btn-xs btn-info epc-crm-quote-email" data-id="<?php echo (int)$q['id']; ?>">Email</button>

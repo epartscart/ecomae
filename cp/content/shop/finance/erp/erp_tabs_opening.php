@@ -96,7 +96,7 @@ $assets = epc_erp_fa_list_assets($db_link);
 	function bind(id, action) {
 		var f = document.getElementById(id);
 		if (!f) return;
-		f.addEventListener('submit', function(e){ e.preventDefault(); if (typeof postAction === 'function') postAction(action, f); });
+		f.addEventListener('submit', function(e){ e.preventDefault(); var fn = (typeof window.epcErpPost === 'function') ? window.epcErpPost : (typeof postAction === 'function' ? postAction : null); if (fn) fn(action, f); });
 	}
 	bind('epc_ob_form_batch', 'opening_create_batch');
 	bind('epc_ob_form_coa', 'opening_add_coa_line');

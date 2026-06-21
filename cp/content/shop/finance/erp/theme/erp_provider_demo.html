@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spare247 — Provider Console</title>
+<link rel="stylesheet" href="erp_theme.css" />
+</head>
+<body class="erp-theme">
+<div class="erp-bg-grid"></div>
+<div class="erp-orb a"></div>
+<div class="erp-orb b"></div>
+
+<div class="erp-dash">
+    <div class="erp-topbar">
+        <div class="erp-brand">
+            <div class="mark">S</div>
+            <div class="name">Provider Console<small>Operator fleet control &middot; all tenants</small></div>
+        </div>
+        <div>
+            <span class="erp-chip">Tenants: <b>7</b></span>
+            <span class="erp-chip">Active: <b>5</b></span>
+            <span class="erp-chip">Suspended: <b>1</b></span>
+            <span class="erp-chip">Expired: <b>1</b></span>
+        </div>
+    </div>
+
+    <div class="erp-grid">
+        <div class="erp-kpi" style="animation-delay:.05s"><div class="lbl">Total Tenants</div><div class="val" data-count="7">0</div><div class="delta up">fleet</div></div>
+        <div class="erp-kpi" style="animation-delay:.12s"><div class="lbl">Active</div><div class="val" data-count="5">0</div><div class="delta up">live</div></div>
+        <div class="erp-kpi" style="animation-delay:.19s"><div class="lbl">Suspended</div><div class="val" data-count="1">0</div><div class="delta down">paused</div></div>
+        <div class="erp-kpi" style="animation-delay:.26s"><div class="lbl">Expired</div><div class="val" data-count="1">0</div><div class="delta down">renew</div></div>
+    </div>
+
+    <div class="erp-panel" style="animation-delay:.3s">
+        <h3>Fleet Overview <span>&mdash; each tenant on its own database (isolated)</span></h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+                <tr style="text-align:left;color:var(--erp-muted)">
+                    <th style="padding:10px 8px;border-bottom:1px solid var(--erp-card-brd)">Tenant</th>
+                    <th style="padding:10px 8px;border-bottom:1px solid var(--erp-card-brd)">Code</th>
+                    <th style="padding:10px 8px;border-bottom:1px solid var(--erp-card-brd)">Plan</th>
+                    <th style="padding:10px 8px;border-bottom:1px solid var(--erp-card-brd)">Status</th>
+                    <th style="padding:10px 8px;border-bottom:1px solid var(--erp-card-brd)">Modules</th>
+                    <th style="padding:10px 8px;border-bottom:1px solid var(--erp-card-brd)">Expires</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding:10px 8px">EPartsCart Trading</td><td>epartscart</td><td>full</td><td><span style="color:var(--erp-up);font-weight:600">&#9679; active</span></td><td>34</td><td>2027-01-01</td></tr>
+                <tr><td style="padding:10px 8px">Gulf Jewellers</td><td>gulfjewel</td><td>jewellery_pack</td><td><span style="color:var(--erp-up);font-weight:600">&#9679; active</span></td><td>22</td><td>2026-12-15</td></tr>
+                <tr><td style="padding:10px 8px">Falcon Logistics</td><td>falconlog</td><td>customs_logistics</td><td><span style="color:var(--erp-up);font-weight:600">&#9679; active</span></td><td>11</td><td>2026-11-30</td></tr>
+                <tr><td style="padding:10px 8px">MedSupply DXB</td><td>medsupply</td><td>finance_suite</td><td><span style="color:var(--erp-up);font-weight:600">&#9679; active</span></td><td>14</td><td>2027-03-01</td></tr>
+                <tr><td style="padding:10px 8px">QuickMart POS</td><td>quickmart</td><td>pos_retail</td><td><span style="color:var(--erp-up);font-weight:600">&#9679; active</span></td><td>9</td><td>2026-10-20</td></tr>
+                <tr><td style="padding:10px 8px">BuildPro Contracting</td><td>buildpro</td><td>full</td><td><span style="color:var(--erp-down);font-weight:600">&#9679; suspended</span></td><td>34</td><td>2026-09-01</td></tr>
+                <tr><td style="padding:10px 8px">Payroll Plus</td><td>payrollplus</td><td>payroll_only</td><td><span style="color:var(--erp-down);font-weight:600">&#9679; expired</span></td><td>7</td><td>2026-05-31</td></tr>
+            </tbody>
+        </table>
+        <div style="margin-top:14px;color:var(--erp-muted);font-size:12px;line-height:1.7">
+            Operator actions (provision / re-plan, suspend / reactivate, push compliance updates) run per tenant on that tenant's own database. No cross-tenant data is ever co-mingled.
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.erp-kpi .val').forEach(function (el) {
+    var target = parseFloat(el.getAttribute('data-count')) || 0, start = null;
+    function step(ts) { if (!start) start = ts; var p = Math.min((ts - start) / 1100, 1); el.textContent = Math.floor(target * (1 - Math.pow(1 - p, 3))).toLocaleString(); if (p < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+});
+</script>
+</body>
+</html>

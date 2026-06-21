@@ -62,9 +62,9 @@ if( isset($_POST['action']) )
 			?>
 			
 			<form name="success_form" style="display:none" method="post" action="/content/shop/finance/payment_systems/docpart_emulator/notification.php">
-				<input type="hidden" name="operation_id" value="<?php echo $_POST['operation_id']; ?>">
-				<input type="hidden" name="sum" value="<?php echo $_POST['sum']; ?>">
-				<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>">
+				<input type="hidden" name="operation_id" value="<?php echo htmlspecialchars((string)($_POST['operation_id'] ?? ''), ENT_QUOTES); ?>">
+				<input type="hidden" name="sum" value="<?php echo htmlspecialchars((string)($_POST['sum'] ?? ''), ENT_QUOTES); ?>">
+				<input type="hidden" name="user_id" value="<?php echo htmlspecialchars((string)($_POST['user_id'] ?? ''), ENT_QUOTES); ?>">
 			</form>
 			<script>
 				document.forms["success_form"].submit();
@@ -134,30 +134,30 @@ if( isset($_POST['action']) )
 						<div class="panel-body">
 							<form method="POST">
 								<input type="hidden" name="action" value="pay_execute"/>
-								<input type="hidden" name="operation_id" value="<?php echo $_POST['operation_id']; ?>"/>
-								<input type="hidden" name="sum" value="<?php echo $_POST['sum']; ?>"/>
+								<input type="hidden" name="operation_id" value="<?php echo htmlspecialchars((string)($_POST['operation_id'] ?? ''), ENT_QUOTES); ?>"/>
+								<input type="hidden" name="sum" value="<?php echo htmlspecialchars((string)($_POST['sum'] ?? ''), ENT_QUOTES); ?>"/>
 								
 								<div class="form-group">
 									<label class="control-label"><?php echo translate_str_by_id(4363); ?></label>
-									<p><?php echo $_POST['operation_description']; ?></p>
+									<p><?php echo htmlspecialchars((string)($_POST['operation_description'] ?? ''), ENT_QUOTES); ?></p>
 								</div>
 								
 								
 								<div class="form-group">
 									<label class="control-label"><?php echo translate_str_by_id(4364); ?></label>
-									<p><?php echo $_POST['shop_name'].' (ID '.$_POST['shop_id'].')'; ?></p>
+									<p><?php echo htmlspecialchars((string)($_POST['shop_name'] ?? ''), ENT_QUOTES).' (ID '.htmlspecialchars((string)($_POST['shop_id'] ?? ''), ENT_QUOTES).')'; ?></p>
 								</div>
 								
 								
 								<div class="form-group">
 									<label class="control-label"><?php echo translate_str_by_id(4365); ?></label>
-									<p>Операция ID <?php echo $_POST['operation_id']; ?></p>
+									<p>Операция ID <?php echo htmlspecialchars((string)($_POST['operation_id'] ?? ''), ENT_QUOTES); ?></p>
 								</div>
 								
 								
 								<div class="form-group">
 									<label class="control-label"><?php echo translate_str_by_id(4366); ?></label>
-									<p><?php echo $_POST['sum']; ?></p>
+									<p><?php echo htmlspecialchars((string)($_POST['sum'] ?? ''), ENT_QUOTES); ?></p>
 								</div>
 								
 								

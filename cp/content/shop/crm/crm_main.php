@@ -87,7 +87,7 @@ function epc_crm_tab_url($base, $t)
 			CRM — Sales, support &amp; delivery
 			<span class="pull-right">
 				<a class="btn btn-default btn-xs" href="<?php echo epc_crm_h($erpUrl); ?>"><i class="fa fa-university"></i> ERP Finance</a>
-				<a class="btn btn-default btn-xs" href="<?php echo epc_crm_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
+				<?php if ($ordersUrl !== ''): ?><a class="btn btn-default btn-xs" href="<?php echo epc_crm_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a><?php endif; ?>
 			</span>
 		</div>
 		<div class="panel-body">
@@ -114,7 +114,7 @@ function epc_crm_tab_url($base, $t)
 				?>
 					<a class="btn btn-sm <?php echo $tab === $key ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_crm_h(epc_crm_tab_url($crmUrl, $key)); ?>"><i class="fa <?php echo epc_crm_h($ico); ?>"></i> <?php echo epc_crm_h($label); ?></a>
 				<?php endforeach; ?>
-				<a class="btn btn-sm btn-default pull-right" href="<?php echo epc_crm_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
+				<?php if ($ordersUrl !== ''): ?><a class="btn btn-sm btn-default pull-right" href="<?php echo epc_crm_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a><?php endif; ?>
 			</div>
 
 			<div id="epc_crm_msg" class="alert epc-crm-msg"></div>

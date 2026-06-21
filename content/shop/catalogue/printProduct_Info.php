@@ -601,7 +601,15 @@ else
 				}
 				else//Изображений нет
 				{
-					$src = "/content/files/images/no_image.png";
+					if (!function_exists('epc_storefront_catalog_placeholder_for_hint')
+						&& is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_storefront.php')) {
+						require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_storefront.php';
+					}
+					if (function_exists('epc_storefront_catalog_placeholder_for_hint')) {
+						$src = epc_storefront_catalog_placeholder_for_hint((string) ($_SERVER['REQUEST_URI'] ?? ''));
+					} else {
+						$src = "/content/files/images/no_image.png";
+					}
 					$current_image_id = 0;//Для текущего изображения
 				}
 				?>

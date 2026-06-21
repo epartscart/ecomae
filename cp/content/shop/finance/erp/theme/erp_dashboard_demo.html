@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spare247 ERP — Dashboard</title>
+<link rel="stylesheet" href="erp_theme.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    /* demo-only view switching */
+    #dashView { display: none; }
+    body.signed #loginView { display: none; }
+    body.signed #dashView { display: block; animation: erp-rise 0.7s both; }
+</style>
+</head>
+<body class="erp-theme">
+<div class="erp-bg-grid"></div>
+<div class="erp-orb a"></div>
+<div class="erp-orb b"></div>
+<div class="erp-orb c"></div>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginView" class="erp-login-wrap">
+    <form class="erp-login-card" id="loginForm" autocomplete="off">
+        <div class="erp-logo">S</div>
+        <h1>Spare247 ERP</h1>
+        <div class="sub">Enterprise resource platform — secure sign in</div>
+        <div class="erp-field">
+            <label>Email</label>
+            <input type="text" id="email" value="admin@epartscart.com" />
+        </div>
+        <div class="erp-field">
+            <label>Password</label>
+            <input type="password" id="password" value="demo" />
+        </div>
+        <button type="submit" class="erp-btn">Sign in &rarr;</button>
+        <div class="erp-login-foot">Protected by tenant-isolated security &middot; v2.0</div>
+    </form>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashView">
+    <div class="erp-dash">
+        <div class="erp-topbar">
+            <div class="erp-brand">
+                <div class="mark">S</div>
+                <div class="name">Spare247 ERP<small>EPartsCart Trading LLC &middot; Dubai</small></div>
+            </div>
+            <div>
+                <span class="erp-chip">Industry: <b>Auto Parts</b></span>
+                <span class="erp-chip">Currency: <b>AED</b></span>
+                <span class="erp-chip">Modules: <b>30+</b></span>
+            </div>
+        </div>
+
+        <div class="erp-grid">
+            <div class="erp-kpi" style="animation-delay:.05s">
+                <div class="lbl">Cash Position</div>
+                <div class="val" data-count="1284500" data-prefix="AED ">AED 0</div>
+                <div class="delta up">&#9650; 8.4% this month</div>
+            </div>
+            <div class="erp-kpi" style="animation-delay:.12s">
+                <div class="lbl">Sales (MTD)</div>
+                <div class="val" data-count="642300" data-prefix="AED ">AED 0</div>
+                <div class="delta up">&#9650; 12.1% vs last</div>
+            </div>
+            <div class="erp-kpi" style="animation-delay:.19s">
+                <div class="lbl">Receivables</div>
+                <div class="val" data-count="318900" data-prefix="AED ">AED 0</div>
+                <div class="delta down">&#9660; 3.2% overdue</div>
+            </div>
+            <div class="erp-kpi" style="animation-delay:.26s">
+                <div class="lbl">Stock Value</div>
+                <div class="val" data-count="2105400" data-prefix="AED ">AED 0</div>
+                <div class="delta up">&#9650; turnover 5.6x</div>
+            </div>
+        </div>
+
+        <div class="erp-panels">
+            <div class="erp-panel" style="animation-delay:.2s">
+                <h3>Sales Trend <span>&mdash; last 12 months</span></h3>
+                <canvas id="cSales" height="120"></canvas>
+            </div>
+            <div class="erp-panel" style="animation-delay:.3s">
+                <h3>AR Ageing <span>&mdash; buckets</span></h3>
+                <canvas id="cAgeing" height="120"></canvas>
+            </div>
+        </div>
+        <div class="erp-panels" style="margin-top:16px">
+            <div class="erp-panel" style="animation-delay:.35s">
+                <h3>Cash In vs Out <span>&mdash; weekly</span></h3>
+                <canvas id="cCash" height="110"></canvas>
+            </div>
+            <div class="erp-panel" style="animation-delay:.4s">
+                <h3>Expense Breakdown</h3>
+                <canvas id="cPie" height="110"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function countUp(el) {
+    var target = parseFloat(el.getAttribute('data-count')) || 0;
+    var prefix = el.getAttribute('data-prefix') || '';
+    var start = null, dur = 1400;
+    function step(ts) {
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        var v = Math.floor(target * eased);
+        el.textContent = prefix + v.toLocaleString();
+        if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+function drawCharts() {
+    if (typeof Chart === 'undefined') return;
+    Chart.defaults.color = '#8aa0c4';
+    Chart.defaults.font.family = 'Inter, Segoe UI, sans-serif';
+    var grid = 'rgba(120,160,220,0.08)';
+
+    var ctx = document.getElementById('cSales').getContext('2d');
+    var g = ctx.createLinearGradient(0, 0, 0, 160);
+    g.addColorStop(0, 'rgba(22,224,163,0.45)');
+    g.addColorStop(1, 'rgba(22,224,163,0.02)');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'],
+            datasets: [{ data: [320,360,410,390,460,520,480,540,610,590,640,720], fill: true, backgroundColor: g, borderColor: '#16e0a3', borderWidth: 2, tension: 0.4, pointRadius: 0 }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid } }, y: { grid: { color: grid } } }, animation: { duration: 1400 } }
+    });
+
+    new Chart(document.getElementById('cAgeing').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Current','1-30','31-60','61-90','90+'],
+            datasets: [{ data: [180,95,42,28,18], backgroundColor: ['#16e0a3','#2bb8ff','#9b6bff','#ffb020','#ff5d73'], borderRadius: 6 }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid } }, y: { grid: { color: grid } } }, animation: { duration: 1400 } }
+    });
+
+    new Chart(document.getElementById('cCash').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['W1','W2','W3','W4'],
+            datasets: [
+                { label: 'In', data: [220,260,240,300], backgroundColor: '#16e0a3', borderRadius: 5 },
+                { label: 'Out', data: [160,180,150,210], backgroundColor: '#ff5d73', borderRadius: 5 }
+            ]
+        },
+        options: { plugins: { legend: { labels: { boxWidth: 12 } } }, scales: { x: { grid: { color: grid } }, y: { grid: { color: grid } } }, animation: { duration: 1400 } }
+    });
+
+    new Chart(document.getElementById('cPie').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Salaries','Rent','Logistics','Marketing','Other'],
+            datasets: [{ data: [42,18,16,14,10], backgroundColor: ['#16e0a3','#2bb8ff','#9b6bff','#ffb020','#5b6b85'], borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }, cutout: '62%', animation: { duration: 1400 } }
+    });
+}
+
+function enterDashboard() {
+    document.body.classList.add('signed');
+    document.querySelectorAll('.erp-kpi .val').forEach(countUp);
+    setTimeout(drawCharts, 250);
+}
+
+document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pw = document.getElementById('password').value;
+    if (pw === '') {
+        var card = document.querySelector('.erp-login-card');
+        card.classList.add('erp-shake');
+        setTimeout(function () { card.classList.remove('erp-shake'); }, 450);
+        return;
+    }
+    enterDashboard();
+});
+</script>
+</body>
+</html>

@@ -517,7 +517,7 @@ $GLOBALS['epc_cp_page_assets']['js']['/content/shop/finance/epc_custom_shipping_
 			<?php if ($edit): ?><input type="hidden" name="id" value="<?php echo (int) $edit['id']; ?>"><?php endif; ?>
 
 			<div class="epc-cs-form-section">
-				<h5><i class="fa fa-pencil"></i> Manual ERP fields <small class="text-muted">â€” supplier, PO, LC, SRV, D365 refs (never auto-filled from PDF)</small></h5>
+				<h5><i class="fa fa-pencil"></i> Manual ERP fields <small class="text-muted">â€” supplier, PO, LC, SRV, ERP refs (never auto-filled from PDF)</small></h5>
 				<div class="row">
 					<?php foreach ($manualFieldDefs as $key => $meta): ?>
 						<?php epc_cs_render_field_row($key, $meta, $edit, $csCategory, $csType, $typesForCat, $pdfAutofillKeys, 'epc-cs-manual-field'); ?>

@@ -106,6 +106,6 @@ $netClass = ($vat['net_vat_payable'] >= 0) ? 'text-danger' : 'text-success';
 		<li>Customer order prices are ex VAT; invoice / due = ex + <?php echo epc_erp_h(number_format($rate, 2)); ?>%.</li>
 		<li>File VAT return on FTA portal; pay net amount from this report.</li>
 		<li><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, 'finance')); ?>">Tax compliance knowledge base</a> — invoice format, excise, CT filing.</li>
-		<li>Default VAT rate: CP → <a href="/<?php echo epc_erp_h($GLOBALS['DP_Config']->backend_dir); ?>/shop/price-management">Price management</a>.</li>
+<?php if (!empty($epc_erp_cp_links)): ?>		<li>Default VAT rate: CP → <a href="/<?php echo epc_erp_h($GLOBALS['DP_Config']->backend_dir); ?>/shop/price-management">Price management</a>.</li><?php endif; ?>
 	</ol>
 </div>

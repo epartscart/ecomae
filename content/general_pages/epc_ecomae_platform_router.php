@@ -76,6 +76,83 @@ function epc_render_ecomae_marketing_home_and_exit()
 	exit;
 }
 
+/**
+ * Serve /sitemap.xml and /robots.txt for the marketing host. Returns true if it
+ * emitted a response (caller should exit). Lightweight: no MySQL needed.
+ */
+function epc_ecomae_marketing_serve_seo_file()
+{
+	if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET' || !epc_ecomae_is_marketing_platform_host()) {
+		return false;
+	}
+	$path = epc_ecomae_platform_normalize_path($_SERVER['REQUEST_URI'] ?? '/');
+	$base = rtrim(epc_ecomae_platform_base_url(), '/');
+
+	if ($path === '/robots.txt') {
+		if (function_exists('epc_ecomae_platform_send_marketing_headers')) {
+			epc_ecomae_platform_send_marketing_headers();
+		}
+		header('Content-Type: text/plain; charset=utf-8');
+		echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\nSitemap: " . $base . "/sitemap.xml\n";
+		return true;
+	}
+
+	if ($path === '/sitemap.xml') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_content.php';
+		// core marketing pages with crawl priority + change cadence
+		$urls = array(
+			array('/', '1.0', 'daily'),
+			array('/platform', '0.9', 'weekly'),
+			array('/platform/capabilities', '0.8', 'weekly'),
+			array('/platform/free-tools', '0.9', 'weekly'),
+			array('/platform/industries', '0.8', 'weekly'),
+			array('/platform/pricing', '0.8', 'weekly'),
+			array('/platform/demo', '0.8', 'weekly'),
+			array('/platform/customer-results', '0.7', 'weekly'),
+			array('/platform/about', '0.6', 'monthly'),
+			array('/platform/contact', '0.6', 'monthly'),
+			array('/platform/business-continuity', '0.6', 'monthly'),
+			array('/platform/platform-guides', '0.6', 'monthly'),
+			array('/platform/api-documentation', '0.6', 'monthly'),
+			array('/platform/api-services', '0.6', 'monthly'),
+			array('/platform/auto-price-ai', '0.6', 'monthly'),
+			array('/platform/faq', '0.7', 'weekly'),
+			array('/documentation', '0.7', 'weekly'),
+			array('/compare', '0.7', 'weekly'),
+			array('/bos', '0.7', 'weekly'),
+			array('/solutions', '0.7', 'weekly'),
+		);
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		foreach (array_keys(epc_free_tools_catalog()) as $tk) { $urls[] = array('/platform/free-tools/' . $tk, '0.8', 'monthly'); }
+		foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $urls[] = array('/documentation/' . $s, '0.6', 'monthly'); }
+		foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $urls[] = array('/compare/' . $s, '0.6', 'monthly'); }
+		foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $urls[] = array('/bos/' . $s, '0.6', 'monthly'); }
+		foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $urls[] = array('/solutions/' . $s, '0.7', 'monthly'); }
+		if (function_exists('epc_ecomae_platform_industry_marketing')) {
+			foreach (array_keys(epc_ecomae_platform_industry_marketing()) as $code) {
+				$urls[] = array('/platform/industry/' . $code, '0.7', 'monthly');
+			}
+		}
+		if (function_exists('epc_ecomae_platform_send_marketing_headers')) {
+			epc_ecomae_platform_send_marketing_headers();
+		}
+		header('Content-Type: application/xml; charset=utf-8');
+		$now = date('Y-m-d');
+		echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+		foreach ($urls as $u) {
+			echo '<url><loc>' . htmlspecialchars($base . $u[0], ENT_QUOTES) . '</loc>'
+				. '<lastmod>' . $now . '</lastmod>'
+				. '<changefreq>' . $u[2] . '</changefreq>'
+				. '<priority>' . $u[1] . '</priority></url>' . "\n";
+		}
+		echo '</urlset>' . "\n";
+		return true;
+	}
+
+	return false;
+}
+
 function epc_ecomae_platform_normalize_path($path)
 {
 	$path = (string) $path;
@@ -95,6 +172,19 @@ function epc_ecomae_platform_match_path($path)
 	$path = epc_ecomae_platform_normalize_path($path);
 	if ($path === '/' || $path === '/index.php') {
 		return array('page' => 'home', 'params' => array());
+	}
+	// Marketing / SEO + AI-visibility content (top-level, not under /platform).
+	if (preg_match('#^/documentation(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'docs', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (preg_match('#^/compare(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'compare', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (preg_match('#^/bos(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'bos', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (preg_match('#^/solutions(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'solution', 'params' => array('slug' => $m[1] ?? ''));
 	}
 	if (!preg_match('#^/platform(?:/|$)#', $path)) {
 		return null;
@@ -147,6 +237,12 @@ function epc_ecomae_platform_match_path($path)
 			$focus = 'price_pro';
 		}
 		return array('page' => 'api_services', 'params' => array('focus' => $focus));
+	}
+	if ($rest === 'free-tools' || $rest === 'tools') {
+		return array('page' => 'free_tools', 'params' => array());
+	}
+	if (preg_match('#^free-tools/([a-z]+)$#', $rest, $m)) {
+		return array('page' => 'free_tools', 'params' => array('tool' => $m[1]));
 	}
 	if (preg_match('#^industry/([a-z0-9_]+)$#', $rest, $m)) {
 		return array('page' => 'industry', 'params' => array('code' => $m[1]));
@@ -231,6 +327,7 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		'pricing' => 'Monthly rental plans',
 		'demo' => '3-day industry demo',
 		'contact' => 'Contact ecomae',
+		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
 	);
 	$title = isset($titles[$match['page']]) ? $titles[$match['page']] : 'ecomae platform';
@@ -241,11 +338,24 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 			$title = $industries[$code]['name'] . ' — ecomae';
 		}
 	}
+	$mktDesc = '';
+	if (in_array($match['page'], array('docs', 'compare', 'bos', 'solution'), true)
+		&& function_exists('epc_ecomae_marketing_meta')) {
+		$meta = epc_ecomae_marketing_meta($match['page'], $match['params']);
+		if ($meta) {
+			$title = $meta[0];
+			$mktDesc = $meta[1];
+		}
+	}
 
 	$DP_Content->content_type = 'text';
 	$DP_Content->value = $title;
 	$DP_Content->title_tag = $title;
 	$DP_Content->main_flag = false;
+	if ($mktDesc !== '') {
+		$DP_Content->meta_description = $mktDesc;
+		$DP_Content->description = $mktDesc;
+	}
 	$DP_Content->content = epc_ecomae_platform_render_page($match['page'], $match['params'], 'inner');
 	unset($DP_Content->service_data['error_page']);
 	$DP_Content->service_data['epc_platform_marketing'] = true;
@@ -277,6 +387,7 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		'pricing' => 'Monthly rental plans',
 		'demo' => '3-day industry demo',
 		'contact' => 'Contact ecomae',
+		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
 	);
 	$title = isset($titles[$page]) ? $titles[$page] : 'ecomae platform';
@@ -286,6 +397,11 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		if (isset($industries[$code])) {
 			$title = $industries[$code]['name'] . ' — ecomae';
 		}
+	}
+	if ($page === 'free_tools') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		$seo = epc_free_tools_seo((string) ($params['tool'] ?? ''));
+		$title = $seo['title'];
 	}
 	return $title;
 }

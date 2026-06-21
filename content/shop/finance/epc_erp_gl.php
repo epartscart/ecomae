@@ -94,6 +94,12 @@ function epc_erp_gl_ensure_schema(PDO $db)
 	epc_erp_gl_add_column_if_missing($db, 'epc_erp_cash_bank_entries', 'gl_journal_id', 'int(11) NOT NULL DEFAULT 0');
 	epc_erp_gl_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'coa_id', 'int(11) NOT NULL DEFAULT 0');
 
+	// Covering / composite indexes for the hot reporting paths (trial balance,
+	// P&L, balance sheet, per-account activity). Added idempotently so existing
+	// tenant DBs (created before these keys existed) are upgraded in place.
+	epc_erp_gl_add_index_if_missing($db, 'epc_erp_gl_lines', 'x_coa_cover', '(`coa_id`,`journal_id`,`debit`,`credit`)');
+	epc_erp_gl_add_index_if_missing($db, 'epc_erp_gl_journals', 'x_active_date', '(`active`,`journal_date`)');
+
 	epc_erp_gl_seed_coa($db);
 }
 
@@ -107,6 +113,59 @@ function epc_erp_gl_add_column_if_missing(PDO $db, $table, $column, $definition)
 		}
 	} catch (Exception $e) {
 	}
+}
+
+/**
+ * Add an index to a table only if no index with that name already exists.
+ * Idempotent and safe to call on every request (cheap SHOW INDEX check).
+ * $table/$indexName are internal literals; $columnsSpec is a literal column list.
+ */
+function epc_erp_gl_add_index_if_missing(PDO $db, $table, $indexName, $columnsSpec)
+{
+	if (!preg_match('/^[a-zA-Z0-9_]+$/', (string)$table) || !preg_match('/^[a-zA-Z0-9_]+$/', (string)$indexName)) {
+		return;
+	}
+	try {
+		$q = $db->prepare('SHOW INDEX FROM `' . $table . '` WHERE `Key_name` = ?');
+		$q->execute(array($indexName));
+		if (!$q->fetch()) {
+			$db->exec('ALTER TABLE `' . $table . '` ADD INDEX `' . $indexName . '` ' . $columnsSpec);
+		}
+	} catch (Exception $e) {
+	}
+}
+
+/**
+ * Batched per-account GL activity (debits/credits) up to a date, in a single
+ * grouped query — replaces the N+1 of calling epc_erp_gl_coa_activity() per
+ * account when building the trial balance / COA list.
+ *
+ * @return array<int,array{debits:float,credits:float}> keyed by coa_id
+ */
+function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0)
+{
+	$sql = 'SELECT l.`coa_id` AS coa_id,
+			IFNULL(SUM(l.`debit`),0) AS debits,
+			IFNULL(SUM(l.`credit`),0) AS credits
+		FROM `epc_erp_gl_lines` l
+		INNER JOIN `epc_erp_gl_journals` j ON j.id = l.journal_id
+		WHERE j.active = 1';
+	$params = array();
+	if ((int)$date_to > 0) {
+		$sql .= ' AND j.journal_date <= ?';
+		$params[] = (int)$date_to;
+	}
+	$sql .= ' GROUP BY l.`coa_id`';
+	$stmt = $db->prepare($sql);
+	$stmt->execute($params);
+	$map = array();
+	foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+		$map[(int)$r['coa_id']] = array(
+			'debits' => (float)$r['debits'],
+			'credits' => (float)$r['credits'],
+		);
+	}
+	return $map;
 }
 
 function epc_erp_gl_seed_coa(PDO $db)
@@ -163,14 +222,22 @@ function epc_erp_gl_coa_by_code(PDO $db, $code)
 	return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
-function epc_erp_gl_list_coa(PDO $db)
+function epc_erp_gl_list_coa(PDO $db, $as_of = 0)
 {
 	epc_erp_gl_ensure_schema($db);
 	$rows = $db->query(
 		'SELECT * FROM `epc_erp_coa_accounts` WHERE `active` = 1 ORDER BY `code` ASC'
 	)->fetchAll(PDO::FETCH_ASSOC);
+	// Single batched aggregation instead of one query per account (N+1).
+	$activity = epc_erp_gl_all_coa_activity($db, $as_of > 0 ? (int)$as_of : time());
 	foreach ($rows as &$row) {
-		$row['balance'] = epc_erp_gl_coa_balance($db, (int)$row['id']);
+		$act = $activity[(int)$row['id']] ?? array('debits' => 0.0, 'credits' => 0.0);
+		$row['balance'] = epc_erp_gl_signed_balance(
+			$row['opening_balance'],
+			$act['debits'],
+			$act['credits'],
+			$row['normal_side']
+		);
 	}
 	unset($row);
 	return $rows;
@@ -261,11 +328,24 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 		throw new Exception('Journal amount must be greater than zero');
 	}
 
+	// Fiscal-period lock: refuse posting into a closed period (opt-in — no lock
+	// set means no restriction).
+	require_once __DIR__ . '/epc_erp_fiscal_periods.php';
+	$jdateForLock = !empty($header['journal_date']) ? (int)$header['journal_date'] : time();
+	if (epc_erp_fiscal_is_locked($db, $jdateForLock)) {
+		throw new Exception('Period is closed: cannot post on or before ' . date('Y-m-d', epc_erp_fiscal_lock_date($db)));
+	}
+
+	// Resolve the journal number BEFORE opening the transaction: it lazily runs
+	// CREATE TABLE IF NOT EXISTS (DDL), which MySQL implicitly commits. Doing it
+	// inside the transaction would break atomicity and make the later commit()
+	// throw "no active transaction".
+	$journal_no = !empty($header['journal_no']) ? (string)$header['journal_no'] : epc_erp_gl_next_journal_no($db);
+
 	if (!$db->beginTransaction()) {
 		throw new Exception('Transaction start failed');
 	}
 	try {
-		$journal_no = !empty($header['journal_no']) ? (string)$header['journal_no'] : epc_erp_gl_next_journal_no($db);
 		$jdate = !empty($header['journal_date']) ? (int)$header['journal_date'] : time();
 		$legRef = (string)($header['uae_tax_legislation_ref'] ?? $vatCheck['legislation_ref'] ?? '');
 		$vatTreatment = trim((string)($header['uae_vat_treatment'] ?? ''));
@@ -308,6 +388,49 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 		}
 		throw $e;
 	}
+}
+
+/**
+ * Reverse a posted journal by creating a mirror journal (debits/credits
+ * swapped). Posted journals are never edited or deleted — the reversal is the
+ * audited correction mechanism. Returns the new (reversing) journal id.
+ */
+function epc_erp_gl_reverse_journal(PDO $db, $journal_id, $reverse_date = 0, $note = '')
+{
+	epc_erp_gl_ensure_schema($db);
+	$journal_id = (int)$journal_id;
+	$jstmt = $db->prepare('SELECT * FROM `epc_erp_gl_journals` WHERE `id` = ? AND `active` = 1 LIMIT 1');
+	$jstmt->execute(array($journal_id));
+	$journal = $jstmt->fetch(PDO::FETCH_ASSOC);
+	if (!$journal) {
+		throw new Exception('Journal not found or already reversed');
+	}
+	$lstmt = $db->prepare('SELECT `coa_id`, `debit`, `credit`, `line_note` FROM `epc_erp_gl_lines` WHERE `journal_id` = ?');
+	$lstmt->execute(array($journal_id));
+	$lines = $lstmt->fetchAll(PDO::FETCH_ASSOC);
+	if (!$lines) {
+		throw new Exception('Journal has no lines to reverse');
+	}
+	$reversed = array();
+	foreach ($lines as $l) {
+		$reversed[] = array(
+			'coa_id' => (int)$l['coa_id'],
+			'debit' => round((float)$l['credit'], 2),
+			'credit' => round((float)$l['debit'], 2),
+			'line_note' => 'Reversal — ' . (string)$l['line_note'],
+		);
+	}
+	$newId = epc_erp_gl_post_journal($db, array(
+		'journal_date' => (int)$reverse_date > 0 ? (int)$reverse_date : time(),
+		'reference' => 'REV of ' . (string)$journal['journal_no'],
+		'description' => trim((string)$note) !== '' ? trim((string)$note) : ('Reversal of ' . (string)$journal['journal_no']),
+		'source_type' => 'adjustment',
+		'source_id' => $journal_id,
+	), $reversed);
+	if (function_exists('epc_erp_audit_log')) {
+		epc_erp_audit_log($db, 'gl_reverse', 'gl_journal', $journal_id, 'Reversed by journal #' . $newId);
+	}
+	return $newId;
 }
 
 function epc_erp_gl_create_coa(PDO $db, array $data)
@@ -663,12 +786,13 @@ function epc_erp_gl_balance_sheet(PDO $db, $as_of)
 function epc_erp_gl_trial_balance(PDO $db, $as_of)
 {
 	epc_erp_gl_ensure_schema($db);
-	$rows = epc_erp_gl_list_coa($db);
+	// list_coa now computes per-account balances in a single batched query.
+	$rows = epc_erp_gl_list_coa($db, $as_of);
 	$out = array();
 	$td = 0.0;
 	$tc = 0.0;
 	foreach ($rows as $a) {
-		$bal = epc_erp_gl_coa_balance($db, (int)$a['id'], $as_of);
+		$bal = (float)$a['balance'];
 		if (abs($bal) < 0.005) {
 			continue;
 		}

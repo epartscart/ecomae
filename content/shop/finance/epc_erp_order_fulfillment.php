@@ -288,6 +288,9 @@ function epc_erp_order_fulfillment_create_po_for_supplier(
 		$now,
 	));
 	$poId = (int) $db->lastInsertId();
+	if (function_exists('epc_pf_sync_po_case')) {
+		try { epc_pf_sync_po_case($db, $poId); } catch (Exception $e) {}
+	}
 
 	$ins = $db->prepare(
 		'INSERT INTO `epc_erp_po_lines`
@@ -570,12 +573,30 @@ function epc_erp_order_fulfillment_bootstrap(PDO $db, int $orderId): array
 		}
 	}
 
+	epc_erp_order_fulfillment_pf_sync($db, $orderId);
+
 	return array(
 		'shop_order_id' => $orderId,
 		'sales_order_id' => $soId,
 		'po_ids' => $poIds,
 		'created' => true,
 	);
+}
+
+/** Mirror the order into the Process flow "Customer Order → Delivery" case (best-effort). */
+function epc_erp_order_fulfillment_pf_sync(PDO $db, int $orderId): void
+{
+	try {
+		$pfFile = __DIR__ . '/epc_erp_processflow.php';
+		if ($orderId > 0 && is_file($pfFile)) {
+			require_once $pfFile;
+			if (function_exists('epc_pf_sync_order_case')) {
+				epc_pf_sync_order_case($db, $orderId);
+			}
+		}
+	} catch (Exception $e) {
+		// never block fulfilment
+	}
 }
 
 function epc_erp_order_fulfillment_sync_received_qty(PDO $db, int $orderId): void
@@ -689,6 +710,7 @@ function epc_erp_order_fulfillment_status(PDO $db, int $orderId): array
 	epc_erp_order_fulfillment_ensure_schema($db);
 	epc_erp_order_fulfillment_sync_po_statuses($db, $orderId);
 	$fulfillment = epc_erp_order_fulfillment_sync_sales_status($db, $orderId);
+	epc_erp_order_fulfillment_pf_sync($db, $orderId);
 
 	$so = epc_erp_order_fulfillment_find_sales_order($db, $orderId);
 	$poSt = $db->prepare(

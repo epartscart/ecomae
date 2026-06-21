@@ -271,7 +271,7 @@ function epc_crm_seed_sample_if_empty(PDO $db)
 	)->execute(array($leadIds[0], 'Q-' . date('Ym') . '-001', $now, $now));
 	$qid = (int)$db->lastInsertId();
 	$db->prepare(
-		'INSERT INTO `epc_crm_quote_lines` (`quote_id`, `description`, `qty`, `unit_price`, `sort_order`) VALUES (?, ?, 1, 42000, 0)'
+		'INSERT INTO `epc_crm_quote_lines` (`quote_id`, `description`, `qty`, `unit_price`, `sort_order`) VALUES (?, ?, ?, ?, 0)'
 	)->execute(array($qid, 'Annual parts supply package', 1, 42000));
 
 	$db->prepare(

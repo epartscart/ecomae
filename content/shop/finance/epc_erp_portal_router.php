@@ -42,6 +42,10 @@ function epc_erp_portal_match_request($requestUri = null)
 	if ($path === '/shop/erp' || $path === '/shop/erp/') {
 		return array('page' => 'main', 'lang_prefix' => $langPrefix, 'path_after' => '');
 	}
+	if ($path === '/erp-demo' || $path === '/erp-demo/'
+		|| $path === '/shop/erp-demo' || $path === '/shop/erp-demo/') {
+		return array('page' => 'demo', 'lang_prefix' => $langPrefix, 'path_after' => '');
+	}
 
 	return null;
 }
@@ -78,6 +82,10 @@ function epc_erp_portal_handle_ajax(PDO $db_link)
 		ob_end_clean();
 	}
 	header('Content-Type: application/json; charset=utf-8');
+	// DP_User::isAdmin() and other legacy helpers read the connection from the
+	// global $db_link, so it must be set before any access check runs — otherwise
+	// they call ->prepare() on null and the whole request fatals.
+	$GLOBALS['db_link'] = $db_link;
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 	if (!epc_erp_user_can_access($db_link)) {
@@ -99,6 +107,17 @@ function epc_erp_portal_handle_ajax(PDO $db_link)
 function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 {
 	global $DP_Config;
+	// The portal serves both the logged-out sign-in page and the signed-in
+	// workspace from the same /erp/ URL (the response varies by auth cookie).
+	// Without an explicit cache policy some browsers/proxies serve a stale copy
+	// (e.g. an old unstyled sign-in page) after a deploy. Mark it non-cacheable
+	// so every visit fetches the current page.
+	if (!headers_sent()) {
+		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+		header('Pragma: no-cache');
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_security.php';
+	epc_erp_send_security_headers(true);
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 	$pageTitle = isset($opts['title']) ? (string) $opts['title'] : 'ERP Finance';
 	$bodyClass = isset($opts['body_class']) ? (string) $opts['body_class'] : 'epc-erp-standalone';
@@ -111,6 +130,13 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 	$cpUrl = '/' . $backend . '/shop/finance/erp?epc_erp_shell=1';
 	$showStore = function_exists('epc_portal_storefront_enabled') && epc_portal_storefront_enabled();
 	$platformHost = function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname();
+	// ERP-only tenants must never be linked out to the CP control panel or Super
+	// CP — they live entirely inside the standalone /erp/ door. Full tenants keep
+	// both escape hatches.
+	if (!function_exists('epc_erp_is_erp_only_context')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
+	}
+	$isErpOnly = function_exists('epc_erp_is_erp_only_context') && epc_erp_is_erp_only_context();
 	$cssVer = '20260530a';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
 	?>
@@ -122,10 +148,41 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 	<title><?php echo htmlspecialchars($pageTitle . ' — ' . ($brand['product_name'] ?? 'ERP'), ENT_QUOTES, 'UTF-8'); ?></title>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
-	<link rel="stylesheet" href="/<?php echo $backend; ?>/templates/bootstrap_admin/css/epc_cp_ui.css?v=<?php echo $cssVer; ?>" />
-	<link rel="stylesheet" href="/content/shop/finance/epc_erp_portal.css?v=<?php echo $cssVer; ?>" />
-	<link rel="stylesheet" href="/content/shop/finance/epc_erp_professional.css?v=<?php echo $cssVer; ?>" />
-	<?php epc_ecomae_hub_logo_enqueue(); ?>
+	<?php
+	// The CP/ERP stylesheets are NOT served as static assets on the marketing
+	// host (they 404), which left the signed-in ERP workspace unstyled. Inline
+	// them from disk so the full ERP app is styled on the standalone portal.
+	$epc_erp_inline_css_files = array(
+		$_SERVER['DOCUMENT_ROOT'] . '/' . ($DP_Config->backend_dir ?? 'cp') . '/templates/bootstrap_admin/css/epc_cp_ui.css',
+		$_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_portal.css',
+		$_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_professional.css',
+		$_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.css',
+	);
+	foreach ($epc_erp_inline_css_files as $epc_erp_css_path) {
+		if (is_file($epc_erp_css_path)) {
+			echo "\n<style data-erp-inline=\"" . htmlspecialchars(basename($epc_erp_css_path), ENT_QUOTES, 'UTF-8') . "\">\n";
+			echo file_get_contents($epc_erp_css_path);
+			echo "\n</style>\n";
+		}
+	}
+	?>
+	<?php
+	// Theme tokens (Blue & White for the ERP surface). Injected inline so the
+	// portal is correctly themed even though the external CSS files are not
+	// served as static assets on the marketing host.
+	$epc_theme_file = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_theme.php';
+	if (is_file($epc_theme_file)) {
+		require_once $epc_theme_file;
+	}
+	if (function_exists('epc_theme_style_tag_for_surface')) {
+		echo epc_theme_style_tag_for_surface('erp');
+	}
+	// Self-contained professional stylesheet for the standalone portal shell,
+	// login and home. Kept inline (always served via PHP) so the sign-in page
+	// looks right regardless of static-asset availability.
+	require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_portal_inline_css.php';
+	epc_ecomae_hub_logo_enqueue();
+	?>
 </head>
 <body class="<?php echo htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8'); ?>">
 <header class="epc-erp-topbar">
@@ -140,11 +197,13 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 		<nav class="epc-erp-topbar__nav">
 			<a href="<?php echo $erpBase; ?>"><i class="fa fa-dashboard"></i> ERP</a>
 			<a href="<?php echo htmlspecialchars($guideUrl, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-book"></i> Guide</a>
+			<?php if (!$isErpOnly): ?>
 			<a href="<?php echo htmlspecialchars($cpUrl, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-cog"></i> Control panel (advanced)</a>
+			<?php endif; ?>
 			<?php if ($showStore): ?>
 			<a href="/"><i class="fa fa-globe"></i> Website</a>
 			<?php endif; ?>
-			<?php if ($platformHost): ?>
+			<?php if ($platformHost && !$isErpOnly): ?>
 			<a href="https://www.ecomae.com/cp/shop/tenant_hub/tenant_hub"><i class="fa fa-cloud"></i> Super CP</a>
 			<?php endif; ?>
 		</nav>
@@ -180,6 +239,12 @@ function epc_erp_portal_render_page(PDO $db_link, $page)
 	$GLOBALS['db_link'] = $db_link;
 	$epc_erp_portal = 'frontend';
 	$epc_erp_standalone = true;
+	// erp_main.php enables its standalone (no-CP-chrome) shell mode by reading
+	// $GLOBALS['epc_erp_standalone']; the local above is not in scope there.
+	// Without this, erp_main calls CP-only sidebar bootstrap helpers that are
+	// not loaded on the marketing host, fataling to a blank workspace.
+	$GLOBALS['epc_erp_standalone'] = true;
+	$GLOBALS['epc_erp_portal'] = 'frontend';
 
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/lang/dp_lang.php';
@@ -188,6 +253,36 @@ function epc_erp_portal_render_page(PDO $db_link, $page)
 	epc_erp_portal_handle_auth_post($db_link);
 	if (!isset($multilang_params) || !is_array($multilang_params)) {
 		$multilang_params = multilang_init();
+	}
+
+	if ($page === 'demo') {
+		// Client demo: a separate public link that mirrors the full Super ERP
+		// (every module/tab) read-only, with no login. Restricted to the platform
+		// marketing/demo host so it can never expose a real tenant's workspace;
+		// other hosts keep the safe sample-data dashboard.
+		$epcDemoMirrorHost = function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname()
+			&& !(function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host());
+		if ($epcDemoMirrorHost) {
+			$GLOBALS['epc_erp_demo_mirror'] = true;
+			epc_erp_portal_render_shell(function () use ($db_link, $DP_Config) {
+				$user_session = epc_erp_resolve_user_session();
+				$epc_erp_portal = 'frontend';
+				extract(epc_erp_configure_portal_urls('frontend'));
+				$erp_include = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/finance/erp/erp_main.php';
+				if (!is_file($erp_include)) {
+					echo '<div class="alert alert-danger">ERP module files not found on server.</div>';
+					return;
+				}
+				echo '<div class="epc-erp-workspace epc-erp-workspace--demo">';
+				include $erp_include;
+				echo '</div>';
+			}, array('title' => 'Live Super ERP demo', 'body_class' => 'epc-erp-standalone epc-erp-standalone--demo epc-erp-standalone--mirror'));
+			return;
+		}
+		epc_erp_portal_render_shell(function () {
+			require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/erp_demo_dashboard.php';
+		}, array('title' => 'Live ERP demo', 'body_class' => 'epc-erp-standalone epc-erp-standalone--demo'));
+		return;
 	}
 
 	$title = ($page === 'guide') ? 'ERP guide' : 'ERP Finance';
@@ -259,6 +354,13 @@ function epc_erp_portal_try_route()
 		http_response_code(405);
 		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode(array('status' => false, 'message' => 'POST required'));
+		return true;
+	}
+
+	// Public live-demo dashboard (no login). Rendered before the /shop/erp
+	// canonical redirect since /shop/erp-demo also contains "/shop/erp".
+	if ($match['page'] === 'demo') {
+		epc_erp_portal_render_page($db_link, 'demo');
 		return true;
 	}
 
