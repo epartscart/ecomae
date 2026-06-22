@@ -34,6 +34,10 @@ function epc_server_guard_check(): bool
 	if (preg_match('#^/cp/content/control/portal/ajax#i', $path)) {
 		return false;
 	}
+	// Never block CP login page
+	if (preg_match('#^/cp(?:/|$)#i', $path)) {
+		return false;
+	}
 
 	// Check 1-minute load average (Linux only)
 	if (!is_readable('/proc/loadavg')) {
@@ -55,6 +59,14 @@ function epc_server_guard_check(): bool
 		}
 	}
 	$threshold = $cores * 4;
+
+	// Lightweight tenants (non-epartscart) get a higher threshold — they render
+	// in <3s since they don't have 133K+ parts.  Only block them if TRULY critical.
+	$host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+	$isHeavyTenant = (strpos($host, 'epartscart') !== false);
+	if (!$isHeavyTenant) {
+		$threshold = $cores * 6;
+	}
 
 	if ($load_1min < $threshold) {
 		return false;

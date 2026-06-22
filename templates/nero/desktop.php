@@ -164,36 +164,36 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 		if (is_object($DP_Content)) {
 			epc_electronics_retail_apply_seo($DP_Content);
 		}
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_electronics_retail.css?v=20260606el" />';
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_electronics_retail_virgin_hero.css?v=20260606el" />';
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_electronicae_storefront.css?v=20260606el" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_electronics_retail.css?v=20260621" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_electronics_retail_virgin_hero.css?v=20260621" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_electronicae_storefront.css?v=20260621" />';
 	}
 	if ($epc_cpi_consulting) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_consulting_primeinvest_helpers.php';
 		if (is_object($DP_Content) && function_exists('epc_cpi_apply_seo')) {
 			epc_cpi_apply_seo($DP_Content);
 		}
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_consulting_primeinvest.css?v=20260530x" />';
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_consulting_primeinvest_hero.css?v=20260530x" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_consulting_primeinvest.css?v=20260621" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_consulting_primeinvest_hero.css?v=20260621" />';
 	}
 	if ($epc_frn_retail) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_fashion_retail_namshi_helpers.php';
 		if (is_object($DP_Content) && function_exists('epc_fashion_retail_namshi_apply_seo')) {
 			epc_fashion_retail_namshi_apply_seo($DP_Content);
 		}
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_fashion_retail_namshi.css?v=20260530x" />';
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_fashion_retail_namshi_hero.css?v=20260530x" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_fashion_retail_namshi.css?v=20260621" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_fashion_retail_namshi_hero.css?v=20260621" />';
 	}
 	if ($epc_jrk_retail) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_jewellery_retail_kiyasha_helpers.php';
 		if (is_object($DP_Content) && function_exists('epc_jewellery_retail_kiyasha_apply_seo')) {
 			epc_jewellery_retail_kiyasha_apply_seo($DP_Content);
 		}
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_jewellery_retail_kiyasha.css?v=20260530x" />';
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_jewellery_retail_kiyasha_hero.css?v=20260530x" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_jewellery_retail_kiyasha.css?v=20260621" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_jewellery_retail_kiyasha_hero.css?v=20260621" />';
 	}
 	if ($epc_asp_pro) {
-		echo '<link rel="stylesheet" href="/content/general_pages/epc_automotive_spareparts.css?v=20260602a" />';
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_automotive_spareparts.css?v=20260621" />';
 	}
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_storefront_logo.php';
 	epc_portal_storefront_hub_logo_enqueue();
