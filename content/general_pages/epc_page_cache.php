@@ -81,6 +81,13 @@ function epc_page_cache_try_serve(): bool
 	if ($html === false || strlen($html) < 100) {
 		return false;
 	}
+	// Reject stale partial renders that slipped through before the
+	// completeness check was added to epc_page_cache_flush().
+	if (stripos(trim($html), '<!doctype') !== 0 && stripos($html, '<html') === false) {
+		@unlink($file);
+		@unlink($file . '.meta');
+		return false;
+	}
 	header('Content-Type: text/html; charset=UTF-8');
 	header('X-EPC-Cache: HIT');
 	if (function_exists('ob_gzhandler') && !ini_get('zlib.output_compression') && strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
@@ -118,6 +125,15 @@ function epc_page_cache_flush(): void
 	}
 	$code = http_response_code();
 	if ($code !== 200 && $code !== false) {
+		return;
+	}
+	// Only cache complete HTML pages — never cache partial renders from
+	// timeouts or fatal errors.  A valid page must open with a doctype or
+	// <html tag and close with </html>.
+	$trimmed = trim($html);
+	$hasHtmlOpen = (stripos($trimmed, '<!doctype') === 0 || stripos($trimmed, '<html') !== false);
+	$hasHtmlClose = (stripos($trimmed, '</html>') !== false);
+	if (!$hasHtmlOpen || !$hasHtmlClose) {
 		return;
 	}
 	$ttl = isset($GLOBALS['__epc_page_cache_ttl']) ? (int) $GLOBALS['__epc_page_cache_ttl'] : 300;
