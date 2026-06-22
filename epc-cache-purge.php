@@ -21,5 +21,13 @@ $purged += epc_page_cache_purge_all();
 require_once __DIR__ . '/content/general_pages/epc_perf_cache.php';
 $purged += epc_perf_cache_bust_prefix('');
 
+// Purge brands query cache
+$brandsDir = __DIR__ . '/content/files/epc_brands_cache';
+if (is_dir($brandsDir)) {
+	foreach (glob($brandsDir . '/*') ?: array() as $f) {
+		if (@unlink($f)) { $purged++; }
+	}
+}
+
 echo "Purged " . $purged . " cache files.\n";
 echo "DONE\n";

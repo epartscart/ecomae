@@ -8,6 +8,9 @@
 
 // Decoded file for php version 56.
 define("_ASTEXE_", 1);
+if (PHP_SAPI !== 'cli') {
+	@set_time_limit(30);
+}
 require_once $_SERVER["DOCUMENT_ROOT"] . "/config.php";
 $DP_Config = new DP_Config();
 require_once $_SERVER["DOCUMENT_ROOT"] . "/content/general_pages/epc_portal.php";

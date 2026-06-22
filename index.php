@@ -12,6 +12,15 @@ if (!defined('_ASTEXE_')) {
 if (PHP_SAPI !== 'cli') {
 	@ini_set('display_errors', '0');
 	@ini_set('display_startup_errors', '0');
+	// Prevent PHP workers from hanging forever under load.
+	// Workers that exceed 30s are killed, freeing the pool for other requests (BOS, CP, marketing).
+	@set_time_limit(30);
+}
+
+// Server overload guard — serve lightweight "busy" page when load is critical.
+require_once __DIR__ . '/epc-server-guard.php';
+if (function_exists('epc_server_guard_check') && epc_server_guard_check()) {
+	exit;
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/epc_static_serve.php';

@@ -5,6 +5,7 @@
  */
 if (!defined('_ASTEXE_')) { define('_ASTEXE_', 1); }
 if (!defined('EPC_BOS_ENTRY')) { define('EPC_BOS_ENTRY', true); }
+if (PHP_SAPI !== 'cli') { @set_time_limit(30); }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 if (!isset($DP_Config)) { $DP_Config = new DP_Config(); }
