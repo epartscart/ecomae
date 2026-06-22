@@ -150,7 +150,7 @@ if (isset($GLOBALS['epc_db_link']) && $GLOBALS['epc_db_link'] instanceof PDO) {
 	$db_link = $GLOBALS['epc_db_link'];
 } else {
 try {
-    $db_link = new PDO("mysql:host=" . $DP_Config->host . ";dbname=" . $DP_Config->db, $DP_Config->user, $DP_Config->password);
+    $db_link = new PDO("mysql:host=" . $DP_Config->host . ";dbname=" . $DP_Config->db, $DP_Config->user, $DP_Config->password, array(PDO::ATTR_TIMEOUT => 5));
 	$GLOBALS['epc_db_link'] = $db_link;
 } catch (PDOException $e) {
     if (!empty($GLOBALS['epc_demo_cp_context']) && function_exists('epc_portal_demo_cp_exit_db_error')) {

@@ -8,6 +8,8 @@ db-info.php
 .env
 *.env
 .epc-backups/
+content/files/epc_brands_cache/
+content/files/epc_page_cache/
 .well-known/
 *.log
 *.bak

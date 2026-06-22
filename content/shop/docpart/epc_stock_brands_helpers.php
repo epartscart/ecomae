@@ -71,6 +71,23 @@ function epc_stock_brands_with_counts($db_link, array $price_ids)
 		return array();
 	}
 
+	// File-based cache (10 min TTL) to avoid the heavy GROUP BY on every page load.
+	$cacheKey = 'brands_' . md5(implode(',', $price_ids));
+	$cacheDir = $_SERVER['DOCUMENT_ROOT'] . '/content/files/epc_brands_cache';
+	if (!is_dir($cacheDir)) {
+		@mkdir($cacheDir, 0755, true);
+	}
+	$cacheFile = $cacheDir . '/' . $cacheKey . '.json';
+	if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
+		$cached = @file_get_contents($cacheFile);
+		if ($cached !== false) {
+			$decoded = json_decode($cached, true);
+			if (is_array($decoded) && count($decoded) > 0) {
+				return $decoded;
+			}
+		}
+	}
+
 	$placeholders = implode(',', array_fill(0, count($price_ids), '?'));
 	$articleExpr = "COALESCE(NULLIF(TRIM(`article_show`), ''), TRIM(`article`))";
 	$sql = 'SELECT MIN(TRIM(`manufacturer`)) AS `name`, '
@@ -106,6 +123,12 @@ function epc_stock_brands_with_counts($db_link, array $price_ids)
 			'letter' => $letter,
 		);
 	}
+
+	// Write cache file for subsequent requests
+	if (count($brands) > 0) {
+		@file_put_contents($cacheFile, json_encode($brands, JSON_UNESCAPED_UNICODE), LOCK_EX);
+	}
+
 	return $brands;
 }
 
