@@ -88,6 +88,10 @@ function epc_stock_brands_with_counts($db_link, array $price_ids)
 		}
 	}
 
+	// This query scans 133K+ rows — allow enough time for cache-warming render.
+	// Once cached, subsequent requests skip the query entirely (cache hit above).
+	@set_time_limit(120);
+
 	$placeholders = implode(',', array_fill(0, count($price_ids), '?'));
 	$articleExpr = "COALESCE(NULLIF(TRIM(`article_show`), ''), TRIM(`article`))";
 	$sql = 'SELECT MIN(TRIM(`manufacturer`)) AS `name`, '
