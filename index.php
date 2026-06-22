@@ -276,6 +276,12 @@ if (epc_portal_is_super_cp_host() && isset($_SERVER['REQUEST_URI'])) {
 	}
 }
 
+// Full-page output cache — serve cached HTML for anonymous visitors (skip full PHP render)
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_page_cache.php';
+if (epc_page_cache_try_serve()) {
+	exit;
+}
+
 // Frontend mode flag
 $isFrontMode = 1;
 
@@ -349,6 +355,11 @@ if (strpos($__epcHost, 'epartscart') !== false && is_string($__epcPath)) {
 // Platform marketing fallback for /platform/* before dp_core.
 if (function_exists('epc_ecomae_platform_try_exit_standalone')) {
 	epc_ecomae_platform_try_exit_standalone();
+}
+
+// Start page cache capture for anonymous storefront visitors (5 min TTL)
+if (function_exists('epc_page_cache_start_capture')) {
+	epc_page_cache_start_capture(300);
 }
 
 // Load core system

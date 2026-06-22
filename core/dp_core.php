@@ -488,38 +488,51 @@ if(true) {
             array_push($DP_Content->modules_array, $for_all_module["id"]);
         }
     }
-    for ($i = 0; $i < count($DP_Content->modules_array); $i++) {
-        $module_query = $db_link->prepare("SELECT * FROM `modules` WHERE `id`=? AND `activated`=? AND `is_frontend` = ?;");
-        $module_query->execute(array($DP_Content->modules_array[$i], 1, $isFrontMode));
-        $module_record = $module_query->fetch();
-        if($module_record == false) {
-            continue;
+    // Batch-load all modules in a single query instead of N+1 per-module SELECTs
+    $epc_module_ids = array_values(array_unique(array_map('intval', $DP_Content->modules_array)));
+    if (count($epc_module_ids) > 0) {
+        $epc_mod_placeholders = implode(',', array_fill(0, count($epc_module_ids), '?'));
+        $epc_mod_params = $epc_module_ids;
+        $epc_mod_params[] = 1;
+        $epc_mod_params[] = $isFrontMode;
+        $epc_batch_query = $db_link->prepare("SELECT * FROM `modules` WHERE `id` IN (" . $epc_mod_placeholders . ") AND `activated`=? AND `is_frontend` = ?;");
+        $epc_batch_query->execute($epc_mod_params);
+        $epc_modules_map = array();
+        while ($epc_mod_row = $epc_batch_query->fetch(PDO::FETCH_ASSOC)) {
+            $epc_modules_map[(int) $epc_mod_row['id']] = $epc_mod_row;
         }
-        $DP_Module = new DP_Module();
-        $DP_Module->id = $module_record["id"];
-        $DP_Module->caption = translate_str_by_id($module_record["caption"]);
-        $DP_Module->content_type = $module_record["content_type"];
-        $DP_Module->position = $module_record["position"];
-        $DP_Module->show_caption = $module_record["show_caption"];
-        $DP_Module->css_js = $module_record["css_js"];
-        $DP_Module->order = $module_record["order"];
-        if($DP_Module->content_type == "php") {
-            $php_path = str_replace(array("<backend_dir>"), $DP_Config->backend_dir, $_SERVER["DOCUMENT_ROOT"] . $module_record["content"]);
-            if(file_exists($php_path)) {
-                $php_file = fopen($php_path, "r");
-                $DP_Module->content = fread($php_file, filesize($php_path));
-                fclose($php_file);
-            } else {
-                $DP_Module->content = "<div class=\"error_message\">" . translate_str_by_id(4757) . "</div>";
+        for ($i = 0; $i < count($epc_module_ids); $i++) {
+            $module_record = isset($epc_modules_map[$epc_module_ids[$i]]) ? $epc_modules_map[$epc_module_ids[$i]] : null;
+            if ($module_record === null) {
+                continue;
             }
-        } elseif($DP_Module->content_type == "text") {
-            $DP_Module->content = $module_record["content"];
+            $DP_Module = new DP_Module();
+            $DP_Module->id = $module_record["id"];
+            $DP_Module->caption = translate_str_by_id($module_record["caption"]);
+            $DP_Module->content_type = $module_record["content_type"];
+            $DP_Module->position = $module_record["position"];
+            $DP_Module->show_caption = $module_record["show_caption"];
+            $DP_Module->css_js = $module_record["css_js"];
+            $DP_Module->order = $module_record["order"];
+            if($DP_Module->content_type == "php") {
+                $php_path = str_replace(array("<backend_dir>"), $DP_Config->backend_dir, $_SERVER["DOCUMENT_ROOT"] . $module_record["content"]);
+                if(file_exists($php_path)) {
+                    $php_file = fopen($php_path, "r");
+                    $DP_Module->content = fread($php_file, filesize($php_path));
+                    fclose($php_file);
+                } else {
+                    $DP_Module->content = "<div class=\"error_message\">" . translate_str_by_id(4757) . "</div>";
+                }
+            } elseif($DP_Module->content_type == "text") {
+                $DP_Module->content = $module_record["content"];
+            }
+            if((bool) $DP_Module->show_caption == true) {
+                $DP_Module->content = "<h3 class=\"module_caption\">" . $DP_Module->caption . "</h3>" . $DP_Module->content;
+            }
+            $DP_Module->content = str_replace("<module_id>", $DP_Module->id, $DP_Module->content);
+            array_push($DP_Module_array, $DP_Module);
         }
-        if((bool) $DP_Module->show_caption == true) {
-            $DP_Module->content = "<h3 class=\"module_caption\">" . $DP_Module->caption . "</h3>" . $DP_Module->content;
-        }
-        $DP_Module->content = str_replace("<module_id>", $DP_Module->id, $DP_Module->content);
-        array_push($DP_Module_array, $DP_Module);
+        unset($epc_modules_map, $epc_module_ids, $epc_mod_placeholders, $epc_mod_params, $epc_batch_query);
     }
     usort($DP_Module_array, "sort_by_order");
     }

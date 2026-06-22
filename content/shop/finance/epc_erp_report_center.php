@@ -227,6 +227,49 @@ if (!function_exists('epc_rc_registry')) {
             }
         });
 
+        // Working capital analysis
+        $add('exec_working_capital', 'finance', 'Working capital analysis', 'AR, AP, inventory, cash position and current ratio.', function (PDO $db, int $co): array {
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_exec_dashboard.php';
+            $wc = epc_exec_working_capital($db);
+            return array(array(
+                'Accounts Receivable' => number_format($wc['ar'], 2),
+                'Accounts Payable' => number_format($wc['ap'], 2),
+                'Inventory Value' => number_format($wc['inventory'], 2),
+                'Cash & Bank' => number_format($wc['cash'], 2),
+                'Net Working Capital' => number_format($wc['net_wc'], 2),
+                'Current Ratio' => $wc['current_ratio'],
+            ));
+        });
+
+        // AR aging
+        $add('exec_ar_aging', 'ar', 'AR aging summary', 'Receivables aging: current, 30, 60, 90, 90+ days.', function (PDO $db, int $co): array {
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_exec_dashboard.php';
+            $aging = epc_exec_ar_aging($db);
+            return array(array(
+                'Current (0-30 days)' => number_format($aging['current'], 2),
+                '31-60 days' => number_format($aging['d30'], 2),
+                '61-90 days' => number_format($aging['d60'], 2),
+                '91-120 days' => number_format($aging['d90'], 2),
+                'Over 120 days' => number_format($aging['over90'], 2),
+            ));
+        });
+
+        // Cash flow forecast
+        $add('exec_cash_forecast', 'banking', 'Cash flow forecast (3 months)', 'Projected cash inflows and outflows for the next 3 months.', function (PDO $db, int $co): array {
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_exec_dashboard.php';
+            $forecast = epc_exec_cash_flow_forecast($db);
+            $rows = array();
+            foreach ($forecast as $m) {
+                $rows[] = array(
+                    'Month' => $m['month'],
+                    'Expected Inflow' => number_format($m['inflow'], 2),
+                    'Expected Outflow' => number_format($m['outflow'], 2),
+                    'Net Cash Flow' => number_format($m['net'], 2),
+                );
+            }
+            return $rows;
+        });
+
         return $reports;
     }
 }

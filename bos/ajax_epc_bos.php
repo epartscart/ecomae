@@ -42,6 +42,10 @@ switch ($action) {
         $response = epc_bos_ajax_tenant_compliance();
         break;
 
+    case 'system_health':
+        $response = epc_bos_ajax_system_health();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -507,4 +511,31 @@ function epc_bos_ajax_tenant_compliance(): array
         'checks' => $checks,
         'score' => array('pass' => $pass, 'warn' => $warn, 'fail' => $fail, 'total' => count($checks)),
     );
+}
+
+/* ───────────────────── system health ───────────────────── */
+
+function epc_bos_ajax_system_health(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_health_check.php';
+
+    $siteKey = isset($_POST['site_key']) ? preg_replace('/[^a-z0-9_]/', '', strtolower(trim($_POST['site_key']))) : '';
+
+    if ($siteKey !== '') {
+        $result = epc_bos_health_check_tenant($platformPdo, $siteKey);
+        return array('ok' => true, 'results' => array($result), 'summary' => epc_bos_health_summary(array($result)));
+    }
+
+    $results = epc_bos_health_check_all($platformPdo);
+    return array('ok' => true, 'results' => $results, 'summary' => epc_bos_health_summary($results));
 }
