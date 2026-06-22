@@ -17,6 +17,13 @@ if (PHP_SAPI !== 'cli') {
 	@set_time_limit(30);
 }
 
+// Serve cached pages FIRST — before server guard, before any DB/config.
+// Cached pages are a zero-cost file_get_contents(); they bypass everything.
+require_once __DIR__ . '/content/general_pages/epc_page_cache.php';
+if (epc_page_cache_try_serve()) {
+	exit;
+}
+
 // Server overload guard — serve lightweight "busy" page when load is critical.
 require_once __DIR__ . '/epc-server-guard.php';
 if (function_exists('epc_server_guard_check') && epc_server_guard_check()) {
@@ -285,9 +292,9 @@ if (epc_portal_is_super_cp_host() && isset($_SERVER['REQUEST_URI'])) {
 	}
 }
 
-// Full-page output cache — serve cached HTML for anonymous visitors (skip full PHP render)
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_page_cache.php';
-if (epc_page_cache_try_serve()) {
+// Page cache was already tried at the top of index.php (before server guard).
+// This second check is a safety net in case the early require_once didn't fire.
+if (function_exists('epc_page_cache_try_serve') && epc_page_cache_try_serve()) {
 	exit;
 }
 
