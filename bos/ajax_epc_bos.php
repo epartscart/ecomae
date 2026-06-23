@@ -70,6 +70,10 @@ switch ($action) {
         $response = epc_bos_ajax_design_tokens();
         break;
 
+    case 'readiness_score':
+        $response = epc_bos_ajax_readiness_score();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -868,6 +872,48 @@ function epc_bos_ajax_design_tokens(): array
             $industry = preg_replace('/[^a-z0-9_]/', '', (string) ($_POST['industry'] ?? ''));
             $css = epc_design_tokens_css($siteKey, $industry);
             return array('ok' => true, 'css' => $css);
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── readiness score ───────────────────── */
+
+function epc_bos_ajax_readiness_score(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_readiness_score.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'tenant');
+
+    switch ($subAction) {
+        case 'tenant':
+            $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            try {
+                require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant.php';
+                $pdo = epc_portal_platform_pdo();
+                if (!$pdo) {
+                    return array('ok' => false, 'error' => 'Platform DB not available');
+                }
+                return array('ok' => true, 'readiness' => epc_readiness_score($pdo, $siteKey));
+            } catch (\Exception $e) {
+                return array('ok' => false, 'error' => $e->getMessage());
+            }
+
+        case 'fleet':
+            try {
+                require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant.php';
+                $pdo = epc_portal_platform_pdo();
+                if (!$pdo) {
+                    return array('ok' => false, 'error' => 'Platform DB not available');
+                }
+                return array('ok' => true, 'fleet' => epc_readiness_fleet_summary($pdo));
+            } catch (\Exception $e) {
+                return array('ok' => false, 'error' => $e->getMessage());
+            }
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');

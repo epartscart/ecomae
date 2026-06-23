@@ -287,6 +287,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'mfa_management',  'label' => 'MFA / 2FA',          'icon' => 'fa-lock',         'path' => 'control/portal/epc_mfa_management'),
         array('id' => 'event_bus',       'label' => 'Event Bus',          'icon' => 'fa-bolt',         'path' => 'control/portal/epc_event_bus'),
         array('id' => 'webhooks',        'label' => 'Webhooks',           'icon' => 'fa-plug',         'path' => 'control/portal/epc_webhooks'),
+        array('id' => 'readiness_score', 'label' => 'Readiness Score',  'icon' => 'fa-trophy',       'path' => 'control/portal/epc_readiness_score'),
     );
 }
 
