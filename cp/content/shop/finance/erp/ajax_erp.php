@@ -166,6 +166,23 @@ try {
 			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : 0;
 			epc_erp_json(true, 'OK', array('data' => epc_erp_dashboard($db_link, $from, $to)));
 
+		case 'command_center':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : 0;
+			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : 0;
+			$role = (string) ($_POST['role'] ?? '');
+			epc_erp_json(true, 'OK', epc_erp_command_center($db_link, $role, $from, $to));
+
+		case 'cc_kpi_tiles':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : 0;
+			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : 0;
+			epc_erp_json(true, 'OK', array('tiles' => epc_erp_cc_kpi_tiles($db_link, $from, $to)));
+
+		case 'cc_approval_queue':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+			epc_erp_json(true, 'OK', array('queue' => epc_erp_cc_approval_queue($db_link)));
+
 		case 'create_coa':
 			$id = epc_erp_gl_create_coa($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'coa_account', (int) $id, $_POST);
