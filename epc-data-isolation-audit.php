@@ -100,4 +100,10 @@ if ($userId > 0) {
 	}
 }
 
+echo "\n=== Comprehensive Commerce Isolation Audit ===\n";
+echo "Run the full 5-check audit:\n";
+echo "  curl -sk \"https://www.ecomae.com/epc-commerce-isolation-audit.php?token=epartscart-deploy-2026\"\n";
+echo "  JSON: curl -sk \"https://www.ecomae.com/epc-commerce-isolation-audit.php?token=epartscart-deploy-2026&format=json\"\n";
+echo "  BOS: https://www.ecomae.com/bos/?m=isolation_audit\n";
+
 echo "\nDone.\n";

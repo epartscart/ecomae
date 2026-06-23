@@ -283,6 +283,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'governance',      'label' => 'Governance',         'icon' => 'fa-gavel',        'path' => 'control/portal/epc_platform_governance'),
         array('id' => 'audit_log',       'label' => 'Audit Log',          'icon' => 'fa-history',      'path' => 'control/portal/epc_boc_audit_log'),
         array('id' => 'failover',        'label' => 'Failover Runbook',   'icon' => 'fa-life-ring',    'path' => 'control/portal/epc_platform_failover_guide'),
+        array('id' => 'isolation_audit', 'label' => 'Isolation Audit',   'icon' => 'fa-shield',       'path' => 'control/portal/epc_commerce_isolation_audit'),
     );
 }
 
@@ -418,6 +419,7 @@ function epc_bos_platform_items(): array
         array('id' => 'portal_settings', 'label' => 'Portal Settings', 'icon' => 'fa-cog',           'path' => 'control/portal/portal'),
         array('id' => 'modern_auth',     'label' => 'Auth Settings',   'icon' => 'fa-sign-in',       'path' => 'control/portal/epc_cp_auth_settings'),
         array('id' => 'communication',   'label' => 'Communication',   'icon' => 'fa-comments',      'path' => 'control/portal/epc_super_cp_communication'),
+        array('id' => 'data_policy',     'label' => 'Data Policy',     'icon' => 'fa-lock',          'path' => 'control/portal/epc_tenant_data_policy'),
         array('id' => 'api_docs',        'label' => 'API Docs',        'icon' => 'fa-file-code-o',   'path' => 'control/portal/epc_api_documentation_guide'),
         array('id' => 'operator_guide',  'label' => 'Operator Guide',  'icon' => 'fa-book',          'path' => 'control/portal/epc_super_cp_operator_guide'),
     );
