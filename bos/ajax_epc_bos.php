@@ -46,6 +46,10 @@ switch ($action) {
         $response = epc_bos_ajax_system_health();
         break;
 
+    case 'isolation_audit':
+        $response = epc_bos_ajax_isolation_audit();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -538,4 +542,60 @@ function epc_bos_ajax_system_health(): array
 
     $results = epc_bos_health_check_all($platformPdo);
     return array('ok' => true, 'results' => $results, 'summary' => epc_bos_health_summary($results));
+}
+
+/* ───────────────────── isolation audit ───────────────────── */
+
+function epc_bos_ajax_isolation_audit(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_commerce_isolation.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'run_audit');
+
+    switch ($subAction) {
+        case 'run_audit':
+            $commercePdo = $platformPdo;
+            try {
+                $cfgFile = $_SERVER['DOCUMENT_ROOT'] . '/config.local.php';
+                if (is_file($cfgFile)) {
+                    $epc_config_local = null;
+                    include $cfgFile;
+                    $cDb = (string) ($epc_config_local['commerce_db'] ?? 'docpart');
+                    $cUser = (string) ($epc_config_local['user'] ?? '');
+                    $cPass = (string) ($epc_config_local['password'] ?? '');
+                    if ($cUser !== '') {
+                        $commercePdo = new PDO(
+                            'mysql:host=127.0.0.1;dbname=' . $cDb . ';charset=utf8mb4',
+                            $cUser, $cPass,
+                            array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 10)
+                        );
+                    }
+                }
+            } catch (Exception $e) {
+                // Fall back to platform PDO
+            }
+            $results = epc_ci_run_full_audit($platformPdo, $commercePdo);
+            return array('ok' => true, 'audit' => $results);
+
+        case 'recent_violations':
+            $violations = epc_ci_recent_violations($platformPdo, 50);
+            return array('ok' => true, 'violations' => $violations);
+
+        case 'latest_run':
+            $run = epc_ci_latest_audit_run($platformPdo);
+            return array('ok' => true, 'latest_run' => $run);
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
 }
