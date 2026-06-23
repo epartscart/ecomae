@@ -50,6 +50,14 @@ switch ($action) {
         $response = epc_bos_ajax_isolation_audit();
         break;
 
+    case 'mfa_policy':
+        $response = epc_bos_ajax_mfa_policy();
+        break;
+
+    case 'mfa_stats':
+        $response = epc_bos_ajax_mfa_stats();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -598,4 +606,90 @@ function epc_bos_ajax_isolation_audit(): array
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
     }
+}
+
+/* ─────────────────── MFA Policy Management ─────────────────── */
+
+function epc_bos_ajax_mfa_policy(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_auth_mfa.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'get');
+
+    switch ($subAction) {
+        case 'get':
+            $tenantKey = (string) ($_POST['tenant_key'] ?? '__platform__');
+            $policy = epc_mfa_get_policy($platformPdo, $tenantKey);
+            return array('ok' => true, 'policy' => $policy);
+
+        case 'save':
+            $tenantKey = (string) ($_POST['tenant_key'] ?? '__platform__');
+            $roles = json_decode((string) ($_POST['roles'] ?? '[]'), true);
+            $paths = json_decode((string) ($_POST['paths'] ?? '[]'), true);
+            $grace = (int) ($_POST['grace_period_hours'] ?? 72);
+            $policy = array(
+                'require_mfa_for_roles' => is_array($roles) ? $roles : array(),
+                'require_mfa_for_paths' => is_array($paths) ? $paths : array(),
+                'grace_period_hours'    => $grace,
+            );
+            $saved = epc_mfa_save_policy($platformPdo, $policy, $tenantKey);
+            return array('ok' => $saved, 'policy' => $policy);
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+function epc_bos_ajax_mfa_stats(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_auth_mfa.php';
+    epc_mfa_ensure_schema($platformPdo);
+
+    $stats = array('total_enrolled' => 0, 'total_users' => 0, 'recent_verifications' => 0, 'recent_failures' => 0);
+
+    try {
+        $st = $platformPdo->query('SELECT COUNT(DISTINCT `user_id`) FROM `epc_mfa_secrets` WHERE `confirmed` = 1');
+        $stats['total_enrolled'] = (int) $st->fetchColumn();
+    } catch (Exception $e) {}
+
+    try {
+        $st = $platformPdo->query('SELECT COUNT(*) FROM `users` WHERE `type` = 1');
+        $stats['total_users'] = (int) $st->fetchColumn();
+    } catch (Exception $e) {}
+
+    try {
+        $since = date('Y-m-d H:i:s', time() - 86400);
+        $st = $platformPdo->prepare('SELECT COUNT(*) FROM `epc_mfa_audit_log` WHERE `action` = \'verify_ok\' AND `created_at` > ?');
+        $st->execute(array($since));
+        $stats['recent_verifications'] = (int) $st->fetchColumn();
+    } catch (Exception $e) {}
+
+    try {
+        $since = date('Y-m-d H:i:s', time() - 86400);
+        $st = $platformPdo->prepare('SELECT COUNT(*) FROM `epc_mfa_audit_log` WHERE `success` = 0 AND `created_at` > ?');
+        $st->execute(array($since));
+        $stats['recent_failures'] = (int) $st->fetchColumn();
+    } catch (Exception $e) {}
+
+    return array('ok' => true, 'stats' => $stats);
 }
