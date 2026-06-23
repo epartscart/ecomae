@@ -285,6 +285,8 @@ function epc_bos_fleet_items(): array
         array('id' => 'failover',        'label' => 'Failover Runbook',   'icon' => 'fa-life-ring',    'path' => 'control/portal/epc_platform_failover_guide'),
         array('id' => 'isolation_audit', 'label' => 'Isolation Audit',   'icon' => 'fa-shield',       'path' => 'control/portal/epc_commerce_isolation_audit'),
         array('id' => 'mfa_management',  'label' => 'MFA / 2FA',          'icon' => 'fa-lock',         'path' => 'control/portal/epc_mfa_management'),
+        array('id' => 'event_bus',       'label' => 'Event Bus',          'icon' => 'fa-bolt',         'path' => 'control/portal/epc_event_bus'),
+        array('id' => 'webhooks',        'label' => 'Webhooks',           'icon' => 'fa-plug',         'path' => 'control/portal/epc_webhooks'),
     );
 }
 
