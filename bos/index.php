@@ -465,6 +465,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'industry_packs'   => 'Configure industry-specific feature packs and ERP module bundles.',
                 'customer_board'   => 'Customer relationship overview across all tenants.',
                 'integrations'     => 'Third-party integrations, API keys, and webhook management.',
+                'design_tokens'    => 'Tenant branding: CSS design tokens, logo, colors, white-label login per tenant.',
                 'orders'           => 'View, manage, and process customer orders. Track fulfillment status.',
                 'customers'        => 'Customer database, profiles, purchase history, and segmentation.',
                 'payments'         => 'Payment processing, transaction history, and settlement tracking.',
