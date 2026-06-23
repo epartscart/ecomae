@@ -100,10 +100,53 @@ if ($userId > 0) {
 	}
 }
 
-echo "\n=== Comprehensive Commerce Isolation Audit ===\n";
-echo "Run the full 5-check audit:\n";
-echo "  curl -sk \"https://www.ecomae.com/epc-commerce-isolation-audit.php?token=epartscart-deploy-2026\"\n";
-echo "  JSON: curl -sk \"https://www.ecomae.com/epc-commerce-isolation-audit.php?token=epartscart-deploy-2026&format=json\"\n";
-echo "  BOS: https://www.ecomae.com/bos/?m=isolation_audit\n";
+// --- Comprehensive 5-check audit (pass &comprehensive=1 or &format=json) ---
+$comprehensive = !empty($_GET['comprehensive']);
+$formatJson = (($_GET['format'] ?? '') === 'json');
+
+if ($comprehensive || $formatJson) {
+	require_once __DIR__ . '/content/general_pages/epc_commerce_isolation.php';
+	$commercePdo = $platformPdo;
+	try {
+		$commercePdo = new PDO(
+			'mysql:host=127.0.0.1;dbname=docpart;charset=utf8mb4',
+			$platUser, $platPass,
+			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 10)
+		);
+	} catch (Exception $e) {
+		// fall back to platform PDO
+	}
+
+	$results = epc_ci_run_full_audit($platformPdo, $commercePdo);
+
+	if ($formatJson) {
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+
+	echo "\n=== Comprehensive Commerce Isolation Audit ===\n";
+	echo "Overall: " . $results['overall'] . "\n";
+	echo "Summary: " . $results['summary']['passed'] . " passed, "
+		. $results['summary']['failed'] . " failed, "
+		. $results['summary']['warnings'] . " warnings\n\n";
+
+	foreach ($results['checks'] as $key => $check) {
+		$icon = $check['status'] === 'PASS' ? '[OK]' : ($check['status'] === 'WARN' ? '[!!]' : '[FAIL]');
+		echo $icon . ' ' . $check['name'] . "\n";
+		if (isset($check['message'])) {
+			echo "    " . $check['message'] . "\n";
+		}
+		if (isset($check['error'])) {
+			echo "    Error: " . $check['error'] . "\n";
+		}
+		echo "\n";
+	}
+} else {
+	echo "\n=== Run comprehensive 5-check audit ===\n";
+	echo "  curl -sk \"https://www.ecomae.com/epc-data-isolation-audit.php?token=epartscart-deploy-2026&audit_all=1&comprehensive=1\"\n";
+	echo "  JSON: curl -sk \"https://www.ecomae.com/epc-data-isolation-audit.php?token=epartscart-deploy-2026&format=json\"\n";
+	echo "  BOS: https://www.ecomae.com/bos/?m=isolation_audit\n";
+}
 
 echo "\nDone.\n";
