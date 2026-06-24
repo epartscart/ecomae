@@ -142,6 +142,10 @@ switch ($action) {
         $response = epc_bos_ajax_collections_dunning();
         break;
 
+    case 'warranty_rma':
+        $response = epc_bos_ajax_warranty_rma();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2100,5 +2104,46 @@ function epc_bos_ajax_collections_dunning(): array
             return array('ok' => true, 'aging' => epc_dunning_aging($platformPdo, $siteKey));
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── warranty rma ───────────────────── */
+
+function epc_bos_ajax_warranty_rma(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_warranty_rma.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_warranty_fleet_stats($platformPdo));
+        case 'register':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string) ($_POST['warranty_data'] ?? '{}'), true);
+            return epc_warranty_register($platformPdo, $siteKey, $d ?: array());
+        case 'check':
+            return epc_warranty_check($platformPdo, (string) ($_POST['serial_number'] ?? ''));
+        case 'warranties':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'warranties' => epc_warranty_list($platformPdo, $siteKey));
+        case 'rma_create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string) ($_POST['rma_data'] ?? '{}'), true);
+            return epc_rma_create($platformPdo, $siteKey, $d ?: array());
+        case 'rma_transition':
+            $rmaId = (int) ($_POST['rma_id'] ?? 0);
+            $status = (string) ($_POST['status'] ?? '');
+            $notes = (string) ($_POST['notes'] ?? '');
+            return epc_rma_transition($platformPdo, $rmaId, $status, $notes);
+        case 'rma_list':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'rmas' => epc_rma_list($platformPdo, $siteKey));
+        case 'rma_detail':
+            $rmaId = (int) ($_POST['rma_id'] ?? 0);
+            return array('ok' => true, 'rma' => epc_rma_detail($platformPdo, $rmaId));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }

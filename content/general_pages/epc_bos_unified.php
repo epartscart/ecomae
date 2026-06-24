@@ -305,6 +305,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'sso_saml', 'label' => 'SSO / SAML',      'icon' => 'fa-key',          'path' => 'control/portal/epc_sso_saml'),
         array('id' => 'wps_payroll', 'label' => 'Payroll',         'icon' => 'fa-money',        'path' => 'shop/finance/epc_wps_payroll'),
         array('id' => 'collections_dunning', 'label' => 'Collections',     'icon' => 'fa-bell',         'path' => 'shop/finance/epc_collections_dunning'),
+        array('id' => 'warranty_rma', 'label' => 'Warranty/RMA',    'icon' => 'fa-shield',       'path' => 'shop/finance/epc_warranty_rma'),
     );
 }
 
