@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'industry_packs':
+        $response = epc_bos_ajax_industry_packs();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
