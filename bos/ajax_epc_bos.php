@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'promotions_engine':
+        $response = epc_bos_ajax_promotions_engine();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
