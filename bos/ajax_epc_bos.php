@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'bi_metrics':
+        $response = epc_bos_ajax_bi_metrics();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
