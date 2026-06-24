@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'fulfillment_queue':
+        $response = epc_bos_ajax_fulfillment_queue();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
