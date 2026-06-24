@@ -122,6 +122,10 @@ switch ($action) {
         $response = epc_bos_ajax_workflow_builder();
         break;
 
+    case 'inventory_forecast':
+        $response = epc_bos_ajax_inventory_forecast();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1767,6 +1771,54 @@ function epc_bos_ajax_workflow_builder(): array
 
         case 'templates':
             return array('ok' => true, 'templates' => epc_workflow_templates());
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── inventory forecast ───────────────────── */
+
+function epc_bos_ajax_inventory_forecast(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_inventory_forecast.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_forecast_fleet_stats($platformPdo));
+
+        case 'compute':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $sku = (string) ($_POST['sku'] ?? '');
+            $stock = (int) ($_POST['current_stock'] ?? 0);
+            $name = (string) ($_POST['product_name'] ?? '');
+            $lead = (int) ($_POST['lead_time_days'] ?? 7);
+            return epc_forecast_compute($platformPdo, $siteKey, $sku, $stock, $name, $lead);
+
+        case 'suggestions':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'suggestions' => epc_forecast_purchase_suggestions($platformPdo, $siteKey));
+
+        case 'trend':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $sku = (string) ($_POST['sku'] ?? '');
+            return array('ok' => true, 'trend' => epc_forecast_demand_trend($platformPdo, $siteKey, $sku));
+
+        case 'stockouts':
+            $days = (int) ($_POST['within_days'] ?? 14);
+            return array('ok' => true, 'stockouts' => epc_forecast_upcoming_stockouts($platformPdo, $days));
+
+        case 'abc':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'abc' => epc_forecast_abc_analysis($platformPdo, $siteKey));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
