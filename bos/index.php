@@ -467,6 +467,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'rest_api_v2' => 'REST API v2: versioned endpoints, rate limiting, sandbox keys, OpenAPI spec.',
                 'fulfillment_queue' => 'Fulfillment queue: pick/pack/ship, wave picking, SLA tracking.',
                 'bi_metrics' => 'BI metrics engine: KPI snapshots, trends, cross-tenant comparison.',
+                'ai_classification' => 'AI classification service: HS code lookup, category auto-tag, batch processing.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',

@@ -110,6 +110,10 @@ switch ($action) {
         $response = epc_bos_ajax_bi_metrics();
         break;
 
+    case 'ai_classification':
+        $response = epc_bos_ajax_ai_classification();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1561,6 +1565,68 @@ function epc_bos_ajax_bi_metrics(): array
 
         case 'definitions':
             return array('ok' => true, 'metrics' => epc_bi_builtin_metrics());
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── ai classification ───────────────────── */
+
+function epc_bos_ajax_ai_classification(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ai_classification.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_ai_class_fleet_stats($platformPdo));
+
+        case 'classify':
+            $text = (string) ($_POST['text'] ?? '');
+            return array('ok' => true, 'result' => epc_ai_classify($text));
+
+        case 'classify_product':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $product = json_decode((string) ($_POST['product'] ?? '{}'), true);
+            return epc_ai_classify_and_store($platformPdo, $siteKey, $product ?: array());
+
+        case 'batch':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $products = json_decode((string) ($_POST['products'] ?? '[]'), true);
+            return epc_ai_classify_batch($platformPdo, $siteKey, $products ?: array());
+
+        case 'stats':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'stats' => epc_ai_class_stats($platformPdo, $siteKey));
+
+        case 'hs_lookup':
+            $query = (string) ($_POST['query'] ?? '');
+            return array('ok' => true, 'results' => epc_ai_hs_lookup($platformPdo, $query));
+
+        case 'seed_hs':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            return array('ok' => true, 'inserted' => epc_ai_seed_hs_codes($platformPdo));
+
+        case 'rules':
+            return array('ok' => true, 'rules' => epc_ai_category_rules());
+
+        case 'review':
+            $classId = (int) ($_POST['classification_id'] ?? 0);
+            $category = (string) ($_POST['category'] ?? '');
+            $subcategory = (string) ($_POST['subcategory'] ?? '');
+            $hsCode = (string) ($_POST['hs_code'] ?? '');
+            $reviewerId = (int) ($_POST['reviewer_id'] ?? 0);
+            epc_ai_review($platformPdo, $classId, $category, $subcategory, $hsCode, $reviewerId);
+            return array('ok' => true);
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
