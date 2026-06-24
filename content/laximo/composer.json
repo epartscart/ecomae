@@ -9,5 +9,12 @@
     "twig/twig": "^1.0",
     "ext-json": "*",
     "ext-simplexml": "*"
+  },
+  "config": {
+    "policy": {
+      "advisories": {
+        "block": false
+      }
+    }
   }
 }
