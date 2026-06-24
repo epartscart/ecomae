@@ -101,6 +101,33 @@ $db->exec("CREATE TABLE IF NOT EXISTS `epc_laximo_sync_status` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 echo "Table epc_laximo_sync_status: OK\n";
 
+// Create CMS page entry for /katalog-laximo (so the URL resolves in the storefront router)
+$cmsCheck = $db->prepare("SELECT `id` FROM `content` WHERE `url` = ? AND `is_frontend` = 1");
+$cmsCheck->execute(['katalog-laximo']);
+$cmsRow = $cmsCheck->fetch(PDO::FETCH_ASSOC);
+if ($cmsRow) {
+    echo "CMS page 'katalog-laximo' already exists (id=" . $cmsRow['id'] . ")\n";
+} else {
+    $cmsInsert = $db->prepare("INSERT INTO `content` (`url`, `content_type`, `content`, `value`, `title_tag`, `description_tag`, `keywords_tag`, `author_tag`, `robots_tag`, `main_flag`, `published_flag`, `is_frontend`, `modules_array`, `css_js`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $cmsInsert->execute([
+        'katalog-laximo',
+        'php',
+        '/content/laximo/index.php',
+        'OEM Parts Catalog (Laximo)',
+        'OEM Parts Catalog — Laximo',
+        'Search original OEM parts by vehicle brand, VIN, or part name. Cross-references with aftermarket analogs.',
+        'OEM parts, Laximo, vehicle catalog, VIN search, original parts',
+        '',
+        '',
+        0,
+        1,
+        1,
+        '[]',
+        ''
+    ]);
+    echo "Created CMS page 'katalog-laximo' (id=" . $db->lastInsertId() . ")\n";
+}
+
 // Add Laximo config properties to DP_Config if not present
 $config_path = __DIR__ . '/config.php';
 $config_content = file_get_contents($config_path);
