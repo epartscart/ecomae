@@ -82,6 +82,10 @@ switch ($action) {
         $response = epc_bos_ajax_db_migrations();
         break;
 
+    case 'cp_role_home':
+        $response = epc_bos_ajax_cp_role_home();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1107,6 +1111,40 @@ function epc_bos_ajax_db_migrations(): array
 
         case 'dry_run':
             return array('ok' => true, 'dry_run' => epc_migrations_dry_run($platformPdo));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── role management ───────────────────── */
+
+function epc_bos_ajax_role_management(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_role_home.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'list_roles');
+
+    switch ($subAction) {
+        case 'list_roles':
+            return array('ok' => true, 'roles' => epc_cp_roles());
+
+        case 'role_tiles':
+            $role = preg_replace('/[^a-z_]/', '', (string) ($_POST['role'] ?? 'admin'));
+            return array('ok' => true, 'tiles' => epc_cp_role_dashboard_tiles($role));
+
+        case 'role_actions':
+            $role = preg_replace('/[^a-z_]/', '', (string) ($_POST['role'] ?? 'admin'));
+            return array('ok' => true, 'actions' => epc_cp_role_quick_actions($role));
+
+        case 'role_modules':
+            $role = preg_replace('/[^a-z_]/', '', (string) ($_POST['role'] ?? 'admin'));
+            return array('ok' => true, 'modules' => epc_cp_role_modules($role));
+
+        case 'check_permission':
+            $role = preg_replace('/[^a-z_]/', '', (string) ($_POST['role'] ?? 'viewer'));
+            $permission = preg_replace('/[^a-z0-9_.*]/', '', (string) ($_POST['permission'] ?? ''));
+            return array('ok' => true, 'allowed' => epc_cp_role_can($role, $permission));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
