@@ -138,6 +138,10 @@ switch ($action) {
         $response = epc_bos_ajax_wps_payroll();
         break;
 
+    case 'collections_dunning':
+        $response = epc_bos_ajax_collections_dunning();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2040,6 +2044,60 @@ function epc_bos_ajax_wps_payroll(): array
             $bankCode = (string) ($_POST['employer_bank_code'] ?? '');
             return epc_payroll_generate_sif($platformPdo, $runId, $molId, $bankCode);
 
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── collections dunning ───────────────────── */
+
+function epc_bos_ajax_collections_dunning(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_collections_dunning.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_dunning_fleet_stats($platformPdo));
+        case 'profiles':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'profiles' => epc_dunning_profile_list($platformPdo, $siteKey));
+        case 'profile_create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $name = (string) ($_POST['name'] ?? 'Default');
+            $steps = json_decode((string) ($_POST['steps'] ?? '[]'), true);
+            return epc_dunning_profile_create($platformPdo, $siteKey, $name, $steps ?: array());
+        case 'queue':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $filters = array();
+            if (!empty($_POST['status'])) $filters['status'] = (string) $_POST['status'];
+            return array('ok' => true, 'queue' => epc_dunning_queue_list($platformPdo, $siteKey, $filters));
+        case 'add_invoice':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $inv = json_decode((string) ($_POST['invoice'] ?? '{}'), true);
+            return epc_dunning_add_invoice($platformPdo, $siteKey, $inv ?: array());
+        case 'update_status':
+            $qid = (int) ($_POST['queue_id'] ?? 0);
+            $status = (string) ($_POST['status'] ?? '');
+            $notes = (string) ($_POST['notes'] ?? '');
+            return epc_dunning_update_status($platformPdo, $qid, $status, $notes);
+        case 'record_payment':
+            $qid = (int) ($_POST['queue_id'] ?? 0);
+            $amount = (float) ($_POST['amount'] ?? 0);
+            return epc_dunning_record_payment($platformPdo, $qid, $amount);
+        case 'process':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_dunning_process($platformPdo, $siteKey);
+        case 'aging':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'aging' => epc_dunning_aging($platformPdo, $siteKey));
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
     }
