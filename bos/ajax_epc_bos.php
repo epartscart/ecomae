@@ -106,6 +106,10 @@ switch ($action) {
         $response = epc_bos_ajax_fulfillment_queue();
         break;
 
+    case 'bi_metrics':
+        $response = epc_bos_ajax_bi_metrics();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1510,6 +1514,53 @@ function epc_bos_ajax_fulfillment(): array
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             $maxHours = (int) ($_POST['max_hours'] ?? 48);
             return array('ok' => true, 'breaches' => epc_fulfillment_sla_breaches($platformPdo, $siteKey, $maxHours));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── bi metrics ───────────────────── */
+
+function epc_bos_ajax_bi_metrics(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bi_metrics.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_overview');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_overview':
+            return array('ok' => true, 'overview' => epc_bi_fleet_overview($platformPdo));
+
+        case 'dashboard':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'dashboard' => epc_bi_dashboard($platformPdo, $siteKey));
+
+        case 'trend':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $metricKey = preg_replace('/[^a-z0-9_]/', '', (string) ($_POST['metric_key'] ?? ''));
+            $limit = (int) ($_POST['limit'] ?? 30);
+            return array('ok' => true, 'trend' => epc_bi_metric_trend($platformPdo, $siteKey, $metricKey, 'daily', $limit));
+
+        case 'compute':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $date = (string) ($_POST['date'] ?? date('Y-m-d'));
+            return epc_bi_compute_daily($platformPdo, $siteKey, $date);
+
+        case 'compare':
+            $metricKey = preg_replace('/[^a-z0-9_]/', '', (string) ($_POST['metric_key'] ?? ''));
+            return array('ok' => true, 'comparison' => epc_bi_compare_tenants($platformPdo, $metricKey));
+
+        case 'definitions':
+            return array('ok' => true, 'metrics' => epc_bi_builtin_metrics());
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');

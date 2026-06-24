@@ -296,6 +296,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'po_approval', 'label' => 'PO Approval',     'icon' => 'fa-check-square-o', 'path' => 'shop/finance/epc_po_approval'),
         array('id' => 'rest_api_v2', 'label' => 'API v2',          'icon' => 'fa-code',         'path' => 'control/portal/epc_rest_api_v2'),
         array('id' => 'fulfillment_queue', 'label' => 'Fulfillment',     'icon' => 'fa-truck',        'path' => 'shop/finance/epc_fulfillment_queue'),
+        array('id' => 'bi_metrics', 'label' => 'BI Metrics',      'icon' => 'fa-bar-chart',    'path' => 'control/portal/epc_bi_metrics'),
     );
 }
 
