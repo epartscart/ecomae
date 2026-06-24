@@ -480,6 +480,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'ai_copilot' => 'AI copilot: NL query → SQL → chart, intent parsing, query history.',
                 'nl_reporting' => 'NL reporting: template library, scheduled reports, export.',
                 'industry_packs' => 'Industry packs: auto-parts, fashion, electronics, jewellery verticals.',
+                'multi_entity' => 'Multi-entity consolidation: group GL, intercompany elimination, reporting.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
