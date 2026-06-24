@@ -786,6 +786,112 @@ if (!function_exists('epc_guide_modules')) {
             'Read-only — reports query existing data and never post to the GL.',
             array('Filter first, then export — the CSV contains exactly the rows you can see.'));
 
+        $g['period_close'] = $E('period_close', 'GL period close & lock',
+            'Lock accounting periods so no further postings can be made. Prevents accidental backdating after month-end close.',
+            array(
+                'Navigate to ERP Finance → Period Close.',
+                'Review the checklist: all invoices posted, bank reconciled, depreciation run, accruals entered.',
+                'Click Lock Period — this prevents any new journal entry in that date range.',
+                'Bulk-lock all periods before a chosen date if catching up.',
+            ),
+            array(
+                'At month-end, run the close checklist → verify all items green → lock the period.',
+                'If an adjustment is needed after lock, an admin can temporarily unlock, post, and re-lock.',
+            ),
+            'Locked periods reject any GL posting attempt with a clear error. Unlock requires admin role.',
+            array('Lock periods promptly after close — it is the single best control against post-close errors.'));
+
+        $g['events'] = $E('events', 'ERP event bus & webhooks',
+            'Automatically emit events when business actions happen (invoice posted, order placed, stock updated) and deliver them to external systems via webhooks with HMAC signing.',
+            array(
+                'Events are emitted automatically — no setup needed for built-in triggers.',
+                'To add a webhook subscriber: BOS → Integrations Hub → Add webhook URL.',
+                'Set the target URL, select which events to subscribe to, and save.',
+                'The platform signs each payload with HMAC-SHA256 so the receiver can verify authenticity.',
+            ),
+            array(
+                'Events fire automatically on: invoice.posted, order.placed, stock.updated, payment.received, customer.created, po.approved, shipment.dispatched, return.created, period.closed, user.login, tenant.config_changed.',
+                'Failed deliveries retry with exponential backoff (3 attempts).',
+                'After 3 failures, the payload moves to the dead-letter queue for manual review.',
+            ),
+            'No direct GL impact — events are observability/integration fabric.',
+            array('Use webhooks to sync with NetSuite, Shopify, or any system that accepts HTTP callbacks.'));
+
+        $g['mfa'] = $E('mfa', 'Multi-factor authentication (MFA)',
+            'TOTP-based two-factor authentication for CP and ERP finance access. Protects against credential theft.',
+            array(
+                'Admin enables MFA requirement in CP → Auth Settings.',
+                'Each user enrolls by scanning a QR code with an authenticator app (Google Authenticator, Authy, etc.).',
+                'On next login, the user enters their password + 6-digit TOTP code.',
+                'Finance roles can be required to use MFA even if other roles are optional.',
+            ),
+            array(
+                'Login → enter email + password → enter TOTP code → access granted.',
+                'Lost device: admin can reset MFA enrollment for the user.',
+            ),
+            'No GL impact — security layer only.',
+            array('Require MFA for all finance and admin roles before going live with paying clients.'));
+
+        $g['ai_service'] = $E('ai_service', 'AI service hub & PII firewall',
+            'Central AI gateway with automatic PII redaction. Routes queries to the correct AI backend (copilot, classification, anomaly detection, NL reporting).',
+            array(
+                'AI service is enabled platform-wide — no per-tenant setup needed.',
+                'Configure API keys for external AI providers in BOS → AI Service settings.',
+                'The PII firewall automatically strips emails, phone numbers, TRN, credit card, and IBAN before any data leaves the platform.',
+            ),
+            array(
+                'AI is embedded in other modules — copilot for natural-language queries, classification for HS codes, anomaly for isolation monitoring.',
+                'All AI requests are logged with audit trail.',
+            ),
+            'No GL impact — AI augments existing data without creating postings.',
+            array('The PII firewall runs before every AI request — you cannot accidentally send customer data to external APIs.'));
+
+        $g['collections'] = $E('collections', 'Collections & dunning automation',
+            'Automated 7-step collection sequences for overdue invoices. Tracks aging, sends reminders, escalates to management.',
+            array(
+                'Configure dunning sequences: reminder intervals, escalation rules, email templates.',
+                'Assign customers to collection groups (standard, VIP, high-risk).',
+                'Set thresholds for automatic hold (stop new orders when balance exceeds limit).',
+            ),
+            array(
+                'System automatically sends reminders at configured intervals.',
+                'Dashboard shows aging buckets (current, 30, 60, 90, 120+ days).',
+                'Track promises-to-pay and payment arrangements.',
+                'Escalate to management when thresholds are breached.',
+            ),
+            'Collections read AR aging data. Payment receipts post to AR as normal.',
+            array('Start with gentle reminders — most overdue invoices are oversight, not intent.'));
+
+        $g['warranty'] = $E('warranty', 'Warranty & RMA tracking',
+            'Register product warranties, process return merchandise authorizations (RMA), and track claim status through a state machine.',
+            array(
+                'Enable warranty tracking in tenant config.',
+                'Register warranties at point of sale (automatic) or manually.',
+                'Configure RMA approval workflow and return shipping rules.',
+            ),
+            array(
+                'Customer requests return → create RMA → approve/reject → receive goods → inspect → refund/replace/repair.',
+                'Track warranty expiry dates and claim history per customer.',
+                'Generate warranty certificate PDFs.',
+            ),
+            'RMA credit notes post to AR; replacement orders post to inventory and COGS.',
+            array('Warranty registration at point of sale saves disputes later.'));
+
+        $g['subscription'] = $E('subscription', 'Subscription & recurring billing',
+            'Manage subscription plans with automatic recurring invoices. Track MRR, churn, and renewal dates.',
+            array(
+                'Create subscription plans with pricing tiers.',
+                'Assign customers to plans with start date and billing cycle.',
+                'Configure auto-invoice generation and payment collection.',
+            ),
+            array(
+                'System generates invoices on each billing cycle.',
+                'Dashboard shows MRR, ARR, churn rate, and upcoming renewals.',
+                'Handle upgrades, downgrades, and cancellations with pro-rating.',
+            ),
+            'Recurring invoices post to AR and revenue recognition accounts per the billing cycle.',
+            array('Set up dunning sequences for failed subscription payments to reduce churn.'));
+
         return $g;
     }
 }
