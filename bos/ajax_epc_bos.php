@@ -158,6 +158,10 @@ switch ($action) {
         $response = epc_bos_ajax_nl_reporting();
         break;
 
+    case 'industry_packs':
+        $response = epc_bos_ajax_industry_packs();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2237,6 +2241,30 @@ function epc_bos_ajax_nl_reporting(): array
         case 'history':
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             return array('ok' => true, 'history' => epc_nlr_run_history($platformPdo, $siteKey));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── industry packs ───────────────────── */
+
+function epc_bos_ajax_industry_packs(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_packs.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_industry_fleet_stats($platformPdo));
+        case 'list': return array('ok' => true, 'packs' => epc_industry_builtin_packs());
+        case 'seed': return array('ok' => true, 'inserted' => epc_industry_seed_packs($platformPdo));
+        case 'assign':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $pk = (string) ($_POST['pack_key'] ?? '');
+            return epc_industry_assign_pack($platformPdo, $siteKey, $pk);
+        case 'tenant_packs':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'packs' => epc_industry_tenant_packs($platformPdo, $siteKey));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
