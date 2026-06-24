@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'nl_reporting':
+        $response = epc_bos_ajax_nl_reporting();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
