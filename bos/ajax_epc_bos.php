@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'inventory_forecast':
+        $response = epc_bos_ajax_inventory_forecast();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
