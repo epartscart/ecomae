@@ -316,6 +316,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'import_orchestrator', 'label' => 'Imports',         'icon' => 'fa-upload',       'path' => 'control/portal/epc_import_orchestrator'),
         array('id' => 'document_vault', 'label' => 'Doc Vault',       'icon' => 'fa-archive',      'path' => 'control/portal/epc_document_vault'),
         array('id' => 'subscription_billing', 'label' => 'Billing',         'icon' => 'fa-credit-card',  'path' => 'shop/finance/epc_subscription_billing'),
+        array('id' => 'soc2_compliance', 'label' => 'SOC 2',           'icon' => 'fa-certificate',  'path' => 'control/portal/epc_soc2_compliance'),
     );
 }
 

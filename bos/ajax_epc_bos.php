@@ -186,6 +186,10 @@ switch ($action) {
         $response = epc_bos_ajax_subscription_billing();
         break;
 
+    case 'soc2_compliance':
+        $response = epc_bos_ajax_soc2_compliance();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2465,6 +2469,34 @@ function epc_bos_ajax_subscription_billing(): array
             return array('ok' => true, 'invoices' => epc_billing_invoices($platformPdo, $siteKey));
         case 'pay': return epc_billing_record_payment($platformPdo, (int)($_POST['invoice_id']??0), (string)($_POST['method']??'card'));
         case 'cancel': return epc_billing_cancel($platformPdo, (int)($_POST['subscription_id']??0), (string)($_POST['reason']??''));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── soc2 compliance ───────────────────── */
+
+function epc_bos_ajax_soc2_compliance(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_soc2_compliance.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_soc2_fleet_stats($platformPdo));
+        case 'seed': return array('ok' => true, 'seeded' => epc_soc2_seed_controls($platformPdo));
+        case 'controls': return array('ok' => true, 'controls' => epc_soc2_list_controls($platformPdo, (string)($_POST['category']??'')));
+        case 'update_control':
+            $d = json_decode((string)($_POST['control_data']??'{}'), true);
+            return epc_soc2_update_control($platformPdo, (string)($_POST['control_id']??''), $d ?: array());
+        case 'add_evidence':
+            $d = json_decode((string)($_POST['evidence_data']??'{}'), true);
+            return epc_soc2_add_evidence($platformPdo, (string)($_POST['control_id']??''), $d ?: array());
+        case 'evidence': return array('ok' => true, 'evidence' => epc_soc2_control_evidence($platformPdo, (string)($_POST['control_id']??'')));
+        case 'gap_analysis': return array('ok' => true, 'analysis' => epc_soc2_gap_analysis($platformPdo));
+        case 'policies': return array('ok' => true, 'policies' => epc_soc2_list_policies($platformPdo));
+        case 'create_policy':
+            $d = json_decode((string)($_POST['policy_data']??'{}'), true);
+            return epc_soc2_create_policy($platformPdo, $d ?: array());
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
