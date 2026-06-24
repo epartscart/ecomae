@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'cp_role_home':
+        $response = epc_bos_ajax_cp_role_home();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
