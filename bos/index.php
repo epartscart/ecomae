@@ -471,6 +471,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'tenant_config' => 'Tenant self-service config: 7 groups, change history, export/import.',
                 'workflow_builder' => 'Workflow builder: trigger → condition → action chains, templates.',
                 'inventory_forecast' => 'Inventory forecasting: demand planning, reorder points, EOQ, ABC analysis.',
+                'multi_currency_gl' => 'Multi-currency GL: FX rates, revaluation, unrealized gain/loss, exposure report.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',

@@ -126,6 +126,10 @@ switch ($action) {
         $response = epc_bos_ajax_inventory_forecast();
         break;
 
+    case 'multi_currency_gl':
+        $response = epc_bos_ajax_multi_currency_gl();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1819,6 +1823,82 @@ function epc_bos_ajax_inventory_forecast(): array
         case 'abc':
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             return array('ok' => true, 'abc' => epc_forecast_abc_analysis($platformPdo, $siteKey));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── multi currency gl ───────────────────── */
+
+function epc_bos_ajax_multi_currency(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_multi_currency_gl.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_mcgl_fleet_stats($platformPdo));
+
+        case 'currencies':
+            return array('ok' => true, 'currencies' => epc_mcgl_currencies());
+
+        case 'set_rate':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            $base = strtoupper((string) ($_POST['base'] ?? 'AED'));
+            $target = strtoupper((string) ($_POST['target'] ?? ''));
+            $rate = (float) ($_POST['rate'] ?? 0);
+            $date = (string) ($_POST['date'] ?? date('Y-m-d'));
+            return epc_mcgl_set_rate($platformPdo, $base, $target, $rate, $date);
+
+        case 'get_rate':
+            $base = strtoupper((string) ($_POST['base'] ?? 'AED'));
+            $target = strtoupper((string) ($_POST['target'] ?? ''));
+            $rate = epc_mcgl_get_rate($platformPdo, $base, $target);
+            return array('ok' => true, 'base' => $base, 'target' => $target, 'rate' => $rate);
+
+        case 'rate_history':
+            $base = strtoupper((string) ($_POST['base'] ?? 'AED'));
+            $target = strtoupper((string) ($_POST['target'] ?? ''));
+            return array('ok' => true, 'history' => epc_mcgl_rate_history($platformPdo, $base, $target));
+
+        case 'convert':
+            $amount = (float) ($_POST['amount'] ?? 0);
+            $from = strtoupper((string) ($_POST['from'] ?? ''));
+            $to = strtoupper((string) ($_POST['to'] ?? ''));
+            return epc_mcgl_convert($platformPdo, $amount, $from, $to);
+
+        case 'journal_entry':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $entry = json_decode((string) ($_POST['entry'] ?? '{}'), true);
+            return epc_mcgl_journal_entry($platformPdo, $siteKey, $entry ?: array());
+
+        case 'revalue':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_mcgl_revalue($platformPdo, $siteKey);
+
+        case 'exposure':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'exposure' => epc_mcgl_exposure($platformPdo, $siteKey));
+
+        case 'trial_balance':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $from = (string) ($_POST['from_date'] ?? '');
+            $to = (string) ($_POST['to_date'] ?? '');
+            return array('ok' => true, 'trial_balance' => epc_mcgl_trial_balance($platformPdo, $siteKey, $from, $to));
+
+        case 'seed_rates':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            return array('ok' => true, 'seeded' => epc_mcgl_seed_rates($platformPdo));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
