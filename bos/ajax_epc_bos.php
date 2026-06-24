@@ -78,6 +78,10 @@ switch ($action) {
         $response = epc_bos_ajax_notifications();
         break;
 
+    case 'db_migrations':
+        $response = epc_bos_ajax_db_migrations();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1044,6 +1048,65 @@ function epc_bos_ajax_notifications(): array
             $days = max(7, (int) ($_POST['days'] ?? 90));
             $deleted = epc_notifications_cleanup($platformPdo, $days);
             return array('ok' => true, 'deleted' => $deleted);
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── db migrations ───────────────────── */
+
+function epc_bos_ajax_db_migrations(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_db_migrations.php';
+
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'status');
+
+    switch ($subAction) {
+        case 'status':
+            return array('ok' => true, 'migrations' => epc_migrations_status($platformPdo));
+
+        case 'pending':
+            return array('ok' => true, 'pending' => epc_migrations_pending($platformPdo));
+
+        case 'run_all':
+            return array('ok' => true, 'result' => epc_migrations_run_all($platformPdo));
+
+        case 'apply':
+            $version = preg_replace('/[^0-9]/', '', (string) ($_POST['version'] ?? ''));
+            if ($version === '') {
+                return array('ok' => false, 'error' => 'Missing version');
+            }
+            $registry = epc_migrations_registry();
+            foreach ($registry as $m) {
+                if ($m['version'] === $version) {
+                    return epc_migration_apply($platformPdo, $m);
+                }
+            }
+            return array('ok' => false, 'error' => 'Migration not found');
+
+        case 'rollback':
+            $version = preg_replace('/[^0-9]/', '', (string) ($_POST['version'] ?? ''));
+            if ($version === '') {
+                return array('ok' => false, 'error' => 'Missing version');
+            }
+            return epc_migration_rollback($platformPdo, $version);
+
+        case 'verify':
+            return array('ok' => true, 'integrity' => epc_migrations_verify($platformPdo));
+
+        case 'dry_run':
+            return array('ok' => true, 'dry_run' => epc_migrations_dry_run($platformPdo));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
