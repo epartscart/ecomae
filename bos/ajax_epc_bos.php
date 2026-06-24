@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'po_approval':
+        $response = epc_bos_ajax_po_approval();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
