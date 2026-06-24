@@ -58,6 +58,14 @@ switch ($action) {
         $response = epc_bos_ajax_mfa_stats();
         break;
 
+    case 'webhooks':
+        $response = epc_bos_ajax_webhooks();
+        break;
+
+    case 'events':
+        $response = epc_bos_ajax_events();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -692,4 +700,105 @@ function epc_bos_ajax_mfa_stats(): array
     } catch (Exception $e) {}
 
     return array('ok' => true, 'stats' => $stats);
+}
+
+/* ─────────────────── Webhooks Management ─────────────────── */
+
+function epc_bos_ajax_webhooks(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_webhooks.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'list');
+
+    switch ($subAction) {
+        case 'list':
+            $tenantKey = (string) ($_POST['tenant_key'] ?? '');
+            $hooks = epc_webhooks_list($platformPdo, $tenantKey);
+            return array('ok' => true, 'webhooks' => $hooks);
+
+        case 'register':
+            return epc_webhooks_register($platformPdo, array(
+                'url'         => (string) ($_POST['url'] ?? ''),
+                'secret'      => (string) ($_POST['secret'] ?? ''),
+                'events'      => json_decode((string) ($_POST['events'] ?? '["*"]'), true) ?: array('*'),
+                'tenant_key'  => (string) ($_POST['tenant_key'] ?? '__platform__'),
+                'description' => (string) ($_POST['description'] ?? ''),
+            ));
+
+        case 'update':
+            $webhookId = (int) ($_POST['webhook_id'] ?? 0);
+            $data = array();
+            if (isset($_POST['url'])) { $data['url'] = (string) $_POST['url']; }
+            if (isset($_POST['events'])) { $data['events'] = json_decode((string) $_POST['events'], true); }
+            if (isset($_POST['active'])) { $data['active'] = (int) $_POST['active']; }
+            if (isset($_POST['description'])) { $data['description'] = (string) $_POST['description']; }
+            return epc_webhooks_update($platformPdo, $webhookId, $data);
+
+        case 'delete':
+            return epc_webhooks_delete($platformPdo, (int) ($_POST['webhook_id'] ?? 0));
+
+        case 'stats':
+            return array('ok' => true, 'stats' => epc_webhooks_delivery_stats($platformPdo));
+
+        case 'dlq':
+            return array('ok' => true, 'items' => epc_webhooks_dlq_list($platformPdo));
+
+        case 'dlq_retry':
+            return epc_webhooks_dlq_retry($platformPdo, (int) ($_POST['dlq_id'] ?? 0));
+
+        case 'dlq_resolve':
+            return epc_webhooks_dlq_resolve($platformPdo, (int) ($_POST['dlq_id'] ?? 0));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ─────────────────── Events Browser ─────────────────── */
+
+function epc_bos_ajax_events(): array
+{
+    $ctx = epc_bos_context();
+    if ($ctx['role'] !== 'provider') {
+        return array('ok' => false, 'error' => 'Provider access required');
+    }
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_events.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'list');
+
+    switch ($subAction) {
+        case 'list':
+            $filters = array();
+            if (!empty($_POST['event_type'])) { $filters['event_type'] = (string) $_POST['event_type']; }
+            if (!empty($_POST['tenant_key'])) { $filters['tenant_key'] = (string) $_POST['tenant_key']; }
+            if (!empty($_POST['since'])) { $filters['since'] = (string) $_POST['since']; }
+            $limit = min(100, max(1, (int) ($_POST['limit'] ?? 50)));
+            $offset = max(0, (int) ($_POST['offset'] ?? 0));
+            $events = epc_events_list($platformPdo, $filters, $limit, $offset);
+            $count = epc_events_count($platformPdo, $filters);
+            return array('ok' => true, 'events' => $events, 'total' => $count);
+
+        case 'summary':
+            $since = (string) ($_POST['since'] ?? '');
+            return array('ok' => true, 'summary' => epc_events_type_summary($platformPdo, $since));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
 }
