@@ -314,6 +314,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'promotions_engine', 'label' => 'Promotions',      'icon' => 'fa-tags',         'path' => 'control/portal/epc_promotions_engine'),
         array('id' => 'config_sandbox', 'label' => 'Sandbox',         'icon' => 'fa-flask',        'path' => 'control/portal/epc_config_sandbox'),
         array('id' => 'import_orchestrator', 'label' => 'Imports',         'icon' => 'fa-upload',       'path' => 'control/portal/epc_import_orchestrator'),
+        array('id' => 'document_vault', 'label' => 'Doc Vault',       'icon' => 'fa-archive',      'path' => 'control/portal/epc_document_vault'),
     );
 }
 

@@ -484,6 +484,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'promotions_engine' => 'Promotions engine: percentage, fixed, BOGO, free shipping, bundle, tiered.',
                 'config_sandbox' => 'Config sandbox: snapshot, diff, promote/discard before go-live.',
                 'import_orchestrator' => 'Import orchestrator: bulk CSV/XML, schema validation, dry-run, chunk processing.',
+                'document_vault' => 'Document vault: versioned file storage, folders, access control.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
