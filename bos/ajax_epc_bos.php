@@ -150,6 +150,10 @@ switch ($action) {
         $response = epc_bos_ajax_dealer_portal();
         break;
 
+    case 'ai_copilot':
+        $response = epc_bos_ajax_ai_copilot();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2177,6 +2181,29 @@ function epc_bos_ajax_dealer_portal(): array
             return epc_dealer_place_order($platformPdo, $siteKey, (int)($_POST['dealer_id']??0), (float)($_POST['order_total']??0));
         case 'auto_tier':
             return epc_dealer_auto_tier($platformPdo, (int)($_POST['dealer_id']??0));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── ai copilot ───────────────────── */
+
+function epc_bos_ajax_ai_copilot(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ai_copilot.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_copilot_fleet_stats($platformPdo));
+        case 'ask':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $q = (string) ($_POST['query'] ?? '');
+            return epc_copilot_execute($platformPdo, $siteKey, $q);
+        case 'intents': return array('ok' => true, 'intents' => array_keys(epc_copilot_intents()));
+        case 'history':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'history' => epc_copilot_history($platformPdo, $siteKey));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
