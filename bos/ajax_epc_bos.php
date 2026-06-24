@@ -94,6 +94,10 @@ switch ($action) {
         $response = epc_bos_ajax_order_erp_pipeline();
         break;
 
+    case 'po_approval':
+        $response = epc_bos_ajax_po_approval();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1293,6 +1297,80 @@ function epc_bos_ajax_order_erp_pipeline(): array
                 return array('ok' => false, 'error' => 'Missing site_key or order_id');
             }
             return epc_order_erp_retry_failed($platformPdo, $siteKey, $orderId, $order ?: array());
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── po approval ───────────────────── */
+
+function epc_bos_ajax_po_approval(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_po_approval.php';
+
+    $ctx = epc_bos_context();
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_po_fleet_stats($platformPdo));
+
+        case 'list':
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            $filters = array();
+            if (!empty($_POST['status'])) $filters['status'] = (string) $_POST['status'];
+            return array('ok' => true, 'pos' => epc_po_list($platformPdo, $siteKey, $filters));
+
+        case 'get':
+            $poId = (int) ($_POST['po_id'] ?? 0);
+            if ($poId <= 0) {
+                return array('ok' => false, 'error' => 'Missing po_id');
+            }
+            return array('ok' => true, 'po' => epc_po_get($platformPdo, $poId));
+
+        case 'create':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            $data = json_decode((string) ($_POST['po_data'] ?? '{}'), true);
+            if (empty($data)) {
+                return array('ok' => false, 'error' => 'Missing po_data');
+            }
+            return epc_po_create($platformPdo, $siteKey, $data);
+
+        case 'approve':
+            $poId = (int) ($_POST['po_id'] ?? 0);
+            $tier = (int) ($_POST['tier'] ?? 0);
+            $approverId = (int) ($_POST['approver_id'] ?? 0);
+            $comment = (string) ($_POST['comment'] ?? '');
+            return epc_po_approve($platformPdo, $poId, $tier, $approverId, $comment);
+
+        case 'reject':
+            $poId = (int) ($_POST['po_id'] ?? 0);
+            $tier = (int) ($_POST['tier'] ?? 0);
+            $approverId = (int) ($_POST['approver_id'] ?? 0);
+            $reason = (string) ($_POST['reason'] ?? '');
+            return epc_po_reject($platformPdo, $poId, $tier, $approverId, $reason);
+
+        case 'cancel':
+            $poId = (int) ($_POST['po_id'] ?? 0);
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            return epc_po_cancel($platformPdo, $poId, $userId);
+
+        case 'tiers':
+            return array('ok' => true, 'tiers' => epc_po_approval_tiers());
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
