@@ -294,6 +294,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'credit_limit', 'label' => 'Credit Limits',   'icon' => 'fa-credit-card',  'path' => 'shop/finance/epc_credit_limit'),
         array('id' => 'order_erp_pipeline', 'label' => 'Order→ERP',       'icon' => 'fa-exchange',     'path' => 'shop/finance/epc_order_erp_pipeline'),
         array('id' => 'po_approval', 'label' => 'PO Approval',     'icon' => 'fa-check-square-o', 'path' => 'shop/finance/epc_po_approval'),
+        array('id' => 'rest_api_v2', 'label' => 'API v2',          'icon' => 'fa-code',         'path' => 'control/portal/epc_rest_api_v2'),
     );
 }
 
