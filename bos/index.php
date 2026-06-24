@@ -474,6 +474,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'multi_currency_gl' => 'Multi-currency GL: FX rates, revaluation, unrealized gain/loss, exposure report.',
                 'sso_saml' => 'SSO / SAML 2.0: IdP config, SP metadata, JIT provisioning, session management.',
                 'wps_payroll' => 'WPS / payroll: SIF file generation, salary management, payroll runs.',
+                'collections_dunning' => 'Collections & dunning: 7-step sequences, aging buckets, payment tracking.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
