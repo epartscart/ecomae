@@ -114,6 +114,10 @@ switch ($action) {
         $response = epc_bos_ajax_ai_classification();
         break;
 
+    case 'tenant_config':
+        $response = epc_bos_ajax_tenant_config();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1627,6 +1631,69 @@ function epc_bos_ajax_ai_classification(): array
             $reviewerId = (int) ($_POST['reviewer_id'] ?? 0);
             epc_ai_review($platformPdo, $classId, $category, $subcategory, $hsCode, $reviewerId);
             return array('ok' => true);
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── tenant config ───────────────────── */
+
+function epc_bos_ajax_tenant_config(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_tenant_config.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet':
+            return array('ok' => true, 'fleet' => epc_tenant_config_fleet($platformPdo));
+
+        case 'groups':
+            return array('ok' => true, 'groups' => epc_tenant_config_groups());
+
+        case 'all':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'config' => epc_tenant_config_all($platformPdo, $siteKey));
+
+        case 'group':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $group = preg_replace('/[^a-z_]/', '', (string) ($_POST['group'] ?? ''));
+            return array('ok' => true, 'fields' => epc_tenant_config_group($platformPdo, $siteKey, $group));
+
+        case 'set':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $group = preg_replace('/[^a-z_]/', '', (string) ($_POST['group'] ?? ''));
+            $key = preg_replace('/[^a-z0-9_]/', '', (string) ($_POST['key'] ?? ''));
+            $value = (string) ($_POST['value'] ?? '');
+            return epc_tenant_config_set($platformPdo, $siteKey, $group, $key, $value);
+
+        case 'bulk_set':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $group = preg_replace('/[^a-z_]/', '', (string) ($_POST['group'] ?? ''));
+            $values = json_decode((string) ($_POST['values'] ?? '{}'), true);
+            return epc_tenant_config_bulk_set($platformPdo, $siteKey, $group, $values ?: array());
+
+        case 'history':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'history' => epc_tenant_config_history($platformPdo, $siteKey));
+
+        case 'export':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'config' => epc_tenant_config_export($platformPdo, $siteKey));
+
+        case 'import':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $configs = json_decode((string) ($_POST['configs'] ?? '[]'), true);
+            return epc_tenant_config_import($platformPdo, $siteKey, $configs ?: array());
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
