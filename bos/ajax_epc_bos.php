@@ -182,6 +182,10 @@ switch ($action) {
         $response = epc_bos_ajax_document_vault();
         break;
 
+    case 'subscription_billing':
+        $response = epc_bos_ajax_subscription_billing();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2431,6 +2435,36 @@ function epc_bos_ajax_document_vault(): array
             return array('ok' => true, 'documents' => epc_vault_list_documents($platformPdo, $siteKey, (int)($_POST['folder_id']??0)));
         case 'versions':
             return array('ok' => true, 'versions' => epc_vault_versions($platformPdo, (int)($_POST['document_id']??0)));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── subscription billing ───────────────────── */
+
+function epc_bos_ajax_subscription_billing(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_subscription_billing.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_billing_fleet_stats($platformPdo));
+        case 'plans': return array('ok' => true, 'plans' => epc_billing_list_plans($platformPdo));
+        case 'create_plan':
+            $d = json_decode((string)($_POST['plan_data']??'{}'), true);
+            return epc_billing_create_plan($platformPdo, $d ?: array());
+        case 'subscribe':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_billing_subscribe($platformPdo, $siteKey, (int)($_POST['plan_id']??0));
+        case 'subscription':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'subscription' => epc_billing_tenant_subscription($platformPdo, $siteKey));
+        case 'invoices':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'invoices' => epc_billing_invoices($platformPdo, $siteKey));
+        case 'pay': return epc_billing_record_payment($platformPdo, (int)($_POST['invoice_id']??0), (string)($_POST['method']??'card'));
+        case 'cancel': return epc_billing_cancel($platformPdo, (int)($_POST['subscription_id']??0), (string)($_POST['reason']??''));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
