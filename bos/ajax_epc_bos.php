@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'order_erp_pipeline':
+        $response = epc_bos_ajax_order_erp_pipeline();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
