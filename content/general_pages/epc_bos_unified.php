@@ -298,6 +298,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'fulfillment_queue', 'label' => 'Fulfillment',     'icon' => 'fa-truck',        'path' => 'shop/finance/epc_fulfillment_queue'),
         array('id' => 'bi_metrics', 'label' => 'BI Metrics',      'icon' => 'fa-bar-chart',    'path' => 'control/portal/epc_bi_metrics'),
         array('id' => 'ai_classification', 'label' => 'AI Classify',     'icon' => 'fa-magic',        'path' => 'control/portal/epc_ai_classification'),
+        array('id' => 'tenant_config', 'label' => 'Tenant Config',   'icon' => 'fa-cog',          'path' => 'control/portal/epc_tenant_config'),
     );
 }
 
