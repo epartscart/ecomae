@@ -90,6 +90,10 @@ switch ($action) {
         $response = epc_bos_ajax_credit_limit();
         break;
 
+    case 'order_erp_pipeline':
+        $response = epc_bos_ajax_order_erp_pipeline();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1234,6 +1238,61 @@ function epc_bos_ajax_credit_limits(): array
                 return array('ok' => false, 'error' => 'Missing site_key');
             }
             return array('ok' => true, 'reviews' => epc_credit_due_for_review($platformPdo, $siteKey));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── order erp pipeline ───────────────────── */
+
+function epc_bos_ajax_order_erp_pipeline(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_erp_pipeline.php';
+
+    $ctx = epc_bos_context();
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_order_erp_fleet_stats($platformPdo));
+
+        case 'order_status':
+            $orderId = (int) ($_POST['order_id'] ?? 0);
+            if ($siteKey === '' || $orderId <= 0) {
+                return array('ok' => false, 'error' => 'Missing site_key or order_id');
+            }
+            return array('ok' => true, 'pipeline' => epc_order_erp_status($platformPdo, $siteKey, $orderId));
+
+        case 'run':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $order = json_decode((string) ($_POST['order_data'] ?? '{}'), true);
+            if (empty($order) || $siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key or order_data');
+            }
+            return epc_order_erp_run($platformPdo, $siteKey, $order);
+
+        case 'steps':
+            return array('ok' => true, 'steps' => epc_order_erp_pipeline_steps());
+
+        case 'retry':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $orderId = (int) ($_POST['order_id'] ?? 0);
+            $order = json_decode((string) ($_POST['order_data'] ?? '{}'), true);
+            if ($siteKey === '' || $orderId <= 0) {
+                return array('ok' => false, 'error' => 'Missing site_key or order_id');
+            }
+            return epc_order_erp_retry_failed($platformPdo, $siteKey, $orderId, $order ?: array());
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
