@@ -36,6 +36,43 @@ function epart_front_render_widget(string $relPath, string $cacheKey, int $ttl =
 	return $html;
 }
 
+function epart_front_render_own_brand($db_link, string $lang_href, string $brand_name, string $cachePrefix): string
+{
+	$cacheKey = $cachePrefix . 'own_brand';
+	$cached = epc_perf_cache_get($cacheKey);
+	if (is_string($cached)) {
+		return $cached;
+	}
+	if (!($db_link instanceof PDO)) {
+		return '';
+	}
+	$brandLike = '%' . $brand_name . '%';
+	$stmt = $db_link->prepare(
+		'SELECT DISTINCT d.`brand`, COUNT(*) AS cnt '
+		. 'FROM `shop_docpart_prices_data` d '
+		. 'WHERE d.`brand` LIKE ? '
+		. 'GROUP BY d.`brand` ORDER BY cnt DESC LIMIT 10'
+	);
+	$stmt->execute([$brandLike]);
+	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	if (empty($rows)) {
+		return '';
+	}
+	$html = '<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">';
+	foreach ($rows as $row) {
+		$b = htmlspecialchars($row['brand'], ENT_QUOTES, 'UTF-8');
+		$cnt = (int) $row['cnt'];
+		$href = htmlspecialchars($lang_href . '/available-brands?brand=' . urlencode($row['brand']), ENT_QUOTES, 'UTF-8');
+		$html .= '<a href="' . $href . '" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">';
+		$html .= '<strong style="display:block;color:#172536;font-size:14px;">' . $b . '</strong>';
+		$html .= '<small style="color:#64748b;font-size:12px;">' . number_format($cnt) . ' items</small>';
+		$html .= '</a>';
+	}
+	$html .= '</div>';
+	epc_perf_cache_set($cacheKey, $html, 900);
+	return $html;
+}
+
 $host = !empty($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : 'www.epartscart.com';
 if (strpos($host, 'epartscart.com') === false) {
 	return;
@@ -43,8 +80,10 @@ if (strpos($host, 'epartscart.com') === false) {
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] != '') ? rtrim($multilang_params['lang_href'], '/') : '/en';
 $cachePrefix = 'epart_front_widget:v3:' . preg_replace('/[^a-z0-9.\-]/', '', $host) . ':' . md5($lang_href) . ':';
 
+$family_html = epart_front_render_widget('content/product_family_catalog.php', $cachePrefix . 'family', 900);
 $catalog_html = epart_front_render_widget('content/umapi_catalog.php', $cachePrefix . 'catalog', 900);
 $brands_html = epart_front_render_widget('content/available_brands.php', $cachePrefix . 'brands', 900);
+$vehicle_html = epart_front_render_widget('content/vehicle_catalog.php', $cachePrefix . 'vehicle', 900);
 ?>
 
 <style>
@@ -130,6 +169,24 @@ $brands_html = epart_front_render_widget('content/available_brands.php', $cacheP
 </style>
 
 <div class="container epart-front-original-data">
+	<!-- 1. Family Product -->
+	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Family Product</h2>
+			<a class="epart-front-section-link" href="<?php echo htmlspecialchars($lang_href . '/product_family_catalog', ENT_QUOTES, 'UTF-8'); ?>">View all families &rarr;</a>
+		</div>
+		<?php
+		if ($family_html !== '') {
+			echo $family_html;
+		} else {
+			?>
+			<div class="alert alert-warning">Family Product catalog is loading. <a href="<?php echo htmlspecialchars($lang_href . '/product_family_catalog', ENT_QUOTES, 'UTF-8'); ?>">Open catalog</a></div>
+			<?php
+		}
+		?>
+	</section>
+
+	<!-- 2. UMAPI Catalog -->
 	<section class="epart-front-section epart-front-section-catalog" aria-label="Epart Catalog">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Epart Catalog</h2>
@@ -146,9 +203,10 @@ $brands_html = epart_front_render_widget('content/available_brands.php', $cacheP
 		?>
 	</section>
 
+	<!-- 3. Available Brands -->
 	<section class="epart-front-section epart-front-section-brands" aria-label="Available brands">
 		<div class="epart-front-section-head">
-			<h2 class="epart-front-section-title">Available brands</h2>
+			<h2 class="epart-front-section-title">Available Brands</h2>
 			<a class="epart-front-section-link" href="<?php echo htmlspecialchars($lang_href . '/available-brands', ENT_QUOTES, 'UTF-8'); ?>">View all brands &rarr;</a>
 		</div>
 		<?php
@@ -157,6 +215,38 @@ $brands_html = epart_front_render_widget('content/available_brands.php', $cacheP
 		} else {
 			?>
 			<div class="alert alert-warning">Available brands are temporarily unavailable. <a href="<?php echo htmlspecialchars($lang_href . '/available-brands', ENT_QUOTES, 'UTF-8'); ?>">Open brands page</a></div>
+			<?php
+		}
+		?>
+	</section>
+
+	<!-- 4. Own Brand -->
+	<?php
+	$own_brand_name = !empty($DP_Config->own_brand_name) ? $DP_Config->own_brand_name : 'EPC';
+	$own_brand_html = epart_front_render_own_brand($db_link, $lang_href, $own_brand_name, $cachePrefix);
+	if ($own_brand_html !== '') {
+	?>
+	<section class="epart-front-section epart-front-section-own-brand" aria-label="Own Brand">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Own Brand</h2>
+			<a class="epart-front-section-link" href="<?php echo htmlspecialchars($lang_href . '/available-brands', ENT_QUOTES, 'UTF-8'); ?>">View all &rarr;</a>
+		</div>
+		<?php echo $own_brand_html; ?>
+	</section>
+	<?php } ?>
+
+	<!-- 5. Original Catalog -->
+	<section class="epart-front-section epart-front-section-original" aria-label="Original Catalog">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Original Catalog</h2>
+			<a class="epart-front-section-link" href="<?php echo htmlspecialchars($lang_href . '/vehicle-catalog', ENT_QUOTES, 'UTF-8'); ?>">Open vehicle catalog &rarr;</a>
+		</div>
+		<?php
+		if ($vehicle_html !== '') {
+			echo $vehicle_html;
+		} else {
+			?>
+			<div class="alert alert-warning">Original Catalog is loading. <a href="<?php echo htmlspecialchars($lang_href . '/vehicle-catalog', ENT_QUOTES, 'UTF-8'); ?>">Open catalog</a></div>
 			<?php
 		}
 		?>
