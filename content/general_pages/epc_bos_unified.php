@@ -288,6 +288,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'event_bus',       'label' => 'Event Bus',          'icon' => 'fa-bolt',         'path' => 'control/portal/epc_event_bus'),
         array('id' => 'webhooks',        'label' => 'Webhooks',           'icon' => 'fa-plug',         'path' => 'control/portal/epc_webhooks'),
         array('id' => 'readiness_score', 'label' => 'Readiness Score',  'icon' => 'fa-trophy',       'path' => 'control/portal/epc_readiness_score'),
+        array('id' => 'notifications',  'label' => 'Notifications',     'icon' => 'fa-bell',         'path' => 'control/portal/epc_notifications'),
     );
 }
 

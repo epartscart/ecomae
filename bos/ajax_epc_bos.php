@@ -74,6 +74,10 @@ switch ($action) {
         $response = epc_bos_ajax_readiness_score();
         break;
 
+    case 'notifications':
+        $response = epc_bos_ajax_notifications();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -914,6 +918,132 @@ function epc_bos_ajax_readiness_score(): array
             } catch (\Exception $e) {
                 return array('ok' => false, 'error' => $e->getMessage());
             }
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── notifications ───────────────────── */
+
+function epc_bos_ajax_notifications(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_notifications.php';
+
+    $ctx = epc_bos_context();
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'list');
+    $tenantKey = (string) ($_POST['tenant_key'] ?? '__platform__');
+
+    switch ($subAction) {
+        case 'list':
+            $filters = array();
+            if (isset($_POST['category']) && $_POST['category'] !== '') {
+                $filters['category'] = (string) $_POST['category'];
+            }
+            if (isset($_POST['is_read'])) {
+                $filters['is_read'] = (int) $_POST['is_read'];
+            }
+            if (isset($_POST['severity']) && $_POST['severity'] !== '') {
+                $filters['severity'] = (string) $_POST['severity'];
+            }
+            $filters['dismissed'] = false;
+            $limit = min(100, max(1, (int) ($_POST['limit'] ?? 50)));
+            $offset = max(0, (int) ($_POST['offset'] ?? 0));
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            $items = epc_notifications_list($platformPdo, $tenantKey, $userId, $filters, $limit, $offset);
+            $unread = epc_notifications_unread_count($platformPdo, $tenantKey, $userId);
+            return array('ok' => true, 'notifications' => $items, 'unread' => $unread);
+
+        case 'unread_count':
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            return array('ok' => true, 'unread' => epc_notifications_unread_count($platformPdo, $tenantKey, $userId));
+
+        case 'summary':
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            return array('ok' => true, 'summary' => epc_notifications_summary($platformPdo, $tenantKey, $userId));
+
+        case 'mark_read':
+            $ids = json_decode((string) ($_POST['ids'] ?? '[]'), true);
+            if (!is_array($ids) || empty($ids)) {
+                return array('ok' => false, 'error' => 'Missing ids');
+            }
+            $count = epc_notifications_mark_read($platformPdo, array_map('intval', $ids), $tenantKey);
+            return array('ok' => true, 'marked' => $count);
+
+        case 'mark_all_read':
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            $count = epc_notifications_mark_all_read($platformPdo, $tenantKey, $userId);
+            return array('ok' => true, 'marked' => $count);
+
+        case 'dismiss':
+            $id = (int) ($_POST['notification_id'] ?? 0);
+            return array('ok' => epc_notifications_dismiss($platformPdo, $id, $tenantKey));
+
+        case 'send':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $notifId = epc_notification_send($platformPdo, array(
+                'tenant_key'   => $tenantKey,
+                'user_id'      => (int) ($_POST['user_id'] ?? 0),
+                'category'     => (string) ($_POST['category'] ?? 'system'),
+                'severity'     => (string) ($_POST['severity'] ?? 'info'),
+                'title'        => (string) ($_POST['title'] ?? ''),
+                'body'         => (string) ($_POST['body'] ?? ''),
+                'action_url'   => (string) ($_POST['action_url'] ?? ''),
+                'action_label' => (string) ($_POST['action_label'] ?? ''),
+            ));
+            return array('ok' => $notifId > 0, 'notification_id' => $notifId);
+
+        case 'broadcast':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $notifId = epc_notification_broadcast($platformPdo, $tenantKey, array(
+                'category' => (string) ($_POST['category'] ?? 'system'),
+                'severity' => (string) ($_POST['severity'] ?? 'info'),
+                'title'    => (string) ($_POST['title'] ?? ''),
+                'body'     => (string) ($_POST['body'] ?? ''),
+            ));
+            return array('ok' => $notifId > 0, 'notification_id' => $notifId);
+
+        case 'fleet_stats':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            return array('ok' => true, 'stats' => epc_notifications_fleet_stats($platformPdo));
+
+        case 'categories':
+            return array('ok' => true, 'categories' => epc_notification_categories());
+
+        case 'prefs_get':
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            return array('ok' => true, 'prefs' => epc_notification_prefs_get($platformPdo, $tenantKey, $userId));
+
+        case 'prefs_save':
+            $userId = (int) ($_POST['user_id'] ?? 0);
+            $category = (string) ($_POST['category'] ?? '*');
+            $channels = array(
+                'in_app'       => (int) ($_POST['channel_in_app'] ?? 1),
+                'email'        => (int) ($_POST['channel_email'] ?? 1),
+                'webhook'      => (int) ($_POST['channel_webhook'] ?? 0),
+                'email_digest' => (string) ($_POST['email_digest'] ?? 'daily'),
+            );
+            $ok = epc_notification_prefs_save($platformPdo, $tenantKey, $userId, $category, $channels);
+            return array('ok' => $ok);
+
+        case 'cleanup':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $days = max(7, (int) ($_POST['days'] ?? 90));
+            $deleted = epc_notifications_cleanup($platformPdo, $days);
+            return array('ok' => true, 'deleted' => $deleted);
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
