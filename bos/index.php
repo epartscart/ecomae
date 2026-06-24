@@ -454,6 +454,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'audit_log'        => 'Complete audit trail of all administrative actions across the platform.',
                 'failover'         => 'Disaster recovery procedures, failover runbook, and backup status.',
                 'isolation_audit'   => 'Commerce data isolation audit: site_key enforcement, price_id scoping, cross-tenant leak detection.',
+                'mfa_management'    => 'Multi-Factor Authentication policy: TOTP enrollment, role enforcement, backup codes, audit log.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',

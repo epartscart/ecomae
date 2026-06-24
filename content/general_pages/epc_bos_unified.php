@@ -284,6 +284,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'audit_log',       'label' => 'Audit Log',          'icon' => 'fa-history',      'path' => 'control/portal/epc_boc_audit_log'),
         array('id' => 'failover',        'label' => 'Failover Runbook',   'icon' => 'fa-life-ring',    'path' => 'control/portal/epc_platform_failover_guide'),
         array('id' => 'isolation_audit', 'label' => 'Isolation Audit',   'icon' => 'fa-shield',       'path' => 'control/portal/epc_commerce_isolation_audit'),
+        array('id' => 'mfa_management',  'label' => 'MFA / 2FA',          'icon' => 'fa-lock',         'path' => 'control/portal/epc_mfa_management'),
     );
 }
 

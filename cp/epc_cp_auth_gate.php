@@ -76,6 +76,12 @@ function epc_cp_auth_gate_run()
 		$path = '/';
 	}
 
+	// Handle MFA AJAX requests
+	if (isset($_GET['epc_mfa_ajax'])) {
+		epc_cp_auth_gate_mfa_ajax();
+		exit;
+	}
+
 	$requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
 	if ($requestMethod === 'POST' && !empty($_POST['authentication'])) {
 		return;
@@ -167,4 +173,60 @@ function epc_cp_auth_gate_run()
 			exit;
 		}
 	}
+}
+
+/* ─────────────────── MFA Route Guard ─────────────────── */
+
+function epc_cp_mfa_route_guard(): void
+{
+	$userId = isset($_COOKIE['admin_u_id']) ? (int) $_COOKIE['admin_u_id'] : 0;
+	if ($userId <= 0) {
+		return;
+	}
+	$pdo = epc_cp_auth_gate_pdo();
+	if (!$pdo instanceof PDO) {
+		return;
+	}
+	$mfaFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_auth_mfa.php';
+	if (!is_file($mfaFile)) {
+		return;
+	}
+	require_once $mfaFile;
+
+	$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+	$path = parse_url($requestUri, PHP_URL_PATH);
+	if (!is_string($path)) {
+		return;
+	}
+
+	epc_mfa_enforce_route_guard($pdo, $userId, $path);
+}
+
+/* ─────────────────── MFA AJAX Handler ─────────────────── */
+
+function epc_cp_auth_gate_mfa_ajax(): void
+{
+	header('Content-Type: application/json; charset=utf-8');
+
+	$userId = isset($_COOKIE['admin_u_id']) ? (int) $_COOKIE['admin_u_id'] : 0;
+	if ($userId <= 0 || !epc_cp_auth_gate_is_admin()) {
+		echo json_encode(array('ok' => false, 'error' => 'Not authenticated'));
+		return;
+	}
+
+	$pdo = epc_cp_auth_gate_pdo();
+	if (!$pdo instanceof PDO) {
+		echo json_encode(array('ok' => false, 'error' => 'Database unavailable'));
+		return;
+	}
+
+	$mfaFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_auth_mfa.php';
+	if (!is_file($mfaFile)) {
+		echo json_encode(array('ok' => false, 'error' => 'MFA module not available'));
+		return;
+	}
+	require_once $mfaFile;
+
+	$result = epc_mfa_handle_ajax($pdo, $userId);
+	echo json_encode($result, JSON_UNESCAPED_UNICODE);
 }
