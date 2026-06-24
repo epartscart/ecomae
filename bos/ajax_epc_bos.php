@@ -86,6 +86,10 @@ switch ($action) {
         $response = epc_bos_ajax_cp_role_home();
         break;
 
+    case 'credit_limit':
+        $response = epc_bos_ajax_credit_limit();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1145,6 +1149,91 @@ function epc_bos_ajax_role_management(): array
             $role = preg_replace('/[^a-z_]/', '', (string) ($_POST['role'] ?? 'viewer'));
             $permission = preg_replace('/[^a-z0-9_.*]/', '', (string) ($_POST['permission'] ?? ''));
             return array('ok' => true, 'allowed' => epc_cp_role_can($role, $permission));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── credit limits ───────────────────── */
+
+function epc_bos_ajax_credit_limits(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_credit_limit.php';
+
+    $ctx = epc_bos_context();
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_summary');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_summary':
+            return array('ok' => true, 'summary' => epc_credit_fleet_summary($platformPdo));
+
+        case 'get':
+            $customerId = (int) ($_POST['customer_id'] ?? 0);
+            if ($siteKey === '' || $customerId <= 0) {
+                return array('ok' => false, 'error' => 'Missing site_key or customer_id');
+            }
+            return array('ok' => true, 'credit' => epc_credit_get($platformPdo, $siteKey, $customerId));
+
+        case 'set_limit':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $customerId = (int) ($_POST['customer_id'] ?? 0);
+            $limit = (float) ($_POST['credit_limit'] ?? 0);
+            if ($siteKey === '' || $customerId <= 0) {
+                return array('ok' => false, 'error' => 'Missing site_key or customer_id');
+            }
+            $result = epc_credit_set_limit($platformPdo, $siteKey, $customerId, $limit, array(
+                'currency'      => (string) ($_POST['currency'] ?? 'AED'),
+                'payment_terms' => (string) ($_POST['payment_terms'] ?? 'net30'),
+                'notes'         => (string) ($_POST['notes'] ?? ''),
+            ));
+            return array('ok' => true, 'credit' => $result);
+
+        case 'check_order':
+            $customerId = (int) ($_POST['customer_id'] ?? 0);
+            $orderTotal = (float) ($_POST['order_total'] ?? 0);
+            if ($siteKey === '' || $customerId <= 0) {
+                return array('ok' => false, 'error' => 'Missing site_key or customer_id');
+            }
+            return array('ok' => true, 'check' => epc_credit_check_order($platformPdo, $siteKey, $customerId, $orderTotal));
+
+        case 'hold':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $customerId = (int) ($_POST['customer_id'] ?? 0);
+            $reason = (string) ($_POST['reason'] ?? '');
+            epc_credit_hold($platformPdo, $siteKey, $customerId, $reason);
+            return array('ok' => true);
+
+        case 'release':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $customerId = (int) ($_POST['customer_id'] ?? 0);
+            epc_credit_release($platformPdo, $siteKey, $customerId);
+            return array('ok' => true);
+
+        case 'history':
+            $customerId = (int) ($_POST['customer_id'] ?? 0);
+            if ($siteKey === '' || $customerId <= 0) {
+                return array('ok' => false, 'error' => 'Missing site_key or customer_id');
+            }
+            return array('ok' => true, 'history' => epc_credit_history($platformPdo, $siteKey, $customerId));
+
+        case 'due_for_review':
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            return array('ok' => true, 'reviews' => epc_credit_due_for_review($platformPdo, $siteKey));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');

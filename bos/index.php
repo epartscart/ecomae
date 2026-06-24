@@ -461,6 +461,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'notifications'    => 'Notification center: in-app alerts, email digest, webhook notifications, per-category preferences.',
                 'db_migrations'    => 'Database migration versioning: track, apply, rollback schema changes across platform and tenant databases.',
                 'cp_role_home' => 'Role-based CP home: per-role dashboards (admin, finance, warehouse), KPI tiles, permissions.',
+                'credit_limit' => 'Credit limit engine: per-customer credit, auto-hold on exceeded, aging analysis.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
