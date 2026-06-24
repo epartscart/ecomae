@@ -178,6 +178,10 @@ switch ($action) {
         $response = epc_bos_ajax_import_orchestrator();
         break;
 
+    case 'document_vault':
+        $response = epc_bos_ajax_document_vault();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2394,6 +2398,39 @@ function epc_bos_ajax_import_orchestrator(): array
         case 'jobs':
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             return array('ok' => true, 'jobs' => epc_import_list_jobs($platformPdo, $siteKey));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── document vault ───────────────────── */
+
+function epc_bos_ajax_document_vault(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_document_vault.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_vault_fleet_stats($platformPdo));
+        case 'folders':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'folders' => epc_vault_list_folders($platformPdo, $siteKey, (int)($_POST['parent_id']??0)));
+        case 'create_folder':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_vault_create_folder($platformPdo, $siteKey, (string)($_POST['name']??''), (int)($_POST['parent_id']??0));
+        case 'upload':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string)($_POST['file_data']??'{}'), true);
+            return epc_vault_upload($platformPdo, $siteKey, $d ?: array());
+        case 'new_version':
+            $d = json_decode((string)($_POST['version_data']??'{}'), true);
+            return epc_vault_new_version($platformPdo, (int)($_POST['document_id']??0), $d ?: array());
+        case 'documents':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'documents' => epc_vault_list_documents($platformPdo, $siteKey, (int)($_POST['folder_id']??0)));
+        case 'versions':
+            return array('ok' => true, 'versions' => epc_vault_versions($platformPdo, (int)($_POST['document_id']??0)));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
