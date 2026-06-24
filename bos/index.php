@@ -479,6 +479,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'dealer_portal' => 'Dealer / distributor portal: tiered pricing, auto-tier promotion, B2B.',
                 'ai_copilot' => 'AI copilot: NL query → SQL → chart, intent parsing, query history.',
                 'nl_reporting' => 'NL reporting: template library, scheduled reports, export.',
+                'industry_packs' => 'Industry packs: auto-parts, fashion, electronics, jewellery verticals.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
