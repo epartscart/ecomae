@@ -98,6 +98,10 @@ switch ($action) {
         $response = epc_bos_ajax_po_approval();
         break;
 
+    case 'rest_api_v2':
+        $response = epc_bos_ajax_rest_api_v2();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1371,6 +1375,71 @@ function epc_bos_ajax_po_approval(): array
 
         case 'tiers':
             return array('ok' => true, 'tiers' => epc_po_approval_tiers());
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── rest api v2 ───────────────────── */
+
+function epc_bos_ajax_rest_api(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_rest_api_v2.php';
+
+    $ctx = epc_bos_context();
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_api_fleet_stats($platformPdo));
+
+        case 'endpoints':
+            return array('ok' => true, 'endpoints' => epc_api_v2_endpoints());
+
+        case 'openapi':
+            return array('ok' => true, 'spec' => epc_api_v2_openapi_spec());
+
+        case 'keys_list':
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            return array('ok' => true, 'keys' => epc_api_keys_list($platformPdo, $siteKey));
+
+        case 'key_generate':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            $scopes = json_decode((string) ($_POST['scopes'] ?? '["read"]'), true);
+            return epc_api_key_generate($platformPdo, $siteKey, array(
+                'scopes'     => $scopes,
+                'label'      => (string) ($_POST['label'] ?? 'API Key'),
+                'rate_limit' => (int) ($_POST['rate_limit'] ?? 1000),
+            ));
+
+        case 'key_revoke':
+            if ($ctx['role'] !== 'provider') {
+                return array('ok' => false, 'error' => 'Provider access required');
+            }
+            $keyId = (int) ($_POST['key_id'] ?? 0);
+            epc_api_key_revoke($platformPdo, $keyId);
+            return array('ok' => true);
+
+        case 'usage':
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            $hours = (int) ($_POST['hours'] ?? 24);
+            return array('ok' => true, 'usage' => epc_api_usage_by_endpoint($platformPdo, $siteKey, $hours));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
