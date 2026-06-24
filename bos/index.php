@@ -459,7 +459,6 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'webhooks'          => 'Webhook management: HMAC-signed HTTP POST delivery, retry with exponential backoff, dead-letter queue.',
                 'readiness_score'  => 'Enterprise readiness score: per-tenant health check (isolation, MFA, backup, e-invoice, performance, compliance).',
                 'notifications'    => 'Notification center: in-app alerts, email digest, webhook notifications, per-category preferences.',
-||||||| parent of 5d88886 (feat: P1 #24 — DB migration versioning tool (track, apply, rollback))
                 'db_migrations'    => 'Database migration versioning: track, apply, rollback schema changes across platform and tenant databases.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',

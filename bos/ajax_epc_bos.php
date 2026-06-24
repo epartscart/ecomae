@@ -78,7 +78,6 @@ switch ($action) {
         $response = epc_bos_ajax_notifications();
         break;
 
-||||||| parent of 5d88886 (feat: P1 #24 — DB migration versioning tool (track, apply, rollback))
     case 'db_migrations':
         $response = epc_bos_ajax_db_migrations();
         break;
@@ -1054,7 +1053,6 @@ function epc_bos_ajax_notifications(): array
             return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
-||||||| parent of 5d88886 (feat: P1 #24 — DB migration versioning tool (track, apply, rollback))
 
 /* ───────────────────── db migrations ───────────────────── */
 

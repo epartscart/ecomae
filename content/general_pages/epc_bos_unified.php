@@ -289,7 +289,6 @@ function epc_bos_fleet_items(): array
         array('id' => 'webhooks',        'label' => 'Webhooks',           'icon' => 'fa-plug',         'path' => 'control/portal/epc_webhooks'),
         array('id' => 'readiness_score', 'label' => 'Readiness Score',  'icon' => 'fa-trophy',       'path' => 'control/portal/epc_readiness_score'),
         array('id' => 'notifications',  'label' => 'Notifications',     'icon' => 'fa-bell',         'path' => 'control/portal/epc_notifications'),
-||||||| parent of 5d88886 (feat: P1 #24 — DB migration versioning tool (track, apply, rollback))
         array('id' => 'db_migrations',   'label' => 'DB Migrations',     'icon' => 'fa-database',     'path' => 'control/portal/epc_db_migrations'),
     );
 }
