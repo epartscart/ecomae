@@ -291,6 +291,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'notifications',  'label' => 'Notifications',     'icon' => 'fa-bell',         'path' => 'control/portal/epc_notifications'),
         array('id' => 'db_migrations',   'label' => 'DB Migrations',     'icon' => 'fa-database',     'path' => 'control/portal/epc_db_migrations'),
         array('id' => 'cp_role_home', 'label' => 'CP Roles',        'icon' => 'fa-users',        'path' => 'control/portal/epc_cp_role_home'),
+        array('id' => 'credit_limit', 'label' => 'Credit Limits',   'icon' => 'fa-credit-card',  'path' => 'shop/finance/epc_credit_limit'),
     );
 }
 
