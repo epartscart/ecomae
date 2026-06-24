@@ -170,6 +170,10 @@ switch ($action) {
         $response = epc_bos_ajax_promotions_engine();
         break;
 
+    case 'config_sandbox':
+        $response = epc_bos_ajax_config_sandbox();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2330,6 +2334,34 @@ function epc_bos_ajax_promotions(): array
             return epc_promo_apply($platformPdo, $siteKey, (string)($_POST['code']??''), (float)($_POST['order_total']??0), (int)($_POST['customer_id']??0));
         case 'record_usage':
             return epc_promo_record_usage($platformPdo, (int)($_POST['promotion_id']??0), $siteKey, (int)($_POST['customer_id']??0), (string)($_POST['order_ref']??''), (float)($_POST['discount']??0));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── config sandbox ───────────────────── */
+
+function epc_bos_ajax_config_sandbox(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_config_sandbox.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_sandbox_fleet_stats($platformPdo));
+        case 'list':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'snapshots' => epc_sandbox_list($platformPdo, $siteKey));
+        case 'create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string)($_POST['config_data']??'{}'), true);
+            return epc_sandbox_create($platformPdo, $siteKey, (string)($_POST['name']??'Sandbox'), $d ?: array());
+        case 'apply_change':
+            return epc_sandbox_apply_change($platformPdo, (int)($_POST['snapshot_id']??0), (string)($_POST['key']??''), (string)($_POST['old_value']??''), (string)($_POST['new_value']??''), (string)($_POST['change_type']??'modify'));
+        case 'diff':
+            return array('ok' => true, 'changes' => epc_sandbox_diff($platformPdo, (int)($_POST['snapshot_id']??0)));
+        case 'promote': return epc_sandbox_promote($platformPdo, (int)($_POST['snapshot_id']??0));
+        case 'discard': return epc_sandbox_discard($platformPdo, (int)($_POST['snapshot_id']??0));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
