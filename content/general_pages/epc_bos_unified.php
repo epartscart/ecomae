@@ -307,6 +307,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'collections_dunning', 'label' => 'Collections',     'icon' => 'fa-bell',         'path' => 'shop/finance/epc_collections_dunning'),
         array('id' => 'warranty_rma', 'label' => 'Warranty/RMA',    'icon' => 'fa-shield',       'path' => 'shop/finance/epc_warranty_rma'),
         array('id' => 'dealer_portal', 'label' => 'Dealer Portal',   'icon' => 'fa-handshake-o',  'path' => 'control/portal/epc_dealer_portal'),
+        array('id' => 'ai_copilot', 'label' => 'AI Copilot',      'icon' => 'fa-commenting',   'path' => 'control/portal/epc_ai_copilot'),
     );
 }
 
