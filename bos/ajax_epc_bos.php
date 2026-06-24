@@ -130,6 +130,10 @@ switch ($action) {
         $response = epc_bos_ajax_multi_currency_gl();
         break;
 
+    case 'sso_saml':
+        $response = epc_bos_ajax_sso_saml();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1899,6 +1903,81 @@ function epc_bos_ajax_multi_currency(): array
             $ctx = epc_bos_context();
             if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
             return array('ok' => true, 'seeded' => epc_mcgl_seed_rates($platformPdo));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── sso saml ───────────────────── */
+
+function epc_bos_ajax_sso_saml(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_sso_saml.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_sso_fleet_stats($platformPdo));
+
+        case 'sp_metadata':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'metadata' => epc_sso_sp_metadata($siteKey));
+
+        case 'sp_metadata_xml':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'xml' => epc_sso_sp_metadata_xml($siteKey));
+
+        case 'providers':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'providers' => epc_sso_provider_list($platformPdo, $siteKey));
+
+        case 'provider_get':
+            $pid = (int) ($_POST['provider_id'] ?? 0);
+            return array('ok' => true, 'provider' => epc_sso_provider_get($platformPdo, $pid));
+
+        case 'provider_create':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $data = json_decode((string) ($_POST['provider_data'] ?? '{}'), true);
+            return epc_sso_provider_create($platformPdo, $siteKey, $data ?: array());
+
+        case 'provider_toggle':
+            $pid = (int) ($_POST['provider_id'] ?? 0);
+            $active = (bool) ($_POST['active'] ?? false);
+            epc_sso_provider_toggle($platformPdo, $pid, $active);
+            return array('ok' => true);
+
+        case 'provider_delete':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            $pid = (int) ($_POST['provider_id'] ?? 0);
+            epc_sso_provider_delete($platformPdo, $pid);
+            return array('ok' => true);
+
+        case 'initiate':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $pid = (int) ($_POST['provider_id'] ?? 0);
+            $provider = epc_sso_provider_get($platformPdo, $pid);
+            if (empty($provider)) return array('ok' => false, 'error' => 'Provider not found');
+            return epc_sso_authn_request($siteKey, $provider);
+
+        case 'sessions':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'sessions' => epc_sso_active_sessions($platformPdo, $siteKey));
+
+        case 'logout':
+            $sessionId = (int) ($_POST['session_id'] ?? 0);
+            epc_sso_logout($platformPdo, $sessionId);
+            return array('ok' => true);
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');

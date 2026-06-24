@@ -302,6 +302,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'workflow_builder', 'label' => 'Workflows',       'icon' => 'fa-random',       'path' => 'control/portal/epc_workflow_builder'),
         array('id' => 'inventory_forecast', 'label' => 'Forecasting',     'icon' => 'fa-line-chart',   'path' => 'shop/finance/epc_inventory_forecast'),
         array('id' => 'multi_currency_gl', 'label' => 'Multi-Currency',  'icon' => 'fa-money',        'path' => 'shop/finance/epc_multi_currency_gl'),
+        array('id' => 'sso_saml', 'label' => 'SSO / SAML',      'icon' => 'fa-key',          'path' => 'control/portal/epc_sso_saml'),
     );
 }
 
