@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'collections_dunning':
+        $response = epc_bos_ajax_collections_dunning();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
