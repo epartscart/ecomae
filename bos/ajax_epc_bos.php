@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'wps_payroll':
+        $response = epc_bos_ajax_wps_payroll();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
