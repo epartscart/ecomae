@@ -102,6 +102,10 @@ switch ($action) {
         $response = epc_bos_ajax_rest_api_v2();
         break;
 
+    case 'fulfillment_queue':
+        $response = epc_bos_ajax_fulfillment_queue();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1440,6 +1444,72 @@ function epc_bos_ajax_rest_api(): array
             }
             $hours = (int) ($_POST['hours'] ?? 24);
             return array('ok' => true, 'usage' => epc_api_usage_by_endpoint($platformPdo, $siteKey, $hours));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── fulfillment queue ───────────────────── */
+
+function epc_bos_ajax_fulfillment(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_fulfillment_queue.php';
+
+    $ctx = epc_bos_context();
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_fulfillment_fleet_stats($platformPdo));
+
+        case 'list':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $filters = array();
+            if (!empty($_POST['status'])) $filters['status'] = (string) $_POST['status'];
+            if (!empty($_POST['warehouse'])) $filters['warehouse'] = (string) $_POST['warehouse'];
+            return array('ok' => true, 'queue' => epc_fulfillment_list($platformPdo, $siteKey, $filters));
+
+        case 'get':
+            $fId = (int) ($_POST['fulfillment_id'] ?? 0);
+            return array('ok' => true, 'fulfillment' => epc_fulfillment_get($platformPdo, $fId));
+
+        case 'queue':
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $order = json_decode((string) ($_POST['order_data'] ?? '{}'), true);
+            return epc_fulfillment_queue($platformPdo, $siteKey, $order ?: array());
+
+        case 'transition':
+            $fId = (int) ($_POST['fulfillment_id'] ?? 0);
+            $newStatus = (string) ($_POST['new_status'] ?? '');
+            $opts = json_decode((string) ($_POST['opts'] ?? '{}'), true);
+            return epc_fulfillment_transition($platformPdo, $fId, $newStatus, $opts ?: array());
+
+        case 'pick_item':
+            $itemId = (int) ($_POST['item_id'] ?? 0);
+            $qtyPicked = (int) ($_POST['qty_picked'] ?? 0);
+            return epc_fulfillment_pick_item($platformPdo, $itemId, $qtyPicked);
+
+        case 'packing_slip':
+            $fId = (int) ($_POST['fulfillment_id'] ?? 0);
+            return epc_fulfillment_packing_slip($platformPdo, $fId);
+
+        case 'create_wave':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $ids = json_decode((string) ($_POST['fulfillment_ids'] ?? '[]'), true);
+            return epc_fulfillment_create_wave($platformPdo, $siteKey, $ids ?: array());
+
+        case 'sla_breaches':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $maxHours = (int) ($_POST['max_hours'] ?? 48);
+            return array('ok' => true, 'breaches' => epc_fulfillment_sla_breaches($platformPdo, $siteKey, $maxHours));
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');

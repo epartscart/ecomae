@@ -465,6 +465,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'order_erp_pipeline' => 'Order-to-ERP pipeline: auto GL journal, AR invoice, inventory deduct, tax posting.',
                 'po_approval' => 'PO approval workflow: 3-tier (manager, finance, director), threshold rules, audit trail.',
                 'rest_api_v2' => 'REST API v2: versioned endpoints, rate limiting, sandbox keys, OpenAPI spec.',
+                'fulfillment_queue' => 'Fulfillment queue: pick/pack/ship, wave picking, SLA tracking.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
