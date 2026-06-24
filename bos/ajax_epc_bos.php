@@ -162,6 +162,10 @@ switch ($action) {
         $response = epc_bos_ajax_industry_packs();
         break;
 
+    case 'multi_entity':
+        $response = epc_bos_ajax_multi_entity();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2265,6 +2269,36 @@ function epc_bos_ajax_industry_packs(): array
         case 'tenant_packs':
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             return array('ok' => true, 'packs' => epc_industry_tenant_packs($platformPdo, $siteKey));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── multi entity ───────────────────── */
+
+function epc_bos_ajax_multi_entity(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_multi_entity.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_entity_fleet_stats($platformPdo));
+        case 'groups': return array('ok' => true, 'groups' => epc_entity_group_list($platformPdo));
+        case 'create_group':
+            $d = json_decode((string)($_POST['group_data']??'{}'), true);
+            return epc_entity_create_group($platformPdo, $d ?: array());
+        case 'members':
+            return array('ok' => true, 'members' => epc_entity_group_members($platformPdo, (int)($_POST['group_id']??0)));
+        case 'add_member':
+            $sk = preg_replace('/[^a-z0-9_]/', '', strtolower((string)($_POST['site_key']??'')));
+            $d = json_decode((string)($_POST['member_data']??'{}'), true);
+            return epc_entity_add_member($platformPdo, (int)($_POST['group_id']??0), $sk, $d ?: array());
+        case 'intercompany':
+            return epc_entity_record_intercompany($platformPdo, (int)($_POST['group_id']??0), (string)($_POST['from']??''), (string)($_POST['to']??''), (float)($_POST['amount']??0), (string)($_POST['description']??''));
+        case 'eliminate':
+            return epc_entity_eliminate($platformPdo, (int)($_POST['group_id']??0));
+        case 'consolidated_tb':
+            return array('ok' => true, 'tb' => epc_entity_consolidated_tb($platformPdo, (int)($_POST['group_id']??0)));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
