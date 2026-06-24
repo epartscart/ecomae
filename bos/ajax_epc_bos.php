@@ -66,6 +66,10 @@ switch ($action) {
         $response = epc_bos_ajax_events();
         break;
 
+    case 'design_tokens':
+        $response = epc_bos_ajax_design_tokens();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -797,6 +801,73 @@ function epc_bos_ajax_events(): array
         case 'summary':
             $since = (string) ($_POST['since'] ?? '');
             return array('ok' => true, 'summary' => epc_events_type_summary($platformPdo, $since));
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── design tokens ───────────────────── */
+
+function epc_bos_ajax_design_tokens(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_design_tokens.php';
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'list_tenants');
+
+    switch ($subAction) {
+        case 'list_tenants':
+            $catalog = epc_design_tokens_tenant_catalog();
+            $result = array();
+            foreach ($catalog as $key => $entry) {
+                $meta = epc_design_tokens_tenant_meta($key);
+                $tokens = epc_design_tokens_resolve($key, $meta['industry']);
+                $result[] = array(
+                    'site_key'   => $key,
+                    'trade_name' => $meta['trade_name'],
+                    'tagline'    => $meta['tagline'],
+                    'industry'   => $meta['industry'],
+                    'primary'    => $tokens['--epc-brand-primary'] ?? '',
+                    'accent'     => $tokens['--epc-brand-accent'] ?? '',
+                    'logo_url'   => $tokens['--epc-brand-logo-url'] ?? '',
+                );
+            }
+            return array('ok' => true, 'tenants' => $result);
+
+        case 'get_tokens':
+            $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+            if ($siteKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key');
+            }
+            $meta = epc_design_tokens_tenant_meta($siteKey);
+            $tokens = epc_design_tokens_resolve($siteKey, $meta['industry']);
+            $css = epc_design_tokens_css($siteKey, $meta['industry']);
+            return array('ok' => true, 'site_key' => $siteKey, 'meta' => $meta, 'tokens' => $tokens, 'css' => $css);
+
+        case 'save_token':
+            $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+            $settingKey = preg_replace('/[^a-z0-9_]/', '', (string) ($_POST['setting_key'] ?? ''));
+            $value = (string) ($_POST['value'] ?? '');
+            if ($siteKey === '' || $settingKey === '') {
+                return array('ok' => false, 'error' => 'Missing site_key or setting_key');
+            }
+            try {
+                require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant.php';
+                $pdo = epc_portal_platform_pdo();
+                if (!$pdo) {
+                    return array('ok' => false, 'error' => 'Platform DB not available');
+                }
+                $ok = epc_design_tokens_save($pdo, $siteKey, $settingKey, $value);
+                return array('ok' => $ok, 'saved' => array('site_key' => $siteKey, 'key' => $settingKey, 'value' => $value));
+            } catch (\Exception $e) {
+                return array('ok' => false, 'error' => $e->getMessage());
+            }
+
+        case 'preview_css':
+            $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+            $industry = preg_replace('/[^a-z0-9_]/', '', (string) ($_POST['industry'] ?? ''));
+            $css = epc_design_tokens_css($siteKey, $industry);
+            return array('ok' => true, 'css' => $css);
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');

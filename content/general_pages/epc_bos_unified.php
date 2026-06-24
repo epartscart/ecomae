@@ -300,6 +300,7 @@ function epc_bos_tenant_ops_items(): array
         array('id' => 'industry_packs',  'label' => 'Industry / ERP Packs', 'icon' => 'fa-cubes',     'path' => 'control/portal/industry_settings'),
         array('id' => 'customer_board',  'label' => 'Customer Board',     'icon' => 'fa-users',        'path' => 'control/portal/epc_super_cp_customer_board'),
         array('id' => 'integrations',    'label' => 'Integrations Hub',   'icon' => 'fa-plug',         'path' => 'control/portal/epc_integrations_hub'),
+        array('id' => 'design_tokens',  'label' => 'Design Tokens',     'icon' => 'fa-paint-brush',  'path' => 'control/portal/epc_design_tokens'),
     );
 }
 
