@@ -154,6 +154,10 @@ switch ($action) {
         $response = epc_bos_ajax_ai_copilot();
         break;
 
+    case 'nl_reporting':
+        $response = epc_bos_ajax_nl_reporting();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2204,6 +2208,35 @@ function epc_bos_ajax_ai_copilot(): array
         case 'history':
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             return array('ok' => true, 'history' => epc_copilot_history($platformPdo, $siteKey));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── nl reporting ───────────────────── */
+
+function epc_bos_ajax_nl_reporting(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_nl_reporting.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_nlr_fleet_stats($platformPdo));
+        case 'builtins': return array('ok' => true, 'reports' => epc_nlr_builtin_reports());
+        case 'definitions':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'definitions' => epc_nlr_list_definitions($platformPdo, $siteKey));
+        case 'create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string) ($_POST['report_data'] ?? '{}'), true);
+            return epc_nlr_create_definition($platformPdo, $siteKey, $d ?: array());
+        case 'run':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_nlr_run_report($platformPdo, (int)($_POST['definition_id']??0), $siteKey);
+        case 'history':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'history' => epc_nlr_run_history($platformPdo, $siteKey));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
