@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'ai_classification':
+        $response = epc_bos_ajax_ai_classification();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
