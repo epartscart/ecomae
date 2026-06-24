@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'marketplace':
+        $response = epc_bos_ajax_marketplace();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2497,6 +2501,36 @@ function epc_bos_ajax_soc2_compliance(): array
         case 'create_policy':
             $d = json_decode((string)($_POST['policy_data']??'{}'), true);
             return epc_soc2_create_policy($platformPdo, $d ?: array());
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── marketplace ───────────────────── */
+
+function epc_bos_ajax_marketplace(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_marketplace.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_marketplace_fleet_stats($platformPdo));
+        case 'seed': return array('ok' => true, 'seeded' => epc_marketplace_seed_apps($platformPdo));
+        case 'browse': return array('ok' => true, 'apps' => epc_marketplace_browse($platformPdo, (string)($_POST['category']??''), (string)($_POST['search']??'')));
+        case 'install':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_marketplace_install($platformPdo, (int)($_POST['app_id']??0), $siteKey);
+        case 'uninstall':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_marketplace_uninstall($platformPdo, (int)($_POST['app_id']??0), $siteKey);
+        case 'tenant_apps':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'apps' => epc_marketplace_tenant_apps($platformPdo, $siteKey));
+        case 'review':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string)($_POST['review_data']??'{}'), true);
+            return epc_marketplace_add_review($platformPdo, (int)($_POST['app_id']??0), $siteKey, $d ?: array());
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
