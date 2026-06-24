@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'dealer_portal':
+        $response = epc_bos_ajax_dealer_portal();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
