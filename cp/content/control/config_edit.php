@@ -474,6 +474,46 @@ else//Если нет перехода после нажатия "Сохрани
 											});
 									})();
 									</script>
+									<div id="epc_laximo_cp_status" style="margin-top:10px; padding:12px 14px; border:1px solid #d9e2ef; border-radius:8px; background:#f8fafc; color:#334155; font-size:13px;">
+										<strong>Laximo OEM Catalog (CAT + DOC):</strong> checking...
+									</div>
+									<script>
+									(function(){
+										var box = document.getElementById('epc_laximo_cp_status');
+										if(!box){ return; }
+										function timeText(ts){
+											if(!ts){ return 'never'; }
+											var date = new Date(ts * 1000);
+											return date.toLocaleString();
+										}
+										fetch('/api/laximo_proxy.php?action=status', {credentials:'same-origin', cache:'no-store'})
+											.then(function(response){ return response.json(); })
+											.then(function(data){
+												var catOk = data && data.services && data.services.cat && data.services.cat.connected;
+												var docOk = data && data.services && data.services.doc && data.services.doc.connected;
+												box.style.borderColor = catOk ? '#bbf7d0' : '#fed7aa';
+												box.style.background = catOk ? '#f0fdf4' : '#fff7ed';
+												box.innerHTML =
+													'<strong>Laximo OEM Catalog:</strong> ' +
+													(catOk ? '<span style="color:#15803d;">CAT Connected</span>' : '<span style="color:#b45309;">CAT Not Connected</span>') +
+													' | ' +
+													(docOk ? '<span style="color:#15803d;">DOC Connected</span>' : '<span style="color:#b45309;">DOC Not Connected</span>') +
+													'<br><strong>CAT Login:</strong> ' + (data.cat_login || 'not set') +
+													' | <strong>DOC Login:</strong> ' + (data.doc_login || 'not set') +
+													'<br><strong>Status:</strong> ' + (data.message || 'unknown') +
+													'<br><strong>Saved catalogs:</strong> ' + (data.services && data.services.cat ? data.services.cat.catalogs_count : 0) + ' brands' +
+													'<br><strong>API cache rows:</strong> ' + (data.cache_rows || 0) +
+													'<br><strong>Last check:</strong> ' + timeText(data.last_checked) +
+													(data.offline_ready ? '<br><strong>Offline mode:</strong> <span style="color:#15803d;">Saved data available</span>' : '<br><strong>Offline mode:</strong> <span style="color:#b91c1c;">Not ready — sync required</span>') +
+													'<br><strong>Service docs:</strong> <a href="https://doc.laximo.ru/en/home" target="_blank">doc.laximo.ru</a>' +
+													'<br><strong>Demo:</strong> <a href="https://wsdemo.laximo.ru/index.php?task=catalogs" target="_blank">CAT demo</a> | <a href="https://wsdemo.laximo.ru/index.php?task=aftermarket" target="_blank">DOC demo</a>' +
+													'<br><small style="color:#64748b;">Config: laximo_cat_login, laximo_cat_key, laximo_doc_login, laximo_doc_key in DP_Config</small>';
+											})
+											.catch(function(){
+												box.innerHTML = '<strong>Laximo OEM Catalog:</strong> status unavailable (API proxy not accessible)';
+											});
+									})();
+									</script>
 									<?php
 								}
 								?>

@@ -1,0 +1,506 @@
+/* Laximo Catalog - car-mod.com style UI */
+
+#Laximo_container {
+    padding: 0;
+    margin: 0;
+    min-height: 400px;
+}
+
+/* Breadcrumbs */
+.laximo-breadcrumbs {
+    margin-bottom: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e4e4e4;
+    font-size: 13px;
+}
+.laximo-breadcrumbs a {
+    color: #337ab7;
+    cursor: pointer;
+    text-decoration: none;
+}
+.laximo-breadcrumbs a:hover {
+    text-decoration: underline;
+}
+.laximo-breadcrumbs span.separator {
+    margin: 0 8px;
+    color: #999;
+}
+.laximo-breadcrumbs span.current {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Loading spinner */
+.laximo-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+.laximo-loading .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e4e4e4;
+    border-top-color: #337ab7;
+    border-radius: 50%;
+    animation: laximo-spin 0.8s linear infinite;
+}
+@keyframes laximo-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Error/Status message */
+.laximo-error {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    padding: 15px 20px;
+    border-radius: 4px;
+    margin: 20px 0;
+    color: #856404;
+}
+.laximo-error.critical {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+/* Search bar */
+.laximo-search-bar {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+}
+.laximo-search-bar .input-group {
+    max-width: 500px;
+}
+.laximo-search-bar input[type="text"] {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+    width: 100%;
+}
+.laximo-search-bar input[type="text"]:focus {
+    border-color: #337ab7;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.15);
+}
+.laximo-search-bar .btn-search {
+    background: #337ab7;
+    color: #fff;
+    border: 1px solid #337ab7;
+    padding: 8px 16px;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 14px;
+}
+.laximo-search-bar .btn-search:hover {
+    background: #286090;
+}
+
+/* VIN Search */
+.laximo-vin-search {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+}
+.laximo-vin-search label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 13px;
+    color: #0c5460;
+}
+.laximo-vin-search .input-group {
+    display: flex;
+    max-width: 400px;
+}
+
+/* Brands Grid - car-mod.com style */
+.laximo-brands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+.laximo-brand-card {
+    border: 1px solid #e4e4e4;
+    border-radius: 6px;
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+.laximo-brand-card:hover {
+    border-color: #337ab7;
+    box-shadow: 0 2px 8px rgba(51, 122, 183, 0.15);
+    transform: translateY(-2px);
+}
+.laximo-brand-card .brand-logo {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    overflow: hidden;
+}
+.laximo-brand-card .brand-logo img {
+    max-width: 48px;
+    max-height: 48px;
+    object-fit: contain;
+}
+.laximo-brand-card .brand-logo .brand-letter {
+    font-size: 24px;
+    font-weight: 700;
+    color: #337ab7;
+}
+.laximo-brand-card .brand-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Alphabet filter for brands */
+.laximo-alpha-filter {
+    margin-bottom: 15px;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.laximo-alpha-filter .alpha-btn {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border: 1px solid #e4e4e4;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+}
+.laximo-alpha-filter .alpha-btn:hover,
+.laximo-alpha-filter .alpha-btn.active {
+    background: #337ab7;
+    color: #fff;
+    border-color: #337ab7;
+}
+.laximo-alpha-filter .alpha-btn.all {
+    width: auto;
+    padding: 0 10px;
+}
+
+/* Wizard steps */
+.laximo-wizard {
+    margin: 20px 0;
+}
+.laximo-wizard-step {
+    margin-bottom: 15px;
+}
+.laximo-wizard-step label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 13px;
+    color: #555;
+}
+.laximo-wizard-step select {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+}
+.laximo-wizard-step select:focus {
+    border-color: #337ab7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.15);
+}
+
+/* Vehicle list */
+.laximo-vehicles-list {
+    margin-top: 15px;
+}
+.laximo-vehicle-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.laximo-vehicle-item:hover {
+    background: #f0f7ff;
+    border-color: #337ab7;
+}
+.laximo-vehicle-item .vehicle-name {
+    font-weight: 600;
+    font-size: 14px;
+    flex: 1;
+}
+.laximo-vehicle-item .vehicle-info {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Categories / Tree */
+.laximo-catalog-layout {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+.laximo-catalog-tree {
+    width: 280px;
+    min-width: 280px;
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    padding: 15px;
+    max-height: 600px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+.laximo-catalog-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.laximo-tree-item {
+    padding: 6px 0;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+}
+.laximo-tree-item:hover {
+    color: #337ab7;
+}
+.laximo-tree-item.active {
+    color: #337ab7;
+    font-weight: 600;
+}
+.laximo-tree-item .tree-toggle {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    font-size: 10px;
+    color: #999;
+}
+.laximo-tree-children {
+    margin-left: 16px;
+    display: none;
+}
+.laximo-tree-children.open {
+    display: block;
+}
+
+/* Structure toggle tabs (Unified / Manufacturer) */
+.laximo-structure-toggle {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #e4e4e4;
+    display: flex;
+}
+.laximo-structure-toggle .toggle-btn {
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+}
+.laximo-structure-toggle .toggle-btn:hover {
+    color: #337ab7;
+}
+.laximo-structure-toggle .toggle-btn.active {
+    color: #337ab7;
+    border-bottom-color: #337ab7;
+}
+
+/* Units / Diagrams list */
+.laximo-units-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+.laximo-unit-card {
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.laximo-unit-card:hover {
+    border-color: #337ab7;
+    background: #f0f7ff;
+}
+.laximo-unit-card img {
+    max-width: 100%;
+    max-height: 120px;
+    margin-bottom: 8px;
+}
+.laximo-unit-card .unit-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+}
+.laximo-unit-card .unit-code {
+    font-size: 11px;
+    color: #999;
+}
+
+/* Parts table */
+.laximo-parts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 13px;
+}
+.laximo-parts-table th {
+    background: #f8f9fa;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #e4e4e4;
+    font-size: 12px;
+    color: #555;
+}
+.laximo-parts-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+.laximo-parts-table tr:hover td {
+    background: #f8f9fa;
+}
+.laximo-parts-table .part-oem {
+    font-weight: 600;
+    color: #337ab7;
+    cursor: pointer;
+}
+.laximo-parts-table .part-oem:hover {
+    text-decoration: underline;
+}
+.laximo-parts-table .part-name {
+    max-width: 250px;
+}
+.laximo-parts-table .part-aftermarket {
+    font-size: 11px;
+    color: #28a745;
+    cursor: pointer;
+}
+.laximo-parts-table .part-aftermarket:hover {
+    text-decoration: underline;
+}
+
+/* Quick groups */
+.laximo-quick-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+.laximo-quick-group {
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+}
+.laximo-quick-group:hover {
+    background: #f0f7ff;
+    border-color: #337ab7;
+}
+
+/* Aftermarket cross-references */
+.laximo-aftermarket {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0fff0;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+}
+.laximo-aftermarket h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #155724;
+}
+.laximo-aftermarket-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e8f5e9;
+    font-size: 13px;
+}
+.laximo-aftermarket-item:last-child {
+    border-bottom: 0;
+}
+.laximo-aftermarket-item .am-brand {
+    font-weight: 600;
+    min-width: 120px;
+}
+.laximo-aftermarket-item .am-number {
+    color: #337ab7;
+    margin-right: 15px;
+}
+.laximo-aftermarket-item .am-name {
+    flex: 1;
+    color: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .laximo-brands-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .laximo-brand-card {
+        padding: 10px 5px;
+    }
+    .laximo-brand-card .brand-logo {
+        width: 45px;
+        height: 45px;
+    }
+    .laximo-brand-card .brand-name {
+        font-size: 11px;
+    }
+    .laximo-catalog-layout {
+        flex-direction: column;
+    }
+    .laximo-catalog-tree {
+        width: 100%;
+        min-width: auto;
+        max-height: 300px;
+    }
+    .laximo-units-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+    .laximo-parts-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+@media (max-width: 480px) {
+    .laximo-brands-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
