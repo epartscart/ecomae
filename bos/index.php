@@ -469,6 +469,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'bi_metrics' => 'BI metrics engine: KPI snapshots, trends, cross-tenant comparison.',
                 'ai_classification' => 'AI classification service: HS code lookup, category auto-tag, batch processing.',
                 'tenant_config' => 'Tenant self-service config: 7 groups, change history, export/import.',
+                'workflow_builder' => 'Workflow builder: trigger → condition → action chains, templates.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',

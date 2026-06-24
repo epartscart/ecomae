@@ -118,6 +118,10 @@ switch ($action) {
         $response = epc_bos_ajax_tenant_config();
         break;
 
+    case 'workflow_builder':
+        $response = epc_bos_ajax_workflow_builder();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1694,6 +1698,75 @@ function epc_bos_ajax_tenant_config(): array
             if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
             $configs = json_decode((string) ($_POST['configs'] ?? '[]'), true);
             return epc_tenant_config_import($platformPdo, $siteKey, $configs ?: array());
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── workflow builder ───────────────────── */
+
+function epc_bos_ajax_workflow_builder(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_workflow_builder.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_workflow_fleet_stats($platformPdo));
+
+        case 'list':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $filters = array();
+            if (isset($_POST['active'])) $filters['active'] = (int) $_POST['active'];
+            return array('ok' => true, 'workflows' => epc_workflow_list($platformPdo, $siteKey, $filters));
+
+        case 'get':
+            $wfId = (int) ($_POST['workflow_id'] ?? 0);
+            return array('ok' => true, 'workflow' => epc_workflow_get($platformPdo, $wfId));
+
+        case 'create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $data = json_decode((string) ($_POST['workflow_data'] ?? '{}'), true);
+            return epc_workflow_create($platformPdo, $siteKey, $data ?: array());
+
+        case 'toggle':
+            $wfId = (int) ($_POST['workflow_id'] ?? 0);
+            $active = (bool) ($_POST['active'] ?? false);
+            epc_workflow_toggle($platformPdo, $wfId, $active);
+            return array('ok' => true);
+
+        case 'delete':
+            $ctx = epc_bos_context();
+            if ($ctx['role'] !== 'provider') return array('ok' => false, 'error' => 'Provider access required');
+            $wfId = (int) ($_POST['workflow_id'] ?? 0);
+            epc_workflow_delete($platformPdo, $wfId);
+            return array('ok' => true);
+
+        case 'execute':
+            $wfId = (int) ($_POST['workflow_id'] ?? 0);
+            $triggerData = json_decode((string) ($_POST['trigger_data'] ?? '{}'), true);
+            return epc_workflow_execute($platformPdo, $wfId, $triggerData ?: array());
+
+        case 'history':
+            $wfId = (int) ($_POST['workflow_id'] ?? 0);
+            return array('ok' => true, 'runs' => epc_workflow_run_history($platformPdo, $wfId));
+
+        case 'triggers':
+            return array('ok' => true, 'triggers' => epc_workflow_trigger_types());
+
+        case 'actions':
+            return array('ok' => true, 'actions' => epc_workflow_action_types());
+
+        case 'templates':
+            return array('ok' => true, 'templates' => epc_workflow_templates());
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
