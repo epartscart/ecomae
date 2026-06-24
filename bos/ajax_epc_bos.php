@@ -134,6 +134,10 @@ switch ($action) {
         $response = epc_bos_ajax_sso_saml();
         break;
 
+    case 'wps_payroll':
+        $response = epc_bos_ajax_wps_payroll();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -1978,6 +1982,63 @@ function epc_bos_ajax_sso_saml(): array
             $sessionId = (int) ($_POST['session_id'] ?? 0);
             epc_sso_logout($platformPdo, $sessionId);
             return array('ok' => true);
+
+        default:
+            return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── wps payroll ───────────────────── */
+
+function epc_bos_ajax_wps_payroll(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_wps_payroll.php';
+
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) {
+        return array('ok' => false, 'error' => 'Database unavailable');
+    }
+
+    $subAction = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+
+    switch ($subAction) {
+        case 'fleet_stats':
+            return array('ok' => true, 'stats' => epc_payroll_fleet_stats($platformPdo));
+
+        case 'employees':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $status = (string) ($_POST['status'] ?? '');
+            return array('ok' => true, 'employees' => epc_payroll_employee_list($platformPdo, $siteKey, $status));
+
+        case 'employee_add':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $data = json_decode((string) ($_POST['employee_data'] ?? '{}'), true);
+            return epc_payroll_employee_add($platformPdo, $siteKey, $data ?: array());
+
+        case 'create_run':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $month = (string) ($_POST['month'] ?? date('Y-m'));
+            return epc_payroll_create_run($platformPdo, $siteKey, $month);
+
+        case 'approve_run':
+            $runId = (int) ($_POST['run_id'] ?? 0);
+            $approverId = (int) ($_POST['approver_id'] ?? 0);
+            return epc_payroll_approve_run($platformPdo, $runId, $approverId);
+
+        case 'run_details':
+            $runId = (int) ($_POST['run_id'] ?? 0);
+            return array('ok' => true, 'run' => epc_payroll_run_details($platformPdo, $runId));
+
+        case 'runs':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'runs' => epc_payroll_run_list($platformPdo, $siteKey));
+
+        case 'generate_sif':
+            $runId = (int) ($_POST['run_id'] ?? 0);
+            $molId = (string) ($_POST['employer_mol_id'] ?? '');
+            $bankCode = (string) ($_POST['employer_bank_code'] ?? '');
+            return epc_payroll_generate_sif($platformPdo, $runId, $molId, $bankCode);
 
         default:
             return array('ok' => false, 'error' => 'Unknown sub_action');
