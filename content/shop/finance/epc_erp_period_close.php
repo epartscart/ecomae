@@ -458,3 +458,119 @@ function epc_erp_period_close_summary(PDO $db): array
 		'checklist'       => $checklist,
 	);
 }
+
+/* ─────────────────── Period Lock API ─────────────────── */
+
+/**
+ * Assert that a posting date falls within an open period.
+ * Prevents posting to locked or soft-closed periods.
+ *
+ * @throws \RuntimeException If period is locked
+ */
+function epc_erp_gl_assert_period_open(PDO $db, int $postingTimestamp, string $callerRole = ''): bool
+{
+	$yearMonth = date('Y-m', $postingTimestamp);
+	$period = epc_erp_period_get($db, $yearMonth);
+
+	if ($period['status'] === 'locked') {
+		throw new \RuntimeException(
+			'Period ' . $yearMonth . ' is locked. Cannot post transactions to a locked period.'
+		);
+	}
+
+	if ($period['status'] === 'soft_close') {
+		$superRoles = array('super_admin', 'finance_director', 'cfo');
+		if (!in_array($callerRole, $superRoles, true)) {
+			throw new \RuntimeException(
+				'Period ' . $yearMonth . ' is soft-closed. Only finance directors can post.'
+			);
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Lock a period — no further posting allowed.
+ */
+function epc_erp_gl_lock_period(PDO $db, string $yearMonth, int $adminId = 0, string $note = ''): array
+{
+	$period = epc_erp_period_get($db, $yearMonth);
+	$oldStatus = $period['status'];
+
+	if ($oldStatus === 'locked') {
+		return array('ok' => true, 'message' => 'Period already locked', 'status' => 'locked');
+	}
+
+	if ($oldStatus === 'open') {
+		$checklist = epc_erp_period_checklist($db, $yearMonth);
+		$blockers = 0;
+		foreach ($checklist as $item) {
+			if ($item['count'] > 0 && $item['severity'] === 'blocker') {
+				$blockers++;
+			}
+		}
+		if ($blockers > 0) {
+			return array(
+				'ok' => false,
+				'message' => 'Cannot lock: ' . $blockers . ' blocker(s) outstanding. Soft-close first.',
+				'blockers' => $blockers,
+				'checklist' => $checklist,
+			);
+		}
+	}
+
+	$db->prepare(
+		'UPDATE `epc_erp_periods` SET `status` = \'locked\', `locked_by` = ?, `locked_at` = ?, `updated_at` = ?
+		 WHERE `year_month` = ?'
+	)->execute(array($adminId, time(), time(), $yearMonth));
+
+	epc_erp_period_close_log($db, $yearMonth, 'lock', $oldStatus, 'locked', $adminId, $note);
+
+	return array('ok' => true, 'message' => 'Period ' . $yearMonth . ' locked', 'status' => 'locked');
+}
+
+/**
+ * Unlock a period (emergency override).
+ */
+function epc_erp_gl_unlock_period(PDO $db, string $yearMonth, int $adminId = 0, string $reason = ''): array
+{
+	$period = epc_erp_period_get($db, $yearMonth);
+	if ($period['status'] !== 'locked') {
+		return array('ok' => false, 'message' => 'Period is not locked');
+	}
+
+	$db->prepare(
+		'UPDATE `epc_erp_periods` SET `status` = \'open\', `updated_at` = ?
+		 WHERE `year_month` = ?'
+	)->execute(array(time(), $yearMonth));
+
+	epc_erp_period_close_log($db, $yearMonth, 'unlock', 'locked', 'open', $adminId, 'EMERGENCY UNLOCK: ' . $reason);
+
+	return array('ok' => true, 'message' => 'Period ' . $yearMonth . ' unlocked (emergency)', 'status' => 'open');
+}
+
+/**
+ * Bulk lock all periods before a given month.
+ */
+function epc_erp_gl_bulk_lock_before(PDO $db, string $beforeYearMonth, int $adminId = 0): array
+{
+	epc_erp_period_close_ensure_schema($db);
+	$st = $db->prepare(
+		'SELECT `year_month` FROM `epc_erp_periods` WHERE `status` != \'locked\' AND `year_month` < ?'
+	);
+	$st->execute(array($beforeYearMonth));
+	$periods = $st->fetchAll(PDO::FETCH_COLUMN);
+
+	$locked = array();
+	$failed = array();
+	foreach ($periods as $ym) {
+		$result = epc_erp_gl_lock_period($db, $ym, $adminId, 'Bulk lock before ' . $beforeYearMonth);
+		if ($result['ok']) {
+			$locked[] = $ym;
+		} else {
+			$failed[] = array('year_month' => $ym, 'reason' => $result['message']);
+		}
+	}
+	return array('locked' => $locked, 'failed' => $failed);
+}

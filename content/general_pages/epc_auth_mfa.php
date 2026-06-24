@@ -628,3 +628,89 @@ function epc_mfa_handle_ajax(PDO $pdo, int $userId): array
 			return array('ok' => false, 'error' => 'Unknown MFA action');
 	}
 }
+
+/* ─────────────────── CP Shell Auth Gate ─────────────────── */
+
+/**
+ * CP shell plugin gate: enforce MFA before granting ERP access.
+ * Call from CP authentication plugin after password verification.
+ * Returns true if access is granted, false if MFA challenge is needed.
+ */
+function epc_mfa_cp_auth_gate(PDO $pdo, int $userId, string $currentPath): array
+{
+	if (epc_mfa_session_verified()) {
+		return array('granted' => true, 'reason' => 'mfa_session_active');
+	}
+
+	$status = epc_mfa_user_status($pdo, $userId);
+	$policy = epc_mfa_get_policy($pdo);
+	$requiredPaths = array_filter(explode(',', (string) ($policy['require_mfa_for_paths'] ?? '')));
+	$requiredRoles = array_filter(explode(',', (string) ($policy['require_mfa_for_roles'] ?? '')));
+
+	$pathRequiresMfa = false;
+	foreach ($requiredPaths as $pattern) {
+		if (strpos($currentPath, trim($pattern)) !== false) {
+			$pathRequiresMfa = true;
+			break;
+		}
+	}
+
+	if (!$pathRequiresMfa && empty($requiredRoles)) {
+		return array('granted' => true, 'reason' => 'mfa_not_required');
+	}
+
+	if (!$status['enrolled']) {
+		return array(
+			'granted' => false,
+			'reason' => 'mfa_enrollment_required',
+			'redirect' => '/cp/mfa/enroll',
+			'grace_hours' => (int) ($policy['grace_period_hours'] ?? 72),
+		);
+	}
+
+	return array(
+		'granted' => false,
+		'reason' => 'mfa_verification_required',
+		'redirect' => '/cp/mfa/verify',
+	);
+}
+
+/**
+ * ERP finance access gate: require MFA for sensitive ERP operations.
+ */
+function epc_mfa_erp_finance_gate(PDO $pdo, int $userId, string $erpTab): array
+{
+	$sensitiveTabs = array('gl', 'vat_return', 'payroll', 'einvoice', 'cash_bank', 'balance_sheet');
+	if (!in_array($erpTab, $sensitiveTabs, true)) {
+		return array('granted' => true, 'reason' => 'tab_not_sensitive');
+	}
+	if (epc_mfa_session_verified()) {
+		return array('granted' => true, 'reason' => 'mfa_session_active');
+	}
+	$status = epc_mfa_user_status($pdo, $userId);
+	if (!$status['enrolled']) {
+		return array('granted' => false, 'reason' => 'mfa_required_for_finance', 'redirect' => '/cp/mfa/enroll');
+	}
+	return array('granted' => false, 'reason' => 'mfa_challenge_required', 'redirect' => '/cp/mfa/verify');
+}
+
+/**
+ * Update MFA policy for a tenant (upsert).
+ */
+function epc_mfa_update_policy(PDO $pdo, string $tenantKey, array $data): array
+{
+	epc_mfa_ensure_schema($pdo);
+	$pdo->prepare(
+		'INSERT INTO `epc_mfa_policy` (`tenant_key`, `require_mfa_for_roles`, `require_mfa_for_paths`, `grace_period_hours`)
+		 VALUES (?, ?, ?, ?)
+		 ON DUPLICATE KEY UPDATE `require_mfa_for_roles` = VALUES(`require_mfa_for_roles`),
+		 `require_mfa_for_paths` = VALUES(`require_mfa_for_paths`),
+		 `grace_period_hours` = VALUES(`grace_period_hours`)'
+	)->execute(array(
+		$tenantKey,
+		(string) ($data['require_mfa_for_roles'] ?? ''),
+		(string) ($data['require_mfa_for_paths'] ?? ''),
+		(int) ($data['grace_period_hours'] ?? 72),
+	));
+	return array('ok' => true, 'message' => 'MFA policy updated');
+}

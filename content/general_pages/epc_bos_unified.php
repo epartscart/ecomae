@@ -318,6 +318,9 @@ function epc_bos_fleet_items(): array
         array('id' => 'subscription_billing', 'label' => 'Billing',         'icon' => 'fa-credit-card',  'path' => 'shop/finance/epc_subscription_billing'),
         array('id' => 'soc2_compliance', 'label' => 'SOC 2',           'icon' => 'fa-certificate',  'path' => 'control/portal/epc_soc2_compliance'),
         array('id' => 'marketplace', 'label' => 'Marketplace',     'icon' => 'fa-shopping-cart', 'path' => 'control/portal/epc_marketplace'),
+        array('id' => 'ai_service', 'label' => 'AI Service',      'icon' => 'fa-brain',        'path' => 'general_pages/epc_ai_service'),
+        array('id' => 'metabase_embed', 'label' => 'Metabase BI',    'icon' => 'fa-chart-area',   'path' => 'general_pages/epc_metabase_embed'),
+        array('id' => 'isolation_anomaly', 'label' => 'Anomaly AI',    'icon' => 'fa-shield',       'path' => 'general_pages/epc_isolation_anomaly'),
     );
 }
 

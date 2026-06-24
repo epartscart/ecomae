@@ -173,3 +173,72 @@ function epc_marketplace_fleet_stats(PDO $pdo): array
     $installs = $st2->fetch(PDO::FETCH_ASSOC) ?: array();
     return array_merge($apps, $installs);
 }
+
+/* ─── App Catalog & Search ─── */
+
+function epc_marketplace_search(PDO $pdo, string $query, string $category = ''): array
+{
+    epc_marketplace_ensure_schema($pdo);
+    $like = '%' . $query . '%';
+    if ($category !== '') {
+        $st = $pdo->prepare("SELECT * FROM `epc_marketplace_apps` WHERE `status`='published' AND `category`=? AND (`name` LIKE ? OR `description` LIKE ?) ORDER BY `avg_rating` DESC, `downloads` DESC");
+        $st->execute(array($category, $like, $like));
+    } else {
+        $st = $pdo->prepare("SELECT * FROM `epc_marketplace_apps` WHERE `status`='published' AND (`name` LIKE ? OR `description` LIKE ?) ORDER BY `avg_rating` DESC, `downloads` DESC");
+        $st->execute(array($like, $like));
+    }
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_marketplace_get_app(PDO $pdo, int $appId): ?array
+{
+    $st = $pdo->prepare("SELECT * FROM `epc_marketplace_apps` WHERE `id`=?");
+    $st->execute(array($appId));
+    return $st->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function epc_marketplace_get_reviews(PDO $pdo, int $appId, int $limit = 20): array
+{
+    $st = $pdo->prepare("SELECT * FROM `epc_marketplace_reviews` WHERE `app_id`=? ORDER BY `created_at` DESC LIMIT ?");
+    $st->execute(array($appId, $limit));
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_marketplace_categories(): array
+{
+    return array(
+        'finance' => 'Finance & Accounting',
+        'sales' => 'Sales & CRM',
+        'inventory' => 'Inventory & Warehouse',
+        'hr' => 'HR & Payroll',
+        'analytics' => 'Analytics & BI',
+        'integration' => 'Integrations',
+        'compliance' => 'Compliance & Audit',
+        'utilities' => 'Utilities',
+    );
+}
+
+function epc_marketplace_featured(PDO $pdo, int $limit = 6): array
+{
+    epc_marketplace_ensure_schema($pdo);
+    $st = $pdo->prepare("SELECT * FROM `epc_marketplace_apps` WHERE `status`='published' ORDER BY `avg_rating` DESC, `downloads` DESC LIMIT ?");
+    $st->execute(array($limit));
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_marketplace_update_app(PDO $pdo, int $appId, array $data): array
+{
+    $fields = array();
+    $params = array();
+    $allowed = array('name', 'description', 'version', 'icon', 'category', 'status', 'price');
+    foreach ($allowed as $f) {
+        if (array_key_exists($f, $data)) {
+            $fields[] = "`{$f}` = ?";
+            $params[] = $data[$f];
+        }
+    }
+    if (empty($fields)) return array('ok' => false, 'error' => 'No fields');
+    $params[] = $appId;
+    $pdo->prepare("UPDATE `epc_marketplace_apps` SET " . implode(', ', $fields) . " WHERE `id`=?")->execute($params);
+    return array('ok' => true);
+}

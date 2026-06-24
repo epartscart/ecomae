@@ -327,7 +327,7 @@ function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0)
 	$cash_total = epc_erp_cash_bank_total($db);
 	$vat_report = epc_uae_vat_return_report($db, $date_from, $date_to);
 
-	return array(
+	$result = array(
 		'date_from' => $date_from,
 		'date_to' => $date_to,
 		'order_count' => (int)($row['order_count'] ?? 0),
@@ -345,6 +345,20 @@ function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0)
 		'vat_net_status' => (string)$vat_report['net_status'],
 		'sales_incl_vat' => (float)$vat_report['sales_incl_vat'],
 	);
+
+	// Merge command center KPI tiles into dashboard (P0 #7 — correct layer)
+	$ccFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+	if (file_exists($ccFile)) {
+		require_once $ccFile;
+		if (function_exists('epc_erp_cc_kpi_tiles')) {
+			$result['kpi_tiles'] = epc_erp_cc_kpi_tiles($db, $date_from, $date_to);
+		}
+		if (function_exists('epc_erp_cc_approval_queue')) {
+			$result['approval_queue'] = epc_erp_cc_approval_queue($db);
+		}
+	}
+
+	return $result;
 }
 
 function epc_erp_cash_bank_total(PDO $db)

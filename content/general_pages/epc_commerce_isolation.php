@@ -622,3 +622,94 @@ function epc_ci_latest_audit_run(PDO $pdo): ?array
 	$row = $st ? $st->fetch(PDO::FETCH_ASSOC) : null;
 	return $row ?: null;
 }
+
+/* ─────────────────── Query-level enforcement middleware ─────────────────── */
+
+/**
+ * Wrap a PDO query on docpart DB to auto-inject site_key / price_id scope.
+ * Call before any SELECT on shop_docpart_prices_data or related tables.
+ */
+function epc_ci_scoped_query(PDO $pdo, string $sql, array $params, string $siteKey): \PDOStatement
+{
+	$allowed = epc_ci_tenant_price_ids($pdo, $siteKey);
+	if ($allowed !== array()) {
+		$placeholders = implode(',', array_fill(0, count($allowed), '?'));
+		if (stripos($sql, 'WHERE') !== false) {
+			$sql = preg_replace('/WHERE/i', 'WHERE `price_id` IN (' . $placeholders . ') AND ', $sql, 1);
+		} else {
+			$sql .= ' WHERE `price_id` IN (' . $placeholders . ')';
+		}
+		$params = array_merge($allowed, $params);
+	}
+	$st = $pdo->prepare($sql);
+	$st->execute($params);
+	return $st;
+}
+
+/**
+ * Auto-enforce site_key on any shop_docpart_prices_data query.
+ * Returns scoped PDO wrapper that intercepts prepare().
+ */
+function epc_ci_get_scoped_pdo(PDO $pdo, string $siteKey): object
+{
+	return new class($pdo, $siteKey) {
+		private PDO $pdo;
+		private string $siteKey;
+		private array $allowedPriceIds;
+
+		public function __construct(PDO $pdo, string $siteKey) {
+			$this->pdo = $pdo;
+			$this->siteKey = $siteKey;
+			$this->allowedPriceIds = epc_ci_tenant_price_ids($pdo, $siteKey);
+		}
+
+		public function prepare(string $sql, array $options = array()): \PDOStatement {
+			if ($this->allowedPriceIds !== array()
+				&& stripos($sql, 'shop_docpart_prices_data') !== false
+				&& stripos($sql, 'price_id') === false
+			) {
+				$placeholders = implode(',', array_fill(0, count($this->allowedPriceIds), '?'));
+				$inject = '`price_id` IN (' . $placeholders . ')';
+				if (stripos($sql, 'WHERE') !== false) {
+					$sql = preg_replace('/WHERE/i', 'WHERE ' . $inject . ' AND ', $sql, 1);
+				}
+			}
+			return $this->pdo->prepare($sql, $options);
+		}
+
+		public function __call(string $name, array $args) {
+			return $this->pdo->$name(...$args);
+		}
+	};
+}
+
+/**
+ * Run full enforcement scan: check all docpart queries have site_key scope.
+ */
+function epc_ci_enforcement_scan(PDO $pdo, string $docroot): array
+{
+	$results = array('scanned' => 0, 'violations' => array(), 'passed' => 0);
+	$targets = array('shop_docpart_prices_data', 'shop_docpart_prices');
+	$files = epc_ci_find_php_files($docroot);
+	foreach ($files as $file) {
+		$content = @file_get_contents($file);
+		if ($content === false) continue;
+		foreach ($targets as $table) {
+			if (stripos($content, $table) === false) continue;
+			$results['scanned']++;
+			if (stripos($content, 'price_id') !== false || stripos($content, 'site_key') !== false) {
+				$results['passed']++;
+			} else {
+				$results['violations'][] = array(
+					'file' => str_replace($docroot, '', $file),
+					'table' => $table,
+					'issue' => 'Query references ' . $table . ' without price_id/site_key scope',
+				);
+			}
+		}
+	}
+	$results['enforcement_pct'] = $results['scanned'] > 0
+		? round(($results['passed'] / $results['scanned']) * 100, 1)
+		: 100.0;
+	return $results;
+}

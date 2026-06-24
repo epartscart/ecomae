@@ -56,6 +56,7 @@ function epart_front_render_own_brand($db_link, string $lang_href, string $brand
 	$stmt->execute([$brandLike]);
 	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	if (empty($rows)) {
+		epc_perf_cache_set($cacheKey, '', 900);
 		return '';
 	}
 	$html = '<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">';
