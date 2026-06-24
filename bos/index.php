@@ -472,6 +472,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'workflow_builder' => 'Workflow builder: trigger → condition → action chains, templates.',
                 'inventory_forecast' => 'Inventory forecasting: demand planning, reorder points, EOQ, ABC analysis.',
                 'multi_currency_gl' => 'Multi-currency GL: FX rates, revaluation, unrealized gain/loss, exposure report.',
+                'sso_saml' => 'SSO / SAML 2.0: IdP config, SP metadata, JIT provisioning, session management.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
