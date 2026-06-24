@@ -311,6 +311,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'nl_reporting', 'label' => 'NL Reports',      'icon' => 'fa-file-text',    'path' => 'control/portal/epc_nl_reporting'),
         array('id' => 'industry_packs', 'label' => 'Industry Packs',  'icon' => 'fa-industry',     'path' => 'control/portal/epc_industry_packs'),
         array('id' => 'multi_entity', 'label' => 'Multi-Entity',    'icon' => 'fa-building',     'path' => 'shop/finance/epc_multi_entity'),
+        array('id' => 'promotions_engine', 'label' => 'Promotions',      'icon' => 'fa-tags',         'path' => 'control/portal/epc_promotions_engine'),
     );
 }
 

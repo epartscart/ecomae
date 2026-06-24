@@ -166,6 +166,10 @@ switch ($action) {
         $response = epc_bos_ajax_multi_entity();
         break;
 
+    case 'promotions_engine':
+        $response = epc_bos_ajax_promotions_engine();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2299,6 +2303,33 @@ function epc_bos_ajax_multi_entity(): array
             return epc_entity_eliminate($platformPdo, (int)($_POST['group_id']??0));
         case 'consolidated_tb':
             return array('ok' => true, 'tb' => epc_entity_consolidated_tb($platformPdo, (int)($_POST['group_id']??0)));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── promotions ───────────────────── */
+
+function epc_bos_ajax_promotions(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_promotions_engine.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_promo_fleet_stats($platformPdo));
+        case 'list':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'promotions' => epc_promo_list($platformPdo, $siteKey, !empty($_POST['active_only'])));
+        case 'create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string)($_POST['promo_data']??'{}'), true);
+            return epc_promo_create($platformPdo, $siteKey, $d ?: array());
+        case 'apply':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_promo_apply($platformPdo, $siteKey, (string)($_POST['code']??''), (float)($_POST['order_total']??0), (int)($_POST['customer_id']??0));
+        case 'record_usage':
+            return epc_promo_record_usage($platformPdo, (int)($_POST['promotion_id']??0), $siteKey, (int)($_POST['customer_id']??0), (string)($_POST['order_ref']??''), (float)($_POST['discount']??0));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
