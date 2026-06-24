@@ -313,6 +313,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'multi_entity', 'label' => 'Multi-Entity',    'icon' => 'fa-building',     'path' => 'shop/finance/epc_multi_entity'),
         array('id' => 'promotions_engine', 'label' => 'Promotions',      'icon' => 'fa-tags',         'path' => 'control/portal/epc_promotions_engine'),
         array('id' => 'config_sandbox', 'label' => 'Sandbox',         'icon' => 'fa-flask',        'path' => 'control/portal/epc_config_sandbox'),
+        array('id' => 'import_orchestrator', 'label' => 'Imports',         'icon' => 'fa-upload',       'path' => 'control/portal/epc_import_orchestrator'),
     );
 }
 

@@ -174,6 +174,10 @@ switch ($action) {
         $response = epc_bos_ajax_config_sandbox();
         break;
 
+    case 'import_orchestrator':
+        $response = epc_bos_ajax_import_orchestrator();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2362,6 +2366,34 @@ function epc_bos_ajax_config_sandbox(): array
             return array('ok' => true, 'changes' => epc_sandbox_diff($platformPdo, (int)($_POST['snapshot_id']??0)));
         case 'promote': return epc_sandbox_promote($platformPdo, (int)($_POST['snapshot_id']??0));
         case 'discard': return epc_sandbox_discard($platformPdo, (int)($_POST['snapshot_id']??0));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── import orchestrator ───────────────────── */
+
+function epc_bos_ajax_import_orchestrator(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_import_orchestrator.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_import_fleet_stats($platformPdo));
+        case 'schemas': return array('ok' => true, 'schemas' => epc_import_entity_schemas());
+        case 'create':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string)($_POST['job_data']??'{}'), true);
+            return epc_import_create_job($platformPdo, $siteKey, $d ?: array());
+        case 'process':
+            $rows = json_decode((string)($_POST['rows']??'[]'), true);
+            return epc_import_process_chunk($platformPdo, (int)($_POST['job_id']??0), $rows ?: array());
+        case 'status': return array('ok' => true, 'job' => epc_import_job_status($platformPdo, (int)($_POST['job_id']??0)));
+        case 'errors': return array('ok' => true, 'errors' => epc_import_job_errors($platformPdo, (int)($_POST['job_id']??0)));
+        case 'jobs':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return array('ok' => true, 'jobs' => epc_import_list_jobs($platformPdo, $siteKey));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }
