@@ -146,6 +146,10 @@ switch ($action) {
         $response = epc_bos_ajax_warranty_rma();
         break;
 
+    case 'dealer_portal':
+        $response = epc_bos_ajax_dealer_portal();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
@@ -2144,6 +2148,35 @@ function epc_bos_ajax_warranty_rma(): array
         case 'rma_detail':
             $rmaId = (int) ($_POST['rma_id'] ?? 0);
             return array('ok' => true, 'rma' => epc_rma_detail($platformPdo, $rmaId));
+        default: return array('ok' => false, 'error' => 'Unknown sub_action');
+    }
+}
+
+/* ───────────────────── dealer portal ───────────────────── */
+
+function epc_bos_ajax_dealer_portal(): array
+{
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_dealer_portal.php';
+    $platformPdo = epc_portal_platform_operator_pdo();
+    if (!$platformPdo) return array('ok' => false, 'error' => 'Database unavailable');
+    $sub = (string) ($_POST['sub_action'] ?? 'fleet_stats');
+    $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_POST['site_key'] ?? '')));
+    switch ($sub) {
+        case 'fleet_stats': return array('ok' => true, 'stats' => epc_dealer_fleet_stats($platformPdo));
+        case 'tiers': return array('ok' => true, 'tiers' => epc_dealer_tier_discounts());
+        case 'list':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $f = array(); if (!empty($_POST['tier'])) $f['tier'] = $_POST['tier']; if (!empty($_POST['status'])) $f['status'] = $_POST['status'];
+            return array('ok' => true, 'dealers' => epc_dealer_list($platformPdo, $siteKey, $f));
+        case 'register':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            $d = json_decode((string) ($_POST['dealer_data'] ?? '{}'), true);
+            return epc_dealer_register($platformPdo, $siteKey, $d ?: array());
+        case 'place_order':
+            if ($siteKey === '') return array('ok' => false, 'error' => 'Missing site_key');
+            return epc_dealer_place_order($platformPdo, $siteKey, (int)($_POST['dealer_id']??0), (float)($_POST['order_total']??0));
+        case 'auto_tier':
+            return epc_dealer_auto_tier($platformPdo, (int)($_POST['dealer_id']??0));
         default: return array('ok' => false, 'error' => 'Unknown sub_action');
     }
 }

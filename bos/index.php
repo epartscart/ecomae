@@ -476,6 +476,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'wps_payroll' => 'WPS / payroll: SIF file generation, salary management, payroll runs.',
                 'collections_dunning' => 'Collections & dunning: 7-step sequences, aging buckets, payment tracking.',
                 'warranty_rma' => 'Warranty / RMA: registration, claims, state machine, core returns.',
+                'dealer_portal' => 'Dealer / distributor portal: tiered pricing, auto-tier promotion, B2B.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
