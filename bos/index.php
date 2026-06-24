@@ -457,6 +457,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'mfa_management'    => 'Multi-Factor Authentication policy: TOTP enrollment, role enforcement, backup codes, audit log.',
                 'event_bus'         => 'Platform event bus: order.placed, invoice.posted, stock.below — structured events for webhooks and integrations.',
                 'webhooks'          => 'Webhook management: HMAC-signed HTTP POST delivery, retry with exponential backoff, dead-letter queue.',
+                'readiness_score'  => 'Enterprise readiness score: per-tenant health check (isolation, MFA, backup, e-invoice, performance, compliance).',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',
