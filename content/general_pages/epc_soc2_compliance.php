@@ -197,3 +197,66 @@ function epc_soc2_fleet_stats(PDO $pdo): array
     $evidence = (int)$st2->fetchColumn();
     return array('controls' => $gap['total_controls'], 'readiness_pct' => $gap['readiness_pct'], 'gaps' => count($gap['gaps']), 'policies' => $policies, 'evidence_items' => $evidence);
 }
+
+/* ─── Audit Schedule & Remediation ─── */
+
+function epc_soc2_remediation_plan(PDO $pdo): array
+{
+    epc_soc2_ensure_schema($pdo);
+    $gap = epc_soc2_gap_analysis($pdo);
+    $plan = array();
+    $priorityMap = array('critical' => 1, 'high' => 2, 'medium' => 3, 'low' => 4);
+    foreach ($gap['gaps'] as $g) {
+        $plan[] = array(
+            'control_id' => $g['control_id'],
+            'title' => $g['title'],
+            'risk_level' => $g['risk_level'],
+            'priority' => $priorityMap[$g['risk_level']] ?? 5,
+            'status' => $g['status'],
+            'action' => $g['status'] === 'not_started' ? 'Implement control' : 'Complete implementation',
+        );
+    }
+    usort($plan, function($a, $b) { return $a['priority'] - $b['priority']; });
+    return $plan;
+}
+
+function epc_soc2_evidence_summary(PDO $pdo): array
+{
+    $st = $pdo->query("SELECT `control_id`, COUNT(*) AS `evidence_count`, MAX(`collected_at`) AS `last_collected` FROM `epc_soc2_evidence` GROUP BY `control_id`");
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_soc2_update_policy(PDO $pdo, int $policyId, array $data): array
+{
+    $fields = array();
+    $params = array();
+    $allowed = array('title', 'content', 'owner', 'status');
+    foreach ($allowed as $f) {
+        if (array_key_exists($f, $data)) {
+            $fields[] = "`{$f}` = ?";
+            $params[] = $data[$f];
+        }
+    }
+    if (empty($fields)) return array('ok' => false);
+    $fields[] = '`updated_at` = NOW()';
+    $params[] = $policyId;
+    $pdo->prepare("UPDATE `epc_soc2_policies` SET " . implode(', ', $fields) . " WHERE `id`=?")->execute($params);
+    return array('ok' => true);
+}
+
+function epc_soc2_compliance_report(PDO $pdo): array
+{
+    $gap = epc_soc2_gap_analysis($pdo);
+    $evidence = epc_soc2_evidence_summary($pdo);
+    $policies = epc_soc2_list_policies($pdo);
+    return array(
+        'generated_at' => date('c'),
+        'readiness' => $gap['readiness_pct'],
+        'controls_total' => $gap['total_controls'],
+        'controls_by_status' => $gap['by_status'],
+        'outstanding_gaps' => count($gap['gaps']),
+        'evidence_items' => count($evidence),
+        'policies' => count($policies),
+        'report_type' => 'SOC 2 Type II Readiness Assessment',
+    );
+}

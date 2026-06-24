@@ -145,3 +145,128 @@ function epc_events_type_summary(PDO $pdo, string $since = ''): array
 	$st->execute(array($since));
 	return $st->fetchAll(PDO::FETCH_ASSOC);
 }
+
+/* ─────────────────── ERP Emitters ─────────────────── */
+
+/**
+ * Emit event when an ERP invoice is posted.
+ */
+function epc_event_emit_invoice_posted(PDO $pdo, int $invoiceId, float $total, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'invoice.posted', array(
+		'invoice_id' => $invoiceId,
+		'total' => $total,
+		'currency' => 'AED',
+	), $tenantKey, $userId, 'user', 'inv-post-' . $invoiceId);
+}
+
+/**
+ * Emit event when an ERP invoice is paid.
+ */
+function epc_event_emit_invoice_paid(PDO $pdo, int $invoiceId, float $amount, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'invoice.paid', array(
+		'invoice_id' => $invoiceId,
+		'amount' => $amount,
+	), $tenantKey, $userId, 'user', 'inv-paid-' . $invoiceId . '-' . time());
+}
+
+/**
+ * Emit event when a credit note is issued.
+ */
+function epc_event_emit_credit_note(PDO $pdo, int $invoiceId, float $amount, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'invoice.credit_note', array(
+		'invoice_id' => $invoiceId,
+		'amount' => $amount,
+	), $tenantKey, $userId, 'user', 'inv-cn-' . $invoiceId);
+}
+
+/**
+ * Emit event when a sales order is placed.
+ */
+function epc_event_emit_order_placed(PDO $pdo, int $orderId, float $total, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'order.placed', array(
+		'order_id' => $orderId,
+		'total' => $total,
+	), $tenantKey, $userId, $userId > 0 ? 'user' : 'system', 'order-placed-' . $orderId);
+}
+
+/**
+ * Emit event when an order is shipped.
+ */
+function epc_event_emit_order_shipped(PDO $pdo, int $orderId, string $trackingNo, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'order.shipped', array(
+		'order_id' => $orderId,
+		'tracking' => $trackingNo,
+	), $tenantKey, $userId, 'system', 'order-shipped-' . $orderId);
+}
+
+/**
+ * Emit event when stock goes below reorder level.
+ */
+function epc_event_emit_stock_below(PDO $pdo, string $sku, int $qty, int $reorderLevel, string $tenantKey): int
+{
+	return epc_event_emit($pdo, 'stock.below', array(
+		'sku' => $sku,
+		'qty' => $qty,
+		'reorder_level' => $reorderLevel,
+	), $tenantKey, 0, 'system', 'stock-below-' . $sku . '-' . date('Ymd'));
+}
+
+/**
+ * Emit event when stock is adjusted.
+ */
+function epc_event_emit_stock_adjusted(PDO $pdo, string $sku, int $oldQty, int $newQty, string $reason, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'stock.adjusted', array(
+		'sku' => $sku,
+		'old_qty' => $oldQty,
+		'new_qty' => $newQty,
+		'reason' => $reason,
+	), $tenantKey, $userId, 'user');
+}
+
+/**
+ * Emit event when a payment is received.
+ */
+function epc_event_emit_payment_received(PDO $pdo, int $paymentId, float $amount, string $method, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'payment.received', array(
+		'payment_id' => $paymentId,
+		'amount' => $amount,
+		'method' => $method,
+	), $tenantKey, $userId, 'system', 'pmt-' . $paymentId);
+}
+
+/**
+ * Emit event when an ERP voucher/journal is posted.
+ */
+function epc_event_emit_voucher_posted(PDO $pdo, int $voucherId, string $type, float $amount, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'erp.voucher_posted', array(
+		'voucher_id' => $voucherId,
+		'type' => $type,
+		'amount' => $amount,
+	), $tenantKey, $userId, 'user', 'voucher-' . $voucherId);
+}
+
+/**
+ * Emit event when a GL period is closed.
+ */
+function epc_event_emit_period_closed(PDO $pdo, string $yearMonth, string $tenantKey, int $userId = 0): int
+{
+	return epc_event_emit($pdo, 'erp.period_closed', array(
+		'year_month' => $yearMonth,
+	), $tenantKey, $userId, 'user', 'period-close-' . $yearMonth);
+}
+
+/**
+ * Emit event when tenant is created or updated.
+ */
+function epc_event_emit_tenant(PDO $pdo, string $action, string $tenantKey, array $details = array()): int
+{
+	return epc_event_emit($pdo, 'tenant.' . $action, $details, $tenantKey, 0, 'system');
+}

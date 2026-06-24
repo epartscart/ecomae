@@ -155,3 +155,99 @@ function epc_vault_fleet_stats(PDO $pdo): array
     $st = $pdo->query("SELECT `site_key`, COUNT(*) AS `documents`, SUM(`file_size`) AS `total_size`, MAX(`current_version`) AS `max_versions` FROM `epc_vault_documents` WHERE `status`='active' GROUP BY `site_key`");
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
+
+/* ─── GDPR / Data Subject Rights ─── */
+
+function epc_vault_gdpr_ensure_schema(PDO $pdo): void
+{
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `epc_vault_gdpr_requests` (
+            `id`              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `site_key`        VARCHAR(64)    NOT NULL,
+            `request_type`    ENUM('access','erasure','portability','rectification') NOT NULL,
+            `subject_email`   VARCHAR(256)   NOT NULL,
+            `subject_name`    VARCHAR(256)   NOT NULL DEFAULT '',
+            `status`          ENUM('pending','processing','completed','rejected') NOT NULL DEFAULT 'pending',
+            `documents_found` INT            NOT NULL DEFAULT 0,
+            `response_json`   MEDIUMTEXT     NULL,
+            `processed_by`    INT UNSIGNED   NULL,
+            `completed_at`    DATETIME       NULL,
+            `created_at`      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_site` (`site_key`),
+            INDEX `idx_status` (`status`),
+            INDEX `idx_email` (`subject_email`(64))
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+}
+
+function epc_vault_gdpr_request(PDO $pdo, string $siteKey, string $type, string $email, string $name = ''): array
+{
+    epc_vault_gdpr_ensure_schema($pdo);
+    $pdo->prepare("INSERT INTO `epc_vault_gdpr_requests` (`site_key`,`request_type`,`subject_email`,`subject_name`) VALUES (?,?,?,?)")
+        ->execute(array($siteKey, $type, $email, $name));
+    return array('ok' => true, 'request_id' => (int) $pdo->lastInsertId(), 'message' => ucfirst($type) . ' request created');
+}
+
+function epc_vault_gdpr_process(PDO $pdo, int $requestId, int $userId): array
+{
+    epc_vault_gdpr_ensure_schema($pdo);
+    $st = $pdo->prepare("SELECT * FROM `epc_vault_gdpr_requests` WHERE `id`=?");
+    $st->execute(array($requestId));
+    $req = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$req) return array('ok' => false, 'error' => 'Request not found');
+
+    epc_vault_ensure_schema($pdo);
+    $stDocs = $pdo->prepare("SELECT `id`,`filename`,`mime_type`,`file_size`,`tags` FROM `epc_vault_documents` WHERE `site_key`=? AND `status`='active' AND (`tags` LIKE ? OR `filename` LIKE ?)");
+    $emailLike = '%' . $req['subject_email'] . '%';
+    $stDocs->execute(array($req['site_key'], $emailLike, $emailLike));
+    $docs = $stDocs->fetchAll(PDO::FETCH_ASSOC) ?: array();
+
+    $response = array('documents_found' => count($docs), 'documents' => $docs);
+
+    if ($req['request_type'] === 'erasure') {
+        foreach ($docs as $doc) {
+            $pdo->prepare("UPDATE `epc_vault_documents` SET `status`='deleted' WHERE `id`=?")->execute(array($doc['id']));
+        }
+        $response['erased'] = count($docs);
+    }
+
+    $pdo->prepare("UPDATE `epc_vault_gdpr_requests` SET `status`='completed', `documents_found`=?, `response_json`=?, `processed_by`=?, `completed_at`=NOW() WHERE `id`=?")
+        ->execute(array(count($docs), json_encode($response), $userId, $requestId));
+
+    return array('ok' => true, 'response' => $response);
+}
+
+function epc_vault_gdpr_list(PDO $pdo, string $siteKey = '', string $status = ''): array
+{
+    epc_vault_gdpr_ensure_schema($pdo);
+    $where = array('1=1');
+    $params = array();
+    if ($siteKey !== '') { $where[] = '`site_key`=?'; $params[] = $siteKey; }
+    if ($status !== '') { $where[] = '`status`=?'; $params[] = $status; }
+    $st = $pdo->prepare("SELECT * FROM `epc_vault_gdpr_requests` WHERE " . implode(' AND ', $where) . " ORDER BY `created_at` DESC LIMIT 200");
+    $st->execute($params);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+/* ─── Search & Lifecycle ─── */
+
+function epc_vault_search(PDO $pdo, string $siteKey, string $query): array
+{
+    epc_vault_ensure_schema($pdo);
+    $like = '%' . $query . '%';
+    $st = $pdo->prepare("SELECT * FROM `epc_vault_documents` WHERE `site_key`=? AND `status`='active' AND (`filename` LIKE ? OR `tags` LIKE ?) ORDER BY `created_at` DESC LIMIT 100");
+    $st->execute(array($siteKey, $like, $like));
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_vault_delete(PDO $pdo, int $docId): array
+{
+    $pdo->prepare("UPDATE `epc_vault_documents` SET `status`='deleted' WHERE `id`=?")->execute(array($docId));
+    return array('ok' => true);
+}
+
+function epc_vault_restore(PDO $pdo, int $docId): array
+{
+    $pdo->prepare("UPDATE `epc_vault_documents` SET `status`='active' WHERE `id`=?")->execute(array($docId));
+    return array('ok' => true);
+}

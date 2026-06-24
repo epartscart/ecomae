@@ -356,3 +356,67 @@ function epc_design_tokens_list(PDO $pdo, string $siteKey): array
 	$st->execute(array($siteKey));
 	return $st->fetchAll(PDO::FETCH_KEY_PAIR);
 }
+
+/* ─────────────────── CP Login Template Application ─────────────────── */
+
+/**
+ * Generate CSS custom properties from tenant's design tokens.
+ * Inject into CP login page <head> for branded portal experience.
+ */
+function epc_design_tokens_login_css(PDO $pdo, string $siteKey): string
+{
+	$tokens = epc_design_tokens_resolve($pdo, $siteKey);
+	$css = ':root {' . "\n";
+	$css .= '  --brand-primary: ' . epc_dt_safe_color($tokens['brand_primary']) . ";\n";
+	$css .= '  --brand-secondary: ' . epc_dt_safe_color($tokens['brand_secondary']) . ";\n";
+	$css .= '  --brand-accent: ' . epc_dt_safe_color($tokens['brand_accent']) . ";\n";
+	$css .= '  --brand-bg-dark: ' . epc_dt_safe_color($tokens['brand_bg_dark']) . ";\n";
+	$css .= '  --brand-font: ' . epc_dt_safe_font($tokens['brand_font']) . ";\n";
+	$css .= '  --brand-radius: ' . epc_dt_safe_px($tokens['brand_radius']) . ";\n";
+	$css .= '  --brand-sidebar-bg: ' . epc_dt_safe_color($tokens['brand_sidebar_bg']) . ";\n";
+	$css .= '  --brand-header-bg: ' . epc_dt_safe_color($tokens['brand_header_bg']) . ";\n";
+	$css .= '}' . "\n";
+	$css .= '.epc-cp-login-form { font-family: var(--brand-font); }' . "\n";
+	$css .= '.epc-cp-login-btn { background: var(--brand-primary); border-radius: var(--brand-radius); }' . "\n";
+	$css .= '.epc-cp-login-hero { background: var(--brand-bg-dark); }' . "\n";
+	if (!empty($tokens['brand_logo_url'])) {
+		$css .= '.epc-cp-login-logo { background-image: url(' . htmlspecialchars($tokens['brand_logo_url']) . '); }' . "\n";
+	}
+	if (!empty($tokens['white_label_login']) && $tokens['white_label_login'] === '1') {
+		$css .= '.epc-cp-login-footer-ecomae { display: none !important; }' . "\n";
+	}
+	return $css;
+}
+
+/**
+ * Render the branded login page header (logo + tenant name).
+ */
+function epc_design_tokens_login_header(PDO $pdo, string $siteKey, string $tenantName = ''): string
+{
+	$tokens = epc_design_tokens_resolve($pdo, $siteKey);
+	$html = '<div class="epc-cp-login-brand">';
+	if (!empty($tokens['brand_logo_url'])) {
+		$html .= '<img src="' . htmlspecialchars($tokens['brand_logo_url']) . '" alt="' . htmlspecialchars($tenantName) . '" class="epc-cp-login-logo-img" style="max-height:60px;">';
+	}
+	if ($tenantName !== '') {
+		$html .= '<h1 class="epc-cp-login-title" style="color:' . epc_dt_safe_color($tokens['brand_primary']) . '">' . htmlspecialchars($tenantName) . '</h1>';
+	}
+	$html .= '</div>';
+	return $html;
+}
+
+function epc_dt_safe_color(string $val): string
+{
+	return preg_match('/^#[0-9a-fA-F]{3,8}$/', $val) ? $val : '#1a73e8';
+}
+
+function epc_dt_safe_font(string $val): string
+{
+	$allowed = array('Inter', 'Roboto', 'Arial', 'Helvetica', 'system-ui', 'Segoe UI', 'sans-serif');
+	return in_array($val, $allowed, true) ? $val : 'Inter, system-ui, sans-serif';
+}
+
+function epc_dt_safe_px(string $val): string
+{
+	return preg_match('/^\d+(px|rem|em)?$/', $val) ? $val : '8px';
+}

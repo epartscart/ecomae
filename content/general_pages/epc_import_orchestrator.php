@@ -182,3 +182,91 @@ function epc_import_fleet_stats(PDO $pdo): array
     $st = $pdo->query("SELECT `site_key`, COUNT(*) AS `jobs`, SUM(`success_rows`) AS `imported`, SUM(`error_rows`) AS `errors` FROM `epc_import_jobs` GROUP BY `site_key`");
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
+
+/* ─── Dry-Run & Validation ─── */
+
+function epc_import_dry_run(PDO $pdo, string $siteKey, string $source, array $mapping, string $format, array $rows): array
+{
+    $results = array('total' => count($rows), 'valid' => 0, 'invalid' => 0, 'errors' => array());
+    $validators = epc_import_validators($source);
+
+    foreach ($rows as $idx => $row) {
+        $rowErrors = array();
+        foreach ($mapping as $dbCol => $csvCol) {
+            $val = $row[$csvCol] ?? '';
+            if (isset($validators[$dbCol])) {
+                $check = $validators[$dbCol]($val);
+                if ($check !== true) {
+                    $rowErrors[] = array('column' => $dbCol, 'value' => $val, 'error' => $check);
+                }
+            }
+        }
+        if (empty($rowErrors)) {
+            $results['valid']++;
+        } else {
+            $results['invalid']++;
+            if (count($results['errors']) < 100) {
+                $results['errors'][] = array('row' => $idx + 1, 'errors' => $rowErrors);
+            }
+        }
+    }
+    return $results;
+}
+
+function epc_import_validators(string $source): array
+{
+    $common = array(
+        'email' => function($v) { return filter_var($v, FILTER_VALIDATE_EMAIL) || $v === '' ? true : 'Invalid email'; },
+        'phone' => function($v) { return preg_match('/^[\+\d\s\-\(\)]*$/', $v) ? true : 'Invalid phone'; },
+    );
+    $sourceValidators = array(
+        'products' => array(
+            'sku' => function($v) { return $v !== '' ? true : 'SKU required'; },
+            'price' => function($v) { return is_numeric($v) ? true : 'Invalid price'; },
+            'stock_qty' => function($v) { return ctype_digit($v) || $v === '' ? true : 'Invalid qty'; },
+        ),
+        'customers' => array(
+            'name' => function($v) { return $v !== '' ? true : 'Name required'; },
+        ),
+        'invoices' => array(
+            'amount' => function($v) { return is_numeric($v) ? true : 'Invalid amount'; },
+            'date' => function($v) { return strtotime($v) !== false ? true : 'Invalid date'; },
+        ),
+    );
+    return array_merge($common, $sourceValidators[$source] ?? array());
+}
+
+function epc_import_supported_formats(): array
+{
+    return array(
+        array('format' => 'csv', 'label' => 'CSV (comma-separated)', 'mime' => 'text/csv'),
+        array('format' => 'tsv', 'label' => 'TSV (tab-separated)', 'mime' => 'text/tab-separated-values'),
+        array('format' => 'xlsx', 'label' => 'Excel (.xlsx)', 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+        array('format' => 'xml', 'label' => 'XML', 'mime' => 'application/xml'),
+        array('format' => 'json', 'label' => 'JSON', 'mime' => 'application/json'),
+    );
+}
+
+function epc_import_supported_sources(): array
+{
+    return array(
+        'products' => array('label' => 'Products / SKUs', 'table' => 'shop_products', 'required_fields' => array('sku', 'name')),
+        'customers' => array('label' => 'Customers', 'table' => 'shop_customers', 'required_fields' => array('name')),
+        'invoices' => array('label' => 'Invoices', 'table' => 'epc_invoices', 'required_fields' => array('invoice_no', 'amount')),
+        'suppliers' => array('label' => 'Suppliers', 'table' => 'epc_suppliers', 'required_fields' => array('name')),
+        'gl_entries' => array('label' => 'Journal Entries', 'table' => 'epc_gl_entries', 'required_fields' => array('account_code', 'amount')),
+        'employees' => array('label' => 'Employees', 'table' => 'epc_employees', 'required_fields' => array('name', 'employee_id')),
+    );
+}
+
+function epc_import_cancel(PDO $pdo, int $jobId): array
+{
+    $pdo->prepare("UPDATE `epc_import_jobs` SET `status`='cancelled' WHERE `id`=? AND `status` IN ('pending','processing')")->execute(array($jobId));
+    return array('ok' => true);
+}
+
+function epc_import_retry(PDO $pdo, int $jobId): array
+{
+    $pdo->prepare("UPDATE `epc_import_jobs` SET `status`='pending', `error_rows`=0, `skip_rows`=0 WHERE `id`=? AND `status`='failed'")->execute(array($jobId));
+    return array('ok' => true);
+}

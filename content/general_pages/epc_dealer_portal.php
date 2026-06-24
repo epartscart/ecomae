@@ -144,3 +144,61 @@ function epc_dealer_fleet_stats(PDO $pdo): array
     ");
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
+
+/* ─── Dealer Management ─── */
+
+function epc_dealer_get(PDO $pdo, int $dealerId): ?array
+{
+    $st = $pdo->prepare("SELECT * FROM `epc_dealers` WHERE `id`=?");
+    $st->execute(array($dealerId));
+    return $st->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function epc_dealer_update(PDO $pdo, int $dealerId, array $data): array
+{
+    $fields = array();
+    $params = array();
+    $allowed = array('company_name', 'contact_email', 'phone', 'tier', 'discount_pct', 'status', 'credit_limit', 'payment_terms_days');
+    foreach ($allowed as $f) {
+        if (array_key_exists($f, $data)) {
+            $fields[] = "`{$f}` = ?";
+            $params[] = $data[$f];
+        }
+    }
+    if (empty($fields)) return array('ok' => false, 'error' => 'No fields to update');
+    $params[] = $dealerId;
+    $pdo->prepare("UPDATE `epc_dealers` SET " . implode(', ', $fields) . " WHERE `id`=?")->execute($params);
+    return array('ok' => true);
+}
+
+function epc_dealer_orders(PDO $pdo, int $dealerId, int $limit = 50): array
+{
+    $st = $pdo->prepare("SELECT * FROM `epc_dealer_orders` WHERE `dealer_id`=? ORDER BY `created_at` DESC LIMIT ?");
+    $st->execute(array($dealerId, $limit));
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_dealer_suspend(PDO $pdo, int $dealerId, string $reason = ''): array
+{
+    $pdo->prepare("UPDATE `epc_dealers` SET `status`='suspended' WHERE `id`=?")->execute(array($dealerId));
+    return array('ok' => true, 'message' => 'Dealer suspended');
+}
+
+function epc_dealer_activate(PDO $pdo, int $dealerId): array
+{
+    $pdo->prepare("UPDATE `epc_dealers` SET `status`='active' WHERE `id`=?")->execute(array($dealerId));
+    return array('ok' => true);
+}
+
+function epc_dealer_performance_report(PDO $pdo, string $siteKey): array
+{
+    epc_dealer_ensure_schema($pdo);
+    $st = $pdo->prepare("
+        SELECT d.`id`, d.`company_name`, d.`tier`, d.`ytd_revenue`, d.`order_count`, d.`discount_pct`,
+               (SELECT MAX(o.`created_at`) FROM `epc_dealer_orders` o WHERE o.`dealer_id` = d.`id`) AS `last_order`
+        FROM `epc_dealers` d WHERE d.`site_key`=? AND d.`status`='active'
+        ORDER BY d.`ytd_revenue` DESC
+    ");
+    $st->execute(array($siteKey));
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}

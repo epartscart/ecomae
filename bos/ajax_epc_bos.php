@@ -194,6 +194,29 @@ switch ($action) {
         $response = epc_bos_ajax_marketplace();
         break;
 
+    case 'ai_service':
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ai_service.php';
+        $pdo = epc_bos_get_platform_pdo();
+        $response = array('ok' => true, 'data' => epc_ai_service_stats($pdo));
+        break;
+
+    case 'metabase_embed':
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_metabase_embed.php';
+        $pdo = epc_bos_get_platform_pdo();
+        $response = array('ok' => true, 'data' => epc_metabase_fleet_stats($pdo));
+        break;
+
+    case 'isolation_anomaly':
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_isolation_anomaly.php';
+        $pdo = epc_bos_get_platform_pdo();
+        $subAction = (string) ($_POST['sub_action'] ?? 'list');
+        if ($subAction === 'scan') {
+            $response = array('ok' => true, 'data' => epc_anomaly_scan($pdo));
+        } else {
+            $response = array('ok' => true, 'data' => epc_anomaly_fleet_stats($pdo));
+        }
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }

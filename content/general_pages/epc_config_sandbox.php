@@ -92,3 +92,61 @@ function epc_sandbox_fleet_stats(PDO $pdo): array
     $st = $pdo->query("SELECT `site_key`, COUNT(*) AS `snapshots`, SUM(CASE WHEN `status`='active' THEN 1 ELSE 0 END) AS `active`, SUM(CASE WHEN `status`='promoted' THEN 1 ELSE 0 END) AS `promoted` FROM `epc_config_snapshots` GROUP BY `site_key`");
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
+
+/* ─── Snapshot Comparison ─── */
+
+function epc_sandbox_compare(PDO $pdo, int $snapshotA, int $snapshotB): array
+{
+    epc_sandbox_ensure_schema($pdo);
+    $stA = $pdo->prepare("SELECT `config_data` FROM `epc_config_snapshots` WHERE `id`=?");
+    $stA->execute(array($snapshotA));
+    $dataA = json_decode((string) $stA->fetchColumn(), true) ?: array();
+
+    $stB = $pdo->prepare("SELECT `config_data` FROM `epc_config_snapshots` WHERE `id`=?");
+    $stB->execute(array($snapshotB));
+    $dataB = json_decode((string) $stB->fetchColumn(), true) ?: array();
+
+    $added = array_diff_key($dataB, $dataA);
+    $removed = array_diff_key($dataA, $dataB);
+    $changed = array();
+    foreach (array_intersect_key($dataA, $dataB) as $key => $valA) {
+        if (json_encode($valA) !== json_encode($dataB[$key])) {
+            $changed[$key] = array('from' => $valA, 'to' => $dataB[$key]);
+        }
+    }
+
+    return array('added' => $added, 'removed' => $removed, 'changed' => $changed, 'total_diffs' => count($added) + count($removed) + count($changed));
+}
+
+function epc_sandbox_rollback(PDO $pdo, int $snapshotId): array
+{
+    epc_sandbox_ensure_schema($pdo);
+    $st = $pdo->prepare("SELECT `config_data`, `site_key` FROM `epc_config_snapshots` WHERE `id`=? AND `status`='promoted'");
+    $st->execute(array($snapshotId));
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        return array('ok' => false, 'error' => 'Snapshot not found or not promoted');
+    }
+    $newId = epc_sandbox_create($pdo, $row['site_key'], 'Rollback of snapshot #' . $snapshotId, json_decode($row['config_data'], true) ?: array());
+    epc_sandbox_promote($pdo, $newId['snapshot_id']);
+    return array('ok' => true, 'new_snapshot_id' => $newId['snapshot_id']);
+}
+
+function epc_sandbox_export(PDO $pdo, int $snapshotId): array
+{
+    $st = $pdo->prepare("SELECT * FROM `epc_config_snapshots` WHERE `id`=?");
+    $st->execute(array($snapshotId));
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row) return array('ok' => false, 'error' => 'Not found');
+    $changes = epc_sandbox_diff($pdo, $snapshotId);
+    return array('ok' => true, 'snapshot' => $row, 'changes' => $changes, 'exported_at' => date('c'));
+}
+
+function epc_sandbox_import(PDO $pdo, string $siteKey, array $exportData, int $userId = 0): array
+{
+    if (empty($exportData['snapshot']['config_data'])) {
+        return array('ok' => false, 'error' => 'Invalid export data');
+    }
+    $config = json_decode($exportData['snapshot']['config_data'], true) ?: array();
+    return epc_sandbox_create($pdo, $siteKey, 'Imported snapshot', $config, $userId);
+}

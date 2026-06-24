@@ -189,3 +189,234 @@ if (!function_exists('epc_einv_to_json')) {
         return (string) json_encode($doc, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 }
+
+/* ─────────────────── ASP API Live Submit (PINT-AE) ─────────────────── */
+
+if (!function_exists('epc_einv_asp_config')) {
+    function epc_einv_asp_config(): array
+    {
+        return array(
+            'api_url' => 'https://asp.ecomae.com/api/v1/invoices',
+            'sandbox_url' => 'https://sandbox-asp.ecomae.com/api/v1/invoices',
+            'mode' => 'live',
+            'timeout' => 30,
+            'retry_max' => 3,
+            'pint_ae_profile' => 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0',
+        );
+    }
+}
+
+if (!function_exists('epc_einv_asp_submit')) {
+    /**
+     * Submit an e-invoice to ASP (Accredited Service Provider) for UAE FTA.
+     *
+     * @param array $doc Built e-invoice document from epc_einv_build()
+     * @param string $apiKey Tenant's ASP API key
+     * @param string $mode 'live' or 'sandbox'
+     * @return array{ok:bool, submission_id:string, status:string, errors:array}
+     */
+    function epc_einv_asp_submit(array $doc, string $apiKey, string $mode = 'live'): array
+    {
+        $config = epc_einv_asp_config();
+        $url = ($mode === 'sandbox') ? $config['sandbox_url'] : $config['api_url'];
+
+        $payload = array(
+            'profile_id' => $config['pint_ae_profile'],
+            'document_type' => ($doc['totals']['grand_total'] ?? 0) < 0 ? '381' : '380',
+            'invoice' => $doc,
+            'submitted_at' => date('c'),
+        );
+
+        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $headers = array(
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+            'X-PINT-AE-Version: 1.0',
+            'X-Document-Hash: ' . ($doc['hash'] ?? ''),
+        );
+
+        $lastError = '';
+        for ($attempt = 1; $attempt <= $config['retry_max']; $attempt++) {
+            $ch = curl_init();
+            curl_setopt_array($ch, array(
+                CURLOPT_URL            => $url,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $body,
+                CURLOPT_HTTPHEADER     => $headers,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => $config['timeout'],
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ));
+            $response = curl_exec($ch);
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $lastError = curl_error($ch);
+            curl_close($ch);
+
+            if ($httpCode >= 200 && $httpCode < 300) {
+                $data = json_decode((string) $response, true) ?: array();
+                return array(
+                    'ok' => true,
+                    'submission_id' => (string) ($data['submission_id'] ?? $data['id'] ?? ''),
+                    'status' => (string) ($data['status'] ?? 'submitted'),
+                    'asp_response' => $data,
+                    'errors' => array(),
+                );
+            }
+
+            if ($httpCode >= 400 && $httpCode < 500) {
+                $data = json_decode((string) $response, true) ?: array();
+                return array(
+                    'ok' => false,
+                    'submission_id' => '',
+                    'status' => 'rejected',
+                    'errors' => (array) ($data['errors'] ?? array($data['message'] ?? 'HTTP ' . $httpCode)),
+                    'http_code' => $httpCode,
+                );
+            }
+
+            if ($attempt < $config['retry_max']) {
+                usleep($attempt * 500000);
+            }
+        }
+
+        return array(
+            'ok' => false,
+            'submission_id' => '',
+            'status' => 'error',
+            'errors' => array($lastError ?: 'ASP API unreachable after ' . $config['retry_max'] . ' attempts'),
+        );
+    }
+}
+
+if (!function_exists('epc_einv_asp_poll_status')) {
+    /**
+     * Poll ASP for submission status (clearance/approval).
+     */
+    function epc_einv_asp_poll_status(string $submissionId, string $apiKey, string $mode = 'live'): array
+    {
+        $config = epc_einv_asp_config();
+        $url = (($mode === 'sandbox') ? $config['sandbox_url'] : $config['api_url']) . '/' . $submissionId . '/status';
+
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => array('Authorization: Bearer ' . $apiKey),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ));
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            $data = json_decode((string) $response, true) ?: array();
+            return array(
+                'ok' => true,
+                'submission_id' => $submissionId,
+                'status' => (string) ($data['status'] ?? 'pending'),
+                'clearance_status' => (string) ($data['clearance_status'] ?? ''),
+                'fta_reference' => (string) ($data['fta_reference'] ?? ''),
+                'errors' => (array) ($data['errors'] ?? array()),
+            );
+        }
+        return array('ok' => false, 'status' => 'poll_error', 'http_code' => $httpCode);
+    }
+}
+
+if (!function_exists('epc_einv_credit_note_381')) {
+    /**
+     * Build a credit note (type 381) for a previously issued invoice.
+     */
+    function epc_einv_credit_note_381(array $originalInvoice, array $creditLines, string $reason = ''): array
+    {
+        $creditInvoice = $originalInvoice;
+        $creditInvoice['invoice_no'] = 'CN-' . ($originalInvoice['invoice_no'] ?? '');
+        $creditInvoice['issue_date'] = time();
+
+        $doc = epc_einv_build($creditInvoice, $creditLines);
+        $doc['document_type'] = '381';
+        $doc['billing_reference'] = array(
+            'original_invoice' => (string) ($originalInvoice['invoice_no'] ?? ''),
+            'original_issue_date' => date('Y-m-d', (int) ($originalInvoice['issue_date'] ?? time())),
+        );
+        $doc['credit_note_reason'] = $reason;
+
+        foreach ($doc['lines'] as &$line) {
+            $line['line_net'] = -abs($line['line_net']);
+            $line['tax_amount'] = -abs($line['tax_amount']);
+            $line['line_total'] = -abs($line['line_total']);
+        }
+        unset($line);
+
+        $doc['totals']['net'] = -abs($doc['totals']['net']);
+        $doc['totals']['tax'] = -abs($doc['totals']['tax']);
+        $doc['totals']['grand_total'] = -abs($doc['totals']['grand_total']);
+
+        return $doc;
+    }
+}
+
+/* ─────────────────── E-invoice DB tracking ─────────────────── */
+
+if (!function_exists('epc_einv_ensure_schema')) {
+    function epc_einv_ensure_schema(PDO $db): void
+    {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+
+        $db->exec(
+            'CREATE TABLE IF NOT EXISTS `epc_einvoice_submissions` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `invoice_no` VARCHAR(64) NOT NULL,
+                `document_type` CHAR(3) NOT NULL DEFAULT \'380\',
+                `submission_id` VARCHAR(128) NOT NULL DEFAULT \'\',
+                `status` VARCHAR(32) NOT NULL DEFAULT \'draft\',
+                `asp_response_json` TEXT,
+                `fta_reference` VARCHAR(128) NOT NULL DEFAULT \'\',
+                `submitted_at` DATETIME NULL,
+                `cleared_at` DATETIME NULL,
+                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                INDEX `idx_invoice` (`invoice_no`),
+                INDEX `idx_status` (`status`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
+    }
+}
+
+if (!function_exists('epc_einv_track_submission')) {
+    function epc_einv_track_submission(PDO $db, string $invoiceNo, array $aspResult): int
+    {
+        epc_einv_ensure_schema($db);
+        $db->prepare(
+            'INSERT INTO `epc_einvoice_submissions`
+             (`invoice_no`, `document_type`, `submission_id`, `status`, `asp_response_json`, `submitted_at`)
+             VALUES (?, ?, ?, ?, ?, NOW())'
+        )->execute(array(
+            $invoiceNo,
+            $aspResult['document_type'] ?? '380',
+            $aspResult['submission_id'] ?? '',
+            $aspResult['status'] ?? 'submitted',
+            json_encode($aspResult),
+        ));
+        return (int) $db->lastInsertId();
+    }
+}
+
+if (!function_exists('epc_einv_submission_history')) {
+    function epc_einv_submission_history(PDO $db, string $invoiceNo = '', int $limit = 50): array
+    {
+        epc_einv_ensure_schema($db);
+        if ($invoiceNo !== '') {
+            $st = $db->prepare('SELECT * FROM `epc_einvoice_submissions` WHERE `invoice_no` = ? ORDER BY `id` DESC LIMIT ?');
+            $st->execute(array($invoiceNo, $limit));
+        } else {
+            $st = $db->prepare('SELECT * FROM `epc_einvoice_submissions` ORDER BY `id` DESC LIMIT ?');
+            $st->execute(array($limit));
+        }
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+}

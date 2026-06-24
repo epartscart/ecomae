@@ -162,3 +162,105 @@ function epc_nlr_fleet_stats(PDO $pdo): array
     ");
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
+
+/* ─── Template Library ─── */
+
+function epc_nlr_templates(): array
+{
+    return array(
+        array('id' => 'revenue_monthly', 'name' => 'Monthly Revenue Report', 'category' => 'finance', 'template' => 'Show me total revenue, order count, and average order value for {period}', 'output' => 'table'),
+        array('id' => 'ar_aging', 'name' => 'AR Aging Report', 'category' => 'finance', 'template' => 'Show accounts receivable aging breakdown: current, 30-day, 60-day, 90+ day', 'output' => 'table'),
+        array('id' => 'pl_summary', 'name' => 'P&L Summary', 'category' => 'finance', 'template' => 'Profit and loss statement for {period} with revenue, COGS, gross profit, expenses, net income', 'output' => 'table'),
+        array('id' => 'top_products', 'name' => 'Top Selling Products', 'category' => 'sales', 'template' => 'Top 20 products by revenue for {period} with quantity sold and revenue', 'output' => 'table'),
+        array('id' => 'top_customers', 'name' => 'Top Customers', 'category' => 'sales', 'template' => 'Top 20 customers by spend for {period}', 'output' => 'table'),
+        array('id' => 'inventory_value', 'name' => 'Inventory Valuation', 'category' => 'operations', 'template' => 'Current inventory valuation by category with stock levels', 'output' => 'table'),
+        array('id' => 'vat_summary', 'name' => 'VAT Summary', 'category' => 'tax', 'template' => 'UAE VAT output and input tax for {period}', 'output' => 'table'),
+        array('id' => 'hr_headcount', 'name' => 'Headcount Report', 'category' => 'hr', 'template' => 'Employee headcount by department and status', 'output' => 'table'),
+        array('id' => 'cash_flow', 'name' => 'Cash Flow Summary', 'category' => 'finance', 'template' => 'Cash inflows and outflows for {period} by payment method', 'output' => 'table'),
+        array('id' => 'order_trend', 'name' => 'Order Trend', 'category' => 'sales', 'template' => 'Daily order count and revenue trend for {period}', 'output' => 'chart'),
+    );
+}
+
+function epc_nlr_create_from_template(PDO $pdo, string $siteKey, string $templateId, string $period = 'this month', int $userId = 0): array
+{
+    $templates = epc_nlr_templates();
+    $tpl = null;
+    foreach ($templates as $t) {
+        if ($t['id'] === $templateId) { $tpl = $t; break; }
+    }
+    if (!$tpl) return array('ok' => false, 'error' => 'Template not found');
+
+    $query = str_replace('{period}', $period, $tpl['template']);
+    $data = array(
+        'name' => $tpl['name'] . ' - ' . ucfirst($period),
+        'nl_query' => $query,
+        'output_format' => $tpl['output'],
+        'schedule_cron' => '',
+        'recipients' => array(),
+    );
+    return epc_nlr_create_definition($pdo, $siteKey, $data, $userId);
+}
+
+/* ─── Scheduled Reports ─── */
+
+function epc_nlr_get_due_reports(PDO $pdo): array
+{
+    epc_nlr_ensure_schema($pdo);
+    $st = $pdo->query("
+        SELECT d.*, (SELECT MAX(r.`created_at`) FROM `epc_report_runs` r WHERE r.`definition_id` = d.`id`) AS `last_run`
+        FROM `epc_report_definitions` d
+        WHERE d.`active` = 1 AND d.`schedule_cron` != ''
+        ORDER BY d.`created_at`
+    ");
+    $defs = $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+
+    $due = array();
+    foreach ($defs as $def) {
+        $def['recipients'] = json_decode($def['recipients'] ?: '[]', true);
+        if (empty($def['last_run'])) {
+            $due[] = $def;
+            continue;
+        }
+        $lastRunTs = strtotime($def['last_run']);
+        $cron = $def['schedule_cron'];
+        $interval = epc_nlr_cron_to_seconds($cron);
+        if ((time() - $lastRunTs) >= $interval) {
+            $due[] = $def;
+        }
+    }
+    return $due;
+}
+
+function epc_nlr_cron_to_seconds(string $cron): int
+{
+    $map = array('hourly' => 3600, 'daily' => 86400, 'weekly' => 604800, 'monthly' => 2592000);
+    return $map[$cron] ?? 86400;
+}
+
+function epc_nlr_update_definition(PDO $pdo, int $defId, array $data): array
+{
+    epc_nlr_ensure_schema($pdo);
+    $fields = array();
+    $params = array();
+    $allowed = array('name', 'nl_query', 'output_format', 'schedule_cron', 'active');
+    foreach ($allowed as $f) {
+        if (array_key_exists($f, $data)) {
+            $fields[] = "`{$f}` = ?";
+            $params[] = $data[$f];
+        }
+    }
+    if (array_key_exists('recipients', $data)) {
+        $fields[] = '`recipients` = ?';
+        $params[] = json_encode($data['recipients']);
+    }
+    if (empty($fields)) return array('ok' => false, 'error' => 'No fields');
+    $params[] = $defId;
+    $pdo->prepare("UPDATE `epc_report_definitions` SET " . implode(', ', $fields) . " WHERE `id`=?")->execute($params);
+    return array('ok' => true);
+}
+
+function epc_nlr_delete_definition(PDO $pdo, int $defId): array
+{
+    $pdo->prepare("UPDATE `epc_report_definitions` SET `active`=0 WHERE `id`=?")->execute(array($defId));
+    return array('ok' => true);
+}

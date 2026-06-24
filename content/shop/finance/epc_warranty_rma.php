@@ -196,3 +196,66 @@ function epc_warranty_fleet_stats(PDO $pdo): array
     ");
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
 }
+
+/* ─── Warranty Lookup & Lifecycle ─── */
+
+function epc_warranty_lookup(PDO $pdo, string $siteKey, string $serialOrSku): array
+{
+    epc_warranty_ensure_schema($pdo);
+    $st = $pdo->prepare("SELECT * FROM `epc_warranties` WHERE `site_key`=? AND (`serial_number`=? OR `product_sku`=?) ORDER BY `created_at` DESC");
+    $st->execute(array($siteKey, $serialOrSku, $serialOrSku));
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+}
+
+function epc_warranty_check_valid(PDO $pdo, int $warrantyId): array
+{
+    $st = $pdo->prepare("SELECT * FROM `epc_warranties` WHERE `id`=?");
+    $st->execute(array($warrantyId));
+    $w = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$w) return array('valid' => false, 'error' => 'Warranty not found');
+    $expired = strtotime($w['expiry_date']) < time();
+    return array('valid' => !$expired && $w['status'] === 'active', 'warranty' => $w, 'expired' => $expired, 'days_remaining' => $expired ? 0 : (int)((strtotime($w['expiry_date']) - time()) / 86400));
+}
+
+function epc_warranty_extend(PDO $pdo, int $warrantyId, int $months, string $reason = ''): array
+{
+    $st = $pdo->prepare("SELECT `expiry_date` FROM `epc_warranties` WHERE `id`=?");
+    $st->execute(array($warrantyId));
+    $current = $st->fetchColumn();
+    if (!$current) return array('ok' => false, 'error' => 'Not found');
+    $newExpiry = date('Y-m-d', strtotime($current . ' + ' . $months . ' months'));
+    $pdo->prepare("UPDATE `epc_warranties` SET `expiry_date`=?, `status`='active' WHERE `id`=?")->execute(array($newExpiry, $warrantyId));
+    return array('ok' => true, 'new_expiry' => $newExpiry);
+}
+
+function epc_warranty_void(PDO $pdo, int $warrantyId, string $reason = ''): array
+{
+    $pdo->prepare("UPDATE `epc_warranties` SET `status`='voided' WHERE `id`=?")->execute(array($warrantyId));
+    return array('ok' => true);
+}
+
+/* ─── RMA Resolution & Tracking ─── */
+
+function epc_rma_add_item(PDO $pdo, int $rmaId, array $item): array
+{
+    $pdo->prepare("INSERT INTO `epc_rma_items` (`rma_id`,`product_sku`,`serial_number`,`quantity`,`reason`,`condition_received`) VALUES (?,?,?,?,?,?)")
+        ->execute(array($rmaId, (string)($item['product_sku']??''), (string)($item['serial_number']??''), (int)($item['quantity']??1), (string)($item['reason']??''), (string)($item['condition']??'unknown')));
+    return array('ok' => true);
+}
+
+function epc_rma_assign(PDO $pdo, int $rmaId, int $technicianId): array
+{
+    $pdo->prepare("UPDATE `epc_rma_requests` SET `assigned_to`=? WHERE `id`=?")->execute(array($technicianId, $rmaId));
+    return array('ok' => true);
+}
+
+function epc_rma_stats(PDO $pdo, string $siteKey): array
+{
+    epc_warranty_ensure_schema($pdo);
+    $st = $pdo->prepare("SELECT `status`, COUNT(*) AS `count` FROM `epc_rma_requests` WHERE `site_key`=? GROUP BY `status`");
+    $st->execute(array($siteKey));
+    $byStatus = $st->fetchAll(PDO::FETCH_KEY_PAIR) ?: array();
+    $avgDays = $pdo->prepare("SELECT AVG(DATEDIFF(`completed_at`, `created_at`)) FROM `epc_rma_requests` WHERE `site_key`=? AND `completed_at` IS NOT NULL");
+    $avgDays->execute(array($siteKey));
+    return array('by_status' => $byStatus, 'avg_resolution_days' => round((float)$avgDays->fetchColumn(), 1));
+}
