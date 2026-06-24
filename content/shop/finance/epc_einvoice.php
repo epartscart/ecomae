@@ -818,12 +818,45 @@ function epc_einvoice_submit_to_asp(PDO $db, int $doc_id, int $admin_id = 0): ar
 
 	if ($mode === 'api') {
 		$url = trim((string)epc_einvoice_get_setting($db, 'asp_api_url', ''));
+		$apiKey = trim((string)epc_einvoice_get_setting($db, 'asp_api_key', ''));
 		if ($url === '') {
 			throw new Exception('ASP API URL not configured');
 		}
-		// Placeholder for live ASP REST integration — store queue record.
-		epc_einvoice_log_event($db, $doc_id, 'asp_queue', 'queued', 'Queued for ASP API transmission', array('url' => $url));
-		$status = 'queued';
+		if ($apiKey === '') {
+			throw new Exception('ASP API key not configured');
+		}
+
+		// Build XML if not already cached
+		$xml = $doc['xml_content'] ?? '';
+		if ($xml === '') {
+			$xml = epc_einvoice_build_xml($doc);
+			$db->prepare('UPDATE `epc_einvoice_documents` SET `xml_content` = ? WHERE `id` = ?')
+				->execute(array($xml, $doc_id));
+		}
+
+		// Live ASP API submission via POST
+		$result = epc_einvoice_asp_api_post($url, $apiKey, $xml, $doc['uuid'], $ref);
+
+		if ($result['ok']) {
+			$submissionId = $result['submission_id'] ?? $ref;
+			epc_einvoice_log_event($db, $doc_id, 'asp_submit', 'submitted',
+				'Invoice XML submitted to ASP API successfully',
+				array('url' => $url, 'submission_id' => $submissionId, 'http_status' => $result['http_status'] ?? 0));
+
+			// Store submission record for status polling
+			epc_einvoice_store_asp_submission($db, $doc_id, $submissionId, $url, $apiKey);
+			$status = 'submitted';
+			$ref = $submissionId;
+		} else {
+			$errorMsg = $result['error'] ?? 'Unknown ASP API error';
+			epc_einvoice_log_event($db, $doc_id, 'asp_error', 'error',
+				'ASP API submission failed: ' . $errorMsg,
+				array('url' => $url, 'http_status' => $result['http_status'] ?? 0, 'response' => $result['response_body'] ?? ''));
+
+			// Queue for retry
+			epc_einvoice_store_asp_submission($db, $doc_id, '', $url, $apiKey, 'retry_pending');
+			$status = 'queued';
+		}
 	} else {
 		epc_einvoice_log_event($db, $doc_id, 'asp_manual', 'submitted',
 			'XML package ready for ASP upload. Complete transmission via your ASP portal (EmaraTax onboarding).',
@@ -841,6 +874,405 @@ function epc_einvoice_submit_to_asp(PDO $db, int $doc_id, int $admin_id = 0): ar
 		array('reference' => $ref));
 
 	return array('document_id' => $doc_id, 'status' => $status, 'asp_reference' => $ref);
+}
+
+/* ─────────────────── ASP API HTTP Client ─────────────────── */
+
+function epc_einvoice_asp_api_post(string $url, string $apiKey, string $xml, string $uuid, string $ref): array
+{
+	$submitUrl = rtrim($url, '/') . '/invoices';
+
+	$headers = array(
+		'Content-Type: application/xml',
+		'Accept: application/json',
+		'Authorization: Bearer ' . $apiKey,
+		'X-Invoice-UUID: ' . $uuid,
+		'X-Submission-Reference: ' . $ref,
+	);
+
+	$ch = curl_init();
+	curl_setopt_array($ch, array(
+		CURLOPT_URL            => $submitUrl,
+		CURLOPT_POST           => true,
+		CURLOPT_POSTFIELDS     => $xml,
+		CURLOPT_HTTPHEADER     => $headers,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_TIMEOUT        => 30,
+		CURLOPT_CONNECTTIMEOUT => 10,
+		CURLOPT_SSL_VERIFYPEER => true,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_MAXREDIRS      => 3,
+	));
+
+	$response = curl_exec($ch);
+	$httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$curlError = curl_error($ch);
+	curl_close($ch);
+
+	if ($curlError !== '') {
+		return array('ok' => false, 'error' => 'cURL error: ' . $curlError, 'http_status' => 0);
+	}
+
+	$body = json_decode((string) $response, true);
+
+	if ($httpStatus >= 200 && $httpStatus < 300) {
+		return array(
+			'ok'            => true,
+			'http_status'   => $httpStatus,
+			'submission_id' => $body['submissionId'] ?? $body['submission_id'] ?? $body['id'] ?? $ref,
+			'response_body' => $response,
+		);
+	}
+
+	$errorMsg = $body['message'] ?? $body['error'] ?? $body['detail'] ?? ('HTTP ' . $httpStatus);
+	return array('ok' => false, 'error' => $errorMsg, 'http_status' => $httpStatus, 'response_body' => $response);
+}
+
+function epc_einvoice_asp_api_get_status(string $url, string $apiKey, string $submissionId): array
+{
+	$statusUrl = rtrim($url, '/') . '/invoices/' . rawurlencode($submissionId) . '/status';
+
+	$headers = array(
+		'Accept: application/json',
+		'Authorization: Bearer ' . $apiKey,
+	);
+
+	$ch = curl_init();
+	curl_setopt_array($ch, array(
+		CURLOPT_URL            => $statusUrl,
+		CURLOPT_HTTPGET        => true,
+		CURLOPT_HTTPHEADER     => $headers,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_TIMEOUT        => 15,
+		CURLOPT_CONNECTTIMEOUT => 10,
+		CURLOPT_SSL_VERIFYPEER => true,
+	));
+
+	$response = curl_exec($ch);
+	$httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$curlError = curl_error($ch);
+	curl_close($ch);
+
+	if ($curlError !== '') {
+		return array('ok' => false, 'error' => 'cURL error: ' . $curlError);
+	}
+
+	$body = json_decode((string) $response, true);
+
+	if ($httpStatus >= 200 && $httpStatus < 300 && is_array($body)) {
+		return array(
+			'ok'          => true,
+			'http_status' => $httpStatus,
+			'status'      => strtolower($body['status'] ?? $body['invoiceStatus'] ?? 'unknown'),
+			'fta_status'  => $body['ftaStatus'] ?? $body['fta_status'] ?? '',
+			'message'     => $body['message'] ?? '',
+			'errors'      => $body['errors'] ?? $body['validationErrors'] ?? array(),
+			'accepted_at' => $body['acceptedAt'] ?? $body['accepted_at'] ?? '',
+		);
+	}
+
+	return array('ok' => false, 'error' => 'HTTP ' . $httpStatus, 'http_status' => $httpStatus);
+}
+
+/* ─────────────────── ASP Submission Tracking ─────────────────── */
+
+function epc_einvoice_ensure_asp_submissions_schema(PDO $db): void
+{
+	static $done = false;
+	if ($done) { return; }
+	$done = true;
+
+	$db->exec(
+		'CREATE TABLE IF NOT EXISTS `epc_einvoice_asp_submissions` (
+			`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			`document_id` INT NOT NULL,
+			`submission_id` VARCHAR(128) NOT NULL DEFAULT \'\',
+			`asp_api_url` VARCHAR(512) NOT NULL DEFAULT \'\',
+			`asp_api_key_hash` VARCHAR(64) NOT NULL DEFAULT \'\',
+			`status` ENUM(\'pending\',\'submitted\',\'accepted\',\'rejected\',\'error\',\'retry_pending\') NOT NULL DEFAULT \'pending\',
+			`retry_count` INT NOT NULL DEFAULT 0,
+			`max_retries` INT NOT NULL DEFAULT 3,
+			`last_poll_at` INT NOT NULL DEFAULT 0,
+			`next_poll_at` INT NOT NULL DEFAULT 0,
+			`response_json` TEXT,
+			`created_at` INT NOT NULL DEFAULT 0,
+			`updated_at` INT NOT NULL DEFAULT 0,
+			INDEX `idx_status_poll` (`status`, `next_poll_at`),
+			INDEX `idx_document` (`document_id`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+	);
+}
+
+function epc_einvoice_store_asp_submission(PDO $db, int $docId, string $submissionId, string $url, string $apiKey, string $status = 'submitted'): void
+{
+	epc_einvoice_ensure_asp_submissions_schema($db);
+	$now = time();
+	$nextPoll = $now + 300; // First poll in 5 minutes
+
+	$db->prepare(
+		'INSERT INTO `epc_einvoice_asp_submissions`
+		(`document_id`, `submission_id`, `asp_api_url`, `asp_api_key_hash`, `status`, `next_poll_at`, `created_at`, `updated_at`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE `submission_id` = VALUES(`submission_id`), `status` = VALUES(`status`),
+		`next_poll_at` = VALUES(`next_poll_at`), `updated_at` = VALUES(`updated_at`)'
+	)->execute(array($docId, $submissionId, $url, hash('sha256', $apiKey), $status, $nextPoll, $now, $now));
+}
+
+/* ─────────────────── Status Polling (cron) ─────────────────── */
+
+function epc_einvoice_poll_all_pending(PDO $db): array
+{
+	epc_einvoice_ensure_asp_submissions_schema($db);
+	$now = time();
+
+	// Get submissions needing status check
+	$st = $db->prepare(
+		'SELECT s.*, d.`uuid`, d.`invoice_number`
+		 FROM `epc_einvoice_asp_submissions` s
+		 JOIN `epc_einvoice_documents` d ON d.`id` = s.`document_id`
+		 WHERE s.`status` IN (\'submitted\', \'retry_pending\')
+		 AND s.`next_poll_at` <= ?
+		 AND s.`retry_count` < s.`max_retries`
+		 ORDER BY s.`next_poll_at` ASC
+		 LIMIT 50'
+	);
+	$st->execute(array($now));
+	$submissions = $st->fetchAll(PDO::FETCH_ASSOC);
+
+	$results = array('polled' => 0, 'accepted' => 0, 'rejected' => 0, 'pending' => 0, 'errors' => 0);
+	$apiKey = trim((string) epc_einvoice_get_setting($db, 'asp_api_key', ''));
+
+	foreach ($submissions as $sub) {
+		$results['polled']++;
+		$docId = (int) $sub['document_id'];
+		$submissionId = $sub['submission_id'];
+
+		if ($sub['status'] === 'retry_pending') {
+			// Retry submission
+			$doc = epc_einvoice_get_document($db, $docId);
+			if (!$doc) { continue; }
+
+			$xml = $doc['xml_content'] ?? '';
+			if ($xml === '') {
+				$xml = epc_einvoice_build_xml($doc);
+			}
+
+			$retryResult = epc_einvoice_asp_api_post($sub['asp_api_url'], $apiKey, $xml, $doc['uuid'], 'RETRY-' . $sub['id']);
+
+			$retryCount = (int) $sub['retry_count'] + 1;
+			if ($retryResult['ok']) {
+				$submissionId = $retryResult['submission_id'] ?? '';
+				$db->prepare(
+					'UPDATE `epc_einvoice_asp_submissions` SET `submission_id` = ?, `status` = \'submitted\',
+					 `retry_count` = ?, `next_poll_at` = ?, `updated_at` = ? WHERE `id` = ?'
+				)->execute(array($submissionId, $retryCount, $now + 300, $now, $sub['id']));
+
+				$db->prepare('UPDATE `epc_einvoice_documents` SET `status` = \'submitted\', `asp_reference` = ?, `time_updated` = ? WHERE `id` = ?')
+					->execute(array($submissionId, $now, $docId));
+
+				epc_einvoice_log_event($db, $docId, 'asp_retry_ok', 'submitted', 'Retry #' . $retryCount . ' succeeded', array('submission_id' => $submissionId));
+			} else {
+				$backoff = min(3600, 300 * pow(2, $retryCount));
+				$db->prepare(
+					'UPDATE `epc_einvoice_asp_submissions` SET `retry_count` = ?, `next_poll_at` = ?, `updated_at` = ?,
+					 `response_json` = ? WHERE `id` = ?'
+				)->execute(array($retryCount, $now + (int)$backoff, $now, json_encode($retryResult), $sub['id']));
+
+				if ($retryCount >= (int) $sub['max_retries']) {
+					$db->prepare('UPDATE `epc_einvoice_asp_submissions` SET `status` = \'error\' WHERE `id` = ?')->execute(array($sub['id']));
+					$db->prepare('UPDATE `epc_einvoice_documents` SET `status` = \'rejected\', `time_updated` = ? WHERE `id` = ?')
+						->execute(array($now, $docId));
+					epc_einvoice_log_event($db, $docId, 'asp_retry_exhausted', 'error', 'Max retries reached', array('retries' => $retryCount));
+					$results['errors']++;
+				} else {
+					epc_einvoice_log_event($db, $docId, 'asp_retry_fail', 'error', 'Retry #' . $retryCount . ' failed: ' . ($retryResult['error'] ?? ''), array());
+				}
+			}
+			continue;
+		}
+
+		// Poll status for submitted invoices
+		if ($submissionId === '') { continue; }
+
+		$poll = epc_einvoice_asp_api_get_status($sub['asp_api_url'], $apiKey, $submissionId);
+
+		if (!$poll['ok']) {
+			$backoff = min(3600, 300 * pow(2, (int) $sub['retry_count']));
+			$db->prepare('UPDATE `epc_einvoice_asp_submissions` SET `last_poll_at` = ?, `next_poll_at` = ?, `updated_at` = ? WHERE `id` = ?')
+				->execute(array($now, $now + (int)$backoff, $now, $sub['id']));
+			$results['errors']++;
+			continue;
+		}
+
+		$aspStatus = $poll['status'];
+		$ftaStatus = $poll['fta_status'] ?? '';
+
+		if (in_array($aspStatus, array('accepted', 'valid', 'delivered', 'cleared'), true)) {
+			$db->prepare('UPDATE `epc_einvoice_asp_submissions` SET `status` = \'accepted\', `last_poll_at` = ?, `updated_at` = ?, `response_json` = ? WHERE `id` = ?')
+				->execute(array($now, $now, json_encode($poll), $sub['id']));
+			$db->prepare('UPDATE `epc_einvoice_documents` SET `status` = \'accepted\', `fta_report_status` = ?, `time_updated` = ? WHERE `id` = ?')
+				->execute(array($ftaStatus ?: 'reported', $now, $docId));
+			epc_einvoice_log_event($db, $docId, 'asp_accepted', 'accepted', 'Invoice accepted by ASP/FTA', array('fta_status' => $ftaStatus, 'accepted_at' => $poll['accepted_at'] ?? ''));
+			$results['accepted']++;
+
+		} elseif (in_array($aspStatus, array('rejected', 'invalid', 'failed'), true)) {
+			$db->prepare('UPDATE `epc_einvoice_asp_submissions` SET `status` = \'rejected\', `last_poll_at` = ?, `updated_at` = ?, `response_json` = ? WHERE `id` = ?')
+				->execute(array($now, $now, json_encode($poll), $sub['id']));
+			$db->prepare('UPDATE `epc_einvoice_documents` SET `status` = \'rejected\', `fta_report_status` = ?, `time_updated` = ? WHERE `id` = ?')
+				->execute(array('rejected', $now, $docId));
+			$errors = $poll['errors'] ?? array();
+			epc_einvoice_log_event($db, $docId, 'asp_rejected', 'rejected', 'Invoice rejected: ' . ($poll['message'] ?? ''), array('errors' => $errors));
+			$results['rejected']++;
+
+		} else {
+			// Still pending — schedule next poll with exponential backoff (5min → 10min → 20min → ... max 1h)
+			$pollCount = (int) $sub['retry_count'] + 1;
+			$backoff = min(3600, 300 * pow(2, $pollCount - 1));
+			$db->prepare('UPDATE `epc_einvoice_asp_submissions` SET `last_poll_at` = ?, `next_poll_at` = ?, `retry_count` = ?, `updated_at` = ? WHERE `id` = ?')
+				->execute(array($now, $now + (int)$backoff, $pollCount, $now, $sub['id']));
+			$results['pending']++;
+		}
+	}
+
+	return $results;
+}
+
+/* ─────────────────── Credit Note Type 381 ─────────────────── */
+
+function epc_einvoice_create_credit_note(PDO $db, int $originalDocId, array $creditData, int $adminId = 0): array
+{
+	epc_einvoice_ensure_schema($db);
+	$origDoc = epc_einvoice_get_document($db, $originalDocId);
+	if (!$origDoc) {
+		throw new Exception('Original invoice not found');
+	}
+
+	$uuid = epc_einvoice_uuid();
+	$now = time();
+	$issueDate = $creditData['issue_date'] ?? $now;
+	$seller = $origDoc['seller'];
+	$buyer = $origDoc['buyer'];
+
+	// Credit note number: CN-{original}-{seq}
+	$cnSeq = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `invoice_type_code` = \'381\'')->fetchColumn() + 1;
+	$cnNumber = 'CN-' . $origDoc['invoice_number'] . '-' . str_pad((string) $cnSeq, 3, '0', STR_PAD_LEFT);
+
+	// Lines — either partial credit or full reversal
+	$lines = $creditData['lines'] ?? array();
+	if (empty($lines)) {
+		// Full reversal of original
+		foreach ($origDoc['lines'] as $ln) {
+			$lines[] = array(
+				'item_name'        => $ln['item_name'],
+				'item_description' => ($ln['item_description'] ?? '') . ' [Credit for ' . $origDoc['invoice_number'] . ']',
+				'quantity'         => $ln['quantity'],
+				'uom_code'         => $ln['uom_code'] ?? 'C62',
+				'unit_price'       => $ln['unit_price'],
+				'tax_category'     => $ln['tax_category'],
+				'tax_rate'         => $ln['tax_rate'],
+			);
+		}
+	}
+
+	// Calculate totals
+	$subtotal = '0.00';
+	$totalVat = '0.00';
+	$lineRecords = array();
+	$lineNo = 0;
+	foreach ($lines as $ln) {
+		$lineNo++;
+		$qty = (float) ($ln['quantity'] ?? 1);
+		$price = (float) ($ln['unit_price'] ?? 0);
+		$lineNet = round($qty * $price, 2);
+		$taxRate = (float) ($ln['tax_rate'] ?? 5);
+		$taxAmt = round($lineNet * $taxRate / 100, 2);
+		$subtotal = bcadd($subtotal, (string) $lineNet, 2);
+		$totalVat = bcadd($totalVat, (string) $taxAmt, 2);
+
+		$lineRecords[] = array(
+			'line_no'          => $lineNo,
+			'item_name'        => $ln['item_name'] ?? '',
+			'item_description' => $ln['item_description'] ?? '',
+			'quantity'         => $qty,
+			'uom_code'         => $ln['uom_code'] ?? 'C62',
+			'unit_price'       => $price,
+			'line_net'         => $lineNet,
+			'tax_category'     => $ln['tax_category'] ?? 'S',
+			'tax_rate'         => $taxRate,
+			'tax_amount'       => $taxAmt,
+			'gross_amount'     => round($lineNet + $taxAmt, 2),
+		);
+	}
+
+	$totalInclVat = bcadd($subtotal, $totalVat, 2);
+	$reason = $creditData['reason'] ?? 'Sales return';
+
+	// Tax breakdown
+	$taxBreakdown = array(array(
+		'tax_category'  => 'S',
+		'tax_rate'      => 5,
+		'taxable_amount' => $subtotal,
+		'tax_amount'    => $totalVat,
+	));
+
+	$db->prepare(
+		'INSERT INTO `epc_einvoice_documents`
+		(`uuid`, `invoice_number`, `order_id`, `user_id`, `doc_category`, `invoice_type_code`,
+		 `issue_date`, `payment_due_date`, `vat_point_date`, `currency_code`, `vat_currency_code`,
+		 `payment_means_code`, `payment_terms`, `seller_json`, `buyer_json`,
+		 `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `amount_due`,
+		 `tax_breakdown_json`, `status`, `validation_ok`, `admin_id`, `time_created`, `time_updated`)
+		VALUES (?, ?, ?, ?, \'tax_credit_note\', \'381\', ?, ?, ?, \'AED\', \'AED\',
+		 ?, ?, ?, ?, ?, ?, ?, ?, ?, \'draft\', 0, ?, ?, ?)'
+	)->execute(array(
+		$uuid, $cnNumber, $origDoc['order_id'], $origDoc['user_id'],
+		$issueDate, $issueDate, $issueDate,
+		$origDoc['payment_means_code'] ?? '30', 'Credit note for ' . $origDoc['invoice_number'] . ': ' . $reason,
+		json_encode($seller), json_encode($buyer),
+		$subtotal, $totalVat, $totalInclVat, $totalInclVat,
+		json_encode($taxBreakdown),
+		$adminId, $now, $now,
+	));
+
+	$cnId = (int) $db->lastInsertId();
+
+	// Insert lines
+	$lineStmt = $db->prepare(
+		'INSERT INTO `epc_einvoice_lines`
+		(`document_id`, `line_no`, `item_name`, `item_description`, `quantity`, `uom_code`,
+		 `unit_price`, `line_net`, `tax_category`, `tax_rate`, `tax_amount`, `gross_amount`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+	);
+	foreach ($lineRecords as $lr) {
+		$lineStmt->execute(array(
+			$cnId, $lr['line_no'], $lr['item_name'], $lr['item_description'],
+			$lr['quantity'], $lr['uom_code'], $lr['unit_price'], $lr['line_net'],
+			$lr['tax_category'], $lr['tax_rate'], $lr['tax_amount'], $lr['gross_amount'],
+		));
+	}
+
+	epc_einvoice_log_event($db, $cnId, 'created', 'draft',
+		'Credit note created for invoice ' . $origDoc['invoice_number'] . ': ' . $reason,
+		array('original_doc_id' => $originalDocId, 'original_invoice' => $origDoc['invoice_number']));
+
+	return array(
+		'ok' => true,
+		'credit_note_id' => $cnId,
+		'credit_note_number' => $cnNumber,
+		'uuid' => $uuid,
+		'subtotal' => $subtotal,
+		'vat' => $totalVat,
+		'total' => $totalInclVat,
+		'lines' => count($lineRecords),
+	);
+}
+
+function epc_einvoice_uuid(): string
+{
+	$data = random_bytes(16);
+	$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+	$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+	return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
 function epc_einvoice_xml_escape(string $s): string
