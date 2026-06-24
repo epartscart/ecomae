@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'subscription_billing':
+        $response = epc_bos_ajax_subscription_billing();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
