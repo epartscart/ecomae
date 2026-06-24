@@ -487,6 +487,7 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
                 'document_vault' => 'Document vault: versioned file storage, folders, access control.',
                 'subscription_billing' => 'Subscription billing: plans, trials, invoicing cycles, MRR tracking, payment, cancellation.',
                 'soc2_compliance' => 'SOC 2 compliance: 21 controls (Trust Service Criteria), evidence, policies, gap analysis.',
+                'sso_saml' => 'SSO / SAML 2.0: IdP config, SP metadata, JIT provisioning, session management.',
                 'data_policy'      => 'Tenant data processing policy, classification, retention, and compliance.',
                 'tenant_hub'       => 'Centralized tenant management: create, configure, and monitor tenants.',
                 'tenant_control'   => 'Per-tenant settings: features, packs, limits, and configurations.',

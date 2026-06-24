@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'sso_saml':
+        $response = epc_bos_ajax_sso_saml();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
