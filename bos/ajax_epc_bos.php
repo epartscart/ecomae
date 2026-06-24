@@ -190,6 +190,10 @@ switch ($action) {
         $response = epc_bos_ajax_soc2_compliance();
         break;
 
+    case 'rest_api_v2':
+        $response = epc_bos_ajax_rest_api_v2();
+        break;
+
     default:
         $response = array('ok' => false, 'error' => 'Invalid action');
 }
