@@ -166,6 +166,23 @@ try {
 			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : 0;
 			epc_erp_json(true, 'OK', array('data' => epc_erp_dashboard($db_link, $from, $to)));
 
+		case 'command_center':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : 0;
+			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : 0;
+			$role = (string) ($_POST['role'] ?? '');
+			epc_erp_json(true, 'OK', epc_erp_command_center($db_link, $role, $from, $to));
+
+		case 'cc_kpi_tiles':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+			$from = !empty($_POST['date_from']) ? strtotime($_POST['date_from'] . ' 00:00:00') : 0;
+			$to = !empty($_POST['date_to']) ? strtotime($_POST['date_to'] . ' 23:59:59') : 0;
+			epc_erp_json(true, 'OK', array('tiles' => epc_erp_cc_kpi_tiles($db_link, $from, $to)));
+
+		case 'cc_approval_queue':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+			epc_erp_json(true, 'OK', array('queue' => epc_erp_cc_approval_queue($db_link)));
+
 		case 'create_coa':
 			$id = epc_erp_gl_create_coa($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'coa_account', (int) $id, $_POST);
@@ -188,6 +205,52 @@ try {
 			$lockDate = !empty($_POST['lock_date']) ? (int) strtotime((string) $_POST['lock_date'] . ' 23:59:59') : 0;
 			epc_erp_fiscal_set_lock($db_link, $lockDate, (string) ($_POST['note'] ?? ''));
 			epc_erp_json(true, $lockDate > 0 ? ('Periods locked up to ' . date('Y-m-d', $lockDate)) : 'Fiscal lock cleared', array('lock_date' => $lockDate));
+
+		case 'period_list':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$periods = epc_erp_period_list($db_link);
+			epc_erp_json(true, 'OK', array('periods' => $periods));
+
+		case 'period_checklist':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$ym = (string) ($_POST['year_month'] ?? date('Y-m'));
+			$checklist = epc_erp_period_checklist($db_link, $ym);
+			epc_erp_json(true, 'OK', array('year_month' => $ym, 'checklist' => $checklist));
+
+		case 'period_soft_close':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$ym = (string) ($_POST['year_month'] ?? '');
+			$note = (string) ($_POST['note'] ?? '');
+			$adminId = function_exists('epc_erp_admin_id') ? epc_erp_admin_id() : 0;
+			$res = epc_erp_period_soft_close($db_link, $ym, $adminId, $note);
+			epc_erp_json($res['ok'], $res['error'] ?? 'Period soft-closed: ' . $ym, $res);
+
+		case 'period_lock':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$ym = (string) ($_POST['year_month'] ?? '');
+			$note = (string) ($_POST['note'] ?? '');
+			$adminId = function_exists('epc_erp_admin_id') ? epc_erp_admin_id() : 0;
+			$res = epc_erp_period_lock($db_link, $ym, $adminId, $note);
+			epc_erp_json($res['ok'], $res['error'] ?? 'Period locked: ' . $ym, $res);
+
+		case 'period_reopen':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$ym = (string) ($_POST['year_month'] ?? '');
+			$note = (string) ($_POST['note'] ?? '');
+			$adminId = function_exists('epc_erp_admin_id') ? epc_erp_admin_id() : 0;
+			$res = epc_erp_period_reopen($db_link, $ym, $adminId, $note);
+			epc_erp_json($res['ok'], $res['error'] ?? 'Period reopened: ' . $ym, $res);
+
+		case 'period_summary':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$summary = epc_erp_period_close_summary($db_link);
+			epc_erp_json(true, 'OK', $summary);
+
+		case 'period_log':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_period_close.php';
+			$ym = (string) ($_POST['year_month'] ?? '');
+			$log = epc_erp_period_close_log_list($db_link, $ym);
+			epc_erp_json(true, 'OK', array('log' => $log));
 
 		case 'ccy_set_rate':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_currency.php';
