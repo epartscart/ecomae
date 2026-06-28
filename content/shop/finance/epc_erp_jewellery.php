@@ -1346,47 +1346,56 @@ function epc_jewel_gold_valuation(float $grossWt, float $purity, float $ratePerG
  */
 function epc_jewel_handle_ajax(PDO $db, $action, array $post, $companyId)
 {
+    $cid = (int) $companyId;
     switch ($action) {
+        /* master data — existing functions use (PDO, companyId, data) signature */
         case 'jw_karat_save':
-            return epc_jewel_karat_save($db, $post, $companyId);
+            $id = epc_jewel_karat_save($db, $cid, $post);
+            return array('ok' => true, 'message' => 'Karat saved', 'id' => $id);
         case 'jw_karat_seed':
-            return epc_jewel_seed_defaults($db, $companyId);
+            epc_jewel_karat_seed($db, $cid);
+            return array('ok' => true, 'message' => 'Karat defaults seeded');
         case 'jw_rate_type_save':
-            return epc_jewel_rate_type_save($db, $post, $companyId);
+            $id = epc_jewel_rate_type_save($db, $cid, $post);
+            return array('ok' => true, 'message' => 'Rate type saved', 'id' => $id);
         case 'jw_rate_type_seed':
-            return epc_jewel_seed_rate_types($db, $companyId);
+            epc_jewel_rate_type_seed($db, $cid);
+            return array('ok' => true, 'message' => 'Rate types seeded');
         case 'jw_currency_save':
-            return epc_jewel_currency_save($db, $post, $companyId);
+            return epc_jewel_currency_save_ajax($db, $post, $cid);
         case 'jw_currency_seed':
-            return epc_jewel_seed_currencies($db, $companyId);
+            epc_jewel_currency_seed($db, $cid);
+            return array('ok' => true, 'message' => 'Currencies seeded');
         case 'jw_metal_stock_save':
-            return epc_jewel_metal_stock_save($db, $post, $companyId);
+            $id = epc_jewel_metal_stock_save($db, $cid, $post);
+            return array('ok' => true, 'message' => 'Metal stock saved', 'id' => $id);
         case 'jw_diamond_save':
-            return epc_jewel_diamond_item_save($db, $post, $companyId);
+            return epc_jewel_diamond_save_ajax($db, $post, $cid);
         case 'jw_design_save':
-            return epc_jewel_design_save($db, $post, $companyId);
+            return epc_jewel_design_save_ajax($db, $post, $cid);
         case 'jw_pearl_save':
-            return epc_jewel_pearl_save($db, $post, $companyId);
+            return epc_jewel_pearl_save_ajax($db, $post, $cid);
         case 'jw_color_stone_save':
-            return epc_jewel_color_stone_save($db, $post, $companyId);
+            return epc_jewel_color_stone_save($db, $post, $cid);
+        /* vouchers / transactions */
         case 'jw_voucher_save':
-            return epc_jewel_voucher_save($db, $post, $companyId);
+            return epc_jewel_voucher_save($db, $post, $cid);
         case 'jw_fixing_save':
-            return epc_jewel_fixing_save($db, $post, $companyId);
+            return epc_jewel_fixing_save($db, $post, $cid);
         case 'jw_repair_save':
-            return epc_jewel_repair_save($db, $post, $companyId);
+            return epc_jewel_repair_save($db, $post, $cid);
         case 'jw_repair_transfer_save':
-            return epc_jewel_repair_transfer_save($db, $post, $companyId);
+            return epc_jewel_repair_transfer_save($db, $post, $cid);
         case 'jw_workshop_receive_save':
-            return epc_jewel_workshop_receive_save($db, $post, $companyId);
+            return epc_jewel_workshop_receive_save($db, $post, $cid);
         case 'jw_repair_delivery_save':
-            return epc_jewel_repair_delivery_save($db, $post, $companyId);
+            return epc_jewel_repair_delivery_save($db, $post, $cid);
         case 'jw_stock_verification_save':
-            return epc_jewel_stock_verify_save($db, $post, $companyId);
+            return epc_jewel_stock_verify_save($db, $post, $cid);
         case 'jw_petty_cash_save':
-            return epc_jewel_petty_cash_save($db, $post, $companyId);
+            return epc_jewel_petty_cash_save($db, $post, $cid);
         case 'jw_tourist_vat_save':
-            return epc_jewel_tourist_vat_save($db, $post, $companyId);
+            return epc_jewel_tourist_vat_save($db, $post, $cid);
         default:
             return array('ok' => false, 'message' => 'Unknown jewellery action: ' . $action);
     }
@@ -1542,4 +1551,101 @@ function epc_jewel_tourist_vat_save(PDO $db, array $p, $companyId)
         $p['narration'] ?? '', 'Pending',
     ));
     return array('ok' => true, 'message' => 'Tourist VAT refund saved', 'id' => (int)$db->lastInsertId());
+}
+
+function epc_jewel_currency_save_ajax(PDO $db, array $p, int $companyId)
+{
+    $code = strtoupper(trim($p['curr_code'] ?? ''));
+    if ($code === '') return array('ok' => false, 'message' => 'Currency code required');
+    epc_jewel_ensure_schema($db);
+    $db->prepare("INSERT INTO epc_jewel_currency
+        (company_id, curr_code, description, fraction, symbol, conv_rate, min_conv_rate, max_conv_rate, status)
+        VALUES (?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE description=VALUES(description), fraction=VALUES(fraction),
+        symbol=VALUES(symbol), conv_rate=VALUES(conv_rate), status=VALUES(status)"
+    )->execute(array(
+        $companyId, $code, $p['description'] ?? '', $p['fraction'] ?? '', $p['symbol'] ?? '',
+        (float)($p['conv_rate'] ?? 1), (float)($p['min_conv_rate'] ?? 1), (float)($p['max_conv_rate'] ?? 1),
+        $p['status'] ?? 'MULTIPLY',
+    ));
+    return array('ok' => true, 'message' => 'Currency saved');
+}
+
+function epc_jewel_diamond_save_ajax(PDO $db, array $p, int $companyId)
+{
+    $code = trim($p['item_code'] ?? '');
+    if ($code === '') return array('ok' => false, 'message' => 'Item code required');
+    epc_jewel_ensure_schema($db);
+    $db->prepare("INSERT INTO epc_jewel_diamond_master
+        (company_id, item_code, description, design, rfid, category, sub_category, type, brand,
+         color, clarity, fluorescence, style, set_ref, country, vendor, vendor_ref,
+         currency, currency_rate, cost_centre, cost_amount, item_gr_wt,
+         price1_code, price1_pct, price1_fc, price1_lc, promotional)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE description=VALUES(description), design=VALUES(design),
+        category=VALUES(category), color=VALUES(color), clarity=VALUES(clarity),
+        cost_amount=VALUES(cost_amount), item_gr_wt=VALUES(item_gr_wt)"
+    )->execute(array(
+        $companyId, $code, $p['description'] ?? '', $p['design'] ?? '', $p['rfid'] ?? '',
+        $p['category'] ?? '', $p['sub_category'] ?? '', $p['type'] ?? '', $p['brand'] ?? '',
+        $p['color'] ?? '', $p['clarity'] ?? '', $p['fluorescence'] ?? '', $p['style'] ?? '',
+        $p['set_ref'] ?? '', $p['country'] ?? '', $p['vendor'] ?? '', $p['vendor_ref'] ?? '',
+        $p['currency'] ?? 'AED', (float)($p['currency_rate'] ?? 1), $p['cost_centre'] ?? '',
+        (float)($p['cost_amount'] ?? 0), (float)($p['item_gr_wt'] ?? 0),
+        $p['price1_code'] ?? 'TAG', (float)($p['price1_pct'] ?? 0),
+        (float)($p['price1_fc'] ?? 0), (float)($p['price1_lc'] ?? 0),
+        (int)($p['promotional'] ?? 0),
+    ));
+    return array('ok' => true, 'message' => 'Diamond item saved');
+}
+
+function epc_jewel_design_save_ajax(PDO $db, array $p, int $companyId)
+{
+    $code = trim($p['design_code'] ?? '');
+    if ($code === '') return array('ok' => false, 'message' => 'Design code required');
+    epc_jewel_ensure_schema($db);
+    $db->prepare("INSERT INTO epc_jewel_design
+        (company_id, design_code, description, currency, currency_rate, cost_centre,
+         category, sub_category, type, brand, color, country, vendor, vendor_ref,
+         cost_amount, price1_code, price1_pct, price1_fc, price1_lc)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE description=VALUES(description), category=VALUES(category),
+        type=VALUES(type), cost_amount=VALUES(cost_amount)"
+    )->execute(array(
+        $companyId, $code, $p['description'] ?? '', $p['currency'] ?? 'AED',
+        (float)($p['currency_rate'] ?? 1), $p['cost_centre'] ?? '',
+        $p['category'] ?? '', $p['sub_category'] ?? '', $p['type'] ?? '',
+        $p['brand'] ?? '', $p['color'] ?? '', $p['country'] ?? '',
+        $p['vendor'] ?? '', $p['vendor_ref'] ?? '',
+        (float)($p['cost_amount'] ?? 0), $p['price1_code'] ?? 'GEN',
+        (float)($p['price1_pct'] ?? 0), (float)($p['price1_fc'] ?? 0), (float)($p['price1_lc'] ?? 0),
+    ));
+    return array('ok' => true, 'message' => 'Design saved');
+}
+
+function epc_jewel_pearl_save_ajax(PDO $db, array $p, int $companyId)
+{
+    $code = trim($p['code'] ?? '');
+    if ($code === '') return array('ok' => false, 'message' => 'Pearl code required');
+    epc_jewel_ensure_schema($db);
+    $db->prepare("INSERT INTO epc_jewel_pearl_master
+        (company_id, code, nature, description, design, type, cost_centre,
+         category, color, vendor, vendor_ref, luster, shape, size,
+         brand, country, grade, sub_category, currency, currency_rate,
+         cost_amount, price1_code, price1_pct, price1_fc, price1_lc)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE description=VALUES(description), nature=VALUES(nature),
+        type=VALUES(type), cost_amount=VALUES(cost_amount)"
+    )->execute(array(
+        $companyId, $code, $p['nature'] ?? 'Cultured', $p['description'] ?? '',
+        $p['design'] ?? '', $p['type'] ?? '', $p['cost_centre'] ?? '',
+        $p['category'] ?? '', $p['color'] ?? '', $p['vendor'] ?? '',
+        $p['vendor_ref'] ?? '', $p['luster'] ?? '', $p['shape'] ?? '',
+        $p['size'] ?? '', $p['brand'] ?? '', $p['country'] ?? '',
+        $p['grade'] ?? '', $p['sub_category'] ?? '', $p['currency'] ?? 'AED',
+        (float)($p['currency_rate'] ?? 1), (float)($p['cost_amount'] ?? 0),
+        $p['price1_code'] ?? 'GEN', (float)($p['price1_pct'] ?? 0),
+        (float)($p['price1_fc'] ?? 0), (float)($p['price1_lc'] ?? 0),
+    ));
+    return array('ok' => true, 'message' => 'Pearl saved');
 }
