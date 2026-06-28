@@ -6,8 +6,25 @@
  * delivery notes, receipt/payment vouchers, and reports.
  */
 defined('_ASTEXE_') or die('No access');
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+register_shutdown_function(function () {
+	$e = error_get_last();
+	if ($e !== null && in_array($e['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR))) {
+		echo '<div style="padding:20px;background:#ffcdd2;border:2px solid red;margin:20px;font-family:monospace">';
+		echo '<h4 style="color:red">FATAL ERROR in Print Designer</h4>';
+		echo '<p><strong>Type:</strong> ' . (int)$e['type'] . '</p>';
+		echo '<p><strong>Message:</strong> ' . htmlspecialchars((string)$e['message']) . '</p>';
+		echo '<p><strong>File:</strong> ' . htmlspecialchars((string)$e['file']) . '</p>';
+		echo '<p><strong>Line:</strong> ' . (int)$e['line'] . '</p>';
+		echo '</div>';
+	}
+});
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-1</p>';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-2</p>';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-3</p>';
 
 /* ── Load backend ── */
 $_pdOk = false;
@@ -25,6 +42,7 @@ if ($_pdOk && isset($db_link) && $db_link instanceof PDO) {
 		if (function_exists('epc_erp_print_designer_seed_defaults'))  { epc_erp_print_designer_seed_defaults($db_link); }
 	} catch (\Throwable $e) { /* schema/seed failed — continue */ }
 }
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-4 (schema done)</p>';
 
 /* ── Request params ── */
 $pdAction  = isset($_GET['pd_action']) ? (string)$_GET['pd_action'] : 'list';
@@ -34,6 +52,7 @@ $csrfLocal = isset($csrf) ? $csrf : '';
 $pdBase    = epc_erp_tab_url($erpUrl, 'print_designer', $date_from_str, $date_to_str, 'setup');
 $docTypes  = function_exists('epc_erp_print_doc_types')   ? epc_erp_print_doc_types()   : array();
 $mergeFields = function_exists('epc_erp_print_merge_fields') ? epc_erp_print_merge_fields() : array();
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-5 (vars done)</p>';
 
 /* ── Page header ── */
 erp_page_header(
@@ -49,6 +68,8 @@ erp_page_header(
 	)
 );
 
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-6 (page header done)</p>';
+
 /* ── Backend warning ── */
 if ($_pdErr !== '') {
 	echo '<div class="alert alert-warning" style="margin:10px"><i class="fa fa-exclamation-triangle"></i> Print designer backend: ' . epc_erp_h($_pdErr) . '</div>';
@@ -57,6 +78,7 @@ if ($_pdErr !== '') {
 /* ============================================================
  *  EDIT VIEW
  * ============================================================ */
+echo '<p style="color:green;font-size:10px">PD-CHECKPOINT-7 (entering view: ' . htmlspecialchars((string)$pdAction) . ')</p>';
 if ($pdAction === 'edit') {
 	$tpl = null;
 	if ($pdId > 0 && $_pdOk && isset($db_link) && $db_link instanceof PDO && function_exists('epc_erp_print_template_get')) {
