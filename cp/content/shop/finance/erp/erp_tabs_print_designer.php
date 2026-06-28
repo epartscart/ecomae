@@ -6,6 +6,8 @@
  * delivery notes, receipt/payment vouchers, and reports.
  */
 defined('_ASTEXE_') or die('No access');
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
 
