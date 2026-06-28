@@ -153,11 +153,32 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	<link rel="dns-prefetch" href="//image.umapi.ru"/>
 	<link rel="dns-prefetch" href="//api.umapi.ru"/>
 	<link rel="preconnect" href="https://image.umapi.ru" crossorigin/>
+	<?php } else { ?>
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 	<?php } ?>
 	<link rel="dns-prefetch" href="//flagcdn.com"/>
 	<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
 
+	<?php
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_worldclass.php';
+	if ($DP_Content->main_flag) {
+		echo epc_storefront_json_ld_organization();
+		echo epc_storefront_json_ld_website();
+	}
+	?>
+
 	<style><?php echo epc_portal_theme_css(false); ?></style>
+	<?php if ($epc_custom_storefront) { ?>
+	<style>
+	@media(max-width:600px){
+		.epc-wc-trust .container>div{gap:16px!important;justify-content:flex-start!important;}
+		.epc-wc-newsletter__form{flex-direction:column!important;}
+		.epc-wc-newsletter__form button{width:100%;}
+		#epc_wc_cookie .container{flex-direction:column!important;}
+	}
+	</style>
+	<?php } ?>
 	<?php
 	if ($epc_er_retail) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_electronics_retail_helpers.php';
@@ -1418,6 +1439,18 @@ if( $product_id > 0 || $DP_Content->content_type == "category" || $DP_Content->i
 
 
 
+<?php
+if ($epc_custom_storefront && $DP_Content->main_flag) {
+	echo epc_storefront_trust_badges($epc_portal_industry_code);
+	$epc_wc_accent = '#0ea5e9';
+	$epc_wc_bg = '#f8fafc';
+	if ($epc_portal_industry_code === 'electronics') { $epc_wc_accent = '#e10a0a'; $epc_wc_bg = '#fafafa'; }
+	elseif ($epc_portal_industry_code === 'fashion') { $epc_wc_accent = '#c026d3'; $epc_wc_bg = '#fdf4ff'; }
+	elseif ($epc_portal_industry_code === 'jewellery') { $epc_wc_accent = '#b8860b'; $epc_wc_bg = '#fffbeb'; }
+	elseif (in_array($epc_portal_industry_code, array('tax_advisory', 'consultancy'), true)) { $epc_wc_accent = '#0f766e'; $epc_wc_bg = '#f0fdfa'; }
+	echo epc_storefront_newsletter_section($epc_wc_accent, $epc_wc_bg, $epc_portal_industry_code);
+}
+?>
 <?php if ($epc_er_retail) {
 	require $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_electronics_retail_footer.php';
 } elseif ($epc_cpi_consulting) {
@@ -1691,6 +1724,13 @@ if( ! $DP_Content->main_flag ){
 <script src="assets/js/e-commerce_product.js" defer></script>
 
 <?php
+}
+?>
+
+<?php
+if ($epc_custom_storefront) {
+	echo epc_storefront_cookie_consent();
+	echo epc_storefront_newsletter_js();
 }
 ?>
 

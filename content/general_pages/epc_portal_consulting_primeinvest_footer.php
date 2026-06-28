@@ -60,13 +60,24 @@ function epc_cpi_footer_href($lang, $path)
 		</div>
 	</div>
 	<div class="epc-cpi-footer__bar">
-		<div class="container">
+		<div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
 			<p class="epc-cpi-footer__copy">
 				&copy; <?php echo (int) $year; ?> <?php echo htmlspecialchars($tradeName, ENT_QUOTES, 'UTF-8'); ?>.
 				<?php echo htmlspecialchars($contact['email'], ENT_QUOTES, 'UTF-8'); ?> &middot;
 				<?php echo htmlspecialchars($contact['phone'], ENT_QUOTES, 'UTF-8'); ?>
 				<?php echo function_exists('epc_brand_hosted_by_html') ? ' &middot; ' . epc_brand_hosted_by_html() : ''; ?>
 			</p>
+			<?php
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_worldclass.php';
+			$epc_cpi_social = epc_storefront_social_links_data();
+			if ($epc_cpi_social) {
+				echo '<div class="epc-cpi-footer__social" style="display:flex;gap:12px;">';
+				foreach ($epc_cpi_social as $s) {
+					echo '<a href="' . htmlspecialchars($s['url'], ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener" title="' . htmlspecialchars($s['label'], ENT_QUOTES, 'UTF-8') . '" style="color:#94a3b8;font-size:18px;"><i class="fa ' . htmlspecialchars($s['icon'], ENT_QUOTES, 'UTF-8') . '"></i></a>';
+				}
+				echo '</div>';
+			}
+			?>
 		</div>
 	</div>
 </footer>
