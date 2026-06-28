@@ -7,14 +7,29 @@
  * auto-actions, scheduled tasks, and event-driven processes.
  */
 defined('_ASTEXE_') or die('No access');
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_workflow_builder.php';
+
+$_epc_wf_errors = array();
+set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$_epc_wf_errors) {
+	$_epc_wf_errors[] = "$errstr in $errfile:$errline";
+	return true;
+});
+
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_workflow_builder.php';
+} catch (Throwable $e) {
+	$_epc_wf_errors[] = 'require workflow_builder: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+}
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
 try {
-	epc_workflow_ensure_schema($db_link);
+	if (function_exists('epc_workflow_ensure_schema')) {
+		epc_workflow_ensure_schema($db_link);
+	}
 } catch (Throwable $e) {
-	// Schema creation may fail on first run — continue with empty list
+	$_epc_wf_errors[] = 'schema: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
 }
+
+restore_error_handler();
 
 $wfAction = isset($_GET['wf_action']) ? (string)$_GET['wf_action'] : 'list';
 $wfId = isset($_GET['wf_id']) ? (int)$_GET['wf_id'] : 0;
@@ -22,6 +37,15 @@ $csrfLocal = isset($csrf) ? $csrf : '';
 $siteKey = isset($DP_Config) && isset($DP_Config->site_key) ? (string)$DP_Config->site_key : '';
 $wfBase = epc_erp_tab_url($erpUrl, 'workflow_automation', $date_from_str, $date_to_str, 'setup');
 
+<?php if (!empty($_epc_wf_errors)): ?>
+<div style="background:#fee;border:1px solid #c00;padding:10px;margin:10px;font-size:12px;color:#c00;">
+	<strong>Debug errors:</strong><br>
+	<?php foreach ($_epc_wf_errors as $err): ?>
+	<div><?php echo htmlspecialchars($err, ENT_QUOTES, 'UTF-8'); ?></div>
+	<?php endforeach; ?>
+</div>
+<?php endif; ?>
+<?php
 erp_page_header(
 	'<i class="fa fa-cogs"></i> Workflow automation',
 	'Build approval chains, auto-actions, scheduled tasks, and event-driven processes — no coding required.',
