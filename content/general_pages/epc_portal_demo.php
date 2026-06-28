@@ -1644,6 +1644,18 @@ function epc_portal_demo_create_cp_user(PDO $tenantPdo, string $email, string $p
 
 function epc_portal_demo_seed_products(PDO $tenantPdo, string $industry, string $tradeName): void
 {
+	$seedFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_seed_data.php';
+	if (is_file($seedFile)) {
+		require_once $seedFile;
+		$siteKey = preg_replace('/[^a-z0-9_]/', '_', strtolower($tradeName));
+		if ($siteKey === '') {
+			$siteKey = $industry;
+		}
+		$report = epc_storefront_seed_all($tenantPdo, $industry, $siteKey);
+		if ($report['products'] > 0 || $report['categories'] > 0) {
+			return;
+		}
+	}
 	$now = time();
 	if ($industry === 'auto_parts') {
 		$products = array(

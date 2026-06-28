@@ -15,6 +15,9 @@
 	var styleTemplatesAll = cfg.styleTemplatesAll || {};
 	var styleTemplateInput = document.getElementById('epc_ps_theme_template');
 	var styleTemplatesBox = document.getElementById('epc-style-templates');
+	var storefrontLayouts = cfg.storefrontLayouts || {};
+	var layoutInput = document.getElementById('epc_ps_storefront_layout');
+	var layoutsBox = document.getElementById('epc-storefront-layouts');
 	var industrySelect = document.getElementById('epc_ps_industry');
 
 	function parseJsonResponse(r) {
@@ -104,6 +107,43 @@
 		});
 	}
 
+	function renderStorefrontLayouts(industryCode, selectedId) {
+		if (!layoutsBox || !storefrontLayouts[industryCode]) {
+			if (layoutsBox) layoutsBox.innerHTML = '<p class="text-muted">No layout templates available for this industry yet.</p>';
+			return;
+		}
+		var list = storefrontLayouts[industryCode];
+		var html = '';
+		var firstId = null;
+		var icons = {hero_carousel:'\uf1de',category_grid:'\uf009',product_showcase:'\uf00a',brand_focused:'\uf02a',editorial:'\uf1ea',collection_grid:'\uf009',minimal_boutique:'\uf10c',trend_feed:'\uf1e0',luxury_showcase:'\uf219',collection_gallery:'\uf03e',catalog_filter:'\uf0b0',editorial_luxury:'\uf1ea',professional_services:'\uf0b1',calculator_led:'\uf1ec',corporate_clean:'\uf19c'};
+		for (var i = 0; i < list.length; i++) {
+			var lay = list[i];
+			if (firstId === null) firstId = lay.id;
+			var sel = (lay.id === selectedId);
+			var dflt = lay['default'] ? ' <small style="color:#16a34a">(default)</small>' : '';
+			var icon = icons[lay.id] || '\uf009';
+			html += '<label class="epc-portal-settings__style' + (sel ? ' is-selected' : '') + '" data-layout-id="' + lay.id + '">';
+			html += '<input type="radio" name="storefront_layout_pick" value="' + lay.id + '"' + (sel ? ' checked' : '') + ' />';
+			html += '<span class="epc-portal-settings__style-swatches" aria-hidden="true">';
+			html += '<i title="Layout" style="background:#475569;font-style:normal;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;width:32px;height:32px;border-radius:6px;">' + icon + '</i>';
+			html += '</span><span class="epc-portal-settings__style-text"><strong>' + (lay.label || lay.id) + dflt + '</strong><small>' + (lay.desc || '') + '</small></span></label>';
+		}
+		layoutsBox.innerHTML = html;
+		var useId = selectedId;
+		var found = false;
+		for (var j = 0; j < list.length; j++) { if (list[j].id === useId) { found = true; break; } }
+		if (!found) useId = firstId;
+		if (layoutInput) layoutInput.value = useId || '';
+		layoutsBox.querySelectorAll('.epc-portal-settings__style').forEach(function (lbl) {
+			lbl.addEventListener('click', function () {
+				var id = lbl.getAttribute('data-layout-id');
+				if (layoutInput) layoutInput.value = id;
+				layoutsBox.querySelectorAll('.epc-portal-settings__style').forEach(function (x) { x.classList.remove('is-selected'); });
+				lbl.classList.add('is-selected');
+			});
+		});
+	}
+
 	function applyErpPreset(presetId) {
 		if (!presetId || !erpModulePresets[presetId] || !erpModulePresets[presetId].modules) return;
 		var mods = erpModulePresets[presetId].modules;
@@ -114,6 +154,7 @@
 
 	if (industrySelect) {
 		renderStyleTemplates(industrySelect.value, cfg.activeThemeTemplate || 'classic');
+		renderStorefrontLayouts(industrySelect.value, cfg.activeStorefrontLayout || '');
 		industrySelect.addEventListener('change', function () {
 			var code = this.value;
 			if (industryDefaults[code]) {
@@ -127,7 +168,19 @@
 				applyErpPreset(industryErpDefaults[code]);
 			}
 			renderStyleTemplates(code, 'classic');
+			renderStorefrontLayouts(code, '');
 		});
+	} else {
+		if (layoutsBox) {
+			layoutsBox.querySelectorAll('.epc-portal-settings__style').forEach(function (lbl) {
+				lbl.addEventListener('click', function () {
+					var id = lbl.getAttribute('data-layout-id');
+					if (layoutInput) layoutInput.value = id;
+					layoutsBox.querySelectorAll('.epc-portal-settings__style').forEach(function (x) { x.classList.remove('is-selected'); });
+					lbl.classList.add('is-selected');
+				});
+			});
+		}
 	}
 
 	form.addEventListener('submit', function (e) {
@@ -159,6 +212,26 @@
 				if (msg) msg.textContent = err.message || 'Network error';
 			});
 	});
+
+	var seedBtn = document.getElementById('epc-seed-data-btn');
+	if (seedBtn) {
+		seedBtn.addEventListener('click', function () {
+			if (msg) msg.textContent = 'Seeding demo products…';
+			seedBtn.disabled = true;
+			var fd = new FormData();
+			fd.append('action', 'seed_storefront_data');
+			fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(parseJsonResponse)
+				.then(function (data) {
+					seedBtn.disabled = false;
+					if (msg) msg.textContent = data.message || (data.status ? 'Done' : 'Failed');
+				})
+				.catch(function (err) {
+					seedBtn.disabled = false;
+					if (msg) msg.textContent = 'Seed failed: ' + (err.message || 'Network error');
+				});
+		});
+	}
 
 	if (cfg.showDeploy) {
 		document.querySelectorAll('.epc-deploy-site-btn').forEach(function (btn) {

@@ -1368,20 +1368,19 @@ function epc_portal_active_storefront_package()
 		}
 	}
 	$industry = isset($settings['industry_code']) ? (string) $settings['industry_code'] : '';
-	$template = isset($settings['theme_template']) ? (string) $settings['theme_template'] : '';
-	if ($industry === 'auto_parts' && $template === 'classic') {
+	if ($industry === 'auto_parts') {
 		return 'automotive_spareparts_pro';
 	}
-	if ($industry === 'electronics' && $template === 'midnight') {
+	if ($industry === 'electronics') {
 		return 'electronics_retail_virgin';
 	}
-	if (in_array($industry, array('tax_advisory', 'consultancy'), true) && $template === 'modern') {
+	if (in_array($industry, array('tax_advisory', 'consultancy'), true)) {
 		return 'consulting_primeinvest';
 	}
-	if ($industry === 'fashion' && $template === 'signature') {
+	if ($industry === 'fashion') {
 		return 'fashion_retail_namshi';
 	}
-	if ($industry === 'jewellery' && $template === 'classic') {
+	if ($industry === 'jewellery') {
 		return 'jewellery_retail_kiyasha';
 	}
 	return '';

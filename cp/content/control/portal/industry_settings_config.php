@@ -15,6 +15,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_cp_m
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_theme_templates.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_layouts.php';
 epc_portal_apply_config($DP_Config);
 
 $dbHost = trim((string) $DP_Config->host);
@@ -61,6 +62,8 @@ echo 'window.EPC_PS = ' . json_encode(array(
 	'industryDefaults' => $defaults,
 	'industryErpDefaults' => $erpDefaults,
 	'styleTemplatesAll' => epc_portal_style_templates_for_js(),
+	'storefrontLayouts' => epc_storefront_layouts_for_js(),
+	'activeStorefrontLayout' => epc_storefront_active_layout($settings),
 	'showDeploy' => (bool) $showDeploy,
 	'activeThemeTemplate' => (string) ($settings['theme_template'] ?? 'classic'),
 ), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) . ';';
