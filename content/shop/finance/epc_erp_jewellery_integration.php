@@ -30,7 +30,19 @@ function epc_jw_is_jewellery_tenant(PDO $db): bool
     try {
         require_once __DIR__ . '/epc_erp_advanced.php';
         $key = epc_erp_adv_get_setting($db, 'erp_industry_profile', '');
-        $result = ($key === 'jewellery');
+        if ($key === 'jewellery') { $result = true; return true; }
+
+        // Also check company industry pack (e.g. 'jewellery_diamond')
+        if (function_exists('epc_erp_company_industry_pack')) {
+            require_once __DIR__ . '/epc_erp_company_context.php';
+            $companyId = function_exists('epc_erp_active_company_id')
+                ? epc_erp_active_company_id($db) : 0;
+            $pack = epc_erp_company_industry_pack($db, $companyId);
+            if ($pack !== '' && strpos($pack, 'jewellery') === 0) {
+                $result = true; return true;
+            }
+        }
+        $result = false;
     } catch (Throwable $e) {
         $result = false;
     }
@@ -533,6 +545,10 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
 {
     epc_jw_ensure_integration_schema($db);
     epc_erp_inventory_ensure_schema($db);
+
+    // Set industry profile to 'jewellery' so dashboard KPIs and conditional fields activate
+    require_once __DIR__ . '/epc_erp_advanced.php';
+    epc_erp_adv_set_setting($db, 'erp_industry_profile', 'jewellery');
 
     $seeded = array('warehouses' => 0, 'items' => 0, 'suppliers' => 0, 'customers' => 0,
                     'purchases' => 0, 'sales' => 0, 'repairs' => 0, 'gl_entries' => 0);
