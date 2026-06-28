@@ -2,8 +2,11 @@
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
 
 epc_erp_inventory_ensure_schema($db_link);
+epc_jw_ensure_integration_schema($db_link);
+$epcJwMode = epc_jw_is_jewellery_tenant($db_link);
 $whFilter = (int)($_GET['wh'] ?? 0);
 $warehouses = epc_erp_inventory_list_warehouses($db_link);
 $items = epc_erp_inventory_list_items($db_link);
@@ -150,6 +153,7 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	</div>
 	<?php endforeach; ?>
 	<?php echo epc_erp_dim_render_fields($db_link); ?>
+	<?php echo epc_jw_inventory_item_fields_html($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-sm btn-success">Create item</button></div></div>
 </form>
 <?php erp_fasttab_close(); ?>
@@ -262,7 +266,7 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	'search' => array('placeholder' => 'Filter stock', 'target' => '#epc_inv_stock_tbl'),
 )); ?>
 <table class="table table-bordered table-condensed table-striped epc-erp-table" id="epc_inv_stock_tbl">
-	<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Warehouse</th><th data-sort="text">SKU</th><th data-sort="text">Name</th><th data-sort="text">Type</th><th>Unit</th><th class="num" data-sort="num">Qty</th><th class="num" data-sort="num">Avg cost</th><th class="num" data-sort="num">Value</th><th>Batch</th><th>Expiry</th></tr></thead>
+	<thead><tr><th class="epc-d365-statcol"></th><th data-sort="text">Warehouse</th><th data-sort="text">SKU</th><th data-sort="text">Name</th><th data-sort="text">Type</th><th>Unit</th><?php if ($epcJwMode): ?><th>Metal</th><th>Karat</th><th class="num">Weight (g)</th><?php endif; ?><th class="num" data-sort="num">Qty</th><th class="num" data-sort="num">Avg cost</th><th class="num" data-sort="num">Value</th><th>Batch</th><th>Expiry</th></tr></thead>
 	<tbody>
 	<?php $epcInvVal = 0.0; foreach ($stock as $s):
 		$val = (float)$s['qty_on_hand'] * (float)$s['avg_unit_cost'];
@@ -276,6 +280,11 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 			<td><?php echo epc_erp_h($s['name']); ?></td>
 			<td><?php echo epc_erp_h($s['item_type']); ?></td>
 			<td><?php echo epc_erp_h($s['unit'] ?? 'pcs'); ?></td>
+			<?php if ($epcJwMode): ?>
+			<td><?php echo epc_erp_h($s['jw_metal_type'] ?? ''); ?></td>
+			<td><?php echo epc_erp_h($s['jw_karat'] ?? ''); ?></td>
+			<td class="num"><?php echo epc_erp_h(number_format((float)($s['jw_weight_on_hand'] ?? 0), 3)); ?></td>
+			<?php endif; ?>
 			<td class="num"><?php echo epc_erp_h(number_format((float)$s['qty_on_hand'], 3)); ?></td>
 			<td class="num"><?php echo epc_erp_money($s['avg_unit_cost']); ?></td>
 			<td class="num"><?php echo epc_erp_money($val); ?></td>
@@ -283,10 +292,11 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 			<td><?php echo !empty($s['expiry_date']) ? epc_erp_h($s['expiry_date']) : '—'; ?></td>
 		</tr>
 	<?php endforeach; ?>
-	<?php if (empty($stock)): ?><tr><td colspan="11" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
+	<?php $epcInvCols = $epcJwMode ? 14 : 11; ?>
+	<?php if (empty($stock)): ?><tr><td colspan="<?php echo $epcInvCols; ?>" class="text-muted">No stock yet — sync warehouses, create items, post opening or purchase movements.</td></tr><?php endif; ?>
 	</tbody>
 	<?php if (!empty($stock)): ?>
-	<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="7">Sum (<?php echo count($stock); ?> stock lines)</td><td class="num"><?php echo epc_erp_money($epcInvVal); ?></td><td colspan="2"></td></tr></tfoot>
+	<tfoot><tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td><td colspan="<?php echo $epcJwMode ? 10 : 7; ?>">Sum (<?php echo count($stock); ?> stock lines)</td><td class="num"><?php echo epc_erp_money($epcInvVal); ?></td><td colspan="2"></td></tr></tfoot>
 	<?php endif; ?>
 </table>
 

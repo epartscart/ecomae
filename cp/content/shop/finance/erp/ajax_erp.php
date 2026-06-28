@@ -1987,6 +1987,62 @@ try {
 			$chId = epc_erp_pm_cheque_save($db_link, $_POST);
 			epc_erp_json(true, 'Cheque recorded', array('id' => $chId));
 
+		/* Favourites — add / remove */
+		case 'erp_fav_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/cp/content/shop/finance/erp/erp_nav_areas.php';
+			epc_erp_ensure_favourites_table($db_link);
+			$uid = 0;
+			if (isset($_SESSION['user_id'])) $uid = (int)$_SESSION['user_id'];
+			elseif (isset($_SESSION['admin_id'])) $uid = (int)$_SESSION['admin_id'];
+			if ($uid <= 0) epc_erp_json(false, 'No user session');
+			$favTab = trim((string)($_POST['tab_key'] ?? ''));
+			$favArea = trim((string)($_POST['area_key'] ?? ''));
+			if ($favTab === '') epc_erp_json(false, 'Missing tab_key');
+			$db_link->prepare('INSERT IGNORE INTO epc_erp_favourites (user_id, area_key, tab_key, created_at) VALUES (?,?,?,?)')
+				->execute(array($uid, $favArea, $favTab, time()));
+			epc_erp_json(true, 'Added to favourites');
+
+		case 'erp_fav_remove':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/cp/content/shop/finance/erp/erp_nav_areas.php';
+			epc_erp_ensure_favourites_table($db_link);
+			$uid = 0;
+			if (isset($_SESSION['user_id'])) $uid = (int)$_SESSION['user_id'];
+			elseif (isset($_SESSION['admin_id'])) $uid = (int)$_SESSION['admin_id'];
+			if ($uid <= 0) epc_erp_json(false, 'No user session');
+			$favTab = trim((string)($_POST['tab_key'] ?? ''));
+			if ($favTab === '') epc_erp_json(false, 'Missing tab_key');
+			$db_link->prepare('DELETE FROM epc_erp_favourites WHERE user_id = ? AND tab_key = ?')
+				->execute(array($uid, $favTab));
+			epc_erp_json(true, 'Removed from favourites');
+
+		/* Integrated jewellery actions */
+		case 'jw_repair_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+			epc_jw_ensure_integration_schema($db_link);
+			$repairId = epc_jw_repair_save($db_link, $_POST);
+			epc_erp_json($repairId > 0, $repairId > 0 ? 'Repair created' : 'Failed', array('id' => $repairId));
+
+		case 'jw_repair_update_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+			epc_jw_ensure_integration_schema($db_link);
+			$repId = (int)($_POST['repair_id'] ?? 0);
+			$newSt = trim((string)($_POST['new_status'] ?? ''));
+			if ($repId <= 0 || $newSt === '') epc_erp_json(false, 'Invalid parameters');
+			$allowed = array('received', 'in_progress', 'ready', 'delivered', 'invoiced');
+			if (!in_array($newSt, $allowed, true)) epc_erp_json(false, 'Invalid status');
+			$db_link->prepare('UPDATE epc_erp_jw_repairs SET status = ?, updated_at = ? WHERE id = ?')
+				->execute(array($newSt, time(), $repId));
+			epc_erp_json(true, 'Status updated to ' . $newSt);
+
+		case 'jw_seed_sample_data':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+			epc_jw_ensure_integration_schema($db_link);
+			$adminId = 0;
+			if (isset($_SESSION['user_id'])) $adminId = (int)$_SESSION['user_id'];
+			elseif (isset($_SESSION['admin_id'])) $adminId = (int)$_SESSION['admin_id'];
+			$seeded = epc_jw_seed_sample_data($db_link, $adminId);
+			epc_erp_json(true, 'Sample data seeded', array('seeded' => $seeded));
+
 		default:
 			/* Jewellery ERP actions — jw_* prefix */
 			if (strpos($action, 'jw_') === 0) {

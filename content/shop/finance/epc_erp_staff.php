@@ -48,6 +48,7 @@ function epc_erp_staff_all_tabs()
 		'jw_repair_receipt', 'jw_repair_transfer', 'jw_workshop_receive', 'jw_repair_delivery', 'jw_repair_sale', 'jw_repair_register', 'jw_repair_search',
 		'jw_stock_verification', 'jw_stock_balance', 'jw_sales_analysis', 'jw_barcode',
 		'jw_petty_cash', 'jw_journal_voucher', 'jw_tourist_vat',
+		'jw_trial_balance', 'jw_repairs', 'jw_seed_data',
 	);
 	// Report center: one "Reports & inquiries" tab per module that has reports.
 	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';

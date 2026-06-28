@@ -213,11 +213,12 @@ function epc_erp_nav_areas_config()
 				'fin_advanced' => array('label' => 'Financial depth', 'icon' => 'fa-sliders'),
 				'year_end' => array('label' => 'Year-end closing', 'icon' => 'fa-calendar-check-o'),
 				'coa' => array('label' => 'Chart of accounts', 'icon' => 'fa-list'),
+			'jw_trial_balance' => array('label' => 'Dual trial balance (wt+val)', 'icon' => 'fa-balance-scale'),
 			),
 			'groups' => array(
 				'Common' => array('gl'),
 				'Journals' => array('opening_balances'),
-				'Inquiries and reports' => array('aging', 'pl', 'balance_sheet', 'reports', 'enterprise_reports'),
+				'Inquiries and reports' => array('aging', 'pl', 'balance_sheet', 'reports', 'enterprise_reports', 'jw_trial_balance'),
 				'Periodic' => array('fin_advanced', 'year_end'),
 				'Setup' => array('coa'),
 			),
@@ -440,9 +441,10 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Service agreements, contracts and service delivery',
 			'tabs' => array(
 				'contracts' => array('label' => 'Contracts & e-sign', 'icon' => 'fa-file-text-o'),
+				'jw_repairs' => array('label' => 'Jewellery repairs', 'icon' => 'fa-wrench'),
 			),
 			'groups' => array(
-				'Common' => array('contracts'),
+				'Common' => array('contracts', 'jw_repairs'),
 			),
 		),
 		'setup' => array(
@@ -455,12 +457,13 @@ function epc_erp_nav_areas_config()
 				'platform' => array('label' => 'Platform services', 'icon' => 'fa-cogs'),
 				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
 				'integration' => array('label' => 'Data & integration', 'icon' => 'fa-plug'),
+				'jw_seed_data' => array('label' => 'Jewellery sample data', 'icon' => 'fa-database'),
 			),
 			'groups' => array(
 				'Setup' => array('erp_setup'),
 				'Security' => array('security_roles'),
 				'Platform' => array('platform'),
-				'Data management' => array('data_import', 'integration'),
+				'Data management' => array('data_import', 'integration', 'jw_seed_data'),
 			),
 		),
 		'tax' => array(
@@ -766,10 +769,74 @@ function epc_erp_nav_areas_for_tenant()
 	return epc_erp_nav_apply_commerce_filter(!empty($filtered) ? $filtered : $areas);
 }
 
+/**
+ * Ensure the favourites table exists.
+ */
+function epc_erp_ensure_favourites_table(PDO $db)
+{
+	static $done = false;
+	if ($done) return;
+	$done = true;
+	try {
+		$db->exec("
+			CREATE TABLE IF NOT EXISTS `epc_erp_favourites` (
+				`id` int(11) NOT NULL AUTO_INCREMENT,
+				`user_id` int(11) NOT NULL,
+				`area_key` varchar(60) NOT NULL DEFAULT '',
+				`tab_key` varchar(60) NOT NULL,
+				`sort_order` int(11) NOT NULL DEFAULT 0,
+				`created_at` int(11) NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id`),
+				UNIQUE KEY `user_tab` (`user_id`, `tab_key`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+	} catch (Throwable $e) {}
+}
+
+/**
+ * Get the current user's favourite tab keys.
+ */
+function epc_erp_get_favourites(PDO $db): array
+{
+	epc_erp_ensure_favourites_table($db);
+	$uid = 0;
+	if (isset($_SESSION['user_id'])) $uid = (int)$_SESSION['user_id'];
+	elseif (isset($_SESSION['admin_id'])) $uid = (int)$_SESSION['admin_id'];
+	if ($uid <= 0) return array();
+	try {
+		$st = $db->prepare('SELECT area_key, tab_key FROM epc_erp_favourites WHERE user_id = ? ORDER BY sort_order, id');
+		$st->execute(array($uid));
+		return $st->fetchAll(PDO::FETCH_ASSOC) ?: array();
+	} catch (Throwable $e) { return array(); }
+}
+
 function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to, array $allowedTabs)
 {
 	$areas = epc_erp_nav_areas_for_tenant();
+
+	// Favourites section at top of sidebar
+	$dbForFav = isset($GLOBALS['db_link']) ? $GLOBALS['db_link'] : null;
+	$favItems = $dbForFav ? epc_erp_get_favourites($dbForFav) : array();
 	echo '<nav class="epc-erp-sidebar-nav" aria-label="ERP modules">';
+	if (!empty($favItems)) {
+		echo '<div class="epc-erp-sidebar-favourites">';
+		echo '<div class="epc-erp-sidebar-fav-head"><i class="fa fa-star" style="color:#f59e0b"></i> <span>Favourites</span></div>';
+		echo '<ul class="epc-erp-sidebar-fav-list">';
+		foreach ($favItems as $fav) {
+			$fArea = $fav['area_key'];
+			$fTab = $fav['tab_key'];
+			$fMeta = array('label' => ucfirst(str_replace('_', ' ', $fTab)), 'icon' => 'fa-circle-o');
+			if (isset($areas[$fArea]['tabs'][$fTab])) {
+				$fMeta = $areas[$fArea]['tabs'][$fTab];
+			} else {
+				foreach ($areas as $aKey => $aData) {
+					if (isset($aData['tabs'][$fTab])) { $fMeta = $aData['tabs'][$fTab]; $fArea = $aKey; break; }
+				}
+			}
+			echo epc_erp_render_sidebar_item($erpUrl, $fArea, $fTab, $fMeta, $activeTab, $from, $to, true);
+		}
+		echo '</ul></div>';
+	}
 	echo '<ul class="epc-erp-sidebar-list">';
 	foreach ($areas as $areaKey => $area) {
 		$visibleTabs = epc_erp_nav_area_visible_tabs($areaKey, $allowedTabs);
@@ -825,7 +892,7 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 }
 
 /** Render a single sidebar sub-module <li>. */
-function epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, array $meta, $activeTab, $from, $to)
+function epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, array $meta, $activeTab, $from, $to, $inFavSection = false)
 {
 	if (!empty($meta['external']) || $tabKey === 'procurement_link') {
 		return '<li class="epc-erp-sidebar-item epc-erp-sidebar-item--external">'
@@ -841,7 +908,13 @@ function epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, array $meta, $a
 	if (empty($meta['raw'])) {
 		$out .= '<i class="fa ' . epc_erp_h($meta['icon']) . '"></i> ';
 	}
-	$out .= $lbl . '</a></li>';
+	$out .= $lbl . '</a>';
+	if (!$inFavSection) {
+		$out .= '<button type="button" class="epc-erp-fav-star" data-tab="' . epc_erp_h($tabKey) . '" data-area="' . epc_erp_h($areaKey) . '" title="Add to favourites"><i class="fa fa-star-o"></i></button>';
+	} else {
+		$out .= '<button type="button" class="epc-erp-fav-unstar" data-tab="' . epc_erp_h($tabKey) . '" title="Remove from favourites"><i class="fa fa-star" style="color:#f59e0b"></i></button>';
+	}
+	$out .= '</li>';
 	return $out;
 }
 

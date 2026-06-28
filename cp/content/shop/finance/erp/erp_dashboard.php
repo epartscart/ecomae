@@ -135,6 +135,19 @@ $pfHasTasks = (((int) $pfSummary['open']) + ((int) $pfSummary['done']) + ((int) 
 
 $hasData = ($cashPos + $arOutstanding + $apOutstanding + $stockValue) > 0 || !empty($salesData);
 
+// Jewellery industry KPIs
+$epcJwDashMode = false;
+$epcJwKpis = array();
+try {
+    require_once $doc . '/content/shop/finance/epc_erp_jewellery_integration.php';
+    epc_jw_ensure_integration_schema($db_link);
+    $epcJwDashMode = epc_jw_is_jewellery_tenant($db_link);
+    if ($epcJwDashMode) {
+        $epcJwKpis = epc_jw_dashboard_kpis($db_link);
+        $hasData = true;
+    }
+} catch (Exception $e) {}
+
 $jc = function ($v) {
     return json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 };
@@ -178,6 +191,37 @@ $initial = ($companyName !== '' ? strtoupper(substr($companyName, 0, 1)) : 'S');
         <div class="erp-kpi" style="animation-delay:.19s"><div class="lbl">Payables</div><div class="val" data-count="<?php echo (int) ($apOutstanding ?: 156200); ?>" data-prefix="<?php echo htmlspecialchars($ccy . ' ', ENT_QUOTES, 'UTF-8'); ?>">0</div><div class="delta up">to pay</div></div>
         <div class="erp-kpi" style="animation-delay:.26s"><div class="lbl">Stock Value</div><div class="val" data-count="<?php echo (int) ($stockValue ?: 2105400); ?>" data-prefix="<?php echo htmlspecialchars($ccy . ' ', ENT_QUOTES, 'UTF-8'); ?>">0</div><div class="delta up">on hand</div></div>
     </div>
+
+    <?php if ($epcJwDashMode && !empty($epcJwKpis)): ?>
+    <div class="erp-grid" style="margin-top:8px">
+        <div class="erp-kpi" style="animation-delay:.33s;border-left:3px solid #f59e0b"><div class="lbl"><i class="fa fa-diamond"></i> Stock Weight</div><div class="val" data-count="<?php echo (int)$epcJwKpis['total_stock_wt']; ?>" data-suffix=" g">0</div><div class="delta up">grams on hand</div></div>
+        <div class="erp-kpi" style="animation-delay:.38s;border-left:3px solid #f59e0b"><div class="lbl"><i class="fa fa-diamond"></i> Stock Value</div><div class="val" data-count="<?php echo (int)$epcJwKpis['total_stock_val']; ?>" data-prefix="<?php echo htmlspecialchars($ccy . ' ', ENT_QUOTES, 'UTF-8'); ?>">0</div><div class="delta up">inventory</div></div>
+        <div class="erp-kpi" style="animation-delay:.43s;border-left:3px solid #16e0a3"><div class="lbl"><i class="fa fa-diamond"></i> Purchase Wt</div><div class="val" data-count="<?php echo (int)$epcJwKpis['purchase_wt']; ?>" data-suffix=" g">0</div><div class="delta up">grams bought</div></div>
+        <div class="erp-kpi" style="animation-delay:.48s;border-left:3px solid #2bb8ff"><div class="lbl"><i class="fa fa-diamond"></i> Sales Wt</div><div class="val" data-count="<?php echo (int)$epcJwKpis['sales_wt']; ?>" data-suffix=" g">0</div><div class="delta up">grams sold</div></div>
+    </div>
+    <div class="erp-grid" style="margin-top:4px">
+        <div class="erp-kpi" style="animation-delay:.53s;border-left:3px solid #9b6bff"><div class="lbl"><i class="fa fa-diamond"></i> Purchase Value</div><div class="val" data-count="<?php echo (int)$epcJwKpis['purchase_val']; ?>" data-prefix="<?php echo htmlspecialchars($ccy . ' ', ENT_QUOTES, 'UTF-8'); ?>">0</div><div class="delta up">total</div></div>
+        <div class="erp-kpi" style="animation-delay:.58s;border-left:3px solid #16e0a3"><div class="lbl"><i class="fa fa-diamond"></i> Sales Value</div><div class="val" data-count="<?php echo (int)$epcJwKpis['sales_val']; ?>" data-prefix="<?php echo htmlspecialchars($ccy . ' ', ENT_QUOTES, 'UTF-8'); ?>">0</div><div class="delta up">revenue</div></div>
+        <div class="erp-kpi" style="animation-delay:.63s;border-left:3px solid #ffb020"><div class="lbl"><i class="fa fa-wrench"></i> Repairs Open</div><div class="val" data-count="<?php echo $epcJwKpis['repairs_open']; ?>">0</div><div class="delta up">in workshop</div></div>
+        <div class="erp-kpi" style="animation-delay:.68s;border-left:3px solid #16e0a3"><div class="lbl"><i class="fa fa-check-circle"></i> Repairs Ready</div><div class="val" data-count="<?php echo $epcJwKpis['repairs_ready']; ?>">0</div><div class="delta up">for delivery</div></div>
+    </div>
+    <?php if (!empty($epcJwKpis['stock_weight'])): ?>
+    <div class="erp-panel" style="margin-top:12px;animation-delay:.72s">
+        <h3><i class="fa fa-diamond"></i> Stock by Metal &amp; Karat <span>&mdash; weight + value</span></h3>
+        <table class="table table-bordered table-condensed" style="color:#cdd9ee;font-size:12px;margin:0">
+            <thead><tr style="background:rgba(120,160,220,0.06)"><th>Metal</th><th>Karat</th><th class="text-right">Weight (g)</th><th class="text-right">Value (<?php echo htmlspecialchars($ccy, ENT_QUOTES, 'UTF-8'); ?>)</th></tr></thead>
+            <tbody>
+            <?php foreach ($epcJwKpis['stock_weight'] as $sw): ?>
+            <tr><td><?php echo htmlspecialchars($sw['metal'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                <td><?php echo htmlspecialchars($sw['karat'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                <td class="text-right"><?php echo number_format((float)$sw['total_wt'], 3); ?></td>
+                <td class="text-right"><?php echo number_format((float)$sw['total_val'], 2); ?></td></tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+    <?php endif; ?>
 
     <div class="erp-panels">
         <div class="erp-panel" style="animation-delay:.2s"><h3>Sales Trend <span>&mdash; recent periods</span></h3><canvas id="cSales" height="120"></canvas></div>
@@ -234,6 +278,72 @@ $initial = ($companyName !== '' ? strtoupper(substr($companyName, 0, 1)) : 'S');
         </div>
         <?php endif; ?>
     </div>
+
+    <?php if ($epcJwDashMode): ?>
+    <?php
+    // Jewellery module navigation cards — merged from Jewellery hub
+    $epcJwErpUrl = isset($erpUrl) ? $erpUrl : ($backend . '/shop/finance/erp');
+    $epcJwFrom = isset($date_from_str) ? $date_from_str : '';
+    $epcJwTo = isset($date_to_str) ? $date_to_str : '';
+    $jwModules = array(
+        'Master data' => array(
+            'jw_metal_stock' => array('icon' => 'fa-cubes', 'label' => 'Metal stock master', 'desc' => 'Gold, silver, platinum items'),
+            'jw_design' => array('icon' => 'fa-paint-brush', 'label' => 'Design master', 'desc' => 'Designs with metal & stone details'),
+            'jw_diamond' => array('icon' => 'fa-diamond', 'label' => 'Diamond master', 'desc' => 'Diamond items with certificates'),
+            'jw_pearl' => array('icon' => 'fa-circle-o', 'label' => 'Pearl master', 'desc' => 'Pearl items'),
+            'jw_color_stone' => array('icon' => 'fa-gem', 'label' => 'Color stone master', 'desc' => 'Sapphire, ruby, emerald'),
+            'jw_karat' => array('icon' => 'fa-tachometer', 'label' => 'Karat master', 'desc' => 'Karat codes & purity'),
+            'jw_rate_type' => array('icon' => 'fa-line-chart', 'label' => 'Rate type master', 'desc' => 'GMS, GOZ, KB, TTB'),
+            'jw_currency' => array('icon' => 'fa-money', 'label' => 'Currency master', 'desc' => 'Multi-currency rates'),
+        ),
+        'Purchase' => array(
+            'jw_metal_purchase' => array('icon' => 'fa-shopping-cart', 'label' => 'Metal purchase', 'desc' => 'RMP metal purchase'),
+            'jw_diamond_purchase' => array('icon' => 'fa-cart-plus', 'label' => 'Diamond purchase', 'desc' => 'RDP diamond & stone'),
+            'jw_purchase_fixing' => array('icon' => 'fa-lock', 'label' => 'Purchase fixing', 'desc' => 'Fix metal rate'),
+            'jw_purchase_window' => array('icon' => 'fa-window-maximize', 'label' => 'Purchase window', 'desc' => 'Purchase inquiry'),
+        ),
+        'Sales' => array(
+            'jw_retail_sales' => array('icon' => 'fa-shopping-bag', 'label' => 'Retail sales (POS)', 'desc' => 'RIN retail invoice'),
+            'jw_metal_sales' => array('icon' => 'fa-exchange', 'label' => 'Metal sales', 'desc' => 'Bulk metal sales'),
+            'jw_sales_fixing' => array('icon' => 'fa-gavel', 'label' => 'Sales fixing', 'desc' => 'Fix metal rate for sales'),
+            'jw_sales_return' => array('icon' => 'fa-undo', 'label' => 'Sales return', 'desc' => 'Returns & refunds'),
+            'jw_pos_advance' => array('icon' => 'fa-credit-card-alt', 'label' => 'POS advance', 'desc' => 'Advance payments'),
+        ),
+        'Repair & workshop' => array(
+            'jw_repairs' => array('icon' => 'fa-wrench', 'label' => 'Repairs', 'desc' => 'Repair jobs lifecycle'),
+            'jw_stock_verification' => array('icon' => 'fa-check-square', 'label' => 'Stock verification', 'desc' => 'Physical vs computer stock'),
+            'jw_stock_balance' => array('icon' => 'fa-balance-scale', 'label' => 'Metal stock balance', 'desc' => 'Stock by metal & karat'),
+            'jw_sales_analysis' => array('icon' => 'fa-bar-chart', 'label' => 'Sales analysis', 'desc' => 'Sales trends'),
+            'jw_barcode' => array('icon' => 'fa-barcode', 'label' => 'Barcode generation', 'desc' => 'Generate & print barcodes'),
+        ),
+        'Finance' => array(
+            'jw_trial_balance' => array('icon' => 'fa-balance-scale', 'label' => 'Dual trial balance', 'desc' => 'Weight + value TB'),
+            'jw_petty_cash' => array('icon' => 'fa-money', 'label' => 'Petty cash', 'desc' => 'PCV petty cash vouchers'),
+            'jw_journal_voucher' => array('icon' => 'fa-book', 'label' => 'Journal voucher', 'desc' => 'JVL journal entries'),
+            'jw_tourist_vat' => array('icon' => 'fa-plane', 'label' => 'Tourist VAT refund', 'desc' => 'VRV tourist refund'),
+        ),
+    );
+    ?>
+    <div style="margin-top:16px">
+    <?php foreach ($jwModules as $group => $items): ?>
+        <div style="font-size:13px;color:var(--erp-muted,#8aa0c4);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px;padding-bottom:6px;border-bottom:2px solid #3b82f6;">
+            <i class="fa fa-diamond" style="color:#f59e0b"></i> <?php echo htmlspecialchars($group, ENT_QUOTES, 'UTF-8'); ?>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+        <?php foreach ($items as $tabKey => $info):
+            $cardUrl = function_exists('epc_erp_tab_url') ? epc_erp_tab_url($epcJwErpUrl, $tabKey, $epcJwFrom, $epcJwTo) : '#';
+        ?>
+            <a href="<?php echo htmlspecialchars($cardUrl, ENT_QUOTES, 'UTF-8'); ?>" style="text-decoration:none;display:block;padding:14px;border:1px solid rgba(120,160,220,0.15);border-radius:8px;background:rgba(120,160,220,0.04);transition:all .2s;color:#cdd9ee" onmouseover="this.style.background='rgba(120,160,220,0.1)';this.style.borderColor='#3b82f6'" onmouseout="this.style.background='rgba(120,160,220,0.04)';this.style.borderColor='rgba(120,160,220,0.15)'">
+                <div style="font-size:20px;color:#3b82f6;margin-bottom:5px"><i class="fa <?php echo $info['icon']; ?>"></i></div>
+                <div style="font-weight:600;font-size:12px;color:#eaf1ff"><?php echo htmlspecialchars($info['label'], ENT_QUOTES, 'UTF-8'); ?></div>
+                <div style="font-size:10px;color:var(--erp-muted,#8aa0c4);margin-top:2px"><?php echo htmlspecialchars($info['desc'], ENT_QUOTES, 'UTF-8'); ?></div>
+            </a>
+        <?php endforeach; ?>
+        </div>
+    <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
 </div>
 </div>
 
@@ -243,12 +353,13 @@ $initial = ($companyName !== '' ? strtoupper(substr($companyName, 0, 1)) : 'S');
     function countUp(el) {
         var target = parseFloat(el.getAttribute('data-count')) || 0;
         var prefix = el.getAttribute('data-prefix') || '';
+        var suffix = el.getAttribute('data-suffix') || '';
         var start = null;
         function step(ts) {
             if (!start) start = ts;
             var p = Math.min((ts - start) / 1400, 1);
             var v = Math.floor(target * (1 - Math.pow(1 - p, 3)));
-            el.textContent = prefix + v.toLocaleString();
+            el.textContent = prefix + v.toLocaleString() + suffix;
             if (p < 1) requestAnimationFrame(step);
         }
         requestAnimationFrame(step);

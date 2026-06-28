@@ -2,6 +2,9 @@
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+epc_jw_ensure_integration_schema($db_link);
+$epcJwMode = epc_jw_is_jewellery_tenant($db_link);
 
 $poStatus = isset($_GET['po_status']) ? (string) $_GET['po_status'] : '';
 $pos = epc_erp_po_list($db_link, $poStatus);
@@ -67,16 +70,22 @@ ob_start();
 if (empty($pos)) {
 	erp_empty_state('No purchase orders yet.', 'fa-clipboard');
 } else {
-	erp_table_open(array(
+	$epcPoCols = array(
 		array('label' => '', 'class' => 'epc-d365-statcol'),
 		array('label' => 'PO #', 'sort' => 'text'),
 		array('label' => 'Supplier', 'sort' => 'text'),
 		array('label' => 'Title', 'sort' => 'text'),
 		array('label' => 'Total AED', 'sort' => 'num', 'class' => 'num'),
 		'Dimensions',
-		array('label' => 'Status', 'sort' => 'text'),
-		'Actions',
-	), 'table table-bordered table-condensed table-epc epc-erp-table', 'epc_erp_po_tbl');
+	);
+	if ($epcJwMode) {
+		$epcPoCols[] = array('label' => 'Karat');
+		$epcPoCols[] = array('label' => 'Weight (g)', 'class' => 'num');
+		$epcPoCols[] = array('label' => 'Rate/g', 'class' => 'num');
+	}
+	$epcPoCols[] = array('label' => 'Status', 'sort' => 'text');
+	$epcPoCols[] = 'Actions';
+	erp_table_open($epcPoCols, 'table table-bordered table-condensed table-epc epc-erp-table', 'epc_erp_po_tbl');
 	$epcPoSum = 0.0;
 	foreach ($pos as $p) {
 		$epcPoSum += (float) $p['total_amount'];
@@ -84,6 +93,11 @@ if (empty($pos)) {
 		echo '<td>' . epc_erp_h($p['po_no']) . '</td><td>' . epc_erp_h($p['supplier_name']) . '</td>';
 		echo '<td>' . epc_erp_h($p['title']) . '</td><td class="num">' . epc_erp_money($p['total_amount']) . '</td>';
 		echo '<td>' . epc_erp_dim_badges($db_link, 'purchase_order', (int) $p['id']) . '</td>';
+		if ($epcJwMode) {
+			echo '<td>' . epc_erp_h($p['jw_karat'] ?? '') . '</td>';
+			echo '<td class="num">' . epc_erp_h(number_format((float)($p['jw_metal_weight_gm'] ?? 0), 3)) . '</td>';
+			echo '<td class="num">' . epc_erp_h(number_format((float)($p['jw_rate_per_gram'] ?? 0), 2)) . '</td>';
+		}
 		echo '<td>' . erp_status_pill($p['status']) . '</td><td class="epc-erp-form-inline">';
 		if ($p['status'] === 'draft') {
 			echo '<form class="epc-erp-po-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
@@ -122,6 +136,7 @@ ob_start();
 		<input name="title" class="form-control input-sm" required placeholder="Description">
 		<input name="amount_ex_vat" type="number" step="0.01" class="form-control input-sm" placeholder="AED ex VAT"></div></div>
 	<?php echo epc_erp_dim_render_fields($db_link); ?>
+	<?php echo epc_jw_purchase_order_fields_html($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft PO</button></div></div>
 </form>
 <?php
