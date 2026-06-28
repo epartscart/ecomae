@@ -348,6 +348,7 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 	$areas['tax'] = true;
 	$areas['common'] = true;
 	$areas['risk'] = true;
+	$areas['jewellery'] = true;
 	return array_keys($areas);
 }
 
