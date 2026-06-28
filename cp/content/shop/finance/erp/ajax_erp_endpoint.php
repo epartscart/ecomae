@@ -39,6 +39,25 @@ if ($ajaxReferer !== '') {
 		$_SERVER['REQUEST_URI'] = $refPath . ($refQuery !== null && $refQuery !== '' ? '?' . $refQuery : '');
 	}
 }
+$demoBootstrap = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_demo.php';
+if (is_file($demoBootstrap)) {
+	require_once $demoBootstrap;
+	if (function_exists('epc_portal_demo_parse_cp_path')
+		&& function_exists('epc_portal_demo_load_live_row')
+		&& function_exists('epc_portal_demo_apply_cp_config')
+	) {
+		$demoParsed = epc_portal_demo_parse_cp_path();
+		if ($demoParsed !== null) {
+			$demoRow = epc_portal_demo_load_live_row($demoParsed['site_key']);
+			if (is_array($demoRow)) {
+				$GLOBALS['epc_demo_cp_context'] = true;
+				$GLOBALS['epc_demo_cp_site_key'] = $demoParsed['site_key'];
+				$GLOBALS['epc_demo_cp_tenant_row'] = $demoRow;
+				epc_portal_demo_apply_cp_config($DP_Config, $demoRow, $demoParsed['site_key']);
+			}
+		}
+	}
+}
 if (is_file($platformErpRouter) && function_exists('epc_platform_erp_bootstrap')) {
 	epc_platform_erp_bootstrap();
 }
