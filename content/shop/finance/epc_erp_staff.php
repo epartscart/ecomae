@@ -40,6 +40,14 @@ function epc_erp_staff_all_tabs()
 		'recruitment', 'performance',
 		'cash_forecast', 'bank_instruments',
 		'withholding', 'elec_reporting',
+		// Jewellery ERP
+		'jewellery',
+		'jw_karat', 'jw_rate_type', 'jw_currency', 'jw_metal_stock', 'jw_design', 'jw_diamond', 'jw_pearl', 'jw_color_stone',
+		'jw_metal_purchase', 'jw_diamond_purchase', 'jw_purchase_fixing', 'jw_purchase_window',
+		'jw_retail_sales', 'jw_metal_sales', 'jw_sales_fixing', 'jw_sales_return', 'jw_pos_advance',
+		'jw_repair_receipt', 'jw_repair_transfer', 'jw_workshop_receive', 'jw_repair_delivery', 'jw_repair_sale', 'jw_repair_register', 'jw_repair_search',
+		'jw_stock_verification', 'jw_stock_balance', 'jw_sales_analysis', 'jw_barcode',
+		'jw_petty_cash', 'jw_journal_voucher', 'jw_tourist_vat',
 	);
 	// Report center: one "Reports & inquiries" tab per module that has reports.
 	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';
