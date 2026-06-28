@@ -1291,11 +1291,8 @@ if (is_file($epcErpNavJsFile)) {
 // AI Voice Command Widget — floating mic button on every ERP page
 include __DIR__ . '/erp_voice_command.php';
 
-// Voice Command JS — inline via echo (nginx 404s /cp/js/*.js; same pattern as nav JS above)
-$epcVoiceJsFile = $_SERVER['DOCUMENT_ROOT'] . '/cp/js/epc_erp_voice_command.js';
-if (is_file($epcVoiceJsFile)) {
-	echo '<script id="epc-erp-voice-js-inline">' . "\n";
-	echo file_get_contents($epcVoiceJsFile);
-	echo "\n" . '</script>' . "\n";
+// Voice Command JS — external via PHP proxy (same proven pattern as nav JS above)
+if (function_exists('epc_erp_voice_command_js_script_tag')) {
+	echo epc_erp_voice_command_js_script_tag();
 }
 ?>
