@@ -213,11 +213,13 @@ function epc_erp_nav_areas_config()
 				'fin_advanced' => array('label' => 'Financial depth', 'icon' => 'fa-sliders'),
 				'year_end' => array('label' => 'Year-end closing', 'icon' => 'fa-calendar-check-o'),
 				'coa' => array('label' => 'Chart of accounts', 'icon' => 'fa-list'),
-			'jw_trial_balance' => array('label' => 'Dual trial balance (wt+val)', 'icon' => 'fa-balance-scale'),
+				'jw_trial_balance' => array('label' => 'Dual trial balance (wt+val)', 'icon' => 'fa-balance-scale', 'jw' => true),
+				'jw_journal_voucher' => array('label' => 'Journal voucher (jewellery)', 'icon' => 'fa-book', 'jw' => true),
+				'jw_petty_cash' => array('label' => 'Petty cash (jewellery)', 'icon' => 'fa-money', 'jw' => true),
 			),
 			'groups' => array(
 				'Common' => array('gl'),
-				'Journals' => array('opening_balances'),
+				'Journals' => array('opening_balances', 'jw_journal_voucher', 'jw_petty_cash'),
 				'Inquiries and reports' => array('aging', 'pl', 'balance_sheet', 'reports', 'enterprise_reports', 'jw_trial_balance'),
 				'Periodic' => array('fin_advanced', 'year_end'),
 				'Setup' => array('coa'),
@@ -250,10 +252,22 @@ function epc_erp_nav_areas_config()
 				'inv_groups' => array('label' => 'Inventory (stock/groups)', 'icon' => 'fa-object-group'),
 				'order_planning' => array('label' => 'Order planning', 'icon' => 'fa-cubes'),
 				'retail_barcode' => array('label' => 'Retail barcode', 'icon' => 'fa-barcode'),
+				'jw_karat' => array('label' => 'Karat master', 'icon' => 'fa-tachometer', 'jw' => true),
+				'jw_rate_type' => array('label' => 'Rate type master', 'icon' => 'fa-line-chart', 'jw' => true),
+				'jw_metal_stock' => array('label' => 'Metal stock master', 'icon' => 'fa-cubes', 'jw' => true),
+				'jw_design' => array('label' => 'Design master', 'icon' => 'fa-paint-brush', 'jw' => true),
+				'jw_diamond' => array('label' => 'Diamond master', 'icon' => 'fa-diamond', 'jw' => true),
+				'jw_pearl' => array('label' => 'Pearl master', 'icon' => 'fa-circle-o', 'jw' => true),
+				'jw_color_stone' => array('label' => 'Colour stone master', 'icon' => 'fa-star', 'jw' => true),
+				'jw_stock_verification' => array('label' => 'Stock verification', 'icon' => 'fa-check-square-o', 'jw' => true),
+				'jw_stock_balance' => array('label' => 'Stock balance (weight)', 'icon' => 'fa-bar-chart', 'jw' => true),
+				'jw_barcode' => array('label' => 'Barcode (jewellery)', 'icon' => 'fa-barcode', 'jw' => true),
 			),
 			'groups' => array(
 				'Common' => array('inventory', 'inv_groups'),
 				'Periodic' => array('order_planning'),
+				'Jewellery master data' => array('jw_karat', 'jw_rate_type', 'jw_metal_stock', 'jw_design', 'jw_diamond', 'jw_pearl', 'jw_color_stone'),
+				'Jewellery stock' => array('jw_stock_verification', 'jw_stock_balance', 'jw_barcode'),
 				'Setup' => array('retail_barcode'),
 			),
 		),
@@ -354,10 +368,15 @@ function epc_erp_nav_areas_config()
 				'purchases' => array('label' => 'Purchases', 'icon' => 'fa-file-text-o'),
 				'three_way_match' => array('label' => '3-way match', 'icon' => 'fa-check-square-o'),
 				'procurement_categories' => array('label' => 'Categories & policies', 'icon' => 'fa-sitemap'),
+				'jw_metal_purchase' => array('label' => 'Metal purchase', 'icon' => 'fa-arrow-down', 'jw' => true),
+				'jw_diamond_purchase' => array('label' => 'Diamond purchase', 'icon' => 'fa-diamond', 'jw' => true),
+				'jw_purchase_fixing' => array('label' => 'Purchase fixing', 'icon' => 'fa-lock', 'jw' => true),
+				'jw_purchase_window' => array('label' => 'Purchase window', 'icon' => 'fa-binoculars', 'jw' => true),
 			),
 			'groups' => array(
 				'Common' => array('supplier_portal', 'purchase_requisitions'),
 				'Orders' => array('rfq', 'purchase_orders', 'purchases', 'three_way_match'),
+				'Jewellery purchase' => array('jw_metal_purchase', 'jw_diamond_purchase', 'jw_purchase_fixing', 'jw_purchase_window'),
 				'Setup' => array('procurement_categories'),
 			),
 		),
@@ -427,12 +446,19 @@ function epc_erp_nav_areas_config()
 				'invoices' => array('label' => 'Invoices (e-invoice)', 'icon' => 'fa-file-text-o'),
 				'revenue' => array('label' => 'Revenue', 'icon' => 'fa-money'),
 				'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-random'),
+				'jw_retail_sales' => array('label' => 'Retail sales (POS)', 'icon' => 'fa-shopping-cart', 'jw' => true),
+				'jw_metal_sales' => array('label' => 'Metal sales', 'icon' => 'fa-arrow-up', 'jw' => true),
+				'jw_sales_fixing' => array('label' => 'Sales fixing', 'icon' => 'fa-lock', 'jw' => true),
+				'jw_sales_return' => array('label' => 'Sales return', 'icon' => 'fa-reply', 'jw' => true),
+				'jw_pos_advance' => array('label' => 'POS advance', 'icon' => 'fa-money', 'jw' => true),
+				'jw_sales_analysis' => array('label' => 'Sales analysis (weight)', 'icon' => 'fa-area-chart', 'jw' => true),
 			),
 			'groups' => array(
 				'Common' => array('crm', 'marketing'),
 				'Pipeline' => array('leads', 'opportunities'),
 				'Orders' => array('proposals', 'sales_orders', 'subscriptions', 'delivery_notes', 'invoices'),
-				'Inquiries and reports' => array('revenue', 'fulfilment'),
+				'Jewellery sales' => array('jw_retail_sales', 'jw_metal_sales', 'jw_sales_fixing', 'jw_sales_return', 'jw_pos_advance'),
+				'Inquiries and reports' => array('revenue', 'fulfilment', 'jw_sales_analysis'),
 			),
 		),
 		'service_mgmt' => array(
@@ -441,10 +467,18 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Service agreements, contracts and service delivery',
 			'tabs' => array(
 				'contracts' => array('label' => 'Contracts & e-sign', 'icon' => 'fa-file-text-o'),
-				'jw_repairs' => array('label' => 'Jewellery repairs', 'icon' => 'fa-wrench'),
+				'jw_repairs' => array('label' => 'Repair jobs', 'icon' => 'fa-wrench', 'jw' => true),
+				'jw_repair_receipt' => array('label' => 'Repair receipt', 'icon' => 'fa-wrench', 'jw' => true),
+				'jw_repair_transfer' => array('label' => 'Repair transfer', 'icon' => 'fa-truck', 'jw' => true),
+				'jw_workshop_receive' => array('label' => 'Workshop receive', 'icon' => 'fa-inbox', 'jw' => true),
+				'jw_repair_delivery' => array('label' => 'Repair delivery', 'icon' => 'fa-gift', 'jw' => true),
+				'jw_repair_sale' => array('label' => 'Repair sale', 'icon' => 'fa-file-text-o', 'jw' => true),
+				'jw_repair_register' => array('label' => 'Repair register', 'icon' => 'fa-list-alt', 'jw' => true),
+				'jw_repair_search' => array('label' => 'Repair search', 'icon' => 'fa-search', 'jw' => true),
 			),
 			'groups' => array(
-				'Common' => array('contracts', 'jw_repairs'),
+				'Common' => array('contracts'),
+				'Jewellery repair & workshop' => array('jw_repairs', 'jw_repair_receipt', 'jw_repair_transfer', 'jw_workshop_receive', 'jw_repair_delivery', 'jw_repair_sale', 'jw_repair_register', 'jw_repair_search'),
 			),
 		),
 		'setup' => array(
@@ -457,13 +491,16 @@ function epc_erp_nav_areas_config()
 				'platform' => array('label' => 'Platform services', 'icon' => 'fa-cogs'),
 				'data_import' => array('label' => 'Data import', 'icon' => 'fa-upload'),
 				'integration' => array('label' => 'Data & integration', 'icon' => 'fa-plug'),
-				'jw_seed_data' => array('label' => 'Jewellery sample data', 'icon' => 'fa-database'),
+				'jw_seed_data' => array('label' => 'Sample data (jewellery)', 'icon' => 'fa-database', 'jw' => true),
+				'jw_currency' => array('label' => 'Currency master (jewellery)', 'icon' => 'fa-money', 'jw' => true),
+				'ai_assistant' => array('label' => 'Devin AI assistant', 'icon' => 'fa-robot'),
 			),
 			'groups' => array(
 				'Setup' => array('erp_setup'),
 				'Security' => array('security_roles'),
-				'Platform' => array('platform'),
+				'Platform' => array('platform', 'ai_assistant'),
 				'Data management' => array('data_import', 'integration', 'jw_seed_data'),
+				'Jewellery setup' => array('jw_currency'),
 			),
 		),
 		'tax' => array(
@@ -480,11 +517,13 @@ function epc_erp_nav_areas_config()
 				'ext_reports' => array('label' => 'External reporting', 'icon' => 'fa-file-text-o'),
 				'elec_reporting' => array('label' => 'Electronic reporting', 'icon' => 'fa-file-code-o'),
 				'document_control' => array('label' => 'Document control', 'icon' => 'fa-print'),
+				'jw_tourist_vat' => array('label' => 'Tourist VAT refund (jewellery)', 'icon' => 'fa-plane', 'jw' => true),
 			),
 			'groups' => array(
 				'Declarations' => array('vat_return', 'tax_compliance', 'vat_refund', 'withholding'),
 				'Common' => array('einvoice', 'compliance'),
 				'Reports' => array('ext_reports', 'elec_reporting'),
+				'Jewellery' => array('jw_tourist_vat'),
 				'Setup' => array('document_control'),
 			),
 		),
@@ -499,56 +538,48 @@ function epc_erp_nav_areas_config()
 				'Common' => array('wms'),
 			),
 		),
-		'jewellery' => array(
-			'label' => 'Jewellery',
-			'icon' => 'fa-diamond',
-			'desc' => 'Jewellery ERP — metals, diamonds, repair, POS, barcode',
-			'tabs' => array(
-				'jewellery' => array('label' => 'Jewellery hub', 'icon' => 'fa-diamond'),
-				'jw_karat' => array('label' => 'Karat master', 'icon' => 'fa-tachometer'),
-				'jw_rate_type' => array('label' => 'Rate type master', 'icon' => 'fa-line-chart'),
-				'jw_currency' => array('label' => 'Currency master', 'icon' => 'fa-money'),
-				'jw_metal_stock' => array('label' => 'Metal stock master', 'icon' => 'fa-cubes'),
-				'jw_design' => array('label' => 'Design master', 'icon' => 'fa-paint-brush'),
-				'jw_diamond' => array('label' => 'Diamond master', 'icon' => 'fa-diamond'),
-				'jw_pearl' => array('label' => 'Pearl master', 'icon' => 'fa-circle-o'),
-				'jw_color_stone' => array('label' => 'Colour stone master', 'icon' => 'fa-star'),
-				'jw_metal_purchase' => array('label' => 'Metal purchase', 'icon' => 'fa-arrow-down'),
-				'jw_diamond_purchase' => array('label' => 'Diamond purchase', 'icon' => 'fa-diamond'),
-				'jw_purchase_fixing' => array('label' => 'Purchase fixing', 'icon' => 'fa-lock'),
-				'jw_purchase_window' => array('label' => 'Purchase window', 'icon' => 'fa-binoculars'),
-				'jw_retail_sales' => array('label' => 'Retail sales (POS)', 'icon' => 'fa-shopping-cart'),
-				'jw_metal_sales' => array('label' => 'Metal sales', 'icon' => 'fa-arrow-up'),
-				'jw_sales_fixing' => array('label' => 'Sales fixing', 'icon' => 'fa-lock'),
-				'jw_sales_return' => array('label' => 'Sales return', 'icon' => 'fa-reply'),
-				'jw_pos_advance' => array('label' => 'POS advance', 'icon' => 'fa-money'),
-				'jw_repair_receipt' => array('label' => 'Repair receipt', 'icon' => 'fa-wrench'),
-				'jw_repair_transfer' => array('label' => 'Repair transfer', 'icon' => 'fa-truck'),
-				'jw_workshop_receive' => array('label' => 'Workshop receive', 'icon' => 'fa-inbox'),
-				'jw_repair_delivery' => array('label' => 'Repair delivery', 'icon' => 'fa-gift'),
-				'jw_repair_sale' => array('label' => 'Repair sale', 'icon' => 'fa-file-text-o'),
-				'jw_repair_register' => array('label' => 'Repair register', 'icon' => 'fa-list-alt'),
-				'jw_repair_search' => array('label' => 'Repair search', 'icon' => 'fa-search'),
-				'jw_stock_verification' => array('label' => 'Stock verification', 'icon' => 'fa-check-square-o'),
-				'jw_stock_balance' => array('label' => 'Stock balance', 'icon' => 'fa-bar-chart'),
-				'jw_sales_analysis' => array('label' => 'Sales analysis', 'icon' => 'fa-area-chart'),
-				'jw_barcode' => array('label' => 'Barcode', 'icon' => 'fa-barcode'),
-				'jw_petty_cash' => array('label' => 'Petty cash', 'icon' => 'fa-money'),
-				'jw_journal_voucher' => array('label' => 'Journal voucher', 'icon' => 'fa-book'),
-				'jw_tourist_vat' => array('label' => 'Tourist VAT refund', 'icon' => 'fa-plane'),
-			),
-			'groups' => array(
-				'Master data' => array('jw_karat', 'jw_rate_type', 'jw_currency', 'jw_metal_stock', 'jw_design', 'jw_diamond', 'jw_pearl', 'jw_color_stone'),
-				'Purchase' => array('jw_metal_purchase', 'jw_diamond_purchase', 'jw_purchase_fixing', 'jw_purchase_window'),
-				'Sales' => array('jw_retail_sales', 'jw_metal_sales', 'jw_sales_fixing', 'jw_sales_return', 'jw_pos_advance'),
-				'Repair & workshop' => array('jw_repair_receipt', 'jw_repair_transfer', 'jw_workshop_receive', 'jw_repair_delivery', 'jw_repair_sale', 'jw_repair_register', 'jw_repair_search'),
-				'Stock & analysis' => array('jw_stock_verification', 'jw_stock_balance', 'jw_sales_analysis', 'jw_barcode'),
-				'Finance' => array('jw_petty_cash', 'jw_journal_voucher', 'jw_tourist_vat'),
-				'Overview' => array('jewellery'),
-			),
-		),
 	);
 	return epc_erp_nav_inject_reports($epc_erp_nav_cfg);
+}
+
+/**
+ * Filter nav areas based on tenant industry profile.
+ * Tabs marked with 'jw' => true are only visible when industry = 'jewellery'.
+ * This ensures jewellery-specific tabs are integrated into existing modules
+ * but only shown for jewellery tenants — like Oracle/SAP industry configuration.
+ */
+function epc_erp_nav_filter_by_industry(array $areas, PDO $db): array
+{
+	$jwFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+	$isJewellery = false;
+	if (is_file($jwFile)) {
+		require_once $jwFile;
+		if (function_exists('epc_jw_is_jewellery_tenant')) {
+			$isJewellery = epc_jw_is_jewellery_tenant($db);
+		}
+	}
+	if ($isJewellery) {
+		return $areas;
+	}
+	foreach ($areas as $areaKey => &$area) {
+		if (!isset($area['tabs']) || !is_array($area['tabs'])) continue;
+		foreach ($area['tabs'] as $tabKey => $tabCfg) {
+			if (!empty($tabCfg['jw'])) {
+				unset($area['tabs'][$tabKey]);
+			}
+		}
+		if (isset($area['groups']) && is_array($area['groups'])) {
+			foreach ($area['groups'] as $grpKey => &$grpTabs) {
+				$grpTabs = array_values(array_filter($grpTabs, function($t) use ($area) {
+					return isset($area['tabs'][$t]);
+				}));
+				if (empty($grpTabs)) unset($area['groups'][$grpKey]);
+			}
+			unset($grpTabs);
+		}
+	}
+	unset($area);
+	return $areas;
 }
 
 /**
@@ -745,20 +776,36 @@ function epc_erp_nav_areas_for_tenant()
 {
 	if (function_exists('epc_portal_erp_modules_full_access_context')
 		&& epc_portal_erp_modules_full_access_context()) {
-		return epc_erp_nav_apply_commerce_filter(epc_erp_nav_areas_config());
+		$result = epc_erp_nav_apply_commerce_filter(epc_erp_nav_areas_config());
+		if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+			$result = epc_erp_nav_filter_by_industry($result, $GLOBALS['db_link']);
+		}
+		return $result;
 	}
 	$areas = epc_erp_nav_areas_config();
 	$modFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
 	if (!is_file($modFile)) {
-		return epc_erp_nav_apply_commerce_filter($areas);
+		$result = epc_erp_nav_apply_commerce_filter($areas);
+		if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+			$result = epc_erp_nav_filter_by_industry($result, $GLOBALS['db_link']);
+		}
+		return $result;
 	}
 	require_once $modFile;
 	if (!function_exists('epc_portal_erp_modules_enabled_areas')) {
-		return epc_erp_nav_apply_commerce_filter($areas);
+		$result = epc_erp_nav_apply_commerce_filter($areas);
+		if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+			$result = epc_erp_nav_filter_by_industry($result, $GLOBALS['db_link']);
+		}
+		return $result;
 	}
 	$enabledAreas = epc_portal_erp_modules_enabled_areas();
 	if (empty($enabledAreas)) {
-		return epc_erp_nav_apply_commerce_filter($areas);
+		$result = epc_erp_nav_apply_commerce_filter($areas);
+		if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+			$result = epc_erp_nav_filter_by_industry($result, $GLOBALS['db_link']);
+		}
+		return $result;
 	}
 	$filtered = array();
 	foreach ($areas as $key => $area) {
@@ -766,7 +813,11 @@ function epc_erp_nav_areas_for_tenant()
 			$filtered[$key] = $area;
 		}
 	}
-	return epc_erp_nav_apply_commerce_filter(!empty($filtered) ? $filtered : $areas);
+	$result = epc_erp_nav_apply_commerce_filter(!empty($filtered) ? $filtered : $areas);
+	if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+		$result = epc_erp_nav_filter_by_industry($result, $GLOBALS['db_link']);
+	}
+	return $result;
 }
 
 /**

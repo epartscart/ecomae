@@ -93,26 +93,18 @@ function epc_jw_ensure_integration_schema(PDO $db): void
     epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_stock', 'jw_weight_on_hand', 'decimal(12,3) NOT NULL DEFAULT 0.000');
     epc_erp_schema_add_column_if_missing($db, 'epc_erp_inv_stock', 'jw_karat', "varchar(10) NOT NULL DEFAULT ''");
 
-    // Sales orders — jewellery weight & rate columns
-    $db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_sales_order_lines` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `order_id` int(11) NOT NULL,
-        `item_id` int(11) NOT NULL DEFAULT 0,
-        `description` varchar(255) NOT NULL DEFAULT '',
-        `qty` decimal(14,3) NOT NULL DEFAULT 0.000,
-        `unit_price` decimal(14,4) NOT NULL DEFAULT 0.0000,
-        `line_total` decimal(14,2) NOT NULL DEFAULT 0.00,
-        `jw_weight_gm` decimal(12,3) NOT NULL DEFAULT 0.000,
-        `jw_rate_per_gram` decimal(12,2) NOT NULL DEFAULT 0.00,
-        `jw_metal_value` decimal(14,2) NOT NULL DEFAULT 0.00,
-        `jw_making_charge` decimal(14,2) NOT NULL DEFAULT 0.00,
-        `jw_stone_value` decimal(14,2) NOT NULL DEFAULT 0.00,
-        `jw_karat` varchar(10) NOT NULL DEFAULT '',
-        `jw_discount` decimal(14,2) NOT NULL DEFAULT 0.00,
-        PRIMARY KEY (`id`),
-        KEY `x_order` (`order_id`),
-        KEY `x_item` (`item_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+    // Sales order lines — add jewellery weight & rate columns to the existing voucher lines table.
+    // The epc_erp_sales_order_lines table is created by epc_erp_vouchers_ensure_schema();
+    // here we only add the jewellery-specific columns.
+    require_once __DIR__ . '/epc_erp_vouchers.php';
+    epc_erp_vouchers_ensure_schema($db);
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_weight_gm', 'decimal(12,3) NOT NULL DEFAULT 0.000');
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_rate_per_gram', 'decimal(12,2) NOT NULL DEFAULT 0.00');
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_metal_value', 'decimal(14,2) NOT NULL DEFAULT 0.00');
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_making_charge', 'decimal(14,2) NOT NULL DEFAULT 0.00');
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_stone_value', 'decimal(14,2) NOT NULL DEFAULT 0.00');
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_karat', "varchar(10) NOT NULL DEFAULT ''");
+    epc_erp_schema_add_column_if_missing($db, 'epc_erp_sales_order_lines', 'jw_discount', 'decimal(14,2) NOT NULL DEFAULT 0.00');
 
     // Repair / service management for jewellery
     $db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_jw_repairs` (
@@ -545,13 +537,16 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
 {
     epc_jw_ensure_integration_schema($db);
     epc_erp_inventory_ensure_schema($db);
+    require_once __DIR__ . '/epc_erp_vouchers.php';
+    epc_erp_vouchers_ensure_schema($db);
 
     // Set industry profile to 'jewellery' so dashboard KPIs and conditional fields activate
     require_once __DIR__ . '/epc_erp_advanced.php';
     epc_erp_adv_set_setting($db, 'erp_industry_profile', 'jewellery');
 
     $seeded = array('warehouses' => 0, 'items' => 0, 'suppliers' => 0, 'customers' => 0,
-                    'purchases' => 0, 'sales' => 0, 'repairs' => 0, 'gl_entries' => 0);
+                    'purchases' => 0, 'sales' => 0, 'repairs' => 0, 'gl_entries' => 0,
+                    'errors' => array());
 
     // 1. Warehouses
     $warehouses = array(
@@ -564,12 +559,13 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
             $db->prepare('INSERT IGNORE INTO epc_erp_inv_warehouses (code, name, time_created) VALUES (?,?,?)')
                ->execute(array($wh[0], $wh[1], time()));
             $seeded['warehouses']++;
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'warehouse: ' . $e->getMessage();
+        }
     }
 
     // Get warehouse IDs
     $whShowroom = (int)$db->query("SELECT id FROM epc_erp_inv_warehouses WHERE code='WH-SHOWROOM' LIMIT 1")->fetchColumn() ?: 1;
-    $whVault    = (int)$db->query("SELECT id FROM epc_erp_inv_warehouses WHERE code='WH-VAULT' LIMIT 1")->fetchColumn() ?: 2;
 
     // 2. Inventory items — jewellery
     $items = array(
@@ -589,31 +585,18 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
         array('GW-22K-001', '22K Gold Watch — Men\'s Dress',       'Gold', '22K', 0.916700, 65.000, 28.000, 0, '',    0, 'G', 18.00),
         array('PT-950-001', 'Platinum Band — Comfort Fit',         'Platinum', '950', 0.950000, 10.500, 10.200, 0, '', 0, 'T', 30.00),
     );
-    $goldRate = 235.00; // AED per gram for 24K
+    $goldRate = 235.00;
     foreach ($items as $it) {
-        $sku      = $it[0];
-        $name     = $it[1];
-        $metal    = $it[2];
-        $karat    = $it[3];
-        $purity   = $it[4];
-        $grossWt  = $it[5];
-        $netWt    = $it[6];
-        $stoneWt  = $it[7];
-        $stoneTyp = $it[8];
-        $stonePcs = $it[9];
-        $div      = $it[10];
-        $making   = $it[11];
-
-        // Calculate value
+        list($sku, $name, $metal, $karat, $purity, $grossWt, $netWt, $stoneWt, $stoneTyp, $stonePcs, $div, $making) = $it;
         $metalValue = $netWt * $goldRate * $purity;
         if ($metal === 'Silver') $metalValue = $netWt * 3.50;
-        if ($metal === 'Diamond') $metalValue = $netWt * 5 * 45000; // per carat
+        if ($metal === 'Diamond') $metalValue = $netWt * 5 * 45000;
         if ($metal === 'Pearl') $metalValue = $grossWt * 150;
         if ($metal === 'Platinum') $metalValue = $netWt * 120 * $purity;
         $makingTotal = $grossWt * $making;
         $totalCost = $metalValue + $makingTotal;
-        $salesPrice = $totalCost * 1.15; // 15% markup
-        $unit = in_array($metal, array('Diamond')) ? 'carat' : 'gram';
+        $salesPrice = $totalCost * 1.15;
+        $unit = $metal === 'Diamond' ? 'carat' : 'gram';
 
         try {
             $db->prepare(
@@ -630,18 +613,17 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
                 $making, round($totalCost, 2), round($salesPrice, 2), round($totalCost, 2),
             ));
             $seeded['items']++;
-
-            // Add stock
             $itemId = (int)$db->lastInsertId();
             if ($itemId > 0) {
-                $qty = ($metal === 'Diamond' || $metal === 'Pearl') ? 1 : 1;
                 $db->prepare(
                     'INSERT IGNORE INTO epc_erp_inv_stock
                      (warehouse_id, item_id, qty_on_hand, avg_unit_cost, jw_weight_on_hand, jw_karat, time_updated)
                      VALUES (?,?,?,?,?,?,?)'
-                )->execute(array($whShowroom, $itemId, $qty, round($totalCost, 4), $grossWt, $karat, time()));
+                )->execute(array($whShowroom, $itemId, 1, round($totalCost, 4), $grossWt, $karat, time()));
             }
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'item ' . $sku . ': ' . $e->getMessage();
+        }
     }
 
     // 3. Suppliers (using contacts table)
@@ -660,10 +642,12 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
                  VALUES (?,?,?,?,?,?,?)'
             )->execute(array($s[0], $s[1], $s[2], $s[3], $s[4], 'Sample jewellery supplier', time()));
             $seeded['suppliers']++;
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'supplier ' . $s[0] . ': ' . $e->getMessage();
+        }
     }
 
-    // 4. Customers
+    // 4. Customers (using ERP contacts table)
     $customers = array(
         array('Mrs. Fatima Al Maktoum', 'customer', '+971-50-123-4567', 'fatima@example.com', 'AE'),
         array('Mr. Rajiv Sharma', 'customer', '+971-55-234-5678', 'rajiv@example.com', 'IN'),
@@ -671,15 +655,25 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
         array('Mr. James Wilson', 'customer', '+971-56-456-7890', 'james@example.com', 'GB'),
         array('Mrs. Aisha Bin Khalifa', 'customer', '+971-50-567-8901', 'aisha@example.com', 'AE'),
     );
-    foreach ($customers as $c) {
+    $customerContactIds = array();
+    foreach ($customers as $ci => $c) {
         try {
             $db->prepare(
                 'INSERT IGNORE INTO epc_erp_contacts
                  (name, contact_type, phone, email, country, notes, time_created)
                  VALUES (?,?,?,?,?,?,?)'
             )->execute(array($c[0], $c[1], $c[2], $c[3], $c[4], 'Sample jewellery customer', time()));
+            $cid = (int)$db->lastInsertId();
+            if ($cid === 0) {
+                $chk = $db->prepare('SELECT id FROM epc_erp_contacts WHERE email = ? AND contact_type = ? LIMIT 1');
+                $chk->execute(array($c[3], 'customer'));
+                $cid = (int)$chk->fetchColumn();
+            }
+            $customerContactIds[$ci] = $cid;
             $seeded['customers']++;
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'customer ' . $c[0] . ': ' . $e->getMessage();
+        }
     }
 
     // 5. Purchase orders with jewellery weight fields
@@ -691,8 +685,8 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
         array('PO-JW-005', 'Mikimoto Pearl Co. Ltd', 'South Sea Pearls — 20 strands', 0, 0, '', 0, 0, 180000.00),
     );
     foreach ($poData as $po) {
-        $metalValue = $po[3] * $po[4]; // weight * rate
-        $total = $metalValue + $po[7] + $po[8]; // + making + stone
+        $metalValue = $po[3] * $po[4];
+        $total = $metalValue + $po[7] + $po[8];
         try {
             $db->prepare(
                 'INSERT IGNORE INTO epc_erp_purchase_orders
@@ -706,42 +700,62 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
                 $po[5], $po[6], time() - rand(86400, 604800), time(),
             ));
             $seeded['purchases']++;
-
-            // Post to weight ledger
+            $poId = (int)$db->lastInsertId();
             if ($po[3] > 0) {
                 epc_jw_post_weight_ledger($db, array(
                     'account_code' => '1300', 'account_name' => 'Metal Inventory',
-                    'source_type' => 'purchase', 'source_id' => (int)$db->lastInsertId(),
+                    'source_type' => 'purchase', 'source_id' => $poId,
                     'reference' => $po[0], 'metal_type' => ($po[5] !== '' ? 'Gold' : ''),
                     'karat' => $po[5], 'weight_in' => $po[3], 'weight_out' => 0,
                     'value_debit' => round($total * 1.05, 2), 'value_credit' => 0,
                     'narration' => 'Purchase: ' . $po[2],
                 ));
             }
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'PO ' . $po[0] . ': ' . $e->getMessage();
+        }
     }
 
-    // 6. Sales orders with weight tracking
+    // 6. Sales orders — create HEADER first, then line with correct FK
     $salesData = array(
-        array('SO-JW-001', 'Mrs. Fatima Al Maktoum', '22K Gold Necklace — Rope Chain', 44.500, 235.00, '22K', 450.00, 0, 500.00),
-        array('SO-JW-002', 'Mr. Rajiv Sharma', '22K Gold Ring — Classic Band + Diamond', 7.200, 235.00, '22K', 96.00, 15000.00, 0),
-        array('SO-JW-003', 'Ms. Sarah Chen', '18K Gold Pendant — Heart with Ruby', 5.500, 200.00, '18K', 110.00, 8000.00, 0),
-        array('SO-JW-004', 'Mr. James Wilson', '24K Gold Bar — 10g PAMP', 10.000, 235.00, '24K', 0, 0, 0),
-        array('SO-JW-005', 'Mrs. Aisha Bin Khalifa', '22K Gold Bangles Set (4 pcs)', 128.000, 235.00, '22K', 1920.00, 0, 1000.00),
+        array('SO-JW-001', 0, '22K Gold Necklace — Rope Chain', 44.500, 235.00, '22K', 450.00, 0, 500.00),
+        array('SO-JW-002', 1, '22K Gold Ring — Classic Band + Diamond', 7.200, 235.00, '22K', 96.00, 15000.00, 0),
+        array('SO-JW-003', 2, '18K Gold Pendant — Heart with Ruby', 5.500, 200.00, '18K', 110.00, 8000.00, 0),
+        array('SO-JW-004', 3, '24K Gold Bar — 10g PAMP', 10.000, 235.00, '24K', 0, 0, 0),
+        array('SO-JW-005', 4, '22K Gold Bangles Set (4 pcs)', 128.000, 235.00, '22K', 1920.00, 0, 1000.00),
     );
     foreach ($salesData as $so) {
-        $metalVal = $so[3] * $so[4]; // weight * rate
-        $lineTotal = $metalVal + $so[6] + $so[7] - $so[8]; // + making + stone - discount
+        $custIdx = (int)$so[1];
+        $contactId = isset($customerContactIds[$custIdx]) ? $customerContactIds[$custIdx] : 0;
+        $metalVal = $so[3] * $so[4];
+        $lineTotal = $metalVal + $so[6] + $so[7] - $so[8];
         try {
-            // Create sales order line
+            // Generate SO number using ERP voucher sequence
+            $soNo = epc_erp_next_voucher_no($db, 'SO');
+
+            // Create the sales order HEADER in epc_erp_sales_orders
+            $now = time();
             $db->prepare(
-                'INSERT IGNORE INTO epc_erp_sales_order_lines
-                 (order_id, description, qty, unit_price, line_total,
+                'INSERT INTO epc_erp_sales_orders
+                 (so_no, contact_id, title, amount_ex_vat, vat_amount, total_amount,
+                  status, admin_id, time_created, time_updated)
+                 VALUES (?,?,?,?,?,?,?,?,?,?)'
+            )->execute(array(
+                $soNo, $contactId, $so[2],
+                round($lineTotal, 2), round($lineTotal * 0.05, 2), round($lineTotal * 1.05, 2),
+                'confirmed', $adminId, $now - rand(86400, 604800), $now,
+            ));
+            $soId = (int)$db->lastInsertId();
+
+            // Create the sales order LINE linked to the header
+            $db->prepare(
+                'INSERT INTO epc_erp_sales_order_lines
+                 (sales_order_id, line_no, description, qty, unit_price_ex_vat, line_ex_vat,
                   jw_weight_gm, jw_rate_per_gram, jw_metal_value, jw_making_charge,
                   jw_stone_value, jw_karat, jw_discount)
-                 VALUES (0,?,1,?,?,?,?,?,?,?,?,?)'
+                 VALUES (?,1,?,1,?,?,?,?,?,?,?,?,?)'
             )->execute(array(
-                $so[2], round($lineTotal, 2), round($lineTotal, 2),
+                $soId, $so[2], round($lineTotal, 4), round($lineTotal, 2),
                 $so[3], $so[4], round($metalVal, 2), $so[6],
                 $so[7], $so[5], $so[8],
             ));
@@ -751,43 +765,49 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
             if ($so[3] > 0) {
                 epc_jw_post_weight_ledger($db, array(
                     'account_code' => '4100', 'account_name' => 'Sales Revenue',
-                    'source_type' => 'sale', 'source_id' => (int)$db->lastInsertId(),
-                    'reference' => $so[0], 'metal_type' => 'Gold', 'karat' => $so[5],
+                    'source_type' => 'sale', 'source_id' => $soId,
+                    'reference' => $soNo, 'metal_type' => 'Gold', 'karat' => $so[5],
                     'weight_in' => 0, 'weight_out' => $so[3],
                     'value_debit' => 0, 'value_credit' => round($lineTotal, 2),
-                    'narration' => 'Sale to ' . $so[1] . ': ' . $so[2],
+                    'narration' => 'Sale: ' . $so[2],
                 ));
                 epc_jw_post_weight_ledger($db, array(
                     'account_code' => '1300', 'account_name' => 'Metal Inventory',
-                    'source_type' => 'sale', 'source_id' => (int)$db->lastInsertId(),
-                    'reference' => $so[0], 'metal_type' => 'Gold', 'karat' => $so[5],
+                    'source_type' => 'sale', 'source_id' => $soId,
+                    'reference' => $soNo, 'metal_type' => 'Gold', 'karat' => $so[5],
                     'weight_in' => 0, 'weight_out' => $so[3],
                     'value_debit' => 0, 'value_credit' => round($metalVal, 2),
                     'narration' => 'COGS: ' . $so[2],
                 ));
             }
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'SO ' . $so[0] . ': ' . $e->getMessage();
+        }
     }
 
-    // 7. Repair jobs
+    // 7. Repair jobs — use unique repair_no per record to avoid UNIQUE constraint collision
     $repairs = array(
         array('Mrs. Fatima Al Maktoum', '+971-50-123-4567', '22K Gold Ring — resize', 'Gold', '22K', 8.5, 7.2, 'Ring Resize', 150.00),
         array('Mr. Rajiv Sharma', '+971-55-234-5678', '18K Chain — broken clasp repair', 'Gold', '18K', 22.0, 21.5, 'Clasp Repair', 250.00),
         array('Ms. Sarah Chen', '+971-52-345-6789', 'Diamond re-setting on platinum ring', 'Platinum', '950', 10.5, 10.2, 'Stone Setting', 450.00),
     );
-    foreach ($repairs as $rp) {
+    foreach ($repairs as $ri => $rp) {
         try {
+            $repairNo = 'RPR-' . strtoupper(substr(md5('seed_' . $ri . '_' . $rp[0]), 0, 6));
             epc_jw_repair_save($db, array(
+                'repair_no' => $repairNo,
                 'customer_name' => $rp[0], 'customer_phone' => $rp[1],
                 'item_description' => $rp[2], 'metal_type' => $rp[3],
                 'karat' => $rp[4], 'gross_wt_in' => $rp[5], 'net_wt_in' => $rp[6],
                 'repair_type' => $rp[7], 'estimated_cost' => $rp[8],
-                'received_date' => time() - rand(86400, 259200),
-                'promised_date' => time() + rand(86400, 432000),
+                'received_date' => time() - ($ri + 1) * 86400,
+                'promised_date' => time() + ($ri + 1) * 86400 * 2,
                 'admin_id' => $adminId,
             ));
             $seeded['repairs']++;
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'repair #' . ($ri + 1) . ' (' . $rp[0] . '): ' . $e->getMessage();
+        }
     }
 
     // 8. GL entries for dual trial balance
@@ -811,8 +831,12 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
                 'narration' => $gl[10],
             ));
             $seeded['gl_entries']++;
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+            $seeded['errors'][] = 'GL ' . $gl[0] . ': ' . $e->getMessage();
+        }
     }
 
     return $seeded;
 }
+
+

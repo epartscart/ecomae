@@ -25,7 +25,7 @@ erp_page_header(
 	'Receive items for repair, track workshop progress, deliver back to customer.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
-		array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
+		array('label' => 'Service management'),
 		array('label' => 'Repairs'),
 	)
 );
