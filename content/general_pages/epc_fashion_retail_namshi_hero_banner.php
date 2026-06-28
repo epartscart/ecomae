@@ -22,7 +22,8 @@ function epc_frn_hero_href($lang, $path)
 	return htmlspecialchars($path, ENT_QUOTES, 'UTF-8');
 }
 ?>
-<section class="epc-home-pro epc-frn-hero-banner">
+<section class="epc-home-pro epc-frn-hero-banner" style="position:relative;overflow:hidden">
+	<div class="epc-particles" data-color="rgba(192,38,211,.2)" data-count="16"></div>
 	<div class="container">
 		<div class="epc-home-pro__grid">
 			<div>

@@ -72,8 +72,8 @@ function epc_electronics_retail_promo_strip()
 	return array(
 		array('label' => 'Free UAE delivery on orders over AED 200', 'href' => '/o-dostavke'),
 		array('label' => 'Official UAE warranty on tech', 'href' => '/kontakty'),
-		array('label' => 'Gaming deals — save up to 25%', 'href' => '/shop/search?q=gaming'),
-		array('label' => 'Latest smartphones', 'href' => '/shop/search?q=mobile'),
+		array('label' => 'Gaming deals — save up to 25%', 'href' => '/gaming'),
+		array('label' => 'Latest smartphones', 'href' => '/smartphones'),
 	);
 }
 
@@ -94,7 +94,7 @@ function epc_electronics_retail_hero_slides()
 			'title' => 'Upgrade Your Game Set Up',
 			'sub' => 'PlayStation, handheld PCs, gaming chairs & accessories',
 			'cta' => 'Shop Gaming',
-			'href' => '/shop/search?q=gaming',
+			'href' => '/gaming',
 			'image' => epc_electronics_retail_img('gaming_setup', 1400, 900),
 			'alt' => epc_electronics_retail_img_alt('gaming_setup'),
 			'tone' => 'dark',
@@ -103,7 +103,7 @@ function epc_electronics_retail_hero_slides()
 			'title' => 'Tablet Deals in Demand',
 			'sub' => 'Samsung Galaxy Tab, Lenovo, Kindle — save up to 25%',
 			'cta' => 'Shop Tablets',
-			'href' => '/shop/search?q=tablet',
+			'href' => '/tablets',
 			'image' => epc_electronics_retail_img('tablet_lifestyle', 1400, 900),
 			'alt' => epc_electronics_retail_img_alt('tablet_lifestyle'),
 			'tone' => 'light',
@@ -112,7 +112,7 @@ function epc_electronics_retail_hero_slides()
 			'title' => 'Most Trending Tech',
 			'sub' => 'Flagship phones, audio, wearables & smart home',
 			'cta' => 'Explore Tech',
-			'href' => '/shop/search?q=tech',
+			'href' => '/smartphones',
 			'image' => epc_electronics_retail_img('smartphone', 1400, 900),
 			'alt' => epc_electronics_retail_img_alt('smartphone'),
 			'tone' => 'dark',
@@ -121,7 +121,7 @@ function epc_electronics_retail_hero_slides()
 			'title' => 'Laptops for Work & Play',
 			'sub' => 'Lenovo, ASUS & MacBook — UAE warranty, prices in AED',
 			'cta' => 'Shop Laptops',
-			'href' => '/shop/search?q=laptop',
+			'href' => '/laptops',
 			'image' => epc_electronics_retail_img('laptop', 1400, 900),
 			'alt' => epc_electronics_retail_img_alt('laptop'),
 			'tone' => 'light',
@@ -132,15 +132,15 @@ function epc_electronics_retail_hero_slides()
 function epc_electronics_retail_category_tiles()
 {
 	$tiles = array(
-		array('name' => 'Laptops & PCs', 'icon' => 'fa-laptop', 'href' => '/shop/search?q=laptop', 'key' => 'laptop'),
-		array('name' => 'Speakers & Audio', 'icon' => 'fa-volume-up', 'href' => '/shop/search?q=speakers', 'key' => 'speakers'),
-		array('name' => 'Mobiles', 'icon' => 'fa-mobile', 'href' => '/shop/search?q=mobile', 'key' => 'smartphone'),
-		array('name' => 'Smart Home', 'icon' => 'fa-home', 'href' => '/shop/search?q=smart+home', 'key' => 'smart_home'),
-		array('name' => 'Wearables', 'icon' => 'fa-heartbeat', 'href' => '/shop/search?q=tracker', 'key' => 'smartwatch'),
-		array('name' => 'Gaming', 'icon' => 'fa-gamepad', 'href' => '/shop/search?q=gaming', 'key' => 'gaming_setup'),
-		array('name' => 'Streaming', 'icon' => 'fa-play-circle', 'href' => '/shop/search?q=streaming', 'key' => 'streaming'),
-		array('name' => 'Travel Tech', 'icon' => 'fa-suitcase', 'href' => '/shop/search?q=travel', 'key' => 'travel_tech'),
-		array('name' => 'Headphones', 'icon' => 'fa-headphones', 'href' => '/shop/search?q=headphones', 'key' => 'headphones'),
+		array('name' => 'Laptops & PCs', 'icon' => 'fa-laptop', 'href' => '/laptops', 'key' => 'laptop'),
+		array('name' => 'Speakers & Audio', 'icon' => 'fa-volume-up', 'href' => '/audio/speakers', 'key' => 'speakers'),
+		array('name' => 'Mobiles', 'icon' => 'fa-mobile', 'href' => '/smartphones', 'key' => 'smartphone'),
+		array('name' => 'Smart Home', 'icon' => 'fa-home', 'href' => '/smart-home', 'key' => 'smart_home'),
+		array('name' => 'Wearables', 'icon' => 'fa-heartbeat', 'href' => '/wearables', 'key' => 'smartwatch'),
+		array('name' => 'Gaming', 'icon' => 'fa-gamepad', 'href' => '/gaming', 'key' => 'gaming_setup'),
+		array('name' => 'Streaming', 'icon' => 'fa-play-circle', 'href' => '/tv-cinema', 'key' => 'streaming'),
+		array('name' => 'Travel Tech', 'icon' => 'fa-suitcase', 'href' => '/cameras', 'key' => 'travel_tech'),
+		array('name' => 'Headphones', 'icon' => 'fa-headphones', 'href' => '/audio/headphones', 'key' => 'headphones'),
 	);
 	$out = array();
 	foreach ($tiles as $tile) {
@@ -226,14 +226,14 @@ function epc_electronics_retail_brands()
 function epc_electronics_retail_featured_categories()
 {
 	$items = array(
-		array('name' => 'Gaming', 'href' => '/shop/search?q=gaming', 'key' => 'gaming_setup'),
-		array('name' => 'Phones', 'href' => '/shop/search?q=mobile', 'key' => 'smartphone'),
-		array('name' => 'Audio', 'href' => '/shop/search?q=audio', 'key' => 'audio_gear'),
-		array('name' => 'Laptops', 'href' => '/shop/search?q=laptop', 'key' => 'macbook'),
-		array('name' => 'Tablets', 'href' => '/shop/search?q=tablet', 'key' => 'tablet_lifestyle'),
-		array('name' => 'Smart Home', 'href' => '/shop/search?q=smart+home', 'key' => 'smart_home'),
-		array('name' => 'TV & Cinema', 'href' => '/shop/search?q=tv', 'key' => 'tv_living'),
-		array('name' => 'Cameras', 'href' => '/shop/search?q=camera', 'key' => 'camera'),
+		array('name' => 'Gaming', 'href' => '/gaming', 'key' => 'gaming_setup'),
+		array('name' => 'Phones', 'href' => '/smartphones', 'key' => 'smartphone'),
+		array('name' => 'Audio', 'href' => '/audio', 'key' => 'audio_gear'),
+		array('name' => 'Laptops', 'href' => '/laptops', 'key' => 'macbook'),
+		array('name' => 'Tablets', 'href' => '/tablets', 'key' => 'tablet_lifestyle'),
+		array('name' => 'Smart Home', 'href' => '/smart-home', 'key' => 'smart_home'),
+		array('name' => 'TV & Cinema', 'href' => '/tv-cinema', 'key' => 'tv_living'),
+		array('name' => 'Cameras', 'href' => '/cameras', 'key' => 'camera'),
 	);
 	$out = array();
 	foreach ($items as $item) {
@@ -269,19 +269,19 @@ function epc_electronics_retail_utility_links()
 function epc_electronics_retail_mega_nav()
 {
 	return array(
-		array('label' => 'Gaming', 'href' => '/shop/search?q=gaming'),
-		array('label' => 'Tech', 'href' => '/shop/search?q=tech'),
-		array('label' => 'Mobiles', 'href' => '/shop/search?q=mobile'),
-		array('label' => 'Laptops', 'href' => '/shop/search?q=laptop'),
-		array('label' => 'Tablets', 'href' => '/shop/search?q=tablet'),
-		array('label' => 'Audio', 'href' => '/shop/search?q=audio'),
-		array('label' => 'Wearables', 'href' => '/shop/search?q=wearables'),
-		array('label' => 'Smart Home', 'href' => '/shop/search?q=smart+home'),
-		array('label' => 'Toys', 'href' => '/shop/search?q=toys'),
-		array('label' => 'Books', 'href' => '/shop/search?q=books'),
-		array('label' => 'Music', 'href' => '/shop/search?q=music'),
-		array('label' => 'Fashion', 'href' => '/shop/search?q=fashion'),
-		array('label' => 'Deals', 'href' => '/shop/search?q=deals', 'highlight' => true),
+		array('label' => 'Gaming', 'href' => '/gaming'),
+		array('label' => 'Tech', 'href' => '/smartphones'),
+		array('label' => 'Mobiles', 'href' => '/smartphones'),
+		array('label' => 'Laptops', 'href' => '/laptops'),
+		array('label' => 'Tablets', 'href' => '/tablets'),
+		array('label' => 'Audio', 'href' => '/audio'),
+		array('label' => 'Wearables', 'href' => '/wearables'),
+		array('label' => 'Smart Home', 'href' => '/smart-home'),
+		array('label' => 'Toys', 'href' => '/gaming'),
+		array('label' => 'Books', 'href' => '/tablets'),
+		array('label' => 'Music', 'href' => '/audio'),
+		array('label' => 'Fashion', 'href' => '/wearables'),
+		array('label' => 'Deals', 'href' => '/smartphones', 'highlight' => true),
 	);
 }
 
@@ -307,18 +307,18 @@ function epc_electronics_retail_footer_columns()
 				array('label' => 'About Us', 'href' => '/kontakty'),
 				array('label' => 'Careers', 'href' => '/kontakty'),
 				array('label' => 'Store Locator', 'href' => '/kontakty'),
-				array('label' => 'Gift Cards', 'href' => '/shop/search?q=gift+card'),
+				array('label' => 'Gift Cards', 'href' => '/smartphones'),
 			),
 		),
 		array(
 			'title' => 'Shop',
 			'links' => array(
-				array('label' => 'Gaming', 'href' => '/shop/search?q=gaming'),
-				array('label' => 'Tech & Gadgets', 'href' => '/shop/search?q=tech'),
-				array('label' => 'Laptops & Tablets', 'href' => '/shop/search?q=laptop'),
-				array('label' => 'Mobiles', 'href' => '/shop/search?q=mobile'),
-				array('label' => 'Books & Music', 'href' => '/shop/search?q=books'),
-				array('label' => 'Online Exclusives', 'href' => '/shop/search?q=online'),
+				array('label' => 'Gaming', 'href' => '/gaming'),
+				array('label' => 'Tech & Gadgets', 'href' => '/smartphones'),
+				array('label' => 'Laptops & Tablets', 'href' => '/laptops'),
+				array('label' => 'Mobiles', 'href' => '/smartphones'),
+				array('label' => 'Books & Music', 'href' => '/tablets'),
+				array('label' => 'Online Exclusives', 'href' => '/smartphones'),
 			),
 		),
 		array(
@@ -384,9 +384,9 @@ function epc_er_pro_hero_copy(): string
 function epc_er_pro_hero_actions(string $lang): array
 {
 	return array(
-		array('label' => 'Shop gaming', 'href' => '/shop/search?q=gaming', 'icon' => 'fa-gamepad', 'primary' => true),
-		array('label' => 'Latest phones', 'href' => '/shop/search?q=mobile', 'icon' => 'fa-mobile'),
-		array('label' => 'Audio deals', 'href' => '/shop/search?q=audio', 'icon' => 'fa-headphones'),
+		array('label' => 'Shop gaming', 'href' => '/gaming', 'icon' => 'fa-gamepad', 'primary' => true),
+		array('label' => 'Latest phones', 'href' => '/smartphones', 'icon' => 'fa-mobile'),
+		array('label' => 'Audio deals', 'href' => '/audio', 'icon' => 'fa-headphones'),
 	);
 }
 

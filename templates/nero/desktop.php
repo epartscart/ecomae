@@ -216,6 +216,9 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	if ($epc_asp_pro) {
 		echo '<link rel="stylesheet" href="/content/general_pages/epc_automotive_spareparts.css?v=20260621" />';
 	}
+	if ($epc_custom_storefront) {
+		echo '<link rel="stylesheet" href="/content/general_pages/epc_storefront_animations.css?v=20260621" />';
+	}
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_storefront_logo.php';
 	epc_portal_storefront_hub_logo_enqueue();
 	?>
@@ -1751,6 +1754,7 @@ if( ! $DP_Content->main_flag ){
 if ($epc_custom_storefront) {
 	echo epc_storefront_cookie_consent();
 	echo epc_storefront_newsletter_js();
+	echo '<script src="/content/general_pages/epc_storefront_animations.js?v=20260621" defer></script>';
 }
 ?>
 

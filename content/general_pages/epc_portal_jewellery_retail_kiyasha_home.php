@@ -104,9 +104,9 @@ function epc_jrk_href($lang, $path)
 	<section class="epc-jrk-section epc-jrk-reveal">
 		<div class="container">
 			<h2 class="epc-jrk-section__title">Shop by category</h2>
-			<div class="epc-jrk-cat-scroll">
+			<div class="epc-jrk-cat-scroll epc-stagger">
 				<?php foreach ($categories as $cat) { ?>
-				<a class="epc-jrk-cat-tile" href="<?php echo epc_jrk_href($lang, $cat['href']); ?>">
+				<a class="epc-jrk-cat-tile epc-card-lift epc-img-zoom" href="<?php echo epc_jrk_href($lang, $cat['href']); ?>">
 					<span class="epc-jrk-cat-tile__img"><img src="<?php echo htmlspecialchars($cat['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($cat['alt'] ?? $cat['name'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy" decoding="async" width="160" height="160"/></span>
 					<span class="epc-jrk-cat-tile__name"><?php echo htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8'); ?></span>
 				</a>
@@ -120,7 +120,7 @@ function epc_jrk_href($lang, $path)
 			<h2 class="epc-jrk-section__title">Shop by designer</h2>
 			<div class="epc-jrk-brand-scroll">
 				<?php foreach ($brands as $brand) { ?>
-				<a class="epc-jrk-brand-chip" href="<?php echo epc_jrk_href($lang, '/shop/search?q=' . rawurlencode($brand)); ?>">
+				<a class="epc-jrk-brand-chip" href="<?php echo epc_jrk_href($lang, '/gold'); ?>">
 					<?php echo htmlspecialchars($brand, ENT_QUOTES, 'UTF-8'); ?>
 				</a>
 				<?php } ?>
@@ -138,9 +138,9 @@ function epc_jrk_href($lang, $path)
 					<p class="epc-jrk-section__sub"><?php echo htmlspecialchars($section['sub'], ENT_QUOTES, 'UTF-8'); ?></p>
 					<?php } ?>
 				</div>
-				<a class="epc-jrk-section__link" href="<?php echo epc_jrk_href($lang, '/shop/search'); ?>">View all</a>
+				<a class="epc-jrk-section__link" href="<?php echo epc_jrk_href($lang, '/gold'); ?>">View all</a>
 			</div>
-			<div class="epc-jrk-product-grid">
+			<div class="epc-jrk-product-grid epc-stagger">
 				<?php foreach ($section['products'] as $product) {
 					$product = epc_jewellery_retail_kiyasha_resolve_product_images($product);
 					$price = epc_jewellery_retail_kiyasha_format_aed($product['price']);
@@ -152,9 +152,9 @@ function epc_jrk_href($lang, $path)
 						$discount = '-' . (int) round(100 - ((float) $product['price'] / (float) $product['was']) * 100) . '%';
 					}
 				?>
-				<article class="epc-jrk-product-card">
-					<a class="epc-jrk-product-card__link" href="<?php echo epc_jrk_href($lang, '/shop/search?q=' . rawurlencode($product['name'])); ?>">
-						<div class="epc-jrk-product-card__img">
+				<article class="epc-jrk-product-card epc-card-lift">
+					<a class="epc-jrk-product-card__link" href="<?php echo epc_jrk_href($lang, '/gold'); ?>">
+						<div class="epc-jrk-product-card__img epc-img-zoom">
 							<?php if ($badge !== '') { ?>
 							<span class="epc-jrk-badge epc-jrk-badge--<?php echo htmlspecialchars($badge, ENT_QUOTES, 'UTF-8'); ?>">
 								<?php echo $badge === 'sale' ? ($discount !== '' ? $discount : 'Sale') : 'New'; ?>

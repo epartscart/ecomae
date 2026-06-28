@@ -149,9 +149,9 @@ function epc_er_href($lang, $path)
 		<div class="container">
 			<div class="epc-er-section__head">
 				<h2 class="epc-er-section__title"><?php echo htmlspecialchars($section['title'], ENT_QUOTES, 'UTF-8'); ?></h2>
-				<a class="epc-er-section__link" href="<?php echo epc_er_href($lang, !empty($section['href']) ? $section['href'] : '/shop/search'); ?>">View all</a>
+				<a class="epc-er-section__link" href="<?php echo epc_er_href($lang, !empty($section['href']) ? $section['href'] : '/smartphones'); ?>">View all</a>
 			</div>
-			<div class="epc-er-product-row">
+			<div class="epc-er-product-row epc-stagger">
 				<?php foreach ($section['products'] as $product) {
 					if (empty($product['image']) && !empty($product['key'])) {
 						$product = epc_electronics_retail_resolve_product_images($product);
@@ -160,11 +160,11 @@ function epc_er_href($lang, $path)
 					$was = epc_electronics_retail_format_aed($product['was'] ?? 0);
 					$badge = epc_electronics_retail_product_badge($product);
 					$imgAlt = isset($product['alt']) ? $product['alt'] : $product['name'];
-					$productHref = !empty($product['href']) ? $product['href'] : '/shop/search?q=' . rawurlencode($product['name']);
+					$productHref = !empty($product['href']) ? $product['href'] : '/smartphones';
 				?>
-				<article class="epc-er-product-card">
+				<article class="epc-er-product-card epc-card-lift">
 					<a class="epc-er-product-card__link" href="<?php echo epc_er_href($lang, $productHref); ?>">
-						<div class="epc-er-product-card__img">
+						<div class="epc-er-product-card__img epc-img-zoom">
 							<?php if ($badge !== '') { ?>
 							<span class="epc-er-badge epc-er-badge--<?php echo htmlspecialchars($badge, ENT_QUOTES, 'UTF-8'); ?>"><?php echo $badge === 'sale' ? 'Sale' : 'New'; ?></span>
 							<?php } ?>
@@ -198,7 +198,7 @@ function epc_er_href($lang, $path)
 			<h2 class="epc-er-section__title">Popular brands</h2>
 			<div class="epc-er-brand-strip">
 				<?php foreach ($brands as $brand) { ?>
-				<a class="epc-er-brand-pill" href="<?php echo epc_er_href($lang, '/shop/search?q=' . rawurlencode($brand)); ?>">
+				<a class="epc-er-brand-pill" href="<?php echo epc_er_href($lang, '/smartphones'); ?>">
 					<?php echo htmlspecialchars($brand, ENT_QUOTES, 'UTF-8'); ?>
 				</a>
 				<?php } ?>
@@ -228,12 +228,12 @@ function epc_er_href($lang, $path)
 					<strong>Join our loyalty program</strong>
 					<span>Earn points on every AED you spend</span>
 				</a>
-				<a class="epc-er-service-card" href="<?php echo epc_er_href($lang, '/shop/search?q=events'); ?>">
+				<a class="epc-er-service-card" href="<?php echo epc_er_href($lang, '/gaming'); ?>">
 					<i class="fa fa-ticket"></i>
 					<strong>Events &amp; experiences</strong>
 					<span>Tickets, cinema &amp; live shows in the UAE</span>
 				</a>
-				<a class="epc-er-service-card" href="<?php echo epc_er_href($lang, '/shop/search?q=online'); ?>">
+				<a class="epc-er-service-card" href="<?php echo epc_er_href($lang, '/smartphones'); ?>">
 					<i class="fa fa-bolt"></i>
 					<strong>Online exclusives</strong>
 					<span>Web-only tech deals — updated weekly</span>

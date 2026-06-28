@@ -119,14 +119,14 @@ function epc_cpi_home_href($lang, $path)
 				<h2 class="epc-cpi-section__title">Transparent service catalogue — prices in AED</h2>
 				<p class="epc-cpi-section__lead">Fixed-scope packages for VAT, corporate tax, accounting and ERP onboarding. Each listing includes a reference SKU for proposals and client portal quotes.</p>
 			</div>
-			<div class="epc-cpi-packages">
+			<div class="epc-cpi-packages epc-stagger">
 				<?php foreach ($packages as $pkg) {
 					$price = epc_cpi_format_aed($pkg['price']);
 					$was = epc_cpi_format_aed(isset($pkg['was']) ? $pkg['was'] : 0);
 				?>
-				<article class="epc-cpi-package-card">
+				<article class="epc-cpi-package-card epc-card-lift">
 					<a class="epc-cpi-package-card__link" href="<?php echo epc_cpi_home_href($lang, '/kontakty'); ?>">
-						<div class="epc-cpi-package-card__img">
+						<div class="epc-cpi-package-card__img epc-img-zoom">
 							<?php if (!empty($pkg['is_new'])) { ?><span class="epc-cpi-package-card__badge">New</span><?php } ?>
 							<img src="<?php echo htmlspecialchars($pkg['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($pkg['name'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy" decoding="async" width="320" height="200"/>
 						</div>

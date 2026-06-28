@@ -55,8 +55,8 @@ function epc_jewellery_retail_kiyasha_promo_strip(): array
 {
 	return array(
 		array('label' => 'Free insured delivery on orders over AED 500', 'href' => '/o-dostavke'),
-		array('label' => 'Certified 18K & 22K gold — UAE hallmark', 'href' => '/shop/search?q=gold'),
-		array('label' => 'Bridal edit — complimentary ring sizing', 'href' => '/shop/search?q=bridal'),
+		array('label' => 'Certified 18K & 22K gold — UAE hallmark', 'href' => '/gold'),
+		array('label' => 'Bridal edit — complimentary ring sizing', 'href' => '/bridal'),
 		array('label' => 'Easy returns within 14 days', 'href' => '/ob-oplate'),
 	);
 }
@@ -74,39 +74,39 @@ function epc_jewellery_retail_kiyasha_trust_badges(): array
 function epc_jewellery_retail_kiyasha_departments(): array
 {
 	return array(
-		array('label' => 'Fine Jewellery', 'href' => '/shop/search?q=jewellery', 'active' => true),
-		array('label' => 'Gold', 'href' => '/shop/search?q=gold', 'active' => false),
-		array('label' => 'Diamonds', 'href' => '/shop/search?q=diamond', 'active' => false),
-		array('label' => 'Bridal', 'href' => '/shop/search?q=bridal', 'active' => false),
-		array('label' => 'Gifts', 'href' => '/shop/search?q=gifts', 'active' => false),
-		array('label' => 'Sale', 'href' => '/shop/search?q=sale', 'active' => false),
+		array('label' => 'Fine Jewellery', 'href' => '/gold', 'active' => true),
+		array('label' => 'Gold', 'href' => '/gold', 'active' => false),
+		array('label' => 'Diamonds', 'href' => '/diamonds', 'active' => false),
+		array('label' => 'Bridal', 'href' => '/bridal', 'active' => false),
+		array('label' => 'Gifts', 'href' => '/everyday', 'active' => false),
+		array('label' => 'Sale', 'href' => '/gold', 'active' => false),
 	);
 }
 
 function epc_jewellery_retail_kiyasha_collection_tabs(): array
 {
 	return array(
-		array('label' => 'New Arrivals', 'href' => '/shop/search?q=new', 'active' => true),
-		array('label' => 'Rings', 'href' => '/shop/search?q=rings', 'active' => false),
-		array('label' => 'Necklaces', 'href' => '/shop/search?q=necklaces', 'active' => false),
-		array('label' => 'Earrings', 'href' => '/shop/search?q=earrings', 'active' => false),
-		array('label' => 'Bracelets', 'href' => '/shop/search?q=bracelets', 'active' => false),
-		array('label' => 'Wedding', 'href' => '/shop/search?q=wedding', 'active' => false),
+		array('label' => 'New Arrivals', 'href' => '/gold', 'active' => true),
+		array('label' => 'Rings', 'href' => '/gold/rings', 'active' => false),
+		array('label' => 'Necklaces', 'href' => '/gold/necklaces', 'active' => false),
+		array('label' => 'Earrings', 'href' => '/gold/earrings', 'active' => false),
+		array('label' => 'Bracelets', 'href' => '/everyday', 'active' => false),
+		array('label' => 'Wedding', 'href' => '/bridal', 'active' => false),
 	);
 }
 
 function epc_jewellery_retail_kiyasha_category_chips(): array
 {
 	return array(
-		array('label' => 'New In', 'href' => '/shop/search?q=new', 'icon' => 'fa-star'),
-		array('label' => 'Sale', 'href' => '/shop/search?q=sale', 'icon' => 'fa-percent', 'highlight' => true),
-		array('label' => 'Rings', 'href' => '/shop/search?q=rings', 'icon' => ''),
-		array('label' => 'Necklaces', 'href' => '/shop/search?q=necklaces', 'icon' => ''),
-		array('label' => 'Earrings', 'href' => '/shop/search?q=earrings', 'icon' => ''),
-		array('label' => 'Gold', 'href' => '/shop/search?q=gold', 'icon' => ''),
-		array('label' => 'Diamonds', 'href' => '/shop/search?q=diamond', 'icon' => ''),
-		array('label' => 'Bridal', 'href' => '/shop/search?q=bridal', 'icon' => ''),
-		array('label' => 'Gift Sets', 'href' => '/shop/search?q=gift', 'icon' => 'fa-gift'),
+		array('label' => 'New In', 'href' => '/gold', 'icon' => 'fa-star'),
+		array('label' => 'Sale', 'href' => '/gold', 'icon' => 'fa-percent', 'highlight' => true),
+		array('label' => 'Rings', 'href' => '/gold/rings', 'icon' => ''),
+		array('label' => 'Necklaces', 'href' => '/gold/necklaces', 'icon' => ''),
+		array('label' => 'Earrings', 'href' => '/gold/earrings', 'icon' => ''),
+		array('label' => 'Gold', 'href' => '/gold', 'icon' => ''),
+		array('label' => 'Diamonds', 'href' => '/diamonds', 'icon' => ''),
+		array('label' => 'Bridal', 'href' => '/bridal', 'icon' => ''),
+		array('label' => 'Gift Sets', 'href' => '/everyday', 'icon' => 'fa-gift'),
 	);
 }
 
@@ -122,7 +122,7 @@ function epc_jewellery_retail_kiyasha_hero_slides(): array
 			'title' => 'Timeless Gold Collections',
 			'sub' => '18K & 22K rings, necklaces and bracelets — curated for the UAE — prices in AED',
 			'cta' => 'Shop Gold',
-			'href' => '/shop/search?q=gold',
+			'href' => '/gold',
 			'image' => epc_jewellery_retail_kiyasha_img('luxury_flatlay', 1400, 900),
 			'alt' => epc_jewellery_retail_kiyasha_img_alt('luxury_flatlay'),
 			'tone' => 'light',
@@ -131,7 +131,7 @@ function epc_jewellery_retail_kiyasha_hero_slides(): array
 			'title' => 'Diamond Bridal Edit',
 			'sub' => 'Solitaire rings, wedding bands & matching sets — insured delivery',
 			'cta' => 'Explore Bridal',
-			'href' => '/shop/search?q=bridal',
+			'href' => '/bridal',
 			'image' => epc_jewellery_retail_kiyasha_img('wedding_set', 1400, 900),
 			'alt' => epc_jewellery_retail_kiyasha_img_alt('wedding_set'),
 			'tone' => 'dark',
@@ -140,7 +140,7 @@ function epc_jewellery_retail_kiyasha_hero_slides(): array
 			'title' => 'Everyday Elegance',
 			'sub' => 'Earrings, pendants & layering necklaces — gift-ready packaging',
 			'cta' => 'Shop Bestsellers',
-			'href' => '/shop/search?q=earrings',
+			'href' => '/gold/earrings',
 			'image' => epc_jewellery_retail_kiyasha_img('necklace', 1400, 900),
 			'alt' => epc_jewellery_retail_kiyasha_img_alt('necklace'),
 			'tone' => 'light',
@@ -151,14 +151,14 @@ function epc_jewellery_retail_kiyasha_hero_slides(): array
 function epc_jewellery_retail_kiyasha_category_tiles(): array
 {
 	$tiles = array(
-		array('name' => 'Rings', 'href' => '/shop/search?q=rings', 'key' => 'gold_rings'),
-		array('name' => 'Necklaces', 'href' => '/shop/search?q=necklaces', 'key' => 'necklace'),
-		array('name' => 'Earrings', 'href' => '/shop/search?q=earrings', 'key' => 'earrings'),
-		array('name' => 'Bracelets', 'href' => '/shop/search?q=bracelets', 'key' => 'bracelet'),
-		array('name' => 'Bridal', 'href' => '/shop/search?q=bridal', 'key' => 'wedding_set'),
-		array('name' => 'Diamonds', 'href' => '/shop/search?q=diamond', 'key' => 'diamond_ring'),
-		array('name' => 'Gold', 'href' => '/shop/search?q=gold', 'key' => 'gold_bangle'),
-		array('name' => 'Gifts', 'href' => '/shop/search?q=gifts', 'key' => 'gift_box'),
+		array('name' => 'Rings', 'href' => '/gold/rings', 'key' => 'gold_rings'),
+		array('name' => 'Necklaces', 'href' => '/gold/necklaces', 'key' => 'necklace'),
+		array('name' => 'Earrings', 'href' => '/gold/earrings', 'key' => 'earrings'),
+		array('name' => 'Bracelets', 'href' => '/everyday', 'key' => 'bracelet'),
+		array('name' => 'Bridal', 'href' => '/bridal', 'key' => 'wedding_set'),
+		array('name' => 'Diamonds', 'href' => '/diamonds', 'key' => 'diamond_ring'),
+		array('name' => 'Gold', 'href' => '/gold', 'key' => 'gold_bangle'),
+		array('name' => 'Gifts', 'href' => '/everyday', 'key' => 'gift_box'),
 	);
 	$out = array();
 	foreach ($tiles as $tile) {
@@ -276,13 +276,13 @@ function epc_jewellery_retail_kiyasha_utility_links(): array
 function epc_jewellery_retail_kiyasha_mega_nav(): array
 {
 	return array(
-		array('label' => 'New In', 'href' => '/shop/search?q=new'),
-		array('label' => 'Rings', 'href' => '/shop/search?q=rings'),
-		array('label' => 'Necklaces', 'href' => '/shop/search?q=necklaces'),
-		array('label' => 'Bridal', 'href' => '/shop/search?q=bridal', 'highlight' => true),
-		array('label' => 'Gold', 'href' => '/shop/search?q=gold'),
-		array('label' => 'Diamonds', 'href' => '/shop/search?q=diamond'),
-		array('label' => 'Sale', 'href' => '/shop/search?q=sale', 'highlight' => true),
+		array('label' => 'New In', 'href' => '/gold'),
+		array('label' => 'Rings', 'href' => '/gold/rings'),
+		array('label' => 'Necklaces', 'href' => '/gold/necklaces'),
+		array('label' => 'Bridal', 'href' => '/bridal', 'highlight' => true),
+		array('label' => 'Gold', 'href' => '/gold'),
+		array('label' => 'Diamonds', 'href' => '/diamonds'),
+		array('label' => 'Sale', 'href' => '/gold', 'highlight' => true),
 	);
 }
 
@@ -304,11 +304,11 @@ function epc_jewellery_retail_kiyasha_footer_columns(): array
 		array(
 			'title' => 'Collections',
 			'links' => array(
-				array('label' => 'Rings', 'href' => '/shop/search?q=rings'),
-				array('label' => 'Necklaces', 'href' => '/shop/search?q=necklaces'),
-				array('label' => 'Earrings', 'href' => '/shop/search?q=earrings'),
-				array('label' => 'Bridal', 'href' => '/shop/search?q=bridal'),
-				array('label' => 'Sale', 'href' => '/shop/search?q=sale'),
+				array('label' => 'Rings', 'href' => '/gold/rings'),
+				array('label' => 'Necklaces', 'href' => '/gold/necklaces'),
+				array('label' => 'Earrings', 'href' => '/gold/earrings'),
+				array('label' => 'Bridal', 'href' => '/bridal'),
+				array('label' => 'Sale', 'href' => '/gold'),
 			),
 		),
 		array(
@@ -316,7 +316,7 @@ function epc_jewellery_retail_kiyasha_footer_columns(): array
 			'links' => array(
 				array('label' => 'Our Story', 'href' => '/kontakty'),
 				array('label' => 'Gold Certification', 'href' => '/kontakty'),
-				array('label' => 'Gift Cards', 'href' => '/shop/search?q=gift'),
+				array('label' => 'Gift Cards', 'href' => '/everyday'),
 				array('label' => 'Store Locator', 'href' => '/kontakty'),
 			),
 		),
@@ -366,9 +366,9 @@ function epc_jrk_pro_hero_copy(): string
 function epc_jrk_pro_hero_actions(string $lang): array
 {
 	return array(
-		array('label' => 'Shop gold', 'href' => '/shop/search?q=gold', 'icon' => 'fa-diamond', 'primary' => true),
-		array('label' => 'Bridal edit', 'href' => '/shop/search?q=bridal', 'icon' => 'fa-heart'),
-		array('label' => 'Gift sets', 'href' => '/shop/search?q=gifts', 'icon' => 'fa-gift'),
+		array('label' => 'Shop gold', 'href' => '/gold', 'icon' => 'fa-diamond', 'primary' => true),
+		array('label' => 'Bridal edit', 'href' => '/bridal', 'icon' => 'fa-heart'),
+		array('label' => 'Gift sets', 'href' => '/everyday', 'icon' => 'fa-gift'),
 	);
 }
 
