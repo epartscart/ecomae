@@ -7,16 +7,11 @@
 (function(){
 	'use strict';
 
-	// Read config from widget data attributes (set by PHP in erp_voice_command.php)
-	var widgetEl = document.getElementById('epc_voice_widget');
-	if (!widgetEl) return;
-
-	var erpBaseUrl = widgetEl.getAttribute('data-erp-url') || '';
-	var dateFrom   = widgetEl.getAttribute('data-date-from') || '';
-	var dateTo     = widgetEl.getAttribute('data-date-to') || '';
+	// Config read from widget data attributes on DOMContentLoaded (widget is in <body>, script in <head>)
+	var widgetEl, erpBaseUrl, dateFrom, dateTo;
 
 	function tabUrl(tab) {
-		var u = erpBaseUrl;
+		var u = erpBaseUrl || '';
 		if (u.indexOf('?') >= 0) {
 			u += '&tab=' + encodeURIComponent(tab);
 		} else {
@@ -230,6 +225,13 @@
 	var statusDiv, transcriptDiv, resultDiv, fab, fabIcon, panel;
 
 	function init() {
+		widgetEl = document.getElementById('epc_voice_widget');
+		if (!widgetEl) return;
+
+		erpBaseUrl = widgetEl.getAttribute('data-erp-url') || '';
+		dateFrom   = widgetEl.getAttribute('data-date-from') || '';
+		dateTo     = widgetEl.getAttribute('data-date-to') || '';
+
 		statusDiv = document.getElementById('epc_voice_status');
 		transcriptDiv = document.getElementById('epc_voice_transcript');
 		resultDiv = document.getElementById('epc_voice_result');
