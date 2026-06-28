@@ -11,6 +11,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tena
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_theme_templates.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_storefront_packages.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_erp_modules.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_layouts.php';
 
 epc_portal_db_ensure($db_link);
 $storefrontPackages = epc_portal_storefront_package_registry();
@@ -125,6 +126,43 @@ epc_cp_page_frame_open(array(
 								</label>
 								<?php } ?>
 							</div>
+						</div>
+						<div class="form-group">
+							<label>Storefront layout</label>
+							<?php
+							$currentIndustry = isset($settings['industry_code']) ? (string) $settings['industry_code'] : '';
+							$currentLayout = epc_storefront_active_layout($settings);
+							$availableLayouts = epc_storefront_layouts_for_industry($currentIndustry);
+							?>
+							<input type="hidden" name="storefront_layout" id="epc_ps_storefront_layout" value="<?php echo htmlspecialchars($currentLayout, ENT_QUOTES, 'UTF-8'); ?>" />
+							<div id="epc-storefront-layouts" class="epc-portal-settings__styles">
+								<?php if (empty($availableLayouts)) { ?>
+								<p class="text-muted">No layout templates available for this industry yet.</p>
+								<?php } else { foreach ($availableLayouts as $lay) {
+									$sel = ($lay['id'] === $currentLayout);
+									$isDefault = !empty($lay['default']);
+								?>
+								<label class="epc-portal-settings__style<?php echo $sel ? ' is-selected' : ''; ?>" data-layout-id="<?php echo htmlspecialchars($lay['id'], ENT_QUOTES, 'UTF-8'); ?>">
+									<input type="radio" name="storefront_layout_pick" value="<?php echo htmlspecialchars($lay['id'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo $sel ? ' checked' : ''; ?> />
+									<span class="epc-portal-settings__style-swatches" aria-hidden="true">
+										<i title="Layout" style="background:#475569;font-style:normal;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;width:32px;height:32px;border-radius:6px;">
+											<?php
+											$icons = array('hero_carousel' => '&#xf1de;', 'category_grid' => '&#xf009;', 'product_showcase' => '&#xf00a;', 'brand_focused' => '&#xf02a;',
+												'editorial' => '&#xf1ea;', 'collection_grid' => '&#xf009;', 'minimal_boutique' => '&#xf10c;', 'trend_feed' => '&#xf1e0;',
+												'luxury_showcase' => '&#xf219;', 'collection_gallery' => '&#xf03e;', 'catalog_filter' => '&#xf0b0;', 'editorial_luxury' => '&#xf1ea;',
+												'professional_services' => '&#xf0b1;', 'calculator_led' => '&#xf1ec;', 'corporate_clean' => '&#xf19c;');
+											echo isset($icons[$lay['id']]) ? $icons[$lay['id']] : '&#xf009;';
+											?>
+										</i>
+									</span>
+									<span class="epc-portal-settings__style-text">
+										<strong><?php echo htmlspecialchars($lay['label'], ENT_QUOTES, 'UTF-8'); ?><?php echo $isDefault ? ' <small style="color:#16a34a">(default)</small>' : ''; ?></strong>
+										<small><?php echo htmlspecialchars($lay['desc'], ENT_QUOTES, 'UTF-8'); ?></small>
+									</span>
+								</label>
+								<?php } } ?>
+							</div>
+							<p class="help-block">Choose the homepage structure for your storefront. Each layout arranges sections differently — hero banners, category grids, product showcases, etc. Combine with any colour theme above. New tenants in the same industry can pick a different layout.</p>
 						</div>
 						<div class="form-group">
 							<label for="epc_ps_system">System name</label>
@@ -347,6 +385,7 @@ epc_cp_page_frame_open(array(
 
 		<div class="epc-portal-settings__actions">
 			<button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Save industry settings</button>
+			<button type="button" class="btn btn-info btn-lg" id="epc-seed-data-btn" style="margin-left:10px;"><i class="fa fa-database"></i> Seed demo products</button>
 			<span id="epc-portal-settings-msg" class="text-muted"></span>
 		</div>
 	</form>

@@ -103,6 +103,7 @@ if ($action === 'save_settings') {
 		),
 		'enabled_packs' => $packs,
 		'theme_template' => isset($_POST['theme_template']) ? (string) $_POST['theme_template'] : 'classic',
+		'storefront_layout' => isset($_POST['storefront_layout']) ? preg_replace('/[^a-z0-9_]/', '', (string) $_POST['storefront_layout']) : '',
 		'cp_menu' => array(
 			'hidden_groups' => isset($_POST['hidden_groups']) ? (array) $_POST['hidden_groups'] : array(),
 			'hidden_items' => isset($_POST['hidden_items']) ? (array) $_POST['hidden_items'] : array(),
@@ -119,6 +120,26 @@ if ($action === 'save_settings') {
 		$extra = ' ' . $push['message'];
 	}
 	exit(json_encode(array('status' => true, 'message' => 'Settings saved.' . $extra)));
+}
+
+if ($action === 'seed_storefront_data') {
+	$settings = epc_portal_load_site_settings($pdo);
+	$industry = isset($settings['industry_code']) ? (string) $settings['industry_code'] : '';
+	$siteKey = isset($settings['contact']['trade_name']) ? preg_replace('/[^a-z0-9_]/', '_', strtolower($settings['contact']['trade_name'])) : $industry;
+	if ($siteKey === '') {
+		$siteKey = $industry;
+	}
+	$seedFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_seed_data.php';
+	if (!is_file($seedFile)) {
+		exit(json_encode(array('status' => false, 'message' => 'Seed data module not found')));
+	}
+	require_once $seedFile;
+	$report = epc_storefront_seed_all($pdo, $industry, $siteKey);
+	exit(json_encode(array(
+		'status' => true,
+		'message' => 'Seeded ' . $report['categories'] . ' categories + ' . $report['products'] . ' products for ' . $industry,
+		'report' => $report,
+	)));
 }
 
 if ($action === 'deploy_site') {
