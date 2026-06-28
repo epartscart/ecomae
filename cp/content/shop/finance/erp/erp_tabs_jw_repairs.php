@@ -1,155 +1,166 @@
 <?php
 /**
- * Jewellery Repair Management — integrated into Service Management area.
+ * Jewellery Repair Management — Suntech ef-window style.
  * Tracks repair lifecycle: received → in_progress → ready → delivered → invoiced.
  */
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+include __DIR__ . '/erp_entry_form_css.php';
 epc_jw_ensure_integration_schema($db_link);
 
 $repairStatus = isset($_GET['repair_status']) ? (string)$_GET['repair_status'] : '';
 $repairs = epc_jw_repair_list($db_link, $repairStatus, 200);
-
-erp_page_header(
-	'<i class="fa fa-wrench"></i> Jewellery repairs',
-	'Receive items for repair, track workshop progress, deliver back to customer.',
-	array(
-		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
-		array('label' => 'Repairs'),
-	),
-	array(
-		array('label' => 'New repair receipt', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#jw_repair_form'),
-	)
-);
-erp_d365_assets();
-erp_action_pane_ribbon(array(
-	array('label' => 'Repair', 'key' => 'repair', 'active' => true, 'groups' => array(
-		array('label' => 'New', 'buttons' => array(
-			array('label' => 'Repair receipt', 'icon' => 'fa-plus', 'class' => 'is-primary', 'target' => '#jw_repair_form'),
-		)),
-		array('label' => 'View', 'buttons' => array(
-			array('label' => 'Refresh', 'icon' => 'fa-refresh', 'url' => epc_erp_tab_url($erpUrl, 'jw_repairs', $date_from_str, $date_to_str)),
-		)),
-	)),
-));
+$csrfLocal = isset($csrf) ? $csrf : '';
+$erpAjaxEndpoint = isset($erpAjaxUrl) ? $erpAjaxUrl : '';
 
 $statusCounts = array('received' => 0, 'in_progress' => 0, 'ready' => 0, 'delivered' => 0);
 foreach ($repairs as $rp) {
 	$st = $rp['status'] ?? '';
 	if (isset($statusCounts[$st])) $statusCounts[$st]++;
 }
-erp_stat_cards(array(
-	array('label' => 'Received', 'value' => (string)$statusCounts['received']),
-	array('label' => 'In progress', 'value' => (string)$statusCounts['in_progress']),
-	array('label' => 'Ready', 'value' => (string)$statusCounts['ready']),
-	array('label' => 'Delivered', 'value' => (string)$statusCounts['delivered']),
-));
-erp_filter_bar($erpUrl, 'jw_repairs', $date_from_str, $date_to_str,
-	'<label>Status</label> <select name="repair_status" class="form-control input-sm"><option value="">All</option>'
-	. '<option value="received">Received</option><option value="in_progress">In progress</option>'
-	. '<option value="ready">Ready</option><option value="delivered">Delivered</option></select>'
+
+erp_page_header(
+	'<i class="fa fa-wrench"></i> Jewellery repairs',
+	'Receive items for repair, track workshop progress, deliver back to customer.',
+	array(
+		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
+		array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
+		array('label' => 'Repairs'),
+	)
 );
 
-ob_start();
-if (empty($repairs)) {
-	erp_empty_state('No repair jobs yet.', 'fa-wrench');
-} else {
-	erp_table_open(array(
-		array('label' => '', 'class' => 'epc-d365-statcol'),
-		array('label' => 'Repair #', 'sort' => 'text'),
-		array('label' => 'Customer'),
-		array('label' => 'Phone'),
-		array('label' => 'Item description'),
-		array('label' => 'Metal'),
-		array('label' => 'Karat'),
-		array('label' => 'Wt In (g)', 'class' => 'num'),
-		array('label' => 'Repair type'),
-		array('label' => 'Est. cost', 'class' => 'num'),
-		array('label' => 'Status'),
-		'Actions',
-	));
-	foreach ($repairs as $rp) {
-		$tone = ($rp['status'] === 'ready') ? 'ok' : (($rp['status'] === 'received') ? 'warn' : 'neutral');
-		echo '<tr>';
-		echo '<td class="epc-d365-statcol">' . erp_status_dot($tone) . '</td>';
-		echo '<td>' . epc_erp_h($rp['repair_no']) . '</td>';
-		echo '<td>' . epc_erp_h($rp['customer_name']) . '</td>';
-		echo '<td>' . epc_erp_h($rp['customer_phone']) . '</td>';
-		echo '<td>' . epc_erp_h($rp['item_description']) . '</td>';
-		echo '<td>' . epc_erp_h($rp['metal_type']) . '</td>';
-		echo '<td>' . epc_erp_h($rp['karat']) . '</td>';
-		echo '<td class="num">' . number_format((float)$rp['gross_wt_in'], 3) . '</td>';
-		echo '<td>' . epc_erp_h($rp['repair_type']) . '</td>';
-		echo '<td class="num">' . epc_erp_money($rp['estimated_cost']) . '</td>';
-		echo '<td>' . erp_status_pill($rp['status']) . '</td>';
-		echo '<td class="epc-erp-form-inline">';
-		if ($rp['status'] === 'received') {
-			echo '<form class="jw-repair-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
-			echo '<input type="hidden" name="repair_id" value="' . (int)$rp['id'] . '"><input type="hidden" name="new_status" value="in_progress">';
-			echo '<button type="submit" class="btn btn-xs btn-warning">Start</button></form>';
-		}
-		if ($rp['status'] === 'in_progress') {
-			echo '<form class="jw-repair-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
-			echo '<input type="hidden" name="repair_id" value="' . (int)$rp['id'] . '"><input type="hidden" name="new_status" value="ready">';
-			echo '<button type="submit" class="btn btn-xs btn-success">Mark ready</button></form>';
-		}
-		if ($rp['status'] === 'ready') {
-			echo '<form class="jw-repair-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
-			echo '<input type="hidden" name="repair_id" value="' . (int)$rp['id'] . '"><input type="hidden" name="new_status" value="delivered">';
-			echo '<button type="submit" class="btn btn-xs btn-primary">Deliver</button></form>';
-		}
-		echo '</td></tr>';
-	}
-	erp_table_close();
-}
-erp_section_card('Repair jobs', ob_get_clean(), array('icon' => 'fa-wrench'));
+$statusColors = array('received' => '#e65100', 'in_progress' => '#1565c0', 'ready' => '#2e7d32', 'delivered' => '#6a1b9a');
+?>
+<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+	<?php foreach ($statusCounts as $st => $cnt):
+		$col = $statusColors[$st] ?? '#666';
+		$label = ucfirst(str_replace('_', ' ', $st));
+	?>
+	<div style="flex:1;min-width:120px;padding:10px 14px;background:#f0f4f7;border:1px solid #8faabc;border-left:4px solid <?php echo $col; ?>;border-radius:3px;text-align:center">
+		<div style="font-size:22px;font-weight:700;color:<?php echo $col; ?>"><?php echo $cnt; ?></div>
+		<div style="font-size:11px;color:#4a6a7a;font-weight:600"><?php echo $label; ?></div>
+	</div>
+	<?php endforeach; ?>
+</div>
 
-// New repair form
-ob_start();
-?>
-<form id="jw_repair_form" class="form-horizontal" style="max-width:760px;">
-	<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
-	<div class="form-group"><label class="col-sm-3">Customer name</label><div class="col-sm-9"><input name="customer_name" class="form-control input-sm" required></div></div>
-	<div class="form-group"><label class="col-sm-3">Phone</label><div class="col-sm-9"><input name="customer_phone" class="form-control input-sm"></div></div>
-	<div class="form-group"><label class="col-sm-3">Item description</label><div class="col-sm-9"><input name="item_description" class="form-control input-sm" required></div></div>
-	<div class="form-group"><label class="col-sm-3">Metal / Karat</label><div class="col-sm-9 form-inline">
-		<select name="metal_type" class="form-control input-sm">
-			<option value="Gold">Gold</option><option value="Silver">Silver</option><option value="Platinum">Platinum</option>
+<div class="ef-window">
+	<div class="ef-title"><i class="fa fa-wrench"></i> Repair Jobs</div>
+	<div class="ef-toolbar">
+		<button class="btn btn-default btn-xs" onclick="document.getElementById('jw_repair_form_box').style.display='block'"><i class="fa fa-plus"></i> New Repair</button>
+		<button class="btn btn-default btn-xs" onclick="window.location.reload()"><i class="fa fa-refresh"></i> Refresh</button>
+		<span style="flex:1"></span>
+		<label style="font-size:11px;font-weight:600;color:#4a6a7a;margin:0">Status:</label>
+		<select onchange="window.location.href=this.value" style="font-size:11px;padding:2px 4px;border:1px solid #8fb8cc;background:#eaf6fb;border-radius:2px">
+			<option value="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'jw_repairs', $date_from_str, $date_to_str)); ?>"<?php echo $repairStatus === '' ? ' selected' : ''; ?>>All</option>
+			<option value="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'jw_repairs', $date_from_str, $date_to_str) . '&repair_status=received'); ?>"<?php echo $repairStatus === 'received' ? ' selected' : ''; ?>>Received</option>
+			<option value="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'jw_repairs', $date_from_str, $date_to_str) . '&repair_status=in_progress'); ?>"<?php echo $repairStatus === 'in_progress' ? ' selected' : ''; ?>>In progress</option>
+			<option value="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'jw_repairs', $date_from_str, $date_to_str) . '&repair_status=ready'); ?>"<?php echo $repairStatus === 'ready' ? ' selected' : ''; ?>>Ready</option>
+			<option value="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'jw_repairs', $date_from_str, $date_to_str) . '&repair_status=delivered'); ?>"<?php echo $repairStatus === 'delivered' ? ' selected' : ''; ?>>Delivered</option>
 		</select>
-		<input name="karat" class="form-control input-sm" placeholder="e.g. 22K" style="width:80px;">
-	</div></div>
-	<div class="form-group"><label class="col-sm-3">Gross / Net weight (g)</label><div class="col-sm-9 form-inline">
-		<input name="gross_wt_in" type="number" step="0.001" class="form-control input-sm" placeholder="Gross wt">
-		<input name="net_wt_in" type="number" step="0.001" class="form-control input-sm" placeholder="Net wt">
-	</div></div>
-	<div class="form-group"><label class="col-sm-3">Repair type</label><div class="col-sm-9">
-		<select name="repair_type" class="form-control input-sm">
-			<option value="Ring Resize">Ring Resize</option><option value="Clasp Repair">Clasp Repair</option>
-			<option value="Stone Setting">Stone Setting</option><option value="Polish & Clean">Polish & Clean</option>
-			<option value="Chain Repair">Chain Repair</option><option value="Engraving">Engraving</option>
-			<option value="Rhodium Plating">Rhodium Plating</option><option value="Other">Other</option>
-		</select>
-	</div></div>
-	<div class="form-group"><label class="col-sm-3">Estimated cost (AED)</label><div class="col-sm-9"><input name="estimated_cost" type="number" step="0.01" class="form-control input-sm"></div></div>
-	<div class="form-group"><label class="col-sm-3">Stone details</label><div class="col-sm-9"><textarea name="stone_details" class="form-control input-sm" rows="2"></textarea></div></div>
-	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create repair receipt</button></div></div>
-</form>
-<?php
-erp_fasttab_open('New repair receipt', array('open' => false, 'icon' => 'fa-plus'));
-echo ob_get_clean();
-erp_fasttab_close();
-?>
+	</div>
+	<div class="ef-body">
+		<table class="ef-grid">
+			<thead><tr>
+				<th>No.</th><th>Repair #</th><th>Customer</th><th>Phone</th>
+				<th>Item</th><th>Metal</th><th>Karat</th>
+				<th style="text-align:right">Wt In (g)</th><th>Repair Type</th>
+				<th style="text-align:right">Est. Cost</th><th>Status</th><th>Actions</th>
+			</tr></thead>
+			<tbody>
+			<?php if (empty($repairs)): ?>
+				<tr><td colspan="12" style="text-align:center;color:#999">No repair jobs yet</td></tr>
+			<?php else: $n=1; foreach ($repairs as $rp):
+				$stCol = $statusColors[$rp['status']] ?? '#666';
+			?>
+				<tr>
+					<td><?php echo $n++; ?></td>
+					<td><strong><?php echo epc_erp_h($rp['repair_no']); ?></strong></td>
+					<td><?php echo epc_erp_h($rp['customer_name']); ?></td>
+					<td><?php echo epc_erp_h($rp['customer_phone']); ?></td>
+					<td><?php echo epc_erp_h($rp['item_description']); ?></td>
+					<td><?php echo epc_erp_h($rp['metal_type']); ?></td>
+					<td><?php echo epc_erp_h($rp['karat']); ?></td>
+					<td style="text-align:right"><?php echo number_format((float)$rp['gross_wt_in'], 3); ?></td>
+					<td><?php echo epc_erp_h($rp['repair_type']); ?></td>
+					<td style="text-align:right"><?php echo epc_erp_money($rp['estimated_cost']); ?></td>
+					<td><span style="display:inline-block;padding:1px 8px;border-radius:3px;font-size:10px;font-weight:600;background:<?php echo $stCol; ?>;color:#fff"><?php echo ucfirst(str_replace('_',' ',$rp['status'])); ?></span></td>
+					<td>
+						<?php if ($rp['status'] === 'received'): ?>
+						<form class="jw-repair-status" style="display:inline"><input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+							<input type="hidden" name="repair_id" value="<?php echo (int)$rp['id']; ?>"><input type="hidden" name="new_status" value="in_progress">
+							<button type="submit" class="btn btn-xs btn-warning">Start</button></form>
+						<?php elseif ($rp['status'] === 'in_progress'): ?>
+						<form class="jw-repair-status" style="display:inline"><input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+							<input type="hidden" name="repair_id" value="<?php echo (int)$rp['id']; ?>"><input type="hidden" name="new_status" value="ready">
+							<button type="submit" class="btn btn-xs btn-success">Mark ready</button></form>
+						<?php elseif ($rp['status'] === 'ready'): ?>
+						<form class="jw-repair-status" style="display:inline"><input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+							<input type="hidden" name="repair_id" value="<?php echo (int)$rp['id']; ?>"><input type="hidden" name="new_status" value="delivered">
+							<button type="submit" class="btn btn-xs btn-primary">Deliver</button></form>
+						<?php endif; ?>
+					</td>
+				</tr>
+			<?php endforeach; endif; ?>
+			</tbody>
+		</table>
+
+		<div id="jw_repair_form_box" style="display:none;margin-top:12px;">
+			<div class="ef-section">
+				<span class="ef-section-title">New Repair Receipt</span>
+				<form id="jw_repair_form">
+					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+					<div class="ef-row">
+						<div class="ef-field ef-field-wide"><label>Customer Name</label><input name="customer_name" required></div>
+						<div class="ef-field"><label>Phone</label><input name="customer_phone"></div>
+					</div>
+					<div class="ef-row">
+						<div class="ef-field ef-field-wide"><label>Item Description</label><input name="item_description" required></div>
+						<div class="ef-field"><label>Metal</label>
+							<select name="metal_type"><option value="Gold">Gold</option><option value="Silver">Silver</option><option value="Platinum">Platinum</option></select>
+						</div>
+						<div class="ef-field"><label>Karat</label><input name="karat" placeholder="22K" style="width:60px"></div>
+					</div>
+					<div class="ef-row">
+						<div class="ef-field"><label>Gross Wt (g)</label><input name="gross_wt_in" type="number" step="0.001" value="0.000"></div>
+						<div class="ef-field"><label>Net Wt (g)</label><input name="net_wt_in" type="number" step="0.001" value="0.000"></div>
+						<div class="ef-field"><label>Repair Type</label>
+							<select name="repair_type">
+								<option value="Ring Resize">Ring Resize</option><option value="Clasp Repair">Clasp Repair</option>
+								<option value="Stone Setting">Stone Setting</option><option value="Polish & Clean">Polish &amp; Clean</option>
+								<option value="Chain Repair">Chain Repair</option><option value="Engraving">Engraving</option>
+								<option value="Rhodium Plating">Rhodium Plating</option><option value="Other">Other</option>
+							</select>
+						</div>
+					</div>
+					<div class="ef-row">
+						<div class="ef-field"><label>Est. Cost (AED)</label><input name="estimated_cost" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field ef-field-wide"><label>Stone Details</label><input name="stone_details"></div>
+					</div>
+					<div class="ef-actions">
+						<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Create</button>
+						<button type="button" class="btn btn-default btn-sm" onclick="document.getElementById('jw_repair_form_box').style.display='none'">Cancel</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="ef-status">
+		<span>Mode:=VIEW</span>
+		<span>Total repairs: <?php echo count($repairs); ?></span>
+	</div>
+</div>
 <script>
 (function(){
+	var ajaxUrl = <?php echo json_encode($erpAjaxEndpoint); ?>;
 	document.querySelectorAll('.jw-repair-status').forEach(function(f){
 		f.addEventListener('submit',function(e){
 			e.preventDefault();
 			var fd = new FormData(f);
 			fd.append('action','jw_repair_update_status');
-			fetch(<?php echo json_encode($erpAjaxEndpoint); ?>,{method:'POST',body:fd,credentials:'same-origin'})
+			fetch(ajaxUrl,{method:'POST',body:fd,credentials:'same-origin'})
 				.then(function(r){return r.json()})
-				.then(function(j){if(typeof showMsg==='function')showMsg(!!j.status,j.message);if(j.status)setTimeout(function(){location.reload()},600)});
+				.then(function(j){if(j.status)setTimeout(function(){location.reload()},400)});
 		});
 	});
 	var rf=document.getElementById('jw_repair_form');
@@ -157,9 +168,9 @@ erp_fasttab_close();
 		e.preventDefault();
 		var fd=new FormData(rf);
 		fd.append('action','jw_repair_create');
-		fetch(<?php echo json_encode($erpAjaxEndpoint); ?>,{method:'POST',body:fd,credentials:'same-origin'})
+		fetch(ajaxUrl,{method:'POST',body:fd,credentials:'same-origin'})
 			.then(function(r){return r.json()})
-			.then(function(j){if(typeof showMsg==='function')showMsg(!!j.status,j.message);if(j.status)setTimeout(function(){location.reload()},600)});
+			.then(function(j){if(j.status)setTimeout(function(){location.reload()},400)});
 	});
 })();
 </script>

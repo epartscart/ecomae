@@ -391,6 +391,145 @@ $erpTabIncludes = array(
 .epc-erp-fav-unstar { opacity:.7; }
 .epc-erp-fav-unstar:hover { opacity:1; }
 .epc-erp-sidebar-item { position:relative; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Suntech ef-window global override — applies the professional blue
+   gradient box/grid/toolbar style to ALL ERP tabs (not just jewellery).
+   Matches the Suntech jewellery screenshot aesthetic system-wide.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ef-window core (loaded globally so all tabs can use it) */
+.ef-window{border:1px solid #8faabc;border-radius:3px;background:#f0f4f7;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.ef-title{background:linear-gradient(180deg,#6b8fa3 0%,#4a7a8f 100%);color:#fff;font-size:13px;font-weight:600;padding:5px 12px;border-bottom:1px solid #3d6a7d;letter-spacing:.3px}
+.ef-toolbar{background:#d8e4ec;padding:4px 8px;border-bottom:1px solid #b8c8d4;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.ef-toolbar .btn{padding:2px 8px;font-size:11px}
+.ef-body{padding:10px 12px}
+.ef-section{border:1px solid #a8bcc8;border-radius:3px;padding:10px 12px;margin-bottom:10px;background:#fff;position:relative}
+.ef-section-title{position:absolute;top:-9px;left:10px;background:#f0f4f7;padding:0 6px;font-size:11px;font-weight:600;color:#4a6a7a}
+.ef-row{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:6px;align-items:center}
+.ef-field{display:flex;align-items:center;gap:4px;font-size:12px}
+.ef-field label{font-weight:600;color:#2c4a5a;white-space:nowrap;margin:0;min-width:auto;font-size:11px}
+.ef-field input,.ef-field select,.ef-field textarea{border:1px solid #8fb8cc;background:#eaf6fb;padding:2px 6px;font-size:12px;border-radius:2px;min-width:80px}
+.ef-field input:focus,.ef-field select:focus{background:#fff;border-color:#3498db;outline:none}
+.ef-field input[type="checkbox"]{min-width:auto;width:14px;height:14px}
+.ef-field-wide input,.ef-field-wide select{min-width:180px}
+.ef-grid{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0}
+.ef-grid th{background:#c8dce6;color:#2c4a5a;font-weight:600;padding:4px 6px;border:1px solid #a8c0cc;text-align:left;font-size:11px;white-space:nowrap}
+.ef-grid td{padding:3px 6px;border:1px solid #c8d8e0;background:#fff}
+.ef-grid td input,.ef-grid td select{border:1px solid #b8d0dc;background:#eaf6fb;padding:1px 4px;font-size:11px;width:100%;box-sizing:border-box}
+.ef-grid tbody tr:hover td{background:#f0f8ff}
+.ef-grid tfoot td{background:#e0ecf2;font-weight:600}
+.ef-totals{display:flex;flex-wrap:wrap;gap:4px 0;justify-content:flex-end;margin-top:8px}
+.ef-actions{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}
+.ef-actions .btn{font-size:12px;padding:4px 14px}
+.ef-status{background:#e0ecf2;border-top:1px solid #b8c8d4;padding:3px 12px;font-size:11px;color:#4a6a7a;display:flex;justify-content:space-between}
+.ef-tabs{margin-top:8px}
+.ef-tab{background:#d8e4ec;border:1px solid #b8c8d4;padding:3px 12px;font-size:11px;font-weight:600;color:#4a6a7a;cursor:pointer;border-bottom:none}
+.ef-tab.active{background:#fff;color:#2c4a5a;border-bottom:1px solid #fff}
+.ef-tab-pane{border:1px solid #b8c8d4;padding:10px 12px;background:#fff;margin-top:-1px}
+.ef-price-matrix{border-collapse:collapse;font-size:11px}
+.ef-price-matrix th,.ef-price-matrix td{border:1px solid #a8c0cc;padding:2px 6px}
+.ef-price-matrix th{background:#c8dce6;font-weight:600}
+.ef-narration{width:100%;min-height:50px;border:1px solid #a8bcc8;background:#fff;padding:4px 6px;font-size:12px;resize:vertical}
+.ef-image-box{border:1px solid #a8bcc8;background:#f8f8f8;width:100px;height:80px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999}
+@media(max-width:768px){.ef-row{flex-direction:column;gap:4px}.ef-field{flex-direction:column;align-items:flex-start}}
+
+/* ── Restyle D365 elements to Suntech look ── */
+
+/* Hero → Suntech title bar style */
+.epc-erp-hero{background:linear-gradient(180deg,#6b8fa3 0%,#4a7a8f 100%);color:#fff;padding:8px 14px;border:1px solid #3d6a7d;border-radius:3px 3px 0 0;margin-bottom:0}
+.epc-erp-hero h3{color:#fff;font-size:14px;font-weight:600;margin:0 0 2px;letter-spacing:.3px}
+.epc-erp-hero p{color:rgba(255,255,255,.85);font-size:11px;margin:0}
+.epc-erp-hero p strong{color:#fff}
+
+/* KPI cards → Suntech bordered stat boxes */
+.epc-erp-kpi{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding:8px 0}
+.epc-erp-kpi .kpi{flex:1;min-width:120px;padding:8px 12px;background:#f0f4f7;border:1px solid #8faabc;border-radius:3px;text-align:center}
+.epc-erp-kpi .kpi .lbl{font-size:10px;font-weight:600;color:#4a6a7a;text-transform:uppercase;letter-spacing:.04em}
+.epc-erp-kpi .kpi .val{font-size:18px;font-weight:700;color:#2c4a5a;margin:2px 0}
+.epc-erp-kpi .kpi .val.green{color:#2e7d32}
+.epc-erp-kpi .kpi .hint{font-size:10px;color:#6a8a9a}
+
+/* Section cards → Suntech bordered sections */
+.epc-erp-section-card{border:1px solid #8faabc;border-radius:3px;margin-bottom:14px;background:#f0f4f7;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.epc-erp-section-card-hd{background:linear-gradient(180deg,#6b8fa3 0%,#4a7a8f 100%);padding:5px 12px;border-bottom:1px solid #3d6a7d}
+.epc-erp-section-card-hd h4{color:#fff;font-size:13px;font-weight:600;margin:0;letter-spacing:.3px}
+.epc-erp-section-card-bd{padding:10px 12px;background:#fff}
+
+/* Tables → Suntech grid style */
+.epc-erp-shell .table,.epc-erp-table,.table-epc{border-collapse:collapse;font-size:11px}
+.epc-erp-shell .table>thead>tr>th,.epc-erp-table>thead>tr>th,.table-epc>thead>tr>th{background:#c8dce6;color:#2c4a5a;font-weight:600;padding:4px 6px;border:1px solid #a8c0cc;font-size:11px;white-space:nowrap}
+.epc-erp-shell .table>tbody>tr>td,.epc-erp-table>tbody>tr>td,.table-epc>tbody>tr>td{padding:3px 6px;border:1px solid #c8d8e0;background:#fff}
+.epc-erp-shell .table>tbody>tr:hover>td,.epc-erp-table>tbody>tr:hover>td,.table-epc>tbody>tr:hover>td{background:#f0f8ff}
+.epc-erp-shell .table>tfoot>tr>td,.epc-erp-table>tfoot>tr>td,.table-epc>tfoot>tr>td{background:#e0ecf2;font-weight:600;border:1px solid #a8c0cc}
+.epc-d365-sumrow td{background:#e0ecf2!important;font-weight:600}
+
+/* Action Pane ribbon → Suntech toolbar style */
+.epc-d365-ribbon{background:#d8e4ec;border:1px solid #b8c8d4;border-radius:3px;margin-bottom:12px;overflow:hidden}
+.epc-d365-aptabs{background:linear-gradient(180deg,#6b8fa3 0%,#4a7a8f 100%);display:flex;flex-wrap:wrap;padding:0;border-bottom:1px solid #3d6a7d}
+.epc-d365-aptab{color:rgba(255,255,255,.8);font-size:12px;font-weight:600;padding:5px 14px;border:none;background:transparent;cursor:pointer}
+.epc-d365-aptab.is-active{color:#fff;background:rgba(255,255,255,.15);border-bottom:2px solid #fff}
+.epc-d365-aptab:hover{color:#fff;background:rgba(255,255,255,.1)}
+.epc-d365-ap-row{display:none;padding:4px 8px}
+.epc-d365-ap-row.is-active{display:block}
+.epc-d365-actionpane{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.epc-d365-ap-group{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-right:1px solid #b8c8d4}
+.epc-d365-ap-group:last-child{border-right:none}
+.epc-d365-ap-buttons{display:flex;gap:3px;flex-wrap:wrap}
+.epc-d365-ap-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 8px;border:1px solid transparent;border-radius:2px;font-size:10px;color:#2c4a5a;cursor:pointer;text-decoration:none;background:transparent;min-width:44px;text-align:center}
+.epc-d365-ap-btn .fa{font-size:16px;color:#4a7a8f}
+.epc-d365-ap-btn:hover{background:#eaf6fb;border-color:#8fb8cc}
+.epc-d365-ap-btn.is-primary{background:#eaf6fb;border-color:#8fb8cc}
+.epc-d365-ap-btn.is-primary .fa{color:#2c4a5a}
+.epc-d365-ap-btn.is-disabled{opacity:.45;cursor:default}
+.epc-d365-ap-label{font-size:9px;font-weight:600;color:#6a8a9a;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+
+/* FastTabs → Suntech bordered sections */
+.epc-d365-fasttab{border:1px solid #a8bcc8;border-radius:3px;margin-bottom:10px;background:#fff}
+.epc-d365-ft-hd{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;background:#d8e4ec;border-bottom:1px solid #b8c8d4}
+.epc-d365-ft-hd:hover{background:#c8dce6}
+.epc-d365-fasttab.is-open>.epc-d365-ft-hd{background:linear-gradient(180deg,#6b8fa3 0%,#4a7a8f 100%);color:#fff;border-bottom:1px solid #3d6a7d}
+.epc-d365-fasttab.is-open>.epc-d365-ft-hd .epc-d365-ft-title,.epc-d365-fasttab.is-open>.epc-d365-ft-hd .fa{color:#fff}
+.epc-d365-fasttab.is-open>.epc-d365-ft-hd .epc-d365-ft-summary{color:rgba(255,255,255,.7)}
+.epc-d365-fasttab.is-open>.epc-d365-ft-hd .epc-d365-ft-caret{color:#fff}
+.epc-d365-ft-title{font-size:12px;font-weight:600;color:#2c4a5a}
+.epc-d365-ft-title .fa{color:#4a7a8f;margin-right:4px}
+.epc-d365-ft-caret{font-size:10px;color:#6a8a9a}
+.epc-d365-ft-summary{font-size:10px;color:#6a8a9a;margin-left:auto}
+.epc-d365-ft-bd{display:none;padding:10px 12px;border-top:none}
+.epc-d365-fasttab.is-open>.epc-d365-ft-bd{display:block}
+
+/* Filter bar → Suntech toolbar style */
+.epc-erp-filter-bar{background:#d8e4ec;border:1px solid #b8c8d4;border-radius:3px;padding:6px 10px;margin-bottom:12px}
+.epc-erp-filter-bar label{font-size:11px;font-weight:600;color:#4a6a7a;margin:0 4px}
+.epc-erp-filter-bar .form-control{border:1px solid #8fb8cc;background:#eaf6fb;font-size:11px;padding:2px 6px;border-radius:2px}
+.epc-erp-filter-bar .btn{font-size:11px;padding:2px 8px}
+
+/* List toolbar → Suntech style */
+.epc-d365-listtoolbar{background:#d8e4ec;border:1px solid #b8c8d4;border-radius:3px;padding:4px 8px;margin-bottom:8px}
+
+/* Tab strips → Suntech tab style */
+.epc-d365-tabstrip{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid #b8c8d4;margin-bottom:0}
+.epc-d365-tab{padding:4px 14px;font-size:12px;font-weight:600;color:#4a6a7a;background:#d8e4ec;border:1px solid #b8c8d4;border-bottom:none;cursor:pointer;text-decoration:none;border-radius:3px 3px 0 0;margin-right:2px}
+.epc-d365-tab.is-active{background:#fff;color:#2c4a5a;border-bottom:1px solid #fff;margin-bottom:-1px}
+.epc-d365-tab:hover{background:#c8dce6;color:#2c4a5a}
+.epc-d365-tabpanel{display:none;border:1px solid #b8c8d4;border-top:none;padding:10px 12px;background:#fff}
+.epc-d365-tabpanel.is-active{display:block}
+
+/* Form inputs within ERP → Suntech light blue inputs */
+.epc-erp-shell .form-control{border:1px solid #8fb8cc;background:#eaf6fb;font-size:12px;border-radius:2px}
+.epc-erp-shell .form-control:focus{background:#fff;border-color:#3498db;box-shadow:none}
+
+/* Status dots / pills → cleaner with Suntech palette */
+.epc-d365-statcol{width:6px;padding:0 4px!important}
+
+/* Empty state → Suntech bordered */
+.epc-erp-empty{background:#f0f4f7;border:1px solid #a8bcc8;border-radius:3px;color:#6a8a9a}
+
+/* Page header → tighter Suntech spacing */
+.epc-erp-page-hd{margin-bottom:10px}
+.epc-erp-page-title{font-size:16px;color:#2c4a5a}
+.epc-erp-page-sub{font-size:11px;color:#6a8a9a}
 </style>
 <?php
 if (!$epc_erp_shell_mode) {
@@ -1148,4 +1287,7 @@ if (is_file($epcErpNavJsFile)) {
 } elseif (function_exists('epc_erp_shell_nav_script_tag')) {
 	echo epc_erp_shell_nav_script_tag();
 }
+
+// AI Voice Command Widget — floating mic button on every ERP page
+include __DIR__ . '/erp_voice_command.php';
 ?>
