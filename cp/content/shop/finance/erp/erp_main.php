@@ -363,6 +363,10 @@ $erpTabIncludes = array(
 	'jw_petty_cash' => 'erp_tabs_jw_petty_cash.php',
 	'jw_journal_voucher' => 'erp_tabs_jw_journal_voucher.php',
 	'jw_tourist_vat' => 'erp_tabs_jw_tourist_vat.php',
+	// Jewellery integrated tabs (cross-module)
+	'jw_trial_balance' => 'erp_tabs_jw_trial_balance.php',
+	'jw_repairs' => 'erp_tabs_jw_repairs.php',
+	'jw_seed_data' => 'erp_tabs_jw_seed_data.php',
 );
 
 ?>
@@ -374,6 +378,19 @@ $erpTabIncludes = array(
 <?php endif; ?>
 <style>
 .epc-erp-msg { display:none; margin:10px 0; }
+/* Favourites section */
+.epc-erp-sidebar-favourites { border-bottom:1px solid rgba(120,160,220,0.15); margin-bottom:4px; padding-bottom:4px; }
+.epc-erp-sidebar-fav-head { padding:8px 14px 4px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#f59e0b; display:flex; align-items:center; gap:6px; }
+.epc-erp-sidebar-fav-list { list-style:none; margin:0; padding:0; }
+.epc-erp-sidebar-fav-list .epc-erp-sidebar-item { position:relative; }
+.epc-erp-sidebar-fav-list .epc-erp-sidebar-item a { padding:5px 14px 5px 30px; }
+/* Star buttons */
+.epc-erp-fav-star, .epc-erp-fav-unstar { background:none; border:none; cursor:pointer; position:absolute; right:6px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity .2s; font-size:12px; padding:2px 4px; color:#8aa0c4; }
+.epc-erp-sidebar-item:hover .epc-erp-fav-star { opacity:.6; }
+.epc-erp-fav-star:hover { opacity:1!important; color:#f59e0b; }
+.epc-erp-fav-unstar { opacity:.7; }
+.epc-erp-fav-unstar:hover { opacity:1; }
+.epc-erp-sidebar-item { position:relative; }
 </style>
 <?php
 if (!$epc_erp_shell_mode) {
@@ -1084,6 +1101,38 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 	// receipt/payment voucher settlement grids) can call the same endpoint.
 	window.epcErpPostUrl = erpPostUrl;
 	window.epcErpPost = postAction;
+
+	// Favourites: star/unstar handlers
+	document.querySelectorAll('.epc-erp-fav-star').forEach(function(btn){
+		btn.addEventListener('click', function(e){
+			e.preventDefault(); e.stopPropagation();
+			var tab = this.getAttribute('data-tab');
+			var area = this.getAttribute('data-area');
+			var fd = new FormData();
+			fd.append('action', 'erp_fav_add');
+			fd.append('tab_key', tab);
+			fd.append('area_key', area);
+			var csrf = document.querySelector('input[name="csrf_guard_key"]');
+			if (csrf) fd.append('csrf_guard_key', csrf.value);
+			fetch(erpPostUrl, {method:'POST', body:fd, credentials:'same-origin'})
+				.then(function(r){return r.json()})
+				.then(function(j){ if(j.status) location.reload(); });
+		});
+	});
+	document.querySelectorAll('.epc-erp-fav-unstar').forEach(function(btn){
+		btn.addEventListener('click', function(e){
+			e.preventDefault(); e.stopPropagation();
+			var tab = this.getAttribute('data-tab');
+			var fd = new FormData();
+			fd.append('action', 'erp_fav_remove');
+			fd.append('tab_key', tab);
+			var csrf = document.querySelector('input[name="csrf_guard_key"]');
+			if (csrf) fd.append('csrf_guard_key', csrf.value);
+			fetch(erpPostUrl, {method:'POST', body:fd, credentials:'same-origin'})
+				.then(function(r){return r.json()})
+				.then(function(j){ if(j.status) location.reload(); });
+		});
+	});
 })();
 </script>
 <?php

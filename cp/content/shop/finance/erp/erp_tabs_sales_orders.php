@@ -2,6 +2,9 @@
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+epc_jw_ensure_integration_schema($db_link);
+$epcJwMode = epc_jw_is_jewellery_tenant($db_link);
 if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_countries.php')) {
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_countries.php';
 }
@@ -82,7 +85,7 @@ if ($erpOnly) {
 	if (empty($orders)) {
 		erp_empty_state('No sales orders yet. Create a draft SO below.');
 	} else {
-		erp_table_open(array(
+		$epcSoCols = array(
 			array('label' => '', 'class' => 'epc-d365-statcol'),
 			array('label' => 'SO #', 'sort' => 'text'),
 			array('label' => 'Date', 'sort' => 'text'),
@@ -90,10 +93,15 @@ if ($erpOnly) {
 			array('label' => 'Title', 'sort' => 'text'),
 			array('label' => 'Total incl. VAT', 'sort' => 'num', 'class' => 'num'),
 			'Dimensions',
-			array('label' => 'Status', 'sort' => 'text'),
-			'Invoice',
-			'Actions',
-		), 'table table-bordered table-condensed table-epc epc-erp-table', 'epc_erp_so_tbl');
+		);
+		if ($epcJwMode) {
+			$epcSoCols[] = array('label' => 'Karat');
+			$epcSoCols[] = array('label' => 'Weight (g)', 'class' => 'num');
+		}
+		$epcSoCols[] = array('label' => 'Status', 'sort' => 'text');
+		$epcSoCols[] = 'Invoice';
+		$epcSoCols[] = 'Actions';
+		erp_table_open($epcSoCols, 'table table-bordered table-condensed table-epc epc-erp-table', 'epc_erp_so_tbl');
 		$epcSoSum = 0.0;
 		foreach ($orders as $r) {
 			$epcSoSum += (float) $r['total_amount'];
@@ -114,6 +122,16 @@ if ($erpOnly) {
 			echo '<td>' . epc_erp_h($r['title']) . '</td>';
 			echo '<td class="num">' . epc_erp_money($r['total_amount']) . '</td>';
 			echo '<td>' . epc_erp_dim_badges($db_link, 'sales_order', (int) $r['id']) . '</td>';
+		if ($epcJwMode) {
+			// Show jewellery weight data from sales order lines
+			try {
+				$jwSoLine = $db_link->prepare('SELECT SUM(jw_weight_gm) AS wt, MAX(jw_karat) AS karat FROM epc_erp_sales_order_lines WHERE order_id = ?');
+				$jwSoLine->execute(array((int)$r['id']));
+				$jwSoRow = $jwSoLine->fetch(PDO::FETCH_ASSOC) ?: array();
+			} catch (Throwable $e) { $jwSoRow = array(); }
+			echo '<td>' . epc_erp_h($jwSoRow['karat'] ?? '') . '</td>';
+			echo '<td class="num">' . epc_erp_h(number_format((float)($jwSoRow['wt'] ?? 0), 3)) . '</td>';
+		}
 			echo '<td>' . erp_status_pill($r['status']) . '</td>';
 			echo '<td>' . epc_erp_h($r['invoice_no'] ?: '—') . '</td><td class="epc-erp-form-inline">';
 			if (in_array($r['status'], array('draft', 'confirmed'), true)) {
@@ -171,6 +189,7 @@ if ($erpOnly) {
 			<input name="line_unit[]" type="number" step="0.01" class="form-control input-sm" placeholder="Unit AED" required>
 		</div></div>
 		<?php echo epc_erp_dim_render_fields($db_link); ?>
+		<?php echo epc_jw_sales_order_line_fields_html($db_link); ?>
 		<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft SO</button></div></div>
 	</form>
 	<?php
