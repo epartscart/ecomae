@@ -325,6 +325,44 @@ $erpTabIncludes = array(
 	// Tax depth
 	'withholding' => 'erp_tabs_withholding.php',
 	'elec_reporting' => 'erp_tabs_elec_reporting.php',
+	// Jewellery ERP — master data
+	'jewellery' => 'erp_tabs_jewellery.php',
+	'jw_karat' => 'erp_tabs_jw_karat.php',
+	'jw_rate_type' => 'erp_tabs_jw_rate_type.php',
+	'jw_currency' => 'erp_tabs_jw_currency.php',
+	'jw_metal_stock' => 'erp_tabs_jw_metal_stock.php',
+	'jw_design' => 'erp_tabs_jw_design.php',
+	'jw_diamond' => 'erp_tabs_jw_diamond.php',
+	'jw_pearl' => 'erp_tabs_jw_pearl.php',
+	'jw_color_stone' => 'erp_tabs_jw_color_stone.php',
+	// Jewellery ERP — purchase
+	'jw_metal_purchase' => 'erp_tabs_jw_metal_purchase.php',
+	'jw_diamond_purchase' => 'erp_tabs_jw_diamond_purchase.php',
+	'jw_purchase_fixing' => 'erp_tabs_jw_purchase_fixing.php',
+	'jw_purchase_window' => 'erp_tabs_jw_purchase_window.php',
+	// Jewellery ERP — sales
+	'jw_retail_sales' => 'erp_tabs_jw_retail_sales.php',
+	'jw_metal_sales' => 'erp_tabs_jw_metal_sales.php',
+	'jw_sales_fixing' => 'erp_tabs_jw_sales_fixing.php',
+	'jw_sales_return' => 'erp_tabs_jw_sales_return.php',
+	'jw_pos_advance' => 'erp_tabs_jw_pos_advance.php',
+	// Jewellery ERP — repair & workshop
+	'jw_repair_receipt' => 'erp_tabs_jw_repair_receipt.php',
+	'jw_repair_transfer' => 'erp_tabs_jw_repair_transfer.php',
+	'jw_workshop_receive' => 'erp_tabs_jw_workshop_receive.php',
+	'jw_repair_delivery' => 'erp_tabs_jw_repair_delivery.php',
+	'jw_repair_sale' => 'erp_tabs_jw_repair_sale.php',
+	'jw_repair_register' => 'erp_tabs_jw_repair_register.php',
+	'jw_repair_search' => 'erp_tabs_jw_repair_search.php',
+	// Jewellery ERP — stock & analysis
+	'jw_stock_verification' => 'erp_tabs_jw_stock_verification.php',
+	'jw_stock_balance' => 'erp_tabs_jw_stock_balance.php',
+	'jw_sales_analysis' => 'erp_tabs_jw_sales_analysis.php',
+	'jw_barcode' => 'erp_tabs_jw_barcode.php',
+	// Jewellery ERP — finance
+	'jw_petty_cash' => 'erp_tabs_jw_petty_cash.php',
+	'jw_journal_voucher' => 'erp_tabs_jw_journal_voucher.php',
+	'jw_tourist_vat' => 'erp_tabs_jw_tourist_vat.php',
 );
 
 ?>
