@@ -2,6 +2,10 @@
 /**
  * Jewellery Sample Data Seeder — Suntech ef-window style.
  * Populates comprehensive test data across all existing ERP modules for a jewellery tenant.
+ *
+ * NOTE: All interactive JS lives in /cp/js/epc_erp_seed_form.js (loaded via
+ * erp_desktop.php <head>).  The CP shell strips ALL <script> tags from
+ * erp_main.php output, so we pass config values via data-* attributes.
  */
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
@@ -11,18 +15,19 @@ epc_jw_ensure_integration_schema($db_link);
 
 $csrfLocal = isset($csrf) ? $csrf : '';
 $erpAjaxEndpoint = isset($erpAjaxUrl) ? $erpAjaxUrl : '';
+$dashboardUrl = epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str);
 
 erp_page_header(
 	'<i class="fa fa-database"></i> Jewellery sample data',
 	'Seed comprehensive test data across Inventory, Purchase, Sales, Repairs, and GL for the jewellery industry.',
 	array(
-		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
+		array('label' => 'ERP', 'url' => $dashboardUrl),
 		array('label' => 'System administration'),
 		array('label' => 'Sample data'),
 	)
 );
 ?>
-<div class="ef-window">
+<div class="ef-window" data-seed-endpoint="<?php echo epc_erp_h($erpAjaxEndpoint); ?>" data-dashboard-url="<?php echo epc_erp_h($dashboardUrl); ?>">
 	<div class="ef-title"><i class="fa fa-database"></i> Jewellery Sample Data Seeder</div>
 	<div class="ef-toolbar">
 		<button class="btn btn-default btn-xs" onclick="window.location.reload()"><i class="fa fa-refresh"></i> Refresh</button>
@@ -43,9 +48,10 @@ erp_page_header(
 					<tr><td><strong>Sales Orders</strong></td><td>5</td><td>With weight sold + making charges + stone values</td></tr>
 					<tr><td><strong>Repair Jobs</strong></td><td>3</td><td>Ring resize, chain repair, stone setting</td></tr>
 					<tr><td><strong>GL Entries</strong></td><td>7</td><td>Opening balances for dual trial balance (weight + value)</td></tr>
+					<tr><td><strong>Compliance</strong></td><td>~10</td><td>VAT filing, CT filing, AML/CFT obligations, DPMS reporting (country-driven)</td></tr>
 				</tbody>
 				<tfoot>
-					<tr><td colspan="2"><strong>Total</strong></td><td>48 records across 8 modules</td></tr>
+					<tr><td colspan="2"><strong>Total</strong></td><td>58+ records across 9 modules (compliance count varies by country)</td></tr>
 				</tfoot>
 			</table>
 		</div>
@@ -70,47 +76,3 @@ erp_page_header(
 		<span>Industry: Jewellery</span>
 	</div>
 </div>
-<script>
-document.getElementById('jw_seed_form').addEventListener('submit', function(e){
-	e.preventDefault();
-	var btn = this.querySelector('button');
-	btn.disabled = true;
-	btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Seeding...';
-	var fd = new FormData(this);
-	fd.append('action', 'jw_seed_sample_data');
-	fetch(<?php echo json_encode($erpAjaxEndpoint); ?>, {method:'POST', body:fd, credentials:'same-origin'})
-		.then(function(r){return r.json()})
-		.then(function(j){
-			var out = document.getElementById('jw_seed_result');
-			out.style.display = 'block';
-			btn.disabled = false;
-			btn.innerHTML = '<i class="fa fa-magic"></i> Seed sample data now';
-			if(j.status){
-				var d = j.seeded || {};
-				var errHtml = '';
-				if (d.errors && d.errors.length > 0) {
-					errHtml = '<br><div style="margin-top:6px;color:#c62828;font-size:11px"><strong>Errors:</strong><ul style="margin:2px 0 0 16px">';
-					d.errors.forEach(function(e){ errHtml += '<li>' + e + '</li>'; });
-					errHtml += '</ul></div>';
-				}
-				out.innerHTML = '<div style="background:#e8f5e9;border:1px solid #a5d6a7;padding:10px 14px;border-radius:3px;font-size:12px">'
-					+ '<strong><i class="fa fa-check-circle" style="color:#2e7d32"></i> Sample data seeded successfully!</strong><br>'
-					+ 'Warehouses: <strong>' + (d.warehouses||0) + '</strong> | '
-					+ 'Items: <strong>' + (d.items||0) + '</strong> | '
-					+ 'Suppliers: <strong>' + (d.suppliers||0) + '</strong> | '
-					+ 'Customers: <strong>' + (d.customers||0) + '</strong> | '
-					+ 'Purchases: <strong>' + (d.purchases||0) + '</strong> | '
-					+ 'Sales: <strong>' + (d.sales||0) + '</strong> | '
-					+ 'Repairs: <strong>' + (d.repairs||0) + '</strong> | '
-					+ 'GL: <strong>' + (d.gl_entries||0) + '</strong>'
-					+ errHtml
-					+ '<br><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)); ?>" style="color:#1565c0;font-weight:600">Go to Dashboard &rarr;</a>'
-					+ '</div>';
-			} else {
-				out.innerHTML = '<div style="background:#ffebee;border:1px solid #ef9a9a;padding:10px 14px;border-radius:3px;font-size:12px;color:#c62828">'
-					+ '<strong><i class="fa fa-exclamation-circle"></i> Error:</strong> ' + (j.message||'Failed to seed data')
-					+ '</div>';
-			}
-		});
-});
-</script>

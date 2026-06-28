@@ -368,6 +368,9 @@ $erpTabIncludes = array(
 	'jw_repairs' => 'erp_tabs_jw_repairs.php',
 	'jw_seed_data' => 'erp_tabs_jw_seed_data.php',
 	'ai_assistant' => 'erp_tabs_ai_assistant.php',
+	'tenant_config' => 'erp_tabs_tenant_config.php',
+	'print_designer' => 'erp_tabs_print_designer.php',
+	'workflow_automation' => 'erp_tabs_workflow_automation.php',
 );
 
 ?>
