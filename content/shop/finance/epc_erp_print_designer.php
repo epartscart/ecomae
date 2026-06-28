@@ -16,7 +16,6 @@
  * The renderer (epc_erp_print_render) reads the active template + document
  * data and produces an HTML/CSS page ready for window.print().
  */
-declare(strict_types=1);
 defined('_ASTEXE_') or die('No access');
 
 require_once __DIR__ . '/epc_erp_helpers.php';

@@ -6,8 +6,12 @@ defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_print_designer.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
-epc_erp_print_designer_ensure_schema($db_link);
-epc_erp_print_designer_seed_defaults($db_link);
+try {
+	epc_erp_print_designer_ensure_schema($db_link);
+	epc_erp_print_designer_seed_defaults($db_link);
+} catch (Throwable $e) {
+	// Schema creation may fail on first run — continue with empty list
+}
 
 $pdAction = isset($_GET['pd_action']) ? (string)$_GET['pd_action'] : 'list';
 $pdId = isset($_GET['pd_id']) ? (int)$_GET['pd_id'] : 0;
@@ -175,7 +179,12 @@ if ($pdAction === 'edit'):
 </div>
 
 <?php else: // list view
-	$templates = epc_erp_print_templates_list($db_link, $pdDocType);
+	$templates = array();
+	try {
+		$templates = epc_erp_print_templates_list($db_link, $pdDocType);
+	} catch (Throwable $e) {
+		// Table may not exist yet
+	}
 	$grouped = array();
 	foreach ($templates as $t) {
 		$grouped[$t['doc_type']][] = $t;
