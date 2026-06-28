@@ -10,7 +10,11 @@ defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_workflow_builder.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
-epc_workflow_ensure_schema($db_link);
+try {
+	epc_workflow_ensure_schema($db_link);
+} catch (Throwable $e) {
+	// Schema creation may fail on first run — continue with empty list
+}
 
 $wfAction = isset($_GET['wf_action']) ? (string)$_GET['wf_action'] : 'list';
 $wfId = isset($_GET['wf_id']) ? (int)$_GET['wf_id'] : 0;
