@@ -85,6 +85,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 	?>
 	<?php echo epc_erp_sidebar_early_init_script(); ?>
 	<?php echo epc_erp_shell_nav_script_tag(); ?>
+	<?php if (function_exists('epc_erp_voice_command_js_script_tag')) { echo epc_erp_voice_command_js_script_tag(); } ?>
 	<?php epc_ecomae_hub_logo_enqueue(); ?>
 	<docpart type="head" name="head" />
 </head>
