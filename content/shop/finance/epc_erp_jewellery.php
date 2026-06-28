@@ -1420,18 +1420,22 @@ function epc_jewel_handle_ajax(PDO $db, $action, array $post, $companyId)
 
 function epc_jewel_color_stone_save(PDO $db, array $p, $companyId)
 {
-    $code = trim($p['item_code'] ?? '');
+    $code = trim($p['item_code'] ?? ($p['code'] ?? ''));
     if ($code === '') return array('ok' => false, 'message' => 'Item code required');
+    epc_jewel_ensure_schema($db);
     $db->prepare("INSERT INTO epc_jewel_color_stone_master
-        (company_id, item_code, description, stone_type, shape, clarity, size_mm, weight_ct, pcs, color_grade, treatment, origin, certificate_no, vendor, cost_per_ct, sell_per_ct, cost_centre)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        ON DUPLICATE KEY UPDATE description=VALUES(description), stone_type=VALUES(stone_type), shape=VALUES(shape),
-        clarity=VALUES(clarity), size_mm=VALUES(size_mm), weight_ct=VALUES(weight_ct), pcs=VALUES(pcs)"
+        (company_id, code, description, category, shape, clarity, size, color,
+         finish, country, certificate_no, vendor, cost_centre, grade)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE description=VALUES(description), category=VALUES(category),
+        shape=VALUES(shape), clarity=VALUES(clarity), size=VALUES(size), color=VALUES(color),
+        finish=VALUES(finish), country=VALUES(country), certificate_no=VALUES(certificate_no)"
     )->execute(array(
-        $companyId, $code, $p['description'] ?? '', $p['stone_type'] ?? 'Ruby', $p['shape'] ?? 'Round',
-        $p['clarity'] ?? 'VS', (float)($p['size_mm'] ?? 0), (float)($p['weight_ct'] ?? 0), (int)($p['pcs'] ?? 1),
-        $p['color_grade'] ?? '', $p['treatment'] ?? 'None', $p['origin'] ?? '', $p['certificate_no'] ?? '',
-        $p['vendor'] ?? '', (float)($p['cost_per_ct'] ?? 0), (float)($p['sell_per_ct'] ?? 0), $p['cost_centre'] ?? 'CSTN',
+        $companyId, $code, $p['description'] ?? '', $p['stone_type'] ?? 'Ruby',
+        $p['shape'] ?? 'Round', $p['clarity'] ?? 'VS', $p['size'] ?? ($p['size_mm'] ?? ''),
+        $p['color_grade'] ?? ($p['color'] ?? ''), $p['treatment'] ?? ($p['finish'] ?? 'None'),
+        $p['origin'] ?? ($p['country'] ?? ''), $p['certificate_no'] ?? '',
+        $p['vendor'] ?? '', $p['cost_centre'] ?? 'CSTN', $p['grade'] ?? '',
     ));
     return array('ok' => true, 'message' => 'Colour stone saved');
 }
@@ -1668,7 +1672,7 @@ function epc_jewel_pearl_save_ajax(PDO $db, array $p, int $companyId)
 function epc_jewel_purchase_list(PDO $db, int $companyId, string $type = 'METAL', int $limit = 100): array
 {
     epc_jewel_ensure_schema($db);
-    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $sql = 'SELECT * FROM `epc_jewel_voucher` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
     $codes = ($type === 'DIAMOND') ? ['DMP','DLP'] : ['MMP','MLP'];
     $st = $db->prepare($sql);
     $st->execute([$companyId, $codes[0], $codes[1]]);
@@ -1684,7 +1688,7 @@ function epc_jewel_sale_list(PDO $db, int $companyId, string $type = 'RETAIL', i
         'RETURN' => ['SRN','SRC'],
     ];
     $codes = $map[$type] ?? ['RSI','RSC'];
-    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $sql = 'SELECT * FROM `epc_jewel_voucher` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
     $st = $db->prepare($sql);
     $st->execute([$companyId, $codes[0], $codes[1]]);
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -1693,7 +1697,7 @@ function epc_jewel_sale_list(PDO $db, int $companyId, string $type = 'RETAIL', i
 function epc_jewel_advance_list(PDO $db, int $companyId, int $limit = 100): array
 {
     epc_jewel_ensure_schema($db);
-    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $sql = 'SELECT * FROM `epc_jewel_voucher` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
     $st = $db->prepare($sql);
     $st->execute([$companyId, 'PAD', 'PAR']);
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -1702,7 +1706,7 @@ function epc_jewel_advance_list(PDO $db, int $companyId, int $limit = 100): arra
 function epc_jewel_color_stone_list(PDO $db, int $companyId, int $limit = 200): array
 {
     epc_jewel_ensure_schema($db);
-    $sql = 'SELECT * FROM `jw_color_stones` WHERE `company_id` = ? ORDER BY `stone_code` ASC LIMIT ' . (int)$limit;
+    $sql = 'SELECT * FROM `epc_jewel_color_stone_master` WHERE `company_id` = ? ORDER BY `code` ASC LIMIT ' . (int)$limit;
     $st = $db->prepare($sql);
     $st->execute([$companyId]);
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -1711,7 +1715,7 @@ function epc_jewel_color_stone_list(PDO $db, int $companyId, int $limit = 200): 
 function epc_jewel_pearl_list(PDO $db, int $companyId, int $limit = 200): array
 {
     epc_jewel_ensure_schema($db);
-    $sql = 'SELECT * FROM `jw_pearls` WHERE `company_id` = ? ORDER BY `pearl_code` ASC LIMIT ' . (int)$limit;
+    $sql = 'SELECT * FROM `epc_jewel_pearl_master` WHERE `company_id` = ? ORDER BY `code` ASC LIMIT ' . (int)$limit;
     $st = $db->prepare($sql);
     $st->execute([$companyId]);
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -1720,7 +1724,7 @@ function epc_jewel_pearl_list(PDO $db, int $companyId, int $limit = 200): array
 function epc_jewel_journal_list(PDO $db, int $companyId, int $limit = 100): array
 {
     epc_jewel_ensure_schema($db);
-    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $sql = 'SELECT * FROM `epc_jewel_voucher` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
     $st = $db->prepare($sql);
     $st->execute([$companyId, 'JVG', 'JVA']);
     return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];

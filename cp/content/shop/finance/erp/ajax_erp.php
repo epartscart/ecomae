@@ -1995,6 +1995,12 @@ try {
 				epc_jewel_ensure_schema($db_link);
 				$companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
 				$r = epc_jewel_handle_ajax($db_link, $action, $_POST, $companyId);
+				$isXhr = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+					&& strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+				if (!$isXhr && !empty($_SERVER['HTTP_REFERER'])) {
+					header('Location: ' . $_SERVER['HTTP_REFERER'], true, 303);
+					exit;
+				}
 				epc_erp_json((bool)$r['ok'], $r['message'] ?? 'OK', $r);
 			}
 			/* CRM actions */
