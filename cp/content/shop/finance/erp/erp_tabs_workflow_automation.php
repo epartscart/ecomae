@@ -37,15 +37,6 @@ $csrfLocal = isset($csrf) ? $csrf : '';
 $siteKey = isset($DP_Config) && isset($DP_Config->site_key) ? (string)$DP_Config->site_key : '';
 $wfBase = epc_erp_tab_url($erpUrl, 'workflow_automation', $date_from_str, $date_to_str, 'setup');
 
-<?php if (!empty($_epc_wf_errors)): ?>
-<div style="background:#fee;border:1px solid #c00;padding:10px;margin:10px;font-size:12px;color:#c00;">
-	<strong>Debug errors:</strong><br>
-	<?php foreach ($_epc_wf_errors as $err): ?>
-	<div><?php echo htmlspecialchars($err, ENT_QUOTES, 'UTF-8'); ?></div>
-	<?php endforeach; ?>
-</div>
-<?php endif; ?>
-<?php
 erp_page_header(
 	'<i class="fa fa-cogs"></i> Workflow automation',
 	'Build approval chains, auto-actions, scheduled tasks, and event-driven processes — no coding required.',
