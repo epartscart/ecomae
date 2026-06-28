@@ -1396,6 +1396,21 @@ function epc_jewel_handle_ajax(PDO $db, $action, array $post, $companyId)
             return epc_jewel_petty_cash_save($db, $post, $cid);
         case 'jw_tourist_vat_save':
             return epc_jewel_tourist_vat_save($db, $post, $cid);
+        /* purchase/sale voucher aliases — all route to generic voucher save */
+        case 'jw_metal_purchase_save':
+        case 'jw_diamond_purchase_save':
+        case 'jw_retail_sale_save':
+        case 'jw_metal_sale_save':
+        case 'jw_sales_return_save':
+        case 'jw_pos_advance_save':
+            return epc_jewel_voucher_save($db, $post, $cid);
+        case 'jw_purchase_fixing_save':
+        case 'jw_sales_fixing_save':
+            return epc_jewel_fixing_save($db, $post, $cid);
+        case 'jw_repair_receipt_save':
+            return epc_jewel_repair_save($db, $post, $cid);
+        case 'jw_journal_voucher_save':
+            return epc_jewel_voucher_save($db, $post, $cid);
         default:
             return array('ok' => false, 'message' => 'Unknown jewellery action: ' . $action);
     }
@@ -1648,4 +1663,65 @@ function epc_jewel_pearl_save_ajax(PDO $db, array $p, int $companyId)
         (float)($p['price1_fc'] ?? 0), (float)($p['price1_lc'] ?? 0),
     ));
     return array('ok' => true, 'message' => 'Pearl saved');
+}
+
+function epc_jewel_purchase_list(PDO $db, int $companyId, string $type = 'METAL', int $limit = 100): array
+{
+    epc_jewel_ensure_schema($db);
+    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $codes = ($type === 'DIAMOND') ? ['DMP','DLP'] : ['MMP','MLP'];
+    $st = $db->prepare($sql);
+    $st->execute([$companyId, $codes[0], $codes[1]]);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function epc_jewel_sale_list(PDO $db, int $companyId, string $type = 'RETAIL', int $limit = 100): array
+{
+    epc_jewel_ensure_schema($db);
+    $map = [
+        'RETAIL' => ['RSI','RSC'],
+        'METAL'  => ['MSI','MSC'],
+        'RETURN' => ['SRN','SRC'],
+    ];
+    $codes = $map[$type] ?? ['RSI','RSC'];
+    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $st = $db->prepare($sql);
+    $st->execute([$companyId, $codes[0], $codes[1]]);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function epc_jewel_advance_list(PDO $db, int $companyId, int $limit = 100): array
+{
+    epc_jewel_ensure_schema($db);
+    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $st = $db->prepare($sql);
+    $st->execute([$companyId, 'PAD', 'PAR']);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function epc_jewel_color_stone_list(PDO $db, int $companyId, int $limit = 200): array
+{
+    epc_jewel_ensure_schema($db);
+    $sql = 'SELECT * FROM `jw_color_stones` WHERE `company_id` = ? ORDER BY `stone_code` ASC LIMIT ' . (int)$limit;
+    $st = $db->prepare($sql);
+    $st->execute([$companyId]);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function epc_jewel_pearl_list(PDO $db, int $companyId, int $limit = 200): array
+{
+    epc_jewel_ensure_schema($db);
+    $sql = 'SELECT * FROM `jw_pearls` WHERE `company_id` = ? ORDER BY `pearl_code` ASC LIMIT ' . (int)$limit;
+    $st = $db->prepare($sql);
+    $st->execute([$companyId]);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+function epc_jewel_journal_list(PDO $db, int $companyId, int $limit = 100): array
+{
+    epc_jewel_ensure_schema($db);
+    $sql = 'SELECT * FROM `jw_vouchers` WHERE `company_id` = ? AND `voc_type` IN (?,?) ORDER BY `voc_date` DESC LIMIT ' . (int)$limit;
+    $st = $db->prepare($sql);
+    $st->execute([$companyId, 'JVG', 'JVA']);
+    return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }

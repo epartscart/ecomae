@@ -1,7 +1,7 @@
 <?php
 /**
  * Jewellery ERP — Diamond Jewellery Master.
- * Per-piece diamond items with certificates, 4C grading, pricing tiers.
+ * Ref: Suntech Diamond Jewellery Master screenshots (detailed form with charges, certificates).
  */
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery.php';
@@ -12,9 +12,11 @@ include __DIR__ . '/erp_entry_form_css.php';
 epc_jewel_ensure_schema($db_link);
 $companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
 $csrfLocal = isset($csrf) ? $csrf : '';
-$items = epc_jewel_diamond_list($db_link, $companyId);
+$diamonds = epc_jewel_diamond_list($db_link, $companyId);
+$divisions = epc_jewel_divisions();
+$karats = epc_jewel_karat_list($db_link, $companyId);
 
-erp_page_header('<i class="fa fa-diamond"></i> Diamond Jewellery Master', 'Diamond items with RFID, certificates, charges, metal & stone composition.', array(
+erp_page_header('<i class="fa fa-diamond"></i> Diamond Jewellery Master', 'Diamond items with certificates, charges and metal/stone composition.', array(
 	array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 	array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
 	array('label' => 'Diamond master'),
@@ -23,165 +25,237 @@ erp_page_header('<i class="fa fa-diamond"></i> Diamond Jewellery Master', 'Diamo
 <div class="ef-window">
 	<div class="ef-title">Diamond Jewellery Master</div>
 	<div class="ef-toolbar">
-		<button class="btn btn-default btn-xs" onclick="document.getElementById('jw_dm_form').style.display=document.getElementById('jw_dm_form').style.display==='none'?'block':'none'"><i class="fa fa-plus"></i> New</button>
-		<button class="btn btn-info btn-xs"><i class="fa fa-search"></i> Stock Enquiry</button>
-		<span style="margin-left:auto;font-size:11px;">
-			<label style="color:#090;cursor:pointer"><input type="radio" name="dm_status" checked> ON</label>
-			<label style="color:#c00;cursor:pointer"><input type="radio" name="dm_status"> OFF</label>
-		</span>
+		<button class="btn btn-default btn-xs" onclick="document.getElementById('jw_dia_form').style.display='block'"><i class="fa fa-plus"></i> New</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-pencil"></i> Edit</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-trash"></i> Delete</button>
+		<button class="btn btn-default btn-xs" onclick="window.location.reload()"><i class="fa fa-refresh"></i> Refresh</button>
 	</div>
 	<div class="ef-body">
-		<div id="jw_dm_form" style="display:<?php echo empty($items)?'block':'none'; ?>;">
-		<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
-		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
-		<input type="hidden" name="action" value="jw_diamond_save">
-
-		<div style="display:flex;gap:10px;flex-wrap:wrap;">
-			<div style="flex:2;min-width:400px;">
-				<div class="ef-section">
-					<div class="ef-row">
-						<div class="ef-field"><label>Item Code</label><input name="item_code" required placeholder="ZCRG052223A"></div>
-						<div class="ef-field"><label>RFID #</label><input name="rfid"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Design</label><input name="design"></div>
-						<div class="ef-field"><label><input type="checkbox" name="promotional" value="1"> Promotional Item</label></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field ef-field-wide"><label>Description</label><input name="description" placeholder="zircon display big ring"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Currency</label><input name="currency" value="AED" style="width:50px"></div>
-						<div class="ef-field"><input name="currency_rate" type="number" step="0.00001" value="1.00000" style="width:80px"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Cost Centre</label><input name="cost_centre" value="DJEW"></div>
-						<div class="ef-field"><label>Type</label><input name="type"></div>
-						<div class="ef-field"><label>Brand</label><input name="brand"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Category</label><input name="category" placeholder="DPT"></div>
-						<div class="ef-field"><label>Sub-Cat</label><input name="sub_category"></div>
-						<div class="ef-field"><label>Country</label><input name="country"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Color</label><input name="color"></div>
-						<div class="ef-field"><label>Clarity</label><input name="clarity"></div>
-						<div class="ef-field"><label>Style</label><input name="style"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Fluorescence</label><input name="fluorescence"></div>
-						<div class="ef-field"><label>Set. Ref</label><input name="set_ref"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Vendor</label><input name="vendor" placeholder="AS5008"></div>
-						<div class="ef-field"><label>Vendor Ref</label><input name="vendor_ref"></div>
-					</div>
-					<div class="ef-row">
-						<div class="ef-field"><label>Item GrWt.</label><input name="item_gr_wt" type="number" step="0.0001" value="0"></div>
-					</div>
-				</div>
-			</div>
-
-			<div style="flex:1;min-width:260px;">
-				<div class="ef-section">
-					<span class="ef-section-title">Pricing</span>
-					<table class="ef-price-matrix" style="width:100%">
-						<tr><th></th><th>Code</th><th>%</th><th>FC(AED)</th><th>LC(AED)</th></tr>
-						<tr><td>Cost</td><td></td><td></td><td><input name="cost_amount" type="number" step="0.01" value="0" style="width:70px"></td><td></td></tr>
-						<tr><td>Price 1</td><td><input name="price1_code" value="TAG" style="width:40px"></td><td><input name="price1_pct" type="number" step="0.01" value="0" style="width:50px"></td><td><input name="price1_fc" type="number" step="0.01" value="0" style="width:70px"></td><td></td></tr>
-						<tr><td>Price 2</td><td><input name="price2_code" value="GEN" style="width:40px"></td><td><input name="price2_pct" type="number" step="0.01" value="0" style="width:50px"></td><td><input name="price2_fc" type="number" step="0.01" value="0" style="width:70px"></td><td></td></tr>
-						<tr><td>Price 3</td><td></td><td></td><td><input name="price3_fc" type="number" step="0.01" value="0" style="width:70px"></td><td></td></tr>
-						<tr><td>Price 4</td><td></td><td></td><td><input name="price4_fc" type="number" step="0.01" value="0" style="width:70px"></td><td></td></tr>
-						<tr><td>Price 5</td><td></td><td></td><td><input name="price5_fc" type="number" step="0.01" value="0" style="width:70px"></td><td></td></tr>
-					</table>
-					<div class="ef-row" style="margin-top:6px">
-						<div class="ef-field"><label>Landed Cost</label><input name="landed_cost" type="number" step="0.01" value="0"></div>
-						<div class="ef-field"><label>Foreign Cost</label><input name="foreign_cost" type="number" step="0.01" value="0"></div>
-					</div>
-				</div>
-				<div class="ef-section">
-					<span class="ef-section-title">Certificate</span>
-					<div class="ef-row"><div class="ef-field"><label>Certificate No</label><input name="certificate_no"></div></div>
-					<div class="ef-row"><div class="ef-field"><label>Dated</label><input name="certificate_date" type="date"></div><div class="ef-field"><label>By</label><input name="certificate_by"></div></div>
-					<div class="ef-row"><div class="ef-field"><label>No Of Certificate</label><input name="no_of_certificates" type="number" value="0" style="width:40px"></div></div>
-					<div class="ef-image-box">Certificate Image</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Tabs: Metals | Stones | Others/Info -->
-		<div class="ef-tabs">
-			<ul class="nav nav-tabs" role="tablist">
-				<li class="active"><a href="#dm_metals" data-toggle="tab">1. Metals</a></li>
-				<li><a href="#dm_stones" data-toggle="tab">2. Stones</a></li>
-				<li><a href="#dm_others" data-toggle="tab">3. Others / Info</a></li>
-			</ul>
-			<div class="tab-content">
-				<div class="tab-pane active" id="dm_metals">
-					<p style="font-size:11px;color:#666;">Metal composition of this diamond jewellery item.</p>
-				</div>
-				<div class="tab-pane" id="dm_stones">
-					<p style="font-size:11px;color:#666;">Stone details — type, shape, clarity, carat.</p>
-				</div>
-				<div class="tab-pane" id="dm_others">
-					<div class="ef-section">
-						<span class="ef-section-title">Charges</span>
-						<div class="ef-row">
-							<div class="ef-field"><label>Setting</label><input name="setting_charge" type="number" step="0.01" value="0" style="width:70px"><span style="font-size:10px">FC(AED)</span></div>
-							<div class="ef-field"><label>Polishing</label><input name="polishing_charge" type="number" step="0.01" value="0" style="width:70px"></div>
-							<div class="ef-field"><label>Rhodium</label><input name="rhodium_charge" type="number" step="0.01" value="0" style="width:70px"></div>
-						</div>
-						<div class="ef-row">
-							<div class="ef-field"><label>Labour</label><input name="labour_charge" type="number" step="0.01" value="0" style="width:70px"></div>
-							<div class="ef-field"><label>MISC</label><input name="misc_charge" type="number" step="0.01" value="0" style="width:70px"></div>
-						</div>
-					</div>
-					<div class="ef-section">
-						<span class="ef-section-title">Options</span>
-						<div class="ef-checks">
-							<label><input type="checkbox" name="exclude_gst_metal" value="1"> Exclude GST/TRN of Metal Amt</label>
-							<label><input type="checkbox" name="trn_on_margin" value="1"> TRN ON Margin</label>
-							<label><input type="checkbox" name="uae_trn_item" value="1"> UAE TRN Item</label>
-						</div>
-						<div class="ef-row">
-							<div class="ef-field"><label>Pure Wt.</label><input name="pure_wt" type="number" step="0.01" value="0"></div>
-						</div>
-					</div>
-					<div class="ef-section">
-						<span class="ef-section-title">TAG DETAILS</span>
-						<textarea name="tag_details" class="ef-narration" placeholder="18KG : 29.00&#10;C 12.50&#10;D 2.12[VS2/G-H]"></textarea>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="ef-actions">
-			<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
-			<button type="button" class="btn btn-default btn-sm"><i class="fa fa-picture-o"></i> Picture Path</button>
-		</div>
-		</form>
-		</div>
-
-		<!-- LIST VIEW -->
-		<div id="jw_dm_list" style="display:<?php echo empty($items)?'none':'block'; ?>;">
-			<table class="ef-grid">
-				<thead><tr><th>Item Code</th><th>Description</th><th>Cost Centre</th><th>Category</th><th>Vendor</th><th>Cost</th><th>Price 1</th></tr></thead>
-				<tbody>
-				<?php foreach ($items as $i): ?>
-				<tr>
-					<td><strong><?php echo epc_erp_h($i['item_code']); ?></strong></td>
-					<td><?php echo epc_erp_h($i['description']); ?></td>
-					<td><?php echo epc_erp_h($i['cost_centre']); ?></td>
-					<td><?php echo epc_erp_h($i['category']); ?></td>
-					<td><?php echo epc_erp_h($i['vendor']); ?></td>
-					<td><?php echo epc_erp_money((float)$i['cost_amount'], 2); ?></td>
-					<td><?php echo epc_erp_money((float)$i['price1_fc'], 2); ?></td>
+		<table class="ef-grid">
+			<thead><tr>
+				<th>No.</th><th>Item Code</th><th>RFID</th><th>Design</th><th>Description</th>
+				<th>Color</th><th>Clarity</th><th>Gr.Wt</th><th>Cost</th><th>Price 1</th>
+			</tr></thead>
+			<tbody>
+			<?php if (empty($diamonds)): ?>
+				<tr><td colspan="10" style="text-align:center;color:#999">No records</td></tr>
+			<?php else: $n=1; foreach ($diamonds as $d): ?>
+				<tr class="ef-grid-row" data-id="<?php echo (int)$d['id']; ?>"
+					onclick="jwDiaSelect(this)" style="cursor:pointer">
+					<td><?php echo $n++; ?></td>
+					<td><strong><?php echo epc_erp_h($d['item_code']); ?></strong></td>
+					<td><?php echo epc_erp_h($d['rfid']); ?></td>
+					<td><?php echo epc_erp_h($d['design']); ?></td>
+					<td><?php echo epc_erp_h($d['description']); ?></td>
+					<td><?php echo epc_erp_h($d['color']); ?></td>
+					<td><?php echo epc_erp_h($d['clarity']); ?></td>
+					<td style="text-align:right"><?php echo number_format((float)$d['item_gr_wt'], 4); ?></td>
+					<td style="text-align:right"><?php echo number_format((float)$d['cost_amount'], 2); ?></td>
+					<td style="text-align:right"><?php echo number_format((float)$d['price1_fc'], 2); ?></td>
 				</tr>
-				<?php endforeach; ?>
-				</tbody>
-			</table>
+			<?php endforeach; endif; ?>
+			</tbody>
+		</table>
+
+		<div id="jw_dia_form" style="display:none;margin-top:12px;">
+			<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
+			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+			<input type="hidden" name="action" value="jw_diamond_save">
+
+			<div class="ef-section">
+				<span class="ef-section-title">Item Header</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Item Code</label><input name="item_code" maxlength="20" required></div>
+					<div class="ef-field"><label>RFID</label><input name="rfid" maxlength="30"></div>
+					<div class="ef-field"><label>Design</label><input name="design" maxlength="30"></div>
+					<div class="ef-field ef-field-wide"><label>Description</label><input name="description" maxlength="120"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Currency</label><input name="currency" maxlength="5" value="AED"></div>
+					<div class="ef-field"><label>Currency Rate</label><input name="currency_rate" type="number" step="0.00001" value="1.00000"></div>
+					<div class="ef-field"><label>Cost Centre</label><input name="cost_centre" maxlength="20"></div>
+					<div class="ef-field"><label><input type="checkbox" name="promotional" value="1"> Promotional</label></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Category</label><input name="category" maxlength="30" placeholder="RING"></div>
+					<div class="ef-field"><label>Sub Category</label><input name="sub_category" maxlength="30"></div>
+					<div class="ef-field"><label>Type</label><input name="type" maxlength="30"></div>
+					<div class="ef-field"><label>Brand</label><input name="brand" maxlength="60"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Color</label>
+						<select name="color"><option value="">--</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option><option value="K">K</option></select>
+					</div>
+					<div class="ef-field"><label>Clarity</label>
+						<select name="clarity"><option value="">--</option><option value="IF">IF</option><option value="VVS1">VVS1</option><option value="VVS2">VVS2</option><option value="VS1">VS1</option><option value="VS2">VS2</option><option value="SI1">SI1</option><option value="SI2">SI2</option></select>
+					</div>
+					<div class="ef-field"><label>Fluorescence</label>
+						<select name="fluorescence"><option value="">--</option><option value="None">None</option><option value="Faint">Faint</option><option value="Medium">Medium</option><option value="Strong">Strong</option></select>
+					</div>
+					<div class="ef-field"><label>Style</label><input name="style" maxlength="20"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Country</label><input name="country" maxlength="30" placeholder="UAE"></div>
+					<div class="ef-field"><label>Set Ref</label><input name="set_ref" maxlength="30"></div>
+					<div class="ef-field"><label>Vendor</label><input name="vendor" maxlength="20"></div>
+					<div class="ef-field"><label>Vendor Ref</label><input name="vendor_ref" maxlength="20"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Item Gr. Wt</label><input name="item_gr_wt" type="number" step="0.0001" value="0.0000"></div>
+					<div class="ef-field"><label>Pure Wt</label><input name="pure_wt" type="number" step="0.0001" value="0.0000"></div>
+					<div class="ef-field"><label>Cust SKU</label><input name="cust_sku" maxlength="30"></div>
+					<div class="ef-field"><label>Ageing Date</label><input name="ageing_date" type="date"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Certificates</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Certificate No</label><input name="certificate_no" maxlength="40"></div>
+					<div class="ef-field"><label>Certificate Date</label><input name="certificate_date" type="date"></div>
+					<div class="ef-field"><label>Certificate By</label><input name="certificate_by" maxlength="40" placeholder="GIA"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Certificate No 1</label><input name="certificate_no_1" maxlength="40"></div>
+					<div class="ef-field"><label>Certificate Date 1</label><input name="certificate_date_1" type="date"></div>
+					<div class="ef-field"><label>No. of Certificates</label><input name="no_of_certificates" type="number" value="0"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Charges</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Setting Charge</label><input name="setting_charge" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Polishing Charge</label><input name="polishing_charge" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Rhodium Charge</label><input name="rhodium_charge" type="number" step="0.01" value="0.00"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Labour Charge</label><input name="labour_charge" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Misc Charge</label><input name="misc_charge" type="number" step="0.01" value="0.00"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Pricing</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Cost Amount</label><input name="cost_amount" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Landed Cost</label><input name="landed_cost" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Foreign Cost</label><input name="foreign_cost" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Cost Difference</label><input name="cost_difference" type="number" step="0.01" value="0.00"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Price 1 (TAG)</label><input name="price1_code" maxlength="5" value="TAG"></div>
+					<div class="ef-field"><label>Price 1 %</label><input name="price1_pct" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Price 1 FC</label><input name="price1_fc" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Price 1 LC</label><input name="price1_lc" type="number" step="0.01" value="0.00"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Price 2 (GEN)</label><input name="price2_code" maxlength="5" value="GEN"></div>
+					<div class="ef-field"><label>Price 2 %</label><input name="price2_pct" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Price 2 FC</label><input name="price2_fc" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Price 2 LC</label><input name="price2_lc" type="number" step="0.01" value="0.00"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Tax &amp; Compliance</span>
+				<div class="ef-row">
+					<div class="ef-field"><label><input type="checkbox" name="exclude_gst_metal" value="1"> Exclude GST Metal</label></div>
+					<div class="ef-field"><label><input type="checkbox" name="trn_on_margin" value="1"> TRN on Margin</label></div>
+					<div class="ef-field"><label><input type="checkbox" name="uae_trn_item" value="1"> UAE TRN Item</label></div>
+				</div>
+			</div>
+
+			<div class="ef-tabs">
+				<button type="button" class="ef-tab active" onclick="jwDiaTab(this,'metals')">1. Metal Details</button>
+				<button type="button" class="ef-tab" onclick="jwDiaTab(this,'stones')">2. Stone Details</button>
+				<button type="button" class="ef-tab" onclick="jwDiaTab(this,'labour')">3. Labour / Summary</button>
+			</div>
+
+			<div id="jw_dia_metals" class="ef-tab-pane">
+				<table class="ef-grid">
+					<thead><tr>
+						<th>No.</th><th>Division</th><th>Karat</th><th>Gross Wt</th>
+						<th>Rate Type</th><th>Metal Rate</th><th>Amount FC</th><th>Amount LC</th>
+					</tr></thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td><select name="dm_division"><option value="G">Gold</option><option value="S">Silver</option><option value="T">Platinum</option></select></td>
+							<td><select name="dm_karat"><?php foreach ($karats as $k): ?><option value="<?php echo epc_erp_h($k['karat_code']); ?>"><?php echo epc_erp_h($k['karat_code']); ?></option><?php endforeach; ?></select></td>
+							<td><input name="dm_gross_wt" type="number" step="0.0001" value="0.0000" style="width:80px"></td>
+							<td><input name="dm_rate_type" maxlength="10" value="GMS" style="width:60px"></td>
+							<td><input name="dm_metal_rate" type="number" step="0.00001" value="0.00000" style="width:90px"></td>
+							<td><input name="dm_amount_fc" type="number" step="0.01" value="0.00" style="width:80px"></td>
+							<td><input name="dm_amount_lc" type="number" step="0.01" value="0.00" style="width:80px"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div id="jw_dia_stones" class="ef-tab-pane" style="display:none">
+				<table class="ef-grid">
+					<thead><tr>
+						<th>No.</th><th>Stone Type</th><th>Shape</th><th>Size</th><th>Color</th>
+						<th>Clarity</th><th>Pcs</th><th>Carat</th><th>Rate</th><th>Amt FC</th><th>Amt LC</th>
+					</tr></thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td><input name="ds_stone_type" maxlength="30" style="width:80px"></td>
+							<td><input name="ds_shape" maxlength="20" style="width:60px"></td>
+							<td><input name="ds_size" maxlength="20" style="width:50px"></td>
+							<td><input name="ds_color" maxlength="20" style="width:50px"></td>
+							<td><input name="ds_clarity" maxlength="20" style="width:50px"></td>
+							<td><input name="ds_pcs" type="number" value="0" style="width:50px"></td>
+							<td><input name="ds_carat" type="number" step="0.0001" value="0.0000" style="width:70px"></td>
+							<td><input name="ds_rate" type="number" step="0.0001" value="0.0000" style="width:70px"></td>
+							<td><input name="ds_amount_fc" type="number" step="0.01" value="0.00" style="width:80px"></td>
+							<td><input name="ds_amount_lc" type="number" step="0.01" value="0.00" style="width:80px"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div id="jw_dia_labour" class="ef-tab-pane" style="display:none">
+				<div class="ef-section">
+					<span class="ef-section-title">Labour Amounts</span>
+					<div class="ef-row">
+						<div class="ef-field"><label>Labour Amount LC</label><input name="labour_amount_lc" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Labour Amount FC</label><input name="labour_amount_fc" type="number" step="0.01" value="0.00"></div>
+					</div>
+				</div>
+				<div class="ef-section">
+					<span class="ef-section-title">Composition Summary</span>
+					<div class="ef-row">
+						<div class="ef-field"><label>Metal Qty</label><input name="metal_qty" type="number" step="0.0001" value="0.0000" readonly></div>
+						<div class="ef-field"><label>Stone Qty</label><input name="stone_qty" type="number" step="0.0001" value="0.0000" readonly></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="ef-actions" style="margin-top:8px">
+				<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="document.getElementById('jw_dia_form').style.display='none'">Cancel</button>
+			</div>
+			</form>
 		</div>
 	</div>
-	<div class="ef-status"><span>Mode:=VIEW</span><span>Header New Record → Function Key (F5)</span></div>
+	<div class="ef-status">
+		<span>Mode:=VIEW</span>
+		<span>Header New Record &rarr; Function Key (F5)</span>
+	</div>
 </div>
+<script>
+function jwDiaSelect(row){
+	document.querySelectorAll('.ef-grid-row').forEach(function(r){r.style.background='';});
+	row.style.background='#d0e8ff';
+}
+function jwDiaTab(btn, pane){
+	document.querySelectorAll('.ef-tab').forEach(function(t){t.classList.remove('active');});
+	btn.classList.add('active');
+	['metals','stones','labour'].forEach(function(p){
+		document.getElementById('jw_dia_'+p).style.display=(p===pane)?'block':'none';
+	});
+}
+</script>

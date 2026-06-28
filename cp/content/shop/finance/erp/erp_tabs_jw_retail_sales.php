@@ -1,7 +1,7 @@
 <?php
 /**
- * Jewellery ERP — Retail Sales / POS Invoice (RIN).
- * Full retail invoice with metal & diamond tabs, old gold exchange, receipts.
+ * Jewellery ERP — Retail Sales (POS).
+ * Ref: Suntech Retail Sales screenshots (complex form with metal rates table, item detail popup).
  */
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery.php';
@@ -13,219 +13,192 @@ epc_jewel_ensure_schema($db_link);
 $companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
 $csrfLocal = isset($csrf) ? $csrf : '';
 $divisions = epc_jewel_divisions();
+$sales = epc_jewel_sale_list($db_link, $companyId, 'RETAIL');
 
-erp_page_header('<i class="fa fa-shopping-cart"></i> Retail Sales Invoice', 'POS retail invoice with metal, diamond, old-gold exchange and receipts.', array(
+erp_page_header('<i class="fa fa-shopping-bag"></i> Retail Sales (POS)', 'Point-of-sale retail jewellery sales with metal rates and payments.', array(
 	array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 	array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
-	array('label' => 'Retail sales'),
+	array('label' => 'Retail POS'),
 ));
 ?>
 <div class="ef-window">
-	<div class="ef-title">Retail Sales Invoice - (RIN)</div>
+	<div class="ef-title">Retail Sales (POS)</div>
 	<div class="ef-toolbar">
-		<button class="btn btn-default btn-xs"><i class="fa fa-file-o"></i> New</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-save"></i> Save</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-trash"></i> Delete</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-print"></i> Print</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-search"></i> Find</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-barcode"></i> Barcode</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-check-square"></i> Approve</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-undo"></i> Old Gold</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-credit-card"></i> Receipt</button>
+		<button class="btn btn-default btn-xs" onclick="document.getElementById('jw_rs_form').style.display='block'"><i class="fa fa-plus"></i> New Invoice</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-pencil"></i> Edit</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-trash"></i> Delete</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-print"></i> Print</button>
+		<button class="btn btn-default btn-xs" onclick="window.location.reload()"><i class="fa fa-refresh"></i> Refresh</button>
 	</div>
 	<div class="ef-body">
-		<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
-		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
-		<input type="hidden" name="action" value="jw_voucher_save">
-		<input type="hidden" name="voc_type" value="RIN">
+		<table class="ef-grid">
+			<thead><tr>
+				<th>No.</th><th>Inv No</th><th>Inv Date</th><th>Customer</th>
+				<th>Salesman</th><th>Items</th><th>Net Amt</th><th>Payment</th>
+			</tr></thead>
+			<tbody>
+			<?php if (empty($sales)): ?>
+				<tr><td colspan="8" style="text-align:center;color:#999">No records</td></tr>
+			<?php else: $n=1; foreach ($sales as $s): ?>
+				<tr class="ef-grid-row" style="cursor:pointer">
+					<td><?php echo $n++; ?></td>
+					<td><strong><?php echo epc_erp_h($s['voc_no']); ?></strong></td>
+					<td><?php echo epc_erp_h($s['voc_date']); ?></td>
+					<td><?php echo epc_erp_h($s['party_code']); ?></td>
+					<td><?php echo epc_erp_h($s['salesman']); ?></td>
+					<td><?php echo (int)$s['total_items']; ?></td>
+					<td style="text-align:right"><?php echo number_format((float)$s['net_amount'], 2); ?></td>
+					<td><?php echo epc_erp_h($s['payment_mode']); ?></td>
+				</tr>
+			<?php endforeach; endif; ?>
+			</tbody>
+		</table>
 
-		<!-- Header -->
-		<div class="ef-section">
-			<span class="ef-section-title">Invoice Details</span>
-			<div class="ef-row">
-				<div class="ef-field"><label>Branch</label><select name="branch"><option value="HO">HO</option><option value="B1">B1</option><option value="B2">B2</option></select></div>
-				<div class="ef-field"><label>Voc Type</label><input value="RIN" class="ef-readonly" readonly style="width:50px;background:#e8e8e8"></div>
-				<div class="ef-field"><label>Voc Date</label><input name="voc_date" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
-				<div class="ef-field"><label>Voc No.</label><input name="voc_no" class="ef-readonly" readonly placeholder="Auto" style="width:60px;background:#e8e8e8"></div>
-				<div class="ef-field"><label>Till</label><select name="till"><option value="1">Till 1</option><option value="2">Till 2</option></select></div>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Customer Code</label><input name="party_code" placeholder="CSH"></div>
-				<div class="ef-field ef-field-wide"><label>Customer Name</label><input name="party_name" placeholder="Cash / Walk-in"></div>
-				<div class="ef-field"><label>Mobile</label><input name="mobile"></div>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Salesman</label><input name="salesman" placeholder="SM01"></div>
-				<div class="ef-field"><label>Currency</label><select name="currency"><option value="AED">AED</option><option value="USD">USD</option></select></div>
-				<div class="ef-field"><label>Curr. Rate</label><input name="currency_rate" type="number" step="0.000001" value="1.000000"></div>
-				<div class="ef-field"><label>TRN</label><input name="trn" placeholder="Tax Reg Number"></div>
-			</div>
-			<div class="ef-checks">
-				<label><input type="checkbox" name="tourist_vat_refund" value="1"> Tourist VAT Refund</label>
-				<label><input type="checkbox" name="apply_vat" value="1" checked> Apply VAT</label>
-			</div>
-		</div>
+		<div id="jw_rs_form" style="display:none;margin-top:12px;">
+			<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
+			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+			<input type="hidden" name="action" value="jw_retail_sale_save">
 
-		<!-- Tabs: Metal Items | Diamond Items | Old Gold | Receipts | Other Amounts -->
-		<div class="ef-tabs">
-			<ul class="nav nav-tabs" role="tablist">
-				<li class="active"><a href="#rin_metals" data-toggle="tab">1. Metal Items</a></li>
-				<li><a href="#rin_diamonds" data-toggle="tab">2. Diamond Items</a></li>
-				<li><a href="#rin_old_gold" data-toggle="tab">3. Old Gold Exchange</a></li>
-				<li><a href="#rin_receipts" data-toggle="tab">4. Receipts</a></li>
-				<li><a href="#rin_other" data-toggle="tab">5. Other Amounts</a></li>
-			</ul>
-			<div class="tab-content">
-				<!-- Metal Items -->
-				<div class="tab-pane active" id="rin_metals">
-					<table class="ef-grid">
-						<thead><tr>
-							<th>No.</th><th>Metal</th><th>Karat</th><th>Purity</th>
-							<th>Gross Wt</th><th>Stone Wt</th><th>Net Wt</th><th>Pure Wt</th>
-							<th>Rate/Gm</th><th>Metal Amt</th><th>Making/Gm</th><th>Making Amt</th>
-							<th>Stone Amt</th><th>Line Total</th>
-						</tr></thead>
-						<tbody>
-						<?php for ($r = 0; $r < 5; $r++): ?>
+			<div class="ef-section">
+				<span class="ef-section-title">Invoice Header</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Branch</label><input name="branch" maxlength="10" value="HO"></div>
+					<div class="ef-field"><label>Voc Type</label><input name="voc_type" maxlength="5" value="RSL" readonly></div>
+					<div class="ef-field"><label>Inv Date</label><input name="voc_date" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
+					<div class="ef-field"><label>Inv No</label><input name="voc_no" maxlength="20" placeholder="Auto"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Customer Code</label><input name="party_code" maxlength="20"></div>
+					<div class="ef-field"><label>Customer Name</label><input name="party_name" maxlength="80"></div>
+					<div class="ef-field"><label>Mobile</label><input name="customer_mobile" maxlength="20"></div>
+					<div class="ef-field"><label>Salesman</label><input name="salesman" maxlength="20"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Currency</label><input name="currency" maxlength="5" value="AED"></div>
+					<div class="ef-field"><label>Price Type</label>
+						<select name="price_type"><option value="GEN">General</option><option value="TAG">Tag</option><option value="WSL">Wholesale</option></select>
+					</div>
+					<div class="ef-field"><label>TRN No</label><input name="trn_no" maxlength="20"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Metal Rates</span>
+				<table class="ef-grid" style="max-width:500px">
+					<thead><tr><th>Metal</th><th>Rate Type</th><th>Rate</th></tr></thead>
+					<tbody>
+						<tr><td>Gold</td><td>GMS</td><td><input name="gold_rate_gms" type="number" step="0.01" value="0.00" style="width:100px"></td></tr>
+						<tr><td>Silver</td><td>GMS</td><td><input name="silver_rate_gms" type="number" step="0.01" value="0.00" style="width:100px"></td></tr>
+						<tr><td>Platinum</td><td>GMS</td><td><input name="platinum_rate_gms" type="number" step="0.01" value="0.00" style="width:100px"></td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="ef-tabs">
+				<button type="button" class="ef-tab active" onclick="jwRsTab(this,'items')">1. Line Items</button>
+				<button type="button" class="ef-tab" onclick="jwRsTab(this,'payment')">2. Payment</button>
+				<button type="button" class="ef-tab" onclick="jwRsTab(this,'exchange')">3. Old Exchange</button>
+			</div>
+
+			<div id="jw_rs_items" class="ef-tab-pane">
+				<table class="ef-grid">
+					<thead><tr>
+						<th>No.</th><th>Barcode/Item</th><th>Description</th><th>Karat</th>
+						<th>Pcs</th><th>Gross Wt</th><th>Net Wt</th><th>Rate</th>
+						<th>Metal Amt</th><th>MC Amt</th><th>Stone Amt</th><th>Total</th>
+					</tr></thead>
+					<tbody>
 						<tr>
-							<td><?php echo $r + 1; ?></td>
-							<td><select name="metal_lines[<?php echo $r; ?>][metal]"><option value="">—</option><?php foreach ($divisions as $c => $l): ?><option value="<?php echo epc_erp_h($c); ?>"><?php echo epc_erp_h($c); ?></option><?php endforeach; ?></select></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][karat]" style="width:30px"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][purity]" type="number" step="0.000001" value="0"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][gross_wt]" type="number" step="0.001" value="0"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][stone_wt]" type="number" step="0.001" value="0"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][net_wt]" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][pure_wt]" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][rate_gm]" type="number" step="0.01" value="0"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][metal_amt]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][making_gm]" type="number" step="0.01" value="0"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][making_amt]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][stone_amt]" type="number" step="0.01" value="0"></td>
-							<td><input name="metal_lines[<?php echo $r; ?>][line_total]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
+							<td>1</td>
+							<td><input name="li_barcode" maxlength="30" style="width:80px"></td>
+							<td><input name="li_description" maxlength="120" style="width:120px"></td>
+							<td><input name="li_karat" maxlength="10" style="width:40px"></td>
+							<td><input name="li_pcs" type="number" value="1" style="width:40px"></td>
+							<td><input name="li_gross_wt" type="number" step="0.001" value="0.000" style="width:70px"></td>
+							<td><input name="li_net_wt" type="number" step="0.001" value="0.000" style="width:70px"></td>
+							<td><input name="li_rate" type="number" step="0.01" value="0.00" style="width:70px"></td>
+							<td><input name="li_metal_amt" type="number" step="0.01" value="0.00" style="width:70px"></td>
+							<td><input name="li_mc_amt" type="number" step="0.01" value="0.00" style="width:70px"></td>
+							<td><input name="li_stone_amt" type="number" step="0.01" value="0.00" style="width:70px"></td>
+							<td><input name="li_total" type="number" step="0.01" value="0.00" style="width:80px"></td>
 						</tr>
-						<?php endfor; ?>
-						</tbody>
-					</table>
-				</div>
-				<!-- Diamond Items -->
-				<div class="tab-pane" id="rin_diamonds">
-					<table class="ef-grid">
-						<thead><tr><th>No.</th><th>Item Code</th><th>Description</th><th>Pcs</th><th>Gross Wt</th><th>Tag Price</th><th>Disc %</th><th>Net Price</th></tr></thead>
-						<tbody>
-						<?php for ($r = 0; $r < 3; $r++): ?>
-						<tr>
-							<td><?php echo $r + 1; ?></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][item_code]"></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][description]" style="min-width:140px"></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][pcs]" type="number" value="0" style="width:40px"></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][gross_wt]" type="number" step="0.001" value="0"></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][tag_price]" type="number" step="0.01" value="0"></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][disc_pct]" type="number" step="0.01" value="0"></td>
-							<td><input name="dia_lines[<?php echo $r; ?>][net_price]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-						</tr>
-						<?php endfor; ?>
-						</tbody>
-					</table>
-				</div>
-				<!-- Old Gold Exchange -->
-				<div class="tab-pane" id="rin_old_gold">
-					<div class="ef-section">
-						<span class="ef-section-title">Old Gold Exchange</span>
-						<table class="ef-grid">
-							<thead><tr><th>Metal</th><th>Karat</th><th>Purity</th><th>Gross Wt</th><th>Pure Wt</th><th>Rate/Gm</th><th>Amount</th></tr></thead>
-							<tbody>
-							<?php for ($r = 0; $r < 3; $r++): ?>
-							<tr>
-								<td><select name="old_gold[<?php echo $r; ?>][metal]"><option value="">—</option><option value="G">G</option><option value="S">S</option></select></td>
-								<td><input name="old_gold[<?php echo $r; ?>][karat]" style="width:30px"></td>
-								<td><input name="old_gold[<?php echo $r; ?>][purity]" type="number" step="0.000001" value="0"></td>
-								<td><input name="old_gold[<?php echo $r; ?>][gross_wt]" type="number" step="0.001" value="0"></td>
-								<td><input name="old_gold[<?php echo $r; ?>][pure_wt]" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-								<td><input name="old_gold[<?php echo $r; ?>][rate_gm]" type="number" step="0.01" value="0"></td>
-								<td><input name="old_gold[<?php echo $r; ?>][amount]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-							</tr>
-							<?php endfor; ?>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<!-- Receipts -->
-				<div class="tab-pane" id="rin_receipts">
-					<div class="ef-section">
-						<span class="ef-section-title">Payment Receipts</span>
-						<table class="ef-grid">
-							<thead><tr><th>Pay Mode</th><th>Account</th><th>Currency</th><th>FC Amount</th><th>LC Amount</th><th>Card/Ref#</th></tr></thead>
-							<tbody>
-							<tr>
-								<td><select name="receipts[0][mode]"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank">Bank Transfer</option><option value="Cheque">Cheque</option><option value="Old Gold">Old Gold</option></select></td>
-								<td><input name="receipts[0][account]"></td>
-								<td><input name="receipts[0][currency]" value="AED" style="width:50px"></td>
-								<td><input name="receipts[0][fc_amount]" type="number" step="0.01" value="0"></td>
-								<td><input name="receipts[0][lc_amount]" type="number" step="0.01" value="0"></td>
-								<td><input name="receipts[0][card_ref]"></td>
-							</tr>
-							<tr>
-								<td><select name="receipts[1][mode]"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank">Bank Transfer</option></select></td>
-								<td><input name="receipts[1][account]"></td>
-								<td><input name="receipts[1][currency]" value="AED" style="width:50px"></td>
-								<td><input name="receipts[1][fc_amount]" type="number" step="0.01" value="0"></td>
-								<td><input name="receipts[1][lc_amount]" type="number" step="0.01" value="0"></td>
-								<td><input name="receipts[1][card_ref]"></td>
-							</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<!-- Other Amounts -->
-				<div class="tab-pane" id="rin_other">
-					<div class="ef-section">
-						<span class="ef-section-title">Other Charges</span>
-						<div class="ef-row">
-							<div class="ef-field"><label>Hallmark Charge</label><input name="hallmark_charge" type="number" step="0.01" value="0"></div>
-							<div class="ef-field"><label>Certificate Charge</label><input name="certificate_charge" type="number" step="0.01" value="0"></div>
-							<div class="ef-field"><label>Delivery Charge</label><input name="delivery_charge" type="number" step="0.01" value="0"></div>
+					</tbody>
+				</table>
+			</div>
+
+			<div id="jw_rs_payment" class="ef-tab-pane" style="display:none">
+				<div class="ef-section">
+					<span class="ef-section-title">Payment Details</span>
+					<div class="ef-row">
+						<div class="ef-field"><label>Payment Mode</label>
+							<select name="payment_mode"><option value="CASH">Cash</option><option value="CARD">Card</option><option value="BANK">Bank Transfer</option><option value="CHEQUE">Cheque</option><option value="MIXED">Mixed</option></select>
 						</div>
-						<div class="ef-row">
-							<div class="ef-field"><label>Discount</label><input name="discount_amount" type="number" step="0.01" value="0"></div>
-							<div class="ef-field"><label>Discount %</label><input name="discount_pct" type="number" step="0.01" value="0"></div>
-						</div>
+						<div class="ef-field"><label>Cash Amount</label><input name="cash_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Card Amount</label><input name="card_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Card No (Last 4)</label><input name="card_no" maxlength="4"></div>
+					</div>
+					<div class="ef-row">
+						<div class="ef-field"><label>Bank Transfer</label><input name="bank_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Cheque No</label><input name="cheque_no" maxlength="20"></div>
+						<div class="ef-field"><label>Cheque Amount</label><input name="cheque_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Advance Adj</label><input name="advance_adj" type="number" step="0.01" value="0.00"></div>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Summary Totals -->
-		<div style="display:flex;justify-content:flex-end;">
-			<div class="ef-section" style="min-width:300px;">
-				<span class="ef-section-title">Invoice Summary</span>
-				<div class="ef-totals">
-					<div class="ef-tot-row"><label>Metal Amount</label><input name="total_metal" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Making Amount</label><input name="total_making" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Stone Amount</label><input name="total_stone" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Diamond Amount</label><input name="total_diamond" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Other Charges</label><input name="total_other" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Less: Old Gold</label><input name="total_old_gold" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Net Amount</label><input name="net_amount" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>VAT (5%)</label><input name="vat_amount" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Round Off</label><input name="round_off" type="number" step="0.01" value="0"></div>
-					<div class="ef-tot-row" style="border-bottom:2px solid #333;font-size:14px"><label><strong>GROSS TOTAL</strong></label><input name="gross_total" type="number" step="0.01" value="0" class="ef-readonly" readonly style="font-weight:700;font-size:14px"></div>
-					<div class="ef-tot-row"><label>Total Received</label><input name="total_received" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Balance Due</label><input name="balance_due" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
+			<div id="jw_rs_exchange" class="ef-tab-pane" style="display:none">
+				<div class="ef-section">
+					<span class="ef-section-title">Old Gold / Exchange</span>
+					<div class="ef-row">
+						<div class="ef-field"><label>Metal</label>
+							<select name="ex_metal"><option value="G">Gold</option><option value="S">Silver</option></select>
+						</div>
+						<div class="ef-field"><label>Karat</label><input name="ex_karat" maxlength="10"></div>
+						<div class="ef-field"><label>Gross Wt</label><input name="ex_gross_wt" type="number" step="0.001" value="0.000"></div>
+						<div class="ef-field"><label>Purity</label><input name="ex_purity" type="number" step="0.000001" value="0.000000"></div>
+					</div>
+					<div class="ef-row">
+						<div class="ef-field"><label>Net Wt</label><input name="ex_net_wt" type="number" step="0.001" value="0.000"></div>
+						<div class="ef-field"><label>Rate</label><input name="ex_rate" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Exchange Value</label><input name="ex_value" type="number" step="0.01" value="0.00"></div>
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<div class="ef-section">
-			<span class="ef-section-title">Narration</span>
-			<textarea name="narration" class="ef-narration" placeholder="Sales remarks"></textarea>
-		</div>
+			<div class="ef-totals">
+				<div class="ef-row">
+					<div class="ef-field"><label>Total Pcs</label><input name="total_pcs" type="number" value="0" readonly></div>
+					<div class="ef-field"><label>Total Gross Wt</label><input name="total_gross_wt" type="number" step="0.001" value="0.000" readonly></div>
+					<div class="ef-field"><label>Sub Total</label><input name="sub_total" type="number" step="0.01" value="0.00" readonly></div>
+					<div class="ef-field"><label>Discount</label><input name="discount" type="number" step="0.01" value="0.00"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Net Amount</label><input name="net_amount" type="number" step="0.01" value="0.00" readonly></div>
+					<div class="ef-field"><label>VAT 5%</label><input name="vat_amount" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Round Off</label><input name="round_off" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label><strong>Gross Total</strong></label><input name="gross_total" type="number" step="0.01" value="0.00" readonly style="font-weight:bold"></div>
+				</div>
+			</div>
 
-		<div class="ef-actions">
-			<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
-			<button type="button" class="btn btn-info btn-sm"><i class="fa fa-print"></i> Print Invoice</button>
-			<button type="button" class="btn btn-warning btn-sm"><i class="fa fa-credit-card"></i> Settle Till</button>
+			<div class="ef-actions">
+				<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
+				<button type="button" class="btn btn-success btn-sm" disabled><i class="fa fa-print"></i> Save &amp; Print</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="document.getElementById('jw_rs_form').style.display='none'">Cancel</button>
+			</div>
+			</form>
 		</div>
-		</form>
 	</div>
-	<div class="ef-status"><span>Mode:=ADD</span><span>Voc Type: RIN — Retail Sales Invoice</span></div>
+	<div class="ef-status">
+		<span>Mode:=VIEW</span>
+		<span>Header New Record &rarr; Function Key (F5)</span>
+	</div>
 </div>
+<script>
+function jwRsTab(btn, pane){
+	document.querySelectorAll('.ef-tab').forEach(function(t){t.classList.remove('active');});
+	btn.classList.add('active');
+	['items','payment','exchange'].forEach(function(p){
+		document.getElementById('jw_rs_'+p).style.display=(p===pane)?'block':'none';
+	});
+}
+</script>

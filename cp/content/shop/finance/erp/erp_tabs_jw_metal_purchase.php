@@ -1,7 +1,7 @@
 <?php
 /**
- * Jewellery ERP — Metal Purchase (RMP).
- * Purchase voucher for raw metal (gold/silver/platinum) from suppliers.
+ * Jewellery ERP — Metal Purchase.
+ * Ref: Suntech Metal Purchase screenshot (header, line items grid, other amounts, narration).
  */
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery.php';
@@ -13,129 +13,163 @@ epc_jewel_ensure_schema($db_link);
 $companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
 $csrfLocal = isset($csrf) ? $csrf : '';
 $divisions = epc_jewel_divisions();
+$purchases = epc_jewel_purchase_list($db_link, $companyId, 'METAL');
 
-erp_page_header('<i class="fa fa-arrow-down"></i> Metal Purchase', 'Raw metal purchase with fixed/floating rate, supplier invoice and VAT.', array(
+erp_page_header('<i class="fa fa-shopping-cart"></i> Metal Purchase', 'Metal purchase vouchers with supplier, line items and narration.', array(
 	array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 	array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
 	array('label' => 'Metal purchase'),
 ));
 ?>
 <div class="ef-window">
-	<div class="ef-title">Metal Purchase - (RMP)</div>
+	<div class="ef-title">Metal Purchase</div>
 	<div class="ef-toolbar">
-		<button class="btn btn-default btn-xs"><i class="fa fa-file-o"></i> New</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-save"></i> Save</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-trash"></i> Delete</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-print"></i> Print</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-search"></i> Find</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-check-square"></i> Approve</button>
+		<button class="btn btn-default btn-xs" onclick="document.getElementById('jw_mp_form').style.display='block'"><i class="fa fa-plus"></i> New</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-pencil"></i> Edit</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-trash"></i> Delete</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-print"></i> Print</button>
+		<button class="btn btn-default btn-xs" onclick="window.location.reload()"><i class="fa fa-refresh"></i> Refresh</button>
 	</div>
 	<div class="ef-body">
-		<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
-		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
-		<input type="hidden" name="action" value="jw_voucher_save">
-		<input type="hidden" name="voc_type" value="RMP">
-
-		<!-- Header Details -->
-		<div class="ef-section">
-			<span class="ef-section-title">Header Details</span>
-			<div class="ef-row">
-				<div class="ef-field"><label>Branch</label><select name="branch"><option value="HO">HO</option><option value="B1">B1</option><option value="B2">B2</option></select></div>
-				<div class="ef-field"><label>Voc Type</label><input name="voc_type_display" value="RMP" class="ef-readonly" readonly style="width:50px;background:#e8e8e8"></div>
-				<div class="ef-field"><label>Voc Date</label><input name="voc_date" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
-				<div class="ef-field"><label>Voc No.</label><input name="voc_no" class="ef-readonly" readonly placeholder="Auto" style="width:60px;background:#e8e8e8"></div>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Party Code</label><input name="party_code" required placeholder="SUP001"></div>
-				<div class="ef-field ef-field-wide"><label>Party Name</label><input name="party_name" placeholder="Supplier name"></div>
-				<div class="ef-field"><label>Currency</label><select name="currency"><option value="AED">AED</option><option value="USD">USD</option></select></div>
-				<div class="ef-field ef-field-narrow"><label>Rate</label><input name="currency_rate" type="number" step="0.000001" value="1.000000"></div>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Salesman</label><input name="salesman"></div>
-				<div class="ef-field"><label>Ref / Inv#</label><input name="ref_invoice_no" placeholder="Supplier invoice"></div>
-				<div class="ef-field"><label>Credit Days</label><input name="credit_days" type="number" value="0" style="width:50px"></div>
-				<div class="ef-field"><label>Due Date</label><input name="due_date" type="date"></div>
-			</div>
-			<div class="ef-checks">
-				<label><input type="checkbox" name="rate_fixed" value="1" checked> Fixed Rate</label>
-				<label><input type="checkbox" name="rate_floating" value="1"> Floating Rate</label>
-				<label><input type="checkbox" name="apply_vat" value="1" checked> Apply VAT</label>
-			</div>
-		</div>
-
-		<!-- Line Items -->
-		<div class="ef-section">
-			<span class="ef-section-title">Purchase Lines</span>
-			<table class="ef-grid">
-				<thead><tr>
-					<th>No.</th><th>Metal</th><th>Karat</th><th>Purity</th>
-					<th>Gross Wt</th><th>Stone Wt</th><th>Net Wt</th><th>Pure Wt</th>
-					<th>Rate/Gm</th><th>Metal Amt</th><th>Making/Gm</th><th>Making Amt</th>
-					<th>Stone Amt</th><th>Wastage%</th><th>Line Total</th>
-				</tr></thead>
-				<tbody>
-				<?php for ($r = 0; $r < 5; $r++): ?>
-				<tr>
-					<td><?php echo $r + 1; ?></td>
-					<td><select name="lines[<?php echo $r; ?>][metal]"><option value="">—</option><?php foreach ($divisions as $c => $l): ?><option value="<?php echo epc_erp_h($c); ?>"><?php echo epc_erp_h($c); ?></option><?php endforeach; ?></select></td>
-					<td><input name="lines[<?php echo $r; ?>][karat]" style="width:30px"></td>
-					<td><input name="lines[<?php echo $r; ?>][purity]" type="number" step="0.000001" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][gross_wt]" type="number" step="0.001" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][stone_wt]" type="number" step="0.001" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][net_wt]" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-					<td><input name="lines[<?php echo $r; ?>][pure_wt]" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-					<td><input name="lines[<?php echo $r; ?>][rate_gm]" type="number" step="0.01" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][metal_amt]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-					<td><input name="lines[<?php echo $r; ?>][making_gm]" type="number" step="0.01" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][making_amt]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-					<td><input name="lines[<?php echo $r; ?>][stone_amt]" type="number" step="0.01" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][wastage_pct]" type="number" step="0.01" value="0"></td>
-					<td><input name="lines[<?php echo $r; ?>][line_total]" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
+		<table class="ef-grid">
+			<thead><tr>
+				<th>No.</th><th>Voc No</th><th>Voc Date</th><th>Party Code</th>
+				<th>Supp Inv</th><th>Metal</th><th>Net Amt</th>
+			</tr></thead>
+			<tbody>
+			<?php if (empty($purchases)): ?>
+				<tr><td colspan="7" style="text-align:center;color:#999">No records</td></tr>
+			<?php else: $n=1; foreach ($purchases as $p): ?>
+				<tr class="ef-grid-row" style="cursor:pointer">
+					<td><?php echo $n++; ?></td>
+					<td><strong><?php echo epc_erp_h($p['voc_no']); ?></strong></td>
+					<td><?php echo epc_erp_h($p['voc_date']); ?></td>
+					<td><?php echo epc_erp_h($p['party_code']); ?></td>
+					<td><?php echo epc_erp_h($p['supp_inv_no']); ?></td>
+					<td><?php echo epc_erp_h($divisions[$p['metal']] ?? $p['metal']); ?></td>
+					<td style="text-align:right"><?php echo number_format((float)$p['net_amount'], 2); ?></td>
 				</tr>
-				<?php endfor; ?>
-				</tbody>
-				<tfoot><tr>
-					<td colspan="4" style="text-align:right"><strong>Totals:</strong></td>
-					<td><input name="total_gross_wt" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-					<td><input name="total_stone_wt" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-					<td><input name="total_net_wt" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-					<td><input name="total_pure_wt" type="number" step="0.001" value="0" class="ef-readonly" readonly></td>
-					<td></td>
-					<td><input name="total_metal_amt" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-					<td></td>
-					<td><input name="total_making_amt" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-					<td><input name="total_stone_amt" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-					<td></td>
-					<td><input name="sub_total" type="number" step="0.01" value="0" class="ef-readonly" readonly></td>
-				</tr></tfoot>
-			</table>
-		</div>
+			<?php endforeach; endif; ?>
+			</tbody>
+		</table>
 
-		<!-- Totals -->
-		<div style="display:flex;justify-content:flex-end;">
-			<div class="ef-section" style="min-width:280px;">
-				<span class="ef-section-title">Summary</span>
-				<div class="ef-totals">
-					<div class="ef-tot-row"><label>Net Amount</label><input name="net_amount" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>VAT (5%)</label><input name="vat_amount" type="number" step="0.01" value="0" class="ef-readonly" readonly></div>
-					<div class="ef-tot-row"><label>Round Off</label><input name="round_off" type="number" step="0.01" value="0"></div>
-					<div class="ef-tot-row" style="border-bottom:2px solid #333;font-size:14px"><label><strong>GROSS TOTAL</strong></label><input name="gross_total" type="number" step="0.01" value="0" class="ef-readonly" readonly style="font-weight:700;font-size:14px"></div>
+		<div id="jw_mp_form" style="display:none;margin-top:12px;">
+			<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
+			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+			<input type="hidden" name="action" value="jw_metal_purchase_save">
+
+			<div class="ef-section">
+				<span class="ef-section-title">Voucher Header</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Branch</label><input name="branch" maxlength="10" value="HO"></div>
+					<div class="ef-field"><label>Voc Type</label><input name="voc_type" maxlength="5" value="PUR" readonly></div>
+					<div class="ef-field"><label>Voc Date</label><input name="voc_date" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
+					<div class="ef-field"><label>Voc No</label><input name="voc_no" maxlength="20" placeholder="Auto"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Party Code</label><input name="party_code" maxlength="20" required></div>
+					<div class="ef-field"><label>Party Name</label><input name="party_name" maxlength="80" readonly></div>
+					<div class="ef-field"><label>Party Curr</label><input name="party_currency" maxlength="5" value="AED"></div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Narration -->
-		<div class="ef-section">
-			<span class="ef-section-title">Narration</span>
-			<textarea name="narration" class="ef-narration" placeholder="Purchase remarks"></textarea>
-		</div>
+			<div class="ef-section">
+				<span class="ef-section-title">Invoice Details</span>
+				<div class="ef-row">
+					<div class="ef-field"><label><input type="checkbox" name="fixed_rate" value="1"> Fixed Rate</label></div>
+					<div class="ef-field"><label>Metal Rate (GMS)</label><input name="metal_rate_gms" type="number" step="0.00001" value="0.00000"></div>
+					<div class="ef-field"><label>Cr. Days</label><input name="cr_days" type="number" value="0"></div>
+					<div class="ef-field"><label>Salesman</label><input name="salesman" maxlength="20"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Supp. Inv No</label><input name="supp_inv_no" maxlength="30"></div>
+					<div class="ef-field"><label>Supp. Inv Date</label><input name="supp_inv_date" type="date"></div>
+					<div class="ef-field"><label>Metal</label>
+						<select name="metal"><?php foreach ($divisions as $c => $l): ?><option value="<?php echo epc_erp_h($c); ?>"><?php echo epc_erp_h($l); ?></option><?php endforeach; ?></select>
+					</div>
+				</div>
+			</div>
 
-		<div class="ef-actions">
-			<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
-			<button type="button" class="btn btn-info btn-sm"><i class="fa fa-print"></i> Print</button>
+			<div class="ef-tabs">
+				<button type="button" class="ef-tab active" onclick="jwMpTab(this,'items')">1. Line Items</button>
+				<button type="button" class="ef-tab" onclick="jwMpTab(this,'other')">2. Other Amounts</button>
+			</div>
+
+			<div id="jw_mp_items" class="ef-tab-pane">
+				<table class="ef-grid">
+					<thead><tr>
+						<th>No.</th><th>Item Code</th><th>Karat</th><th>Purity</th>
+						<th>Pcs</th><th>Gross Wt</th><th>Net Wt</th><th>Rate Type</th>
+						<th>Metal Rate</th><th>MC Type</th><th>MC Rate</th><th>MC Amount</th><th>Amount</th>
+					</tr></thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td><input name="li_item_code" maxlength="20" style="width:70px"></td>
+							<td><input name="li_karat" maxlength="10" style="width:40px"></td>
+							<td><input name="li_purity" type="number" step="0.000001" value="0.000000" style="width:70px"></td>
+							<td><input name="li_pcs" type="number" value="0" style="width:40px"></td>
+							<td><input name="li_gross_wt" type="number" step="0.001" value="0.000" style="width:70px"></td>
+							<td><input name="li_net_wt" type="number" step="0.001" value="0.000" style="width:70px"></td>
+							<td><input name="li_rate_type" maxlength="10" value="GMS" style="width:50px"></td>
+							<td><input name="li_metal_rate" type="number" step="0.01" value="0.00" style="width:70px"></td>
+							<td><select name="li_mc_type" style="width:50px"><option value="FIX">FIX</option><option value="PCT">PCT</option><option value="PGM">PGM</option></select></td>
+							<td><input name="li_mc_rate" type="number" step="0.01" value="0.00" style="width:60px"></td>
+							<td><input name="li_mc_amount" type="number" step="0.01" value="0.00" style="width:70px"></td>
+							<td><input name="li_amount" type="number" step="0.01" value="0.00" style="width:80px"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div id="jw_mp_other" class="ef-tab-pane" style="display:none">
+				<div class="ef-section">
+					<span class="ef-section-title">Other Amounts</span>
+					<div class="ef-row">
+						<div class="ef-field"><label>Discount</label><input name="discount_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Freight</label><input name="freight_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Insurance</label><input name="insurance_amount" type="number" step="0.01" value="0.00"></div>
+						<div class="ef-field"><label>Customs</label><input name="customs_amount" type="number" step="0.01" value="0.00"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Narration</span>
+				<div class="ef-row">
+					<div class="ef-field ef-field-wide"><textarea name="narration" rows="2" maxlength="500" style="width:100%"></textarea></div>
+				</div>
+			</div>
+
+			<div class="ef-totals">
+				<div class="ef-row">
+					<div class="ef-field"><label>Total Pcs</label><input name="total_pcs" type="number" value="0" readonly></div>
+					<div class="ef-field"><label>Total Gross Wt</label><input name="total_gross_wt" type="number" step="0.001" value="0.000" readonly></div>
+					<div class="ef-field"><label>Total Net Wt</label><input name="total_net_wt" type="number" step="0.001" value="0.000" readonly></div>
+					<div class="ef-field"><label>Net Amount</label><input name="net_amount" type="number" step="0.01" value="0.00" readonly></div>
+					<div class="ef-field"><label>VAT</label><input name="vat_amount" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Gross Total</label><input name="gross_total" type="number" step="0.01" value="0.00" readonly></div>
+				</div>
+			</div>
+
+			<div class="ef-actions">
+				<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="document.getElementById('jw_mp_form').style.display='none'">Cancel</button>
+			</div>
+			</form>
 		</div>
-		</form>
 	</div>
-	<div class="ef-status"><span>Mode:=ADD</span><span>Voc Type: RMP — Metal Purchase</span></div>
+	<div class="ef-status">
+		<span>Mode:=VIEW</span>
+		<span>Header New Record &rarr; Function Key (F5)</span>
+	</div>
 </div>
+<script>
+function jwMpTab(btn, pane){
+	document.querySelectorAll('.ef-tab').forEach(function(t){t.classList.remove('active');});
+	btn.classList.add('active');
+	['items','other'].forEach(function(p){
+		document.getElementById('jw_mp_'+p).style.display=(p===pane)?'block':'none';
+	});
+}
+</script>
