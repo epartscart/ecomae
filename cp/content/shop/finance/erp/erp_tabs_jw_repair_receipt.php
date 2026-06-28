@@ -1,7 +1,7 @@
 <?php
 /**
- * Jewellery ERP — Repair Receipt (REP).
- * Customer brings jewellery for repair — receive, log, estimate.
+ * Jewellery ERP — Repair Receipt.
+ * Ref: Suntech Repair Receipt screenshot (customer job intake).
  */
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery.php';
@@ -12,89 +12,122 @@ include __DIR__ . '/erp_entry_form_css.php';
 epc_jewel_ensure_schema($db_link);
 $companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
 $csrfLocal = isset($csrf) ? $csrf : '';
+$repairs = epc_jewel_repair_list($db_link, $companyId, date('Y-01-01'), date('Y-m-d'), 'Received');
 
-erp_page_header('<i class="fa fa-wrench"></i> Repair Receipt', 'Customer repair reception with item details and estimate.', array(
+erp_page_header('<i class="fa fa-wrench"></i> Repair Receipt', 'Customer repair job intake — receive items for repair.', array(
 	array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 	array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
 	array('label' => 'Repair receipt'),
 ));
 ?>
 <div class="ef-window">
-	<div class="ef-title">Repair Receipt - (REP)</div>
+	<div class="ef-title">Repair Receipt</div>
 	<div class="ef-toolbar">
-		<button class="btn btn-default btn-xs"><i class="fa fa-file-o"></i> New</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-save"></i> Save</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-print"></i> Print Job Card</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-search"></i> Find</button>
-		<button class="btn btn-default btn-xs"><i class="fa fa-exchange"></i> Transfer to Workshop</button>
+		<button class="btn btn-default btn-xs" onclick="document.getElementById('jw_rr_form').style.display='block'"><i class="fa fa-plus"></i> New Receipt</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-pencil"></i> Edit</button>
+		<button class="btn btn-default btn-xs" disabled><i class="fa fa-print"></i> Print</button>
+		<button class="btn btn-default btn-xs" onclick="window.location.reload()"><i class="fa fa-refresh"></i> Refresh</button>
 	</div>
 	<div class="ef-body">
-		<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
-		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
-		<input type="hidden" name="action" value="jw_repair_save">
-
-		<div class="ef-section">
-			<span class="ef-section-title">Receipt Details</span>
-			<div class="ef-row">
-				<div class="ef-field"><label>Branch</label><select name="branch"><option value="HO">HO</option></select></div>
-				<div class="ef-field"><label>Receipt Date</label><input name="receipt_date" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
-				<div class="ef-field"><label>Repair No.</label><input name="repair_no" class="ef-readonly" readonly placeholder="Auto" style="width:80px;background:#e8e8e8"></div>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Customer Code</label><input name="customer_code" required></div>
-				<div class="ef-field ef-field-wide"><label>Customer Name</label><input name="customer_name"></div>
-				<div class="ef-field"><label>Mobile</label><input name="mobile"></div>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Salesman</label><input name="salesman"></div>
-				<div class="ef-field"><label>Promise Date</label><input name="promise_date" type="date"></div>
-				<div class="ef-field"><label>Priority</label><select name="priority"><option value="Normal">Normal</option><option value="Urgent">Urgent</option><option value="Express">Express</option></select></div>
-			</div>
-		</div>
-
-		<div class="ef-section">
-			<span class="ef-section-title">Repair Items</span>
-			<table class="ef-grid">
-				<thead><tr>
-					<th>No.</th><th>Item Description</th><th>Metal</th><th>Karat</th>
-					<th>Gross Wt</th><th>Repair Type</th><th>Est. Cost</th><th>Remarks</th>
-				</tr></thead>
-				<tbody>
-				<?php for ($r = 0; $r < 4; $r++): ?>
-				<tr>
-					<td><?php echo $r + 1; ?></td>
-					<td><input name="items[<?php echo $r; ?>][description]" placeholder="Ring / Bracelet / Chain" style="min-width:140px"></td>
-					<td><select name="items[<?php echo $r; ?>][metal]"><option value="">—</option><option value="G">G</option><option value="S">S</option><option value="T">T</option></select></td>
-					<td><input name="items[<?php echo $r; ?>][karat]" style="width:30px"></td>
-					<td><input name="items[<?php echo $r; ?>][gross_wt]" type="number" step="0.001" value="0"></td>
-					<td><select name="items[<?php echo $r; ?>][repair_type]"><option value="">—</option><option>Resize</option><option>Polish</option><option>Rhodium</option><option>Stone Setting</option><option>Solder</option><option>Chain Repair</option><option>Clasp</option><option>Engrave</option><option>Other</option></select></td>
-					<td><input name="items[<?php echo $r; ?>][est_cost]" type="number" step="0.01" value="0"></td>
-					<td><input name="items[<?php echo $r; ?>][remarks]" style="min-width:100px"></td>
+		<table class="ef-grid">
+			<thead><tr>
+				<th>No.</th><th>Job No</th><th>Receipt Date</th><th>Customer</th>
+				<th>Mobile</th><th>Item</th><th>Promise Date</th><th>Status</th>
+			</tr></thead>
+			<tbody>
+			<?php if (empty($repairs)): ?>
+				<tr><td colspan="8" style="text-align:center;color:#999">No records</td></tr>
+			<?php else: $n=1; foreach ($repairs as $r): ?>
+				<tr class="ef-grid-row" style="cursor:pointer">
+					<td><?php echo $n++; ?></td>
+					<td><strong><?php echo epc_erp_h($r['job_no']); ?></strong></td>
+					<td><?php echo epc_erp_h($r['receipt_date']); ?></td>
+					<td><?php echo epc_erp_h($r['customer_name']); ?></td>
+					<td><?php echo epc_erp_h($r['customer_mobile']); ?></td>
+					<td><?php echo epc_erp_h($r['item_description']); ?></td>
+					<td><?php echo epc_erp_h($r['promise_date']); ?></td>
+					<td><?php echo epc_erp_h($r['status']); ?></td>
 				</tr>
-				<?php endfor; ?>
-				</tbody>
-				<tfoot><tr><td colspan="6" style="text-align:right"><strong>Total Est.:</strong></td><td><input name="total_est_cost" type="number" step="0.01" value="0" class="ef-readonly" readonly></td><td></td></tr></tfoot>
-			</table>
-		</div>
+			<?php endforeach; endif; ?>
+			</tbody>
+		</table>
 
-		<div class="ef-section">
-			<span class="ef-section-title">Customer Acknowledgement</span>
-			<div class="ef-checks">
-				<label><input type="checkbox" name="photo_taken" value="1"> Photo taken on receipt</label>
-				<label><input type="checkbox" name="customer_signed" value="1"> Customer signed</label>
-				<label><input type="checkbox" name="advance_received" value="1"> Advance received</label>
-			</div>
-			<div class="ef-row">
-				<div class="ef-field"><label>Advance Amt</label><input name="advance_amt" type="number" step="0.01" value="0"></div>
-			</div>
-			<textarea name="narration" class="ef-narration" placeholder="Special instructions / customer notes"></textarea>
-		</div>
+		<div id="jw_rr_form" style="display:none;margin-top:12px;">
+			<form method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>">
+			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+			<input type="hidden" name="action" value="jw_repair_receipt_save">
 
-		<div class="ef-actions">
-			<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
-			<button type="button" class="btn btn-info btn-sm"><i class="fa fa-print"></i> Print Job Card</button>
+			<div class="ef-section">
+				<span class="ef-section-title">Customer Details</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Branch</label><input name="branch" maxlength="10" value="HO"></div>
+					<div class="ef-field"><label>Receipt Date</label><input name="receipt_date" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
+					<div class="ef-field"><label>Job No</label><input name="job_no" maxlength="20" placeholder="Auto"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Customer Code</label><input name="customer_code" maxlength="20"></div>
+					<div class="ef-field"><label>Customer Name</label><input name="customer_name" maxlength="80" required></div>
+					<div class="ef-field"><label>Mobile</label><input name="customer_mobile" maxlength="20" required></div>
+					<div class="ef-field"><label>Email</label><input name="customer_email" maxlength="80" type="email"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>ID Type</label>
+						<select name="id_type"><option value="">--</option><option value="Emirates ID">Emirates ID</option><option value="Passport">Passport</option><option value="Driving License">Driving License</option></select>
+					</div>
+					<div class="ef-field"><label>ID Number</label><input name="id_number" maxlength="30"></div>
+					<div class="ef-field"><label>Nationality</label><input name="nationality" maxlength="30"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Item Details</span>
+				<div class="ef-row">
+					<div class="ef-field ef-field-wide"><label>Item Description</label><input name="item_description" maxlength="200" required></div>
+					<div class="ef-field"><label>Metal</label><input name="metal" maxlength="10" value="Gold"></div>
+					<div class="ef-field"><label>Karat</label><input name="karat" maxlength="10"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Gross Wt</label><input name="gross_wt" type="number" step="0.001" value="0.000"></div>
+					<div class="ef-field"><label>Net Wt</label><input name="net_wt" type="number" step="0.001" value="0.000"></div>
+					<div class="ef-field"><label>No of Stones</label><input name="no_of_stones" type="number" value="0"></div>
+					<div class="ef-field"><label>Stone Wt</label><input name="stone_wt" type="number" step="0.001" value="0.000"></div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Repair Details</span>
+				<div class="ef-row">
+					<div class="ef-field"><label>Repair Type</label>
+						<select name="repair_type"><option value="Resize">Resize</option><option value="Polish">Polish</option><option value="Rhodium">Rhodium</option><option value="Solder">Solder</option><option value="Stone Setting">Stone Setting</option><option value="Engraving">Engraving</option><option value="Other">Other</option></select>
+					</div>
+					<div class="ef-field ef-field-wide"><label>Work Description</label><input name="work_description" maxlength="500"></div>
+				</div>
+				<div class="ef-row">
+					<div class="ef-field"><label>Est. Charge</label><input name="est_charge" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Advance</label><input name="advance_amount" type="number" step="0.01" value="0.00"></div>
+					<div class="ef-field"><label>Promise Date</label><input name="promise_date" type="date"></div>
+					<div class="ef-field"><label>Priority</label>
+						<select name="priority"><option value="Normal">Normal</option><option value="Urgent">Urgent</option><option value="Express">Express</option></select>
+					</div>
+				</div>
+			</div>
+
+			<div class="ef-section">
+				<span class="ef-section-title">Narration</span>
+				<div class="ef-row">
+					<div class="ef-field ef-field-wide"><textarea name="narration" rows="2" maxlength="500" style="width:100%"></textarea></div>
+				</div>
+			</div>
+
+			<div class="ef-actions">
+				<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="document.getElementById('jw_rr_form').style.display='none'">Cancel</button>
+			</div>
+			</form>
 		</div>
-		</form>
 	</div>
-	<div class="ef-status"><span>Mode:=ADD</span><span>Repair Receipt — REP</span></div>
+	<div class="ef-status">
+		<span>Mode:=VIEW</span>
+		<span>Header New Record &rarr; Function Key (F5)</span>
+	</div>
 </div>

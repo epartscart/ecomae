@@ -100,6 +100,15 @@ function epc_portal_erp_modules_registry(): array
 			'default_erp_only' => true,
 			'default_full' => true,
 		),
+		'erp_jewellery' => array(
+			'id' => 'erp_jewellery',
+			'label' => 'Jewellery',
+			'desc' => 'Metals, diamonds, pearls, repair workshop, POS, barcode generation',
+			'area' => 'jewellery',
+			'icon' => 'fa-diamond',
+			'default_erp_only' => true,
+			'default_full' => true,
+		),
 	);
 }
 
@@ -318,6 +327,7 @@ function epc_portal_erp_modules_enabled_areas(array $settings = null): array
 		'insights' => array('finance', 'sales', 'enterprise', 'setup', 'common'),
 		'collaboration' => array('projects', 'enterprise', 'common', 'service_mgmt'),
 		'enterprise' => array('enterprise', 'budgeting', 'common', 'consolidations'),
+		'jewellery' => array('jewellery'),
 	);
 	$areas = array();
 	foreach ($enabled as $modId) {
