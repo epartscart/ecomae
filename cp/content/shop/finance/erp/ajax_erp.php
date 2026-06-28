@@ -1988,6 +1988,16 @@ try {
 			epc_erp_json(true, 'Cheque recorded', array('id' => $chId));
 
 		default:
+			/* Jewellery ERP actions — jw_* prefix */
+			if (strpos($action, 'jw_') === 0) {
+				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery.php';
+				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+				epc_jewel_ensure_schema($db_link);
+				$companyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+				$r = epc_jewel_handle_ajax($db_link, $action, $_POST, $companyId);
+				epc_erp_json((bool)$r['ok'], $r['message'] ?? 'OK', $r);
+			}
+			/* CRM actions */
 			if (strpos($action, 'crm_') === 0 || in_array($action, array(
 				'save_lead', 'delete_lead', 'save_opportunity', 'update_stage', 'convert_lead',
 				'won_hint', 'save_activity', 'toggle_activity', 'dashboard', 'pipeline',
