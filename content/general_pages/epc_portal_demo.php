@@ -562,12 +562,14 @@ function epc_portal_demo_cp_maybe_redirect_bare_path(): void
 
 function epc_portal_demo_cp_rewrite_nav_urls_attr_cb(array $m)
 {
-	return $m[1] . '=' . $m[2] . epc_portal_demo_cp_scope_cp_path($m[3]);
+	$path = isset($m[3]) ? (string)$m[3] : '';
+	return $m[1] . '=' . $m[2] . epc_portal_demo_cp_scope_cp_path($path);
 }
 
 function epc_portal_demo_cp_rewrite_nav_urls_location_cb(array $m)
 {
-	return $m[1] . '=' . $m[2] . epc_portal_demo_cp_scope_cp_path($m[3]);
+	$path = isset($m[2]) ? (string)$m[2] : '';
+	return 'location=' . $m[1] . epc_portal_demo_cp_scope_cp_path($path);
 }
 
 /** Rewrite CP HTML/JS navigation URLs so sidebar clicks stay in demo scope. */
