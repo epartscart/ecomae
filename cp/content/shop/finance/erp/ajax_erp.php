@@ -1537,6 +1537,14 @@ try {
 			$data['custom_fields'] = $custom;
 			$id = epc_erp_inventory_create_item($db_link, $data);
 			epc_erp_dim_save_from_post($db_link, 'inventory_item', (int) $id, $_POST);
+			// Save PIM custom field values
+			$pimFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pim_custom_fields.php';
+			if (is_file($pimFile) && $id > 0) {
+				require_once $pimFile;
+				if (function_exists('epc_pim_save_from_post')) {
+					epc_pim_save_from_post($db_link, (int) $id, $_POST, 'inventory');
+				}
+			}
 			epc_erp_json(true, 'Inventory item created', array('id' => $id));
 
 		case 'inv_record_movement':
