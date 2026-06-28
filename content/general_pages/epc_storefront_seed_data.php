@@ -5,18 +5,95 @@
  * Creates categories hierarchy + products with images for each industry.
  * Safe to call multiple times (idempotent — uses NOT EXISTS / ON DUPLICATE KEY).
  *
+ * WORLDWIDE RULE: Prices are stored in USD base and converted to the tenant's
+ * registered currency via epc_country_profile(). Category/product names use
+ * the tenant's tax label (VAT/GST/Sales Tax) and region-appropriate terms.
+ *
  * Usage (from CP or setup script):
  *   require_once __DIR__ . '/epc_storefront_seed_data.php';
  *   $report = epc_storefront_seed_all($pdo, 'electronics', 'electronicae');
  */
 defined('_ASTEXE_') or die('No access');
 
+function epc_storefront_seed_resolve_tenant_locale(PDO $pdo): array
+{
+	$country = 'AE';
+	$currency = 'AED';
+	$taxLabel = 'VAT';
+	$region = 'gcc';
+	try {
+		$locFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_localization.php';
+		if (is_file($locFile)) {
+			require_once $locFile;
+		}
+		$settingsFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+		if (is_file($settingsFile)) {
+			require_once $settingsFile;
+			$settings = epc_portal_load_site_settings($pdo);
+			$contact = isset($settings['contact']) && is_array($settings['contact']) ? $settings['contact'] : array();
+			$tenantCountry = isset($contact['country']) ? strtoupper(trim((string) $contact['country'])) : '';
+			if ($tenantCountry !== '' && function_exists('epc_country_profile')) {
+				$prof = epc_country_profile($tenantCountry);
+				$country = $prof['country'];
+				$currency = $prof['currency'];
+				$taxLabel = $prof['tax_label'];
+			}
+		}
+	} catch (Throwable $e) {
+		// fallback to defaults
+	}
+	$gccCountries = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW');
+	$menaCountries = array('AE', 'SA', 'QA', 'OM', 'BH', 'KW', 'IQ', 'JO', 'LB', 'EG', 'MA');
+	$saCountries = array('PK', 'IN', 'BD', 'LK', 'NP');
+	if (in_array($country, $gccCountries, true)) {
+		$region = 'gcc';
+	} elseif (in_array($country, $menaCountries, true)) {
+		$region = 'mena';
+	} elseif (in_array($country, $saCountries, true)) {
+		$region = 'south_asia';
+	} elseif (in_array($country, array('GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'PL', 'PT', 'AT', 'CH', 'IE', 'GR', 'CZ', 'RO', 'HU', 'BE'), true)) {
+		$region = 'europe';
+	} elseif (in_array($country, array('US', 'CA', 'MX', 'BR', 'CO', 'AR', 'CL'), true)) {
+		$region = 'americas';
+	} elseif (in_array($country, array('CN', 'JP', 'KR', 'AU', 'NZ', 'SG', 'MY', 'TH', 'ID', 'PH', 'VN'), true)) {
+		$region = 'apac';
+	} elseif (in_array($country, array('NG', 'ZA', 'KE', 'GH', 'TZ'), true)) {
+		$region = 'africa';
+	} else {
+		$region = 'international';
+	}
+	return array('country' => $country, 'currency' => $currency, 'tax_label' => $taxLabel, 'region' => $region);
+}
+
+function epc_storefront_seed_fx_rate(string $currency): float
+{
+	$rates = array(
+		'USD' => 1.0, 'AED' => 3.67, 'SAR' => 3.75, 'QAR' => 3.64, 'OMR' => 0.385,
+		'BHD' => 0.376, 'KWD' => 0.308, 'GBP' => 0.79, 'EUR' => 0.92, 'INR' => 83.5,
+		'PKR' => 278.0, 'BDT' => 110.0, 'LKR' => 320.0, 'JPY' => 155.0, 'KRW' => 1350.0,
+		'CNY' => 7.25, 'AUD' => 1.55, 'NZD' => 1.68, 'SGD' => 1.35, 'CAD' => 1.37,
+		'MXN' => 17.5, 'BRL' => 5.0, 'ZAR' => 18.5, 'NGN' => 1550.0, 'KES' => 155.0,
+		'EGP' => 48.0, 'SEK' => 10.8, 'NOK' => 10.7, 'DKK' => 6.9, 'PLN' => 4.0,
+		'CZK' => 23.0, 'HUF' => 365.0, 'RON' => 4.6, 'CHF' => 0.88, 'IQD' => 1310.0,
+		'JOD' => 0.709, 'LBP' => 89500.0, 'MAD' => 10.0, 'GHS' => 15.0, 'TZS' => 2700.0,
+		'NPR' => 133.5, 'COP' => 3950.0, 'ARS' => 870.0, 'CLP' => 940.0,
+	);
+	return isset($rates[$currency]) ? $rates[$currency] : 1.0;
+}
+
+function epc_storefront_seed_convert_price(float $usdPrice, string $currency): float
+{
+	$rate = epc_storefront_seed_fx_rate($currency);
+	return round($usdPrice * $rate, 0);
+}
+
 function epc_storefront_seed_all(PDO $pdo, string $industry, string $siteKey): array
 {
-	$report = array('industry' => $industry, 'site_key' => $siteKey, 'categories' => 0, 'products' => 0, 'errors' => array());
+	$locale = epc_storefront_seed_resolve_tenant_locale($pdo);
+	$report = array('industry' => $industry, 'site_key' => $siteKey, 'currency' => $locale['currency'], 'region' => $locale['region'], 'categories' => 0, 'products' => 0, 'errors' => array());
 
-	$catTree = epc_storefront_seed_category_tree($industry);
-	$products = epc_storefront_seed_product_catalog($industry);
+	$catTree = epc_storefront_seed_category_tree($industry, $locale);
+	$products = epc_storefront_seed_product_catalog($industry, $locale);
 
 	$catIdMap = array();
 	foreach ($catTree as $cat) {
@@ -124,13 +201,13 @@ function epc_storefront_seed_upsert_product(PDO $pdo, array $prod, int $timeCrea
 
 /* ── CATEGORY TREES ─────────────────────────────────────────────────── */
 
-function epc_storefront_seed_category_tree(string $industry): array
+function epc_storefront_seed_category_tree(string $industry, array $locale = array()): array
 {
 	switch ($industry) {
 		case 'electronics': return epc_storefront_seed_categories_electronics();
-		case 'fashion':     return epc_storefront_seed_categories_fashion();
+		case 'fashion':     return epc_storefront_seed_categories_fashion($locale);
 		case 'tax_advisory':
-		case 'consultancy': return epc_storefront_seed_categories_consulting();
+		case 'consultancy': return epc_storefront_seed_categories_consulting($locale);
 		case 'jewellery':   return epc_storefront_seed_categories_jewellery();
 		default:            return array();
 	}
@@ -163,18 +240,24 @@ function epc_storefront_seed_categories_electronics(): array
 	);
 }
 
-function epc_storefront_seed_categories_fashion(): array
+function epc_storefront_seed_categories_fashion(array $locale = array()): array
 {
+	$region = isset($locale['region']) ? $locale['region'] : 'international';
+	$isGcc = in_array($region, array('gcc', 'mena'), true);
+	$modestLabel = $isGcc ? 'Abayas & Modest' : 'Modest & Traditional';
+	$modestUrl = $isGcc ? 'women/abayas' : 'women/modest';
+	$menTradLabel = $isGcc ? 'Thobes & Kandoras' : 'Traditional Wear';
+	$menTradUrl = $isGcc ? 'men/thobes' : 'men/traditional';
 	return array(
 		array('alias' => 'fsn-women',         'name' => "Women's Fashion",     'url' => 'women',                'level' => 1, 'order' => 10),
 		array('alias' => 'fsn-women-dresses', 'name' => 'Dresses',            'url' => 'women/dresses',          'level' => 2, 'order' => 10, 'parent_alias' => 'fsn-women'),
 		array('alias' => 'fsn-women-tops',    'name' => 'Tops & Blouses',     'url' => 'women/tops',             'level' => 2, 'order' => 20, 'parent_alias' => 'fsn-women'),
-		array('alias' => 'fsn-women-abayas',  'name' => 'Abayas & Modest',    'url' => 'women/abayas',           'level' => 2, 'order' => 30, 'parent_alias' => 'fsn-women'),
+		array('alias' => 'fsn-women-abayas',  'name' => $modestLabel,          'url' => $modestUrl,               'level' => 2, 'order' => 30, 'parent_alias' => 'fsn-women'),
 		array('alias' => 'fsn-women-shoes',   'name' => 'Shoes & Sandals',    'url' => 'women/shoes',            'level' => 2, 'order' => 40, 'parent_alias' => 'fsn-women'),
 		array('alias' => 'fsn-men',           'name' => "Men's Fashion",       'url' => 'men',                  'level' => 1, 'order' => 20),
 		array('alias' => 'fsn-men-shirts',    'name' => 'Shirts & Polos',     'url' => 'men/shirts',             'level' => 2, 'order' => 10, 'parent_alias' => 'fsn-men'),
 		array('alias' => 'fsn-men-pants',     'name' => 'Trousers & Chinos',  'url' => 'men/trousers',           'level' => 2, 'order' => 20, 'parent_alias' => 'fsn-men'),
-		array('alias' => 'fsn-men-thobes',    'name' => 'Thobes & Kandoras',  'url' => 'men/thobes',             'level' => 2, 'order' => 30, 'parent_alias' => 'fsn-men'),
+		array('alias' => 'fsn-men-thobes',    'name' => $menTradLabel,         'url' => $menTradUrl,              'level' => 2, 'order' => 30, 'parent_alias' => 'fsn-men'),
 		array('alias' => 'fsn-men-shoes',     'name' => 'Sneakers & Shoes',   'url' => 'men/shoes',              'level' => 2, 'order' => 40, 'parent_alias' => 'fsn-men'),
 		array('alias' => 'fsn-beauty',        'name' => 'Beauty & Fragrance', 'url' => 'beauty',               'level' => 1, 'order' => 30),
 		array('alias' => 'fsn-perfume',       'name' => 'Perfumes',           'url' => 'beauty/perfumes',         'level' => 2, 'order' => 10, 'parent_alias' => 'fsn-beauty'),
@@ -190,13 +273,14 @@ function epc_storefront_seed_categories_fashion(): array
 	);
 }
 
-function epc_storefront_seed_categories_consulting(): array
+function epc_storefront_seed_categories_consulting(array $locale = array()): array
 {
+	$taxLabel = isset($locale['tax_label']) ? $locale['tax_label'] : 'VAT';
 	return array(
-		array('alias' => 'cns-vat',           'name' => 'VAT Services',        'url' => 'services/vat',          'level' => 1, 'order' => 10),
-		array('alias' => 'cns-vat-reg',       'name' => 'VAT Registration',    'url' => 'services/vat/registration', 'level' => 2, 'order' => 10, 'parent_alias' => 'cns-vat'),
-		array('alias' => 'cns-vat-filing',    'name' => 'VAT Return Filing',   'url' => 'services/vat/filing',       'level' => 2, 'order' => 20, 'parent_alias' => 'cns-vat'),
-		array('alias' => 'cns-vat-audit',     'name' => 'VAT Health Check',    'url' => 'services/vat/health-check', 'level' => 2, 'order' => 30, 'parent_alias' => 'cns-vat'),
+		array('alias' => 'cns-vat',           'name' => $taxLabel . ' Services',        'url' => 'services/tax',          'level' => 1, 'order' => 10),
+		array('alias' => 'cns-vat-reg',       'name' => $taxLabel . ' Registration',    'url' => 'services/tax/registration', 'level' => 2, 'order' => 10, 'parent_alias' => 'cns-vat'),
+		array('alias' => 'cns-vat-filing',    'name' => $taxLabel . ' Return Filing',   'url' => 'services/tax/filing',       'level' => 2, 'order' => 20, 'parent_alias' => 'cns-vat'),
+		array('alias' => 'cns-vat-audit',     'name' => $taxLabel . ' Health Check',    'url' => 'services/tax/health-check', 'level' => 2, 'order' => 30, 'parent_alias' => 'cns-vat'),
 		array('alias' => 'cns-ct',            'name' => 'Corporate Tax',       'url' => 'services/corporate-tax',   'level' => 1, 'order' => 20),
 		array('alias' => 'cns-ct-reg',        'name' => 'CT Registration',     'url' => 'services/corporate-tax/registration', 'level' => 2, 'order' => 10, 'parent_alias' => 'cns-ct'),
 		array('alias' => 'cns-ct-filing',     'name' => 'CT Return Filing',    'url' => 'services/corporate-tax/filing',       'level' => 2, 'order' => 20, 'parent_alias' => 'cns-ct'),
@@ -238,16 +322,27 @@ function epc_storefront_seed_categories_jewellery(): array
 
 /* ── PRODUCT CATALOGS ───────────────────────────────────────────────── */
 
-function epc_storefront_seed_product_catalog(string $industry): array
+function epc_storefront_seed_product_catalog(string $industry, array $locale = array()): array
 {
+	$currency = isset($locale['currency']) ? $locale['currency'] : 'AED';
+	$raw = array();
 	switch ($industry) {
-		case 'electronics': return epc_storefront_seed_products_electronics();
-		case 'fashion':     return epc_storefront_seed_products_fashion();
+		case 'electronics': $raw = epc_storefront_seed_products_electronics(); break;
+		case 'fashion':     $raw = epc_storefront_seed_products_fashion($locale); break;
 		case 'tax_advisory':
-		case 'consultancy': return epc_storefront_seed_products_consulting();
-		case 'jewellery':   return epc_storefront_seed_products_jewellery();
+		case 'consultancy': $raw = epc_storefront_seed_products_consulting($locale); break;
+		case 'jewellery':   $raw = epc_storefront_seed_products_jewellery(); break;
 		default:            return array();
 	}
+	if ($currency === 'AED') {
+		return $raw;
+	}
+	foreach ($raw as &$prod) {
+		$usdBase = (float) $prod['price'] / 3.67;
+		$prod['price'] = epc_storefront_seed_convert_price($usdBase, $currency);
+	}
+	unset($prod);
+	return $raw;
 }
 
 function epc_storefront_seed_products_electronics(): array
@@ -291,21 +386,26 @@ function epc_storefront_seed_products_electronics(): array
 	);
 }
 
-function epc_storefront_seed_products_fashion(): array
+function epc_storefront_seed_products_fashion(array $locale = array()): array
 {
+	$region = isset($locale['region']) ? $locale['region'] : 'international';
+	$isGcc = in_array($region, array('gcc', 'mena'), true);
+	$modestProduct1 = $isGcc ? 'Premium Open Abaya — Black with Gold Trim' : 'Modest Long Dress — Black with Gold Trim';
+	$modestProduct2 = $isGcc ? 'Embroidered Abaya — Navy' : 'Embroidered Kaftan — Navy';
+	$menTradProduct = $isGcc ? 'Premium White Thobe — Emirati Style' : 'Traditional Formal Tunic — White';
 	return array(
 		// Women
 		array('name' => 'Silk Midi Dress — Emerald Green',              'alias' => 'FSN-WD-SILK-EM',   'price' => 449, 'category_alias' => 'fsn-women-dresses', 'image' => 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=480'),
 		array('name' => 'Floral Maxi Dress — Blush Pink',               'alias' => 'FSN-WD-FLR-BP',    'price' => 359, 'category_alias' => 'fsn-women-dresses', 'image' => 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=480'),
 		array('name' => 'Linen Wrap Top — Ivory',                       'alias' => 'FSN-WT-LN-IV',     'price' => 189, 'category_alias' => 'fsn-women-tops',    'image' => 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?auto=format&fit=crop&w=480'),
-		array('name' => 'Premium Open Abaya — Black with Gold Trim',    'alias' => 'FSN-WA-BLK-GLD',   'price' => 599, 'category_alias' => 'fsn-women-abayas',  'image' => 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?auto=format&fit=crop&w=480'),
-		array('name' => 'Embroidered Abaya — Navy',                     'alias' => 'FSN-WA-EMB-NVY',   'price' => 699, 'category_alias' => 'fsn-women-abayas',  'image' => 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?auto=format&fit=crop&w=480'),
+		array('name' => $modestProduct1,                                 'alias' => 'FSN-WA-BLK-GLD',   'price' => 599, 'category_alias' => 'fsn-women-abayas',  'image' => 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?auto=format&fit=crop&w=480'),
+		array('name' => $modestProduct2,                                 'alias' => 'FSN-WA-EMB-NVY',   'price' => 699, 'category_alias' => 'fsn-women-abayas',  'image' => 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?auto=format&fit=crop&w=480'),
 		array('name' => 'Block Heel Sandals — Nude',                    'alias' => 'FSN-WS-HEEL-ND',   'price' => 329, 'category_alias' => 'fsn-women-shoes',   'image' => 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=480'),
 		// Men
 		array('name' => 'Oxford Button-Down Shirt — White',             'alias' => 'FSN-MS-OXF-WHT',   'price' => 199, 'category_alias' => 'fsn-men-shirts',    'image' => 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=480'),
 		array('name' => 'Slim Fit Polo — Navy',                         'alias' => 'FSN-MS-PLO-NVY',   'price' => 149, 'category_alias' => 'fsn-men-shirts',    'image' => 'https://images.unsplash.com/photo-1625910513413-5fc421e0b6b4?auto=format&fit=crop&w=480'),
 		array('name' => 'Tailored Chinos — Olive',                      'alias' => 'FSN-MP-CHN-OLV',   'price' => 229, 'category_alias' => 'fsn-men-pants',     'image' => 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=480'),
-		array('name' => 'Premium White Thobe — Emirati Style',          'alias' => 'FSN-MT-WHT-EM',    'price' => 399, 'category_alias' => 'fsn-men-thobes',    'image' => 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?auto=format&fit=crop&w=480'),
+		array('name' => $menTradProduct,                                 'alias' => 'FSN-MT-WHT-EM',    'price' => 399, 'category_alias' => 'fsn-men-thobes',    'image' => 'https://images.unsplash.com/photo-1590735213920-68192a487bc2?auto=format&fit=crop&w=480'),
 		array('name' => 'Retro Running Sneakers — White/Grey',          'alias' => 'FSN-MSH-RUN-WG',   'price' => 499, 'category_alias' => 'fsn-men-shoes',     'image' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=480'),
 		array('name' => 'Classic Leather Loafers — Brown',              'alias' => 'FSN-MSH-LOF-BR',   'price' => 449, 'category_alias' => 'fsn-men-shoes',     'image' => 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?auto=format&fit=crop&w=480'),
 		// Beauty
@@ -328,39 +428,34 @@ function epc_storefront_seed_products_fashion(): array
 	);
 }
 
-function epc_storefront_seed_products_consulting(): array
+function epc_storefront_seed_products_consulting(array $locale = array()): array
 {
+	$t = isset($locale['tax_label']) ? $locale['tax_label'] : 'VAT';
+	$cur = isset($locale['currency']) ? $locale['currency'] : 'AED';
 	return array(
-		// VAT Services
-		array('name' => 'VAT Registration — New Business',              'alias' => 'CNS-VAT-REG-NEW',  'price' => 1500, 'category_alias' => 'cns-vat-reg',      'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
-		array('name' => 'VAT Registration — Group Registration',        'alias' => 'CNS-VAT-REG-GRP',  'price' => 3500, 'category_alias' => 'cns-vat-reg',      'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
-		array('name' => 'VAT Return Filing — Quarterly',                'alias' => 'CNS-VAT-FIL-Q',    'price' => 1000, 'category_alias' => 'cns-vat-filing',   'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
-		array('name' => 'VAT Return Filing — Monthly',                  'alias' => 'CNS-VAT-FIL-M',    'price' => 800,  'category_alias' => 'cns-vat-filing',   'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
-		array('name' => 'VAT Health Check & Compliance Review',         'alias' => 'CNS-VAT-HLTH',     'price' => 5000, 'category_alias' => 'cns-vat-audit',    'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=480'),
-		// Corporate Tax
-		array('name' => 'Corporate Tax Registration — FTA Portal',      'alias' => 'CNS-CT-REG',       'price' => 2000, 'category_alias' => 'cns-ct-reg',       'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
+		array('name' => $t . ' Registration — New Business',            'alias' => 'CNS-VAT-REG-NEW',  'price' => 1500, 'category_alias' => 'cns-vat-reg',      'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
+		array('name' => $t . ' Registration — Group Registration',      'alias' => 'CNS-VAT-REG-GRP',  'price' => 3500, 'category_alias' => 'cns-vat-reg',      'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
+		array('name' => $t . ' Return Filing — Quarterly',              'alias' => 'CNS-VAT-FIL-Q',    'price' => 1000, 'category_alias' => 'cns-vat-filing',   'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
+		array('name' => $t . ' Return Filing — Monthly',                'alias' => 'CNS-VAT-FIL-M',    'price' => 800,  'category_alias' => 'cns-vat-filing',   'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
+		array('name' => $t . ' Health Check & Compliance Review',       'alias' => 'CNS-VAT-HLTH',     'price' => 5000, 'category_alias' => 'cns-vat-audit',    'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=480'),
+		array('name' => 'Corporate Tax Registration',                   'alias' => 'CNS-CT-REG',       'price' => 2000, 'category_alias' => 'cns-ct-reg',       'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
 		array('name' => 'Corporate Tax Return Filing — Annual',         'alias' => 'CNS-CT-FIL-A',     'price' => 5000, 'category_alias' => 'cns-ct-filing',    'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
 		array('name' => 'Transfer Pricing Documentation',               'alias' => 'CNS-CT-TP-DOC',    'price' => 8000, 'category_alias' => 'cns-ct-filing',    'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=480'),
-		// Audit
-		array('name' => 'External Audit — SME (up to AED 10M)',         'alias' => 'CNS-AUD-EXT-SM',   'price' => 8000,  'category_alias' => 'cns-audit-ext',   'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
-		array('name' => 'External Audit — Enterprise (AED 10M+)',       'alias' => 'CNS-AUD-EXT-EN',   'price' => 25000, 'category_alias' => 'cns-audit-ext',   'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
+		array('name' => 'External Audit — SME',                         'alias' => 'CNS-AUD-EXT-SM',   'price' => 8000,  'category_alias' => 'cns-audit-ext',   'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
+		array('name' => 'External Audit — Enterprise',                  'alias' => 'CNS-AUD-EXT-EN',   'price' => 25000, 'category_alias' => 'cns-audit-ext',   'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
 		array('name' => 'Internal Audit — Quarterly Review',            'alias' => 'CNS-AUD-INT-Q',    'price' => 6000,  'category_alias' => 'cns-audit-int',   'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
-		// Bookkeeping
 		array('name' => 'Monthly Bookkeeping — Starter (< 100 txn)',    'alias' => 'CNS-BK-STR-M',     'price' => 1500, 'category_alias' => 'cns-bookkeeping',  'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
 		array('name' => 'Monthly Bookkeeping — Growth (100-500 txn)',   'alias' => 'CNS-BK-GRW-M',     'price' => 3000, 'category_alias' => 'cns-bookkeeping',  'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
 		array('name' => 'Monthly Bookkeeping — Enterprise (500+ txn)',  'alias' => 'CNS-BK-ENT-M',     'price' => 5000, 'category_alias' => 'cns-bookkeeping',  'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=480'),
-		// Compliance
 		array('name' => 'AML/CFT Compliance Setup & Training',          'alias' => 'CNS-AML-SETUP',    'price' => 7500, 'category_alias' => 'cns-aml',          'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=480'),
 		array('name' => 'AML Ongoing Monitoring — Annual',              'alias' => 'CNS-AML-MON-A',    'price' => 3000, 'category_alias' => 'cns-aml',          'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=480'),
-		array('name' => 'ESR Notification & Report Filing',             'alias' => 'CNS-ESR-FILE',     'price' => 2500, 'category_alias' => 'cns-esrub',        'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
-		array('name' => 'UBO Declaration Filing',                       'alias' => 'CNS-UBO-FILE',     'price' => 1500, 'category_alias' => 'cns-esrub',        'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
-		// Advisory
+		array('name' => 'Regulatory Compliance Filing',                 'alias' => 'CNS-ESR-FILE',     'price' => 2500, 'category_alias' => 'cns-esrub',        'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
+		array('name' => 'Beneficial Ownership Declaration',             'alias' => 'CNS-UBO-FILE',     'price' => 1500, 'category_alias' => 'cns-esrub',        'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=480'),
 		array('name' => 'Business Plan & Financial Projections',        'alias' => 'CNS-ADV-BPLAN',    'price' => 10000,'category_alias' => 'cns-advisory',     'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
 		array('name' => 'CFO-as-a-Service — Monthly Retainer',          'alias' => 'CNS-ADV-CFO-M',    'price' => 8000, 'category_alias' => 'cns-advisory',     'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=480'),
-		// Company Formation
-		array('name' => 'Mainland LLC Formation — Dubai DED',           'alias' => 'CNS-CO-MAIN-DXB',  'price' => 15000,'category_alias' => 'cns-setup',        'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480'),
-		array('name' => 'Free Zone Company Formation — DMCC',           'alias' => 'CNS-CO-FZ-DMCC',   'price' => 12000,'category_alias' => 'cns-setup',        'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480'),
-		array('name' => 'Free Zone Company Formation — IFZA',           'alias' => 'CNS-CO-FZ-IFZA',   'price' => 8500, 'category_alias' => 'cns-setup',        'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480'),
+		array('name' => 'Company Formation — Standard',                 'alias' => 'CNS-CO-MAIN-DXB',  'price' => 15000,'category_alias' => 'cns-setup',        'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480'),
+		array('name' => 'Company Formation — Premium',                  'alias' => 'CNS-CO-FZ-DMCC',   'price' => 12000,'category_alias' => 'cns-setup',        'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480'),
+		array('name' => 'Company Formation — Express',                  'alias' => 'CNS-CO-FZ-IFZA',   'price' => 8500, 'category_alias' => 'cns-setup',        'image' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=480'),
 	);
 }
 
