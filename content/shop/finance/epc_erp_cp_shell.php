@@ -187,6 +187,44 @@ function epc_erp_voice_command_js_script_tag(): string
 	return '<script src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" id="epc-erp-voice-js"></script>' . "\n";
 }
 
+function epc_erp_ai_assistant_js_href(): string
+{
+	global $DP_Config;
+	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
+	if ($backend === '') {
+		$backend = 'cp';
+	}
+	return epc_erp_shell_asset_href(
+		'/' . $backend . '/js/epc_erp_ai_assistant.js',
+		'/content/general_pages/epc_erp_ai_assistant_js.php'
+	);
+}
+
+function epc_erp_ai_assistant_js_script_tag(): string
+{
+	$src = epc_erp_ai_assistant_js_href();
+	return '<script src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" id="epc-erp-ai-assistant-js" defer></script>' . "\n";
+}
+
+function epc_erp_seed_form_js_href(): string
+{
+	global $DP_Config;
+	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
+	if ($backend === '') {
+		$backend = 'cp';
+	}
+	return epc_erp_shell_asset_href(
+		'/' . $backend . '/js/epc_erp_seed_form.js',
+		'/content/general_pages/epc_erp_seed_form_js.php'
+	);
+}
+
+function epc_erp_seed_form_js_script_tag(): string
+{
+	$src = epc_erp_seed_form_js_href();
+	return '<script src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" id="epc-erp-seed-form-js" defer></script>' . "\n";
+}
+
 function epc_erp_shell_link_attrs(): string
 {
 	if (epc_erp_shell_url_query() === '') {

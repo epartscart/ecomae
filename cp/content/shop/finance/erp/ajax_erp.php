@@ -2050,6 +2050,67 @@ try {
 			$result = epc_ai_assistant_query($db_link, $question);
 			epc_erp_json(true, 'OK', $result);
 
+		case 'print_designer_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_print_designer.php';
+			$pdId = epc_erp_print_template_save($db_link, $_POST);
+			epc_erp_json($pdId > 0, $pdId > 0 ? 'Template saved' : 'Save failed', array('id' => $pdId));
+
+		case 'workflow_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_workflow_builder.php';
+			epc_workflow_ensure_schema($db_link);
+			$wfPost = $_POST;
+			$wfId = (int)($wfPost['id'] ?? 0);
+			$siteKey = isset($DP_Config) && isset($DP_Config->site_key) ? (string)$DP_Config->site_key : '';
+			$now = date('Y-m-d H:i:s');
+			if ($wfId > 0) {
+				$db_link->prepare(
+					'UPDATE epc_workflows SET name=?, description=?, trigger_type=?, active=?, updated_at=? WHERE id=? AND site_key=?'
+				)->execute(array(
+					trim((string)($wfPost['name'] ?? '')),
+					trim((string)($wfPost['description'] ?? '')),
+					$wfPost['trigger_type'] ?? 'manual',
+					isset($wfPost['active']) ? 1 : 0,
+					$now, $wfId, $siteKey,
+				));
+			} else {
+				$db_link->prepare(
+					'INSERT INTO epc_workflows (site_key, name, description, trigger_type, trigger_config, active, created_at, updated_at)
+					 VALUES (?,?,?,?,?,?,?,?)'
+				)->execute(array(
+					$siteKey,
+					trim((string)($wfPost['name'] ?? '')),
+					trim((string)($wfPost['description'] ?? '')),
+					$wfPost['trigger_type'] ?? 'manual',
+					'{}',
+					isset($wfPost['active']) ? 1 : 0,
+					$now, $now,
+				));
+				$wfId = (int)$db_link->lastInsertId();
+			}
+			epc_erp_json($wfId > 0, 'Workflow saved', array('id' => $wfId));
+
+		case 'tenant_config_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_advanced.php';
+			$configKeys = array(
+				'company_name', 'company_name_ar', 'company_trn', 'company_address',
+				'company_phone', 'company_email', 'company_country', 'company_city',
+				'company_license_no', 'industry_profile', 'industry_pack',
+				'default_currency', 'fiscal_year_start', 'vat_rate', 'date_format',
+				'number_format_decimals', 'weight_unit',
+				'po_prefix', 'so_prefix', 'inv_prefix', 'jv_prefix', 'pv_prefix', 'rv_prefix', 'dn_prefix',
+				'auto_number_vouchers', 'default_warehouse', 'default_payment_terms',
+				'bank_name', 'bank_account', 'bank_iban', 'bank_swift',
+				'ui_theme', 'ui_density', 'ui_grid_rows',
+			);
+			$saved = 0;
+			foreach ($configKeys as $k) {
+				if (isset($_POST[$k])) {
+					epc_erp_adv_set_setting($db_link, 'erp_' . $k, trim((string)$_POST[$k]));
+					$saved++;
+				}
+			}
+			epc_erp_json(true, $saved . ' settings saved');
+
 		default:
 			/* Jewellery ERP actions — jw_* prefix */
 			if (strpos($action, 'jw_') === 0) {

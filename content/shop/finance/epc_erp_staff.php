@@ -50,6 +50,7 @@ function epc_erp_staff_all_tabs()
 		'jw_petty_cash', 'jw_journal_voucher', 'jw_tourist_vat',
 		'jw_trial_balance', 'jw_repairs', 'jw_seed_data',
 		'ai_assistant',
+		'tenant_config', 'print_designer', 'workflow_automation',
 	);
 	// Report center: one "Reports & inquiries" tab per module that has reports.
 	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';

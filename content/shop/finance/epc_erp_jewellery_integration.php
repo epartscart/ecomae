@@ -638,7 +638,7 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
         try {
             $db->prepare(
                 'INSERT IGNORE INTO epc_erp_contacts
-                 (name, contact_type, phone, email, country, notes, time_created)
+                 (name, party_type, phone, email, country_code, notes, time_created)
                  VALUES (?,?,?,?,?,?,?)'
             )->execute(array($s[0], $s[1], $s[2], $s[3], $s[4], 'Sample jewellery supplier', time()));
             $seeded['suppliers']++;
@@ -660,12 +660,12 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
         try {
             $db->prepare(
                 'INSERT IGNORE INTO epc_erp_contacts
-                 (name, contact_type, phone, email, country, notes, time_created)
+                 (name, party_type, phone, email, country_code, notes, time_created)
                  VALUES (?,?,?,?,?,?,?)'
             )->execute(array($c[0], $c[1], $c[2], $c[3], $c[4], 'Sample jewellery customer', time()));
             $cid = (int)$db->lastInsertId();
             if ($cid === 0) {
-                $chk = $db->prepare('SELECT id FROM epc_erp_contacts WHERE email = ? AND contact_type = ? LIMIT 1');
+                $chk = $db->prepare('SELECT id FROM epc_erp_contacts WHERE email = ? AND party_type = ? LIMIT 1');
                 $chk->execute(array($c[3], 'customer'));
                 $cid = (int)$chk->fetchColumn();
             }
@@ -834,6 +834,22 @@ function epc_jw_seed_sample_data(PDO $db, int $adminId = 0): array
         } catch (Throwable $e) {
             $seeded['errors'][] = 'GL ' . $gl[0] . ': ' . $e->getMessage();
         }
+    }
+
+    // 9. Compliance — seed country-driven compliance obligations.
+    //    Setting erp_industry_profile = 'jewellery' above makes the DNFBP detector
+    //    recognise this tenant as a precious-metals dealer, which triggers full
+    //    AML/CFT obligations (goAML registration, risk assessment, STR monitoring,
+    //    DPMS cash report) in addition to the standard VAT, CT and ESR filings.
+    //    Re-running the compliance seeder picks up the new profile immediately.
+    $seeded['compliance'] = 0;
+    try {
+        require_once __DIR__ . '/epc_bos_compliance.php';
+        epc_bos_compliance_seed($db);
+        $summary = epc_bos_compliance_summary($db, time());
+        $seeded['compliance'] = (int)($summary['total'] ?? 0);
+    } catch (Throwable $e) {
+        $seeded['errors'][] = 'compliance seed: ' . $e->getMessage();
     }
 
     return $seeded;
