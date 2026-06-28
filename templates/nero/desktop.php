@@ -220,9 +220,17 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	epc_portal_storefront_hub_logo_enqueue();
 	?>
 
+	<?php
+	$_epcFaviconFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_favicon.php';
+	if (is_file($_epcFaviconFile)) {
+		require_once $_epcFaviconFile;
+		echo epc_portal_favicon_link_tags($epc_portal_industry_code);
+	} else {
+	?>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260517"/>
     <link rel="alternate icon" href="/favicon.ico?v=20260517"/>
     <link rel="shortcut icon" href="/favicon.ico?v=20260517"/>
+	<?php } ?>
 
 	<?php
 	$epc_pwa_enabled = function_exists('epc_portal_is_epartscart_hostname') && epc_portal_is_epartscart_hostname();
@@ -298,7 +306,16 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	?>
 
 	<docpart type="head" name="head" />
-	
+	<?php
+	if ($DP_Content->main_flag && isset($epc_portal_site['trade_name']) && $epc_portal_site['trade_name'] !== '') {
+		$_epcPageTitle = htmlspecialchars($epc_portal_site['trade_name'], ENT_QUOTES, 'UTF-8');
+		$_epcTagline = isset($epc_portal_site['tagline']) ? htmlspecialchars($epc_portal_site['tagline'], ENT_QUOTES, 'UTF-8') : '';
+		if ($_epcTagline !== '') {
+			$_epcPageTitle .= ' — ' . $_epcTagline;
+		}
+		echo '<title>' . $_epcPageTitle . '</title>' . "\n";
+	}
+	?>
 	<?php
 	if( ! $DP_Content->main_flag ){
 	?>
@@ -1195,6 +1212,9 @@ if( ! $DP_Content->main_flag)
 		</div>
 	</div>
 </div>
+<script>
+(function(){var bc=document.querySelector('.breadcrumb');if(!bc)return;var links=bc.querySelectorAll('a');for(var i=0;i<links.length;i++){var t=links[i].textContent||'';if(/^[0-9]+_[0-9]+_[0-9a-f]{20,}$/.test(t.trim())){links[i].textContent='Home';}}})();
+</script>
 <?php
 	}
 }
@@ -1213,7 +1233,7 @@ if( $DP_Content->content_type == "category" || $DP_Content->url =="shop/search" 
 	$left_col_class = " class=\"hidden-xs hidden-sm col-md-3\"";
 	$right_col_class = " class=\"col-md-9\"";
 	$btn_show_hide_left_coll = " class=\"hidden-md hidden-lg\"";
-	if (!empty($epc_er_retail)) {
+	if (!empty($epc_er_retail) || !empty($epc_frn_retail) || !empty($epc_cpi_consulting) || !empty($epc_jrk_retail)) {
 		$left_col_class = " class=\"hidden-xs hidden-sm hidden-md hidden-lg\"";
 		$right_col_class = " class=\"col-md-12\"";
 		$btn_show_hide_left_coll = " class=\"hidden-xs hidden-sm hidden-md hidden-lg\"";
@@ -1256,8 +1276,8 @@ if( $product_id > 0 || $DP_Content->content_type == "category" || $DP_Content->i
 			</script>
 		</div>
 		
-		<div <?php echo $left_col_class;?> id="left_col"<?php if ($epc_er_retail) { ?> style="display:none !important;"<?php } ?>>
-			<?php if (!$epc_er_retail) { ?>
+		<div <?php echo $left_col_class;?> id="left_col"<?php if ($epc_custom_storefront) { ?> style="display:none !important;"<?php } ?>>
+			<?php if (!$epc_custom_storefront) { ?>
 			<docpart type="module" name="left_menu" />
 			<?php } ?>
 		</div>

@@ -34,6 +34,27 @@ if (!is_array($catalogue_tree)) {
 	$catalogue_tree = array();
 }
 
+/* Hide auto-parts categories on non-auto-parts tenants */
+if (is_array($catalogue_tree) && function_exists('epc_portal_site_profile')) {
+	$_topMenuProfile = epc_portal_site_profile();
+	$_topMenuIndustry = isset($_topMenuProfile['industry']) ? (string) $_topMenuProfile['industry'] : 'auto_parts';
+	if ($_topMenuIndustry !== 'auto_parts') {
+		$_topMenuAutoAliases = array('shiny', 'diski', 'masla', 'elektrika', 'svechi', 'ehlektronika');
+		$catalogue_tree = array_values(array_filter($catalogue_tree, function ($cat) use ($_topMenuAutoAliases) {
+			$alias = isset($cat['alias']) ? (string) $cat['alias'] : '';
+			$url = isset($cat['url']) ? (string) $cat['url'] : '';
+			if (in_array($alias, $_topMenuAutoAliases, true)) {
+				return false;
+			}
+			if (strpos($url, 'shiny') === 0 || strpos($url, 'diski') === 0 || strpos($url, 'masla') === 0
+				|| strpos($url, 'elektrika') === 0 || strpos($url, 'svechi') === 0 || strpos($url, 'ehlektronika') === 0) {
+				return false;
+			}
+			return true;
+		}));
+	}
+}
+
 if (!empty($catalogue_tree)) {
 	try {
 		echo '

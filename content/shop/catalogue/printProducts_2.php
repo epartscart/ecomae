@@ -143,20 +143,20 @@ if( $product_block_type == 2 || $product_block_type == 3 )
 	<!-- НАСТРОКА ОТОБРАЖЕНИЯ ТОВАРОВ -->
 	<div class="products_area_turning">
 
-		<div class="showSort_name"><?php echo translate_str_by_key('2881'); ?></div>
+		<div class="showSort_name"><?php echo function_exists('translate_str_by_key') ? translate_str_by_key('2881') : 'Sorting'; ?></div>
 		<div class="showSort_wrap">
 			<select id="sort_select" onchange="showResort();" class="form-control">
 				<?php
 				if($product_block_type == 1 || $product_block_type == 4)
 				{
 					?>
-					<option value="price_asc"><?php echo translate_str_by_id(4119); ?></option>
-					<option value="price_desc"><?php echo translate_str_by_id(4120); ?></option>
+					<option value="price_asc">By price cheaper</option>
+					<option value="price_desc">By price expensive</option>
 					<?php
 				}
 				?>
-				<option value="name_asc"><?php echo translate_str_by_id(4121); ?></option>
-				<option value="name_desc"><?php echo translate_str_by_id(4122); ?></option>
+				<option value="name_asc">By name A-Z</option>
+				<option value="name_desc">By name Z-A</option>
 			</select>
 			<?php
 			//URL_Filters - если в URL есть настройка сортировки

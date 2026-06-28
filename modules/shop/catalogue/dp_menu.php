@@ -57,6 +57,27 @@ if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_s
 	}
 }
 
+/* Hide auto-parts categories (Tires, Rims, Oils, etc.) on non-auto-parts tenants */
+if (is_array($catalogue_tree) && function_exists('epc_portal_site_profile')) {
+	$_dpMenuProfile = epc_portal_site_profile();
+	$_dpMenuIndustry = isset($_dpMenuProfile['industry']) ? (string) $_dpMenuProfile['industry'] : 'auto_parts';
+	if ($_dpMenuIndustry !== 'auto_parts') {
+		$_dpMenuAutoAliases = array('shiny', 'diski', 'masla', 'elektrika', 'svechi', 'ehlektronika');
+		$catalogue_tree = array_values(array_filter($catalogue_tree, function ($cat) use ($_dpMenuAutoAliases) {
+			$alias = isset($cat['alias']) ? (string) $cat['alias'] : '';
+			$url = isset($cat['url']) ? (string) $cat['url'] : '';
+			if (in_array($alias, $_dpMenuAutoAliases, true)) {
+				return false;
+			}
+			if (strpos($url, 'shiny') === 0 || strpos($url, 'diski') === 0 || strpos($url, 'masla') === 0
+				|| strpos($url, 'elektrika') === 0 || strpos($url, 'svechi') === 0 || strpos($url, 'ehlektronika') === 0) {
+				return false;
+			}
+			return true;
+		}));
+	}
+}
+
 $all_cnt_links = count($catalogue_tree);
 $link_cnt_level_all = 0;
 
