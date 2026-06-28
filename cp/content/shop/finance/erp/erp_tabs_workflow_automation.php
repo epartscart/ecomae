@@ -6,25 +6,8 @@
  * ERP processes: approvals, notifications, status updates, etc.
  */
 defined('_ASTEXE_') or die('No access');
-ini_set('display_errors', '1');
-error_reporting(E_ALL);
-register_shutdown_function(function () {
-	$e = error_get_last();
-	if ($e !== null && in_array($e['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR))) {
-		echo '<div style="padding:20px;background:#ffcdd2;border:2px solid red;margin:20px;font-family:monospace">';
-		echo '<h4 style="color:red">FATAL ERROR in Workflow Automation</h4>';
-		echo '<p><strong>Type:</strong> ' . (int)$e['type'] . '</p>';
-		echo '<p><strong>Message:</strong> ' . htmlspecialchars((string)$e['message']) . '</p>';
-		echo '<p><strong>File:</strong> ' . htmlspecialchars((string)$e['file']) . '</p>';
-		echo '<p><strong>Line:</strong> ' . (int)$e['line'] . '</p>';
-		echo '</div>';
-	}
-});
-echo '<p style="color:green;font-size:10px">WF-CHECKPOINT-1</p>';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
-echo '<p style="color:green;font-size:10px">WF-CHECKPOINT-2</p>';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
-echo '<p style="color:green;font-size:10px">WF-CHECKPOINT-3</p>';
 
 /* ── Load backend ── */
 $_wfOk = false;
