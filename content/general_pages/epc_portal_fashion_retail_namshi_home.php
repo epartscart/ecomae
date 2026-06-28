@@ -104,9 +104,9 @@ function epc_frn_href($lang, $path)
 	<section class="epc-frn-section epc-frn-reveal">
 		<div class="container">
 			<h2 class="epc-frn-section__title">Shop by category</h2>
-			<div class="epc-frn-cat-scroll">
+			<div class="epc-frn-cat-scroll epc-stagger">
 				<?php foreach ($categories as $cat) { ?>
-				<a class="epc-frn-cat-tile" href="<?php echo epc_frn_href($lang, $cat['href']); ?>">
+				<a class="epc-frn-cat-tile epc-card-lift epc-img-zoom" href="<?php echo epc_frn_href($lang, $cat['href']); ?>">
 					<span class="epc-frn-cat-tile__img"><img src="<?php echo htmlspecialchars($cat['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($cat['alt'] ?? $cat['name'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy" decoding="async" width="160" height="160"/></span>
 					<span class="epc-frn-cat-tile__name"><?php echo htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8'); ?></span>
 				</a>
@@ -120,7 +120,7 @@ function epc_frn_href($lang, $path)
 			<h2 class="epc-frn-section__title">Shop by brand</h2>
 			<div class="epc-frn-brand-scroll">
 				<?php foreach ($brands as $brand) { ?>
-				<a class="epc-frn-brand-chip" href="<?php echo epc_frn_href($lang, '/shop/search?q=' . rawurlencode($brand)); ?>">
+				<a class="epc-frn-brand-chip" href="<?php echo epc_frn_href($lang, '/beauty'); ?>">
 					<?php echo htmlspecialchars($brand, ENT_QUOTES, 'UTF-8'); ?>
 				</a>
 				<?php } ?>
@@ -138,9 +138,9 @@ function epc_frn_href($lang, $path)
 					<p class="epc-frn-section__sub"><?php echo htmlspecialchars($section['sub'], ENT_QUOTES, 'UTF-8'); ?></p>
 					<?php } ?>
 				</div>
-				<a class="epc-frn-section__link" href="<?php echo epc_frn_href($lang, '/shop/search'); ?>">View all</a>
+				<a class="epc-frn-section__link" href="<?php echo epc_frn_href($lang, '/women'); ?>">View all</a>
 			</div>
-			<div class="epc-frn-product-grid">
+			<div class="epc-frn-product-grid epc-stagger">
 				<?php foreach ($section['products'] as $product) {
 					$product = epc_fashion_retail_namshi_resolve_product_images($product);
 					$price = epc_fashion_retail_namshi_format_aed($product['price']);
@@ -152,9 +152,9 @@ function epc_frn_href($lang, $path)
 						$discount = '-' . (int) round(100 - ((float) $product['price'] / (float) $product['was']) * 100) . '%';
 					}
 				?>
-				<article class="epc-frn-product-card">
-					<a class="epc-frn-product-card__link" href="<?php echo epc_frn_href($lang, '/shop/search?q=' . rawurlencode($product['name'])); ?>">
-						<div class="epc-frn-product-card__img">
+				<article class="epc-frn-product-card epc-card-lift">
+					<a class="epc-frn-product-card__link" href="<?php echo epc_frn_href($lang, '/women'); ?>">
+						<div class="epc-frn-product-card__img epc-img-zoom">
 							<?php if ($badge !== '') { ?>
 							<span class="epc-frn-badge epc-frn-badge--<?php echo htmlspecialchars($badge, ENT_QUOTES, 'UTF-8'); ?>">
 								<?php echo $badge === 'sale' ? ($discount !== '' ? $discount : 'Sale') : 'New'; ?>

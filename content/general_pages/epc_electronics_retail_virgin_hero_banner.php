@@ -36,7 +36,8 @@ function epc_er_hero_href($lang, $path)
 	return htmlspecialchars($path, ENT_QUOTES, 'UTF-8');
 }
 ?>
-<section class="epc-home-pro epc-er-hero-banner">
+<section class="epc-home-pro epc-er-hero-banner" style="position:relative;overflow:hidden">
+	<div class="epc-particles" data-color="rgba(225,10,10,.25)" data-count="18"></div>
 	<div class="container">
 		<div class="epc-home-pro__grid">
 			<div>

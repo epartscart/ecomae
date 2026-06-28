@@ -1,0 +1,95 @@
+/* ── Enhanced storefront animations — shared across all tenant storefronts ── */
+
+/* Scroll-triggered reveal (IntersectionObserver sets .is-visible) */
+.epc-reveal{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.epc-reveal.is-visible{opacity:1;transform:translateY(0)}
+.epc-reveal--left{transform:translateX(-40px)}
+.epc-reveal--left.is-visible{transform:translateX(0)}
+.epc-reveal--right{transform:translateX(40px)}
+.epc-reveal--right.is-visible{transform:translateX(0)}
+.epc-reveal--scale{transform:scale(.92);opacity:0}
+.epc-reveal--scale.is-visible{transform:scale(1);opacity:1}
+
+/* Stagger children */
+.epc-stagger > *:nth-child(1){transition-delay:.05s}
+.epc-stagger > *:nth-child(2){transition-delay:.1s}
+.epc-stagger > *:nth-child(3){transition-delay:.15s}
+.epc-stagger > *:nth-child(4){transition-delay:.2s}
+.epc-stagger > *:nth-child(5){transition-delay:.25s}
+.epc-stagger > *:nth-child(6){transition-delay:.3s}
+.epc-stagger > *:nth-child(7){transition-delay:.35s}
+.epc-stagger > *:nth-child(8){transition-delay:.4s}
+
+/* Shimmer / loading placeholder effect */
+@keyframes epc-shimmer{0%{background-position:-800px 0}100%{background-position:800px 0}}
+.epc-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);background-size:800px 100%;animation:epc-shimmer 2s infinite linear}
+
+/* Gradient wave animation for hero sections */
+@keyframes epc-gradient-wave{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.epc-gradient-wave{background-size:200% 200%;animation:epc-gradient-wave 8s ease infinite}
+
+/* Floating animation for product cards on hover */
+@keyframes epc-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.epc-float:hover{animation:epc-float 2s ease-in-out infinite}
+
+/* Pulse ring animation (for CTA buttons) */
+@keyframes epc-pulse-ring{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.epc-pulse{animation:epc-pulse-ring 2s cubic-bezier(.455,.03,.515,.955) infinite}
+
+/* Sparkle animation for jewellery */
+@keyframes epc-sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
+.epc-sparkle{position:absolute;width:6px;height:6px;background:#fbbf24;border-radius:50%;animation:epc-sparkle 2s ease-in-out infinite}
+.epc-sparkle:nth-child(2){animation-delay:.4s;top:20%;right:15%}
+.epc-sparkle:nth-child(3){animation-delay:.8s;bottom:30%;left:20%}
+.epc-sparkle:nth-child(4){animation-delay:1.2s;top:40%;right:30%}
+
+/* Glowing border for premium product cards */
+@keyframes epc-glow{0%,100%{box-shadow:0 0 8px rgba(251,191,36,.3)}50%{box-shadow:0 0 24px rgba(251,191,36,.6)}}
+.epc-glow{animation:epc-glow 3s ease-in-out infinite}
+
+/* Parallax-ready containers */
+.epc-parallax{will-change:transform;transition:transform .1s linear}
+
+/* Product card hover lift */
+.epc-card-lift{transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s ease}
+.epc-card-lift:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,.12)}
+
+/* Marquee / ticker animation */
+@keyframes epc-marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.epc-marquee__track{display:flex;gap:32px;animation:epc-marquee 20s linear infinite;width:max-content}
+.epc-marquee__track:hover{animation-play-state:paused}
+
+/* Count-up number animation helper */
+.epc-count-up{font-variant-numeric:tabular-nums}
+
+/* Gradient text */
+.epc-gradient-text{background:linear-gradient(135deg,var(--epc-accent,#b8860b),var(--epc-accent-light,#fbbf24));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* Particle container (JS fills with floating dots) */
+.epc-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.epc-particle{position:absolute;border-radius:50%;opacity:.4;animation:epc-particle-float linear infinite}
+@keyframes epc-particle-float{0%{transform:translateY(0) translateX(0)}25%{transform:translateY(-30vh) translateX(10px)}50%{transform:translateY(-60vh) translateX(-10px)}75%{transform:translateY(-90vh) translateX(15px)}100%{transform:translateY(-120vh) translateX(0)}}
+
+/* Image zoom on hover */
+.epc-img-zoom{overflow:hidden}
+.epc-img-zoom img{transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.epc-img-zoom:hover img{transform:scale(1.08)}
+
+/* Typing cursor animation */
+@keyframes epc-blink{0%,100%{opacity:1}50%{opacity:0}}
+.epc-cursor::after{content:'|';animation:epc-blink 1s step-end infinite;color:var(--epc-accent,#b8860b)}
+
+/* Badge bounce */
+@keyframes epc-bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}60%{transform:translateY(-3px)}}
+.epc-badge-bounce{animation:epc-bounce 2s ease infinite 3s}
+
+/* Ribbon diagonal */
+.epc-ribbon{position:absolute;top:16px;right:-30px;transform:rotate(45deg);background:var(--epc-accent,#e10a0a);color:#fff;font-size:11px;font-weight:700;padding:4px 40px;text-transform:uppercase;letter-spacing:.5px;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+
+/* Progress bar animation */
+@keyframes epc-progress{0%{width:0}100%{width:var(--epc-progress,80%)}}
+.epc-progress-bar{height:4px;border-radius:2px;background:var(--epc-accent,#0ea5e9);animation:epc-progress 1.5s ease-out forwards}
+
+/* Smooth scroll anchor indicator */
+@keyframes epc-scroll-hint{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+.epc-scroll-hint{animation:epc-scroll-hint 1.5s ease-in-out infinite}

@@ -1428,6 +1428,22 @@ function epc_portal_home_mode()
 	return 'professional';
 }
 
+function epc_portal_active_storefront_package(): string
+{
+	$mode = epc_portal_home_mode();
+	$map = array(
+		'electronics_retail' => 'electronics_retail_virgin',
+		'electronics' => 'electronics_retail_virgin',
+		'consulting_primeinvest' => 'consulting_primeinvest',
+		'consulting' => 'consulting_primeinvest',
+		'fashion_retail' => 'fashion_retail_namshi',
+		'fashion' => 'fashion_retail_namshi',
+		'jewellery_retail' => 'jewellery_retail_kiyasha',
+		'jewellery' => 'jewellery_retail_kiyasha',
+	);
+	return isset($map[$mode]) ? $map[$mode] : '';
+}
+
 /** full / full_commerce = storefront + commerce; mixed = partial ERP + optional commerce; erp_only = ERP home */
 function epc_portal_resolve_access_mode(array $settings)
 {

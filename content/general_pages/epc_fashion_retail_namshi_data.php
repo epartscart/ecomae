@@ -60,8 +60,8 @@ function epc_fashion_retail_namshi_promo_strip(): array
 {
 	return array(
 		array('label' => 'Free delivery on orders over AED 150', 'href' => '/o-dostavke'),
-		array('label' => 'Beauty essentials in 90 minutes — Dubai', 'href' => '/shop/search?q=beauty'),
-		array('label' => 'New season arrivals — up to 40% off', 'href' => '/shop/search?q=sale'),
+		array('label' => 'Beauty essentials in 90 minutes — Dubai', 'href' => '/beauty'),
+		array('label' => 'New season arrivals — up to 40% off', 'href' => '/women'),
 		array('label' => 'Easy returns within 14 days', 'href' => '/ob-oplate'),
 	);
 }
@@ -79,39 +79,39 @@ function epc_fashion_retail_namshi_trust_badges(): array
 function epc_fashion_retail_namshi_departments(): array
 {
 	return array(
-		array('label' => 'Women', 'href' => '/shop/search?q=women', 'active' => false),
-		array('label' => 'Men', 'href' => '/shop/search?q=men', 'active' => false),
-		array('label' => 'Kids', 'href' => '/shop/search?q=kids', 'active' => false),
-		array('label' => 'Beauty', 'href' => '/shop/search?q=beauty', 'active' => true),
-		array('label' => 'Home', 'href' => '/shop/search?q=home', 'active' => false),
-		array('label' => 'Sports', 'href' => '/shop/search?q=sports', 'active' => false),
+		array('label' => 'Women', 'href' => '/women', 'active' => false),
+		array('label' => 'Men', 'href' => '/men', 'active' => false),
+		array('label' => 'Kids', 'href' => '/kids', 'active' => false),
+		array('label' => 'Beauty', 'href' => '/beauty', 'active' => true),
+		array('label' => 'Home', 'href' => '/home-lifestyle', 'active' => false),
+		array('label' => 'Sports', 'href' => '/sports', 'active' => false),
 	);
 }
 
 function epc_fashion_retail_namshi_beauty_tabs(): array
 {
 	return array(
-		array('label' => 'For You', 'href' => '/shop/search?q=beauty', 'active' => true),
-		array('label' => 'Makeup', 'href' => '/shop/search?q=makeup', 'active' => false),
-		array('label' => 'Skincare', 'href' => '/shop/search?q=skincare', 'active' => false),
-		array('label' => 'Hair', 'href' => '/shop/search?q=hair', 'active' => false),
-		array('label' => 'Fragrance', 'href' => '/shop/search?q=fragrance', 'active' => false),
-		array('label' => 'Bath & Body', 'href' => '/shop/search?q=bath', 'active' => false),
+		array('label' => 'For You', 'href' => '/beauty', 'active' => true),
+		array('label' => 'Makeup', 'href' => '/beauty/makeup', 'active' => false),
+		array('label' => 'Skincare', 'href' => '/beauty/skincare', 'active' => false),
+		array('label' => 'Hair', 'href' => '/beauty', 'active' => false),
+		array('label' => 'Fragrance', 'href' => '/beauty/perfumes', 'active' => false),
+		array('label' => 'Bath & Body', 'href' => '/beauty', 'active' => false),
 	);
 }
 
 function epc_fashion_retail_namshi_category_chips(): array
 {
 	return array(
-		array('label' => 'New Arrivals', 'href' => '/shop/search?q=new+arrivals', 'icon' => 'fa-star'),
-		array('label' => 'Sale', 'href' => '/shop/search?q=sale', 'icon' => 'fa-percent', 'highlight' => true),
-		array('label' => 'Skincare', 'href' => '/shop/search?q=skincare', 'icon' => ''),
-		array('label' => 'Makeup', 'href' => '/shop/search?q=makeup', 'icon' => ''),
-		array('label' => 'Fragrance', 'href' => '/shop/search?q=perfume', 'icon' => ''),
-		array('label' => 'Hair Care', 'href' => '/shop/search?q=hair', 'icon' => ''),
-		array('label' => 'K-Beauty', 'href' => '/shop/search?q=k-beauty', 'icon' => ''),
-		array('label' => 'Luxury', 'href' => '/shop/search?q=luxury', 'icon' => ''),
-		array('label' => 'Gift Sets', 'href' => '/shop/search?q=gift+set', 'icon' => 'fa-gift'),
+		array('label' => 'New Arrivals', 'href' => '/women', 'icon' => 'fa-star'),
+		array('label' => 'Sale', 'href' => '/women', 'icon' => 'fa-percent', 'highlight' => true),
+		array('label' => 'Skincare', 'href' => '/beauty/skincare', 'icon' => ''),
+		array('label' => 'Makeup', 'href' => '/beauty/makeup', 'icon' => ''),
+		array('label' => 'Fragrance', 'href' => '/beauty/perfumes', 'icon' => ''),
+		array('label' => 'Hair Care', 'href' => '/beauty', 'icon' => ''),
+		array('label' => 'K-Beauty', 'href' => '/beauty/skincare', 'icon' => ''),
+		array('label' => 'Luxury', 'href' => '/women', 'icon' => ''),
+		array('label' => 'Gift Sets', 'href' => '/beauty', 'icon' => 'fa-gift'),
 	);
 }
 
@@ -127,7 +127,7 @@ function epc_fashion_retail_namshi_hero_slides(): array
 			'title' => 'Beauty Picked For You',
 			'sub' => 'Skincare, makeup & fragrance curated for your routine — prices in AED',
 			'cta' => 'Shop Beauty',
-			'href' => '/shop/search?q=beauty',
+			'href' => '/beauty',
 			'image' => epc_fashion_retail_namshi_img('beauty_flatlay', 1400, 900),
 			'alt' => epc_fashion_retail_namshi_img_alt('beauty_flatlay'),
 			'tone' => 'light',
@@ -136,7 +136,7 @@ function epc_fashion_retail_namshi_hero_slides(): array
 			'title' => 'New Season Fashion',
 			'sub' => 'Dresses, streetwear & accessories from 800+ global brands',
 			'cta' => 'Explore Women',
-			'href' => '/shop/search?q=women',
+			'href' => '/women',
 			'image' => epc_fashion_retail_namshi_img('streetwear', 1400, 900),
 			'alt' => epc_fashion_retail_namshi_img_alt('streetwear'),
 			'tone' => 'dark',
@@ -145,7 +145,7 @@ function epc_fashion_retail_namshi_hero_slides(): array
 			'title' => 'Luxury Fragrance Edit',
 			'sub' => 'Dior, Chanel, Tom Ford & more — exclusive UAE offers',
 			'cta' => 'Shop Fragrance',
-			'href' => '/shop/search?q=perfume',
+			'href' => '/beauty/perfumes',
 			'image' => epc_fashion_retail_namshi_img('perfume', 1400, 900),
 			'alt' => epc_fashion_retail_namshi_img_alt('perfume'),
 			'tone' => 'light',
@@ -156,14 +156,14 @@ function epc_fashion_retail_namshi_hero_slides(): array
 function epc_fashion_retail_namshi_category_tiles(): array
 {
 	$tiles = array(
-		array('name' => 'Makeup', 'href' => '/shop/search?q=makeup', 'key' => 'makeup'),
-		array('name' => 'Skincare', 'href' => '/shop/search?q=skincare', 'key' => 'skincare'),
-		array('name' => 'Fragrance', 'href' => '/shop/search?q=perfume', 'key' => 'perfume'),
-		array('name' => 'Hair', 'href' => '/shop/search?q=hair', 'key' => 'haircare'),
-		array('name' => 'Women', 'href' => '/shop/search?q=women', 'key' => 'dress'),
-		array('name' => 'Shoes', 'href' => '/shop/search?q=shoes', 'key' => 'shoes'),
-		array('name' => 'Bags', 'href' => '/shop/search?q=bags', 'key' => 'handbag'),
-		array('name' => 'Accessories', 'href' => '/shop/search?q=accessories', 'key' => 'sunglasses'),
+		array('name' => 'Makeup', 'href' => '/beauty/makeup', 'key' => 'makeup'),
+		array('name' => 'Skincare', 'href' => '/beauty/skincare', 'key' => 'skincare'),
+		array('name' => 'Fragrance', 'href' => '/beauty/perfumes', 'key' => 'perfume'),
+		array('name' => 'Hair', 'href' => '/beauty', 'key' => 'haircare'),
+		array('name' => 'Women', 'href' => '/women', 'key' => 'dress'),
+		array('name' => 'Shoes', 'href' => '/women/shoes', 'key' => 'shoes'),
+		array('name' => 'Bags', 'href' => '/accessories/bags', 'key' => 'handbag'),
+		array('name' => 'Accessories', 'href' => '/accessories', 'key' => 'sunglasses'),
 	);
 	$out = array();
 	foreach ($tiles as $tile) {
@@ -281,13 +281,13 @@ function epc_fashion_retail_namshi_utility_links(): array
 function epc_fashion_retail_namshi_mega_nav(): array
 {
 	return array(
-		array('label' => 'New In', 'href' => '/shop/search?q=new'),
-		array('label' => 'Women', 'href' => '/shop/search?q=women'),
-		array('label' => 'Men', 'href' => '/shop/search?q=men'),
-		array('label' => 'Beauty', 'href' => '/shop/search?q=beauty', 'highlight' => true),
-		array('label' => 'Shoes', 'href' => '/shop/search?q=shoes'),
-		array('label' => 'Bags', 'href' => '/shop/search?q=bags'),
-		array('label' => 'Sale', 'href' => '/shop/search?q=sale', 'highlight' => true),
+		array('label' => 'New In', 'href' => '/women'),
+		array('label' => 'Women', 'href' => '/women'),
+		array('label' => 'Men', 'href' => '/men'),
+		array('label' => 'Beauty', 'href' => '/beauty', 'highlight' => true),
+		array('label' => 'Shoes', 'href' => '/women/shoes'),
+		array('label' => 'Bags', 'href' => '/accessories/bags'),
+		array('label' => 'Sale', 'href' => '/women', 'highlight' => true),
 	);
 }
 
@@ -309,11 +309,11 @@ function epc_fashion_retail_namshi_footer_columns(): array
 		array(
 			'title' => 'Shop',
 			'links' => array(
-				array('label' => 'Women', 'href' => '/shop/search?q=women'),
-				array('label' => 'Men', 'href' => '/shop/search?q=men'),
-				array('label' => 'Beauty', 'href' => '/shop/search?q=beauty'),
-				array('label' => 'Shoes & Bags', 'href' => '/shop/search?q=shoes'),
-				array('label' => 'Sale', 'href' => '/shop/search?q=sale'),
+				array('label' => 'Women', 'href' => '/women'),
+				array('label' => 'Men', 'href' => '/men'),
+				array('label' => 'Beauty', 'href' => '/beauty'),
+				array('label' => 'Shoes & Bags', 'href' => '/women/shoes'),
+				array('label' => 'Sale', 'href' => '/women'),
 			),
 		),
 		array(
@@ -321,8 +321,8 @@ function epc_fashion_retail_namshi_footer_columns(): array
 			'links' => array(
 				array('label' => 'About Us', 'href' => '/kontakty'),
 				array('label' => 'Careers', 'href' => '/kontakty'),
-				array('label' => 'Gift Cards', 'href' => '/shop/search?q=gift'),
-				array('label' => 'Brand Directory', 'href' => '/shop/search'),
+				array('label' => 'Gift Cards', 'href' => '/beauty'),
+				array('label' => 'Brand Directory', 'href' => '/women'),
 			),
 		),
 		array(
@@ -371,9 +371,9 @@ function epc_frn_pro_hero_copy(): string
 function epc_frn_pro_hero_actions(string $lang): array
 {
 	return array(
-		array('label' => 'Shop For You', 'href' => '/shop/search', 'icon' => 'fa-heart', 'primary' => true),
-		array('label' => 'Beauty edit', 'href' => '/shop/search?q=beauty', 'icon' => 'fa-magic'),
-		array('label' => 'New arrivals', 'href' => '/shop/search?q=new+arrivals', 'icon' => 'fa-star'),
+		array('label' => 'Shop For You', 'href' => '/women', 'icon' => 'fa-heart', 'primary' => true),
+		array('label' => 'Beauty edit', 'href' => '/beauty', 'icon' => 'fa-magic'),
+		array('label' => 'New arrivals', 'href' => '/women', 'icon' => 'fa-star'),
 	);
 }
 

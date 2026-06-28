@@ -22,7 +22,8 @@ function epc_cpi_hero_banner_href($lang, $path)
 	return htmlspecialchars($path, ENT_QUOTES, 'UTF-8');
 }
 ?>
-<section class="epc-home-pro epc-cpi-hero-banner">
+<section class="epc-home-pro epc-cpi-hero-banner" style="position:relative;overflow:hidden">
+	<div class="epc-particles" data-color="rgba(15,118,110,.2)" data-count="14"></div>
 	<div class="container">
 		<div class="epc-home-pro__grid">
 			<div>
