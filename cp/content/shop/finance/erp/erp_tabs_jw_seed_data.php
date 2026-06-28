@@ -17,7 +17,7 @@ erp_page_header(
 	'Seed comprehensive test data across Inventory, Purchase, Sales, Repairs, and GL for the jewellery industry.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
-		array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
+		array('label' => 'System administration'),
 		array('label' => 'Sample data'),
 	)
 );
@@ -87,6 +87,12 @@ document.getElementById('jw_seed_form').addEventListener('submit', function(e){
 			btn.innerHTML = '<i class="fa fa-magic"></i> Seed sample data now';
 			if(j.status){
 				var d = j.seeded || {};
+				var errHtml = '';
+				if (d.errors && d.errors.length > 0) {
+					errHtml = '<br><div style="margin-top:6px;color:#c62828;font-size:11px"><strong>Errors:</strong><ul style="margin:2px 0 0 16px">';
+					d.errors.forEach(function(e){ errHtml += '<li>' + e + '</li>'; });
+					errHtml += '</ul></div>';
+				}
 				out.innerHTML = '<div style="background:#e8f5e9;border:1px solid #a5d6a7;padding:10px 14px;border-radius:3px;font-size:12px">'
 					+ '<strong><i class="fa fa-check-circle" style="color:#2e7d32"></i> Sample data seeded successfully!</strong><br>'
 					+ 'Warehouses: <strong>' + (d.warehouses||0) + '</strong> | '
@@ -97,6 +103,7 @@ document.getElementById('jw_seed_form').addEventListener('submit', function(e){
 					+ 'Sales: <strong>' + (d.sales||0) + '</strong> | '
 					+ 'Repairs: <strong>' + (d.repairs||0) + '</strong> | '
 					+ 'GL: <strong>' + (d.gl_entries||0) + '</strong>'
+					+ errHtml
 					+ '<br><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)); ?>" style="color:#1565c0;font-weight:600">Go to Dashboard &rarr;</a>'
 					+ '</div>';
 			} else {

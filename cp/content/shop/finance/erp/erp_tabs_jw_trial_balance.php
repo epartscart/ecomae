@@ -14,7 +14,7 @@ erp_page_header(
 	'Jewellery industry: Weight-based + Value-based trial balance side by side.',
 	array(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
-		array('label' => 'Jewellery', 'url' => epc_erp_tab_url($erpUrl, 'jewellery', $date_from_str, $date_to_str)),
+		array('label' => 'General ledger'),
 		array('label' => 'Dual trial balance'),
 	)
 );

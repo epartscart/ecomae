@@ -2043,6 +2043,13 @@ try {
 			$seeded = epc_jw_seed_sample_data($db_link, $adminId);
 			epc_erp_json(true, 'Sample data seeded', array('seeded' => $seeded));
 
+		case 'ai_assistant_query':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ai_assistant.php';
+			$question = trim((string)($_POST['question'] ?? ''));
+			if ($question === '') epc_erp_json(false, 'No question provided');
+			$result = epc_ai_assistant_query($db_link, $question);
+			epc_erp_json(true, 'OK', $result);
+
 		default:
 			/* Jewellery ERP actions — jw_* prefix */
 			if (strpos($action, 'jw_') === 0) {

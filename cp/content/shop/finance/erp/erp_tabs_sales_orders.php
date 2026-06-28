@@ -125,7 +125,7 @@ if ($erpOnly) {
 		if ($epcJwMode) {
 			// Show jewellery weight data from sales order lines
 			try {
-				$jwSoLine = $db_link->prepare('SELECT SUM(jw_weight_gm) AS wt, MAX(jw_karat) AS karat FROM epc_erp_sales_order_lines WHERE order_id = ?');
+				$jwSoLine = $db_link->prepare('SELECT SUM(jw_weight_gm) AS wt, MAX(jw_karat) AS karat FROM epc_erp_sales_order_lines WHERE sales_order_id = ?');
 				$jwSoLine->execute(array((int)$r['id']));
 				$jwSoRow = $jwSoLine->fetch(PDO::FETCH_ASSOC) ?: array();
 			} catch (Throwable $e) { $jwSoRow = array(); }

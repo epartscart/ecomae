@@ -367,6 +367,7 @@ $erpTabIncludes = array(
 	'jw_trial_balance' => 'erp_tabs_jw_trial_balance.php',
 	'jw_repairs' => 'erp_tabs_jw_repairs.php',
 	'jw_seed_data' => 'erp_tabs_jw_seed_data.php',
+	'ai_assistant' => 'erp_tabs_ai_assistant.php',
 );
 
 ?>
