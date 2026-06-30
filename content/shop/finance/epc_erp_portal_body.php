@@ -35,6 +35,14 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_
 ?>
 <div class="epc-erp-portal-wrap">
 <?php if (!$logged_in): ?>
+	<!-- BOS-style animated background -->
+	<div class="epc-erp-portal-bg" id="erpPortalBg">
+		<div class="epc-erp-portal-bg__grid"></div>
+		<div class="epc-erp-portal-bg__particles" id="erpPortalParticles"></div>
+		<div class="epc-erp-portal-bg__glow epc-erp-portal-bg__glow--1"></div>
+		<div class="epc-erp-portal-bg__glow epc-erp-portal-bg__glow--2"></div>
+		<div class="epc-erp-portal-bg__glow epc-erp-portal-bg__glow--3"></div>
+	</div>
 	<?php
 	$epc_erp_show_platform_home = function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname();
 	if ($epc_erp_show_platform_home) {
