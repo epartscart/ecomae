@@ -228,6 +228,58 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script>
+(function(){
+	/* BOS-style Matrix particle rain */
+	var container = document.getElementById('erpPortalParticles');
+	if (!container) return;
+	var colors = [
+		'rgba(14, 165, 233, .7)', 'rgba(14, 165, 233, .35)',
+		'rgba(56, 189, 248, .7)', 'rgba(56, 189, 248, .4)',
+		'rgba(99, 102, 241, .6)', 'rgba(99, 102, 241, .3)',
+		'rgba(168, 85, 247, .5)', 'rgba(16, 185, 129, .4)',
+		'rgba(255, 255, 255, .4)', 'rgba(255, 255, 255, .15)'
+	];
+	var anims = ['erpFloat', 'erpFloatDrift', 'erpFloatStreak'];
+	var total = 180;
+	for (var i = 0; i < total; i++) {
+		var p = document.createElement('div');
+		p.className = 'epc-erp-portal-bg__particle';
+		var size = Math.random() < 0.15 ? (3 + Math.random() * 4) : (1 + Math.random() * 2.5);
+		var left = Math.random() * 100;
+		var dur = 4 + Math.random() * 22;
+		var delay = Math.random() * -30;
+		var color = colors[Math.floor(Math.random() * colors.length)];
+		var anim = anims[Math.floor(Math.random() * anims.length)];
+		p.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + left + '%;background:' + color + ';animation:' + anim + ' ' + dur + 's linear ' + delay + 's infinite;';
+		container.appendChild(p);
+	}
+
+	/* Count-up stats */
+	var nums = document.querySelectorAll('.epc-erp-bos-hero__stat-num[data-count]');
+	if (nums.length) {
+		var observer = new IntersectionObserver(function(entries) {
+			entries.forEach(function(entry) {
+				if (!entry.isIntersecting) return;
+				var el = entry.target;
+				var target = parseInt(el.getAttribute('data-count'), 10);
+				var start = 0;
+				var duration = 1200;
+				var startTime = null;
+				function step(ts) {
+					if (!startTime) startTime = ts;
+					var progress = Math.min((ts - startTime) / duration, 1);
+					el.textContent = Math.floor(progress * target) + '+';
+					if (progress < 1) requestAnimationFrame(step);
+				}
+				requestAnimationFrame(step);
+				observer.unobserve(el);
+			});
+		}, {threshold: 0.3});
+		nums.forEach(function(n) { observer.observe(n); });
+	}
+})();
+</script>
 </body>
 </html>
 	<?php

@@ -1,6 +1,6 @@
 <?php
 /**
- * Platform host (ecomae.com) — ERP portal marketing landing above sign-in.
+ * Platform host (ecomae.com) — ERP portal BOS-style animated hero above sign-in.
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -10,57 +10,60 @@ $backend = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
 $superCp = $base . '/' . $backend . '/shop/tenant_hub/tenant_hub';
 $platformUrl = $base . '/platform';
 $erpGuide = isset($portal_home) ? $portal_home . '/guide' : $base . '/erp/guide';
-$logo = function_exists('epc_ecomae_hub_logo_image_url')
-	? epc_ecomae_hub_logo_image_url()
-	: '/content/general_pages/epc_ecomae_logo_svg.php';
 ?>
-<section class="epc-erp-home-hero" aria-label="ECOM AE ERP portal">
-	<div class="epc-erp-home-hero__inner">
-		<div class="epc-erp-home-hero__copy">
-			<img class="epc-erp-home-hero__logo" src="<?php echo htmlspecialchars($logo, ENT_QUOTES, 'UTF-8'); ?>" alt="ECOM AE" width="72" height="72" />
-			<p class="epc-erp-home-hero__eyebrow">E-Commerce Arab Emirates</p>
-			<h1 class="epc-erp-home-hero__title">Unified Business Operating System</h1>
-			<p class="epc-erp-home-hero__lead">
-				ERP, commerce, compliance, workflows, and industry intelligence for your team — on the same tenant data as the control panel.
-				Host clients on isolated databases with Super CP, or sign in below for department access.
-			</p>
-			<div class="epc-erp-home-hero__cta">
-				<a class="btn btn-primary btn-lg" href="#sign-in"><i class="fa fa-sign-in"></i> Department sign-in</a>
-				<a class="btn btn-default btn-lg" href="<?php echo htmlspecialchars($superCp, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-cloud"></i> Super CP</a>
-				<a class="btn btn-default btn-lg" href="<?php echo htmlspecialchars($platformUrl, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-globe"></i> Platform overview</a>
+<div class="epc-erp-bos-hero">
+	<div class="epc-erp-bos-hero__content">
+		<div class="epc-erp-bos-hero__brand-mark">
+			<div class="epc-erp-bos-hero__brand-icon">
+				<div class="epc-erp-bos-hero__brand-icon-inner">
+					<i class="fa fa-line-chart"></i>
+				</div>
+				<div class="epc-erp-bos-hero__brand-ring"></div>
+				<div class="epc-erp-bos-hero__brand-ring epc-erp-bos-hero__brand-ring--2"></div>
 			</div>
+			<h1 class="epc-erp-bos-hero__title">ERP Finance</h1>
+			<p class="epc-erp-bos-hero__tagline">Unified Business Operating System</p>
 		</div>
-		<div class="epc-erp-home-hero__stats">
-			<div class="epc-erp-home-stat"><strong>Storefront</strong><span>Industry templates &amp; checkout</span></div>
-			<div class="epc-erp-home-stat"><strong>Control panel</strong><span>Roles, orders, catalogue</span></div>
-			<div class="epc-erp-home-stat"><strong>BOS pillars</strong><span>ERP, compliance, workflows</span></div>
-			<div class="epc-erp-home-stat"><strong>Super CP</strong><span>Tenant hub &amp; onboarding</span></div>
-		</div>
-	</div>
-</section>
 
-<section class="epc-erp-home-grid" aria-label="Product areas">
-	<div class="row">
-		<div class="col-md-4">
-			<div class="epc-erp-home-card">
-				<h3><i class="fa fa-line-chart text-primary"></i> ERP Finance</h3>
-				<p>Sales, purchases, general ledger, VAT returns, inventory, fixed assets, and department dashboards.</p>
-				<a href="<?php echo htmlspecialchars($erpGuide, ENT_QUOTES, 'UTF-8'); ?>">ERP guide <i class="fa fa-angle-right"></i></a>
+		<div class="epc-erp-bos-hero__capabilities">
+			<div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--1">
+				<div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-calculator"></i></div>
+				<div class="epc-erp-bos-hero__cap-text">
+					<strong>Financial Accounting</strong>
+					<span>GL, AP, AR, Bank, Fixed Assets</span>
+				</div>
+			</div>
+			<div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--2">
+				<div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-shopping-cart"></i></div>
+				<div class="epc-erp-bos-hero__cap-text">
+					<strong>Sales &amp; Purchase</strong>
+					<span>Orders, Invoices, Quotations</span>
+				</div>
+			</div>
+			<div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--3">
+				<div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-cubes"></i></div>
+				<div class="epc-erp-bos-hero__cap-text">
+					<strong>Inventory &amp; Logistics</strong>
+					<span>WMS, Barcode, Stock, Shipping</span>
+				</div>
+			</div>
+			<div class="epc-erp-bos-hero__cap-item epc-erp-bos-hero__cap-item--4">
+				<div class="epc-erp-bos-hero__cap-icon"><i class="fa fa-shield"></i></div>
+				<div class="epc-erp-bos-hero__cap-text">
+					<strong>Compliance &amp; AI</strong>
+					<span>VAT, AML, E-invoice, AI Advisor</span>
+				</div>
 			</div>
 		</div>
-		<div class="col-md-4">
-			<div class="epc-erp-home-card epc-erp-home-card--accent">
-				<h3><i class="fa fa-cloud text-primary"></i> Super CP</h3>
-				<p>Onboard tenants, push industry packs, manage DNS-only clients, and open finance modules per site.</p>
-				<a href="<?php echo htmlspecialchars($superCp, ENT_QUOTES, 'UTF-8'); ?>">Open tenant hub <i class="fa fa-angle-right"></i></a>
-			</div>
-		</div>
-		<div class="col-md-4">
-			<div class="epc-erp-home-card">
-				<h3><i class="fa fa-sitemap text-primary"></i> Platform marketing</h3>
-				<p>Industries, pricing, demos, and how ECOM AE delivers storefront + CP + ERP for each vertical.</p>
-				<a href="<?php echo htmlspecialchars($platformUrl, ENT_QUOTES, 'UTF-8'); ?>">Explore platform <i class="fa fa-angle-right"></i></a>
-			</div>
+
+		<div class="epc-erp-bos-hero__stats-bar">
+			<div class="epc-erp-bos-hero__stat"><span class="epc-erp-bos-hero__stat-num" data-count="95">0</span><span class="epc-erp-bos-hero__stat-label">Modules</span></div>
+			<div class="epc-erp-bos-hero__stat-divider"></div>
+			<div class="epc-erp-bos-hero__stat"><span class="epc-erp-bos-hero__stat-num" data-count="11">0</span><span class="epc-erp-bos-hero__stat-label">Industries</span></div>
+			<div class="epc-erp-bos-hero__stat-divider"></div>
+			<div class="epc-erp-bos-hero__stat"><span class="epc-erp-bos-hero__stat-num" data-count="65">0</span><span class="epc-erp-bos-hero__stat-label">Countries</span></div>
+			<div class="epc-erp-bos-hero__stat-divider"></div>
+			<div class="epc-erp-bos-hero__stat"><span class="epc-erp-bos-hero__stat-num" data-count="225">0</span><span class="epc-erp-bos-hero__stat-label">Tenants</span></div>
 		</div>
 	</div>
-</section>
+</div>
