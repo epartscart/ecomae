@@ -51,6 +51,12 @@ function epc_erp_staff_all_tabs()
 		'jw_trial_balance', 'jw_repairs', 'jw_seed_data',
 		'ai_assistant',
 		'tenant_config', 'print_designer', 'workflow_automation',
+		// New ERP modules (22 features + on-premises)
+		'sla', 'tickets', 'doc_attachment', 'customer_groups', 'drilldown', 'shortcut_icons',
+		'gold_scheme', 'gold_rate', 'jewellery_tag', 'barcode_purchase', 'fix_unfix',
+		'tourist_refund', 'card_reader', 'aml_compliance', 'report_scheduler', 'inventory_report',
+		'ecommerce_integration', 'crm_integration', 'data_migration',
+		'virtual_warehouse', 'rfid', 'landed_cost_v2', 'on_premises',
 	);
 	// Report center: one "Reports & inquiries" tab per module that has reports.
 	$rc = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_center.php';

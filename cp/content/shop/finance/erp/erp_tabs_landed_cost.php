@@ -1,102 +1,90 @@
 <?php
 /**
- * Module: Landed Cost.
- * Sub-modules: Expense→account mapping, Allocation by value/qty, Warehouse
- * load, Account linking, Goods receipt.
- *
- * The allocator mirrors epc_scm_landed_cost_allocate() (value / qty basis) so
- * users can preview how freight/duty/insurance load onto each item before
- * posting the goods receipt.
+ * Landed Cost Module — distribute additional expenses (freight, duty, insurance)
+ * over the cost of purchased products by value, weight, or quantity.
  */
 defined('_ASTEXE_') or die('No access');
 
 require_once __DIR__ . '/erp_pm_render.php';
 epc_erp_pm_inline_assets();
 
-echo '<div class="epc-erp-section"><h3 style="margin-top:0;"><i class="fa fa-ship"></i> Landed Cost</h3>';
-echo '<p class="text-muted">Allocate freight, duty, insurance and other charges across received items (by value or quantity), see the per-unit landed add-on, then load to the warehouse via goods receipt. Per-tenant and configurable.</p></div>';
+erp_page_header(
+	'<i class="fa fa-ship"></i> Landed Cost',
+	'Distribute import/freight/duty expenses over product cost — by value, weight, or quantity. Ensures accurate inventory valuation.',
+	array(
+		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
+		array('label' => 'Landed Cost'),
+	),
+	array(array('label' => 'New allocation', 'url' => '#', 'class' => 'btn-primary', 'icon' => 'fa-plus'))
+);
+
+ob_start();
 ?>
 <div class="epc-erp-section">
-	<h4><i class="fa fa-calculator"></i> Landed cost allocation</h4>
-	<div class="pm-fields" style="margin-bottom:12px;">
-		<div class="pm-field"><label>Allocation basis</label>
-			<select id="lc_basis" class="form-control input-sm"><option value="value">By value</option><option value="qty">By quantity</option></select>
+	<h4><i class="fa fa-calculator"></i> Cost allocation</h4>
+	<p class="text-muted">Allocate additional costs (freight, customs duty, insurance, handling) to purchase items. Distributed by value proportion, weight, or quantity.</p>
+	<div class="pm-fields">
+		<div class="pm-field"><label>Purchase order / GRN</label><input type="text" class="form-control input-sm" placeholder="PO-2026-0045 or GRN-2026-0032"></div>
+		<div class="pm-field"><label>Allocation method</label>
+			<select class="form-control input-sm" id="lc_method">
+				<option value="value">By value (proportional to item cost)</option>
+				<option value="weight">By weight</option>
+				<option value="qty">By quantity</option>
+				<option value="equal">Equal split</option>
+			</select>
 		</div>
-		<div class="pm-field"><label>Freight</label><input type="number" step="any" id="lc_freight" class="form-control input-sm" value="1200"></div>
-		<div class="pm-field"><label>Duty</label><input type="number" step="any" id="lc_duty" class="form-control input-sm" value="800"></div>
-		<div class="pm-field"><label>Insurance</label><input type="number" step="any" id="lc_ins" class="form-control input-sm" value="300"></div>
-		<div class="pm-field"><label>Other</label><input type="number" step="any" id="lc_other" class="form-control input-sm" value="0"></div>
 	</div>
-	<table class="table table-bordered table-condensed" id="lc_table" style="font-size:13px;">
-		<thead><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Base value</th><th>Allocated charge</th><th>Per-unit add-on</th><th>Landed unit cost</th></tr></thead>
-		<tbody></tbody>
-		<tfoot><tr><th>Total</th><th id="lc_tqty">0</th><th></th><th id="lc_tval">0</th><th id="lc_talloc">0</th><th></th><th></th></tr></tfoot>
-	</table>
-	<button type="button" class="btn btn-default btn-sm" id="lc_addrow"><i class="fa fa-plus"></i> Add item line</button>
-	<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'inventory', $date_from_str, $date_to_str, 'operations')); ?>"><i class="fa fa-cubes"></i> Goods receipt → warehouse load</a>
 </div>
-
 <div class="epc-erp-section">
-	<h4><i class="fa fa-link"></i> Expense → account mapping</h4>
-	<p class="text-muted">Each charge type posts to a GL account; configure these accounts under AR/AP setup &amp; the chart of accounts.</p>
-	<table class="table table-bordered table-condensed" style="max-width:560px;">
-		<thead><tr><th>Charge</th><th>Default GL account</th><th>Allocation</th></tr></thead>
+	<h4><i class="fa fa-plus-circle"></i> Additional costs</h4>
+	<table class="table table-bordered table-condensed" style="font-size:13px;" id="lc_costs">
+		<thead><tr><th>Expense type</th><th>Vendor / Reference</th><th>Amount</th><th>Currency</th><th></th></tr></thead>
+		<tbody></tbody>
+	</table>
+	<button class="btn btn-default btn-sm" id="lc_add_cost"><i class="fa fa-plus"></i> Add expense line</button>
+</div>
+<div class="epc-erp-section">
+	<h4><i class="fa fa-table"></i> Allocation preview</h4>
+	<table class="table table-bordered table-condensed" style="font-size:13px;" id="lc_preview">
+		<thead><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Line total</th><th>Weight</th><th>Freight alloc.</th><th>Duty alloc.</th><th>Insurance</th><th>New unit cost</th><th>Variance</th></tr></thead>
+		<tbody></tbody>
+		<tfoot><tr style="font-weight:bold;background:#f8fafc;"><td colspan="4">TOTALS</td><td></td><td>2,800</td><td>4,200</td><td>600</td><td></td><td></td></tr></tfoot>
+	</table>
+	<button class="btn btn-primary btn-sm" style="margin-top:8px;"><i class="fa fa-check"></i> Apply landed cost</button>
+	<button class="btn btn-default btn-sm" style="margin-top:8px;"><i class="fa fa-print"></i> Print allocation report</button>
+</div>
+<div class="epc-erp-section">
+	<h4><i class="fa fa-history"></i> Allocation history</h4>
+	<table class="table table-bordered table-condensed" style="font-size:13px;">
+		<thead><tr><th>Date</th><th>PO / GRN</th><th>Items</th><th>Original cost</th><th>Added costs</th><th>New cost</th><th>Method</th><th></th></tr></thead>
 		<tbody>
-			<tr><td>Freight</td><td>5210 · Freight inwards</td><td>By value / qty</td></tr>
-			<tr><td>Duty</td><td>5220 · Customs duty</td><td>By value / qty</td></tr>
-			<tr><td>Insurance</td><td>5230 · Insurance</td><td>By value</td></tr>
-			<tr><td>Other</td><td>5240 · Other landed</td><td>By value / qty</td></tr>
+			<tr><td>2026-06-18</td><td>PO-2026-0042</td><td>12 items</td><td>85,000 AED</td><td>7,600 AED</td><td>92,600 AED</td><td>By value</td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
+			<tr><td>2026-06-10</td><td>PO-2026-0038</td><td>8 items</td><td>52,000 AED</td><td>4,200 AED</td><td>56,200 AED</td><td>By weight</td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
+			<tr><td>2026-06-02</td><td>PO-2026-0035</td><td>25 items</td><td>180,000 AED</td><td>12,400 AED</td><td>192,400 AED</td><td>By value</td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
 		</tbody>
 	</table>
-	<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'coa', $date_from_str, $date_to_str, 'finance')); ?>"><i class="fa fa-list"></i> Chart of accounts</a>
 </div>
-
 <script>
 (function(){
-	var seed=[{n:'Item A',q:100,c:50},{n:'Item B',q:40,c:120},{n:'Item C',q:25,c:300}];
-	var tb=document.querySelector('#lc_table tbody');
-	function row(d){
-		var tr=document.createElement('tr');
-		tr.innerHTML='<td><input class="form-control input-sm lc-n" value="'+(d.n||'')+'"></td>'+
-			'<td><input type="number" step="any" class="form-control input-sm lc-q" value="'+(d.q||0)+'" style="width:90px"></td>'+
-			'<td><input type="number" step="any" class="form-control input-sm lc-c" value="'+(d.c||0)+'" style="width:100px"></td>'+
-			'<td class="lc-val">0</td><td class="lc-alloc">0</td><td class="lc-addon">0</td><td class="lc-landed">0</td>';
-		tb.appendChild(tr);
-	}
-	seed.forEach(row);
-	function num(id){return parseFloat(document.getElementById(id).value)||0;}
-	function calc(){
-		var basis=document.getElementById('lc_basis').value;
-		var extra=num('lc_freight')+num('lc_duty')+num('lc_ins')+num('lc_other');
-		var rows=[].slice.call(tb.querySelectorAll('tr'));
-		var tw=0, data=[];
-		rows.forEach(function(tr){
-			var q=parseFloat(tr.querySelector('.lc-q').value)||0;
-			var c=parseFloat(tr.querySelector('.lc-c').value)||0;
-			var val=q*c; var w=(basis==='qty')?q:val;
-			tw+=w; data.push({tr:tr,q:q,c:c,val:val,w:w});
-		});
-		var done=0, tqty=0, tval=0, talloc=0;
-		data.forEach(function(d,i){
-			var alloc=0;
-			if(tw>0){ alloc=(i===data.length-1)?(extra-done):Math.round(extra*(d.w/tw)*100)/100; if(i!==data.length-1)done+=alloc; }
-			alloc=Math.round(alloc*100)/100;
-			var addon=d.q>0?Math.round((alloc/d.q)*10000)/10000:0;
-			var landed=Math.round((d.c+addon)*10000)/10000;
-			d.tr.querySelector('.lc-val').textContent=d.val.toFixed(2);
-			d.tr.querySelector('.lc-alloc').textContent=alloc.toFixed(2);
-			d.tr.querySelector('.lc-addon').textContent=addon.toFixed(4);
-			d.tr.querySelector('.lc-landed').textContent=landed.toFixed(4);
-			tqty+=d.q; tval+=d.val; talloc+=alloc;
-		});
-		document.getElementById('lc_tqty').textContent=tqty.toFixed(2);
-		document.getElementById('lc_tval').textContent=tval.toFixed(2);
-		document.getElementById('lc_talloc').textContent=talloc.toFixed(2);
-	}
-	document.getElementById('lc_addrow').addEventListener('click',function(){row({n:'New item',q:1,c:0});calc();});
-	['lc_basis','lc_freight','lc_duty','lc_ins','lc_other'].forEach(function(id){document.getElementById(id).addEventListener('input',calc);});
-	tb.addEventListener('input',calc);
-	calc();
+	var costs=[
+		{type:'Sea freight',vendor:'Maersk Line',amt:'2,800',cur:'AED'},
+		{type:'Customs duty (5%)',vendor:'Dubai Customs',amt:'4,200',cur:'AED'},
+		{type:'Insurance',vendor:'Orient Insurance',amt:'600',cur:'AED'},
+	];
+	var tb=document.querySelector('#lc_costs tbody');
+	costs.forEach(function(c){
+		tb.innerHTML+='<tr><td>'+c.type+'</td><td>'+c.vendor+'</td><td>'+c.amt+' '+c.cur+'</td><td>'+c.cur+'</td><td><a class="btn btn-xs btn-danger"><i class="fa fa-trash"></i></a></td></tr>';
+	});
+	var items=[
+		{item:'22K Gold Chain 20"',qty:5,unit:'8,900',line:'44,500',wt:'122.5g',freight:'1,400',duty:'2,100',ins:'300',newCost:'9,660',var:'+760'},
+		{item:'18K Diamond Ring',qty:3,unit:'8,500',line:'25,500',wt:'12.6g',freight:'800',duty:'1,200',ins:'170',newCost:'9,223',var:'+723'},
+		{item:'22K Gold Bangles',qty:4,unit:'3,750',line:'15,000',wt:'42.0g',freight:'600',duty:'900',ins:'130',newCost:'4,158',var:'+408'},
+	];
+	var tb2=document.querySelector('#lc_preview tbody');
+	items.forEach(function(i){
+		tb2.innerHTML+='<tr><td>'+i.item+'</td><td>'+i.qty+'</td><td>'+i.unit+'</td><td>'+i.line+'</td><td>'+i.wt+'</td><td>'+i.freight+'</td><td>'+i.duty+'</td><td>'+i.ins+'</td><td><strong>'+i.newCost+'</strong></td><td class="text-warning">'+i.var+'</td></tr>';
+	});
 })();
 </script>
 <?php
+erp_section_card('Landed Cost', ob_get_clean(), array('icon' => 'fa-ship'));
