@@ -1464,7 +1464,7 @@ if( $product_id > 0 || $DP_Content->content_type == "category" || $DP_Content->i
 
 <?php
 if ($epc_custom_storefront && $DP_Content->main_flag) {
-	echo epc_storefront_trust_badges($epc_portal_industry_code);
+	/* trust badges already rendered inside each home template – skip duplicate */
 	$epc_wc_accent = '#0ea5e9';
 	$epc_wc_bg = '#f8fafc';
 	if ($epc_portal_industry_code === 'electronics') { $epc_wc_accent = '#e10a0a'; $epc_wc_bg = '#fafafa'; }
