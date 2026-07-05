@@ -33,6 +33,7 @@ node_modules/
 !/content/**/*.svg
 !/content/**/*.sql
 !/content/**/*.md
+!/content/**/*.mp4
 config.epc-smtp.php
 epc-operator-update.php
 epc-operator-probe.php
