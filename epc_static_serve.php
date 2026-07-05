@@ -20,6 +20,8 @@ function epc_static_serve_mime(string $path): string
 		'woff2' => 'font/woff2',
 		'ttf' => 'font/ttf',
 		'ico' => 'image/x-icon',
+		'mp4' => 'video/mp4',
+		'webm' => 'video/webm',
 		'map' => 'application/json',
 		'webmanifest' => 'application/manifest+json',
 	);
