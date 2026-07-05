@@ -279,16 +279,32 @@ function epc_ecomae_platform_page_industries()
 	$details = epc_ecomae_platform_industry_details();
 	$base = epc_ecomae_platform_base_url();
 	$demo = epc_ecomae_platform_demo_package();
+
+	// Load consolidation groups
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+	$consolidatedGroups = epc_industry_groups();
+	$groupCount = count($consolidatedGroups);
+
 	ob_start();
 	?>
 <div class="epm-wrap">
 	<div class="epm-hero">
 		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 50%,#0a0a0a)"></div>
 		<div class="epm-hero__content">
-			<div class="epm-badge"><i class="fa fa-industry"></i> <?php echo count($industries); ?> verticals</div>
-			<h1>Every industry, its own solution page</h1>
-			<p class="lead">Each template ships with a themed storefront, CP module packs, and workflows specific to that sector — not a one-size-fits-all catalogue.</p>
+			<div class="epm-badge"><i class="fa fa-industry"></i> <?php echo count($industries); ?> verticals → <?php echo $groupCount; ?> smart groups</div>
+			<h1>Every industry, one optimized template</h1>
+			<p class="lead"><?php echo count($industries); ?> industries consolidated into <?php echo $groupCount; ?> template groups — each group shares one frontend with toggleable sub-areas. Pick your industry; we route you to the right template automatically.</p>
 		</div>
+	</div>
+
+	<div style="margin:28px 0 0;padding:20px 24px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+		<?php foreach ($consolidatedGroups as $gk => $ginfo) { ?>
+		<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.05);border-radius:8px">
+			<i class="fa <?php echo epc_ecomae_h($ginfo['icon']); ?>" style="color:<?php echo epc_ecomae_h($ginfo['color_scheme']['primary'] ?? '#3b82f6'); ?>;font-size:16px"></i>
+			<span style="color:#e2e8f0;font-size:13px"><?php echo epc_ecomae_h($ginfo['label']); ?></span>
+			<small style="color:#64748b;margin-left:auto"><?php echo count($ginfo['available_sub_areas'] ?? array()); ?></small>
+		</div>
+		<?php } ?>
 	</div>
 
 	<?php foreach ($industryGroups as $grp) {
@@ -300,13 +316,19 @@ function epc_ecomae_platform_page_industries()
 	<div class="epm-grid">
 		<?php foreach ($grp['industries'] as $code => $ind) {
 			$summary = isset($details[$code]['summary']) ? $details[$code]['summary'] : $ind['tagline'];
+			$indGroupKey = epc_industry_resolve_group($ind['name'] ?? $code);
+			$indGroup = $consolidatedGroups[$indGroupKey] ?? null;
 			?>
 		<a class="epm-card epm-card--photo" href="<?php echo epc_ecomae_h($base); ?>platform/industry/<?php echo epc_ecomae_h($code); ?>">
 			<img src="<?php echo epc_ecomae_h($ind['photo']); ?>" alt="<?php echo epc_ecomae_h($ind['name']); ?>" loading="lazy" />
 			<div class="epm-card__inner">
 				<h4><i class="fa <?php echo epc_ecomae_h($ind['icon']); ?> text-primary"></i> <?php echo epc_ecomae_h($ind['name']); ?></h4>
 				<p><?php echo epc_ecomae_h($summary); ?></p>
+				<?php if ($indGroup): ?>
+				<span class="epm-pill" style="background:<?php echo epc_ecomae_h($indGroup['color_scheme']['primary'] ?? '#3b82f6'); ?>;color:#fff;font-size:10px"><i class="fa <?php echo epc_ecomae_h($indGroup['icon']); ?>"></i> <?php echo epc_ecomae_h($indGroup['label']); ?></span>
+				<?php else: ?>
 				<span class="epm-pill">Dedicated page →</span>
+				<?php endif; ?>
 			</div>
 		</a>
 		<?php } ?>
@@ -339,6 +361,11 @@ function epc_ecomae_platform_page_industry(array $params)
 		return ob_get_clean();
 	}
 
+	// Consolidation group info
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+	$groupKey = epc_industry_resolve_group($ind['name'] ?? $code);
+	$groupInfo = epc_industry_get_group($ind['name'] ?? $code);
+
 	$storefront = isset($ind['storefront']) ? $ind['storefront'] : $ind['highlights'];
 	$cpSpecial = isset($ind['cp_special']) ? $ind['cp_special'] : $ind['highlights'];
 	$workflows = isset($ind['workflows']) ? $ind['workflows'] : array();
@@ -362,6 +389,24 @@ function epc_ecomae_platform_page_industry(array $params)
 		</div>
 	</div>
 	<div class="epm-industry-accent"></div>
+
+	<div style="margin:24px 0;padding:16px 20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+		<div style="width:40px;height:40px;border-radius:8px;background:<?php echo epc_ecomae_h($groupInfo['color_scheme']['primary'] ?? '#3b82f6'); ?>;display:flex;align-items:center;justify-content:center">
+			<i class="fa <?php echo epc_ecomae_h($groupInfo['icon']); ?>" style="color:#fff;font-size:18px"></i>
+		</div>
+		<div style="flex:1">
+			<strong style="font-size:14px">Template group: <?php echo epc_ecomae_h($groupInfo['label']); ?></strong>
+			<p style="margin:2px 0 0;font-size:12px;color:#64748b"><?php echo epc_ecomae_h($groupInfo['description']); ?> — Shared template with <?php echo count($groupInfo['available_sub_areas'] ?? array()); ?> toggleable sub-areas.</p>
+		</div>
+		<div style="display:flex;flex-wrap:wrap;gap:4px">
+			<?php foreach (array_slice($groupInfo['available_sub_areas'] ?? array(), 0, 4) as $aLabel) { ?>
+			<span style="display:inline-block;padding:3px 8px;background:#e0e7ff;color:#3730a3;border-radius:4px;font-size:11px"><?php echo epc_ecomae_h($aLabel); ?></span>
+			<?php } ?>
+			<?php if (count($groupInfo['available_sub_areas'] ?? array()) > 4): ?>
+			<span style="display:inline-block;padding:3px 8px;background:#f1f5f9;color:#64748b;border-radius:4px;font-size:11px">+<?php echo count($groupInfo['available_sub_areas']) - 4; ?> more</span>
+			<?php endif; ?>
+		</div>
+	</div>
 
 	<h2 class="epm-section-title">What your client sees</h2>
 	<p class="epm-section-lead">Storefront for their customers · Control panel for their team (same platform, industry theme).</p>

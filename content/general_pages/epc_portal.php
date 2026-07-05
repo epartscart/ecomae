@@ -1386,6 +1386,37 @@ function epc_portal_active_storefront_package()
 	return '';
 }
 
+/**
+ * Get the consolidated industry group for the current tenant.
+ * Used by storefront, CP, and ERP to determine which template group applies.
+ *
+ * @return array{group_key: string, group: array, sub_areas: array}
+ */
+function epc_portal_consolidated_industry_info(): array
+{
+	static $cached = null;
+	if ($cached !== null) {
+		return $cached;
+	}
+
+	require_once __DIR__ . '/epc_industry_consolidation.php';
+
+	$settings = epc_portal_load_site_settings();
+	$industryCode = isset($settings['industry_code']) ? (string) $settings['industry_code'] : 'general';
+	$groupKey = epc_industry_resolve_group($industryCode);
+	$group = epc_industry_get_group($industryCode);
+
+	$cached = array(
+		'group_key' => $groupKey,
+		'group' => $group,
+		'industry_code' => $industryCode,
+		'template_key' => $group['template_key'] ?? 'retail',
+		'erp_base' => $group['erp_base'] ?? 'general',
+		'costing_default' => $group['costing_default'] ?? 'weighted_avg',
+	);
+	return $cached;
+}
+
 function epc_portal_home_mode()
 {
 	if (!empty($GLOBALS['epc_demo_storefront_context']) || !empty($GLOBALS['epc_demo_cp_context'])) {

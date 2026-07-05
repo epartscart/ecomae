@@ -57,6 +57,10 @@ epc_cp_page_frame_open(array(
 	<div class="epc-portal-settings__host-badge" style="margin-bottom:14px">
 		<span>Active industry</span>
 		<strong><i class="fa <?php echo htmlspecialchars($active_industry['icon'], ENT_QUOTES, 'UTF-8'); ?>"></i> <?php echo htmlspecialchars($active_industry['name'], ENT_QUOTES, 'UTF-8'); ?></strong>
+		<a href="<?php echo $cp_base; ?>/shop/tenant_hub/tenant_hub?tab=industry_sub_areas" class="btn btn-sm btn-primary" style="margin-left:12px"><i class="fa fa-toggle-on"></i> Sub-Area Toggles</a>
+		<?php if ($isSuperCp): ?>
+		<a href="<?php echo $cp_base; ?>/shop/tenant_hub/tenant_hub?tab=industry_consolidation" class="btn btn-sm btn-default" style="margin-left:6px"><i class="fa fa-compress"></i> Consolidation Dashboard</a>
+		<?php endif; ?>
 	</div>
 
 	<form id="epc-portal-settings-form" class="epc-portal-settings__form">
