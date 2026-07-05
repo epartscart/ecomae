@@ -75,7 +75,7 @@ $industryData = array(
 		'Fashion rental & resale',
 		'Personal styling service',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/xGF3ObOBbac',
+	    'about_video' => 'https://www.youtube.com/embed/mbzZDLhmPzI',
     'about_text' => 'The fashion and apparel industry is a $1.7 trillion global market covering design, manufacturing, wholesale distribution, and retail. With seasonal collections, size-color matrix management, and fast-fashion cycles, businesses need PLM integration, fabric sourcing, cut-make-trim tracking, and omnichannel inventory management. Our platform supports the full fashion lifecycle from mood board to markdown with size-curve analytics and trend forecasting.',
     'about_highlights' => array(
         'Size-color-style matrix inventory with variant-level tracking',

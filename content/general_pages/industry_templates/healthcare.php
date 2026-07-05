@@ -78,7 +78,7 @@ $industryData = array(
 		'Speech therapy',
 		'Audiology & hearing',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/ukHFAJxcFcE',
+	    'about_video' => 'https://www.youtube.com/embed/OwPZIhTHDUk',
     'about_text' => 'The healthcare and medical industry encompasses hospitals, clinics, pharmacies, laboratories, dental practices, medical device companies, and telemedicine providers. With strict regulatory requirements (HIPAA, GDPR, DHA), patient data security, clinical workflows, and insurance billing are critical. Our platform provides electronic health records, appointment scheduling, pharmacy management, laboratory information systems, and medical billing with insurance claim processing.',
     'about_highlights' => array(
         'Electronic health records with HL7/FHIR interoperability',

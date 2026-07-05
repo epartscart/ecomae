@@ -73,7 +73,7 @@ $industryData = array(
 		'Bird aviary & supplies',
 		'Farm animal sanctuary',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/9UZWfMgjqAs',
+	    'about_video' => 'https://www.youtube.com/embed/cXXcKqUtUn0',
     'about_text' => 'The pet and animal services industry is a rapidly growing sector covering veterinary clinics, pet retail, grooming, boarding, pet food manufacturing, and animal welfare organizations. With increasing pet ownership worldwide, businesses need appointment scheduling, medical records management, breed-specific inventory, and loyalty programs. Our platform supports the full pet care ecosystem from veterinary practice management to pet e-commerce with subscription boxes.',
     'about_highlights' => array(
         'Veterinary practice management with patient records and treatment plans',

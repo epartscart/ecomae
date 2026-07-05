@@ -76,7 +76,7 @@ $industryData = array(
 		'Auto finance & leasing broker',
 		'Classic & vintage car restoration',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/XfV4pZsSgmQ',
     'about_text' => 'The automotive industry spans vehicle manufacturing, parts distribution, dealership networks, aftermarket services, and fleet management. With over 80 million vehicles produced annually worldwide, this sector demands sophisticated inventory management, cross-referencing databases like TecDoc, warranty tracking, and multi-location parts logistics. Our platform supports everything from independent workshops to multi-brand dealer groups with tailored ERP processes.',
     'about_highlights' => array(
         'TecDoc and OE parts cross-reference with VIN-based fitment',

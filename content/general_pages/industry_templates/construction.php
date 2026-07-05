@@ -78,7 +78,7 @@ $industryData = array(
 		'Modular & prefab building',
 		'Piling & foundations',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/kDBVdvMnwU0',
+	    'about_video' => 'https://www.youtube.com/embed/MXLeEt8CYhs',
     'about_text' => 'The construction and real estate industry represents one of the largest economic sectors globally, encompassing residential and commercial building, infrastructure development, architectural design, and property management. Projects require complex coordination of materials, labor, subcontractors, permits, and safety compliance. Our platform provides project cost tracking, progress billing, equipment management, and BIM integration to keep builds on time and on budget.',
     'about_highlights' => array(
         'Project cost tracking with budget vs actual variance analysis',

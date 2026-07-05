@@ -74,7 +74,7 @@ $industryData = array(
 		'Beauty subscription box',
 		'Mobile beauty services',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/xaVgRj9r3eI',
+	    'about_video' => 'https://www.youtube.com/embed/7to0qsO7tNE',
     'about_text' => 'The beauty and personal care industry is a global market worth over $500 billion, covering cosmetics, skincare, haircare, fragrances, and wellness services. From salon management to cosmetics manufacturing, this sector requires batch tracking, ingredient compliance, appointment scheduling, and omnichannel retail capabilities. Our platform helps beauty businesses manage formulation records, regulatory compliance across markets, and customer loyalty programs.',
     'about_highlights' => array(
         'Appointment booking with staff scheduling and resource management',

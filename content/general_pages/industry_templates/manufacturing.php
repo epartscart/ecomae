@@ -77,7 +77,7 @@ $industryData = array(
 		'Jewelry casting & forming',
 		'Leather goods manufacturing',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/5qBcEncjtYk',
     'about_text' => 'The manufacturing and industrial sector encompasses discrete manufacturing, process industries, assembly operations, and contract manufacturing. With complex bill-of-materials, production scheduling, quality control, and supply chain coordination, manufacturers need MRP/MRP II capabilities, shop floor control, and real-time OEE monitoring. Our platform supports lean manufacturing, Six Sigma quality processes, and Industry 4.0 smart factory integration.',
     'about_highlights' => array(
         'Bill of Materials with multi-level BOM and routing management',

@@ -73,7 +73,7 @@ $industryData = array(
 		'Industrial chemicals wholesale',
 		'Automotive parts wholesale',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/rPmyuuvIABM',
     'about_text' => 'The wholesale and trading industry connects manufacturers with retailers through distribution networks spanning local markets and international trade. With bulk pricing, credit management, volume discounts, and complex logistics, wholesalers need purchase order management, warehouse operations, and trade finance capabilities. Our platform provides B2B ordering portals, landed cost calculation, container tracking, and multi-currency invoicing for cross-border trade.',
     'about_highlights' => array(
         'B2B ordering portal with customer-specific pricing and credit terms',

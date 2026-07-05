@@ -76,7 +76,7 @@ $industryData = array(
 		'Market research firm',
 		'Arbitration & mediation',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/WEDIj9JBTC8',
+	    'about_video' => 'https://www.youtube.com/embed/WEDIj9JBTC8',
     'about_text' => 'Professional and business services encompass consulting firms, legal practices, accounting firms, marketing agencies, and advisory services. With time-based billing, project delivery, and client relationship management at the core, these businesses need accurate time tracking, engagement management, and profitability analysis. Our platform provides matter management for legal, engagement tracking for consulting, and campaign management for agencies with full resource utilization visibility.',
     'about_highlights' => array(
         'Time and expense tracking with client billing and invoicing',

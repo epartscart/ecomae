@@ -74,7 +74,7 @@ $industryData = array(
 		'STEM & robotics academy',
 		'Adult & continuing education',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/UCFg9bcW7Bk',
+	    'about_video' => 'https://www.youtube.com/embed/UCFg9bcW7Bk',
     'about_text' => 'The education and training industry encompasses K-12 schools, universities, vocational training centers, e-learning platforms, and corporate training providers. With the global ed-tech market growing rapidly, institutions need student information systems, learning management, enrollment processing, and academic analytics. Our platform supports the full student lifecycle from admissions through alumni relations, with compliance for multiple regulatory frameworks.',
     'about_highlights' => array(
         'Student information system with enrollment and academic records',

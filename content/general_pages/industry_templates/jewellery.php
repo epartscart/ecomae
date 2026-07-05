@@ -73,7 +73,7 @@ $industryData = array(
 		'Jewellery exhibition & trade show',
 		'Precious metals refining',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/xaVgRj9r3eI',
+	    'about_video' => 'https://www.youtube.com/embed/7to0qsO7tNE',
     'about_text' => 'The jewellery and luxury goods industry is a $300+ billion global market covering gold, diamonds, gemstones, watches, and designer accessories. With dual unit-of-measure tracking (weight and value), complex pricing based on daily metal rates, karat management, and certification requirements, jewellers need specialized ERP capabilities. Our platform provides gold rate integration, tag-based inventory, hallmarking compliance, and customer scheme management like gold savings plans.',
     'about_highlights' => array(
         'Dual UOM tracking: weight (grams) and value simultaneously',

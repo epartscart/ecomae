@@ -78,7 +78,7 @@ $industryData = array(
 		'Cannabis & hemp cultivation',
 		'Seed production & genetics',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/9UZWfMgjqAs',
+	    'about_video' => 'https://www.youtube.com/embed/I16hueYdgVA',
     'about_text' => 'Agriculture and farming is the backbone of global food production, encompassing crop cultivation, livestock management, aquaculture, and agri-tech innovations. Modern agricultural businesses rely on precision farming, IoT sensors, supply chain management, and data analytics to maximize yields while minimizing environmental impact. From smallholder farms to industrial-scale operations, digital transformation is reshaping how we grow, process, and distribute food worldwide.',
     'about_highlights' => array(
         'Precision farming with IoT sensor integration and satellite mapping',

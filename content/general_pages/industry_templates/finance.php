@@ -74,7 +74,7 @@ $industryData = array(
 		'Carbon credit trading',
 		'Actuarial services',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/WEDIj9JBTC8',
+	    'about_video' => 'https://www.youtube.com/embed/WEDIj9JBTC8',
     'about_text' => 'Financial services and insurance represent one of the most regulated industries globally, encompassing banking, insurance, wealth management, fintech, and payment processing. Compliance with KYC/AML regulations, risk management, portfolio tracking, and regulatory reporting are critical capabilities. Our platform provides multi-entity consolidation, IFRS-compliant reporting, audit trails, and integration with core banking systems and payment gateways.',
     'about_highlights' => array(
         'KYC/AML compliance with automated screening and risk scoring',

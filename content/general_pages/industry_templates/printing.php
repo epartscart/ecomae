@@ -73,7 +73,7 @@ $industryData = array(
 		'Label & barcode printing',
 		'Cup & merchandise printing',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
+	    'about_video' => 'https://www.youtube.com/embed/5qBcEncjtYk',
     'about_text' => 'The printing and signage industry covers commercial printing, digital printing, large-format signage, packaging, and promotional products. With job-based costing, complex estimating, prepress workflows, and equipment scheduling, print businesses need MIS (Management Information Systems) tailored to production workflows. Our platform provides web-to-print integration, job tracking from estimate through production to delivery, and substrate inventory management.',
     'about_highlights' => array(
         'Job estimation with substrate, ink, and labor cost calculation',

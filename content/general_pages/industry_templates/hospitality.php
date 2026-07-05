@@ -76,7 +76,7 @@ $industryData = array(
 		'Mountain lodge & ski resort',
 		'Eco-tourism & nature lodge',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/_gAhG_UU1L8',
     'about_text' => 'The hospitality and travel industry encompasses hotels, restaurants, tour operators, travel agencies, event management, and cruise lines. With dynamic pricing, multi-channel booking management, and guest experience optimization, businesses need property management systems, channel managers, revenue management, and guest CRM. Our platform integrates booking engines, housekeeping workflows, F&B management, and loyalty programs for seamless operations.',
     'about_highlights' => array(
         'Property management with room inventory and housekeeping workflows',

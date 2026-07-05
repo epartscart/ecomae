@@ -74,7 +74,7 @@ $industryData = array(
 		'Robotic process automation',
 		'Computer training center',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
+	    'about_video' => 'https://www.youtube.com/embed/ljOoGyCso8s',
     'about_text' => 'The IT and software industry encompasses software development, SaaS providers, IT consulting, managed services, cybersecurity, and cloud infrastructure. With agile development cycles, subscription billing, and complex project deliveries, businesses need project management, time tracking, resource allocation, and recurring revenue management. Our platform supports software companies from sprint planning through release management to customer success and renewal tracking.',
     'about_highlights' => array(
         'Project management with agile sprint boards and resource allocation',
