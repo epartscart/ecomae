@@ -14,6 +14,30 @@ $backend = epc_scp_backend();
 $base = '/' . $backend;
 $modules = array(
 	array(
+		'icon' => 'fa-th-large',
+		'title' => 'Super CP Fleet Dashboard',
+		'url' => $base . '/control/portal/epc_super_cp_fleet_dashboard',
+		'summary' => 'View all CP instances across all 28 industries. Search tenants, access any CP/ERP directly.',
+		'who' => 'Platform administrators needing fleet-wide visibility into all tenant CPs.',
+		'workflow' => array(
+			'View all industry groups with their tenant counts.',
+			'Click any tenant card to open its CP, ERP, or storefront.',
+			'Use search to find specific tenants by name, domain, or industry.',
+		),
+	),
+	array(
+		'icon' => 'fa-calculator',
+		'title' => 'Super ERP Fleet Dashboard',
+		'url' => $base . '/control/portal/epc_super_erp_fleet_dashboard',
+		'summary' => 'All ERP instances with module status, BOS control, and fleet-wide operations.',
+		'who' => 'Platform operators managing ERP modules, monitoring tenant health, and BOS administration.',
+		'workflow' => array(
+			'View all ERP instances (live + demo) across industries.',
+			'Check module activation status for each tenant.',
+			'Access BOS for full fleet control (tenants, billing, security, deployment).',
+		),
+	),
+	array(
 		'icon' => 'fa-users',
 		'title' => 'Customer board',
 		'url' => $base . '/control/portal/epc_super_cp_customer_board',

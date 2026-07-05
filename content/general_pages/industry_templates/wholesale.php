@@ -1,0 +1,61 @@
+<?php
+/**
+ * Wholesale & Trading — Industry Template
+ * Auto-generated industry frontend with sample data.
+ */
+defined('_ASTEXE_') or die('No access');
+
+$industryData = array(
+	'name' => 'Wholesale & Trading',
+	'tagline' => 'B2B distribution + pricing tiers + import/export',
+	'description' => 'Import/export, B2B distribution, wholesale markets, and commodity trading.',
+	'icon' => 'fa-cubes',
+	'color_primary' => '#0369a1',
+	'color_accent' => '#38bdf8',
+	'bg_from' => '#082f49',
+	'bg_to' => '#0c4a6e',
+	'hero_animation' => 'fadeInUp',
+	'demo_key' => 'wholesale_trading',
+	'product_label' => 'Products & Services',
+	'sample_products' => array(
+		array('name' => 'Container Load (FCL)', 'price' => 'Cost + 8%', 'icon' => 'fa-ship', 'category' => 'Import'),
+		array('name' => 'Pallet (Mixed)', 'price' => 'AED 2,500', 'icon' => 'fa-archive', 'category' => 'Wholesale'),
+		array('name' => 'Custom Clearance', 'price' => 'AED 400', 'icon' => 'fa-file-text', 'category' => 'Services'),
+		array('name' => 'Commodity Futures', 'price' => 'Market Rate', 'icon' => 'fa-line-chart', 'category' => 'Trading'),
+		array('name' => 'Bulk Electronics', 'price' => 'MOQ 100+', 'icon' => 'fa-laptop', 'category' => 'Distribution'),
+		array('name' => 'FMCG Wholesale', 'price' => 'Tiered', 'icon' => 'fa-cubes', 'category' => 'FMCG'),
+	),
+	'features' => array(
+		array('title' => 'Tiered Pricing', 'icon' => 'fa-tags', 'desc' => 'Volume-based pricing with customer-specific rates'),
+		array('title' => 'LC/TT Management', 'icon' => 'fa-university', 'desc' => 'Letter of credit and bank transfer tracking'),
+		array('title' => 'Import Costing', 'icon' => 'fa-calculator', 'desc' => 'Landed cost with duty, freight and handling'),
+		array('title' => 'Multi-Warehouse', 'icon' => 'fa-archive', 'desc' => 'Stock visibility across locations and in-transit'),
+		array('title' => 'B2B Portal', 'icon' => 'fa-globe', 'desc' => 'Dealer ordering portal with credit limits'),
+		array('title' => 'Trade Documents', 'icon' => 'fa-file-pdf-o', 'desc' => 'Auto-generate PI, PL, CO and inspection certs'),
+	),
+	'stats' => array(
+		array('value' => '$2B+', 'label' => 'Annual Volume'),
+		array('value' => '8,000+', 'label' => 'SKUs'),
+		array('value' => '95%', 'label' => 'Fill Rate'),
+		array('value' => '45', 'label' => 'Export Markets'),
+	),
+	'sub_industries' => array(
+		'Wholesale distribution',
+		'Import / export trading',
+		'Tiered pricing & schemes',
+		'Commodity trading',
+		'FMCG distribution',
+		'B2B marketplace',
+		'Dropshipping',
+		'Cash & carry',
+		'Liquidation & clearance',
+		'Chemical trading',
+		'Metals trading',
+		'Textile trading',
+	),
+	'testimonial' => array('quote' => 'B2B portal reduced order processing time from 2 days to 15 minutes.', 'author' => 'Trader Mohammed, General Trading, Deira'),
+	'cta_cp_text' => 'Open Control Panel',
+	'cta_erp_text' => 'Launch ERP',
+);
+
+require __DIR__ . '/_base_template.php';
