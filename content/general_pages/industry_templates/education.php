@@ -74,7 +74,17 @@ $industryData = array(
 		'STEM & robotics academy',
 		'Adult & continuing education',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The education and training industry encompasses K-12 schools, universities, vocational training centers, e-learning platforms, and corporate training providers. With the global ed-tech market growing rapidly, institutions need student information systems, learning management, enrollment processing, and academic analytics. Our platform supports the full student lifecycle from admissions through alumni relations, with compliance for multiple regulatory frameworks.',
+    'about_highlights' => array(
+        'Student information system with enrollment and academic records',
+        'Learning management with course creation and progress tracking',
+        'Admissions pipeline with application processing and scoring',
+        'Fee management with installment plans and financial aid tracking',
+        'Certification and credential issuance with verification portals',
+    ),
+
+'sub_industry_products' => array(
 		'Student enrollment' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Student enrollment operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Student Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Student Enrollment Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
 			array('name'=>'Student Enrollment Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),

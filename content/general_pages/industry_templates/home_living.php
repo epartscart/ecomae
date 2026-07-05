@@ -75,7 +75,17 @@ $industryData = array(
 		'Kitchen renovation & fitting',
 		'Home automation & smart tech',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The home and living industry covers furniture manufacturing, interior design, home improvement retail, kitchen and bath, and home automation. With complex product configurations, room visualization, delivery logistics, and installation services, businesses need showroom management, custom order tracking, and installation scheduling. Our platform supports everything from made-to-order furniture with fabric-frame combinations to smart home integration services.',
+    'about_highlights' => array(
+        'Product configurator for custom furniture and finish options',
+        'Showroom management with display planning and floor samples',
+        'Delivery scheduling with assembly and installation tracking',
+        'Interior design project management with mood boards and quotes',
+        'Home automation system design and installation coordination',
+    ),
+
+'sub_industry_products' => array(
 		'Furniture retail' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Furniture retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Furniture Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
 			array('name'=>'Furniture Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Furniture Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

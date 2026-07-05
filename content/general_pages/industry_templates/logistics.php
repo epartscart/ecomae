@@ -75,7 +75,17 @@ $industryData = array(
 		'Document & legal courier',
 		'Supply chain consulting',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The logistics and transport industry moves goods worth trillions of dollars globally through road, rail, sea, and air networks. From 3PL providers to freight forwarders, courier services, and warehouse operators, this sector requires shipment tracking, fleet management, route optimization, and customs documentation. Our platform provides end-to-end visibility from pickup to delivery with real-time GPS tracking, proof of delivery, and carrier rate management.',
+    'about_highlights' => array(
+        'Real-time shipment tracking with GPS fleet monitoring',
+        'Route optimization with multi-stop planning and driver allocation',
+        'Warehouse management with pick/pack/ship and zone allocation',
+        'Freight rate management with carrier comparison and booking',
+        'Customs documentation with HS code classification and compliance',
+    ),
+
+'sub_industry_products' => array(
 		'Freight forwarding' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Freight forwarding operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Freight Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Freight Forwarding Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
 			array('name'=>'Freight Forwarding Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),

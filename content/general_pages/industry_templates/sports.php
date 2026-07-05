@@ -73,7 +73,17 @@ $industryData = array(
 		'Sports event management',
 		'Skateboard & BMX park',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The sports and fitness industry encompasses gyms, sports clubs, outdoor recreation, sports retail, and event management. With membership management, class scheduling, personal training, and facility booking at the core, fitness businesses need attendance tracking, payment processing, and engagement analytics. Our platform supports everything from boutique studios to multi-location gym chains with member self-service portals and automated billing.',
+    'about_highlights' => array(
+        'Membership management with plan upgrades, freezes, and renewals',
+        'Class and facility scheduling with instructor assignment',
+        'Personal training session booking with progress tracking',
+        'Access control integration with member check-in and attendance',
+        'Sports retail POS with equipment fitting and rental services',
+    ),
+
+'sub_industry_products' => array(
 		'Gym & fitness center' => array('photo'=>'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=75','desc'=>'Gym & fitness center operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with sports & fitness industry standards and best practices','categories'=>array('Gym Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Gym Fitness Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&q=75'),
 			array('name'=>'Gym Fitness Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?w=400&q=75'),

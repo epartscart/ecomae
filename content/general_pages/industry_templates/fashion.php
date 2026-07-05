@@ -75,7 +75,17 @@ $industryData = array(
 		'Fashion rental & resale',
 		'Personal styling service',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The fashion and apparel industry is a $1.7 trillion global market covering design, manufacturing, wholesale distribution, and retail. With seasonal collections, size-color matrix management, and fast-fashion cycles, businesses need PLM integration, fabric sourcing, cut-make-trim tracking, and omnichannel inventory management. Our platform supports the full fashion lifecycle from mood board to markdown with size-curve analytics and trend forecasting.',
+    'about_highlights' => array(
+        'Size-color-style matrix inventory with variant-level tracking',
+        'Collection lifecycle from design through production to retail',
+        'Fabric and trim sourcing with supplier quality scoring',
+        'Wholesale order management with line sheets and lookbooks',
+        'Omnichannel retail with unified inventory across all channels',
+    ),
+
+'sub_industry_products' => array(
 		'Fashion retail store' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Fashion retail store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fashion Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
 			array('name'=>'Fashion Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
 			array('name'=>'Fashion Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),

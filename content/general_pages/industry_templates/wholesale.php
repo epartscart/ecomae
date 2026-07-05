@@ -73,7 +73,17 @@ $industryData = array(
 		'Industrial chemicals wholesale',
 		'Automotive parts wholesale',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The wholesale and trading industry connects manufacturers with retailers through distribution networks spanning local markets and international trade. With bulk pricing, credit management, volume discounts, and complex logistics, wholesalers need purchase order management, warehouse operations, and trade finance capabilities. Our platform provides B2B ordering portals, landed cost calculation, container tracking, and multi-currency invoicing for cross-border trade.',
+    'about_highlights' => array(
+        'B2B ordering portal with customer-specific pricing and credit terms',
+        'Landed cost calculation with duty, freight, and insurance allocation',
+        'Warehouse management with bulk storage and break-bulk operations',
+        'Multi-currency invoicing with foreign exchange management',
+        'Trade finance with letter of credit and documentary collection tracking',
+    ),
+
+'sub_industry_products' => array(
 		'Wholesale distribution' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Wholesale distribution operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with wholesale industry standards and best practices','categories'=>array('Wholesale Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Wholesale Distribution Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Wholesale Distribution Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

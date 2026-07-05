@@ -76,7 +76,17 @@ $industryData = array(
 		'Wine & liquor store',
 		'Arts & crafts supply',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The retail and e-commerce industry represents a $25+ trillion global market encompassing brick-and-mortar stores, online marketplaces, omnichannel retailers, and direct-to-consumer brands. With unified commerce, real-time inventory, dynamic pricing, and personalization as competitive differentiators, retailers need integrated POS, e-commerce, and supply chain capabilities. Our platform provides unified inventory across all channels with AI-powered merchandising and customer analytics.',
+    'about_highlights' => array(
+        'Unified commerce with real-time inventory across all channels',
+        'Point-of-sale with barcode scanning, promotions, and loyalty',
+        'E-commerce storefront with responsive design and SEO optimization',
+        'Marketplace integration (Amazon, Noon, Shopee, Lazada)',
+        'Customer analytics with RFM segmentation and personalized campaigns',
+    ),
+
+'sub_industry_products' => array(
 		'Online storefront' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Online storefront operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Online Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Online Storefront Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
 			array('name'=>'Online Storefront Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),

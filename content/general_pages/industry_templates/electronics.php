@@ -75,7 +75,17 @@ $industryData = array(
 		'Aviation electronics',
 		'Musical instruments & audio',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The electronics and technology sector covers consumer electronics retail, component distribution, IT services, telecommunications, and smart device manufacturing. With rapid product lifecycles and complex supply chains spanning global manufacturers, businesses need serial number tracking, warranty management, RMA processing, and technical specification databases. Our platform handles everything from component procurement to end-consumer retail with full traceability.',
+    'about_highlights' => array(
+        'Serial number and IMEI tracking with warranty lifecycle management',
+        'Component sourcing with BOM management and alternate part matching',
+        'RMA and repair center workflows with parts consumption tracking',
+        'Technical specification databases with comparison and compatibility',
+        'Multi-channel sales: retail, B2B distribution, and marketplace sync',
+    ),
+
+'sub_industry_products' => array(
 		'Electronics retail store' => array('photo'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75','desc'=>'Electronics retail store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with electronics industry standards and best practices','categories'=>array('Electronics Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
 			array('name'=>'Electronics Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&q=75'),
 			array('name'=>'Electronics Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=75'),

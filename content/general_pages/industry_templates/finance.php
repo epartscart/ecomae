@@ -74,7 +74,17 @@ $industryData = array(
 		'Carbon credit trading',
 		'Actuarial services',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'Financial services and insurance represent one of the most regulated industries globally, encompassing banking, insurance, wealth management, fintech, and payment processing. Compliance with KYC/AML regulations, risk management, portfolio tracking, and regulatory reporting are critical capabilities. Our platform provides multi-entity consolidation, IFRS-compliant reporting, audit trails, and integration with core banking systems and payment gateways.',
+    'about_highlights' => array(
+        'KYC/AML compliance with automated screening and risk scoring',
+        'Multi-entity financial consolidation with intercompany elimination',
+        'Insurance policy lifecycle management with claims processing',
+        'Investment portfolio tracking with real-time valuation and reporting',
+        'Regulatory reporting automation for central bank and tax authorities',
+    ),
+
+'sub_industry_products' => array(
 		'Financial advisory' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Financial advisory operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
 			array('name'=>'Financial Advisory Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
 			array('name'=>'Financial Advisory Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),

@@ -73,7 +73,17 @@ $industryData = array(
 		'Guard dog services',
 		'Crowd management',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The security and safety industry covers physical guarding, electronic surveillance, cybersecurity services, fire safety, and access control systems. With 24/7 operations, shift management, incident response, and regulatory compliance, security companies need workforce scheduling, patrol verification, alarm monitoring, and guard tour management. Our platform supports everything from small guard companies to enterprise security operations centers.',
+    'about_highlights' => array(
+        'Guard scheduling with shift planning and overtime management',
+        'Patrol verification with GPS checkpoints and incident reporting',
+        'Alarm monitoring integration with response dispatch workflows',
+        'Access control system management with visitor and credential tracking',
+        'Incident management with investigation workflows and evidence logging',
+    ),
+
+'sub_industry_products' => array(
 		'Security guarding' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Security guarding operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Security Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Security Guarding Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Security Guarding Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

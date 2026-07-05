@@ -74,7 +74,17 @@ $industryData = array(
 		'Museum & cultural space',
 		'Augmented reality content',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The media and entertainment industry covers publishing, broadcasting, digital content creation, gaming, advertising, and event production. With complex rights management, royalty tracking, advertising sales, and content distribution across multiple platforms, businesses need digital asset management, content scheduling, and revenue attribution. Our platform supports media companies with ad inventory management, subscription platforms, and creator economy tools.',
+    'about_highlights' => array(
+        'Digital asset management with metadata tagging and rights tracking',
+        'Content scheduling with multi-platform distribution workflow',
+        'Advertising inventory management with rate cards and yield',
+        'Royalty tracking and calculation with statement generation',
+        'Subscription management with paywall and access control',
+    ),
+
+'sub_industry_products' => array(
 		'Film & video production' => array('photo'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75','desc'=>'Film & video production operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Film Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
 			array('name'=>'Film Video Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
 			array('name'=>'Film Video Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),

@@ -73,7 +73,17 @@ $industryData = array(
 		'Costume & fancy dress hire',
 		'Musical instrument rental',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The rental and leasing industry covers equipment rental, vehicle leasing, property rental, event hire, and tool rental businesses. With asset lifecycle management, availability calendaring, maintenance scheduling, and contract management as core requirements, rental businesses need real-time fleet visibility and automated billing. Our platform supports single and multi-location operations with online reservation, damage tracking, and utilization analytics.',
+    'about_highlights' => array(
+        'Asset availability calendar with online booking and reservations',
+        'Contract management with flexible billing cycles and extensions',
+        'Maintenance scheduling with service history and cost tracking',
+        'Damage and condition reporting with photo documentation',
+        'Fleet utilization analytics with revenue-per-asset reporting',
+    ),
+
+'sub_industry_products' => array(
 		'Online booking system' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Online booking system operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Online Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Online Booking Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Online Booking Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

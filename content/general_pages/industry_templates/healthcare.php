@@ -78,7 +78,17 @@ $industryData = array(
 		'Speech therapy',
 		'Audiology & hearing',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Dk_gX2md38U',
+    'about_text' => 'The healthcare and medical industry encompasses hospitals, clinics, pharmacies, laboratories, dental practices, medical device companies, and telemedicine providers. With strict regulatory requirements (HIPAA, GDPR, DHA), patient data security, clinical workflows, and insurance billing are critical. Our platform provides electronic health records, appointment scheduling, pharmacy management, laboratory information systems, and medical billing with insurance claim processing.',
+    'about_highlights' => array(
+        'Electronic health records with HL7/FHIR interoperability',
+        'Patient appointment scheduling with automated reminders',
+        'Pharmacy management with drug interaction checking and inventory',
+        'Insurance claim processing with pre-authorization workflows',
+        'Laboratory information system with specimen tracking and reporting',
+    ),
+
+'sub_industry_products' => array(
 		'Clinic & patient management' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Outpatient clinic operations: patient registration, appointment scheduling, electronic health records (EHR), prescription management, lab order integration, and insurance claim submission','categories'=>array('Patient Services','Diagnostics','Treatment Plans','Equipment','Compliance','Staff Training'),'products'=>array(
 			array('name'=>'Clinic Patient Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
 			array('name'=>'Clinic Patient Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&q=75'),

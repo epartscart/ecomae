@@ -73,7 +73,17 @@ $industryData = array(
 		'Animal welfare charity',
 		'Cultural preservation society',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The non-profit and government sector includes charities, NGOs, foundations, municipalities, and public sector organizations. With unique requirements around donor management, grant tracking, fund accounting, and regulatory compliance, these organizations need transparency-focused financial management. Our platform provides restricted fund accounting, donor CRM, volunteer management, and compliance reporting for various regulatory frameworks.',
+    'about_highlights' => array(
+        'Fund accounting with restricted, unrestricted, and endowment tracking',
+        'Donor CRM with pledge management and recurring giving programs',
+        'Grant management with budget tracking and milestone reporting',
+        'Volunteer management with scheduling and hour tracking',
+        'Regulatory compliance reporting for charity commissions and tax authorities',
+    ),
+
+'sub_industry_products' => array(
 		'Donation & fundraising' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Donation & fundraising operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Donation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Donation Fundraising Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Donation Fundraising Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

@@ -74,7 +74,17 @@ $industryData = array(
 		'District cooling & heating',
 		'Energy efficiency solutions',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The energy and utilities sector encompasses power generation, oil and gas, renewable energy, water treatment, and utility distribution. This highly regulated industry requires asset management, SCADA integration, regulatory compliance, preventive maintenance, and grid management capabilities. Our platform supports energy companies with plant maintenance scheduling, outage management, meter data analytics, and environmental compliance reporting.',
+    'about_highlights' => array(
+        'Asset lifecycle management with predictive maintenance scheduling',
+        'Regulatory compliance tracking for environmental and safety standards',
+        'Meter data management with consumption analytics and billing',
+        'Renewable energy project tracking with ROI and capacity planning',
+        'Field workforce management with mobile work orders and safety permits',
+    ),
+
+'sub_industry_products' => array(
 		'Power generation' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Power generation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Power Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Power Generation Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 			array('name'=>'Power Generation Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),

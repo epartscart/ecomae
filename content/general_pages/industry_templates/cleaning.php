@@ -73,7 +73,17 @@ $industryData = array(
 		'Stone & facade cleaning',
 		'Tank & silo cleaning',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The cleaning and maintenance industry provides essential services across residential, commercial, and industrial sectors. From janitorial companies to specialized restoration services, this industry requires workforce scheduling, supply inventory management, quality inspection workflows, and contract management. Modern cleaning businesses leverage IoT-connected equipment, route optimization, and digital quality audits to deliver consistent service across multiple locations.',
+    'about_highlights' => array(
+        'Workforce scheduling with route optimization and GPS tracking',
+        'Contract management with SLA compliance and automated billing',
+        'Chemical and supply inventory with MSDS compliance tracking',
+        'Quality inspection checklists with photo documentation',
+        'Equipment maintenance schedules with IoT sensor integration',
+    ),
+
+'sub_industry_products' => array(
 		'Commercial cleaning' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Commercial cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Commercial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Commercial Cleaning Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Commercial Cleaning Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

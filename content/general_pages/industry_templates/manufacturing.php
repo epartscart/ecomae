@@ -77,7 +77,17 @@ $industryData = array(
 		'Jewelry casting & forming',
 		'Leather goods manufacturing',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The manufacturing and industrial sector encompasses discrete manufacturing, process industries, assembly operations, and contract manufacturing. With complex bill-of-materials, production scheduling, quality control, and supply chain coordination, manufacturers need MRP/MRP II capabilities, shop floor control, and real-time OEE monitoring. Our platform supports lean manufacturing, Six Sigma quality processes, and Industry 4.0 smart factory integration.',
+    'about_highlights' => array(
+        'Bill of Materials with multi-level BOM and routing management',
+        'Production scheduling with capacity planning and shop floor control',
+        'Quality management with inspection plans and statistical process control',
+        'Material Requirements Planning (MRP) with demand forecasting',
+        'OEE monitoring with downtime tracking and root cause analysis',
+    ),
+
+'sub_industry_products' => array(
 		'Production & assembly' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Production & assembly operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Production Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
 			array('name'=>'Production Assembly Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
 			array('name'=>'Production Assembly Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),

@@ -73,7 +73,17 @@ $industryData = array(
 		'Label & barcode printing',
 		'Cup & merchandise printing',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The printing and signage industry covers commercial printing, digital printing, large-format signage, packaging, and promotional products. With job-based costing, complex estimating, prepress workflows, and equipment scheduling, print businesses need MIS (Management Information Systems) tailored to production workflows. Our platform provides web-to-print integration, job tracking from estimate through production to delivery, and substrate inventory management.',
+    'about_highlights' => array(
+        'Job estimation with substrate, ink, and labor cost calculation',
+        'Production scheduling with press allocation and deadline tracking',
+        'Web-to-print storefront with template customization and proofing',
+        'Prepress workflow with file management and color proofing',
+        'Substrate and consumables inventory with minimum stock alerts',
+    ),
+
+'sub_industry_products' => array(
 		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Commercial printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Commercial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Commercial Printing Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Commercial Printing Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

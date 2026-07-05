@@ -74,7 +74,17 @@ $industryData = array(
 		'Robotic process automation',
 		'Computer training center',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The IT and software industry encompasses software development, SaaS providers, IT consulting, managed services, cybersecurity, and cloud infrastructure. With agile development cycles, subscription billing, and complex project deliveries, businesses need project management, time tracking, resource allocation, and recurring revenue management. Our platform supports software companies from sprint planning through release management to customer success and renewal tracking.',
+    'about_highlights' => array(
+        'Project management with agile sprint boards and resource allocation',
+        'SaaS subscription billing with MRR/ARR tracking and churn analysis',
+        'Time tracking with client billing and utilization reporting',
+        'IT service management with ticketing and SLA compliance',
+        'DevOps integration with CI/CD pipeline monitoring',
+    ),
+
+'sub_industry_products' => array(
 		'Software development' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Software development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Software Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Software Development Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Software Development Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),

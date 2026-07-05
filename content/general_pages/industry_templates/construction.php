@@ -78,7 +78,17 @@ $industryData = array(
 		'Modular & prefab building',
 		'Piling & foundations',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/suNadRnHy-U',
+    'about_text' => 'The construction and real estate industry represents one of the largest economic sectors globally, encompassing residential and commercial building, infrastructure development, architectural design, and property management. Projects require complex coordination of materials, labor, subcontractors, permits, and safety compliance. Our platform provides project cost tracking, progress billing, equipment management, and BIM integration to keep builds on time and on budget.',
+    'about_highlights' => array(
+        'Project cost tracking with budget vs actual variance analysis',
+        'Progress billing and certified payment workflows',
+        'Equipment fleet management with maintenance scheduling',
+        'Subcontractor management with compliance document tracking',
+        'Safety incident reporting with HSE compliance dashboards',
+    ),
+
+'sub_industry_products' => array(
 		'General contracting' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'General contracting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('General Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'General Contracting Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
 			array('name'=>'General Contracting Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),

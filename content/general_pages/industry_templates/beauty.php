@@ -74,7 +74,17 @@ $industryData = array(
 		'Beauty subscription box',
 		'Mobile beauty services',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The beauty and personal care industry is a global market worth over $500 billion, covering cosmetics, skincare, haircare, fragrances, and wellness services. From salon management to cosmetics manufacturing, this sector requires batch tracking, ingredient compliance, appointment scheduling, and omnichannel retail capabilities. Our platform helps beauty businesses manage formulation records, regulatory compliance across markets, and customer loyalty programs.',
+    'about_highlights' => array(
+        'Appointment booking with staff scheduling and resource management',
+        'Product formulation tracking with INCI ingredient compliance',
+        'Batch and lot tracking for cosmetics manufacturing and expiry',
+        'Salon POS with membership, packages, and loyalty programs',
+        'Multi-channel retail: in-store, e-commerce, and marketplace integration',
+    ),
+
+'sub_industry_products' => array(
 		'Hair salon' => array('photo'=>'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=75','desc'=>'Hair salon operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with beauty & wellness industry standards and best practices','categories'=>array('Hair Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Hair Salon Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
 			array('name'=>'Hair Salon Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),

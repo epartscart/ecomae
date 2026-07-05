@@ -78,7 +78,17 @@ $industryData = array(
 		'Cannabis & hemp cultivation',
 		'Seed production & genetics',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Qmla9NLFBvU',
+    'about_text' => 'Agriculture and farming is the backbone of global food production, encompassing crop cultivation, livestock management, aquaculture, and agri-tech innovations. Modern agricultural businesses rely on precision farming, IoT sensors, supply chain management, and data analytics to maximize yields while minimizing environmental impact. From smallholder farms to industrial-scale operations, digital transformation is reshaping how we grow, process, and distribute food worldwide.',
+    'about_highlights' => array(
+        'Precision farming with IoT sensor integration and satellite mapping',
+        'Crop-to-market supply chain tracking and quality assurance',
+        'Livestock management with health monitoring and breeding records',
+        'Weather-driven planning and automated irrigation scheduling',
+        'Compliance with organic certifications and food safety standards',
+    ),
+
+'sub_industry_products' => array(
 		'Crop farming & cultivation' => array('photo'=>'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&q=75','desc'=>'Crop farming & cultivation operations encompassing field management, harvest planning, equipment scheduling, yield tracking, supply chain. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Crop Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Crop Farming Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&q=75'),
 			array('name'=>'Crop Farming Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1516253593875-bd7ba052b0ae?w=400&q=75'),

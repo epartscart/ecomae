@@ -76,7 +76,17 @@ $industryData = array(
 		'Mountain lodge & ski resort',
 		'Eco-tourism & nature lodge',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The hospitality and travel industry encompasses hotels, restaurants, tour operators, travel agencies, event management, and cruise lines. With dynamic pricing, multi-channel booking management, and guest experience optimization, businesses need property management systems, channel managers, revenue management, and guest CRM. Our platform integrates booking engines, housekeeping workflows, F&B management, and loyalty programs for seamless operations.',
+    'about_highlights' => array(
+        'Property management with room inventory and housekeeping workflows',
+        'Channel manager integration (Booking.com, Expedia, Airbnb)',
+        'Revenue management with dynamic pricing and yield optimization',
+        'Guest CRM with preference tracking and loyalty programs',
+        'Event and banquet management with catering and AV coordination',
+    ),
+
+'sub_industry_products' => array(
 		'Reservation & booking' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Reservation & booking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Reservation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Reservation Booking Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
 			array('name'=>'Reservation Booking Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),

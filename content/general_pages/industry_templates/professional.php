@@ -76,7 +76,17 @@ $industryData = array(
 		'Market research firm',
 		'Arbitration & mediation',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'Professional and business services encompass consulting firms, legal practices, accounting firms, marketing agencies, and advisory services. With time-based billing, project delivery, and client relationship management at the core, these businesses need accurate time tracking, engagement management, and profitability analysis. Our platform provides matter management for legal, engagement tracking for consulting, and campaign management for agencies with full resource utilization visibility.',
+    'about_highlights' => array(
+        'Time and expense tracking with client billing and invoicing',
+        'Project management with milestone tracking and resource allocation',
+        'Client CRM with engagement history and opportunity pipeline',
+        'Staff utilization reporting with capacity planning',
+        'Knowledge management with document templates and precedent libraries',
+    ),
+
+'sub_industry_products' => array(
 		'Management consulting' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Management consulting operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
 			array('name'=>'Management Consulting Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&q=75'),
 			array('name'=>'Management Consulting Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=400&q=75'),

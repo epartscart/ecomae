@@ -73,7 +73,17 @@ $industryData = array(
 		'Jewellery exhibition & trade show',
 		'Precious metals refining',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The jewellery and luxury goods industry is a $300+ billion global market covering gold, diamonds, gemstones, watches, and designer accessories. With dual unit-of-measure tracking (weight and value), complex pricing based on daily metal rates, karat management, and certification requirements, jewellers need specialized ERP capabilities. Our platform provides gold rate integration, tag-based inventory, hallmarking compliance, and customer scheme management like gold savings plans.',
+    'about_highlights' => array(
+        'Dual UOM tracking: weight (grams) and value simultaneously',
+        'Live gold/silver rate integration with automatic price updates',
+        'Tag and barcode system for individual piece tracking',
+        'Diamond and gemstone certification management (GIA, IGI, HRD)',
+        'Gold savings scheme management with maturity and redemption',
+    ),
+
+'sub_industry_products' => array(
 		'Jewellery retail showroom' => array('photo'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75','desc'=>'Jewellery retail showroom operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
 			array('name'=>'Jewellery Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
 			array('name'=>'Jewellery Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),

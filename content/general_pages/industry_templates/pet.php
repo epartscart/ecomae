@@ -73,7 +73,17 @@ $industryData = array(
 		'Bird aviary & supplies',
 		'Farm animal sanctuary',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The pet and animal services industry is a rapidly growing sector covering veterinary clinics, pet retail, grooming, boarding, pet food manufacturing, and animal welfare organizations. With increasing pet ownership worldwide, businesses need appointment scheduling, medical records management, breed-specific inventory, and loyalty programs. Our platform supports the full pet care ecosystem from veterinary practice management to pet e-commerce with subscription boxes.',
+    'about_highlights' => array(
+        'Veterinary practice management with patient records and treatment plans',
+        'Pet grooming appointment scheduling with breed-specific services',
+        'Boarding and daycare management with kennel availability and feeding',
+        'Pet food and supply retail with subscription and auto-replenishment',
+        'Animal welfare case management with adoption and foster tracking',
+    ),
+
+'sub_industry_products' => array(
 		'Pet supply store' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Pet supply store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Pet Supply Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Pet Supply Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),

@@ -78,7 +78,17 @@ $industryData = array(
 		'Halal / Kosher certification',
 		'Vending & automated retail',
 	),
-	'sub_industry_products' => array(
+	    'about_video' => 'https://www.youtube.com/embed/V29YICl8L98',
+    'about_text' => 'The food and beverage industry encompasses restaurants, catering, food manufacturing, wholesale distribution, and grocery retail. With strict food safety regulations (HACCP, ISO 22000), shelf-life management, and complex supply chains, businesses need batch traceability, recipe management, kitchen production planning, and cold chain monitoring. Our platform supports the entire farm-to-fork journey with allergen tracking and nutritional compliance.',
+    'about_highlights' => array(
+        'HACCP and food safety compliance with digital audit trails',
+        'Recipe and formulation management with nutritional calculations',
+        'Batch traceability with lot tracking and recall management',
+        'Kitchen production planning with waste minimization',
+        'Restaurant POS with table management and kitchen display systems',
+    ),
+
+'sub_industry_products' => array(
 		'Restaurant & dine-in' => array('photo'=>'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=75','desc'=>'Restaurant & dine-in operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Restaurant Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
 			array('name'=>'Restaurant Dine Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75'),
 			array('name'=>'Restaurant Dine Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=75'),
