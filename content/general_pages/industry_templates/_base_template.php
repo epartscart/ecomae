@@ -173,9 +173,8 @@ a:hover{text-decoration:underline}
 
 /* ===== HERO ===== */
 .ind-hero{min-height:90vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding-top:64px}
-.ind-hero-video{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1;opacity:0;transition:opacity 1s ease}
-.ind-hero-video.video-playing{opacity:1}
-.ind-hero-video iframe{position:absolute;top:50%;left:50%;width:180vw;height:180vh;transform:translate(-50%,-50%);border:0;object-fit:cover}
+.ind-hero-video{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.ind-hero-video video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover}
 .ind-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;animation:slowZoom 20s ease-in-out infinite alternate}
 .ind-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(<?php
 $r=hexdec(substr($bgFrom,1,2));$g=hexdec(substr($bgFrom,3,2));$b=hexdec(substr($bgFrom,5,2));
@@ -536,27 +535,28 @@ echo "$r2,$g2,$b2";?>,.45))}
 
 <!-- ===== HERO ===== -->
 <?php
-$heroVideo = $industryData['about_video'] ?? '';
-$heroVideoUrl = '';
-if($heroVideo) {
-    // Normalize to youtube.com (more reliable than youtube-nocookie.com for autoplay)
-    $heroVideo = str_replace('www.youtube-nocookie.com', 'www.youtube.com', $heroVideo);
-    $sep = (strpos($heroVideo, '?') !== false) ? '&' : '?';
-    $heroVideoUrl = $heroVideo . $sep . 'autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https://www.ecomae.com';
-    if(preg_match('/embed\/([a-zA-Z0-9_-]+)/', $heroVideoUrl, $vm)) {
-        $heroVideoUrl .= '&playlist=' . $vm[1];
-    }
-}
+// Map industries to self-hosted video themes (no YouTube dependency)
+$videoThemeMap = [
+    'food_beverage'=>'bg_warm','hospitality'=>'bg_warm','retail'=>'bg_warm','home_living'=>'bg_warm','wholesale'=>'bg_warm',
+    'it_software'=>'bg_cool','electronics'=>'bg_cool','manufacturing'=>'bg_cool','media'=>'bg_cool','printing'=>'bg_cool',
+    'agriculture'=>'bg_green','pet'=>'bg_green','cleaning'=>'bg_green','energy'=>'bg_green','nonprofit'=>'bg_green',
+    'jewellery'=>'bg_gold','finance'=>'bg_gold','professional'=>'bg_gold','fashion'=>'bg_gold','rental'=>'bg_gold',
+    'healthcare'=>'bg_purple','beauty'=>'bg_purple','education'=>'bg_purple','logistics'=>'bg_purple',
+    'sports'=>'bg_red','automotive'=>'bg_red','security'=>'bg_red','construction'=>'bg_red'
+];
+$industryKey = $industryData['demo_key'] ?? '';
+$heroVideoTheme = $videoThemeMap[$industryKey] ?? 'bg_cool';
+$heroVideoPath = '/content/videos/' . $heroVideoTheme . '.mp4';
 ?>
 <section class="ind-hero" id="about">
 <?php if($heroPhoto): ?>
 <div class="ind-hero-bg" style="background-image:url('<?php echo htmlspecialchars($heroPhoto);?>')"></div>
 <?php endif; ?>
-<?php if($heroVideoUrl): ?>
-<div class="ind-hero-video" id="heroVideoWrap">
-<iframe id="heroVideoFrame" src="<?php echo htmlspecialchars($heroVideoUrl);?>" allow="autoplay; accelerometer; encrypted-media; gyroscope" frameborder="0"></iframe>
+<div class="ind-hero-video">
+<video autoplay muted loop playsinline>
+<source src="<?php echo $heroVideoPath;?>" type="video/mp4">
+</video>
 </div>
-<?php endif; ?>
 <div class="ind-hero-overlay"></div>
 <div class="particles">
 <?php for($i=0;$i<20;$i++): $size=rand(3,12); ?>
@@ -1049,25 +1049,7 @@ if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'st
 })();
 </script>
 
-<?php if($heroVideoUrl): ?>
-<script>
-/* YouTube IFrame API - video starts hidden, only shown when actually playing */
-var tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';
-var fs=document.getElementsByTagName('script')[0];fs.parentNode.insertBefore(tag,fs);
-function onYouTubeIframeAPIReady(){
-var wrap=document.getElementById('heroVideoWrap');
-var frame=document.getElementById('heroVideoFrame');
-if(!frame||!wrap)return;
-var player=new YT.Player('heroVideoFrame',{
-events:{
-'onError':function(){wrap.style.display='none'},
-'onReady':function(e){e.target.mute();e.target.playVideo()},
-'onStateChange':function(e){if(e.data===1)wrap.classList.add('video-playing')}
-}
-});
-}
-</script>
-<?php endif; ?>
+
 
 </body>
 </html>
