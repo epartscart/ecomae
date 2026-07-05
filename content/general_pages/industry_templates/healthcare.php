@@ -78,7 +78,7 @@ $industryData = array(
 		'Speech therapy',
 		'Audiology & hearing',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Dk_gX2md38U',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/ukHFAJxcFcE',
     'about_text' => 'The healthcare and medical industry encompasses hospitals, clinics, pharmacies, laboratories, dental practices, medical device companies, and telemedicine providers. With strict regulatory requirements (HIPAA, GDPR, DHA), patient data security, clinical workflows, and insurance billing are critical. Our platform provides electronic health records, appointment scheduling, pharmacy management, laboratory information systems, and medical billing with insurance claim processing.',
     'about_highlights' => array(
         'Electronic health records with HL7/FHIR interoperability',
@@ -109,7 +109,7 @@ $industryData = array(
 			array('name'=>'Dental Practice Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
 			array('name'=>'Dental Practice Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75'),
 		)),
-		'Veterinary services' => array('photo'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75','desc'=>'Animal healthcare: species-specific medical records, vaccination schedules, surgery booking, in-house lab management, microchip registration, and livestock herd health programs','categories'=>array('Veterinary Solutions','Core Services','Professional Tier','Add-On Modules','Analytics','Support'),'products'=>array(
+		'Veterinary services' => array('photo'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75','desc'=>'Animal healthcare: species-specific medical records, vaccination schedules, surgery booking, in-house lab management, microchip registration, and livestock herd health programs','categories'=>array('Small Animal Care','Large Animal','Surgery','Vaccination','Dental','Emergency Vet'),'products'=>array(
 			array('name'=>'Veterinary Services Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&q=75'),
 			array('name'=>'Veterinary Services Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=75'),
 			array('name'=>'Veterinary Services Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=75'),
@@ -144,7 +144,7 @@ $industryData = array(
 			array('name'=>'Physiotherapy Rehab Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&q=75'),
 			array('name'=>'Physiotherapy Rehab Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
 		)),
-		'Home healthcare' => array('photo'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75','desc'=>'In-home medical care: nurse visits, physical therapy, wound care, medication management, care plan coordination, caregiver scheduling, and GPS visit verification','categories'=>array('Patient Services','Diagnostics','Treatment Plans','Equipment','Compliance','Staff Training'),'products'=>array(
+		'Home healthcare' => array('photo'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75','desc'=>'In-home medical care: nurse visits, physical therapy, wound care, medication management, care plan coordination, caregiver scheduling, and GPS visit verification','categories'=>array('Nursing Care','Elderly Support','Post-Surgery','Physiotherapy','Palliative Care','Medical Equipment Rental'),'products'=>array(
 			array('name'=>'Home Healthcare Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=75'),
 			array('name'=>'Home Healthcare Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400&q=75'),
 			array('name'=>'Home Healthcare Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),

@@ -74,7 +74,7 @@ $industryData = array(
 		'Beauty subscription box',
 		'Mobile beauty services',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/xaVgRj9r3eI',
     'about_text' => 'The beauty and personal care industry is a global market worth over $500 billion, covering cosmetics, skincare, haircare, fragrances, and wellness services. From salon management to cosmetics manufacturing, this sector requires batch tracking, ingredient compliance, appointment scheduling, and omnichannel retail capabilities. Our platform helps beauty businesses manage formulation records, regulatory compliance across markets, and customer loyalty programs.',
     'about_highlights' => array(
         'Appointment booking with staff scheduling and resource management',
@@ -140,7 +140,7 @@ $industryData = array(
 			array('name'=>'Appointment Booking Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
 			array('name'=>'Appointment Booking Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=400&q=75'),
 		)),
-		'Organic & natural beauty' => array('photo'=>'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&q=75','desc'=>'Organic & natural beauty operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with beauty & wellness industry standards and best practices','categories'=>array('Organic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Organic & natural beauty' => array('photo'=>'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&q=75','desc'=>'Organic & natural beauty operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with beauty & wellness industry standards and best practices','categories'=>array('Plant-Based Products','Essential Oils','Cruelty-Free','Vegan Beauty','Zero-Waste','Herbal Remedies'),'products'=>array(
 			array('name'=>'Organic Natural Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=400&q=75'),
 			array('name'=>'Organic Natural Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1552693673-1bf958298935?w=400&q=75'),
 			array('name'=>'Organic Natural Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1540555700478-4be289fbec6f?w=400&q=75'),

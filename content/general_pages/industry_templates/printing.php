@@ -73,7 +73,7 @@ $industryData = array(
 		'Label & barcode printing',
 		'Cup & merchandise printing',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
     'about_text' => 'The printing and signage industry covers commercial printing, digital printing, large-format signage, packaging, and promotional products. With job-based costing, complex estimating, prepress workflows, and equipment scheduling, print businesses need MIS (Management Information Systems) tailored to production workflows. Our platform provides web-to-print integration, job tracking from estimate through production to delivery, and substrate inventory management.',
     'about_highlights' => array(
         'Job estimation with substrate, ink, and labor cost calculation',
@@ -84,12 +84,12 @@ $industryData = array(
     ),
 
 'sub_industry_products' => array(
-		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Commercial printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Commercial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Commercial printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Business Cards','Brochures','Flyers & Posters','Catalogues','Letterheads','Envelopes'),'products'=>array(
 			array('name'=>'Commercial Printing Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Commercial Printing Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
 			array('name'=>'Commercial Printing Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Large format & signage' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Large format & signage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Large Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Large format & signage' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Large format & signage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Banners & Flags','Vehicle Wraps','Wall Graphics','Window Films','Exhibition Stands','Wayfinding'),'products'=>array(
 			array('name'=>'Large Format Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
 			array('name'=>'Large Format Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
 			array('name'=>'Large Format Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
@@ -99,7 +99,7 @@ $industryData = array(
 			array('name'=>'Packaging Labels Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
 			array('name'=>'Packaging Labels Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Digital printing' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Digital printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Digital Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Digital printing' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Digital printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('On-Demand Prints','Variable Data','Short Runs','Personalization','Proof & Sample','Rush Orders'),'products'=>array(
 			array('name'=>'Digital Printing Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
 			array('name'=>'Digital Printing Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 			array('name'=>'Digital Printing Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
@@ -114,7 +114,7 @@ $industryData = array(
 			array('name'=>'Banner Display Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 			array('name'=>'Banner Display Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Promotional products' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Promotional products operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Promotional Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Promotional products' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Promotional products operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Branded Pens','Mugs & Drinkware','USB & Tech','Bags & Apparel','Calendars','Corporate Gifts'),'products'=>array(
 			array('name'=>'Promotional Products Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 			array('name'=>'Promotional Products Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 			array('name'=>'Promotional Products Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),

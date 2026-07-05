@@ -76,7 +76,7 @@ $industryData = array(
 		'Mountain lodge & ski resort',
 		'Eco-tourism & nature lodge',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
     'about_text' => 'The hospitality and travel industry encompasses hotels, restaurants, tour operators, travel agencies, event management, and cruise lines. With dynamic pricing, multi-channel booking management, and guest experience optimization, businesses need property management systems, channel managers, revenue management, and guest CRM. Our platform integrates booking engines, housekeeping workflows, F&B management, and loyalty programs for seamless operations.',
     'about_highlights' => array(
         'Property management with room inventory and housekeeping workflows',
@@ -122,7 +122,7 @@ $industryData = array(
 			array('name'=>'Vacation Rental Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
 			array('name'=>'Vacation Rental Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
 		)),
-		'Travel agency' => array('photo'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75','desc'=>'Travel agency operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Travel Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Travel agency' => array('photo'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75','desc'=>'Travel agency operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Flight Tickets','Hotel Packages','Holiday Tours','Visa Services','Travel Insurance','Corporate Travel'),'products'=>array(
 			array('name'=>'Travel Agency Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
 			array('name'=>'Travel Agency Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
 			array('name'=>'Travel Agency Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),

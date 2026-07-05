@@ -76,7 +76,7 @@ $industryData = array(
 		'Market research firm',
 		'Arbitration & mediation',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/WEDIj9JBTC8',
     'about_text' => 'Professional and business services encompass consulting firms, legal practices, accounting firms, marketing agencies, and advisory services. With time-based billing, project delivery, and client relationship management at the core, these businesses need accurate time tracking, engagement management, and profitability analysis. Our platform provides matter management for legal, engagement tracking for consulting, and campaign management for agencies with full resource utilization visibility.',
     'about_highlights' => array(
         'Time and expense tracking with client billing and invoicing',
@@ -87,7 +87,7 @@ $industryData = array(
     ),
 
 'sub_industry_products' => array(
-		'Management consulting' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Management consulting operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
+		'Management consulting' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Management consulting operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Strategy','Operations','Digital Transformation','M&A','Org Design','Change Management'),'products'=>array(
 			array('name'=>'Management Consulting Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&q=75'),
 			array('name'=>'Management Consulting Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=400&q=75'),
 			array('name'=>'Management Consulting Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=75'),
@@ -132,7 +132,7 @@ $industryData = array(
 			array('name'=>'IT Consulting Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
 			array('name'=>'IT Consulting Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Architecture & engineering' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Architecture & engineering operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Architecture Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Architecture & engineering' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Architecture & engineering operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Building Design','Structural Engineering','MEP Design','Project Management','BIM','Site Supervision'),'products'=>array(
 			array('name'=>'Architecture Engineering Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 			array('name'=>'Architecture Engineering Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&q=75'),
 			array('name'=>'Architecture Engineering Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=400&q=75'),
@@ -147,12 +147,12 @@ $industryData = array(
 			array('name'=>'Time Billing Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 			array('name'=>'Time Billing Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
-		'Translation & localization' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Translation & localization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Translation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Translation & localization' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Translation & localization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Document Translation','Website Localization','Interpreting','Transcription','Subtitling','DTP'),'products'=>array(
 			array('name'=>'Translation Localization Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&q=75'),
 			array('name'=>'Translation Localization Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1590650153855-d9e808231d41?w=400&q=75'),
 			array('name'=>'Translation Localization Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=75'),
 		)),
-		'Research & analytics' => array('photo'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75','desc'=>'Research & analytics operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Research Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Research & analytics' => array('photo'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75','desc'=>'Research & analytics operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with professional industry standards and best practices','categories'=>array('Market Research','Competitive Analysis','Consumer Insights','Data Science','Statistical Analysis','Reporting'),'products'=>array(
 			array('name'=>'Research Analytics Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
 			array('name'=>'Research Analytics Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
 			array('name'=>'Research Analytics Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75'),

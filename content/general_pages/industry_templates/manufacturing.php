@@ -77,7 +77,7 @@ $industryData = array(
 		'Jewelry casting & forming',
 		'Leather goods manufacturing',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
     'about_text' => 'The manufacturing and industrial sector encompasses discrete manufacturing, process industries, assembly operations, and contract manufacturing. With complex bill-of-materials, production scheduling, quality control, and supply chain coordination, manufacturers need MRP/MRP II capabilities, shop floor control, and real-time OEE monitoring. Our platform supports lean manufacturing, Six Sigma quality processes, and Industry 4.0 smart factory integration.',
     'about_highlights' => array(
         'Bill of Materials with multi-level BOM and routing management',
@@ -108,7 +108,7 @@ $industryData = array(
 			array('name'=>'Chemical Manufacturing Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
 			array('name'=>'Chemical Manufacturing Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
 		)),
-		'Plastics & rubber' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Plastics & rubber operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Plastics Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Plastics & rubber' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Plastics & rubber operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Extrusion','Blow Moulding','Thermoforming','Compounding','Recycling','Testing'),'products'=>array(
 			array('name'=>'Plastics Rubber Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
 			array('name'=>'Plastics Rubber Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
 			array('name'=>'Plastics Rubber Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
@@ -128,7 +128,7 @@ $industryData = array(
 			array('name'=>'Textile Manufacturing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
 			array('name'=>'Textile Manufacturing Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
 		)),
-		'Electronics manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75','desc'=>'Electronics manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Electronics Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+		'Electronics manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75','desc'=>'Electronics manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('PCB Assembly','SMT Placement','Wave Soldering','Testing & QC','Box Build','Cable Assembly'),'products'=>array(
 			array('name'=>'Electronics Manufacturing Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 			array('name'=>'Electronics Manufacturing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
 			array('name'=>'Electronics Manufacturing Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
@@ -184,7 +184,7 @@ $industryData = array(
 			array('name'=>'Shipbuilding Marine Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 			array('name'=>'Shipbuilding Marine Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
 		)),
-		'Furniture manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Furniture manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Furniture Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+		'Furniture manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Furniture manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Wood Working','Upholstery','Metal Frame','Flat Pack','CNC Routing','Surface Finish'),'products'=>array(
 			array('name'=>'Furniture Manufacturing Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 			array('name'=>'Furniture Manufacturing Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
 			array('name'=>'Furniture Manufacturing Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),

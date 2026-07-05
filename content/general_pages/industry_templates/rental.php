@@ -73,7 +73,7 @@ $industryData = array(
 		'Costume & fancy dress hire',
 		'Musical instrument rental',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
     'about_text' => 'The rental and leasing industry covers equipment rental, vehicle leasing, property rental, event hire, and tool rental businesses. With asset lifecycle management, availability calendaring, maintenance scheduling, and contract management as core requirements, rental businesses need real-time fleet visibility and automated billing. Our platform supports single and multi-location operations with online reservation, damage tracking, and utilization analytics.',
     'about_highlights' => array(
         'Asset availability calendar with online booking and reservations',
@@ -99,7 +99,7 @@ $industryData = array(
 			array('name'=>'Lease Contract Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
 			array('name'=>'Lease Contract Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Car & vehicle rental' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Car & vehicle rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Car Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Car & vehicle rental' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Car & vehicle rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Economy Cars','SUVs & 4x4','Luxury & Sports','Vans & Trucks','Monthly Lease','Chauffeur Drive'),'products'=>array(
 			array('name'=>'Car Vehicle Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
 			array('name'=>'Car Vehicle Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 			array('name'=>'Car Vehicle Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),

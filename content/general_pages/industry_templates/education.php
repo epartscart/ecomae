@@ -74,7 +74,7 @@ $industryData = array(
 		'STEM & robotics academy',
 		'Adult & continuing education',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/UCFg9bcW7Bk',
     'about_text' => 'The education and training industry encompasses K-12 schools, universities, vocational training centers, e-learning platforms, and corporate training providers. With the global ed-tech market growing rapidly, institutions need student information systems, learning management, enrollment processing, and academic analytics. Our platform supports the full student lifecycle from admissions through alumni relations, with compliance for multiple regulatory frameworks.',
     'about_highlights' => array(
         'Student information system with enrollment and academic records',
@@ -110,12 +110,12 @@ $industryData = array(
 			array('name'=>'University College Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 			array('name'=>'University College Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
 		)),
-		'Vocational training' => array('photo'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75','desc'=>'Vocational training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Vocational Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Vocational training' => array('photo'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75','desc'=>'Vocational training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Trade Courses','Apprenticeships','Certification Programs','Workshop Equipment','Safety Training','Placement Services'),'products'=>array(
 			array('name'=>'Vocational Training Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
 			array('name'=>'Vocational Training Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
 			array('name'=>'Vocational Training Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
 		)),
-		'Tutoring & coaching' => array('photo'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75','desc'=>'Tutoring & coaching operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Tutoring Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Tutoring & coaching' => array('photo'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75','desc'=>'Tutoring & coaching operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('One-on-One Sessions','Group Classes','Test Prep','Subject Tutoring','Career Coaching','Study Materials'),'products'=>array(
 			array('name'=>'Tutoring Coaching Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 			array('name'=>'Tutoring Coaching Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
 			array('name'=>'Tutoring Coaching Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
@@ -135,7 +135,7 @@ $industryData = array(
 			array('name'=>'Art Music Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
 			array('name'=>'Art Music Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
 		)),
-		'Corporate training' => array('photo'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75','desc'=>'Corporate training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Corporate Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Corporate training' => array('photo'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75','desc'=>'Corporate training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Leadership Programs','Compliance Training','Soft Skills','Technical Workshops','Assessment Tools','Custom Content'),'products'=>array(
 			array('name'=>'Corporate Training Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
 			array('name'=>'Corporate Training Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
 			array('name'=>'Corporate Training Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),

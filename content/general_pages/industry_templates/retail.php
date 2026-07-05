@@ -76,7 +76,7 @@ $industryData = array(
 		'Wine & liquor store',
 		'Arts & crafts supply',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/xGF3ObOBbac',
     'about_text' => 'The retail and e-commerce industry represents a $25+ trillion global market encompassing brick-and-mortar stores, online marketplaces, omnichannel retailers, and direct-to-consumer brands. With unified commerce, real-time inventory, dynamic pricing, and personalization as competitive differentiators, retailers need integrated POS, e-commerce, and supply chain capabilities. Our platform provides unified inventory across all channels with AI-powered merchandising and customer analytics.',
     'about_highlights' => array(
         'Unified commerce with real-time inventory across all channels',
@@ -107,12 +107,12 @@ $industryData = array(
 			array('name'=>'Supermarket Grocery Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
 			array('name'=>'Supermarket Grocery Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
 		)),
-		'Convenience store' => array('photo'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75','desc'=>'Convenience store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Convenience Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Convenience store' => array('photo'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75','desc'=>'Convenience store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Snacks & Drinks','Tobacco','Lottery','Phone Top-Up','Household','Personal Care'),'products'=>array(
 			array('name'=>'Convenience Store Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
 			array('name'=>'Convenience Store Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
 			array('name'=>'Convenience Store Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
 		)),
-		'Department store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Department store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Department Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Department store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Department store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Clothing','Home & Garden','Electronics','Beauty','Toys & Games','Stationery'),'products'=>array(
 			array('name'=>'Department Store Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 			array('name'=>'Department Store Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
 			array('name'=>'Department Store Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
@@ -178,7 +178,7 @@ $industryData = array(
 			array('name'=>'Pop Up Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
 			array('name'=>'Pop Up Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
 		)),
-		'Duty free & travel retail' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Duty free & travel retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Duty Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+		'Duty free & travel retail' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Duty free & travel retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Perfumes & Cosmetics','Liquor & Tobacco','Luxury Goods','Electronics','Confectionery','Souvenirs'),'products'=>array(
 			array('name'=>'Duty Free Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
 			array('name'=>'Duty Free Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
 			array('name'=>'Duty Free Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
