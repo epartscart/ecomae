@@ -92,6 +92,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && function_exists('epc_ecomae_
 		&& !preg_match('#^/cp(?:/|$)#', $__epcLegacyPath)
 		&& !preg_match('#^/(en|ru|ar)/cp(?:/|$)#i', $__epcLegacyPath)
 		&& !preg_match('#^/demo(?:/|$)#', $__epcLegacyPath)
+		&& empty($GLOBALS['epc_industry_subdomain_active'])
 		&& !headers_sent()) {
 		header('Location: /', true, 301);
 		header('X-Robots-Tag: noindex');
