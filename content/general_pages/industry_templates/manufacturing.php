@@ -77,147 +77,157 @@ $industryData = array(
 		'Jewelry casting & forming',
 		'Leather goods manufacturing',
 	),
-	'sub_industry_products' => array(
-		'Production & assembly' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized production & assembly solutions','products'=>array(
-			array('name'=>'Production & assembly Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
-			array('name'=>'Production & assembly Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
-			array('name'=>'Production & assembly Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The manufacturing and industrial sector encompasses discrete manufacturing, process industries, assembly operations, and contract manufacturing. With complex bill-of-materials, production scheduling, quality control, and supply chain coordination, manufacturers need MRP/MRP II capabilities, shop floor control, and real-time OEE monitoring. Our platform supports lean manufacturing, Six Sigma quality processes, and Industry 4.0 smart factory integration.',
+    'about_highlights' => array(
+        'Bill of Materials with multi-level BOM and routing management',
+        'Production scheduling with capacity planning and shop floor control',
+        'Quality management with inspection plans and statistical process control',
+        'Material Requirements Planning (MRP) with demand forecasting',
+        'OEE monitoring with downtime tracking and root cause analysis',
+    ),
+
+'sub_industry_products' => array(
+		'Production & assembly' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Production & assembly operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Production Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Production Assembly Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
+			array('name'=>'Production Assembly Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
+			array('name'=>'Production Assembly Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
 		)),
-		'Quality control / QC' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Specialized quality control / qc solutions','products'=>array(
-			array('name'=>'Quality control / QC Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
-			array('name'=>'Quality control / QC Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
-			array('name'=>'Quality control / QC Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
+		'Quality control / QC' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Quality control / QC operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Quality Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Quality Control Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
+			array('name'=>'Quality Control Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
+			array('name'=>'Quality Control Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
 		)),
-		'Raw materials & WIP' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75','desc'=>'Specialized raw materials & wip solutions','products'=>array(
-			array('name'=>'Raw materials & WIP Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Raw materials & WIP Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Raw materials & WIP Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		'Raw materials & WIP' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75','desc'=>'Raw materials & WIP operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Raw Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Raw Materials Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Raw Materials Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Raw Materials Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 		)),
-		'Chemical manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75','desc'=>'Specialized chemical manufacturing solutions','products'=>array(
-			array('name'=>'Chemical manufacturing Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
-			array('name'=>'Chemical manufacturing Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
-			array('name'=>'Chemical manufacturing Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
+		'Chemical manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75','desc'=>'Chemical manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Chemical Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Chemical Manufacturing Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
+			array('name'=>'Chemical Manufacturing Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
+			array('name'=>'Chemical Manufacturing Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
 		)),
-		'Plastics & rubber' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Specialized plastics & rubber solutions','products'=>array(
-			array('name'=>'Plastics & rubber Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
-			array('name'=>'Plastics & rubber Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
-			array('name'=>'Plastics & rubber Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+		'Plastics & rubber' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Plastics & rubber operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Plastics Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Plastics Rubber Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
+			array('name'=>'Plastics Rubber Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
+			array('name'=>'Plastics Rubber Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
 		)),
-		'Metal & steel fabrication' => array('photo'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75','desc'=>'Specialized metal & steel fabrication solutions','products'=>array(
-			array('name'=>'Metal & steel fabrication Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Metal & steel fabrication Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Metal & steel fabrication Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		'Metal & steel fabrication' => array('photo'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75','desc'=>'Metal & steel fabrication operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Metal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Metal Steel Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Metal Steel Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Metal Steel Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
 		)),
-		'Printing & packaging' => array('photo'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75','desc'=>'Specialized printing & packaging solutions','products'=>array(
-			array('name'=>'Printing & packaging Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
-			array('name'=>'Printing & packaging Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
-			array('name'=>'Printing & packaging Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
+		'Printing & packaging' => array('photo'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75','desc'=>'Printing & packaging operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Printing Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Printing Packaging Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
+			array('name'=>'Printing Packaging Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
+			array('name'=>'Printing Packaging Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
 		)),
-		'Textile manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Specialized textile manufacturing solutions','products'=>array(
-			array('name'=>'Textile manufacturing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
-			array('name'=>'Textile manufacturing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Textile manufacturing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
+		'Textile manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Textile manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Textile Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Textile Manufacturing Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
+			array('name'=>'Textile Manufacturing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Textile Manufacturing Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
 		)),
-		'Electronics manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75','desc'=>'Specialized electronics manufacturing solutions','products'=>array(
-			array('name'=>'Electronics manufacturing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Electronics manufacturing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Electronics manufacturing Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		'Electronics manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75','desc'=>'Electronics manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Electronics Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Electronics Manufacturing Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Electronics Manufacturing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Electronics Manufacturing Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
 		)),
-		'Food processing' => array('photo'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75','desc'=>'Specialized food processing solutions','products'=>array(
-			array('name'=>'Food processing Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
-			array('name'=>'Food processing Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
-			array('name'=>'Food processing Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
+		'Food processing' => array('photo'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75','desc'=>'Food processing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Food Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Food Processing Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
+			array('name'=>'Food Processing Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
+			array('name'=>'Food Processing Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
 		)),
-		'Pharmaceutical manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Specialized pharmaceutical manufacturing solutions','products'=>array(
-			array('name'=>'Pharmaceutical manufacturing Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Pharmaceutical manufacturing Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
-			array('name'=>'Pharmaceutical manufacturing Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
+		'Pharmaceutical manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Pharmaceutical manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Pharmaceutical Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Pharmaceutical Manufacturing Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Pharmaceutical Manufacturing Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
+			array('name'=>'Pharmaceutical Manufacturing Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
 		)),
-		'Woodwork & carpentry' => array('photo'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75','desc'=>'Specialized woodwork & carpentry solutions','products'=>array(
-			array('name'=>'Woodwork & carpentry Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Woodwork & carpentry Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Woodwork & carpentry Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+		'Woodwork & carpentry' => array('photo'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75','desc'=>'Woodwork & carpentry operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Woodwork Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Woodwork Carpentry Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Woodwork Carpentry Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Woodwork Carpentry Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 		)),
-		'Glass manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized glass manufacturing solutions','products'=>array(
-			array('name'=>'Glass manufacturing Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
-			array('name'=>'Glass manufacturing Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
-			array('name'=>'Glass manufacturing Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
+		'Glass manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Glass manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Glass Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Glass Manufacturing Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75'),
+			array('name'=>'Glass Manufacturing Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
+			array('name'=>'Glass Manufacturing Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
 		)),
-		'3D printing & additive' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Specialized 3d printing & additive solutions','products'=>array(
-			array('name'=>'3D printing & additive Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
-			array('name'=>'3D printing & additive Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
-			array('name'=>'3D printing & additive Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
+		'3D printing & additive' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'3D printing & additive operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('3D Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'3D Printing Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75'),
+			array('name'=>'3D Printing Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&q=75'),
+			array('name'=>'3D Printing Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=400&q=75'),
 		)),
-		'Ceramics & pottery' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75','desc'=>'Specialized ceramics & pottery solutions','products'=>array(
-			array('name'=>'Ceramics & pottery Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Ceramics & pottery Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Ceramics & pottery Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		'Ceramics & pottery' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&q=75','desc'=>'Ceramics & pottery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Ceramics Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Ceramics Pottery Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Ceramics Pottery Operations Suite','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Ceramics Pottery Analytics Dashboard','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 		)),
-		'Paper & pulp' => array('photo'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75','desc'=>'Specialized paper & pulp solutions','products'=>array(
-			array('name'=>'Paper & pulp Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
-			array('name'=>'Paper & pulp Professional','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
-			array('name'=>'Paper & pulp Enterprise','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
+		'Paper & pulp' => array('photo'=>'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=400&q=75','desc'=>'Paper & pulp operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Paper Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Paper Pulp Management Platform','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
+			array('name'=>'Paper Pulp Operations Suite','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
+			array('name'=>'Paper Pulp Analytics Dashboard','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
 		)),
 
-		'Automotive manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Specialized automotive manufacturing solutions','products'=>array(
-			array('name'=>'Automotive manufacturing Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Automotive manufacturing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
-			array('name'=>'Automotive manufacturing Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+		'Automotive manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Automotive manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Automotive Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Automotive Manufacturing Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Automotive Manufacturing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Automotive Manufacturing Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
 		)),
-		'Aerospace manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized aerospace manufacturing solutions','products'=>array(
-			array('name'=>'Aerospace manufacturing Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
-			array('name'=>'Aerospace manufacturing Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
-			array('name'=>'Aerospace manufacturing Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+		'Aerospace manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Aerospace manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Aerospace Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Aerospace Manufacturing Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Aerospace Manufacturing Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Aerospace Manufacturing Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 		)),
-		'Shipbuilding & marine' => array('photo'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75','desc'=>'Specialized shipbuilding & marine solutions','products'=>array(
-			array('name'=>'Shipbuilding & marine Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
-			array('name'=>'Shipbuilding & marine Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Shipbuilding & marine Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+		'Shipbuilding & marine' => array('photo'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75','desc'=>'Shipbuilding & marine operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Shipbuilding Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Shipbuilding Marine Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Shipbuilding Marine Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Shipbuilding Marine Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
 		)),
-		'Furniture manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Specialized furniture manufacturing solutions','products'=>array(
-			array('name'=>'Furniture manufacturing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Furniture manufacturing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
-			array('name'=>'Furniture manufacturing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+		'Furniture manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Furniture manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Furniture Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Furniture Manufacturing Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Furniture Manufacturing Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Furniture Manufacturing Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
 		)),
-		'Machinery & equipment' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Specialized machinery & equipment solutions','products'=>array(
-			array('name'=>'Machinery & equipment Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
-			array('name'=>'Machinery & equipment Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Machinery & equipment Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+		'Machinery & equipment' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Machinery & equipment operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Machinery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Machinery Equipment Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Machinery Equipment Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Machinery Equipment Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
 		)),
-		'Toy manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Specialized toy manufacturing solutions','products'=>array(
-			array('name'=>'Toy manufacturing Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Toy manufacturing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
-			array('name'=>'Toy manufacturing Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+		'Toy manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Toy manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Toy Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Toy Manufacturing Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Toy Manufacturing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Toy Manufacturing Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
 		)),
-		'Medical device manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized medical device manufacturing solutions','products'=>array(
-			array('name'=>'Medical device manufacturing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
-			array('name'=>'Medical device manufacturing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
-			array('name'=>'Medical device manufacturing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+		'Medical device manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Medical device manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Medical Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Medical Device Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Medical Device Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Medical Device Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 		)),
-		'Battery & energy storage' => array('photo'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75','desc'=>'Specialized battery & energy storage solutions','products'=>array(
-			array('name'=>'Battery & energy storage Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
-			array('name'=>'Battery & energy storage Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Battery & energy storage Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+		'Battery & energy storage' => array('photo'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75','desc'=>'Battery & energy storage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Battery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Battery Energy Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Battery Energy Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Battery Energy Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
 		)),
-		'Semiconductor fabrication' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Specialized semiconductor fabrication solutions','products'=>array(
-			array('name'=>'Semiconductor fabrication Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
-			array('name'=>'Semiconductor fabrication Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
-			array('name'=>'Semiconductor fabrication Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+		'Semiconductor fabrication' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Semiconductor fabrication operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Semiconductor Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Semiconductor Fabrication Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Semiconductor Fabrication Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Semiconductor Fabrication Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
 		)),
-		'Cement & concrete production' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Specialized cement & concrete production solutions','products'=>array(
-			array('name'=>'Cement & concrete production Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
-			array('name'=>'Cement & concrete production Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Cement & concrete production Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+		'Cement & concrete production' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Cement & concrete production operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Cement Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Cement Concrete Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Cement Concrete Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Cement Concrete Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
 		)),
-		'Jewelry casting & forming' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Specialized jewelry casting & forming solutions','products'=>array(
-			array('name'=>'Jewelry casting & forming Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
-			array('name'=>'Jewelry casting & forming Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
-			array('name'=>'Jewelry casting & forming Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+		'Jewelry casting & forming' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Jewelry casting & forming operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Jewelry Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Jewelry Casting Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Jewelry Casting Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Jewelry Casting Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
 		)),
-		'Leather goods manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized leather goods manufacturing solutions','products'=>array(
-			array('name'=>'Leather goods manufacturing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
-			array('name'=>'Leather goods manufacturing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
-			array('name'=>'Leather goods manufacturing Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+		'Leather goods manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Leather goods manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with manufacturing industry standards and best practices','categories'=>array('Leather Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Leather Goods Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Leather Goods Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Leather Goods Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'BOM accuracy went from 85% to 99.5% — game changer for our production planning.', 'author' => 'Eng. Mohammed S., Manufacturing Plant, Jebel Ali'),

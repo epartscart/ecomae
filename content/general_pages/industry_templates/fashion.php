@@ -75,137 +75,147 @@ $industryData = array(
 		'Fashion rental & resale',
 		'Personal styling service',
 	),
-	'sub_industry_products' => array(
-		'Fashion retail store' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Specialized fashion retail store solutions','products'=>array(
-			array('name'=>'Fashion retail store Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Fashion retail store Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Fashion retail store Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The fashion and apparel industry is a $1.7 trillion global market covering design, manufacturing, wholesale distribution, and retail. With seasonal collections, size-color matrix management, and fast-fashion cycles, businesses need PLM integration, fabric sourcing, cut-make-trim tracking, and omnichannel inventory management. Our platform supports the full fashion lifecycle from mood board to markdown with size-curve analytics and trend forecasting.',
+    'about_highlights' => array(
+        'Size-color-style matrix inventory with variant-level tracking',
+        'Collection lifecycle from design through production to retail',
+        'Fabric and trim sourcing with supplier quality scoring',
+        'Wholesale order management with line sheets and lookbooks',
+        'Omnichannel retail with unified inventory across all channels',
+    ),
+
+'sub_industry_products' => array(
+		'Fashion retail store' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Fashion retail store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fashion Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Fashion Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Fashion Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Fashion Retail Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
 		)),
-		'Online fashion store' => array('photo'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75','desc'=>'Specialized online fashion store solutions','products'=>array(
-			array('name'=>'Online fashion store Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Online fashion store Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
-			array('name'=>'Online fashion store Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
+		'Online fashion store' => array('photo'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75','desc'=>'Online fashion store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Online Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Online Fashion Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Online Fashion Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+			array('name'=>'Online Fashion Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
 		)),
-		'Seasonal collections' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Specialized seasonal collections solutions','products'=>array(
-			array('name'=>'Seasonal collections Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
-			array('name'=>'Seasonal collections Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75'),
-			array('name'=>'Seasonal collections Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75'),
+		'Seasonal collections' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Seasonal collections operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Seasonal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Seasonal Collections Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Seasonal Collections Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75'),
+			array('name'=>'Seasonal Collections Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75'),
 		)),
-		'Luxury & designer brands' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Specialized luxury & designer brands solutions','products'=>array(
-			array('name'=>'Luxury & designer brands Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Luxury & designer brands Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
-			array('name'=>'Luxury & designer brands Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75'),
+		'Luxury & designer brands' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Luxury & designer brands operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Concept Design','Production','Revision & Editing','Brand Assets','Digital Media','Print Ready'),'products'=>array(
+			array('name'=>'Luxury Designer Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Luxury Designer Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
+			array('name'=>'Luxury Designer Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75'),
 		)),
-		'Sportswear & activewear' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized sportswear & activewear solutions','products'=>array(
-			array('name'=>'Sportswear & activewear Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
-			array('name'=>'Sportswear & activewear Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
-			array('name'=>'Sportswear & activewear Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+		'Sportswear & activewear' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Sportswear & activewear operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Sportswear Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Sportswear Activewear Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+			array('name'=>'Sportswear Activewear Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
+			array('name'=>'Sportswear Activewear Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
 		)),
-		'Kids & baby clothing' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized kids & baby clothing solutions','products'=>array(
-			array('name'=>'Kids & baby clothing Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75'),
-			array('name'=>'Kids & baby clothing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75'),
-			array('name'=>'Kids & baby clothing Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75'),
+		'Kids & baby clothing' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Kids & baby clothing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Kids Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Kids Baby Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75'),
+			array('name'=>'Kids Baby Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75'),
+			array('name'=>'Kids Baby Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75'),
 		)),
-		'Uniforms & workwear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Specialized uniforms & workwear solutions','products'=>array(
-			array('name'=>'Uniforms & workwear Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
-			array('name'=>'Uniforms & workwear Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75'),
-			array('name'=>'Uniforms & workwear Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+		'Uniforms & workwear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Uniforms & workwear operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Uniforms Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Uniforms Workwear Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
+			array('name'=>'Uniforms Workwear Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75'),
+			array('name'=>'Uniforms Workwear Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
 		)),
-		'Textile manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75','desc'=>'Specialized textile manufacturing solutions','products'=>array(
-			array('name'=>'Textile manufacturing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
-			array('name'=>'Textile manufacturing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
-			array('name'=>'Textile manufacturing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+		'Textile manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75','desc'=>'Textile manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Textile Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Textile Manufacturing Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
+			array('name'=>'Textile Manufacturing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+			array('name'=>'Textile Manufacturing Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
 		)),
-		'Custom tailoring' => array('photo'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75','desc'=>'Specialized custom tailoring solutions','products'=>array(
-			array('name'=>'Custom tailoring Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75'),
-			array('name'=>'Custom tailoring Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75'),
-			array('name'=>'Custom tailoring Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+		'Custom tailoring' => array('photo'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75','desc'=>'Custom tailoring operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Custom Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Custom Tailoring Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75'),
+			array('name'=>'Custom Tailoring Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75'),
+			array('name'=>'Custom Tailoring Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
 		)),
-		'Shoes & footwear' => array('photo'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75','desc'=>'Specialized shoes & footwear solutions','products'=>array(
-			array('name'=>'Shoes & footwear Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75'),
-			array('name'=>'Shoes & footwear Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Shoes & footwear Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+		'Shoes & footwear' => array('photo'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75','desc'=>'Shoes & footwear operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Shoes Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Shoes Footwear Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75'),
+			array('name'=>'Shoes Footwear Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Shoes Footwear Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
 		)),
-		'Fashion accessories' => array('photo'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75','desc'=>'Specialized fashion accessories solutions','products'=>array(
-			array('name'=>'Fashion accessories Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
-			array('name'=>'Fashion accessories Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Fashion accessories Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+		'Fashion accessories' => array('photo'=>'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=75','desc'=>'Fashion accessories operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fashion Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fashion Accessories Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+			array('name'=>'Fashion Accessories Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Fashion Accessories Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
 		)),
-		'Vintage & secondhand' => array('photo'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75','desc'=>'Specialized vintage & secondhand solutions','products'=>array(
-			array('name'=>'Vintage & secondhand Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75'),
-			array('name'=>'Vintage & secondhand Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
-			array('name'=>'Vintage & secondhand Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75'),
+		'Vintage & secondhand' => array('photo'=>'https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=75','desc'=>'Vintage & secondhand operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Vintage Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Vintage Secondhand Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75'),
+			array('name'=>'Vintage Secondhand Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Vintage Secondhand Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=75'),
 		)),
-		'Bridal & formal wear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Specialized bridal & formal wear solutions','products'=>array(
-			array('name'=>'Bridal & formal wear Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Bridal & formal wear Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Bridal & formal wear Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
+		'Bridal & formal wear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Bridal & formal wear operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Bridal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bridal Formal Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Bridal Formal Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Bridal Formal Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=75'),
 		)),
-		'Swimwear & beachwear' => array('photo'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75','desc'=>'Specialized swimwear & beachwear solutions','products'=>array(
-			array('name'=>'Swimwear & beachwear Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Swimwear & beachwear Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
-			array('name'=>'Swimwear & beachwear Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
+		'Swimwear & beachwear' => array('photo'=>'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=75','desc'=>'Swimwear & beachwear operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Swimwear Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Swimwear Beachwear Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Swimwear Beachwear Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
+			array('name'=>'Swimwear Beachwear Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
 		)),
 
-		'Fur & leather goods' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized fur & leather goods solutions','products'=>array(
-			array('name'=>'Fur & leather goods Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Fur & leather goods Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Fur & leather goods Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+		'Fur & leather goods' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Fur & leather goods operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fur Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fur Leather Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Fur Leather Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Fur Leather Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
 		)),
-		'Handbags & luggage' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized handbags & luggage solutions','products'=>array(
-			array('name'=>'Handbags & luggage Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Handbags & luggage Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
-			array('name'=>'Handbags & luggage Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+		'Handbags & luggage' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Handbags & luggage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Handbags Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Handbags Luggage Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Handbags Luggage Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Handbags Luggage Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
 		)),
-		'Fashion eyewear & sunglasses' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Specialized fashion eyewear & sunglasses solutions','products'=>array(
-			array('name'=>'Fashion eyewear & sunglasses Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
-			array('name'=>'Fashion eyewear & sunglasses Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Fashion eyewear & sunglasses Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+		'Fashion eyewear & sunglasses' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Fashion eyewear & sunglasses operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fashion Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fashion Eyewear Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Fashion Eyewear Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Fashion Eyewear Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
 		)),
-		'Sustainable & eco fashion' => array('photo'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75','desc'=>'Specialized sustainable & eco fashion solutions','products'=>array(
-			array('name'=>'Sustainable & eco fashion Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Sustainable & eco fashion Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
-			array('name'=>'Sustainable & eco fashion Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+		'Sustainable & eco fashion' => array('photo'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75','desc'=>'Sustainable & eco fashion operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Sustainable Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Sustainable Eco Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Sustainable Eco Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Sustainable Eco Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
 		)),
-		'Plus size fashion' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Specialized plus size fashion solutions','products'=>array(
-			array('name'=>'Plus size fashion Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
-			array('name'=>'Plus size fashion Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Plus size fashion Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+		'Plus size fashion' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Plus size fashion operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Plus Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Plus Size Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Plus Size Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Plus Size Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
 		)),
-		'Modest & Islamic fashion' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized modest & islamic fashion solutions','products'=>array(
-			array('name'=>'Modest & Islamic fashion Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Modest & Islamic fashion Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Modest & Islamic fashion Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+		'Modest & Islamic fashion' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Modest & Islamic fashion operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Modest Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Modest Islamic Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Modest Islamic Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Modest Islamic Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
 		)),
-		'Costume design (film/theater)' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized costume design (film/theater) solutions','products'=>array(
-			array('name'=>'Costume design (film/theater) Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Costume design (film/theater) Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
-			array('name'=>'Costume design (film/theater) Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+		'Costume design (film/theater)' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Costume design (film/theater) operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Concept Design','Production','Revision & Editing','Brand Assets','Digital Media','Print Ready'),'products'=>array(
+			array('name'=>'Costume Design Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Costume Design Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Costume Design Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
 		)),
-		'Fashion technology & weartech' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Specialized fashion technology & weartech solutions','products'=>array(
-			array('name'=>'Fashion technology & weartech Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
-			array('name'=>'Fashion technology & weartech Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Fashion technology & weartech Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+		'Fashion technology & weartech' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Fashion technology & weartech operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fashion Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fashion Technology Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Fashion Technology Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Fashion Technology Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
 		)),
-		'Athleisure & streetwear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75','desc'=>'Specialized athleisure & streetwear solutions','products'=>array(
-			array('name'=>'Athleisure & streetwear Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
-			array('name'=>'Athleisure & streetwear Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
-			array('name'=>'Athleisure & streetwear Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+		'Athleisure & streetwear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75','desc'=>'Athleisure & streetwear operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Athleisure Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Athleisure Streetwear Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Athleisure Streetwear Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Athleisure Streetwear Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
 		)),
-		'Denim & jeans specialist' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Specialized denim & jeans specialist solutions','products'=>array(
-			array('name'=>'Denim & jeans specialist Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
-			array('name'=>'Denim & jeans specialist Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Denim & jeans specialist Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+		'Denim & jeans specialist' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Denim & jeans specialist operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Denim Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Denim Jeans Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Denim Jeans Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Denim Jeans Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
 		)),
-		'Fashion rental & resale' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized fashion rental & resale solutions','products'=>array(
-			array('name'=>'Fashion rental & resale Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
-			array('name'=>'Fashion rental & resale Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Fashion rental & resale Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+		'Fashion rental & resale' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Fashion rental & resale operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Fashion Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fashion Rental Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Fashion Rental Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Fashion Rental Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
 		)),
-		'Personal styling service' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized personal styling service solutions','products'=>array(
-			array('name'=>'Personal styling service Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
-			array('name'=>'Personal styling service Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
-			array('name'=>'Personal styling service Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+		'Personal styling service' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Personal styling service operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with fashion industry standards and best practices','categories'=>array('Personal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Personal Styling Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Personal Styling Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Personal Styling Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Managing 12 retail outlets and our online store from one system changed everything.', 'author' => 'Fatima A., Fashion Brand Owner, Dubai'),

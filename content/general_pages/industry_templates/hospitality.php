@@ -76,142 +76,152 @@ $industryData = array(
 		'Mountain lodge & ski resort',
 		'Eco-tourism & nature lodge',
 	),
-	'sub_industry_products' => array(
-		'Reservation & booking' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized reservation & booking solutions','products'=>array(
-			array('name'=>'Reservation & booking Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Reservation & booking Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Reservation & booking Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The hospitality and travel industry encompasses hotels, restaurants, tour operators, travel agencies, event management, and cruise lines. With dynamic pricing, multi-channel booking management, and guest experience optimization, businesses need property management systems, channel managers, revenue management, and guest CRM. Our platform integrates booking engines, housekeeping workflows, F&B management, and loyalty programs for seamless operations.',
+    'about_highlights' => array(
+        'Property management with room inventory and housekeeping workflows',
+        'Channel manager integration (Booking.com, Expedia, Airbnb)',
+        'Revenue management with dynamic pricing and yield optimization',
+        'Guest CRM with preference tracking and loyalty programs',
+        'Event and banquet management with catering and AV coordination',
+    ),
+
+'sub_industry_products' => array(
+		'Reservation & booking' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Reservation & booking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Reservation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Reservation Booking Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Reservation Booking Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Reservation Booking Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
 		)),
-		'Room management' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized room management solutions','products'=>array(
-			array('name'=>'Room management Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
-			array('name'=>'Room management Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
-			array('name'=>'Room management Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
+		'Room management' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Room management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Room Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Room Management Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
+			array('name'=>'Room Management Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
+			array('name'=>'Room Management Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
 		)),
-		'Guest services & concierge' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Specialized guest services & concierge solutions','products'=>array(
-			array('name'=>'Guest services & concierge Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
-			array('name'=>'Guest services & concierge Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
-			array('name'=>'Guest services & concierge Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
+		'Guest services & concierge' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Guest services & concierge operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Guest Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Guest Services Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
+			array('name'=>'Guest Services Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
+			array('name'=>'Guest Services Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
 		)),
-		'Resort operations' => array('photo'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75','desc'=>'Specialized resort operations solutions','products'=>array(
-			array('name'=>'Resort operations Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Resort operations Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
-			array('name'=>'Resort operations Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
+		'Resort operations' => array('photo'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75','desc'=>'Resort operations operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Resort Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Resort Operations Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Resort Operations Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
+			array('name'=>'Resort Operations Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
 		)),
-		'Boutique hotel' => array('photo'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75','desc'=>'Specialized boutique hotel solutions','products'=>array(
-			array('name'=>'Boutique hotel Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
-			array('name'=>'Boutique hotel Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
-			array('name'=>'Boutique hotel Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+		'Boutique hotel' => array('photo'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75','desc'=>'Boutique hotel operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Boutique Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Boutique Hotel Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
+			array('name'=>'Boutique Hotel Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
+			array('name'=>'Boutique Hotel Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
 		)),
-		'Hostel & backpacker' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Specialized hostel & backpacker solutions','products'=>array(
-			array('name'=>'Hostel & backpacker Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
-			array('name'=>'Hostel & backpacker Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
-			array('name'=>'Hostel & backpacker Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+		'Hostel & backpacker' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Hostel & backpacker operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Hostel Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Hostel Backpacker Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
+			array('name'=>'Hostel Backpacker Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
+			array('name'=>'Hostel Backpacker Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
 		)),
-		'Vacation rental / Airbnb' => array('photo'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75','desc'=>'Specialized vacation rental / airbnb solutions','products'=>array(
-			array('name'=>'Vacation rental / Airbnb Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
-			array('name'=>'Vacation rental / Airbnb Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
-			array('name'=>'Vacation rental / Airbnb Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+		'Vacation rental / Airbnb' => array('photo'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75','desc'=>'Vacation rental / Airbnb operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Vacation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Vacation Rental Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
+			array('name'=>'Vacation Rental Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
+			array('name'=>'Vacation Rental Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
 		)),
-		'Travel agency' => array('photo'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75','desc'=>'Specialized travel agency solutions','products'=>array(
-			array('name'=>'Travel agency Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
-			array('name'=>'Travel agency Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
-			array('name'=>'Travel agency Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
+		'Travel agency' => array('photo'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75','desc'=>'Travel agency operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Travel Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Travel Agency Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
+			array('name'=>'Travel Agency Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Travel Agency Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
 		)),
-		'Tour operator' => array('photo'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75','desc'=>'Specialized tour operator solutions','products'=>array(
-			array('name'=>'Tour operator Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
-			array('name'=>'Tour operator Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Tour operator Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
+		'Tour operator' => array('photo'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75','desc'=>'Tour operator operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Tour Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Tour Operator Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
+			array('name'=>'Tour Operator Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Tour Operator Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
 		)),
-		'Airline & aviation' => array('photo'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75','desc'=>'Specialized airline & aviation solutions','products'=>array(
-			array('name'=>'Airline & aviation Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
-			array('name'=>'Airline & aviation Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Airline & aviation Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+		'Airline & aviation' => array('photo'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75','desc'=>'Airline & aviation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Airline Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Airline Aviation Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75'),
+			array('name'=>'Airline Aviation Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Airline Aviation Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
 		)),
-		'Cruise line' => array('photo'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75','desc'=>'Specialized cruise line solutions','products'=>array(
-			array('name'=>'Cruise line Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
-			array('name'=>'Cruise line Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
-			array('name'=>'Cruise line Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
+		'Cruise line' => array('photo'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75','desc'=>'Cruise line operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Cruise Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cruise Line Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Cruise Line Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
+			array('name'=>'Cruise Line Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
 		)),
-		'Adventure tourism' => array('photo'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75','desc'=>'Specialized adventure tourism solutions','products'=>array(
-			array('name'=>'Adventure tourism Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Adventure tourism Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
-			array('name'=>'Adventure tourism Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
+		'Adventure tourism' => array('photo'=>'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=75','desc'=>'Adventure tourism operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Adventure Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Adventure Tourism Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Adventure Tourism Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
+			array('name'=>'Adventure Tourism Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
 		)),
-		'Spa & wellness resort' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized spa & wellness resort solutions','products'=>array(
-			array('name'=>'Spa & wellness resort Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Spa & wellness resort Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Spa & wellness resort Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
+		'Spa & wellness resort' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Spa & wellness resort operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Spa Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Spa Wellness Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Spa Wellness Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Spa Wellness Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=75'),
 		)),
-		'Event venue' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized event venue solutions','products'=>array(
-			array('name'=>'Event venue Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
-			array('name'=>'Event venue Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
-			array('name'=>'Event venue Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
+		'Event venue' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Event venue operations encompassing event planning, vendor coordination, timeline management, budget tracking, guest management. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Event Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Event Venue Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=400&q=75'),
+			array('name'=>'Event Venue Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&q=75'),
+			array('name'=>'Event Venue Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&q=75'),
 		)),
-		'Camping & glamping' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Specialized camping & glamping solutions','products'=>array(
-			array('name'=>'Camping & glamping Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
-			array('name'=>'Camping & glamping Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
-			array('name'=>'Camping & glamping Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
+		'Camping & glamping' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Camping & glamping operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Camping Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Camping Glamping Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
+			array('name'=>'Camping Glamping Operations Suite','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
+			array('name'=>'Camping Glamping Analytics Dashboard','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
 		)),
 
-		'Theme park & attraction' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized theme park & attraction solutions','products'=>array(
-			array('name'=>'Theme park & attraction Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Theme park & attraction Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Theme park & attraction Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+		'Theme park & attraction' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Theme park & attraction operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Theme Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Theme Park Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Theme Park Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Theme Park Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
 		)),
-		'Water park' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized water park solutions','products'=>array(
-			array('name'=>'Water park Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Water park Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
-			array('name'=>'Water park Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+		'Water park' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Water park operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Water Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Water Park Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Water Park Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Water Park Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
 		)),
-		'Casino & gaming resort' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Specialized casino & gaming resort solutions','products'=>array(
-			array('name'=>'Casino & gaming resort Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
-			array('name'=>'Casino & gaming resort Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Casino & gaming resort Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+		'Casino & gaming resort' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Casino & gaming resort operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Casino Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Casino Gaming Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Casino Gaming Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Casino Gaming Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
 		)),
-		'Pilgrimage & religious tourism' => array('photo'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75','desc'=>'Specialized pilgrimage & religious tourism solutions','products'=>array(
-			array('name'=>'Pilgrimage & religious tourism Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Pilgrimage & religious tourism Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
-			array('name'=>'Pilgrimage & religious tourism Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+		'Pilgrimage & religious tourism' => array('photo'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75','desc'=>'Pilgrimage & religious tourism operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Pilgrimage Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pilgrimage Religious Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Pilgrimage Religious Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Pilgrimage Religious Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
 		)),
-		'Business travel management' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Specialized business travel management solutions','products'=>array(
-			array('name'=>'Business travel management Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
-			array('name'=>'Business travel management Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Business travel management Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+		'Business travel management' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Business travel management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Business Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Business Travel Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Business Travel Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Business Travel Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
 		)),
-		'Airport lounge & services' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized airport lounge & services solutions','products'=>array(
-			array('name'=>'Airport lounge & services Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Airport lounge & services Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Airport lounge & services Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+		'Airport lounge & services' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Airport lounge & services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Airport Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Airport Lounge Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Airport Lounge Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Airport Lounge Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
 		)),
-		'Wedding venue & planning' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized wedding venue & planning solutions','products'=>array(
-			array('name'=>'Wedding venue & planning Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Wedding venue & planning Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
-			array('name'=>'Wedding venue & planning Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+		'Wedding venue & planning' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Wedding venue & planning operations encompassing event planning, vendor coordination, timeline management, budget tracking, guest management. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Wedding Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wedding Venue Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Wedding Venue Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Wedding Venue Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
 		)),
-		'Heritage & cultural tourism' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Specialized heritage & cultural tourism solutions','products'=>array(
-			array('name'=>'Heritage & cultural tourism Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
-			array('name'=>'Heritage & cultural tourism Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Heritage & cultural tourism Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+		'Heritage & cultural tourism' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Heritage & cultural tourism operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Heritage Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Heritage Cultural Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Heritage Cultural Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Heritage Cultural Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
 		)),
-		'Medical tourism hospitality' => array('photo'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75','desc'=>'Specialized medical tourism hospitality solutions','products'=>array(
-			array('name'=>'Medical tourism hospitality Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
-			array('name'=>'Medical tourism hospitality Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
-			array('name'=>'Medical tourism hospitality Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+		'Medical tourism hospitality' => array('photo'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75','desc'=>'Medical tourism hospitality operations encompassing patient scheduling, treatment records, care protocols, billing & insurance, outcome tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Medical Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Medical Tourism Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Medical Tourism Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Medical Tourism Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
 		)),
-		'Yacht & marina services' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Specialized yacht & marina services solutions','products'=>array(
-			array('name'=>'Yacht & marina services Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
-			array('name'=>'Yacht & marina services Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Yacht & marina services Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+		'Yacht & marina services' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Yacht & marina services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Yacht Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Yacht Marina Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Yacht Marina Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Yacht Marina Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
 		)),
-		'Mountain lodge & ski resort' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized mountain lodge & ski resort solutions','products'=>array(
-			array('name'=>'Mountain lodge & ski resort Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
-			array('name'=>'Mountain lodge & ski resort Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Mountain lodge & ski resort Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+		'Mountain lodge & ski resort' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Mountain lodge & ski resort operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Mountain Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Mountain Lodge Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Mountain Lodge Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Mountain Lodge Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
 		)),
-		'Eco-tourism & nature lodge' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized eco-tourism & nature lodge solutions','products'=>array(
-			array('name'=>'Eco-tourism & nature lodge Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
-			array('name'=>'Eco-tourism & nature lodge Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
-			array('name'=>'Eco-tourism & nature lodge Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+		'Eco-tourism & nature lodge' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Eco-tourism & nature lodge operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with hospitality industry standards and best practices','categories'=>array('Eco Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Eco Tourism Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Eco Tourism Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Eco Tourism Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Dynamic pricing increased our RevPAR by 22% in the first quarter.', 'author' => 'Maria C., Hotel GM, JBR Dubai'),

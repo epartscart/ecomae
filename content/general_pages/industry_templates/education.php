@@ -74,132 +74,142 @@ $industryData = array(
 		'STEM & robotics academy',
 		'Adult & continuing education',
 	),
-	'sub_industry_products' => array(
-		'Student enrollment' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized student enrollment solutions','products'=>array(
-			array('name'=>'Student enrollment Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Student enrollment Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
-			array('name'=>'Student enrollment Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The education and training industry encompasses K-12 schools, universities, vocational training centers, e-learning platforms, and corporate training providers. With the global ed-tech market growing rapidly, institutions need student information systems, learning management, enrollment processing, and academic analytics. Our platform supports the full student lifecycle from admissions through alumni relations, with compliance for multiple regulatory frameworks.',
+    'about_highlights' => array(
+        'Student information system with enrollment and academic records',
+        'Learning management with course creation and progress tracking',
+        'Admissions pipeline with application processing and scoring',
+        'Fee management with installment plans and financial aid tracking',
+        'Certification and credential issuance with verification portals',
+    ),
+
+'sub_industry_products' => array(
+		'Student enrollment' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Student enrollment operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Student Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Student Enrollment Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Student Enrollment Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
+			array('name'=>'Student Enrollment Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 		)),
-		'Course management' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized course management solutions','products'=>array(
-			array('name'=>'Course management Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'Course management Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),
-			array('name'=>'Course management Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Course management' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Course management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Course Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Course Management Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Course Management Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),
+			array('name'=>'Course Management Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Learning management system' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Specialized learning management system solutions','products'=>array(
-			array('name'=>'Learning management system Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75'),
-			array('name'=>'Learning management system Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
-			array('name'=>'Learning management system Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
+		'Learning management system' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Learning management system operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Learning Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Learning Management Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75'),
+			array('name'=>'Learning Management Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
+			array('name'=>'Learning Management Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
 		)),
-		'K-12 school' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized k-12 school solutions','products'=>array(
-			array('name'=>'K-12 school Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
-			array('name'=>'K-12 school Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
-			array('name'=>'K-12 school Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
+		'K-12 school' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'K-12 school operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('K Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'K 12 Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
+			array('name'=>'K 12 Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'K 12 Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
 		)),
-		'University / college' => array('photo'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75','desc'=>'Specialized university / college solutions','products'=>array(
-			array('name'=>'University / college Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),
-			array('name'=>'University / college Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'University / college Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		'University / college' => array('photo'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75','desc'=>'University / college operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('University Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'University College Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),
+			array('name'=>'University College Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'University College Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
 		)),
-		'Vocational training' => array('photo'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75','desc'=>'Specialized vocational training solutions','products'=>array(
-			array('name'=>'Vocational training Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
-			array('name'=>'Vocational training Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
-			array('name'=>'Vocational training Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+		'Vocational training' => array('photo'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75','desc'=>'Vocational training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Vocational Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Vocational Training Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
+			array('name'=>'Vocational Training Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
+			array('name'=>'Vocational Training Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
 		)),
-		'Tutoring & coaching' => array('photo'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75','desc'=>'Specialized tutoring & coaching solutions','products'=>array(
-			array('name'=>'Tutoring & coaching Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
-			array('name'=>'Tutoring & coaching Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
-			array('name'=>'Tutoring & coaching Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+		'Tutoring & coaching' => array('photo'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75','desc'=>'Tutoring & coaching operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Tutoring Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Tutoring Coaching Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Tutoring Coaching Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
+			array('name'=>'Tutoring Coaching Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
 		)),
-		'Driving school' => array('photo'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75','desc'=>'Specialized driving school solutions','products'=>array(
-			array('name'=>'Driving school Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Driving school Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Driving school Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+		'Driving school' => array('photo'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75','desc'=>'Driving school operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Driving Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Driving School Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Driving School Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Driving School Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
 		)),
-		'Language school' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Specialized language school solutions','products'=>array(
-			array('name'=>'Language school Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
-			array('name'=>'Language school Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
-			array('name'=>'Language school Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75'),
+		'Language school' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Language school operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Language Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Language School Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75'),
+			array('name'=>'Language School Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Language School Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75'),
 		)),
-		'Art & music school' => array('photo'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75','desc'=>'Specialized art & music school solutions','products'=>array(
-			array('name'=>'Art & music school Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
-			array('name'=>'Art & music school Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Art & music school Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
+		'Art & music school' => array('photo'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75','desc'=>'Art & music school operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Art Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Art Music Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75'),
+			array('name'=>'Art Music Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Art Music Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
 		)),
-		'Corporate training' => array('photo'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75','desc'=>'Specialized corporate training solutions','products'=>array(
-			array('name'=>'Corporate training Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Corporate training Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'Corporate training Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),
+		'Corporate training' => array('photo'=>'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&q=75','desc'=>'Corporate training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Corporate Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Corporate Training Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Corporate Training Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Corporate Training Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=75'),
 		)),
-		'E-learning platform' => array('photo'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75','desc'=>'Specialized e-learning platform solutions','products'=>array(
-			array('name'=>'E-learning platform Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
-			array('name'=>'E-learning platform Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75'),
-			array('name'=>'E-learning platform Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
+		'E-learning platform' => array('photo'=>'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=75','desc'=>'E-learning platform operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('E Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'E Learning Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'E Learning Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1588072432836-e10032774350?w=400&q=75'),
+			array('name'=>'E Learning Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=400&q=75'),
 		)),
-		'Certification & testing' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized certification & testing solutions','products'=>array(
-			array('name'=>'Certification & testing Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Certification & testing Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
-			array('name'=>'Certification & testing Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		'Certification & testing' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Certification & testing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Certification Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Certification Testing Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Certification Testing Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
+			array('name'=>'Certification Testing Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 		)),
 
-		'Special education & SEN' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized special education & sen solutions','products'=>array(
-			array('name'=>'Special education & SEN Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'Special education & SEN Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Special education & SEN Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		'Special education & SEN' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Special education & SEN operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Special Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Special Education Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Special Education Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Special Education Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
 		)),
-		'Nursery & preschool' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized nursery & preschool solutions','products'=>array(
-			array('name'=>'Nursery & preschool Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Nursery & preschool Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Nursery & preschool Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		'Nursery & preschool' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Nursery & preschool operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Nursery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Nursery Preschool Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Nursery Preschool Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Nursery Preschool Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 		)),
-		'Exam coaching & test prep' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Specialized exam coaching & test prep solutions','products'=>array(
-			array('name'=>'Exam coaching & test prep Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Exam coaching & test prep Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
-			array('name'=>'Exam coaching & test prep Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+		'Exam coaching & test prep' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Exam coaching & test prep operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Exam Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Exam Coaching Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Exam Coaching Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Exam Coaching Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
 		)),
-		'Marine & aviation school' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized marine & aviation school solutions','products'=>array(
-			array('name'=>'Marine & aviation school Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
-			array('name'=>'Marine & aviation school Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
-			array('name'=>'Marine & aviation school Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+		'Marine & aviation school' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Marine & aviation school operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Marine Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Marine Aviation Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Marine Aviation Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Marine Aviation Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
 		)),
-		'Home schooling platform' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Specialized home schooling platform solutions','products'=>array(
-			array('name'=>'Home schooling platform Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
-			array('name'=>'Home schooling platform Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'Home schooling platform Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+		'Home schooling platform' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Home schooling platform operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Schooling Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Home Schooling Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Home Schooling Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
 		)),
-		'Study abroad consultancy' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized study abroad consultancy solutions','products'=>array(
-			array('name'=>'Study abroad consultancy Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'Study abroad consultancy Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Study abroad consultancy Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		'Study abroad consultancy' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Study abroad consultancy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Study Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Study Abroad Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Study Abroad Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Study Abroad Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
 		)),
-		'Educational toys & materials' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized educational toys & materials solutions','products'=>array(
-			array('name'=>'Educational toys & materials Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Educational toys & materials Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Educational toys & materials Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		'Educational toys & materials' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Educational toys & materials operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Educational Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Educational Toys Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Educational Toys Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Educational Toys Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 		)),
-		'Research university' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Specialized research university solutions','products'=>array(
-			array('name'=>'Research university Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Research university Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
-			array('name'=>'Research university Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+		'Research university' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Research university operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Research Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Research University Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Research University Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Research University Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
 		)),
-		'Seminary & religious school' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized seminary & religious school solutions','products'=>array(
-			array('name'=>'Seminary & religious school Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
-			array('name'=>'Seminary & religious school Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
-			array('name'=>'Seminary & religious school Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+		'Seminary & religious school' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Seminary & religious school operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Seminary Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Seminary Religious Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Seminary Religious Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Seminary Religious Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
 		)),
-		'Finishing school & etiquette' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Specialized finishing school & etiquette solutions','products'=>array(
-			array('name'=>'Finishing school & etiquette Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
-			array('name'=>'Finishing school & etiquette Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'Finishing school & etiquette Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+		'Finishing school & etiquette' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Finishing school & etiquette operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Finishing Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Finishing School Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Finishing School Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Finishing School Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
 		)),
-		'STEM & robotics academy' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized stem & robotics academy solutions','products'=>array(
-			array('name'=>'STEM & robotics academy Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
-			array('name'=>'STEM & robotics academy Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'STEM & robotics academy Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		'STEM & robotics academy' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'STEM & robotics academy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('STEM Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'STEM Robotics Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'STEM Robotics Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'STEM Robotics Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
 		)),
-		'Adult & continuing education' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized adult & continuing education solutions','products'=>array(
-			array('name'=>'Adult & continuing education Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
-			array('name'=>'Adult & continuing education Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
-			array('name'=>'Adult & continuing education Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		'Adult & continuing education' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Adult & continuing education operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with educational industry standards and best practices','categories'=>array('Adult Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Adult Continuing Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Adult Continuing Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Adult Continuing Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Student enrollment process reduced from 5 days to same-day with the portal.', 'author' => 'Dr. Amina H., University Registrar, Dubai'),

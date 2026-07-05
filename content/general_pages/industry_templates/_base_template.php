@@ -32,8 +32,58 @@ $navItems = $industryData['nav_items'] ?? array('Products','Features','About','C
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title><?php echo htmlspecialchars($name); ?> — ecomae Platform</title>
-<meta name="description" content="<?php echo htmlspecialchars($desc); ?> — Powered by ecomae ERP Platform.">
+<title><?php echo htmlspecialchars($name); ?> — ERP, Control Panel & Storefront | ecomae Platform</title>
+<meta name="description" content="<?php echo htmlspecialchars($name); ?> industry solutions: <?php echo htmlspecialchars($desc); ?> — <?php echo count($subIndustries);?> specialized sub-industries with dedicated ERP workflows, control panel, and storefront. Powered by ecomae.">
+<meta name="keywords" content="<?php echo htmlspecialchars(strtolower($name));?>, ERP, control panel, storefront, <?php echo htmlspecialchars(implode(', ', array_slice($subIndustries, 0, 10)));?>, business management software, ecomae">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="<?php echo htmlspecialchars($name);?> — ecomae ERP Platform">
+<meta property="og:description" content="<?php echo htmlspecialchars($desc);?> — <?php echo count($subIndustries);?> sub-industries covered.">
+<meta property="og:image" content="<?php echo htmlspecialchars($heroPhoto);?>">
+<meta property="og:url" content="https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/">
+<meta property="og:site_name" content="ecomae">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?php echo htmlspecialchars($name);?> — ecomae Platform">
+<meta name="twitter:description" content="<?php echo htmlspecialchars($desc);?>">
+<meta name="twitter:image" content="<?php echo htmlspecialchars($heroPhoto);?>">
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "<?php echo htmlspecialchars($name);?> — ecomae Platform",
+  "description": "<?php echo addslashes($desc);?>",
+  "url": "https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "ecomae",
+    "url": "https://www.ecomae.com",
+    "logo": "https://www.ecomae.com/images/ecomae-logo.png"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "<?php echo htmlspecialchars($name);?> Sub-Industries",
+    "numberOfItems": <?php echo count($subIndustries);?>,
+    "itemListElement": [
+<?php foreach(array_slice($subIndustries, 0, 15) as $idx => $si): ?>
+      {"@type": "ListItem", "position": <?php echo $idx+1;?>, "name": "<?php echo htmlspecialchars($si);?>"}<?php echo $idx < min(14, count($subIndustries)-1) ? ',' : '';?>
+
+<?php endforeach; ?>
+    ]
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "ecomae", "item": "https://www.ecomae.com"},
+      {"@type": "ListItem", "position": 2, "name": "Industries", "item": "https://www.ecomae.com/platform/industries"},
+      {"@type": "ListItem", "position": 3, "name": "<?php echo htmlspecialchars($name);?>", "item": "https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/"}
+    ]
+  }
+}
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -126,9 +176,9 @@ a:hover{text-decoration:underline}
 .ind-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;animation:slowZoom 20s ease-in-out infinite alternate}
 .ind-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(<?php
 $r=hexdec(substr($bgFrom,1,2));$g=hexdec(substr($bgFrom,3,2));$b=hexdec(substr($bgFrom,5,2));
-echo "$r,$g,$b";?>,.88),rgba(<?php
+echo "$r,$g,$b";?>,.55),rgba(<?php
 $r2=hexdec(substr($bgTo,1,2));$g2=hexdec(substr($bgTo,3,2));$b2=hexdec(substr($bgTo,5,2));
-echo "$r2,$g2,$b2";?>,.82))}
+echo "$r2,$g2,$b2";?>,.45))}
 .ind-hero-content{position:relative;z-index:2;max-width:800px;padding:40px 20px;animation:heroFadeIn 1.2s cubic-bezier(.16,1,.3,1)}
 .ind-hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;line-height:1.1}
 .ind-hero .tagline{font-size:1.3rem;color:rgba(255,255,255,.85);margin-bottom:20px;font-weight:300}
@@ -144,6 +194,26 @@ echo "$r2,$g2,$b2";?>,.82))}
 .btn-hero--primary:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
 .btn-hero--secondary{background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.3)}
 .btn-hero--secondary:hover{border-color:#fff;transform:translateY(-2px)}
+
+/* ===== ABOUT SECTION ===== */
+.ind-about{padding:80px 20px;background:#fff}
+.ind-about-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.ind-about-text h2{font-size:2.2rem;font-weight:800;color:#0f172a;margin-bottom:16px}
+.ind-about-text p{font-size:1rem;color:#475569;line-height:1.8;margin-bottom:16px}
+.ind-about-text .about-highlights{list-style:none;padding:0;margin:20px 0 0}
+.ind-about-text .about-highlights li{padding:8px 0 8px 28px;position:relative;font-size:14px;color:#334155}
+.ind-about-text .about-highlights li::before{content:'\f00c';font-family:FontAwesome;position:absolute;left:0;top:8px;color:var(--primary);font-size:14px}
+.ind-about-media{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.ind-about-media img{width:100%;height:auto;display:block;border-radius:16px}
+.ind-about-media .video-wrapper{position:relative;padding-bottom:56.25%;height:0;border-radius:16px;overflow:hidden}
+.ind-about-media .video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:16px}
+.ind-about-media .video-play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);cursor:pointer;transition:background .3s;border-radius:16px}
+.ind-about-media .video-play-overlay:hover{background:rgba(0,0,0,.15)}
+.ind-about-media .play-btn{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.ind-about-media .play-btn i{font-size:28px;color:var(--primary);margin-left:4px}
+@media(max-width:768px){
+.ind-about-inner{grid-template-columns:1fr;gap:32px}
+}
 
 /* ===== STATS ===== */
 .ind-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;background:#fff;border-bottom:1px solid #e2e8f0}
@@ -202,7 +272,10 @@ echo "$r2,$g2,$b2";?>,.82))}
 .sub-card__badge .b-store{background:rgba(249,115,22,.9);color:#fff}
 .sub-card__body{padding:20px}
 .sub-card__name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px}
-.sub-card__desc{font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.5}
+.sub-card__desc{font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6}
+.sub-card__cats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.cat-tag{display:inline-block;padding:3px 8px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:11px;color:#475569;white-space:nowrap;transition:all .2s}
+.cat-tag:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
 .sub-card__process{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #f1f5f9}
 .sub-card__process .proc-step{font-size:11px;color:#475569;font-weight:500;white-space:nowrap}
 .sub-card__process .proc-arrow{color:var(--primary);font-size:10px}
@@ -471,6 +544,43 @@ echo "$r2,$g2,$b2";?>,.82))}
 </section>
 <?php endif; ?>
 
+<!-- ===== ABOUT SECTION WITH VIDEO ===== -->
+<?php
+$aboutVideo = $industryData['about_video'] ?? '';
+$aboutPhoto2 = $industryData['about_photo'] ?? ($galleryPhotos[0] ?? $heroPhoto);
+$aboutText = $industryData['about_text'] ?? "The $name industry encompasses a wide range of specialized services and solutions designed to meet the evolving needs of businesses worldwide. From enterprise resource planning to customer management, our platform provides the digital infrastructure needed to compete in today's market.";
+$aboutHighlights = $industryData['about_highlights'] ?? array(
+    'Dedicated ERP workflows aligned to ' . strtolower($name) . ' operations',
+    'Control Panel with industry-specific configuration',
+    count($subIndustries) . ' sub-industries covered — each with custom storefront',
+    'Integration-ready: connects with existing tools and processes',
+    'Demo environment with sample data — try before you commit'
+);
+?>
+<section class="ind-about reveal" id="about-section">
+<div class="ind-about-inner">
+<div class="ind-about-text">
+<h2>About <?php echo htmlspecialchars($name);?></h2>
+<p><?php echo htmlspecialchars($aboutText);?></p>
+<p>Our platform serves <strong><?php echo count($subIndustries);?> specialized sub-industries</strong> within <?php echo htmlspecialchars(strtolower($name));?>, each with tailored ERP processes, storefront templates, and Control Panel configurations.</p>
+<ul class="about-highlights">
+<?php foreach($aboutHighlights as $highlight): ?>
+<li><?php echo htmlspecialchars($highlight);?></li>
+<?php endforeach; ?>
+</ul>
+</div>
+<div class="ind-about-media">
+<?php if($aboutVideo): ?>
+<div class="video-wrapper">
+<iframe src="<?php echo htmlspecialchars($aboutVideo);?>" title="<?php echo htmlspecialchars($name);?> — Industry Overview" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+</div>
+<?php else: ?>
+<img src="<?php echo htmlspecialchars($aboutPhoto2);?>" alt="About <?php echo htmlspecialchars($name);?> — Industry Overview" loading="lazy">
+<?php endif; ?>
+</div>
+</div>
+</section>
+
 <!-- ===== PRODUCTS ===== -->
 <?php if(!empty($products)): ?>
 <section class="ind-products reveal" id="products">
@@ -563,14 +673,15 @@ foreach($subIndustries as $si => $sub):
     $subPhoto = $subData ? $subData['photo'] : '';
     $subDesc = $subData ? $subData['desc'] : 'Specialized solutions for ' . strtolower($sub);
     $subProds = ($subData && isset($subData['products'])) ? $subData['products'] : array();
+    $subCats = ($subData && isset($subData['categories'])) ? $subData['categories'] : array();
     
     // Generate business process steps from sub-industry name
     $processSteps = array('Discovery','Configure','Deploy','Operate','Optimize');
 ?>
-<div class="sub-card reveal" data-group="group-<?php echo $currentGroup;?>">
+<div class="sub-card reveal" data-group="group-<?php echo $currentGroup;?>" itemscope itemtype="https://schema.org/Service">
 <div class="sub-card__img">
 <?php if($subPhoto): ?>
-<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?>" loading="lazy">
+<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?> — <?php echo htmlspecialchars($name);?>" loading="lazy" itemprop="image">
 <?php else: ?>
 <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center"><i class="fa <?php echo htmlspecialchars($icon);?>" style="font-size:3rem;color:rgba(255,255,255,.5)"></i></div>
 <?php endif; ?>
@@ -581,8 +692,17 @@ foreach($subIndustries as $si => $sub):
 </div>
 </div>
 <div class="sub-card__body">
-<div class="sub-card__name"><?php echo htmlspecialchars($sub);?></div>
-<div class="sub-card__desc"><?php echo htmlspecialchars($subDesc);?></div>
+<h3 class="sub-card__name" itemprop="name"><?php echo htmlspecialchars($sub);?></h3>
+<p class="sub-card__desc" itemprop="description"><?php echo htmlspecialchars($subDesc);?></p>
+
+<!-- Product Categories -->
+<?php if(!empty($subCats)): ?>
+<div class="sub-card__cats">
+<?php foreach(array_slice($subCats, 0, 6) as $cat): ?>
+<span class="cat-tag"><?php echo htmlspecialchars($cat);?></span>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
 
 <!-- Business Process Flow -->
 <div class="sub-card__process">
@@ -596,10 +716,10 @@ foreach($subIndustries as $si => $sub):
 <?php if(!empty($subProds)): ?>
 <div class="sub-card__products">
 <?php foreach(array_slice($subProds, 0, 3) as $sp): ?>
-<div class="sub-prod">
+<div class="sub-prod" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
 <img src="<?php echo $sp['image'];?>" alt="<?php echo htmlspecialchars($sp['name']);?>" loading="lazy">
-<div class="sp-name"><?php echo htmlspecialchars($sp['name']);?></div>
-<div class="sp-price"><?php echo $sp['price'];?></div>
+<div class="sp-name" itemprop="name"><?php echo htmlspecialchars($sp['name']);?></div>
+<div class="sp-price" itemprop="price"><?php echo $sp['price'];?></div>
 </div>
 <?php endforeach; ?>
 </div>

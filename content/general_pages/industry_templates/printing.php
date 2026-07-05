@@ -73,127 +73,137 @@ $industryData = array(
 		'Label & barcode printing',
 		'Cup & merchandise printing',
 	),
-	'sub_industry_products' => array(
-		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized commercial printing solutions','products'=>array(
-			array('name'=>'Commercial printing Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Commercial printing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Commercial printing Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The printing and signage industry covers commercial printing, digital printing, large-format signage, packaging, and promotional products. With job-based costing, complex estimating, prepress workflows, and equipment scheduling, print businesses need MIS (Management Information Systems) tailored to production workflows. Our platform provides web-to-print integration, job tracking from estimate through production to delivery, and substrate inventory management.',
+    'about_highlights' => array(
+        'Job estimation with substrate, ink, and labor cost calculation',
+        'Production scheduling with press allocation and deadline tracking',
+        'Web-to-print storefront with template customization and proofing',
+        'Prepress workflow with file management and color proofing',
+        'Substrate and consumables inventory with minimum stock alerts',
+    ),
+
+'sub_industry_products' => array(
+		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Commercial printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Commercial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Commercial Printing Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Commercial Printing Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Commercial Printing Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Large format & signage' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized large format & signage solutions','products'=>array(
-			array('name'=>'Large format & signage Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Large format & signage Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Large format & signage Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Large format & signage' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Large format & signage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Large Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Large Format Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Large Format Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Large Format Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Packaging & labels' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized packaging & labels solutions','products'=>array(
-			array('name'=>'Packaging & labels Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Packaging & labels Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Packaging & labels Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Packaging & labels' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Packaging & labels operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Packaging Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Packaging Labels Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Packaging Labels Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Packaging Labels Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Digital printing' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized digital printing solutions','products'=>array(
-			array('name'=>'Digital printing Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Digital printing Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Digital printing Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Digital printing' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Digital printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Digital Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Digital Printing Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Digital Printing Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Digital Printing Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Screen printing & embroidery' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized screen printing & embroidery solutions','products'=>array(
-			array('name'=>'Screen printing & embroidery Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Screen printing & embroidery Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Screen printing & embroidery Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'Screen printing & embroidery' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Screen printing & embroidery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Screen Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Screen Printing Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Screen Printing Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Screen Printing Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Banner & display' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized banner & display solutions','products'=>array(
-			array('name'=>'Banner & display Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Banner & display Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Banner & display Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Banner & display' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Banner & display operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Banner Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Banner Display Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Banner Display Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Banner Display Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Promotional products' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized promotional products solutions','products'=>array(
-			array('name'=>'Promotional products Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Promotional products Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Promotional products Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Promotional products' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Promotional products operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Promotional Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Promotional Products Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Promotional Products Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Promotional Products Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Bookbinding & finishing' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized bookbinding & finishing solutions','products'=>array(
-			array('name'=>'Bookbinding & finishing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Bookbinding & finishing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Bookbinding & finishing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Bookbinding & finishing' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Bookbinding & finishing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Bookbinding Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bookbinding Finishing Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Bookbinding Finishing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Bookbinding Finishing Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Offset printing' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized offset printing solutions','products'=>array(
-			array('name'=>'Offset printing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Offset printing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Offset printing Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Offset printing' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Offset printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Offset Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Offset Printing Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Offset Printing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Offset Printing Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Gift & personalized items' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized gift & personalized items solutions','products'=>array(
-			array('name'=>'Gift & personalized items Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Gift & personalized items Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Gift & personalized items Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Gift & personalized items' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Gift & personalized items operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Gift Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Gift Personalized Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Gift Personalized Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Gift Personalized Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
 
-		'3D printing services' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Specialized 3d printing services solutions','products'=>array(
-			array('name'=>'3D printing services Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
-			array('name'=>'3D printing services Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
-			array('name'=>'3D printing services Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+		'3D printing services' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'3D printing services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('3D Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'3D Printing Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'3D Printing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'3D Printing Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
 		)),
-		'Textile printing & sublimation' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Specialized textile printing & sublimation solutions','products'=>array(
-			array('name'=>'Textile printing & sublimation Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
-			array('name'=>'Textile printing & sublimation Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
-			array('name'=>'Textile printing & sublimation Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+		'Textile printing & sublimation' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Textile printing & sublimation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Textile Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Textile Printing Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Textile Printing Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Textile Printing Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
 		)),
-		'Photo printing & lab' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Specialized photo printing & lab solutions','products'=>array(
-			array('name'=>'Photo printing & lab Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
-			array('name'=>'Photo printing & lab Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
-			array('name'=>'Photo printing & lab Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+		'Photo printing & lab' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Photo printing & lab operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Photo Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Photo Printing Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Photo Printing Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Photo Printing Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
 		)),
-		'Newspaper & periodical printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Specialized newspaper & periodical printing solutions','products'=>array(
-			array('name'=>'Newspaper & periodical printing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
-			array('name'=>'Newspaper & periodical printing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
-			array('name'=>'Newspaper & periodical printing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+		'Newspaper & periodical printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Newspaper & periodical printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Newspaper Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Newspaper Periodical Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Newspaper Periodical Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Newspaper Periodical Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
 		)),
-		'Engraving & laser etching' => array('photo'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75','desc'=>'Specialized engraving & laser etching solutions','products'=>array(
-			array('name'=>'Engraving & laser etching Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
-			array('name'=>'Engraving & laser etching Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
-			array('name'=>'Engraving & laser etching Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+		'Engraving & laser etching' => array('photo'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75','desc'=>'Engraving & laser etching operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Engraving Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Engraving Laser Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Engraving Laser Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Engraving Laser Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
 		)),
-		'Stamp & seal making' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Specialized stamp & seal making solutions','products'=>array(
-			array('name'=>'Stamp & seal making Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
-			array('name'=>'Stamp & seal making Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
-			array('name'=>'Stamp & seal making Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+		'Stamp & seal making' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Stamp & seal making operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Stamp Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Stamp Seal Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Stamp Seal Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Stamp Seal Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
 		)),
-		'Corrugated box manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Specialized corrugated box manufacturing solutions','products'=>array(
-			array('name'=>'Corrugated box manufacturing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
-			array('name'=>'Corrugated box manufacturing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
-			array('name'=>'Corrugated box manufacturing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+		'Corrugated box manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Corrugated box manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Corrugated Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Corrugated Box Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Corrugated Box Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Corrugated Box Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
 		)),
-		'Business card & stationery' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Specialized business card & stationery solutions','products'=>array(
-			array('name'=>'Business card & stationery Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
-			array('name'=>'Business card & stationery Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
-			array('name'=>'Business card & stationery Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+		'Business card & stationery' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Business card & stationery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Business Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Business Card Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Business Card Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Business Card Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
 		)),
-		'Vehicle wrap printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Specialized vehicle wrap printing solutions','products'=>array(
-			array('name'=>'Vehicle wrap printing Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
-			array('name'=>'Vehicle wrap printing Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
-			array('name'=>'Vehicle wrap printing Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+		'Vehicle wrap printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Vehicle wrap printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Vehicle Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Vehicle Wrap Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Vehicle Wrap Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Vehicle Wrap Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
 		)),
-		'Wallpaper & mural printing' => array('photo'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75','desc'=>'Specialized wallpaper & mural printing solutions','products'=>array(
-			array('name'=>'Wallpaper & mural printing Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
-			array('name'=>'Wallpaper & mural printing Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
-			array('name'=>'Wallpaper & mural printing Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+		'Wallpaper & mural printing' => array('photo'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75','desc'=>'Wallpaper & mural printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Wallpaper Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wallpaper Mural Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Wallpaper Mural Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Wallpaper Mural Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
 		)),
-		'Braille & accessible printing' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Specialized braille & accessible printing solutions','products'=>array(
-			array('name'=>'Braille & accessible printing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
-			array('name'=>'Braille & accessible printing Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
-			array('name'=>'Braille & accessible printing Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+		'Braille & accessible printing' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Braille & accessible printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Braille Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Braille Accessible Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Braille Accessible Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Braille Accessible Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
 		)),
-		'Security printing (certificates)' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Specialized security printing (certificates) solutions','products'=>array(
-			array('name'=>'Security printing (certificates) Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
-			array('name'=>'Security printing (certificates) Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
-			array('name'=>'Security printing (certificates) Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+		'Security printing (certificates)' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Security printing (certificates) operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Security Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Security Printing Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Security Printing Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Security Printing Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
 		)),
-		'Label & barcode printing' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Specialized label & barcode printing solutions','products'=>array(
-			array('name'=>'Label & barcode printing Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
-			array('name'=>'Label & barcode printing Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
-			array('name'=>'Label & barcode printing Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+		'Label & barcode printing' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Label & barcode printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Label Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Label Barcode Management Platform','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Label Barcode Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Label Barcode Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
 		)),
-		'Cup & merchandise printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Specialized cup & merchandise printing solutions','products'=>array(
-			array('name'=>'Cup & merchandise printing Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
-			array('name'=>'Cup & merchandise printing Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
-			array('name'=>'Cup & merchandise printing Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+		'Cup & merchandise printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Cup & merchandise printing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with printing industry standards and best practices','categories'=>array('Cup Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cup Merchandise Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Cup Merchandise Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Cup Merchandise Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Online proofing eliminated 90% of reprints due to client miscommunication.', 'author' => 'Print Shop Owner, Al Quoz Industrial'),

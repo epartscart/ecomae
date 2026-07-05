@@ -74,132 +74,142 @@ $industryData = array(
 		'District cooling & heating',
 		'Energy efficiency solutions',
 	),
-	'sub_industry_products' => array(
-		'Power generation' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized power generation solutions','products'=>array(
-			array('name'=>'Power generation Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Power generation Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
-			array('name'=>'Power generation Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+    'about_text' => 'The energy and utilities sector encompasses power generation, oil and gas, renewable energy, water treatment, and utility distribution. This highly regulated industry requires asset management, SCADA integration, regulatory compliance, preventive maintenance, and grid management capabilities. Our platform supports energy companies with plant maintenance scheduling, outage management, meter data analytics, and environmental compliance reporting.',
+    'about_highlights' => array(
+        'Asset lifecycle management with predictive maintenance scheduling',
+        'Regulatory compliance tracking for environmental and safety standards',
+        'Meter data management with consumption analytics and billing',
+        'Renewable energy project tracking with ROI and capacity planning',
+        'Field workforce management with mobile work orders and safety permits',
+    ),
+
+'sub_industry_products' => array(
+		'Power generation' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Power generation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Power Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Power Generation Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Power Generation Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
+			array('name'=>'Power Generation Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 		)),
-		'Energy distribution' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized energy distribution solutions','products'=>array(
-			array('name'=>'Energy distribution Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75'),
-			array('name'=>'Energy distribution Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
-			array('name'=>'Energy distribution Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
+		'Energy distribution' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Energy distribution operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Energy Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Energy Distribution Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75'),
+			array('name'=>'Energy Distribution Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
+			array('name'=>'Energy Distribution Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
 		)),
-		'Utility billing' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Specialized utility billing solutions','products'=>array(
-			array('name'=>'Utility billing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'Utility billing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
-			array('name'=>'Utility billing Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
+		'Utility billing' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Utility billing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Utility Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Utility Billing Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Utility Billing Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
+			array('name'=>'Utility Billing Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
 		)),
-		'Solar energy' => array('photo'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75','desc'=>'Specialized solar energy solutions','products'=>array(
-			array('name'=>'Solar energy Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
-			array('name'=>'Solar energy Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
-			array('name'=>'Solar energy Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
+		'Solar energy' => array('photo'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75','desc'=>'Solar energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Solar Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Solar Energy Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
+			array('name'=>'Solar Energy Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Solar Energy Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
 		)),
-		'Wind energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Specialized wind energy solutions','products'=>array(
-			array('name'=>'Wind energy Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
-			array('name'=>'Wind energy Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
-			array('name'=>'Wind energy Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+		'Wind energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Wind energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Wind Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wind Energy Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
+			array('name'=>'Wind Energy Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
+			array('name'=>'Wind Energy Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
 		)),
-		'Oil & gas operations' => array('photo'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75','desc'=>'Specialized oil & gas operations solutions','products'=>array(
-			array('name'=>'Oil & gas operations Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
-			array('name'=>'Oil & gas operations Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
-			array('name'=>'Oil & gas operations Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+		'Oil & gas operations' => array('photo'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75','desc'=>'Oil & gas operations operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Oil Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Oil Gas Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
+			array('name'=>'Oil Gas Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
+			array('name'=>'Oil Gas Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
 		)),
-		'Water treatment & utility' => array('photo'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75','desc'=>'Specialized water treatment & utility solutions','products'=>array(
-			array('name'=>'Water treatment & utility Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
-			array('name'=>'Water treatment & utility Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
-			array('name'=>'Water treatment & utility Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		'Water treatment & utility' => array('photo'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75','desc'=>'Water treatment & utility operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Water Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Water Treatment Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Water Treatment Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
+			array('name'=>'Water Treatment Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 		)),
-		'EV charging infrastructure' => array('photo'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75','desc'=>'Specialized ev charging infrastructure solutions','products'=>array(
-			array('name'=>'EV charging infrastructure Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
-			array('name'=>'EV charging infrastructure Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
-			array('name'=>'EV charging infrastructure Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75'),
+		'EV charging infrastructure' => array('photo'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75','desc'=>'EV charging infrastructure operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('EV Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'EV Charging Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
+			array('name'=>'EV Charging Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'EV Charging Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75'),
 		)),
-		'Battery & energy storage' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Specialized battery & energy storage solutions','products'=>array(
-			array('name'=>'Battery & energy storage Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
-			array('name'=>'Battery & energy storage Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'Battery & energy storage Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+		'Battery & energy storage' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Battery & energy storage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Battery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Battery Energy Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
+			array('name'=>'Battery Energy Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Battery Energy Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
 		)),
-		'Nuclear energy' => array('photo'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75','desc'=>'Specialized nuclear energy solutions','products'=>array(
-			array('name'=>'Nuclear energy Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
-			array('name'=>'Nuclear energy Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Nuclear energy Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
+		'Nuclear energy' => array('photo'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75','desc'=>'Nuclear energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Nuclear Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Nuclear Energy Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
+			array('name'=>'Nuclear Energy Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Nuclear Energy Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
 		)),
-		'Biomass & bioenergy' => array('photo'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75','desc'=>'Specialized biomass & bioenergy solutions','products'=>array(
-			array('name'=>'Biomass & bioenergy Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
-			array('name'=>'Biomass & bioenergy Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75'),
-			array('name'=>'Biomass & bioenergy Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
+		'Biomass & bioenergy' => array('photo'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75','desc'=>'Biomass & bioenergy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Biomass Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Biomass Bioenergy Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Biomass Bioenergy Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75'),
+			array('name'=>'Biomass Bioenergy Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
 		)),
-		'Mining & extraction' => array('photo'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75','desc'=>'Specialized mining & extraction solutions','products'=>array(
-			array('name'=>'Mining & extraction Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'Mining & extraction Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'Mining & extraction Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
+		'Mining & extraction' => array('photo'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75','desc'=>'Mining & extraction operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Mining Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Mining Extraction Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Mining Extraction Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Mining Extraction Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
 		)),
-		'Waste-to-energy' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized waste-to-energy solutions','products'=>array(
-			array('name'=>'Waste-to-energy Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Waste-to-energy Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
-			array('name'=>'Waste-to-energy Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		'Waste-to-energy' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Waste-to-energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Waste Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Waste To Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Waste To Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
+			array('name'=>'Waste To Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 		)),
 
-		'Hydrogen energy' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized hydrogen energy solutions','products'=>array(
-			array('name'=>'Hydrogen energy Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'Hydrogen energy Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'Hydrogen energy Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		'Hydrogen energy' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Hydrogen energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Hydrogen Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Hydrogen Energy Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Hydrogen Energy Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Hydrogen Energy Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 		)),
-		'Geothermal energy' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized geothermal energy solutions','products'=>array(
-			array('name'=>'Geothermal energy Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'Geothermal energy Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Geothermal energy Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		'Geothermal energy' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Geothermal energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Geothermal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Geothermal Energy Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Geothermal Energy Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Geothermal Energy Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 		)),
-		'Carbon trading & offsets' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Specialized carbon trading & offsets solutions','products'=>array(
-			array('name'=>'Carbon trading & offsets Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Carbon trading & offsets Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
-			array('name'=>'Carbon trading & offsets Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+		'Carbon trading & offsets' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Carbon trading & offsets operations encompassing order management, customs documentation, trade finance, shipping coordination, quality inspection. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Carbon Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Carbon Trading Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Carbon Trading Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Carbon Trading Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
 		)),
-		'Smart grid management' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Specialized smart grid management solutions','products'=>array(
-			array('name'=>'Smart grid management Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
-			array('name'=>'Smart grid management Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
-			array('name'=>'Smart grid management Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+		'Smart grid management' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Smart grid management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Smart Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Smart Grid Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Smart Grid Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Smart Grid Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
 		)),
-		'Energy audit & consulting' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Specialized energy audit & consulting solutions','products'=>array(
-			array('name'=>'Energy audit & consulting Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
-			array('name'=>'Energy audit & consulting Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'Energy audit & consulting Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+		'Energy audit & consulting' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Energy audit & consulting operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
+			array('name'=>'Energy Audit Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Energy Audit Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Energy Audit Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
 		)),
-		'LPG & gas distribution' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized lpg & gas distribution solutions','products'=>array(
-			array('name'=>'LPG & gas distribution Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'LPG & gas distribution Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'LPG & gas distribution Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		'LPG & gas distribution' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'LPG & gas distribution operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('LPG Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'LPG Gas Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'LPG Gas Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'LPG Gas Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 		)),
-		'Coal mining & processing' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized coal mining & processing solutions','products'=>array(
-			array('name'=>'Coal mining & processing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'Coal mining & processing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Coal mining & processing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		'Coal mining & processing' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Coal mining & processing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Coal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Coal Mining Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Coal Mining Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Coal Mining Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 		)),
-		'Tidal & wave energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Specialized tidal & wave energy solutions','products'=>array(
-			array('name'=>'Tidal & wave energy Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Tidal & wave energy Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
-			array('name'=>'Tidal & wave energy Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+		'Tidal & wave energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Tidal & wave energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Tidal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Tidal Wave Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Tidal Wave Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Tidal Wave Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
 		)),
-		'Electric utility company' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Specialized electric utility company solutions','products'=>array(
-			array('name'=>'Electric utility company Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
-			array('name'=>'Electric utility company Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
-			array('name'=>'Electric utility company Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+		'Electric utility company' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Electric utility company operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Electric Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Electric Utility Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Electric Utility Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Electric Utility Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
 		)),
-		'Fuel retail & petrol station' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Specialized fuel retail & petrol station solutions','products'=>array(
-			array('name'=>'Fuel retail & petrol station Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
-			array('name'=>'Fuel retail & petrol station Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'Fuel retail & petrol station Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+		'Fuel retail & petrol station' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Fuel retail & petrol station operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Fuel Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Fuel Retail Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Fuel Retail Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Fuel Retail Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
 		)),
-		'District cooling & heating' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized district cooling & heating solutions','products'=>array(
-			array('name'=>'District cooling & heating Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
-			array('name'=>'District cooling & heating Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'District cooling & heating Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		'District cooling & heating' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'District cooling & heating operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('District Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'District Cooling Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'District Cooling Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'District Cooling Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 		)),
-		'Energy efficiency solutions' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized energy efficiency solutions solutions','products'=>array(
-			array('name'=>'Energy efficiency solutions Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
-			array('name'=>'Energy efficiency solutions Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
-			array('name'=>'Energy efficiency solutions Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		'Energy efficiency solutions' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Energy efficiency solutions operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Energy Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Energy Efficiency Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Energy Efficiency Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Energy Efficiency Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Predictive maintenance reduced our unplanned downtime by 60%.', 'author' => 'Eng. Nadia K., Power Plant Director, DEWA'),

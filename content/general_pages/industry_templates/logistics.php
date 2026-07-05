@@ -75,137 +75,147 @@ $industryData = array(
 		'Document & legal courier',
 		'Supply chain consulting',
 	),
-	'sub_industry_products' => array(
-		'Freight forwarding' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized freight forwarding solutions','products'=>array(
-			array('name'=>'Freight forwarding Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
-			array('name'=>'Freight forwarding Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
-			array('name'=>'Freight forwarding Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The logistics and transport industry moves goods worth trillions of dollars globally through road, rail, sea, and air networks. From 3PL providers to freight forwarders, courier services, and warehouse operators, this sector requires shipment tracking, fleet management, route optimization, and customs documentation. Our platform provides end-to-end visibility from pickup to delivery with real-time GPS tracking, proof of delivery, and carrier rate management.',
+    'about_highlights' => array(
+        'Real-time shipment tracking with GPS fleet monitoring',
+        'Route optimization with multi-stop planning and driver allocation',
+        'Warehouse management with pick/pack/ship and zone allocation',
+        'Freight rate management with carrier comparison and booking',
+        'Customs documentation with HS code classification and compliance',
+    ),
+
+'sub_industry_products' => array(
+		'Freight forwarding' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Freight forwarding operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Freight Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Freight Forwarding Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Freight Forwarding Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+			array('name'=>'Freight Forwarding Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
 		)),
-		'Warehousing & 3PL' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized warehousing & 3pl solutions','products'=>array(
-			array('name'=>'Warehousing & 3PL Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Warehousing & 3PL Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
-			array('name'=>'Warehousing & 3PL Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		'Warehousing & 3PL' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Warehousing & 3PL operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Warehousing Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Warehousing 3PL Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Warehousing 3PL Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+			array('name'=>'Warehousing 3PL Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
 		)),
-		'Shipment tracking' => array('photo'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75','desc'=>'Specialized shipment tracking solutions','products'=>array(
-			array('name'=>'Shipment tracking Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
-			array('name'=>'Shipment tracking Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Shipment tracking Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+		'Shipment tracking' => array('photo'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75','desc'=>'Shipment tracking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Shipment Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Shipment Tracking Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
+			array('name'=>'Shipment Tracking Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Shipment Tracking Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
 		)),
-		'Courier & parcel' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized courier & parcel solutions','products'=>array(
-			array('name'=>'Courier & parcel Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
-			array('name'=>'Courier & parcel Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Courier & parcel Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
+		'Courier & parcel' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Courier & parcel operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Courier Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Courier Parcel Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+			array('name'=>'Courier Parcel Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Courier Parcel Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
 		)),
-		'Trucking & road freight' => array('photo'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75','desc'=>'Specialized trucking & road freight solutions','products'=>array(
-			array('name'=>'Trucking & road freight Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
-			array('name'=>'Trucking & road freight Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Trucking & road freight Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		'Trucking & road freight' => array('photo'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75','desc'=>'Trucking & road freight operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Trucking Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Trucking Road Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+			array('name'=>'Trucking Road Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Trucking Road Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
 		)),
-		'Sea freight & container' => array('photo'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75','desc'=>'Specialized sea freight & container solutions','products'=>array(
-			array('name'=>'Sea freight & container Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Sea freight & container Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
-			array('name'=>'Sea freight & container Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		'Sea freight & container' => array('photo'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75','desc'=>'Sea freight & container operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Sea Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Sea Freight Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Sea Freight Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+			array('name'=>'Sea Freight Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
 		)),
-		'Air cargo & express' => array('photo'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75','desc'=>'Specialized air cargo & express solutions','products'=>array(
-			array('name'=>'Air cargo & express Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Air cargo & express Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
-			array('name'=>'Air cargo & express Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+		'Air cargo & express' => array('photo'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75','desc'=>'Air cargo & express operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Air Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Air Cargo Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Air Cargo Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
+			array('name'=>'Air Cargo Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
 		)),
-		'Customs brokerage' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized customs brokerage solutions','products'=>array(
-			array('name'=>'Customs brokerage Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
-			array('name'=>'Customs brokerage Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Customs brokerage Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		'Customs brokerage' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Customs brokerage operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Customs Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Customs Brokerage Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Customs Brokerage Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Customs Brokerage Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 		)),
-		'Cold chain logistics' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Specialized cold chain logistics solutions','products'=>array(
-			array('name'=>'Cold chain logistics Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
-			array('name'=>'Cold chain logistics Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
-			array('name'=>'Cold chain logistics Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
+		'Cold chain logistics' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Cold chain logistics operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Cold Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cold Chain Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+			array('name'=>'Cold Chain Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Cold Chain Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
 		)),
-		'Last-mile delivery' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Specialized last-mile delivery solutions','products'=>array(
-			array('name'=>'Last-mile delivery Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
-			array('name'=>'Last-mile delivery Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
-			array('name'=>'Last-mile delivery Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+		'Last-mile delivery' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Last-mile delivery operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Last Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Last Mile Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
+			array('name'=>'Last Mile Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Last Mile Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
 		)),
-		'Moving & relocation' => array('photo'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75','desc'=>'Specialized moving & relocation solutions','products'=>array(
-			array('name'=>'Moving & relocation Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Moving & relocation Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Moving & relocation Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+		'Moving & relocation' => array('photo'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75','desc'=>'Moving & relocation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Moving Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Moving Relocation Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Moving Relocation Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Moving Relocation Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
 		)),
-		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75','desc'=>'Specialized fleet management solutions','products'=>array(
-			array('name'=>'Fleet management Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
-			array('name'=>'Fleet management Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
-			array('name'=>'Fleet management Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75','desc'=>'Corporate fleet operations: vehicle acquisition planning, driver assignment, fuel card management, telematics-based driver scoring, TCO analysis, maintenance scheduling, and end-of-life remarketing','categories'=>array('Fleet Solutions','Core Services','Professional Tier','Add-On Modules','Analytics','Support'),'products'=>array(
+			array('name'=>'Fleet Management Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Fleet Management Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
+			array('name'=>'Fleet Management Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
 		)),
-		'Rail freight' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized rail freight solutions','products'=>array(
-			array('name'=>'Rail freight Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
-			array('name'=>'Rail freight Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
-			array('name'=>'Rail freight Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		'Rail freight' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Rail freight operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Rail Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Rail Freight Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Rail Freight Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+			array('name'=>'Rail Freight Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
 		)),
-		'Pipeline transport' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized pipeline transport solutions','products'=>array(
-			array('name'=>'Pipeline transport Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Pipeline transport Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
-			array('name'=>'Pipeline transport Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		'Pipeline transport' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Pipeline transport operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Pipeline Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pipeline Transport Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Pipeline Transport Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+			array('name'=>'Pipeline Transport Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
 		)),
 
-		'Postal services' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized postal services solutions','products'=>array(
-			array('name'=>'Postal services Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Postal services Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Postal services Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		'Postal services' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Postal services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Postal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Postal Services Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Postal Services Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Postal Services Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
 		)),
-		'Drone delivery' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized drone delivery solutions','products'=>array(
-			array('name'=>'Drone delivery Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Drone delivery Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Drone delivery Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		'Drone delivery' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Drone delivery operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Drone Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Drone Delivery Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Drone Delivery Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Drone Delivery Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 		)),
-		'Hazmat transport' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized hazmat transport solutions','products'=>array(
-			array('name'=>'Hazmat transport Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Hazmat transport Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Hazmat transport Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		'Hazmat transport' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Hazmat transport operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Hazmat Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Hazmat Transport Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Hazmat Transport Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Hazmat Transport Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
 		)),
-		'Ship brokerage & chartering' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Specialized ship brokerage & chartering solutions','products'=>array(
-			array('name'=>'Ship brokerage & chartering Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Ship brokerage & chartering Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
-			array('name'=>'Ship brokerage & chartering Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		'Ship brokerage & chartering' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Ship brokerage & chartering operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Ship Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Ship Brokerage Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Ship Brokerage Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Ship Brokerage Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
 		)),
-		'Port & terminal operations' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized port & terminal operations solutions','products'=>array(
-			array('name'=>'Port & terminal operations Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
-			array('name'=>'Port & terminal operations Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Port & terminal operations Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		'Port & terminal operations' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Port & terminal operations operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Port Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Port Terminal Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Port Terminal Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Port Terminal Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
 		)),
-		'Bonded warehousing' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized bonded warehousing solutions','products'=>array(
-			array('name'=>'Bonded warehousing Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Bonded warehousing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Bonded warehousing Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		'Bonded warehousing' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Bonded warehousing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Bonded Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bonded Warehousing Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Bonded Warehousing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Bonded Warehousing Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
 		)),
-		'Returns & reverse logistics' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized returns & reverse logistics solutions','products'=>array(
-			array('name'=>'Returns & reverse logistics Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Returns & reverse logistics Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Returns & reverse logistics Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		'Returns & reverse logistics' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Returns & reverse logistics operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Returns Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Returns Reverse Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Returns Reverse Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Returns Reverse Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 		)),
-		'Cross-border e-commerce logistics' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized cross-border e-commerce logistics solutions','products'=>array(
-			array('name'=>'Cross-border e-commerce logistics Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Cross-border e-commerce logistics Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Cross-border e-commerce logistics Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		'Cross-border e-commerce logistics' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Cross-border e-commerce logistics operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Cross Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cross Border Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Cross Border Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Cross Border Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
 		)),
-		'Bulk cargo & dry bulk' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Specialized bulk cargo & dry bulk solutions','products'=>array(
-			array('name'=>'Bulk cargo & dry bulk Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
-			array('name'=>'Bulk cargo & dry bulk Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
-			array('name'=>'Bulk cargo & dry bulk Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		'Bulk cargo & dry bulk' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Bulk cargo & dry bulk operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Bulk Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bulk Cargo Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Bulk Cargo Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Bulk Cargo Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
 		)),
-		'Livestock transport' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized livestock transport solutions','products'=>array(
-			array('name'=>'Livestock transport Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
-			array('name'=>'Livestock transport Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Livestock transport Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		'Livestock transport' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Livestock transport operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Livestock Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Livestock Transport Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Livestock Transport Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Livestock Transport Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
 		)),
-		'Document & legal courier' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized document & legal courier solutions','products'=>array(
-			array('name'=>'Document & legal courier Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
-			array('name'=>'Document & legal courier Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Document & legal courier Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		'Document & legal courier' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Document & legal courier operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Document Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Document Legal Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Document Legal Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Document Legal Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
 		)),
-		'Supply chain consulting' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized supply chain consulting solutions','products'=>array(
-			array('name'=>'Supply chain consulting Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
-			array('name'=>'Supply chain consulting Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
-			array('name'=>'Supply chain consulting Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		'Supply chain consulting' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Supply chain consulting operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with logistics industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
+			array('name'=>'Supply Chain Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Supply Chain Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Supply Chain Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Route optimization cut our fuel costs by 25% across 120 vehicles.', 'author' => 'Abdullah M., Logistics Manager, Jebel Ali'),

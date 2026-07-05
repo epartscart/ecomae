@@ -73,127 +73,137 @@ $industryData = array(
 		'Stone & facade cleaning',
 		'Tank & silo cleaning',
 	),
-	'sub_industry_products' => array(
-		'Commercial cleaning' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized commercial cleaning solutions','products'=>array(
-			array('name'=>'Commercial cleaning Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Commercial cleaning Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Commercial cleaning Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The cleaning and maintenance industry provides essential services across residential, commercial, and industrial sectors. From janitorial companies to specialized restoration services, this industry requires workforce scheduling, supply inventory management, quality inspection workflows, and contract management. Modern cleaning businesses leverage IoT-connected equipment, route optimization, and digital quality audits to deliver consistent service across multiple locations.',
+    'about_highlights' => array(
+        'Workforce scheduling with route optimization and GPS tracking',
+        'Contract management with SLA compliance and automated billing',
+        'Chemical and supply inventory with MSDS compliance tracking',
+        'Quality inspection checklists with photo documentation',
+        'Equipment maintenance schedules with IoT sensor integration',
+    ),
+
+'sub_industry_products' => array(
+		'Commercial cleaning' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Commercial cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Commercial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Commercial Cleaning Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Commercial Cleaning Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Commercial Cleaning Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Residential cleaning' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized residential cleaning solutions','products'=>array(
-			array('name'=>'Residential cleaning Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Residential cleaning Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Residential cleaning Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Residential cleaning' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Residential cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Residential Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Residential Cleaning Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Residential Cleaning Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Residential Cleaning Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Job scheduling' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized job scheduling solutions','products'=>array(
-			array('name'=>'Job scheduling Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Job scheduling Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Job scheduling Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Job scheduling' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Job scheduling operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Job Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Job Scheduling Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Job Scheduling Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Job Scheduling Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Pest control' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized pest control solutions','products'=>array(
-			array('name'=>'Pest control Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Pest control Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Pest control Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Pest control' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Pest control operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Pest Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pest Control Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Pest Control Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Pest Control Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Waste management & recycling' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized waste management & recycling solutions','products'=>array(
-			array('name'=>'Waste management & recycling Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Waste management & recycling Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Waste management & recycling Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'Waste management & recycling' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Waste management & recycling operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Waste Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Waste Management Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Waste Management Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Waste Management Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Window cleaning' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized window cleaning solutions','products'=>array(
-			array('name'=>'Window cleaning Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Window cleaning Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Window cleaning Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Window cleaning' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Window cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Window Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Window Cleaning Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Window Cleaning Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Window Cleaning Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Carpet & upholstery' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized carpet & upholstery solutions','products'=>array(
-			array('name'=>'Carpet & upholstery Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Carpet & upholstery Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Carpet & upholstery Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Carpet & upholstery' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Carpet & upholstery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Carpet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Carpet Upholstery Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Carpet Upholstery Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Carpet Upholstery Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Industrial cleaning' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized industrial cleaning solutions','products'=>array(
-			array('name'=>'Industrial cleaning Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Industrial cleaning Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Industrial cleaning Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Industrial cleaning' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Industrial cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Industrial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Industrial Cleaning Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Industrial Cleaning Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Industrial Cleaning Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Sanitization & disinfection' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized sanitization & disinfection solutions','products'=>array(
-			array('name'=>'Sanitization & disinfection Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Sanitization & disinfection Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Sanitization & disinfection Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Sanitization & disinfection' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Sanitization & disinfection operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Sanitization Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Sanitization Disinfection Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Sanitization Disinfection Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Sanitization Disinfection Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Landscape maintenance' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized landscape maintenance solutions','products'=>array(
-			array('name'=>'Landscape maintenance Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Landscape maintenance Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Landscape maintenance Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Landscape maintenance' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Landscape maintenance operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Preventive Maintenance','Emergency Repairs','Replacement Parts','Service Contracts','Diagnostics','Warranty Work'),'products'=>array(
+			array('name'=>'Landscape Maintenance Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Landscape Maintenance Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Landscape Maintenance Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
-		'Pool maintenance' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized pool maintenance solutions','products'=>array(
-			array('name'=>'Pool maintenance Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Pool maintenance Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Pool maintenance Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
+		'Pool maintenance' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Pool maintenance operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Preventive Maintenance','Emergency Repairs','Replacement Parts','Service Contracts','Diagnostics','Warranty Work'),'products'=>array(
+			array('name'=>'Pool Maintenance Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Pool Maintenance Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Pool Maintenance Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
 		)),
-		'HVAC maintenance' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Specialized hvac maintenance solutions','products'=>array(
-			array('name'=>'HVAC maintenance Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'HVAC maintenance Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
-			array('name'=>'HVAC maintenance Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		'HVAC maintenance' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'HVAC maintenance operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Preventive Maintenance','Emergency Repairs','Replacement Parts','Service Contracts','Diagnostics','Warranty Work'),'products'=>array(
+			array('name'=>'HVAC Maintenance Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'HVAC Maintenance Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+			array('name'=>'HVAC Maintenance Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
 
-		'Laundry & dry cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Specialized laundry & dry cleaning solutions','products'=>array(
-			array('name'=>'Laundry & dry cleaning Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Laundry & dry cleaning Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Laundry & dry cleaning Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+		'Laundry & dry cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Laundry & dry cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Laundry Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Laundry Dry Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Laundry Dry Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Laundry Dry Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
 		)),
-		'Chimney sweeping' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized chimney sweeping solutions','products'=>array(
-			array('name'=>'Chimney sweeping Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Chimney sweeping Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
-			array('name'=>'Chimney sweeping Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+		'Chimney sweeping' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Chimney sweeping operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Chimney Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Chimney Sweeping Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Chimney Sweeping Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Chimney Sweeping Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
 		)),
-		'Mold & asbestos removal' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Specialized mold & asbestos removal solutions','products'=>array(
-			array('name'=>'Mold & asbestos removal Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
-			array('name'=>'Mold & asbestos removal Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
-			array('name'=>'Mold & asbestos removal Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+		'Mold & asbestos removal' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Mold & asbestos removal operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Mold Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Mold Asbestos Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Mold Asbestos Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Mold Asbestos Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
 		)),
-		'Hazardous waste cleanup' => array('photo'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75','desc'=>'Specialized hazardous waste cleanup solutions','products'=>array(
-			array('name'=>'Hazardous waste cleanup Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
-			array('name'=>'Hazardous waste cleanup Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
-			array('name'=>'Hazardous waste cleanup Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		'Hazardous waste cleanup' => array('photo'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75','desc'=>'Hazardous waste cleanup operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Hazardous Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Hazardous Waste Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Hazardous Waste Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Hazardous Waste Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 		)),
-		'Pressure washing' => array('photo'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75','desc'=>'Specialized pressure washing solutions','products'=>array(
-			array('name'=>'Pressure washing Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
-			array('name'=>'Pressure washing Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Pressure washing Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		'Pressure washing' => array('photo'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75','desc'=>'Pressure washing operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Pressure Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pressure Washing Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Pressure Washing Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Pressure Washing Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 		)),
-		'Air duct cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Specialized air duct cleaning solutions','products'=>array(
-			array('name'=>'Air duct cleaning Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Air duct cleaning Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Air duct cleaning Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+		'Air duct cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Air duct cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Air Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Air Duct Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Air Duct Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Air Duct Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
 		)),
-		'Graffiti removal' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized graffiti removal solutions','products'=>array(
-			array('name'=>'Graffiti removal Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Graffiti removal Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
-			array('name'=>'Graffiti removal Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+		'Graffiti removal' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Graffiti removal operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Graffiti Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Graffiti Removal Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Graffiti Removal Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Graffiti Removal Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
 		)),
-		'Post-construction cleaning' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Specialized post-construction cleaning solutions','products'=>array(
-			array('name'=>'Post-construction cleaning Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
-			array('name'=>'Post-construction cleaning Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
-			array('name'=>'Post-construction cleaning Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+		'Post-construction cleaning' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Post-construction cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Post Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Post Construction Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Post Construction Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Post Construction Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
 		)),
-		'Vehicle detailing & valet' => array('photo'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75','desc'=>'Specialized vehicle detailing & valet solutions','products'=>array(
-			array('name'=>'Vehicle detailing & valet Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
-			array('name'=>'Vehicle detailing & valet Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
-			array('name'=>'Vehicle detailing & valet Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		'Vehicle detailing & valet' => array('photo'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75','desc'=>'Vehicle detailing & valet operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Vehicle Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Vehicle Detailing Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Vehicle Detailing Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Vehicle Detailing Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 		)),
-		'Bin & chute cleaning' => array('photo'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75','desc'=>'Specialized bin & chute cleaning solutions','products'=>array(
-			array('name'=>'Bin & chute cleaning Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
-			array('name'=>'Bin & chute cleaning Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Bin & chute cleaning Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		'Bin & chute cleaning' => array('photo'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75','desc'=>'Bin & chute cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Bin Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bin Chute Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Bin Chute Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Bin Chute Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 		)),
-		'Stone & facade cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Specialized stone & facade cleaning solutions','products'=>array(
-			array('name'=>'Stone & facade cleaning Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Stone & facade cleaning Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Stone & facade cleaning Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+		'Stone & facade cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Stone & facade cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Stone Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Stone Facade Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Stone Facade Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Stone Facade Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
 		)),
-		'Tank & silo cleaning' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized tank & silo cleaning solutions','products'=>array(
-			array('name'=>'Tank & silo cleaning Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Tank & silo cleaning Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
-			array('name'=>'Tank & silo cleaning Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+		'Tank & silo cleaning' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Tank & silo cleaning operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with cleaning services industry standards and best practices','categories'=>array('Tank Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Tank Silo Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Tank Silo Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Tank Silo Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Route optimization saved 2 hours daily per crew — huge cost savings.', 'author' => 'Operations Manager, Cleaning Company, Abu Dhabi'),

@@ -76,142 +76,152 @@ $industryData = array(
 		'Auto finance & leasing broker',
 		'Classic & vintage car restoration',
 	),
-	'sub_industry_products' => array(
-		'Parts catalog & cross-references' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized parts catalog & cross-references solutions','products'=>array(
-			array('name'=>'Parts catalog & cross-references Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
-			array('name'=>'Parts catalog & cross-references Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
-			array('name'=>'Parts catalog & cross-references Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/b1zvrRkE8DA',
+    'about_text' => 'The automotive industry spans vehicle manufacturing, parts distribution, dealership networks, aftermarket services, and fleet management. With over 80 million vehicles produced annually worldwide, this sector demands sophisticated inventory management, cross-referencing databases like TecDoc, warranty tracking, and multi-location parts logistics. Our platform supports everything from independent workshops to multi-brand dealer groups with tailored ERP processes.',
+    'about_highlights' => array(
+        'TecDoc and OE parts cross-reference with VIN-based fitment',
+        'Workshop job card management with bay scheduling and labor tracking',
+        'Dealership DMS integration for sales, F&I, and post-sale CRM',
+        'Fleet maintenance contracts with SLA monitoring and alerts',
+        'Multi-warehouse inventory with real-time stock availability',
+    ),
+
+'sub_industry_products' => array(
+		'Parts catalog & cross-references' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'OEM and aftermarket parts lookup with cross-reference databases (TecDoc, Partslink). Covers engine, transmission, brakes, electrical, and body panels with VIN-based fitment verification','categories'=>array('Parts Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Parts Catalog Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
+			array('name'=>'Parts Catalog Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
+			array('name'=>'Parts Catalog Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
 		)),
-		'Workshop / garage management' => array('photo'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75','desc'=>'Specialized workshop / garage management solutions','products'=>array(
-			array('name'=>'Workshop / garage management Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Workshop / garage management Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
-			array('name'=>'Workshop / garage management Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
+		'Workshop / garage management' => array('photo'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75','desc'=>'End-to-end garage operations including job card management, bay scheduling, technician allocation, labor tracking, parts requisition, and invoicing. Supports MOT/inspection workflows and warranty claims','categories'=>array('Workshop Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Workshop Garage Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Workshop Garage Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
+			array('name'=>'Workshop Garage Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
 		)),
-		'Vehicle dealership & sales' => array('photo'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75','desc'=>'Specialized vehicle dealership & sales solutions','products'=>array(
-			array('name'=>'Vehicle dealership & sales Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
-			array('name'=>'Vehicle dealership & sales Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75'),
-			array('name'=>'Vehicle dealership & sales Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
+		'Vehicle dealership & sales' => array('photo'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75','desc'=>'Showroom-to-delivery lifecycle: lead capture, test drive booking, F&I processing, trade-in valuation, DMS integration, and post-sale CRM. Manages new, CPO, and used inventory','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Vehicle Dealership Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+			array('name'=>'Vehicle Dealership Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75'),
+			array('name'=>'Vehicle Dealership Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
 		)),
-		'Detailing & car care' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Specialized detailing & car care solutions','products'=>array(
-			array('name'=>'Detailing & car care Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
-			array('name'=>'Detailing & car care Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
-			array('name'=>'Detailing & car care Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
+		'Detailing & car care' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Professional vehicle appearance services: paint correction, ceramic coating, PPF application, interior deep cleaning, leather conditioning, and recurring maintenance packages for fleets','categories'=>array('Patient Services','Diagnostics','Treatment Plans','Equipment','Compliance','Staff Training'),'products'=>array(
+			array('name'=>'Detailing Car Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
+			array('name'=>'Detailing Car Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
+			array('name'=>'Detailing Car Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
 		)),
-		'Auto insurance processing' => array('photo'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75','desc'=>'Specialized auto insurance processing solutions','products'=>array(
-			array('name'=>'Auto insurance processing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
-			array('name'=>'Auto insurance processing Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
-			array('name'=>'Auto insurance processing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
+		'Auto insurance processing' => array('photo'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75','desc'=>'Digital claims from FNOL to settlement: AI-powered damage assessment, repair estimate generation, insurer portal integration, salvage management, and fraud detection algorithms','categories'=>array('Policy Types','Claims Processing','Underwriting','Risk Assessment','Compliance','Customer Service'),'products'=>array(
+			array('name'=>'Auto Insurance Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
+			array('name'=>'Auto Insurance Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
+			array('name'=>'Auto Insurance Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
 		)),
-		'Vehicle auctions' => array('photo'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75','desc'=>'Specialized vehicle auctions solutions','products'=>array(
-			array('name'=>'Vehicle auctions Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75'),
-			array('name'=>'Vehicle auctions Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
-			array('name'=>'Vehicle auctions Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
+		'Vehicle auctions' => array('photo'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75','desc'=>'Online and physical auction platforms for wholesale vehicle trading. Features condition grading, reserve pricing, proxy bidding, transport coordination, title transfer, and escrow settlement','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Vehicle Auctions Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75'),
+			array('name'=>'Vehicle Auctions Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
+			array('name'=>'Vehicle Auctions Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
 		)),
-		'Car rental & leasing' => array('photo'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75','desc'=>'Specialized car rental & leasing solutions','products'=>array(
-			array('name'=>'Car rental & leasing Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
-			array('name'=>'Car rental & leasing Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
-			array('name'=>'Car rental & leasing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+		'Car rental & leasing' => array('photo'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75','desc'=>'Fleet utilization for short-term rental and long-term leasing: reservation management, dynamic pricing, GPS tracking, damage inspection workflows, contract generation, and revenue analytics','categories'=>array('Short-Term Rental','Long-Term Lease','Equipment','Reservations','Maintenance','Insurance'),'products'=>array(
+			array('name'=>'Car Rental Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
+			array('name'=>'Car Rental Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
+			array('name'=>'Car Rental Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 		)),
-		'Automotive logistics' => array('photo'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75','desc'=>'Specialized automotive logistics solutions','products'=>array(
-			array('name'=>'Automotive logistics Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
-			array('name'=>'Automotive logistics Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
-			array('name'=>'Automotive logistics Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75'),
+		'Automotive logistics' => array('photo'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75','desc'=>'Vehicle and parts transportation: car carrier scheduling, port processing, compound management, last-mile delivery, customs clearance for imports, and recall logistics coordination','categories'=>array('Fleet Operations','Route Planning','Tracking & GPS','Warehousing','Last-Mile','Customs & Import'),'products'=>array(
+			array('name'=>'Automotive Logistics Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
+			array('name'=>'Automotive Logistics Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
+			array('name'=>'Automotive Logistics Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75'),
 		)),
-		'Vehicle/parts manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75','desc'=>'Specialized vehicle/parts manufacturing solutions','products'=>array(
-			array('name'=>'Vehicle/parts manufacturing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
-			array('name'=>'Vehicle/parts manufacturing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
-			array('name'=>'Vehicle/parts manufacturing Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
+		'Vehicle/parts manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75','desc'=>'OEM assembly and tier-1/tier-2 supplier production: BOM management, MES integration, PPAP documentation, SPC quality monitoring, and JIT delivery coordination','categories'=>array('Vehicle Production','Raw Materials','Quality Control','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Vehicle Parts Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
+			array('name'=>'Vehicle Parts Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
+			array('name'=>'Vehicle Parts Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
 		)),
-		'Tyre shop & fitting' => array('photo'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75','desc'=>'Specialized tyre shop & fitting solutions','products'=>array(
-			array('name'=>'Tyre shop & fitting Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
-			array('name'=>'Tyre shop & fitting Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Tyre shop & fitting Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		'Tyre shop & fitting' => array('photo'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75','desc'=>'Tyre retail and service: size lookup by vehicle registration, brand comparison, fitting appointments, wheel alignment, balancing, TPMS programming, and seasonal tyre storage','categories'=>array('Tyre Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Tyre Shop Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
+			array('name'=>'Tyre Shop Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Tyre Shop Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 		)),
-		'Windshield & auto glass' => array('photo'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75','desc'=>'Specialized windshield & auto glass solutions','products'=>array(
-			array('name'=>'Windshield & auto glass Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
-			array('name'=>'Windshield & auto glass Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75'),
-			array('name'=>'Windshield & auto glass Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+		'Windshield & auto glass' => array('photo'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75','desc'=>'Automotive glazing services: windshield replacement, stone chip repair, side/rear glass, ADAS camera recalibration after replacement, mobile service dispatch, and insurance direct billing','categories'=>array('Windshield Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Windshield Auto Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
+			array('name'=>'Windshield Auto Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75'),
+			array('name'=>'Windshield Auto Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
 		)),
-		'EV charging stations' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75','desc'=>'Specialized ev charging stations solutions','products'=>array(
-			array('name'=>'EV charging stations Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
-			array('name'=>'EV charging stations Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
-			array('name'=>'EV charging stations Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
+		'EV charging stations' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75','desc'=>'Electric vehicle charging infrastructure: site planning, charger deployment (Level 2 & DC fast), network management, billing per kWh, load balancing, and energy source optimization','categories'=>array('EV Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'EV Charging Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
+			array('name'=>'EV Charging Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
+			array('name'=>'EV Charging Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
 		)),
-		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75','desc'=>'Specialized fleet management solutions','products'=>array(
-			array('name'=>'Fleet management Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Fleet management Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
-			array('name'=>'Fleet management Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
+		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75','desc'=>'Corporate fleet operations: vehicle acquisition planning, driver assignment, fuel card management, telematics-based driver scoring, TCO analysis, maintenance scheduling, and end-of-life remarketing','categories'=>array('Fleet Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Fleet Management Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Fleet Management Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Fleet Management Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
 		)),
 
-		'Driving school & training' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Specialized driving school & training solutions','products'=>array(
-			array('name'=>'Driving school & training Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
-			array('name'=>'Driving school & training Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Driving school & training Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+		'Driving school & training' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Learner driver education: theory course scheduling, practical lesson booking, instructor allocation, progress tracking, test preparation, simulator integration, and license processing','categories'=>array('Courses & Programs','Certification','Online Learning','Workshops','Assessment','Materials & Resources'),'products'=>array(
+			array('name'=>'Driving School Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Driving School Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Driving School Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
 		)),
-		'Car wash & valeting' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Specialized car wash & valeting solutions','products'=>array(
-			array('name'=>'Car wash & valeting Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Car wash & valeting Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
-			array('name'=>'Car wash & valeting Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+		'Car wash & valeting' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Automated and hand-wash facilities: queue management, membership subscriptions, loyalty programs, water recycling monitoring, express/premium tiers, and multi-location chain management','categories'=>array('Car Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Car Wash Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Car Wash Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Car Wash Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
 		)),
-		'Auto body & collision repair' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized auto body & collision repair solutions','products'=>array(
-			array('name'=>'Auto body & collision repair Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
-			array('name'=>'Auto body & collision repair Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
-			array('name'=>'Auto body & collision repair Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+		'Auto body & collision repair' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Structural and cosmetic repair: damage assessment, repair-vs-replace decisions, paint color matching via spectrophotometer, frame straightening, and insurer DRP workflow integration','categories'=>array('Preventive Maintenance','Emergency Repairs','Parts & Spares','Service Contracts','Diagnostics','Warranty Work'),'products'=>array(
+			array('name'=>'Auto Body Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Auto Body Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Auto Body Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 		)),
-		'Vehicle inspection & testing' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Specialized vehicle inspection & testing solutions','products'=>array(
-			array('name'=>'Vehicle inspection & testing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
-			array('name'=>'Vehicle inspection & testing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
-			array('name'=>'Vehicle inspection & testing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+		'Vehicle inspection & testing' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Pre-purchase and periodic roadworthiness testing: OBD-II diagnostics, brake testing, suspension analysis, headlight alignment, emissions verification, and digital report generation','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Vehicle Inspection Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Vehicle Inspection Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Vehicle Inspection Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
 		)),
-		'Motorcycle & scooter' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Specialized motorcycle & scooter solutions','products'=>array(
-			array('name'=>'Motorcycle & scooter Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
-			array('name'=>'Motorcycle & scooter Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
-			array('name'=>'Motorcycle & scooter Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+		'Motorcycle & scooter' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Two-wheeler sales and service: motorcycle dealership management, service booking, parts catalog, rider gear retail, custom build projects, and community event management for riding clubs','categories'=>array('Motorcycle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Motorcycle Scooter Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Motorcycle Scooter Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Motorcycle Scooter Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 		)),
-		'Commercial vehicles & buses' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Specialized commercial vehicles & buses solutions','products'=>array(
-			array('name'=>'Commercial vehicles & buses Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
-			array('name'=>'Commercial vehicles & buses Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Commercial vehicles & buses Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+		'Commercial vehicles & buses' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Heavy-duty vehicle operations: truck and bus fleet management, tachograph compliance, preventive maintenance by mileage/hours, route optimization, and government transport contracts','categories'=>array('Commercial Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Commercial Vehicles Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Commercial Vehicles Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Commercial Vehicles Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
 		)),
-		'Marine engine service' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Specialized marine engine service solutions','products'=>array(
-			array('name'=>'Marine engine service Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Marine engine service Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
-			array('name'=>'Marine engine service Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+		'Marine engine service' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Boat and yacht engine maintenance: inboard/outboard servicing, winterization, propeller repair, marine electronics, hull cleaning, and marina slip management with haul-out scheduling','categories'=>array('Marine Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Marine Engine Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Marine Engine Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Marine Engine Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
 		)),
-		'Auto accessories & customization' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized auto accessories & customization solutions','products'=>array(
-			array('name'=>'Auto accessories & customization Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
-			array('name'=>'Auto accessories & customization Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
-			array('name'=>'Auto accessories & customization Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+		'Auto accessories & customization' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Aftermarket accessories and installation: audio/video systems, lighting upgrades, interior trim, roof racks, tow bars, performance modifications, and 3D visualization configurators','categories'=>array('Auto Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Auto Accessories Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Auto Accessories Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Auto Accessories Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 		)),
-		'Vehicle wrapping & graphics' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Specialized vehicle wrapping & graphics solutions','products'=>array(
-			array('name'=>'Vehicle wrapping & graphics Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
-			array('name'=>'Vehicle wrapping & graphics Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
-			array('name'=>'Vehicle wrapping & graphics Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+		'Vehicle wrapping & graphics' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Vehicle branding and aesthetics: full/partial vinyl wraps, color change films, fleet branding programs, design proofing with 3D mockups, and installation scheduling with wrap care guides','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Vehicle Wrapping Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Vehicle Wrapping Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Vehicle Wrapping Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
 		)),
-		'Auto electronics & tuning' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Specialized auto electronics & tuning solutions','products'=>array(
-			array('name'=>'Auto electronics & tuning Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
-			array('name'=>'Auto electronics & tuning Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
-			array('name'=>'Auto electronics & tuning Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+		'Auto electronics & tuning' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Performance electronics and ECU calibration: chip tuning, dyno testing, aftermarket ECU installation, wiring fabrication, gauge upgrades, and motorsport data telemetry systems','categories'=>array('Auto Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Auto Electronics Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Auto Electronics Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Auto Electronics Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 		)),
-		'Emission testing center' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Specialized emission testing center solutions','products'=>array(
-			array('name'=>'Emission testing center Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
-			array('name'=>'Emission testing center Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Emission testing center Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+		'Emission testing center' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Vehicle emission compliance: smoke opacity measurement, gas analysis (CO/HC/NOx), OBD readiness checks, catalytic efficiency testing, government reporting, and certificate issuance','categories'=>array('Emission Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Emission Testing Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Emission Testing Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Emission Testing Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
 		)),
-		'Roadside assistance' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Specialized roadside assistance solutions','products'=>array(
-			array('name'=>'Roadside assistance Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
-			array('name'=>'Roadside assistance Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
-			array('name'=>'Roadside assistance Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+		'Roadside assistance' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Emergency breakdown services: dispatch management, GPS nearest-technician routing, towing coordination, battery jump-start, flat tyre change, fuel delivery, and membership subscription programs','categories'=>array('Roadside Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Roadside Assistance Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Roadside Assistance Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Roadside Assistance Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
 		)),
-		'Auto finance & leasing broker' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized auto finance & leasing broker solutions','products'=>array(
-			array('name'=>'Auto finance & leasing broker Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
-			array('name'=>'Auto finance & leasing broker Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
-			array('name'=>'Auto finance & leasing broker Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+		'Auto finance & leasing broker' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Vehicle financing intermediation: multi-lender loan comparison, lease-vs-buy analysis, credit scoring integration, balloon payment structuring, fleet finance, and refinancing advisory','categories'=>array('Short-Term Rental','Long-Term Lease','Equipment','Reservations','Maintenance','Insurance'),'products'=>array(
+			array('name'=>'Auto Finance Management Platform','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Auto Finance Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Auto Finance Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 		)),
-		'Classic & vintage car restoration' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Specialized classic & vintage car restoration solutions','products'=>array(
-			array('name'=>'Classic & vintage car restoration Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
-			array('name'=>'Classic & vintage car restoration Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
-			array('name'=>'Classic & vintage car restoration Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+		'Classic & vintage car restoration' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Heritage vehicle restoration: concours-level rebuilds, matching-numbers verification, period-correct parts sourcing, upholstery reproduction, paint factory color-code matching, and provenance documentation','categories'=>array('Classic Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+			array('name'=>'Classic Vintage Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Classic Vintage Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Classic Vintage Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Reduced our parts lookup time by 80% and increased workshop efficiency dramatically.', 'author' => 'Ahmed K., Workshop Manager, Dubai'),

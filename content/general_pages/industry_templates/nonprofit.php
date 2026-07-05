@@ -73,127 +73,137 @@ $industryData = array(
 		'Animal welfare charity',
 		'Cultural preservation society',
 	),
-	'sub_industry_products' => array(
-		'Donation & fundraising' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized donation & fundraising solutions','products'=>array(
-			array('name'=>'Donation & fundraising Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Donation & fundraising Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Donation & fundraising Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+    'about_text' => 'The non-profit and government sector includes charities, NGOs, foundations, municipalities, and public sector organizations. With unique requirements around donor management, grant tracking, fund accounting, and regulatory compliance, these organizations need transparency-focused financial management. Our platform provides restricted fund accounting, donor CRM, volunteer management, and compliance reporting for various regulatory frameworks.',
+    'about_highlights' => array(
+        'Fund accounting with restricted, unrestricted, and endowment tracking',
+        'Donor CRM with pledge management and recurring giving programs',
+        'Grant management with budget tracking and milestone reporting',
+        'Volunteer management with scheduling and hour tracking',
+        'Regulatory compliance reporting for charity commissions and tax authorities',
+    ),
+
+'sub_industry_products' => array(
+		'Donation & fundraising' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Donation & fundraising operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Donation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Donation Fundraising Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Donation Fundraising Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Donation Fundraising Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Program management' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized program management solutions','products'=>array(
-			array('name'=>'Program management Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Program management Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Program management Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Program management' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Program management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Program Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Program Management Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Program Management Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Program Management Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Grant reporting' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized grant reporting solutions','products'=>array(
-			array('name'=>'Grant reporting Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Grant reporting Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Grant reporting Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Grant reporting' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Grant reporting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Grant Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Grant Reporting Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Grant Reporting Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Grant Reporting Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Charitable foundation' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized charitable foundation solutions','products'=>array(
-			array('name'=>'Charitable foundation Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Charitable foundation Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Charitable foundation Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Charitable foundation' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Charitable foundation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Charitable Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Charitable Foundation Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Charitable Foundation Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Charitable Foundation Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'NGO operations' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized ngo operations solutions','products'=>array(
-			array('name'=>'NGO operations Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'NGO operations Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'NGO operations Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'NGO operations' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'NGO operations operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('NGO Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'NGO Operations Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'NGO Operations Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'NGO Operations Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Government services' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized government services solutions','products'=>array(
-			array('name'=>'Government services Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Government services Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Government services Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Government services' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Government services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Government Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Government Services Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Government Services Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Government Services Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Public health' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized public health solutions','products'=>array(
-			array('name'=>'Public health Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Public health Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Public health Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Public health' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Public health operations encompassing patient scheduling, treatment records, care protocols, billing & insurance, outcome tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Public Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Public Health Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Public Health Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Public Health Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Social enterprise' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized social enterprise solutions','products'=>array(
-			array('name'=>'Social enterprise Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Social enterprise Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Social enterprise Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Social enterprise' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Social enterprise operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Social Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Social Enterprise Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Social Enterprise Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Social Enterprise Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Religious organization' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized religious organization solutions','products'=>array(
-			array('name'=>'Religious organization Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Religious organization Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Religious organization Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Religious organization' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Religious organization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Religious Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Religious Organization Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Religious Organization Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Religious Organization Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Community center' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized community center solutions','products'=>array(
-			array('name'=>'Community center Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Community center Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Community center Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Community center' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Community center operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Community Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Community Center Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Community Center Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Community Center Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
-		'Public library' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized public library solutions','products'=>array(
-			array('name'=>'Public library Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Public library Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Public library Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
+		'Public library' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Public library operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Public Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Public Library Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Public Library Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Public Library Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
 		)),
-		'Museum & gallery' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Specialized museum & gallery solutions','products'=>array(
-			array('name'=>'Museum & gallery Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Museum & gallery Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
-			array('name'=>'Museum & gallery Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		'Museum & gallery' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Museum & gallery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Museum Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Museum Gallery Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Museum Gallery Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+			array('name'=>'Museum Gallery Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
 
-		'Political organization' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Specialized political organization solutions','products'=>array(
-			array('name'=>'Political organization Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
-			array('name'=>'Political organization Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
-			array('name'=>'Political organization Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+		'Political organization' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Political organization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Political Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Political Organization Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Political Organization Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Political Organization Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
 		)),
-		'Trade union & labor' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Specialized trade union & labor solutions','products'=>array(
-			array('name'=>'Trade union & labor Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
-			array('name'=>'Trade union & labor Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
-			array('name'=>'Trade union & labor Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+		'Trade union & labor' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Trade union & labor operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Trade Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Trade Union Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Trade Union Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Trade Union Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
 		)),
-		'Housing association' => array('photo'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75','desc'=>'Specialized housing association solutions','products'=>array(
-			array('name'=>'Housing association Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
-			array('name'=>'Housing association Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
-			array('name'=>'Housing association Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+		'Housing association' => array('photo'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75','desc'=>'Housing association operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Housing Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Housing Association Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Housing Association Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'Housing Association Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
 		)),
-		'Environmental charity' => array('photo'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75','desc'=>'Specialized environmental charity solutions','products'=>array(
-			array('name'=>'Environmental charity Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
-			array('name'=>'Environmental charity Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
-			array('name'=>'Environmental charity Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+		'Environmental charity' => array('photo'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75','desc'=>'Environmental charity operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Environmental Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Environmental Charity Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'Environmental Charity Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Environmental Charity Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
 		)),
-		'Humanitarian aid & relief' => array('photo'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75','desc'=>'Specialized humanitarian aid & relief solutions','products'=>array(
-			array('name'=>'Humanitarian aid & relief Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
-			array('name'=>'Humanitarian aid & relief Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
-			array('name'=>'Humanitarian aid & relief Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+		'Humanitarian aid & relief' => array('photo'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75','desc'=>'Humanitarian aid & relief operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Humanitarian Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Humanitarian Aid Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Humanitarian Aid Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Humanitarian Aid Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
 		)),
-		'Cooperative society' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Specialized cooperative society solutions','products'=>array(
-			array('name'=>'Cooperative society Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
-			array('name'=>'Cooperative society Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
-			array('name'=>'Cooperative society Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+		'Cooperative society' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Cooperative society operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Cooperative Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cooperative Society Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Cooperative Society Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Cooperative Society Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
 		)),
-		'Veterans & military welfare' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Specialized veterans & military welfare solutions','products'=>array(
-			array('name'=>'Veterans & military welfare Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
-			array('name'=>'Veterans & military welfare Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
-			array('name'=>'Veterans & military welfare Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+		'Veterans & military welfare' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Veterans & military welfare operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Veterans Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Veterans Military Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Veterans Military Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Veterans Military Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
 		)),
-		'International development' => array('photo'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75','desc'=>'Specialized international development solutions','products'=>array(
-			array('name'=>'International development Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
-			array('name'=>'International development Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
-			array('name'=>'International development Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+		'International development' => array('photo'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75','desc'=>'International development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('International Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'International Development Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'International Development Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'International Development Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
 		)),
-		'Disability support services' => array('photo'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75','desc'=>'Specialized disability support services solutions','products'=>array(
-			array('name'=>'Disability support services Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
-			array('name'=>'Disability support services Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
-			array('name'=>'Disability support services Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+		'Disability support services' => array('photo'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75','desc'=>'Disability support services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Disability Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Disability Support Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'Disability Support Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Disability Support Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
 		)),
-		'Youth development program' => array('photo'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75','desc'=>'Specialized youth development program solutions','products'=>array(
-			array('name'=>'Youth development program Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
-			array('name'=>'Youth development program Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
-			array('name'=>'Youth development program Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+		'Youth development program' => array('photo'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75','desc'=>'Youth development program operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Youth Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Youth Development Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Youth Development Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Youth Development Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
 		)),
-		'Animal welfare charity' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Specialized animal welfare charity solutions','products'=>array(
-			array('name'=>'Animal welfare charity Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
-			array('name'=>'Animal welfare charity Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
-			array('name'=>'Animal welfare charity Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+		'Animal welfare charity' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Animal welfare charity operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Animal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Animal Welfare Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Animal Welfare Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Animal Welfare Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
 		)),
-		'Cultural preservation society' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Specialized cultural preservation society solutions','products'=>array(
-			array('name'=>'Cultural preservation society Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
-			array('name'=>'Cultural preservation society Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
-			array('name'=>'Cultural preservation society Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+		'Cultural preservation society' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Cultural preservation society operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Cultural Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cultural Preservation Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Cultural Preservation Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Cultural Preservation Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Grant reporting automation freed 20 hours/month for actual program work.', 'author' => 'NGO Director, Humanitarian Foundation, Dubai'),
