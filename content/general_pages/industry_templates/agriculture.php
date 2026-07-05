@@ -78,7 +78,7 @@ $industryData = array(
 		'Cannabis & hemp cultivation',
 		'Seed production & genetics',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Qmla9NLFBvU',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/9UZWfMgjqAs',
     'about_text' => 'Agriculture and farming is the backbone of global food production, encompassing crop cultivation, livestock management, aquaculture, and agri-tech innovations. Modern agricultural businesses rely on precision farming, IoT sensors, supply chain management, and data analytics to maximize yields while minimizing environmental impact. From smallholder farms to industrial-scale operations, digital transformation is reshaping how we grow, process, and distribute food worldwide.',
     'about_highlights' => array(
         'Precision farming with IoT sensor integration and satellite mapping',
@@ -99,7 +99,7 @@ $industryData = array(
 			array('name'=>'Livestock Poultry Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75'),
 			array('name'=>'Livestock Poultry Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=400&q=75'),
 		)),
-		'Aquaculture & fisheries' => array('photo'=>'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&q=75','desc'=>'Aquaculture & fisheries operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Aquaculture Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Aquaculture & fisheries' => array('photo'=>'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&q=75','desc'=>'Aquaculture & fisheries operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Fish Feed','Hatchery Equipment','Pond Liners','Water Treatment','Nets & Cages','Processing Equipment'),'products'=>array(
 			array('name'=>'Aquaculture Fisheries Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1586771107445-d3190d36d64f?w=400&q=75'),
 			array('name'=>'Aquaculture Fisheries Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&q=75'),
 			array('name'=>'Aquaculture Fisheries Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=400&q=75'),
@@ -109,7 +109,7 @@ $industryData = array(
 			array('name'=>'Dairy Farming Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=75'),
 			array('name'=>'Dairy Farming Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75'),
 		)),
-		'Organic farming' => array('photo'=>'https://images.unsplash.com/photo-1586771107445-d3190d36d64f?w=400&q=75','desc'=>'Organic farming operations encompassing field management, harvest planning, equipment scheduling, yield tracking, supply chain. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Organic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Organic farming' => array('photo'=>'https://images.unsplash.com/photo-1586771107445-d3190d36d64f?w=400&q=75','desc'=>'Organic farming operations encompassing field management, harvest planning, equipment scheduling, yield tracking, supply chain. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Organic Seeds','Bio-Fertilizers','Organic Certification','Composting','Natural Pest Control','Organic Packaging'),'products'=>array(
 			array('name'=>'Organic Farming Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75'),
 			array('name'=>'Organic Farming Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=400&q=75'),
 			array('name'=>'Organic Farming Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1585500755024-f7d tried?w=400&q=75'),
@@ -119,7 +119,7 @@ $industryData = array(
 			array('name'=>'Vertical Indoor Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=400&q=75'),
 			array('name'=>'Vertical Indoor Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=75'),
 		)),
-		'Agricultural trading' => array('photo'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75','desc'=>'Agricultural trading operations encompassing order management, customs documentation, trade finance, shipping coordination, quality inspection. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Agricultural Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Agricultural trading' => array('photo'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75','desc'=>'Agricultural trading operations encompassing order management, customs documentation, trade finance, shipping coordination, quality inspection. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Grain Trading','Commodity Futures','Export Documentation','Quality Grading','Warehouse Receipts','Bulk Transport'),'products'=>array(
 			array('name'=>'Agricultural Trading Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=75'),
 			array('name'=>'Agricultural Trading Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75'),
 			array('name'=>'Agricultural Trading Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&q=75'),
@@ -154,7 +154,7 @@ $industryData = array(
 			array('name'=>'Farming Cooperative Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=400&q=75'),
 			array('name'=>'Farming Cooperative Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1592982537447-6f2a6a0c8b1c?w=400&q=75'),
 		)),
-		'Forestry & timber' => array('photo'=>'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=75','desc'=>'Forestry & timber operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Forestry Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Forestry & timber' => array('photo'=>'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=75','desc'=>'Forestry & timber operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with agricultural industry standards and best practices','categories'=>array('Timber Logs','Plywood & Board','Pulp & Paper','Charcoal','Plantation Services','Sawmill Equipment'),'products'=>array(
 			array('name'=>'Forestry Timber Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400&q=75'),
 			array('name'=>'Forestry Timber Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586771107445-d3190d36d64f?w=400&q=75'),
 			array('name'=>'Forestry Timber Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&q=75'),

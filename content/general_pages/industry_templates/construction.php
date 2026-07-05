@@ -78,7 +78,7 @@ $industryData = array(
 		'Modular & prefab building',
 		'Piling & foundations',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/suNadRnHy-U',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/kDBVdvMnwU0',
     'about_text' => 'The construction and real estate industry represents one of the largest economic sectors globally, encompassing residential and commercial building, infrastructure development, architectural design, and property management. Projects require complex coordination of materials, labor, subcontractors, permits, and safety compliance. Our platform provides project cost tracking, progress billing, equipment management, and BIM integration to keep builds on time and on budget.',
     'about_highlights' => array(
         'Project cost tracking with budget vs actual variance analysis',
@@ -89,7 +89,7 @@ $industryData = array(
     ),
 
 'sub_industry_products' => array(
-		'General contracting' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'General contracting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('General Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'General contracting' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'General contracting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('Residential Build','Commercial Build','Renovation','Project Management','Subcontractor Mgmt','Safety Compliance'),'products'=>array(
 			array('name'=>'General Contracting Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
 			array('name'=>'General Contracting Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),
 			array('name'=>'General Contracting Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
@@ -99,7 +99,7 @@ $industryData = array(
 			array('name'=>'Building Materials Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
 			array('name'=>'Building Materials Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
 		)),
-		'Project management' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Project management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('Project Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Project management' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Project management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('BIM Coordination','Cost Estimation','Scheduling','Risk Management','Quality Assurance','Client Reporting'),'products'=>array(
 			array('name'=>'Project Management Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75'),
 			array('name'=>'Project Management Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75'),
 			array('name'=>'Project Management Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75'),
@@ -114,7 +114,7 @@ $industryData = array(
 			array('name'=>'Property Management Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
 			array('name'=>'Property Management Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
 		)),
-		'Architecture & design' => array('photo'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75','desc'=>'Architecture & design operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('Concept Design','Production','Revision & Editing','Brand Assets','Digital Media','Print Ready'),'products'=>array(
+		'Architecture & design' => array('photo'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75','desc'=>'Architecture & design operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with construction industry standards and best practices','categories'=>array('Concept Design','Planning Permission','3D Visualization','Interior Design','Landscape Design','Sustainable Design'),'products'=>array(
 			array('name'=>'Architecture Design Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75'),
 			array('name'=>'Architecture Design Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75'),
 			array('name'=>'Architecture Design Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),

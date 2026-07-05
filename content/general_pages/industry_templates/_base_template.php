@@ -173,6 +173,8 @@ a:hover{text-decoration:underline}
 
 /* ===== HERO ===== */
 .ind-hero{min-height:90vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding-top:64px}
+.ind-hero-video{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ind-hero-video iframe{position:absolute;top:50%;left:50%;width:180vw;height:180vh;transform:translate(-50%,-50%);border:0;object-fit:cover}
 .ind-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;animation:slowZoom 20s ease-in-out infinite alternate}
 .ind-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(<?php
 $r=hexdec(substr($bgFrom,1,2));$g=hexdec(substr($bgFrom,3,2));$b=hexdec(substr($bgFrom,5,2));
@@ -221,6 +223,28 @@ echo "$r2,$g2,$b2";?>,.45))}
 .ind-stat:last-child{border-right:0}
 .ind-stat h3{font-size:2rem;font-weight:800;color:var(--primary)}
 .ind-stat p{font-size:.8rem;color:#64748b;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+
+/* ===== PRODUCT CATEGORIES ===== */
+.ind-categories{padding:80px 20px;background:#fff}
+.ind-categories h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
+.ind-categories .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+.ind-categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;max-width:1280px;margin:0 auto}
+.cat-group{background:#f8fafc;border-radius:16px;border:1px solid #e2e8f0;padding:24px;transition:all .3s}
+.cat-group:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06);border-color:var(--primary)}
+.cat-group__header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #e2e8f0}
+.cat-group__icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.cat-group__title{font-size:15px;font-weight:700;color:#0f172a}
+.cat-group__count{font-size:11px;color:#64748b;margin-top:2px}
+.cat-group__list{list-style:none;padding:0;margin:0}
+.cat-group__list li{padding:8px 12px;margin-bottom:4px;border-radius:8px;font-size:13px;color:#334155;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.cat-group__list li:hover{background:var(--primary);color:#fff;transform:translateX(4px)}
+.cat-group__list li::before{content:'\f105';font-family:FontAwesome;font-size:11px;color:var(--primary);transition:color .2s}
+.cat-group__list li:hover::before{color:#fff}
+.cat-group__list li .cat-badge{margin-left:auto;padding:2px 7px;background:#e2e8f0;border-radius:10px;font-size:10px;font-weight:600;color:#64748b}
+.cat-group__list li:hover .cat-badge{background:rgba(255,255,255,.2);color:#fff}
+@media(max-width:768px){
+.ind-categories-grid{grid-template-columns:1fr}
+}
 
 /* ===== PRODUCTS ===== */
 .ind-products{padding:80px 20px;background:#f8fafc}
@@ -510,8 +534,23 @@ echo "$r2,$g2,$b2";?>,.45))}
 </div>
 
 <!-- ===== HERO ===== -->
+<?php
+$heroVideo = $industryData['about_video'] ?? '';
+$heroVideoUrl = '';
+if($heroVideo) {
+    $sep = (strpos($heroVideo, '?') !== false) ? '&' : '?';
+    $heroVideoUrl = $heroVideo . $sep . 'autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1';
+    if(preg_match('/embed\/([a-zA-Z0-9_-]+)/', $heroVideoUrl, $vm)) {
+        $heroVideoUrl .= '&playlist=' . $vm[1];
+    }
+}
+?>
 <section class="ind-hero" id="about">
-<?php if($heroPhoto): ?>
+<?php if($heroVideoUrl): ?>
+<div class="ind-hero-video">
+<iframe src="<?php echo htmlspecialchars($heroVideoUrl);?>" allow="autoplay; accelerometer; encrypted-media; gyroscope" frameborder="0"></iframe>
+</div>
+<?php elseif($heroPhoto): ?>
 <div class="ind-hero-bg" style="background-image:url('<?php echo htmlspecialchars($heroPhoto);?>')"></div>
 <?php endif; ?>
 <div class="ind-hero-overlay"></div>
@@ -570,16 +609,58 @@ $aboutHighlights = $industryData['about_highlights'] ?? array(
 </ul>
 </div>
 <div class="ind-about-media">
-<?php if($aboutVideo): ?>
-<div class="video-wrapper">
-<iframe src="<?php echo htmlspecialchars($aboutVideo);?>" title="<?php echo htmlspecialchars($name);?> — Industry Overview" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-</div>
-<?php else: ?>
 <img src="<?php echo htmlspecialchars($aboutPhoto2);?>" alt="About <?php echo htmlspecialchars($name);?> — Industry Overview" loading="lazy">
-<?php endif; ?>
 </div>
 </div>
 </section>
+
+<!-- ===== PRODUCT/SERVICE CATEGORIES & SUB-CATEGORIES ===== -->
+<?php
+$subProducts = $industryData['sub_industry_products'] ?? array();
+$allCategories = array();
+if(!empty($subIndustries) && !empty($subProducts)) {
+    foreach($subIndustries as $subName) {
+        $sd = $subProducts[$subName] ?? null;
+        if($sd && !empty($sd['categories'])) {
+            $allCategories[$subName] = $sd['categories'];
+        }
+    }
+}
+if(!empty($allCategories)):
+$totalCats = 0; foreach($allCategories as $cats) $totalCats += count($cats);
+?>
+<section class="ind-categories reveal" id="categories">
+<h2>Product & Service Categories</h2>
+<p class="section-sub"><?php echo $totalCats;?> categories across <?php echo count($allCategories);?> sub-industries — covering the full <?php echo htmlspecialchars(strtolower($name));?> spectrum</p>
+<div class="ind-categories-grid">
+<?php
+$catIcons = array('fa-cubes','fa-tags','fa-briefcase','fa-cogs','fa-shopping-bag','fa-industry','fa-wrench','fa-flask','fa-truck','fa-heartbeat','fa-graduation-cap','fa-building','fa-leaf','fa-bolt','fa-paint-brush','fa-diamond','fa-plane','fa-shield','fa-futbol-o','fa-print','fa-paw','fa-home','fa-film','fa-balance-scale','fa-cutlery','fa-laptop','fa-car','fa-plug');
+$iconIdx = 0;
+foreach(array_slice($allCategories, 0, 12, true) as $subName => $cats):
+$catIcon = $catIcons[$iconIdx % count($catIcons)];
+$iconIdx++;
+?>
+<div class="cat-group">
+<div class="cat-group__header">
+<div class="cat-group__icon"><i class="fa <?php echo $catIcon;?>"></i></div>
+<div>
+<div class="cat-group__title"><?php echo htmlspecialchars($subName);?></div>
+<div class="cat-group__count"><?php echo count($cats);?> categories</div>
+</div>
+</div>
+<ul class="cat-group__list">
+<?php foreach($cats as $cat): ?>
+<li><?php echo htmlspecialchars($cat);?><span class="cat-badge">Products</span></li>
+<?php endforeach; ?>
+</ul>
+</div>
+<?php endforeach; ?>
+</div>
+<?php if(count($allCategories) > 12): ?>
+<p style="text-align:center;margin-top:24px;color:#64748b;font-size:14px">+ <?php echo (count($allCategories) - 12);?> more sub-industry categories below in the detailed section</p>
+<?php endif; ?>
+</section>
+<?php endif; ?>
 
 <!-- ===== PRODUCTS ===== -->
 <?php if(!empty($products)): ?>

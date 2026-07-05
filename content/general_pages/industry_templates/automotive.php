@@ -76,7 +76,7 @@ $industryData = array(
 		'Auto finance & leasing broker',
 		'Classic & vintage car restoration',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/b1zvrRkE8DA',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
     'about_text' => 'The automotive industry spans vehicle manufacturing, parts distribution, dealership networks, aftermarket services, and fleet management. With over 80 million vehicles produced annually worldwide, this sector demands sophisticated inventory management, cross-referencing databases like TecDoc, warranty tracking, and multi-location parts logistics. Our platform supports everything from independent workshops to multi-brand dealer groups with tailored ERP processes.',
     'about_highlights' => array(
         'TecDoc and OE parts cross-reference with VIN-based fitment',
@@ -117,7 +117,7 @@ $industryData = array(
 			array('name'=>'Vehicle Auctions Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
 			array('name'=>'Vehicle Auctions Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
 		)),
-		'Car rental & leasing' => array('photo'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75','desc'=>'Fleet utilization for short-term rental and long-term leasing: reservation management, dynamic pricing, GPS tracking, damage inspection workflows, contract generation, and revenue analytics','categories'=>array('Short-Term Rental','Long-Term Lease','Equipment','Reservations','Maintenance','Insurance'),'products'=>array(
+		'Car rental & leasing' => array('photo'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75','desc'=>'Fleet utilization for short-term rental and long-term leasing: reservation management, dynamic pricing, GPS tracking, damage inspection workflows, contract generation, and revenue analytics','categories'=>array('Short-Term Rental','Long-Term Lease','Corporate Fleet','Luxury & Exotic','Driver Service','Insurance Add-Ons'),'products'=>array(
 			array('name'=>'Car Rental Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),
 			array('name'=>'Car Rental Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1449965408869-ebd13bc9e5d8?w=400&q=75'),
 			array('name'=>'Car Rental Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
@@ -168,7 +168,7 @@ $industryData = array(
 			array('name'=>'Auto Body Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
 			array('name'=>'Auto Body Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 		)),
-		'Vehicle inspection & testing' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Pre-purchase and periodic roadworthiness testing: OBD-II diagnostics, brake testing, suspension analysis, headlight alignment, emissions verification, and digital report generation','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Vehicle inspection & testing' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Pre-purchase and periodic roadworthiness testing: OBD-II diagnostics, brake testing, suspension analysis, headlight alignment, emissions verification, and digital report generation','categories'=>array('Roadworthiness','Emissions Test','Pre-Purchase Inspection','Insurance Assessment','Fleet Compliance','Digital Reports'),'products'=>array(
 			array('name'=>'Vehicle Inspection Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
 			array('name'=>'Vehicle Inspection Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 			array('name'=>'Vehicle Inspection Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
@@ -198,7 +198,7 @@ $industryData = array(
 			array('name'=>'Vehicle Wrapping Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 			array('name'=>'Vehicle Wrapping Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
 		)),
-		'Auto electronics & tuning' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Performance electronics and ECU calibration: chip tuning, dyno testing, aftermarket ECU installation, wiring fabrication, gauge upgrades, and motorsport data telemetry systems','categories'=>array('Auto Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Auto electronics & tuning' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Performance electronics and ECU calibration: chip tuning, dyno testing, aftermarket ECU installation, wiring fabrication, gauge upgrades, and motorsport data telemetry systems','categories'=>array('ECU Remapping','Navigation Systems','Dash Cameras','Audio Upgrade','Security Alarms','LED & Lighting'),'products'=>array(
 			array('name'=>'Auto Electronics Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
 			array('name'=>'Auto Electronics Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
 			array('name'=>'Auto Electronics Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),

@@ -78,7 +78,7 @@ $industryData = array(
 		'Halal / Kosher certification',
 		'Vending & automated retail',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/V29YICl8L98',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/ydKd5gRXh-c',
     'about_text' => 'The food and beverage industry encompasses restaurants, catering, food manufacturing, wholesale distribution, and grocery retail. With strict food safety regulations (HACCP, ISO 22000), shelf-life management, and complex supply chains, businesses need batch traceability, recipe management, kitchen production planning, and cold chain monitoring. Our platform supports the entire farm-to-fork journey with allergen tracking and nutritional compliance.',
     'about_highlights' => array(
         'HACCP and food safety compliance with digital audit trails',
@@ -99,7 +99,7 @@ $industryData = array(
 			array('name'=>'Cafe Coffee Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=75'),
 			array('name'=>'Cafe Coffee Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=75'),
 		)),
-		'Bakery & confectionery' => array('photo'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75','desc'=>'Bakery & confectionery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Bakery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Bakery & confectionery' => array('photo'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75','desc'=>'Bakery & confectionery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Bread & Rolls','Cakes & Pastries','Chocolates','Cookies & Biscuits','Wedding Cakes','Custom Orders'),'products'=>array(
 			array('name'=>'Bakery Confectionery Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75'),
 			array('name'=>'Bakery Confectionery Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75'),
 			array('name'=>'Bakery Confectionery Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&q=75'),
@@ -144,7 +144,7 @@ $industryData = array(
 			array('name'=>'Delivery Takeaway Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&q=75'),
 			array('name'=>'Delivery Takeaway Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75'),
 		)),
-		'Food manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=75','desc'=>'Food manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Food Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+		'Food manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=75','desc'=>'Food manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Raw Material Sourcing','Production Lines','Quality Assurance','Packaging','Cold Chain','Batch Tracking'),'products'=>array(
 			array('name'=>'Food Manufacturing Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=400&q=75'),
 			array('name'=>'Food Manufacturing Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
 			array('name'=>'Food Manufacturing Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75'),
@@ -169,7 +169,7 @@ $industryData = array(
 			array('name'=>'Butcher Meat Operations Suite','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&q=75'),
 			array('name'=>'Butcher Meat Analytics Dashboard','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=75'),
 		)),
-		'Organic & health food' => array('photo'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75','desc'=>'Organic & health food operations encompassing patient scheduling, treatment records, care protocols, billing & insurance, outcome tracking. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Organic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Organic & health food' => array('photo'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75','desc'=>'Organic & health food operations encompassing patient scheduling, treatment records, care protocols, billing & insurance, outcome tracking. Provides end-to-end digital workflow management aligned with food service industry standards and best practices','categories'=>array('Organic Produce','Supplements','Gluten-Free','Vegan Products','Superfoods','Protein & Fitness'),'products'=>array(
 			array('name'=>'Organic Health Management Platform','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75'),
 			array('name'=>'Organic Health Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75'),
 			array('name'=>'Organic Health Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75'),

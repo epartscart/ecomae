@@ -74,7 +74,7 @@ $industryData = array(
 		'District cooling & heating',
 		'Energy efficiency solutions',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/4td2SAsvtoQ',
     'about_text' => 'The energy and utilities sector encompasses power generation, oil and gas, renewable energy, water treatment, and utility distribution. This highly regulated industry requires asset management, SCADA integration, regulatory compliance, preventive maintenance, and grid management capabilities. Our platform supports energy companies with plant maintenance scheduling, outage management, meter data analytics, and environmental compliance reporting.',
     'about_highlights' => array(
         'Asset lifecycle management with predictive maintenance scheduling',
@@ -100,12 +100,12 @@ $industryData = array(
 			array('name'=>'Utility Billing Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1584276433295-4b49a252e5ee?w=400&q=75'),
 			array('name'=>'Utility Billing Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&q=75'),
 		)),
-		'Solar energy' => array('photo'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75','desc'=>'Solar energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Solar Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Solar energy' => array('photo'=>'https://images.unsplash.com/photo-1413882353314-73ed67985e4b?w=400&q=75','desc'=>'Solar energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Solar Panels','Inverters','Mounting Systems','Battery Storage','Monitoring','Installation Service'),'products'=>array(
 			array('name'=>'Solar Energy Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
 			array('name'=>'Solar Energy Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 			array('name'=>'Solar Energy Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
 		)),
-		'Wind energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Wind energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Wind Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Wind energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Wind energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Turbine Components','Tower Structures','Gearboxes','Maintenance Tools','Site Assessment','Grid Connection'),'products'=>array(
 			array('name'=>'Wind Energy Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1574169208507-84376144848b?w=400&q=75'),
 			array('name'=>'Wind Energy Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75'),
 			array('name'=>'Wind Energy Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
@@ -130,7 +130,7 @@ $industryData = array(
 			array('name'=>'Battery Energy Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
 			array('name'=>'Battery Energy Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
 		)),
-		'Nuclear energy' => array('photo'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75','desc'=>'Nuclear energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Nuclear Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Nuclear energy' => array('photo'=>'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?w=400&q=75','desc'=>'Nuclear energy operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with energy industry standards and best practices','categories'=>array('Fuel Assemblies','Control Systems','Radiation Monitoring','Waste Management','Decommissioning','Safety Equipment'),'products'=>array(
 			array('name'=>'Nuclear Energy Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1487875961445-47a3c4b5a7a5?w=400&q=75'),
 			array('name'=>'Nuclear Energy Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 			array('name'=>'Nuclear Energy Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),

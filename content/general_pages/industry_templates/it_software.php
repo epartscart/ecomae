@@ -74,7 +74,7 @@ $industryData = array(
 		'Robotic process automation',
 		'Computer training center',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
     'about_text' => 'The IT and software industry encompasses software development, SaaS providers, IT consulting, managed services, cybersecurity, and cloud infrastructure. With agile development cycles, subscription billing, and complex project deliveries, businesses need project management, time tracking, resource allocation, and recurring revenue management. Our platform supports software companies from sprint planning through release management to customer success and renewal tracking.',
     'about_highlights' => array(
         'Project management with agile sprint boards and resource allocation',
@@ -85,7 +85,7 @@ $industryData = array(
     ),
 
 'sub_industry_products' => array(
-		'Software development' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Software development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Software Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Software development' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Software development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Web Apps','Mobile Apps','Desktop Software','API Development','DevOps','Quality Assurance'),'products'=>array(
 			array('name'=>'Software Development Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Software Development Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
 			array('name'=>'Software Development Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
@@ -110,7 +110,7 @@ $industryData = array(
 			array('name'=>'Mobile App Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 			array('name'=>'Mobile App Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
 		)),
-		'Cybersecurity' => array('photo'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75','desc'=>'Cybersecurity operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Cybersecurity Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Cybersecurity' => array('photo'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75','desc'=>'Cybersecurity operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Penetration Testing','SOC Services','Endpoint Protection','Identity Management','Compliance','Incident Response'),'products'=>array(
 			array('name'=>'Cybersecurity Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
 			array('name'=>'Cybersecurity Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 			array('name'=>'Cybersecurity Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
@@ -120,7 +120,7 @@ $industryData = array(
 			array('name'=>'Data Analytics Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
 			array('name'=>'Data Analytics Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'AI & machine learning' => array('photo'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75','desc'=>'AI & machine learning operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('AI Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'AI & machine learning' => array('photo'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75','desc'=>'AI & machine learning operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('NLP Solutions','Computer Vision','Predictive Models','Chatbots','Recommendation','MLOps'),'products'=>array(
 			array('name'=>'AI Machine Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 			array('name'=>'AI Machine Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
 			array('name'=>'AI Machine Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),

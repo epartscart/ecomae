@@ -73,7 +73,7 @@ $industryData = array(
 		'Animal welfare charity',
 		'Cultural preservation society',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/UCFg9bcW7Bk',
     'about_text' => 'The non-profit and government sector includes charities, NGOs, foundations, municipalities, and public sector organizations. With unique requirements around donor management, grant tracking, fund accounting, and regulatory compliance, these organizations need transparency-focused financial management. Our platform provides restricted fund accounting, donor CRM, volunteer management, and compliance reporting for various regulatory frameworks.',
     'about_highlights' => array(
         'Fund accounting with restricted, unrestricted, and endowment tracking',
@@ -109,7 +109,7 @@ $industryData = array(
 			array('name'=>'NGO Operations Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 			array('name'=>'NGO Operations Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Government services' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Government services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Government Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Government services' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Government services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Citizen Services','Permits & Licensing','Public Records','Tax Collection','Procurement','E-Government'),'products'=>array(
 			array('name'=>'Government Services Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
 			array('name'=>'Government Services Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 			array('name'=>'Government Services Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
@@ -119,7 +119,7 @@ $industryData = array(
 			array('name'=>'Public Health Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 			array('name'=>'Public Health Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Social enterprise' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Social enterprise operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Social Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Social enterprise' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Social enterprise operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with non-profit industry standards and best practices','categories'=>array('Fair Trade Products','Employment Programs','Impact Investment','Social Innovation','Training','Certification'),'products'=>array(
 			array('name'=>'Social Enterprise Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 			array('name'=>'Social Enterprise Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 			array('name'=>'Social Enterprise Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),

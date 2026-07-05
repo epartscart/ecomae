@@ -73,7 +73,7 @@ $industryData = array(
 		'Jewellery exhibition & trade show',
 		'Precious metals refining',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/xaVgRj9r3eI',
     'about_text' => 'The jewellery and luxury goods industry is a $300+ billion global market covering gold, diamonds, gemstones, watches, and designer accessories. With dual unit-of-measure tracking (weight and value), complex pricing based on daily metal rates, karat management, and certification requirements, jewellers need specialized ERP capabilities. Our platform provides gold rate integration, tag-based inventory, hallmarking compliance, and customer scheme management like gold savings plans.',
     'about_highlights' => array(
         'Dual UOM tracking: weight (grams) and value simultaneously',
@@ -94,7 +94,7 @@ $industryData = array(
 			array('name'=>'Gold Buying Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
 			array('name'=>'Gold Buying Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
 		)),
-		'Diamond & gemstones' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Diamond & gemstones operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Diamond Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Diamond & gemstones' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Diamond & gemstones operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Loose Diamonds','Diamond Jewellery','Coloured Gemstones','Pearl Collection','Certified Stones','Custom Settings'),'products'=>array(
 			array('name'=>'Diamond Gemstones Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
 			array('name'=>'Diamond Gemstones Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
 			array('name'=>'Diamond Gemstones Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
@@ -119,7 +119,7 @@ $industryData = array(
 			array('name'=>'Jewellery Wholesale Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
 			array('name'=>'Jewellery Wholesale Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
 		)),
-		'Jewellery manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Jewellery manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+		'Jewellery manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Jewellery manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Casting','Polishing & Finishing','Stone Cutting','Chain Making','Hallmarking','Quality Control'),'products'=>array(
 			array('name'=>'Jewellery Manufacturing Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
 			array('name'=>'Jewellery Manufacturing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
 			array('name'=>'Jewellery Manufacturing Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),

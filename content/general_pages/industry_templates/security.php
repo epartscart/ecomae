@@ -73,7 +73,7 @@ $industryData = array(
 		'Guard dog services',
 		'Crowd management',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
     'about_text' => 'The security and safety industry covers physical guarding, electronic surveillance, cybersecurity services, fire safety, and access control systems. With 24/7 operations, shift management, incident response, and regulatory compliance, security companies need workforce scheduling, patrol verification, alarm monitoring, and guard tour management. Our platform supports everything from small guard companies to enterprise security operations centers.',
     'about_highlights' => array(
         'Guard scheduling with shift planning and overtime management',
@@ -104,7 +104,7 @@ $industryData = array(
 			array('name'=>'Fire Safety Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 			array('name'=>'Fire Safety Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Access control' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Access control operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Access Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Access control' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Access control operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Card Readers','Biometric','Turnstiles','Intercom','Visitor Management','Mobile Access'),'products'=>array(
 			array('name'=>'Access Control Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
 			array('name'=>'Access Control Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 			array('name'=>'Access Control Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
@@ -119,7 +119,7 @@ $industryData = array(
 			array('name'=>'Private Investigation Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 			array('name'=>'Private Investigation Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Alarm systems' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Alarm systems operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Alarm Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Alarm systems' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Alarm systems operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Intruder Alarms','Fire Alarms','Panic Buttons','Monitoring Service','Smart Alarms','Integration'),'products'=>array(
 			array('name'=>'Alarm Systems Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 			array('name'=>'Alarm Systems Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 			array('name'=>'Alarm Systems Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
@@ -170,7 +170,7 @@ $industryData = array(
 			array('name'=>'Emergency Management Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 			array('name'=>'Emergency Management Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
 		)),
-		'Aviation security' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Aviation security operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Aviation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Aviation security' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Aviation security operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Passenger Screening','Cargo Inspection','Access Control','Threat Assessment','K9 Units','Technology'),'products'=>array(
 			array('name'=>'Aviation Security Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 			array('name'=>'Aviation Security Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
 			array('name'=>'Aviation Security Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),

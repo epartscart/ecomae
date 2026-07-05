@@ -75,7 +75,7 @@ $industryData = array(
 		'Kitchen renovation & fitting',
 		'Home automation & smart tech',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/10JeksrGVjI',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
     'about_text' => 'The home and living industry covers furniture manufacturing, interior design, home improvement retail, kitchen and bath, and home automation. With complex product configurations, room visualization, delivery logistics, and installation services, businesses need showroom management, custom order tracking, and installation scheduling. Our platform supports everything from made-to-order furniture with fabric-frame combinations to smart home integration services.',
     'about_highlights' => array(
         'Product configurator for custom furniture and finish options',
@@ -96,7 +96,7 @@ $industryData = array(
 			array('name'=>'Home Decor Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
 			array('name'=>'Home Decor Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Home appliances' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Home appliances operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Home appliances' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Home appliances operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Kitchen Appliances','Washing Machines','Air Conditioning','Vacuum Cleaners','Water Purifiers','Smart Home'),'products'=>array(
 			array('name'=>'Home Appliances Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
 			array('name'=>'Home Appliances Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
 			array('name'=>'Home Appliances Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
@@ -146,7 +146,7 @@ $industryData = array(
 			array('name'=>'Cleaning Products Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 			array('name'=>'Cleaning Products Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
-		'Storage & organization' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'Storage & organization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Storage Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Storage & organization' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'Storage & organization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Wardrobes','Shelving','Boxes & Bins','Shoe Racks','Garage Storage','Hooks & Hangers'),'products'=>array(
 			array('name'=>'Storage Organization Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Storage Organization Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 			array('name'=>'Storage Organization Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),

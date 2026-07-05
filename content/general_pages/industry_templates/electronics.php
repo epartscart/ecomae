@@ -75,7 +75,7 @@ $industryData = array(
 		'Aviation electronics',
 		'Musical instruments & audio',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
     'about_text' => 'The electronics and technology sector covers consumer electronics retail, component distribution, IT services, telecommunications, and smart device manufacturing. With rapid product lifecycles and complex supply chains spanning global manufacturers, businesses need serial number tracking, warranty management, RMA processing, and technical specification databases. Our platform handles everything from component procurement to end-consumer retail with full traceability.',
     'about_highlights' => array(
         'Serial number and IMEI tracking with warranty lifecycle management',
@@ -126,7 +126,7 @@ $industryData = array(
 			array('name'=>'Smart Home Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75'),
 			array('name'=>'Smart Home Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=75'),
 		)),
-		'Electronic components' => array('photo'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75','desc'=>'Electronic components operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with electronics industry standards and best practices','categories'=>array('Electronic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Electronic components' => array('photo'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75','desc'=>'Electronic components operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with electronics industry standards and best practices','categories'=>array('Resistors & Capacitors','PCB Boards','Connectors','Display Modules','Battery & Power','LED Modules'),'products'=>array(
 			array('name'=>'Electronic Components Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=75'),
 			array('name'=>'Electronic Components Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=75'),
 			array('name'=>'Electronic Components Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=75'),

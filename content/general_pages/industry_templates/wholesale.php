@@ -73,7 +73,7 @@ $industryData = array(
 		'Industrial chemicals wholesale',
 		'Automotive parts wholesale',
 	),
-	    'about_video' => 'https://www.youtube.com/embed/Rcd3P4mfWxQ',
+	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
     'about_text' => 'The wholesale and trading industry connects manufacturers with retailers through distribution networks spanning local markets and international trade. With bulk pricing, credit management, volume discounts, and complex logistics, wholesalers need purchase order management, warehouse operations, and trade finance capabilities. Our platform provides B2B ordering portals, landed cost calculation, container tracking, and multi-currency invoicing for cross-border trade.',
     'about_highlights' => array(
         'B2B ordering portal with customer-specific pricing and credit terms',
@@ -119,7 +119,7 @@ $industryData = array(
 			array('name'=>'Dropshipping Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 			array('name'=>'Dropshipping Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Cash & carry' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Cash & carry operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with wholesale industry standards and best practices','categories'=>array('Cash Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Cash & carry' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Cash & carry operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with wholesale industry standards and best practices','categories'=>array('Bulk Packs','Trade Prices','Membership','Delivery Service','Business Credit','Category Deals'),'products'=>array(
 			array('name'=>'Cash Carry Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 			array('name'=>'Cash Carry Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 			array('name'=>'Cash Carry Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
@@ -175,7 +175,7 @@ $industryData = array(
 			array('name'=>'Scrap Recycling Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
 			array('name'=>'Scrap Recycling Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
 		)),
-		'Electronics wholesale' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Electronics wholesale operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with wholesale industry standards and best practices','categories'=>array('Electronics Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+		'Electronics wholesale' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Electronics wholesale operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with wholesale industry standards and best practices','categories'=>array('Mobile Phones','Computers','Components','Cables','Accessories','Refurbished'),'products'=>array(
 			array('name'=>'Electronics Wholesale Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
 			array('name'=>'Electronics Wholesale Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
 			array('name'=>'Electronics Wholesale Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
