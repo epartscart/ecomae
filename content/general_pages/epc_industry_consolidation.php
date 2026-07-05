@@ -45,7 +45,7 @@ function epc_industry_groups(): array
             'icon' => 'fa-car',
             'template_key' => 'automotive',
             'description' => 'Auto parts, repair, dealerships, detailing, and vehicle services.',
-            'default_sub_areas' => array('parts_catalog', 'workshop', 'inventory'),
+            'default_sub_areas' => array('parts_catalog', 'workshop', 'fleet'),
             'available_sub_areas' => array(
                 'parts_catalog' => 'Parts catalog & cross-references',
                 'workshop' => 'Workshop / garage management',
@@ -825,7 +825,7 @@ function epc_industry_resolve_group(string $industryName, string $badgeCategory 
 
     // Keyword-based matching rules (order matters — first match wins)
     $rules = array(
-        'automotive' => array('auto ', 'car ', 'vehicle', 'motor', 'tyre', 'tire ', 'driving school', 'garage', 'automotive', 'fleet', 'tarpaulin'),
+        'automotive' => array('auto_', 'auto ', 'car ', 'vehicle', 'motor', 'tyre', 'tire ', 'driving school', 'garage', 'automotive', 'fleet', 'tarpaulin', 'spare part'),
         'healthcare_medical' => array('medical', 'health', 'hospital', 'clinic', 'pharma', 'dental', 'doctor', 'nurse', 'veterinar', 'optical', 'ambulance', 'physiotherapy', 'mental health', 'fertility', 'addiction', 'urology', 'oncology', 'cardio', 'ortho', 'derma', 'pediatr', 'chiropr', 'acupuncture', 'ayurveda', 'homeopath'),
         'food_beverage' => array('restaurant', 'food', 'bakery', 'cafe', 'coffee', 'catering', 'kitchen', 'butcher', 'confection', 'ice cream', 'juice', 'beverage', 'brewery', 'winery', 'bar &', 'pub', 'bbq', 'smokehouse', 'pizza', 'sushi'),
         'fashion_apparel' => array('fashion', 'apparel', 'clothing', 'garment', 'textile', 'footwear', 'shoe', 'tailoring', 'bridal', 'swimwear', 'sportswear', 'uniform', 'wig', 'gown', 'handbag'),
