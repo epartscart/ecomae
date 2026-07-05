@@ -63,6 +63,78 @@ $industryData = array(
 		'Rail freight',
 		'Pipeline transport',
 	),
+	'sub_industry_products' => array(
+		'Freight forwarding' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized freight forwarding solutions','products'=>array(
+			array('name'=>'Freight forwarding Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Freight forwarding Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+			array('name'=>'Freight forwarding Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		)),
+		'Warehousing & 3PL' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized warehousing & 3pl solutions','products'=>array(
+			array('name'=>'Warehousing & 3PL Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Warehousing & 3PL Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+			array('name'=>'Warehousing & 3PL Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		)),
+		'Shipment tracking' => array('photo'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75','desc'=>'Specialized shipment tracking solutions','products'=>array(
+			array('name'=>'Shipment tracking Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
+			array('name'=>'Shipment tracking Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Shipment tracking Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+		)),
+		'Courier & parcel' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized courier & parcel solutions','products'=>array(
+			array('name'=>'Courier & parcel Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+			array('name'=>'Courier & parcel Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Courier & parcel Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
+		)),
+		'Trucking & road freight' => array('photo'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75','desc'=>'Specialized trucking & road freight solutions','products'=>array(
+			array('name'=>'Trucking & road freight Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+			array('name'=>'Trucking & road freight Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Trucking & road freight Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		)),
+		'Sea freight & container' => array('photo'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75','desc'=>'Specialized sea freight & container solutions','products'=>array(
+			array('name'=>'Sea freight & container Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Sea freight & container Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+			array('name'=>'Sea freight & container Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		)),
+		'Air cargo & express' => array('photo'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75','desc'=>'Specialized air cargo & express solutions','products'=>array(
+			array('name'=>'Air cargo & express Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Air cargo & express Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
+			array('name'=>'Air cargo & express Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+		)),
+		'Customs brokerage' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized customs brokerage solutions','products'=>array(
+			array('name'=>'Customs brokerage Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+			array('name'=>'Customs brokerage Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Customs brokerage Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		)),
+		'Cold chain logistics' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Specialized cold chain logistics solutions','products'=>array(
+			array('name'=>'Cold chain logistics Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
+			array('name'=>'Cold chain logistics Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Cold chain logistics Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
+		)),
+		'Last-mile delivery' => array('photo'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75','desc'=>'Specialized last-mile delivery solutions','products'=>array(
+			array('name'=>'Last-mile delivery Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75'),
+			array('name'=>'Last-mile delivery Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Last-mile delivery Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+		)),
+		'Moving & relocation' => array('photo'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75','desc'=>'Specialized moving & relocation solutions','products'=>array(
+			array('name'=>'Moving & relocation Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Moving & relocation Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Moving & relocation Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+		)),
+		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1545262810-77515befe149?w=400&q=75','desc'=>'Specialized fleet management solutions','products'=>array(
+			array('name'=>'Fleet management Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Fleet management Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1616432043562-3671ea2e5242?w=400&q=75'),
+			array('name'=>'Fleet management Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		)),
+		'Rail freight' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized rail freight solutions','products'=>array(
+			array('name'=>'Rail freight Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Rail freight Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400&q=75'),
+			array('name'=>'Rail freight Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		)),
+		'Pipeline transport' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized pipeline transport solutions','products'=>array(
+			array('name'=>'Pipeline transport Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Pipeline transport Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
+			array('name'=>'Pipeline transport Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'Route optimization cut our fuel costs by 25% across 120 vehicles.', 'author' => 'Abdullah M., Logistics Manager, Jebel Ali'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

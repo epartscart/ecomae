@@ -61,6 +61,68 @@ $industryData = array(
 		'Metals trading',
 		'Textile trading',
 	),
+	'sub_industry_products' => array(
+		'Wholesale distribution' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized wholesale distribution solutions','products'=>array(
+			array('name'=>'Wholesale distribution Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Wholesale distribution Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Wholesale distribution Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		)),
+		'Import / export trading' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized import / export trading solutions','products'=>array(
+			array('name'=>'Import / export trading Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Import / export trading Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Import / export trading Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		)),
+		'Tiered pricing & schemes' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized tiered pricing & schemes solutions','products'=>array(
+			array('name'=>'Tiered pricing & schemes Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Tiered pricing & schemes Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Tiered pricing & schemes Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		)),
+		'Commodity trading' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized commodity trading solutions','products'=>array(
+			array('name'=>'Commodity trading Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Commodity trading Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Commodity trading Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		)),
+		'FMCG distribution' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized fmcg distribution solutions','products'=>array(
+			array('name'=>'FMCG distribution Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'FMCG distribution Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'FMCG distribution Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		)),
+		'B2B marketplace' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized b2b marketplace solutions','products'=>array(
+			array('name'=>'B2B marketplace Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'B2B marketplace Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'B2B marketplace Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		)),
+		'Dropshipping' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized dropshipping solutions','products'=>array(
+			array('name'=>'Dropshipping Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Dropshipping Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Dropshipping Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		)),
+		'Cash & carry' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized cash & carry solutions','products'=>array(
+			array('name'=>'Cash & carry Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Cash & carry Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Cash & carry Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		)),
+		'Liquidation & clearance' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized liquidation & clearance solutions','products'=>array(
+			array('name'=>'Liquidation & clearance Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Liquidation & clearance Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Liquidation & clearance Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		)),
+		'Chemical trading' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized chemical trading solutions','products'=>array(
+			array('name'=>'Chemical trading Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Chemical trading Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Chemical trading Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+		'Metals trading' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized metals trading solutions','products'=>array(
+			array('name'=>'Metals trading Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Metals trading Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Metals trading Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
+		)),
+		'Textile trading' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Specialized textile trading solutions','products'=>array(
+			array('name'=>'Textile trading Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Textile trading Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+			array('name'=>'Textile trading Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'B2B portal reduced order processing time from 2 days to 15 minutes.', 'author' => 'Trader Mohammed, General Trading, Deira'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

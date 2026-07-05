@@ -62,6 +62,73 @@ $industryData = array(
 		'Cryptocurrency exchange',
 		'Debt collection',
 	),
+	'sub_industry_products' => array(
+		'Financial advisory' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized financial advisory solutions','products'=>array(
+			array('name'=>'Financial advisory Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Financial advisory Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+			array('name'=>'Financial advisory Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+		)),
+		'Regulatory compliance' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Specialized regulatory compliance solutions','products'=>array(
+			array('name'=>'Regulatory compliance Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
+			array('name'=>'Regulatory compliance Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
+			array('name'=>'Regulatory compliance Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+		)),
+		'Financial reporting' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Specialized financial reporting solutions','products'=>array(
+			array('name'=>'Financial reporting Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
+			array('name'=>'Financial reporting Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
+			array('name'=>'Financial reporting Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		)),
+		'Insurance brokerage' => array('photo'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75','desc'=>'Specialized insurance brokerage solutions','products'=>array(
+			array('name'=>'Insurance brokerage Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+			array('name'=>'Insurance brokerage Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Insurance brokerage Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+		)),
+		'Banking services' => array('photo'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75','desc'=>'Specialized banking services solutions','products'=>array(
+			array('name'=>'Banking services Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
+			array('name'=>'Banking services Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Banking services Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		)),
+		'Lending & microfinance' => array('photo'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75','desc'=>'Specialized lending & microfinance solutions','products'=>array(
+			array('name'=>'Lending & microfinance Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
+			array('name'=>'Lending & microfinance Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Lending & microfinance Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+		)),
+		'Wealth management' => array('photo'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75','desc'=>'Specialized wealth management solutions','products'=>array(
+			array('name'=>'Wealth management Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Wealth management Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Wealth management Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+		)),
+		'Fintech solutions' => array('photo'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75','desc'=>'Specialized fintech solutions solutions','products'=>array(
+			array('name'=>'Fintech solutions Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Fintech solutions Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Fintech solutions Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
+		)),
+		'Foreign exchange' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized foreign exchange solutions','products'=>array(
+			array('name'=>'Foreign exchange Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Foreign exchange Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Foreign exchange Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
+		)),
+		'Investment management' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Specialized investment management solutions','products'=>array(
+			array('name'=>'Investment management Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Investment management Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Investment management Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+		'Payment processing' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized payment processing solutions','products'=>array(
+			array('name'=>'Payment processing Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Payment processing Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
+			array('name'=>'Payment processing Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
+		)),
+		'Cryptocurrency exchange' => array('photo'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75','desc'=>'Specialized cryptocurrency exchange solutions','products'=>array(
+			array('name'=>'Cryptocurrency exchange Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Cryptocurrency exchange Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
+			array('name'=>'Cryptocurrency exchange Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
+		)),
+		'Debt collection' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized debt collection solutions','products'=>array(
+			array('name'=>'Debt collection Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Debt collection Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+			array('name'=>'Debt collection Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'KYC automation reduced our client onboarding from 5 days to 4 hours.', 'author' => 'Richard H., CEO, Financial Advisory Firm, DIFC'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

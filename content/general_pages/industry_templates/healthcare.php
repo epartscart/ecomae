@@ -66,6 +66,93 @@ $industryData = array(
 		'Fertility clinic',
 		'Addiction treatment',
 	),
+	'sub_industry_products' => array(
+		'Clinic & patient management' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Specialized clinic & patient management solutions','products'=>array(
+			array('name'=>'Clinic & patient management Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Clinic & patient management Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&q=75'),
+			array('name'=>'Clinic & patient management Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+		)),
+		'Hospital operations' => array('photo'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75','desc'=>'Specialized hospital operations solutions','products'=>array(
+			array('name'=>'Hospital operations Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=75'),
+			array('name'=>'Hospital operations Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&q=75'),
+			array('name'=>'Hospital operations Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=75'),
+		)),
+		'Pharmacy & drug dispensing' => array('photo'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75','desc'=>'Specialized pharmacy & drug dispensing solutions','products'=>array(
+			array('name'=>'Pharmacy & drug dispensing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75'),
+			array('name'=>'Pharmacy & drug dispensing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1581093458791-9d42e3c7e117?w=400&q=75'),
+			array('name'=>'Pharmacy & drug dispensing Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400&q=75'),
+		)),
+		'Dental practice' => array('photo'=>'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=75','desc'=>'Specialized dental practice solutions','products'=>array(
+			array('name'=>'Dental practice Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&q=75'),
+			array('name'=>'Dental practice Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Dental practice Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75'),
+		)),
+		'Veterinary services' => array('photo'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75','desc'=>'Specialized veterinary services solutions','products'=>array(
+			array('name'=>'Veterinary services Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&q=75'),
+			array('name'=>'Veterinary services Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=75'),
+			array('name'=>'Veterinary services Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=75'),
+		)),
+		'Optical & eyewear' => array('photo'=>'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&q=75','desc'=>'Specialized optical & eyewear solutions','products'=>array(
+			array('name'=>'Optical & eyewear Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581093458791-9d42e3c7e117?w=400&q=75'),
+			array('name'=>'Optical & eyewear Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400&q=75'),
+			array('name'=>'Optical & eyewear Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=75'),
+		)),
+		'Medical equipment supply' => array('photo'=>'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&q=75','desc'=>'Specialized medical equipment supply solutions','products'=>array(
+			array('name'=>'Medical equipment supply Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Medical equipment supply Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75'),
+			array('name'=>'Medical equipment supply Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=400&q=75'),
+		)),
+		'Laboratory & diagnostics' => array('photo'=>'https://images.unsplash.com/photo-1581093458791-9d42e3c7e117?w=400&q=75','desc'=>'Specialized laboratory & diagnostics solutions','products'=>array(
+			array('name'=>'Laboratory & diagnostics Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=75'),
+			array('name'=>'Laboratory & diagnostics Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=75'),
+			array('name'=>'Laboratory & diagnostics Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&q=75'),
+		)),
+		'Wellness & holistic health' => array('photo'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75','desc'=>'Specialized wellness & holistic health solutions','products'=>array(
+			array('name'=>'Wellness & holistic health Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400&q=75'),
+			array('name'=>'Wellness & holistic health Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=75'),
+			array('name'=>'Wellness & holistic health Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400&q=75'),
+		)),
+		'Mental health & counseling' => array('photo'=>'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=75','desc'=>'Specialized mental health & counseling solutions','products'=>array(
+			array('name'=>'Mental health & counseling Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75'),
+			array('name'=>'Mental health & counseling Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=400&q=75'),
+			array('name'=>'Mental health & counseling Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+		)),
+		'Physiotherapy & rehab' => array('photo'=>'https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400&q=75','desc'=>'Specialized physiotherapy & rehab solutions','products'=>array(
+			array('name'=>'Physiotherapy & rehab Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=75'),
+			array('name'=>'Physiotherapy & rehab Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&q=75'),
+			array('name'=>'Physiotherapy & rehab Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+		)),
+		'Home healthcare' => array('photo'=>'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=400&q=75','desc'=>'Specialized home healthcare solutions','products'=>array(
+			array('name'=>'Home healthcare Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=75'),
+			array('name'=>'Home healthcare Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400&q=75'),
+			array('name'=>'Home healthcare Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+		)),
+		'Telemedicine & telehealth' => array('photo'=>'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=75','desc'=>'Specialized telemedicine & telehealth solutions','products'=>array(
+			array('name'=>'Telemedicine & telehealth Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=400&q=75'),
+			array('name'=>'Telemedicine & telehealth Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+			array('name'=>'Telemedicine & telehealth Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=75'),
+		)),
+		'Cosmetic surgery' => array('photo'=>'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=75','desc'=>'Specialized cosmetic surgery solutions','products'=>array(
+			array('name'=>'Cosmetic surgery Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&q=75'),
+			array('name'=>'Cosmetic surgery Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Cosmetic surgery Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75'),
+		)),
+		'Ambulance & emergency' => array('photo'=>'https://images.unsplash.com/photo-1587745416684-47953f16f02f?w=400&q=75','desc'=>'Specialized ambulance & emergency solutions','products'=>array(
+			array('name'=>'Ambulance & emergency Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400&q=75'),
+			array('name'=>'Ambulance & emergency Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Ambulance & emergency Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&q=75'),
+		)),
+		'Fertility clinic' => array('photo'=>'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&q=75','desc'=>'Specialized fertility clinic solutions','products'=>array(
+			array('name'=>'Fertility clinic Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+			array('name'=>'Fertility clinic Professional','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=75'),
+			array('name'=>'Fertility clinic Enterprise','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&q=75'),
+		)),
+		'Addiction treatment' => array('photo'=>'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=400&q=75','desc'=>'Specialized addiction treatment solutions','products'=>array(
+			array('name'=>'Addiction treatment Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Addiction treatment Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75'),
+			array('name'=>'Addiction treatment Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1581093458791-9d42e3c7e117?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'Streamlined our multi-clinic operations and cut claim rejections by 60%.', 'author' => 'Dr. Sarah M., Medical Director, Abu Dhabi'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

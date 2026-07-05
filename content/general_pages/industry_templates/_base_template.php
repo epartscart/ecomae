@@ -185,21 +185,56 @@ echo "$r2,$g2,$b2";?>,.82))}
 .feat-card p{font-size:13px;color:#64748b;line-height:1.6}
 
 /* ===== SUB-INDUSTRIES ===== */
-.ind-subs{padding:80px 20px;background:#f8fafc}
+.ind-subs{padding:80px 20px;background:linear-gradient(180deg,#f8fafc 0%,#fff 100%)}
 .ind-subs h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
-.ind-subs .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:32px}
-.ind-subs-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:900px;margin:0 auto}
-.ind-sub-tag{background:#fff;border:1px solid #e2e8f0;border-radius:100px;padding:10px 20px;font-size:14px;color:#374151;transition:all .3s;cursor:default;font-weight:500}
-.ind-sub-tag:hover{background:var(--primary);border-color:var(--primary);color:#fff;transform:scale(1.05);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.ind-subs .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+.ind-subs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;max-width:1280px;margin:0 auto}
+.sub-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;transition:all .4s cubic-bezier(.16,1,.3,1);cursor:pointer;position:relative}
+.sub-card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.1);border-color:transparent}
+.sub-card__img{height:160px;overflow:hidden;position:relative}
+.sub-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.sub-card:hover .sub-card__img img{transform:scale(1.08)}
+.sub-card__img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,rgba(0,0,0,.4))}
+.sub-card__badge{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+.sub-card__badge span{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sub-card__badge .b-erp{background:rgba(16,185,129,.9);color:#fff}
+.sub-card__badge .b-cp{background:rgba(59,130,246,.9);color:#fff}
+.sub-card__badge .b-store{background:rgba(249,115,22,.9);color:#fff}
+.sub-card__body{padding:20px}
+.sub-card__name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px}
+.sub-card__desc{font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.5}
+.sub-card__process{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #f1f5f9}
+.sub-card__process .proc-step{font-size:11px;color:#475569;font-weight:500;white-space:nowrap}
+.sub-card__process .proc-arrow{color:var(--primary);font-size:10px}
+.sub-card__products{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sub-prod{text-align:center;border-radius:8px;overflow:hidden;border:1px solid #f1f5f9;transition:all .2s}
+.sub-prod:hover{border-color:var(--primary);transform:scale(1.03)}
+.sub-prod img{width:100%;height:60px;object-fit:cover}
+.sub-prod .sp-name{font-size:10px;font-weight:600;color:#1e293b;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub-prod .sp-price{font-size:10px;color:var(--primary);font-weight:700;padding:0 2px 4px}
+.sub-card__cta{display:flex;gap:8px;margin-top:14px}
+.sub-card__cta a{flex:1;padding:8px;border-radius:6px;font-size:11px;font-weight:600;text-align:center;text-decoration:none!important;transition:all .2s}
+.sub-card__cta .sc-site{background:var(--primary);color:#fff}
+.sub-card__cta .sc-site:hover{background:var(--accent)}
+.sub-card__cta .sc-erp{background:#f1f5f9;color:#475569}
+.sub-card__cta .sc-erp:hover{background:#e2e8f0}
+
+/* Sub-industry filter tabs */
+.sub-filter{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;max-width:900px;margin-left:auto;margin-right:auto}
+.sub-filter-btn{padding:8px 16px;border-radius:100px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+.sub-filter-btn:hover,.sub-filter-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;transform:scale(1.05)}
 
 /* ===== GALLERY ===== */
 .ind-gallery{padding:80px 20px;max-width:1200px;margin:0 auto}
 .ind-gallery h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:40px}
 .ind-gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;grid-auto-rows:200px}
-.ind-gallery-item{border-radius:12px;overflow:hidden;position:relative}
-.ind-gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
-.ind-gallery-item:hover img{transform:scale(1.06)}
+.ind-gallery-item{border-radius:12px;overflow:hidden;position:relative;transition:all .4s cubic-bezier(.16,1,.3,1)}
+.ind-gallery-item:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.15)}
+.ind-gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.ind-gallery-item:hover img{transform:scale(1.08)}
 .ind-gallery-item:first-child{grid-row:span 2}
+.ind-gallery-item::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.3) 0%,transparent 50%);opacity:0;transition:opacity .3s}
+.ind-gallery-item:hover::after{opacity:1}
 
 /* ===== TESTIMONIAL ===== */
 .ind-testimonial{padding:80px 40px;text-align:center;background:#fff;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
@@ -496,14 +531,87 @@ echo "$r2,$g2,$b2";?>,.82))}
 </section>
 <?php endif; ?>
 
-<!-- ===== SUB-INDUSTRIES ===== -->
-<?php if(!empty($subIndustries)): ?>
+<!-- ===== SUB-INDUSTRIES WITH BUSINESS PROCESSES ===== -->
+<?php
+$subProducts = $industryData['sub_industry_products'] ?? array();
+if(!empty($subIndustries)):
+?>
 <section class="ind-subs reveal" id="industries">
-<h2>Supported Sub-Industries</h2>
-<p class="section-sub"><?php echo count($subIndustries);?> specialized areas — each with tailored workflows and modules</p>
-<div class="ind-subs-list">
-<?php foreach($subIndustries as $sub): ?>
-<span class="ind-sub-tag"><?php echo htmlspecialchars($sub);?></span>
+<h2><?php echo htmlspecialchars($name);?> — Sub-Industry Solutions</h2>
+<p class="section-sub"><?php echo count($subIndustries);?> specialized verticals — each with dedicated ERP workflows, CP configuration, and storefront</p>
+
+<!-- Filter buttons -->
+<div class="sub-filter">
+<button class="sub-filter-btn active" onclick="filterSubs('all')">All (<?php echo count($subIndustries);?>)</button>
+<?php
+$chunks = array_chunk($subIndustries, (int)ceil(count($subIndustries)/3));
+$labels = array('Core','Extended','Specialized');
+foreach($chunks as $ci => $chunk):
+?>
+<button class="sub-filter-btn" onclick="filterSubs('group-<?php echo $ci;?>')"><?php echo $labels[$ci] ?? 'More';?> (<?php echo count($chunk);?>)</button>
+<?php endforeach; ?>
+</div>
+
+<!-- Sub-industry cards grid -->
+<div class="ind-subs-grid">
+<?php
+$groupIdx = 0;
+$perGroup = (int)ceil(count($subIndustries)/3);
+foreach($subIndustries as $si => $sub):
+    $currentGroup = (int)floor($si / $perGroup);
+    $subData = $subProducts[$sub] ?? null;
+    $subPhoto = $subData ? $subData['photo'] : '';
+    $subDesc = $subData ? $subData['desc'] : 'Specialized solutions for ' . strtolower($sub);
+    $subProds = ($subData && isset($subData['products'])) ? $subData['products'] : array();
+    
+    // Generate business process steps from sub-industry name
+    $processSteps = array('Discovery','Configure','Deploy','Operate','Optimize');
+?>
+<div class="sub-card reveal" data-group="group-<?php echo $currentGroup;?>">
+<div class="sub-card__img">
+<?php if($subPhoto): ?>
+<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?>" loading="lazy">
+<?php else: ?>
+<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center"><i class="fa <?php echo htmlspecialchars($icon);?>" style="font-size:3rem;color:rgba(255,255,255,.5)"></i></div>
+<?php endif; ?>
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<div class="sub-card__name"><?php echo htmlspecialchars($sub);?></div>
+<div class="sub-card__desc"><?php echo htmlspecialchars($subDesc);?></div>
+
+<!-- Business Process Flow -->
+<div class="sub-card__process">
+<?php foreach($processSteps as $psi => $step): ?>
+<?php if($psi > 0): ?><span class="proc-arrow"><i class="fa fa-chevron-right"></i></span><?php endif; ?>
+<span class="proc-step"><?php echo $step;?></span>
+<?php endforeach; ?>
+</div>
+
+<!-- Sub-industry Products -->
+<?php if(!empty($subProds)): ?>
+<div class="sub-card__products">
+<?php foreach(array_slice($subProds, 0, 3) as $sp): ?>
+<div class="sub-prod">
+<img src="<?php echo $sp['image'];?>" alt="<?php echo htmlspecialchars($sp['name']);?>" loading="lazy">
+<div class="sp-name"><?php echo htmlspecialchars($sp['name']);?></div>
+<div class="sp-price"><?php echo $sp['price'];?></div>
+</div>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<!-- CTA buttons -->
+<div class="sub-card__cta">
+<a href="#" class="sc-site" onclick="openAuth('register');return false"><i class="fa fa-shopping-cart"></i> Try Store</a>
+<a href="/cp/demo/<?php echo urlencode($demoKey);?>/" class="sc-erp"><i class="fa fa-cogs"></i> Open CP</a>
+</div>
+</div>
+</div>
 <?php endforeach; ?>
 </div>
 </section>
@@ -702,6 +810,21 @@ nav.style.background = '#fff';
 nav.style.padding = '16px';
 nav.style.flexDirection = 'column';
 nav.style.boxShadow = '0 4px 20px rgba(0,0,0,.1)';
+};
+
+/* Sub-industry filter */
+window.filterSubs = function(group){
+var cards = document.querySelectorAll('.sub-card');
+var btns = document.querySelectorAll('.sub-filter-btn');
+btns.forEach(function(b){b.classList.remove('active')});
+event.target.classList.add('active');
+cards.forEach(function(c){
+if(group === 'all'){c.style.display = '';c.classList.add('visible')}
+else{
+if(c.dataset.group === group){c.style.display = '';c.classList.add('visible')}
+else{c.style.display = 'none'}
+}
+});
 };
 
 /* Scroll reveal */

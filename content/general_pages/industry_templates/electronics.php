@@ -62,6 +62,73 @@ $industryData = array(
 		'Electronics wholesale',
 		'Refurbished electronics',
 	),
+	'sub_industry_products' => array(
+		'Electronics retail store' => array('photo'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75','desc'=>'Specialized electronics retail store solutions','products'=>array(
+			array('name'=>'Electronics retail store Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&q=75'),
+			array('name'=>'Electronics retail store Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=75'),
+			array('name'=>'Electronics retail store Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75'),
+		)),
+		'Online electronics store' => array('photo'=>'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=75','desc'=>'Specialized online electronics store solutions','products'=>array(
+			array('name'=>'Online electronics store Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=75'),
+			array('name'=>'Online electronics store Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
+			array('name'=>'Online electronics store Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&q=75'),
+		)),
+		'Device repair & service' => array('photo'=>'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&q=75','desc'=>'Specialized device repair & service solutions','products'=>array(
+			array('name'=>'Device repair & service Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=75'),
+			array('name'=>'Device repair & service Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=75'),
+			array('name'=>'Device repair & service Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=75'),
+		)),
+		'Computers & laptops' => array('photo'=>'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=75','desc'=>'Specialized computers & laptops solutions','products'=>array(
+			array('name'=>'Computers & laptops Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=75'),
+			array('name'=>'Computers & laptops Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75'),
+			array('name'=>'Computers & laptops Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&q=75'),
+		)),
+		'Mobile phones & tablets' => array('photo'=>'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=75','desc'=>'Specialized mobile phones & tablets solutions','products'=>array(
+			array('name'=>'Mobile phones & tablets Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
+			array('name'=>'Mobile phones & tablets Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&q=75'),
+			array('name'=>'Mobile phones & tablets Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75'),
+		)),
+		'Gaming & consoles' => array('photo'=>'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=75','desc'=>'Specialized gaming & consoles solutions','products'=>array(
+			array('name'=>'Gaming & consoles Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=75'),
+			array('name'=>'Gaming & consoles Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=75'),
+			array('name'=>'Gaming & consoles Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=75'),
+		)),
+		'Audio & home theater' => array('photo'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75','desc'=>'Specialized audio & home theater solutions','products'=>array(
+			array('name'=>'Audio & home theater Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75'),
+			array('name'=>'Audio & home theater Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&q=75'),
+			array('name'=>'Audio & home theater Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&q=75'),
+		)),
+		'Smart home & IoT' => array('photo'=>'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=75','desc'=>'Specialized smart home & iot solutions','products'=>array(
+			array('name'=>'Smart home & IoT Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&q=75'),
+			array('name'=>'Smart home & IoT Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75'),
+			array('name'=>'Smart home & IoT Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=75'),
+		)),
+		'Electronic components' => array('photo'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75','desc'=>'Specialized electronic components solutions','products'=>array(
+			array('name'=>'Electronic components Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=75'),
+			array('name'=>'Electronic components Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=75'),
+			array('name'=>'Electronic components Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=75'),
+		)),
+		'Cameras & photography' => array('photo'=>'https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&q=75','desc'=>'Specialized cameras & photography solutions','products'=>array(
+			array('name'=>'Cameras & photography Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&q=75'),
+			array('name'=>'Cameras & photography Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&q=75'),
+			array('name'=>'Cameras & photography Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=75'),
+		)),
+		'Home appliances' => array('photo'=>'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=75','desc'=>'Specialized home appliances solutions','products'=>array(
+			array('name'=>'Home appliances Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75'),
+			array('name'=>'Home appliances Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=75'),
+			array('name'=>'Home appliances Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
+		)),
+		'Electronics wholesale' => array('photo'=>'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&q=75','desc'=>'Specialized electronics wholesale solutions','products'=>array(
+			array('name'=>'Electronics wholesale Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&q=75'),
+			array('name'=>'Electronics wholesale Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=75'),
+			array('name'=>'Electronics wholesale Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=75'),
+		)),
+		'Refurbished electronics' => array('photo'=>'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75','desc'=>'Specialized refurbished electronics solutions','products'=>array(
+			array('name'=>'Refurbished electronics Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&q=75'),
+			array('name'=>'Refurbished electronics Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&q=75'),
+			array('name'=>'Refurbished electronics Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'Serial-level tracking eliminated ghost inventory and improved warranty claims by 90%.', 'author' => 'Hassan T., Electronics Chain, Sharjah'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

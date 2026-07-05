@@ -62,6 +62,73 @@ $industryData = array(
 		'Cleaning products',
 		'Storage & organization',
 	),
+	'sub_industry_products' => array(
+		'Furniture retail' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized furniture retail solutions','products'=>array(
+			array('name'=>'Furniture retail Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Furniture retail Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Furniture retail Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		)),
+		'Home decor & accessories' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized home decor & accessories solutions','products'=>array(
+			array('name'=>'Home decor & accessories Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Home decor & accessories Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Home decor & accessories Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		)),
+		'Home appliances' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized home appliances solutions','products'=>array(
+			array('name'=>'Home appliances Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Home appliances Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Home appliances Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		)),
+		'Kitchen & bath' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized kitchen & bath solutions','products'=>array(
+			array('name'=>'Kitchen & bath Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Kitchen & bath Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Kitchen & bath Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		)),
+		'Garden & outdoor' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized garden & outdoor solutions','products'=>array(
+			array('name'=>'Garden & outdoor Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Garden & outdoor Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Garden & outdoor Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		)),
+		'Lighting & fixtures' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized lighting & fixtures solutions','products'=>array(
+			array('name'=>'Lighting & fixtures Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Lighting & fixtures Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Lighting & fixtures Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		)),
+		'Flooring & tiles' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized flooring & tiles solutions','products'=>array(
+			array('name'=>'Flooring & tiles Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Flooring & tiles Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Flooring & tiles Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		)),
+		'Mattress & bedding' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized mattress & bedding solutions','products'=>array(
+			array('name'=>'Mattress & bedding Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Mattress & bedding Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Mattress & bedding Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		)),
+		'Curtains & blinds' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized curtains & blinds solutions','products'=>array(
+			array('name'=>'Curtains & blinds Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Curtains & blinds Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Curtains & blinds Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		)),
+		'Art & wall decor' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized art & wall decor solutions','products'=>array(
+			array('name'=>'Art & wall decor Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Art & wall decor Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Art & wall decor Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+		'Smart home products' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized smart home products solutions','products'=>array(
+			array('name'=>'Smart home products Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Smart home products Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Smart home products Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
+		)),
+		'Cleaning products' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Specialized cleaning products solutions','products'=>array(
+			array('name'=>'Cleaning products Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Cleaning products Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+			array('name'=>'Cleaning products Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+		'Storage & organization' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'Specialized storage & organization solutions','products'=>array(
+			array('name'=>'Storage & organization Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Storage & organization Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Storage & organization Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => '3D room planner increased our conversion rate by 35% in the showroom.', 'author' => 'Interior Designer, Home Store, Sheikh Zayed Road'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',
