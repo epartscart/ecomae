@@ -76,7 +76,7 @@ $industryData = array(
 		'Wine & liquor store',
 		'Arts & crafts supply',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/xGF3ObOBbac',
+	    'about_video' => 'https://www.youtube.com/embed/2pohGj2WjJI',
     'about_text' => 'The retail and e-commerce industry represents a $25+ trillion global market encompassing brick-and-mortar stores, online marketplaces, omnichannel retailers, and direct-to-consumer brands. With unified commerce, real-time inventory, dynamic pricing, and personalization as competitive differentiators, retailers need integrated POS, e-commerce, and supply chain capabilities. Our platform provides unified inventory across all channels with AI-powered merchandising and customer analytics.',
     'about_highlights' => array(
         'Unified commerce with real-time inventory across all channels',

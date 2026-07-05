@@ -75,7 +75,7 @@ $industryData = array(
 		'Kitchen renovation & fitting',
 		'Home automation & smart tech',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/rPmyuuvIABM',
     'about_text' => 'The home and living industry covers furniture manufacturing, interior design, home improvement retail, kitchen and bath, and home automation. With complex product configurations, room visualization, delivery logistics, and installation services, businesses need showroom management, custom order tracking, and installation scheduling. Our platform supports everything from made-to-order furniture with fabric-frame combinations to smart home integration services.',
     'about_highlights' => array(
         'Product configurator for custom furniture and finish options',

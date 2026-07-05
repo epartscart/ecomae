@@ -73,7 +73,7 @@ $industryData = array(
 		'Guard dog services',
 		'Crowd management',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
+	    'about_video' => 'https://www.youtube.com/embed/XfV4pZsSgmQ',
     'about_text' => 'The security and safety industry covers physical guarding, electronic surveillance, cybersecurity services, fire safety, and access control systems. With 24/7 operations, shift management, incident response, and regulatory compliance, security companies need workforce scheduling, patrol verification, alarm monitoring, and guard tour management. Our platform supports everything from small guard companies to enterprise security operations centers.',
     'about_highlights' => array(
         'Guard scheduling with shift planning and overtime management',

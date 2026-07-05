@@ -73,7 +73,7 @@ $industryData = array(
 		'Stone & facade cleaning',
 		'Tank & silo cleaning',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/5qBcEncjtYk',
     'about_text' => 'The cleaning and maintenance industry provides essential services across residential, commercial, and industrial sectors. From janitorial companies to specialized restoration services, this industry requires workforce scheduling, supply inventory management, quality inspection workflows, and contract management. Modern cleaning businesses leverage IoT-connected equipment, route optimization, and digital quality audits to deliver consistent service across multiple locations.',
     'about_highlights' => array(
         'Workforce scheduling with route optimization and GPS tracking',

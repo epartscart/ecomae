@@ -73,7 +73,7 @@ $industryData = array(
 		'Costume & fancy dress hire',
 		'Musical instrument rental',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/_gAhG_UU1L8',
     'about_text' => 'The rental and leasing industry covers equipment rental, vehicle leasing, property rental, event hire, and tool rental businesses. With asset lifecycle management, availability calendaring, maintenance scheduling, and contract management as core requirements, rental businesses need real-time fleet visibility and automated billing. Our platform supports single and multi-location operations with online reservation, damage tracking, and utilization analytics.',
     'about_highlights' => array(
         'Asset availability calendar with online booking and reservations',

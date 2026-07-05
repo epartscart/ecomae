@@ -78,7 +78,7 @@ $industryData = array(
 		'Halal / Kosher certification',
 		'Vending & automated retail',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/ydKd5gRXh-c',
+	    'about_video' => 'https://www.youtube.com/embed/EcBAATdYGuo',
     'about_text' => 'The food and beverage industry encompasses restaurants, catering, food manufacturing, wholesale distribution, and grocery retail. With strict food safety regulations (HACCP, ISO 22000), shelf-life management, and complex supply chains, businesses need batch traceability, recipe management, kitchen production planning, and cold chain monitoring. Our platform supports the entire farm-to-fork journey with allergen tracking and nutritional compliance.',
     'about_highlights' => array(
         'HACCP and food safety compliance with digital audit trails',

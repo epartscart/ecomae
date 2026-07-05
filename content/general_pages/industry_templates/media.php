@@ -74,7 +74,7 @@ $industryData = array(
 		'Museum & cultural space',
 		'Augmented reality content',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/UCFg9bcW7Bk',
+	    'about_video' => 'https://www.youtube.com/embed/UCFg9bcW7Bk',
     'about_text' => 'The media and entertainment industry covers publishing, broadcasting, digital content creation, gaming, advertising, and event production. With complex rights management, royalty tracking, advertising sales, and content distribution across multiple platforms, businesses need digital asset management, content scheduling, and revenue attribution. Our platform supports media companies with ad inventory management, subscription platforms, and creator economy tools.',
     'about_highlights' => array(
         'Digital asset management with metadata tagging and rights tracking',

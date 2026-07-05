@@ -73,7 +73,7 @@ $industryData = array(
 		'Animal welfare charity',
 		'Cultural preservation society',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/UCFg9bcW7Bk',
+	    'about_video' => 'https://www.youtube.com/embed/UCFg9bcW7Bk',
     'about_text' => 'The non-profit and government sector includes charities, NGOs, foundations, municipalities, and public sector organizations. With unique requirements around donor management, grant tracking, fund accounting, and regulatory compliance, these organizations need transparency-focused financial management. Our platform provides restricted fund accounting, donor CRM, volunteer management, and compliance reporting for various regulatory frameworks.',
     'about_highlights' => array(
         'Fund accounting with restricted, unrestricted, and endowment tracking',

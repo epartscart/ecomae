@@ -74,7 +74,7 @@ $industryData = array(
 		'District cooling & heating',
 		'Energy efficiency solutions',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/4td2SAsvtoQ',
+	    'about_video' => 'https://www.youtube.com/embed/z2H4ArjmG_4',
     'about_text' => 'The energy and utilities sector encompasses power generation, oil and gas, renewable energy, water treatment, and utility distribution. This highly regulated industry requires asset management, SCADA integration, regulatory compliance, preventive maintenance, and grid management capabilities. Our platform supports energy companies with plant maintenance scheduling, outage management, meter data analytics, and environmental compliance reporting.',
     'about_highlights' => array(
         'Asset lifecycle management with predictive maintenance scheduling',

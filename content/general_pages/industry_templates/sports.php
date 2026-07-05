@@ -73,7 +73,7 @@ $industryData = array(
 		'Sports event management',
 		'Skateboard & BMX park',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/9UZWfMgjqAs',
+	    'about_video' => 'https://www.youtube.com/embed/JxRnueT6wHs',
     'about_text' => 'The sports and fitness industry encompasses gyms, sports clubs, outdoor recreation, sports retail, and event management. With membership management, class scheduling, personal training, and facility booking at the core, fitness businesses need attendance tracking, payment processing, and engagement analytics. Our platform supports everything from boutique studios to multi-location gym chains with member self-service portals and automated billing.',
     'about_highlights' => array(
         'Membership management with plan upgrades, freezes, and renewals',

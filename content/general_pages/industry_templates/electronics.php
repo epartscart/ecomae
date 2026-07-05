@@ -75,7 +75,7 @@ $industryData = array(
 		'Aviation electronics',
 		'Musical instruments & audio',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/ljOoGyCso8s',
+	    'about_video' => 'https://www.youtube.com/embed/ljOoGyCso8s',
     'about_text' => 'The electronics and technology sector covers consumer electronics retail, component distribution, IT services, telecommunications, and smart device manufacturing. With rapid product lifecycles and complex supply chains spanning global manufacturers, businesses need serial number tracking, warranty management, RMA processing, and technical specification databases. Our platform handles everything from component procurement to end-consumer retail with full traceability.',
     'about_highlights' => array(
         'Serial number and IMEI tracking with warranty lifecycle management',

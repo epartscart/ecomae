@@ -75,7 +75,7 @@ $industryData = array(
 		'Document & legal courier',
 		'Supply chain consulting',
 	),
-	    'about_video' => 'https://www.youtube-nocookie.com/embed/7Pq-S557XQU',
+	    'about_video' => 'https://www.youtube.com/embed/rPmyuuvIABM',
     'about_text' => 'The logistics and transport industry moves goods worth trillions of dollars globally through road, rail, sea, and air networks. From 3PL providers to freight forwarders, courier services, and warehouse operators, this sector requires shipment tracking, fleet management, route optimization, and customs documentation. Our platform provides end-to-end visibility from pickup to delivery with real-time GPS tracking, proof of delivery, and carrier rate management.',
     'about_highlights' => array(
         'Real-time shipment tracking with GPS fleet monitoring',
