@@ -97,7 +97,7 @@ $industryData = array(
 			array('name'=>'Workshop Garage Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
 			array('name'=>'Workshop Garage Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
 		)),
-		'Vehicle dealership & sales' => array('photo'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75','desc'=>'Showroom-to-delivery lifecycle: lead capture, test drive booking, F&I processing, trade-in valuation, DMS integration, and post-sale CRM. Manages new, CPO, and used inventory','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Vehicle dealership & sales' => array('photo'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75','desc'=>'Showroom-to-delivery lifecycle: lead capture, test drive booking, F&I processing, trade-in valuation, DMS integration, and post-sale CRM. Manages new, CPO, and used inventory','categories'=>array('New Vehicles','Pre-Owned Vehicles','Trade-In Appraisals','Finance Packages','Extended Warranties','Accessories'),'products'=>array(
 			array('name'=>'Vehicle Dealership Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
 			array('name'=>'Vehicle Dealership Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75'),
 			array('name'=>'Vehicle Dealership Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
@@ -112,7 +112,7 @@ $industryData = array(
 			array('name'=>'Auto Insurance Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&q=75'),
 			array('name'=>'Auto Insurance Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
 		)),
-		'Vehicle auctions' => array('photo'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75','desc'=>'Online and physical auction platforms for wholesale vehicle trading. Features condition grading, reserve pricing, proxy bidding, transport coordination, title transfer, and escrow settlement','categories'=>array('Vehicle Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Vehicle auctions' => array('photo'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75','desc'=>'Online and physical auction platforms for wholesale vehicle trading. Features condition grading, reserve pricing, proxy bidding, transport coordination, title transfer, and escrow settlement','categories'=>array('Auction Listings','Inspection Reports','Bidding Platforms','Transport Logistics','Title Processing','Insurance Coverage'),'products'=>array(
 			array('name'=>'Vehicle Auctions Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1549317661-bd32c8ce0ffe?w=400&q=75'),
 			array('name'=>'Vehicle Auctions Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75'),
 			array('name'=>'Vehicle Auctions Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&q=75'),
@@ -137,7 +137,7 @@ $industryData = array(
 			array('name'=>'Tyre Shop Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 			array('name'=>'Tyre Shop Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 		)),
-		'Windshield & auto glass' => array('photo'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75','desc'=>'Automotive glazing services: windshield replacement, stone chip repair, side/rear glass, ADAS camera recalibration after replacement, mobile service dispatch, and insurance direct billing','categories'=>array('Windshield Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Windshield & auto glass' => array('photo'=>'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&q=75','desc'=>'Automotive glazing services: windshield replacement, stone chip repair, side/rear glass, ADAS camera recalibration after replacement, mobile service dispatch, and insurance direct billing','categories'=>array('Windshields','Side Glass','Rear Windows','Sealants & Adhesives','Tinting Films','Calibration Tools'),'products'=>array(
 			array('name'=>'Windshield Auto Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75'),
 			array('name'=>'Windshield Auto Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=75'),
 			array('name'=>'Windshield Auto Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=400&q=75'),
@@ -147,7 +147,7 @@ $industryData = array(
 			array('name'=>'EV Charging Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
 			array('name'=>'EV Charging Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
 		)),
-		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75','desc'=>'Corporate fleet operations: vehicle acquisition planning, driver assignment, fuel card management, telematics-based driver scoring, TCO analysis, maintenance scheduling, and end-of-life remarketing','categories'=>array('Fleet Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Fleet management' => array('photo'=>'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&q=75','desc'=>'Corporate fleet operations: vehicle acquisition planning, driver assignment, fuel card management, telematics-based driver scoring, TCO analysis, maintenance scheduling, and end-of-life remarketing','categories'=>array('GPS Trackers','Fuel Cards','Maintenance Plans','Driver Monitoring','Route Optimization','Compliance Software'),'products'=>array(
 			array('name'=>'Fleet Management Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 			array('name'=>'Fleet Management Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 			array('name'=>'Fleet Management Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
@@ -158,7 +158,7 @@ $industryData = array(
 			array('name'=>'Driving School Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 			array('name'=>'Driving School Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
 		)),
-		'Car wash & valeting' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Automated and hand-wash facilities: queue management, membership subscriptions, loyalty programs, water recycling monitoring, express/premium tiers, and multi-location chain management','categories'=>array('Car Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Car wash & valeting' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Automated and hand-wash facilities: queue management, membership subscriptions, loyalty programs, water recycling monitoring, express/premium tiers, and multi-location chain management','categories'=>array('Wash Chemicals','Pressure Washers','Polishing Compounds','Interior Cleaners','Vacuum Systems','Wax & Coatings'),'products'=>array(
 			array('name'=>'Car Wash Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 			array('name'=>'Car Wash Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
 			array('name'=>'Car Wash Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
