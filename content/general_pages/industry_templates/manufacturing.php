@@ -64,6 +64,18 @@ $industryData = array(
 		'3D printing & additive',
 		'Ceramics & pottery',
 		'Paper & pulp',
+		'Automotive manufacturing',
+		'Aerospace manufacturing',
+		'Shipbuilding & marine',
+		'Furniture manufacturing',
+		'Machinery & equipment',
+		'Toy manufacturing',
+		'Medical device manufacturing',
+		'Battery & energy storage',
+		'Semiconductor fabrication',
+		'Cement & concrete production',
+		'Jewelry casting & forming',
+		'Leather goods manufacturing',
 	),
 	'sub_industry_products' => array(
 		'Production & assembly' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized production & assembly solutions','products'=>array(
@@ -145,6 +157,67 @@ $industryData = array(
 			array('name'=>'Paper & pulp Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1533630160021-65bc74fce76d?w=400&q=75'),
 			array('name'=>'Paper & pulp Professional','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=75'),
 			array('name'=>'Paper & pulp Enterprise','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1563520239648-a22fa3be0e2f?w=400&q=75'),
+		)),
+
+		'Automotive manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Specialized automotive manufacturing solutions','products'=>array(
+			array('name'=>'Automotive manufacturing Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Automotive manufacturing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Automotive manufacturing Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+		)),
+		'Aerospace manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized aerospace manufacturing solutions','products'=>array(
+			array('name'=>'Aerospace manufacturing Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Aerospace manufacturing Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Aerospace manufacturing Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+		)),
+		'Shipbuilding & marine' => array('photo'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75','desc'=>'Specialized shipbuilding & marine solutions','products'=>array(
+			array('name'=>'Shipbuilding & marine Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Shipbuilding & marine Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Shipbuilding & marine Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+		)),
+		'Furniture manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Specialized furniture manufacturing solutions','products'=>array(
+			array('name'=>'Furniture manufacturing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Furniture manufacturing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Furniture manufacturing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+		)),
+		'Machinery & equipment' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Specialized machinery & equipment solutions','products'=>array(
+			array('name'=>'Machinery & equipment Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Machinery & equipment Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Machinery & equipment Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+		)),
+		'Toy manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Specialized toy manufacturing solutions','products'=>array(
+			array('name'=>'Toy manufacturing Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Toy manufacturing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Toy manufacturing Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+		)),
+		'Medical device manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized medical device manufacturing solutions','products'=>array(
+			array('name'=>'Medical device manufacturing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Medical device manufacturing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Medical device manufacturing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+		)),
+		'Battery & energy storage' => array('photo'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75','desc'=>'Specialized battery & energy storage solutions','products'=>array(
+			array('name'=>'Battery & energy storage Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Battery & energy storage Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Battery & energy storage Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+		)),
+		'Semiconductor fabrication' => array('photo'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75','desc'=>'Specialized semiconductor fabrication solutions','products'=>array(
+			array('name'=>'Semiconductor fabrication Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
+			array('name'=>'Semiconductor fabrication Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Semiconductor fabrication Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+		)),
+		'Cement & concrete production' => array('photo'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75','desc'=>'Specialized cement & concrete production solutions','products'=>array(
+			array('name'=>'Cement & concrete production Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75'),
+			array('name'=>'Cement & concrete production Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Cement & concrete production Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+		)),
+		'Jewelry casting & forming' => array('photo'=>'https://images.unsplash.com/photo-1565043589149-aa07f6dae247?w=400&q=75','desc'=>'Specialized jewelry casting & forming solutions','products'=>array(
+			array('name'=>'Jewelry casting & forming Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75'),
+			array('name'=>'Jewelry casting & forming Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Jewelry casting & forming Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+		)),
+		'Leather goods manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&q=75','desc'=>'Specialized leather goods manufacturing solutions','products'=>array(
+			array('name'=>'Leather goods manufacturing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567789884554-0b308d79de15?w=400&q=75'),
+			array('name'=>'Leather goods manufacturing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504917595217-d4dc5ebb6122?w=400&q=75'),
+			array('name'=>'Leather goods manufacturing Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'BOM accuracy went from 85% to 99.5% — game changer for our production planning.', 'author' => 'Eng. Mohammed S., Manufacturing Plant, Jebel Ali'),

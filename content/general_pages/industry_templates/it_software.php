@@ -61,6 +61,18 @@ $industryData = array(
 		'DevOps & cloud',
 		'Game development',
 		'Blockchain & Web3',
+		'Telecom & ISP operations',
+		'Digital marketing agency',
+		'SEO & SEM services',
+		'VR / AR development',
+		'Cloud hosting & data center',
+		'IT staffing & outsourcing',
+		'QA & testing services',
+		'No-code / low-code platforms',
+		'Domain & hosting reseller',
+		'IT hardware distribution',
+		'Robotic process automation',
+		'Computer training center',
 	),
 	'sub_industry_products' => array(
 		'Software development' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized software development solutions','products'=>array(
@@ -127,6 +139,67 @@ $industryData = array(
 			array('name'=>'Blockchain & Web3 Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Blockchain & Web3 Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
 			array('name'=>'Blockchain & Web3 Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
+		)),
+
+		'Telecom & ISP operations' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized telecom & isp operations solutions','products'=>array(
+			array('name'=>'Telecom & ISP operations Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'Telecom & ISP operations Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Telecom & ISP operations Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		)),
+		'Digital marketing agency' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Specialized digital marketing agency solutions','products'=>array(
+			array('name'=>'Digital marketing agency Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Digital marketing agency Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'Digital marketing agency Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+		)),
+		'SEO & SEM services' => array('photo'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75','desc'=>'Specialized seo & sem services solutions','products'=>array(
+			array('name'=>'SEO & SEM services Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'SEO & SEM services Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'SEO & SEM services Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+		)),
+		'VR / AR development' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'Specialized vr / ar development solutions','products'=>array(
+			array('name'=>'VR / AR development Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'VR / AR development Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'VR / AR development Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+		)),
+		'Cloud hosting & data center' => array('photo'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75','desc'=>'Specialized cloud hosting & data center solutions','products'=>array(
+			array('name'=>'Cloud hosting & data center Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'Cloud hosting & data center Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'Cloud hosting & data center Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+		)),
+		'IT staffing & outsourcing' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized it staffing & outsourcing solutions','products'=>array(
+			array('name'=>'IT staffing & outsourcing Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'IT staffing & outsourcing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'IT staffing & outsourcing Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		)),
+		'QA & testing services' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Specialized qa & testing services solutions','products'=>array(
+			array('name'=>'QA & testing services Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'QA & testing services Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'QA & testing services Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+		)),
+		'No-code / low-code platforms' => array('photo'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75','desc'=>'Specialized no-code / low-code platforms solutions','products'=>array(
+			array('name'=>'No-code / low-code platforms Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'No-code / low-code platforms Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'No-code / low-code platforms Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+		)),
+		'Domain & hosting reseller' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'Specialized domain & hosting reseller solutions','products'=>array(
+			array('name'=>'Domain & hosting reseller Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'Domain & hosting reseller Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'Domain & hosting reseller Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+		)),
+		'IT hardware distribution' => array('photo'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75','desc'=>'Specialized it hardware distribution solutions','products'=>array(
+			array('name'=>'IT hardware distribution Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'IT hardware distribution Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'IT hardware distribution Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+		)),
+		'Robotic process automation' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized robotic process automation solutions','products'=>array(
+			array('name'=>'Robotic process automation Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'Robotic process automation Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Robotic process automation Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		)),
+		'Computer training center' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Specialized computer training center solutions','products'=>array(
+			array('name'=>'Computer training center Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Computer training center Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'Computer training center Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Sprint velocity tracking helped us deliver 30% more features per quarter.', 'author' => 'Tech CTO, SaaS Startup, Dubai Internet City'),

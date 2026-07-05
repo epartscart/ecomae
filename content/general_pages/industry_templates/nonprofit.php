@@ -60,6 +60,18 @@ $industryData = array(
 		'Community center',
 		'Public library',
 		'Museum & gallery',
+		'Political organization',
+		'Trade union & labor',
+		'Housing association',
+		'Environmental charity',
+		'Humanitarian aid & relief',
+		'Cooperative society',
+		'Veterans & military welfare',
+		'International development',
+		'Disability support services',
+		'Youth development program',
+		'Animal welfare charity',
+		'Cultural preservation society',
 	),
 	'sub_industry_products' => array(
 		'Donation & fundraising' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized donation & fundraising solutions','products'=>array(
@@ -121,6 +133,67 @@ $industryData = array(
 			array('name'=>'Museum & gallery Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 			array('name'=>'Museum & gallery Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 			array('name'=>'Museum & gallery Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+
+		'Political organization' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Specialized political organization solutions','products'=>array(
+			array('name'=>'Political organization Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Political organization Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Political organization Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+		)),
+		'Trade union & labor' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Specialized trade union & labor solutions','products'=>array(
+			array('name'=>'Trade union & labor Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Trade union & labor Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Trade union & labor Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+		)),
+		'Housing association' => array('photo'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75','desc'=>'Specialized housing association solutions','products'=>array(
+			array('name'=>'Housing association Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Housing association Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'Housing association Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+		)),
+		'Environmental charity' => array('photo'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75','desc'=>'Specialized environmental charity solutions','products'=>array(
+			array('name'=>'Environmental charity Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'Environmental charity Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Environmental charity Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+		)),
+		'Humanitarian aid & relief' => array('photo'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75','desc'=>'Specialized humanitarian aid & relief solutions','products'=>array(
+			array('name'=>'Humanitarian aid & relief Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Humanitarian aid & relief Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Humanitarian aid & relief Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+		)),
+		'Cooperative society' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Specialized cooperative society solutions','products'=>array(
+			array('name'=>'Cooperative society Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Cooperative society Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Cooperative society Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+		)),
+		'Veterans & military welfare' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Specialized veterans & military welfare solutions','products'=>array(
+			array('name'=>'Veterans & military welfare Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Veterans & military welfare Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Veterans & military welfare Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+		)),
+		'International development' => array('photo'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75','desc'=>'Specialized international development solutions','products'=>array(
+			array('name'=>'International development Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'International development Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'International development Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+		)),
+		'Disability support services' => array('photo'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75','desc'=>'Specialized disability support services solutions','products'=>array(
+			array('name'=>'Disability support services Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
+			array('name'=>'Disability support services Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Disability support services Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+		)),
+		'Youth development program' => array('photo'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75','desc'=>'Specialized youth development program solutions','products'=>array(
+			array('name'=>'Youth development program Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75'),
+			array('name'=>'Youth development program Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Youth development program Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+		)),
+		'Animal welfare charity' => array('photo'=>'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&q=75','desc'=>'Specialized animal welfare charity solutions','products'=>array(
+			array('name'=>'Animal welfare charity Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75'),
+			array('name'=>'Animal welfare charity Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Animal welfare charity Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+		)),
+		'Cultural preservation society' => array('photo'=>'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&q=75','desc'=>'Specialized cultural preservation society solutions','products'=>array(
+			array('name'=>'Cultural preservation society Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=400&q=75'),
+			array('name'=>'Cultural preservation society Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&q=75'),
+			array('name'=>'Cultural preservation society Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Grant reporting automation freed 20 hours/month for actual program work.', 'author' => 'NGO Director, Humanitarian Foundation, Dubai'),

@@ -63,6 +63,18 @@ $industryData = array(
 		'Spa & wellness resort',
 		'Event venue',
 		'Camping & glamping',
+		'Theme park & attraction',
+		'Water park',
+		'Casino & gaming resort',
+		'Pilgrimage & religious tourism',
+		'Business travel management',
+		'Airport lounge & services',
+		'Wedding venue & planning',
+		'Heritage & cultural tourism',
+		'Medical tourism hospitality',
+		'Yacht & marina services',
+		'Mountain lodge & ski resort',
+		'Eco-tourism & nature lodge',
 	),
 	'sub_industry_products' => array(
 		'Reservation & booking' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized reservation & booking solutions','products'=>array(
@@ -139,6 +151,67 @@ $industryData = array(
 			array('name'=>'Camping & glamping Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=75'),
 			array('name'=>'Camping & glamping Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=400&q=75'),
 			array('name'=>'Camping & glamping Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&q=75'),
+		)),
+
+		'Theme park & attraction' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized theme park & attraction solutions','products'=>array(
+			array('name'=>'Theme park & attraction Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Theme park & attraction Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Theme park & attraction Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+		)),
+		'Water park' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized water park solutions','products'=>array(
+			array('name'=>'Water park Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Water park Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Water park Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+		)),
+		'Casino & gaming resort' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Specialized casino & gaming resort solutions','products'=>array(
+			array('name'=>'Casino & gaming resort Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Casino & gaming resort Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Casino & gaming resort Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+		)),
+		'Pilgrimage & religious tourism' => array('photo'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75','desc'=>'Specialized pilgrimage & religious tourism solutions','products'=>array(
+			array('name'=>'Pilgrimage & religious tourism Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Pilgrimage & religious tourism Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Pilgrimage & religious tourism Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+		)),
+		'Business travel management' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Specialized business travel management solutions','products'=>array(
+			array('name'=>'Business travel management Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Business travel management Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Business travel management Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+		)),
+		'Airport lounge & services' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized airport lounge & services solutions','products'=>array(
+			array('name'=>'Airport lounge & services Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Airport lounge & services Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Airport lounge & services Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+		)),
+		'Wedding venue & planning' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized wedding venue & planning solutions','products'=>array(
+			array('name'=>'Wedding venue & planning Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Wedding venue & planning Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Wedding venue & planning Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+		)),
+		'Heritage & cultural tourism' => array('photo'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75','desc'=>'Specialized heritage & cultural tourism solutions','products'=>array(
+			array('name'=>'Heritage & cultural tourism Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Heritage & cultural tourism Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Heritage & cultural tourism Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+		)),
+		'Medical tourism hospitality' => array('photo'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75','desc'=>'Specialized medical tourism hospitality solutions','products'=>array(
+			array('name'=>'Medical tourism hospitality Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
+			array('name'=>'Medical tourism hospitality Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Medical tourism hospitality Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+		)),
+		'Yacht & marina services' => array('photo'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75','desc'=>'Specialized yacht & marina services solutions','products'=>array(
+			array('name'=>'Yacht & marina services Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75'),
+			array('name'=>'Yacht & marina services Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Yacht & marina services Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+		)),
+		'Mountain lodge & ski resort' => array('photo'=>'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=75','desc'=>'Specialized mountain lodge & ski resort solutions','products'=>array(
+			array('name'=>'Mountain lodge & ski resort Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75'),
+			array('name'=>'Mountain lodge & ski resort Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Mountain lodge & ski resort Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+		)),
+		'Eco-tourism & nature lodge' => array('photo'=>'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&q=75','desc'=>'Specialized eco-tourism & nature lodge solutions','products'=>array(
+			array('name'=>'Eco-tourism & nature lodge Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&q=75'),
+			array('name'=>'Eco-tourism & nature lodge Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1455587734955-081b22074882?w=400&q=75'),
+			array('name'=>'Eco-tourism & nature lodge Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Dynamic pricing increased our RevPAR by 22% in the first quarter.', 'author' => 'Maria C., Hotel GM, JBR Dubai'),

@@ -61,6 +61,18 @@ $industryData = array(
 		'Appointment booking',
 		'Organic & natural beauty',
 		'Men\'s grooming',
+		'Aesthetics & medical beauty',
+		'Tanning salon',
+		'Makeup artistry & events',
+		'Hair transplant clinic',
+		'Lash & brow studio',
+		'Waxing & threading studio',
+		'Wedding & bridal beauty',
+		'Ayurvedic & herbal beauty',
+		'Anti-aging & wellness',
+		'Color analysis & styling',
+		'Beauty subscription box',
+		'Mobile beauty services',
 	),
 	'sub_industry_products' => array(
 		'Hair salon' => array('photo'=>'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=75','desc'=>'Specialized hair salon solutions','products'=>array(
@@ -127,6 +139,67 @@ $industryData = array(
 			array('name'=>'Men\'s grooming Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
 			array('name'=>'Men\'s grooming Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
 			array('name'=>'Men\'s grooming Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+		)),
+
+		'Aesthetics & medical beauty' => array('photo'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75','desc'=>'Botox, laser, fillers and advanced skincare treatments','products'=>array(
+			array('name'=>'Aesthetics & medical beauty Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+			array('name'=>'Aesthetics & medical beauty Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+			array('name'=>'Aesthetics & medical beauty Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+		)),
+		'Tanning salon' => array('photo'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75','desc'=>'UV and spray tan services','products'=>array(
+			array('name'=>'Tanning salon Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+			array('name'=>'Tanning salon Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+			array('name'=>'Tanning salon Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+		)),
+		'Makeup artistry & events' => array('photo'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75','desc'=>'Professional makeup for weddings, photoshoots and events','products'=>array(
+			array('name'=>'Makeup artistry & events Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+			array('name'=>'Makeup artistry & events Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+			array('name'=>'Makeup artistry & events Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75'),
+		)),
+		'Hair transplant clinic' => array('photo'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75','desc'=>'FUE, FUT and PRP hair restoration treatments','products'=>array(
+			array('name'=>'Hair transplant clinic Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+			array('name'=>'Hair transplant clinic Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75'),
+			array('name'=>'Hair transplant clinic Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+		)),
+		'Lash & brow studio' => array('photo'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75','desc'=>'Eyelash extensions, brow shaping and tinting','products'=>array(
+			array('name'=>'Lash & brow studio Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75'),
+			array('name'=>'Lash & brow studio Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+			array('name'=>'Lash & brow studio Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+		)),
+		'Waxing & threading studio' => array('photo'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75','desc'=>'Hair removal services — waxing, threading, sugaring','products'=>array(
+			array('name'=>'Waxing & threading studio Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+			array('name'=>'Waxing & threading studio Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+			array('name'=>'Waxing & threading studio Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+		)),
+		'Wedding & bridal beauty' => array('photo'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75','desc'=>'Complete bridal beauty packages — hair, makeup, nails','products'=>array(
+			array('name'=>'Wedding & bridal beauty Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+			array('name'=>'Wedding & bridal beauty Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+			array('name'=>'Wedding & bridal beauty Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+		)),
+		'Ayurvedic & herbal beauty' => array('photo'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75','desc'=>'Traditional and natural beauty treatments','products'=>array(
+			array('name'=>'Ayurvedic & herbal beauty Basic','price'=>'AED 200','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+			array('name'=>'Ayurvedic & herbal beauty Professional','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+			array('name'=>'Ayurvedic & herbal beauty Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75'),
+		)),
+		'Anti-aging & wellness' => array('photo'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75','desc'=>'Anti-aging treatments and wellness programs','products'=>array(
+			array('name'=>'Anti-aging & wellness Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
+			array('name'=>'Anti-aging & wellness Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75'),
+			array('name'=>'Anti-aging & wellness Enterprise','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+		)),
+		'Color analysis & styling' => array('photo'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75','desc'=>'Personal color analysis and style consulting','products'=>array(
+			array('name'=>'Color analysis & styling Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75'),
+			array('name'=>'Color analysis & styling Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+			array('name'=>'Color analysis & styling Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+		)),
+		'Beauty subscription box' => array('photo'=>'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&q=75','desc'=>'Monthly curated beauty product subscriptions','products'=>array(
+			array('name'=>'Beauty subscription box Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75'),
+			array('name'=>'Beauty subscription box Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+			array('name'=>'Beauty subscription box Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+		)),
+		'Mobile beauty services' => array('photo'=>'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=75','desc'=>'At-home beauty and grooming services','products'=>array(
+			array('name'=>'Mobile beauty services Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=75'),
+			array('name'=>'Mobile beauty services Professional','price'=>'AED 450','image'=>'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=75'),
+			array('name'=>'Mobile beauty services Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Online booking increased our appointments by 40% — no more missed calls.', 'author' => 'Layla N., Salon Owner, Jumeirah'),

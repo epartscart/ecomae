@@ -62,6 +62,18 @@ $industryData = array(
 		'Fleet management',
 		'Rail freight',
 		'Pipeline transport',
+		'Postal services',
+		'Drone delivery',
+		'Hazmat transport',
+		'Ship brokerage & chartering',
+		'Port & terminal operations',
+		'Bonded warehousing',
+		'Returns & reverse logistics',
+		'Cross-border e-commerce logistics',
+		'Bulk cargo & dry bulk',
+		'Livestock transport',
+		'Document & legal courier',
+		'Supply chain consulting',
 	),
 	'sub_industry_products' => array(
 		'Freight forwarding' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized freight forwarding solutions','products'=>array(
@@ -133,6 +145,67 @@ $industryData = array(
 			array('name'=>'Pipeline transport Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 			array('name'=>'Pipeline transport Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400&q=75'),
 			array('name'=>'Pipeline transport Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400&q=75'),
+		)),
+
+		'Postal services' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized postal services solutions','products'=>array(
+			array('name'=>'Postal services Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Postal services Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Postal services Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		)),
+		'Drone delivery' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized drone delivery solutions','products'=>array(
+			array('name'=>'Drone delivery Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Drone delivery Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Drone delivery Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		)),
+		'Hazmat transport' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized hazmat transport solutions','products'=>array(
+			array('name'=>'Hazmat transport Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Hazmat transport Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Hazmat transport Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		)),
+		'Ship brokerage & chartering' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Specialized ship brokerage & chartering solutions','products'=>array(
+			array('name'=>'Ship brokerage & chartering Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Ship brokerage & chartering Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Ship brokerage & chartering Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		)),
+		'Port & terminal operations' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized port & terminal operations solutions','products'=>array(
+			array('name'=>'Port & terminal operations Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Port & terminal operations Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Port & terminal operations Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		)),
+		'Bonded warehousing' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized bonded warehousing solutions','products'=>array(
+			array('name'=>'Bonded warehousing Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Bonded warehousing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Bonded warehousing Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		)),
+		'Returns & reverse logistics' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized returns & reverse logistics solutions','products'=>array(
+			array('name'=>'Returns & reverse logistics Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Returns & reverse logistics Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Returns & reverse logistics Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		)),
+		'Cross-border e-commerce logistics' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized cross-border e-commerce logistics solutions','products'=>array(
+			array('name'=>'Cross-border e-commerce logistics Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Cross-border e-commerce logistics Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Cross-border e-commerce logistics Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		)),
+		'Bulk cargo & dry bulk' => array('photo'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75','desc'=>'Specialized bulk cargo & dry bulk solutions','products'=>array(
+			array('name'=>'Bulk cargo & dry bulk Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Bulk cargo & dry bulk Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Bulk cargo & dry bulk Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		)),
+		'Livestock transport' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized livestock transport solutions','products'=>array(
+			array('name'=>'Livestock transport Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Livestock transport Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Livestock transport Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		)),
+		'Document & legal courier' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized document & legal courier solutions','products'=>array(
+			array('name'=>'Document & legal courier Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Document & legal courier Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Document & legal courier Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+		)),
+		'Supply chain consulting' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized supply chain consulting solutions','products'=>array(
+			array('name'=>'Supply chain consulting Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Supply chain consulting Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=75'),
+			array('name'=>'Supply chain consulting Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Route optimization cut our fuel costs by 25% across 120 vehicles.', 'author' => 'Abdullah M., Logistics Manager, Jebel Ali'),

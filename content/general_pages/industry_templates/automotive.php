@@ -61,6 +61,20 @@ $industryData = array(
 		'Windshield & auto glass',
 		'EV charging stations',
 		'Fleet management',
+		'Driving school & training',
+		'Car wash & valeting',
+		'Auto body & collision repair',
+		'Vehicle inspection & testing',
+		'Motorcycle & scooter',
+		'Commercial vehicles & buses',
+		'Marine engine service',
+		'Auto accessories & customization',
+		'Vehicle wrapping & graphics',
+		'Auto electronics & tuning',
+		'Emission testing center',
+		'Roadside assistance',
+		'Auto finance & leasing broker',
+		'Classic & vintage car restoration',
 	),
 	'sub_industry_products' => array(
 		'Parts catalog & cross-references' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized parts catalog & cross-references solutions','products'=>array(
@@ -127,6 +141,77 @@ $industryData = array(
 			array('name'=>'Fleet management Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
 			array('name'=>'Fleet management Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
 			array('name'=>'Fleet management Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1601055903647-ddf1ee9701b7?w=400&q=75'),
+		)),
+
+		'Driving school & training' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Specialized driving school & training solutions','products'=>array(
+			array('name'=>'Driving school & training Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Driving school & training Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Driving school & training Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+		)),
+		'Car wash & valeting' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Specialized car wash & valeting solutions','products'=>array(
+			array('name'=>'Car wash & valeting Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Car wash & valeting Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Car wash & valeting Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+		)),
+		'Auto body & collision repair' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized auto body & collision repair solutions','products'=>array(
+			array('name'=>'Auto body & collision repair Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Auto body & collision repair Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Auto body & collision repair Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+		)),
+		'Vehicle inspection & testing' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Specialized vehicle inspection & testing solutions','products'=>array(
+			array('name'=>'Vehicle inspection & testing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Vehicle inspection & testing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Vehicle inspection & testing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+		)),
+		'Motorcycle & scooter' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Specialized motorcycle & scooter solutions','products'=>array(
+			array('name'=>'Motorcycle & scooter Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Motorcycle & scooter Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Motorcycle & scooter Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+		)),
+		'Commercial vehicles & buses' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Specialized commercial vehicles & buses solutions','products'=>array(
+			array('name'=>'Commercial vehicles & buses Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Commercial vehicles & buses Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Commercial vehicles & buses Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+		)),
+		'Marine engine service' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Specialized marine engine service solutions','products'=>array(
+			array('name'=>'Marine engine service Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Marine engine service Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Marine engine service Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+		)),
+		'Auto accessories & customization' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized auto accessories & customization solutions','products'=>array(
+			array('name'=>'Auto accessories & customization Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Auto accessories & customization Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Auto accessories & customization Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+		)),
+		'Vehicle wrapping & graphics' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Specialized vehicle wrapping & graphics solutions','products'=>array(
+			array('name'=>'Vehicle wrapping & graphics Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Vehicle wrapping & graphics Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Vehicle wrapping & graphics Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+		)),
+		'Auto electronics & tuning' => array('photo'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75','desc'=>'Specialized auto electronics & tuning solutions','products'=>array(
+			array('name'=>'Auto electronics & tuning Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Auto electronics & tuning Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Auto electronics & tuning Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+		)),
+		'Emission testing center' => array('photo'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75','desc'=>'Specialized emission testing center solutions','products'=>array(
+			array('name'=>'Emission testing center Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
+			array('name'=>'Emission testing center Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Emission testing center Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+		)),
+		'Roadside assistance' => array('photo'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75','desc'=>'Specialized roadside assistance solutions','products'=>array(
+			array('name'=>'Roadside assistance Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75'),
+			array('name'=>'Roadside assistance Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Roadside assistance Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+		)),
+		'Auto finance & leasing broker' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'Specialized auto finance & leasing broker solutions','products'=>array(
+			array('name'=>'Auto finance & leasing broker Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75'),
+			array('name'=>'Auto finance & leasing broker Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Auto finance & leasing broker Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+		)),
+		'Classic & vintage car restoration' => array('photo'=>'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400&q=75','desc'=>'Specialized classic & vintage car restoration solutions','products'=>array(
+			array('name'=>'Classic & vintage car restoration Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=400&q=75'),
+			array('name'=>'Classic & vintage car restoration Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75'),
+			array('name'=>'Classic & vintage car restoration Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Reduced our parts lookup time by 80% and increased workshop efficiency dramatically.', 'author' => 'Ahmed K., Workshop Manager, Dubai'),

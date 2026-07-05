@@ -65,6 +65,18 @@ $industryData = array(
 		'Ambulance & emergency',
 		'Fertility clinic',
 		'Addiction treatment',
+		'Nursing home & elderly care',
+		'Blood bank & donation',
+		'Medical tourism',
+		'Occupational health',
+		'Sports medicine',
+		'Biotech & pharmaceutical R&D',
+		'Medical coding & billing',
+		'Stem cell & gene therapy',
+		'Dialysis center',
+		'Chiropractic clinic',
+		'Speech therapy',
+		'Audiology & hearing',
 	),
 	'sub_industry_products' => array(
 		'Clinic & patient management' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Specialized clinic & patient management solutions','products'=>array(
@@ -151,6 +163,67 @@ $industryData = array(
 			array('name'=>'Addiction treatment Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
 			array('name'=>'Addiction treatment Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&q=75'),
 			array('name'=>'Addiction treatment Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1581093458791-9d42e3c7e117?w=400&q=75'),
+		)),
+
+		'Nursing home & elderly care' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Specialized nursing home & elderly care solutions','products'=>array(
+			array('name'=>'Nursing home & elderly care Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Nursing home & elderly care Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Nursing home & elderly care Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+		)),
+		'Blood bank & donation' => array('photo'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75','desc'=>'Specialized blood bank & donation solutions','products'=>array(
+			array('name'=>'Blood bank & donation Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Blood bank & donation Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Blood bank & donation Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
+		)),
+		'Medical tourism' => array('photo'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75','desc'=>'Specialized medical tourism solutions','products'=>array(
+			array('name'=>'Medical tourism Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Medical tourism Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
+			array('name'=>'Medical tourism Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+		)),
+		'Occupational health' => array('photo'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75','desc'=>'Specialized occupational health solutions','products'=>array(
+			array('name'=>'Occupational health Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
+			array('name'=>'Occupational health Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+			array('name'=>'Occupational health Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+		)),
+		'Sports medicine' => array('photo'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75','desc'=>'Specialized sports medicine solutions','products'=>array(
+			array('name'=>'Sports medicine Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+			array('name'=>'Sports medicine Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Sports medicine Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+		)),
+		'Biotech & pharmaceutical R&D' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Specialized biotech & pharmaceutical r&d solutions','products'=>array(
+			array('name'=>'Biotech & pharmaceutical R&D Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Biotech & pharmaceutical R&D Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Biotech & pharmaceutical R&D Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+		)),
+		'Medical coding & billing' => array('photo'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75','desc'=>'Specialized medical coding & billing solutions','products'=>array(
+			array('name'=>'Medical coding & billing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Medical coding & billing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Medical coding & billing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
+		)),
+		'Stem cell & gene therapy' => array('photo'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75','desc'=>'Specialized stem cell & gene therapy solutions','products'=>array(
+			array('name'=>'Stem cell & gene therapy Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Stem cell & gene therapy Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
+			array('name'=>'Stem cell & gene therapy Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+		)),
+		'Dialysis center' => array('photo'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75','desc'=>'Specialized dialysis center solutions','products'=>array(
+			array('name'=>'Dialysis center Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
+			array('name'=>'Dialysis center Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+			array('name'=>'Dialysis center Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+		)),
+		'Chiropractic clinic' => array('photo'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75','desc'=>'Specialized chiropractic clinic solutions','products'=>array(
+			array('name'=>'Chiropractic clinic Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75'),
+			array('name'=>'Chiropractic clinic Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Chiropractic clinic Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+		)),
+		'Speech therapy' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Specialized speech therapy solutions','products'=>array(
+			array('name'=>'Speech therapy Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75'),
+			array('name'=>'Speech therapy Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Speech therapy Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+		)),
+		'Audiology & hearing' => array('photo'=>'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=75','desc'=>'Specialized audiology & hearing solutions','products'=>array(
+			array('name'=>'Audiology & hearing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
+			array('name'=>'Audiology & hearing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=75'),
+			array('name'=>'Audiology & hearing Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Streamlined our multi-clinic operations and cut claim rejections by 60%.', 'author' => 'Dr. Sarah M., Medical Director, Abu Dhabi'),

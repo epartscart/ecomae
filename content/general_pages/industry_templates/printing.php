@@ -58,6 +58,20 @@ $industryData = array(
 		'Bookbinding & finishing',
 		'Offset printing',
 		'Gift & personalized items',
+		'3D printing services',
+		'Textile printing & sublimation',
+		'Photo printing & lab',
+		'Newspaper & periodical printing',
+		'Engraving & laser etching',
+		'Stamp & seal making',
+		'Corrugated box manufacturing',
+		'Business card & stationery',
+		'Vehicle wrap printing',
+		'Wallpaper & mural printing',
+		'Braille & accessible printing',
+		'Security printing (certificates)',
+		'Label & barcode printing',
+		'Cup & merchandise printing',
 	),
 	'sub_industry_products' => array(
 		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized commercial printing solutions','products'=>array(
@@ -109,6 +123,77 @@ $industryData = array(
 			array('name'=>'Gift & personalized items Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 			array('name'=>'Gift & personalized items Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Gift & personalized items Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+
+		'3D printing services' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Specialized 3d printing services solutions','products'=>array(
+			array('name'=>'3D printing services Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'3D printing services Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'3D printing services Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+		)),
+		'Textile printing & sublimation' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Specialized textile printing & sublimation solutions','products'=>array(
+			array('name'=>'Textile printing & sublimation Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Textile printing & sublimation Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Textile printing & sublimation Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+		)),
+		'Photo printing & lab' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Specialized photo printing & lab solutions','products'=>array(
+			array('name'=>'Photo printing & lab Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Photo printing & lab Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Photo printing & lab Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+		)),
+		'Newspaper & periodical printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Specialized newspaper & periodical printing solutions','products'=>array(
+			array('name'=>'Newspaper & periodical printing Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Newspaper & periodical printing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Newspaper & periodical printing Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+		)),
+		'Engraving & laser etching' => array('photo'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75','desc'=>'Specialized engraving & laser etching solutions','products'=>array(
+			array('name'=>'Engraving & laser etching Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Engraving & laser etching Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Engraving & laser etching Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+		)),
+		'Stamp & seal making' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Specialized stamp & seal making solutions','products'=>array(
+			array('name'=>'Stamp & seal making Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Stamp & seal making Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Stamp & seal making Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+		)),
+		'Corrugated box manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Specialized corrugated box manufacturing solutions','products'=>array(
+			array('name'=>'Corrugated box manufacturing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Corrugated box manufacturing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Corrugated box manufacturing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+		)),
+		'Business card & stationery' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Specialized business card & stationery solutions','products'=>array(
+			array('name'=>'Business card & stationery Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Business card & stationery Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Business card & stationery Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+		)),
+		'Vehicle wrap printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Specialized vehicle wrap printing solutions','products'=>array(
+			array('name'=>'Vehicle wrap printing Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Vehicle wrap printing Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Vehicle wrap printing Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+		)),
+		'Wallpaper & mural printing' => array('photo'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75','desc'=>'Specialized wallpaper & mural printing solutions','products'=>array(
+			array('name'=>'Wallpaper & mural printing Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Wallpaper & mural printing Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Wallpaper & mural printing Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+		)),
+		'Braille & accessible printing' => array('photo'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75','desc'=>'Specialized braille & accessible printing solutions','products'=>array(
+			array('name'=>'Braille & accessible printing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
+			array('name'=>'Braille & accessible printing Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Braille & accessible printing Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+		)),
+		'Security printing (certificates)' => array('photo'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75','desc'=>'Specialized security printing (certificates) solutions','products'=>array(
+			array('name'=>'Security printing (certificates) Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75'),
+			array('name'=>'Security printing (certificates) Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Security printing (certificates) Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+		)),
+		'Label & barcode printing' => array('photo'=>'https://images.unsplash.com/photo-1614849963640-9cc74b2a826f?w=400&q=75','desc'=>'Specialized label & barcode printing solutions','products'=>array(
+			array('name'=>'Label & barcode printing Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75'),
+			array('name'=>'Label & barcode printing Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Label & barcode printing Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+		)),
+		'Cup & merchandise printing' => array('photo'=>'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=75','desc'=>'Specialized cup & merchandise printing solutions','products'=>array(
+			array('name'=>'Cup & merchandise printing Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=75'),
+			array('name'=>'Cup & merchandise printing Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=400&q=75'),
+			array('name'=>'Cup & merchandise printing Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Online proofing eliminated 90% of reprints due to client miscommunication.', 'author' => 'Print Shop Owner, Al Quoz Industrial'),

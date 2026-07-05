@@ -60,6 +60,18 @@ $industryData = array(
 		'Tennis & racquet sports',
 		'Cycling club & shop',
 		'Esports arena',
+		'Climbing & bouldering gym',
+		'Dance studio',
+		'Bowling & recreation center',
+		'Ice & roller skating rink',
+		'Shooting range',
+		'Boxing & combat sports',
+		'Horse riding & polo club',
+		'Water sports center',
+		'Stadium & arena management',
+		'Sports medicine & rehab',
+		'Sports event management',
+		'Skateboard & BMX park',
 	),
 	'sub_industry_products' => array(
 		'Gym & fitness center' => array('photo'=>'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=75','desc'=>'Specialized gym & fitness center solutions','products'=>array(
@@ -121,6 +133,67 @@ $industryData = array(
 			array('name'=>'Esports arena Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
 			array('name'=>'Esports arena Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1526676037777-05a232554f77?w=400&q=75'),
 			array('name'=>'Esports arena Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&q=75'),
+		)),
+
+		'Climbing & bouldering gym' => array('photo'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75','desc'=>'Specialized climbing & bouldering gym solutions','products'=>array(
+			array('name'=>'Climbing & bouldering gym Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+			array('name'=>'Climbing & bouldering gym Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+			array('name'=>'Climbing & bouldering gym Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+		)),
+		'Dance studio' => array('photo'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75','desc'=>'Specialized dance studio solutions','products'=>array(
+			array('name'=>'Dance studio Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+			array('name'=>'Dance studio Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+			array('name'=>'Dance studio Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
+		)),
+		'Bowling & recreation center' => array('photo'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75','desc'=>'Specialized bowling & recreation center solutions','products'=>array(
+			array('name'=>'Bowling & recreation center Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+			array('name'=>'Bowling & recreation center Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
+			array('name'=>'Bowling & recreation center Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
+		)),
+		'Ice & roller skating rink' => array('photo'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75','desc'=>'Specialized ice & roller skating rink solutions','products'=>array(
+			array('name'=>'Ice & roller skating rink Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
+			array('name'=>'Ice & roller skating rink Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
+			array('name'=>'Ice & roller skating rink Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+		)),
+		'Shooting range' => array('photo'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75','desc'=>'Specialized shooting range solutions','products'=>array(
+			array('name'=>'Shooting range Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
+			array('name'=>'Shooting range Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+			array('name'=>'Shooting range Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+		)),
+		'Boxing & combat sports' => array('photo'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75','desc'=>'Specialized boxing & combat sports solutions','products'=>array(
+			array('name'=>'Boxing & combat sports Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+			array('name'=>'Boxing & combat sports Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+			array('name'=>'Boxing & combat sports Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+		)),
+		'Horse riding & polo club' => array('photo'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75','desc'=>'Specialized horse riding & polo club solutions','products'=>array(
+			array('name'=>'Horse riding & polo club Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+			array('name'=>'Horse riding & polo club Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+			array('name'=>'Horse riding & polo club Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
+		)),
+		'Water sports center' => array('photo'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75','desc'=>'Specialized water sports center solutions','products'=>array(
+			array('name'=>'Water sports center Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+			array('name'=>'Water sports center Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
+			array('name'=>'Water sports center Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
+		)),
+		'Stadium & arena management' => array('photo'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75','desc'=>'Specialized stadium & arena management solutions','products'=>array(
+			array('name'=>'Stadium & arena management Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
+			array('name'=>'Stadium & arena management Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
+			array('name'=>'Stadium & arena management Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+		)),
+		'Sports medicine & rehab' => array('photo'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75','desc'=>'Specialized sports medicine & rehab solutions','products'=>array(
+			array('name'=>'Sports medicine & rehab Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75'),
+			array('name'=>'Sports medicine & rehab Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+			array('name'=>'Sports medicine & rehab Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+		)),
+		'Sports event management' => array('photo'=>'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75','desc'=>'Specialized sports event management solutions','products'=>array(
+			array('name'=>'Sports event management Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75'),
+			array('name'=>'Sports event management Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+			array('name'=>'Sports event management Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+		)),
+		'Skateboard & BMX park' => array('photo'=>'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=75','desc'=>'Specialized skateboard & bmx park solutions','products'=>array(
+			array('name'=>'Skateboard & BMX park Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75'),
+			array('name'=>'Skateboard & BMX park Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75'),
+			array('name'=>'Skateboard & BMX park Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Automated billing reduced our admin work by 60% and increased retention 20%.', 'author' => 'Coach David L., Fitness Chain, Dubai Marina'),

@@ -60,6 +60,18 @@ $industryData = array(
 		'Antique jewellery',
 		'Bridal jewellery',
 		'Gem certification & hallmarking',
+		'Silverware & tableware',
+		'Watch repair & service',
+		'Jewellery insurance & valuation',
+		'Lab-grown diamonds',
+		'Pearl cultivation & retail',
+		'Fashion & costume jewellery',
+		'Gold loan & pawnbroking',
+		'Jewellery photography & marketing',
+		'Loose stones & beads',
+		'Trophy & medal making',
+		'Jewellery exhibition & trade show',
+		'Precious metals refining',
 	),
 	'sub_industry_products' => array(
 		'Jewellery retail showroom' => array('photo'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75','desc'=>'Specialized jewellery retail showroom solutions','products'=>array(
@@ -121,6 +133,67 @@ $industryData = array(
 			array('name'=>'Gem certification & hallmarking Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
 			array('name'=>'Gem certification & hallmarking Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
 			array('name'=>'Gem certification & hallmarking Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		)),
+
+		'Silverware & tableware' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Specialized silverware & tableware solutions','products'=>array(
+			array('name'=>'Silverware & tableware Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Silverware & tableware Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Silverware & tableware Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		)),
+		'Watch repair & service' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Specialized watch repair & service solutions','products'=>array(
+			array('name'=>'Watch repair & service Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Watch repair & service Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Watch repair & service Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		)),
+		'Jewellery insurance & valuation' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Specialized jewellery insurance & valuation solutions','products'=>array(
+			array('name'=>'Jewellery insurance & valuation Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Jewellery insurance & valuation Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Jewellery insurance & valuation Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+		)),
+		'Lab-grown diamonds' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Specialized lab-grown diamonds solutions','products'=>array(
+			array('name'=>'Lab-grown diamonds Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Lab-grown diamonds Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Lab-grown diamonds Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+		)),
+		'Pearl cultivation & retail' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Specialized pearl cultivation & retail solutions','products'=>array(
+			array('name'=>'Pearl cultivation & retail Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Pearl cultivation & retail Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Pearl cultivation & retail Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+		)),
+		'Fashion & costume jewellery' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Specialized fashion & costume jewellery solutions','products'=>array(
+			array('name'=>'Fashion & costume jewellery Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Fashion & costume jewellery Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Fashion & costume jewellery Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		)),
+		'Gold loan & pawnbroking' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Specialized gold loan & pawnbroking solutions','products'=>array(
+			array('name'=>'Gold loan & pawnbroking Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Gold loan & pawnbroking Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Gold loan & pawnbroking Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		)),
+		'Jewellery photography & marketing' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Specialized jewellery photography & marketing solutions','products'=>array(
+			array('name'=>'Jewellery photography & marketing Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Jewellery photography & marketing Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Jewellery photography & marketing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+		)),
+		'Loose stones & beads' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Specialized loose stones & beads solutions','products'=>array(
+			array('name'=>'Loose stones & beads Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Loose stones & beads Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Loose stones & beads Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+		)),
+		'Trophy & medal making' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Specialized trophy & medal making solutions','products'=>array(
+			array('name'=>'Trophy & medal making Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Trophy & medal making Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Trophy & medal making Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+		)),
+		'Jewellery exhibition & trade show' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Specialized jewellery exhibition & trade show solutions','products'=>array(
+			array('name'=>'Jewellery exhibition & trade show Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Jewellery exhibition & trade show Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Jewellery exhibition & trade show Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		)),
+		'Precious metals refining' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Specialized precious metals refining solutions','products'=>array(
+			array('name'=>'Precious metals refining Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Precious metals refining Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Precious metals refining Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'The fix/unfix module alone saved us thousands in untracked gold margin.', 'author' => 'Rajesh P., Gold Souk Retailer, Deira'),

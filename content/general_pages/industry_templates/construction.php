@@ -65,6 +65,18 @@ $industryData = array(
 		'Concrete & cement',
 		'Waterproofing & insulation',
 		'Solar installation',
+		'Road & highway construction',
+		'Marine & offshore construction',
+		'Scaffolding services',
+		'Roofing & cladding',
+		'Elevator & lift installation',
+		'Geotechnical services',
+		'Fire protection systems',
+		'Drywall & ceiling',
+		'Swimming pool construction',
+		'Mining & quarrying',
+		'Modular & prefab building',
+		'Piling & foundations',
 	),
 	'sub_industry_products' => array(
 		'General contracting' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'Specialized general contracting solutions','products'=>array(
@@ -151,6 +163,67 @@ $industryData = array(
 			array('name'=>'Solar installation Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
 			array('name'=>'Solar installation Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
 			array('name'=>'Solar installation Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+		)),
+
+		'Road & highway construction' => array('photo'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75','desc'=>'Specialized road & highway construction solutions','products'=>array(
+			array('name'=>'Road & highway construction Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Road & highway construction Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Road & highway construction Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+		)),
+		'Marine & offshore construction' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Specialized marine & offshore construction solutions','products'=>array(
+			array('name'=>'Marine & offshore construction Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Marine & offshore construction Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+			array('name'=>'Marine & offshore construction Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
+		)),
+		'Scaffolding services' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'Specialized scaffolding services solutions','products'=>array(
+			array('name'=>'Scaffolding services Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+			array('name'=>'Scaffolding services Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
+			array('name'=>'Scaffolding services Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+		)),
+		'Roofing & cladding' => array('photo'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75','desc'=>'Specialized roofing & cladding solutions','products'=>array(
+			array('name'=>'Roofing & cladding Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
+			array('name'=>'Roofing & cladding Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+			array('name'=>'Roofing & cladding Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+		)),
+		'Elevator & lift installation' => array('photo'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75','desc'=>'Specialized elevator & lift installation solutions','products'=>array(
+			array('name'=>'Elevator & lift installation Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+			array('name'=>'Elevator & lift installation Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Elevator & lift installation Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+		)),
+		'Geotechnical services' => array('photo'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75','desc'=>'Specialized geotechnical services solutions','products'=>array(
+			array('name'=>'Geotechnical services Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Geotechnical services Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Geotechnical services Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+		)),
+		'Fire protection systems' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Specialized fire protection systems solutions','products'=>array(
+			array('name'=>'Fire protection systems Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Fire protection systems Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+			array('name'=>'Fire protection systems Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
+		)),
+		'Drywall & ceiling' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'Specialized drywall & ceiling solutions','products'=>array(
+			array('name'=>'Drywall & ceiling Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+			array('name'=>'Drywall & ceiling Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
+			array('name'=>'Drywall & ceiling Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+		)),
+		'Swimming pool construction' => array('photo'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75','desc'=>'Specialized swimming pool construction solutions','products'=>array(
+			array('name'=>'Swimming pool construction Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
+			array('name'=>'Swimming pool construction Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+			array('name'=>'Swimming pool construction Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+		)),
+		'Mining & quarrying' => array('photo'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75','desc'=>'Specialized mining & quarrying solutions','products'=>array(
+			array('name'=>'Mining & quarrying Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+			array('name'=>'Mining & quarrying Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Mining & quarrying Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+		)),
+		'Modular & prefab building' => array('photo'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75','desc'=>'Specialized modular & prefab building solutions','products'=>array(
+			array('name'=>'Modular & prefab building Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Modular & prefab building Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Modular & prefab building Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+		)),
+		'Piling & foundations' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Specialized piling & foundations solutions','products'=>array(
+			array('name'=>'Piling & foundations Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Piling & foundations Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1590644365607-1c5a9c3b72e7?w=400&q=75'),
+			array('name'=>'Piling & foundations Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Progress billing automation reduced our payment cycle from 60 to 25 days.', 'author' => 'Eng. Khalid R., Construction Company, Abu Dhabi'),
