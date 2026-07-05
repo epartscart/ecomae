@@ -66,6 +66,93 @@ $industryData = array(
 		'Butcher & meat shop',
 		'Organic & health food',
 	),
+	'sub_industry_products' => array(
+		'Restaurant & dine-in' => array('photo'=>'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=75','desc'=>'Specialized restaurant & dine-in solutions','products'=>array(
+			array('name'=>'Restaurant & dine-in Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75'),
+			array('name'=>'Restaurant & dine-in Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=75'),
+			array('name'=>'Restaurant & dine-in Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		)),
+		'Cafe & coffee shop' => array('photo'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75','desc'=>'Specialized cafe & coffee shop solutions','products'=>array(
+			array('name'=>'Cafe & coffee shop Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&q=75'),
+			array('name'=>'Cafe & coffee shop Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=75'),
+			array('name'=>'Cafe & coffee shop Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=75'),
+		)),
+		'Bakery & confectionery' => array('photo'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75','desc'=>'Specialized bakery & confectionery solutions','products'=>array(
+			array('name'=>'Bakery & confectionery Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75'),
+			array('name'=>'Bakery & confectionery Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75'),
+			array('name'=>'Bakery & confectionery Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&q=75'),
+		)),
+		'Catering & events' => array('photo'=>'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&q=75','desc'=>'Specialized catering & events solutions','products'=>array(
+			array('name'=>'Catering & events Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=75'),
+			array('name'=>'Catering & events Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Catering & events Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=75'),
+		)),
+		'Food truck & mobile' => array('photo'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75','desc'=>'Specialized food truck & mobile solutions','products'=>array(
+			array('name'=>'Food truck & mobile Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=75'),
+			array('name'=>'Food truck & mobile Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=75'),
+			array('name'=>'Food truck & mobile Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		)),
+		'Cloud kitchen / dark kitchen' => array('photo'=>'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=75','desc'=>'Specialized cloud kitchen / dark kitchen solutions','products'=>array(
+			array('name'=>'Cloud kitchen / dark kitchen Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75'),
+			array('name'=>'Cloud kitchen / dark kitchen Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&q=75'),
+			array('name'=>'Cloud kitchen / dark kitchen Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=400&q=75'),
+		)),
+		'Bar & pub' => array('photo'=>'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=75','desc'=>'Specialized bar & pub solutions','products'=>array(
+			array('name'=>'Bar & pub Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Bar & pub Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=75'),
+			array('name'=>'Bar & pub Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1588347785102-654b05f76014?w=400&q=75'),
+		)),
+		'Fast food & QSR' => array('photo'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75','desc'=>'Specialized fast food & qsr solutions','products'=>array(
+			array('name'=>'Fast food & QSR Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=75'),
+			array('name'=>'Fast food & QSR Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Fast food & QSR Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&q=75'),
+		)),
+		'Kitchen management' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized kitchen management solutions','products'=>array(
+			array('name'=>'Kitchen management Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&q=75'),
+			array('name'=>'Kitchen management Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=400&q=75'),
+			array('name'=>'Kitchen management Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+		)),
+		'POS & ordering' => array('photo'=>'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&q=75','desc'=>'Specialized pos & ordering solutions','products'=>array(
+			array('name'=>'POS & ordering Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=75'),
+			array('name'=>'POS & ordering Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1588347785102-654b05f76014?w=400&q=75'),
+			array('name'=>'POS & ordering Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=75'),
+		)),
+		'Delivery & takeaway' => array('photo'=>'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&q=75','desc'=>'Specialized delivery & takeaway solutions','products'=>array(
+			array('name'=>'Delivery & takeaway Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Delivery & takeaway Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&q=75'),
+			array('name'=>'Delivery & takeaway Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75'),
+		)),
+		'Food manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=75','desc'=>'Specialized food manufacturing solutions','products'=>array(
+			array('name'=>'Food manufacturing Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=400&q=75'),
+			array('name'=>'Food manufacturing Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+			array('name'=>'Food manufacturing Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75'),
+		)),
+		'Beverage production' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized beverage production solutions','products'=>array(
+			array('name'=>'Beverage production Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1588347785102-654b05f76014?w=400&q=75'),
+			array('name'=>'Beverage production Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=75'),
+			array('name'=>'Beverage production Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&q=75'),
+		)),
+		'Food wholesale & distribution' => array('photo'=>'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=400&q=75','desc'=>'Specialized food wholesale & distribution solutions','products'=>array(
+			array('name'=>'Food wholesale & distribution Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&q=75'),
+			array('name'=>'Food wholesale & distribution Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75'),
+			array('name'=>'Food wholesale & distribution Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75'),
+		)),
+		'Ice cream & desserts' => array('photo'=>'https://images.unsplash.com/photo-1588347785102-654b05f76014?w=400&q=75','desc'=>'Specialized ice cream & desserts solutions','products'=>array(
+			array('name'=>'Ice cream & desserts Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+			array('name'=>'Ice cream & desserts Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=75'),
+			array('name'=>'Ice cream & desserts Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&q=75'),
+		)),
+		'Butcher & meat shop' => array('photo'=>'https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=400&q=75','desc'=>'Specialized butcher & meat shop solutions','products'=>array(
+			array('name'=>'Butcher & meat shop Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=75'),
+			array('name'=>'Butcher & meat shop Professional','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&q=75'),
+			array('name'=>'Butcher & meat shop Enterprise','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=75'),
+		)),
+		'Organic & health food' => array('photo'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75','desc'=>'Specialized organic & health food solutions','products'=>array(
+			array('name'=>'Organic & health food Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75'),
+			array('name'=>'Organic & health food Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75'),
+			array('name'=>'Organic & health food Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'Kitchen efficiency improved 45% after implementing the display system.', 'author' => 'Chef Mario L., Restaurant Group, Dubai'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

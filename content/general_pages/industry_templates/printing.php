@@ -59,6 +59,58 @@ $industryData = array(
 		'Offset printing',
 		'Gift & personalized items',
 	),
+	'sub_industry_products' => array(
+		'Commercial printing' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized commercial printing solutions','products'=>array(
+			array('name'=>'Commercial printing Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Commercial printing Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Commercial printing Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		)),
+		'Large format & signage' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized large format & signage solutions','products'=>array(
+			array('name'=>'Large format & signage Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Large format & signage Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Large format & signage Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		)),
+		'Packaging & labels' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized packaging & labels solutions','products'=>array(
+			array('name'=>'Packaging & labels Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Packaging & labels Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Packaging & labels Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		)),
+		'Digital printing' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized digital printing solutions','products'=>array(
+			array('name'=>'Digital printing Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Digital printing Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Digital printing Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		)),
+		'Screen printing & embroidery' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized screen printing & embroidery solutions','products'=>array(
+			array('name'=>'Screen printing & embroidery Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Screen printing & embroidery Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Screen printing & embroidery Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		)),
+		'Banner & display' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized banner & display solutions','products'=>array(
+			array('name'=>'Banner & display Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Banner & display Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Banner & display Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		)),
+		'Promotional products' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized promotional products solutions','products'=>array(
+			array('name'=>'Promotional products Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Promotional products Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Promotional products Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		)),
+		'Bookbinding & finishing' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized bookbinding & finishing solutions','products'=>array(
+			array('name'=>'Bookbinding & finishing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Bookbinding & finishing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Bookbinding & finishing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		)),
+		'Offset printing' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized offset printing solutions','products'=>array(
+			array('name'=>'Offset printing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Offset printing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Offset printing Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		)),
+		'Gift & personalized items' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized gift & personalized items solutions','products'=>array(
+			array('name'=>'Gift & personalized items Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Gift & personalized items Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Gift & personalized items Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'Online proofing eliminated 90% of reprints due to client miscommunication.', 'author' => 'Print Shop Owner, Al Quoz Industrial'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

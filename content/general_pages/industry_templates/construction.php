@@ -66,6 +66,93 @@ $industryData = array(
 		'Waterproofing & insulation',
 		'Solar installation',
 	),
+	'sub_industry_products' => array(
+		'General contracting' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'Specialized general contracting solutions','products'=>array(
+			array('name'=>'General contracting Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'General contracting Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),
+			array('name'=>'General contracting Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		)),
+		'Building materials supply' => array('photo'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75','desc'=>'Specialized building materials supply solutions','products'=>array(
+			array('name'=>'Building materials supply Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=75'),
+			array('name'=>'Building materials supply Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Building materials supply Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
+		)),
+		'Project management' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Specialized project management solutions','products'=>array(
+			array('name'=>'Project management Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75'),
+			array('name'=>'Project management Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75'),
+			array('name'=>'Project management Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75'),
+		)),
+		'Real estate sales & leasing' => array('photo'=>'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=75','desc'=>'Specialized real estate sales & leasing solutions','products'=>array(
+			array('name'=>'Real estate sales & leasing Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),
+			array('name'=>'Real estate sales & leasing Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Real estate sales & leasing Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=400&q=75'),
+		)),
+		'Property management' => array('photo'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75','desc'=>'Specialized property management solutions','products'=>array(
+			array('name'=>'Property management Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Property management Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
+			array('name'=>'Property management Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+		)),
+		'Architecture & design' => array('photo'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75','desc'=>'Specialized architecture & design solutions','products'=>array(
+			array('name'=>'Architecture & design Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75'),
+			array('name'=>'Architecture & design Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75'),
+			array('name'=>'Architecture & design Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+		)),
+		'Interior design & fit-out' => array('photo'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75','desc'=>'Specialized interior design & fit-out solutions','products'=>array(
+			array('name'=>'Interior design & fit-out Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Interior design & fit-out Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=400&q=75'),
+			array('name'=>'Interior design & fit-out Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+		)),
+		'Plumbing & HVAC' => array('photo'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75','desc'=>'Specialized plumbing & hvac solutions','products'=>array(
+			array('name'=>'Plumbing & HVAC Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
+			array('name'=>'Plumbing & HVAC Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Plumbing & HVAC Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=75'),
+		)),
+		'Electrical contracting' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Specialized electrical contracting solutions','products'=>array(
+			array('name'=>'Electrical contracting Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75'),
+			array('name'=>'Electrical contracting Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+			array('name'=>'Electrical contracting Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75'),
+		)),
+		'Painting & finishing' => array('photo'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75','desc'=>'Specialized painting & finishing solutions','products'=>array(
+			array('name'=>'Painting & finishing Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=400&q=75'),
+			array('name'=>'Painting & finishing Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Painting & finishing Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),
+		)),
+		'Landscaping & garden' => array('photo'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75','desc'=>'Specialized landscaping & garden solutions','products'=>array(
+			array('name'=>'Landscaping & garden Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+			array('name'=>'Landscaping & garden Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=75'),
+			array('name'=>'Landscaping & garden Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+		)),
+		'Demolition & clearing' => array('photo'=>'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=400&q=75','desc'=>'Specialized demolition & clearing solutions','products'=>array(
+			array('name'=>'Demolition & clearing Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75'),
+			array('name'=>'Demolition & clearing Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75'),
+			array('name'=>'Demolition & clearing Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75'),
+		)),
+		'Land surveying' => array('photo'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75','desc'=>'Specialized land surveying solutions','products'=>array(
+			array('name'=>'Land surveying Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75'),
+			array('name'=>'Land surveying Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),
+			array('name'=>'Land surveying Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		)),
+		'Steel fabrication' => array('photo'=>'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75','desc'=>'Specialized steel fabrication solutions','products'=>array(
+			array('name'=>'Steel fabrication Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=75'),
+			array('name'=>'Steel fabrication Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Steel fabrication Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
+		)),
+		'Concrete & cement' => array('photo'=>'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75','desc'=>'Specialized concrete & cement solutions','products'=>array(
+			array('name'=>'Concrete & cement Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75'),
+			array('name'=>'Concrete & cement Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1524813686514-a57563d77965?w=400&q=75'),
+			array('name'=>'Concrete & cement Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&q=75'),
+		)),
+		'Waterproofing & insulation' => array('photo'=>'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=75','desc'=>'Specialized waterproofing & insulation solutions','products'=>array(
+			array('name'=>'Waterproofing & insulation Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8?w=400&q=75'),
+			array('name'=>'Waterproofing & insulation Professional','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Waterproofing & insulation Enterprise','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=400&q=75'),
+		)),
+		'Solar installation' => array('photo'=>'https://images.unsplash.com/photo-1590486145786-2e05e98e4056?w=400&q=75','desc'=>'Specialized solar installation solutions','products'=>array(
+			array('name'=>'Solar installation Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Solar installation Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=75'),
+			array('name'=>'Solar installation Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'Progress billing automation reduced our payment cycle from 60 to 25 days.', 'author' => 'Eng. Khalid R., Construction Company, Abu Dhabi'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',

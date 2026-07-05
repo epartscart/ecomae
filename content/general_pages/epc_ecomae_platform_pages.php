@@ -410,6 +410,7 @@ function epc_ecomae_platform_page_industries()
 .epm-included__item li:last-child{border:0}
 /* Animations */
 @keyframes epmFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .epm-reveal{opacity:0;transform:translateY(20px);transition:all .6s cubic-bezier(.16,1,.3,1)}
 .epm-reveal.vis{opacity:1;transform:translateY(0)}
 @media(max-width:768px){
@@ -518,6 +519,36 @@ function epc_ecomae_platform_page_industries()
 <h4><i class="fa fa-globe"></i> Worldwide Ready</h4>
 <ul><li>35+ currencies with auto-convert</li><li>Country-specific tax & labour rules</li><li>DED / SIC / NAICS / ISIC aligned</li><li>Local language support (65+ countries)</li><li>Multi-entity consolidation</li></ul>
 </div>
+</div>
+</section>
+
+<!-- Live Client Sites -->
+<section class="epm-reveal" style="padding:60px 24px;max-width:1400px;margin:0 auto">
+<h2 style="font-size:28px;font-weight:800;color:#0f172a;text-align:center;margin:0 0 12px">Live Client Sites</h2>
+<p style="color:#64748b;font-size:15px;text-align:center;margin:0 0 36px">Real businesses running on ecomae platform — see the same technology powering diverse industries</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px">
+<?php
+$liveClients = array(
+	array('name'=>'epartscart.com','industry'=>'Automotive Parts','color'=>'#0284c7','icon'=>'fa-car','url'=>'https://www.epartscart.com','desc'=>'OEM & aftermarket auto parts — complete catalog with Laximo integration'),
+	array('name'=>'electronicae.com','industry'=>'Electronics','color'=>'#7c3aed','icon'=>'fa-microchip','url'=>'https://www.electronicae.com','desc'=>'Consumer electronics marketplace — smartphones, laptops, accessories'),
+	array('name'=>'stylenlook.com','industry'=>'Fashion & Beauty','color'=>'#db2777','icon'=>'fa-diamond','url'=>'https://www.stylenlook.com','desc'=>'Fashion boutique — clothing, beauty products, trending styles'),
+	array('name'=>'thejewellerytrend.com','industry'=>'Jewellery','color'=>'#d97706','icon'=>'fa-gem','url'=>'https://www.thejewellerytrend.com','desc'=>'Gold & diamond jewellery — TAG system, hallmark certified'),
+	array('name'=>'taxofinca.com','industry'=>'Professional Services','color'=>'#059669','icon'=>'fa-briefcase','url'=>'https://www.taxofinca.com','desc'=>'Tax advisory & financial consulting — client portal, ERP integrated'),
+);
+foreach($liveClients as $lci => $lc):
+?>
+<a href="<?php echo epc_ecomae_h($lc['url']); ?>" target="_blank" style="display:block;text-decoration:none;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;transition:all .4s cubic-bezier(.16,1,.3,1);background:#fff;animation:epmFadeUp .6s <?php echo ($lci * 0.1); ?>s both" onmouseover="this.style.transform='translateY(-8px) scale(1.02)';this.style.boxShadow='0 20px 40px rgba(0,0,0,.12)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+<div style="height:6px;background:<?php echo $lc['color']; ?>"></div>
+<div style="padding:20px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+<div style="width:42px;height:42px;border-radius:10px;background:<?php echo $lc['color']; ?>;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="fa <?php echo $lc['icon']; ?>"></i></div>
+<div><div style="font-size:14px;font-weight:700;color:#0f172a"><?php echo epc_ecomae_h($lc['name']); ?></div><div style="font-size:11px;color:<?php echo $lc['color']; ?>;font-weight:600"><?php echo epc_ecomae_h($lc['industry']); ?></div></div>
+</div>
+<p style="font-size:12px;color:#64748b;line-height:1.5;margin:0 0 12px"><?php echo epc_ecomae_h($lc['desc']); ?></p>
+<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#10b981;font-weight:600"><span style="width:8px;height:8px;background:#10b981;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span> Live &amp; Running</div>
+</div>
+</a>
+<?php endforeach; ?>
 </div>
 </section>
 

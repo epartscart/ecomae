@@ -61,6 +61,68 @@ $industryData = array(
 		'Bridal jewellery',
 		'Gem certification & hallmarking',
 	),
+	'sub_industry_products' => array(
+		'Jewellery retail showroom' => array('photo'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75','desc'=>'Specialized jewellery retail showroom solutions','products'=>array(
+			array('name'=>'Jewellery retail showroom Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Jewellery retail showroom Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
+			array('name'=>'Jewellery retail showroom Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
+		)),
+		'Gold buying & selling' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Specialized gold buying & selling solutions','products'=>array(
+			array('name'=>'Gold buying & selling Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
+			array('name'=>'Gold buying & selling Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
+			array('name'=>'Gold buying & selling Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
+		)),
+		'Diamond & gemstones' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Specialized diamond & gemstones solutions','products'=>array(
+			array('name'=>'Diamond & gemstones Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
+			array('name'=>'Diamond & gemstones Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Diamond & gemstones Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
+		)),
+		'Watches & timepieces' => array('photo'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75','desc'=>'Specialized watches & timepieces solutions','products'=>array(
+			array('name'=>'Watches & timepieces Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
+			array('name'=>'Watches & timepieces Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
+			array('name'=>'Watches & timepieces Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
+		)),
+		'Custom design & making' => array('photo'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75','desc'=>'Specialized custom design & making solutions','products'=>array(
+			array('name'=>'Custom design & making Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
+			array('name'=>'Custom design & making Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
+			array('name'=>'Custom design & making Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
+		)),
+		'Jewellery repair & polishing' => array('photo'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75','desc'=>'Specialized jewellery repair & polishing solutions','products'=>array(
+			array('name'=>'Jewellery repair & polishing Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Jewellery repair & polishing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
+			array('name'=>'Jewellery repair & polishing Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+		)),
+		'Jewellery wholesale / B2B' => array('photo'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75','desc'=>'Specialized jewellery wholesale / b2b solutions','products'=>array(
+			array('name'=>'Jewellery wholesale / B2B Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
+			array('name'=>'Jewellery wholesale / B2B Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
+			array('name'=>'Jewellery wholesale / B2B Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		)),
+		'Jewellery manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Specialized jewellery manufacturing solutions','products'=>array(
+			array('name'=>'Jewellery manufacturing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
+			array('name'=>'Jewellery manufacturing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
+			array('name'=>'Jewellery manufacturing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
+		)),
+		'Luxury auctions' => array('photo'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75','desc'=>'Specialized luxury auctions solutions','products'=>array(
+			array('name'=>'Luxury auctions Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
+			array('name'=>'Luxury auctions Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Luxury auctions Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
+		)),
+		'Antique jewellery' => array('photo'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75','desc'=>'Specialized antique jewellery solutions','products'=>array(
+			array('name'=>'Antique jewellery Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
+			array('name'=>'Antique jewellery Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Antique jewellery Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
+		)),
+		'Bridal jewellery' => array('photo'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75','desc'=>'Specialized bridal jewellery solutions','products'=>array(
+			array('name'=>'Bridal jewellery Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
+			array('name'=>'Bridal jewellery Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
+			array('name'=>'Bridal jewellery Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
+		)),
+		'Gem certification & hallmarking' => array('photo'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75','desc'=>'Specialized gem certification & hallmarking solutions','products'=>array(
+			array('name'=>'Gem certification & hallmarking Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Gem certification & hallmarking Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
+			array('name'=>'Gem certification & hallmarking Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		)),
+	),
 	'testimonial' => array('quote' => 'The fix/unfix module alone saved us thousands in untracked gold margin.', 'author' => 'Rajesh P., Gold Souk Retailer, Deira'),
 	'cta_cp_text' => 'Open Control Panel',
 	'cta_erp_text' => 'Launch ERP',
