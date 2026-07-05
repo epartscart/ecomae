@@ -240,13 +240,17 @@ $vehicle_html = epart_front_render_widget('content/vehicle_catalog.php', $cacheP
 		?>
 	</section>
 
-	<!-- 4. Own Brand -->
+	<!-- 4. Own Brand (deferred — heavy page already uses peak memory by this point) -->
+	<!-- DIAG:MEM=<?php echo round(memory_get_usage(true) / 1048576, 1); ?>MB/PEAK=<?php echo round(memory_get_peak_usage(true) / 1048576, 1); ?>MB/LIM=<?php echo ini_get('memory_limit'); ?> -->
 	<?php
-	try {
-		$own_brand_name = (isset($DP_Config) && !empty($DP_Config->own_brand_name)) ? $DP_Config->own_brand_name : 'EPC';
-		$own_brand_html = epart_front_render_own_brand($db_link, $lang_href, $own_brand_name, $cachePrefix);
-	} catch (\Throwable $e) {
-		$own_brand_html = '';
+	$own_brand_html = '';
+	if (memory_get_usage(true) < 100 * 1024 * 1024) {
+		try {
+			$own_brand_name = (isset($DP_Config) && !empty($DP_Config->own_brand_name)) ? $DP_Config->own_brand_name : 'EPC';
+			$own_brand_html = epart_front_render_own_brand($db_link, $lang_href, $own_brand_name, $cachePrefix);
+		} catch (\Throwable $e) {
+			$own_brand_html = '';
+		}
 	}
 	if ($own_brand_html !== '') {
 	?>
