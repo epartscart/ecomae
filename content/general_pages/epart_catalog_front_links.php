@@ -27,9 +27,16 @@ function epart_front_render_widget(string $relPath, string $cacheKey, int $ttl =
 		return '';
 	}
 
-	ob_start();
-	include $file;
-	$html = (string) ob_get_clean();
+	try {
+		ob_start();
+		include $file;
+		$html = (string) ob_get_clean();
+	} catch (\Throwable $e) {
+		if (ob_get_level() > 0) {
+			ob_end_clean();
+		}
+		return '';
+	}
 	if ($html !== '') {
 		epc_perf_cache_set($cacheKey, $html, $ttl);
 	}
@@ -46,15 +53,20 @@ function epart_front_render_own_brand($db_link, string $lang_href, string $brand
 	if (!($db_link instanceof PDO)) {
 		return '';
 	}
-	$brandLike = '%' . $brand_name . '%';
-	$stmt = $db_link->prepare(
-		'SELECT DISTINCT d.`brand`, COUNT(*) AS cnt '
-		. 'FROM `shop_docpart_prices_data` d '
-		. 'WHERE d.`brand` LIKE ? '
-		. 'GROUP BY d.`brand` ORDER BY cnt DESC LIMIT 10'
-	);
-	$stmt->execute([$brandLike]);
-	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	try {
+		$brandLike = '%' . $brand_name . '%';
+		$stmt = $db_link->prepare(
+			'SELECT DISTINCT d.`brand`, COUNT(*) AS cnt '
+			. 'FROM `shop_docpart_prices_data` d '
+			. 'WHERE d.`brand` LIKE ? '
+			. 'GROUP BY d.`brand` ORDER BY cnt DESC LIMIT 10'
+		);
+		$stmt->execute([$brandLike]);
+		$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	} catch (\Throwable $e) {
+		epc_perf_cache_set($cacheKey, '', 300);
+		return '';
+	}
 	if (empty($rows)) {
 		epc_perf_cache_set($cacheKey, '', 900);
 		return '';
@@ -77,6 +89,13 @@ function epart_front_render_own_brand($db_link, string $lang_href, string $brand
 $host = !empty($_SERVER['HTTP_HOST']) ? strtolower((string) $_SERVER['HTTP_HOST']) : 'www.epartscart.com';
 if (strpos($host, 'epartscart.com') === false) {
 	return;
+}
+// Ensure sufficient memory for catalog-heavy front page.
+$_memRaw = trim((string) ini_get('memory_limit'));
+$_memVal = (int) $_memRaw;
+if (stripos($_memRaw, 'G') !== false) { $_memVal *= 1024; }
+if ($_memVal > 0 && $_memVal < 256) {
+	@ini_set('memory_limit', '256M');
 }
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] != '') ? rtrim($multilang_params['lang_href'], '/') : '/en';
 $cachePrefix = 'epart_front_widget:v3:' . preg_replace('/[^a-z0-9.\-]/', '', $host) . ':' . md5($lang_href) . ':';
@@ -223,8 +242,12 @@ $vehicle_html = epart_front_render_widget('content/vehicle_catalog.php', $cacheP
 
 	<!-- 4. Own Brand -->
 	<?php
-	$own_brand_name = !empty($DP_Config->own_brand_name) ? $DP_Config->own_brand_name : 'EPC';
-	$own_brand_html = epart_front_render_own_brand($db_link, $lang_href, $own_brand_name, $cachePrefix);
+	try {
+		$own_brand_name = (isset($DP_Config) && !empty($DP_Config->own_brand_name)) ? $DP_Config->own_brand_name : 'EPC';
+		$own_brand_html = epart_front_render_own_brand($db_link, $lang_href, $own_brand_name, $cachePrefix);
+	} catch (\Throwable $e) {
+		$own_brand_html = '';
+	}
 	if ($own_brand_html !== '') {
 	?>
 	<section class="epart-front-section epart-front-section-own-brand" aria-label="Own Brand">
