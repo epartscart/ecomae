@@ -173,9 +173,9 @@ a:hover{text-decoration:underline}
 
 /* ===== HERO ===== */
 .ind-hero{min-height:90vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding-top:64px}
-.ind-hero-video{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.ind-hero-video{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1;opacity:0;transition:opacity 1s ease}
+.ind-hero-video.video-playing{opacity:1}
 .ind-hero-video iframe{position:absolute;top:50%;left:50%;width:180vw;height:180vh;transform:translate(-50%,-50%);border:0;object-fit:cover}
-.ind-hero-video.video-error{display:none}
 .ind-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;animation:slowZoom 20s ease-in-out infinite alternate}
 .ind-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(<?php
 $r=hexdec(substr($bgFrom,1,2));$g=hexdec(substr($bgFrom,3,2));$b=hexdec(substr($bgFrom,5,2));
@@ -1051,22 +1051,20 @@ if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'st
 
 <?php if($heroVideoUrl): ?>
 <script>
-/* YouTube IFrame API - detect video errors and hide broken videos */
+/* YouTube IFrame API - video starts hidden, only shown when actually playing */
 var tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';
 var fs=document.getElementsByTagName('script')[0];fs.parentNode.insertBefore(tag,fs);
 function onYouTubeIframeAPIReady(){
+var wrap=document.getElementById('heroVideoWrap');
 var frame=document.getElementById('heroVideoFrame');
-if(!frame)return;
+if(!frame||!wrap)return;
 var player=new YT.Player('heroVideoFrame',{
 events:{
-'onError':function(){document.getElementById('heroVideoWrap').classList.add('video-error')},
-'onReady':function(e){e.target.mute();e.target.playVideo()}
+'onError':function(){wrap.style.display='none'},
+'onReady':function(e){e.target.mute();e.target.playVideo()},
+'onStateChange':function(e){if(e.data===1)wrap.classList.add('video-playing')}
 }
 });
-/* Fallback: if video doesn't start within 5s, hide it */
-setTimeout(function(){
-try{if(player.getPlayerState&&player.getPlayerState()<=0)document.getElementById('heroVideoWrap').classList.add('video-error')}catch(x){document.getElementById('heroVideoWrap').classList.add('video-error')}
-},5000);
 }
 </script>
 <?php endif; ?>
