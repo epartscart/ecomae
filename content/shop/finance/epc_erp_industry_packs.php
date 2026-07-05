@@ -549,3 +549,49 @@ if (!function_exists('epc_ind_rental_accrual')) {
         );
     }
 }
+
+if (!function_exists('epc_erp_resolve_pack_from_consolidation')) {
+    /**
+     * Resolve the ERP industry pack using the consolidation engine.
+     *
+     * Given a tenant's industry code, resolves the consolidated group
+     * and returns the appropriate ERP pack from epc_erp_industry_packs().
+     *
+     * @param string $industryCode Tenant's industry code
+     * @return array|null The ERP pack config, or null if not found
+     */
+    function epc_erp_resolve_pack_from_consolidation(string $industryCode): ?array
+    {
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+
+        $group = epc_industry_get_group($industryCode);
+        $erpBase = $group['erp_base'] ?? 'general';
+
+        $packs = epc_erp_industry_packs();
+        if (isset($packs[$erpBase])) {
+            return $packs[$erpBase];
+        }
+
+        // Try direct match on industry code
+        if (isset($packs[$industryCode])) {
+            return $packs[$industryCode];
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('epc_erp_costing_for_industry')) {
+    /**
+     * Get the costing method for a given industry based on consolidation group.
+     *
+     * @param string $industryCode Tenant's industry code
+     * @return string Costing method key (fifo, weighted_avg, specific, standard)
+     */
+    function epc_erp_costing_for_industry(string $industryCode): string
+    {
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+        $group = epc_industry_get_group($industryCode);
+        return $group['costing_default'] ?? 'weighted_avg';
+    }
+}
