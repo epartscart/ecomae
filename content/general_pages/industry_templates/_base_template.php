@@ -552,11 +552,7 @@ $heroVideoPath = '/content/videos/' . $heroVideoTheme . '.mp4';
 <?php if($heroPhoto): ?>
 <div class="ind-hero-bg" style="background-image:url('<?php echo htmlspecialchars($heroPhoto);?>')"></div>
 <?php endif; ?>
-<div class="ind-hero-video">
-<video autoplay muted loop playsinline>
-<source src="<?php echo $heroVideoPath;?>" type="video/mp4">
-</video>
-</div>
+<div class="ind-hero-video" id="heroVidWrap" data-src="<?php echo $heroVideoPath;?>"></div>
 <div class="ind-hero-overlay"></div>
 <div class="particles">
 <?php for($i=0;$i<20;$i++): $size=rand(3,12); ?>
@@ -1046,6 +1042,20 @@ var target = document.querySelector(this.getAttribute('href'));
 if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'})}
 });
 });
+})();
+/* Lazy-load hero video after page is ready — prevents PHP-FPM overload */
+(function(){
+var w=document.getElementById('heroVidWrap');
+if(!w)return;
+var src=w.getAttribute('data-src');
+if(!src)return;
+setTimeout(function(){
+var v=document.createElement('video');
+v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');
+var s=document.createElement('source');s.src=src;s.type='video/mp4';
+v.appendChild(s);w.appendChild(v);
+v.play().catch(function(){});
+},1500);
 })();
 </script>
 
