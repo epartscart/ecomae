@@ -312,10 +312,10 @@ if ($searchQuery !== '') {
                 <table class="table table-condensed" style="margin:0">
                     <thead><tr><th>Country</th><th>Registry</th><th>Authority</th></tr></thead>
                     <tbody>
-                        <?php foreach ($registries as $reg) { ?>
+                        <?php foreach ($registries as $countryName => $reg) { ?>
                         <tr>
-                            <td><strong><?php echo htmlspecialchars($reg['country'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
-                            <td><?php echo htmlspecialchars($reg['registry_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><strong><?php echo htmlspecialchars($countryName, ENT_QUOTES, 'UTF-8'); ?></strong></td>
+                            <td><?php echo htmlspecialchars($reg['name'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
                                 <?php if (!empty($reg['url'])) { ?>
                                 <a href="<?php echo htmlspecialchars($reg['url'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" class="btn btn-xs btn-default"><i class="fa fa-external-link"></i></a>
