@@ -1,0 +1,133 @@
+# ecomae ERP — On-Premises Docker Deployment
+# Requirements: Docker 24+, Docker Compose v2+, 4 CPU, 16GB RAM, 500GB disk
+#
+# Usage:
+#   1. Copy this file + .env.example to the target server
+#   2. cp .env.example .env && edit .env with your settings
+#   3. docker compose up -d
+#   4. docker compose exec app php /var/www/html/deploy/on-premises/setup-wizard.php
+#
+# Ports: 80 (HTTP→HTTPS redirect), 443 (HTTPS), 3306 (MySQL, internal only)
+
+services:
+  app:
+    image: php:8.3-fpm
+    container_name: ecomae-app
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./storage:/var/www/storage
+      - ./backups:/var/www/backups
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-ecomae_erp}
+      - DB_USERNAME=${DB_USERNAME:-ecomae}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LICENSE_KEY=${LICENSE_KEY}
+      - APP_URL=${APP_URL:-https://erp.example.com}
+      - APP_ENV=${APP_ENV:-production}
+      - TIMEZONE=${TIMEZONE:-UTC}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - ecomae-net
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    image: nginx:1.25-alpine
+    container_name: ecomae-web
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./app:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./storage:/var/www/storage
+    depends_on:
+      - app
+    networks:
+      - ecomae-net
+
+  db:
+    image: mysql:8.0
+    container_name: ecomae-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE:-ecomae_erp}
+      - MYSQL_USER=${DB_USERNAME:-ecomae}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_CHARSET=utf8mb4
+      - MYSQL_COLLATION=utf8mb4_unicode_ci
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/custom.cnf
+      - ./backups/mysql:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:${DB_EXTERNAL_PORT:-3306}:3306"
+    networks:
+      - ecomae-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecomae-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - ecomae-net
+
+  cron:
+    image: php:8.3-fpm
+    container_name: ecomae-cron
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+      - ./storage:/var/www/storage
+      - ./backups:/var/www/backups
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-ecomae_erp}
+      - DB_USERNAME=${DB_USERNAME:-ecomae}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+    entrypoint: /bin/sh
+    command: >
+      -c "echo '*/5 * * * * php /var/www/html/cron/epc_cron_runner.php >> /var/log/cron.log 2>&1
+      0 2 * * * php /var/www/html/deploy/on-premises/backup.php >> /var/log/backup.log 2>&1
+      0 */6 * * * php /var/www/html/deploy/on-premises/health-check.php >> /var/log/health.log 2>&1' | crontab - && crond -f"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - ecomae-net
+
+volumes:
+  db-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  ecomae-net:
+    driver: bridge
