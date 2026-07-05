@@ -280,60 +280,244 @@ function epc_ecomae_platform_page_industries()
 	$base = epc_ecomae_platform_base_url();
 	$demo = epc_ecomae_platform_demo_package();
 
-	// Load consolidation groups
+	// Load consolidation groups + DED mapping
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ded_activity_mapping.php';
 	$consolidatedGroups = epc_industry_groups();
 	$groupCount = count($consolidatedGroups);
+	$dedDivisions = epc_ded_divisions();
+	$dedTotal = epc_ded_total_activities();
+	$registries = epc_worldwide_business_registries();
 
 	ob_start();
 	?>
+<style>
+.epm-ind-hero{position:relative;padding:80px 40px 60px;background:linear-gradient(135deg,#0a0f1a 0%,#0d1b2a 40%,#1b2838 100%);border-radius:0 0 24px 24px;overflow:hidden;margin-bottom:40px}
+.epm-ind-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23ffffff' opacity='0.03'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill='url(%23g)' width='60' height='60'/%3E%3C/svg%3E");opacity:.5}
+.epm-ind-hero__content{position:relative;z-index:2;max-width:900px;margin:0 auto;text-align:center}
+.epm-ind-hero h1{color:#fff;font-size:42px;font-weight:800;margin:0 0 16px;letter-spacing:-1px}
+.epm-ind-hero .lead{color:#94a3b8;font-size:18px;line-height:1.6;margin:0 auto 28px;max-width:720px}
+.epm-ind-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:28px}
+.epm-ind-stat{text-align:center}
+.epm-ind-stat__val{font-size:36px;font-weight:800;background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.epm-ind-stat__label{color:#64748b;font-size:13px;margin-top:2px}
+.epm-ded-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);border-radius:20px;color:#38bdf8;font-size:12px;font-weight:600;margin-bottom:20px}
+.epm-groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:32px 0}
+.epm-group-card{padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;transition:all .2s;cursor:default}
+.epm-group-card:hover{border-color:#3b82f6;box-shadow:0 4px 12px rgba(59,130,246,.1);transform:translateY(-2px)}
+.epm-group-card__head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.epm-group-card__icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.epm-group-card__title{font-size:14px;font-weight:700;color:#1e293b}
+.epm-group-card__count{margin-left:auto;background:#f1f5f9;padding:3px 8px;border-radius:4px;font-size:11px;color:#64748b}
+.epm-group-card__desc{font-size:12px;color:#64748b;line-height:1.5;margin-bottom:10px}
+.epm-group-card__subs{display:flex;flex-wrap:wrap;gap:4px}
+.epm-group-card__sub{padding:2px 7px;background:#f0f9ff;color:#0369a1;border-radius:3px;font-size:10px}
+.epm-ded-section{padding:40px;background:linear-gradient(135deg,#fafbff,#f0f4ff);border-radius:16px;margin:40px 0}
+.epm-ded-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:24px 0}
+.epm-ded-div{padding:14px 16px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;display:flex;align-items:center;gap:10px}
+.epm-ded-div i{font-size:18px;color:#3b82f6;width:24px;text-align:center}
+.epm-ded-div__info{flex:1}
+.epm-ded-div__name{font-size:13px;font-weight:600;color:#1e293b}
+.epm-ded-div__acts{font-size:11px;color:#64748b}
+.epm-worldwide-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:20px 0}
+.epm-reg-card{padding:12px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;text-align:center}
+.epm-reg-card__flag{font-size:20px;margin-bottom:4px}
+.epm-reg-card__name{font-size:11px;font-weight:600;color:#374151}
+.epm-reg-card__std{font-size:10px;color:#6b7280}
+.epm-ind-industries{margin:40px 0}
+.epm-ind-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}
+.epm-ind-filter__btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid #e2e8f0;background:#fff;color:#475569;cursor:pointer;transition:all .15s}
+.epm-ind-filter__btn:hover,.epm-ind-filter__btn--active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+</style>
 <div class="epm-wrap">
-	<div class="epm-hero">
-		<div class="epm-hero__shade" style="opacity:1;background:linear-gradient(135deg,#1a0407,#5a0f16 50%,#0a0a0a)"></div>
-		<div class="epm-hero__content">
-			<div class="epm-badge"><i class="fa fa-industry"></i> <?php echo count($industries); ?> verticals → <?php echo $groupCount; ?> smart groups</div>
-			<h1>Every industry, one optimized template</h1>
-			<p class="lead"><?php echo count($industries); ?> industries consolidated into <?php echo $groupCount; ?> template groups — each group shares one frontend with toggleable sub-areas. Pick your industry; we route you to the right template automatically.</p>
+	<div class="epm-ind-hero">
+		<div class="epm-ind-hero__content">
+			<div class="epm-ded-badge"><i class="fa fa-check-circle"></i> Aligned with Dubai DED &amp; worldwide ISIC standards</div>
+			<h1>Every Business Activity. One Platform.</h1>
+			<p class="lead">From agriculture to fintech — <?php echo number_format(count($industries)); ?> industries consolidated into <?php echo $groupCount; ?> intelligent template groups. Each covers a full DED division with toggleable sub-areas for your specific activity.</p>
+			<div class="epm-ind-stats">
+				<div class="epm-ind-stat">
+					<div class="epm-ind-stat__val"><?php echo number_format(count($industries)); ?></div>
+					<div class="epm-ind-stat__label">Industries Supported</div>
+				</div>
+				<div class="epm-ind-stat">
+					<div class="epm-ind-stat__val"><?php echo $groupCount; ?></div>
+					<div class="epm-ind-stat__label">Smart Template Groups</div>
+				</div>
+				<div class="epm-ind-stat">
+					<div class="epm-ind-stat__val"><?php echo count($dedDivisions); ?></div>
+					<div class="epm-ind-stat__label">DED Divisions Covered</div>
+				</div>
+				<div class="epm-ind-stat">
+					<div class="epm-ind-stat__val"><?php echo count($registries); ?></div>
+					<div class="epm-ind-stat__label">Countries Supported</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<div style="margin:28px 0 0;padding:20px 24px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
-		<?php foreach ($consolidatedGroups as $gk => $ginfo) { ?>
-		<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,255,255,.05);border-radius:8px">
-			<i class="fa <?php echo epc_ecomae_h($ginfo['icon']); ?>" style="color:<?php echo epc_ecomae_h($ginfo['color_scheme']['primary'] ?? '#3b82f6'); ?>;font-size:16px"></i>
-			<span style="color:#e2e8f0;font-size:13px"><?php echo epc_ecomae_h($ginfo['label']); ?></span>
-			<small style="color:#64748b;margin-left:auto"><?php echo count($ginfo['available_sub_areas'] ?? array()); ?></small>
-		</div>
-		<?php } ?>
-	</div>
-
-	<?php foreach ($industryGroups as $grp) {
-		if (empty($grp['industries'])) {
-			continue;
-		}
-		?>
-	<h2 class="epm-section-title" style="font-size:24px;margin-top:28px"><?php echo epc_ecomae_h($grp['name']); ?></h2>
-	<div class="epm-grid">
-		<?php foreach ($grp['industries'] as $code => $ind) {
-			$summary = isset($details[$code]['summary']) ? $details[$code]['summary'] : $ind['tagline'];
-			$indGroupKey = epc_industry_resolve_group($ind['name'] ?? $code);
-			$indGroup = $consolidatedGroups[$indGroupKey] ?? null;
+	<!-- Template Groups Section -->
+	<h2 style="font-size:28px;font-weight:800;color:#0f172a;margin:0 0 8px">Template Groups</h2>
+	<p style="color:#64748b;font-size:15px;margin:0 0 4px">Each group provides: <strong>Storefront</strong> (customer-facing) + <strong>CP</strong> (back-office) + <strong>ERP</strong> (industry-specific toolkit)</p>
+	<div class="epm-groups-grid">
+		<?php foreach ($consolidatedGroups as $gk => $ginfo) {
+			$subAreas = $ginfo['available_sub_areas'] ?? array();
+			$primary = $ginfo['color_scheme']['primary'] ?? '#3b82f6';
 			?>
-		<a class="epm-card epm-card--photo" href="<?php echo epc_ecomae_h($base); ?>platform/industry/<?php echo epc_ecomae_h($code); ?>">
-			<img src="<?php echo epc_ecomae_h($ind['photo']); ?>" alt="<?php echo epc_ecomae_h($ind['name']); ?>" loading="lazy" />
-			<div class="epm-card__inner">
-				<h4><i class="fa <?php echo epc_ecomae_h($ind['icon']); ?> text-primary"></i> <?php echo epc_ecomae_h($ind['name']); ?></h4>
-				<p><?php echo epc_ecomae_h($summary); ?></p>
-				<?php if ($indGroup): ?>
-				<span class="epm-pill" style="background:<?php echo epc_ecomae_h($indGroup['color_scheme']['primary'] ?? '#3b82f6'); ?>;color:#fff;font-size:10px"><i class="fa <?php echo epc_ecomae_h($indGroup['icon']); ?>"></i> <?php echo epc_ecomae_h($indGroup['label']); ?></span>
-				<?php else: ?>
-				<span class="epm-pill">Dedicated page →</span>
+		<div class="epm-group-card">
+			<div class="epm-group-card__head">
+				<div class="epm-group-card__icon" style="background:<?php echo epc_ecomae_h($primary); ?>"><i class="fa <?php echo epc_ecomae_h($ginfo['icon']); ?>"></i></div>
+				<div class="epm-group-card__title"><?php echo epc_ecomae_h($ginfo['label']); ?></div>
+				<div class="epm-group-card__count"><?php echo count($subAreas); ?> areas</div>
+			</div>
+			<div class="epm-group-card__desc"><?php echo epc_ecomae_h($ginfo['description']); ?></div>
+			<div class="epm-group-card__subs">
+				<?php $shown = 0; foreach ($subAreas as $saKey => $saLabel) { if ($shown >= 4) break; $shown++; ?>
+				<span class="epm-group-card__sub"><?php echo epc_ecomae_h($saLabel); ?></span>
+				<?php } ?>
+				<?php if (count($subAreas) > 4): ?>
+				<span class="epm-group-card__sub" style="background:#f1f5f9;color:#64748b">+<?php echo count($subAreas) - 4; ?> more</span>
 				<?php endif; ?>
 			</div>
-		</a>
+		</div>
 		<?php } ?>
 	</div>
-	<?php } ?>
+
+	<!-- DED Alignment Section -->
+	<div class="epm-ded-section">
+		<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+			<img src="https://app.invest.dubai.ae/_nuxt/iid-logo-text-only-black.G46Tssfn.svg" alt="Invest in Dubai" style="height:28px;opacity:.8" loading="lazy" />
+			<h2 style="font-size:24px;font-weight:800;color:#0f172a;margin:0">Official DED Activity Coverage</h2>
+		</div>
+		<p style="color:#475569;font-size:14px;margin:0 0 20px">All <?php echo count($dedDivisions); ?> divisions from the Dubai Department of Economic Development are fully mapped to our template system. Whether you have a trading license, professional license, or industrial license — we have the right template, ERP pack, and workflow.</p>
+		<div class="epm-ded-grid">
+			<?php foreach ($dedDivisions as $dk => $div) { ?>
+			<div class="epm-ded-div">
+				<i class="fa <?php echo epc_ecomae_h($div['icon']); ?>"></i>
+				<div class="epm-ded-div__info">
+					<div class="epm-ded-div__name"><?php echo epc_ecomae_h($div['label']); ?></div>
+					<div class="epm-ded-div__acts"><?php echo $div['activities']; ?> activities · <?php echo count($div['sub_groups']); ?> sub-groups</div>
+				</div>
+			</div>
+			<?php } ?>
+		</div>
+	</div>
+
+	<!-- Worldwide Support Section -->
+	<h2 style="font-size:24px;font-weight:800;color:#0f172a;margin:40px 0 8px"><i class="fa fa-globe" style="color:#3b82f6"></i> Worldwide Standard Compliance</h2>
+	<p style="color:#64748b;font-size:14px;margin:0 0 16px">Not just Dubai — our platform maps to business activity classifications used in <?php echo count($registries); ?> countries. Your industry template, ERP configuration, and compliance modules auto-adapt to local standards.</p>
+	<div class="epm-worldwide-row">
+		<?php foreach ($registries as $country => $reg) { ?>
+		<div class="epm-reg-card">
+			<div class="epm-reg-card__flag"><?php echo epc_ecomae_h($country); ?></div>
+			<div class="epm-reg-card__name"><?php echo epc_ecomae_h($reg['name']); ?></div>
+			<div class="epm-reg-card__std"><?php echo epc_ecomae_h($reg['standard']); ?> · <?php echo number_format($reg['activities']); ?> activities</div>
+		</div>
+		<?php } ?>
+	</div>
+
+	<!-- How It Works -->
+	<div style="margin:48px 0;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:16px">
+		<h2 style="font-size:22px;font-weight:800;color:#0f172a;text-align:center;margin:0 0 28px">How Industry Consolidation Works</h2>
+		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px">
+			<div style="text-align:center;padding:16px">
+				<div style="width:48px;height:48px;margin:0 auto 12px;background:#dbeafe;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fa fa-search" style="color:#2563eb;font-size:20px"></i></div>
+				<h4 style="font-size:14px;margin:0 0 6px;color:#1e293b">1. Pick Your Activity</h4>
+				<p style="font-size:12px;color:#64748b;margin:0">Select your specific business activity from 1,154+ options (DED code or search)</p>
+			</div>
+			<div style="text-align:center;padding:16px">
+				<div style="width:48px;height:48px;margin:0 auto 12px;background:#fce7f3;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fa fa-magic" style="color:#db2777;font-size:20px"></i></div>
+				<h4 style="font-size:14px;margin:0 0 6px;color:#1e293b">2. Auto-Route to Template</h4>
+				<p style="font-size:12px;color:#64748b;margin:0">System maps your activity to the right template group via keyword matching + DED classification</p>
+			</div>
+			<div style="text-align:center;padding:16px">
+				<div style="width:48px;height:48px;margin:0 auto 12px;background:#d1fae5;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fa fa-toggle-on" style="color:#059669;font-size:20px"></i></div>
+				<h4 style="font-size:14px;margin:0 0 6px;color:#1e293b">3. Toggle Sub-Areas</h4>
+				<p style="font-size:12px;color:#64748b;margin:0">Activate only the sub-areas you need — storefront, CP, and ERP adapt automatically</p>
+			</div>
+			<div style="text-align:center;padding:16px">
+				<div style="width:48px;height:48px;margin:0 auto 12px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fa fa-rocket" style="color:#d97706;font-size:20px"></i></div>
+				<h4 style="font-size:14px;margin:0 0 6px;color:#1e293b">4. Go Live</h4>
+				<p style="font-size:12px;color:#64748b;margin:0">Industry-specific storefront + ERP + compliance — ready for your country's tax, currency & language</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Industry Cards Section -->
+	<div class="epm-ind-industries">
+		<h2 style="font-size:24px;font-weight:800;color:#0f172a;margin:0 0 8px">All Industries</h2>
+		<p style="color:#64748b;font-size:14px;margin:0 0 16px">Each industry card links to its dedicated page showing storefront preview, CP modules, ERP features, and sample data.</p>
+		<?php foreach ($industryGroups as $grp) {
+			if (empty($grp['industries'])) {
+				continue;
+			}
+			?>
+		<h3 style="font-size:18px;font-weight:700;color:#1e293b;margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e8f0"><?php echo epc_ecomae_h($grp['name']); ?> <span style="color:#94a3b8;font-weight:400;font-size:14px">(<?php echo count($grp['industries']); ?>)</span></h3>
+		<div class="epm-grid">
+			<?php foreach ($grp['industries'] as $code => $ind) {
+				$summary = isset($details[$code]['summary']) ? $details[$code]['summary'] : $ind['tagline'];
+				$indGroupKey = epc_industry_resolve_group($ind['name'] ?? $code);
+				$indGroup = $consolidatedGroups[$indGroupKey] ?? null;
+				?>
+			<a class="epm-card epm-card--photo" href="<?php echo epc_ecomae_h($base); ?>platform/industry/<?php echo epc_ecomae_h($code); ?>">
+				<img src="<?php echo epc_ecomae_h($ind['photo']); ?>" alt="<?php echo epc_ecomae_h($ind['name']); ?>" loading="lazy" />
+				<div class="epm-card__inner">
+					<h4><i class="fa <?php echo epc_ecomae_h($ind['icon']); ?> text-primary"></i> <?php echo epc_ecomae_h($ind['name']); ?></h4>
+					<p><?php echo epc_ecomae_h($summary); ?></p>
+					<?php if ($indGroup): ?>
+					<span class="epm-pill" style="background:<?php echo epc_ecomae_h($indGroup['color_scheme']['primary'] ?? '#3b82f6'); ?>;color:#fff;font-size:10px"><i class="fa <?php echo epc_ecomae_h($indGroup['icon']); ?>"></i> <?php echo epc_ecomae_h($indGroup['label']); ?></span>
+					<?php else: ?>
+					<span class="epm-pill">Dedicated page →</span>
+					<?php endif; ?>
+				</div>
+			</a>
+			<?php } ?>
+		</div>
+		<?php } ?>
+	</div>
+
+	<!-- What's Included Per Industry -->
+	<div style="margin:40px 0;padding:32px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:16px">
+		<h2 style="font-size:22px;font-weight:800;color:#fff;text-align:center;margin:0 0 24px">What Every Industry Gets</h2>
+		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px">
+			<div style="padding:16px;background:rgba(255,255,255,.05);border-radius:10px;border:1px solid rgba(255,255,255,.08)">
+				<h4 style="color:#38bdf8;font-size:13px;margin:0 0 8px"><i class="fa fa-shopping-bag"></i> Storefront</h4>
+				<ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#94a3b8;line-height:2">
+					<li>• Industry-themed design + colors</li>
+					<li>• Product catalog with specs</li>
+					<li>• Multi-language (GeoIP auto)</li>
+					<li>• Mobile-first responsive</li>
+				</ul>
+			</div>
+			<div style="padding:16px;background:rgba(255,255,255,.05);border-radius:10px;border:1px solid rgba(255,255,255,.08)">
+				<h4 style="color:#a78bfa;font-size:13px;margin:0 0 8px"><i class="fa fa-th-large"></i> Control Panel</h4>
+				<ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#94a3b8;line-height:2">
+					<li>• Industry-specific modules</li>
+					<li>• Sub-area toggle system</li>
+					<li>• Multi-template chooser</li>
+					<li>• Auto Price AI feature</li>
+				</ul>
+			</div>
+			<div style="padding:16px;background:rgba(255,255,255,.05);border-radius:10px;border:1px solid rgba(255,255,255,.08)">
+				<h4 style="color:#34d399;font-size:13px;margin:0 0 8px"><i class="fa fa-calculator"></i> ERP System</h4>
+				<ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#94a3b8;line-height:2">
+					<li>• Industry costing method</li>
+					<li>• Tax localization (VAT/GST/Sales)</li>
+					<li>• Process flows per activity</li>
+					<li>• Compliance modules (AML, etc.)</li>
+				</ul>
+			</div>
+			<div style="padding:16px;background:rgba(255,255,255,.05);border-radius:10px;border:1px solid rgba(255,255,255,.08)">
+				<h4 style="color:#fbbf24;font-size:13px;margin:0 0 8px"><i class="fa fa-globe"></i> Worldwide</h4>
+				<ul style="list-style:none;padding:0;margin:0;font-size:12px;color:#94a3b8;line-height:2">
+					<li>• 35+ currencies auto-convert</li>
+					<li>• Country-specific tax rules</li>
+					<li>• Local language support</li>
+					<li>• DED / SIC / NAICS aligned</li>
+				</ul>
+			</div>
+		</div>
+	</div>
 
 	<div class="epm-highlight">
 		<h3>Not sure which template fits?</h3>
