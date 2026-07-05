@@ -58,6 +58,20 @@ $industryData = array(
 		'Alarm systems',
 		'Safes & vaults',
 		'Security training',
+		'Cash-in-transit & armored',
+		'Close protection & bodyguard',
+		'Security consulting & risk',
+		'Maritime security',
+		'Drug testing & screening',
+		'Event security',
+		'Emergency management',
+		'Aviation security',
+		'Locksmith services',
+		'Document shredding',
+		'Counterintelligence',
+		'Penetration testing',
+		'Guard dog services',
+		'Crowd management',
 	),
 	'sub_industry_products' => array(
 		'Security guarding' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized security guarding solutions','products'=>array(
@@ -109,6 +123,77 @@ $industryData = array(
 			array('name'=>'Security training Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 			array('name'=>'Security training Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Security training Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+
+		'Cash-in-transit & armored' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Specialized cash-in-transit & armored solutions','products'=>array(
+			array('name'=>'Cash-in-transit & armored Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Cash-in-transit & armored Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Cash-in-transit & armored Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		)),
+		'Close protection & bodyguard' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Specialized close protection & bodyguard solutions','products'=>array(
+			array('name'=>'Close protection & bodyguard Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Close protection & bodyguard Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Close protection & bodyguard Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+		)),
+		'Security consulting & risk' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Specialized security consulting & risk solutions','products'=>array(
+			array('name'=>'Security consulting & risk Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Security consulting & risk Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Security consulting & risk Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+		)),
+		'Maritime security' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized maritime security solutions','products'=>array(
+			array('name'=>'Maritime security Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Maritime security Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Maritime security Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+		)),
+		'Drug testing & screening' => array('photo'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75','desc'=>'Specialized drug testing & screening solutions','products'=>array(
+			array('name'=>'Drug testing & screening Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Drug testing & screening Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Drug testing & screening Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+		)),
+		'Event security' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Specialized event security solutions','products'=>array(
+			array('name'=>'Event security Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Event security Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Event security Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		)),
+		'Emergency management' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Specialized emergency management solutions','products'=>array(
+			array('name'=>'Emergency management Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Emergency management Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Emergency management Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+		)),
+		'Aviation security' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Specialized aviation security solutions','products'=>array(
+			array('name'=>'Aviation security Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Aviation security Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Aviation security Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+		)),
+		'Locksmith services' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized locksmith services solutions','products'=>array(
+			array('name'=>'Locksmith services Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Locksmith services Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Locksmith services Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+		)),
+		'Document shredding' => array('photo'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75','desc'=>'Specialized document shredding solutions','products'=>array(
+			array('name'=>'Document shredding Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Document shredding Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Document shredding Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+		)),
+		'Counterintelligence' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Specialized counterintelligence solutions','products'=>array(
+			array('name'=>'Counterintelligence Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Counterintelligence Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Counterintelligence Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		)),
+		'Penetration testing' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Specialized penetration testing solutions','products'=>array(
+			array('name'=>'Penetration testing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Penetration testing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Penetration testing Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+		)),
+		'Guard dog services' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Specialized guard dog services solutions','products'=>array(
+			array('name'=>'Guard dog services Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Guard dog services Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Guard dog services Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+		)),
+		'Crowd management' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized crowd management solutions','products'=>array(
+			array('name'=>'Crowd management Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Crowd management Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Crowd management Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'NFC patrol verification eliminated ghost guarding completely.', 'author' => 'Security Company Director, Downtown Dubai'),

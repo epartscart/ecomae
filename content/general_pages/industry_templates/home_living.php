@@ -61,6 +61,19 @@ $industryData = array(
 		'Smart home products',
 		'Cleaning products',
 		'Storage & organization',
+		'Home renovation service',
+		'Home security systems',
+		'Solar panels (residential)',
+		'Plumbing supplies & fixtures',
+		'Paint & wall coverings',
+		'Moving & packing service',
+		'Interior plant & greenery',
+		'Home fragrance & candles',
+		'Water purification systems',
+		'Antiques & collectibles',
+		'Aquarium & fish tank',
+		'Kitchen renovation & fitting',
+		'Home automation & smart tech',
 	),
 	'sub_industry_products' => array(
 		'Furniture retail' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized furniture retail solutions','products'=>array(
@@ -127,6 +140,72 @@ $industryData = array(
 			array('name'=>'Storage & organization Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 			array('name'=>'Storage & organization Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 			array('name'=>'Storage & organization Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		)),
+
+		'Home renovation service' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Specialized home renovation service solutions','products'=>array(
+			array('name'=>'Home renovation service Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Home renovation service Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Home renovation service Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+		)),
+		'Home security systems' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Specialized home security systems solutions','products'=>array(
+			array('name'=>'Home security systems Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Home security systems Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Home security systems Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+		)),
+		'Solar panels (residential)' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Specialized solar panels (residential) solutions','products'=>array(
+			array('name'=>'Solar panels (residential) Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Solar panels (residential) Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Solar panels (residential) Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+		)),
+		'Plumbing supplies & fixtures' => array('photo'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75','desc'=>'Specialized plumbing supplies & fixtures solutions','products'=>array(
+			array('name'=>'Plumbing supplies & fixtures Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Plumbing supplies & fixtures Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Plumbing supplies & fixtures Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+		)),
+		'Paint & wall coverings' => array('photo'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75','desc'=>'Specialized paint & wall coverings solutions','products'=>array(
+			array('name'=>'Paint & wall coverings Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Paint & wall coverings Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Paint & wall coverings Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+		)),
+		'Moving & packing service' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Specialized moving & packing service solutions','products'=>array(
+			array('name'=>'Moving & packing service Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Moving & packing service Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Moving & packing service Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+		)),
+		'Interior plant & greenery' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Specialized interior plant & greenery solutions','products'=>array(
+			array('name'=>'Interior plant & greenery Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Interior plant & greenery Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Interior plant & greenery Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+		)),
+		'Home fragrance & candles' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Specialized home fragrance & candles solutions','products'=>array(
+			array('name'=>'Home fragrance & candles Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Home fragrance & candles Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Home fragrance & candles Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+		)),
+		'Water purification systems' => array('photo'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75','desc'=>'Specialized water purification systems solutions','products'=>array(
+			array('name'=>'Water purification systems Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Water purification systems Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Water purification systems Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+		)),
+		'Antiques & collectibles' => array('photo'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75','desc'=>'Specialized antiques & collectibles solutions','products'=>array(
+			array('name'=>'Antiques & collectibles Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Antiques & collectibles Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Antiques & collectibles Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+		)),
+		'Aquarium & fish tank' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Specialized aquarium & fish tank solutions','products'=>array(
+			array('name'=>'Aquarium & fish tank Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Aquarium & fish tank Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Aquarium & fish tank Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+		)),
+		'Kitchen renovation & fitting' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Specialized kitchen renovation & fitting solutions','products'=>array(
+			array('name'=>'Kitchen renovation & fitting Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Kitchen renovation & fitting Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Kitchen renovation & fitting Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+		)),
+		'Home automation & smart tech' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Specialized home automation & smart tech solutions','products'=>array(
+			array('name'=>'Home automation & smart tech Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Home automation & smart tech Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Home automation & smart tech Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => '3D room planner increased our conversion rate by 35% in the showroom.', 'author' => 'Interior Designer, Home Store, Sheikh Zayed Road'),

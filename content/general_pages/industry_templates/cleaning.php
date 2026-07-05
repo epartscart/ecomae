@@ -60,6 +60,18 @@ $industryData = array(
 		'Landscape maintenance',
 		'Pool maintenance',
 		'HVAC maintenance',
+		'Laundry & dry cleaning',
+		'Chimney sweeping',
+		'Mold & asbestos removal',
+		'Hazardous waste cleanup',
+		'Pressure washing',
+		'Air duct cleaning',
+		'Graffiti removal',
+		'Post-construction cleaning',
+		'Vehicle detailing & valet',
+		'Bin & chute cleaning',
+		'Stone & facade cleaning',
+		'Tank & silo cleaning',
 	),
 	'sub_industry_products' => array(
 		'Commercial cleaning' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized commercial cleaning solutions','products'=>array(
@@ -121,6 +133,67 @@ $industryData = array(
 			array('name'=>'HVAC maintenance Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 			array('name'=>'HVAC maintenance Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 			array('name'=>'HVAC maintenance Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+
+		'Laundry & dry cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Specialized laundry & dry cleaning solutions','products'=>array(
+			array('name'=>'Laundry & dry cleaning Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Laundry & dry cleaning Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Laundry & dry cleaning Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+		)),
+		'Chimney sweeping' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized chimney sweeping solutions','products'=>array(
+			array('name'=>'Chimney sweeping Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Chimney sweeping Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Chimney sweeping Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+		)),
+		'Mold & asbestos removal' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Specialized mold & asbestos removal solutions','products'=>array(
+			array('name'=>'Mold & asbestos removal Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Mold & asbestos removal Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Mold & asbestos removal Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+		)),
+		'Hazardous waste cleanup' => array('photo'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75','desc'=>'Specialized hazardous waste cleanup solutions','products'=>array(
+			array('name'=>'Hazardous waste cleanup Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Hazardous waste cleanup Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Hazardous waste cleanup Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		)),
+		'Pressure washing' => array('photo'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75','desc'=>'Specialized pressure washing solutions','products'=>array(
+			array('name'=>'Pressure washing Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Pressure washing Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Pressure washing Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		)),
+		'Air duct cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Specialized air duct cleaning solutions','products'=>array(
+			array('name'=>'Air duct cleaning Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Air duct cleaning Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Air duct cleaning Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+		)),
+		'Graffiti removal' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized graffiti removal solutions','products'=>array(
+			array('name'=>'Graffiti removal Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Graffiti removal Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Graffiti removal Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+		)),
+		'Post-construction cleaning' => array('photo'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75','desc'=>'Specialized post-construction cleaning solutions','products'=>array(
+			array('name'=>'Post-construction cleaning Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Post-construction cleaning Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Post-construction cleaning Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+		)),
+		'Vehicle detailing & valet' => array('photo'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75','desc'=>'Specialized vehicle detailing & valet solutions','products'=>array(
+			array('name'=>'Vehicle detailing & valet Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
+			array('name'=>'Vehicle detailing & valet Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Vehicle detailing & valet Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		)),
+		'Bin & chute cleaning' => array('photo'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75','desc'=>'Specialized bin & chute cleaning solutions','products'=>array(
+			array('name'=>'Bin & chute cleaning Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75'),
+			array('name'=>'Bin & chute cleaning Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Bin & chute cleaning Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+		)),
+		'Stone & facade cleaning' => array('photo'=>'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=75','desc'=>'Specialized stone & facade cleaning solutions','products'=>array(
+			array('name'=>'Stone & facade cleaning Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Stone & facade cleaning Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Stone & facade cleaning Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+		)),
+		'Tank & silo cleaning' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized tank & silo cleaning solutions','products'=>array(
+			array('name'=>'Tank & silo cleaning Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=75'),
+			array('name'=>'Tank & silo cleaning Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1527515637462-cee1395c108c?w=400&q=75'),
+			array('name'=>'Tank & silo cleaning Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Route optimization saved 2 hours daily per crew — huge cost savings.', 'author' => 'Operations Manager, Cleaning Company, Abu Dhabi'),

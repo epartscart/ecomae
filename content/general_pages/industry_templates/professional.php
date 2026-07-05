@@ -63,6 +63,18 @@ $industryData = array(
 		'Translation & localization',
 		'Research & analytics',
 		'Corporate training',
+		'Patent & intellectual property',
+		'Forensic accounting',
+		'Environmental consulting',
+		'Health & safety consulting',
+		'Real estate valuation',
+		'Executive coaching',
+		'Immigration services',
+		'Notary & document services',
+		'Quantity surveying',
+		'Business brokerage & M&A',
+		'Market research firm',
+		'Arbitration & mediation',
 	),
 	'sub_industry_products' => array(
 		'Management consulting' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Specialized management consulting solutions','products'=>array(
@@ -139,6 +151,67 @@ $industryData = array(
 			array('name'=>'Corporate training Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 			array('name'=>'Corporate training Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 			array('name'=>'Corporate training Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=75'),
+		)),
+
+		'Patent & intellectual property' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized patent & intellectual property solutions','products'=>array(
+			array('name'=>'Patent & intellectual property Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Patent & intellectual property Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Patent & intellectual property Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		)),
+		'Forensic accounting' => array('photo'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75','desc'=>'Specialized forensic accounting solutions','products'=>array(
+			array('name'=>'Forensic accounting Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Forensic accounting Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Forensic accounting Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
+		)),
+		'Environmental consulting' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized environmental consulting solutions','products'=>array(
+			array('name'=>'Environmental consulting Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Environmental consulting Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
+			array('name'=>'Environmental consulting Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		)),
+		'Health & safety consulting' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized health & safety consulting solutions','products'=>array(
+			array('name'=>'Health & safety consulting Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
+			array('name'=>'Health & safety consulting Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Health & safety consulting Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+		'Real estate valuation' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Specialized real estate valuation solutions','products'=>array(
+			array('name'=>'Real estate valuation Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Real estate valuation Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Real estate valuation Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		)),
+		'Executive coaching' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized executive coaching solutions','products'=>array(
+			array('name'=>'Executive coaching Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Executive coaching Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Executive coaching Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		)),
+		'Immigration services' => array('photo'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75','desc'=>'Specialized immigration services solutions','products'=>array(
+			array('name'=>'Immigration services Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Immigration services Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Immigration services Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
+		)),
+		'Notary & document services' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized notary & document services solutions','products'=>array(
+			array('name'=>'Notary & document services Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Notary & document services Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
+			array('name'=>'Notary & document services Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		)),
+		'Quantity surveying' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized quantity surveying solutions','products'=>array(
+			array('name'=>'Quantity surveying Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
+			array('name'=>'Quantity surveying Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Quantity surveying Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		)),
+		'Business brokerage & M&A' => array('photo'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75','desc'=>'Specialized business brokerage & m&a solutions','products'=>array(
+			array('name'=>'Business brokerage & M&A Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Business brokerage & M&A Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Business brokerage & M&A Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		)),
+		'Market research firm' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized market research firm solutions','products'=>array(
+			array('name'=>'Market research firm Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Market research firm Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Market research firm Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		)),
+		'Arbitration & mediation' => array('photo'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75','desc'=>'Specialized arbitration & mediation solutions','products'=>array(
+			array('name'=>'Arbitration & mediation Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Arbitration & mediation Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Arbitration & mediation Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Automated our monthly billing from 3 days to 2 hours. Clients love the portal.', 'author' => 'James W., Managing Partner, DIFC'),

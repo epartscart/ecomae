@@ -61,6 +61,18 @@ $industryData = array(
 		'Biomass & bioenergy',
 		'Mining & extraction',
 		'Waste-to-energy',
+		'Hydrogen energy',
+		'Geothermal energy',
+		'Carbon trading & offsets',
+		'Smart grid management',
+		'Energy audit & consulting',
+		'LPG & gas distribution',
+		'Coal mining & processing',
+		'Tidal & wave energy',
+		'Electric utility company',
+		'Fuel retail & petrol station',
+		'District cooling & heating',
+		'Energy efficiency solutions',
 	),
 	'sub_industry_products' => array(
 		'Power generation' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized power generation solutions','products'=>array(
@@ -127,6 +139,67 @@ $industryData = array(
 			array('name'=>'Waste-to-energy Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
 			array('name'=>'Waste-to-energy Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1548337138-e87d889cc369?w=400&q=75'),
 			array('name'=>'Waste-to-energy Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		)),
+
+		'Hydrogen energy' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized hydrogen energy solutions','products'=>array(
+			array('name'=>'Hydrogen energy Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Hydrogen energy Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Hydrogen energy Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		)),
+		'Geothermal energy' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized geothermal energy solutions','products'=>array(
+			array('name'=>'Geothermal energy Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Geothermal energy Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Geothermal energy Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		)),
+		'Carbon trading & offsets' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Specialized carbon trading & offsets solutions','products'=>array(
+			array('name'=>'Carbon trading & offsets Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Carbon trading & offsets Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Carbon trading & offsets Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+		)),
+		'Smart grid management' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Specialized smart grid management solutions','products'=>array(
+			array('name'=>'Smart grid management Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Smart grid management Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Smart grid management Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+		)),
+		'Energy audit & consulting' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Specialized energy audit & consulting solutions','products'=>array(
+			array('name'=>'Energy audit & consulting Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Energy audit & consulting Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Energy audit & consulting Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+		)),
+		'LPG & gas distribution' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized lpg & gas distribution solutions','products'=>array(
+			array('name'=>'LPG & gas distribution Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'LPG & gas distribution Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'LPG & gas distribution Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		)),
+		'Coal mining & processing' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized coal mining & processing solutions','products'=>array(
+			array('name'=>'Coal mining & processing Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Coal mining & processing Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Coal mining & processing Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+		)),
+		'Tidal & wave energy' => array('photo'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75','desc'=>'Specialized tidal & wave energy solutions','products'=>array(
+			array('name'=>'Tidal & wave energy Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Tidal & wave energy Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Tidal & wave energy Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+		)),
+		'Electric utility company' => array('photo'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75','desc'=>'Specialized electric utility company solutions','products'=>array(
+			array('name'=>'Electric utility company Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
+			array('name'=>'Electric utility company Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Electric utility company Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+		)),
+		'Fuel retail & petrol station' => array('photo'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75','desc'=>'Specialized fuel retail & petrol station solutions','products'=>array(
+			array('name'=>'Fuel retail & petrol station Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75'),
+			array('name'=>'Fuel retail & petrol station Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'Fuel retail & petrol station Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+		)),
+		'District cooling & heating' => array('photo'=>'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=75','desc'=>'Specialized district cooling & heating solutions','products'=>array(
+			array('name'=>'District cooling & heating Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75'),
+			array('name'=>'District cooling & heating Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'District cooling & heating Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+		)),
+		'Energy efficiency solutions' => array('photo'=>'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&q=75','desc'=>'Specialized energy efficiency solutions solutions','products'=>array(
+			array('name'=>'Energy efficiency solutions Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=400&q=75'),
+			array('name'=>'Energy efficiency solutions Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=75'),
+			array('name'=>'Energy efficiency solutions Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558449028-b53a39d100fc?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Predictive maintenance reduced our unplanned downtime by 60%.', 'author' => 'Eng. Nadia K., Power Plant Director, DEWA'),

@@ -61,6 +61,18 @@ $industryData = array(
 		'Advertising production',
 		'Theater & performing arts',
 		'Podcasting',
+		'Social media management',
+		'Influencer marketing',
+		'Digital journalism & news',
+		'Art gallery & exhibition',
+		'Music streaming & distribution',
+		'Documentary production',
+		'Event management & planning',
+		'PR & communications',
+		'Talent management & agency',
+		'Book publishing & authoring',
+		'Museum & cultural space',
+		'Augmented reality content',
 	),
 	'sub_industry_products' => array(
 		'Film & video production' => array('photo'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75','desc'=>'Specialized film & video production solutions','products'=>array(
@@ -127,6 +139,67 @@ $industryData = array(
 			array('name'=>'Podcasting Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
 			array('name'=>'Podcasting Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
 			array('name'=>'Podcasting Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
+		)),
+
+		'Social media management' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized social media management solutions','products'=>array(
+			array('name'=>'Social media management Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Social media management Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Social media management Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+		)),
+		'Influencer marketing' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized influencer marketing solutions','products'=>array(
+			array('name'=>'Influencer marketing Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Influencer marketing Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Influencer marketing Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+		)),
+		'Digital journalism & news' => array('photo'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75','desc'=>'Specialized digital journalism & news solutions','products'=>array(
+			array('name'=>'Digital journalism & news Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Digital journalism & news Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Digital journalism & news Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+		)),
+		'Art gallery & exhibition' => array('photo'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75','desc'=>'Specialized art gallery & exhibition solutions','products'=>array(
+			array('name'=>'Art gallery & exhibition Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Art gallery & exhibition Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Art gallery & exhibition Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+		)),
+		'Music streaming & distribution' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Specialized music streaming & distribution solutions','products'=>array(
+			array('name'=>'Music streaming & distribution Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Music streaming & distribution Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Music streaming & distribution Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+		)),
+		'Documentary production' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized documentary production solutions','products'=>array(
+			array('name'=>'Documentary production Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Documentary production Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Documentary production Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+		)),
+		'Event management & planning' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized event management & planning solutions','products'=>array(
+			array('name'=>'Event management & planning Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Event management & planning Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Event management & planning Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+		)),
+		'PR & communications' => array('photo'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75','desc'=>'Specialized pr & communications solutions','products'=>array(
+			array('name'=>'PR & communications Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'PR & communications Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'PR & communications Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+		)),
+		'Talent management & agency' => array('photo'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75','desc'=>'Specialized talent management & agency solutions','products'=>array(
+			array('name'=>'Talent management & agency Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Talent management & agency Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Talent management & agency Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+		)),
+		'Book publishing & authoring' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Specialized book publishing & authoring solutions','products'=>array(
+			array('name'=>'Book publishing & authoring Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Book publishing & authoring Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Book publishing & authoring Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+		)),
+		'Museum & cultural space' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized museum & cultural space solutions','products'=>array(
+			array('name'=>'Museum & cultural space Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Museum & cultural space Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Museum & cultural space Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+		)),
+		'Augmented reality content' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized augmented reality content solutions','products'=>array(
+			array('name'=>'Augmented reality content Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Augmented reality content Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Augmented reality content Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Asset management saved us 10 hours per week searching for footage.', 'author' => 'Director Ahmed, Production House, Dubai Media City'),

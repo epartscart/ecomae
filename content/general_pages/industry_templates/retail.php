@@ -63,6 +63,18 @@ $industryData = array(
 		'Bookstore & stationery',
 		'Pet shop',
 		'Home decor & furnishing',
+		'Pharmacy & health store',
+		'Vending machines & kiosks',
+		'Pop-up shop & temporary retail',
+		'Duty free & travel retail',
+		'Thrift & charity shop',
+		'Hardware & DIY store',
+		'Florist & flower shop',
+		'Mobile shop & van retail',
+		'Optical store',
+		'Tobacco & vape shop',
+		'Wine & liquor store',
+		'Arts & crafts supply',
 	),
 	'sub_industry_products' => array(
 		'Online storefront' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized online storefront solutions','products'=>array(
@@ -139,6 +151,67 @@ $industryData = array(
 			array('name'=>'Home decor & furnishing Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
 			array('name'=>'Home decor & furnishing Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 			array('name'=>'Home decor & furnishing Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
+		)),
+
+		'Pharmacy & health store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized pharmacy & health store solutions','products'=>array(
+			array('name'=>'Pharmacy & health store Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Pharmacy & health store Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Pharmacy & health store Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		)),
+		'Vending machines & kiosks' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized vending machines & kiosks solutions','products'=>array(
+			array('name'=>'Vending machines & kiosks Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Vending machines & kiosks Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Vending machines & kiosks Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+		)),
+		'Pop-up shop & temporary retail' => array('photo'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75','desc'=>'Specialized pop-up shop & temporary retail solutions','products'=>array(
+			array('name'=>'Pop-up shop & temporary retail Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Pop-up shop & temporary retail Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Pop-up shop & temporary retail Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+		)),
+		'Duty free & travel retail' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Specialized duty free & travel retail solutions','products'=>array(
+			array('name'=>'Duty free & travel retail Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Duty free & travel retail Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Duty free & travel retail Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+		)),
+		'Thrift & charity shop' => array('photo'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75','desc'=>'Specialized thrift & charity shop solutions','products'=>array(
+			array('name'=>'Thrift & charity shop Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Thrift & charity shop Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Thrift & charity shop Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+		)),
+		'Hardware & DIY store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized hardware & diy store solutions','products'=>array(
+			array('name'=>'Hardware & DIY store Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Hardware & DIY store Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Hardware & DIY store Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		)),
+		'Florist & flower shop' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized florist & flower shop solutions','products'=>array(
+			array('name'=>'Florist & flower shop Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Florist & flower shop Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Florist & flower shop Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+		)),
+		'Mobile shop & van retail' => array('photo'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75','desc'=>'Specialized mobile shop & van retail solutions','products'=>array(
+			array('name'=>'Mobile shop & van retail Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Mobile shop & van retail Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Mobile shop & van retail Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+		)),
+		'Optical store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Specialized optical store solutions','products'=>array(
+			array('name'=>'Optical store Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Optical store Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Optical store Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+		)),
+		'Tobacco & vape shop' => array('photo'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75','desc'=>'Specialized tobacco & vape shop solutions','products'=>array(
+			array('name'=>'Tobacco & vape shop Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Tobacco & vape shop Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Tobacco & vape shop Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+		)),
+		'Wine & liquor store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized wine & liquor store solutions','products'=>array(
+			array('name'=>'Wine & liquor store Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Wine & liquor store Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Wine & liquor store Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		)),
+		'Arts & crafts supply' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized arts & crafts supply solutions','products'=>array(
+			array('name'=>'Arts & crafts supply Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Arts & crafts supply Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Arts & crafts supply Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Unified our 8 stores and website — inventory discrepancies dropped to near zero.', 'author' => 'Omar S., Retail Chain, Mall of Emirates'),

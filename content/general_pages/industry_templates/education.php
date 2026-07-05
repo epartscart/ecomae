@@ -61,6 +61,18 @@ $industryData = array(
 		'Corporate training',
 		'E-learning platform',
 		'Certification & testing',
+		'Special education & SEN',
+		'Nursery & preschool',
+		'Exam coaching & test prep',
+		'Marine & aviation school',
+		'Home schooling platform',
+		'Study abroad consultancy',
+		'Educational toys & materials',
+		'Research university',
+		'Seminary & religious school',
+		'Finishing school & etiquette',
+		'STEM & robotics academy',
+		'Adult & continuing education',
 	),
 	'sub_industry_products' => array(
 		'Student enrollment' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized student enrollment solutions','products'=>array(
@@ -127,6 +139,67 @@ $industryData = array(
 			array('name'=>'Certification & testing Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
 			array('name'=>'Certification & testing Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&q=75'),
 			array('name'=>'Certification & testing Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		)),
+
+		'Special education & SEN' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized special education & sen solutions','products'=>array(
+			array('name'=>'Special education & SEN Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Special education & SEN Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Special education & SEN Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		)),
+		'Nursery & preschool' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized nursery & preschool solutions','products'=>array(
+			array('name'=>'Nursery & preschool Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Nursery & preschool Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Nursery & preschool Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		)),
+		'Exam coaching & test prep' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Specialized exam coaching & test prep solutions','products'=>array(
+			array('name'=>'Exam coaching & test prep Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Exam coaching & test prep Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Exam coaching & test prep Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+		)),
+		'Marine & aviation school' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized marine & aviation school solutions','products'=>array(
+			array('name'=>'Marine & aviation school Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Marine & aviation school Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Marine & aviation school Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+		)),
+		'Home schooling platform' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Specialized home schooling platform solutions','products'=>array(
+			array('name'=>'Home schooling platform Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Home schooling platform Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Home schooling platform Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+		)),
+		'Study abroad consultancy' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized study abroad consultancy solutions','products'=>array(
+			array('name'=>'Study abroad consultancy Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Study abroad consultancy Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Study abroad consultancy Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		)),
+		'Educational toys & materials' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized educational toys & materials solutions','products'=>array(
+			array('name'=>'Educational toys & materials Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Educational toys & materials Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Educational toys & materials Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+		)),
+		'Research university' => array('photo'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75','desc'=>'Specialized research university solutions','products'=>array(
+			array('name'=>'Research university Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Research university Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Research university Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+		)),
+		'Seminary & religious school' => array('photo'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75','desc'=>'Specialized seminary & religious school solutions','products'=>array(
+			array('name'=>'Seminary & religious school Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
+			array('name'=>'Seminary & religious school Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Seminary & religious school Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+		)),
+		'Finishing school & etiquette' => array('photo'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75','desc'=>'Specialized finishing school & etiquette solutions','products'=>array(
+			array('name'=>'Finishing school & etiquette Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75'),
+			array('name'=>'Finishing school & etiquette Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'Finishing school & etiquette Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+		)),
+		'STEM & robotics academy' => array('photo'=>'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=75','desc'=>'Specialized stem & robotics academy solutions','products'=>array(
+			array('name'=>'STEM & robotics academy Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75'),
+			array('name'=>'STEM & robotics academy Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'STEM & robotics academy Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+		)),
+		'Adult & continuing education' => array('photo'=>'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=75','desc'=>'Specialized adult & continuing education solutions','products'=>array(
+			array('name'=>'Adult & continuing education Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=75'),
+			array('name'=>'Adult & continuing education Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&q=75'),
+			array('name'=>'Adult & continuing education Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Student enrollment process reduced from 5 days to same-day with the portal.', 'author' => 'Dr. Amina H., University Registrar, Dubai'),

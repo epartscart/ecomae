@@ -65,6 +65,18 @@ $industryData = array(
 		'Ice cream & desserts',
 		'Butcher & meat shop',
 		'Organic & health food',
+		'Juice bar & smoothie',
+		'Tea house & specialty tea',
+		'Wine bar & tapas',
+		'Food court management',
+		'Nutrition & meal planning',
+		'Gourmet & specialty food',
+		'Ethnic cuisine restaurant',
+		'Supermarket & grocery',
+		'Brewery & distillery',
+		'Food safety & inspection',
+		'Halal / Kosher certification',
+		'Vending & automated retail',
 	),
 	'sub_industry_products' => array(
 		'Restaurant & dine-in' => array('photo'=>'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=75','desc'=>'Specialized restaurant & dine-in solutions','products'=>array(
@@ -151,6 +163,67 @@ $industryData = array(
 			array('name'=>'Organic & health food Basic','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=75'),
 			array('name'=>'Organic & health food Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=400&q=75'),
 			array('name'=>'Organic & health food Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&q=75'),
+		)),
+
+		'Juice bar & smoothie' => array('photo'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75','desc'=>'Specialized juice bar & smoothie solutions','products'=>array(
+			array('name'=>'Juice bar & smoothie Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+			array('name'=>'Juice bar & smoothie Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+			array('name'=>'Juice bar & smoothie Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+		)),
+		'Tea house & specialty tea' => array('photo'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75','desc'=>'Specialized tea house & specialty tea solutions','products'=>array(
+			array('name'=>'Tea house & specialty tea Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+			array('name'=>'Tea house & specialty tea Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+			array('name'=>'Tea house & specialty tea Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
+		)),
+		'Wine bar & tapas' => array('photo'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75','desc'=>'Specialized wine bar & tapas solutions','products'=>array(
+			array('name'=>'Wine bar & tapas Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+			array('name'=>'Wine bar & tapas Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
+			array('name'=>'Wine bar & tapas Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+		)),
+		'Food court management' => array('photo'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75','desc'=>'Specialized food court management solutions','products'=>array(
+			array('name'=>'Food court management Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
+			array('name'=>'Food court management Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+			array('name'=>'Food court management Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+		)),
+		'Nutrition & meal planning' => array('photo'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75','desc'=>'Specialized nutrition & meal planning solutions','products'=>array(
+			array('name'=>'Nutrition & meal planning Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+			array('name'=>'Nutrition & meal planning Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+			array('name'=>'Nutrition & meal planning Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+		)),
+		'Gourmet & specialty food' => array('photo'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75','desc'=>'Specialized gourmet & specialty food solutions','products'=>array(
+			array('name'=>'Gourmet & specialty food Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+			array('name'=>'Gourmet & specialty food Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+			array('name'=>'Gourmet & specialty food Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+		)),
+		'Ethnic cuisine restaurant' => array('photo'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75','desc'=>'Specialized ethnic cuisine restaurant solutions','products'=>array(
+			array('name'=>'Ethnic cuisine restaurant Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+			array('name'=>'Ethnic cuisine restaurant Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+			array('name'=>'Ethnic cuisine restaurant Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
+		)),
+		'Supermarket & grocery' => array('photo'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75','desc'=>'Specialized supermarket & grocery solutions','products'=>array(
+			array('name'=>'Supermarket & grocery Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+			array('name'=>'Supermarket & grocery Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
+			array('name'=>'Supermarket & grocery Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+		)),
+		'Brewery & distillery' => array('photo'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75','desc'=>'Specialized brewery & distillery solutions','products'=>array(
+			array('name'=>'Brewery & distillery Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
+			array('name'=>'Brewery & distillery Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+			array('name'=>'Brewery & distillery Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+		)),
+		'Food safety & inspection' => array('photo'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75','desc'=>'Specialized food safety & inspection solutions','products'=>array(
+			array('name'=>'Food safety & inspection Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75'),
+			array('name'=>'Food safety & inspection Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+			array('name'=>'Food safety & inspection Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+		)),
+		'Halal / Kosher certification' => array('photo'=>'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=75','desc'=>'Specialized halal / kosher certification solutions','products'=>array(
+			array('name'=>'Halal / Kosher certification Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75'),
+			array('name'=>'Halal / Kosher certification Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+			array('name'=>'Halal / Kosher certification Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+		)),
+		'Vending & automated retail' => array('photo'=>'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=75','desc'=>'Specialized vending & automated retail solutions','products'=>array(
+			array('name'=>'Vending & automated retail Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&q=75'),
+			array('name'=>'Vending & automated retail Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=75'),
+			array('name'=>'Vending & automated retail Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Kitchen efficiency improved 45% after implementing the display system.', 'author' => 'Chef Mario L., Restaurant Group, Dubai'),

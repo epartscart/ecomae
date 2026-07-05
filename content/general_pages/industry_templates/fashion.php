@@ -62,6 +62,18 @@ $industryData = array(
 		'Vintage & secondhand',
 		'Bridal & formal wear',
 		'Swimwear & beachwear',
+		'Fur & leather goods',
+		'Handbags & luggage',
+		'Fashion eyewear & sunglasses',
+		'Sustainable & eco fashion',
+		'Plus size fashion',
+		'Modest & Islamic fashion',
+		'Costume design (film/theater)',
+		'Fashion technology & weartech',
+		'Athleisure & streetwear',
+		'Denim & jeans specialist',
+		'Fashion rental & resale',
+		'Personal styling service',
 	),
 	'sub_industry_products' => array(
 		'Fashion retail store' => array('photo'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75','desc'=>'Specialized fashion retail store solutions','products'=>array(
@@ -133,6 +145,67 @@ $industryData = array(
 			array('name'=>'Swimwear & beachwear Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
 			array('name'=>'Swimwear & beachwear Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&q=75'),
 			array('name'=>'Swimwear & beachwear Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=75'),
+		)),
+
+		'Fur & leather goods' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized fur & leather goods solutions','products'=>array(
+			array('name'=>'Fur & leather goods Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Fur & leather goods Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Fur & leather goods Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+		)),
+		'Handbags & luggage' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized handbags & luggage solutions','products'=>array(
+			array('name'=>'Handbags & luggage Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Handbags & luggage Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Handbags & luggage Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+		)),
+		'Fashion eyewear & sunglasses' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Specialized fashion eyewear & sunglasses solutions','products'=>array(
+			array('name'=>'Fashion eyewear & sunglasses Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Fashion eyewear & sunglasses Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Fashion eyewear & sunglasses Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+		)),
+		'Sustainable & eco fashion' => array('photo'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75','desc'=>'Specialized sustainable & eco fashion solutions','products'=>array(
+			array('name'=>'Sustainable & eco fashion Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Sustainable & eco fashion Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Sustainable & eco fashion Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+		)),
+		'Plus size fashion' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Specialized plus size fashion solutions','products'=>array(
+			array('name'=>'Plus size fashion Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Plus size fashion Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Plus size fashion Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+		)),
+		'Modest & Islamic fashion' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized modest & islamic fashion solutions','products'=>array(
+			array('name'=>'Modest & Islamic fashion Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Modest & Islamic fashion Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Modest & Islamic fashion Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+		)),
+		'Costume design (film/theater)' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized costume design (film/theater) solutions','products'=>array(
+			array('name'=>'Costume design (film/theater) Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Costume design (film/theater) Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Costume design (film/theater) Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+		)),
+		'Fashion technology & weartech' => array('photo'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75','desc'=>'Specialized fashion technology & weartech solutions','products'=>array(
+			array('name'=>'Fashion technology & weartech Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Fashion technology & weartech Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Fashion technology & weartech Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+		)),
+		'Athleisure & streetwear' => array('photo'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75','desc'=>'Specialized athleisure & streetwear solutions','products'=>array(
+			array('name'=>'Athleisure & streetwear Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
+			array('name'=>'Athleisure & streetwear Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Athleisure & streetwear Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+		)),
+		'Denim & jeans specialist' => array('photo'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75','desc'=>'Specialized denim & jeans specialist solutions','products'=>array(
+			array('name'=>'Denim & jeans specialist Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75'),
+			array('name'=>'Denim & jeans specialist Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Denim & jeans specialist Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+		)),
+		'Fashion rental & resale' => array('photo'=>'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75','desc'=>'Specialized fashion rental & resale solutions','products'=>array(
+			array('name'=>'Fashion rental & resale Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75'),
+			array('name'=>'Fashion rental & resale Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Fashion rental & resale Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+		)),
+		'Personal styling service' => array('photo'=>'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=75','desc'=>'Specialized personal styling service solutions','products'=>array(
+			array('name'=>'Personal styling service Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=75'),
+			array('name'=>'Personal styling service Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1558171813-01eda332a7a4?w=400&q=75'),
+			array('name'=>'Personal styling service Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Managing 12 retail outlets and our online store from one system changed everything.', 'author' => 'Fatima A., Fashion Brand Owner, Dubai'),

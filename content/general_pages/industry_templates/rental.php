@@ -60,6 +60,18 @@ $industryData = array(
 		'Self-storage rental',
 		'Boat & yacht charter',
 		'Costume & formal wear hire',
+		'Residential property rental',
+		'Agricultural equipment rental',
+		'Camera & AV rental',
+		'Medical equipment rental',
+		'Furniture rental',
+		'Wedding & event rental',
+		'Sports equipment rental',
+		'Container & portable building',
+		'Generator & power rental',
+		'IT & computer rental',
+		'Costume & fancy dress hire',
+		'Musical instrument rental',
 	),
 	'sub_industry_products' => array(
 		'Online booking system' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized online booking system solutions','products'=>array(
@@ -121,6 +133,67 @@ $industryData = array(
 			array('name'=>'Costume & formal wear hire Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 			array('name'=>'Costume & formal wear hire Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 			array('name'=>'Costume & formal wear hire Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+
+		'Residential property rental' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Specialized residential property rental solutions','products'=>array(
+			array('name'=>'Residential property rental Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Residential property rental Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Residential property rental Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		)),
+		'Agricultural equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized agricultural equipment rental solutions','products'=>array(
+			array('name'=>'Agricultural equipment rental Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Agricultural equipment rental Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Agricultural equipment rental Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+		)),
+		'Camera & AV rental' => array('photo'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75','desc'=>'Specialized camera & av rental solutions','products'=>array(
+			array('name'=>'Camera & AV rental Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Camera & AV rental Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Camera & AV rental Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+		)),
+		'Medical equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Specialized medical equipment rental solutions','products'=>array(
+			array('name'=>'Medical equipment rental Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Medical equipment rental Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'Medical equipment rental Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		)),
+		'Furniture rental' => array('photo'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75','desc'=>'Specialized furniture rental solutions','products'=>array(
+			array('name'=>'Furniture rental Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'Furniture rental Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Furniture rental Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+		)),
+		'Wedding & event rental' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Specialized wedding & event rental solutions','products'=>array(
+			array('name'=>'Wedding & event rental Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Wedding & event rental Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Wedding & event rental Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		)),
+		'Sports equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized sports equipment rental solutions','products'=>array(
+			array('name'=>'Sports equipment rental Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Sports equipment rental Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Sports equipment rental Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+		)),
+		'Container & portable building' => array('photo'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75','desc'=>'Specialized container & portable building solutions','products'=>array(
+			array('name'=>'Container & portable building Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Container & portable building Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Container & portable building Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+		)),
+		'Generator & power rental' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Specialized generator & power rental solutions','products'=>array(
+			array('name'=>'Generator & power rental Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Generator & power rental Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'Generator & power rental Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		)),
+		'IT & computer rental' => array('photo'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75','desc'=>'Specialized it & computer rental solutions','products'=>array(
+			array('name'=>'IT & computer rental Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'IT & computer rental Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'IT & computer rental Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+		)),
+		'Costume & fancy dress hire' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Specialized costume & fancy dress hire solutions','products'=>array(
+			array('name'=>'Costume & fancy dress hire Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Costume & fancy dress hire Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Costume & fancy dress hire Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		)),
+		'Musical instrument rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized musical instrument rental solutions','products'=>array(
+			array('name'=>'Musical instrument rental Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Musical instrument rental Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Musical instrument rental Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Asset utilization went from 65% to 82% with dynamic pricing and online booking.', 'author' => 'Rental Company Manager, Business Bay'),

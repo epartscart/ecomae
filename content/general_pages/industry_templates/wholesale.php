@@ -60,6 +60,18 @@ $industryData = array(
 		'Chemical trading',
 		'Metals trading',
 		'Textile trading',
+		'Agricultural commodities',
+		'Seafood wholesale',
+		'Pharmaceutical wholesale',
+		'Fuel & petroleum wholesale',
+		'Timber & lumber',
+		'Scrap & recycling trade',
+		'Electronics wholesale',
+		'Construction materials wholesale',
+		'Office supplies wholesale',
+		'Packaging materials wholesale',
+		'Industrial chemicals wholesale',
+		'Automotive parts wholesale',
 	),
 	'sub_industry_products' => array(
 		'Wholesale distribution' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized wholesale distribution solutions','products'=>array(
@@ -121,6 +133,67 @@ $industryData = array(
 			array('name'=>'Textile trading Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 			array('name'=>'Textile trading Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 			array('name'=>'Textile trading Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		)),
+
+		'Agricultural commodities' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized agricultural commodities solutions','products'=>array(
+			array('name'=>'Agricultural commodities Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Agricultural commodities Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Agricultural commodities Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+		)),
+		'Seafood wholesale' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized seafood wholesale solutions','products'=>array(
+			array('name'=>'Seafood wholesale Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Seafood wholesale Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Seafood wholesale Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		)),
+		'Pharmaceutical wholesale' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized pharmaceutical wholesale solutions','products'=>array(
+			array('name'=>'Pharmaceutical wholesale Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Pharmaceutical wholesale Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Pharmaceutical wholesale Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		)),
+		'Fuel & petroleum wholesale' => array('photo'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75','desc'=>'Specialized fuel & petroleum wholesale solutions','products'=>array(
+			array('name'=>'Fuel & petroleum wholesale Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Fuel & petroleum wholesale Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Fuel & petroleum wholesale Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		)),
+		'Timber & lumber' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized timber & lumber solutions','products'=>array(
+			array('name'=>'Timber & lumber Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Timber & lumber Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Timber & lumber Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		)),
+		'Scrap & recycling trade' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized scrap & recycling trade solutions','products'=>array(
+			array('name'=>'Scrap & recycling trade Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Scrap & recycling trade Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Scrap & recycling trade Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+		)),
+		'Electronics wholesale' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized electronics wholesale solutions','products'=>array(
+			array('name'=>'Electronics wholesale Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Electronics wholesale Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Electronics wholesale Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+		)),
+		'Construction materials wholesale' => array('photo'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75','desc'=>'Specialized construction materials wholesale solutions','products'=>array(
+			array('name'=>'Construction materials wholesale Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Construction materials wholesale Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Construction materials wholesale Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+		)),
+		'Office supplies wholesale' => array('photo'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75','desc'=>'Specialized office supplies wholesale solutions','products'=>array(
+			array('name'=>'Office supplies wholesale Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
+			array('name'=>'Office supplies wholesale Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Office supplies wholesale Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+		)),
+		'Packaging materials wholesale' => array('photo'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75','desc'=>'Specialized packaging materials wholesale solutions','products'=>array(
+			array('name'=>'Packaging materials wholesale Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75'),
+			array('name'=>'Packaging materials wholesale Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Packaging materials wholesale Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+		)),
+		'Industrial chemicals wholesale' => array('photo'=>'https://images.unsplash.com/photo-1553413077-190dd305871c?w=400&q=75','desc'=>'Specialized industrial chemicals wholesale solutions','products'=>array(
+			array('name'=>'Industrial chemicals wholesale Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75'),
+			array('name'=>'Industrial chemicals wholesale Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Industrial chemicals wholesale Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+		)),
+		'Automotive parts wholesale' => array('photo'=>'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=75','desc'=>'Specialized automotive parts wholesale solutions','products'=>array(
+			array('name'=>'Automotive parts wholesale Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=400&q=75'),
+			array('name'=>'Automotive parts wholesale Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=400&q=75'),
+			array('name'=>'Automotive parts wholesale Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'B2B portal reduced order processing time from 2 days to 15 minutes.', 'author' => 'Trader Mohammed, General Trading, Deira'),
