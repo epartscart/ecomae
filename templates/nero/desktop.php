@@ -91,7 +91,8 @@ $epc_portal_style_template = epc_portal_normalize_theme_template(
 	$epc_portal_industry_code,
 	(string) (epc_portal_load_site_settings()['theme_template'] ?? 'classic')
 );
-$epc_platform_marketing = in_array(epc_portal_host(), array('www.ecomae.com', 'ecomae.com'), true)
+$epc_platform_marketing = (in_array(epc_portal_host(), array('www.ecomae.com', 'ecomae.com'), true)
+	|| !empty($GLOBALS['epc_industry_subdomain_active']))
 	&& empty($GLOBALS['epc_demo_storefront_context']);
 $epc_commerce_storefront = function_exists('epc_portal_commerce_storefront_enabled') && epc_portal_commerce_storefront_enabled();
 if ($epc_platform_marketing) {

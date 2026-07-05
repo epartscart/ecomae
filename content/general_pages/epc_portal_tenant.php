@@ -37,6 +37,14 @@ function epc_portal_is_platform_hostname(string $host = null): bool
 			return true;
 		}
 	}
+	// Industry wildcard subdomains (*.ecomae.com) are platform-managed
+	if (function_exists('epc_is_industry_subdomain') && epc_is_industry_subdomain()) {
+		return true;
+	}
+	if (preg_match('/^[a-z0-9][a-z0-9_-]*\.ecomae\.com$/', $host)
+		&& !in_array($host, array('www.ecomae.com', 'cp.ecomae.com'), true)) {
+		return true;
+	}
 	return false;
 }
 

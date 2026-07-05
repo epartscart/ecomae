@@ -487,7 +487,14 @@ function epc_portal_is_client_hostname(string $host = null): bool
 	if ($host === '') {
 		return false;
 	}
-	return !in_array($host, epc_portal_platform_hostnames_static(), true);
+	if (in_array($host, epc_portal_platform_hostnames_static(), true)) {
+		return false;
+	}
+	// Industry wildcard subdomains (*.ecomae.com) are NOT client tenants
+	if (preg_match('/^[a-z0-9][a-z0-9_-]*\.ecomae\.com$/', $host)) {
+		return false;
+	}
+	return true;
 }
 
 function epc_portal_is_platform_operator_host(string $host = null): bool
@@ -755,6 +762,18 @@ function epc_portal_site_profile()
 			$profile['password'] = $resolved['password'];
 		}
 	}
+	// Industry wildcard subdomains — use resolved industry from bootstrap
+	if ($profile === null && !empty($GLOBALS['epc_industry_subdomain_active'])) {
+		$industryGroup = (string) ($GLOBALS['epc_industry_subdomain_group'] ?? 'technology');
+		$industrySlug = (string) ($GLOBALS['epc_industry_subdomain_slug'] ?? '');
+		$profile = array(
+			'industry' => $industryGroup,
+			'system_name' => ucwords(str_replace(array('_', '-'), ' ', $industrySlug)) . ' — ECOM AE',
+			'hub_name' => 'ecomae',
+			'tagline' => ucwords(str_replace(array('_', '-'), ' ', $industryGroup)) . ' industry solutions',
+			'domain_path' => 'https://' . $host . '/',
+		);
+	}
 	if ($profile === null) {
 		$profile = array(
 			'industry' => 'auto_parts',
@@ -776,7 +795,7 @@ function epc_portal_site_profile()
 			$platformProfile = $sitesMap[$host];
 		}
 	}
-	if ($platformProfile !== null && empty($GLOBALS['epc_demo_storefront_context'])) {
+	if ($platformProfile !== null && empty($GLOBALS['epc_demo_storefront_context']) && empty($GLOBALS['epc_industry_subdomain_active'])) {
 		$profile['industry'] = 'platform_host';
 		if (!empty($platformProfile['db'])) {
 			$profile['db'] = $platformProfile['db'];
@@ -787,7 +806,7 @@ function epc_portal_site_profile()
 		if (!empty($platformProfile['domain_path'])) {
 			$profile['domain_path'] = $platformProfile['domain_path'];
 		}
-	} elseif (!empty($dbSettings['industry_code'])) {
+	} elseif (!empty($dbSettings['industry_code']) && empty($GLOBALS['epc_industry_subdomain_active'])) {
 		$profile['industry'] = $dbSettings['industry_code'];
 	}
 	if (!empty($dbSettings['system_name'])) {
@@ -802,7 +821,7 @@ function epc_portal_site_profile()
 	if (!empty($dbSettings['theme'])) {
 		$profile['theme'] = $dbSettings['theme'];
 	}
-	if (!empty($dbSettings['domain_path']) && !epc_portal_is_client_hostname($host)) {
+	if (!empty($dbSettings['domain_path']) && !epc_portal_is_client_hostname($host) && empty($GLOBALS['epc_industry_subdomain_active'])) {
 		$profile['domain_path'] = $dbSettings['domain_path'];
 	}
 	if (epc_portal_is_client_hostname($host)) {

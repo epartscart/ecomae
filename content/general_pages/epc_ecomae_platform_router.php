@@ -32,7 +32,14 @@ function epc_ecomae_is_marketing_platform_host(string $host = null): bool
 	if ($host === null) {
 		$host = epc_ecomae_marketing_request_host();
 	}
-	return in_array($host, epc_ecomae_marketing_hostnames(), true);
+	if (in_array($host, epc_ecomae_marketing_hostnames(), true)) {
+		return true;
+	}
+	// Industry wildcard subdomains also serve marketing
+	if (function_exists('epc_is_industry_subdomain') && epc_is_industry_subdomain()) {
+		return true;
+	}
+	return false;
 }
 
 function epc_ecomae_platform_route_state()
