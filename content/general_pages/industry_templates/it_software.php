@@ -75,131 +75,131 @@ $industryData = array(
 		'Computer training center',
 	),
 	'sub_industry_products' => array(
-		'Software development' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized software development solutions','products'=>array(
-			array('name'=>'Software development Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Software development Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
-			array('name'=>'Software development Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
+		'Software development' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Software development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Software Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Software Development Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Software Development Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
+			array('name'=>'Software Development Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
 		)),
-		'SaaS / cloud platform' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'Specialized saas / cloud platform solutions','products'=>array(
-			array('name'=>'SaaS / cloud platform Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'SaaS / cloud platform Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75'),
-			array('name'=>'SaaS / cloud platform Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		'SaaS / cloud platform' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'SaaS / cloud platform operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('SaaS Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'SaaS Cloud Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'SaaS Cloud Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75'),
+			array('name'=>'SaaS Cloud Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'IT support & managed services' => array('photo'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75','desc'=>'Specialized it support & managed services solutions','products'=>array(
-			array('name'=>'IT support & managed services Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
-			array('name'=>'IT support & managed services Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
-			array('name'=>'IT support & managed services Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'IT support & managed services' => array('photo'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75','desc'=>'IT support & managed services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('IT Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'IT Support Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
+			array('name'=>'IT Support Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
+			array('name'=>'IT Support Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Web design & development' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized web design & development solutions','products'=>array(
-			array('name'=>'Web design & development Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
-			array('name'=>'Web design & development Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
-			array('name'=>'Web design & development Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
+		'Web design & development' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Web design & development operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Concept Design','Production','Revision & Editing','Brand Assets','Digital Media','Print Ready'),'products'=>array(
+			array('name'=>'Web Design Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
+			array('name'=>'Web Design Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
+			array('name'=>'Web Design Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
 		)),
-		'Mobile app development' => array('photo'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75','desc'=>'Specialized mobile app development solutions','products'=>array(
-			array('name'=>'Mobile app development Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75'),
-			array('name'=>'Mobile app development Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Mobile app development Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+		'Mobile app development' => array('photo'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75','desc'=>'Mobile app development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Mobile Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Mobile App Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75'),
+			array('name'=>'Mobile App Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Mobile App Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
 		)),
-		'Cybersecurity' => array('photo'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75','desc'=>'Specialized cybersecurity solutions','products'=>array(
-			array('name'=>'Cybersecurity Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
-			array('name'=>'Cybersecurity Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Cybersecurity Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		'Cybersecurity' => array('photo'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75','desc'=>'Cybersecurity operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Cybersecurity Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cybersecurity Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
+			array('name'=>'Cybersecurity Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Cybersecurity Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
 		)),
-		'Data analytics & BI' => array('photo'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75','desc'=>'Specialized data analytics & bi solutions','products'=>array(
-			array('name'=>'Data analytics & BI Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
-			array('name'=>'Data analytics & BI Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
-			array('name'=>'Data analytics & BI Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Data analytics & BI' => array('photo'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75','desc'=>'Data analytics & BI operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Data Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Data Analytics Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
+			array('name'=>'Data Analytics Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
+			array('name'=>'Data Analytics Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'AI & machine learning' => array('photo'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75','desc'=>'Specialized ai & machine learning solutions','products'=>array(
-			array('name'=>'AI & machine learning Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'AI & machine learning Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
-			array('name'=>'AI & machine learning Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+		'AI & machine learning' => array('photo'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75','desc'=>'AI & machine learning operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('AI Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'AI Machine Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'AI Machine Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'AI Machine Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
 		)),
-		'IoT solutions' => array('photo'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75','desc'=>'Specialized iot solutions solutions','products'=>array(
-			array('name'=>'IoT solutions Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'IoT solutions Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'IoT solutions Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
+		'IoT solutions' => array('photo'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75','desc'=>'IoT solutions operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('IoT Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'IoT Solutions Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'IoT Solutions Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'IoT Solutions Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
 		)),
-		'ERP implementation' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized erp implementation solutions','products'=>array(
-			array('name'=>'ERP implementation Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
-			array('name'=>'ERP implementation Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'ERP implementation Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
+		'ERP implementation' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'ERP implementation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('ERP Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'ERP Implementation Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75'),
+			array('name'=>'ERP Implementation Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'ERP Implementation Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
 		)),
-		'DevOps & cloud' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'Specialized devops & cloud solutions','products'=>array(
-			array('name'=>'DevOps & cloud Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
-			array('name'=>'DevOps & cloud Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'DevOps & cloud Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75'),
+		'DevOps & cloud' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'DevOps & cloud operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('DevOps Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'DevOps Cloud Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'DevOps Cloud Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'DevOps Cloud Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=75'),
 		)),
-		'Game development' => array('photo'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75','desc'=>'Specialized game development solutions','products'=>array(
-			array('name'=>'Game development Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'Game development Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
-			array('name'=>'Game development Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
+		'Game development' => array('photo'=>'https://images.unsplash.com/photo-1544256718-3bcf237f3974?w=400&q=75','desc'=>'Game development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Game Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Game Development Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'Game Development Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=75'),
+			array('name'=>'Game Development Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573495627361-d9b87960b12d?w=400&q=75'),
 		)),
-		'Blockchain & Web3' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized blockchain & web3 solutions','products'=>array(
-			array('name'=>'Blockchain & Web3 Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Blockchain & Web3 Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
-			array('name'=>'Blockchain & Web3 Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
+		'Blockchain & Web3' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Blockchain & Web3 operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Blockchain Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Blockchain Web3 Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Blockchain Web3 Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=75'),
+			array('name'=>'Blockchain Web3 Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&q=75'),
 		)),
 
-		'Telecom & ISP operations' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized telecom & isp operations solutions','products'=>array(
-			array('name'=>'Telecom & ISP operations Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
-			array('name'=>'Telecom & ISP operations Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
-			array('name'=>'Telecom & ISP operations Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		'Telecom & ISP operations' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Telecom & ISP operations operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Telecom Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Telecom ISP Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'Telecom ISP Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Telecom ISP Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
 		)),
-		'Digital marketing agency' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Specialized digital marketing agency solutions','products'=>array(
-			array('name'=>'Digital marketing agency Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
-			array('name'=>'Digital marketing agency Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'Digital marketing agency Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+		'Digital marketing agency' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Digital marketing agency operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Digital Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Digital Marketing Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Digital Marketing Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'Digital Marketing Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
 		)),
-		'SEO & SEM services' => array('photo'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75','desc'=>'Specialized seo & sem services solutions','products'=>array(
-			array('name'=>'SEO & SEM services Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'SEO & SEM services Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
-			array('name'=>'SEO & SEM services Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+		'SEO & SEM services' => array('photo'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75','desc'=>'SEO & SEM services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('SEO Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'SEO SEM Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'SEO SEM Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'SEO SEM Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
 		)),
-		'VR / AR development' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'Specialized vr / ar development solutions','products'=>array(
-			array('name'=>'VR / AR development Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
-			array('name'=>'VR / AR development Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
-			array('name'=>'VR / AR development Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+		'VR / AR development' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'VR / AR development operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('VR Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'VR AR Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'VR AR Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'VR AR Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
 		)),
-		'Cloud hosting & data center' => array('photo'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75','desc'=>'Specialized cloud hosting & data center solutions','products'=>array(
-			array('name'=>'Cloud hosting & data center Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
-			array('name'=>'Cloud hosting & data center Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
-			array('name'=>'Cloud hosting & data center Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+		'Cloud hosting & data center' => array('photo'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75','desc'=>'Cloud hosting & data center operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Cloud Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cloud Hosting Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'Cloud Hosting Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'Cloud Hosting Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
 		)),
-		'IT staffing & outsourcing' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized it staffing & outsourcing solutions','products'=>array(
-			array('name'=>'IT staffing & outsourcing Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
-			array('name'=>'IT staffing & outsourcing Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
-			array('name'=>'IT staffing & outsourcing Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		'IT staffing & outsourcing' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'IT staffing & outsourcing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('IT Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'IT Staffing Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'IT Staffing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'IT Staffing Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
 		)),
-		'QA & testing services' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Specialized qa & testing services solutions','products'=>array(
-			array('name'=>'QA & testing services Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
-			array('name'=>'QA & testing services Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'QA & testing services Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+		'QA & testing services' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'QA & testing services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('QA Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'QA Testing Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'QA Testing Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'QA Testing Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
 		)),
-		'No-code / low-code platforms' => array('photo'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75','desc'=>'Specialized no-code / low-code platforms solutions','products'=>array(
-			array('name'=>'No-code / low-code platforms Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'No-code / low-code platforms Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
-			array('name'=>'No-code / low-code platforms Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+		'No-code / low-code platforms' => array('photo'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75','desc'=>'No-code / low-code platforms operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('No Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'No Code Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'No Code Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'No Code Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
 		)),
-		'Domain & hosting reseller' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'Specialized domain & hosting reseller solutions','products'=>array(
-			array('name'=>'Domain & hosting reseller Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
-			array('name'=>'Domain & hosting reseller Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
-			array('name'=>'Domain & hosting reseller Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+		'Domain & hosting reseller' => array('photo'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75','desc'=>'Domain & hosting reseller operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Domain Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Domain Hosting Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+			array('name'=>'Domain Hosting Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'Domain Hosting Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
 		)),
-		'IT hardware distribution' => array('photo'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75','desc'=>'Specialized it hardware distribution solutions','products'=>array(
-			array('name'=>'IT hardware distribution Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
-			array('name'=>'IT hardware distribution Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
-			array('name'=>'IT hardware distribution Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+		'IT hardware distribution' => array('photo'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75','desc'=>'IT hardware distribution operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('IT Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'IT Hardware Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75'),
+			array('name'=>'IT Hardware Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'IT Hardware Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
 		)),
-		'Robotic process automation' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Specialized robotic process automation solutions','products'=>array(
-			array('name'=>'Robotic process automation Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
-			array('name'=>'Robotic process automation Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
-			array('name'=>'Robotic process automation Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+		'Robotic process automation' => array('photo'=>'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=75','desc'=>'Robotic process automation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Robotic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Robotic Process Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75'),
+			array('name'=>'Robotic Process Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Robotic Process Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
 		)),
-		'Computer training center' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Specialized computer training center solutions','products'=>array(
-			array('name'=>'Computer training center Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
-			array('name'=>'Computer training center Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
-			array('name'=>'Computer training center Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
+		'Computer training center' => array('photo'=>'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=75','desc'=>'Computer training center operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with technology industry standards and best practices','categories'=>array('Computer Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Computer Training Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&q=75'),
+			array('name'=>'Computer Training Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=75'),
+			array('name'=>'Computer Training Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1537432376149-e84978e7f197?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Sprint velocity tracking helped us deliver 30% more features per quarter.', 'author' => 'Tech CTO, SaaS Startup, Dubai Internet City'),

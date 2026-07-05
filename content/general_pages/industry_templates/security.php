@@ -74,126 +74,126 @@ $industryData = array(
 		'Crowd management',
 	),
 	'sub_industry_products' => array(
-		'Security guarding' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized security guarding solutions','products'=>array(
-			array('name'=>'Security guarding Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Security guarding Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Security guarding Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		'Security guarding' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Security guarding operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Security Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Security Guarding Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Security Guarding Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Security Guarding Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Security systems & CCTV' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized security systems & cctv solutions','products'=>array(
-			array('name'=>'Security systems & CCTV Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Security systems & CCTV Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Security systems & CCTV Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Security systems & CCTV' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Security systems & CCTV operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Security Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Security Systems Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Security Systems Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Security Systems Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Remote monitoring' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized remote monitoring solutions','products'=>array(
-			array('name'=>'Remote monitoring Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Remote monitoring Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Remote monitoring Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Remote monitoring' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Remote monitoring operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Remote Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Remote Monitoring Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Remote Monitoring Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Remote Monitoring Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Fire safety & prevention' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized fire safety & prevention solutions','products'=>array(
-			array('name'=>'Fire safety & prevention Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Fire safety & prevention Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Fire safety & prevention Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Fire safety & prevention' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Fire safety & prevention operations encompassing event planning, vendor coordination, timeline management, budget tracking, guest management. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Fire Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fire Safety Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Fire Safety Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Fire Safety Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Access control' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized access control solutions','products'=>array(
-			array('name'=>'Access control Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Access control Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Access control Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'Access control' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Access control operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Access Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Access Control Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Access Control Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Access Control Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Cybersecurity services' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized cybersecurity services solutions','products'=>array(
-			array('name'=>'Cybersecurity services Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Cybersecurity services Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Cybersecurity services Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Cybersecurity services' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Cybersecurity services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Cybersecurity Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cybersecurity Services Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Cybersecurity Services Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Cybersecurity Services Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Private investigation' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized private investigation solutions','products'=>array(
-			array('name'=>'Private investigation Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Private investigation Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Private investigation Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Private investigation' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Private investigation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Private Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Private Investigation Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Private Investigation Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Private Investigation Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Alarm systems' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized alarm systems solutions','products'=>array(
-			array('name'=>'Alarm systems Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Alarm systems Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Alarm systems Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Alarm systems' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Alarm systems operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Alarm Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Alarm Systems Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Alarm Systems Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Alarm Systems Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Safes & vaults' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized safes & vaults solutions','products'=>array(
-			array('name'=>'Safes & vaults Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Safes & vaults Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Safes & vaults Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Safes & vaults' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Safes & vaults operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Safes Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Safes Vaults Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Safes Vaults Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Safes Vaults Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Security training' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized security training solutions','products'=>array(
-			array('name'=>'Security training Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Security training Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Security training Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Security training' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Security training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Security Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Security Training Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Security Training Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Security Training Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
 
-		'Cash-in-transit & armored' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Specialized cash-in-transit & armored solutions','products'=>array(
-			array('name'=>'Cash-in-transit & armored Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
-			array('name'=>'Cash-in-transit & armored Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
-			array('name'=>'Cash-in-transit & armored Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		'Cash-in-transit & armored' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Cash-in-transit & armored operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Cash Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cash In Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Cash In Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Cash In Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 		)),
-		'Close protection & bodyguard' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Specialized close protection & bodyguard solutions','products'=>array(
-			array('name'=>'Close protection & bodyguard Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
-			array('name'=>'Close protection & bodyguard Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Close protection & bodyguard Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+		'Close protection & bodyguard' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Close protection & bodyguard operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Close Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Close Protection Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Close Protection Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Close Protection Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
 		)),
-		'Security consulting & risk' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Specialized security consulting & risk solutions','products'=>array(
-			array('name'=>'Security consulting & risk Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Security consulting & risk Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
-			array('name'=>'Security consulting & risk Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+		'Security consulting & risk' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Security consulting & risk operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
+			array('name'=>'Security Consulting Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Security Consulting Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Security Consulting Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
 		)),
-		'Maritime security' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized maritime security solutions','products'=>array(
-			array('name'=>'Maritime security Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
-			array('name'=>'Maritime security Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
-			array('name'=>'Maritime security Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+		'Maritime security' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Maritime security operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Maritime Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Maritime Security Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Maritime Security Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Maritime Security Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
 		)),
-		'Drug testing & screening' => array('photo'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75','desc'=>'Specialized drug testing & screening solutions','products'=>array(
-			array('name'=>'Drug testing & screening Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
-			array('name'=>'Drug testing & screening Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
-			array('name'=>'Drug testing & screening Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+		'Drug testing & screening' => array('photo'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75','desc'=>'Drug testing & screening operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Drug Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Drug Testing Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Drug Testing Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Drug Testing Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
 		)),
-		'Event security' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Specialized event security solutions','products'=>array(
-			array('name'=>'Event security Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
-			array('name'=>'Event security Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
-			array('name'=>'Event security Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		'Event security' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Event security operations encompassing event planning, vendor coordination, timeline management, budget tracking, guest management. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Event Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Event Security Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Event Security Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Event Security Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 		)),
-		'Emergency management' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Specialized emergency management solutions','products'=>array(
-			array('name'=>'Emergency management Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
-			array('name'=>'Emergency management Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Emergency management Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+		'Emergency management' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Emergency management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Emergency Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Emergency Management Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Emergency Management Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Emergency Management Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
 		)),
-		'Aviation security' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Specialized aviation security solutions','products'=>array(
-			array('name'=>'Aviation security Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Aviation security Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
-			array('name'=>'Aviation security Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+		'Aviation security' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Aviation security operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Aviation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Aviation Security Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Aviation Security Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Aviation Security Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
 		)),
-		'Locksmith services' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized locksmith services solutions','products'=>array(
-			array('name'=>'Locksmith services Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
-			array('name'=>'Locksmith services Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
-			array('name'=>'Locksmith services Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+		'Locksmith services' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Locksmith services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Locksmith Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Locksmith Services Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Locksmith Services Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Locksmith Services Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
 		)),
-		'Document shredding' => array('photo'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75','desc'=>'Specialized document shredding solutions','products'=>array(
-			array('name'=>'Document shredding Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
-			array('name'=>'Document shredding Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
-			array('name'=>'Document shredding Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+		'Document shredding' => array('photo'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75','desc'=>'Document shredding operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Document Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Document Shredding Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Document Shredding Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Document Shredding Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
 		)),
-		'Counterintelligence' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Specialized counterintelligence solutions','products'=>array(
-			array('name'=>'Counterintelligence Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
-			array('name'=>'Counterintelligence Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
-			array('name'=>'Counterintelligence Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+		'Counterintelligence' => array('photo'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75','desc'=>'Counterintelligence operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Counterintelligence Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Counterintelligence Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+			array('name'=>'Counterintelligence Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Counterintelligence Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
 		)),
-		'Penetration testing' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Specialized penetration testing solutions','products'=>array(
-			array('name'=>'Penetration testing Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
-			array('name'=>'Penetration testing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Penetration testing Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+		'Penetration testing' => array('photo'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75','desc'=>'Penetration testing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Penetration Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Penetration Testing Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75'),
+			array('name'=>'Penetration Testing Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Penetration Testing Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
 		)),
-		'Guard dog services' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Specialized guard dog services solutions','products'=>array(
-			array('name'=>'Guard dog services Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
-			array('name'=>'Guard dog services Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
-			array('name'=>'Guard dog services Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+		'Guard dog services' => array('photo'=>'https://images.unsplash.com/photo-1573164713619-24c711fe7878?w=400&q=75','desc'=>'Guard dog services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Guard Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Guard Dog Management Platform','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75'),
+			array('name'=>'Guard Dog Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Guard Dog Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
 		)),
-		'Crowd management' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Specialized crowd management solutions','products'=>array(
-			array('name'=>'Crowd management Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
-			array('name'=>'Crowd management Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
-			array('name'=>'Crowd management Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
+		'Crowd management' => array('photo'=>'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&q=75','desc'=>'Crowd management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with security industry standards and best practices','categories'=>array('Crowd Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Crowd Management Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1585003791031-a43e39aff8dd?w=400&q=75'),
+			array('name'=>'Crowd Management Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&q=75'),
+			array('name'=>'Crowd Management Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'NFC patrol verification eliminated ghost guarding completely.', 'author' => 'Security Company Director, Downtown Dubai'),

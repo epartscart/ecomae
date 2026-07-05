@@ -75,131 +75,131 @@ $industryData = array(
 		'Actuarial services',
 	),
 	'sub_industry_products' => array(
-		'Financial advisory' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized financial advisory solutions','products'=>array(
-			array('name'=>'Financial advisory Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Financial advisory Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
-			array('name'=>'Financial advisory Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+		'Financial advisory' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Financial advisory operations encompassing client engagement, project scoping, deliverable tracking, knowledge management, billing & invoicing. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Strategy Consulting','Implementation','Training & Workshops','Audit & Assessment','Ongoing Support','Digital Solutions'),'products'=>array(
+			array('name'=>'Financial Advisory Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Financial Advisory Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+			array('name'=>'Financial Advisory Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
 		)),
-		'Regulatory compliance' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Specialized regulatory compliance solutions','products'=>array(
-			array('name'=>'Regulatory compliance Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
-			array('name'=>'Regulatory compliance Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
-			array('name'=>'Regulatory compliance Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+		'Regulatory compliance' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Regulatory compliance operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Regulatory Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Regulatory Compliance Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
+			array('name'=>'Regulatory Compliance Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
+			array('name'=>'Regulatory Compliance Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
 		)),
-		'Financial reporting' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Specialized financial reporting solutions','products'=>array(
-			array('name'=>'Financial reporting Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
-			array('name'=>'Financial reporting Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
-			array('name'=>'Financial reporting Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		'Financial reporting' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Financial reporting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Financial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Financial Reporting Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
+			array('name'=>'Financial Reporting Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
+			array('name'=>'Financial Reporting Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
 		)),
-		'Insurance brokerage' => array('photo'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75','desc'=>'Specialized insurance brokerage solutions','products'=>array(
-			array('name'=>'Insurance brokerage Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
-			array('name'=>'Insurance brokerage Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Insurance brokerage Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+		'Insurance brokerage' => array('photo'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75','desc'=>'Insurance brokerage operations encompassing policy administration, claims processing, underwriting, risk assessment, premium calculation. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Insurance Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Insurance Brokerage Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+			array('name'=>'Insurance Brokerage Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Insurance Brokerage Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
 		)),
-		'Banking services' => array('photo'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75','desc'=>'Specialized banking services solutions','products'=>array(
-			array('name'=>'Banking services Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
-			array('name'=>'Banking services Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Banking services Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		'Banking services' => array('photo'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75','desc'=>'Banking services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Banking Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Banking Services Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
+			array('name'=>'Banking Services Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Banking Services Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
 		)),
-		'Lending & microfinance' => array('photo'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75','desc'=>'Specialized lending & microfinance solutions','products'=>array(
-			array('name'=>'Lending & microfinance Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
-			array('name'=>'Lending & microfinance Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Lending & microfinance Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+		'Lending & microfinance' => array('photo'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75','desc'=>'Lending & microfinance operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Lending Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Lending Microfinance Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
+			array('name'=>'Lending Microfinance Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Lending Microfinance Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
 		)),
-		'Wealth management' => array('photo'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75','desc'=>'Specialized wealth management solutions','products'=>array(
-			array('name'=>'Wealth management Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Wealth management Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
-			array('name'=>'Wealth management Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+		'Wealth management' => array('photo'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75','desc'=>'Wealth management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Wealth Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wealth Management Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Wealth Management Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Wealth Management Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
 		)),
-		'Fintech solutions' => array('photo'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75','desc'=>'Specialized fintech solutions solutions','products'=>array(
-			array('name'=>'Fintech solutions Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Fintech solutions Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Fintech solutions Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
+		'Fintech solutions' => array('photo'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75','desc'=>'Fintech solutions operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Fintech Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fintech Solutions Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Fintech Solutions Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Fintech Solutions Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
 		)),
-		'Foreign exchange' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized foreign exchange solutions','products'=>array(
-			array('name'=>'Foreign exchange Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Foreign exchange Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Foreign exchange Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
+		'Foreign exchange' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Foreign exchange operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Foreign Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Foreign Exchange Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Foreign Exchange Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Foreign Exchange Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
 		)),
-		'Investment management' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Specialized investment management solutions','products'=>array(
-			array('name'=>'Investment management Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
-			array('name'=>'Investment management Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Investment management Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		'Investment management' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Investment management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Investment Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Investment Management Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75'),
+			array('name'=>'Investment Management Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Investment Management Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
-		'Payment processing' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized payment processing solutions','products'=>array(
-			array('name'=>'Payment processing Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Payment processing Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
-			array('name'=>'Payment processing Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
+		'Payment processing' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Payment processing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Payment Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Payment Processing Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Payment Processing Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&q=75'),
+			array('name'=>'Payment Processing Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75'),
 		)),
-		'Cryptocurrency exchange' => array('photo'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75','desc'=>'Specialized cryptocurrency exchange solutions','products'=>array(
-			array('name'=>'Cryptocurrency exchange Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Cryptocurrency exchange Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
-			array('name'=>'Cryptocurrency exchange Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
+		'Cryptocurrency exchange' => array('photo'=>'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&q=75','desc'=>'Cryptocurrency exchange operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Cryptocurrency Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cryptocurrency Exchange Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Cryptocurrency Exchange Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=400&q=75'),
+			array('name'=>'Cryptocurrency Exchange Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&q=75'),
 		)),
-		'Debt collection' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized debt collection solutions','products'=>array(
-			array('name'=>'Debt collection Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Debt collection Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
-			array('name'=>'Debt collection Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+		'Debt collection' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Debt collection operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Debt Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Debt Collection Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Debt Collection Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+			array('name'=>'Debt Collection Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
 		)),
 
-		'Venture capital & PE' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Specialized venture capital & pe solutions','products'=>array(
-			array('name'=>'Venture capital & PE Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Venture capital & PE Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Venture capital & PE Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+		'Venture capital & PE' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Venture capital & PE operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Venture Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Venture Capital Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Venture Capital Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Venture Capital Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
 		)),
-		'Crowdfunding platform' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized crowdfunding platform solutions','products'=>array(
-			array('name'=>'Crowdfunding platform Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Crowdfunding platform Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Crowdfunding platform Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+		'Crowdfunding platform' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Crowdfunding platform operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Crowdfunding Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Crowdfunding Platform Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Crowdfunding Platform Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Crowdfunding Platform Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
 		)),
-		'Pension & retirement funds' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Specialized pension & retirement funds solutions','products'=>array(
-			array('name'=>'Pension & retirement funds Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Pension & retirement funds Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
-			array('name'=>'Pension & retirement funds Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+		'Pension & retirement funds' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Pension & retirement funds operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Pension Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pension Retirement Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Pension Retirement Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+			array('name'=>'Pension Retirement Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
 		)),
-		'Trade finance' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Specialized trade finance solutions','products'=>array(
-			array('name'=>'Trade finance Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
-			array('name'=>'Trade finance Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Trade finance Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		'Trade finance' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Trade finance operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Trade Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Trade Finance Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+			array('name'=>'Trade Finance Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Trade Finance Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
 		)),
-		'Islamic finance (Takaful, Sukuk)' => array('photo'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75','desc'=>'Specialized islamic finance (takaful, sukuk) solutions','products'=>array(
-			array('name'=>'Islamic finance (Takaful, Sukuk) Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Islamic finance (Takaful, Sukuk) Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Islamic finance (Takaful, Sukuk) Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+		'Islamic finance (Takaful, Sukuk)' => array('photo'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75','desc'=>'Islamic finance (Takaful, Sukuk) operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Islamic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Islamic Finance Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Islamic Finance Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Islamic Finance Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
 		)),
-		'Factoring & receivables' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Specialized factoring & receivables solutions','products'=>array(
-			array('name'=>'Factoring & receivables Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Factoring & receivables Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Factoring & receivables Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+		'Factoring & receivables' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Factoring & receivables operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Factoring Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Factoring Receivables Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Factoring Receivables Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Factoring Receivables Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
 		)),
-		'Stock brokerage & trading' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized stock brokerage & trading solutions','products'=>array(
-			array('name'=>'Stock brokerage & trading Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Stock brokerage & trading Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Stock brokerage & trading Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+		'Stock brokerage & trading' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Stock brokerage & trading operations encompassing order management, customs documentation, trade finance, shipping coordination, quality inspection. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Stock Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Stock Brokerage Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Stock Brokerage Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Stock Brokerage Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
 		)),
-		'Credit union & cooperative' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Specialized credit union & cooperative solutions','products'=>array(
-			array('name'=>'Credit union & cooperative Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Credit union & cooperative Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
-			array('name'=>'Credit union & cooperative Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+		'Credit union & cooperative' => array('photo'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75','desc'=>'Credit union & cooperative operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Credit Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Credit Union Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Credit Union Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+			array('name'=>'Credit Union Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
 		)),
-		'Real estate investment (REITs)' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Specialized real estate investment (reits) solutions','products'=>array(
-			array('name'=>'Real estate investment (REITs) Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
-			array('name'=>'Real estate investment (REITs) Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Real estate investment (REITs) Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		'Real estate investment (REITs)' => array('photo'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75','desc'=>'Real estate investment (REITs) operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Real Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Real Estate Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+			array('name'=>'Real Estate Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Real Estate Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
 		)),
-		'Financial education & literacy' => array('photo'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75','desc'=>'Specialized financial education & literacy solutions','products'=>array(
-			array('name'=>'Financial education & literacy Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
-			array('name'=>'Financial education & literacy Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Financial education & literacy Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+		'Financial education & literacy' => array('photo'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75','desc'=>'Financial education & literacy operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Financial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Financial Education Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75'),
+			array('name'=>'Financial Education Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Financial Education Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
 		)),
-		'Carbon credit trading' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Specialized carbon credit trading solutions','products'=>array(
-			array('name'=>'Carbon credit trading Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
-			array('name'=>'Carbon credit trading Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Carbon credit trading Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+		'Carbon credit trading' => array('photo'=>'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=75','desc'=>'Carbon credit trading operations encompassing order management, customs documentation, trade finance, shipping coordination, quality inspection. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Carbon Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Carbon Credit Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+			array('name'=>'Carbon Credit Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Carbon Credit Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
 		)),
-		'Actuarial services' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized actuarial services solutions','products'=>array(
-			array('name'=>'Actuarial services Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
-			array('name'=>'Actuarial services Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
-			array('name'=>'Actuarial services Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
+		'Actuarial services' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Actuarial services operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with financial industry standards and best practices','categories'=>array('Actuarial Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Actuarial Services Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=75'),
+			array('name'=>'Actuarial Services Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=400&q=75'),
+			array('name'=>'Actuarial Services Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'KYC automation reduced our client onboarding from 5 days to 4 hours.', 'author' => 'Richard H., CEO, Financial Advisory Firm, DIFC'),

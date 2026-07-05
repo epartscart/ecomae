@@ -77,141 +77,141 @@ $industryData = array(
 		'Arts & crafts supply',
 	),
 	'sub_industry_products' => array(
-		'Online storefront' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized online storefront solutions','products'=>array(
-			array('name'=>'Online storefront Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Online storefront Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Online storefront Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
+		'Online storefront' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Online storefront operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Online Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Online Storefront Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Online Storefront Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Online Storefront Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
 		)),
-		'Point of sale' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized point of sale solutions','products'=>array(
-			array('name'=>'Point of sale Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
-			array('name'=>'Point of sale Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
-			array('name'=>'Point of sale Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
+		'Point of sale' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Point of sale operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Point Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Point Of Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
+			array('name'=>'Point Of Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
+			array('name'=>'Point Of Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
 		)),
-		'Inventory management' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized inventory management solutions','products'=>array(
-			array('name'=>'Inventory management Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
-			array('name'=>'Inventory management Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Inventory management Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
+		'Inventory management' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Inventory management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Inventory Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Inventory Management Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
+			array('name'=>'Inventory Management Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Inventory Management Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
 		)),
-		'Supermarket / grocery' => array('photo'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75','desc'=>'Specialized supermarket / grocery solutions','products'=>array(
-			array('name'=>'Supermarket / grocery Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Supermarket / grocery Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
-			array('name'=>'Supermarket / grocery Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
+		'Supermarket / grocery' => array('photo'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75','desc'=>'Supermarket / grocery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Supermarket Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Supermarket Grocery Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Supermarket Grocery Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
+			array('name'=>'Supermarket Grocery Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
 		)),
-		'Convenience store' => array('photo'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75','desc'=>'Specialized convenience store solutions','products'=>array(
-			array('name'=>'Convenience store Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
-			array('name'=>'Convenience store Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
-			array('name'=>'Convenience store Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+		'Convenience store' => array('photo'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75','desc'=>'Convenience store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Convenience Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Convenience Store Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
+			array('name'=>'Convenience Store Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
+			array('name'=>'Convenience Store Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
 		)),
-		'Department store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Specialized department store solutions','products'=>array(
-			array('name'=>'Department store Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Department store Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
-			array('name'=>'Department store Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		'Department store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Department store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Department Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Department Store Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Department Store Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
+			array('name'=>'Department Store Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
 		)),
-		'Marketplace / multi-vendor' => array('photo'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75','desc'=>'Specialized marketplace / multi-vendor solutions','products'=>array(
-			array('name'=>'Marketplace / multi-vendor Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
-			array('name'=>'Marketplace / multi-vendor Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
-			array('name'=>'Marketplace / multi-vendor Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+		'Marketplace / multi-vendor' => array('photo'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75','desc'=>'Marketplace / multi-vendor operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Marketplace Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Marketplace Multi Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
+			array('name'=>'Marketplace Multi Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
+			array('name'=>'Marketplace Multi Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
 		)),
-		'Wholesale club' => array('photo'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75','desc'=>'Specialized wholesale club solutions','products'=>array(
-			array('name'=>'Wholesale club Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
-			array('name'=>'Wholesale club Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
-			array('name'=>'Wholesale club Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
+		'Wholesale club' => array('photo'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75','desc'=>'Wholesale club operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Wholesale Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wholesale Club Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
+			array('name'=>'Wholesale Club Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Wholesale Club Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
 		)),
-		'Discount / outlet' => array('photo'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75','desc'=>'Specialized discount / outlet solutions','products'=>array(
-			array('name'=>'Discount / outlet Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
-			array('name'=>'Discount / outlet Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Discount / outlet Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
+		'Discount / outlet' => array('photo'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75','desc'=>'Discount / outlet operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Discount Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Discount Outlet Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
+			array('name'=>'Discount Outlet Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Discount Outlet Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
 		)),
-		'Subscription box' => array('photo'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75','desc'=>'Specialized subscription box solutions','products'=>array(
-			array('name'=>'Subscription box Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
-			array('name'=>'Subscription box Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Subscription box Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		'Subscription box' => array('photo'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75','desc'=>'Subscription box operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Subscription Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Subscription Box Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75'),
+			array('name'=>'Subscription Box Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Subscription Box Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
 		)),
-		'Gift shop' => array('photo'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75','desc'=>'Specialized gift shop solutions','products'=>array(
-			array('name'=>'Gift shop Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
-			array('name'=>'Gift shop Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
-			array('name'=>'Gift shop Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
+		'Gift shop' => array('photo'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75','desc'=>'Gift shop operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Gift Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Gift Shop Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Gift Shop Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
+			array('name'=>'Gift Shop Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
 		)),
-		'Toy store' => array('photo'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75','desc'=>'Specialized toy store solutions','products'=>array(
-			array('name'=>'Toy store Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Toy store Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
-			array('name'=>'Toy store Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Toy store' => array('photo'=>'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=400&q=75','desc'=>'Toy store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Toy Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Toy Store Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Toy Store Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
+			array('name'=>'Toy Store Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Bookstore & stationery' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized bookstore & stationery solutions','products'=>array(
-			array('name'=>'Bookstore & stationery Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Bookstore & stationery Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Bookstore & stationery Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
+		'Bookstore & stationery' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Bookstore & stationery operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Bookstore Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bookstore Stationery Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Bookstore Stationery Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Bookstore Stationery Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?w=400&q=75'),
 		)),
-		'Pet shop' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized pet shop solutions','products'=>array(
-			array('name'=>'Pet shop Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
-			array('name'=>'Pet shop Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
-			array('name'=>'Pet shop Enterprise','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
+		'Pet shop' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Pet shop operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Pet Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Pet Shop Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&q=75'),
+			array('name'=>'Pet Shop Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=400&q=75'),
+			array('name'=>'Pet Shop Analytics Dashboard','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1557821552-17105176677c?w=400&q=75'),
 		)),
-		'Home decor & furnishing' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized home decor & furnishing solutions','products'=>array(
-			array('name'=>'Home decor & furnishing Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
-			array('name'=>'Home decor & furnishing Professional','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Home decor & furnishing Enterprise','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
+		'Home decor & furnishing' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Home decor & furnishing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Decor Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=400&q=75'),
+			array('name'=>'Home Decor Operations Suite','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Home Decor Analytics Dashboard','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=75'),
 		)),
 
-		'Pharmacy & health store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized pharmacy & health store solutions','products'=>array(
-			array('name'=>'Pharmacy & health store Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Pharmacy & health store Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
-			array('name'=>'Pharmacy & health store Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		'Pharmacy & health store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Pharmacy & health store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Pharmacy Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pharmacy Health Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Pharmacy Health Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Pharmacy Health Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
 		)),
-		'Vending machines & kiosks' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized vending machines & kiosks solutions','products'=>array(
-			array('name'=>'Vending machines & kiosks Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
-			array('name'=>'Vending machines & kiosks Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Vending machines & kiosks Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+		'Vending machines & kiosks' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Vending machines & kiosks operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Vending Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Vending Machines Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Vending Machines Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Vending Machines Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
 		)),
-		'Pop-up shop & temporary retail' => array('photo'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75','desc'=>'Specialized pop-up shop & temporary retail solutions','products'=>array(
-			array('name'=>'Pop-up shop & temporary retail Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Pop-up shop & temporary retail Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
-			array('name'=>'Pop-up shop & temporary retail Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+		'Pop-up shop & temporary retail' => array('photo'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75','desc'=>'Pop-up shop & temporary retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Pop-up Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Pop Up Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Pop Up Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Pop Up Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
 		)),
-		'Duty free & travel retail' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Specialized duty free & travel retail solutions','products'=>array(
-			array('name'=>'Duty free & travel retail Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
-			array('name'=>'Duty free & travel retail Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
-			array('name'=>'Duty free & travel retail Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+		'Duty free & travel retail' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Duty free & travel retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Duty Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Duty Free Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Duty Free Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Duty Free Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
 		)),
-		'Thrift & charity shop' => array('photo'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75','desc'=>'Specialized thrift & charity shop solutions','products'=>array(
-			array('name'=>'Thrift & charity shop Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
-			array('name'=>'Thrift & charity shop Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Thrift & charity shop Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+		'Thrift & charity shop' => array('photo'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75','desc'=>'Thrift & charity shop operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Thrift Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Thrift Charity Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Thrift Charity Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Thrift Charity Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
 		)),
-		'Hardware & DIY store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized hardware & diy store solutions','products'=>array(
-			array('name'=>'Hardware & DIY store Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Hardware & DIY store Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
-			array('name'=>'Hardware & DIY store Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		'Hardware & DIY store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Hardware & DIY store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Hardware Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Hardware DIY Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Hardware DIY Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Hardware DIY Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
 		)),
-		'Florist & flower shop' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized florist & flower shop solutions','products'=>array(
-			array('name'=>'Florist & flower shop Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
-			array('name'=>'Florist & flower shop Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Florist & flower shop Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+		'Florist & flower shop' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Florist & flower shop operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Florist Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Florist Flower Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Florist Flower Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Florist Flower Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
 		)),
-		'Mobile shop & van retail' => array('photo'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75','desc'=>'Specialized mobile shop & van retail solutions','products'=>array(
-			array('name'=>'Mobile shop & van retail Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Mobile shop & van retail Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
-			array('name'=>'Mobile shop & van retail Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+		'Mobile shop & van retail' => array('photo'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75','desc'=>'Mobile shop & van retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Mobile Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Mobile Shop Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Mobile Shop Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Mobile Shop Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
 		)),
-		'Optical store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Specialized optical store solutions','products'=>array(
-			array('name'=>'Optical store Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
-			array('name'=>'Optical store Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
-			array('name'=>'Optical store Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+		'Optical store' => array('photo'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75','desc'=>'Optical store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Optical Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Optical Store Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+			array('name'=>'Optical Store Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Optical Store Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
 		)),
-		'Tobacco & vape shop' => array('photo'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75','desc'=>'Specialized tobacco & vape shop solutions','products'=>array(
-			array('name'=>'Tobacco & vape shop Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
-			array('name'=>'Tobacco & vape shop Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Tobacco & vape shop Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+		'Tobacco & vape shop' => array('photo'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75','desc'=>'Tobacco & vape shop operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Tobacco Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Tobacco Vape Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75'),
+			array('name'=>'Tobacco Vape Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Tobacco Vape Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
 		)),
-		'Wine & liquor store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Specialized wine & liquor store solutions','products'=>array(
-			array('name'=>'Wine & liquor store Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
-			array('name'=>'Wine & liquor store Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
-			array('name'=>'Wine & liquor store Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+		'Wine & liquor store' => array('photo'=>'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=75','desc'=>'Wine & liquor store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Wine Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wine Liquor Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75'),
+			array('name'=>'Wine Liquor Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Wine Liquor Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
 		)),
-		'Arts & crafts supply' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Specialized arts & crafts supply solutions','products'=>array(
-			array('name'=>'Arts & crafts supply Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
-			array('name'=>'Arts & crafts supply Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
-			array('name'=>'Arts & crafts supply Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
+		'Arts & crafts supply' => array('photo'=>'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&q=75','desc'=>'Arts & crafts supply operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with retail industry standards and best practices','categories'=>array('Arts Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Arts Crafts Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=75'),
+			array('name'=>'Arts Crafts Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&q=75'),
+			array('name'=>'Arts Crafts Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Unified our 8 stores and website — inventory discrepancies dropped to near zero.', 'author' => 'Omar S., Retail Chain, Mall of Emirates'),

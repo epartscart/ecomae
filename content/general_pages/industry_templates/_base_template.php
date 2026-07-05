@@ -32,8 +32,58 @@ $navItems = $industryData['nav_items'] ?? array('Products','Features','About','C
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title><?php echo htmlspecialchars($name); ?> — ecomae Platform</title>
-<meta name="description" content="<?php echo htmlspecialchars($desc); ?> — Powered by ecomae ERP Platform.">
+<title><?php echo htmlspecialchars($name); ?> — ERP, Control Panel & Storefront | ecomae Platform</title>
+<meta name="description" content="<?php echo htmlspecialchars($name); ?> industry solutions: <?php echo htmlspecialchars($desc); ?> — <?php echo count($subIndustries);?> specialized sub-industries with dedicated ERP workflows, control panel, and storefront. Powered by ecomae.">
+<meta name="keywords" content="<?php echo htmlspecialchars(strtolower($name));?>, ERP, control panel, storefront, <?php echo htmlspecialchars(implode(', ', array_slice($subIndustries, 0, 10)));?>, business management software, ecomae">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="<?php echo htmlspecialchars($name);?> — ecomae ERP Platform">
+<meta property="og:description" content="<?php echo htmlspecialchars($desc);?> — <?php echo count($subIndustries);?> sub-industries covered.">
+<meta property="og:image" content="<?php echo htmlspecialchars($heroPhoto);?>">
+<meta property="og:url" content="https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/">
+<meta property="og:site_name" content="ecomae">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?php echo htmlspecialchars($name);?> — ecomae Platform">
+<meta name="twitter:description" content="<?php echo htmlspecialchars($desc);?>">
+<meta name="twitter:image" content="<?php echo htmlspecialchars($heroPhoto);?>">
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "<?php echo htmlspecialchars($name);?> — ecomae Platform",
+  "description": "<?php echo addslashes($desc);?>",
+  "url": "https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "ecomae",
+    "url": "https://www.ecomae.com",
+    "logo": "https://www.ecomae.com/images/ecomae-logo.png"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "<?php echo htmlspecialchars($name);?> Sub-Industries",
+    "numberOfItems": <?php echo count($subIndustries);?>,
+    "itemListElement": [
+<?php foreach(array_slice($subIndustries, 0, 15) as $idx => $si): ?>
+      {"@type": "ListItem", "position": <?php echo $idx+1;?>, "name": "<?php echo htmlspecialchars($si);?>"}<?php echo $idx < min(14, count($subIndustries)-1) ? ',' : '';?>
+
+<?php endforeach; ?>
+    ]
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "ecomae", "item": "https://www.ecomae.com"},
+      {"@type": "ListItem", "position": 2, "name": "Industries", "item": "https://www.ecomae.com/platform/industries"},
+      {"@type": "ListItem", "position": 3, "name": "<?php echo htmlspecialchars($name);?>", "item": "https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/"}
+    ]
+  }
+}
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -202,7 +252,10 @@ echo "$r2,$g2,$b2";?>,.82))}
 .sub-card__badge .b-store{background:rgba(249,115,22,.9);color:#fff}
 .sub-card__body{padding:20px}
 .sub-card__name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px}
-.sub-card__desc{font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.5}
+.sub-card__desc{font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6}
+.sub-card__cats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.cat-tag{display:inline-block;padding:3px 8px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:11px;color:#475569;white-space:nowrap;transition:all .2s}
+.cat-tag:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
 .sub-card__process{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #f1f5f9}
 .sub-card__process .proc-step{font-size:11px;color:#475569;font-weight:500;white-space:nowrap}
 .sub-card__process .proc-arrow{color:var(--primary);font-size:10px}
@@ -563,14 +616,15 @@ foreach($subIndustries as $si => $sub):
     $subPhoto = $subData ? $subData['photo'] : '';
     $subDesc = $subData ? $subData['desc'] : 'Specialized solutions for ' . strtolower($sub);
     $subProds = ($subData && isset($subData['products'])) ? $subData['products'] : array();
+    $subCats = ($subData && isset($subData['categories'])) ? $subData['categories'] : array();
     
     // Generate business process steps from sub-industry name
     $processSteps = array('Discovery','Configure','Deploy','Operate','Optimize');
 ?>
-<div class="sub-card reveal" data-group="group-<?php echo $currentGroup;?>">
+<div class="sub-card reveal" data-group="group-<?php echo $currentGroup;?>" itemscope itemtype="https://schema.org/Service">
 <div class="sub-card__img">
 <?php if($subPhoto): ?>
-<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?>" loading="lazy">
+<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?> — <?php echo htmlspecialchars($name);?>" loading="lazy" itemprop="image">
 <?php else: ?>
 <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center"><i class="fa <?php echo htmlspecialchars($icon);?>" style="font-size:3rem;color:rgba(255,255,255,.5)"></i></div>
 <?php endif; ?>
@@ -581,8 +635,17 @@ foreach($subIndustries as $si => $sub):
 </div>
 </div>
 <div class="sub-card__body">
-<div class="sub-card__name"><?php echo htmlspecialchars($sub);?></div>
-<div class="sub-card__desc"><?php echo htmlspecialchars($subDesc);?></div>
+<h3 class="sub-card__name" itemprop="name"><?php echo htmlspecialchars($sub);?></h3>
+<p class="sub-card__desc" itemprop="description"><?php echo htmlspecialchars($subDesc);?></p>
+
+<!-- Product Categories -->
+<?php if(!empty($subCats)): ?>
+<div class="sub-card__cats">
+<?php foreach(array_slice($subCats, 0, 6) as $cat): ?>
+<span class="cat-tag"><?php echo htmlspecialchars($cat);?></span>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
 
 <!-- Business Process Flow -->
 <div class="sub-card__process">
@@ -596,10 +659,10 @@ foreach($subIndustries as $si => $sub):
 <?php if(!empty($subProds)): ?>
 <div class="sub-card__products">
 <?php foreach(array_slice($subProds, 0, 3) as $sp): ?>
-<div class="sub-prod">
+<div class="sub-prod" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
 <img src="<?php echo $sp['image'];?>" alt="<?php echo htmlspecialchars($sp['name']);?>" loading="lazy">
-<div class="sp-name"><?php echo htmlspecialchars($sp['name']);?></div>
-<div class="sp-price"><?php echo $sp['price'];?></div>
+<div class="sp-name" itemprop="name"><?php echo htmlspecialchars($sp['name']);?></div>
+<div class="sp-price" itemprop="price"><?php echo $sp['price'];?></div>
 </div>
 <?php endforeach; ?>
 </div>

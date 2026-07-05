@@ -76,136 +76,136 @@ $industryData = array(
 		'Home automation & smart tech',
 	),
 	'sub_industry_products' => array(
-		'Furniture retail' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized furniture retail solutions','products'=>array(
-			array('name'=>'Furniture retail Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Furniture retail Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Furniture retail Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		'Furniture retail' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Furniture retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Furniture Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Furniture Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Furniture Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Furniture Retail Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Home decor & accessories' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized home decor & accessories solutions','products'=>array(
-			array('name'=>'Home decor & accessories Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Home decor & accessories Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Home decor & accessories Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Home decor & accessories' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Home decor & accessories operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Decor Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Home Decor Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Home Decor Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Home appliances' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized home appliances solutions','products'=>array(
-			array('name'=>'Home appliances Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Home appliances Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Home appliances Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Home appliances' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Home appliances operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Appliances Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Home Appliances Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Home Appliances Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Kitchen & bath' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized kitchen & bath solutions','products'=>array(
-			array('name'=>'Kitchen & bath Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Kitchen & bath Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Kitchen & bath Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Kitchen & bath' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Kitchen & bath operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Kitchen Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Kitchen Bath Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Kitchen Bath Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Kitchen Bath Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Garden & outdoor' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized garden & outdoor solutions','products'=>array(
-			array('name'=>'Garden & outdoor Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Garden & outdoor Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Garden & outdoor Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'Garden & outdoor' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Garden & outdoor operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Garden Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Garden Outdoor Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Garden Outdoor Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Garden Outdoor Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Lighting & fixtures' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized lighting & fixtures solutions','products'=>array(
-			array('name'=>'Lighting & fixtures Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Lighting & fixtures Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Lighting & fixtures Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Lighting & fixtures' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Lighting & fixtures operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Lighting Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Lighting Fixtures Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Lighting Fixtures Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Lighting Fixtures Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Flooring & tiles' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized flooring & tiles solutions','products'=>array(
-			array('name'=>'Flooring & tiles Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Flooring & tiles Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Flooring & tiles Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Flooring & tiles' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Flooring & tiles operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Flooring Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Flooring Tiles Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Flooring Tiles Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Flooring Tiles Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Mattress & bedding' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized mattress & bedding solutions','products'=>array(
-			array('name'=>'Mattress & bedding Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Mattress & bedding Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Mattress & bedding Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Mattress & bedding' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Mattress & bedding operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Mattress Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Mattress Bedding Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Mattress Bedding Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Mattress Bedding Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Curtains & blinds' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized curtains & blinds solutions','products'=>array(
-			array('name'=>'Curtains & blinds Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Curtains & blinds Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Curtains & blinds Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Curtains & blinds' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Curtains & blinds operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Curtains Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Curtains Blinds Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Curtains Blinds Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Curtains Blinds Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Art & wall decor' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized art & wall decor solutions','products'=>array(
-			array('name'=>'Art & wall decor Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Art & wall decor Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Art & wall decor Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Art & wall decor' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Art & wall decor operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Art Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Art Wall Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Art Wall Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Art Wall Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
-		'Smart home products' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized smart home products solutions','products'=>array(
-			array('name'=>'Smart home products Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Smart home products Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Smart home products Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
+		'Smart home products' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Smart home products operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Smart Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Smart Home Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Smart Home Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Smart Home Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
 		)),
-		'Cleaning products' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Specialized cleaning products solutions','products'=>array(
-			array('name'=>'Cleaning products Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Cleaning products Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
-			array('name'=>'Cleaning products Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		'Cleaning products' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Cleaning products operations encompassing job scheduling, staff allocation, quality checklists, supply management, customer contracts. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Cleaning Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Cleaning Products Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Cleaning Products Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+			array('name'=>'Cleaning Products Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
-		'Storage & organization' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'Specialized storage & organization solutions','products'=>array(
-			array('name'=>'Storage & organization Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Storage & organization Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
-			array('name'=>'Storage & organization Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
+		'Storage & organization' => array('photo'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75','desc'=>'Storage & organization operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Storage Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Storage Organization Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Storage Organization Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+			array('name'=>'Storage Organization Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75'),
 		)),
 
-		'Home renovation service' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Specialized home renovation service solutions','products'=>array(
-			array('name'=>'Home renovation service Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
-			array('name'=>'Home renovation service Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
-			array('name'=>'Home renovation service Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+		'Home renovation service' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Home renovation service operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Renovation Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Home Renovation Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Home Renovation Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
 		)),
-		'Home security systems' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Specialized home security systems solutions','products'=>array(
-			array('name'=>'Home security systems Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
-			array('name'=>'Home security systems Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
-			array('name'=>'Home security systems Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+		'Home security systems' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Home security systems operations encompassing patrol scheduling, incident reporting, access control, alarm monitoring, staff deployment. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Security Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Home Security Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Home Security Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
 		)),
-		'Solar panels (residential)' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Specialized solar panels (residential) solutions','products'=>array(
-			array('name'=>'Solar panels (residential) Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
-			array('name'=>'Solar panels (residential) Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
-			array('name'=>'Solar panels (residential) Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+		'Solar panels (residential)' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Solar panels (residential) operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Solar Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Solar Panels Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Solar Panels Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Solar Panels Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
 		)),
-		'Plumbing supplies & fixtures' => array('photo'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75','desc'=>'Specialized plumbing supplies & fixtures solutions','products'=>array(
-			array('name'=>'Plumbing supplies & fixtures Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
-			array('name'=>'Plumbing supplies & fixtures Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
-			array('name'=>'Plumbing supplies & fixtures Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+		'Plumbing supplies & fixtures' => array('photo'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75','desc'=>'Plumbing supplies & fixtures operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Plumbing Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Plumbing Supplies Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Plumbing Supplies Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Plumbing Supplies Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
 		)),
-		'Paint & wall coverings' => array('photo'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75','desc'=>'Specialized paint & wall coverings solutions','products'=>array(
-			array('name'=>'Paint & wall coverings Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
-			array('name'=>'Paint & wall coverings Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
-			array('name'=>'Paint & wall coverings Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+		'Paint & wall coverings' => array('photo'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75','desc'=>'Paint & wall coverings operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Paint Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Paint Wall Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Paint Wall Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Paint Wall Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
 		)),
-		'Moving & packing service' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Specialized moving & packing service solutions','products'=>array(
-			array('name'=>'Moving & packing service Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
-			array('name'=>'Moving & packing service Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
-			array('name'=>'Moving & packing service Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+		'Moving & packing service' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Moving & packing service operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Moving Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Moving Packing Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Moving Packing Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Moving Packing Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
 		)),
-		'Interior plant & greenery' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Specialized interior plant & greenery solutions','products'=>array(
-			array('name'=>'Interior plant & greenery Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
-			array('name'=>'Interior plant & greenery Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
-			array('name'=>'Interior plant & greenery Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+		'Interior plant & greenery' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Interior plant & greenery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Interior Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Interior Plant Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Interior Plant Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Interior Plant Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
 		)),
-		'Home fragrance & candles' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Specialized home fragrance & candles solutions','products'=>array(
-			array('name'=>'Home fragrance & candles Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
-			array('name'=>'Home fragrance & candles Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
-			array('name'=>'Home fragrance & candles Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+		'Home fragrance & candles' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Home fragrance & candles operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Fragrance Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Home Fragrance Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Home Fragrance Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
 		)),
-		'Water purification systems' => array('photo'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75','desc'=>'Specialized water purification systems solutions','products'=>array(
-			array('name'=>'Water purification systems Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
-			array('name'=>'Water purification systems Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
-			array('name'=>'Water purification systems Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+		'Water purification systems' => array('photo'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75','desc'=>'Water purification systems operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Water Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Water Purification Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Water Purification Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Water Purification Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
 		)),
-		'Antiques & collectibles' => array('photo'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75','desc'=>'Specialized antiques & collectibles solutions','products'=>array(
-			array('name'=>'Antiques & collectibles Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
-			array('name'=>'Antiques & collectibles Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
-			array('name'=>'Antiques & collectibles Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+		'Antiques & collectibles' => array('photo'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75','desc'=>'Antiques & collectibles operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Antiques Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Antiques Collectibles Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+			array('name'=>'Antiques Collectibles Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Antiques Collectibles Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
 		)),
-		'Aquarium & fish tank' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Specialized aquarium & fish tank solutions','products'=>array(
-			array('name'=>'Aquarium & fish tank Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
-			array('name'=>'Aquarium & fish tank Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
-			array('name'=>'Aquarium & fish tank Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+		'Aquarium & fish tank' => array('photo'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75','desc'=>'Aquarium & fish tank operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Aquarium Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Aquarium Fish Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75'),
+			array('name'=>'Aquarium Fish Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Aquarium Fish Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
 		)),
-		'Kitchen renovation & fitting' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Specialized kitchen renovation & fitting solutions','products'=>array(
-			array('name'=>'Kitchen renovation & fitting Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
-			array('name'=>'Kitchen renovation & fitting Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
-			array('name'=>'Kitchen renovation & fitting Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+		'Kitchen renovation & fitting' => array('photo'=>'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400&q=75','desc'=>'Kitchen renovation & fitting operations encompassing site survey, scheduling, material procurement, installation workflow, quality inspection. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Kitchen Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Kitchen Renovation Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75'),
+			array('name'=>'Kitchen Renovation Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Kitchen Renovation Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
 		)),
-		'Home automation & smart tech' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Specialized home automation & smart tech solutions','products'=>array(
-			array('name'=>'Home automation & smart tech Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
-			array('name'=>'Home automation & smart tech Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
-			array('name'=>'Home automation & smart tech Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
+		'Home automation & smart tech' => array('photo'=>'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&q=75','desc'=>'Home automation & smart tech operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with home services industry standards and best practices','categories'=>array('Home Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Home Automation Management Platform','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=75'),
+			array('name'=>'Home Automation Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'),
+			array('name'=>'Home Automation Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => '3D room planner increased our conversion rate by 35% in the showroom.', 'author' => 'Interior Designer, Home Store, Sheikh Zayed Road'),

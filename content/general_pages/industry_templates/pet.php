@@ -74,126 +74,126 @@ $industryData = array(
 		'Farm animal sanctuary',
 	),
 	'sub_industry_products' => array(
-		'Pet supply store' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized pet supply store solutions','products'=>array(
-			array('name'=>'Pet supply store Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Pet supply store Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Pet supply store Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		'Pet supply store' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Pet supply store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Supply Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Pet Supply Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Pet Supply Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Pet grooming' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized pet grooming solutions','products'=>array(
-			array('name'=>'Pet grooming Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Pet grooming Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Pet grooming Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Pet grooming' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Pet grooming operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Grooming Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Pet Grooming Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Pet Grooming Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Pet boarding & daycare' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized pet boarding & daycare solutions','products'=>array(
-			array('name'=>'Pet boarding & daycare Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Pet boarding & daycare Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Pet boarding & daycare Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Pet boarding & daycare' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Pet boarding & daycare operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Boarding Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Pet Boarding Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Pet Boarding Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Veterinary clinic' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized veterinary clinic solutions','products'=>array(
-			array('name'=>'Veterinary clinic Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Veterinary clinic Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Veterinary clinic Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Veterinary clinic' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Veterinary clinic operations encompassing patient scheduling, treatment records, care protocols, billing & insurance, outcome tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Veterinary Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Veterinary Clinic Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Veterinary Clinic Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Veterinary Clinic Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Pet training' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized pet training solutions','products'=>array(
-			array('name'=>'Pet training Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Pet training Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Pet training Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'Pet training' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Pet training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Training Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Pet Training Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Pet Training Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Pet breeding' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized pet breeding solutions','products'=>array(
-			array('name'=>'Pet breeding Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Pet breeding Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Pet breeding Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Pet breeding' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Pet breeding operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Breeding Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Pet Breeding Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Pet Breeding Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Aquarium & fish' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized aquarium & fish solutions','products'=>array(
-			array('name'=>'Aquarium & fish Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Aquarium & fish Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Aquarium & fish Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Aquarium & fish' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Aquarium & fish operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Aquarium Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Aquarium Fish Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Aquarium Fish Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Aquarium Fish Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Equestrian center' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized equestrian center solutions','products'=>array(
-			array('name'=>'Equestrian center Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Equestrian center Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Equestrian center Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Equestrian center' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Equestrian center operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Equestrian Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Equestrian Center Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Equestrian Center Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Equestrian Center Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Animal shelter' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized animal shelter solutions','products'=>array(
-			array('name'=>'Animal shelter Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Animal shelter Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Animal shelter Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Animal shelter' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Animal shelter operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Animal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Animal Shelter Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Animal Shelter Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Animal Shelter Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Pet food manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized pet food manufacturing solutions','products'=>array(
-			array('name'=>'Pet food manufacturing Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Pet food manufacturing Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Pet food manufacturing Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Pet food manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Pet food manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Pet Food Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Pet Food Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Pet Food Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
 
-		'Pet insurance' => array('photo'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75','desc'=>'Specialized pet insurance solutions','products'=>array(
-			array('name'=>'Pet insurance Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
-			array('name'=>'Pet insurance Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
-			array('name'=>'Pet insurance Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+		'Pet insurance' => array('photo'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75','desc'=>'Pet insurance operations encompassing policy administration, claims processing, underwriting, risk assessment, premium calculation. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Insurance Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+			array('name'=>'Pet Insurance Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+			array('name'=>'Pet Insurance Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
 		)),
-		'Pet photography' => array('photo'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75','desc'=>'Specialized pet photography solutions','products'=>array(
-			array('name'=>'Pet photography Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
-			array('name'=>'Pet photography Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
-			array('name'=>'Pet photography Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+		'Pet photography' => array('photo'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75','desc'=>'Pet photography operations encompassing booking management, equipment scheduling, post-production workflow, client galleries, licensing & rights. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Photography Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+			array('name'=>'Pet Photography Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+			array('name'=>'Pet Photography Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
 		)),
-		'Pet transport & relocation' => array('photo'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75','desc'=>'Specialized pet transport & relocation solutions','products'=>array(
-			array('name'=>'Pet transport & relocation Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
-			array('name'=>'Pet transport & relocation Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
-			array('name'=>'Pet transport & relocation Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+		'Pet transport & relocation' => array('photo'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75','desc'=>'Pet transport & relocation operations encompassing route planning, dispatch management, real-time tracking, proof of delivery, fleet maintenance. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Transport Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+			array('name'=>'Pet Transport Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+			array('name'=>'Pet Transport Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
 		)),
-		'Exotic pet specialist' => array('photo'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75','desc'=>'Specialized exotic pet specialist solutions','products'=>array(
-			array('name'=>'Exotic pet specialist Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
-			array('name'=>'Exotic pet specialist Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
-			array('name'=>'Exotic pet specialist Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+		'Exotic pet specialist' => array('photo'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75','desc'=>'Exotic pet specialist operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Exotic Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Exotic Pet Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+			array('name'=>'Exotic Pet Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+			array('name'=>'Exotic Pet Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
 		)),
-		'Pet food retail' => array('photo'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75','desc'=>'Specialized pet food retail solutions','products'=>array(
-			array('name'=>'Pet food retail Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
-			array('name'=>'Pet food retail Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
-			array('name'=>'Pet food retail Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+		'Pet food retail' => array('photo'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75','desc'=>'Pet food retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Pet Food Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+			array('name'=>'Pet Food Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+			array('name'=>'Pet Food Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
 		)),
-		'Pet-friendly services & spaces' => array('photo'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75','desc'=>'Specialized pet-friendly services & spaces solutions','products'=>array(
-			array('name'=>'Pet-friendly services & spaces Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
-			array('name'=>'Pet-friendly services & spaces Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
-			array('name'=>'Pet-friendly services & spaces Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+		'Pet-friendly services & spaces' => array('photo'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75','desc'=>'Pet-friendly services & spaces operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Friendly Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+			array('name'=>'Pet Friendly Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+			array('name'=>'Pet Friendly Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
 		)),
-		'Wildlife rehabilitation' => array('photo'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75','desc'=>'Specialized wildlife rehabilitation solutions','products'=>array(
-			array('name'=>'Wildlife rehabilitation Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
-			array('name'=>'Wildlife rehabilitation Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
-			array('name'=>'Wildlife rehabilitation Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+		'Wildlife rehabilitation' => array('photo'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75','desc'=>'Wildlife rehabilitation operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Wildlife Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wildlife Rehabilitation Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+			array('name'=>'Wildlife Rehabilitation Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+			array('name'=>'Wildlife Rehabilitation Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
 		)),
-		'Zoo & animal park' => array('photo'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75','desc'=>'Specialized zoo & animal park solutions','products'=>array(
-			array('name'=>'Zoo & animal park Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
-			array('name'=>'Zoo & animal park Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
-			array('name'=>'Zoo & animal park Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+		'Zoo & animal park' => array('photo'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75','desc'=>'Zoo & animal park operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Zoo Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Zoo Animal Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+			array('name'=>'Zoo Animal Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+			array('name'=>'Zoo Animal Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
 		)),
-		'Pet cremation & memorial' => array('photo'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75','desc'=>'Specialized pet cremation & memorial solutions','products'=>array(
-			array('name'=>'Pet cremation & memorial Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
-			array('name'=>'Pet cremation & memorial Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
-			array('name'=>'Pet cremation & memorial Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+		'Pet cremation & memorial' => array('photo'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75','desc'=>'Pet cremation & memorial operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Cremation Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+			array('name'=>'Pet Cremation Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+			array('name'=>'Pet Cremation Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
 		)),
-		'Service animal training' => array('photo'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75','desc'=>'Specialized service animal training solutions','products'=>array(
-			array('name'=>'Service animal training Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
-			array('name'=>'Service animal training Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
-			array('name'=>'Service animal training Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+		'Service animal training' => array('photo'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75','desc'=>'Service animal training operations encompassing curriculum design, student enrollment, instructor scheduling, progress assessment, certification issuance. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Service Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Service Animal Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+			array('name'=>'Service Animal Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+			array('name'=>'Service Animal Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
 		)),
-		'Pet tech & GPS tracking' => array('photo'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75','desc'=>'Specialized pet tech & gps tracking solutions','products'=>array(
-			array('name'=>'Pet tech & GPS tracking Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
-			array('name'=>'Pet tech & GPS tracking Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
-			array('name'=>'Pet tech & GPS tracking Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+		'Pet tech & GPS tracking' => array('photo'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75','desc'=>'Pet tech & GPS tracking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Pet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Pet Tech Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+			array('name'=>'Pet Tech Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+			array('name'=>'Pet Tech Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
 		)),
-		'Reptile & amphibian specialist' => array('photo'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75','desc'=>'Specialized reptile & amphibian specialist solutions','products'=>array(
-			array('name'=>'Reptile & amphibian specialist Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
-			array('name'=>'Reptile & amphibian specialist Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
-			array('name'=>'Reptile & amphibian specialist Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+		'Reptile & amphibian specialist' => array('photo'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75','desc'=>'Reptile & amphibian specialist operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Reptile Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Reptile Amphibian Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75'),
+			array('name'=>'Reptile Amphibian Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+			array('name'=>'Reptile Amphibian Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
 		)),
-		'Bird aviary & supplies' => array('photo'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75','desc'=>'Specialized bird aviary & supplies solutions','products'=>array(
-			array('name'=>'Bird aviary & supplies Basic','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
-			array('name'=>'Bird aviary & supplies Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
-			array('name'=>'Bird aviary & supplies Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+		'Bird aviary & supplies' => array('photo'=>'https://images.unsplash.com/photo-1450778869180-e59ac337d505?w=400&q=75','desc'=>'Bird aviary & supplies operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Bird Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bird Aviary Management Platform','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75'),
+			array('name'=>'Bird Aviary Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+			array('name'=>'Bird Aviary Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
 		)),
-		'Farm animal sanctuary' => array('photo'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75','desc'=>'Specialized farm animal sanctuary solutions','products'=>array(
-			array('name'=>'Farm animal sanctuary Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
-			array('name'=>'Farm animal sanctuary Professional','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
-			array('name'=>'Farm animal sanctuary Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
+		'Farm animal sanctuary' => array('photo'=>'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&q=75','desc'=>'Farm animal sanctuary operations encompassing field management, harvest planning, equipment scheduling, yield tracking, supply chain. Provides end-to-end digital workflow management aligned with pet care industry standards and best practices','categories'=>array('Farm Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Farm Animal Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400&q=75'),
+			array('name'=>'Farm Animal Operations Suite','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=75'),
+			array('name'=>'Farm Animal Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Vaccination reminders increased repeat visits by 45% — pets healthier, revenue up.', 'author' => 'Dr. Amanda, Vet Clinic, Al Barsha'),

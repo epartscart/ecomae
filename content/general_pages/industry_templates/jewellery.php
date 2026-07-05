@@ -74,126 +74,126 @@ $industryData = array(
 		'Precious metals refining',
 	),
 	'sub_industry_products' => array(
-		'Jewellery retail showroom' => array('photo'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75','desc'=>'Specialized jewellery retail showroom solutions','products'=>array(
-			array('name'=>'Jewellery retail showroom Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Jewellery retail showroom Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
-			array('name'=>'Jewellery retail showroom Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
+		'Jewellery retail showroom' => array('photo'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75','desc'=>'Jewellery retail showroom operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Jewellery Retail Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Jewellery Retail Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
+			array('name'=>'Jewellery Retail Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
 		)),
-		'Gold buying & selling' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Specialized gold buying & selling solutions','products'=>array(
-			array('name'=>'Gold buying & selling Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
-			array('name'=>'Gold buying & selling Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
-			array('name'=>'Gold buying & selling Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
+		'Gold buying & selling' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Gold buying & selling operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Gold Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Gold Buying Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
+			array('name'=>'Gold Buying Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
+			array('name'=>'Gold Buying Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
 		)),
-		'Diamond & gemstones' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Specialized diamond & gemstones solutions','products'=>array(
-			array('name'=>'Diamond & gemstones Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
-			array('name'=>'Diamond & gemstones Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
-			array('name'=>'Diamond & gemstones Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
+		'Diamond & gemstones' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Diamond & gemstones operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Diamond Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Diamond Gemstones Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
+			array('name'=>'Diamond Gemstones Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Diamond Gemstones Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
 		)),
-		'Watches & timepieces' => array('photo'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75','desc'=>'Specialized watches & timepieces solutions','products'=>array(
-			array('name'=>'Watches & timepieces Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
-			array('name'=>'Watches & timepieces Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
-			array('name'=>'Watches & timepieces Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
+		'Watches & timepieces' => array('photo'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75','desc'=>'Watches & timepieces operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Watches Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Watches Timepieces Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
+			array('name'=>'Watches Timepieces Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
+			array('name'=>'Watches Timepieces Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
 		)),
-		'Custom design & making' => array('photo'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75','desc'=>'Specialized custom design & making solutions','products'=>array(
-			array('name'=>'Custom design & making Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
-			array('name'=>'Custom design & making Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
-			array('name'=>'Custom design & making Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
+		'Custom design & making' => array('photo'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75','desc'=>'Custom design & making operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Concept Design','Production','Revision & Editing','Brand Assets','Digital Media','Print Ready'),'products'=>array(
+			array('name'=>'Custom Design Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
+			array('name'=>'Custom Design Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
+			array('name'=>'Custom Design Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
 		)),
-		'Jewellery repair & polishing' => array('photo'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75','desc'=>'Specialized jewellery repair & polishing solutions','products'=>array(
-			array('name'=>'Jewellery repair & polishing Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
-			array('name'=>'Jewellery repair & polishing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
-			array('name'=>'Jewellery repair & polishing Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+		'Jewellery repair & polishing' => array('photo'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75','desc'=>'Jewellery repair & polishing operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Preventive Maintenance','Emergency Repairs','Replacement Parts','Service Contracts','Diagnostics','Warranty Work'),'products'=>array(
+			array('name'=>'Jewellery Repair Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Jewellery Repair Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
+			array('name'=>'Jewellery Repair Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
 		)),
-		'Jewellery wholesale / B2B' => array('photo'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75','desc'=>'Specialized jewellery wholesale / b2b solutions','products'=>array(
-			array('name'=>'Jewellery wholesale / B2B Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
-			array('name'=>'Jewellery wholesale / B2B Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
-			array('name'=>'Jewellery wholesale / B2B Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		'Jewellery wholesale / B2B' => array('photo'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75','desc'=>'Jewellery wholesale / B2B operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Jewellery Wholesale Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75'),
+			array('name'=>'Jewellery Wholesale Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
+			array('name'=>'Jewellery Wholesale Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
 		)),
-		'Jewellery manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Specialized jewellery manufacturing solutions','products'=>array(
-			array('name'=>'Jewellery manufacturing Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
-			array('name'=>'Jewellery manufacturing Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
-			array('name'=>'Jewellery manufacturing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
+		'Jewellery manufacturing' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Jewellery manufacturing operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Jewellery Manufacturing Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75'),
+			array('name'=>'Jewellery Manufacturing Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
+			array('name'=>'Jewellery Manufacturing Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
 		)),
-		'Luxury auctions' => array('photo'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75','desc'=>'Specialized luxury auctions solutions','products'=>array(
-			array('name'=>'Luxury auctions Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
-			array('name'=>'Luxury auctions Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Luxury auctions Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
+		'Luxury auctions' => array('photo'=>'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400&q=75','desc'=>'Luxury auctions operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Luxury Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Luxury Auctions Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75'),
+			array('name'=>'Luxury Auctions Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Luxury Auctions Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
 		)),
-		'Antique jewellery' => array('photo'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75','desc'=>'Specialized antique jewellery solutions','products'=>array(
-			array('name'=>'Antique jewellery Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
-			array('name'=>'Antique jewellery Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Antique jewellery Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
+		'Antique jewellery' => array('photo'=>'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=400&q=75','desc'=>'Antique jewellery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Antique Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Antique Jewellery Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75'),
+			array('name'=>'Antique Jewellery Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Antique Jewellery Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=75'),
 		)),
-		'Bridal jewellery' => array('photo'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75','desc'=>'Specialized bridal jewellery solutions','products'=>array(
-			array('name'=>'Bridal jewellery Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
-			array('name'=>'Bridal jewellery Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
-			array('name'=>'Bridal jewellery Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
+		'Bridal jewellery' => array('photo'=>'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=400&q=75','desc'=>'Bridal jewellery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Bridal Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Bridal Jewellery Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=75'),
+			array('name'=>'Bridal Jewellery Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=75'),
+			array('name'=>'Bridal Jewellery Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=75'),
 		)),
-		'Gem certification & hallmarking' => array('photo'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75','desc'=>'Specialized gem certification & hallmarking solutions','products'=>array(
-			array('name'=>'Gem certification & hallmarking Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Gem certification & hallmarking Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
-			array('name'=>'Gem certification & hallmarking Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		'Gem certification & hallmarking' => array('photo'=>'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=400&q=75','desc'=>'Gem certification & hallmarking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Gem Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Gem Certification Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Gem Certification Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=75'),
+			array('name'=>'Gem Certification Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
 		)),
 
-		'Silverware & tableware' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Specialized silverware & tableware solutions','products'=>array(
-			array('name'=>'Silverware & tableware Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
-			array('name'=>'Silverware & tableware Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Silverware & tableware Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		'Silverware & tableware' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Silverware & tableware operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Silverware Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Silverware Tableware Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Silverware Tableware Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Silverware Tableware Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
 		)),
-		'Watch repair & service' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Specialized watch repair & service solutions','products'=>array(
-			array('name'=>'Watch repair & service Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Watch repair & service Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Watch repair & service Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		'Watch repair & service' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Watch repair & service operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Preventive Maintenance','Emergency Repairs','Replacement Parts','Service Contracts','Diagnostics','Warranty Work'),'products'=>array(
+			array('name'=>'Watch Repair Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Watch Repair Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Watch Repair Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
 		)),
-		'Jewellery insurance & valuation' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Specialized jewellery insurance & valuation solutions','products'=>array(
-			array('name'=>'Jewellery insurance & valuation Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Jewellery insurance & valuation Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
-			array('name'=>'Jewellery insurance & valuation Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+		'Jewellery insurance & valuation' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Jewellery insurance & valuation operations encompassing policy administration, claims processing, underwriting, risk assessment, premium calculation. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Jewellery Insurance Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Jewellery Insurance Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Jewellery Insurance Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
 		)),
-		'Lab-grown diamonds' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Specialized lab-grown diamonds solutions','products'=>array(
-			array('name'=>'Lab-grown diamonds Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
-			array('name'=>'Lab-grown diamonds Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
-			array('name'=>'Lab-grown diamonds Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+		'Lab-grown diamonds' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Lab-grown diamonds operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Lab Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Lab Grown Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Lab Grown Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Lab Grown Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
 		)),
-		'Pearl cultivation & retail' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Specialized pearl cultivation & retail solutions','products'=>array(
-			array('name'=>'Pearl cultivation & retail Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
-			array('name'=>'Pearl cultivation & retail Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
-			array('name'=>'Pearl cultivation & retail Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+		'Pearl cultivation & retail' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Pearl cultivation & retail operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Pearl Products','Accessories','Premium Range','Budget Range','Online Store','Gift & Seasonal'),'products'=>array(
+			array('name'=>'Pearl Cultivation Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Pearl Cultivation Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Pearl Cultivation Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
 		)),
-		'Fashion & costume jewellery' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Specialized fashion & costume jewellery solutions','products'=>array(
-			array('name'=>'Fashion & costume jewellery Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
-			array('name'=>'Fashion & costume jewellery Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Fashion & costume jewellery Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		'Fashion & costume jewellery' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Fashion & costume jewellery operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Fashion Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fashion Costume Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Fashion Costume Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Fashion Costume Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
 		)),
-		'Gold loan & pawnbroking' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Specialized gold loan & pawnbroking solutions','products'=>array(
-			array('name'=>'Gold loan & pawnbroking Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Gold loan & pawnbroking Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Gold loan & pawnbroking Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		'Gold loan & pawnbroking' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Gold loan & pawnbroking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Gold Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Gold Loan Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Gold Loan Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Gold Loan Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
 		)),
-		'Jewellery photography & marketing' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Specialized jewellery photography & marketing solutions','products'=>array(
-			array('name'=>'Jewellery photography & marketing Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Jewellery photography & marketing Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
-			array('name'=>'Jewellery photography & marketing Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+		'Jewellery photography & marketing' => array('photo'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75','desc'=>'Jewellery photography & marketing operations encompassing booking management, equipment scheduling, post-production workflow, client galleries, licensing & rights. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Jewellery Photography Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Jewellery Photography Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Jewellery Photography Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
 		)),
-		'Loose stones & beads' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Specialized loose stones & beads solutions','products'=>array(
-			array('name'=>'Loose stones & beads Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
-			array('name'=>'Loose stones & beads Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
-			array('name'=>'Loose stones & beads Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+		'Loose stones & beads' => array('photo'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75','desc'=>'Loose stones & beads operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Loose Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Loose Stones Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+			array('name'=>'Loose Stones Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Loose Stones Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
 		)),
-		'Trophy & medal making' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Specialized trophy & medal making solutions','products'=>array(
-			array('name'=>'Trophy & medal making Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
-			array('name'=>'Trophy & medal making Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
-			array('name'=>'Trophy & medal making Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+		'Trophy & medal making' => array('photo'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75','desc'=>'Trophy & medal making operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Trophy Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Trophy Medal Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75'),
+			array('name'=>'Trophy Medal Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Trophy Medal Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
 		)),
-		'Jewellery exhibition & trade show' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Specialized jewellery exhibition & trade show solutions','products'=>array(
-			array('name'=>'Jewellery exhibition & trade show Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
-			array('name'=>'Jewellery exhibition & trade show Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Jewellery exhibition & trade show Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+		'Jewellery exhibition & trade show' => array('photo'=>'https://images.unsplash.com/photo-1515562141589-67f0d6ce2609?w=400&q=75','desc'=>'Jewellery exhibition & trade show operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Jewellery Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Jewellery Exhibition Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75'),
+			array('name'=>'Jewellery Exhibition Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Jewellery Exhibition Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
 		)),
-		'Precious metals refining' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Specialized precious metals refining solutions','products'=>array(
-			array('name'=>'Precious metals refining Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
-			array('name'=>'Precious metals refining Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
-			array('name'=>'Precious metals refining Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
+		'Precious metals refining' => array('photo'=>'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=400&q=75','desc'=>'Precious metals refining operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with jewellery industry standards and best practices','categories'=>array('Precious Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Precious Metals Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=75'),
+			array('name'=>'Precious Metals Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=75'),
+			array('name'=>'Precious Metals Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'The fix/unfix module alone saved us thousands in untracked gold margin.', 'author' => 'Rajesh P., Gold Souk Retailer, Deira'),

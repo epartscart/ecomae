@@ -75,131 +75,131 @@ $industryData = array(
 		'Augmented reality content',
 	),
 	'sub_industry_products' => array(
-		'Film & video production' => array('photo'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75','desc'=>'Specialized film & video production solutions','products'=>array(
-			array('name'=>'Film & video production Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Film & video production Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
-			array('name'=>'Film & video production Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
+		'Film & video production' => array('photo'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75','desc'=>'Film & video production operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Film Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Film Video Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Film Video Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
+			array('name'=>'Film Video Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
 		)),
-		'Content distribution' => array('photo'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75','desc'=>'Specialized content distribution solutions','products'=>array(
-			array('name'=>'Content distribution Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75'),
-			array('name'=>'Content distribution Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75'),
-			array('name'=>'Content distribution Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+		'Content distribution' => array('photo'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75','desc'=>'Content distribution operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Content Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Content Distribution Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75'),
+			array('name'=>'Content Distribution Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75'),
+			array('name'=>'Content Distribution Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
 		)),
-		'Events & shows' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized events & shows solutions','products'=>array(
-			array('name'=>'Events & shows Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
-			array('name'=>'Events & shows Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75'),
-			array('name'=>'Events & shows Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75'),
+		'Events & shows' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Events & shows operations encompassing event planning, vendor coordination, timeline management, budget tracking, guest management. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Events Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Events Shows Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Events Shows Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75'),
+			array('name'=>'Events Shows Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75'),
 		)),
-		'Music production & label' => array('photo'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75','desc'=>'Specialized music production & label solutions','products'=>array(
-			array('name'=>'Music production & label Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
-			array('name'=>'Music production & label Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
-			array('name'=>'Music production & label Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75'),
+		'Music production & label' => array('photo'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75','desc'=>'Music production & label operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Music Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Music Production Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
+			array('name'=>'Music Production Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
+			array('name'=>'Music Production Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75'),
 		)),
-		'Publishing & media' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized publishing & media solutions','products'=>array(
-			array('name'=>'Publishing & media Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75'),
-			array('name'=>'Publishing & media Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
-			array('name'=>'Publishing & media Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75'),
+		'Publishing & media' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Publishing & media operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Publishing Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Publishing Media Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75'),
+			array('name'=>'Publishing Media Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Publishing Media Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75'),
 		)),
-		'Photography studio' => array('photo'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75','desc'=>'Specialized photography studio solutions','products'=>array(
-			array('name'=>'Photography studio Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75'),
-			array('name'=>'Photography studio Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75'),
-			array('name'=>'Photography studio Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75'),
+		'Photography studio' => array('photo'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75','desc'=>'Photography studio operations encompassing project management, client briefs, design collaboration, revision tracking, asset management. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Photography Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Photography Studio Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75'),
+			array('name'=>'Photography Studio Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75'),
+			array('name'=>'Photography Studio Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75'),
 		)),
-		'Animation & VFX' => array('photo'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75','desc'=>'Specialized animation & vfx solutions','products'=>array(
-			array('name'=>'Animation & VFX Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
-			array('name'=>'Animation & VFX Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75'),
-			array('name'=>'Animation & VFX Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+		'Animation & VFX' => array('photo'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75','desc'=>'Animation & VFX operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Animation Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Animation VFX Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
+			array('name'=>'Animation VFX Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75'),
+			array('name'=>'Animation VFX Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
 		)),
-		'Gaming & esports' => array('photo'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75','desc'=>'Specialized gaming & esports solutions','products'=>array(
-			array('name'=>'Gaming & esports Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
-			array('name'=>'Gaming & esports Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75'),
-			array('name'=>'Gaming & esports Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75'),
+		'Gaming & esports' => array('photo'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75','desc'=>'Gaming & esports operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Gaming Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Gaming Esports Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Gaming Esports Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75'),
+			array('name'=>'Gaming Esports Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75'),
 		)),
-		'Streaming platform' => array('photo'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75','desc'=>'Specialized streaming platform solutions','products'=>array(
-			array('name'=>'Streaming platform Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75'),
-			array('name'=>'Streaming platform Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75'),
-			array('name'=>'Streaming platform Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+		'Streaming platform' => array('photo'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75','desc'=>'Streaming platform operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Streaming Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Streaming Platform Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75'),
+			array('name'=>'Streaming Platform Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75'),
+			array('name'=>'Streaming Platform Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
 		)),
-		'Radio & TV broadcasting' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Specialized radio & tv broadcasting solutions','products'=>array(
-			array('name'=>'Radio & TV broadcasting Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75'),
-			array('name'=>'Radio & TV broadcasting Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Radio & TV broadcasting Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
+		'Radio & TV broadcasting' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Radio & TV broadcasting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Radio Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Radio TV Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75'),
+			array('name'=>'Radio TV Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Radio TV Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
 		)),
-		'Advertising production' => array('photo'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75','desc'=>'Specialized advertising production solutions','products'=>array(
-			array('name'=>'Advertising production Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75'),
-			array('name'=>'Advertising production Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75'),
-			array('name'=>'Advertising production Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75'),
+		'Advertising production' => array('photo'=>'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=75','desc'=>'Advertising production operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Advertising Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Advertising Production Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75'),
+			array('name'=>'Advertising Production Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=75'),
+			array('name'=>'Advertising Production Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&q=75'),
 		)),
-		'Theater & performing arts' => array('photo'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75','desc'=>'Specialized theater & performing arts solutions','products'=>array(
-			array('name'=>'Theater & performing arts Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75'),
-			array('name'=>'Theater & performing arts Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
-			array('name'=>'Theater & performing arts Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75'),
+		'Theater & performing arts' => array('photo'=>'https://images.unsplash.com/photo-1496169990655-e0a5e7fc1cc6?w=400&q=75','desc'=>'Theater & performing arts operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Theater Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Theater Performing Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=400&q=75'),
+			array('name'=>'Theater Performing Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Theater Performing Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=75'),
 		)),
-		'Podcasting' => array('photo'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75','desc'=>'Specialized podcasting solutions','products'=>array(
-			array('name'=>'Podcasting Basic','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Podcasting Professional','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
-			array('name'=>'Podcasting Enterprise','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
+		'Podcasting' => array('photo'=>'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=75','desc'=>'Podcasting operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Podcasting Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Podcasting Management Platform','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Podcasting Operations Suite','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=75'),
+			array('name'=>'Podcasting Analytics Dashboard','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=400&q=75'),
 		)),
 
-		'Social media management' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized social media management solutions','products'=>array(
-			array('name'=>'Social media management Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Social media management Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
-			array('name'=>'Social media management Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+		'Social media management' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Social media management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Social Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Social Media Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Social Media Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Social Media Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
 		)),
-		'Influencer marketing' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized influencer marketing solutions','products'=>array(
-			array('name'=>'Influencer marketing Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
-			array('name'=>'Influencer marketing Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
-			array('name'=>'Influencer marketing Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+		'Influencer marketing' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Influencer marketing operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Influencer Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Influencer Marketing Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Influencer Marketing Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Influencer Marketing Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
 		)),
-		'Digital journalism & news' => array('photo'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75','desc'=>'Specialized digital journalism & news solutions','products'=>array(
-			array('name'=>'Digital journalism & news Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
-			array('name'=>'Digital journalism & news Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
-			array('name'=>'Digital journalism & news Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+		'Digital journalism & news' => array('photo'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75','desc'=>'Digital journalism & news operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Digital Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Digital Journalism Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Digital Journalism Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Digital Journalism Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
 		)),
-		'Art gallery & exhibition' => array('photo'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75','desc'=>'Specialized art gallery & exhibition solutions','products'=>array(
-			array('name'=>'Art gallery & exhibition Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
-			array('name'=>'Art gallery & exhibition Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
-			array('name'=>'Art gallery & exhibition Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+		'Art gallery & exhibition' => array('photo'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75','desc'=>'Art gallery & exhibition operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Art Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Art Gallery Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Art Gallery Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Art Gallery Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
 		)),
-		'Music streaming & distribution' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Specialized music streaming & distribution solutions','products'=>array(
-			array('name'=>'Music streaming & distribution Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
-			array('name'=>'Music streaming & distribution Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Music streaming & distribution Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+		'Music streaming & distribution' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Music streaming & distribution operations encompassing warehouse management, order fulfillment, route optimization, real-time tracking, inventory forecasting. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Music Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Music Streaming Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Music Streaming Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Music Streaming Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
 		)),
-		'Documentary production' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized documentary production solutions','products'=>array(
-			array('name'=>'Documentary production Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Documentary production Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
-			array('name'=>'Documentary production Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+		'Documentary production' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Documentary production operations encompassing production planning, quality control, raw material sourcing, batch tracking, process optimization. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Documentary Production','Raw Materials','Quality Testing','Packaging','Distribution','R&D'),'products'=>array(
+			array('name'=>'Documentary Production Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Documentary Production Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Documentary Production Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
 		)),
-		'Event management & planning' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized event management & planning solutions','products'=>array(
-			array('name'=>'Event management & planning Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
-			array('name'=>'Event management & planning Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
-			array('name'=>'Event management & planning Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+		'Event management & planning' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Event management & planning operations encompassing event planning, vendor coordination, timeline management, budget tracking, guest management. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Event Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Event Management Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Event Management Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Event Management Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
 		)),
-		'PR & communications' => array('photo'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75','desc'=>'Specialized pr & communications solutions','products'=>array(
-			array('name'=>'PR & communications Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
-			array('name'=>'PR & communications Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
-			array('name'=>'PR & communications Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+		'PR & communications' => array('photo'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75','desc'=>'PR & communications operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('PR Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'PR Communications Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'PR Communications Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'PR Communications Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
 		)),
-		'Talent management & agency' => array('photo'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75','desc'=>'Specialized talent management & agency solutions','products'=>array(
-			array('name'=>'Talent management & agency Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
-			array('name'=>'Talent management & agency Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
-			array('name'=>'Talent management & agency Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+		'Talent management & agency' => array('photo'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75','desc'=>'Talent management & agency operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Talent Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Talent Management Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+			array('name'=>'Talent Management Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Talent Management Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
 		)),
-		'Book publishing & authoring' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Specialized book publishing & authoring solutions','products'=>array(
-			array('name'=>'Book publishing & authoring Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
-			array('name'=>'Book publishing & authoring Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Book publishing & authoring Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+		'Book publishing & authoring' => array('photo'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75','desc'=>'Book publishing & authoring operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Book Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Book Publishing Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75'),
+			array('name'=>'Book Publishing Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Book Publishing Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
 		)),
-		'Museum & cultural space' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Specialized museum & cultural space solutions','products'=>array(
-			array('name'=>'Museum & cultural space Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
-			array('name'=>'Museum & cultural space Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
-			array('name'=>'Museum & cultural space Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+		'Museum & cultural space' => array('photo'=>'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=75','desc'=>'Museum & cultural space operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Museum Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Museum Cultural Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75'),
+			array('name'=>'Museum Cultural Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Museum Cultural Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
 		)),
-		'Augmented reality content' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Specialized augmented reality content solutions','products'=>array(
-			array('name'=>'Augmented reality content Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
-			array('name'=>'Augmented reality content Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
-			array('name'=>'Augmented reality content Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
+		'Augmented reality content' => array('photo'=>'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&q=75','desc'=>'Augmented reality content operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with media industry standards and best practices','categories'=>array('Augmented Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Augmented Reality Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=400&q=75'),
+			array('name'=>'Augmented Reality Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1524712245354-2c4e5e7121c0?w=400&q=75'),
+			array('name'=>'Augmented Reality Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44v?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Asset management saved us 10 hours per week searching for footage.', 'author' => 'Director Ahmed, Production House, Dubai Media City'),

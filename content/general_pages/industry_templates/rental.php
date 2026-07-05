@@ -74,126 +74,126 @@ $industryData = array(
 		'Musical instrument rental',
 	),
 	'sub_industry_products' => array(
-		'Online booking system' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Specialized online booking system solutions','products'=>array(
-			array('name'=>'Online booking system Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
-			array('name'=>'Online booking system Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Online booking system Enterprise','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+		'Online booking system' => array('photo'=>'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=75','desc'=>'Online booking system operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Online Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Online Booking Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75'),
+			array('name'=>'Online Booking Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Online Booking Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
 		)),
-		'Fleet / asset tracking' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Specialized fleet / asset tracking solutions','products'=>array(
-			array('name'=>'Fleet / asset tracking Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
-			array('name'=>'Fleet / asset tracking Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Fleet / asset tracking Enterprise','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+		'Fleet / asset tracking' => array('photo'=>'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=75','desc'=>'Fleet / asset tracking operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Fleet Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Fleet Asset Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75'),
+			array('name'=>'Fleet Asset Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Fleet Asset Analytics Dashboard','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
 		)),
-		'Lease contract management' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Specialized lease contract management solutions','products'=>array(
-			array('name'=>'Lease contract management Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
-			array('name'=>'Lease contract management Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Lease contract management Enterprise','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+		'Lease contract management' => array('photo'=>'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=75','desc'=>'Lease contract management operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Lease Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Lease Contract Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75'),
+			array('name'=>'Lease Contract Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Lease Contract Analytics Dashboard','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
 		)),
-		'Car & vehicle rental' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Specialized car & vehicle rental solutions','products'=>array(
-			array('name'=>'Car & vehicle rental Basic','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
-			array('name'=>'Car & vehicle rental Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Car & vehicle rental Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+		'Car & vehicle rental' => array('photo'=>'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&q=75','desc'=>'Car & vehicle rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Car Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Car Vehicle Management Platform','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75'),
+			array('name'=>'Car Vehicle Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Car Vehicle Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
 		)),
-		'Equipment & tool rental' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Specialized equipment & tool rental solutions','products'=>array(
-			array('name'=>'Equipment & tool rental Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
-			array('name'=>'Equipment & tool rental Professional','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Equipment & tool rental Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+		'Equipment & tool rental' => array('photo'=>'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&q=75','desc'=>'Equipment & tool rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Equipment Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Equipment Tool Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75'),
+			array('name'=>'Equipment Tool Operations Suite','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Equipment Tool Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
 		)),
-		'Property leasing' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Specialized property leasing solutions','products'=>array(
-			array('name'=>'Property leasing Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
-			array('name'=>'Property leasing Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Property leasing Enterprise','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+		'Property leasing' => array('photo'=>'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=400&q=75','desc'=>'Property leasing operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Property Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Property Leasing Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75'),
+			array('name'=>'Property Leasing Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Property Leasing Analytics Dashboard','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
 		)),
-		'Party & event rentals' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Specialized party & event rentals solutions','products'=>array(
-			array('name'=>'Party & event rentals Basic','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
-			array('name'=>'Party & event rentals Professional','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Party & event rentals Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+		'Party & event rentals' => array('photo'=>'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&q=75','desc'=>'Party & event rentals operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Party Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Party Event Management Platform','price'=>'AED 3,500','image'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75'),
+			array('name'=>'Party Event Operations Suite','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Party Event Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
 		)),
-		'Heavy machinery hire' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Specialized heavy machinery hire solutions','products'=>array(
-			array('name'=>'Heavy machinery hire Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
-			array('name'=>'Heavy machinery hire Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Heavy machinery hire Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+		'Heavy machinery hire' => array('photo'=>'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&q=75','desc'=>'Heavy machinery hire operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Heavy Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Heavy Machinery Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75'),
+			array('name'=>'Heavy Machinery Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Heavy Machinery Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
 		)),
-		'Co-working & office rental' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Specialized co-working & office rental solutions','products'=>array(
-			array('name'=>'Co-working & office rental Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
-			array('name'=>'Co-working & office rental Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Co-working & office rental Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+		'Co-working & office rental' => array('photo'=>'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&q=75','desc'=>'Co-working & office rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Co Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Co Working Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75'),
+			array('name'=>'Co Working Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Co Working Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
 		)),
-		'Self-storage rental' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Specialized self-storage rental solutions','products'=>array(
-			array('name'=>'Self-storage rental Basic','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
-			array('name'=>'Self-storage rental Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
-			array('name'=>'Self-storage rental Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
+		'Self-storage rental' => array('photo'=>'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&q=75','desc'=>'Self-storage rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Self Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Self Storage Management Platform','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75'),
+			array('name'=>'Self Storage Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&q=75'),
+			array('name'=>'Self Storage Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=400&q=75'),
 		)),
-		'Boat & yacht charter' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Specialized boat & yacht charter solutions','products'=>array(
-			array('name'=>'Boat & yacht charter Basic','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
-			array('name'=>'Boat & yacht charter Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
-			array('name'=>'Boat & yacht charter Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
+		'Boat & yacht charter' => array('photo'=>'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=75','desc'=>'Boat & yacht charter operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Boat Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Boat Yacht Management Platform','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&q=75'),
+			array('name'=>'Boat Yacht Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=75'),
+			array('name'=>'Boat Yacht Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1556761175-129418cb2dfe?w=400&q=75'),
 		)),
-		'Costume & formal wear hire' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Specialized costume & formal wear hire solutions','products'=>array(
-			array('name'=>'Costume & formal wear hire Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
-			array('name'=>'Costume & formal wear hire Professional','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
-			array('name'=>'Costume & formal wear hire Enterprise','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
+		'Costume & formal wear hire' => array('photo'=>'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=75','desc'=>'Costume & formal wear hire operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Costume Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Costume Formal Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=75'),
+			array('name'=>'Costume Formal Operations Suite','price'=>'AED 720','image'=>'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=400&q=75'),
+			array('name'=>'Costume Formal Analytics Dashboard','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=75'),
 		)),
 
-		'Residential property rental' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Specialized residential property rental solutions','products'=>array(
-			array('name'=>'Residential property rental Basic','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Residential property rental Professional','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
-			array('name'=>'Residential property rental Enterprise','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		'Residential property rental' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Residential property rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Residential Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Residential Property Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Residential Property Operations Suite','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Residential Property Analytics Dashboard','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
 		)),
-		'Agricultural equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized agricultural equipment rental solutions','products'=>array(
-			array('name'=>'Agricultural equipment rental Basic','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
-			array('name'=>'Agricultural equipment rental Professional','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
-			array('name'=>'Agricultural equipment rental Enterprise','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+		'Agricultural equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Agricultural equipment rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Agricultural Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Agricultural Equipment Management Platform','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Agricultural Equipment Operations Suite','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Agricultural Equipment Analytics Dashboard','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
 		)),
-		'Camera & AV rental' => array('photo'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75','desc'=>'Specialized camera & av rental solutions','products'=>array(
-			array('name'=>'Camera & AV rental Basic','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
-			array('name'=>'Camera & AV rental Professional','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
-			array('name'=>'Camera & AV rental Enterprise','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+		'Camera & AV rental' => array('photo'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75','desc'=>'Camera & AV rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Camera Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Camera AV Management Platform','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Camera AV Operations Suite','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Camera AV Analytics Dashboard','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
 		)),
-		'Medical equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Specialized medical equipment rental solutions','products'=>array(
-			array('name'=>'Medical equipment rental Basic','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
-			array('name'=>'Medical equipment rental Professional','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
-			array('name'=>'Medical equipment rental Enterprise','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		'Medical equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Medical equipment rental operations encompassing patient scheduling, treatment records, care protocols, billing & insurance, outcome tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Medical Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Medical Equipment Management Platform','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Medical Equipment Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'Medical Equipment Analytics Dashboard','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
 		)),
-		'Furniture rental' => array('photo'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75','desc'=>'Specialized furniture rental solutions','products'=>array(
-			array('name'=>'Furniture rental Basic','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
-			array('name'=>'Furniture rental Professional','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Furniture rental Enterprise','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+		'Furniture rental' => array('photo'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75','desc'=>'Furniture rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Furniture Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Furniture Rental Management Platform','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'Furniture Rental Operations Suite','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Furniture Rental Analytics Dashboard','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
 		)),
-		'Wedding & event rental' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Specialized wedding & event rental solutions','products'=>array(
-			array('name'=>'Wedding & event rental Basic','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Wedding & event rental Professional','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
-			array('name'=>'Wedding & event rental Enterprise','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		'Wedding & event rental' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Wedding & event rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Wedding Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Wedding Event Management Platform','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Wedding Event Operations Suite','price'=>'AED 75','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Wedding Event Analytics Dashboard','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
 		)),
-		'Sports equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized sports equipment rental solutions','products'=>array(
-			array('name'=>'Sports equipment rental Basic','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
-			array('name'=>'Sports equipment rental Professional','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
-			array('name'=>'Sports equipment rental Enterprise','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+		'Sports equipment rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Sports equipment rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Sports Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Sports Equipment Management Platform','price'=>'AED 1,200','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Sports Equipment Operations Suite','price'=>'AED 85','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Sports Equipment Analytics Dashboard','price'=>'AED 1,500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
 		)),
-		'Container & portable building' => array('photo'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75','desc'=>'Specialized container & portable building solutions','products'=>array(
-			array('name'=>'Container & portable building Basic','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
-			array('name'=>'Container & portable building Professional','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
-			array('name'=>'Container & portable building Enterprise','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+		'Container & portable building' => array('photo'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75','desc'=>'Container & portable building operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Container Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Container Portable Management Platform','price'=>'AED 1,800','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Container Portable Operations Suite','price'=>'AED 120','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Container Portable Analytics Dashboard','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
 		)),
-		'Generator & power rental' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Specialized generator & power rental solutions','products'=>array(
-			array('name'=>'Generator & power rental Basic','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
-			array('name'=>'Generator & power rental Professional','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
-			array('name'=>'Generator & power rental Enterprise','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+		'Generator & power rental' => array('photo'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75','desc'=>'Generator & power rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Generator Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Generator Power Management Platform','price'=>'AED 2,500','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+			array('name'=>'Generator Power Operations Suite','price'=>'AED 180','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'Generator Power Analytics Dashboard','price'=>'AED 250','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
 		)),
-		'IT & computer rental' => array('photo'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75','desc'=>'Specialized it & computer rental solutions','products'=>array(
-			array('name'=>'IT & computer rental Basic','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
-			array('name'=>'IT & computer rental Professional','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'IT & computer rental Enterprise','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+		'IT & computer rental' => array('photo'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75','desc'=>'IT & computer rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('IT Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'IT Computer Management Platform','price'=>'AED 3,000','image'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75'),
+			array('name'=>'IT Computer Operations Suite','price'=>'AED 420','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'IT Computer Analytics Dashboard','price'=>'AED 350','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
 		)),
-		'Costume & fancy dress hire' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Specialized costume & fancy dress hire solutions','products'=>array(
-			array('name'=>'Costume & fancy dress hire Basic','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
-			array('name'=>'Costume & fancy dress hire Professional','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
-			array('name'=>'Costume & fancy dress hire Enterprise','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+		'Costume & fancy dress hire' => array('photo'=>'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=400&q=75','desc'=>'Costume & fancy dress hire operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Costume Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Costume Fancy Management Platform','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75'),
+			array('name'=>'Costume Fancy Operations Suite','price'=>'AED 800','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Costume Fancy Analytics Dashboard','price'=>'AED 500','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
 		)),
-		'Musical instrument rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Specialized musical instrument rental solutions','products'=>array(
-			array('name'=>'Musical instrument rental Basic','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
-			array('name'=>'Musical instrument rental Professional','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
-			array('name'=>'Musical instrument rental Enterprise','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
+		'Musical instrument rental' => array('photo'=>'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=75','desc'=>'Musical instrument rental operations encompassing availability management, booking & reservations, contract generation, asset tracking, maintenance scheduling. Provides end-to-end digital workflow management aligned with rental industry standards and best practices','categories'=>array('Musical Solutions','Starter Package','Professional Suite','Enterprise Platform','Add-On Modules','Support & Training'),'products'=>array(
+			array('name'=>'Musical Instrument Management Platform','price'=>'AED 45','image'=>'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=75'),
+			array('name'=>'Musical Instrument Operations Suite','price'=>'AED 650','image'=>'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=75'),
+			array('name'=>'Musical Instrument Analytics Dashboard','price'=>'AED 750','image'=>'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=400&q=75'),
 		)),
 	),
 	'testimonial' => array('quote' => 'Asset utilization went from 65% to 82% with dynamic pricing and online booking.', 'author' => 'Rental Company Manager, Business Bay'),
