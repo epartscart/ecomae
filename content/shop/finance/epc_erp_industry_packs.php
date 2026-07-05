@@ -562,7 +562,10 @@ if (!function_exists('epc_erp_resolve_pack_from_consolidation')) {
      */
     function epc_erp_resolve_pack_from_consolidation(string $industryCode): ?array
     {
-        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+        $docRoot = isset($_SERVER['DOCUMENT_ROOT']) && $_SERVER['DOCUMENT_ROOT'] !== ''
+            ? $_SERVER['DOCUMENT_ROOT']
+            : dirname(__DIR__, 3);
+        require_once $docRoot . '/content/general_pages/epc_industry_consolidation.php';
 
         $group = epc_industry_get_group($industryCode);
         $erpBase = $group['erp_base'] ?? 'general';
@@ -590,7 +593,10 @@ if (!function_exists('epc_erp_costing_for_industry')) {
      */
     function epc_erp_costing_for_industry(string $industryCode): string
     {
-        require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+        $docRoot = isset($_SERVER['DOCUMENT_ROOT']) && $_SERVER['DOCUMENT_ROOT'] !== ''
+            ? $_SERVER['DOCUMENT_ROOT']
+            : dirname(__DIR__, 3);
+        require_once $docRoot . '/content/general_pages/epc_industry_consolidation.php';
         $group = epc_industry_get_group($industryCode);
         return $group['costing_default'] ?? 'weighted_avg';
     }
