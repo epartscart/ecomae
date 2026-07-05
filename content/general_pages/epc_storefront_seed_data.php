@@ -209,7 +209,15 @@ function epc_storefront_seed_category_tree(string $industry, array $locale = arr
 		case 'tax_advisory':
 		case 'consultancy': return epc_storefront_seed_categories_consulting($locale);
 		case 'jewellery':   return epc_storefront_seed_categories_jewellery();
-		default:            return array();
+		default:
+			// Fallback to industry themes registry
+			$themeFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_industry_themes.php';
+			if (is_file($themeFile)) {
+				require_once $themeFile;
+				$theme = epc_industry_theme($industry);
+				return isset($theme['categories']) ? $theme['categories'] : array();
+			}
+			return array();
 	}
 }
 
@@ -332,7 +340,16 @@ function epc_storefront_seed_product_catalog(string $industry, array $locale = a
 		case 'tax_advisory':
 		case 'consultancy': $raw = epc_storefront_seed_products_consulting($locale); break;
 		case 'jewellery':   $raw = epc_storefront_seed_products_jewellery(); break;
-		default:            return array();
+		default:
+			// Fallback to industry themes registry
+			$themeFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_industry_themes.php';
+			if (is_file($themeFile)) {
+				require_once $themeFile;
+				$theme = epc_industry_theme($industry);
+				$raw = isset($theme['products']) ? $theme['products'] : array();
+			}
+			if (empty($raw)) { return array(); }
+			break;
 	}
 	if ($currency === 'AED') {
 		return $raw;
