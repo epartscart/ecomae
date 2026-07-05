@@ -544,14 +544,19 @@ function epc_lax_action_catalogs()
                 epc_lax_cache_set($cacheKey, 'catalogs', ['locale' => $locale], $rows);
                 epc_lax_json(['status' => true, 'source' => 'db', 'catalogs' => $rows], 200, 3600);
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            // Table might not exist yet — continue to sync
         }
     }
 
-    $count = epc_lax_sync_catalogs();
-    if ($count) {
-        $cached = epc_lax_cache_get($cacheKey, 86400);
-        epc_lax_json(['status' => true, 'source' => 'live', 'synced' => $count, 'catalogs' => $cached ?: []], 200, 3600);
+    try {
+        $count = epc_lax_sync_catalogs();
+        if ($count) {
+            $cached = epc_lax_cache_get($cacheKey, 86400);
+            epc_lax_json(['status' => true, 'source' => 'live', 'synced' => $count, 'catalogs' => $cached ?: []], 200, 3600);
+        }
+    } catch (\Throwable $e) {
+        // Sync failed — API credentials may not be configured
     }
 
     if ($db) {
@@ -561,11 +566,12 @@ function epc_lax_action_catalogs()
             if (!empty($rows)) {
                 epc_lax_json(['status' => true, 'source' => 'db_stale', 'catalogs' => $rows], 200, 300);
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            // Table might not exist
         }
     }
 
-    epc_lax_json(['status' => false, 'error' => 'Unable to fetch catalogs'], 503);
+    epc_lax_json(['status' => false, 'error' => 'Laximo API credentials not configured or service unavailable. Configure via CP > Settings > Laximo.'], 503);
 }
 
 function epc_lax_action_find_vehicle()
@@ -1074,7 +1080,11 @@ function epc_lax_action_sync()
 
 // --- Main router ---
 
-epc_lax_ensure_tables();
+try {
+    epc_lax_ensure_tables();
+} catch (\Throwable $e) {
+    // Tables may already exist or user lacks CREATE permission — continue
+}
 
 $action = epc_lax_param('action', 'catalogs');
 

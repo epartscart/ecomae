@@ -69,6 +69,10 @@ function epc_is_ecomae_marketing_root_request()
 	if (preg_match('#^/demo/[a-z0-9_]+(?:/|$)#', $path)) {
 		return false;
 	}
+	// Industry subdomains render their template for any path (no multi-page content)
+	if (!empty($GLOBALS['epc_industry_subdomain_active'])) {
+		return true;
+	}
 	return $path === '/' || $path === '/index.php';
 }
 
@@ -77,10 +81,83 @@ function epc_is_ecomae_marketing_root_request()
  */
 function epc_render_ecomae_marketing_home_and_exit()
 {
+	// Industry subdomains render their specific template instead of generic homepage
+	if (!empty($GLOBALS['epc_industry_subdomain_active'])) {
+		$group = $GLOBALS['epc_industry_subdomain_group'] ?? '';
+		if ($group !== '') {
+			epc_render_industry_subdomain_page($group);
+			exit;
+		}
+	}
 	epc_ecomae_platform_send_marketing_headers();
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_platform_pages.php';
 	echo epc_ecomae_platform_render_page('home', array());
 	exit;
+}
+
+/**
+ * Render an industry subdomain page using the template from industry_templates/.
+ */
+function epc_render_industry_subdomain_page(string $group): void
+{
+	// Map subdomain group keys to template filenames
+	$templateMap = array(
+		'automotive' => 'automotive',
+		'healthcare' => 'healthcare',
+		'food' => 'food_beverage',
+		'fashion' => 'fashion',
+		'jewellery' => 'jewellery',
+		'electronics' => 'electronics',
+		'construction' => 'construction',
+		'realestate' => 'construction',
+		'manufacturing' => 'manufacturing',
+		'professional' => 'professional',
+		'consulting' => 'professional',
+		'legal' => 'professional',
+		'education' => 'education',
+		'hospitality' => 'hospitality',
+		'beauty' => 'beauty',
+		'retail' => 'retail',
+		'agriculture' => 'agriculture',
+		'logistics' => 'logistics',
+		'energy' => 'energy',
+		'environmental' => 'energy',
+		'finance' => 'finance',
+		'technology' => 'it_software',
+		'telecom' => 'electronics',
+		'media' => 'media',
+		'sports' => 'sports',
+		'nonprofit' => 'nonprofit',
+		'government' => 'nonprofit',
+		'aerospace' => 'manufacturing',
+		'mining' => 'manufacturing',
+		'wholesale' => 'wholesale',
+		'rental' => 'rental',
+		'cleaning' => 'cleaning',
+		'pet' => 'pet',
+		'printing' => 'printing',
+		'security' => 'security',
+		'homeliving' => 'home_living',
+	);
+
+	$templateKey = $templateMap[$group] ?? 'retail';
+	$templateDir = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/industry_templates';
+	$templateFile = $templateDir . '/' . $templateKey . '.php';
+
+	if (!is_file($templateFile)) {
+		$templateFile = $templateDir . '/retail.php';
+	}
+
+	header('Content-Type: text/html; charset=utf-8');
+	header('Cache-Control: public, max-age=3600');
+	header('X-Industry-Group: ' . $group);
+
+	// Define the constant so templates don't die()
+	if (!defined('_ASTEXE_')) {
+		define('_ASTEXE_', 1);
+	}
+
+	require $templateFile;
 }
 
 /**

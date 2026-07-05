@@ -67,6 +67,8 @@ function epc_industry_subdomain_resolve_group(string $slug): string
 		'legal', 'sports', 'environmental', 'aerospace', 'mining',
 		'telecom', 'retail', 'fashion', 'jewellery', 'electronics',
 		'consulting', 'government', 'nonprofit',
+		'wholesale', 'rental', 'cleaning', 'pet', 'printing', 'security',
+		'homeliving',
 	);
 	if (in_array($slug, $directGroups, true)) {
 		return $slug;
@@ -146,6 +148,22 @@ function epc_industry_subdomain_resolve_group(string $slug): string
 		'supermarket' => 'retail',
 		'ngo' => 'nonprofit',
 		'charity' => 'nonprofit',
+		'furniture' => 'homeliving',
+		'interiors' => 'homeliving',
+		'home' => 'homeliving',
+		'distribution' => 'wholesale',
+		'trading' => 'wholesale',
+		'leasing' => 'rental',
+		'hire' => 'rental',
+		'facilities' => 'cleaning',
+		'maintenance' => 'cleaning',
+		'veterinary' => 'pet',
+		'petcare' => 'pet',
+		'signage' => 'printing',
+		'print' => 'printing',
+		'surveillance' => 'security',
+		'guard' => 'security',
+		'cctv' => 'security',
 	);
 	if (isset($aliases[$slug])) {
 		return $aliases[$slug];
