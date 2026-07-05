@@ -54,9 +54,11 @@ function epart_front_render_own_brand($db_link, string $lang_href, string $brand
 		return '';
 	}
 	try {
-		$brandLike = '%' . $brand_name . '%';
+		// Use trailing wildcard only (allows index usage) to avoid full table scan
+		$brandLike = $brand_name . '%';
+		$db_link->setAttribute(PDO::ATTR_TIMEOUT, 3);
 		$stmt = $db_link->prepare(
-			'SELECT DISTINCT d.`brand`, COUNT(*) AS cnt '
+			'SELECT d.`brand`, COUNT(*) AS cnt '
 			. 'FROM `shop_docpart_prices_data` d '
 			. 'WHERE d.`brand` LIKE ? '
 			. 'GROUP BY d.`brand` ORDER BY cnt DESC LIMIT 10'
@@ -94,8 +96,8 @@ if (strpos($host, 'epartscart.com') === false) {
 $_memRaw = trim((string) ini_get('memory_limit'));
 $_memVal = (int) $_memRaw;
 if (stripos($_memRaw, 'G') !== false) { $_memVal *= 1024; }
-if ($_memVal > 0 && $_memVal < 256) {
-	@ini_set('memory_limit', '256M');
+if ($_memVal > 0 && $_memVal < 512) {
+	@ini_set('memory_limit', '512M');
 }
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] != '') ? rtrim($multilang_params['lang_href'], '/') : '/en';
 $cachePrefix = 'epart_front_widget:v3:' . preg_replace('/[^a-z0-9.\-]/', '', $host) . ':' . md5($lang_href) . ':';
@@ -240,11 +242,10 @@ $vehicle_html = epart_front_render_widget('content/vehicle_catalog.php', $cacheP
 		?>
 	</section>
 
-	<!-- 4. Own Brand (deferred — heavy page already uses peak memory by this point) -->
-	<!-- DIAG:MEM=<?php echo round(memory_get_usage(true) / 1048576, 1); ?>MB/PEAK=<?php echo round(memory_get_peak_usage(true) / 1048576, 1); ?>MB/LIM=<?php echo ini_get('memory_limit'); ?> -->
+	<!-- 4. Own Brand -->
 	<?php
 	$own_brand_html = '';
-	if (memory_get_usage(true) < 100 * 1024 * 1024) {
+	if (memory_get_usage(true) < 64 * 1024 * 1024) {
 		try {
 			$own_brand_name = (isset($DP_Config) && !empty($DP_Config->own_brand_name)) ? $DP_Config->own_brand_name : 'EPC';
 			$own_brand_html = epart_front_render_own_brand($db_link, $lang_href, $own_brand_name, $cachePrefix);
