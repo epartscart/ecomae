@@ -2816,6 +2816,11 @@ function epc_portal_demo_try_bootstrap_cp($DP_Config): bool
 	}
 	$row = epc_portal_demo_load_live_row($parsed['site_key']);
 	if ($row === null) {
+		$industryInfo = epc_portal_demo_industry_landing_info($parsed['site_key']);
+		if ($industryInfo !== null) {
+			epc_portal_demo_render_industry_cp_landing($industryInfo, $parsed['site_key']);
+			exit;
+		}
 		http_response_code(404);
 		header('Content-Type: text/html; charset=utf-8');
 		echo '<!DOCTYPE html><html><head><title>Demo CP not found</title></head><body style="font-family:sans-serif;padding:24px">';
@@ -2898,4 +2903,145 @@ function epc_portal_demo_wizard_reply(string $message, array $context = array())
 		return array('reply' => $message, 'ai' => false);
 	}
 	return array('reply' => trim($reply), 'ai' => true);
+}
+
+function epc_portal_demo_industry_landing_info(string $siteKey): ?array
+{
+	$map = array(
+		'food_beverage' => array('name' => 'Food & Beverage', 'icon' => 'fa-cutlery', 'color' => '#e67e22', 'modules' => array('POS & Kitchen Display', 'Menu Management', 'Delivery & Takeaway', 'Inventory & Waste Tracking', 'Staff Scheduling', 'Customer Loyalty')),
+		'healthcare_medical' => array('name' => 'Healthcare & Medical', 'icon' => 'fa-heartbeat', 'color' => '#2ecc71', 'modules' => array('Patient Records (EMR)', 'Appointment Scheduling', 'Pharmacy & Dispensing', 'Lab & Diagnostics', 'Billing & Claims', 'Compliance (HIPAA/DHA)')),
+		'construction_realestate' => array('name' => 'Construction & Real Estate', 'icon' => 'fa-building', 'color' => '#3498db', 'modules' => array('Project Management', 'BOQ & Estimation', 'Sub-contractor Portal', 'Material Tracking', 'Progress Billing', 'Site Safety')),
+		'automotive' => array('name' => 'Automotive & Vehicles', 'icon' => 'fa-car', 'color' => '#e74c3c', 'modules' => array('Parts Catalog (OEM)', 'Workshop & Service', 'Vehicle Registration', 'Insurance Claims', 'Fleet Management', 'Warranty Tracking')),
+		'jewellery_luxury' => array('name' => 'Jewellery & Luxury', 'icon' => 'fa-diamond', 'color' => '#f39c12', 'modules' => array('Karats & Gold Rates', 'Stone Management', 'Custom Design', 'Hallmark Compliance', 'Consignment', 'TAG Printing')),
+		'electronics_technology' => array('name' => 'Electronics & Technology', 'icon' => 'fa-microchip', 'color' => '#9b59b6', 'modules' => array('SKU & Serial Tracking', 'Warranty Management', 'Repair Center', 'Drop-ship Integration', 'Marketplace Sync', 'RMA Processing')),
+		'fashion_apparel' => array('name' => 'Fashion & Apparel', 'icon' => 'fa-shopping-bag', 'color' => '#e91e63', 'modules' => array('Size/Color Matrix', 'Season Planning', 'Lookbook Builder', 'POS & Omnichannel', 'Returns Management', 'Influencer Portal')),
+		'education_training' => array('name' => 'Education & Training', 'icon' => 'fa-graduation-cap', 'color' => '#3f51b5', 'modules' => array('Student Management', 'Course Catalog', 'Attendance & Grades', 'Fee Collection', 'E-learning (LMS)', 'Certificate Generation')),
+		'hospitality_travel' => array('name' => 'Hospitality & Travel', 'icon' => 'fa-hotel', 'color' => '#00bcd4', 'modules' => array('Room Management', 'Booking Engine', 'F&B Integration', 'Housekeeping', 'Channel Manager', 'Guest Loyalty')),
+		'beauty_wellness' => array('name' => 'Beauty & Wellness', 'icon' => 'fa-spa', 'color' => '#e91e63', 'modules' => array('Appointment Booking', 'Therapist Scheduling', 'Product Sales', 'Membership Plans', 'Client History', 'Package Deals')),
+		'retail_ecommerce' => array('name' => 'Retail & E-commerce', 'icon' => 'fa-shopping-cart', 'color' => '#ff5722', 'modules' => array('Multi-store POS', 'Inventory Sync', 'Marketplace Integration', 'Loyalty & Rewards', 'Click-and-Collect', 'Analytics Dashboard')),
+		'agriculture_farming' => array('name' => 'Agriculture & Farming', 'icon' => 'fa-leaf', 'color' => '#4caf50', 'modules' => array('Crop Planning', 'Livestock Tracking', 'Weather Integration', 'Supply Chain', 'Equipment Management', 'Harvest Recording')),
+		'logistics_transport' => array('name' => 'Logistics & Transport', 'icon' => 'fa-truck', 'color' => '#795548', 'modules' => array('Fleet Tracking (GPS)', 'Route Optimization', 'Shipment Management', 'Warehouse WMS', 'Last-mile Delivery', 'POD & Signatures')),
+		'energy_utilities' => array('name' => 'Energy & Utilities', 'icon' => 'fa-bolt', 'color' => '#ffc107', 'modules' => array('Meter Management', 'Billing Cycles', 'Field Service', 'Outage Tracking', 'Renewable Assets', 'Regulatory Compliance')),
+		'financial_services' => array('name' => 'Financial Services', 'icon' => 'fa-university', 'color' => '#1a237e', 'modules' => array('Account Management', 'Loan Origination', 'KYC/AML Compliance', 'Payment Processing', 'Risk Assessment', 'Portfolio Reporting')),
+		'it_software' => array('name' => 'IT & Software', 'icon' => 'fa-code', 'color' => '#607d8b', 'modules' => array('Project Tracking', 'Sprint Planning', 'Time & Billing', 'SLA Management', 'License Keys', 'Client Portal')),
+		'media_entertainment' => array('name' => 'Media & Entertainment', 'icon' => 'fa-film', 'color' => '#9c27b0', 'modules' => array('Content Management', 'Digital Rights', 'Ad Inventory', 'Subscription Billing', 'Audience Analytics', 'Event Ticketing')),
+		'sports_fitness' => array('name' => 'Sports & Fitness', 'icon' => 'fa-futbol-o', 'color' => '#ff9800', 'modules' => array('Member Management', 'Class Scheduling', 'Equipment Booking', 'Trainer Assignment', 'Progress Tracking', 'Merchandise Sales')),
+		'nonprofit_government' => array('name' => 'Non-Profit & Government', 'icon' => 'fa-institution', 'color' => '#455a64', 'modules' => array('Donor Management', 'Grant Tracking', 'Volunteer Portal', 'Fund Accounting', 'Campaign Management', 'Compliance Reports')),
+		'wholesale_trading' => array('name' => 'Wholesale & Trading', 'icon' => 'fa-cube', 'color' => '#6d4c41', 'modules' => array('Bulk Pricing Tiers', 'B2B Portal', 'Trade Credit', 'Container Tracking', 'Multi-warehouse', 'Purchase Orders')),
+		'rental_leasing' => array('name' => 'Rental & Leasing', 'icon' => 'fa-key', 'color' => '#00897b', 'modules' => array('Asset Tracking', 'Contract Management', 'Availability Calendar', 'Maintenance Scheduling', 'Late Fee Engine', 'Insurance Integration')),
+		'cleaning_maintenance' => array('name' => 'Cleaning & Maintenance', 'icon' => 'fa-wrench', 'color' => '#0277bd', 'modules' => array('Job Scheduling', 'Team Dispatch', 'Quality Checklists', 'Supply Inventory', 'Client Contracts', 'Time Tracking')),
+		'pet_animal' => array('name' => 'Pet & Animal Services', 'icon' => 'fa-paw', 'color' => '#8bc34a', 'modules' => array('Pet Profiles', 'Appointment Booking', 'Grooming & Boarding', 'Vet Records', 'Product Sales', 'Vaccination Reminders')),
+		'printing_signage' => array('name' => 'Printing & Signage', 'icon' => 'fa-print', 'color' => '#e64a19', 'modules' => array('Job Estimation', 'Production Queue', 'Artwork Proofing', 'Material Costing', 'Delivery Scheduling', 'Client Portal')),
+		'security_safety' => array('name' => 'Security & Safety', 'icon' => 'fa-shield', 'color' => '#37474f', 'modules' => array('Guard Scheduling', 'Patrol Tracking', 'Incident Reports', 'Access Control', 'CCTV Integration', 'Compliance Audits')),
+		'home_living' => array('name' => 'Home & Living', 'icon' => 'fa-home', 'color' => '#8d6e63', 'modules' => array('Room Planner', 'Catalog Builder', 'Custom Orders', 'Delivery Scheduling', 'Installation Tracking', 'After-sales Service')),
+		'manufacturing_industrial' => array('name' => 'Manufacturing & Industrial', 'icon' => 'fa-industry', 'color' => '#546e7a', 'modules' => array('BOM Management', 'Work Orders', 'Quality Control', 'Machine Scheduling', 'Inventory (MRP)', 'Supplier Portal')),
+		'professional_services' => array('name' => 'Professional & Business', 'icon' => 'fa-briefcase', 'color' => '#5c6bc0', 'modules' => array('Client CRM', 'Project Billing', 'Timesheet Tracking', 'Document Management', 'Proposal Builder', 'Resource Planning')),
+	);
+	if (isset($map[$siteKey])) {
+		return $map[$siteKey];
+	}
+	$aliases = array(
+		'food' => 'food_beverage', 'healthcare' => 'healthcare_medical', 'construction' => 'construction_realestate',
+		'jewellery' => 'jewellery_luxury', 'electronics' => 'electronics_technology', 'fashion' => 'fashion_apparel',
+		'education' => 'education_training', 'hospitality' => 'hospitality_travel', 'beauty' => 'beauty_wellness',
+		'retail' => 'retail_ecommerce', 'agriculture' => 'agriculture_farming', 'logistics' => 'logistics_transport',
+		'energy' => 'energy_utilities', 'finance' => 'financial_services', 'technology' => 'it_software',
+		'media' => 'media_entertainment', 'sports' => 'sports_fitness', 'nonprofit' => 'nonprofit_government',
+		'wholesale' => 'wholesale_trading', 'rental' => 'rental_leasing', 'cleaning' => 'cleaning_maintenance',
+		'pet' => 'pet_animal', 'printing' => 'printing_signage', 'security' => 'security_safety',
+		'homeliving' => 'home_living', 'manufacturing' => 'manufacturing_industrial', 'professional' => 'professional_services',
+		'medical' => 'healthcare_medical', 'travel' => 'hospitality_travel', 'fitness' => 'sports_fitness',
+	);
+	$resolved = $aliases[$siteKey] ?? null;
+	return $resolved !== null ? ($map[$resolved] ?? null) : null;
+}
+
+function epc_portal_demo_render_industry_cp_landing(array $info, string $siteKey): void
+{
+	$name = htmlspecialchars($info['name'], ENT_QUOTES, 'UTF-8');
+	$icon = htmlspecialchars($info['icon'], ENT_QUOTES, 'UTF-8');
+	$color = htmlspecialchars($info['color'], ENT_QUOTES, 'UTF-8');
+	$key = htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8');
+	http_response_code(200);
+	header('Content-Type: text/html; charset=utf-8');
+	echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>' . $name . ' — Control Panel Demo | ecomae</title>';
+	echo '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">';
+	echo '<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;overflow-x:hidden}
+.particles{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.particles span{position:absolute;width:2px;height:2px;background:' . $color . ';border-radius:50%;animation:fall linear infinite;opacity:0.4}
+@keyframes fall{0%{transform:translateY(-10vh) translateX(0);opacity:0}10%{opacity:0.4}90%{opacity:0.4}100%{transform:translateY(110vh) translateX(20px);opacity:0}}
+.container{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:60px 24px}
+.header{text-align:center;margin-bottom:48px}
+.header .icon{width:80px;height:80px;border-radius:20px;background:' . $color . '22;border:2px solid ' . $color . '44;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px}
+.header .icon i{font-size:36px;color:' . $color . '}
+.header h1{font-size:28px;margin-bottom:8px;color:#fff}
+.header p{color:#8b949e;font-size:16px}
+.badge{display:inline-block;background:' . $color . '33;color:' . $color . ';padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-top:12px}
+.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:48px}
+.module{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px;transition:all 0.3s}
+.module:hover{border-color:' . $color . '66;transform:translateY(-2px);box-shadow:0 8px 24px ' . $color . '11}
+.module h3{font-size:14px;color:#fff;margin-bottom:4px}
+.module p{font-size:12px;color:#8b949e}
+.login-box{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:32px;text-align:center;margin-bottom:32px}
+.login-box h2{font-size:20px;margin-bottom:16px;color:#fff}
+.cred{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px 16px;display:inline-block;margin:8px;font-family:monospace;font-size:14px;color:' . $color . '}
+.btn{display:inline-block;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;margin:8px;transition:all 0.3s}
+.btn-primary{background:' . $color . ';color:#fff}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-outline{border:1px solid #30363d;color:#e6edf3}
+.btn-outline:hover{border-color:' . $color . ';color:' . $color . '}
+.actions{text-align:center;margin-top:24px}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.feat{text-align:center;padding:16px;border-radius:8px;background:#0d1117;border:1px solid #30363d}
+.feat i{font-size:20px;color:' . $color . ';margin-bottom:8px;display:block}
+.feat span{font-size:11px;color:#8b949e}
+.storefront-link{text-align:center;margin-top:32px;padding:20px;background:#161b22;border:1px solid #30363d;border-radius:12px}
+.storefront-link a{color:' . $color . ';text-decoration:none;font-weight:600}
+</style></head><body>';
+	echo '<div class="particles">';
+	for ($i = 0; $i < 40; $i++) {
+		$left = rand(0, 100);
+		$delay = rand(0, 50) / 10;
+		$dur = rand(60, 120) / 10;
+		echo '<span style="left:' . $left . '%;animation-delay:' . $delay . 's;animation-duration:' . $dur . 's"></span>';
+	}
+	echo '</div>';
+	echo '<div class="container">';
+	echo '<div class="header"><div class="icon"><i class="fa ' . $icon . '"></i></div>';
+	echo '<h1>' . $name . '</h1>';
+	echo '<p>Industry-specific Control Panel & ERP</p>';
+	echo '<span class="badge"><i class="fa fa-check-circle"></i> Ready to Deploy</span></div>';
+
+	echo '<div class="modules">';
+	foreach ($info['modules'] as $mod) {
+		$m = htmlspecialchars($mod, ENT_QUOTES, 'UTF-8');
+		echo '<div class="module"><h3><i class="fa fa-check" style="color:' . $color . ';margin-right:8px;font-size:12px"></i>' . $m . '</h3><p>Fully configured for ' . $name . '</p></div>';
+	}
+	echo '</div>';
+
+	echo '<div class="login-box">';
+	echo '<h2><i class="fa fa-sign-in" style="margin-right:8px"></i>Demo Access</h2>';
+	echo '<p style="color:#8b949e;margin-bottom:16px">Use these credentials to explore the ' . $name . ' Control Panel</p>';
+	echo '<div><span class="cred"><i class="fa fa-envelope"></i> demo@ecomae.com</span>';
+	echo '<span class="cred"><i class="fa fa-lock"></i> demo2026</span></div>';
+	echo '<div class="features">';
+	echo '<div class="feat"><i class="fa fa-cogs"></i><span>Control Panel</span></div>';
+	echo '<div class="feat"><i class="fa fa-bar-chart"></i><span>ERP System</span></div>';
+	echo '<div class="feat"><i class="fa fa-shopping-cart"></i><span>Storefront</span></div>';
+	echo '</div>';
+	echo '<div class="actions">';
+	echo '<a href="/cp/" class="btn btn-primary"><i class="fa fa-sign-in"></i> Open Control Panel</a>';
+	echo '<a href="/erp/" class="btn btn-outline"><i class="fa fa-bar-chart"></i> Open ERP</a>';
+	echo '</div></div>';
+
+	$subdomain = str_replace('_', '', explode('_', $siteKey)[0]);
+	echo '<div class="storefront-link">';
+	echo '<p style="margin-bottom:8px;color:#8b949e">View the live storefront for this industry:</p>';
+	echo '<a href="https://' . htmlspecialchars($subdomain, ENT_QUOTES, 'UTF-8') . '.ecomae.com"><i class="fa fa-external-link"></i> ' . htmlspecialchars($subdomain, ENT_QUOTES, 'UTF-8') . '.ecomae.com</a>';
+	echo '</div>';
+
+	echo '</div></body></html>';
 }
