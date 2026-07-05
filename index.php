@@ -66,6 +66,10 @@ if (is_file($epcTenantDbFile)) {
 	}
 }
 
+// Industry wildcard subdomains (*.ecomae.com) — bootstrap industry context early.
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_subdomain_router.php';
+epc_industry_subdomain_bootstrap($DP_Config);
+
 // www.ecomae.com GET / — marketing HTML without portal/MySQL (avoids origin hang → Cloudflare 522).
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_platform_router.php';
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && function_exists('epc_ecomae_is_marketing_platform_host') && epc_ecomae_is_marketing_platform_host()) {
