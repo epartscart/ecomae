@@ -292,8 +292,42 @@ function epc_ecomae_platform_page_industries()
 	ob_start();
 	?>
 <style>
-.epm-ind-hero{position:relative;padding:80px 40px 60px;background:linear-gradient(135deg,#0a0f1a 0%,#0d1b2a 40%,#1b2838 100%);border-radius:0 0 24px 24px;overflow:hidden;margin-bottom:40px}
+.epm-ind-hero{position:relative;padding:80px 40px 60px;background:linear-gradient(135deg,#0a0f1a 0%,#0d1b2a 40%,#1b2838 100%);border-radius:0 0 24px 24px;overflow:hidden;margin-bottom:40px;animation:heroReveal .8s ease-out}
 .epm-ind-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' patternUnits='userSpaceOnUse' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23ffffff' opacity='0.03'/%3E%3C/pattern%3E%3C/defs%3E%3Crect fill='url(%23g)' width='60' height='60'/%3E%3C/svg%3E");opacity:.5}
+/* Animated particles overlay */
+.epm-ind-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(2px 2px at 20% 30%,rgba(56,189,248,.4),transparent),radial-gradient(2px 2px at 60% 70%,rgba(129,140,248,.4),transparent),radial-gradient(2px 2px at 80% 20%,rgba(52,211,153,.4),transparent);animation:particleShift 15s linear infinite}
+@keyframes particleShift{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-10px) translateX(5px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes heroReveal{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardReveal{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 5px rgba(56,189,248,.3)}50%{box-shadow:0 0 20px rgba(56,189,248,.5)}}
+/* Search box */
+.epm-ind-search{position:relative;max-width:600px;margin:0 auto 28px}
+.epm-ind-search input{width:100%;padding:14px 20px 14px 48px;border:2px solid rgba(255,255,255,.15);border-radius:12px;background:rgba(255,255,255,.05);color:#fff;font-size:16px;outline:none;transition:all .3s}
+.epm-ind-search input:focus{border-color:#38bdf8;box-shadow:0 0 20px rgba(56,189,248,.2)}
+.epm-ind-search input::placeholder{color:rgba(255,255,255,.4)}
+.epm-ind-search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:18px}
+.epm-ind-search .search-count{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:12px}
+/* Demo credentials bar */
+.epm-demo-creds{margin:20px 0;padding:16px 24px;background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(129,140,248,.08));border:1px solid rgba(56,189,248,.3);border-radius:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;animation:pulseGlow 3s infinite}
+.epm-demo-creds__icon{width:42px;height:42px;background:rgba(56,189,248,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#38bdf8}
+.epm-demo-creds__info{flex:1}
+.epm-demo-creds__title{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px}
+.epm-demo-creds__detail{font-size:13px;color:#94a3b8}
+.epm-demo-creds__detail code{background:rgba(255,255,255,.1);padding:2px 8px;border-radius:4px;color:#38bdf8;font-family:monospace}
+.epm-demo-creds__links{display:flex;gap:8px;flex-wrap:wrap}
+.epm-demo-creds__link{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.epm-demo-creds__link--cp{background:#7c3aed;color:#fff}
+.epm-demo-creds__link--erp{background:#059669;color:#fff}
+.epm-demo-creds__link--site{background:#0369a1;color:#fff}
+.epm-demo-creds__link:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+/* Group card improvements */
+.epm-group-card{animation:cardReveal .5s ease-out both}
+.epm-group-card__links{display:flex;gap:6px;margin-top:10px}
+.epm-group-card__link{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;text-decoration:none;color:#fff;transition:all .2s}
+.epm-group-card__link:hover{transform:scale(1.05);text-decoration:none}
+.epm-group-card__link--site{background:#0369a1}
+.epm-group-card__link--cp{background:#7c3aed}
+.epm-group-card__link--erp{background:#059669}
 .epm-ind-hero__content{position:relative;z-index:2;max-width:900px;margin:0 auto;text-align:center}
 .epm-ind-hero h1{color:#fff;font-size:42px;font-weight:800;margin:0 0 16px;letter-spacing:-1px}
 .epm-ind-hero .lead{color:#94a3b8;font-size:18px;line-height:1.6;margin:0 auto 28px;max-width:720px}
@@ -335,6 +369,25 @@ function epc_ecomae_platform_page_industries()
 			<div class="epm-ded-badge"><i class="fa fa-check-circle"></i> Aligned with Dubai DED &amp; worldwide ISIC standards</div>
 			<h1>Every Business Activity. One Platform.</h1>
 			<p class="lead">From agriculture to fintech — <?php echo number_format(count($industries)); ?> industries consolidated into <?php echo $groupCount; ?> intelligent template groups. Each covers a full DED division with toggleable sub-areas for your specific activity.</p>
+			<!-- Search box -->
+			<div class="epm-ind-search">
+				<i class="fa fa-search"></i>
+				<input type="text" id="indSearch" placeholder="Search industries... (e.g. jewellery, restaurant, logistics)" onkeyup="filterIndustries(this.value)" />
+				<span class="search-count" id="searchCount"><?php echo number_format(count($industries)); ?> industries</span>
+			</div>
+			<!-- Demo credentials -->
+			<div class="epm-demo-creds">
+				<div class="epm-demo-creds__icon"><i class="fa fa-key"></i></div>
+				<div class="epm-demo-creds__info">
+					<div class="epm-demo-creds__title">Public Demo Access — Try Any Industry Free</div>
+					<div class="epm-demo-creds__detail">Email: <code>demo@ecomae.com</code> &nbsp;|&nbsp; Password: <code>demo2026</code></div>
+				</div>
+				<div class="epm-demo-creds__links">
+					<a href="/cp/demo/jewellery/" class="epm-demo-creds__link epm-demo-creds__link--cp"><i class="fa fa-th-large"></i> Demo CP</a>
+					<a href="/cp/demo/jewellery/shop/finance/erp" class="epm-demo-creds__link epm-demo-creds__link--erp"><i class="fa fa-calculator"></i> Demo ERP</a>
+					<a href="https://www.ecomae.com" class="epm-demo-creds__link epm-demo-creds__link--site"><i class="fa fa-globe"></i> Platform</a>
+				</div>
+			</div>
 			<div class="epm-ind-stats">
 				<div class="epm-ind-stat">
 					<div class="epm-ind-stat__val"><?php echo number_format(count($industries)); ?></div>
@@ -360,11 +413,11 @@ function epc_ecomae_platform_page_industries()
 	<h2 style="font-size:28px;font-weight:800;color:#0f172a;margin:0 0 8px">Template Groups</h2>
 	<p style="color:#64748b;font-size:15px;margin:0 0 4px">Each group provides: <strong>Storefront</strong> (customer-facing) + <strong>CP</strong> (back-office) + <strong>ERP</strong> (industry-specific toolkit)</p>
 	<div class="epm-groups-grid">
-		<?php foreach ($consolidatedGroups as $gk => $ginfo) {
+		<?php $gcIdx = 0; foreach ($consolidatedGroups as $gk => $ginfo) {
 			$subAreas = $ginfo['available_sub_areas'] ?? array();
 			$primary = $ginfo['color_scheme']['primary'] ?? '#3b82f6';
 			?>
-		<div class="epm-group-card">
+		<div class="epm-group-card" data-group="<?php echo epc_ecomae_h($gk); ?>" style="animation-delay:<?php echo ($gcIdx++ * 0.05); ?>s">
 			<div class="epm-group-card__head">
 				<div class="epm-group-card__icon" style="background:<?php echo epc_ecomae_h($primary); ?>"><i class="fa <?php echo epc_ecomae_h($ginfo['icon']); ?>"></i></div>
 				<div class="epm-group-card__title"><?php echo epc_ecomae_h($ginfo['label']); ?></div>
@@ -378,6 +431,11 @@ function epc_ecomae_platform_page_industries()
 				<?php if (count($subAreas) > 4): ?>
 				<span class="epm-group-card__sub" style="background:#f1f5f9;color:#64748b">+<?php echo count($subAreas) - 4; ?> more</span>
 				<?php endif; ?>
+			</div>
+			<div class="epm-group-card__links">
+				<a href="/<?php echo epc_ecomae_h($gk); ?>.ecomae.com" class="epm-group-card__link epm-group-card__link--site" title="Industry site"><i class="fa fa-globe"></i> Site</a>
+				<a href="/cp/demo/<?php echo epc_ecomae_h($gk); ?>/" class="epm-group-card__link epm-group-card__link--cp" title="Control Panel"><i class="fa fa-th-large"></i> CP</a>
+				<a href="/cp/demo/<?php echo epc_ecomae_h($gk); ?>/shop/finance/erp" class="epm-group-card__link epm-group-card__link--erp" title="ERP system"><i class="fa fa-calculator"></i> ERP</a>
 			</div>
 		</div>
 		<?php } ?>
@@ -525,6 +583,29 @@ function epc_ecomae_platform_page_industries()
 		<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo">Book a demo</a>
 	</div>
 </div>
+<script>
+function filterIndustries(q) {
+	q = q.toLowerCase().trim();
+	var cards = document.querySelectorAll('.epm-card--photo, .epm-group-card');
+	var visible = 0;
+	cards.forEach(function(card) {
+		var text = card.textContent.toLowerCase();
+		var show = !q || text.indexOf(q) !== -1;
+		card.style.display = show ? '' : 'none';
+		if (show) visible++;
+	});
+	var counter = document.getElementById('searchCount');
+	if (counter) counter.textContent = visible + ' match' + (visible !== 1 ? 'es' : '');
+}
+document.addEventListener('DOMContentLoaded', function() {
+	var observer = new IntersectionObserver(function(entries) {
+		entries.forEach(function(e) {
+			if (e.isIntersecting) { e.target.classList.add('epm-visible'); observer.unobserve(e.target); }
+		});
+	}, {threshold: 0.1});
+	document.querySelectorAll('.epm-group-card, .epm-card--photo, .epm-ded-div').forEach(function(el) { observer.observe(el); });
+});
+</script>
 	<?php
 	return ob_get_clean();
 }
