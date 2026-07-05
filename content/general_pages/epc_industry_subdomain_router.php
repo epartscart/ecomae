@@ -68,7 +68,7 @@ function epc_industry_subdomain_resolve_group(string $slug): string
 		'telecom', 'retail', 'fashion', 'jewellery', 'electronics',
 		'consulting', 'government', 'nonprofit',
 		'wholesale', 'rental', 'cleaning', 'pet', 'printing', 'security',
-		'homeliving',
+		'homeliving', 'professional',
 	);
 	if (in_array($slug, $directGroups, true)) {
 		return $slug;
