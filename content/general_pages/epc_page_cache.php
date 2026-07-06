@@ -99,6 +99,8 @@ function epc_page_cache_try_serve(): bool
 	if (function_exists('ob_gzhandler') && !ini_get('zlib.output_compression') && strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
 		ob_start('ob_gzhandler');
 	}
+	// Clear splash redirect counter — page loaded successfully
+	$html = str_replace('</body>', '<script>try{sessionStorage.removeItem("epc_splash_redir")}catch(e){}</script></body>', $html);
 	echo $html;
 	return true;
 }

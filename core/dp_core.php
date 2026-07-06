@@ -788,6 +788,8 @@ if (
         }
     }
 }
+// Clear splash redirect counter when real page renders successfully
+$DP_Template->html = str_replace('</body>', '<script>try{sessionStorage.removeItem("epc_splash_redir")}catch(e){}</script></body>', $DP_Template->html);
 if ($epcCpScriptRelocate && function_exists("epc_cp_finalize_cp_html")) {
     ob_start();
     eval(" ?>" . $DP_Template->html . "<?php ");

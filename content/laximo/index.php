@@ -9,9 +9,13 @@
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
 
-// If legacy Guayaquil SDK is needed (VIN search redirect from old forms)
-if (isset($_GET['task']) && $_GET['task'] !== '' && file_exists($_SERVER["DOCUMENT_ROOT"] . "/content/laximo/com_guayaquil/router.php")) {
-    // Legacy: Autoload Guayaquil classes
+// Use the Guayaquil SDK for catalog rendering.
+// Default to catalogs view when no task is specified.
+if (!isset($_GET['task']) || $_GET['task'] === '') {
+    $_GET['task'] = 'catalogs';
+}
+
+if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/content/laximo/com_guayaquil/router.php")) {
     set_include_path(get_include_path() . PATH_SEPARATOR . $_SERVER["DOCUMENT_ROOT"] . "/content/laximo/");
     spl_autoload_register(function($class) {
         $path = $_SERVER["DOCUMENT_ROOT"] . "/content/laximo/";
@@ -26,20 +30,6 @@ if (isset($_GET['task']) && $_GET['task'] !== '' && file_exists($_SERVER["DOCUME
     }
     require_once($_SERVER["DOCUMENT_ROOT"] . '/content/laximo/com_guayaquil/index.php');
 } else {
-    // New car-mod.com style UI powered by Laximo proxy API
-    ?>
-    <link rel="stylesheet" href="/api/Laximo/laximo.css" type="text/css" />
-    <div style="padding: 20px 0;">
-        <h2 style="margin:0 0 5px;font-size:22px;font-weight:700;">OEM Parts Catalog</h2>
-        <p style="margin:0 0 20px;color:#666;font-size:13px;">Search original parts by brand, VIN, or part name. Cross-references with aftermarket analogs.</p>
-        <div id="Laximo_container">
-            <div class="laximo-loading">
-                <div class="spinner"></div>
-                <p>Loading Laximo Catalog...</p>
-            </div>
-        </div>
-    </div>
-    <script src="/api/Laximo/laximo.js"></script>
-    <?php
+    echo '<div style="padding:20px;color:#c00;">Laximo SDK not available. Please contact support.</div>';
 }
 ?>
