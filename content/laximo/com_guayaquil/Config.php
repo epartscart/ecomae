@@ -15,6 +15,7 @@ class Config
     public static $defaultAmKey = 'Y34TRgYaUNV42rd';
 
     public static $catalog_data = 'en_US';
+    public static $ui_localization = 'en';
     public static $dev = false;
     public static $showRequest = false;
     public static $showWelcomePage = false;
@@ -24,7 +25,13 @@ class Config
     public static $showApplicability = true;
     public static $showCatalogsLetters = true;
     public static $catalogColumns = 4;
+    public static $VehiclesColumns = 4;
     public static $oemExample = '';
+    public static $defaultVin = '';
+    public static $defaultFrame = '';
+    public static $groupVehicles = false;
+    public static $vehiclesMaxField = 10;
+    public static $imagePlaceholder = '';
     public static $useEnvParams = false;
     public static $hideFooter = true;
     public static $theme = 'guayaquil';
