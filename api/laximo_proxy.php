@@ -26,6 +26,21 @@
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
+// Catch fatal errors and output them as JSON
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(500);
+        }
+        echo json_encode(['status' => false, 'fatal' => true, 'error' => $err['message'], 'file' => basename($err['file']), 'line' => $err['line']]);
+    }
+});
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+}, E_ERROR | E_WARNING | E_PARSE);
+
 function epc_lax_json($data, $status = 200, $cache = 0)
 {
     http_response_code($status);
@@ -221,8 +236,17 @@ function epc_lax_soap_call($request, $oem = true)
     try {
         $client = new SoapClient(null, $options);
         $result = $client->QueryDataLogin($request, $creds['login'], $hash);
+        // SoapClient may return a string (XML) or an object; ensure string
+        if (is_object($result)) {
+            if (method_exists($result, '__toString')) {
+                $result = (string) $result;
+            } else {
+                // Try to extract from common SOAP response wrappers
+                $result = isset($result->return) ? $result->return : (isset($result->QueryDataLoginResult) ? $result->QueryDataLoginResult : json_encode($result));
+            }
+        }
         return $result;
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         return false;
     }
 }
@@ -556,7 +580,8 @@ function epc_lax_action_catalogs()
             epc_lax_json(['status' => true, 'source' => 'live', 'synced' => $count, 'catalogs' => $cached ?: []], 200, 3600);
         }
     } catch (\Throwable $e) {
-        // Sync failed — API credentials may not be configured
+        // Sync failed — report the error for debugging
+        epc_lax_json(['status' => false, 'error' => 'Sync failed: ' . $e->getMessage(), 'trace' => basename($e->getFile()) . ':' . $e->getLine()], 500);
     }
 
     if ($db) {
