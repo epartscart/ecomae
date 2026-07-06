@@ -99,8 +99,6 @@ function epc_page_cache_try_serve(): bool
 	if (function_exists('ob_gzhandler') && !ini_get('zlib.output_compression') && strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
 		ob_start('ob_gzhandler');
 	}
-	// Clear splash redirect counter — page loaded successfully
-	$html = str_replace('</body>', '<script>try{sessionStorage.removeItem("epc_splash_redir")}catch(e){}</script></body>', $html);
 	echo $html;
 	return true;
 }
@@ -108,31 +106,69 @@ function epc_page_cache_try_serve(): bool
 /**
  * Start output buffering so the rendered page can be cached on shutdown.
  * Call after confirming the request is cacheable but before rendering.
+ *
+ * Thundering-herd protection: acquires a file lock so only ONE process
+ * renders a given page at a time. Others wait for the lock, then check
+ * if the cache file was populated meanwhile.
  */
 function epc_page_cache_start_capture(int $ttl = 300): void
 {
 	if (!epc_page_cache_enabled()) {
 		return;
 	}
+
+	// Thundering-herd lock: only one process renders a given page
+	$lockFile = epc_page_cache_dir() . '/' . epc_page_cache_key() . '.lock';
+	$lockFp = @fopen($lockFile, 'c');
+	if ($lockFp) {
+		if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
+			// Another process is rendering this page — wait for it
+			flock($lockFp, LOCK_EX);
+			fclose($lockFp);
+			// Check if cache is now populated
+			if (epc_page_cache_try_serve()) {
+				exit;
+			}
+			// Not populated — we'll render it ourselves (re-acquire lock)
+			$lockFp = @fopen($lockFile, 'c');
+			if ($lockFp) { flock($lockFp, LOCK_EX); }
+		}
+		$GLOBALS['__epc_page_cache_lock_fp'] = $lockFp;
+	}
+
 	$GLOBALS['__epc_page_cache_ttl'] = $ttl;
 	$GLOBALS['__epc_page_cache_active'] = true;
 	ob_start();
 	register_shutdown_function('epc_page_cache_flush');
 }
 
+/** Release the thundering-herd page cache lock. */
+function epc_page_cache_release_lock(): void
+{
+	if (!empty($GLOBALS['__epc_page_cache_lock_fp'])) {
+		$fp = $GLOBALS['__epc_page_cache_lock_fp'];
+		flock($fp, LOCK_UN);
+		fclose($fp);
+		unset($GLOBALS['__epc_page_cache_lock_fp']);
+	}
+}
+
 /** Shutdown function: write the captured output to file cache. */
 function epc_page_cache_flush(): void
 {
 	if (empty($GLOBALS['__epc_page_cache_active'])) {
+		epc_page_cache_release_lock();
 		return;
 	}
 	$GLOBALS['__epc_page_cache_active'] = false;
 	$html = ob_get_contents();
 	if ($html === false || strlen($html) < 200) {
+		epc_page_cache_release_lock();
 		return;
 	}
 	$code = http_response_code();
 	if ($code !== 200 && $code !== false) {
+		epc_page_cache_release_lock();
 		return;
 	}
 	// Only cache complete HTML pages — never cache partial renders from
@@ -142,13 +178,21 @@ function epc_page_cache_flush(): void
 	$hasHtmlOpen = (stripos($trimmed, '<!doctype') === 0 || stripos($trimmed, '<html') !== false);
 	$hasHtmlClose = (stripos($trimmed, '</html>') !== false);
 	if (!$hasHtmlOpen || !$hasHtmlClose) {
+		epc_page_cache_release_lock();
 		return;
 	}
 	// Never cache error/splash pages that slipped through with HTTP 200
 	if (stripos($html, 'Service update') !== false && stripos($html, 'epc-platform-status') !== false) {
+		epc_page_cache_release_lock();
 		return;
 	}
 	if (stripos($html, 'Temporarily Busy') !== false && stripos($html, 'Retry-After') !== false) {
+		epc_page_cache_release_lock();
+		return;
+	}
+	// Also reject "Loading your store" splash pages
+	if (stripos($html, 'Loading your store') !== false && strlen($html) < 2000) {
+		epc_page_cache_release_lock();
 		return;
 	}
 	$ttl = isset($GLOBALS['__epc_page_cache_ttl']) ? (int) $GLOBALS['__epc_page_cache_ttl'] : 300;
@@ -160,6 +204,8 @@ function epc_page_cache_flush(): void
 		'host' => $_SERVER['HTTP_HOST'] ?? '',
 		'time' => date('Y-m-d H:i:s'),
 	)), LOCK_EX);
+
+	epc_page_cache_release_lock();
 }
 
 /** Purge all page cache files (call after deploy or content changes). */

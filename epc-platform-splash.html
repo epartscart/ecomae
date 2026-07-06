@@ -4,277 +4,34 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Service update — ECOM AE</title>
+<title>Loading — Please wait</title>
+<meta http-equiv="refresh" content="10">
 <style>
-:root {
-  --bg: #070b14;
-  --card: #111827;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --accent: #38bdf8;
-  --ok: #4ade80;
-  --warn: #fbbf24;
-  --line: #334155;
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
-body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: radial-gradient(1200px 600px at 50% -10%, #1e3a5f 0%, var(--bg) 55%);
-  color: var(--text);
-  line-height: 1.5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px 48px;
-}
-.shell { width: 100%; max-width: 520px; }
-.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.logo {
-  width: 44px; height: 44px; border-radius: 12px;
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
-  display: grid; place-items: center; font-weight: 800; font-size: 14px;
-}
-.brand h1 { margin: 0; font-size: 1.15rem; font-weight: 700; }
-.brand p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
-.card {
-  background: rgba(17, 24, 39, 0.92);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 28px 24px 24px;
-  box-shadow: 0 24px 48px rgba(0,0,0,0.35);
-}
-.headline { font-size: 1.35rem; margin: 0 0 8px; font-weight: 700; }
-.sub { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
-.steps { list-style: none; margin: 0 0 20px; padding: 0; }
-.step {
-  display: flex; gap: 14px; align-items: flex-start;
-  padding: 12px 0; border-bottom: 1px solid rgba(51,65,85,0.6);
-}
-.step:last-child { border-bottom: none; }
-.step-icon {
-  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-  display: grid; place-items: center; font-size: 13px; font-weight: 700;
-  background: #1e293b; color: var(--muted); border: 1px solid var(--line);
-}
-.step.active .step-icon { background: #0c4a6e; color: var(--accent); border-color: #0369a1; }
-.step.done .step-icon { background: #14532d; color: var(--ok); border-color: #166534; }
-.step.warn .step-icon { background: #713f12; color: var(--warn); border-color: #92400e; }
-.step-body strong { display: block; font-size: 14px; margin-bottom: 2px; }
-.step-body span { font-size: 13px; color: var(--muted); }
-.bar-wrap { height: 6px; background: #1e293b; border-radius: 999px; overflow: hidden; margin: 8px 0 16px; }
-.bar { height: 100%; width: 0%; background: linear-gradient(90deg, #0ea5e9, #38bdf8); border-radius: 999px; transition: width 0.4s ease; }
-.countdown {
-  text-align: center; font-size: 2rem; font-weight: 800; color: var(--accent);
-  margin: 8px 0 4px; font-variant-numeric: tabular-nums;
-}
-.foot { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; }
-.foot code { font-size: 11px; background: #0b1220; padding: 2px 6px; border-radius: 4px; }
-.pulse { animation: pulse 1.6s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:.55 } }
-@media (prefers-reduced-motion: reduce) {
-  .bar, .pulse { animation: none !important; transition: none !important; }
-}
-.hidden { display: none !important; }
+:root{--bg:#070b14;--card:#111827;--text:#f1f5f9;--muted:#94a3b8;--accent:#38bdf8}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.card{text-align:center;max-width:420px;background:var(--card);border-radius:16px;padding:3rem 2rem;box-shadow:0 25px 50px rgba(0,0,0,.4)}
+h1{font-size:1.4rem;margin-bottom:.75rem}
+p{color:var(--muted);line-height:1.6;margin:0}
+.bar{width:100%;height:4px;background:#334155;border-radius:2px;overflow:hidden;margin:1.5rem 0}
+.bar span{display:block;width:30%;height:100%;background:linear-gradient(90deg,var(--accent),#8b5cf6);border-radius:2px;animation:load 1.5s ease-in-out infinite}
+@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.hint{font-size:.8rem;color:#64748b;margin-top:1rem}
 </style>
 </head>
 <body>
-<div class="shell">
-  <div class="brand">
-    <div class="logo" aria-hidden="true">EPC</div>
-    <div>
-      <h1 id="site-name">Your store</h1>
-      <p id="site-host">—</p>
-    </div>
-  </div>
-  <div class="card" role="status" aria-live="polite">
-    <h2 class="headline" id="headline">Checking service…</h2>
-    <p class="sub" id="subtitle">We are verifying cloud and backup connectivity.</p>
-    <div class="bar-wrap" aria-hidden="true"><div class="bar" id="progress"></div></div>
-    <ol class="steps" id="steps"></ol>
-    <div id="countdown-block" class="hidden">
-      <p class="sub" style="margin:0;text-align:center">Returning to cloud primary in</p>
-      <div class="countdown" id="countdown">12</div>
-    </div>
-  </div>
-  <p class="foot">Status: <code id="mode-label">—</code> · <span id="updated-at">—</span></p>
+<div class="card">
+<h1>Loading your store...</h1>
+<p>The page is warming up. It will reload automatically in a few seconds.</p>
+<div class="bar"><span></span></div>
+<p class="hint">This only happens after a server update. Normal browsing is not affected.</p>
 </div>
 <script>
-(function () {
-  'use strict';
-  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var params = new URLSearchParams(location.search);
-  var preview = params.get('epc_splash_preview') === '1' || params.get('preview') === '1';
-  var previewMode = params.get('mode') || 'backup_active';
-  var host = location.hostname || 'store';
-  document.getElementById('site-host').textContent = host;
-  document.getElementById('site-name').textContent = host.replace(/^www\./, '').split('.')[0].replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-
-  var STATUS_URLS = ['/epc-platform-status.php', '/epc-platform-status.json'];
-  var pollMs = reducedMotion ? 4000 : 2200;
-
-  function fetchStatus() {
-    var i = 0;
-    function tryNext() {
-      if (i >= STATUS_URLS.length) return Promise.reject(new Error('no status'));
-      var base = STATUS_URLS[i++];
-      var url = base + (preview ? '?mode=' + encodeURIComponent(previewMode) : '') + (base.indexOf('?') >= 0 ? '&' : '?') + '_=' + Date.now();
-      return fetch(url, { cache: 'no-store', credentials: 'same-origin' }).then(function (r) {
-        if (!r.ok) throw new Error('http ' + r.status);
-        return r.json();
-      }).catch(tryNext);
-    }
-    return tryNext();
-  }
-
-  var stepDefs = {
-    primary_down: [
-      { key: 'check', title: 'Detecting cloud outage', detail: 'Primary origin did not respond in time.' },
-      { key: 'backup', title: 'Connecting to backup', detail: 'Routing your session to the backup origin.' },
-      { key: 'ready', title: 'Backup online', detail: 'Limited mode — orders may be queued for sync.' }
-    ],
-    backup_active: [
-      { key: 'check', title: 'Backup active', detail: 'You are on the backup server.', done: true },
-      { key: 'backup', title: 'Connected to backup', detail: 'Shopping continues with cached catalogue where available.', done: true },
-      { key: 'ready', title: 'Service available', detail: 'We will move you back to cloud when it is healthy.', done: true }
-    ],
-    failback_sync: [
-      { key: 'check', title: 'Cloud primary restored', detail: 'Health checks passed.', done: true },
-      { key: 'backup', title: 'Restoring', detail: 'Syncing sessions and cache from backup to cloud.' },
-      { key: 'ready', title: 'Almost ready', detail: 'Finishing replication — please wait.' }
-    ],
-    failback_redirect: [
-      { key: 'check', title: 'Cloud primary restored', detail: 'Health checks passed.', done: true },
-      { key: 'backup', title: 'Restore complete', detail: 'Backup handoff finished.', done: true },
-      { key: 'ready', title: 'Returning to cloud', detail: 'You will be redirected automatically.' }
-    ]
-  };
-
-  function renderSteps(mode, activeIndex) {
-    var list = document.getElementById('steps');
-    list.innerHTML = '';
-    var defs = stepDefs[mode] || stepDefs.primary_down;
-    defs.forEach(function (d, idx) {
-      var li = document.createElement('li');
-      li.className = 'step';
-      if (d.done || idx < activeIndex) li.classList.add('done');
-      else if (idx === activeIndex) li.classList.add('active');
-      if (mode === 'primary_down' && idx === 0 && activeIndex === 0) li.classList.add('warn');
-      var icon = document.createElement('div');
-      icon.className = 'step-icon' + (!reducedMotion && idx === activeIndex ? ' pulse' : '');
-      icon.textContent = d.done || idx < activeIndex ? '✓' : String(idx + 1);
-      var body = document.createElement('div');
-      body.className = 'step-body';
-      body.innerHTML = '<strong>' + d.title + '</strong><span>' + d.detail + '</span>';
-      li.appendChild(icon);
-      li.appendChild(body);
-      list.appendChild(li);
-    });
-    var pct = Math.min(100, Math.round(((activeIndex + 1) / defs.length) * 100));
-    document.getElementById('progress').style.width = pct + '%';
-  }
-
-  var countdownTimer = null;
-  function startCountdown(sec) {
-    var block = document.getElementById('countdown-block');
-    var el = document.getElementById('countdown');
-    block.classList.remove('hidden');
-    var left = sec;
-    el.textContent = String(left);
-    if (countdownTimer) clearInterval(countdownTimer);
-    countdownTimer = setInterval(function () {
-      left -= 1;
-      el.textContent = String(Math.max(0, left));
-      if (left <= 0) {
-        clearInterval(countdownTimer);
-        location.replace(location.pathname.replace(/epc-platform-splash\.html.*$/, '') || '/');
-      }
-    }, 1000);
-  }
-
-  var animGen = 0;
-  function animateFailover(mode) {
-    animGen += 1;
-    var myGen = animGen;
-    if (mode === 'backup_active') {
-      renderSteps(mode, 2);
-      document.getElementById('headline').textContent = 'You are on backup';
-      document.getElementById('subtitle').textContent = 'The store is available while cloud primary is offline.';
-      return;
-    }
-    if (mode === 'failback_sync') {
-      renderSteps(mode, 1);
-      document.getElementById('headline').textContent = 'Restoring cloud service';
-      document.getElementById('subtitle').textContent = 'Please wait while we sync from backup.';
-      if (!reducedMotion) {
-        setTimeout(function () { if (myGen !== animGen) return; renderSteps(mode, 2); }, 2800);
-      }
-      return;
-    }
-    if (mode === 'failback_redirect') {
-      renderSteps(mode, 2);
-      document.getElementById('headline').textContent = 'Welcome back to cloud';
-      document.getElementById('subtitle').textContent = 'Redirecting you to the primary platform.';
-      startCountdown(12);
-      return;
-    }
-    renderSteps('primary_down', 0);
-    document.getElementById('headline').textContent = 'Connecting to backup';
-    document.getElementById('subtitle').textContent = 'Cloud primary is temporarily unavailable.';
-    if (reducedMotion) {
-      renderSteps('primary_down', 2);
-      document.getElementById('headline').textContent = 'Backup connected';
-      return;
-    }
-    setTimeout(function () { if (myGen !== animGen) return; renderSteps('primary_down', 1); }, 1600);
-    setTimeout(function () { if (myGen !== animGen) return; renderSteps('primary_down', 2); document.getElementById('headline').textContent = 'Backup connected'; document.getElementById('subtitle').textContent = 'Your store is running on the backup origin.'; }, 3400);
-  }
-
-  // Persist redirect counter in sessionStorage so it survives nginx re-serving this page
-  var ssKey = 'epc_splash_redir';
-  var maxRedirects = 2;
-  var redirectAttempts = parseInt(sessionStorage.getItem(ssKey) || '0', 10);
-
-  function applyStatus(data) {
-    var mode = (data && data.mode) ? data.mode : 'primary_down';
-    document.getElementById('mode-label').textContent = mode;
-    document.getElementById('updated-at').textContent = (data && data.updated_at) ? data.updated_at : '\u2014';
-    if (mode === 'primary_ok' && !preview) {
-      redirectAttempts++;
-      sessionStorage.setItem(ssKey, String(redirectAttempts));
-      if (redirectAttempts <= maxRedirects) {
-        // First attempts: try the cached page (no nocache param)
-        location.replace('/?t=' + Date.now());
-        return;
-      }
-      // We've been redirected back here multiple times \u2014 server is warming up.
-      document.getElementById('headline').textContent = 'Loading your store\u2026';
-      document.getElementById('subtitle').textContent = 'The server is warming up. This page will reload automatically in 60 seconds.';
-      document.getElementById('progress').style.width = '60%';
-      setTimeout(function () {
-        sessionStorage.removeItem(ssKey);
-        location.replace('/?t=' + Date.now());
-      }, 60000);
-      return;
-    }
-    if (data && data.redirect_seconds && mode === 'failback_redirect') {
-      startCountdown(parseInt(data.redirect_seconds, 10) || 12);
-    }
-    animateFailover(mode);
-  }
-
-  function tick() {
-    if (preview) {
-      applyStatus({ mode: previewMode, updated_at: new Date().toISOString() });
-      return;
-    }
-    fetchStatus().then(applyStatus).catch(function () {
-      applyStatus({ mode: 'primary_down', label: 'Status API unreachable — assuming backup path' });
-    });
-  }
-
-  tick();
-  if (!preview) setInterval(tick, pollMs);
+// Simple countdown reload — no redirect logic, no loops.
+// The meta-refresh already handles the reload; this just provides a faster retry.
+(function(){
+  var delay = 10000;
+  setTimeout(function(){ location.reload(); }, delay);
 })();
 </script>
 </body>
