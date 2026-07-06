@@ -148,15 +148,20 @@ class Language
             $paths = array_merge($paths, $params);
         }
 
-        $baseUrl = 'https://store.safeapp.ru/';
+        // Build base URL from current request (multi-tenant: each tenant has its own domain)
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'www.epartscart.com';
+        // Detect language prefix from current URL (e.g. /en/, /ar/, /ru/)
+        $langPrefix = '';
+        if (isset($_SERVER['REQUEST_URI']) && preg_match('#^/(en|ar|ru|fr|de|es|zh|ja|ko|tr|hi|ur)/#', $_SERVER['REQUEST_URI'], $lm)) {
+            $langPrefix = '/' . $lm[1];
+        }
+        $baseUrl = $scheme . '://' . $host . $langPrefix . '/';
 
         if ($paths) {
-            $url = $baseUrl . ('katalog-laximo?' . http_build_query($paths));
-            if (strpos($url, $baseUrl) === false) {
-                $url = $baseUrl . 'katalog-laximo?' . http_build_query($paths);
-            }
+            $url = $baseUrl . 'katalog-laximo?' . http_build_query($paths);
         } else {
-            $url = $baseUrl;
+            $url = $baseUrl . 'katalog-laximo';
         }
 
         return urldecode($url);
