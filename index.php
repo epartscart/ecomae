@@ -13,8 +13,10 @@ if (PHP_SAPI !== 'cli') {
 	@ini_set('display_errors', '0');
 	@ini_set('display_startup_errors', '0');
 	// Prevent PHP workers from hanging forever under load.
-	// Workers that exceed 30s are killed, freeing the pool for other requests (BOS, CP, marketing).
-	@set_time_limit(30);
+	// Workers that exceed this limit are killed, freeing the pool.
+	// 90s for heavy storefronts (e.g. epartscart 133K+ parts); once
+	// the page cache is warm, subsequent requests serve in <10ms.
+	@set_time_limit(90);
 }
 
 // Serve cached pages FIRST — before server guard, before any DB/config.

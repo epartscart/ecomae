@@ -50,7 +50,10 @@ function epc_server_guard_check(): bool
 	$parts = explode(' ', $load_str);
 	$load_1min = (float) ($parts[0] ?? 0);
 
-	// Threshold: 4x CPU cores.  On a 2-core machine this fires at load 8+.
+	// Threshold: 8x CPU cores.  On a 2-core machine this fires at load 16+.
+	// Previous 4x threshold was too aggressive — a single heavy storefront
+	// render (epartscart 133K+ parts) can spike load to 6-8 briefly without
+	// actual server distress.  Only block when genuinely critical.
 	$cores = 1;
 	if (is_readable('/proc/cpuinfo')) {
 		$cpuinfo = @file_get_contents('/proc/cpuinfo');
@@ -58,15 +61,7 @@ function epc_server_guard_check(): bool
 			$cores = max(1, substr_count($cpuinfo, 'processor'));
 		}
 	}
-	$threshold = $cores * 4;
-
-	// Lightweight tenants (non-epartscart) get a higher threshold — they render
-	// in <3s since they don't have 133K+ parts.  Only block them if TRULY critical.
-	$host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-	$isHeavyTenant = (strpos($host, 'epartscart') !== false);
-	if (!$isHeavyTenant) {
-		$threshold = $cores * 6;
-	}
+	$threshold = $cores * 8;
 
 	if ($load_1min < $threshold) {
 		return false;
