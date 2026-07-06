@@ -38,39 +38,55 @@ if (is_dir($brandsDir)) {
 
 echo "Purged " . $purged . " cache files.\n";
 
-// Auto-warm critical tenant pages so visitors don't hit cold cache
+// Auto-warm critical tenant pages so visitors don't hit cold cache.
+// Retries failed pages because PHP-FPM workers may be busy right after purge.
 if (!isset($_GET['no_warmup'])) {
 	echo "\n--- AUTO-WARMING CACHE ---\n";
-	$tenants = [
-		'www.epartscart.com',
-		'www.taxofinca.com',
-		'www.electronicae.com',
-		'www.stylenlook.com',
-		'www.thejewellerytrend.com',
-		'www.ecomae.com',
+	$warmUrls = [
+		['host' => 'www.ecomae.com', 'url' => 'https://www.ecomae.com/en/'],
+		['host' => 'www.epartscart.com', 'url' => 'https://www.epartscart.com/en/'],
+		['host' => 'www.taxofinca.com', 'url' => 'https://www.taxofinca.com/en/'],
+		['host' => 'www.electronicae.com', 'url' => 'https://www.electronicae.com/en/'],
+		['host' => 'www.stylenlook.com', 'url' => 'https://www.stylenlook.com/en/'],
+		['host' => 'www.thejewellerytrend.com', 'url' => 'https://www.thejewellerytrend.com/en/'],
 	];
-	foreach ($tenants as $host) {
-		$url = 'https://' . $host . '/en/';
-		echo "Warming $host... ";
-		$start = microtime(true);
-		$ch = curl_init($url);
-		curl_setopt_array($ch, [
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_TIMEOUT        => 180,
-			CURLOPT_CONNECTTIMEOUT => 10,
-			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_USERAGENT      => 'EPC-CacheWarmup/2.0',
-		]);
-		$body = curl_exec($ch);
-		$code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		$size = (int) curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
-		curl_close($ch);
-		$elapsed = round(microtime(true) - $start, 1);
-		echo "HTTP $code, " . number_format($size) . "B, {$elapsed}s\n";
-		usleep(500000); // small gap between tenants
+	$warmOk = 0;
+	for ($try = 0; $try < 3; $try++) {
+		if ($try > 0) {
+			$pending = array_filter($warmUrls, function($u) { return empty($u['ok']); });
+			if (empty($pending)) break;
+			$wait = $try * 10;
+			echo "  Retry $try: " . count($pending) . " pending, waiting {$wait}s...\n";
+			sleep($wait);
+		}
+		foreach ($warmUrls as &$wu) {
+			if (!empty($wu['ok'])) continue;
+			echo "  {$wu['host']}... ";
+			$ch = curl_init($wu['url']);
+			curl_setopt_array($ch, [
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_TIMEOUT        => 180,
+				CURLOPT_CONNECTTIMEOUT => 10,
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_USERAGENT      => 'EPC-CacheWarmup/2.0',
+			]);
+			$body = curl_exec($ch);
+			$code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$size = (int) curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
+			curl_close($ch);
+			if ($code === 200 && $size > 5000) {
+				echo "OK (" . number_format($size) . "B)\n";
+				$wu['ok'] = true;
+				$warmOk++;
+			} else {
+				echo "WAIT (HTTP $code, " . number_format($size) . "B)\n";
+			}
+			usleep(1000000);
+		}
+		unset($wu);
 	}
-	echo "--- WARMUP DONE ---\n";
+	echo "--- WARMUP: $warmOk/" . count($warmUrls) . " ---\n";
 }
 
 echo "DONE\n";

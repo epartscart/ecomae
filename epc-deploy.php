@@ -6,8 +6,8 @@
  *   php epc-deploy.php
  *   OR: curl "https://www.ecomae.com/epc-deploy.php?token=epartscart-deploy-2026"
  *
- * This renders each tenant's homepage once (populating page cache and brand cache)
- * so subsequent visitors get instant cached responses.
+ * Retries failed pages up to 3 times with increasing delay, because PHP-FPM
+ * workers may be busy immediately after deploy.
  */
 if (PHP_SAPI !== 'cli') {
 	header('Content-Type: text/plain; charset=utf-8');
@@ -32,25 +32,43 @@ $tenants = [
 echo "=== POST-DEPLOY CACHE WARMUP ===\n";
 echo "Started: " . date('Y-m-d H:i:s') . "\n\n";
 
-$total = 0;
-$success = 0;
-
+// Build flat list of URLs to warm
+$urls = [];
 foreach ($tenants as $host => $paths) {
 	foreach ($paths as $path) {
-		$total++;
-		$url = 'https://' . $host . $path;
-		echo "Warming: $url ... ";
+		$urls[] = ['host' => $host, 'path' => $path, 'url' => 'https://' . $host . $path];
+	}
+}
+
+$maxRetries = 3;
+$retryDelay = [5, 15, 30]; // seconds between retries
+$success = 0;
+$total = count($urls);
+
+for ($attempt = 0; $attempt <= $maxRetries; $attempt++) {
+	if ($attempt > 0) {
+		$failed = array_filter($urls, function($u) { return empty($u['ok']); });
+		if (empty($failed)) break;
+		$wait = $retryDelay[min($attempt - 1, count($retryDelay) - 1)];
+		echo "\n--- Retry $attempt: " . count($failed) . " pages failed, waiting {$wait}s for PHP-FPM to recover... ---\n\n";
+		sleep($wait);
+	}
+
+	foreach ($urls as &$item) {
+		if (!empty($item['ok'])) continue; // already warmed
+
+		echo "Warming: {$item['url']} ... ";
 		$start = microtime(true);
 
-		$ch = curl_init($url);
+		$ch = curl_init($item['url']);
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => true,
 			CURLOPT_TIMEOUT        => 180,
 			CURLOPT_CONNECTTIMEOUT => 10,
 			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_USERAGENT      => 'EPC-Deploy-Warmup/1.0',
-			CURLOPT_HTTPHEADER     => ['Host: ' . $host],
+			CURLOPT_USERAGENT      => 'EPC-Deploy-Warmup/2.0',
+			CURLOPT_HTTPHEADER     => ['Host: ' . $item['host']],
 		]);
 		$body = curl_exec($ch);
 		$code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -61,14 +79,15 @@ foreach ($tenants as $host => $paths) {
 
 		if ($code === 200 && $size > 5000) {
 			echo "OK (HTTP $code, " . number_format($size) . "B, {$elapsed}s)\n";
+			$item['ok'] = true;
 			$success++;
 		} else {
-			echo "WARN (HTTP $code, " . number_format($size) . "B, {$elapsed}s)\n";
+			echo "WAIT (HTTP $code, " . number_format($size) . "B, {$elapsed}s)\n";
 		}
 
-		// Small gap between requests to avoid overloading a single PHP-FPM pool
-		usleep(500000);
+		usleep(1000000); // 1s gap between requests to avoid overloading PHP-FPM
 	}
+	unset($item);
 }
 
 echo "\n=== DONE: $success/$total pages warmed ===\n";

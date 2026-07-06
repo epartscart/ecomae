@@ -380,9 +380,9 @@ if (function_exists('epc_ecomae_platform_try_exit_standalone')) {
 	epc_ecomae_platform_try_exit_standalone();
 }
 
-// Start page cache capture for anonymous storefront visitors (5 min TTL)
+// Start page cache capture for anonymous storefront visitors (2 hour TTL)
 if (function_exists('epc_page_cache_start_capture')) {
-	epc_page_cache_start_capture(300);
+	epc_page_cache_start_capture(7200);
 }
 
 // Load core system
