@@ -230,26 +230,31 @@ body {
     setTimeout(function () { if (myGen !== animGen) return; renderSteps('primary_down', 2); document.getElementById('headline').textContent = 'Backup connected'; document.getElementById('subtitle').textContent = 'Your store is running on the backup origin.'; }, 3400);
   }
 
-  var redirectAttempts = 0;
+  // Persist redirect counter in sessionStorage so it survives nginx re-serving this page
+  var ssKey = 'epc_splash_redir';
   var maxRedirects = 2;
+  var redirectAttempts = parseInt(sessionStorage.getItem(ssKey) || '0', 10);
 
   function applyStatus(data) {
     var mode = (data && data.mode) ? data.mode : 'primary_down';
     document.getElementById('mode-label').textContent = mode;
-    document.getElementById('updated-at').textContent = (data && data.updated_at) ? data.updated_at : '—';
+    document.getElementById('updated-at').textContent = (data && data.updated_at) ? data.updated_at : '\u2014';
     if (mode === 'primary_ok' && !preview) {
       redirectAttempts++;
+      sessionStorage.setItem(ssKey, String(redirectAttempts));
       if (redirectAttempts <= maxRedirects) {
-        // Try to go back to the site; if we land here again, stop looping.
-        location.replace('/?nocache=1&t=' + Date.now());
+        // First attempts: try the cached page (no nocache param)
+        location.replace('/?t=' + Date.now());
         return;
       }
-      // We've been redirected back here multiple times — server is timing out
-      // under load (504/502).  Show a friendly waiting page instead of looping.
+      // We've been redirected back here multiple times \u2014 server is warming up.
       document.getElementById('headline').textContent = 'Loading your store\u2026';
-      document.getElementById('subtitle').textContent = 'The server is warming up. This page will reload automatically in 30 seconds.';
+      document.getElementById('subtitle').textContent = 'The server is warming up. This page will reload automatically in 60 seconds.';
       document.getElementById('progress').style.width = '60%';
-      setTimeout(function () { location.replace('/?nocache=1&t=' + Date.now()); }, 30000);
+      setTimeout(function () {
+        sessionStorage.removeItem(ssKey);
+        location.replace('/?t=' + Date.now());
+      }, 60000);
       return;
     }
     if (data && data.redirect_seconds && mode === 'failback_redirect') {
