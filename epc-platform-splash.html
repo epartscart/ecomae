@@ -230,15 +230,29 @@ body {
     setTimeout(function () { if (myGen !== animGen) return; renderSteps('primary_down', 2); document.getElementById('headline').textContent = 'Backup connected'; document.getElementById('subtitle').textContent = 'Your store is running on the backup origin.'; }, 3400);
   }
 
+  var redirectAttempts = 0;
+  var maxRedirects = 2;
+
   function applyStatus(data) {
     var mode = (data && data.mode) ? data.mode : 'primary_down';
     document.getElementById('mode-label').textContent = mode;
     document.getElementById('updated-at').textContent = (data && data.updated_at) ? data.updated_at : '—';
     if (mode === 'primary_ok' && !preview) {
-      location.replace('/');
+      redirectAttempts++;
+      if (redirectAttempts <= maxRedirects) {
+        // Try to go back to the site; if we land here again, stop looping.
+        location.replace('/?nocache=1&t=' + Date.now());
+        return;
+      }
+      // We've been redirected back here multiple times — server is timing out
+      // under load (504/502).  Show a friendly waiting page instead of looping.
+      document.getElementById('headline').textContent = 'Loading your store\u2026';
+      document.getElementById('subtitle').textContent = 'The server is warming up. This page will reload automatically in 30 seconds.';
+      document.getElementById('progress').style.width = '60%';
+      setTimeout(function () { location.replace('/?nocache=1&t=' + Date.now()); }, 30000);
       return;
     }
-  if (data && data.redirect_seconds && mode === 'failback_redirect') {
+    if (data && data.redirect_seconds && mode === 'failback_redirect') {
       startCountdown(parseInt(data.redirect_seconds, 10) || 12);
     }
     animateFailover(mode);

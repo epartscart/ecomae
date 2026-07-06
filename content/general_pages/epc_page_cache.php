@@ -88,6 +88,12 @@ function epc_page_cache_try_serve(): bool
 		@unlink($file . '.meta');
 		return false;
 	}
+	// Reject cached splash/error pages (nginx error_page may have served these as 200)
+	if (stripos($html, 'epc-platform-status') !== false && stripos($html, 'Service update') !== false) {
+		@unlink($file);
+		@unlink($file . '.meta');
+		return false;
+	}
 	header('Content-Type: text/html; charset=UTF-8');
 	header('X-EPC-Cache: HIT');
 	if (function_exists('ob_gzhandler') && !ini_get('zlib.output_compression') && strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false) {
@@ -134,6 +140,13 @@ function epc_page_cache_flush(): void
 	$hasHtmlOpen = (stripos($trimmed, '<!doctype') === 0 || stripos($trimmed, '<html') !== false);
 	$hasHtmlClose = (stripos($trimmed, '</html>') !== false);
 	if (!$hasHtmlOpen || !$hasHtmlClose) {
+		return;
+	}
+	// Never cache error/splash pages that slipped through with HTTP 200
+	if (stripos($html, 'Service update') !== false && stripos($html, 'epc-platform-status') !== false) {
+		return;
+	}
+	if (stripos($html, 'Temporarily Busy') !== false && stripos($html, 'Retry-After') !== false) {
 		return;
 	}
 	$ttl = isset($GLOBALS['__epc_page_cache_ttl']) ? (int) $GLOBALS['__epc_page_cache_ttl'] : 300;
