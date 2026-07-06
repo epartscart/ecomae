@@ -1,17 +1,22 @@
 <?php
 /**
- * Server overload guard.
+ * Server overload guard — DISABLED for storefront requests.
  *
- * Checks system load average and serves a lightweight static HTML page when
- * the server is critically overloaded.  This prevents cascading failures
- * where heavy storefront renders block BOS, CP, and marketing requests.
+ * Previously this checked load average and served a 503 page, but it caused
+ * more problems than it solved: false positives during normal cache-warming,
+ * redirect loops in the splash page, and user confusion.
  *
- * Bypasses:
+ * The page cache + thundering-herd locks in brand helpers now handle load
+ * management properly. This guard is kept only as an extreme safety net
+ * for genuinely catastrophic load (20x CPU cores, e.g. DDoS).
+ *
+ * Bypasses (always allowed through):
  *  - CLI (cron, deploy scripts)
  *  - BOS requests (/bos/)
  *  - Cache purge / deploy endpoints (epc-*)
  *  - AJAX requests to CP
- *  - Already-cached pages (page cache serves directly)
+ *  - CP/ERP paths
+ *  - Storefront requests (handled by page cache instead)
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -26,20 +31,12 @@ function epc_server_guard_check(): bool
 		$path = '/';
 	}
 
-	// Never block BOS, deploy scripts, API, or health checks
-	if (preg_match('#^/(bos|epc-|api/|epc_static)#i', $path)) {
-		return false;
-	}
-	// Never block CP AJAX (login, portal calls)
-	if (preg_match('#^/cp/content/control/portal/ajax#i', $path)) {
-		return false;
-	}
-	// Never block CP login page
-	if (preg_match('#^/cp(?:/|$)#i', $path)) {
+	// Never block BOS, deploy scripts, API, health checks, CP, ERP
+	if (preg_match('#^/(bos|epc-|api/|epc_static|cp|erp)#i', $path)) {
 		return false;
 	}
 
-	// Check 1-minute load average (Linux only)
+	// DISABLED for storefront — page cache handles it. Only trigger on DDoS-level load.
 	if (!is_readable('/proc/loadavg')) {
 		return false;
 	}
@@ -50,10 +47,8 @@ function epc_server_guard_check(): bool
 	$parts = explode(' ', $load_str);
 	$load_1min = (float) ($parts[0] ?? 0);
 
-	// Threshold: 8x CPU cores.  On a 2-core machine this fires at load 16+.
-	// Previous 4x threshold was too aggressive — a single heavy storefront
-	// render (epartscart 133K+ parts) can spike load to 6-8 briefly without
-	// actual server distress.  Only block when genuinely critical.
+	// Extreme threshold: 20x CPU cores. Only triggers during genuine DDoS or runaway processes.
+	// Normal cold-cache renders should NOT trigger this.
 	$cores = 1;
 	if (is_readable('/proc/cpuinfo')) {
 		$cpuinfo = @file_get_contents('/proc/cpuinfo');
@@ -61,17 +56,17 @@ function epc_server_guard_check(): bool
 			$cores = max(1, substr_count($cpuinfo, 'processor'));
 		}
 	}
-	$threshold = $cores * 8;
+	$threshold = $cores * 20;
 
 	if ($load_1min < $threshold) {
 		return false;
 	}
 
-	// Server is overloaded — serve a lightweight page
+	// Server is genuinely overloaded — serve a minimal auto-refresh page
 	http_response_code(503);
-	header('Retry-After: 30');
+	header('Retry-After: 15');
 	header('Content-Type: text/html; charset=UTF-8');
-	header('Cache-Control: no-store');
+	header('Cache-Control: no-store, no-cache');
 	echo epc_server_guard_busy_html();
 	return true;
 }
@@ -83,28 +78,26 @@ function epc_server_guard_busy_html(): string
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Temporarily Busy</title>
-<meta http-equiv="refresh" content="15">
+<title>Loading...</title>
+<meta http-equiv="refresh" content="10">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
-.card{text-align:center;max-width:480px;background:#1e293b;border-radius:16px;padding:3rem 2rem;box-shadow:0 25px 50px rgba(0,0,0,.3)}
-.icon{font-size:3rem;margin-bottom:1rem}
-h1{font-size:1.5rem;margin-bottom:.75rem;color:#f1f5f9}
-p{color:#94a3b8;line-height:1.6;margin-bottom:1rem}
-.hint{font-size:.85rem;color:#64748b;margin-top:1.5rem}
-.bar{width:100%;height:4px;background:#334155;border-radius:2px;overflow:hidden;margin-top:1rem}
+.card{text-align:center;max-width:420px;background:#1e293b;border-radius:16px;padding:3rem 2rem;box-shadow:0 25px 50px rgba(0,0,0,.3)}
+h1{font-size:1.4rem;margin-bottom:.75rem;color:#f1f5f9}
+p{color:#94a3b8;line-height:1.6;margin:0}
+.bar{width:100%;height:4px;background:#334155;border-radius:2px;overflow:hidden;margin:1.5rem 0}
 .bar span{display:block;width:30%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:2px;animation:load 1.5s ease-in-out infinite}
 @keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.hint{font-size:.8rem;color:#64748b;margin-top:1rem}
 </style>
 </head>
 <body>
 <div class="card">
-<div class="icon">&#9881;</div>
-<h1>Server is temporarily busy</h1>
-<p>We are processing a large number of requests right now. This page will automatically refresh in 15 seconds.</p>
+<h1>Loading your store...</h1>
+<p>The page is warming up. It will reload automatically.</p>
 <div class="bar"><span></span></div>
-<p class="hint">If this persists, try accessing <a href="/bos/" style="color:#60a5fa">/bos/</a> or <a href="/cp/" style="color:#60a5fa">/cp/</a> directly.</p>
+<p class="hint">This only happens briefly after a server update.</p>
 </div>
 </body>
 </html>';

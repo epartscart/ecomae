@@ -88,6 +88,31 @@ function epc_stock_brands_with_counts($db_link, array $price_ids)
 		}
 	}
 
+	// Thundering-herd prevention: only ONE process at a time runs the heavy query.
+	// Others wait up to 90s for the first process to populate the cache file.
+	$lockFile = $cacheDir . '/' . $cacheKey . '.lock';
+	$lockFp = @fopen($lockFile, 'c');
+	if ($lockFp) {
+		if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
+			// Another process is already generating — wait for it (max 90s)
+			flock($lockFp, LOCK_EX);
+			fclose($lockFp);
+			// Re-check cache after waiting
+			if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
+				$cached = @file_get_contents($cacheFile);
+				if ($cached !== false) {
+					$decoded = json_decode($cached, true);
+					if (is_array($decoded) && count($decoded) > 0) {
+						return $decoded;
+					}
+				}
+			}
+			// If still no cache after lock released, fall through to generate
+			$lockFp = @fopen($lockFile, 'c');
+			if ($lockFp) { flock($lockFp, LOCK_EX); }
+		}
+	}
+
 	// This query scans 133K+ rows — allow enough time for cache-warming render.
 	// Once cached, subsequent requests skip the query entirely (cache hit above).
 	@set_time_limit(120);
@@ -131,6 +156,12 @@ function epc_stock_brands_with_counts($db_link, array $price_ids)
 	// Write cache file for subsequent requests
 	if (count($brands) > 0) {
 		@file_put_contents($cacheFile, json_encode($brands, JSON_UNESCAPED_UNICODE), LOCK_EX);
+	}
+
+	// Release thundering-herd lock
+	if ($lockFp) {
+		flock($lockFp, LOCK_UN);
+		fclose($lockFp);
 	}
 
 	return $brands;
