@@ -18,22 +18,26 @@ body.epc-cp-shell.epc-cp--blue-theme {
 	--epc-blue-400: #38bdf8;
 	--epc-blue-100: #e0f2fe;
 	--epc-blue-50: #f0f9ff;
-	--epc-sidebar-from: #0c4a6e;
-	--epc-sidebar-to: #0369a1;
-	--epc-sidebar-mid: #075985;
-	--epc-sidebar-hover: #0ea5e9;
-	--epc-sidebar-active-bg: rgba(56, 189, 248, 0.22);
-	--epc-sidebar-text: #bae6fd;
-	--epc-sidebar-muted: #7dd3fc;
+	/* Sidebar is intentionally unified to the same near-black shell used
+	   across all of /cp (see epc_cp_ui.css) -- the platform/portal areas
+	   previously had their own blue sidebar, reading as an inconsistent
+	   second product. */
+	--epc-sidebar-from: #0f172a;
+	--epc-sidebar-to: #1e293b;
+	--epc-sidebar-mid: #1e293b;
+	--epc-sidebar-hover: #334155;
+	--epc-sidebar-active-bg: rgba(37, 99, 235, 0.18);
+	--epc-sidebar-text: #94a3b8;
+	--epc-sidebar-muted: #64748b;
 	--epc-sidebar-border: rgba(255, 255, 255, 0.1);
 
 	--epc-cp-primary: #2563eb;
 	--epc-cp-primary-dark: #1d4ed8;
 	--epc-cp-primary-deep: #1e3a8a;
 	--epc-cp-accent: var(--epc-blue-500);
-	--epc-cp-sidebar-bg: var(--epc-blue-900);
+	--epc-cp-sidebar-bg: #0f172a;
 	--epc-cp-sidebar-mid: var(--epc-sidebar-mid);
-	--epc-cp-sidebar-hover: var(--epc-blue-700);
+	--epc-cp-sidebar-hover: #334155;
 	--epc-cp-sidebar-text: var(--epc-sidebar-text);
 	--epc-cp-sidebar-muted: var(--epc-sidebar-muted);
 	--epc-cp-sidebar-active: #ffffff;
@@ -63,7 +67,7 @@ body.epc-cp--blue-theme.epc-cp #side-menu > li > a:hover {
 }
 
 body.epc-cp--blue-theme.epc-cp #side-menu ul.nav-second-level {
-	background: rgba(8, 47, 73, 0.35);
+	background: rgba(0, 0, 0, 0.15);
 }
 
 body.epc-cp--blue-theme.epc-cp #wrapper {
