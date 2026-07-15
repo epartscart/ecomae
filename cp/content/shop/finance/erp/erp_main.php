@@ -589,6 +589,13 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 				<div class="epc-erp-content-toolbar-main">
 					<?php epc_erp_render_content_header($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str); ?>
 				</div>
+				<div class="epc-erp-global-search" id="epc_erp_global_search_wrap">
+					<div class="epc-erp-gs-input-wrap">
+						<i class="fa fa-search epc-erp-gs-icon"></i>
+						<input type="text" id="epc_erp_gs_input" class="epc-erp-gs-input" placeholder="Search modules &amp; records…" autocomplete="off" aria-label="Global search" aria-expanded="false" aria-controls="epc_erp_gs_results">
+					</div>
+					<div class="epc-erp-gs-results" id="epc_erp_gs_results" hidden></div>
+				</div>
 				<div class="epc-erp-content-actions">
 					<?php epc_erp_render_notifications_stub($db_link); ?>
 					<a class="btn btn-default btn-xs" href="<?php echo epc_erp_h(epc_erp_shell_append_query($guideUrl)); ?>"><i class="fa fa-book"></i> Guide</a>
@@ -1299,6 +1306,115 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 				.then(function(r){return r.json()})
 				.then(function(j){ if(j.status) location.reload(); });
 		});
+	});
+})();
+</script>
+<script>
+/* ── ERP Global Search ───────────────────────────────────────────── */
+(function(){
+	var inp   = document.getElementById('epc_erp_gs_input');
+	var wrap  = document.getElementById('epc_erp_gs_results');
+	if (!inp || !wrap) return;
+	var timer = null;
+	var erpPostUrl = <?php echo json_encode($erpAjaxEndpoint); ?>;
+	var erpBase    = <?php echo json_encode($erpUrl); ?>;
+	var from       = <?php echo json_encode($date_from_str); ?>;
+	var to         = <?php echo json_encode($date_to_str); ?>;
+	var csrf       = (document.querySelector('input[name="csrf_guard_key"]') || {}).value || '';
+
+	function buildUrl(res) {
+		var base = erpBase + '?area=' + encodeURIComponent(res.area) + '&tab=' + encodeURIComponent(res.tab)
+			+ '&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to);
+		if (res.param) base += '&' + res.param;
+		return base;
+	}
+
+	function render(results) {
+		if (!results || results.length === 0) {
+			wrap.innerHTML = '<div class="epc-erp-gs-empty"><i class="fa fa-search"></i> No results</div>';
+			wrap.hidden = false;
+			inp.setAttribute('aria-expanded', 'true');
+			return;
+		}
+		var modules = results.filter(function(r){ return r.type === 'module'; });
+		var records = results.filter(function(r){ return r.type === 'record'; });
+		var html = '';
+
+		if (modules.length) {
+			html += '<div class="epc-erp-gs-group-hd">Modules</div>';
+			modules.forEach(function(r){
+				html += '<a class="epc-erp-gs-item" href="' + buildUrl(r) + '">'
+					+ '<i class="fa ' + (r.icon || 'fa-circle-o') + ' epc-erp-gs-item-icon"></i>'
+					+ '<span class="epc-erp-gs-item-label">' + escHtml(r.label) + '</span>'
+					+ '<span class="epc-erp-gs-item-sub">' + escHtml(r.sub || '') + '</span></a>';
+			});
+		}
+		if (records.length) {
+			var groups = {};
+			records.forEach(function(r){ (groups[r.group] = groups[r.group] || []).push(r); });
+			Object.keys(groups).forEach(function(g){
+				html += '<div class="epc-erp-gs-group-hd">Records · ' + escHtml(g) + '</div>';
+				groups[g].forEach(function(r){
+					html += '<a class="epc-erp-gs-item" href="' + buildUrl(r) + '">'
+						+ '<i class="fa ' + (r.icon || 'fa-circle-o') + ' epc-erp-gs-item-icon"></i>'
+						+ '<span class="epc-erp-gs-item-label">' + escHtml(r.label) + '</span>'
+						+ '<span class="epc-erp-gs-item-sub">' + escHtml(r.sub || '') + '</span></a>';
+				});
+			});
+		}
+		wrap.innerHTML = html;
+		wrap.hidden = false;
+		inp.setAttribute('aria-expanded', 'true');
+	}
+
+	function escHtml(s) {
+		return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+	}
+
+	function doSearch(q) {
+		var fd = new FormData();
+		fd.append('action', 'erp_global_search');
+		fd.append('q', q);
+		fd.append('csrf_guard_key', csrf);
+		fetch(erpPostUrl, {method:'POST', body:fd, credentials:'same-origin'})
+			.then(function(r){ return r.json(); })
+			.then(function(j){ if (j.status) render(j.results || []); })
+			.catch(function(){});
+	}
+
+	inp.addEventListener('input', function(){
+		var q = inp.value.trim();
+		clearTimeout(timer);
+		if (q.length < 2) { wrap.hidden = true; inp.setAttribute('aria-expanded','false'); return; }
+		timer = setTimeout(function(){ doSearch(q); }, 280);
+	});
+
+	inp.addEventListener('keydown', function(e){
+		if (e.key === 'Escape') { wrap.hidden = true; inp.setAttribute('aria-expanded','false'); inp.value = ''; }
+		if (e.key === 'ArrowDown') {
+			var first = wrap.querySelector('.epc-erp-gs-item');
+			if (first) { e.preventDefault(); first.focus(); }
+		}
+	});
+
+	wrap.addEventListener('keydown', function(e){
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			e.preventDefault();
+			var items = Array.from(wrap.querySelectorAll('.epc-erp-gs-item'));
+			var idx = items.indexOf(document.activeElement);
+			if (e.key === 'ArrowDown') idx = Math.min(idx + 1, items.length - 1);
+			else idx = Math.max(idx - 1, 0);
+			if (idx >= 0 && items[idx]) items[idx].focus();
+		}
+		if (e.key === 'Escape') { wrap.hidden = true; inp.setAttribute('aria-expanded','false'); inp.focus(); }
+	});
+
+	document.addEventListener('click', function(e){
+		var searchWrap = document.getElementById('epc_erp_global_search_wrap');
+		if (searchWrap && !searchWrap.contains(e.target)) {
+			wrap.hidden = true;
+			inp.setAttribute('aria-expanded','false');
+		}
 	});
 })();
 </script>
