@@ -27,7 +27,24 @@ body.epc-erp-cp-shell {
 .epc-crm-embed .epc-crm-nav { margin-bottom: 12px; }
 .epc-erp-subnav .btn-primary { background: #2563eb; border-color: #1d4ed8; }
 .epc-erp-subnav .btn { border-radius: 6px; font-weight: 600; font-size: 12px; }
-.epc-crm-shell .table { background: #fff; }
+/* CRM tables (standalone CP page or embedded in ERP) previously only got a
+   white background here with no explicit text color, so they silently
+   inherited whatever ambient color was active on the page (light in some
+   contexts, invisible-white in others) — same white-on-white bug reported
+   on Inventory, now confirmed in CRM. Force explicit, legible colors so it
+   can't happen in either context. */
+.epc-crm-shell .table,
+.epc-crm-shell .table > tbody > tr > td {
+	background: #fff;
+	color: #1e293b;
+}
+.epc-crm-shell .table > thead > tr > th {
+	background: #f1f5f9;
+	color: #1e293b;
+}
+.epc-crm-shell .table.table-striped > tbody > tr:nth-of-type(odd) > td {
+	background: #f9fafb;
+}
 .epc-crm-shell .progress { background: #e2e8f0; }
 .epc-crm-pipeline-col { box-shadow: inset 0 -2px 0 rgba(37, 99, 235, 0.15); }
 .epc-crm-card:hover { border-color: #2563eb; }
