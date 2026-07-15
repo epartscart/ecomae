@@ -647,6 +647,7 @@ function epc_erp_inventory_create_item(PDO $db, array $data)
 	$extendedDec = array(
 		'net_weight', 'gross_weight', 'tare_weight', 'volume', 'gross_depth',
 		'gross_width', 'gross_height', 'standard_cost', 'sales_price', 'purchase_price',
+		'reorder_level',
 	);
 	foreach ($extendedDec as $col) {
 		if (isset($data[$col]) && $data[$col] !== '' && epc_erp_inventory_has_column($db, 'epc_erp_inv_items', $col)) {
