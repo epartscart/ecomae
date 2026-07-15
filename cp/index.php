@@ -15,6 +15,19 @@ require_once $_SERVER["DOCUMENT_ROOT"] . "/config.php";
 $DP_Config = new DP_Config();
 require_once $_SERVER["DOCUMENT_ROOT"] . "/content/general_pages/epc_portal.php";
 
+// Industry wildcard subdomains (*.ecomae.com) — bootstrap industry context
+// early, same as the root index.php. Without this, /cp/ on an industry
+// subdomain (e.g. industries.ecomae.com) never gets its domain_path set to
+// the current host, so it falls back to the platform default and trips the
+// dp_core "License error 1.02: Wrong value of domain_path field" check.
+$__epcIndustrySubdomainRouter = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_subdomain_router.php';
+if (is_file($__epcIndustrySubdomainRouter)) {
+	require_once $__epcIndustrySubdomainRouter;
+	if (function_exists('epc_industry_subdomain_bootstrap')) {
+		epc_industry_subdomain_bootstrap($DP_Config);
+	}
+}
+
 $demoBootstrap = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_demo.php';
 if (is_file($demoBootstrap)) {
 	require_once $demoBootstrap;
