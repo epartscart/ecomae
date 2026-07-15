@@ -113,4 +113,60 @@ if (!function_exists('epc_tickets_ensure_schema')) {
         $db->prepare("UPDATE `epc_tickets` SET `time_updated` = ? WHERE `id` = ?")->execute([time(), $ticketId]);
         return (int) $db->lastInsertId();
     }
+
+    function epc_tickets_update(PDO $db, int $ticketId, array $data): bool
+    {
+        $fields = array();
+        $params = array();
+        foreach (array('status', 'priority', 'assigned_to', 'assigned_name') as $col) {
+            if (array_key_exists($col, $data)) {
+                $fields[] = "`$col` = ?";
+                $params[] = $data[$col];
+            }
+        }
+        if (empty($fields)) {
+            return false;
+        }
+        if (isset($data['status']) && $data['status'] === 'resolved') {
+            $fields[] = '`resolved_at` = ?';
+            $params[] = date('Y-m-d H:i:s');
+        }
+        $fields[] = '`time_updated` = ?';
+        $params[] = time();
+        $params[] = $ticketId;
+        $sql = 'UPDATE `epc_tickets` SET ' . implode(', ', $fields) . ' WHERE `id` = ?';
+        return $db->prepare($sql)->execute($params);
+    }
+
+    function epc_tickets_stats(PDO $db, int $companyId): array
+    {
+        $stmt = $db->prepare("SELECT `status`, `priority`, COUNT(*) AS c FROM `epc_tickets` WHERE `company_id` = ? GROUP BY `status`, `priority`");
+        $stmt->execute([$companyId]);
+        $stats = array('open' => 0, 'critical' => 0, 'high' => 0, 'in_progress' => 0, 'resolved_30d' => 0);
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($row['status'] === 'open') {
+                $stats['open'] += (int) $row['c'];
+            }
+            if ($row['status'] === 'in_progress') {
+                $stats['in_progress'] += (int) $row['c'];
+            }
+            if (in_array($row['status'], array('open', 'in_progress', 'waiting'), true)) {
+                if ($row['priority'] === 'critical') {
+                    $stats['critical'] += (int) $row['c'];
+                }
+                if ($row['priority'] === 'high') {
+                    $stats['high'] += (int) $row['c'];
+                }
+            }
+        }
+        $stmt2 = $db->prepare("SELECT COUNT(*) FROM `epc_tickets` WHERE `company_id` = ? AND `status` = 'resolved' AND `resolved_at` >= (NOW() - INTERVAL 30 DAY)");
+        $stmt2->execute([$companyId]);
+        $stats['resolved_30d'] = (int) $stmt2->fetchColumn();
+
+        $stmt3 = $db->prepare("SELECT AVG(TIMESTAMPDIFF(HOUR, FROM_UNIXTIME(`time_created`), `resolved_at`)) FROM `epc_tickets` WHERE `company_id` = ? AND `status` = 'resolved' AND `resolved_at` IS NOT NULL");
+        $stmt3->execute([$companyId]);
+        $avg = $stmt3->fetchColumn();
+        $stats['avg_resolution_hours'] = $avg !== null ? round((float) $avg, 1) : 0.0;
+        return $stats;
+    }
 }
