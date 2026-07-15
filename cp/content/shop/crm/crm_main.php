@@ -86,8 +86,10 @@ function epc_crm_tab_url($base, $t)
 .epc-crm-card[draggable="true"] { cursor: grab; }
 .epc-crm-card.epc-crm-dragging { opacity: 0.4; }
 .epc-crm-timeline-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 2000; }
-.epc-crm-timeline-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); }
-.epc-crm-timeline-panel { position: absolute; top: 0; right: 0; bottom: 0; width: 480px; max-width: 92vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+.epc-crm-timeline-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0); transition: background .2s ease; }
+.epc-crm-timeline-modal.is-open .epc-crm-timeline-backdrop { background: rgba(0,0,0,0.45); }
+.epc-crm-timeline-panel { position: absolute; top: 0; right: 0; bottom: 0; width: 480px; max-width: 92vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .22s cubic-bezier(.2,.7,.3,1); }
+.epc-crm-timeline-modal.is-open .epc-crm-timeline-panel { transform: translateX(0); }
 .epc-crm-timeline-hd { padding: 12px 16px; border-bottom: 1px solid #e5e5e5; }
 .epc-crm-timeline-bd { padding: 14px 16px; overflow-y: auto; flex: 1; }
 .epc-crm-timeline-bd h5 { margin: 16px 0 8px; }
@@ -460,7 +462,11 @@ function epc_crm_tab_url($base, $t)
 	var tlModal = document.getElementById('epc_crm_timeline_modal');
 	var tlBody = document.getElementById('epc_crm_timeline_body');
 	var tlTitle = document.getElementById('epc_crm_timeline_title');
-	function closeTimeline() { if (tlModal) tlModal.style.display = 'none'; }
+	function closeTimeline() {
+		if (!tlModal) return;
+		tlModal.classList.remove('is-open');
+		setTimeout(function() { tlModal.style.display = 'none'; }, 200);
+	}
 	if (tlModal) {
 		tlModal.querySelector('.epc-crm-timeline-backdrop').addEventListener('click', closeTimeline);
 		tlModal.querySelector('.epc-crm-timeline-close').addEventListener('click', closeTimeline);
@@ -526,6 +532,7 @@ function epc_crm_tab_url($base, $t)
 			tlTitle.textContent = 'Timeline — ' + (btn.getAttribute('data-label') || '');
 			tlBody.innerHTML = '<p class="text-muted">Loading…</p>';
 			tlModal.style.display = 'block';
+			requestAnimationFrame(function() { tlModal.classList.add('is-open'); });
 			post(act('get_timeline'), { entity_type: type, entity_id: id }, renderTimeline);
 		});
 	});
