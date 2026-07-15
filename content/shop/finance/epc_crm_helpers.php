@@ -359,6 +359,94 @@ function epc_crm_opportunity_won_order_hint(PDO $db, $opportunityId)
 	);
 }
 
+/**
+ * Recent shop orders for a linked storefront customer. Returns [] for
+ * ERP-only tenants (no storefront/shop_orders usage) or when no user is
+ * linked/resolvable — callers must not assume a non-empty result means the
+ * tenant has commerce, only that this specific lookup didn't apply.
+ */
+function epc_crm_customer_recent_orders(PDO $db, $userId, $limit = 10)
+{
+	$userId = (int)$userId;
+	if ($userId <= 0) {
+		return array();
+	}
+	require_once __DIR__ . '/epc_erp_vouchers.php';
+	if (!epc_erp_has_commerce_integration()) {
+		return array();
+	}
+	try {
+		$statusSql = function_exists('epc_erp_order_status_name_sql') ? epc_erp_order_status_name_sql($db) : "''";
+		$st = $db->prepare(
+			"SELECT `id`, `time`, `successfully_created`, `paid`, `price_total_wt_vat`, {$statusSql} AS status_name
+			 FROM `shop_orders` WHERE `user_id` = ? ORDER BY `time` DESC LIMIT " . (int)$limit
+		);
+		$st->execute(array($userId));
+		return $st->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Exception $e) {
+		// shop_orders may not exist/be usable on some ERP-only tenants — fail closed, not loud.
+		return array();
+	}
+}
+
+/**
+ * Resolve the storefront user_id linked to a lead/opportunity: explicit
+ * linked_user_id on opportunities, else an email match against `users`.
+ */
+function epc_crm_resolve_linked_user_id(PDO $db, $entityType, array $entity)
+{
+	if ($entityType === 'opportunity' && (int)($entity['linked_user_id'] ?? 0) > 0) {
+		return (int)$entity['linked_user_id'];
+	}
+	$email = trim((string)($entity['email'] ?? ''));
+	if ($email === '') {
+		return 0;
+	}
+	$st = $db->prepare('SELECT `user_id` FROM `users` WHERE `email` = ? LIMIT 1');
+	$st->execute(array($email));
+	return (int)$st->fetchColumn();
+}
+
+/**
+ * Combined "Customer 360" timeline for a lead or opportunity: the record
+ * itself, every related activity (calls/emails/notes/tasks) in one
+ * chronological feed, any quotes raised against it, and — for
+ * ecommerce+ERP tenants only — the customer's real order history.
+ */
+function epc_crm_entity_timeline(PDO $db, $entityType, $entityId)
+{
+	$entityType = ($entityType === 'opportunity') ? 'opportunity' : 'lead';
+	$entityId = (int)$entityId;
+	$entity = ($entityType === 'opportunity') ? epc_crm_get_opportunity($db, $entityId) : epc_crm_get_lead($db, $entityId);
+	if (!$entity) {
+		throw new Exception(ucfirst($entityType) . ' not found');
+	}
+
+	$activities = array_merge(
+		epc_crm_list_activities($db, $entityType, $entityId, 100),
+		($entityType === 'opportunity' && (int)($entity['lead_id'] ?? 0) > 0)
+			? epc_crm_list_activities($db, 'lead', (int)$entity['lead_id'], 100)
+			: array()
+	);
+	usort($activities, function ($a, $b) { return (int)$b['due_date'] <=> (int)$a['due_date']; });
+
+	require_once __DIR__ . '/epc_crm_modules.php';
+	$quotes = epc_crm_list_quotes_for_entity($db, $entityType, $entityId);
+
+	$linkedUserId = epc_crm_resolve_linked_user_id($db, $entityType, $entity);
+	$orders = epc_crm_customer_recent_orders($db, $linkedUserId, 10);
+
+	return array(
+		'entity_type' => $entityType,
+		'entity' => $entity,
+		'activities' => $activities,
+		'quotes' => $quotes,
+		'linked_user_id' => $linkedUserId,
+		'orders' => $orders,
+		'has_commerce' => epc_erp_has_commerce_integration(),
+	);
+}
+
 function epc_crm_handle_ajax_action(PDO $db, $action, array $post)
 {
 	if (!epc_crm_pack_enabled() || !epc_crm_user_can_access($db)) {
@@ -388,6 +476,10 @@ function epc_crm_handle_ajax_action(PDO $db, $action, array $post)
 		case 'won_hint':
 			$h = epc_crm_opportunity_won_order_hint($db, (int)($post['opportunity_id'] ?? 0));
 			return array_merge($h, array('message' => $h['hint']));
+		case 'crm_get_timeline':
+		case 'get_timeline':
+			$tl = epc_crm_entity_timeline($db, (string)($post['entity_type'] ?? 'lead'), (int)($post['entity_id'] ?? 0));
+			return array_merge($tl, array('message' => 'OK'));
 		case 'crm_save_activity':
 		case 'save_activity':
 			return array('id' => epc_crm_save_activity($db, $post, (int)($post['id'] ?? 0)), 'message' => 'Activity saved');
