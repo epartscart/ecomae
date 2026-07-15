@@ -1292,3 +1292,222 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	.epc-d365-factbox { width: 100%; flex-basis: auto; }
 	.epc-d365-listbar { flex-direction: column; align-items: stretch; }
 }
+
+/* ==========================================================================
+   ERP "Elevated Glass" premium visual system
+   Adds depth (layered shadows + gradients), a glass-panel treatment, and
+   subtle motion across the shared ERP components (section cards, KPI tiles,
+   report tiles, page headers, filter bars, tables, buttons) so every module
+   built on top of these classes inherits the same premium 3D feel without
+   per-module changes.
+   ========================================================================== */
+
+:root {
+	--epc-erp-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.88) 100%);
+	--epc-erp-glass-border: rgba(148, 163, 184, 0.28);
+	--epc-erp-elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 20px -12px rgba(15, 23, 42, 0.18);
+	--epc-erp-elev-2: 0 2px 4px rgba(15, 23, 42, 0.08), 0 18px 34px -16px rgba(2, 132, 199, 0.28);
+	--epc-erp-accent-grad: linear-gradient(135deg, #0ea5e9 0%, #2563eb 55%, #4338ca 100%);
+	--epc-erp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes epcErpFadeUp {
+	from { opacity: 0; transform: translateY(10px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes epcErpGlow {
+	0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.0); }
+	50%      { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10); }
+}
+@keyframes epcErpShimmer {
+	0%   { background-position: -180px 0; }
+	100% { background-position: 180px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.epc-erp-section-card, .epc-erp-report-tile, .epc-erp-kpi .kpi, .epc-erp-dept-card,
+	.epc-erp-content-title, .epc-erp-page-hd { animation: none !important; transition: none !important; }
+}
+
+/* Page header: gradient icon badge + animated accent underline */
+.epc-erp-content-header { animation: epcErpFadeUp 0.35s var(--epc-erp-ease) both; }
+.epc-erp-content-title {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	padding-bottom: 10px;
+}
+.epc-erp-content-title .fa {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	margin-right: 10px;
+	border-radius: 10px;
+	background: var(--epc-erp-accent-grad);
+	color: #fff;
+	font-size: 15px;
+	box-shadow: var(--epc-erp-elev-1);
+}
+.epc-erp-content-title::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 46px;
+	height: 3px;
+	border-radius: 3px;
+	background: var(--epc-erp-accent-grad);
+	background-size: 200% 100%;
+}
+
+/* Filter bar: glass panel */
+.epc-erp-filter-bar {
+	background: var(--epc-erp-glass-bg);
+	backdrop-filter: saturate(140%) blur(6px);
+	border: 1px solid var(--epc-erp-glass-border);
+	border-radius: 12px;
+	box-shadow: var(--epc-erp-elev-1);
+}
+
+/* Section / report cards: elevated glass with hover lift */
+.epc-erp-section-card,
+.epc-erp-report-tile,
+.epc-erp-dept-card {
+	background: var(--epc-erp-glass-bg);
+	border: 1px solid var(--epc-erp-glass-border);
+	border-radius: 14px;
+	box-shadow: var(--epc-erp-elev-1);
+	transition: transform 0.22s var(--epc-erp-ease), box-shadow 0.22s var(--epc-erp-ease);
+	animation: epcErpFadeUp 0.4s var(--epc-erp-ease) both;
+	will-change: transform;
+}
+.epc-erp-section-card:hover,
+.epc-erp-report-tile:hover,
+.epc-erp-dept-card:hover {
+	transform: translateY(-3px);
+	box-shadow: var(--epc-erp-elev-2);
+}
+.epc-erp-section-card-hd {
+	background: linear-gradient(180deg, rgba(241, 245, 249, 0.9), rgba(241, 245, 249, 0.5));
+	border-bottom: 1px solid var(--epc-erp-glass-border);
+	border-radius: 14px 14px 0 0;
+}
+
+/* KPI tiles: 3D top accent + glow on hover */
+.epc-erp-kpi .kpi {
+	position: relative;
+	background: var(--epc-erp-glass-bg);
+	border: 1px solid var(--epc-erp-glass-border);
+	border-top: 3px solid transparent;
+	border-radius: 14px;
+	box-shadow: var(--epc-erp-elev-1);
+	transition: transform 0.22s var(--epc-erp-ease), box-shadow 0.22s var(--epc-erp-ease);
+	animation: epcErpFadeUp 0.45s var(--epc-erp-ease) both;
+	overflow: hidden;
+}
+.epc-erp-kpi .kpi::before {
+	content: '';
+	position: absolute;
+	top: 0; left: 0; right: 0;
+	height: 3px;
+	background: var(--epc-erp-accent-grad);
+}
+.epc-erp-kpi .kpi:hover {
+	transform: translateY(-4px) scale(1.01);
+	box-shadow: var(--epc-erp-elev-2);
+	animation: epcErpGlow 1.6s ease-in-out infinite;
+}
+.epc-erp-kpi .kpi .val {
+	background: var(--epc-erp-accent-grad);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+/* Tables: soft depth + gradient header */
+.epc-erp-table-wrap {
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: var(--epc-erp-elev-1);
+}
+.epc-erp-table th, .table-epc th {
+	background: linear-gradient(180deg, #f1f5f9, #e8eef5) !important;
+	position: relative;
+}
+.table-epc tbody tr, .epc-erp-table tbody tr {
+	transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.table-epc tbody tr:hover, .epc-erp-table tbody tr:hover {
+	background: #eff6ff;
+}
+
+/* Buttons: subtle 3D gradient + lift */
+.epc-erp-shell .btn-primary,
+.epc-erp-subnav .btn-primary {
+	background: var(--epc-erp-accent-grad);
+	border: 0;
+	box-shadow: 0 2px 6px -1px rgba(37, 99, 235, 0.45);
+	transition: transform 0.16s var(--epc-erp-ease), box-shadow 0.16s var(--epc-erp-ease);
+}
+.epc-erp-shell .btn-primary:hover,
+.epc-erp-subnav .btn-primary:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 14px -2px rgba(37, 99, 235, 0.55);
+}
+.epc-erp-shell .btn-primary:active,
+.epc-erp-subnav .btn-primary:active {
+	transform: translateY(0);
+}
+
+/* Empty / coming-soon states: subtle shimmer to feel alive, not flat */
+.epc-erp-empty, .epc-erp-coming-soon {
+	background: var(--epc-erp-glass-bg);
+	border: 1px dashed rgba(148, 163, 184, 0.5);
+	box-shadow: var(--epc-erp-elev-1);
+}
+.epc-erp-empty .fa, .epc-erp-coming-soon .fa {
+	background: var(--epc-erp-accent-grad);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+
+/* Chain / related-nav strips: pill depth */
+.epc-erp-chain-nav a, .epc-erp-related-links a {
+	transition: transform 0.15s var(--epc-erp-ease), box-shadow 0.15s var(--epc-erp-ease);
+}
+.epc-erp-chain-nav a:hover, .epc-erp-related-links a:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 10px -4px rgba(37, 99, 235, 0.4);
+}
+
+/* Sidebar: layered gradient depth + animated active-item indicator */
+.epc-erp-sidebar {
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.06) 100%),
+		linear-gradient(160deg, var(--epc-sidebar-mid, #075985) 0%, var(--epc-blue-900, #0c4a6e) 100%);
+	box-shadow: 4px 0 24px -12px rgba(2, 6, 23, 0.55);
+}
+.epc-erp-sidebar-group-hd,
+.epc-erp-sidebar-item a {
+	position: relative;
+	transition: background 0.18s var(--epc-erp-ease, ease), color 0.18s var(--epc-erp-ease, ease), padding-left 0.18s var(--epc-erp-ease, ease);
+}
+.epc-erp-sidebar-group.is-active-area > .epc-erp-sidebar-group-hd::before,
+.epc-erp-sidebar-item.is-active a::before {
+	content: '';
+	position: absolute;
+	left: 0; top: 4px; bottom: 4px;
+	width: 3px;
+	border-radius: 0 3px 3px 0;
+	background: linear-gradient(180deg, #38bdf8, #2563eb);
+	box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+}
+.epc-erp-sidebar-item a:hover,
+.epc-erp-sidebar-group-hd:hover {
+	padding-left: 18px;
+}
+.epc-erp-sidebar-brand {
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.1));
+}
