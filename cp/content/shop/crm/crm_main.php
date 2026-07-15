@@ -79,7 +79,22 @@ function epc_crm_tab_url($base, $t)
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_ui.css?v=20260527">
 <link rel="stylesheet" href="/content/shop/finance/epc_crm_ui.css?v=20260527">
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_professional.css?v=20260527">
-<style>.epc-crm-shell .epc-crm-form-inline input, .epc-crm-shell .epc-crm-form-inline select { margin: 2px 4px 2px 0; }</style>
+<style>
+.epc-crm-shell .epc-crm-form-inline input, .epc-crm-shell .epc-crm-form-inline select { margin: 2px 4px 2px 0; }
+.epc-crm-pipeline-drop { min-height: 40px; }
+.epc-crm-pipeline-drop.epc-crm-drop-over { background: rgba(66,139,202,0.08); outline: 2px dashed #428bca; border-radius: 4px; }
+.epc-crm-card[draggable="true"] { cursor: grab; }
+.epc-crm-card.epc-crm-dragging { opacity: 0.4; }
+.epc-crm-timeline-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 2000; }
+.epc-crm-timeline-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); }
+.epc-crm-timeline-panel { position: absolute; top: 0; right: 0; bottom: 0; width: 480px; max-width: 92vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+.epc-crm-timeline-hd { padding: 12px 16px; border-bottom: 1px solid #e5e5e5; }
+.epc-crm-timeline-bd { padding: 14px 16px; overflow-y: auto; flex: 1; }
+.epc-crm-timeline-bd h5 { margin: 16px 0 8px; }
+.epc-crm-timeline-bd h5:first-child { margin-top: 0; }
+.epc-crm-tl-item { border-left: 2px solid #e5e5e5; padding: 4px 0 8px 12px; margin-bottom: 4px; }
+.epc-crm-tl-item .tl-meta { font-size: 11px; color: #888; }
+</style>
 
 <div class="col-lg-12 epc-crm-shell<?php echo $embedInErp ? ' epc-crm-embed' : ''; ?>">
 <?php if (!$embedInErp): ?>
@@ -153,14 +168,15 @@ function epc_crm_tab_url($base, $t)
 				</div>
 
 			<?php elseif ($tab === 'pipeline'): ?>
-				<p class="text-muted">Drag cards between columns or use the stage dropdown on each card.</p>
+				<p class="text-muted">Drag cards between columns, or use the stage dropdown on each card.</p>
 				<div class="epc-crm-pipeline" id="epc_crm_pipeline">
 					<?php foreach (epc_crm_opportunity_stages() as $stage => $stageLabel): ?>
 						<?php $cards = isset($board[$stage]) ? $board[$stage] : array(); ?>
 						<div class="epc-crm-pipeline-col epc-crm-stage-<?php echo epc_crm_h($stage); ?>" data-stage="<?php echo epc_crm_h($stage); ?>">
 							<h5><?php echo epc_crm_h($stageLabel); ?> <span class="badge"><?php echo count($cards); ?></span></h5>
+							<div class="epc-crm-pipeline-drop" data-stage="<?php echo epc_crm_h($stage); ?>">
 							<?php foreach ($cards as $c): ?>
-								<div class="epc-crm-card" data-id="<?php echo (int)$c['id']; ?>">
+								<div class="epc-crm-card" data-id="<?php echo (int)$c['id']; ?>" draggable="true">
 									<div><strong>#<?php echo (int)$c['id']; ?></strong> <?php echo epc_crm_h($c['title']); ?></div>
 									<div class="amt"><?php echo epc_crm_money($c['amount']); ?> AED · <?php echo (int)$c['probability']; ?>%</div>
 									<div class="meta"><?php echo epc_crm_h($c['lead_company'] ?: ''); ?></div>
@@ -169,11 +185,15 @@ function epc_crm_tab_url($base, $t)
 											<option value="<?php echo epc_crm_h($sk); ?>" <?php echo $c['stage'] === $sk ? 'selected' : ''; ?>><?php echo epc_crm_h($sl); ?></option>
 										<?php endforeach; ?>
 									</select>
-									<?php if ($c['stage'] === 'won'): ?>
-										<button type="button" class="btn btn-xs btn-success epc-crm-won-hint" data-id="<?php echo (int)$c['id']; ?>" style="margin-top:4px;">Order hint</button>
-									<?php endif; ?>
+									<div style="margin-top:4px;">
+										<button type="button" class="btn btn-xs btn-default epc-crm-timeline" data-entity-type="opportunity" data-entity-id="<?php echo (int)$c['id']; ?>" data-label="<?php echo epc_crm_h($c['title']); ?>"><i class="fa fa-clock-o"></i></button>
+										<?php if ($c['stage'] === 'won'): ?>
+											<button type="button" class="btn btn-xs btn-success epc-crm-won-hint" data-id="<?php echo (int)$c['id']; ?>">Order hint</button>
+										<?php endif; ?>
+									</div>
 								</div>
 							<?php endforeach; ?>
+							</div>
 						</div>
 					<?php endforeach; ?>
 				</div>
@@ -209,6 +229,7 @@ function epc_crm_tab_url($base, $t)
 								<td><?php echo epc_crm_money($L['expected_value']); ?></td>
 								<td><?php echo epc_crm_h(date('Y-m-d', (int)$L['time_created'])); ?></td>
 								<td>
+									<button type="button" class="btn btn-xs btn-default epc-crm-timeline" data-entity-type="lead" data-entity-id="<?php echo (int)$L['id']; ?>" data-label="<?php echo epc_crm_h($L['company']); ?>"><i class="fa fa-clock-o"></i> Timeline</button>
 									<?php if ($L['status'] !== 'converted'): ?>
 									<button type="button" class="btn btn-xs btn-success epc-crm-convert" data-id="<?php echo (int)$L['id']; ?>">→ Opportunity</button>
 									<?php endif; ?>
@@ -250,7 +271,10 @@ function epc_crm_tab_url($base, $t)
 								<td><?php echo (int)$o['probability']; ?>%</td>
 								<td><?php echo (int)$o['close_date'] ? epc_crm_h(date('Y-m-d', (int)$o['close_date'])) : '—'; ?></td>
 								<td><?php echo epc_crm_h($o['lead_company'] ?: ('#' . (int)$o['lead_id'])); ?></td>
-								<td><?php if ($o['stage'] === 'won'): ?><button type="button" class="btn btn-xs btn-success epc-crm-won-hint" data-id="<?php echo (int)$o['id']; ?>">Order hint</button><?php endif; ?></td>
+								<td>
+									<button type="button" class="btn btn-xs btn-default epc-crm-timeline" data-entity-type="opportunity" data-entity-id="<?php echo (int)$o['id']; ?>" data-label="<?php echo epc_crm_h($o['title']); ?>"><i class="fa fa-clock-o"></i> Timeline</button>
+									<?php if ($o['stage'] === 'won'): ?><button type="button" class="btn btn-xs btn-success epc-crm-won-hint" data-id="<?php echo (int)$o['id']; ?>">Order hint</button><?php endif; ?>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
@@ -302,6 +326,19 @@ function epc_crm_tab_url($base, $t)
 			<?php endif; ?>
 
 			<?php require __DIR__ . '/crm_tabs_extended.php'; ?>
+
+			<div id="epc_crm_timeline_modal" class="epc-crm-timeline-modal" style="display:none;">
+				<div class="epc-crm-timeline-backdrop"></div>
+				<div class="epc-crm-timeline-panel">
+					<div class="epc-crm-timeline-hd">
+						<strong id="epc_crm_timeline_title">Timeline</strong>
+						<button type="button" class="btn btn-xs btn-default epc-crm-timeline-close pull-right">&times; Close</button>
+					</div>
+					<div class="epc-crm-timeline-bd" id="epc_crm_timeline_body">
+						<p class="text-muted">Loading…</p>
+					</div>
+				</div>
+			</div>
 
 <?php if (!$embedInErp): ?>
 		</div>
@@ -391,6 +428,105 @@ function epc_crm_tab_url($base, $t)
 				if (res.status) location.reload();
 				else showMsg(false, res.message);
 			});
+		});
+	});
+
+	// Pipeline drag-and-drop: drag a card into another column to change its stage.
+	document.querySelectorAll('.epc-crm-card[draggable="true"]').forEach(function(card) {
+		card.addEventListener('dragstart', function(e) {
+			e.dataTransfer.setData('text/plain', card.getAttribute('data-id'));
+			e.dataTransfer.effectAllowed = 'move';
+			card.classList.add('epc-crm-dragging');
+		});
+		card.addEventListener('dragend', function() { card.classList.remove('epc-crm-dragging'); });
+	});
+	document.querySelectorAll('.epc-crm-pipeline-drop').forEach(function(zone) {
+		zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('epc-crm-drop-over'); });
+		zone.addEventListener('dragleave', function() { zone.classList.remove('epc-crm-drop-over'); });
+		zone.addEventListener('drop', function(e) {
+			e.preventDefault();
+			zone.classList.remove('epc-crm-drop-over');
+			var id = e.dataTransfer.getData('text/plain');
+			var stage = zone.getAttribute('data-stage');
+			if (!id || !stage) return;
+			post(act('update_stage'), { id: id, stage: stage }, function(res) {
+				if (res.status) location.reload();
+				else showMsg(false, res.message);
+			});
+		});
+	});
+
+	// Customer 360 timeline modal (activities + quotes + linked order history).
+	var tlModal = document.getElementById('epc_crm_timeline_modal');
+	var tlBody = document.getElementById('epc_crm_timeline_body');
+	var tlTitle = document.getElementById('epc_crm_timeline_title');
+	function closeTimeline() { if (tlModal) tlModal.style.display = 'none'; }
+	if (tlModal) {
+		tlModal.querySelector('.epc-crm-timeline-backdrop').addEventListener('click', closeTimeline);
+		tlModal.querySelector('.epc-crm-timeline-close').addEventListener('click', closeTimeline);
+	}
+	function escapeHtml(s) {
+		return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+		});
+	}
+	function renderTimeline(j) {
+		if (!j || !j.status) { tlBody.innerHTML = '<p class="text-danger">' + escapeHtml(j && j.message || 'Failed to load') + '</p>'; return; }
+		var html = '';
+		var e = j.entity || {};
+		html += '<div class="epc-crm-tl-item" style="border-left-color:#428bca;">';
+		html += '<strong>' + escapeHtml(e.title || e.company || '') + '</strong>';
+		if (e.contact_name) html += '<div class="tl-meta">' + escapeHtml(e.contact_name) + (e.email ? ' · ' + escapeHtml(e.email) : '') + '</div>';
+		if (e.stage) html += '<div class="tl-meta">Stage: ' + escapeHtml(e.stage) + ' · ' + escapeHtml(e.probability) + '%</div>';
+		if (e.status) html += '<div class="tl-meta">Status: ' + escapeHtml(e.status) + '</div>';
+		html += '</div>';
+
+		if (j.has_commerce) {
+			html += '<h5><i class="fa fa-shopping-cart"></i> Order history</h5>';
+			if (j.linked_user_id > 0 && j.orders && j.orders.length) {
+				j.orders.forEach(function(o) {
+					html += '<div class="epc-crm-tl-item">';
+					html += '<strong>Order #' + o.id + '</strong> · ' + escapeHtml(o.status_name || '—');
+					html += '<div class="tl-meta">' + new Date(o.time * 1000).toISOString().slice(0, 10) + ' · ' + Number(o.price_total_wt_vat || 0).toFixed(2) + ' AED' + (Number(o.paid) ? ' · Paid' : '') + '</div>';
+					html += '</div>';
+				});
+			} else if (j.linked_user_id > 0) {
+				html += '<p class="text-muted">No orders yet for this linked customer.</p>';
+			} else {
+				html += '<p class="text-muted">No storefront customer linked yet — set an opportunity\'s linked customer, or match by lead email.</p>';
+			}
+		}
+
+		html += '<h5><i class="fa fa-file-text-o"></i> Quotes</h5>';
+		if (j.quotes && j.quotes.length) {
+			j.quotes.forEach(function(q) {
+				html += '<div class="epc-crm-tl-item"><strong>' + escapeHtml(q.quote_number) + '</strong> · ' + escapeHtml(q.status) + '<div class="tl-meta">' + Number(q.subtotal || 0).toFixed(2) + ' AED</div></div>';
+			});
+		} else {
+			html += '<p class="text-muted">No quotes yet.</p>';
+		}
+
+		html += '<h5><i class="fa fa-calendar"></i> Activities</h5>';
+		if (j.activities && j.activities.length) {
+			j.activities.forEach(function(a) {
+				html += '<div class="epc-crm-tl-item"><strong>' + escapeHtml(a.activity_type) + '</strong>'
+					+ (a.due_date ? ' · ' + new Date(a.due_date * 1000).toISOString().slice(0, 10) : '')
+					+ (Number(a.done) ? ' <span class="label label-success">Done</span>' : ' <span class="label label-warning">Open</span>')
+					+ '<div class="tl-meta">' + escapeHtml(a.notes || '') + '</div></div>';
+			});
+		} else {
+			html += '<p class="text-muted">No activities logged yet.</p>';
+		}
+		tlBody.innerHTML = html;
+	}
+	document.querySelectorAll('.epc-crm-timeline').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			var type = btn.getAttribute('data-entity-type');
+			var id = btn.getAttribute('data-entity-id');
+			tlTitle.textContent = 'Timeline — ' + (btn.getAttribute('data-label') || '');
+			tlBody.innerHTML = '<p class="text-muted">Loading…</p>';
+			tlModal.style.display = 'block';
+			post(act('get_timeline'), { entity_type: type, entity_id: id }, renderTimeline);
 		});
 	});
 
