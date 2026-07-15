@@ -14,7 +14,7 @@ if ($rel === '' || strpos($rel, '..') !== false) {
 	header('Content-Type: text/plain; charset=utf-8');
 	exit('Bad path');
 }
-if (!preg_match('#^(templates|content|modules|lib|bos)/#', $rel) && !preg_match('#^favicon\.(svg|ico)$#', $rel)) {
+if (!preg_match('#^(templates|content|modules|lib|bos|cp)/#', $rel) && !preg_match('#^favicon\.(svg|ico)$#', $rel)) {
 	http_response_code(400);
 	header('Content-Type: text/plain; charset=utf-8');
 	exit('Bad path');
