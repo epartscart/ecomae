@@ -18,26 +18,22 @@ body.epc-cp-shell.epc-cp--blue-theme {
 	--epc-blue-400: #38bdf8;
 	--epc-blue-100: #e0f2fe;
 	--epc-blue-50: #f0f9ff;
-	/* Sidebar is intentionally unified to the same near-black shell used
-	   across all of /cp (see epc_cp_ui.css) -- the platform/portal areas
-	   previously had their own blue sidebar, reading as an inconsistent
-	   second product. */
-	--epc-sidebar-from: #0f172a;
-	--epc-sidebar-to: #1e293b;
-	--epc-sidebar-mid: #1e293b;
-	--epc-sidebar-hover: #334155;
-	--epc-sidebar-active-bg: rgba(37, 99, 235, 0.18);
-	--epc-sidebar-text: #94a3b8;
-	--epc-sidebar-muted: #64748b;
+	--epc-sidebar-from: #0c4a6e;
+	--epc-sidebar-to: #0369a1;
+	--epc-sidebar-mid: #075985;
+	--epc-sidebar-hover: #0ea5e9;
+	--epc-sidebar-active-bg: rgba(56, 189, 248, 0.22);
+	--epc-sidebar-text: #bae6fd;
+	--epc-sidebar-muted: #7dd3fc;
 	--epc-sidebar-border: rgba(255, 255, 255, 0.1);
 
 	--epc-cp-primary: #2563eb;
 	--epc-cp-primary-dark: #1d4ed8;
 	--epc-cp-primary-deep: #1e3a8a;
 	--epc-cp-accent: var(--epc-blue-500);
-	--epc-cp-sidebar-bg: #0f172a;
+	--epc-cp-sidebar-bg: var(--epc-blue-900);
 	--epc-cp-sidebar-mid: var(--epc-sidebar-mid);
-	--epc-cp-sidebar-hover: #334155;
+	--epc-cp-sidebar-hover: var(--epc-blue-700);
 	--epc-cp-sidebar-text: var(--epc-sidebar-text);
 	--epc-cp-sidebar-muted: var(--epc-sidebar-muted);
 	--epc-cp-sidebar-active: #ffffff;
@@ -67,7 +63,7 @@ body.epc-cp--blue-theme.epc-cp #side-menu > li > a:hover {
 }
 
 body.epc-cp--blue-theme.epc-cp #side-menu ul.nav-second-level {
-	background: rgba(0, 0, 0, 0.15);
+	background: rgba(8, 47, 73, 0.35);
 }
 
 body.epc-cp--blue-theme.epc-cp #wrapper {
@@ -678,6 +674,70 @@ html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li > a[href^="javascrip
 }
 html.epc-cp-sidebar-collapsed .epc-cp-shell #side-menu > li.active > a::before {
 	color: var(--epc-cp-accent, #0ea5e9);
+}
+
+/* ERP sidebar: process-category top-level grouping */
+.epc-erp-sidebar-category {
+	list-style: none;
+}
+.epc-erp-sidebar-category-hd {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	background: transparent;
+	border: 0;
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	padding: 10px 14px 10px 12px;
+	cursor: pointer;
+	gap: 8px;
+	text-align: left;
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.epc-erp-sidebar-category-hd:hover,
+.epc-erp-sidebar-category.is-open > .epc-erp-sidebar-category-hd {
+	color: rgba(255, 255, 255, 0.95);
+	background: rgba(255, 255, 255, 0.06);
+}
+.epc-erp-sidebar-category.is-active-category > .epc-erp-sidebar-category-hd {
+	color: #fff;
+}
+.epc-erp-sidebar-category-hd .epc-erp-sidebar-chevron {
+	margin-left: auto;
+	transition: transform 0.2s ease;
+	font-size: 10px;
+}
+.epc-erp-sidebar-category.is-open > .epc-erp-sidebar-category-hd .epc-erp-sidebar-chevron {
+	transform: rotate(90deg);
+}
+.epc-erp-sidebar-category-areas {
+	display: none;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.epc-erp-sidebar-category.is-open > .epc-erp-sidebar-category-areas {
+	display: block;
+}
+/* Indent area headers one level inside a category */
+.epc-erp-sidebar-category-areas > .epc-erp-sidebar-group > .epc-erp-sidebar-group-hd {
+	padding-left: 22px;
+	font-size: 12px;
+}
+/* Indent tabs two levels */
+.epc-erp-sidebar-category-areas .epc-erp-sidebar-sublist .epc-erp-sidebar-item a {
+	padding-left: 38px;
+}
+/* Collapsed sidebar: hide category sublists */
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-category-areas {
+	display: none !important;
+}
+html.epc-cp-sidebar-collapsed body.epc-cp-shell:not(.epc-erp-cp-shell) .epc-erp-sidebar-category-hd {
+	justify-content: center;
+	padding: 10px 6px;
 }
 
 /* ERP inner sidebar: only icon-strip when CP #side-menu is present (not standalone ERP shell). */
