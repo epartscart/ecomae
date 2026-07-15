@@ -65,4 +65,12 @@ if (!function_exists('epc_cust_groups_ensure_schema')) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
+
+    function epc_cust_groups_delete(PDO $db, int $groupId, int $companyId): bool
+    {
+        $stmt = $db->prepare("DELETE FROM `epc_customer_groups` WHERE `id` = ? AND `company_id` = ?");
+        $ok = $stmt->execute([$groupId, $companyId]);
+        $db->prepare("DELETE FROM `epc_customer_group_members` WHERE `group_id` = ?")->execute([$groupId]);
+        return $ok;
+    }
 }
