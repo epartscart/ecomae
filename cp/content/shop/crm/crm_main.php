@@ -52,11 +52,12 @@ if (!isset($user_session) || !is_array($user_session)) {
 }
 $csrf = isset($user_session['csrf_guard_key']) ? (string)$user_session['csrf_guard_key'] : '';
 
+$crmListLimit = max(50, min(2000, (int)($_GET['list_limit'] ?? 200)));
 $dash = ($tab === 'dashboard') ? epc_crm_dashboard_extended($db_link) : array();
 $board = ($tab === 'pipeline' || $tab === 'dashboard') ? epc_crm_pipeline_board($db_link) : array();
-$leads = ($tab === 'leads') ? epc_crm_list_leads($db_link) : array();
-$opps = ($tab === 'opportunities') ? epc_crm_list_opportunities($db_link) : array();
-$activities = ($tab === 'activities') ? epc_crm_list_activities($db_link) : array();
+$leads = ($tab === 'leads') ? epc_crm_list_leads($db_link, '', $crmListLimit) : array();
+$opps = ($tab === 'opportunities') ? epc_crm_list_opportunities($db_link, '', $crmListLimit) : array();
+$activities = ($tab === 'activities') ? epc_crm_list_activities($db_link, '', 0, $crmListLimit) : array();
 $quotes = ($tab === 'quotes') ? epc_crm_list_quotes($db_link) : array();
 $tickets = ($tab === 'tickets') ? epc_crm_list_tickets($db_link) : array();
 $projects = ($tab === 'projects') ? epc_crm_list_projects($db_link) : array();
@@ -216,6 +217,9 @@ function epc_crm_tab_url($base, $t)
 						<?php endforeach; ?>
 						</tbody>
 					</table>
+					<?php if (count($leads) >= $crmListLimit): ?>
+					<p class="text-center"><a class="btn btn-xs btn-default" href="<?php echo epc_crm_h(epc_crm_tab_url($crmUrl, 'leads') . '&list_limit=' . ($crmListLimit + 500)); ?>"><i class="fa fa-chevron-down"></i> Show more (currently showing latest <?php echo (int)$crmListLimit; ?>)</a></p>
+					<?php endif; ?>
 				</div>
 
 			<?php elseif ($tab === 'opportunities'): ?>
@@ -251,6 +255,9 @@ function epc_crm_tab_url($base, $t)
 						<?php endforeach; ?>
 						</tbody>
 					</table>
+					<?php if (count($opps) >= $crmListLimit): ?>
+					<p class="text-center"><a class="btn btn-xs btn-default" href="<?php echo epc_crm_h(epc_crm_tab_url($crmUrl, 'opportunities') . '&list_limit=' . ($crmListLimit + 500)); ?>"><i class="fa fa-chevron-down"></i> Show more (currently showing latest <?php echo (int)$crmListLimit; ?>)</a></p>
+					<?php endif; ?>
 				</div>
 
 			<?php elseif ($tab === 'activities'): ?>
@@ -288,6 +295,9 @@ function epc_crm_tab_url($base, $t)
 						<?php endforeach; ?>
 						</tbody>
 					</table>
+					<?php if (count($activities) >= $crmListLimit): ?>
+					<p class="text-center"><a class="btn btn-xs btn-default" href="<?php echo epc_crm_h(epc_crm_tab_url($crmUrl, 'activities') . '&list_limit=' . ($crmListLimit + 500)); ?>"><i class="fa fa-chevron-down"></i> Show more (currently showing latest <?php echo (int)$crmListLimit; ?>)</a></p>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 

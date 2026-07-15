@@ -6,6 +6,18 @@ defined('_ASTEXE_') or die('No access');
 
 function epc_crm_ensure_schema(PDO $db)
 {
+	// This function is called from ~30 different helper/module entry points per
+	// request (once per list/save action). Each call previously re-ran a dozen
+	// `CREATE TABLE IF NOT EXISTS` statements plus a `SHOW COLUMNS`-based column
+	// migration and a sample-data existence check — real, measurable overhead on
+	// every CRM page load and AJAX call. The schema doesn't change within a single
+	// request, so guard it to run at most once per request per connection.
+	static $doneForConnection = null;
+	if ($doneForConnection === $db) {
+		return;
+	}
+	$doneForConnection = $db;
+
 	$db->exec("CREATE TABLE IF NOT EXISTS `epc_crm_leads` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`company` varchar(255) NOT NULL DEFAULT '',
