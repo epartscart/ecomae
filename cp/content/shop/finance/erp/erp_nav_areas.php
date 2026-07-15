@@ -625,6 +625,105 @@ function epc_erp_nav_inject_reports(array $areas)
 	return $areas;
 }
 
+/**
+ * Process-category grouping for the ERP left sidebar.
+ * Maps each top-level category to the area keys that belong to it.
+ * Every area key from epc_erp_nav_areas_config() is assigned to exactly one
+ * category; routing, area keys, tab keys, and URLs are unchanged.
+ */
+function epc_erp_nav_categories_config(): array
+{
+	return array(
+		'home' => array(
+			'label' => 'Home & workspace',
+			'icon'  => 'fa-th-large',
+			'areas' => array('overview'),
+		),
+		'record_to_report' => array(
+			'label' => 'Record to Report',
+			'icon'  => 'fa-university',
+			'areas' => array(
+				'finance',        // General ledger
+				'budgeting',      // Budgeting
+				'consolidations', // Consolidations
+				'cost_acct',      // Cost accounting
+				'audit_wb',       // Audit workbench
+				'fixed_assets',   // Fixed assets
+			),
+		),
+		'procure_to_pay' => array(
+			'label' => 'Procure to Pay',
+			'icon'  => 'fa-shopping-basket',
+			'areas' => array(
+				'purchasing',         // Procurement & sourcing
+				'ap',                 // Accounts payable
+				'landed_cost_area',   // Landed cost
+				'expense',            // Expense management
+			),
+		),
+		'order_to_cash' => array(
+			'label' => 'Order to Cash',
+			'icon'  => 'fa-line-chart',
+			'areas' => array(
+				'sales',        // Sales & marketing
+				'ar',           // Accounts receivable
+				'credit_coll',  // Credit & collections
+				'retail',       // Retail & commerce
+				'service_mgmt', // Service management
+			),
+		),
+		'cash_treasury' => array(
+			'label' => 'Cash & Treasury',
+			'icon'  => 'fa-money',
+			'areas' => array(
+				'banking', // Cash & bank management
+			),
+		),
+		'inventory_fulfilment' => array(
+			'label' => 'Inventory & Fulfilment',
+			'icon'  => 'fa-cubes',
+			'areas' => array(
+				'inventory_mgmt',      // Inventory management
+				'pim',                 // Product information management
+				'cost_mgmt',           // Cost management
+				'production',          // Production control
+				'warehouse',           // Warehouse management
+				'mhei',                // Material handling equipment interface
+				'logistics',           // Logistics
+				'master_planning_area',// Master planning
+				'asset_mgmt',          // Asset management
+			),
+		),
+		'hr_payroll' => array(
+			'label' => 'HR & Payroll',
+			'icon'  => 'fa-users',
+			'areas' => array(
+				'people',      // Human resources
+				'payroll_area',// Payroll
+				'leave_abs',   // Leave & absence
+				'projects',    // Project management & accounting
+			),
+		),
+		'compliance_tax' => array(
+			'label' => 'Compliance & Tax',
+			'icon'  => 'fa-shield',
+			'areas' => array(
+				'tax',  // Tax
+				'risk', // Compliance (insurance, doc expiry)
+			),
+		),
+		'setup_admin' => array(
+			'label' => 'Setup & Administration',
+			'icon'  => 'fa-sliders',
+			'areas' => array(
+				'setup',      // System administration
+				'enterprise', // Organisation administration
+				'common',     // Common (agenda, contacts, docs, AI advisor)
+			),
+		),
+	);
+}
+
 function epc_erp_nav_label_plain($label)
 {
 	return html_entity_decode(strip_tags((string) $label), ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -869,7 +968,7 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 {
 	$areas = epc_erp_nav_areas_for_tenant();
 
-	// Favourites section at top of sidebar
+	// Favourites section at top of sidebar — unchanged
 	$dbForFav = isset($GLOBALS['db_link']) ? $GLOBALS['db_link'] : null;
 	$favItems = $dbForFav ? epc_erp_get_favourites($dbForFav) : array();
 	echo '<nav class="epc-erp-sidebar-nav" aria-label="ERP modules">';
@@ -892,54 +991,82 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 		}
 		echo '</ul></div>';
 	}
+
+	// Render one <li> per process category, each collapsible.
+	// Inside each category, render the existing area groups exactly as before.
+	$categories = epc_erp_nav_categories_config();
 	echo '<ul class="epc-erp-sidebar-list">';
-	foreach ($areas as $areaKey => $area) {
-		$visibleTabs = epc_erp_nav_area_visible_tabs($areaKey, $allowedTabs);
-		if (empty($visibleTabs)) {
+	foreach ($categories as $catKey => $cat) {
+		// Collect all areas for this category that have at least one visible tab.
+		$catAreas = array();
+		foreach ($cat['areas'] as $areaKey) {
+			if (!isset($areas[$areaKey])) {
+				continue;
+			}
+			$visibleTabs = epc_erp_nav_area_visible_tabs($areaKey, $allowedTabs);
+			if (!empty($visibleTabs)) {
+				$catAreas[$areaKey] = $visibleTabs;
+			}
+		}
+		if (empty($catAreas)) {
 			continue;
 		}
-		$isActiveArea = ($areaKey === $activeArea);
-		$isOpen = $isActiveArea;
-		echo '<li class="epc-erp-sidebar-group' . ($isActiveArea ? ' is-active-area' : '')
-			. ($isOpen ? ' is-open' : '') . '" data-area="' . epc_erp_h($areaKey) . '">';
-		echo '<button type="button" class="epc-erp-sidebar-group-hd" aria-expanded="' . ($isOpen ? 'true' : 'false') . '">';
-		echo '<i class="fa ' . epc_erp_h($area['icon']) . ' epc-erp-sidebar-icon"></i>';
-		echo '<span class="epc-erp-sidebar-label">' . epc_erp_h(epc_erp_nav_label_plain($area['label'])) . '</span>';
+		$isCatActive = isset($catAreas[$activeArea]);
+		$isCatOpen   = $isCatActive;
+		echo '<li class="epc-erp-sidebar-category' . ($isCatActive ? ' is-active-category' : '')
+			. ($isCatOpen ? ' is-open' : '') . '" data-category="' . epc_erp_h($catKey) . '">';
+		echo '<button type="button" class="epc-erp-sidebar-category-hd" aria-expanded="' . ($isCatOpen ? 'true' : 'false') . '">';
+		echo '<i class="fa ' . epc_erp_h($cat['icon']) . ' epc-erp-sidebar-icon"></i>';
+		echo '<span class="epc-erp-sidebar-label">' . epc_erp_h($cat['label']) . '</span>';
 		echo '<i class="fa fa-chevron-right epc-erp-sidebar-chevron" aria-hidden="true"></i>';
 		echo '</button>';
-		echo '<ul class="epc-erp-sidebar-sublist">';
-		// Enterprise style: group sub-modules (Common / Journals / Inquiries and
-		// reports / Setup / Periodic …) when the area defines a 'groups' map.
-		if (!empty($area['groups']) && is_array($area['groups'])) {
-			$rendered = array();
-			foreach ($area['groups'] as $groupLabel => $groupTabKeys) {
-				$groupItems = array();
-				foreach ((array) $groupTabKeys as $tabKey) {
-					if (isset($visibleTabs[$tabKey])) {
-						$groupItems[$tabKey] = $visibleTabs[$tabKey];
+		// Areas inside this category
+		echo '<ul class="epc-erp-sidebar-category-areas">';
+		foreach ($catAreas as $areaKey => $visibleTabs) {
+			$area = $areas[$areaKey];
+			$isActiveArea = ($areaKey === $activeArea);
+			$isOpen = $isActiveArea;
+			echo '<li class="epc-erp-sidebar-group' . ($isActiveArea ? ' is-active-area' : '')
+				. ($isOpen ? ' is-open' : '') . '" data-area="' . epc_erp_h($areaKey) . '">';
+			echo '<button type="button" class="epc-erp-sidebar-group-hd" aria-expanded="' . ($isOpen ? 'true' : 'false') . '">';
+			echo '<i class="fa ' . epc_erp_h($area['icon']) . ' epc-erp-sidebar-icon"></i>';
+			echo '<span class="epc-erp-sidebar-label">' . epc_erp_h(epc_erp_nav_label_plain($area['label'])) . '</span>';
+			echo '<i class="fa fa-chevron-right epc-erp-sidebar-chevron" aria-hidden="true"></i>';
+			echo '</button>';
+			echo '<ul class="epc-erp-sidebar-sublist">';
+			// Enterprise style: group sub-modules when the area defines a 'groups' map.
+			if (!empty($area['groups']) && is_array($area['groups'])) {
+				$rendered = array();
+				foreach ($area['groups'] as $groupLabel => $groupTabKeys) {
+					$groupItems = array();
+					foreach ((array) $groupTabKeys as $tabKey) {
+						if (isset($visibleTabs[$tabKey])) {
+							$groupItems[$tabKey] = $visibleTabs[$tabKey];
+						}
+					}
+					if (empty($groupItems)) {
+						continue;
+					}
+					echo '<li class="epc-erp-sidebar-subhead" aria-hidden="true">' . epc_erp_h((string) $groupLabel) . '</li>';
+					foreach ($groupItems as $tabKey => $meta) {
+						echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
+						$rendered[$tabKey] = true;
 					}
 				}
-				if (empty($groupItems)) {
-					continue;
+				// Any visible tab not covered by a group falls under "More".
+				$leftover = array_diff_key($visibleTabs, $rendered);
+				if (!empty($leftover)) {
+					echo '<li class="epc-erp-sidebar-subhead" aria-hidden="true">More</li>';
+					foreach ($leftover as $tabKey => $meta) {
+						echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
+					}
 				}
-				echo '<li class="epc-erp-sidebar-subhead" aria-hidden="true">' . epc_erp_h((string) $groupLabel) . '</li>';
-				foreach ($groupItems as $tabKey => $meta) {
-					echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
-					$rendered[$tabKey] = true;
-				}
-			}
-			// Any visible tab not covered by a group falls under "More".
-			$leftover = array_diff_key($visibleTabs, $rendered);
-			if (!empty($leftover)) {
-				echo '<li class="epc-erp-sidebar-subhead" aria-hidden="true">More</li>';
-				foreach ($leftover as $tabKey => $meta) {
+			} else {
+				foreach ($visibleTabs as $tabKey => $meta) {
 					echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
 				}
 			}
-		} else {
-			foreach ($visibleTabs as $tabKey => $meta) {
-				echo epc_erp_render_sidebar_item($erpUrl, $areaKey, $tabKey, $meta, $activeTab, $from, $to);
-			}
+			echo '</ul></li>';
 		}
 		echo '</ul></li>';
 	}
@@ -1018,6 +1145,75 @@ function epc_erp_render_content_header($erpUrl, $activeArea, $activeTab, $from, 
 		echo '<p class="epc-erp-content-subtitle">' . epc_erp_h($areaDesc) . '</p>';
 	}
 	echo '</div>';
+}
+
+/**
+ * Render a contextual "accounting chain" navigation strip.
+ *
+ * $chain is an ordered array of ['tab', 'area', 'label', 'icon'] steps.
+ * The step matching $activeTab is highlighted as current.
+ */
+function epc_erp_render_chain_nav(array $chain, $erpUrl, $activeTab, $from, $to)
+{
+	echo '<div class="epc-erp-chain-nav" aria-label="Process chain">';
+	echo '<span class="epc-erp-chain-nav__label"><i class="fa fa-link"></i> Chain:</span>';
+	$count = count($chain);
+	foreach ($chain as $i => $step) {
+		$isCurrent = ($step['tab'] === $activeTab);
+		$url = epc_erp_tab_url($erpUrl, $step['tab'], $from, $to, $step['area']);
+		$cls = $isCurrent ? ' is-current' : '';
+		echo '<a href="' . epc_erp_h($url) . '" class="' . ltrim($cls) . '">'
+			. '<i class="fa ' . epc_erp_h($step['icon'] ?? 'fa-circle-o') . '"></i> '
+			. epc_erp_h($step['label']) . '</a>';
+		if ($i < $count - 1) {
+			echo '<span class="epc-erp-chain-sep">›</span>';
+		}
+	}
+	echo '</div>';
+}
+
+/**
+ * AP (Procure-to-Pay) chain definition.
+ */
+function epc_erp_ap_chain()
+{
+	return array(
+		array('tab' => 'rfq',            'area' => 'purchasing', 'label' => 'RFQ',            'icon' => 'fa-envelope-o'),
+		array('tab' => 'purchase_orders','area' => 'purchasing', 'label' => 'Purchase orders', 'icon' => 'fa-clipboard'),
+		array('tab' => 'purchases',      'area' => 'purchasing', 'label' => 'Bills',           'icon' => 'fa-file-text'),
+		array('tab' => 'three_way_match','area' => 'purchasing', 'label' => '3-way match',     'icon' => 'fa-check-square-o'),
+		array('tab' => 'payables',       'area' => 'ap',         'label' => 'Payables',        'icon' => 'fa-truck'),
+		array('tab' => 'aging',          'area' => 'finance',    'label' => 'AP aging',        'icon' => 'fa-hourglass-half'),
+	);
+}
+
+/**
+ * AR (Order-to-Cash) chain definition.
+ */
+function epc_erp_ar_chain()
+{
+	return array(
+		array('tab' => 'proposals',      'area' => 'sales',   'label' => 'Quotations',    'icon' => 'fa-file-text'),
+		array('tab' => 'sales_orders',   'area' => 'sales',   'label' => 'Sales orders',  'icon' => 'fa-shopping-cart'),
+		array('tab' => 'delivery_notes', 'area' => 'sales',   'label' => 'Delivery',      'icon' => 'fa-truck'),
+		array('tab' => 'invoices',       'area' => 'sales',   'label' => 'Invoices',      'icon' => 'fa-file-text-o'),
+		array('tab' => 'receivables',    'area' => 'ar',      'label' => 'Receivables',   'icon' => 'fa-users'),
+		array('tab' => 'aging',          'area' => 'finance', 'label' => 'AR aging',      'icon' => 'fa-hourglass-half'),
+	);
+}
+
+/**
+ * GL / Record-to-Report chain definition.
+ */
+function epc_erp_gl_chain()
+{
+	return array(
+		array('tab' => 'coa',                'area' => 'finance', 'label' => 'COA',           'icon' => 'fa-list'),
+		array('tab' => 'gl',                 'area' => 'finance', 'label' => 'Journal / GL',  'icon' => 'fa-book'),
+		array('tab' => 'enterprise_reports', 'area' => 'finance', 'label' => 'Trial balance', 'icon' => 'fa-table'),
+		array('tab' => 'pl',                 'area' => 'finance', 'label' => 'P&L',           'icon' => 'fa-bar-chart'),
+		array('tab' => 'balance_sheet',      'area' => 'finance', 'label' => 'Balance sheet', 'icon' => 'fa-balance-scale'),
+	);
 }
 
 /** @deprecated Horizontal pills removed — use epc_erp_render_sidebar_nav */

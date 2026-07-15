@@ -17,6 +17,12 @@ $subs = array(
 	'coa' => 'Shared COA',
 );
 
+echo '<div class="epc-erp-related-links" style="margin-bottom:14px;padding:8px 12px;background:#f9f9f9;border:1px solid #e3e3e3;border-radius:4px;">'
+	. '<strong style="font-size:12px;color:#555;">Related:</strong>'
+	. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str, 'finance')) . '" style="margin-left:8px;font-size:12px;">General ledger / Journals</a>'
+	. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'pl', $date_from_str, $date_to_str, 'finance')) . '" style="margin-left:8px;font-size:12px;">Profit &amp; loss</a>'
+	. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'balance_sheet', $date_from_str, $date_to_str, 'finance')) . '" style="margin-left:8px;font-size:12px;">Balance sheet</a>'
+	. '</div>';
 echo '<div class="epc-erp-section"><h3 style="margin-top:0;"><i class="fa fa-table"></i> Reports</h3>';
 echo '<p class="text-muted">Trial balance (combined &amp; per business unit), financial-dimension reporting, audit trail and the chart of accounts shared across all business units. Per-tenant.</p></div>';
 

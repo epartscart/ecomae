@@ -19,6 +19,13 @@ $fiscal_lock = epc_erp_fiscal_lock_date($db_link);
 $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';
 ?>
 
+<?php
+// GL / Record-to-Report chain navigation
+if (function_exists('epc_erp_render_chain_nav') && function_exists('epc_erp_gl_chain')) {
+	epc_erp_render_chain_nav(epc_erp_gl_chain(), $erpUrl, $tab, $date_from_str, $date_to_str);
+}
+?>
+
 <?php if ($tab === 'coa'): ?>
 	<div class="epc-erp-section">
 		<h4><i class="fa fa-list"></i> Chart of accounts (COA)</h4>

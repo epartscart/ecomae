@@ -27,6 +27,11 @@ erp_page_header(
 		array('label' => 'Cash &amp; bank'),
 	)
 );
+echo '<div class="epc-erp-related-links" style="margin-bottom:14px;padding:8px 12px;background:#f9f9f9;border:1px solid #e3e3e3;border-radius:4px;">'
+	. '<strong style="font-size:12px;color:#555;">Related:</strong>'
+	. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'bank_recon', $date_from_str, $date_to_str, 'banking')) . '" style="margin-left:8px;font-size:12px;">Bank reconciliation</a>'
+	. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'gl', $date_from_str, $date_to_str, 'finance')) . '" style="margin-left:8px;font-size:12px;">General ledger / Journals</a>'
+	. '</div>';
 erp_stat_cards(array(
 	array('label' => 'Accounts', 'value' => (string)count($accounts)),
 	array('label' => 'Unmatched statement lines', 'value' => (string)count($stmtLines), 'class' => count($stmtLines) ? 'red' : 'green'),

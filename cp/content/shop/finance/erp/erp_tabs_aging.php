@@ -24,6 +24,15 @@ erp_page_header(
 	)
 );
 
+// Contextual chain nav — contextual per aging view
+if (function_exists('epc_erp_render_chain_nav')) {
+	if ($agingView === 'ap' && function_exists('epc_erp_ap_chain')) {
+		epc_erp_render_chain_nav(epc_erp_ap_chain(), $erpUrl, 'aging', $date_from_str, $date_to_str);
+	} elseif ($agingView === 'ar' && function_exists('epc_erp_ar_chain')) {
+		epc_erp_render_chain_nav(epc_erp_ar_chain(), $erpUrl, 'aging', $date_from_str, $date_to_str);
+	}
+}
+
 // Sub-view switcher
 $baseUrl = epc_erp_tab_url($erpUrl, 'aging', $date_from_str, $date_to_str, 'finance');
 echo '<ul class="nav nav-tabs" style="margin-bottom:16px;">';

@@ -199,6 +199,17 @@
 		);
 	}
 
+	function setCategoryOpen(cat, open) {
+		if (!cat) {
+			return;
+		}
+		var btn = cat.querySelector('.epc-erp-sidebar-category-hd');
+		cat.classList.toggle('is-open', open);
+		if (btn) {
+			btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+		}
+	}
+
 	function bindAccordion() {
 		var sidebar = document.getElementById('epc_erp_sidebar');
 		if (!sidebar) {
@@ -206,6 +217,30 @@
 		}
 		sidebar.style.setProperty('pointer-events', 'auto', 'important');
 		ensureShellNavLinks();
+		// Bind category-level toggle (outer layer)
+		document.querySelectorAll('.epc-erp-sidebar-category-hd').forEach(function (btn) {
+			if (btn._epcErpCategoryBound) {
+				return;
+			}
+			btn._epcErpCategoryBound = true;
+			btn.addEventListener('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var cat = btn.closest('.epc-erp-sidebar-category');
+				if (!cat) {
+					return;
+				}
+				var wasOpen = cat.classList.contains('is-open');
+				// Close all other categories
+				document.querySelectorAll('.epc-erp-sidebar-category.is-open').forEach(function (other) {
+					if (other !== cat) {
+						setCategoryOpen(other, false);
+					}
+				});
+				setCategoryOpen(cat, !wasOpen);
+			});
+		});
+		// Bind area-level toggle (inner layer) — same as before
 		document.querySelectorAll('.epc-erp-sidebar-group-hd').forEach(function (btn) {
 			if (btn._epcErpAccordionBound) {
 				return;
