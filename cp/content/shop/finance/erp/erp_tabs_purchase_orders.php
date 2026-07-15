@@ -7,10 +7,12 @@ epc_jw_ensure_integration_schema($db_link);
 $epcJwMode = epc_jw_is_jewellery_tenant($db_link);
 
 $poStatus = isset($_GET['po_status']) ? (string) $_GET['po_status'] : '';
-$pos = epc_erp_po_list($db_link, $poStatus);
+$poListLimit = max(50, min(2000, (int) ($_GET['po_limit'] ?? 100)));
+$pos = epc_erp_po_list($db_link, $poStatus, $poListLimit);
 if (!isset($suppliers)) {
 	$suppliers = epc_erp_list_suppliers($db_link);
 }
+$epcPoDimMap = epc_erp_dim_load_bulk($db_link, 'purchase_order', array_column($pos, 'id'));
 
 erp_page_header(
 	'<i class="fa fa-clipboard"></i> Purchase orders',
@@ -92,7 +94,7 @@ if (empty($pos)) {
 		echo '<tr><td class="epc-d365-statcol">' . erp_status_dot(erp_status_tone($p['status'])) . '</td>';
 		echo '<td>' . epc_erp_h($p['po_no']) . '</td><td>' . epc_erp_h($p['supplier_name']) . '</td>';
 		echo '<td>' . epc_erp_h($p['title']) . '</td><td class="num">' . epc_erp_money($p['total_amount']) . '</td>';
-		echo '<td>' . epc_erp_dim_badges($db_link, 'purchase_order', (int) $p['id']) . '</td>';
+		echo '<td>' . epc_erp_dim_badges_render($db_link, $epcPoDimMap[(int) $p['id']] ?? array()) . '</td>';
 		if ($epcJwMode) {
 			echo '<td>' . epc_erp_h($p['jw_karat'] ?? '') . '</td>';
 			echo '<td class="num">' . epc_erp_h(number_format((float)($p['jw_metal_weight_gm'] ?? 0), 3)) . '</td>';
@@ -123,6 +125,11 @@ if (empty($pos)) {
 		. '<td class="num">' . epc_erp_money($epcPoSum) . '</td>'
 		. '<td colspan="3"></td></tr>';
 	erp_table_close($epcPoFoot);
+	if (count($pos) >= $poListLimit) {
+		$epcPoMoreUrl = epc_erp_tab_url($erpUrl, 'purchase_orders', $date_from_str, $date_to_str)
+			. '&po_status=' . rawurlencode($poStatus) . '&po_limit=' . (int) min(2000, $poListLimit + 200);
+		echo '<p class="text-muted" style="margin-top:8px;"><a href="' . epc_erp_h($epcPoMoreUrl) . '">Show more (currently ' . (int) $poListLimit . ')</a></p>';
+	}
 }
 erp_section_card('PO list', ob_get_clean(), array('icon' => 'fa-list'));
 ob_start();
