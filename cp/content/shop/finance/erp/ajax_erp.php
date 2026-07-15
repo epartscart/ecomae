@@ -1961,7 +1961,57 @@ try {
 				'declaration_number' => $declNo,
 			));
 
-		case 'pm_save':
+		case 'ticket_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_tickets.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_tickets_ensure_schema($db_link);
+$tkCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$tkId = epc_tickets_create($db_link, array(
+'company_id' => $tkCompanyId,
+'subject' => (string) ($_POST['subject'] ?? ''),
+'description' => (string) ($_POST['description'] ?? ''),
+'category' => (string) ($_POST['category'] ?? 'general'),
+'priority' => (string) ($_POST['priority'] ?? 'medium'),
+'client_id' => (int) ($_POST['client_id'] ?? 0),
+'client_name' => (string) ($_POST['client_name'] ?? ''),
+'assigned_to' => (int) ($_POST['assigned_to'] ?? 0),
+'assigned_name' => (string) ($_POST['assigned_name'] ?? ''),
+));
+epc_erp_json(true, 'Ticket created', array('id' => $tkId));
+
+case 'ticket_update':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_tickets.php';
+$tkOk = epc_tickets_update($db_link, (int) ($_POST['id'] ?? 0), array_intersect_key(
+$_POST,
+array_flip(array('status', 'priority', 'assigned_to', 'assigned_name'))
+));
+epc_erp_json($tkOk, $tkOk ? 'Ticket updated' : 'Nothing to update');
+
+case 'cust_group_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_customer_groups.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_cust_groups_ensure_schema($db_link);
+$cgCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$cgId = epc_cust_groups_create($db_link, array(
+'company_id' => $cgCompanyId,
+'group_code' => (string) ($_POST['group_code'] ?? ''),
+'group_name' => (string) ($_POST['group_name'] ?? ''),
+'group_type' => (string) ($_POST['group_type'] ?? 'general'),
+'discount_pct' => (float) ($_POST['discount_pct'] ?? 0),
+'credit_limit' => (float) ($_POST['credit_limit'] ?? 0),
+'payment_terms_days' => (int) ($_POST['payment_terms_days'] ?? 30),
+'description' => (string) ($_POST['description'] ?? ''),
+));
+epc_erp_json(true, 'Customer group saved', array('id' => $cgId));
+
+case 'cust_group_delete':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_customer_groups.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+$cgDelCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$cgOk = epc_cust_groups_delete($db_link, (int) ($_POST['id'] ?? 0), $cgDelCompanyId);
+epc_erp_json($cgOk, $cgOk ? 'Customer group deleted' : 'Delete failed');
+
+case 'pm_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
 			$pmTable = (string) ($_POST['pm_table'] ?? '');
 			$pmId = epc_erp_pm_save($db_link, $pmTable, $_POST);
