@@ -16,9 +16,11 @@ $C        = $cons['consolidated'];
 <div class="epc-erp-section">
 	<h4><i class="fa fa-building"></i> Group consolidation</h4>
 	<p class="text-muted">
-		Combine every group member into one set of statements. The <strong>home</strong> entity is pulled live from this tenant's GL;
-		subsidiaries use the figures you capture below. Intercompany revenue/expense and balances are eliminated automatically,
-		and minority interest is split out for partly-owned subsidiaries.
+		Combine every group member into one set of statements. Entities managed as legal entities in this tenant (Business Unit ▸
+		Legal entities, and the top-bar company picker) are <strong>linked automatically</strong> and pulled live from their own GL —
+		each company's real postings, not an estimate. Truly external subsidiaries (on other systems) use the manual figures you
+		capture below. Intercompany revenue/expense and balances are eliminated automatically, and minority interest is split out
+		for partly-owned subsidiaries.
 	</p>
 
 	<div class="epc-erp-kpi" style="margin-bottom:14px;">
@@ -57,20 +59,22 @@ $C        = $cons['consolidated'];
 			<tbody>
 			<?php if (empty($entities)): ?>
 				<tr><td colspan="5" class="text-muted">No entities yet. Add the holding company and its subsidiaries.</td></tr>
-			<?php else: foreach ($entities as $e): ?>
+			<?php else: foreach ($entities as $e): $isLinked = (int)($e['linked_company_id'] ?? 0) > 0; ?>
 				<tr>
 					<td><strong><?php echo epc_erp_h($e['code']); ?></strong></td>
 					<td><?php echo epc_erp_h($e['name']); ?> <small class="text-muted"><?php echo epc_erp_h($e['currency_code']); ?></small></td>
 					<td><?php echo epc_erp_h(rtrim(rtrim(number_format((float)$e['ownership_pct'], 3), '0'), '.')); ?>%</td>
-					<td><?php echo !empty($e['is_home']) ? '<span class="label label-info">Live GL</span>' : '<span class="label label-default">Manual</span>'; ?></td>
-					<td><button class="btn btn-link btn-xs epc-cons-del" data-id="<?php echo (int)$e['id']; ?>" style="color:#c00;">Remove</button></td>
+					<td><?php echo $isLinked ? '<span class="label label-info">Live GL' . (!empty($e['is_home']) ? ' · default' : '') . '</span>' : '<span class="label label-default">Manual</span>'; ?></td>
+					<td><?php echo $isLinked ? '<small class="text-muted">Managed under Legal entities</small>' : '<button class="btn btn-link btn-xs epc-cons-del" data-id="' . (int)$e['id'] . '" style="color:#c00;">Remove</button>'; ?></td>
 				</tr>
 			<?php endforeach; endif; ?>
 			</tbody>
 		</table>
 
 		<?php
-		$subEntities = array_filter($entities, function ($e) { return empty($e['is_home']); });
+		// Only genuinely external (unlinked) entities need manual figures —
+		// linked legal entities are pulled live from their own GL above.
+		$subEntities = array_filter($entities, function ($e) { return (int)($e['linked_company_id'] ?? 0) <= 0; });
 		if (!empty($subEntities)): ?>
 		<h5 style="margin-top:16px;">Subsidiary financials (this period)</h5>
 		<form id="epc_cons_figures" class="form-inline" style="margin-bottom:10px;">
