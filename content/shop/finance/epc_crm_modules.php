@@ -61,6 +61,20 @@ function epc_crm_list_quotes(PDO $db, $limit = 100)
 	return $st->fetchAll(PDO::FETCH_ASSOC);
 }
 
+/** Quotes raised against a specific lead or opportunity, for the CRM timeline view. */
+function epc_crm_list_quotes_for_entity(PDO $db, $entityType, $entityId, $limit = 50)
+{
+	epc_crm_ensure_schema($db);
+	$col = ($entityType === 'opportunity') ? 'opportunity_id' : 'lead_id';
+	$st = $db->prepare(
+		'SELECT q.*, o.`title` AS opp_title FROM `epc_crm_quotes` q
+		 LEFT JOIN `epc_crm_opportunities` o ON o.`id` = q.`opportunity_id`
+		 WHERE q.`active` = 1 AND q.`' . $col . '` = ? ORDER BY q.`time_updated` DESC LIMIT ' . (int)$limit
+	);
+	$st->execute(array((int)$entityId));
+	return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
 function epc_crm_get_quote(PDO $db, $id)
 {
 	$st = $db->prepare('SELECT * FROM `epc_crm_quotes` WHERE `id` = ? AND `active` = 1 LIMIT 1');
