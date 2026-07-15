@@ -25,12 +25,17 @@ if (is_file($epcTenantCpDash)) {
 if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp_hidden"] === 0)){
 	//Проверяем доступ к статистике
 	$adminProfile = DP_User::getAdminProfile();//Профиль администратора
-	$SQL = "SELECT * FROM `content_access` WHERE `content_id` IN(SELECT `id` FROM `content` WHERE `alias` = 'statistika' AND `is_frontend` = 0) AND `group_id` = ?;";
-	$query = $db_link->prepare($SQL);
-	$query->execute(array($adminProfile["groups"][0]));
-	$row = $query->fetch();
-	if(!empty($row)){
-		require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/statistics_main_page.php");
+	// getAdminProfile() returns false when there is no valid admin session;
+	// guard against that instead of indexing into a bool (fatal on PHP 8).
+	$adminGroupId = (is_array($adminProfile) && isset($adminProfile["groups"][0])) ? $adminProfile["groups"][0] : null;
+	if ($adminGroupId !== null) {
+		$SQL = "SELECT * FROM `content_access` WHERE `content_id` IN(SELECT `id` FROM `content` WHERE `alias` = 'statistika' AND `is_frontend` = 0) AND `group_id` = ?;";
+		$query = $db_link->prepare($SQL);
+		$query->execute(array($adminGroupId));
+		$row = $query->fetch();
+		if(!empty($row)){
+			require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/statistics_main_page.php");
+		}
 	}
 }
 
@@ -58,7 +63,16 @@ while( $item = $control_panel_content_query->fetch() )
 	//Добавляем, только, если у пользователя есть доступ
 	if( is_anable($item) || $item["show_anyway"] == 1 )
 	{
-		array_push($tabs[(string)$item["items_group"]]["items"], $item);
+		$group_key = (string)$item["items_group"];
+		// Guard against orphaned control_items rows whose items_group no
+		// longer matches any control_groups.id — without this, PHP 8
+		// throws a fatal TypeError from array_push(null, ...) and the
+		// whole /cp/control page 500s.
+		if( !isset($tabs[$group_key]) || !is_array($tabs[$group_key]["items"]) )
+		{
+			continue;
+		}
+		array_push($tabs[$group_key]["items"], $item);
 	}
 }
 
