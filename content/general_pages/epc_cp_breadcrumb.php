@@ -34,7 +34,9 @@ function epc_cp_breadcrumb_caption_for_node(PDO $dbLink, string $nodeUrl, string
 	$nodeQuery->execute(array($nodeUrl));
 	$nodeRecord = $nodeQuery->fetch(PDO::FETCH_ASSOC);
 	if ($nodeRecord !== false) {
-		return translate_str_by_id($nodeRecord['value']);
+		// translate_str_by_id() can return null when a translation is missing;
+		// this function's return type is strictly `string`, so cast defensively.
+		return (string) translate_str_by_id($nodeRecord['value']);
 	}
 
 	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
@@ -46,7 +48,9 @@ function epc_cp_breadcrumb_caption_for_node(PDO $dbLink, string $nodeUrl, string
 	));
 	$captionKey = (string) $itemQuery->fetchColumn();
 	if ($captionKey !== '') {
-		$label = translate_str_by_id($captionKey);
+		// translate_str_by_id() can return null when a translation is missing;
+		// this function's return type is strictly `string`, so cast defensively.
+		$label = (string) translate_str_by_id($captionKey);
 		if ($label !== '' && stripos($label, '404') === false) {
 			return $label;
 		}
