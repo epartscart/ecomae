@@ -28,6 +28,9 @@ erp_page_header(
 		array('label' => 'E-Invoicing ASP', 'url' => $einvSettingsUrl, 'class' => 'btn-default', 'icon' => 'fa-cog'),
 	)
 );
+if (function_exists('epc_erp_render_chain_nav') && function_exists('epc_erp_ar_chain')) {
+	epc_erp_render_chain_nav(epc_erp_ar_chain(), $erpUrl, 'invoices', $date_from_str, $date_to_str);
+}
 erp_filter_bar($erpUrl, 'invoices', $date_from_str, $date_to_str,
 	'<input type="hidden" name="area" value="sales">'
 	. '<label>Status</label> <select name="inv_status" class="form-control input-sm"><option value="">All</option>'
