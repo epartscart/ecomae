@@ -26,11 +26,11 @@ $epcApaiPage = !empty($GLOBALS['epc_cp_apai_page']);
 	<meta http-equiv="Expires" content="0" />
 	<!-- <meta http-equiv="Content-Security-Policy" content="img-src 'self' data: blob:; default-src 'self' *.googleapis.com *.gstatic.com 'unsafe-inline' 'unsafe-eval';"> -->
 	
-	<script src="vendor/jquery/dist/jquery.min.js"></script>
+	<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery/dist/jquery.min.js"></script>
 	<script src="/lib/jquery_browser/jquery.browser.js"></script>
 	<script src="/lib/jquery_form/jquery.form.js"></script>
 	
-	<link rel="stylesheet" href="/<?php echo $DP_Config->backend_dir; ?>/templates/bootstrap_admin/css/modal_window.css" />
+	<link rel="stylesheet" href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/css/modal_window.css" />
     <docpart type="head" name="head" />
 	
 	
@@ -48,19 +48,19 @@ $epcApaiPage = !empty($GLOBALS['epc_cp_apai_page']);
 ?>
 
     <!-- Vendor styles -->
-    <link rel="stylesheet" href="vendor/fontawesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css" />
     <?php if (!$epcApaiPage) { ?>
-    <link rel="stylesheet" href="vendor/metisMenu/dist/metisMenu.css" />
+    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.css" />
     <?php } ?>
-    <link rel="stylesheet" href="vendor/animate.css/animate.css" />
-    <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.css" />
-	<link rel="stylesheet" href="vendor/fooTable/css/footable.core.min.css" />
+    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/animate.css/animate.css" />
+    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css" />
+	<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fooTable/css/footable.core.min.css" />
 
 
     <!-- App styles -->
-    <link rel="stylesheet" href="fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css" />
-    <link rel="stylesheet" href="fonts/pe-icon-7-stroke/css/helper.css" />
-	<link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css" />
+    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/helper.css" />
+	<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <?php
@@ -202,14 +202,14 @@ $epcApaiPage = !empty($GLOBALS['epc_cp_apai_page']);
 		}
 	</style>
 	
-	<link rel="stylesheet" href="/<?php echo $DP_Config->backend_dir; ?>/templates/bootstrap_admin/css/astself.css" />
-	<link href="/<?php echo $DP_Config->backend_dir; ?>/templates/bootstrap_admin/css/catalogue.css" rel="stylesheet">
-	<link rel="stylesheet" href="/<?php echo $DP_Config->backend_dir; ?>/templates/bootstrap_admin/elFinder/css/theme-bootstrap-libreicons-svg.css" />
+	<link rel="stylesheet" href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/css/astself.css" />
+	<link href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/css/catalogue.css" rel="stylesheet">
+	<link rel="stylesheet" href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/elFinder/css/theme-bootstrap-libreicons-svg.css" />
 	
 	
 	<!-- Подключаем всплывающие подсказки -->
-	<link rel="stylesheet" href="<?php echo $DP_Config->domain_path.$DP_Config->backend_dir; ?>/templates/bootstrap_admin/vendor/toastr/build/toastr.min.css" />
-	<script src="<?php echo $DP_Config->domain_path.$DP_Config->backend_dir; ?>/templates/bootstrap_admin/vendor/toastr/build/toastr.min.js"></script>
+	<link rel="stylesheet" href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/vendor/toastr/build/toastr.min.css" />
+	<script src="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/vendor/toastr/build/toastr.min.js"></script>
 	<?php
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translate.php';
@@ -1078,22 +1078,22 @@ function print_backend_button($button_params)
 <button type="button" id="epc-cp-sidebar-toggle" class="epc-cp-sidebar-toggle-tab" aria-expanded="true" aria-label="Hide menu" title="Menu"><i class="fa fa-chevron-left"></i></button>
 
 <!-- Vendor scripts -->
-<script src="vendor/jquery/dist/jquery.min.js"></script>
-<script src="vendor/jquery-ui/jquery-ui.min.js"></script>
-<script src="vendor/slimScroll/jquery.slimscroll.min.js"></script>
-<script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="vendor/jquery-flot/jquery.flot.js"></script>
-<script src="vendor/jquery-flot/jquery.flot.resize.js"></script>
-<script src="vendor/jquery-flot/jquery.flot.pie.js"></script>
-<script src="vendor/flot.curvedlines/curvedLines.js"></script>
-<script src="vendor/jquery.flot.spline/index.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery/dist/jquery.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-ui/jquery-ui.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/slimScroll/jquery.slimscroll.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.resize.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.pie.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/flot.curvedlines/curvedLines.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery.flot.spline/index.js"></script>
 <?php if (!$epcApaiPage) { ?>
-<script src="vendor/metisMenu/dist/metisMenu.min.js" defer></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.min.js" defer></script>
 <?php } ?>
-<script src="vendor/iCheck/icheck.min.js"></script>
-<script src="vendor/peity/jquery.peity.min.js"></script>
-<script src="vendor/sparkline/index.js"></script>
-<script src="vendor/fooTable/dist/footable.all.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/iCheck/icheck.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/peity/jquery.peity.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/sparkline/index.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fooTable/dist/footable.all.min.js"></script>
 
 
 <!-- App scripts -->
@@ -1109,7 +1109,7 @@ function print_backend_button($button_params)
 /* Inline homer CP essentials when /scripts/homer.js 404s on nginx */
 (function($){if(!$||!$('body').hasClass('epc-cp-shell')){return;}if(typeof window.epcCpClearUiBlockers==='function'){window.epcCpClearUiBlockers();}$('.splash').css('display','none');$('.animate-panel').removeClass('animate-panel opacity-0');$('.animate-panel .row > div, .animate-panel .row > [class*="col-"]').removeClass('opacity-0 zoomIn animated-panel stagger').css({opacity:'',visibility:'',animation:''});if(typeof window.epcCpNuclearForceVisible==='function'){window.epcCpNuclearForceVisible();}if(typeof window.epcCpMenuSectionsInit==='function'){window.epcCpMenuSectionsInit();}})(window.jQuery);
 </script>
-<script src="/<?php echo $DP_Config->backend_dir; ?>/templates/bootstrap_admin/scripts/homer.js?v=<?php echo htmlspecialchars($epcCpHomerVer, ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/scripts/homer.js&v=<?php echo htmlspecialchars($epcCpHomerVer, ENT_QUOTES, 'UTF-8'); ?>"></script>
 <script>
 (function () {
 	if (!document.body.classList.contains('epc-cp-shell')) {
@@ -1120,7 +1120,7 @@ function print_backend_button($button_params)
 	}
 })();
 </script>
-<script src="scripts/charts.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/scripts/charts.js"></script>
 
 
 <script>
