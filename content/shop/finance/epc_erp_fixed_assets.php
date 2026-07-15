@@ -64,6 +64,8 @@ function epc_erp_fa_ensure_schema(PDO $db)
 		PRIMARY KEY (`id`),
 		UNIQUE KEY `x_period` (`period_month`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+	require_once __DIR__ . '/epc_erp_gl.php';
+	epc_erp_gl_add_column_if_missing($db, 'epc_erp_fa_depreciation_runs', 'gl_journal_id', 'int(11) NOT NULL DEFAULT 0');
 
 	$db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_fa_depreciation_lines` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -287,6 +289,7 @@ function epc_erp_fa_period_depreciation_amount(array $asset, $periodMonth)
 
 function epc_erp_fa_run_depreciation(PDO $db, $periodMonth, $note = '')
 {
+	epc_erp_fa_ensure_schema($db);
 	$periodMonth = preg_replace('/[^0-9\-]/', '', (string) $periodMonth);
 	if (strlen($periodMonth) !== 7) {
 		throw new Exception('Period must be YYYY-MM');
@@ -325,11 +328,40 @@ function epc_erp_fa_run_depreciation(PDO $db, $periodMonth, $note = '')
 		}
 		$db->prepare('UPDATE `epc_erp_fa_depreciation_runs` SET `total_amount` = ? WHERE `id` = ?')->execute(array(round($total, 2), $runId));
 		$db->commit();
-		return array('run_id' => $runId, 'total' => round($total, 2), 'assets' => count($assets));
 	} catch (Exception $e) {
 		$db->rollBack();
 		throw $e;
 	}
+
+	// Post the period's depreciation to the GL (debit expense, credit
+	// accumulated depreciation) so P&L / balance sheet reflect it. This runs
+	// after the FA-side commit above because epc_erp_gl_post_journal() opens
+	// its own transaction and PDO cannot nest transactions. Previously this
+	// function never posted to the GL at all — depreciation was recorded only
+	// in the asset sub-ledger and silently never reached the books.
+	$glJournalId = 0;
+	$roundedTotal = round($total, 2);
+	if ($roundedTotal > 0) {
+		require_once __DIR__ . '/epc_erp_gl.php';
+		epc_erp_gl_ensure_depreciation_accounts($db);
+		$coaExpense = epc_erp_gl_coa_by_code($db, '5100');
+		$coaAccum = epc_erp_gl_coa_by_code($db, '1550');
+		if ($coaExpense && $coaAccum) {
+			$glJournalId = epc_erp_gl_post_journal($db, array(
+				'journal_date' => time(),
+				'reference' => 'DEPR-' . $periodMonth,
+				'description' => 'Fixed asset depreciation ' . $periodMonth,
+				'source_type' => 'adjustment',
+				'source_id' => $runId,
+			), array(
+				array('coa_id' => (int) $coaExpense['id'], 'debit' => $roundedTotal, 'credit' => 0, 'line_note' => 'Depreciation expense ' . $periodMonth),
+				array('coa_id' => (int) $coaAccum['id'], 'debit' => 0, 'credit' => $roundedTotal, 'line_note' => 'Accumulated depreciation ' . $periodMonth),
+			));
+			$db->prepare('UPDATE `epc_erp_fa_depreciation_runs` SET `gl_journal_id` = ? WHERE `id` = ?')->execute(array($glJournalId, $runId));
+		}
+	}
+
+	return array('run_id' => $runId, 'total' => $roundedTotal, 'assets' => count($assets), 'gl_journal_id' => $glJournalId);
 }
 
 function epc_erp_fa_list_assets(PDO $db, $limit = 500)
