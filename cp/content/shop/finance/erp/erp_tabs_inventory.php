@@ -3,8 +3,10 @@ defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 
 epc_erp_inventory_ensure_schema($db_link);
+epc_erp_phase8_ensure_schema($db_link);
 epc_jw_ensure_integration_schema($db_link);
 $epcJwMode = epc_jw_is_jewellery_tenant($db_link);
 $whFilter = (int)($_GET['wh'] ?? 0);
@@ -12,10 +14,13 @@ $warehouses = epc_erp_inventory_list_warehouses($db_link);
 $items = epc_erp_inventory_list_items($db_link);
 $stock = epc_erp_inventory_stock_report($db_link, $whFilter);
 $valuation = epc_erp_inventory_valuation_total($db_link, $whFilter);
+$lowStockLines = epc_erp_inventory_low_stock_lines($db_link, $whFilter);
 $fieldDefs = $db_link->query('SELECT * FROM `epc_erp_inv_field_defs` WHERE `active` = 1 ORDER BY `sort_order`')->fetchAll(PDO::FETCH_ASSOC);
 $ledgerItem = (int)($_GET['ledger_item'] ?? 0);
-$ledgerRows = epc_erp_inventory_ledger($db_link, $ledgerItem, $whFilter, 200);
-$serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
+$epcLedgerLimit = max(50, min(2000, (int)($_GET['ledger_limit'] ?? 200)));
+$epcSerialLimit = max(50, min(2000, (int)($_GET['serial_limit'] ?? 150)));
+$ledgerRows = epc_erp_inventory_ledger($db_link, $ledgerItem, $whFilter, $epcLedgerLimit);
+$serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', $epcSerialLimit);
 ?>
 <div class="epc-erp-hero">
 	<h3><i class="fa fa-cubes"></i> Inventory management</h3>
@@ -26,7 +31,44 @@ $serialRows = epc_erp_inventory_serials($db_link, $ledgerItem, '', '', 150);
 	<div class="kpi"><div class="lbl">Warehouses</div><div class="val"><?php echo count($warehouses); ?></div></div>
 	<div class="kpi"><div class="lbl">Active SKUs</div><div class="val"><?php echo count($items); ?></div></div>
 	<div class="kpi"><div class="lbl">Stock lines</div><div class="val"><?php echo count($stock); ?></div></div>
+	<div class="kpi<?php echo !empty($lowStockLines) ? ' is-alert' : ''; ?>" style="<?php echo !empty($lowStockLines) ? 'border-color:#e0a800;' : ''; ?>">
+		<div class="lbl">Below reorder level</div>
+		<div class="val<?php echo !empty($lowStockLines) ? ' orange' : ''; ?>"><?php echo count($lowStockLines); ?></div>
+	</div>
 </div>
+<?php if (!empty($lowStockLines)): ?>
+<section class="epc-d365-fasttab is-open" style="border-color:#e0a800;">
+	<div class="epc-d365-ft-hd" style="cursor:default;">
+		<i class="fa fa-exclamation-triangle" style="color:#e0a800;"></i>
+		<span class="epc-d365-ft-title">Reorder alerts <small>(<?php echo count($lowStockLines); ?> SKU<?php echo count($lowStockLines) === 1 ? '' : 's'; ?> at or below their reorder level)</small></span>
+	</div>
+	<div class="epc-d365-ft-bd">
+	<table class="table table-bordered table-condensed table-striped epc-erp-table" id="epc_inv_low_stock_tbl">
+		<thead><tr><th class="epc-d365-statcol"></th><th>SKU</th><th>Name</th><th>Warehouse</th><th class="num">On hand</th><th class="num">Reorder level</th><th>Set reorder level</th></tr></thead>
+		<tbody>
+		<?php foreach ($lowStockLines as $ls): ?>
+			<tr>
+				<td class="epc-d365-statcol"><?php echo erp_status_dot((float)$ls['qty_on_hand'] <= 0 ? 'bad' : 'warn'); ?></td>
+				<td><?php echo epc_erp_h($ls['sku']); ?></td>
+				<td><?php echo epc_erp_h($ls['name']); ?></td>
+				<td><?php echo epc_erp_h($ls['warehouse_name']); ?></td>
+				<td class="num"><?php echo epc_erp_h(number_format((float)$ls['qty_on_hand'], 3)); ?></td>
+				<td class="num"><?php echo epc_erp_h(number_format((float)$ls['reorder_level'], 3)); ?></td>
+				<td>
+					<form class="epc_inv_reorder_form form-inline" style="display:inline-block;">
+						<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrf); ?>">
+						<input type="hidden" name="item_id" value="<?php echo (int)$ls['item_id']; ?>">
+						<input type="number" step="0.001" name="reorder_level" class="form-control input-sm" style="width:100px;display:inline-block;" value="<?php echo epc_erp_h((string)$ls['reorder_level']); ?>">
+						<button type="submit" class="btn btn-xs btn-default">Update</button>
+					</form>
+				</td>
+			</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	</div>
+</section>
+<?php endif; ?>
 <p>
 	<?php if (!empty($storagesUrl)): ?>
 	<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($storagesUrl); ?>"><i class="fa fa-archive"></i> Legacy shop storages</a>
@@ -127,6 +169,9 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	<div class="form-group"><label class="col-sm-3">Purchase tax group</label><div class="col-sm-9"><input name="purchase_tax_group" class="form-control input-sm" placeholder="e.g. STD"></div></div>
 	<div class="form-group"><label class="col-sm-3">Buyer group</label><div class="col-sm-9"><input name="buyer_group" class="form-control input-sm"></div></div>
 	<div class="form-group"><label class="col-sm-3">Coverage (planning) group</label><div class="col-sm-9"><input name="coverage_group" class="form-control input-sm" placeholder="e.g. Min/Max"></div></div>
+	<div class="form-group"><label class="col-sm-3">Reorder level</label><div class="col-sm-9"><input type="number" step="0.001" name="reorder_level" class="form-control input-sm" placeholder="0 = no alert">
+		<span class="help-block" style="margin:4px 0 0;font-size:11px;">Item appears in the <strong>Reorder alerts</strong> panel above once on-hand qty in a warehouse drops to or below this level.</span>
+	</div></div>
 	<div class="form-group"><label class="col-sm-3">ABC code</label><div class="col-sm-9">
 		<select name="abc_code" class="form-control input-sm"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
 	</div></div>
@@ -300,7 +345,7 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	<?php endif; ?>
 </table>
 
-<h4><i class="fa fa-list-alt"></i> Stock ledger <small>(every movement with running balance)</small>
+<h4 id="epc_inv_ledger"><i class="fa fa-list-alt"></i> Stock ledger <small>(every movement with running balance)</small>
 	<form method="get" class="form-inline" style="display:inline-block;margin-left:10px;">
 		<?php foreach ($_GET as $gk => $gv): if (in_array($gk, array('ledger_item'), true) || !is_scalar($gv)) continue; ?>
 		<input type="hidden" name="<?php echo epc_erp_h($gk); ?>" value="<?php echo epc_erp_h((string)$gv); ?>">
@@ -334,8 +379,11 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	<?php if (empty($ledgerRows)): ?><tr><td colspan="10" class="text-muted">No movements recorded yet.</td></tr><?php endif; ?>
 	</tbody>
 </table>
+<?php if (count($ledgerRows) >= $epcLedgerLimit): $epcLedgerMoreQs = $_GET; $epcLedgerMoreQs['ledger_limit'] = $epcLedgerLimit + 500; ?>
+<p class="text-center"><a class="btn btn-xs btn-default" href="?<?php echo epc_erp_h(http_build_query($epcLedgerMoreQs)); ?>#epc_inv_ledger"><i class="fa fa-chevron-down"></i> Show more (currently showing latest <?php echo (int)$epcLedgerLimit; ?>)</a></p>
+<?php endif; ?>
 
-<h4><i class="fa fa-tags"></i> Serial register <small>(serialized units &amp; lifecycle)</small></h4>
+<h4 id="epc_inv_serials"><i class="fa fa-tags"></i> Serial register <small>(serialized units &amp; lifecycle)</small></h4>
 <table class="table table-bordered table-condensed table-striped epc-erp-table">
 	<thead><tr><th>Serial no</th><th>SKU</th><th>Item</th><th>Warehouse</th><th>Batch</th><th>Status</th><th class="text-right num">Unit cost</th><th>Updated</th></tr></thead>
 	<tbody>
@@ -355,6 +403,9 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	<?php if (empty($serialRows)): ?><tr><td colspan="8" class="text-muted">No serialized units yet — post a movement with a serial number.</td></tr><?php endif; ?>
 	</tbody>
 </table>
+<?php if (count($serialRows) >= $epcSerialLimit): $epcSerialMoreQs = $_GET; $epcSerialMoreQs['serial_limit'] = $epcSerialLimit + 500; ?>
+<p class="text-center"><a class="btn btn-xs btn-default" href="?<?php echo epc_erp_h(http_build_query($epcSerialMoreQs)); ?>#epc_inv_serials"><i class="fa fa-chevron-down"></i> Show more (currently showing latest <?php echo (int)$epcSerialLimit; ?>)</a></p>
+<?php endif; ?>
 <script>
 (function(){
 	function bind(id, action) {
@@ -371,6 +422,16 @@ erp_fasttab_open('Master data — warehouses & items', array('open' => false, 'i
 	bind('epc_inv_form_transfer', 'inv_transfer');
 	bind('epc_inv_form_move', 'inv_record_movement');
 	bind('epc_inv_form_close', 'inv_run_closing');
+	document.querySelectorAll('.epc_inv_reorder_form').forEach(function(f){
+		f.addEventListener('submit', function(e){
+			e.preventDefault();
+			var fd = new FormData(f);
+			fd.append('action', 'inv_set_reorder_level');
+			fetch(<?php echo json_encode($erpAjaxEndpoint); ?>, { method:'POST', body:fd, credentials:'same-origin' })
+				.then(function(r){ return r.json(); })
+				.then(function(j){ if (typeof showMsg === 'function') showMsg(!!j.status, j.message); if (j.status) setTimeout(function(){ location.reload(); }, 600); });
+		});
+	});
 	var scanForm = document.getElementById('epc_inv_form_scan');
 	if (scanForm) {
 		scanForm.addEventListener('submit', function(e){
