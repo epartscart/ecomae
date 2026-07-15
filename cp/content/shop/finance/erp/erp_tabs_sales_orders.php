@@ -81,6 +81,11 @@ if ($erpOnly) {
 		'views' => array('My view', 'All sales orders'),
 		'search' => array('placeholder' => 'Filter list', 'target' => '#epc_erp_so_tbl'),
 	));
+	echo '<div class="epc-erp-related-links" style="margin-bottom:14px;padding:8px 12px;background:#f9f9f9;border:1px solid #e3e3e3;border-radius:4px;">'
+		. '<strong style="font-size:12px;color:#555;">Related:</strong>'
+		. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'invoices', $date_from_str, $date_to_str, 'sales')) . '" style="margin-left:8px;font-size:12px;">Invoices</a>'
+		. ' <a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'aging', $date_from_str, $date_to_str, 'finance') . '&aging_view=ar') . '" style="margin-left:8px;font-size:12px;">AR Aging</a>'
+		. '</div>';
 	ob_start();
 	if (empty($orders)) {
 		erp_empty_state('No sales orders yet. Create a draft SO below.');
