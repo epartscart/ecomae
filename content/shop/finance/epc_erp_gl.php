@@ -222,6 +222,34 @@ function epc_erp_gl_coa_by_code(PDO $db, $code)
 	return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
+/**
+ * Fixed-asset depreciation never had dedicated COA accounts, so
+ * epc_erp_fa_run_depreciation() could not post a GL entry (see
+ * epc_erp_fixed_assets.php). Add the two accounts on demand for tenants
+ * whose COA was already seeded before this existed — idempotent, additive
+ * only, never touches existing accounts.
+ */
+function epc_erp_gl_ensure_depreciation_accounts(PDO $db)
+{
+	epc_erp_gl_ensure_schema($db);
+	$want = array(
+		array('5100', 'Depreciation expense', 'expense', 'debit', 'Period depreciation of fixed assets'),
+		array('1550', 'Accumulated depreciation', 'asset', 'credit', 'Contra-asset: cumulative depreciation on fixed assets'),
+	);
+	$ins = $db->prepare(
+		'INSERT INTO `epc_erp_coa_accounts`
+		(`code`, `name`, `account_type`, `normal_side`, `description`, `system_flag`, `time_created`)
+		VALUES (?, ?, ?, ?, ?, 1, ?)'
+	);
+	$now = time();
+	foreach ($want as $r) {
+		if (epc_erp_gl_coa_by_code($db, $r[0])) {
+			continue;
+		}
+		$ins->execute(array($r[0], $r[1], $r[2], $r[3], $r[4], $now));
+	}
+}
+
 function epc_erp_gl_list_coa(PDO $db, $as_of = 0)
 {
 	epc_erp_gl_ensure_schema($db);
