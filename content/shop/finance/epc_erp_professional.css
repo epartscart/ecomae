@@ -1079,7 +1079,40 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 .epc-d365-tabstrip--sub { border-bottom-color: var(--d365-line-soft); }
 .epc-d365-tabstrip--sub .epc-d365-tab { font-size: 12px; padding: 6px 12px; }
 .epc-d365-tabpanel { display: none; }
-.epc-d365-tabpanel.is-active { display: block; }
+.epc-d365-tabpanel.is-active { display: block; animation: epcFadeSlideIn .18s ease both; }
+
+/* ── Shell-wide motion: subtle, consistent reveal/feedback so the ERP feels
+   alive instead of static. Kept short (150-250ms) and cheap (opacity/
+   transform only) so it never feels sluggish on dense data screens. */
+@keyframes epcFadeSlideIn {
+	from { opacity: 0; transform: translateY(4px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+@keyframes epcFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+.epc-d365-ft-bd { animation: epcFadeIn .15s ease both; }
+.epc-erp-section-card,
+.epc-th-kpi .kpi,
+.epc-erp-kpi .kpi {
+	animation: epcFadeSlideIn .2s ease both;
+}
+.epc-d365-ap-btn,
+.epc-d365-tab,
+.epc-erp-sidebar-nav .epc-erp-sidebar-item a,
+.epc-erp-sidebar-group-hd,
+.btn,
+.epc-crm-card,
+.epc-d365-fasttab,
+table.table-epc tbody tr,
+.epc-erp-table tbody tr {
+	transition: background-color .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.epc-crm-card:hover,
+.epc-d365-fasttab:hover { box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08); }
+.btn:active { transform: translateY(1px); }
+.epc-d365-ft-caret { transition: transform .18s ease; }
 
 /* ── List filter strip ── */
 .epc-d365-listbar {
