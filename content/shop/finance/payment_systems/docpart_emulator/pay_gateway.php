@@ -101,15 +101,15 @@ if( isset($_POST['action']) )
 			<!--<link rel="shortcut icon" type="image/ico" href="favicon.ico" />-->
 
 			<!-- Vendor styles -->
-			<link rel="stylesheet" href="vendor/fontawesome/css/font-awesome.css" />
-			<link rel="stylesheet" href="vendor/metisMenu/dist/metisMenu.css" />
-			<link rel="stylesheet" href="vendor/animate.css/animate.css" />
-			<link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.css" />
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css" />
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.css" />
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/animate.css/animate.css" />
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css" />
 
 			<!-- App styles -->
-			<link rel="stylesheet" href="fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css" />
-			<link rel="stylesheet" href="fonts/pe-icon-7-stroke/css/helper.css" />
-			<link rel="stylesheet" href="styles/style.css">
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css" />
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/helper.css" />
+			<link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css">
 
 		</head>
 		<body class="blank">
@@ -186,16 +186,16 @@ if( isset($_POST['action']) )
 
 
 		<!-- Vendor scripts -->
-		<script src="vendor/jquery/dist/jquery.min.js"></script>
-		<script src="vendor/jquery-ui/jquery-ui.min.js"></script>
-		<script src="vendor/slimScroll/jquery.slimscroll.min.js"></script>
-		<script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
-		<script src="vendor/metisMenu/dist/metisMenu.min.js"></script>
-		<script src="vendor/iCheck/icheck.min.js"></script>
-		<script src="vendor/sparkline/index.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery/dist/jquery.min.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-ui/jquery-ui.min.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/slimScroll/jquery.slimscroll.min.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.min.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/iCheck/icheck.min.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/sparkline/index.js"></script>
 
 		<!-- App scripts -->
-		<script src="scripts/homer.js"></script>
+		<script src="/epc-static.php?f=cp/templates/bootstrap_admin/scripts/homer.js"></script>
 
 		</body>
 		</html>
