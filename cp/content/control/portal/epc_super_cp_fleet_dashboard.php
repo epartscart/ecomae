@@ -52,7 +52,10 @@ foreach ($tenants as $t) {
 .scp-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
 .scp-stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;text-align:center;transition:all .2s}
 .scp-stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.05)}
-.scp-stat-card__val{font-size:32px;font-weight:800;background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.scp-stat-card__val{font-size:32px;font-weight:800;color:#3b82f6}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+.scp-stat-card__val{background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+}
 .scp-stat-card__label{font-size:12px;color:#64748b;margin-top:4px}
 .scp-fleet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:24px 0}
 .scp-tenant-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;transition:all .2s}

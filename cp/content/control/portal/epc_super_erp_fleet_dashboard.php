@@ -69,7 +69,10 @@ $erpModules = array(
 .sep-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
 .sep-stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;text-align:center;transition:all .2s}
 .sep-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.05)}
-.sep-stat__val{font-size:28px;font-weight:800;background:linear-gradient(135deg,#10b981,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sep-stat__val{font-size:28px;font-weight:800;color:#1d4ed8}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+.sep-stat__val{background:linear-gradient(135deg,#10b981,#3b82f6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+}
 .sep-stat__label{font-size:11px;color:#64748b;margin-top:2px}
 .sep-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:0}
 .sep-tab{padding:10px 20px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
