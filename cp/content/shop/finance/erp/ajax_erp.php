@@ -1527,6 +1527,8 @@ try {
 
 		case 'inv_create_item':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
+			epc_erp_phase8_ensure_schema($db_link);
 			$custom = array();
 			foreach ($_POST as $k => $v) {
 				if (strpos($k, 'custom_') === 0) {
@@ -1538,6 +1540,15 @@ try {
 			$id = epc_erp_inventory_create_item($db_link, $data);
 			epc_erp_dim_save_from_post($db_link, 'inventory_item', (int) $id, $_POST);
 			epc_erp_json(true, 'Inventory item created', array('id' => $id));
+
+		case 'inv_set_reorder_level':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
+			$itemId = (int) ($_POST['item_id'] ?? 0);
+			if ($itemId <= 0) {
+				epc_erp_json(false, 'Item is required');
+			}
+			epc_erp_inventory_set_reorder_level($db_link, $itemId, (float) ($_POST['reorder_level'] ?? 0));
+			epc_erp_json(true, 'Reorder level updated');
 
 		case 'inv_record_movement':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory.php';
