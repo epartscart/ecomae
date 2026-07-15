@@ -29,7 +29,16 @@ if (!is_file($file) || !is_readable($file)) {
 $method = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
 header('Content-Type: ' . epc_static_serve_mime($file));
 header('Content-Length: ' . (string) filesize($file));
-header('Cache-Control: public, max-age=604800');
+// Callers that pass a version query string (?v=...) get a fresh URL whenever the
+// underlying file changes, so those responses are safe to cache aggressively for
+// a full year and mark immutable. Anything requested without a version tag keeps
+// the previous, shorter cache window so an in-place file change is still picked
+// up reasonably quickly.
+if (isset($_GET['v']) && $_GET['v'] !== '') {
+	header('Cache-Control: public, max-age=31536000, immutable');
+} else {
+	header('Cache-Control: public, max-age=604800');
+}
 header('X-EPC-Static-Serve: gateway');
 if ($method === 'HEAD') {
 	exit;
