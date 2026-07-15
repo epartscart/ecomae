@@ -1650,3 +1650,70 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	font-size: 12.5px;
 	color: #64748b;
 }
+
+/* ==========================================================================
+   Sidebar process-category headers ("Home & workspace", "Record to Report",
+   "Procure to Pay", "Order to Cash", etc.)
+   These outer category buttons (epc_erp_nav_categories_config /
+   .epc-erp-sidebar-category-hd, rendered in erp_nav_areas.php, toggled via
+   cp/js/epc_erp_shell_nav.js) were added with no dedicated CSS rule, so they
+   fell back to unstyled <button> browser defaults (light/silver background,
+   dark text) on top of the dark sidebar — making the label unreadable.
+   Mirrors the existing .epc-erp-sidebar-group-hd treatment one level up.
+   ========================================================================== */
+.epc-erp-sidebar-category-hd {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 16px;
+	border: 0;
+	background: transparent;
+	color: rgba(255, 255, 255, 0.85);
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	text-align: left;
+	cursor: pointer;
+	transition: background .12s, color .12s;
+}
+.epc-erp-sidebar-category-hd:hover,
+.epc-erp-sidebar-category-hd:focus {
+	background: rgba(255, 255, 255, 0.08);
+	color: #fff;
+	outline: none;
+}
+.epc-erp-sidebar-category.is-active-category > .epc-erp-sidebar-category-hd,
+.epc-erp-sidebar-category.is-open > .epc-erp-sidebar-category-hd {
+	color: #fff;
+	background: rgba(56, 189, 248, 0.16);
+}
+.epc-erp-sidebar-category-hd .epc-erp-sidebar-icon { opacity: 0.9; }
+.epc-erp-sidebar-category-hd .epc-erp-sidebar-chevron {
+	font-size: 10px;
+	opacity: 0.5;
+	transition: transform .15s ease;
+}
+.epc-erp-sidebar-category.is-open .epc-erp-sidebar-category-hd .epc-erp-sidebar-chevron {
+	transform: rotate(90deg);
+	opacity: 0.85;
+}
+.epc-erp-sidebar-category-areas {
+	list-style: none;
+	margin: 0;
+	padding: 0 0 4px 0;
+	display: none;
+}
+.epc-erp-sidebar-category.is-open > .epc-erp-sidebar-category-areas { display: block; }
+
+@media (min-width: 992px) {
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-category-hd {
+		justify-content: center;
+		padding: 12px 0;
+	}
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-category-hd .epc-erp-sidebar-label,
+	body.epc-erp-nav-collapsed .epc-erp-sidebar-category-hd .epc-erp-sidebar-chevron {
+		display: none;
+	}
+}
