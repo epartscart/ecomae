@@ -6,7 +6,13 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once __DIR__ . '/erp_pm_render.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
 epc_erp_pm_inline_assets();
+
+epc_aml_ensure_schema($db_link);
+$amlCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$csrfLocal = isset($csrf) ? $csrf : '';
 
 erp_page_header(
 	'<i class="fa fa-shield"></i> AML Compliance',
@@ -31,10 +37,45 @@ ob_start();
 </div>
 <div class="epc-erp-section">
 	<h4><i class="fa fa-exclamation-triangle"></i> Alerts &amp; monitoring</h4>
+	<p class="text-muted small">
+		<!-- NOTE: epc_aml_check_transaction() is a stateless on-demand calculator — it does not persist alert rows
+		     to any table. The epc_aml_transactions table exists for logging but no list/query function exists
+		     in the backend. The rows below are illustrative examples only. Wire the "Transaction check" form
+		     below to run a real check against live rules. -->
+		Illustrative example alerts shown below. Use the transaction checker to run a real-time AML check against your active rules.
+	</p>
 	<table class="table table-bordered table-condensed" style="font-size:13px;" id="aml_alerts">
 		<thead><tr><th>Date</th><th>Alert type</th><th>Customer</th><th>Detail</th><th>Risk</th><th>Action</th><th></th></tr></thead>
-		<tbody></tbody>
+		<tbody>
+			<!-- Illustrative rows — no real alert log table is queryable from this backend file -->
+			<tr><td>2026-06-20</td><td><span class="label label-warning">Cash threshold</span></td><td>Walk-in customer</td><td><small>Cash purchase 52,000 AED (near threshold 55,000)</small></td><td><span class="label label-warning">Medium</span></td><td><button class="btn btn-xs btn-warning">Review</button></td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
+			<tr><td>2026-06-18</td><td><span class="label label-danger">Structuring</span></td><td>Sara Imports LLC</td><td><small>3 payments: 18K + 17K + 19K = 54K in 24h</small></td><td><span class="label label-danger">High</span></td><td><button class="btn btn-xs btn-danger">Escalate</button></td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
+			<tr><td>2026-06-15</td><td><span class="label label-danger">PEP match</span></td><td>Mohammad H.</td><td><small>Name matches sanctions watchlist (partial)</small></td><td><span class="label label-danger">High</span></td><td><button class="btn btn-xs btn-danger">Verify identity</button></td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
+			<tr><td>2026-06-10</td><td><span class="label label-warning">Unusual pattern</span></td><td>Gold Traders Int.</td><td><small>5x normal purchase volume this week</small></td><td><span class="label label-warning">Medium</span></td><td><button class="btn btn-xs btn-warning">Monitor</button></td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>
+		</tbody>
 	</table>
+</div>
+<div class="epc-erp-section">
+	<h4><i class="fa fa-search"></i> Real-time transaction check</h4>
+	<p class="text-muted">Run an on-demand AML check against your active rules for any customer/amount combination.</p>
+	<form id="aml_check_form" style="margin-bottom:12px;">
+		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
+		<input type="hidden" name="action" value="aml_check">
+		<div class="pm-fields">
+			<div class="pm-field"><label>Customer ID</label><input type="number" name="customer_id" class="form-control input-sm" placeholder="Customer ID" required></div>
+			<div class="pm-field"><label>Amount</label><input type="number" step="any" name="amount" class="form-control input-sm" placeholder="0.00" required></div>
+			<div class="pm-field"><label>Currency</label>
+				<select name="currency" class="form-control input-sm">
+					<option value="AED">AED</option>
+					<option value="USD">USD</option>
+					<option value="EUR">EUR</option>
+					<option value="GBP">GBP</option>
+				</select>
+			</div>
+			<div class="pm-field"><label>&nbsp;</label><button type="submit" class="btn btn-warning btn-sm"><i class="fa fa-search"></i> Run AML check</button></div>
+		</div>
+	</form>
+	<div id="aml_check_result" style="display:none;"></div>
 </div>
 <div class="epc-erp-section">
 	<h4><i class="fa fa-user-secret"></i> KYC register</h4>
@@ -67,17 +108,33 @@ ob_start();
 </div>
 <script>
 (function(){
-	var alerts=[
-		{date:'2026-06-20',type:'Cash threshold',cust:'Walk-in customer',detail:'Cash purchase 52,000 AED (near threshold 55,000)',risk:'Medium',action:'Review'},
-		{date:'2026-06-18',type:'Structuring',cust:'Sara Imports LLC',detail:'3 payments: 18K + 17K + 19K = 54K in 24h',risk:'High',action:'Escalate'},
-		{date:'2026-06-15',type:'PEP match',cust:'Mohammad H.',detail:'Name matches sanctions watchlist (partial)',risk:'High',action:'Verify identity'},
-		{date:'2026-06-10',type:'Unusual pattern',cust:'Gold Traders Int.',detail:'5x normal purchase volume this week',risk:'Medium',action:'Monitor'},
-	];
-	var tb=document.querySelector('#aml_alerts tbody');
-	alerts.forEach(function(a){
-		var cls=a.risk==='High'?'danger':(a.risk==='Medium'?'warning':'info');
-		tb.innerHTML+='<tr><td>'+a.date+'</td><td><span class="label label-'+cls+'">'+a.type+'</span></td><td>'+a.cust+'</td><td><small>'+a.detail+'</small></td><td><span class="label label-'+cls+'">'+a.risk+'</span></td><td><button class="btn btn-xs btn-'+cls+'">'+a.action+'</button></td><td><a class="btn btn-xs btn-default"><i class="fa fa-eye"></i></a></td></tr>';
-	});
+	var endpoint = <?php echo json_encode($erpAjaxUrl); ?>;
+	var checkForm = document.getElementById('aml_check_form');
+	var resultBox = document.getElementById('aml_check_result');
+	if (checkForm) {
+		checkForm.addEventListener('submit', function (e) {
+			e.preventDefault();
+			var fd = new FormData(checkForm);
+			resultBox.style.display = 'none';
+			fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (res) {
+					var ok = res && res.ok;
+					var data = res && res.data ? res.data : {};
+					var flagged = data.flagged;
+					var score = data.risk_score !== undefined ? data.risk_score : '—';
+					var flags = data.flags && data.flags.length ? data.flags.join('; ') : 'None';
+					var cls = flagged ? 'danger' : 'success';
+					var label = flagged ? 'FLAGGED' : 'CLEAR';
+					resultBox.innerHTML = '<div class="alert alert-' + cls + '"><strong>' + label + '</strong> — Risk score: ' + score + '/100. Flags: ' + flags + '</div>';
+					resultBox.style.display = 'block';
+				})
+				.catch(function () {
+					resultBox.innerHTML = '<div class="alert alert-danger">Error running AML check.</div>';
+					resultBox.style.display = 'block';
+				});
+		});
+	}
 })();
 </script>
 <?php

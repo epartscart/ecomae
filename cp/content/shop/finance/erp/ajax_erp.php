@@ -2011,6 +2011,310 @@ $cgDelCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_
 $cgOk = epc_cust_groups_delete($db_link, (int) ($_POST['id'] ?? 0), $cgDelCompanyId);
 epc_erp_json($cgOk, $cgOk ? 'Customer group deleted' : 'Delete failed');
 
+case 'inv_report_by_sku':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_inventory_report.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_inv_report_ensure_schema($db_link);
+$invSkuCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$invSkuRows = epc_inv_report_by_sku($db_link, $invSkuCompanyId, (int) ($_POST['category_id'] ?? 0), (string) ($_POST['sort_by'] ?? 'value_desc'));
+epc_erp_json(true, 'OK', array('data' => $invSkuRows));
+
+case 'jw_tag_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_tag.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_jw_tag_ensure_schema($db_link);
+$jwTagCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$jwTagId = epc_jw_tag_create($db_link, array(
+'company_id' => $jwTagCompanyId,
+'item_type' => (string) ($_POST['item_type'] ?? 'gold'),
+'karat' => (string) ($_POST['karat'] ?? '22K'),
+'gross_weight' => (float) ($_POST['gross_weight'] ?? 0),
+'net_weight' => (float) ($_POST['net_weight'] ?? 0),
+'stone_weight' => (float) ($_POST['stone_weight'] ?? 0),
+'stone_count' => (int) ($_POST['stone_count'] ?? 0),
+'making_charges' => (float) ($_POST['making_charges'] ?? 0),
+'making_type' => (string) ($_POST['making_type'] ?? 'per_gram'),
+'cost_price' => (float) ($_POST['cost_price'] ?? 0),
+'sell_price' => (float) ($_POST['sell_price'] ?? 0),
+'design_no' => (string) ($_POST['design_no'] ?? ''),
+'category' => (string) ($_POST['category'] ?? ''),
+'subcategory' => (string) ($_POST['subcategory'] ?? ''),
+'location' => (string) ($_POST['location'] ?? 'showroom'),
+'description' => (string) ($_POST['description'] ?? ''),
+'purchase_date' => (string) ($_POST['purchase_date'] ?? date('Y-m-d')),
+));
+epc_erp_json(true, 'Tag created', array('id' => $jwTagId));
+
+case 'jw_tag_sell':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_tag.php';
+$jwSellOk = epc_jw_tag_sell($db_link, (int) ($_POST['tag_id'] ?? 0), (int) ($_POST['invoice_id'] ?? 0), (int) ($_POST['salesman_id'] ?? 0));
+epc_erp_json($jwSellOk, $jwSellOk ? 'Tag marked sold' : 'Update failed');
+
+case 'report_sched_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_scheduler.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_report_sched_ensure_schema($db_link);
+$rsCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$rsRecipientsRaw = (string) ($_POST['recipients'] ?? '');
+$rsRecipients = array_filter(array_map('trim', explode(',', $rsRecipientsRaw)));
+$rsId = epc_report_sched_create($db_link, array(
+'company_id' => $rsCompanyId,
+'report_name' => (string) ($_POST['report_name'] ?? ''),
+'report_type' => (string) ($_POST['report_type'] ?? ''),
+'frequency' => (string) ($_POST['frequency'] ?? 'monthly'),
+'day_of_week' => (int) ($_POST['day_of_week'] ?? 1),
+'day_of_month' => (int) ($_POST['day_of_month'] ?? 1),
+'time_of_day' => (string) ($_POST['time_of_day'] ?? '08:00'),
+'format' => (string) ($_POST['format'] ?? 'pdf'),
+'recipients' => $rsRecipients,
+'subject_template' => (string) ($_POST['subject_template'] ?? ''),
+'filters' => array(),
+'created_by' => 0,
+));
+epc_erp_json(true, 'Schedule saved', array('id' => $rsId));
+
+case 'report_sched_send':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_report_scheduler.php';
+$rsSendResult = epc_report_sched_send($db_link, (int) ($_POST['schedule_id'] ?? 0));
+epc_erp_json((bool) ($rsSendResult['ok'] ?? false), $rsSendResult['ok'] ? 'Report sent to ' . ($rsSendResult['recipients'] ?? 0) . ' recipients' : ($rsSendResult['error'] ?? 'Send failed'), $rsSendResult);
+
+case 'landed_cost_v2_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_landed_cost_v2.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_landed_cost_v2_ensure_schema($db_link);
+$lcCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$lcId = epc_landed_cost_v2_create($db_link, array(
+'company_id' => $lcCompanyId,
+'po_reference' => (string) ($_POST['po_reference'] ?? ''),
+'grn_reference' => (string) ($_POST['grn_reference'] ?? ''),
+'supplier_name' => (string) ($_POST['supplier_name'] ?? ''),
+'goods_value' => (float) ($_POST['goods_value'] ?? 0),
+'distribution_method' => (string) ($_POST['distribution_method'] ?? 'value'),
+'currency' => (string) ($_POST['currency'] ?? 'AED'),
+'notes' => (string) ($_POST['notes'] ?? ''),
+));
+epc_erp_json(true, 'Cost sheet created', array('id' => $lcId));
+
+case 'landed_cost_v2_calculate':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_landed_cost_v2.php';
+$lcCalcResult = epc_landed_cost_v2_calculate($db_link, (int) ($_POST['sheet_id'] ?? 0));
+epc_erp_json((bool) ($lcCalcResult['ok'] ?? false), $lcCalcResult['ok'] ? 'Calculated successfully' : ($lcCalcResult['error'] ?? 'Calculate failed'), $lcCalcResult);
+
+case 'landed_cost_v2_post':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_landed_cost_v2.php';
+$lcPostResult = epc_landed_cost_v2_post($db_link, (int) ($_POST['sheet_id'] ?? 0));
+epc_erp_json((bool) ($lcPostResult['ok'] ?? false), $lcPostResult['ok'] ? 'Posted to inventory cost' : 'Post failed', $lcPostResult);
+
+case 'vwh_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_virtual_warehouse.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_vwh_ensure_schema($db_link);
+$vwhCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$vwhId = epc_vwh_create_warehouse($db_link, array(
+'company_id' => $vwhCompanyId,
+'code' => (string) ($_POST['code'] ?? ''),
+'name' => (string) ($_POST['name'] ?? ''),
+'type' => (string) ($_POST['type'] ?? 'physical'),
+'address' => (string) ($_POST['address'] ?? ''),
+'manager_name' => (string) ($_POST['manager_name'] ?? ''),
+'is_sellable' => (int) ($_POST['is_sellable'] ?? 1),
+'event_name' => (string) ($_POST['event_name'] ?? ''),
+'event_start' => ($_POST['event_start'] ?? '') ?: null,
+'event_end' => ($_POST['event_end'] ?? '') ?: null,
+'notes' => (string) ($_POST['notes'] ?? ''),
+));
+epc_erp_json(true, 'Warehouse/location saved', array('id' => $vwhId));
+
+case 'vwh_transfer_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_virtual_warehouse.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_vwh_ensure_schema($db_link);
+$vwhTrfCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$vwhTrfId = epc_vwh_create_transfer($db_link, array(
+'company_id' => $vwhTrfCompanyId,
+'from_warehouse_id' => (int) ($_POST['from_warehouse_id'] ?? 0),
+'to_warehouse_id' => (int) ($_POST['to_warehouse_id'] ?? 0),
+'reason' => (string) ($_POST['reason'] ?? ''),
+'notes' => (string) ($_POST['notes'] ?? ''),
+), array());
+epc_erp_json(true, 'Transfer created', array('id' => $vwhTrfId));
+
+case 'vwh_transfer_ship':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_virtual_warehouse.php';
+$vwhShipOk = epc_vwh_ship_transfer($db_link, (int) ($_POST['transfer_id'] ?? 0));
+epc_erp_json($vwhShipOk, $vwhShipOk ? 'Transfer marked in-transit' : 'Ship failed');
+
+case 'vwh_transfer_receive':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_virtual_warehouse.php';
+$vwhRecOk = epc_vwh_receive_transfer($db_link, (int) ($_POST['transfer_id'] ?? 0), (int) ($_POST['received_by'] ?? 0));
+epc_erp_json($vwhRecOk, $vwhRecOk ? 'Transfer received' : 'Receive failed');
+
+case 'sla_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_sla.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_sla_ensure_schema($db_link);
+$slaCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$slaId = epc_sla_create($db_link, array(
+'company_id' => $slaCompanyId,
+'sla_code' => (string) ($_POST['sla_code'] ?? ''),
+'client_name' => (string) ($_POST['client_name'] ?? ''),
+'client_id' => (int) ($_POST['client_id'] ?? 0),
+'service_type' => (string) ($_POST['service_type'] ?? ''),
+'response_hours' => (float) ($_POST['response_hours'] ?? 4),
+'resolution_hours' => (float) ($_POST['resolution_hours'] ?? 24),
+'uptime_pct' => (float) ($_POST['uptime_pct'] ?? 99.5),
+'penalty_type' => (string) ($_POST['penalty_type'] ?? 'credit_note'),
+'penalty_amount' => (float) ($_POST['penalty_amount'] ?? 0),
+'start_date' => (string) ($_POST['start_date'] ?? '') ?: null,
+'end_date' => (string) ($_POST['end_date'] ?? '') ?: null,
+'status' => (string) ($_POST['status'] ?? 'active'),
+'notes' => (string) ($_POST['notes'] ?? ''),
+));
+epc_erp_json(true, 'SLA agreement saved', array('id' => $slaId));
+
+case 'aml_check':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_aml_ensure_schema($db_link);
+$amlCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$amlResult = epc_aml_check_transaction($db_link, $amlCompanyId, (int) ($_POST['customer_id'] ?? 0), (float) ($_POST['amount'] ?? 0), (string) ($_POST['currency'] ?? 'AED'));
+epc_erp_json(true, 'AML check complete', $amlResult);
+
+case 'shortcut_add':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_shortcuts_ensure_schema($db_link);
+$scCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$scUserId = 0;
+if (isset($_SESSION['user_id'])) { $scUserId = (int) $_SESSION['user_id']; }
+elseif (isset($_SESSION['admin_id'])) { $scUserId = (int) $_SESSION['admin_id']; }
+$scId = epc_shortcuts_add($db_link, array(
+'company_id' => $scCompanyId,
+'user_id' => $scUserId,
+'label' => (string) ($_POST['label'] ?? ''),
+'icon_class' => (string) ($_POST['icon_class'] ?? 'fa fa-star'),
+'icon_color' => (string) ($_POST['icon_color'] ?? '#3498db'),
+'target_url' => (string) ($_POST['target_url'] ?? ''),
+'target_tab' => (string) ($_POST['target_tab'] ?? ''),
+));
+epc_erp_json(true, 'Shortcut added', array('id' => $scId));
+
+case 'shortcut_delete':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+$scDelUserId = 0;
+if (isset($_SESSION['user_id'])) { $scDelUserId = (int) $_SESSION['user_id']; }
+elseif (isset($_SESSION['admin_id'])) { $scDelUserId = (int) $_SESSION['admin_id']; }
+$scDelOk = epc_shortcuts_delete($db_link, (int) ($_POST['id'] ?? 0), $scDelUserId);
+epc_erp_json($scDelOk, $scDelOk ? 'Shortcut deleted' : 'Delete failed');
+
+case 'barcode_purchase_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_barcode_purchase.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_barcode_purchase_ensure_schema($db_link);
+$bpCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$bpId = epc_barcode_purchase_create($db_link, array(
+'company_id' => $bpCompanyId,
+'barcode' => (string) ($_POST['barcode'] ?? ''),
+'item_description' => (string) ($_POST['item_description'] ?? ''),
+'supplier_id' => (int) ($_POST['supplier_id'] ?? 0),
+'supplier_name' => (string) ($_POST['supplier_name'] ?? ''),
+'purchase_date' => (string) ($_POST['purchase_date'] ?? date('Y-m-d')),
+'purchase_invoice_no' => (string) ($_POST['purchase_invoice_no'] ?? ''),
+'metal_type' => (string) ($_POST['metal_type'] ?? 'gold'),
+'karat' => (string) ($_POST['karat'] ?? '22K'),
+'gross_weight' => (float) ($_POST['gross_weight'] ?? 0),
+'net_weight' => (float) ($_POST['net_weight'] ?? 0),
+'stone_weight' => (float) ($_POST['stone_weight'] ?? 0),
+'gold_rate_at_purchase' => (float) ($_POST['gold_rate_at_purchase'] ?? 0),
+'making_charges' => (float) ($_POST['making_charges'] ?? 0),
+'stone_value' => (float) ($_POST['stone_value'] ?? 0),
+'other_charges' => (float) ($_POST['other_charges'] ?? 0),
+'margin_pct' => (float) ($_POST['margin_pct'] ?? 15),
+'salesman_id' => (int) ($_POST['salesman_id'] ?? 0),
+'salesman_name' => (string) ($_POST['salesman_name'] ?? ''),
+'salesman_commission_pct' => (float) ($_POST['salesman_commission_pct'] ?? 2),
+'category' => (string) ($_POST['category'] ?? ''),
+'design_no' => (string) ($_POST['design_no'] ?? ''),
+'hallmark_no' => (string) ($_POST['hallmark_no'] ?? ''),
+'certificate_no' => (string) ($_POST['certificate_no'] ?? ''),
+));
+epc_erp_json(true, 'Barcode purchase saved', array('id' => $bpId));
+
+case 'fix_unfix_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fix_unfix.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_fix_unfix_ensure_schema($db_link);
+$fuCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$fuId = epc_fix_unfix_create($db_link, array(
+'company_id' => $fuCompanyId,
+'purchase_id' => (int) ($_POST['purchase_id'] ?? 0),
+'supplier_id' => (int) ($_POST['supplier_id'] ?? 0),
+'supplier_name' => (string) ($_POST['supplier_name'] ?? ''),
+'purchase_date' => (string) ($_POST['purchase_date'] ?? date('Y-m-d')),
+'structure_type' => (string) ($_POST['structure_type'] ?? 'fix'),
+'metal_type' => (string) ($_POST['metal_type'] ?? 'gold'),
+'karat' => (string) ($_POST['karat'] ?? '24K'),
+'weight_grams' => (float) ($_POST['weight_grams'] ?? 0),
+'fix_rate' => (float) ($_POST['fix_rate'] ?? 0),
+'fix_date' => (string) ($_POST['fix_date'] ?? ''),
+'fix_reference' => (string) ($_POST['fix_reference'] ?? ''),
+'unfix_estimated_rate' => (float) ($_POST['unfix_estimated_rate'] ?? 0),
+'margin_on_fix' => (float) ($_POST['margin_on_fix'] ?? 0),
+'margin_on_unfix' => (float) ($_POST['margin_on_unfix'] ?? 0),
+'making_charges' => (float) ($_POST['making_charges'] ?? 0),
+'notes' => (string) ($_POST['notes'] ?? ''),
+));
+epc_erp_json(true, 'Fix/Unfix purchase saved', array('id' => $fuId));
+
+case 'fix_unfix_settle':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fix_unfix.php';
+$fuSettleResult = epc_fix_unfix_settle($db_link, (int) ($_POST['id'] ?? 0), (float) ($_POST['settle_rate'] ?? 0));
+epc_erp_json((bool) ($fuSettleResult['ok'] ?? false), $fuSettleResult['ok'] ? 'Settled' : ($fuSettleResult['error'] ?? 'Settle failed'), $fuSettleResult);
+
+case 'gold_scheme_save':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_gold_scheme.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+epc_gold_scheme_ensure_schema($db_link);
+$gsCompanyId = function_exists('epc_erp_active_company_id') ? epc_erp_active_company_id($db_link) : 0;
+$gsId = epc_gold_scheme_create($db_link, array(
+'company_id' => $gsCompanyId,
+'scheme_code' => (string) ($_POST['scheme_code'] ?? ''),
+'scheme_name' => (string) ($_POST['scheme_name'] ?? ''),
+'scheme_type' => (string) ($_POST['scheme_type'] ?? 'value'),
+'maturity_months' => (int) ($_POST['maturity_months'] ?? 11),
+'bonus_type' => (string) ($_POST['bonus_type'] ?? 'free_month'),
+'bonus_value' => (float) ($_POST['bonus_value'] ?? 0),
+'min_installment' => (float) ($_POST['min_installment'] ?? 500),
+'max_installment' => (float) ($_POST['max_installment'] ?? 50000),
+'terms_text' => (string) ($_POST['terms_text'] ?? ''),
+));
+epc_erp_json(true, 'Gold scheme saved', array('id' => $gsId));
+
+case 'gold_scheme_enroll':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_gold_scheme.php';
+epc_gold_scheme_ensure_schema($db_link);
+$gsEnrollId = epc_gold_scheme_enroll($db_link, array(
+'scheme_id' => (int) ($_POST['scheme_id'] ?? 0),
+'customer_id' => (int) ($_POST['customer_id'] ?? 0),
+'customer_name' => (string) ($_POST['customer_name'] ?? ''),
+'installment_amount' => (float) ($_POST['installment_amount'] ?? 0),
+'start_date' => (string) ($_POST['start_date'] ?? date('Y-m-d')),
+'notes' => (string) ($_POST['notes'] ?? ''),
+));
+epc_erp_json($gsEnrollId > 0, $gsEnrollId > 0 ? 'Enrolled successfully' : 'Enroll failed', array('id' => $gsEnrollId));
+
+case 'gold_scheme_pay':
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_gold_scheme.php';
+$gsPayId = epc_gold_scheme_pay_installment($db_link, (int) ($_POST['enrollment_id'] ?? 0), array(
+'amount' => (float) ($_POST['amount'] ?? 0),
+'payment_mode' => (string) ($_POST['payment_mode'] ?? 'cash'),
+'gold_rate' => (float) ($_POST['gold_rate'] ?? 0),
+'receipt_no' => (string) ($_POST['receipt_no'] ?? ''),
+'payment_date' => (string) ($_POST['payment_date'] ?? date('Y-m-d')),
+'notes' => (string) ($_POST['notes'] ?? ''),
+));
+epc_erp_json($gsPayId > 0, $gsPayId > 0 ? 'Installment recorded' : 'Payment failed', array('id' => $gsPayId));
+
 case 'pm_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_pdf_modules.php';
 			$pmTable = (string) ($_POST['pm_table'] ?? '');
