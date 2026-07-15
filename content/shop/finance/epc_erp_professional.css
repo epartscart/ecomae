@@ -1420,10 +1420,21 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	animation: epcErpGlow 1.6s ease-in-out infinite;
 }
 .epc-erp-kpi .kpi .val {
-	background: var(--epc-erp-accent-grad);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
+	/* Solid, always-visible fallback color first. The gradient-clip
+	   effect below is progressive enhancement only — if background-clip:
+	   text fails to apply for any reason (older WebViews, print, PDF
+	   render, specificity conflicts), the number must never end up
+	   transparent-on-light, i.e. invisible. */
+	color: #1d4ed8;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+	.epc-erp-kpi .kpi .val {
+		background: var(--epc-erp-accent-grad);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 }
 
 /* Tables: soft depth + gradient header */
@@ -1468,10 +1479,16 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	box-shadow: var(--epc-erp-elev-1);
 }
 .epc-erp-empty .fa, .epc-erp-coming-soon .fa {
-	background: var(--epc-erp-accent-grad);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
+	color: #2563eb;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+	.epc-erp-empty .fa, .epc-erp-coming-soon .fa {
+		background: var(--epc-erp-accent-grad);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
 }
 
 /* Chain / related-nav strips: pill depth */
