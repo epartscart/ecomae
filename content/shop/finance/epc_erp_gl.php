@@ -94,6 +94,14 @@ function epc_erp_gl_ensure_schema(PDO $db)
 	epc_erp_gl_add_column_if_missing($db, 'epc_erp_cash_bank_entries', 'gl_journal_id', 'int(11) NOT NULL DEFAULT 0');
 	epc_erp_gl_add_column_if_missing($db, 'epc_erp_cash_bank_accounts', 'coa_id', 'int(11) NOT NULL DEFAULT 0');
 
+	// Multi-entity: every journal belongs to exactly one legal entity/company
+	// (see epc_erp_company_context.php). Additive column + one-time backfill of
+	// pre-existing rows (posted before this concept existed) to the tenant's
+	// default/primary company, so nothing is left unscoped.
+	epc_erp_gl_add_column_if_missing($db, 'epc_erp_gl_journals', 'company_id', 'int(11) NOT NULL DEFAULT 0');
+	epc_erp_gl_add_index_if_missing($db, 'epc_erp_gl_journals', 'x_company_date', '(`company_id`,`journal_date`)');
+	epc_erp_gl_backfill_company_id($db);
+
 	// Covering / composite indexes for the hot reporting paths (trial balance,
 	// P&L, balance sheet, per-account activity). Added idempotently so existing
 	// tenant DBs (created before these keys existed) are upgraded in place.
@@ -101,6 +109,69 @@ function epc_erp_gl_ensure_schema(PDO $db)
 	epc_erp_gl_add_index_if_missing($db, 'epc_erp_gl_journals', 'x_active_date', '(`active`,`journal_date`)');
 
 	epc_erp_gl_seed_coa($db);
+}
+
+/**
+ * One-time, idempotent backfill: journals posted before multi-entity company
+ * scoping existed have `company_id` = 0. Assign every such row to the
+ * tenant's default/primary company (the lowest-id active legal entity) so
+ * historical books stay intact and fully attributed. Only rows still at 0
+ * are touched, so this is a cheap no-op once the backfill has run — it does
+ * not re-run on every request and never re-assigns a journal that already
+ * has a company.
+ */
+function epc_erp_gl_backfill_company_id(PDO $db)
+{
+	try {
+		$hasZero = (int)$db->query('SELECT COUNT(*) FROM `epc_erp_gl_journals` WHERE `company_id` = 0')->fetchColumn();
+		if ($hasZero <= 0) {
+			return;
+		}
+		$defaultId = epc_erp_gl_default_company_id($db);
+		if ($defaultId <= 0) {
+			return;
+		}
+		$db->prepare('UPDATE `epc_erp_gl_journals` SET `company_id` = ? WHERE `company_id` = 0')->execute(array($defaultId));
+	} catch (Throwable $e) {
+		// Company-context tables not reachable yet (very first request on a
+		// brand-new tenant) — safe to skip, nothing to backfill.
+	}
+}
+
+/**
+ * The tenant's default/primary company: the lowest-id active legal entity.
+ * Deterministic regardless of the current session/URL company switch, so it
+ * is safe to use for backfills and as the final fallback when no company
+ * context can be resolved at all.
+ */
+function epc_erp_gl_default_company_id(PDO $db)
+{
+	require_once __DIR__ . '/epc_erp_company_context.php';
+	$companies = epc_erp_companies_list($db);
+	if (!$companies) {
+		return 0;
+	}
+	usort($companies, function ($a, $b) {
+		return (int)$a['id'] - (int)$b['id'];
+	});
+	return (int)$companies[0]['id'];
+}
+
+/**
+ * Resolve which company a GL write/read should be scoped to: the session's
+ * active company (top-bar company picker), falling back to the tenant's
+ * default company. Used whenever a GL function is called without an explicit
+ * company id.
+ */
+function epc_erp_gl_resolve_company_id(PDO $db)
+{
+	try {
+		require_once __DIR__ . '/epc_erp_company_context.php';
+		$id = epc_erp_active_company_id($db);
+		return $id > 0 ? $id : epc_erp_gl_default_company_id($db);
+	} catch (Throwable $e) {
+		return 0;
+	}
 }
 
 function epc_erp_gl_add_column_if_missing(PDO $db, $table, $column, $definition)
@@ -142,7 +213,14 @@ function epc_erp_gl_add_index_if_missing(PDO $db, $table, $indexName, $columnsSp
  *
  * @return array<int,array{debits:float,credits:float}> keyed by coa_id
  */
-function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0)
+/**
+ * $companyId: null = resolve the active company (top-bar picker) — the
+ * default for every existing call site, and a no-op for single-company
+ * tenants since all their journals belong to that one company. Pass an
+ * explicit id to scope to a specific company, or 0 to see every company's
+ * activity unscoped (used by consolidated/group reporting).
+ */
+function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0, $companyId = null)
 {
 	$sql = 'SELECT l.`coa_id` AS coa_id,
 			IFNULL(SUM(l.`debit`),0) AS debits,
@@ -151,6 +229,11 @@ function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0)
 		INNER JOIN `epc_erp_gl_journals` j ON j.id = l.journal_id
 		WHERE j.active = 1';
 	$params = array();
+	$cid = $companyId === null ? epc_erp_gl_resolve_company_id($db) : (int)$companyId;
+	if ($cid > 0) {
+		$sql .= ' AND j.company_id = ?';
+		$params[] = $cid;
+	}
 	if ((int)$date_to > 0) {
 		$sql .= ' AND j.journal_date <= ?';
 		$params[] = (int)$date_to;
@@ -250,14 +333,14 @@ function epc_erp_gl_ensure_depreciation_accounts(PDO $db)
 	}
 }
 
-function epc_erp_gl_list_coa(PDO $db, $as_of = 0)
+function epc_erp_gl_list_coa(PDO $db, $as_of = 0, $companyId = null)
 {
 	epc_erp_gl_ensure_schema($db);
 	$rows = $db->query(
 		'SELECT * FROM `epc_erp_coa_accounts` WHERE `active` = 1 ORDER BY `code` ASC'
 	)->fetchAll(PDO::FETCH_ASSOC);
 	// Single batched aggregation instead of one query per account (N+1).
-	$activity = epc_erp_gl_all_coa_activity($db, $as_of > 0 ? (int)$as_of : time());
+	$activity = epc_erp_gl_all_coa_activity($db, $as_of > 0 ? (int)$as_of : time(), $companyId);
 	foreach ($rows as &$row) {
 		$act = $activity[(int)$row['id']] ?? array('debits' => 0.0, 'credits' => 0.0);
 		$row['balance'] = epc_erp_gl_signed_balance(
@@ -271,13 +354,18 @@ function epc_erp_gl_list_coa(PDO $db, $as_of = 0)
 	return $rows;
 }
 
-function epc_erp_gl_coa_activity(PDO $db, $coa_id, $date_from = 0, $date_to = 0)
+function epc_erp_gl_coa_activity(PDO $db, $coa_id, $date_from = 0, $date_to = 0, $companyId = null)
 {
 	$sql = 'SELECT IFNULL(SUM(l.`debit`),0) AS debits, IFNULL(SUM(l.`credit`),0) AS credits
 		FROM `epc_erp_gl_lines` l
 		INNER JOIN `epc_erp_gl_journals` j ON j.id = l.journal_id
 		WHERE l.coa_id = ? AND j.active = 1';
 	$params = array((int)$coa_id);
+	$cid = $companyId === null ? epc_erp_gl_resolve_company_id($db) : (int)$companyId;
+	if ($cid > 0) {
+		$sql .= ' AND j.company_id = ?';
+		$params[] = $cid;
+	}
 	if ($date_from > 0) {
 		$sql .= ' AND j.journal_date >= ?';
 		$params[] = (int)$date_from;
@@ -303,7 +391,7 @@ function epc_erp_gl_signed_balance($opening, $debits, $credits, $normal_side)
 	return (float)$opening + (float)$debits - (float)$credits;
 }
 
-function epc_erp_gl_coa_balance(PDO $db, $coa_id, $as_of = 0)
+function epc_erp_gl_coa_balance(PDO $db, $coa_id, $as_of = 0, $companyId = null)
 {
 	$coa = $db->prepare('SELECT * FROM `epc_erp_coa_accounts` WHERE `id` = ? LIMIT 1');
 	$coa->execute(array((int)$coa_id));
@@ -312,7 +400,7 @@ function epc_erp_gl_coa_balance(PDO $db, $coa_id, $as_of = 0)
 		return 0.0;
 	}
 	$date_to = $as_of > 0 ? (int)$as_of : time();
-	$act = epc_erp_gl_coa_activity($db, (int)$coa_id, 0, $date_to);
+	$act = epc_erp_gl_coa_activity($db, (int)$coa_id, 0, $date_to, $companyId);
 	return epc_erp_gl_signed_balance(
 		$row['opening_balance'],
 		$act['debits'],
@@ -377,10 +465,13 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 		$jdate = !empty($header['journal_date']) ? (int)$header['journal_date'] : time();
 		$legRef = (string)($header['uae_tax_legislation_ref'] ?? $vatCheck['legislation_ref'] ?? '');
 		$vatTreatment = trim((string)($header['uae_vat_treatment'] ?? ''));
+		$companyId = isset($header['company_id']) && (int)$header['company_id'] > 0
+			? (int)$header['company_id']
+			: epc_erp_gl_resolve_company_id($db);
 		$stmt = $db->prepare(
 			'INSERT INTO `epc_erp_gl_journals`
-			(`journal_no`, `journal_date`, `reference`, `description`, `source_type`, `source_id`, `uae_tax_legislation_ref`, `uae_vat_treatment`, `admin_id`, `time_created`)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+			(`journal_no`, `journal_date`, `reference`, `description`, `source_type`, `source_id`, `company_id`, `uae_tax_legislation_ref`, `uae_vat_treatment`, `admin_id`, `time_created`)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 		);
 		$admin_id = function_exists('epc_erp_admin_id') ? epc_erp_admin_id() : 0;
 		$stmt->execute(array(
@@ -390,6 +481,7 @@ function epc_erp_gl_post_journal(PDO $db, array $header, array $lines)
 			trim((string)($header['description'] ?? '')),
 			(string)($header['source_type'] ?? 'manual'),
 			(int)($header['source_id'] ?? 0),
+			$companyId,
 			$legRef,
 			$vatTreatment,
 			$admin_id,
@@ -454,6 +546,9 @@ function epc_erp_gl_reverse_journal(PDO $db, $journal_id, $reverse_date = 0, $no
 		'description' => trim((string)$note) !== '' ? trim((string)$note) : ('Reversal of ' . (string)$journal['journal_no']),
 		'source_type' => 'adjustment',
 		'source_id' => $journal_id,
+		// A reversal must stay booked in the same company as the original
+		// entry, regardless of which company is active in the session now.
+		'company_id' => (int)($journal['company_id'] ?? 0),
 	), $reversed);
 	if (function_exists('epc_erp_audit_log')) {
 		epc_erp_audit_log($db, 'gl_reverse', 'gl_journal', $journal_id, 'Reversed by journal #' . $newId);
@@ -495,13 +590,18 @@ function epc_erp_gl_create_coa(PDO $db, array $data)
 	return (int)$db->lastInsertId();
 }
 
-function epc_erp_gl_list_journals(PDO $db, $date_from = 0, $date_to = 0, $limit = 200)
+function epc_erp_gl_list_journals(PDO $db, $date_from = 0, $date_to = 0, $limit = 200, $companyId = null)
 {
 	epc_erp_gl_ensure_schema($db);
 	$sql = 'SELECT j.*,
 		(SELECT IFNULL(SUM(`debit`),0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.id) AS total_debit
 		FROM `epc_erp_gl_journals` j WHERE j.active = 1';
 	$params = array();
+	$cid = $companyId === null ? epc_erp_gl_resolve_company_id($db) : (int)$companyId;
+	if ($cid > 0) {
+		$sql .= ' AND j.company_id = ?';
+		$params[] = $cid;
+	}
 	if ($date_from > 0) {
 		$sql .= ' AND j.journal_date >= ?';
 		$params[] = (int)$date_from;
@@ -735,7 +835,7 @@ function epc_erp_gl_sync_unposted(PDO $db)
 	return $count;
 }
 
-function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to)
+function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to, $companyId = null)
 {
 	epc_erp_gl_ensure_schema($db);
 	$accounts = $db->query(
@@ -746,7 +846,7 @@ function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to)
 	$total_rev = 0.0;
 	$total_exp = 0.0;
 	foreach ($accounts as $a) {
-		$act = epc_erp_gl_coa_activity($db, (int)$a['id'], $date_from, $date_to);
+		$act = epc_erp_gl_coa_activity($db, (int)$a['id'], $date_from, $date_to, $companyId);
 		$period = epc_erp_gl_signed_balance(0, $act['debits'], $act['credits'], $a['normal_side']);
 		if (abs($period) < 0.005) {
 			continue;
@@ -775,7 +875,7 @@ function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to)
 	);
 }
 
-function epc_erp_gl_balance_sheet(PDO $db, $as_of)
+function epc_erp_gl_balance_sheet(PDO $db, $as_of, $companyId = null)
 {
 	epc_erp_gl_ensure_schema($db);
 	$types = array('asset' => array(), 'liability' => array(), 'equity' => array());
@@ -784,7 +884,7 @@ function epc_erp_gl_balance_sheet(PDO $db, $as_of)
 		"SELECT * FROM `epc_erp_coa_accounts` WHERE `active` = 1 AND `account_type` IN ('asset','liability','equity') ORDER BY `code`"
 	)->fetchAll(PDO::FETCH_ASSOC);
 	foreach ($accounts as $a) {
-		$bal = epc_erp_gl_coa_balance($db, (int)$a['id'], $as_of);
+		$bal = epc_erp_gl_coa_balance($db, (int)$a['id'], $as_of, $companyId);
 		if (abs($bal) < 0.005) {
 			continue;
 		}
@@ -795,7 +895,7 @@ function epc_erp_gl_balance_sheet(PDO $db, $as_of)
 		);
 		$totals[$a['account_type']] += $bal;
 	}
-	$pl = epc_erp_gl_pl_report($db, 0, $as_of);
+	$pl = epc_erp_gl_pl_report($db, 0, $as_of, $companyId);
 	$current_earnings = $pl['net_profit'];
 	$totals['equity'] += $current_earnings;
 	return array(
@@ -811,11 +911,11 @@ function epc_erp_gl_balance_sheet(PDO $db, $as_of)
 	);
 }
 
-function epc_erp_gl_trial_balance(PDO $db, $as_of)
+function epc_erp_gl_trial_balance(PDO $db, $as_of, $companyId = null)
 {
 	epc_erp_gl_ensure_schema($db);
 	// list_coa now computes per-account balances in a single batched query.
-	$rows = epc_erp_gl_list_coa($db, $as_of);
+	$rows = epc_erp_gl_list_coa($db, $as_of, $companyId);
 	$out = array();
 	$td = 0.0;
 	$tc = 0.0;
