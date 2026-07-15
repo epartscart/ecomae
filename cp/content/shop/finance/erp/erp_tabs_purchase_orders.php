@@ -25,6 +25,9 @@ erp_page_header(
 		array('label' => 'New purchase order', 'icon' => 'fa-plus', 'class' => 'btn-primary', 'url' => '#epc_erp_form_po'),
 	)
 );
+if (function_exists('epc_erp_render_chain_nav') && function_exists('epc_erp_ap_chain')) {
+	epc_erp_render_chain_nav(epc_erp_ap_chain(), $erpUrl, 'purchase_orders', $date_from_str, $date_to_str);
+}
 erp_d365_assets();
 erp_action_pane_ribbon(array(
 	array('label' => 'Purchase order', 'key' => 'po', 'active' => true, 'groups' => array(
