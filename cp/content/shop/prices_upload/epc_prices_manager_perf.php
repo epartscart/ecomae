@@ -29,6 +29,45 @@ if (!function_exists('epc_prices_should_run_tables_cleaner')) {
 	}
 }
 
+if (!function_exists('epc_prices_add_index_if_missing')) {
+	/**
+	 * Idempotent, additive-only index creation (SHOW INDEX is a cheap metadata
+	 * query, safe to call on every page load). $table/$indexName are internal
+	 * literals only — never pass user input.
+	 */
+	function epc_prices_add_index_if_missing(PDO $db, string $table, string $indexName, string $columnsSpec): void
+	{
+		if (!preg_match('/^[a-zA-Z0-9_]+$/', $table) || !preg_match('/^[a-zA-Z0-9_]+$/', $indexName)) {
+			return;
+		}
+		try {
+			$q = $db->prepare('SHOW INDEX FROM `' . $table . '` WHERE `Key_name` = ?');
+			$q->execute(array($indexName));
+			if (!$q->fetch()) {
+				$db->exec('ALTER TABLE `' . $table . '` ADD INDEX `' . $indexName . '` ' . $columnsSpec);
+			}
+		} catch (Exception $e) {
+		}
+	}
+}
+
+if (!function_exists('epc_prices_ensure_listing_indexes')) {
+	/**
+	 * The prices manager listing page (epc_prices_fetch_lists_query) aggregates
+	 * COUNT(*) ... GROUP BY price_id over shop_docpart_prices_data and
+	 * shop_docpart_pyprices_crontab_prices on every load. Without an index on
+	 * price_id, MySQL does a full table scan + filesort for that GROUP BY on
+	 * every single page view, which is what made this page slow for tenants
+	 * with large price-list data tables. Adding the index makes it an
+	 * index-only scan instead; no query/behavior changes.
+	 */
+	function epc_prices_ensure_listing_indexes(PDO $db): void
+	{
+		epc_prices_add_index_if_missing($db, 'shop_docpart_prices_data', 'x_price_id', '(`price_id`)');
+		epc_prices_add_index_if_missing($db, 'shop_docpart_pyprices_crontab_prices', 'x_price_id', '(`price_id`)');
+	}
+}
+
 if (!function_exists('epc_prices_fetch_lists_query')) {
 	function epc_prices_fetch_lists_query(PDO $db_link): PDOStatement
 	{

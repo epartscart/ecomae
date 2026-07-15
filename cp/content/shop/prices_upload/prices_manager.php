@@ -438,6 +438,7 @@ else//Действий нет - выводим страницу
 					$for_js = $for_js."var elements_id_array = new Array();\n";//Выведем массив для JS с ID элементов
 					
 					
+					epc_prices_ensure_listing_indexes($db_link);
 					$elements_query = epc_prices_fetch_lists_query($db_link);
 					
 					
