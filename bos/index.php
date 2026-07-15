@@ -124,7 +124,10 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>BOS &mdash; Business Operating System</title>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
+<link rel="preload" href="/epc-static.php?f=bos/epc_bos_shell.css&v=<?php echo EPC_BOS_VERSION; ?>" as="style">
 <link rel="stylesheet" href="/epc-static.php?f=bos/epc_bos_shell.css&v=<?php echo EPC_BOS_VERSION; ?>">
 </head>
 <body class="bos-body<?php echo !$isLoggedIn ? ' bos-body--login' : ''; ?><?php echo $tenantCountryProfile && ($tenantCountryProfile['dir'] ?? '') === 'rtl' ? ' bos-rtl' : ''; ?>">

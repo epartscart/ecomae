@@ -3,6 +3,25 @@
    Enterprise-grade design system (Oracle / SAP level)
    ═══════════════════════════════════════════════════════════════ */
 
+/* Smooth cross-fade between full-page module/tenant navigations in
+   browsers that support the cross-document View Transitions API.
+   Unsupported browsers simply ignore this and navigate normally —
+   no fallback code needed. */
+@view-transition {
+    navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: .16s;
+    animation-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: .001s;
+    }
+}
+
 :root {
     --bos-bg:            #f0f2f5;
     --bos-surface:       #ffffff;
@@ -54,6 +73,23 @@ body.bos-body { font-family: var(--bos-font); color: var(--bos-text); background
 a { color: var(--bos-primary); text-decoration: none; }
 a:hover { color: var(--bos-primary-dark); }
 button { cursor: pointer; border: none; background: none; font-family: inherit; font-size: inherit; }
+
+/* ─── Focus states (keyboard navigation) ─── */
+.bos-topbar__toggle:focus-visible,
+.bos-tenant-switcher__btn:focus-visible,
+.bos-sidebar__link:focus-visible,
+.bos-sidebar__section-header:focus-visible,
+.bos-topbar__logout:focus-visible,
+.bos-login__btn:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--bos-primary);
+    outline-offset: 2px;
+    border-radius: var(--bos-radius-sm);
+}
+.bos-login__field input:focus-visible {
+    outline: none;
+}
 
 /* ═══════════════════ LOGIN SCREEN ═══════════════════ */
 body.bos-body.bos-body--login {
@@ -1087,6 +1123,14 @@ body.bos-sidebar-collapsed .bos-main {
 /* ─── Content area ─── */
 .bos-main__content {
     padding: 24px;
+    animation: bosContentFadeIn .25s cubic-bezier(.4, 0, .2, 1) both;
+}
+@keyframes bosContentFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bos-main__content { animation: none; }
 }
 
 /* ═══════════════════ DASHBOARD ═══════════════════ */
