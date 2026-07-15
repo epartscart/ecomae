@@ -462,8 +462,18 @@ function epc_erp_portal_ensure_guest_session(PDO $db_link)
 		return;
 	}
 
-	setcookie('session', $sessionSuccession, $cookietime, '/', '', false, true);
-	setcookie('u_id', '0', $cookietime, '/', '', false, true);
+	// Set cookies with explicit SameSite=Lax + Secure-on-HTTPS via a raw header
+	// (rather than the 7-arg setcookie() form, which cannot express SameSite on
+	// older PHP). Without SameSite, some browsers/privacy modes silently refuse
+	// or drop the cookie on the immediate follow-up AJAX call from the standalone
+	// /erp portal, so the CSRF token rendered on this page load never matches
+	// what stop_csrf.php reads back in — producing a spurious "CSRF 4" error.
+	$epcGuestCookieSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? '; Secure' : '';
+	$epcGuestCookieExpires = gmdate('D, d-M-Y H:i:s', $cookietime) . ' GMT';
+	header('Set-Cookie: session=' . rawurlencode($sessionSuccession) . '; expires=' . $epcGuestCookieExpires
+		. '; Max-Age=' . ($cookietime - time()) . '; path=/; HttpOnly; SameSite=Lax' . $epcGuestCookieSecure, false);
+	header('Set-Cookie: u_id=0; expires=' . $epcGuestCookieExpires
+		. '; Max-Age=' . ($cookietime - time()) . '; path=/; HttpOnly; SameSite=Lax' . $epcGuestCookieSecure, false);
 	$_COOKIE['session'] = $sessionSuccession;
 	$_COOKIE['u_id'] = '0';
 }
