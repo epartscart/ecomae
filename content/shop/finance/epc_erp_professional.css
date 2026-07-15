@@ -417,6 +417,34 @@ body.epc-erp-cp-shell {
 	flex: 1;
 }
 
+/* Guard against invisible text: several ERP module tabs (e.g. Inventory
+   stock/groups) render plain Bootstrap tables with no explicit color of
+   their own, so they silently inherit whatever ambient text color is set
+   higher up the tree. If that ambient color is ever light/white (as it is
+   for parts of the dark sidebar/topbar chrome), the cells read as blank —
+   white text on a white/light table background. Force explicit, legible
+   colors on any plain table inside the ERP content area so this can't
+   regress silently again. Tables opted into the dense D365 grid theme
+   (.epc-erp-d365) already set their own contrast-correct colors and are
+   unaffected by this rule.
+*/
+.epc-erp-content-body table.table,
+.epc-erp-content-body .table-responsive table {
+	color: #1e293b;
+	background-color: #fff;
+}
+.epc-erp-content-body table.table > thead > tr > th,
+.epc-erp-content-body .table-responsive table > thead > tr > th {
+	color: #1e293b;
+	background-color: #f1f5f9;
+}
+.epc-erp-content-body table.table.table-striped > tbody > tr:nth-of-type(odd) > td {
+	background-color: #f9fafb;
+}
+.epc-erp-content-body table.table > tbody > tr > td {
+	color: #1e293b;
+}
+
 .epc-erp-topbar--cp {
 	background: rgba(255, 255, 255, 0.98);
 	border-bottom: 1px solid #bae6fd;
