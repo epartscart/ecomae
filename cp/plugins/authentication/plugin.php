@@ -322,12 +322,16 @@ if(DP_User::isAdmin() == 0)//Если не авторизован...
                 $session_succession = md5($auth_contact.$time.$DP_Config->secret_succession);//Код сессии - собираем его из логина, текущего дампа времени и секретной последовательности
                 
 				
-				//Сначала очищаем старые неактивные сессии данного пользователя
-				$last_activiti_time_to_del = time()-2592000;//До этого времени - удалять (30 суток)
-				//Пользовательские настройки
-				$db_link->prepare("DELETE FROM `users_options` WHERE `session_id` IN (SELECT `id` FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?);")->execute( array($user_id, $last_activiti_time_to_del) );
-				//Сами сессии
-				$db_link->prepare("DELETE FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?;")->execute( array($user_id, $last_activiti_time_to_del) );
+				//Очищаем старые неактивные сессии данного пользователя — но не на
+				//каждый логин: это фоновая уборка, а не часть критического пути
+				//входа, поэтому запускаем её примерно раз на 20 логинов.
+				if (mt_rand(1, 20) === 1) {
+					$last_activiti_time_to_del = time()-2592000;//До этого времени - удалять (30 суток)
+					//Пользовательские настройки
+					$db_link->prepare("DELETE FROM `users_options` WHERE `session_id` IN (SELECT `id` FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?);")->execute( array($user_id, $last_activiti_time_to_del) );
+					//Сами сессии
+					$db_link->prepare("DELETE FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?;")->execute( array($user_id, $last_activiti_time_to_del) );
+				}
 				
 				
 				//Ключ защиты от CSRF-атак:
