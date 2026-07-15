@@ -1752,6 +1752,19 @@ try {
 			epc_erp_po_set_status($db_link, (int) ($_POST['po_id'] ?? 0), (string) ($_POST['status'] ?? ''));
 			epc_erp_json(true, 'PO status updated');
 
+		case 'po_receive_lines':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_extended.php';
+			$poRecId = (int) ($_POST['po_id'] ?? 0);
+			$poRecRaw = json_decode((string) ($_POST['received_json'] ?? '[]'), true);
+			$poRecMap = array();
+			if (is_array($poRecRaw)) {
+				foreach ($poRecRaw as $poRecLineId => $poRecQty) {
+					$poRecMap[(int) $poRecLineId] = (float) $poRecQty;
+				}
+			}
+			$poRecResult = epc_erp_po_receive_lines($db_link, $poRecId, $poRecMap);
+			epc_erp_json(true, 'Purchase order lines received', $poRecResult);
+
 		case 'po_to_invoice':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			$r = epc_erp_po_convert_to_purchase($db_link, (int) ($_POST['po_id'] ?? 0));
