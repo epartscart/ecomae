@@ -267,7 +267,48 @@ function epc_erp_dim_summary(PDO $db, string $entityType, int $entityId): string
 /** Badge HTML for list/grid cells. */
 function epc_erp_dim_badges(PDO $db, string $entityType, int $entityId): string
 {
-	$links = epc_erp_dim_load($db, $entityType, $entityId);
+	return epc_erp_dim_badges_render($db, epc_erp_dim_load($db, $entityType, $entityId));
+}
+
+/**
+ * Bulk-load dimension links for many entity ids of the same type in one
+ * query, keyed by entity_id — avoids the classic N+1 of calling
+ * epc_erp_dim_load() once per row in a list/grid view.
+ *
+ * @return array<int,array<string,array{ref_id:int,code:string,label:string}>>
+ */
+function epc_erp_dim_load_bulk(PDO $db, string $entityType, array $entityIds): array
+{
+	epc_erp_dim_ensure_schema($db);
+	$entityIds = array_values(array_unique(array_map('intval', $entityIds)));
+	$entityIds = array_filter($entityIds, function ($id) { return $id > 0; });
+	if (trim($entityType) === '' || empty($entityIds)) {
+		return array();
+	}
+	$ph = implode(',', array_fill(0, count($entityIds), '?'));
+	$st = $db->prepare(
+		'SELECT `entity_id`,`dim_key`,`ref_id`,`value_code`,`value_label` FROM `epc_erp_dim_links`
+		 WHERE `entity_type` = ? AND `entity_id` IN (' . $ph . ') ORDER BY `id`'
+	);
+	$st->execute(array_merge(array($entityType), $entityIds));
+	$out = array();
+	foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+		$eid = (int) $r['entity_id'];
+		if (!isset($out[$eid])) {
+			$out[$eid] = array();
+		}
+		$out[$eid][(string) $r['dim_key']] = array(
+			'ref_id' => (int) $r['ref_id'],
+			'code'   => (string) $r['value_code'],
+			'label'  => (string) $r['value_label'],
+		);
+	}
+	return $out;
+}
+
+/** Render badge HTML from an already-loaded links map (see epc_erp_dim_load_bulk). */
+function epc_erp_dim_badges_render(PDO $db, array $links): string
+{
 	if (empty($links)) {
 		return '<span class="text-muted">—</span>';
 	}

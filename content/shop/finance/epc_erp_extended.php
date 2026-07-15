@@ -8,6 +8,17 @@ require_once __DIR__ . '/epc_erp_helpers.php';
 
 function epc_erp_extended_ensure_schema(PDO $db)
 {
+	// Called from the top of nearly every function in this file (PO save/list/status,
+	// three-way match, payment batches...), so a single Purchase orders page load could
+	// re-run this whole body — a dozen CREATE TABLE IF NOT EXISTS + column-add checks —
+	// many times over. The schema can't change mid-request, so guard it like the CRM
+	// and dimensions modules already do.
+	static $doneForConnection = null;
+	if ($doneForConnection === $db) {
+		return;
+	}
+	$doneForConnection = $db;
+
 	require_once __DIR__ . '/epc_erp_phase8.php';
 	epc_erp_phase8_ensure_schema($db);
 
@@ -139,7 +150,7 @@ function epc_erp_po_list(PDO $db, $status = '', $limit = 100)
 		$sql .= ' AND p.`status` = ?';
 		$params[] = $status;
 	}
-	$sql .= ' ORDER BY p.`time_updated` DESC LIMIT ' . (int) $limit;
+	$sql .= ' ORDER BY p.`time_updated` DESC LIMIT ' . max(50, min(2000, (int) $limit));
 	$st = $db->prepare($sql);
 	$st->execute($params);
 	return $st->fetchAll(PDO::FETCH_ASSOC);
