@@ -14,6 +14,24 @@ if (!isset($suppliers)) {
 }
 $epcPoDimMap = epc_erp_dim_load_bulk($db_link, 'purchase_order', array_column($pos, 'id'));
 
+// Bulk-load structured line items for the listed POs (POs created via the "Add line"
+// grid). Legacy lump-sum POs simply have no rows here and keep the old single-click
+// approve/receive flow untouched.
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_order_fulfillment.php';
+epc_erp_order_fulfillment_ensure_schema($db_link);
+$epcPoLinesMap = array();
+if (!empty($pos)) {
+	$epcPoIdsForLines = array_column($pos, 'id');
+	$epcPoLinesPh = implode(',', array_fill(0, count($epcPoIdsForLines), '?'));
+	$epcPoLinesSt = $db_link->prepare(
+		'SELECT * FROM `epc_erp_po_lines` WHERE `po_id` IN (' . $epcPoLinesPh . ') ORDER BY `po_id`, `line_no`'
+	);
+	$epcPoLinesSt->execute($epcPoIdsForLines);
+	foreach ($epcPoLinesSt->fetchAll(PDO::FETCH_ASSOC) as $epcPoLineRow) {
+		$epcPoLinesMap[(int) $epcPoLineRow['po_id']][] = $epcPoLineRow;
+	}
+}
+
 erp_page_header(
 	'<i class="fa fa-clipboard"></i> Purchase orders',
 	'Draft → approved → received workflow before supplier invoice.',
@@ -86,44 +104,89 @@ if (empty($pos)) {
 		$epcPoCols[] = array('label' => 'Rate/g', 'class' => 'num');
 	}
 	$epcPoCols[] = array('label' => 'Status', 'sort' => 'text');
+	$epcPoCols[] = 'Lines';
 	$epcPoCols[] = 'Actions';
 	erp_table_open($epcPoCols, 'table table-bordered table-condensed table-epc epc-erp-table', 'epc_erp_po_tbl');
 	$epcPoSum = 0.0;
 	foreach ($pos as $p) {
 		$epcPoSum += (float) $p['total_amount'];
+		$epcPoId = (int) $p['id'];
+		$epcPoLines = $epcPoLinesMap[$epcPoId] ?? array();
 		echo '<tr><td class="epc-d365-statcol">' . erp_status_dot(erp_status_tone($p['status'])) . '</td>';
 		echo '<td>' . epc_erp_h($p['po_no']) . '</td><td>' . epc_erp_h($p['supplier_name']) . '</td>';
 		echo '<td>' . epc_erp_h($p['title']) . '</td><td class="num">' . epc_erp_money($p['total_amount']) . '</td>';
-		echo '<td>' . epc_erp_dim_badges_render($db_link, $epcPoDimMap[(int) $p['id']] ?? array()) . '</td>';
+		echo '<td>' . epc_erp_dim_badges_render($db_link, $epcPoDimMap[$epcPoId] ?? array()) . '</td>';
 		if ($epcJwMode) {
 			echo '<td>' . epc_erp_h($p['jw_karat'] ?? '') . '</td>';
 			echo '<td class="num">' . epc_erp_h(number_format((float)($p['jw_metal_weight_gm'] ?? 0), 3)) . '</td>';
 			echo '<td class="num">' . epc_erp_h(number_format((float)($p['jw_rate_per_gram'] ?? 0), 2)) . '</td>';
 		}
-		echo '<td>' . erp_status_pill($p['status']) . '</td><td class="epc-erp-form-inline">';
+		echo '<td>' . erp_status_pill($p['status']) . '</td>';
+		if ($epcPoLines) {
+			$epcPoQtyTotal = array_sum(array_column($epcPoLines, 'qty'));
+			$epcPoQtyRecv = array_sum(array_column($epcPoLines, 'qty_received'));
+			echo '<td><a href="#" class="epc-erp-po-lines-toggle" data-po="' . $epcPoId . '">'
+				. count($epcPoLines) . ' line' . (count($epcPoLines) === 1 ? '' : 's') . ' &middot; '
+				. number_format($epcPoQtyRecv, 0) . '/' . number_format($epcPoQtyTotal, 0) . ' received</a></td>';
+		} else {
+			echo '<td class="text-muted">—</td>';
+		}
+		echo '<td class="epc-erp-form-inline">';
 		if ($p['status'] === 'draft') {
 			echo '<form class="epc-erp-po-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
-			echo '<input type="hidden" name="po_id" value="' . (int) $p['id'] . '"><input type="hidden" name="status" value="approved">';
+			echo '<input type="hidden" name="po_id" value="' . $epcPoId . '"><input type="hidden" name="status" value="approved">';
 			echo '<button type="submit" class="btn btn-xs btn-success">Approve</button></form>';
 		}
-		if ($p['status'] === 'approved') {
-			echo '<form class="epc-erp-po-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
-			echo '<input type="hidden" name="po_id" value="' . (int) $p['id'] . '"><input type="hidden" name="status" value="received">';
-			echo '<button type="submit" class="btn btn-xs btn-default">Mark received</button></form> ';
+		if (in_array($p['status'], array('approved', 'partial'), true)) {
+			if ($epcPoLines) {
+				echo '<button type="button" class="btn btn-xs btn-default epc-erp-po-lines-toggle" data-po="' . $epcPoId . '">Receive</button> ';
+			} else {
+				echo '<form class="epc-erp-po-status"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
+				echo '<input type="hidden" name="po_id" value="' . $epcPoId . '"><input type="hidden" name="status" value="received">';
+				echo '<button type="submit" class="btn btn-xs btn-default">Mark received</button></form> ';
+			}
 		}
 		if (in_array($p['status'], array('approved', 'partial', 'received'), true) && empty($p['purchase_id'])) {
 			echo '<form class="epc-erp-po-invoice"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
-			echo '<input type="hidden" name="po_id" value="' . (int) $p['id'] . '">';
+			echo '<input type="hidden" name="po_id" value="' . $epcPoId . '">';
 			echo '<button type="submit" class="btn btn-xs btn-primary">→ Purchase invoice</button></form>';
 		} elseif (!empty($p['purchase_id'])) {
 			echo '<span class="text-muted">PI linked #' . (int) $p['purchase_id'] . '</span>';
 		}
 		echo '</td></tr>';
+		if ($epcPoLines) {
+			$epcPoCanReceive = in_array($p['status'], array('approved', 'partial'), true);
+			echo '<tr class="epc-erp-po-lines-row" id="epc_erp_po_lines_row_' . $epcPoId . '" style="display:none;"><td></td><td colspan="' . (count($epcPoCols) - 1) . '">';
+			echo '<form class="epc-erp-po-receive" data-po="' . $epcPoId . '"><input type="hidden" name="csrf_guard_key" value="' . epc_erp_h($csrf) . '">';
+			echo '<input type="hidden" name="po_id" value="' . $epcPoId . '"><input type="hidden" name="received_json" class="epc-erp-po-received-json">';
+			echo '<table class="table table-condensed" style="margin:6px 0;background:#fff;"><thead><tr>'
+				. '<th>Description</th><th class="num">Qty</th><th class="num">Unit cost</th><th class="num">Received</th>'
+				. ($epcPoCanReceive ? '<th class="num">Receive now</th>' : '') . '</tr></thead><tbody>';
+			foreach ($epcPoLines as $epcPl) {
+				$epcPlMax = max(0.0, (float) $epcPl['qty'] - (float) $epcPl['qty_cancelled']);
+				echo '<tr><td>' . epc_erp_h($epcPl['description']) . '</td>';
+				echo '<td class="num">' . number_format((float) $epcPl['qty'], 3) . '</td>';
+				echo '<td class="num">' . epc_erp_money($epcPl['unit_cost_ex_vat']) . '</td>';
+				echo '<td class="num">' . number_format((float) $epcPl['qty_received'], 3) . ' / ' . number_format($epcPlMax, 3) . '</td>';
+				if ($epcPoCanReceive) {
+					echo '<td class="num"><input type="number" step="0.001" min="0" max="' . epc_erp_h((string) $epcPlMax) . '"'
+						. ' class="form-control input-sm epc-erp-po-recv-input" data-line="' . (int) $epcPl['id'] . '"'
+						. ' style="width:100px;display:inline-block;" value="' . epc_erp_h((string) $epcPl['qty_received']) . '"></td>';
+				}
+				echo '</tr>';
+			}
+			echo '</tbody></table>';
+			if ($epcPoCanReceive) {
+				echo '<button type="submit" class="btn btn-xs btn-success">Save receipt</button> ';
+			}
+			echo '<button type="button" class="btn btn-xs btn-link epc-erp-po-lines-toggle" data-po="' . $epcPoId . '">Close</button>';
+			echo '</form></td></tr>';
+		}
 	}
 	$epcPoFoot = '<tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td>'
 		. '<td colspan="3">Sum (' . count($pos) . ' orders)</td>'
 		. '<td class="num">' . epc_erp_money($epcPoSum) . '</td>'
-		. '<td colspan="3"></td></tr>';
+		. '<td colspan="' . (count($epcPoCols) - 5) . '"></td></tr>';
 	erp_table_close($epcPoFoot);
 	if (count($pos) >= $poListLimit) {
 		$epcPoMoreUrl = epc_erp_tab_url($erpUrl, 'purchase_orders', $date_from_str, $date_to_str)
@@ -139,13 +202,43 @@ ob_start();
 	<div class="form-group"><label class="col-sm-3">Supplier</label><div class="col-sm-9"><select name="supplier_id" class="form-control input-sm" required><option value="">—</option>
 	<?php foreach ($suppliers as $s): ?><option value="<?php echo (int) $s['id']; ?>"><?php echo epc_erp_h($s['name']); ?></option><?php endforeach; ?>
 	</select></div></div>
-	<div class="form-group"><label class="col-sm-3">Title / amount ex VAT</label><div class="col-sm-9 form-inline">
-		<input name="title" class="form-control input-sm" required placeholder="Description">
+	<div class="form-group"><label class="col-sm-3">Title</label><div class="col-sm-9">
+		<input name="title" class="form-control input-sm" required placeholder="Description"></div></div>
+	<div class="form-group"><label class="col-sm-3">Line items</label><div class="col-sm-9">
+		<table class="table table-condensed" id="epc_erp_po_lines_grid" style="margin-bottom:6px;background:#fff;">
+			<thead><tr><th>Description</th><th class="num" style="width:90px;">Qty</th><th class="num" style="width:130px;">Unit cost ex VAT</th><th style="width:26px;"></th></tr></thead>
+			<tbody></tbody>
+		</table>
+		<button type="button" class="btn btn-xs btn-default" id="epc_erp_po_add_line"><i class="fa fa-plus"></i> Add line</button>
+	</div></div>
+	<div class="form-group"><label class="col-sm-3">Amount ex VAT <span class="text-muted">(only if no lines above)</span></label><div class="col-sm-9">
 		<input name="amount_ex_vat" type="number" step="0.01" class="form-control input-sm" placeholder="AED ex VAT"></div></div>
 	<?php echo epc_erp_dim_render_fields($db_link); ?>
 	<?php echo epc_jw_purchase_order_fields_html($db_link); ?>
 	<div class="form-group"><div class="col-sm-offset-3 col-sm-9"><button type="submit" class="btn btn-primary btn-sm">Create draft PO</button></div></div>
 </form>
+<script>
+(function(){
+	var grid = document.getElementById('epc_erp_po_lines_grid');
+	var addBtn = document.getElementById('epc_erp_po_add_line');
+	if (!grid || !addBtn) return;
+	function addRow() {
+		var tbody = grid.querySelector('tbody');
+		var tr = document.createElement('tr');
+		tr.innerHTML = '<td><input type="text" name="po_line_desc[]" class="form-control input-sm"></td>'
+			+ '<td><input type="number" step="0.001" min="0" name="po_line_qty[]" class="form-control input-sm" value="1"></td>'
+			+ '<td><input type="number" step="0.0001" min="0" name="po_line_unit[]" class="form-control input-sm" value="0"></td>'
+			+ '<td><button type="button" class="btn btn-xs btn-danger epc-erp-po-rm-line">&times;</button></td>';
+		tbody.appendChild(tr);
+	}
+	addBtn.addEventListener('click', addRow);
+	grid.addEventListener('click', function(ev){
+		if (ev.target.classList.contains('epc-erp-po-rm-line')) {
+			ev.target.closest('tr').remove();
+		}
+	});
+})();
+</script>
 <?php
 $epcPoFormHtml = ob_get_clean();
 erp_fasttab_open('New purchase order', array('open' => false, 'icon' => 'fa-plus'));
