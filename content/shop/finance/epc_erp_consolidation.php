@@ -14,6 +14,9 @@ declare(strict_types=1);
 
 defined('_ASTEXE_') or die('No access');
 
+require_once __DIR__ . '/epc_erp_company_context.php';
+require_once __DIR__ . '/epc_erp_gl.php';
+
 if (!function_exists('epc_cons_ensure_schema')) {
     function epc_cons_ensure_schema(PDO $db): void
     {
@@ -30,6 +33,15 @@ if (!function_exists('epc_cons_ensure_schema')) {
             PRIMARY KEY (`id`),
             UNIQUE KEY `u_code` (`code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Group member companies'");
+
+        // Links a group member to a real legal entity/company in this tenant
+        // (epc_erp_pm_legal_entities, via epc_erp_company_context.php). When
+        // set, epc_cons_consolidate() pulls this member's figures live from
+        // its own GL (scoped by company_id) instead of manual entry — the
+        // manual `epc_cons_figures` path remains for entities genuinely
+        // outside this tenant (a separate system / subsidiary on other
+        // software), which have no `linked_company_id`.
+        epc_erp_gl_add_column_if_missing($db, 'epc_cons_entities', 'linked_company_id', 'int(11) NOT NULL DEFAULT 0');
 
         $db->exec("CREATE TABLE IF NOT EXISTS `epc_cons_figures` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -59,6 +71,51 @@ if (!function_exists('epc_cons_ensure_schema')) {
             KEY `x_from` (`from_entity`),
             KEY `x_to` (`to_entity`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Intercompany transactions'");
+
+        epc_cons_sync_legal_entities($db);
+    }
+}
+
+if (!function_exists('epc_cons_sync_legal_entities')) {
+    /**
+     * Mirror every active legal entity (epc_erp_pm_legal_entities, managed
+     * under Business Unit ▸ Legal entities and the top-bar company picker)
+     * into the consolidation group as a linked member, so the group and its
+     * eliminations are always built from the real, single company master —
+     * never a second hand-maintained list. Additive & idempotent: existing
+     * manual (unlinked) group members are left untouched.
+     */
+    function epc_cons_sync_legal_entities(PDO $db): void
+    {
+        try {
+            $companies = epc_erp_companies_list($db);
+        } catch (Throwable $e) {
+            return;
+        }
+        if (!$companies) {
+            return;
+        }
+        $defaultId = epc_erp_gl_default_company_id($db);
+        $upd = $db->prepare(
+            "INSERT INTO `epc_cons_entities` (`code`,`name`,`currency_code`,`ownership_pct`,`is_home`,`parent_code`,`linked_company_id`,`active`,`time_created`)
+             VALUES (?,?,?,100.000,?,'',?,1,?)
+             ON DUPLICATE KEY UPDATE `name`=VALUES(`name`),`currency_code`=VALUES(`currency_code`),`is_home`=VALUES(`is_home`),`linked_company_id`=VALUES(`linked_company_id`),`active`=1"
+        );
+        foreach ($companies as $c) {
+            $cid = (int) $c['id'];
+            $code = strtoupper(trim((string) ($c['code'] ?? '')));
+            if ($code === '') {
+                $code = 'CO' . $cid;
+            }
+            $upd->execute(array(
+                $code,
+                (string) ($c['name'] ?? $code),
+                strtoupper(trim((string) ($c['currency_code'] ?? 'AED'))) ?: 'AED',
+                $cid === $defaultId ? 1 : 0,
+                $cid,
+                time(),
+            ));
+        }
     }
 }
 
@@ -150,21 +207,40 @@ if (!function_exists('epc_cons_figures_map')) {
 
 if (!function_exists('epc_cons_home_figures')) {
     /**
-     * Live figures for the home entity from this tenant's GL.
+     * Live figures for the home (default) entity from this tenant's GL.
+     * Kept for backward compatibility; delegates to epc_cons_live_figures().
      *
      * @return array<string,float>
      */
     function epc_cons_home_figures(PDO $db, int $dateFrom, int $dateTo): array
     {
+        return epc_cons_live_figures($db, 0, $dateFrom, $dateTo);
+    }
+}
+
+if (!function_exists('epc_cons_live_figures')) {
+    /**
+     * Live figures for ANY legal entity tracked in this tenant, scoped to its
+     * own books via GL `company_id`. Pass $companyId = 0 for the tenant's
+     * default/primary company (its historical, pre-multi-entity backfilled
+     * journals live there). This is what makes group consolidation real:
+     * every linked member's numbers come from its own GL, not a manual
+     * estimate — eliminations then act on genuine intercompany postings.
+     *
+     * @return array<string,float>
+     */
+    function epc_cons_live_figures(PDO $db, int $companyId, int $dateFrom, int $dateTo): array
+    {
         $rev = $exp = $asset = $liab = $eq = 0.0;
         try {
+            $cid = $companyId > 0 ? $companyId : epc_erp_gl_default_company_id($db);
             if (function_exists('epc_erp_gl_pl_report')) {
-                $pl = epc_erp_gl_pl_report($db, $dateFrom, $dateTo);
+                $pl = epc_erp_gl_pl_report($db, $dateFrom, $dateTo, $cid);
                 $rev = (float) $pl['total_revenue'];
                 $exp = (float) $pl['total_expenses'];
             }
             if (function_exists('epc_erp_gl_balance_sheet')) {
-                $bs = epc_erp_gl_balance_sheet($db, $dateTo);
+                $bs = epc_erp_gl_balance_sheet($db, $dateTo, $cid);
                 $asset = (float) ($bs['total_assets'] ?? 0);
                 $liab = (float) ($bs['total_liabilities'] ?? 0);
                 $eq = (float) ($bs['total_equity'] ?? 0);
@@ -233,6 +309,7 @@ if (!function_exists('epc_cons_consolidate')) {
      */
     function epc_cons_consolidate(PDO $db, int $dateFrom, int $dateTo): array
     {
+        epc_cons_sync_legal_entities($db);
         $entities = epc_cons_entities_list($db);
         $manual = epc_cons_figures_map($db);
 
@@ -241,10 +318,15 @@ if (!function_exists('epc_cons_consolidate')) {
         $minorityInterest = 0.0;
         foreach ($entities as $e) {
             $code = (string) $e['code'];
-            if (!empty($e['is_home'])) {
-                // Home entity is pulled live from this tenant's GL.
-                $f = epc_cons_home_figures($db, $dateFrom, $dateTo);
+            $linkedCompanyId = (int) ($e['linked_company_id'] ?? 0);
+            if ($linkedCompanyId > 0 || !empty($e['is_home'])) {
+                // Linked to a real legal entity in this tenant — pulled live
+                // from that entity's own scoped GL (real transactions, real
+                // eliminations), not a manual estimate.
+                $f = epc_cons_live_figures($db, $linkedCompanyId, $dateFrom, $dateTo);
             } else {
+                // Genuinely external entity (not tracked in this tenant) —
+                // relies on manually entered period figures.
                 $f = isset($manual[$code]) ? $manual[$code] : array('revenue' => 0.0, 'expenses' => 0.0, 'assets' => 0.0, 'liabilities' => 0.0, 'equity' => 0.0);
             }
             $f['profit'] = round($f['revenue'] - $f['expenses'], 2);
@@ -252,6 +334,7 @@ if (!function_exists('epc_cons_consolidate')) {
             $f['name'] = (string) $e['name'];
             $f['ownership_pct'] = (float) $e['ownership_pct'];
             $f['is_home'] = !empty($e['is_home']);
+            $f['is_linked'] = $linkedCompanyId > 0;
             $rows[] = $f;
             foreach ($combined as $k => $_) { $combined[$k] += (float) $f[$k]; }
             // minority interest on equity for non-wholly-owned subs
