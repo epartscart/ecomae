@@ -931,6 +931,19 @@ function epc_erp_ensure_favourites_table(PDO $db)
 	static $done = false;
 	if ($done) return;
 	$done = true;
+	// CREATE TABLE IF NOT EXISTS is a DDL statement — running it on every
+	// single ERP page load (it was previously unconditional per-request)
+	// adds real, avoidable overhead once the table already exists. Cache
+	// the "already ensured" fact across requests via APCu when available
+	// so we only touch the DB schema once per cache window.
+	$apcuKey = 'epc_erp_favourites_table_ensured';
+	if (function_exists('apcu_fetch')) {
+		$hit = false;
+		$cached = apcu_fetch($apcuKey, $hit);
+		if ($hit && $cached) {
+			return;
+		}
+	}
 	try {
 		$db->exec("
 			CREATE TABLE IF NOT EXISTS `epc_erp_favourites` (
@@ -944,6 +957,9 @@ function epc_erp_ensure_favourites_table(PDO $db)
 				UNIQUE KEY `user_tab` (`user_id`, `tab_key`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 		");
+		if (function_exists('apcu_store')) {
+			apcu_store($apcuKey, true, 3600);
+		}
 	} catch (Throwable $e) {}
 }
 
