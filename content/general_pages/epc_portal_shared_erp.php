@@ -94,7 +94,12 @@ function epc_portal_shared_erp_tenant_pdo(array $tenantRow): ?PDO
 			'mysql:host=' . $cfg->host . ';dbname=' . $db . ';charset=utf8',
 			$user,
 			$pass,
-			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+			array(
+				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+				// Without a connect timeout, one unreachable/slow tenant DB host
+				// can hang every login attempt for minutes (default OS/driver timeout).
+				PDO::ATTR_TIMEOUT => 3,
+			)
 		);
 	} catch (Exception $e) {
 		return null;
@@ -442,24 +447,27 @@ function epc_portal_shared_erp_find_by_credentials(string $authContact, string $
  */
 function epc_portal_shared_erp_complete_login(string $authContact, string $password, string $contactType, string $siteKey = ''): array
 {
-	if (epc_portal_shared_erp_email_belongs_to_tenant($authContact, $contactType)) {
-		$credsOk = false;
-		foreach (epc_portal_shared_erp_list_tenants() as $probeRow) {
-			if (epc_portal_shared_erp_tenant_pdo($probeRow) instanceof PDO) {
-				$credsOk = true;
-				break;
-			}
-		}
-		if (!$credsOk) {
-			return array(
-				'ok' => false,
-				'message' => 'Company ERP database is temporarily unavailable. Contact platform support.',
-			);
-		}
-	}
 	$matches = epc_portal_shared_erp_find_by_credentials($authContact, $password, $contactType);
 	if (count($matches) === 0) {
 		if (epc_portal_shared_erp_email_belongs_to_tenant($authContact, $contactType)) {
+			// Only probe every tenant DB (to distinguish "outage" from "wrong
+			// password") after the normal credential check already failed —
+			// doing this unconditionally on every login doubles the number of
+			// synchronous tenant DB connection attempts for no benefit on the
+			// common (successful) path.
+			$credsOk = false;
+			foreach (epc_portal_shared_erp_list_tenants() as $probeRow) {
+				if (epc_portal_shared_erp_tenant_pdo($probeRow) instanceof PDO) {
+					$credsOk = true;
+					break;
+				}
+			}
+			if (!$credsOk) {
+				return array(
+					'ok' => false,
+					'message' => 'Company ERP database is temporarily unavailable. Contact platform support.',
+				);
+			}
 			return array('ok' => false, 'message' => 'Wrong password for your company ERP account.');
 		}
 		return array('ok' => false);
@@ -490,9 +498,15 @@ function epc_portal_shared_erp_complete_login(string $authContact, string $passw
 	$time = time();
 	$sessionSuccession = md5($authContact . $time . $cfg->secret_succession);
 	$csrfGuardKey = sha1($cfg->secret_succession . $sessionSuccession . ($_SERVER['REMOTE_ADDR'] ?? '') . ($_SERVER['HTTP_USER_AGENT'] ?? ''));
-	$lastDel = time() - 2592000;
-	$pdo->prepare('DELETE FROM `users_options` WHERE `session_id` IN (SELECT `id` FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?)')->execute(array($userId, $lastDel));
-	$pdo->prepare('DELETE FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?')->execute(array($userId, $lastDel));
+	// Old-session cleanup is a maintenance task, not something every single
+	// login needs to pay for synchronously — run it for roughly 1 in 20
+	// logins so stale rows still get reaped without adding two DELETE scans
+	// to the login critical path every time.
+	if (mt_rand(1, 20) === 1) {
+		$lastDel = time() - 2592000;
+		$pdo->prepare('DELETE FROM `users_options` WHERE `session_id` IN (SELECT `id` FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?)')->execute(array($userId, $lastDel));
+		$pdo->prepare('DELETE FROM `sessions` WHERE `user_id` = ? AND `last_activiti_time` < ?')->execute(array($userId, $lastDel));
+	}
 	$pdo->prepare(
 		'INSERT INTO `sessions` (`session`, `user_id`, `time`, `data`, `type`, `contact_type`, `csrf_guard_key`) VALUES (?,?,?,?,?,?,?)'
 	)->execute(array($sessionSuccession, $userId, $time, '', 1, $contactType, $csrfGuardKey));
