@@ -273,24 +273,36 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 	$db = '';
 	$user = '';
 	$pass = '';
+	$usesDedicated = false;
 	$runtimeOverride = epc_portal_runtime_host_db($host);
 	if (is_array($runtimeOverride)) {
 		$db = (string) $runtimeOverride['db'];
 		$user = (string) $runtimeOverride['user'];
 		$pass = (string) $runtimeOverride['password'];
 	}
-	// Model C storefronts share docpart — registry may hold stale ecomae operator creds.
-	if ($pass === '') {
-		$resolved = epc_portal_resolve_tenant_db_credentials();
-		if ($resolved['password'] !== '') {
-			$db = (string) $resolved['db'];
-			$user = (string) $resolved['user'];
-			$pass = (string) $resolved['password'];
-		}
-	}
+
+	// Dedicated-DB tenants (1000+ scale path): use registry credentials, not shared docpart.
 	if ($pass === '' && $host !== '' && function_exists('epc_portal_load_tenant_by_host')) {
 		$tenant = epc_portal_load_tenant_by_host($host);
 		if (
+			$tenant !== null
+			&& !empty($tenant['user'])
+			&& isset($tenant['password'])
+			&& (string) $tenant['password'] !== ''
+			&& (
+				!empty($tenant['dedicated_db'])
+				|| (string) ($tenant['scale_policy'] ?? '') === 'dedicated_mysql'
+				|| (
+					(string) ($tenant['db'] ?? '') !== ''
+					&& (string) ($tenant['db'] ?? '') !== 'docpart'
+				)
+			)
+		) {
+			$db = (string) $tenant['db'];
+			$user = (string) $tenant['user'];
+			$pass = (string) $tenant['password'];
+			$usesDedicated = true;
+		} elseif (
 			$tenant !== null
 			&& !empty($tenant['user'])
 			&& isset($tenant['password'])
@@ -302,7 +314,17 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 			$pass = (string) $tenant['password'];
 		}
 	}
-	if ($pass === '' || $db === '' || $user === '') {
+
+	// Legacy Model C storefronts share docpart — registry may hold stale ecomae operator creds.
+	if ($pass === '' && !$usesDedicated) {
+		$resolved = epc_portal_resolve_tenant_db_credentials();
+		if ($resolved['password'] !== '') {
+			$db = (string) $resolved['db'];
+			$user = (string) $resolved['user'];
+			$pass = (string) $resolved['password'];
+		}
+	}
+	if (($pass === '' || $db === '' || $user === '') && !$usesDedicated) {
 		$resolved = epc_portal_resolve_tenant_db_credentials();
 		$db = $resolved['db'];
 		$user = $resolved['user'];
@@ -330,32 +352,22 @@ function epc_portal_resolve_tenant_db($DP_Config): void
  */
 function epc_portal_tenant_storefront_pdo(?array $credentials = null): ?PDO
 {
-	static $pdoByKey = array();
 	if ($credentials === null) {
 		$credentials = epc_portal_resolve_tenant_db_credentials();
 	}
 	$db = trim((string) ($credentials['db'] ?? ''));
 	$user = trim((string) ($credentials['user'] ?? ''));
 	$pass = (string) ($credentials['password'] ?? '');
+	$host = trim((string) ($credentials['host'] ?? '127.0.0.1'));
+	if ($host === '') {
+		$host = '127.0.0.1';
+	}
 	if ($db === '' || $user === '' || $pass === '') {
 		return null;
 	}
-	$key = $db . '|' . $user;
-	if (isset($pdoByKey[$key]) && $pdoByKey[$key] instanceof PDO) {
-		return $pdoByKey[$key];
-	}
-	try {
-		$pdo = new PDO(
-			'mysql:host=127.0.0.1;dbname=' . $db . ';charset=utf8;connect_timeout=2',
-			$user,
-			$pass,
-			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 2)
-		);
-		$pdoByKey[$key] = $pdo;
-		return $pdo;
-	} catch (Exception $e) {
-		return null;
-	}
+	require_once __DIR__ . '/epc_tenant_pdo.php';
+	[$pdo] = epc_tenant_pdo($host, $db, $user, $pass, array('timeout' => 2));
+	return $pdo instanceof PDO ? $pdo : null;
 }
 
 function epc_portal_platform_pdo(): ?PDO
@@ -439,6 +451,21 @@ function epc_portal_tenant_setup_credentials(array $row): array
 		}
 	}
 
+	$dedicated = !empty($row['dedicated_db'])
+		|| (string) ($row['scale_policy'] ?? '') === 'dedicated_mysql'
+		|| (!empty($row['erp_only_shared']))
+		|| ($registryDb !== '' && $registryDb !== 'docpart' && $registryPass !== '');
+
+	if ($dedicated && $registryDb !== '' && $registryUser !== '' && $registryPass !== '') {
+		return array(
+			'db' => $registryDb,
+			'user' => $registryUser,
+			'pass' => $registryPass,
+			'registry_db' => $registryDb,
+			'source' => 'registry_dedicated',
+		);
+	}
+
 	if ($host !== '' && function_exists('epc_portal_is_client_hostname') && epc_portal_is_client_hostname($host)) {
 		$resolved = epc_portal_resolve_tenant_db_credentials();
 		return array(
@@ -472,6 +499,28 @@ function epc_portal_tenant_row_to_profile(array $row): array
 		'db' => (string) $row['db_name'],
 		'user' => (string) $row['db_user'],
 		'password' => (string) $row['db_password'],
+		'dedicated_db' => (
+			!empty($row['dedicated_db'])
+			|| !empty($row['erp_only_shared'])
+			|| (
+				(string) ($row['db_name'] ?? '') !== ''
+				&& (string) ($row['db_name'] ?? '') !== 'docpart'
+			)
+		) ? 1 : 0,
+		'scale_policy' => (string) (
+			($row['scale_policy'] ?? '') !== ''
+				? $row['scale_policy']
+				: (
+					(
+						!empty($row['dedicated_db'])
+						|| !empty($row['erp_only_shared'])
+						|| (
+							(string) ($row['db_name'] ?? '') !== ''
+							&& (string) ($row['db_name'] ?? '') !== 'docpart'
+						)
+					) ? 'dedicated_mysql' : 'shared_docpart'
+				)
+		),
 		'trade_name' => (string) $row['trade_name'],
 		'hub_name' => (string) $row['hub_name'],
 		'from_email' => (string) $row['from_email'],
@@ -555,6 +604,22 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		$data['hosted_on'] = 'platform';
 		$data['erp_only_shared'] = 1;
 	}
+
+	$scalePolicy = strtolower(trim((string) ($data['scale_policy'] ?? '')));
+	if ($scalePolicy === '') {
+		$scalePolicy = !empty($data['dedicated_db']) || $erpOnlyShared ? 'dedicated_mysql' : 'shared_docpart';
+	}
+	if (!in_array($scalePolicy, array('dedicated_mysql', 'shared_docpart'), true)) {
+		$scalePolicy = 'shared_docpart';
+	}
+	// ERP-only shared always gets a dedicated MySQL; commerce can opt into dedicated_mysql.
+	$dedicatedDb = $erpOnlyShared
+		|| $scalePolicy === 'dedicated_mysql'
+		|| !empty($data['dedicated_db']);
+	if ($dedicatedDb) {
+		$scalePolicy = 'dedicated_mysql';
+	}
+
 	$industry = preg_replace('/[^a-z0-9_]/', '', (string) ($data['industry_code'] ?? 'auto_parts'));
 	$status = (string) ($data['status'] ?? 'draft');
 	$statuses = epc_portal_tenant_statuses();
@@ -575,7 +640,14 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 	$dbUser = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($data['db_user'] ?? $dbName)));
 	$dbPass = (string) ($data['db_password'] ?? '');
 
-	if ($erpOnlyShared && $dbName !== '' && $dbPass === '') {
+	if ($dedicatedDb && ($dbName === '' || $dbName === 'docpart')) {
+		$dbName = $key;
+		if ($dbUser === '' || $dbUser === 'docpart') {
+			$dbUser = $key;
+		}
+	}
+
+	if ($dedicatedDb && $dbName !== '' && $dbPass === '') {
 		require_once __DIR__ . '/epc_portal_tenant_control.php';
 		$dbPass = epc_portal_tenant_control_generate_password();
 		if ($dbUser === '') {
@@ -590,7 +662,7 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 			}
 			return array(
 				'ok' => false,
-				'message' => 'Shared ERP MySQL provision failed for `' . $dbName . '`'
+				'message' => 'Dedicated MySQL provision failed for `' . $dbName . '`'
 					. ($hint !== '' ? ': ' . $hint : ' — set db_password manually or run epc-erp-tenant-provision.php on server'),
 			);
 		}
@@ -600,13 +672,13 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		$data['db_password'] = $dbPass;
 	}
 
-	if ($erpOnlyShared && $dbName !== '') {
+	if ($dedicatedDb && $dbName !== '') {
 		if (in_array($dbName, array('docpart', 'ecomae', 'epartscart'), true)) {
-			return array('ok' => false, 'message' => 'Shared ERP tenants must use a dedicated database — not the shared commerce or platform registry database');
+			return array('ok' => false, 'message' => 'Dedicated tenants must use their own database — not the shared commerce or platform registry database');
 		}
 		$dup = $pdo->prepare(
 			'SELECT `site_key` FROM `epc_portal_tenants`
-			 WHERE `erp_only_shared` = 1 AND `db_name` = ? AND `site_key` != ? LIMIT 1'
+			 WHERE `db_name` = ? AND `site_key` != ? AND (`dedicated_db` = 1 OR `erp_only_shared` = 1) LIMIT 1'
 		);
 		$dup->execute(array($dbName, $key));
 		$other = $dup->fetch(PDO::FETCH_ASSOC);
@@ -625,8 +697,9 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 	$stmt = $pdo->prepare(
 		'INSERT INTO `epc_portal_tenants`
 		(`site_key`, `hostname`, `industry_code`, `status`, `trade_name`, `hub_name`, `from_email`,
-		 `db_name`, `db_user`, `db_password`, `notes`, `intro_json`, `hosted_on`, `erp_only_shared`, `created_at`, `updated_at`)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 `db_name`, `db_user`, `db_password`, `notes`, `intro_json`, `hosted_on`, `erp_only_shared`,
+		 `dedicated_db`, `scale_policy`, `created_at`, `updated_at`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		`hostname` = VALUES(`hostname`), `industry_code` = VALUES(`industry_code`), `status` = VALUES(`status`),
 		`trade_name` = VALUES(`trade_name`), `hub_name` = VALUES(`hub_name`), `from_email` = VALUES(`from_email`),
@@ -636,11 +709,13 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		`notes` = VALUES(`notes`),
 		`intro_json` = IF(VALUES(`intro_json`) != \'\', VALUES(`intro_json`), `intro_json`),
 		`hosted_on` = VALUES(`hosted_on`), `erp_only_shared` = VALUES(`erp_only_shared`),
+		`dedicated_db` = VALUES(`dedicated_db`), `scale_policy` = VALUES(`scale_policy`),
 		`updated_at` = VALUES(`updated_at`)'
 	);
 	$now = time();
 	$hostedOn = $erpOnlyShared ? 'platform' : (string) ($data['hosted_on'] ?? 'client');
 	$sharedFlag = $erpOnlyShared ? 1 : (int) !empty($data['erp_only_shared']);
+	$dedicatedFlag = $dedicatedDb ? 1 : 0;
 	$stmt->execute(array(
 		$key,
 		$hostname,
@@ -656,6 +731,8 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		$introJson,
 		$hostedOn,
 		$sharedFlag,
+		$dedicatedFlag,
+		$scalePolicy,
 		$now,
 		$now,
 	));

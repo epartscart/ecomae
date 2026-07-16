@@ -72,6 +72,20 @@ function epc_portal_intro_from_post(array $post): array
 	if ($intro['erp_only_shared']) {
 		$intro['hosted_on'] = 'platform';
 	}
+	// Scale policy: default dedicated MySQL for new onboardings (1000+ tenant readiness).
+	// Explicit shared_docpart / dedicated_db=0 keeps legacy Model C shared commerce DB.
+	if (isset($post['scale_policy'])) {
+		$intro['scale_policy'] = strtolower(trim((string) $post['scale_policy']));
+	}
+	if (array_key_exists('dedicated_db', $post)) {
+		$intro['dedicated_db'] = !empty($post['dedicated_db']) ? 1 : 0;
+	} elseif (!empty($intro['erp_only_shared'])) {
+		$intro['dedicated_db'] = 1;
+		$intro['scale_policy'] = 'dedicated_mysql';
+	} elseif (!isset($intro['dedicated_db'])) {
+		$intro['dedicated_db'] = 1;
+		$intro['scale_policy'] = 'dedicated_mysql';
+	}
 	if (!empty($post['country_code'])) {
 		$intro['country_code'] = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', (string) $post['country_code']), 0, 2));
 	} elseif (!empty($intro['country']) && function_exists('epc_countries_normalize_code')) {
@@ -286,6 +300,21 @@ function epc_portal_onboard_client(PDO $pdo, array $post, string $submittedBy = 
 		$intro = epc_portal_intro_merge($storedIntro, $intro);
 	}
 
+	// Default dedicated MySQL for 1000+ readiness. Explicit scale_policy wins over checkbox absence.
+	if (isset($post['scale_policy'])) {
+		$dedicatedDb = strtolower(trim((string) $post['scale_policy'])) === 'dedicated_mysql';
+	} elseif (array_key_exists('dedicated_db', $post)) {
+		$dedicatedDb = !empty($post['dedicated_db']);
+	} else {
+		$dedicatedDb = !isset($intro['dedicated_db']) || !empty($intro['dedicated_db']);
+	}
+	if ($erpOnlyShared) {
+		$dedicatedDb = true;
+	}
+	$scalePolicy = $dedicatedDb ? 'dedicated_mysql' : 'shared_docpart';
+	$dbNameDefault = $dedicatedDb ? $siteKey : 'docpart';
+	$dbUserDefault = $dedicatedDb ? $siteKey : 'docpart';
+
 	$tenantData = array(
 		'site_key' => $siteKey,
 		'hostname' => $hostname,
@@ -294,12 +323,14 @@ function epc_portal_onboard_client(PDO $pdo, array $post, string $submittedBy = 
 		'trade_name' => (string) ($post['trade_name'] ?? ''),
 		'hub_name' => (string) ($post['hub_name'] ?? 'Electronic World Group'),
 		'from_email' => (string) ($post['from_email'] ?? ($intro['contact_email'] ?? '')),
-		'db_name' => (string) ($post['db_name'] ?? $siteKey),
-		'db_user' => (string) ($post['db_user'] ?? $siteKey),
+		'db_name' => (string) ($post['db_name'] ?? $dbNameDefault),
+		'db_user' => (string) ($post['db_user'] ?? $dbUserDefault),
 		'db_password' => (string) ($post['db_password'] ?? ''),
 		'notes' => (string) ($post['notes'] ?? ''),
 		'hosted_on' => $erpOnlyShared ? 'platform' : 'client',
 		'erp_only_shared' => $erpOnlyShared ? 1 : 0,
+		'dedicated_db' => $dedicatedDb ? 1 : 0,
+		'scale_policy' => $scalePolicy,
 	);
 
 	$errors = epc_portal_intro_validate($intro, $tenantData);
@@ -361,9 +392,27 @@ function epc_portal_onboard_client(PDO $pdo, array $post, string $submittedBy = 
 	$msg = 'Client onboarded — tenant registered and portal settings seeded. Complete DNS + set Live when ready.';
 	if ($erpOnlyShared) {
 		$msg = 'Shared ERP company registered on www.ecomae.com — CP users and MySQL database provisioned when CloudPanel is configured.';
+	} elseif ($dedicatedDb) {
+		$msg = 'Client onboarded with dedicated MySQL (scale-ready). Complete DNS + set Live when ready.';
 	}
 	if (($row['status'] ?? '') === 'live' && !empty($sync['ok']) && ($sync['message'] ?? '') !== 'skipped') {
 		$msg .= ' ' . $sync['message'];
+	}
+
+	// Queue async warmup so first login is not cold (best-effort; no-op if queue unavailable).
+	$warmupJobId = 0;
+	if ($dedicatedDb && $siteKey !== '') {
+		try {
+			require_once __DIR__ . '/epc_platform_jobs.php';
+			$warmupJobId = epc_platform_jobs_enqueue(
+				'tenant_warmup_pdo',
+				$siteKey,
+				array('reason' => 'onboard'),
+				array('priority' => 50, 'dedupe' => true, 'delay_sec' => 5)
+			);
+		} catch (Throwable $e) {
+			$warmupJobId = 0;
+		}
 	}
 
 	return array(
@@ -373,6 +422,9 @@ function epc_portal_onboard_client(PDO $pdo, array $post, string $submittedBy = 
 		'hostname' => $hostname,
 		'country_code' => $cc !== '' ? $cc : 'AE',
 		'country_profile' => $countryProfile,
+		'dedicated_db' => $dedicatedDb ? 1 : 0,
+		'scale_policy' => $scalePolicy,
+		'warmup_job_id' => $warmupJobId,
 		'cp_url' => $erpOnlyShared ? (string) ($actionUrls['erp_login'] ?? $actionUrls['erp'] ?? '') : (string) ($actionUrls['cp'] ?? ''),
 		'erp_url' => (string) ($actionUrls['erp'] ?? ''),
 		'checklist' => $checklist,

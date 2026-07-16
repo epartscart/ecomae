@@ -81,29 +81,9 @@ function epc_portal_shared_erp_load_by_site_key(string $siteKey, ?PDO $platformP
 
 function epc_portal_shared_erp_tenant_pdo(array $tenantRow): ?PDO
 {
-	$db = trim((string) ($tenantRow['db_name'] ?? ''));
-	$user = trim((string) ($tenantRow['db_user'] ?? ''));
-	$pass = (string) ($tenantRow['db_password'] ?? '');
-	if ($db === '' || $user === '' || $pass === '') {
-		return null;
-	}
-	try {
-		require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-		$cfg = new DP_Config();
-		return new PDO(
-			'mysql:host=' . $cfg->host . ';dbname=' . $db . ';charset=utf8',
-			$user,
-			$pass,
-			array(
-				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-				// Without a connect timeout, one unreachable/slow tenant DB host
-				// can hang every login attempt for minutes (default OS/driver timeout).
-				PDO::ATTR_TIMEOUT => 3,
-			)
-		);
-	} catch (Exception $e) {
-		return null;
-	}
+	require_once __DIR__ . '/epc_tenant_pdo.php';
+	[$pdo] = epc_tenant_pdo_from_row($tenantRow, array('timeout' => 3));
+	return $pdo instanceof PDO ? $pdo : null;
 }
 
 function epc_portal_shared_erp_cookie_site_key(): string
