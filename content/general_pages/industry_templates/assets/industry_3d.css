@@ -68,15 +68,103 @@
 .ind-premium-3d .ind-about-text li,
 .ind-premium-3d .product-card__name,
 .ind-premium-3d .feat-card h4,
+.ind-premium-3d .sub-card__body h3,
 .ind-premium-3d .sub-card__body h4,
-.ind-premium-3d .sub-card__body p{
-  color:#f1f5f9!important;
+.ind-premium-3d .sub-card__body p,
+.ind-premium-3d .sub-card__name,
+.ind-premium-3d .sub-card__name a{
+  color:#f8fafc!important;
 }
 .ind-premium-3d .feat-card p,
 .ind-premium-3d .product-card__cat,
 .ind-premium-3d .ind-stat label,
-.ind-premium-3d .ind-stat span:last-child{
+.ind-premium-3d .ind-stat span:last-child,
+.ind-premium-3d .ind-categories .section-sub,
+.ind-premium-3d .ind-subs .section-sub,
+.ind-premium-3d .ind-products .section-sub,
+.ind-premium-3d .ind-features .section-sub,
+.ind-premium-3d .sub-card__desc{
+  color:#cbd5e1!important;
+}
+
+/* Category cards — light text on dark shelves */
+.ind-premium-3d .cat-group__title{
+  color:#f8fafc!important;
+}
+.ind-premium-3d .cat-group__count{
   color:#94a3b8!important;
+}
+.ind-premium-3d .cat-group__header{
+  border-bottom-color:rgba(255,255,255,.14)!important;
+}
+.ind-premium-3d .cat-group__list li{
+  color:#e2e8f0!important;
+}
+.ind-premium-3d .cat-group__list li::before{
+  color:var(--accent)!important;
+}
+.ind-premium-3d .cat-group__list li:hover{
+  color:#fff!important;
+}
+.ind-premium-3d .cat-group__list li .cat-badge{
+  background:rgba(255,255,255,.12)!important;
+  color:#f1f5f9!important;
+}
+.ind-premium-3d .cat-group__list li:hover .cat-badge{
+  background:rgba(255,255,255,.22)!important;
+  color:#fff!important;
+}
+
+/* Sub-industry cards — headings, tags, process, product thumbs */
+.ind-premium-3d .sub-card__cats .cat-tag,
+.ind-premium-3d .cat-tag{
+  background:rgba(255,255,255,.08)!important;
+  border-color:rgba(255,255,255,.16)!important;
+  color:#e2e8f0!important;
+}
+.ind-premium-3d .cat-tag:hover{
+  background:var(--primary)!important;
+  border-color:var(--primary)!important;
+  color:#fff!important;
+}
+.ind-premium-3d .sub-card__process{
+  background:rgba(255,255,255,.05)!important;
+  border-color:rgba(255,255,255,.1)!important;
+}
+.ind-premium-3d .sub-card__process .proc-step{
+  color:#e2e8f0!important;
+}
+.ind-premium-3d .sub-card__process .proc-arrow{
+  color:var(--accent)!important;
+}
+.ind-premium-3d .sub-prod{
+  border-color:rgba(255,255,255,.12)!important;
+  background:rgba(0,0,0,.25)!important;
+}
+.ind-premium-3d .sub-prod .sp-name{
+  color:#f1f5f9!important;
+}
+.ind-premium-3d .sub-prod .sp-price{
+  color:var(--accent)!important;
+}
+.ind-premium-3d .sub-card__cta .sc-erp{
+  background:rgba(255,255,255,.1)!important;
+  color:#f1f5f9!important;
+}
+.ind-premium-3d .sub-card__cta .sc-erp:hover{
+  background:rgba(255,255,255,.18)!important;
+  color:#fff!important;
+}
+.ind-premium-3d .sub-filter-btn{
+  background:rgba(255,255,255,.06)!important;
+  border-color:rgba(255,255,255,.14)!important;
+  color:#e2e8f0!important;
+}
+.ind-premium-3d .sub-filter-btn:hover,
+.ind-premium-3d .sub-filter-btn.active{
+  background:var(--primary)!important;
+  border-color:var(--primary)!important;
+  color:#fff!important;
 }
 
 /* ===== HERO 3D STAGE (always visible) ===== */
@@ -260,9 +348,13 @@
 
 .ind-premium-3d .ind-stat strong,
 .ind-premium-3d .ind-stat .ind-stat-value,
-.ind-premium-3d .ind-stat > div:first-child{
+.ind-premium-3d .ind-stat > div:first-child,
+.ind-premium-3d .ind-stat h3{
   color:var(--accent)!important;
   text-shadow:0 0 24px color-mix(in srgb,var(--accent) 45%,transparent);
+}
+.ind-premium-3d .ind-stat p{
+  color:#cbd5e1!important;
 }
 
 /* Reveal */
