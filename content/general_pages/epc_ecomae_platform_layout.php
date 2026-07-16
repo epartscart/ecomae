@@ -120,7 +120,12 @@ function epc_ecomae_platform_page_description($page, array $params = array()): s
 		'industries' => 'Industry-specific ECOM AE solutions — auto parts, retail, electronics, fashion, and more.',
 		'free_tools' => 'Free, country-driven business tools — VAT/GST return, corporate tax, payroll & gratuity, IFRS financials, e-invoice and approval workflow. Register free and use for your own company.',
 		'blockchain' => 'ECOM AE Blockchain BOS — architecture layers, proof process (hash → Merkle anchor → verify), tenant modes, auto-proven documents, and operator surfaces for enterprise trust.',
+		'legal' => 'Privacy, Terms, Security, Trademark, Right to Use, Copyright, Data Protection, and other legal policies for ECOM AE Blockchain BOS.',
 	);
+	if ($page === 'legal') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_pages.php';
+		return epc_ecomae_legal_meta($params)[1];
+	}
 	if ($page === 'industry') {
 		$industries = epc_ecomae_platform_industry_marketing();
 		$code = (string) ($params['code'] ?? '');
@@ -253,7 +258,26 @@ function epc_ecomae_platform_layout_close()
 			<a href="<?php echo epc_ecomae_h($base); ?>solutions">Solutions</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/contact">Contact</a>
 		</div>
-		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> Electronic World Group · Dubai, UAE</p>
+		<div class="epm-footer__legal">
+			<p class="epm-footer__legal-label">Legal &amp; security</p>
+			<div class="epm-footer__links epm-footer__links--legal">
+				<a href="<?php echo epc_ecomae_h($base); ?>legal">All policies</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>privacy">Privacy</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>terms">Terms</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>cookie-policy">Cookies</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>security-policy">Security</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>right-to-use">Right to use</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>trademark">Trademark</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>copyright">Copyright</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>data-protection">Data protection</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>acceptable-use">Acceptable use</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>confidentiality">Confidentiality</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>intellectual-property">Intellectual property</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>blockchain-disclaimer">Blockchain disclaimer</a>
+				<a href="<?php echo epc_ecomae_h($base); ?>dmca">IP notice</a>
+			</div>
+		</div>
+		<p class="epm-footer__copy">&copy; <?php echo date('Y'); ?> Electronic World Group · Dubai, UAE · <a href="<?php echo epc_ecomae_h($base); ?>legal">Legal policies</a></p>
 	</div>
 </footer>
 <?php
@@ -1594,7 +1618,12 @@ function epc_ecomae_platform_styles()
 .epm-footer__links{display:flex;flex-wrap:wrap;gap:10px 18px}
 .epm-footer__links a{color:var(--epm-muted);text-decoration:none;font-size:13px;font-weight:600}
 .epm-footer__links a:hover{color:var(--epm-cyan)}
+.epm-footer__legal{grid-column:1/-1;margin-top:8px;padding-top:18px;border-top:1px solid var(--epm-border)}
+.epm-footer__legal-label{margin:0 0 10px;color:#e2e8f0;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.epm-footer__links--legal a{font-size:12px}
 .epm-footer__copy{grid-column:1/-1;color:var(--epm-muted);font-size:12px;margin:16px 0 0}
+.epm-footer__copy a{color:var(--epm-muted);text-decoration:underline}
+.epm-footer__copy a:hover{color:var(--epm-cyan)}
 .text-primary{color:var(--epm-cyan)!important}
 
 /* —— Static homepage hero (replaces animated hub on ecomae.com home) —— */
