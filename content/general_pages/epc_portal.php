@@ -7,264 +7,261 @@ if (!defined('_ASTEXE_')) {
 	define('_ASTEXE_', 1);
 }
 
+/**
+ * Build a portal industry row (theme + packs + consolidation group).
+ *
+ * @param array $theme [primary, primary_dark, accent, sidebar_from, sidebar_to, hero_from, hero_to]
+ */
+function epc_portal_industry_row(
+	string $code,
+	string $name,
+	string $ecosystem,
+	string $icon,
+	array $theme,
+	array $cpPacks,
+	string $groupKey,
+	array $extra = array()
+): array {
+	$row = array(
+		'code' => $code,
+		'name' => $name,
+		'ecosystem' => $ecosystem,
+		'icon' => $icon,
+		'group_key' => $groupKey,
+		'theme' => array(
+			'primary' => $theme[0],
+			'primary_dark' => $theme[1],
+			'accent' => $theme[2],
+			'sidebar_from' => $theme[3],
+			'sidebar_to' => $theme[4],
+			'hero_from' => $theme[5],
+			'hero_to' => $theme[6],
+		),
+		'cp_packs' => $cpPacks,
+		'region' => 'uae_gcc',
+	);
+	return array_merge($row, $extra);
+}
+
+/**
+ * Tenant-onboardable industries aligned to Dubai DET/DED + GCC trade activity clusters.
+ * Maps into the 28 consolidation groups / subdomain templates (not 3,000 activity codes).
+ */
 function epc_portal_industries()
 {
+	$commerce = array('core', 'commerce', 'catalogue');
+	$commerceErp = array('core', 'commerce', 'catalogue', 'erp', 'professional');
+	$services = array('core', 'professional', 'erp', 'commerce');
+	$autoPacks = array('core', 'commerce', 'auto_parts', 'logistics', 'erp', 'professional', 'marketing');
+	$taxPacks = array('core', 'commerce', 'professional', 'tax_advisory', 'erp', 'logistics', 'marketing');
+
 	return array(
-		'auto_parts' => array(
-			'code' => 'auto_parts',
-			'name' => 'Auto spare parts',
-			'ecosystem' => 'commerce',
-			'icon' => 'fa-car',
-			'theme' => array(
-				'primary' => '#dc2626',
-				'primary_dark' => '#991b1b',
-				'accent' => '#f97316',
-				'sidebar_from' => '#0f172a',
-				'sidebar_to' => '#1e293b',
-				'hero_from' => '#0b1220',
-				'hero_to' => '#1e3a5f',
-			),
-			'cp_packs' => array('core', 'commerce', 'auto_parts', 'logistics', 'erp', 'professional', 'marketing'),
+		// —— Commerce (UAE/GCC retail & trading) ——
+		'auto_parts' => epc_portal_industry_row('auto_parts', 'Auto spare parts', 'commerce', 'fa-car',
+			array('#dc2626', '#991b1b', '#f97316', '#0f172a', '#1e293b', '#0b1220', '#1e3a5f'), $autoPacks, 'automotive'),
+		'automotive_full_vehicles' => epc_portal_industry_row('automotive_full_vehicles', 'Vehicle sales & showrooms', 'commerce', 'fa-car',
+			array('#b91c1c', '#7f1d1d', '#f59e0b', '#111827', '#1f2937', '#0f172a', '#7f1d1d'), $commerceErp, 'automotive'),
+		'electronics' => epc_portal_industry_row('electronics', 'Electronics & gadgets', 'commerce', 'fa-microchip',
+			array('#e10a0a', '#b00808', '#000000', '#000000', '#1a1a1a', '#000000', '#2d2d2d'), $commerce, 'electronics_technology', array(
+				'storefront_package' => 'electronics_retail_virgin',
+				'theme_template_default' => 'midnight',
+			)),
+		'it_hardware_accessories' => epc_portal_industry_row('it_hardware_accessories', 'IT hardware & accessories', 'commerce', 'fa-laptop',
+			array('#2563eb', '#1d4ed8', '#38bdf8', '#0f172a', '#1e3a8a', '#0c4a6e', '#1e40af'), $commerce, 'electronics_technology'),
+		'fashion' => epc_portal_industry_row('fashion', 'Fashion & apparel', 'commerce', 'fa-shopping-bag',
+			array('#be185d', '#9d174d', '#ec4899', '#1f1020', '#4a1942', '#1f1020', '#701a75'), $commerce, 'fashion_apparel'),
+		'jewellery' => epc_portal_industry_row('jewellery', 'Jewellery & luxury goods', 'commerce', 'fa-diamond',
+			array('#b45309', '#92400e', '#fbbf24', '#1c1917', '#44403c', '#1c1917', '#78350f'), $commerce, 'jewellery_luxury'),
+		'medical' => epc_portal_industry_row('medical', 'Medical supplies', 'commerce', 'fa-medkit',
+			array('#0284c7', '#0369a1', '#22d3ee', '#0c4a6e', '#164e63', '#0c4a6e', '#155e75'), $commerceErp, 'healthcare_medical'),
+		'pharmacy_retail' => epc_portal_industry_row('pharmacy_retail', 'Pharmacy & drugstore', 'commerce', 'fa-plus-square',
+			array('#0d9488', '#0f766e', '#5eead4', '#134e4a', '#115e59', '#042f2e', '#0f766e'), $commerceErp, 'healthcare_medical'),
+		'nutrition_supplements' => epc_portal_industry_row('nutrition_supplements', 'Food supplements & nutrition', 'commerce', 'fa-leaf',
+			array('#15803d', '#166534', '#86efac', '#14532d', '#166534', '#052e16', '#15803d'), $commerce, 'healthcare_medical'),
+		'food_beverage' => epc_portal_industry_row('food_beverage', 'Food & beverage / restaurants', 'commerce', 'fa-cutlery',
+			array('#ea580c', '#c2410c', '#fb923c', '#7c2d12', '#9a3412', '#431407', '#c2410c'), $commerceErp, 'food_beverage'),
+		'grocery_retail' => epc_portal_industry_row('grocery_retail', 'Grocery & supermarket', 'commerce', 'fa-shopping-cart',
+			array('#16a34a', '#15803d', '#facc15', '#14532d', '#166534', '#052e16', '#15803d'), $commerce, 'retail_ecommerce'),
+		'furniture_interiors' => epc_portal_industry_row('furniture_interiors', 'Furniture & interiors shop', 'commerce', 'fa-home',
+			array('#92400e', '#78350f', '#d6d3d1', '#1c1917', '#44403c', '#292524', '#78716c'), $commerce, 'home_living'),
+		'building_materials' => epc_portal_industry_row('building_materials', 'Building materials trading', 'commerce', 'fa-cubes',
+			array('#78716c', '#57534e', '#f59e0b', '#1c1917', '#292524', '#0c0a09', '#44403c'), $commerceErp, 'construction_realestate'),
+		'fmcg_wholesale' => epc_portal_industry_row('fmcg_wholesale', 'FMCG & general trading', 'commerce', 'fa-truck',
+			array('#0369a1', '#075985', '#38bdf8', '#0c4a6e', '#075985', '#082f49', '#0c4a6e'), array('core', 'commerce', 'catalogue', 'logistics', 'erp'), 'wholesale_trading'),
+		'industrial_equipment' => epc_portal_industry_row('industrial_equipment', 'Industrial equipment trading', 'commerce', 'fa-cogs',
+			array('#475569', '#334155', '#94a3b8', '#0f172a', '#1e293b', '#020617', '#334155'), $commerceErp, 'manufacturing_industrial'),
+		'agricultural_products' => epc_portal_industry_row('agricultural_products', 'Agriculture & farm products', 'commerce', 'fa-pagelines',
+			array('#65a30d', '#4d7c0f', '#a3e635', '#365314', '#3f6212', '#1a2e05', '#4d7c0f'), $commerce, 'agriculture_farming'),
+		'perfume_cosmetics' => epc_portal_industry_row('perfume_cosmetics', 'Perfume & cosmetics trading', 'commerce', 'fa-magic',
+			array('#db2777', '#be185d', '#f9a8d4', '#500724', '#831843', '#500724', '#9d174d'), $commerce, 'beauty_wellness'),
+		'pet_services' => epc_portal_industry_row('pet_services', 'Pet shop & animal services', 'commerce', 'fa-paw',
+			array('#d97706', '#b45309', '#fcd34d', '#78350f', '#92400e', '#451a03', '#b45309'), $commerce, 'pet_animal'),
+
+		// —— Lifestyle & consumer ——
+		'health' => epc_portal_industry_row('health', 'Health & wellness', 'lifestyle_consumer', 'fa-heartbeat',
+			array('#16a34a', '#15803d', '#4ade80', '#14532d', '#166534', '#14532d', '#15803d'), $commerce, 'healthcare_medical'),
+		'beauty_skincare' => epc_portal_industry_row('beauty_skincare', 'Beauty salon & skincare', 'lifestyle_consumer', 'fa-female',
+			array('#e11d48', '#be123c', '#fb7185', '#4c0519', '#881337', '#4c0519', '#9f1239'), $commerce, 'beauty_wellness'),
+		'fitness_training' => epc_portal_industry_row('fitness_training', 'Gym & fitness centres', 'lifestyle_consumer', 'fa-heartbeat',
+			array('#dc2626', '#b91c1c', '#fbbf24', '#450a0a', '#7f1d1d', '#450a0a', '#991b1b'), $commerce, 'sports_fitness'),
+		'hospitality_travel' => epc_portal_industry_row('hospitality_travel', 'Hospitality, hotels & travel', 'lifestyle_consumer', 'fa-building',
+			array('#0ea5e9', '#0284c7', '#fbbf24', '#0c4a6e', '#075985', '#082f49', '#0369a1'), $commerceErp, 'hospitality_travel'),
+		'clinics_telemedicine' => epc_portal_industry_row('clinics_telemedicine', 'Clinics & telemedicine', 'lifestyle_consumer', 'fa-stethoscope',
+			array('#0891b2', '#0e7490', '#67e8f9', '#164e63', '#155e75', '#083344', '#0e7490'), $services, 'healthcare_medical'),
+
+		// —— Business services ——
+		'tax_advisory' => epc_portal_industry_row('tax_advisory', 'Tax & advisory', 'business_services', 'fa-balance-scale',
+			array('#0d9488', '#0f766e', '#14b8a6', '#042f2e', '#134e4a', '#042f2e', '#115e59'), $taxPacks, 'professional_services', array(
+				'storefront_package' => 'consulting_primeinvest',
+				'theme_template_default' => 'modern',
+			)),
+		'consultancy' => epc_portal_industry_row('consultancy', 'Consultancy', 'business_services', 'fa-briefcase',
+			array('#7c3aed', '#6d28d9', '#a78bfa', '#2e1065', '#4c1d95', '#2e1065', '#5b21b6'), $services, 'professional_services'),
+		'legal_services' => epc_portal_industry_row('legal_services', 'Legal services', 'business_services', 'fa-gavel',
+			array('#1e3a8a', '#1e40af', '#93c5fd', '#172554', '#1e3a8a', '#0f172a', '#1e3a8a'), $services, 'professional_services'),
+		'accounting_auditing' => epc_portal_industry_row('accounting_auditing', 'Accounting & auditing', 'business_services', 'fa-calculator',
+			array('#0f766e', '#115e59', '#5eead4', '#042f2e', '#134e4a', '#022c22', '#0f766e'), $services, 'professional_services'),
+		'hr_recruitment' => epc_portal_industry_row('hr_recruitment', 'HR & recruitment', 'business_services', 'fa-users',
+			array('#7c3aed', '#6d28d9', '#c4b5fd', '#2e1065', '#4c1d95', '#1e1b4b', '#5b21b6'), $services, 'professional_services'),
+		'marketing_digital' => epc_portal_industry_row('marketing_digital', 'Digital marketing & media agency', 'business_services', 'fa-bullhorn',
+			array('#db2777', '#be185d', '#f472b6', '#500724', '#9d174d', '#500724', '#be185d'), array('core', 'professional', 'marketing', 'commerce'), 'media_entertainment'),
+		'education_training' => epc_portal_industry_row('education_training', 'Education & training', 'business_services', 'fa-graduation-cap',
+			array('#4f46e5', '#4338ca', '#a5b4fc', '#1e1b4b', '#312e81', '#1e1b4b', '#3730a3'), $services, 'education_training'),
+		'cleaning_facilities' => epc_portal_industry_row('cleaning_facilities', 'Cleaning & facilities management', 'business_services', 'fa-paint-brush',
+			array('#059669', '#047857', '#6ee7b7', '#064e3b', '#065f46', '#022c22', '#047857'), $services, 'cleaning_maintenance'),
+		'security_services' => epc_portal_industry_row('security_services', 'Security & safety services', 'business_services', 'fa-shield',
+			array('#1e293b', '#0f172a', '#38bdf8', '#020617', '#1e293b', '#020617', '#334155'), $services, 'security_safety'),
+		'printing_signage' => epc_portal_industry_row('printing_signage', 'Printing & signage', 'business_services', 'fa-print',
+			array('#ea580c', '#c2410c', '#fdba74', '#7c2d12', '#9a3412', '#431407', '#c2410c'), $commerce, 'printing_signage'),
+		'construction_contracting' => epc_portal_industry_row('construction_contracting', 'Construction & contracting', 'business_services', 'fa-building',
+			array('#b45309', '#92400e', '#fbbf24', '#1c1917', '#44403c', '#0c0a09', '#78350f'), $commerceErp, 'construction_realestate'),
+		'logistics_freight' => epc_portal_industry_row('logistics_freight', 'Logistics & freight', 'business_services', 'fa-ship',
+			array('#0369a1', '#075985', '#38bdf8', '#0c4a6e', '#075985', '#082f49', '#0284c7'), array('core', 'commerce', 'logistics', 'erp', 'professional'), 'logistics_transport'),
+		'financial_services' => epc_portal_industry_row('financial_services', 'Financial services', 'business_services', 'fa-line-chart',
+			array('#047857', '#065f46', '#34d399', '#022c22', '#064e3b', '#022c22', '#047857'), $services, 'financial_services'),
+		'erp_standalone' => epc_portal_industry_row('erp_standalone', 'ERP standalone (no storefront)', 'business_services', 'fa-university',
+			array('#0369a1', '#075985', '#0ea5e9', '#0c4a6e', '#075985', '#082f49', '#0c4a6e'), array('core', 'erp', 'professional', 'logistics'), 'professional_services'),
+		'nonprofit_government' => epc_portal_industry_row('nonprofit_government', 'Non-profit & government', 'business_services', 'fa-university',
+			array('#334155', '#1e293b', '#94a3b8', '#020617', '#0f172a', '#020617', '#1e293b'), array('core', 'professional', 'erp'), 'nonprofit_government'),
+
+		// —— Asset sharing ——
+		'rental' => epc_portal_industry_row('rental', 'Rental & leasing', 'asset_sharing', 'fa-key',
+			array('#ca8a04', '#a16207', '#facc15', '#422006', '#713f12', '#422006', '#854d0e'), $commerce, 'rental_leasing'),
+		'vehicle_leasing' => epc_portal_industry_row('vehicle_leasing', 'Vehicle leasing & rental', 'asset_sharing', 'fa-car',
+			array('#ca8a04', '#a16207', '#fde047', '#422006', '#713f12', '#1c1917', '#a16207'), $commerceErp, 'rental_leasing'),
+		'machinery_rental' => epc_portal_industry_row('machinery_rental', 'Machinery & equipment rental', 'asset_sharing', 'fa-wrench',
+			array('#78716c', '#57534e', '#fbbf24', '#1c1917', '#292524', '#0c0a09', '#44403c'), $commerceErp, 'rental_leasing'),
+
+		// —— Digital & technology ——
+		'it_services_saas_support' => epc_portal_industry_row('it_services_saas_support', 'IT services & SaaS', 'digital_technology', 'fa-cloud',
+			array('#2563eb', '#1d4ed8', '#60a5fa', '#0f172a', '#1e3a8a', '#020617', '#1d4ed8'), $services, 'it_software'),
+		'media_entertainment' => epc_portal_industry_row('media_entertainment', 'Media & entertainment', 'digital_technology', 'fa-film',
+			array('#c026d3', '#a21caf', '#e879f9', '#4a044e', '#701a75', '#3b0764', '#a21caf'), array('core', 'commerce', 'marketing', 'professional'), 'media_entertainment'),
+		'energy_utilities' => epc_portal_industry_row('energy_utilities', 'Energy & utilities', 'digital_technology', 'fa-bolt',
+			array('#eab308', '#ca8a04', '#fef08a', '#422006', '#713f12', '#1c1917', '#a16207'), $commerceErp, 'energy_utilities'),
+		'manufacturing_industrial' => epc_portal_industry_row('manufacturing_industrial', 'Manufacturing & industrial', 'digital_technology', 'fa-industry',
+			array('#64748b', '#475569', '#cbd5e1', '#0f172a', '#1e293b', '#020617', '#334155'), $commerceErp, 'manufacturing_industrial'),
+
+		// —— Platform ——
+		'platform_host' => epc_portal_industry_row('platform_host', 'Platform host (ecomae)', 'platform', 'fa-cloud',
+			array('#0ea5e9', '#0284c7', '#38bdf8', '#0c4a6e', '#075985', '#082f49', '#0c4a6e'),
+			array('core', 'professional', 'erp', 'marketing', 'super_platform'), 'retail_ecommerce'),
+	);
+}
+
+/**
+ * Explicit portal industry code → consolidation group (DED / subdomain template).
+ *
+ * @return array<string, string>
+ */
+function epc_portal_industry_group_map(): array
+{
+	$map = array();
+	foreach (epc_portal_industries() as $code => $row) {
+		if (!empty($row['group_key'])) {
+			$map[$code] = (string) $row['group_key'];
+		}
+	}
+	return $map;
+}
+
+/**
+ * ECOM AE strategic ecosystem taxonomy (UAE/GCC onboard-ready).
+ */
+function epc_portal_ecosystems(): array
+{
+	$all = epc_portal_industries();
+	$byEco = array();
+	foreach ($all as $code => $ind) {
+		if ($code === 'platform_host') {
+			continue;
+		}
+		$eco = (string) ($ind['ecosystem'] ?? '');
+		if ($eco === '') {
+			continue;
+		}
+		if (!isset($byEco[$eco])) {
+			$byEco[$eco] = array();
+		}
+		$byEco[$eco][] = $code;
+	}
+	return array(
+		'commerce' => array(
+			'code' => 'commerce',
+			'name' => 'Commerce ecosystem',
+			'existing' => $byEco['commerce'] ?? array(),
+			'placeholders' => array(),
 		),
-		'tax_advisory' => array(
-			'code' => 'tax_advisory',
-			'name' => 'Tax & advisory',
-			'ecosystem' => 'business_services',
-			'icon' => 'fa-balance-scale',
-			'theme' => array(
-				'primary' => '#0d9488',
-				'primary_dark' => '#0f766e',
-				'accent' => '#14b8a6',
-				'sidebar_from' => '#042f2e',
-				'sidebar_to' => '#134e4a',
-				'hero_from' => '#042f2e',
-				'hero_to' => '#115e59',
-			),
-			'cp_packs' => array('core', 'commerce', 'professional', 'tax_advisory', 'erp', 'logistics', 'marketing'),
+		'business_services' => array(
+			'code' => 'business_services',
+			'name' => 'Business Services ecosystem',
+			'existing' => $byEco['business_services'] ?? array(),
+			'placeholders' => array('business_licensing_services'),
 		),
-		'fashion' => array(
-			'code' => 'fashion',
-			'name' => 'Fashion & apparel',
-			'ecosystem' => 'commerce',
-			'icon' => 'fa-shopping-bag',
-			'theme' => array(
-				'primary' => '#be185d',
-				'primary_dark' => '#9d174d',
-				'accent' => '#ec4899',
-				'sidebar_from' => '#1f1020',
-				'sidebar_to' => '#4a1942',
-				'hero_from' => '#1f1020',
-				'hero_to' => '#701a75',
-			),
-			'cp_packs' => array('core', 'commerce', 'catalogue'),
+		'lifestyle_consumer' => array(
+			'code' => 'lifestyle_consumer',
+			'name' => 'Lifestyle & Consumer ecosystem',
+			'existing' => $byEco['lifestyle_consumer'] ?? array(),
+			'placeholders' => array('wellness_subscriptions', 'travel_experiences'),
 		),
-		'electronics' => array(
-			'code' => 'electronics',
-			'name' => 'Electronics',
-			'ecosystem' => 'commerce',
-			'icon' => 'fa-microchip',
-			'storefront_package' => 'electronics_retail_virgin',
-			'theme_template_default' => 'midnight',
-			'theme' => array(
-				'primary' => '#e10a0a',
-				'primary_dark' => '#b00808',
-				'accent' => '#000000',
-				'sidebar_from' => '#000000',
-				'sidebar_to' => '#1a1a1a',
-				'hero_from' => '#000000',
-				'hero_to' => '#2d2d2d',
-			),
-			'cp_packs' => array('core', 'commerce', 'catalogue'),
+		'asset_sharing' => array(
+			'code' => 'asset_sharing',
+			'name' => 'Asset & Sharing ecosystem',
+			'existing' => $byEco['asset_sharing'] ?? array(),
+			'placeholders' => array('real_estate_leasing', 'equipment_sharing', 'storage_warehousing_rental', 'fleet_management'),
 		),
-		'medical' => array(
-			'code' => 'medical',
-			'name' => 'Medical supplies',
-			'ecosystem' => 'commerce',
-			'icon' => 'fa-medkit',
-			'theme' => array(
-				'primary' => '#0284c7',
-				'primary_dark' => '#0369a1',
-				'accent' => '#22d3ee',
-				'sidebar_from' => '#0c4a6e',
-				'sidebar_to' => '#164e63',
-				'hero_from' => '#0c4a6e',
-				'hero_to' => '#155e75',
-			),
-			'cp_packs' => array('core', 'commerce', 'catalogue', 'professional', 'erp'),
-		),
-		'health' => array(
-			'code' => 'health',
-			'name' => 'Health & wellness',
-			'ecosystem' => 'lifestyle_consumer',
-			'icon' => 'fa-heartbeat',
-			'theme' => array(
-				'primary' => '#16a34a',
-				'primary_dark' => '#15803d',
-				'accent' => '#4ade80',
-				'sidebar_from' => '#14532d',
-				'sidebar_to' => '#166534',
-				'hero_from' => '#14532d',
-				'hero_to' => '#15803d',
-			),
-			'cp_packs' => array('core', 'commerce', 'catalogue'),
-		),
-		'consultancy' => array(
-			'code' => 'consultancy',
-			'name' => 'Consultancy',
-			'ecosystem' => 'business_services',
-			'icon' => 'fa-briefcase',
-			'theme' => array(
-				'primary' => '#7c3aed',
-				'primary_dark' => '#6d28d9',
-				'accent' => '#a78bfa',
-				'sidebar_from' => '#2e1065',
-				'sidebar_to' => '#4c1d95',
-				'hero_from' => '#2e1065',
-				'hero_to' => '#5b21b6',
-			),
-			'cp_packs' => array('core', 'professional', 'erp', 'commerce'),
-		),
-		'erp_standalone' => array(
-			'code' => 'erp_standalone',
-			'name' => 'ERP standalone (no storefront)',
-			'ecosystem' => 'business_services',
-			'icon' => 'fa-university',
-			'theme' => array(
-				'primary' => '#0369a1',
-				'primary_dark' => '#075985',
-				'accent' => '#0ea5e9',
-				'sidebar_from' => '#0c4a6e',
-				'sidebar_to' => '#075985',
-				'hero_from' => '#082f49',
-				'hero_to' => '#0c4a6e',
-			),
-			'cp_packs' => array('core', 'erp', 'professional', 'logistics'),
-		),
-		'platform_host' => array(
-			'code' => 'platform_host',
-			'name' => 'Platform host (ecomae)',
-			'ecosystem' => 'platform',
-			'icon' => 'fa-cloud',
-			'theme' => array(
-				'primary' => '#0ea5e9',
-				'primary_dark' => '#0284c7',
-				'accent' => '#38bdf8',
-				'sidebar_from' => '#0c4a6e',
-				'sidebar_to' => '#075985',
-				'hero_from' => '#082f49',
-				'hero_to' => '#0c4a6e',
-			),
-			'cp_packs' => array('core', 'professional', 'erp', 'marketing', 'super_platform'),
-		),
-		'rental' => array(
-			'code' => 'rental',
-			'name' => 'Rental & leasing',
-			'ecosystem' => 'asset_sharing',
-			'icon' => 'fa-key',
-			'theme' => array(
-				'primary' => '#ca8a04',
-				'primary_dark' => '#a16207',
-				'accent' => '#facc15',
-				'sidebar_from' => '#422006',
-				'sidebar_to' => '#713f12',
-				'hero_from' => '#422006',
-				'hero_to' => '#854d0e',
-			),
-			'cp_packs' => array('core', 'commerce', 'catalogue'),
-		),
-		'jewellery' => array(
-			'code' => 'jewellery',
-			'name' => 'Jewellery',
-			'ecosystem' => 'commerce',
-			'icon' => 'fa-diamond',
-			'theme' => array(
-				'primary' => '#b45309',
-				'primary_dark' => '#92400e',
-				'accent' => '#fbbf24',
-				'sidebar_from' => '#1c1917',
-				'sidebar_to' => '#44403c',
-				'hero_from' => '#1c1917',
-				'hero_to' => '#78350f',
-			),
-			'cp_packs' => array('core', 'commerce', 'catalogue'),
+		'digital_technology' => array(
+			'code' => 'digital_technology',
+			'name' => 'Digital & Technology ecosystem',
+			'existing' => $byEco['digital_technology'] ?? array(),
+			'placeholders' => array('saas_tools', 'iot', 'ai_automation', 'cybersecurity', 'ecommerce_infrastructure_tools'),
 		),
 	);
 }
 
 /**
- * ECOM AE strategic ecosystem taxonomy.
- * Existing industry codes remain unchanged; expansion codes are placeholders for future onboarding.
+ * Audit: consolidation groups that still lack a portal onboard industry (UAE/GCC gap list).
+ *
+ * @return array<int, string>
  */
-function epc_portal_ecosystems(): array
+function epc_portal_ded_group_coverage_gaps(): array
 {
-	return array(
-		'commerce' => array(
-			'code' => 'commerce',
-			'name' => 'Commerce ecosystem',
-			'existing' => array('auto_parts', 'electronics', 'fashion', 'jewellery', 'medical'),
-			'placeholders' => array(
-				'industrial_equipment',
-				'building_materials',
-				'furniture_interiors',
-				'fmcg_wholesale',
-				'agricultural_products',
-				'automotive_full_vehicles',
-				'it_hardware_accessories',
-			),
-		),
-		'business_services' => array(
-			'code' => 'business_services',
-			'name' => 'Business Services ecosystem',
-			'existing' => array('tax_advisory', 'consultancy', 'erp_standalone'),
-			'placeholders' => array(
-				'legal_services',
-				'accounting_auditing',
-				'hr_recruitment',
-				'marketing_digital',
-				'it_services_saas_support',
-				'business_licensing_services',
-			),
-		),
-		'lifestyle_consumer' => array(
-			'code' => 'lifestyle_consumer',
-			'name' => 'Lifestyle & Consumer ecosystem',
-			'existing' => array('health'),
-			'placeholders' => array(
-				'fitness_training',
-				'beauty_skincare',
-				'nutrition_supplements',
-				'clinics_telemedicine',
-				'wellness_subscriptions',
-				'travel_experiences',
-			),
-		),
-		'asset_sharing' => array(
-			'code' => 'asset_sharing',
-			'name' => 'Asset & Sharing ecosystem',
-			'existing' => array('rental'),
-			'placeholders' => array(
-				'vehicle_leasing',
-				'machinery_rental',
-				'real_estate_leasing',
-				'equipment_sharing',
-				'storage_warehousing_rental',
-				'fleet_management',
-			),
-		),
-		'digital_technology' => array(
-			'code' => 'digital_technology',
-			'name' => 'Digital & Technology ecosystem',
-			'existing' => array(),
-			'placeholders' => array(
-				'saas_tools',
-				'erp_systems',
-				'iot',
-				'ai_automation',
-				'cybersecurity',
-				'ecommerce_infrastructure_tools',
-			),
-		),
-	);
+	$consFile = __DIR__ . '/epc_industry_consolidation.php';
+	if (!is_file($consFile)) {
+		return array();
+	}
+	require_once $consFile;
+	if (!function_exists('epc_industry_groups')) {
+		return array();
+	}
+	$covered = array_flip(array_values(epc_portal_industry_group_map()));
+	$gaps = array();
+	foreach (array_keys(epc_industry_groups()) as $gk) {
+		if (!isset($covered[$gk])) {
+			$gaps[] = $gk;
+		}
+	}
+	return $gaps;
 }
 
 function epc_portal_industries_grouped(array $industries = null): array

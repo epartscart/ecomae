@@ -430,3 +430,58 @@ function epc_ded_coverage_audit(): array
     }
     return $uncovered;
 }
+
+/**
+ * Bridge: each DED division → suggested portal onboard industry codes (UAE/GCC catalogue).
+ *
+ * @return array<string, array{label:string,activities:int,portal_codes:array<int,string>,ecomae_groups:array<int,string>}>
+ */
+function epc_ded_portal_industry_bridge(): array
+{
+    require_once __DIR__ . '/epc_portal.php';
+    $portalByGroup = array();
+    foreach (epc_portal_industries() as $code => $row) {
+        if ($code === 'platform_host') {
+            continue;
+        }
+        $gk = (string) ($row['group_key'] ?? '');
+        if ($gk === '') {
+            continue;
+        }
+        if (!isset($portalByGroup[$gk])) {
+            $portalByGroup[$gk] = array();
+        }
+        $portalByGroup[$gk][] = $code;
+    }
+    $out = array();
+    foreach (epc_ded_divisions() as $divKey => $div) {
+        $codes = array();
+        foreach ($div['ecomae_groups'] as $gk) {
+            if (!empty($portalByGroup[$gk])) {
+                foreach ($portalByGroup[$gk] as $c) {
+                    $codes[$c] = true;
+                }
+            }
+        }
+        $out[$divKey] = array(
+            'label' => (string) $div['label'],
+            'activities' => (int) $div['activities'],
+            'ecomae_groups' => $div['ecomae_groups'],
+            'portal_codes' => array_keys($codes),
+        );
+    }
+    return $out;
+}
+
+/**
+ * True when every DED division has at least one portal onboard industry.
+ */
+function epc_ded_portal_bridge_complete(): bool
+{
+    foreach (epc_ded_portal_industry_bridge() as $row) {
+        if (empty($row['portal_codes'])) {
+            return false;
+        }
+    }
+    return true;
+}
