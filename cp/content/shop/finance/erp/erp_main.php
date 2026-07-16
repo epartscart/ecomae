@@ -225,6 +225,7 @@ $erpTabIncludes = array(
 	'payment_batches' => 'erp_tabs_payment_batches.php',
 	'petty_cash' => 'erp_tabs_petty_cash.php',
 	'fulfilment' => 'erp_tabs_fulfilment.php',
+	'aftersales' => 'erp_tabs_aftersales.php',
 	'staff' => 'erp_tabs_staff.php',
 	'workflow' => 'erp_tabs_workflow.php',
 	'processflow' => 'erp_tabs_processflow.php',
@@ -1038,13 +1039,61 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 				</div>
 
 			<?php elseif ($tab === 'purchases'): ?>
-				<?php $purchases = epc_erp_list_purchases($db_link); ?>
+				<?php
+				$purchases = epc_erp_list_purchases($db_link);
+				$bcBosFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+				if (is_file($bcBosFile)) {
+					require_once $bcBosFile;
+				}
+				$viewPurchaseId = isset($_GET['purchase_id']) ? (int) $_GET['purchase_id'] : 0;
+				$viewPurchase = null;
+				if ($viewPurchaseId > 0) {
+					foreach ($purchases as $pp) {
+						if ((int) ($pp['id'] ?? 0) === $viewPurchaseId) {
+							$viewPurchase = $pp;
+							break;
+						}
+					}
+				}
+				?>
 				<div class="epc-erp-section">
 					<h4><i class="fa fa-file-text-o"></i> Purchase invoices (supplier payable)</h4>
+					<?php if ($viewPurchase):
+						$grnBadge = function_exists('epc_bc_bos_grn_badge_html')
+							? epc_bc_bos_grn_badge_html($viewPurchase, array('show_uid' => true))
+							: '';
+						$grnRef = function_exists('epc_bc_bos_grn_record_id') ? epc_bc_bos_grn_record_id($viewPurchase) : '';
+						?>
+					<p><a class="btn btn-default btn-sm" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'purchases', $date_from_str, $date_to_str)); ?>"><i class="fa fa-arrow-left"></i> All purchases</a></p>
+					<?php if ($grnBadge !== ''): ?>
+					<div class="alert alert-info" style="margin-bottom:14px">
+						<strong><i class="fa fa-link"></i> Blockchain BOS GRN proof</strong>
+						<span style="margin-left:10px"><?php echo $grnBadge; ?></span>
+						<?php if ($grnRef !== ''): ?><small class="text-muted" style="margin-left:8px">Record <code><?php echo epc_erp_h($grnRef); ?></code></small><?php endif; ?>
+						<a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'blockchain_proofs', $date_from_str, $date_to_str) . '&bc_type=grn'); ?>" class="btn btn-default btn-xs" style="margin-left:8px">All GRN proofs</a>
+					</div>
+					<?php elseif (!empty($viewPurchase['inv_receipt_posted'])): ?>
+					<div class="alert alert-warning">Stock received — no blockchain proof found yet (mode off, or proof pending create).</div>
+					<?php else: ?>
+					<div class="alert alert-default" style="border:1px solid #e2e8f0">No inventory receipt posted for this purchase — GRN proof is created when stock is received.</div>
+					<?php endif; ?>
+					<div class="well" style="background:#fff">
+						<p><strong>Purchase #<?php echo (int) $viewPurchase['id']; ?></strong>
+						· <?php echo epc_erp_h((string) ($viewPurchase['invoice_number'] ?? '')); ?>
+						· <?php echo epc_erp_h((string) ($viewPurchase['supplier_name'] ?? '')); ?></p>
+						<p>Total <?php echo epc_erp_money($viewPurchase['total_amount'] ?? 0); ?>
+						· Receipt <?php echo !empty($viewPurchase['inv_receipt_posted']) ? '<span class="label label-success">posted</span>' : '<span class="label label-default">not posted</span>'; ?></p>
+					</div>
+					<?php endif; ?>
 					<table class="table table-striped table-bordered table-condensed">
-						<thead><tr><th>ID</th><th>Date</th><th>Supplier</th><th>Invoice</th><th>Order</th><th>Ex VAT</th><th>VAT</th><th>Total</th><th>Status</th></tr></thead>
+						<thead><tr><th>ID</th><th>Date</th><th>Supplier</th><th>Invoice</th><th>Order</th><th>Ex VAT</th><th>VAT</th><th>Total</th><th>Status</th><th>Receipt</th><th>Blockchain</th><th></th></tr></thead>
 						<tbody>
-						<?php foreach ($purchases as $p): ?>
+						<?php foreach ($purchases as $p):
+							$pBadge = (function_exists('epc_bc_bos_grn_badge_html') && !empty($p['inv_receipt_posted']))
+								? epc_bc_bos_grn_badge_html($p)
+								: '';
+							$pView = epc_erp_tab_url($erpUrl, 'purchases', $date_from_str, $date_to_str) . '&purchase_id=' . (int) $p['id'];
+							?>
 							<tr>
 								<td><?php echo (int)$p['id']; ?></td>
 								<td><?php echo epc_erp_h(date('Y-m-d', (int)$p['purchase_date'])); ?></td>
@@ -1055,6 +1104,9 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 								<td><?php echo epc_erp_money($p['vat_amount']); ?></td>
 								<td><?php echo epc_erp_money($p['total_amount']); ?></td>
 								<td><?php echo epc_erp_h($p['status']); ?></td>
+								<td><?php echo !empty($p['inv_receipt_posted']) ? '<span class="label label-success">GRN</span>' : '<span class="text-muted">—</span>'; ?></td>
+								<td><?php echo $pBadge !== '' ? $pBadge : '<span class="text-muted">—</span>'; ?></td>
+								<td><a class="btn btn-default btn-xs" href="<?php echo epc_erp_h($pView); ?>">View</a></td>
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
@@ -1196,6 +1248,7 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 	bindForm('epc_erp_form_purchase', 'create_purchase');
 	bindForm('epc_erp_form_purchase_order', 'purchase_from_order');
 	bindForm('epc_erp_form_purchase_adj', 'purchase_adjustment');
+	bindForm('epc_erp_form_as_rma', 'as_rma_create');
 	bindForm('epc_erp_form_account', 'create_account');
 	bindForm('epc_erp_form_entry', 'cash_entry');
 	bindForm('epc_erp_form_customer_settle', 'customer_settlement');
