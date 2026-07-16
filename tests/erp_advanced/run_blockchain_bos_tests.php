@@ -154,6 +154,17 @@ check('einvoice view shows proof badge', strpos($einvUi, 'epc_bc_bos_document_ba
 $invUi = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_invoices.php');
 check('invoices view shows proof badge', strpos($invUi, 'epc_bc_bos_document_badge_html') !== false);
 
+section('Fleet + print');
+check('list_proofs_fleet exists', function_exists('epc_bc_bos_list_proofs_fleet'));
+check('fleet_stats exists', function_exists('epc_bc_bos_fleet_stats'));
+check('verify absolute uses https host fallback', strpos(epc_bc_bos_verify_url_absolute('prf_x'), 'epc-blockchain-verify.php?proof=prf_x') !== false);
+$hub = (string)file_get_contents($root . '/cp/content/shop/tenant_hub/tenant_hub_main.php');
+check('tenant hub has blockchain tab', strpos($hub, "tab=blockchain") !== false && strpos($hub, "tab === 'blockchain'") !== false);
+$panel = $root . '/content/shop/tenant_hub/epc_tenant_blockchain_panel.php';
+check('fleet panel file exists', is_file($panel));
+$printSrc = (string)file_get_contents($root . '/content/shop/finance/epc_erp_invoices.php');
+check('print html includes blockchain proof block', strpos($printSrc, 'bc-proof') !== false && strpos($printSrc, 'epc_bc_bos_verify_url_absolute') !== false);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
 exit($fail_count > 0 ? 1 : 0);

@@ -697,12 +697,47 @@ function epc_bc_bos_maybe_record_document(string $recordType, string $recordId, 
 }
 
 /**
- * Public verify URL helper.
+ * Public verify URL helper (path).
  */
 function epc_bc_bos_verify_url(string $proofUidOrHash): string
 {
     $key = rawurlencode(trim($proofUidOrHash));
     return '/epc-blockchain-verify.php?proof=' . $key;
+}
+
+/**
+ * Absolute public base for verify links on printed documents.
+ */
+function epc_bc_bos_public_base_url(): string
+{
+    try {
+        if (!empty($GLOBALS['DP_Config']) && is_object($GLOBALS['DP_Config']) && !empty($GLOBALS['DP_Config']->domain_path)) {
+            $base = trim((string)$GLOBALS['DP_Config']->domain_path);
+            if ($base !== '') {
+                return rtrim($base, '/');
+            }
+        }
+        if (function_exists('epc_ecomae_platform_base_url')) {
+            $base = trim((string)epc_ecomae_platform_base_url());
+            if ($base !== '') {
+                return rtrim($base, '/');
+            }
+        }
+    } catch (Throwable $e) {
+        // fall through
+    }
+    $host = strtolower(trim((string)($_SERVER['HTTP_HOST'] ?? '')));
+    if ($host !== '') {
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || ((string)($_SERVER['SERVER_PORT'] ?? '') === '443');
+        return ($https ? 'https://' : 'http://') . $host;
+    }
+    return 'https://www.ecomae.com';
+}
+
+function epc_bc_bos_verify_url_absolute(string $proofUidOrHash): string
+{
+    return rtrim(epc_bc_bos_public_base_url(), '/') . epc_bc_bos_verify_url($proofUidOrHash);
 }
 
 /**
@@ -782,6 +817,75 @@ function epc_bc_bos_list_proofs(string $tenantKey, array $filters = []): array
     } catch (Throwable $e) {
         return [];
     }
+}
+
+/**
+ * Fleet proof list for Super CP (optional tenant filter).
+ *
+ * @return list<array<string,mixed>>
+ */
+function epc_bc_bos_list_proofs_fleet(array $filters = []): array
+{
+    $pdo = epc_bc_bos_platform_pdo();
+    if (!$pdo instanceof PDO) {
+        return [];
+    }
+    epc_bc_bos_ensure_schema($pdo);
+
+    $limit = isset($filters['limit']) ? max(1, min(500, (int)$filters['limit'])) : 150;
+    $where = ['1=1'];
+    $params = [];
+    $tenantKey = strtolower(preg_replace('/[^a-z0-9_]/', '', (string)($filters['tenant_key'] ?? $filters['site_key'] ?? '')) ?: '');
+    if ($tenantKey !== '') {
+        $where[] = 'p.tenant_key = ?';
+        $params[] = $tenantKey;
+    }
+    if (!empty($filters['record_type'])) {
+        $where[] = 'p.record_type = ?';
+        $params[] = strtolower(preg_replace('/[^a-z0-9_\-]/', '', (string)$filters['record_type']) ?: '');
+    }
+    if (!empty($filters['status'])) {
+        $where[] = 'p.status = ?';
+        $params[] = strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$filters['status']) ?: '');
+    }
+
+    try {
+        $sql = 'SELECT p.*, b.batch_uid, b.merkle_root
+                FROM epc_bc_proofs p
+                LEFT JOIN epc_bc_anchor_batches b ON b.id = p.batch_id
+                WHERE ' . implode(' AND ', $where) . '
+                ORDER BY p.id DESC
+                LIMIT ' . $limit;
+        $st = $pdo->prepare($sql);
+        $st->execute($params);
+        return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+/**
+ * Fleet KPI summary for Super CP.
+ *
+ * @return array{total:int,anchored:int,pending:int,tenants:int}
+ */
+function epc_bc_bos_fleet_stats(): array
+{
+    $out = ['total' => 0, 'anchored' => 0, 'pending' => 0, 'tenants' => 0];
+    $pdo = epc_bc_bos_platform_pdo();
+    if (!$pdo instanceof PDO) {
+        return $out;
+    }
+    epc_bc_bos_ensure_schema($pdo);
+    try {
+        $out['total'] = (int)$pdo->query('SELECT COUNT(*) FROM epc_bc_proofs')->fetchColumn();
+        $out['anchored'] = (int)$pdo->query("SELECT COUNT(*) FROM epc_bc_proofs WHERE status = 'anchored'")->fetchColumn();
+        $out['pending'] = (int)$pdo->query("SELECT COUNT(*) FROM epc_bc_proofs WHERE status = 'pending'")->fetchColumn();
+        $out['tenants'] = (int)$pdo->query('SELECT COUNT(DISTINCT tenant_key) FROM epc_bc_proofs')->fetchColumn();
+    } catch (Throwable $e) {
+        // keep zeros
+    }
+    return $out;
 }
 
 /**
