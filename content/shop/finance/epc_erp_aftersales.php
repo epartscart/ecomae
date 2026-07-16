@@ -128,6 +128,30 @@ if (!function_exists('epc_as_rma_create')) {
         foreach ($lines as $ln) {
             $ins->execute(array($rmaId, (int) $ln['item_id'], (float) ($ln['qty'] ?? 0), (float) ($ln['unit_price'] ?? 0), (string) ($ln['condition_note'] ?? '')));
         }
+        // Blockchain BOS: anchor aftersales RMA create (best-effort).
+        try {
+            $bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+            if (is_file($bcFile)) {
+                require_once $bcFile;
+                $rmaNo = (string) ($data['rma_no'] ?? ('RMA-' . $rmaId));
+                epc_bc_bos_maybe_record_document(
+                    'rma',
+                    $rmaNo !== '' ? $rmaNo : (string) $rmaId,
+                    array(
+                        'rma_id' => $rmaId,
+                        'rma_no' => $rmaNo,
+                        'customer_id' => (int) ($data['customer_id'] ?? 0),
+                        'source_type' => (string) ($data['source_type'] ?? 'sales_order'),
+                        'source_id' => (int) ($data['source_id'] ?? 0),
+                        'reason' => (string) ($data['reason'] ?? ''),
+                        'line_count' => count($lines),
+                        'channel' => 'aftersales',
+                    )
+                );
+            }
+        } catch (Throwable $e) {
+            // best-effort
+        }
         return $rmaId;
     }
 }

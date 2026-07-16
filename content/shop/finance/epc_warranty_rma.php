@@ -127,6 +127,31 @@ function epc_rma_create(PDO $pdo, string $siteKey, array $data): array
             ->execute(array($rmaId, (string)($item['product_sku']??''), (string)($item['product_name']??''), (int)($item['qty']??1), (float)($item['unit_price']??0)));
     }
 
+    // Blockchain BOS: anchor warranty RMA create (best-effort).
+    try {
+        $bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+        if (is_file($bcFile)) {
+            require_once $bcFile;
+            epc_bc_bos_maybe_record_document(
+                'rma',
+                $rmaNumber,
+                array(
+                    'rma_id' => $rmaId,
+                    'rma_number' => $rmaNumber,
+                    'warranty_id' => (int) ($data['warranty_id'] ?? 0),
+                    'customer_id' => (int) ($data['customer_id'] ?? 0),
+                    'customer_name' => (string) ($data['customer_name'] ?? ''),
+                    'reason' => (string) ($data['reason'] ?? 'defective'),
+                    'item_count' => count($data['items'] ?? array()),
+                    'channel' => 'warranty',
+                ),
+                array('tenant_key' => $siteKey)
+            );
+        }
+    } catch (Throwable $e) {
+        // best-effort
+    }
+
     return array('ok' => true, 'rma_id' => $rmaId, 'rma_number' => $rmaNumber);
 }
 

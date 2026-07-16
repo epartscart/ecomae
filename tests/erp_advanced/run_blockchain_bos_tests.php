@@ -98,6 +98,28 @@ check('docs overview rebranded', strpos($mkt, 'Blockchain BOS Enterprise System'
 $docs = $root . '/docs/BLOCKCHAIN_BOS_ENTERPRISE.md';
 check('docs exist', is_file($docs));
 
+section('Document auto-hooks');
+check('maybe_record helper exists', function_exists('epc_bc_bos_maybe_record_document'));
+check('resolve_site_key exists', function_exists('epc_bc_bos_resolve_site_key'));
+$skip = epc_bc_bos_maybe_record_document('invoice', 'INV-TEST', ['x' => 1]);
+check('maybe_record skips without tenant', !empty($skip['skipped']) || empty($skip['ok']));
+
+$invSrc = (string)file_get_contents($root . '/content/shop/finance/epc_einvoice.php');
+check('invoice save hooks maybe_record', strpos($invSrc, 'epc_bc_bos_maybe_record_document') !== false);
+check('credit note hooks maybe_record', substr_count($invSrc, 'epc_bc_bos_maybe_record_document') >= 2);
+
+$grnSrc = (string)file_get_contents($root . '/content/shop/finance/epc_erp_inventory.php');
+check('GRN receive hooks maybe_record', strpos($grnSrc, "epc_bc_bos_maybe_record_document") !== false && strpos($grnSrc, "'grn'") !== false);
+
+$asSrc = (string)file_get_contents($root . '/content/shop/finance/epc_erp_aftersales.php');
+check('aftersales RMA hooks maybe_record', strpos($asSrc, 'epc_bc_bos_maybe_record_document') !== false);
+
+$wSrc = (string)file_get_contents($root . '/content/shop/finance/epc_warranty_rma.php');
+check('warranty RMA hooks maybe_record', strpos($wSrc, 'epc_bc_bos_maybe_record_document') !== false);
+
+$vsrc = (string)file_get_contents($root . '/epc-blockchain-verify.php');
+check('verify UI has HTML form', strpos($vsrc, '<form') !== false && strpos($vsrc, 'Verify a business proof') !== false);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
 exit($fail_count > 0 ? 1 : 0);

@@ -545,3 +545,162 @@ function epc_bc_bos_product_tagline(): string
 {
     return 'One unified Blockchain Business Operating System — ERP, commerce, compliance, workflows, intelligence and cryptographic proof on one cloud.';
 }
+
+/**
+ * Resolve current tenant site_key from runtime context.
+ */
+function epc_bc_bos_resolve_site_key(array $opts = []): string
+{
+    if (!empty($opts['tenant_key'])) {
+        return strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$opts['tenant_key']) ?: '');
+    }
+
+    if (function_exists('epc_client_erp_site_key')) {
+        $k = epc_client_erp_site_key();
+        if ($k !== '') {
+            return strtolower($k);
+        }
+    } elseif (is_file(__DIR__ . '/epc_client_erp_router.php')) {
+        require_once __DIR__ . '/epc_client_erp_router.php';
+        if (function_exists('epc_client_erp_site_key')) {
+            $k = epc_client_erp_site_key();
+            if ($k !== '') {
+                return strtolower($k);
+            }
+        }
+    }
+
+    if (!empty($GLOBALS['DP_Config']) && is_object($GLOBALS['DP_Config'])) {
+        if (!empty($GLOBALS['DP_Config']->epc_shared_erp_site_key)) {
+            return strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$GLOBALS['DP_Config']->epc_shared_erp_site_key) ?: '');
+        }
+        if (!empty($GLOBALS['DP_Config']->site_key)) {
+            return strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$GLOBALS['DP_Config']->site_key) ?: '');
+        }
+    }
+
+    try {
+        if (is_file(__DIR__ . '/epc_portal_shared_erp.php')) {
+            require_once __DIR__ . '/epc_portal_shared_erp.php';
+            if (function_exists('epc_portal_shared_erp_active_tenant')) {
+                $row = epc_portal_shared_erp_active_tenant();
+                if (is_array($row) && !empty($row['site_key'])) {
+                    return strtolower((string)$row['site_key']);
+                }
+            }
+            if (function_exists('epc_portal_shared_erp_cookie_site_key')) {
+                $k = epc_portal_shared_erp_cookie_site_key();
+                if ($k !== '') {
+                    return strtolower($k);
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        // ignore
+    }
+
+    try {
+        if (is_file(__DIR__ . '/epc_portal_tenant.php')) {
+            require_once __DIR__ . '/epc_portal_tenant.php';
+            if (function_exists('epc_portal_host') && function_exists('epc_portal_load_tenant_by_host')) {
+                $host = epc_portal_host();
+                if ($host !== '') {
+                    $profile = epc_portal_load_tenant_by_host($host);
+                    if (is_array($profile) && !empty($profile['site_key'])) {
+                        return strtolower((string)$profile['site_key']);
+                    }
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        // ignore
+    }
+
+    return '';
+}
+
+/**
+ * Load blockchain_mode for a tenant (request-cached).
+ */
+function epc_bc_bos_tenant_mode(string $siteKey): string
+{
+    static $cache = [];
+    $siteKey = strtolower(preg_replace('/[^a-z0-9_]/', '', $siteKey) ?: '');
+    if ($siteKey === '') {
+        return 'off';
+    }
+    if (isset($cache[$siteKey])) {
+        return $cache[$siteKey];
+    }
+
+    $mode = 'anchor'; // product default when registry unavailable
+    try {
+        $pdo = epc_bc_bos_platform_pdo();
+        if ($pdo instanceof PDO) {
+            require_once __DIR__ . '/epc_portal_tenant_intro.php';
+            $row = epc_portal_tenant_get($pdo, $siteKey);
+            if (is_array($row)) {
+                $mode = epc_bc_bos_normalize_mode((string)($row['blockchain_mode'] ?? 'anchor'));
+            }
+        }
+    } catch (Throwable $e) {
+        $mode = 'anchor';
+    }
+    $cache[$siteKey] = $mode;
+    return $mode;
+}
+
+/**
+ * Best-effort document proof. Never throws; never blocks business commits.
+ *
+ * @param array<string,mixed> $payload
+ * @param array<string,mixed> $opts tenant_key?, enqueue_anchor?, skip_if_draft?
+ * @return array{ok:bool,skipped?:bool,reason?:string,proof_uid?:string,payload_hash?:string,status?:string,error?:string}
+ */
+function epc_bc_bos_maybe_record_document(string $recordType, string $recordId, array $payload, array $opts = []): array
+{
+    try {
+        $siteKey = epc_bc_bos_resolve_site_key($opts);
+        if ($siteKey === '') {
+            return ['ok' => false, 'skipped' => true, 'reason' => 'no_tenant'];
+        }
+        $mode = epc_bc_bos_tenant_mode($siteKey);
+        if ($mode === 'off') {
+            return ['ok' => true, 'skipped' => true, 'reason' => 'mode_off'];
+        }
+
+        $recordType = strtolower(preg_replace('/[^a-z0-9_\-]/', '', $recordType) ?: '');
+        $recordId = substr(trim((string)$recordId), 0, 128);
+        if ($recordType === '' || $recordId === '') {
+            return ['ok' => false, 'skipped' => true, 'reason' => 'missing_ids'];
+        }
+
+        $enqueue = array_key_exists('enqueue_anchor', $opts)
+            ? !empty($opts['enqueue_anchor'])
+            : true;
+
+        $out = epc_bc_bos_record_proof($siteKey, $recordType, $recordId, $payload, [
+            'enqueue_anchor' => $enqueue,
+            'ts' => (string)($opts['ts'] ?? gmdate('c')),
+        ]);
+        if (!empty($out['ok'])) {
+            return $out;
+        }
+        return [
+            'ok' => false,
+            'skipped' => false,
+            'error' => (string)($out['error'] ?? 'record_failed'),
+        ];
+    } catch (Throwable $e) {
+        return ['ok' => false, 'error' => $e->getMessage()];
+    }
+}
+
+/**
+ * Public verify URL helper.
+ */
+function epc_bc_bos_verify_url(string $proofUidOrHash): string
+{
+    $key = rawurlencode(trim($proofUidOrHash));
+    return '/epc-blockchain-verify.php?proof=' . $key;
+}

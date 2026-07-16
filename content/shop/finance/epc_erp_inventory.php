@@ -1274,6 +1274,27 @@ function epc_erp_inventory_receive_purchase(PDO $db, $purchaseId, array $data = 
 	}
 	if ($n > 0) {
 		$db->prepare('UPDATE `epc_erp_purchases` SET `inv_receipt_posted` = 1 WHERE `id` = ?')->execute(array($purchaseId));
+		// Blockchain BOS: anchor GRN / goods receipt (best-effort).
+		try {
+			$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+			if (is_file($bcFile)) {
+				require_once $bcFile;
+				epc_bc_bos_maybe_record_document(
+					'grn',
+					$ref,
+					array(
+						'purchase_id' => $purchaseId,
+						'reference' => $ref,
+						'warehouse_id' => $wh,
+						'lines_posted' => $n,
+						'invoice_number' => $invNo,
+						'movement_type' => 'purchase_in',
+					)
+				);
+			}
+		} catch (Exception $e) {
+			// best-effort
+		}
 	}
 	return array('posted' => $n, 'warehouse_id' => $wh, 'reference' => $ref);
 }

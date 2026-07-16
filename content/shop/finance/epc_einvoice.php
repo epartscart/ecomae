@@ -708,6 +708,44 @@ function epc_einvoice_save_document(PDO $db, array $doc, int $admin_id = 0): int
 			}
 		}
 
+		// Blockchain BOS: hash-anchor validated tax invoices / credit notes (best-effort).
+		if ($validation['ok']) {
+			try {
+				$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+				if (is_file($bcFile)) {
+					require_once $bcFile;
+					$cat = (string) ($doc['doc_category'] ?? 'tax_invoice');
+					$typeCode = (string) ($doc['invoice_type_code'] ?? '380');
+					$recordType = ($cat === 'tax_credit_note' || $typeCode === '381') ? 'credit_note' : 'invoice';
+					if ($recordType === 'invoice' && $cat !== 'tax_invoice') {
+						$recordType = 'invoice';
+					}
+					$invNo = trim((string) ($doc['invoice_number'] ?? ''));
+					epc_bc_bos_maybe_record_document(
+						$recordType,
+						$invNo !== '' ? $invNo : (string) $docId,
+						array(
+							'document_id' => $docId,
+							'uuid' => (string) ($doc['uuid'] ?? ''),
+							'invoice_number' => (string) ($doc['invoice_number'] ?? ''),
+							'doc_category' => $cat,
+							'invoice_type_code' => $typeCode,
+							'currency_code' => (string) ($doc['currency_code'] ?? 'AED'),
+							'subtotal_ex_vat' => $doc['subtotal_ex_vat'] ?? 0,
+							'total_vat' => $doc['total_vat'] ?? 0,
+							'total_incl_vat' => $doc['total_incl_vat'] ?? 0,
+							'amount_due' => $doc['amount_due'] ?? 0,
+							'order_id' => (int) ($doc['order_id'] ?? 0),
+							'issue_date' => (int) ($doc['issue_date'] ?? 0),
+							'buyer_name' => (string) (($doc['buyer']['name'] ?? $doc['buyer']['registration_name'] ?? '') ?: ''),
+						)
+					);
+				}
+			} catch (Exception $e) {
+				// blockchain proof is best-effort; never block the invoice
+			}
+		}
+
 		return $docId;
 	} catch (Exception $e) {
 		if ($db->inTransaction()) {
@@ -1254,6 +1292,31 @@ function epc_einvoice_create_credit_note(PDO $db, int $originalDocId, array $cre
 	epc_einvoice_log_event($db, $cnId, 'created', 'draft',
 		'Credit note created for invoice ' . $origDoc['invoice_number'] . ': ' . $reason,
 		array('original_doc_id' => $originalDocId, 'original_invoice' => $origDoc['invoice_number']));
+
+	// Blockchain BOS proof for credit note create (best-effort).
+	try {
+		$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+		if (is_file($bcFile)) {
+			require_once $bcFile;
+			epc_bc_bos_maybe_record_document(
+				'credit_note',
+				$cnNumber,
+				array(
+					'document_id' => $cnId,
+					'uuid' => $uuid,
+					'credit_note_number' => $cnNumber,
+					'original_doc_id' => $originalDocId,
+					'original_invoice' => (string) ($origDoc['invoice_number'] ?? ''),
+					'subtotal_ex_vat' => $subtotal,
+					'total_vat' => $totalVat,
+					'total_incl_vat' => $totalInclVat,
+					'reason' => (string) $reason,
+				)
+			);
+		}
+	} catch (Exception $e) {
+		// best-effort
+	}
 
 	return array(
 		'ok' => true,
