@@ -71,7 +71,7 @@ $ind3dMotif = $ind3dMotifMap[$industryGroup] ?? 'default';
 if (in_array($industrySlug, array('power', 'utility', 'utilities', 'solar', 'renewable', 'electric'), true)) {
 	$ind3dMotif = 'energy';
 }
-$ind3dAssetVer = '20260716e';
+$ind3dAssetVer = '20260716f';
 $ind3dCss = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.css&v=' . rawurlencode($ind3dAssetVer);
 $ind3dJs = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.js&v=' . rawurlencode($ind3dAssetVer);
 
