@@ -96,15 +96,17 @@ if ($activeSub) {
 	$seoDesc = $activeSub['label'] . ' on ecomae.com (' . $seoHost . '): dedicated ERP workflows, control panel and storefront for '
 		. strtolower($name) . '. Part of the ECOM AE Blockchain BOS Enterprise System.';
 	$seoPageName = $activeSub['label'] . ' — ' . $name . ' | ecomae';
-} else {
-	$seoTitle = $name . ' — ERP, Control Panel & Storefront | ecomae Platform';
-	$subPreview = is_array($subIndustries) ? implode(', ', array_slice($subIndustries, 0, 12)) : '';
-	$seoDesc = $name . ' industry solutions on ' . $seoHost . ': ' . $desc
-		. ' Sub-industries include ' . $subPreview
-		. (count($subIndustries) > 12 ? ' and more' : '')
-		. '. Powered by ecomae.';
-	$seoPageName = $name . ' — ecomae Platform';
+	// Dedicated sub-industry page: different layout/media — not the hub 3D hero.
+	require __DIR__ . '/_sub_industry_page.php';
+	return;
 }
+$seoTitle = $name . ' — ERP, Control Panel & Storefront | ecomae Platform';
+$subPreview = is_array($subIndustries) ? implode(', ', array_slice($subIndustries, 0, 12)) : '';
+$seoDesc = $name . ' industry solutions on ' . $seoHost . ': ' . $desc
+	. ' Sub-industries include ' . $subPreview
+	. (count($subIndustries) > 12 ? ' and more' : '')
+	. '. Powered by ecomae.';
+$seoPageName = $name . ' — ecomae Platform';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -167,9 +169,6 @@ echo implode(",\n", $seoItems);
       {"@type": "ListItem", "position": 1, "name": "ecomae", "item": "https://www.ecomae.com"},
       {"@type": "ListItem", "position": 2, "name": "Industries", "item": "https://www.ecomae.com/platform/industries"},
       {"@type": "ListItem", "position": 3, "name": <?php echo json_encode($name, JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($seoBase . '/', JSON_UNESCAPED_SLASHES); ?>}
-<?php if ($activeSub): ?>
-      ,{"@type": "ListItem", "position": 4, "name": <?php echo json_encode($activeSub['label'], JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($seoCanonical, JSON_UNESCAPED_SLASHES); ?>}
-<?php endif; ?>
     ]
   }
 }
@@ -1182,19 +1181,5 @@ v.play().catch(function(){});
 })();
 </script>
 <script defer src="<?php echo htmlspecialchars($ind3dJs); ?>"></script>
-<?php if (!empty($activeSub['slug'])): ?>
-<script>
-(function(){
-  var id = <?php echo json_encode($activeSub['slug'], JSON_UNESCAPED_SLASHES); ?>;
-  function go(){
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.scrollIntoView({behavior:'smooth', block:'center'});
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
-  else setTimeout(go, 120);
-})();
-</script>
-<?php endif; ?>
 </body>
 </html>
