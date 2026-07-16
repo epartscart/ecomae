@@ -16,7 +16,10 @@
 		'.ehm-cp-feat',
 		'.ehm-sf-feat',
 		'.ehm-tenant-card',
-		'.ehm-ss'
+		'.ehm-ss',
+		'.ehm-bc-graphic',
+		'.ehm-bc-node',
+		'.ehm-bc-plane'
 	].join(',');
 
 	function prefersReducedMotion() {
