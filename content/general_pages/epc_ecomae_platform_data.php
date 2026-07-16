@@ -1025,6 +1025,9 @@ function epc_ecomae_platform_nav_dropdowns()
 				array('key' => 'blockchain', 'label' => 'Blockchain BOS', 'href' => $base . 'blockchain'),
 				array('key' => 'bos', 'label' => 'What is Blockchain BOS', 'href' => $base . 'bos'),
 				array('key' => 'solution', 'label' => 'Solutions', 'href' => $base . 'solutions'),
+				array('key' => 'legal', 'label' => 'Legal policies', 'href' => $base . 'legal'),
+				array('key' => 'privacy', 'label' => 'Privacy', 'href' => $base . 'privacy'),
+				array('key' => 'security_policy', 'label' => 'Security policy', 'href' => $base . 'security-policy'),
 			),
 		),
 	);

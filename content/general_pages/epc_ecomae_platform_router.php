@@ -206,13 +206,18 @@ function epc_ecomae_marketing_serve_seo_file()
 			array('/bos', '0.7', 'weekly'),
 			array('/blockchain', '0.9', 'weekly'),
 			array('/solutions', '0.7', 'weekly'),
+			array('/legal', '0.6', 'monthly'),
+			array('/privacy', '0.5', 'monthly'),
+			array('/terms', '0.5', 'monthly'),
 		);
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_content.php';
 		foreach (array_keys(epc_free_tools_catalog()) as $tk) { $urls[] = array('/platform/free-tools/' . $tk, '0.8', 'monthly'); }
 		foreach (array_keys(epc_ecomae_docs_catalog()) as $s) { $urls[] = array('/documentation/' . $s, '0.6', 'monthly'); }
 		foreach (array_keys(epc_ecomae_compare_catalog()) as $s) { $urls[] = array('/compare/' . $s, '0.6', 'monthly'); }
 		foreach (array_keys(epc_ecomae_bos_articles_catalog()) as $s) { $urls[] = array('/bos/' . $s, '0.6', 'monthly'); }
 		foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $urls[] = array('/solutions/' . $s, '0.7', 'monthly'); }
+		foreach (array_keys(epc_ecomae_legal_catalog()) as $s) { $urls[] = array('/legal/' . $s, '0.5', 'monthly'); }
 		if (function_exists('epc_ecomae_platform_industry_marketing')) {
 			foreach (array_keys(epc_ecomae_platform_industry_marketing()) as $code) {
 				$urls[] = array('/platform/industry/' . $code, '0.7', 'monthly');
@@ -270,6 +275,16 @@ function epc_ecomae_platform_match_path($path)
 	}
 	if ($path === '/blockchain') {
 		return array('page' => 'blockchain', 'params' => array());
+	}
+	if (preg_match('#^/legal(?:/([a-z0-9\-]+))?$#', $path, $m)) {
+		return array('page' => 'legal', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if (function_exists('epc_ecomae_legal_top_level_aliases') || is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_content.php')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_content.php';
+		$aliases = epc_ecomae_legal_top_level_aliases();
+		if (isset($aliases[$path])) {
+			return array('page' => 'legal', 'params' => array('slug' => $aliases[$path]));
+		}
 	}
 	if (preg_match('#^/solutions(?:/([a-z0-9\-]+))?$#', $path, $m)) {
 		return array('page' => 'solution', 'params' => array('slug' => $m[1] ?? ''));
@@ -440,6 +455,12 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 	if ($match['page'] === 'blockchain') {
 		$mktDesc = 'ECOM AE Blockchain BOS — architecture layers, proof process (hash → Merkle anchor → verify), tenant modes, auto-proven documents, and operator surfaces for enterprise trust.';
 	}
+	if ($match['page'] === 'legal') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_pages.php';
+		$meta = epc_ecomae_legal_meta($match['params']);
+		$title = $meta[0];
+		$mktDesc = $meta[1];
+	}
 	if (in_array($match['page'], array('docs', 'compare', 'bos', 'solution'), true)
 		&& function_exists('epc_ecomae_marketing_meta')) {
 		$meta = epc_ecomae_marketing_meta($match['page'], $match['params']);
@@ -491,6 +512,7 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
 		'blockchain' => 'Blockchain BOS — structure, process & proof layer — ECOM AE',
+		'legal' => 'Legal policies — ECOM AE',
 	);
 	$title = isset($titles[$page]) ? $titles[$page] : 'ecomae platform';
 	if ($page === 'industry') {
@@ -504,6 +526,10 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
 		$seo = epc_free_tools_seo((string) ($params['tool'] ?? ''));
 		$title = $seo['title'];
+	}
+	if ($page === 'legal') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_pages.php';
+		return epc_ecomae_legal_meta($params)[0];
 	}
 	return $title;
 }

@@ -14,6 +14,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.ph
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_pages.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_blockchain_page.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_legal_pages.php';
 
 if (!function_exists('epc_ecomae_platform_get_industry_groups')) {
 	function epc_ecomae_platform_get_industry_groups()
@@ -69,14 +70,21 @@ function epc_ecomae_platform_render_page($page, array $params = array(), $mode =
 	$title = epc_ecomae_platform_page_title($page, $params);
 	$description = epc_ecomae_platform_page_description($page, $params);
 	$canonicalPath = '/';
-	$mktSlugPages = array('docs', 'compare', 'bos', 'solution');
+	$mktSlugPages = array('docs', 'compare', 'bos', 'solution', 'legal');
 	if (in_array($page, $mktSlugPages, true)) {
-		$meta = epc_ecomae_marketing_meta($page, $params);
-		if ($meta) { $title = $meta[0]; $description = $meta[1]; }
-		$segMap = array('solution' => 'solutions', 'docs' => 'documentation');
-		$seg = $segMap[$page] ?? $page;
-		$slug = isset($params['slug']) ? preg_replace('/[^a-z0-9\-]/', '', (string) $params['slug']) : '';
-		$canonicalPath = '/' . $seg . ($slug !== '' ? '/' . $slug : '');
+		if ($page === 'legal') {
+			$meta = epc_ecomae_legal_meta($params);
+			$title = $meta[0];
+			$description = $meta[1];
+			$canonicalPath = epc_ecomae_legal_canonical_path($params);
+		} else {
+			$meta = epc_ecomae_marketing_meta($page, $params);
+			if ($meta) { $title = $meta[0]; $description = $meta[1]; }
+			$segMap = array('solution' => 'solutions', 'docs' => 'documentation');
+			$seg = $segMap[$page] ?? $page;
+			$slug = isset($params['slug']) ? preg_replace('/[^a-z0-9\-]/', '', (string) $params['slug']) : '';
+			$canonicalPath = '/' . $seg . ($slug !== '' ? '/' . $slug : '');
+		}
 	} elseif ($page === 'blockchain') {
 		$canonicalPath = '/blockchain';
 	} elseif ($page === 'platform') {

@@ -35,6 +35,10 @@ $paths['/documentation'] = array('weekly', '0.7');
 $paths['/compare'] = array('weekly', '0.7');
 $paths['/bos'] = array('weekly', '0.7');
 $paths['/solutions'] = array('weekly', '0.7');
+$paths['/legal'] = array('monthly', '0.6');
+$paths['/privacy'] = array('monthly', '0.5');
+$paths['/terms'] = array('monthly', '0.5');
+$paths['/blockchain'] = array('weekly', '0.9');
 
 try {
 	if (!defined('_ASTEXE_')) {
@@ -43,6 +47,7 @@ try {
 	$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? __DIR__), '/');
 	$mc = $docRoot . '/content/general_pages/epc_ecomae_marketing_content.php';
 	$pd = $docRoot . '/content/general_pages/epc_ecomae_platform_data.php';
+	$lc = $docRoot . '/content/general_pages/epc_ecomae_legal_content.php';
 	if (is_file($mc)) {
 		require_once $mc;
 		if (function_exists('epc_ecomae_docs_catalog')) {
@@ -56,6 +61,12 @@ try {
 		}
 		if (function_exists('epc_ecomae_solutions_catalog')) {
 			foreach (array_keys(epc_ecomae_solutions_catalog()) as $s) { $paths['/solutions/' . $s] = array('monthly', '0.7'); }
+		}
+	}
+	if (is_file($lc)) {
+		require_once $lc;
+		if (function_exists('epc_ecomae_legal_catalog')) {
+			foreach (array_keys(epc_ecomae_legal_catalog()) as $s) { $paths['/legal/' . $s] = array('monthly', '0.5'); }
 		}
 	}
 	if (is_file($pd)) {
