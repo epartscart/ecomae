@@ -158,6 +158,29 @@ check('einvoice view shows proof badge', strpos($einvUi, 'epc_bc_bos_document_ba
 $invUi = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_invoices.php');
 check('invoices view shows proof badge', strpos($invUi, 'epc_bc_bos_document_badge_html') !== false);
 
+section('GRN / RMA document UX');
+check('grn_record_id helper', function_exists('epc_bc_bos_grn_record_id'));
+check('grn_record_id from invoice no', epc_bc_bos_grn_record_id(['id' => 9, 'invoice_number' => 'SUP-1']) === 'PINV-SUP-1');
+check('grn_record_id fallback id', epc_bc_bos_grn_record_id(['id' => 9, 'invoice_number' => '']) === 'PINV-9');
+check('grn_badge_html helper', function_exists('epc_bc_bos_grn_badge_html'));
+check('grn badge empty without receipt', epc_bc_bos_grn_badge_html(['id' => 1, 'invoice_number' => 'X']) === '');
+$purchUi = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_main.php');
+check('purchases tab has GRN blockchain column', strpos($purchUi, 'epc_bc_bos_grn_badge_html') !== false && strpos($purchUi, 'Blockchain BOS GRN proof') !== false);
+$asTab = $root . '/cp/content/shop/finance/erp/erp_tabs_aftersales.php';
+check('aftersales RMA tab exists', is_file($asTab));
+$asTabSrc = (string)file_get_contents($asTab);
+check('aftersales tab shows RMA badge', strpos($asTabSrc, "epc_bc_bos_document_badge_html('rma'") !== false);
+check('main maps aftersales tab', strpos($purchUi, "'aftersales' => 'erp_tabs_aftersales.php'") !== false);
+$nav = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_nav_areas.php');
+check('nav includes aftersales', strpos($nav, "'aftersales'") !== false);
+$ajax = (string)file_get_contents($root . '/cp/content/shop/finance/erp/ajax_erp.php');
+check('ajax as_rma_create action', strpos($ajax, "case 'as_rma_create'") !== false);
+check('ajax RMA verify flash', strpos($ajax, 'Blockchain RMA proof') !== false);
+check('as_rma_list helper', function_exists('epc_as_rma_list') || strpos((string)file_get_contents($root . '/content/shop/finance/epc_erp_aftersales.php'), 'function epc_as_rma_list') !== false);
+check('as_rma_get helper', strpos((string)file_get_contents($root . '/content/shop/finance/epc_erp_aftersales.php'), 'function epc_as_rma_get') !== false);
+$asSrc2 = (string)file_get_contents($root . '/content/shop/finance/epc_erp_aftersales.php');
+check('RMA create uses stable rma_no for proof', strpos($asSrc2, "Prefer stable RMA-{id}") !== false || strpos($asSrc2, "RMA-' . \$rmaId") !== false);
+
 section('Fleet + print');
 check('list_proofs_fleet exists', function_exists('epc_bc_bos_list_proofs_fleet'));
 check('fleet_stats exists', function_exists('epc_bc_bos_fleet_stats'));

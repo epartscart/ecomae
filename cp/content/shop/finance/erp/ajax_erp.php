@@ -107,10 +107,10 @@ try {
 						$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
 						if (is_file($bcFile)) {
 							require_once $bcFile;
-							$invNo = trim((string) ($prow['invoice_number'] ?? ''));
-							$grnRef = $invNo !== '' ? ('PINV-' . $invNo) : ('PINV-' . (int) $id);
+							$prow['id'] = (int) $id;
+							$grnRef = epc_bc_bos_grn_record_id($prow);
 							$siteKey = epc_bc_bos_resolve_site_key();
-							$proof = $siteKey !== '' ? epc_bc_bos_lookup_proof($siteKey, 'grn', $grnRef) : null;
+							$proof = ($siteKey !== '' && $grnRef !== '') ? epc_bc_bos_lookup_proof($siteKey, 'grn', $grnRef) : null;
 							if ($proof && !empty($proof['proof_uid'])) {
 								$extra['blockchain_proof_uid'] = (string) $proof['proof_uid'];
 								$extra['blockchain_verify_url'] = epc_bc_bos_verify_url((string) $proof['proof_uid']);
@@ -125,6 +125,61 @@ try {
 			}
 			$piWf = epc_bos_wf_maybe_raise($db_link, 'purchase_invoice', (int) $id, 'BILL #' . (int) $id, $_POST);
 			epc_erp_json(true, 'Purchase invoice recorded' . $invMsg . $piWf . $bcMsg, $extra);
+
+		case 'as_rma_create':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aftersales.php';
+			$lines = array();
+			$csv = trim((string) ($_POST['lines_csv'] ?? ''));
+			if ($csv !== '') {
+				foreach (preg_split('/\r\n|\r|\n/', $csv) as $row) {
+					$row = trim($row);
+					if ($row === '' || strpos($row, 'item_id') === 0) {
+						continue;
+					}
+					$parts = str_getcsv($row);
+					if (count($parts) < 2) {
+						continue;
+					}
+					$lines[] = array(
+						'item_id' => (int) ($parts[0] ?? 0),
+						'qty' => (float) ($parts[1] ?? 0),
+						'unit_price' => (float) ($parts[2] ?? 0),
+						'condition_note' => (string) ($parts[3] ?? ''),
+					);
+				}
+			}
+			if ($lines === array()) {
+				epc_erp_json(false, 'Add at least one return line (item_id,qty,...)');
+			}
+			$rmaId = epc_as_rma_create($db_link, array(
+				'rma_no' => (string) ($_POST['rma_no'] ?? ''),
+				'customer_id' => (int) ($_POST['customer_id'] ?? 0),
+				'source_type' => 'sales_order',
+				'source_id' => (int) ($_POST['source_id'] ?? 0),
+				'reason' => (string) ($_POST['reason'] ?? ''),
+				'restock' => !empty($_POST['restock']) ? 1 : 0,
+			), $lines);
+			$got = epc_as_rma_get($db_link, $rmaId);
+			$rmaNo = (string) (($got['header']['rma_no'] ?? '') ?: ('RMA-' . $rmaId));
+			$extra = array('id' => $rmaId, 'rma_no' => $rmaNo);
+			$bcMsg = '';
+			try {
+				$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+				if (is_file($bcFile)) {
+					require_once $bcFile;
+					$siteKey = epc_bc_bos_resolve_site_key();
+					$proof = $siteKey !== '' ? epc_bc_bos_lookup_proof($siteKey, 'rma', $rmaNo) : null;
+					if ($proof && !empty($proof['proof_uid'])) {
+						$extra['blockchain_proof_uid'] = (string) $proof['proof_uid'];
+						$extra['blockchain_verify_url'] = epc_bc_bos_verify_url((string) $proof['proof_uid']);
+						$bcMsg = ' · Blockchain RMA proof ' . (string) ($proof['status'] ?? 'pending')
+							. ' — verify ' . $extra['blockchain_verify_url'];
+					}
+				}
+			} catch (Throwable $e) {
+				$bcMsg = '';
+			}
+			epc_erp_json(true, 'RMA ' . $rmaNo . ' created' . $bcMsg, $extra);
 
 		case 'supplier_payment':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';

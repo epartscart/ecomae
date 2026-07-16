@@ -1279,6 +1279,7 @@ function epc_erp_inventory_receive_purchase(PDO $db, $purchaseId, array $data = 
 			$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
 			if (is_file($bcFile)) {
 				require_once $bcFile;
+				$ref = epc_bc_bos_grn_record_id(array_merge($purchase, array('id' => $purchaseId)));
 				epc_bc_bos_maybe_record_document(
 					'grn',
 					$ref,

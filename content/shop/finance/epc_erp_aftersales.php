@@ -110,11 +110,15 @@ if (!function_exists('epc_as_rma_create')) {
     {
         epc_as_ensure_schema($db);
         $now = time();
+        $rmaNo = trim((string) ($data['rma_no'] ?? ''));
+        if ($rmaNo === '') {
+            $rmaNo = 'RMA-' . $now;
+        }
         $db->prepare(
             "INSERT INTO `epc_as_rma` (`rma_no`,`customer_id`,`source_type`,`source_id`,`reason`,`disposition`,`status`,`restock`,`time_created`,`time_updated`)
              VALUES (?,?,?,?,?, 'pending','open', ?, ?,?)"
         )->execute(array(
-            (string) ($data['rma_no'] ?? ('RMA-' . $now)),
+            $rmaNo,
             (int) ($data['customer_id'] ?? 0),
             (string) ($data['source_type'] ?? 'sales_order'),
             (int) ($data['source_id'] ?? 0),
@@ -124,19 +128,23 @@ if (!function_exists('epc_as_rma_create')) {
             $now,
         ));
         $rmaId = (int) $db->lastInsertId();
+        // Prefer stable RMA-{id} when caller did not supply a number.
+        if (trim((string) ($data['rma_no'] ?? '')) === '' && $rmaId > 0) {
+            $rmaNo = 'RMA-' . $rmaId;
+            $db->prepare('UPDATE `epc_as_rma` SET `rma_no` = ? WHERE `id` = ?')->execute(array($rmaNo, $rmaId));
+        }
         $ins = $db->prepare("INSERT INTO `epc_as_rma_lines` (`rma_id`,`item_id`,`qty`,`unit_price`,`condition_note`) VALUES (?,?,?,?,?)");
         foreach ($lines as $ln) {
             $ins->execute(array($rmaId, (int) $ln['item_id'], (float) ($ln['qty'] ?? 0), (float) ($ln['unit_price'] ?? 0), (string) ($ln['condition_note'] ?? '')));
         }
-        // Blockchain BOS: anchor aftersales RMA create (best-effort).
+        // Blockchain BOS: anchor aftersales RMA create (best-effort) — same record_id as stored rma_no.
         try {
             $bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
             if (is_file($bcFile)) {
                 require_once $bcFile;
-                $rmaNo = (string) ($data['rma_no'] ?? ('RMA-' . $rmaId));
                 epc_bc_bos_maybe_record_document(
                     'rma',
-                    $rmaNo !== '' ? $rmaNo : (string) $rmaId,
+                    $rmaNo,
                     array(
                         'rma_id' => $rmaId,
                         'rma_no' => $rmaNo,
@@ -153,6 +161,50 @@ if (!function_exists('epc_as_rma_create')) {
             // best-effort
         }
         return $rmaId;
+    }
+}
+
+if (!function_exists('epc_as_rma_list')) {
+    /**
+     * @return list<array<string,mixed>>
+     */
+    function epc_as_rma_list(PDO $db, int $limit = 100): array
+    {
+        epc_as_ensure_schema($db);
+        $limit = max(1, min(500, $limit));
+        $st = $db->query(
+            "SELECT r.*,
+                    (SELECT COUNT(*) FROM `epc_as_rma_lines` l WHERE l.rma_id = r.id) AS line_count
+             FROM `epc_as_rma` r
+             ORDER BY r.id DESC
+             LIMIT {$limit}"
+        );
+        return $st ? ($st->fetchAll(PDO::FETCH_ASSOC) ?: array()) : array();
+    }
+}
+
+if (!function_exists('epc_as_rma_get')) {
+    /**
+     * @return array{header:array<string,mixed>,lines:list<array<string,mixed>>}|null
+     */
+    function epc_as_rma_get(PDO $db, int $rmaId): ?array
+    {
+        epc_as_ensure_schema($db);
+        if ($rmaId <= 0) {
+            return null;
+        }
+        $hdr = $db->prepare('SELECT * FROM `epc_as_rma` WHERE `id` = ? LIMIT 1');
+        $hdr->execute(array($rmaId));
+        $row = $hdr->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+        $lst = $db->prepare('SELECT * FROM `epc_as_rma_lines` WHERE `rma_id` = ? ORDER BY `id` ASC');
+        $lst->execute(array($rmaId));
+        return array(
+            'header' => $row,
+            'lines' => $lst->fetchAll(PDO::FETCH_ASSOC) ?: array(),
+        );
     }
 }
 

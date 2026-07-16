@@ -468,6 +468,7 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Service agreements, contracts and service delivery',
 			'tabs' => array(
 				'contracts' => array('label' => 'Contracts & e-sign', 'icon' => 'fa-file-text-o'),
+				'aftersales' => array('label' => 'After-sales RMA', 'icon' => 'fa-undo'),
 				'jw_repairs' => array('label' => 'Repair jobs', 'icon' => 'fa-wrench', 'jw' => true),
 				'jw_repair_receipt' => array('label' => 'Repair receipt', 'icon' => 'fa-wrench', 'jw' => true),
 				'jw_repair_transfer' => array('label' => 'Repair transfer', 'icon' => 'fa-truck', 'jw' => true),
@@ -478,7 +479,7 @@ function epc_erp_nav_areas_config()
 				'jw_repair_search' => array('label' => 'Repair search', 'icon' => 'fa-search', 'jw' => true),
 			),
 			'groups' => array(
-				'Common' => array('contracts'),
+				'Common' => array('contracts', 'aftersales'),
 				'Jewellery repair & workshop' => array('jw_repairs', 'jw_repair_receipt', 'jw_repair_transfer', 'jw_workshop_receive', 'jw_repair_delivery', 'jw_repair_sale', 'jw_repair_register', 'jw_repair_search'),
 			),
 		),

@@ -38,6 +38,8 @@ MySQL remains the system of record. Blockchain proves selected facts; it does no
 |---|---|
 | Invoice / e-invoice detail | Badge + Verify on document view |
 | Invoice print | Blockchain proof block + absolute verify URL after totals |
+| Purchase invoices | Receipt + Blockchain columns; purchase view shows GRN proof badge |
+| After-sales RMA | Service → **After-sales RMA** list/detail with proof badges; create flash includes verify URL |
 | ERP proofs list | Tax → **Blockchain proofs** (`tab=blockchain_proofs`) also under Audit workbench |
 | Super CP fleet | Tenant Hub → **Blockchain** tab (proofs, filters, per-tenant mode, Anchor pending now) |
 | Public verify | `/epc-blockchain-verify.php` |

@@ -966,6 +966,34 @@ function epc_bc_bos_einvoice_record_keys(array $doc): array
 }
 
 /**
+ * GRN proof record_id for a purchase invoice row (matches inventory receive hook).
+ */
+function epc_bc_bos_grn_record_id(array $purchase): string
+{
+    $purchaseId = (int)($purchase['id'] ?? 0);
+    $invNo = trim((string)($purchase['invoice_number'] ?? ''));
+    if ($invNo !== '') {
+        return 'PINV-' . $invNo;
+    }
+    return $purchaseId > 0 ? ('PINV-' . $purchaseId) : '';
+}
+
+/**
+ * Badge HTML for a purchase GRN proof (empty when not received / no proof).
+ */
+function epc_bc_bos_grn_badge_html(array $purchase, array $opts = []): string
+{
+    if (empty($purchase['inv_receipt_posted'])) {
+        return '';
+    }
+    $rid = epc_bc_bos_grn_record_id($purchase);
+    if ($rid === '') {
+        return '';
+    }
+    return epc_bc_bos_document_badge_html('grn', $rid, $opts);
+}
+
+/**
  * Convenience: lookup + badge HTML for current tenant + document.
  */
 function epc_bc_bos_document_badge_html(string $recordType, string $recordId, array $opts = []): string
