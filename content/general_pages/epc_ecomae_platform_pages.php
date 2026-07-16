@@ -300,6 +300,8 @@ function epc_ecomae_platform_page_industries()
 	$dedTotal = epc_ded_total_activities();
 	$registries = epc_worldwide_business_registries();
 
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_seo.php';
+
 	// Industry photos for hero backgrounds
 	$industryPhotos = array(
 		'automotive' => 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=75',
@@ -331,6 +333,98 @@ function epc_ecomae_platform_page_industries()
 		'printing_signage' => 'https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=800&q=75',
 		'security_safety' => 'https://images.unsplash.com/photo-1558002038-1055907df827?w=800&q=75',
 	);
+
+	// Build hub rows + flat sub-industry directory for presentation / SEO links
+	$hubRows = array();
+	$subDirectory = array();
+	foreach ($consolidatedGroups as $gk => $ginfo) {
+		$templateKey = (string) ($ginfo['template_key'] ?? $gk);
+		$siteUrl = rtrim(epc_industry_seo_site_url_for_template($templateKey), '/');
+		$seoSubs = epc_industry_seo_template_sub_industries($templateKey);
+		if ($seoSubs === array() && !empty($ginfo['available_sub_areas']) && is_array($ginfo['available_sub_areas'])) {
+			$seoSubs = array_values($ginfo['available_sub_areas']);
+		}
+		$subs = array();
+		foreach ($seoSubs as $label) {
+			$label = (string) $label;
+			$slug = epc_industry_seo_sub_slug($label);
+			if ($slug === '') {
+				continue;
+			}
+			$pres = epc_industry_seo_sub_presentation($slug);
+			$cats = epc_industry_seo_template_sub_categories($templateKey, $label);
+			$entry = array(
+				'label' => $label,
+				'slug' => $slug,
+				'url' => $siteUrl . '/' . $slug,
+				'pres' => $pres,
+				'cats' => $cats,
+			);
+			$subs[] = $entry;
+			$subDirectory[] = array(
+				'label' => $label,
+				'slug' => $slug,
+				'url' => $siteUrl . '/' . $slug,
+				'pres' => $pres,
+				'cats' => $cats,
+				'group' => (string) ($ginfo['label'] ?? $gk),
+				'group_key' => (string) $gk,
+				'site' => $siteUrl,
+				'icon' => (string) ($ginfo['icon'] ?? 'fa-industry'),
+				'color' => (string) (($ginfo['color_scheme']['primary'] ?? '#3b82f6')),
+			);
+		}
+		$hubRows[] = array(
+			'gk' => (string) $gk,
+			'ginfo' => $ginfo,
+			'template_key' => $templateKey,
+			'site_url' => $siteUrl,
+			'subs' => $subs,
+			'photo' => $industryPhotos[$gk] ?? 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=75',
+			'color' => (string) (($ginfo['color_scheme']['primary'] ?? '#3b82f6')),
+		);
+	}
+	$subIndustryCount = count($subDirectory);
+
+	// Featured verticals (diverse industries + known category-rich pages)
+	$featuredWanted = array(
+		'precious-metals-refining',
+		'biomass-bioenergy',
+		'solar-energy',
+		'diamond-gemstones',
+		'gold-buying-selling',
+		'ev-charging-infrastructure',
+		'bridal-jewellery',
+		'waste-to-energy',
+	);
+	$featuredBySlug = array();
+	foreach ($subDirectory as $row) {
+		$featuredBySlug[$row['slug']] = $row;
+	}
+	$featuredSubs = array();
+	foreach ($featuredWanted as $fs) {
+		if (isset($featuredBySlug[$fs])) {
+			$featuredSubs[] = $featuredBySlug[$fs];
+		}
+	}
+	// Fill remaining from start of directory if some missing
+	if (count($featuredSubs) < 6) {
+		foreach ($subDirectory as $row) {
+			$already = false;
+			foreach ($featuredSubs as $f) {
+				if ($f['slug'] === $row['slug']) {
+					$already = true;
+					break;
+				}
+			}
+			if (!$already) {
+				$featuredSubs[] = $row;
+			}
+			if (count($featuredSubs) >= 8) {
+				break;
+			}
+		}
+	}
 
 	ob_start();
 	?>
@@ -390,17 +484,73 @@ function epc_ecomae_platform_page_industries()
 .epm-ind-card__link--cp{background:#7c3aed}
 .epm-ind-card__link--erp{background:#059669}
 /* Expanded detail panel */
-.epm-ind-card__detail{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.16,1,.3,1);background:#f8fafc;border-top:1px solid #e2e8f0}
-.epm-ind-card.expanded .epm-ind-card__detail{max-height:600px}
+.epm-ind-card__detail{max-height:0;overflow:hidden;transition:max-height .55s cubic-bezier(.16,1,.3,1);background:#f8fafc;border-top:1px solid #e2e8f0}
+.epm-ind-card.expanded .epm-ind-card__detail{max-height:2200px}
 .epm-ind-card__detail-inner{padding:16px}
-.epm-ind-card__detail h4{font-size:13px;font-weight:700;color:#1e293b;margin:0 0 10px}
-.epm-ind-card__all-subs{display:flex;flex-wrap:wrap;gap:6px}
-.epm-ind-card__all-subs span{padding:5px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#374151;transition:all .2s}
-.epm-ind-card__all-subs span:hover{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.epm-ind-card__detail h4{font-size:13px;font-weight:700;color:#1e293b;margin:0 0 6px}
+.epm-ind-card__detail-note{font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.45}
+.epm-ind-card__all-subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.epm-ind-card__all-subs a.epm-sub-tile{
+	display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:#fff;border:1px solid #e2e8f0;
+	border-radius:10px;font-size:12px;color:#0f172a;text-decoration:none;transition:all .2s;min-height:64px;
+}
+.epm-ind-card__all-subs a.epm-sub-tile:hover{border-color:#0284c7;box-shadow:0 6px 16px rgba(2,132,199,.12);transform:translateY(-2px)}
+.epm-ind-card__all-subs .epm-sub-tile__name{font-weight:700;line-height:1.3}
+.epm-ind-card__all-subs .epm-sub-tile__meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.epm-pres-pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.epm-pres-pill--atelier{background:#fff7ed;color:#c2410c}
+.epm-pres-pill--ledger{background:#f1f5f9;color:#334155}
+.epm-pres-pill--mosaic{background:#ecfeff;color:#0e7490}
+.epm-pres-pill--dock{background:#eff6ff;color:#1d4ed8}
+.epm-sub-tile__cats{font-size:10px;color:#64748b;line-height:1.35}
 .epm-ind-card__expand{display:flex;align-items:center;gap:4px;color:#3b82f6;font-size:11px;font-weight:600;cursor:pointer;margin-top:8px;transition:color .2s}
 .epm-ind-card__expand:hover{color:#1d4ed8}
 .epm-ind-card__expand i{transition:transform .3s}
 .epm-ind-card.expanded .epm-ind-card__expand i{transform:rotate(180deg)}
+/* Dedicated sub-industry showcase */
+.epm-subhub{max-width:1400px;margin:0 auto;padding:56px 24px 20px}
+.epm-subhub__head{text-align:center;margin-bottom:28px}
+.epm-subhub__head h2{font-size:clamp(24px,3vw,32px);font-weight:800;color:#0f172a;margin:0 0 10px}
+.epm-subhub__head p{color:#64748b;font-size:15px;margin:0 auto;max-width:720px;line-height:1.6}
+.epm-subhub__featured{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:36px}
+.epm-feat-sub{
+	display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:16px;border:1px solid #e2e8f0;
+	background:linear-gradient(180deg,#fff,#f8fafc);text-decoration:none;color:inherit;
+	transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.epm-feat-sub:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(15,23,42,.1);border-color:#38bdf8;text-decoration:none;color:inherit}
+.epm-feat-sub__top{display:flex;align-items:center;gap:10px}
+.epm-feat-sub__ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0}
+.epm-feat-sub__group{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+.epm-feat-sub__title{font-size:16px;font-weight:800;color:#0f172a;margin:0;line-height:1.25}
+.epm-feat-sub__cats{display:flex;flex-wrap:wrap;gap:5px}
+.epm-feat-sub__cats span{padding:3px 8px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;font-size:10px;font-weight:600;color:#334155}
+.epm-feat-sub__cta{margin-top:auto;font-size:12px;font-weight:700;color:#0284c7}
+.epm-subdir{background:#0b1220;border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,.06)}
+.epm-subdir__bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.epm-subdir__bar h3{margin:0;color:#f8fafc;font-size:18px;font-weight:800}
+.epm-subdir__bar p{margin:0;color:#94a3b8;font-size:13px}
+.epm-subdir__search{flex:1;min-width:220px;max-width:420px;position:relative}
+.epm-subdir__search input{
+	width:100%;padding:12px 14px 12px 38px;border-radius:10px;border:1px solid rgba(255,255,255,.12);
+	background:rgba(255,255,255,.06);color:#f8fafc;font-size:14px;outline:none;
+}
+.epm-subdir__search input::placeholder{color:#64748b}
+.epm-subdir__search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#64748b}
+.epm-subdir__count{color:#38bdf8;font-size:12px;font-weight:700}
+.epm-subdir__list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;max-height:420px;overflow:auto;padding-right:4px}
+.epm-subdir__item{
+	display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;
+	background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);text-decoration:none;color:#e2e8f0;
+}
+.epm-subdir__item:hover{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.35);text-decoration:none;color:#fff}
+.epm-subdir__item strong{font-size:13px;font-weight:700}
+.epm-subdir__item span{font-size:11px;color:#94a3b8}
+.epm-subdir__item.is-hidden{display:none}
+@media(max-width:768px){
+.epm-subhub{padding:40px 16px 12px}
+.epm-subdir__list{max-height:320px}
+}
 /* Best Fit section */
 .epm-bestfit{max-width:1400px;margin:0 auto;padding:60px 24px;text-align:center}
 .epm-bestfit h2{font-size:28px;font-weight:800;color:#0f172a;margin:0 0 12px}
@@ -435,12 +585,12 @@ function epc_ecomae_platform_page_industries()
 <section class="epm-ind-hero2">
 <div class="epm-ind-hero2__inner">
 <h1>Every Industry. One Platform.</h1>
-<p class="lead2"><?php echo $groupCount; ?> industry groups covering <?php echo number_format(count($industries)); ?>+ business activities. Each group includes a live storefront, control panel, and full ERP — ready for your specific niche.</p>
+<p class="lead2"><?php echo (int) $groupCount; ?> industry hubs and <?php echo number_format($subIndustryCount); ?>+ dedicated sub-industry pages — each with its own categories, storefront demos, CP and ERP. Search a niche like biomass, precious metals refining, or bridal jewellery.</p>
 <!-- Smart Search -->
 <div class="epm-search2">
 <i class="fa fa-search s-icon"></i>
-<input type="text" id="indSearch2" placeholder="What does your business do? (e.g. gold trading, pet grooming, car rental...)" autocomplete="off" />
-<span class="s-count" id="sCount2"><?php echo $groupCount; ?> industries</span>
+<input type="text" id="indSearch2" placeholder="Search industry or sub-industry (e.g. biomass, precious metals, gold trading...)" autocomplete="off" />
+<span class="s-count" id="sCount2"><?php echo (int) $groupCount; ?> hubs · <?php echo number_format($subIndustryCount); ?> verticals</span>
 <div class="s-hint" id="searchHint"></div>
 </div>
 <!-- Demo -->
@@ -453,8 +603,8 @@ function epc_ecomae_platform_page_industries()
 </div>
 <!-- Stats -->
 <div class="epm-stats2">
-<div class="epm-stat2"><div class="val"><?php echo $groupCount; ?></div><div class="lbl">Industry Groups</div></div>
-<div class="epm-stat2"><div class="val"><?php echo number_format(count($industries)); ?>+</div><div class="lbl">Business Activities</div></div>
+<div class="epm-stat2"><div class="val"><?php echo (int) $groupCount; ?></div><div class="lbl">Industry Hubs</div></div>
+<div class="epm-stat2"><div class="val"><?php echo number_format($subIndustryCount); ?>+</div><div class="lbl">Sub-Industry Pages</div></div>
 <div class="epm-stat2"><div class="val"><?php echo count($dedDivisions); ?></div><div class="lbl">DED Divisions</div></div>
 <div class="epm-stat2"><div class="val"><?php echo count($registries); ?></div><div class="lbl">Countries</div></div>
 </div>
@@ -463,30 +613,25 @@ function epc_ecomae_platform_page_industries()
 
 <!-- Industry Cards Grid -->
 <div class="epm-ind-grid" id="indGrid">
-<?php
-if (!function_exists('epc_industry_seo_site_url_for_template')) {
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_seo.php';
-}
-$cardIdx = 0; foreach ($consolidatedGroups as $gk => $ginfo) {
-	$subAreas = $ginfo['available_sub_areas'] ?? array();
-	$primaryColor = $ginfo['color_scheme']['primary'] ?? '#3b82f6';
-	$photo = $industryPhotos[$gk] ?? 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=75';
-	$templateKey = $ginfo['template_key'] ?? $gk;
-	$siteUrl = epc_industry_seo_site_url_for_template((string) $templateKey);
-	// Prefer full sub-industry list from the live template when available (SEO completeness)
-	$seoSubs = epc_industry_seo_template_sub_industries((string) $templateKey);
-	if ($seoSubs !== array()) {
-		$subAreas = array();
-		foreach ($seoSubs as $label) {
-			$subAreas[epc_industry_seo_sub_slug($label)] = $label;
-		}
+<?php foreach ($hubRows as $row):
+	$ginfo = $row['ginfo'];
+	$gk = $row['gk'];
+	$subs = $row['subs'];
+	$siteUrl = $row['site_url'];
+	$templateKey = $row['template_key'];
+	$primaryColor = $row['color'];
+	$photo = $row['photo'];
+	$subLabels = array();
+	foreach ($subs as $s) {
+		$subLabels[] = $s['label'];
 	}
+	$kw = strtolower(($ginfo['label'] ?? '') . ' ' . ($ginfo['description'] ?? '') . ' ' . implode(' ', $subLabels));
 	?>
-<div class="epm-ind-card epm-reveal" data-keywords="<?php echo epc_ecomae_h(strtolower($ginfo['label'] . ' ' . $ginfo['description'] . ' ' . implode(' ', $subAreas))); ?>" data-group="<?php echo epc_ecomae_h($gk); ?>">
+<div class="epm-ind-card epm-reveal" id="group-<?php echo epc_ecomae_h($gk); ?>" data-keywords="<?php echo epc_ecomae_h($kw); ?>" data-group="<?php echo epc_ecomae_h($gk); ?>">
 	<div class="epm-ind-card__photo">
 		<img src="<?php echo epc_ecomae_h($photo); ?>" alt="<?php echo epc_ecomae_h($ginfo['label']); ?> — ecomae industry site" loading="lazy">
 		<div class="epm-ind-card__photo-overlay"></div>
-		<span class="epm-ind-card__badge"><?php echo count($subAreas); ?> areas</span>
+		<span class="epm-ind-card__badge"><?php echo count($subs); ?> verticals</span>
 		<div class="epm-ind-card__photo-title">
 			<div class="ic" style="background:<?php echo epc_ecomae_h($primaryColor); ?>"><i class="fa <?php echo epc_ecomae_h($ginfo['icon']); ?>"></i></div>
 			<h3><?php echo epc_ecomae_h($ginfo['label']); ?></h3>
@@ -495,35 +640,108 @@ $cardIdx = 0; foreach ($consolidatedGroups as $gk => $ginfo) {
 	<div class="epm-ind-card__body">
 		<p class="epm-ind-card__desc"><?php echo epc_ecomae_h($ginfo['description']); ?></p>
 		<div class="epm-ind-card__subs">
-			<?php $shown = 0; foreach ($subAreas as $saKey => $saLabel) { if ($shown >= 4) break; $shown++; ?>
-			<a class="epm-ind-card__sub" href="<?php echo epc_ecomae_h(rtrim($siteUrl, '/') . '/' . epc_industry_seo_sub_slug((string) $saLabel)); ?>" style="text-decoration:none"><?php echo epc_ecomae_h($saLabel); ?></a>
+			<?php $shown = 0; foreach ($subs as $sub) { if ($shown >= 4) break; $shown++; ?>
+			<a class="epm-ind-card__sub" href="<?php echo epc_ecomae_h($sub['url']); ?>"><?php echo epc_ecomae_h($sub['label']); ?></a>
 			<?php } ?>
-			<?php if (count($subAreas) > 4): ?>
-			<span class="epm-ind-card__sub" style="background:#f1f5f9;color:#64748b;font-weight:600">+<?php echo count($subAreas) - 4; ?> more</span>
+			<?php if (count($subs) > 4): ?>
+			<span class="epm-ind-card__sub" style="background:#f1f5f9;color:#64748b;font-weight:600">+<?php echo count($subs) - 4; ?> more</span>
 			<?php endif; ?>
 		</div>
 		<div class="epm-ind-card__links">
-			<a href="<?php echo epc_ecomae_h($siteUrl); ?>" class="epm-ind-card__link epm-ind-card__link--site" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Site</a>
+			<a href="<?php echo epc_ecomae_h($siteUrl); ?>" class="epm-ind-card__link epm-ind-card__link--site" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Hub site</a>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($templateKey); ?>/" class="epm-ind-card__link epm-ind-card__link--cp"><i class="fa fa-th-large"></i> CP</a>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($templateKey); ?>/shop/finance/erp" class="epm-ind-card__link epm-ind-card__link--erp"><i class="fa fa-calculator"></i> ERP</a>
 		</div>
-		<div class="epm-ind-card__expand" onclick="toggleDetail(this)"><i class="fa fa-chevron-down"></i> View all <?php echo count($subAreas); ?> sub-industries</div>
+		<div class="epm-ind-card__expand" onclick="toggleDetail(this)"><i class="fa fa-chevron-down"></i> Browse <?php echo count($subs); ?> dedicated sub-industry pages</div>
 	</div>
 	<div class="epm-ind-card__detail">
 		<div class="epm-ind-card__detail-inner">
-			<h4>All Sub-Industries in <?php echo epc_ecomae_h($ginfo['label']); ?>:</h4>
+			<h4>Dedicated pages in <?php echo epc_ecomae_h($ginfo['label']); ?></h4>
+			<p class="epm-ind-card__detail-note">Each vertical opens on <strong><?php echo epc_ecomae_h(preg_replace('#^https://#', '', $siteUrl)); ?></strong> with its own layout (Atelier / Ledger / Mosaic / Dock) and product-service categories — not the hub hero.</p>
 			<div class="epm-ind-card__all-subs">
-				<?php foreach ($subAreas as $saKey => $saLabel):
-					$subHref = rtrim($siteUrl, '/') . '/' . epc_industry_seo_sub_slug((string) $saLabel);
+				<?php foreach ($subs as $sub):
+					$presKey = (string) ($sub['pres']['key'] ?? 'atelier');
+					$presLabel = (string) ($sub['pres']['label'] ?? 'Page');
+					$catBits = array_slice($sub['cats'], 0, 3);
 					?>
-				<a href="<?php echo epc_ecomae_h($subHref); ?>" style="color:inherit;text-decoration:none"><?php echo epc_ecomae_h($saLabel); ?></a>
+				<a class="epm-sub-tile" href="<?php echo epc_ecomae_h($sub['url']); ?>">
+					<span class="epm-sub-tile__name"><?php echo epc_ecomae_h($sub['label']); ?></span>
+					<span class="epm-sub-tile__meta">
+						<span class="epm-pres-pill epm-pres-pill--<?php echo epc_ecomae_h($presKey); ?>"><?php echo epc_ecomae_h($presLabel); ?></span>
+						<?php if ($catBits !== array()): ?>
+						<span class="epm-sub-tile__cats"><?php echo epc_ecomae_h(implode(' · ', $catBits)); ?></span>
+						<?php else: ?>
+						<span class="epm-sub-tile__cats">Open dedicated page →</span>
+						<?php endif; ?>
+					</span>
+				</a>
 				<?php endforeach; ?>
 			</div>
 		</div>
 	</div>
 </div>
-<?php $cardIdx++; } ?>
+<?php endforeach; ?>
 </div>
+
+<!-- Sub-industry presentation hub -->
+<section class="epm-subhub epm-reveal" id="sub-industries">
+<div class="epm-subhub__head">
+	<h2>Dedicated sub-industry pages</h2>
+	<p>Every niche gets its own URL, categories, and presentation style — separate from the industry hub’s 3D hero. Example: <a href="https://jewellery.ecomae.com/precious-metals-refining" style="color:#0284c7;font-weight:700">jewellery.ecomae.com/precious-metals-refining</a>.</p>
+</div>
+<div class="epm-subhub__featured">
+<?php foreach ($featuredSubs as $feat):
+	$presKey = (string) ($feat['pres']['key'] ?? 'atelier');
+	$presLabel = (string) ($feat['pres']['label'] ?? 'Page');
+	$cats = array_slice($feat['cats'], 0, 5);
+	if ($cats === array()) {
+		$cats = array('ERP', 'CP', 'Storefront');
+	}
+	?>
+	<a class="epm-feat-sub" href="<?php echo epc_ecomae_h($feat['url']); ?>">
+		<div class="epm-feat-sub__top">
+			<span class="epm-feat-sub__ico" style="background:<?php echo epc_ecomae_h($feat['color']); ?>"><i class="fa <?php echo epc_ecomae_h($feat['icon']); ?>"></i></span>
+			<div>
+				<div class="epm-feat-sub__group"><?php echo epc_ecomae_h($feat['group']); ?></div>
+				<span class="epm-pres-pill epm-pres-pill--<?php echo epc_ecomae_h($presKey); ?>"><?php echo epc_ecomae_h($presLabel); ?> layout</span>
+			</div>
+		</div>
+		<h3 class="epm-feat-sub__title"><?php echo epc_ecomae_h($feat['label']); ?></h3>
+		<div class="epm-feat-sub__cats">
+			<?php foreach ($cats as $c): ?>
+			<span><?php echo epc_ecomae_h($c); ?></span>
+			<?php endforeach; ?>
+		</div>
+		<div class="epm-feat-sub__cta">Open page →</div>
+	</a>
+<?php endforeach; ?>
+</div>
+
+<div class="epm-subdir" id="subDirectory">
+	<div class="epm-subdir__bar">
+		<div>
+			<h3>Browse all sub-industries</h3>
+			<p>Filter <?php echo number_format($subIndustryCount); ?> dedicated vertical pages across every hub.</p>
+		</div>
+		<div class="epm-subdir__search">
+			<i class="fa fa-search"></i>
+			<input type="search" id="subDirSearch" placeholder="Filter verticals (biomass, refining, solar...)" autocomplete="off" />
+		</div>
+		<div class="epm-subdir__count" id="subDirCount"><?php echo number_format($subIndustryCount); ?> pages</div>
+	</div>
+	<div class="epm-subdir__list" id="subDirList">
+		<?php foreach ($subDirectory as $sd):
+			$presLabel = (string) ($sd['pres']['label'] ?? 'Page');
+			$kw = strtolower($sd['label'] . ' ' . $sd['group'] . ' ' . $sd['slug'] . ' ' . implode(' ', $sd['cats']));
+			?>
+		<a class="epm-subdir__item" href="<?php echo epc_ecomae_h($sd['url']); ?>" data-subkw="<?php echo epc_ecomae_h($kw); ?>">
+			<strong><?php echo epc_ecomae_h($sd['label']); ?></strong>
+			<span><?php echo epc_ecomae_h($sd['group']); ?> · <?php echo epc_ecomae_h($presLabel); ?></span>
+		</a>
+		<?php endforeach; ?>
+	</div>
+</div>
+</section>
 
 <!-- What Every Industry Gets -->
 <section class="epm-included epm-reveal">
@@ -531,7 +749,7 @@ $cardIdx = 0; foreach ($consolidatedGroups as $gk => $ginfo) {
 <div class="epm-included__grid">
 <div class="epm-included__item">
 <h4><i class="fa fa-shopping-bag"></i> Live Storefront</h4>
-<ul><li>Industry-themed design with photos</li><li>Animated hero with product catalog</li><li>Mobile-first responsive layout</li><li>Multi-language (GeoIP auto-detect)</li><li>SEO-optimized with JSON-LD</li></ul>
+<ul><li>Industry hub + dedicated sub-industry pages</li><li>Distinct layouts (Atelier / Ledger / Mosaic / Dock)</li><li>Category grids per vertical</li><li>Mobile-first responsive layout</li><li>SEO URLs + JSON-LD for every niche</li></ul>
 </div>
 <div class="epm-included__item">
 <h4><i class="fa fa-th-large"></i> Control Panel (CP)</h4>
@@ -590,37 +808,78 @@ foreach($liveClients as $lci => $lc):
 </div>
 <script>
 (function(){
-// Search + best-fit matching
 var cards=document.querySelectorAll('.epm-ind-card');
 var input=document.getElementById('indSearch2');
 var counter=document.getElementById('sCount2');
 var hint=document.getElementById('searchHint');
+var subInput=document.getElementById('subDirSearch');
+var subItems=document.querySelectorAll('#subDirList .epm-subdir__item');
+var subCount=document.getElementById('subDirCount');
+var totalSubs=<?php echo (int) $subIndustryCount; ?>;
+
+function scoreText(kw,q){
+	if(!q)return 1;
+	var words=q.split(/\s+/),score=0;
+	words.forEach(function(w){if(w&&kw.indexOf(w)!==-1)score++});
+	return score;
+}
+function filterSubs(q){
+	var n=0;
+	subItems.forEach(function(it){
+		var kw=it.getAttribute('data-subkw')||'';
+		var ok=!q||scoreText(kw,q)>0;
+		it.classList.toggle('is-hidden',!ok);
+		if(ok)n++;
+	});
+	if(subCount)subCount.textContent=n.toLocaleString()+' page'+(n===1?'':'s');
+}
+if(input){
 input.addEventListener('input',function(){
-var q=this.value.toLowerCase().trim();
-var visible=0,bestMatch=null,bestScore=0;
-cards.forEach(function(c){
-var kw=c.getAttribute('data-keywords');
-if(!q){c.style.display='';visible++;return}
-var words=q.split(/\s+/);
-var score=0;
-words.forEach(function(w){if(kw.indexOf(w)!==-1)score++});
-if(score>0){c.style.display='';visible++;if(score>bestScore){bestScore=score;bestMatch=c}}
-else{c.style.display='none'}
+	var q=this.value.toLowerCase().trim();
+	var visible=0,bestMatch=null,bestScore=0;
+	cards.forEach(function(c){
+		var kw=c.getAttribute('data-keywords')||'';
+		if(!q){c.style.display='';visible++;return}
+		var score=scoreText(kw,q);
+		if(score>0){c.style.display='';visible++;if(score>bestScore){bestScore=score;bestMatch=c}}
+		else{c.style.display='none'}
+	});
+	counter.textContent=visible+(visible===1?' hub':' hubs')+' · filter verticals below';
+	filterSubs(q);
+	if(subInput&&subInput.value!==this.value)subInput.value=this.value;
+	if(bestMatch&&q.length>2){
+		var name=bestMatch.querySelector('h3').textContent;
+		hint.innerHTML='<strong>Best hub:</strong> '+name+' — click to expand sub-industry pages';
+		hint.className='s-hint active';
+		hint.onclick=function(){
+			bestMatch.scrollIntoView({behavior:'smooth',block:'center'});
+			bestMatch.classList.add('expanded');
+			hint.className='s-hint';
+		};
+	}else{hint.className='s-hint'}
 });
-counter.textContent=visible+(visible===1?' match':' matches');
-if(bestMatch&&q.length>2){
-var name=bestMatch.querySelector('h3').textContent;
-hint.innerHTML='<strong>Best fit:</strong> '+name+' — click to explore';
-hint.className='s-hint active';
-hint.onclick=function(){bestMatch.scrollIntoView({behavior:'smooth',block:'center'});bestMatch.classList.add('expanded');hint.className='s-hint'};
-}else{hint.className='s-hint'}
-});
-// Expand/collapse detail
+}
+if(subInput){
+	subInput.addEventListener('input',function(){
+		var q=this.value.toLowerCase().trim();
+		filterSubs(q);
+	});
+}
 window.toggleDetail=function(el){
-var card=el.closest('.epm-ind-card');
-card.classList.toggle('expanded');
+	var card=el.closest('.epm-ind-card');
+	card.classList.toggle('expanded');
 };
-// Scroll reveal
+// Deep-link #group-jewellery or ?group=
+var hash=window.location.hash||'';
+var params=new URLSearchParams(window.location.search);
+var g=params.get('group')||(hash.indexOf('#group-')===0?hash.slice(7):'');
+if(g){
+	var target=document.getElementById('group-'+g.replace(/[^a-z0-9_]/g,''));
+	if(target){
+		target.classList.add('expanded');
+		setTimeout(function(){target.scrollIntoView({behavior:'smooth',block:'center'})},200);
+	}
+}
 var reveals=document.querySelectorAll('.epm-reveal');
 var io=new IntersectionObserver(function(entries){
 entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target)}})

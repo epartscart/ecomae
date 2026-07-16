@@ -37,6 +37,44 @@ function epc_industry_seo_sub_presentation(string $slug): array
 }
 
 /**
+ * Category labels for one sub-industry from its template pack (parse-only).
+ *
+ * @return list<string>
+ */
+function epc_industry_seo_template_sub_categories(string $templateKey, string $subLabel): array
+{
+	$templateKey = preg_replace('/[^a-z0-9_]/', '', $templateKey) ?: '';
+	$subLabel = trim($subLabel);
+	if ($templateKey === '' || $subLabel === '') {
+		return array();
+	}
+	$root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+	$file = $root . '/content/general_pages/industry_templates/' . $templateKey . '.php';
+	if (!is_file($file)) {
+		return array();
+	}
+	$src = (string) file_get_contents($file);
+	$escaped = preg_quote($subLabel, '/');
+	if (!preg_match(
+		"/'" . $escaped . "'\\s*=>\\s*array\\s*\\([\\s\\S]{0,2500}?'categories'\\s*=>\\s*array\\s*\\((.*?)\\)/",
+		$src,
+		$m
+	)) {
+		return array();
+	}
+	$out = array();
+	if (preg_match_all("/'((?:\\\\'|[^'])*)'/", $m[1], $labels)) {
+		foreach ($labels[1] as $label) {
+			$label = trim(stripcslashes((string) $label));
+			if ($label !== '') {
+				$out[] = $label;
+			}
+		}
+	}
+	return $out;
+}
+
+/**
  * Map template_key / group → DNS-safe public host slug (no underscores).
  * These hosts must resolve via epc_industry_subdomain_resolve_group().
  *
