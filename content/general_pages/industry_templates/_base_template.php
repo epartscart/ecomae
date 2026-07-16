@@ -71,7 +71,7 @@ $ind3dMotif = $ind3dMotifMap[$industryGroup] ?? 'default';
 if (in_array($industrySlug, array('power', 'utility', 'utilities', 'solar', 'renewable', 'electric'), true)) {
 	$ind3dMotif = 'energy';
 }
-$ind3dAssetVer = '20260716d';
+$ind3dAssetVer = '20260716e';
 $ind3dCss = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.css&v=' . rawurlencode($ind3dAssetVer);
 $ind3dJs = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.js&v=' . rawurlencode($ind3dAssetVer);
 ?>
@@ -603,6 +603,29 @@ $heroVideoPath = '/content/videos/' . $heroVideoTheme . '.mp4?v=2';
 <?php endif; ?>
 <div class="ind-hero-video" id="heroVidWrap" data-src="<?php echo $heroVideoPath;?>"></div>
 <div class="ind-hero-overlay"></div>
+<div class="ind3d-stage" aria-hidden="true">
+<div class="ind3d-ring"></div>
+<div class="ind3d-ring ind3d-ring--2"></div>
+<div class="ind3d-core"><i class="fa <?php echo htmlspecialchars($icon);?>"></i></div>
+</div>
+<div class="ind3d-sprites" aria-hidden="true">
+<?php
+$ind3dSpriteIcons = array(
+	'energy' => array('fa-bolt','fa-sun-o','fa-plug','fa-battery-full','fa-tachometer','fa-leaf'),
+	'automotive' => array('fa-car','fa-cog','fa-wrench','fa-tachometer','fa-road','fa-key'),
+	'fashion' => array('fa-shopping-bag','fa-diamond','fa-heart','fa-star','fa-tag','fa-camera'),
+	'healthcare' => array('fa-heartbeat','fa-plus-square','fa-user-md','fa-stethoscope','fa-medkit','fa-hospital-o'),
+	'jewellery' => array('fa-diamond','fa-star','fa-certificate','fa-magic','fa-gift','fa-heart'),
+	'electronics' => array('fa-mobile','fa-laptop','fa-wifi','fa-hdd-o','fa-headphones','fa-gamepad'),
+	'finance' => array('fa-line-chart','fa-university','fa-credit-card','fa-pie-chart','fa-briefcase','fa-balance-scale'),
+	'default' => array('fa-cube','fa-star','fa-bolt','fa-globe','fa-cog','fa-diamond'),
+);
+$spriteSet = isset($ind3dSpriteIcons[$ind3dMotif]) ? $ind3dSpriteIcons[$ind3dMotif] : $ind3dSpriteIcons['default'];
+foreach ($spriteSet as $spriteIcon) {
+	echo '<div class="ind3d-sprite"><i class="fa ' . htmlspecialchars($spriteIcon) . '"></i></div>';
+}
+?>
+</div>
 <div class="particles">
 <?php for($i=0;$i<20;$i++): $size=rand(3,12); ?>
 <div class="particle" style="width:<?php echo $size;?>px;height:<?php echo $size;?>px;left:<?php echo rand(0,100);?>%;top:<?php echo rand(0,100);?>%;animation-delay:<?php echo rand(-10,0);?>s"></div>
