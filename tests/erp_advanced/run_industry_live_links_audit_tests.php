@@ -79,6 +79,27 @@ echo "\n== Platform route aliases ==\n";
 $r = epc_ecomae_platform_match_path('/platform/industries/nutrition-supplements');
 check('industries hyphen alias', ($r['page'] ?? '') === 'industry' && ($r['params']['code'] ?? '') === 'nutrition_supplements');
 
+echo "\n== /platform/industries primary grid ==\n";
+require_once $root . '/content/general_pages/epc_ecomae_platform_pages.php';
+ob_start();
+echo epc_ecomae_platform_page_industries();
+$industriesHtml = (string) ob_get_clean();
+check('page lists food supplements', stripos($industriesHtml, 'Food supplements') !== false);
+check('page lists furniture', stripos($industriesHtml, 'Furniture') !== false);
+check('hero uses client industries count not only 28 hubs', preg_match('/\b4[0-9]\b UAE\/GCC client industries/i', $industriesHtml) === 1
+	|| preg_match('/Client Industries<\/div>/', $industriesHtml) === 1);
+check('primary grid id indGrid present', strpos($industriesHtml, 'id="indGrid"') !== false);
+check('hubs moved to hubGrid', strpos($industriesHtml, 'id="hubGrid"') !== false);
+// Count primary industry cards (portal catalogue; exclude section id="industry-hubs")
+preg_match_all('/id="industry-([a-z0-9_]+)"/', $industriesHtml, $mInd);
+$cardIds = array_values(array_filter($mInd[1] ?? array(), static function ($id) {
+	return $id !== 'hubs';
+}));
+$cardCount = count($cardIds);
+check('primary grid has 40+ industry cards', $cardCount >= 40);
+check('primary grid matches marketing catalogue size', $cardCount === count(epc_ecomae_platform_industry_marketing()));
+echo "  (primary industry cards: $cardCount)\n";
+
 echo "\n== Sample links ==\n";
 foreach (array_slice($expect, 0, 6) as $code => $url) {
 	echo "  $code\n    $url\n";

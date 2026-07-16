@@ -426,6 +426,32 @@ function epc_ecomae_platform_page_industries()
 		}
 	}
 
+	// Primary catalogue: UAE/GCC portal industries (onboard codes), each with a live URL when available
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_industry_live_bridge.php';
+	$liveDefs = epc_portal_industry_live_defs();
+	$portalLiveRows = array();
+	foreach ($industries as $pCode => $pRow) {
+		$live = epc_portal_industry_live_storefront_url($pCode);
+		// CP demos use template keys from the live bridge (e.g. healthcare), not consolidation group keys
+		$tplKey = isset($liveDefs[$pCode]['template_key']) ? (string) $liveDefs[$pCode]['template_key'] : '';
+		$highlights = isset($pRow['highlights']) && is_array($pRow['highlights']) ? $pRow['highlights'] : array();
+		$color = (string) (($pRow['theme']['primary'] ?? '') ?: '#0f766e');
+		$portalLiveRows[] = array(
+			'code' => $pCode,
+			'name' => (string) ($pRow['name'] ?? $pCode),
+			'icon' => (string) ($pRow['icon'] ?? 'fa-industry'),
+			'tagline' => (string) ($pRow['tagline'] ?? ''),
+			'photo' => (string) (($pRow['photo'] ?? '') ?: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=75'),
+			'live' => $live,
+			'platform' => $base . 'platform/industry/' . rawurlencode($pCode),
+			'template_key' => $tplKey,
+			'highlights' => $highlights,
+			'color' => $color,
+			'ecosystem' => (string) ($pRow['ecosystem'] ?? ''),
+		);
+	}
+	$portalIndustryCount = count($portalLiveRows);
+
 	ob_start();
 	?>
 <style>
@@ -585,12 +611,12 @@ function epc_ecomae_platform_page_industries()
 <section class="epm-ind-hero2">
 <div class="epm-ind-hero2__inner">
 <h1>Every Industry. One Platform.</h1>
-<p class="lead2"><?php echo (int) $groupCount; ?> industry hubs and <?php echo number_format($subIndustryCount); ?>+ dedicated sub-industry pages — each with its own categories, storefront demos, CP and ERP. Search a niche like biomass, precious metals refining, or bridal jewellery.</p>
+<p class="lead2"><?php echo (int) $portalIndustryCount; ?> UAE/GCC client industries with live storefronts — plus <?php echo (int) $groupCount; ?> consolidation hubs and <?php echo number_format($subIndustryCount); ?>+ dedicated sub-industry pages. Search food supplements, furniture, pharmacy, grocery, or any DET–DED niche.</p>
 <!-- Smart Search -->
 <div class="epm-search2">
 <i class="fa fa-search s-icon"></i>
-<input type="text" id="indSearch2" placeholder="Search industry or sub-industry (e.g. food supplements, furniture, pharmacy, biomass...)" autocomplete="off" />
-<span class="s-count" id="sCount2"><?php echo (int) $groupCount; ?> hubs · <?php echo number_format($subIndustryCount); ?> verticals</span>
+<input type="text" id="indSearch2" placeholder="Search industry (e.g. food supplements, furniture, pharmacy, biomass...)" autocomplete="off" />
+<span class="s-count" id="sCount2"><?php echo (int) $portalIndustryCount; ?> industries</span>
 <div class="s-hint" id="searchHint"></div>
 </div>
 <!-- Demo -->
@@ -603,59 +629,74 @@ function epc_ecomae_platform_page_industries()
 </div>
 <!-- Stats -->
 <div class="epm-stats2">
+<div class="epm-stat2"><div class="val"><?php echo (int) $portalIndustryCount; ?></div><div class="lbl">Client Industries</div></div>
 <div class="epm-stat2"><div class="val"><?php echo (int) $groupCount; ?></div><div class="lbl">Industry Hubs</div></div>
 <div class="epm-stat2"><div class="val"><?php echo number_format($subIndustryCount); ?>+</div><div class="lbl">Sub-Industry Pages</div></div>
 <div class="epm-stat2"><div class="val"><?php echo count($dedDivisions); ?></div><div class="lbl">DED Divisions</div></div>
-<div class="epm-stat2"><div class="val"><?php echo count($registries); ?></div><div class="lbl">Countries</div></div>
 </div>
 </div>
 </section>
 
-<!-- UAE/GCC onboard industries — each with a working live storefront link -->
-<?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_industry_live_bridge.php';
-$portalLiveRows = array();
-foreach ($industries as $pCode => $pRow) {
-	$live = epc_portal_industry_live_storefront_url($pCode);
-	if ($live === '') {
-		continue;
-	}
-	$portalLiveRows[] = array(
-		'code' => $pCode,
-		'name' => (string) ($pRow['name'] ?? $pCode),
-		'icon' => (string) ($pRow['icon'] ?? 'fa-industry'),
-		'tagline' => (string) ($pRow['tagline'] ?? ''),
-		'photo' => (string) ($pRow['photo'] ?? ''),
-		'live' => $live,
-		'platform' => $base . 'platform/industry/' . rawurlencode($pCode),
-	);
-}
-?>
-<section class="epm-subhub epm-reveal" id="uae-gcc-industries" style="padding-top:48px">
+<!-- Primary: UAE/GCC portal industries (onboard catalogue) -->
+<section class="epm-subhub epm-reveal" id="uae-gcc-industries" style="padding-top:48px;padding-bottom:0">
 <div class="epm-subhub__head">
-	<h2>UAE / GCC client industries</h2>
-	<p>Every Super CP onboard industry opens a real hub or dedicated storefront — including food supplements, furniture, pharmacy, grocery, and more.</p>
+	<h2><?php echo (int) $portalIndustryCount; ?> UAE / GCC industries</h2>
+	<p>Every Super CP onboard industry — food supplements, furniture, pharmacy, grocery, and more — with a working live storefront or platform page.</p>
 </div>
-<div class="epm-subhub__featured">
-<?php foreach ($portalLiveRows as $pr): ?>
-	<a class="epm-feat-sub" href="<?php echo epc_ecomae_h($pr['live']); ?>" data-keywords="<?php echo epc_ecomae_h(strtolower($pr['name'] . ' ' . $pr['code'])); ?>">
-		<div class="epm-feat-sub__top">
-			<span class="epm-feat-sub__ico" style="background:#0f766e"><i class="fa <?php echo epc_ecomae_h($pr['icon']); ?>"></i></span>
-			<div>
-				<div class="epm-feat-sub__group">Live storefront</div>
-			</div>
+</section>
+<div class="epm-ind-grid" id="indGrid">
+<?php foreach ($portalLiveRows as $pr):
+	$hl = array_slice($pr['highlights'], 0, 4);
+	$kw = strtolower($pr['name'] . ' ' . $pr['code'] . ' ' . $pr['tagline'] . ' ' . $pr['ecosystem'] . ' ' . implode(' ', $hl));
+	$liveHost = $pr['live'] !== '' ? preg_replace('#^https://#', '', rtrim($pr['live'], '/')) : '';
+	$tpl = $pr['template_key'];
+	?>
+<div class="epm-ind-card epm-reveal" id="industry-<?php echo epc_ecomae_h($pr['code']); ?>" data-keywords="<?php echo epc_ecomae_h($kw); ?>" data-industry="<?php echo epc_ecomae_h($pr['code']); ?>">
+	<div class="epm-ind-card__photo">
+		<img src="<?php echo epc_ecomae_h($pr['photo']); ?>" alt="<?php echo epc_ecomae_h($pr['name']); ?> — ecomae industry" loading="lazy">
+		<div class="epm-ind-card__photo-overlay"></div>
+		<span class="epm-ind-card__badge"><?php echo $pr['live'] !== '' ? 'Live site' : 'Platform'; ?></span>
+		<div class="epm-ind-card__photo-title">
+			<div class="ic" style="background:<?php echo epc_ecomae_h($pr['color']); ?>"><i class="fa <?php echo epc_ecomae_h($pr['icon']); ?>"></i></div>
+			<h3><?php echo epc_ecomae_h($pr['name']); ?></h3>
 		</div>
-		<h3 class="epm-feat-sub__title"><?php echo epc_ecomae_h($pr['name']); ?></h3>
-		<div class="epm-feat-sub__cats"><span><?php echo epc_ecomae_h(preg_replace('#^https://#', '', rtrim($pr['live'], '/'))); ?></span></div>
-		<div class="epm-feat-sub__cta">Open live page →</div>
-	</a>
+	</div>
+	<div class="epm-ind-card__body">
+		<p class="epm-ind-card__desc"><?php echo epc_ecomae_h($pr['tagline'] !== '' ? $pr['tagline'] : ('Hosted storefront and CP for ' . $pr['name'] . '.')); ?></p>
+		<?php if ($hl !== array()): ?>
+		<div class="epm-ind-card__subs">
+			<?php foreach ($hl as $chip): ?>
+			<span class="epm-ind-card__sub"><?php echo epc_ecomae_h($chip); ?></span>
+			<?php endforeach; ?>
+		</div>
+		<?php elseif ($liveHost !== ''): ?>
+		<div class="epm-ind-card__subs">
+			<span class="epm-ind-card__sub"><?php echo epc_ecomae_h($liveHost); ?></span>
+		</div>
+		<?php endif; ?>
+		<div class="epm-ind-card__links">
+			<?php if ($pr['live'] !== ''): ?>
+			<a href="<?php echo epc_ecomae_h($pr['live']); ?>" class="epm-ind-card__link epm-ind-card__link--site" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Live site</a>
+			<?php endif; ?>
+			<a href="<?php echo epc_ecomae_h($pr['platform']); ?>" class="epm-ind-card__link epm-ind-card__link--cp"><i class="fa fa-info-circle"></i> Details</a>
+			<?php if ($tpl !== ''): ?>
+			<a href="/cp/demo/<?php echo epc_ecomae_h($tpl); ?>/" class="epm-ind-card__link epm-ind-card__link--erp"><i class="fa fa-th-large"></i> CP</a>
+			<?php endif; ?>
+		</div>
+	</div>
+</div>
 <?php endforeach; ?>
 </div>
-<p style="text-align:center;margin:8px 0 0;font-size:13px;color:#64748b"><?php echo count($portalLiveRows); ?> onboard industries with working links · <a href="#indGrid" style="color:#0284c7;font-weight:600">Browse 28 industry hubs below</a></p>
-</section>
+<p style="text-align:center;margin:0 0 8px;padding:0 24px;font-size:13px;color:#64748b"><?php echo (int) $portalIndustryCount; ?> client industries · <a href="#hubGrid" style="color:#0284c7;font-weight:600">Browse <?php echo (int) $groupCount; ?> consolidation hubs below</a></p>
 
-<!-- Industry Cards Grid -->
-<div class="epm-ind-grid" id="indGrid">
+<!-- Secondary: consolidation hub cards -->
+<section class="epm-subhub epm-reveal" id="industry-hubs" style="padding-top:40px;padding-bottom:0">
+<div class="epm-subhub__head">
+	<h2><?php echo (int) $groupCount; ?> industry hubs</h2>
+	<p>Consolidation domains with expandable sub-industry verticals — each hub hosts multiple client industries above.</p>
+</div>
+</section>
+<div class="epm-ind-grid" id="hubGrid">
 <?php foreach ($hubRows as $row):
 	$ginfo = $row['ginfo'];
 	$gk = $row['gk'];
@@ -851,13 +892,15 @@ foreach($liveClients as $lci => $lc):
 </div>
 <script>
 (function(){
-var cards=document.querySelectorAll('.epm-ind-card');
+var portalCards=document.querySelectorAll('#indGrid .epm-ind-card');
+var hubCards=document.querySelectorAll('#hubGrid .epm-ind-card');
 var input=document.getElementById('indSearch2');
 var counter=document.getElementById('sCount2');
 var hint=document.getElementById('searchHint');
 var subInput=document.getElementById('subDirSearch');
 var subItems=document.querySelectorAll('#subDirList .epm-subdir__item');
 var subCount=document.getElementById('subDirCount');
+var totalPortal=<?php echo (int) $portalIndustryCount; ?>;
 var totalSubs=<?php echo (int) $subIndustryCount; ?>;
 
 function scoreText(kw,q){
@@ -880,23 +923,27 @@ if(input){
 input.addEventListener('input',function(){
 	var q=this.value.toLowerCase().trim();
 	var visible=0,bestMatch=null,bestScore=0;
-	cards.forEach(function(c){
+	portalCards.forEach(function(c){
 		var kw=c.getAttribute('data-keywords')||'';
 		if(!q){c.style.display='';visible++;return}
 		var score=scoreText(kw,q);
 		if(score>0){c.style.display='';visible++;if(score>bestScore){bestScore=score;bestMatch=c}}
 		else{c.style.display='none'}
 	});
-	counter.textContent=visible+(visible===1?' hub':' hubs')+' · filter verticals below';
+	hubCards.forEach(function(c){
+		var kw=c.getAttribute('data-keywords')||'';
+		if(!q){c.style.display='';return}
+		c.style.display=scoreText(kw,q)>0?'':'none';
+	});
+	counter.textContent=visible+(visible===1?' industry':' industries')+(q?' matched':'');
 	filterSubs(q);
 	if(subInput&&subInput.value!==this.value)subInput.value=this.value;
 	if(bestMatch&&q.length>2){
 		var name=bestMatch.querySelector('h3').textContent;
-		hint.innerHTML='<strong>Best hub:</strong> '+name+' — click to expand sub-industry pages';
+		hint.innerHTML='<strong>Best match:</strong> '+name+' — click to open card';
 		hint.className='s-hint active';
 		hint.onclick=function(){
 			bestMatch.scrollIntoView({behavior:'smooth',block:'center'});
-			bestMatch.classList.add('expanded');
 			hint.className='s-hint';
 		};
 	}else{hint.className='s-hint'}
@@ -912,9 +959,16 @@ window.toggleDetail=function(el){
 	var card=el.closest('.epm-ind-card');
 	card.classList.toggle('expanded');
 };
-// Deep-link #group-jewellery or ?group=
+// Deep-link #industry-nutrition_supplements, #group-jewellery, or ?group=
 var hash=window.location.hash||'';
 var params=new URLSearchParams(window.location.search);
+var indCode=params.get('industry')||(hash.indexOf('#industry-')===0?hash.slice(10):'');
+if(indCode){
+	var indTarget=document.getElementById('industry-'+indCode.replace(/[^a-z0-9_]/g,''));
+	if(indTarget){
+		setTimeout(function(){indTarget.scrollIntoView({behavior:'smooth',block:'center'})},200);
+	}
+}
 var g=params.get('group')||(hash.indexOf('#group-')===0?hash.slice(7):'');
 if(g){
 	var target=document.getElementById('group-'+g.replace(/[^a-z0-9_]/g,''));
