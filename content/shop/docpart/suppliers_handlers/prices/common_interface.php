@@ -120,8 +120,10 @@ class prices_enclosure
 				}
 				
 				
-				// Запрошенный артикул (нормализованное сравнение с колонкой article)
-				$art_cmp = docpart_sql_article_normalized_expr('`article`');
+				// Fast path: indexed article_search when available
+				$art_cmp = function_exists('docpart_sql_article_match_expr')
+					? docpart_sql_article_match_expr($db_link, '`article`')
+					: docpart_sql_article_normalized_expr('`article`');
 				if (empty($article_search_values)) {
 					continue;
 				}
@@ -241,8 +243,8 @@ class prices_enclosure
 					
 					$binding_office_storage_args = array();
 					
-					//Получаем данные склада
-					$storage_query = $db_link->prepare('SELECT `connection_options`, `name`, (SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = `shop_storages`.`currency`) AS `rate` FROM `shop_storages` WHERE `id` = :id;');
+					//Получаем данные склада (short_name = customer-facing warehouse label)
+					$storage_query = $db_link->prepare('SELECT `connection_options`, `name`, `short_name`, (SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = `shop_storages`.`currency`) AS `rate` FROM `shop_storages` WHERE `id` = :id;');
 					$storage_query->bindValue(':id', $storage_id);
 					$storage_query->execute();
 					$storage_record = $storage_query->fetch();
@@ -262,10 +264,13 @@ class prices_enclosure
 					$probability = (int)$connection_options["probability"];
 					$color = $connection_options["color"];
 					$office_caption = "";
-					$storage_caption = "";
+					// Always expose warehouse name to storefront customers (not only office managers)
+					$storage_caption = !empty($storage_record['short_name'])
+						? (string) $storage_record['short_name']
+						: (string) $storage_record['name'];
 					$rate = $storage_record["rate"];
 			
-					//Получаем название склада для менеджера
+					// Managers may see the full warehouse name when mapped to the office
 					$storage_caption_for_manager_query = $db_link->prepare('SELECT
 						`shop_storages`.`name` AS `storage_caption`
 						FROM
@@ -276,17 +281,11 @@ class prices_enclosure
 						`shop_offices`.`users` LIKE ? AND
 						`shop_storages`.`id` = ? AND
 						`shop_offices`.`id` = ? LIMIT 1');
-					//Вот тут изменили аргумент в запросе на корректный.
-					// $storage_caption_for_manager_query->execute( array('%'.$user_id.'%', $storage_id, $office_id) );
 					$storage_caption_for_manager_query->execute(array('%"'.$user_id.'"%', $storage_id, $office_id));
 					$storage_caption_record = $storage_caption_for_manager_query->fetch();
-					if($storage_caption_record != false)
+					if($storage_caption_record != false && !empty($storage_caption_record["storage_caption"]))
 					{
 						$storage_caption = $storage_caption_record["storage_caption"];
-					}
-					else
-					{
-						$storage_caption = "";//Запрос не от менеджера офиса
 					}
 			
 					//Получаем название магазина
@@ -435,7 +434,9 @@ class prices_enclosure
 			}
 			
 			// Запрошенный артикул
-			$art_cmp = docpart_sql_article_normalized_expr('`article`');
+			$art_cmp = function_exists('docpart_sql_article_match_expr')
+				? docpart_sql_article_match_expr($db_link, '`article`')
+				: docpart_sql_article_normalized_expr('`article`');
 			if (empty($article_search_values)) {
 				$article_search_values = array($article);
 			}

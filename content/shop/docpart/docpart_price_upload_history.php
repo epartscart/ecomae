@@ -1018,11 +1018,13 @@ function epc_price_history_log_pyprices_task(PDO $db_link, array $task, int $pri
 		unset($pcUpdate['upload_source']);
 		$updated = epc_price_history_update_by_source_ref($db_link, 'pyprices_upload', $tmpFolder, $pcUpdate);
 		if ($updated > 0) {
+			epc_price_history_refresh_article_search($db_link, $priceId, $records);
 			return;
 		}
 	}
 
 	if (epc_price_history_update_by_task_ref($db_link, $taskId, $updateParams) > 0) {
+		epc_price_history_refresh_article_search($db_link, $priceId, $records);
 		return;
 	}
 
@@ -1040,4 +1042,20 @@ function epc_price_history_log_pyprices_task(PDO $db_link, array $task, int $pri
 		'stats_json' => $stats,
 		'import_issues' => $moduleIssues,
 	]);
+
+	epc_price_history_refresh_article_search($db_link, $priceId, $records);
+}
+
+function epc_price_history_refresh_article_search(PDO $db_link, int $priceId, int $records): void
+{
+	if ($records <= 0 || $priceId <= 0) {
+		return;
+	}
+	if (!is_file(__DIR__ . '/docpart_article_match.php')) {
+		return;
+	}
+	require_once __DIR__ . '/docpart_article_match.php';
+	if (function_exists('docpart_price_data_backfill_article_search')) {
+		docpart_price_data_backfill_article_search($db_link, $priceId, 100000);
+	}
 }

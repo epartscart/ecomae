@@ -4551,12 +4551,13 @@ function resultReview()
 // Единая функция формирования HTML-кода для одной записи товара.
 function epcProductWarehouseCaption(Product)
 {
-	var label = Product.storage_caption || '';
-	if(label === '' && typeof all_storages_info !== 'undefined' && all_storages_info[Product.storage_id])
+	var label = (Product && Product.storage_caption) ? String(Product.storage_caption) : '';
+	if(label === '' && typeof all_storages_info !== 'undefined' && Product && all_storages_info[Product.storage_id])
 	{
-		label = String(all_storages_info[Product.storage_id].name || '');
+		var info = all_storages_info[Product.storage_id] || {};
+		label = String(info.name || info.short_name || info.full_name || '');
 	}
-	if(label === '' && typeof all_storages !== 'undefined' && all_storages[Product.storage_id])
+	if(label === '' && typeof all_storages !== 'undefined' && Product && all_storages[Product.storage_id])
 	{
 		label = String(all_storages[Product.storage_id] || '');
 	}
@@ -4653,13 +4654,11 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 	<?php
 	}
 	?>
-	if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
+	// Always show warehouse name on storefront results (not only CHPU pages)
+	var epcWarehouseLabel = epcProductWarehouseCaption(Product);
+	if(epcWarehouseLabel !== '' && !isChpuWarehouseSubRow)
 	{
-		var epcWarehouseLabel = epcProductWarehouseCaption(Product);
-		if(epcWarehouseLabel !== '' && !isChpuWarehouseSubRow)
-		{
-			info += "<div class='show_data_class epc-warehouse-label' style=\"margin: 3px 0px; white-space: nowrap; max-width: 110px; font-size: 11px; font-weight: 600;\" title=\"Warehouse\"><span class=\"info_box\">"+ epcWarehouseLabel +"</span></div>";
-		}
+		info += "<div class='show_data_class epc-warehouse-label' style=\"margin: 3px 0px; white-space: nowrap; max-width: 110px; font-size: 11px; font-weight: 600;\" title=\"Warehouse\"><span class=\"info_box\">"+ epcWarehouseLabel +"</span></div>";
 	}
     
 	info = '<div style="margin: 3px 0px;">'+ info +'</div>';

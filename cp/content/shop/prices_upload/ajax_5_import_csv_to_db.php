@@ -404,6 +404,14 @@ $epc_history_id = epc_price_history_save($db_link, array(
 	'import_issues' => $epc_import_issues,
 ));
 
+// Keep storefront article_search index warm for this list
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_article_match.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_article_match.php';
+	if (function_exists('docpart_price_data_backfill_article_search')) {
+		docpart_price_data_backfill_article_search($db_link, (int) $price_id, 100000);
+	}
+}
+
 $answer = array();
 $answer["result"] = 1;
 $answer["records_handled"] = $epc_total_imported;

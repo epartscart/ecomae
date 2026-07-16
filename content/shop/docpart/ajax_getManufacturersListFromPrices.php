@@ -47,7 +47,9 @@ class prices_enclosure
 		// По каждой связке офис–склад отдельно: несколько складов могут ссылаться на один price_id
 		// (разные поставщики с одним прайсом). Старый код держал один storage на price_id и схлопывал бренды по md5(manufacturer).
 		$hashes = array();
-		$art_expr = docpart_sql_article_normalized_expr('`article`');
+		$art_expr = function_exists('docpart_sql_article_match_expr')
+			? docpart_sql_article_match_expr($db_link, '`article`')
+			: docpart_sql_article_normalized_expr('`article`');
 		$article_candidates = docpart_collect_article_candidates(
 			$db_link,
 			$article_norm,

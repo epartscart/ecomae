@@ -844,6 +844,14 @@ for($i=0; $i < count($customer_offices); $i++)
 
 $epc_default_office_id = !empty($customer_offices) ? (int)$customer_offices[0] : 1;
 
+// Drop storefront-disabled warehouses before JS polls them
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_storage_flags.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_storage_flags.php';
+	if (function_exists('epc_ssf_filter_office_storage_bunches')) {
+		$office_storage_bunches = epc_ssf_filter_office_storage_bunches($db_link, $office_storage_bunches);
+	}
+}
+
 // When offices have no mapped price warehouses, still add a protocol-3 bunch for all active price lists.
 $epc_has_price_bunch = false;
 foreach ($office_storage_bunches as $epc_bunch_check) {
@@ -5147,14 +5155,18 @@ if($initial_position_search == 1 && empty($epc_brand_picker_mode)){
 /* ********    ФИЛЬТР ПОЗИЦИЙ    ******* */
 /* ************************************* */
 
-// Выберем в массив названия складов для отображения их в фильтре по складами
-$storages_query = $db_link->prepare('SELECT `id`, `interface_type`, `short_name` AS `name`, `bg_line_color` FROM `shop_storages`;');
+// Warehouse labels for filters / result chips (prefer short_name, fall back to name)
+$storages_query = $db_link->prepare('SELECT `id`, `interface_type`, `name`, `short_name`, `bg_line_color` FROM `shop_storages`;');
 $storages_query->execute();
 $all_storages = array();
 $bg_line_color_Docpart_Treelax = 0;
 while( $storage = $storages_query->fetch() )
 {
-	$all_storages[$storage['id']] = $storage['name'];
+	$whLabel = trim((string) ($storage['short_name'] ?? ''));
+	if ($whLabel === '') {
+		$whLabel = trim((string) ($storage['name'] ?? ''));
+	}
+	$all_storages[$storage['id']] = $whLabel;
 	if($storage['interface_type'] == 6){
 		$bg_line_color_Docpart_Treelax = $storage['bg_line_color'];
 	}
@@ -5168,7 +5180,16 @@ while( $storage = $storages_query->fetch() )
 	if($storage['interface_type'] == 1){
 		$storage['bg_line_color'] = $bg_line_color_Docpart_Treelax;
 	}
-	$all_storages_info[$storage['id']] = array('name'=>$storage['short_name'], 'bg_line_color'=>$storage['bg_line_color']);
+	$whLabel = trim((string) ($storage['short_name'] ?? ''));
+	if ($whLabel === '') {
+		$whLabel = trim((string) ($storage['name'] ?? ''));
+	}
+	$all_storages_info[$storage['id']] = array(
+		'name' => $whLabel,
+		'short_name' => (string) ($storage['short_name'] ?? ''),
+		'full_name' => (string) ($storage['name'] ?? ''),
+		'bg_line_color' => $storage['bg_line_color'],
+	);
 }
 ?>
 <script>
