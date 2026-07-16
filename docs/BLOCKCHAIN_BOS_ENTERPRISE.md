@@ -39,13 +39,20 @@ MySQL remains the system of record. Blockchain proves selected facts; it does no
 | Invoice / e-invoice detail | Badge + Verify on document view |
 | Invoice print | Blockchain proof block + absolute verify URL after totals |
 | Purchase invoices | Receipt + Blockchain columns; purchase view shows GRN proof badge |
-| After-sales RMA | Service → **After-sales RMA** list/detail with proof badges; create flash includes verify URL |
+| After-sales RMA | Service → **After-sales RMA** list/detail + warranty RMA list with proof badges; create flash includes verify URL |
+| ERP dashboard | Proof KPI strip (total / anchored / pending) when mode ≠ off |
 | ERP proofs list | Tax → **Blockchain proofs** (`tab=blockchain_proofs`) also under Audit workbench |
 | Super CP fleet | Tenant Hub → **Blockchain** tab (proofs, filters, per-tenant mode, Anchor pending now) |
-| Public verify | `/epc-blockchain-verify.php` |
-| Purchase + receive | Success message includes GRN verify URL when proof exists |
+| Public verify | `/epc-blockchain-verify.php` (+ link to `/blockchain`) |
+| Purchase + receive | Success message includes GRN verify URL for `create_purchase` and `purchase_from_order` (ERP + Procurement) |
 
-Helpers: `epc_bc_bos_lookup_proof()`, `epc_bc_bos_list_proofs()`, `epc_bc_bos_list_proofs_fleet()`, `epc_bc_bos_fleet_stats()`, `epc_bc_bos_document_badge_html()`, `epc_bc_bos_verify_url_absolute()`, `epc_bc_bos_anchor_network()`, `epc_th_update_tenant_blockchain_mode()`, `epc_th_anchor_blockchain_pending_now()`.
+Staff allowlist includes `aftersales` and `blockchain_proofs` so department users can open those tabs.
+
+Helpers: `epc_bc_bos_lookup_proof()`, `epc_bc_bos_list_proofs()`, `epc_bc_bos_list_proofs_fleet()`, `epc_bc_bos_fleet_stats()`, `epc_bc_bos_tenant_proof_stats()`, `epc_bc_bos_document_badge_html()`, `epc_bc_bos_grn_flash_for_purchase()`, `epc_bc_bos_verify_url_absolute()`, `epc_bc_bos_anchor_network()`, `epc_th_update_tenant_blockchain_mode()`, `epc_th_anchor_blockchain_pending_now()`.
+
+## Phase complete (anchor mode)
+
+This phase ships a complete **anchor-mode** Blockchain BOS Enterprise proof layer: record → Merkle batch → public verify across invoices/CN/GRN/RMA, with operator surfaces in ERP and Super CP. Permissioned `network` mode remains roadmap.
 
 ### Super CP fleet controls
 

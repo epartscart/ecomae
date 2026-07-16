@@ -43,7 +43,25 @@ try {
 
 		case 'create_purchase':
 			$id = epc_erp_create_purchase($db_link, $_POST);
-			epc_proc_json(true, 'Purchase bill recorded', array('id' => $id));
+			$extra = array('id' => $id);
+			$bcMsg = '';
+			if (!empty($_POST['receive_inventory'])) {
+				$pst = $db_link->prepare('SELECT `id`, `inv_receipt_posted`, `invoice_number` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
+				$pst->execute(array($id));
+				$prow = $pst->fetch(PDO::FETCH_ASSOC) ?: array();
+				if (!empty($prow['inv_receipt_posted'])) {
+					$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+					if (is_file($bcFile)) {
+						require_once $bcFile;
+						$flash = epc_bc_bos_grn_flash_for_purchase($prow);
+						$bcMsg = (string) ($flash['message'] ?? '');
+						if (!empty($flash['extra']) && is_array($flash['extra'])) {
+							$extra = array_merge($extra, $flash['extra']);
+						}
+					}
+				}
+			}
+			epc_proc_json(true, 'Purchase bill recorded' . $bcMsg, $extra);
 
 		case 'supplier_payment':
 			$id = epc_erp_supplier_payment($db_link, $_POST);
@@ -63,6 +81,28 @@ try {
 			if (!empty($r['inventory_line_count'])) {
 				$msg .= '; ' . (int)$r['inventory_line_count'] . ' stock line(s)';
 				$msg .= !empty($r['inventory_receipt_posted']) ? ' posted to inventory' : ' (warehouse link required for stock receipt)';
+			}
+			if (!empty($r['inventory_receipt_posted'])) {
+				$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+				if (is_file($bcFile)) {
+					require_once $bcFile;
+					$flashPurchase = array(
+						'id' => (int) ($r['purchase_id'] ?? 0),
+						'invoice_number' => (string) ($r['invoice_number'] ?? ''),
+						'inventory_receipt_posted' => 1,
+						'inv_receipt_posted' => 1,
+					);
+					if ($flashPurchase['invoice_number'] === '' && !empty($r['purchase_id'])) {
+						$pst = $db_link->prepare('SELECT `invoice_number` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
+						$pst->execute(array((int) $r['purchase_id']));
+						$flashPurchase['invoice_number'] = (string) ($pst->fetchColumn() ?: '');
+					}
+					$flash = epc_bc_bos_grn_flash_for_purchase($flashPurchase);
+					$msg .= (string) ($flash['message'] ?? '');
+					if (!empty($flash['extra']) && is_array($flash['extra'])) {
+						$r = array_merge($r, $flash['extra']);
+					}
+				}
 			}
 			epc_proc_json(true, $msg, $r);
 

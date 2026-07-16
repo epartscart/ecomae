@@ -226,6 +226,45 @@ check('footer links to blockchain', strpos($footerSrc, 'blockchain">Blockchain B
 $homeSrc = (string)file_get_contents($root . '/content/general_pages/epc_ecomae_home_sections.php');
 check('home links How it works to /blockchain', strpos($homeSrc, 'href="/blockchain"') !== false);
 
+section('Completeness — staff allowlist + GRN flash + dashboard');
+$staffSrc = (string)file_get_contents($root . '/content/shop/finance/epc_erp_staff.php');
+check('staff all_tabs includes aftersales', strpos($staffSrc, "'aftersales'") !== false);
+check('staff all_tabs includes blockchain_proofs', strpos($staffSrc, "'blockchain_proofs'") !== false);
+check('finance dept has blockchain_proofs', (bool)preg_match("/'finance'\\s*=>\\s*array\\([\\s\\S]*?'blockchain_proofs'/", $staffSrc));
+check('sales dept has aftersales', (bool)preg_match("/'sales'\\s*=>\\s*array\\([\\s\\S]*?'aftersales'/", $staffSrc));
+$uiCfg = (string)file_get_contents($root . '/content/shop/finance/epc_erp_ui.php');
+check('ui config has aftersales tab', strpos($uiCfg, "'aftersales'") !== false);
+
+check('grn_flash_for_purchase helper', function_exists('epc_bc_bos_grn_flash_for_purchase'));
+$emptyFlash = epc_bc_bos_grn_flash_for_purchase(['id' => 1, 'invoice_number' => 'X']);
+check('grn flash empty without receipt', ($emptyFlash['message'] ?? 'x') === '' && empty($emptyFlash['extra']));
+check('tenant_proof_stats helper', function_exists('epc_bc_bos_tenant_proof_stats'));
+$stats = epc_bc_bos_tenant_proof_stats('');
+check('tenant_proof_stats shape', isset($stats['total'], $stats['anchored'], $stats['pending'], $stats['mode']));
+
+$ajaxErp = (string)file_get_contents($root . '/cp/content/shop/finance/erp/ajax_erp.php');
+check('erp create_purchase uses grn flash helper', strpos($ajaxErp, 'epc_bc_bos_grn_flash_for_purchase') !== false);
+check('erp purchase_from_order GRN flash', strpos($ajaxErp, "case 'purchase_from_order'") !== false
+	&& strpos($ajaxErp, 'epc_bc_bos_grn_flash_for_purchase') !== false
+	&& strpos($ajaxErp, 'inventory_receipt_posted') !== false);
+$ajaxProc = (string)file_get_contents($root . '/cp/content/shop/procurement/ajax_procurement.php');
+check('procurement create_purchase GRN flash', strpos($ajaxProc, 'epc_bc_bos_grn_flash_for_purchase') !== false);
+check('procurement purchase_from_order GRN flash', strpos($ajaxProc, "case 'purchase_from_order'") !== false
+	&& substr_count($ajaxProc, 'epc_bc_bos_grn_flash_for_purchase') >= 2);
+
+$asTabSrc2 = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_aftersales.php');
+check('aftersales warranty RMA section', strpos($asTabSrc2, 'Warranty RMAs') !== false && strpos($asTabSrc2, 'epc_rma_list') !== false);
+$dashSrc = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_dashboard.php');
+check('dashboard proof KPI strip', strpos($dashSrc, 'epc_bc_bos_tenant_proof_stats') !== false && strpos($dashSrc, 'Blockchain proofs') !== false);
+$vsrc2 = (string)file_get_contents($root . '/epc-blockchain-verify.php');
+check('verify links to /blockchain', strpos($vsrc2, '/blockchain') !== false);
+$pageSrc2 = (string)file_get_contents($root . '/content/general_pages/epc_ecomae_blockchain_page.php');
+check('marketing page mentions After-sales + dashboard', strpos($pageSrc2, 'After-sales') !== false && strpos($pageSrc2, 'dashboard') !== false);
+$docsSrc = (string)file_get_contents($root . '/docs/BLOCKCHAIN_BOS_ENTERPRISE.md');
+check('docs phase complete anchor mode', strpos($docsSrc, 'Phase complete (anchor mode)') !== false);
+check('docs mention purchase_from_order', strpos($docsSrc, 'purchase_from_order') !== false);
+check('grn badge accepts inventory_receipt_posted', strpos((string)file_get_contents($root . '/content/general_pages/epc_blockchain_bos.php'), 'inventory_receipt_posted') !== false);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
 exit($fail_count > 0 ? 1 : 0);

@@ -7,10 +7,27 @@ defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aftersales.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_warranty_rma.php';
 
 $viewId = isset($_GET['rma_id']) ? (int) $_GET['rma_id'] : 0;
 $detail = $viewId > 0 ? epc_as_rma_get($db_link, $viewId) : null;
 $rows = epc_as_rma_list($db_link, 100);
+
+$warrantyRows = array();
+$siteKey = epc_bc_bos_resolve_site_key();
+if ($siteKey !== '') {
+	try {
+		$platformPdo = epc_bc_bos_platform_pdo();
+		if ($platformPdo instanceof PDO) {
+			$warrantyRows = epc_rma_list($platformPdo, $siteKey, array());
+			if (count($warrantyRows) > 40) {
+				$warrantyRows = array_slice($warrantyRows, 0, 40);
+			}
+		}
+	} catch (Throwable $e) {
+		$warrantyRows = array();
+	}
+}
 
 erp_page_header(
 	'<i class="fa fa-undo"></i> After-sales RMA',
@@ -117,6 +134,38 @@ endif;
 				<td><?php echo !empty($r['time_created']) ? epc_erp_h(date('Y-m-d', (int) $r['time_created'])) : '—'; ?></td>
 				<td><?php echo $badge !== '' ? $badge : '<span class="text-muted">—</span>'; ?></td>
 				<td><a class="btn btn-default btn-xs" href="<?php echo epc_erp_h($viewUrl); ?>">View</a></td>
+			</tr>
+		<?php endforeach; endif; ?>
+		</tbody>
+	</table>
+</div>
+
+<div class="epc-erp-section">
+	<h4><i class="fa fa-shield"></i> Warranty RMAs</h4>
+	<p class="text-muted">Platform warranty channel (`epc_rma_requests`) — proofs use the same <code>rma</code> record type and <code>rma_number</code>.</p>
+	<table class="table table-striped table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>RMA #</th>
+				<th>Customer</th>
+				<th>Status</th>
+				<th>Reason</th>
+				<th>Blockchain</th>
+			</tr>
+		</thead>
+		<tbody>
+		<?php if (empty($warrantyRows)): ?>
+			<tr><td colspan="5" class="text-muted">No warranty RMAs for this tenant yet.</td></tr>
+		<?php else: foreach ($warrantyRows as $wr):
+			$wNo = (string) ($wr['rma_number'] ?? '');
+			$wBadge = $wNo !== '' ? epc_bc_bos_document_badge_html('rma', $wNo) : '';
+			?>
+			<tr>
+				<td><code><?php echo epc_erp_h($wNo); ?></code></td>
+				<td><?php echo epc_erp_h((string) ($wr['customer_name'] ?? ('#' . (int) ($wr['customer_id'] ?? 0)))); ?></td>
+				<td><span class="label label-default"><?php echo epc_erp_h((string) ($wr['status'] ?? '')); ?></span></td>
+				<td><?php echo epc_erp_h((string) ($wr['reason'] ?? '')); ?></td>
+				<td><?php echo $wBadge !== '' ? $wBadge : '<span class="text-muted">—</span>'; ?></td>
 			</tr>
 		<?php endforeach; endif; ?>
 		</tbody>

@@ -983,7 +983,7 @@ function epc_bc_bos_grn_record_id(array $purchase): string
  */
 function epc_bc_bos_grn_badge_html(array $purchase, array $opts = []): string
 {
-    if (empty($purchase['inv_receipt_posted'])) {
+    if (empty($purchase['inv_receipt_posted']) && empty($purchase['inventory_receipt_posted'])) {
         return '';
     }
     $rid = epc_bc_bos_grn_record_id($purchase);
@@ -991,6 +991,72 @@ function epc_bc_bos_grn_badge_html(array $purchase, array $opts = []): string
         return '';
     }
     return epc_bc_bos_document_badge_html('grn', $rid, $opts);
+}
+
+/**
+ * Attach GRN proof flash fields after a purchase receive.
+ *
+ * @return array{message:string,extra:array<string,mixed>}
+ */
+function epc_bc_bos_grn_flash_for_purchase(array $purchase): array
+{
+    $out = ['message' => '', 'extra' => []];
+    try {
+        if (empty($purchase['inv_receipt_posted']) && empty($purchase['inventory_receipt_posted'])) {
+            return $out;
+        }
+        $grnRef = epc_bc_bos_grn_record_id($purchase);
+        $siteKey = epc_bc_bos_resolve_site_key();
+        if ($siteKey === '' || $grnRef === '') {
+            return $out;
+        }
+        $proof = epc_bc_bos_lookup_proof($siteKey, 'grn', $grnRef);
+        if (!$proof || empty($proof['proof_uid'])) {
+            return $out;
+        }
+        $out['extra']['blockchain_proof_uid'] = (string)$proof['proof_uid'];
+        $out['extra']['blockchain_verify_url'] = epc_bc_bos_verify_url((string)$proof['proof_uid']);
+        $out['extra']['grn_record_id'] = $grnRef;
+        $out['message'] = ' · Blockchain GRN proof ' . (string)($proof['status'] ?? 'pending')
+            . ' — verify ' . $out['extra']['blockchain_verify_url'];
+    } catch (Throwable $e) {
+        return ['message' => '', 'extra' => []];
+    }
+    return $out;
+}
+
+/**
+ * Tenant proof KPI counts for ERP dashboard widget.
+ *
+ * @return array{total:int,anchored:int,pending:int,mode:string,site_key:string}
+ */
+function epc_bc_bos_tenant_proof_stats(?string $siteKey = null): array
+{
+    $out = ['total' => 0, 'anchored' => 0, 'pending' => 0, 'mode' => 'off', 'site_key' => ''];
+    try {
+        $siteKey = $siteKey !== null && $siteKey !== '' ? $siteKey : epc_bc_bos_resolve_site_key();
+        $siteKey = strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$siteKey) ?: '');
+        if ($siteKey === '') {
+            return $out;
+        }
+        $out['site_key'] = $siteKey;
+        $out['mode'] = epc_bc_bos_tenant_mode($siteKey);
+        if ($out['mode'] === 'off') {
+            return $out;
+        }
+        $rows = epc_bc_bos_list_proofs($siteKey, ['limit' => 500]);
+        $out['total'] = count($rows);
+        foreach ($rows as $r) {
+            if (($r['status'] ?? '') === 'anchored') {
+                $out['anchored']++;
+            } else {
+                $out['pending']++;
+            }
+        }
+    } catch (Throwable $e) {
+        // keep zeros
+    }
+    return $out;
 }
 
 /**
