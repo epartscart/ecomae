@@ -26,6 +26,54 @@ $ctaErp = $industryData['cta_erp_text'] ?? 'Launch ERP';
 $galleryPhotos = $industryData['gallery_photos'] ?? [];
 $demoKey = $industryData['demo_key'] ?? 'demo';
 $navItems = $industryData['nav_items'] ?? array('Products','Features','About','Contact');
+$industryGroup = (string) ($GLOBALS['epc_industry_subdomain_group'] ?? ($industryData['group'] ?? 'technology'));
+$industrySlug = (string) ($GLOBALS['epc_industry_subdomain_slug'] ?? '');
+$ind3dMotifMap = array(
+	'energy' => 'energy',
+	'environmental' => 'energy',
+	'automotive' => 'automotive',
+	'fashion' => 'fashion',
+	'healthcare' => 'healthcare',
+	'food' => 'food',
+	'jewellery' => 'jewellery',
+	'electronics' => 'electronics',
+	'telecom' => 'electronics',
+	'construction' => 'construction',
+	'realestate' => 'construction',
+	'manufacturing' => 'manufacturing',
+	'aerospace' => 'manufacturing',
+	'mining' => 'manufacturing',
+	'finance' => 'finance',
+	'logistics' => 'logistics',
+	'hospitality' => 'hospitality',
+	'beauty' => 'beauty',
+	'agriculture' => 'agriculture',
+	'education' => 'education',
+	'professional' => 'professional',
+	'consulting' => 'professional',
+	'legal' => 'professional',
+	'retail' => 'retail',
+	'wholesale' => 'retail',
+	'media' => 'media',
+	'sports' => 'sports',
+	'security' => 'security',
+	'technology' => 'technology',
+	'nonprofit' => 'professional',
+	'government' => 'professional',
+	'rental' => 'retail',
+	'cleaning' => 'healthcare',
+	'pet' => 'agriculture',
+	'printing' => 'media',
+	'homeliving' => 'retail',
+);
+$ind3dMotif = $ind3dMotifMap[$industryGroup] ?? 'default';
+// power.* and similar aliases already resolve to energy group; keep motif override by slug too
+if (in_array($industrySlug, array('power', 'utility', 'utilities', 'solar', 'renewable', 'electric'), true)) {
+	$ind3dMotif = 'energy';
+}
+$ind3dAssetVer = '20260716d';
+$ind3dCss = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.css&v=' . rawurlencode($ind3dAssetVer);
+$ind3dJs = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.js&v=' . rawurlencode($ind3dAssetVer);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -393,8 +441,9 @@ echo "$r2,$g2,$b2";?>,.45))}
 .ind-hero{min-height:80vh}
 }
 </style>
+<link rel="stylesheet" href="<?php echo htmlspecialchars($ind3dCss); ?>">
 </head>
-<body>
+<body class="ind-premium-3d" data-ind-motif="<?php echo htmlspecialchars($ind3dMotif); ?>" data-ind-group="<?php echo htmlspecialchars($industryGroup); ?>" data-ind-slug="<?php echo htmlspecialchars($industrySlug); ?>">
 
 <!-- ===== HEADER ===== -->
 <header class="site-header" id="siteHeader">
@@ -1060,8 +1109,6 @@ v.play().catch(function(){});
 },800);
 })();
 </script>
-
-
-
+<script defer src="<?php echo htmlspecialchars($ind3dJs); ?>"></script>
 </body>
 </html>
