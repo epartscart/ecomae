@@ -8,7 +8,7 @@ defined('_ASTEXE_') or die('No access');
 $industryData = array(
 	'name' => 'Energy & Utilities',
 	'tagline' => 'Asset management + billing + field operations',
-	'description' => 'Oil & gas, solar, wind, water, electricity, and utility services.',
+	'description' => 'Oil & gas, solar, wind, biomass & bioenergy, water, electricity, hydrogen, and utility services.',
 	'icon' => 'fa-bolt',
 	'color_primary' => '#ca8a04',
 	'color_accent' => '#facc15',

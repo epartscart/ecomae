@@ -74,37 +74,68 @@ if (in_array($industrySlug, array('power', 'utility', 'utilities', 'solar', 'ren
 $ind3dAssetVer = '20260716e';
 $ind3dCss = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.css&v=' . rawurlencode($ind3dAssetVer);
 $ind3dJs = '/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.js&v=' . rawurlencode($ind3dAssetVer);
+
+// SEO: primary public host (energy.ecomae.com) — never demo_key with underscores
+$seoHelper = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_seo.php';
+if (is_file($seoHelper)) {
+	require_once $seoHelper;
+}
+$seoHost = function_exists('epc_industry_seo_primary_host')
+	? epc_industry_seo_primary_host($industryGroup !== '' ? $industryGroup : 'retail')
+	: (($industryGroup !== '' ? $industryGroup : 'www') . '.ecomae.com');
+$seoBase = 'https://' . $seoHost;
+$activeSub = function_exists('epc_industry_seo_match_request_sub')
+	? epc_industry_seo_match_request_sub(is_array($subIndustries) ? $subIndustries : array())
+	: null;
+$seoPath = ($activeSub && !empty($activeSub['slug'])) ? ('/' . $activeSub['slug']) : '/';
+$seoCanonical = $seoBase . ($seoPath === '/' ? '/' : $seoPath);
+$seoKeywords = strtolower($name) . ', ERP, control panel, storefront, ecomae, '
+	. implode(', ', is_array($subIndustries) ? $subIndustries : array());
+if ($activeSub) {
+	$seoTitle = $activeSub['label'] . ' — ' . $name . ' ERP & Storefront | ecomae';
+	$seoDesc = $activeSub['label'] . ' on ecomae.com (' . $seoHost . '): dedicated ERP workflows, control panel and storefront for '
+		. strtolower($name) . '. Part of the ECOM AE Blockchain BOS Enterprise System.';
+	$seoPageName = $activeSub['label'] . ' — ' . $name . ' | ecomae';
+} else {
+	$seoTitle = $name . ' — ERP, Control Panel & Storefront | ecomae Platform';
+	$subPreview = is_array($subIndustries) ? implode(', ', array_slice($subIndustries, 0, 12)) : '';
+	$seoDesc = $name . ' industry solutions on ' . $seoHost . ': ' . $desc
+		. ' Sub-industries include ' . $subPreview
+		. (count($subIndustries) > 12 ? ' and more' : '')
+		. '. Powered by ecomae.';
+	$seoPageName = $name . ' — ecomae Platform';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title><?php echo htmlspecialchars($name); ?> — ERP, Control Panel & Storefront | ecomae Platform</title>
-<meta name="description" content="<?php echo htmlspecialchars($name); ?> industry solutions: <?php echo htmlspecialchars($desc); ?> — <?php echo count($subIndustries);?> specialized sub-industries with dedicated ERP workflows, control panel, and storefront. Powered by ecomae.">
-<meta name="keywords" content="<?php echo htmlspecialchars(strtolower($name));?>, ERP, control panel, storefront, <?php echo htmlspecialchars(implode(', ', array_slice($subIndustries, 0, 10)));?>, business management software, ecomae">
+<title><?php echo htmlspecialchars($seoTitle); ?></title>
+<meta name="description" content="<?php echo htmlspecialchars($seoDesc); ?>">
+<meta name="keywords" content="<?php echo htmlspecialchars($seoKeywords); ?>">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/">
+<link rel="canonical" href="<?php echo htmlspecialchars($seoCanonical); ?>">
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="<?php echo htmlspecialchars($name);?> — ecomae ERP Platform">
-<meta property="og:description" content="<?php echo htmlspecialchars($desc);?> — <?php echo count($subIndustries);?> sub-industries covered.">
-<meta property="og:image" content="<?php echo htmlspecialchars($heroPhoto);?>">
-<meta property="og:url" content="https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/">
+<meta property="og:title" content="<?php echo htmlspecialchars($seoPageName); ?>">
+<meta property="og:description" content="<?php echo htmlspecialchars($seoDesc); ?>">
+<meta property="og:image" content="<?php echo htmlspecialchars($heroPhoto); ?>">
+<meta property="og:url" content="<?php echo htmlspecialchars($seoCanonical); ?>">
 <meta property="og:site_name" content="ecomae">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<?php echo htmlspecialchars($name);?> — ecomae Platform">
-<meta name="twitter:description" content="<?php echo htmlspecialchars($desc);?>">
-<meta name="twitter:image" content="<?php echo htmlspecialchars($heroPhoto);?>">
+<meta name="twitter:title" content="<?php echo htmlspecialchars($seoPageName); ?>">
+<meta name="twitter:description" content="<?php echo htmlspecialchars($seoDesc); ?>">
+<meta name="twitter:image" content="<?php echo htmlspecialchars($heroPhoto); ?>">
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "<?php echo htmlspecialchars($name);?> — ecomae Platform",
-  "description": "<?php echo addslashes($desc);?>",
-  "url": "https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/",
+  "name": <?php echo json_encode($seoPageName, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>,
+  "description": <?php echo json_encode($seoDesc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>,
+  "url": <?php echo json_encode($seoCanonical, JSON_UNESCAPED_SLASHES); ?>,
   "publisher": {
     "@type": "Organization",
     "name": "ecomae",
@@ -113,13 +144,21 @@ $ind3dJs = '/epc-static.php?f=content/general_pages/industry_templates/assets/in
   },
   "mainEntity": {
     "@type": "ItemList",
-    "name": "<?php echo htmlspecialchars($name);?> Sub-Industries",
-    "numberOfItems": <?php echo count($subIndustries);?>,
+    "name": <?php echo json_encode($name . ' Sub-Industries', JSON_UNESCAPED_UNICODE); ?>,
+    "numberOfItems": <?php echo count($subIndustries); ?>,
     "itemListElement": [
-<?php foreach(array_slice($subIndustries, 0, 15) as $idx => $si): ?>
-      {"@type": "ListItem", "position": <?php echo $idx+1;?>, "name": "<?php echo htmlspecialchars($si);?>"}<?php echo $idx < min(14, count($subIndustries)-1) ? ',' : '';?>
+<?php
+$seoItems = array();
+foreach (array_values($subIndustries) as $idx => $si) {
+	$siSlug = function_exists('epc_industry_seo_sub_slug') ? epc_industry_seo_sub_slug((string) $si) : '';
+	$itemUrl = $siSlug !== '' ? ($seoBase . '/' . $siSlug) : $seoBase . '/';
+	$seoItems[] = '      {"@type": "ListItem", "position": ' . ($idx + 1)
+		. ', "name": ' . json_encode((string) $si, JSON_UNESCAPED_UNICODE)
+		. ', "url": ' . json_encode($itemUrl, JSON_UNESCAPED_SLASHES) . '}';
+}
+echo implode(",\n", $seoItems);
+?>
 
-<?php endforeach; ?>
     ]
   },
   "breadcrumb": {
@@ -127,7 +166,10 @@ $ind3dJs = '/epc-static.php?f=content/general_pages/industry_templates/assets/in
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "ecomae", "item": "https://www.ecomae.com"},
       {"@type": "ListItem", "position": 2, "name": "Industries", "item": "https://www.ecomae.com/platform/industries"},
-      {"@type": "ListItem", "position": 3, "name": "<?php echo htmlspecialchars($name);?>", "item": "https://<?php echo htmlspecialchars($demoKey);?>.ecomae.com/"}
+      {"@type": "ListItem", "position": 3, "name": <?php echo json_encode($name, JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($seoBase . '/', JSON_UNESCAPED_SLASHES); ?>}
+<?php if ($activeSub): ?>
+      ,{"@type": "ListItem", "position": 4, "name": <?php echo json_encode($activeSub['label'], JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($seoCanonical, JSON_UNESCAPED_SLASHES); ?>}
+<?php endif; ?>
     ]
   }
 }
@@ -331,6 +373,7 @@ echo "$r2,$g2,$b2";?>,.45))}
 .ind-subs h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
 .ind-subs .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
 .ind-subs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;max-width:1280px;margin:0 auto}
+.sub-card.is-seo-active{outline:3px solid var(--accent);box-shadow:0 12px 40px rgba(0,0,0,.18);transform:translateY(-2px)}
 .sub-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;transition:all .4s cubic-bezier(.16,1,.3,1);cursor:pointer;position:relative}
 .sub-card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.1);border-color:transparent}
 .sub-card__img{height:160px;overflow:hidden;position:relative}
@@ -831,10 +874,15 @@ foreach($subIndustries as $si => $sub):
     // Generate business process steps from sub-industry name
     $processSteps = array('Discovery','Configure','Deploy','Operate','Optimize');
 ?>
-<div class="sub-card reveal" data-group="group-<?php echo $currentGroup;?>" itemscope itemtype="https://schema.org/Service">
+<?php
+$subSlug = function_exists('epc_industry_seo_sub_slug') ? epc_industry_seo_sub_slug((string) $sub) : ('sub-' . (int) $si);
+$subUrl = isset($seoBase) ? ($seoBase . '/' . $subSlug) : ('/' . $subSlug);
+$isActiveSub = !empty($activeSub['slug']) && $activeSub['slug'] === $subSlug;
+?>
+<div class="sub-card reveal<?php echo $isActiveSub ? ' is-seo-active' : ''; ?>" id="<?php echo htmlspecialchars($subSlug); ?>" data-group="group-<?php echo $currentGroup;?>" itemscope itemtype="https://schema.org/Service">
 <div class="sub-card__img">
 <?php if($subPhoto): ?>
-<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?> — <?php echo htmlspecialchars($name);?>" loading="lazy" itemprop="image">
+<img src="<?php echo $subPhoto;?>" alt="<?php echo htmlspecialchars($sub);?> — <?php echo htmlspecialchars($name);?> | ecomae" loading="lazy" itemprop="image">
 <?php else: ?>
 <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center"><i class="fa <?php echo htmlspecialchars($icon);?>" style="font-size:3rem;color:rgba(255,255,255,.5)"></i></div>
 <?php endif; ?>
@@ -845,8 +893,9 @@ foreach($subIndustries as $si => $sub):
 </div>
 </div>
 <div class="sub-card__body">
-<h3 class="sub-card__name" itemprop="name"><?php echo htmlspecialchars($sub);?></h3>
+<h3 class="sub-card__name" itemprop="name"><a href="<?php echo htmlspecialchars($subUrl); ?>" style="color:inherit;text-decoration:none"><?php echo htmlspecialchars($sub);?></a></h3>
 <p class="sub-card__desc" itemprop="description"><?php echo htmlspecialchars($subDesc);?></p>
+<link itemprop="url" href="<?php echo htmlspecialchars($subUrl); ?>">
 
 <!-- Product Categories -->
 <?php if(!empty($subCats)): ?>
@@ -1133,5 +1182,19 @@ v.play().catch(function(){});
 })();
 </script>
 <script defer src="<?php echo htmlspecialchars($ind3dJs); ?>"></script>
+<?php if (!empty($activeSub['slug'])): ?>
+<script>
+(function(){
+  var id = <?php echo json_encode($activeSub['slug'], JSON_UNESCAPED_SLASHES); ?>;
+  function go(){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
+  else setTimeout(go, 120);
+})();
+</script>
+<?php endif; ?>
 </body>
 </html>
