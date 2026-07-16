@@ -388,14 +388,14 @@ function epc_ecomae_platform_page_industries()
 
 	// Featured verticals (diverse industries + known category-rich pages)
 	$featuredWanted = array(
+		'food-supplements-nutrition',
+		'furniture-retail',
+		'supermarket-grocery',
 		'precious-metals-refining',
+		'pharmacy-drug-dispensing',
 		'biomass-bioenergy',
-		'solar-energy',
 		'diamond-gemstones',
-		'gold-buying-selling',
-		'ev-charging-infrastructure',
-		'bridal-jewellery',
-		'waste-to-energy',
+		'gym-fitness-center',
 	);
 	$featuredBySlug = array();
 	foreach ($subDirectory as $row) {
@@ -589,7 +589,7 @@ function epc_ecomae_platform_page_industries()
 <!-- Smart Search -->
 <div class="epm-search2">
 <i class="fa fa-search s-icon"></i>
-<input type="text" id="indSearch2" placeholder="Search industry or sub-industry (e.g. biomass, precious metals, gold trading...)" autocomplete="off" />
+<input type="text" id="indSearch2" placeholder="Search industry or sub-industry (e.g. food supplements, furniture, pharmacy, biomass...)" autocomplete="off" />
 <span class="s-count" id="sCount2"><?php echo (int) $groupCount; ?> hubs · <?php echo number_format($subIndustryCount); ?> verticals</span>
 <div class="s-hint" id="searchHint"></div>
 </div>
@@ -609,6 +609,49 @@ function epc_ecomae_platform_page_industries()
 <div class="epm-stat2"><div class="val"><?php echo count($registries); ?></div><div class="lbl">Countries</div></div>
 </div>
 </div>
+</section>
+
+<!-- UAE/GCC onboard industries — each with a working live storefront link -->
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_industry_live_bridge.php';
+$portalLiveRows = array();
+foreach ($industries as $pCode => $pRow) {
+	$live = epc_portal_industry_live_storefront_url($pCode);
+	if ($live === '') {
+		continue;
+	}
+	$portalLiveRows[] = array(
+		'code' => $pCode,
+		'name' => (string) ($pRow['name'] ?? $pCode),
+		'icon' => (string) ($pRow['icon'] ?? 'fa-industry'),
+		'tagline' => (string) ($pRow['tagline'] ?? ''),
+		'photo' => (string) ($pRow['photo'] ?? ''),
+		'live' => $live,
+		'platform' => $base . 'platform/industry/' . rawurlencode($pCode),
+	);
+}
+?>
+<section class="epm-subhub epm-reveal" id="uae-gcc-industries" style="padding-top:48px">
+<div class="epm-subhub__head">
+	<h2>UAE / GCC client industries</h2>
+	<p>Every Super CP onboard industry opens a real hub or dedicated storefront — including food supplements, furniture, pharmacy, grocery, and more.</p>
+</div>
+<div class="epm-subhub__featured">
+<?php foreach ($portalLiveRows as $pr): ?>
+	<a class="epm-feat-sub" href="<?php echo epc_ecomae_h($pr['live']); ?>" data-keywords="<?php echo epc_ecomae_h(strtolower($pr['name'] . ' ' . $pr['code'])); ?>">
+		<div class="epm-feat-sub__top">
+			<span class="epm-feat-sub__ico" style="background:#0f766e"><i class="fa <?php echo epc_ecomae_h($pr['icon']); ?>"></i></span>
+			<div>
+				<div class="epm-feat-sub__group">Live storefront</div>
+			</div>
+		</div>
+		<h3 class="epm-feat-sub__title"><?php echo epc_ecomae_h($pr['name']); ?></h3>
+		<div class="epm-feat-sub__cats"><span><?php echo epc_ecomae_h(preg_replace('#^https://#', '', rtrim($pr['live'], '/'))); ?></span></div>
+		<div class="epm-feat-sub__cta">Open live page →</div>
+	</a>
+<?php endforeach; ?>
+</div>
+<p style="text-align:center;margin:8px 0 0;font-size:13px;color:#64748b"><?php echo count($portalLiveRows); ?> onboard industries with working links · <a href="#indGrid" style="color:#0284c7;font-weight:600">Browse 28 industry hubs below</a></p>
 </section>
 
 <!-- Industry Cards Grid -->
@@ -928,10 +971,20 @@ function epc_ecomae_platform_page_industry(array $params)
 			<div class="epm-badge"><i class="fa <?php echo epc_ecomae_h($ind['icon']); ?>"></i> Industry solution</div>
 			<h1><?php echo epc_ecomae_h($ind['name']); ?></h1>
 			<p class="lead"><?php echo epc_ecomae_h($summary); ?></p>
+			<?php
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_industry_live_bridge.php';
+			$liveStoreUrl = epc_portal_industry_live_storefront_url($code);
+			?>
 			<div class="epm-cta">
-				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo?industry=<?php echo epc_ecomae_h($code); ?>"><i class="fa fa-play-circle"></i> <?php echo (int) $demo['days']; ?>-day demo</a>
+				<?php if ($liveStoreUrl !== ''): ?>
+				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($liveStoreUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open live storefront</a>
+				<?php endif; ?>
+				<a class="epm-btn epm-btn--<?php echo $liveStoreUrl !== '' ? 'ghost' : 'primary'; ?>" href="<?php echo epc_ecomae_h($base); ?>platform/demo?industry=<?php echo epc_ecomae_h($code); ?>"><i class="fa fa-play-circle"></i> <?php echo (int) $demo['days']; ?>-day demo</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h(epc_ecomae_platform_onboard_url($code)); ?>">Onboard in Super CP</a>
 			</div>
+			<?php if ($liveStoreUrl !== ''): ?>
+			<p style="margin:14px 0 0;font-size:13px;opacity:.9"><i class="fa fa-link"></i> Live: <a href="<?php echo epc_ecomae_h($liveStoreUrl); ?>" style="color:#fff;text-decoration:underline" target="_blank" rel="noopener"><?php echo epc_ecomae_h($liveStoreUrl); ?></a></p>
+			<?php endif; ?>
 		</div>
 	</div>
 	<div class="epm-industry-accent"></div>
@@ -943,6 +996,9 @@ function epc_ecomae_platform_page_industry(array $params)
 		<div style="flex:1">
 			<strong style="font-size:14px">Template group: <?php echo epc_ecomae_h($groupInfo['label']); ?></strong>
 			<p style="margin:2px 0 0;font-size:12px;color:#64748b"><?php echo epc_ecomae_h($groupInfo['description']); ?> — Shared template with <?php echo count($groupInfo['available_sub_areas'] ?? array()); ?> toggleable sub-areas.</p>
+			<?php if ($liveStoreUrl !== ''): ?>
+			<p style="margin:8px 0 0;font-size:13px"><a href="<?php echo epc_ecomae_h($liveStoreUrl); ?>" target="_blank" rel="noopener" style="color:#0284c7;font-weight:700"><i class="fa fa-external-link"></i> <?php echo epc_ecomae_h($liveStoreUrl); ?></a></p>
+			<?php endif; ?>
 		</div>
 		<div style="display:flex;flex-wrap:wrap;gap:4px">
 			<?php foreach (array_slice($groupInfo['available_sub_areas'] ?? array(), 0, 4) as $aLabel) { ?>

@@ -71,6 +71,21 @@ function epc_industry_seo_template_sub_categories(string $templateKey, string $s
 			}
 		}
 	}
+	if ($out === array()) {
+		// Injected portal verticals (not yet written into the template PHP array literally)
+		$bridge = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_industry_live_bridge.php';
+		if (is_file($bridge)) {
+			require_once $bridge;
+			foreach (epc_portal_industry_live_defs() as $def) {
+				if (($def['template_key'] ?? '') === $templateKey
+					&& ($def['mode'] ?? '') === 'inject'
+					&& ($def['sub_label'] ?? '') === $subLabel
+					&& !empty($def['categories']) && is_array($def['categories'])) {
+					return array_values($def['categories']);
+				}
+			}
+		}
+	}
 	return $out;
 }
 
@@ -183,6 +198,22 @@ function epc_industry_seo_template_sub_industries(string $templateKey): array
 				$label = trim($label);
 				if ($label !== '') {
 					$subs[] = $label;
+				}
+			}
+		}
+	}
+	// Merge injected portal verticals so industries hub / sitemaps list them
+	$bridge = $root . '/content/general_pages/epc_portal_industry_live_bridge.php';
+	if (is_file($bridge)) {
+		require_once $bridge;
+		if (function_exists('epc_portal_industry_live_defs')) {
+			foreach (epc_portal_industry_live_defs() as $def) {
+				if (($def['template_key'] ?? '') !== $templateKey || ($def['mode'] ?? '') !== 'inject') {
+					continue;
+				}
+				$label = trim((string) ($def['sub_label'] ?? ''));
+				if ($label !== '' && !in_array($label, $subs, true)) {
+					array_unshift($subs, $label);
 				}
 			}
 		}
