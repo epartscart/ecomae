@@ -273,10 +273,10 @@ $introFields = epc_portal_intro_field_defs();
 						</label>
 						<select class="form-control" name="blockchain_mode" id="epc_intro_blockchain_mode">
 							<option value="anchor"<?php echo $editBcMode === 'anchor' ? ' selected' : ''; ?>>Anchor proofs (recommended)</option>
-							<option value="network"<?php echo $editBcMode === 'network' ? ' selected' : ''; ?>>Network participant (roadmap)</option>
+							<option value="network"<?php echo $editBcMode === 'network' ? ' selected' : ''; ?>>Network participant (roadmap — anchors like Anchor today)</option>
 							<option value="off"<?php echo $editBcMode === 'off' ? ' selected' : ''; ?>>Off</option>
 						</select>
-						<p class="text-muted small" style="margin:8px 0 0">Hashes critical business facts and anchors Merkle batches — MySQL remains the operational database.</p>
+						<p class="text-muted small" style="margin:8px 0 0">Hashes critical business facts and anchors Merkle batches — MySQL remains the operational database. Fleet controls: Tenant Hub → <a href="?tab=blockchain">Blockchain</a>.</p>
 					</div>
 					<div class="row">
 						<div class="col-md-4 form-group">

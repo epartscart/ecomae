@@ -30,6 +30,38 @@ function epc_bc_bos_normalize_mode(string $mode): string
     return isset(epc_bc_bos_modes()[$mode]) ? $mode : 'off';
 }
 
+/**
+ * Current Merkle/anchor network label (env EPC_BC_ANCHOR_NETWORK, default local_merkle).
+ */
+function epc_bc_bos_anchor_network(): string
+{
+    $n = trim((string)(getenv('EPC_BC_ANCHOR_NETWORK') ?: 'local_merkle'));
+    return $n !== '' ? $n : 'local_merkle';
+}
+
+/**
+ * @return array<string,string>
+ */
+function &epc_bc_bos_tenant_mode_cache_store(): array
+{
+    static $cache = [];
+    return $cache;
+}
+
+/**
+ * Clear request-local tenant mode cache (after Super CP mode updates).
+ */
+function epc_bc_bos_clear_tenant_mode_cache(?string $siteKey = null): void
+{
+    $cache = &epc_bc_bos_tenant_mode_cache_store();
+    if ($siteKey === null || $siteKey === '') {
+        $cache = [];
+        return;
+    }
+    $key = strtolower(preg_replace('/[^a-z0-9_]/', '', $siteKey) ?: '');
+    unset($cache[$key]);
+}
+
 function epc_bc_bos_platform_pdo(): ?PDO
 {
     static $pdo = null;
@@ -364,7 +396,7 @@ function epc_bc_bos_anchor_pending_batch(int $limit = 100): array
         }
         $root = epc_bc_bos_merkle_root($leaves);
         $batchUid = epc_bc_bos_new_uid('bat');
-        $network = (string)(getenv('EPC_BC_ANCHOR_NETWORK') ?: 'local_merkle');
+        $network = epc_bc_bos_anchor_network();
         $anchorRef = $network . ':' . $root;
 
         $pdo->beginTransaction();
@@ -624,7 +656,7 @@ function epc_bc_bos_resolve_site_key(array $opts = []): string
  */
 function epc_bc_bos_tenant_mode(string $siteKey): string
 {
-    static $cache = [];
+    $cache = &epc_bc_bos_tenant_mode_cache_store();
     $siteKey = strtolower(preg_replace('/[^a-z0-9_]/', '', $siteKey) ?: '');
     if ($siteKey === '') {
         return 'off';

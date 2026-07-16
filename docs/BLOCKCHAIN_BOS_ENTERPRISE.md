@@ -39,11 +39,18 @@ MySQL remains the system of record. Blockchain proves selected facts; it does no
 | Invoice / e-invoice detail | Badge + Verify on document view |
 | Invoice print | Blockchain proof block + absolute verify URL after totals |
 | ERP proofs list | Tax → **Blockchain proofs** (`tab=blockchain_proofs`) also under Audit workbench |
-| Super CP fleet | Tenant Hub → **Blockchain** tab (all tenants / filter) |
+| Super CP fleet | Tenant Hub → **Blockchain** tab (proofs, filters, per-tenant mode, Anchor pending now) |
 | Public verify | `/epc-blockchain-verify.php` |
 | Purchase + receive | Success message includes GRN verify URL when proof exists |
 
-Helpers: `epc_bc_bos_lookup_proof()`, `epc_bc_bos_list_proofs()`, `epc_bc_bos_list_proofs_fleet()`, `epc_bc_bos_fleet_stats()`, `epc_bc_bos_document_badge_html()`, `epc_bc_bos_verify_url_absolute()`.
+Helpers: `epc_bc_bos_lookup_proof()`, `epc_bc_bos_list_proofs()`, `epc_bc_bos_list_proofs_fleet()`, `epc_bc_bos_fleet_stats()`, `epc_bc_bos_document_badge_html()`, `epc_bc_bos_verify_url_absolute()`, `epc_bc_bos_anchor_network()`, `epc_th_update_tenant_blockchain_mode()`, `epc_th_anchor_blockchain_pending_now()`.
+
+### Super CP fleet controls
+
+- Per-tenant `blockchain_mode` can be changed inline on the Blockchain tab (not only Onboard edit).
+- **Anchor pending now** drains up to 100 pending proofs immediately (same as cron job `blockchain_anchor_batch`).
+- Anchor network label is read-only from `EPC_BC_ANCHOR_NETWORK` (default `local_merkle`).
+- `network` mode is roadmap: today it records and anchors like `anchor`.
 
 ## Auto-hooks (live documents)
 

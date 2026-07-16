@@ -208,6 +208,71 @@ function epc_th_update_tenant_status(PDO $db, string $siteKey, string $status): 
 	return array('ok' => true, 'message' => $msg, 'client_sync' => $sync);
 }
 
+/**
+ * Update a tenant's Blockchain BOS mode from Super CP fleet controls.
+ *
+ * @return array{ok:bool,message:string,mode?:string}
+ */
+function epc_th_update_tenant_blockchain_mode(PDO $db, string $siteKey, string $mode): array
+{
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+	$mode = epc_bc_bos_normalize_mode($mode);
+	$key = preg_replace('/[^a-z0-9_]/', '', strtolower($siteKey));
+	if ($key === '') {
+		return array('ok' => false, 'message' => 'Invalid tenant');
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_db.php';
+	epc_portal_db_ensure($db);
+	$st = $db->prepare('UPDATE `epc_portal_tenants` SET `blockchain_mode` = ?, `updated_at` = ? WHERE `site_key` = ?');
+	$st->execute(array($mode, time(), $key));
+	if ($st->rowCount() === 0) {
+		// rowCount 0 can also mean "same value" — confirm tenant exists
+		$chk = $db->prepare('SELECT `blockchain_mode` FROM `epc_portal_tenants` WHERE `site_key` = ? LIMIT 1');
+		$chk->execute(array($key));
+		$row = $chk->fetch(PDO::FETCH_ASSOC);
+		if (!$row) {
+			return array('ok' => false, 'message' => 'Tenant not found');
+		}
+	}
+	epc_bc_bos_clear_tenant_mode_cache($key);
+	$labels = epc_bc_bos_modes();
+	$label = isset($labels[$mode]) ? $labels[$mode] : $mode;
+	$note = '';
+	if ($mode === 'network') {
+		$note = ' (roadmap — currently records and anchors like Anchor)';
+	}
+	return array(
+		'ok' => true,
+		'message' => 'Blockchain mode for ' . $key . ' set to ' . $label . $note,
+		'mode' => $mode,
+	);
+}
+
+/**
+ * Drain pending proofs immediately (operator override for cron).
+ *
+ * @return array{ok:bool,message:string}
+ */
+function epc_th_anchor_blockchain_pending_now(int $limit = 100): array
+{
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+	$out = epc_bc_bos_anchor_pending_batch($limit);
+	if (empty($out['ok'])) {
+		return array('ok' => false, 'message' => 'Anchor failed: ' . (string) ($out['error'] ?? 'unknown'));
+	}
+	$count = (int) ($out['proof_count'] ?? 0);
+	if ($count === 0) {
+		return array('ok' => true, 'message' => 'No pending proofs to anchor.');
+	}
+	$net = (string) ($out['anchor_network'] ?? epc_bc_bos_anchor_network());
+	$root = (string) ($out['merkle_root'] ?? '');
+	$msg = 'Anchored ' . $count . ' proof(s) on ' . $net;
+	if ($root !== '') {
+		$msg .= ' · root ' . substr($root, 0, 12) . '…';
+	}
+	return array('ok' => true, 'message' => $msg, 'result' => $out);
+}
+
 function epc_th_onboard_client(PDO $db, array $post, string $submittedBy = ''): array
 {
 	return epc_portal_onboard_client($db, $post, $submittedBy);
