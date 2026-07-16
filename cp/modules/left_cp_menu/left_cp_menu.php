@@ -9,13 +9,8 @@ defined('_ASTEXE_') or die('No access');
 - задачи панели управления
 */
 
-//ДЛЯ ВЫВОДА КАТЕГОРИЙ КАТАЛОГА ТОВАРОВ
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/dp_category_record.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/get_catalogue_tree.php");
+// Catalogue tree is expensive — only load on catalogue/stock CP pages (not every /cp request).
 require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/modules/left_cp_menu/catalogue_menu_helper.php");
-
-
-
 
 //ДЛЯ ВЫВОДА ЗАДАЧ ПАНЕЛИ УПРАВЛЕНИЯ
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/general_pages/epc_portal.php");
@@ -45,6 +40,8 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/con
 	//ВЫВОД КАТЕГОРИЙ ТОВАРОВ - только для для страниц, связанных с каталогом: Редактирование каталога и Кладовщики
 	if( isset($module_modes_map[(string)$DP_Content->url]) )
 	{
+		require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/dp_category_record.php");
+		require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/get_catalogue_tree.php");
 		?>
 		<li>
 			<a href="javascript:void(0);"><span class="nav-label"><?php echo translate_str_by_id(3994); ?></span><span class="fa arrow"></span> </a>

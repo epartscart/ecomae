@@ -70,6 +70,18 @@ check('paragraph kept', strpos($prepared, '<p>ok</p>') !== false);
 check('style queued for footer', !empty($GLOBALS['epc_cp_footer_styles']));
 check('script queued for footer', !empty($GLOBALS['epc_cp_footer_scripts']));
 
+echo "\n== Left menu skips catalogue tree off catalogue pages ==\n";
+$menuSrc = (string) file_get_contents($root . '/cp/modules/left_cp_menu/left_cp_menu.php');
+check('catalogue helper loaded first', strpos($menuSrc, 'catalogue_menu_helper.php') !== false);
+check('get_catalogue_tree only inside catalogue URL guard', preg_match(
+	'/isset\(\s*\$module_modes_map\[.*?\]\s*\)[\s\S]{0,400}get_catalogue_tree\.php/',
+	$menuSrc
+) === 1);
+check('no eager get_catalogue_tree before guard', !preg_match(
+	'/get_catalogue_tree\.php[\s\S]{0,800}isset\(\s*\$module_modes_map/',
+	$menuSrc
+));
+
 echo "\n== CP fix probe avoids CSS false positive ==\n";
 $fixSrc = (string) file_get_contents($root . '/epc-epartscart-cp-fix.php');
 check('probe looks for word-boundary alert-danger', strpos($fixSrc, '\balert-danger\b') !== false || strpos($fixSrc, '\\balert-danger\\b') !== false);
