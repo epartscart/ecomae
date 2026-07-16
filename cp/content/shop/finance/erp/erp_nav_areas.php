@@ -65,9 +65,10 @@ function epc_erp_nav_areas_config()
 			'desc' => 'Audit policies, cases and audit trail',
 			'tabs' => array(
 				'audit' => array('label' => 'Audit trail', 'icon' => 'fa-history'),
+				'blockchain_proofs' => array('label' => 'Blockchain proofs', 'icon' => 'fa-link'),
 			),
 			'groups' => array(
-				'Inquiries and reports' => array('audit'),
+				'Inquiries and reports' => array('audit', 'blockchain_proofs'),
 			),
 		),
 		'budgeting' => array(
@@ -516,6 +517,7 @@ function epc_erp_nav_areas_config()
 				'tax_compliance' => array('label' => 'Tax compliance', 'icon' => 'fa-gavel'),
 				'vat_refund' => array('label' => 'Tourist VAT refunds', 'icon' => 'fa-plane'),
 				'einvoice' => array('label' => 'E-invoicing', 'icon' => 'fa-file-code-o'),
+				'blockchain_proofs' => array('label' => 'Blockchain proofs', 'icon' => 'fa-link'),
 				'withholding' => array('label' => 'Withholding tax', 'icon' => 'fa-scissors'),
 				'compliance' => array('label' => 'Compliance center', 'icon' => 'fa-shield'),
 				'ext_reports' => array('label' => 'External reporting', 'icon' => 'fa-file-text-o'),
@@ -525,7 +527,7 @@ function epc_erp_nav_areas_config()
 			),
 			'groups' => array(
 				'Declarations' => array('vat_return', 'tax_compliance', 'vat_refund', 'withholding'),
-				'Common' => array('einvoice', 'compliance'),
+				'Common' => array('einvoice', 'blockchain_proofs', 'compliance'),
 				'Reports' => array('ext_reports', 'elec_reporting'),
 				'Jewellery' => array('jw_tourist_vat'),
 				'Setup' => array('document_control'),

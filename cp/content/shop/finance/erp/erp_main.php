@@ -240,6 +240,7 @@ $erpTabIncludes = array(
 	'tax_compliance' => 'erp_tabs_tax_compliance.php',
 	'vat_refund' => 'erp_tabs_vat_refund.php',
 	'einvoice' => 'erp_tabs_einvoice.php',
+	'blockchain_proofs' => 'erp_tabs_blockchain_proofs.php',
 	'invoices' => 'erp_tabs_invoices.php',
 	'inventory' => 'erp_tabs_inventory.php',
 	'fixed_assets' => 'erp_tabs_fixed_assets.php',

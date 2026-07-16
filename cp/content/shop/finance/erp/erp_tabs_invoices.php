@@ -74,6 +74,26 @@ if ($invAction === 'view' && $invId > 0):
 			<ul style="margin:8px 0 0;"><?php foreach ($doc['validation_errors'] as $err): ?><li><?php echo epc_erp_h($err); ?></li><?php endforeach; ?></ul>
 		</div>
 	<?php endif; ?>
+	<?php
+	$bcBadge = '';
+	try {
+		$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+		if (is_file($bcFile)) {
+			require_once $bcFile;
+			list($bcType, $bcId) = epc_bc_bos_einvoice_record_keys($doc);
+			$bcBadge = epc_bc_bos_document_badge_html($bcType, $bcId, array('show_uid' => true));
+		}
+	} catch (Throwable $e) {
+		$bcBadge = '';
+	}
+	if ($bcBadge !== ''):
+	?>
+		<div class="alert alert-info" style="margin-bottom:14px">
+			<strong><i class="fa fa-link"></i> Blockchain BOS proof</strong>
+			<span style="margin-left:10px"><?php echo $bcBadge; ?></span>
+			<a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'blockchain_proofs', $date_from_str, $date_to_str)); ?>" class="btn btn-default btn-xs" style="margin-left:8px">All proofs</a>
+		</div>
+	<?php endif; ?>
 	<div class="well" style="background:#fff;padding:20px;border:1px solid #e2e8f0;">
 		<div class="row">
 			<div class="col-sm-6">
@@ -86,6 +106,7 @@ if ($invAction === 'view' && $invId > 0):
 				<p><strong><?php echo epc_erp_h($doc['invoice_number']); ?></strong><br>
 				<?php echo epc_erp_h(date('Y-m-d', (int)$doc['issue_date'])); ?> · Due <?php echo epc_erp_h(date('Y-m-d', (int)$doc['payment_due_date'])); ?><br>
 				<strong><?php echo epc_erp_money($doc['total_incl_vat']); ?> <?php echo epc_erp_h($doc['currency_code']); ?></strong> incl. VAT</p>
+				<?php if ($bcBadge !== ''): ?><p style="margin-top:8px"><?php echo $bcBadge; ?></p><?php endif; ?>
 			</div>
 		</div>
 		<table class="table table-condensed table-bordered">

@@ -120,6 +120,40 @@ check('warranty RMA hooks maybe_record', strpos($wSrc, 'epc_bc_bos_maybe_record_
 $vsrc = (string)file_get_contents($root . '/epc-blockchain-verify.php');
 check('verify UI has HTML form', strpos($vsrc, '<form') !== false && strpos($vsrc, 'Verify a business proof') !== false);
 
+section('Operator UI helpers');
+check('lookup_proof exists', function_exists('epc_bc_bos_lookup_proof'));
+check('list_proofs exists', function_exists('epc_bc_bos_list_proofs'));
+check('badge html empty without proof', epc_bc_bos_proof_badge_html(null) === '');
+$badge = epc_bc_bos_proof_badge_html([
+    'status' => 'anchored',
+    'proof_uid' => 'prf_test_ui_1',
+]);
+check('badge shows anchored + verify', strpos($badge, 'Blockchain anchored') !== false && strpos($badge, 'epc-blockchain-verify.php') !== false);
+list($t, $id) = epc_bc_bos_einvoice_record_keys([
+    'doc_category' => 'tax_invoice',
+    'invoice_type_code' => '380',
+    'invoice_number' => 'INV-9',
+    'id' => 9,
+]);
+check('einvoice keys invoice', $t === 'invoice' && $id === 'INV-9');
+list($t2, $id2) = epc_bc_bos_einvoice_record_keys([
+    'doc_category' => 'tax_credit_note',
+    'invoice_type_code' => '381',
+    'invoice_number' => 'CN-1',
+]);
+check('einvoice keys credit_note', $t2 === 'credit_note' && $id2 === 'CN-1');
+
+$tabFile = $root . '/cp/content/shop/finance/erp/erp_tabs_blockchain_proofs.php';
+check('ERP proofs tab exists', is_file($tabFile));
+$nav = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_nav_areas.php');
+check('nav includes blockchain_proofs', strpos($nav, "'blockchain_proofs'") !== false);
+$main = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_main.php');
+check('main maps blockchain_proofs tab', strpos($main, "'blockchain_proofs' => 'erp_tabs_blockchain_proofs.php'") !== false);
+$einvUi = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_einvoice.php');
+check('einvoice view shows proof badge', strpos($einvUi, 'epc_bc_bos_document_badge_html') !== false);
+$invUi = (string)file_get_contents($root . '/cp/content/shop/finance/erp/erp_tabs_invoices.php');
+check('invoices view shows proof badge', strpos($invUi, 'epc_bc_bos_document_badge_html') !== false);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
 exit($fail_count > 0 ? 1 : 0);

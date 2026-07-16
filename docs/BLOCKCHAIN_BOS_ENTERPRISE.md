@@ -32,6 +32,17 @@ MySQL remains the system of record. Blockchain proves selected facts; it does no
 - `epc_bc_proofs` — per business-fact proof
 - `epc_bc_anchor_batches` — Merkle roots / anchor refs
 
+## Operator UI
+
+| Surface | Path |
+|---|---|
+| Invoice / e-invoice detail | Badge + Verify on document view |
+| ERP proofs list | Tax → **Blockchain proofs** (`tab=blockchain_proofs`) also under Audit workbench |
+| Public verify | `/epc-blockchain-verify.php` |
+| Purchase + receive | Success message includes GRN verify URL when proof exists |
+
+Helpers: `epc_bc_bos_lookup_proof()`, `epc_bc_bos_list_proofs()`, `epc_bc_bos_document_badge_html()`.
+
 ## Auto-hooks (live documents)
 
 Best-effort after successful commit (never blocks the business transaction):

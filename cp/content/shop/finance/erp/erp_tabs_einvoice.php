@@ -108,6 +108,26 @@ function epc_einv_url($base, $section, $extra = '')
 					<ul style="margin:8px 0 0;"><?php foreach ($doc['validation_errors'] as $err): ?><li><?php echo epc_erp_h($err); ?></li><?php endforeach; ?></ul>
 				</div>
 			<?php endif; ?>
+			<?php
+			$bcBadge = '';
+			try {
+				$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+				if (is_file($bcFile)) {
+					require_once $bcFile;
+					list($bcType, $bcId) = epc_bc_bos_einvoice_record_keys($doc);
+					$bcBadge = epc_bc_bos_document_badge_html($bcType, $bcId, array('show_uid' => true));
+				}
+			} catch (Throwable $e) {
+				$bcBadge = '';
+			}
+			if ($bcBadge !== ''):
+			?>
+				<div class="alert alert-info" style="margin-bottom:14px">
+					<strong><i class="fa fa-link"></i> Blockchain BOS proof</strong>
+					<span style="margin-left:10px"><?php echo $bcBadge; ?></span>
+					<a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'blockchain_proofs', $date_from_str, $date_to_str)); ?>" class="btn btn-default btn-xs" style="margin-left:8px">All proofs</a>
+				</div>
+			<?php endif; ?>
 
 			<div class="epc-einvoice-preview well" style="background:#fff;padding:24px;border:1px solid #cbd5e1;">
 				<h3 style="text-align:center;margin-top:0;">Tax Invoice</h3>
@@ -138,6 +158,9 @@ function epc_einv_url($base, $section, $extra = '')
 							<tr><td>Transaction code</td><td><code><?php echo epc_erp_h($doc['transaction_type_code']); ?></code></td></tr>
 							<tr><td>UUID</td><td><small><code><?php echo epc_erp_h($doc['uuid']); ?></code></small></td></tr>
 							<tr><td>Status</td><td><span class="label label-<?php echo $doc['status'] === 'accepted' ? 'success' : ($doc['status'] === 'rejected' ? 'danger' : 'info'); ?>"><?php echo epc_erp_h(strtoupper($doc['status'])); ?></span></td></tr>
+							<?php if ($bcBadge !== ''): ?>
+							<tr><td>Blockchain</td><td><?php echo $bcBadge; ?></td></tr>
+							<?php endif; ?>
 						</table>
 					</div>
 				</div>
