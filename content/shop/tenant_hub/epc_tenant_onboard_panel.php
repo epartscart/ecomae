@@ -41,7 +41,7 @@ $introFields = epc_portal_intro_field_defs();
 <div class="epc-th-onboard">
 <div class="epc-th-onboard-intro">
 	<h4><i class="fa fa-rocket"></i> Onboard a new client — launch portal immediately</h4>
-	<p>Submit the client intro form once. The platform registers the tenant, seeds branding, <strong>industry theme</strong> (visual style + storefront package), and contact settings, and prepares the client CP at <code>https://www.client.com/cp/</code>. For existing tenants use Tenants → <strong>Theme</strong>. Finish DNS + set <strong>Live</strong> when the domain points here.</p>
+	<p>Submit the client intro form once. Pick any <strong>UAE / GCC DET–DED aligned industry</strong> (food supplements, furniture, F&amp;B, pharmacy, logistics, …). The platform registers the tenant, seeds branding + <strong>industry theme</strong>, and prepares the client CP at <code>https://www.client.com/cp/</code>. For existing tenants use Tenants → <strong>Theme</strong>. Finish DNS + set <strong>Live</strong> when the domain points here.</p>
 </div>
 
 <div class="row">

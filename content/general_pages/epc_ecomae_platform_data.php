@@ -113,6 +113,60 @@ function epc_ecomae_platform_industry_marketing()
 			'highlights' => array('Premium visual theme', 'Certificate & spec fields', 'Appointment / enquiry flows', 'Secure payments setup'),
 			'demo_note' => 'Demo uses jewellery theme with gallery-style product cards.',
 		),
+		'nutrition_supplements' => array(
+			'photo' => 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Vitamin, protein and nutraceutical shops — catalogue, subscriptions and UAE/GCC retail ready.',
+			'highlights' => array('Supplement SKU catalogue', 'Batch / expiry friendly fields', 'Subscription & reorder hooks', 'DET/DED health-trading aligned'),
+			'demo_note' => 'Ideal for food-supplement retailers across UAE and GCC.',
+		),
+		'furniture_interiors' => array(
+			'photo' => 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Furniture and interiors showrooms — room sets, deposits, and delivery scheduling.',
+			'highlights' => array('Showroom catalogue', 'Custom order / deposit flows', 'Delivery & install notes', 'Home Living hub aligned'),
+			'demo_note' => 'Maps to homeliving.ecomae.com vertical for client demos.',
+		),
+		'food_beverage' => array(
+			'photo' => 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Restaurants, cafés, catering and food trading on one hosted stack.',
+			'highlights' => array('Menu / SKU catalogue', 'Outlet-ready CP', 'Invoice & delivery docs', 'food.ecomae.com aligned'),
+			'demo_note' => 'Covers DET Accommodation & Food Service activity cluster.',
+		),
+		'pharmacy_retail' => array(
+			'photo' => 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Pharmacy and drugstore retail with compliance-friendly document trails.',
+			'highlights' => array('Regulated catalogue patterns', 'Customer accounts', 'Invoice packs', 'Healthcare hub aligned'),
+			'demo_note' => 'For mainland pharmacy and drugstore licences.',
+		),
+		'beauty_skincare' => array(
+			'photo' => 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Salons, skincare and beauty retail — bookings and product sales together.',
+			'highlights' => array('Service + retail catalogue', 'Appointment enquiry flows', 'Loyalty-ready CP', 'beauty.ecomae.com aligned'),
+			'demo_note' => 'DET social/personal services + cosmetics trading.',
+		),
+		'grocery_retail' => array(
+			'photo' => 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Grocery and supermarket operations with high-SKU catalogue tools.',
+			'highlights' => array('Bulk catalogue', 'Multi-outlet ready', 'Promo campaigns', 'Retail hub aligned'),
+			'demo_note' => 'General trading / foodstuff retail licences.',
+		),
+		'fmcg_wholesale' => array(
+			'photo' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'FMCG and general trading — B2B pricing, logistics and wholesale CP.',
+			'highlights' => array('B2B accounts', 'Logistics packs', 'Import/export docs', 'wholesale.ecomae.com aligned'),
+			'demo_note' => 'Covers DET trading & services wholesale cluster.',
+		),
+		'hospitality_travel' => array(
+			'photo' => 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Hotels, travel and tourism operators with enquiry-ready storefronts.',
+			'highlights' => array('Package catalogue', 'Enquiry / booking CTAs', 'Multi-property CP', 'hospitality hub aligned'),
+			'demo_note' => 'DET tourism / accommodation activities.',
+		),
+		'logistics_freight' => array(
+			'photo' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=640&q=75',
+			'tagline' => 'Freight, courier and 3PL businesses with shipment-aware workflows.',
+			'highlights' => array('Logistics CP packs', 'Waybill-friendly docs', 'Fleet / warehouse hooks', 'logistics.ecomae.com aligned'),
+			'demo_note' => 'Transport & storage DET division.',
+		),
 	);
 
 	$out = array();

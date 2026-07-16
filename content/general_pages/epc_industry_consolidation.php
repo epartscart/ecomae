@@ -826,11 +826,31 @@ function epc_industry_resolve_group(string $industryName, string $badgeCategory 
     $name = strtolower(trim($industryName));
     $groups = epc_industry_groups();
 
+    // Exact portal industry codes (UAE/GCC onboard catalogue) → consolidation group
+    $code = preg_replace('/[^a-z0-9_]/', '', $name);
+    if ($code !== '' && function_exists('epc_portal_industry_group_map')) {
+        $portalMap = epc_portal_industry_group_map();
+        if (isset($portalMap[$code]) && isset($groups[$portalMap[$code]])) {
+            return $portalMap[$code];
+        }
+    } elseif ($code !== '') {
+        $portalFile = __DIR__ . '/epc_portal.php';
+        if (is_file($portalFile)) {
+            require_once $portalFile;
+            if (function_exists('epc_portal_industry_group_map')) {
+                $portalMap = epc_portal_industry_group_map();
+                if (isset($portalMap[$code]) && isset($groups[$portalMap[$code]])) {
+                    return $portalMap[$code];
+                }
+            }
+        }
+    }
+
     // Keyword-based matching rules (order matters — first match wins)
     // Includes DED (Dubai) activity terms + worldwide ISIC/NAICS equivalents
     $rules = array(
         'automotive' => array('auto_', 'auto ', 'car ', 'vehicle', 'motor', 'tyre', 'tire ', 'driving school', 'garage', 'automotive', 'fleet', 'tarpaulin', 'spare part', 'motorcycl'),
-        'healthcare_medical' => array('medical', 'health', 'hospital', 'clinic', 'pharma', 'dental', 'doctor', 'nurse', 'veterinar', 'optical', 'ambulance', 'physiotherapy', 'mental health', 'fertility', 'addiction', 'urology', 'oncology', 'cardio', 'ortho', 'derma', 'pediatr', 'chiropr', 'acupuncture', 'ayurveda', 'homeopath', 'rehabilitation', 'diagnostic', 'patholog', 'radiology', 'social work'),
+        'healthcare_medical' => array('supplement', 'nutrition', 'vitamin', 'nutraceut', 'protein powder', 'herbal product', 'pharmacy', 'drugstore', 'medical', 'health', 'hospital', 'clinic', 'pharma', 'dental', 'doctor', 'nurse', 'veterinar', 'optical', 'ambulance', 'physiotherapy', 'mental health', 'fertility', 'addiction', 'urology', 'oncology', 'cardio', 'ortho', 'derma', 'pediatr', 'chiropr', 'acupuncture', 'ayurveda', 'homeopath', 'rehabilitation', 'diagnostic', 'patholog', 'radiology', 'social work'),
         'food_beverage' => array('restaurant', 'food', 'bakery', 'cafe', 'coffee', 'catering', 'kitchen', 'butcher', 'confection', 'ice cream', 'juice', 'beverage', 'brewery', 'winery', 'bar &', 'pub', 'bbq', 'smokehouse', 'pizza', 'sushi', 'cheese', 'yogurt', 'cream of milk', 'meat process', 'fish canning', 'grain', 'rice ', 'bread', 'foodstuff', 'packaging food', 'halal'),
         'fashion_apparel' => array('fashion', 'apparel', 'clothing', 'garment', 'textile', 'footwear', 'shoe', 'tailoring', 'bridal', 'swimwear', 'sportswear', 'uniform', 'wig', 'gown', 'handbag', 'leather'),
         'jewellery_luxury' => array('jeweller', 'jewelry', 'diamond', 'gold ', 'watch ', 'watches', 'gemstone', 'luxury goods', 'precious', 'hallmark', 'karat', 'carat'),
@@ -841,7 +861,9 @@ function epc_industry_resolve_group(string $industryName, string $badgeCategory 
         'education_training' => array('school', 'university', 'college', 'education', 'training', 'tutor', 'coaching', 'learning', 'academy', 'certification', 'vocational', 'e-learning', 'language institute'),
         'hospitality_travel' => array('hotel', 'resort', 'hostel', 'travel', 'tourism', 'tour operator', 'airline', 'cruise', 'camping', 'glamping', 'bed & breakfast', 'vacation', 'airport', 'accommodation'),
         'beauty_wellness' => array('beauty', 'salon', 'spa', 'barber', 'nail ', 'skincare', 'cosmetic', 'perfume', 'tattoo', 'grooming', 'wellness clinic', 'wellness retreat'),
-        'retail_ecommerce' => array('retail', 'supermarket', 'grocery', 'convenience store', 'department store', 'marketplace', 'gift shop', 'toy store', 'bookstore', 'stationery', 'pet shop', 'home decor', 'antique', 'thrift', 'vending'),
+        // Specific product verticals before generic "retail" so furniture/pet shops resolve correctly
+        'home_living' => array('furniture', 'home & living', 'home living', 'interiors', 'mattress', 'bedding', 'curtain', 'lighting', 'kitchen &', 'bath', 'garden', 'storage', 'art supply', 'sofa', 'furnishing'),
+        'pet_animal' => array('pet shop', 'pet ', 'animal', 'vet ', 'dog ', 'cat ', 'aquarium', 'equestrian', 'shelter'),
         'agriculture_farming' => array('agricultur', 'farm', 'crop', 'livestock', 'poultry', 'aquaculture', 'fishery', 'dairy', 'organic farm', 'vertical farm', 'seeds', 'fertilizer', 'beehive', 'honey', 'wheat', 'vegetable farm', 'growing of', 'fishing', 'palm', 'fruit tree', 'citrus', 'cereal'),
         'logistics_transport' => array('logistic', 'freight', 'shipping', 'courier', 'warehouse', '3pl', 'cargo', 'trucking', 'transport', 'moving', 'relocation', 'delivery', 'customs broker', 'cold chain', 'postal', 'storage'),
         'energy_utilities' => array('energy', 'solar', 'wind ', 'oil &', 'gas ', 'power ', 'utility', 'nuclear', 'biomass', 'mining', 'uranium', 'battery ', 'quarry', 'extraction', 'crude oil', 'natural gas', 'electricity', 'water supply', 'renewable'),
@@ -849,14 +871,13 @@ function epc_industry_resolve_group(string $industryName, string $badgeCategory 
         'it_software' => array('software', 'saas', 'web design', 'web develop', 'app develop', 'cybersecurity', 'data analy', 'ai &', 'machine learn', 'iot', 'blockchain', 'devops', 'cloud ', 'voip', 'it ', 'telecom'),
         'media_entertainment' => array('film', 'video production', 'music', 'publishing', 'photography', 'animation', 'streaming', 'broadcast', 'radio', 'podcast', 'youtube', 'theater', 'event', 'amusement', 'theme park', 'entertainment', 'cinema'),
         'sports_fitness' => array('gym', 'fitness', 'sport', 'yoga', 'martial', 'swimming', 'golf', 'tennis', 'cycling', 'bicycle', 'trampoline', 'esport', 'recreation'),
-        'home_living' => array('furniture', 'home & living', 'mattress', 'bedding', 'curtain', 'lighting', 'kitchen &', 'bath', 'garden', 'storage', 'art supply'),
         'wholesale_trading' => array('wholesale', 'trading', 'import', 'export', 'distribution', 'commodity', 'fmcg', 'b2b', 'liquidat', 'general trading'),
         'rental_leasing' => array('rental', 'leasing', 'hire', 'charter', 'co-working', 'self-storage', 'renting'),
         'nonprofit_government' => array('non-profit', 'nonprofit', 'ngo', 'charity', 'government', 'public sector', 'social enterprise', 'religious', 'church', 'mosque', 'temple', 'community center', 'library', 'museum', 'volunteer', 'advocacy', 'voter', 'extra territorial', 'international org'),
         'cleaning_maintenance' => array('cleaning', 'pest control', 'waste', 'recycling', 'janitorial', 'laundry', 'dry clean', 'carpet clean', 'window clean', 'pool maintenance'),
-        'pet_animal' => array('pet ', 'animal', 'vet ', 'dog ', 'cat ', 'aquarium', 'equestrian', 'shelter'),
         'printing_signage' => array('printing', 'signage', 'sign ', 'banner', 'label', 'embroidery', 'engraving'),
         'security_safety' => array('security', 'cctv', 'surveillance', 'fire safety', 'alarm', 'guard', 'access control', 'investigation'),
+        'retail_ecommerce' => array('retail', 'supermarket', 'grocery', 'convenience store', 'department store', 'marketplace', 'gift shop', 'toy store', 'bookstore', 'stationery', 'home decor', 'antique', 'thrift', 'vending', 'e-commerce', 'ecommerce'),
     );
 
     foreach ($rules as $groupKey => $keywords) {
