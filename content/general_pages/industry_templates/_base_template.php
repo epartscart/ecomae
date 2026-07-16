@@ -7,6 +7,26 @@
  */
 defined('_ASTEXE_') or die('No access');
 
+// Ensure every UAE/GCC portal industry has a live hub/sub path on this template.
+$liveBridge = __DIR__ . '/../epc_portal_industry_live_bridge.php';
+if (is_file($liveBridge)) {
+	require_once $liveBridge;
+	$templateKeyForBridge = '';
+	foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6) as $frame) {
+		$f = (string) ($frame['file'] ?? '');
+		if (preg_match('#/industry_templates/([a-z0-9_]+)\.php$#', $f, $bm) && $bm[1][0] !== '_') {
+			$templateKeyForBridge = $bm[1];
+			break;
+		}
+	}
+	if ($templateKeyForBridge === '' && !empty($industryData['demo_key'])) {
+		$templateKeyForBridge = preg_replace('/[^a-z0-9_]/', '', (string) $industryData['demo_key']);
+	}
+	if ($templateKeyForBridge !== '' && function_exists('epc_portal_merge_live_subs_into_industry')) {
+		$industryData = epc_portal_merge_live_subs_into_industry($industryData, $templateKeyForBridge);
+	}
+}
+
 $name = $industryData['name'] ?? 'Industry';
 $tagline = $industryData['tagline'] ?? 'Enterprise solutions';
 $desc = $industryData['description'] ?? '';
