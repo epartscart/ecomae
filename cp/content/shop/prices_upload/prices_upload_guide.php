@@ -307,9 +307,10 @@ try {
 			<h4><i class="fa fa-download"></i> Upload history (download area)</h4>
 			<p>Every bulk import should archive the source file under <code>/content/files/price_upload_history/{price_id}/</code> and show it in CP:</p>
 			<ul>
-				<li><strong>Price lists</strong> → column <em>Update file / history</em> → <strong>Upload history</strong> for one list, or <strong>All lists</strong> from the header.</li>
+				<li><strong>Price lists</strong> → column <em>Update file / history</em> → green download button (active/last file) or <strong>Upload history</strong> modal.</li>
 				<li>Active file = latest successful upload for that list; use <strong>Download</strong> to get the CSV/XLSX that was imported.</li>
-				<li>Sources in history: <code>cp_wizard</code>, <code>pyprices_upload</code>, <code>pyprices</code> / <code>pyprices_email</code>, <code>deploy_api</code>, etc.</li>
+				<li>If the archived source is missing (temp cleaned before archive), download falls back to <strong>Export current DB</strong> so you still get the live prices.</li>
+				<li>Sources in history: <code>cp_wizard</code>, <code>pyprices_upload</code>, <code>pyprices_ftp</code>, <code>pyprices_email</code>, <code>pyprices_url</code>, <code>deploy_api</code>, etc.</li>
 			</ul>
 
 			<hr>

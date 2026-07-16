@@ -1,25 +1,10 @@
 <?php
 //Скрипт загрузки файла с ПК для обновления прайс-листа
 // -------------------------------------------------------------------------------
-//Конфигурация CMS
-require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
-$DP_Config = new DP_Config;
+header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../epc_prices_ajax_init.php';
 // -------------------------------------------------------------------------------
-//Подключение к БД
-try
-{
-	$db_link = new PDO('mysql:host='.$DP_Config->host.';dbname='.$DP_Config->db, $DP_Config->user, $DP_Config->password);
-}
-catch (PDOException $e) 
-{
-	$answer = array();
-	$answer["status"] = false;
-	$answer["message"] = 'No DB Connect';
-	exit(json_encode($answer));
-}
-$db_link->query("SET NAMES utf8;");
-// -------------------------------------------------------------------------------
-//Защита от CSRF-атак
+//Защита от CSRF-атак (admin session + tenant DB via ajax init)
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/stop_csrf.php");
 // -------------------------------------------------------------------------------
 //Для работы с пользователями
@@ -110,7 +95,7 @@ if (! move_uploaded_file($_FILES[$file_input_name]['tmp_name'], $uploadfile))
 {
 	$answer = array();
 	$answer["status"] = false;
-	$answer["message"] = 'Could upload the file';
+	$answer["message"] = 'Could not upload the file';
 	exit(json_encode($answer));
 }
 // -------------------------------------------------------------------------------
@@ -120,6 +105,11 @@ $price_name_q->execute(array($price_id));
 $price_name_row = (string)$price_name_q->fetchColumn();
 $orig_upload_name = basename($_FILES[$file_input_name]['name']);
 $stored_relpath = epc_price_history_archive_file($uploadfile, (int)$price_id, $orig_upload_name);
+// Re-try archive once if first attempt failed (race with antivirus / delayed disk flush)
+if ($stored_relpath === '' && is_file($uploadfile)) {
+	usleep(150000);
+	$stored_relpath = epc_price_history_archive_file($uploadfile, (int)$price_id, $orig_upload_name);
+}
 $history_id = epc_price_history_save($db_link, array(
 	'price_id' => (int)$price_id,
 	'price_name' => $price_name_row,
@@ -129,6 +119,7 @@ $history_id = epc_price_history_save($db_link, array(
 	'stored_relpath' => $stored_relpath,
 	'file_size' => is_file($uploadfile) ? (int)filesize($uploadfile) : 0,
 	'status' => 'pending',
+	'error_text' => ($stored_relpath === '' ? 'Warning: source file archive failed at upload time; download may use DB export after import.' : ''),
 ));
 // -------------------------------------------------------------------------------
 //Загрузили файл, выдаем результат

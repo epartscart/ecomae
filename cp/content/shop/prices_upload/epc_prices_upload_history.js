@@ -37,11 +37,21 @@
 				if (answer && answer.status && answer.html) {
 					body.innerHTML = answer.html;
 				} else {
-					body.innerHTML = '<p class="text-danger">Could not load history.</p>';
+					var msg = (answer && (answer.message || answer.error)) ? (answer.message || answer.error) : 'Could not load history.';
+					body.innerHTML = '<p class="text-danger">' + String(msg).replace(/</g, '&lt;') + '</p>';
 				}
 			},
-			error: function () {
-				body.innerHTML = '<p class="text-danger">Request failed.</p>';
+			error: function (xhr) {
+				var detail = '';
+				if (xhr && xhr.responseText) {
+					try {
+						var parsed = JSON.parse(xhr.responseText);
+						detail = parsed.message || parsed.error || '';
+					} catch (e) {
+						detail = xhr.status ? ('HTTP ' + xhr.status) : '';
+					}
+				}
+				body.innerHTML = '<p class="text-danger">History request failed' + (detail ? (': ' + String(detail).replace(/</g, '&lt;')) : '.') + '</p>';
 			}
 		});
 	}

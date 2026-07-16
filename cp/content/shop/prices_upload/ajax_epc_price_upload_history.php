@@ -1,12 +1,16 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
+/**
+ * Price upload history list + file downloads (CP admin).
+ * Binary download actions must not emit Content-Type: application/json first.
+ */
 
-require_once __DIR__ . '/../epc_prices_ajax_init.php';
+require_once __DIR__ . '/epc_prices_ajax_init.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_price_upload_history.php';
 
 if (!DP_User::isAdmin()) {
+	header('Content-Type: application/json; charset=utf-8');
 	exit(json_encode(['status' => false, 'message' => 'Forbidden']));
 }
 
@@ -17,58 +21,25 @@ $csrfKey = (string)($_POST['csrf_guard_key'] ?? $_GET['csrf_guard_key'] ?? '');
 $backend = '/' . $DP_Config->backend_dir;
 $downloadBase = $backend . '/content/shop/prices_upload/ajax_epc_price_upload_history.php';
 
-function epc_history_download_row(array $row, string $downloadBase, string $csrfKey): void
+function epc_history_download_row(array $row): void
 {
 	$name = (string)$row['original_filename'];
 	if ($name === '') {
 		$name = 'price_upload_' . (int)$row['id'] . '.csv';
 	}
+	$path = epc_price_history_file_absolute_path($row);
 	header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="' . str_replace('"', '', $name) . '"');
-	header('Content-Length: ' . filesize(epc_price_history_file_absolute_path($row)));
-	readfile(epc_price_history_file_absolute_path($row));
+	header('Content-Length: ' . filesize($path));
+	header('X-Content-Type-Options: nosniff');
+	readfile($path);
 	exit;
 }
 
-if (in_array($action, ['download_issues', 'download_skipped', 'download_errors'], true)) {
-	$historyId = (int)($_GET['history_id'] ?? $_POST['history_id'] ?? 0);
-	$filter = 'all';
-	if ($action === 'download_skipped') {
-		$filter = 'skipped';
-	} elseif ($action === 'download_errors') {
-		$filter = 'error';
-	}
-	$row = epc_price_history_get_row($db_link, $historyId);
-	if (!$row) {
-		http_response_code(404);
-		exit('Not found');
-	}
-	epc_price_history_stream_issues_csv($row, $filter);
-}
-
-if ($action === 'download' || $action === 'download_latest') {
-	$row = null;
-	if ($action === 'download_latest') {
-		$dlPriceId = (int)($_GET['price_id'] ?? $_POST['price_id'] ?? 0);
-		$row = epc_price_history_get_active($db_link, $dlPriceId);
-	} else {
-		$row = epc_price_history_get_row($db_link, (int)($_GET['history_id'] ?? $_POST['history_id'] ?? 0));
-	}
-	if (!$row) {
-		http_response_code(404);
-		exit('Not found');
-	}
-	$path = epc_price_history_file_absolute_path($row);
-	if ($path === '' || !is_file($path)) {
-		http_response_code(404);
-		exit('File not available');
-	}
-	epc_history_download_row($row, $downloadBase, $csrfKey);
-}
-
-if ($action === 'export_db') {
-	$exportPriceId = (int)($_GET['price_id'] ?? $_POST['price_id'] ?? 0);
+function epc_history_stream_db_export(PDO $db_link, int $exportPriceId): void
+{
 	if ($exportPriceId <= 0) {
+		header('Content-Type: application/json; charset=utf-8');
 		exit(json_encode(['status' => false, 'message' => 'price_id required']));
 	}
 	$pn = $db_link->prepare('SELECT `name` FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1;');
@@ -79,6 +50,7 @@ if ($action === 'export_db') {
 
 	header('Content-Type: text/csv; charset=utf-8');
 	header('Content-Disposition: attachment; filename="' . $filename . '"');
+	header('X-Content-Type-Options: nosniff');
 
 	$out = fopen('php://output', 'w');
 	fputcsv($out, ['manufacturer', 'article', 'article_show', 'name', 'exist', 'price', 'time_to_exe', 'storage', 'min_order']);
@@ -105,6 +77,64 @@ if ($action === 'export_db') {
 	exit;
 }
 
+if (in_array($action, ['download_issues', 'download_skipped', 'download_errors'], true)) {
+	$historyId = (int)($_GET['history_id'] ?? $_POST['history_id'] ?? 0);
+	$filter = 'all';
+	if ($action === 'download_skipped') {
+		$filter = 'skipped';
+	} elseif ($action === 'download_errors') {
+		$filter = 'error';
+	}
+	$row = epc_price_history_get_row($db_link, $historyId);
+	if (!$row) {
+		http_response_code(404);
+		header('Content-Type: text/plain; charset=utf-8');
+		exit('Not found');
+	}
+	epc_price_history_stream_issues_csv($row, $filter);
+}
+
+if ($action === 'download' || $action === 'download_latest') {
+	$row = null;
+	$dlPriceId = 0;
+	if ($action === 'download_latest') {
+		$dlPriceId = (int)($_GET['price_id'] ?? $_POST['price_id'] ?? 0);
+		$row = epc_price_history_get_active($db_link, $dlPriceId);
+	} else {
+		$row = epc_price_history_get_row($db_link, (int)($_GET['history_id'] ?? $_POST['history_id'] ?? 0));
+		if ($row) {
+			$dlPriceId = (int)$row['price_id'];
+		}
+	}
+	if ($row) {
+		$path = epc_price_history_file_absolute_path($row);
+		if ($path !== '' && is_file($path)) {
+			epc_history_download_row($row);
+		}
+	}
+	// "Last / active file" button: if archive is gone, export live DB prices instead of a dead 404
+	if ($action === 'download_latest' && $dlPriceId > 0) {
+		epc_history_stream_db_export($db_link, $dlPriceId);
+	}
+	http_response_code(404);
+	header('Content-Type: text/html; charset=utf-8');
+	$exportUrl = $downloadBase . '?action=export_db&price_id=' . (int)$dlPriceId . '&csrf_guard_key=' . rawurlencode($csrfKey);
+	echo '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px">';
+	echo '<h2>Upload file not available</h2>';
+	echo '<p>The archived source file for this upload is missing on disk (common if the import engine cleaned temp files before archive).</p>';
+	if ($dlPriceId > 0) {
+		echo '<p><a href="' . htmlspecialchars($exportUrl, ENT_QUOTES, 'UTF-8') . '">Download current prices from database (CSV)</a></p>';
+	}
+	echo '</body></html>';
+	exit;
+}
+
+if ($action === 'export_db') {
+	epc_history_stream_db_export($db_link, (int)($_GET['price_id'] ?? $_POST['price_id'] ?? 0));
+}
+
+header('Content-Type: application/json; charset=utf-8');
+
 $activeRow = ($priceId > 0) ? epc_price_history_get_active($db_link, $priceId) : null;
 $rows = epc_price_history_list($db_link, $priceId, $limit);
 
@@ -126,6 +156,10 @@ if ($activeRow) {
 				<a class="btn btn-sm btn-primary" href="<?php echo $downloadBase; ?>?action=download_latest&amp;price_id=<?php echo (int)$activeRow['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
 					<i class="fas fa-download"></i> Download active file
 				</a>
+			<?php else: ?>
+				<a class="btn btn-sm btn-primary" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$activeRow['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
+					<i class="fas fa-download"></i> Download from DB (source archive missing)
+				</a>
 			<?php endif; ?>
 			<a class="btn btn-sm btn-default" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$activeRow['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
 				<i class="fas fa-database"></i> Export current DB
@@ -146,7 +180,7 @@ if ($activeRow) {
 	<?php
 } elseif ($priceId > 0) {
 	?>
-	<div class="alert alert-warning" style="margin-bottom:12px;">No archived upload file for this price list yet. Upload a file to store it here for download.</div>
+	<div class="alert alert-warning" style="margin-bottom:12px;">No archived upload file for this price list yet. Upload a file to store it here for download. You can still <a href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$priceId; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">export current DB prices</a>.</div>
 	<?php
 }
 ?>
@@ -215,7 +249,7 @@ if ($activeRow) {
 						<?php elseif ($status === 'pending'): ?>
 							<span class="text-muted" title="Import in progress"><i class="fas fa-spinner fa-pulse"></i></span>
 						<?php else: ?>
-							<span class="text-muted" title="Source file was not archived for this run"><i class="fas fa-exclamation-circle"></i></span>
+							<a class="btn btn-xs btn-default" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$row['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Source archive missing — export current DB"><i class="fas fa-database"></i></a>
 						<?php endif; ?>
 						<?php if ($canIssues): ?>
 							<a class="btn btn-xs btn-warning" href="<?php echo $downloadBase; ?>?action=download_skipped&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Skipped lines with details"><i class="fas fa-exclamation-triangle"></i> <?php echo $rowSkipped; ?></a>
