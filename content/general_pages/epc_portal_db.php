@@ -124,6 +124,8 @@ function epc_portal_db_ensure(PDO $pdo)
 		// 1000+ tenant scale: dedicated MySQL per tenant (default for new onboardings).
 		'dedicated_db' => 'TINYINT(1) NOT NULL DEFAULT 0 AFTER `erp_only_shared`',
 		'scale_policy' => "VARCHAR(32) NOT NULL DEFAULT 'shared_docpart' AFTER `dedicated_db`",
+		// Blockchain BOS Enterprise: off | anchor | network
+		'blockchain_mode' => "VARCHAR(24) NOT NULL DEFAULT 'anchor' AFTER `scale_policy`",
 	) as $col => $def) {
 		$chk = $pdo->query("SHOW COLUMNS FROM `epc_portal_tenants` LIKE " . $pdo->quote($col))->fetch(PDO::FETCH_ASSOC);
 		if (!$chk) {

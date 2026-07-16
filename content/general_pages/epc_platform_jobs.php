@@ -312,6 +312,10 @@ function epc_platform_jobs_dispatch(array $job): array
     if ($type === 'tenant_warmup_pdo') {
         return epc_platform_jobs_handle_tenant_warmup($tenantKey, $payload);
     }
+    if ($type === 'blockchain_anchor_batch') {
+        require_once __DIR__ . '/epc_blockchain_bos.php';
+        return epc_bc_bos_job_anchor_batch($tenantKey, $payload, $job);
+    }
     if ($type === 'noop') {
         return ['ok' => true, 'result' => ['echo' => $payload]];
     }

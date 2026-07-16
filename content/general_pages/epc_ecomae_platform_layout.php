@@ -41,7 +41,7 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 	$canonical = epc_ecomae_h($base . ($canonicalPath === '/' ? '/' : $canonicalPath));
 	$desc = epc_ecomae_h($description !== '' ? $description : 'ECOM AE — hosted e-commerce, ERP, and CRM cloud for UAE businesses. Multi-tenant storefronts, Super CP (operator control panel), and Peppol e-invoicing.');
 	$ogImg = epc_ecomae_h($base . '/epc-static.php?f=content/general_pages/marketing_screens/og_cover.png');
-	$ogAlt = epc_ecomae_h('ECOM AE — One Business Operating System: ERP, commerce, compliance, workflows and CRM.');
+	$ogAlt = epc_ecomae_h('ECOM AE — One Blockchain BOS Enterprise System: ERP, commerce, compliance, workflows, CRM and cryptographic proof.');
 	return '<!DOCTYPE html><html lang="en"><head><!-- ECOMAE-MARKETING-HOME-v8 -->'
 		. '<meta charset="utf-8">'
 		. '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -109,9 +109,9 @@ function epc_ecomae_platform_head_html($title, $canonicalPath = '/', $descriptio
 function epc_ecomae_platform_page_description($page, array $params = array()): string
 {
 	$descriptions = array(
-		'home' => 'ECOM AE — the multi-tenant Business Operating System (BOS) combining ERP, commerce, compliance, workflows and industry-specific operational intelligence for organizations across industries worldwide.',
-		'platform' => 'Explore the ECOM AE Business Operating System (BOS): ERP, commerce, compliance, workflows, CRM and industry intelligence on one multi-tenant cloud.',
-		'capabilities' => 'ECOM AE BOS capabilities — ERP, commerce, compliance, workflow automation, industry intelligence, and operator Super CP for hosted businesses.',
+		'home' => 'ECOM AE — the multi-tenant Blockchain BOS Enterprise System combining ERP, commerce, compliance, workflows, industry intelligence and cryptographic proof for organizations worldwide.',
+		'platform' => 'Explore the ECOM AE Blockchain BOS Enterprise System: ERP, commerce, compliance, workflows, CRM, industry intelligence and verifiable proofs on one multi-tenant cloud.',
+		'capabilities' => 'ECOM AE Blockchain BOS Enterprise capabilities — ERP, commerce, compliance, workflow automation, industry intelligence, proof anchoring, and operator Super CP.',
 		'auto_price_ai' => 'Auto Price AI — discover, compare, and import products across market sources with margin rules and catalogue sync.',
 		'faq' => '105 honest answers on automotive catalog, B2B, supply chain, UAE ERP, AI, infrastructure, and licensing.',
 		'pricing' => 'Transparent monthly rental plans for ECOM AE cloud — e-commerce, ERP, and CRM for UAE businesses.',
@@ -247,7 +247,7 @@ function epc_ecomae_platform_layout_close()
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/faq">FAQ</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>documentation">Documentation</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>compare">Compare</a>
-			<a href="<?php echo epc_ecomae_h($base); ?>bos">What is a BOS</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>bos">What is Blockchain BOS</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>solutions">Solutions</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/contact">Contact</a>
 		</div>
@@ -1104,12 +1104,13 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
 		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
 		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
+		array('icon' => 'fa-lock', 'label' => 'Blockchain proof layer'),
 		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
 		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
 	);
 	ob_start();
 	?>
-<section class="epm-hub-section" aria-label="ECOM AE platform hub">
+<section class="epm-hub-section" aria-label="ECOM AE Blockchain BOS Enterprise hub">
 	<div class="epm-hub">
 		<div class="epm-hub__matrix" aria-hidden="true">
 			<?php
@@ -1145,14 +1146,14 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 			<div class="epm-hub__core-glow" aria-hidden="true"></div>
 			<div class="epm-hub__core-pulse" aria-hidden="true"></div>
 			<img class="epm-hub__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="" />
-			<p class="epm-hub__pill" style="margin-bottom:10px"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
-			<h1 class="epm-hub__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">Business</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack">Operating</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--stack">System</span>
-				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE BOS</span>
+			<p class="epm-hub__pill" style="margin-bottom:10px"><i class="fa fa-cubes"></i> The multi-tenant Blockchain BOS Enterprise System</p>
+			<h1 class="epm-hub__headline" aria-label="Blockchain BOS Enterprise System — ERP, Commerce, Compliance, Workflows, Industry Intelligence, Cryptographic Proof">
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">Blockchain</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">BOS</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">Enterprise</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE SYSTEM</span>
 			</h1>
-			<p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(14,165,233,.5)">backup continuity</a> built in.</p>
+			<p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Intelligence · Blockchain Proof — one unified cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(14,165,233,.5)">backup continuity</a> built in.</p>
 			<p class="epm-hub__pill"><i class="fa fa-circle epm-hub__live-dot"></i> Data flowing · multi-tenant hub</p>
 			<div class="epm-hub__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
@@ -1184,8 +1185,8 @@ function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 		</div>
 
 		<div class="epm-hub__platform">
-			<p class="epm-hub__platform-title">One Business Operating System for the whole organization</p>
-			<p class="epm-hub__platform-sub">ECOM AE is a multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
+			<p class="epm-hub__platform-title">One Blockchain BOS Enterprise System for the whole organization</p>
+			<p class="epm-hub__platform-sub">ECOM AE is one unified Blockchain BOS Enterprise System — ERP, commerce, compliance, workflows, industry intelligence and cryptographic proof on a single multi-tenant cloud.</p>
 			<div class="epm-hub__platform-pills">
 				<?php foreach ($platformPills as $p) { ?>
 				<span class="epm-hub__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>
@@ -1209,24 +1210,25 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
 		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
 		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
+		array('icon' => 'fa-lock', 'label' => 'Blockchain proof layer'),
 		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
 		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
 	);
 	ob_start();
 	?>
-<section class="epm-static-hero-section" aria-label="ECOM AE platform">
+<section class="epm-static-hero-section" aria-label="ECOM AE Blockchain BOS Enterprise">
 	<div class="epm-static-hero">
 		<div class="epm-static-hero__bg" aria-hidden="true"></div>
 		<div class="epm-static-hero__inner">
 			<img class="epm-static-hero__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="ECOM AE" width="200" height="auto" />
-			<p class="epm-static-hero__tagline" style="margin-bottom:8px;opacity:.92"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
-			<h1 class="epm-static-hero__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
-				<span class="epm-static-hero__line epm-static-hero__line--stack epm-static-hero__line--commerce">Business</span>
-				<span class="epm-static-hero__line epm-static-hero__line--stack">Operating</span>
-				<span class="epm-static-hero__line epm-static-hero__line--stack">System</span>
-				<span class="epm-static-hero__line epm-static-hero__line--cloud">ONE BOS</span>
+			<p class="epm-static-hero__tagline" style="margin-bottom:8px;opacity:.92"><i class="fa fa-cubes"></i> The multi-tenant Blockchain BOS Enterprise System</p>
+			<h1 class="epm-static-hero__headline" aria-label="Blockchain BOS Enterprise System — ERP, Commerce, Compliance, Workflows, Industry Intelligence, Cryptographic Proof">
+				<span class="epm-static-hero__line epm-static-hero__line--stack epm-static-hero__line--commerce">Blockchain</span>
+				<span class="epm-static-hero__line epm-static-hero__line--stack">BOS</span>
+				<span class="epm-static-hero__line epm-static-hero__line--stack">Enterprise</span>
+				<span class="epm-static-hero__line epm-static-hero__line--cloud">ONE SYSTEM</span>
 			</h1>
-			<p class="epm-static-hero__tagline">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity">backup continuity</a> built in.</p>
+			<p class="epm-static-hero__tagline">ERP · Commerce · Compliance · Workflows · Intelligence · Blockchain Proof — one unified cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity">backup continuity</a> built in.</p>
 			<div class="epm-static-hero__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h($superCp); ?>"><i class="fa fa-th-large"></i> Super CP</a>
@@ -1234,8 +1236,8 @@ function epc_ecomae_platform_static_hero($base, $superCp, $demoDays = 3)
 			</div>
 		</div>
 		<div class="epm-static-hero__platform">
-			<p class="epm-static-hero__platform-title">One Business Operating System for the whole organization</p>
-			<p class="epm-static-hero__platform-sub">A multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
+			<p class="epm-static-hero__platform-title">One Blockchain BOS Enterprise System for the whole organization</p>
+			<p class="epm-static-hero__platform-sub">One unified Blockchain BOS Enterprise System — ERP, commerce, compliance, workflows, industry intelligence and cryptographic proof on a single multi-tenant cloud.</p>
 			<div class="epm-static-hero__platform-pills">
 				<?php foreach ($platformPills as $p) { ?>
 				<span class="epm-static-hero__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>

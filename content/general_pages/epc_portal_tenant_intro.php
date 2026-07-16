@@ -331,6 +331,9 @@ function epc_portal_onboard_client(PDO $pdo, array $post, string $submittedBy = 
 		'erp_only_shared' => $erpOnlyShared ? 1 : 0,
 		'dedicated_db' => $dedicatedDb ? 1 : 0,
 		'scale_policy' => $scalePolicy,
+		'blockchain_mode' => isset($post['blockchain_mode'])
+			? (string) $post['blockchain_mode']
+			: (string) ($intro['blockchain_mode'] ?? 'anchor'),
 	);
 
 	$errors = epc_portal_intro_validate($intro, $tenantData);

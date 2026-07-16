@@ -261,6 +261,23 @@ $introFields = epc_portal_intro_field_defs();
 						<input type="hidden" name="dedicated_db" id="epc_intro_dedicated_db" value="<?php echo $editScalePolicy === 'dedicated_mysql' ? '1' : '0'; ?>">
 						<p class="text-muted small" style="margin:8px 0 0">Dedicated creates an isolated DB/user on save. Shared docpart keeps logical isolation on the common commerce database.</p>
 					</div>
+					<?php
+					$editBcMode = (string) ($editTenant['blockchain_mode'] ?? 'anchor');
+					if (!in_array($editBcMode, array('off', 'anchor', 'network'), true)) {
+						$editBcMode = 'anchor';
+					}
+					?>
+					<div class="alert alert-info" style="margin-bottom:12px">
+						<label style="font-weight:normal;margin:0 0 8px;display:block">
+							<strong>Blockchain BOS</strong> — cryptographic proof layer for enterprise integrity (default on).
+						</label>
+						<select class="form-control" name="blockchain_mode" id="epc_intro_blockchain_mode">
+							<option value="anchor"<?php echo $editBcMode === 'anchor' ? ' selected' : ''; ?>>Anchor proofs (recommended)</option>
+							<option value="network"<?php echo $editBcMode === 'network' ? ' selected' : ''; ?>>Network participant (roadmap)</option>
+							<option value="off"<?php echo $editBcMode === 'off' ? ' selected' : ''; ?>>Off</option>
+						</select>
+						<p class="text-muted small" style="margin:8px 0 0">Hashes critical business facts and anchors Merkle batches — MySQL remains the operational database.</p>
+					</div>
 					<div class="row">
 						<div class="col-md-4 form-group">
 							<label>DB name</label>

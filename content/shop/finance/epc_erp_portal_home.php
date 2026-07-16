@@ -22,7 +22,7 @@ $erpGuide = isset($portal_home) ? $portal_home . '/guide' : $base . '/erp/guide'
 				<div class="epc-erp-bos-hero__brand-ring epc-erp-bos-hero__brand-ring--2"></div>
 			</div>
 			<h1 class="epc-erp-bos-hero__title">ERP Finance</h1>
-			<p class="epc-erp-bos-hero__tagline">Unified Business Operating System</p>
+			<p class="epc-erp-bos-hero__tagline">Unified Blockchain BOS Enterprise System</p>
 		</div>
 
 		<div class="epc-erp-bos-hero__capabilities">

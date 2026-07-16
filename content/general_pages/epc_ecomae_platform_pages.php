@@ -179,9 +179,9 @@ function epc_ecomae_platform_page_platform()
 		<img class="epm-hero__img" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=75" alt="" loading="lazy" />
 		<div class="epm-hero__shade"></div>
 		<div class="epm-hero__content">
-			<div class="epm-badge">Business Operating System · complete overview</div>
-			<h1>Everything in the ECOM AE BOS — by area</h1>
-			<p class="lead">One Business Operating System: <strong>ERP + commerce + compliance + workflows + CRM + industry intelligence</strong> — go live in <strong>24 hours</strong> with <strong>e-invoice</strong> built in. Below: what the storefront, CP, and Super CP deliver per capability.</p>
+			<div class="epm-badge">Blockchain BOS Enterprise System · complete overview</div>
+			<h1>Everything in the ECOM AE Blockchain BOS — by area</h1>
+			<p class="lead">One Blockchain BOS Enterprise System: <strong>ERP + commerce + compliance + workflows + CRM + industry intelligence + cryptographic proof</strong> — go live in <strong>24 hours</strong> with <strong>e-invoice</strong> built in. Below: what the storefront, CP, and Super CP deliver per capability.</p>
 			<div class="epm-cta">
 				<a class="epm-btn epm-btn--primary" href="#super-cp">Super CP</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h($base); ?>platform/platform-guides">Super CP guides</a>
@@ -768,7 +768,7 @@ function epc_ecomae_platform_page_pricing()
 		</div>
 		<?php } ?>
 	</div>
-	<p style="color:var(--epm-muted);font-size:14px;margin-top:20px">All plans include SSL, tenant isolation, country-driven compliance, unlimited users and BOS onboarding tools. Prices are indicative — final commercial terms per client contract.</p>
+	<p style="color:var(--epm-muted);font-size:14px;margin-top:20px">All plans include SSL, tenant isolation, country-driven compliance, unlimited users, blockchain proof anchoring and Blockchain BOS onboarding tools. Prices are indicative — final commercial terms per client contract.</p>
 	<?php
 	$bench = function_exists('epc_ecomae_platform_price_benchmark') ? epc_ecomae_platform_price_benchmark() : null;
 	if ($bench) { ?>
