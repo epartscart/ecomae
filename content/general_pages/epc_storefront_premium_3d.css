@@ -1,0 +1,316 @@
+/* Live-tenant premium 3D skin — brand tokens, hero canvas, depth motion */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
+
+body.epc-sf-premium-3d{
+  --epc-sf3d-primary:var(--epc-portal-primary,#0f766e);
+  --epc-sf3d-accent:var(--epc-portal-accent,#14b8a6);
+  --epc-sf3d-from:var(--epc-portal-hero-from,#0b1220);
+  --epc-sf3d-to:var(--epc-portal-hero-to,#132033);
+  --primary:var(--epc-sf3d-primary);
+  --accent:var(--epc-sf3d-accent);
+  --ind3d-depth:1100px;
+  perspective-origin:50% 20%;
+}
+
+/* Motif only drives particle shapes (JS); colours stay on --epc-portal-* brand tokens */
+
+body.epc-sf-premium-3d .epc-er-hero-banner,
+body.epc-sf-premium-3d .epc-frn-hero-banner,
+body.epc-sf-premium-3d .epc-jrk-hero-banner,
+body.epc-sf-premium-3d .epc-cpi-hero-banner,
+body.epc-sf-premium-3d .epc-cpi-hero-slider,
+body.epc-sf-premium-3d .epc-er-hero,
+body.epc-sf-premium-3d .epc-frn-hero,
+body.epc-sf-premium-3d .epc-jrk-hero{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  perspective:var(--ind3d-depth);
+}
+
+body.epc-sf-premium-3d .epc-er-hero-banner.epc-home-pro,
+body.epc-sf-premium-3d .epc-frn-hero-banner.epc-home-pro,
+body.epc-sf-premium-3d .epc-jrk-hero-banner.epc-home-pro,
+body.epc-sf-premium-3d .epc-cpi-hero-banner.epc-home-pro{
+  min-height:min(92vh,820px);
+  background:
+    radial-gradient(ellipse 55% 50% at 78% 42%,color-mix(in srgb,var(--epc-sf3d-accent) 28%,transparent),transparent 58%),
+    radial-gradient(ellipse 40% 45% at 18% 70%,color-mix(in srgb,var(--epc-sf3d-primary) 22%,transparent),transparent 52%),
+    linear-gradient(135deg,var(--epc-sf3d-from),var(--epc-sf3d-to));
+  color:#f8fafc;
+}
+
+body.epc-sf-premium-3d .epc-er-hero-banner .epc-home-pro__eyebrow,
+body.epc-sf-premium-3d .epc-frn-hero-banner .epc-home-pro__eyebrow,
+body.epc-sf-premium-3d .epc-jrk-hero-banner .epc-home-pro__eyebrow,
+body.epc-sf-premium-3d .epc-cpi-hero-banner .epc-home-pro__eyebrow{
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-family:'Outfit',system-ui,sans-serif;
+}
+
+body.epc-sf-premium-3d .epc-er-hero-banner h2,
+body.epc-sf-premium-3d .epc-frn-hero-banner h2,
+body.epc-sf-premium-3d .epc-jrk-hero-banner h2,
+body.epc-sf-premium-3d .epc-cpi-hero-banner h2,
+body.epc-sf-premium-3d .epc-cpi-hero-slide__title{
+  font-family:'Syne',system-ui,sans-serif;
+  letter-spacing:-.03em;
+  line-height:1.05;
+  text-shadow:0 18px 50px rgba(0,0,0,.35);
+  animation:epcSf3dHeroIn 1s cubic-bezier(.22,1,.36,1) both;
+}
+
+body.epc-sf-premium-3d .epc-er-hero-banner .epc-home-pro__copy,
+body.epc-sf-premium-3d .epc-frn-hero-banner .epc-home-pro__copy,
+body.epc-sf-premium-3d .epc-jrk-hero-banner .epc-home-pro__copy,
+body.epc-sf-premium-3d .epc-cpi-hero-banner .epc-home-pro__copy{
+  font-family:'Outfit',system-ui,sans-serif;
+  max-width:36rem;
+  animation:epcSf3dHeroIn 1.15s cubic-bezier(.22,1,.36,1) .08s both;
+}
+
+body.epc-sf-premium-3d .epc-er-hero-banner .epc-home-pro__actions,
+body.epc-sf-premium-3d .epc-frn-hero-banner .epc-home-pro__actions,
+body.epc-sf-premium-3d .epc-jrk-hero-banner .epc-home-pro__actions,
+body.epc-sf-premium-3d .epc-cpi-hero-banner .epc-home-pro__actions{
+  animation:epcSf3dHeroIn 1.2s cubic-bezier(.22,1,.36,1) .16s both;
+}
+
+body.epc-sf-premium-3d .epc-home-pro__btn--primary,
+body.epc-sf-premium-3d .epc-er-btn--primary,
+body.epc-sf-premium-3d .epc-frn-btn--primary,
+body.epc-sf-premium-3d .epc-jrk-btn--primary,
+body.epc-sf-premium-3d .epc-cpi-btn--primary{
+  transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;
+  box-shadow:0 14px 36px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.18),0 0 28px color-mix(in srgb,var(--epc-sf3d-accent) 35%,transparent);
+}
+body.epc-sf-premium-3d .epc-home-pro__btn--primary:hover,
+body.epc-sf-premium-3d .epc-er-btn--primary:hover,
+body.epc-sf-premium-3d .epc-frn-btn--primary:hover,
+body.epc-sf-premium-3d .epc-jrk-btn--primary:hover,
+body.epc-sf-premium-3d .epc-cpi-btn--primary:hover{
+  transform:translateY(-5px) scale(1.03);
+  box-shadow:0 22px 48px rgba(0,0,0,.32),0 0 36px color-mix(in srgb,var(--epc-sf3d-accent) 45%,transparent);
+}
+
+/* Canvas + stage (shared class names with industry engine) */
+.epc-sf3d-canvas,
+body.epc-sf-premium-3d .ind3d-canvas{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:1!important;
+  pointer-events:none;
+  opacity:.72;
+  mix-blend-mode:screen;
+}
+body.epc-sf-premium-3d .ind3d-stage{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  perspective:900px;
+  overflow:hidden;
+}
+body.epc-sf-premium-3d .ind3d-ring{
+  position:absolute;
+  left:72%;
+  top:46%;
+  width:min(46vw,380px);
+  height:min(46vw,380px);
+  margin:-min(23vw,190px) 0 0 -min(23vw,190px);
+  border:2px solid color-mix(in srgb,var(--epc-sf3d-accent) 55%,transparent);
+  border-radius:50%;
+  box-shadow:
+    0 0 40px color-mix(in srgb,var(--epc-sf3d-accent) 30%,transparent),
+    inset 0 0 36px color-mix(in srgb,var(--epc-sf3d-primary) 18%,transparent);
+  transform:rotateX(68deg) rotateZ(0deg);
+  animation:epcSf3dRingSpin 18s linear infinite;
+}
+body.epc-sf-premium-3d .ind3d-ring--2{
+  width:min(62vw,520px);
+  height:min(62vw,520px);
+  margin:-min(31vw,260px) 0 0 -min(31vw,260px);
+  border-style:dashed;
+  opacity:.6;
+  animation-duration:28s;
+  animation-direction:reverse;
+}
+body.epc-sf-premium-3d .ind3d-core{
+  position:absolute;
+  left:72%;
+  top:46%;
+  width:108px;
+  height:108px;
+  margin:-54px 0 0 -54px;
+  border-radius:26px;
+  background:radial-gradient(circle at 30% 30%,color-mix(in srgb,var(--epc-sf3d-accent) 80%,#fff),var(--epc-sf3d-primary));
+  box-shadow:0 0 50px color-mix(in srgb,var(--epc-sf3d-accent) 55%,transparent),0 28px 50px rgba(0,0,0,.4);
+  transform:rotateX(12deg) rotateY(-18deg);
+  animation:epcSf3dCoreFloat 4.5s ease-in-out infinite;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:38px;
+  border:1px solid rgba(255,255,255,.35);
+}
+body.epc-sf-premium-3d .ind3d-sprites{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  overflow:hidden;
+}
+body.epc-sf-premium-3d .ind3d-sprite{
+  position:absolute;
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:22px;
+  background:linear-gradient(145deg,var(--epc-sf3d-primary),var(--epc-sf3d-accent));
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 16px 34px rgba(0,0,0,.35),0 0 24px color-mix(in srgb,var(--epc-sf3d-accent) 40%,transparent);
+  animation:epcSf3dSpriteFloat var(--dur,7s) ease-in-out infinite;
+  animation-delay:var(--delay,0s);
+}
+body.epc-sf-premium-3d .ind3d-sprite:nth-child(1){left:4%;top:18%;--dur:6.5s}
+body.epc-sf-premium-3d .ind3d-sprite:nth-child(2){right:6%;top:22%;--dur:8s;--delay:.3s}
+body.epc-sf-premium-3d .ind3d-sprite:nth-child(3){left:8%;bottom:14%;--dur:7.2s;--delay:.7s}
+body.epc-sf-premium-3d .ind3d-sprite:nth-child(4){right:10%;bottom:16%;--dur:9s;--delay:1s}
+body.epc-sf-premium-3d .ind3d-sprite:nth-child(5){left:40%;top:10%;--dur:7.8s;--delay:.2s}
+body.epc-sf-premium-3d .ind3d-sprite:nth-child(6){right:34%;bottom:8%;--dur:8.4s;--delay:1.2s}
+
+body.epc-sf-premium-3d .epc-er-hero-banner .container,
+body.epc-sf-premium-3d .epc-frn-hero-banner .container,
+body.epc-sf-premium-3d .epc-jrk-hero-banner .container,
+body.epc-sf-premium-3d .epc-cpi-hero-banner .container,
+body.epc-sf-premium-3d .epc-cpi-hero-slide .container{
+  position:relative;
+  z-index:4;
+}
+
+body.epc-sf-premium-3d .epc-home-pro__visual,
+body.epc-sf-premium-3d .epc-er-hero__media,
+body.epc-sf-premium-3d .epc-frn-hero__media,
+body.epc-sf-premium-3d .epc-jrk-hero__media,
+body.epc-sf-premium-3d .epc-cpi-hero-slide__card{
+  transform:perspective(900px) rotateY(-8deg) rotateX(4deg);
+  transform-style:preserve-3d;
+  transition:transform .45s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 28px 60px rgba(0,0,0,.28);
+}
+body.epc-sf-premium-3d .epc-home-pro__visual:hover,
+body.epc-sf-premium-3d .epc-er-hero__media:hover,
+body.epc-sf-premium-3d .epc-frn-hero__media:hover,
+body.epc-sf-premium-3d .epc-jrk-hero__media:hover,
+body.epc-sf-premium-3d .epc-cpi-hero-slide__card:hover{
+  transform:perspective(900px) rotateY(-2deg) rotateX(0deg) translateY(-6px) scale(1.02);
+}
+
+/* Product / category depth — keep package chrome, add presence */
+body.epc-sf-premium-3d .epc-er-product-card,
+body.epc-sf-premium-3d .epc-frn-product-card,
+body.epc-sf-premium-3d .epc-jrk-product-card,
+body.epc-sf-premium-3d .epc-er-cat-tile,
+body.epc-sf-premium-3d .epc-frn-cat-tile,
+body.epc-sf-premium-3d .epc-jrk-cat-tile,
+body.epc-sf-premium-3d .epc-cpi-icon-box,
+body.epc-sf-premium-3d .epc-cpi-service-card,
+body.epc-sf-premium-3d .epc-home-pro__stat,
+body.epc-sf-premium-3d .epc-card-lift{
+  transform:perspective(900px) rotateX(3deg) translateZ(0);
+  transform-style:preserve-3d;
+  transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s,border-color .25s;
+  will-change:transform;
+}
+body.epc-sf-premium-3d .epc-er-product-card:hover,
+body.epc-sf-premium-3d .epc-frn-product-card:hover,
+body.epc-sf-premium-3d .epc-jrk-product-card:hover,
+body.epc-sf-premium-3d .epc-er-cat-tile:hover,
+body.epc-sf-premium-3d .epc-frn-cat-tile:hover,
+body.epc-sf-premium-3d .epc-jrk-cat-tile:hover,
+body.epc-sf-premium-3d .epc-cpi-icon-box:hover,
+body.epc-sf-premium-3d .epc-cpi-service-card:hover,
+body.epc-sf-premium-3d .epc-card-lift:hover{
+  transform:perspective(900px) rotateX(0deg) translateY(-10px) scale(1.03);
+  box-shadow:0 26px 50px rgba(0,0,0,.18),0 0 30px color-mix(in srgb,var(--epc-sf3d-accent) 18%,transparent);
+}
+
+body.epc-sf-premium-3d .epc-er-section__title,
+body.epc-sf-premium-3d .epc-frn-section__title,
+body.epc-sf-premium-3d .epc-jrk-section__title,
+body.epc-sf-premium-3d .epc-cpi-section__title{
+  font-family:'Syne',system-ui,sans-serif;
+  letter-spacing:-.02em;
+}
+
+/* Soft atmospheric wash behind later sections */
+body.epc-sf-premium-3d .epc-er-home,
+body.epc-sf-premium-3d .epc-frn-home,
+body.epc-sf-premium-3d .epc-jrk-home,
+body.epc-sf-premium-3d .epc-cpi-home{
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -5%,color-mix(in srgb,var(--epc-sf3d-primary) 8%,transparent),transparent 55%),
+    linear-gradient(180deg,#fafafa 0%,#ffffff 40%,#f8fafc 100%);
+}
+
+@keyframes epcSf3dHeroIn{
+  from{opacity:0;transform:translateY(28px) scale(.97)}
+  to{opacity:1;transform:none}
+}
+@keyframes epcSf3dRingSpin{
+  from{transform:rotateX(68deg) rotateZ(0deg)}
+  to{transform:rotateX(68deg) rotateZ(360deg)}
+}
+@keyframes epcSf3dCoreFloat{
+  0%,100%{transform:rotateX(12deg) rotateY(-18deg) translateY(0)}
+  50%{transform:rotateX(8deg) rotateY(-10deg) translateY(-12px)}
+}
+@keyframes epcSf3dSpriteFloat{
+  0%,100%{transform:translate3d(0,0,0) rotate(-6deg)}
+  50%{transform:translate3d(0,-18px,24px) rotate(6deg)}
+}
+
+@media (max-width:900px){
+  body.epc-sf-premium-3d .epc-er-hero-banner.epc-home-pro,
+  body.epc-sf-premium-3d .epc-frn-hero-banner.epc-home-pro,
+  body.epc-sf-premium-3d .epc-jrk-hero-banner.epc-home-pro,
+  body.epc-sf-premium-3d .epc-cpi-hero-banner.epc-home-pro{
+    min-height:auto;
+  }
+  body.epc-sf-premium-3d .ind3d-ring,
+  body.epc-sf-premium-3d .ind3d-core{left:50%;opacity:.45}
+  body.epc-sf-premium-3d .ind3d-sprite{width:44px;height:44px;font-size:16px}
+  body.epc-sf-premium-3d .ind3d-sprite:nth-child(n+4){display:none}
+  body.epc-sf-premium-3d .ind3d-canvas,
+  body.epc-sf-premium-3d .epc-sf3d-canvas{opacity:.55}
+  body.epc-sf-premium-3d .epc-home-pro__visual,
+  body.epc-sf-premium-3d .epc-er-hero__media,
+  body.epc-sf-premium-3d .epc-frn-hero__media,
+  body.epc-sf-premium-3d .epc-jrk-hero__media{
+    transform:none;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  body.epc-sf-premium-3d .ind3d-canvas,
+  body.epc-sf-premium-3d .epc-sf3d-canvas,
+  body.epc-sf-premium-3d .ind3d-stage,
+  body.epc-sf-premium-3d .ind3d-sprites{display:none!important}
+  body.epc-sf-premium-3d .epc-er-product-card,
+  body.epc-sf-premium-3d .epc-frn-product-card,
+  body.epc-sf-premium-3d .epc-jrk-product-card,
+  body.epc-sf-premium-3d .epc-card-lift,
+  body.epc-sf-premium-3d .epc-home-pro__visual{transform:none!important}
+  body.epc-sf-premium-3d .epc-er-hero-banner h2,
+  body.epc-sf-premium-3d .epc-frn-hero-banner h2,
+  body.epc-sf-premium-3d .epc-jrk-hero-banner h2,
+  body.epc-sf-premium-3d .epc-cpi-hero-banner h2{animation:none}
+}

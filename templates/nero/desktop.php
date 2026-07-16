@@ -108,9 +108,12 @@ $epc_custom_storefront = $epc_er_retail || $epc_cpi_consulting || $epc_frn_retai
 $epc_storefront_package = function_exists('epc_portal_active_storefront_package')
 	? (string) epc_portal_active_storefront_package()
 	: '';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_premium_3d.php';
+$epc_sf_premium_3d = epc_storefront_premium_3d_enabled();
+$epc_sf_premium_3d_meta = epc_storefront_premium_3d_body_meta();
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $multilang_params['lang']; ?>" data-theme="default" data-epc-industry="<?php echo htmlspecialchars($epc_portal_industry_code, ENT_QUOTES, 'UTF-8'); ?>" data-epc-style="<?php echo htmlspecialchars($epc_portal_style_template, ENT_QUOTES, 'UTF-8'); ?>" data-epc-commerce="<?php echo $epc_commerce_storefront ? 'on' : 'off'; ?>" data-epc-storefront="<?php echo htmlspecialchars($epc_storefront_package !== '' ? $epc_storefront_package : 'default', ENT_QUOTES, 'UTF-8'); ?>">
+<html lang="<?php echo $multilang_params['lang']; ?>" data-theme="default" data-epc-industry="<?php echo htmlspecialchars($epc_portal_industry_code, ENT_QUOTES, 'UTF-8'); ?>" data-epc-style="<?php echo htmlspecialchars($epc_portal_style_template, ENT_QUOTES, 'UTF-8'); ?>" data-epc-commerce="<?php echo $epc_commerce_storefront ? 'on' : 'off'; ?>" data-epc-storefront="<?php echo htmlspecialchars($epc_storefront_package !== '' ? $epc_storefront_package : 'default', ENT_QUOTES, 'UTF-8'); ?>"<?php if ($epc_sf_premium_3d) { ?> data-epc-premium-3d="on"<?php } ?>>
 <head>
 	<!-- Google tag (gtag.js) - per-tenant measurement ID, deferred until after first paint -->
 	<?php
@@ -219,6 +222,9 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	}
 	if ($epc_custom_storefront) {
 		echo '<link rel="stylesheet" href="/content/general_pages/epc_storefront_animations.css?v=20260621" />';
+	}
+	if ($epc_sf_premium_3d) {
+		echo epc_storefront_premium_3d_head_html();
 	}
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_storefront_logo.php';
 	epc_portal_storefront_hub_logo_enqueue();
@@ -401,7 +407,13 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	</script>
 	
 </head>
-<body>
+<body<?php
+if ($epc_sf_premium_3d) {
+	echo ' class="' . htmlspecialchars($epc_sf_premium_3d_meta['class'], ENT_QUOTES, 'UTF-8') . '"';
+	echo ' data-epc-3d-motif="' . htmlspecialchars($epc_sf_premium_3d_meta['motif'], ENT_QUOTES, 'UTF-8') . '"';
+	echo ' data-epc-3d-icon="' . htmlspecialchars($epc_sf_premium_3d_meta['icon'], ENT_QUOTES, 'UTF-8') . '"';
+}
+?>>
 <?php
 $_epc_ff_banner = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_platform_failover_banner.php';
 if (is_readable($_epc_ff_banner)) {
@@ -1756,6 +1768,9 @@ if ($epc_custom_storefront) {
 	echo epc_storefront_cookie_consent();
 	echo epc_storefront_newsletter_js();
 	echo '<script src="/content/general_pages/epc_storefront_animations.js?v=20260621" defer></script>';
+}
+if ($epc_sf_premium_3d) {
+	echo epc_storefront_premium_3d_footer_html();
 }
 ?>
 
