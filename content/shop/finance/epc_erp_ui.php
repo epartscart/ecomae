@@ -37,6 +37,7 @@ function epc_erp_all_tabs_config()
 		'hr' => array('label' => 'HR', 'icon' => 'fa-user-circle', 'group' => 'people'),
 		'payroll' => array('label' => 'Payroll', 'icon' => 'fa-money', 'group' => 'people'),
 		'einvoice' => array('label' => 'E-Invoicing', 'icon' => 'fa-file-code-o', 'group' => 'tools'),
+		'blockchain_proofs' => array('label' => 'Blockchain proofs', 'icon' => 'fa-link', 'group' => 'tools'),
 		'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn', 'group' => 'tools'),
 		'reports' => array('label' => 'Reports', 'icon' => 'fa-table', 'group' => 'tools'),
 		'documents' => array('label' => 'Documents', 'icon' => 'fa-folder-open-o', 'group' => 'tools'),

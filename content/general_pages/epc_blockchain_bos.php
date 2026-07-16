@@ -704,3 +704,147 @@ function epc_bc_bos_verify_url(string $proofUidOrHash): string
     $key = rawurlencode(trim($proofUidOrHash));
     return '/epc-blockchain-verify.php?proof=' . $key;
 }
+
+/**
+ * Lookup latest proof for a tenant document.
+ *
+ * @return array<string,mixed>|null
+ */
+function epc_bc_bos_lookup_proof(string $tenantKey, string $recordType, string $recordId): ?array
+{
+    $tenantKey = strtolower(preg_replace('/[^a-z0-9_]/', '', $tenantKey) ?: '');
+    $recordType = strtolower(preg_replace('/[^a-z0-9_\-]/', '', $recordType) ?: '');
+    $recordId = substr(trim($recordId), 0, 128);
+    if ($tenantKey === '' || $recordType === '' || $recordId === '') {
+        return null;
+    }
+    $pdo = epc_bc_bos_platform_pdo();
+    if (!$pdo instanceof PDO) {
+        return null;
+    }
+    epc_bc_bos_ensure_schema($pdo);
+    try {
+        $st = $pdo->prepare(
+            "SELECT p.*, b.batch_uid, b.merkle_root, b.anchor_network AS batch_network
+             FROM epc_bc_proofs p
+             LEFT JOIN epc_bc_anchor_batches b ON b.id = p.batch_id
+             WHERE p.tenant_key = ? AND p.record_type = ? AND p.record_id = ?
+             ORDER BY p.id DESC
+             LIMIT 1"
+        );
+        $st->execute([$tenantKey, $recordType, $recordId]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+/**
+ * List recent proofs for a tenant (operator UI).
+ *
+ * @return list<array<string,mixed>>
+ */
+function epc_bc_bos_list_proofs(string $tenantKey, array $filters = []): array
+{
+    $tenantKey = strtolower(preg_replace('/[^a-z0-9_]/', '', $tenantKey) ?: '');
+    if ($tenantKey === '') {
+        return [];
+    }
+    $pdo = epc_bc_bos_platform_pdo();
+    if (!$pdo instanceof PDO) {
+        return [];
+    }
+    epc_bc_bos_ensure_schema($pdo);
+
+    $limit = isset($filters['limit']) ? max(1, min(200, (int)$filters['limit'])) : 100;
+    $where = ['p.tenant_key = ?'];
+    $params = [$tenantKey];
+    if (!empty($filters['record_type'])) {
+        $where[] = 'p.record_type = ?';
+        $params[] = strtolower(preg_replace('/[^a-z0-9_\-]/', '', (string)$filters['record_type']) ?: '');
+    }
+    if (!empty($filters['status'])) {
+        $where[] = 'p.status = ?';
+        $params[] = strtolower(preg_replace('/[^a-z0-9_]/', '', (string)$filters['status']) ?: '');
+    }
+
+    try {
+        $sql = 'SELECT p.*, b.batch_uid, b.merkle_root
+                FROM epc_bc_proofs p
+                LEFT JOIN epc_bc_anchor_batches b ON b.id = p.batch_id
+                WHERE ' . implode(' AND ', $where) . '
+                ORDER BY p.id DESC
+                LIMIT ' . $limit;
+        $st = $pdo->prepare($sql);
+        $st->execute($params);
+        return $st->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+/**
+ * Bootstrap label + verify link for document detail pages.
+ */
+function epc_bc_bos_proof_badge_html(?array $proof, array $opts = []): string
+{
+    if (!$proof) {
+        if (!empty($opts['show_missing'])) {
+            return '<span class="label label-default">No blockchain proof</span>';
+        }
+        return '';
+    }
+    $status = strtolower((string)($proof['status'] ?? 'pending'));
+    $tone = $status === 'anchored' ? 'success' : ($status === 'pending' ? 'warning' : 'default');
+    $uid = (string)($proof['proof_uid'] ?? '');
+    $label = $status === 'anchored' ? 'Blockchain anchored' : 'Blockchain proof pending';
+    $html = '<span class="label label-' . htmlspecialchars($tone, ENT_QUOTES, 'UTF-8') . '">'
+        . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span>';
+    if ($uid !== '') {
+        $url = epc_bc_bos_verify_url($uid);
+        $html .= ' <a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8')
+            . '" target="_blank" rel="noopener" class="btn btn-default btn-xs" style="margin-left:6px">'
+            . '<i class="fa fa-external-link"></i> Verify</a>';
+        if (!empty($opts['show_uid'])) {
+            $html .= ' <small class="text-muted"><code>'
+                . htmlspecialchars($uid, ENT_QUOTES, 'UTF-8') . '</code></small>';
+        }
+    }
+    return $html;
+}
+
+/**
+ * Resolve record type + id from an e-invoice document row.
+ *
+ * @return array{0:string,1:string}
+ */
+function epc_bc_bos_einvoice_record_keys(array $doc): array
+{
+    $cat = (string)($doc['doc_category'] ?? 'tax_invoice');
+    $typeCode = (string)($doc['invoice_type_code'] ?? '380');
+    $recordType = ($cat === 'tax_credit_note' || $typeCode === '381') ? 'credit_note' : 'invoice';
+    $invNo = trim((string)($doc['invoice_number'] ?? ''));
+    $recordId = $invNo !== '' ? $invNo : (string)(int)($doc['id'] ?? 0);
+    return [$recordType, $recordId];
+}
+
+/**
+ * Convenience: lookup + badge HTML for current tenant + document.
+ */
+function epc_bc_bos_document_badge_html(string $recordType, string $recordId, array $opts = []): string
+{
+    try {
+        $siteKey = epc_bc_bos_resolve_site_key($opts);
+        if ($siteKey === '') {
+            return '';
+        }
+        if (epc_bc_bos_tenant_mode($siteKey) === 'off') {
+            return '';
+        }
+        $proof = epc_bc_bos_lookup_proof($siteKey, $recordType, $recordId);
+        return epc_bc_bos_proof_badge_html($proof, $opts);
+    } catch (Throwable $e) {
+        return '';
+    }
+}

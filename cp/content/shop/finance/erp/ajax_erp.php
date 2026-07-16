@@ -96,13 +96,35 @@ try {
 			$id = epc_erp_create_purchase($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'purchase', (int) $id, $_POST);
 			$extra = array('id' => $id);
+			$bcMsg = '';
 			if (!empty($_POST['receive_inventory'])) {
-				$pst = $db_link->prepare('SELECT `inv_receipt_posted` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
+				$pst = $db_link->prepare('SELECT `inv_receipt_posted`, `invoice_number` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
 				$pst->execute(array($id));
-				$extra['inv_receipt_posted'] = (int) $pst->fetchColumn();
+				$prow = $pst->fetch(PDO::FETCH_ASSOC) ?: array();
+				$extra['inv_receipt_posted'] = (int) ($prow['inv_receipt_posted'] ?? 0);
+				if (!empty($extra['inv_receipt_posted'])) {
+					try {
+						$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+						if (is_file($bcFile)) {
+							require_once $bcFile;
+							$invNo = trim((string) ($prow['invoice_number'] ?? ''));
+							$grnRef = $invNo !== '' ? ('PINV-' . $invNo) : ('PINV-' . (int) $id);
+							$siteKey = epc_bc_bos_resolve_site_key();
+							$proof = $siteKey !== '' ? epc_bc_bos_lookup_proof($siteKey, 'grn', $grnRef) : null;
+							if ($proof && !empty($proof['proof_uid'])) {
+								$extra['blockchain_proof_uid'] = (string) $proof['proof_uid'];
+								$extra['blockchain_verify_url'] = epc_bc_bos_verify_url((string) $proof['proof_uid']);
+								$bcMsg = ' · Blockchain GRN proof ' . (string) ($proof['status'] ?? 'pending')
+									. ' — verify ' . $extra['blockchain_verify_url'];
+							}
+						}
+					} catch (Throwable $e) {
+						$bcMsg = '';
+					}
+				}
 			}
 			$piWf = epc_bos_wf_maybe_raise($db_link, 'purchase_invoice', (int) $id, 'BILL #' . (int) $id, $_POST);
-			epc_erp_json(true, 'Purchase invoice recorded' . $invMsg . $piWf, $extra);
+			epc_erp_json(true, 'Purchase invoice recorded' . $invMsg . $piWf . $bcMsg, $extra);
 
 		case 'supplier_payment':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
