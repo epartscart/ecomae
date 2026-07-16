@@ -126,6 +126,7 @@ epc_boc_console_open(array('active' => 'tenant_hub', 'title' => 'Tenant hub / on
 				<a class="btn btn-sm <?php echo $tab === 'dns' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=dns">GoDaddy DNS</a>
 				<a class="btn btn-sm <?php echo $tab === 'guide' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=guide">Guide</a>
 				<a class="btn btn-sm <?php echo $tab === 'health' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=health">Health</a>
+				<a class="btn btn-sm <?php echo $tab === 'blockchain' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=blockchain"><i class="fa fa-link"></i> Blockchain</a>
 				<a class="btn btn-sm <?php echo $tab === 'demos' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=demos"><i class="fa fa-flask"></i> Demos</a>
 				<a class="btn btn-sm <?php echo $tab === 'social' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=social"><i class="fa fa-share-alt"></i> Social</a>
 				<span class="epc-th-tabs__secondary">
@@ -155,6 +156,16 @@ epc_boc_console_open(array('active' => 'tenant_hub', 'title' => 'Tenant hub / on
 
 			<?php if ($tab === 'onboard'): ?>
 				<?php include $_SERVER['DOCUMENT_ROOT'] . '/content/shop/tenant_hub/epc_tenant_onboard_panel.php'; ?>
+
+			<?php elseif ($tab === 'blockchain'): ?>
+				<?php
+				$bcPanel = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/tenant_hub/epc_tenant_blockchain_panel.php';
+				if (is_file($bcPanel)) {
+					include $bcPanel;
+				} else {
+					echo '<div class="alert alert-warning">Blockchain fleet panel missing.</div>';
+				}
+				?>
 
 			<?php elseif ($tab === 'demos'): ?>
 				<?php
