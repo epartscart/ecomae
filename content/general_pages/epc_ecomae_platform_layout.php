@@ -119,6 +119,7 @@ function epc_ecomae_platform_page_description($page, array $params = array()): s
 		'contact' => 'Contact ECOM AE for platform demos, tenant onboarding, and ERP cloud consultations in UAE.',
 		'industries' => 'Industry-specific ECOM AE solutions — auto parts, retail, electronics, fashion, and more.',
 		'free_tools' => 'Free, country-driven business tools — VAT/GST return, corporate tax, payroll & gratuity, IFRS financials, e-invoice and approval workflow. Register free and use for your own company.',
+		'blockchain' => 'ECOM AE Blockchain BOS — architecture layers, proof process (hash → Merkle anchor → verify), tenant modes, auto-proven documents, and operator surfaces for enterprise trust.',
 	);
 	if ($page === 'industry') {
 		$industries = epc_ecomae_platform_industry_marketing();
@@ -247,6 +248,7 @@ function epc_ecomae_platform_layout_close()
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/faq">FAQ</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>documentation">Documentation</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>compare">Compare</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>blockchain">Blockchain BOS</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>bos">What is Blockchain BOS</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>solutions">Solutions</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/contact">Contact</a>

@@ -204,6 +204,7 @@ function epc_ecomae_marketing_serve_seo_file()
 			array('/documentation', '0.7', 'weekly'),
 			array('/compare', '0.7', 'weekly'),
 			array('/bos', '0.7', 'weekly'),
+			array('/blockchain', '0.9', 'weekly'),
 			array('/solutions', '0.7', 'weekly'),
 		);
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
@@ -266,6 +267,9 @@ function epc_ecomae_platform_match_path($path)
 	}
 	if (preg_match('#^/bos(?:/([a-z0-9\-]+))?$#', $path, $m)) {
 		return array('page' => 'bos', 'params' => array('slug' => $m[1] ?? ''));
+	}
+	if ($path === '/blockchain') {
+		return array('page' => 'blockchain', 'params' => array());
 	}
 	if (preg_match('#^/solutions(?:/([a-z0-9\-]+))?$#', $path, $m)) {
 		return array('page' => 'solution', 'params' => array('slug' => $m[1] ?? ''));
@@ -422,6 +426,7 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		'contact' => 'Contact ecomae',
 		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
+		'blockchain' => 'Blockchain BOS — structure, process & proof layer — ECOM AE',
 	);
 	$title = isset($titles[$match['page']]) ? $titles[$match['page']] : 'ecomae platform';
 	if ($match['page'] === 'industry') {
@@ -432,6 +437,9 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		}
 	}
 	$mktDesc = '';
+	if ($match['page'] === 'blockchain') {
+		$mktDesc = 'ECOM AE Blockchain BOS — architecture layers, proof process (hash → Merkle anchor → verify), tenant modes, auto-proven documents, and operator surfaces for enterprise trust.';
+	}
 	if (in_array($match['page'], array('docs', 'compare', 'bos', 'solution'), true)
 		&& function_exists('epc_ecomae_marketing_meta')) {
 		$meta = epc_ecomae_marketing_meta($match['page'], $match['params']);
@@ -482,6 +490,7 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		'contact' => 'Contact ecomae',
 		'free_tools' => 'Free business tools — ECOM AE',
 		'industry' => 'Industry solution',
+		'blockchain' => 'Blockchain BOS — structure, process & proof layer — ECOM AE',
 	);
 	$title = isset($titles[$page]) ? $titles[$page] : 'ecomae platform';
 	if ($page === 'industry') {

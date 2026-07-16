@@ -1022,6 +1022,7 @@ function epc_ecomae_platform_nav_dropdowns()
 			'items' => array(
 				array('key' => 'docs', 'label' => 'Documentation', 'href' => $base . 'documentation'),
 				array('key' => 'compare', 'label' => 'Compare', 'href' => $base . 'compare'),
+				array('key' => 'blockchain', 'label' => 'Blockchain BOS', 'href' => $base . 'blockchain'),
 				array('key' => 'bos', 'label' => 'What is Blockchain BOS', 'href' => $base . 'bos'),
 				array('key' => 'solution', 'label' => 'Solutions', 'href' => $base . 'solutions'),
 			),

@@ -100,6 +100,8 @@ Optional: set `EPC_BC_ANCHOR_NETWORK` (default `local_merkle`) when wiring an ex
 
 Customer-facing copy uses **Blockchain BOS Enterprise System** / **one unified system** across homepage hero, sections, `/bos`, `/solutions`, docs and industry footers.
 
+Dedicated landing (structure, process, modes, operator surfaces + premium 3D): **`/blockchain`**.
+
 ## Smoke test
 
 ```bash
