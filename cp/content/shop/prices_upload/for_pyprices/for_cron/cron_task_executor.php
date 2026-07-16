@@ -171,7 +171,7 @@ else
 
 
 	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $DP_Config->domain_path."pyprices/api.py");
+	curl_setopt($curl, CURLOPT_URL, rtrim((string)$DP_Config->domain_path, '/') . "/pyprices/pyprices-api.php");
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($curl, CURLOPT_POST, true);
 	curl_setopt($curl, CURLOPT_POSTFIELDS, $postdata);

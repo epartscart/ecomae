@@ -1254,7 +1254,7 @@ else//Действий нет - выводим страницу
 					jQuery.ajax({
 						type: "POST",
 						async: true, //Запрос асинхронный
-						url: "/pyprices/api.py",
+						url: "/pyprices/pyprices-api.php",
 						dataType: "text",//Тип возвращаемого значения
 						data: "key=" + encodeURIComponent('<?php echo $DP_Config->tech_key; ?>') + "&list_to_handle="+encodeURIComponent( JSON.stringify(multi_task.list_to_handle) ),
 						multi_task_id: multi_task.multi_task_id,//Для oncomplete
@@ -2398,7 +2398,7 @@ else//Действий нет - выводим страницу
 		jQuery.ajax({
 			type: "POST",
 			async: true, //Запрос асинхронный
-			url: "/pyprices/api.py",
+			url: "/pyprices/pyprices-api.php",
 			dataType: "text",//Тип возвращаемого значения
 			data: "key=" + encodeURIComponent('<?php echo $DP_Config->tech_key; ?>') + "&list_to_handle="+encodeURIComponent( JSON.stringify(list_to_handle) ),
 			client_task_id:task.client_task_id, //Этот параметр нужен для обработчика oncomplete

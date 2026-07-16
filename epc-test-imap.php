@@ -193,7 +193,7 @@ if ($mbox) {
 } // end PHP imap branch
 
 // Pyprices probe (empty task list still reports imap_status when email tasks would run)
-$pyUrl = rtrim($DP_Config->domain_path, '/') . '/pyprices/api.py';
+$pyUrl = rtrim($DP_Config->domain_path, '/') . '/pyprices/pyprices-api.php';
 $post = http_build_query(['key' => $DP_Config->tech_key, 'list_to_handle' => '[]']);
 $ch = curl_init($pyUrl);
 curl_setopt_array($ch, [
