@@ -48,6 +48,7 @@ $industryData = array(
 		array('value' => '24/7', 'label' => 'Support'),
 	),
 	'sub_industries' => array(
+		'Food supplements & nutrition',
 		'Clinic & patient management',
 		'Hospital operations',
 		'Pharmacy & drug dispensing',
@@ -89,6 +90,19 @@ $industryData = array(
     ),
 
 'sub_industry_products' => array(
+		'Food supplements & nutrition' => array(
+			'photo' => 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=1600&q=80',
+			'desc' => 'UAE/GCC food supplement and nutrition shops: vitamins, protein, nutraceuticals, herbal products, batch/expiry tracking, retail POS and e-commerce — DET/DED health-trading aligned.',
+			'categories' => array('Vitamins', 'Protein & sports nutrition', 'Herbal & Ayurveda', 'Weight management', 'Immunity & wellness', 'Kids nutrition'),
+			'products' => array(
+				array('name' => 'Vitamin D3 Softgels 5000 IU', 'price' => 'AED 85', 'category' => 'Vitamins', 'image' => 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=400&q=75'),
+				array('name' => 'Whey Protein Isolate 2kg', 'price' => 'AED 220', 'category' => 'Protein & sports nutrition', 'image' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=400&q=75'),
+				array('name' => 'Omega-3 Fish Oil Complex', 'price' => 'AED 95', 'category' => 'Vitamins', 'image' => 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=75'),
+				array('name' => 'Immunity Multivitamin Pack', 'price' => 'AED 120', 'category' => 'Immunity & wellness', 'image' => 'https://images.unsplash.com/photo-1471867481825-e8f285119f6d?w=400&q=75'),
+				array('name' => 'Ashwagandha Herbal Capsules', 'price' => 'AED 75', 'category' => 'Herbal & Ayurveda', 'image' => 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&q=75'),
+				array('name' => 'Kids Gummy Multivitamins', 'price' => 'AED 65', 'category' => 'Kids nutrition', 'image' => 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=75'),
+			),
+		),
 		'Clinic & patient management' => array('photo'=>'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=75','desc'=>'Outpatient clinic operations: patient registration, appointment scheduling, electronic health records (EHR), prescription management, lab order integration, and insurance claim submission','categories'=>array('Patient Services','Diagnostics','Treatment Plans','Equipment','Compliance','Staff Training'),'products'=>array(
 			array('name'=>'Clinic Patient Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=75'),
 			array('name'=>'Clinic Patient Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=400&q=75'),

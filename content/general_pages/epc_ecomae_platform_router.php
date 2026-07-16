@@ -421,6 +421,11 @@ function epc_ecomae_platform_match_path($path)
 	if (preg_match('#^industry/([a-z0-9_]+)$#', $rest, $m)) {
 		return array('page' => 'industry', 'params' => array('code' => $m[1]));
 	}
+	// Alias: /platform/industries/{code} (hyphen or underscore) → industry detail
+	if (preg_match('#^industries/([a-z0-9_-]+)$#', $rest, $m)) {
+		$code = str_replace('-', '_', (string) $m[1]);
+		return array('page' => 'industry', 'params' => array('code' => $code));
+	}
 	return null;
 }
 
