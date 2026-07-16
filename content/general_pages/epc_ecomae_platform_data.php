@@ -681,12 +681,12 @@ function epc_ecomae_platform_rental_plans()
 		),
 		array(
 			'code' => 'enterprise',
-			'name' => 'Enterprise / BOS Operator',
+			'name' => 'Enterprise / Blockchain BOS Operator',
 			'price_aed' => null,
 			'period' => 'month',
 			'featured' => false,
 			'tagline' => 'Run your own tenant fleet',
-			'items' => array('BOS operator console — control a fleet of tenants', 'White-label & custom industry templates', 'Multi-tenant SLA + governance + audit', 'SSO / operator MFA', 'Migration assistance', 'Dedicated operator support'),
+			'items' => array('Blockchain BOS operator console — control a fleet of tenants', 'White-label & custom industry templates', 'Multi-tenant SLA + governance + audit', 'SSO / operator MFA', 'Migration assistance', 'Dedicated operator support'),
 		),
 	);
 }
@@ -1022,7 +1022,7 @@ function epc_ecomae_platform_nav_dropdowns()
 			'items' => array(
 				array('key' => 'docs', 'label' => 'Documentation', 'href' => $base . 'documentation'),
 				array('key' => 'compare', 'label' => 'Compare', 'href' => $base . 'compare'),
-				array('key' => 'bos', 'label' => 'What is a BOS', 'href' => $base . 'bos'),
+				array('key' => 'bos', 'label' => 'What is Blockchain BOS', 'href' => $base . 'bos'),
 				array('key' => 'solution', 'label' => 'Solutions', 'href' => $base . 'solutions'),
 			),
 		),

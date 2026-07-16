@@ -146,14 +146,15 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		<div class="ehm-wrap">
 			<div class="ehm-plat-grid">
 				<div class="ehm-rev">
-					<div class="ehm-tag"><span class="ehm-dot"></span>Platform Architecture</div>
-					<h2 style="margin:14px 0">One unified<br><span class="ehm-glow">data layer.</span></h2>
-					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;max-width:460px;margin:0">Stop reconciling across disconnected tools. ECOM AE keeps storefront orders, GL entries, and VAT posting in one database — zero manual sync.</p>
+					<div class="ehm-tag"><span class="ehm-dot"></span>Blockchain BOS Enterprise Architecture</div>
+					<h2 style="margin:14px 0">One unified<br><span class="ehm-glow">enterprise system.</span></h2>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;max-width:460px;margin:0">Stop reconciling across disconnected tools. ECOM AE is one Blockchain BOS Enterprise System — storefront, GL, VAT and cryptographic proofs in one cloud, zero manual sync.</p>
 					<div class="ehm-layer-stack">
 						<div class="ehm-layer"><div class="ehm-l-num">1</div><div class="ehm-l-body"><h4>Commerce Layer</h4><p>Storefront, catalogue, checkout, B2B portal, multi-currency payments, WhatsApp.</p></div></div>
 						<div class="ehm-layer"><div class="ehm-l-num">2</div><div class="ehm-l-body"><h4>Operations Layer</h4><p>Inventory ledger with lot, serial and barcode traceability, warehouses, procurement, RMA, delivery workflows.</p></div></div>
 						<div class="ehm-layer"><div class="ehm-l-num">3</div><div class="ehm-l-body"><h4>Finance &amp; Compliance</h4><p>GL with immutable posting and period locking, AR/AP, bank reconciliation, multi-currency revaluation, multi-company consolidation, UAE VAT and Peppol e-invoicing.</p></div></div>
-						<div class="ehm-layer"><div class="ehm-l-num">4</div><div class="ehm-l-body"><h4>Intelligence Layer</h4><p>Intelligent BOS AI advisor — revenue and cash-flow forecasting, predictive inventory, KPI recommendations — plus CRM pipeline and commerce AI.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">4</div><div class="ehm-l-body"><h4>Intelligence Layer</h4><p>Intelligent Blockchain BOS AI advisor — revenue and cash-flow forecasting, predictive inventory, KPI recommendations — plus CRM pipeline and commerce AI.</p></div></div>
+						<div class="ehm-layer"><div class="ehm-l-num">5</div><div class="ehm-l-body"><h4>Blockchain Proof Layer</h4><p>SHA-256 business-fact hashes, Merkle batch anchoring and public verify — tamper-evident integrity without moving ERP off MySQL.</p></div></div>
 					</div>
 				</div>
 				<div class="ehm-rev ehm-rev--2">
@@ -177,9 +178,9 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	<section id="features" class="ehm-sec ehm-sec--alt">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
-				<div class="ehm-tag"><span class="ehm-dot"></span>One Business Operating System</div>
+				<div class="ehm-tag"><span class="ehm-dot"></span>One Blockchain BOS Enterprise System</div>
 				<h2>Everything your business<br><span class="ehm-glow">runs on.</span></h2>
-				<p>The capability pillars of the ECOM AE BOS — ERP, commerce, compliance, workflows and industry intelligence — enterprise-grade, sharing one database, nothing needs to sync.</p>
+				<p>The capability pillars of the ECOM AE Blockchain BOS Enterprise System — ERP, commerce, compliance, workflows, industry intelligence and cryptographic proof — one unified cloud, nothing needs to sync.</p>
 			</div>
 			<div class="ehm-feat-grid">
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">🛒</div><h4>E-Commerce &amp; Catalogue</h4><p>SKU management, variants, bulk CSV, B2B pricing, promo codes, multi-currency checkout.</p><div class="ehm-pills"><span class="ehm-pill">Storefront</span><span class="ehm-pill">B2B Portal</span><span class="ehm-pill">Multi-Currency</span></div></div>
@@ -189,7 +190,8 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🔧</div><h4>Procurement</h4><p>Supplier directory, purchase requisitions, RFQ &amp; vendor comparison, purchase orders, goods receipt, 3-way match.</p><div class="ehm-pills"><span class="ehm-pill">Requisition</span><span class="ehm-pill">RFQ</span><span class="ehm-pill">Vendor Compare</span></div></div>
 				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🛡️</div><h4>Compliance &amp; Governance</h4><p>Tax regimes, e-invoicing, filing calendar, database-level integrity, and an enriched audit trail (old/new value, user, IP, device).</p><div class="ehm-pills"><span class="ehm-pill">Audit Trail</span><span class="ehm-pill">Data Integrity</span><span class="ehm-pill">e-Invoice</span></div></div>
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">⚡</div><h4>Workflow Automation</h4><p>Approval chains, spend thresholds, multi-step routing and triggers across orders, POs, journals and vouchers.</p><div class="ehm-pills"><span class="ehm-pill">Approvals</span><span class="ehm-pill">Thresholds</span><span class="ehm-pill">Triggers</span></div></div>
-				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🧠</div><h4>Intelligent BOS &amp; AI</h4><p>The AI advisor that runs and advises the business — revenue &amp; cash-flow forecasting, predictive inventory, KPI recommendations, plus per-industry dashboards.</p><div class="ehm-pills"><span class="ehm-pill">AI Advisor</span><span class="ehm-pill">Forecasting</span><span class="ehm-pill">Recommendations</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--1"><div class="ehm-fc-ico">🧠</div><h4>Intelligent Blockchain BOS &amp; AI</h4><p>The AI advisor that runs and advises the business — revenue &amp; cash-flow forecasting, predictive inventory, KPI recommendations, plus per-industry dashboards.</p><div class="ehm-pills"><span class="ehm-pill">AI Advisor</span><span class="ehm-pill">Forecasting</span><span class="ehm-pill">Recommendations</span></div></div>
+				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🔗</div><h4>Blockchain Proof</h4><p>Hash critical invoices, GRNs, RMAs and certificates; Merkle-anchor batches; verify authenticity publicly — enterprise trust built into the BOS.</p><div class="ehm-pills"><span class="ehm-pill">SHA-256 Proofs</span><span class="ehm-pill">Merkle Anchor</span><span class="ehm-pill">Public Verify</span></div></div>
 				<div class="ehm-fc ehm-rev"><div class="ehm-fc-ico">⚖️</div><h4>HR &amp; Labour Law</h4><p>Country-aware employment-law engine — gratuity / end-of-service, leave, notice, probation, working hours &amp; WPS — across 25+ countries, with a per-employee compliance monitor that flags issues and accrued liability.</p><div class="ehm-pills"><span class="ehm-pill">UAE Labour Law</span><span class="ehm-pill">Worldwide</span><span class="ehm-pill">Compliance Monitor</span></div></div>
 				<div class="ehm-fc ehm-rev ehm-rev--2"><div class="ehm-fc-ico">🏢</div><h4>Multi-Tenant SaaS</h4><p>Super CP for agencies — onboard tenants, push templates, monitor health, deploy industry packs.</p><div class="ehm-pills"><span class="ehm-pill">Super CP</span><span class="ehm-pill">Health Monitor</span><span class="ehm-pill">Templates</span></div></div>
 			</div>
@@ -221,11 +223,11 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 		<div class="ehm-wrap">
 			<div class="ehm-ai-grid">
 				<div class="ehm-rev">
-					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>Intelligent BOS · AI Layer</div>
+					<div class="ehm-tag" style="background:rgba(0,255,178,.07);border-color:rgba(0,255,178,.2);color:var(--ehm-m)"><span class="ehm-dot"></span>Intelligent Blockchain BOS · AI Layer</div>
 					<h2 style="margin:14px 0 12px">Runs and advises<br>the business.</h2>
-					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">The Intelligent BOS reads your live data and tells you what to do next — forecasting, predictive inventory and recommendations woven into the stack, not a chatbot bolted on.</p>
+					<p style="font-size:14px;color:var(--ehm-mid);line-height:1.7;margin:0 0 24px">The Intelligent Blockchain BOS reads your live data and tells you what to do next — forecasting, predictive inventory and recommendations woven into the stack, not a chatbot bolted on.</p>
 					<div class="ehm-ai-cards">
-						<div class="ehm-ai-card"><div class="ehm-ai-ico">🧠</div><div><h4>AI Advisor</h4><p>Ask the BOS in plain English — revenue, cash, stock, receivables — answered from your live data.</p></div></div>
+						<div class="ehm-ai-card"><div class="ehm-ai-ico">🧠</div><div><h4>AI Advisor</h4><p>Ask the Blockchain BOS in plain English — revenue, cash, stock, receivables — answered from your live data.</p></div></div>
 						<div class="ehm-ai-card"><div class="ehm-ai-ico">📈</div><div><h4>Forecasting</h4><p>Revenue and cash-flow forecasts from your ledger — trend, confidence and liquidity alerts.</p></div></div>
 						<div class="ehm-ai-card"><div class="ehm-ai-ico">📦</div><div><h4>Predictive Inventory</h4><p>Consumption rate → days of cover → recommended reorder quantity and value, per item.</p></div></div>
 						<div class="ehm-ai-card"><div class="ehm-ai-ico">✅</div><div><h4>Automated Recommendations</h4><p>KPI- and forecast-driven actions, prioritised by severity — decision support, not dashboards alone.</p></div></div>
@@ -322,7 +324,7 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 			<div class="ehm-sec-head ehm-rev">
 				<div class="ehm-tag"><span class="ehm-dot"></span>Order Planning · Demand &amp; Replenishment</div>
 				<h2>Plan stock<br><span class="ehm-glow">with precision.</span></h2>
-				<p>A demand-driven planning engine built into the BOS: it forecasts demand from your sale-out history, computes safety stock and reorder point per item × warehouse, and recommends exactly how much to order — with ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions and KPIs.</p>
+				<p>A demand-driven planning engine built into the Blockchain BOS Enterprise System: it forecasts demand from your sale-out history, computes safety stock and reorder point per item × warehouse, and recommends exactly how much to order — with ABC/XYZ inventory policy, inter-warehouse redistribution, exceptions and KPIs.</p>
 			</div>
 			<div class="ehm-badges ehm-rev">
 				<span class="ehm-badge-pill">Demand forecasting</span>

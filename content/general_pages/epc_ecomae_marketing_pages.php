@@ -22,19 +22,19 @@ function epc_ecomae_marketing_meta(string $page, array $params = array())
 			if ($slug !== '' && isset($cat[$slug])) {
 				return array($cat[$slug]['title'] . ' — ECOM AE documentation', $cat[$slug]['summary']);
 			}
-			return array('Documentation — ECOM AE', 'Public documentation for the ECOM AE Business Operating System: BOS overview, ERP modules, API, security, industry packs and user guides.');
+			return array('Documentation — ECOM AE', 'Public documentation for the ECOM AE Blockchain BOS Enterprise System: overview, ERP modules, API, security, industry packs and user guides.');
 		case 'compare':
 			$cat = epc_ecomae_compare_catalog();
 			if ($slug !== '' && isset($cat[$slug])) {
 				return array($cat[$slug]['tagline'] . ' — comparison | ECOM AE', $cat[$slug]['intro']);
 			}
-			return array('ECOM AE compared vs Odoo, ERPNext, Zoho, NetSuite, Dynamics 365', 'How ECOM AE — a Business Operating System — compares with leading ERP and business platforms.');
+			return array('ECOM AE compared vs Odoo, ERPNext, Zoho, NetSuite, Dynamics 365', 'How ECOM AE — a Blockchain BOS Enterprise System — compares with leading ERP and business platforms.');
 		case 'bos':
 			$cat = epc_ecomae_bos_articles_catalog();
 			if ($slug !== '' && isset($cat[$slug])) {
 				return array($cat[$slug]['title'] . ' | ECOM AE', $cat[$slug]['summary']);
 			}
-			return array('What is a Business Operating System (BOS)? | ECOM AE', 'Understand the Business Operating System category: BOS vs ERP, BOS vs CRM, and why modern businesses run on one.');
+			return array('What is a Blockchain BOS Enterprise System? | ECOM AE', 'Understand the Blockchain BOS Enterprise category: Blockchain BOS vs ERP, vs CRM, and why modern businesses run on one unified verifiable system.');
 		case 'solution':
 			$cat = epc_ecomae_solutions_catalog();
 			if ($slug !== '' && isset($cat[$slug])) {
@@ -132,7 +132,7 @@ function epc_ecomae_platform_page_docs(array $params = array()): string
 	echo '<div class="epm-wrap">';
 	echo '<div class="epm-hero" style="min-height:auto;padding:36px 0"><div class="epm-hero__content"><div class="epm-badge"><i class="fa fa-book"></i> Documentation</div>';
 	echo '<h1 class="epm-section-title" style="font-size:36px;margin-top:10px">ECOM AE documentation</h1>';
-	echo '<p class="epm-section-lead" style="max-width:780px">Public documentation for the ECOM AE Business Operating System — platform overview, ERP modules, API, security, industry packs and user guides.</p></div></div>';
+	echo '<p class="epm-section-lead" style="max-width:780px">Public documentation for the ECOM AE Blockchain BOS Enterprise System — platform overview, ERP modules, API, security, industry packs and user guides.</p></div></div>';
 	echo '<div class="epm-eco-model__grid" style="margin-top:8px">';
 	foreach ($cat as $key => $d) {
 		echo '<a class="epm-card epm-card--accent" style="text-decoration:none;color:inherit;display:block" href="' . epc_ecomae_h($base . '/documentation/' . $key) . '">';
@@ -181,7 +181,7 @@ function epc_ecomae_platform_page_compare(array $params = array()): string
 	echo '<div class="epm-wrap"><div class="epm-section">';
 	echo '<div class="epm-badge"><i class="fa fa-balance-scale"></i> Comparisons</div>';
 	echo '<h1 class="epm-section-title" style="font-size:34px;margin-top:10px">ECOM AE compared</h1>';
-	echo '<p class="epm-section-lead" style="max-width:760px">How ECOM AE — a Business Operating System — compares with leading ERP and business platforms.</p>';
+	echo '<p class="epm-section-lead" style="max-width:760px">How ECOM AE — a Blockchain BOS Enterprise System — compares with leading ERP and business platforms.</p>';
 	echo '<div class="epm-eco-model__grid" style="margin-top:8px">';
 	foreach ($cat as $key => $c) {
 		echo '<a class="epm-card epm-card--accent" style="text-decoration:none;color:inherit;display:block" href="' . epc_ecomae_h($base . '/compare/' . $key) . '">';
@@ -205,7 +205,7 @@ function epc_ecomae_platform_page_bos(array $params = array()): string
 		$a = $cat[$slug];
 		ob_start();
 		echo '<div class="epm-wrap"><div class="epm-section">';
-		echo epc_ecomae_marketing_crumb($a['title'], $base . '/bos', 'BOS knowledge');
+		echo epc_ecomae_marketing_crumb($a['title'], $base . '/bos', 'Blockchain BOS knowledge');
 		echo '<h1 class="epm-section-title" style="font-size:32px">' . epc_ecomae_h($a['title']) . '</h1>';
 		echo '<p class="epm-section-lead" style="max-width:840px">' . epc_ecomae_h($a['summary']) . '</p>';
 		foreach ($a['body'] as $p) {
@@ -220,9 +220,9 @@ function epc_ecomae_platform_page_bos(array $params = array()): string
 
 	ob_start();
 	echo '<div class="epm-wrap"><div class="epm-section">';
-	echo '<div class="epm-badge"><i class="fa fa-lightbulb-o"></i> BOS knowledge</div>';
-	echo '<h1 class="epm-section-title" style="font-size:34px;margin-top:10px">The Business Operating System category</h1>';
-	echo '<p class="epm-section-lead" style="max-width:780px">What a Business Operating System is, how it differs from ERP and CRM, and why modern businesses run on one.</p>';
+	echo '<div class="epm-badge"><i class="fa fa-lightbulb-o"></i> Blockchain BOS knowledge</div>';
+	echo '<h1 class="epm-section-title" style="font-size:34px;margin-top:10px">The Blockchain BOS Enterprise category</h1>';
+	echo '<p class="epm-section-lead" style="max-width:780px">What a Blockchain BOS Enterprise System is, how it differs from ERP and CRM, and why modern businesses run on one unified verifiable system.</p>';
 	echo '<div class="epm-eco-model__grid" style="margin-top:8px">';
 	foreach ($cat as $key => $a) {
 		echo '<a class="epm-card epm-card--accent" style="text-decoration:none;color:inherit;display:block" href="' . epc_ecomae_h($base . '/bos/' . $key) . '">';

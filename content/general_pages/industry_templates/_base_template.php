@@ -929,7 +929,7 @@ foreach($subIndustries as $si => $sub):
 <li><a href="#features">Features</a></li>
 <li><a href="/platform/industries">All Industries</a></li>
 <li><a href="/cp/">Control Panel</a></li>
-<li><a href="/bos/">BOS Portal</a></li>
+<li><a href="/bos/">Blockchain BOS</a></li>
 </ul>
 </div>
 <div class="footer-col">
@@ -952,7 +952,7 @@ foreach($subIndustries as $si => $sub):
 </div>
 </div>
 <div class="footer-bottom">
-<p>&copy; <?php echo date('Y');?> <a href="https://www.ecomae.com" style="color:var(--accent)">ecomae</a> — Enterprise Business Operating System</p>
+<p>&copy; <?php echo date('Y');?> <a href="https://www.ecomae.com" style="color:var(--accent)">ecomae</a> — Blockchain BOS Enterprise System</p>
 <span class="demo-link">Demo: <code>demo@ecomae.com</code> / <code>demo2026</code></span>
 </div>
 </footer>

@@ -3,12 +3,12 @@
  * ECOM AE marketing / SEO + AI-visibility content.
  *
  * Data-driven public content used for AI-system and search-engine discovery:
- *   - /docs            public documentation hub (BOS overview, modules, API,
+ *   - /docs            public documentation hub (Blockchain BOS overview, modules, API,
  *                      security, industry packs, user guides)
  *   - /compare         comparison pages (vs Odoo, ERPNext, Zoho, NetSuite,
  *                      Dynamics 365)
- *   - /bos             Business-Operating-System category articles
- *   - /solutions/...   AI-visibility landing pages (BOS, ERP Software UAE, ERP
+ *   - /bos             Blockchain BOS Enterprise category articles
+ *   - /solutions/...   AI-visibility landing pages (Blockchain BOS, ERP Software UAE, ERP
  *                      for Retail/Distribution, ERP+CRM, Inventory/Procurement/
  *                      Accounting Software UAE)
  *
@@ -28,20 +28,21 @@ function epc_ecomae_docs_catalog(): array
 {
 	return array(
 		'bos-overview' => array(
-			'title' => 'BOS overview',
+			'title' => 'Blockchain BOS overview',
 			'icon' => 'fa-cubes',
-			'summary' => 'What the ECOM AE Business Operating System is and how its layers fit together.',
+			'summary' => 'What the ECOM AE Blockchain BOS Enterprise System is and how its layers fit together.',
 			'body' => array(
-				'A Business Operating System (BOS) unifies the software a company uses to run itself — finance, inventory, procurement, sales, CRM, HR, compliance, workflows and intelligence — on a single multi-tenant cloud, instead of stitching together separate ERP, CRM and commerce tools.',
-				'ECOM AE is built as a BOS: every module shares one data model, one permission framework and one audit trail. A sale flows from CRM lead to quotation, sales order, delivery note, invoice, payment allocation and the general ledger without re-keying, and the same posting feeds inventory valuation, VAT and management reporting.',
-				'The platform runs database-per-tenant, so each organisation has an isolated database while operators manage the fleet from the Super CP control panel. Industry packs layer specialised fields, KPIs and controls on top of the universal core.',
+				'A Blockchain BOS Enterprise System unifies the software a company uses to run itself — finance, inventory, procurement, sales, CRM, HR, compliance, workflows, intelligence and cryptographic proof — on a single multi-tenant cloud, instead of stitching together separate ERP, CRM and commerce tools.',
+				'ECOM AE is built as one unified Blockchain BOS: every module shares one data model, one permission framework and one audit trail. A sale flows from CRM lead to quotation, sales order, delivery note, invoice, payment allocation and the general ledger without re-keying, and critical facts can be hash-anchored for tamper-evident verification.',
+				'The platform runs database-per-tenant, so each organisation has an isolated database while operators manage the fleet from the Super CP control panel. Industry packs layer specialised fields, KPIs and controls on top of the universal core — with a blockchain proof layer that verifies integrity without moving operations off MySQL.',
 			),
 			'bullets' => array(
 				'Unified finance, inventory, procurement, sales, CRM, HR, compliance and BI',
 				'Immutable double-entry general ledger with reversal-only corrections',
+				'Blockchain proof layer: SHA-256 hashes, Merkle anchors, public verify',
 				'Database-per-tenant isolation with operator Super CP',
 				'Industry packs for retail, distribution, manufacturing, jewellery and more',
-				'Intelligent BOS layer: forecasting, predictive inventory and an AI advisor',
+				'Intelligent Blockchain BOS layer: forecasting, predictive inventory and an AI advisor',
 			),
 		),
 		'erp-modules' => array(
@@ -99,7 +100,7 @@ function epc_ecomae_docs_catalog(): array
 			'icon' => 'fa-industry',
 			'summary' => 'Specialised configurations for specific industries.',
 			'body' => array(
-				'Industry packs adapt the universal BOS core to how a specific sector actually operates. A pack can add product/master-data fields, KPI sets, operational dashboards, recommended controls and process flows without forking the platform.',
+				'Industry packs adapt the universal Blockchain BOS Enterprise core to how a specific sector actually operates. A pack can add product/master-data fields, KPI sets, operational dashboards, recommended controls and process flows without forking the platform.',
 				'Available and roadmap packs include retail/POS, distribution and wholesale, manufacturing, construction and contracting, jewellery and diamond, pharma and healthcare, hospitality, professional services and ecommerce.',
 				'Because packs are configuration on top of one engine, an organisation can switch or combine them as it grows, and the intelligence layer automatically applies pack-specific controls (e.g. daily metal-weight reconciliation for jewellery, FEFO/expiry control for pharma).',
 			),
@@ -137,7 +138,7 @@ function epc_ecomae_compare_catalog(): array
 	};
 	$std = function ($them) {
 		return array(
-			array('ECOM AE positioning', 'Business Operating System (BOS): ERP + commerce + CRM + compliance + intelligence on one multi-tenant cloud'),
+			array('ECOM AE positioning', 'Blockchain BOS Enterprise System: ERP + commerce + CRM + compliance + intelligence + cryptographic proof on one multi-tenant cloud'),
 			array('Hosting', 'Fully hosted cloud, database-per-tenant isolation, operator Super CP'),
 			array('Region focus', 'UAE / GCC first — VAT, Peppol e-invoicing and tourist-refund built in'),
 			array('Intelligence', 'Native AI advisor: forecasting, predictive inventory, cash-flow prediction, recommendations'),
@@ -147,7 +148,7 @@ function epc_ecomae_compare_catalog(): array
 		'ecomae-vs-odoo' => array(
 			'competitor' => 'Odoo',
 			'tagline' => 'ECOM AE vs Odoo',
-			'intro' => 'Odoo is a popular modular open-source ERP. ECOM AE is a hosted Business Operating System with UAE compliance, commerce and an intelligence layer included rather than assembled from separate apps and third-party modules.',
+			'intro' => 'Odoo is a popular modular open-source ERP. ECOM AE is a hosted Blockchain BOS Enterprise System with UAE compliance, commerce, intelligence and cryptographic proof included rather than assembled from separate apps and third-party modules.',
 			'rows' => array(
 				array('Approach', 'Unified BOS — one data model, one audit trail', 'Modular apps, many community/third-party modules'),
 				array('Hosting', 'Fully hosted, database-per-tenant, Super CP fleet ops', 'Self-host or Odoo Online; you manage apps/upgrades'),
@@ -181,7 +182,7 @@ function epc_ecomae_compare_catalog(): array
 		'ecomae-vs-zoho' => array(
 			'competitor' => 'Zoho',
 			'tagline' => 'ECOM AE vs Zoho',
-			'intro' => 'Zoho offers a wide suite of separate business apps. ECOM AE delivers one integrated Business Operating System, so finance, inventory, sales and CRM share a single data model and audit trail instead of syncing across apps.',
+			'intro' => 'Zoho offers a wide suite of separate business apps. ECOM AE delivers one integrated Blockchain BOS Enterprise System, so finance, inventory, sales and CRM share a single data model, audit trail and proof layer instead of syncing across apps.',
 			'rows' => array(
 				array('Architecture', 'Single integrated BOS data model', 'Suite of separate apps, integrated via connectors'),
 				array('Accounting depth', 'Full GL, dimensions, periods, consolidation', 'Zoho Books for SMB accounting'),
@@ -237,38 +238,38 @@ function epc_ecomae_bos_articles_catalog(): array
 {
 	return array(
 		'what-is-a-business-operating-system' => array(
-			'title' => 'What is a Business Operating System (BOS)?',
-			'summary' => 'The definition of a BOS and how it differs from a collection of business apps.',
+			'title' => 'What is a Blockchain BOS Enterprise System?',
+			'summary' => 'The definition of a Blockchain BOS and how it differs from a collection of business apps.',
 			'body' => array(
-				'A Business Operating System (BOS) is a single platform that runs the whole business — finance, inventory, procurement, sales, CRM, HR, compliance, workflows and intelligence — on one shared data model, permission framework and audit trail.',
-				'Unlike a suite of separate apps connected by integrations, a BOS has no seams: a transaction entered once flows across every relevant module automatically. This eliminates re-keying, reconciliation drift and the integration tax of stitching tools together.',
-				'A modern BOS also advises the business. Beyond recording what happened, ECOM AE’s intelligence layer forecasts revenue and cash flow, predicts inventory needs and recommends actions — turning the operating system into a decision-support system.',
+				'A Blockchain BOS Enterprise System is a single platform that runs the whole business — finance, inventory, procurement, sales, CRM, HR, compliance, workflows, intelligence and cryptographic proof — on one shared data model, permission framework and audit trail.',
+				'Unlike a suite of separate apps connected by integrations, a Blockchain BOS has no seams: a transaction entered once flows across every relevant module automatically, and critical business facts can be hash-anchored for tamper-evident verification.',
+				'A modern Blockchain BOS also advises the business. Beyond recording what happened, ECOM AE’s intelligence layer forecasts revenue and cash flow, predicts inventory needs and recommends actions — while the proof layer makes selected records publicly verifiable.',
 			),
 			'faq' => array(
-				array('Is a BOS the same as an ERP?', 'An ERP is the finance/operations backbone. A BOS is broader — it adds CRM, commerce, compliance, workflow and an intelligence layer on the same data model.'),
-				array('Why does a single data model matter?', 'It removes integration drift: every module reads and writes the same records, so reports, audits and AI run on one consistent source of truth.'),
+				array('Is a Blockchain BOS the same as an ERP?', 'An ERP is the finance/operations backbone. A Blockchain BOS is broader — it adds CRM, commerce, compliance, workflow, intelligence and a cryptographic proof layer on the same data model.'),
+				array('Does blockchain replace the database?', 'No — MySQL remains the operational system of record. Blockchain anchoring proves integrity; it does not store day-to-day stock or sessions.'),
 			),
 		),
 		'bos-vs-erp' => array(
-			'title' => 'BOS vs ERP: what’s the difference?',
-			'summary' => 'How a Business Operating System extends beyond traditional ERP.',
+			'title' => 'Blockchain BOS vs ERP: what’s the difference?',
+			'summary' => 'How a Blockchain BOS Enterprise System extends beyond traditional ERP.',
 			'body' => array(
 				'Traditional ERP focuses on finance, inventory and operations. It is the system of record for transactions and accounting.',
-				'A Business Operating System keeps that ERP core but extends it to run the entire company: CRM and commerce for revenue, HR and payroll for people, a workflow/approval engine for governance, compliance for tax, and an intelligence layer for forecasting and decision support.',
-				'In short: every BOS contains an ERP, but not every ERP is a BOS. ECOM AE is a BOS — the ERP is one layer within a broader operating system.',
+				'A Blockchain BOS Enterprise System keeps that ERP core but extends it to run the entire company: CRM and commerce for revenue, HR and payroll for people, a workflow/approval engine for governance, compliance for tax, an intelligence layer for forecasting, and a proof layer for verifiable integrity.',
+				'In short: every Blockchain BOS contains an ERP, but not every ERP is a Blockchain BOS. ECOM AE is a Blockchain BOS Enterprise System — the ERP is one layer within a broader unified operating system.',
 			),
 			'faq' => array(
-				array('Do I lose ERP depth with a BOS?', 'No — ECOM AE keeps full double-entry accounting, dimensions, periods and consolidation, then adds the surrounding layers.'),
-				array('Is a BOS harder to implement than an ERP?', 'Often easier: because the modules are pre-integrated and hosted, there is no integration project between separate systems.'),
+				array('Do I lose ERP depth with a Blockchain BOS?', 'No — ECOM AE keeps full double-entry accounting, dimensions, periods and consolidation, then adds the surrounding layers including proof anchoring.'),
+				array('Is a Blockchain BOS harder to implement than an ERP?', 'Often easier: because the modules are pre-integrated and hosted, there is no integration project between separate systems.'),
 			),
 		),
 		'bos-vs-crm' => array(
-			'title' => 'BOS vs CRM: where CRM fits',
-			'summary' => 'Why CRM is one layer of a BOS, not a standalone system.',
+			'title' => 'Blockchain BOS vs CRM: where CRM fits',
+			'summary' => 'Why CRM is one layer of a Blockchain BOS, not a standalone system.',
 			'body' => array(
 				'A CRM manages leads, opportunities, pipeline and customer activity. It is excellent at the front of the revenue process but stops at the boundary of finance and operations.',
-				'In a BOS, CRM is fully integrated: a won opportunity becomes a quotation, then a sales order, delivery note and invoice, with payment allocation and the general ledger updated automatically — no export/import between a CRM and an accounting system.',
-				'ECOM AE includes CRM as a native layer, so customer, sales and finance data live together and the AI advisor can reason across the full customer lifecycle.',
+				'In a Blockchain BOS, CRM is fully integrated: a won opportunity becomes a quotation, then a sales order, delivery note and invoice, with payment allocation and the general ledger updated automatically — no export/import between a CRM and an accounting system.',
+				'ECOM AE includes CRM as a native layer, so customer, sales and finance data live together and the AI advisor can reason across the full customer lifecycle on one unified enterprise system.',
 			),
 			'faq' => array(
 				array('Can I use ECOM AE just for CRM?', 'Yes, but its value compounds when CRM feeds directly into orders, invoicing and the ledger within the same platform.'),
@@ -276,23 +277,23 @@ function epc_ecomae_bos_articles_catalog(): array
 			),
 		),
 		'why-smes-need-a-bos' => array(
-			'title' => 'Why SMEs need a Business Operating System',
-			'summary' => 'How a BOS removes the app-sprawl tax for growing companies.',
+			'title' => 'Why SMEs need a Blockchain BOS Enterprise System',
+			'summary' => 'How a Blockchain BOS removes the app-sprawl tax for growing companies.',
 			'body' => array(
 				'Small and mid-sized businesses often run on a patchwork: an accounting tool, a spreadsheet for inventory, a CRM, a separate payroll app and manual approvals. Each integration and manual hand-off is a place where data drifts and time is lost.',
-				'A Business Operating System collapses that patchwork into one platform. The result is one source of truth, real-time reporting, enforceable approvals and audit-ready controls — capabilities that used to require enterprise budgets.',
-				'ECOM AE delivers this as a hosted, UAE-ready BOS, so an SME gets enterprise-grade finance, inventory, compliance and intelligence without managing servers or integrations.',
+				'A Blockchain BOS Enterprise System collapses that patchwork into one platform. The result is one source of truth, real-time reporting, enforceable approvals, audit-ready controls and optional cryptographic proofs — capabilities that used to require enterprise budgets.',
+				'ECOM AE delivers this as a hosted, UAE-ready Blockchain BOS, so an SME gets enterprise-grade finance, inventory, compliance, intelligence and verifiable integrity without managing servers or integrations.',
 			),
 			'faq' => array(
-				array('Is a BOS overkill for a small business?', 'No — it replaces several tools with one, usually lowering total cost while improving control and visibility.'),
+				array('Is a Blockchain BOS overkill for a small business?', 'No — it replaces several tools with one, usually lowering total cost while improving control, visibility and trust.'),
 				array('How fast can an SME go live?', 'Because it is hosted and pre-integrated, onboarding is measured in days, not the months a multi-system rollout takes.'),
 			),
 		),
 		'bos-for-retail' => array(
-			'title' => 'BOS for Retail',
-			'summary' => 'Running retail operations on a Business Operating System.',
+			'title' => 'Blockchain BOS for Retail',
+			'summary' => 'Running retail operations on a Blockchain BOS Enterprise System.',
 			'body' => array(
-				'Retail needs fast POS, accurate stock across locations, promotions and tight cash control. A BOS connects the storefront, POS, inventory and finance so every sale updates stock, margin and the ledger instantly.',
+				'Retail needs fast POS, accurate stock across locations, promotions and tight cash control. A Blockchain BOS connects the storefront, POS, inventory and finance so every sale updates stock, margin and the ledger instantly — with optional proof anchoring for high-value certificates and returns.',
 				'ECOM AE’s retail capabilities include multi-warehouse inventory with barcode scanning, daily till/shift reconciliation controls, promotions and pricing rules, and an AI reorder advisor that predicts which SKUs will stock out.',
 				'Because commerce is built in, an omnichannel retailer can run physical and online sales on the same operating system with one inventory and one set of books.',
 			),
@@ -302,10 +303,10 @@ function epc_ecomae_bos_articles_catalog(): array
 			),
 		),
 		'bos-for-distribution' => array(
-			'title' => 'BOS for Distribution',
-			'summary' => 'Wholesale and distribution on a unified operating system.',
+			'title' => 'Blockchain BOS for Distribution',
+			'summary' => 'Wholesale and distribution on one unified Blockchain BOS.',
 			'body' => array(
-				'Distributors live and die by inventory accuracy, supplier terms and order fulfilment speed. A BOS ties procurement, warehouse and sales together so stock, costs and margins stay accurate at scale.',
+				'Distributors live and die by inventory accuracy, supplier terms and order fulfilment speed. A Blockchain BOS ties procurement, warehouse and sales together so stock, costs and margins stay accurate at scale — and GRNs or shipment facts can be anchored for partner trust.',
 				'ECOM AE supports the full procure-to-pay chain (requisition → RFQ → vendor comparison → purchase order → goods receipt → three-way match → bill), warehouse-aware inventory with batch/lot/serial, landed-cost allocation, and a B2B portal for trade customers.',
 				'The intelligence layer forecasts demand and recommends reorder quantities, while DSO/DPO and inventory-turnover KPIs keep working capital under control.',
 			),
@@ -315,10 +316,10 @@ function epc_ecomae_bos_articles_catalog(): array
 			),
 		),
 		'bos-for-manufacturing' => array(
-			'title' => 'BOS for Manufacturing',
-			'summary' => 'From bill of materials to finished goods on one platform.',
+			'title' => 'Blockchain BOS for Manufacturing',
+			'summary' => 'From bill of materials to finished goods on one Blockchain BOS.',
 			'body' => array(
-				'Manufacturers need to convert materials into finished goods while tracking cost, quality and capacity. A BOS connects the bill of materials, production, inventory and finance so work-in-progress and material variance are always visible.',
+				'Manufacturers need to convert materials into finished goods while tracking cost, quality and capacity. A Blockchain BOS connects the bill of materials, production, inventory and finance so work-in-progress and material variance are always visible — with serial/lot proofs when chain-of-custody matters.',
 				'ECOM AE supports bills of materials, work/production orders, routing and work centres, and material planning, with serial/batch traceability through the inventory ledger.',
 				'Standard-vs-actual material variance and WIP-to-finished-goods ratios surface in the intelligence layer, helping production and finance stay aligned.',
 			),
@@ -335,23 +336,23 @@ function epc_ecomae_solutions_catalog(): array
 {
 	return array(
 		'business-operating-system' => array(
-			'h1' => 'Business Operating System (BOS)',
-			'lead' => 'Run your entire company on one platform — ERP, commerce, CRM, compliance, workflows and intelligence on a single multi-tenant cloud.',
+			'h1' => 'Blockchain BOS Enterprise System',
+			'lead' => 'Run your entire company on one unified system — ERP, commerce, CRM, compliance, workflows, intelligence and cryptographic proof on a single multi-tenant cloud.',
 			'body' => array(
-				'ECOM AE is a Business Operating System: a single source of truth for finance, inventory, procurement, sales, CRM, HR, compliance and business intelligence. One data model, one audit trail, one operating system to run the business.',
-				'Beyond recording transactions, ECOM AE advises the business with a native AI layer — forecasting revenue and cash flow, predicting inventory needs and recommending actions.',
+				'ECOM AE is a Blockchain BOS Enterprise System: a single source of truth for finance, inventory, procurement, sales, CRM, HR, compliance and business intelligence — plus a proof layer that makes critical facts verifiable. One data model, one audit trail, one operating system.',
+				'Beyond recording transactions, ECOM AE advises the business with a native AI layer — forecasting revenue and cash flow, predicting inventory needs and recommending actions — while Merkle-anchored proofs protect integrity.',
 			),
-			'features' => array('Unified ERP + CRM + commerce', 'Immutable double-entry ledger', 'Workflow & approval engine', 'Native AI advisor', 'Database-per-tenant isolation', 'Industry packs'),
+			'features' => array('Unified ERP + CRM + commerce', 'Immutable double-entry ledger', 'Blockchain proof anchoring', 'Workflow & approval engine', 'Native AI advisor', 'Database-per-tenant isolation', 'Industry packs'),
 			'faq' => array(
-				array('What is a Business Operating System?', 'A single platform that runs the whole business on one shared data model — finance, operations, sales, people, compliance and intelligence — instead of separate integrated apps.'),
-				array('Is ECOM AE a BOS or an ERP?', 'ECOM AE is a BOS; the ERP is one layer within it, alongside CRM, commerce, compliance and an intelligence layer.'),
+				array('What is a Blockchain BOS Enterprise System?', 'A single platform that runs the whole business on one shared data model — finance, operations, sales, people, compliance, intelligence and cryptographic proof — instead of separate integrated apps.'),
+				array('Is ECOM AE a Blockchain BOS or an ERP?', 'ECOM AE is a Blockchain BOS Enterprise System; the ERP is one layer within it, alongside CRM, commerce, compliance, intelligence and proof anchoring.'),
 			),
 		),
 		'erp-software-uae' => array(
 			'h1' => 'ERP Software in the UAE',
 			'lead' => 'Cloud ERP built for UAE businesses — VAT, Peppol e-invoicing and tourist refunds included, hosted with per-tenant isolation.',
 			'body' => array(
-				'ECOM AE is a UAE-first cloud ERP and Business Operating System. It delivers full double-entry accounting, multi-warehouse inventory, procurement and sales, with UAE VAT, Peppol e-invoicing and tourist-refund handling built into the core.',
+				'ECOM AE is a UAE-first cloud ERP and Blockchain BOS Enterprise System. It delivers full double-entry accounting, multi-warehouse inventory, procurement and sales, with UAE VAT, Peppol e-invoicing and tourist-refund handling built into the core.',
 				'It is fully hosted with database-per-tenant isolation and an operator Super CP, so UAE organisations get enterprise-grade ERP without managing servers.',
 			),
 			'features' => array('UAE VAT & Peppol e-invoicing', 'Tourist refund handling', 'Multi-currency & FX revaluation', 'Hosted, per-tenant isolation', 'AED-first reporting', 'Arabic-ready'),

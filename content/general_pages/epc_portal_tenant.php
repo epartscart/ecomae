@@ -620,6 +620,9 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		$scalePolicy = 'dedicated_mysql';
 	}
 
+	require_once __DIR__ . '/epc_blockchain_bos.php';
+	$blockchainMode = epc_bc_bos_normalize_mode((string) ($data['blockchain_mode'] ?? 'anchor'));
+
 	$industry = preg_replace('/[^a-z0-9_]/', '', (string) ($data['industry_code'] ?? 'auto_parts'));
 	$status = (string) ($data['status'] ?? 'draft');
 	$statuses = epc_portal_tenant_statuses();
@@ -698,8 +701,8 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		'INSERT INTO `epc_portal_tenants`
 		(`site_key`, `hostname`, `industry_code`, `status`, `trade_name`, `hub_name`, `from_email`,
 		 `db_name`, `db_user`, `db_password`, `notes`, `intro_json`, `hosted_on`, `erp_only_shared`,
-		 `dedicated_db`, `scale_policy`, `created_at`, `updated_at`)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		 `dedicated_db`, `scale_policy`, `blockchain_mode`, `created_at`, `updated_at`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		`hostname` = VALUES(`hostname`), `industry_code` = VALUES(`industry_code`), `status` = VALUES(`status`),
 		`trade_name` = VALUES(`trade_name`), `hub_name` = VALUES(`hub_name`), `from_email` = VALUES(`from_email`),
@@ -710,6 +713,7 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		`intro_json` = IF(VALUES(`intro_json`) != \'\', VALUES(`intro_json`), `intro_json`),
 		`hosted_on` = VALUES(`hosted_on`), `erp_only_shared` = VALUES(`erp_only_shared`),
 		`dedicated_db` = VALUES(`dedicated_db`), `scale_policy` = VALUES(`scale_policy`),
+		`blockchain_mode` = VALUES(`blockchain_mode`),
 		`updated_at` = VALUES(`updated_at`)'
 	);
 	$now = time();
@@ -733,6 +737,7 @@ function epc_portal_save_tenant(PDO $pdo, array $data): array
 		$sharedFlag,
 		$dedicatedFlag,
 		$scalePolicy,
+		$blockchainMode,
 		$now,
 		$now,
 	));
