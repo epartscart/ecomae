@@ -239,6 +239,28 @@ $introFields = epc_portal_intro_field_defs();
 					</div>
 
 					<h5><i class="fa fa-database"></i> Tenant database</h5>
+					<?php
+					$editScalePolicy = (string) ($editTenant['scale_policy'] ?? '');
+					if ($editScalePolicy === '' && $editTenant) {
+						$editScalePolicy = (!empty($editTenant['dedicated_db']) || !empty($editTenant['erp_only_shared'])
+							|| (($editTenant['db_name'] ?? '') !== '' && ($editTenant['db_name'] ?? '') !== 'docpart'))
+							? 'dedicated_mysql' : 'shared_docpart';
+					}
+					if ($editScalePolicy === '') {
+						$editScalePolicy = 'dedicated_mysql'; // recommended default for 1000+ tenants
+					}
+					?>
+					<div class="alert alert-success" style="margin-bottom:12px">
+						<label style="font-weight:normal;margin:0 0 8px;display:block">
+							<strong>Scale policy</strong> — recommended: dedicated MySQL per tenant (ready for 1000+ mix tenants).
+						</label>
+						<select class="form-control" name="scale_policy" id="epc_intro_scale_policy" onchange="epcIntroToggleScalePolicy()">
+							<option value="dedicated_mysql"<?php echo $editScalePolicy === 'dedicated_mysql' ? ' selected' : ''; ?>>Dedicated MySQL (recommended)</option>
+							<option value="shared_docpart"<?php echo $editScalePolicy === 'shared_docpart' ? ' selected' : ''; ?>>Shared docpart (legacy Model C)</option>
+						</select>
+						<input type="hidden" name="dedicated_db" id="epc_intro_dedicated_db" value="<?php echo $editScalePolicy === 'dedicated_mysql' ? '1' : '0'; ?>">
+						<p class="text-muted small" style="margin:8px 0 0">Dedicated creates an isolated DB/user on save. Shared docpart keeps logical isolation on the common commerce database.</p>
+					</div>
 					<div class="row">
 						<div class="col-md-4 form-group">
 							<label>DB name</label>
@@ -246,11 +268,11 @@ $introFields = epc_portal_intro_field_defs();
 						</div>
 						<div class="col-md-4 form-group">
 							<label>DB user</label>
-							<input class="form-control" name="db_user" value="<?php echo epc_th_h($editTenant['db_user'] ?? ''); ?>">
+							<input class="form-control" name="db_user" id="epc_intro_db_user" value="<?php echo epc_th_h($editTenant['db_user'] ?? ''); ?>">
 						</div>
 						<div class="col-md-4 form-group">
 							<label>DB password</label>
-							<input class="form-control" name="db_password" type="password" autocomplete="new-password" placeholder="<?php echo $editTenant ? 'leave blank to keep' : ''; ?>">
+							<input class="form-control" name="db_password" type="password" autocomplete="new-password" placeholder="<?php echo $editTenant ? 'leave blank to keep' : 'auto if dedicated'; ?>">
 						</div>
 					</div>
 					<div class="form-group">
@@ -402,12 +424,37 @@ function epcIntroApplyTemplate(sel) {
 		epcIntroToggleSharedErp();
 	}
 }
+function epcIntroToggleScalePolicy() {
+	var sel = document.getElementById('epc_intro_scale_policy');
+	var hid = document.getElementById('epc_intro_dedicated_db');
+	var db = document.getElementById('epc_intro_db');
+	var dbUser = document.getElementById('epc_intro_db_user');
+	var keyEl = document.getElementById('epc_intro_site_key');
+	if (!sel || !hid) return;
+	var dedicated = sel.value === 'dedicated_mysql';
+	hid.value = dedicated ? '1' : '0';
+	var key = keyEl && keyEl.value ? keyEl.value.replace(/[^a-z0-9_]/g, '') : '';
+	if (dedicated) {
+		if (db && (!db.value || db.value === 'docpart') && key) db.value = key;
+		if (dbUser && (!dbUser.value || dbUser.value === 'docpart') && key) dbUser.value = key;
+	} else {
+		if (db && (!db.value || db.value === key)) db.value = 'docpart';
+		if (dbUser && (!dbUser.value || dbUser.value === key)) dbUser.value = 'docpart';
+	}
+}
 function epcIntroSyncSiteKey() {
 	var host = document.getElementById('epc_intro_hostname').value.toLowerCase().replace(/^www\./, '');
 	var key = host.replace(/\.[^.]+$/, '').replace(/[^a-z0-9]/g, '_');
 	document.getElementById('epc_intro_site_key').value = key;
-	if (!document.getElementById('epc_intro_db').value) {
-		document.getElementById('epc_intro_db').value = key;
+	var scale = document.getElementById('epc_intro_scale_policy');
+	var dedicated = !scale || scale.value === 'dedicated_mysql';
+	var db = document.getElementById('epc_intro_db');
+	var dbUser = document.getElementById('epc_intro_db_user');
+	if (dedicated) {
+		if (db && (!db.value || db.value === 'docpart')) db.value = key;
+		if (dbUser && (!dbUser.value || dbUser.value === 'docpart')) dbUser.value = key;
+	} else if (db && !db.value) {
+		db.value = 'docpart';
 	}
 }
 function epcIntroCountryUi() {
@@ -418,6 +465,9 @@ function epcIntroCountryUi() {
 	hid.value = opt && opt.getAttribute('data-name') ? opt.getAttribute('data-name') : '';
 }
 epcIntroCountryUi();
+if (document.getElementById('epc_intro_scale_policy')) {
+	epcIntroToggleScalePolicy();
+}
 function epcIntroToggleAutoPartsNote() {
 	var el = document.getElementById('epc_th_auto_parts_pkg_note');
 	var ind = document.getElementById('epc_intro_industry');

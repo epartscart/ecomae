@@ -479,47 +479,26 @@ function epc_portal_tenant_control_tenant_pdo(array $row): ?PDO
 /** @return array{pdo:?PDO,error:string} */
 function epc_portal_tenant_control_tenant_pdo_connect(array $row): array
 {
+	require_once __DIR__ . '/epc_tenant_pdo.php';
 	$db = trim((string) ($row['db_name'] ?? ''));
 	$user = trim((string) ($row['db_user'] ?? ''));
 	if ($user === '' && $db !== '') {
 		$user = $db;
+		$row['db_user'] = $user;
 	}
-	$pass = (string) ($row['db_password'] ?? '');
-	if ($db === 'docpart' && $pass === '' && function_exists('epc_portal_resolve_tenant_db_credentials')) {
-		$creds = epc_portal_resolve_tenant_db_credentials();
-		$user = (string) ($creds['user'] ?? 'docpart');
-		$pass = (string) ($creds['password'] ?? '');
+	[$pdo, $err] = epc_tenant_pdo_from_row($row, array('timeout' => 5));
+	if ($pdo instanceof PDO) {
+		return array('pdo' => $pdo, 'error' => '');
 	}
-	if ($db === '' || $user === '' || $pass === '') {
+	if ($db === '' || $user === '' || trim((string) ($row['db_password'] ?? '')) === '') {
+		$pass = (string) ($row['db_password'] ?? '');
 		$detail = $db === '' ? 'missing db_name in registry' : ($pass === '' ? 'missing db_password in registry' : 'missing db_user in registry');
 		return array('pdo' => null, 'error' => 'Cannot connect to tenant database (' . $detail . ')');
 	}
-	$hosts = array('127.0.0.1');
-	try {
-		require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-		$cfg = new DP_Config();
-		$cfgHost = trim((string) $cfg->host);
-		if ($cfgHost !== '' && $cfgHost !== '127.0.0.1' && strtolower($cfgHost) !== 'localhost') {
-			$hosts[] = $cfgHost;
-		}
-	} catch (Throwable $e) {
-	}
-	$lastErr = '';
-	foreach (array_values(array_unique($hosts)) as $host) {
-		try {
-			$pdo = new PDO(
-				'mysql:host=' . $host . ';dbname=' . $db . ';charset=utf8;connect_timeout=5',
-				$user,
-				$pass,
-				array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5)
-			);
-			$pdo->query('SELECT 1');
-			return array('pdo' => $pdo, 'error' => '');
-		} catch (Throwable $e) {
-			$lastErr = $e->getMessage();
-		}
-	}
-	return array('pdo' => null, 'error' => 'Cannot connect to tenant database `' . $db . '` as `' . $user . '`: ' . $lastErr);
+	return array(
+		'pdo' => null,
+		'error' => 'Cannot connect to tenant database `' . $db . '` as `' . $user . '`: ' . ($err !== '' ? $err : 'unknown error'),
+	);
 }
 
 function epc_portal_tenant_control_generate_password(): string

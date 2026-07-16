@@ -121,11 +121,24 @@ function epc_portal_db_ensure(PDO $pdo)
 		'is_active' => 'TINYINT(1) NOT NULL DEFAULT 1',
 		'operator_temp_password' => "VARCHAR(120) NOT NULL DEFAULT ''",
 		'country_code' => "CHAR(2) NOT NULL DEFAULT 'AE' AFTER `operator_temp_password`",
+		// 1000+ tenant scale: dedicated MySQL per tenant (default for new onboardings).
+		'dedicated_db' => 'TINYINT(1) NOT NULL DEFAULT 0 AFTER `erp_only_shared`',
+		'scale_policy' => "VARCHAR(32) NOT NULL DEFAULT 'shared_docpart' AFTER `dedicated_db`",
 	) as $col => $def) {
 		$chk = $pdo->query("SHOW COLUMNS FROM `epc_portal_tenants` LIKE " . $pdo->quote($col))->fetch(PDO::FETCH_ASSOC);
 		if (!$chk) {
 			$pdo->exec('ALTER TABLE `epc_portal_tenants` ADD COLUMN `' . $col . '` ' . $def);
 		}
+	}
+	// Backfill: ERP-only shared companies already have dedicated DBs.
+	try {
+		$pdo->exec(
+			"UPDATE `epc_portal_tenants`
+			 SET `dedicated_db` = 1, `scale_policy` = 'dedicated_mysql'
+			 WHERE (`erp_only_shared` = 1 OR (`db_name` != '' AND `db_name` != 'docpart'))
+			   AND (`dedicated_db` = 0 OR `scale_policy` = 'shared_docpart' OR `scale_policy` = '')"
+		);
+	} catch (Exception $e) {
 	}
 	// Shared ERP-only tenants may share www.ecomae.com — site_key stays unique, hostname is not.
 	try {
