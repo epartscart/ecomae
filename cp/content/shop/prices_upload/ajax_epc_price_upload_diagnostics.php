@@ -1,21 +1,7 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-$DP_Config = new DP_Config;
-
-try {
-	$db_link = new PDO(
-		'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db,
-		$DP_Config->user,
-		$DP_Config->password,
-		[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-	);
-} catch (PDOException $e) {
-	exit(json_encode(['status' => false, 'message' => 'No DB connect']));
-}
-$db_link->query('SET NAMES utf8;');
-
+require_once __DIR__ . '/epc_prices_ajax_init.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_price_upload_diagnostics.php';

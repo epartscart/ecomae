@@ -373,14 +373,30 @@ function epc_price_history_archive_file(string $sourcePath, int $priceId, string
 		$safeName = 'upload.csv';
 	}
 	$dir = epc_price_history_storage_root() . '/' . $priceId;
-	if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
+	if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
 		return '';
 	}
-	$dest = $dir . '/' . time() . '_' . $safeName;
-	if (!copy($sourcePath, $dest)) {
-		return '';
+	$dest = $dir . '/' . time() . '_' . mt_rand(1000, 9999) . '_' . $safeName;
+	if (@copy($sourcePath, $dest) && is_file($dest)) {
+		@chmod($dest, 0644);
+		return '/content/files/price_upload_history/' . $priceId . '/' . basename($dest);
 	}
-	return '/content/files/price_upload_history/' . $priceId . '/' . basename($dest);
+	// Last resort: stream-copy (handles some open_basedir / cross-device cases)
+	$in = @fopen($sourcePath, 'rb');
+	$out = $in ? @fopen($dest, 'wb') : false;
+	if ($in && $out) {
+		$ok = stream_copy_to_stream($in, $out) !== false;
+		fclose($in);
+		fclose($out);
+		if ($ok && is_file($dest) && filesize($dest) > 0) {
+			@chmod($dest, 0644);
+			return '/content/files/price_upload_history/' . $priceId . '/' . basename($dest);
+		}
+	} elseif ($in) {
+		fclose($in);
+	}
+	@unlink($dest);
+	return '';
 }
 
 function epc_price_history_count_brands(PDO $db_link, int $priceId): int
@@ -992,7 +1008,20 @@ function epc_price_history_log_pyprices_task(PDO $db_link, array $task, int $pri
 	$origName = $fileInfo['name'];
 	if ($fileInfo['path'] !== '') {
 		$storedRel = epc_price_history_archive_file($fileInfo['path'], $priceId, $origName);
-		$fileSize = (int)filesize($fileInfo['path']);
+		$fileSize = (int)@filesize($fileInfo['path']);
+		if ($storedRel === '') {
+			$archiveNote = 'Source file could not be archived for download (temp path: ' . basename($fileInfo['path']) . '). Use Export DB.';
+			$errorText = trim($errorText) !== '' ? ($errorText . "\n" . $archiveNote) : $archiveNote;
+			if ($status === 'ok') {
+				$status = 'partial';
+			}
+		}
+	} elseif ($records > 0) {
+		$archiveNote = 'Source file was not archived (temp cleaned before history save). Use Export DB to download current prices.';
+		$errorText = trim($errorText) !== '' ? ($errorText . "\n" . $archiveNote) : $archiveNote;
+		if ($status === 'ok') {
+			$status = 'partial';
+		}
 	}
 
 	$updateParams = [

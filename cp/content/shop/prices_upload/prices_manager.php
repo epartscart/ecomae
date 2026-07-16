@@ -599,17 +599,30 @@ else//Действий нет - выводим страницу
 								<td class="text-left" style="min-width:150px;">
 									<?php
 									$epc_latest = $epc_latest_uploads[(int)$element_record['id']] ?? null;
-									$epc_has_file = $epc_latest && trim((string)$epc_latest['stored_relpath']) !== '';
-									if ($epc_has_file) {
-										$epc_dl = $epc_history_download_base.'?action=download_latest&price_id='.(int)$element_record['id'].'&csrf_guard_key='.urlencode($user_session['csrf_guard_key']);
+									$epc_has_file = false;
+									if ($epc_latest && trim((string)$epc_latest['stored_relpath']) !== '') {
+										$epc_abs = epc_price_history_file_absolute_path($epc_latest);
+										$epc_has_file = $epc_abs !== '' && is_file($epc_abs);
+									}
+									$epc_dl = $epc_history_download_base.'?action=download_latest&price_id='.(int)$element_record['id'].'&csrf_guard_key='.urlencode($user_session['csrf_guard_key']);
+									$epc_db_dl = $epc_history_download_base.'?action=export_db&price_id='.(int)$element_record['id'].'&csrf_guard_key='.urlencode($user_session['csrf_guard_key']);
+									if ($epc_latest) {
 										?>
-										<a class="btn btn-xs btn-success" href="<?php echo htmlspecialchars($epc_dl, ENT_QUOTES, 'UTF-8'); ?>" title="Download active upload file" onclick="event.stopPropagation();">
+										<a class="btn btn-xs btn-success" href="<?php echo htmlspecialchars($epc_dl, ENT_QUOTES, 'UTF-8'); ?>" title="<?php echo $epc_has_file ? 'Download active upload file' : 'Download current prices (DB export — archive missing)'; ?>" onclick="event.stopPropagation();">
 											<i class="fas fa-download"></i>
 										</a>
 										<small>
 											<?php echo htmlspecialchars(mb_substr((string)$epc_latest['original_filename'], 0, 22, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?><br>
 											<?php echo htmlspecialchars((string)$epc_latest['created_at'], ENT_QUOTES, 'UTF-8'); ?>
+											<?php if (!$epc_has_file): ?><br><span class="text-warning">archive missing → DB export</span><?php endif; ?>
 										</small>
+										<br>
+										<?php
+									} else {
+										?>
+										<a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($epc_db_dl, ENT_QUOTES, 'UTF-8'); ?>" title="Export current DB prices" onclick="event.stopPropagation();">
+											<i class="fas fa-database"></i>
+										</a>
 										<br>
 										<?php
 									}
@@ -617,8 +630,8 @@ else//Действий нет - выводим страницу
 									<a href="javascript:void(0);" onclick="event.stopPropagation();epcShowPriceUploadHistory(<?php echo (int)$element_record['id']; ?>, '<?php echo htmlspecialchars($element_record['name'], ENT_QUOTES, 'UTF-8'); ?>');" style="font-size:11px;">
 										<i class="fas fa-history"></i> Upload history
 									</a>
-									<?php if (!$epc_has_file): ?>
-										<br><small class="text-muted">No archived file yet</small>
+									<?php if (!$epc_latest): ?>
+										<br><small class="text-muted">No upload history yet</small>
 									<?php endif; ?>
 								</td>
 								<!--<td><?php //echo $a_item.translate_str_by_id($load_modes[$element_record["load_mode"]]); ?></a></td>-->

@@ -2,23 +2,7 @@
 //Единый скрипт добавления нового задания в shop_docpart_pyprices_tasks
 // -------------------------------------------------------------------------------
 header('Content-Type: application/json; charset=utf-8');
-//Конфигурация CMS
-require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
-$DP_Config = new DP_Config;
-// -------------------------------------------------------------------------------
-//Подключение к БД
-try
-{
-	$db_link = new PDO('mysql:host='.$DP_Config->host.';dbname='.$DP_Config->db, $DP_Config->user, $DP_Config->password);
-}
-catch (PDOException $e) 
-{
-	$answer = array();
-	$answer["status"] = false;
-	$answer["message"] = 'No DB Connect';
-	exit(json_encode($answer));
-}
-$db_link->query("SET NAMES utf8;");
+require_once __DIR__ . '/../epc_prices_ajax_init.php';
 // -------------------------------------------------------------------------------
 //Скрипт может запускаться как пользователем со страницы "Менеджер прайс-листов", так и cron-скриптом при выполнении заданий по расписанию
 if( !(isset( $_POST['key'] ) && $_POST['key'] == $DP_Config->tech_key) )

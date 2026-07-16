@@ -241,6 +241,27 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/prices_upload/epc_storefront_storage_toggle.js?v=' . rawurlencode($ver),
 			),
 		),
+		// Child price pages reuse the same history modal / download helpers
+		'shop/prices/price' => array(
+			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
+			'js' => array(
+				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history.js?v=' . rawurlencode($ver),
+			),
+		),
+		'shop/prices/guide' => array(
+			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
+			'js' => array(
+				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history.js?v=' . rawurlencode($ver),
+			),
+		),
+		'shop/prices/upload' => array(
+			'js' => array(
+				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history.js?v=' . rawurlencode($ver),
+			),
+		),
 		'shop/prices/prices_edit' => array(
 			'css' => array('/content/general_pages/epc_prices_edit_css.php?v=' . rawurlencode($ver)),
 		),

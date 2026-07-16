@@ -10,6 +10,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 $DP_Config = new DP_Config();
 $GLOBALS['DP_Config'] = $DP_Config;
 
+// Multi-tenant: resolve epartscart/etc DB before reading admin session
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+epc_portal_apply_config($DP_Config);
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 $user_session = DP_User::getAdminSession();
 if (empty($user_session) || !is_array($user_session)) {
