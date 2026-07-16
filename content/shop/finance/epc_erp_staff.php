@@ -8,10 +8,10 @@ function epc_erp_staff_all_tabs()
 {
 	$tabs = array(
 		'dashboard', 'workflow', 'processflow', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices',
-		'fulfilment', 'revenue', 'subscriptions', 'receivables',
+		'fulfilment', 'aftersales', 'revenue', 'subscriptions', 'receivables',
 		'purchases', 'payables', 'rfq', 'purchase_orders', 'three_way_match', 'supplier_portal',
 		'cash_bank', 'payment_batches', 'petty_cash',
-		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'opening_balances', 'document_control',
+		'coa', 'gl', 'aging', 'pl', 'balance_sheet', 'vat_return', 'tax_compliance', 'einvoice', 'blockchain_proofs', 'opening_balances', 'document_control',
 		'inventory', 'fixed_assets', 'manufacturing', 'order_planning', 'custom_shipping',
 		'staff', 'hr', 'hr_ops', 'hr_law', 'payroll', 'expense_reports',
 		'marketing', 'reports', 'knowledge_base', 'multi_entity', 'audit', 'exec_dashboard',
@@ -94,7 +94,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_SALES',
 			'icon' => 'fa-line-chart',
 			'color' => '#2563eb',
-			'tabs' => array('dashboard', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices', 'fulfilment', 'revenue', 'receivables', 'documents', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'crm', 'leads', 'opportunities', 'proposals', 'sales_orders', 'delivery_notes', 'invoices', 'fulfilment', 'aftersales', 'revenue', 'receivables', 'documents', 'workflow', 'staff'),
 			'workflows' => array(
 				'Qualify customer / credit check',
 				'Confirm order & payment terms',
@@ -107,7 +107,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_LOGISTICS',
 			'icon' => 'fa-truck',
 			'color' => '#0d9488',
-			'tabs' => array('dashboard', 'fulfilment', 'custom_shipping', 'inventory', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'fulfilment', 'aftersales', 'custom_shipping', 'inventory', 'workflow', 'staff'),
 			'workflows' => array(
 				'Reserve stock for order',
 				'Supplier delivery to warehouse',
@@ -134,7 +134,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_FINANCE',
 			'icon' => 'fa-money',
 			'color' => '#16a34a',
-			'tabs' => array('dashboard', 'receivables', 'payables', 'purchases', 'cash_bank', 'inventory', 'fixed_assets', 'opening_balances', 'vat_return', 'tax_compliance', 'einvoice', 'invoices', 'documents', 'coa', 'gl', 'pl', 'balance_sheet', 'payroll', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'receivables', 'payables', 'purchases', 'cash_bank', 'inventory', 'fixed_assets', 'opening_balances', 'vat_return', 'tax_compliance', 'einvoice', 'blockchain_proofs', 'invoices', 'documents', 'coa', 'gl', 'pl', 'balance_sheet', 'payroll', 'workflow', 'staff'),
 			'workflows' => array(
 				'Approve & pay payroll run',
 				'Customer receipt / refund',
@@ -175,7 +175,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_PURCHASE',
 			'icon' => 'fa-shopping-basket',
 			'color' => '#ea580c',
-			'tabs' => array('dashboard', 'purchases', 'payables', 'inventory', 'fulfilment', 'custom_shipping', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'purchases', 'payables', 'inventory', 'fulfilment', 'aftersales', 'custom_shipping', 'workflow', 'staff'),
 			'workflows' => array(
 				'Raise PO / supplier order',
 				'Match supplier invoice to order',
@@ -188,7 +188,7 @@ function epc_erp_departments_config()
 			'group' => 'EPC_ERP_DEPT_ACCOUNTS',
 			'icon' => 'fa-book',
 			'color' => '#1d4ed8',
-			'tabs' => array('dashboard', 'revenue', 'purchases', 'cash_bank', 'vat_return', 'tax_compliance', 'einvoice', 'invoices', 'documents', 'coa', 'gl', 'pl', 'balance_sheet', 'payroll', 'workflow', 'staff'),
+			'tabs' => array('dashboard', 'revenue', 'purchases', 'cash_bank', 'vat_return', 'tax_compliance', 'einvoice', 'blockchain_proofs', 'invoices', 'documents', 'coa', 'gl', 'pl', 'balance_sheet', 'payroll', 'workflow', 'staff'),
 			'workflows' => array(
 				'Post sales orders to GL',
 				'Sync purchases & cash to GL',

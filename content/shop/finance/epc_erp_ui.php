@@ -26,6 +26,7 @@ function epc_erp_all_tabs_config()
 		'vat_return' => array('label' => 'UAE VAT', 'icon' => 'fa-percent', 'group' => 'finance'),
 		'expense_reports' => array('label' => 'Expenses', 'icon' => 'fa-credit-card', 'group' => 'finance'),
 		'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-random', 'group' => 'operations'),
+		'aftersales' => array('label' => 'After-sales RMA', 'icon' => 'fa-undo', 'group' => 'operations'),
 		'inventory' => array('label' => 'Inventory', 'icon' => 'fa-cubes', 'group' => 'operations'),
 		'fixed_assets' => array('label' => 'Fixed assets', 'icon' => 'fa-building', 'group' => 'operations'),
 		'opening_balances' => array('label' => 'Opening balances', 'icon' => 'fa-flag-o', 'group' => 'operations'),

@@ -190,6 +190,25 @@ erp_stat_cards(array(
     array('label' => 'Payables', 'value_html' => $countTile($apOutstanding ?: 156200, $ccy . ' '), 'hint' => 'To pay'),
     array('label' => 'Stock value', 'value_html' => $countTile($stockValue ?: 2105400, $ccy . ' '), 'hint' => 'On hand'),
 ));
+
+$bcDashFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+if (is_file($bcDashFile)) {
+	require_once $bcDashFile;
+	$bcStats = epc_bc_bos_tenant_proof_stats();
+	if (($bcStats['mode'] ?? 'off') !== 'off') {
+		$bcProofsUrl = (isset($erpUrl) ? epc_erp_tab_url($erpUrl, 'blockchain_proofs', $date_from_str ?? '', $date_to_str ?? '') : '#');
+		erp_stat_cards(array(
+			array('label' => 'Blockchain proofs', 'value_html' => $countTile((int) ($bcStats['total'] ?? 0)), 'hint' => 'Mode ' . strtoupper((string) $bcStats['mode'])),
+			array('label' => 'Anchored', 'value_html' => $countTile((int) ($bcStats['anchored'] ?? 0)), 'hint' => 'Merkle-anchored'),
+			array('label' => 'Pending anchor', 'value_html' => $countTile((int) ($bcStats['pending'] ?? 0)), 'hint' => 'Awaiting batch'),
+			array(
+				'label' => 'Proofs workspace',
+				'value_html' => '<a href="' . htmlspecialchars($bcProofsUrl, ENT_QUOTES, 'UTF-8') . '" class="btn btn-default btn-xs"><i class="fa fa-link"></i> Open</a>',
+				'hint' => 'Tax → Blockchain proofs',
+			),
+		));
+	}
+}
 ?>
 
 <?php if ($epcJwDashMode && !empty($epcJwKpis)): ?>

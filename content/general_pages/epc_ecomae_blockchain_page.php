@@ -212,19 +212,27 @@ function epc_ecomae_platform_page_blockchain(array $params = array()): string
 				<ul class="ebc-surfaces__list">
 					<li>
 						<strong>Invoice &amp; e-invoice detail</strong>
-						Status badge plus Verify deep-link on the document screen.
+						Status badge plus Verify deep-link on tax invoices and credit notes.
 					</li>
 					<li>
 						<strong>Invoice print</strong>
 						Proof block and absolute verify URL after totals — audit-ready paper trail.
 					</li>
 					<li>
+						<strong>Purchases / GRN</strong>
+						Receipt + Blockchain columns on purchase invoices; verify flash when stock is received.
+					</li>
+					<li>
+						<strong>Service → After-sales RMA</strong>
+						List/detail badges for after-sales and warranty RMAs; create flash includes verify URL.
+					</li>
+					<li>
 						<strong>ERP → Tax → Blockchain proofs</strong>
-						Tenant-scoped list of proofs (also under Audit workbench).
+						Tenant-scoped list of proofs (also under Audit workbench) plus dashboard KPI.
 					</li>
 					<li>
 						<strong>Super CP → Tenant Hub → Blockchain</strong>
-						Fleet view across tenants with filters and aggregate stats.
+						Fleet mode controls, Anchor pending now, and aggregate stats.
 					</li>
 					<li>
 						<strong>Public verify</strong>

@@ -98,28 +98,19 @@ try {
 			$extra = array('id' => $id);
 			$bcMsg = '';
 			if (!empty($_POST['receive_inventory'])) {
-				$pst = $db_link->prepare('SELECT `inv_receipt_posted`, `invoice_number` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
+				$pst = $db_link->prepare('SELECT `id`, `inv_receipt_posted`, `invoice_number` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
 				$pst->execute(array($id));
 				$prow = $pst->fetch(PDO::FETCH_ASSOC) ?: array();
 				$extra['inv_receipt_posted'] = (int) ($prow['inv_receipt_posted'] ?? 0);
 				if (!empty($extra['inv_receipt_posted'])) {
-					try {
-						$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
-						if (is_file($bcFile)) {
-							require_once $bcFile;
-							$prow['id'] = (int) $id;
-							$grnRef = epc_bc_bos_grn_record_id($prow);
-							$siteKey = epc_bc_bos_resolve_site_key();
-							$proof = ($siteKey !== '' && $grnRef !== '') ? epc_bc_bos_lookup_proof($siteKey, 'grn', $grnRef) : null;
-							if ($proof && !empty($proof['proof_uid'])) {
-								$extra['blockchain_proof_uid'] = (string) $proof['proof_uid'];
-								$extra['blockchain_verify_url'] = epc_bc_bos_verify_url((string) $proof['proof_uid']);
-								$bcMsg = ' · Blockchain GRN proof ' . (string) ($proof['status'] ?? 'pending')
-									. ' — verify ' . $extra['blockchain_verify_url'];
-							}
+					$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+					if (is_file($bcFile)) {
+						require_once $bcFile;
+						$flash = epc_bc_bos_grn_flash_for_purchase($prow);
+						$bcMsg = (string) ($flash['message'] ?? '');
+						if (!empty($flash['extra']) && is_array($flash['extra'])) {
+							$extra = array_merge($extra, $flash['extra']);
 						}
-					} catch (Throwable $e) {
-						$bcMsg = '';
 					}
 				}
 			}
@@ -235,6 +226,28 @@ try {
 			if (!empty($r['inventory_line_count'])) {
 				$msg .= '; inventory: ' . (int)$r['inventory_line_count'] . ' line(s)';
 				$msg .= !empty($r['inventory_receipt_posted']) ? ' received' : ' (receipt pending — check warehouse link)';
+			}
+			if (!empty($r['inventory_receipt_posted'])) {
+				$bcFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_blockchain_bos.php';
+				if (is_file($bcFile)) {
+					require_once $bcFile;
+					$flashPurchase = array(
+						'id' => (int) ($r['purchase_id'] ?? 0),
+						'invoice_number' => (string) ($r['invoice_number'] ?? ''),
+						'inventory_receipt_posted' => 1,
+						'inv_receipt_posted' => 1,
+					);
+					if ($flashPurchase['invoice_number'] === '' && !empty($r['purchase_id'])) {
+						$pst = $db_link->prepare('SELECT `invoice_number` FROM `epc_erp_purchases` WHERE `id` = ? LIMIT 1');
+						$pst->execute(array((int) $r['purchase_id']));
+						$flashPurchase['invoice_number'] = (string) ($pst->fetchColumn() ?: '');
+					}
+					$flash = epc_bc_bos_grn_flash_for_purchase($flashPurchase);
+					$msg .= (string) ($flash['message'] ?? '');
+					if (!empty($flash['extra']) && is_array($flash['extra'])) {
+						$r = array_merge($r, $flash['extra']);
+					}
+				}
 			}
 			epc_erp_json(true, $msg, $r);
 

@@ -145,6 +145,7 @@ button,.btn{background:var(--accent);color:#041018;border:0;border-radius:10px;p
 
 	<p class="foot">
 		JSON API: append <code>&amp;format=json</code>.
+		<a href="https://www.ecomae.com/blockchain">Blockchain BOS</a> ·
 		<a href="https://www.ecomae.com/bos">What is Blockchain BOS</a> ·
 		<a href="https://www.ecomae.com/">ECOM AE</a>
 	</p>
