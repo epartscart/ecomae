@@ -16,6 +16,27 @@ function epc_industry_seo_sub_slug(string $label): string
 }
 
 /**
+ * Presentation variant for a sub-industry page (distinct from the industry hub 3D hero).
+ * Deterministic from slug so each vertical keeps a stable look.
+ *
+ * @return array{key:string,label:string,tone:string}
+ */
+function epc_industry_seo_sub_presentation(string $slug): array
+{
+	$variants = array(
+		array('key' => 'atelier', 'label' => 'Atelier', 'tone' => 'warm'),
+		array('key' => 'ledger', 'label' => 'Ledger', 'tone' => 'ink'),
+		array('key' => 'mosaic', 'label' => 'Mosaic', 'tone' => 'bright'),
+		array('key' => 'dock', 'label' => 'Dock', 'tone' => 'cool'),
+	);
+	$idx = (int) (crc32(strtolower($slug)) % count($variants));
+	if ($idx < 0) {
+		$idx = -$idx;
+	}
+	return $variants[$idx];
+}
+
+/**
  * Map template_key / group → DNS-safe public host slug (no underscores).
  * These hosts must resolve via epc_industry_subdomain_resolve_group().
  *
