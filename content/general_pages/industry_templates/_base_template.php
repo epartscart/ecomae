@@ -84,6 +84,10 @@ $seoHost = function_exists('epc_industry_seo_primary_host')
 	? epc_industry_seo_primary_host($industryGroup !== '' ? $industryGroup : 'retail')
 	: (($industryGroup !== '' ? $industryGroup : 'www') . '.ecomae.com');
 $seoBase = 'https://' . $seoHost;
+$isSubIndustrySite = false;
+$subParentName = '';
+$subParentHubUrl = '';
+$subSiblings = array();
 $activeSub = function_exists('epc_industry_seo_match_request_sub')
 	? epc_industry_seo_match_request_sub(is_array($subIndustries) ? $subIndustries : array())
 	: null;
@@ -92,21 +96,17 @@ $seoCanonical = $seoBase . ($seoPath === '/' ? '/' : $seoPath);
 $seoKeywords = strtolower($name) . ', ERP, control panel, storefront, ecomae, '
 	. implode(', ', is_array($subIndustries) ? $subIndustries : array());
 if ($activeSub) {
-	$seoTitle = $activeSub['label'] . ' — ' . $name . ' ERP & Storefront | ecomae';
-	$seoDesc = $activeSub['label'] . ' on ecomae.com (' . $seoHost . '): dedicated ERP workflows, control panel and storefront for '
-		. strtolower($name) . '. Part of the ECOM AE Blockchain BOS Enterprise System.';
-	$seoPageName = $activeSub['label'] . ' — ' . $name . ' | ecomae';
-	// Dedicated sub-industry page: different layout/media — not the hub 3D hero.
-	require __DIR__ . '/_sub_industry_page.php';
-	return;
+	// Remap hub data into a full premium 3D storefront for this vertical.
+	require __DIR__ . '/_sub_industry_prepare.php';
+} else {
+	$seoTitle = $name . ' — ERP, Control Panel & Storefront | ecomae Platform';
+	$subPreview = is_array($subIndustries) ? implode(', ', array_slice($subIndustries, 0, 12)) : '';
+	$seoDesc = $name . ' industry solutions on ' . $seoHost . ': ' . $desc
+		. ' Sub-industries include ' . $subPreview
+		. (count($subIndustries) > 12 ? ' and more' : '')
+		. '. Powered by ecomae.';
+	$seoPageName = $name . ' — ecomae Platform';
 }
-$seoTitle = $name . ' — ERP, Control Panel & Storefront | ecomae Platform';
-$subPreview = is_array($subIndustries) ? implode(', ', array_slice($subIndustries, 0, 12)) : '';
-$seoDesc = $name . ' industry solutions on ' . $seoHost . ': ' . $desc
-	. ' Sub-industries include ' . $subPreview
-	. (count($subIndustries) > 12 ? ' and more' : '')
-	. '. Powered by ecomae.';
-$seoPageName = $name . ' — ecomae Platform';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -146,17 +146,24 @@ $seoPageName = $name . ' — ecomae Platform';
   },
   "mainEntity": {
     "@type": "ItemList",
-    "name": <?php echo json_encode($name . ' Sub-Industries', JSON_UNESCAPED_UNICODE); ?>,
-    "numberOfItems": <?php echo count($subIndustries); ?>,
+    "name": <?php echo json_encode(!empty($isSubIndustrySite) ? ($name . ' Categories') : ($name . ' Sub-Industries'), JSON_UNESCAPED_UNICODE); ?>,
+    "numberOfItems": <?php echo !empty($isSubIndustrySite) ? count($products) : count($subIndustries); ?>,
     "itemListElement": [
 <?php
 $seoItems = array();
-foreach (array_values($subIndustries) as $idx => $si) {
-	$siSlug = function_exists('epc_industry_seo_sub_slug') ? epc_industry_seo_sub_slug((string) $si) : '';
-	$itemUrl = $siSlug !== '' ? ($seoBase . '/' . $siSlug) : $seoBase . '/';
-	$seoItems[] = '      {"@type": "ListItem", "position": ' . ($idx + 1)
-		. ', "name": ' . json_encode((string) $si, JSON_UNESCAPED_UNICODE)
-		. ', "url": ' . json_encode($itemUrl, JSON_UNESCAPED_SLASHES) . '}';
+if (!empty($isSubIndustrySite)) {
+	foreach (array_values($products) as $idx => $prod) {
+		$seoItems[] = '      {"@type": "ListItem", "position": ' . ($idx + 1)
+			. ', "name": ' . json_encode((string) ($prod['name'] ?? ''), JSON_UNESCAPED_UNICODE) . '}';
+	}
+} else {
+	foreach (array_values($subIndustries) as $idx => $si) {
+		$siSlug = function_exists('epc_industry_seo_sub_slug') ? epc_industry_seo_sub_slug((string) $si) : '';
+		$itemUrl = $siSlug !== '' ? ($seoBase . '/' . $siSlug) : $seoBase . '/';
+		$seoItems[] = '      {"@type": "ListItem", "position": ' . ($idx + 1)
+			. ', "name": ' . json_encode((string) $si, JSON_UNESCAPED_UNICODE)
+			. ', "url": ' . json_encode($itemUrl, JSON_UNESCAPED_SLASHES) . '}';
+	}
 }
 echo implode(",\n", $seoItems);
 ?>
@@ -168,7 +175,12 @@ echo implode(",\n", $seoItems);
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "ecomae", "item": "https://www.ecomae.com"},
       {"@type": "ListItem", "position": 2, "name": "Industries", "item": "https://www.ecomae.com/platform/industries"},
+<?php if (!empty($isSubIndustrySite) && $subParentName !== ''): ?>
+      {"@type": "ListItem", "position": 3, "name": <?php echo json_encode($subParentName, JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($subParentHubUrl !== '' ? $subParentHubUrl : ($seoBase . '/'), JSON_UNESCAPED_SLASHES); ?>},
+      {"@type": "ListItem", "position": 4, "name": <?php echo json_encode($name, JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($seoCanonical, JSON_UNESCAPED_SLASHES); ?>}
+<?php else: ?>
       {"@type": "ListItem", "position": 3, "name": <?php echo json_encode($name, JSON_UNESCAPED_UNICODE); ?>, "item": <?php echo json_encode($seoBase . '/', JSON_UNESCAPED_SLASHES); ?>}
+<?php endif; ?>
     ]
   }
 }
@@ -485,19 +497,29 @@ echo "$r2,$g2,$b2";?>,.45))}
 </style>
 <link rel="stylesheet" href="<?php echo htmlspecialchars($ind3dCss); ?>">
 </head>
-<body class="ind-premium-3d" data-ind-motif="<?php echo htmlspecialchars($ind3dMotif); ?>" data-ind-group="<?php echo htmlspecialchars($industryGroup); ?>" data-ind-slug="<?php echo htmlspecialchars($industrySlug); ?>">
+<body class="ind-premium-3d<?php echo !empty($isSubIndustrySite) ? ' ind-sub-site' : ''; ?>" data-ind-motif="<?php echo htmlspecialchars($ind3dMotif); ?>" data-ind-group="<?php echo htmlspecialchars($industryGroup); ?>" data-ind-slug="<?php echo htmlspecialchars($industrySlug); ?>"<?php if (!empty($isSubIndustrySite) && !empty($activeSub['slug'])): ?> data-ind-sub="<?php echo htmlspecialchars((string) $activeSub['slug']); ?>"<?php endif; ?>>
 
 <!-- ===== HEADER ===== -->
 <header class="site-header" id="siteHeader">
 <div class="header-inner">
-<a href="/" class="header-logo">
+<a href="<?php echo htmlspecialchars(!empty($isSubIndustrySite) && $subParentHubUrl !== '' ? $subParentHubUrl : '/'); ?>" class="header-logo">
 <div class="logo-icon"><i class="fa <?php echo htmlspecialchars($icon);?>"></i></div>
+<span>
 <?php echo htmlspecialchars($name);?>
+<?php if (!empty($isSubIndustrySite) && $subParentName !== ''): ?>
+<small style="display:block;font-size:11px;font-weight:500;color:#94a3b8;margin-top:1px"><?php echo htmlspecialchars($subParentName); ?> vertical</small>
+<?php endif; ?>
+</span>
 </a>
 <nav class="header-nav">
 <a href="#products">Products</a>
+<a href="#categories">Categories</a>
 <a href="#features">Features</a>
+<?php if (!empty($isSubIndustrySite) && !empty($subSiblings)): ?>
+<a href="#related-verticals">Related</a>
+<?php else: ?>
 <a href="#industries">Industries</a>
+<?php endif; ?>
 <a href="#about">About</a>
 </nav>
 <div class="header-actions">
@@ -679,7 +701,8 @@ foreach ($spriteSet as $spriteIcon) {
 <p class="tagline"><?php echo htmlspecialchars($tagline);?></p>
 <p class="desc"><?php echo htmlspecialchars($desc);?></p>
 <div class="ind-hero-ctas">
-<a href="#products" class="btn-hero btn-hero--primary"><i class="fa fa-shopping-bag"></i> Browse Products</a>
+<a href="#products" class="btn-hero btn-hero--primary"><i class="fa fa-shopping-bag"></i> <?php echo !empty($isSubIndustrySite) ? 'Browse Catalog' : 'Browse Products'; ?></a>
+<a href="#categories" class="btn-hero btn-hero--secondary"><i class="fa fa-th-large"></i> Categories</a>
 <a href="#" class="btn-hero btn-hero--secondary" onclick="openAuth('register');return false"><i class="fa fa-user-plus"></i> Start Free</a>
 </div>
 </div>
@@ -715,7 +738,11 @@ $aboutHighlights = $industryData['about_highlights'] ?? array(
 <div class="ind-about-text">
 <h2>About <?php echo htmlspecialchars($name);?></h2>
 <p><?php echo htmlspecialchars($aboutText);?></p>
+<?php if (!empty($isSubIndustrySite)): ?>
+<p>This is a <strong>client-ready vertical storefront</strong> for <?php echo htmlspecialchars($name);?> under <?php echo htmlspecialchars($subParentName !== '' ? $subParentName : 'the parent industry');?> — with dedicated categories, demo products, Control Panel, and ERP. Same premium stack as the main industry sites.</p>
+<?php else: ?>
 <p>Our platform serves <strong><?php echo count($subIndustries);?> specialized sub-industries</strong> within <?php echo htmlspecialchars(strtolower($name));?>, each with tailored ERP processes, storefront templates, and Control Panel configurations.</p>
+<?php endif; ?>
 <ul class="about-highlights">
 <?php foreach($aboutHighlights as $highlight): ?>
 <li><?php echo htmlspecialchars($highlight);?></li>
@@ -723,7 +750,7 @@ $aboutHighlights = $industryData['about_highlights'] ?? array(
 </ul>
 </div>
 <div class="ind-about-media">
-<img src="<?php echo htmlspecialchars($aboutPhoto2);?>" alt="About <?php echo htmlspecialchars($name);?> — Industry Overview" loading="lazy">
+<img src="<?php echo htmlspecialchars($aboutPhoto2);?>" alt="About <?php echo htmlspecialchars($name);?> — <?php echo !empty($isSubIndustrySite) ? 'Vertical Overview' : 'Industry Overview'; ?>" loading="lazy">
 </div>
 </div>
 </section>
@@ -745,7 +772,13 @@ $totalCats = 0; foreach($allCategories as $cats) $totalCats += count($cats);
 ?>
 <section class="ind-categories reveal" id="categories">
 <h2>Product & Service Categories</h2>
-<p class="section-sub"><?php echo $totalCats;?> categories across <?php echo count($allCategories);?> sub-industries — covering the full <?php echo htmlspecialchars(strtolower($name));?> spectrum</p>
+<p class="section-sub"><?php
+if (!empty($isSubIndustrySite)) {
+	echo (int) $totalCats . ' categories for this ' . htmlspecialchars(strtolower($name)) . ' vertical — ready for client catalog setup';
+} else {
+	echo (int) $totalCats . ' categories across ' . count($allCategories) . ' sub-industries — covering the full ' . htmlspecialchars(strtolower($name)) . ' spectrum';
+}
+?></p>
 <div class="ind-categories-grid">
 <?php
 $catIcons = array('fa-cubes','fa-tags','fa-briefcase','fa-cogs','fa-shopping-bag','fa-industry','fa-wrench','fa-flask','fa-truck','fa-heartbeat','fa-graduation-cap','fa-building','fa-leaf','fa-bolt','fa-paint-brush','fa-diamond','fa-plane','fa-shield','fa-futbol-o','fa-print','fa-paw','fa-home','fa-film','fa-balance-scale','fa-cutlery','fa-laptop','fa-car','fa-plug');
@@ -779,8 +812,10 @@ $iconIdx++;
 <!-- ===== PRODUCTS ===== -->
 <?php if(!empty($products)): ?>
 <section class="ind-products reveal" id="products">
-<h2>Sample <?php echo htmlspecialchars(($industryData['product_label'] ?? '') ?: 'Products & Services');?></h2>
-<p class="section-sub">Explore our catalog — add items to cart and experience the full e-commerce flow</p>
+<h2><?php echo htmlspecialchars(($industryData['product_label'] ?? '') ?: 'Products & Services');?></h2>
+<p class="section-sub"><?php echo !empty($isSubIndustrySite)
+	? 'Vertical catalog for client demos — add items to cart and experience the full e-commerce flow'
+	: 'Explore our catalog — add items to cart and experience the full e-commerce flow'; ?></p>
 <div class="ind-products-grid">
 <?php foreach($products as $idx => $prod): ?>
 <div class="product-card">
@@ -836,10 +871,73 @@ $iconIdx++;
 </section>
 <?php endif; ?>
 
-<!-- ===== SUB-INDUSTRIES WITH BUSINESS PROCESSES ===== -->
+<!-- ===== RELATED VERTICALS (sub-industry sites) ===== -->
+<?php if (!empty($isSubIndustrySite) && !empty($subSiblings)): ?>
+<section class="ind-subs reveal" id="related-verticals">
+<h2>Related <?php echo htmlspecialchars($subParentName !== '' ? $subParentName : 'Industry'); ?> Verticals</h2>
+<p class="section-sub">Other client-ready storefronts under the same industry hub — each with its own categories and products</p>
+<div class="ind-subs-grid">
+<?php foreach (array_slice($subSiblings, 0, 9) as $sib):
+	$sibPhoto = (string) ($sib['photo'] ?? '');
+	$sibDesc = (string) ($sib['desc'] ?? '');
+	if ($sibDesc === '') {
+		$sibDesc = 'Dedicated storefront, CP and ERP for ' . ($sib['label'] ?? 'this vertical') . '.';
+	}
+	$sibCats = isset($sib['categories']) && is_array($sib['categories']) ? $sib['categories'] : array();
+	$sibProds = isset($sib['products']) && is_array($sib['products']) ? $sib['products'] : array();
+?>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<?php if ($sibPhoto !== ''): ?>
+<img src="<?php echo htmlspecialchars($sibPhoto); ?>" alt="<?php echo htmlspecialchars((string) ($sib['label'] ?? '')); ?>" loading="lazy">
+<?php else: ?>
+<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center"><i class="fa <?php echo htmlspecialchars($icon); ?>" style="font-size:3rem;color:rgba(255,255,255,.5)"></i></div>
+<?php endif; ?>
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="<?php echo htmlspecialchars((string) ($sib['url'] ?? '#')); ?>" style="color:inherit;text-decoration:none"><?php echo htmlspecialchars((string) ($sib['label'] ?? '')); ?></a></h3>
+<p class="sub-card__desc"><?php echo htmlspecialchars(mb_substr($sibDesc, 0, 160)); ?><?php echo mb_strlen($sibDesc) > 160 ? '…' : ''; ?></p>
+<?php if (!empty($sibCats)): ?>
+<div class="sub-card__cats">
+<?php foreach (array_slice($sibCats, 0, 6) as $cat): ?>
+<span class="cat-tag"><?php echo htmlspecialchars((string) $cat); ?></span>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
+<?php if (!empty($sibProds)): ?>
+<div class="sub-card__products">
+<?php foreach (array_slice($sibProds, 0, 3) as $sp): ?>
+<div class="sub-prod">
+<?php if (!empty($sp['image'])): ?><img src="<?php echo htmlspecialchars((string) $sp['image']); ?>" alt="" loading="lazy"><?php endif; ?>
+<div class="sp-name"><?php echo htmlspecialchars((string) ($sp['name'] ?? '')); ?></div>
+<div class="sp-price"><?php echo htmlspecialchars((string) ($sp['price'] ?? '')); ?></div>
+</div>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
+<div class="sub-card__cta">
+<a href="<?php echo htmlspecialchars((string) ($sib['url'] ?? '#')); ?>" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="<?php echo htmlspecialchars($subParentHubUrl !== '' ? $subParentHubUrl : '/'); ?>" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<?php endforeach; ?>
+</div>
+<p style="text-align:center;margin-top:28px">
+<a href="<?php echo htmlspecialchars($subParentHubUrl !== '' ? $subParentHubUrl : '/'); ?>" class="btn-hero btn-hero--secondary" style="display:inline-flex"><i class="fa fa-arrow-left"></i> Back to <?php echo htmlspecialchars($subParentName !== '' ? $subParentName : 'industry'); ?> hub</a>
+</p>
+</section>
+<?php endif; ?>
+
+<!-- ===== SUB-INDUSTRIES WITH BUSINESS PROCESSES (industry hub) ===== -->
 <?php
 $subProducts = $industryData['sub_industry_products'] ?? array();
-if(!empty($subIndustries)):
+if(empty($isSubIndustrySite) && !empty($subIndustries)):
 ?>
 <section class="ind-subs reveal" id="industries">
 <h2><?php echo htmlspecialchars($name);?> — Sub-Industry Solutions</h2>
@@ -949,10 +1047,16 @@ $isActiveSub = !empty($activeSub['slug']) && $activeSub['slug'] === $subSlug;
 <!-- ===== CTA ===== -->
 <section class="ind-cta reveal">
 <h2>Ready to Transform Your <?php echo htmlspecialchars($name);?> Business?</h2>
-<p>Start with a free demo — full ERP + CP + Storefront access. No credit card required.</p>
+<p><?php echo !empty($isSubIndustrySite)
+	? 'Client-ready vertical demo — full ERP + Control Panel + storefront for ' . htmlspecialchars($name) . '. No credit card required.'
+	: 'Start with a free demo — full ERP + CP + Storefront access. No credit card required.'; ?></p>
 <div class="ind-cta-buttons">
 <a href="#" class="btn-cta btn-cta-primary" onclick="openAuth('register');return false"><i class="fa fa-rocket"></i> Start Free Demo</a>
+<?php if (!empty($isSubIndustrySite) && $subParentHubUrl !== ''): ?>
+<a href="<?php echo htmlspecialchars($subParentHubUrl); ?>" class="btn-cta btn-cta-secondary"><i class="fa fa-th-large"></i> <?php echo htmlspecialchars($subParentName !== '' ? $subParentName : 'Industry'); ?> Hub</a>
+<?php else: ?>
 <a href="/platform/industries" class="btn-cta btn-cta-secondary"><i class="fa fa-th-large"></i> View All Industries</a>
+<?php endif; ?>
 </div>
 </section>
 
@@ -961,7 +1065,11 @@ $isActiveSub = !empty($activeSub['slug']) && $activeSub['slug'] === $subSlug;
 <div class="footer-inner">
 <div class="footer-brand">
 <h3><i class="fa <?php echo htmlspecialchars($icon);?>"></i> <?php echo htmlspecialchars($name);?></h3>
-<p>Enterprise-grade storefront, control panel, and ERP — built for <?php echo htmlspecialchars(strtolower($name));?> businesses. Part of the ecomae platform covering 28 industries worldwide.</p>
+<p><?php if (!empty($isSubIndustrySite)): ?>
+Client-ready <?php echo htmlspecialchars(strtolower($name)); ?> storefront, control panel, and ERP — a dedicated vertical under <?php echo htmlspecialchars($subParentName !== '' ? $subParentName : 'ecomae'); ?>. Same premium platform as the main industry sites.
+<?php else: ?>
+Enterprise-grade storefront, control panel, and ERP — built for <?php echo htmlspecialchars(strtolower($name));?> businesses. Part of the ecomae platform covering 28 industries worldwide.
+<?php endif; ?></p>
 <div class="footer-social">
 <a href="#"><i class="fa fa-facebook"></i></a>
 <a href="#"><i class="fa fa-twitter"></i></a>
@@ -974,7 +1082,11 @@ $isActiveSub = !empty($activeSub['slug']) && $activeSub['slug'] === $subSlug;
 <h4>Quick Links</h4>
 <ul>
 <li><a href="#products">Products</a></li>
+<li><a href="#categories">Categories</a></li>
 <li><a href="#features">Features</a></li>
+<?php if (!empty($isSubIndustrySite) && $subParentHubUrl !== ''): ?>
+<li><a href="<?php echo htmlspecialchars($subParentHubUrl); ?>"><?php echo htmlspecialchars($subParentName !== '' ? $subParentName : 'Industry'); ?> Hub</a></li>
+<?php endif; ?>
 <li><a href="/platform/industries">All Industries</a></li>
 <li><a href="/cp/">Control Panel</a></li>
 <li><a href="/bos/">Blockchain BOS</a></li>
