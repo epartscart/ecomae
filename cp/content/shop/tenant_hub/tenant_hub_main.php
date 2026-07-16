@@ -80,6 +80,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_status'])) {
 	$tenants = epc_th_list_tenants($db_link);
 	$stats = epc_th_platform_stats($db_link);
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_bc_mode'])) {
+	$flash = epc_th_update_tenant_blockchain_mode(
+		$db_link,
+		(string) ($_POST['site_key'] ?? ''),
+		(string) ($_POST['blockchain_mode'] ?? '')
+	);
+	$tenants = epc_th_list_tenants($db_link);
+	$stats = epc_th_platform_stats($db_link);
+	$tab = 'blockchain';
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_bc_anchor_now'])) {
+	$flash = epc_th_anchor_blockchain_pending_now(100);
+	$tab = 'blockchain';
+}
 
 $dnsHost = isset($_GET['dns']) ? preg_replace('/[^a-z0-9.-]/', '', (string) $_GET['dns']) : '';
 $dnsInfo = $dnsHost !== '' ? epc_portal_tenant_dns_instructions($dnsHost) : null;
