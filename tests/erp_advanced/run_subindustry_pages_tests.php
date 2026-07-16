@@ -1,6 +1,6 @@
 <?php
 /**
- * Smoke tests for dedicated sub-industry pages (distinct from industry hub).
+ * Smoke tests for premium sub-industry storefronts (same 3D stack as industry hubs).
  *
  *   php tests/erp_advanced/run_subindustry_pages_tests.php
  */
@@ -38,18 +38,11 @@ function section(string $t): void
 	echo "\n== $t ==\n";
 }
 
-section('Presentation variants');
+section('Presentation helpers still exist');
 $p1 = epc_industry_seo_sub_presentation('precious-metals-refining');
-$p2 = epc_industry_seo_sub_presentation('biomass-bioenergy');
-$p3 = epc_industry_seo_sub_presentation('solar-energy');
 check('presentation has key', isset($p1['key'], $p1['tone']) && $p1['key'] !== '');
-$keys = array('atelier', 'ledger', 'mosaic', 'dock');
-check('key is known variant', in_array($p1['key'], $keys, true));
-check('stable for same slug', epc_industry_seo_sub_presentation('precious-metals-refining')['key'] === $p1['key']);
-$uniq = array_unique(array($p1['key'], $p2['key'], $p3['key']));
-check('different slugs can differ', count($uniq) >= 2);
 
-section('Render jewellery sub page');
+section('Render jewellery sub page as premium 3D storefront');
 $_SERVER['REQUEST_URI'] = '/precious-metals-refining';
 $_SERVER['HTTP_HOST'] = 'jewellery.ecomae.com';
 $GLOBALS['epc_industry_subdomain_active'] = true;
@@ -59,17 +52,23 @@ ob_start();
 include $root . '/content/general_pages/industry_templates/jewellery.php';
 $html = (string) ob_get_clean();
 
-check('uses sub page body class', strpos($html, 'isp-body') !== false);
-check('not hub 3d body', strpos($html, 'ind-premium-3d') === false);
-check('no 3d stage animation', strpos($html, 'ind3d-stage') === false && strpos($html, 'ind3d-canvas') === false);
+check('uses premium 3d body', strpos($html, 'ind-premium-3d') !== false);
+check('marks sub-site class', strpos($html, 'ind-sub-site') !== false);
+check('has 3d stage animation', strpos($html, 'ind3d-stage') !== false);
+check('has hero video wrap', strpos($html, 'heroVidWrap') !== false && strpos($html, 'ind-hero-video') !== false);
+check('not lightweight isp-body', strpos($html, 'isp-body') === false);
 check('title is sub-industry', stripos($html, 'Precious metals refining') !== false);
 check('shows Gold Items category', strpos($html, 'Gold Items') !== false);
 check('shows Diamond Pieces', strpos($html, 'Diamond Pieces') !== false);
 check('shows Certification', strpos($html, 'Certification') !== false);
+check('shows Silver Collection', strpos($html, 'Silver Collection') !== false);
 check('canonical sub path', strpos($html, 'jewellery.ecomae.com/precious-metals-refining') !== false);
-check('presentation class present', (bool) preg_match('/isp-pres-(atelier|ledger|mosaic|dock)/', $html));
 check('hub link back', strpos($html, 'jewellery.ecomae.com/') !== false);
-check('no shared hub hero video wrap', strpos($html, 'heroVidWrap') === false && strpos($html, 'ind-hero-video') === false);
+check('related verticals section', strpos($html, 'id="related-verticals"') !== false || strpos($html, 'Related') !== false);
+check('categories section present', strpos($html, 'id="categories"') !== false);
+check('products section present', strpos($html, 'id="products"') !== false);
+check('sub-specific product present', stripos($html, 'Precious Metals') !== false);
+check('sub hero photo not only hub hero', strpos($html, 'photo-1602751584552') !== false || strpos($html, 'photo-1573408301185') !== false);
 
 section('Render energy biomass sub page');
 $_SERVER['REQUEST_URI'] = '/biomass-bioenergy';
@@ -79,21 +78,27 @@ $GLOBALS['epc_industry_subdomain_group'] = 'energy';
 ob_start();
 include $root . '/content/general_pages/industry_templates/energy.php';
 $html2 = (string) ob_get_clean();
-check('energy sub page renders', strpos($html2, 'isp-body') !== false && stripos($html2, 'Biomass') !== false);
-check('energy sub has categories section', strpos($html2, 'Product &amp; service categories') !== false || strpos($html2, 'id="categories"') !== false);
+check('energy sub uses premium 3d', strpos($html2, 'ind-premium-3d') !== false && stripos($html2, 'Biomass') !== false);
+check('energy sub has categories', strpos($html2, 'id="categories"') !== false);
+check('energy sub has 3d stage', strpos($html2, 'ind3d-stage') !== false);
 
 section('Hub still 3d when no sub path');
 $_SERVER['REQUEST_URI'] = '/';
+$_SERVER['HTTP_HOST'] = 'jewellery.ecomae.com';
+$GLOBALS['epc_industry_subdomain_slug'] = 'jewellery';
+$GLOBALS['epc_industry_subdomain_group'] = 'jewellery';
 ob_start();
 include $root . '/content/general_pages/industry_templates/jewellery.php';
 $hub = (string) ob_get_clean();
 check('hub keeps 3d skin', strpos($hub, 'ind-premium-3d') !== false);
-check('hub not isp-body', strpos($hub, 'isp-body') === false);
+check('hub not sub-site class', strpos($hub, 'ind-sub-site') === false);
+check('hub still lists sub-industries', strpos($hub, 'id="industries"') !== false);
 
 section('Wiring');
 $base = (string) file_get_contents($root . '/content/general_pages/industry_templates/_base_template.php');
-check('base branches to sub page', strpos($base, '_sub_industry_page.php') !== false);
-check('sub page file exists', is_file($root . '/content/general_pages/industry_templates/_sub_industry_page.php'));
+check('base uses prepare script', strpos($base, '_sub_industry_prepare.php') !== false);
+check('base does not early-return to lightweight page', strpos($base, "require __DIR__ . '/_sub_industry_page.php'") === false);
+check('prepare file exists', is_file($root . '/content/general_pages/industry_templates/_sub_industry_prepare.php'));
 
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
