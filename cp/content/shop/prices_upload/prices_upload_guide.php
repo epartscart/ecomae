@@ -424,9 +424,27 @@ try {
 					</div>
 				</div>
 
-				<!-- 7 Deploy API -->
+				<!-- 7 Commerce S/P/L -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">7. Deploy API (automation / UAE uploads)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_commerce" class="collapsed">7. Commerce data (sales / purchase / inventory → warehouses)</a></h5></div>
+					<div id="guide_commerce" class="panel-collapse collapse">
+						<div class="panel-body">
+							<p><a class="btn btn-sm btn-primary" href="<?php echo $backend; ?>/shop/prices/commerce">Open Commerce data upload</a></p>
+							<ul>
+								<li><strong>Sales (*-S)</strong> — highest sales price per brand+article becomes our shelf price; qty summed. List: <code>BASE-S</code>.</li>
+								<li><strong>Purchase (*.P)</strong> — one list per supplier; shelf = cost × (1 + margin%). List: <code>SUPPLIER.P</code>.</li>
+								<li><strong>Inventory (*-L)</strong> — stock qty + cost/list with margin. List: <code>BASE-L</code>.</li>
+							</ul>
+							<p>Creates matching Docpart price lists + warehouses (interface type “Simple price list”) so items appear in storefront search.</p>
+							<p><strong>Recurring:</strong> re-upload the Excel periodically, or set a file URL on import (stored as URL load mode) and call <code>/epc-upload-commerce-prices.php?action=refresh_url&amp;price_id=…</code>.</p>
+							<p><span class="label label-primary">API</span> <code>/epc-upload-commerce-prices.php</code> — POST <code>token</code>, <code>key</code>, <code>role</code>, <code>base_name</code>, <code>margin_percent</code>, <code>price_file</code>.</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- 8 Deploy API -->
+				<div class="panel panel-default">
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">8. Deploy API (automation / UAE uploads)</a></h5></div>
 					<div id="guide_deploy" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><span class="label label-primary">Endpoint</span> <code>/epc-upload-uae-prices.php</code> — POST <code>token</code>, <code>key</code> (tech_key), <code>price_file</code>, <code>price_name</code> or <code>price_id</code>.</p>
@@ -436,9 +454,9 @@ try {
 					</div>
 				</div>
 
-				<!-- 8 Legacy API -->
+				<!-- 9 Legacy API -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_api" class="collapsed">8. Legacy Treelax API</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_api" class="collapsed">9. Legacy Treelax API</a></h5></div>
 					<div id="guide_api" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><code>/api/prices/upload_price.php</code> — POST <code>tech_key</code> + file; chains to CP <code>ajax_5_import_csv_to_db.php</code>.</p>

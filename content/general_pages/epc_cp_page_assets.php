@@ -256,6 +256,9 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history.js?v=' . rawurlencode($ver),
 			),
 		),
+		'shop/prices/commerce' => array(
+			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
+		),
 		'shop/prices/upload' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),
