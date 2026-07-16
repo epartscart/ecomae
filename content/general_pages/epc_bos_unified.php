@@ -320,6 +320,7 @@ function epc_bos_fleet_items(): array
         array('id' => 'marketplace', 'label' => 'Marketplace',     'icon' => 'fa-shopping-cart', 'path' => 'control/portal/epc_marketplace'),
         array('id' => 'ai_service', 'label' => 'AI Service',      'icon' => 'fa-brain',        'path' => 'general_pages/epc_ai_service'),
         array('id' => 'metabase_embed', 'label' => 'Metabase BI',    'icon' => 'fa-chart-area',   'path' => 'general_pages/epc_metabase_embed'),
+        array('id' => 'power_bi',       'label' => 'Power BI',       'icon' => 'fa-bar-chart',    'path' => 'control/portal/epc_power_bi'),
         array('id' => 'isolation_anomaly', 'label' => 'Anomaly AI',    'icon' => 'fa-shield',       'path' => 'general_pages/epc_isolation_anomaly'),
     );
 }

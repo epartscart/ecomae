@@ -19,7 +19,8 @@
     { "name": "Platform", "description": "Public platform status" },
     { "name": "Tenant", "description": "Tenant metadata (authenticated)" },
     { "name": "Commerce", "description": "Orders and products (authenticated)" },
-    { "name": "ERP", "description": "ERP KPI summaries (authenticated)" }
+    { "name": "ERP", "description": "ERP KPI summaries (authenticated)" },
+    { "name": "PowerBI", "description": "Power BI Web connector datasets — JSON or CSV (authenticated)" }
   ],
   "paths": {
     "/health": {
@@ -168,6 +169,117 @@
               }
             }
           },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/catalog": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "Power BI dataset catalog",
+        "description": "Lists Web-connector endpoints and capability matrix. Scopes: read:bi, read:erp, or read:*.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Catalog" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/kpis": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "ERP KPIs as flat rows for Power BI",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "KPI table (JSON rows or CSV)" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/orders": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "Orders table for Power BI",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["json", "csv"] } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 100 } }
+        ],
+        "responses": {
+          "200": { "description": "Orders table" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/sales": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "Sales register for Power BI",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["json", "csv"] } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": { "description": "Sales rows" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/stock": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "Inventory stock for Power BI",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["json", "csv"] } }
+        ],
+        "responses": {
+          "200": { "description": "Stock rows" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/gl": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "GL trial balance for Power BI",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["json", "csv"] } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": { "description": "Trial balance rows" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/powerbi/metrics": {
+      "get": {
+        "tags": ["PowerBI"],
+        "summary": "BI metric snapshots for Power BI",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["json", "csv"] } }
+        ],
+        "responses": {
+          "200": { "description": "Metric snapshot rows" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": { "$ref": "#/components/responses/Forbidden" }
         }

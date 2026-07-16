@@ -214,6 +214,13 @@ function epc_api_v1_handle_health(): void
 			'/epc-api/v1/orders',
 			'/epc-api/v1/products/search',
 			'/epc-api/v1/erp/dashboard-summary',
+			'/epc-api/v1/powerbi/catalog',
+			'/epc-api/v1/powerbi/kpis',
+			'/epc-api/v1/powerbi/orders',
+			'/epc-api/v1/powerbi/sales',
+			'/epc-api/v1/powerbi/stock',
+			'/epc-api/v1/powerbi/gl',
+			'/epc-api/v1/powerbi/metrics',
 		),
 	));
 }
@@ -232,8 +239,9 @@ function epc_api_v1_handle_capabilities(): void
 		'total_capabilities' => epc_ecomae_platform_super_cp_capability_count(),
 		'integrations' => array(
 			'public_rest' => 'Phase 1 read-only JSON at /epc-api/v1/',
+			'power_bi' => 'Web connector datasets at /epc-api/v1/powerbi/* (JSON/CSV, X-API-Key)',
 			'erp_ajax' => 'Internal CP session — not public',
-			'future' => array('webhooks', 'e-invoice submit', 'd365 sync', 'marketplace write APIs v2'),
+			'future' => array('webhooks', 'e-invoice submit', 'd365 sync', 'marketplace write APIs v2', 'power_bi_azure_embed'),
 		),
 		'docs' => 'https://www.ecomae.com/platform/api-documentation',
 	));
@@ -399,6 +407,141 @@ function epc_api_v1_handle_erp_dashboard(PDO $platformPdo): void
 	));
 }
 
+/**
+ * Auth for Power BI datasets — accept read:bi, read:erp, read:*, or *.
+ *
+ * @return array<string,mixed>|null
+ */
+function epc_api_v1_auth_powerbi(PDO $platformPdo): ?array
+{
+	$auth = epc_api_v1_auth($platformPdo, null);
+	if ($auth === null) {
+		return null;
+	}
+	$scopes = $auth['scopes'];
+	$ok = epc_api_v1_scope_allowed($scopes, 'read:bi')
+		|| epc_api_v1_scope_allowed($scopes, 'read:erp');
+	if (!$ok) {
+		epc_api_v1_error(403, 'insufficient_scope', 'This key lacks scope: read:bi (or read:erp / read:*).');
+		return null;
+	}
+	return $auth;
+}
+
+function epc_api_v1_powerbi_respond(array $dataset, string $datasetId, string $siteKey): void
+{
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
+	$headers = $dataset['headers'] ?? array();
+	$rows = $dataset['rows'] ?? array();
+	if (epc_power_bi_wants_csv()) {
+		epc_power_bi_emit_csv($headers, $rows, 'powerbi_' . $datasetId . '.csv');
+		return;
+	}
+	$objects = array();
+	foreach ($rows as $row) {
+		$obj = array();
+		foreach ($headers as $i => $h) {
+			$obj[$h] = $row[$i] ?? null;
+		}
+		$objects[] = $obj;
+	}
+	epc_api_v1_ok(array(
+		'tenant_site_key' => $siteKey,
+		'dataset' => $datasetId,
+		'count' => count($objects),
+		'meta' => $dataset['meta'] ?? array(),
+		'columns' => $headers,
+		'rows' => $objects,
+		'power_bi' => array(
+			'format_hint' => 'Add ?format=csv for Power BI Web connector CSV refresh',
+			'scope' => 'read:bi',
+		),
+	));
+}
+
+function epc_api_v1_handle_powerbi_catalog(PDO $platformPdo): void
+{
+	$auth = epc_api_v1_auth_powerbi($platformPdo);
+	if ($auth === null) {
+		return;
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
+	$base = 'https://www.ecomae.com';
+	epc_api_v1_ok(array(
+		'tenant_site_key' => (string) ($auth['tenant']['site_key'] ?? ''),
+		'capabilities' => epc_power_bi_capabilities(),
+		'datasets' => epc_power_bi_dataset_catalog($base),
+		'auth' => array(
+			'header' => 'X-API-Key',
+			'scopes_accepted' => array('read:bi', 'read:erp', 'read:*', '*'),
+		),
+	));
+}
+
+function epc_api_v1_handle_powerbi_kpis(PDO $platformPdo): void
+{
+	$auth = epc_api_v1_auth_powerbi($platformPdo);
+	if ($auth === null) {
+		return;
+	}
+	$tenantPdo = epc_api_v1_tenant_pdo($auth['tenant']);
+	if (!$tenantPdo instanceof PDO) {
+		epc_api_v1_error(503, 'tenant_db_unavailable', 'Could not connect to tenant database.');
+		return;
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
+	$siteKey = (string) ($auth['tenant']['site_key'] ?? '');
+	epc_api_v1_powerbi_respond(epc_power_bi_dataset_kpis($tenantPdo, $siteKey), 'kpis', $siteKey);
+}
+
+function epc_api_v1_handle_powerbi_orders(PDO $platformPdo): void
+{
+	$auth = epc_api_v1_auth_powerbi($platformPdo);
+	if ($auth === null) {
+		return;
+	}
+	$tenantPdo = epc_api_v1_tenant_pdo($auth['tenant']);
+	if (!$tenantPdo instanceof PDO) {
+		epc_api_v1_error(503, 'tenant_db_unavailable', 'Could not connect to tenant database.');
+		return;
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
+	$siteKey = (string) ($auth['tenant']['site_key'] ?? '');
+	$limit = min(200, max(1, (int) ($_GET['limit'] ?? 100)));
+	epc_api_v1_powerbi_respond(epc_power_bi_dataset_orders($tenantPdo, $siteKey, $limit), 'orders', $siteKey);
+}
+
+function epc_api_v1_handle_powerbi_report(PDO $platformPdo, string $type): void
+{
+	$auth = epc_api_v1_auth_powerbi($platformPdo);
+	if ($auth === null) {
+		return;
+	}
+	$tenantPdo = epc_api_v1_tenant_pdo($auth['tenant']);
+	if (!$tenantPdo instanceof PDO) {
+		epc_api_v1_error(503, 'tenant_db_unavailable', 'Could not connect to tenant database.');
+		return;
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
+	$siteKey = (string) ($auth['tenant']['site_key'] ?? '');
+	$to = epc_power_bi_parse_date_param('to', time());
+	$fromDefault = strtotime('-90 days', $to);
+	$from = epc_power_bi_parse_date_param('from', $fromDefault !== false ? $fromDefault : time() - 7776000);
+	epc_api_v1_powerbi_respond(epc_power_bi_dataset_report($tenantPdo, $type, $from, $to), $type, $siteKey);
+}
+
+function epc_api_v1_handle_powerbi_metrics(PDO $platformPdo): void
+{
+	$auth = epc_api_v1_auth_powerbi($platformPdo);
+	if ($auth === null) {
+		return;
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
+	$siteKey = (string) ($auth['tenant']['site_key'] ?? '');
+	// Snapshots live on platform PDO (site_key keyed)
+	epc_api_v1_powerbi_respond(epc_power_bi_dataset_metrics($platformPdo, $siteKey), 'metrics', $siteKey);
+}
+
 function epc_api_v1_dispatch(): void
 {
 	$route = epc_api_v1_route_path();
@@ -430,6 +573,27 @@ function epc_api_v1_dispatch(): void
 			return;
 		case 'erp/dashboard-summary':
 			epc_api_v1_handle_erp_dashboard($platformPdo);
+			return;
+		case 'powerbi/catalog':
+			epc_api_v1_handle_powerbi_catalog($platformPdo);
+			return;
+		case 'powerbi/kpis':
+			epc_api_v1_handle_powerbi_kpis($platformPdo);
+			return;
+		case 'powerbi/orders':
+			epc_api_v1_handle_powerbi_orders($platformPdo);
+			return;
+		case 'powerbi/sales':
+			epc_api_v1_handle_powerbi_report($platformPdo, 'sales');
+			return;
+		case 'powerbi/stock':
+			epc_api_v1_handle_powerbi_report($platformPdo, 'stock');
+			return;
+		case 'powerbi/gl':
+			epc_api_v1_handle_powerbi_report($platformPdo, 'gl');
+			return;
+		case 'powerbi/metrics':
+			epc_api_v1_handle_powerbi_metrics($platformPdo);
 			return;
 		default:
 			epc_api_v1_error(404, 'not_found', 'Unknown API route: ' . $route);

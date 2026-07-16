@@ -134,6 +134,17 @@ function epc_integrations_catalog(): array
 			'default_enabled' => true,
 			'menu_patterns' => array('epc_api_clients'),
 		),
+		'power_bi' => array(
+			'label' => 'Power BI',
+			'icon' => 'fa-bar-chart',
+			'color' => '#f2c811',
+			'super_url' => '/' . $be . '/control/portal/epc_power_bi',
+			'tenant_url' => '/' . $be . '/control/portal/epc_power_bi',
+			'guide' => 'docs/POWER_BI.md',
+			'super_only_config' => false,
+			'default_enabled' => true,
+			'menu_patterns' => array('epc_power_bi', 'powerbi'),
+		),
 		'parts_agent' => array(
 			'label' => 'AI parts agent',
 			'icon' => 'fa-robot',

@@ -63,6 +63,10 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/control/portal/epc_platform_health_checkup.js?v=' . rawurlencode($ver),
 			),
 		),
+		'control/portal/epc_power_bi' => array(
+			'css' => array(),
+			'js' => array(),
+		),
 		'control/portal/epc_api_documentation_guide' => array(
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
