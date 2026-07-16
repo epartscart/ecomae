@@ -38,7 +38,10 @@
 .ehm-home--3d .ehm-cta-box,
 .ehm-home--3d .ehm-pipeline,
 .ehm-home--3d .ehm-layla-card,
-.ehm-home--3d .ehm-comp-banner{
+.ehm-home--3d .ehm-comp-banner,
+.ehm-home--3d .ehm-bc-graphic,
+.ehm-home--3d .ehm-bc-node,
+.ehm-home--3d .ehm-bc-plane{
   transform-style:preserve-3d;
   will-change:transform;
   transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .25s,box-shadow .35s;
@@ -47,6 +50,13 @@
     0 18px 40px rgba(0,0,0,.28),
     0 0 0 1px rgba(0,204,255,.04);
   backdrop-filter:blur(8px);
+}
+.ehm-home--3d .ehm-bc-graphic:hover{
+  border-color:rgba(0,255,178,.4);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.08) inset,
+    0 28px 60px rgba(0,0,0,.4),
+    0 0 40px rgba(0,255,178,.12);
 }
 .ehm-home--3d .ehm-fc,
 .ehm-home--3d .ehm-layer,

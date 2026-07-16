@@ -17,7 +17,7 @@ function epc_ecomae_home_sections_enqueue()
 		return '';
 	}
 	$done = true;
-	$v = '20260716c';
+	$v = '20260716d';
 	return '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n"
 		. '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n"
 		. '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />' . "\n"
@@ -41,6 +41,8 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	$demoUrl = $base . 'platform/demo';
 	$platformUrl = $base . 'platform';
 	$industriesUrl = $base . 'platform/industries';
+	$blockchainUrl = rtrim($base, '/') . '/blockchain';
+	$verifyUrl = '/epc-blockchain-verify.php';
 	$img = epc_ecomae_home_sections_img_base();
 	$h = 'epc_ecomae_h';
 
@@ -88,10 +90,99 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 				<div class="ehm-ti"><span class="ehm-ti-ico">🏭</span><span><strong>19+ industry</strong> packs ready</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🌍</span><span><strong>195+</strong> tax jurisdictions</span></div>
 				<div class="ehm-ti"><span class="ehm-ti-ico">🤖</span><span><strong>AI advisor</strong> &amp; forecasting</span></div>
+				<div class="ehm-ti"><span class="ehm-ti-ico">🔗</span><span><strong>Blockchain proofs</strong> built-in</span></div>
 			</div>
 		</div>
 	</section>
 	<div class="ehm-divider"></div>
+
+	<!-- Blockchain proof layer — graphical presentation (post-hero) -->
+	<section id="blockchain-proof" class="ehm-sec ehm-bc" aria-labelledby="ehm-bc-title">
+		<div class="ehm-wrap">
+			<div class="ehm-bc-grid">
+				<div class="ehm-bc-copy ehm-rev">
+					<div class="ehm-tag"><span class="ehm-dot"></span>Blockchain Proof Layer</div>
+					<h2 id="ehm-bc-title">Prove every critical<br><span class="ehm-glow">business fact.</span></h2>
+					<p>MySQL stays the system of record. The Blockchain BOS proof layer hashes invoices, GRNs and RMAs, Merkle-anchors batches, and lets anyone verify authenticity — without moving operations off the ERP.</p>
+					<ul class="ehm-bc-facts">
+						<li><strong>SHA-256</strong> canonical business-fact hashes</li>
+						<li><strong>Merkle batch</strong> anchoring via platform jobs</li>
+						<li><strong>Public verify</strong> HTML + JSON for auditors &amp; partners</li>
+						<li><strong>Best-effort hooks</strong> — never block a business commit</li>
+					</ul>
+					<div class="ehm-bc-cta">
+						<a class="ehm-btn ehm-btn--p" href="<?php echo $h($blockchainUrl); ?>">How Blockchain BOS works</a>
+						<a class="ehm-btn ehm-btn--g" href="<?php echo $h($verifyUrl); ?>">Verify a proof</a>
+					</div>
+				</div>
+				<div class="ehm-bc-graphic ehm-rev ehm-rev--2" aria-hidden="true">
+					<div class="ehm-bc-planes">
+						<div class="ehm-bc-plane ehm-bc-plane--ops">
+							<span class="ehm-bc-plane__label">Operational truth</span>
+							<span class="ehm-bc-plane__val">MySQL · ERP · Commerce</span>
+						</div>
+						<div class="ehm-bc-plane-bridge">
+							<span class="ehm-bc-plane-bridge__pulse"></span>
+							<span>proof hash</span>
+						</div>
+						<div class="ehm-bc-plane ehm-bc-plane--proof">
+							<span class="ehm-bc-plane__label">Integrity layer</span>
+							<span class="ehm-bc-plane__val">SHA-256 · Merkle · Verify</span>
+						</div>
+					</div>
+					<div class="ehm-bc-flow">
+						<div class="ehm-bc-node">
+							<span class="ehm-bc-node__n">1</span>
+							<span class="ehm-bc-node__t">Commit</span>
+							<span class="ehm-bc-node__d">Document saved</span>
+						</div>
+						<div class="ehm-bc-node">
+							<span class="ehm-bc-node__n">2</span>
+							<span class="ehm-bc-node__t">Hash</span>
+							<span class="ehm-bc-node__d">SHA-256 digest</span>
+						</div>
+						<div class="ehm-bc-node">
+							<span class="ehm-bc-node__n">3</span>
+							<span class="ehm-bc-node__t">Anchor</span>
+							<span class="ehm-bc-node__d">Merkle root</span>
+						</div>
+						<div class="ehm-bc-node ehm-bc-node--end">
+							<span class="ehm-bc-node__n">4</span>
+							<span class="ehm-bc-node__t">Verify</span>
+							<span class="ehm-bc-node__d">Public check</span>
+						</div>
+					</div>
+					<svg class="ehm-bc-merkle" viewBox="0 0 360 160" role="img" focusable="false">
+						<title>Merkle tree anchoring diagram</title>
+						<defs>
+							<linearGradient id="ehmBcLine" x1="0%" y1="0%" x2="100%" y2="0%">
+								<stop offset="0%" stop-color="#00ccff" stop-opacity=".2"/>
+								<stop offset="50%" stop-color="#00ffb2" stop-opacity=".85"/>
+								<stop offset="100%" stop-color="#00ccff" stop-opacity=".2"/>
+							</linearGradient>
+						</defs>
+						<line class="ehm-bc-edge" x1="180" y1="28" x2="100" y2="78"/>
+						<line class="ehm-bc-edge" x1="180" y1="28" x2="260" y2="78"/>
+						<line class="ehm-bc-edge" x1="100" y1="78" x2="55" y2="128"/>
+						<line class="ehm-bc-edge" x1="100" y1="78" x2="145" y2="128"/>
+						<line class="ehm-bc-edge" x1="260" y1="78" x2="215" y2="128"/>
+						<line class="ehm-bc-edge" x1="260" y1="78" x2="305" y2="128"/>
+						<circle class="ehm-bc-leaf ehm-bc-leaf--root" cx="180" cy="28" r="11"/>
+						<circle class="ehm-bc-leaf" cx="100" cy="78" r="8"/>
+						<circle class="ehm-bc-leaf" cx="260" cy="78" r="8"/>
+						<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="55" cy="128" r="7"/>
+						<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="145" cy="128" r="7"/>
+						<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="215" cy="128" r="7"/>
+						<circle class="ehm-bc-leaf ehm-bc-leaf--doc" cx="305" cy="128" r="7"/>
+						<text x="180" y="18" text-anchor="middle" class="ehm-bc-svg-label">Merkle root</text>
+						<text x="180" y="152" text-anchor="middle" class="ehm-bc-svg-label ehm-bc-svg-label--muted">Invoice · Credit note · GRN · RMA</text>
+						<rect class="ehm-bc-scan" x="20" y="0" width="40" height="160" fill="url(#ehmBcLine)" opacity=".35"/>
+					</svg>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<?php echo $demoBlock; ?>
 
 	<!-- Live Clients Showcase -->

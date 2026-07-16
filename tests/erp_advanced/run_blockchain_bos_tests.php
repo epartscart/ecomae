@@ -91,6 +91,10 @@ check('hero not ONE BOS legacy', strpos($hero, 'ONE BOS</span>') === false);
 $home = (string)file_get_contents($root . '/content/general_pages/epc_ecomae_home_sections.php');
 check('home has Blockchain Proof Layer', strpos($home, 'Blockchain Proof Layer') !== false);
 check('home unified enterprise messaging', strpos($home, 'One Blockchain BOS Enterprise System') !== false);
+check('home post-hero blockchain section', strpos($home, 'id="blockchain-proof"') !== false && strpos($home, 'ehm-bc-graphic') !== false);
+check('home blockchain graphic has Merkle + flow', strpos($home, 'ehm-bc-merkle') !== false && strpos($home, 'ehm-bc-flow') !== false);
+$homeCss = (string)file_get_contents($root . '/content/general_pages/epc_ecomae_home_sections.css');
+check('home css styles blockchain graphic', strpos($homeCss, '.ehm-bc-graphic') !== false && strpos($homeCss, '@keyframes ehm-bc-scan') !== false);
 
 $mkt = (string)file_get_contents($root . '/content/general_pages/epc_ecomae_marketing_content.php');
 check('docs overview rebranded', strpos($mkt, 'Blockchain BOS Enterprise System') !== false);
