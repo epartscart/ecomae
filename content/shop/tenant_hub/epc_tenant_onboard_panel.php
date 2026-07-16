@@ -41,7 +41,7 @@ $introFields = epc_portal_intro_field_defs();
 <div class="epc-th-onboard">
 <div class="epc-th-onboard-intro">
 	<h4><i class="fa fa-rocket"></i> Onboard a new client — launch portal immediately</h4>
-	<p>Submit the client intro form once. The platform registers the tenant, seeds branding &amp; contact settings (including the animated ECOM AE hub in the storefront header via <code>use_animated_hub_logo</code>), and prepares the client CP at <code>https://www.client.com/cp/</code>. Finish DNS + set <strong>Live</strong> when the domain points here.</p>
+	<p>Submit the client intro form once. The platform registers the tenant, seeds branding, <strong>industry theme</strong> (visual style + storefront package), and contact settings, and prepares the client CP at <code>https://www.client.com/cp/</code>. For existing tenants use Tenants → <strong>Theme</strong>. Finish DNS + set <strong>Live</strong> when the domain points here.</p>
 </div>
 
 <div class="row">
@@ -231,7 +231,46 @@ $introFields = epc_portal_intro_field_defs();
 					</div>
 					<div class="form-group">
 						<label>Tagline</label>
-						<input class="form-control" name="tagline" value="<?php echo epc_th_h($editIntro['tagline']); ?>">
+						<input class="form-control" name="tagline" id="epc_intro_tagline" value="<?php echo epc_th_h($editIntro['tagline']); ?>">
+					</div>
+
+					<?php
+					require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_storefront_packages.php';
+					require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_theme_templates.php';
+					$sfPackages = epc_portal_storefront_package_registry();
+					$editThemeTpl = (string) ($editIntro['theme_template'] ?? '');
+					$editSfPkg = (string) ($editIntro['storefront_package'] ?? '');
+					$themeSlots = epc_portal_theme_template_slot_ids();
+					?>
+					<h5><i class="fa fa-paint-brush"></i> Industry theme (auto-applied on save)</h5>
+					<p class="text-muted small" style="margin-top:-4px">Pick industry above — we seed the matching visual style + storefront chrome package so the client site is ready immediately. Override only if needed.</p>
+					<div class="row">
+						<div class="col-md-6 form-group">
+							<label>Visual style</label>
+							<select class="form-control" name="theme_template" id="epc_intro_theme_template">
+								<option value="">— auto from industry —</option>
+								<?php foreach ($themeSlots as $slot): ?>
+								<option value="<?php echo epc_th_h($slot); ?>"<?php echo $editThemeTpl === $slot ? ' selected' : ''; ?>><?php echo epc_th_h(ucfirst($slot)); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+						<div class="col-md-6 form-group">
+							<label>Storefront package</label>
+							<select class="form-control" name="storefront_package" id="epc_intro_storefront_package">
+								<option value="">— auto from industry —</option>
+								<option value="none"<?php echo $editSfPkg === 'none' ? ' selected' : ''; ?>>None (colours only)</option>
+								<?php foreach ($sfPackages as $pkgId => $pkg): ?>
+								<option value="<?php echo epc_th_h($pkgId); ?>"<?php echo $editSfPkg === $pkgId ? ' selected' : ''; ?>
+									data-industries="<?php echo epc_th_h(implode(',', $pkg['industry_codes'] ?? array())); ?>"
+									data-theme="<?php echo epc_th_h((string) ($pkg['theme_template'] ?? 'classic')); ?>">
+									<?php echo epc_th_h((string) $pkg['label']); ?>
+								</option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+					</div>
+					<div class="alert alert-success" id="epc_th_theme_preview" style="margin-top:4px">
+						<strong>Theme preview:</strong> <span id="epc_th_theme_preview_text">Select an industry to see the auto theme.</span>
 					</div>
 					<div class="alert alert-info" id="epc_th_auto_parts_pkg_note" style="display:none;margin-top:12px">
 						<strong>Auto parts storefront:</strong> On save we seed <code>automotive_spareparts_pro</code> (piston homepage, animated SVG logo — not ECOM hub / tenant brand).
@@ -371,6 +410,8 @@ $introFields = epc_portal_intro_field_defs();
 var epcIntroTemplates = <?php echo json_encode($templates); ?>;
 var epcIntroErpPresets = <?php echo json_encode($erpModPresets, JSON_UNESCAPED_UNICODE); ?>;
 var epcIntroIndustryErpDefaults = <?php echo json_encode(function_exists('epc_portal_industry_erp_modules_preset_map') ? epc_portal_industry_erp_modules_preset_map() : array(), JSON_UNESCAPED_UNICODE); ?>;
+var epcIntroSfPackages = <?php echo json_encode(function_exists('epc_portal_storefront_packages_for_js') ? epc_portal_storefront_packages_for_js() : array(), JSON_UNESCAPED_UNICODE); ?>;
+var epcIntroDefaultThemes = <?php echo json_encode(function_exists('epc_portal_default_theme_template_by_industry') ? epc_portal_default_theme_template_by_industry() : array(), JSON_UNESCAPED_UNICODE); ?>;
 function epcIntroToggleSharedErp() {
 	var shared = document.getElementById('epc_intro_shared_erp');
 	var host = document.getElementById('epc_intro_hostname');
@@ -440,6 +481,9 @@ function epcIntroApplyTemplate(sel) {
 		sharedCb.checked = !!(t.erp_only_shared || t.hosted_on === 'platform' || t.hostname === 'www.ecomae.com');
 		epcIntroToggleSharedErp();
 	}
+	if (typeof epcIntroSyncThemeFromIndustry === 'function') {
+		epcIntroSyncThemeFromIndustry(true);
+	}
 }
 function epcIntroToggleScalePolicy() {
 	var sel = document.getElementById('epc_intro_scale_policy');
@@ -491,12 +535,62 @@ function epcIntroToggleAutoPartsNote() {
 	if (!el || !ind) return;
 	el.style.display = ind.value === 'auto_parts' ? '' : 'none';
 }
+function epcIntroPackageForIndustry(code) {
+	for (var id in epcIntroSfPackages) {
+		if (!epcIntroSfPackages.hasOwnProperty(id)) continue;
+		var inds = epcIntroSfPackages[id].industry_codes || [];
+		if (inds.indexOf(code) !== -1) return id;
+	}
+	return '';
+}
+function epcIntroSyncThemeFromIndustry(force) {
+	var ind = document.getElementById('epc_intro_industry');
+	var tpl = document.getElementById('epc_intro_theme_template');
+	var pkg = document.getElementById('epc_intro_storefront_package');
+	var preview = document.getElementById('epc_th_theme_preview_text');
+	if (!ind) return;
+	var code = ind.value || 'auto_parts';
+	var autoPkg = epcIntroPackageForIndustry(code);
+	var autoTpl = epcIntroDefaultThemes[code] || 'classic';
+	if (autoPkg && epcIntroSfPackages[autoPkg] && epcIntroSfPackages[autoPkg].theme_template) {
+		autoTpl = epcIntroSfPackages[autoPkg].theme_template;
+	}
+	if (force) {
+		if (tpl) tpl.value = '';
+		if (pkg) pkg.value = '';
+	}
+	var chosenTpl = (tpl && tpl.value) ? tpl.value : autoTpl;
+	var chosenPkg = (pkg && pkg.value) ? pkg.value : (autoPkg || 'none');
+	if (pkg) {
+		Array.prototype.forEach.call(pkg.options, function (opt) {
+			if (!opt.value || opt.value === 'none') {
+				opt.hidden = false;
+				return;
+			}
+			var inds = (opt.getAttribute('data-industries') || '').split(',');
+			var match = inds.indexOf(code) !== -1;
+			opt.hidden = !match && opt.value !== autoPkg;
+		});
+	}
+	if (preview) {
+		var pkgLabel = chosenPkg === 'none' || chosenPkg === ''
+			? 'colours only (no chrome package)'
+			: (epcIntroSfPackages[chosenPkg] ? epcIntroSfPackages[chosenPkg].label : chosenPkg);
+		preview.textContent = code + ' → style “' + chosenTpl + '” · package “' + pkgLabel + '”. Saved automatically on submit.';
+	}
+}
 document.getElementById('epc_intro_industry').addEventListener('change', function () {
 	epcIntroToggleAutoPartsNote();
+	epcIntroSyncThemeFromIndustry(true);
 	var erpCb = document.getElementById('epc_intro_erp_only');
 	if (erpCb && erpCb.checked) {
 		epcIntroApplyIndustryErpPreset();
 	}
 });
+['epc_intro_theme_template', 'epc_intro_storefront_package'].forEach(function (id) {
+	var el = document.getElementById(id);
+	if (el) el.addEventListener('change', function () { epcIntroSyncThemeFromIndustry(false); });
+});
 epcIntroToggleAutoPartsNote();
+epcIntroSyncThemeFromIndustry(false);
 </script>

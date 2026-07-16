@@ -95,6 +95,13 @@ function epc_portal_intro_from_post(array $post): array
 			$intro['country_code'] = $cc;
 		}
 	}
+	// Optional theme overrides from onboard form (auto-derived from industry when blank).
+	if (isset($post['theme_template'])) {
+		$intro['theme_template'] = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $post['theme_template']));
+	}
+	if (isset($post['storefront_package'])) {
+		$intro['storefront_package'] = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $post['storefront_package']));
+	}
 	return $intro;
 }
 
@@ -236,6 +243,8 @@ function epc_portal_apply_intro_to_site_settings(PDO $pdo, string $hostname, arr
 	$erpOnly = !empty($intro['erp_only'])
 		|| $industryCode === 'erp_standalone';
 	require_once __DIR__ . '/epc_portal_erp_modules.php';
+	require_once __DIR__ . '/epc_portal_storefront_packages.php';
+	require_once __DIR__ . '/epc_portal_theme_templates.php';
 	$accessFromIntro = isset($intro['access_mode']) ? (string) $intro['access_mode'] : '';
 	if ($erpOnly && $accessFromIntro === '') {
 		$accessFromIntro = 'erp_only';
@@ -245,27 +254,34 @@ function epc_portal_apply_intro_to_site_settings(PDO $pdo, string $hostname, arr
 		$settings['access_mode'] = 'erp_only';
 		$settings['enabled_packs'] = epc_portal_erp_only_packs();
 		$settings['system_name'] = (string) ($tenantRow['trade_name'] ?? 'ERP Suite') . ' ERP';
-		$contact['use_animated_hub_logo'] = true;
-		$contact['use_tenant_brand'] = true;
-		require_once __DIR__ . '/epc_portal_theme_templates.php';
-		$settings['theme_template'] = 'classic';
-		$settings['theme'] = epc_portal_style_template_theme('erp_standalone', 'classic');
-	} elseif ($accessFromIntro === 'mixed') {
-		$settings['access_mode'] = 'mixed';
-		if (!in_array('erp', $settings['enabled_packs'] ?? array(), true)) {
-			$settings['enabled_packs'] = array_merge($settings['enabled_packs'] ?? array('core'), array('erp', 'professional'));
-		}
-	} elseif ($accessFromIntro !== '' && in_array($accessFromIntro, array('full', 'consultancy'), true)) {
-		$settings['access_mode'] = $accessFromIntro;
-	} elseif ($industryCode === 'auto_parts') {
-		$settings['theme_template'] = 'classic';
-		$contact['storefront_package'] = 'automotive_spareparts_pro';
-		$contact['use_animated_hub_logo'] = false;
-		$contact['use_tenant_brand'] = false;
-		require_once __DIR__ . '/epc_portal_theme_templates.php';
-		$settings['theme'] = epc_portal_style_template_theme('auto_parts', 'classic');
+		$themeOpts = array(
+			'erp_only' => true,
+			'skip_package' => true,
+			'theme_template' => !empty($intro['theme_template']) ? (string) $intro['theme_template'] : 'classic',
+		);
+		epc_portal_apply_industry_theme_profile($settings, $contact, 'erp_standalone', $themeOpts);
 	} else {
-		$contact['use_animated_hub_logo'] = true;
+		if ($accessFromIntro === 'mixed') {
+			$settings['access_mode'] = 'mixed';
+			if (!in_array('erp', $settings['enabled_packs'] ?? array(), true)) {
+				$settings['enabled_packs'] = array_merge($settings['enabled_packs'] ?? array('core'), array('erp', 'professional'));
+			}
+		} elseif ($accessFromIntro !== '' && in_array($accessFromIntro, array('full', 'consultancy'), true)) {
+			$settings['access_mode'] = $accessFromIntro;
+		}
+		// Every commerce industry: seed matching visual style + storefront package when registered.
+		$themeOpts = array(
+			'erp_only' => false,
+			'keep_packs' => ($accessFromIntro === 'mixed'),
+			'keep_access_mode' => ($accessFromIntro !== ''),
+		);
+		if (!empty($intro['theme_template'])) {
+			$themeOpts['theme_template'] = (string) $intro['theme_template'];
+		}
+		if (isset($intro['storefront_package']) && (string) $intro['storefront_package'] !== '') {
+			$themeOpts['storefront_package'] = (string) $intro['storefront_package'];
+		}
+		epc_portal_apply_industry_theme_profile($settings, $contact, $industryCode !== '' ? $industryCode : 'auto_parts', $themeOpts);
 	}
 	$mods = epc_portal_erp_modules_resolve_for_onboard(
 		$intro,
@@ -275,6 +291,89 @@ function epc_portal_apply_intro_to_site_settings(PDO $pdo, string $hostname, arr
 	$settings['erp_modules'] = $mods;
 	$settings['contact'] = $contact;
 	epc_portal_save_site_settings($pdo, $settings);
+}
+
+/**
+ * Re-apply industry theme/package to an existing tenant (platform settings + optional client DB push).
+ *
+ * @param array $opts theme_template, storefront_package, push_client (bool, default true when live)
+ * @return array{ok:bool,message:string,theme_template?:string,storefront_package?:string}
+ */
+function epc_portal_apply_industry_theme_to_tenant(PDO $pdo, string $siteKey, array $opts = array()): array
+{
+	require_once __DIR__ . '/epc_portal_db.php';
+	require_once __DIR__ . '/epc_portal_storefront_packages.php';
+	require_once __DIR__ . '/epc_portal_theme_templates.php';
+	epc_portal_db_ensure($pdo);
+
+	$key = preg_replace('/[^a-z0-9_]/', '', strtolower($siteKey));
+	if ($key === '') {
+		return array('ok' => false, 'message' => 'Invalid tenant');
+	}
+	$row = epc_portal_tenant_get($pdo, $key);
+	if ($row === null) {
+		return array('ok' => false, 'message' => 'Tenant not found');
+	}
+	$hostname = (string) ($row['hostname'] ?? '');
+	if ($hostname === '') {
+		return array('ok' => false, 'message' => 'Tenant has no hostname');
+	}
+	$industryCode = preg_replace('/[^a-z0-9_]/', '', (string) ($opts['industry_code'] ?? ($row['industry_code'] ?? 'auto_parts')));
+	if ($industryCode === '') {
+		$industryCode = 'auto_parts';
+	}
+	// Persist industry on registry when operator overrides.
+	if (!empty($opts['industry_code']) && $industryCode !== (string) ($row['industry_code'] ?? '')) {
+		$st = $pdo->prepare('UPDATE `epc_portal_tenants` SET `industry_code` = ?, `updated_at` = ? WHERE `site_key` = ?');
+		$st->execute(array($industryCode, time(), $key));
+		$row['industry_code'] = $industryCode;
+	}
+
+	$saveHost = $hostname;
+	if (strpos($saveHost, 'www.') !== 0 && strpos($saveHost, '.') !== false) {
+		$saveHost = 'www.' . preg_replace('/^www\./', '', $saveHost);
+	}
+	$settings = epc_portal_load_site_settings_for_host($pdo, $saveHost);
+	if (!is_array($settings) || $settings === array()) {
+		$settings = epc_portal_default_site_settings($hostname);
+	}
+	$settings['host'] = $hostname;
+	$contact = isset($settings['contact']) && is_array($settings['contact']) ? $settings['contact'] : array();
+	$erpOnly = $industryCode === 'erp_standalone' || (($settings['access_mode'] ?? '') === 'erp_only');
+	$themeOpts = array(
+		'erp_only' => $erpOnly,
+		'skip_package' => $erpOnly,
+		'force_package_tagline' => !empty($opts['force_package_tagline']),
+	);
+	if (!empty($opts['theme_template'])) {
+		$themeOpts['theme_template'] = (string) $opts['theme_template'];
+	}
+	if (isset($opts['storefront_package']) && (string) $opts['storefront_package'] !== '') {
+		$themeOpts['storefront_package'] = (string) $opts['storefront_package'];
+	}
+	$applied = epc_portal_apply_industry_theme_profile($settings, $contact, $industryCode, $themeOpts);
+	$settings['contact'] = $contact;
+	epc_portal_save_site_settings($pdo, $settings);
+
+	$push = array('ok' => true, 'message' => 'skipped');
+	$shouldPush = array_key_exists('push_client', $opts) ? !empty($opts['push_client']) : (($row['status'] ?? '') === 'live');
+	if ($shouldPush && trim((string) ($row['db_name'] ?? '')) !== '' && function_exists('epc_portal_sync_tenant_packs_to_client_db')) {
+		require_once __DIR__ . '/epc_portal_cp_menu.php';
+		$push = epc_portal_sync_tenant_packs_to_client_db($pdo, $key);
+	}
+
+	$msg = $applied['message'];
+	if (($push['message'] ?? '') !== 'skipped') {
+		$msg .= ' · client sync: ' . (string) ($push['message'] ?? '');
+	}
+	return array(
+		'ok' => true,
+		'message' => $msg,
+		'theme_template' => (string) ($applied['theme_template'] ?? ''),
+		'storefront_package' => (string) ($applied['storefront_package'] ?? ''),
+		'client_sync' => $push,
+		'site_key' => $key,
+	);
 }
 
 function epc_portal_onboard_client(PDO $pdo, array $post, string $submittedBy = ''): array
