@@ -505,8 +505,8 @@ function epc_commerce_ensure_warehouse(PDO $db, string $listName, int $priceId):
 				// Try common column set; ignore if schema differs
 				try {
 					$db->prepare(
-						'INSERT INTO `shop_offices_storages_map` (`office_id`, `storage_id`, `group_id`, `markup`, `min_point`, `max_point`)
-						 VALUES (?, ?, 2, 0, 0, 999999999)'
+						'INSERT INTO `shop_offices_storages_map` (`office_id`, `storage_id`, `group_id`, `min_point`, `max_point`, `markup`, `additional_time`)
+						 VALUES (?, ?, 2, 0, 999999999, 0, 0)'
 					)->execute(array($officeId, $storageId));
 				} catch (Throwable $e) {
 					try {

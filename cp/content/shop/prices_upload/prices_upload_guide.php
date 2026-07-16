@@ -466,7 +466,7 @@ try {
 
 				<!-- 9 Manual edit -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_edit" class="collapsed">9. Manual grid edit (single rows)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_edit" class="collapsed">10. Manual grid edit (single rows)</a></h5></div>
 					<div id="guide_edit" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><a href="<?php echo $backend; ?>/shop/prices/prices_edit">Edit price list records</a> — not a file import; for corrections only.</p>
