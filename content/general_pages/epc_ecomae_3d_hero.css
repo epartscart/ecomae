@@ -157,10 +157,11 @@
   margin:0 0 14px;
   font-family:"Syne",system-ui,sans-serif;
   font-weight:800;
-  font-size:clamp(42px,7.5vw,72px);
+  font-size:clamp(40px,6.4vw,68px);
   letter-spacing:-.04em;
-  line-height:.95;
+  line-height:1;
   color:#fff;
+  white-space:nowrap;
   text-shadow:0 2px 40px rgba(14,165,233,.35);
   animation:e3dRise .9s cubic-bezier(.22,1,.36,1) .08s both;
 }
@@ -277,26 +278,27 @@
   .epm-3d-hero__content{
     align-items:center;
     text-align:center;
-    padding-top:clamp(72px,12vh,110px);
-    padding-bottom:clamp(100px,18vh,140px);
+    padding-top:clamp(64px,10vh,96px);
+    padding-bottom:clamp(140px,26vh,220px);
     margin:0 auto;
     max-width:min(92vw,480px);
   }
+  .epm-3d-hero__brand{font-size:clamp(36px,11vw,52px)}
   .epm-3d-hero__headline,
   .epm-3d-hero__support{max-width:34ch}
   .epm-3d-hero__cta{justify-content:center}
   .epm-3d-hero__veil{
     background:
-      linear-gradient(180deg,rgba(2,8,20,.55) 0%,rgba(2,8,20,.28) 35%,rgba(2,8,20,.55) 70%,rgba(2,8,20,.78) 100%);
+      linear-gradient(180deg,rgba(2,8,20,.72) 0%,rgba(2,8,20,.35) 42%,rgba(2,8,20,.18) 68%,rgba(2,8,20,.55) 100%);
   }
   .epm-3d-hero__stage{
     right:50%;
     top:auto;
-    bottom:6%;
-    width:min(88vw,420px);
-    height:220px;
-    transform:translate(50%,0) rotateX(28deg) rotateY(-8deg) scale(.85);
-    opacity:.55;
+    bottom:8%;
+    width:min(92vw,420px);
+    height:240px;
+    transform:translate(50%,0) rotateX(28deg) rotateY(-8deg) scale(.9);
+    opacity:.75;
   }
   .epm-3d-hero.is-webgl .epm-3d-hero__stage{display:none}
 }

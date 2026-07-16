@@ -60,7 +60,8 @@
 		ctx.fillText(sub, canvas.width / 2, canvas.height / 2 + 36);
 
 		var tex = new THREE.CanvasTexture(canvas);
-		tex.colorSpace = THREE.SRGBColorSpace || THREE.sRGBEncoding;
+		if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+		else if (THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
 		tex.anisotropy = 4;
 		return tex;
 	}
@@ -212,7 +213,7 @@
 
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 		renderer.setClearColor(0x000000, 0);
-		renderer.outputColorSpace = THREE.SRGBColorSpace || undefined;
+		if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 		var scene = new THREE.Scene();
 		scene.fog = new THREE.FogExp2(0x020814, 0.045);
@@ -285,8 +286,8 @@
 			camera.aspect = w / Math.max(h, 1);
 			camera.updateProjectionMatrix();
 			var narrow = w < 900;
-			root.position.set(narrow ? 0 : 1.6, narrow ? -0.35 : 0.15, 0);
-			camera.position.set(0, narrow ? 0.35 : 0.8, narrow ? 10.5 : 9.2);
+			root.position.set(narrow ? 0 : 1.6, narrow ? -1.35 : 0.15, 0);
+			camera.position.set(0, narrow ? 0.15 : 0.8, narrow ? 11.2 : 9.2);
 		}
 		resize();
 		window.addEventListener('resize', resize, { passive: true });

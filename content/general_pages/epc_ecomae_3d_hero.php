@@ -6,7 +6,7 @@ defined('_ASTEXE_') or die('No access');
 
 function epc_ecomae_3d_hero_asset_ver()
 {
-	return '20260716a';
+	return '20260716b';
 }
 
 function epc_ecomae_3d_hero_enqueue()
