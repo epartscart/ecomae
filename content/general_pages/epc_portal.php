@@ -77,13 +77,17 @@ function epc_portal_industries()
 		'pharmacy_retail' => epc_portal_industry_row('pharmacy_retail', 'Pharmacy & drugstore', 'commerce', 'fa-plus-square',
 			array('#0d9488', '#0f766e', '#5eead4', '#134e4a', '#115e59', '#042f2e', '#0f766e'), $commerceErp, 'healthcare_medical'),
 		'nutrition_supplements' => epc_portal_industry_row('nutrition_supplements', 'Food supplements & nutrition', 'commerce', 'fa-leaf',
-			array('#15803d', '#166534', '#86efac', '#14532d', '#166534', '#052e16', '#15803d'), $commerce, 'healthcare_medical'),
+			array('#15803d', '#166534', '#86efac', '#14532d', '#166534', '#052e16', '#15803d'), $commerce, 'healthcare_medical', array(
+				'sub_industry_label' => 'Food supplements & nutrition',
+			)),
 		'food_beverage' => epc_portal_industry_row('food_beverage', 'Food & beverage / restaurants', 'commerce', 'fa-cutlery',
 			array('#ea580c', '#c2410c', '#fb923c', '#7c2d12', '#9a3412', '#431407', '#c2410c'), $commerceErp, 'food_beverage'),
 		'grocery_retail' => epc_portal_industry_row('grocery_retail', 'Grocery & supermarket', 'commerce', 'fa-shopping-cart',
 			array('#16a34a', '#15803d', '#facc15', '#14532d', '#166534', '#052e16', '#15803d'), $commerce, 'retail_ecommerce'),
 		'furniture_interiors' => epc_portal_industry_row('furniture_interiors', 'Furniture & interiors shop', 'commerce', 'fa-home',
-			array('#92400e', '#78350f', '#d6d3d1', '#1c1917', '#44403c', '#292524', '#78716c'), $commerce, 'home_living'),
+			array('#92400e', '#78350f', '#d6d3d1', '#1c1917', '#44403c', '#292524', '#78716c'), $commerce, 'home_living', array(
+				'sub_industry_label' => 'Furniture retail',
+			)),
 		'building_materials' => epc_portal_industry_row('building_materials', 'Building materials trading', 'commerce', 'fa-cubes',
 			array('#78716c', '#57534e', '#f59e0b', '#1c1917', '#292524', '#0c0a09', '#44403c'), $commerceErp, 'construction_realestate'),
 		'fmcg_wholesale' => epc_portal_industry_row('fmcg_wholesale', 'FMCG & general trading', 'commerce', 'fa-truck',
@@ -237,6 +241,47 @@ function epc_portal_ecosystems(): array
 			'placeholders' => array('saas_tools', 'iot', 'ai_automation', 'cybersecurity', 'ecommerce_infrastructure_tools'),
 		),
 	);
+}
+
+/**
+ * Live public storefront URL for a portal industry (hub + dedicated sub-industry path).
+ * Example: nutrition_supplements → https://healthcare.ecomae.com/food-supplements-nutrition
+ */
+function epc_portal_industry_live_storefront_url(string $industryCode): string
+{
+	$code = preg_replace('/[^a-z0-9_]/', '', strtolower($industryCode));
+	$all = epc_portal_industries();
+	if ($code === '' || !isset($all[$code])) {
+		return '';
+	}
+	$row = $all[$code];
+	$groupKey = (string) ($row['group_key'] ?? '');
+	$name = (string) ($row['name'] ?? '');
+	if ($groupKey === '' || $name === '') {
+		return '';
+	}
+	$seoFile = __DIR__ . '/epc_industry_seo.php';
+	$consFile = __DIR__ . '/epc_industry_consolidation.php';
+	if (!is_file($seoFile) || !is_file($consFile)) {
+		return '';
+	}
+	require_once $consFile;
+	require_once $seoFile;
+	$groups = epc_industry_groups();
+	$templateKey = (string) ($groups[$groupKey]['template_key'] ?? $groupKey);
+	$host = function_exists('epc_industry_seo_primary_host')
+		? epc_industry_seo_primary_host($templateKey)
+		: '';
+	if ($host === '') {
+		return '';
+	}
+	// Prefer an explicit sub-industry label override when portal name differs from hub pack key.
+	$subLabel = (string) ($row['sub_industry_label'] ?? $name);
+	$slug = function_exists('epc_industry_seo_sub_slug') ? epc_industry_seo_sub_slug($subLabel) : '';
+	if ($slug === '') {
+		return 'https://' . $host . '/';
+	}
+	return 'https://' . $host . '/' . $slug;
 }
 
 /**

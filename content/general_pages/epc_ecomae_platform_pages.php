@@ -928,10 +928,21 @@ function epc_ecomae_platform_page_industry(array $params)
 			<div class="epm-badge"><i class="fa <?php echo epc_ecomae_h($ind['icon']); ?>"></i> Industry solution</div>
 			<h1><?php echo epc_ecomae_h($ind['name']); ?></h1>
 			<p class="lead"><?php echo epc_ecomae_h($summary); ?></p>
+			<?php
+			$liveStoreUrl = function_exists('epc_portal_industry_live_storefront_url')
+				? epc_portal_industry_live_storefront_url($code)
+				: '';
+			?>
 			<div class="epm-cta">
-				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo?industry=<?php echo epc_ecomae_h($code); ?>"><i class="fa fa-play-circle"></i> <?php echo (int) $demo['days']; ?>-day demo</a>
+				<?php if ($liveStoreUrl !== ''): ?>
+				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($liveStoreUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open live storefront</a>
+				<?php endif; ?>
+				<a class="epm-btn epm-btn--<?php echo $liveStoreUrl !== '' ? 'ghost' : 'primary'; ?>" href="<?php echo epc_ecomae_h($base); ?>platform/demo?industry=<?php echo epc_ecomae_h($code); ?>"><i class="fa fa-play-circle"></i> <?php echo (int) $demo['days']; ?>-day demo</a>
 				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h(epc_ecomae_platform_onboard_url($code)); ?>">Onboard in Super CP</a>
 			</div>
+			<?php if ($liveStoreUrl !== ''): ?>
+			<p style="margin:14px 0 0;font-size:13px;opacity:.9"><i class="fa fa-link"></i> Live hub: <a href="<?php echo epc_ecomae_h($liveStoreUrl); ?>" style="color:#fff;text-decoration:underline" target="_blank" rel="noopener"><?php echo epc_ecomae_h($liveStoreUrl); ?></a></p>
+			<?php endif; ?>
 		</div>
 	</div>
 	<div class="epm-industry-accent"></div>
