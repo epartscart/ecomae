@@ -688,11 +688,18 @@ function epc_commerce_ingest_file(
 		}
 		$imported = epc_commerce_import_into_list($db, $listName, $outCsv);
 		if ($sourceUrl !== '' && !empty($imported['price_id'])) {
-			try {
-				$db->prepare('UPDATE `shop_docpart_prices` SET `link` = ?, `load_mode` = 4, `file_name_substring` = ? WHERE `id` = ?')
-					->execute(array($sourceUrl, $listName, (int) $imported['price_id']));
-			} catch (Throwable $e) {
-			}
+			epc_commerce_store_source_link(
+				$db,
+				(int) $imported['price_id'],
+				$listName,
+				$sourceUrl,
+				$role,
+				$baseName,
+				$marginPercent
+			);
+		} elseif (!empty($imported['price_id'])) {
+			// Keep commerce meta even without URL (re-upload path still knows role/margin).
+			epc_commerce_store_meta_only($db, (int) $imported['price_id'], $listName, $role, $baseName, $marginPercent);
 		}
 		$imported['rows_aggregated'] = count($lines);
 		$lists[] = $imported;
@@ -722,5 +729,289 @@ function epc_commerce_ingest_file(
 		'margin_percent' => $marginPercent,
 		'source_rows' => count($read['rows']),
 		'lists' => $lists,
+	);
+}
+
+/**
+ * Encode commerce settings into message_header_substring (unused for URL load mode).
+ */
+function epc_commerce_meta_encode(string $role, string $baseName, float $marginPercent, string $listName = ''): string
+{
+	$payload = array(
+		'v' => 1,
+		'role' => strtolower($role),
+		'base' => $baseName,
+		'margin' => round($marginPercent, 4),
+		'list' => $listName,
+		'ts' => time(),
+	);
+	return 'EPC_COMMERCE:' . json_encode($payload, JSON_UNESCAPED_UNICODE);
+}
+
+/**
+ * @return array{role:string,base:string,margin:float,list:string}|null
+ */
+function epc_commerce_meta_decode(string $raw): ?array
+{
+	$raw = trim($raw);
+	if ($raw === '' || strpos($raw, 'EPC_COMMERCE:') !== 0) {
+		return null;
+	}
+	$json = substr($raw, strlen('EPC_COMMERCE:'));
+	$data = json_decode($json, true);
+	if (!is_array($data)) {
+		return null;
+	}
+	return array(
+		'role' => strtolower((string) ($data['role'] ?? '')),
+		'base' => (string) ($data['base'] ?? ''),
+		'margin' => (float) ($data['margin'] ?? 0),
+		'list' => (string) ($data['list'] ?? ''),
+	);
+}
+
+function epc_commerce_role_from_list_name(string $name): string
+{
+	if (preg_match('/\.P$/i', $name)) {
+		return 'purchase';
+	}
+	if (preg_match('/-L$/i', $name)) {
+		return 'inventory';
+	}
+	if (preg_match('/-S$/i', $name)) {
+		return 'sales';
+	}
+	return '';
+}
+
+function epc_commerce_base_from_list_name(string $name, string $role = ''): string
+{
+	$role = $role !== '' ? $role : epc_commerce_role_from_list_name($name);
+	if ($role === 'purchase') {
+		return (string) preg_replace('/\.P$/i', '', $name);
+	}
+	if ($role === 'inventory') {
+		return (string) preg_replace('/-L$/i', '', $name);
+	}
+	if ($role === 'sales') {
+		return (string) preg_replace('/-S$/i', '', $name);
+	}
+	return $name;
+}
+
+function epc_commerce_store_meta_only(
+	PDO $db,
+	int $priceId,
+	string $listName,
+	string $role,
+	string $baseName,
+	float $marginPercent
+): void {
+	if ($priceId <= 0) {
+		return;
+	}
+	$meta = epc_commerce_meta_encode($role, $baseName, $marginPercent, $listName);
+	try {
+		$db->prepare('UPDATE `shop_docpart_prices` SET `file_name_substring` = ?, `message_header_substring` = ? WHERE `id` = ?')
+			->execute(array($listName, $meta, $priceId));
+	} catch (Throwable $e) {
+	}
+}
+
+function epc_commerce_store_source_link(
+	PDO $db,
+	int $priceId,
+	string $listName,
+	string $sourceUrl,
+	string $role,
+	string $baseName,
+	float $marginPercent
+): void {
+	if ($priceId <= 0 || $sourceUrl === '') {
+		return;
+	}
+	$meta = epc_commerce_meta_encode($role, $baseName, $marginPercent, $listName);
+	try {
+		$db->prepare(
+			'UPDATE `shop_docpart_prices`
+			 SET `link` = ?, `load_mode` = 4, `file_name_substring` = ?, `message_header_substring` = ?
+			 WHERE `id` = ?'
+		)->execute(array($sourceUrl, $listName, $meta, $priceId));
+	} catch (Throwable $e) {
+	}
+}
+
+/**
+ * Download a commerce source URL to a temp file.
+ *
+ * @return array{ok:bool,path:string,message:string,http:int}
+ */
+function epc_commerce_download_url(string $url): array
+{
+	$url = trim($url);
+	if ($url === '' || !preg_match('#^https?://#i', $url)) {
+		return array('ok' => false, 'path' => '', 'message' => 'Invalid http(s) URL', 'http' => 0);
+	}
+	$ch = curl_init($url);
+	curl_setopt_array($ch, array(
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_TIMEOUT => 180,
+		CURLOPT_SSL_VERIFYPEER => false,
+		CURLOPT_SSL_VERIFYHOST => 0,
+		CURLOPT_USERAGENT => 'EPC-CommerceIngest/1.0',
+	));
+	$body = curl_exec($ch);
+	$code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$err = curl_error($ch);
+	curl_close($ch);
+	if ($body === false || $code >= 400 || $body === '') {
+		return array(
+			'ok' => false,
+			'path' => '',
+			'message' => 'Failed to download link' . ($err !== '' ? ': ' . $err : ''),
+			'http' => $code,
+		);
+	}
+	$ext = 'csv';
+	$pathPart = strtolower((string) parse_url($url, PHP_URL_PATH));
+	if (preg_match('/\.(xlsx|xls|csv|txt)$/', $pathPart, $m)) {
+		$ext = $m[1];
+	}
+	$filePath = sys_get_temp_dir() . '/epc_commerce_url_' . getmypid() . '_' . time() . '.' . $ext;
+	if (file_put_contents($filePath, $body) === false) {
+		return array('ok' => false, 'path' => '', 'message' => 'Could not write downloaded file', 'http' => $code);
+	}
+	return array('ok' => true, 'path' => $filePath, 'message' => 'ok', 'http' => $code);
+}
+
+/**
+ * Refresh one price list from its stored URL (+ stored margin/role).
+ *
+ * @return array<string,mixed>
+ */
+function epc_commerce_refresh_price_id(PDO $db, int $priceId, ?float $marginOverride = null): array
+{
+	if ($priceId <= 0) {
+		return array('status' => false, 'message' => 'price_id required');
+	}
+	$q = $db->prepare('SELECT * FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1');
+	$q->execute(array($priceId));
+	$price = $q->fetch(PDO::FETCH_ASSOC);
+	if (!$price) {
+		return array('status' => false, 'message' => 'Price list not found');
+	}
+	$url = trim((string) ($price['link'] ?? ''));
+	if ($url === '' || !preg_match('#^https?://#i', $url)) {
+		return array('status' => false, 'message' => 'No http(s) link on this price list', 'price_id' => $priceId);
+	}
+
+	$name = (string) ($price['name'] ?? '');
+	$meta = epc_commerce_meta_decode((string) ($price['message_header_substring'] ?? ''));
+	$role = ($meta && $meta['role'] !== '') ? $meta['role'] : epc_commerce_role_from_list_name($name);
+	$base = ($meta && $meta['base'] !== '') ? $meta['base'] : epc_commerce_base_from_list_name($name, $role);
+	$margin = $marginOverride !== null
+		? (float) $marginOverride
+		: (($meta !== null) ? (float) $meta['margin'] : 0.0);
+
+	if ($role === '') {
+		return array('status' => false, 'message' => 'Cannot detect commerce role from list name ' . $name, 'price_id' => $priceId);
+	}
+
+	$dl = epc_commerce_download_url($url);
+	if (empty($dl['ok'])) {
+		$dl['status'] = false;
+		$dl['price_id'] = $priceId;
+		$dl['price_name'] = $name;
+		return $dl;
+	}
+
+	$result = epc_commerce_ingest_file($db, (string) $dl['path'], $role, $base, $margin, $url);
+	@unlink((string) $dl['path']);
+	$result['action'] = 'refresh_url';
+	$result['source_url'] = $url;
+	$result['price_id'] = $priceId;
+	$result['price_name'] = $name;
+	$result['role'] = $role;
+	$result['margin_percent'] = $margin;
+	return $result;
+}
+
+/**
+ * Lists commerce price sources (S/P/L naming or EPC_COMMERCE meta).
+ *
+ * @return list<array<string,mixed>>
+ */
+function epc_commerce_list_sources(PDO $db, bool $urlOnly = false): array
+{
+	$rows = array();
+	try {
+		$sql = 'SELECT `id`, `name`, `link`, `load_mode`, `message_header_substring`, `last_updated`
+			FROM `shop_docpart_prices`
+			WHERE (`name` LIKE \'%-S\' OR `name` LIKE \'%.P\' OR `name` LIKE \'%-L\'
+				OR `message_header_substring` LIKE \'EPC_COMMERCE:%\')';
+		if ($urlOnly) {
+			$sql .= ' AND `load_mode` = 4 AND `link` LIKE \'http%\'';
+		}
+		$sql .= ' ORDER BY `name` ASC';
+		$rows = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Throwable $e) {
+		return array();
+	}
+	$out = array();
+	foreach ($rows as $row) {
+		$meta = epc_commerce_meta_decode((string) ($row['message_header_substring'] ?? ''));
+		$name = (string) ($row['name'] ?? '');
+		$role = ($meta && $meta['role'] !== '') ? $meta['role'] : epc_commerce_role_from_list_name($name);
+		$out[] = array(
+			'price_id' => (int) $row['id'],
+			'price_name' => $name,
+			'role' => $role,
+			'base_name' => ($meta && $meta['base'] !== '') ? $meta['base'] : epc_commerce_base_from_list_name($name, $role),
+			'margin_percent' => ($meta !== null) ? (float) $meta['margin'] : 0.0,
+			'link' => (string) ($row['link'] ?? ''),
+			'load_mode' => (int) ($row['load_mode'] ?? 0),
+			'last_updated' => (int) ($row['last_updated'] ?? 0),
+			'has_url' => preg_match('#^https?://#i', (string) ($row['link'] ?? '')) === 1,
+		);
+	}
+	return $out;
+}
+
+/**
+ * Refresh every commerce list that has a stored URL.
+ *
+ * @return array<string,mixed>
+ */
+function epc_commerce_refresh_all_linked(PDO $db): array
+{
+	$sources = epc_commerce_list_sources($db, true);
+	$results = array();
+	$ok = 0;
+	$fail = 0;
+	foreach ($sources as $src) {
+		$one = epc_commerce_refresh_price_id($db, (int) $src['price_id']);
+		if (!empty($one['status'])) {
+			$ok++;
+		} else {
+			$fail++;
+		}
+		$results[] = array(
+			'price_id' => (int) $src['price_id'],
+			'price_name' => (string) $src['price_name'],
+			'status' => !empty($one['status']),
+			'message' => (string) ($one['message'] ?? ''),
+			'source_rows' => (int) ($one['source_rows'] ?? 0),
+		);
+	}
+	return array(
+		'status' => $ok > 0 || ($ok + $fail) === 0,
+		'message' => count($sources) === 0
+			? 'No commerce URL-linked lists found'
+			: ('Refreshed ' . $ok . ' ok / ' . $fail . ' failed of ' . count($sources)),
+		'ok' => $ok,
+		'failed' => $fail,
+		'total' => count($sources),
+		'results' => $results,
 	);
 }

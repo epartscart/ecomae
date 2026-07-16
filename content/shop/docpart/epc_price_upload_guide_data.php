@@ -93,8 +93,8 @@ function epc_guide_channel_definitions($config)
 		array('title' => 'Deploy API', 'formats' => 'epc-upload-uae-prices.php', 'test' => 'POST price_file + tech_key'),
 		array(
 			'title' => 'Commerce data (sales / purchase / inventory)',
-			'formats' => 'Excel/CSV → *-S / *.P / *-L warehouse lists',
-			'test' => 'CP /shop/prices/commerce or POST /epc-upload-commerce-prices.php',
+			'formats' => 'Excel/CSV → *-S (max sales), *.P (supplier+margin), *-L (stock+margin); URL refresh',
+			'test' => 'CP /shop/prices/commerce or POST /epc-upload-commerce-prices.php (refresh_all for cron)',
 		),
 	);
 }

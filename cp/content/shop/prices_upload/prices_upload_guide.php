@@ -436,8 +436,8 @@ try {
 								<li><strong>Inventory (*-L)</strong> — stock qty + cost/list with margin. List: <code>BASE-L</code>.</li>
 							</ul>
 							<p>Creates matching Docpart price lists + warehouses (interface type “Simple price list”) so items appear in storefront search.</p>
-							<p><strong>Recurring:</strong> re-upload the Excel periodically, or set a file URL on import (stored as URL load mode) and call <code>/epc-upload-commerce-prices.php?action=refresh_url&amp;price_id=…</code>.</p>
-							<p><span class="label label-primary">API</span> <code>/epc-upload-commerce-prices.php</code> — POST <code>token</code>, <code>key</code>, <code>role</code>, <code>base_name</code>, <code>margin_percent</code>, <code>price_file</code>.</p>
+							<p><strong>Recurring:</strong> re-upload the Excel periodically, or set a file URL on import (stored as URL load mode). Margin + role are remembered. Refresh one list with <code>action=refresh_url&amp;price_id=…</code>, or all linked files with <code>action=refresh_all</code> (cron). URL-only import works without uploading a file.</p>
+							<p><span class="label label-primary">API</span> <code>/epc-upload-commerce-prices.php</code> — POST <code>token</code>, <code>key</code>, <code>role</code>, <code>base_name</code>, <code>margin_percent</code>, <code>price_file</code> and/or <code>source_url</code>.</p>
 						</div>
 					</div>
 				</div>
@@ -476,7 +476,7 @@ try {
 
 				<!-- 10 Price review -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_review" class="collapsed">10. Price review (cross-check / adjust)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_review" class="collapsed">11. Price review (cross-check / adjust)</a></h5></div>
 					<div id="guide_review" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><code>/shop/prices/review?price_id=</code> — updates existing prices after import; does not load new catalog from file.</p>
