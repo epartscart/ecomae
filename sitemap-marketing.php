@@ -40,6 +40,8 @@ $paths['/privacy'] = array('monthly', '0.5');
 $paths['/terms'] = array('monthly', '0.5');
 $paths['/blockchain'] = array('weekly', '0.9');
 
+$industryAbsUrls = array();
+
 try {
 	if (!defined('_ASTEXE_')) {
 		define('_ASTEXE_', 1);
@@ -48,6 +50,8 @@ try {
 	$mc = $docRoot . '/content/general_pages/epc_ecomae_marketing_content.php';
 	$pd = $docRoot . '/content/general_pages/epc_ecomae_platform_data.php';
 	$lc = $docRoot . '/content/general_pages/epc_ecomae_legal_content.php';
+	$iseo = $docRoot . '/content/general_pages/epc_industry_seo.php';
+	$icons = $docRoot . '/content/general_pages/epc_industry_consolidation.php';
 	if (is_file($mc)) {
 		require_once $mc;
 		if (function_exists('epc_ecomae_docs_catalog')) {
@@ -69,6 +73,17 @@ try {
 			foreach (array_keys(epc_ecomae_legal_catalog()) as $s) { $paths['/legal/' . $s] = array('monthly', '0.5'); }
 		}
 	}
+	if (is_file($icons)) {
+		require_once $icons;
+	}
+	if (is_file($iseo)) {
+		require_once $iseo;
+		if (function_exists('epc_industry_seo_sitemap_entries')) {
+			foreach (epc_industry_seo_sitemap_entries() as $ind) {
+				$industryAbsUrls[] = $ind;
+			}
+		}
+	}
 	if (is_file($pd)) {
 		require_once $pd;
 		if (function_exists('epc_ecomae_platform_industry_marketing')) {
@@ -87,6 +102,18 @@ foreach ($paths as $path => $meta) {
 		$lastmod,
 		$meta[0],
 		$meta[1]
+	);
+}
+
+// Industry wildcard hosts + every sub-industry path (absolute URLs on *.ecomae.com)
+foreach ($industryAbsUrls as $ind) {
+	epc_sitemap_add_entry(
+		$entries,
+		$seen,
+		htmlspecialchars((string) $ind[0], ENT_XML1, 'UTF-8'),
+		$lastmod,
+		(string) $ind[2],
+		(string) $ind[1]
 	);
 }
 

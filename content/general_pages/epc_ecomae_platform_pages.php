@@ -463,15 +463,28 @@ function epc_ecomae_platform_page_industries()
 
 <!-- Industry Cards Grid -->
 <div class="epm-ind-grid" id="indGrid">
-<?php $cardIdx = 0; foreach ($consolidatedGroups as $gk => $ginfo) {
+<?php
+if (!function_exists('epc_industry_seo_site_url_for_template')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_seo.php';
+}
+$cardIdx = 0; foreach ($consolidatedGroups as $gk => $ginfo) {
 	$subAreas = $ginfo['available_sub_areas'] ?? array();
 	$primaryColor = $ginfo['color_scheme']['primary'] ?? '#3b82f6';
 	$photo = $industryPhotos[$gk] ?? 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=75';
 	$templateKey = $ginfo['template_key'] ?? $gk;
+	$siteUrl = epc_industry_seo_site_url_for_template((string) $templateKey);
+	// Prefer full sub-industry list from the live template when available (SEO completeness)
+	$seoSubs = epc_industry_seo_template_sub_industries((string) $templateKey);
+	if ($seoSubs !== array()) {
+		$subAreas = array();
+		foreach ($seoSubs as $label) {
+			$subAreas[epc_industry_seo_sub_slug($label)] = $label;
+		}
+	}
 	?>
 <div class="epm-ind-card epm-reveal" data-keywords="<?php echo epc_ecomae_h(strtolower($ginfo['label'] . ' ' . $ginfo['description'] . ' ' . implode(' ', $subAreas))); ?>" data-group="<?php echo epc_ecomae_h($gk); ?>">
 	<div class="epm-ind-card__photo">
-		<img src="<?php echo epc_ecomae_h($photo); ?>" alt="<?php echo epc_ecomae_h($ginfo['label']); ?>" loading="lazy">
+		<img src="<?php echo epc_ecomae_h($photo); ?>" alt="<?php echo epc_ecomae_h($ginfo['label']); ?> — ecomae industry site" loading="lazy">
 		<div class="epm-ind-card__photo-overlay"></div>
 		<span class="epm-ind-card__badge"><?php echo count($subAreas); ?> areas</span>
 		<div class="epm-ind-card__photo-title">
@@ -483,14 +496,14 @@ function epc_ecomae_platform_page_industries()
 		<p class="epm-ind-card__desc"><?php echo epc_ecomae_h($ginfo['description']); ?></p>
 		<div class="epm-ind-card__subs">
 			<?php $shown = 0; foreach ($subAreas as $saKey => $saLabel) { if ($shown >= 4) break; $shown++; ?>
-			<span class="epm-ind-card__sub"><?php echo epc_ecomae_h($saLabel); ?></span>
+			<a class="epm-ind-card__sub" href="<?php echo epc_ecomae_h(rtrim($siteUrl, '/') . '/' . epc_industry_seo_sub_slug((string) $saLabel)); ?>" style="text-decoration:none"><?php echo epc_ecomae_h($saLabel); ?></a>
 			<?php } ?>
 			<?php if (count($subAreas) > 4): ?>
 			<span class="epm-ind-card__sub" style="background:#f1f5f9;color:#64748b;font-weight:600">+<?php echo count($subAreas) - 4; ?> more</span>
 			<?php endif; ?>
 		</div>
 		<div class="epm-ind-card__links">
-			<a href="https://<?php echo epc_ecomae_h($templateKey); ?>.ecomae.com" class="epm-ind-card__link epm-ind-card__link--site" target="_blank"><i class="fa fa-globe"></i> Site</a>
+			<a href="<?php echo epc_ecomae_h($siteUrl); ?>" class="epm-ind-card__link epm-ind-card__link--site" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Site</a>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($templateKey); ?>/" class="epm-ind-card__link epm-ind-card__link--cp"><i class="fa fa-th-large"></i> CP</a>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($templateKey); ?>/shop/finance/erp" class="epm-ind-card__link epm-ind-card__link--erp"><i class="fa fa-calculator"></i> ERP</a>
 		</div>
@@ -500,8 +513,10 @@ function epc_ecomae_platform_page_industries()
 		<div class="epm-ind-card__detail-inner">
 			<h4>All Sub-Industries in <?php echo epc_ecomae_h($ginfo['label']); ?>:</h4>
 			<div class="epm-ind-card__all-subs">
-				<?php foreach ($subAreas as $saKey => $saLabel): ?>
-				<span><?php echo epc_ecomae_h($saLabel); ?></span>
+				<?php foreach ($subAreas as $saKey => $saLabel):
+					$subHref = rtrim($siteUrl, '/') . '/' . epc_industry_seo_sub_slug((string) $saLabel);
+					?>
+				<a href="<?php echo epc_ecomae_h($subHref); ?>" style="color:inherit;text-decoration:none"><?php echo epc_ecomae_h($saLabel); ?></a>
 				<?php endforeach; ?>
 			</div>
 		</div>

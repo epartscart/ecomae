@@ -472,7 +472,7 @@ function epc_industry_groups(): array
             'label' => 'Energy & Utilities',
             'icon' => 'fa-bolt',
             'template_key' => 'energy',
-            'description' => 'Oil & gas, solar, wind, water, electricity, and utility services.',
+            'description' => 'Oil & gas, solar, wind, biomass & bioenergy, water, electricity, hydrogen, and utility services.',
             'default_sub_areas' => array('generation', 'distribution', 'billing'),
             'available_sub_areas' => array(
                 'generation' => 'Power generation',
@@ -488,6 +488,9 @@ function epc_industry_groups(): array
                 'biomass' => 'Biomass & bioenergy',
                 'mining' => 'Mining & extraction',
                 'waste_energy' => 'Waste-to-energy',
+                'hydrogen' => 'Hydrogen energy',
+                'geothermal' => 'Geothermal energy',
+                'smart_grid' => 'Smart grid management',
             ),
             'erp_base' => 'oil_gas',
             'costing_default' => 'weighted_avg',

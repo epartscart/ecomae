@@ -177,12 +177,76 @@ function epc_ecomae_marketing_serve_seo_file()
 			epc_ecomae_platform_send_marketing_headers();
 		}
 		header('Content-Type: text/plain; charset=utf-8');
-		echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\nSitemap: " . $base . "/sitemap.xml\n";
+		$sitemapHost = $base;
+		if (!empty($GLOBALS['epc_industry_subdomain_active'])) {
+			$host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? '')));
+			if ($host !== '' && strpos($host, ':') !== false) {
+				$host = explode(':', $host, 2)[0];
+			}
+			if ($host !== '' && preg_match('/^[a-z0-9.-]+$/', $host)) {
+				$sitemapHost = 'https://' . $host;
+			}
+		}
+		echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\nSitemap: " . $sitemapHost . "/sitemap.xml\n";
 		return true;
 	}
 
 	if ($path === '/sitemap.xml') {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_content.php';
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_seo.php';
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_industry_consolidation.php';
+
+		// Industry subdomain: self-referencing sitemap (hub + every sub-industry path)
+		if (!empty($GLOBALS['epc_industry_subdomain_active'])) {
+			$host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? '')));
+			if ($host !== '' && strpos($host, ':') !== false) {
+				$host = explode(':', $host, 2)[0];
+			}
+			$group = (string) ($GLOBALS['epc_industry_subdomain_group'] ?? '');
+			$primary = epc_industry_seo_primary_host($group !== '' ? $group : 'retail');
+			$selfBase = 'https://' . ($host !== '' ? $host : $primary);
+			// Prefer canonical primary host URLs in the sitemap
+			$canonBase = rtrim('https://' . $primary, '/');
+			$abs = array(array($canonBase . '/', '0.9', 'weekly'));
+			$tkMap = array(
+				'food' => 'food_beverage', 'technology' => 'it_software', 'homeliving' => 'home_living',
+				'realestate' => 'construction', 'consulting' => 'professional', 'legal' => 'professional',
+				'environmental' => 'energy', 'telecom' => 'electronics', 'government' => 'nonprofit',
+				'aerospace' => 'manufacturing', 'mining' => 'manufacturing',
+			);
+			$tk = $tkMap[$group] ?? $group;
+			$subs = epc_industry_seo_template_sub_industries($tk);
+			if ($subs === array() && function_exists('epc_industry_groups')) {
+				foreach (epc_industry_groups() as $g) {
+					if (($g['template_key'] ?? '') === $tk && !empty($g['available_sub_areas'])) {
+						$subs = array_values($g['available_sub_areas']);
+						break;
+					}
+				}
+			}
+			foreach ($subs as $label) {
+				$slug = epc_industry_seo_sub_slug((string) $label);
+				if ($slug !== '') {
+					$abs[] = array($canonBase . '/' . $slug, '0.75', 'monthly');
+				}
+			}
+			if (function_exists('epc_ecomae_platform_send_marketing_headers')) {
+				epc_ecomae_platform_send_marketing_headers();
+			}
+			header('Content-Type: application/xml; charset=utf-8');
+			$now = date('Y-m-d');
+			echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+			foreach ($abs as $u) {
+				echo '<url><loc>' . htmlspecialchars($u[0], ENT_QUOTES) . '</loc>'
+					. '<lastmod>' . $now . '</lastmod>'
+					. '<changefreq>' . $u[2] . '</changefreq>'
+					. '<priority>' . $u[1] . '</priority></url>' . "\n";
+			}
+			echo '</urlset>' . "\n";
+			return true;
+		}
+
 		// core marketing pages with crawl priority + change cadence
 		$urls = array(
 			array('/', '1.0', 'daily'),
@@ -235,6 +299,13 @@ function epc_ecomae_marketing_serve_seo_file()
 				. '<lastmod>' . $now . '</lastmod>'
 				. '<changefreq>' . $u[2] . '</changefreq>'
 				. '<priority>' . $u[1] . '</priority></url>' . "\n";
+		}
+		// All industry subdomains + every sub-industry path (absolute URLs)
+		foreach (epc_industry_seo_sitemap_entries() as $ind) {
+			echo '<url><loc>' . htmlspecialchars($ind[0], ENT_QUOTES) . '</loc>'
+				. '<lastmod>' . $now . '</lastmod>'
+				. '<changefreq>' . $ind[2] . '</changefreq>'
+				. '<priority>' . $ind[1] . '</priority></url>' . "\n";
 		}
 		echo '</urlset>' . "\n";
 		return true;
