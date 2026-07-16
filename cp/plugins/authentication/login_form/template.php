@@ -11,24 +11,12 @@
 
     <!-- Vendor styles -->
 <?php
-$epcLoginUseCdnVendor = function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname();
-if ($epcLoginUseCdnVendor) {
+// Login: prefer CDN vendor CSS (cacheable, small) — local epc-static.php is DYNAMIC and slower.
 ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
-<?php } else { ?>
-    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fontawesome/css/font-awesome.css" />
-    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.css" />
-    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/animate.css/animate.css" />
-    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/css/bootstrap.css" />
-<?php } ?>
-
-    <!-- App styles -->
-    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css" />
-    <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/fonts/pe-icon-7-stroke/css/helper.css" />
+    <!-- App styles (minimal for login — skip pe-icon / full Homer suite) -->
     <link rel="stylesheet" href="/epc-static.php?f=cp/templates/bootstrap_admin/styles/style.css">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professional_shell.php';
 epc_cp_shell_enqueue_assets(true);
@@ -174,17 +162,9 @@ if (is_file($epcAuthSocialFile)) {
 </div>
 
 
-<!-- Vendor scripts -->
-<?php if ($epcLoginUseCdnVendor) { ?>
+<!-- Vendor scripts (login only — no metisMenu / Homer / iCheck) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" defer></script>
-<?php } else { ?>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery/dist/jquery.min.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/js/bootstrap.min.js" defer></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.min.js" defer></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/iCheck/icheck.min.js" defer></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/scripts/homer.js" defer></script>
-<?php } ?>
 
 <?php
 //Маска ввода телефона
@@ -195,64 +175,32 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/lib/inputmask/phone_mask.php");
 (function(){
     var container = document.getElementById('epcCpParticles');
     if (!container) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        container.style.display = 'none';
+        return;
+    }
+    // Keep login light for tenants (was 180 DOM nodes + continuous animations).
     var colors = [
-        'rgba(14, 165, 233, .8)',
-        'rgba(14, 165, 233, .5)',
-        'rgba(14, 165, 233, .3)',
-        'rgba(56, 189, 248, .7)',
-        'rgba(56, 189, 248, .4)',
-        'rgba(99, 102, 241, .6)',
-        'rgba(99, 102, 241, .3)',
-        'rgba(168, 85, 247, .5)',
-        'rgba(16, 185, 129, .4)',
-        'rgba(255, 255, 255, .4)',
-        'rgba(255, 255, 255, .15)'
+        'rgba(14, 165, 233, .55)',
+        'rgba(56, 189, 248, .45)',
+        'rgba(255, 255, 255, .25)'
     ];
-    var totalParticles = 180;
+    var totalParticles = 28;
+    var frag = document.createDocumentFragment();
     for (var i = 0; i < totalParticles; i++) {
         var dot = document.createElement('span');
-        var rnd = Math.random();
-        var size, speed, animName;
-        if (rnd < 0.5) {
-            size = 1 + Math.random() * 1.5;
-        } else if (rnd < 0.8) {
-            size = 2.5 + Math.random() * 2;
-        } else if (rnd < 0.95) {
-            size = 4.5 + Math.random() * 3.5;
-        } else {
-            size = 1 + Math.random();
-        }
-        var spdRnd = Math.random();
-        if (spdRnd < 0.3) {
-            speed = 2.5 + Math.random() * 3.5;
-        } else if (spdRnd < 0.7) {
-            speed = 6 + Math.random() * 6;
-        } else {
-            speed = 12 + Math.random() * 14;
-        }
-        var animRnd = Math.random();
-        if (rnd >= 0.95) {
-            animName = 'epcCpFloatStreak';
-        } else if (animRnd < 0.5) {
-            animName = 'epcCpFloat';
-        } else {
-            animName = 'epcCpFloatDrift';
-        }
-        dot.className = 'epc-cp-particle';
+        var size = 1.5 + Math.random() * 2.5;
+        var speed = 8 + Math.random() * 10;
         var color = colors[Math.floor(Math.random() * colors.length)];
-        var left = Math.random() * 100;
-        var delay = -(Math.random() * speed);
-        var glow = size > 4 ? '0 0 ' + Math.round(size * 2) + 'px ' + color : 'none';
-        var scaleY = rnd >= 0.95 ? (3 + Math.random() * 4) : 1;
+        dot.className = 'epc-cp-particle';
         dot.style.cssText = 'width:' + size + 'px;height:' + size + 'px;'
-            + 'left:' + left + '%;top:-' + (size + 4) + 'px;'
-            + 'background:' + color + ';box-shadow:' + glow + ';'
-            + 'animation:' + animName + ' ' + speed + 's linear ' + delay + 's infinite;'
-            + 'transform:scaleY(' + scaleY + ');'
-            + 'border-radius:' + (rnd >= 0.95 ? '1px' : '50%') + ';'
-            + 'opacity:' + (0.4 + Math.random() * 0.6) + ';';
-        container.appendChild(dot);
+            + 'left:' + (Math.random() * 100) + '%;top:-' + (size + 4) + 'px;'
+            + 'background:' + color + ';'
+            + 'animation:epcCpFloat ' + speed + 's linear ' + (-(Math.random() * speed)) + 's infinite;'
+            + 'border-radius:50%;opacity:' + (0.35 + Math.random() * 0.45) + ';';
+        frag.appendChild(dot);
     }
+    container.appendChild(frag);
 })();
 </script>
 

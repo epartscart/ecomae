@@ -35,11 +35,35 @@ function epc_cp_extract_scripts_from_html(string $html): string
 			return '';
 		},
 		$html
-	);
+	) ?? $html;
+}
+
+/**
+ * Move <style> blocks out of the main pane too — with <base href="/cp/templates/...">
+ * unreloated CSS/JS in .row can appear as literal "code structure" text in some browsers.
+ */
+function epc_cp_extract_styles_from_html(string $html): string
+{
+	if ($html === '' || stripos($html, '<style') === false) {
+		return $html;
+	}
+	if (!isset($GLOBALS['epc_cp_footer_styles']) || !is_array($GLOBALS['epc_cp_footer_styles'])) {
+		$GLOBALS['epc_cp_footer_styles'] = array();
+	}
+	$pattern = '#<style\b[^>]*>.*?</style\s*>#is';
+	return preg_replace_callback(
+		$pattern,
+		function (array $m): string {
+			$GLOBALS['epc_cp_footer_styles'][] = $m[0];
+			return '';
+		},
+		$html
+	) ?? $html;
 }
 
 function epc_cp_prepare_cp_page_content(string $content): string
 {
+	$content = epc_cp_extract_styles_from_html($content);
 	return epc_cp_extract_scripts_from_html($content);
 }
 
@@ -136,6 +160,11 @@ function epc_cp_boc_first_paint_patch(string $html): string
 
 function epc_cp_render_relocated_footer_scripts(): void
 {
+	if (!empty($GLOBALS['epc_cp_footer_styles']) && is_array($GLOBALS['epc_cp_footer_styles'])) {
+		foreach ($GLOBALS['epc_cp_footer_styles'] as $styleHtml) {
+			echo $styleHtml . "\n";
+		}
+	}
 	if (empty($GLOBALS['epc_cp_footer_scripts']) || !is_array($GLOBALS['epc_cp_footer_scripts'])) {
 		return;
 	}

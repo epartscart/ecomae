@@ -132,7 +132,11 @@ function epc_ep_cp_probe(string $url): array
 		$body = substr($raw, $pos + 4);
 	}
 	$login = (bool)preg_match('/password|log in|Войти|backend_dir/i', $body);
-	$danger = (bool)preg_match('/alert-danger|Fatal error|module not found|Database connection failed/i', $body);
+	// Avoid false positives from CSS vars like --epc-cp-danger inside login HTML.
+	$danger = (bool)preg_match(
+		'/\balert-danger\b|Fatal error|Parse error|Uncaught |module not found|Database connection failed|ERROR STR_KEY/i',
+		$body
+	);
 	return array(
 		'url' => $url,
 		'http' => $code,
@@ -183,6 +187,14 @@ if ($apply) {
 	if (function_exists('opcache_reset')) {
 		@opcache_reset();
 		$report['changes'][] = 'opcache_reset';
+	}
+	$perfHelper = __DIR__ . '/cp/content/shop/prices_upload/epc_prices_manager_perf.php';
+	if (is_file($perfHelper)) {
+		require_once $perfHelper;
+		if (function_exists('epc_prices_ensure_listing_indexes')) {
+			epc_prices_ensure_listing_indexes($pdo);
+			$report['changes'][] = 'prices_listing_indexes_ensured';
+		}
 	}
 }
 
