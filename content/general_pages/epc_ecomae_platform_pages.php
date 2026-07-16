@@ -13,6 +13,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_faq.
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_marketing_pages.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_free_tools.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_blockchain_page.php';
 
 if (!function_exists('epc_ecomae_platform_get_industry_groups')) {
 	function epc_ecomae_platform_get_industry_groups()
@@ -76,6 +77,8 @@ function epc_ecomae_platform_render_page($page, array $params = array(), $mode =
 		$seg = $segMap[$page] ?? $page;
 		$slug = isset($params['slug']) ? preg_replace('/[^a-z0-9\-]/', '', (string) $params['slug']) : '';
 		$canonicalPath = '/' . $seg . ($slug !== '' ? '/' . $slug : '');
+	} elseif ($page === 'blockchain') {
+		$canonicalPath = '/blockchain';
 	} elseif ($page === 'platform') {
 		$canonicalPath = '/platform';
 	} elseif ($page === 'free_tools') {
