@@ -164,12 +164,27 @@ function epc_commerce_excel_to_csv(string $sourcePath): array
 	if (!in_array($ext, array('xls', 'xlsx'), true)) {
 		return array('ok' => false, 'path' => '', 'message' => 'Unsupported file type (use CSV, TXT, XLS, XLSX)');
 	}
-	$phpExcel = $_SERVER['DOCUMENT_ROOT'] . '/lib/PHPExcel/PHPExcel.php';
-	if (!is_file($phpExcel)) {
-		return array('ok' => false, 'path' => '', 'message' => 'Excel support unavailable — upload CSV/TXT, or install PHPExcel');
+
+	// Prefer lightweight XLSX reader (works on modern PHP); fall back to PHPExcel.
+	if ($ext === 'xlsx') {
+		$native = epc_commerce_xlsx_to_csv_native($sourcePath);
+		if (!empty($native['ok'])) {
+			return $native;
+		}
 	}
-	require_once $phpExcel;
+
+	$phpExcel = ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/lib/PHPExcel/PHPExcel.php';
+	if (!is_file($phpExcel)) {
+		return array(
+			'ok' => false,
+			'path' => '',
+			'message' => ($ext === 'xlsx'
+				? 'XLSX read failed — upload CSV/TXT, or fix Excel library'
+				: 'Excel support unavailable — upload CSV/TXT, or install PHPExcel'),
+		);
+	}
 	try {
+		require_once $phpExcel;
 		$type = PHPExcel_IOFactory::identify($sourcePath);
 		$reader = PHPExcel_IOFactory::createReader($type);
 		$reader->setReadDataOnly(true);
@@ -187,7 +202,6 @@ function epc_commerce_excel_to_csv(string $sourcePath): array
 			foreach ($iterator as $cell) {
 				$cells[] = (string) $cell->getCalculatedValue();
 			}
-			// trim trailing empties
 			while (count($cells) > 0 && trim((string) end($cells)) === '') {
 				array_pop($cells);
 			}
@@ -199,8 +213,126 @@ function epc_commerce_excel_to_csv(string $sourcePath): array
 		fclose($fh);
 		return array('ok' => true, 'path' => $tmp, 'message' => 'excel_converted');
 	} catch (Throwable $e) {
+		if ($ext === 'xlsx') {
+			$native = epc_commerce_xlsx_to_csv_native($sourcePath);
+			if (!empty($native['ok'])) {
+				return $native;
+			}
+		}
 		return array('ok' => false, 'path' => '', 'message' => 'Excel read failed: ' . $e->getMessage());
 	}
+}
+
+/**
+ * Read simple XLSX (sharedStrings / inlineStr / numbers) via ZipArchive — no PHPExcel.
+ *
+ * @return array{ok:bool,path:string,message:string}
+ */
+function epc_commerce_xlsx_to_csv_native(string $sourcePath): array
+{
+	if (!class_exists('ZipArchive')) {
+		return array('ok' => false, 'path' => '', 'message' => 'ZipArchive unavailable');
+	}
+	$zip = new ZipArchive();
+	if ($zip->open($sourcePath) !== true) {
+		return array('ok' => false, 'path' => '', 'message' => 'Cannot open XLSX zip');
+	}
+	$shared = array();
+	$ssXml = $zip->getFromName('xl/sharedStrings.xml');
+	if (is_string($ssXml) && $ssXml !== '') {
+		$ss = @simplexml_load_string($ssXml);
+		if ($ss !== false) {
+			$ss->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+			foreach ($ss->si as $si) {
+				$text = '';
+				if (isset($si->t)) {
+					$text = (string) $si->t;
+				} elseif (isset($si->r)) {
+					foreach ($si->r as $run) {
+						$text .= (string) $run->t;
+					}
+				}
+				$shared[] = $text;
+			}
+		}
+	}
+	$sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+	if (!is_string($sheetXml) || $sheetXml === '') {
+		// first worksheet fallback
+		for ($i = 0; $i < $zip->numFiles; $i++) {
+			$name = (string) $zip->getNameIndex($i);
+			if (preg_match('#^xl/worksheets/sheet\d+\.xml$#', $name)) {
+				$sheetXml = $zip->getFromIndex($i);
+				break;
+			}
+		}
+	}
+	$zip->close();
+	if (!is_string($sheetXml) || $sheetXml === '') {
+		return array('ok' => false, 'path' => '', 'message' => 'XLSX has no worksheet');
+	}
+	$sheet = @simplexml_load_string($sheetXml);
+	if ($sheet === false) {
+		return array('ok' => false, 'path' => '', 'message' => 'XLSX worksheet XML invalid');
+	}
+	$sheet->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+	$rows = $sheet->xpath('//m:sheetData/m:row') ?: array();
+	$tmp = sys_get_temp_dir() . '/epc_commerce_xlsx_' . getmypid() . '_' . time() . '.csv';
+	$fh = fopen($tmp, 'wb');
+	if ($fh === false) {
+		return array('ok' => false, 'path' => '', 'message' => 'Cannot write temp CSV');
+	}
+	$rowCount = 0;
+	foreach ($rows as $row) {
+		$cells = array();
+		$maxCol = -1;
+		$byCol = array();
+		foreach ($row->c as $c) {
+			$ref = (string) ($c['r'] ?? '');
+			$colIdx = 0;
+			if (preg_match('/^([A-Z]+)/', $ref, $m)) {
+				$colIdx = 0;
+				$letters = $m[1];
+				for ($i = 0, $len = strlen($letters); $i < $len; $i++) {
+					$colIdx = $colIdx * 26 + (ord($letters[$i]) - 64);
+				}
+				$colIdx--; // 0-based
+			} else {
+				$colIdx = $maxCol + 1;
+			}
+			$type = (string) ($c['t'] ?? '');
+			$val = '';
+			if ($type === 'inlineStr') {
+				$val = isset($c->is->t) ? (string) $c->is->t : '';
+			} elseif ($type === 's') {
+				$idx = (int) ((string) ($c->v ?? '-1'));
+				$val = isset($shared[$idx]) ? (string) $shared[$idx] : '';
+			} else {
+				$val = (string) ($c->v ?? '');
+			}
+			$byCol[$colIdx] = $val;
+			if ($colIdx > $maxCol) {
+				$maxCol = $colIdx;
+			}
+		}
+		for ($i = 0; $i <= $maxCol; $i++) {
+			$cells[] = isset($byCol[$i]) ? $byCol[$i] : '';
+		}
+		while (count($cells) > 0 && trim((string) end($cells)) === '') {
+			array_pop($cells);
+		}
+		if (count($cells) === 0) {
+			continue;
+		}
+		fputcsv($fh, $cells);
+		$rowCount++;
+	}
+	fclose($fh);
+	if ($rowCount === 0) {
+		@unlink($tmp);
+		return array('ok' => false, 'path' => '', 'message' => 'XLSX contained no rows');
+	}
+	return array('ok' => true, 'path' => $tmp, 'message' => 'xlsx_native');
 }
 
 function epc_commerce_detect_delimiter(string $filePath): string

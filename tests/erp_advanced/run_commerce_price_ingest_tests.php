@@ -104,6 +104,15 @@ check('role from ACME.P', epc_commerce_role_from_list_name('ACME.P') === 'purcha
 check('role from WH-L', epc_commerce_role_from_list_name('WH-L') === 'inventory');
 check('base from MAIN-S', epc_commerce_base_from_list_name('MAIN-S') === 'MAIN');
 
+echo "\n== Dummy fixture files ==\n";
+$fx = $root . '/tests/erp_advanced/fixtures/commerce';
+check('sales csv fixture', is_file($fx . '/sales_dummy.csv'));
+check('purchase csv fixture', is_file($fx . '/purchase_dummy.csv'));
+check('inventory csv fixture', is_file($fx . '/inventory_dummy.csv'));
+check('sales xlsx fixture', is_file($fx . '/sales_dummy.xlsx'));
+check('dummy file test runner', is_file($root . '/tests/erp_advanced/run_commerce_dummy_file_tests.php'));
+check('native xlsx helper', function_exists('epc_commerce_xlsx_to_csv_native'));
+
 echo "\n== Files present ==\n";
 check('API endpoint', is_file($root . '/epc-upload-commerce-prices.php'));
 $api = (string) file_get_contents($root . '/epc-upload-commerce-prices.php');
