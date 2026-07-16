@@ -17,10 +17,13 @@ function epc_ecomae_home_sections_enqueue()
 		return '';
 	}
 	$done = true;
+	$v = '20260716c';
 	return '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n"
 		. '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n"
 		. '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />' . "\n"
-		. '<link rel="stylesheet" href="/epc-static.php?f=content/general_pages/epc_ecomae_home_sections.css&v=20260608b" />' . "\n";
+		. '<link rel="stylesheet" href="/epc-static.php?f=content/general_pages/epc_ecomae_home_sections.css&v=' . rawurlencode($v) . '" />' . "\n"
+		. '<link rel="stylesheet" href="/epc-static.php?f=content/general_pages/epc_ecomae_home_3d.css&v=' . rawurlencode($v) . '" />' . "\n"
+		. '<script defer src="/epc-static.php?f=content/general_pages/epc_ecomae_home_3d.js&v=' . rawurlencode($v) . '"></script>' . "\n";
 }
 
 /**
@@ -73,9 +76,9 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	ob_start();
 	echo epc_ecomae_home_sections_enqueue();
 	?>
-<!-- ECOMAE-HOME-SECTIONS-v1 -->
+<!-- ECOMAE-HOME-SECTIONS-v2-3d -->
 <?php echo $themeTag; ?>
-<div class="ehm-home" id="ehm-home-sections">
+<div class="ehm-home ehm-home--3d" id="ehm-home-sections">
 	<section id="trust" class="ehm-trust" aria-label="Platform trust signals">
 		<div class="ehm-wrap">
 			<div class="ehm-trust-row">
@@ -92,33 +95,48 @@ function epc_ecomae_home_sections_render($base = null, $superCp = null, $demoDay
 	<?php echo $demoBlock; ?>
 
 	<!-- Live Clients Showcase -->
-	<section class="ehm-sec ehm-sec--alt" style="padding:60px 0">
+	<section class="ehm-sec ehm-sec--alt ehm-sec--clients">
 		<div class="ehm-wrap">
 			<div class="ehm-sec-head ehm-rev">
 				<div class="ehm-tag"><span class="ehm-dot"></span>Live Clients</div>
 				<h2>Trusted by businesses<br><span class="ehm-glow">across industries.</span></h2>
 				<p>Real companies running on ecomae — from auto parts to jewellery, fashion to tax advisory.</p>
 			</div>
-			<div class="ehm-rev" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:32px">
-				<a href="https://www.epartscart.com" target="_blank" style="display:block;text-decoration:none;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .4s;position:relative" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(2,132,199,.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-					<img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75" alt="Automotive" style="width:100%;height:120px;object-fit:cover;display:block">
-					<div style="padding:14px"><div style="font-size:13px;font-weight:700;color:var(--ehm-fg,#fff)">epartscart.com</div><div style="font-size:11px;color:var(--ehm-mid,#94a3b8);margin-top:3px">Automotive Parts · UAE</div></div>
+			<div class="ehm-client-grid ehm-rev">
+				<a class="ehm-client-card" href="https://www.epartscart.com" target="_blank" rel="noopener">
+					<img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&q=75" alt="Automotive" loading="lazy" />
+					<div class="ehm-client-card__body">
+						<div class="ehm-client-card__name">epartscart.com</div>
+						<div class="ehm-client-card__meta">Automotive Parts · UAE</div>
+					</div>
 				</a>
-				<a href="https://www.electronicae.com" target="_blank" style="display:block;text-decoration:none;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .4s;position:relative" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(124,58,237,.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-					<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75" alt="Electronics" style="width:100%;height:120px;object-fit:cover;display:block">
-					<div style="padding:14px"><div style="font-size:13px;font-weight:700;color:var(--ehm-fg,#fff)">electronicae.com</div><div style="font-size:11px;color:var(--ehm-mid,#94a3b8);margin-top:3px">Consumer Electronics · UAE</div></div>
+				<a class="ehm-client-card" href="https://www.electronicae.com" target="_blank" rel="noopener">
+					<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=75" alt="Electronics" loading="lazy" />
+					<div class="ehm-client-card__body">
+						<div class="ehm-client-card__name">electronicae.com</div>
+						<div class="ehm-client-card__meta">Consumer Electronics · UAE</div>
+					</div>
 				</a>
-				<a href="https://www.stylenlook.com" target="_blank" style="display:block;text-decoration:none;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .4s;position:relative" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(219,39,119,.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-					<img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75" alt="Fashion" style="width:100%;height:120px;object-fit:cover;display:block">
-					<div style="padding:14px"><div style="font-size:13px;font-weight:700;color:var(--ehm-fg,#fff)">stylenlook.com</div><div style="font-size:11px;color:var(--ehm-mid,#94a3b8);margin-top:3px">Fashion & Beauty · UAE</div></div>
+				<a class="ehm-client-card" href="https://www.stylenlook.com" target="_blank" rel="noopener">
+					<img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=75" alt="Fashion" loading="lazy" />
+					<div class="ehm-client-card__body">
+						<div class="ehm-client-card__name">stylenlook.com</div>
+						<div class="ehm-client-card__meta">Fashion &amp; Beauty · UAE</div>
+					</div>
 				</a>
-				<a href="https://www.thejewellerytrend.com" target="_blank" style="display:block;text-decoration:none;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .4s;position:relative" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(217,119,6,.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-					<img src="https://images.unsplash.com/photo-1515562141589-67f0d72cec37?w=400&q=75" alt="Jewellery" style="width:100%;height:120px;object-fit:cover;display:block">
-					<div style="padding:14px"><div style="font-size:13px;font-weight:700;color:var(--ehm-fg,#fff)">thejewellerytrend.com</div><div style="font-size:11px;color:var(--ehm-mid,#94a3b8);margin-top:3px">Gold & Diamond Jewellery · UAE</div></div>
+				<a class="ehm-client-card" href="https://www.thejewellerytrend.com" target="_blank" rel="noopener">
+					<img src="https://images.unsplash.com/photo-1515562141589-67f0d72cec37?w=400&q=75" alt="Jewellery" loading="lazy" />
+					<div class="ehm-client-card__body">
+						<div class="ehm-client-card__name">thejewellerytrend.com</div>
+						<div class="ehm-client-card__meta">Gold &amp; Diamond Jewellery · UAE</div>
+					</div>
 				</a>
-				<a href="https://www.taxofinca.com" target="_blank" style="display:block;text-decoration:none;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .4s;position:relative" onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 16px 40px rgba(5,150,105,.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-					<img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&q=75" alt="Professional Services" style="width:100%;height:120px;object-fit:cover;display:block">
-					<div style="padding:14px"><div style="font-size:13px;font-weight:700;color:var(--ehm-fg,#fff)">taxofinca.com</div><div style="font-size:11px;color:var(--ehm-mid,#94a3b8);margin-top:3px">Tax & Financial Advisory · UAE</div></div>
+				<a class="ehm-client-card" href="https://www.taxofinca.com" target="_blank" rel="noopener">
+					<img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&q=75" alt="Professional Services" loading="lazy" />
+					<div class="ehm-client-card__body">
+						<div class="ehm-client-card__name">taxofinca.com</div>
+						<div class="ehm-client-card__meta">Tax &amp; Financial Advisory · UAE</div>
+					</div>
 				</a>
 			</div>
 		</div>

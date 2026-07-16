@@ -1,0 +1,254 @@
+/* Premium 3D depth layer for ecomae.com homepage sections (below existing hero) */
+.ehm-home.ehm-home--3d{
+  --ehm-depth:1200px;
+  perspective:var(--ehm-depth);
+}
+.ehm-home.ehm-home--3d::before{
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 12%,rgba(0,204,255,.11),transparent 55%),
+    radial-gradient(ellipse 55% 45% at 88% 78%,rgba(0,255,178,.08),transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 40%,rgba(0,204,255,.05),transparent 60%),
+    linear-gradient(180deg,rgba(5,13,26,.2),transparent 20%);
+}
+.ehm-3d-canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+  opacity:.55;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 8%,#000 92%,transparent 100%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 8%,#000 92%,transparent 100%);
+}
+.ehm-home.ehm-home--3d > *:not(.ehm-3d-canvas){position:relative;z-index:1}
+
+/* Shared 3D surface language */
+.ehm-home--3d .ehm-fc,
+.ehm-home--3d .ehm-layer,
+.ehm-home--3d .ehm-eco-node,
+.ehm-home--3d .ehm-ind-card,
+.ehm-home--3d .ehm-ai-card,
+.ehm-home--3d .ehm-comp-card,
+.ehm-home--3d .ehm-cp-feat,
+.ehm-home--3d .ehm-sf-feat,
+.ehm-home--3d .ehm-tenant-card,
+.ehm-home--3d .ehm-client-card,
+.ehm-home--3d .ehm-ss,
+.ehm-home--3d .ehm-cta-box,
+.ehm-home--3d .ehm-pipeline,
+.ehm-home--3d .ehm-layla-card,
+.ehm-home--3d .ehm-comp-banner{
+  transform-style:preserve-3d;
+  will-change:transform;
+  transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .25s,box-shadow .35s;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.04) inset,
+    0 18px 40px rgba(0,0,0,.28),
+    0 0 0 1px rgba(0,204,255,.04);
+  backdrop-filter:blur(8px);
+}
+.ehm-home--3d .ehm-fc,
+.ehm-home--3d .ehm-layer,
+.ehm-home--3d .ehm-eco-node,
+.ehm-home--3d .ehm-ind-card,
+.ehm-home--3d .ehm-ai-card,
+.ehm-home--3d .ehm-comp-card,
+.ehm-home--3d .ehm-client-card{
+  background:
+    linear-gradient(155deg,rgba(18,40,68,.92),rgba(10,24,42,.88));
+}
+.ehm-home--3d .ehm-fc:hover,
+.ehm-home--3d .ehm-layer:hover,
+.ehm-home--3d .ehm-ind-card:hover,
+.ehm-home--3d .ehm-ai-card:hover,
+.ehm-home--3d .ehm-comp-card:hover,
+.ehm-home--3d .ehm-client-card:hover,
+.ehm-home--3d .ehm-cp-feat:hover,
+.ehm-home--3d .ehm-sf-feat:hover,
+.ehm-home--3d .ehm-tenant-card:hover{
+  border-color:rgba(0,204,255,.4);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.08) inset,
+    0 28px 60px rgba(0,0,0,.4),
+    0 0 40px rgba(0,204,255,.12);
+}
+
+/* Platform architecture — stacked depth */
+.ehm-home--3d .ehm-layer-stack{
+  perspective:900px;
+  transform-style:preserve-3d;
+}
+.ehm-home--3d .ehm-layer{
+  transform:translateZ(0) rotateX(0deg);
+}
+.ehm-home--3d .ehm-layer:nth-child(1){transform:translateZ(18px)}
+.ehm-home--3d .ehm-layer:nth-child(2){transform:translateZ(10px)}
+.ehm-home--3d .ehm-layer:nth-child(3){transform:translateZ(4px)}
+.ehm-home--3d .ehm-layer:nth-child(4){transform:translateZ(0)}
+.ehm-home--3d .ehm-layer:hover{
+  transform:translateZ(28px) translateY(-4px) scale(1.01);
+}
+
+/* Ecosystem diagram float */
+.ehm-home--3d .ehm-eco{
+  perspective:1000px;
+  transform-style:preserve-3d;
+}
+.ehm-home--3d .ehm-eco-node{
+  transform:translateZ(8px);
+}
+.ehm-home--3d .ehm-eco-node--core{
+  transform:translateZ(28px) scale(1.02);
+  box-shadow:
+    0 0 50px rgba(0,204,255,.18),
+    0 22px 48px rgba(0,0,0,.35);
+  animation:ehm3dCorePulse 5.5s ease-in-out infinite;
+}
+.ehm-home--3d .ehm-eco-con{
+  box-shadow:0 0 12px rgba(0,204,255,.35);
+}
+
+/* Feature / industry tiles */
+.ehm-home--3d .ehm-feat-grid,
+.ehm-home--3d .ehm-ind-grid,
+.ehm-home--3d .ehm-comp-grid{
+  perspective:1100px;
+}
+.ehm-home--3d .ehm-fc-ico,
+.ehm-home--3d .ehm-ai-ico,
+.ehm-home--3d .ehm-comp-ico{
+  transform:translateZ(24px);
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+
+/* Screenshot frames — floated shelves */
+.ehm-home--3d .ehm-ss{
+  transform:rotateX(4deg) translateZ(0);
+  transform-origin:center top;
+}
+.ehm-home--3d .ehm-ss:hover{
+  transform:rotateX(0deg) translateY(-6px) scale(1.01);
+}
+.ehm-home--3d .ehm-sf-pair{
+  perspective:1200px;
+}
+
+/* Steps — elevated discs */
+.ehm-home--3d .ehm-step-n{
+  transform:translateZ(20px);
+  box-shadow:
+    0 0 40px rgba(0,204,255,.28),
+    0 16px 30px rgba(0,0,0,.35);
+}
+.ehm-home--3d .ehm-step:hover .ehm-step-n{
+  transform:translateZ(36px) scale(1.05);
+}
+
+/* CTA volume */
+.ehm-home--3d .ehm-cta-box{
+  transform:translateZ(12px);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%,rgba(0,204,255,.1),transparent 60%),
+    linear-gradient(160deg,rgba(16,36,60,.95),rgba(8,20,36,.92));
+}
+.ehm-home--3d .ehm-cta-box:hover{
+  transform:translateZ(20px) translateY(-2px);
+}
+
+.ehm-sec--clients{padding:60px 0}
+
+/* Live client cards */
+.ehm-client-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:16px;
+  margin-top:32px;
+  perspective:1100px;
+}
+.ehm-client-card{
+  display:block;
+  text-decoration:none;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  position:relative;
+  color:inherit;
+}
+.ehm-client-card img{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+  display:block;
+  transform:scale(1.02);
+  transition:transform .45s ease;
+}
+.ehm-client-card__body{padding:14px}
+.ehm-client-card__name{
+  font-size:13px;
+  font-weight:700;
+  color:var(--ehm-wh,#fff);
+}
+.ehm-client-card__meta{
+  font-size:11px;
+  color:var(--ehm-mid,#94a3b8);
+  margin-top:3px;
+}
+.ehm-home--3d .ehm-client-card:hover img{transform:scale(1.08)}
+
+/* Trust strip depth */
+.ehm-home--3d .ehm-trust{
+  position:relative;
+  overflow:hidden;
+}
+.ehm-home--3d .ehm-trust::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 -40%;
+  height:80%;
+  background:radial-gradient(ellipse at center,rgba(0,204,255,.08),transparent 70%);
+  pointer-events:none;
+}
+.ehm-home--3d .ehm-ti{
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(0,204,255,.04);
+  border:1px solid rgba(0,204,255,.08);
+  transform:translateZ(6px);
+}
+
+/* Reveal with depth */
+.ehm-home--3d .ehm-rev{
+  opacity:0;
+  transform:translateY(28px) translateZ(-20px) rotateX(6deg);
+  transform-origin:center top;
+  transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);
+}
+.ehm-home--3d .ehm-rev.is-vis{
+  opacity:1;
+  transform:none;
+}
+
+@keyframes ehm3dCorePulse{
+  0%,100%{box-shadow:0 0 40px rgba(0,204,255,.16),0 22px 48px rgba(0,0,0,.35)}
+  50%{box-shadow:0 0 64px rgba(0,255,178,.22),0 26px 56px rgba(0,0,0,.4)}
+}
+
+@media (max-width:768px){
+  .ehm-home--3d .ehm-layer:nth-child(n),
+  .ehm-home--3d .ehm-ss{
+    transform:none;
+  }
+  .ehm-3d-canvas{opacity:.35}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .ehm-home--3d .ehm-eco-node--core{animation:none}
+  .ehm-home--3d .ehm-rev{
+    opacity:1;
+    transform:none;
+    transition:none;
+  }
+  .ehm-3d-canvas{display:none}
+}

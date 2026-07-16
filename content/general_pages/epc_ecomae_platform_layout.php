@@ -277,9 +277,9 @@ if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_parts_agent_
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_parts_agent_widget.php';
 }
 ?>
-<!-- ECOMAE-MARKETING-HOME-v5-3d -->
+<!-- ECOMAE-MARKETING-HOME-v4 -->
 <script defer>
-(function(){if(!('IntersectionObserver' in window))return;var s=document.querySelectorAll('.epm-hub,.epm-3d-hero,.epm-ecosystem__viz,.epm-failover-flow');if(!s.length)return;var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){es[i].target.classList.toggle('epm-anim-paused',!es[i].isIntersecting);}},{rootMargin:'80px',threshold:0.05});for(var j=0;j<s.length;j++){io.observe(s[j]);}})();
+(function(){if(!('IntersectionObserver' in window))return;var s=document.querySelectorAll('.epm-hub,.epm-ecosystem__viz,.epm-failover-flow');if(!s.length)return;var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){es[i].target.classList.toggle('epm-anim-paused',!es[i].isIntersecting);}},{rootMargin:'80px',threshold:0.05});for(var j=0;j<s.length;j++){io.observe(s[j]);}})();
 </script>
 </body></html>
 	<?php
@@ -1097,8 +1097,105 @@ function epc_ecomae_platform_continuity_section($variant = 'home')
  */
 function epc_ecomae_platform_hub($base, $superCp, $demoDays = 3)
 {
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_3d_hero.php';
-	return epc_ecomae_3d_hero_render($base, $superCp, (int) $demoDays);
+	$logo = epc_ecomae_platform_logo_url();
+	$nodes = epc_ecomae_platform_flow_nodes();
+	$continuityUrl = $base . 'platform/business-continuity';
+	$platformPills = array(
+		array('icon' => 'fa-clock-o', 'label' => 'Live in 24 hours'),
+		array('icon' => 'fa-file-text-o', 'label' => 'Compliance · e-invoice · Peppol'),
+		array('icon' => 'fa-sitemap', 'label' => 'ERP + Commerce + CRM + Workflows'),
+		array('icon' => 'fa-shield', 'label' => 'Cloud + backup continuity'),
+		array('icon' => 'fa-cloud-upload', 'label' => 'Super CP provisioning'),
+	);
+	ob_start();
+	?>
+<section class="epm-hub-section" aria-label="ECOM AE platform hub">
+	<div class="epm-hub">
+		<div class="epm-hub__matrix" aria-hidden="true">
+			<?php
+			$matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンVATGLERPCRM';
+			$mLen = strlen($matrixChars);
+			for ($c = 0; $c < 28; $c++) {
+				$col = '';
+				for ($k = 0; $k < 22; $k++) {
+					$col .= $matrixChars[($c + $k) % $mLen];
+					$col .= "\n";
+				}
+				$dur = 1.4 + ($c % 7) * 0.22;
+				$delay = ($c * 0.11) . 's';
+				?>
+			<span class="epm-hub__matrix-col" style="--fall-dur:<?php echo epc_ecomae_h(number_format($dur, 2, '.', '')); ?>s;--fall-delay:<?php echo epc_ecomae_h($delay); ?>;left:<?php echo (int) (($c / 27) * 100); ?>%"><?php echo epc_ecomae_h($col); ?></span>
+				<?php
+			}
+			?>
+		</div>
+		<div class="epm-hub__map" aria-hidden="true"></div>
+		<div class="epm-hub__cloud" aria-hidden="true">
+			<span class="epm-hub__cloud-shape"><i class="fa fa-cloud"></i></span>
+			<span class="epm-hub__servers">
+				<span></span><span></span><span></span>
+			</span>
+		</div>
+
+		<div class="epm-hub__flow-layer" aria-hidden="true">
+			<?php echo epc_ecomae_platform_flow_svg('hub'); ?>
+		</div>
+
+		<div class="epm-hub__core">
+			<div class="epm-hub__core-glow" aria-hidden="true"></div>
+			<div class="epm-hub__core-pulse" aria-hidden="true"></div>
+			<img class="epm-hub__logo" src="<?php echo epc_ecomae_h($logo); ?>" alt="" />
+			<p class="epm-hub__pill" style="margin-bottom:10px"><i class="fa fa-cubes"></i> The multi-tenant Business Operating System</p>
+			<h1 class="epm-hub__headline" aria-label="Business Operating System — ERP, Commerce, Compliance, Workflows, Industry Intelligence">
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack epm-hub__headline-line--commerce">Business</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">Operating</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--stack">System</span>
+				<span class="epm-hub__headline-line epm-hub__headline-line--cloud">ONE BOS</span>
+			</h1>
+			<p class="epm-hub__tagline-sub">ERP · Commerce · Compliance · Workflows · Industry Intelligence — one cloud, <a href="<?php echo epc_ecomae_h($continuityUrl); ?>#cloud-continuity" style="color:var(--epm-cyan);text-decoration:none;border-bottom:1px dotted rgba(14,165,233,.5)">backup continuity</a> built in.</p>
+			<p class="epm-hub__pill"><i class="fa fa-circle epm-hub__live-dot"></i> Data flowing · multi-tenant hub</p>
+			<div class="epm-hub__cta">
+				<a class="epm-btn epm-btn--primary" href="<?php echo epc_ecomae_h($base); ?>platform/demo"><i class="fa fa-play-circle"></i> <?php echo (int) $demoDays; ?>-day demo</a>
+				<a class="epm-btn epm-btn--ghost" href="<?php echo epc_ecomae_h($superCp); ?>"><i class="fa fa-th-large"></i> Super CP</a>
+			</div>
+		</div>
+
+		<div class="epm-hub__orbit-spin">
+			<?php
+			$i = 0;
+			foreach ($nodes as $n) {
+				$deg = 270 + ($i * 45);
+				$featured = !empty($n['featured']);
+				$cls = 'epm-hub__node' . ($featured ? ' epm-hub__node--featured' : '');
+				$delay = number_format($i * 0.09, 2, '.', '');
+				$i++;
+				?>
+			<a class="<?php echo $cls; ?>" href="<?php echo epc_ecomae_h($base); ?>platform" style="--hub-i: <?php echo (int) $deg; ?>deg; --hub-delay: <?php echo epc_ecomae_h($delay); ?>s" title="<?php echo epc_ecomae_h($n['title'] . ' — ' . $n['data']); ?>">
+				<div class="epm-hub__node-inner">
+					<span class="epm-hub__node-tile"><i class="fa <?php echo epc_ecomae_h($n['icon']); ?>"></i></span>
+					<strong><?php echo epc_ecomae_h($n['title']); ?></strong>
+					<small><?php echo epc_ecomae_h($n['sub']); ?></small>
+					<span class="epm-hub__data-chip"><?php echo epc_ecomae_h($n['data']); ?></span>
+				</div>
+			</a>
+				<?php
+			}
+			?>
+		</div>
+
+		<div class="epm-hub__platform">
+			<p class="epm-hub__platform-title">One Business Operating System for the whole organization</p>
+			<p class="epm-hub__platform-sub">ECOM AE is a multi-tenant BOS combining ERP, commerce, compliance, workflows and industry-specific operational intelligence — across industries worldwide.</p>
+			<div class="epm-hub__platform-pills">
+				<?php foreach ($platformPills as $p) { ?>
+				<span class="epm-hub__platform-pill"><i class="fa <?php echo epc_ecomae_h($p['icon']); ?>"></i> <?php echo epc_ecomae_h($p['label']); ?></span>
+				<?php } ?>
+			</div>
+		</div>
+	</div>
+</section>
+	<?php
+	return ob_get_clean();
 }
 
 /**
