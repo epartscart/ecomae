@@ -282,3 +282,14 @@ function epc_th_launch_checklist(PDO $db, string $siteKey): array
 {
 	return epc_portal_tenant_launch_checklist($db, $siteKey);
 }
+
+/**
+ * Super CP: apply matching industry visual style + storefront package to a tenant.
+ *
+ * @return array{ok:bool,message:string}
+ */
+function epc_th_apply_industry_theme(PDO $db, string $siteKey, array $opts = array()): array
+{
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant_intro.php';
+	return epc_portal_apply_industry_theme_to_tenant($db, $siteKey, $opts);
+}

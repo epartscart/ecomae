@@ -94,6 +94,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_bc_anchor_now'
 	$flash = epc_th_anchor_blockchain_pending_now(100);
 	$tab = 'blockchain';
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_apply_theme'])) {
+	$flash = epc_th_apply_industry_theme($db_link, (string) ($_POST['site_key'] ?? ''), array(
+		'industry_code' => (string) ($_POST['industry_code'] ?? ''),
+		'theme_template' => (string) ($_POST['theme_template'] ?? ''),
+		'storefront_package' => (string) ($_POST['storefront_package'] ?? ''),
+		'push_client' => !isset($_POST['push_client']) || !empty($_POST['push_client']),
+	));
+	$tenants = epc_th_list_tenants($db_link);
+	$stats = epc_th_platform_stats($db_link);
+	$tab = 'tenants';
+}
 
 $dnsHost = isset($_GET['dns']) ? preg_replace('/[^a-z0-9.-]/', '', (string) $_GET['dns']) : '';
 $dnsInfo = $dnsHost !== '' ? epc_portal_tenant_dns_instructions($dnsHost) : null;
@@ -330,6 +341,12 @@ epc_boc_console_open(array('active' => 'tenant_hub', 'title' => 'Tenant hub / on
 								<a class="btn btn-xs btn-primary" target="_blank" href="<?php echo epc_th_h($t['cp_url']); ?>">CP</a>
 								<?php endif; ?>
 								<?php endif; ?>
+								<form method="post" style="display:inline" onsubmit="return confirm('Apply industry theme (style + storefront package) for <?php echo epc_th_h($t['industry_name']); ?> to this tenant?');">
+									<input type="hidden" name="epc_th_apply_theme" value="1">
+									<input type="hidden" name="site_key" value="<?php echo epc_th_h($t['site_key']); ?>">
+									<input type="hidden" name="industry_code" value="<?php echo epc_th_h($t['industry_code']); ?>">
+									<button type="submit" class="btn btn-xs btn-warning" title="Seed matching visual style + storefront package for this industry"><i class="fa fa-paint-brush"></i> Theme</button>
+								</form>
 								<form method="post">
 									<input type="hidden" name="epc_th_status" value="1">
 									<input type="hidden" name="site_key" value="<?php echo epc_th_h($t['site_key']); ?>">

@@ -199,3 +199,91 @@ function epc_portal_storefront_packages_for_js()
 	}
 	return $out;
 }
+
+/**
+ * Apply industry-matched visual style + storefront package onto settings/contact.
+ * Used by client onboard and Super CP "Apply industry theme".
+ *
+ * @param array $settings mutable site settings
+ * @param array $contact mutable contact JSON
+ * @param string $industryCode tenant industry
+ * @param array $opts optional: theme_template, storefront_package, erp_only (bool), skip_package (bool)
+ * @return array{theme_template:string,storefront_package:string,message:string}
+ */
+function epc_portal_apply_industry_theme_profile(array &$settings, array &$contact, $industryCode, array $opts = array())
+{
+	require_once __DIR__ . '/epc_portal_theme_templates.php';
+	$code = preg_replace('/[^a-z0-9_]/', '', (string) $industryCode);
+	if ($code === '') {
+		$code = 'auto_parts';
+	}
+	$erpOnly = !empty($opts['erp_only']) || $code === 'erp_standalone';
+
+	$overrideTpl = isset($opts['theme_template']) ? preg_replace('/[^a-z0-9_]/', '', strtolower((string) $opts['theme_template'])) : '';
+	$overridePkg = isset($opts['storefront_package']) ? preg_replace('/[^a-z0-9_]/', '', strtolower((string) $opts['storefront_package'])) : '';
+
+	$packageId = '';
+	if (!$erpOnly && empty($opts['skip_package'])) {
+		if ($overridePkg === 'none' || $overridePkg === '0') {
+			$packageId = '';
+		} elseif ($overridePkg !== '' && epc_portal_storefront_package_meta($overridePkg)) {
+			$packageId = $overridePkg;
+		} else {
+			$packageId = (string) epc_portal_storefront_package_for_industry($code);
+		}
+	}
+
+	$themeTemplate = '';
+	if ($overrideTpl !== '') {
+		$themeTemplate = epc_portal_normalize_theme_template($code, $overrideTpl);
+	} elseif ($packageId !== '') {
+		$meta = epc_portal_storefront_package_meta($packageId);
+		$themeTemplate = epc_portal_normalize_theme_template(
+			$code,
+			isset($meta['theme_template']) ? (string) $meta['theme_template'] : epc_portal_default_theme_template($code)
+		);
+	} else {
+		$themeTemplate = epc_portal_default_theme_template($code);
+	}
+
+	$settings['industry_code'] = $code;
+	$settings['theme_template'] = $themeTemplate;
+	$settings['theme'] = epc_portal_style_template_theme($code, $themeTemplate);
+
+	if ($packageId !== '') {
+		$meta = epc_portal_storefront_package_meta($packageId);
+		$contact['storefront_package'] = $packageId;
+		if (!empty($meta['enabled_packs']) && is_array($meta['enabled_packs']) && empty($opts['keep_packs'])) {
+			$settings['enabled_packs'] = $meta['enabled_packs'];
+		}
+		if (!empty($meta['access_mode']) && empty($opts['keep_access_mode']) && empty($settings['access_mode'])) {
+			$settings['access_mode'] = (string) $meta['access_mode'];
+		}
+		if (!empty($meta['tagline']) && (empty($settings['tagline']) || !empty($opts['force_package_tagline']))) {
+			$settings['tagline'] = (string) $meta['tagline'];
+		}
+		// Automotive package uses platform SVG logo; other packages use tenant brand.
+		if ($packageId === 'automotive_spareparts_pro') {
+			$contact['use_animated_hub_logo'] = false;
+			$contact['use_tenant_brand'] = false;
+		} else {
+			$contact['use_animated_hub_logo'] = true;
+			$contact['use_tenant_brand'] = true;
+		}
+	} else {
+		unset($contact['storefront_package']);
+		if ($erpOnly) {
+			$contact['use_animated_hub_logo'] = true;
+			$contact['use_tenant_brand'] = true;
+		} else {
+			$contact['use_animated_hub_logo'] = true;
+		}
+	}
+
+	$pkgLabel = $packageId !== '' ? $packageId : 'colour-only (no chrome package)';
+	return array(
+		'theme_template' => $themeTemplate,
+		'storefront_package' => $packageId,
+		'message' => 'Applied ' . $code . ' → style ' . $themeTemplate . ' · package ' . $pkgLabel,
+	);
+}

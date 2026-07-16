@@ -43,6 +43,11 @@ function epc_portal_default_theme_template_by_industry()
 		'electronics' => 'midnight',
 		'fashion' => 'signature',
 		'jewellery' => 'classic',
+		'medical' => 'modern',
+		'health' => 'signature',
+		'consultancy' => 'modern',
+		'rental' => 'classic',
+		'erp_standalone' => 'classic',
 		'platform_host' => 'classic',
 	);
 }
