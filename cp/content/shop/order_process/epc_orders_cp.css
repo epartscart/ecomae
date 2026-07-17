@@ -1,0 +1,409 @@
+/* Orders CP — modern dual-pane manage/edit workspace */
+.epc-orders-page {
+	--eo-ink: #0f172a;
+	--eo-muted: #64748b;
+	--eo-line: #e2e8f0;
+	--eo-soft: #f8fafc;
+	--eo-accent: #2563eb;
+	--eo-accent-soft: rgba(37, 99, 235, 0.1);
+	--eo-ok: #059669;
+	--eo-warn: #d97706;
+	--eo-danger: #dc2626;
+	margin-bottom: 24px;
+}
+
+.epc-orders-page__hero {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 0 0 16px;
+	padding: 18px 20px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #2563eb 120%);
+	color: #f8fafc;
+}
+.epc-orders-page__hero h2 {
+	margin: 0 0 6px;
+	font-size: 1.35rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+.epc-orders-page__hero p {
+	margin: 0;
+	max-width: 40rem;
+	opacity: 0.9;
+	font-size: 13px;
+	line-height: 1.45;
+}
+.epc-orders-page__hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.epc-orders-page__hero-actions .btn {
+	border-radius: 8px;
+	font-weight: 600;
+}
+
+.epc-orders-page .epc-scp-orders-kpi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 14px;
+}
+.epc-orders-page .epc-scp-kpi__card {
+	flex: 1 1 140px;
+	min-width: 120px;
+	background: #fff;
+	border: 1px solid var(--eo-line);
+	border-radius: 12px;
+	padding: 14px 16px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.epc-orders-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	background: #fff;
+	border: 1px solid var(--eo-line);
+	border-radius: 12px;
+}
+.epc-orders-toolbar__hint {
+	margin-left: auto;
+	font-size: 12px;
+	color: var(--eo-muted);
+}
+.epc-orders-toolbar .epc-scp-badge {
+	cursor: pointer;
+	border-radius: 999px;
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.epc-orders-toolbar .epc-scp-badge:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.epc-orders-page .epc-scp-orders-filter .hpanel {
+	border-radius: 12px;
+	overflow: hidden;
+	border: 1px solid var(--eo-line);
+	box-shadow: none;
+}
+.epc-orders-page .epc-scp-orders-filter .panel-heading {
+	background: var(--eo-soft);
+	border-bottom: 1px solid var(--eo-line);
+}
+
+.epc-orders-page .epc-scp-orders-workspace {
+	display: grid;
+	grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+	gap: 14px;
+	align-items: start;
+}
+.epc-orders-page .epc-scp-orders-workspace__list .epc-scp-table-card,
+.epc-orders-page .epc-scp-orders-detail {
+	background: #fff;
+	border: 1px solid var(--eo-line);
+	border-radius: 14px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+.epc-orders-page .epc-scp-orders-workspace__detail {
+	position: sticky;
+	top: 10px;
+}
+.epc-orders-page .epc-scp-orders-detail {
+	max-height: calc(100vh - 120px);
+	overflow: auto;
+	padding: 0;
+}
+.epc-orders-page .epc-scp-orders-detail.is-loading {
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+.epc-orders-page #orders_table {
+	margin: 0;
+}
+.epc-orders-page #orders_table thead th {
+	background: var(--eo-soft);
+	border-bottom: 1px solid var(--eo-line);
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--eo-muted);
+	white-space: nowrap;
+}
+.epc-orders-page #orders_table tbody tr {
+	cursor: pointer;
+	transition: background 0.12s ease;
+}
+.epc-orders-page #orders_table tbody tr:hover {
+	background: #f1f5f9;
+}
+.epc-orders-page #orders_table tbody tr.is-selected,
+.epc-orders-page #orders_table tbody tr.epc-order-row-selected {
+	background: var(--eo-accent-soft) !important;
+	box-shadow: inset 3px 0 0 var(--eo-accent);
+}
+.epc-orders-page #orders_table tbody tr.not_viewed {
+	font-weight: 600;
+}
+.epc-orders-page #orders_table tbody tr.not_viewed td:nth-child(3)::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin-right: 6px;
+	border-radius: 50%;
+	background: var(--eo-accent);
+}
+
+/* Detail pane quick-edit */
+.epc-od {
+	padding: 16px 16px 20px;
+}
+.epc-od__head {
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--eo-line);
+	margin-bottom: 14px;
+}
+.epc-od__title-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.epc-od__title {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--eo-ink);
+}
+.epc-od__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	margin: 10px 0;
+	font-size: 12px;
+	color: var(--eo-muted);
+}
+.epc-od__meta i { margin-right: 4px; }
+.epc-od__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 8px;
+}
+.epc-od__customer {
+	font-size: 13px;
+	color: var(--eo-muted);
+	margin-bottom: 8px;
+}
+.epc-od__total {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin: 10px 0 14px;
+}
+.epc-od__total strong {
+	font-size: 1.4rem;
+	color: var(--eo-ink);
+}
+
+.epc-od__edit {
+	background: var(--eo-soft);
+	border: 1px solid var(--eo-line);
+	border-radius: 12px;
+	padding: 12px;
+	margin-bottom: 14px;
+}
+.epc-od__edit-title {
+	margin: 0 0 10px;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--eo-muted);
+}
+.epc-od__edit-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 10px;
+}
+.epc-od__edit-row:last-child { margin-bottom: 0; }
+.epc-od__edit-row label {
+	flex: 0 0 100%;
+	margin: 0 0 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--eo-ink);
+}
+.epc-od__edit-row select,
+.epc-od__edit-row textarea,
+.epc-od__edit-row input[type="text"] {
+	flex: 1 1 160px;
+	min-width: 0;
+	border-radius: 8px;
+	border: 1px solid var(--eo-line);
+	padding: 8px 10px;
+	font-size: 13px;
+	background: #fff;
+}
+.epc-od__edit-row textarea {
+	min-height: 64px;
+	resize: vertical;
+	width: 100%;
+	flex: 1 1 100%;
+}
+.epc-od__edit-row .btn {
+	border-radius: 8px;
+	font-weight: 600;
+}
+.epc-od__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+.epc-od__actions .btn {
+	border-radius: 8px;
+	font-weight: 600;
+}
+.epc-od__toast {
+	display: none;
+	margin: 0 0 12px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-size: 13px;
+}
+.epc-od__toast.is-ok {
+	display: block;
+	background: #ecfdf5;
+	color: #065f46;
+	border: 1px solid #a7f3d0;
+}
+.epc-od__toast.is-err {
+	display: block;
+	background: #fef2f2;
+	color: #991b1b;
+	border: 1px solid #fecaca;
+}
+
+.epc-od__items-title {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--eo-ink);
+}
+.epc-od__table {
+	font-size: 12px;
+}
+.epc-od__table code {
+	font-size: 11px;
+	background: var(--eo-soft);
+	padding: 2px 5px;
+	border-radius: 4px;
+}
+.epc-od__name {
+	max-width: 160px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.epc-od__logs {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--eo-line);
+}
+.epc-od__logs h5 {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--eo-muted);
+}
+.epc-od__log {
+	font-size: 12px;
+	padding: 6px 0;
+	border-bottom: 1px dashed var(--eo-line);
+	color: var(--eo-ink);
+}
+.epc-od__log time {
+	display: block;
+	font-size: 11px;
+	color: var(--eo-muted);
+}
+
+.epc-orders-page .epc-scp-orders-bulk .epc-scp-form-card {
+	border-radius: 14px;
+	border: 1px solid var(--eo-line);
+	padding: 16px 18px;
+	background: #fff;
+}
+.epc-orders-bulk-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 14px;
+}
+.epc-orders-bulk-card {
+	background: var(--eo-soft);
+	border: 1px solid var(--eo-line);
+	border-radius: 12px;
+	padding: 12px 14px;
+}
+.epc-orders-bulk-card h5 {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 700;
+}
+.epc-orders-bulk-card .form-control {
+	border-radius: 8px;
+	margin-bottom: 8px;
+}
+.epc-orders-bulk-card .btn {
+	border-radius: 8px;
+	font-weight: 600;
+}
+
+.epc-orders-page .epc-scp-orders-detail__empty {
+	min-height: 280px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+	color: var(--eo-muted);
+	text-align: center;
+}
+.epc-orders-page .epc-scp-orders-detail__empty .fa {
+	font-size: 40px;
+	margin-bottom: 12px;
+	opacity: 0.4;
+	color: var(--eo-accent);
+}
+
+@media (max-width: 1100px) {
+	.epc-orders-page .epc-scp-orders-workspace {
+		grid-template-columns: 1fr;
+	}
+	.epc-orders-page .epc-scp-orders-workspace__detail {
+		position: static;
+	}
+	.epc-orders-page .epc-scp-orders-detail {
+		max-height: none;
+	}
+	.epc-orders-toolbar__hint {
+		margin-left: 0;
+		width: 100%;
+	}
+}
