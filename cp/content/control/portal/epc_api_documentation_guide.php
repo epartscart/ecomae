@@ -67,9 +67,14 @@ epc_cp_page_frame_open(array('class' => 'epc-adg'));
 					<tr><td><code>read:orders</code></td><td>GET /epc-api/v1/orders</td></tr>
 					<tr><td><code>read:products</code></td><td>GET /epc-api/v1/products/search?q=</td></tr>
 					<tr><td><code>read:erp</code></td><td>GET /epc-api/v1/erp/dashboard-summary</td></tr>
+					<tr><td><code>read:bi</code></td><td>GET /epc-api/v1/powerbi/* (Power BI JSON/CSV datasets)</td></tr>
 					<tr><td><code>read:*</code></td><td>All authenticated read endpoints</td></tr>
 				</tbody>
 			</table>
+			<p class="text-muted">Power BI Desktop accepts <code>read:bi</code> or existing <code>read:erp</code> / <code>read:*</code> keys.
+				Step-by-step: <a href="/<?php echo $backend; ?>/control/portal/epc_power_bi_guide">Portal → Power BI guide</a> ·
+				Settings: <a href="/<?php echo $backend; ?>/control/portal/epc_power_bi">Portal → Power BI</a> ·
+				<code>docs/POWER_BI.md</code></p>
 		</div>
 	</div>
 
@@ -87,7 +92,11 @@ curl -s -H "X-API-Key: epc_YOUR_TENANT_read_XXXXXXXXXXXXXXXX" \
   "https://www.ecomae.com/epc-api/v1/products/search?q=filter"
 
 curl -s -H "X-API-Key: epc_YOUR_TENANT_read_XXXXXXXXXXXXXXXX" \
-  https://www.ecomae.com/epc-api/v1/erp/dashboard-summary</pre>
+  https://www.ecomae.com/epc-api/v1/erp/dashboard-summary
+
+# Power BI — KPI CSV (Web connector)
+curl -s -H "X-API-Key: epc_YOUR_TENANT_read_XXXXXXXXXXXXXXXX" \
+  "https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv"</pre>
 			<p class="text-muted">Expect HTTP 401 without header. Never paste live keys into tickets, chat, or marketing pages.</p>
 		</div>
 	</div>
