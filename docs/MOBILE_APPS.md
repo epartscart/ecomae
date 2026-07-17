@@ -1,5 +1,10 @@
 # Mobile apps — Android & iOS (all surfaces)
 
+> **New here? Read [`MOBILE_APP_GUIDE_L1.md`](MOBILE_APP_GUIDE_L1.md)** — the full
+> step-by-step Level 1 guide (PWA install, native build per area, push, testing
+> checklist, troubleshooting). This file is the condensed reference.
+
+
 Every surface is now mobile-app deliverable via two layers:
 
 | Surface | Installable PWA | Native store app (Capacitor) |
