@@ -232,6 +232,11 @@ return $session_record;
     /*Является ли пользователь администратором*/
     public static function isAdmin()
     {
+        static $cached = null;
+        if ($cached !== null) {
+            return $cached;
+        }
+
         global $DP_Config;
         global $db_link;
         
@@ -253,10 +258,12 @@ return $session_record;
 
         if( $sessions_count == 0)
         {
+            $cached = 0;
             return 0;
         }
         else if( $sessions_count == 1)
         {
+            $cached = 1;
             return 1;
         }
         else
@@ -270,6 +277,12 @@ return $session_record;
     /*Получение ID администратора*/
     public static function getAdminId()
     {
+        static $cached = null;
+        static $cachedResolved = false;
+        if ($cachedResolved) {
+            return $cached;
+        }
+
         global $DP_Config;
         global $db_link;
         
@@ -293,13 +306,17 @@ return $session_record;
 		
 		if($sessions_count == 0)
 		{
+			$cached = 0;
+			$cachedResolved = true;
 			return 0;//Сессий нет, это не админ
 		}
 		else if($sessions_count != 1)
 		{
 			exit();//Сессий не одна - такого быть не должно
 		}
-		
+
+		$cached = $admin_u_id;
+		$cachedResolved = true;
 		return $admin_u_id;
     }//public static function getAdminId()
     
@@ -312,6 +329,12 @@ return $session_record;
     /*Получение профиля администратора*/
     public static function getAdminProfile()
     {
+        static $cached = null;
+        static $cachedResolved = false;
+        if ($cachedResolved) {
+            return $cached;
+        }
+
         $profile = array();//Ассоциативный массив с данными администратора
         
         global $DP_Config;
@@ -321,6 +344,8 @@ return $session_record;
         
         if($user_id == 0)//Если пользователь не авторизован
         {
+            $cached = false;
+            $cachedResolved = true;
             return false;
         }
         
@@ -355,6 +380,8 @@ return $session_record;
 			array_push($profile["groups"], $group_record["group_id"]);
 		}
 
+        $cached = $profile;
+        $cachedResolved = true;
         return $profile;
     }//public static function getAdminProfile()
 	

@@ -79,17 +79,25 @@ foreach ((array) ($epcCpMenuCache['groups'] ?? array()) as $group)
 }
 
 
-//Получаем перечень всех задач (cached 5 min):
-foreach ((array) ($epcCpMenuCache['items'] ?? array()) as $item)
-{
-	$epcCpNavBackend = function_exists('epc_cp_nav_url_prefix')
-		? ltrim(epc_cp_nav_url_prefix(), '/')
-		: (string) $DP_Config->backend_dir;
-	$item["url"] = str_replace(array('<backend>'), $epcCpNavBackend, $item['url']);
+// Resolve backend once, normalize URLs, then batch-preload ACL maps (avoids N+1 is_anable queries).
+$epcCpNavBackend = function_exists('epc_cp_nav_url_prefix')
+	? ltrim(epc_cp_nav_url_prefix(), '/')
+	: (string) $DP_Config->backend_dir;
+$epcCpMenuItems = array();
+foreach ((array) ($epcCpMenuCache['items'] ?? array()) as $item) {
+	$item['url'] = str_replace(array('<backend>'), $epcCpNavBackend, $item['url']);
+	$epcCpMenuItems[] = $item;
+}
+if (function_exists('epc_cp_acl_preload')) {
+	epc_cp_acl_preload($epcCpMenuItems);
+}
+$epcCpSuperHost = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host();
+$epcCpSuperAdmin = $epcCpSuperHost && DP_User::isAdmin();
 
+//Получаем перечень всех задач (cached 5 min):
+foreach ($epcCpMenuItems as $item)
+{
 	//Добавляем, если у пользователя есть доступ или пункт помечен show_anyway (Super CP shows operator menu items).
-	$epcCpSuperHost = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host();
-	$epcCpSuperAdmin = $epcCpSuperHost && DP_User::isAdmin();
 	$showAnyway = (int) (isset($item['show_anyway']) ? $item['show_anyway'] : 0) === 1;
 	$mayShow = $epcCpSuperAdmin || is_anable($item) || ($showAnyway && !$epcCpSuperHost);
 	if( $mayShow && epc_portal_cp_item_visible_enhanced($item) )

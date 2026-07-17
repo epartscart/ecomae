@@ -375,6 +375,9 @@ function print_backend_button($button_params)
 				
 				
 				<?php
+				// Professional shell hides legacy stock badges — skip heavy catalogue/stock probes.
+				// (NOT IN over shop_storages_data is especially expensive on large tenants.)
+				if (!epc_cp_top_alerts_use_professional_header()) {
 				// Наличие товаров с критическим количеством
 				$query = $db_link->prepare("SELECT COUNT(`id`) FROM `shop_catalogue_products` WHERE `min_limit_status` = '1';");
 				$query->execute();
@@ -406,7 +409,7 @@ function print_backend_button($button_params)
 					$query->execute();
 					$row = $query->fetch();
 				}
-				if (!epc_cp_top_alerts_use_professional_header() && !empty($row)) {
+				if (!empty($row)) {
 				?>
 				<li class="dropdown epc-cp-stock-header-badge">
 					<a class="dropdown-toggle label-menu-corner" href="/<?php echo $DP_Config->backend_dir; ?>/shop/logistics/stock" title="<?php echo translate_str_by_key('1711374928_1_5f735d1486aa51eb9a61df1cd635a0fb'); ?>">
@@ -415,15 +418,12 @@ function print_backend_button($button_params)
 				</li>
 				<?php
 				}
-				?>
 
-			<?php
-				
 				// Наличие складских записей с ценой > 0 и наличием <= 0
 				$query = $db_link->prepare("SELECT `id` FROM `shop_storages_data` WHERE `price` > 0 AND `exist` <= 0 LIMIT 1;");
 				$query->execute();
 				$row = $query->fetch();
-				if (!epc_cp_top_alerts_use_professional_header() && !empty($row)) {
+				if (!empty($row)) {
 				?>
 				<li class="dropdown epc-cp-stock-header-badge">
 					<a class="dropdown-toggle label-menu-corner" href="/<?php echo $DP_Config->backend_dir; ?>/shop/logistics/stock" title="<?php echo translate_str_by_key('1711375016_1_5f735d1486aa51eb9a61df1cd635a0fb'); ?>">
@@ -432,6 +432,7 @@ function print_backend_button($button_params)
 				</li>
 				<?php
 				}
+				} // !epc_cp_top_alerts_use_professional_header()
 			
 				//Вывод быстрой навигации по наиболее востребованным функциям
 				$control_items_query = $db_link->prepare('SELECT * FROM `control_items` WHERE `id` IN (?,?,?,?,?) ORDER BY `order`;');
