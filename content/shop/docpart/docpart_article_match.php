@@ -123,6 +123,39 @@ function docpart_sql_article_match_expr(PDO $db_link = null, $column = '`article
 }
 
 /**
+ * WHERE fragment matching article values via article_search and/or normalized article.
+ * Completes incomplete article_search backfills without forcing live UPDATEs.
+ *
+ * @param array<int, string> $article_values
+ * @param array<int, mixed>  $binding_values Appended in-place
+ * @return string SQL boolean expression (no leading AND)
+ */
+function docpart_sql_article_values_match_clause(PDO $db_link, array $article_values, array &$binding_values, $column = '`article`')
+{
+	$article_values = array_values(array_filter(array_map('strval', $article_values), static function ($v) {
+		return $v !== '';
+	}));
+	if (count($article_values) === 0) {
+		return '0';
+	}
+	$ph = implode(',', array_fill(0, count($article_values), '?'));
+	$norm_expr = docpart_sql_article_normalized_expr($column);
+	if (docpart_price_data_ensure_article_search_column($db_link)) {
+		foreach ($article_values as $value) {
+			$binding_values[] = $value;
+		}
+		foreach ($article_values as $value) {
+			$binding_values[] = $value;
+		}
+		return '(`article_search` IN (' . $ph . ') OR ' . $norm_expr . ' IN (' . $ph . '))';
+	}
+	foreach ($article_values as $value) {
+		$binding_values[] = $value;
+	}
+	return '(' . $norm_expr . ' IN (' . $ph . '))';
+}
+
+/**
  * Article values to match in shop_docpart_prices_data (requested + cross numbers when enabled).
  */
 function docpart_collect_article_candidates($db_link, $article_norm, $use_crosses)
@@ -169,12 +202,14 @@ function docpart_resolve_article_search_values($db_link, $DP_Config, $article_in
 	// Never backfill on the live search path — UPDATE chunks block click-to-result.
 	// Use epc-epartscart-warehouse-search-fast.php&apply=1 for offline backfill.
 	if ($use_crosses && !empty($price_ids)) {
-		$art_expr = docpart_sql_article_match_expr($db_link, '`article`');
 		$price_placeholders = str_repeat('?,', count($price_ids) - 1) . '?';
+		$direct_bindings = array();
+		$article_clause = docpart_sql_article_values_match_clause($db_link, array($article_norm), $direct_bindings);
 		$direct_check_query = $db_link->prepare(
-			'SELECT COUNT(*) FROM `shop_docpart_prices_data` WHERE ' . $art_expr . ' = ? AND `price_id` IN (' . $price_placeholders . ') LIMIT 1;'
+			'SELECT COUNT(*) FROM `shop_docpart_prices_data` WHERE ' . $article_clause
+			. ' AND `price_id` IN (' . $price_placeholders . ') LIMIT 1;'
 		);
-		$direct_check_query->execute(array_merge(array($article_norm), $price_ids));
+		$direct_check_query->execute(array_merge($direct_bindings, $price_ids));
 		if ((int)$direct_check_query->fetchColumn() > 0) {
 			return array($article_norm);
 		}

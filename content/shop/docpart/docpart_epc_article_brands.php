@@ -271,12 +271,25 @@ function epc_collect_article_catalog_brands($db_link, $DP_Config, $article_input
 	}
 	$brands = array();
 	$seen = array();
+	$warehouse_count = 0;
+	// Local price warehouses first — these are the ePartsCart stock brands customers should pick.
+	try {
+		$warehouse_brands = epc_chpu_distinct_warehouse_brands_for_article($db_link, $DP_Config, $article_input);
+		foreach ($warehouse_brands as $warehouse_brand) {
+			if (epc_article_brands_add($brands, $seen, $warehouse_brand, '', 'warehouse')) {
+				$warehouse_count++;
+			}
+		}
+	} catch (Throwable $e) {
+		$warehouse_count = 0;
+	}
 	$cp_count = epc_article_brands_from_local_crosses($db_link, $DP_Config, $article_norm, $brands, $seen);
 	$crossbase_count = epc_article_brands_from_crossbase($article_input, $article_norm, $brands, $seen);
 	$umapi_count = epc_article_brands_from_umapi($DP_Config, $article_input, $brands, $seen);
 	epc_article_brands_apply_synonyms($db_link, $brands);
 	$manufacturers = array();
 	foreach ($brands as $brand_row) {
+		$source_type = in_array('warehouse', $brand_row['sources'], true) ? 'prices' : 'catalog';
 		$manufacturers[] = array(
 			'manufacturer' => $brand_row['manufacturer'],
 			'manufacturer_show' => $brand_row['manufacturer_show'],
@@ -286,7 +299,7 @@ function epc_collect_article_catalog_brands($db_link, $DP_Config, $article_input
 			'office_id' => 0,
 			'synonyms_single_query' => true,
 			'params' => array(
-				'type' => 'catalog',
+				'type' => $source_type,
 				'sources' => $brand_row['sources'],
 			),
 		);
@@ -297,6 +310,7 @@ function epc_collect_article_catalog_brands($db_link, $DP_Config, $article_input
 	return array(
 		'status' => true,
 		'article' => $article_norm,
+		'warehouse_count' => $warehouse_count,
 		'cp_crosses_count' => $cp_count,
 		'crossbase_count' => $crossbase_count,
 		'umapi_count' => $umapi_count,
