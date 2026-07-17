@@ -208,35 +208,12 @@ class ProductsOfBunch//Класс ответа
 			
 			// ----------------------------------------------------------------------------------------------
 			
-			//2.3. Для менеджера получаем название склада. Т.е. название склада выводим только для менеджера данного офиса обслуживания
-			$storage_caption_for_manager_query = $db_link->prepare('SELECT
-				`shop_storages`.`name` AS `storage_caption`
-				FROM
-				`shop_offices`
-				INNER JOIN `shop_offices_storages_map` ON `shop_offices`.`id` = `shop_offices_storages_map`.`office_id`
-				INNER JOIN `shop_storages` ON `shop_storages`.`id` = `shop_offices_storages_map`.`storage_id`
-				WHERE
-				`shop_offices`.`users` LIKE ? AND
-				`shop_storages`.`id` = ? AND
-				`shop_offices`.`id` = ? LIMIT 1;');
-			$storage_caption_for_manager_query->execute( array('%"'.$this->user_id.'"%', $storage_id, $office_id) );
-			$storage_caption_record = $storage_caption_for_manager_query->fetch();
-			
-			if($storage_caption_record != false)
-			{
-				$storage_caption = $storage_caption_record["storage_caption"];
-			}
-			else
-			{
-				$storage_caption = "";//Запрос не от менеджера офиса
-			}
-			
-			// ----------------------------------------------------------------------------------------------
-			
-			//3. Получаем данные склада: настройки подключения, валюту и имя каталога, в котором находится скрипт-обработчик
+			//3. Получаем данные склада: настройки подключения, валюту, warehouse label и обработчик
 			$storage_query = $db_link->prepare('SELECT
 				`shop_storages`.`connection_options` AS `connection_options`,
 				`shop_storages`.`currency` AS `currency`,
+				`shop_storages`.`name` AS `storage_name`,
+				`shop_storages`.`short_name` AS `storage_short_name`,
 				`shop_storages_interfaces_types`.`handler_folder` AS `handler_folder`,
 				(SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (SELECT `currency` FROM `shop_storages` WHERE `id` = ?) ) AS `rate`
 				FROM
@@ -253,16 +230,44 @@ class ProductsOfBunch//Класс ответа
 				$storage_record['handler_folder'] = null;
 				$storage_record['connection_options'] = null;
 				$storage_record['rate'] = null;
+				$storage_record['storage_name'] = '';
+				$storage_record['storage_short_name'] = '';
+			}
+
+			// Storefront customers always get a warehouse label (short_name → name)
+			$storage_caption = !empty($storage_record['storage_short_name'])
+				? (string) $storage_record['storage_short_name']
+				: (string) ($storage_record['storage_name'] ?? '');
+
+			// Office managers may see the full mapped name
+			$storage_caption_for_manager_query = $db_link->prepare('SELECT
+				`shop_storages`.`name` AS `storage_caption`
+				FROM
+				`shop_offices`
+				INNER JOIN `shop_offices_storages_map` ON `shop_offices`.`id` = `shop_offices_storages_map`.`office_id`
+				INNER JOIN `shop_storages` ON `shop_storages`.`id` = `shop_offices_storages_map`.`storage_id`
+				WHERE
+				`shop_offices`.`users` LIKE ? AND
+				`shop_storages`.`id` = ? AND
+				`shop_offices`.`id` = ? LIMIT 1;');
+			$storage_caption_for_manager_query->execute( array('%"'.$this->user_id.'"%', $storage_id, $office_id) );
+			$storage_caption_record = $storage_caption_for_manager_query->fetch();
+			if($storage_caption_record != false && !empty($storage_caption_record["storage_caption"]))
+			{
+				$storage_caption = $storage_caption_record["storage_caption"];
 			}
 			
 			$handler_folder = $storage_record["handler_folder"];
 			$storage_options = json_decode($storage_record["connection_options"], true);//Настройки для обработчика поставщика
+			if (!is_array($storage_options)) {
+				$storage_options = array();
+			}
 			$storage_options["markups"] = $markups;//Добавляем сюда наценки
 			$storage_options["office_id"] = $office_id;
 			$storage_options["storage_id"] = $storage_id;
 			$storage_options["additional_time"] = $additional_time;
 			$storage_options["office_caption"] = $office_caption;
-			$storage_options["storage_caption"] = $storage_caption;//Только для менеджера. Для остальных значение равно ""
+			$storage_options["storage_caption"] = $storage_caption;
 			$storage_options["rate"] = $storage_record["rate"];
 			
 			if($handler_folder === 'treelax_catalogue'){
@@ -796,6 +801,10 @@ if (isset($DP_Config->is_async_search) && $DP_Config->is_async_search == 1)
 	$sql = "INSERT INTO `shop_stat_article_queries`(`id`, `article`, `manufacturer`, `name`, `search_string`, `ip`, `user_id`, `time`) VALUES (NULL,?,?,?,?,?,?,?)";
 	$query = $db_link->prepare($sql);
 	$query->execute($binding_values);
+}
+
+if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
+	epc_storefront_fill_warehouse_captions($ProductsOfBunch->Products, $db_link);
 }
 
 if (!epc_storefront_prices_visible_for_user((int) $ProductsOfBunch->user_id)) {

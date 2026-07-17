@@ -202,3 +202,61 @@ function epc_storefront_prices_redact_brand_parts_rows(array &$rows): void
 	}
 	unset($row);
 }
+
+/**
+ * Ensure every product row has a customer-facing warehouse (storage) caption.
+ *
+ * @param array<int,array<string,mixed>> $products
+ * @param PDO $db
+ */
+function epc_storefront_fill_warehouse_captions(array &$products, PDO $db): void
+{
+	if ($products === array()) {
+		return;
+	}
+	$needIds = array();
+	foreach ($products as $product) {
+		if (!is_array($product)) {
+			continue;
+		}
+		$caption = trim((string) ($product['storage_caption'] ?? ''));
+		$sid = (int) ($product['storage_id'] ?? 0);
+		if ($caption === '' && $sid > 0) {
+			$needIds[$sid] = true;
+		}
+	}
+	if ($needIds === array()) {
+		return;
+	}
+	$ids = array_keys($needIds);
+	$ph = implode(',', array_fill(0, count($ids), '?'));
+	$map = array();
+	try {
+		$q = $db->prepare(
+			'SELECT `id`, `name`, `short_name` FROM `shop_storages` WHERE `id` IN (' . $ph . ')'
+		);
+		$q->execute($ids);
+		while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
+			$label = trim((string) ($row['short_name'] ?? ''));
+			if ($label === '') {
+				$label = trim((string) ($row['name'] ?? ''));
+			}
+			$map[(int) $row['id']] = $label;
+		}
+	} catch (Throwable $e) {
+		return;
+	}
+	foreach ($products as &$product) {
+		if (!is_array($product)) {
+			continue;
+		}
+		if (trim((string) ($product['storage_caption'] ?? '')) !== '') {
+			continue;
+		}
+		$sid = (int) ($product['storage_id'] ?? 0);
+		if ($sid > 0 && !empty($map[$sid])) {
+			$product['storage_caption'] = $map[$sid];
+		}
+	}
+	unset($product);
+}

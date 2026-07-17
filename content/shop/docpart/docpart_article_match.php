@@ -36,6 +36,81 @@ function docpart_sql_article_normalized_expr($column = '`article`')
 }
 
 /**
+ * Ensure indexed article_search column exists for fast warehouse price lookups.
+ */
+function docpart_price_data_ensure_article_search_column(PDO $db_link): bool
+{
+	static $ready = null;
+	if ($ready !== null) {
+		return $ready;
+	}
+	$ready = false;
+	try {
+		$db_link->query('SELECT `article_search` FROM `shop_docpart_prices_data` LIMIT 1');
+		$ready = true;
+	} catch (Throwable $e) {
+		try {
+			$db_link->exec(
+				'ALTER TABLE `shop_docpart_prices_data`
+				 ADD COLUMN `article_search` VARCHAR(64) NOT NULL DEFAULT \'\' AFTER `article`,
+				 ADD INDEX `x_article_search_price` (`article_search`, `price_id`),
+				 ADD INDEX `x_price_article_search` (`price_id`, `article_search`);'
+			);
+			$ready = true;
+		} catch (Throwable $e2) {
+			try {
+				$db_link->query('SELECT `article_search` FROM `shop_docpart_prices_data` LIMIT 1');
+				$ready = true;
+			} catch (Throwable $e3) {
+				$ready = false;
+			}
+		}
+	}
+	return $ready;
+}
+
+/**
+ * Backfill article_search for one price list (or a limited batch site-wide).
+ */
+function docpart_price_data_backfill_article_search(PDO $db_link, int $priceId = 0, int $limit = 25000): int
+{
+	if (!docpart_price_data_ensure_article_search_column($db_link)) {
+		return 0;
+	}
+	$expr = docpart_sql_article_normalized_expr('`article`');
+	$limit = max(100, min(100000, $limit));
+	try {
+		if ($priceId > 0) {
+			$sql = 'UPDATE `shop_docpart_prices_data`
+				SET `article_search` = ' . $expr . '
+				WHERE `price_id` = ? AND (`article_search` = \'\' OR `article_search` IS NULL)
+				LIMIT ' . (int) $limit;
+			$st = $db_link->prepare($sql);
+			$st->execute(array($priceId));
+			return (int) $st->rowCount();
+		}
+		$sql = 'UPDATE `shop_docpart_prices_data`
+			SET `article_search` = ' . $expr . '
+			WHERE (`article_search` = \'\' OR `article_search` IS NULL)
+			LIMIT ' . (int) $limit;
+		return (int) $db_link->exec($sql);
+	} catch (Throwable $e) {
+		return 0;
+	}
+}
+
+/**
+ * Prefer indexed article_search when available; otherwise nested REPLACE expr.
+ */
+function docpart_sql_article_match_expr(PDO $db_link = null, $column = '`article`')
+{
+	if ($db_link instanceof PDO && docpart_price_data_ensure_article_search_column($db_link)) {
+		return '`article_search`';
+	}
+	return docpart_sql_article_normalized_expr($column);
+}
+
+/**
  * Article values to match in shop_docpart_prices_data (requested + cross numbers when enabled).
  */
 function docpart_collect_article_candidates($db_link, $article_norm, $use_crosses)
@@ -50,6 +125,7 @@ function docpart_collect_article_candidates($db_link, $article_norm, $use_crosse
 	}
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
 	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	// Analogs table has no article_search column — keep REPLACE expr here.
 	$analogs_query = $db_link->prepare(
 		'SELECT `article`, `analog` FROM `shop_docpart_articles_analogs_list` WHERE ' . $art_expr . ' = ? OR ' . $analog_expr . ' = ? LIMIT 5000;'
 	);
@@ -78,8 +154,14 @@ function docpart_resolve_article_search_values($db_link, $DP_Config, $article_in
 	}
 	$use_crosses = (isset($DP_Config->local_crosses) && !empty($DP_Config->local_crosses));
 	$price_ids = array_values(array_unique(array_map('intval', $price_ids)));
+	if ($db_link instanceof PDO && docpart_price_data_ensure_article_search_column($db_link) && !empty($price_ids)) {
+		// Keep search index warm for these lists (cheap when already filled).
+		foreach (array_slice($price_ids, 0, 8) as $pid) {
+			docpart_price_data_backfill_article_search($db_link, (int) $pid, 5000);
+		}
+	}
 	if ($use_crosses && !empty($price_ids)) {
-		$art_expr = docpart_sql_article_normalized_expr('`article`');
+		$art_expr = docpart_sql_article_match_expr($db_link, '`article`');
 		$price_placeholders = str_repeat('?,', count($price_ids) - 1) . '?';
 		$direct_check_query = $db_link->prepare(
 			'SELECT COUNT(*) FROM `shop_docpart_prices_data` WHERE ' . $art_expr . ' = ? AND `price_id` IN (' . $price_placeholders . ') LIMIT 1;'
@@ -188,7 +270,7 @@ function epc_chpu_distinct_warehouse_brands_for_article($db_link, $DP_Config, $a
 	if (count($article_values) === 0) {
 		$article_values = array($article_norm);
 	}
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
+	$art_expr = docpart_sql_article_match_expr($db_link, '`article`');
 	$price_ph = implode(',', array_fill(0, count($price_ids), '?'));
 	$art_ph = implode(',', array_fill(0, count($article_values), '?'));
 	$sql = 'SELECT MIN(TRIM(`manufacturer`)) AS `brand_name`'
