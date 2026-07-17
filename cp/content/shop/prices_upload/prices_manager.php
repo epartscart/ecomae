@@ -82,17 +82,17 @@ if( ! empty($_POST["action"]))
 			}
 			
 			
-			//Удаляем записи связей между прайс-листами и заданиями по расписанию
-			if( ! $db_link->prepare("DELETE FROM `shop_docpart_pyprices_crontab_prices` WHERE `price_id` IN ($prices_str);")->execute($binding_values) )
-			{
-				throw new Exception(translate_str_by_id(5407));
+			//Удаляем записи связей между прайс-листами и заданиями по расписанию (optional tables)
+			try {
+				$db_link->prepare("DELETE FROM `shop_docpart_pyprices_crontab_prices` WHERE `price_id` IN ($prices_str);")->execute($binding_values);
+				$db_link->prepare("DELETE FROM `shop_docpart_pyprices_crontab` WHERE ( SELECT COUNT(*) FROM `shop_docpart_pyprices_crontab_prices` WHERE `crontab_task_id` = `shop_docpart_pyprices_crontab`.`id` ) = ?;")->execute( array(0) );
+			} catch (Throwable $e) {
+				// Crontab tables may be missing on some tenants — do not block price deletion.
 			}
-			
-			
-			//Если количество прайс-листов в задании по расписанию теперь 0, то, само задание тоже удаляем.
-			if( ! $db_link->prepare("DELETE FROM `shop_docpart_pyprices_crontab` WHERE ( SELECT COUNT(*) FROM `shop_docpart_pyprices_crontab_prices` WHERE `crontab_task_id` = `shop_docpart_pyprices_crontab`.`id` ) = ?;")->execute( array(0) ) )
-			{
-				throw new Exception(translate_str_by_id(5408));
+			try {
+				$db_link->prepare("DELETE FROM `epc_price_upload_history` WHERE `price_id` IN ($prices_str);")->execute($binding_values);
+			} catch (Throwable $e) {
+				// History table optional.
 			}
 		}
 		catch (Exception $e)
@@ -445,37 +445,61 @@ else//Действий нет - выводим страницу
 					
 					
 					epc_prices_ensure_listing_indexes($db_link);
-					$elements_query = epc_prices_fetch_lists_query($db_link);
+					$epc_prices_list_error = '';
+					try {
+						$elements_query = epc_prices_fetch_lists_query($db_link);
+					} catch (Throwable $e) {
+						$epc_prices_list_error = $e->getMessage();
+						$elements_query = null;
+					}
 					
 					
-					$elements_count_rows_query = $db_link->prepare('SELECT COUNT(*) FROM `shop_docpart_prices`;');
-					$elements_count_rows_query->execute();
-					$elements_count_rows = $elements_count_rows_query->fetchColumn();
+					$elements_count_rows = 0;
+					try {
+						$elements_count_rows_query = $db_link->prepare('SELECT COUNT(*) FROM `shop_docpart_prices`;');
+						$elements_count_rows_query->execute();
+						$elements_count_rows = (int) $elements_count_rows_query->fetchColumn();
+					} catch (Throwable $e) {
+						$elements_count_rows = 0;
+					}
 					
 					
 					// Склады привязанные к прайс листам
 					$shop_storages_link_prices = array();
-					$link_prices_query = $db_link->prepare("SELECT * FROM `shop_storages` WHERE `interface_type` = 2;");
-					$link_prices_query->execute();
-					while($record = $link_prices_query->fetch())
-					{
-						$connection_options = json_decode($record["connection_options"], true);
-						if(!empty($connection_options['price_id']))
+					try {
+						$link_prices_query = $db_link->prepare("SELECT * FROM `shop_storages` WHERE `interface_type` = 2;");
+						$link_prices_query->execute();
+						while($record = $link_prices_query->fetch())
 						{
-							//Один прайс-лист может быть привязан к нескольким складам
-							if( isset($shop_storages_link_prices[$connection_options['price_id']]) )
+							$connection_options = json_decode($record["connection_options"], true);
+							if(!empty($connection_options['price_id']))
 							{
-								$shop_storages_link_prices[$connection_options['price_id']] = $shop_storages_link_prices[$connection_options['price_id']]."<br>";
+								//Один прайс-лист может быть привязан к нескольким складам
+								if( isset($shop_storages_link_prices[$connection_options['price_id']]) )
+								{
+									$shop_storages_link_prices[$connection_options['price_id']] = $shop_storages_link_prices[$connection_options['price_id']]."<br>";
+								}
+								
+								$shop_storages_link_prices[$connection_options['price_id']] = $shop_storages_link_prices[$connection_options['price_id']] . $record['id'].' - '.$record['name'];
 							}
-							
-							$shop_storages_link_prices[$connection_options['price_id']] = $shop_storages_link_prices[$connection_options['price_id']] . $record['id'].' - '.$record['name'];
 						}
+					} catch (Throwable $e) {
+						$shop_storages_link_prices = array();
 					}
 
 					require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_price_upload_history.php");
-					epc_price_history_ensure_schema($db_link);
-					$epc_latest_uploads = epc_price_history_get_latest_map($db_link);
+					$epc_latest_uploads = array();
+					try {
+						epc_price_history_ensure_schema($db_link);
+						$epc_latest_uploads = epc_price_history_get_latest_map($db_link);
+					} catch (Throwable $e) {
+						$epc_latest_uploads = array();
+					}
 					$epc_history_download_base = "/".$DP_Config->backend_dir."/content/shop/prices_upload/ajax_epc_price_upload_history.php";
+					if ($epc_prices_list_error !== '') {
+						echo '<div class="alert alert-danger">Price lists could not load: '
+							. htmlspecialchars($epc_prices_list_error, ENT_QUOTES, 'UTF-8') . '</div>';
+					}
 					?>
 					
 					
@@ -526,14 +550,22 @@ else//Действий нет - выводим страницу
 						//----------------------------------------------------------------------------------------------|
 						
 						
-						//for($i=0, $d=0; $i<$elements_count_rows && $d<$p; $i++, $d++)
+						if ($elements_query instanceof PDOStatement) {
 						while( $element_record = $elements_query->fetch() )
 						{
 							//$element_record = $elements_query->fetch();
+							$epc_price_js = json_encode(
+								$element_record,
+								JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+							);
+							if ($epc_price_js === false) {
+								$epc_price_js = '{}';
+							}
 							?>
 							<script>
-							//Добавляем данный прайс-лист в Javascript
-							docpart_prices.push( JSON.parse('<?php echo json_encode($element_record); ?>') );
+							// Safe object literal — do not wrap json_encode in JSON.parse('...')
+							// (apostrophes / quotes in price names broke the whole table JS).
+							docpart_prices.push(<?php echo $epc_price_js; ?>);
 							
 							//Создаем объект для индикации этого прайс-листа
 							prices_indicate_items['price_<?php echo (int)$element_record["id"]; ?>'] = new Object;
@@ -541,13 +573,6 @@ else//Действий нет - выводим страницу
 							
 							
 							<?php
-							//Пропускаем нужное количество блоков в соответствии с номером требуемой страницы
-							if($i < $s_page*$p)
-							{
-								$d--;
-								continue;
-							}
-							
 							//Для Javascript
 							$for_js = $for_js."elements_array[elements_array.length] = \"checked_".$element_record["id"]."\";\n";//Добавляем элемент для JS
 							$for_js = $for_js."elements_id_array[elements_id_array.length] = ".$element_record["id"].";\n";//Добавляем элемент для JS
@@ -970,7 +995,8 @@ else//Действий нет - выводим страницу
 								
 							</tr>
 						<?php
-						}//for
+						}//while price lists
+						}// $elements_query instanceof PDOStatement
 						?>
 						</tbody>
 						<tfoot style="display:none;"><tr><td><ul class="pagination"></ul></td></tr></tfoot>

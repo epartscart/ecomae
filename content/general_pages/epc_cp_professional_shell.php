@@ -9,7 +9,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 
 function epc_cp_shell_css_version()
 {
-	return '20260717prices1s1';
+	return '20260717pricesTable1';
 }
 
 /** True on www.ecomae.com where nginx often 404s static /cp/templates/*.css. */
