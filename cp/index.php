@@ -42,6 +42,8 @@ epc_portal_apply_config($DP_Config);
 
 require_once __DIR__ . '/epc_cp_bootstrap_light.php';
 require_once __DIR__ . '/epc_cp_auth_gate.php';
+require_once __DIR__ . '/epc_cp_fast_tenant.php';
+epc_cp_fast_tenant_init();
 
 $__epcTenantControl = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_tenant_control.php';
 if (is_file($__epcTenantControl)) {
@@ -58,8 +60,10 @@ if (!empty($GLOBALS['epc_demo_cp_context'])) {
 	}
 }
 
+// epartscart bare /cp: skip early client-ERP bootstrap (platform registry lookups).
+$epcCpSkipErpRoutersEarly = function_exists('epc_cp_should_skip_erp_routers') && epc_cp_should_skip_erp_routers();
 $clientErpRouterEarly = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_client_erp_router.php';
-if (is_file($clientErpRouterEarly) && empty($GLOBALS['epc_demo_cp_context'])) {
+if (!$epcCpSkipErpRoutersEarly && is_file($clientErpRouterEarly) && empty($GLOBALS['epc_demo_cp_context'])) {
 	require_once $clientErpRouterEarly;
 	if (function_exists('epc_client_erp_maybe_handle_bare_path')) {
 		epc_client_erp_maybe_handle_bare_path();
@@ -84,8 +88,9 @@ if (is_file($clientErpRouterEarly) && empty($GLOBALS['epc_demo_cp_context'])) {
 
 epc_cp_bootstrap_light_init();
 $epcCpLightBootstrap = epc_cp_bootstrap_light_active();
+$epcCpSkipErpRouters = !$epcCpLightBootstrap && $epcCpSkipErpRoutersEarly;
 
-if (!$epcCpLightBootstrap) {
+if (!$epcCpLightBootstrap && !$epcCpSkipErpRouters) {
 	$platformErpRouter = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_platform_erp_router.php';
 	if (is_file($platformErpRouter)) {
 		require_once $platformErpRouter;

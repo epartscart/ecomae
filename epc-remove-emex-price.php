@@ -54,20 +54,34 @@ try {
 	exit(json_encode(array('ok' => false, 'error' => 'DB: ' . $e->getMessage()), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 }
 
-$q = $pdo->query(
-	"SELECT `id`, `name`, `records_count`, `last_updated`
-	 FROM `shop_docpart_prices`
-	 WHERE `name` LIKE '%Emex%' OR `name` LIKE '%WeTransfer%' OR `name` LIKE '%emex%'
-	 ORDER BY `id`"
-);
-$rows = $q ? $q->fetchAll(PDO::FETCH_ASSOC) : array();
-foreach ($rows as $row) {
-	$report['matched'][] = array(
-		'id' => (int) $row['id'],
-		'name' => (string) $row['name'],
-		'records_count' => (int) ($row['records_count'] ?? 0),
-		'last_updated' => (int) ($row['last_updated'] ?? 0),
-	);
+try {
+	$hasRecordsCount = true;
+	try {
+		$pdo->query('SELECT `records_count` FROM `shop_docpart_prices` LIMIT 1');
+	} catch (Throwable $e) {
+		$hasRecordsCount = false;
+	}
+	$sql = $hasRecordsCount
+		? "SELECT `id`, `name`, `records_count`, `last_updated`
+		   FROM `shop_docpart_prices`
+		   WHERE `name` LIKE '%Emex%' OR `name` LIKE '%WeTransfer%' OR `name` LIKE '%emex%'
+		   ORDER BY `id`"
+		: "SELECT `id`, `name`, 0 AS `records_count`, `last_updated`
+		   FROM `shop_docpart_prices`
+		   WHERE `name` LIKE '%Emex%' OR `name` LIKE '%WeTransfer%' OR `name` LIKE '%emex%'
+		   ORDER BY `id`";
+	$q = $pdo->query($sql);
+	$rows = $q ? $q->fetchAll(PDO::FETCH_ASSOC) : array();
+	foreach ($rows as $row) {
+		$report['matched'][] = array(
+			'id' => (int) $row['id'],
+			'name' => (string) $row['name'],
+			'records_count' => (int) ($row['records_count'] ?? 0),
+			'last_updated' => (int) ($row['last_updated'] ?? 0),
+		);
+	}
+} catch (Throwable $e) {
+	exit(json_encode(array('ok' => false, 'error' => 'Query: ' . $e->getMessage()), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 }
 
 if (count($report['matched']) === 0) {

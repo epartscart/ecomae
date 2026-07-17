@@ -88,34 +88,50 @@ function epc_stock_brands_with_counts($db_link, array $price_ids)
 		}
 	}
 
-	// Thundering-herd prevention: only ONE process at a time runs the heavy query.
-	// Others wait up to 90s for the first process to populate the cache file.
+	// Thundering-herd prevention: only ONE process runs the heavy query.
+	// Waiters poll cache for ~2.5s then return empty — never block for 90s (FPM 524s).
 	$lockFile = $cacheDir . '/' . $cacheKey . '.lock';
 	$lockFp = @fopen($lockFile, 'c');
+	$haveLock = false;
 	if ($lockFp) {
-		if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
-			// Another process is already generating — wait for it (max 90s)
-			flock($lockFp, LOCK_EX);
-			fclose($lockFp);
-			// Re-check cache after waiting
-			if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
-				$cached = @file_get_contents($cacheFile);
-				if ($cached !== false) {
-					$decoded = json_decode($cached, true);
+		$haveLock = @flock($lockFp, LOCK_EX | LOCK_NB);
+		if (!$haveLock) {
+			$waitDeadline = microtime(true) + 2.5;
+			while (microtime(true) < $waitDeadline) {
+				if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
+					$cached = @file_get_contents($cacheFile);
+					$decoded = is_string($cached) ? json_decode($cached, true) : null;
 					if (is_array($decoded) && count($decoded) > 0) {
+						fclose($lockFp);
 						return $decoded;
 					}
 				}
+				usleep(100000);
+				if (@flock($lockFp, LOCK_EX | LOCK_NB)) {
+					$haveLock = true;
+					break;
+				}
 			}
-			// If still no cache after lock released, fall through to generate
-			$lockFp = @fopen($lockFile, 'c');
-			if ($lockFp) { flock($lockFp, LOCK_EX); }
+			if (!$haveLock) {
+				fclose($lockFp);
+				$lockFp = null;
+				return array();
+			}
+			// Won the lock — prefer fresh cache if the other worker finished.
+			if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
+				$cached = @file_get_contents($cacheFile);
+				$decoded = is_string($cached) ? json_decode($cached, true) : null;
+				if (is_array($decoded) && count($decoded) > 0) {
+					@flock($lockFp, LOCK_UN);
+					fclose($lockFp);
+					return $decoded;
+				}
+			}
 		}
 	}
 
-	// This query scans 133K+ rows — allow enough time for cache-warming render.
-	// Once cached, subsequent requests skip the query entirely (cache hit above).
-	@set_time_limit(120);
+	// Bound cache-warm query — do not hold FPM for 120s on large tenants.
+	@set_time_limit(20);
 
 	$placeholders = implode(',', array_fill(0, count($price_ids), '?'));
 	$articleExpr = "COALESCE(NULLIF(TRIM(`article_show`), ''), TRIM(`article`))";

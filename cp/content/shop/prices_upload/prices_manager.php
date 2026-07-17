@@ -16,16 +16,20 @@ if (empty($_POST['action'])) {
 	}
 }
 
-// ?view=guide loads the full price manager through CMS eval and can hang the CP shell — use the dedicated guide page.
+// ?view=guide → dedicated guide route. Never exit/return from CMS eval (aborts CP shell).
+$epc_prices_render_manager = true;
 if ($epc_is_upload_guide_view && empty($_POST['action'])) {
 	$epc_backend = (isset($DP_Config) && is_object($DP_Config)) ? $DP_Config->backend_dir : 'cp';
+	$epc_guide_url = '/' . $epc_backend . '/shop/prices/guide';
 	if (!headers_sent()) {
-		header('Location: /' . $epc_backend . '/shop/prices/guide', true, 302);
-		exit;
+		header('Location: ' . $epc_guide_url, true, 302);
 	}
+	echo '<div class="alert alert-info">Redirecting to upload guide… <a href="'
+		. htmlspecialchars($epc_guide_url, ENT_QUOTES, 'UTF-8') . '">Open guide</a></div>';
+	$epc_prices_render_manager = false;
 }
 
-if (!$epc_is_upload_guide_view) {
+if ($epc_prices_render_manager && !$epc_is_upload_guide_view) {
 	//Это нужно для подключения единого скрипта записи файла crontab
 	define('_PYPRICES_CRONTAB_', 1);
 	require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/prices_upload/epc_prices_manager_perf.php");
@@ -111,7 +115,7 @@ if( ! empty($_POST["action"]))
 		epc_cp_redirect('/shop/prices?success_message=' . rawurlencode(translate_str_by_id(3757)));
     }
 }
-else//Действий нет - выводим страницу
+elseif (!empty($epc_prices_render_manager))//Действий нет - выводим страницу
 {
 	//Для работы с пользователем
 	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
@@ -119,7 +123,7 @@ else//Действий нет - выводим страницу
 
 	if ($epc_is_upload_guide_view) {
 		require $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/prices_upload/guide.php';
-		return;
+		// Do not return — CMS embeds this file via eval() inside the CP template.
 	} else {
 	
     ?>
@@ -447,10 +451,12 @@ else//Действий нет - выводим страницу
 					epc_prices_ensure_listing_indexes($db_link);
 					$epc_prices_list_error = '';
 					try {
-						$elements_query = epc_prices_fetch_lists_query($db_link);
+						// Rows with guaranteed QTY: live index-only count fallback
+						// when records_count is missing/zero (e.g. after Emex cleanup).
+						$epc_prices_list_rows = epc_prices_fetch_lists_rows($db_link);
 					} catch (Throwable $e) {
 						$epc_prices_list_error = $e->getMessage();
-						$elements_query = null;
+						$epc_prices_list_rows = array();
 					}
 					
 					
@@ -549,10 +555,9 @@ else//Действий нет - выводим страницу
 						//----------------------------------------------------------------------------------------------|
 						
 						
-						if ($elements_query instanceof PDOStatement) {
-						while( $element_record = $elements_query->fetch() )
+						if (is_array($epc_prices_list_rows)) {
+						foreach( $epc_prices_list_rows as $element_record )
 						{
-							//$element_record = $elements_query->fetch();
 							$epc_price_js = json_encode(
 								$element_record,
 								JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
@@ -1003,8 +1008,8 @@ else//Действий нет - выводим страницу
 								
 							</tr>
 						<?php
-						}//while price lists
-						}// $elements_query instanceof PDOStatement
+						}//foreach price lists
+						}// rows array
 						?>
 						</tbody>
 						<tfoot style="display:none;"><tr><td><ul class="pagination"></ul></td></tr></tfoot>

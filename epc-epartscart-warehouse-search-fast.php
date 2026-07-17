@@ -55,7 +55,7 @@ try {
 	exit(json_encode(array('ok' => false, 'error' => 'DB: ' . $e->getMessage()), JSON_UNESCAPED_UNICODE));
 }
 
-$report['article_search_ready'] = docpart_price_data_ensure_article_search_column($pdo);
+$report['article_search_ready'] = docpart_price_data_ensure_article_search_column($pdo, true);
 if (!$report['article_search_ready']) {
 	$report['ok'] = false;
 	$report['notes'][] = 'Could not create article_search column';
@@ -63,17 +63,22 @@ if (!$report['article_search_ready']) {
 	exit;
 }
 
+$maxChunks = max(1, min(40, (int) ($_GET['max_chunks'] ?? $_POST['max_chunks'] ?? 40)));
+$chunkSize = max(1000, min(50000, (int) ($_GET['chunk_size'] ?? $_POST['chunk_size'] ?? 50000)));
+
 if ($apply) {
-	// Backfill in chunks until empty or cap
+	// Backfill in chunks until empty or cap (tunable for live tenants under load).
 	$total = 0;
-	for ($i = 0; $i < 40; $i++) {
-		$n = docpart_price_data_backfill_article_search($pdo, 0, 50000);
+	for ($i = 0; $i < $maxChunks; $i++) {
+		$n = docpart_price_data_backfill_article_search($pdo, 0, $chunkSize);
 		$total += $n;
 		if ($n <= 0) {
 			break;
 		}
 	}
 	$report['backfilled_rows'] = $total;
+	$report['max_chunks'] = $maxChunks;
+	$report['chunk_size'] = $chunkSize;
 
 	// Fill empty short_name from name so storefront warehouse chips are never blank
 	$st = $pdo->exec(

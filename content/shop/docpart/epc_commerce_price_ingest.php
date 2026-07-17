@@ -759,6 +759,14 @@ function epc_commerce_import_csv_local(PDO $db, array $price, string $filePath):
 	}
 	fclose($fh);
 	$db->prepare('UPDATE `shop_docpart_prices` SET `last_updated` = ? WHERE `id` = ?')->execute(array(time(), $priceId));
+	try {
+		$cntQ = $db->prepare('SELECT COUNT(*) FROM `shop_docpart_prices_data` WHERE `price_id` = ?');
+		$cntQ->execute(array($priceId));
+		$db->prepare('UPDATE `shop_docpart_prices` SET `records_count` = ? WHERE `id` = ?')
+			->execute(array((int) $cntQ->fetchColumn(), $priceId));
+	} catch (Throwable $e) {
+		// records_count column optional — CP listing falls back to live counts.
+	}
 	return array(
 		'status' => $inserted > 0,
 		'message' => $inserted > 0 ? 'Import completed' : 'No valid rows imported',

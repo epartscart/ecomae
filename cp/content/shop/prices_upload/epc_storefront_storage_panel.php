@@ -5,8 +5,17 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_storage_flags.php';
-epc_ssf_ensure_schema($db_link);
-$epc_ssf_rows = epc_ssf_cp_list_rows($db_link);
+
+// Never ALTER on CP page view (metadata locks → 524). Schema patches belong in setup/AJAX.
+$epc_ssf_rows = array();
+$epc_ssf_panel_error = '';
+try {
+	epc_ssf_ensure_schema($db_link, false);
+	$epc_ssf_rows = epc_ssf_cp_list_rows($db_link);
+} catch (Throwable $e) {
+	$epc_ssf_panel_error = $e->getMessage();
+	$epc_ssf_rows = array();
+}
 
 $epc_ssf_audit = array();
 try {
@@ -26,6 +35,11 @@ try {
 			<i class="fa fa-store"></i> Storefront availability — warehouses &amp; price lists
 		</div>
 		<div class="panel-body">
+			<?php if ($epc_ssf_panel_error !== ''): ?>
+			<p class="alert alert-danger" style="margin-bottom:12px;">
+				Storefront toggles unavailable right now (<?php echo htmlspecialchars($epc_ssf_panel_error, ENT_QUOTES, 'UTF-8'); ?>). Price lists below still load.
+			</p>
+			<?php endif; ?>
 			<p class="alert alert-warning" style="margin-bottom:12px;">
 				<strong>Temporary disable for storefront</strong> — hides a warehouse or price list from part search and pricing on the public site.
 				CP price management is unchanged; data is not deleted. Set the switch, then click <strong>Save</strong> — changes apply to the public storefront immediately after save.

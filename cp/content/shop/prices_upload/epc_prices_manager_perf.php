@@ -88,6 +88,12 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 		}
 		$done = true;
 
+		// Page view: never SHOW INDEX / ALTER on huge prices_data.
+		// Metadata locks + FPM pile-up caused host load ~38 and CP-wide 524s.
+		if (!$allowAlter) {
+			return;
+		}
+
 		$dbName = '';
 		try {
 			$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
@@ -95,7 +101,7 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 			$dbName = 'db';
 		}
 		$cacheFile = rtrim(sys_get_temp_dir(), '/') . '/epc_prices_listing_idx_' . md5($dbName) . '.ok';
-		if (!$allowAlter && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 86400) {
+		if (is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 86400) {
 			return;
 		}
 
@@ -109,13 +115,6 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 			$q2->execute(array('x_price_id'));
 			$needCron = !$q2->fetch();
 		} catch (Exception $e) {
-			return;
-		}
-
-		if (!$allowAlter) {
-			// Page load: never ALTER (locks millions of rows → Cloudflare 524).
-			// Cache the probe so we do not SHOW INDEX on every request.
-			@file_put_contents($cacheFile, ($needData || $needCron) ? 'missing' : 'ok');
 			return;
 		}
 
@@ -155,11 +154,54 @@ if (!function_exists('epc_prices_table_has_column')) {
 	}
 }
 
+if (!function_exists('epc_prices_live_counts_map')) {
+	/**
+	 * Row counts per price list via the x_price_id index (index-only GROUP BY —
+	 * fast even on 600k+ rows; there are only a handful of lists).
+	 *
+	 * @return array<int, int> price_id => rows, or null on failure.
+	 */
+	function epc_prices_live_counts_map(PDO $db_link): ?array
+	{
+		try {
+			$q = $db_link->query(
+				'SELECT `price_id`, COUNT(*) AS `c` FROM `shop_docpart_prices_data` GROUP BY `price_id`'
+			);
+			$map = array();
+			while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
+				$map[(int) $row['price_id']] = (int) $row['c'];
+			}
+			return $map;
+		} catch (Throwable $e) {
+			return null;
+		}
+	}
+}
+
+if (!function_exists('epc_prices_persist_records_counts')) {
+	/** Opportunistically store live counts into records_count (few rows, cheap). */
+	function epc_prices_persist_records_counts(PDO $db_link, array $counts): void
+	{
+		if (!epc_prices_table_has_column($db_link, 'shop_docpart_prices', 'records_count')) {
+			return;
+		}
+		try {
+			$st = $db_link->prepare('UPDATE `shop_docpart_prices` SET `records_count` = ? WHERE `id` = ?');
+			foreach ($counts as $priceId => $cnt) {
+				$st->execute(array((int) $cnt, (int) $priceId));
+			}
+		} catch (Throwable $e) {
+			// Display still works from the live map.
+		}
+	}
+}
+
 if (!function_exists('epc_prices_fetch_lists_query')) {
 	/**
 	 * Fast listing with resilient fallbacks so the CP table never goes blank.
-	 * Prefer denormalized shop_docpart_prices.records_count — never COUNT(*)
-	 * the prices_data table on page load (524 on epartscart).
+	 * QTY: prefer denormalized records_count; when the column is missing or all
+	 * zeros (e.g. after external imports), fall back to an index-only live count
+	 * so warehouses never show empty QTY.
 	 */
 	function epc_prices_fetch_lists_query(PDO $db_link): PDOStatement
 	{
@@ -204,6 +246,48 @@ if (!function_exists('epc_prices_fetch_lists_query')) {
 		} catch (Throwable $e) {
 			throw $last ?: $e;
 		}
+	}
+}
+
+if (!function_exists('epc_prices_fetch_lists_rows')) {
+	/**
+	 * Listing rows with guaranteed QTY (records_count) per price list.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	function epc_prices_fetch_lists_rows(PDO $db_link): array
+	{
+		$q = epc_prices_fetch_lists_query($db_link);
+		$rows = $q->fetchAll(PDO::FETCH_ASSOC) ?: array();
+		if ($rows === array()) {
+			return $rows;
+		}
+
+		$allZero = true;
+		foreach ($rows as $row) {
+			if ((int) ($row['records_count'] ?? 0) > 0) {
+				$allZero = false;
+				break;
+			}
+		}
+		if (!$allZero) {
+			return $rows;
+		}
+
+		// Denormalized counter empty (column missing or never backfilled after
+		// external imports / Emex cleanup) — use the index-only live count.
+		$live = epc_prices_live_counts_map($db_link);
+		if (!is_array($live) || $live === array()) {
+			return $rows;
+		}
+		foreach ($rows as $i => $row) {
+			$pid = (int) ($row['id'] ?? 0);
+			if ($pid > 0 && isset($live[$pid])) {
+				$rows[$i]['records_count'] = (int) $live[$pid];
+			}
+		}
+		epc_prices_persist_records_counts($db_link, $live);
+		return $rows;
 	}
 }
 
