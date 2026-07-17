@@ -19,12 +19,13 @@ if (!function_exists('epc_prices_is_platform_operator_request')) {
 }
 
 if (!function_exists('epc_prices_should_run_tables_cleaner')) {
-	/** Avoid DELETE locks on every Super CP page view; cron still cleans. */
+	/**
+	 * Avoid DELETE locks on every prices manager page view (platform + tenants).
+	 * Large tenants (epartscart) were running the cleaner on every load → slow CP.
+	 * Cron / ?epc_clean_pyprices=1 still cleans; otherwise ~1/40 chance.
+	 */
 	function epc_prices_should_run_tables_cleaner(): bool
 	{
-		if (!epc_prices_is_platform_operator_request()) {
-			return true;
-		}
 		return isset($_GET['epc_clean_pyprices']) || (mt_rand(1, 40) === 1);
 	}
 }

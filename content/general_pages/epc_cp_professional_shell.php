@@ -9,7 +9,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 
 function epc_cp_shell_css_version()
 {
-	return '20260715erpGlass2';
+	return '20260716cpFast1';
 }
 
 /** True on www.ecomae.com where nginx often 404s static /cp/templates/*.css. */
@@ -1472,10 +1472,18 @@ function epc_cp_login_hero_markup()
 }
 
 /**
- * Inline CP styles when static asset URLs 404 (mirrors ERP shell pattern).
+ * Emergency inline CP styles — only when enqueue cannot serve CSS.
+ *
+ * Historically this always inlined ~200KB (ui + professional + hub logo) even
+ * after epc_cp_shell_enqueue_assets() already emitted cacheable <link> tags.
+ * On epartscart that doubled login/desktop HTML to ~237KB and slowed every CP
+ * first paint. Opt-in: ?epc_cp_inline_css=1
  */
 function epc_cp_shell_inline_style_block()
 {
+	if (empty($_GET['epc_cp_inline_css'])) {
+		return '';
+	}
 	global $DP_Config;
 	$root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
 	if ($root === '') {
