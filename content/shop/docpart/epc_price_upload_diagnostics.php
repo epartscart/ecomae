@@ -7,6 +7,24 @@ defined('_ASTEXE_') or define('_ASTEXE_', true);
 require_once __DIR__ . '/docpart_price_upload_history.php';
 
 /**
+ * Canonical pyprices HTTP endpoint.
+ *
+ * nginx serves /pyprices/api.py as a static file (GET only → HTTP 405 on POST).
+ * The PHP CGI bridge executes api.py reliably on Linux.
+ */
+function epc_pyprices_api_url(string $domainPath = ''): string
+{
+	$domain = trim($domainPath);
+	if ($domain === '' && isset($GLOBALS['DP_Config']) && is_object($GLOBALS['DP_Config'])) {
+		$domain = (string) ($GLOBALS['DP_Config']->domain_path ?? '');
+	}
+	if ($domain === '') {
+		return '/pyprices/pyprices-api.php';
+	}
+	return rtrim($domain, '/') . '/pyprices/pyprices-api.php';
+}
+
+/**
  * @return array<string,mixed>
  */
 function epc_price_upload_diagnostics_snapshot(PDO $db, array $config)
@@ -122,7 +140,7 @@ function epc_price_upload_channel_definitions(array $config)
 			'id' => 'pyprices_pc',
 			'title' => 'Pyprices — file from PC (manager row)',
 			'load_mode' => 1,
-			'engine' => 'pyprices/api.py + upload_file.php',
+			'engine' => 'pyprices/pyprices-api.php + upload_file.php',
 			'cp_url' => '/' . $backend . '/shop/prices',
 			'config_url' => '/' . $backend . '/shop/prices/price?price_id={id}',
 			'upload_source' => 'pyprices_upload',
@@ -133,7 +151,7 @@ function epc_price_upload_channel_definitions(array $config)
 			'id' => 'pyprices_ftp',
 			'title' => 'Pyprices — FTP',
 			'load_mode' => 2,
-			'engine' => 'pyprices/api.py (ftp)',
+			'engine' => 'pyprices/pyprices-api.php (ftp)',
 			'cp_url' => '/' . $backend . '/shop/prices',
 			'config_url' => '/' . $backend . '/shop/prices/price?price_id={id}',
 			'upload_source' => 'pyprices_ftp',
@@ -144,7 +162,7 @@ function epc_price_upload_channel_definitions(array $config)
 			'id' => 'pyprices_email',
 			'title' => 'Pyprices — E-mail',
 			'load_mode' => 3,
-			'engine' => 'pyprices/api.py (email/IMAP)',
+			'engine' => 'pyprices/pyprices-api.php (email/IMAP)',
 			'cp_url' => '/' . $backend . '/shop/prices',
 			'config_url' => '/' . $backend . '/shop/prices/price?price_id={id}',
 			'upload_source' => 'pyprices_email',
@@ -155,7 +173,7 @@ function epc_price_upload_channel_definitions(array $config)
 			'id' => 'pyprices_url',
 			'title' => 'Pyprices — URL / link',
 			'load_mode' => 4,
-			'engine' => 'pyprices/api.py (url) or wizard download',
+			'engine' => 'pyprices/pyprices-api.php (url) or wizard download',
 			'cp_url' => '/' . $backend . '/shop/prices',
 			'config_url' => '/' . $backend . '/shop/prices/price?price_id={id}',
 			'upload_source' => 'pyprices_url',
@@ -231,14 +249,19 @@ function epc_price_upload_run_health_checks(array $config)
 	$docRoot = (string)(isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '');
 	$checks = [];
 
-	$pyUrl = $domain . '/pyprices/api.py';
-	$pyGet = epc_price_upload_curl_json($pyUrl, null, 8);
+	$pyUrl = epc_pyprices_api_url($domain);
+	$pyDb = epc_price_upload_curl_json(
+		$pyUrl,
+		array('key' => isset($config['tech_key']) ? $config['tech_key'] : '', 'just_test_db' => 'yes'),
+		10
+	);
 	$checks['pyprices_api_reachable'] = [
-		'ok' => isset($pyGet['status']) && array_key_exists('list_to_handle', $pyGet),
-		'detail' => isset($pyGet['status']) ? 'API responded' : ('Response: ' . substr(json_encode($pyGet), 0, 200)),
+		'ok' => isset($pyDb['status']) && array_key_exists('list_to_handle', $pyDb),
+		'detail' => !empty($pyDb['status'])
+			? ('API responded via ' . $pyUrl)
+			: ('Response: ' . substr(json_encode($pyDb), 0, 200)),
 	];
 
-	$pyDb = epc_price_upload_curl_json($pyUrl, array('key' => isset($config['tech_key']) ? $config['tech_key'] : '', 'just_test_db' => 'yes'), 10);
 	$checks['pyprices_db'] = [
 		'ok' => !empty($pyDb['status']),
 		'detail' => !empty($pyDb['status']) ? 'DB connection from pyprices OK' : (string)(isset($pyDb['message']) ? $pyDb['message'] : json_encode($pyDb)),

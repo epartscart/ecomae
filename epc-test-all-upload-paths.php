@@ -138,7 +138,7 @@ function epc_call_pyprices(array $config, array $listToHandle, int $timeout = 12
         'key' => $config['tech_key'],
         'list_to_handle' => json_encode($listToHandle, JSON_UNESCAPED_UNICODE),
     ]);
-    $ch = curl_init(rtrim($config['domain_path'], '/') . '/pyprices/api.py');
+    $ch = curl_init(rtrim($config['domain_path'], '/') . '/pyprices/pyprices-api.php');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
@@ -197,7 +197,7 @@ if (epc_test_should_run($modesFilter, 'health') || $modesFilter === null) {
 
 if (epc_test_should_run($modesFilter, 'pyprices_db') || ($modesFilter === null)) {
     $pyDb = epc_price_upload_curl_json(
-        rtrim($config['domain_path'], '/') . '/pyprices/api.py',
+        rtrim($config['domain_path'], '/') . '/pyprices/pyprices-api.php',
         ['key' => $config['tech_key'], 'just_test_db' => 'yes'],
         30
     );

@@ -343,7 +343,7 @@ try {
 					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_py_pc" class="collapsed">2. Pyprices — upload file from PC (manager row)</a></h5></div>
 					<div id="guide_py_pc" class="panel-collapse collapse">
 						<div class="panel-body">
-							<p><span class="label label-primary">Engine</span> <code>/pyprices/api.py</code> + <code>upload_file.php</code>. <span class="label label-default">History</span> <code>pyprices_upload</code></p>
+							<p><span class="label label-primary">Engine</span> <code>/pyprices/pyprices-api.php</code> + <code>upload_file.php</code>. <span class="label label-default">History</span> <code>pyprices_upload</code></p>
 							<ol>
 								<li>Ensure pyprices health checks above are OK.</li>
 								<li>On <a href="<?php echo $backend; ?>/shop/prices">Price lists</a>, use the file input on the row (load_mode 1).</li>
