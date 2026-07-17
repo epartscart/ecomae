@@ -11,6 +11,9 @@ RewriteRule ^bos/?$ bos/index.php [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^bos/(.+)$ bos/index.php [QSA,L]
 
+# Warehouse product sitemaps for Google (fast cached shards → /en/parts/{BRAND}/{ARTICLE})
+RewriteRule ^sitemap-warehouse-([0-9]+)\.xml$ sitemap-warehouse.php?n=$1 [L,QSA]
+
 #Убираем / в конце URL (skip /bos/)
 RewriteCond %{REQUEST_URI} !^/bos [NC]
 RewriteCond %{HTTP_HOST} (.*)

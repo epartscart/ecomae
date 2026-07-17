@@ -50,14 +50,16 @@ $sites = array(
 		'sitemap' => 'https://www.epartscart.com/sitemap-index.php',
 		'also_submit' => array(
 			'https://www.epartscart.com/sitemap-products.php',
+			'https://www.epartscart.com/sitemap-warehouse-0.xml',
 		),
 		'sample_urls' => array(
 			'https://www.epartscart.com/en/parts',
 			'https://www.epartscart.com/en/available-brands',
 			'https://www.epartscart.com/en/parts/GMB/GUT21',
-			'https://www.epartscart.com/sitemap-products.php?brand=GMB',
+			'https://www.epartscart.com/sitemap-warehouse-0.xml',
 		),
-		'note' => 'Child maps list warehouse URLs as /en/parts/{BRAND}/{ARTICLE} (e.g. /en/parts/GMB/GUT21). Do not submit /en/parts/brands/{article} — that path redirects and is Disallow in robots.txt.',
+		'note' => 'Warm caches first: /epc-seo-sitemap-warm.php?token=… then resubmit sitemap-index.php. Children are sitemap-warehouse-0.xml … (~27 shards × 5000) with /en/parts/{BRAND}/{ARTICLE}. Do not use /en/parts/brands/{article}.',
+		'warm' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026',
 	),
 );
 

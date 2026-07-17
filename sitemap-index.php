@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/epc_sitemap_lib.php';
 require_once __DIR__ . '/content/general_pages/epc_seo_indexing.php';
+require_once __DIR__ . '/content/general_pages/epc_sitemap_warehouse.php';
 
 $cfg = new DP_Config();
 $lastmod = date('Y-m-d');
@@ -28,7 +29,6 @@ if ($isIndustryHost) {
 	$base = $requestBase;
 } elseif (epc_seo_is_ecomae_marketing_host()) {
 	// ALL industry hubs + every sub-industry: submit sitemap-industries.php in GSC.
-	// Per-hub maps (energy only, etc.) remain on each subdomain's /sitemap.xml.
 	$childMaps = array(
 		'sitemap-industries.php',
 		'sitemap-marketing.php',
@@ -37,72 +37,31 @@ if ($isIndustryHost) {
 	);
 	$base = epc_sitemap_base_url($cfg);
 } else {
-	// Tenant / warehouse (epartscart): pages + brand hub map + per-brand article maps.
+	// Tenant / warehouse (epartscart):
+	// pages + brand hub + cached warehouse shards (/en/parts/{BRAND}/{ARTICLE}).
+	// Use ~27 path-based sitemap-warehouse-N.xml children (not 1000+ ?brand= maps)
+	// so Google can finish crawling and reach ~133k SKUs.
 	$childMaps = array(
 		'sitemap-pages.php',
 		'sitemap-products.php',
 	);
 	$base = epc_sitemap_base_url($cfg);
 
-	$pdo = epc_sitemap_pdo($cfg);
-	if ($pdo instanceof PDO) {
-		try {
-			$priceClause = epc_seo_sitemap_price_clause($pdo);
-			if ($priceClause !== '' && strpos($priceClause, 'd.`price`') === false) {
-				$priceClause = str_replace('`price`', 'd.`price`', $priceClause);
-			}
-			$storefrontPriceFilter = '';
-			if (function_exists('epc_ssf_price_data_active_sql')) {
-				require_once __DIR__ . '/content/shop/docpart/epc_storefront_storage_flags.php';
-				epc_ssf_ensure_schema($pdo);
-				$storefrontPriceFilter = ' AND ' . epc_ssf_price_data_active_sql('d');
-			}
-
-			// One child sitemap per in-stock brand → full brand/article coverage.
-			// Faster and more reliable than OFFSET shards (which returned empty urlsets).
-			$brand_stmt = $pdo->query(
-				'SELECT DISTINCT TRIM(d.`manufacturer`) AS manufacturer
-				FROM `shop_docpart_prices_data` d
-				WHERE TRIM(IFNULL(d.`manufacturer`, \'\')) != \'\'
-				AND TRIM(IFNULL(d.`article`, \'\')) != \'\'
-				AND IFNULL(d.`exist`, 0) > 0' . $priceClause . $storefrontPriceFilter . '
-				ORDER BY manufacturer ASC
-				LIMIT 5000'
-			);
-			$brandCount = 0;
-			while ($brand = $brand_stmt->fetch(PDO::FETCH_ASSOC)) {
-				$mfr = trim((string) ($brand['manufacturer'] ?? ''));
-				if ($mfr === '') {
-					continue;
-				}
-				$childMaps[] = 'sitemap-products.php?brand=' . rawurlencode($mfr);
-				$brandCount++;
-			}
-
-			// Fallback: if brand list empty, keep numeric shards for discovery.
-			if ($brandCount === 0) {
-				$productCount = (int) $pdo->query(
-					'SELECT COUNT(*) FROM (
-						SELECT 1
-						FROM `shop_docpart_prices_data` d
-						WHERE TRIM(IFNULL(d.`manufacturer`, \'\')) != \'\'
-						AND TRIM(IFNULL(d.`article`, \'\')) != \'\'
-						AND IFNULL(d.`exist`, 0) > 0' . $priceClause . $storefrontPriceFilter . '
-						GROUP BY TRIM(d.`manufacturer`), TRIM(d.`article`)
-					) t'
-				)->fetchColumn();
-				$shardSize = 5000;
-				$shards = $productCount > 0 ? (int) ceil($productCount / $shardSize) : 0;
-				if ($shards > 40) {
-					$shards = 40;
-				}
-				for ($i = 0; $i < $shards; $i++) {
-					$childMaps[] = 'sitemap-products.php?shard=' . $i;
-				}
-			}
-		} catch (Throwable $e) {
-			// Index still lists pages + products hub.
+	$shards = 0;
+	$meta = epc_sitemap_warehouse_meta_read();
+	if ($meta['shards'] > 0) {
+		$shards = (int) $meta['shards'];
+	} else {
+		$pdo = epc_sitemap_pdo($cfg);
+		if ($pdo instanceof PDO) {
+			$shards = epc_sitemap_warehouse_estimate_shards($pdo);
 		}
+	}
+	if ($shards > epc_sitemap_warehouse_max_shards()) {
+		$shards = epc_sitemap_warehouse_max_shards();
+	}
+	for ($i = 0; $i < $shards; $i++) {
+		$childMaps[] = 'sitemap-warehouse-' . $i . '.xml';
 	}
 }
 

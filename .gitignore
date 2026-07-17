@@ -37,3 +37,6 @@ node_modules/
 config.epc-smtp.php
 epc-operator-update.php
 epc-operator-probe.php
+
+# Generated warehouse sitemaps (epc-seo-sitemap-warm.php)
+/sitemap-warehouse-*.xml
