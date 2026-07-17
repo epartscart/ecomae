@@ -92,6 +92,69 @@ check('industries hub uses seo site url', strpos($pages, 'epc_industry_seo_site_
 $sm = (string) file_get_contents($root . '/sitemap-marketing.php');
 check('sitemap-marketing includes industry abs urls', strpos($sm, 'epc_industry_seo_sitemap_entries') !== false);
 
+section('Sitemap discovery (robots + index)');
+$robots = (string) file_get_contents($root . '/robots.txt');
+check('robots advertises /sitemap.xml', preg_match('/^Sitemap:\s*\/sitemap\.xml\s*$/mi', $robots) === 1);
+check('robots still has sitemap-index', stripos($robots, 'sitemap-index.php') !== false);
+check('robots advertises all-industries sitemap', stripos($robots, 'sitemap-industries.php') !== false);
+check('all-industries sitemap file exists', is_file($root . '/sitemap-industries.php'));
+$indSrc = (string) file_get_contents($root . '/sitemap-industries.php');
+check('all-industries uses seo entries helper', strpos($indSrc, 'epc_industry_seo_sitemap_entries') !== false);
+$idxSrcPre = (string) file_get_contents($root . '/sitemap-index.php');
+check('www index lists sitemap-industries.php', strpos($idxSrcPre, 'sitemap-industries.php') !== false);
+
+$_SERVER['HTTP_HOST'] = 'energy.ecomae.com';
+$_SERVER['HTTPS'] = 'on';
+check('energy detected as industry host', epc_industry_seo_is_industry_host());
+check('energy request base', epc_industry_seo_request_host_base() === 'https://energy.ecomae.com');
+$_SERVER['HTTP_HOST'] = 'www.ecomae.com';
+check('www is not industry host', !epc_industry_seo_is_industry_host());
+check('www request base empty (fallback to platform)', epc_industry_seo_request_host_base() === '');
+
+$idxSrc = (string) file_get_contents($root . '/sitemap-index.php');
+check('sitemap-index uses industry host helper', strpos($idxSrc, 'epc_sitemap_is_industry_host') !== false);
+check('sitemap-index emits sitemap.xml for industry hosts', strpos($idxSrc, "array('sitemap.xml')") !== false);
+// Simulate energy host child-map selection (mirrors sitemap-index.php branch).
+$_SERVER['HTTP_HOST'] = 'energy.ecomae.com';
+$_SERVER['HTTPS'] = 'on';
+$childMaps = epc_industry_seo_is_industry_host() ? array('sitemap.xml') : array('sitemap-pages.php', 'sitemap-products.php');
+$base = epc_industry_seo_request_host_base();
+check('energy child map is self sitemap.xml', $childMaps === array('sitemap.xml'));
+check('energy child loc', $base . '/' . $childMaps[0] === 'https://energy.ecomae.com/sitemap.xml');
+
+$ping = (string) file_get_contents($root . '/epc-seo-sitemap-ping.php');
+check('GSC ping guide includes energy hub', strpos($ping, 'energy.ecomae.com') !== false);
+check('GSC ping guide includes biomass URL', strpos($ping, 'biomass-bioenergy') !== false);
+check('GSC guide submits all-industries sitemap', strpos($ping, 'sitemap-industries.php') !== false);
+check('GSC guide notes energy is energy-only', strpos($ping, 'ENERGY ONLY') !== false);
+
+// Smoke: generate all-industries entries (needs _ASTEXE_ + consolidation).
+if (!defined('_ASTEXE_')) {
+	define('_ASTEXE_', 1);
+}
+require_once $root . '/content/general_pages/epc_industry_consolidation.php';
+$allEntries = epc_industry_seo_sitemap_entries();
+check('all-industries entry count > 100', count($allEntries) > 100);
+$hosts = array();
+foreach ($allEntries as $row) {
+	$h = (string) (parse_url((string) $row[0], PHP_URL_HOST) ?: '');
+	if ($h !== '') {
+		$hosts[$h] = true;
+	}
+}
+check('all-industries includes energy host', isset($hosts['energy.ecomae.com']));
+check('all-industries includes jewellery host', isset($hosts['jewellery.ecomae.com']));
+check('all-industries includes automotive host', isset($hosts['automotive.ecomae.com']));
+check('all-industries has many hubs', count($hosts) >= 20);
+$biomassFound = false;
+foreach ($allEntries as $row) {
+	if (strpos((string) $row[0], 'biomass-bioenergy') !== false) {
+		$biomassFound = true;
+		break;
+	}
+}
+check('all-industries lists biomass-bioenergy', $biomassFound);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
 exit($fail_count > 0 ? 1 : 0);

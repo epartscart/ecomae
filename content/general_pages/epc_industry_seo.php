@@ -311,3 +311,48 @@ function epc_industry_seo_match_request_sub(array $subIndustries): ?array
 	}
 	return null;
 }
+
+/**
+ * Current HTTP host (no port), lowercased.
+ */
+function epc_industry_seo_request_host(): string
+{
+	$host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? '')));
+	if ($host !== '' && strpos($host, ':') !== false) {
+		$host = explode(':', $host, 2)[0];
+	}
+	return $host;
+}
+
+/**
+ * True for industry marketing subdomains (energy.ecomae.com, jewellery.ecomae.com, …).
+ * www / apex are not industry hosts.
+ */
+function epc_industry_seo_is_industry_host(?string $host = null): bool
+{
+	$host = strtolower(trim((string) ($host ?? epc_industry_seo_request_host())));
+	if ($host === '' || $host === 'www.ecomae.com' || $host === 'ecomae.com') {
+		return false;
+	}
+	if (!preg_match('/^([a-z0-9][a-z0-9_-]*)\.ecomae\.com$/', $host, $m)) {
+		return false;
+	}
+	$reserved = array('www', 'cp', 'api', 'mail', 'smtp', 'ftp', 'ns1', 'ns2', 'cdn', 'admin', 'www1', 'asap');
+	return !in_array($m[1], $reserved, true);
+}
+
+/**
+ * Absolute origin for the current request host when it is an industry subdomain.
+ * Empty string when not an industry host (caller should fall back to platform domain_path).
+ */
+function epc_industry_seo_request_host_base(): string
+{
+	$host = epc_industry_seo_request_host();
+	if (!epc_industry_seo_is_industry_host($host)) {
+		return '';
+	}
+	$https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+		|| ((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+		|| ((string) ($_SERVER['SERVER_PORT'] ?? '') === '443');
+	return ($https ? 'https://' : 'http://') . $host;
+}
