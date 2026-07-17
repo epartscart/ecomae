@@ -533,11 +533,12 @@ function epc_ecomae_platform_page_industries()
 .epm-ind-card__expand:hover{color:#1d4ed8}
 .epm-ind-card__expand i{transition:transform .3s}
 .epm-ind-card.expanded .epm-ind-card__expand i{transform:rotate(180deg)}
-/* Dedicated sub-industry showcase */
+/* Dedicated sub-industry showcase — light text on dark epm-body shell */
 .epm-subhub{max-width:1400px;margin:0 auto;padding:56px 24px 20px}
 .epm-subhub__head{text-align:center;margin-bottom:28px}
-.epm-subhub__head h2{font-size:clamp(24px,3vw,32px);font-weight:800;color:#0f172a;margin:0 0 10px}
-.epm-subhub__head p{color:#64748b;font-size:15px;margin:0 auto;max-width:720px;line-height:1.6}
+.epm-subhub__head h2{font-size:clamp(24px,3vw,32px);font-weight:800;color:#f8fafc;margin:0 0 10px;letter-spacing:-.02em;text-shadow:0 1px 18px rgba(14,165,233,.18)}
+.epm-subhub__head p{color:#cbd5e1;font-size:15px;margin:0 auto;max-width:720px;line-height:1.6}
+.epm-subhub__head p a{color:#38bdf8;font-weight:700}
 .epm-subhub__featured{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:36px}
 .epm-feat-sub{
 	display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:16px;border:1px solid #e2e8f0;
@@ -579,8 +580,8 @@ function epc_ecomae_platform_page_industries()
 }
 /* Best Fit section */
 .epm-bestfit{max-width:1400px;margin:0 auto;padding:60px 24px;text-align:center}
-.epm-bestfit h2{font-size:28px;font-weight:800;color:#0f172a;margin:0 0 12px}
-.epm-bestfit p{color:#64748b;font-size:15px;margin:0 0 32px}
+.epm-bestfit h2{font-size:28px;font-weight:800;color:#f8fafc;margin:0 0 12px}
+.epm-bestfit p{color:#cbd5e1;font-size:15px;margin:0 0 32px}
 .epm-bestfit__result{display:none;margin:20px auto;max-width:600px;padding:24px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:2px solid #3b82f6;border-radius:16px;text-align:left}
 .epm-bestfit__result.active{display:block;animation:epmFadeUp .4s ease-out}
 .epm-bestfit__result h3{font-size:18px;font-weight:700;color:#1e293b;margin:0 0 6px}
@@ -588,7 +589,7 @@ function epc_ecomae_platform_page_industries()
 .epm-bestfit__result .match-score{color:#059669;font-weight:700;font-size:14px}
 /* What's Included */
 .epm-included{max-width:1400px;margin:0 auto;padding:60px 24px}
-.epm-included h2{font-size:28px;font-weight:800;color:#0f172a;text-align:center;margin:0 0 40px}
+.epm-included h2{font-size:28px;font-weight:800;color:#f8fafc;text-align:center;margin:0 0 40px}
 .epm-included__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
 .epm-included__item{padding:28px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;border:1px solid rgba(255,255,255,.06)}
 .epm-included__item h4{color:#38bdf8;font-size:14px;margin:0 0 12px}
@@ -687,7 +688,7 @@ function epc_ecomae_platform_page_industries()
 </div>
 <?php endforeach; ?>
 </div>
-<p style="text-align:center;margin:0 0 8px;padding:0 24px;font-size:13px;color:#64748b"><?php echo (int) $portalIndustryCount; ?> client industries · <a href="#hubGrid" style="color:#0284c7;font-weight:600">Browse <?php echo (int) $groupCount; ?> consolidation hubs below</a></p>
+<p style="text-align:center;margin:0 0 8px;padding:0 24px;font-size:13px;color:#94a3b8"><?php echo (int) $portalIndustryCount; ?> client industries · <a href="#hubGrid" style="color:#38bdf8;font-weight:600">Browse <?php echo (int) $groupCount; ?> consolidation hubs below</a></p>
 
 <!-- Secondary: consolidation hub cards -->
 <section class="epm-subhub epm-reveal" id="industry-hubs" style="padding-top:40px;padding-bottom:0">
@@ -852,8 +853,8 @@ function epc_ecomae_platform_page_industries()
 
 <!-- Live Client Sites -->
 <section class="epm-reveal" style="padding:60px 24px;max-width:1400px;margin:0 auto">
-<h2 style="font-size:28px;font-weight:800;color:#0f172a;text-align:center;margin:0 0 12px">Live Client Sites</h2>
-<p style="color:#64748b;font-size:15px;text-align:center;margin:0 0 36px">Real businesses running on ecomae platform — see the same technology powering diverse industries</p>
+<h2 style="font-size:28px;font-weight:800;color:#f8fafc;text-align:center;margin:0 0 12px">Live Client Sites</h2>
+<p style="color:#cbd5e1;font-size:15px;text-align:center;margin:0 0 36px">Real businesses running on ecomae platform — see the same technology powering diverse industries</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px">
 <?php
 $liveClients = array(
