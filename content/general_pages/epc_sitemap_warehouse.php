@@ -121,7 +121,135 @@ function epc_sitemap_warehouse_url_xml(DP_Config $cfg, string $lang, string $bra
 }
 
 /**
+ * Write one shard XML body to cache + public static path.
+ */
+function epc_sitemap_warehouse_write_shard_file(int $shard, string $body): void
+{
+	@file_put_contents(epc_sitemap_warehouse_cache_path($shard), $body);
+	@file_put_contents(epc_sitemap_warehouse_public_path($shard), $body);
+}
+
+/**
+ * Regenerate a single shard (Cloudflare-safe — finishes in one short request).
+ *
+ * @return array{shard:int,urls:int,bytes:int,error:string,done:bool}
+ */
+function epc_sitemap_warehouse_regenerate_shard(DP_Config $cfg, PDO $pdo, int $shard): array
+{
+	require_once dirname(__DIR__, 2) . '/epc_sitemap_lib.php';
+	require_once dirname(__DIR__, 2) . '/content/shop/docpart/docpart_article_match.php';
+
+	@set_time_limit(120);
+	@ini_set('memory_limit', '512M');
+
+	if ($shard < 0 || $shard >= epc_sitemap_warehouse_max_shards()) {
+		return array('shard' => $shard, 'urls' => 0, 'bytes' => 0, 'error' => 'invalid shard', 'done' => true);
+	}
+
+	$lang = epc_sitemap_lang();
+	$lastmod = date('Y-m-d');
+	$shardSize = epc_sitemap_warehouse_shard_size();
+	$offset = $shard * $shardSize;
+	list($priceClause, $storefrontPriceFilter) = epc_sitemap_warehouse_price_filters($pdo);
+
+	$sql = 'SELECT manufacturer, article FROM (
+			SELECT TRIM(d.`manufacturer`) AS manufacturer,
+				TRIM(d.`article`) AS article
+			FROM `shop_docpart_prices_data` d
+			WHERE TRIM(IFNULL(d.`manufacturer`, \'\')) != \'\'
+			AND TRIM(IFNULL(d.`article`, \'\')) != \'\'
+			AND IFNULL(d.`exist`, 0) > 0' . $priceClause . $storefrontPriceFilter . '
+			GROUP BY TRIM(d.`manufacturer`), TRIM(d.`article`)
+		) t
+		ORDER BY manufacturer ASC, article ASC
+		LIMIT ' . (int) $shardSize . ' OFFSET ' . (int) $offset;
+
+	try {
+		$stmt = $pdo->query($sql);
+	} catch (Throwable $e) {
+		return array('shard' => $shard, 'urls' => 0, 'bytes' => 0, 'error' => $e->getMessage(), 'done' => false);
+	}
+
+	$body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+	$body .= "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
+	$urls = 0;
+	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$mfr = trim((string) ($row['manufacturer'] ?? ''));
+		$art = trim((string) ($row['article'] ?? ''));
+		if ($mfr === '' || $art === '') {
+			continue;
+		}
+		$xml = epc_sitemap_warehouse_url_xml($cfg, $lang, $mfr, $art, $lastmod);
+		if ($xml === '') {
+			continue;
+		}
+		$body .= $xml;
+		$urls++;
+	}
+	$body .= "</urlset>\n";
+
+	// Empty shard means we are past the end of stock.
+	if ($urls === 0) {
+		@unlink(epc_sitemap_warehouse_cache_path($shard));
+		@unlink(epc_sitemap_warehouse_public_path($shard));
+		epc_sitemap_warehouse_meta_refresh_from_files();
+		return array('shard' => $shard, 'urls' => 0, 'bytes' => 0, 'error' => '', 'done' => true);
+	}
+
+	epc_sitemap_warehouse_write_shard_file($shard, $body);
+	epc_sitemap_warehouse_meta_refresh_from_files();
+
+	return array(
+		'shard' => $shard,
+		'urls' => $urls,
+		'bytes' => strlen($body),
+		'error' => '',
+		'done' => $urls < $shardSize,
+	);
+}
+
+/** Recount shards/urls from files on disk into meta.json */
+function epc_sitemap_warehouse_meta_refresh_from_files(): void
+{
+	$root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? dirname(__DIR__, 2)), '/');
+	$files = glob($root . '/sitemap-warehouse-*.xml') ?: array();
+	$shards = 0;
+	$urls = 0;
+	foreach ($files as $file) {
+		if (!preg_match('/sitemap-warehouse-(\d+)\.xml$/', $file, $m)) {
+			continue;
+		}
+		$shards = max($shards, ((int) $m[1]) + 1);
+		$raw = (string) @file_get_contents($file);
+		$urls += substr_count($raw, '<url>');
+	}
+	epc_sitemap_warehouse_meta_write(array(
+		'shards' => $shards,
+		'urls' => $urls,
+		'generated_at' => gmdate('c'),
+		'shard_size' => epc_sitemap_warehouse_shard_size(),
+	));
+}
+
+/**
+ * Count public shard files that already exist.
+ */
+function epc_sitemap_warehouse_existing_shard_count(): int
+{
+	$root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? dirname(__DIR__, 2)), '/');
+	$files = glob($root . '/sitemap-warehouse-*.xml') ?: array();
+	$max = -1;
+	foreach ($files as $file) {
+		if (preg_match('/sitemap-warehouse-(\d+)\.xml$/', $file, $m)) {
+			$max = max($max, (int) $m[1]);
+		}
+	}
+	return $max >= 0 ? $max + 1 : 0;
+}
+
+/**
  * Regenerate all warehouse shard cache files in one forward scan (no OFFSET).
+ * Prefer epc_sitemap_warehouse_regenerate_shard() behind Cloudflare (avoids 524).
  *
  * @return array{shards:int,urls:int,error:string}
  */
