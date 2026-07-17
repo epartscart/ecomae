@@ -5239,7 +5239,7 @@ body.epc-cp-shell.epc-cp-modern,
 body.epc-cp-shell.epc-cp--blue-theme {
 	--epc-cp-header-h: 56px;
 	--epc-cp-sidebar-w-expanded: 240px;
-	--epc-cp-chrome-font: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+	--epc-cp-chrome-font: system-ui, -apple-system, "Segoe UI", BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
