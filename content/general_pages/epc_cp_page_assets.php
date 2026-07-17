@@ -233,6 +233,11 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver),
 			),
 		),
+		'shop/orders/statuses' => array(
+			'css' => array(
+				'/content/general_pages/epc_statuses_cp_css.php?v=' . rawurlencode($ver),
+			),
+		),
 		'shop/orders/order' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/order_process/order_card_config.php?v=' . rawurlencode($ver),
