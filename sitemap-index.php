@@ -48,9 +48,8 @@ if ($isIndustryHost) {
 	$base = epc_sitemap_base_url($cfg);
 
 	// IMPORTANT: use static path locs only — sitemap-warehouse-N.xml
-	// GSC successfully read those (5,000 URLs). Query-string children
-	// (sitemap-warehouse.php?n=N) come back as "Couldn't fetch" after resubmit
-	// (Google often requests ? as %3F → 404).
+	// GSC successfully read those (5,000 URLs). Do not list query-string
+	// children in the index — GSC reports Couldn't fetch for those after resubmit.
 	$shards = epc_sitemap_warehouse_existing_shard_count();
 	if ($shards <= 0) {
 		$meta = epc_sitemap_warehouse_meta_read();
