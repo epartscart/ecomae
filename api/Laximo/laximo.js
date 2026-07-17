@@ -136,15 +136,21 @@ var Laximo = {
         var sortedLetters = Object.keys(letters).sort();
 
         var html = '';
-        // VIN search bar
+        // Section 1: VIN / Frame search
+        html += '<section class="laximo-section laximo-section--vin" aria-label="VIN search">';
+        html += '<h2 class="laximo-section__title">1. Search by VIN / Frame</h2>';
+        html += '<p class="laximo-section__lead">Enter a chassis VIN or frame number to find the matching vehicle catalog.</p>';
         html += '<div class="laximo-vin-search">';
-        html += '<label>Search by VIN / Frame Number</label>';
-        html += '<div class="input-group" style="display:flex;max-width:450px;">';
+        html += '<label for="laximo_vin_input">VIN / Frame number</label>';
+        html += '<div class="input-group" style="display:flex;max-width:480px;">';
         html += '<input type="text" id="laximo_vin_input" placeholder="Enter VIN or Frame number..." style="flex:1;border:1px solid #ddd;padding:8px 12px;border-radius:4px 0 0 4px;font-size:14px;" />';
-        html += '<button class="laximo-search-bar btn-search" onclick="Laximo.searchVin()" style="background:#337ab7;color:#fff;border:1px solid #337ab7;padding:8px 16px;border-radius:0 4px 4px 0;cursor:pointer;">Search</button>';
-        html += '</div></div>';
+        html += '<button type="button" class="laximo-search-bar btn-search" onclick="Laximo.searchVin()" style="background:#337ab7;color:#fff;border:1px solid #337ab7;padding:8px 16px;border-radius:0 4px 4px 0;cursor:pointer;">Search</button>';
+        html += '</div></div></section>';
 
-        // Alpha filter
+        // Section 2: Brand / OEM catalogs
+        html += '<section class="laximo-section laximo-section--brands" aria-label="Brand catalogs">';
+        html += '<h2 class="laximo-section__title">2. Browse by manufacturer</h2>';
+        html += '<p class="laximo-section__lead">Choose a brand to open the OEM parts catalog wizard.</p>';
         html += '<div class="laximo-alpha-filter">';
         html += '<span class="alpha-btn all' + (this.alphaFilter === 'all' ? ' active' : '') + '" onclick="Laximo.filterBrands(\'all\')">ALL</span>';
         for (var j = 0; j < sortedLetters.length; j++) {
@@ -152,7 +158,6 @@ var Laximo = {
         }
         html += '</div>';
 
-        // Brands grid
         html += '<div class="laximo-brands-grid">';
         for (var k = 0; k < catalogs.length; k++) {
             var cat = catalogs[k];
@@ -172,7 +177,11 @@ var Laximo = {
             html += '<div class="brand-name">' + self.escHtml(catName) + '</div>';
             html += '</div>';
         }
-        html += '</div>';
+        html += '</div></section>';
+
+        if (!catalogs.length) {
+            html += '<div class="laximo-error">No manufacturer catalogs returned. Check Laximo connection / credentials.</div>';
+        }
 
         document.getElementById(this.containerId).innerHTML = html;
     },
