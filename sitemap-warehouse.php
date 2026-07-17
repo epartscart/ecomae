@@ -28,7 +28,7 @@ if ($n < 0) {
 	$n = 0;
 }
 
-// Fast path: serve pre-warmed static/cache file.
+// Fast path: serve pre-warmed static/cache file with GSC-friendly content-type.
 if (epc_sitemap_warehouse_serve_cached($n)) {
 	exit;
 }

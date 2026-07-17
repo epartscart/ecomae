@@ -47,24 +47,30 @@ if ($isIndustryHost) {
 	);
 	$base = epc_sitemap_base_url($cfg);
 
-	// Prefer files already warmed on disk (avoid listing 40 empty 404 children).
+	// Use PHP locs (same style as sitemap-pages.php / sitemap-products.php).
+	// GSC often reports "Couldn't fetch" on static .xml while .php children succeed.
 	$shards = epc_sitemap_warehouse_existing_shard_count();
 	$meta = epc_sitemap_warehouse_meta_read();
-	if ($shards <= 0 && $meta['shards'] > 0) {
+	if ($meta['shards'] > $shards) {
 		$shards = (int) $meta['shards'];
 	}
-	if ($shards <= 0) {
-		$pdo = epc_sitemap_pdo($cfg);
-		if ($pdo instanceof PDO) {
-			// Cold index: list a modest estimate; warm script fills real files.
-			$shards = min(8, epc_sitemap_warehouse_estimate_shards($pdo));
+	$pdo = epc_sitemap_pdo($cfg);
+	if ($pdo instanceof PDO) {
+		$estimated = epc_sitemap_warehouse_estimate_shards($pdo);
+		// Always advertise the full estimated set via PHP so Google can fetch
+		// even while warm is still writing static files.
+		if ($estimated > $shards) {
+			$shards = $estimated;
 		}
 	}
 	if ($shards > epc_sitemap_warehouse_max_shards()) {
 		$shards = epc_sitemap_warehouse_max_shards();
 	}
+	if ($shards < 1) {
+		$shards = 1;
+	}
 	for ($i = 0; $i < $shards; $i++) {
-		$childMaps[] = 'sitemap-warehouse-' . $i . '.xml';
+		$childMaps[] = 'sitemap-warehouse.php?n=' . $i;
 	}
 }
 

@@ -76,16 +76,8 @@ if (($stale || $force) && !isset($_GET['n'])) {
 if ($n < 0) {
 	$n = 0;
 }
-// Starting a forced refresh: drop old public shards so index tracks the new set.
-if ($n === 0 && ($stale || $force)) {
-	$publicRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? __DIR__), '/');
-	foreach (glob($publicRoot . '/sitemap-warehouse-*.xml') ?: array() as $old) {
-		@unlink($old);
-	}
-	foreach (glob(epc_sitemap_warehouse_cache_dir() . '/warehouse-*.xml') ?: array() as $old) {
-		@unlink($old);
-	}
-}
+// Do NOT delete existing shards at start of force refresh — that made Google
+// "Couldn't fetch" mid-warm. Overwrite shard-by-shard; trim extras when done.
 
 $started = microtime(true);
 $result = epc_sitemap_warehouse_regenerate_shard($cfg, $pdo, $n);
@@ -94,6 +86,23 @@ $meta = epc_sitemap_warehouse_meta_read();
 $existing = epc_sitemap_warehouse_existing_shard_count();
 
 $done = !empty($result['done']) || ($result['urls'] === 0 && $result['error'] === '');
+if ($done) {
+	// Remove only shards beyond the new end (after a shorter catalog).
+	$publicRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? __DIR__), '/');
+	foreach (glob($publicRoot . '/sitemap-warehouse-*.xml') ?: array() as $old) {
+		if (preg_match('/sitemap-warehouse-(\d+)\.xml$/', $old, $m) && (int) $m[1] > $n) {
+			@unlink($old);
+		}
+	}
+	foreach (glob(epc_sitemap_warehouse_cache_dir() . '/warehouse-*.xml') ?: array() as $old) {
+		if (preg_match('/warehouse-(\d+)\.xml$/', $old, $m) && (int) $m[1] > $n) {
+			@unlink($old);
+		}
+	}
+	epc_sitemap_warehouse_meta_refresh_from_files();
+	$meta = epc_sitemap_warehouse_meta_read();
+	$existing = epc_sitemap_warehouse_existing_shard_count();
+}
 $nextN = $done ? null : ($n + 1);
 $forceQ = ($force || $stale) ? '&force=1' : '';
 $nextUrl = $nextN === null
