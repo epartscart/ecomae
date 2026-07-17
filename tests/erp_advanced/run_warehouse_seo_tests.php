@@ -80,14 +80,16 @@ check('has Part number property', in_array('Part number', $propNames, true));
 check('has Cross reference property', in_array('Cross reference / OE', $propNames, true));
 check('isRelatedTo present', !empty($schema['isRelatedTo']));
 
-echo "\n== Sitemap sharding ==\n";
+echo "\n== Sitemap brand/article maps ==\n";
 $prodSrc = (string) file_get_contents($root . '/sitemap-products.php');
 $idxSrc = (string) file_get_contents($root . '/sitemap-index.php');
 $robots = (string) file_get_contents($root . '/robots.txt');
-check('products sitemap supports shard', strpos($prodSrc, "\$_GET['shard']") !== false || strpos($prodSrc, '$_GET["shard"]') !== false || strpos($prodSrc, "['shard']") !== false);
-check('products use GROUP BY manufacturer/article', strpos($prodSrc, 'GROUP BY TRIM(d.`manufacturer`)') !== false);
+check('products sitemap supports brand param', strpos($prodSrc, "\$_GET['brand']") !== false || strpos($prodSrc, "['brand']") !== false);
+check('products sitemap supports shard fallback', strpos($prodSrc, "\$_GET['shard']") !== false || strpos($prodSrc, "['shard']") !== false);
+check('brand map uses DISTINCT article', strpos($prodSrc, 'SELECT DISTINCT TRIM(d.`article`)') !== false);
+check('shard select has no article_show column', strpos($prodSrc, 'd.`article_show`') === false && strpos($prodSrc, 'AS article_show') === false);
 check('products normalize article for URL', strpos($prodSrc, 'docpart_normalize_article_for_price') !== false);
-check('index emits product shards', strpos($idxSrc, 'sitemap-products.php?shard=') !== false);
+check('index emits per-brand product maps', strpos($idxSrc, 'sitemap-products.php?brand=') !== false);
 check('robots lists sitemap-products', stripos($robots, 'Sitemap: /sitemap-products.php') !== false);
 check('robots lists sitemap-index', stripos($robots, 'Sitemap: /sitemap-index.php') !== false);
 
