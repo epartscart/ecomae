@@ -47,19 +47,25 @@ if ($isIndustryHost) {
 	);
 	$base = epc_sitemap_base_url($cfg);
 
-	// IMPORTANT: use static path locs only — sitemap-warehouse-N.xml
-	// GSC successfully read those (5,000 URLs). Do not list query-string
-	// children in the index — GSC reports Couldn't fetch for those after resubmit.
+	// Path-based PHP shards (no query string): sitemap-wh-0.php …
+	// Static .xml briefly 404'd during warm → GSC "HTTP Error: 404".
+	// These PHP paths always hit the app (like sitemap-pages.php) and never 404.
 	$shards = epc_sitemap_warehouse_existing_shard_count();
 	if ($shards <= 0) {
 		$meta = epc_sitemap_warehouse_meta_read();
 		$shards = (int) ($meta['shards'] ?? 0);
 	}
+	if ($shards <= 0) {
+		$pdo = epc_sitemap_pdo($cfg);
+		if ($pdo instanceof PDO) {
+			$shards = epc_sitemap_warehouse_estimate_shards($pdo);
+		}
+	}
 	if ($shards > epc_sitemap_warehouse_max_shards()) {
 		$shards = epc_sitemap_warehouse_max_shards();
 	}
 	for ($i = 0; $i < $shards; $i++) {
-		$childMaps[] = 'sitemap-warehouse-' . $i . '.xml';
+		$childMaps[] = 'sitemap-wh-' . $i . '.php';
 	}
 }
 

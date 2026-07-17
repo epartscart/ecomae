@@ -102,9 +102,10 @@ check('warehouse serve uses cache', strpos($whPhp, 'epc_sitemap_warehouse_serve_
 check('htaccess rewrites sitemap-warehouse-N.xml', strpos($htaccess, 'sitemap-warehouse-([0-9]+)\\.xml') !== false);
 check('sitemap uses CHPU part loc helper', strpos($prodSrc, 'epc_sitemap_part_loc') !== false || strpos($whSrc, 'epc_sitemap_part_loc') !== false);
 check('lib builds /en/parts/{BRAND}/{ARTICLE}', strpos($libSrc, 'epc_chpu_build_part_url') !== false);
-check('index lists static warehouse XML shards', strpos($idxSrc, "sitemap-warehouse-'") !== false || strpos($idxSrc, 'sitemap-warehouse-') !== false);
-check('index emits .xml warehouse children', strpos($idxSrc, ".xml'") !== false || strpos($idxSrc, '.xml') !== false);
-check('index child builder uses xml suffix', preg_match("/sitemap-warehouse-'\s*\.\s*\\\$i\s*\.\s*'\.xml/", $idxSrc) === 1 || strpos($idxSrc, "sitemap-warehouse-' . \$i . '.xml'") !== false);
+check('index lists path-based sitemap-wh-N.php', strpos($idxSrc, 'sitemap-wh-') !== false && strpos($idxSrc, ".php'") !== false);
+check('index does not use query-string warehouse locs', strpos($idxSrc, 'sitemap-warehouse.php?n=') === false);
+check('wh stub 3 exists', is_file($root . '/sitemap-wh-3.php'));
+check('wh stub 3 sets shard n', strpos((string) file_get_contents($root . '/sitemap-wh-3.php'), '$_GET[\'n\'] = 3') !== false);
 check('warm does not wipe shards at start', strpos((string) file_get_contents($root . '/epc-seo-sitemap-warm.php'), 'Do NOT delete existing shards') !== false);
 check('index does not list 1000 brand query maps', strpos($idxSrc, 'sitemap-products.php?brand=') === false);
 check('robots lists sitemap-products', stripos($robots, 'Sitemap: /sitemap-products.php') !== false);
