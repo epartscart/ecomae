@@ -139,7 +139,17 @@ else//Действий нет - выводим страницу
     $epc_orders_kpi = epc_orders_ws_kpi($db_link, $offices_list, $manager_id);
     $epc_orders_selected_id = isset($_GET['order_id']) ? (int) $_GET['order_id'] : 0;
     ?>
-	<div class="col-lg-12 epc-scp-panel epc-scp-orders-page">
+	<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page">
+		<div class="epc-orders-page__hero">
+			<div>
+				<h2><i class="fa fa-shopping-basket"></i> Orders</h2>
+				<p>Select an order to manage status and notes in the side panel. Use <strong>Edit full order</strong> for payments, line edits, and refunds. Ctrl+click a row to open the full editor.</p>
+			</div>
+			<div class="epc-orders-page__hero-actions">
+				<button type="button" class="btn btn-default btn-sm" onclick="ordersInProcess();"><i class="fa fa-bolt"></i> In progress</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="unsetFilterOrders();"><i class="fa fa-refresh"></i> All orders</button>
+			</div>
+		</div>
 		<div class="epc-scp-kpi epc-scp-orders-kpi">
 			<div class="epc-scp-kpi__card">
 				<div class="epc-scp-kpi__label">Open orders</div>
@@ -157,6 +167,17 @@ else//Действий нет - выводим страницу
 				<div class="epc-scp-kpi__hint">Paid, not finished</div>
 			</div>
 		</div>
+		<div class="epc-orders-toolbar">
+			<a class="epc-scp-badge epc-scp-badge--normal" href="javascript:void(0);" onclick="ordersInProcess();"><?php echo translate_str_by_id(5311); ?></a>
+			<a class="epc-scp-badge epc-scp-badge--high" href="javascript:void(0);" onclick="unsetFilterOrders();"><?php echo translate_str_by_id(2555); ?></a>
+			<?php
+			foreach ($orders_statuses as $pill_status_id => $pill_status_data) {
+				$pill_cls = epc_orders_ws_badge_class((int) $pill_status_id, $db_link);
+				?>
+			<a class="epc-scp-badge <?php echo epc_orders_ws_h($pill_cls); ?>" href="javascript:void(0);" onclick="epcFilterByStatus(<?php echo (int) $pill_status_id; ?>);"><?php echo epc_orders_ws_h(translate_str_by_id($pill_status_data['name'])); ?></a>
+			<?php } ?>
+			<span class="epc-orders-toolbar__hint"><i class="fa fa-mouse-pointer"></i> Click row → manage · Ctrl+click → full edit</span>
+		</div>
 	<div class="epc-scp-orders-filter">
 	<div class="col-lg-12" style="padding:0;">
 		<div class="hpanel">
@@ -165,16 +186,6 @@ else//Действий нет - выводим страницу
                     <a class="showhide"><i class="fa fa-chevron-up"></i></a>
                 </div>
 				<?php echo translate_str_by_id(3574); ?> <button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo translate_str_by_id(5310); ?>');"><i class="fa fa-info"></i></button>
-			</div>
-			<div class="epc-scp-filter-bar epc-scp-orders-status-pills">
-				<a class="epc-scp-badge epc-scp-badge--normal" href="javascript:void(0);" onclick="ordersInProcess();"><?php echo translate_str_by_id(5311); ?></a>
-				<a class="epc-scp-badge epc-scp-badge--high" href="javascript:void(0);" onclick="unsetFilterOrders();"><?php echo translate_str_by_id(2555); ?></a>
-				<?php
-				foreach ($orders_statuses as $pill_status_id => $pill_status_data) {
-					$pill_cls = epc_orders_ws_badge_class((int) $pill_status_id, $db_link);
-					?>
-				<a class="epc-scp-badge <?php echo epc_orders_ws_h($pill_cls); ?>" href="javascript:void(0);" onclick="epcFilterByStatus(<?php echo (int) $pill_status_id; ?>);"><?php echo epc_orders_ws_h(translate_str_by_id($pill_status_data['name'])); ?></a>
-				<?php } ?>
 			</div>
 			<div class="panel-body filter_panel">
 				<?php
@@ -964,7 +975,7 @@ else//Действий нет - выводим страницу
 					?>
 				<div class="epc-scp-orders-detail__empty">
 					<i class="fa fa-hand-pointer-o"></i>
-					<p>Select an order from the list<br><span class="text-muted small">Ctrl+click opens full order page</span></p>
+					<p>Select an order to manage<br><span class="text-muted small">Update status &amp; notes here · Ctrl+click for full editor</span></p>
 				</div>
 					<?php
 				}
@@ -976,61 +987,30 @@ else//Действий нет - выводим страницу
 	
 	<div class="col-lg-12 epc-scp-orders-bulk">
 		<div class="epc-scp-form-card">
-			<h4><?php echo translate_str_by_id(3587); ?></h4>
-				<div class="form-group">
-					<label for="" class="col-lg-2 control-label">
-						<?php echo translate_str_by_id(3558); ?>
-					</label>
-					<div class="col-lg-8">
-						<select id="setOrderStatusSelect" class="form-control">
-							<?php
-							foreach($orders_statuses as $status_id=>$status_data)
-							{
-								?>
-								<option value="<?php echo $status_id; ?>" ><?php echo translate_str_by_id($status_data["name"]); ?></option>
-								<?php
-							}
-							?>
-						</select>
-					</div>
-					<div class="col-lg-2">
-						<button class="btn w-xs btn-success" onclick="setOrdersStatus();"><?php echo translate_str_by_id(3588); ?></button>
-					</div>
+			<h4 style="margin-top:0;"><?php echo translate_str_by_id(3587); ?> <small class="text-muted">— select rows with checkboxes</small></h4>
+			<div class="epc-orders-bulk-grid">
+				<div class="epc-orders-bulk-card">
+					<h5><i class="fa fa-flag"></i> <?php echo translate_str_by_id(3558); ?></h5>
+					<select id="setOrderStatusSelect" class="form-control">
+						<?php foreach ($orders_statuses as $status_id => $status_data) { ?>
+						<option value="<?php echo (int) $status_id; ?>"><?php echo htmlspecialchars(translate_str_by_id($status_data['name']), ENT_QUOTES, 'UTF-8'); ?></option>
+						<?php } ?>
+					</select>
+					<button class="btn btn-success btn-sm" type="button" onclick="setOrdersStatus();"><i class="fa fa-check"></i> <?php echo translate_str_by_id(3588); ?></button>
 				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				
-				<div class="form-group">
-					<label for="" class="col-lg-2 control-label">
-						<?php echo translate_str_by_id(3589); ?>
-					</label>
-					<div class="col-lg-8">
-						<select id="setOrderViewed" class="form-control">
-							<option value="1"><?php echo translate_str_by_id(3581); ?></option>
-							<option value="0"><?php echo translate_str_by_id(3582); ?></option>
-						</select>
-					</div>
-					<div class="col-lg-2">
-						<button class="btn w-xs btn-success" onclick="setOrderViewed();"><?php echo translate_str_by_id(3588); ?></button>
-					</div>
+				<div class="epc-orders-bulk-card">
+					<h5><i class="fa fa-eye"></i> <?php echo translate_str_by_id(3589); ?></h5>
+					<select id="setOrderViewed" class="form-control">
+						<option value="1"><?php echo translate_str_by_id(3581); ?></option>
+						<option value="0"><?php echo translate_str_by_id(3582); ?></option>
+					</select>
+					<button class="btn btn-success btn-sm" type="button" onclick="setOrderViewed();"><i class="fa fa-check"></i> <?php echo translate_str_by_id(3588); ?></button>
 				</div>
-				
-				
-				
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				
-				<div class="form-group">
-					<div class="col-lg-12">
-						<button class="btn btn-danger" type="button" onclick="deleteSelectedeOrders();"><i class="fa fa-trash-o"></i> <span class="bold"><?php echo translate_str_by_id(3590); ?></span></button>
-					</div>
+				<div class="epc-orders-bulk-card">
+					<h5><i class="fa fa-trash"></i> <?php echo translate_str_by_id(3590); ?></h5>
+					<p class="text-muted" style="font-size:12px;margin:0 0 10px;">Deletes selected orders permanently.</p>
+					<button class="btn btn-danger btn-sm" type="button" onclick="deleteSelectedeOrders();"><i class="fa fa-trash-o"></i> <?php echo translate_str_by_id(3590); ?></button>
 				</div>
-				
-				
-				
-				
 			</div>
 		</div>
 	</div>
