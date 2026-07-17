@@ -974,13 +974,47 @@ function epc_commerce_store_source_link(
 }
 
 /**
+ * Normalize share links (Google Drive / Dropbox) to direct-download URLs when possible.
+ */
+function epc_commerce_normalize_source_url(string $url): string
+{
+	$url = trim($url);
+	if ($url === '') {
+		return '';
+	}
+
+	// Google Drive file share → uc export
+	if (preg_match('#drive\.google\.com/file/d/([a-zA-Z0-9_-]+)#', $url, $m)) {
+		return 'https://drive.google.com/uc?export=download&id=' . $m[1];
+	}
+	if (preg_match('#drive\.google\.com/open\?id=([a-zA-Z0-9_-]+)#', $url, $m)) {
+		return 'https://drive.google.com/uc?export=download&id=' . $m[1];
+	}
+	if (preg_match('#docs\.google\.com/spreadsheets/d/([a-zA-Z0-9_-]+)#', $url, $m)) {
+		return 'https://docs.google.com/spreadsheets/d/' . $m[1] . '/export?format=xlsx';
+	}
+
+	// Dropbox share → force direct download
+	if (preg_match('#https?://(www\.)?dropbox\.com/#i', $url)) {
+		if (strpos($url, 'dl=0') !== false) {
+			return str_replace('dl=0', 'dl=1', $url);
+		}
+		if (strpos($url, 'dl=1') === false) {
+			return $url . (strpos($url, '?') === false ? '?dl=1' : '&dl=1');
+		}
+	}
+
+	return $url;
+}
+
+/**
  * Download a commerce source URL to a temp file.
  *
  * @return array{ok:bool,path:string,message:string,http:int}
  */
 function epc_commerce_download_url(string $url): array
 {
-	$url = trim($url);
+	$url = epc_commerce_normalize_source_url($url);
 	if ($url === '' || !preg_match('#^https?://#i', $url)) {
 		return array('ok' => false, 'path' => '', 'message' => 'Invalid http(s) URL', 'http' => 0);
 	}
@@ -995,6 +1029,7 @@ function epc_commerce_download_url(string $url): array
 	));
 	$body = curl_exec($ch);
 	$code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$contentType = strtolower((string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
 	$err = curl_error($ch);
 	curl_close($ch);
 	if ($body === false || $code >= 400 || $body === '') {
@@ -1005,10 +1040,28 @@ function epc_commerce_download_url(string $url): array
 			'http' => $code,
 		);
 	}
+
+	$trimBody = ltrim((string) $body);
+	$looksHtml = (stripos($contentType, 'text/html') !== false)
+		|| (stripos($trimBody, '<!DOCTYPE') === 0)
+		|| (stripos($trimBody, '<html') === 0);
+	if ($looksHtml) {
+		return array(
+			'ok' => false,
+			'path' => '',
+			'message' => 'Download returned an HTML page instead of a file. Use a direct file link, or a Drive/Dropbox share that allows direct download.',
+			'http' => $code,
+		);
+	}
+
 	$ext = 'csv';
 	$pathPart = strtolower((string) parse_url($url, PHP_URL_PATH));
 	if (preg_match('/\.(xlsx|xls|csv|txt)$/', $pathPart, $m)) {
 		$ext = $m[1];
+	} elseif (strpos($contentType, 'spreadsheetml') !== false || strpos($contentType, 'excel') !== false) {
+		$ext = 'xlsx';
+	} elseif (strncmp($body, 'PK', 2) === 0) {
+		$ext = 'xlsx';
 	}
 	$filePath = sys_get_temp_dir() . '/epc_commerce_url_' . getmypid() . '_' . time() . '.' . $ext;
 	if (file_put_contents($filePath, $body) === false) {
@@ -1078,7 +1131,7 @@ function epc_commerce_list_sources(PDO $db, bool $urlOnly = false): array
 {
 	$rows = array();
 	try {
-		$sql = 'SELECT `id`, `name`, `link`, `load_mode`, `message_header_substring`, `last_updated`
+		$sql = 'SELECT `id`, `name`, `link`, `load_mode`, `message_header_substring`, `last_updated`, `records_count`
 			FROM `shop_docpart_prices`
 			WHERE (`name` LIKE \'%-S\' OR `name` LIKE \'%.P\' OR `name` LIKE \'%-L\'
 				OR `message_header_substring` LIKE \'EPC_COMMERCE:%\')';
@@ -1088,7 +1141,20 @@ function epc_commerce_list_sources(PDO $db, bool $urlOnly = false): array
 		$sql .= ' ORDER BY `name` ASC';
 		$rows = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 	} catch (Throwable $e) {
-		return array();
+		// Older schemas may lack records_count — retry without it.
+		try {
+			$sql = 'SELECT `id`, `name`, `link`, `load_mode`, `message_header_substring`, `last_updated`
+				FROM `shop_docpart_prices`
+				WHERE (`name` LIKE \'%-S\' OR `name` LIKE \'%.P\' OR `name` LIKE \'%-L\'
+					OR `message_header_substring` LIKE \'EPC_COMMERCE:%\')';
+			if ($urlOnly) {
+				$sql .= ' AND `load_mode` = 4 AND `link` LIKE \'http%\'';
+			}
+			$sql .= ' ORDER BY `name` ASC';
+			$rows = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+		} catch (Throwable $e2) {
+			return array();
+		}
 	}
 	$out = array();
 	foreach ($rows as $row) {
@@ -1104,6 +1170,7 @@ function epc_commerce_list_sources(PDO $db, bool $urlOnly = false): array
 			'link' => (string) ($row['link'] ?? ''),
 			'load_mode' => (int) ($row['load_mode'] ?? 0),
 			'last_updated' => (int) ($row['last_updated'] ?? 0),
+			'records_count' => (int) ($row['records_count'] ?? 0),
 			'has_url' => preg_match('#^https?://#i', (string) ($row['link'] ?? '')) === 1,
 		);
 	}

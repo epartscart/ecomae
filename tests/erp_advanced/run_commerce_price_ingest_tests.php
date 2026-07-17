@@ -113,6 +113,14 @@ check('sales xlsx fixture', is_file($fx . '/sales_dummy.xlsx'));
 check('dummy file test runner', is_file($root . '/tests/erp_advanced/run_commerce_dummy_file_tests.php'));
 check('native xlsx helper', function_exists('epc_commerce_xlsx_to_csv_native'));
 
+echo "\n== URL normalize ==\n";
+$gDrive = epc_commerce_normalize_source_url('https://drive.google.com/file/d/abc123XYZ/view?usp=sharing');
+check('google drive share → uc export', $gDrive === 'https://drive.google.com/uc?export=download&id=abc123XYZ');
+$drop = epc_commerce_normalize_source_url('https://www.dropbox.com/s/abc/file.xlsx?dl=0');
+check('dropbox dl=0 → dl=1', strpos($drop, 'dl=1') !== false && strpos($drop, 'dl=0') === false);
+$sheet = epc_commerce_normalize_source_url('https://docs.google.com/spreadsheets/d/sheet99/edit#gid=0');
+check('google sheet → xlsx export', $sheet === 'https://docs.google.com/spreadsheets/d/sheet99/export?format=xlsx');
+
 echo "\n== Files present ==\n";
 check('API endpoint', is_file($root . '/epc-upload-commerce-prices.php'));
 $api = (string) file_get_contents($root . '/epc-upload-commerce-prices.php');
@@ -122,6 +130,13 @@ check('API URL-only upload', strpos($api, 'source_url required') !== false);
 check('CP page', is_file($root . '/cp/content/shop/prices_upload/commerce_data_upload.php'));
 $cp = (string) file_get_contents($root . '/cp/content/shop/prices_upload/commerce_data_upload.php');
 check('CP refresh all button', strpos($cp, 'epcCommerceRefreshAll') !== false);
+check('CP redesigned shell', strpos($cp, 'epc-commerce-page') !== false);
+check('CP no inline fetch script', strpos($cp, 'fetch(ajaxUrl') === false);
+check('CP commerce JS', is_file($root . '/cp/content/shop/prices_upload/epc_commerce_cp.js'));
+check('CP commerce config', is_file($root . '/cp/content/shop/prices_upload/epc_commerce_cp_config.php'));
+$js = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_commerce_cp.js');
+check('JS uses list_sources', strpos($js, "action: 'list_sources'") !== false || strpos($js, "action', 'list_sources'") !== false);
+check('JS escapes HTML', strpos($js, 'escapeHtml') !== false);
 check('CP route wrapper', is_file($root . '/cp/content/shop/prices_upload/commerce_data_page.php'));
 check('AJAX', is_file($root . '/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php'));
 $ajax = (string) file_get_contents($root . '/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php');
@@ -132,6 +147,12 @@ check('setup allows deploy token without tech key', strpos($setupSrc, 'epc_deplo
 check('setup documents omit-key hint', strpos($setupSrc, 'Omit key=') !== false || strpos($setupSrc, 'token= only') !== false);
 $mgr = (string) file_get_contents($root . '/cp/content/shop/prices_upload/prices_manager.php');
 check('manager links to commerce', strpos($mgr, 'shop/prices/commerce') !== false);
+require_once $root . '/content/general_pages/epc_cp_page_assets.php';
+$assets = epc_cp_page_assets_for_url('shop/prices/commerce');
+$jsJoined = implode(' ', array_keys($assets['js'] ?? array()));
+check('commerce page assets include JS', strpos($jsJoined, 'epc_commerce_cp.js') !== false);
+$cssSrc = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_prices_cp.css');
+check('CSS includes commerce page styles', strpos($cssSrc, '.epc-commerce-page') !== false);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";
