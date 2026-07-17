@@ -1,0 +1,34 @@
+{
+  "ecomae-cp": {
+    "appId": "com.ecomae.cp",
+    "appName": "ecomae CP",
+    "serverUrl": "https://www.ecomae.com/cp/",
+    "themeColor": "#4f46e5",
+    "backgroundColor": "#111827",
+    "keepHost": "ecomae.com"
+  },
+  "tenant-cp": {
+    "appId": "com.epartscart.cp",
+    "appName": "eParts Cart CP",
+    "serverUrl": "https://www.epartscart.com/cp/",
+    "themeColor": "#4f46e5",
+    "backgroundColor": "#111827",
+    "keepHost": "epartscart.com"
+  },
+  "erp": {
+    "appId": "com.ecomae.erp",
+    "appName": "ecomae ERP",
+    "serverUrl": "https://www.ecomae.com/cp/shop/finance/erp",
+    "themeColor": "#4f46e5",
+    "backgroundColor": "#111827",
+    "keepHost": "ecomae.com"
+  },
+  "storefront": {
+    "appId": "com.epartscart.store",
+    "appName": "eParts Cart",
+    "serverUrl": "https://www.epartscart.com/en/",
+    "themeColor": "#dc2626",
+    "backgroundColor": "#ffffff",
+    "keepHost": "epartscart.com"
+  }
+}

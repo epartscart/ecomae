@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>eParts Cart</title>
+<style>
+  html,body{margin:0;height:100%;background:#ffffff;color:#e5e7eb;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+  .spin{width:44px;height:44px;border-radius:50%;border:4px solid rgba(255,255,255,.15);
+    border-top-color:#dc2626;animation:s 0.9s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  p{font-size:14px;color:#9ca3af;margin:0}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="spin"></div><p>Loading eParts Cart…</p></div>
+<script>
+  var TARGET = "https://www.epartscart.com/en/";
+  var KEEP = "epartscart.com";
+  function go(){ location.replace(TARGET); }
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App) {
+      // Keep in-app navigation on our host; open everything else externally.
+      document.addEventListener('click', function(ev){
+        var a = ev.target; while (a && a.tagName !== 'A') a = a.parentElement;
+        if (!a || !a.href) return;
+        try {
+          var u = new URL(a.href, location.href);
+          var host = (u.hostname||'').replace(/^www\./,'');
+          if (host === KEEP || host.slice(-(KEEP.length+1)) === '.'+KEEP) return;
+          if (u.protocol !== 'http:' && u.protocol !== 'https:') return;
+          ev.preventDefault();
+          var b = Capacitor.Plugins.Browser;
+          if (b && b.open) b.open({ url: u.href }); else window.open(u.href,'_blank');
+        } catch(e){}
+      }, true);
+    }
+    setTimeout(go, 300);
+  });
+</script>
+</body>
+</html>

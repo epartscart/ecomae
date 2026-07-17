@@ -90,6 +90,17 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 	<?php if (function_exists('epc_erp_seed_form_js_script_tag')) { echo epc_erp_seed_form_js_script_tag(); } ?>
 	<?php epc_ecomae_hub_logo_enqueue(); ?>
 	<docpart type="head" name="head" />
+<?php
+	// PWA: make the ERP shell installable on Android + iOS.
+	$epcErpPwa = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_pwa.php';
+	if (is_file($epcErpPwa)) {
+		require_once $epcErpPwa;
+		if (function_exists('epc_pwa_head_tags')) {
+			echo "\n" . epc_pwa_head_tags('/cp/manifest.webmanifest', '/cp/sw.js', '#4f46e5') . "\n";
+		}
+		echo '<link rel="apple-touch-icon" href="/cp/assets/app/icon-192.svg">' . "\n";
+	}
+?>
 </head>
 <body class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
 <header class="epc-erp-topbar epc-erp-topbar--cp">
