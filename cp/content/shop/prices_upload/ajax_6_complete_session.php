@@ -53,9 +53,14 @@ if( $db_link->prepare("UPDATE `shop_docpart_prices` SET `last_updated` = ? WHERE
     exit(json_encode($answer));
 }
 
-
-
-
+// New/updated supplier stock must re-enter Google sitemaps after warm.
+$whSeo = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_sitemap_warehouse.php';
+if (is_file($whSeo)) {
+	require_once $whSeo;
+	if (function_exists('epc_sitemap_warehouse_mark_stale')) {
+		epc_sitemap_warehouse_mark_stale('price_upload_complete', (int) $price_id);
+	}
+}
 
 $answer = array();
 $answer["result"] = 1;
