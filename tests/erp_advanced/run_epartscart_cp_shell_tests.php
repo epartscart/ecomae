@@ -87,6 +87,47 @@ $fixSrc = (string) file_get_contents($root . '/epc-epartscart-cp-fix.php');
 check('probe looks for word-boundary alert-danger', strpos($fixSrc, '\balert-danger\b') !== false || strpos($fixSrc, '\\balert-danger\\b') !== false);
 check('apply ensures listing indexes', strpos($fixSrc, 'epc_prices_ensure_listing_indexes') !== false);
 
+echo "\n== /cp/control speed (menu ACL + shell) ==\n";
+$helperSrc = (string) file_get_contents($root . '/cp/content/control/control_helper.php');
+check('ACL preload helper present', strpos($helperSrc, 'function epc_cp_acl_preload') !== false);
+check('is_anable caches by URL', strpos($helperSrc, 'epc_cp_acl_result_by_url') !== false);
+check('menu preloads ACL before loop', strpos($menuSrc, 'epc_cp_acl_preload') !== false);
+
+$controlSrc = (string) file_get_contents($root . '/cp/content/control/control.php');
+$earlyReturnPos = strpos($controlSrc, "epc_tenant_cp_dashboard_shown'])) {\n\treturn;\n}");
+if ($earlyReturnPos === false) {
+	$earlyReturnPos = strpos($controlSrc, 'epc_tenant_cp_dashboard_shown');
+}
+$controlItemsPos = strpos($controlSrc, 'FROM `control_items`');
+check(
+	'tenant home returns before control_items loop',
+	$earlyReturnPos !== false && $controlItemsPos !== false && $earlyReturnPos < $controlItemsPos
+);
+
+$desktopSrc = (string) file_get_contents($root . '/cp/templates/bootstrap_admin/desktop.php');
+$gatePos = strpos($desktopSrc, 'if (!epc_cp_top_alerts_use_professional_header())');
+$notInPos = strpos($desktopSrc, 'NOT IN(SELECT DISTINCT `product_id` FROM `shop_storages_data`)');
+$gateEndPos = strpos($desktopSrc, '} // !epc_cp_top_alerts_use_professional_header()');
+check('stock probes gated by professional header', $gatePos !== false);
+check(
+	'NOT IN stock probe inside gated block',
+	$gatePos !== false && $notInPos !== false && $gateEndPos !== false
+		&& $gatePos < $notInPos && $notInPos < $gateEndPos
+);
+
+$userSrc = (string) file_get_contents($root . '/content/users/dp_user.php');
+check('getAdminProfile request-cached', preg_match(
+	'/function getAdminProfile\(\)[\s\S]{0,120}static \$cached/',
+	$userSrc
+) === 1);
+check('getAdminId request-cached', preg_match(
+	'/function getAdminId\(\)[\s\S]{0,120}static \$cached/',
+	$userSrc
+) === 1);
+
+$dashSrc = (string) file_get_contents($root . '/cp/content/control/epc_tenant_cp_dashboard.php');
+check('tenant KPI stats cached 60s', strpos($dashSrc, 'epc_tcp_dash_stats:v1:') !== false);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";
 exit($fail > 0 ? 1 : 0);

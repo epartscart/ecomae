@@ -27,45 +27,61 @@ function epc_tcp_dash_h($v): string
 
 function epc_tcp_dash_stats(PDO $db): array
 {
-	$stats = array(
-		'orders_today' => 0,
-		'products' => 0,
-		'clients' => 0,
-		'pending_tasks' => 0,
-	);
-	try {
-		$stats['orders_today'] = (int) $db->query(
-			'SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `time` >= UNIX_TIMESTAMP(CURDATE())'
-		)->fetchColumn();
-	} catch (Exception $e) {
-	}
-	try {
-		$stats['products'] = (int) $db->query(
-			'SELECT COUNT(*) FROM `shop_catalogue_products` WHERE `published_flag` = 1'
-		)->fetchColumn();
-	} catch (Exception $e) {
-	}
-	try {
-		$stats['clients'] = (int) $db->query(
-			'SELECT COUNT(*) FROM `users` WHERE `user_id` > 0'
-		)->fetchColumn();
-	} catch (Exception $e) {
-	}
-	try {
-		$openStatuses = array();
-		$q = $db->query("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_inverse` != 1 AND `for_finish` != 1 AND `for_created` != 1");
-		while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
-			$openStatuses[] = (int) $r['id'];
+	$compute = static function () use ($db): array {
+		$stats = array(
+			'orders_today' => 0,
+			'products' => 0,
+			'clients' => 0,
+			'pending_tasks' => 0,
+		);
+		try {
+			$stats['orders_today'] = (int) $db->query(
+				'SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `time` >= UNIX_TIMESTAMP(CURDATE())'
+			)->fetchColumn();
+		} catch (Exception $e) {
 		}
-		if (count($openStatuses) > 0) {
-			$sp = implode(',', array_fill(0, count($openStatuses), '?'));
-			$st = $db->prepare("SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `status` IN ($sp)");
-			$st->execute($openStatuses);
-			$stats['pending_tasks'] = (int) $st->fetchColumn();
+		try {
+			$stats['products'] = (int) $db->query(
+				'SELECT COUNT(*) FROM `shop_catalogue_products` WHERE `published_flag` = 1'
+			)->fetchColumn();
+		} catch (Exception $e) {
 		}
-	} catch (Exception $e) {
+		try {
+			$stats['clients'] = (int) $db->query(
+				'SELECT COUNT(*) FROM `users` WHERE `user_id` > 0'
+			)->fetchColumn();
+		} catch (Exception $e) {
+		}
+		try {
+			$openStatuses = array();
+			$q = $db->query("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_inverse` != 1 AND `for_finish` != 1 AND `for_created` != 1");
+			while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
+				$openStatuses[] = (int) $r['id'];
+			}
+			if (count($openStatuses) > 0) {
+				$sp = implode(',', array_fill(0, count($openStatuses), '?'));
+				$st = $db->prepare("SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `status` IN ($sp)");
+				$st->execute($openStatuses);
+				$stats['pending_tasks'] = (int) $st->fetchColumn();
+			}
+		} catch (Exception $e) {
+		}
+		return $stats;
+	};
+
+	$perfCache = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_perf_cache.php';
+	if (is_file($perfCache)) {
+		require_once $perfCache;
+		if (function_exists('epc_perf_cache_remember')) {
+			$dbName = 'default';
+			try {
+				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
+			} catch (Throwable $e) {
+			}
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v1:' . $dbName, 60, $compute);
+		}
 	}
-	return $stats;
+	return $compute();
 }
 
 $stats = array(

@@ -39,6 +39,11 @@ if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp
 	}
 }
 
+// Tenant dashboard replaces legacy tab blocks — skip N+1 is_anable over control_items.
+if (!empty($GLOBALS['epc_tenant_cp_dashboard_shown'])) {
+	return;
+}
+
 //Массив для блоков и страниц по блокам
 $tabs = array();
 
@@ -74,13 +79,6 @@ while( $item = $control_panel_content_query->fetch() )
 		}
 		array_push($tabs[$group_key]["items"], $item);
 	}
-}
-
-
-
-// Tenant dashboard replaces legacy tab blocks on client CP home.
-if (!empty($GLOBALS['epc_tenant_cp_dashboard_shown'])) {
-	return;
 }
 
 //Выводим перечень задач на страницу:
