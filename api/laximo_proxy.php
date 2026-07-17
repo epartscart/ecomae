@@ -55,7 +55,27 @@ function epc_lax_json($data, $status = 200, $cache = 0)
 
 function epc_lax_param($key, $default = '')
 {
-    return isset($_REQUEST[$key]) ? trim((string) $_REQUEST[$key]) : $default;
+    if (isset($_REQUEST[$key]) && trim((string) $_REQUEST[$key]) !== '') {
+        return trim((string) $_REQUEST[$key]);
+    }
+    // JS / legacy aliases (camelCase ↔ snake_case)
+    static $aliases = [
+        'vehicle_id' => ['vehicleid', 'vehicleId', 'vid'],
+        'unit_id' => ['unitid', 'unitId'],
+        'category_id' => ['categoryid', 'categoryId', 'cid'],
+        'group_id' => ['groupid', 'groupId', 'quickgroupid', 'quickGroupId'],
+        'q' => ['query', 'name', 'search'],
+        'oem' => ['number', 'article'],
+        'replacement_types' => ['replacementTypes', 'replacementtypes'],
+    ];
+    if (isset($aliases[$key])) {
+        foreach ($aliases[$key] as $alt) {
+            if (isset($_REQUEST[$alt]) && trim((string) $_REQUEST[$alt]) !== '') {
+                return trim((string) $_REQUEST[$alt]);
+            }
+        }
+    }
+    return $default;
 }
 
 function epc_lax_config()
@@ -221,51 +241,105 @@ function epc_lax_am_credentials()
     return ['login' => $login, 'key' => $key];
 }
 
+function epc_lax_soap_endpoints($oem = true)
+{
+    if ($oem) {
+        return [
+            [
+                'uri' => 'http://WebCatalog.Kito.ec',
+                'location' => 'https://ws.laximo.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/',
+                'soap_version' => SOAP_1_1,
+            ],
+            [
+                'uri' => 'http://WebCatalog.Kito.ec',
+                'location' => 'https://ws.laximo.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap12Endpoint/',
+                'soap_version' => SOAP_1_2,
+            ],
+        ];
+    }
+    // Laximo.DOC / Aftermarket lives on aws.laximo.net (Soap12 preferred).
+    return [
+        [
+            'uri' => 'http://Aftermarket.Kito.ec',
+            'location' => 'https://aws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap12Endpoint/',
+            'soap_version' => SOAP_1_2,
+        ],
+        [
+            'uri' => 'http://Aftermarket.Kito.ec',
+            'location' => 'https://aws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/',
+            'soap_version' => SOAP_1_1,
+        ],
+        [
+            'uri' => 'http://Aftermarket.Kito.ec',
+            'location' => 'https://ws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/',
+            'soap_version' => SOAP_1_1,
+        ],
+    ];
+}
+
+function epc_lax_soap_normalize_result($result)
+{
+    if (is_object($result)) {
+        if (method_exists($result, '__toString')) {
+            $result = (string) $result;
+        } else {
+            $result = isset($result->return)
+                ? $result->return
+                : (isset($result->QueryDataLoginResult) ? $result->QueryDataLoginResult : false);
+        }
+    }
+    if (!is_string($result) || $result === '') {
+        return false;
+    }
+    // HTML 404 / gateway pages are not usable SOAP payloads.
+    $trim = ltrim($result);
+    if ($trim !== '' && $trim[0] !== '<' && stripos($trim, '&lt;') !== 0) {
+        if (stripos($trim, 'Not Found') !== false || stripos($trim, '<html') !== false) {
+            return false;
+        }
+    }
+    if (strpos($result, '&lt;') !== false && strpos($result, '<response') === false && strpos($result, '<List') === false && strpos($result, '<Find') === false) {
+        $result = html_entity_decode($result, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    }
+    return $result;
+}
+
 function epc_lax_soap_call($request, $oem = true)
 {
     $creds = $oem ? epc_lax_oem_credentials() : epc_lax_am_credentials();
     $hash = md5($request . $creds['key']);
-
-    $options = [
-        'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP,
-    ];
-
-    // Always HTTPS — plain HTTP often yields empty/non-string SOAP responses.
-    if ($oem) {
-        $options['uri'] = 'http://WebCatalog.Kito.ec';
-        $options['location'] = 'https://ws.laximo.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
-    } else {
-        $options['uri'] = 'http://Aftermarket.Kito.ec';
-        $options['location'] = 'https://ws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
-    }
-    $options['stream_context'] = stream_context_create(array(
-        'ssl' => array(
+    $stream = stream_context_create([
+        'ssl' => [
             'verify_peer' => false,
             'verify_peer_name' => false,
-        ),
-    ));
-    $options['connection_timeout'] = 20;
-    $options['exceptions'] = true;
+        ],
+        'http' => [
+            'timeout' => 20,
+        ],
+    ]);
 
-    try {
-        $client = new SoapClient(null, $options);
-        $result = $client->QueryDataLogin($request, $creds['login'], $hash);
-        // SoapClient may return a string (XML) or an object; ensure string
-        if (is_object($result)) {
-            if (method_exists($result, '__toString')) {
-                $result = (string) $result;
-            } else {
-                // Try to extract from common SOAP response wrappers
-                $result = isset($result->return) ? $result->return : (isset($result->QueryDataLoginResult) ? $result->QueryDataLoginResult : json_encode($result));
+    foreach (epc_lax_soap_endpoints($oem) as $ep) {
+        $options = [
+            'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP,
+            'uri' => $ep['uri'],
+            'location' => $ep['location'],
+            'soap_version' => $ep['soap_version'],
+            'stream_context' => $stream,
+            'connection_timeout' => 20,
+            'exceptions' => true,
+            'trace' => false,
+        ];
+        try {
+            $client = new SoapClient(null, $options);
+            $result = epc_lax_soap_normalize_result($client->QueryDataLogin($request, $creds['login'], $hash));
+            if ($result !== false) {
+                return $result;
             }
+        } catch (\Throwable $e) {
+            continue;
         }
-        if (is_string($result) && strpos($result, '&lt;') !== false && strpos($result, '<response') === false && strpos($result, '<List') === false) {
-            $result = html_entity_decode($result, ENT_QUOTES | ENT_XML1, 'UTF-8');
-        }
-        return $result;
-    } catch (\Throwable $e) {
-        return false;
     }
+    return false;
 }
 
 function epc_lax_xml_to_array($xmlString)
@@ -314,7 +388,9 @@ function epc_lax_load_xml($xmlString)
     if (strtolower($xml->getName()) === 'response') {
         return $xml;
     }
-    if (isset($xml->ListCatalogs) || isset($xml->FindVehicleByVIN) || isset($xml->ListCategories)) {
+    if (isset($xml->ListCatalogs) || isset($xml->FindVehicleByVIN) || isset($xml->ListCategories)
+        || isset($xml->FindOEM) || isset($xml->ListQuickGroup) || isset($xml->SearchVehicleDetails)
+        || isset($xml->GetWizard2) || isset($xml->ListDetailByUnit) || isset($xml->ListQuickDetail)) {
         return $xml;
     }
     // <root><response>...</response></root>
@@ -525,6 +601,40 @@ function epc_lax_parse_units($xmlString)
     return $units;
 }
 
+function epc_lax_attrs_of($row)
+{
+    $d = [];
+    if (!$row instanceof \SimpleXMLElement) {
+        return $d;
+    }
+    foreach ($row->attributes() as $k => $v) {
+        $d[strtolower((string) $k)] = (string) $v;
+    }
+    return $d;
+}
+
+function epc_lax_collect_oem_rows($node, &$details)
+{
+    if (!$node instanceof \SimpleXMLElement) {
+        return;
+    }
+    $attrs = epc_lax_attrs_of($node);
+    $tag = strtolower($node->getName());
+    $hasOem = !empty($attrs['oem']) || !empty($attrs['number']) || !empty($attrs['code']);
+    if ($hasOem && ($tag === 'row' || $tag === 'detail' || isset($attrs['oem']) || isset($attrs['name']))) {
+        if (empty($attrs['name']) && trim((string) $node) !== '') {
+            $attrs['name'] = trim((string) $node);
+        }
+        if (!isset($attrs['number']) && !empty($attrs['oem'])) {
+            $attrs['number'] = $attrs['oem'];
+        }
+        $details[] = $attrs;
+    }
+    foreach ($node->children() as $child) {
+        epc_lax_collect_oem_rows($child, $details);
+    }
+}
+
 function epc_lax_parse_details($xmlString)
 {
     $xml = epc_lax_load_xml($xmlString);
@@ -532,21 +642,65 @@ function epc_lax_parse_details($xmlString)
         return [];
     }
 
-    $node = epc_lax_xml_find($xml, 'ListDetailByUnit');
+    $node = null;
+    foreach (['ListDetailByUnit', 'ListQuickDetail', 'SearchVehicleDetails', 'GetOEMPartApplicability'] as $tag) {
+        $node = epc_lax_xml_find($xml, $tag);
+        if ($node) {
+            break;
+        }
+    }
     if (!$node) {
         $node = $xml;
     }
     $details = [];
-    foreach ($node->children() as $row) {
-        $d = [];
-        foreach ($row->attributes() as $k => $v) {
-            $d[strtolower((string) $k)] = (string) $v;
+    epc_lax_collect_oem_rows($node, $details);
+    // De-dupe by oem+name
+    $seen = [];
+    $out = [];
+    foreach ($details as $d) {
+        $key = strtolower(($d['oem'] ?? '') . '|' . ($d['name'] ?? ''));
+        if ($key === '|' || isset($seen[$key])) {
+            continue;
         }
-        if (!empty($d)) {
-            $details[] = $d;
+        $seen[$key] = true;
+        $out[] = $d;
+    }
+    return $out;
+}
+
+function epc_lax_parse_quick_group_node($row)
+{
+    $g = epc_lax_attrs_of($row);
+    if (empty($g['id']) && !empty($g['quickgroupid'])) {
+        $g['id'] = $g['quickgroupid'];
+    }
+    if (empty($g['categoryid']) && !empty($g['quickgroupid'])) {
+        $g['categoryid'] = $g['quickgroupid'];
+    }
+    $children = [];
+    foreach ($row->children() as $child) {
+        $children[] = epc_lax_parse_quick_group_node($child);
+    }
+    if ($children) {
+        $g['children'] = $children;
+    }
+    return $g;
+}
+
+function epc_lax_flatten_quick_groups($groups, &$flat)
+{
+    foreach ($groups as $g) {
+        $children = isset($g['children']) && is_array($g['children']) ? $g['children'] : [];
+        $id = $g['quickgroupid'] ?? ($g['id'] ?? ($g['categoryid'] ?? ''));
+        $explicitLink = isset($g['link']) && ($g['link'] === 'true' || $g['link'] === '1' || $g['link'] === true);
+        $isLeaf = empty($children);
+        if ($id !== '' && ($explicitLink || $isLeaf)) {
+            $flat[] = $g;
+        }
+        if (!empty($children)) {
+            epc_lax_flatten_quick_groups($children, $flat);
         }
     }
-    return $details;
 }
 
 function epc_lax_parse_quick_groups($xmlString)
@@ -562,25 +716,78 @@ function epc_lax_parse_quick_groups($xmlString)
     }
     $groups = [];
     foreach ($node->children() as $row) {
-        $g = [];
-        foreach ($row->attributes() as $k => $v) {
-            $g[strtolower((string) $k)] = (string) $v;
-        }
-        if ($row->children()->count() > 0) {
-            $g['children'] = [];
-            foreach ($row->children() as $child) {
-                $cg = [];
-                foreach ($child->attributes() as $k => $v) {
-                    $cg[strtolower((string) $k)] = (string) $v;
-                }
-                $g['children'][] = $cg;
-            }
-        }
-        if (!empty($g)) {
-            $groups[] = $g;
-        }
+        $groups[] = epc_lax_parse_quick_group_node($row);
+    }
+    $flat = [];
+    epc_lax_flatten_quick_groups($groups, $flat);
+    // Prefer flat linkable list for storefront; keep tree under 'tree' if needed by callers.
+    if (!empty($flat)) {
+        return $flat;
     }
     return $groups;
+}
+
+function epc_lax_parse_aftermarket($xmlString)
+{
+    $xml = epc_lax_load_xml($xmlString);
+    if (!$xml) {
+        return [];
+    }
+    $node = epc_lax_xml_find($xml, 'FindOEM');
+    if (!$node) {
+        $node = epc_lax_xml_find($xml, 'FindDetail');
+    }
+    if (!$node) {
+        $node = $xml;
+    }
+
+    $items = [];
+    $push = function ($attrs, $extra = []) use (&$items) {
+        if (empty($attrs['oem']) && empty($attrs['formattedoem']) && empty($attrs['number'])) {
+            return;
+        }
+        $oem = $attrs['oem'] ?? ($attrs['formattedoem'] ?? ($attrs['number'] ?? ''));
+        $row = array_merge([
+            'brand' => $attrs['manufacturer'] ?? ($attrs['brand'] ?? ''),
+            'manufacturer' => $attrs['manufacturer'] ?? ($attrs['brand'] ?? ''),
+            'number' => $oem,
+            'oem' => $oem,
+            'name' => $attrs['name'] ?? '',
+            'weight' => $attrs['weight'] ?? '',
+            'formattedoem' => $attrs['formattedoem'] ?? $oem,
+        ], $extra);
+        $items[] = $row;
+    };
+
+    foreach ($node->children() as $detail) {
+        if (strtolower($detail->getName()) !== 'detail' && empty(epc_lax_attrs_of($detail)['oem'])) {
+            // Some payloads wrap differently; still try.
+        }
+        $attrs = epc_lax_attrs_of($detail);
+        $push($attrs, ['is_replacement' => false]);
+        if (isset($detail->replacements)) {
+            foreach ($detail->replacements->children() as $rep) {
+                $repAttrs = epc_lax_attrs_of($rep);
+                $detailNode = isset($rep->detail) ? $rep->detail : null;
+                $dAttrs = $detailNode ? epc_lax_attrs_of($detailNode) : $repAttrs;
+                $push($dAttrs, [
+                    'is_replacement' => true,
+                    'replacement_type' => $repAttrs['type'] ?? ($repAttrs['replacementtype'] ?? ''),
+                    'rate' => $repAttrs['rate'] ?? '',
+                ]);
+            }
+        }
+    }
+
+    // Fallback: any oem-bearing nodes
+    if (empty($items)) {
+        $raw = [];
+        epc_lax_collect_oem_rows($node, $raw);
+        foreach ($raw as $r) {
+            $push($r);
+        }
+    }
+    return $items;
 }
 
 function epc_lax_parse_wizard($xmlString)
@@ -794,7 +1001,7 @@ function epc_lax_action_wizard()
 
     $cached = epc_lax_cache_get($cacheKey, 3600);
     if ($cached) {
-        epc_lax_json(['status' => true, 'source' => 'cache', 'steps' => $cached]);
+        epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache', 'steps' => $cached, 'wizard' => ['steps' => $cached]]);
     }
 
     $request = 'GetWizard2:Locale=' . $locale . '|Catalog=' . $catalog . '|ssd=' . $ssd;
@@ -802,14 +1009,14 @@ function epc_lax_action_wizard()
     if ($xml === false) {
         $cached = epc_lax_cache_get($cacheKey, 604800);
         if ($cached) {
-            epc_lax_json(['status' => true, 'source' => 'cache_stale', 'steps' => $cached]);
+            epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache_stale', 'steps' => $cached, 'wizard' => ['steps' => $cached]]);
         }
         epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
     }
 
     $steps = epc_lax_parse_wizard($xml);
     epc_lax_cache_set($cacheKey, 'wizard', $params, $steps, $xml);
-    epc_lax_json(['status' => true, 'source' => 'live', 'steps' => $steps]);
+    epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'steps' => $steps, 'wizard' => ['steps' => $steps]]);
 }
 
 function epc_lax_action_wizard_next()
@@ -827,24 +1034,51 @@ function epc_lax_action_wizard_next()
 
     $cached = epc_lax_cache_get($cacheKey, 3600);
     if ($cached) {
-        epc_lax_json(['status' => true, 'source' => 'cache', 'data' => $cached]);
+        $payload = is_array($cached) ? $cached : ['type' => 'wizard', 'items' => $cached];
+        epc_lax_json([
+            'status' => true,
+            'success' => true,
+            'source' => 'cache',
+            'data' => $payload,
+            'steps' => ($payload['type'] ?? '') === 'wizard' ? ($payload['items'] ?? []) : [],
+            'vehicles' => ($payload['type'] ?? '') === 'vehicles' ? ($payload['items'] ?? []) : [],
+        ]);
     }
 
-    $request = 'FindVehicleByWizard2:Locale=' . $locale . '|Catalog=' . $catalog . '|ssd=' . $ssd . '|Localized=true';
-    $xml = epc_lax_soap_call($request, true);
-    if ($xml === false) {
+    // Continue wizard with GetWizard2 (updated SSD), then try vehicle list.
+    $wizardXml = epc_lax_soap_call('GetWizard2:Locale=' . $locale . '|Catalog=' . $catalog . '|ssd=' . $ssd, true);
+    $steps = $wizardXml !== false ? epc_lax_parse_wizard($wizardXml) : [];
+
+    $vehXml = epc_lax_soap_call('FindVehicleByWizard2:Locale=' . $locale . '|Catalog=' . $catalog . '|ssd=' . $ssd . '|Localized=true', true);
+    $vehicles = $vehXml !== false ? epc_lax_parse_vehicles($vehXml) : [];
+
+    if ($wizardXml === false && $vehXml === false) {
         epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
     }
 
-    $vehicles = epc_lax_parse_vehicles($xml);
     if (!empty($vehicles)) {
-        epc_lax_cache_set($cacheKey, 'wizard_next', $params, ['type' => 'vehicles', 'items' => $vehicles], $xml);
-        epc_lax_json(['status' => true, 'source' => 'live', 'data' => ['type' => 'vehicles', 'items' => $vehicles]]);
+        $payload = ['type' => 'vehicles', 'items' => $vehicles, 'steps' => $steps];
+        epc_lax_cache_set($cacheKey, 'wizard_next', $params, $payload, $vehXml ?: $wizardXml);
+        epc_lax_json([
+            'status' => true,
+            'success' => true,
+            'source' => 'live',
+            'data' => $payload,
+            'vehicles' => $vehicles,
+            'steps' => $steps,
+        ]);
     }
 
-    $steps = epc_lax_parse_wizard($xml);
-    epc_lax_cache_set($cacheKey, 'wizard_next', $params, ['type' => 'wizard', 'items' => $steps], $xml);
-    epc_lax_json(['status' => true, 'source' => 'live', 'data' => ['type' => 'wizard', 'items' => $steps]]);
+    $payload = ['type' => 'wizard', 'items' => $steps, 'steps' => $steps];
+    epc_lax_cache_set($cacheKey, 'wizard_next', $params, $payload, $wizardXml ?: '');
+    epc_lax_json([
+        'status' => true,
+        'success' => true,
+        'source' => 'live',
+        'data' => $payload,
+        'steps' => $steps,
+        'wizard' => ['steps' => $steps],
+    ]);
 }
 
 function epc_lax_action_vehicle_info()
@@ -1001,7 +1235,7 @@ function epc_lax_action_quick_groups()
 
     $cached = epc_lax_cache_get($cacheKey, 86400);
     if ($cached) {
-        epc_lax_json(['status' => true, 'source' => 'cache', 'groups' => $cached]);
+        epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache', 'groups' => $cached, 'quick_groups' => $cached]);
     }
 
     $request = 'ListQuickGroup:Locale=' . $locale . '|Catalog=' . $catalog . '|VehicleId=' . $vehicleId . '|ssd=' . $ssd;
@@ -1009,14 +1243,14 @@ function epc_lax_action_quick_groups()
     if ($xml === false) {
         $cached = epc_lax_cache_get($cacheKey, 604800);
         if ($cached) {
-            epc_lax_json(['status' => true, 'source' => 'cache_stale', 'groups' => $cached]);
+            epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache_stale', 'groups' => $cached, 'quick_groups' => $cached]);
         }
         epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
     }
 
     $groups = epc_lax_parse_quick_groups($xml);
     epc_lax_cache_set($cacheKey, 'quick_groups', $params, $groups, $xml);
-    epc_lax_json(['status' => true, 'source' => 'live', 'groups' => $groups]);
+    epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'groups' => $groups, 'quick_groups' => $groups]);
 }
 
 function epc_lax_action_quick_details()
@@ -1071,23 +1305,38 @@ function epc_lax_action_part_search()
 
     $cached = epc_lax_cache_get($cacheKey, 3600);
     if ($cached) {
-        epc_lax_json(['status' => true, 'source' => 'cache', 'results' => $cached]);
+        epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache', 'results' => $cached, 'parts' => $cached]);
     }
 
-    if ($catalog && $vehicleId) {
-        $request = 'FindPartReferencesByName:Locale=' . $locale . '|Catalog=' . $catalog . '|VehicleId=' . $vehicleId . '|Name=' . urlencode($query) . '|ssd=' . $ssd;
-    } else {
-        $request = 'FINDPARTREFERENCES:Locale=' . $locale . '|OEM=' . urlencode($query);
+    // Unified catalog full-text search (requires catalog feature fulltextsearch).
+    if ($catalog && $vehicleId !== '') {
+        $safeQuery = str_replace(['|', "\n", "\r"], ' ', $query);
+        $request = 'SearchVehicleDetails:Query=' . $safeQuery
+            . '|Catalog=' . $catalog
+            . '|VehicleId=' . $vehicleId
+            . '|ssd=' . $ssd
+            . '|Locale=' . $locale;
+        $xml = epc_lax_soap_call($request, true);
+        if ($xml !== false) {
+            $data = epc_lax_parse_details($xml);
+            epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $xml);
+            epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'results' => $data, 'parts' => $data]);
+        }
     }
 
-    $xml = epc_lax_soap_call($request, true);
-    if ($xml === false) {
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+    // Fallback: OEM reference lookup when query looks like a part number.
+    $oemGuess = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $query));
+    if (strlen($oemGuess) >= 5 && preg_match('/[0-9]/', $oemGuess)) {
+        $request = 'FINDPARTREFERENCES:Locale=' . $locale . '|OEM=' . $oemGuess;
+        $xml = epc_lax_soap_call($request, true);
+        if ($xml !== false) {
+            $data = epc_lax_parse_details($xml);
+            epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $xml);
+            epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'results' => $data, 'parts' => $data]);
+        }
     }
 
-    $data = epc_lax_xml_to_array($xml);
-    epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $xml);
-    epc_lax_json(['status' => true, 'source' => 'live', 'results' => $data]);
+    epc_lax_json(['status' => false, 'error' => 'Part name search unavailable for this vehicle/catalog (needs fulltextsearch), or Laximo API error'], 503);
 }
 
 function epc_lax_action_part_refs()
@@ -1164,10 +1413,10 @@ function epc_lax_action_aftermarket()
 
     $cached = epc_lax_cache_get($cacheKey, 86400);
     if ($cached) {
-        epc_lax_json(['status' => true, 'source' => 'cache', 'aftermarket' => $cached]);
+        epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache', 'aftermarket' => $cached]);
     }
 
-    $request = 'FindOEM:Locale=' . $locale . '|OEM=' . $oem . '|ReplacementTypes=' . $replacementTypes . '|Options=';
+    $request = 'FindOEM:Locale=' . $locale . '|OEM=' . $oem . '|ReplacementTypes=' . $replacementTypes . '|Options=crosses';
     if ($brand) {
         $request .= '|Brand=' . $brand;
     }
@@ -1175,14 +1424,14 @@ function epc_lax_action_aftermarket()
     if ($xml === false) {
         $cached = epc_lax_cache_get($cacheKey, 604800);
         if ($cached) {
-            epc_lax_json(['status' => true, 'source' => 'cache_stale', 'aftermarket' => $cached]);
+            epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache_stale', 'aftermarket' => $cached]);
         }
         epc_lax_json(['status' => false, 'error' => 'Laximo DOC API unavailable'], 503);
     }
 
-    $data = epc_lax_xml_to_array($xml);
+    $data = epc_lax_parse_aftermarket($xml);
     epc_lax_cache_set($cacheKey, 'aftermarket', $params, $data, $xml);
-    epc_lax_json(['status' => true, 'source' => 'live', 'aftermarket' => $data]);
+    epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'aftermarket' => $data]);
 }
 
 function epc_lax_action_sync_status()
@@ -1205,10 +1454,13 @@ function epc_lax_action_sync_status()
         $result['cat']['connected'] = true;
     }
 
-    // Test DOC connection
-    $docXml = epc_lax_soap_call('FindOEM:Locale=en_US|OEM=90915YZZD4|ReplacementTypes=default|Options=', false);
-    if ($docXml !== false) {
+    // Test DOC connection (aws.laximo.net Aftermarket / FindOEM)
+    $docXml = epc_lax_soap_call('FindOEM:Locale=en_US|OEM=90915YZZD4|ReplacementTypes=default|Options=crosses', false);
+    if ($docXml !== false && is_string($docXml) && (stripos($docXml, 'FindOEM') !== false || stripos($docXml, 'detail') !== false || stripos($docXml, '<response') !== false)) {
         $result['doc']['connected'] = true;
+        // Clear stale false negatives from older endpoint bugs
+        $parsed = epc_lax_parse_aftermarket($docXml);
+        $result['doc']['sample_rows'] = count($parsed);
     }
 
     if ($db) {

@@ -5,7 +5,7 @@ namespace guayaquil;
 class Config
 {
     public static $oemServiceUrl = 'ws.laximo.net';
-    public static $amServiceUrl = 'ws.laximo.net';
+    public static $amServiceUrl = 'aws.laximo.net';
 
     public static $useLoginAuthorizationMethod = true;
     public static $defaultUserLogin = 'au308248';
