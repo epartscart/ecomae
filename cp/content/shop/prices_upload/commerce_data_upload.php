@@ -173,7 +173,7 @@ try {
 Brand,Article,Name,Qty,Cost,Supplier
 Brand,Article,Name,Stock,Cost</pre>
 				<p><strong>Cron example</strong> (after deploy): refresh every linked Excel URL nightly:</p>
-				<pre style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:6px;">wget -q -O /dev/null 'https://www.epartscart.com/epc-upload-commerce-prices.php?token=…&amp;key=TECH_KEY&amp;action=refresh_all'</pre>
+				<pre style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:6px;">wget -q -O /dev/null 'https://www.epartscart.com/epc-upload-commerce-prices.php?token=…&amp;key=&lt;tech_key&gt;&amp;action=refresh_all'</pre>
 				<p>
 					<a class="btn btn-default" href="/<?php echo $backend; ?>/shop/prices">Back to price lists</a>
 					<a class="btn btn-default" href="/<?php echo $backend; ?>/shop/prices/guide">Upload guide</a>
