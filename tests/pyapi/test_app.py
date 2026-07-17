@@ -14,13 +14,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from pyapi import db, services  # noqa: E402
+from pyapi import auth, db, services  # noqa: E402
 from pyapi.main import app  # noqa: E402
 
 
 @pytest.fixture()
 def client():
     return TestClient(app, raise_server_exceptions=False)
+
+
+@pytest.fixture()
+def admin_ok(monkeypatch):
+    """Force the admin-session check to pass."""
+    monkeypatch.setattr(auth, "_valid_session", lambda s, u, admin: True)
 
 
 def test_normalize_article():
@@ -65,16 +71,16 @@ def test_search_rejects_empty_article(client):
     assert r.json()["status"] is False
 
 
-def test_prices_requires_key(monkeypatch, client):
+def test_prices_requires_auth(monkeypatch, client):
+    # No admin session and no/invalid key → 401 (session check fails).
     monkeypatch.setattr("pyapi.main.settings.__class__.tech_key", property(lambda self: "sekret"))
-    r = client.get("/pyapi/v1/prices")
-    assert r.status_code == 403
-    r2 = client.get("/pyapi/v1/prices", params={"key": "wrong"})
-    assert r2.status_code == 403
+    assert client.get("/pyapi/v1/prices").status_code == 401
+    assert client.get("/pyapi/v1/prices", params={"key": "wrong"}).status_code == 401
 
 
 def test_prices_qty_fallback(monkeypatch, client):
     monkeypatch.setattr("pyapi.main.settings.__class__.tech_key", property(lambda self: "sekret"))
+    monkeypatch.setattr(auth, "_valid_session", lambda s, u, admin: False)
 
     calls = []
 
@@ -114,3 +120,72 @@ def test_laximo_catalogs_filters_junk(monkeypatch, client):
     body = r.json()
     assert body["count"] == 1
     assert body["catalogs"][0]["code"] == "TOYOTA01"
+
+
+# ── Phase 2: CP endpoints + session auth ──
+
+def test_cp_endpoint_requires_auth(client):
+    # No cookie, no key → 401 (session) since tech_key check fails first.
+    r = client.get("/pyapi/v1/dashboard")
+    assert r.status_code == 401
+
+
+def test_cp_endpoint_accepts_tech_key(monkeypatch, client):
+    monkeypatch.setattr("pyapi.main.settings.__class__.tech_key", property(lambda self: "sekret"))
+    monkeypatch.setattr(db, "fetch_one", lambda sql, params=(): {"c": 7})
+    r = client.get("/pyapi/v1/dashboard", params={"key": "sekret"})
+    assert r.status_code == 200
+    assert r.json()["kpis"]["price_lists"] == 7
+
+
+def test_cp_endpoint_accepts_admin_cookie(monkeypatch, admin_ok, client):
+    monkeypatch.setattr(db, "fetch_one", lambda sql, params=(): {"c": 3})
+    client.cookies.set("admin_session", "abc")
+    client.cookies.set("admin_u_id", "18")
+    r = client.get("/pyapi/v1/dashboard")
+    assert r.status_code == 200
+    assert "kpis" in r.json()
+
+
+def test_brands_public(monkeypatch, client):
+    monkeypatch.setattr(
+        db, "fetch_all",
+        lambda sql, params=(): [
+            {"name": "TOYOTA", "parts_count": 1200},
+            {"name": "  ", "parts_count": 5},
+        ],
+    )
+    r = client.get("/pyapi/v1/brands")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["count"] == 1
+    assert body["brands"][0]["name"] == "TOYOTA"
+
+
+def test_orders_requires_auth(client):
+    assert client.get("/pyapi/v1/orders").status_code == 401
+
+
+def test_orders_with_key(monkeypatch, client):
+    monkeypatch.setattr("pyapi.main.settings.__class__.tech_key", property(lambda self: "sekret"))
+    monkeypatch.setattr(
+        db, "fetch_all",
+        lambda sql, params=(): [{"id": 5, "date": 0, "status_id": 1, "summ": 99.0,
+                                 "read": 0, "client_name": "A", "client_phone": "1"}],
+    )
+    r = client.get("/pyapi/v1/orders", params={"key": "sekret", "limit": 10})
+    assert r.status_code == 200
+    assert r.json()["orders"][0]["id"] == 5
+
+
+def test_laximo_status(monkeypatch, client):
+    def fake_one(sql, params=()):
+        if "epc_laximo_catalogs" in sql:
+            return {"cnt": 56, "last_sync": 123}
+        return {"c": 1}
+    monkeypatch.setattr(db, "fetch_one", fake_one)
+    r = client.get("/pyapi/v1/laximo/status")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["catalogs_count"] == 56
+    assert body["offline_ready"] is True

@@ -112,3 +112,179 @@ def laximo_catalogs() -> dict[str, Any]:
         "source": "db",
         "took_ms": int((time.monotonic() - started) * 1000),
     }
+
+
+def laximo_status() -> dict[str, Any]:
+    """Laximo sync snapshot (DB-only; connection test stays in PHP proxy)."""
+    started = time.monotonic()
+    try:
+        row = db.fetch_one(
+            "SELECT COUNT(*) AS cnt, MAX(`updated_at`) AS last_sync FROM `epc_laximo_catalogs`"
+        ) or {}
+    except Exception:
+        row = {}
+    cache = 0
+    try:
+        cr = db.fetch_one("SELECT COUNT(*) AS c FROM `epc_laximo_cache`")
+        cache = int(cr["c"]) if cr else 0
+    except Exception:
+        cache = 0
+    catalogs = int(row.get("cnt", 0) or 0)
+    return {
+        "status": True,
+        "catalogs_count": catalogs,
+        "last_sync": int(row.get("last_sync", 0) or 0),
+        "cache_rows": cache,
+        "offline_ready": catalogs > 0,
+        "took_ms": int((time.monotonic() - started) * 1000),
+    }
+
+
+def brands(limit: int = 5000) -> dict[str, Any]:
+    """In-stock manufacturer list with part counts (storefront brand grid).
+
+    Index-friendly GROUP BY, excludes storefront-disabled price lists.
+    """
+    limit = max(1, min(20000, int(limit)))
+    started = time.monotonic()
+    rows = db.fetch_all(
+        """
+        SELECT TRIM(d.`manufacturer`) AS `name`,
+               COUNT(DISTINCT COALESCE(NULLIF(TRIM(d.`article_show`), ''), TRIM(d.`article`))) AS `parts_count`
+        FROM `shop_docpart_prices_data` d
+        INNER JOIN `shop_docpart_prices` p ON p.`id` = d.`price_id`
+        WHERE TRIM(IFNULL(d.`manufacturer`, '')) <> ''
+          AND IFNULL(d.`price`, 0) > 0
+          AND IFNULL(d.`exist`, 0) > 0
+          AND IFNULL(p.`storefront_temp_disabled`, 0) = 0
+        GROUP BY UPPER(TRIM(d.`manufacturer`))
+        ORDER BY UPPER(TRIM(d.`manufacturer`)) ASC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+    out = [r for r in rows if (r.get("name") or "").strip()]
+    return {
+        "status": True,
+        "brands": out,
+        "count": len(out),
+        "took_ms": int((time.monotonic() - started) * 1000),
+    }
+
+
+def upload_history(price_id: int = 0, limit: int = 50) -> dict[str, Any]:
+    """Recent price-list upload history (CP)."""
+    limit = max(1, min(200, int(limit)))
+    started = time.monotonic()
+    try:
+        if price_id > 0:
+            rows = db.fetch_all(
+                """
+                SELECT `id`, `price_id`, `price_name`, `upload_source`,
+                       `original_filename`, `rows_imported`, `rows_in_db`,
+                       `status`, `is_active`, `created_at`
+                FROM `epc_price_upload_history`
+                WHERE `price_id` = %s
+                ORDER BY `id` DESC LIMIT %s
+                """,
+                (int(price_id), limit),
+            )
+        else:
+            rows = db.fetch_all(
+                """
+                SELECT `id`, `price_id`, `price_name`, `upload_source`,
+                       `original_filename`, `rows_imported`, `rows_in_db`,
+                       `status`, `is_active`, `created_at`
+                FROM `epc_price_upload_history`
+                ORDER BY `id` DESC LIMIT %s
+                """,
+                (limit,),
+            )
+    except Exception as exc:
+        return {"status": False, "error": str(exc), "history": []}
+    return {
+        "status": True,
+        "history": rows,
+        "count": len(rows),
+        "took_ms": int((time.monotonic() - started) * 1000),
+    }
+
+
+def commerce_sources() -> dict[str, Any]:
+    """Commerce S/P/L price sources for the CP commerce page."""
+    started = time.monotonic()
+    try:
+        rows = db.fetch_all(
+            """
+            SELECT `id`, `name`, `link`, `load_mode`, `last_updated`,
+                   COALESCE(`records_count`, 0) AS `records_count`
+            FROM `shop_docpart_prices`
+            WHERE `name` LIKE '%-S' OR `name` LIKE '%.P' OR `name` LIKE '%-L'
+               OR `message_header_substring` LIKE 'EPC_COMMERCE:%'
+            ORDER BY `name` ASC
+            """
+        )
+    except Exception as exc:
+        return {"status": False, "error": str(exc), "sources": []}
+    return {
+        "status": True,
+        "sources": rows,
+        "count": len(rows),
+        "took_ms": int((time.monotonic() - started) * 1000),
+    }
+
+
+def dashboard_summary() -> dict[str, Any]:
+    """KPI tiles for the CP/ERP mobile dashboard — each guarded so one missing
+    table never breaks the whole payload."""
+    started = time.monotonic()
+    kpis: dict[str, Any] = {}
+
+    def _count(key: str, sql: str) -> None:
+        try:
+            row = db.fetch_one(sql)
+            kpis[key] = int(row["c"]) if row else 0
+        except Exception:
+            kpis[key] = None
+
+    _count("price_lists", "SELECT COUNT(*) AS c FROM `shop_docpart_prices`")
+    _count("orders_total", "SELECT COUNT(*) AS c FROM `shop_orders`")
+    _count(
+        "orders_unread",
+        "SELECT COUNT(*) AS c FROM `shop_orders` WHERE IFNULL(`read`, 0) = 0",
+    )
+    _count("products", "SELECT COUNT(*) AS c FROM `shop_catalogue_products`")
+    _count("customers", "SELECT COUNT(*) AS c FROM `users` WHERE `unlocked` = 1")
+
+    return {
+        "status": True,
+        "kpis": kpis,
+        "took_ms": int((time.monotonic() - started) * 1000),
+    }
+
+
+def orders(limit: int = 50, offset: int = 0) -> dict[str, Any]:
+    """Paginated order list for the CP/ERP mobile app."""
+    limit = max(1, min(200, int(limit)))
+    offset = max(0, int(offset))
+    started = time.monotonic()
+    try:
+        rows = db.fetch_all(
+            """
+            SELECT `id`, `date`, `status_id`, `summ`, `read`, `client_name`, `client_phone`
+            FROM `shop_orders`
+            ORDER BY `id` DESC
+            LIMIT %s OFFSET %s
+            """,
+            (limit, offset),
+        )
+    except Exception as exc:
+        return {"status": False, "error": str(exc), "orders": []}
+    return {
+        "status": True,
+        "orders": rows,
+        "count": len(rows),
+        "limit": limit,
+        "offset": offset,
+        "took_ms": int((time.monotonic() - started) * 1000),
+    }
