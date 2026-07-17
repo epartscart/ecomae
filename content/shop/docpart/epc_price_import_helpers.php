@@ -17,6 +17,9 @@ function epc_price_history_source_label(string $uploadSource): string
 		'deploy_r_uae' => 'Deploy import',
 		'email_backfill' => 'E-mail / file archive',
 		'api_legacy' => 'Legacy API',
+		'commerce_sales' => 'Commerce sales (*-S)',
+		'commerce_purchase' => 'Commerce purchase (*.P)',
+		'commerce_inventory' => 'Commerce inventory (*-L)',
 	];
 	$key = strtolower(trim($uploadSource));
 	return $labels[$key] ?? ($uploadSource !== '' ? $uploadSource : 'Unknown');

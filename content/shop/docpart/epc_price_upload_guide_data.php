@@ -91,5 +91,10 @@ function epc_guide_channel_definitions($config)
 		array('title' => 'URL / link', 'formats' => 'Direct file URL', 'test' => 'Manual link icon'),
 		array('title' => 'Cron schedule', 'formats' => 'FTP/email/URL per schedule', 'test' => 'wget cron every minute'),
 		array('title' => 'Deploy API', 'formats' => 'epc-upload-uae-prices.php', 'test' => 'POST price_file + tech_key'),
+		array(
+			'title' => 'Commerce data (sales / purchase / inventory)',
+			'formats' => 'Excel/CSV → *-S (max sales), *.P (supplier+margin), *-L (stock+margin); URL refresh',
+			'test' => 'CP /shop/prices/commerce or POST /epc-upload-commerce-prices.php (refresh_all for cron)',
+		),
 	);
 }
