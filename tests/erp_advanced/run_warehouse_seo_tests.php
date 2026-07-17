@@ -80,16 +80,35 @@ check('has Part number property', in_array('Part number', $propNames, true));
 check('has Cross reference property', in_array('Cross reference / OE', $propNames, true));
 check('isRelatedTo present', !empty($schema['isRelatedTo']));
 
-echo "\n== Sitemap sharding ==\n";
+echo "\n== Sitemap brand/article maps ==\n";
 $prodSrc = (string) file_get_contents($root . '/sitemap-products.php');
 $idxSrc = (string) file_get_contents($root . '/sitemap-index.php');
+$libSrc = (string) file_get_contents($root . '/epc_sitemap_lib.php');
 $robots = (string) file_get_contents($root . '/robots.txt');
-check('products sitemap supports shard', strpos($prodSrc, "\$_GET['shard']") !== false || strpos($prodSrc, '$_GET["shard"]') !== false || strpos($prodSrc, "['shard']") !== false);
-check('products use GROUP BY manufacturer/article', strpos($prodSrc, 'GROUP BY TRIM(d.`manufacturer`)') !== false);
-check('products normalize article for URL', strpos($prodSrc, 'docpart_normalize_article_for_price') !== false);
-check('index emits product shards', strpos($idxSrc, 'sitemap-products.php?shard=') !== false);
+check('products sitemap supports brand param', strpos($prodSrc, "\$_GET['brand']") !== false || strpos($prodSrc, "['brand']") !== false);
+check('products sitemap supports shard fallback', strpos($prodSrc, "\$_GET['shard']") !== false || strpos($prodSrc, "['shard']") !== false);
+check('brand map uses DISTINCT article', strpos($prodSrc, 'SELECT DISTINCT TRIM(d.`article`)') !== false);
+check('shard select has no article_show column', strpos($prodSrc, 'd.`article_show`') === false && strpos($prodSrc, 'AS article_show') === false);
+check('sitemap uses CHPU part loc helper', strpos($prodSrc, 'epc_sitemap_part_loc') !== false);
+check('lib builds /en/parts/{BRAND}/{ARTICLE}', strpos($libSrc, 'epc_chpu_build_part_url') !== false);
+check('sitemap never uses /parts/brands/ article path', strpos($prodSrc, '/parts/brands/') !== false);
+check('index emits per-brand product maps', strpos($idxSrc, 'sitemap-products.php?brand=') !== false);
 check('robots lists sitemap-products', stripos($robots, 'Sitemap: /sitemap-products.php') !== false);
 check('robots lists sitemap-index', stripos($robots, 'Sitemap: /sitemap-index.php') !== false);
+check('robots disallows /parts/brands/', preg_match('#Disallow:\s*/\*/parts/brands/#', $robots) === 1);
+
+// URL format smoke (same helper used by sitemap)
+$cfgUrl = new stdClass();
+$cfgUrl->chpu_search_config = array(
+	'chpu_search_on' => true,
+	'slash_code' => '---',
+	'level_1' => array('url' => 'parts'),
+	'level_2' => array('mode_1' => array('url' => 'brands')),
+);
+$built = epc_chpu_build_part_url($cfgUrl, '/en', 'GMB', 'GUT-21');
+check('CHPU url is /en/parts/GMB/GUT21', $built === '/en/parts/GMB/GUT21');
+$builtEmptyBrand = epc_chpu_build_part_url($cfgUrl, '/en', '', 'GUT21');
+check('article-only path uses /parts/brands/ (not for sitemap)', $builtEmptyBrand === '/en/parts/brands/GUT21');
 
 echo "\n== Cross refs crawlable in part page ==\n";
 $partSrc = (string) file_get_contents($root . '/content/shop/docpart/part_search_page.php');

@@ -101,7 +101,39 @@ function epc_sitemap_segment($value, $slash_code): string
 function epc_sitemap_parts_path(DP_Config $cfg, $lang, $parts_root, $slash_code, $path): string
 {
 	$base = epc_sitemap_base_url($cfg);
-	return htmlspecialchars($base . '/' . $lang . '/' . $parts_root . '/' . $path, ENT_XML1, 'UTF-8');
+	$path = trim((string) $path, '/');
+	$suffix = $path !== '' ? '/' . $path : '';
+	return htmlspecialchars($base . '/' . $lang . '/' . $parts_root . $suffix, ENT_XML1, 'UTF-8');
+}
+
+/**
+ * Absolute warehouse part loc matching live CHPU:
+ *   https://www.epartscart.com/en/parts/{BRAND}/{ARTICLE}
+ * Never /parts/brands/{article} (that path 302s and is robots-disallowed).
+ */
+function epc_sitemap_part_loc(DP_Config $cfg, string $lang, string $brand, string $article): string
+{
+	$match = __DIR__ . '/content/shop/docpart/docpart_article_match.php';
+	if (is_file($match)) {
+		require_once $match;
+	}
+	if (!function_exists('epc_chpu_build_part_url')) {
+		$slash = epc_sitemap_slash_code($cfg);
+		$parts = epc_sitemap_parts_root($cfg);
+		$path = epc_sitemap_segment(mb_strtoupper(trim($brand), 'UTF-8'), $slash)
+			. '/' . epc_sitemap_segment(docpart_normalize_article_for_price($article), $slash);
+		return epc_sitemap_parts_path($cfg, $lang, $parts, $slash, $path);
+	}
+	$rel = epc_chpu_build_part_url($cfg, '/' . trim($lang, '/'), $brand, $article);
+	if ($rel === '') {
+		return '';
+	}
+	$base = rtrim(epc_sitemap_base_url($cfg), '/');
+	// epc_chpu_build_part_url returns /en/parts/BRAND/ARTICLE
+	if (isset($rel[0]) && $rel[0] === '/') {
+		return htmlspecialchars($base . $rel, ENT_XML1, 'UTF-8');
+	}
+	return htmlspecialchars($base . '/' . ltrim($rel, '/'), ENT_XML1, 'UTF-8');
 }
 
 function epc_sitemap_page_url(DP_Config $cfg, $lang, $path): string
