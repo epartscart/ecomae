@@ -140,10 +140,10 @@ function epc_integrations_catalog(): array
 			'color' => '#f2c811',
 			'super_url' => '/' . $be . '/control/portal/epc_power_bi',
 			'tenant_url' => '/' . $be . '/control/portal/epc_power_bi',
-			'guide' => 'docs/POWER_BI.md',
+			'guide' => '/' . $be . '/control/portal/epc_power_bi_guide',
 			'super_only_config' => false,
 			'default_enabled' => true,
-			'menu_patterns' => array('epc_power_bi', 'powerbi'),
+			'menu_patterns' => array('epc_power_bi', 'powerbi', 'epc_power_bi_guide'),
 		),
 		'parts_agent' => array(
 			'label' => 'AI parts agent',

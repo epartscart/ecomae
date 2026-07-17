@@ -87,6 +87,7 @@ check('health lists powerbi endpoints', strpos($api, '/epc-api/v1/powerbi/kpis')
 
 section('CP + docs + setup');
 check('CP page exists', is_file($root . '/cp/content/control/portal/epc_power_bi.php'));
+check('CP step-by-step guide exists', is_file($root . '/cp/content/control/portal/epc_power_bi_guide.php'));
 check('setup script exists', is_file($root . '/epc-power-bi-setup.php'));
 check('docs exist', is_file($root . '/docs/POWER_BI.md'));
 $openapi = (string) file_get_contents($root . '/docs/epc-api-v1-openapi.json');
@@ -94,8 +95,16 @@ check('openapi has PowerBI tag', strpos($openapi, 'PowerBI') !== false);
 check('openapi has /powerbi/kpis', strpos($openapi, '/powerbi/kpis') !== false);
 $hub = (string) file_get_contents($root . '/content/general_pages/epc_integrations_helpers.php');
 check('integrations hub lists power_bi', strpos($hub, "'power_bi'") !== false);
-$guide = (string) file_get_contents($root . '/cp/content/control/portal/epc_api_documentation_guide.php');
-check('API guide documents read:bi', strpos($guide, 'read:bi') !== false);
+check('integrations hub points to CP guide', strpos($hub, 'epc_power_bi_guide') !== false);
+$apiGuide = (string) file_get_contents($root . '/cp/content/control/portal/epc_api_documentation_guide.php');
+check('API guide documents read:bi', strpos($apiGuide, 'read:bi') !== false);
+$steps = epc_power_bi_guide_steps();
+check('guide has 9 steps', count($steps) >= 9);
+check('guide step 5 mentions Desktop', stripos($steps[4]['title'] ?? '', 'Desktop') !== false || stripos($steps[4]['body'] ?? '', 'Desktop') !== false);
+$setup = (string) file_get_contents($root . '/epc-power-bi-setup.php');
+check('setup registers guide route', strpos($setup, 'control/portal/epc_power_bi_guide') !== false);
+$pbiPage = (string) file_get_contents($root . '/cp/content/control/portal/epc_power_bi.php');
+check('settings page links to guide', strpos($pbiPage, 'epc_power_bi_guide') !== false);
 
 section('Date parser');
 $_GET = array('from' => '2026-01-15', 'to' => '2026-07-01');

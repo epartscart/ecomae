@@ -64,7 +64,17 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'control/portal/epc_power_bi' => array(
-			'css' => array(),
+			'css' => array(
+				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
+			),
+			'js' => array(),
+		),
+		'control/portal/epc_power_bi_guide' => array(
+			'css' => array(
+				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
+			),
 			'js' => array(),
 		),
 		'control/portal/epc_api_documentation_guide' => array(

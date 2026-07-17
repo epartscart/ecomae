@@ -51,13 +51,20 @@ curl -s -H "X-API-Key: epc_YOUR_TENANT_read_XXXXXXXX" \
 
 **What we already store for that day:** workspace ID, Azure tenant ID, report/dataset IDs, embed mode=`azure`. Token minting ships when you provide the app credentials.
 
+## CP guide (operators)
+
+Step-by-step inside Control Panel:
+
+- **Portal → Power BI guide** → `/cp/control/portal/epc_power_bi_guide`
+- **Portal → Power BI** (settings / embed) → `/cp/control/portal/epc_power_bi`
+
 ## Deploy
 
 ```
-https://www.ecomae.com/epc-power-bi-setup.php?token=…&apply not required
+https://www.ecomae.com/epc-power-bi-setup.php?token=…
 ```
 
-Registers CP route `/cp/control/portal/epc_power_bi` and creates `epc_power_bi_config` / `epc_power_bi_reports`.
+Registers CP routes `/cp/control/portal/epc_power_bi` + `/cp/control/portal/epc_power_bi_guide` and creates `epc_power_bi_config` / `epc_power_bi_reports`.
 
 ## Files
 

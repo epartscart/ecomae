@@ -71,7 +71,10 @@ epc_cp_page_frame_open(array('class' => 'epc-adg'));
 					<tr><td><code>read:*</code></td><td>All authenticated read endpoints</td></tr>
 				</tbody>
 			</table>
-			<p class="text-muted">Power BI Desktop accepts <code>read:bi</code> or existing <code>read:erp</code> / <code>read:*</code> keys. Guide: <a href="/<?php echo $backend; ?>/control/portal/epc_power_bi">Portal → Power BI</a> · <code>docs/POWER_BI.md</code></p>
+			<p class="text-muted">Power BI Desktop accepts <code>read:bi</code> or existing <code>read:erp</code> / <code>read:*</code> keys.
+				Step-by-step: <a href="/<?php echo $backend; ?>/control/portal/epc_power_bi_guide">Portal → Power BI guide</a> ·
+				Settings: <a href="/<?php echo $backend; ?>/control/portal/epc_power_bi">Portal → Power BI</a> ·
+				<code>docs/POWER_BI.md</code></p>
 		</div>
 	</div>
 

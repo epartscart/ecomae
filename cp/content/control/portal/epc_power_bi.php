@@ -102,6 +102,11 @@ epc_cp_page_frame_open(array('class' => 'epc-power-bi'));
 			Connect Microsoft Power BI to live tenant ERP/commerce data via API key — no Azure AD required for Desktop refresh.
 			Secure embed tokens wait until you supply Azure credentials.
 		</p>
+		<p style="margin:12px 0 0">
+			<a class="btn btn-default btn-sm" href="/<?php echo $backend; ?>/control/portal/epc_power_bi_guide" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.35);color:#fff">
+				<i class="fa fa-book"></i> Step-by-step guide
+			</a>
+		</p>
 	</div>
 
 	<?php if ($flash !== '') { ?>
@@ -138,6 +143,7 @@ epc_cp_page_frame_open(array('class' => 'epc-power-bi'));
 				<?php } ?>
 			</ol>
 			<p>
+				<a class="btn btn-primary btn-sm" href="/<?php echo $backend; ?>/control/portal/epc_power_bi_guide"><i class="fa fa-book"></i> Open step-by-step guide</a>
 				<a class="btn btn-default btn-sm" href="/<?php echo $backend; ?>/control/portal/epc_api_documentation_guide"><i class="fa fa-key"></i> API keys &amp; scopes</a>
 				<a class="btn btn-default btn-sm" href="https://www.ecomae.com/epc-api/v1/powerbi/catalog" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Dataset catalog (needs key)</a>
 			</p>

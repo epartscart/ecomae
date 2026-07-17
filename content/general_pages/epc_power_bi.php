@@ -184,6 +184,111 @@ function epc_power_bi_dataset_catalog(string $baseUrl = ''): array
 }
 
 /**
+ * CP step-by-step guide (Portal → Power BI guide).
+ *
+ * @return list<array{title:string,body:string,tips?:list<string>}>
+ */
+function epc_power_bi_guide_steps(): array
+{
+	return array(
+		array(
+			'title' => 'Step 1 — What Power BI does on ECOM AE',
+			'body' => 'Power BI reads live ERP/commerce data from your tenant database through the public API. '
+				. 'You build charts in Microsoft Power BI Desktop or Service; ECOM AE only supplies the data. '
+				. 'No Azure AD is required for Desktop refresh. Native ERP dashboards in CP continue to work as before.',
+			'tips' => array(
+				'Each API key is locked to one site_key — tenants never see each other’s data.',
+				'Phase A = Web connector (JSON/CSV). Azure secure embed is Phase B when you supply Microsoft credentials.',
+			),
+		),
+		array(
+			'title' => 'Step 2 — Open the Power BI page in CP',
+			'body' => 'In Control Panel go to <strong>Portal → Power BI</strong> '
+				. '(<code>/cp/control/portal/epc_power_bi</code>). '
+				. 'Super CP operators can pick any tenant; tenant CP users see only their own site_key. '
+				. 'Also open <strong>Portal → Integrations hub</strong> and confirm the Power BI feature is enabled.',
+			'tips' => array(
+				'If the menu item is missing, run <code>epc-power-bi-setup.php</code> on the platform host once.',
+			),
+		),
+		array(
+			'title' => 'Step 3 — Issue a tenant API key',
+			'body' => 'Go to <strong>Portal → API documentation guide</strong> (Super CP) and issue a key for the tenant, '
+				. 'or ask a platform operator. The key needs scope <code>read:bi</code> '
+				. '(existing <code>read:erp</code> or <code>read:*</code> keys also work). '
+				. 'Copy the plain key once — only the SHA-256 hash is stored in the database.',
+			'tips' => array(
+				'Never paste live keys into tickets, chat, or marketing pages.',
+				'Revoke by setting <code>active = 0</code> on the key row if compromised.',
+			),
+		),
+		array(
+			'title' => 'Step 4 — Smoke-test the dataset URL',
+			'body' => 'From a terminal, confirm the key returns data before opening Power BI:',
+			'tips' => array(
+				'curl -s -H "X-API-Key: YOUR_KEY" https://www.ecomae.com/epc-api/v1/powerbi/catalog',
+				'curl -s -H "X-API-Key: YOUR_KEY" "https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv"',
+				'Expect HTTP 401 without the header. CSV is easiest for Power BI Web connector.',
+			),
+		),
+		array(
+			'title' => 'Step 5 — Connect Power BI Desktop',
+			'body' => 'Open <strong>Power BI Desktop → Get data → Web → Advanced</strong>. '
+				. 'Paste a dataset URL (example below). Under HTTP request header parameters add '
+				. '<code>X-API-Key</code> = your tenant key. Load the table, build visuals, then save the <code>.pbix</code>.',
+			'tips' => array(
+				'KPI cards: https://www.ecomae.com/epc-api/v1/powerbi/kpis?format=csv',
+				'Orders: …/powerbi/orders?format=csv&amp;limit=200',
+				'Sales (date range): …/powerbi/sales?format=csv&amp;from=2026-01-01&amp;to=2026-07-17',
+				'Stock: …/powerbi/stock?format=csv',
+				'GL trial balance: …/powerbi/gl?format=csv',
+			),
+		),
+		array(
+			'title' => 'Step 6 — Publish &amp; schedule refresh',
+			'body' => 'Publish the report to Power BI Service (app.powerbi.com). '
+				. 'Open the dataset → <strong>Settings → Data source credentials</strong> and keep the same '
+				. '<code>X-API-Key</code> header. Turn on scheduled refresh (e.g. hourly or daily).',
+			'tips' => array(
+				'If refresh fails with 401, the key was revoked or lacks read:bi / read:erp.',
+				'If refresh fails with 503, the tenant DB was unavailable — retry or contact platform ops.',
+			),
+		),
+		array(
+			'title' => 'Step 7 — Save workspace IDs in CP (optional)',
+			'body' => 'On <strong>Portal → Power BI</strong>, paste your Power BI <em>Workspace ID</em>, '
+				. '<em>Report ID</em>, and <em>Dataset ID</em> (from the report URL in the browser). '
+				. 'Click <strong>Save config</strong>. This does not call Microsoft yet — it stores IDs for operators and for future Azure embed.',
+			'tips' => array(
+				'Workspace GUID is in the Power BI Service URL path after /groups/.',
+				'Register named reports with Add report for a tidy inventory per tenant.',
+			),
+		),
+		array(
+			'title' => 'Step 8 — Optional URL embed in CP',
+			'body' => 'Set <strong>Embed mode = URL iframe</strong> and paste a share / publish-to-web link that starts with '
+				. '<code>https://app.powerbi.com/</code> (or <code>*.powerbi.com</code> / <code>*.powerbi.us</code>). '
+				. 'Save — the preview iframe appears on the same CP page. '
+				. 'Publish-to-web is public; prefer secure share links for sensitive finance data.',
+			'tips' => array(
+				'Non-powerbi.com hosts are rejected automatically.',
+				'Embed mode = Azure stays blocked until you provide Azure AD app credentials (Step 9).',
+			),
+		),
+		array(
+			'title' => 'Step 9 — Later: Azure secure embed (needs your credentials)',
+			'body' => 'When you want in-app embed without publish-to-web, create an Azure AD app in your Microsoft tenant, '
+				. 'grant Power BI API permissions, and have Power BI Pro / Premium / Embedded capacity. '
+				. 'Send the client id/secret and Azure tenant ID to platform ops. '
+				. 'We already store workspace/report IDs; token minting activates when those secrets are configured.',
+			'tips' => array(
+				'Until then, use Desktop + Service refresh (Steps 5–6) — that path is fully live.',
+			),
+		),
+	);
+}
+
+/**
  * Capabilities matrix — honest about what needs Microsoft credentials.
  *
  * @return array<string,mixed>
