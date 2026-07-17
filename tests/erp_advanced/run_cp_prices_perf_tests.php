@@ -50,6 +50,18 @@ $relief = (string) file_get_contents($root . '/epc-db-relief.php');
 check('relief can SHOW PROCESSLIST', strpos($relief, 'SHOW FULL PROCESSLIST') !== false);
 check('relief can KILL', strpos($relief, 'KILL ') !== false);
 
+echo "\n== epartscart 1s path ==\n";
+$fast = (string) file_get_contents($root . '/cp/epc_cp_fast_tenant.php');
+check('fast tenant helper exists', $fast !== '');
+check('skips ERP routers on epartscart', strpos($fast, 'epc_cp_should_skip_erp_routers') !== false);
+$idx = (string) file_get_contents($root . '/cp/index.php');
+check('cp index loads fast tenant', strpos($idx, 'epc_cp_fast_tenant.php') !== false);
+check('cp index skips early ERP for epartscart', strpos($idx, '$epcCpSkipErpRoutersEarly') !== false);
+$match = (string) file_get_contents($root . '/content/shop/docpart/docpart_article_match.php');
+check('article_search ensure has allowAlter', strpos($match, 'bool $allowAlter = false') !== false);
+check('search path does not backfill', strpos($match, 'Never backfill on the live search path') !== false);
+check('1s speed ops script exists', is_file($root . '/epc-epartscart-1s-speed.php'));
+
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";
 exit($fail > 0 ? 1 : 0);

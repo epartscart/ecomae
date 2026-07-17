@@ -37,8 +37,10 @@ function docpart_sql_article_normalized_expr($column = '`article`')
 
 /**
  * Ensure indexed article_search column exists for fast warehouse price lookups.
+ * Web/search path: probe only (never ALTER — locks → 524 on epartscart).
+ * Setup scripts may pass $allowAlter=true.
  */
-function docpart_price_data_ensure_article_search_column(PDO $db_link): bool
+function docpart_price_data_ensure_article_search_column(PDO $db_link, bool $allowAlter = false): bool
 {
 	static $ready = null;
 	if ($ready !== null) {
@@ -49,6 +51,9 @@ function docpart_price_data_ensure_article_search_column(PDO $db_link): bool
 		$db_link->query('SELECT `article_search` FROM `shop_docpart_prices_data` LIMIT 1');
 		$ready = true;
 	} catch (Throwable $e) {
+		if (!$allowAlter) {
+			return false;
+		}
 		try {
 			$db_link->exec(
 				'ALTER TABLE `shop_docpart_prices_data`
@@ -154,12 +159,8 @@ function docpart_resolve_article_search_values($db_link, $DP_Config, $article_in
 	}
 	$use_crosses = (isset($DP_Config->local_crosses) && !empty($DP_Config->local_crosses));
 	$price_ids = array_values(array_unique(array_map('intval', $price_ids)));
-	if ($db_link instanceof PDO && docpart_price_data_ensure_article_search_column($db_link) && !empty($price_ids)) {
-		// Keep search index warm for these lists (cheap when already filled).
-		foreach (array_slice($price_ids, 0, 8) as $pid) {
-			docpart_price_data_backfill_article_search($db_link, (int) $pid, 5000);
-		}
-	}
+	// Never backfill on the live search path — UPDATE chunks block click-to-result.
+	// Use epc-epartscart-warehouse-search-fast.php&apply=1 for offline backfill.
 	if ($use_crosses && !empty($price_ids)) {
 		$art_expr = docpart_sql_article_match_expr($db_link, '`article`');
 		$price_placeholders = str_repeat('?,', count($price_ids) - 1) . '?';
