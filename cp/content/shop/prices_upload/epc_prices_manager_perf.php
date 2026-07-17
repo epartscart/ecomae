@@ -129,16 +129,48 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 	}
 }
 
+if (!function_exists('epc_prices_table_has_column')) {
+	function epc_prices_table_has_column(PDO $db, string $table, string $column): bool
+	{
+		static $cache = array();
+		$key = $table . '.' . $column;
+		if (array_key_exists($key, $cache)) {
+			return $cache[$key];
+		}
+		if (!preg_match('/^[a-zA-Z0-9_]+$/', $table) || !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+			$cache[$key] = false;
+			return false;
+		}
+		try {
+			$q = $db->prepare(
+				'SELECT 1 FROM information_schema.COLUMNS
+				 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1'
+			);
+			$q->execute(array($table, $column));
+			$cache[$key] = (bool) $q->fetchColumn();
+		} catch (Exception $e) {
+			$cache[$key] = false;
+		}
+		return $cache[$key];
+	}
+}
+
 if (!function_exists('epc_prices_fetch_lists_query')) {
 	/**
-	 * Fast listing: use denormalized shop_docpart_prices.records_count
-	 * (maintained on import). Never COUNT(*) the prices_data table here —
-	 * that scan alone can exceed Cloudflare's origin timeout on epartscart.
+	 * Fast listing with resilient fallbacks so the CP table never goes blank.
+	 * Prefer denormalized shop_docpart_prices.records_count — never COUNT(*)
+	 * the prices_data table on page load (524 on epartscart).
 	 */
 	function epc_prices_fetch_lists_query(PDO $db_link): PDOStatement
 	{
-		$sql = 'SELECT p.*,
-			COALESCE(p.`records_count`, 0) AS `records_count`,
+		$hasRecordsCount = epc_prices_table_has_column($db_link, 'shop_docpart_prices', 'records_count');
+		$recordsExpr = $hasRecordsCount
+			? 'COALESCE(p.`records_count`, 0) AS `records_count`'
+			: '0 AS `records_count`';
+
+		$candidates = array();
+		$candidates[] = 'SELECT p.*,
+			' . $recordsExpr . ',
 			COALESCE(pc.`cron_tasks_count`, 0) AS `cron_tasks_count`
 			FROM `shop_docpart_prices` p
 			LEFT JOIN (
@@ -147,9 +179,31 @@ if (!function_exists('epc_prices_fetch_lists_query')) {
 				GROUP BY `price_id`
 			) pc ON pc.`price_id` = p.`id`
 			ORDER BY p.`id`';
-		$q = $db_link->prepare($sql);
-		$q->execute();
-		return $q;
+		$candidates[] = 'SELECT p.*,
+			' . $recordsExpr . ',
+			0 AS `cron_tasks_count`
+			FROM `shop_docpart_prices` p
+			ORDER BY p.`id`';
+
+		$last = null;
+		foreach ($candidates as $sql) {
+			try {
+				$q = $db_link->prepare($sql);
+				$q->execute();
+				return $q;
+			} catch (Throwable $e) {
+				$last = $e;
+			}
+		}
+
+		// Last resort — never throw out of the page renderer.
+		try {
+			$q = $db_link->prepare('SELECT p.*, 0 AS `records_count`, 0 AS `cron_tasks_count` FROM `shop_docpart_prices` p ORDER BY p.`id`');
+			$q->execute();
+			return $q;
+		} catch (Throwable $e) {
+			throw $last ?: $e;
+		}
 	}
 }
 

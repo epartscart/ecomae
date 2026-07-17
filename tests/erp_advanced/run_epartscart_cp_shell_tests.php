@@ -57,10 +57,10 @@ $src = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_pr
 check('cleaner only via explicit GET flag', strpos($src, "isset(\$_GET['epc_clean_pyprices'])") !== false);
 check('cleaner no longer random on page load', strpos($src, 'mt_rand(1, 40)') === false);
 check('listing query uses denormalized records_count', strpos($src, 'COALESCE(p.`records_count`') !== false);
-check('listing query does NOT COUNT prices_data', strpos($src, 'COUNT(*) AS `records_count`') === false
-	&& strpos($src, 'FROM `shop_docpart_prices_data`') !== false /* index helper may still mention table */);
+check('listing query has resilient fallbacks', strpos($src, 'Last resort') !== false || strpos($src, 'candidates[]') !== false);
+check('listing never COUNTs prices_data for records', strpos($src, 'COUNT(*) AS `records_count`') === false);
 $fetchFn = '';
-if (preg_match('/function epc_prices_fetch_lists_query\(.*?\{(.*?)\n\}/s', $src, $m)) {
+if (preg_match('/function epc_prices_fetch_lists_query\(PDO \$db_link\): PDOStatement\s*\{(.*)\n\}/s', $src, $m)) {
 	$fetchFn = $m[1];
 }
 check('fetch_lists_query body omits prices_data', $fetchFn !== '' && strpos($fetchFn, 'shop_docpart_prices_data') === false);
@@ -69,6 +69,10 @@ check('ensure indexes defaults allowAlter=false', preg_match('/function epc_pric
 $mgrSrc = (string) file_get_contents($root . '/cp/content/shop/prices_upload/prices_manager.php');
 check('lazy history uses parallel pump', strpos($mgrSrc, 'maxParallel') !== false);
 check('history cell skips is_file probes', strpos($mgrSrc, 'Avoid is_file()') !== false);
+check('safe JS object push (no JSON.parse quote wrap)', preg_match("/JSON\\.parse\\(\\s*'\\s*<\\?php\\s+echo\\s+json_encode/", $mgrSrc) !== 1
+	&& strpos($mgrSrc, 'docpart_prices.push(<?php echo $epc_price_js; ?>)') !== false);
+check('dead pagination continue removed', strpos($mgrSrc, '$i < $s_page*$p') === false);
+check('emex remove script present', is_file($root . '/epc-remove-emex-price.php'));
 
 echo "\n== Script relocate also moves styles ==\n";
 require_once $root . '/content/general_pages/epc_cp_script_relocate.php';
