@@ -73,3 +73,10 @@ def fetch_one(sql: str, params: tuple = ()) -> dict | None:
         cur.execute(sql, params)
         row = cur.fetchone()
         return dict(row) if row else None
+
+
+def execute(sql: str, params: tuple = ()) -> int:
+    """Run a write statement; return affected row count."""
+    with cursor() as cur:
+        cur.execute(sql, params)
+        return cur.rowcount

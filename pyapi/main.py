@@ -20,7 +20,9 @@ import logging
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
-from . import auth, services
+from pydantic import BaseModel
+
+from . import auth, push, services
 from .config import settings
 
 log = logging.getLogger("pyapi")
@@ -114,3 +116,36 @@ def orders(
 ):
     _cp_auth(request, key)
     return services.orders(limit, offset)
+
+
+# ── Push notifications ──────────────────────────────────────────────────────
+
+class DeviceIn(BaseModel):
+    token: str
+    platform: str = "android"
+    app: str = "cp"
+
+
+class PushTestIn(BaseModel):
+    title: str = "Test notification"
+    body: str = "pyapi push is working."
+    app: str | None = None
+
+
+@app.post("/pyapi/v1/push/register")
+def push_register(payload: DeviceIn, request: Request):
+    # Any authenticated admin device can register for CP/ERP alerts.
+    user_id = auth.require_admin(request)
+    return push.register_device(payload.token, payload.platform, user_id, payload.app)
+
+
+@app.post("/pyapi/v1/push/unregister")
+def push_unregister(payload: DeviceIn, request: Request):
+    auth.require_admin(request)
+    return push.unregister_device(payload.token)
+
+
+@app.post("/pyapi/v1/push/test")
+def push_test(payload: PushTestIn, request: Request, key: str = Query("")):
+    _cp_auth(request, key)
+    return push.send(payload.title, payload.body, app=payload.app, data={"type": "test"})

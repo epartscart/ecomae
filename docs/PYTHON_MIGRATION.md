@@ -95,7 +95,53 @@ Implemented and tested (`tests/pyapi/`):
 - **Remaining (integration):** have the CP grids fetch these via AJAX after first
   paint (HTML shell stays PHP). Mobile apps (PR #234) can point at these directly.
 
-## Phase 3 — background jobs
+## Phase 3 — background jobs + native push  ✅ push dispatcher done
+
+**Native push notifications wired to pyapi** (order alerts + low-stock):
+- `pyapi/push.py` — device registry (`epc_push_devices`) + FCM HTTP v1 sender
+  (FCM relays to APNs for iOS, so one transport covers Android + iOS). Safe
+  no-op when FCM creds absent; tokens still register.
+- Endpoints: `POST /pyapi/v1/push/register`, `/push/unregister` (admin session),
+  `/push/test` (admin/key).
+- `pyapi/worker.py` — long-lived loop (or `--once` for cron) that polls new
+  orders + low-stock and dispatches push. Baselines to the current order id on
+  first run so it never blasts the backlog; state in a small file.
+- `pyapi/ops/push_setup.py` — creates `epc_push_devices` (ops-only DDL).
+- App side: `pyapi/static/epc_push_register.js` requests permission, gets the
+  FCM/APNs token in the Capacitor CP shell, and registers it with the admin
+  session cookie.
+
+Enable sending (once you have a Firebase project):
+```bash
+export PYAPI_FCM_PROJECT=your-firebase-project-id
+export PYAPI_FCM_ACCESS_TOKEN="$(gcloud auth application-default print-access-token)"
+python -m pyapi.ops.push_setup           # create device table
+python -m pyapi.worker                    # start the dispatcher
+```
+
+systemd unit (`/etc/systemd/system/pyapi-worker.service`):
+```ini
+[Unit]
+Description=ecomae pyapi push worker
+After=network.target mysql.service
+
+[Service]
+User=ecomae
+WorkingDirectory=/home/ecomae/htdocs/www.ecomae.com
+Environment=PYAPI_FCM_PROJECT=your-firebase-project-id
+ExecStart=/home/ecomae/htdocs/www.ecomae.com/pyapi-venv/bin/python -m pyapi.worker
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Remaining phase 3:** move the pyprices cron protocol itself into this worker
+(retire the PHP↔CGI `pyprices-api.php` bridge); write `records_count` /
+`article_search` at ingest time.
+
+## Phase 3b — remaining background jobs
 
 - Move pyprices cron protocol into a proper worker (Celery/APScheduler in the
   same venv), retiring the PHP↔CGI bridge (`pyprices-api.php`)
