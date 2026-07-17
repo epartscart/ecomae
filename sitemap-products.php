@@ -2,11 +2,17 @@
 /**
  * Warehouse product sitemap for epartscart CHPU pages.
  *
+ * URL format (same as live warehouse results / canonical):
+ *   https://www.epartscart.com/en/parts/{BRAND}/{ARTICLE}
+ * Example:
+ *   https://www.epartscart.com/en/parts/GMB/GUT21
+ *
  *   /sitemap-products.php              → hubs + brand browse pages
- *   /sitemap-products.php?brand=BOSCH  → in-stock articles for that brand
+ *   /sitemap-products.php?brand=BOSCH  → all in-stock articles for that brand
  *   /sitemap-products.php?shard=0      → legacy numeric shard (brand/article pairs)
  *
  * Google discovers brand (and shard) children via /sitemap-index.php.
+ * Do NOT emit /en/parts/brands/{article} — that path 302s and is Disallow in robots.txt.
  */
 declare(strict_types=1);
 
@@ -59,8 +65,6 @@ function epc_sitemap_products_add_pair_rows(
 	array $rows,
 	DP_Config $cfg,
 	string $lang,
-	string $parts_root,
-	string $slash_code,
 	string $lastmod,
 	array &$entries,
 	array &$seen
@@ -68,16 +72,17 @@ function epc_sitemap_products_add_pair_rows(
 	foreach ($rows as $row) {
 		$mfr = trim((string) ($row['manufacturer'] ?? ''));
 		$artRaw = trim((string) ($row['article'] ?? ''));
-		$artNorm = docpart_normalize_article_for_price($artRaw);
-		if ($mfr === '' || $artNorm === '') {
+		if ($mfr === '' || $artRaw === '') {
 			continue;
 		}
-		$path = epc_sitemap_segment($mfr, $slash_code) . '/'
-			. epc_sitemap_segment($artNorm, $slash_code);
+		$loc = epc_sitemap_part_loc($cfg, $lang, $mfr, $artRaw);
+		if ($loc === '' || strpos($loc, '/parts/brands/') !== false) {
+			continue;
+		}
 		epc_sitemap_add_entry(
 			$entries,
 			$seen,
-			epc_sitemap_parts_path($cfg, $lang, $parts_root, $slash_code, $path),
+			$loc,
 			$lastmod,
 			'weekly',
 			'0.6'
@@ -121,17 +126,21 @@ try {
 			if ($mfr === '') {
 				continue;
 			}
+			// Brand browse: /en/parts/{BRAND} (uppercase to match CHPU)
+			$mfrUpper = function_exists('mb_strtoupper')
+				? mb_strtoupper($mfr, 'UTF-8')
+				: strtoupper($mfr);
 			epc_sitemap_add_entry(
 				$entries,
 				$seen,
-				epc_sitemap_parts_path($cfg, $lang, $parts_root, $slash_code, epc_sitemap_segment($mfr, $slash_code)),
+				epc_sitemap_parts_path($cfg, $lang, $parts_root, $slash_code, epc_sitemap_segment($mfrUpper, $slash_code)),
 				$lastmod,
 				'weekly',
 				'0.7'
 			);
 		}
 	} elseif ($isBrandMap) {
-		// Canonical product pages for one brand: /en/parts/{BRAND}/{NORMALIZED_ARTICLE}
+		// Canonical product pages: /en/parts/{BRAND}/{ARTICLE}
 		// Distinct article only — avoids ONLY_FULL_GROUP_BY failures that emptied ?shard= maps.
 		$stmt = $pdo->prepare(
 			'SELECT DISTINCT TRIM(d.`article`) AS article
@@ -154,8 +163,6 @@ try {
 			$rows,
 			$cfg,
 			$lang,
-			$parts_root,
-			$slash_code,
 			$lastmod,
 			$entries,
 			$seen
@@ -183,8 +190,6 @@ try {
 			$rows,
 			$cfg,
 			$lang,
-			$parts_root,
-			$slash_code,
 			$lastmod,
 			$entries,
 			$seen

@@ -48,12 +48,16 @@ $sites = array(
 		'property' => 'https://www.epartscart.com',
 		'role' => 'warehouse_storefront',
 		'sitemap' => 'https://www.epartscart.com/sitemap-index.php',
+		'also_submit' => array(
+			'https://www.epartscart.com/sitemap-products.php',
+		),
 		'sample_urls' => array(
 			'https://www.epartscart.com/en/parts',
 			'https://www.epartscart.com/en/available-brands',
-			'https://www.epartscart.com/en/spare-parts',
 			'https://www.epartscart.com/en/parts/GMB/GUT21',
+			'https://www.epartscart.com/sitemap-products.php?brand=GMB',
 		),
+		'note' => 'Child maps list warehouse URLs as /en/parts/{BRAND}/{ARTICLE} (e.g. /en/parts/GMB/GUT21). Do not submit /en/parts/brands/{article} — that path redirects and is Disallow in robots.txt.',
 	),
 );
 
