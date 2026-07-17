@@ -17,11 +17,19 @@ class CatalogListObject extends BaseGuayaquilObject
 
     protected function fromXml($data)
     {
-        $carBrands = Config::$VehiclesColumns;
+        // Config::$VehiclesColumns is a column count (int), not a brand list.
+        // Prefer an explicit brand list when present; otherwise treat all as cars.
+        $carBrands = [];
+        if (property_exists(Config::class, 'VehiclesBrands') && is_array(Config::$VehiclesBrands)) {
+            $carBrands = Config::$VehiclesBrands;
+        } elseif (is_array(Config::$VehiclesColumns)) {
+            $carBrands = Config::$VehiclesColumns;
+        }
+
         foreach ($data as $catalog) {
             $catObj = new CatalogObject($catalog);
             $this->catalogs[] = $catObj;
-            if (in_array($catObj->name, $carBrands)) {
+            if ($carBrands === [] || in_array($catObj->name, $carBrands, true)) {
                 $this->carCatalogs[] = $catObj;
             } else {
                 $this->truckCatalogs[] = $catObj;

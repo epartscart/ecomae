@@ -259,6 +259,9 @@ function epc_lax_soap_call($request, $oem = true)
                 $result = isset($result->return) ? $result->return : (isset($result->QueryDataLoginResult) ? $result->QueryDataLoginResult : json_encode($result));
             }
         }
+        if (is_string($result) && strpos($result, '&lt;') !== false && strpos($result, '<response') === false && strpos($result, '<List') === false) {
+            $result = html_entity_decode($result, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        }
         return $result;
     } catch (\Throwable $e) {
         return false;
@@ -277,29 +280,129 @@ function epc_lax_xml_to_array($xmlString)
     return json_decode(json_encode($xml), true);
 }
 
+/**
+ * Load Laximo QueryDataLogin XML. Responses are usually:
+ *   <response><ListCatalogs>...</ListCatalogs></response>
+ * SoapClient may also return entity-encoded markup.
+ */
+function epc_lax_load_xml($xmlString)
+{
+    if (!$xmlString || !is_string($xmlString)) {
+        return null;
+    }
+    $xmlString = trim($xmlString);
+    if ($xmlString === '') {
+        return null;
+    }
+    // Soap/HTTP sometimes leaves the payload HTML-entity encoded.
+    if (strpos($xmlString, '&lt;') !== false && strpos($xmlString, '<response') === false && strpos($xmlString, '<List') === false) {
+        $xmlString = html_entity_decode($xmlString, ENT_QUOTES | ENT_XML1, 'UTF-8');
+    }
+
+    $xml = @simplexml_load_string($xmlString);
+    if (!$xml) {
+        $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
+    }
+    if (!$xml) {
+        return null;
+    }
+
+    // Unwrap <response> so tag lookups work at the top level.
+    if (isset($xml->response) && $xml->response instanceof \SimpleXMLElement) {
+        return $xml->response;
+    }
+    if (strtolower($xml->getName()) === 'response') {
+        return $xml;
+    }
+    if (isset($xml->ListCatalogs) || isset($xml->FindVehicleByVIN) || isset($xml->ListCategories)) {
+        return $xml;
+    }
+    // <root><response>...</response></root>
+    foreach ($xml->children() as $child) {
+        if (strtolower($child->getName()) === 'response') {
+            return $child;
+        }
+    }
+    return $xml;
+}
+
+function epc_lax_xml_find($xml, $tag)
+{
+    if (!$xml instanceof \SimpleXMLElement) {
+        return null;
+    }
+    if (isset($xml->$tag)) {
+        return $xml->$tag;
+    }
+    $found = @$xml->xpath('.//' . $tag);
+    if (is_array($found) && isset($found[0]) && $found[0] instanceof \SimpleXMLElement) {
+        return $found[0];
+    }
+    return null;
+}
+
+/** True when catalog rows look usable (have code or brand). */
+function epc_lax_catalogs_usable($catalogs)
+{
+    if (!is_array($catalogs) || count($catalogs) < 2) {
+        // Single junk row like [{"features":[]}] is not usable.
+        if (!is_array($catalogs) || count($catalogs) === 0) {
+            return false;
+        }
+    }
+    $usable = 0;
+    foreach ($catalogs as $cat) {
+        if (!is_array($cat)) {
+            continue;
+        }
+        $code = isset($cat['code']) ? trim((string) $cat['code']) : '';
+        $brand = isset($cat['brand']) ? trim((string) $cat['brand']) : '';
+        $name = isset($cat['name']) ? trim((string) $cat['name']) : '';
+        if ($code !== '' || $brand !== '' || $name !== '') {
+            $usable++;
+        }
+    }
+    return $usable >= 1 && $usable === count($catalogs);
+}
+
+function epc_lax_cache_delete($key)
+{
+    $db = epc_lax_db();
+    if (!$db) {
+        return;
+    }
+    try {
+        $stmt = $db->prepare("DELETE FROM `epc_laximo_cache` WHERE `cache_key` = ?");
+        $stmt->execute([$key]);
+    } catch (\Throwable $e) {
+    }
+}
+
 function epc_lax_parse_catalogs($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
 
-    $catalogs = [];
-    $rows = isset($xml->ListCatalogs) ? $xml->ListCatalogs->children() : (isset($xml->row) ? [$xml] : $xml->children());
-
-    if (isset($xml->ListCatalogs)) {
-        $rows = $xml->ListCatalogs->children();
-    } else {
-        $rows = $xml->children();
+    $list = epc_lax_xml_find($xml, 'ListCatalogs');
+    if (!$list) {
+        // Some payloads are a bare list of <row> nodes.
+        $list = $xml;
     }
 
-    foreach ($rows as $row) {
+    $catalogs = [];
+    foreach ($list->children() as $row) {
+        if (strtolower($row->getName()) !== 'row' && !isset($row['code']) && !isset($row['brand'])) {
+            continue;
+        }
+
         $attrs = [];
         foreach ($row->attributes() as $k => $v) {
-            $attrs[$k] = (string) $v;
+            $attrs[strtolower((string) $k)] = (string) $v;
+        }
+        if (empty($attrs['code']) && empty($attrs['brand']) && empty($attrs['name'])) {
+            continue;
         }
 
         $features = [];
@@ -307,12 +410,15 @@ function epc_lax_parse_catalogs($xmlString)
             foreach ($row->features->children() as $feat) {
                 $f = [];
                 foreach ($feat->attributes() as $k => $v) {
-                    $f[$k] = (string) $v;
+                    $f[strtolower((string) $k)] = (string) $v;
                 }
                 $features[] = $f;
             }
         }
         $attrs['features'] = $features;
+        if (!empty($attrs['icon']) && empty($attrs['icon_url'])) {
+            $attrs['icon_url'] = 'https://cdn.laximo.net/images/catalogs/' . $attrs['icon'];
+        }
         $catalogs[] = $attrs;
     }
     return $catalogs;
@@ -320,10 +426,7 @@ function epc_lax_parse_catalogs($xmlString)
 
 function epc_lax_parse_vehicles($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
@@ -332,8 +435,8 @@ function epc_lax_parse_vehicles($xmlString)
     $findNode = null;
 
     foreach (['FindVehicleByVIN', 'FindVehicle', 'FindVehicleByFrameNo', 'FindVehicleByWizard2', 'FindVehicleCustom'] as $tag) {
-        if (isset($xml->$tag)) {
-            $findNode = $xml->$tag;
+        $findNode = epc_lax_xml_find($xml, $tag);
+        if ($findNode) {
             break;
         }
     }
@@ -344,160 +447,172 @@ function epc_lax_parse_vehicles($xmlString)
     foreach ($findNode->children() as $row) {
         $v = [];
         foreach ($row->attributes() as $k => $val) {
-            $v[$k] = (string) $val;
+            $v[strtolower((string) $k)] = (string) $val;
         }
         if (isset($row->attribute)) {
             $attrs = [];
             foreach ($row->attribute as $attr) {
                 $a = [];
                 foreach ($attr->attributes() as $k => $val) {
-                    $a[$k] = (string) $val;
+                    $a[strtolower((string) $k)] = (string) $val;
                 }
                 $attrs[] = $a;
             }
             $v['attributes'] = $attrs;
         }
-        $vehicles[] = $v;
+        if (!empty($v)) {
+            $vehicles[] = $v;
+        }
     }
     return $vehicles;
 }
 
 function epc_lax_parse_categories($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
 
-    $node = isset($xml->ListCategories) ? $xml->ListCategories : $xml;
+    $node = epc_lax_xml_find($xml, 'ListCategories');
+    if (!$node) {
+        $node = $xml;
+    }
     $categories = [];
     foreach ($node->children() as $row) {
         $c = [];
         foreach ($row->attributes() as $k => $v) {
-            $c[$k] = (string) $v;
+            $c[strtolower((string) $k)] = (string) $v;
         }
         if ($row->children()->count() > 0) {
             $c['children'] = [];
             foreach ($row->children() as $child) {
                 $cc = [];
                 foreach ($child->attributes() as $k => $v) {
-                    $cc[$k] = (string) $v;
+                    $cc[strtolower((string) $k)] = (string) $v;
                 }
                 $c['children'][] = $cc;
             }
         }
-        $categories[] = $c;
+        if (!empty($c)) {
+            $categories[] = $c;
+        }
     }
     return $categories;
 }
 
 function epc_lax_parse_units($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
 
-    $node = isset($xml->ListUnits) ? $xml->ListUnits : $xml;
+    $node = epc_lax_xml_find($xml, 'ListUnits');
+    if (!$node) {
+        $node = $xml;
+    }
     $units = [];
     foreach ($node->children() as $row) {
         $u = [];
         foreach ($row->attributes() as $k => $v) {
-            $u[$k] = (string) $v;
+            $u[strtolower((string) $k)] = (string) $v;
         }
-        $units[] = $u;
+        if (!empty($u)) {
+            $units[] = $u;
+        }
     }
     return $units;
 }
 
 function epc_lax_parse_details($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
 
-    $node = isset($xml->ListDetailByUnit) ? $xml->ListDetailByUnit : $xml;
+    $node = epc_lax_xml_find($xml, 'ListDetailByUnit');
+    if (!$node) {
+        $node = $xml;
+    }
     $details = [];
     foreach ($node->children() as $row) {
         $d = [];
         foreach ($row->attributes() as $k => $v) {
-            $d[$k] = (string) $v;
+            $d[strtolower((string) $k)] = (string) $v;
         }
-        $details[] = $d;
+        if (!empty($d)) {
+            $details[] = $d;
+        }
     }
     return $details;
 }
 
 function epc_lax_parse_quick_groups($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
 
-    $node = isset($xml->ListQuickGroup) ? $xml->ListQuickGroup : $xml;
+    $node = epc_lax_xml_find($xml, 'ListQuickGroup');
+    if (!$node) {
+        $node = $xml;
+    }
     $groups = [];
     foreach ($node->children() as $row) {
         $g = [];
         foreach ($row->attributes() as $k => $v) {
-            $g[$k] = (string) $v;
+            $g[strtolower((string) $k)] = (string) $v;
         }
         if ($row->children()->count() > 0) {
             $g['children'] = [];
             foreach ($row->children() as $child) {
                 $cg = [];
                 foreach ($child->attributes() as $k => $v) {
-                    $cg[$k] = (string) $v;
+                    $cg[strtolower((string) $k)] = (string) $v;
                 }
                 $g['children'][] = $cg;
             }
         }
-        $groups[] = $g;
+        if (!empty($g)) {
+            $groups[] = $g;
+        }
     }
     return $groups;
 }
 
 function epc_lax_parse_wizard($xmlString)
 {
-    $xml = @simplexml_load_string('<root>' . $xmlString . '</root>');
-    if (!$xml) {
-        $xml = @simplexml_load_string($xmlString);
-    }
+    $xml = epc_lax_load_xml($xmlString);
     if (!$xml) {
         return [];
     }
 
-    $node = isset($xml->GetWizard2) ? $xml->GetWizard2 : $xml;
+    $node = epc_lax_xml_find($xml, 'GetWizard2');
+    if (!$node) {
+        $node = $xml;
+    }
     $steps = [];
     foreach ($node->children() as $row) {
         $s = [];
         foreach ($row->attributes() as $k => $v) {
-            $s[$k] = (string) $v;
+            $s[strtolower((string) $k)] = (string) $v;
         }
         if ($row->children()->count() > 0) {
             $s['options'] = [];
             foreach ($row->children() as $opt) {
                 $o = [];
                 foreach ($opt->attributes() as $k => $v) {
-                    $o[$k] = (string) $v;
+                    $o[strtolower((string) $k)] = (string) $v;
                 }
                 $s['options'][] = $o;
             }
         }
-        $steps[] = $s;
+        if (!empty($s)) {
+            $steps[] = $s;
+        }
     }
     return $steps;
 }
@@ -519,7 +634,7 @@ function epc_lax_sync_catalogs()
     }
 
     $catalogs = epc_lax_parse_catalogs($xml);
-    if (empty($catalogs)) {
+    if (!epc_lax_catalogs_usable($catalogs)) {
         return false;
     }
 
@@ -567,18 +682,29 @@ function epc_lax_action_catalogs()
 {
     $locale = epc_lax_param('locale', 'en_US');
     $cacheKey = epc_lax_cache_key('catalogs', ['locale' => $locale]);
+    $forceRefresh = epc_lax_param('refresh', '') === '1' || epc_lax_param('nocache', '') === '1';
 
-    $cached = epc_lax_cache_get($cacheKey, 86400);
-    if ($cached) {
-        epc_lax_json(['status' => true, 'source' => 'cache', 'catalogs' => $cached], 200, 3600);
+    if ($forceRefresh) {
+        epc_lax_cache_delete($cacheKey);
+    }
+
+    if (!$forceRefresh) {
+        $cached = epc_lax_cache_get($cacheKey, 86400);
+        if (epc_lax_catalogs_usable($cached)) {
+            epc_lax_json(['status' => true, 'source' => 'cache', 'catalogs' => $cached], 200, 3600);
+        }
+        if ($cached !== null) {
+            // Poisoned cache from older parser bugs (e.g. [{"features":[]}]).
+            epc_lax_cache_delete($cacheKey);
+        }
     }
 
     $db = epc_lax_db();
-    if ($db) {
+    if ($db && !$forceRefresh) {
         try {
             $stmt = $db->query("SELECT * FROM `epc_laximo_catalogs` WHERE `updated_at` > " . (time() - 86400) . " ORDER BY `brand` ASC");
             $rows = $stmt->fetchAll();
-            if (!empty($rows)) {
+            if (epc_lax_catalogs_usable($rows)) {
                 epc_lax_cache_set($cacheKey, 'catalogs', ['locale' => $locale], $rows);
                 epc_lax_json(['status' => true, 'source' => 'db', 'catalogs' => $rows], 200, 3600);
             }
@@ -591,6 +717,10 @@ function epc_lax_action_catalogs()
         $count = epc_lax_sync_catalogs();
         if ($count) {
             $cached = epc_lax_cache_get($cacheKey, 86400);
+            if (!epc_lax_catalogs_usable($cached) && $db) {
+                $stmt = $db->query("SELECT * FROM `epc_laximo_catalogs` ORDER BY `brand` ASC");
+                $cached = $stmt->fetchAll();
+            }
             epc_lax_json(['status' => true, 'source' => 'live', 'synced' => $count, 'catalogs' => $cached ?: []], 200, 3600);
         }
     } catch (\Throwable $e) {
@@ -602,7 +732,7 @@ function epc_lax_action_catalogs()
         try {
             $stmt = $db->query("SELECT * FROM `epc_laximo_catalogs` ORDER BY `brand` ASC");
             $rows = $stmt->fetchAll();
-            if (!empty($rows)) {
+            if (epc_lax_catalogs_usable($rows)) {
                 epc_lax_json(['status' => true, 'source' => 'db_stale', 'catalogs' => $rows], 200, 300);
             }
         } catch (\Throwable $e) {
