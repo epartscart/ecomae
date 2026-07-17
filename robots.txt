@@ -15,6 +15,7 @@ Sitemap: /sitemap.xml
 # Do NOT use energy.ecomae.com/sitemap.xml for this — that file is energy-only.
 Sitemap: /sitemap-industries.php
 # Aggregated index (www marketing + tenant pages/products, or industry self-map).
-# Warehouse stock (brand + article / part number pages) is listed via shards here.
+# Warehouse stock: sitemap-index.php → sitemap-warehouse-0.xml … (/en/parts/{BRAND}/{ARTICLE}).
 Sitemap: /sitemap-index.php
 Sitemap: /sitemap-products.php
+Sitemap: /sitemap-warehouse-0.xml
