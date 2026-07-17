@@ -429,7 +429,7 @@ function epc_sitemap_warehouse_serve_cached(int $shard): bool
 	header('Content-Type: application/xml; charset=utf-8');
 	header('X-Sitemap-Cache: hit');
 	header('Cache-Control: public, max-age=3600');
-	header('X-Robots-Tag: noindex');
+	// Do not send X-Robots-Tag: noindex on sitemap responses — GSC may refuse fetch.
 	readfile($path);
 	return true;
 }

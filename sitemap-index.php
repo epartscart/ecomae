@@ -47,30 +47,19 @@ if ($isIndustryHost) {
 	);
 	$base = epc_sitemap_base_url($cfg);
 
-	// Use PHP locs (same style as sitemap-pages.php / sitemap-products.php).
-	// GSC often reports "Couldn't fetch" on static .xml while .php children succeed.
+	// IMPORTANT: use static path locs only — sitemap-warehouse-N.xml
+	// GSC successfully read those (5,000 URLs). Do not list query-string
+	// children in the index — GSC reports Couldn't fetch for those after resubmit.
 	$shards = epc_sitemap_warehouse_existing_shard_count();
-	$meta = epc_sitemap_warehouse_meta_read();
-	if ($meta['shards'] > $shards) {
-		$shards = (int) $meta['shards'];
-	}
-	$pdo = epc_sitemap_pdo($cfg);
-	if ($pdo instanceof PDO) {
-		$estimated = epc_sitemap_warehouse_estimate_shards($pdo);
-		// Always advertise the full estimated set via PHP so Google can fetch
-		// even while warm is still writing static files.
-		if ($estimated > $shards) {
-			$shards = $estimated;
-		}
+	if ($shards <= 0) {
+		$meta = epc_sitemap_warehouse_meta_read();
+		$shards = (int) ($meta['shards'] ?? 0);
 	}
 	if ($shards > epc_sitemap_warehouse_max_shards()) {
 		$shards = epc_sitemap_warehouse_max_shards();
 	}
-	if ($shards < 1) {
-		$shards = 1;
-	}
 	for ($i = 0; $i < $shards; $i++) {
-		$childMaps[] = 'sitemap-warehouse.php?n=' . $i;
+		$childMaps[] = 'sitemap-warehouse-' . $i . '.xml';
 	}
 }
 
