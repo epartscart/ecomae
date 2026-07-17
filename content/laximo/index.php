@@ -22,12 +22,12 @@ if ($useAjaxLanding) {
 		$langPrefix = '/' . strtolower($m[1]);
 	}
 	?>
-	<link rel="stylesheet" href="/api/Laximo/laximo.css?v=20260717lax2" type="text/css" />
+	<link rel="stylesheet" href="/api/Laximo/laximo.css?v=20260717lax3" type="text/css" />
 	<div class="epc-laximo-page">
 		<div class="epc-laximo-page__intro">
 			<h1 style="margin:0 0 8px;font-size:22px;">OEM vehicle catalog</h1>
 			<p style="margin:0 0 16px;color:#64748b;font-size:14px;max-width:640px;">
-				Search by VIN / frame, or browse manufacturer catalogs. Two sections below load from Laximo.
+				Identify a vehicle by VIN or manufacturer wizard, browse unified or OEM structure, search parts by name, then open aftermarket analogs (Laximo.DOC).
 			</p>
 		</div>
 		<div id="Laximo_container">
@@ -40,7 +40,7 @@ if ($useAjaxLanding) {
 	<script>
 		window.EPC_LAXIMO_BASE = <?php echo json_encode($langPrefix . '/katalog-laximo', JSON_UNESCAPED_SLASHES); ?>;
 	</script>
-	<script src="/api/Laximo/laximo.js?v=20260717lax2"></script>
+	<script src="/api/laximo_storefront.js?v=20260717lax3"></script>
 	<script>
 		jQuery(function () {
 			if (window.Laximo && typeof Laximo.init === 'function') {

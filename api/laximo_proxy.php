@@ -1088,7 +1088,8 @@ function epc_lax_action_vehicle_info()
     $ssd = epc_lax_param('ssd', '');
     $locale = epc_lax_param('locale', 'en_US');
 
-    if (!$catalog || !$vehicleId) {
+    // vehicle_id may be "0" (valid in Laximo) — do not use empty()/!$id checks.
+    if ($catalog === '' || $vehicleId === '') {
         epc_lax_json(['status' => false, 'error' => 'catalog and vehicle_id required'], 400);
     }
 
@@ -1123,7 +1124,7 @@ function epc_lax_action_categories()
     $ssd = epc_lax_param('ssd', '');
     $locale = epc_lax_param('locale', 'en_US');
 
-    if (!$catalog || !$vehicleId) {
+    if ($catalog === '' || $vehicleId === '') {
         epc_lax_json(['status' => false, 'error' => 'catalog and vehicle_id required'], 400);
     }
 
@@ -1158,7 +1159,7 @@ function epc_lax_action_units()
     $ssd = epc_lax_param('ssd', '');
     $locale = epc_lax_param('locale', 'en_US');
 
-    if (!$catalog || !$vehicleId || !$categoryId) {
+    if ($catalog === '' || $vehicleId === '' || $categoryId === '') {
         epc_lax_json(['status' => false, 'error' => 'catalog, vehicle_id and category_id required'], 400);
     }
 
@@ -1192,7 +1193,7 @@ function epc_lax_action_unit_details()
     $ssd = epc_lax_param('ssd', '');
     $locale = epc_lax_param('locale', 'en_US');
 
-    if (!$catalog || !$unitId) {
+    if ($catalog === '' || $unitId === '') {
         epc_lax_json(['status' => false, 'error' => 'catalog and unit_id required'], 400);
     }
 
@@ -1226,7 +1227,7 @@ function epc_lax_action_quick_groups()
     $ssd = epc_lax_param('ssd', '');
     $locale = epc_lax_param('locale', 'en_US');
 
-    if (!$catalog || !$vehicleId) {
+    if ($catalog === '' || $vehicleId === '') {
         epc_lax_json(['status' => false, 'error' => 'catalog and vehicle_id required'], 400);
     }
 
@@ -1262,7 +1263,7 @@ function epc_lax_action_quick_details()
     $locale = epc_lax_param('locale', 'en_US');
     $all = epc_lax_param('all', '0');
 
-    if (!$catalog || !$vehicleId || !$groupId) {
+    if ($catalog === '' || $vehicleId === '' || $groupId === '') {
         epc_lax_json(['status' => false, 'error' => 'catalog, vehicle_id and group_id required'], 400);
     }
 
@@ -1308,35 +1309,120 @@ function epc_lax_action_part_search()
         epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache', 'results' => $cached, 'parts' => $cached]);
     }
 
-    // Unified catalog full-text search (requires catalog feature fulltextsearch).
-    if ($catalog && $vehicleId !== '') {
-        $safeQuery = str_replace(['|', "\n", "\r"], ' ', $query);
+    $safeQuery = str_replace(['|', "\n", "\r"], ' ', $query);
+    $needle = mb_strtolower($safeQuery);
+
+    // 1) Official full-text (only if subscription allows SearchVehicleDetails).
+    if ($catalog !== '' && $vehicleId !== '') {
         $request = 'SearchVehicleDetails:Query=' . $safeQuery
             . '|Catalog=' . $catalog
             . '|VehicleId=' . $vehicleId
             . '|ssd=' . $ssd
             . '|Locale=' . $locale;
         $xml = epc_lax_soap_call($request, true);
-        if ($xml !== false) {
+        if ($xml !== false && stripos((string) $xml, 'E_ACCESSDENIED') === false && stripos((string) $xml, 'Not permitted') === false) {
             $data = epc_lax_parse_details($xml);
-            epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $xml);
-            epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'results' => $data, 'parts' => $data]);
+            if (!empty($data)) {
+                epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $xml);
+                epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'mode' => 'fulltext', 'results' => $data, 'parts' => $data]);
+            }
         }
     }
 
-    // Fallback: OEM reference lookup when query looks like a part number.
+    // 2) Unified-structure fallback: match quick-group names, then load OEMs from those groups.
+    //    Matches Laximo guidance ("oil filter" → component + OEM) when fulltext is not licensed.
+    if ($catalog !== '' && $vehicleId !== '') {
+        $qgXml = epc_lax_soap_call(
+            'ListQuickGroup:Locale=' . $locale . '|Catalog=' . $catalog . '|VehicleId=' . $vehicleId . '|ssd=' . $ssd,
+            true
+        );
+        $groups = $qgXml !== false ? epc_lax_parse_quick_groups($qgXml) : [];
+        $matched = [];
+        foreach ($groups as $g) {
+            $name = mb_strtolower((string) ($g['name'] ?? ($g['synonimname'] ?? '')));
+            if ($name !== '' && (strpos($name, $needle) !== false || strpos($needle, $name) !== false)) {
+                $matched[] = $g;
+            }
+        }
+        // Prefer tighter matches first
+        usort($matched, function ($a, $b) use ($needle) {
+            $na = mb_strtolower((string) ($a['name'] ?? ''));
+            $nb = mb_strtolower((string) ($b['name'] ?? ''));
+            $sa = ($na === $needle) ? 0 : ((strpos($na, $needle) === 0) ? 1 : 2);
+            $sb = ($nb === $needle) ? 0 : ((strpos($nb, $needle) === 0) ? 1 : 2);
+            return $sa <=> $sb;
+        });
+        $matched = array_slice($matched, 0, 8);
+        $data = [];
+        $seen = [];
+        foreach ($matched as $g) {
+            $gid = (string) ($g['quickgroupid'] ?? ($g['id'] ?? ($g['categoryid'] ?? '')));
+            if ($gid === '') {
+                continue;
+            }
+            $detailXml = epc_lax_soap_call(
+                'ListQuickDetail:Locale=' . $locale
+                . '|Catalog=' . $catalog
+                . '|VehicleId=' . $vehicleId
+                . '|QuickGroupId=' . $gid
+                . '|ssd=' . $ssd
+                . '|Localized=true',
+                true
+            );
+            if ($detailXml === false) {
+                continue;
+            }
+            foreach (epc_lax_parse_details($detailXml) as $d) {
+                $oem = (string) ($d['oem'] ?? ($d['number'] ?? ''));
+                $key = strtolower($oem . '|' . ($d['name'] ?? ''));
+                if ($oem === '' || isset($seen[$key])) {
+                    continue;
+                }
+                // Keep rows whose name mentions the query, or all rows from a strongly matched group.
+                $dname = mb_strtolower((string) ($d['name'] ?? ''));
+                $gname = mb_strtolower((string) ($g['name'] ?? ''));
+                $groupHit = ($gname === $needle) || (strpos($gname, $needle) !== false);
+                if (!$groupHit && $dname !== '' && strpos($dname, $needle) === false) {
+                    continue;
+                }
+                $seen[$key] = true;
+                $d['group'] = $g['name'] ?? '';
+                $d['group_id'] = $gid;
+                $data[] = $d;
+            }
+        }
+        if (!empty($data)) {
+            epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $qgXml ?: '');
+            epc_lax_json([
+                'status' => true,
+                'success' => true,
+                'source' => 'live',
+                'mode' => 'quick_groups',
+                'results' => $data,
+                'parts' => $data,
+                'matched_groups' => array_map(function ($g) {
+                    return [
+                        'id' => $g['quickgroupid'] ?? ($g['id'] ?? ''),
+                        'name' => $g['name'] ?? '',
+                    ];
+                }, $matched),
+            ]);
+        }
+    }
+
+    // 3) OEM reference lookup when query looks like a part number.
     $oemGuess = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $query));
     if (strlen($oemGuess) >= 5 && preg_match('/[0-9]/', $oemGuess)) {
         $request = 'FINDPARTREFERENCES:Locale=' . $locale . '|OEM=' . $oemGuess;
         $xml = epc_lax_soap_call($request, true);
-        if ($xml !== false) {
+        if ($xml !== false && stripos((string) $xml, 'E_ACCESSDENIED') === false) {
             $data = epc_lax_parse_details($xml);
             epc_lax_cache_set($cacheKey, 'part_search', $params, $data, $xml);
-            epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'results' => $data, 'parts' => $data]);
+            epc_lax_json(['status' => true, 'success' => true, 'source' => 'live', 'mode' => 'oem_refs', 'results' => $data, 'parts' => $data]);
         }
     }
 
-    epc_lax_json(['status' => false, 'error' => 'Part name search unavailable for this vehicle/catalog (needs fulltextsearch), or Laximo API error'], 503);
+    epc_lax_json(['status' => false, 'error' => 'No parts found for this name in the vehicle unified catalog'], 404);
 }
 
 function epc_lax_action_part_refs()
