@@ -112,8 +112,11 @@ class GuayaquilSoapWrapper
             $options['uri']      = 'http://WebCatalog.Kito.ec';
             $options['location'] = 'https://' . Config::$oemServiceUrl . '/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
         } else {
+            // Laximo.DOC Aftermarket: aws host, Soap12 preferred (Soap11 kept as path fallback via Config host).
             $options['uri']      = 'http://Aftermarket.Kito.ec';
-            $options['location'] = 'https://' . Config::$amServiceUrl . '/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
+            $amHost = Config::$amServiceUrl ?: 'aws.laximo.net';
+            $options['location'] = 'https://' . $amHost . '/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap12Endpoint/';
+            $options['soap_version'] = SOAP_1_2;
         }
 
         if ($this->authMethod == 'certificate') {

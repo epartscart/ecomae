@@ -54,8 +54,8 @@ var Laximo = {
             success: function(data) {
                 if (data && (data.success || data.status)) {
                     // Normalize response: extract data array from action-specific keys
-                    var normalized = {success: true, data: []};
-                    if (data.data) {
+                    var normalized = {success: true, data: [], raw: data};
+                    if (data.data !== undefined && data.data !== null) {
                         normalized.data = data.data;
                     } else if (data.catalogs) {
                         normalized.data = data.catalogs;
@@ -69,12 +69,20 @@ var Laximo = {
                         normalized.data = data.details;
                     } else if (data.quick_groups) {
                         normalized.data = data.quick_groups;
+                    } else if (data.groups) {
+                        normalized.data = data.groups;
                     } else if (data.parts) {
                         normalized.data = data.parts;
+                    } else if (data.results) {
+                        normalized.data = data.results;
+                    } else if (data.references) {
+                        normalized.data = data.references;
                     } else if (data.refs) {
                         normalized.data = data.refs;
                     } else if (data.aftermarket) {
                         normalized.data = data.aftermarket;
+                    } else if (data.steps) {
+                        normalized.data = {steps: data.steps, vehicles: data.vehicles || []};
                     } else if (data.wizard) {
                         normalized.data = data.wizard;
                     } else if (data.applicability) {
@@ -265,35 +273,74 @@ var Laximo = {
         var params = {action: 'wizard', catalog: catalog};
         if (ssd) params.ssd = ssd;
         this.ajax(params, function(data) {
-            self.renderWizard(data.data || {}, catalog);
+            var payload = self.normalizeWizardPayload(data.data, data.raw);
+            self.renderWizard(payload, catalog);
         });
     },
 
+    normalizeWizardPayload: function(payload, raw) {
+        var out = {steps: [], vehicles: []};
+        if (!payload && raw) {
+            payload = raw;
+        }
+        if (!payload) {
+            return out;
+        }
+        // {type:'wizard'|'vehicles', items:[...], steps?:[]}
+        if (payload.type === 'vehicles') {
+            out.vehicles = payload.items || payload.vehicles || [];
+            out.steps = payload.steps || [];
+            return out;
+        }
+        if (payload.type === 'wizard') {
+            out.steps = payload.items || payload.steps || [];
+            out.vehicles = payload.vehicles || [];
+            return out;
+        }
+        if (Object.prototype.toString.call(payload) === '[object Array]') {
+            // Heuristic: vehicle rows have vehicleid; wizard steps have options
+            if (payload.length && (payload[0].vehicleid || payload[0].VehicleId)) {
+                out.vehicles = payload;
+            } else {
+                out.steps = payload;
+            }
+            return out;
+        }
+        out.steps = payload.steps || (payload.wizard && payload.wizard.steps) || [];
+        out.vehicles = payload.vehicles || [];
+        if ((!out.steps || !out.steps.length) && raw && raw.steps) {
+            out.steps = raw.steps;
+        }
+        if ((!out.vehicles || !out.vehicles.length) && raw && raw.vehicles) {
+            out.vehicles = raw.vehicles;
+        }
+        return out;
+    },
+
     renderWizard: function(wizardData, catalog) {
+        var normalized = this.normalizeWizardPayload(wizardData, arguments[2] || null);
+        var steps = normalized.steps || [];
+        var vehicles = normalized.vehicles || [];
         var html = this.renderBreadcrumbs();
 
-        // Part search within catalog
         html += '<div class="laximo-search-bar">';
-        html += '<label style="font-weight:600;margin-bottom:8px;display:block;font-size:13px;">Search parts by name in this catalog</label>';
-        html += '<div class="input-group" style="display:flex;max-width:450px;">';
-        html += '<input type="text" id="laximo_part_search_input" placeholder="e.g. oil filter, brake pad..." style="flex:1;border:1px solid #ddd;padding:8px 12px;border-radius:4px 0 0 4px;font-size:14px;" />';
-        html += '<button class="btn-search" onclick="Laximo.searchParts()" style="background:#337ab7;color:#fff;border:1px solid #337ab7;padding:8px 16px;border-radius:0 4px 4px 0;cursor:pointer;">Search</button>';
-        html += '</div></div>';
+        html += '<p style="margin:0 0 8px;font-size:13px;color:#555;">Identify the vehicle first, then search parts by name (e.g. oil filter) in the unified catalog.</p>';
+        html += '</div>';
 
-        // Wizard steps (dropdowns)
-        if (wizardData.steps && wizardData.steps.length > 0) {
+        if (steps.length > 0) {
             html += '<div class="laximo-wizard">';
             html += '<h4 style="margin:0 0 15px;font-size:15px;">Select your vehicle</h4>';
-            for (var i = 0; i < wizardData.steps.length; i++) {
-                var step = wizardData.steps[i];
+            for (var i = 0; i < steps.length; i++) {
+                var step = steps[i];
+                var determined = step.determined === true || step.determined === 'true' || step.determined === '1';
                 html += '<div class="laximo-wizard-step">';
                 html += '<label>' + this.escHtml(step.name || 'Step ' + (i + 1)) + '</label>';
-                html += '<select id="laximo_wizard_' + i + '" onchange="Laximo.wizardNext(' + i + ')" ' + (step.determined ? 'disabled' : '') + '>';
+                html += '<select id="laximo_wizard_' + i + '" onchange="Laximo.wizardNext(' + i + ')" ' + (determined ? 'disabled' : '') + '>';
                 html += '<option value="">-- Select --</option>';
                 if (step.options) {
                     for (var j = 0; j < step.options.length; j++) {
                         var opt = step.options[j];
-                        var selected = (step.value && step.value === opt.key) ? ' selected' : '';
+                        var selected = (step.value && (step.value === opt.key || step.value === opt.value)) ? ' selected' : '';
                         html += '<option value="' + this.escHtml(opt.key || opt.value) + '" data-ssd="' + this.escHtml(opt.ssd || '') + '"' + selected + '>' + this.escHtml(opt.value || opt.name || opt.key) + '</option>';
                     }
                 }
@@ -303,18 +350,21 @@ var Laximo = {
             html += '</div>';
         }
 
-        // Vehicle list (if wizard completed)
-        if (wizardData.vehicles && wizardData.vehicles.length > 0) {
+        if (vehicles.length > 0) {
             html += '<h4 style="margin:20px 0 10px;font-size:15px;">Select vehicle variant</h4>';
             html += '<div class="laximo-vehicles-list">';
-            for (var k = 0; k < wizardData.vehicles.length; k++) {
-                var v = wizardData.vehicles[k];
+            for (var k = 0; k < vehicles.length; k++) {
+                var v = vehicles[k];
                 html += '<div class="laximo-vehicle-item" onclick="Laximo.selectVehicle(\'' + this.escHtml(catalog) + '\', \'' + this.escHtml(v.vehicleid || v.id) + '\', \'' + this.escHtml(v.ssd || '') + '\', \'' + this.escHtml(v.name || '') + '\')">';
                 html += '<div class="vehicle-name">' + this.escHtml(v.name || 'Vehicle') + '</div>';
                 html += '<div class="vehicle-info">' + (v.date ? this.escHtml(v.date) : '') + (v.description ? ' &middot; ' + this.escHtml(v.description) : '') + '</div>';
                 html += '</div>';
             }
             html += '</div>';
+        }
+
+        if (!steps.length && !vehicles.length) {
+            html += '<div class="laximo-error">No vehicle selection steps returned for this catalog. Try VIN search, or another brand.</div>';
         }
 
         document.getElementById(this.containerId).innerHTML = html;
@@ -327,7 +377,8 @@ var Laximo = {
         var self = this;
         this.showLoading('Loading next step...');
         this.ajax({action: 'wizard_next', catalog: this.currentCatalog, ssd: ssd, step: stepIndex, value: sel.value}, function(data) {
-            self.renderWizard(data.data || {}, self.currentCatalog);
+            var payload = self.normalizeWizardPayload(data.data, data.raw);
+            self.renderWizard(payload, self.currentCatalog);
         });
     },
 
@@ -349,10 +400,12 @@ var Laximo = {
 
     loadCategories: function() {
         var self = this;
-        this.showLoading('Loading categories...');
+        var unified = this.structureMode === 'unified';
+        this.showLoading(unified ? 'Loading unified groups...' : 'Loading manufacturer categories...');
         var params = {
-            action: 'categories',
+            action: unified ? 'quick_groups' : 'categories',
             catalog: this.currentCatalog,
+            vehicle_id: this.currentVehicle,
             vehicleid: this.currentVehicle,
             ssd: this.currentSsd
         };
@@ -363,6 +416,7 @@ var Laximo = {
 
     renderCategories: function(categories) {
         var html = this.renderBreadcrumbs();
+        if (!categories) categories = [];
 
         // Structure toggle (Unified / Manufacturer)
         html += '<div class="laximo-structure-toggle">';
@@ -370,26 +424,29 @@ var Laximo = {
         html += '<div class="toggle-btn' + (this.structureMode === 'manufacturer' ? ' active' : '') + '" onclick="Laximo.switchStructure(\'manufacturer\')">Manufacturer Structure</div>';
         html += '</div>';
 
-        // Part search
+        // Part search (unified name search → OEM, then DOC analogs)
         html += '<div class="laximo-search-bar" style="padding:10px 15px;">';
+        html += '<label style="display:block;font-size:12px;color:#666;margin-bottom:6px;">Search parts by name in this vehicle (unified catalog)</label>';
         html += '<div class="input-group" style="display:flex;max-width:400px;">';
-        html += '<input type="text" id="laximo_part_search_input" placeholder="Search parts by name (e.g. oil filter)..." style="flex:1;border:1px solid #ddd;padding:8px 12px;border-radius:4px 0 0 4px;font-size:13px;" />';
+        html += '<input type="text" id="laximo_part_search_input" placeholder="e.g. oil filter, brake pad..." style="flex:1;border:1px solid #ddd;padding:8px 12px;border-radius:4px 0 0 4px;font-size:13px;" onkeydown="if(event.key===\'Enter\'){Laximo.searchParts();}" />';
         html += '<button onclick="Laximo.searchParts()" style="background:#337ab7;color:#fff;border:1px solid #337ab7;padding:8px 14px;border-radius:0 4px 4px 0;cursor:pointer;font-size:13px;">Search</button>';
         html += '</div></div>';
 
         if (this.structureMode === 'unified') {
-            // Quick groups
             html += '<div class="laximo-quick-groups">';
+            if (!categories.length) {
+                html += '<p style="color:#999;padding:12px;">No unified groups for this vehicle. Switch to Manufacturer Structure, or search by part name above.</p>';
+            }
             for (var i = 0; i < categories.length; i++) {
                 var cat = categories[i];
-                html += '<div class="laximo-quick-group" onclick="Laximo.loadQuickDetails(\'' + this.escHtml(cat.categoryid || cat.id) + '\', \'' + this.escHtml(cat.name) + '\')">';
-                html += this.escHtml(cat.name || 'Category');
+                var gid = cat.quickgroupid || cat.groupid || cat.categoryid || cat.id || '';
+                html += '<div class="laximo-quick-group" onclick="Laximo.loadQuickDetails(\'' + this.escHtml(gid) + '\', \'' + this.escHtml(cat.name || '') + '\')">';
+                html += this.escHtml(cat.name || cat.synonimname || 'Group');
                 if (cat.count) html += ' <small style="color:#999;">(' + cat.count + ')</small>';
                 html += '</div>';
             }
             html += '</div>';
         } else {
-            // Tree view (manufacturer structure)
             html += '<div class="laximo-catalog-layout">';
             html += '<div class="laximo-catalog-tree">';
             html += this.renderTree(categories);
@@ -456,8 +513,10 @@ var Laximo = {
         this.ajax({
             action: 'units',
             catalog: this.currentCatalog,
+            vehicle_id: this.currentVehicle,
             vehicleid: this.currentVehicle,
             ssd: this.currentSsd,
+            category_id: categoryid,
             categoryid: categoryid
         }, function(data) {
             self.renderUnits(data.data || [], name, targetEl);
@@ -496,6 +555,7 @@ var Laximo = {
         this.ajax({
             action: 'unit_details',
             catalog: this.currentCatalog,
+            unit_id: unitid,
             unitid: unitid,
             ssd: ssd || this.currentSsd
         }, function(data) {
@@ -536,8 +596,10 @@ var Laximo = {
         this.ajax({
             action: 'quick_details',
             catalog: this.currentCatalog,
+            vehicle_id: this.currentVehicle,
             vehicleid: this.currentVehicle,
             ssd: this.currentSsd,
+            group_id: groupid,
             groupid: groupid
         }, function(data) {
             self.renderUnitDetails(data.data || [], name);
@@ -551,17 +613,27 @@ var Laximo = {
             alert('Please enter a part name to search.');
             return;
         }
+        if (!this.currentVehicle) {
+            alert('Identify a vehicle first (VIN or wizard), then search parts by name.');
+            return;
+        }
         var query = input.value.trim();
         var self = this;
         this.showLoading('Searching for: ' + this.escHtml(query) + '...');
         this.ajax({
             action: 'part_search',
             catalog: this.currentCatalog,
+            vehicle_id: this.currentVehicle || '',
             vehicleid: this.currentVehicle || '',
             ssd: this.currentSsd || '',
+            q: query,
             query: query
         }, function(data) {
-            self.renderSearchResults(data.data || [], query);
+            var rows = data.data || [];
+            if (!Array.isArray(rows)) {
+                rows = [];
+            }
+            self.renderSearchResults(rows, query);
         });
     },
 
@@ -642,25 +714,60 @@ var Laximo = {
         });
     },
 
+    flattenAftermarket: function(items) {
+        var out = [];
+        if (!items) return out;
+        if (!Array.isArray(items)) {
+            // Nested XML→JSON blob: try common shapes
+            if (items.detail) {
+                items = Array.isArray(items.detail) ? items.detail : [items.detail];
+            } else if (items.FindOEM && items.FindOEM.detail) {
+                items = Array.isArray(items.FindOEM.detail) ? items.FindOEM.detail : [items.FindOEM.detail];
+            } else {
+                return out;
+            }
+        }
+        for (var i = 0; i < items.length; i++) {
+            var am = items[i] || {};
+            var brand = am.brand || am.manufacturer || (am['@attributes'] && (am['@attributes'].manufacturer || am['@attributes'].brand)) || '';
+            var number = am.number || am.oem || am.formattedoem || (am['@attributes'] && (am['@attributes'].oem || am['@attributes'].formattedoem)) || '';
+            var name = am.name || (am['@attributes'] && am['@attributes'].name) || '';
+            if (number || brand) {
+                out.push({
+                    brand: brand,
+                    number: number,
+                    name: name,
+                    is_replacement: !!am.is_replacement,
+                    replacement_type: am.replacement_type || '',
+                    rate: am.rate || ''
+                });
+            }
+        }
+        return out;
+    },
+
     renderAftermarket: function(items, oem, partName) {
+        var rows = this.flattenAftermarket(items);
         var html = this.renderBreadcrumbs();
         html += '<h4 style="margin:0 0 5px;font-size:15px;">Aftermarket analogs for OEM: ' + this.escHtml(oem) + '</h4>';
         if (partName) html += '<p style="color:#666;font-size:13px;margin-bottom:15px;">' + this.escHtml(partName) + '</p>';
 
-        if (items.length === 0) {
+        if (rows.length === 0) {
             html += '<div class="laximo-error">No aftermarket cross-references found for this part. The Laximo.DOC service may be temporarily unavailable.</div>';
         } else {
             html += '<div class="laximo-aftermarket">';
-            html += '<h4>Cross-references / Analogs / Replacements</h4>';
-            for (var i = 0; i < items.length; i++) {
-                var am = items[i];
-                html += '<div class="laximo-aftermarket-item">';
-                html += '<span class="am-brand">' + this.escHtml(am.brand || am.manufacturer || '-') + '</span>';
-                html += '<span class="am-number">' + this.escHtml(am.number || am.oem || '-') + '</span>';
-                html += '<span class="am-name">' + this.escHtml(am.name || '') + '</span>';
-                html += '</div>';
+            html += '<h4>Cross-references / Analogs / Replacements (' + rows.length + ')</h4>';
+            html += '<table class="laximo-parts-table"><thead><tr><th>Brand</th><th>Number</th><th>Name</th><th>Type</th></tr></thead><tbody>';
+            for (var i = 0; i < rows.length; i++) {
+                var am = rows[i];
+                html += '<tr>';
+                html += '<td class="am-brand">' + this.escHtml(am.brand || '-') + '</td>';
+                html += '<td class="am-number"><a href="/parts/brands/' + encodeURIComponent(am.number) + '">' + this.escHtml(am.number || '-') + '</a></td>';
+                html += '<td class="am-name">' + this.escHtml(am.name || '') + '</td>';
+                html += '<td>' + this.escHtml(am.is_replacement ? (am.replacement_type || 'replacement') : 'OEM match') + (am.rate ? ' · rate ' + this.escHtml(String(am.rate)) : '') + '</td>';
+                html += '</tr>';
             }
-            html += '</div>';
+            html += '</tbody></table></div>';
         }
 
         document.getElementById(this.containerId).innerHTML = html;
