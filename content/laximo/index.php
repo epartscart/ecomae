@@ -40,7 +40,7 @@ if ($useAjaxLanding) {
 	<script>
 		window.EPC_LAXIMO_BASE = <?php echo json_encode($langPrefix . '/katalog-laximo', JSON_UNESCAPED_SLASHES); ?>;
 	</script>
-	<script src="/api/Laximo/laximo.js?v=20260717lax2"></script>
+	<script src="/api/laximo_storefront.js?v=20260717lax242"></script>
 	<script>
 		jQuery(function () {
 			if (window.Laximo && typeof Laximo.init === 'function') {
