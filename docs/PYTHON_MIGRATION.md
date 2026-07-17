@@ -10,6 +10,12 @@ each step is independently shippable and reversible.
 > itself. The Python services below are designed to make that class of bug
 > impossible (hard per-query timeouts, no schema mutation at request time),
 > which is where the real speed win comes from.
+>
+> Migration status: **Phases 0–2 are built and unit-tested in `pyapi/`.**
+> Phases 3–4 (background worker + optional SSR) and the production cutover of
+> live traffic remain — a full rewrite of a multi-tenant CMS is deliberately
+> incremental and is **not** "done" until each endpoint has run under real
+> traffic with the PHP fallback still in place. This is by design, not omission.
 
 ## Phase 0 — foundations (this PR)
 
@@ -65,20 +71,29 @@ location /pyapi/ {
 
 Verify: `curl https://www.epartscart.com/pyapi/health` → `{"status": true, ...}`.
 
-## Phase 1 — cut storefront search over to pyapi
+## Phase 1 — storefront search cutover  ✅ flag-ready
 
-- Point the storefront part-search JS at `/pyapi/v1/search` (feature flag:
-  `epc_pyapi_search=1` cookie/config), PHP endpoint stays as fallback
-- Add `/pyapi/v1/brands` (cached brands list) and `/pyapi/v1/manufacturers`
-- Measure: p95 click→result must be **< 1s**; roll back per-flag if not
+- `/pyapi/v1/search` (indexed `article_search`, excludes disabled lists)
+- `/pyapi/v1/brands` (in-stock manufacturer grid, index-friendly GROUP BY)
+- Cutover shim `pyapi/static/epc_pyapi_search.js` — loads only when
+  `epc_pyapi_search=1` cookie / `window.EPC_PYAPI_SEARCH` is set, falls back to
+  the PHP path on any error (instant per-user rollback)
+- **Remaining:** flip the flag in the part-search UI and measure p95 < 1s
 
-## Phase 2 — CP data APIs
+## Phase 2 — CP / ERP data APIs  ✅ done (endpoints + auth + tests)
 
-- CP prices module fetches `/pyapi/v1/prices` via AJAX after first paint
-  (HTML shell stays PHP; data grid becomes API-driven)
-- Upload history, commerce sources list, Laximo status → pyapi
-- Session auth: pyapi validates the `admin_session` cookie against the
-  `sessions` table (same rule as `epc_cp_auth_gate_is_admin`)
+Implemented and tested (`tests/pyapi/`):
+- `GET /pyapi/v1/prices` — price lists with QTY fallback
+- `GET /pyapi/v1/upload-history` — per-list or global upload history
+- `GET /pyapi/v1/commerce/sources` — commerce S/P/L sources
+- `GET /pyapi/v1/dashboard` — KPI tiles (price lists, orders, products, customers)
+- `GET /pyapi/v1/orders` — paginated orders
+- `GET /pyapi/v1/laximo/status` — sync snapshot
+- **Auth** (`pyapi/auth.py`): validates the `admin_session` cookie against the
+  `sessions` table (same rule as `epc_cp_auth_gate_is_admin`), OR a server-to-server
+  `tech_key`. Storefront customer cookie helpers included for future use.
+- **Remaining (integration):** have the CP grids fetch these via AJAX after first
+  paint (HTML shell stays PHP). Mobile apps (PR #234) can point at these directly.
 
 ## Phase 3 — background jobs
 

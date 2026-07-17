@@ -17,17 +17,17 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
-from . import services
+from . import auth, services
 from .config import settings
 
 log = logging.getLogger("pyapi")
 
 app = FastAPI(
     title="ecomae pyapi",
-    version="0.1.0",
+    version="0.2.0",
     docs_url="/pyapi/docs",
     openapi_url="/pyapi/openapi.json",
 )
@@ -52,14 +52,65 @@ def search(
     return services.part_search(article, limit)
 
 
-@app.get("/pyapi/v1/prices")
-def prices(key: str = Query("")):
-    # CP data — same tech_key gate as the PHP AJAX endpoints.
-    if not settings.tech_key or key != settings.tech_key:
-        raise HTTPException(status_code=403, detail="Invalid key")
-    return services.price_lists()
+@app.get("/pyapi/v1/brands")
+def brands(limit: int = Query(5000, ge=1, le=20000)):
+    return services.brands(limit)
 
 
 @app.get("/pyapi/v1/laximo/catalogs")
 def laximo_catalogs():
     return services.laximo_catalogs()
+
+
+@app.get("/pyapi/v1/laximo/status")
+def laximo_status():
+    return services.laximo_status()
+
+
+# ── CP / ERP endpoints — session-cookie auth OR tech_key (server-to-server) ──
+
+def _cp_auth(request: Request, key: str = Query("")) -> None:
+    """Allow either a valid admin session cookie or the tech_key."""
+    if settings.tech_key and key == settings.tech_key:
+        return
+    auth.require_admin(request)  # raises 401 otherwise
+
+
+@app.get("/pyapi/v1/prices")
+def prices(request: Request, key: str = Query("")):
+    _cp_auth(request, key)
+    return services.price_lists()
+
+
+@app.get("/pyapi/v1/upload-history")
+def upload_history(
+    request: Request,
+    key: str = Query(""),
+    price_id: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+):
+    _cp_auth(request, key)
+    return services.upload_history(price_id, limit)
+
+
+@app.get("/pyapi/v1/commerce/sources")
+def commerce_sources(request: Request, key: str = Query("")):
+    _cp_auth(request, key)
+    return services.commerce_sources()
+
+
+@app.get("/pyapi/v1/dashboard")
+def dashboard(request: Request, key: str = Query("")):
+    _cp_auth(request, key)
+    return services.dashboard_summary()
+
+
+@app.get("/pyapi/v1/orders")
+def orders(
+    request: Request,
+    key: str = Query(""),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    _cp_auth(request, key)
+    return services.orders(limit, offset)
