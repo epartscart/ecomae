@@ -29,7 +29,7 @@ log = logging.getLogger("pyapi")
 
 app = FastAPI(
     title="ecomae pyapi",
-    version="0.2.0",
+    version="0.3.0",
     docs_url="/pyapi/docs",
     openapi_url="/pyapi/openapi.json",
 )
@@ -44,6 +44,31 @@ async def unhandled(_, exc: Exception):
 @app.get("/pyapi/health")
 def health():
     return services.health()
+
+
+@app.get("/pyapi/v1/migration/status")
+def migration_status():
+    """Honest coverage report — which surfaces pyapi serves vs still PHP."""
+    return {
+        "service": "pyapi",
+        "version": app.version,
+        "phases": {
+            "0_service": "done",
+            "1_storefront_search_api": "done",
+            "2_cp_erp_data_apis": "done",
+            "2_session_auth": "done",
+            "3_push_notifications": "done",
+            "3b_price_ingest": "done",
+            "3b_retire_pyprices_cgi": "pending_cutover",
+            "4_ssr_pages": "not_started",
+        },
+        "endpoints": [r.path for r in app.routes if getattr(r, "path", "").startswith("/pyapi")],
+        "notes": (
+            "API + mobile + push + ingest are Python. PHP still renders CP/ERP/"
+            "storefront HTML until each endpoint is validated under live traffic "
+            "(fallback stays). Full PHP retirement requires production cutover."
+        ),
+    }
 
 
 @app.get("/pyapi/v1/search")
