@@ -60,6 +60,12 @@ check('browse all copy', stripos($html, 'Browse all sub-industries') !== false);
 check('deep-link group support', strpos($html, "params.get('group')") !== false);
 check('subdir items present', substr_count($html, 'epm-subdir__item') > 100);
 
+section('Heading contrast on dark shell');
+check('UAE/GCC section present', strpos($html, 'id="uae-gcc-industries"') !== false);
+check('subhub h2 is light (not #0f172a)', preg_match('/\.epm-subhub__head h2\{[^}]*color:#f8fafc/', $html) === 1);
+check('subhub h2 not dark slate', !preg_match('/\.epm-subhub__head h2\{[^}]*color:#0f172a/', $html));
+check('subhub lead is light grey', preg_match('/\.epm-subhub__head p\{[^}]*color:#cbd5e1/', $html) === 1);
+
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";
 exit($fail_count > 0 ? 1 : 0);
