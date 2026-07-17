@@ -139,111 +139,175 @@ $activeRow = ($priceId > 0) ? epc_price_history_get_active($db_link, $priceId) :
 $rows = epc_price_history_list($db_link, $priceId, $limit);
 
 ob_start();
-if ($activeRow) {
-	$activeHasFile = trim((string)$activeRow['stored_relpath']) !== '' && is_file(epc_price_history_file_absolute_path($activeRow));
-	$activeHasIssues = trim((string)($activeRow['issues_relpath'] ?? '')) !== '' && is_file(epc_price_history_issues_absolute_path($activeRow));
+
+$dbItemsCount = 0;
+$priceListName = '';
+if ($priceId > 0) {
+	try {
+		$metaQ = $db_link->prepare('SELECT `name`, `records_count` FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1;');
+		$metaQ->execute([$priceId]);
+		$meta = $metaQ->fetch(PDO::FETCH_ASSOC);
+		if ($meta) {
+			$priceListName = (string)$meta['name'];
+			$dbItemsCount = (int)$meta['records_count'];
+		}
+	} catch (Throwable $e) {
+		$dbItemsCount = 0;
+	}
+}
+
+$rowCount = count($rows);
+?>
+<div class="epc-hist-shell">
+<?php if ($activeRow): ?>
+	<?php
+	$activeHasFile = trim((string)$activeRow['stored_relpath']) !== '';
+	$activeHasIssues = trim((string)($activeRow['issues_relpath'] ?? '')) !== '';
 	$activeSkipped = (int)($activeRow['rows_skipped'] ?? 0);
 	?>
-	<div class="alert alert-success" style="margin-bottom:12px;">
-		<strong><i class="fas fa-check-circle"></i> Active upload file</strong> (latest successful import for this price list)<br>
-		<span><?php echo htmlspecialchars((string)$activeRow['original_filename'], ENT_QUOTES, 'UTF-8'); ?></span>
-		&middot; <?php echo htmlspecialchars((string)$activeRow['created_at'], ENT_QUOTES, 'UTF-8'); ?>
-		&middot; <?php echo number_format((int)$activeRow['rows_imported']); ?> rows
-		&middot; <?php echo (int)$activeRow['brands_count']; ?> brands
-		&middot; <?php echo number_format((int)$activeRow['items_count']); ?> items in DB
-		<div style="margin-top:8px;">
+	<div class="epc-hist-active">
+		<div>
+			<p class="epc-hist-active__title"><i class="fas fa-check-circle"></i> Active upload file</p>
+			<p class="epc-hist-active__meta">
+				<strong><?php echo htmlspecialchars((string)$activeRow['original_filename'], ENT_QUOTES, 'UTF-8'); ?></strong><br>
+				<?php echo htmlspecialchars((string)$activeRow['created_at'], ENT_QUOTES, 'UTF-8'); ?>
+				&middot; <?php echo number_format((int)$activeRow['rows_imported']); ?> imported
+				&middot; <?php echo number_format((int)$activeRow['brands_count']); ?> brands
+				&middot; <?php echo number_format((int)$activeRow['items_count']); ?> items in DB
+			</p>
+		</div>
+		<div class="epc-hist-active__actions">
 			<?php if ($activeHasFile): ?>
 				<a class="btn btn-sm btn-primary" href="<?php echo $downloadBase; ?>?action=download_latest&amp;price_id=<?php echo (int)$activeRow['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
-					<i class="fas fa-download"></i> Download active file
+					<i class="fas fa-download"></i> Download active
 				</a>
 			<?php else: ?>
 				<a class="btn btn-sm btn-primary" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$activeRow['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
-					<i class="fas fa-download"></i> Download from DB (source archive missing)
+					<i class="fas fa-download"></i> Download from DB
 				</a>
 			<?php endif; ?>
 			<a class="btn btn-sm btn-default" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$activeRow['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
-				<i class="fas fa-database"></i> Export current DB
+				<i class="fas fa-database"></i> Export DB
 			</a>
 			<?php if ($activeHasIssues || $activeSkipped > 0): ?>
 				<a class="btn btn-sm btn-warning" href="<?php echo $downloadBase; ?>?action=download_skipped&amp;history_id=<?php echo (int)$activeRow['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
-					<i class="fas fa-download"></i> Skipped lines (<?php echo $activeSkipped; ?>)
+					<i class="fas fa-exclamation-triangle"></i> Skipped (<?php echo number_format($activeSkipped); ?>)
 				</a>
 				<a class="btn btn-sm btn-danger" href="<?php echo $downloadBase; ?>?action=download_errors&amp;history_id=<?php echo (int)$activeRow['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
-					<i class="fas fa-download"></i> Errors
-				</a>
-				<a class="btn btn-sm btn-default" href="<?php echo $downloadBase; ?>?action=download_issues&amp;history_id=<?php echo (int)$activeRow['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
-					<i class="fas fa-download"></i> All issues report
+					<i class="fas fa-times-circle"></i> Errors
 				</a>
 			<?php endif; ?>
 		</div>
 	</div>
-	<?php
-} elseif ($priceId > 0) {
-	?>
-	<div class="alert alert-warning" style="margin-bottom:12px;">No archived upload file for this price list yet. Upload a file to store it here for download. You can still <a href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$priceId; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">export current DB prices</a>.</div>
-	<?php
-}
-?>
-<p class="text-muted" style="margin-bottom:8px;">Every price update is logged here with status and a downloadable copy of the source file when available. The row marked <span class="label label-success">ACTIVE</span> is the file currently used in the shop for this price list.</p>
-<div class="table-responsive">
-	<table class="table table-condensed table-striped table-bordered">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>Date</th>
-				<?php if ($priceId <= 0): ?><th>Price list</th><?php endif; ?>
-				<th>Source</th>
-				<th>File</th>
-				<th>Imported</th>
-				<th>Skipped</th>
-				<th>Brands</th>
-				<th>Items in DB</th>
-				<th>Status</th>
-				<th>Download</th>
-			</tr>
-		</thead>
-		<tbody>
-		<?php if (count($rows) === 0): ?>
-			<tr><td colspan="<?php echo $priceId > 0 ? 10 : 11; ?>" class="text-center text-muted">No upload history yet.</td></tr>
-		<?php else: ?>
+<?php elseif ($priceId > 0): ?>
+	<div class="epc-hist-warn">
+		No archived active file for this list yet.
+		You can still <a href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$priceId; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">export current DB prices</a><?php if ($dbItemsCount > 0): ?> (<?php echo number_format($dbItemsCount); ?> rows)<?php endif; ?>.
+	</div>
+<?php endif; ?>
+
+<?php if ($rowCount === 0): ?>
+	<div class="epc-hist-empty">
+		<div class="epc-hist-empty__icon"><i class="fas fa-history"></i></div>
+		<h5>No upload history yet</h5>
+		<p>
+			<?php if ($priceId > 0 && $dbItemsCount > 0): ?>
+				This price list already has <strong><?php echo number_format($dbItemsCount); ?></strong> rows in the database, but no archived upload files are stored yet.
+				New uploads will appear here with downloadable source files.
+			<?php elseif ($priceId > 0): ?>
+				Upload or update this price list to start building downloadable history.
+			<?php else: ?>
+				No archived uploads across price lists yet.
+			<?php endif; ?>
+		</p>
+		<div>
+			<?php if ($priceId > 0): ?>
+				<a class="btn btn-sm btn-primary" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$priceId; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
+					<i class="fas fa-database"></i> Export current DB
+				</a>
+				<button type="button" class="btn btn-sm btn-default" data-epc-open-pyprices-history="1">
+					<i class="fas fa-clock"></i> Open task history
+				</button>
+			<?php endif; ?>
+		</div>
+	</div>
+<?php else: ?>
+	<div class="epc-hist-toolbar">
+		<div class="epc-hist-toolbar__left">
+			<input type="search" class="epc-hist-search" placeholder="Filter by file, source, status…" autocomplete="off" />
+			<span class="epc-hist-count"><?php echo (int)$rowCount; ?> record<?php echo $rowCount === 1 ? '' : 's'; ?></span>
+		</div>
+		<?php if ($priceId > 0): ?>
+			<a class="btn btn-xs btn-default" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$priceId; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>">
+				<i class="fas fa-database"></i> Export DB
+			</a>
+		<?php endif; ?>
+	</div>
+	<p class="epc-hist-note">Row marked <span class="label label-success">ACTIVE</span> is the latest successful import for the shop. Download links open instantly; missing archives fall back to DB export.</p>
+	<div class="epc-hist-table-wrap">
+		<table class="table table-condensed epc-hist-table">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Date</th>
+					<?php if ($priceId <= 0): ?><th>Price list</th><?php endif; ?>
+					<th>Source</th>
+					<th>File</th>
+					<th>Imported</th>
+					<th>Skipped</th>
+					<th>Brands</th>
+					<th>Items</th>
+					<th>Status</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
 			<?php foreach ($rows as $row): ?>
 				<?php
 				$status = (string)$row['status'];
 				$statusClass = $status === 'ok' ? 'success' : ($status === 'partial' ? 'warning' : ($status === 'pending' ? 'info' : 'danger'));
-				$hasFile = trim((string)$row['stored_relpath']) !== '' && is_file(epc_price_history_file_absolute_path($row));
+				$hasFile = trim((string)$row['stored_relpath']) !== '';
 				$err = trim((string)$row['error_text']);
 				$isActive = (int)($row['is_active'] ?? 0) === 1;
-				$rowStyle = $isActive ? 'background:#e8f5e9;' : '';
 				$rowSkipped = (int)$row['rows_skipped'];
-				$hasIssuesFile = trim((string)($row['issues_relpath'] ?? '')) !== '' && is_file(epc_price_history_issues_absolute_path($row));
-				$hasErrorText = trim((string)$row['error_text']) !== '';
-				$canIssues = $hasIssuesFile || $hasErrorText || $rowSkipped > 0;
+				$hasIssuesFile = trim((string)($row['issues_relpath'] ?? '')) !== '';
+				$canIssues = $hasIssuesFile || $err !== '' || $rowSkipped > 0;
+				$filterHay = strtolower(trim(
+					(string)$row['id'] . ' ' .
+					(string)$row['created_at'] . ' ' .
+					(string)$row['price_name'] . ' ' .
+					(string)$row['price_id'] . ' ' .
+					epc_price_history_source_label((string)$row['upload_source']) . ' ' .
+					(string)$row['original_filename'] . ' ' .
+					$status . ' ' .
+					$err
+				));
 				?>
-				<tr style="<?php echo $rowStyle; ?>">
-					<td><?php echo (int)$row['id']; ?></td>
-					<td><?php echo htmlspecialchars((string)$row['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
+				<tr class="<?php echo $isActive ? 'epc-hist-row-active' : ''; ?>" data-hist-filter="<?php echo htmlspecialchars($filterHay, ENT_QUOTES, 'UTF-8'); ?>">
+					<td class="epc-hist-num"><?php echo (int)$row['id']; ?></td>
+					<td class="epc-hist-num"><?php echo htmlspecialchars((string)$row['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
 					<?php if ($priceId <= 0): ?>
 						<td><?php echo htmlspecialchars((string)$row['price_name'] . ' (#' . $row['price_id'] . ')', ENT_QUOTES, 'UTF-8'); ?></td>
 					<?php endif; ?>
 					<td><?php echo htmlspecialchars(epc_price_history_source_label((string)$row['upload_source']), ENT_QUOTES, 'UTF-8'); ?></td>
-					<td title="<?php echo htmlspecialchars($err, ENT_QUOTES, 'UTF-8'); ?>">
+					<td class="epc-hist-file" title="<?php echo htmlspecialchars($err, ENT_QUOTES, 'UTF-8'); ?>">
 						<?php echo htmlspecialchars((string)$row['original_filename'], ENT_QUOTES, 'UTF-8'); ?>
-						<?php if ($isActive): ?><br><span class="label label-success">ACTIVE</span><?php endif; ?>
-						<?php if ($row['file_size'] > 0): ?>
-							<br><small><?php echo number_format((int)$row['file_size']); ?> bytes</small>
+						<?php if ($isActive): ?> <span class="label label-success">ACTIVE</span><?php endif; ?>
+						<?php if ((int)$row['file_size'] > 0): ?>
+							<br><small class="text-muted"><?php echo number_format((int)$row['file_size']); ?> bytes</small>
 						<?php endif; ?>
 					</td>
-					<td><?php echo (int)$row['rows_imported']; ?></td>
-					<td><?php echo (int)$row['rows_skipped']; ?></td>
-					<td><?php echo (int)$row['brands_count']; ?></td>
-					<td><?php echo (int)$row['items_count']; ?></td>
+					<td class="epc-hist-num"><?php echo number_format((int)$row['rows_imported']); ?></td>
+					<td class="epc-hist-num"><?php echo number_format($rowSkipped); ?></td>
+					<td class="epc-hist-num"><?php echo number_format((int)$row['brands_count']); ?></td>
+					<td class="epc-hist-num"><?php echo number_format((int)$row['items_count']); ?></td>
 					<td>
 						<span class="label label-<?php echo $statusClass; ?>"><?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?></span>
 						<?php if ($err !== ''): ?>
-							<br><small class="text-danger"><?php echo htmlspecialchars(mb_substr($err, 0, 120, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?></small>
+							<br><small class="text-danger"><?php echo htmlspecialchars(mb_substr($err, 0, 100, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?></small>
 						<?php endif; ?>
 					</td>
-					<td class="text-nowrap">
+					<td class="epc-hist-actions">
 						<?php if ($hasFile): ?>
 							<a class="btn btn-xs btn-primary" href="<?php echo $downloadBase; ?>?action=download&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Download original upload file"><i class="fas fa-download"></i></a>
 						<?php elseif ($status === 'pending'): ?>
@@ -252,17 +316,16 @@ if ($activeRow) {
 							<a class="btn btn-xs btn-default" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$row['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Source archive missing — export current DB"><i class="fas fa-database"></i></a>
 						<?php endif; ?>
 						<?php if ($canIssues): ?>
-							<a class="btn btn-xs btn-warning" href="<?php echo $downloadBase; ?>?action=download_skipped&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Skipped lines with details"><i class="fas fa-exclamation-triangle"></i> <?php echo $rowSkipped; ?></a>
-							<a class="btn btn-xs btn-danger" href="<?php echo $downloadBase; ?>?action=download_errors&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Error messages"><i class="fas fa-times-circle"></i></a>
-							<a class="btn btn-xs btn-default" href="<?php echo $downloadBase; ?>?action=download_issues&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Full issues CSV"><i class="fas fa-list"></i></a>
+							<a class="btn btn-xs btn-warning" href="<?php echo $downloadBase; ?>?action=download_skipped&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Skipped lines"><i class="fas fa-exclamation-triangle"></i></a>
+							<a class="btn btn-xs btn-danger" href="<?php echo $downloadBase; ?>?action=download_errors&amp;history_id=<?php echo (int)$row['id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Errors"><i class="fas fa-times-circle"></i></a>
 						<?php endif; ?>
-						<a class="btn btn-xs btn-default" href="<?php echo $downloadBase; ?>?action=export_db&amp;price_id=<?php echo (int)$row['price_id']; ?>&amp;csrf_guard_key=<?php echo urlencode($csrfKey); ?>" title="Current DB export">DB</a>
 					</td>
 				</tr>
 			<?php endforeach; ?>
-		<?php endif; ?>
-		</tbody>
-	</table>
+			</tbody>
+		</table>
+	</div>
+<?php endif; ?>
 </div>
 <?php
 $html = ob_get_clean();

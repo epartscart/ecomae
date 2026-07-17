@@ -49,6 +49,16 @@ check('history ajax boots via require (not JSON header first)', preg_match('/^<\
 check('history ajax streams octet-stream for files', strpos($src, "application/octet-stream") !== false);
 check('download_latest falls back to DB export', strpos($src, 'epc_history_stream_db_export') !== false
 	&& strpos($src, "action === 'download_latest'") !== false);
+check('history list renders redesigned shell', strpos($src, 'epc-hist-shell') !== false);
+check('history empty state offers task history', strpos($src, 'data-epc-open-pyprices-history') !== false);
+
+$cssSrc = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_prices_cp.css');
+check('prices CSS includes history modal styles', strpos($cssSrc, '#epc_price_upload_history_modal') !== false);
+check('prices CSS includes toolbar styles', strpos($cssSrc, '.epc-prices-toolbar') !== false);
+
+$jsSrc = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_prices_upload_history.js');
+check('history js aborts prior requests', strpos($jsSrc, 'activeXhr.abort') !== false);
+check('history js binds client filter', strpos($jsSrc, 'bindHistoryFilters') !== false);
 
 echo "\n== Archive file helper ==\n";
 $tmpSrc = sys_get_temp_dir() . '/epc_price_hist_test_' . getmypid() . '.csv';
