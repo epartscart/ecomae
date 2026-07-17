@@ -13,9 +13,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_whatsapp_sh
 
 
 // Legacy /shop/part_search?article=… redirects are handled in dp_core.php (302 to brand picker or single-brand CHPU).
+// CHPU pages (/parts/brands/ARTICLE etc.) use service_data, not $_GET — never hard-exit those.
 if( $DP_Config->chpu_search_config["chpu_search_on"] == true )
 {
-	if( isset($_GET["article"]) )
+	if( isset($_GET["article"]) && empty($DP_Content->service_data['article_search_chpu']) )
 	{
 		$epcWhBrand = isset($_GET['brend']) ? trim((string) $_GET['brend']) : '';
 		$epcWhArticle = trim((string) $_GET['article']);
@@ -64,6 +65,8 @@ if( isset($_GET["brend"]) )
 
 //Тип поиска
 $search_type = "no_chpu";//По умолчанию тип поиск - без ЧПУ, т.е. старый вариант
+$manufacturer = '';
+$use_selected_manufacturer = false;
 if( isset($DP_Content->service_data["search_type"]) )
 {
 	//ЧПУ-поиск. Могут быть варианты: all_brands_by_article и prices_by_article_and_manufacturer
@@ -814,7 +817,16 @@ if((int)$DP_Config->is_async_search == 1)
 <?php
 }
 //Формирум объект описания точек выдачи и складов
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/order_process/get_customer_offices.php");//Получили $customer_offices
+// require_once may already be satisfied from another scope (e.g. a module), leaving
+// $customer_offices unset/null here — count(null) fatals on PHP 8+ and kills /parts/brands/*.
+$epc_customer_offices_path = $_SERVER["DOCUMENT_ROOT"]."/content/shop/order_process/get_customer_offices.php";
+require_once $epc_customer_offices_path;
+if (!isset($customer_offices) || !is_array($customer_offices)) {
+	include $epc_customer_offices_path;
+}
+if (!isset($customer_offices) || !is_array($customer_offices)) {
+	$customer_offices = array();
+}
 
 //var_dump($customer_offices);
 

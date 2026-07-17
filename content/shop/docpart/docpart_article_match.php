@@ -83,22 +83,29 @@ function docpart_price_data_backfill_article_search(PDO $db_link, int $priceId =
 		return 0;
 	}
 	$expr = docpart_sql_article_normalized_expr('`article`');
-	$limit = max(100, min(100000, $limit));
+	// Keep batches modest — very large IN (...) lists can fail silently under FPM.
+	$limit = max(100, min(2000, $limit));
 	try {
-		if ($priceId > 0) {
-			$sql = 'UPDATE `shop_docpart_prices_data`
-				SET `article_search` = ' . $expr . '
-				WHERE `price_id` = ? AND (`article_search` = \'\' OR `article_search` IS NULL)
-				LIMIT ' . (int) $limit;
-			$st = $db_link->prepare($sql);
-			$st->execute(array($priceId));
-			return (int) $st->rowCount();
+		// Prefer primary-key batch updates — PDO rowCount() is unreliable for UPDATE…LIMIT on MariaDB.
+		$idSql = 'SELECT `id` FROM `shop_docpart_prices_data`
+			WHERE (`article_search` = \'\' OR `article_search` IS NULL)'
+			. ($priceId > 0 ? ' AND `price_id` = ' . (int) $priceId : '')
+			. ' ORDER BY `id` ASC LIMIT ' . (int) $limit;
+		$ids = array();
+		foreach ($db_link->query($idSql) as $row) {
+			$ids[] = (int) $row['id'];
 		}
-		$sql = 'UPDATE `shop_docpart_prices_data`
+		if (count($ids) === 0) {
+			return 0;
+		}
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		$st = $db_link->prepare(
+			'UPDATE `shop_docpart_prices_data`
 			SET `article_search` = ' . $expr . '
-			WHERE (`article_search` = \'\' OR `article_search` IS NULL)
-			LIMIT ' . (int) $limit;
-		return (int) $db_link->exec($sql);
+			WHERE `id` IN (' . $ph . ')'
+		);
+		$st->execute($ids);
+		return count($ids);
 	} catch (Throwable $e) {
 		return 0;
 	}
@@ -302,6 +309,36 @@ function epc_chpu_distinct_warehouse_brands_for_article($db_link, $DP_Config, $a
 			}
 		}
 		$brands[] = $brand_name;
+	}
+	// article_search index can be partially empty (e.g. S-UAE); fall back to normalized article expr.
+	if (count($brands) === 0 && $art_expr === '`article_search`') {
+		$norm_expr = docpart_sql_article_normalized_expr('`article`');
+		$sql_fallback = 'SELECT MIN(TRIM(`manufacturer`)) AS `brand_name`'
+			. ' FROM `shop_docpart_prices_data`'
+			. ' WHERE ' . $norm_expr . ' IN (' . $art_ph . ')'
+			. ' AND `price_id` IN (' . $price_ph . ')'
+			. ' AND TRIM(IFNULL(`manufacturer`, \'\')) != \'\''
+			. ' GROUP BY UPPER(TRIM(`manufacturer`))'
+			. ' ORDER BY UPPER(TRIM(`manufacturer`)) ASC';
+		$stmt_fb = $db_link->prepare($sql_fallback);
+		$stmt_fb->execute($params);
+		while ($row = $stmt_fb->fetch(PDO::FETCH_ASSOC)) {
+			$brand_name = trim((string) ($row['brand_name'] ?? ''));
+			if ($brand_name === '') {
+				continue;
+			}
+			if (!$pricing_loaded && is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php')) {
+				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
+				$pricing_loaded = true;
+			}
+			if ($pricing_loaded && function_exists('epc_pricing_get_brand_rule')) {
+				$rule = epc_pricing_get_brand_rule($db_link, 0, $brand_name);
+				if (isset($rule['visible']) && (int) $rule['visible'] === 0) {
+					continue;
+				}
+			}
+			$brands[] = $brand_name;
+		}
 	}
 	return $brands;
 }
