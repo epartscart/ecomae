@@ -58,10 +58,10 @@ $sites = array(
 			'https://www.epartscart.com/en/parts/GMB/GUT21',
 			'https://www.epartscart.com/sitemap-warehouse-0.xml',
 		),
-		'note' => 'Index children are sitemap-warehouse.php?n=0… (PHP, same as pages/products). After price uploads re-warm with &auto=1 (do not wipe mid-run). Locs: /en/parts/{BRAND}/{ARTICLE}. Resubmit only sitemap-index.php in GSC.',
+		'note' => 'Index children MUST be sitemap-warehouse-0.xml … (no query strings — GSC fails on ?n=). After price uploads re-warm with &auto=1. Resubmit only sitemap-index.php.',
 		'warm' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&auto=1',
 		'warm_status' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&status=1',
-		'sample_child' => 'https://www.epartscart.com/sitemap-warehouse.php?n=0',
+		'sample_child' => 'https://www.epartscart.com/sitemap-warehouse-0.xml',
 	),
 );
 
