@@ -12,4 +12,6 @@ Disallow: /*/parts/all/
 # Google must see this map (biomass-bioenergy, solar-energy, etc.).
 Sitemap: /sitemap.xml
 # Aggregated index (www marketing + tenant pages/products, or industry self-map).
+# Warehouse stock (brand + article / part number pages) is listed via shards here.
 Sitemap: /sitemap-index.php
+Sitemap: /sitemap-products.php
