@@ -586,20 +586,47 @@ function epc_bos_resolve_module(array $sections, string $moduleId): ?array
 }
 
 /**
- * Build the iframe URL for a CP module.
- * Fleet/platform modules use the platform host; tenant modules use the tenant host.
+ * Build the CP module URL (sidebar / BOS tiles).
+ *
+ * Must use CMS routes (/cp/control/portal/…) — never /cp/content/….php.
+ * Direct content PHP files die with "No access" outside the CMS bootstrap (_ASTEXE_).
  */
 function epc_bos_module_cp_url(string $hostname, string $path): string
 {
-    $host = $hostname ?: 'www.ecomae.com';
-    if (strpos($path, 'shop/finance/erp') === 0) {
-        $qs = '';
-        $qPos = strpos($path, '?');
-        if ($qPos !== false) {
-            $qs = substr($path, $qPos);
-            $path = substr($path, 0, $qPos);
-        }
-        return 'https://' . $host . '/cp/content/' . $path . '.php' . $qs . '&bos_embed=1';
+    $host = preg_replace('/^https?:\/\//', '', strtolower(trim($hostname ?: 'www.ecomae.com')));
+    $host = rtrim($host, '/');
+    if ($host === '') {
+        $host = 'www.ecomae.com';
     }
-    return 'https://' . $host . '/cp/content/' . $path . '.php?bos_embed=1';
+
+    $path = ltrim((string) $path, '/');
+    $qs = '';
+    $qPos = strpos($path, '?');
+    if ($qPos !== false) {
+        $qs = substr($path, $qPos + 1);
+        $path = substr($path, 0, $qPos);
+    }
+    if (substr($path, -4) === '.php') {
+        $path = substr($path, 0, -4);
+    }
+    // Legacy mistaken prefix from older BOS links
+    if (strpos($path, 'content/') === 0) {
+        $path = substr($path, strlen('content/'));
+    }
+    if (strpos($path, 'cp/') === 0) {
+        $path = substr($path, 3);
+    }
+
+    $params = array();
+    if ($qs !== '') {
+        parse_str($qs, $params);
+    }
+    $params['bos_embed'] = '1';
+
+    // Files under /content/general_pages are not CP content routes.
+    if (strpos($path, 'general_pages/') === 0) {
+        return 'https://' . $host . '/content/' . $path . '.php?' . http_build_query($params);
+    }
+
+    return 'https://' . $host . '/cp/' . $path . '?' . http_build_query($params);
 }

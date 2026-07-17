@@ -105,6 +105,18 @@ $setup = (string) file_get_contents($root . '/epc-power-bi-setup.php');
 check('setup registers guide route', strpos($setup, 'control/portal/epc_power_bi_guide') !== false);
 $pbiPage = (string) file_get_contents($root . '/cp/content/control/portal/epc_power_bi.php');
 check('settings page links to guide', strpos($pbiPage, 'epc_power_bi_guide') !== false);
+check('settings redirects when opened as raw PHP', strpos($pbiPage, "Location: /cp/control/portal/epc_power_bi") !== false);
+$guidePage = (string) file_get_contents($root . '/cp/content/control/portal/epc_power_bi_guide.php');
+check('guide redirects when opened as raw PHP', strpos($guidePage, "Location: /cp/control/portal/epc_power_bi_guide") !== false);
+
+section('BOS module URL uses CMS route');
+require_once $root . '/content/general_pages/epc_bos_unified.php';
+$bosUrl = epc_bos_module_cp_url('www.ecomae.com', 'control/portal/epc_power_bi');
+check('BOS Power BI URL is CMS route', strpos($bosUrl, 'https://www.ecomae.com/cp/control/portal/epc_power_bi?') === 0);
+check('BOS Power BI URL is not raw content PHP', strpos($bosUrl, '/cp/content/') === false);
+$bosErp = epc_bos_module_cp_url('www.ecomae.com', 'shop/finance/erp?epc_erp_shell=1');
+check('BOS ERP URL is CMS route', strpos($bosErp, 'https://www.ecomae.com/cp/shop/finance/erp?') === 0);
+check('BOS ERP keeps shell flag', strpos($bosErp, 'epc_erp_shell=1') !== false);
 
 section('Date parser');
 $_GET = array('from' => '2026-01-15', 'to' => '2026-07-01');

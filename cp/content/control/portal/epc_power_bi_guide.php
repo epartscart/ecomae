@@ -2,8 +2,16 @@
 /**
  * CP — Power BI step-by-step operator guide (Portal level).
  * Available on Super CP and tenant CP.
+ *
+ * Open via /cp/control/portal/epc_power_bi_guide (CMS route).
  */
-defined('_ASTEXE_') or die('No access');
+if (!defined('_ASTEXE_')) {
+	$qs = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
+		? ('?' . $_SERVER['QUERY_STRING'])
+		: '';
+	header('Location: /cp/control/portal/epc_power_bi_guide' . $qs, true, 302);
+	exit;
+}
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_power_bi.php';
