@@ -2,9 +2,8 @@
 /**
  * Cached warehouse product shards for Google.
  *
- * Preferred public URLs (rewrite):
+ * Preferred public URLs (static files after warm, nginx-friendly):
  *   /sitemap-warehouse-0.xml
- *   /sitemap-warehouse-1.xml
  * Query fallback:
  *   /sitemap-warehouse.php?n=0
  *
@@ -12,7 +11,7 @@
  */
 declare(strict_types=1);
 
-@set_time_limit(180);
+@set_time_limit(120);
 @ini_set('memory_limit', '512M');
 
 require_once __DIR__ . '/epc_sitemap_lib.php';
@@ -29,12 +28,12 @@ if ($n < 0) {
 	$n = 0;
 }
 
-// Fast path: serve pre-warmed cache (what Google needs for 133k discovery).
+// Fast path: serve pre-warmed static/cache file.
 if (epc_sitemap_warehouse_serve_cached($n)) {
 	exit;
 }
 
-// Cold cache: generate ALL shards once, then serve the requested shard.
+// Cold: generate ONLY this shard (never regenerate_all — that causes Cloudflare 524).
 $cfg = new DP_Config();
 $pdo = epc_sitemap_pdo($cfg);
 header('Content-Type: application/xml; charset=utf-8');
@@ -46,14 +45,8 @@ if (!($pdo instanceof PDO)) {
 	exit;
 }
 
-$result = epc_sitemap_warehouse_regenerate_all($cfg, $pdo);
-if ($result['error'] !== '') {
-	echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-	echo "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n</urlset>\n";
-	exit;
-}
-
-if (epc_sitemap_warehouse_serve_cached($n)) {
+$result = epc_sitemap_warehouse_regenerate_shard($cfg, $pdo, $n);
+if ($result['error'] === '' && $result['urls'] > 0 && epc_sitemap_warehouse_serve_cached($n)) {
 	exit;
 }
 

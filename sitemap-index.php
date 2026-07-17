@@ -47,14 +47,17 @@ if ($isIndustryHost) {
 	);
 	$base = epc_sitemap_base_url($cfg);
 
-	$shards = 0;
+	// Prefer files already warmed on disk (avoid listing 40 empty 404 children).
+	$shards = epc_sitemap_warehouse_existing_shard_count();
 	$meta = epc_sitemap_warehouse_meta_read();
-	if ($meta['shards'] > 0) {
+	if ($shards <= 0 && $meta['shards'] > 0) {
 		$shards = (int) $meta['shards'];
-	} else {
+	}
+	if ($shards <= 0) {
 		$pdo = epc_sitemap_pdo($cfg);
 		if ($pdo instanceof PDO) {
-			$shards = epc_sitemap_warehouse_estimate_shards($pdo);
+			// Cold index: list a modest estimate; warm script fills real files.
+			$shards = min(8, epc_sitemap_warehouse_estimate_shards($pdo));
 		}
 	}
 	if ($shards > epc_sitemap_warehouse_max_shards()) {

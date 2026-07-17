@@ -58,8 +58,9 @@ $sites = array(
 			'https://www.epartscart.com/en/parts/GMB/GUT21',
 			'https://www.epartscart.com/sitemap-warehouse-0.xml',
 		),
-		'note' => 'Warm caches first: /epc-seo-sitemap-warm.php?token=… then resubmit sitemap-index.php. Children are sitemap-warehouse-0.xml … (~27 shards × 5000) with /en/parts/{BRAND}/{ARTICLE}. Do not use /en/parts/brands/{article}.',
-		'warm' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026',
+		'note' => 'Warm one shard at a time (avoids Cloudflare 524): open /epc-seo-sitemap-warm.php?token=…&auto=1 — it chains n=0,1,2… Then resubmit sitemap-index.php. Locs are /en/parts/{BRAND}/{ARTICLE}.',
+		'warm' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&auto=1',
+		'warm_status' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&status=1',
 	),
 );
 
