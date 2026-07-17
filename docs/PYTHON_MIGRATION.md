@@ -11,6 +11,12 @@ each step is independently shippable and reversible.
 > impossible (hard per-query timeouts, no schema mutation at request time),
 > which is where the real speed win comes from.
 >
+> **Codebase layout (deliberately minimal):** the entire Python service is
+> **3 modules** — `pyapi/core.py` (config + DB + auth + schema),
+> `pyapi/services.py` (all business logic incl. ingest, push, worker pass),
+> `pyapi/main.py` (HTTP routes + CLI: `setup | once | worker`) — plus one
+> client JS (`pyapi/static/epc_pyapi.js`) and one test file.
+>
 > Migration status (see live report at `GET /pyapi/v1/migration/status`):
 > **Phases 0–3b are built and unit-tested in `pyapi/`** — service, hot read
 > APIs, CP/ERP data APIs, shared session auth, native push, and price ingest
@@ -79,7 +85,7 @@ Verify: `curl https://www.epartscart.com/pyapi/health` → `{"status": true, ...
 
 - `/pyapi/v1/search` (indexed `article_search`, excludes disabled lists)
 - `/pyapi/v1/brands` (in-stock manufacturer grid, index-friendly GROUP BY)
-- Cutover shim `pyapi/static/epc_pyapi_search.js` — loads only when
+- Cutover shim `pyapi/static/epc_pyapi.js` — loads only when
   `epc_pyapi_search=1` cookie / `window.EPC_PYAPI_SEARCH` is set, falls back to
   the PHP path on any error (instant per-user rollback)
 - **Remaining:** flip the flag in the part-search UI and measure p95 < 1s
@@ -107,11 +113,11 @@ Implemented and tested (`tests/pyapi/`):
   no-op when FCM creds absent; tokens still register.
 - Endpoints: `POST /pyapi/v1/push/register`, `/push/unregister` (admin session),
   `/push/test` (admin/key).
-- `pyapi/worker.py` — long-lived loop (or `--once` for cron) that polls new
+- `python -m pyapi.main worker` — long-lived loop (or `once` for cron) that polls new
   orders + low-stock and dispatches push. Baselines to the current order id on
   first run so it never blasts the backlog; state in a small file.
-- `pyapi/ops/push_setup.py` — creates `epc_push_devices` (ops-only DDL).
-- App side: `pyapi/static/epc_push_register.js` requests permission, gets the
+- `python -m pyapi.main setup` — creates `epc_push_devices` (ops-only DDL).
+- App side: `pyapi/static/epc_pyapi.js` requests permission, gets the
   FCM/APNs token in the Capacitor CP shell, and registers it with the admin
   session cookie.
 
@@ -119,8 +125,8 @@ Enable sending (once you have a Firebase project):
 ```bash
 export PYAPI_FCM_PROJECT=your-firebase-project-id
 export PYAPI_FCM_ACCESS_TOKEN="$(gcloud auth application-default print-access-token)"
-python -m pyapi.ops.push_setup           # create device table
-python -m pyapi.worker                    # start the dispatcher
+python -m pyapi.main setup               # create device table
+python -m pyapi.main worker               # start the dispatcher
 ```
 
 systemd unit (`/etc/systemd/system/pyapi-worker.service`):
@@ -133,7 +139,7 @@ After=network.target mysql.service
 User=ecomae
 WorkingDirectory=/home/ecomae/htdocs/www.ecomae.com
 Environment=PYAPI_FCM_PROJECT=your-firebase-project-id
-ExecStart=/home/ecomae/htdocs/www.ecomae.com/pyapi-venv/bin/python -m pyapi.worker
+ExecStart=/home/ecomae/htdocs/www.ecomae.com/pyapi-venv/bin/python -m pyapi.main worker
 Restart=always
 RestartSec=5
 

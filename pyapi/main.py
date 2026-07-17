@@ -1,13 +1,18 @@
 """pyapi — FastAPI strangler service for the ecomae/epartscart PHP platform.
 
-Phase 1 endpoints (hot, read-only):
-    GET /pyapi/health
-    GET /pyapi/v1/search?article=C110J
-    GET /pyapi/v1/prices          (requires ?key=<tech_key>)
-    GET /pyapi/v1/laximo/catalogs
+Consolidated layout (4 Python files):
+    core.py      config + DB pool + session auth + schema
+    services.py  all business logic (reads, ingest, push, worker pass)
+    main.py      HTTP routes + CLI (this file)
+    __init__.py
 
-Run:
+Serve the API:
     uvicorn pyapi.main:app --host 127.0.0.1 --port 8090 --workers 2
+
+CLI (same file — fewer moving parts):
+    python -m pyapi.main setup     # create push-device table (ops-only DDL)
+    python -m pyapi.main once      # single worker pass (cron-friendly)
+    python -m pyapi.main worker    # order/low-stock push + URL refresh loop
 
 nginx (in the site vhost):
     location /pyapi/ { proxy_pass http://127.0.0.1:8090/pyapi/; proxy_read_timeout 10s; }
@@ -15,21 +20,23 @@ nginx (in the site vhost):
 
 from __future__ import annotations
 
+import json
 import logging
+import sys
+import time
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
-
 from pydantic import BaseModel
 
-from . import auth, push, services
-from .config import settings
+from . import core, services
+from .core import settings
 
 log = logging.getLogger("pyapi")
 
 app = FastAPI(
     title="ecomae pyapi",
-    version="0.3.0",
+    version="0.4.0",
     docs_url="/pyapi/docs",
     openapi_url="/pyapi/openapi.json",
 )
@@ -52,6 +59,7 @@ def migration_status():
     return {
         "service": "pyapi",
         "version": app.version,
+        "files": ["core.py", "services.py", "main.py"],
         "phases": {
             "0_service": "done",
             "1_storefront_search_api": "done",
@@ -59,17 +67,21 @@ def migration_status():
             "2_session_auth": "done",
             "3_push_notifications": "done",
             "3b_price_ingest": "done",
+            "3b_url_source_refresh": "done",
             "3b_retire_pyprices_cgi": "pending_cutover",
             "4_ssr_pages": "not_started",
         },
         "endpoints": [r.path for r in app.routes if getattr(r, "path", "").startswith("/pyapi")],
         "notes": (
-            "API + mobile + push + ingest are Python. PHP still renders CP/ERP/"
-            "storefront HTML until each endpoint is validated under live traffic "
-            "(fallback stays). Full PHP retirement requires production cutover."
+            "API + mobile + push + ingest + URL refresh are Python. PHP still "
+            "renders CP/ERP/storefront HTML until each endpoint is validated "
+            "under live traffic (fallback stays). Full PHP retirement requires "
+            "production cutover."
         ),
     }
 
+
+# ── Public storefront reads ──────────────────────────────────────────────────
 
 @app.get("/pyapi/v1/search")
 def search(
@@ -94,13 +106,12 @@ def laximo_status():
     return services.laximo_status()
 
 
-# ── CP / ERP endpoints — session-cookie auth OR tech_key (server-to-server) ──
+# ── CP / ERP endpoints — admin session cookie OR tech_key ───────────────────
 
-def _cp_auth(request: Request, key: str = Query("")) -> None:
-    """Allow either a valid admin session cookie or the tech_key."""
+def _cp_auth(request: Request, key: str = "") -> None:
     if settings.tech_key and key == settings.tech_key:
         return
-    auth.require_admin(request)  # raises 401 otherwise
+    core.require_admin(request)  # raises 401 otherwise
 
 
 @app.get("/pyapi/v1/prices")
@@ -143,7 +154,13 @@ def orders(
     return services.orders(limit, offset)
 
 
-# ── Push notifications ──────────────────────────────────────────────────────
+@app.post("/pyapi/v1/commerce/refresh-urls")
+def commerce_refresh_urls(request: Request, key: str = Query(""), max_age_sec: int = Query(3600, ge=60)):
+    _cp_auth(request, key)
+    return services.refresh_url_sources(max_age_sec)
+
+
+# ── Push notifications ───────────────────────────────────────────────────────
 
 class DeviceIn(BaseModel):
     token: str
@@ -159,18 +176,74 @@ class PushTestIn(BaseModel):
 
 @app.post("/pyapi/v1/push/register")
 def push_register(payload: DeviceIn, request: Request):
-    # Any authenticated admin device can register for CP/ERP alerts.
-    user_id = auth.require_admin(request)
-    return push.register_device(payload.token, payload.platform, user_id, payload.app)
+    user_id = core.require_admin(request)
+    return services.register_device(payload.token, payload.platform, user_id, payload.app)
 
 
 @app.post("/pyapi/v1/push/unregister")
 def push_unregister(payload: DeviceIn, request: Request):
-    auth.require_admin(request)
-    return push.unregister_device(payload.token)
+    core.require_admin(request)
+    return services.unregister_device(payload.token)
 
 
 @app.post("/pyapi/v1/push/test")
 def push_test(payload: PushTestIn, request: Request, key: str = Query("")):
     _cp_auth(request, key)
-    return push.send(payload.title, payload.body, app=payload.app, data={"type": "test"})
+    return services.send_push(payload.title, payload.body, app=payload.app, data={"type": "test"})
+
+
+# ── CLI: setup / once / worker (python -m pyapi.main <cmd>) ─────────────────
+
+def _load_state() -> dict:
+    try:
+        return json.loads(core.state_file().read_text())
+    except Exception:
+        return {}
+
+
+def _save_state(state: dict) -> None:
+    try:
+        core.state_file().write_text(json.dumps(state))
+    except Exception:
+        pass
+
+
+def cli(argv: list[str]) -> int:
+    import os
+
+    cmd = argv[0] if argv else "worker"
+    interval = int(os.environ.get("PYAPI_WORKER_INTERVAL_SEC", "30"))
+    low_stock_every = int(os.environ.get("PYAPI_LOW_STOCK_EVERY_SEC", "3600"))
+    url_refresh_every = int(os.environ.get("PYAPI_URL_REFRESH_EVERY_SEC", "3600"))
+
+    if cmd == "setup":
+        core.ensure_schema()
+        print("epc_push_devices ready")
+        return 0
+
+    if cmd in ("once", "worker"):
+        try:
+            core.ensure_schema()
+        except Exception as exc:
+            print(f"[pyapi] schema ensure failed: {exc}", file=sys.stderr)
+        state = _load_state()
+        if cmd == "once":
+            result = services.worker_run_once(state, low_stock_every, url_refresh_every)
+            _save_state(state)
+            print(json.dumps(result))
+            return 0
+        print(f"[pyapi] worker started (interval={interval}s)")
+        while True:
+            try:
+                services.worker_run_once(state, low_stock_every, url_refresh_every)
+                _save_state(state)
+            except Exception as exc:
+                print(f"[pyapi] pass error: {exc}", file=sys.stderr)
+            time.sleep(interval)
+
+    print(f"Unknown command: {cmd}. Use: setup | once | worker", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(cli(sys.argv[1:]))
