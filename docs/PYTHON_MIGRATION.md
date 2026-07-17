@@ -11,11 +11,15 @@ each step is independently shippable and reversible.
 > impossible (hard per-query timeouts, no schema mutation at request time),
 > which is where the real speed win comes from.
 >
-> Migration status: **Phases 0–2 are built and unit-tested in `pyapi/`.**
-> Phases 3–4 (background worker + optional SSR) and the production cutover of
-> live traffic remain — a full rewrite of a multi-tenant CMS is deliberately
-> incremental and is **not** "done" until each endpoint has run under real
-> traffic with the PHP fallback still in place. This is by design, not omission.
+> Migration status (see live report at `GET /pyapi/v1/migration/status`):
+> **Phases 0–3b are built and unit-tested in `pyapi/`** — service, hot read
+> APIs, CP/ERP data APIs, shared session auth, native push, and price ingest
+> that writes `records_count`/`article_search` at ingest (no request-path
+> backfills). What remains is **operational, not codeable-in-isolation**:
+> retiring the PHP↔CGI pyprices bridge and optional SSR both require the service
+> deployed and validated under live traffic with the PHP fallback in place.
+> A full multi-tenant CMS is migrated incrementally by design — "complete" means
+> PHP is retired only after each Python endpoint proves itself in production.
 
 ## Phase 0 — foundations (this PR)
 

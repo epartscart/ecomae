@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from pyapi import auth, db, push, services  # noqa: E402
+from pyapi import auth, db, ingest, push, services  # noqa: E402
 from pyapi.main import app  # noqa: E402
 
 
@@ -269,6 +269,66 @@ def test_notify_low_stock(monkeypatch):
     monkeypatch.setattr(push, "send", lambda title, body, app=None, data=None: {"status": True, "sent": 1})
     res = push.notify_low_stock(app="cp")
     assert res["low_stock"] == 4
+
+
+def test_ingest_parse_csv():
+    csv_bytes = (
+        b"manufacturer,article,name,exist,price\n"
+        b"TOYOTA,C-110/J,Oil filter,4,25.50\n"
+        b"BOSCH,DT.068,Brake pad,yes,90\n"
+        b"BADROW,,No article,3,10\n"          # skipped: empty article
+        b"NOPRICE,X99,Zero price,2,0\n"        # skipped: price <= 0
+    )
+    out = ingest.parse_csv(csv_bytes)
+    assert len(out["rows"]) == 2
+    assert out["skipped"] == 2
+    assert out["rows"][0]["article"] == "C110J"
+    assert out["rows"][0]["article_search"] == "C110J"   # written at ingest
+    assert out["rows"][0]["price"] == 25.5
+    assert out["rows"][1]["exist"] == 999                 # "yes" → in stock
+
+
+def test_ingest_import_writes_records_count(monkeypatch):
+    calls = {"delete": 0, "update": None}
+
+    def fake_execute(sql, params=()):
+        if sql.strip().startswith("DELETE"):
+            calls["delete"] += 1
+        elif "records_count" in sql:
+            calls["update"] = params
+        return 1
+
+    class FakeCur:
+        def executemany(self, sql, seq):
+            calls["rows"] = len(list(seq))
+        def execute(self, *a, **k):
+            pass
+        def close(self):
+            pass
+
+    class FakeCtx:
+        def __enter__(self):
+            return FakeCur()
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(db, "execute", fake_execute)
+    monkeypatch.setattr(db, "cursor", lambda: FakeCtx())
+    res = ingest.import_csv(3, b"manufacturer,article,name,exist,price\nTOYOTA,C110J,Filter,4,25\n")
+    assert res["status"] is True
+    assert res["imported"] == 1
+    assert res["records_count"] == 1
+    assert calls["delete"] == 1
+    assert calls["update"][1] == 1   # records_count value
+
+
+def test_migration_status(client):
+    r = client.get("/pyapi/v1/migration/status")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["phases"]["3b_price_ingest"] == "done"
+    assert body["phases"]["4_ssr_pages"] == "not_started"
+    assert any(p.startswith("/pyapi/v1/push") for p in body["endpoints"])
 
 
 def test_worker_run_once_baseline(monkeypatch):
