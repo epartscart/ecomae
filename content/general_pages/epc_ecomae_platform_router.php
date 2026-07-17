@@ -186,9 +186,31 @@ function epc_ecomae_marketing_serve_seo_file()
 			if ($host !== '' && preg_match('/^[a-z0-9.-]+$/', $host)) {
 				$sitemapHost = 'https://' . $host;
 			}
+			// Per-hub: only this industry's map (energy → energy subs only).
+			echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\n";
+			echo 'Sitemap: ' . $sitemapHost . "/sitemap.xml\n";
+			return true;
 		}
-		echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\nSitemap: " . $sitemapHost . "/sitemap.xml\n";
+		// www: advertise all-industries map + aggregated index.
+		echo "User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n\n";
+		echo 'Sitemap: ' . $sitemapHost . "/sitemap-industries.php\n";
+		echo 'Sitemap: ' . $sitemapHost . "/sitemap.xml\n";
+		echo 'Sitemap: ' . $sitemapHost . "/sitemap-index.php\n";
 		return true;
+	}
+
+	// Dedicated all-industries map (hubs + every sub-industry across *.ecomae.com).
+	if ($path === '/sitemap-industries.php' || $path === '/sitemap-industries.xml') {
+		if (!empty($GLOBALS['epc_industry_subdomain_active'])) {
+			// Industry hosts stay scoped; redirect crawlers to the www all-industries map.
+			header('Location: https://www.ecomae.com/sitemap-industries.php', true, 302);
+			return true;
+		}
+		$industriesFile = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/') . '/sitemap-industries.php';
+		if (is_file($industriesFile)) {
+			require $industriesFile;
+			return true;
+		}
 	}
 
 	if ($path === '/sitemap.xml') {

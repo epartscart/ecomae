@@ -27,7 +27,10 @@ if ($isIndustryHost) {
 	$childMaps = array('sitemap.xml');
 	$base = $requestBase;
 } elseif (epc_seo_is_ecomae_marketing_host()) {
+	// ALL industry hubs + every sub-industry: submit sitemap-industries.php in GSC.
+	// Per-hub maps (energy only, etc.) remain on each subdomain's /sitemap.xml.
 	$childMaps = array(
+		'sitemap-industries.php',
 		'sitemap-marketing.php',
 		'sitemap.xml',
 		'sitemap-pages.php',

@@ -96,6 +96,12 @@ section('Sitemap discovery (robots + index)');
 $robots = (string) file_get_contents($root . '/robots.txt');
 check('robots advertises /sitemap.xml', preg_match('/^Sitemap:\s*\/sitemap\.xml\s*$/mi', $robots) === 1);
 check('robots still has sitemap-index', stripos($robots, 'sitemap-index.php') !== false);
+check('robots advertises all-industries sitemap', stripos($robots, 'sitemap-industries.php') !== false);
+check('all-industries sitemap file exists', is_file($root . '/sitemap-industries.php'));
+$indSrc = (string) file_get_contents($root . '/sitemap-industries.php');
+check('all-industries uses seo entries helper', strpos($indSrc, 'epc_industry_seo_sitemap_entries') !== false);
+$idxSrcPre = (string) file_get_contents($root . '/sitemap-index.php');
+check('www index lists sitemap-industries.php', strpos($idxSrcPre, 'sitemap-industries.php') !== false);
 
 $_SERVER['HTTP_HOST'] = 'energy.ecomae.com';
 $_SERVER['HTTPS'] = 'on';
@@ -119,6 +125,35 @@ check('energy child loc', $base . '/' . $childMaps[0] === 'https://energy.ecomae
 $ping = (string) file_get_contents($root . '/epc-seo-sitemap-ping.php');
 check('GSC ping guide includes energy hub', strpos($ping, 'energy.ecomae.com') !== false);
 check('GSC ping guide includes biomass URL', strpos($ping, 'biomass-bioenergy') !== false);
+check('GSC guide submits all-industries sitemap', strpos($ping, 'sitemap-industries.php') !== false);
+check('GSC guide notes energy is energy-only', strpos($ping, 'ENERGY ONLY') !== false);
+
+// Smoke: generate all-industries entries (needs _ASTEXE_ + consolidation).
+if (!defined('_ASTEXE_')) {
+	define('_ASTEXE_', 1);
+}
+require_once $root . '/content/general_pages/epc_industry_consolidation.php';
+$allEntries = epc_industry_seo_sitemap_entries();
+check('all-industries entry count > 100', count($allEntries) > 100);
+$hosts = array();
+foreach ($allEntries as $row) {
+	$h = (string) (parse_url((string) $row[0], PHP_URL_HOST) ?: '');
+	if ($h !== '') {
+		$hosts[$h] = true;
+	}
+}
+check('all-industries includes energy host', isset($hosts['energy.ecomae.com']));
+check('all-industries includes jewellery host', isset($hosts['jewellery.ecomae.com']));
+check('all-industries includes automotive host', isset($hosts['automotive.ecomae.com']));
+check('all-industries has many hubs', count($hosts) >= 20);
+$biomassFound = false;
+foreach ($allEntries as $row) {
+	if (strpos((string) $row[0], 'biomass-bioenergy') !== false) {
+		$biomassFound = true;
+		break;
+	}
+}
+check('all-industries lists biomass-bioenergy', $biomassFound);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass_count  Failed: $fail_count\n";

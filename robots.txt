@@ -11,6 +11,9 @@ Disallow: /*/parts/all/
 # Industry hubs (energy.ecomae.com, …) serve hub + sub-industry URLs here —
 # Google must see this map (biomass-bioenergy, solar-energy, etc.).
 Sitemap: /sitemap.xml
+# ALL industries + sub-industries (submit on www / Domain property for ecomae.com).
+# Do NOT use energy.ecomae.com/sitemap.xml for this — that file is energy-only.
+Sitemap: /sitemap-industries.php
 # Aggregated index (www marketing + tenant pages/products, or industry self-map).
 # Warehouse stock (brand + article / part number pages) is listed via shards here.
 Sitemap: /sitemap-index.php
