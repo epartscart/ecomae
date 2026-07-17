@@ -8,4 +8,8 @@ Disallow: /cp
 Disallow: /*/parts/brands/
 Disallow: /*/parts/all/
 
+# Industry hubs (energy.ecomae.com, …) serve hub + sub-industry URLs here —
+# Google must see this map (biomass-bioenergy, solar-energy, etc.).
+Sitemap: /sitemap.xml
+# Aggregated index (www marketing + tenant pages/products, or industry self-map).
 Sitemap: /sitemap-index.php

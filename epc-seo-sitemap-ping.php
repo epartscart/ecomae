@@ -14,13 +14,33 @@ $sites = array(
 		'property' => 'https://www.ecomae.com',
 		'role' => 'marketing_platform',
 		'sitemap' => 'https://www.ecomae.com/sitemap-index.php',
+		'also_submit' => array(
+			'https://www.ecomae.com/sitemap.xml',
+			'https://www.ecomae.com/sitemap-marketing.php',
+		),
 		'sample_urls' => array(
 			'https://www.ecomae.com/',
 			'https://www.ecomae.com/platform',
+			'https://www.ecomae.com/platform/industries',
 			'https://www.ecomae.com/platform/auto-price-ai',
 			'https://www.ecomae.com/platform/demo',
 			'https://www.ecomae.com/platform/capabilities',
 		),
+	),
+	array(
+		'property' => 'https://energy.ecomae.com/',
+		'role' => 'industry_hub_energy',
+		'sitemap' => 'https://energy.ecomae.com/sitemap.xml',
+		'also_submit' => array(
+			'https://energy.ecomae.com/sitemap-index.php',
+		),
+		'sample_urls' => array(
+			'https://energy.ecomae.com/',
+			'https://energy.ecomae.com/biomass-bioenergy',
+			'https://energy.ecomae.com/solar-energy',
+			'https://energy.ecomae.com/wind-energy',
+		),
+		'note' => 'Prefer a Domain property for ecomae.com so all *.ecomae.com industry hubs are covered. Sub-industry pages like /biomass-bioenergy are listed in energy sitemap.xml.',
 	),
 	array(
 		'property' => 'https://www.epartscart.com',
@@ -37,12 +57,13 @@ $sites = array(
 
 $steps = array(
 	'Open Google Search Console: https://search.google.com/search-console',
-	'Add each property (URL-prefix https://www.ecomae.com and https://www.epartscart.com) or use Domain property if DNS TXT verification is available.',
+	'Best: add a Domain property for ecomae.com (DNS TXT) so www + energy + jewellery + all industry hubs are covered.',
+	'Or add URL-prefix properties for https://www.ecomae.com/ and https://energy.ecomae.com/.',
 	'Verify ownership (HTML file, DNS TXT, or Google Analytics — whichever you already use).',
-	'Sitemaps → Add new sitemap → enter sitemap-index.php (full URL shown per site below).',
-	'URL Inspection → paste a sample URL → confirm "URL is on Google" or "Indexing requested" after Request indexing.',
-	'Settings → Crawl stats: confirm Googlebot fetches /robots.txt and sitemap-index.php without errors.',
-	'After 7–14 days: Page indexing report → fix any "Excluded by noindex" on in-stock part pages.',
+	'Sitemaps → Add new sitemap → for energy submit https://energy.ecomae.com/sitemap.xml (includes biomass-bioenergy).',
+	'For www submit https://www.ecomae.com/sitemap-index.php (includes marketing + industry absolute URLs).',
+	'URL Inspection → paste https://energy.ecomae.com/biomass-bioenergy → Request indexing.',
+	'Confirm site:energy.ecomae.com biomass after crawl (can take days). GA4 does not control indexing.',
 	'Optional: ping Google when sitemap changes — open https://www.google.com/ping?sitemap=ENCODED_SITEMAP_URL (legacy; GSC submit is preferred).',
 );
 
