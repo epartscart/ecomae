@@ -1,44 +1,45 @@
 /**
  * eParts Cart — Control Panel design system
- * Professional slate + electric blue theme
+ * Modern indigo theme. System font stack — no external font request
+ * (the old Google Fonts @import blocked first paint on every CP page).
  */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .epc-cp,
 .epc-cp-login {
-	--epc-cp-primary: #2563eb;
-	--epc-cp-primary-dark: #1e40af;
-	--epc-cp-primary-deep: #1e3a8a;
-	--epc-cp-accent: #0ea5e9;
+	--epc-cp-primary: #4f46e5;
+	--epc-cp-primary-dark: #4338ca;
+	--epc-cp-primary-deep: #3730a3;
+	--epc-cp-accent: #06b6d4;
 	--epc-cp-teal: #14b8a6;
 	--epc-cp-indigo: #6366f1;
-	--epc-cp-sidebar-bg: #0f172a;
-	--epc-cp-sidebar-mid: #1e293b;
-	--epc-cp-sidebar-hover: #334155;
-	--epc-cp-sidebar-text: #94a3b8;
-	--epc-cp-sidebar-muted: #64748b;
+	--epc-cp-sidebar-bg: #111827;
+	--epc-cp-sidebar-mid: #1f2937;
+	--epc-cp-sidebar-hover: #2b3648;
+	--epc-cp-sidebar-text: #9ca3af;
+	--epc-cp-sidebar-muted: #6b7280;
 	--epc-cp-sidebar-active: #ffffff;
-	--epc-cp-header-bg: rgba(255, 255, 255, 0.96);
-	--epc-cp-body-bg: #f1f5f9;
+	--epc-cp-header-bg: rgba(255, 255, 255, 0.92);
+	--epc-cp-body-bg: #f4f6fb;
 	--epc-cp-card: #ffffff;
-	--epc-cp-border: #e2e8f0;
-	--epc-cp-border-light: #f1f5f9;
-	--epc-cp-text: #0f172a;
-	--epc-cp-text-secondary: #334155;
-	--epc-cp-text-muted: #64748b;
+	--epc-cp-border: #e5e9f2;
+	--epc-cp-border-light: #f1f4fa;
+	--epc-cp-text: #101828;
+	--epc-cp-text-secondary: #344054;
+	--epc-cp-text-muted: #667085;
 	--epc-cp-success: #10b981;
 	--epc-cp-success-dark: #059669;
 	--epc-cp-warning: #f59e0b;
 	--epc-cp-danger: #ef4444;
-	--epc-cp-radius: 12px;
-	--epc-cp-radius-sm: 8px;
-	--epc-cp-radius-xs: 6px;
-	--epc-cp-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
-	--epc-cp-shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
-	--epc-cp-shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.14);
-	--epc-cp-gradient: linear-gradient(135deg, #1e3a8a 0%, #2563eb 45%, #0ea5e9 100%);
-	--epc-cp-gradient-sidebar: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-	--epc-cp-font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+	--epc-cp-radius: 14px;
+	--epc-cp-radius-sm: 10px;
+	--epc-cp-radius-xs: 7px;
+	--epc-cp-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 20px rgba(16, 24, 40, 0.05);
+	--epc-cp-shadow-md: 0 6px 24px rgba(16, 24, 40, 0.08);
+	--epc-cp-shadow-lg: 0 16px 48px rgba(16, 24, 40, 0.14);
+	--epc-cp-gradient: linear-gradient(135deg, #3730a3 0%, #4f46e5 45%, #06b6d4 100%);
+	--epc-cp-gradient-sidebar: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+	--epc-cp-focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.22);
+	--epc-cp-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* ── Base typography ── */
@@ -870,4 +871,317 @@ body.epc-cp--blue-theme .epc-cp .table > tbody > tr > td {
 .epc-cp-login-hosted .epc-hosted-by a,
 .epc-erp-foot .epc-hosted-by a {
 	color: var(--epc-cp-primary, #2563eb);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODERN 2026 POLISH LAYER (v20260717cpModern1)
+   Cleaner cards, calmer chrome, faster-feeling interactions.
+   Pure CSS — zero new HTTP requests, zero JS.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Motion discipline: micro-transitions only, and respect user settings */
+@media (prefers-reduced-motion: reduce) {
+	.epc-cp *, .epc-cp *::before, .epc-cp *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* Kill legacy entrance animations — pages feel instant, not "fading in" */
+.epc-cp .animated,
+.epc-cp .fadeIn,
+.epc-cp .zoomIn,
+.epc-cp .transition {
+	animation: none !important;
+	-webkit-animation: none !important;
+	opacity: 1 !important;
+	transform: none !important;
+}
+
+/* ── Cards: flatter borders, softer depth, hover lift ── */
+.epc-cp .hpanel > .panel-body {
+	border-radius: var(--epc-cp-radius);
+	transition: box-shadow 0.18s ease;
+}
+.epc-cp .hpanel:hover > .panel-body {
+	box-shadow: var(--epc-cp-shadow-md);
+}
+.epc-cp .hpanel > .panel-heading.hbuilt {
+	background: var(--epc-cp-card);
+	border-bottom: none;
+	border-radius: var(--epc-cp-radius) var(--epc-cp-radius) 0 0;
+	font-size: 13.5px;
+	letter-spacing: -0.01em;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.epc-cp .hpanel > .panel-heading.hbuilt + .panel-body {
+	border-top: none;
+	border-radius: 0 0 var(--epc-cp-radius) var(--epc-cp-radius);
+}
+.epc-cp .hpanel > .panel-heading.hbuilt i.fa {
+	color: var(--epc-cp-primary);
+	font-size: 14px;
+	opacity: 0.9;
+}
+
+/* ── Header: calmer icon strip, clear separation ── */
+.epc-cp #header {
+	height: 60px;
+	box-shadow: 0 1px 0 var(--epc-cp-border);
+}
+.epc-cp #header .navbar-nav > li > a {
+	min-height: 60px;
+	display: inline-flex;
+	align-items: center;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+.epc-cp #header .label-menu-corner .label {
+	box-shadow: 0 0 0 2px var(--epc-cp-card);
+}
+
+/* ── Sidebar: roomier groups, pill-style active state ── */
+.epc-cp #side-menu li {
+	border-bottom: none;
+}
+.epc-cp #side-menu li a {
+	margin: 2px 10px;
+	padding: 11px 12px;
+	border-left: none;
+	border-radius: var(--epc-cp-radius-xs);
+	letter-spacing: 0.04em;
+}
+.epc-cp #side-menu li.active {
+	background: transparent;
+}
+.epc-cp #side-menu li.active > a {
+	background: linear-gradient(90deg, rgba(79, 70, 229, 0.32), rgba(6, 182, 212, 0.14));
+	border-left: none;
+	box-shadow: inset 3px 0 0 var(--epc-cp-accent);
+}
+.epc-cp #side-menu li .nav-second-level {
+	background: rgba(0, 0, 0, 0.18);
+	border-radius: var(--epc-cp-radius-xs);
+	margin: 0 10px 4px;
+	padding: 4px 0;
+}
+.epc-cp #side-menu li .nav-second-level li a {
+	margin: 0 6px;
+	padding: 8px 10px 8px 22px;
+	border-radius: 6px;
+}
+.epc-cp #side-menu li .nav-second-level li.active a {
+	background: rgba(79, 70, 229, 0.30);
+	border-left: none;
+	box-shadow: inset 2px 0 0 var(--epc-cp-teal);
+}
+
+/* ── Tables: sticky header, comfortable density, row affordance ── */
+.epc-cp .table-responsive {
+	border: 1px solid var(--epc-cp-border);
+	border-radius: var(--epc-cp-radius-sm);
+	background: var(--epc-cp-card);
+}
+.epc-cp .table-responsive > .table {
+	margin-bottom: 0;
+}
+.epc-cp .table-responsive > .table > thead > tr > th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: var(--epc-cp-border-light);
+}
+.epc-cp .table > tbody > tr {
+	transition: background 0.12s ease;
+}
+.epc-cp .table-hover > tbody > tr:hover,
+.epc-cp .table > tbody > tr:hover {
+	background: rgba(79, 70, 229, 0.10) !important;
+	box-shadow: inset 2px 0 0 var(--epc-cp-indigo);
+}
+.epc-cp .table-hover > tbody > tr:hover > td,
+.epc-cp .table > tbody > tr:hover > td {
+	background: transparent !important;
+}
+.epc-cp .table > tbody > tr > td {
+	vertical-align: middle;
+	border-color: var(--epc-cp-border-light);
+}
+
+/* ── Focus visibility everywhere (keyboard-friendly) ── */
+.epc-cp a:focus-visible,
+.epc-cp .btn:focus-visible,
+.epc-cp .form-control:focus-visible,
+.epc-cp input:focus-visible,
+.epc-cp select:focus-visible {
+	outline: none;
+	box-shadow: var(--epc-cp-focus-ring, 0 0 0 3px rgba(79, 70, 229, 0.22));
+	border-radius: var(--epc-cp-radius-xs);
+}
+
+/* ── Buttons: consistent height, subtle press feedback ── */
+.epc-cp .btn {
+	line-height: 1.35;
+	letter-spacing: 0.01em;
+}
+.epc-cp .btn + .btn {
+	margin-left: 6px;
+}
+.epc-cp .btn:active {
+	transform: translateY(1px) scale(0.99);
+}
+
+/* ── Forms: modern inputs, floating helper text ── */
+.epc-cp .form-control {
+	min-height: 36px;
+	padding: 7px 12px;
+	font-size: 13.5px;
+	background: var(--epc-cp-card);
+}
+.epc-cp .form-control::placeholder {
+	color: #98a2b3;
+}
+.epc-cp select.form-control {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23667085' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 12px center;
+	padding-right: 30px;
+}
+.epc-cp .help-block {
+	color: var(--epc-cp-text-muted);
+	font-size: 12px;
+}
+
+/* ── Alerts: left accent bar, tinted surface ── */
+.epc-cp .alert {
+	border-left: 4px solid transparent;
+	padding: 12px 16px;
+}
+.epc-cp .alert-info {
+	background: #eef4ff;
+	border-left-color: var(--epc-cp-primary);
+	color: #1d2f6f;
+}
+.epc-cp .alert-success {
+	background: #ecfdf5;
+	border-left-color: var(--epc-cp-success);
+	color: #065f46;
+}
+.epc-cp .alert-warning {
+	background: #fffbeb;
+	border-left-color: var(--epc-cp-warning);
+	color: #92400e;
+}
+.epc-cp .alert-danger {
+	background: #fef2f2;
+	border-left-color: var(--epc-cp-danger);
+	color: #991b1b;
+}
+
+/* ── Badges / labels: soft-tint style ── */
+.epc-cp .label {
+	border-radius: 999px;
+	padding: 3px 10px;
+	letter-spacing: 0.02em;
+}
+
+/* ── Modals: rounded, deeper shadow, calm header ── */
+.epc-cp .modal-content {
+	border: none;
+	border-radius: var(--epc-cp-radius);
+	box-shadow: var(--epc-cp-shadow-lg);
+	overflow: hidden;
+}
+.epc-cp .modal-header {
+	background: var(--epc-cp-sidebar-bg);
+	color: #fff;
+	border-bottom: none;
+	padding: 14px 20px;
+}
+.epc-cp .modal-header .modal-title {
+	color: #fff;
+	font-weight: 700;
+	font-size: 16px;
+}
+.epc-cp .modal-footer {
+	border-top: 1px solid var(--epc-cp-border-light);
+	padding: 12px 20px;
+}
+
+/* ── Dropdown menus ── */
+.epc-cp .dropdown-menu {
+	border: 1px solid var(--epc-cp-border);
+	border-radius: var(--epc-cp-radius-sm);
+	box-shadow: var(--epc-cp-shadow-md);
+	padding: 6px;
+}
+.epc-cp .dropdown-menu > li > a {
+	border-radius: 6px;
+	padding: 8px 12px;
+	font-size: 13px;
+	color: var(--epc-cp-text-secondary);
+}
+.epc-cp .dropdown-menu > li > a:hover {
+	background: var(--epc-cp-border-light);
+	color: var(--epc-cp-text);
+}
+
+/* ── Pagination ── */
+.epc-cp .pagination > li > a,
+.epc-cp .pagination > li > span {
+	border-color: var(--epc-cp-border);
+	color: var(--epc-cp-text-secondary);
+	margin: 0 2px;
+	border-radius: var(--epc-cp-radius-xs) !important;
+}
+.epc-cp .pagination > .active > a,
+.epc-cp .pagination > .active > span {
+	background: var(--epc-cp-primary);
+	border-color: var(--epc-cp-primary);
+}
+
+/* ── Skeleton shimmer for AJAX-deferred cells (history, counters) ── */
+.epc-cp .epc-skeleton {
+	display: inline-block;
+	min-width: 64px;
+	height: 12px;
+	border-radius: 6px;
+	background: linear-gradient(90deg, #eef1f6 25%, #f8fafc 45%, #eef1f6 65%);
+	background-size: 200% 100%;
+	animation: epcSkeleton 1.1s linear infinite;
+}
+@keyframes epcSkeleton {
+	0% { background-position: 200% 0; }
+	100% { background-position: -200% 0; }
+}
+
+/* ── Scrollbars in the light pane ── */
+.epc-cp #wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
+.epc-cp #wrapper::-webkit-scrollbar-thumb {
+	background: #cbd2e0;
+	border-radius: 8px;
+	border: 2px solid var(--epc-cp-body-bg);
+}
+.epc-cp #wrapper::-webkit-scrollbar-thumb:hover { background: #98a2b3; }
+
+/* ── Page header card: gradient hairline accent ── */
+.epc-cp .epc-cp-page-header__card,
+.epc-cp .normalheader .hpanel > .panel-body {
+	position: relative;
+}
+.epc-cp .epc-cp-page-header__card::before,
+.epc-cp .normalheader .hpanel > .panel-body::before {
+	content: '';
+	position: absolute;
+	inset: 0 auto auto 0;
+	width: 100%;
+	height: 3px;
+	border-radius: var(--epc-cp-radius) var(--epc-cp-radius) 0 0;
+	background: var(--epc-cp-gradient);
+	opacity: 0.9;
 }
