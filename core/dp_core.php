@@ -789,6 +789,7 @@ if (
     }
 }
 // No longer needed — splash page uses simple meta-refresh, no sessionStorage counter
+if (function_exists('epc_cp_trace')) { epc_cp_trace('dp_core: before template eval'); }
 if ($epcCpScriptRelocate && function_exists("epc_cp_finalize_cp_html")) {
     ob_start();
     eval(" ?>" . $DP_Template->html . "<?php ");
@@ -797,6 +798,7 @@ if ($epcCpScriptRelocate && function_exists("epc_cp_finalize_cp_html")) {
 } else {
     eval(" ?>" . $DP_Template->html . "<?php ");
 }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('dp_core: after template eval'); }
 $db_link = NULL;
 
 ?>

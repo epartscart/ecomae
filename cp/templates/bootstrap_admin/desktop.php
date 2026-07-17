@@ -9,6 +9,7 @@ $epc_cp_style_template = epc_portal_normalize_theme_template(
 	(string) (epc_portal_load_site_settings()['theme_template'] ?? 'classic')
 );
 $epcApaiPage = !empty($GLOBALS['epc_cp_apai_page']);
+if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $multilang_params['lang']; ?>" data-theme="default" data-epc-industry="<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?>" data-epc-style="<?php echo htmlspecialchars($epc_cp_style_template, ENT_QUOTES, 'UTF-8'); ?>">
@@ -1050,11 +1051,13 @@ function print_backend_button($button_params)
 			
 			<?php
 				require_once $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/actions_alert.php';
+				if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: before main content'); }
 			?>
 		
 			<!--epc-cp-main-begin-->
 			<docpart type="main" name="main" />
 			<!--epc-cp-main-end-->
+			<?php if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: after main content'); } ?>
 		</div>
 		</div>
     </div>
@@ -1078,7 +1081,9 @@ function print_backend_button($button_params)
 				</button>
 			</div>
 		
+			<?php if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: before right-sidebar module'); } ?>
 			<docpart type="module" name="left_cp_menu1" />
+			<?php if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: after right-sidebar module'); } ?>
 		</div>
     </div>
 
@@ -1266,6 +1271,7 @@ if (is_file($epcCpScriptRelocateFooter)) {
 		epc_cp_render_relocated_footer_scripts();
 	}
 }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: before footer scripts'); }
 if (isset($DP_Content) && is_object($DP_Content)) {
 	$contentUrl = (string) ($DP_Content->url ?? '');
 	if (function_exists('epc_cp_page_footer_scripts')) {
@@ -1275,6 +1281,7 @@ if (isset($DP_Content) && is_object($DP_Content)) {
 		epc_pos_cp_footer_scripts($contentUrl);
 	}
 }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: after footer scripts'); }
 ?>
 
 </body>

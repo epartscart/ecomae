@@ -14,6 +14,9 @@ if (PHP_SAPI !== 'cli') {
 require_once $_SERVER["DOCUMENT_ROOT"] . "/config.php";
 $DP_Config = new DP_Config();
 require_once $_SERVER["DOCUMENT_ROOT"] . "/content/general_pages/epc_portal.php";
+$__epcCpTrace = $_SERVER["DOCUMENT_ROOT"] . "/content/general_pages/epc_cp_trace.php";
+if (is_file($__epcCpTrace)) { require_once $__epcCpTrace; }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('cp/index: boot'); }
 
 // Industry wildcard subdomains (*.ecomae.com) — bootstrap industry context
 // early, same as the root index.php. Without this, /cp/ on an industry
@@ -181,6 +184,7 @@ if ($epcCpAjaxRoute !== '' && isset($epcCpAjaxMap[$epcCpAjaxRoute])) {
 }
 
 $isFrontMode = 0;
+if (function_exists('epc_cp_trace')) { epc_cp_trace('cp/index: before dp_core'); }
 require_once $_SERVER["DOCUMENT_ROOT"] . "/core/dp_helper.php";
 require_once $_SERVER["DOCUMENT_ROOT"] . "/core/dp_content.php";
 require_once $_SERVER["DOCUMENT_ROOT"] . "/core/dp_module.php";
