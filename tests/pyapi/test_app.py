@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from pyapi import auth, db, services  # noqa: E402
+from pyapi import auth, db, push, services  # noqa: E402
 from pyapi.main import app  # noqa: E402
 
 
@@ -189,3 +189,97 @@ def test_laximo_status(monkeypatch, client):
     body = r.json()
     assert body["catalogs_count"] == 56
     assert body["offline_ready"] is True
+
+
+# ── Push notifications ──
+
+def test_push_register_requires_admin(client):
+    r = client.post("/pyapi/v1/push/register", json={"token": "abc", "platform": "android"})
+    assert r.status_code == 401
+
+
+def test_push_register_ok(monkeypatch, admin_ok, client):
+    captured = {}
+    monkeypatch.setattr(db, "execute", lambda sql, params=(): captured.setdefault("p", params) or 1)
+    client.cookies.set("admin_session", "s")
+    client.cookies.set("admin_u_id", "18")
+    r = client.post("/pyapi/v1/push/register", json={"token": "tok123", "platform": "ios", "app": "cp"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] is True
+    assert body["platform"] == "ios"
+    assert captured["p"][0] == "tok123"
+
+
+def test_push_send_not_configured(monkeypatch):
+    # No FCM env → safe no-op, still reports device count.
+    monkeypatch.delenv("PYAPI_FCM_PROJECT", raising=False)
+    monkeypatch.delenv("PYAPI_FCM_ACCESS_TOKEN", raising=False)
+    monkeypatch.setattr(push, "active_tokens", lambda app=None: [{"token": "a", "platform": "android", "app": "cp"}])
+    res = push.send("Hi", "There")
+    assert res["status"] is False
+    assert res["reason"] == "not_configured"
+    assert res["devices"] == 1
+
+
+def test_push_send_dispatches(monkeypatch):
+    monkeypatch.setenv("PYAPI_FCM_PROJECT", "proj")
+    monkeypatch.setenv("PYAPI_FCM_ACCESS_TOKEN", "bearer")
+    monkeypatch.setattr(
+        push, "active_tokens",
+        lambda app=None: [
+            {"token": "a", "platform": "android", "app": "cp"},
+            {"token": "b", "platform": "ios", "app": "cp"},
+        ],
+    )
+    sent = []
+    monkeypatch.setattr(push, "_transport", lambda project, bearer, payload: (sent.append(payload) or (True, "ok")))
+    res = push.send("New order", "Order #5", app="cp", data={"type": "order"})
+    assert res["status"] is True
+    assert res["sent"] == 2
+    assert sent[0]["message"]["notification"]["title"] == "New order"
+
+
+def test_notify_new_orders(monkeypatch):
+    monkeypatch.setattr(
+        db, "fetch_all",
+        lambda sql, params=(): [
+            {"id": 10, "summ": 50, "client_name": "A"},
+            {"id": 12, "summ": 90, "client_name": "B"},
+        ],
+    )
+    monkeypatch.setattr(push, "send", lambda title, body, app=None, data=None: {"status": True, "sent": 1})
+    res = push.notify_new_orders(9, app="cp")
+    assert res["new_orders"] == 2
+    assert res["last_id"] == 12
+
+
+def test_notify_new_orders_none(monkeypatch):
+    monkeypatch.setattr(db, "fetch_all", lambda sql, params=(): [])
+    called = {"n": 0}
+    monkeypatch.setattr(push, "send", lambda *a, **k: called.__setitem__("n", called["n"] + 1) or {})
+    res = push.notify_new_orders(99, app="cp")
+    assert res["new_orders"] == 0
+    assert res["last_id"] == 99
+    assert called["n"] == 0  # no push when nothing new
+
+
+def test_notify_low_stock(monkeypatch):
+    monkeypatch.setattr(db, "fetch_one", lambda sql, params=(): {"c": 4})
+    monkeypatch.setattr(push, "send", lambda title, body, app=None, data=None: {"status": True, "sent": 1})
+    res = push.notify_low_stock(app="cp")
+    assert res["low_stock"] == 4
+
+
+def test_worker_run_once_baseline(monkeypatch):
+    from pyapi import worker
+    monkeypatch.setattr(worker, "_max_order_id", lambda: 100)
+    monkeypatch.setattr(worker, "_save_state", lambda s: None)
+    calls = {"orders": 0, "low": 0}
+    monkeypatch.setattr(push, "notify_new_orders", lambda since, app="cp": calls.__setitem__("orders", since) or {"status": True, "last_id": since, "new_orders": 0})
+    monkeypatch.setattr(push, "notify_low_stock", lambda app="cp": calls.__setitem__("low", 1) or {"status": True, "low_stock": 0})
+    state = {}
+    out = worker.run_once(state, low_stock_every=3600)
+    # First pass baselines to current max id (no backlog blast).
+    assert state["last_order_id"] == 100
+    assert calls["orders"] == 100
