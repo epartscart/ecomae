@@ -99,6 +99,47 @@ check('push notifications plugin', isset($cap['plugins']['PushNotifications']));
 check('barcode scanner plugin', isset($cap['plugins']['BarcodeScanner']));
 check('default appId when empty', json_decode(epc_capacitor_config(array()), true)['appId'] === 'com.ecomae.erp');
 
+section('CP PWA served assets (installable CP + ERP)');
+$root = dirname(__DIR__, 2);
+check('cp manifest file exists', is_file($root . '/cp/manifest.webmanifest'));
+$cpM = json_decode((string) file_get_contents($root . '/cp/manifest.webmanifest'), true);
+check('cp manifest valid JSON', is_array($cpM));
+check('cp manifest standalone', ($cpM['display'] ?? '') === 'standalone');
+check('cp manifest scope /cp/', ($cpM['scope'] ?? '') === '/cp/');
+check('cp manifest has 2 icons', isset($cpM['icons']) && count($cpM['icons']) === 2);
+check('cp service worker file exists', is_file($root . '/cp/sw.js'));
+check('cp sw scoped to /cp/', strpos((string) file_get_contents($root . '/cp/sw.js'), "/cp/") !== false);
+check('cp offline shell exists', is_file($root . '/cp/offline.html'));
+check('cp app icon 192 exists', is_file($root . '/cp/assets/app/icon-192.svg'));
+check('cp app icon 512 exists', is_file($root . '/cp/assets/app/icon-512.svg'));
+
+$assetServer = (string) file_get_contents($root . '/cp/epc_cp_pwa_assets.php');
+check('asset server maps manifest', strpos($assetServer, "/cp/manifest.webmanifest") !== false);
+check('asset server maps sw.js', strpos($assetServer, "/cp/sw.js") !== false);
+check('asset server sets Service-Worker-Allowed', strpos($assetServer, 'Service-Worker-Allowed') !== false);
+
+$cpIndex = (string) file_get_contents($root . '/cp/index.php');
+check('cp index serves PWA assets early', strpos($cpIndex, 'epc_cp_pwa_maybe_serve_asset()') !== false);
+
+$cpDesktop = (string) file_get_contents($root . '/cp/templates/bootstrap_admin/desktop.php');
+check('CP desktop wires PWA head tags', strpos($cpDesktop, 'epc_pwa_head_tags(') !== false);
+$erpDesktop = (string) file_get_contents($root . '/cp/templates/bootstrap_admin/erp_desktop.php');
+check('ERP desktop wires PWA head tags', strpos($erpDesktop, 'epc_pwa_head_tags(') !== false);
+
+section('Capacitor native project (Android + iOS)');
+check('native project package.json exists', is_file($root . '/mobile/ecomae-app/package.json'));
+check('native targets.json exists', is_file($root . '/mobile/ecomae-app/targets.json'));
+$targets = json_decode((string) file_get_contents($root . '/mobile/ecomae-app/targets.json'), true);
+check('targets valid JSON', is_array($targets));
+check('has ecomae CP target', isset($targets['ecomae-cp']['appId']));
+check('has tenant CP target', isset($targets['tenant-cp']['appId']));
+check('has ERP target', isset($targets['erp']['appId']));
+check('has storefront target', isset($targets['storefront']['appId']));
+check('config generator exists', is_file($root . '/mobile/ecomae-app/build-config.mjs'));
+$pkg = json_decode((string) file_get_contents($root . '/mobile/ecomae-app/package.json'), true);
+check('capacitor android dep', isset($pkg['dependencies']['@capacitor/android']));
+check('capacitor ios dep', isset($pkg['dependencies']['@capacitor/ios']));
+
 echo "\n========================================\n";
 echo "PWA/MOBILE TESTS: {$pass_count} passed, {$fail_count} failed\n";
 echo "========================================\n";

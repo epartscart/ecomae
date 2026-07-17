@@ -40,6 +40,12 @@ if (is_file($demoBootstrap)) {
 }
 epc_portal_apply_config($DP_Config);
 
+// PWA static assets (manifest / service worker / offline / icons) — serve and
+// exit before the heavy CP bootstrap so installability works without extra
+// nginx rules and without loading the full shell.
+require_once __DIR__ . '/epc_cp_pwa_assets.php';
+epc_cp_pwa_maybe_serve_asset();
+
 require_once __DIR__ . '/epc_cp_bootstrap_light.php';
 require_once __DIR__ . '/epc_cp_auth_gate.php';
 require_once __DIR__ . '/epc_cp_fast_tenant.php';

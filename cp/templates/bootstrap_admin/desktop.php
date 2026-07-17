@@ -32,6 +32,17 @@ $epcApaiPage = !empty($GLOBALS['epc_cp_apai_page']);
 	
 	<link rel="stylesheet" href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/css/modal_window.css" />
     <docpart type="head" name="head" />
+<?php
+	// PWA: make the Control Panel installable on Android + iOS (Add to Home Screen).
+	$epcCpPwa = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_pwa.php';
+	if (is_file($epcCpPwa)) {
+		require_once $epcCpPwa;
+		if (function_exists('epc_pwa_head_tags')) {
+			echo "\n" . epc_pwa_head_tags('/cp/manifest.webmanifest', '/cp/sw.js', '#4f46e5') . "\n";
+		}
+		echo '<link rel="apple-touch-icon" href="/cp/assets/app/icon-192.svg">' . "\n";
+	}
+?>
 	
 	
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->

@@ -1,0 +1,30 @@
+{
+  "name": "ecomae-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ecomae / eParts Cart native shell (Android + iOS) — Capacitor wrapper around the responsive web CP, ERP and storefront.",
+  "type": "module",
+  "scripts": {
+    "config:ecomae-cp": "node build-config.mjs ecomae-cp",
+    "config:tenant-cp": "node build-config.mjs tenant-cp",
+    "config:erp": "node build-config.mjs erp",
+    "config:storefront": "node build-config.mjs storefront",
+    "add:android": "cap add android",
+    "add:ios": "cap add ios",
+    "sync": "cap sync",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/browser": "^6.0.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/ios": "^6.1.0",
+    "@capacitor/push-notifications": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0"
+  }
+}
