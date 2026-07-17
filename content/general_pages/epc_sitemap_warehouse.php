@@ -23,7 +23,49 @@ function epc_sitemap_warehouse_shard_size(): int
 
 function epc_sitemap_warehouse_max_shards(): int
 {
-	return 40;
+	// 80 × 5000 = 400k distinct brand/article pairs (room for new supplier lists).
+	return 80;
+}
+
+function epc_sitemap_warehouse_stale_path(): string
+{
+	return epc_sitemap_warehouse_cache_dir() . '/warehouse-stale.json';
+}
+
+/** True when price uploads changed stock and sitemap XML must be re-warmed. */
+function epc_sitemap_warehouse_is_stale(): bool
+{
+	return is_file(epc_sitemap_warehouse_stale_path());
+}
+
+/**
+ * Mark warehouse sitemaps stale after supplier/warehouse price imports.
+ * Does not rebuild (avoids Cloudflare 524) — warm script picks this up.
+ */
+function epc_sitemap_warehouse_mark_stale(string $reason = '', int $priceId = 0): void
+{
+	$dir = epc_sitemap_warehouse_cache_dir();
+	if (!is_dir($dir)) {
+		@mkdir($dir, 0755, true);
+	}
+	$payload = array(
+		'stale' => true,
+		'reason' => $reason,
+		'price_id' => $priceId,
+		'marked_at' => gmdate('c'),
+	);
+	@file_put_contents(
+		epc_sitemap_warehouse_stale_path(),
+		json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)
+	);
+}
+
+function epc_sitemap_warehouse_clear_stale(): void
+{
+	$path = epc_sitemap_warehouse_stale_path();
+	if (is_file($path)) {
+		@unlink($path);
+	}
 }
 
 function epc_sitemap_warehouse_cache_path(int $shard): string
@@ -199,12 +241,18 @@ function epc_sitemap_warehouse_regenerate_shard(DP_Config $cfg, PDO $pdo, int $s
 	epc_sitemap_warehouse_write_shard_file($shard, $body);
 	epc_sitemap_warehouse_meta_refresh_from_files();
 
+	$done = $urls < $shardSize;
+	if ($done) {
+		// Full refresh finished — new supplier stock is now in SEO sitemaps.
+		epc_sitemap_warehouse_clear_stale();
+	}
+
 	return array(
 		'shard' => $shard,
 		'urls' => $urls,
 		'bytes' => strlen($body),
 		'error' => '',
-		'done' => $urls < $shardSize,
+		'done' => $done,
 	);
 }
 

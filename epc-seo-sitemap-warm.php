@@ -51,23 +51,40 @@ if (!($pdo instanceof PDO)) {
 
 $meta = epc_sitemap_warehouse_meta_read();
 $existing = epc_sitemap_warehouse_existing_shard_count();
+$stale = epc_sitemap_warehouse_is_stale();
+$force = isset($_GET['force']) && (string) $_GET['force'] !== '0' && (string) $_GET['force'] !== '';
 
 if ($statusOnly) {
 	echo json_encode(array(
 		'ok' => true,
+		'stale' => $stale,
 		'existing_shards' => $existing,
 		'meta' => $meta,
-		'next' => $base . '/epc-seo-sitemap-warm.php?token=' . rawurlencode($token) . '&n=' . $existing . '&auto=1',
+		'next' => $base . '/epc-seo-sitemap-warm.php?token=' . rawurlencode($token) . '&n=0&auto=1&force=1',
 		'gsc_submit' => $base . '/sitemap-index.php',
-		'note' => 'Warm one shard at a time with &n=0 then &n=1… or use &auto=1',
+		'note' => 'After uploading new warehouse/supplier prices, run &auto=1&force=1 so new stock enters Google SEO sitemaps.',
 	), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 	exit;
 }
 
-// Default / auto: warm the next shard (or explicit n=).
-$n = isset($_GET['n']) ? (int) $_GET['n'] : $existing;
+// After price uploads (stale) or force=1: rebuild from shard 0 so new suppliers replace old XML.
+if (($stale || $force) && !isset($_GET['n'])) {
+	$n = 0;
+} else {
+	$n = isset($_GET['n']) ? (int) $_GET['n'] : $existing;
+}
 if ($n < 0) {
 	$n = 0;
+}
+// Starting a forced refresh: drop old public shards so index tracks the new set.
+if ($n === 0 && ($stale || $force)) {
+	$publicRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? __DIR__), '/');
+	foreach (glob($publicRoot . '/sitemap-warehouse-*.xml') ?: array() as $old) {
+		@unlink($old);
+	}
+	foreach (glob(epc_sitemap_warehouse_cache_dir() . '/warehouse-*.xml') ?: array() as $old) {
+		@unlink($old);
+	}
 }
 
 $started = microtime(true);
@@ -78,9 +95,10 @@ $existing = epc_sitemap_warehouse_existing_shard_count();
 
 $done = !empty($result['done']) || ($result['urls'] === 0 && $result['error'] === '');
 $nextN = $done ? null : ($n + 1);
+$forceQ = ($force || $stale) ? '&force=1' : '';
 $nextUrl = $nextN === null
 	? null
-	: ($base . '/epc-seo-sitemap-warm.php?token=' . rawurlencode($token) . '&n=' . $nextN . ($auto ? '&auto=1' : ''));
+	: ($base . '/epc-seo-sitemap-warm.php?token=' . rawurlencode($token) . '&n=' . $nextN . ($auto ? '&auto=1' : '') . $forceQ);
 
 $payload = array(
 	'ok' => $result['error'] === '',
@@ -90,6 +108,7 @@ $payload = array(
 	'bytes' => $result['bytes'],
 	'elapsed_sec' => $elapsed,
 	'done' => $done,
+	'stale' => epc_sitemap_warehouse_is_stale(),
 	'existing_shards' => $existing,
 	'total_urls_cached' => (int) ($meta['urls'] ?? 0),
 	'next_n' => $nextN,
@@ -97,8 +116,8 @@ $payload = array(
 	'public_url' => $base . '/sitemap-warehouse-' . $n . '.xml',
 	'gsc_submit' => $base . '/sitemap-index.php',
 	'note' => $done
-		? 'Warm complete. Resubmit sitemap-index.php in Google Search Console.'
-		: 'Shard OK. Open next_url (or keep auto=1) until done=true. Do not use a single request for all shards (Cloudflare 524).',
+		? 'Warm complete — all in-stock warehouse/supplier brand+article URLs are in SEO sitemaps. Resubmit sitemap-index.php in GSC (optional if already submitted).'
+		: 'Shard OK. Keep auto=1 until done. New supplier uploads mark sitemaps stale — re-run this warm after each big price import.',
 );
 
 // Browser auto-continue: HTML redirect chain (each hop < CF timeout).

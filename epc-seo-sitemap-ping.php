@@ -58,8 +58,8 @@ $sites = array(
 			'https://www.epartscart.com/en/parts/GMB/GUT21',
 			'https://www.epartscart.com/sitemap-warehouse-0.xml',
 		),
-		'note' => 'Warm one shard at a time (avoids Cloudflare 524): open /epc-seo-sitemap-warm.php?token=…&auto=1 — it chains n=0,1,2… Then resubmit sitemap-index.php. Locs are /en/parts/{BRAND}/{ARTICLE}.',
-		'warm' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&auto=1',
+		'note' => 'After every warehouse/supplier price upload: open warm URL with &auto=1&force=1 (one shard per request). Sitemap includes all storefront-enabled price lists with exist>0 as /en/parts/{BRAND}/{ARTICLE}. Then GSC already has sitemap-index.php — Google will re-read children.',
+		'warm' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&auto=1&force=1',
 		'warm_status' => 'https://www.epartscart.com/epc-seo-sitemap-warm.php?token=epartscart-deploy-2026&status=1',
 	),
 );

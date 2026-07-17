@@ -395,6 +395,17 @@ if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_article_m
 	}
 }
 
+// Flag warehouse SEO sitemaps for refresh (all in-stock brand/article URLs).
+if ((int) $epc_total_imported > 0) {
+	$whSeo = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_sitemap_warehouse.php';
+	if (is_file($whSeo)) {
+		require_once $whSeo;
+		if (function_exists('epc_sitemap_warehouse_mark_stale')) {
+			epc_sitemap_warehouse_mark_stale('csv_import_' . (int) $epc_total_imported . '_rows', (int) $price_id);
+		}
+	}
+}
+
 $answer = array();
 $answer["result"] = 1;
 $answer["records_handled"] = $epc_total_imported;
