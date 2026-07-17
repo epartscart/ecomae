@@ -847,3 +847,67 @@ body.modal-open {
 	.epc-commerce-filter { max-width: 100%; width: 100%; }
 	.epc-commerce-panel__head { flex-direction: column; align-items: flex-start; }
 }
+
+/* Labeled action chips — readable even when Font Awesome icons fail to load */
+.epc-prices-page .epc-price-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+	max-width: 280px;
+}
+
+.epc-prices-page a.epc-price-action,
+.epc-prices-page span.epc-price-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 8px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	background: #fff;
+	color: #0f172a !important;
+	font-size: 11px;
+	font-weight: 650;
+	line-height: 1.2;
+	text-decoration: none !important;
+	white-space: nowrap;
+	box-shadow: none;
+}
+
+.epc-prices-page a.epc-price-action:hover {
+	border-color: #93c5fd;
+	background: #eff6ff;
+	color: #1d4ed8 !important;
+}
+
+.epc-prices-page .epc-price-action i {
+	font-size: 12px;
+	min-width: 12px;
+	text-align: center;
+}
+
+.epc-prices-page .epc-price-action--disabled {
+	opacity: 0.55;
+	cursor: default;
+	background: #f8fafc;
+}
+
+.epc-prices-page .epc-price-action--jobs.is-active {
+	border-color: #86efac;
+	background: #f0fdf4;
+	color: #166534 !important;
+}
+
+.epc-prices-page .epc-price-action--pc { border-color: #93c5fd; }
+.epc-prices-page .epc-price-action--email { border-color: #fcd34d; }
+.epc-prices-page .epc-price-action--ftp { border-color: #a5b4fc; }
+.epc-prices-page .epc-price-action--url { border-color: #67e8f9; }
+.epc-prices-page .epc-price-action--files { border-color: #7dd3fc; }
+.epc-prices-page .epc-price-action--tasks { border-color: #c4b5fd; }
+
+/* Keep lazy history status readable under the action chips */
+.epc-prices-page #prices_table [id^="price_manual_upgrading_"] > a + a,
+.epc-prices-page #prices_table [id^="price_manual_upgrading_"] .epc-price-actions {
+	margin-bottom: 4px;
+}
