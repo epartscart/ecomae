@@ -517,11 +517,10 @@ else//Действий нет - выводим страницу
 								<th><?php echo translate_str_by_id(3763); ?></th>
 								<th><?php echo translate_str_by_id(5425); ?></th>
 								<th>Update file / history</th>
-								<!--<th><?php //echo translate_str_by_id(3709); ?></th>-->
-								<th class="text-center"><?php //echo translate_str_by_id(3212); ?> <?php echo translate_str_by_id(5426); ?></th>
-								<th class="text-left"><?php echo translate_str_by_id(5427); ?></th>
-								<th class="text-center"><?php echo translate_str_by_id(2113); ?></th>
-								<th style="text-align:center;" data-hide="phone,tablet,default"></th>
+								<th class="text-left">Manual update</th>
+								<th class="text-left">Auto-update</th>
+								<th class="text-left">Actions</th>
+								<th style="text-align:center;" data-hide="phone,tablet,default">Preview</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -825,28 +824,36 @@ else//Действий нет - выводим страницу
 									
 									
 									
-									<div id="price_manual_upgrading_<?php echo $element_record['id']; ?>">
+									<div id="price_manual_upgrading_<?php echo $element_record['id']; ?>" class="epc-price-actions">
 										
-										<!-- При клике - сбрасываем значение у файлового инпута и имитируем клик по нему для начала выбора файла -->
-										<a href="javascript:void(0);" onclick="jQuery('#file_<?php echo $element_record['id']; ?>').val('');jQuery('#file_<?php echo $element_record['id']; ?>').click();" title="<?php echo translate_str_by_id(5433); ?>"><i class="fas fa-desktop"></i></a> 
+										<!-- PC file upload -->
+										<a class="epc-price-action epc-price-action--pc" href="javascript:void(0);" onclick="jQuery('#file_<?php echo $element_record['id']; ?>').val('');jQuery('#file_<?php echo $element_record['id']; ?>').click();" title="<?php echo translate_str_by_id(5433); ?>">
+											<i class="fas fa-desktop" aria-hidden="true"></i><span>PC file</span>
+										</a>
 										
 										<?php
-										//Если доступна загрузка из других источников. Добавляем кнопки, при клике на которые формируется соответствующее задание и отправляется в pyprices
+										// Remote source update buttons (when load mode is FTP / E-mail / URL)
 										switch($element_record["load_mode"])
 										{
 											case 2:
 												?>
-												<a href="javascript:void(0);" onclick="start_pyprices(prepare_task(<?php echo $element_record['id']; ?>, 'ftp'));" title="<?php echo translate_str_by_id(5434); ?>" style="margin-left:7px;"><i class="fas fa-server"></i></a> 
+												<a class="epc-price-action epc-price-action--ftp" href="javascript:void(0);" onclick="start_pyprices(prepare_task(<?php echo $element_record['id']; ?>, 'ftp'));" title="<?php echo translate_str_by_id(5434); ?>">
+													<i class="fas fa-server" aria-hidden="true"></i><span>FTP</span>
+												</a>
 												<?php
 												break;
 											case 3:
 												?>
-												<a href="javascript:void(0);" onclick="start_pyprices(prepare_task(<?php echo $element_record['id']; ?>, 'email'));" title="<?php echo translate_str_by_id(5435); ?>" style="margin-left:7px;"><i class="far fa-envelope"></i></a> 
+												<a class="epc-price-action epc-price-action--email" href="javascript:void(0);" onclick="start_pyprices(prepare_task(<?php echo $element_record['id']; ?>, 'email'));" title="<?php echo translate_str_by_id(5435); ?>">
+													<i class="far fa-envelope" aria-hidden="true"></i><span>E-mail</span>
+												</a>
 												<?php
 												break;
 											case 4:
 												?>
-												<a href="javascript:void(0);" onclick="start_pyprices(prepare_task(<?php echo $element_record['id']; ?>, 'url'));" title="<?php echo translate_str_by_id(5436); ?>" style="margin-left:7px;"><i class="fas fa-link"></i></a>
+												<a class="epc-price-action epc-price-action--url" href="javascript:void(0);" onclick="start_pyprices(prepare_task(<?php echo $element_record['id']; ?>, 'url'));" title="<?php echo translate_str_by_id(5436); ?>">
+													<i class="fas fa-link" aria-hidden="true"></i><span>URL</span>
+												</a>
 												<?php
 												break;
 										}
@@ -873,54 +880,55 @@ else//Действий нет - выводим страницу
 								</td>
 								
 								<td class="text-left">
+									<div class="epc-price-actions">
 									<?php
-									//Если у прайса нет настроек E-mail/FTP/URL, то, настройка crontab для него не доступна
+									// Auto-update (cron) only when source is E-mail / FTP / URL
 									if($element_record["load_mode"] == 1)
 									{
 										?>
-
-										<i class="fas fa-plus" style="color:#DDD;" title="<?php echo translate_str_by_id(5437); ?>"></i>
-										
-										
-										<i class="far fa-clock" style="color:#DDD;" title="<?php echo translate_str_by_id(5437); ?>"></i>
+										<span class="epc-price-action epc-price-action--disabled" title="<?php echo translate_str_by_id(5437); ?>">
+											<span>No schedule</span>
+										</span>
 										<?php
 									}
 									else
 									{
 										?>
-										<a href="javascript:void(0);" onclick="cron_task_open(<?php echo $element_record['id']; ?>);" title="<?php echo translate_str_by_id(5438); ?>">
-											<i class="fas fa-plus"></i>
+										<a class="epc-price-action epc-price-action--schedule" href="javascript:void(0);" onclick="cron_task_open(<?php echo $element_record['id']; ?>);" title="<?php echo translate_str_by_id(5438); ?>">
+											<i class="fas fa-plus" aria-hidden="true"></i><span>Add job</span>
 										</a>
 
-										<a id="cron_tasks_list_open_a_<?php echo $element_record['id']; ?>" href="javascript:void(0);" title="<?php echo translate_str_by_id(5439); ?>" onclick="cron_tasks_list_open(<?php echo $element_record['id']; ?>);">
+										<a class="epc-price-action epc-price-action--jobs<?php echo ((int)$element_record['cron_tasks_count'] > 0) ? ' is-active' : ''; ?>" id="cron_tasks_list_open_a_<?php echo $element_record['id']; ?>" href="javascript:void(0);" title="<?php echo translate_str_by_id(5439); ?>" onclick="cron_tasks_list_open(<?php echo $element_record['id']; ?>);">
 											<?php
-											$i_for_not_specified = "far";//Класс fontawesome для прайса, у которого не настроены задания по расписанию (crontab)
+											$i_for_not_specified = "far";
 											if($element_record["cron_tasks_count"] > 0)
 											{
 												$i_for_not_specified = "fas";
 											}
 											?>
-											<i class="<?php echo $i_for_not_specified; ?> fa-clock"></i>
+											<i class="<?php echo $i_for_not_specified; ?> fa-clock" aria-hidden="true"></i><span>Jobs<?php echo ((int)$element_record['cron_tasks_count'] > 0) ? ' ('.(int)$element_record['cron_tasks_count'].')' : ''; ?></span>
 										</a>
-										
 										<?php
 									}
-									?>	
+									?>
+									</div>
 								</td>
 								
 								<td class="text-left">
-									<?php echo $a_item; ?><i style="margin-right:10px;" title="<?php echo translate_str_by_id(4652); ?>" class="fa fas fa-pencil-alt"></i></a>
-									<a href="/<?php echo $DP_Config->backend_dir; ?>/shop/prices/review?price_id=<?php echo $element_record["id"]; ?>" title="<?php echo translate_str_by_id(3766); ?>"><i class="fas fa-sync"></i></a>
-									
-									
-									
-									
-									
-									
-									<a href="javascript:void(0);" onclick="epcShowPriceUploadHistory(<?php echo $element_record["id"]; ?>, '<?php echo htmlspecialchars($element_record["name"], ENT_QUOTES, 'UTF-8'); ?>');" title="Upload file history (download, stats)"><i class="fas fa-file-upload" style="margin-left:10px;color:#2980b9;"></i></a>
+									<div class="epc-price-actions">
+									<?php echo $a_item; ?><span class="epc-price-action epc-price-action--edit" title="<?php echo translate_str_by_id(4652); ?>"><i class="fa fas fa-pencil-alt" aria-hidden="true"></i><span>Edit</span></span></a>
+									<a class="epc-price-action epc-price-action--review" href="/<?php echo $DP_Config->backend_dir; ?>/shop/prices/review?price_id=<?php echo $element_record["id"]; ?>" title="<?php echo translate_str_by_id(3766); ?>">
+										<i class="fas fa-sync" aria-hidden="true"></i><span>Review</span>
+									</a>
+									<a class="epc-price-action epc-price-action--files" href="javascript:void(0);" onclick="epcShowPriceUploadHistory(<?php echo $element_record["id"]; ?>, '<?php echo htmlspecialchars($element_record["name"], ENT_QUOTES, 'UTF-8'); ?>');" title="Upload file history (download, stats)">
+										<i class="fas fa-file-upload" aria-hidden="true"></i><span>Files</span>
+									</a>
 
 									<!-- START Показ истории обновлений -->
-									<a href="javascript:void(0);" onclick="show_update_history_<?php echo $element_record["id"]; ?>();"><i class="fas fa-history" title="<?php echo translate_str_by_id(5440); ?>" style="margin-left:10px;"></i></a>
+									<a class="epc-price-action epc-price-action--tasks" href="javascript:void(0);" onclick="show_update_history_<?php echo $element_record["id"]; ?>();" title="<?php echo translate_str_by_id(5440); ?>">
+										<i class="fas fa-history" aria-hidden="true"></i><span>Tasks</span>
+									</a>
+									</div>
 									<script>
 									// ----------------------------------------------------------------------------
 									//Показать окно с таблицей истории заданий для данного прайс-листа
