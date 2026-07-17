@@ -127,6 +127,9 @@ check('AJAX', is_file($root . '/cp/content/shop/prices_upload/ajax_epc_commerce_
 $ajax = (string) file_get_contents($root . '/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php');
 check('AJAX refresh_url', strpos($ajax, "action === 'refresh_url'") !== false);
 check('setup script', is_file($root . '/epc-commerce-prices-setup.php'));
+$setupSrc = (string) file_get_contents($root . '/epc-commerce-prices-setup.php');
+check('setup allows deploy token without tech key', strpos($setupSrc, 'epc_deploy_require_token') !== false);
+check('setup documents omit-key hint', strpos($setupSrc, 'Omit key=') !== false || strpos($setupSrc, 'token= only') !== false);
 $mgr = (string) file_get_contents($root . '/cp/content/shop/prices_upload/prices_manager.php');
 check('manager links to commerce', strpos($mgr, 'shop/prices/commerce') !== false);
 

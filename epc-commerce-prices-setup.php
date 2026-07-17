@@ -1,25 +1,38 @@
 <?php
 /**
  * Register CP route shop/prices/commerce for commerce S/P/L uploads.
- * https://www.epartscart.com/epc-commerce-prices-setup.php?token=epartscart-deploy-2026&key=TECH_KEY&apply=1
+ *
+ * Preferred (deploy token only — same as Power BI setup):
+ *   https://www.epartscart.com/epc-commerce-prices-setup.php?token=epartscart-deploy-2026&apply=1
+ *
+ * Optional: also pass key=<DP_Config->tech_key> if you have it.
+ * Do NOT use the literal string TECH_KEY — that was a documentation placeholder.
  */
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (($_GET['token'] ?? '') !== 'epartscart-deploy-2026') {
-	http_response_code(403);
-	exit(json_encode(array('ok' => false, 'error' => 'Forbidden')));
-}
+require_once __DIR__ . '/epc_deploy_auth.php';
+epc_deploy_require_token(false);
 
 if (!defined('_ASTEXE_')) {
 	define('_ASTEXE_', 1);
 }
 require_once __DIR__ . '/config.php';
 $cfg = new DP_Config();
-if ((string) ($_GET['key'] ?? '') !== $cfg->tech_key) {
-	http_response_code(403);
-	exit(json_encode(array('ok' => false, 'error' => 'Invalid key')));
+
+// Optional tech_key: if provided it must match; if omitted, deploy token alone is enough.
+$requestKey = trim((string) ($_GET['key'] ?? $_POST['key'] ?? ''));
+if ($requestKey !== '') {
+	$tech = (string) ($cfg->tech_key ?? '');
+	if ($tech === '' || !hash_equals($tech, $requestKey)) {
+		http_response_code(403);
+		exit(json_encode(array(
+			'ok' => false,
+			'error' => 'Invalid key',
+			'hint' => 'Omit key= and use token= only, or pass the real DP_Config->tech_key from server config.php (not the placeholder TECH_KEY).',
+		)));
+	}
 }
 
 require_once __DIR__ . '/content/general_pages/epc_portal.php';
