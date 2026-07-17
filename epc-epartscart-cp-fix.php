@@ -192,7 +192,8 @@ if ($apply) {
 	if (is_file($perfHelper)) {
 		require_once $perfHelper;
 		if (function_exists('epc_prices_ensure_listing_indexes')) {
-			epc_prices_ensure_listing_indexes($pdo);
+			// Setup/fix may ALTER; CP page load must not (locks → 524 on large prices_data).
+			epc_prices_ensure_listing_indexes($pdo, true);
 			$report['changes'][] = 'prices_listing_indexes_ensured';
 		}
 	}

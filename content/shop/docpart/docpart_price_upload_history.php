@@ -8,6 +8,12 @@ require_once __DIR__ . '/epc_price_import_helpers.php';
 
 function epc_price_history_ensure_schema(PDO $db_link): void
 {
+	static $schemaReady = false;
+	if ($schemaReady) {
+		return;
+	}
+	$schemaReady = true;
+
 	$db_link->exec("CREATE TABLE IF NOT EXISTS `epc_price_upload_history` (
 		`id` INT(11) NOT NULL AUTO_INCREMENT,
 		`price_id` INT(11) NOT NULL DEFAULT 0,
