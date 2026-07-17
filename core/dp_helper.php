@@ -269,15 +269,9 @@ function get_alternative_page()
                 return NULL;
             }
             if(count($url_route_components) == 3 && $url_route_components[1] == $DP_Config->chpu_search_config["level_2"]["mode_1"]["url"]) {
+                // /parts/brands/{article}: brand missing → stay on picker and list all brand options.
+                // Final price/availability URLs are /parts/{brand}/{article} after the customer chooses a brand.
                 $article = mb_strtoupper(htmlentities($url_route_components[2], ENT_QUOTES, "UTF-8"), "UTF-8");
-                require_once $_SERVER["DOCUMENT_ROOT"] . "/content/shop/docpart/docpart_article_match.php";
-                global $multilang_params;
-                $epc_lang_href = (isset($multilang_params["lang_href"]) && $multilang_params["lang_href"] !== "") ? $multilang_params["lang_href"] : "/en";
-                $epc_single_brand_url = epc_chpu_single_brand_redirect_url($db_link, $DP_Config, html_entity_decode($article, ENT_QUOTES | ENT_XML1, "UTF-8"), $epc_lang_href);
-                if ($epc_single_brand_url !== "") {
-                    header("Location: " . $epc_single_brand_url, true, 302);
-                    exit;
-                }
                 $DP_Content->value = str_replace("<article>", $article, translate_str_by_id($DP_Config->chpu_search_config["level_3"]["mode_1"]["h1"]));
                 $DP_Content->url = $url_route;
                 $DP_Content->content_type = "php";

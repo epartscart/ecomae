@@ -120,23 +120,30 @@ class prices_enclosure
 				}
 				
 				
-				// Fast path: indexed article_search when available
-				$art_cmp = function_exists('docpart_sql_article_match_expr')
-					? docpart_sql_article_match_expr($db_link, '`article`')
-					: docpart_sql_article_normalized_expr('`article`');
+				// Match article_search index and/or normalized article (incomplete backfill safe).
 				if (empty($article_search_values)) {
 					continue;
 				}
-				$article_placeholders = str_repeat('?,', count($article_search_values) - 1) . '?';
+				$article_bindings = array();
+				if (function_exists('docpart_sql_article_values_match_clause')) {
+					$article_clause = docpart_sql_article_values_match_clause($db_link, $article_search_values, $article_bindings);
+				} else {
+					$art_cmp = function_exists('docpart_sql_article_match_expr')
+						? docpart_sql_article_match_expr($db_link, '`article`')
+						: docpart_sql_article_normalized_expr('`article`');
+					$article_placeholders = str_repeat('?,', count($article_search_values) - 1) . '?';
+					$article_clause = $art_cmp . ' IN (' . $article_placeholders . ')';
+					$article_bindings = $article_search_values;
+				}
 				if(empty($manufacturers_list))
 				{
-					$SQL_WHERE = " ($art_cmp IN ($article_placeholders)) ";
-					$binding_values = $article_search_values;
+					$SQL_WHERE = " ($article_clause) ";
+					$binding_values = $article_bindings;
 				}
 				else
 				{
-					$SQL_WHERE = " ($art_cmp IN ($article_placeholders) AND `manufacturer` IN(". $manufacturers_list .")) ";
-					$binding_values = array_merge($article_search_values, $binding_values);
+					$SQL_WHERE = " ($article_clause AND `manufacturer` IN(". $manufacturers_list .")) ";
+					$binding_values = array_merge($article_bindings, $binding_values);
 				}
 		
 				for($i=0; $i < count($analogs); $i++)
@@ -433,23 +440,30 @@ class prices_enclosure
 				$manufacturers_list  = str_repeat('?,', count($binding_values) - 1) . '?';
 			}
 			
-			// Запрошенный артикул
-			$art_cmp = function_exists('docpart_sql_article_match_expr')
-				? docpart_sql_article_match_expr($db_link, '`article`')
-				: docpart_sql_article_normalized_expr('`article`');
+			// Запрошенный артикул (article_search index + normalized article fallback)
 			if (empty($article_search_values)) {
 				$article_search_values = array($article);
 			}
-			$article_placeholders = str_repeat('?,', count($article_search_values) - 1) . '?';
+			$article_bindings = array();
+			if (function_exists('docpart_sql_article_values_match_clause')) {
+				$article_clause = docpart_sql_article_values_match_clause($db_link, $article_search_values, $article_bindings);
+			} else {
+				$art_cmp = function_exists('docpart_sql_article_match_expr')
+					? docpart_sql_article_match_expr($db_link, '`article`')
+					: docpart_sql_article_normalized_expr('`article`');
+				$article_placeholders = str_repeat('?,', count($article_search_values) - 1) . '?';
+				$article_clause = $art_cmp . ' IN (' . $article_placeholders . ')';
+				$article_bindings = $article_search_values;
+			}
 			if(empty($manufacturers_list))
 			{
-				$SQL_WHERE = " ($art_cmp IN ($article_placeholders)) ";
-				$binding_values = $article_search_values;
+				$SQL_WHERE = " ($article_clause) ";
+				$binding_values = $article_bindings;
 			}
 			else
 			{
-				$SQL_WHERE = " ($art_cmp IN ($article_placeholders) AND `manufacturer` IN(". $manufacturers_list .")) ";
-				$binding_values = array_merge($article_search_values, $binding_values);
+				$SQL_WHERE = " ($article_clause AND `manufacturer` IN(". $manufacturers_list .")) ";
+				$binding_values = array_merge($article_bindings, $binding_values);
 			}
 
 			$binding_values_main = $binding_values;
