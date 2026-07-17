@@ -950,7 +950,12 @@ function print_backend_button($button_params)
 				$row = $query->fetch();
 				if( !empty($row) )
 				{
-					$dp_news_text = @file_get_contents($DP_Config->intask_server.'intask_messages.php');
+					// Bound timeout — unbounded file_get_contents hung CP when intask was down.
+					$dp_news_ctx = stream_context_create(array(
+						'http' => array('timeout' => 2, 'ignore_errors' => true),
+						'ssl' => array('verify_peer' => false, 'verify_peer_name' => false),
+					));
+					$dp_news_text = @file_get_contents($DP_Config->intask_server.'intask_messages.php', false, $dp_news_ctx);
 					$dp_news_hash = md5($dp_news_text);
 					if( ! isset($_COOKIE["dp_news_hash"]) ){
 						$_COOKIE["dp_news_hash"] = '';

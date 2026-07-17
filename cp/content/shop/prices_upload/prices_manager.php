@@ -16,16 +16,20 @@ if (empty($_POST['action'])) {
 	}
 }
 
-// ?view=guide loads the full price manager through CMS eval and can hang the CP shell — use the dedicated guide page.
+// ?view=guide → dedicated guide route. Never exit/return from CMS eval (aborts CP shell).
+$epc_prices_render_manager = true;
 if ($epc_is_upload_guide_view && empty($_POST['action'])) {
 	$epc_backend = (isset($DP_Config) && is_object($DP_Config)) ? $DP_Config->backend_dir : 'cp';
+	$epc_guide_url = '/' . $epc_backend . '/shop/prices/guide';
 	if (!headers_sent()) {
-		header('Location: /' . $epc_backend . '/shop/prices/guide', true, 302);
-		exit;
+		header('Location: ' . $epc_guide_url, true, 302);
 	}
+	echo '<div class="alert alert-info">Redirecting to upload guide… <a href="'
+		. htmlspecialchars($epc_guide_url, ENT_QUOTES, 'UTF-8') . '">Open guide</a></div>';
+	$epc_prices_render_manager = false;
 }
 
-if (!$epc_is_upload_guide_view) {
+if ($epc_prices_render_manager && !$epc_is_upload_guide_view) {
 	//Это нужно для подключения единого скрипта записи файла crontab
 	define('_PYPRICES_CRONTAB_', 1);
 	require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/prices_upload/epc_prices_manager_perf.php");
@@ -111,7 +115,7 @@ if( ! empty($_POST["action"]))
 		epc_cp_redirect('/shop/prices?success_message=' . rawurlencode(translate_str_by_id(3757)));
     }
 }
-else//Действий нет - выводим страницу
+elseif (!empty($epc_prices_render_manager))//Действий нет - выводим страницу
 {
 	//Для работы с пользователем
 	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
@@ -119,7 +123,7 @@ else//Действий нет - выводим страницу
 
 	if ($epc_is_upload_guide_view) {
 		require $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/prices_upload/guide.php';
-		return;
+		// Do not return — CMS embeds this file via eval() inside the CP template.
 	} else {
 	
     ?>

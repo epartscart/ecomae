@@ -91,7 +91,7 @@ foreach ($unique as $t) {
 		continue;
 	}
 	try {
-		epc_ssf_ensure_schema($pdo);
+		epc_ssf_ensure_schema($pdo, true);
 		$storages = (int) $pdo->query('SELECT COUNT(*) FROM `shop_storages`')->fetchColumn();
 		$prices = (int) $pdo->query('SELECT COUNT(*) FROM `shop_docpart_prices`')->fetchColumn();
 		echo "OK storages={$storages} price_lists={$prices}\n\n";

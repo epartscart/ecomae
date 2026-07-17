@@ -88,6 +88,12 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 		}
 		$done = true;
 
+		// Page view: never SHOW INDEX / ALTER on huge prices_data.
+		// Metadata locks + FPM pile-up caused host load ~38 and CP-wide 524s.
+		if (!$allowAlter) {
+			return;
+		}
+
 		$dbName = '';
 		try {
 			$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
@@ -95,7 +101,7 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 			$dbName = 'db';
 		}
 		$cacheFile = rtrim(sys_get_temp_dir(), '/') . '/epc_prices_listing_idx_' . md5($dbName) . '.ok';
-		if (!$allowAlter && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 86400) {
+		if (is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 86400) {
 			return;
 		}
 
@@ -109,13 +115,6 @@ if (!function_exists('epc_prices_ensure_listing_indexes')) {
 			$q2->execute(array('x_price_id'));
 			$needCron = !$q2->fetch();
 		} catch (Exception $e) {
-			return;
-		}
-
-		if (!$allowAlter) {
-			// Page load: never ALTER (locks millions of rows → Cloudflare 524).
-			// Cache the probe so we do not SHOW INDEX on every request.
-			@file_put_contents($cacheFile, ($needData || $needCron) ? 'missing' : 'ok');
 			return;
 		}
 

@@ -39,7 +39,7 @@ try {
 	exit(1);
 }
 
-epc_ssf_ensure_schema($pdo);
+epc_ssf_ensure_schema($pdo, true);
 
 $storageCol = (int) $pdo->query(
 	"SELECT COUNT(*) FROM information_schema.COLUMNS

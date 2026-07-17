@@ -134,7 +134,53 @@ echo 'mysql_bins=' . implode(', ', epc_mysql_binaries()) . "\n\n";
 
 if (!$apply) {
 	echo "Dry run. Re-run with apply=1&clp_pass=... to release PHP-FPM pools + kill sleeping connections.\n";
-	echo "Add restart=1 to restart mariadb (brief outage).\n";
+	echo "Add restart=1 to restart mariadb (brief outage).\n\n";
+	// PDO processlist (works without shell mysql / clp_pass) for 524 diagnosis.
+	try {
+		require_once __DIR__ . '/config.php';
+		require_once __DIR__ . '/content/general_pages/epc_portal.php';
+		$cfg = new DP_Config();
+		epc_portal_apply_config($cfg);
+		$pdo = new PDO(
+			'mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8;connect_timeout=5',
+			$cfg->user,
+			$cfg->password,
+			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5)
+		);
+		echo "=== PDO PROCESSLIST (top by Time) ===\n";
+		$rows = $pdo->query('SHOW FULL PROCESSLIST')->fetchAll(PDO::FETCH_ASSOC);
+		usort($rows, function ($a, $b) {
+			return ((int) ($b['Time'] ?? 0)) <=> ((int) ($a['Time'] ?? 0));
+		});
+		$n = 0;
+		foreach ($rows as $row) {
+			$time = (int) ($row['Time'] ?? 0);
+			if ($time < 2 && $n >= 15) {
+				continue;
+			}
+			echo sprintf(
+				"#%s user=%s db=%s cmd=%s time=%ds state=%s info=%s\n",
+				(string) ($row['Id'] ?? ''),
+				(string) ($row['User'] ?? ''),
+				(string) ($row['db'] ?? ''),
+				(string) ($row['Command'] ?? ''),
+				$time,
+				(string) ($row['State'] ?? ''),
+				substr((string) ($row['Info'] ?? ''), 0, 160)
+			);
+			$n++;
+			if ($n >= 40) {
+				break;
+			}
+		}
+		if (function_exists('sys_getloadavg')) {
+			$load = sys_getloadavg();
+			echo "\nloadavg: " . implode(' / ', array_map('strval', $load ?: array())) . "\n";
+		}
+		echo "\nFor PDO kill of long queries use: /epc-db-relief.php?token=...&key=...&apply=1\n";
+	} catch (Throwable $e) {
+		echo "PDO processlist failed: " . $e->getMessage() . "\n";
+	}
 	exit;
 }
 

@@ -5,7 +5,12 @@
  */
 defined('_ASTEXE_') or define('_ASTEXE_', true);
 
-function epc_ssf_ensure_schema(PDO $db): void
+/**
+ * Ensure storefront toggle columns/tables exist.
+ * @param bool $allowAlter When false (CP page view), only probe with SELECT —
+ *   never ALTER (locks → Cloudflare 524 on large tenants). Setup/AJAX may pass true.
+ */
+function epc_ssf_ensure_schema(PDO $db, bool $allowAlter = false): void
 {
 	static $done = false;
 	if ($done) {
@@ -16,40 +21,48 @@ function epc_ssf_ensure_schema(PDO $db): void
 	try {
 		$db->query('SELECT `storefront_temp_disabled` FROM `shop_storages` LIMIT 1');
 	} catch (Throwable $e) {
-		try {
-			$db->exec(
-				'ALTER TABLE `shop_storages` ADD COLUMN `storefront_temp_disabled` TINYINT(1) NOT NULL DEFAULT 0 AFTER `hidden`;'
-			);
-		} catch (Throwable $e2) {
-			// Column may already exist.
+		if ($allowAlter) {
+			try {
+				$db->exec(
+					'ALTER TABLE `shop_storages` ADD COLUMN `storefront_temp_disabled` TINYINT(1) NOT NULL DEFAULT 0 AFTER `hidden`;'
+				);
+			} catch (Throwable $e2) {
+				// Column may already exist.
+			}
 		}
 	}
 
 	try {
 		$db->query('SELECT `storefront_temp_disabled` FROM `shop_docpart_prices` LIMIT 1');
 	} catch (Throwable $e) {
-		try {
-			$db->exec(
-				'ALTER TABLE `shop_docpart_prices` ADD COLUMN `storefront_temp_disabled` TINYINT(1) NOT NULL DEFAULT 0;'
-			);
-		} catch (Throwable $e2) {
-			// Column may already exist.
+		if ($allowAlter) {
+			try {
+				$db->exec(
+					'ALTER TABLE `shop_docpart_prices` ADD COLUMN `storefront_temp_disabled` TINYINT(1) NOT NULL DEFAULT 0;'
+				);
+			} catch (Throwable $e2) {
+				// Column may already exist.
+			}
 		}
 	}
 
-	$db->exec("CREATE TABLE IF NOT EXISTS `epc_storefront_storage_toggle_audit` (
-		`id` INT(11) NOT NULL AUTO_INCREMENT,
-		`entity_type` VARCHAR(16) NOT NULL DEFAULT '',
-		`entity_id` INT(11) NOT NULL DEFAULT 0,
-		`entity_name` VARCHAR(255) NOT NULL DEFAULT '',
-		`storefront_disabled` TINYINT(1) NOT NULL DEFAULT 0,
-		`user_id` INT(11) NOT NULL DEFAULT 0,
-		`user_label` VARCHAR(128) NOT NULL DEFAULT '',
-		`created_at` DATETIME NOT NULL,
-		PRIMARY KEY (`id`),
-		KEY `entity` (`entity_type`, `entity_id`),
-		KEY `created_at` (`created_at`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+	try {
+		$db->exec("CREATE TABLE IF NOT EXISTS `epc_storefront_storage_toggle_audit` (
+			`id` INT(11) NOT NULL AUTO_INCREMENT,
+			`entity_type` VARCHAR(16) NOT NULL DEFAULT '',
+			`entity_id` INT(11) NOT NULL DEFAULT 0,
+			`entity_name` VARCHAR(255) NOT NULL DEFAULT '',
+			`storefront_disabled` TINYINT(1) NOT NULL DEFAULT 0,
+			`user_id` INT(11) NOT NULL DEFAULT 0,
+			`user_label` VARCHAR(128) NOT NULL DEFAULT '',
+			`created_at` DATETIME NOT NULL,
+			PRIMARY KEY (`id`),
+			KEY `entity` (`entity_type`, `entity_id`),
+			KEY `created_at` (`created_at`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+	} catch (Throwable $e) {
+		// CREATE may wait on metadata locks — never fail the CP page for this.
+	}
 }
 
 /** SQL fragment: active storages only (append inside WHERE). */
@@ -317,7 +330,7 @@ function epc_ssf_sync_storages_from_price(PDO $db, int $priceId, int $disabled):
 
 function epc_ssf_write_audit(PDO $db, string $entityType, int $entityId, string $name, int $disabled, int $userId, string $userLabel): void
 {
-	epc_ssf_ensure_schema($db);
+	epc_ssf_ensure_schema($db, true);
 	$db->prepare(
 		'INSERT INTO `epc_storefront_storage_toggle_audit`
 		 (`entity_type`, `entity_id`, `entity_name`, `storefront_disabled`, `user_id`, `user_label`, `created_at`)
@@ -336,7 +349,7 @@ function epc_ssf_set_toggle(PDO $db, string $entityType, int $entityId, int $dis
 		return array('ok' => false, 'message' => 'Invalid entity id');
 	}
 
-	epc_ssf_ensure_schema($db);
+	epc_ssf_ensure_schema($db, true);
 	$name = '';
 
 	if ($entityType === 'storage') {
