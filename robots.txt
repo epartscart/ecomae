@@ -18,4 +18,4 @@ Sitemap: /sitemap-industries.php
 # Warehouse stock: sitemap-index.php → sitemap-warehouse-0.xml … (/en/parts/{BRAND}/{ARTICLE}).
 Sitemap: /sitemap-index.php
 Sitemap: /sitemap-products.php
-Sitemap: /sitemap-warehouse-0.xml
+Sitemap: /sitemap-wh-0.php
