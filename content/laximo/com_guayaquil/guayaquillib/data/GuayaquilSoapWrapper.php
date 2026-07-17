@@ -106,12 +106,14 @@ class GuayaquilSoapWrapper
             'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP,
         );
 
+        // Always HTTPS — HTTP transport often returns empty bodies and breaks SoapClient
+        // with "__doRequest() returned non string value" on the catalogs landing page.
         if ($laximoOem) {
             $options['uri']      = 'http://WebCatalog.Kito.ec';
-            $options['location'] = ($this->authMethod == 'certificate' ? 'https' : 'http') . '://' . Config::$oemServiceUrl . '/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
+            $options['location'] = 'https://' . Config::$oemServiceUrl . '/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
         } else {
             $options['uri']      = 'http://Aftermarket.Kito.ec';
-            $options['location'] = ($this->authMethod == 'certificate' ? 'https' : 'http') . '://' . Config::$amServiceUrl . '/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
+            $options['location'] = 'https://' . Config::$amServiceUrl . '/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
         }
 
         if ($this->authMethod == 'certificate') {

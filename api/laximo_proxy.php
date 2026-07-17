@@ -194,7 +194,12 @@ function epc_lax_cache_set($key, $action, $params, $data, $xml = '')
 
 function epc_lax_cache_key($action, $params)
 {
-    $key = $action . ':' . json_encode($params, JSON_SORT_KEYS);
+    // Avoid JSON_SORT_KEYS — missing on some PHP builds (fatal: Undefined constant).
+    if (!is_array($params)) {
+        $params = array();
+    }
+    ksort($params);
+    $key = $action . ':' . json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     return substr(md5($key), 0, 32) . '_' . substr($action, 0, 30);
 }
 
@@ -225,13 +230,22 @@ function epc_lax_soap_call($request, $oem = true)
         'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP,
     ];
 
+    // Always HTTPS — plain HTTP often yields empty/non-string SOAP responses.
     if ($oem) {
         $options['uri'] = 'http://WebCatalog.Kito.ec';
-        $options['location'] = 'http://ws.laximo.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
+        $options['location'] = 'https://ws.laximo.net/ec.Kito.WebCatalog/services/Catalog.CatalogHttpSoap11Endpoint/';
     } else {
         $options['uri'] = 'http://Aftermarket.Kito.ec';
-        $options['location'] = 'http://ws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
+        $options['location'] = 'https://ws.laximo.net/ec.Kito.Aftermarket/services/Catalog.CatalogHttpSoap11Endpoint/';
     }
+    $options['stream_context'] = stream_context_create(array(
+        'ssl' => array(
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+        ),
+    ));
+    $options['connection_timeout'] = 20;
+    $options['exceptions'] = true;
 
     try {
         $client = new SoapClient(null, $options);
