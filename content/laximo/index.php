@@ -22,7 +22,7 @@ if ($useAjaxLanding) {
 		$langPrefix = '/' . strtolower($m[1]);
 	}
 	?>
-	<link rel="stylesheet" href="/api/Laximo/laximo.css?v=20260717lax2" type="text/css" />
+	<link rel="stylesheet" href="/api/Laximo/laximo.css?v=20260717lax242" type="text/css" />
 	<div class="epc-laximo-page">
 		<div class="epc-laximo-page__intro">
 			<h1 style="margin:0 0 8px;font-size:22px;">OEM vehicle catalog</h1>
@@ -40,7 +40,8 @@ if ($useAjaxLanding) {
 	<script>
 		window.EPC_LAXIMO_BASE = <?php echo json_encode($langPrefix . '/katalog-laximo', JSON_UNESCAPED_SLASHES); ?>;
 	</script>
-	<script src="/api/Laximo/laximo.js?v=20260717lax2"></script>
+	<?php /* api/Laximo/ is often root-owned on CloudPanel — serve writable storefront copy */ ?>
+	<script src="/api/laximo_storefront.js?v=20260717lax242"></script>
 	<script>
 		jQuery(function () {
 			if (window.Laximo && typeof Laximo.init === 'function') {
