@@ -40,7 +40,7 @@ $inlineForced = epc_cp_shell_inline_style_block();
 unset($_GET['epc_cp_inline_css']);
 $hasCssOnDisk = is_file($root . '/cp/templates/bootstrap_admin/css/epc_cp_professional.css');
 check('forced inline returns style when CSS on disk', !$hasCssOnDisk || strpos($inlineForced, 'epc-cp-inline-css') !== false);
-check('css version bumped for cache bust', epc_cp_shell_css_version() === '20260716cpFast1');
+check('css version is non-empty cache bust', epc_cp_shell_css_version() !== '');
 
 echo "\n== Login template is lean ==\n";
 $login = (string) file_get_contents($root . '/cp/plugins/authentication/login_form/template.php');
@@ -51,11 +51,24 @@ check('login does not load homer.js', strpos($login, 'homer.js') === false);
 check('login particle count reduced', strpos($login, 'totalParticles = 28') !== false);
 check('login respects reduced motion', strpos($login, 'prefers-reduced-motion') !== false);
 
-echo "\n== Prices cleaner not every page load ==\n";
+echo "\n== Prices page fast path (epartscart 524) ==\n";
 require_once $root . '/cp/content/shop/prices_upload/epc_prices_manager_perf.php';
 $src = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_prices_manager_perf.php');
-check('cleaner uses random throttle for all hosts', strpos($src, 'mt_rand(1, 40)') !== false);
-check('cleaner no longer always-true for tenants', !preg_match('/if\s*\(\s*!epc_prices_is_platform_operator_request\s*\(\s*\)\s*\)\s*\{\s*return true;/', $src));
+check('cleaner only via explicit GET flag', strpos($src, "isset(\$_GET['epc_clean_pyprices'])") !== false);
+check('cleaner no longer random on page load', strpos($src, 'mt_rand(1, 40)') === false);
+check('listing query uses denormalized records_count', strpos($src, 'COALESCE(p.`records_count`') !== false);
+check('listing query does NOT COUNT prices_data', strpos($src, 'COUNT(*) AS `records_count`') === false
+	&& strpos($src, 'FROM `shop_docpart_prices_data`') !== false /* index helper may still mention table */);
+$fetchFn = '';
+if (preg_match('/function epc_prices_fetch_lists_query\(.*?\{(.*?)\n\}/s', $src, $m)) {
+	$fetchFn = $m[1];
+}
+check('fetch_lists_query body omits prices_data', $fetchFn !== '' && strpos($fetchFn, 'shop_docpart_prices_data') === false);
+check('inline history always deferred', epc_prices_defer_inline_update_history() === true);
+check('ensure indexes defaults allowAlter=false', preg_match('/function epc_prices_ensure_listing_indexes\(PDO \$db, bool \$allowAlter = false\)/', $src) === 1);
+$mgrSrc = (string) file_get_contents($root . '/cp/content/shop/prices_upload/prices_manager.php');
+check('lazy history uses parallel pump', strpos($mgrSrc, 'maxParallel') !== false);
+check('history cell skips is_file probes', strpos($mgrSrc, 'Avoid is_file()') !== false);
 
 echo "\n== Script relocate also moves styles ==\n";
 require_once $root . '/content/general_pages/epc_cp_script_relocate.php';

@@ -605,11 +605,8 @@ else//Действий нет - выводим страницу
 								<td class="text-left epc-price-hist-cell">
 									<?php
 									$epc_latest = $epc_latest_uploads[(int)$element_record['id']] ?? null;
-									$epc_has_file = false;
-									if ($epc_latest && trim((string)$epc_latest['stored_relpath']) !== '') {
-										$epc_abs = epc_price_history_file_absolute_path($epc_latest);
-										$epc_has_file = $epc_abs !== '' && is_file($epc_abs);
-									}
+									// Avoid is_file() per row on page load (NFS/disk probes add up on large CP pages).
+									$epc_has_file = $epc_latest && trim((string)$epc_latest['stored_relpath']) !== '';
 									$epc_dl = $epc_history_download_base.'?action=download_latest&price_id='.(int)$element_record['id'].'&csrf_guard_key='.urlencode($user_session['csrf_guard_key']);
 									$epc_db_dl = $epc_history_download_base.'?action=export_db&price_id='.(int)$element_record['id'].'&csrf_guard_key='.urlencode($user_session['csrf_guard_key']);
 									if ($epc_latest) {
@@ -2693,31 +2690,36 @@ else//Действий нет - выводим страницу
 	{
 		var nodes = document.querySelectorAll('[data-epc-lazy-history="1"]');
 		var idx = 0;
-		function loadNext() {
-			if (idx >= nodes.length) {
-				return;
+		var inflight = 0;
+		var maxParallel = 3;
+		function pump() {
+			while (inflight < maxParallel && idx < nodes.length) {
+				(function (node) {
+					var priceId = node.getAttribute('data-price-id');
+					inflight++;
+					jQuery.ajax({
+						type: 'POST',
+						url: '/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_upload/for_pyprices/get_update_history.php',
+						data: 'csrf_guard_key=' + encodeURIComponent('<?php echo $user_session["csrf_guard_key"]; ?>') + '&price_id=' + encodeURIComponent(priceId) + '&epc_embed=1',
+						timeout: 8000,
+						success: function(html) {
+							node.innerHTML = html;
+							var target = document.getElementById('price_manual_upgrading_' + priceId);
+							if (target) {
+								target.innerHTML += node.innerHTML;
+							}
+						},
+						complete: function() {
+							inflight--;
+							pump();
+						}
+					});
+				})(nodes[idx++]);
 			}
-			var node = nodes[idx++];
-			var priceId = node.getAttribute('data-price-id');
-			jQuery.ajax({
-				type: 'POST',
-				url: '/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_upload/for_pyprices/get_update_history.php',
-				data: 'csrf_guard_key=' + encodeURIComponent('<?php echo $user_session["csrf_guard_key"]; ?>') + '&price_id=' + encodeURIComponent(priceId) + '&epc_embed=1',
-				success: function(html) {
-					node.innerHTML = html;
-					var target = document.getElementById('price_manual_upgrading_' + priceId);
-					if (target) {
-						target.innerHTML += node.innerHTML;
-					}
-					setTimeout(loadNext, 120);
-				},
-				error: function() {
-					setTimeout(loadNext, 120);
-				}
-			});
 		}
 		if (nodes.length) {
-			setTimeout(loadNext, 400);
+			// After first paint — never block the prices table TTFB.
+			setTimeout(pump, 50);
 		}
 	}
 	external_tasks_account();//Вызываем первый раз сразу

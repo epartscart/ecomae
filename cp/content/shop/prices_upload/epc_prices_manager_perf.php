@@ -1,6 +1,12 @@
 <?php
 /**
  * Performance helpers for CP prices manager (platform Super CP + large tenants).
+ *
+ * epartscart 524 root causes (addressed here):
+ * 1) Per-row sync get_update_history.php on every list during HTML render
+ * 2) COUNT(*) GROUP BY over shop_docpart_prices_data (500k+ rows) on every load
+ * 3) Occasional pyprices_tables_cleaner DELETE locks during page view
+ * 4) ALTER TABLE ADD INDEX on huge prices_data during page view
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -18,23 +24,38 @@ if (!function_exists('epc_prices_is_platform_operator_request')) {
 	}
 }
 
+if (!function_exists('epc_prices_is_large_tenant_host')) {
+	/** Large warehouse tenants where CP prices must stay under ~1s TTFB. */
+	function epc_prices_is_large_tenant_host(): bool
+	{
+		$host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+		if (strpos($host, ':') !== false) {
+			$host = explode(':', $host, 2)[0];
+		}
+		if ($host === '') {
+			return false;
+		}
+		return (strpos($host, 'epartscart') !== false)
+			|| epc_prices_is_platform_operator_request();
+	}
+}
+
 if (!function_exists('epc_prices_should_run_tables_cleaner')) {
 	/**
-	 * Avoid DELETE locks on every prices manager page view (platform + tenants).
-	 * Large tenants (epartscart) were running the cleaner on every load → slow CP.
-	 * Cron / ?epc_clean_pyprices=1 still cleans; otherwise ~1/40 chance.
+	 * Never run the pyprices tables cleaner during normal CP page views.
+	 * DELETE locks on large tenants caused Cloudflare 524.
+	 * Cron / ?epc_clean_pyprices=1 still cleans.
 	 */
 	function epc_prices_should_run_tables_cleaner(): bool
 	{
-		return isset($_GET['epc_clean_pyprices']) || (mt_rand(1, 40) === 1);
+		return isset($_GET['epc_clean_pyprices']);
 	}
 }
 
 if (!function_exists('epc_prices_add_index_if_missing')) {
 	/**
-	 * Idempotent, additive-only index creation (SHOW INDEX is a cheap metadata
-	 * query, safe to call on every page load). $table/$indexName are internal
-	 * literals only — never pass user input.
+	 * Idempotent index create. Prefer setup/fix scripts — page load should
+	 * not ALTER huge tables (locks → 524).
 	 */
 	function epc_prices_add_index_if_missing(PDO $db, string $table, string $indexName, string $columnsSpec): void
 	{
@@ -54,33 +75,72 @@ if (!function_exists('epc_prices_add_index_if_missing')) {
 
 if (!function_exists('epc_prices_ensure_listing_indexes')) {
 	/**
-	 * The prices manager listing page (epc_prices_fetch_lists_query) aggregates
-	 * COUNT(*) ... GROUP BY price_id over shop_docpart_prices_data and
-	 * shop_docpart_pyprices_crontab_prices on every load. Without an index on
-	 * price_id, MySQL does a full table scan + filesort for that GROUP BY on
-	 * every single page view, which is what made this page slow for tenants
-	 * with large price-list data tables. Adding the index makes it an
-	 * index-only scan instead; no query/behavior changes.
+	 * Safe for setup/fix scripts. On CP page load we only probe once per day
+	 * via a cache file and never ALTER (listing no longer needs prices_data COUNT).
+	 *
+	 * Pass $allowAlter=true from CLI/setup to actually create missing indexes.
 	 */
-	function epc_prices_ensure_listing_indexes(PDO $db): void
+	function epc_prices_ensure_listing_indexes(PDO $db, bool $allowAlter = false): void
 	{
-		epc_prices_add_index_if_missing($db, 'shop_docpart_prices_data', 'x_price_id', '(`price_id`)');
-		epc_prices_add_index_if_missing($db, 'shop_docpart_pyprices_crontab_prices', 'x_price_id', '(`price_id`)');
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+
+		$dbName = '';
+		try {
+			$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
+		} catch (Exception $e) {
+			$dbName = 'db';
+		}
+		$cacheFile = rtrim(sys_get_temp_dir(), '/') . '/epc_prices_listing_idx_' . md5($dbName) . '.ok';
+		if (!$allowAlter && is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < 86400) {
+			return;
+		}
+
+		$needData = true;
+		$needCron = true;
+		try {
+			$q = $db->prepare('SHOW INDEX FROM `shop_docpart_prices_data` WHERE `Key_name` = ?');
+			$q->execute(array('x_price_id'));
+			$needData = !$q->fetch();
+			$q2 = $db->prepare('SHOW INDEX FROM `shop_docpart_pyprices_crontab_prices` WHERE `Key_name` = ?');
+			$q2->execute(array('x_price_id'));
+			$needCron = !$q2->fetch();
+		} catch (Exception $e) {
+			return;
+		}
+
+		if (!$allowAlter) {
+			// Page load: never ALTER (locks millions of rows → Cloudflare 524).
+			// Cache the probe so we do not SHOW INDEX on every request.
+			@file_put_contents($cacheFile, ($needData || $needCron) ? 'missing' : 'ok');
+			return;
+		}
+
+		if ($needData) {
+			epc_prices_add_index_if_missing($db, 'shop_docpart_prices_data', 'x_price_id', '(`price_id`)');
+		}
+		if ($needCron) {
+			epc_prices_add_index_if_missing($db, 'shop_docpart_pyprices_crontab_prices', 'x_price_id', '(`price_id`)');
+		}
+		@file_put_contents($cacheFile, 'ok');
 	}
 }
 
 if (!function_exists('epc_prices_fetch_lists_query')) {
+	/**
+	 * Fast listing: use denormalized shop_docpart_prices.records_count
+	 * (maintained on import). Never COUNT(*) the prices_data table here —
+	 * that scan alone can exceed Cloudflare's origin timeout on epartscart.
+	 */
 	function epc_prices_fetch_lists_query(PDO $db_link): PDOStatement
 	{
 		$sql = 'SELECT p.*,
-			COALESCE(pd.`records_count`, 0) AS `records_count`,
+			COALESCE(p.`records_count`, 0) AS `records_count`,
 			COALESCE(pc.`cron_tasks_count`, 0) AS `cron_tasks_count`
 			FROM `shop_docpart_prices` p
-			LEFT JOIN (
-				SELECT `price_id`, COUNT(*) AS `records_count`
-				FROM `shop_docpart_prices_data`
-				GROUP BY `price_id`
-			) pd ON pd.`price_id` = p.`id`
 			LEFT JOIN (
 				SELECT `price_id`, COUNT(*) AS `cron_tasks_count`
 				FROM `shop_docpart_pyprices_crontab_prices`
@@ -94,16 +154,20 @@ if (!function_exists('epc_prices_fetch_lists_query')) {
 }
 
 if (!function_exists('epc_prices_defer_inline_update_history')) {
+	/**
+	 * Always defer per-row pyprices history indicators to AJAX after paint.
+	 * Sync embed on epartscart ran N heavy task queries during HTML render → 524.
+	 */
 	function epc_prices_defer_inline_update_history(): bool
 	{
-		return epc_prices_is_platform_operator_request();
+		return true;
 	}
 }
 
 if (!function_exists('epc_prices_external_poll_interval_ms')) {
 	function epc_prices_external_poll_interval_ms(): int
 	{
-		return epc_prices_is_platform_operator_request() ? 15000 : 5000;
+		return epc_prices_is_large_tenant_host() ? 20000 : 8000;
 	}
 }
 
