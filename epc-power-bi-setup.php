@@ -92,14 +92,38 @@ function epc_pbi_setup_register_page(
 		$contentId = (int) $pdo->lastInsertId();
 	}
 
-	if ($refId > 0 && $contentId > 0) {
+	if ($contentId > 0) {
 		$pdo->prepare('DELETE FROM `content_access` WHERE `content_id` = ?')->execute(array($contentId));
-		$groups = $pdo->prepare('SELECT DISTINCT `group_id` FROM `content_access` WHERE `content_id` = ?');
-		$groups->execute(array($refId));
 		$ins = $pdo->prepare('INSERT INTO `content_access` (`content_id`, `group_id`) VALUES (?, ?)');
-		while ($g = $groups->fetch(PDO::FETCH_ASSOC)) {
+		$groupIds = array();
+		if ($refId > 0) {
+			$groups = $pdo->prepare('SELECT DISTINCT `group_id` FROM `content_access` WHERE `content_id` = ?');
+			$groups->execute(array($refId));
+			while ($g = $groups->fetch(PDO::FETCH_ASSOC)) {
+				$groupIds[] = (int) $g['group_id'];
+			}
+		}
+		if ($groupIds === array()) {
+			// Fallback: grant groups that already have access to Portal parent / control home.
+			foreach (array('control/config', 'control', 'control/portal/industry_settings') as $refUrl) {
+				$rg = $pdo->prepare(
+					'SELECT DISTINCT ca.`group_id` FROM `content_access` ca
+					 INNER JOIN `content` c ON c.`id` = ca.`content_id`
+					 WHERE c.`url` = ? AND c.`is_frontend` = 0'
+				);
+				$rg->execute(array($refUrl));
+				while ($g = $rg->fetch(PDO::FETCH_ASSOC)) {
+					$groupIds[] = (int) $g['group_id'];
+				}
+				if ($groupIds !== array()) {
+					break;
+				}
+			}
+		}
+		$groupIds = array_values(array_unique(array_filter($groupIds)));
+		foreach ($groupIds as $gid) {
 			try {
-				$ins->execute(array($contentId, (int) $g['group_id']));
+				$ins->execute(array($contentId, $gid));
 			} catch (Exception $e) {
 			}
 		}
@@ -181,4 +205,28 @@ echo "CP settings: /cp/control/portal/epc_power_bi\n";
 echo "CP guide:    /cp/control/portal/epc_power_bi_guide\n";
 echo "API catalog: /epc-api/v1/powerbi/catalog\n";
 echo "Docs: docs/POWER_BI.md\n";
+
+if (!empty($_GET['diagnose'])) {
+	$phpPath = str_replace('<backend_dir>', (string) $cfg->backend_dir, '/<backend_dir>/content/control/portal/epc_power_bi.php');
+	$abs = __DIR__ . str_replace('/' . $cfg->backend_dir, '/' . $cfg->backend_dir, $phpPath);
+	// Resolve the same way CMS does: DOCUMENT_ROOT + content column
+	$abs = __DIR__ . '/cp/content/control/portal/epc_power_bi.php';
+	echo "\n--- diagnose ---\n";
+	echo 'php_file: ' . $abs . ' exists=' . (is_file($abs) ? 'yes' : 'no') . "\n";
+	$row = $pdo->prepare('SELECT `id`,`url`,`content`,`published_flag`,`content_type` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
+	$row->execute(array('control/portal/epc_power_bi'));
+	$r = $row->fetch(PDO::FETCH_ASSOC);
+	echo 'content_row: ' . json_encode($r, JSON_UNESCAPED_SLASHES) . "\n";
+	$acc = (int) $pdo->query('SELECT COUNT(*) FROM `content_access` WHERE `content_id` = ' . (int) ($settings['content_id'] ?? 0))->fetchColumn();
+	echo 'content_access_rows: ' . $acc . "\n";
+	if (is_file(__DIR__ . '/content/general_pages/epc_bos_unified.php')) {
+		require_once __DIR__ . '/content/general_pages/epc_bos_unified.php';
+		if (function_exists('epc_bos_module_cp_url')) {
+			$u = epc_bos_module_cp_url('www.ecomae.com', 'control/portal/epc_power_bi');
+			echo 'bos_url: ' . $u . "\n";
+			echo 'bos_url_ok: ' . (strpos($u, '/cp/control/portal/epc_power_bi') !== false && strpos($u, '/cp/content/') === false ? 'yes' : 'NO') . "\n";
+		}
+	}
+}
+
 echo "Done.\n";

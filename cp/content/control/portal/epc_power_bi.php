@@ -2,8 +2,17 @@
 /**
  * CP — Power BI connector & workspace config.
  * Super CP: any tenant. Tenant CP: current site_key only.
+ *
+ * Must be opened via CMS route /cp/control/portal/epc_power_bi
+ * (not /cp/content/control/portal/epc_power_bi.php).
  */
-defined('_ASTEXE_') or die('No access');
+if (!defined('_ASTEXE_')) {
+	$qs = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
+		? ('?' . $_SERVER['QUERY_STRING'])
+		: '';
+	header('Location: /cp/control/portal/epc_power_bi' . $qs, true, 302);
+	exit;
+}
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_db.php';
@@ -19,8 +28,12 @@ $isSuper = function_exists('epc_portal_is_platform_operator') && epc_portal_is_p
 $backend = htmlspecialchars((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), ENT_QUOTES, 'UTF-8');
 
 $pdo = function_exists('epc_portal_platform_pdo') ? epc_portal_platform_pdo() : null;
+if (!$pdo instanceof PDO && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+	$pdo = $GLOBALS['db_link'];
+}
 if (!$pdo instanceof PDO) {
-	echo '<div class="alert alert-danger">Platform database unavailable.</div>';
+	echo '<div class="alert alert-danger">Platform database unavailable. Re-run '
+		. '<code>/epc-power-bi-setup.php?token=…</code> on this host, then reload.</div>';
 	return;
 }
 epc_power_bi_ensure_schema($pdo);
