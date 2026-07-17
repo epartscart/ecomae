@@ -218,6 +218,11 @@ function epc_sitemap_warehouse_regenerate_all(DP_Config $cfg, PDO $pdo): array
 		return array('shards' => 0, 'urls' => 0, 'error' => $e->getMessage());
 	}
 
+	try {
+		$pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+	} catch (Throwable $ignored) {
+	}
+
 	$shardCount = $totalUrls > 0 ? ($shard + 1) : 0;
 	epc_sitemap_warehouse_meta_write(array(
 		'shards' => $shardCount,
