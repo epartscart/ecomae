@@ -8,4 +8,6 @@ Disallow: /cp
 Disallow: /*/parts/brands/
 Disallow: /*/parts/all/
 
+# Warehouse stock (brand + article / part number pages) is listed here.
 Sitemap: /sitemap-index.php
+Sitemap: /sitemap-products.php

@@ -293,13 +293,52 @@ if ($search_type == 'prices_by_article_and_manufacturer' && !empty($manufacturer
 			$DP_Config,
 			$multilang_params['lang_href'],
 			$seo_include_price,
-			$seo_currency_code
+			$seo_currency_code,
+			isset($epc_cross_fallback_rows) && is_array($epc_cross_fallback_rows) ? $epc_cross_fallback_rows : array()
 		);
 		?>
 <script type="application/ld+json"><?php echo json_encode($seo_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
 		<?php
-		if (!empty($epc_chpu_direct_pricing)) {
+		// Crawlable cross / OE numbers (not JS-only) so Google can index related part numbers.
+		if (!empty($epc_cross_fallback_rows) && is_array($epc_cross_fallback_rows)) {
+			$seoCrossBrand = strtoupper(trim((string) ($seo_product['manufacturer'] ?? $seo_manufacturer)));
+			$seoCrossArt = trim((string) ($seo_product['article_show'] ?? $seo_product['article'] ?? $article));
+			$seoLangHref = isset($multilang_params['lang_href']) ? (string) $multilang_params['lang_href'] : '/en';
 			?>
+<nav class="epc-seo-cross-refs" aria-label="Cross references and OE numbers" style="max-width:1100px;margin:16px auto;padding:14px 18px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc">
+	<h2 style="margin:0 0 8px;font-size:18px;color:#0f172a"><?php echo htmlspecialchars($seoCrossBrand . ' ' . $seoCrossArt, ENT_QUOTES, 'UTF-8'); ?> — cross references &amp; OE numbers</h2>
+	<p style="margin:0 0 10px;font-size:13px;color:#475569">Part number / article <strong><?php echo htmlspecialchars($seoCrossArt, ENT_QUOTES, 'UTF-8'); ?></strong> interchanges with:</p>
+	<ul style="margin:0;padding-left:18px;columns:2;column-gap:24px;font-size:13px;line-height:1.55">
+			<?php
+			$seoCrossShown = 0;
+			foreach ($epc_cross_fallback_rows as $seoCr) {
+				if ($seoCrossShown >= 40) {
+					break;
+				}
+				$crBrand = trim((string) ($seoCr['brand'] ?? ''));
+				$crArt = trim((string) ($seoCr['article'] ?? ''));
+				if ($crArt === '') {
+					continue;
+				}
+				$crUrl = function_exists('epc_chpu_build_part_url')
+					? epc_chpu_build_part_url($DP_Config, $seoLangHref, $crBrand, $crArt)
+					: '';
+				$label = trim($crBrand . ' ' . $crArt);
+				$seoCrossShown++;
+				if ($crUrl !== '') {
+					echo '<li><a href="' . htmlspecialchars($crUrl, ENT_QUOTES, 'UTF-8') . '">'
+						. htmlspecialchars($label, ENT_QUOTES, 'UTF-8')
+						. '</a> <span style="color:#64748b">(part number '
+						. htmlspecialchars($crArt, ENT_QUOTES, 'UTF-8') . ')</span></li>';
+				} else {
+					echo '<li>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8')
+						. ' <span style="color:#64748b">(part number '
+						. htmlspecialchars($crArt, ENT_QUOTES, 'UTF-8') . ')</span></li>';
+				}
+			}
+			?>
+	</ul>
+</nav>
 			<?php
 		}
 	}

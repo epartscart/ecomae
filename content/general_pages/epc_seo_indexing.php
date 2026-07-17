@@ -256,7 +256,12 @@ function epc_seo_primary_brand_article_url($db_link, $DP_Config, $lang_href, $ar
 		if (!$row) {
 			return '';
 		}
-		return epc_seo_build_parts_url($DP_Config, $lang_href, array($row['manufacturer'], $row['article_show']));
+		$artShow = trim((string) ($row['article_show'] ?? $row['article'] ?? ''));
+		$artCanon = docpart_normalize_article_for_price($artShow !== '' ? $artShow : (string) $row['article']);
+		if ($artCanon === '') {
+			$artCanon = $artShow;
+		}
+		return epc_seo_build_parts_url($DP_Config, $lang_href, array($row['manufacturer'], $artCanon));
 	} catch (Exception $e) {
 		return '';
 	}
@@ -389,7 +394,8 @@ function epc_seo_format_part_title($manufacturer, $article, $siteName): string
 {
 	$mfr = strtoupper(trim(html_entity_decode((string) $manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8')));
 	$art = trim(html_entity_decode((string) $article, ENT_QUOTES | ENT_XML1, 'UTF-8'));
-	return $mfr . ' ' . $art . ' | ' . $siteName;
+	// Lead with brand + part/article number so Google matches OEM / aftermarket queries.
+	return $mfr . ' ' . $art . ' — Part number ' . $art . ' | ' . $siteName;
 }
 
 function epc_seo_format_part_description(array $row): string
@@ -398,14 +404,14 @@ function epc_seo_format_part_description(array $row): string
 	$mfr = trim((string) ($row['manufacturer'] ?? ''));
 	$art = trim((string) ($row['article_show'] ?? $row['article'] ?? ''));
 	$bits = array();
+	$bits[] = 'Part number / article: ' . $art;
+	$bits[] = 'Brand: ' . $mfr;
 	if ($name !== '') {
 		$bits[] = $name;
-	} else {
-		$bits[] = trim($mfr . ' ' . $art);
 	}
 	if ((int) ($row['exist'] ?? 0) > 0) {
 		$lang = epc_seo_current_lang_code();
-		$bits[] = ($lang === 'ar') ? 'متوفر' : (($lang === 'ru') ? 'В наличии' : 'In stock');
+		$bits[] = ($lang === 'ar') ? 'متوفر في المستودع' : (($lang === 'ru') ? 'В наличии на складе' : 'In stock at UAE warehouse');
 	}
 	$bits[] = epc_seo_regional_shipping_phrase();
 	return implode('. ', $bits) . '.';
@@ -424,20 +430,25 @@ function epc_seo_schema_include_price($db_link): bool
 }
 
 /**
- * JSON-LD Product + AutoParts for CHPU part pages.
+ * JSON-LD Product for CHPU part pages (part number / article clearly exposed).
+ *
+ * @param list<array{brand?:string,article?:string}> $crossRefs Optional OE / cross numbers
  */
-function epc_seo_build_product_schema_array($row, $DP_Config, $lang_href, $includePrice, $currencyCode = 'AED'): array
+function epc_seo_build_product_schema_array($row, $DP_Config, $lang_href, $includePrice, $currencyCode = 'AED', array $crossRefs = array()): array
 {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_article_match.php';
 	$articleShow = trim((string) ($row['article_show'] ?? $row['article'] ?? ''));
+	$artNorm = docpart_normalize_article_for_price($articleShow !== '' ? $articleShow : (string) ($row['article'] ?? ''));
 	$mfr = trim((string) ($row['manufacturer'] ?? ''));
-	$name = trim($mfr . ' ' . $articleShow . ' ' . trim((string) ($row['name'] ?? '')));
+	$name = trim($mfr . ' ' . ($articleShow !== '' ? $articleShow : $artNorm) . ' ' . trim((string) ($row['name'] ?? '')));
 	$slash = $DP_Config->chpu_search_config['slash_code'];
 	$partsRoot = $DP_Config->chpu_search_config['level_1']['url'];
+	$artUrlSeg = $artNorm !== '' ? $artNorm : $articleShow;
 	$pageUrl = rtrim((string) $DP_Config->domain_path, '/')
 		. rtrim((string) $lang_href, '/')
 		. '/' . $partsRoot . '/'
 		. rawurlencode(str_replace('/', $slash, $mfr)) . '/'
-		. rawurlencode($articleShow);
+		. rawurlencode(str_replace('/', $slash, $artUrlSeg));
 	$offer = array(
 		'@type' => 'Offer',
 		'url' => $pageUrl,
@@ -459,19 +470,54 @@ function epc_seo_build_product_schema_array($row, $DP_Config, $lang_href, $inclu
 		$offer['priceCurrency'] = $currencyCode;
 		$offer['price'] = number_format((float) $row['price'], 2, '.', '');
 	}
-	return array(
+	$props = array(
+		array('@type' => 'PropertyValue', 'name' => 'Part number', 'value' => ($articleShow !== '' ? $articleShow : $artNorm)),
+		array('@type' => 'PropertyValue', 'name' => 'Article number', 'value' => $artNorm),
+		array('@type' => 'PropertyValue', 'name' => 'Brand', 'value' => $mfr),
+	);
+	$related = array();
+	foreach (array_slice($crossRefs, 0, 25) as $cr) {
+		if (!is_array($cr)) {
+			continue;
+		}
+		$cb = trim((string) ($cr['brand'] ?? ''));
+		$ca = trim((string) ($cr['article'] ?? ''));
+		if ($ca === '') {
+			continue;
+		}
+		$props[] = array(
+			'@type' => 'PropertyValue',
+			'name' => 'Cross reference / OE',
+			'value' => trim($cb . ' ' . $ca),
+		);
+		$related[] = array(
+			'@type' => 'Product',
+			'name' => trim($cb . ' ' . $ca),
+			'sku' => docpart_normalize_article_for_price($ca),
+			'mpn' => docpart_normalize_article_for_price($ca),
+			'brand' => array('@type' => 'Brand', 'name' => $cb !== '' ? $cb : 'OE'),
+		);
+	}
+	$schema = array(
 		'@context' => 'https://schema.org',
-		'@type' => array('Product', 'AutoPartsStore'),
+		'@type' => 'Product',
 		'name' => $name,
-		'sku' => $articleShow,
-		'mpn' => $articleShow,
+		'sku' => $artNorm !== '' ? $artNorm : $articleShow,
+		'mpn' => $artNorm !== '' ? $artNorm : $articleShow,
+		'productID' => $artNorm !== '' ? $artNorm : $articleShow,
 		'brand' => array(
 			'@type' => 'Brand',
 			'name' => $mfr,
 		),
+		'additionalProperty' => $props,
 		'areaServed' => epc_seo_schema_country_entries(),
 		'offers' => $offer,
+		'url' => $pageUrl,
 	);
+	if ($related !== array()) {
+		$schema['isRelatedTo'] = $related;
+	}
+	return $schema;
 }
 
 /**
@@ -535,8 +581,16 @@ function epc_seo_apply_warehouse_page_enrichment(&$DP_Content, $db_link, $DP_Con
 		return;
 	}
 	$articleShow = trim((string) ($row['article_show'] ?? $row['article'] ?? $art));
-	$DP_Content->title_tag = strtoupper(trim((string) $row['manufacturer'])) . ' ' . $articleShow;
+	$DP_Content->title_tag = strtoupper(trim((string) $row['manufacturer'])) . ' ' . $articleShow . ' — Part number ' . $articleShow;
 	$DP_Content->description_tag = epc_seo_format_part_description($row);
+	$DP_Content->keywords_tag = implode(', ', array_filter(array(
+		$articleShow,
+		strtoupper(trim((string) $row['manufacturer'])) . ' ' . $articleShow,
+		'part number ' . $articleShow,
+		'article ' . $articleShow,
+		'spare parts',
+		'auto parts UAE',
+	)));
 	$DP_Content->service_data['epc_seo_page_title'] = epc_seo_format_part_title($row['manufacturer'], $articleShow, $siteName);
 	$DP_Content->service_data['epc_seo_og'] = array(
 		'title' => $DP_Content->service_data['epc_seo_page_title'],
