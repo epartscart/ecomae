@@ -1,7 +1,458 @@
+/* Price lists manager + upload history — CP admin UI */
 body.modal-open {
 	position: relative;
 }
 
+.epc-prices-page {
+	--epc-p-ink: #0f172a;
+	--epc-p-muted: #64748b;
+	--epc-p-line: #e2e8f0;
+	--epc-p-soft: #f8fafc;
+	--epc-p-blue: #2563eb;
+	--epc-p-sky: #0284c7;
+	--epc-p-green: #16a34a;
+	--epc-p-amber: #d97706;
+	--epc-p-red: #dc2626;
+}
+
+.epc-prices-page > .col-lg-12 > .hpanel {
+	border: 1px solid var(--epc-p-line);
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	margin-bottom: 16px;
+}
+
+.epc-prices-page > .col-lg-12 > .hpanel .panel-heading.hbuilt {
+	background: linear-gradient(180deg, #ffffff 0%, var(--epc-p-soft) 100%);
+	border-bottom: 1px solid var(--epc-p-line);
+	color: var(--epc-p-ink);
+	font-weight: 700;
+	letter-spacing: 0.01em;
+}
+
+.epc-prices-page .epc-prices-toolbar .panel-body {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 12px;
+	align-items: stretch;
+	padding: 14px 16px;
+	background:
+		radial-gradient(1200px 180px at 0% 0%, rgba(37, 99, 235, 0.06), transparent 55%),
+		linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.epc-prices-page .epc-prices-toolbar .panel_a {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 160px;
+	margin: 0 !important;
+	padding: 10px 12px;
+	border: 1px solid var(--epc-p-line);
+	border-radius: 10px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+	text-decoration: none !important;
+}
+
+.epc-prices-page .epc-prices-toolbar .panel_a:hover {
+	border-color: #93c5fd;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+	transform: translateY(-1px);
+}
+
+.epc-prices-page .epc-prices-toolbar .panel_a_img {
+	width: 28px !important;
+	height: 28px !important;
+	background-size: contain !important;
+	flex: 0 0 28px;
+	margin: 0 !important;
+}
+
+.epc-prices-page .epc-prices-toolbar .panel_a_caption {
+	font-size: 12px;
+	font-weight: 650;
+	color: var(--epc-p-ink);
+	line-height: 1.25;
+	white-space: normal;
+	max-width: 140px;
+}
+
+.epc-prices-page .alert.alert-info {
+	border: 1px solid #bae6fd;
+	background: #f0f9ff;
+	color: #0c4a6e;
+	border-radius: 10px;
+}
+
+.epc-prices-page #prices_table {
+	margin-bottom: 0;
+	font-size: 13px;
+}
+
+.epc-prices-page #prices_table thead th {
+	background: var(--epc-p-soft);
+	color: #334155;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	border-bottom: 1px solid var(--epc-p-line) !important;
+	white-space: nowrap;
+	vertical-align: middle;
+}
+
+.epc-prices-page #prices_table tbody tr {
+	transition: background-color 0.12s ease;
+}
+
+.epc-prices-page #prices_table tbody tr:hover {
+	background: #f1f5f9;
+}
+
+.epc-prices-page #prices_table td {
+	vertical-align: middle !important;
+	border-color: #eef2f7 !important;
+}
+
+.epc-prices-page .epc-price-hist-cell {
+	min-width: 168px;
+	max-width: 220px;
+}
+
+.epc-prices-page .epc-price-hist-meta {
+	display: block;
+	margin-top: 4px;
+	font-size: 11px;
+	line-height: 1.35;
+	color: var(--epc-p-muted);
+}
+
+.epc-prices-page .epc-price-hist-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-top: 6px;
+	font-size: 11px;
+	font-weight: 650;
+	color: var(--epc-p-sky) !important;
+	text-decoration: none !important;
+}
+
+.epc-prices-page .epc-price-hist-link:hover {
+	color: var(--epc-p-blue) !important;
+	text-decoration: underline !important;
+}
+
+.epc-prices-page .epc-price-badge-empty {
+	display: inline-block;
+	margin-top: 4px;
+	padding: 2px 7px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	color: var(--epc-p-muted);
+	font-size: 10px;
+	font-weight: 650;
+}
+
+.epc-prices-page .epc-price-wh-empty {
+	color: var(--epc-p-muted);
+	font-style: italic;
+	font-size: 12px;
+}
+
+.epc-prices-page .epc-prices-actions.panel-footer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+	border-top: 1px solid var(--epc-p-line);
+	padding: 12px 16px;
+}
+
+.epc-prices-page .epc-prices-actions .btn {
+	border-radius: 8px;
+	font-weight: 650;
+	box-shadow: none;
+	margin: 0 !important;
+}
+
+.epc-prices-page .epc-prices-actions .btn-primary {
+	background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+	border-color: transparent;
+}
+
+.epc-prices-page .epc-prices-actions .btn-info {
+	background: #0ea5e9;
+	border-color: #0284c7;
+	color: #fff;
+}
+
+.epc-prices-page .epc-prices-actions .btn-danger {
+	background: #dc2626;
+	border-color: #b91c1c;
+}
+
+.epc-prices-page .epc-prices-actions .btn-warning {
+	background: #f59e0b;
+	border-color: #d97706;
+	color: #111827;
+}
+
+/* Upload history modal */
+#epc_price_upload_history_modal .modal-dialog {
+	width: min(1120px, 96vw);
+	margin: 24px auto;
+}
+
+#epc_price_upload_history_modal .modal-content {
+	border: 0;
+	border-radius: 14px;
+	overflow: hidden;
+	box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+#epc_price_upload_history_modal .color-line {
+	display: none;
+}
+
+#epc_price_upload_history_modal .modal-header {
+	background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%);
+	border-bottom: 0;
+	padding: 16px 20px;
+	color: #fff;
+}
+
+#epc_price_upload_history_modal .modal-title {
+	color: #fff;
+	font-weight: 700;
+	font-size: 17px;
+	margin: 0;
+}
+
+#epc_price_upload_history_modal .epc-hist-modal-sub {
+	display: block;
+	margin-top: 4px;
+	font-size: 12px;
+	color: rgba(255, 255, 255, 0.85);
+}
+
+#epc_price_upload_history_modal .modal-body {
+	padding: 0;
+	background: #f8fafc;
+	min-height: 220px;
+	max-height: min(72vh, 720px);
+	overflow: auto;
+}
+
+#epc_price_upload_history_modal .modal-footer {
+	background: #fff;
+	border-top: 1px solid var(--epc-p-line, #e2e8f0);
+	padding: 12px 16px;
+}
+
+.epc-hist-shell {
+	padding: 14px 16px 18px;
+}
+
+.epc-hist-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+
+.epc-hist-toolbar__left {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.epc-hist-search {
+	min-width: 220px;
+	height: 34px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	padding: 0 10px;
+	font-size: 13px;
+	background: #fff;
+}
+
+.epc-hist-count {
+	font-size: 12px;
+	color: #64748b;
+	font-weight: 600;
+}
+
+.epc-hist-active {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 16px;
+	align-items: flex-start;
+	justify-content: space-between;
+	padding: 12px 14px;
+	margin-bottom: 12px;
+	border: 1px solid #bbf7d0;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.epc-hist-active__title {
+	margin: 0 0 4px;
+	font-size: 13px;
+	font-weight: 750;
+	color: #166534;
+}
+
+.epc-hist-active__meta {
+	margin: 0;
+	font-size: 12px;
+	color: #334155;
+	line-height: 1.45;
+}
+
+.epc-hist-active__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.epc-hist-empty {
+	text-align: center;
+	padding: 36px 18px;
+	border: 1px dashed #cbd5e1;
+	border-radius: 12px;
+	background: #fff;
+}
+
+.epc-hist-empty__icon {
+	width: 48px;
+	height: 48px;
+	margin: 0 auto 12px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #e0f2fe;
+	color: #0369a1;
+	font-size: 20px;
+}
+
+.epc-hist-empty h5 {
+	margin: 0 0 6px;
+	font-weight: 750;
+	color: #0f172a;
+}
+
+.epc-hist-empty p {
+	margin: 0 auto 14px;
+	max-width: 460px;
+	color: #64748b;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.epc-hist-loading {
+	text-align: center;
+	padding: 48px 16px;
+	color: #64748b;
+}
+
+.epc-hist-loading .epc-hist-spinner {
+	width: 28px;
+	height: 28px;
+	margin: 0 auto 10px;
+	border: 3px solid #bae6fd;
+	border-top-color: #0284c7;
+	border-radius: 50%;
+	animation: epc-hist-spin 0.7s linear infinite;
+}
+
+@keyframes epc-hist-spin {
+	to { transform: rotate(360deg); }
+}
+
+.epc-hist-table-wrap {
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+	overflow: auto;
+	max-height: min(54vh, 560px);
+}
+
+.epc-hist-table {
+	margin: 0;
+	font-size: 12px;
+}
+
+.epc-hist-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0 !important;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #475569;
+	white-space: nowrap;
+}
+
+.epc-hist-table tbody tr.epc-hist-row-active {
+	background: #f0fdf4;
+}
+
+.epc-hist-table tbody tr:hover {
+	background: #f1f5f9;
+}
+
+.epc-hist-table td {
+	vertical-align: middle !important;
+	border-color: #f1f5f9 !important;
+}
+
+.epc-hist-num {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.epc-hist-file {
+	max-width: 220px;
+	word-break: break-word;
+}
+
+.epc-hist-actions {
+	white-space: nowrap;
+}
+
+.epc-hist-actions .btn {
+	margin: 0 2px 2px 0;
+	border-radius: 6px;
+}
+
+.epc-hist-note {
+	margin: 0 0 10px;
+	font-size: 12px;
+	color: #64748b;
+}
+
+.epc-hist-warn {
+	padding: 10px 12px;
+	margin-bottom: 12px;
+	border-radius: 10px;
+	border: 1px solid #fde68a;
+	background: #fffbeb;
+	color: #92400e;
+	font-size: 13px;
+}
+
+/* Storefront toggle switches (existing) */
 .epc-ssf-switch {
 	position: relative;
 	display: inline-block;
@@ -58,4 +509,17 @@ body.modal-open {
 }
 .epc-ssf-row-dirty .epc-ssf-save-btn:not(:disabled) {
 	box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.45);
+}
+
+@media (max-width: 767px) {
+	.epc-prices-page .epc-prices-toolbar .panel_a {
+		min-width: calc(50% - 8px);
+		flex: 1 1 calc(50% - 8px);
+	}
+	.epc-hist-search {
+		min-width: 100%;
+	}
+	#epc_price_upload_history_modal .modal-body {
+		max-height: 70vh;
+	}
 }

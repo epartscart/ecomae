@@ -169,14 +169,16 @@ function epc_price_history_get_latest_map(PDO $db_link): array
 	epc_price_history_ensure_schema($db_link);
 	$map = [];
 
+	// Prefer active rows, then latest by id. Skip per-row is_file() here so the CP
+	// prices table stays fast on large tenants; download endpoints already fall back to DB export.
 	$activeQ = $db_link->query(
 		"SELECT * FROM `epc_price_upload_history`
-		 WHERE `is_active` = 1 AND TRIM(`stored_relpath`) <> ''
+		 WHERE `is_active` = 1
 		 ORDER BY `id` DESC;"
 	);
 	while ($row = $activeQ->fetch(PDO::FETCH_ASSOC)) {
 		$pid = (int)$row['price_id'];
-		if ($pid > 0 && !isset($map[$pid]) && is_file(epc_price_history_file_absolute_path($row))) {
+		if ($pid > 0 && !isset($map[$pid])) {
 			$map[$pid] = $row;
 		}
 	}
@@ -186,14 +188,13 @@ function epc_price_history_get_latest_map(PDO $db_link): array
 		 INNER JOIN (
 			SELECT `price_id`, MAX(`id`) AS `max_id`
 			FROM `epc_price_upload_history`
-			WHERE TRIM(`stored_relpath`) <> ''
 			GROUP BY `price_id`
 		 ) t ON h.`id` = t.`max_id`
 		 ORDER BY h.`id` DESC;"
 	);
 	while ($row = $latestQ->fetch(PDO::FETCH_ASSOC)) {
 		$pid = (int)$row['price_id'];
-		if ($pid > 0 && !isset($map[$pid]) && is_file(epc_price_history_file_absolute_path($row))) {
+		if ($pid > 0 && !isset($map[$pid])) {
 			$map[$pid] = $row;
 		}
 	}

@@ -287,8 +287,9 @@ else//Действий нет - выводим страницу
 	
 	
 	
+	<div class="epc-prices-page">
 	<div class="col-lg-12">
-		<div class="hpanel">
+		<div class="hpanel epc-prices-toolbar">
 			<div class="panel-heading hbuilt">
 				<?php echo translate_str_by_id(2113); ?>
 			</div>
@@ -586,7 +587,7 @@ else//Действий нет - выводим страницу
 									{
 										echo $a_item;
 										?>
-										Нет</a>
+										<span class="epc-price-wh-empty">Not linked</span></a>
 										<?php
 									}
 									?>
@@ -601,7 +602,7 @@ else//Действий нет - выводим страницу
 									<!-- Здесь тег a нужен с ID (для указания количества строк после обновления) -->
 									<a id="records_count_<?php echo $element_record["id"]; ?>" href="/<?php echo $DP_Config->backend_dir; ?>/shop/prices/price?price_id=<?php echo $element_record["id"]; ?>"><?php echo $element_record["records_count"]; ?></a>
 								</td>
-								<td class="text-left" style="min-width:150px;">
+								<td class="text-left epc-price-hist-cell">
 									<?php
 									$epc_latest = $epc_latest_uploads[(int)$element_record['id']] ?? null;
 									$epc_has_file = false;
@@ -616,28 +617,24 @@ else//Действий нет - выводим страницу
 										<a class="btn btn-xs btn-success" href="<?php echo htmlspecialchars($epc_dl, ENT_QUOTES, 'UTF-8'); ?>" title="<?php echo $epc_has_file ? 'Download active upload file' : 'Download current prices (DB export — archive missing)'; ?>" onclick="event.stopPropagation();">
 											<i class="fas fa-download"></i>
 										</a>
-										<small>
-											<?php echo htmlspecialchars(mb_substr((string)$epc_latest['original_filename'], 0, 22, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?><br>
+										<span class="epc-price-hist-meta">
+											<?php echo htmlspecialchars(mb_substr((string)$epc_latest['original_filename'], 0, 28, 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?><br>
 											<?php echo htmlspecialchars((string)$epc_latest['created_at'], ENT_QUOTES, 'UTF-8'); ?>
 											<?php if (!$epc_has_file): ?><br><span class="text-warning">archive missing → DB export</span><?php endif; ?>
-										</small>
-										<br>
+										</span>
 										<?php
 									} else {
 										?>
 										<a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($epc_db_dl, ENT_QUOTES, 'UTF-8'); ?>" title="Export current DB prices" onclick="event.stopPropagation();">
 											<i class="fas fa-database"></i>
 										</a>
-										<br>
+										<span class="epc-price-badge-empty">No archive yet</span>
 										<?php
 									}
 									?>
-									<a href="javascript:void(0);" onclick="event.stopPropagation();epcShowPriceUploadHistory(<?php echo (int)$element_record['id']; ?>, '<?php echo htmlspecialchars($element_record['name'], ENT_QUOTES, 'UTF-8'); ?>');" style="font-size:11px;">
+									<a class="epc-price-hist-link" href="javascript:void(0);" onclick="event.stopPropagation();epcShowPriceUploadHistory(<?php echo (int)$element_record['id']; ?>, '<?php echo htmlspecialchars($element_record['name'], ENT_QUOTES, 'UTF-8'); ?>');">
 										<i class="fas fa-history"></i> Upload history
 									</a>
-									<?php if (!$epc_latest): ?>
-										<br><small class="text-muted">No upload history yet</small>
-									<?php endif; ?>
 								</td>
 								<!--<td><?php //echo $a_item.translate_str_by_id($load_modes[$element_record["load_mode"]]); ?></a></td>-->
 								<!--<td class="text-left"><?php //echo $a_item.$load_modes[$element_record["load_mode"]]; ?></a></td>-->
@@ -1032,7 +1029,7 @@ else//Действий нет - выводим страницу
 				
 			</div>
 			
-			<div class="panel-footer">
+			<div class="panel-footer epc-prices-actions">
 				
 				<button class="btn btn-primary" type="button" onclick="execute_checked();">
 					<i class="fas fa-redo"></i> <span class="bold"><?php echo translate_str_by_id(5443); ?></span>
@@ -2825,14 +2822,16 @@ else//Действий нет - выводим страницу
 	</script>
 
 	<div class="modal fade" id="epc_price_upload_history_modal" tabindex="-1" role="dialog" aria-hidden="true">
-		<div class="modal-dialog modal-lg" style="width:95%;max-width:1200px;">
+		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
 				<div class="color-line"></div>
 				<div class="modal-header">
-					<h4 class="modal-title" id="epc_price_upload_history_modal_title">Update file history</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff;opacity:.85;"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="epc_price_upload_history_modal_title">Upload history</h4>
+					<small class="epc-hist-modal-sub" id="epc_price_upload_history_modal_sub">Archived source files, import stats, and quick downloads.</small>
 				</div>
 				<div class="modal-body" id="epc_price_upload_history_modal_body">
-					<div class="text-center"><i class="fas fa-spinner fa-pulse"></i></div>
+					<div class="epc-hist-loading"><div class="epc-hist-spinner" aria-hidden="true"></div>Loading upload history…</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal"><?php echo translate_str_by_id(2447); ?></button>
@@ -2840,6 +2839,7 @@ else//Действий нет - выводим страницу
 			</div>
 		</div>
 	</div>
+	</div><!-- /.epc-prices-page -->
     <?php
 	}// view !== guide
 }//~else - вывод страницы
