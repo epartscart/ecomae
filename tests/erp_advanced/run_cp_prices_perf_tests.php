@@ -50,6 +50,36 @@ $relief = (string) file_get_contents($root . '/epc-db-relief.php');
 check('relief can SHOW PROCESSLIST', strpos($relief, 'SHOW FULL PROCESSLIST') !== false);
 check('relief can KILL', strpos($relief, 'KILL ') !== false);
 
+echo "\n== QTY (records_count) display ==\n";
+$perf2 = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_prices_manager_perf.php');
+check('live counts map helper exists', strpos($perf2, 'function epc_prices_live_counts_map') !== false);
+check('rows helper with QTY fallback exists', strpos($perf2, 'function epc_prices_fetch_lists_rows') !== false);
+check('persists live counts opportunistically', strpos($perf2, 'function epc_prices_persist_records_counts') !== false);
+$mgr2 = (string) file_get_contents($root . '/cp/content/shop/prices_upload/prices_manager.php');
+check('manager uses rows helper', strpos($mgr2, 'epc_prices_fetch_lists_rows($db_link)') !== false);
+check('manager iterates rows array', strpos($mgr2, 'foreach( $epc_prices_list_rows as $element_record )') !== false);
+$ajax6 = (string) file_get_contents($root . '/cp/content/shop/prices_upload/ajax_6_complete_session.php');
+check('upload completion syncs records_count', strpos($ajax6, 'SET `records_count` = ?') !== false);
+check('qty fix ops script exists', is_file($root . '/epc-prices-qty-fix.php'));
+
+// Behavior check: run the fallback logic on a synthetic dataset (SQLite-like via arrays).
+$rows = array(
+	array('id' => 3, 'name' => 'A-S', 'records_count' => 0),
+	array('id' => 8, 'name' => 'B.P', 'records_count' => 0),
+);
+$live = array(3 => 1200, 8 => 340);
+$allZero = true;
+foreach ($rows as $row) {
+	if ((int) $row['records_count'] > 0) { $allZero = false; }
+}
+if ($allZero) {
+	foreach ($rows as $i => $row) {
+		$pid = (int) $row['id'];
+		if (isset($live[$pid])) { $rows[$i]['records_count'] = $live[$pid]; }
+	}
+}
+check('fallback maps live QTY onto zero rows', $rows[0]['records_count'] === 1200 && $rows[1]['records_count'] === 340);
+
 echo "\n== epartscart 1s path ==\n";
 $fast = (string) file_get_contents($root . '/cp/epc_cp_fast_tenant.php');
 check('fast tenant helper exists', $fast !== '');

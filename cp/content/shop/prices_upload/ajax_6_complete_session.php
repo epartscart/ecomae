@@ -53,6 +53,17 @@ if( $db_link->prepare("UPDATE `shop_docpart_prices` SET `last_updated` = ? WHERE
     exit(json_encode($answer));
 }
 
+// Keep denormalized QTY in sync so the CP listing never shows 0 for stocked lists.
+try {
+	$cntQ = $db_link->prepare('SELECT COUNT(*) FROM `shop_docpart_prices_data` WHERE `price_id` = ?');
+	$cntQ->execute(array((int) $price_id));
+	$rowsInList = (int) $cntQ->fetchColumn();
+	$db_link->prepare('UPDATE `shop_docpart_prices` SET `records_count` = ? WHERE `id` = ?')
+		->execute(array($rowsInList, (int) $price_id));
+} catch (Throwable $e) {
+	// Column may be absent on some tenants — listing has a live-count fallback.
+}
+
 // New/updated supplier stock must re-enter Google sitemaps after warm.
 $whSeo = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_sitemap_warehouse.php';
 if (is_file($whSeo)) {

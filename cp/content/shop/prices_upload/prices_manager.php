@@ -451,10 +451,12 @@ elseif (!empty($epc_prices_render_manager))//Действий нет - выво�
 					epc_prices_ensure_listing_indexes($db_link);
 					$epc_prices_list_error = '';
 					try {
-						$elements_query = epc_prices_fetch_lists_query($db_link);
+						// Rows with guaranteed QTY: live index-only count fallback
+						// when records_count is missing/zero (e.g. after Emex cleanup).
+						$epc_prices_list_rows = epc_prices_fetch_lists_rows($db_link);
 					} catch (Throwable $e) {
 						$epc_prices_list_error = $e->getMessage();
-						$elements_query = null;
+						$epc_prices_list_rows = array();
 					}
 					
 					
@@ -553,10 +555,9 @@ elseif (!empty($epc_prices_render_manager))//Действий нет - выво�
 						//----------------------------------------------------------------------------------------------|
 						
 						
-						if ($elements_query instanceof PDOStatement) {
-						while( $element_record = $elements_query->fetch() )
+						if (is_array($epc_prices_list_rows)) {
+						foreach( $epc_prices_list_rows as $element_record )
 						{
-							//$element_record = $elements_query->fetch();
 							$epc_price_js = json_encode(
 								$element_record,
 								JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
@@ -1007,8 +1008,8 @@ elseif (!empty($epc_prices_render_manager))//Действий нет - выво�
 								
 							</tr>
 						<?php
-						}//while price lists
-						}// $elements_query instanceof PDOStatement
+						}//foreach price lists
+						}// rows array
 						?>
 						</tbody>
 						<tfoot style="display:none;"><tr><td><ul class="pagination"></ul></td></tr></tfoot>
