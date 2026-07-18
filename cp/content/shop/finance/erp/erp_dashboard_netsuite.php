@@ -25,9 +25,16 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aging.ph
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_intelligence.php';
 
 // ---- Operational KPIs (BOS industry-intelligence engine, tenant-scoped) ----
+// Reuse $dashboard / $dashboard_pl already computed in erp_main.php.
 $opKpis = array();
 try {
-	$opKpis = epc_bos_intel_kpis($db_link, (int) $date_from, (int) $date_to);
+	$opKpis = epc_bos_intel_kpis(
+		$db_link,
+		(int) $date_from,
+		(int) $date_to,
+		isset($dashboard) && is_array($dashboard) ? $dashboard : null,
+		isset($dashboard_pl) && is_array($dashboard_pl) ? $dashboard_pl : null
+	);
 } catch (Throwable $e) {
 	$opKpis = array();
 }
@@ -66,7 +73,8 @@ $nsPrevFrom = $nsPrevTo - $nsSpan;
 $nsPrev = array();
 if (function_exists('epc_erp_dashboard')) {
 	try {
-		$nsPrev = epc_erp_dashboard($db_link, $nsPrevFrom, $nsPrevTo);
+		// Light path: trend arrows need order/cash/AR/AP only — skip VAT + CC tiles.
+		$nsPrev = epc_erp_dashboard($db_link, $nsPrevFrom, $nsPrevTo, true);
 	} catch (Exception $e) {
 		$nsPrev = array();
 	}

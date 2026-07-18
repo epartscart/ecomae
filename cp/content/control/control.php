@@ -21,6 +21,13 @@ if (is_file($epcTenantCpDash)) {
 	require_once $epcTenantCpDash;
 }
 
+// Super / tenant dashboards replace legacy home chrome. Do NOT `return` here —
+// CP pages are eval()'d inside the template (dp_core.php); a return aborts the
+// whole shell (truncated HTML, missing </body></html>).
+$epcSkipLegacyControlHome = !empty($GLOBALS['epc_super_cp_dashboard_shown'])
+	|| !empty($GLOBALS['epc_tenant_cp_dashboard_shown']);
+
+if (!$epcSkipLegacyControlHome):
 //Блок статистики
 if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp_hidden"] === 0)){
 	//Проверяем доступ к статистике
@@ -37,11 +44,6 @@ if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp
 			require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/statistics_main_page.php");
 		}
 	}
-}
-
-// Tenant dashboard replaces legacy tab blocks — skip N+1 is_anable over control_items.
-if (!empty($GLOBALS['epc_tenant_cp_dashboard_shown'])) {
-	return;
 }
 
 //Массив для блоков и страниц по блокам
@@ -141,4 +143,5 @@ foreach($tabs as $key => $tab)
 		<?php
 	}
 }//foreach()
+endif; // !$epcSkipLegacyControlHome
 ?>

@@ -24,6 +24,32 @@ function epc_bos_session_start(): void
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
+
+    // Intercept BOS login before bos/ajax_epc_bos.php (often undeployable /
+    // root-owned). Verifies the password against every candidate DB row so a
+    // platform-DB email collision cannot block Super CP credentials.
+    static $loginHandled = false;
+    if (
+        !$loginHandled
+        && defined('EPC_BOS_ENTRY')
+        && PHP_SAPI !== 'cli'
+        && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
+        && isset($_GET['action']) && (string) $_GET['action'] === 'login'
+        && isset($_POST['email'], $_POST['password'])
+    ) {
+        $loginHandled = true;
+        $loginFile = __DIR__ . '/epc_bos_ajax_login.php';
+        if (is_file($loginFile)) {
+            require_once $loginFile;
+            if (function_exists('epc_bos_ajax_login_secure')) {
+                if (!headers_sent()) {
+                    header('Content-Type: application/json; charset=utf-8');
+                }
+                echo json_encode(epc_bos_ajax_login_secure());
+                exit;
+            }
+        }
+    }
 }
 
 function epc_bos_context(): array
