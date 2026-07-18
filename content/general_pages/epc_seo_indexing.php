@@ -278,6 +278,8 @@ function epc_seo_apply_storefront_content_meta(&$DP_Content, $db_link)
 	$url = trim((string) ($DP_Content->url ?? ''), '/');
 	$indexable = array(
 		'spare-parts',
+		'accessories',
+		'accessories-spare-parts',
 		'available-brands',
 		'shipping-export',
 		'umapi_catalog',
@@ -306,6 +308,8 @@ function epc_seo_apply_storefront_content_meta(&$DP_Content, $db_link)
 	$descMap = array(
 		'available-brands' => epc_seo_regional_hub_description('available-brands', $lang),
 		'spare-parts' => epc_seo_regional_hub_description('spare-parts', $lang),
+		'accessories' => 'Browse UAE warehouse car accessories and spare parts by category, brand, price and region. ' . epc_seo_regional_shipping_phrase($lang),
+		'accessories-spare-parts' => 'Browse UAE warehouse car accessories and spare parts by category, brand, price and region. ' . epc_seo_regional_shipping_phrase($lang),
 		'umapi_catalog' => 'Vehicle parts catalog — find compatible spare parts by make and model. ' . epc_seo_regional_shipping_phrase($lang),
 		'vehicle-catalog' => 'Vehicle catalog for OEM and aftermarket spare parts lookup. ' . epc_seo_regional_shipping_phrase($lang),
 		'shipping-export' => epc_seo_regional_hub_description('parts', $lang),
