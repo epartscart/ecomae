@@ -22,23 +22,47 @@ require_once __DIR__ . '/epc_cp_mainstream_menu.php';
 $cfg = new DP_Config();
 epc_portal_apply_config($cfg);
 
-$pdo = epc_portal_platform_pdo();
-if (!$pdo instanceof PDO) {
+function epc_wt_setup_pdo_from_cfg(DP_Config $cfg): PDO
+{
+	$host = trim((string) $cfg->host);
+	if ($host === '' || strtolower($host) === 'localhost') {
+		$host = '127.0.0.1';
+	}
+	return new PDO(
+		'mysql:host=' . $host . ';dbname=' . $cfg->db . ';charset=utf8mb4',
+		$cfg->user,
+		$cfg->password,
+		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+	);
+}
+
+// CP routing uses the host-applied DB (docpart on epartscart, ecomae on Super CP).
+$pdoCp = null;
+try {
+	$pdoCp = epc_wt_setup_pdo_from_cfg($cfg);
+} catch (Exception $e) {
+	exit('CP DB connect failed: ' . $e->getMessage() . "\n");
+}
+
+$pdoPlatform = epc_portal_platform_pdo();
+if (!$pdoPlatform instanceof PDO) {
+	$pdoPlatform = $pdoCp;
+}
+
+// Schema on both (collect → platform; tenant CP may read either).
+foreach (array('platform' => $pdoPlatform, 'cp' => $pdoCp) as $label => $pdoOne) {
 	try {
-		$pdo = new PDO(
-			'mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8mb4',
-			$cfg->user,
-			$cfg->password,
-			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-		);
+		epc_web_tracker_ensure_schema($pdoOne);
+		echo "schema[{$label}]: OK db=" . ($label === 'cp' ? $cfg->db : '(platform)') . "\n";
 	} catch (Exception $e) {
-		exit('DB connect failed: ' . $e->getMessage() . "\n");
+		echo "schema[{$label}]: FAIL " . $e->getMessage() . "\n";
 	}
 }
 
+// Menu + content must live in the CP-routed DB.
+$pdo = $pdoCp;
 epc_portal_db_ensure($pdo);
-epc_web_tracker_ensure_schema($pdo);
-echo "schema: epc_web_tracker_sessions / pageviews / events OK\n";
+echo "registering CP content into db: {$cfg->db}\n";
 
 function epc_wt_setup_lang(PDO $pdo, string $key, string $en, string $ru): void
 {

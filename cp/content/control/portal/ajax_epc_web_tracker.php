@@ -2,42 +2,56 @@
 /**
  * CP AJAX — website tracker dashboard + session detail.
  */
+define('_ASTEXE_', 1);
 header('Content-Type: application/json; charset=utf-8');
+if (ob_get_level()) {
+	ob_end_clean();
+}
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
+require_once $docRoot . '/config.php';
 $DP_Config = new DP_Config();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+$GLOBALS['DP_Config'] = $DP_Config;
+require_once $docRoot . '/content/general_pages/epc_portal.php';
 if (function_exists('epc_portal_apply_config')) {
 	epc_portal_apply_config($DP_Config);
 }
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_web_tracker.php';
 
-if (!DP_User::isAdmin()) {
-	http_response_code(403);
-	echo json_encode(array('ok' => false, 'error' => 'forbidden'));
-	exit;
+$dbHost = trim((string) $DP_Config->host);
+if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+	$dbHost = '127.0.0.1';
+}
+global $db_link;
+try {
+	$db_link = new PDO(
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8mb4',
+		$DP_Config->user,
+		$DP_Config->password,
+		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+	);
+} catch (Throwable $e) {
+	http_response_code(503);
+	exit(json_encode(array('ok' => false, 'error' => 'db')));
 }
 
-$pdo = function_exists('epc_portal_platform_pdo') ? epc_portal_platform_pdo() : null;
+require_once $docRoot . '/content/users/dp_user.php';
+require_once $docRoot . '/content/general_pages/epc_web_tracker.php';
+
+if ((int) DP_User::getAdminId() <= 0) {
+	http_response_code(403);
+	exit(json_encode(array('ok' => false, 'error' => 'forbidden')));
+}
+
+$pdo = null;
+if (function_exists('epc_portal_platform_pdo')) {
+	$pdo = epc_portal_platform_pdo();
+}
 if (!$pdo instanceof PDO) {
-	try {
-		$pdo = new PDO(
-			'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db . ';charset=utf8mb4',
-			$DP_Config->user,
-			$DP_Config->password,
-			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-		);
-	} catch (Exception $e) {
-		http_response_code(503);
-		echo json_encode(array('ok' => false, 'error' => 'db'));
-		exit;
-	}
+	$pdo = $db_link;
 }
 
 $isSuper = function_exists('epc_portal_is_platform_operator') && epc_portal_is_platform_operator();
 if (!$isSuper && function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host()) {
-	// Super host with admin session — allow all-tenant view.
 	$isSuper = true;
 }
 
@@ -52,8 +66,7 @@ if (!$isSuper) {
 	}
 	if ($siteKey !== $own) {
 		http_response_code(403);
-		echo json_encode(array('ok' => false, 'error' => 'tenant_scope'));
-		exit;
+		exit(json_encode(array('ok' => false, 'error' => 'tenant_scope')));
 	}
 }
 if ($siteKey === '') {
@@ -67,21 +80,20 @@ try {
 		if (!$detail['session'] && $isSuper && $siteKey !== '_all') {
 			$detail = epc_web_tracker_session_detail($pdo, $id, $siteKey, false);
 		}
-		echo json_encode(array('ok' => true, 'detail' => $detail));
-		exit;
+		exit(json_encode(array('ok' => true, 'detail' => $detail)));
 	}
 
 	$all = ($isSuper && ($siteKey === '_all' || $siteKey === ''));
 	$data = epc_web_tracker_dashboard($pdo, $all ? '_all' : $siteKey, $range['from'], $range['to'], $all);
-	echo json_encode(array(
+	exit(json_encode(array(
 		'ok' => true,
 		'site_key' => $all ? '_all' : $siteKey,
 		'from' => $range['from'],
 		'to' => $range['to'],
 		'is_super' => $isSuper,
 		'data' => $data,
-	));
+	)));
 } catch (Throwable $e) {
 	http_response_code(500);
-	echo json_encode(array('ok' => false, 'error' => 'query_failed', 'message' => $e->getMessage()));
+	exit(json_encode(array('ok' => false, 'error' => 'query_failed', 'message' => $e->getMessage())));
 }
