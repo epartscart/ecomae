@@ -1,13 +1,17 @@
 <?php
 /**
- * Multi-vendor Excel/CSV → one warehouse + price list per vendor.
+ * Multi-vendor Excel/CSV → one warehouse + price list per vendor (+ data type).
  *
  * Excel must include both:
- *  - vendor_full  → shop_storages.name (backend / CP only)
- *  - vendor_short → shop_storages.short_name (storefront warehouse label)
+ *  - vendor_full  → shop_storages.name (backend / CP only)  [= vendor name]
+ *  - vendor_short → shop_storages.short_name (storefront) [= vendor code]
  *
- * Rows for the same vendor_short are imported into one price list linked to that warehouse.
- * Re-upload replaces that vendor's list (clean before import).
+ * Match key: data_type + brand + article + vendor_name + vendor_code
+ *  - inventory: combination is unique (one row; qty summed)
+ *  - sales / purchase: repeats allowed → keep only lowest + highest price rows
+ *
+ * Separate price lists per type so re-uploads do not wipe other types:
+ *  inventory → "{short}", sales → "{short} · Sales", purchase → "{short} · Purchase"
  */
 defined('_ASTEXE_') or define('_ASTEXE_', true);
 
@@ -48,10 +52,15 @@ function epc_multivendor_header_aliases(): array
 		),
 		'vendor_short' => array(
 			'vendor_short', 'vendor short', 'vendor_short_name', 'vendor short name',
+			'vendor_code', 'vendor code', 'supplier_code', 'supplier code',
 			'supplier_short', 'supplier short', 'supplier_short_name', 'supplier short name',
 			'warehouse', 'warehouse_short', 'warehouse short', 'warehouse_name', 'warehouse name',
 			'short_name', 'short name', 'short_vendor', 'short vendor', 'wh', 'wh_code',
 			'wh code', 'storage', 'storage_short', 'storage short',
+		),
+		'data_type' => array(
+			'data_type', 'data type', 'datatype', 'price_type', 'price type',
+			'list_type', 'list type', 'channel', 'doc_type', 'doc type',
 		),
 		'time_to_exe' => array(
 			'time_to_exe', 'delivery', 'days', 'lead_time', 'lead time', 'term',
@@ -60,6 +69,115 @@ function epc_multivendor_header_aliases(): array
 			'min_order', 'min order', 'moq', 'minimum_order', 'minimum order',
 		),
 	);
+}
+
+/**
+ * Normalize data type to inventory|sales|purchase.
+ */
+function epc_multivendor_normalize_data_type(string $raw, string $fallback = 'inventory'): string
+{
+	$raw = strtolower(trim($raw));
+	$raw = preg_replace('/\s+/', ' ', $raw);
+	$raw = str_replace(array('-', '_'), ' ', (string) $raw);
+	if ($raw === '' || $raw === 'default' || $raw === 'stock') {
+		$raw = strtolower(trim($fallback));
+	}
+	if (in_array($raw, array('inventory', 'inv', 'wh', 'warehouse', 'stock on hand', 'on hand'), true)
+		|| strpos($raw, 'invent') === 0) {
+		return 'inventory';
+	}
+	if (in_array($raw, array('sales', 'sale', 'sell', 'selling', 'retail', 'offer'), true)
+		|| strpos($raw, 'sale') === 0) {
+		return 'sales';
+	}
+	if (in_array($raw, array('purchase', 'purchases', 'buy', 'buying', 'cost', 'procurement', 'po'), true)
+		|| strpos($raw, 'purch') === 0 || strpos($raw, 'buy') === 0) {
+		return 'purchase';
+	}
+	$fb = strtolower(trim($fallback));
+	return in_array($fb, array('inventory', 'sales', 'purchase'), true) ? $fb : 'inventory';
+}
+
+function epc_multivendor_data_type_list_suffix(string $dataType): string
+{
+	if ($dataType === 'sales') {
+		return ' · Sales';
+	}
+	if ($dataType === 'purchase') {
+		return ' · Purchase';
+	}
+	return '';
+}
+
+/**
+ * Collapse rows that share brand+article (+ vendor already grouped).
+ *
+ * @param list<array<string,mixed>> $candidates
+ * @return list<array<string,mixed>>
+ */
+function epc_multivendor_collapse_product_candidates(array $candidates, string $dataType): array
+{
+	if ($candidates === array()) {
+		return array();
+	}
+	if (count($candidates) === 1) {
+		return array_values($candidates);
+	}
+
+	if ($dataType === 'inventory') {
+		// Unique: one row — sum qty, keep lowest positive price (or first).
+		$keep = $candidates[0];
+		$sumExist = 0;
+		$minPrice = null;
+		foreach ($candidates as $row) {
+			$sumExist += (int) ($row['exist'] ?? 0);
+			$p = (float) ($row['price'] ?? 0);
+			if ($p > 0 && ($minPrice === null || $p < $minPrice)) {
+				$minPrice = $p;
+				$keep = $row;
+			} elseif ($minPrice === null) {
+				$keep = $row;
+			}
+			if (strlen((string) ($row['name'] ?? '')) > strlen((string) ($keep['name'] ?? ''))) {
+				$keep['name'] = (string) $row['name'];
+			}
+		}
+		$keep['exist'] = $sumExist;
+		if ($minPrice !== null) {
+			$keep['price'] = $minPrice;
+		}
+		return array($keep);
+	}
+
+	// Sales / purchase: keep only lowest and highest price rows.
+	$minRow = null;
+	$maxRow = null;
+	foreach ($candidates as $row) {
+		$p = (float) ($row['price'] ?? 0);
+		if ($minRow === null || $p < (float) $minRow['price']
+			|| ($p === (float) $minRow['price'] && (int) ($row['exist'] ?? 0) > (int) ($minRow['exist'] ?? 0))) {
+			$minRow = $row;
+		}
+		if ($maxRow === null || $p > (float) $maxRow['price']
+			|| ($p === (float) $maxRow['price'] && (int) ($row['exist'] ?? 0) > (int) ($maxRow['exist'] ?? 0))) {
+			$maxRow = $row;
+		}
+	}
+	if ($minRow === null) {
+		return array();
+	}
+	if ($maxRow === null || (float) $minRow['price'] === (float) $maxRow['price']) {
+		// Same price — one row; sum qtys of equal-price lines.
+		$sum = 0;
+		foreach ($candidates as $row) {
+			if ((float) ($row['price'] ?? 0) === (float) $minRow['price']) {
+				$sum += (int) ($row['exist'] ?? 0);
+			}
+		}
+		$minRow['exist'] = $sum > 0 ? $sum : (int) ($minRow['exist'] ?? 0);
+		return array($minRow);
+	}
+	return array($minRow, $maxRow);
 }
 
 /**
@@ -101,7 +219,7 @@ function epc_multivendor_map_headers(array $headerRow): array
 
 	// Pass 2: substring match. Vendor columns before generic "name".
 	$roleOrder = array(
-		'vendor_full', 'vendor_short', 'manufacturer', 'article', 'exist', 'price',
+		'vendor_full', 'vendor_short', 'data_type', 'manufacturer', 'article', 'exist', 'price',
 		'time_to_exe', 'min_order', 'name',
 	);
 	foreach ($roleOrder as $role) {
@@ -170,7 +288,7 @@ function epc_multivendor_vendor_key(string $short): string
 /**
  * Ensure warehouse exists: name = full (backend), short_name = short (storefront).
  */
-function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $vendorShort, int $priceId): int
+function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $vendorShort, int $priceId, bool $setPrimaryPriceId = true): int
 {
 	$vendorFull = epc_multivendor_sanitize_full($vendorFull);
 	$vendorShort = epc_multivendor_sanitize_short($vendorShort);
@@ -220,13 +338,27 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 		$row = $q->fetch(PDO::FETCH_ASSOC) ?: null;
 	}
 
-	$opts = array('price_id' => (string) $priceId, 'probability' => '100');
+	$opts = array('probability' => '100');
+	if ($setPrimaryPriceId) {
+		$opts['price_id'] = (string) $priceId;
+	}
 	if ($row) {
 		$storageId = (int) $row['id'];
 		$existingOpts = json_decode((string) ($row['connection_options'] ?? ''), true);
 		if (is_array($existingOpts)) {
 			$opts = array_merge($existingOpts, $opts);
+			// Sales/purchase must not steal storefront inventory price_id.
+			if (!$setPrimaryPriceId && isset($existingOpts['price_id']) && (string) $existingOpts['price_id'] !== '') {
+				$opts['price_id'] = (string) $existingOpts['price_id'];
+			} elseif ($setPrimaryPriceId) {
+				$opts['price_id'] = (string) $priceId;
+			}
 		}
+		// Track typed lists on warehouse without breaking primary.
+		$typed = isset($opts['epc_typed_price_ids']) && is_array($opts['epc_typed_price_ids'])
+			? $opts['epc_typed_price_ids'] : array();
+		$typed[(string) $priceId] = true;
+		$opts['epc_typed_price_ids'] = array_keys($typed);
 		$db->prepare(
 			'UPDATE `shop_storages`
 			 SET `name` = ?, `short_name` = ?, `interface_type` = 2, `connection_options` = ?, `hidden` = 0
@@ -254,6 +386,10 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 			}
 		} catch (Throwable $e) {
 		}
+		if (!isset($opts['price_id'])) {
+			$opts['price_id'] = (string) $priceId;
+		}
+		$opts['epc_typed_price_ids'] = array((string) $priceId);
 		$db->prepare(
 			'INSERT INTO `shop_storages`
 			 (`name`, `interface_type`, `users`, `connection_options`, `currency`, `short_name`, `hidden`, `bg_line_color`)
@@ -272,10 +408,12 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 		return 0;
 	}
 
-	// Keep name-based helper in sync when list name equals short.
-	epc_price_link_storage_to_list($db, $vendorShort, $priceId);
-	if (strcasecmp($vendorFull, $vendorShort) !== 0) {
-		epc_price_link_storage_to_list($db, $vendorFull, $priceId);
+	// Keep name-based helper in sync for primary (inventory) lists only.
+	if ($setPrimaryPriceId) {
+		epc_price_link_storage_to_list($db, $vendorShort, $priceId);
+		if (strcasecmp($vendorFull, $vendorShort) !== 0) {
+			epc_price_link_storage_to_list($db, $vendorFull, $priceId);
+		}
 	}
 
 	try {
@@ -308,8 +446,10 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 /**
  * @return array{ok:bool,rows:list<array<string,mixed>>,message:string,headers:list<string>,map:array<string,int>}
  */
-function epc_multivendor_read_source_rows(string $csvPath): array
+function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataType = 'inventory'): array
 {
+	$defaultDataType = epc_multivendor_normalize_data_type($defaultDataType, 'inventory');
+
 	$delimiter = epc_commerce_detect_delimiter($csvPath);
 	$fh = fopen($csvPath, 'rb');
 	if ($fh === false) {
@@ -377,6 +517,10 @@ function epc_multivendor_read_source_rows(string $csvPath): array
 		$exist = $map['exist'] >= 0 ? epc_parse_stock_quantity($raw[$map['exist']] ?? 0) : 0;
 		$timeToExe = $map['time_to_exe'] >= 0 ? (int) epc_commerce_parse_number($raw[$map['time_to_exe']] ?? 0) : 0;
 		$minOrder = $map['min_order'] >= 0 ? (int) epc_commerce_parse_number($raw[$map['min_order']] ?? 0) : 0;
+		$dataTypeRaw = (isset($map['data_type']) && $map['data_type'] >= 0)
+			? (string) ($raw[$map['data_type']] ?? '')
+			: '';
+		$dataType = epc_multivendor_normalize_data_type($dataTypeRaw, $defaultDataType);
 		$rows[] = array(
 			'manufacturer' => $manufacturer,
 			'article' => $article,
@@ -389,6 +533,7 @@ function epc_multivendor_read_source_rows(string $csvPath): array
 			'vendor_full' => $vendorFull,
 			'vendor_short' => $vendorShort,
 			'vendor_key' => epc_multivendor_vendor_key($vendorShort),
+			'data_type' => $dataType,
 		);
 	}
 	fclose($fh);
@@ -414,50 +559,54 @@ function epc_multivendor_read_source_rows(string $csvPath): array
 }
 
 /**
- * Group rows by vendor_short. Same brand+article keeps lowest price (or highest qty on tie).
+ * Group rows by vendor_code + data_type, then collapse brand+article by type rules.
+ *
+ * Match principal: data_type + brand + article + vendor_name + vendor_code
+ *  - inventory → unique (one row, qty summed)
+ *  - sales/purchase → keep lowest + highest price only
  *
  * @param list<array<string,mixed>> $rows
- * @return array<string,array{vendor_full:string,vendor_short:string,products:list<array<string,mixed>>}>
+ * @return array<string,array{vendor_full:string,vendor_short:string,data_type:string,products:list<array<string,mixed>>}>
  */
 function epc_multivendor_group_by_vendor(array $rows): array
 {
 	$groups = array();
 	foreach ($rows as $row) {
-		$key = (string) $row['vendor_key'];
-		if ($key === '') {
+		$vendorKey = (string) ($row['vendor_key'] ?? '');
+		if ($vendorKey === '') {
 			continue;
 		}
+		$dataType = epc_multivendor_normalize_data_type((string) ($row['data_type'] ?? 'inventory'));
+		$row['data_type'] = $dataType;
+		$key = $vendorKey . '|' . $dataType;
 		if (!isset($groups[$key])) {
 			$groups[$key] = array(
 				'vendor_full' => (string) $row['vendor_full'],
 				'vendor_short' => (string) $row['vendor_short'],
+				'data_type' => $dataType,
 				'products' => array(),
 			);
 		} else {
-			// Prefer longer / clearer full name if later rows provide one.
 			if (strlen((string) $row['vendor_full']) > strlen((string) $groups[$key]['vendor_full'])) {
 				$groups[$key]['vendor_full'] = (string) $row['vendor_full'];
 			}
 		}
+		// Product key inside vendor+type: brand + article (vendor name/code already in group).
 		$prodKey = strtoupper((string) $row['manufacturer']) . '|' . (string) $row['article'];
 		if (!isset($groups[$key]['products'][$prodKey])) {
-			$groups[$key]['products'][$prodKey] = $row;
-			continue;
+			$groups[$key]['products'][$prodKey] = array();
 		}
-		$prev = $groups[$key]['products'][$prodKey];
-		$prevPrice = (float) $prev['price'];
-		$nextPrice = (float) $row['price'];
-		if ($nextPrice < $prevPrice || ($nextPrice === $prevPrice && (int) $row['exist'] > (int) $prev['exist'])) {
-			$groups[$key]['products'][$prodKey] = $row;
-		} else {
-			// Sum qty when same price offer repeats.
-			if ($nextPrice === $prevPrice) {
-				$groups[$key]['products'][$prodKey]['exist'] = (int) $prev['exist'] + (int) $row['exist'];
-			}
-		}
+		$groups[$key]['products'][$prodKey][] = $row;
 	}
 	foreach ($groups as $key => $group) {
-		$groups[$key]['products'] = array_values($group['products']);
+		$collapsed = array();
+		$dataType = (string) ($group['data_type'] ?? 'inventory');
+		foreach ($group['products'] as $candidates) {
+			foreach (epc_multivendor_collapse_product_candidates($candidates, $dataType) as $row) {
+				$collapsed[] = $row;
+			}
+		}
+		$groups[$key]['products'] = $collapsed;
 	}
 	return $groups;
 }
@@ -491,13 +640,14 @@ function epc_multivendor_write_docpart_csv(string $path, array $products): bool
 /**
  * Import one vendor bucket into its price list + warehouse.
  *
- * @param array{vendor_full:string,vendor_short:string,products:list<array<string,mixed>>} $group
+ * @param array{vendor_full:string,vendor_short:string,data_type?:string,products:list<array<string,mixed>>} $group
  * @return array<string,mixed>
  */
 function epc_multivendor_import_vendor(PDO $db, array $group): array
 {
 	$vendorShort = epc_multivendor_sanitize_short((string) ($group['vendor_short'] ?? ''));
 	$vendorFull = epc_multivendor_sanitize_full((string) ($group['vendor_full'] ?? ''));
+	$dataType = epc_multivendor_normalize_data_type((string) ($group['data_type'] ?? 'inventory'));
 	$products = isset($group['products']) && is_array($group['products']) ? $group['products'] : array();
 	if ($vendorShort === '' || $products === array()) {
 		return array('status' => false, 'message' => 'Empty vendor group', 'vendor_short' => $vendorShort);
@@ -506,7 +656,7 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 		$vendorFull = $vendorShort;
 	}
 
-	$listName = $vendorShort;
+	$listName = $vendorShort . epc_multivendor_data_type_list_suffix($dataType);
 	$price = epc_price_resolve_or_create_list($db, 0, $listName);
 	if (!$price) {
 		return array(
@@ -518,7 +668,13 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 	}
 	$priceId = (int) $price['id'];
 
-	$storageId = epc_multivendor_ensure_warehouse($db, $vendorFull, $vendorShort, $priceId);
+	$storageId = epc_multivendor_ensure_warehouse(
+		$db,
+		$vendorFull,
+		$vendorShort,
+		$priceId,
+		$dataType === 'inventory'
+	);
 
 	$tmpCsv = sys_get_temp_dir() . '/epc_mv_' . getmypid() . '_' . time() . '_' . mt_rand(1000, 9999) . '.csv';
 	if (!epc_multivendor_write_docpart_csv($tmpCsv, $products)) {
@@ -557,6 +713,7 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 			'multivendor' => true,
 			'vendor_full' => $vendorFull,
 			'vendor_short' => $vendorShort,
+			'data_type' => $dataType,
 			'storage_id' => $storageId,
 		), JSON_UNESCAPED_UNICODE),
 	));
@@ -570,6 +727,7 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 		'message' => (string) ($result['message'] ?? ''),
 		'vendor_full' => $vendorFull,
 		'vendor_short' => $vendorShort,
+		'data_type' => $dataType,
 		'price_id' => $priceId,
 		'price_name' => $listName,
 		'storage_id' => $storageId,
@@ -653,8 +811,9 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
  *
  * @return array<string,mixed>
  */
-function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $originalFilename = ''): array
+function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $originalFilename = '', string $defaultDataType = 'inventory'): array
 {
+	$defaultDataType = epc_multivendor_normalize_data_type($defaultDataType, 'inventory');
 	$converted = epc_commerce_excel_to_csv($sourcePath);
 	if (empty($converted['ok'])) {
 		return array(
@@ -664,7 +823,7 @@ function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $origin
 		);
 	}
 	$csvPath = (string) $converted['path'];
-	$read = epc_multivendor_read_source_rows($csvPath);
+	$read = epc_multivendor_read_source_rows($csvPath, $defaultDataType);
 	if ($csvPath !== $sourcePath) {
 		@unlink($csvPath);
 	}
@@ -700,14 +859,15 @@ function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $origin
 
 	$overallOk = $okCount > 0;
 	$message = $overallOk
-		? ('Imported ' . $okCount . ' vendor warehouse' . ($okCount === 1 ? '' : 's')
-			. ' (' . number_format($totalRows) . ' rows).'
-			. ($failCount > 0 ? ' ' . $failCount . ' vendor(s) failed.' : ''))
+		? ('Imported ' . $okCount . ' vendor list' . ($okCount === 1 ? '' : 's')
+			. ' (' . number_format($totalRows) . ' rows, data type rules applied).'
+			. ($failCount > 0 ? ' ' . $failCount . ' failed.' : ''))
 		: ('No vendors imported. ' . ($failCount > 0 ? $failCount . ' failed.' : 'Check columns.'));
 
 	return array(
 		'status' => $overallOk,
 		'message' => $message,
+		'data_type_default' => $defaultDataType,
 		'original_filename' => $originalFilename !== '' ? $originalFilename : basename($sourcePath),
 		'vendors_total' => count($groups),
 		'vendors_ok' => $okCount,
@@ -730,11 +890,15 @@ function epc_multivendor_sample_csv(): string
 	$lines = array(
 		array(
 			'Brand', 'Article', 'Name', 'Qty', 'Price',
-			'Vendor full name', 'Vendor short', 'Delivery',
+			'Vendor full name', 'Vendor short', 'Data type', 'Delivery',
 		),
-		array('TOYOTA', '446610010', 'PAD KIT, DISC BRAKE', '8', '103.51', 'S-UAE Trading LLC', 'S-UAE', '0'),
-		array('AISIN', 'DT068', 'WATER PUMP', '3', '45.00', 'R-UAE Spare Parts FZE', 'R-UAE', '0'),
-		array('DENSO', '0671007450', 'FILTER', '12', '22.50', 'S-UAE Trading LLC', 'S-UAE', '0'),
+		// Inventory: unique brand+article per vendor code
+		array('TOYOTA', '446610010', 'PAD KIT, DISC BRAKE', '8', '103.51', 'S-UAE Trading LLC', 'S-UAE', 'inventory', '0'),
+		array('AISIN', 'DT068', 'WATER PUMP', '3', '45.00', 'R-UAE Spare Parts FZE', 'R-UAE', 'inventory', '0'),
+		// Sales: same brand+article+vendor can repeat — import keeps only min + max price
+		array('DENSO', '0671007450', 'FILTER', '12', '18.00', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
+		array('DENSO', '0671007450', 'FILTER', '5', '22.50', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
+		array('DENSO', '0671007450', 'FILTER', '2', '29.90', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
 	);
 	$fh = fopen('php://temp', 'r+b');
 	foreach ($lines as $line) {

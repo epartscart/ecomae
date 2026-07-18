@@ -83,20 +83,21 @@
 			return '';
 		}
 		var html = '<div class="epc-multivendor-result-lists"><table class="table table-condensed table-striped"><thead><tr>' +
-			'<th>Short (customer)</th><th>Full (backend)</th><th>Status</th><th>Rows</th><th>List</th><th>Warehouse</th>' +
+			'<th>Short (customer)</th><th>Full (backend)</th><th>Type</th><th>Status</th><th>Rows</th><th>List</th><th>Warehouse</th>' +
 			'</tr></thead><tbody>';
 		vendors.forEach(function (item) {
 			var ok = !!item.status;
 			html += '<tr class="' + (ok ? 'is-ok' : 'is-fail') + '">' +
 				'<td><strong>' + escapeHtml(item.vendor_short || '') + '</strong></td>' +
 				'<td>' + escapeHtml(item.vendor_full || '') + '</td>' +
+				'<td>' + escapeHtml(item.data_type || '') + '</td>' +
 				'<td>' + (ok ? '<span class="label label-success">OK</span>' : '<span class="label label-danger">FAIL</span>') + '</td>' +
 				'<td>' + formatNum(item.records_handled || 0) + ' → DB ' + formatNum(item.records_in_db || 0) + '</td>' +
 				'<td>#' + escapeHtml(item.price_id || '') + ' ' + escapeHtml(item.price_name || '') + '</td>' +
 				'<td>#' + escapeHtml(item.storage_id || '') + '</td>' +
 				'</tr>';
 			if (item.message && !ok) {
-				html += '<tr><td colspan="6"><small class="text-danger">' + escapeHtml(item.message) + '</small></td></tr>';
+				html += '<tr><td colspan="7"><small class="text-danger">' + escapeHtml(item.message) + '</small></td></tr>';
 			}
 		});
 		html += '</tbody></table>' +
@@ -121,6 +122,10 @@
 		fd.append('csrf_guard_key', csrfKey());
 		fd.append('action', 'upload');
 		fd.append('price_file', fileInput.files[0]);
+		var typeSel = $('epcMultivendorDataType');
+		if (typeSel && typeSel.value) {
+			fd.append('data_type', typeSel.value);
+		}
 		if (btn) {
 			btn.disabled = true;
 			btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing vendors…';

@@ -43,19 +43,19 @@ window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPE
 
 	<div class="epc-multivendor-rules">
 		<article>
-			<span class="epc-multivendor-badge">Backend</span>
-			<h3>Vendor full name</h3>
-			<p>Stored as warehouse <code>name</code> for CP / logistics only. Never shown to storefront customers.</p>
+			<span class="epc-multivendor-badge">Match key</span>
+			<h3>Brand + Article + Vendor</h3>
+			<p>Matching uses <strong>data type</strong> + brand + article + vendor full name + vendor short/code.</p>
 		</article>
 		<article>
-			<span class="epc-multivendor-badge epc-multivendor-badge--short">Storefront</span>
-			<h3>Vendor short name</h3>
-			<p>Stored as warehouse <code>short_name</code>. This is the warehouse label customers see in search results.</p>
+			<span class="epc-multivendor-badge epc-multivendor-badge--short">Inventory</span>
+			<h3>No repeats</h3>
+			<p>Same key stays unique. Quantities are summed into one stock row.</p>
 		</article>
 		<article>
-			<span class="epc-multivendor-badge epc-multivendor-badge--auto">Auto</span>
-			<h3>One warehouse per short name</h3>
-			<p>Rows with the same short name go into one price list. Re-upload replaces that vendor’s stock/prices.</p>
+			<span class="epc-multivendor-badge epc-multivendor-badge--auto">Sales / Purchase</span>
+			<h3>Min + max price only</h3>
+			<p>If the same key repeats with different prices, only the <strong>lowest</strong> and <strong>highest</strong> prices are kept.</p>
 		</article>
 	</div>
 
@@ -67,10 +67,19 @@ window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPE
 			<form id="epcMultivendorIngestForm" enctype="multipart/form-data" onsubmit="return false;">
 				<input type="hidden" name="csrf_guard_key" value="<?php echo $csrf; ?>" />
 				<div class="epc-multivendor-form-grid">
+					<div class="epc-multivendor-field">
+						<label for="epcMultivendorDataType">Default data type</label>
+						<select class="form-control" name="data_type" id="epcMultivendorDataType">
+							<option value="inventory" selected>Inventory (unique stock)</option>
+							<option value="sales">Sales (keep min + max price)</option>
+							<option value="purchase">Purchase (keep min + max price)</option>
+						</select>
+						<small class="help-block">Used when the file has no <code>Data type</code> column. Per-row column overrides this.</small>
+					</div>
 					<div class="epc-multivendor-field epc-multivendor-field--wide">
 						<label for="epcMultivendorFile">Excel / CSV file</label>
 						<input class="form-control" type="file" name="price_file" id="epcMultivendorFile" accept=".csv,.txt,.xls,.xlsx" required />
-						<small class="help-block">Required columns: Brand, Article, Qty, Price, <strong>Vendor full name</strong>, <strong>Vendor short</strong>. Optional: Name, Delivery days.</small>
+						<small class="help-block">Required: Brand, Article, Price, <strong>Vendor full name</strong>, <strong>Vendor short/code</strong>. Optional: Data type, Name, Qty, Delivery.</small>
 					</div>
 				</div>
 				<div class="epc-multivendor-form-actions">
@@ -142,10 +151,16 @@ window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPE
 							<td>Backend warehouse name only</td>
 						</tr>
 						<tr>
-							<td><strong>Vendor short</strong></td>
+							<td><strong>Vendor short / code</strong></td>
 							<td>Yes</td>
-							<td>Vendor short, Warehouse, Short name, WH</td>
-							<td>Customer-facing warehouse</td>
+							<td>Vendor short, Vendor code, Warehouse, WH</td>
+							<td>Customer-facing warehouse code</td>
+						</tr>
+						<tr>
+							<td><strong>Data type</strong></td>
+							<td>No</td>
+							<td>Data type, Type, Role, Channel</td>
+							<td>inventory / sales / purchase (per row or form default)</td>
 						</tr>
 						<tr>
 							<td><strong>Delivery</strong></td>
@@ -156,7 +171,7 @@ window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPE
 					</tbody>
 				</table>
 			</div>
-			<p class="epc-multivendor-muted">Example: 100 vendors in one file → up to 100 warehouses created/updated, each with its own price list. Storefront search shows <em>S-UAE</em>, not <em>S-UAE Trading LLC</em>.</p>
+			<p class="epc-multivendor-muted">Lists: inventory uses <em>S-UAE</em>; sales uses <em>S-UAE · Sales</em>; purchase uses <em>S-UAE · Purchase</em>. Storefront warehouse label stays the short code.</p>
 		</div>
 	</div>
 </div>
