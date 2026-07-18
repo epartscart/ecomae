@@ -205,6 +205,7 @@ if($article_norm_for_cross !== '' && $epc_use_local_crosses)
 require_once($_SERVER['DOCUMENT_ROOT'].'/content/shop/docpart/docpart_genuine_manufacturers.php');
 $epc_genuine_catalog_url = (isset($multilang_params['lang_href']) ? $multilang_params['lang_href'] : '') . '/umapi_catalog';
 $epc_genuine_part_type_index = epc_genuine_build_frontend_index($db_link, isset($DP_Config) ? $DP_Config : null, $epc_genuine_catalog_url);
+$GLOBALS['epc_genuine_part_type_index'] = $epc_genuine_part_type_index;
 
 // Поиск по наименованию в каталоге и прайс листах
 $name_search_enabled = true;// Настройка поиска: включен / выключен
@@ -1026,9 +1027,9 @@ if (function_exists('sys_getloadavg')) {
 }
 if ($epc_article_only_price_bunch) {
 	try {
-		// Under extreme load, skip SSR price SQL so the HTML shell returns before CF 524.
-		// Client still paints via ajax_getProductsOfBunch / epcRunChpuPriceSearch.
-		if ($epc_host_load1 !== null && $epc_host_load1 >= 14.0) {
+		// Only skip SSR warehouse SQL under extreme load. Skipping too early leaves
+		// guests with an empty #products_area ("Goods not found") when ajax is slow.
+		if ($epc_host_load1 !== null && $epc_host_load1 >= 22.0) {
 			throw new RuntimeException('load_shed_ssr_bunch');
 		}
 		$epc_ss_price_bunches = array();
@@ -1090,7 +1091,12 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 		: '';
 	$currencyLabel = trim((string) $currency_indicator);
 	$priceHeader = $currencyLabel !== '' ? ('Price, ' . htmlspecialchars($currencyLabel, ENT_QUOTES, 'UTF-8')) : 'Price';
-	$rows = '';
+	$oeRows = '';
+	$amRows = '';
+	$genuineBrands = array();
+	if (!empty($GLOBALS['epc_genuine_part_type_index']['brands']) && is_array($GLOBALS['epc_genuine_part_type_index']['brands'])) {
+		$genuineBrands = $GLOBALS['epc_genuine_part_type_index']['brands'];
+	}
 	foreach ($products as $product) {
 		if (!is_array($product)) {
 			continue;
@@ -1119,7 +1125,12 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 				. htmlspecialchars($warehouse, ENT_QUOTES, 'UTF-8')
 				. '</span></div>';
 		}
-		$rows .= '<tr class="epc-part-type-row--genuine epc-ssr-warehouse-row">'
+		$brandKey = function_exists('docpart_synonym_normalize_brand')
+			? docpart_synonym_normalize_brand($brand)
+			: strtoupper(preg_replace('/\s+/', '', $brand));
+		$isOe = ($brandKey !== '' && !empty($genuineBrands[$brandKey]));
+		$rowClass = $isOe ? 'epc-part-type-row--genuine' : 'epc-part-type-row--aftermarket';
+		$rowHtml = '<tr class="' . $rowClass . ' epc-ssr-warehouse-row">'
 			. '<td class="td_photo"></td>'
 			. '<td class="td_manufacturer"><span>' . htmlspecialchars($brand, ENT_QUOTES, 'UTF-8') . '</span></td>'
 			. '<td class="td_article"><strong>' . htmlspecialchars($articleShow, ENT_QUOTES, 'UTF-8') . '</strong></td>'
@@ -1131,11 +1142,25 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 			. '<td class="td_add_to_cart"><span class="epc-ssr-actions-pending" style="font-size:11px;color:#64748b">Loading actions…</span></td>'
 			. '<td class="td_color"></td>'
 			. '</tr>';
+		if ($isOe) {
+			$oeRows .= $rowHtml;
+		} else {
+			$amRows .= $rowHtml;
+		}
 	}
-	if ($rows === '') {
+	if ($oeRows === '' && $amRows === '') {
 		return '';
 	}
-	$count = substr_count($rows, '<tr');
+	$oeCount = $oeRows === '' ? 0 : substr_count($oeRows, '<tr');
+	$amCount = $amRows === '' ? 0 : substr_count($amRows, '<tr');
+	$count = $oeCount + $amCount;
+	$body = '';
+	if ($oeCount > 0) {
+		$body .= '<tr class="epc-part-type-caption epc-part-type-caption--genuine"><td colspan="10"><span class="epc-part-type-pill">Genuine (OE) (' . (int) $oeCount . ')</span></td></tr>' . $oeRows;
+	}
+	if ($amCount > 0) {
+		$body .= '<tr class="epc-part-type-caption epc-part-type-caption--aftermarket"><td colspan="10"><span class="epc-part-type-pill">Aftermarket (' . (int) $amCount . ')</span></td></tr>' . $amRows;
+	}
 	$banner = '<div class="epc-ssr-warehouse-banner" style="margin:0 0 10px;padding:10px 12px;border:1px solid #bbf7d0;border-radius:8px;background:#f0fdf4;color:#14532d;font-size:13px;text-align:left">'
 		. '<strong>UAE warehouse stock</strong> — ' . (int) $count . ' offer'
 		. ((int) $count === 1 ? '' : 's')
@@ -1155,8 +1180,7 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 		. '<th class="th_add_to_cart">Actions</th>'
 		. '<th class="th_color"></th>'
 		. '</tr></thead><tbody>'
-		. '<tr class="epc-part-type-caption epc-part-type-caption--genuine"><td colspan="10"><span class="epc-part-type-pill">Genuine (OE) (' . (int) $count . ')</span></td></tr>'
-		. $rows
+		. $body
 		. '</tbody></table>';
 }
 
@@ -1883,6 +1907,112 @@ function epcMergeCatalogBrandsIntoPicker(catalogManufacturers)
 		addManufacturersToList(merged);
 	}
 }
+function epcBrandPickerMergeBrandsFromStockProducts(products)
+{
+	if(!products || !products.length)
+	{
+		return;
+	}
+	var brands = [];
+	var seen = {};
+	for(var i = 0; i < products.length; i++)
+	{
+		var p = products[i] || {};
+		var brand = String(p.manufacturer || p.manufacturer_show || p.brand || '').trim();
+		if(!brand)
+		{
+			continue;
+		}
+		var key = brand.toUpperCase();
+		if(seen[key])
+		{
+			continue;
+		}
+		seen[key] = true;
+		brands.push({
+			manufacturer: brand,
+			manufacturer_show: brand,
+			name: String(p.name || ''),
+			have_price: 1
+		});
+	}
+	if(brands.length)
+	{
+		epcMergeCatalogBrandsIntoPicker(brands);
+	}
+}
+function epcBrandPickerFetchStockPreview()
+{
+	if(typeof epc_brand_picker_mode === 'undefined' || !epc_brand_picker_mode)
+	{
+		return Promise.resolve(false);
+	}
+	if(typeof epc_initial_price_bunch !== 'undefined' && epc_initial_price_bunch && epc_initial_price_bunch.Products && epc_initial_price_bunch.Products.length)
+	{
+		return Promise.resolve(true);
+	}
+	if(typeof office_storage_bunches === 'undefined' || !office_storage_bunches || !office_storage_bunches.length)
+	{
+		return Promise.resolve(false);
+	}
+	var nested = null;
+	for(var i = 0; i < office_storage_bunches.length; i++)
+	{
+		if(parseInt(office_storage_bunches[i].protocol_version, 10) === 3 && office_storage_bunches[i].office_storage_bunches && office_storage_bunches[i].office_storage_bunches.length)
+		{
+			nested = office_storage_bunches[i].office_storage_bunches;
+			break;
+		}
+	}
+	if(!nested)
+	{
+		return Promise.resolve(false);
+	}
+	var article = epcChpuBrandPickerArticle();
+	if(!article)
+	{
+		return Promise.resolve(false);
+	}
+	var search_object_clone = {
+		article: article,
+		manufacturers: [],
+		analogs: [],
+		office_storage_bunches: nested
+	};
+	var priceFetchUrl = '<?= $DP_Config->domain_path . 'content/shop/docpart/ajax_getProductsOfBunch.php' ?>';
+	var query = 'geo_id=<?= $geo_id ?>&async=1&tech_key=<?= urlencode($DP_Config->tech_key) ?>&user_id=<?= $user_id ?>&group_id=<?= $group_id ?>&office_id=0&storage_id=0&query=' + encodeURIComponent(JSON.stringify(search_object_clone));
+	return epcFetchJsonWithTimeout(
+		priceFetchUrl,
+		{
+			method: 'POST',
+			headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'},
+			body: query,
+			credentials: 'same-origin'
+		},
+		45000,
+		null
+	).then(function(chunk) {
+		if(!chunk || parseInt(chunk.result, 10) !== 1 || !chunk.Products || !chunk.Products.length)
+		{
+			return false;
+		}
+		epc_initial_price_bunch = {
+			result: 1,
+			storage_id: 0,
+			Products: chunk.Products
+		};
+		epc_brand_picker_stock_preview = true;
+		epcBrandPickerMergeBrandsFromStockProducts(chunk.Products);
+		if(typeof epcApplyInitialPriceBunch === 'function')
+		{
+			epcApplyInitialPriceBunch();
+		}
+		return true;
+	}).catch(function(err) {
+		console.error('epcBrandPickerFetchStockPreview', err);
+		return false;
+	});
+}
 function epcFetchCatalogArticleBrands()
 {
 	if(typeof epc_brand_picker_mode === 'undefined' || !epc_brand_picker_mode)
@@ -2306,6 +2436,23 @@ function epcChpuHideProcessingIndicator()
 		processing.style.display = 'none';
 	}
 }
+function epcChpuAreaHasStockPaint(area)
+{
+	if(!area || !area.innerHTML)
+	{
+		return false;
+	}
+	if(area.querySelector && area.querySelector('.epc-ssr-warehouse-table, .epc-ssr-warehouse-row, .epc-product-actions, .epc-btn-cart, .epc-btn-quote'))
+	{
+		return true;
+	}
+	var html = area.innerHTML;
+	return html.indexOf('all_table_products') !== -1
+		&& (html.indexOf('epc-ssr-warehouse') !== -1
+			|| html.indexOf('epc-product-actions') !== -1
+			|| html.indexOf('epc-btn-cart') !== -1
+			|| html.indexOf('td_exist') !== -1);
+}
 function epcChpuApplyCombinedResults(priceData)
 {
 	var processing = document.getElementById('processing_indicator');
@@ -2428,12 +2575,41 @@ function epcChpuApplyCombinedResults(priceData)
 			{
 				epcChpuEnsureCrossStockTableVisible(crossStock, false);
 			}
+			// resultReview can filter everything away; restore warehouse/actions paint.
+			if(productsArea && !epcChpuAreaHasStockPaint(productsArea))
+			{
+				if(crossStock.length && typeof epcChpuEnsureCrossStockTableVisible === 'function' && epcChpuEnsureCrossStockTableVisible(crossStock, false))
+				{
+					// restored from cross stock
+				}
+				else if(typeof epcApplyInitialPriceBunch === 'function')
+				{
+					epcApplyInitialPriceBunch();
+				}
+				else if(typeof epcChpuBuildDirectStockTableHtml === 'function')
+				{
+					var rebuildHtml = epcChpuBuildDirectStockTableHtml();
+					if(rebuildHtml)
+					{
+						productsArea.innerHTML = rebuildHtml;
+					}
+				}
+			}
 		}
 		else if(productsArea)
 		{
 			if(typeof epcChpuEnsureCrossStockTableVisible === 'function' && epcChpuEnsureCrossStockTableVisible(crossStock, false))
 			{
 				// Cross stock table rendered without standard resultReview rows.
+			}
+			else if(epcChpuAreaHasStockPaint(productsArea))
+			{
+				// Keep SSR / prior warehouse paint; do not replace with "Goods not found".
+				epcChpuHideProcessingIndicator();
+			}
+			else if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+			{
+				epcChpuHideProcessingIndicator();
 			}
 			else if(typeof epcPartSearchShouldShowUnavailableNotice === 'function' && !epcPartSearchShouldShowUnavailableNotice())
 			{
@@ -2508,13 +2684,23 @@ function epcChpuApplyCombinedResults(priceData)
 	catch(err)
 	{
 		console.error('epcChpuApplyCombinedResults', err);
+		if(productsArea && epcChpuAreaHasStockPaint(productsArea))
+		{
+			epcChpuHideProcessingIndicator();
+			return true;
+		}
+		if(productsArea && typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+		{
+			epcChpuHideProcessingIndicator();
+			return true;
+		}
 		if(productsArea && (!productsArea.innerHTML || productsArea.innerHTML.replace(/\s/g, '') === ''))
 		{
 			productsArea.innerHTML = (typeof epcPartSearchNotAvailableHTML === 'function')
 				? epcPartSearchNotAvailableHTML()
 				: "<p><?php echo translate_str_by_id(4078); ?></p>";
 		}
-		if(processing)
+		if(processing && productsArea && !epcChpuAreaHasStockPaint(productsArea))
 		{
 			epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4078); ?></p>");
 		}
@@ -2573,7 +2759,22 @@ function epcRunChpuPriceSearch()
 		epcResetChpuFilterState();
 	}
 	Products_All_Asked = false;
-	epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4294); ?></p><img src=\"/content/files/images/ajax-loader-transparent.gif\" /><br><br>");
+	var productsAreaNow = document.getElementById('products_area');
+	var alreadyHasStock = typeof epcChpuAreaHasStockPaint === 'function' && epcChpuAreaHasStockPaint(productsAreaNow);
+	if(!alreadyHasStock && typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+	{
+		alreadyHasStock = true;
+		productsAreaNow = document.getElementById('products_area');
+	}
+	// Keep warehouse rows visible; only show the warehouse spinner when area is empty.
+	if(!alreadyHasStock)
+	{
+		epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4294); ?></p><img src=\"/content/files/images/ajax-loader-transparent.gif\" /><br><br>");
+	}
+	else
+	{
+		epcChpuHideProcessingIndicator();
+	}
 	var priceFetchPromise = null;
 	var priceFetchUrl = '<?= $DP_Config->domain_path . 'content/shop/docpart/ajax_getProductsOfBunch.php' ?>';
 	var priceFetchOpts = {
@@ -2613,7 +2814,7 @@ function epcRunChpuPriceSearch()
 				body: query,
 				credentials: priceFetchOpts.credentials
 			},
-			12000,
+			45000,
 			null
 		).then(function(chunk) {
 			if(!chunk || parseInt(chunk.result, 10) !== 1 || !chunk.Products || !chunk.Products.length)
@@ -2925,9 +3126,8 @@ function epcChpuStartFullPriceSearch(manufacturer_show)
 	var keepInitialWarehousePaint = (
 		initialArticleKeep !== ''
 		&& initialArticleKeep === currentArticleKeep
-		&& productsArea
-		&& productsArea.innerHTML
-		&& productsArea.innerHTML.indexOf('all_table_products') !== -1
+		&& typeof epcChpuAreaHasStockPaint === 'function'
+		&& epcChpuAreaHasStockPaint(productsArea)
 	);
 	// Never blank a successful warehouse paint while the slow supplier poll runs —
 	// a 524/empty ajax response used to leave guests with an empty results area.
@@ -6716,15 +6916,16 @@ if( $search_type == "no_chpu" || !empty($epc_brand_picker_mode) )
 	epcRunPartSearchBootstrapWhenReady(function(){
 	epcBrandPickerWarehouseDone = false;
 	epcBrandPickerCatalogDone = false;
-	if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+	function epcBrandPickerAfterStockReady(hasStock)
 	{
-		epcBrandPickerWarehouseDone = true;
-		epcBrandPickerCatalogDone = true;
-		epcTryFinalizeBrandPicker();
-		epcFetchCatalogArticleBrands();
-	}
-	else
-	{
+		if(hasStock)
+		{
+			epcBrandPickerWarehouseDone = true;
+			epcBrandPickerCatalogDone = true;
+			epcTryFinalizeBrandPicker();
+			epcFetchCatalogArticleBrands();
+			return;
+		}
 		epcFetchCatalogArticleBrands();
 		<?php
 		if((int)$DP_Config->is_async_search == 1)
@@ -6740,6 +6941,20 @@ if( $search_type == "no_chpu" || !empty($epc_brand_picker_mode) )
 		<?php
 		}
 		?>
+	}
+	if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+	{
+		epcBrandPickerAfterStockReady(true);
+	}
+	else if(typeof epcBrandPickerFetchStockPreview === 'function')
+	{
+		epcBrandPickerFetchStockPreview().then(function(ok) {
+			epcBrandPickerAfterStockReady(!!ok);
+		});
+	}
+	else
+	{
+		epcBrandPickerAfterStockReady(false);
 	}
 	});
 	<?php
