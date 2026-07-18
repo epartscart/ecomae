@@ -1,0 +1,180 @@
+/* Order statuses CP — modern editor chrome around Webix trees */
+.epc-statuses-page {
+	--es-ink: #0f172a;
+	--es-muted: #64748b;
+	--es-line: #e2e8f0;
+	--es-soft: #f8fafc;
+	--es-accent: #2563eb;
+	margin-bottom: 24px;
+}
+
+.epc-statuses-page__hero {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 14px;
+	margin: 0 0 16px;
+	padding: 18px 20px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+	color: #f8fafc;
+}
+.epc-statuses-page__hero h2 {
+	margin: 0 0 6px;
+	font-size: 1.3rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+.epc-statuses-page__hero p {
+	margin: 0;
+	max-width: 42rem;
+	font-size: 13px;
+	line-height: 1.45;
+	opacity: 0.92;
+}
+.epc-statuses-page__hero-actions .btn {
+	border-radius: 8px;
+	font-weight: 600;
+}
+
+.epc-statuses-card {
+	background: #fff;
+	border: 1px solid var(--es-line);
+	border-radius: 14px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+	margin-bottom: 14px;
+	overflow: hidden;
+}
+.epc-statuses-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 12px 16px;
+	background: var(--es-soft);
+	border-bottom: 1px solid var(--es-line);
+}
+.epc-statuses-card__head h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--es-ink);
+}
+.epc-statuses-card__head span {
+	font-size: 12px;
+	color: var(--es-muted);
+}
+.epc-statuses-card__body {
+	padding: 14px 16px 16px;
+}
+
+.epc-statuses-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0 0 12px;
+}
+.epc-statuses-toolbar .btn {
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 12px;
+}
+.epc-statuses-toolbar .btn i {
+	margin-right: 4px;
+}
+
+.epc-statuses-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+	gap: 12px;
+	align-items: start;
+}
+.epc-statuses-tree {
+	min-height: 360px;
+	height: 380px;
+	border: 1px solid var(--es-line);
+	border-radius: 12px;
+	background: #fff;
+	overflow: hidden;
+}
+.epc-statuses-tree .webix_view {
+	background: transparent;
+}
+.epc-statuses-info {
+	min-height: 200px;
+	border: 1px solid var(--es-line);
+	border-radius: 12px;
+	background: var(--es-soft);
+	padding: 12px;
+}
+.epc-statuses-info:empty::before {
+	content: "Select a status to edit color and notifications";
+	display: block;
+	color: var(--es-muted);
+	font-size: 13px;
+	padding: 24px 8px;
+	text-align: center;
+}
+.epc-statuses-info .table {
+	margin: 0;
+	background: #fff;
+	border-radius: 8px;
+	overflow: hidden;
+}
+.epc-statuses-info .table td {
+	font-size: 13px;
+	vertical-align: middle !important;
+}
+
+.epc-statuses-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+.epc-statuses-legend__item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: 8px;
+	background: var(--es-soft);
+	border: 1px solid var(--es-line);
+	font-size: 12px;
+	color: var(--es-ink);
+}
+.epc-statuses-tree .webix_tree,
+.epc-statuses-tree .webix_view {
+	width: 100% !important;
+	height: 100% !important;
+}
+.epc-statuses-legend__item img {
+	width: 16px;
+	height: 16px;
+}
+
+.epc-statuses-hint {
+	margin: 0 0 14px;
+	padding: 10px 14px;
+	border-radius: 10px;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	color: #1e3a8a;
+	font-size: 13px;
+}
+.epc-statuses-hint strong { font-weight: 700; }
+
+.epc-statuses-page .col_img_popup {
+	width: 18px;
+	height: 18px;
+}
+
+@media (max-width: 992px) {
+	.epc-statuses-layout {
+		grid-template-columns: 1fr;
+	}
+	.epc-statuses-tree {
+		height: 300px;
+	}
+}

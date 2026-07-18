@@ -66,10 +66,12 @@ if(isset($_POST["save_action"]))
         }
     }
 	//Теперь удаляем статусы, которые были удалены при редактировании
-	$orders_statuses_ids_exist_str = "(".$orders_statuses_ids_exist_str.")";
-	if(! $db_link->prepare("DELETE FROM `shop_orders_statuses_ref` WHERE `id` NOT IN $orders_statuses_ids_exist_str;")->execute())
-	{
-		$no_error = false;
+	if ($orders_statuses_ids_exist_str !== '') {
+		$orders_statuses_ids_exist_str = "(".$orders_statuses_ids_exist_str.")";
+		if(! $db_link->prepare("DELETE FROM `shop_orders_statuses_ref` WHERE `id` NOT IN $orders_statuses_ids_exist_str;")->execute())
+		{
+			$no_error = false;
+		}
 	}
     
     
@@ -125,10 +127,12 @@ if(isset($_POST["save_action"]))
 			}
     }
     //Теперь удаляем статусы, которые были удалены при редактировании
-	$orders_items_statuses_ids_exist_str = "(".$orders_items_statuses_ids_exist_str.")";
-	if(! $db_link->prepare("DELETE FROM `shop_orders_items_statuses_ref` WHERE `id` NOT IN $orders_items_statuses_ids_exist_str;")->execute())
-	{
-		$no_error = false;
+	if ($orders_items_statuses_ids_exist_str !== '') {
+		$orders_items_statuses_ids_exist_str = "(".$orders_items_statuses_ids_exist_str.")";
+		if(! $db_link->prepare("DELETE FROM `shop_orders_items_statuses_ref` WHERE `id` NOT IN $orders_items_statuses_ids_exist_str;")->execute())
+		{
+			$no_error = false;
+		}
 	}
 	
 	
@@ -161,216 +165,99 @@ else//Действий нет - выводим страницу
 	//Для работы с пользователем
 	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 	$user_session = DP_User::getAdminSession();
-	
+	$epc_st_img = '/' . $DP_Config->backend_dir . '/templates/' . $DP_Template->name . '/images';
+	$epc_st_backend = htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8');
 	
     ?>
     <?php
-        require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
+        $epc_actions_alert = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/actions_alert.php';
+        if (is_file($epc_actions_alert)) {
+            require_once $epc_actions_alert;
+        }
     ?>
-    
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2113); ?>
-			</div>
-			<div class="panel-body">
-				<a class="panel_a" onClick="save_action();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/save.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2114); ?></div>
-				</a>
-				
 
-				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
-				</a>
+	<div class="col-lg-12 epc-statuses-page">
+		<div class="epc-statuses-page__hero">
+			<div>
+				<h2><i class="fa fa-flag"></i> Order statuses</h2>
+				<p>Configure order and line-item statuses used across the orders desk. Drag to reorder, double-click to rename, then <strong>Save</strong>.</p>
+			</div>
+			<div class="epc-statuses-page__hero-actions">
+				<button type="button" class="btn btn-primary btn-sm" onclick="save_action();"><i class="fa fa-save"></i> <?php echo translate_str_by_id(2114); ?></button>
+				<a class="btn btn-default btn-sm" href="/<?php echo $epc_st_backend; ?>/shop/orders/orders"><i class="fa fa-shopping-basket"></i> Orders</a>
 			</div>
 		</div>
-	</div>
-	
-	
-    
-    
+
+		<div class="epc-statuses-hint">
+			<strong>Tips:</strong> Select a status → set role flags (created / paid / finished / cancelled). Click the colour square to change colour. At least one line-item status must be marked “exclude from totals”.
+		</div>
+
+		<div class="row">
 	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(765); ?>
+		<div class="epc-statuses-card">
+			<div class="epc-statuses-card__head">
+				<h3><?php echo translate_str_by_id(765); ?></h3>
+				<span>Order-level</span>
 			</div>
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-lg-12" style="margin-bottom: 2px;">
-						<a href="javascript:void(0);" onclick="a_add_item();" title="<?php echo translate_str_by_id(2267); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/add.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="a_delete_item();" title="<?php echo translate_str_by_id(2224); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/delete.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="a_set_for_created();" title="<?php echo translate_str_by_id(3643); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/file.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="a_set_for_paid();" title="<?php echo translate_str_by_id(5329); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/currencies.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="a_set_for_finish();" title="<?php echo translate_str_by_id(5330); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/check.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="a_set_for_inverse();" title="<?php echo translate_str_by_id(5331); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/lock.png" class="col_img_popup">
-						</a>
-					</div>
-					<div class="col-lg-6">
-						<div id="container_A" style="height:300px;">
-                        </div>
-					</div>
-					<div class="col-lg-6">
-						<div id="order_statuses_info_div">
-                        </div>
-					</div>
+			<div class="epc-statuses-card__body">
+				<div class="epc-statuses-toolbar">
+					<button type="button" class="btn btn-default btn-sm" onclick="a_add_item();" title="<?php echo translate_str_by_id(2267); ?>"><i class="fa fa-plus"></i> Add</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="a_delete_item();" title="<?php echo translate_str_by_id(2224); ?>"><i class="fa fa-trash"></i> Delete</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="a_set_for_created();" title="<?php echo translate_str_by_id(3643); ?>"><i class="fa fa-file-o"></i> Created</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="a_set_for_paid();" title="<?php echo translate_str_by_id(5329); ?>"><i class="fa fa-money"></i> Paid</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="a_set_for_finish();" title="<?php echo translate_str_by_id(5330); ?>"><i class="fa fa-check"></i> Finished</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="a_set_for_inverse();" title="<?php echo translate_str_by_id(5331); ?>"><i class="fa fa-lock"></i> Cancelled</button>
 				</div>
-			</div>
-		</div>
-		
-		<div class="hpanel">
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-lg-12" style="margin-bottom: 2px;">
-						<table class="table">
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/add.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5332); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/delete.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5333); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/file.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5334); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/currencies.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5335); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/check.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5336); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/lock.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5337); ?></td>
-							</tr>
-						</table>
-					</div>
+				<div class="epc-statuses-layout">
+					<div id="container_A" class="epc-statuses-tree"></div>
+					<div id="order_statuses_info_div" class="epc-statuses-info"></div>
+				</div>
+				<div class="epc-statuses-legend">
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/file.png" alt=""> <?php echo translate_str_by_id(5334); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/currencies.png" alt=""> <?php echo translate_str_by_id(5335); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/check.png" alt=""> <?php echo translate_str_by_id(5336); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/lock.png" alt=""> <?php echo translate_str_by_id(5337); ?></span>
 				</div>
 			</div>
 		</div>
 	</div>
-	
-	
-	
-	
+
 	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(3645); ?>
+		<div class="epc-statuses-card">
+			<div class="epc-statuses-card__head">
+				<h3><?php echo translate_str_by_id(3645); ?></h3>
+				<span>Line-item</span>
 			</div>
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-lg-12" style="margin-bottom: 2px;">
-						<a href="javascript:void(0);" onclick="b_add_item();" title="<?php echo translate_str_by_id(2267); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/add.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_delete_item();" title="<?php echo translate_str_by_id(2224); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/delete.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_set_for_created();" title="<?php echo translate_str_by_id(5338); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/file.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_set_issue_flag_inverse();" title="<?php echo translate_str_by_id(3647); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/cargo.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_set_for_finish();" title="<?php echo translate_str_by_id(5339); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/check.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_count_flag_inverse();" title="<?php echo translate_str_by_id(5340); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/not_count.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_check_for_return();" title="<?php echo translate_str_by_id(5670); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/update.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_set_for_return();" title="<?php echo translate_str_by_id(5671); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/out.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_set_complete_return();" title="<?php echo translate_str_by_id(5672); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/in.png" class="col_img_popup">
-						</a>
-						<a href="javascript:void(0);" onclick="b_set_reject_return();" title="<?php echo translate_str_by_id(5673); ?>">
-							<img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/content_delete.png" class="col_img_popup">
-						</a>
-					</div>
-					<div class="col-lg-6">
-						<div id="container_B" style="height:300px;">
-                        </div>
-					</div>
-					<div class="col-lg-6">
-						<div id="order_items_statuses_info_div">
-                        </div>
-					</div>
+			<div class="epc-statuses-card__body">
+				<div class="epc-statuses-toolbar">
+					<button type="button" class="btn btn-default btn-sm" onclick="b_add_item();" title="<?php echo translate_str_by_id(2267); ?>"><i class="fa fa-plus"></i> Add</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_delete_item();" title="<?php echo translate_str_by_id(2224); ?>"><i class="fa fa-trash"></i> Delete</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_set_for_created();" title="<?php echo translate_str_by_id(5338); ?>"><i class="fa fa-file-o"></i> Created</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_set_issue_flag_inverse();" title="<?php echo translate_str_by_id(3647); ?>"><i class="fa fa-truck"></i> Issued</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_set_for_finish();" title="<?php echo translate_str_by_id(5339); ?>"><i class="fa fa-check"></i> Finished</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_count_flag_inverse();" title="<?php echo translate_str_by_id(5340); ?>"><i class="fa fa-calculator"></i> Totals</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_check_for_return();" title="<?php echo translate_str_by_id(5670); ?>"><i class="fa fa-refresh"></i> Return check</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_set_for_return();" title="<?php echo translate_str_by_id(5671); ?>"><i class="fa fa-sign-out"></i> Return</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_set_complete_return();" title="<?php echo translate_str_by_id(5672); ?>"><i class="fa fa-sign-in"></i> Return done</button>
+					<button type="button" class="btn btn-default btn-sm" onclick="b_set_reject_return();" title="<?php echo translate_str_by_id(5673); ?>"><i class="fa fa-ban"></i> Return reject</button>
+				</div>
+				<div class="epc-statuses-layout">
+					<div id="container_B" class="epc-statuses-tree"></div>
+					<div id="order_items_statuses_info_div" class="epc-statuses-info"></div>
+				</div>
+				<div class="epc-statuses-legend">
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/file.png" alt=""> <?php echo translate_str_by_id(5341); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/cargo.png" alt=""> <?php echo translate_str_by_id(5342); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/check.png" alt=""> <?php echo translate_str_by_id(5343); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/not_count.png" alt=""> <?php echo translate_str_by_id(5344); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/update.png" alt=""> <?php echo translate_str_by_id(5674); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/out.png" alt=""> <?php echo translate_str_by_id(5675); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/in.png" alt=""> <?php echo translate_str_by_id(5676); ?></span>
+					<span class="epc-statuses-legend__item"><img src="<?php echo htmlspecialchars($epc_st_img, ENT_QUOTES, 'UTF-8'); ?>/content_delete.png" alt=""> <?php echo translate_str_by_id(5677); ?></span>
 				</div>
 			</div>
 		</div>
-		
-		<div class="hpanel">
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-lg-12" style="margin-bottom: 2px;">
-						<table class="table">
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/add.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5332); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/delete.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5333); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/file.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5341); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/cargo.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5342); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/check.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5343); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/not_count.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5344); ?></td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/update.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5674); ?>.</td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/out.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5675); ?>.</td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/in.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5676); ?>.</td>
-							</tr>
-							<tr>
-								<td><img src="/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/content_delete.png" class="col_img_popup"></td>
-								<td><?php echo translate_str_by_id(5677); ?>.</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-			</div>
+	</div>
 		</div>
 	</div>
 	
@@ -615,6 +502,7 @@ else//Действий нет - выводим страницу
         
         });
         /*~ДЕРЕВО*/
+		try { a_tree.adjust(); } catch (e) {}
 		webix.event(window, "resize", function(){ a_tree.adjust(); });
         //--------------------------------------------------------------------------------------
         //Событие при выборе элемента дерева
@@ -963,6 +851,7 @@ else//Действий нет - выводим страницу
         
         });
         /*~ДЕРЕВО*/
+		try { b_tree.adjust(); } catch (e) {}
 		webix.event(window, "resize", function(){ b_tree.adjust(); });
         //--------------------------------------------------------------------------------------
         //Событие при выборе элемента дерева
