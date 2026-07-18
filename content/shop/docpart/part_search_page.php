@@ -1125,10 +1125,12 @@ if (!empty($epc_chpu_direct_pricing) && !empty($manufacturer)) {
 						break;
 					}
 				}
+				$epc_boot_mfr = mb_strtoupper(trim((string)$bootstrap_row['manufacturer']), 'UTF-8');
 				$epc_chpu_manufacturer_bootstrap[] = array(
 					'manufacturer' => $bootstrap_row['manufacturer'],
 					'manufacturer_id' => 0,
-					'manufacturer_show' => $epc_mfr_show,
+					// Keep the warehouse brand as stored (AISINC ≠ AISIN).
+					'manufacturer_show' => $epc_boot_mfr !== '' ? $epc_boot_mfr : $epc_mfr_show,
 					'name' => '',
 					'storage_id' => $storage_id,
 					'office_id' => $office_id,

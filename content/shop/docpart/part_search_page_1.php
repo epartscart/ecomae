@@ -2657,7 +2657,8 @@ function epcChpuFindEquivalentGroupKey(groupKey, groupsMap)
 		{
 			continue;
 		}
-		if(epcSameManufacturer(existingParts[0], parts[0]) || epcCrossBrandsEquivalent(existingParts[0], parts[0]))
+		// Exact manufacturer equality only — do not merge AISINC into AISIN via synonyms.
+		if(epcSameManufacturer(existingParts[0], parts[0]))
 		{
 			return existingKey;
 		}
@@ -3315,18 +3316,11 @@ function epcSameManufacturer(left, right)
 	{
 		return true;
 	}
+	// Exact brand match only (case-insensitive). Do not prefix-match or use
+	// synonym map here — warehouse brands like AISINC must stay distinct from AISIN.
 	var leftNorm = String(left || '').trim().toUpperCase();
 	var rightNorm = String(right || '').trim().toUpperCase();
-	if(leftNorm === rightNorm)
-	{
-		return true;
-	}
-	// Synonym map only — never prefix-match (AISINC must not equal AISIN).
-	if(typeof epcCrossBrandsEquivalent === 'function')
-	{
-		return epcCrossBrandsEquivalent(leftNorm, rightNorm);
-	}
-	return false;
+	return leftNorm !== '' && leftNorm === rightNorm;
 }
 
 //Обработка полученного результата
