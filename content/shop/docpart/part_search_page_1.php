@@ -3361,7 +3361,8 @@ function bindBunchResult(answer)
     {
 		if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
 		{
-			answer.Products[i].manufacturer = epcCrossCanonicalBrand(answer.Products[i].manufacturer);
+			// Keep warehouse brand labels as returned (AISINC must not become AISIN).
+			answer.Products[i].manufacturer = String(answer.Products[i].manufacturer || '').trim();
 			if(!answer.Products[i].storage_caption)
 			{
 				var sid = parseInt(answer.Products[i].storage_id, 10);
