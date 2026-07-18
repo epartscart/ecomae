@@ -810,6 +810,8 @@ if(!empty($DP_Template->data_value->message_header)){
 
 	<?php
 	$epc_header_vehicle_catalog_url = rtrim($multilang_params['lang_href'], '/') . '/vehicle-catalog';
+	// Top VIN search must use Laximo OEM catalog (same as homepage VIN tab).
+	$epc_header_laximo_url = rtrim($multilang_params['lang_href'], '/') . '/katalog-laximo';
 	$header_search_form_1_hidden = '';
 	$header_search_form_2_hidden = 'hidden';
 	$header_search_form_3_hidden = 'hidden';
@@ -875,9 +877,13 @@ if(!empty($DP_Template->data_value->message_header)){
 											</span>
 										</div>
 									</form>
-									<form action="<?php echo htmlspecialchars($epc_header_vehicle_catalog_url, ENT_QUOTES, 'UTF-8'); ?>" method="GET" class="header_search_form_3 <?=$header_search_form_3_hidden;?>" onsubmit="return epcHeaderVinSubmit(this);">
+									<form action="<?php echo htmlspecialchars($epc_header_laximo_url, ENT_QUOTES, 'UTF-8'); ?>" method="GET" class="header_search_form_3 <?=$header_search_form_3_hidden;?>" onsubmit="return epcHeaderVinSubmit(this);">
+										<input type="hidden" name="task" value="vehicles" />
+										<input type="hidden" name="ft" value="FindVehicle" />
+										<input type="hidden" name="c" value="" />
+										<input type="hidden" name="ssd" value="" />
 										<div class="input-group">
-											<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="Enter VIN (11–17 characters)" name="vin" maxlength="17" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+											<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="Enter VIN / Frame (Laximo)" name="identString" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" />
 											<span class="input-group-btn">
 												<button class="btn btn-ar btn-primary" type="submit"><?php echo translate_str_by_id(2763); ?></button>
 											</span>
@@ -1100,9 +1106,13 @@ if(!empty($DP_Template->data_value->message_header)){
 								</span>
 							</div>
 						</form>
-						<form action="<?php echo htmlspecialchars($epc_header_vehicle_catalog_url, ENT_QUOTES, 'UTF-8'); ?>" method="GET" class="header_search_form_3 <?=$header_search_form_3_hidden;?>" onsubmit="return epcHeaderVinSubmit(this);">
+						<form action="<?php echo htmlspecialchars($epc_header_laximo_url, ENT_QUOTES, 'UTF-8'); ?>" method="GET" class="header_search_form_3 <?=$header_search_form_3_hidden;?>" onsubmit="return epcHeaderVinSubmit(this);">
+							<input type="hidden" name="task" value="vehicles" />
+							<input type="hidden" name="ft" value="FindVehicle" />
+							<input type="hidden" name="c" value="" />
+							<input type="hidden" name="ssd" value="" />
 							<div class="input-group">
-								<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="Enter VIN" name="vin" maxlength="17" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+								<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="VIN / Frame (Laximo)" name="identString" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" />
 								<span class="input-group-btn">
 									<button class="btn btn-ar" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
 								</span>
