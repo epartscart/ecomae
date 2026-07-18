@@ -35,10 +35,12 @@ if($user_id > 0)
 	}
 	if(isset($_GET['garage']) && isset($garage_list[$_GET['garage']]))
 	{
-		$my_orders_filter = json_decode($_COOKIE["my_orders_filter"], true);
-		if( empty($my_orders_filter) )
-		{
-			$my_orders_filter = array();
+		$my_orders_filter = array();
+		if (isset($_COOKIE['my_orders_filter']) && is_string($_COOKIE['my_orders_filter']) && $_COOKIE['my_orders_filter'] !== '') {
+			$decoded_filter = json_decode($_COOKIE['my_orders_filter'], true);
+			if (is_array($decoded_filter)) {
+				$my_orders_filter = $decoded_filter;
+			}
 		}
 		
 		if( isset($my_orders_filter) )
@@ -657,11 +659,26 @@ if($user_id > 0)
 		
 		//Формируем список позиций заказов
 		$orders_items = array();
-		$orders_items_query = $db_link->prepare("SELECT * FROM `shop_orders_items` WHERE `order_id` IN(".implode(',', $orders_id_list).");");
-		$orders_items_query->execute();
-		while($record = $orders_items_query->fetch())
-        {
-			$orders_items[$record['order_id']][] = $record;
+		if (!empty($orders_id_list)) {
+			$orders_id_list = array_values(array_filter(array_map('intval', $orders_id_list), function ($id) {
+				return $id > 0;
+			}));
+		}
+		if (!empty($orders_id_list)) {
+			$orders_items_query = $db_link->prepare('SELECT * FROM `shop_orders_items` WHERE `order_id` IN(' . implode(',', $orders_id_list) . ')');
+			$orders_items_query->execute();
+			while ($record = $orders_items_query->fetch()) {
+				$orders_items[$record['order_id']][] = $record;
+			}
+		} else {
+			?>
+			<tr>
+				<td colspan="10" style="text-align:center;padding:24px;color:#64748b;">
+					No orders yet. <a href="<?php echo htmlspecialchars($multilang_params['lang_href'] . '/shop/cart', ENT_QUOTES, 'UTF-8'); ?>">Open cart</a>
+					or <a href="<?php echo htmlspecialchars($multilang_params['lang_href'] . '/parts', ENT_QUOTES, 'UTF-8'); ?>">search parts</a>.
+				</td>
+			</tr>
+			<?php
 		}
 		
 		//Отображаем заказы
@@ -854,6 +871,7 @@ else//Если покупатель не авторизован
 	<?php
 	//Единый механизм формы авторизации
 	$login_form_postfix = "my_orders";
+	$login_form_target = "shop/orders";
 	require($_SERVER["DOCUMENT_ROOT"]."/modules/login/login_form_general.php");
 	?>
 	</div>
