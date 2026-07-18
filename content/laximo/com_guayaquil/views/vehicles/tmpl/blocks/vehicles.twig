@@ -1,0 +1,98 @@
+{% block vehicles %}
+    {% spaceless %}
+        {# columns must be an array of attribute keys; ints/empty break VIN roaming rows #}
+        {% set colKeys = columns is iterable ? columns : ['brand', 'name'] %}
+        {% if colKeys is empty %}
+            {% set colKeys = ['brand', 'name'] %}
+        {% endif %}
+        <table class="guayaquil_table table collapse">
+            {% block table_header %}
+                <thead>
+                <tr class="table-header">
+                    {% if not groupVehicles %}
+                        {% if 'brand' in colKeys or 'name' in colKeys %}
+                            <th><span>{{ 'brand'|t }}</span></th>
+                            <th><span>{{ 'name'|t }}</span></th>
+                        {% endif %}
+                    {% endif %}
+                    {% for key, header in headers %}
+                        {% if key in colKeys or groupVehicles %}
+                            {% if key != 'name' and key != 'brand' %}
+                                <th><span>{{ header|t }}</span></th>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                </thead>
+            {% endblock %}
+            <tbody>
+            {% for key, vehicle in vehicles %}
+                {% block table_row %}
+                    {% set attr = vehicle.attributes %}
+                    {% set link = supportQuickGroups ? vehicle.getQGLink(null, {'oem': oem, 'useApplicability' : useApplicability }) : vehicle.getVehicleLink(null, {'oem': oem, 'useApplicability' : useApplicability}) %}
+
+                    <tr onmouseout="this.className='hastooltip {{ child ? 'is-children' : 'is-parent' }}';"
+                        onmouseover="this.className='{{ child ? 'is-children' : 'is-parent' }} hastooltip over';"
+                        class="hastooltip {{ child ? 'is-children' : 'is-parent' }}">
+                        {% if not groupVehicles %}
+                            {% if 'brand' in colKeys or 'name' in colKeys %}
+                                <td onclick="window.location='{{ link }}'">
+                                    <a href="{{ link }}" class="modification-column">{{ vehicle.brand }}</a>
+                                </td>
+                                <td onclick="window.location='{{ link }}'">
+                                    <a href="{{ link }}" class="modification-column">{{ vehicle.name }}</a>
+                                </td>
+                            {% endif %}
+                        {% endif %}
+                        {% for key, value in headers %}
+                            {% if key in colKeys or groupVehicles %}
+                                {% if key != 'name' and key != 'brand' or (not attr and loop.index > 1 and groupVehicles) %}
+                                    <td {% if attr[key].value|length < 30 %}onclick="window.location='{{ link }}'"{% endif %}>
+                                    <span>
+                                        <a href="{{ link }}" class="modification-column">{{ attr ? attr[key].value : vehicle.brand ~ ' ' ~ vehicle.name }}</a>
+                                        {% if attr[key].value|length > 32 and groupVehicles %}
+                                            <a href="javascript:void(0)" data-show-text="{{ 'showMore'|t }}"
+                                               data-hide-text="{{ 'hide'|t }}"
+                                               class="show-more-button">{{ 'showMore'|t }}</a>
+                                        {% endif %}
+                                    </span>
+                                    </td>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        <td class="ttp" style="display:none;">
+                            <table>
+                                {% for attribute in vehicle.attributes %}
+                                    {% if attribute.key in colKeys %}
+                                        <tr>
+                                            <td class="tooltip-name">
+                                                {{ attribute.name }}:
+                                            </td>
+                                            <td class="tooltip-value">
+                                                {{ attribute.value }}:
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% for attribute in vehicle.attributes %}
+                                    {% if (attribute.key) not in colKeys %}
+                                        <tr>
+                                            <td class="tooltip-name">
+                                                {{ attribute.name }}:
+                                            </td>
+                                            <td class="tooltip-value">
+                                                {{ attribute.value }}:
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                {% endblock %}
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endspaceless %}
+{% endblock %}

@@ -87,6 +87,10 @@ class VehicleListObject extends BaseGuayaquilObject
     {
         $columns      = self::$mainAttributes;
         $columnValues = [];
+        $this->tableHeaders  = is_array($this->tableHeaders) ? $this->tableHeaders : [];
+        $this->tableColumns  = [];
+        $this->commonColumns = [];
+
         if ($this->vehicles) {
             foreach ($this->vehicles as $vehicle) {
                 foreach ($columns as $column) {
@@ -104,7 +108,20 @@ class VehicleListObject extends BaseGuayaquilObject
             }
         }
 
+        // Always keep identity columns visible — single-VIN roaming hits otherwise
+        // collapse every field into commonColumns and the Twig table renders blank.
+        $alwaysVisible = ['brand', 'name'];
+        foreach ($alwaysVisible as $must) {
+            if (!isset($this->tableHeaders[$must]) && $this->vehicles) {
+                $this->tableHeaders[$must] = $must;
+            }
+        }
+
         foreach ($columnValues as $column => $values) {
+            if (in_array($column, $alwaysVisible, true)) {
+                $this->tableColumns[] = $column;
+                continue;
+            }
             if (count($values) > 1) {
                 $this->tableColumns[] = $column;
             } else {
@@ -122,7 +139,12 @@ class VehicleListObject extends BaseGuayaquilObject
                     }
                 }
             }
+        }
 
+        foreach ($alwaysVisible as $must) {
+            if (!in_array($must, $this->tableColumns, true) && isset($this->tableHeaders[$must])) {
+                array_unshift($this->tableColumns, $must);
+            }
         }
 
         return $this;

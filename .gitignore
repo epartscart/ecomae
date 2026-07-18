@@ -30,6 +30,7 @@ node_modules/
 !/content/**/*.js
 !/content/**/*.json
 !/content/**/*.tpl
+!/content/**/*.twig
 !/content/**/*.svg
 !/content/**/*.sql
 !/content/**/*.md

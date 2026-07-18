@@ -100,7 +100,7 @@ class VehiclesHtml extends View
 
                 break;
             case 'FindVehicle':
-                $ident = $this->input->getString('identString', '');
+                $ident = strtoupper(preg_replace('/[^A-Z0-9]/i', '', (string) $this->input->getString('identString', '')));
 
                 // Must match GuayaquilRequestOEM::appendFindVehicle($identString) — PHP 8 named args.
                 $requests['appendFindVehicle'] = [
@@ -113,6 +113,10 @@ class VehiclesHtml extends View
                 ];
 
                 $typeValue = $ident;
+                // Keep vin for fallback FindVehicleByVIN when roaming returns empty.
+                if ($ident !== '' && preg_match('/^[A-HJ-NPR-Z0-9]{11,17}$/i', $ident)) {
+                    $vin = $ident;
+                }
                 break;
 
             case 'findByOEM':
@@ -201,6 +205,23 @@ class VehiclesHtml extends View
 
         $data = $this->getData($requests, $params);
 
+        // Roaming FindVehicle can return an empty VehicleList while the same VIN
+        // still resolves via FindVehicleByVIN (catalog-scoped). Retry once.
+        if (
+            $findType === 'FindVehicle'
+            && $vin !== ''
+            && isset($data[0])
+            && $data[0] instanceof VehicleListObject
+            && empty($data[0]->vehicles)
+        ) {
+            $fallback = $this->getData([
+                'appendFindVehicleByVIN' => ['vin' => $vin],
+            ], $params);
+            if (isset($fallback[0]) && $fallback[0] instanceof VehicleListObject && !empty($fallback[0]->vehicles)) {
+                $data = $fallback;
+            }
+        }
+
         if (!$skipFinalRequest) {
             $this->createErrors($language);
         }
@@ -231,6 +252,26 @@ class VehiclesHtml extends View
                 $pathway->addItem($typeValue);
             }
 
+            $vehicleRows = ($vehicles && !empty($vehicles->vehicles)) ? $vehicles->vehicles : [];
+            $tableColumns = ($vehicles && !empty($vehicles->tableColumns) && is_array($vehicles->tableColumns))
+                ? $vehicles->tableColumns
+                : [];
+            // Config::$VehiclesColumns is a catalog-grid width (int), not Twig column keys.
+            // Twig checks `key in columns` — an int makes every VIN result render blank.
+            if ($vehicleRows) {
+                foreach (['brand', 'name'] as $mustCol) {
+                    if (!in_array($mustCol, $tableColumns, true)) {
+                        array_unshift($tableColumns, $mustCol);
+                    }
+                }
+                if (empty($vehicles->tableHeaders['brand'])) {
+                    $vehicles->tableHeaders['brand'] = 'brand';
+                }
+                if (empty($vehicles->tableHeaders['name'])) {
+                    $vehicles->tableHeaders['name'] = 'name';
+                }
+            }
+
             $this->vin                  = $vin;
             $this->frameNo              = $frameNo;
             $this->type                 = $type;
@@ -239,7 +280,7 @@ class VehiclesHtml extends View
             $this->maxField             = Config::$vehiclesMaxField;
             $this->cataloginfo          = $catalogInfo;
             $this->useApplicability     = $catalogInfo ? $catalogInfo->supportdetailapplicability : 0;
-            $this->vehicles             = $vehicles ? $vehicles->vehicles : [];
+            $this->vehicles             = $vehicleRows;
             $this->groupedVehicles      = $vehicles ? $vehicles->groupedByName : false;
             $this->brandName            = $catalogInfo ? $catalogInfo->name : '';
             $this->searchBy             = $findType;
@@ -247,7 +288,8 @@ class VehiclesHtml extends View
             $this->vin                  = $vin;
             $this->frameNo              = $frameNo;
             $this->supportQuickGroups   = $catalogInfo && $catalogInfo->supportquickgroups ?: false;
-            $this->columns              = Config::$VehiclesColumns;
+            $this->columns              = $tableColumns;
+            $this->commonColumns        = ($vehicles && !empty($vehicles->commonColumns)) ? $vehicles->commonColumns : [];
             $this->oem                  = $this->input->getString('oem');
             $this->customOperationValue = $notFoundData;
             $this->ident                = $ident;
@@ -256,6 +298,10 @@ class VehiclesHtml extends View
             $this->frameExample         = isset($catalogInfo->frameexample) ? $catalogInfo->frameexample : Config::$defaultFrame;
             $this->oemExample           = !empty(Config::$oemExample) ? Config::$oemExample : '0913128000';
             $this->showApplicability    = self::showApplicability();
+
+            if (!$vehicleRows && !empty($typeValue)) {
+                $this->notFoundHint = $this->buildVinNotFoundHint($typeValue, $language);
+            }
         }
 
         parent::Display($tpl, $view);
@@ -404,5 +450,63 @@ class VehiclesHtml extends View
             $this->error   = !!$this->request->error;
             $this->message = $this->request->error;
         }
+    }
+
+    /**
+     * Hint when roaming VIN search returns an empty VehicleList.
+     * Maps common WMI prefixes to licensed catalog codes for a useful next step.
+     *
+     * @param string   $ident
+     * @param Language $language
+     * @return string
+     */
+    private function buildVinNotFoundHint($ident, Language $language)
+    {
+        $ident = strtoupper(preg_replace('/[^A-Z0-9]/i', '', (string) $ident));
+        if (strlen($ident) < 11) {
+            return '';
+        }
+
+        $wmiMap = [
+            'JN1' => ['INFINITI', 'INFINITI201809'],
+            'JN8' => ['NISSAN', 'NISSAN201809'],
+            '1N4' => ['NISSAN', 'NISSAN201809'],
+            '1N6' => ['NISSAN', 'NISSAN201809'],
+            '5N1' => ['NISSAN', 'NISSAN201809'],
+            '3N1' => ['NISSAN', 'NISSAN201809'],
+            'SJN' => ['NISSAN', 'NISSAN201809'],
+            'Z8N' => ['NISSAN', 'NISSAN201809'],
+            'WBA' => ['BMW', 'BMW202601'],
+            'WBS' => ['BMW', 'BMW202601'],
+            'WBY' => ['BMW', 'BMW202601'],
+            'JTD' => ['TOYOTA', 'TOYOTA00'],
+            'JTE' => ['TOYOTA', 'TOYOTA00'],
+            'JTMB' => ['TOYOTA', 'TOYOTA00'],
+            'WAU' => ['AUDI', 'AU1587'],
+        ];
+
+        $brand = '';
+        $catalog = '';
+        foreach ($wmiMap as $prefix => $meta) {
+            if (strpos($ident, $prefix) === 0) {
+                $brand = $meta[0];
+                $catalog = $meta[1];
+                break;
+            }
+        }
+
+        if ($brand === '' || $catalog === '') {
+            return '';
+        }
+
+        $link = $language->createUrl('catalog', '', '', ['c' => $catalog, 'ssd' => '']);
+        $label = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+        $href = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');
+
+        return '<div class="epc-vin-notfound-hint" style="margin-top:12px;line-height:1.45;">'
+            . 'This VIN was not found in the licensed OEM catalogs (roaming). '
+            . 'For ' . $label . ', open the brand catalog and identify the vehicle by wizard/model: '
+            . '<a href="' . $href . '">' . $label . ' catalog</a>.'
+            . '</div>';
     }
 }
