@@ -134,7 +134,11 @@ if ($apply) {
 				break;
 			}
 		}
-		if ($cmd === 'query' && $time >= max($minTime, 60)) {
+		// Analogs REPLACE() scans are the usual CP 524 culprit — kill earlier.
+		if ($cmd === 'query' && $info !== '' && stripos($info, 'shop_docpart_articles_analogs_list') !== false && $time >= max(5, $minTime)) {
+			$shouldKill = true;
+		}
+		if ($cmd === 'query' && $time >= max($minTime, 45)) {
 			$shouldKill = true;
 		}
 		if (!$shouldKill) {

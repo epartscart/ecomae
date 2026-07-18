@@ -1102,25 +1102,26 @@ function epc_cross_load_local_references($db_link, $DP_Config, $article_norm, &$
 	}
 
 	if($count < 60 && function_exists('docpart_load_interchange_partners'))
-
 	{
-
-		$partners = docpart_load_interchange_partners($db_link, $article_norm, 4, 300);
-
-		foreach($partners as $partner)
-
-		{
-
-			if(epc_cross_add_reference($references, $seen, $partner['brand'], $partner['article'], 'cp'))
-
-			{
-
-				$count++;
-
+		$rounds = 2;
+		$limit = 80;
+		if (function_exists('docpart_analogs_host_load1')) {
+			$load1 = docpart_analogs_host_load1();
+			if ($load1 !== null && $load1 >= 10.0) {
+				$rounds = 0;
+			} elseif ($load1 !== null && $load1 >= 6.0) {
+				$rounds = 1;
+				$limit = 40;
 			}
-
 		}
-
+		if ($rounds > 0) {
+			$partners = docpart_load_interchange_partners($db_link, $article_norm, $rounds, $limit);
+			foreach ($partners as $partner) {
+				if (epc_cross_add_reference($references, $seen, $partner['brand'], $partner['article'], 'cp')) {
+					$count++;
+				}
+			}
+		}
 	}
 
 	return $count;
@@ -2325,6 +2326,18 @@ function epc_cross_persist_interchange_for_customer($db_link, $DP_Config, $artic
 
 		return 0;
 
+	}
+
+	// Persisting pairs runs expensive analogs_list SELECT id … REPLACE() checks.
+	// Under load this floods MySQL and 524s CP (e.g. /cp/shop/prices/multivendor).
+	if (function_exists('docpart_analogs_host_load1')) {
+		$load1 = docpart_analogs_host_load1();
+		if ($load1 !== null && $load1 >= 8.0) {
+			return 0;
+		}
+		if ($load1 !== null && $load1 >= 5.0) {
+			$max_pairs = min((int) $max_pairs, 20);
+		}
 	}
 
 	$article_input = trim((string)$article_input);

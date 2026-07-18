@@ -160,18 +160,26 @@ if($article_norm_for_cross !== '' && $epc_use_local_crosses)
 {
 	try
 	{
-		// Keep SSR/TTFB small: deep cross expansion runs in JS ajax_epc_cross_search.
-		// Large 6×500 local walks here saturate PHP-FPM and trigger Cloudflare 524s.
-		$epc_chpu_cross_rounds = 2;
-		$epc_chpu_cross_limit = 80;
+		// Keep SSR/TTFB tiny: deep cross expansion runs in JS ajax_epc_cross_search.
+		// Under load, skip SSR analogs entirely so CP pages (e.g. /cp/shop/prices/multivendor) do not 524.
+		$epc_chpu_cross_rounds = 1;
+		$epc_chpu_cross_limit = 40;
+		$epc_skip_ssr_cross = false;
 		if (function_exists('sys_getloadavg')) {
 			$__epc_cross_load = @sys_getloadavg();
-			if (is_array($__epc_cross_load) && isset($__epc_cross_load[0]) && (float) $__epc_cross_load[0] >= 8.0) {
-				$epc_chpu_cross_rounds = 1;
-				$epc_chpu_cross_limit = 40;
+			if (is_array($__epc_cross_load) && isset($__epc_cross_load[0])) {
+				$__epc_load1 = (float) $__epc_cross_load[0];
+				if ($__epc_load1 >= 6.0) {
+					$epc_skip_ssr_cross = true;
+				} elseif ($__epc_load1 >= 4.0) {
+					$epc_chpu_cross_rounds = 1;
+					$epc_chpu_cross_limit = 20;
+				}
 			}
 		}
-		$cross_partners = docpart_load_interchange_partners($db_link, $article_norm_for_cross, $epc_chpu_cross_rounds, $epc_chpu_cross_limit);
+		$cross_partners = $epc_skip_ssr_cross
+			? array()
+			: docpart_load_interchange_partners($db_link, $article_norm_for_cross, $epc_chpu_cross_rounds, $epc_chpu_cross_limit);
 		$cross_seen = array();
 		$cross_anchor_brand = !empty($manufacturer) ? trim(html_entity_decode($manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8')) : '';
 		$cross_anchor_article = trim($article_input);
