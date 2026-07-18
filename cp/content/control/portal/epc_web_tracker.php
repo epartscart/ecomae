@@ -27,7 +27,19 @@ if (!$pdo instanceof PDO && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] in
 	$pdo = $GLOBALS['db_link'];
 }
 if ($pdo instanceof PDO) {
-	epc_web_tracker_ensure_schema($pdo);
+	try {
+		epc_web_tracker_ensure_schema($pdo);
+	} catch (Throwable $e) {
+		// Keep the page renderable when platform schema is not writable yet.
+		$pdo = (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) ? $GLOBALS['db_link'] : null;
+		if ($pdo instanceof PDO) {
+			try {
+				epc_web_tracker_ensure_schema($pdo);
+			} catch (Throwable $e2) {
+				$pdo = null;
+			}
+		}
+	}
 }
 
 $tenants = ($pdo instanceof PDO && function_exists('epc_portal_list_tenants'))
@@ -417,5 +429,4 @@ epc_cp_page_frame_open(array(
 	load();
 })();
 </script>
-<?php
-epc_cp_page_frame_close();
+<?php epc_cp_page_frame_close(); ?>

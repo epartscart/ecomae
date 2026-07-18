@@ -21,9 +21,10 @@ if (is_file($epcTenantCpDash)) {
 	require_once $epcTenantCpDash;
 }
 
-// Super / tenant dashboards replace legacy home chrome. Do NOT `return` here —
-// CP pages are eval()'d inside the template (dp_core.php); a return aborts the
-// whole shell (truncated HTML, missing </body></html>).
+// Super / tenant dashboards replace legacy home chrome (avoids PHP 8 fatals /
+// latency on statistics/control_items). Do NOT `return` here — CP pages are
+// eval()'d inside the template (dp_core.php); a return aborts the whole shell
+// (truncated HTML, missing </body></html>).
 $epcSkipLegacyControlHome = !empty($GLOBALS['epc_super_cp_dashboard_shown'])
 	|| !empty($GLOBALS['epc_tenant_cp_dashboard_shown']);
 

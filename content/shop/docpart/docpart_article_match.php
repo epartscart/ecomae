@@ -176,15 +176,11 @@ function docpart_sql_article_values_match_clause(PDO $db_link, array $article_va
 	$ph = implode(',', array_fill(0, count($article_values), '?'));
 	$norm_expr = docpart_sql_article_normalized_expr($column);
 	if (docpart_price_data_ensure_article_search_column($db_link)) {
-		$load1 = null;
-		if (function_exists('sys_getloadavg')) {
-			$tmp = @sys_getloadavg();
-			if (is_array($tmp) && isset($tmp[0])) {
-				$load1 = (float) $tmp[0];
-			}
-		}
-		// Under load, use indexed article_search only — OR REPLACE() forces a full scan.
-		if ($load1 !== null && $load1 >= 4.0) {
+		// Always use indexed article_search on the live path.
+		// OR REPLACE(...) forces a full table scan (~2s) even when backfill is complete.
+		// Opt-in fallback for repair tools: EPC_ARTICLE_MATCH_REPLACE_FALLBACK=1
+		$allowReplaceFallback = (string) (getenv('EPC_ARTICLE_MATCH_REPLACE_FALLBACK') ?: '') === '1';
+		if (!$allowReplaceFallback) {
 			foreach ($article_values as $value) {
 				$binding_values[] = $value;
 			}
@@ -286,23 +282,27 @@ function docpart_resolve_article_search_values($db_link, $DP_Config, $article_in
 function docpart_price_ids_from_office_storage_bunches($db_link, $office_storage_bunches)
 {
 	$price_ids = array();
-	if (!is_array($office_storage_bunches)) {
+	if (!is_array($office_storage_bunches) || !($db_link instanceof PDO)) {
 		return $price_ids;
 	}
+	$storage_ids = array();
 	for ($p = 0; $p < count($office_storage_bunches); $p++) {
-		$storage_id = (int)$office_storage_bunches[$p]['storage_id'];
-		if ($storage_id < 1) {
-			continue;
+		$storage_id = (int) ($office_storage_bunches[$p]['storage_id'] ?? 0);
+		if ($storage_id > 0) {
+			$storage_ids[$storage_id] = true;
 		}
-		$storage_query = $db_link->prepare('SELECT `connection_options` FROM `shop_storages` WHERE `id` = ?;');
-		$storage_query->execute(array($storage_id));
-		$storage_record = $storage_query->fetch(PDO::FETCH_ASSOC);
-		if (!$storage_record) {
-			continue;
-		}
-		$connection_options = json_decode($storage_record['connection_options'], true);
+	}
+	if (!$storage_ids) {
+		return $price_ids;
+	}
+	$idList = array_keys($storage_ids);
+	$ph = implode(',', array_fill(0, count($idList), '?'));
+	$storage_query = $db_link->prepare('SELECT `connection_options` FROM `shop_storages` WHERE `id` IN (' . $ph . ')');
+	$storage_query->execute($idList);
+	while ($storage_record = $storage_query->fetch(PDO::FETCH_ASSOC)) {
+		$connection_options = json_decode((string) ($storage_record['connection_options'] ?? ''), true);
 		if (!empty($connection_options['price_id'])) {
-			$price_ids[] = (int)$connection_options['price_id'];
+			$price_ids[] = (int) $connection_options['price_id'];
 		}
 	}
 	return array_values(array_unique($price_ids));

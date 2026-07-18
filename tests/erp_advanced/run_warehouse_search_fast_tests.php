@@ -47,9 +47,15 @@ check('fill helper exists', function_exists('epc_storefront_fill_warehouse_capti
 // SQLite-less unit: mock via reflection of function behavior with in-memory PDO MySQL not available.
 // Static source checks for critical call sites.
 $common = (string) file_get_contents($root . '/content/shop/docpart/suppliers_handlers/prices/common_interface.php');
-check('analogs path selects short_name', strpos($common, '`short_name`') !== false
-	&& strpos($common, 'Always expose warehouse name') !== false);
-check('common_interface uses article match expr', strpos($common, 'docpart_sql_article_match_expr') !== false);
+$meta = (string) file_get_contents($root . '/content/shop/docpart/epc_prices_office_storage_meta.php');
+check('batched warehouse meta uses short_name', strpos($meta, 'short_name') !== false
+	&& strpos($common, 'epc_prices_build_office_storage_data_info') !== false);
+check('common_interface uses article match clause', strpos($common, 'docpart_sql_article_values_match_clause') !== false
+	|| strpos($common, 'docpart_sql_article_match_expr') !== false);
+check('indexed-only article match by default', strpos(
+	(string) file_get_contents($root . '/content/shop/docpart/docpart_article_match.php'),
+	'Always use indexed article_search on the live path'
+) !== false);
 
 $ajax = (string) file_get_contents($root . '/content/shop/docpart/ajax_getProductsOfBunch.php');
 check('ajax fills warehouse captions before redact', strpos($ajax, 'epc_storefront_fill_warehouse_captions') !== false);
