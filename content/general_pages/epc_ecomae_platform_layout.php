@@ -307,6 +307,14 @@ if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_parts_agent_
 <script defer>
 (function(){if(!('IntersectionObserver' in window))return;var s=document.querySelectorAll('.epm-hub,.epm-ecosystem__viz,.epm-failover-flow');if(!s.length)return;var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){es[i].target.classList.toggle('epm-anim-paused',!es[i].isIntersecting);}},{rootMargin:'80px',threshold:0.05});for(var j=0;j<s.length;j++){io.observe(s[j]);}})();
 </script>
+<?php
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_web_tracker.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_web_tracker.php';
+	if (function_exists('epc_web_tracker_beacon_html')) {
+		echo epc_web_tracker_beacon_html();
+	}
+}
+?>
 </body></html>
 	<?php
 	return ob_get_clean();
