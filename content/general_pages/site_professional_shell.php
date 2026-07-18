@@ -3574,9 +3574,14 @@ defined('_ASTEXE_') or die('No access');
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions {
 		max-width: 100%;
-		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: thin;
+		overflow-x: visible;
+		flex-wrap: wrap;
+		row-gap: 6px;
+	}
+	#all_table_products .td_add_to_cart .epc-product-actions__tools {
+		flex: 1 1 100%;
+		justify-content: flex-end;
+		width: 100%;
 	}
 	.epc-product-actions .epc-btn-cart,
 	.epc-product-actions .epc-btn-quote {
