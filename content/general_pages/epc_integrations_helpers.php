@@ -183,6 +183,15 @@ function epc_integrations_catalog(): array
 
 function epc_integrations_ensure_schema(PDO $pdo): void
 {
+	// Once per request/connection — feature_enabled used to call this for every
+	// catalog feature × every CP sidebar item (~1400×), each re-running portal DB ensure.
+	static $done = array();
+	$oid = spl_object_id($pdo);
+	if (isset($done[$oid])) {
+		return;
+	}
+	$done[$oid] = true;
+
 	$pdo->exec(
 		'CREATE TABLE IF NOT EXISTS `epc_tenant_feature_flags` (
 			`site_key` VARCHAR(64) NOT NULL,
@@ -221,6 +230,63 @@ function epc_integrations_site_key(?PDO $pdo = null): string
 	return preg_replace('/[^a-z0-9_-]/', '', str_replace('.', '-', $host));
 }
 
+/**
+ * Load all feature flags for a site (one schema ensure + one SELECT), request-cached.
+ *
+ * @return array<string, bool>
+ */
+function epc_integrations_features_for_site(string $siteKey, ?PDO $platformPdo = null): array
+{
+	static $reqCache = array();
+	$siteKey = preg_replace('/[^a-z0-9_\-]/', '', strtolower($siteKey));
+	if ($siteKey !== '' && isset($reqCache[$siteKey])) {
+		return $reqCache[$siteKey];
+	}
+
+	$catalog = epc_integrations_catalog();
+	$defaults = array();
+	foreach ($catalog as $key => $meta) {
+		$defaults[$key] = !empty($meta['default_enabled']);
+	}
+	if ($siteKey === '' || $siteKey === 'platform') {
+		$reqCache[$siteKey] = $defaults;
+		return $defaults;
+	}
+
+	require_once __DIR__ . '/epc_perf_cache.php';
+	$cacheKey = 'epc_int_features:v2:' . $siteKey;
+	$loaded = epc_perf_cache_remember($cacheKey, 300, static function () use ($siteKey, $platformPdo, $defaults) {
+		if (!$platformPdo instanceof PDO) {
+			$platformPdo = function_exists('epc_portal_platform_pdo') ? epc_portal_platform_pdo() : null;
+		}
+		if (!$platformPdo instanceof PDO) {
+			return $defaults;
+		}
+		epc_integrations_ensure_schema($platformPdo);
+		$out = $defaults;
+		try {
+			$st = $platformPdo->prepare('SELECT `feature_key`, `enabled` FROM `epc_tenant_feature_flags` WHERE `site_key` = ?');
+			$st->execute(array($siteKey));
+			while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+				$fk = (string) ($row['feature_key'] ?? '');
+				if ($fk === '' || !array_key_exists($fk, $out)) {
+					continue;
+				}
+				$out[$fk] = ((int) ($row['enabled'] ?? 0) === 1);
+			}
+		} catch (Throwable $e) {
+			return $defaults;
+		}
+		return $out;
+	});
+
+	if (!is_array($loaded)) {
+		$loaded = $defaults;
+	}
+	$reqCache[$siteKey] = $loaded;
+	return $loaded;
+}
+
 function epc_integrations_feature_enabled(string $featureKey, ?string $siteKey = null, ?PDO $platformPdo = null): bool
 {
 	$catalog = epc_integrations_catalog();
@@ -234,35 +300,8 @@ function epc_integrations_feature_enabled(string $featureKey, ?string $siteKey =
 	if ($siteKey === 'platform' || $siteKey === '') {
 		return $default;
 	}
-	if (!$platformPdo instanceof PDO) {
-		$platformPdo = function_exists('epc_portal_platform_pdo') ? epc_portal_platform_pdo() : null;
-	}
-	if (!$platformPdo instanceof PDO) {
-		return $default;
-	}
-	epc_integrations_ensure_schema($platformPdo);
-	$st = $platformPdo->prepare('SELECT `enabled` FROM `epc_tenant_feature_flags` WHERE `site_key` = ? AND `feature_key` = ? LIMIT 1');
-	$st->execute(array($siteKey, $featureKey));
-	$row = $st->fetchColumn();
-	if ($row === false) {
-		return $default;
-	}
-	return (int) $row === 1;
-}
-
-/** @return array<string, bool> */
-function epc_integrations_features_for_site(string $siteKey, ?PDO $platformPdo = null): array
-{
-	require_once __DIR__ . '/epc_perf_cache.php';
-	$key = 'epc_int_features:v1:' . $siteKey;
-	return epc_perf_cache_remember($key, 300, static function () use ($siteKey, $platformPdo) {
-		$catalog = epc_integrations_catalog();
-		$out = array();
-		foreach ($catalog as $key => $meta) {
-			$out[$key] = epc_integrations_feature_enabled($key, $siteKey, $platformPdo);
-		}
-		return $out;
-	});
+	$flags = epc_integrations_features_for_site($siteKey, $platformPdo);
+	return array_key_exists($featureKey, $flags) ? (bool) $flags[$featureKey] : $default;
 }
 
 function epc_integrations_save_feature_flags(PDO $platformPdo, string $siteKey, array $flags): array
@@ -363,8 +402,10 @@ function epc_integrations_menu_blocked_by_feature(string $itemUrl): bool
 	if ($siteKey === 'platform' || $siteKey === '') {
 		return false;
 	}
+	// One flag map for the whole sidebar pass (not N features × N items).
+	$flags = epc_integrations_features_for_site($siteKey);
 	foreach (epc_integrations_catalog() as $featureKey => $meta) {
-		if (epc_integrations_feature_enabled($featureKey, $siteKey)) {
+		if (!empty($flags[$featureKey])) {
 			continue;
 		}
 		foreach ((array) ($meta['menu_patterns'] ?? array()) as $pattern) {

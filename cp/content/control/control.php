@@ -21,6 +21,12 @@ if (is_file($epcTenantCpDash)) {
 	require_once $epcTenantCpDash;
 }
 
+// Tenant home dashboard is the full page — do not continue into legacy
+// statistics/control_items (those paths have fatals on PHP 8 and add latency).
+if (!empty($GLOBALS['epc_tenant_cp_dashboard_shown'])) {
+	return;
+}
+
 //Блок статистики
 if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp_hidden"] === 0)){
 	//Проверяем доступ к статистике
@@ -37,11 +43,6 @@ if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp
 			require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/statistics_main_page.php");
 		}
 	}
-}
-
-// Tenant dashboard replaces legacy tab blocks — skip N+1 is_anable over control_items.
-if (!empty($GLOBALS['epc_tenant_cp_dashboard_shown'])) {
-	return;
 }
 
 //Массив для блоков и страниц по блокам

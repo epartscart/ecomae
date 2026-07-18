@@ -66,7 +66,9 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 $tabs = array();
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_perf_cache.php';
+if (function_exists('epc_cp_trace')) { epc_cp_trace('left_menu: before menu cache'); }
 $epcCpMenuCache = ($db_link instanceof PDO) ? epc_cp_menu_cache($db_link) : array('groups' => array(), 'items' => array());
+if (function_exists('epc_cp_trace')) { epc_cp_trace('left_menu: after menu cache groups=' . count((array) ($epcCpMenuCache['groups'] ?? array())) . ' items=' . count((array) ($epcCpMenuCache['items'] ?? array()))); }
 
 //Получаем перечнь групп задач панели управления (cached 5 min):
 foreach ((array) ($epcCpMenuCache['groups'] ?? array()) as $group)
@@ -77,6 +79,7 @@ foreach ((array) ($epcCpMenuCache['groups'] ?? array()) as $group)
 		"items" => array(),
 	);
 }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('left_menu: after group captions'); }
 
 
 // Resolve backend once, normalize URLs, then batch-preload ACL maps (avoids N+1 is_anable queries).
@@ -88,22 +91,46 @@ foreach ((array) ($epcCpMenuCache['items'] ?? array()) as $item) {
 	$item['url'] = str_replace(array('<backend>'), $epcCpNavBackend, $item['url']);
 	$epcCpMenuItems[] = $item;
 }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('left_menu: before acl preload'); }
 if (function_exists('epc_cp_acl_preload')) {
 	epc_cp_acl_preload($epcCpMenuItems);
 }
+if (function_exists('epc_cp_trace')) { epc_cp_trace('left_menu: after acl preload'); }
 $epcCpSuperHost = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host();
 $epcCpSuperAdmin = $epcCpSuperHost && DP_User::isAdmin();
 
 //Получаем перечень всех задач (cached 5 min):
+$__epcAclMs = 0.0;
+$__epcVisMs = 0.0;
+$__epcAclCalls = 0;
+$__epcVisCalls = 0;
 foreach ($epcCpMenuItems as $item)
 {
 	//Добавляем, если у пользователя есть доступ или пункт помечен show_anyway (Super CP shows operator menu items).
 	$showAnyway = (int) (isset($item['show_anyway']) ? $item['show_anyway'] : 0) === 1;
-	$mayShow = $epcCpSuperAdmin || is_anable($item) || ($showAnyway && !$epcCpSuperHost);
-	if( $mayShow && epc_portal_cp_item_visible_enhanced($item) )
-	{
-		array_push($tabs[(string)$item["items_group"]]["items"], $item);
+	$a0 = microtime(true);
+	$aclOk = $epcCpSuperAdmin ? true : is_anable($item);
+	$__epcAclMs += (microtime(true) - $a0) * 1000;
+	$__epcAclCalls++;
+	$mayShow = $aclOk || ($showAnyway && !$epcCpSuperHost);
+	if (!$mayShow) {
+		continue;
 	}
+	$v0 = microtime(true);
+	$visOk = epc_portal_cp_item_visible_enhanced($item);
+	$__epcVisMs += (microtime(true) - $v0) * 1000;
+	$__epcVisCalls++;
+	if ($visOk)
+	{
+		$groupKey = (string) $item["items_group"];
+		if (!isset($tabs[$groupKey]) || !is_array($tabs[$groupKey]["items"])) {
+			continue;
+		}
+		array_push($tabs[$groupKey]["items"], $item);
+	}
+}
+if (function_exists('epc_cp_trace')) {
+	epc_cp_trace('left_menu: after acl+visibility filter acl_ms=' . (int) round($__epcAclMs) . ' acl_n=' . $__epcAclCalls . ' vis_ms=' . (int) round($__epcVisMs) . ' vis_n=' . $__epcVisCalls);
 }
 
 
