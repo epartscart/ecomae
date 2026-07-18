@@ -385,6 +385,51 @@ function epc_erp_resolve_user_session()
 }
 
 /**
+ * Super CP operators already authenticated via admin_session should not hit the
+ * /erp login wall again. Bridge a frontend session for the same user_id when
+ * they open the standalone portal on the platform host.
+ */
+function epc_erp_portal_bridge_cp_admin_session(PDO $db_link): void
+{
+	global $DP_Config;
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	if ((int) DP_User::getUserId() > 0) {
+		return;
+	}
+	if (!DP_User::isAdmin()) {
+		return;
+	}
+	$adminId = (int) DP_User::getAdminId();
+	if ($adminId <= 0) {
+		return;
+	}
+	try {
+		$st = $db_link->prepare('SELECT `user_id`, `unlocked` FROM `users` WHERE `user_id` = ? LIMIT 1');
+		$st->execute(array($adminId));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$row || (int) ($row['unlocked'] ?? 0) !== 1) {
+			return;
+		}
+	} catch (Exception $e) {
+		return;
+	}
+
+	$time = time();
+	$sessionSuccession = md5('cp-bridge-' . $adminId . $time . (string) ($DP_Config->secret_succession ?? '') . mt_rand());
+	$csrfGuardKey = sha1((string) ($DP_Config->secret_succession ?? '') . $sessionSuccession . ($_SERVER['REMOTE_ADDR'] ?? '') . ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+	try {
+		$db_link->prepare('INSERT INTO `sessions` (`session`, `user_id`, `time`, `data`, `csrf_guard_key`) VALUES (?, ?, ?, ?, ?);')
+			->execute(array($sessionSuccession, $adminId, $time, '', $csrfGuardKey));
+	} catch (Exception $e) {
+		return;
+	}
+	setcookie('session', $sessionSuccession, 0, '/', '', !empty($_SERVER['HTTPS']), true);
+	setcookie('u_id', (string) $adminId, 0, '/', '', !empty($_SERVER['HTTPS']), true);
+	$_COOKIE['session'] = $sessionSuccession;
+	$_COOKIE['u_id'] = (string) $adminId;
+}
+
+/**
  * Standalone /erp bypasses dp_core and the frontend auth plugin — ensure guest session + CSRF token.
  */
 function epc_erp_portal_is_bot_request()
