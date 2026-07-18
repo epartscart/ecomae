@@ -35,7 +35,8 @@ defined('_ASTEXE_') or die('No access');
 			grid-template-columns: minmax(300px, 22vw) minmax(160px, 1fr) minmax(200px, 1fr) minmax(150px, 11vw) 90px;
 		}
 		.epc-parts-result-hero__card {
-			flex: 0 0 min(380px, 22vw);
+			flex: 1 1 420px;
+			max-width: 520px;
 		}
 		.epc-part-search-layout > #filter_div.col-md-3 {
 			flex: 0 0 22%;
@@ -1491,6 +1492,22 @@ defined('_ASTEXE_') or die('No access');
 		margin-top: 18px;
 		text-align: right;
 	}
+	/* Hide crawlable cross-ref list from UI (keep in DOM for SEO). */
+	.epc-seo-cross-refs {
+		border: 0 !important;
+		clip: rect(0, 0, 0, 0) !important;
+		height: 1px !important;
+		margin: -1px !important;
+		overflow: hidden !important;
+		padding: 0 !important;
+		position: absolute !important;
+		white-space: nowrap !important;
+		width: 1px !important;
+	}
+	/* Result chrome: keep search card + related parts only (hide marketing column). */
+	.epc-parts-result-hero__content {
+		display: none !important;
+	}
 	.epc-parts-result-hero {
 		align-items: stretch;
 		background:
@@ -1502,9 +1519,10 @@ defined('_ASTEXE_') or die('No access');
 		box-shadow: 0 26px 70px rgba(15, 23, 42, .22);
 		display: flex;
 		gap: 22px;
+		justify-content: center;
 		margin: 8px 0 18px;
 		overflow: hidden;
-		padding: 26px;
+		padding: 18px;
 		position: relative;
 	}
 	.epc-parts-result-hero:after {
@@ -1515,10 +1533,6 @@ defined('_ASTEXE_') or die('No access');
 		position: absolute;
 		right: 28px;
 		top: 0;
-	}
-	.epc-parts-result-hero__content {
-		flex: 1 1 auto;
-		min-width: 0;
 	}
 	.epc-parts-result-hero__eyebrow {
 		background: rgba(239, 68, 68, .16);
@@ -1576,8 +1590,10 @@ defined('_ASTEXE_') or die('No access');
 		border-radius: 20px;
 		box-shadow: 0 18px 48px rgba(0, 0, 0, .22);
 		color: #0f172a !important;
-		flex: 0 0 330px;
+		flex: 1 1 420px;
+		max-width: 520px;
 		padding: 20px;
+		width: 100%;
 	}
 	.epc-parts-result-hero__label {
 		color: #64748b !important;

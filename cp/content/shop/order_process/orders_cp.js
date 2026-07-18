@@ -204,7 +204,9 @@
 
 	window.epcSelectOrder = function (orderId, ev) {
 		if (ev && (ev.target.tagName === 'INPUT' || ev.target.closest('input[type=checkbox]') ||
-			ev.target.closest('.customer-modal-info-wrapper') || ev.target.closest('a.dropdown-toggle'))) {
+			ev.target.closest('.customer-modal-info-wrapper') || ev.target.closest('a.dropdown-toggle') ||
+			ev.target.closest('a.btn') || ev.target.closest('button') || ev.target.closest('select') ||
+			ev.target.closest('textarea'))) {
 			return;
 		}
 		if (ev && (ev.metaKey || ev.ctrlKey || ev.shiftKey)) {
@@ -212,6 +214,97 @@
 			return;
 		}
 		epcLoadOrderDetail(orderId);
+	};
+
+	function epcOdToast(text, ok) {
+		var el = document.getElementById('epc_od_toast');
+		if (!el) {
+			return;
+		}
+		el.textContent = text || '';
+		el.className = 'epc-od__toast ' + (ok ? 'is-ok' : 'is-err');
+		if (text) {
+			window.setTimeout(function () {
+				if (el.textContent === text) {
+					el.className = 'epc-od__toast';
+					el.textContent = '';
+				}
+			}, 3500);
+		}
+	}
+
+	window.epcApplyOrderStatus = function (orderId) {
+		var sel = document.getElementById('epc_od_status');
+		if (!sel || !orderId) {
+			return;
+		}
+		var needStatus = String(sel.value);
+		var finish = cfg.statusesForFinish || [];
+		var inverse = cfg.statusesForInverse || [];
+		if (finish.indexOf(needStatus) !== -1 && !confirm(msg.finishConfirm || 'Continue?')) {
+			return;
+		}
+		if (inverse.indexOf(needStatus) !== -1 && !confirm(msg.inverseConfirm || 'Continue?')) {
+			return;
+		}
+		jQuery.ajax({
+			type: 'GET',
+			url: urls.setOrderStatus || '',
+			dataType: 'json',
+			data: 'initiator=1&orders=' + JSON.stringify([orderId]) + '&status=' + encodeURIComponent(needStatus) +
+				'&csrf_guard_key=' + encodeURIComponent(cfg.csrf || ''),
+			success: function (answer) {
+				if (answer && answer.status === true) {
+					epcOdToast(msg.setStatusOk || 'Status updated', true);
+					epcLoadOrderDetail(orderId);
+					var row = document.querySelector('.epc-scp-orders-row[data-order-id="' + orderId + '"]');
+					if (row) {
+						row.classList.remove('not_viewed');
+					}
+				} else if (answer && answer.message) {
+					epcOdToast((msg.setStatusFail || 'Error') + '. ' + answer.message, false);
+				} else {
+					epcOdToast(msg.setStatusFail || 'Error', false);
+				}
+			},
+			error: function () {
+				epcOdToast(msg.setStatusFail || 'Error', false);
+			}
+		});
+	};
+
+	window.epcAddOrderComment = function (orderId) {
+		var ta = document.getElementById('epc_od_comment');
+		if (!ta || !orderId) {
+			return;
+		}
+		var text = String(ta.value || '').trim();
+		if (!text) {
+			epcOdToast(msg.commentEmpty || 'Enter a note first', false);
+			return;
+		}
+		jQuery.ajax({
+			type: 'GET',
+			url: urls.addComment || '',
+			dataType: 'json',
+			data: {
+				order_id: orderId,
+				text: text,
+				csrf_guard_key: cfg.csrf || ''
+			},
+			success: function (answer) {
+				if (answer && answer.status === true) {
+					ta.value = '';
+					epcOdToast(msg.commentOk || 'Note saved', true);
+					epcLoadOrderDetail(orderId);
+				} else {
+					epcOdToast((answer && answer.message) || msg.commentFail || 'Could not save note', false);
+				}
+			},
+			error: function () {
+				epcOdToast(msg.commentFail || 'Could not save note', false);
+			}
+		});
 	};
 
 	window.closeCustomerModalInfo = function (userId) {
