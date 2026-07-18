@@ -13,4 +13,4 @@ defined('_ASTEXE_') or die('No access');
         <p>Loading Laximo Catalog...</p>
     </div>
 </div>
-<script src="/api/Laximo/laximo.js"></script>
+<script src="/api/laximo_storefront.js?v=20260717lax242"></script>

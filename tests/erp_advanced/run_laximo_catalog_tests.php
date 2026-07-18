@@ -30,7 +30,7 @@ function check(string $label, bool $cond): void
 echo "== Landing page two sections ==\n";
 $idx = (string) file_get_contents($root . '/content/laximo/index.php');
 check('index uses AJAX shell for catalogs', strpos($idx, 'Laximo_container') !== false);
-check('index loads laximo.js', strpos($idx, '/api/Laximo/laximo.js') !== false);
+check('index loads storefront laximo.js', strpos($idx, '/api/laximo_storefront.js') !== false);
 check('index keeps Guayaquil for deep tasks', strpos($idx, 'com_guayaquil/index.php') !== false);
 check('index does not return from CMS eval', !preg_match('/\breturn\s*;/', $idx));
 check('index closes PHP for CMS embed', substr(rtrim($idx), -2) === '?>');

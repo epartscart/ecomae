@@ -35,7 +35,19 @@ foreach ($roots as $root) {
 	if (!is_dir($dir)) {
 		mkdir($dir, 0755, true);
 	}
-	file_put_contents($dest, $bin);
-	echo "wrote {$dest} bytes=" . strlen($bin) . "\n";
+	$n = @file_put_contents($dest, $bin);
+	if ($n === false) {
+		$err = error_get_last();
+		$msg = is_array($err) ? (string) ($err['message'] ?? 'write failed') : 'write failed';
+		echo "FAIL {$dest} writable_dir=" . (is_writable($dir) ? '1' : '0')
+			. " exists=" . (file_exists($dest) ? '1' : '0')
+			. " writable_file=" . (file_exists($dest) && is_writable($dest) ? '1' : '0')
+			. " err={$msg}\n";
+		continue;
+	}
+	clearstatcache(true, $dest);
+	$ok = is_file($dest) && (int) filesize($dest) === strlen($bin);
+	echo ($ok ? 'wrote' : 'FAIL size-mismatch') . " {$dest} bytes={$n}"
+		. " sha256=" . hash_file('sha256', $dest) . "\n";
 }
 exit("Push done.\n");
