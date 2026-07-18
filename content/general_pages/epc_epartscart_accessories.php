@@ -8,7 +8,7 @@ defined('_ASTEXE_') or die('No access');
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] !== '')
 	? rtrim((string) $multilang_params['lang_href'], '/')
 	: '/en';
-$epc_acc_ver = '20260718accPw3';
+$epc_acc_ver = '20260718accPw4';
 ?>
 <link rel="stylesheet" href="/content/general_pages/epc_accessories.css?v=<?php echo rawurlencode($epc_acc_ver); ?>">
 
@@ -20,18 +20,48 @@ $epc_acc_ver = '20260718accPw3';
 		<div class="container">
 			<div class="epc-acc__brand">eParts<span>Cart</span></div>
 			<h1>Car spare parts and accessories</h1>
-			<p>PakWheels-style category browse and filters. Categories are ready — listings are added into each category over time.</p>
+			<p>Browse PakWheels-style categories and filters. Listings are added into each category over time.</p>
 			<div class="epc-acc__hero-cta">
 				<form class="epc-acc__search" id="epc-acc-search-form" role="search">
 					<label class="sr-only" for="epc-acc-q">Search accessories</label>
 					<input id="epc-acc-q" name="q" type="search" placeholder="Search accessories and spare parts" maxlength="80" />
 					<button type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
 				</form>
+				<button type="button" class="epc-acc__btn epc-acc__btn--ghost" id="epc-acc-notify-open">Notify Me</button>
 			</div>
 		</div>
 	</div>
 
 	<div class="container">
+		<div class="epc-acc__vehicle" id="epc-acc-vehicle">
+			<div class="epc-acc__vehicle-head">
+				<strong>Select Vehicle</strong>
+				<span>Filter ads by make and model — like PakWheels</span>
+			</div>
+			<div class="epc-acc__vehicle-row">
+				<label>
+					<span>Make</span>
+					<select id="epc-acc-vehicle-make" aria-label="Vehicle make">
+						<option value="">Any make</option>
+					</select>
+				</label>
+				<label>
+					<span>Model</span>
+					<input type="text" id="epc-acc-vehicle-model" placeholder="e.g. Corolla, Civic" />
+				</label>
+				<label>
+					<span>Year</span>
+					<input type="text" id="epc-acc-vehicle-year" placeholder="e.g. 2018" maxlength="4" />
+				</label>
+				<button type="button" class="epc-acc__btn" id="epc-acc-vehicle-apply">Apply</button>
+				<button type="button" class="epc-acc__btn epc-acc__btn-muted" id="epc-acc-vehicle-clear">Clear</button>
+			</div>
+			<div class="epc-acc__saved-bar" id="epc-acc-saved-bar" hidden>
+				Saved ads: <strong id="epc-acc-saved-count">0</strong>
+				<button type="button" id="epc-acc-show-saved">Show saved</button>
+			</div>
+		</div>
+
 		<div class="epc-acc__layout">
 			<aside class="epc-acc__side" aria-label="Filters">
 				<div class="epc-acc__facet">
@@ -113,6 +143,22 @@ $epc_acc_ver = '20260718accPw3';
 			</div>
 		</div>
 	</div>
+
+	<dialog class="epc-acc__dialog" id="epc-acc-notify-dialog">
+		<form method="dialog" class="epc-acc__dialog-inner" id="epc-acc-notify-form">
+			<h3>Notify Me</h3>
+			<p>Get an alert when new ads match your current filters.</p>
+			<label>
+				<span>Email</span>
+				<input type="email" id="epc-acc-notify-email" required placeholder="you@example.com" />
+			</label>
+			<div class="epc-acc__dialog-actions">
+				<button type="submit" class="epc-acc__btn" value="ok">Save alert</button>
+				<button type="submit" class="epc-acc__btn epc-acc__btn-muted" value="cancel">Cancel</button>
+			</div>
+			<p class="epc-acc__dialog-note" id="epc-acc-notify-note" hidden></p>
+		</form>
+	</dialog>
 </section>
 
 <script>
@@ -120,6 +166,8 @@ $epc_acc_ver = '20260718accPw3';
 	var root = document.getElementById('epc-accessories');
 	if (!root) { return; }
 	var api = root.getAttribute('data-api') || '';
+	var SAVE_KEY = 'epc_acc_saved_ads';
+	var NOTIFY_KEY = 'epc_acc_notify_alerts';
 	var els = {
 		q: document.getElementById('epc-acc-q'),
 		form: document.getElementById('epc-acc-search-form'),
@@ -142,12 +190,26 @@ $epc_acc_ver = '20260718accPw3';
 		browseCats: document.getElementById('epc-acc-browse-cats'),
 		browseSubs: document.getElementById('epc-acc-browse-subs'),
 		browseMakes: document.getElementById('epc-acc-browse-makes'),
-		browseCities: document.getElementById('epc-acc-browse-cities')
+		browseCities: document.getElementById('epc-acc-browse-cities'),
+		vMake: document.getElementById('epc-acc-vehicle-make'),
+		vModel: document.getElementById('epc-acc-vehicle-model'),
+		vYear: document.getElementById('epc-acc-vehicle-year'),
+		vApply: document.getElementById('epc-acc-vehicle-apply'),
+		vClear: document.getElementById('epc-acc-vehicle-clear'),
+		savedBar: document.getElementById('epc-acc-saved-bar'),
+		savedCount: document.getElementById('epc-acc-saved-count'),
+		showSaved: document.getElementById('epc-acc-show-saved'),
+		notifyOpen: document.getElementById('epc-acc-notify-open'),
+		notifyDialog: document.getElementById('epc-acc-notify-dialog'),
+		notifyForm: document.getElementById('epc-acc-notify-form'),
+		notifyEmail: document.getElementById('epc-acc-notify-email'),
+		notifyNote: document.getElementById('epc-acc-notify-note')
 	};
 
 	var state = {
 		q: '', category: '', subcategory: '', make: '', model: '', city: '',
 		condition: '', price_min: '', price_max: '', sort: 'updated-desc', page: 1, view: 'grid',
+		year: '', showSavedOnly: false,
 		taxonomy: [], makes: [], cities: []
 	};
 
@@ -159,6 +221,41 @@ $epc_acc_ver = '20260718accPw3';
 		if (!isFinite(n) || n <= 0) { return 'Price on request'; }
 		return String(currency || 'PKR') + ' ' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 	}
+	function getSaved() {
+		try {
+			var raw = localStorage.getItem(SAVE_KEY);
+			var arr = raw ? JSON.parse(raw) : [];
+			return Array.isArray(arr) ? arr.map(String) : [];
+		} catch (e) { return []; }
+	}
+	function setSaved(ids) {
+		try { localStorage.setItem(SAVE_KEY, JSON.stringify(ids)); } catch (e) {}
+		updateSavedBar();
+	}
+	function toggleSaved(id) {
+		id = String(id);
+		var ids = getSaved();
+		var i = ids.indexOf(id);
+		if (i >= 0) { ids.splice(i, 1); } else { ids.push(id); }
+		setSaved(ids);
+		return ids.indexOf(id) >= 0;
+	}
+	function isSaved(id) { return getSaved().indexOf(String(id)) >= 0; }
+	function updateSavedBar() {
+		var n = getSaved().length;
+		if (els.savedCount) els.savedCount.textContent = String(n);
+		if (els.savedBar) els.savedBar.hidden = n < 1 && !state.showSavedOnly;
+	}
+	function relativeUpdated(ts) {
+		var t = Number(ts) || 0;
+		if (!t) return '';
+		var diff = Math.max(0, Math.floor(Date.now() / 1000) - t);
+		if (diff < 3600) return Math.max(1, Math.floor(diff / 60)) + ' min ago';
+		if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+		if (diff < 604800) return Math.floor(diff / 86400) + ' days ago';
+		return new Date(t * 1000).toLocaleDateString();
+	}
+
 	function syncUrl() {
 		try {
 			var u = new URL(window.location.href);
@@ -182,6 +279,8 @@ $epc_acc_ver = '20260718accPw3';
 			if (els.q) els.q.value = state.q;
 			if (els.sort) els.sort.value = state.sort || 'updated-desc';
 			if (els.model) els.model.value = state.model;
+			if (els.vModel) els.vModel.value = state.model;
+			if (els.vMake) els.vMake.value = state.make;
 			if (els.priceMin) els.priceMin.value = state.price_min;
 			if (els.priceMax) els.priceMax.value = state.price_max;
 		} catch (e) {}
@@ -204,6 +303,18 @@ $epc_acc_ver = '20260718accPw3';
 		});
 	}
 
+	function fillVehicleMakes(makes) {
+		if (!els.vMake) return;
+		var cur = state.make || els.vMake.value || '';
+		var opts = '<option value="">Any make</option>';
+		(makes || []).forEach(function (m) {
+			var name = typeof m === 'string' ? m : (m.make || '');
+			if (!name) return;
+			opts += '<option value="' + esc(name) + '"' + (name === cur ? ' selected' : '') + '>' + esc(name) + '</option>';
+		});
+		els.vMake.innerHTML = opts;
+	}
+
 	function renderFacets(facets) {
 		var cats = (facets && facets.categories) || state.taxonomy || [];
 		facetList(els.cats, cats, 'slug', 'label', state.category, function (v) {
@@ -224,11 +335,14 @@ $epc_acc_ver = '20260718accPw3';
 			load();
 		}, 'All sub categories');
 
-		facetList(els.makes, (facets && facets.makes) || [], 'make', 'make', state.make, function (v) {
+		var makes = (facets && facets.makes) || [];
+		facetList(els.makes, makes, 'make', 'make', state.make, function (v) {
 			state.make = (state.make === v) ? '' : v;
+			if (els.vMake) els.vMake.value = state.make;
 			state.page = 1;
 			load();
 		}, 'All makes');
+		fillVehicleMakes(makes);
 
 		facetList(els.cities, (facets && facets.cities) || [], 'city', 'city', state.city, function (v) {
 			state.city = (state.city === v) ? '' : v;
@@ -279,13 +393,13 @@ $epc_acc_ver = '20260718accPw3';
 			});
 		}
 		if (els.browseMakes) {
-			var makes = (facets && facets.makes) || [];
 			els.browseMakes.innerHTML = makes.map(function (m) {
 				return '<button type="button" data-make="' + esc(m.make) + '">' + esc(m.make) + ' Parts and Accessories' + (m.count ? ' (' + m.count + ')' : '') + '</button>';
 			}).join('');
 			Array.prototype.forEach.call(els.browseMakes.querySelectorAll('button'), function (btn) {
 				btn.addEventListener('click', function () {
 					state.make = btn.getAttribute('data-make') || '';
+					if (els.vMake) els.vMake.value = state.make;
 					state.page = 1;
 					load();
 				});
@@ -308,23 +422,34 @@ $epc_acc_ver = '20260718accPw3';
 
 	function renderCards(items, emptyCatalog) {
 		if (!els.results) return;
+		var savedIds = getSaved();
+		if (state.showSavedOnly) {
+			items = (items || []).filter(function (it) { return savedIds.indexOf(String(it.id)) >= 0; });
+		}
 		if (!items || !items.length) {
 			els.results.innerHTML =
 				'<div class="epc-acc__empty">'
-				+ '<strong>No ads in this search yet</strong>'
+				+ '<strong>' + (state.showSavedOnly ? 'No saved ads yet' : 'No ads in this search yet') + '</strong>'
 				+ '<p>Categories and filters match the PakWheels accessories structure. Listings will appear here as they are added category by category.</p>'
-				+ (emptyCatalog ? '<p class="epc-acc__empty-hint">Catalog is ready — start by adding products under Car Care, Interior, Exterior, Brakes, and other categories.</p>' : '')
+				+ (emptyCatalog && !state.showSavedOnly ? '<p class="epc-acc__empty-hint">Catalog is ready — start by adding products under Car Care, Interior, Exterior, Brakes, and other categories.</p>' : '')
 				+ '</div>';
 			return;
 		}
 		els.results.innerHTML = items.map(function (item, idx) {
 			var href = item.external_url || '#';
+			var saved = isSaved(item.id);
 			var img = item.image_url
 				? '<img src="' + esc(item.image_url) + '" alt="" loading="lazy" />'
 				: '<span class="epc-acc__media-mark">' + esc((item.make || item.category_label || 'AD').toString().slice(0, 3).toUpperCase()) + '</span>';
-			return '<article class="epc-acc__card" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
+			var compareHtml = (item.compare_price && item.compare_price > item.price)
+				? '<span class="epc-acc__compare">' + esc(money(item.compare_price, item.currency)) + '</span>'
+				: '';
+			var vehicleBits = [item.make, item.model, item.year].filter(Boolean).join(' · ');
+			return '<article class="epc-acc__card' + (item.featured ? ' is-featured' : '') + '" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
 				+ '<div class="epc-acc__media">'
+				+ (item.featured ? '<span class="epc-acc__featured">Featured</span>' : '')
 				+ '<span class="epc-acc__media-badge">' + esc(item.condition === 'used' ? 'Used' : 'New') + '</span>'
+				+ '<span class="epc-acc__photos"><i class="fa fa-camera" aria-hidden="true"></i> ' + esc(item.photo_count || 1) + '</span>'
 				+ img
 				+ '</div><div class="epc-acc__body">'
 				+ '<div class="epc-acc__meta">'
@@ -333,18 +458,27 @@ $epc_acc_ver = '20260718accPw3';
 				+ (item.city ? '<span>' + esc(item.city) + '</span>' : '')
 				+ '</div>'
 				+ '<h3 class="epc-acc__title"><a href="' + esc(href) + '">' + esc(item.title) + '</a></h3>'
-				+ '<p class="epc-acc__article">' + esc([item.make, item.model].filter(Boolean).join(' · ')) + '</p>'
-				+ '<div class="epc-acc__price-row-card"><div class="epc-acc__price">' + esc(money(item.price, item.currency)) + '</div></div>'
+				+ '<p class="epc-acc__article">' + esc(vehicleBits) + (item.updated_at ? ' · ' + esc(relativeUpdated(item.updated_at)) : '') + '</p>'
+				+ '<div class="epc-acc__price-row-card"><div class="epc-acc__price">' + esc(money(item.price, item.currency)) + compareHtml + '</div></div>'
 				+ '<div class="epc-acc__actions">'
 				+ '<a class="primary" href="' + esc(href) + '">View ad</a>'
-				+ '<a class="secondary" href="' + esc(href) + '">Details</a>'
+				+ '<button type="button" class="secondary epc-acc__save' + (saved ? ' is-saved' : '') + '" data-id="' + esc(item.id) + '">'
+				+ (saved ? 'Saved' : 'Save Ad') + '</button>'
 				+ '</div></div></article>';
 		}).join('');
+		Array.prototype.forEach.call(els.results.querySelectorAll('.epc-acc__save'), function (btn) {
+			btn.addEventListener('click', function () {
+				var on = toggleSaved(btn.getAttribute('data-id'));
+				btn.textContent = on ? 'Saved' : 'Save Ad';
+				btn.classList.toggle('is-saved', on);
+				if (state.showSavedOnly) { renderCards(items, emptyCatalog); }
+			});
+		});
 	}
 
 	function renderPager(page, pages) {
 		if (!els.pager) return;
-		if (pages <= 1) { els.pager.innerHTML = ''; return; }
+		if (pages <= 1 || state.showSavedOnly) { els.pager.innerHTML = ''; return; }
 		var html = '';
 		var start = Math.max(1, page - 2), end = Math.min(pages, page + 2);
 		if (page > 1) html += '<button type="button" data-page="' + (page - 1) + '">Prev</button>';
@@ -380,9 +514,13 @@ $epc_acc_ver = '20260718accPw3';
 					return;
 				}
 				state.taxonomy = data.taxonomy || data.facets && data.facets.categories || [];
-				els.count.innerHTML = data.total
+				var countLabel = data.total
 					? ('<strong>' + esc(data.from) + ' – ' + esc(data.to) + '</strong> of <strong>' + esc(data.total) + '</strong> results')
 					: '<strong>0</strong> results — categories ready, ads will be added category by category';
+				if (state.showSavedOnly) {
+					countLabel = 'Showing <strong>saved</strong> ads from this search';
+				}
+				els.count.innerHTML = countLabel;
 				renderFacets(data.facets || {});
 				renderCards(data.items || [], !!data.empty_catalog);
 				renderPager(data.page || 1, data.pages || 1);
@@ -410,6 +548,7 @@ $epc_acc_ver = '20260718accPw3';
 	if (els.applyPrice) {
 		els.applyPrice.addEventListener('click', function () {
 			state.model = els.model ? els.model.value.trim() : '';
+			if (els.vModel) els.vModel.value = state.model;
 			state.price_min = els.priceMin ? els.priceMin.value : '';
 			state.price_max = els.priceMax ? els.priceMax.value : '';
 			state.page = 1;
@@ -418,15 +557,104 @@ $epc_acc_ver = '20260718accPw3';
 	}
 	if (els.reset) {
 		els.reset.addEventListener('click', function () {
-			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition:'', price_min:'', price_max:'', sort:'updated-desc', page:1, view:state.view, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities };
+			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition:'', price_min:'', price_max:'', sort:'updated-desc', page:1, view:state.view, year:'', showSavedOnly:false, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities };
 			if (els.q) els.q.value = '';
 			if (els.model) els.model.value = '';
+			if (els.vMake) els.vMake.value = '';
+			if (els.vModel) els.vModel.value = '';
+			if (els.vYear) els.vYear.value = '';
 			if (els.sort) els.sort.value = 'updated-desc';
 			if (els.priceMin) els.priceMin.value = '';
 			if (els.priceMax) els.priceMax.value = '';
 			load();
 		});
 	}
+	if (els.vApply) {
+		els.vApply.addEventListener('click', function () {
+			state.make = els.vMake ? els.vMake.value : '';
+			state.model = els.vModel ? els.vModel.value.trim() : '';
+			state.year = els.vYear ? els.vYear.value.trim() : '';
+			if (els.model) els.model.value = state.model;
+			if (state.year) {
+				state.q = state.year;
+				if (els.q) els.q.value = state.year;
+			}
+			state.page = 1;
+			load();
+		});
+	}
+	if (els.vClear) {
+		els.vClear.addEventListener('click', function () {
+			state.make = '';
+			state.model = '';
+			state.year = '';
+			if (state.q && /^\d{4}$/.test(state.q)) {
+				state.q = '';
+				if (els.q) els.q.value = '';
+			}
+			if (els.vMake) els.vMake.value = '';
+			if (els.vModel) els.vModel.value = '';
+			if (els.vYear) els.vYear.value = '';
+			if (els.model) els.model.value = '';
+			state.page = 1;
+			load();
+		});
+	}
+	if (els.showSaved) {
+		els.showSaved.addEventListener('click', function () {
+			state.showSavedOnly = !state.showSavedOnly;
+			els.showSaved.textContent = state.showSavedOnly ? 'Show all' : 'Show saved';
+			load();
+		});
+	}
+	if (els.notifyOpen && els.notifyDialog) {
+		els.notifyOpen.addEventListener('click', function () {
+			if (els.notifyNote) els.notifyNote.hidden = true;
+			if (typeof els.notifyDialog.showModal === 'function') {
+				els.notifyDialog.showModal();
+			} else {
+				var email = window.prompt('Email for Notify Me alerts');
+				if (email) saveNotify(email);
+			}
+		});
+	}
+	function saveNotify(email) {
+		var alert = {
+			email: email,
+			created_at: Date.now(),
+			filters: {
+				q: state.q, category: state.category, subcategory: state.subcategory,
+				make: state.make, model: state.model, city: state.city,
+				condition: state.condition, price_min: state.price_min, price_max: state.price_max
+			}
+		};
+		try {
+			var raw = localStorage.getItem(NOTIFY_KEY);
+			var arr = raw ? JSON.parse(raw) : [];
+			if (!Array.isArray(arr)) arr = [];
+			arr.push(alert);
+			localStorage.setItem(NOTIFY_KEY, JSON.stringify(arr));
+		} catch (e) {}
+		if (els.notifyNote) {
+			els.notifyNote.hidden = false;
+			els.notifyNote.textContent = 'Alert saved for ' + email + '. We will use this when notifications go live.';
+		}
+	}
+	if (els.notifyForm) {
+		els.notifyForm.addEventListener('submit', function (e) {
+			var submitter = e.submitter || null;
+			var val = submitter ? submitter.value : 'ok';
+			if (val === 'cancel') return;
+			e.preventDefault();
+			var email = els.notifyEmail ? els.notifyEmail.value.trim() : '';
+			if (!email) return;
+			saveNotify(email);
+			setTimeout(function () {
+				if (els.notifyDialog && els.notifyDialog.open) els.notifyDialog.close();
+			}, 900);
+		});
+	}
+
 	function setView(mode) {
 		state.view = mode;
 		if (els.results) els.results.classList.toggle('is-list', mode === 'list');
@@ -437,6 +665,7 @@ $epc_acc_ver = '20260718accPw3';
 	if (els.viewList) els.viewList.addEventListener('click', function () { setView('list'); });
 
 	readUrl();
+	updateSavedBar();
 	setView(state.view || 'grid');
 	load();
 })();

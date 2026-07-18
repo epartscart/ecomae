@@ -50,12 +50,16 @@ if (!function_exists('epc_acc_ensure_schema')) {
 				`description` TEXT NULL,
 				`make` VARCHAR(120) NOT NULL DEFAULT '',
 				`model` VARCHAR(120) NOT NULL DEFAULT '',
+				`year` VARCHAR(16) NOT NULL DEFAULT '',
 				`city` VARCHAR(120) NOT NULL DEFAULT '',
 				`condition_type` VARCHAR(32) NOT NULL DEFAULT 'new',
 				`price` DECIMAL(12,2) NOT NULL DEFAULT 0,
+				`compare_price` DECIMAL(12,2) NOT NULL DEFAULT 0,
 				`currency` VARCHAR(8) NOT NULL DEFAULT 'PKR',
 				`image_url` VARCHAR(500) NOT NULL DEFAULT '',
 				`external_url` VARCHAR(500) NOT NULL DEFAULT '',
+				`photo_count` INT NOT NULL DEFAULT 1,
+				`featured` TINYINT(1) NOT NULL DEFAULT 0,
 				`stock_qty` INT NOT NULL DEFAULT 0,
 				`status` VARCHAR(32) NOT NULL DEFAULT 'published',
 				`created_at` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -66,9 +70,34 @@ if (!function_exists('epc_acc_ensure_schema')) {
 				KEY `make` (`make`),
 				KEY `city` (`city`),
 				KEY `status_price` (`status`, `price`),
+				KEY `featured` (`featured`),
 				KEY `updated_at` (`updated_at`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
 		);
+		// Upgrade older installs.
+		$cols = array();
+		try {
+			foreach ($db->query('SHOW COLUMNS FROM `epc_acc_listings`') as $col) {
+				$cols[strtolower((string) $col['Field'])] = true;
+			}
+		} catch (Exception $e) {
+			$cols = array();
+		}
+		$alters = array(
+			'year' => "ADD COLUMN `year` VARCHAR(16) NOT NULL DEFAULT '' AFTER `model`",
+			'compare_price' => "ADD COLUMN `compare_price` DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER `price`",
+			'photo_count' => "ADD COLUMN `photo_count` INT NOT NULL DEFAULT 1 AFTER `external_url`",
+			'featured' => "ADD COLUMN `featured` TINYINT(1) NOT NULL DEFAULT 0 AFTER `photo_count`",
+		);
+		foreach ($alters as $name => $ddl) {
+			if (empty($cols[$name])) {
+				try {
+					$db->exec('ALTER TABLE `epc_acc_listings` ' . $ddl);
+				} catch (Exception $e) {
+					// ignore
+				}
+			}
+		}
 	}
 }
 
@@ -181,9 +210,10 @@ if (!function_exists('epc_acc_add_listing')) {
 		$now = time();
 		$stmt = $db->prepare(
 			'INSERT INTO `epc_acc_listings`
-			(`category_id`, `subcategory_id`, `title`, `description`, `make`, `model`, `city`, `condition_type`,
-			 `price`, `currency`, `image_url`, `external_url`, `stock_qty`, `status`, `created_at`, `updated_at`)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+			(`category_id`, `subcategory_id`, `title`, `description`, `make`, `model`, `year`, `city`, `condition_type`,
+			 `price`, `compare_price`, `currency`, `image_url`, `external_url`, `photo_count`, `featured`,
+			 `stock_qty`, `status`, `created_at`, `updated_at`)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 		);
 		$stmt->execute(array(
 			(int) ($data['category_id'] ?? 0),
@@ -192,12 +222,16 @@ if (!function_exists('epc_acc_add_listing')) {
 			trim((string) ($data['description'] ?? '')),
 			trim((string) ($data['make'] ?? '')),
 			trim((string) ($data['model'] ?? '')),
+			trim((string) ($data['year'] ?? '')),
 			trim((string) ($data['city'] ?? '')),
 			trim((string) ($data['condition_type'] ?? 'new')),
 			(float) ($data['price'] ?? 0),
+			(float) ($data['compare_price'] ?? 0),
 			trim((string) ($data['currency'] ?? 'PKR')) ?: 'PKR',
 			trim((string) ($data['image_url'] ?? '')),
 			trim((string) ($data['external_url'] ?? '')),
+			max(1, (int) ($data['photo_count'] ?? 1)),
+			!empty($data['featured']) ? 1 : 0,
 			(int) ($data['stock_qty'] ?? 0),
 			trim((string) ($data['status'] ?? 'published')) ?: 'published',
 			$now,
@@ -292,20 +326,20 @@ if (!function_exists('epc_acc_marketplace_search')) {
 
 		switch ($sort) {
 			case 'price-asc':
-				$orderSql = '`price` ASC, `updated_at` DESC';
+				$orderSql = '`featured` DESC, `price` ASC, `updated_at` DESC';
 				break;
 			case 'price-desc':
-				$orderSql = '`price` DESC, `updated_at` DESC';
+				$orderSql = '`featured` DESC, `price` DESC, `updated_at` DESC';
 				break;
 			case 'updated-asc':
-				$orderSql = '`updated_at` ASC';
+				$orderSql = '`featured` DESC, `updated_at` ASC';
 				break;
 			case 'top-sales':
-				$orderSql = '`stock_qty` DESC, `updated_at` DESC';
+				$orderSql = '`featured` DESC, `stock_qty` DESC, `updated_at` DESC';
 				break;
 			case 'updated-desc':
 			default:
-				$orderSql = '`updated_at` DESC, `id` DESC';
+				$orderSql = '`featured` DESC, `updated_at` DESC, `id` DESC';
 				break;
 		}
 
@@ -337,12 +371,16 @@ if (!function_exists('epc_acc_marketplace_search')) {
 				'description' => $row['description'],
 				'make' => $row['make'],
 				'model' => $row['model'],
+				'year' => isset($row['year']) ? (string) $row['year'] : '',
 				'city' => $row['city'],
 				'condition' => $row['condition_type'],
 				'price' => (float) $row['price'],
+				'compare_price' => isset($row['compare_price']) ? (float) $row['compare_price'] : 0,
 				'currency' => $row['currency'],
 				'image_url' => $row['image_url'],
 				'external_url' => $row['external_url'],
+				'photo_count' => isset($row['photo_count']) ? max(1, (int) $row['photo_count']) : 1,
+				'featured' => !empty($row['featured']),
 				'stock_qty' => (int) $row['stock_qty'],
 				'category' => $row['category_slug'],
 				'category_label' => $row['category_label'] ?: '',

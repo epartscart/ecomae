@@ -124,12 +124,14 @@ if ($action === 'form') {
 		echo '<option>' . htmlspecialchars($m, ENT_QUOTES, 'UTF-8') . '</option>';
 	}
 	echo '</select></div><div><label>Model</label><input name="model" /></div></div>';
+	echo '<div class="row"><div><label>Year</label><input name="year" placeholder="e.g. 2018" /></div><div><label>Condition</label><select name="condition"><option value="new">New</option><option value="used">Used</option></select></div></div>';
 	echo '<div class="row"><div><label>City</label><select name="city"><option value="">—</option>';
 	foreach ($cities as $c) {
 		echo '<option>' . htmlspecialchars($c, ENT_QUOTES, 'UTF-8') . '</option>';
 	}
-	echo '</select></div><div><label>Condition</label><select name="condition"><option value="new">New</option><option value="used">Used</option></select></div></div>';
-	echo '<div class="row"><div><label>Price</label><input name="price" type="number" step="1" min="0" /></div><div><label>Currency</label><input name="currency" value="PKR" /></div></div>';
+	echo '</select></div><div><label>Featured</label><select name="featured"><option value="0">No</option><option value="1">Yes</option></select></div></div>';
+	echo '<div class="row"><div><label>Price</label><input name="price" type="number" step="1" min="0" /></div><div><label>Compare price</label><input name="compare_price" type="number" step="1" min="0" /></div></div>';
+	echo '<div class="row"><div><label>Currency</label><input name="currency" value="PKR" /></div><div><label>Photo count</label><input name="photo_count" type="number" min="1" value="1" /></div></div>';
 	echo '<label>Image URL</label><input name="image_url" />';
 	echo '<label>External / detail URL</label><input name="external_url" />';
 	echo '<button type="submit">Publish listing</button></form>';
@@ -151,6 +153,24 @@ if ($action === 'seed_demo') {
 	$tax = epc_acc_load_taxonomy_json();
 	$makes = isset($tax['makes']) && is_array($tax['makes']) ? $tax['makes'] : array('Toyota', 'Honda', 'Suzuki');
 	$cities = isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array('Karachi', 'Lahore', 'Islamabad');
+	$modelsByMake = array(
+		'Toyota' => array('Corolla', 'Yaris', 'Fortuner', 'Hilux', 'Vitz'),
+		'Honda' => array('Civic', 'City', 'BR-V', 'Vezel', 'N Wgn'),
+		'Suzuki' => array('Alto', 'Cultus', 'Wagon R', 'Swift', 'Every'),
+		'Daihatsu' => array('Mira', 'Cuore', 'Move', 'Hijet'),
+		'Nissan' => array('Dayz', 'Sunny', 'Clipper', 'Note'),
+		'Hyundai' => array('Tucson', 'Elantra', 'Santro', 'Sonata'),
+		'KIA' => array('Sportage', 'Picanto', 'Stonic', 'Sorento'),
+		'Mitsubishi' => array('Lancer', 'Pajero', 'Minicab'),
+		'Changan' => array('Alsvin', 'Karvaan', 'Oshan X7'),
+		'Mercedes Benz' => array('C Class', 'E Class', 'GLA'),
+		'Haval' => array('H6', 'Jolion'),
+		'Audi' => array('A3', 'A4', 'Q5'),
+		'MG' => array('HS', 'ZS', '5'),
+		'BMW' => array('3 Series', '5 Series', 'X1'),
+		'Lexus' => array('RX', 'NX', 'ES'),
+	);
+	$years = array('2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024');
 	$tree = epc_acc_get_category_tree($pdo);
 	$added = 0;
 	$mi = 0;
@@ -162,25 +182,36 @@ if ($action === 'seed_demo') {
 			for ($n = 0; $n < $perSub; $n++) {
 				$make = $makes[$mi % count($makes)];
 				$city = $cities[$ci % count($cities)];
+				$modelList = isset($modelsByMake[$make]) ? $modelsByMake[$make] : array('Universal');
+				$model = $modelList[($added + $n) % count($modelList)];
+				$year = $years[($added + $n) % count($years)];
 				$mi++;
 				$ci++;
 				$price = $prices[($added + $n) % count($prices)];
+				$compare = (($added + $n) % 3 === 0) ? (int) round($price * 1.18) : 0;
 				$cond = (($added + $n) % 5 === 0) ? 'used' : 'new';
+				$featured = (($added + $n) % 11 === 0) ? 1 : 0;
+				$photos = 1 + (($added + $n) % 8);
 				$subLabel = !empty($child['label']) ? $child['label'] : $parent['label'];
-				$title = $subLabel . ' for ' . $make . ' — ' . $city;
+				// PakWheels-like ad title: "Dash Cover for Toyota Corolla - 2018 | Karachi"
+				$title = $subLabel . ' for ' . $make . ' ' . $model . ' - ' . $year . ' | ' . $city;
 				epc_acc_add_listing($pdo, array(
 					'category_id' => (int) $parent['id'],
 					'subcategory_id' => (int) ($child['id'] ?? 0),
 					'title' => $title,
-					'description' => $subLabel . ' listing under ' . $parent['label'] . '. Add real product photos and details next.',
+					'description' => $subLabel . ' for ' . $make . ' ' . $model . ' (' . $year . '). Listed under ' . $parent['label'] . '. Replace with real photos and seller details when ready.',
 					'make' => $make,
-					'model' => '',
+					'model' => $model,
+					'year' => $year,
 					'city' => $city,
 					'condition_type' => $cond,
 					'price' => $price,
+					'compare_price' => $compare,
 					'currency' => 'PKR',
 					'image_url' => '',
 					'external_url' => '/en/accessories-spare-parts?category=' . rawurlencode($parent['slug']) . '&subcategory=' . rawurlencode((string) ($child['slug'] ?? '')),
+					'photo_count' => $photos,
+					'featured' => $featured,
 					'stock_qty' => 1 + (($added + $n) % 12),
 					'status' => 'published',
 				));
@@ -224,12 +255,16 @@ if ($action === 'add_listing') {
 		'description' => (string) ($_REQUEST['description'] ?? ''),
 		'make' => (string) ($_REQUEST['make'] ?? ''),
 		'model' => (string) ($_REQUEST['model'] ?? ''),
+		'year' => (string) ($_REQUEST['year'] ?? ''),
 		'city' => (string) ($_REQUEST['city'] ?? ''),
 		'condition_type' => (string) ($_REQUEST['condition'] ?? 'new'),
 		'price' => (float) ($_REQUEST['price'] ?? 0),
+		'compare_price' => (float) ($_REQUEST['compare_price'] ?? 0),
 		'currency' => (string) ($_REQUEST['currency'] ?? 'PKR'),
 		'image_url' => (string) ($_REQUEST['image_url'] ?? ''),
 		'external_url' => (string) ($_REQUEST['external_url'] ?? ''),
+		'photo_count' => (int) ($_REQUEST['photo_count'] ?? 1),
+		'featured' => !empty($_REQUEST['featured']) ? 1 : 0,
 		'stock_qty' => (int) ($_REQUEST['stock_qty'] ?? 0),
 		'status' => (string) ($_REQUEST['status'] ?? 'published'),
 	));
