@@ -293,9 +293,18 @@ if ($search_type == 'prices_by_article_and_manufacturer' && !empty($manufacturer
 	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_article_match.php");
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_seo_indexing.php';
 	$seo_manufacturer = html_entity_decode($manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8');
-	$seo_article_expr = docpart_sql_article_normalized_expr('`article`');
+	// Indexed article_search — never REPLACE() full-scan on CHPU SEO seed.
+	$seo_article_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
 	$seo_priceClause = function_exists('epc_seo_stock_requires_price') && epc_seo_stock_requires_price($db_link)
 		? ' AND IFNULL(`price`, 0) > 0' : '';
+	try {
+		@$db_link->exec('SET SESSION max_statement_time = 2');
+		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
+	} catch (Throwable $e) {
+	}
 	$seo_product_query = $db_link->prepare(
 		"SELECT `manufacturer`, `article`, `article_show`, `name`, `exist`, `price`
 		FROM `shop_docpart_prices_data`
@@ -1044,9 +1053,15 @@ if (function_exists('sys_getloadavg')) {
 }
 if ($epc_article_only_price_bunch) {
 	try {
-		// Only skip SSR warehouse SQL under extreme load. Skipping too early leaves
-		// guests with an empty #products_area ("Goods not found") when ajax is slow.
-		if ($epc_host_load1 !== null && $epc_host_load1 >= 22.0) {
+		// Brand+article CHPU: skip blocking SSR — warehouse AJAX is ~30–50ms with indexed
+		// article_search. SSR was adding multi-second TTFB while the JS path already paints
+		// results immediately via epcRunChpuPriceSearch().
+		// Brand-picker (/parts/brands/ARTICLE) keeps a light SSR seed for first paint.
+		$epc_skip_blocking_ssr = !empty($epc_chpu_direct_pricing);
+		if ($epc_skip_blocking_ssr) {
+			throw new RuntimeException('skip_ssr_use_ajax_fast_path');
+		}
+		if ($epc_host_load1 !== null && $epc_host_load1 >= 8.0) {
 			throw new RuntimeException('load_shed_ssr_bunch');
 		}
 		$epc_ss_price_bunches = array();
@@ -1068,13 +1083,19 @@ if ($epc_article_only_price_bunch) {
 				'analogs' => array(),
 			);
 			// Article-only SQL across mapped UAE price warehouses (ignore URL brand for stock lookup).
+			$epc_ss_t0 = microtime(true);
 			$epc_ss_prices = new prices_enclosure($article, array(), $epc_ss_storage_options, $article);
-			$epc_initial_price_bunch = json_decode(json_encode($epc_ss_prices), true);
-			if (empty($epc_initial_price_bunch['Products'])) {
+			// Hard budget: never block first paint more than ~400ms for SSR seed.
+			if ((microtime(true) - $epc_ss_t0) > 0.40) {
 				$epc_initial_price_bunch = null;
 			} else {
-				$epc_initial_price_bunch['result'] = 1;
-				$epc_initial_price_bunch['storage_id'] = 0;
+				$epc_initial_price_bunch = json_decode(json_encode($epc_ss_prices), true);
+				if (empty($epc_initial_price_bunch['Products'])) {
+					$epc_initial_price_bunch = null;
+				} else {
+					$epc_initial_price_bunch['result'] = 1;
+					$epc_initial_price_bunch['storage_id'] = 0;
+				}
 			}
 		}
 	} catch (Throwable $e) {
@@ -5519,13 +5540,22 @@ function epcPrimeWarehouseFilter()
 		<p class="epc-brand-picker-top__hint">Several manufacturers use this part number. Choose a brand, then open warehouse prices and stock.</p>
 	</div>
 	<div id="work_area" class="epc-brand-picker-work-area" align="center">
-		<div id="processing_indicator">
+		<?php
+		$epc_picker_ssr_html = '';
+		if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
+			$epc_picker_ssr_html = epc_chpu_ssr_warehouse_table_html(
+				$epc_initial_price_bunch['Products'],
+				isset($currency_indicator) ? $currency_indicator : ''
+			);
+		}
+		?>
+		<div id="processing_indicator"<?php if ($epc_picker_ssr_html !== '') { ?> style="display:none"<?php } ?>>
+			<?php if ($epc_picker_ssr_html === '') { ?>
 			<p><?php echo translate_str_by_id(4314); ?>...</p><img src="/content/files/images/ajax-loader-transparent.gif" alt="" />
+			<?php } ?>
 		</div>
 		<div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results"><?php
-		if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
-			echo epc_chpu_ssr_warehouse_table_html($epc_initial_price_bunch['Products'], isset($currency_indicator) ? $currency_indicator : '');
-		}
+			echo $epc_picker_ssr_html;
 		?></div>
 	</div>
 </div>

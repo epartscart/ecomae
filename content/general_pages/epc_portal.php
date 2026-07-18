@@ -1047,7 +1047,7 @@ function epc_portal_clarity_project_id(string $host = null): string
 	return $map[$host] ?? '';
 }
 
-/** Inline Microsoft Clarity tag (empty string when not configured for this host). */
+/** Inline Microsoft Clarity tag (empty string when not configured for this host). Deferred to window load. */
 function epc_portal_clarity_script_html(string $host = null): string
 {
 	$id = epc_portal_clarity_project_id($host);
@@ -1056,11 +1056,13 @@ function epc_portal_clarity_script_html(string $host = null): string
 	}
 	$idJs = htmlspecialchars($id, ENT_QUOTES, 'UTF-8');
 	return '<script type="text/javascript">'
+		. 'window.addEventListener("load",function(){'
 		. '(function(c,l,a,r,i,t,y){'
 		. 'c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};'
 		. 't=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;'
 		. 'y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);'
 		. '})(window, document, "clarity", "script", "' . $idJs . '");'
+		. '},{once:true});'
 		. '</script>';
 }
 

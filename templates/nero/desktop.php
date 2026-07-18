@@ -296,6 +296,11 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	
     <!-- CSS -->
 	<link href="assets/css/style_all.css?v=<?=(int)$DP_Template->data_value->version;?>" rel="stylesheet" type="text/css" title="default"/>
+	<style id="epc-fast-paint">
+	/* Override style_all preloader lock — never trap scroll behind a stuck white mask. */
+	html, body { overflow-x: hidden !important; overflow-y: auto !important; }
+	#preloader { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+	</style>
 	
 	<link href="css/catalogue/catalogue.css" rel="stylesheet" type="text/css"/>
 	<link href="/modules/slider/css/style.css" rel="stylesheet" type="text/css"/>
@@ -303,12 +308,16 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	<link href="css/astself.css" rel="stylesheet" type="text/css"/>
 
 	<?php
-	if( ! $DP_Content->main_flag || isset($_COOKIE["session"])){
+	// Guests always get a session cookie from auth plugin — do NOT treat that as "logged in".
+	// Full vendors.js only when a real user id cookie is present, or on non-home pages that need UI widgets.
+	$epc_has_logged_user = !empty($_COOKIE['u_id']) && (int) $_COOKIE['u_id'] > 0;
+	$epc_use_full_vendors = (!$DP_Content->main_flag) || $epc_has_logged_user;
+	if ($epc_use_full_vendors) {
 	?>
 	<!-- JS -->
 	<script src="assets/js/vendors.js"></script>
 	<?php
-	}else{
+	} else {
 	?>
 	<script src="assets/js/vendors_main.js"></script>
 	<?php
@@ -381,6 +390,11 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 		var cfg = window.epcCurrencyConfig || {};
 		try { if(localStorage.getItem('epc_currency_manual') === '1') { return; } } catch(e) {}
 		if(!cfg.countryMap || !window.fetch) { return; }
+		// Skip if country already known — avoids ipapi.co on every navigation.
+		try {
+			var known = (document.cookie.match(/(?:^|; )epc_country=([^;]*)/) || [])[1] || '';
+			if (known) { return; }
+		} catch (e2) {}
 		fetch('https://ipapi.co/json/').then(function(r){ return r.json(); }).then(function(data) {
 			var country = data && data.country_code ? String(data.country_code).toUpperCase() : '';
 			var iso = country && cfg.countryMap[country] ? cfg.countryMap[country] : '';
@@ -402,7 +416,10 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 			mobileSelect.value = (window.epcCurrencyConfig || {}).selected || mobileSelect.value;
 			mobileSelect.onchange = function(){ epcSetDisplayCurrency(this.value, true); window.location.reload(); };
 		}
-		epcDetectCurrencyByCountry();
+		// Defer geo currency probe until after first paint / idle.
+		var runGeo = function(){ try { epcDetectCurrencyByCountry(); } catch (e) {} };
+		if (window.requestIdleCallback) { requestIdleCallback(runGeo, { timeout: 4000 }); }
+		else { window.addEventListener('load', function(){ setTimeout(runGeo, 1500); }, { once: true }); }
 	});
 	</script>
 	
@@ -423,36 +440,33 @@ if (is_readable($_epc_ff_banner)) {
 
 
 <?php
-if(isset($_COOKIE["session"])){
+// Full-screen preloader + body{overflow:hidden} blocks the whole site if jQuery/app.js is slow.
+// Auth plugin always sets a guest session cookie — never gate UX on that alone.
+// Skip the preloader entirely for a snappy first paint; keep a no-op unlock for legacy CSS.
 ?>
-<!-- Preloader -->
-<div id="preloader" class="">
-    <div id="status">&nbsp;</div>
-</div>
-<?php
-}
-?>
-
-<?php if ($epc_custom_storefront) { ?>
 <script>
 (function () {
 	function epcUnlockStorefrontScroll() {
-		document.documentElement.style.overflow = '';
-		document.body.style.overflowX = 'hidden';
-		document.body.style.overflowY = 'auto';
+		try {
+			document.documentElement.style.overflow = '';
+			document.body.style.overflowX = 'hidden';
+			document.body.style.overflowY = 'auto';
+		} catch (e) {}
 		var pre = document.getElementById('preloader');
 		if (pre) {
 			pre.style.display = 'none';
 			pre.style.visibility = 'hidden';
 			pre.style.opacity = '0';
+			pre.style.pointerEvents = 'none';
 		}
 	}
 	epcUnlockStorefrontScroll();
 	document.addEventListener('DOMContentLoaded', epcUnlockStorefrontScroll);
 	window.addEventListener('load', epcUnlockStorefrontScroll);
+	setTimeout(epcUnlockStorefrontScroll, 0);
+	setTimeout(epcUnlockStorefrontScroll, 400);
 })();
 </script>
-<?php } ?>
 
 
 <div class="container">
