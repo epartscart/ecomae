@@ -1509,7 +1509,7 @@ else//Действий нет - выводим страницу
 					<script>
 						function doc_print(doc_name){
 							let order_items = getCheckedElements();//Список отмеченных позиций
-							window.open('/content/shop/print_docs/service/print.php?doc_name='+doc_name+'&order_id=<?php echo $order_id; ?>&order_items='+JSON.stringify(order_items)+'&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>', '_blank');
+							window.open('/content/shop/print_docs/service/print.php?doc_name='+doc_name+'&order_id=<?php echo $order_id; ?>&order_items='+JSON.stringify(order_items)+'&csrf_admin=1&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>', '_blank');
 						}
 					</script>
 					

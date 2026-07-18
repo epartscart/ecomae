@@ -31,6 +31,25 @@ if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php')
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+
+// CP order card opens this URL in a new tab with the *admin* CSRF key.
+// Path is under /content/… (not /cp/), so force admin session when requested
+// or when an admin cookie is present without a storefront session.
+if (!isset($csrf_check_admin)) {
+	$csrf_check_admin = false;
+	if (!empty($_GET['csrf_admin']) || !empty($_POST['csrf_admin'])) {
+		$csrf_check_admin = true;
+	} elseif (!empty($_COOKIE['admin_session']) && (empty($_COOKIE['session']) || empty($_COOKIE['u_id']))) {
+		$csrf_check_admin = true;
+	} else {
+		$ref = isset($_SERVER['HTTP_REFERER']) ? (string) $_SERVER['HTTP_REFERER'] : '';
+		$ref_path = is_string($ref) && $ref !== '' ? (string) (parse_url($ref, PHP_URL_PATH) ?: '') : '';
+		if ($ref_path !== '' && preg_match('#/(?:cp|control)(?:/|$)#i', $ref_path)) {
+			$csrf_check_admin = true;
+		}
+	}
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 
 define('_ASTEXE_', 1);
