@@ -100,7 +100,7 @@ if ($_memVal > 0 && $_memVal < 512) {
 	@ini_set('memory_limit', '512M');
 }
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] != '') ? rtrim($multilang_params['lang_href'], '/') : '/en';
-$cachePrefix = 'epart_front_widget:v3:' . preg_replace('/[^a-z0-9.\-]/', '', $host) . ':' . md5($lang_href) . ':';
+$cachePrefix = 'epart_front_widget:v4:' . preg_replace('/[^a-z0-9.\-]/', '', $host) . ':' . md5($lang_href) . ':';
 
 $family_html = epart_front_render_widget('content/product_family_catalog.php', $cachePrefix . 'family', 900);
 $catalog_html = epart_front_render_widget('content/umapi_catalog.php', $cachePrefix . 'catalog', 900);
