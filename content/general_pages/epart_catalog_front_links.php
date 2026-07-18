@@ -195,14 +195,14 @@ $vehicle_html = epart_front_render_widget('content/vehicle_catalog.php', $cacheP
 	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Family Product</h2>
-			<a class="epart-front-section-link" href="<?php echo htmlspecialchars($lang_href . '/product_family_catalog', ENT_QUOTES, 'UTF-8'); ?>">View all families &rarr;</a>
+			<a class="epart-front-section-link" href="<?php echo htmlspecialchars($lang_href . '/product-family', ENT_QUOTES, 'UTF-8'); ?>">View all families &rarr;</a>
 		</div>
 		<?php
 		if ($family_html !== '') {
 			echo $family_html;
 		} else {
 			?>
-			<div class="alert alert-warning">Family Product catalog is loading. <a href="<?php echo htmlspecialchars($lang_href . '/product_family_catalog', ENT_QUOTES, 'UTF-8'); ?>">Open catalog</a></div>
+			<div class="alert alert-warning">Family Product catalog is loading. <a href="<?php echo htmlspecialchars($lang_href . '/product-family', ENT_QUOTES, 'UTF-8'); ?>">Open catalog</a></div>
 			<?php
 		}
 		?>

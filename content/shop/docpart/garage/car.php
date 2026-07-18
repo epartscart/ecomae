@@ -791,7 +791,7 @@ else//Действий нет - выводим страницу
 							<?php
 							$tree_list_id = 0;
 							//Получаем список узлов первого уровня
-							$car_tree_list_level1_query = $db_link->prepare('SELECT * FROM `shop_tree_lists_items` WHERE `tree_list_id` = (SELECT `id` FROM `shop_tree_lists` WHERE `caption` IN ( SELECT `str_id` FROM `lang_text_strings_translation` WHERE `value` IN (?,?) ) ) AND `level` = 1 ORDER BY `value` ASC;');
+							$car_tree_list_level1_query = $db_link->prepare('SELECT * FROM `shop_tree_lists_items` WHERE `tree_list_id` = (SELECT `id` FROM `shop_tree_lists` WHERE `caption` IN ( SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN (?,?) ) ) AND `level` = 1 ORDER BY `value` ASC;');
 							//$car_tree_list_level1_query->bindValue(':caption', 'Автомобили');
 							$car_tree_list_level1_query->execute( array('Автомобили', 'Cars') );
 							while( $car_tree_list_level1_record = $car_tree_list_level1_query->fetch() )
