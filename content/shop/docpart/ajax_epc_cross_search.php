@@ -890,9 +890,12 @@ function epc_cross_load_local_aftermarket_for_oem($db_link, $article_norm, &$ref
 		}
 	}
 
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	if (function_exists('docpart_analogs_match_exprs')) {
+		list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+	} else {
+		$art_expr = docpart_sql_article_normalized_expr('`article`');
+		$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	}
 
 	try
 
@@ -1004,9 +1007,12 @@ function epc_cross_load_local_references($db_link, $DP_Config, $article_norm, &$
 		}
 	}
 
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	if (function_exists('docpart_analogs_match_exprs')) {
+		list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+	} else {
+		$art_expr = docpart_sql_article_normalized_expr('`article`');
+		$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	}
 
 	$count += epc_cross_load_local_aftermarket_for_oem($db_link, $article_norm, $references, $seen);
 
