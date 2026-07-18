@@ -10,7 +10,7 @@ defined('_ASTEXE_') or die('No access');
 <div id="Laximo_container">
     <div class="laximo-loading">
         <div class="spinner"></div>
-        <p>Loading Laximo Catalog...</p>
+        <p>Loading OEM catalog…</p>
     </div>
 </div>
-<script src="/api/laximo_storefront.js?v=20260717lax242"></script>
+<script src="/api/laximo_storefront.js?v=20260718nocat1"></script>

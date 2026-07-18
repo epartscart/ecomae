@@ -11,7 +11,7 @@ defined('_ASTEXE_') or die('No access');
 // Laximo VIN Search - redirects to /katalog-laximo with VIN results
 ?>
 <div style="margin-top:15px; padding:15px; background:#e8f4fd; border:1px solid #bee5eb; border-radius:4px;">
-	<label style="font-weight:600; margin-bottom:8px; display:block; font-size:13px; color:#0c5460;">Search by VIN / Frame Number (Laximo OEM Catalog)</label>
+	<label style="font-weight:600; margin-bottom:8px; display:block; font-size:13px; color:#0c5460;">Search by VIN / Frame Number</label>
 	<form role="form" action="/katalog-laximo" method="GET" style="display:flex; max-width:450px;">
 		<input value="vehicles" type="hidden" name="task" />
 		<input value="" type="hidden" name="c" />

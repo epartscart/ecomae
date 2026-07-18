@@ -22,18 +22,18 @@ if ($useAjaxLanding) {
 		$langPrefix = '/' . strtolower($m[1]);
 	}
 	?>
-	<link rel="stylesheet" href="/api/Laximo/laximo.css?v=20260717lax242" type="text/css" />
+	<link rel="stylesheet" href="/api/Laximo/laximo.css?v=20260718nocat1" type="text/css" />
 	<div class="epc-laximo-page">
 		<div class="epc-laximo-page__intro">
 			<h1 style="margin:0 0 8px;font-size:22px;">OEM vehicle catalog</h1>
 			<p style="margin:0 0 16px;color:#64748b;font-size:14px;max-width:640px;">
-				Search by VIN / frame, or browse manufacturer catalogs. Two sections below load from Laximo.
+				Search by VIN / frame, or browse manufacturer catalogs.
 			</p>
 		</div>
 		<div id="Laximo_container">
 			<div class="laximo-loading">
 				<div class="spinner"></div>
-				<p>Loading Laximo Catalog…</p>
+				<p>Loading OEM catalog…</p>
 			</div>
 		</div>
 	</div>
@@ -41,7 +41,7 @@ if ($useAjaxLanding) {
 		window.EPC_LAXIMO_BASE = <?php echo json_encode($langPrefix . '/katalog-laximo', JSON_UNESCAPED_SLASHES); ?>;
 	</script>
 	<?php /* api/Laximo/ is often root-owned on CloudPanel — serve writable storefront copy */ ?>
-	<script src="/api/laximo_storefront.js?v=20260717lax242"></script>
+	<script src="/api/laximo_storefront.js?v=20260718nocat1"></script>
 	<script>
 		jQuery(function () {
 			if (window.Laximo && typeof Laximo.init === 'function') {
@@ -78,13 +78,12 @@ if ($useAjaxLanding) {
 			}
 			require_once($laximoRoot . '/com_guayaquil/index.php');
 		} catch (\Throwable $e) {
-			echo '<div style="padding:20px;color:#c00;">Laximo error: ' . htmlspecialchars($e->getMessage())
-				. ' in ' . basename($e->getFile()) . ':' . $e->getLine() . '</div>';
+			echo '<div style="padding:20px;color:#c00;">Catalog temporarily unavailable. Please try again later.</div>';
 			echo '<p><a href="' . htmlspecialchars(strtok((string) ($_SERVER['REQUEST_URI'] ?? '/katalog-laximo'), '?'), ENT_QUOTES, 'UTF-8')
 				. '">Open catalog home (VIN + brands)</a></p>';
 		}
 	} else {
-		echo '<div style="padding:20px;color:#c00;">Laximo SDK not available. Please contact support.</div>';
+		echo '<div style="padding:20px;color:#c00;">OEM catalog is temporarily unavailable. Please contact support.</div>';
 	}
 }
 ?>

@@ -46,7 +46,7 @@ if ($existing) {
 
     // Insert the tab (caption uses translation ID — we'll create one or use a temp value)
     $stmt = $db->prepare("INSERT INTO `shop_docpart_search_tabs` (`name`, `caption`, `enabled`, `order`) VALUES (?, ?, ?, ?)");
-    $stmt->execute(['laximo_catalog', 'OEM Catalog (Laximo)', 1, $newOrder]);
+    $stmt->execute(['laximo_catalog', 'OEM Catalog', 1, $newOrder]);
     $tabId = $db->lastInsertId();
     echo "Created Laximo catalog tab (id=$tabId, order=$newOrder)\n";
 }
@@ -113,10 +113,10 @@ if ($cmsRow) {
         'katalog-laximo',
         'php',
         '/content/laximo/index.php',
-        'OEM Parts Catalog (Laximo)',
-        'OEM Parts Catalog — Laximo',
+        'OEM Parts Catalog',
+        'OEM Parts Catalog',
         'Search original OEM parts by vehicle brand, VIN, or part name. Cross-references with aftermarket analogs.',
-        'OEM parts, Laximo, vehicle catalog, VIN search, original parts',
+        'OEM parts, vehicle catalog, VIN search, original parts',
         '',
         '',
         0,

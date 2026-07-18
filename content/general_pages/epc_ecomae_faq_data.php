@@ -11,14 +11,14 @@ function epc_ecomae_faq_modules(): array
 		array(
 			'id' => 'automotive',
 			'icon' => 'fa-car',
-			'title' => 'Automotive Data, TecDoc & Catalog',
+			'title' => 'Automotive Data & Catalog',
 			'range' => '1–15',
 			'items' => array(
 				array(
 					'num' => 1,
-					'q' => 'Does the platform natively support international catalog standards like TecDoc, ACES, or PIES?',
+					'q' => 'Does the platform natively support international catalog standards like ACES or PIES?',
 					'status' => 'Partial',
-					'a' => 'ECOM AE does not natively import TecDoc, ACES, or PIES files. Automotive catalog, VIN decode, and fitment run on the eparts catalog with epartscross for cross-references — the same stack live on epartscart.com. See our Catalog API and vehicle catalogue capability pages.',
+					'a' => 'ECOM AE does not natively import ACES or PIES files. Automotive catalog, VIN decode, and fitment run on the eparts catalog with epartscross for cross-references — the same stack live on epartscart.com. See our Catalog API and vehicle catalogue capability pages.',
 				),
 				array(
 					'num' => 2,
