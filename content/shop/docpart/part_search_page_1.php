@@ -2573,7 +2573,19 @@ function epcCrossRefsNotInStockRowsHTML()
 	{
 		return '';
 	}
-	var loadedCount = source.length;
+	// Unique brand+article combinations (same rule as the API).
+	var loadedCount = 0;
+	for(var loadedKey in seenCross)
+	{
+		if(Object.prototype.hasOwnProperty.call(seenCross, loadedKey))
+		{
+			loadedCount++;
+		}
+	}
+	if(!loadedCount)
+	{
+		loadedCount = source.length;
+	}
 	var totalReported = epcCrossReferencesTotal || loadedCount;
 	var caption = 'Cross references';
 	var hasWarehouseOeStock = (typeof Products !== 'undefined' && Products && Products.All && Products.All.length > 0);
@@ -2599,7 +2611,7 @@ function epcCrossRefsNotInStockRowsHTML()
 	}
 	if(totalReported > loadedCount)
 	{
-		caption += '; ' + loadedCount + ' of ' + totalReported.toLocaleString() + ' crosses loaded';
+		caption += '; ' + loadedCount + ' of ' + totalReported.toLocaleString() + ' unique crosses loaded';
 	}
 	caption += ')';
 	var notInStockSplit = epcPartTypeCreateSplit();
