@@ -8,8 +8,23 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 
 $user_session = DP_User::getAdminSession();
 $csrf = htmlspecialchars((string) ($user_session['csrf_guard_key'] ?? ''), ENT_QUOTES, 'UTF-8');
-$backend = htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8');
+$backend_raw = trim((string) $DP_Config->backend_dir, '/');
+if ($backend_raw === '') {
+	$backend_raw = 'cp';
+}
+$backend = htmlspecialchars($backend_raw, ENT_QUOTES, 'UTF-8');
+// Inline bootstrap so sample/upload works even if footer config script 403s.
+$epc_mv_inline = array(
+	'ajaxUrl' => '/' . $backend_raw . '/content/shop/prices_upload/ajax_epc_multivendor_ingest.php',
+	'csrfKey' => (string) ($user_session['csrf_guard_key'] ?? ''),
+	'backend' => $backend_raw,
+	'pricesUrl' => '/' . $backend_raw . '/shop/prices',
+	'storagesUrl' => '/' . $backend_raw . '/shop/logistics/storages',
+);
 ?>
+<script>
+window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+</script>
 <div class="epc-multivendor-page">
 	<div class="epc-multivendor-hero">
 		<div class="epc-multivendor-hero__text">

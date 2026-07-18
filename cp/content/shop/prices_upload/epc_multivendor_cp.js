@@ -65,6 +65,10 @@
 	function upload() {
 		var fileInput = $('epcMultivendorFile');
 		var btn = $('epcMultivendorUploadBtn');
+		if (!ajaxUrl) {
+			setResult('<div class="alert alert-danger">Upload is not configured (reload the page after login).</div>');
+			return;
+		}
 		if (!fileInput || !fileInput.files || !fileInput.files.length) {
 			setResult('<div class="alert alert-warning">Choose an Excel/CSV file first.</div>');
 			return;
@@ -109,18 +113,33 @@
 	}
 
 	function downloadSample() {
+		if (!ajaxUrl) {
+			setResult('<div class="alert alert-danger">Sample download is not configured (reload the page after login).</div>');
+			return;
+		}
 		var fd = new FormData();
 		fd.append('csrf_guard_key', csrf);
 		fd.append('action', 'sample');
 		fetch(ajaxUrl, {
 			method: 'POST',
 			body: fd,
-			credentials: 'same-origin'
+			credentials: 'same-origin',
+			headers: { 'Accept': 'application/json' }
 		}).then(function (r) {
-			return r.json();
+			return r.text().then(function (text) {
+				var ct = (r.headers.get('content-type') || '').toLowerCase();
+				if (!r.ok || ct.indexOf('json') === -1 || (text && text.charAt(0) === '<')) {
+					throw new Error('Server returned HTML instead of JSON (HTTP ' + r.status + '). Check you are logged into CP.');
+				}
+				try {
+					return JSON.parse(text);
+				} catch (e) {
+					throw new Error('Invalid JSON from sample endpoint');
+				}
+			});
 		}).then(function (data) {
 			if (!data || !data.status || !data.csv) {
-				setResult('<div class="alert alert-danger">Could not build sample CSV.</div>');
+				setResult('<div class="alert alert-danger">' + escapeHtml((data && data.message) || 'Could not build sample CSV.') + '</div>');
 				return;
 			}
 			var blob = new Blob([data.csv], { type: 'text/csv;charset=utf-8' });
