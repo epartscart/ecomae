@@ -63,14 +63,17 @@ function epcCarrierNext() {
 	var parts = pick.value.split('|');
 	var how_get = {
 		mode: <?php echo (int)$current_obtain_mode; ?>,
-		carrier: parts[0],
-		service: parts[1],
-		city: encodeURIComponent(document.getElementById('epc_c_city').value),
-		country: encodeURIComponent(document.getElementById('epc_c_country').value),
-		address: encodeURIComponent(document.getElementById('epc_c_address').value),
-		phone: encodeURIComponent(document.getElementById('epc_c_phone').value),
-		weight_kg: document.getElementById('epc_c_weight').value
+		carrier: parts[0] || '',
+		service: parts[1] || '',
+		city: document.getElementById('epc_c_city').value || '',
+		country: document.getElementById('epc_c_country').value || '',
+		address: document.getElementById('epc_c_address').value || '',
+		phone: document.getElementById('epc_c_phone').value || '',
+		weight_kg: document.getElementById('epc_c_weight').value || '1'
 	};
+	// Checkout confirm + ajax_checkout_create both require the standard how_get cookie.
+	var date = new Date(new Date().getTime() + 15552000 * 1000);
+	document.cookie = 'how_get=' + encodeURIComponent(JSON.stringify(how_get)) + '; path=/; expires=' + date.toUTCString();
 	document.cookie = 'how_get_epc_carriers=' + encodeURIComponent(JSON.stringify(how_get)) + '; path=/; max-age=86400';
 	if (typeof next_step_checkout === 'function') { next_step_checkout(); }
 	else { location.href = '<?php echo isset($multilang_params["lang_href"]) ? $multilang_params["lang_href"] : ""; ?>/shop/checkout/confirm'; }
