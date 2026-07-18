@@ -356,32 +356,61 @@ function epc_portal_demo_clp_password(): string
 		$clpPass = (string) $GLOBALS['epc_demo_clp_pass'];
 	}
 	if ($clpPass === '') {
-		$env = getenv('EPC_DEMO_CLP_PASS');
-		if ($env !== false && $env !== '') {
-			$clpPass = (string) $env;
+		foreach (array('EPC_DEMO_CLP_PASS', 'EPC_CLP_PASS', 'CLP_PASS') as $envKey) {
+			$env = getenv($envKey);
+			if ($env !== false && $env !== '') {
+				$clpPass = (string) $env;
+				break;
+			}
 		}
 	}
 	if ($clpPass === '') {
-		$env = getenv('EPC_CLP_PASS');
-		if ($env !== false && $env !== '') {
-			$clpPass = (string) $env;
-		}
-	}
-	if ($clpPass === '') {
-		$env = getenv('CLP_PASS');
-		if ($env !== false && $env !== '') {
-			$clpPass = (string) $env;
-		}
-	}
-	if ($clpPass === '' && is_file($_SERVER['DOCUMENT_ROOT'] . '/config.demo-clp.php')) {
-		$epc_demo_clp_pass = null;
-		include $_SERVER['DOCUMENT_ROOT'] . '/config.demo-clp.php';
-		if (!empty($epc_demo_clp_pass)) {
-			$clpPass = (string) $epc_demo_clp_pass;
+		$docroot = (string) ($_SERVER['DOCUMENT_ROOT'] ?? '');
+		$candidates = array_filter(array(
+			$docroot !== '' ? rtrim($docroot, '/') . '/config.demo-clp.php' : '',
+			dirname(__DIR__, 2) . '/config.demo-clp.php',
+			'/home/ecomae/htdocs/www.ecomae.com/config.demo-clp.php',
+		));
+		foreach ($candidates as $cfgPath) {
+			if (!is_file($cfgPath)) {
+				continue;
+			}
+			$epc_demo_clp_pass = null;
+			include $cfgPath;
+			if (!empty($epc_demo_clp_pass)) {
+				$clpPass = (string) $epc_demo_clp_pass;
+				break;
+			}
 		}
 	}
 	$resolved = $clpPass;
 	return $resolved;
+}
+
+/** Persist CloudPanel admin password for automated DB provisioning (server-side only). */
+function epc_portal_demo_clp_password_save(string $clpPass): array
+{
+	$clpPass = trim($clpPass);
+	if ($clpPass === '') {
+		return array('ok' => false, 'message' => 'Empty CloudPanel password');
+	}
+	$path = '/home/ecomae/htdocs/www.ecomae.com/config.demo-clp.php';
+	$content = "<?php\n"
+		. "/**\n"
+		. " * CloudPanel admin password for demo DB provisioning (server-side only).\n"
+		. " * Loaded by epc_portal_demo_clp_password() — block direct HTTP access.\n"
+		. " */\n"
+		. "if (!defined('_ASTEXE_') && realpath((string) (\$_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {\n"
+		. "\thttp_response_code(404);\n"
+		. "\texit;\n"
+		. "}\n"
+		. "\$epc_demo_clp_pass = " . var_export($clpPass, true) . ";\n";
+	if (@file_put_contents($path, $content) === false) {
+		return array('ok' => false, 'message' => 'Could not write config.demo-clp.php');
+	}
+	@chmod($path, 0640);
+	$GLOBALS['epc_demo_clp_pass'] = $clpPass;
+	return array('ok' => true, 'path' => $path);
 }
 
 function epc_portal_demo_pool_ready_count(PDO $pdo): int

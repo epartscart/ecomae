@@ -21,10 +21,11 @@ function epc_clp_bin(): string
 	if ($cached !== null) {
 		return $cached;
 	}
+	// Hostinger site users get NOPASSWD on clpctlWrapper (export/import/permissions).
+	// Plain /usr/bin/clpctl is the same limited CLI without sudo.
 	$candidates = array(
+		'sudo -n /usr/bin/clpctlWrapper',
 		'sudo -n /usr/bin/clpctl',
-		'runuser -u root -- /usr/bin/clpctl',
-		'sudo /usr/bin/clpctl',
 		'/usr/bin/clpctl',
 		'/usr/local/bin/clpctl',
 		'clpctl',
@@ -35,8 +36,9 @@ function epc_clp_bin(): string
 			$cached = $bin;
 			return $cached;
 		}
-		$r2 = epc_clp_run_cmd($bin . ' app:list');
-		if ($r2['code'] === 0 && stripos($r2['output'], 'site') !== false) {
+		// Wrapper prints the command list on bare invoke (exit 0).
+		$r2 = epc_clp_run_cmd($bin);
+		if ($r2['code'] === 0 && (stripos($r2['output'], 'CloudPanel') !== false || stripos($r2['output'], 'db:export') !== false)) {
 			$cached = $bin;
 			return $cached;
 		}
@@ -124,6 +126,7 @@ function epc_clp_web_login(string $user, string $pass, string &$cookie, bool $de
 			'password' => $pass,
 			'_csrf_token' => $m[1],
 			'submit' => 'Log In',
+			'locale' => 'en',
 		)),
 	), $cookie);
 	$postHeaders = isset($GLOBALS['epc_clp_last_http_headers']) ? $GLOBALS['epc_clp_last_http_headers'] : array();
@@ -557,34 +560,79 @@ function epc_clp_web_install_ssl(string &$cookie, string $domain, array $extraDo
 function epc_clp_web_add_database(string &$cookie, string $domain, string $dbName, string $dbUser, string $dbPass): array
 {
 	$panel = epc_clp_panel_url();
+	$domain = trim($domain) !== '' ? $domain : 'www.ecomae.com';
 	$sitePath = '/site/' . rawurlencode($domain);
-	$paths = array($sitePath . '/database/new', $sitePath . '/databases/new', $sitePath . '/database');
+	$paths = array(
+		$sitePath . '/database/new',
+		$sitePath . '/databases/new',
+		$sitePath . '/database',
+	);
 	$html = '';
+	$postPath = $sitePath . '/database/new';
 	foreach ($paths as $p) {
 		$html = epc_clp_web_request($panel . $p, array(), $cookie);
 		if ($html !== '' && stripos($html, '404') === false && strlen($html) > 500) {
+			$postPath = $p;
 			break;
 		}
 	}
-	$log = array('db form len=' . strlen($html));
-	if (!preg_match('/name="([^"]*\[_token\])" value="([^"]+)"/', $html, $m)) {
+	$log = array('db form len=' . strlen($html), 'post_path=' . $postPath);
+
+	$token = '';
+	$formPrefix = 'site_database';
+	if (preg_match('/name="((?:site_database|database)\[_token\])" value="([^"]+)"/', $html, $m)) {
+		$formPrefix = strpos($m[1], 'database[') === 0 ? 'database' : 'site_database';
+		$token = $m[2];
+	} elseif (preg_match('/name="([^"]*\[_token\])" value="([^"]+)"/', $html, $m)) {
+		$token = $m[2];
+		if (preg_match('/^([^\[]+)\[/', $m[1], $pm)) {
+			$formPrefix = $pm[1];
+		}
+	}
+	if ($token === '') {
 		$log[] = 'DB form not found — create manually in CloudPanel';
 		return array('ok' => false, 'log' => $log);
 	}
-	$prefix = 'site_database';
-	$body = http_build_query(array(
-		'site_database' => array(
+
+	// CLP 2.x/6.x field names vary slightly; send the common set.
+	$fields = array(
+		$formPrefix => array(
 			'name' => $dbName,
 			'userName' => $dbUser,
 			'userPassword' => $dbPass,
+			'password' => $dbPass,
 			'submit' => 'Create',
-			'_token' => $m[2],
+			'_token' => $token,
 		),
-	));
-	$resp = epc_clp_web_request($panel . '/site/www.ecomae.com/database/new', array('method' => 'POST', 'body' => $body), $cookie);
-	$log[] = 'DB create POST sent';
-	$ok = stripos($resp, 'Redirecting') !== false || stripos($resp, '/databases') !== false;
-	return array('ok' => $ok, 'log' => $log, 'response' => $resp);
+	);
+	$resp = epc_clp_web_request($panel . $postPath, array(
+		'method' => 'POST',
+		'body' => http_build_query($fields),
+	), $cookie);
+	$hdrs = isset($GLOBALS['epc_clp_last_http_headers']) && is_array($GLOBALS['epc_clp_last_http_headers'])
+		? $GLOBALS['epc_clp_last_http_headers']
+		: array();
+	$location = '';
+	$status = '';
+	foreach ($hdrs as $h) {
+		if (preg_match('#^HTTP/#i', $h)) {
+			$status = $h;
+		}
+		if (stripos($h, 'Location:') === 0) {
+			$location = trim(substr($h, 9));
+		}
+	}
+	$log[] = 'DB create POST sent status=' . $status . ' location=' . $location;
+	$ok = $location !== ''
+		|| stripos($resp, 'Redirecting') !== false
+		|| stripos($resp, '/databases') !== false
+		|| stripos($status, '302') !== false
+		|| stripos($status, '303') !== false;
+	if (stripos($resp, 'Error Occurred') !== false || stripos($resp, 'already exists') !== false) {
+		// "already exists" may still be usable — caller verifies with PDO.
+		$log[] = 'response_flag=' . (stripos($resp, 'already exists') !== false ? 'already_exists' : 'error');
+	}
+	return array('ok' => $ok, 'log' => $log, 'response' => $resp, 'location' => $location);
 }
 
 /** Read nginx vhost template from CloudPanel site editor (2.5+ uses #editor div). */

@@ -331,8 +331,9 @@ function epc_ci_audit_price_id_ownership(PDO $commercePdo): array
 {
 	$check = array('name' => 'Price ID ownership uniqueness', 'status' => 'PASS', 'details' => array());
 	try {
+		// shop_offices uses `caption` (not `name`) in Docpart schema.
 		$st = $commercePdo->query(
-			'SELECT s.`id` AS storage_id, s.`connection_options`, o.`id` AS office_id, o.`name` AS office_name
+			'SELECT s.`id` AS storage_id, s.`connection_options`, o.`id` AS office_id, o.`caption` AS office_name
 			 FROM `shop_storages` AS s
 			 INNER JOIN `shop_offices_storages_map` AS m ON m.`storage_id` = s.`id`
 			 INNER JOIN `shop_offices` AS o ON o.`id` = m.`office_id`
