@@ -5,51 +5,45 @@ $epc_pf_chpu_on = !empty($DP_Config->chpu_search_config['chpu_search_on']);
 $epc_pf_chpu_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url']) ? $DP_Config->chpu_search_config['level_1']['url'] : 'parts';
 $epc_pf_chpu_brands_url = !empty($DP_Config->chpu_search_config['level_2']['mode_1']['url']) ? $DP_Config->chpu_search_config['level_2']['mode_1']['url'] : 'brands';
 $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? $DP_Config->chpu_search_config['slash_code'] : '%2F';
+$epc_pf_theme_ver = '20260718pfCat1';
 ?>
+<link rel="stylesheet" href="/content/general_pages/epc_vc_catalog.css?v=<?php echo rawurlencode($epc_pf_theme_ver); ?>">
+<link rel="stylesheet" href="/content/general_pages/epc_car_mod_theme.css?v=<?php echo rawurlencode($epc_pf_theme_ver); ?>">
 <style>
-.epc-pf { margin: 0 0 32px; }
-.epc-pf-title { margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #172536; }
-.epc-pf-lead { margin: 0 0 16px; color: #657184; font-size: 14px; max-width: 920px; }
-.epc-pf-panel { background: #fff; border: 1px solid #e1e7ef; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-.epc-pf-searchbar { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 16px; }
-.epc-pf-searchbar label { font-weight: 700; display: block; margin-bottom: 4px; color: #172536; font-size: 13px; }
-.epc-pf-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-.epc-pf-step { border: 1px solid #d7dee9; background: #f8fafc; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: #64748b; }
-.epc-pf-step.active { background: #2b78d6; border-color: #2b78d6; color: #fff; }
-.epc-pf-step.done { background: #e8f5e9; border-color: #86efac; color: #166534; }
-.epc-pf-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin: 0 0 18px; }
-.epc-pf-summary__card { background: #f8fafc; border: 1px solid #e1e7ef; border-radius: 8px; padding: 12px 10px; text-align: center; }
-.epc-pf-summary__card strong { display: block; font-size: 22px; line-height: 1.2; color: #172536; }
-.epc-pf-summary__card span { font-size: 12px; color: #64748b; }
-.epc-pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.epc-pf-product-card { border: 1px solid #e1e7ef; border-radius: 8px; padding: 12px; background: #fff; min-height: 100px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
-.epc-pf-product-card:hover { border-color: #2b78d6; box-shadow: 0 4px 12px rgba(43,120,214,.12); }
-.epc-pf-product-card.is-active { border-color: #2b78d6; background: #f0f7ff; }
-.epc-pf-product-card strong { display: block; color: #172536; margin-bottom: 6px; }
-.epc-pf-product-card small { display: block; color: #64748b; font-size: 12px; line-height: 1.4; }
-.epc-pf-product-card small.epc-pf-brands-line { max-height: 3.6em; overflow: hidden; }
-.epc-pf-more-brands { color: #2b78d6; font-weight: 600; }
-.epc-pf-product-card__hint { display: block; margin-top: 8px; font-size: 11px; color: #2b78d6; font-weight: 600; }
-.epc-pf-section-title { margin: 0 0 10px; font-size: 16px; font-weight: 700; color: #172536; }
-.epc-pf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.epc-pf-table th, .epc-pf-table td { border: 1px solid #e1e7ef; padding: 8px; vertical-align: top; }
-.epc-pf-table th { background: #f5f7fa; color: #64748b; }
-.epc-pf-table tr.epc-pf-brand-row { cursor: pointer; }
-.epc-pf-table tr.epc-pf-brand-row:hover { background: #f0f7ff; }
-.epc-pf-table tr.epc-pf-brand-row.is-active { background: #dcecff; }
-.epc-pf-loader, .epc-pf-msg { padding: 24px; text-align: center; color: #64748b; }
-.epc-pf-msg { background: #fff8e1; border: 1px solid #f0d98a; border-radius: 8px; }
-.epc-pf-hidden { display: none !important; }
-.epc-pf-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
-.epc-pf-filter { max-width: 280px; }
-@media (max-width: 767px) {
-	.epc-pf-searchbar { grid-template-columns: 1fr; }
+/* Compact drill-down tables keep working under the car-mod category shell */
+.epc-pf-cat-page .epc-pf-panel {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	margin-top: 12px;
+	padding: 14px 16px;
+}
+.epc-pf-cat-page .epc-pf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.epc-pf-cat-page .epc-pf-table th,
+.epc-pf-cat-page .epc-pf-table td { border: 1px solid #e1e7ef; padding: 8px; vertical-align: top; }
+.epc-pf-cat-page .epc-pf-table th { background: #f5f7fa; color: #64748b; }
+.epc-pf-cat-page .epc-pf-brand-row { cursor: pointer; }
+.epc-pf-cat-page .epc-pf-brand-row:hover { background: #fff7ed; }
+.epc-pf-cat-page .epc-pf-brand-row.is-active { background: #ffedd5; }
+.epc-pf-cat-page .epc-pf-loader,
+.epc-pf-cat-page .epc-pf-msg { padding: 28px; text-align: center; color: #64748b; }
+.epc-pf-cat-page .epc-pf-msg { background: #fff8e1; border: 1px solid #f0d98a; border-radius: 10px; }
+.epc-pf-cat-page .epc-pf-section-title { margin: 0 0 10px; font-size: 16px; font-weight: 800; color: #0f172a; }
+.epc-pf-cat-page .epc-pf-lead { margin: 0 0 12px; color: #64748b; font-size: 13px; }
+.epc-pf-cat-page .epc-pf-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+.epc-pf-cat-page .epc-vc-cat-card small {
+	color: #64748b;
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	margin-top: 4px;
 }
 </style>
 
-<div class="epc-pf" id="epc-product-family"
+<div class="epc-pf-cat-page epc-cm" id="epc-product-family"
 	data-lang="<?php echo htmlspecialchars($lang_href, ENT_QUOTES, 'UTF-8'); ?>"
-	data-api="/content/shop/docpart/ajax_epc_product_family.php">
+	data-api="/content/shop/docpart/ajax_epc_product_family.php"
+	data-icon-base="/content/files/epc-cata/category-icons/">
 	<div id="epc-pf-main">
 		<div class="epc-pf-loader" id="epc-pf-loading"><i class="fa fa-spinner fa-spin"></i> Loading product families…</div>
 	</div>
@@ -59,21 +53,41 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 (function () {
 	var root = document.getElementById('epc-product-family');
 	if (!root) { return; }
+	try {
+		if (/\/product-family(?:\/|$|\?)/i.test(window.location.pathname || '')) {
+			document.documentElement.classList.add('epc-pf-cat-active');
+		}
+	} catch (eActive) { /* ignore */ }
+
 	var mainEl = document.getElementById('epc-pf-main');
 	var api = root.getAttribute('data-api') || '';
 	var langHref = root.getAttribute('data-lang') || '/en';
+	var iconBase = (root.getAttribute('data-icon-base') || '/content/files/epc-cata/category-icons/').replace(/\/?$/, '/');
 	var epcPfChpuOn = <?php echo $epc_pf_chpu_on ? 'true' : 'false'; ?>;
 	var epcPfPartsUrl = <?php echo json_encode($epc_pf_chpu_parts_url, JSON_UNESCAPED_UNICODE); ?>;
 	var epcPfBrandsUrl = <?php echo json_encode($epc_pf_chpu_brands_url, JSON_UNESCAPED_UNICODE); ?>;
 	var epcPfSlash = <?php echo json_encode($epc_pf_chpu_slash_code, JSON_UNESCAPED_UNICODE); ?>;
+
+	var ICON_MAP = [
+		{ re: /cabin.?air|pollen/i, id: 2, fa: 'fa-filter' },
+		{ re: /oil.?filter/i, id: 2, fa: 'fa-filter' },
+		{ re: /filter/i, id: 2, fa: 'fa-filter' },
+		{ re: /brake/i, id: 5, fa: 'fa-stop-circle' },
+		{ re: /spark|glow|ignition/i, id: 10, fa: 'fa-bolt' },
+		{ re: /timing.?belt|belt/i, id: 8, fa: 'fa-circle-o' },
+		{ re: /fuel.?pump|fuel/i, id: 17, fa: 'fa-tint' },
+		{ re: /radiat|coolant|cool/i, id: 19, fa: 'fa-thermometer-half' },
+		{ re: /ball.?joint|propshaft|joint|bearing/i, id: 4, fa: 'fa-compress' },
+		{ re: /piston|gasket|engine/i, id: 3, fa: 'fa-cogs' },
+		{ re: /other|uncategor/i, id: 1, fa: 'fa-wrench' }
+	];
 
 	var state = {
 		products: [],
 		summary: null,
 		selectedLabel: '',
 		selectedBrand: '',
-		groupDetail: null,
-		filterText: ''
+		groupDetail: null
 	};
 
 	function esc(s) {
@@ -91,6 +105,23 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		}
 		return langHref + '/shop/part_search?article=' + encodeURIComponent(n) + '&brand=' + encodeURIComponent(b);
 	}
+	function familyIcon(label) {
+		var name = String(label || '');
+		for (var i = 0; i < ICON_MAP.length; i++) {
+			if (ICON_MAP[i].re.test(name)) {
+				return ICON_MAP[i];
+			}
+		}
+		return { id: 1, fa: 'fa-wrench' };
+	}
+	function iconHtml(label) {
+		var meta = familyIcon(label);
+		var fa = meta.fa || 'fa-wrench';
+		if (meta.id > 0) {
+			return '<img src="' + esc(iconBase + meta.id + '.png') + '" alt="" loading="lazy" decoding="async" onerror="this.parentNode.innerHTML=\'<i class=\\\'fa ' + fa + '\\\'></i>\'">';
+		}
+		return '<i class="fa ' + fa + '"></i>';
+	}
 	function fetchJson(url, timeoutMs) {
 		timeoutMs = timeoutMs || 120000;
 		var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -98,9 +129,7 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		return fetch(url, { credentials: 'same-origin', signal: ctrl ? ctrl.signal : undefined })
 			.then(function (r) {
 				if (timer) { clearTimeout(timer); }
-				if (!r.ok) {
-					throw new Error('Server returned HTTP ' + r.status);
-				}
+				if (!r.ok) { throw new Error('Server returned HTTP ' + r.status); }
 				return r.json();
 			})
 			.catch(function (e) {
@@ -112,42 +141,39 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 			});
 	}
 	function topBrandsPreview(p, limit) {
-		limit = limit || 10;
+		limit = limit || 6;
 		var list = (p.brands_top && p.brands_top.length) ? p.brands_top.slice() : (p.brands || []).slice();
 		if (!p.brands_top || !p.brands_top.length) {
 			list.sort(function (a, b) { return (parseFloat(b.total_qty) || 0) - (parseFloat(a.total_qty) || 0); });
 			list = list.slice(0, limit);
 		}
-		var text = list.map(function (b) { return esc(b.brand); }).join(', ');
-		var more = typeof p.brands_more_count === 'number' ? p.brands_more_count : Math.max(0, (p.brands || []).length - list.length);
-		if (more > 0) {
-			text += ' <span class="epc-pf-more-brands">+' + more + ' more</span>';
-		}
-		return text;
+		return list.map(function (b) { return String(b.brand || ''); }).filter(Boolean).join(', ');
 	}
 	function renderProductGrid() {
 		var products = state.products || [];
 		if (!products.length) {
 			return '<div class="epc-pf-msg">No in-stock parts found in the UAE price list.</div>';
 		}
-		return '<div class="epc-pf-panel" id="epc-pf-grid-block">'
-			+ '<h2 class="epc-pf-section-title">Product families (UAE stock)</h2>'
-			+ '<p class="epc-pf-lead">Top 10 brands by UAE quantity on each card. Click to open — full brand list and articles inside.</p>'
-			+ '<div class="epc-pf-toolbar">'
-			+ '<input type="text" class="form-control epc-pf-filter" id="epc-pf-grid-filter" placeholder="Filter families…">'
-			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pf-refresh"><i class="fa fa-refresh"></i> Refresh catalog</button>'
+		var cards = products.map(function (p, i) {
+			var brandsLine = topBrandsPreview(p, 6);
+			var search = [p.label, brandsLine].join(' ');
+			var active = state.selectedLabel === p.label ? ' is-active' : '';
+			return '<button type="button" class="epc-vc-cat-card' + active + '" data-product-i="' + i + '" data-search="' + esc(search) + '">'
+				+ '<div class="epc-vc-cat-icon">' + iconHtml(p.label) + '</div>'
+				+ '<strong>' + esc(p.label || 'Other') + '</strong>'
+				+ '<small>' + esc(p.parts_count || 0) + ' lines · qty ' + esc(Math.round(p.total_qty || 0)) + '</small>'
+				+ '</button>';
+		}).join('');
+		return ''
+			+ '<div class="epc-cm-catalog-head"><h1><em>Catalog</em> by category</h1></div>'
+			+ '<div class="epc-cm-cat-filter">'
+			+ '<i class="fa fa-search" aria-hidden="true"></i>'
+			+ '<input type="search" class="form-control" id="epc-pf-grid-filter" placeholder="Search for a category." autocomplete="off">'
 			+ '</div>'
-			+ '<div class="epc-pf-grid">' + products.map(function (p, i) {
-				var brandsLine = topBrandsPreview(p, 10);
-				var samples = (p.samples || []).map(function (s) { return esc(s.brand) + ' ' + esc(s.article); }).join(', ');
-				var search = [p.label, brandsLine, samples].join(' ');
-				var active = state.selectedLabel === p.label ? ' is-active' : '';
-				return '<div class="epc-pf-product-card' + active + '" data-product-i="' + i + '" data-search="' + esc(search) + '" role="button" tabindex="0">'
-					+ '<strong>' + esc(p.label || 'Other') + '</strong>'
-					+ '<small>' + esc(p.parts_count || 0) + ' part line(s) · qty ' + esc(Math.round(p.total_qty || 0)) + '</small>'
-					+ (brandsLine ? '<small class="epc-pf-brands-line">Brands: ' + brandsLine + '</small>' : (samples ? '<small>e.g. ' + samples + '</small>' : ''))
-					+ '<span class="epc-pf-product-card__hint">Click to open →</span></div>';
-			}).join('') + '</div></div>';
+			+ '<div class="epc-vc-cat-grid" id="epc-pf-cat-grid">' + cards + '</div>'
+			+ '<div class="epc-cm-show-all-wrap">'
+			+ '<button type="button" class="epc-cm-show-all-sections" id="epc-pf-refresh"><i class="fa fa-refresh"></i> Refresh catalog</button>'
+			+ '</div>';
 	}
 	function renderGroupDetail() {
 		var g = state.groupDetail;
@@ -155,13 +181,13 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		var brands = g.brands || [];
 		var parts = g.parts || [];
 		var brandActive = state.selectedBrand;
-		var html = '<div class="epc-pf-panel" id="epc-pf-detail">'
-			+ '<div class="epc-pf-toolbar">'
-			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pf-back-families"><i class="fa fa-arrow-left"></i> All families</button>'
+		var html = '<div class="epc-pf-cat-backbar">'
+			+ '<button type="button" class="btn btn-default btn-sm" id="epc-pf-back-families"><i class="fa fa-arrow-left"></i> All categories</button>'
 			+ (brandActive ? '<button type="button" class="btn btn-default btn-sm" id="epc-pf-back-brands"><i class="fa fa-arrow-left"></i> All brands in ' + esc(g.label) + '</button>' : '')
+			+ '<span class="epc-pf-cat-meta">' + esc(g.parts_count || parts.length) + ' part line(s) · UAE qty ' + esc(Math.round(g.total_qty || 0)) + '</span>'
 			+ '</div>'
-			+ '<h2 class="epc-pf-section-title">' + esc(g.label) + '</h2>'
-			+ '<p class="epc-pf-lead">' + esc(g.parts_count || parts.length) + ' part line(s) · UAE qty <strong>' + esc(Math.round(g.total_qty || 0)) + '</strong></p>';
+			+ '<div class="epc-cm-catalog-head"><h1><em>' + esc(g.label) + '</em></h1></div>'
+			+ '<div class="epc-pf-panel">';
 
 		if (!brandActive && brands.length) {
 			html += '<h3 class="epc-pf-section-title">Brands in this family — click a row</h3>'
@@ -178,7 +204,7 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 
 		if (brandActive || showParts.length) {
 			html += '<h3 class="epc-pf-section-title">' + (brandActive ? 'Articles — ' + esc(brandActive) : 'All parts in this family') + '</h3>'
-				+ '<input type="text" class="form-control epc-pf-filter" id="epc-pf-parts-filter" placeholder="Filter by article or name…" style="margin-bottom:10px;">'
+				+ '<input type="search" class="form-control" id="epc-pf-parts-filter" placeholder="Filter by article or name…" style="margin-bottom:10px;max-width:360px;">'
 				+ '<table class="epc-pf-table"><thead><tr><th>Brand</th><th>Article</th><th>Name</th><th>Qty</th><th></th></tr></thead><tbody id="epc-pf-parts-body">'
 				+ showParts.map(function (p) {
 					var search = [p.brand, p.article, p.name].join(' ');
@@ -192,13 +218,7 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		return html;
 	}
 	function renderMain() {
-		var html = '';
-		if (state.selectedLabel && state.groupDetail) {
-			html += renderGroupDetail();
-		} else {
-			html += renderProductGrid();
-		}
-		mainEl.innerHTML = html;
+		mainEl.innerHTML = (state.selectedLabel && state.groupDetail) ? renderGroupDetail() : renderProductGrid();
 		bindMain();
 	}
 	function bindGridFilter() {
@@ -206,7 +226,7 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		if (!inp) { return; }
 		inp.oninput = function () {
 			var q = String(inp.value || '').toLowerCase();
-			Array.prototype.forEach.call(document.querySelectorAll('.epc-pf-product-card'), function (card) {
+			Array.prototype.forEach.call(document.querySelectorAll('#epc-pf-cat-grid .epc-vc-cat-card'), function (card) {
 				var hay = (card.getAttribute('data-search') || '').toLowerCase();
 				card.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
 			});
@@ -251,15 +271,11 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		}
 		bindGridFilter();
 		bindPartsFilter();
-		Array.prototype.forEach.call(document.querySelectorAll('.epc-pf-product-card'), function (card) {
-			function go() {
+		Array.prototype.forEach.call(document.querySelectorAll('#epc-pf-cat-grid .epc-vc-cat-card'), function (card) {
+			card.onclick = function () {
 				var i = parseInt(card.getAttribute('data-product-i'), 10);
 				var p = state.products[i];
 				if (p) { openFamily(p.label); }
-			}
-			card.onclick = go;
-			card.onkeydown = function (e) {
-				if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
 			};
 		});
 		var backFam = document.getElementById('epc-pf-back-families');
@@ -289,7 +305,7 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		var slowMsg = setTimeout(function () {
 			var el = document.getElementById('epc-pf-loading');
 			if (el) {
-				el.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading product families… (large UAE catalog, please wait up to 60 seconds)';
+				el.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading product families… (large UAE catalog, please wait)';
 			}
 		}, 5000);
 		var url = api + '?action=summary';
@@ -316,7 +332,9 @@ $epc_pf_chpu_slash_code = isset($DP_Config->chpu_search_config['slash_code']) ? 
 		var qs = new URLSearchParams(window.location.search);
 		if (qs.get('brand') && qs.get('article')) {
 			window.location.href = shopUrl(String(qs.get('brand')), String(qs.get('article')));
-		} else if (qs.get('family')) {
+			return;
+		}
+		if (qs.get('family')) {
 			loadCatalog(false);
 			setTimeout(function () { openFamily(String(qs.get('family'))); }, 400);
 			return;
