@@ -102,8 +102,9 @@ class VehiclesHtml extends View
             case 'FindVehicle':
                 $ident = $this->input->getString('identString', '');
 
+                // Must match GuayaquilRequestOEM::appendFindVehicle($identString) — PHP 8 named args.
                 $requests['appendFindVehicle'] = [
-                    'ident' => $ident,
+                    'identString' => $ident,
                 ];
 
                 $type = [
