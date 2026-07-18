@@ -1044,6 +1044,99 @@ if ($epc_article_only_price_bunch) {
 	}
 }
 
+/**
+ * Server-render warehouse stock rows into #products_area so stock is visible
+ * before JS runs (and remains if ajax_asynchron / cross-search 524 clears paint).
+ */
+function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator = ''): string
+{
+	if ($products === array()) {
+		return '';
+	}
+	if (!function_exists('epc_storefront_prices_visible_for_user')) {
+		$helpers = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+		if (is_file($helpers)) {
+			require_once $helpers;
+		}
+	}
+	$pricesVisible = function_exists('epc_storefront_prices_visible_for_user')
+		? epc_storefront_prices_visible_for_user(isset($GLOBALS['user_id']) ? (int) $GLOBALS['user_id'] : null)
+		: true;
+	$priceCta = (!$pricesVisible && function_exists('epc_storefront_prices_login_cta_html'))
+		? epc_storefront_prices_login_cta_html()
+		: '';
+	$currencyLabel = trim((string) $currency_indicator);
+	$priceHeader = $currencyLabel !== '' ? ('Price, ' . htmlspecialchars($currencyLabel, ENT_QUOTES, 'UTF-8')) : 'Price';
+	$rows = '';
+	foreach ($products as $product) {
+		if (!is_array($product)) {
+			continue;
+		}
+		$exist = (float) ($product['exist'] ?? 0);
+		if ($exist <= 0) {
+			continue;
+		}
+		$brand = trim((string) ($product['manufacturer'] ?? ''));
+		$articleShow = trim((string) ($product['article_show'] ?? $product['article'] ?? ''));
+		$name = trim((string) ($product['name'] ?? ''));
+		$warehouse = trim((string) ($product['storage_caption'] ?? ''));
+		$priceRaw = (float) ($product['price'] ?? 0);
+		$term = 'In warehouse';
+		if ($warehouse !== '') {
+			$term .= ' · ' . $warehouse;
+		}
+		if ($pricesVisible) {
+			$priceHtml = '<span class="epc-price-value">' . htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8') . '</span>';
+		} else {
+			$priceHtml = $priceCta !== '' ? $priceCta : '&mdash;';
+		}
+		$infoHtml = '';
+		if ($warehouse !== '') {
+			$infoHtml = '<div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600" title="Warehouse"><span class="info_box">'
+				. htmlspecialchars($warehouse, ENT_QUOTES, 'UTF-8')
+				. '</span></div>';
+		}
+		$rows .= '<tr class="epc-part-type-row--genuine epc-ssr-warehouse-row">'
+			. '<td class="td_photo"></td>'
+			. '<td class="td_manufacturer"><span>' . htmlspecialchars($brand, ENT_QUOTES, 'UTF-8') . '</span></td>'
+			. '<td class="td_article"><strong>' . htmlspecialchars($articleShow, ENT_QUOTES, 'UTF-8') . '</strong></td>'
+			. '<td class="td_name"><span title="' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</span></td>'
+			. '<td class="td_exist">' . htmlspecialchars((string) (int) $exist, ENT_QUOTES, 'UTF-8') . '</td>'
+			. '<td class="td_time_to_exe"><span class="epc-warehouse-term">' . htmlspecialchars($term, ENT_QUOTES, 'UTF-8') . '</span></td>'
+			. '<td class="td_info">' . $infoHtml . '</td>'
+			. '<td class="td_price product_price">' . $priceHtml . '</td>'
+			. '<td class="td_add_to_cart"></td>'
+			. '<td class="td_color"></td>'
+			. '</tr>';
+	}
+	if ($rows === '') {
+		return '';
+	}
+	$count = substr_count($rows, '<tr');
+	$banner = '<div class="epc-ssr-warehouse-banner" style="margin:0 0 10px;padding:10px 12px;border:1px solid #bbf7d0;border-radius:8px;background:#f0fdf4;color:#14532d;font-size:13px;text-align:left">'
+		. '<strong>UAE warehouse stock</strong> — ' . (int) $count . ' offer'
+		. ((int) $count === 1 ? '' : 's')
+		. ' ready below. Cross references may list additional numbers that are not in stock.'
+		. '</div>';
+	return $banner
+		. '<table id="all_table_products" class="epc-ssr-warehouse-table">'
+		. '<thead><tr>'
+		. '<th class="th_photo"></th>'
+		. '<th class="th_manufacturer">Manufacturer</th>'
+		. '<th class="th_article">Article</th>'
+		. '<th class="th_name">Name</th>'
+		. '<th class="th_exist">Availability</th>'
+		. '<th class="th_time_to_exe">Term</th>'
+		. '<th class="th_info">Info</th>'
+		. '<th class="th_price">' . $priceHeader . '</th>'
+		. '<th class="th_add_to_cart"></th>'
+		. '<th class="th_color"></th>'
+		. '</tr></thead><tbody>'
+		. '<tr class="epc-part-type-caption epc-part-type-caption--genuine"><td colspan="10"><span class="epc-part-type-pill">Genuine (OE) (' . (int) $count . ')</span></td></tr>'
+		. $rows
+		. '</tbody></table>';
+}
+
 // Bootstrap manufacturer rows for CHPU URLs (e.g. /parts/AISIN/DT068) so price-list search can run.
 $epc_chpu_manufacturer_bootstrap = array();
 if (!empty($epc_chpu_direct_pricing) && !empty($manufacturer)) {
@@ -2201,6 +2294,21 @@ function epcChpuApplyCombinedResults(priceData)
 		{
 			return false;
 		}
+		if((!priceData || parseInt(priceData.result, 10) !== 1 || !priceData.Products || !priceData.Products.length)
+			&& typeof epc_initial_price_bunch !== 'undefined'
+			&& epc_initial_price_bunch
+			&& epc_initial_price_bunch.Products
+			&& epc_initial_price_bunch.Products.length)
+		{
+			var initialArticle = String(epc_initial_price_bunch.Products[0].article || '').replace(/[\s\-_`\/'"\\.,#]/g, '').toUpperCase();
+			var currentArticle = (typeof search_object !== 'undefined' && search_object && search_object.article)
+				? String(search_object.article).replace(/[\s\-_`\/'"\\.,#]/g, '').toUpperCase()
+				: '';
+			if(initialArticle !== '' && initialArticle === currentArticle)
+			{
+				priceData = epc_initial_price_bunch;
+			}
+		}
 		if(priceData && parseInt(priceData.result, 10) === 1 && priceData.Products && priceData.Products.length)
 		{
 			bindBunchResult(priceData);
@@ -2515,6 +2623,7 @@ function epcRunChpuPriceSearch()
 		.catch(function(err) {
 			console.error('epcRunChpuPriceSearch', err);
 			window.epcChpuCombinedApplyDone = true;
+			// Prefer restoring server warehouse stock over an empty/unavailable paint after 524/timeouts.
 			epcChpuApplyCombinedResults(null);
 		});
 }
@@ -2546,6 +2655,11 @@ function epcApplyInitialPriceBunch()
 			crossBlock.parentNode.removeChild(crossBlock);
 		}
 	}
+	// Re-bind even when SSR already painted — keeps Products.* in sync for filters/crosses.
+	if(typeof epcResetChpuProductsState === 'function' && (!Products || !Products.All || !Products.All.length))
+	{
+		// Products may already hold the initial bunch from a prior apply; only soft-reset when empty.
+	}
 	bindBunchResult(epc_initial_price_bunch);
 	Products_All_Asked = true;
 	var processing = document.getElementById('processing_indicator');
@@ -2571,6 +2685,25 @@ function epcApplyInitialPriceBunch()
 	catch(renderErr)
 	{
 		console.error('epcApplyInitialPriceBunch', renderErr);
+	}
+	// If resultReview failed/filtered everything, keep SSR warehouse HTML instead of blanking.
+	if(productsArea && productsArea.innerHTML.indexOf('all_table_products') === -1)
+	{
+		try
+		{
+			if(typeof epcChpuBuildDirectStockTableHtml === 'function')
+			{
+				var fallbackHtml = epcChpuBuildDirectStockTableHtml();
+				if(fallbackHtml)
+				{
+					productsArea.innerHTML = fallbackHtml;
+				}
+			}
+		}
+		catch(fallbackErr)
+		{
+			console.error('epcApplyInitialPriceBunch fallback', fallbackErr);
+		}
 	}
 	if(processing)
 	{
@@ -2739,11 +2872,31 @@ function epcChpuStartFullPriceSearch(manufacturer_show)
 	}
 	epcClearCrossStockFromResults();
 	var productsArea = document.getElementById('products_area');
-	if(productsArea)
+	var initialArticleKeep = '';
+	if(typeof epc_initial_price_bunch !== 'undefined' && epc_initial_price_bunch && epc_initial_price_bunch.Products && epc_initial_price_bunch.Products.length)
+	{
+		initialArticleKeep = String(epc_initial_price_bunch.Products[0].article || '').replace(/[\s\-_`\/'"\\.,#]/g, '').toUpperCase();
+	}
+	var currentArticleKeep = (typeof search_object !== 'undefined' && search_object && search_object.article)
+		? String(search_object.article).replace(/[\s\-_`\/'"\\.,#]/g, '').toUpperCase()
+		: '';
+	var keepInitialWarehousePaint = (
+		initialArticleKeep !== ''
+		&& initialArticleKeep === currentArticleKeep
+		&& productsArea
+		&& productsArea.innerHTML
+		&& productsArea.innerHTML.indexOf('all_table_products') !== -1
+	);
+	// Never blank a successful warehouse paint while the slow supplier poll runs —
+	// a 524/empty ajax response used to leave guests with an empty results area.
+	if(productsArea && !keepInitialWarehousePaint)
 	{
 		productsArea.innerHTML = '';
 	}
-	epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4294); ?></p><img src=\"/content/files/images/ajax-loader-transparent.gif\" /><br><br>");
+	if(!keepInitialWarehousePaint)
+	{
+		epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4294); ?></p><img src=\"/content/files/images/ajax-loader-transparent.gif\" /><br><br>");
+	}
 	// Brand+article CHPU: one protocol-3 query across all UAE price warehouses (article-only SQL).
 	// Do not call onManufacturerSelected() — that runs getStoragesDataAsync (1/1 loader) and filters by brand in SQL.
 	epcRunChpuPriceSearch();
@@ -5110,7 +5263,11 @@ function epcPrimeWarehouseFilter()
 		<div id="processing_indicator">
 			<p><?php echo translate_str_by_id(4314); ?>...</p><img src="/content/files/images/ajax-loader-transparent.gif" alt="" />
 		</div>
-		<div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results"></div>
+		<div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results"><?php
+		if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
+			echo epc_chpu_ssr_warehouse_table_html($epc_initial_price_bunch['Products'], isset($currency_indicator) ? $currency_indicator : '');
+		}
+		?></div>
 	</div>
 </div>
 <?php } ?>
@@ -6418,12 +6575,24 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/part_search_page_"
 	?>
 
 
-    <div id="processing_indicator">
+    <?php
+	$epc_ssr_warehouse_html = '';
+	if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
+		$epc_ssr_warehouse_html = epc_chpu_ssr_warehouse_table_html(
+			$epc_initial_price_bunch['Products'],
+			isset($currency_indicator) ? $currency_indicator : ''
+		);
+	}
+	?>
+    <div id="processing_indicator"<?php if ($epc_ssr_warehouse_html !== '') { ?> style="display:none"<?php } ?>>
+        <?php if ($epc_ssr_warehouse_html === '') { ?>
         <p><?php echo $start_message; ?></p><img src="/content/files/images/ajax-loader-transparent.gif" />
+        <?php } ?>
     </div>
 
     
     <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
+    <?php echo $epc_ssr_warehouse_html; ?>
     </div>
 </div>
 <?php } ?>

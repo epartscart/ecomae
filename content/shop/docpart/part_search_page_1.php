@@ -2515,13 +2515,22 @@ function epcCrossRefsNotInStockRowsHTML()
 	var loadedCount = source.length;
 	var totalReported = epcCrossReferencesTotal || loadedCount;
 	var caption = 'Cross references';
+	var hasWarehouseOeStock = (typeof Products !== 'undefined' && Products && Products.All && Products.All.length > 0);
 	if(notInStockListed > 0 && inStockListed > 0)
 	{
 		caption += ' (' + inStockListed + ' in stock · ' + notInStockListed + ' not in stock on this page';
 	}
 	else if(notInStockListed > 0)
 	{
-		caption += ' — not in stock on UAE warehouses (' + notInStockListed + ' on this page';
+		// Do not imply the searched OE warehouse offer is missing when it is already listed above.
+		if(hasWarehouseOeStock)
+		{
+			caption += ' — additional numbers not in warehouse stock (' + notInStockListed + ' on this page';
+		}
+		else
+		{
+			caption += ' — not in stock on UAE warehouses (' + notInStockListed + ' on this page';
+		}
 	}
 	else
 	{
@@ -4578,6 +4587,11 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 		if(time_to_exe == 0)
 		{
 			time_to_exe = "<?php echo translate_str_by_id(4197); ?>";
+			var warehouseTermLabel = epcProductWarehouseCaption(Product);
+			if(warehouseTermLabel !== '')
+			{
+				time_to_exe += ' · ' + warehouseTermLabel;
+			}
 		}else{
 			time_to_exe = time_to_exe + " <?php echo translate_str_by_id(4097); ?>.";
 		}
@@ -4678,7 +4692,11 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
     // Сворачиваем строки, если их больше чем указано в настройках для блока
 	var rowClassExtra = isChpuWarehouseSubRow ? ' epc-warehouse-subrow' : '';
 	var subRowClass = rowClassExtra.trim();
-	if(all_storages_info[Product.storage_id]['bg_line_color'] == 1){
+	var storageInfo = (typeof all_storages_info !== 'undefined' && all_storages_info && all_storages_info[Product.storage_id])
+		? all_storages_info[Product.storage_id]
+		: null;
+	var useStorageBg = !!(storageInfo && parseInt(storageInfo.bg_line_color, 10) === 1);
+	if(useStorageBg){
 		var start_wrap_div = "<tr class=\""+subRowClass+"\" style='background:"+color+";'>";
 	}else{
 		var start_wrap_div = "<tr class=\""+subRowClass+"\">";
@@ -4695,14 +4713,14 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
             row_style = "display:none;";
         }
 		
-		if(all_storages_info[Product.storage_id]['bg_line_color'] == 1){
+		if(useStorageBg){
 			start_wrap_div = "<tr style=\""+row_style+" background:"+color+";\" class=\"hide_row hide_row_"+wrap_blocks_assoc[rowGroupKey]+(subRowClass ? ' '+subRowClass : '')+"\">";
 		}else{
 			start_wrap_div = "<tr style=\""+row_style+"\" class=\"hide_row hide_row_"+wrap_blocks_assoc[rowGroupKey]+(subRowClass ? ' '+subRowClass : '')+"\">";
 		}
     }else{
 		if(index > 0){
-			if(all_storages_info[Product.storage_id]['bg_line_color'] == 1){
+			if(useStorageBg){
 				start_wrap_div = "<tr style='background:"+color+";' class=\"hide_row"+(subRowClass ? ' '+subRowClass : '')+"\">";
 			}else{
 				start_wrap_div = "<tr class=\"hide_row"+(subRowClass ? ' '+subRowClass : '')+"\">";
