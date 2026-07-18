@@ -74,7 +74,11 @@ for( $i=0 ; $i < count($pages_to_check) ; $i++)
 	
 	//ПРОВЕРКА ДОСТУПА К МАТЕРИАЛУ
 	$access_allowed = false;//Флаг "Доступ разрешен"
-	if (count($allowed_groups) === 0) {
+	$isFrontendPage = ((int) $pages_to_check[$i]['is_frontend'] === 1);
+
+	// Empty ACL: frontend may stay open (public catalogue pages).
+	// Backend (CP) empty ACL MUST deny — misconfigured pages must not run AJAX as guest.
+	if (count($allowed_groups) === 0 && $isFrontendPage) {
 		$access_allowed = true;
 	}
 

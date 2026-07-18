@@ -19,6 +19,14 @@ if (!preg_match('#^(templates|content|modules|lib|bos|cp)/#', $rel) && !preg_mat
 	header('Content-Type: text/plain; charset=utf-8');
 	exit('Bad path');
 }
+// Never serve executable / secret source via the static gateway.
+if (preg_match('/\.(php|phtml|phar|sql|env|ini|sh|bash|py|rb|pl|cgi|htaccess|bak|old|orig)$/i', $rel)
+	|| preg_match('#(^|/)\.#', $rel)
+	|| preg_match('#(^|/)(config|config\.local|config\.demo-clp)(\.php)?$#i', $rel)) {
+	http_response_code(403);
+	header('Content-Type: text/plain; charset=utf-8');
+	exit('Forbidden');
+}
 $docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
 $file = $docRoot . '/' . $rel;
 if (!is_file($file) || !is_readable($file)) {

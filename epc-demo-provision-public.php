@@ -5,6 +5,9 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('Cache-Control: no-store');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 set_time_limit(300);
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -13,8 +16,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 define('_ASTEXE_', 1);
+require_once __DIR__ . '/content/general_pages/epc_security_kernel.php';
+epc_sec_require_rate_limit('demo_provision_ip', 8, 3600);
 require_once __DIR__ . '/content/general_pages/epc_portal_demo.php';
-
 try {
 	$pdo = epc_portal_demo_platform_pdo();
 	if (!$pdo instanceof PDO) {

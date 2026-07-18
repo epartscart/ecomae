@@ -679,7 +679,10 @@ function epc_portal_tenant_control_list_all(PDO $pdo): array
 				$r['admin_email'] = epc_portal_tenant_control_resolve_admin_email($r);
 			}
 		}
-		$r['stored_password'] = trim((string) ($r['operator_temp_password'] ?? ''));
+		// Never expose plaintext passwords in list payloads (XSS/session theft harvest).
+		$r['has_stored_password'] = trim((string) ($r['operator_temp_password'] ?? '')) !== '';
+		$r['stored_password'] = '';
+		unset($r['operator_temp_password'], $r['db_password']);
 		$r['is_active_flag'] = epc_portal_tenant_control_row_is_active($r) ? 1 : 0;
 		$r['urls'] = epc_portal_tenant_control_urls($r);
 		if ($r['tenant_type'] === 'erp_only') {
