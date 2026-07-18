@@ -1,0 +1,1913 @@
+{
+  "source": "pakwheels.com/accessories-spare-parts",
+  "crawled_note": "PakWheels accessories category tree + filter chrome. Listings are stored in ePartsCart DB and filled per category — PakWheels product ads are not scraped/imported.",
+  "categories": [
+    {
+      "slug": "car-care",
+      "pw_id": 165146,
+      "label": "Car Care",
+      "page_label": "Car Care Products in Pakistan",
+      "href": "/accessories-spare-parts/car-care/165146",
+      "children": [
+        {
+          "slug": "car-top-covers",
+          "pw_id": 213113,
+          "label": "Car Covers",
+          "href": "/accessories-spare-parts/car-top-covers/213113"
+        },
+        {
+          "slug": "air-freshner",
+          "pw_id": 164803,
+          "label": "Car Air Fresheners",
+          "href": "/accessories-spare-parts/air-freshner/164803"
+        },
+        {
+          "slug": "microfiber-clothes",
+          "pw_id": 213089,
+          "label": "Microfiber Cloth",
+          "href": "/accessories-spare-parts/microfiber-clothes/213089"
+        },
+        {
+          "slug": "bundles",
+          "pw_id": 2970641,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles/2970641"
+        },
+        {
+          "slug": "car-wax",
+          "pw_id": 165081,
+          "label": "Car Wax",
+          "href": "/accessories-spare-parts/car-wax/165081"
+        },
+        {
+          "slug": "interior-care",
+          "pw_id": 213097,
+          "label": "Car Interior Cleaners",
+          "href": "/accessories-spare-parts/interior-care/213097"
+        },
+        {
+          "slug": "polishes",
+          "pw_id": 164808,
+          "label": "Car Polish",
+          "href": "/accessories-spare-parts/polishes/164808"
+        },
+        {
+          "slug": "engine-cleaners",
+          "pw_id": 213338,
+          "label": "Car Engine Cleaners",
+          "href": "/accessories-spare-parts/engine-cleaners/213338"
+        },
+        {
+          "slug": "car-shampoo",
+          "pw_id": 213085,
+          "label": "Car Shampoo",
+          "href": "/accessories-spare-parts/car-shampoo/213085"
+        },
+        {
+          "slug": "coolants",
+          "pw_id": 247733,
+          "label": "Car Coolants",
+          "href": "/accessories-spare-parts/coolants/247733"
+        },
+        {
+          "slug": "detailing-brushes",
+          "pw_id": 1880923,
+          "label": "Car Detailing Brushes",
+          "href": "/accessories-spare-parts/detailing-brushes/1880923"
+        },
+        {
+          "slug": "pressure-washers",
+          "pw_id": 213102,
+          "label": "Pressure washers",
+          "href": "/accessories-spare-parts/pressure-washers/213102"
+        },
+        {
+          "slug": "exterior-care",
+          "pw_id": 833688,
+          "label": "Car Exterior Cleaners",
+          "href": "/accessories-spare-parts/exterior-care/833688"
+        },
+        {
+          "slug": "car-tyre-shine",
+          "pw_id": 2666578,
+          "label": "Car Tyre Shine",
+          "href": "/accessories-spare-parts/car-tyre-shine/2666578"
+        },
+        {
+          "slug": "all-purpose-cleaners",
+          "pw_id": 1702203,
+          "label": "All Purpose Cleaners",
+          "href": "/accessories-spare-parts/all-purpose-cleaners/1702203"
+        },
+        {
+          "slug": "protectants",
+          "pw_id": 1763308,
+          "label": "Car Protectants",
+          "href": "/accessories-spare-parts/protectants/1763308"
+        },
+        {
+          "slug": "glass-cleaners",
+          "pw_id": 213094,
+          "label": "Car Glass Cleaners",
+          "href": "/accessories-spare-parts/glass-cleaners/213094"
+        },
+        {
+          "slug": "leather-care",
+          "pw_id": 213092,
+          "label": "Car Leather Care",
+          "href": "/accessories-spare-parts/leather-care/213092"
+        },
+        {
+          "slug": "sealant-glass-coat",
+          "pw_id": 213333,
+          "label": "Car Ceramic Coating",
+          "href": "/accessories-spare-parts/sealant-glass-coat/213333"
+        },
+        {
+          "slug": "porsche-car-care",
+          "pw_id": 2821362,
+          "label": "Porsche Car Care",
+          "href": "/accessories-spare-parts/porsche-car-care/2821362"
+        },
+        {
+          "slug": "car-care-lahore",
+          "pw_id": 165158,
+          "label": "Care Lahore",
+          "href": "/accessories-spare-parts/car-care-lahore/165158"
+        }
+      ]
+    },
+    {
+      "slug": "interior",
+      "pw_id": 165213,
+      "label": "Interior",
+      "page_label": "Car Interior Parts & Accessories",
+      "href": "/accessories-spare-parts/interior/165213",
+      "children": [
+        {
+          "slug": "floor-mats",
+          "pw_id": 165028,
+          "label": "Car Floor Mats",
+          "href": "/accessories-spare-parts/floor-mats/165028"
+        },
+        {
+          "slug": "shades",
+          "pw_id": 165065,
+          "label": "Car Sun Shades",
+          "href": "/accessories-spare-parts/shades/165065"
+        },
+        {
+          "slug": "trunk-mats",
+          "pw_id": 213342,
+          "label": "Car Trunk Mats",
+          "href": "/accessories-spare-parts/trunk-mats/213342"
+        },
+        {
+          "slug": "dashboard-carpet",
+          "pw_id": 482409,
+          "label": "Car Dash Covers",
+          "href": "/accessories-spare-parts/dashboard-carpet/482409"
+        },
+        {
+          "slug": "interior-chrome-accessories",
+          "pw_id": 490113,
+          "label": "Car Interior Accessories",
+          "href": "/accessories-spare-parts/interior-chrome-accessories/490113"
+        },
+        {
+          "slug": "car-seat-cushion",
+          "pw_id": 2628865,
+          "label": "Car Seat Cushion",
+          "href": "/accessories-spare-parts/car-seat-cushion/2628865"
+        },
+        {
+          "slug": "door-parts",
+          "pw_id": 165058,
+          "label": "Car Door Parts & Accessories",
+          "href": "/accessories-spare-parts/door-parts/165058"
+        },
+        {
+          "slug": "gear-knobs",
+          "pw_id": 223278,
+          "label": "Car Gear Knobs",
+          "href": "/accessories-spare-parts/gear-knobs/223278"
+        },
+        {
+          "slug": "neck-pillow",
+          "pw_id": 2628866,
+          "label": "Car Neck Pillow",
+          "href": "/accessories-spare-parts/neck-pillow/2628866"
+        },
+        {
+          "slug": "car-tissue-box",
+          "pw_id": 482168,
+          "label": "Car Tissue Box",
+          "href": "/accessories-spare-parts/car-tissue-box/482168"
+        },
+        {
+          "slug": "car-organizers",
+          "pw_id": 482606,
+          "label": "Car Organizers",
+          "href": "/accessories-spare-parts/car-organizers/482606"
+        },
+        {
+          "slug": "steering-covers",
+          "pw_id": 165051,
+          "label": "Car Steering Covers",
+          "href": "/accessories-spare-parts/steering-covers/165051"
+        },
+        {
+          "slug": "bundles--2",
+          "pw_id": 2972734,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--2/2972734"
+        },
+        {
+          "slug": "mobile-chargers-holders",
+          "pw_id": 213157,
+          "label": "Car Mobile Holder",
+          "href": "/accessories-spare-parts/mobile-chargers-holders/213157"
+        },
+        {
+          "slug": "armrest",
+          "pw_id": 213164,
+          "label": "Car Armrest",
+          "href": "/accessories-spare-parts/armrest/213164"
+        },
+        {
+          "slug": "seat-belt",
+          "pw_id": 213161,
+          "label": "Car Seat Belt",
+          "href": "/accessories-spare-parts/seat-belt/213161"
+        },
+        {
+          "slug": "steering-wheel",
+          "pw_id": 2651660,
+          "label": "Steering Wheel",
+          "href": "/accessories-spare-parts/steering-wheel/2651660"
+        },
+        {
+          "slug": "ashtray",
+          "pw_id": 482406,
+          "label": "Car Ashtray",
+          "href": "/accessories-spare-parts/ashtray/482406"
+        },
+        {
+          "slug": "console-box",
+          "pw_id": 488371,
+          "label": "Car Console Box",
+          "href": "/accessories-spare-parts/console-box/488371"
+        },
+        {
+          "slug": "jetour-interior",
+          "pw_id": 2915461,
+          "label": "Jetour Interior",
+          "href": "/accessories-spare-parts/jetour-interior/2915461"
+        },
+        {
+          "slug": "porsche-interior",
+          "pw_id": 687074,
+          "label": "Porsche Interior",
+          "href": "/accessories-spare-parts/porsche-interior/687074"
+        },
+        {
+          "slug": "interior-lahore",
+          "pw_id": 165225,
+          "label": "Interior Lahore",
+          "href": "/accessories-spare-parts/interior-lahore/165225"
+        }
+      ]
+    },
+    {
+      "slug": "exterior",
+      "pw_id": 165159,
+      "label": "Exterior",
+      "page_label": "Car Exterior Parts & Accessories",
+      "href": "/accessories-spare-parts/exterior/165159",
+      "children": [
+        {
+          "slug": "wiper-blades",
+          "pw_id": 1478787,
+          "label": "Car Wipers",
+          "href": "/accessories-spare-parts/wiper-blades/1478787"
+        },
+        {
+          "slug": "emblems-stickers",
+          "pw_id": 164877,
+          "label": "Car Stickers & Logos",
+          "href": "/accessories-spare-parts/emblems-stickers/164877"
+        },
+        {
+          "slug": "car-insulation-sheets",
+          "pw_id": 1618584,
+          "label": "Car Insulation Sheets",
+          "href": "/accessories-spare-parts/car-insulation-sheets/1618584"
+        },
+        {
+          "slug": "car-doors",
+          "pw_id": 213281,
+          "label": "Car Doors & Components",
+          "href": "/accessories-spare-parts/car-doors/213281"
+        },
+        {
+          "slug": "fenders",
+          "pw_id": 213305,
+          "label": "Car Fenders & Shields",
+          "href": "/accessories-spare-parts/fenders/213305"
+        },
+        {
+          "slug": "mud-guards",
+          "pw_id": 164871,
+          "label": "Car Mud Flaps",
+          "href": "/accessories-spare-parts/mud-guards/164871"
+        },
+        {
+          "slug": "sun-visors",
+          "pw_id": 213184,
+          "label": "Car Sun Visor",
+          "href": "/accessories-spare-parts/sun-visors/213184"
+        },
+        {
+          "slug": "side-mirrors",
+          "pw_id": 213325,
+          "label": "Car Side Mirrors",
+          "href": "/accessories-spare-parts/side-mirrors/213325"
+        },
+        {
+          "slug": "paint-protection-film-ppf",
+          "pw_id": 2976697,
+          "label": "Paint Protection Film (PPF)",
+          "href": "/accessories-spare-parts/paint-protection-film-ppf/2976697"
+        },
+        {
+          "slug": "bumpers-components",
+          "pw_id": 164840,
+          "label": "Car Bumper Styling",
+          "href": "/accessories-spare-parts/bumpers-components/164840"
+        },
+        {
+          "slug": "bumpers",
+          "pw_id": 213258,
+          "label": "Car Bumpers",
+          "href": "/accessories-spare-parts/bumpers/213258"
+        },
+        {
+          "slug": "car-bonnets",
+          "pw_id": 213275,
+          "label": "Car Bonnets",
+          "href": "/accessories-spare-parts/car-bonnets/213275"
+        },
+        {
+          "slug": "side-mirror-covers",
+          "pw_id": 3225788,
+          "label": "Side mirror covers",
+          "href": "/accessories-spare-parts/side-mirror-covers/3225788"
+        },
+        {
+          "slug": "grills",
+          "pw_id": 213315,
+          "label": "Car Front Grills",
+          "href": "/accessories-spare-parts/grills/213315"
+        },
+        {
+          "slug": "antenna",
+          "pw_id": 482401,
+          "label": "Car Antenna",
+          "href": "/accessories-spare-parts/antenna/482401"
+        },
+        {
+          "slug": "trunk",
+          "pw_id": 213301,
+          "label": "Car Trunk Parts",
+          "href": "/accessories-spare-parts/trunk/213301"
+        },
+        {
+          "slug": "window-louvers",
+          "pw_id": 1453781,
+          "label": "Car Window Louvers",
+          "href": "/accessories-spare-parts/window-louvers/1453781"
+        },
+        {
+          "slug": "chrome-trim-accessories",
+          "pw_id": 482399,
+          "label": "Chrome Trim Accessories",
+          "href": "/accessories-spare-parts/chrome-trim-accessories/482399"
+        },
+        {
+          "slug": "spoilers-body-kits",
+          "pw_id": 164832,
+          "label": "Car Body Kits",
+          "href": "/accessories-spare-parts/spoilers-body-kits/164832"
+        },
+        {
+          "slug": "ford-exterior",
+          "pw_id": 2686078,
+          "label": "Ford Exterior",
+          "href": "/accessories-spare-parts/ford-exterior/2686078"
+        },
+        {
+          "slug": "faw-exterior",
+          "pw_id": 399102,
+          "label": "FAW Exterior",
+          "href": "/accessories-spare-parts/faw-exterior/399102"
+        },
+        {
+          "slug": "others-exterior",
+          "pw_id": 2678431,
+          "label": "Others Exterior",
+          "href": "/accessories-spare-parts/others-exterior/2678431"
+        },
+        {
+          "slug": "subaru-exterior",
+          "pw_id": 3023082,
+          "label": "Subaru Exterior",
+          "href": "/accessories-spare-parts/subaru-exterior/3023082"
+        },
+        {
+          "slug": "peugeot-exterior",
+          "pw_id": 2481281,
+          "label": "Peugeot Exterior",
+          "href": "/accessories-spare-parts/peugeot-exterior/2481281"
+        },
+        {
+          "slug": "exterior-karachi",
+          "pw_id": 165176,
+          "label": "Exterior Karachi",
+          "href": "/accessories-spare-parts/exterior-karachi/165176"
+        }
+      ]
+    },
+    {
+      "slug": "brakes",
+      "pw_id": 165202,
+      "label": "Brakes",
+      "page_label": "Brakes parts Price in Pakistan",
+      "href": "/accessories-spare-parts/brakes/165202",
+      "children": [
+        {
+          "slug": "brake-pads",
+          "pw_id": 165006,
+          "label": "Car Brake Pads",
+          "href": "/accessories-spare-parts/brake-pads/165006"
+        },
+        {
+          "slug": "brake-shoe",
+          "pw_id": 213362,
+          "label": "Car Brake Shoes",
+          "href": "/accessories-spare-parts/brake-shoe/213362"
+        },
+        {
+          "slug": "master-brake-cylinders",
+          "pw_id": 2038406,
+          "label": "Master Brake Cylinders",
+          "href": "/accessories-spare-parts/master-brake-cylinders/2038406"
+        },
+        {
+          "slug": "brake-caliper-cover",
+          "pw_id": 3221046,
+          "label": "Brake Caliper Cover",
+          "href": "/accessories-spare-parts/brake-caliper-cover/3221046"
+        },
+        {
+          "slug": "isuzu-brakes",
+          "pw_id": 382071,
+          "label": "Isuzu Brakes",
+          "href": "/accessories-spare-parts/isuzu-brakes/382071"
+        },
+        {
+          "slug": "faw-brakes",
+          "pw_id": 244217,
+          "label": "FAW Brakes",
+          "href": "/accessories-spare-parts/faw-brakes/244217"
+        },
+        {
+          "slug": "chevrolet-brakes",
+          "pw_id": 243601,
+          "label": "Chevrolet Brakes",
+          "href": "/accessories-spare-parts/chevrolet-brakes/243601"
+        },
+        {
+          "slug": "ford-brakes",
+          "pw_id": 2830258,
+          "label": "Ford Brakes",
+          "href": "/accessories-spare-parts/ford-brakes/2830258"
+        },
+        {
+          "slug": "dfsk-brakes",
+          "pw_id": 2590024,
+          "label": "DFSK Brakes",
+          "href": "/accessories-spare-parts/dfsk-brakes/2590024"
+        },
+        {
+          "slug": "subaru-brakes",
+          "pw_id": 382876,
+          "label": "Subaru Brakes",
+          "href": "/accessories-spare-parts/subaru-brakes/382876"
+        },
+        {
+          "slug": "brakes-karachi",
+          "pw_id": 165211,
+          "label": "Brakes Karachi",
+          "href": "/accessories-spare-parts/brakes-karachi/165211"
+        },
+        {
+          "slug": "brakes-lahore",
+          "pw_id": 165212,
+          "label": "Brakes Lahore",
+          "href": "/accessories-spare-parts/brakes-lahore/165212"
+        },
+        {
+          "slug": "brakes-mirpur-khas",
+          "pw_id": 2579401,
+          "label": "Brakes Mirpur khas",
+          "href": "/accessories-spare-parts/brakes-mirpur-khas/2579401"
+        },
+        {
+          "slug": "brakes-okara",
+          "pw_id": 2587760,
+          "label": "Brakes Okara",
+          "href": "/accessories-spare-parts/brakes-okara/2587760"
+        },
+        {
+          "slug": "brakes-sialkot",
+          "pw_id": 165208,
+          "label": "Brakes Sialkot",
+          "href": "/accessories-spare-parts/brakes-sialkot/165208"
+        },
+        {
+          "slug": "brakes-islamabad",
+          "pw_id": 165210,
+          "label": "Brakes Islamabad",
+          "href": "/accessories-spare-parts/brakes-islamabad/165210"
+        },
+        {
+          "slug": "brakes-rawalpindi",
+          "pw_id": 165206,
+          "label": "Brakes Rawalpindi",
+          "href": "/accessories-spare-parts/brakes-rawalpindi/165206"
+        },
+        {
+          "slug": "brakes-gujranwala",
+          "pw_id": 357018,
+          "label": "Brakes Gujranwala",
+          "href": "/accessories-spare-parts/brakes-gujranwala/357018"
+        },
+        {
+          "slug": "brakes-multan",
+          "pw_id": 228703,
+          "label": "Brakes Multan",
+          "href": "/accessories-spare-parts/brakes-multan/228703"
+        },
+        {
+          "slug": "car-care",
+          "pw_id": 165146,
+          "label": "Car Care",
+          "href": "/accessories-spare-parts/car-care/165146"
+        },
+        {
+          "slug": "interior",
+          "pw_id": 165213,
+          "label": "Interior",
+          "href": "/accessories-spare-parts/interior/165213"
+        },
+        {
+          "slug": "exterior",
+          "pw_id": 165159,
+          "label": "Exterior",
+          "href": "/accessories-spare-parts/exterior/165159"
+        },
+        {
+          "slug": "engine-mechanical",
+          "pw_id": 165178,
+          "label": "Engine & Mechanical",
+          "href": "/accessories-spare-parts/engine-mechanical/165178"
+        },
+        {
+          "slug": "tools-gadgets",
+          "pw_id": 212973,
+          "label": "Tools & Gadgets",
+          "href": "/accessories-spare-parts/tools-gadgets/212973"
+        },
+        {
+          "slug": "lights-electrical",
+          "pw_id": 165126,
+          "label": "Lights & Electrical",
+          "href": "/accessories-spare-parts/lights-electrical/165126"
+        },
+        {
+          "slug": "oils-lubricants",
+          "pw_id": 212969,
+          "label": "Oils & Lubricants",
+          "href": "/accessories-spare-parts/oils-lubricants/212969"
+        }
+      ]
+    },
+    {
+      "slug": "engine-mechanical",
+      "pw_id": 165178,
+      "label": "Engine & Mechanical",
+      "page_label": "Engine and Mechanical Spare Parts",
+      "href": "/accessories-spare-parts/engine-mechanical/165178",
+      "children": [
+        {
+          "slug": "air-filters",
+          "pw_id": 2501095,
+          "label": "Car Air Filters",
+          "href": "/accessories-spare-parts/air-filters/2501095"
+        },
+        {
+          "slug": "ac-filters",
+          "pw_id": 1777076,
+          "label": "Car AC Filters",
+          "href": "/accessories-spare-parts/ac-filters/1777076"
+        },
+        {
+          "slug": "spark-plugs",
+          "pw_id": 213296,
+          "label": "Iridium Spark Plugs",
+          "href": "/accessories-spare-parts/spark-plugs/213296"
+        },
+        {
+          "slug": "oil-filters",
+          "pw_id": 1668861,
+          "label": "Car Oil Filter",
+          "href": "/accessories-spare-parts/oil-filters/1668861"
+        },
+        {
+          "slug": "fan-belt",
+          "pw_id": 164935,
+          "label": "Car Belts",
+          "href": "/accessories-spare-parts/fan-belt/164935"
+        },
+        {
+          "slug": "suspension",
+          "pw_id": 213368,
+          "label": "Car Suspension Parts",
+          "href": "/accessories-spare-parts/suspension/213368"
+        },
+        {
+          "slug": "clutch-cables",
+          "pw_id": 2038421,
+          "label": "Car Mechanical Cables",
+          "href": "/accessories-spare-parts/clutch-cables/2038421"
+        },
+        {
+          "slug": "ignition-coils",
+          "pw_id": 2510234,
+          "label": "Car Ignition Coils",
+          "href": "/accessories-spare-parts/ignition-coils/2510234"
+        },
+        {
+          "slug": "hoses-pipes",
+          "pw_id": 164963,
+          "label": "Hose Pipe",
+          "href": "/accessories-spare-parts/hoses-pipes/164963"
+        },
+        {
+          "slug": "clutches",
+          "pw_id": 164988,
+          "label": "Car Clutch Plate",
+          "href": "/accessories-spare-parts/clutches/164988"
+        },
+        {
+          "slug": "radiator-fans-cooling-parts",
+          "pw_id": 164926,
+          "label": "Radiator Fans Cooling Parts",
+          "href": "/accessories-spare-parts/radiator-fans-cooling-parts/164926"
+        },
+        {
+          "slug": "oxygen-sensors",
+          "pw_id": 1918122,
+          "label": "Oxygen Sensors",
+          "href": "/accessories-spare-parts/oxygen-sensors/1918122"
+        },
+        {
+          "slug": "engine-covers",
+          "pw_id": 2522759,
+          "label": "Car Engine Shields",
+          "href": "/accessories-spare-parts/engine-covers/2522759"
+        },
+        {
+          "slug": "engine-mount",
+          "pw_id": 838204,
+          "label": "Engine Mount",
+          "href": "/accessories-spare-parts/engine-mount/838204"
+        },
+        {
+          "slug": "complete-engines",
+          "pw_id": 164912,
+          "label": "Car Engine",
+          "href": "/accessories-spare-parts/complete-engines/164912"
+        },
+        {
+          "slug": "air-conditioning-heating",
+          "pw_id": 164937,
+          "label": "Car AC & Heating",
+          "href": "/accessories-spare-parts/air-conditioning-heating/164937"
+        },
+        {
+          "slug": "bundles--4",
+          "pw_id": 2972735,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--4/2972735"
+        },
+        {
+          "slug": "shocks",
+          "pw_id": 839456,
+          "label": "Car Shocks",
+          "href": "/accessories-spare-parts/shocks/839456"
+        },
+        {
+          "slug": "fuel-filters",
+          "pw_id": 1790256,
+          "label": "Car Fuel Filter",
+          "href": "/accessories-spare-parts/fuel-filters/1790256"
+        },
+        {
+          "slug": "subaru-engine-mechanical",
+          "pw_id": 2936061,
+          "label": "Subaru Engine & Mechanical",
+          "href": "/accessories-spare-parts/subaru-engine-mechanical/2936061"
+        },
+        {
+          "slug": "dfsk-engine-mechanical",
+          "pw_id": 2709773,
+          "label": "DFSK Engine & Mechanical",
+          "href": "/accessories-spare-parts/dfsk-engine-mechanical/2709773"
+        },
+        {
+          "slug": "faw-engine-mechanical",
+          "pw_id": 375643,
+          "label": "FAW Engine & Mechanical",
+          "href": "/accessories-spare-parts/faw-engine-mechanical/375643"
+        },
+        {
+          "slug": "peugeot-engine-mechanical",
+          "pw_id": 2723590,
+          "label": "Peugeot Engine & Mechanical",
+          "href": "/accessories-spare-parts/peugeot-engine-mechanical/2723590"
+        },
+        {
+          "slug": "baic-engine-mechanical",
+          "pw_id": 2956946,
+          "label": "BAIC Engine & Mechanical",
+          "href": "/accessories-spare-parts/baic-engine-mechanical/2956946"
+        },
+        {
+          "slug": "engine-mechanical-karachi",
+          "pw_id": 165200,
+          "label": "Engine & Mechanical Karachi",
+          "href": "/accessories-spare-parts/engine-mechanical-karachi/165200"
+        }
+      ]
+    },
+    {
+      "slug": "oils-lubricants",
+      "pw_id": 212969,
+      "label": "Oils & Lubricants",
+      "page_label": "Oils and Lubricants",
+      "href": "/accessories-spare-parts/oils-lubricants/212969",
+      "children": [
+        {
+          "slug": "engine-oil",
+          "pw_id": 213208,
+          "label": "Engine Oil",
+          "href": "/accessories-spare-parts/engine-oil/213208"
+        },
+        {
+          "slug": "chain-lubes-cleaners",
+          "pw_id": 1689984,
+          "label": "Chain Lubes Cleaners",
+          "href": "/accessories-spare-parts/chain-lubes-cleaners/1689984"
+        },
+        {
+          "slug": "gear-oil",
+          "pw_id": 213215,
+          "label": "Gear Oil",
+          "href": "/accessories-spare-parts/gear-oil/213215"
+        },
+        {
+          "slug": "atf-mtf-oil",
+          "pw_id": 213218,
+          "label": "Car ATF & MTF Oil",
+          "href": "/accessories-spare-parts/atf-mtf-oil/213218"
+        },
+        {
+          "slug": "fuel-additives",
+          "pw_id": 1714436,
+          "label": "Fuel Additives",
+          "href": "/accessories-spare-parts/fuel-additives/1714436"
+        },
+        {
+          "slug": "brake-oil",
+          "pw_id": 213212,
+          "label": "Brake Oil",
+          "href": "/accessories-spare-parts/brake-oil/213212"
+        },
+        {
+          "slug": "oil-additives",
+          "pw_id": 1714433,
+          "label": "Oil Additives",
+          "href": "/accessories-spare-parts/oil-additives/1714433"
+        },
+        {
+          "slug": "cvtf-oil",
+          "pw_id": 213224,
+          "label": "Car CVTF Oil",
+          "href": "/accessories-spare-parts/cvtf-oil/213224"
+        },
+        {
+          "slug": "multipurpose-grease",
+          "pw_id": 849068,
+          "label": "Multipurpose Grease",
+          "href": "/accessories-spare-parts/multipurpose-grease/849068"
+        },
+        {
+          "slug": "bundles--7",
+          "pw_id": 2974712,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--7/2974712"
+        },
+        {
+          "slug": "psf-oil",
+          "pw_id": 213221,
+          "label": "Psf Oil",
+          "href": "/accessories-spare-parts/psf-oil/213221"
+        },
+        {
+          "slug": "octane-booster",
+          "pw_id": 3225786,
+          "label": "Octane Booster",
+          "href": "/accessories-spare-parts/octane-booster/3225786"
+        },
+        {
+          "slug": "catalytic-converter-cleaner",
+          "pw_id": 3221047,
+          "label": "Catalytic Converter Cleaner",
+          "href": "/accessories-spare-parts/catalytic-converter-cleaner/3221047"
+        },
+        {
+          "slug": "subaru-oils-lubricants",
+          "pw_id": 3049071,
+          "label": "Subaru Oils & Lubricants",
+          "href": "/accessories-spare-parts/subaru-oils-lubricants/3049071"
+        },
+        {
+          "slug": "dfsk-oils-lubricants",
+          "pw_id": 3039130,
+          "label": "DFSK Oils & Lubricants",
+          "href": "/accessories-spare-parts/dfsk-oils-lubricants/3039130"
+        },
+        {
+          "slug": "peugeot-oils-lubricants",
+          "pw_id": 2723591,
+          "label": "Peugeot Oils & Lubricants",
+          "href": "/accessories-spare-parts/peugeot-oils-lubricants/2723591"
+        },
+        {
+          "slug": "oils-lubricants-karachi",
+          "pw_id": 212971,
+          "label": "Oils & Lubricants Karachi",
+          "href": "/accessories-spare-parts/oils-lubricants-karachi/212971"
+        },
+        {
+          "slug": "oils-lubricants-lahore",
+          "pw_id": 212972,
+          "label": "Oils & Lubricants Lahore",
+          "href": "/accessories-spare-parts/oils-lubricants-lahore/212972"
+        },
+        {
+          "slug": "oils-lubricants-islamabad",
+          "pw_id": 239845,
+          "label": "Oils & Lubricants Islamabad",
+          "href": "/accessories-spare-parts/oils-lubricants-islamabad/239845"
+        },
+        {
+          "slug": "oils-lubricants-okara",
+          "pw_id": 686047,
+          "label": "Oils & Lubricants Okara",
+          "href": "/accessories-spare-parts/oils-lubricants-okara/686047"
+        },
+        {
+          "slug": "oils-lubricants-mirpur-khas",
+          "pw_id": 2559113,
+          "label": "Oils & Lubricants Mirpur khas",
+          "href": "/accessories-spare-parts/oils-lubricants-mirpur-khas/2559113"
+        },
+        {
+          "slug": "oils-lubricants-sialkot",
+          "pw_id": 230855,
+          "label": "Oils & Lubricants Sialkot",
+          "href": "/accessories-spare-parts/oils-lubricants-sialkot/230855"
+        },
+        {
+          "slug": "oils-lubricants-multan",
+          "pw_id": 238358,
+          "label": "Oils & Lubricants Multan",
+          "href": "/accessories-spare-parts/oils-lubricants-multan/238358"
+        },
+        {
+          "slug": "oils-lubricants-rawalpindi",
+          "pw_id": 219443,
+          "label": "Oils & Lubricants Rawalpindi",
+          "href": "/accessories-spare-parts/oils-lubricants-rawalpindi/219443"
+        },
+        {
+          "slug": "car-care",
+          "pw_id": 165146,
+          "label": "Car Care",
+          "href": "/accessories-spare-parts/car-care/165146"
+        },
+        {
+          "slug": "interior",
+          "pw_id": 165213,
+          "label": "Interior",
+          "href": "/accessories-spare-parts/interior/165213"
+        },
+        {
+          "slug": "exterior",
+          "pw_id": 165159,
+          "label": "Exterior",
+          "href": "/accessories-spare-parts/exterior/165159"
+        },
+        {
+          "slug": "brakes",
+          "pw_id": 165202,
+          "label": "Brakes",
+          "href": "/accessories-spare-parts/brakes/165202"
+        },
+        {
+          "slug": "engine-mechanical",
+          "pw_id": 165178,
+          "label": "Engine & Mechanical",
+          "href": "/accessories-spare-parts/engine-mechanical/165178"
+        },
+        {
+          "slug": "tools-gadgets",
+          "pw_id": 212973,
+          "label": "Tools & Gadgets",
+          "href": "/accessories-spare-parts/tools-gadgets/212973"
+        },
+        {
+          "slug": "lights-electrical",
+          "pw_id": 165126,
+          "label": "Lights & Electrical",
+          "href": "/accessories-spare-parts/lights-electrical/165126"
+        },
+        {
+          "slug": "bikes--2",
+          "pw_id": 212995,
+          "label": "Bikes Spare Parts",
+          "href": "/accessories-spare-parts/bikes--2/212995"
+        }
+      ]
+    },
+    {
+      "slug": "tools-gadgets",
+      "pw_id": 212973,
+      "label": "Tools & Gadgets",
+      "page_label": "Car Tools and Gadgets",
+      "href": "/accessories-spare-parts/tools-gadgets/212973",
+      "children": [
+        {
+          "slug": "key-covers",
+          "pw_id": 1714454,
+          "label": "Key Covers",
+          "href": "/accessories-spare-parts/key-covers/1714454"
+        },
+        {
+          "slug": "tool-kits",
+          "pw_id": 213234,
+          "label": "Car Tool Kits",
+          "href": "/accessories-spare-parts/tool-kits/213234"
+        },
+        {
+          "slug": "car-keys",
+          "pw_id": 1702207,
+          "label": "Car Keys",
+          "href": "/accessories-spare-parts/car-keys/1702207"
+        },
+        {
+          "slug": "air-compressor",
+          "pw_id": 213227,
+          "label": "Car Air Compressor",
+          "href": "/accessories-spare-parts/air-compressor/213227"
+        },
+        {
+          "slug": "key-chains",
+          "pw_id": 213245,
+          "label": "Key Chains",
+          "href": "/accessories-spare-parts/key-chains/213245"
+        },
+        {
+          "slug": "usb-car-charger",
+          "pw_id": 1263003,
+          "label": "Car Chargers",
+          "href": "/accessories-spare-parts/usb-car-charger/1263003"
+        },
+        {
+          "slug": "jump-starter-kits",
+          "pw_id": 213236,
+          "label": "Car Jump Starter Kits",
+          "href": "/accessories-spare-parts/jump-starter-kits/213236"
+        },
+        {
+          "slug": "tyre-pressure-guage",
+          "pw_id": 213232,
+          "label": "Tyre Pressure Gauge",
+          "href": "/accessories-spare-parts/tyre-pressure-guage/213232"
+        },
+        {
+          "slug": "car-jack",
+          "pw_id": 213239,
+          "label": "Car Jack",
+          "href": "/accessories-spare-parts/car-jack/213239"
+        },
+        {
+          "slug": "tow-hooks-chains",
+          "pw_id": 213242,
+          "label": "Tow Hooks Chains",
+          "href": "/accessories-spare-parts/tow-hooks-chains/213242"
+        },
+        {
+          "slug": "air-blowers",
+          "pw_id": 1714443,
+          "label": "Air Blowers",
+          "href": "/accessories-spare-parts/air-blowers/1714443"
+        },
+        {
+          "slug": "fire-extinguishers",
+          "pw_id": 2497090,
+          "label": "Fire Extinguishers",
+          "href": "/accessories-spare-parts/fire-extinguishers/2497090"
+        },
+        {
+          "slug": "car-tire-snow-chains",
+          "pw_id": 2890759,
+          "label": "Car Tire Snow Chains",
+          "href": "/accessories-spare-parts/car-tire-snow-chains/2890759"
+        },
+        {
+          "slug": "car-hud-display",
+          "pw_id": 3181601,
+          "label": "Car HUD Display",
+          "href": "/accessories-spare-parts/car-hud-display/3181601"
+        },
+        {
+          "slug": "die-cast-models",
+          "pw_id": 1803093,
+          "label": "Die Cast Models",
+          "href": "/accessories-spare-parts/die-cast-models/1803093"
+        },
+        {
+          "slug": "bundles--8",
+          "pw_id": 2974713,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--8/2974713"
+        },
+        {
+          "slug": "paint-tester-pen",
+          "pw_id": 3173648,
+          "label": "Paint Tester Pen",
+          "href": "/accessories-spare-parts/paint-tester-pen/3173648"
+        },
+        {
+          "slug": "heat-guns",
+          "pw_id": 1714441,
+          "label": "Heat Guns",
+          "href": "/accessories-spare-parts/heat-guns/1714441"
+        },
+        {
+          "slug": "obd-scanners",
+          "pw_id": 3167598,
+          "label": "OBD2 Scanners",
+          "href": "/accessories-spare-parts/obd-scanners/3167598"
+        },
+        {
+          "slug": "jetour-tools-gadgets",
+          "pw_id": 3030878,
+          "label": "Jetour Tools & Gadgets",
+          "href": "/accessories-spare-parts/jetour-tools-gadgets/3030878"
+        },
+        {
+          "slug": "jac-tools-gadgets",
+          "pw_id": 2931160,
+          "label": "JAC Tools & Gadgets",
+          "href": "/accessories-spare-parts/jac-tools-gadgets/2931160"
+        },
+        {
+          "slug": "peugeot-tools-gadgets",
+          "pw_id": 2559201,
+          "label": "Peugeot Tools & Gadgets",
+          "href": "/accessories-spare-parts/peugeot-tools-gadgets/2559201"
+        },
+        {
+          "slug": "dongfeng-tools-gadgets",
+          "pw_id": 3183074,
+          "label": "Dongfeng Tools & Gadgets",
+          "href": "/accessories-spare-parts/dongfeng-tools-gadgets/3183074"
+        },
+        {
+          "slug": "tools-gadgets-lahore",
+          "pw_id": 212977,
+          "label": "Tools & Gadgets Lahore",
+          "href": "/accessories-spare-parts/tools-gadgets-lahore/212977"
+        }
+      ]
+    },
+    {
+      "slug": "lights-electrical",
+      "pw_id": 165126,
+      "label": "Lights & Electrical",
+      "page_label": "Lights and Electrical Spare Parts",
+      "href": "/accessories-spare-parts/lights-electrical/165126",
+      "children": [
+        {
+          "slug": "led-s",
+          "pw_id": 164751,
+          "label": "Car LED Lights",
+          "href": "/accessories-spare-parts/led-s/164751"
+        },
+        {
+          "slug": "bulbs",
+          "pw_id": 213147,
+          "label": "Car Headlight Bulbs",
+          "href": "/accessories-spare-parts/bulbs/213147"
+        },
+        {
+          "slug": "tail-lights",
+          "pw_id": 213133,
+          "label": "Car Back Lights",
+          "href": "/accessories-spare-parts/tail-lights/213133"
+        },
+        {
+          "slug": "headlights",
+          "pw_id": 213120,
+          "label": "Car Headlights",
+          "href": "/accessories-spare-parts/headlights/213120"
+        },
+        {
+          "slug": "indicator-lights",
+          "pw_id": 213153,
+          "label": "Car Indicator Lights",
+          "href": "/accessories-spare-parts/indicator-lights/213153"
+        },
+        {
+          "slug": "fog-lamps",
+          "pw_id": 164784,
+          "label": "Car Fog Lights",
+          "href": "/accessories-spare-parts/fog-lamps/164784"
+        },
+        {
+          "slug": "plug-wire",
+          "pw_id": 213330,
+          "label": "Car Plug Wires",
+          "href": "/accessories-spare-parts/plug-wire/213330"
+        },
+        {
+          "slug": "interior-lights",
+          "pw_id": 213151,
+          "label": "Car Interior Lights",
+          "href": "/accessories-spare-parts/interior-lights/213151"
+        },
+        {
+          "slug": "horns",
+          "pw_id": 213291,
+          "label": "Car Horns",
+          "href": "/accessories-spare-parts/horns/213291"
+        },
+        {
+          "slug": "batteries",
+          "pw_id": 164771,
+          "label": "Car Battery",
+          "href": "/accessories-spare-parts/batteries/164771"
+        },
+        {
+          "slug": "switches-buttons",
+          "pw_id": 484128,
+          "label": "Car Buttons",
+          "href": "/accessories-spare-parts/switches-buttons/484128"
+        },
+        {
+          "slug": "bar-lights",
+          "pw_id": 213142,
+          "label": "Car LED Bar Lights",
+          "href": "/accessories-spare-parts/bar-lights/213142"
+        },
+        {
+          "slug": "bundles--6",
+          "pw_id": 2991208,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--6/2991208"
+        },
+        {
+          "slug": "flasher-lights",
+          "pw_id": 2886163,
+          "label": "Flasher Lights",
+          "href": "/accessories-spare-parts/flasher-lights/2886163"
+        },
+        {
+          "slug": "daytime-running-lights-drls",
+          "pw_id": 2886164,
+          "label": "Daytime Running Lights Drls",
+          "href": "/accessories-spare-parts/daytime-running-lights-drls/2886164"
+        },
+        {
+          "slug": "led-strip-lights",
+          "pw_id": 2931234,
+          "label": "LED Strip lights",
+          "href": "/accessories-spare-parts/led-strip-lights/2931234"
+        },
+        {
+          "slug": "hid-s",
+          "pw_id": 164759,
+          "label": "Hid lights",
+          "href": "/accessories-spare-parts/hid-s/164759"
+        },
+        {
+          "slug": "cruise-control-kits",
+          "pw_id": 1714449,
+          "label": "Cruise Control Kits",
+          "href": "/accessories-spare-parts/cruise-control-kits/1714449"
+        },
+        {
+          "slug": "ignition-switch",
+          "pw_id": 213322,
+          "label": "Car Ignition Switch",
+          "href": "/accessories-spare-parts/ignition-switch/213322"
+        },
+        {
+          "slug": "land-rover-lights-electrical",
+          "pw_id": 706040,
+          "label": "Land Rover Lights & Electrical",
+          "href": "/accessories-spare-parts/land-rover-lights-electrical/706040"
+        },
+        {
+          "slug": "others-lights-electrical",
+          "pw_id": 2668123,
+          "label": "Others Lights & Electrical",
+          "href": "/accessories-spare-parts/others-lights-electrical/2668123"
+        },
+        {
+          "slug": "dfsk-lights-electrical",
+          "pw_id": 2862632,
+          "label": "DFSK Lights & Electrical",
+          "href": "/accessories-spare-parts/dfsk-lights-electrical/2862632"
+        },
+        {
+          "slug": "lights-electrical-lahore",
+          "pw_id": 165144,
+          "label": "Lights & Electrical Lahore",
+          "href": "/accessories-spare-parts/lights-electrical-lahore/165144"
+        },
+        {
+          "slug": "lights-electrical-karachi",
+          "pw_id": 165143,
+          "label": "Lights & Electrical Karachi",
+          "href": "/accessories-spare-parts/lights-electrical-karachi/165143"
+        },
+        {
+          "slug": "lights-electrical-rawalpindi",
+          "pw_id": 165139,
+          "label": "Lights & Electrical Rawalpindi",
+          "href": "/accessories-spare-parts/lights-electrical-rawalpindi/165139"
+        },
+        {
+          "slug": "lights-electrical-sialkot",
+          "pw_id": 165140,
+          "label": "Lights & Electrical Sialkot",
+          "href": "/accessories-spare-parts/lights-electrical-sialkot/165140"
+        },
+        {
+          "slug": "lights-electrical-okara",
+          "pw_id": 258559,
+          "label": "Lights & Electrical Okara",
+          "href": "/accessories-spare-parts/lights-electrical-okara/258559"
+        },
+        {
+          "slug": "lights-electrical-islamabad",
+          "pw_id": 165142,
+          "label": "Lights & Electrical Islamabad",
+          "href": "/accessories-spare-parts/lights-electrical-islamabad/165142"
+        },
+        {
+          "slug": "lights-electrical-peshawar",
+          "pw_id": 165137,
+          "label": "Lights & Electrical Peshawar",
+          "href": "/accessories-spare-parts/lights-electrical-peshawar/165137"
+        }
+      ]
+    },
+    {
+      "slug": "tyres-wheels",
+      "pw_id": 165083,
+      "label": "Tyres & Wheels",
+      "page_label": "Tyres and Wheels Spare Parts",
+      "href": "/accessories-spare-parts/tyres-wheels/165083",
+      "children": [
+        {
+          "slug": "tyres",
+          "pw_id": 164652,
+          "label": "Tyres",
+          "href": "/accessories-spare-parts/tyres/164652"
+        },
+        {
+          "slug": "alloy-wheels",
+          "pw_id": 164662,
+          "label": "Alloy rims",
+          "href": "/accessories-spare-parts/alloy-wheels/164662"
+        },
+        {
+          "slug": "wheel-covers",
+          "pw_id": 164680,
+          "label": "Wheel Covers",
+          "href": "/accessories-spare-parts/wheel-covers/164680"
+        },
+        {
+          "slug": "wheel-bearings",
+          "pw_id": 213364,
+          "label": "Car Wheel Bearings",
+          "href": "/accessories-spare-parts/wheel-bearings/213364"
+        },
+        {
+          "slug": "tyre-valve-caps",
+          "pw_id": 2510854,
+          "label": "Tyre Valve Caps",
+          "href": "/accessories-spare-parts/tyre-valve-caps/2510854"
+        },
+        {
+          "slug": "lug-nuts",
+          "pw_id": 2510856,
+          "label": "Lug Nuts",
+          "href": "/accessories-spare-parts/lug-nuts/2510856"
+        },
+        {
+          "slug": "bundles--11",
+          "pw_id": 2987283,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--11/2987283"
+        },
+        {
+          "slug": "dfsk-tyres-wheels",
+          "pw_id": 2867388,
+          "label": "DFSK Tyres & Wheels",
+          "href": "/accessories-spare-parts/dfsk-tyres-wheels/2867388"
+        },
+        {
+          "slug": "tyres-wheels-karachi",
+          "pw_id": 165104,
+          "label": "Tyres & Wheels Karachi",
+          "href": "/accessories-spare-parts/tyres-wheels-karachi/165104"
+        },
+        {
+          "slug": "tyres-wheels-lahore",
+          "pw_id": 165105,
+          "label": "Tyres & Wheels Lahore",
+          "href": "/accessories-spare-parts/tyres-wheels-lahore/165105"
+        },
+        {
+          "slug": "tyres-wheels-okara",
+          "pw_id": 165092,
+          "label": "Tyres & Wheels Okara",
+          "href": "/accessories-spare-parts/tyres-wheels-okara/165092"
+        },
+        {
+          "slug": "tyres-wheels-peshawar",
+          "pw_id": 165093,
+          "label": "Tyres & Wheels Peshawar",
+          "href": "/accessories-spare-parts/tyres-wheels-peshawar/165093"
+        },
+        {
+          "slug": "tyres-wheels-rawalpindi",
+          "pw_id": 165095,
+          "label": "Tyres & Wheels Rawalpindi",
+          "href": "/accessories-spare-parts/tyres-wheels-rawalpindi/165095"
+        },
+        {
+          "slug": "tyres-wheels-islamabad",
+          "pw_id": 165103,
+          "label": "Tyres & Wheels Islamabad",
+          "href": "/accessories-spare-parts/tyres-wheels-islamabad/165103"
+        },
+        {
+          "slug": "tyres-wheels-faisalabad",
+          "pw_id": 165085,
+          "label": "Tyres & Wheels Faisalabad",
+          "href": "/accessories-spare-parts/tyres-wheels-faisalabad/165085"
+        },
+        {
+          "slug": "tyres-wheels-gujranwala",
+          "pw_id": 165086,
+          "label": "Tyres & Wheels Gujranwala",
+          "href": "/accessories-spare-parts/tyres-wheels-gujranwala/165086"
+        },
+        {
+          "slug": "tyres-wheels-sialkot",
+          "pw_id": 165098,
+          "label": "Tyres & Wheels Sialkot",
+          "href": "/accessories-spare-parts/tyres-wheels-sialkot/165098"
+        },
+        {
+          "slug": "tyres-wheels-abbottabad",
+          "pw_id": 730245,
+          "label": "Tyres & Wheels Abbottabad",
+          "href": "/accessories-spare-parts/tyres-wheels-abbottabad/730245"
+        },
+        {
+          "slug": "tyres-wheels-khanewal",
+          "pw_id": 515938,
+          "label": "Tyres & Wheels Khanewal",
+          "href": "/accessories-spare-parts/tyres-wheels-khanewal/515938"
+        },
+        {
+          "slug": "tyres-wheels-quetta",
+          "pw_id": 165094,
+          "label": "Tyres & Wheels Quetta",
+          "href": "/accessories-spare-parts/tyres-wheels-quetta/165094"
+        },
+        {
+          "slug": "tyres-wheels-multan",
+          "pw_id": 165090,
+          "label": "Tyres & Wheels Multan",
+          "href": "/accessories-spare-parts/tyres-wheels-multan/165090"
+        },
+        {
+          "slug": "tyres-wheels-bahawalpur",
+          "pw_id": 212934,
+          "label": "Tyres & Wheels Bahawalpur",
+          "href": "/accessories-spare-parts/tyres-wheels-bahawalpur/212934"
+        },
+        {
+          "slug": "tyres-wheels-jalalpur-bhattian",
+          "pw_id": 3228012,
+          "label": "Tyres & Wheels Jalalpur Bhattian",
+          "href": "/accessories-spare-parts/tyres-wheels-jalalpur-bhattian/3228012"
+        },
+        {
+          "slug": "tyres-wheels-sargodha",
+          "pw_id": 165097,
+          "label": "Tyres & Wheels Sargodha",
+          "href": "/accessories-spare-parts/tyres-wheels-sargodha/165097"
+        },
+        {
+          "slug": "tyres-wheels-gujrat",
+          "pw_id": 165087,
+          "label": "Tyres & Wheels Gujrat",
+          "href": "/accessories-spare-parts/tyres-wheels-gujrat/165087"
+        },
+        {
+          "slug": "tyres-wheels-hyderabad",
+          "pw_id": 212936,
+          "label": "Tyres & Wheels Hyderabad",
+          "href": "/accessories-spare-parts/tyres-wheels-hyderabad/212936"
+        },
+        {
+          "slug": "tyres-wheels-abdul-hakeem",
+          "pw_id": 722238,
+          "label": "Tyres & Wheels Abdul Hakeem",
+          "href": "/accessories-spare-parts/tyres-wheels-abdul-hakeem/722238"
+        },
+        {
+          "slug": "tyres-wheels-burewala",
+          "pw_id": 341237,
+          "label": "Tyres & Wheels Burewala",
+          "href": "/accessories-spare-parts/tyres-wheels-burewala/341237"
+        },
+        {
+          "slug": "car-care",
+          "pw_id": 165146,
+          "label": "Car Care",
+          "href": "/accessories-spare-parts/car-care/165146"
+        },
+        {
+          "slug": "interior",
+          "pw_id": 165213,
+          "label": "Interior",
+          "href": "/accessories-spare-parts/interior/165213"
+        },
+        {
+          "slug": "exterior",
+          "pw_id": 165159,
+          "label": "Exterior",
+          "href": "/accessories-spare-parts/exterior/165159"
+        },
+        {
+          "slug": "brakes",
+          "pw_id": 165202,
+          "label": "Brakes",
+          "href": "/accessories-spare-parts/brakes/165202"
+        },
+        {
+          "slug": "engine-mechanical",
+          "pw_id": 165178,
+          "label": "Engine & Mechanical",
+          "href": "/accessories-spare-parts/engine-mechanical/165178"
+        }
+      ]
+    },
+    {
+      "slug": "bikes",
+      "pw_id": 212995,
+      "label": "Bikes",
+      "page_label": "Bike Spare Parts & Accessories",
+      "href": "/accessories-spare-parts/bikes--2/212995",
+      "children": [
+        {
+          "slug": "bikes-accessories",
+          "pw_id": 213354,
+          "label": "Bike Accessories",
+          "href": "/accessories-spare-parts/bikes-accessories/213354"
+        },
+        {
+          "slug": "bicycle",
+          "pw_id": 2788098,
+          "label": "Bicycle",
+          "href": "/accessories-spare-parts/bicycle/2788098"
+        },
+        {
+          "slug": "bike-parts",
+          "pw_id": 213345,
+          "label": "Bike Spare Parts",
+          "href": "/accessories-spare-parts/bike-parts/213345"
+        },
+        {
+          "slug": "bike-seat-covers",
+          "pw_id": 2963731,
+          "label": "Bike Seat & Covers",
+          "href": "/accessories-spare-parts/bike-seat-covers/2963731"
+        },
+        {
+          "slug": "bike-indicator",
+          "pw_id": 2915107,
+          "label": "Bike Indicator",
+          "href": "/accessories-spare-parts/bike-indicator/2915107"
+        },
+        {
+          "slug": "helmets",
+          "pw_id": 257484,
+          "label": "Helmet",
+          "href": "/accessories-spare-parts/helmets/257484"
+        },
+        {
+          "slug": "bike-headlights",
+          "pw_id": 2857473,
+          "label": "Bike Headlights",
+          "href": "/accessories-spare-parts/bike-headlights/2857473"
+        },
+        {
+          "slug": "electric-scooters",
+          "pw_id": 2665201,
+          "label": "Electric Scooters",
+          "href": "/accessories-spare-parts/electric-scooters/2665201"
+        },
+        {
+          "slug": "bike-exhaust",
+          "pw_id": 2885433,
+          "label": "Bike Exhaust",
+          "href": "/accessories-spare-parts/bike-exhaust/2885433"
+        },
+        {
+          "slug": "bike-back-lights",
+          "pw_id": 2981957,
+          "label": "Bike Back Lights",
+          "href": "/accessories-spare-parts/bike-back-lights/2981957"
+        },
+        {
+          "slug": "bike-mobile-holder",
+          "pw_id": 2982652,
+          "label": "Bike Mobile Holder",
+          "href": "/accessories-spare-parts/bike-mobile-holder/2982652"
+        },
+        {
+          "slug": "motorcycle-gloves",
+          "pw_id": 1714447,
+          "label": "Motorcycle Gloves",
+          "href": "/accessories-spare-parts/motorcycle-gloves/1714447"
+        },
+        {
+          "slug": "bundles--9",
+          "pw_id": 2980391,
+          "label": "Bundles",
+          "href": "/accessories-spare-parts/bundles--9/2980391"
+        },
+        {
+          "slug": "bike-brake-pads",
+          "pw_id": 2038418,
+          "label": "Bike Brake Pads",
+          "href": "/accessories-spare-parts/bike-brake-pads/2038418"
+        },
+        {
+          "slug": "bike-speedometer",
+          "pw_id": 2973649,
+          "label": "Bike Speedometer",
+          "href": "/accessories-spare-parts/bike-speedometer/2973649"
+        },
+        {
+          "slug": "bike-air-filters",
+          "pw_id": 2038414,
+          "label": "Bike Air Filters",
+          "href": "/accessories-spare-parts/bike-air-filters/2038414"
+        },
+        {
+          "slug": "helmet-camera",
+          "pw_id": 2970639,
+          "label": "Helmet Camera",
+          "href": "/accessories-spare-parts/helmet-camera/2970639"
+        },
+        {
+          "slug": "bike-clutch-plates",
+          "pw_id": 2038416,
+          "label": "Bike Clutch Plates",
+          "href": "/accessories-spare-parts/bike-clutch-plates/2038416"
+        },
+        {
+          "slug": "others-bikes--2",
+          "pw_id": 2838769,
+          "label": "Others Bikes",
+          "href": "/accessories-spare-parts/others-bikes--2/2838769"
+        },
+        {
+          "slug": "bikes--2-lahore",
+          "pw_id": 213004,
+          "label": "Bikes Lahore",
+          "href": "/accessories-spare-parts/bikes--2-lahore/213004"
+        },
+        {
+          "slug": "bikes--2-karachi",
+          "pw_id": 213003,
+          "label": "Bikes Karachi",
+          "href": "/accessories-spare-parts/bikes--2-karachi/213003"
+        },
+        {
+          "slug": "bikes--2-okara",
+          "pw_id": 227975,
+          "label": "Bikes Okara",
+          "href": "/accessories-spare-parts/bikes--2-okara/227975"
+        },
+        {
+          "slug": "bikes--2-rawalpindi",
+          "pw_id": 213001,
+          "label": "Bikes Rawalpindi",
+          "href": "/accessories-spare-parts/bikes--2-rawalpindi/213001"
+        },
+        {
+          "slug": "bikes--2-islamabad",
+          "pw_id": 213002,
+          "label": "Bikes Islamabad",
+          "href": "/accessories-spare-parts/bikes--2-islamabad/213002"
+        },
+        {
+          "slug": "bikes--2-sialkot",
+          "pw_id": 219445,
+          "label": "Bikes Sialkot",
+          "href": "/accessories-spare-parts/bikes--2-sialkot/219445"
+        },
+        {
+          "slug": "bikes--2-faisalabad",
+          "pw_id": 212996,
+          "label": "Bikes Faisalabad",
+          "href": "/accessories-spare-parts/bikes--2-faisalabad/212996"
+        },
+        {
+          "slug": "bikes--2-haripur--2",
+          "pw_id": 740977,
+          "label": "Bikes Haripur",
+          "href": "/accessories-spare-parts/bikes--2-haripur--2/740977"
+        },
+        {
+          "slug": "bikes--2-abbottabad",
+          "pw_id": 731108,
+          "label": "Bikes Abbottabad",
+          "href": "/accessories-spare-parts/bikes--2-abbottabad/731108"
+        },
+        {
+          "slug": "bikes--2-peshawar",
+          "pw_id": 212999,
+          "label": "Bikes Peshawar",
+          "href": "/accessories-spare-parts/bikes--2-peshawar/212999"
+        },
+        {
+          "slug": "bikes--2-fateh-jang",
+          "pw_id": 2731960,
+          "label": "Bikes Fateh Jang",
+          "href": "/accessories-spare-parts/bikes--2-fateh-jang/2731960"
+        },
+        {
+          "slug": "bikes--2-hafizabad",
+          "pw_id": 1678431,
+          "label": "Bikes Hafizabad",
+          "href": "/accessories-spare-parts/bikes--2-hafizabad/1678431"
+        },
+        {
+          "slug": "bikes--2-gujar-khan",
+          "pw_id": 828826,
+          "label": "Bikes Gujar Khan",
+          "href": "/accessories-spare-parts/bikes--2-gujar-khan/828826"
+        },
+        {
+          "slug": "bikes--2-manga-mandi",
+          "pw_id": 2586319,
+          "label": "Bikes Manga mandi",
+          "href": "/accessories-spare-parts/bikes--2-manga-mandi/2586319"
+        },
+        {
+          "slug": "bikes--2-raiwind",
+          "pw_id": 772749,
+          "label": "Bikes Raiwind",
+          "href": "/accessories-spare-parts/bikes--2-raiwind/772749"
+        },
+        {
+          "slug": "bikes--2-mian-channu",
+          "pw_id": 2471093,
+          "label": "Bikes Mian Channu",
+          "href": "/accessories-spare-parts/bikes--2-mian-channu/2471093"
+        },
+        {
+          "slug": "bikes--2-dadu",
+          "pw_id": 620345,
+          "label": "Bikes Dadu",
+          "href": "/accessories-spare-parts/bikes--2-dadu/620345"
+        },
+        {
+          "slug": "bikes--2-mirpur-khas",
+          "pw_id": 692035,
+          "label": "Bikes Mirpur khas",
+          "href": "/accessories-spare-parts/bikes--2-mirpur-khas/692035"
+        },
+        {
+          "slug": "bikes--2-chichawatni",
+          "pw_id": 445313,
+          "label": "Bikes Chichawatni",
+          "href": "/accessories-spare-parts/bikes--2-chichawatni/445313"
+        }
+      ]
+    },
+    {
+      "slug": "audio-video",
+      "pw_id": 0,
+      "label": "Audio & Video",
+      "page_label": "Audio & Video",
+      "href": "/accessories-spare-parts/audio-video/",
+      "children": [
+        {
+          "slug": "android-players",
+          "pw_id": 0,
+          "label": "Android Players",
+          "href": ""
+        },
+        {
+          "slug": "speakers",
+          "pw_id": 0,
+          "label": "Car Speakers",
+          "href": ""
+        },
+        {
+          "slug": "amplifiers",
+          "pw_id": 0,
+          "label": "Amplifiers",
+          "href": ""
+        },
+        {
+          "slug": "dash-cameras",
+          "pw_id": 0,
+          "label": "Dash Cameras",
+          "href": ""
+        },
+        {
+          "slug": "bluetooth-devices",
+          "pw_id": 0,
+          "label": "Bluetooth Devices",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "slug": "ev-hybrid",
+      "pw_id": 0,
+      "label": "EV & Hybrid",
+      "page_label": "EV & Hybrid",
+      "href": "/accessories-spare-parts/ev-hybrid/",
+      "children": [
+        {
+          "slug": "home-charging-stations",
+          "pw_id": 0,
+          "label": "Home Charging Stations",
+          "href": ""
+        },
+        {
+          "slug": "portable-chargers",
+          "pw_id": 0,
+          "label": "Portable Chargers",
+          "href": ""
+        },
+        {
+          "slug": "ev-cables",
+          "pw_id": 0,
+          "label": "EV Cables",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "makes": [
+    "Toyota",
+    "Honda",
+    "Suzuki",
+    "Daihatsu",
+    "Nissan",
+    "Hyundai",
+    "KIA",
+    "Mitsubishi",
+    "Changan",
+    "Mercedes Benz",
+    "Haval",
+    "Audi",
+    "MG",
+    "BMW",
+    "Lexus",
+    "BYD",
+    "Mazda",
+    "Jaecoo",
+    "Chery",
+    "Proton"
+  ],
+  "cities": [
+    "Karachi",
+    "Lahore",
+    "Okara",
+    "Islamabad",
+    "Sialkot",
+    "Mirpur Khas",
+    "Rawalpindi",
+    "Peshawar",
+    "Faisalabad",
+    "Gujranwala",
+    "Multan",
+    "Quetta",
+    "Hyderabad",
+    "Bahawalpur"
+  ],
+  "filters": [
+    {
+      "key": "category",
+      "label": "Category",
+      "type": "tree"
+    },
+    {
+      "key": "make",
+      "label": "Make",
+      "type": "list"
+    },
+    {
+      "key": "model",
+      "label": "Model",
+      "type": "list"
+    },
+    {
+      "key": "city",
+      "label": "City",
+      "type": "list"
+    },
+    {
+      "key": "price",
+      "label": "Price",
+      "type": "range"
+    },
+    {
+      "key": "condition",
+      "label": "Condition",
+      "type": "enum",
+      "options": [
+        "New",
+        "Used"
+      ]
+    },
+    {
+      "key": "sort",
+      "label": "Sort By",
+      "type": "enum",
+      "options": [
+        {
+          "value": "updated-desc",
+          "label": "Updated Date: Recent First"
+        },
+        {
+          "value": "updated-asc",
+          "label": "Updated Date: Oldest First"
+        },
+        {
+          "value": "price-asc",
+          "label": "Price: Low to High"
+        },
+        {
+          "value": "price-desc",
+          "label": "Price: High to Low"
+        },
+        {
+          "value": "top-sales",
+          "label": "Top Sales"
+        }
+      ]
+    }
+  ]
+}

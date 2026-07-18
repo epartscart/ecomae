@@ -1,40 +1,32 @@
 <?php
 /**
- * ePartsCart — Accessories & Spare Parts marketplace hub.
- * PakWheels-style browse UX (filters, sort, list/grid, category/make/region facets)
- * powered by UAE warehouse stock — not third-party ad scrapes.
+ * ePartsCart — Accessories & Spare Parts marketplace (PakWheels-style categories/filters).
+ * Categories crawled from PakWheels IA. Listings are stored in epc_acc_listings and filled over time.
  */
 defined('_ASTEXE_') or die('No access');
 
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] !== '')
 	? rtrim((string) $multilang_params['lang_href'], '/')
 	: '/en';
-$epc_acc_ver = '20260718acc1';
-$epc_acc_chpu_on = !empty($DP_Config->chpu_search_config['chpu_search_on']);
-$epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
-	? (string) $DP_Config->chpu_search_config['level_1']['url']
-	: 'parts';
+$epc_acc_ver = '20260718accPw2';
 ?>
 <link rel="stylesheet" href="/content/general_pages/epc_accessories.css?v=<?php echo rawurlencode($epc_acc_ver); ?>">
 
 <section class="epc-acc" id="epc-accessories"
 	data-api="/content/shop/docpart/ajax_epc_accessories_search.php"
-	data-lang="<?php echo htmlspecialchars($lang_href, ENT_QUOTES, 'UTF-8'); ?>"
-	data-parts-url="<?php echo htmlspecialchars($epc_acc_parts_url, ENT_QUOTES, 'UTF-8'); ?>"
-	data-chpu="<?php echo !empty($epc_acc_chpu_on) ? '1' : '0'; ?>">
+	data-lang="<?php echo htmlspecialchars($lang_href, ENT_QUOTES, 'UTF-8'); ?>">
 
 	<div class="epc-acc__hero">
 		<div class="container">
 			<div class="epc-acc__brand">eParts<span>Cart</span></div>
-			<h1>Car spare parts &amp; accessories</h1>
-			<p>Browse UAE warehouse stock by category, brand, and region — sort by price or availability, then open live prices for the exact part number.</p>
+			<h1>Car spare parts and accessories</h1>
+			<p>PakWheels-style category browse and filters. Categories are ready — listings are added into each category over time.</p>
 			<div class="epc-acc__hero-cta">
 				<form class="epc-acc__search" id="epc-acc-search-form" role="search">
 					<label class="sr-only" for="epc-acc-q">Search accessories</label>
-					<input id="epc-acc-q" name="q" type="search" placeholder="Search part name, brand, or article — e.g. oil filter, NGK, C110J" maxlength="80" />
+					<input id="epc-acc-q" name="q" type="search" placeholder="Search accessories and spare parts" maxlength="80" />
 					<button type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
 				</form>
-				<a class="epc-acc__btn epc-acc__btn--ghost" href="<?php echo htmlspecialchars($lang_href, ENT_QUOTES, 'UTF-8'); ?>/parts">Brand + article prices</a>
 			</div>
 		</div>
 	</div>
@@ -43,49 +35,57 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 		<div class="epc-acc__layout">
 			<aside class="epc-acc__side" aria-label="Filters">
 				<div class="epc-acc__facet">
-					<h3>Categories</h3>
+					<h3>Category</h3>
 					<ul class="epc-acc__facet-list" id="epc-acc-cats"></ul>
 				</div>
 				<div class="epc-acc__facet">
-					<h3>Sub categories</h3>
+					<h3>Sub category</h3>
 					<ul class="epc-acc__facet-list" id="epc-acc-subs"></ul>
 				</div>
 				<div class="epc-acc__facet">
-					<h3>Make / brand</h3>
-					<ul class="epc-acc__facet-list" id="epc-acc-brands"></ul>
+					<h3>Make</h3>
+					<ul class="epc-acc__facet-list" id="epc-acc-makes"></ul>
 				</div>
 				<div class="epc-acc__facet">
-					<h3>Warehouse region</h3>
-					<ul class="epc-acc__facet-list" id="epc-acc-regions"></ul>
+					<h3>Model</h3>
+					<input type="text" id="epc-acc-model" class="epc-acc-input" placeholder="e.g. Corolla, Civic" />
 				</div>
 				<div class="epc-acc__facet">
-					<h3>Price range (AED)</h3>
+					<h3>City</h3>
+					<ul class="epc-acc__facet-list" id="epc-acc-cities"></ul>
+				</div>
+				<div class="epc-acc__facet">
+					<h3>Condition</h3>
+					<ul class="epc-acc__facet-list" id="epc-acc-condition"></ul>
+				</div>
+				<div class="epc-acc__facet">
+					<h3>Price range</h3>
 					<div class="epc-acc__price-row">
 						<input type="number" id="epc-acc-price-min" min="0" step="1" placeholder="Min" />
 						<input type="number" id="epc-acc-price-max" min="0" step="1" placeholder="Max" />
 					</div>
-					<button type="button" class="epc-acc__btn" id="epc-acc-apply-price">Apply price</button>
-					<button type="button" class="epc-acc__btn" id="epc-acc-reset" style="background:#334155;margin-top:8px">Reset filters</button>
+					<button type="button" class="epc-acc__btn" id="epc-acc-apply-price">Apply filters</button>
+					<button type="button" class="epc-acc__btn epc-acc__btn-muted" id="epc-acc-reset">Reset</button>
 				</div>
 			</aside>
 
 			<div class="epc-acc__main">
 				<div class="epc-acc__toolbar">
-					<div class="epc-acc__count" id="epc-acc-count">Loading results…</div>
+					<div class="epc-acc__count" id="epc-acc-count">Loading…</div>
 					<div class="epc-acc__tools">
 						<label>
 							<span class="sr-only">Sort by</span>
 							<select id="epc-acc-sort" aria-label="Sort by">
-								<option value="price-desc">Price: High to Low</option>
+								<option value="updated-desc">Updated Date: Recent First</option>
+								<option value="updated-asc">Updated Date: Oldest First</option>
 								<option value="price-asc">Price: Low to High</option>
-								<option value="qty-desc">Top stock / sales</option>
-								<option value="name-asc">Name A–Z</option>
-								<option value="updated-desc">Recently stocked</option>
+								<option value="price-desc">Price: High to Low</option>
+								<option value="top-sales">Top Sales</option>
 							</select>
 						</label>
 						<div class="epc-acc__view-toggle" role="group" aria-label="View mode">
-							<button type="button" id="epc-acc-view-grid" class="is-active" title="Grid"><i class="fa fa-th" aria-hidden="true"></i></button>
-							<button type="button" id="epc-acc-view-list" title="List"><i class="fa fa-list" aria-hidden="true"></i></button>
+							<button type="button" id="epc-acc-view-list" title="List">LIST</button>
+							<button type="button" id="epc-acc-view-grid" class="is-active" title="Grid">GRID</button>
 						</div>
 					</div>
 				</div>
@@ -96,22 +96,20 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 
 		<div class="epc-acc__browse">
 			<div class="epc-acc__browse-block">
-				<h2>Browse by category</h2>
+				<h2>View spare parts and accessories by category</h2>
 				<div class="epc-acc__chips" id="epc-acc-browse-cats"></div>
 			</div>
 			<div class="epc-acc__browse-block">
-				<h2>Browse by make</h2>
-				<div class="epc-acc__chips" id="epc-acc-browse-brands"></div>
+				<h2>View by sub category</h2>
+				<div class="epc-acc__chips" id="epc-acc-browse-subs"></div>
 			</div>
 			<div class="epc-acc__browse-block">
-				<h2>Browse by warehouse region</h2>
-				<div class="epc-acc__chips" id="epc-acc-browse-regions"></div>
+				<h2>View spare parts and accessories by make</h2>
+				<div class="epc-acc__chips" id="epc-acc-browse-makes"></div>
 			</div>
-			<div class="epc-acc__trust">
-				<div class="epc-acc__trust-item"><strong>UAE warehouse stock</strong><span>Live quantities from mapped price lists — not classified ads.</span></div>
-				<div class="epc-acc__trust-item"><strong>Brand + article prices</strong><span>Open any card to see full warehouse offers and crosses.</span></div>
-				<div class="epc-acc__trust-item"><strong>Secure checkout</strong><span>Quote or cart flows through your ePartsCart account.</span></div>
-				<div class="epc-acc__trust-item"><strong>GCC delivery</strong><span>Regional shipping options shown on the order flow.</span></div>
+			<div class="epc-acc__browse-block">
+				<h2>View spare parts and accessories by city</h2>
+				<div class="epc-acc__chips" id="epc-acc-browse-cities"></div>
 			</div>
 		</div>
 	</div>
@@ -121,19 +119,16 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 (function () {
 	var root = document.getElementById('epc-accessories');
 	if (!root) { return; }
-
 	var api = root.getAttribute('data-api') || '';
-	var lang = root.getAttribute('data-lang') || '/en';
-	var partsUrl = root.getAttribute('data-parts-url') || 'parts';
-	var chpuOn = root.getAttribute('data-chpu') === '1';
-
 	var els = {
 		q: document.getElementById('epc-acc-q'),
 		form: document.getElementById('epc-acc-search-form'),
 		cats: document.getElementById('epc-acc-cats'),
 		subs: document.getElementById('epc-acc-subs'),
-		brands: document.getElementById('epc-acc-brands'),
-		regions: document.getElementById('epc-acc-regions'),
+		makes: document.getElementById('epc-acc-makes'),
+		cities: document.getElementById('epc-acc-cities'),
+		condition: document.getElementById('epc-acc-condition'),
+		model: document.getElementById('epc-acc-model'),
 		priceMin: document.getElementById('epc-acc-price-min'),
 		priceMax: document.getElementById('epc-acc-price-max'),
 		applyPrice: document.getElementById('epc-acc-apply-price'),
@@ -145,53 +140,31 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 		viewGrid: document.getElementById('epc-acc-view-grid'),
 		viewList: document.getElementById('epc-acc-view-list'),
 		browseCats: document.getElementById('epc-acc-browse-cats'),
-		browseBrands: document.getElementById('epc-acc-browse-brands'),
-		browseRegions: document.getElementById('epc-acc-browse-regions')
+		browseSubs: document.getElementById('epc-acc-browse-subs'),
+		browseMakes: document.getElementById('epc-acc-browse-makes'),
+		browseCities: document.getElementById('epc-acc-browse-cities')
 	};
 
 	var state = {
-		q: '',
-		category: '',
-		subcategory: '',
-		brand: '',
-		region: '',
-		price_min: '',
-		price_max: '',
-		sort: 'price-desc',
-		page: 1,
-		view: 'grid',
-		prices_visible: true,
-		currency: 'AED',
-		lastFacets: null,
-		taxonomy: []
+		q: '', category: '', subcategory: '', make: '', model: '', city: '',
+		condition: '', price_min: '', price_max: '', sort: 'updated-desc', page: 1, view: 'grid',
+		taxonomy: [], makes: [], cities: []
 	};
 
 	function esc(s) {
-		return String(s == null ? '' : s)
-			.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+		return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 	}
-	function productUrl(brand, article) {
-		var b = String(brand || '').trim();
-		var a = String(article || '').replace(/[\s\-_`\/'"\\.,#]/g, '').toUpperCase();
-		if (!b || !a) { return '#'; }
-		if (chpuOn) {
-			return lang + '/' + partsUrl + '/' + encodeURIComponent(b) + '/' + encodeURIComponent(a);
-		}
-		return lang + '/shop/part_search?article=' + encodeURIComponent(a) + '&brand=' + encodeURIComponent(b);
-	}
-	function money(amount) {
+	function money(amount, currency) {
 		var n = Number(amount);
-		if (!isFinite(n)) { return '—'; }
-		return state.currency + ' ' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+		if (!isFinite(n) || n <= 0) { return 'Price on request'; }
+		return String(currency || 'PKR') + ' ' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 	}
 	function syncUrl() {
 		try {
 			var u = new URL(window.location.href);
-			var keys = ['q','category','subcategory','brand','region','price_min','price_max','sort','page'];
-			keys.forEach(function (k) {
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','sort','page'].forEach(function (k) {
 				var v = state[k];
-				if (v && String(v) !== '' && !(k === 'page' && String(v) === '1') && !(k === 'sort' && v === 'price-desc')) {
+				if (v && String(v) !== '' && !(k === 'page' && String(v) === '1') && !(k === 'sort' && v === 'updated-desc')) {
 					u.searchParams.set(k, v);
 				} else {
 					u.searchParams.delete(k);
@@ -203,87 +176,77 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 	function readUrl() {
 		try {
 			var u = new URL(window.location.href);
-			['q','category','subcategory','brand','region','price_min','price_max','sort','page'].forEach(function (k) {
-				if (u.searchParams.has(k)) {
-					state[k] = u.searchParams.get(k) || '';
-				}
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','sort','page'].forEach(function (k) {
+				if (u.searchParams.has(k)) { state[k] = u.searchParams.get(k) || ''; }
 			});
-			if (els.q) { els.q.value = state.q; }
-			if (els.sort) { els.sort.value = state.sort || 'price-desc'; }
-			if (els.priceMin) { els.priceMin.value = state.price_min; }
-			if (els.priceMax) { els.priceMax.value = state.price_max; }
+			if (els.q) els.q.value = state.q;
+			if (els.sort) els.sort.value = state.sort || 'updated-desc';
+			if (els.model) els.model.value = state.model;
+			if (els.priceMin) els.priceMin.value = state.price_min;
+			if (els.priceMax) els.priceMax.value = state.price_max;
 		} catch (e) {}
 	}
 
-	function facetButtons(target, rows, keyName, labelKey, activeValue, onClick) {
-		if (!target) { return; }
-		if (!rows || !rows.length) {
-			target.innerHTML = '<li style="padding:8px 10px;color:#94a3b8;font-size:13px">No options</li>';
-			return;
-		}
-		target.innerHTML = rows.map(function (row) {
-			var value = row[keyName];
+	function facetList(target, rows, valueKey, labelKey, active, onPick, allLabel) {
+		if (!target) return;
+		var html = '<li><button type="button" class="' + (!active ? 'is-active' : '') + '" data-value="">' + esc(allLabel || 'All') + '</button></li>';
+		(rows || []).forEach(function (row) {
+			var value = row[valueKey];
 			var label = row[labelKey] || value;
-			var count = row.count != null ? row.count : '';
-			var active = String(value) === String(activeValue) ? ' is-active' : '';
-			return '<li><button type="button" class="' + active + '" data-value="' + esc(value) + '">'
-				+ '<span>' + esc(label) + '</span>'
-				+ (count !== '' ? '<span class="count">' + esc(count) + '</span>' : '')
-				+ '</button></li>';
-		}).join('');
+			var count = row.count != null ? row.count : null;
+			var cls = String(value) === String(active) ? ' is-active' : '';
+			html += '<li><button type="button" class="' + cls + '" data-value="' + esc(value) + '"><span>' + esc(label) + '</span>'
+				+ (count != null ? '<span class="count">' + esc(count) + '</span>' : '') + '</button></li>';
+		});
+		target.innerHTML = html;
 		Array.prototype.forEach.call(target.querySelectorAll('button'), function (btn) {
-			btn.addEventListener('click', function () {
-				onClick(btn.getAttribute('data-value') || '');
-			});
+			btn.addEventListener('click', function () { onPick(btn.getAttribute('data-value') || ''); });
 		});
 	}
 
 	function renderFacets(facets) {
-		state.lastFacets = facets || {};
-		var cats = (facets && facets.categories) || [];
-		facetButtons(els.cats, [{ slug: '', label: 'All categories', count: '' }].concat(cats.map(function (c) {
-			return { slug: c.slug, label: c.label, count: c.count };
-		})), 'slug', 'label', state.category, function (v) {
+		var cats = (facets && facets.categories) || state.taxonomy || [];
+		facetList(els.cats, cats, 'slug', 'label', state.category, function (v) {
 			state.category = (state.category === v) ? '' : v;
 			state.subcategory = '';
 			state.page = 1;
 			load();
-		});
+		}, 'All categories');
 
 		var subs = [];
 		cats.forEach(function (c) {
-			if (state.category && c.slug !== state.category) { return; }
-			(c.subs || []).forEach(function (s) {
-				subs.push({ slug: s.slug, label: s.label, count: s.count });
-			});
+			if (state.category && c.slug !== state.category) return;
+			(c.subs || c.children || []).forEach(function (s) { subs.push(s); });
 		});
-		facetButtons(els.subs, [{ slug: '', label: 'All sub categories', count: '' }].concat(subs), 'slug', 'label', state.subcategory, function (v) {
+		facetList(els.subs, subs, 'slug', 'label', state.subcategory, function (v) {
 			state.subcategory = (state.subcategory === v) ? '' : v;
 			state.page = 1;
 			load();
-		});
+		}, 'All sub categories');
 
-		var brands = (facets && facets.brands) || [];
-		facetButtons(els.brands, [{ brand: '', label: 'All brands', count: '' }].concat(brands.map(function (b) {
-			return { brand: b.brand, label: b.brand, count: b.count };
-		})), 'brand', 'label', state.brand, function (v) {
-			state.brand = (state.brand === v) ? '' : v;
+		facetList(els.makes, (facets && facets.makes) || [], 'make', 'make', state.make, function (v) {
+			state.make = (state.make === v) ? '' : v;
 			state.page = 1;
 			load();
-		});
+		}, 'All makes');
 
-		var regions = (facets && facets.regions) || [];
-		facetButtons(els.regions, [{ region: '', label: 'All regions', count: '' }].concat(regions.map(function (r) {
-			return { region: r.region, label: r.region, count: r.count };
-		})), 'region', 'label', state.region, function (v) {
-			state.region = (state.region === v) ? '' : v;
+		facetList(els.cities, (facets && facets.cities) || [], 'city', 'city', state.city, function (v) {
+			state.city = (state.city === v) ? '' : v;
 			state.page = 1;
 			load();
-		});
+		}, 'All cities');
+
+		facetList(els.condition, (facets && facets.conditions) || [
+			{value:'new', label:'New'}, {value:'used', label:'Used'}
+		], 'value', 'label', state.condition, function (v) {
+			state.condition = (state.condition === v) ? '' : v;
+			state.page = 1;
+			load();
+		}, 'Any condition');
 
 		if (els.browseCats) {
-			els.browseCats.innerHTML = (state.taxonomy || []).map(function (c) {
-				return '<button type="button" data-cat="' + esc(c.slug) + '">' + esc(c.label) + '</button>';
+			els.browseCats.innerHTML = cats.map(function (c) {
+				return '<button type="button" data-cat="' + esc(c.slug) + '">' + esc(c.label) + (c.count ? ' (' + c.count + ')' : '') + '</button>';
 			}).join('');
 			Array.prototype.forEach.call(els.browseCats.querySelectorAll('button'), function (btn) {
 				btn.addEventListener('click', function () {
@@ -291,104 +254,121 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 					state.subcategory = '';
 					state.page = 1;
 					load();
-					root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					root.scrollIntoView({behavior:'smooth', block:'start'});
 				});
 			});
 		}
-		if (els.browseBrands) {
-			els.browseBrands.innerHTML = brands.slice(0, 20).map(function (b) {
-				return '<button type="button" data-brand="' + esc(b.brand) + '">' + esc(b.brand) + ' Parts (' + esc(b.count) + '+)</button>';
+		if (els.browseSubs) {
+			var allSubs = [];
+			cats.forEach(function (c) {
+				(c.subs || c.children || []).slice(0, 8).forEach(function (s) {
+					allSubs.push({ slug: s.slug, label: s.label, parent: c.slug, count: s.count });
+				});
+			});
+			els.browseSubs.innerHTML = allSubs.slice(0, 40).map(function (s) {
+				return '<button type="button" data-cat="' + esc(s.parent) + '" data-sub="' + esc(s.slug) + '">' + esc(s.label) + '</button>';
 			}).join('');
-			Array.prototype.forEach.call(els.browseBrands.querySelectorAll('button'), function (btn) {
+			Array.prototype.forEach.call(els.browseSubs.querySelectorAll('button'), function (btn) {
 				btn.addEventListener('click', function () {
-					state.brand = btn.getAttribute('data-brand') || '';
+					state.category = btn.getAttribute('data-cat') || '';
+					state.subcategory = btn.getAttribute('data-sub') || '';
 					state.page = 1;
 					load();
-					root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					root.scrollIntoView({behavior:'smooth', block:'start'});
 				});
 			});
 		}
-		if (els.browseRegions) {
-			els.browseRegions.innerHTML = regions.map(function (r) {
-				return '<button type="button" data-region="' + esc(r.region) + '">Parts in ' + esc(r.region) + ' (' + esc(r.count) + '+)</button>';
+		if (els.browseMakes) {
+			var makes = (facets && facets.makes) || [];
+			els.browseMakes.innerHTML = makes.map(function (m) {
+				return '<button type="button" data-make="' + esc(m.make) + '">' + esc(m.make) + ' Parts and Accessories' + (m.count ? ' (' + m.count + ')' : '') + '</button>';
 			}).join('');
-			Array.prototype.forEach.call(els.browseRegions.querySelectorAll('button'), function (btn) {
+			Array.prototype.forEach.call(els.browseMakes.querySelectorAll('button'), function (btn) {
 				btn.addEventListener('click', function () {
-					state.region = btn.getAttribute('data-region') || '';
+					state.make = btn.getAttribute('data-make') || '';
 					state.page = 1;
 					load();
-					root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				});
+			});
+		}
+		if (els.browseCities) {
+			var cities = (facets && facets.cities) || [];
+			els.browseCities.innerHTML = cities.map(function (c) {
+				return '<button type="button" data-city="' + esc(c.city) + '">Parts and Accessories in ' + esc(c.city) + (c.count ? ' (' + c.count + ')' : '') + '</button>';
+			}).join('');
+			Array.prototype.forEach.call(els.browseCities.querySelectorAll('button'), function (btn) {
+				btn.addEventListener('click', function () {
+					state.city = btn.getAttribute('data-city') || '';
+					state.page = 1;
+					load();
 				});
 			});
 		}
 	}
 
-	function renderCards(items) {
-		if (!els.results) { return; }
+	function renderCards(items, emptyCatalog) {
+		if (!els.results) return;
 		if (!items || !items.length) {
-			els.results.innerHTML = '<div class="epc-acc__empty"><strong>No accessories found</strong><br>Try another keyword, brand, or clear filters.</div>';
+			els.results.innerHTML =
+				'<div class="epc-acc__empty">'
+				+ '<strong>No ads in this search yet</strong>'
+				+ '<p>Categories and filters match the PakWheels accessories structure. Listings will appear here as they are added category by category.</p>'
+				+ (emptyCatalog ? '<p class="epc-acc__empty-hint">Catalog is ready — start by adding products under Car Care, Interior, Exterior, Brakes, and other categories.</p>' : '')
+				+ '</div>';
 			return;
 		}
 		els.results.innerHTML = items.map(function (item, idx) {
-			var href = productUrl(item.brand, item.article);
-			var mark = String(item.brand || '?').slice(0, 3);
-			var priceHtml = state.prices_visible
-				? ('<div class="epc-acc__price" data-epc-base-price="' + esc(item.price) + '">' + esc(money(item.price)) + '</div>')
-				: '<div class="epc-acc__price"><a href="' + esc(lang) + '/users/login">Log in for prices</a></div>';
+			var href = item.external_url || '#';
+			var img = item.image_url
+				? '<img src="' + esc(item.image_url) + '" alt="" loading="lazy" />'
+				: '<span class="epc-acc__media-mark">' + esc((item.make || item.category_label || 'AD').toString().slice(0, 3).toUpperCase()) + '</span>';
 			return '<article class="epc-acc__card" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
 				+ '<div class="epc-acc__media">'
-				+ '<span class="epc-acc__media-badge">' + esc(item.category_label || 'Parts') + '</span>'
-				+ '<span class="epc-acc__media-mark">' + esc(mark) + '</span>'
+				+ '<span class="epc-acc__media-badge">' + esc(item.condition === 'used' ? 'Used' : 'New') + '</span>'
+				+ img
+				+ '</div><div class="epc-acc__body">'
+				+ '<div class="epc-acc__meta">'
+				+ (item.category_label ? '<span>' + esc(item.category_label) + '</span>' : '')
+				+ (item.subcategory_label ? '<span>' + esc(item.subcategory_label) + '</span>' : '')
+				+ (item.city ? '<span>' + esc(item.city) + '</span>' : '')
 				+ '</div>'
-				+ '<div class="epc-acc__body">'
-				+ '<div class="epc-acc__meta"><span>' + esc(item.brand) + '</span><span>' + esc(item.subcategory_label || item.category_label) + '</span></div>'
-				+ '<h3 class="epc-acc__title"><a href="' + esc(href) + '">' + esc(item.name) + '</a></h3>'
-				+ '<p class="epc-acc__article">' + esc(item.article) + (item.warehouse ? (' · ' + esc(item.warehouse)) : '') + '</p>'
-				+ '<div class="epc-acc__price-row-card">' + priceHtml
-				+ '<div class="epc-acc__stock">' + esc(parseInt(item.qty, 10) || 0) + ' in stock</div></div>'
+				+ '<h3 class="epc-acc__title"><a href="' + esc(href) + '">' + esc(item.title) + '</a></h3>'
+				+ '<p class="epc-acc__article">' + esc([item.make, item.model].filter(Boolean).join(' · ')) + '</p>'
+				+ '<div class="epc-acc__price-row-card"><div class="epc-acc__price">' + esc(money(item.price, item.currency)) + '</div></div>'
 				+ '<div class="epc-acc__actions">'
-				+ '<a class="primary" href="' + esc(href) + '">Open prices</a>'
-				+ '<a class="secondary" href="' + esc(href) + '">View details</a>'
+				+ '<a class="primary" href="' + esc(href) + '">View ad</a>'
+				+ '<a class="secondary" href="' + esc(href) + '">Details</a>'
 				+ '</div></div></article>';
 		}).join('');
 	}
 
 	function renderPager(page, pages) {
-		if (!els.pager) { return; }
-		if (pages <= 1) {
-			els.pager.innerHTML = '';
-			return;
-		}
+		if (!els.pager) return;
+		if (pages <= 1) { els.pager.innerHTML = ''; return; }
 		var html = '';
-		var start = Math.max(1, page - 2);
-		var end = Math.min(pages, page + 2);
-		if (page > 1) {
-			html += '<button type="button" data-page="' + (page - 1) + '">Prev</button>';
-		}
+		var start = Math.max(1, page - 2), end = Math.min(pages, page + 2);
+		if (page > 1) html += '<button type="button" data-page="' + (page - 1) + '">Prev</button>';
 		for (var p = start; p <= end; p++) {
 			html += '<button type="button" class="' + (p === page ? 'is-active' : '') + '" data-page="' + p + '">' + p + '</button>';
 		}
-		if (page < pages) {
-			html += '<button type="button" data-page="' + (page + 1) + '">Next</button>';
-		}
+		if (page < pages) html += '<button type="button" data-page="' + (page + 1) + '">Next</button>';
 		els.pager.innerHTML = html;
 		Array.prototype.forEach.call(els.pager.querySelectorAll('button'), function (btn) {
 			btn.addEventListener('click', function () {
 				state.page = parseInt(btn.getAttribute('data-page'), 10) || 1;
 				load();
-				els.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			});
 		});
 	}
 
 	function load() {
-		if (!api || !els.results) { return; }
-		els.results.innerHTML = '<div class="epc-acc__loading"><i class="fa fa-spinner fa-spin"></i> Loading accessories…</div>';
-		els.count.textContent = 'Loading results…';
+		if (!api || !els.results) return;
+		els.results.innerHTML = '<div class="epc-acc__loading"><i class="fa fa-spinner fa-spin"></i> Loading…</div>';
+		els.count.textContent = 'Loading…';
 		syncUrl();
 		var params = new URLSearchParams();
-		['q','category','subcategory','brand','region','price_min','price_max','sort','page'].forEach(function (k) {
-			if (state[k] !== '' && state[k] != null) { params.set(k, state[k]); }
+		['q','category','subcategory','make','model','city','condition','price_min','price_max','sort','page'].forEach(function (k) {
+			if (state[k] !== '' && state[k] != null) params.set(k, state[k]);
 		});
 		params.set('per_page', '24');
 		fetch(api + '?' + params.toString(), { credentials: 'same-origin', cache: 'no-store' })
@@ -399,12 +379,12 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 					els.count.textContent = '0 results';
 					return;
 				}
-				state.prices_visible = !!data.prices_visible;
-				state.currency = data.currency || 'AED';
-				state.taxonomy = data.taxonomy || state.taxonomy || [];
-				els.count.innerHTML = '<strong>' + esc(data.from) + ' – ' + esc(data.to) + '</strong> of <strong>' + esc(data.total) + '</strong> results';
+				state.taxonomy = data.taxonomy || data.facets && data.facets.categories || [];
+				els.count.innerHTML = data.total
+					? ('<strong>' + esc(data.from) + ' – ' + esc(data.to) + '</strong> of <strong>' + esc(data.total) + '</strong> results')
+					: '<strong>0</strong> results — categories ready, ads will be added category by category';
 				renderFacets(data.facets || {});
-				renderCards(data.items || []);
+				renderCards(data.items || [], !!data.empty_catalog);
 				renderPager(data.page || 1, data.pages || 1);
 			})
 			.catch(function () {
@@ -422,13 +402,14 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 	}
 	if (els.sort) {
 		els.sort.addEventListener('change', function () {
-			state.sort = els.sort.value || 'price-desc';
+			state.sort = els.sort.value || 'updated-desc';
 			state.page = 1;
 			load();
 		});
 	}
 	if (els.applyPrice) {
 		els.applyPrice.addEventListener('click', function () {
+			state.model = els.model ? els.model.value.trim() : '';
 			state.price_min = els.priceMin ? els.priceMin.value : '';
 			state.price_max = els.priceMax ? els.priceMax.value : '';
 			state.page = 1;
@@ -437,29 +418,23 @@ $epc_acc_parts_url = !empty($DP_Config->chpu_search_config['level_1']['url'])
 	}
 	if (els.reset) {
 		els.reset.addEventListener('click', function () {
-			state = {
-				q: '', category: '', subcategory: '', brand: '', region: '',
-				price_min: '', price_max: '', sort: 'price-desc', page: 1,
-				view: state.view, prices_visible: state.prices_visible, currency: state.currency,
-				lastFacets: null, taxonomy: state.taxonomy
-			};
-			if (els.q) { els.q.value = ''; }
-			if (els.sort) { els.sort.value = 'price-desc'; }
-			if (els.priceMin) { els.priceMin.value = ''; }
-			if (els.priceMax) { els.priceMax.value = ''; }
+			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition:'', price_min:'', price_max:'', sort:'updated-desc', page:1, view:state.view, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities };
+			if (els.q) els.q.value = '';
+			if (els.model) els.model.value = '';
+			if (els.sort) els.sort.value = 'updated-desc';
+			if (els.priceMin) els.priceMin.value = '';
+			if (els.priceMax) els.priceMax.value = '';
 			load();
 		});
 	}
 	function setView(mode) {
 		state.view = mode;
-		if (els.results) {
-			els.results.classList.toggle('is-list', mode === 'list');
-		}
-		if (els.viewGrid) { els.viewGrid.classList.toggle('is-active', mode === 'grid'); }
-		if (els.viewList) { els.viewList.classList.toggle('is-active', mode === 'list'); }
+		if (els.results) els.results.classList.toggle('is-list', mode === 'list');
+		if (els.viewGrid) els.viewGrid.classList.toggle('is-active', mode === 'grid');
+		if (els.viewList) els.viewList.classList.toggle('is-active', mode === 'list');
 	}
-	if (els.viewGrid) { els.viewGrid.addEventListener('click', function () { setView('grid'); }); }
-	if (els.viewList) { els.viewList.addEventListener('click', function () { setView('list'); }); }
+	if (els.viewGrid) els.viewGrid.addEventListener('click', function () { setView('grid'); });
+	if (els.viewList) els.viewList.addEventListener('click', function () { setView('list'); });
 
 	readUrl();
 	setView(state.view || 'grid');
