@@ -293,9 +293,18 @@ if ($search_type == 'prices_by_article_and_manufacturer' && !empty($manufacturer
 	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_article_match.php");
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_seo_indexing.php';
 	$seo_manufacturer = html_entity_decode($manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8');
-	$seo_article_expr = docpart_sql_article_normalized_expr('`article`');
+	// Indexed article_search — never REPLACE() full-scan on CHPU SEO seed.
+	$seo_article_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
 	$seo_priceClause = function_exists('epc_seo_stock_requires_price') && epc_seo_stock_requires_price($db_link)
 		? ' AND IFNULL(`price`, 0) > 0' : '';
+	try {
+		@$db_link->exec('SET SESSION max_statement_time = 2');
+		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
+	} catch (Throwable $e) {
+	}
 	$seo_product_query = $db_link->prepare(
 		"SELECT `manufacturer`, `article`, `article_show`, `name`, `exist`, `price`
 		FROM `shop_docpart_prices_data`
