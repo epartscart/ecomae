@@ -44,7 +44,8 @@ if ($requestKey !== '') {
 }
 
 $apply = !empty($_GET['apply']);
-$minTime = max(5, (int) ($_GET['min_time'] ?? 30));
+// Allow aggressive 1s kills when mysqld is pegged (REPLACE scans restart every few seconds).
+$minTime = max(1, (int) ($_GET['min_time'] ?? 30));
 
 $report = array(
 	'ok' => true,
@@ -114,6 +115,11 @@ $killPatterns = array(
 	'Waiting for table',
 );
 
+$load1 = null;
+if (is_array($report['load'] ?? null) && isset($report['load']['1m'])) {
+	$load1 = (float) $report['load']['1m'];
+}
+
 if ($apply) {
 	foreach ($report['processlist'] as $row) {
 		$id = (int) $row['id'];
@@ -121,22 +127,40 @@ if ($apply) {
 		$cmd = strtolower((string) $row['command']);
 		$info = (string) $row['info'];
 		$user = (string) $row['user'];
-		if ($id <= 0 || $time < $minTime) {
+		if ($id <= 0) {
 			continue;
 		}
 		if (in_array($user, array('system user', 'event_scheduler'), true)) {
 			continue;
 		}
-		$shouldKill = ($cmd === 'sleep');
+		$infoLower = strtolower($info);
+		$isAnalogsReplace = ($info !== '' && strpos($infoLower, 'shop_docpart_articles_analogs_list') !== false);
+		$isPricesReplace = ($info !== '' && strpos($infoLower, 'shop_docpart_prices_data') !== false
+			&& strpos($infoLower, 'replace(') !== false);
+		$isHeavyReplace = $isAnalogsReplace || $isPricesReplace
+			|| ($info !== '' && strpos($infoLower, 'replace(replace') !== false);
+
+		// Under high load, kill REPLACE full-scans almost immediately (they burn CPU at 100%+).
+		$effectiveMin = $minTime;
+		if ($load1 !== null && $load1 >= 8.0 && $isHeavyReplace) {
+			$effectiveMin = 1;
+		} elseif ($isAnalogsReplace) {
+			$effectiveMin = max(1, min($minTime, 3));
+		}
+
+		if ($time < $effectiveMin && !($cmd === 'sleep' && $time >= $minTime)) {
+			continue;
+		}
+
+		$shouldKill = ($cmd === 'sleep' && $time >= $minTime);
+		if ($cmd === 'query' && $isHeavyReplace && $time >= $effectiveMin) {
+			$shouldKill = true;
+		}
 		foreach ($killPatterns as $pat) {
-			if ($info !== '' && stripos($info, $pat) !== false) {
+			if ($info !== '' && stripos($info, $pat) !== false && $time >= $effectiveMin) {
 				$shouldKill = true;
 				break;
 			}
-		}
-		// Analogs REPLACE() scans are the usual CP 524 culprit — kill earlier.
-		if ($cmd === 'query' && $info !== '' && stripos($info, 'shop_docpart_articles_analogs_list') !== false && $time >= max(5, $minTime)) {
-			$shouldKill = true;
 		}
 		if ($cmd === 'query' && $time >= max($minTime, 45)) {
 			$shouldKill = true;

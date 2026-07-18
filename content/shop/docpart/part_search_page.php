@@ -169,9 +169,9 @@ if($article_norm_for_cross !== '' && $epc_use_local_crosses)
 			$__epc_cross_load = @sys_getloadavg();
 			if (is_array($__epc_cross_load) && isset($__epc_cross_load[0])) {
 				$__epc_load1 = (float) $__epc_cross_load[0];
-				if ($__epc_load1 >= 6.0) {
+				if ($__epc_load1 >= 4.0) {
 					$epc_skip_ssr_cross = true;
-				} elseif ($__epc_load1 >= 4.0) {
+				} elseif ($__epc_load1 >= 2.5) {
 					$epc_chpu_cross_rounds = 1;
 					$epc_chpu_cross_limit = 20;
 				}
@@ -371,7 +371,11 @@ if ($search_type == 'prices_by_article_and_manufacturer' && !empty($manufacturer
 if (!empty($epc_chpu_direct_pricing) && !$epc_chpu_anchor_has_stock && !empty($manufacturer) && $article !== '') {
 	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_article_match.php");
 	$epc_anchor_mfr = html_entity_decode($manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8');
-	$epc_anchor_art_expr = docpart_sql_article_normalized_expr('`article`');
+	// Prefer indexed article_search to avoid REPLACE() CPU spikes on CHPU stock checks.
+	$epc_anchor_art_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
 	$epc_anchor_price_clause = '';
 	if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_seo_indexing.php')) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_seo_indexing.php';
@@ -380,6 +384,7 @@ if (!empty($epc_chpu_direct_pricing) && !$epc_chpu_anchor_has_stock && !empty($m
 		}
 	}
 	try {
+		@$db_link->exec('SET SESSION max_statement_time = 2');
 		$epc_anchor_stock_query = $db_link->prepare(
 			"SELECT `exist` FROM `shop_docpart_prices_data`
 			WHERE " . $epc_anchor_art_expr . " = ? AND UPPER(TRIM(`manufacturer`)) = UPPER(?)
@@ -397,7 +402,10 @@ if (!empty($epc_chpu_direct_pricing) && !$epc_chpu_anchor_has_stock && !empty($m
 }
 if ((!empty($epc_chpu_direct_pricing) || !empty($epc_brand_picker_mode)) && !$epc_chpu_anchor_has_stock && $article !== '') {
 	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_article_match.php");
-	$epc_anchor_art_expr = docpart_sql_article_normalized_expr('`article`');
+	$epc_anchor_art_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
 	$epc_any_price_clause = '';
 	if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_seo_indexing.php')) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_seo_indexing.php';
@@ -406,6 +414,7 @@ if ((!empty($epc_chpu_direct_pricing) || !empty($epc_brand_picker_mode)) && !$ep
 		}
 	}
 	try {
+		@$db_link->exec('SET SESSION max_statement_time = 2');
 		$epc_anchor_any_stock_query = $db_link->prepare(
 			"SELECT `exist` FROM `shop_docpart_prices_data`
 			WHERE " . $epc_anchor_art_expr . " = ?
