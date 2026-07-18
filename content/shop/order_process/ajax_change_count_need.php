@@ -51,6 +51,12 @@ if( !isset($request_object["tech_key"]) )
 	// -------------------------------------------------------------------------------
 	
 	$user_id = DP_User::getUserId();
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+	if (epc_storefront_guest_commerce_blocked((int) $user_id)) {
+		exit(json_encode(epc_storefront_guest_commerce_denied_payload(
+			isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null
+		)));
+	}
 	if($user_id > 0)
 	{
 		//Поля для авторизованного пользователя

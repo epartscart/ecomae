@@ -12,6 +12,9 @@ $user_session = DP_User::getUserSession();
 //Обработка кнопки "Купить"
 function purchase_action(div_id)
 {
+	if (typeof epcStorefrontRequireLoginForCommerce === 'function' && !epcStorefrontRequireLoginForCommerce()) {
+		return;
+	}
     let product_object_div = document.getElementById(div_id);
     
     //console.log('product_object_div:');
@@ -62,13 +65,18 @@ function purchase_action(div_id)
             }
             else
             {
+                if(answer.code == "auth" && answer.login_url)
+                {
+                    window.location.href = answer.login_url;
+                    return;
+                }
                 if(answer.code == "already")
                 {
                     alert("<?php echo translate_str_by_id(4336); ?>");
                 }
                 else
                 {
-                    alert("<?php echo translate_str_by_id(4524); ?>");
+                    alert(answer.message || "<?php echo translate_str_by_id(4524); ?>");
                 }
             }
         }

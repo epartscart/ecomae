@@ -35,8 +35,20 @@ if (is_readable($epc_vat_file) && isset($db_link) && $db_link instanceof PDO) {
 <script>
 var epc_storefront_prices_visible = <?php echo !empty($epc_storefront_prices_visible) ? 'true' : 'false'; ?>;
 var epc_storefront_price_login_cta_html = <?php echo json_encode(epc_storefront_prices_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+var epc_storefront_commerce_login_cta_html = <?php echo json_encode(epc_storefront_commerce_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+var epc_storefront_login_url = <?php echo json_encode(epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_vat_price_label = <?php echo json_encode($epc_vat_price_label, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_vat_display_mode = <?php echo json_encode($epc_vat_display_mode, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+function epcStorefrontRequireLoginForCommerce()
+{
+	if(typeof epc_storefront_prices_visible === 'undefined' || epc_storefront_prices_visible)
+	{
+		return true;
+	}
+	var url = (typeof epc_storefront_login_url !== 'undefined' && epc_storefront_login_url) ? epc_storefront_login_url : '/en/users/login';
+	window.location.href = url;
+	return false;
+}
 function epcVatPriceLabelHTML(product)
 {
 	var lbl = '';
@@ -2320,10 +2332,11 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 	var pExist = exist * 1;
 	if(pMin === 0){ pMin = 1; }
 	if(pExist === 0){ pExist = 1; }
+	var guestBlocked = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible);
 	var html = '<div class="epc-product-actions">';
 	html += '<div class="epc-product-actions__tools">';
 	html += epcFitmentCheckButtonHTML(brand, article);
-	if(typeof epcWaShareBtnHTML === 'function')
+	if(!guestBlocked && typeof epcWaShareBtnHTML === 'function')
 	{
 		var prod = (typeof Products !== 'undefined' && Products.All && Products.All[aid]) ? Products.All[aid] : null;
 		var nm = prod && prod.name ? prod.name : '';
@@ -2331,6 +2344,14 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 		html += epcWaShareBtnHTML(brand || (prod ? prod.manufacturer : ''), article || (prod ? prod.article : ''), nm, pr);
 	}
 	html += '</div>';
+	if(guestBlocked)
+	{
+		html += (typeof epc_storefront_commerce_login_cta_html !== 'undefined' && epc_storefront_commerce_login_cta_html)
+			? epc_storefront_commerce_login_cta_html
+			: (epc_storefront_price_login_cta_html || '');
+		html += '</div>';
+		return html;
+	}
 	if(mode === 'both' || mode === 'cart_only')
 	{
 		html += '<div class="epc-product-actions__buy">';
@@ -2351,6 +2372,17 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 }
 function epcManualQuoteButtonHTML(brand, article, articleShow, name)
 {
+	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+	{
+		return '<div class="epc-product-actions epc-product-actions--quote-only">'
+			+ '<div class="epc-product-actions__tools">'
+			+ epcFitmentCheckButtonHTML(brand, article)
+			+ '</div>'
+			+ ((typeof epc_storefront_commerce_login_cta_html !== 'undefined' && epc_storefront_commerce_login_cta_html)
+				? epc_storefront_commerce_login_cta_html
+				: (epc_storefront_price_login_cta_html || ''))
+			+ '</div>';
+	}
 	return '<div class="epc-product-actions epc-product-actions--quote-only">'
 		+ '<div class="epc-product-actions__tools">'
 		+ epcFitmentCheckButtonHTML(brand, article)
@@ -2382,6 +2414,10 @@ function epcAddManualToQuoteFromSearch()
 }
 function epcAddManualToQuote(brand, article, articleShow, name, countNeed)
 {
+	if(typeof epcStorefrontRequireLoginForCommerce === 'function' && !epcStorefrontRequireLoginForCommerce())
+	{
+		return;
+	}
 	jQuery.ajax({
 		type: 'POST',
 		async: false,
@@ -5613,6 +5649,10 @@ function outerSortChange(field)
 //Добавление в корзину
 function addToCart(aid)
 {
+	if(typeof epcStorefrontRequireLoginForCommerce === 'function' && !epcStorefrontRequireLoginForCommerce())
+	{
+		return;
+	}
     //1. По списку учетных объектов определяем, в где находится объект товара (Запрошенные/Аналоги)
     var AID_Object = Products.All[aid];
 	if(!AID_Object)
@@ -5777,6 +5817,12 @@ function addToCart(aid)
             }
             else
             {
+                if(answer.code == "auth")
+                {
+					if(answer.login_url){ window.location.href = answer.login_url; }
+					else if(typeof epcStorefrontRequireLoginForCommerce === 'function'){ epcStorefrontRequireLoginForCommerce(); }
+					return;
+                }
                 if(answer.code == "already")
                 {
                     alert("<?php echo translate_str_by_id(4336); ?>");
@@ -5792,6 +5838,10 @@ function addToCart(aid)
 
 function addToQuote(aid)
 {
+	if(typeof epcStorefrontRequireLoginForCommerce === 'function' && !epcStorefrontRequireLoginForCommerce())
+	{
+		return;
+	}
     var AID_Object = Products.All[aid];
     var Product = new Object;
     if(AID_Object.isRequired == true)
