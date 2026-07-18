@@ -110,6 +110,7 @@ try {
 	if ($existingId > 0) {
 		$saved = epc_einvoice_get_document($db_link, $existingId);
 		if (is_array($saved) && !empty($saved['lines'])) {
+			$saved['buyer'] = $epc_enrich_buyer(is_array($saved['buyer'] ?? null) ? $saved['buyer'] : array(), $order_record);
 			$HTML = epc_erp_invoice_print_html($saved);
 		}
 	}
