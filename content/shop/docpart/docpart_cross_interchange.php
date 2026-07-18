@@ -4,10 +4,44 @@
  */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_article_match.php';
 
+/**
+ * Host load shed for heavy analogs_list walks (protects CP from Cloudflare 524s).
+ */
+function docpart_analogs_host_load1()
+{
+	if (!function_exists('sys_getloadavg')) {
+		return null;
+	}
+	$load = @sys_getloadavg();
+	if (!is_array($load) || !isset($load[0])) {
+		return null;
+	}
+	return (float) $load[0];
+}
+
 function docpart_load_interchange_partners($db_link, $article_norm, $max_rounds = 6, $row_limit = 5000)
 {
 	$article_norm = docpart_normalize_article_for_price($article_norm);
 	if ($article_norm === '') {
+		return array();
+	}
+	// Hard caps — unrestricted 6×5000 REPLACE() scans saturate MySQL and 524 CP pages.
+	$max_rounds = max(0, min(3, (int) $max_rounds));
+	$row_limit = max(0, min(200, (int) $row_limit));
+	$load1 = docpart_analogs_host_load1();
+	if ($load1 !== null) {
+		if ($load1 >= 12.0) {
+			return array();
+		}
+		if ($load1 >= 8.0) {
+			$max_rounds = min($max_rounds, 1);
+			$row_limit = min($row_limit, 40);
+		} elseif ($load1 >= 5.0) {
+			$max_rounds = min($max_rounds, 2);
+			$row_limit = min($row_limit, 80);
+		}
+	}
+	if ($max_rounds <= 0 || $row_limit <= 0) {
 		return array();
 	}
 	$partners = array();
@@ -31,6 +65,9 @@ function docpart_load_interchange_partners($db_link, $article_norm, $max_rounds 
 			$placeholders = implode(',', array_fill(0, count($chunk), '?'));
 			$params = array_merge($chunk, $chunk);
 			try {
+				// Abort runaway REPLACE() scans before they pin PHP-FPM / starve CP.
+				@$db_link->exec('SET SESSION max_statement_time = 3');
+				@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 3000');
 				$cross_query = $db_link->prepare(
 					'SELECT `article`, `manufacturer_article`, `analog`, `manufacturer_analog` '
 					. 'FROM `shop_docpart_articles_analogs_list` '
@@ -428,9 +465,16 @@ function docpart_cross_pair_exists_with_brands(PDO $db_link, $article_a, $brand_
 	if ($article_a === $article_b && $brand_a === $brand_b) {
 		return array('linked' => false, 'id' => 0);
 	}
+	$load1 = docpart_analogs_host_load1();
+	if ($load1 !== null && $load1 >= 10.0) {
+		// Under load, skip expensive REPLACE() existence checks — inserts use INSERT IGNORE.
+		return array('linked' => false, 'id' => 0);
+	}
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
 	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
 	try {
+		@$db_link->exec('SET SESSION max_statement_time = 2');
+		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
 		$exists_query = $db_link->prepare(
 			'SELECT `id` FROM `shop_docpart_articles_analogs_list` '
 			. 'WHERE ('
