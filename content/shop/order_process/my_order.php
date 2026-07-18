@@ -1031,7 +1031,17 @@ if($user_id > 0)
 	$obtain_query = $db_link->prepare( 'SELECT * FROM `shop_obtaining_modes` WHERE `id` = ?;' );
 	$obtain_query->execute( array($how_get) );
 	$obtain_mode = $obtain_query->fetch();
-	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/obtaining_modes/".$obtain_mode["handler"]."/show_actual_info.php");
+	$obtain_handler = is_array($obtain_mode) ? trim((string)($obtain_mode['handler'] ?? '')) : '';
+	$obtain_handler_file = $obtain_handler !== ''
+		? ($_SERVER['DOCUMENT_ROOT'] . '/content/shop/obtaining_modes/' . $obtain_handler . '/show_actual_info.php')
+		: '';
+	if ($obtain_handler !== '' && is_file($obtain_handler_file)) {
+		require_once($obtain_handler_file);
+	} else {
+		// Missing/invalid how_get must not 500 the whole customer order page
+		// (messages, docs, and payment UI still need to render).
+		echo '<div class="alert alert-info" style="margin:0;">Delivery / pickup details are not set for this order yet. Please contact the seller if you need them updated.</div>';
+	}
 	?>
 	</div>
 	
