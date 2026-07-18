@@ -70,6 +70,65 @@ class View
     }
 
     /**
+     * Call Guayaquil request append* methods safely under PHP 8 named arguments.
+     * Associative param bags from views may use aliases (e.g. ident vs identString).
+     *
+     * @param object $request
+     * @param string $method
+     * @param array  $paramsArr
+     */
+    protected function invokeRequestMethod($request, $method, $paramsArr = [])
+    {
+        if (!is_array($paramsArr)) {
+            $paramsArr = [$paramsArr];
+        }
+        if ($paramsArr === []) {
+            call_user_func([$request, $method]);
+            return;
+        }
+        // Positional list — call as-is.
+        if (array_keys($paramsArr) === range(0, count($paramsArr) - 1)) {
+            call_user_func_array([$request, $method], $paramsArr);
+            return;
+        }
+
+        $aliases = [
+            'ident' => 'identString',
+            'identString' => 'ident',
+        ];
+
+        try {
+            $ref = new \ReflectionMethod($request, $method);
+            $ordered = [];
+            $bag = $paramsArr;
+            foreach ($ref->getParameters() as $param) {
+                $name = $param->getName();
+                if (array_key_exists($name, $bag)) {
+                    $ordered[] = $bag[$name];
+                    unset($bag[$name]);
+                    continue;
+                }
+                if (isset($aliases[$name]) && array_key_exists($aliases[$name], $bag)) {
+                    $ordered[] = $bag[$aliases[$name]];
+                    unset($bag[$aliases[$name]]);
+                    continue;
+                }
+                if ($param->isDefaultValueAvailable()) {
+                    $ordered[] = $param->getDefaultValue();
+                    continue;
+                }
+                // Fall back to next leftover value (keeps older callers working).
+                $ordered[] = array_shift($bag);
+            }
+            call_user_func_array([$request, $method], $ordered);
+            return;
+        } catch (\Throwable $e) {
+            // Last resort: strip names and call positionally.
+            call_user_func_array([$request, $method], array_values($paramsArr));
+        }
+    }
+
+    /**
      * @param array  $requests
      *
      * @param array  $params
@@ -90,7 +149,7 @@ class View
         }
 
         foreach ($requests as $requestItem => $paramsArr) {
-            call_user_func_array([$request, $requestItem], $paramsArr);
+            $this->invokeRequestMethod($request, $requestItem, $paramsArr);
         }
 
         $this->user = false;
@@ -109,7 +168,7 @@ class View
             }
 
             foreach ($requests as $requestItem => $paramsArr) {
-                call_user_func_array([$request, $requestItem], $paramsArr);
+                $this->invokeRequestMethod($request, $requestItem, $paramsArr);
             }
 
             if ($data = $request->query()) {

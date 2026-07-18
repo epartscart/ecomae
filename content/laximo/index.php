@@ -78,13 +78,12 @@ if ($useAjaxLanding) {
 			}
 			require_once($laximoRoot . '/com_guayaquil/index.php');
 		} catch (\Throwable $e) {
-			echo '<div style="padding:20px;color:#c00;">Laximo error: ' . htmlspecialchars($e->getMessage())
-				. ' in ' . basename($e->getFile()) . ':' . $e->getLine() . '</div>';
+			echo '<div style="padding:20px;color:#c00;">Catalog temporarily unavailable. Please try again later.</div>';
 			echo '<p><a href="' . htmlspecialchars(strtok((string) ($_SERVER['REQUEST_URI'] ?? '/katalog-laximo'), '?'), ENT_QUOTES, 'UTF-8')
 				. '">Open catalog home (VIN + brands)</a></p>';
 		}
 	} else {
-		echo '<div style="padding:20px;color:#c00;">Laximo SDK not available. Please contact support.</div>';
+		echo '<div style="padding:20px;color:#c00;">OEM catalog is temporarily unavailable. Please contact support.</div>';
 	}
 }
 ?>
