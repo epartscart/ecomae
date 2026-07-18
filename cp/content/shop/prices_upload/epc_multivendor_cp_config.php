@@ -28,7 +28,8 @@ try {
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 	$user_session = DP_User::getAdminSession();
 	if (empty($user_session) || !is_array($user_session)) {
-		echo 'window.EPC_MULTIVENDOR_CP={};';
+		// Keep any inline bootstrap from the page; do not wipe ajaxUrl/sampleUrl.
+		echo 'window.EPC_MULTIVENDOR_CP=window.EPC_MULTIVENDOR_CP||{};';
 		exit;
 	}
 
@@ -39,13 +40,16 @@ try {
 
 	$config = array(
 		'ajaxUrl' => '/' . $backend . '/content/shop/prices_upload/ajax_epc_multivendor_ingest.php',
+		'sampleUrl' => '/' . $backend . '/content/shop/prices_upload/epc_multivendor_sample_file.php',
 		'csrfKey' => (string) ($user_session['csrf_guard_key'] ?? ''),
 		'backend' => $backend,
 		'pricesUrl' => '/' . $backend . '/shop/prices',
 		'storagesUrl' => '/' . $backend . '/shop/logistics/storages',
 	);
 
-	echo 'window.EPC_MULTIVENDOR_CP=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
+	// Merge so a late footer load cannot wipe inline page bootstrap.
+	echo 'window.EPC_MULTIVENDOR_CP=Object.assign({},window.EPC_MULTIVENDOR_CP||{},'
+		. json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ');';
 } catch (Throwable $e) {
-	echo 'window.EPC_MULTIVENDOR_CP={};';
+	echo 'window.EPC_MULTIVENDOR_CP=window.EPC_MULTIVENDOR_CP||{};';
 }

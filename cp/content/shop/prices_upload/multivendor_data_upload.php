@@ -14,8 +14,10 @@ if ($backend_raw === '') {
 }
 $backend = htmlspecialchars($backend_raw, ENT_QUOTES, 'UTF-8');
 // Inline bootstrap so sample/upload works even if footer config script 403s.
+$epc_mv_sample = '/' . $backend_raw . '/content/shop/prices_upload/epc_multivendor_sample_file.php';
 $epc_mv_inline = array(
 	'ajaxUrl' => '/' . $backend_raw . '/content/shop/prices_upload/ajax_epc_multivendor_ingest.php',
+	'sampleUrl' => $epc_mv_sample,
 	'csrfKey' => (string) ($user_session['csrf_guard_key'] ?? ''),
 	'backend' => $backend_raw,
 	'pricesUrl' => '/' . $backend_raw . '/shop/prices',
@@ -75,9 +77,12 @@ window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPE
 					<button type="button" class="btn btn-primary btn-lg" id="epcMultivendorUploadBtn">
 						<i class="fas fa-cloud-upload-alt"></i> Upload &amp; create warehouses
 					</button>
-					<button type="button" class="btn btn-default" id="epcMultivendorSampleBtn">
+					<a class="btn btn-default" id="epcMultivendorSampleBtn"
+						href="<?php echo htmlspecialchars($epc_mv_sample, ENT_QUOTES, 'UTF-8'); ?>"
+						download="epc-multivendor-sample.csv"
+						target="_blank" rel="noopener">
 						<i class="fas fa-download"></i> Download sample CSV
-					</button>
+					</a>
 				</div>
 			</form>
 			<div id="epcMultivendorResult" class="epc-multivendor-result" aria-live="polite"></div>
