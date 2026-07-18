@@ -442,6 +442,7 @@ if ((!empty($epc_chpu_direct_pricing) || !empty($epc_brand_picker_mode)) && !$ep
 
 
 //Техническая информация в проценке
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 $userProfile = DP_User::getUserProfile();//Профиль пользователя
 $group_id = (int) $userProfile["groups"][0];
 $this_group_id_margin = $group_id;
@@ -460,13 +461,21 @@ if((int)$group_info['for_percentage'] === 1){
 	}
 	if( isset($_COOKIE["this_group_id_margin"]) )
 	{
-		$group_query = $db_link->prepare('SELECT * FROM `groups`;');
-		$group_query->execute();
-		while($group_record = $group_query->fetch()){
-			if($_COOKIE["this_group_id_margin"] == $group_record['id'])
+		$cookie_margin_id = (int) $_COOKIE["this_group_id_margin"];
+		// Only accept real pricing profiles (never ERP department roles).
+		if(function_exists('epc_storefront_is_pricing_profile_group_id')
+			&& epc_storefront_is_pricing_profile_group_id($db_link, $cookie_margin_id))
+		{
+			$this_group_id_margin = $cookie_margin_id;
+		}
+		else
+		{
+			$group_query = $db_link->prepare('SELECT `id` FROM `groups` WHERE `id` = ? LIMIT 1;');
+			$group_query->execute(array($cookie_margin_id));
+			$group_record = $group_query->fetch();
+			if($group_record && !function_exists('epc_storefront_is_pricing_profile_group_id'))
 			{
-				$this_group_id_margin = (int) $_COOKIE["this_group_id_margin"];
-				break;
+				$this_group_id_margin = $cookie_margin_id;
 			}
 		}
 	}

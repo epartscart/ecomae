@@ -345,3 +345,127 @@ function epc_storefront_fill_warehouse_captions(array &$products, PDO $db): void
 	}
 	unset($product);
 }
+
+/**
+ * Backend / ERP department group IDs (root for_backend=1 + descendants).
+ *
+ * @return array<int, int>
+ */
+function epc_storefront_backend_group_ids(PDO $db): array
+{
+	static $cached = null;
+	if ($cached !== null) {
+		return $cached;
+	}
+	$erp_access = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
+	if (is_file($erp_access)) {
+		require_once $erp_access;
+		if (function_exists('epc_erp_backend_group_ids')) {
+			$cached = array_map('intval', epc_erp_backend_group_ids($db));
+			return $cached;
+		}
+	}
+	$ids = array();
+	try {
+		$st = $db->query('SELECT `id` FROM `groups` WHERE `for_backend` = 1 LIMIT 1');
+		$root = $st ? $st->fetch(PDO::FETCH_ASSOC) : false;
+		if (!$root) {
+			$cached = array();
+			return $cached;
+		}
+		$collect = function ($parentId) use ($db, &$collect, &$ids) {
+			$ids[(int) $parentId] = (int) $parentId;
+			$ch = $db->prepare('SELECT `id`, `count` FROM `groups` WHERE `parent` = ?');
+			$ch->execute(array((int) $parentId));
+			while ($row = $ch->fetch(PDO::FETCH_ASSOC)) {
+				$ids[(int) $row['id']] = (int) $row['id'];
+				if ((int) $row['count'] > 0) {
+					$collect((int) $row['id']);
+				}
+			}
+		};
+		$collect((int) $root['id']);
+	} catch (Throwable $e) {
+		$ids = array();
+	}
+	$cached = array_values($ids);
+	return $cached;
+}
+
+/**
+ * True when a groups.value label is an ERP department role, not a pricing profile.
+ */
+function epc_storefront_group_label_is_erp($label): bool
+{
+	$label = trim((string) $label);
+	if ($label === '') {
+		return false;
+	}
+	return (bool) preg_match('/\(\s*ERP\s*\)/i', $label);
+}
+
+/**
+ * Storefront pricing profiles for the admin "view as" margin dropdown.
+ * Excludes ERP department roles under the backend tree; keeps customer pricing
+ * groups (Retail, Wholesale, CIS, GCC, Visitors, etc.) and the Administrators root.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function epc_storefront_pricing_profile_groups(PDO $db): array
+{
+	static $cached = null;
+	if ($cached !== null) {
+		return $cached;
+	}
+
+	$backend_ids = array_fill_keys(epc_storefront_backend_group_ids($db), true);
+	$out = array();
+	try {
+		$q = $db->query('SELECT * FROM `groups` ORDER BY `order` ASC, `id` ASC');
+		while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
+			$id = (int) ($row['id'] ?? 0);
+			if ($id <= 1) {
+				continue;
+			}
+			$label = isset($row['value']) ? (string) $row['value'] : '';
+			if (epc_storefront_group_label_is_erp($label)) {
+				continue;
+			}
+			// Drop ERP/backend department children; keep the for_backend root (Administrators).
+			if (isset($backend_ids[$id]) && empty($row['for_backend'])) {
+				continue;
+			}
+			$out[] = $row;
+		}
+	} catch (Throwable $e) {
+		$out = array();
+	}
+	$cached = $out;
+	return $cached;
+}
+
+function epc_storefront_is_pricing_profile_group_id(PDO $db, $group_id): bool
+{
+	$group_id = (int) $group_id;
+	if ($group_id <= 0) {
+		return false;
+	}
+	foreach (epc_storefront_pricing_profile_groups($db) as $row) {
+		if ((int) $row['id'] === $group_id) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @return array<int, int>
+ */
+function epc_storefront_pricing_profile_group_ids(PDO $db): array
+{
+	$ids = array();
+	foreach (epc_storefront_pricing_profile_groups($db) as $row) {
+		$ids[] = (int) $row['id'];
+	}
+	return $ids;
+}
