@@ -1769,5 +1769,15 @@ if ($epc_custom_storefront) {
 }
 ?>
 
+<?php
+// First-party website traffic tracker (CP → Website tracker / Website traffic).
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_web_tracker.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_web_tracker.php';
+	if (function_exists('epc_web_tracker_beacon_html')) {
+		echo epc_web_tracker_beacon_html();
+	}
+}
+?>
+
 </body>
 </html>
