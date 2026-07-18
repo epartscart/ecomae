@@ -308,17 +308,27 @@ function epc_dc_order_context(PDO $db, int $order_id): array
 	$rate = epc_uae_vat_rate_percent($db);
 	$subtotal = 0.0;
 	$vatTotal = 0.0;
+	$lineRows = array();
 	foreach ($rows as $r) {
 		$qty = (float)($r['qty'] ?? $r['count_need'] ?? 0);
 		$lineCalc = epc_uae_customer_vat_order_line($db, $user_id, (float)$r['price'], $qty, array());
 		$net = round((float)$lineCalc['line_net'], 2);
 		$vat = round((float)$lineCalc['vat_amount'], 2);
+		$gross = round((float)$lineCalc['gross'], 2);
 		$subtotal += $net;
 		$vatTotal += $vat;
 		if ($rate <= 0 && (float)$lineCalc['tax_rate'] > 0) {
 			$rate = (float)$lineCalc['tax_rate'];
 		}
+		$r['unit_net'] = round((float)$lineCalc['unit_net'], 2);
+		$r['line_net'] = $net;
+		$r['vat_amount'] = $vat;
+		$r['gross'] = $gross;
+		$r['tax_rate'] = (float)$lineCalc['tax_rate'];
+		$r['qty'] = $qty;
+		$lineRows[] = $r;
 	}
+	$rows = $lineRows;
 	$subtotal = round($subtotal, 2);
 	$vatTotal = round($vatTotal, 2);
 	$totalIncl = round($subtotal + $vatTotal, 2);
@@ -339,12 +349,37 @@ function epc_dc_order_context(PDO $db, int $order_id): array
 	if ($buyerName === '') {
 		$buyerName = trim((string)($buyer['company'] ?? 'Customer'));
 	}
+	$buyerEmail = trim((string)($buyer['email'] ?? ''));
+	$buyerPhone = trim((string)($buyer['phone'] ?? ''));
+	if ($buyerEmail === '' || $buyerPhone === '') {
+		try {
+			$uq = $db->prepare('SELECT `email`, `phone` FROM `users` WHERE `user_id` = ? LIMIT 1');
+			$uq->execute(array($user_id));
+			$u = $uq->fetch(PDO::FETCH_ASSOC) ?: array();
+			if ($buyerEmail === '') {
+				$buyerEmail = trim((string)($u['email'] ?? ''));
+			}
+			if ($buyerPhone === '') {
+				$buyerPhone = trim((string)($u['phone'] ?? ''));
+			}
+		} catch (Throwable $e) {
+			// ignore
+		}
+	}
 	$buyerAddr = trim(implode(', ', array_filter(array(
 		$buyer['address_line1'] ?? '',
 		$buyer['city'] ?? '',
 		$buyer['emirate'] ?? '',
 		$buyer['country_code'] ?? 'AE',
 	))));
+	if ($buyerAddr === '' || $buyerAddr === 'AE') {
+		$buyerAddr = trim(implode(', ', array_filter(array(
+			$buyerEmail,
+			$buyerPhone,
+			$buyer['city'] ?? 'Dubai',
+			'United Arab Emirates',
+		))));
+	}
 
 	$legal = trim((string)($company['legal_name'] ?? ''));
 	if ($legal === '') {
@@ -428,16 +463,25 @@ function epc_dc_lines_table_sales(array $rows, float $vatRate): string
 	$i = 0;
 	foreach ($rows as $r) {
 		$i++;
-		$net = round((float)$r['line_net'], 2);
-		$vat = round($net * ($vatRate / 100), 2);
-		$tot = round($net + $vat, 2);
+		$net = round((float)($r['line_net'] ?? 0), 2);
+		if (isset($r['vat_amount'])) {
+			$vat = round((float)$r['vat_amount'], 2);
+			$tot = isset($r['gross']) ? round((float)$r['gross'], 2) : round($net + $vat, 2);
+			$unit = isset($r['unit_net']) ? (float)$r['unit_net'] : (float)($r['price'] ?? 0);
+		} else {
+			// Fallback only when precomputed VAT is unavailable.
+			$vat = round($net * ($vatRate / 100), 2);
+			$tot = round($net + $vat, 2);
+			$unit = (float)($r['price'] ?? 0);
+		}
+		$lineRate = isset($r['tax_rate']) ? (float)$r['tax_rate'] : $vatRate;
 		$sku = trim(($r['t2_manufacturer'] ?? '') . ' ' . ($r['t2_article'] ?? ''));
 		$name = trim((string)($r['t2_name'] ?? 'Item'));
 		$html .= '<tr><td>' . $i . '</td><td>' . epc_dc_h($name) . '</td><td>' . epc_dc_h($sku) . '</td>';
 		$html .= '<td class="right">' . epc_dc_h((string)$r['qty']) . '</td>';
-		$html .= '<td class="right">' . epc_dc_money((float)$r['price']) . '</td>';
+		$html .= '<td class="right">' . epc_dc_money($unit) . '</td>';
 		$html .= '<td class="right">' . epc_dc_money($net) . '</td>';
-		$html .= '<td class="right">' . epc_dc_money($vat) . '</td>';
+		$html .= '<td class="right">' . epc_dc_money($vat) . ' <span class="muted">(' . epc_dc_h((string)$lineRate) . '%)</span></td>';
 		$html .= '<td class="right">' . epc_dc_money($tot) . '</td></tr>';
 	}
 	$html .= '</tbody></table>';
@@ -505,25 +549,41 @@ function epc_dc_render_template(PDO $db, string $code, int $order_id = 0, array 
 		. $html . '</body></html>';
 }
 
-function epc_dc_sync_seller_from_einvoice(PDO $db): void
+function epc_dc_sync_seller_from_einvoice(PDO $db, bool $force = false): void
 {
 	if (!function_exists('epc_einvoice_seller_profile')) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
 	}
 	$co = epc_dc_get_company($db);
-	if (trim((string)($co['trn'] ?? '')) !== '') {
-		return;
-	}
 	$s = epc_einvoice_seller_profile($db);
+	$fill = static function ($current, $incoming) use ($force) {
+		$current = trim((string) $current);
+		$incoming = trim((string) $incoming);
+		if ($force && $incoming !== '') {
+			return $incoming;
+		}
+		return $current !== '' ? $current : $incoming;
+	};
+
+	$legalFooter = trim((string) ($co['legal_footer'] ?? ''));
+	if ($legalFooter === '' || $force) {
+		$legalFooter = 'This document is a Tax Invoice issued in accordance with UAE Federal Tax Authority (FTA) '
+			. 'requirements and UAE e-invoicing (PINT-AE). Seller VAT Registration Number (TRN) must appear on all tax invoices. '
+			. 'Retain records for a minimum of 5 years.';
+	}
+
 	epc_dc_save_company($db, array(
-		'legal_name' => $s['seller_name'] ?? '',
-		'trade_name' => $s['seller_name'] ?? '',
-		'address_line1' => $s['seller_address_line1'] ?? '',
-		'city' => $s['seller_city'] ?? 'Dubai',
-		'country' => 'United Arab Emirates',
-		'trn' => $s['seller_trn'] ?? '',
-		'phone' => $s['seller_phone'] ?? '',
-		'email' => $s['seller_email'] ?? '',
-		'bank_iban' => $s['seller_bank_account'] ?? '',
+		'legal_name' => $fill($co['legal_name'] ?? '', $s['seller_name'] ?? ''),
+		'trade_name' => $fill($co['trade_name'] ?? '', $s['seller_name'] ?? ''),
+		'address_line1' => $fill($co['address_line1'] ?? '', $s['seller_address_line1'] ?? ''),
+		'city' => $fill($co['city'] ?? '', $s['seller_city'] ?? 'Dubai'),
+		'country' => $fill($co['country'] ?? '', 'United Arab Emirates'),
+		'trn' => $fill($co['trn'] ?? '', $s['seller_trn'] ?? ''),
+		'phone' => $fill($co['phone'] ?? '', $s['seller_phone'] ?? ''),
+		'email' => $fill($co['email'] ?? '', $s['seller_email'] ?? ''),
+		'website' => $fill($co['website'] ?? '', 'https://www.epartscart.com'),
+		'bank_name' => $fill($co['bank_name'] ?? '', 'Bank account'),
+		'bank_iban' => $fill($co['bank_iban'] ?? '', $s['seller_bank_account'] ?? ''),
+		'legal_footer' => $legalFooter,
 	));
 }
