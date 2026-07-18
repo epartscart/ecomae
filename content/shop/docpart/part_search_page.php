@@ -6834,6 +6834,10 @@ if(screen.width < 991 && (typeof epc_chpu_direct_pricing === 'undefined' || !epc
 
 <?php
 //В зависимости от режима - отображаем результат соответствующим скриптом
+if (!function_exists('epc_storefront_prices_styles')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+}
+echo epc_storefront_prices_styles();
 echo epc_wa_styles();
 echo epc_wa_frontend_script($DP_Config);
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/part_search_page_".$table_mode.".php");

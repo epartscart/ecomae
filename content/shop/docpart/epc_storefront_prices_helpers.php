@@ -1,8 +1,9 @@
 <?php
 /**
  * Storefront price visibility — hide prices for guests on warehouse_supplier tenants (epartscart first).
+ * Also gates guest cart / quote / product WhatsApp on the same tenants.
  */
-defined('_ASTEXE_') or die('No access');
+defined('_ASTEXE_') or define('_ASTEXE_', true);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_storefront_auth_links.php';
 
@@ -104,6 +105,22 @@ function epc_storefront_prices_visible_for_user(?int $userId = null): bool
 	return false;
 }
 
+/**
+ * Cart / quote / product WhatsApp — same guest gate as storefront prices.
+ */
+function epc_storefront_commerce_allowed_for_user(?int $userId = null): bool
+{
+	return epc_storefront_prices_visible_for_user($userId);
+}
+
+/**
+ * True when current guest must not use cart, quote, or product WhatsApp.
+ */
+function epc_storefront_guest_commerce_blocked(?int $userId = null): bool
+{
+	return !epc_storefront_commerce_allowed_for_user($userId);
+}
+
 function epc_storefront_prices_login_cta_html(?array $multilang_params = null): string
 {
 	if ($multilang_params === null && !empty($GLOBALS['multilang_params']) && is_array($GLOBALS['multilang_params'])) {
@@ -117,6 +134,65 @@ function epc_storefront_prices_login_cta_html(?array $multilang_params = null): 
 		. '<a href="' . $signup . '">register</a>'
 		. '<span class="epc-price-login-cta__hint"> to see prices</span>'
 		. '</span>';
+}
+
+function epc_storefront_commerce_login_cta_html(?array $multilang_params = null): string
+{
+	if ($multilang_params === null && !empty($GLOBALS['multilang_params']) && is_array($GLOBALS['multilang_params'])) {
+		$multilang_params = $GLOBALS['multilang_params'];
+	}
+	$login = htmlspecialchars(epc_storefront_auth_login_url($multilang_params), ENT_QUOTES, 'UTF-8');
+	$signup = htmlspecialchars(epc_storefront_auth_signup_url($multilang_params), ENT_QUOTES, 'UTF-8');
+	return '<div class="epc-commerce-login-cta">'
+		. '<a class="btn btn-sm btn-primary" href="' . $login . '">Log in</a>'
+		. '<span class="epc-commerce-login-cta__sep"> or </span>'
+		. '<a class="btn btn-sm btn-default" href="' . $signup . '">register</a>'
+		. '<div class="epc-commerce-login-cta__hint">to buy, request a quote, or WhatsApp</div>'
+		. '</div>';
+}
+
+/**
+ * JSON error payload for AJAX cart/quote endpoints when guest commerce is blocked.
+ *
+ * @return array{status:bool,code:string,message:string,login_url:string}
+ */
+function epc_storefront_guest_commerce_denied_payload(?array $multilang_params = null): array
+{
+	if ($multilang_params === null && !empty($GLOBALS['multilang_params']) && is_array($GLOBALS['multilang_params'])) {
+		$multilang_params = $GLOBALS['multilang_params'];
+	}
+	return array(
+		'status' => false,
+		'code' => 'auth',
+		'message' => 'Please log in or register to continue.',
+		'login_url' => epc_storefront_auth_login_url($multilang_params),
+	);
+}
+
+/**
+ * Delete guest session cart rows (used when guest commerce is blocked).
+ */
+function epc_storefront_clear_guest_cart(PDO $db, int $sessionId): void
+{
+	if ($sessionId <= 0) {
+		return;
+	}
+	try {
+		$ids = array();
+		$q = $db->prepare('SELECT `id` FROM `shop_carts` WHERE `user_id` = 0 AND `session_id` = ?');
+		$q->execute(array($sessionId));
+		while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
+			$ids[] = (int) $row['id'];
+		}
+		if ($ids === array()) {
+			return;
+		}
+		$ph = implode(',', array_fill(0, count($ids), '?'));
+		$db->prepare('DELETE FROM `shop_carts_details` WHERE `cart_record_id` IN (' . $ph . ')')->execute($ids);
+		$db->prepare('DELETE FROM `shop_carts` WHERE `user_id` = 0 AND `session_id` = ?')->execute(array($sessionId));
+	} catch (Throwable $e) {
+		// Best-effort cleanup; UI gate still applies.
+	}
 }
 
 function epc_storefront_prices_login_cta_plain(?array $multilang_params = null): string
@@ -137,6 +213,14 @@ function epc_storefront_prices_styles(): string
 		. '.epc-price-login-cta__sep{color:#94a3b8}'
 		. '.epc-price-login-cta__hint{color:#64748b}'
 		. '.td_price .epc-price-login-cta{max-width:140px}'
+		. '.epc-commerce-login-cta{display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:180px}'
+		. '.epc-commerce-login-cta .btn{margin:0}'
+		. '.epc-commerce-login-cta__sep{font-size:12px;color:#94a3b8}'
+		. '.epc-commerce-login-cta__hint{font-size:11px;line-height:1.35;color:#64748b}'
+		. '.epc-cart-login-gate{max-width:520px;margin:32px auto;padding:28px 24px;text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}'
+		. '.epc-cart-login-gate h2{margin:0 0 10px;font-size:22px;color:#0f172a}'
+		. '.epc-cart-login-gate p{margin:0 0 18px;color:#475569}'
+		. '.epc-cart-login-gate .epc-commerce-login-cta{align-items:center;max-width:none;flex-direction:row;flex-wrap:wrap;justify-content:center}'
 		. '</style>';
 }
 
@@ -148,8 +232,9 @@ function epc_storefront_prices_agent_guest_rules(): string
 	return "IMPORTANT — guest (not logged in):\n"
 		. "- NEVER quote specific prices, currency amounts, or markups\n"
 		. "- Say prices are available after login or registration\n"
+		. "- Do NOT offer add to cart, add to quote, or WhatsApp ordering for guests\n"
 		. "- You may confirm stock, brands, part numbers, and availability\n"
-		. "- Direct them to log in / register to see retail or wholesale pricing";
+		. "- Direct them to log in / register to see prices and place orders";
 }
 
 /**

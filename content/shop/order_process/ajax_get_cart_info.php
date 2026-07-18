@@ -37,6 +37,7 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/general/get_currency_indic
 //Для работы с пользователями
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 $user_id = DP_User::getUserId();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 if($user_id > 0)
 {
 	//Поля для авторизованного пользователя
@@ -56,6 +57,14 @@ else
 	}
 	
 	$session_id = $session_record["id"];
+	if (epc_storefront_guest_commerce_blocked(0) && $db_link instanceof PDO) {
+		epc_storefront_clear_guest_cart($db_link, (int) $session_id);
+		$answer = array(
+			'cart_items_sum' => translate_str_by_id(4494),
+			'cart_items_count' => 0,
+		);
+		exit(json_encode($answer));
+	}
 }
 
 $cart_items_count = 0;

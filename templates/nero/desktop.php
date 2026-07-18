@@ -32,6 +32,16 @@ $epc_contact_phone = !empty($DP_Config->epc_contact_phone) ? trim($DP_Config->ep
 $epc_whatsapp_number = !empty($DP_Config->epc_whatsapp_number) ? trim($DP_Config->epc_whatsapp_number) : $epc_contact_phone;
 $epc_contact_phone_href = preg_replace('/[^0-9+]/', '', $epc_contact_phone);
 $epc_whatsapp_href_number = preg_replace('/[^0-9]/', '', $epc_whatsapp_number);
+if (!function_exists('epc_storefront_guest_commerce_blocked')) {
+	$epc_prices_helpers = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+	if (is_file($epc_prices_helpers)) {
+		require_once $epc_prices_helpers;
+	}
+}
+if (function_exists('epc_storefront_guest_commerce_blocked') && epc_storefront_guest_commerce_blocked()) {
+	// Hide header WhatsApp for guests on warehouse_supplier tenants (login required).
+	$epc_whatsapp_href_number = '';
+}
 $epc_head_office_title = !empty($DP_Config->epc_head_office_title) ? trim($DP_Config->epc_head_office_title) : 'Head Office';
 $epc_head_office_address = !empty($DP_Config->epc_head_office_address) ? trim(str_replace('\\n', "\n", $DP_Config->epc_head_office_address)) : '';
 $epc_head_office_email = !empty($DP_Config->epc_head_office_email) ? trim($DP_Config->epc_head_office_email) : trim($customer_office_info['email']);
