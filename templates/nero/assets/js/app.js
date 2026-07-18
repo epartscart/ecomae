@@ -90,12 +90,13 @@ function change_header_search_form(id){
 
 function epcHeaderVinSubmit(form){
 	if(!form){ return false; }
-	var input = form.querySelector('input[name="vin"]');
+	// Laximo Guayaquil uses identString; keep vin for backward compatibility.
+	var input = form.querySelector('input[name="identString"], input[name="vin"]');
 	if(!input){ return true; }
 	var vin = String(input.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 	input.value = vin;
 	if(vin.length < 11){
-		alert('Enter a valid VIN (11–17 characters).');
+		alert('Enter a valid VIN / Frame number (11–17 characters).');
 		input.focus();
 		return false;
 	}
