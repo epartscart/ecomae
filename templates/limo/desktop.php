@@ -13,6 +13,11 @@ defined('_ASTEXE_') or die('No access');
 
 	  gtag('config', 'G-J19D1KHXCG');
 	</script>
+	<?php
+	if (function_exists('epc_portal_clarity_script_html')) {
+		echo epc_portal_clarity_script_html();
+	}
+	?>
 	<base href="/templates/limo/">
     <meta charset="utf-8">
     <!--Mobile Specific Meta Tag-->

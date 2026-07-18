@@ -134,6 +134,12 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 	    document.head.appendChild(s);
 	  }, { once: true });
 	</script>
+	<?php
+	// Microsoft Clarity — per-host project (epartscart: xoflbamawu)
+	if (function_exists('epc_portal_clarity_script_html')) {
+		echo epc_portal_clarity_script_html();
+	}
+	?>
 	<base href="/templates/nero/"/>
 
 

@@ -68,6 +68,11 @@ if($customer_offices[0] > 0){
 
 	  gtag('config', 'G-J19D1KHXCG');
 	</script>
+	<?php
+	if (function_exists('epc_portal_clarity_script_html')) {
+		echo epc_portal_clarity_script_html();
+	}
+	?>
 	<base href="/templates/modex/"/>
 
 
