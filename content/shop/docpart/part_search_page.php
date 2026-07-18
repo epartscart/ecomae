@@ -4075,9 +4075,25 @@ function manufacturersReview()
 			continue;
 		}
 		
-		var a_tag = "<a href=\"javascript:void(0);\" onclick=\"onManufacturerSelected('"+ProductsManufacturers[i].manufacturer_show.replace(/'/g,"\\'")+"'); \" >";
+		var brandShowEsc = ProductsManufacturers[i].manufacturer_show.replace(/'/g,"\\'");
+		var brandPickerHref = '';
+		if(brandPickerMode && typeof epcChpuBrandArticleUrl === 'function')
+		{
+			brandPickerHref = epcChpuBrandArticleUrl(ProductsManufacturers[i].manufacturer_show, '<?php echo $article; ?>');
+		}
+		else if(brandPickerMode)
+		{
+			var brandAlias = String(ProductsManufacturers[i].manufacturer_show || '').split('/').join('<?php echo $DP_Config->chpu_search_config["slash_code"]; ?>');
+			brandPickerHref = '<?php echo $multilang_params['lang_href']; ?>/<?php echo $DP_Config->chpu_search_config["level_1"]["url"]; ?>/' + encodeURI(brandAlias) + '/<?php echo $article; ?>';
+		}
+		var a_tag = brandPickerMode && brandPickerHref
+			? '<a href="' + brandPickerHref.replace(/"/g, '&quot;') + '">'
+			: "<a href=\"javascript:void(0);\" onclick=\"onManufacturerSelected('"+brandShowEsc+"'); \" >";
 		
-		var button_tag = "<button onclick=\"onManufacturerSelected('"+ProductsManufacturers[i].manufacturer_show.replace(/'/g,"\\'")+"'); \" type=\"button\" class=\"btn btn-ar btn-primary\">";
+		var button_tag = brandPickerMode && brandPickerHref
+			? '<a class="btn btn-ar btn-primary" href="' + brandPickerHref.replace(/"/g, '&quot;') + '">'
+			: "<button onclick=\"onManufacturerSelected('"+brandShowEsc+"'); \" type=\"button\" class=\"btn btn-ar btn-primary\">";
+		var button_tag_close = brandPickerMode && brandPickerHref ? '</a>' : '</button>';
 
 		if(ProductsManufacturers[i].name == null || ProductsManufacturers[i].name == '' || ProductsManufacturers[i].name == false)
 		{
@@ -4114,7 +4130,7 @@ function manufacturersReview()
 			stockCols = " <td class='text-center'>" + a_tag + existVal + "</a></td> <td>" + a_tag + termVal + "</a></td> <td class='text-right'>" + a_tag + priceVal + "</a></td>";
 		}
 
-		html += "<tr> <td>" + a_tag + ProductsManufacturers[i].manufacturer_show+"</a></td> <td>" + a_tag + "<?php echo $article; ?></a></td> <td>" + a_tag + ProductsManufacturers[i].name+"</a></td>" + stockCols + " <td class='text-right'>"+button_tag+(brandPickerMode ? 'Open prices' : '<?php echo translate_str_by_id(4291); ?>')+"</button></td> </tr>";
+		html += "<tr> <td>" + a_tag + ProductsManufacturers[i].manufacturer_show+"</a></td> <td>" + a_tag + "<?php echo $article; ?></a></td> <td>" + a_tag + ProductsManufacturers[i].name+"</a></td>" + stockCols + " <td class='text-right'>"+button_tag+(brandPickerMode ? 'Open prices' : '<?php echo translate_str_by_id(4291); ?>')+button_tag_close+"</td> </tr>";
 
 		ProductsManufacturers_Shown_Count ++;//Количество показанных производителей
 	}
@@ -4195,10 +4211,19 @@ function onManufacturerSelected(manufacturer_show)
 	else if($search_type == "all_brands_by_article" || ($search_type == "prices_by_article_and_manufacturer" && !$use_selected_manufacturer && empty($epc_chpu_direct_pricing)) )
 	{
 		?>
-		if( ! ProductsManufacturers_All_Asked )
+		// Brand picker already lists brands (incl. warehouse SSR). Do not block "Open prices"
+		// while background supplier brand polls are still finishing.
+		if(typeof epc_brand_picker_mode === 'undefined' || !epc_brand_picker_mode)
 		{
-			alert("<?php echo translate_str_by_id(4292); ?>");
-			return;
+			if( ! ProductsManufacturers_All_Asked )
+			{
+				alert("<?php echo translate_str_by_id(4292); ?>");
+				return;
+			}
+		}
+		else
+		{
+			ProductsManufacturers_All_Asked = true;
 		}
 		
 		SelectedManufacturer = manufacturer_show;
