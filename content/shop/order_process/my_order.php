@@ -1004,7 +1004,13 @@ if($user_id > 0)
 			$print_docs_buttons = $print_docs_buttons." ";
 		}
 		
-		$print_docs_buttons = $print_docs_buttons."<a class=\"btn btn-ar btn-primary\" href=\"/content/shop/print_docs/service/print.php?doc_name=".$print_doc["name"]."&order_id=".$order_id."&csrf_guard_key=".$user_session["csrf_guard_key"]."\" target=\"_blank\"><i class=\"fa fa-print\"></i> ".translate_str_by_id($print_doc["caption"])."</a>";
+		$epc_print_label = translate_str_by_id($print_doc["caption"]);
+		if ((string)$print_doc["name"] === 'invoice_for_payment') {
+			$epc_print_label = 'Tax Invoice (UAE e-Invoice)';
+		} elseif ((string)$print_doc["name"] === 'sales_receipt') {
+			$epc_print_label = 'Sales receipt';
+		}
+		$print_docs_buttons = $print_docs_buttons."<a class=\"btn btn-ar btn-primary\" href=\"/content/shop/print_docs/service/print.php?doc_name=".$print_doc["name"]."&order_id=".$order_id."&csrf_guard_key=".$user_session["csrf_guard_key"]."\" target=\"_blank\"><i class=\"fa fa-print\"></i> ".$epc_print_label."</a>";
 	}
 	if( $print_docs_buttons != "" )
 	{

@@ -73,10 +73,12 @@ if ($doc_name === '' || $order_id <= 0) {
 	exit('doc_name and order_id are required');
 }
 
-// English templates only. Legacy Russian invoice HTML is incomplete (missing helpers).
+// English / UAE e-invoice templates. Legacy Russian invoice HTML is incomplete.
 $handlers = array(
 	'sales_receipt' => __DIR__ . '/get_html_sales_receipt.php',
-	'invoice_for_payment' => __DIR__ . '/get_html_sales_receipt.php',
+	'invoice_for_payment' => __DIR__ . '/get_html_uae_tax_invoice.php',
+	'uae_tax_invoice' => __DIR__ . '/get_html_uae_tax_invoice.php',
+	'fta_tax_invoice' => __DIR__ . '/get_html_uae_tax_invoice.php',
 );
 
 // Russian legacy accounting docs (torg_12 / upd / …) fall back to sales receipt.
@@ -84,8 +86,10 @@ if (!isset($handlers[$doc_name])) {
 	$doc_name = 'sales_receipt';
 }
 
-// Caption used inside the shared English template.
-$epc_print_doc_title = ($doc_name === 'invoice_for_payment') ? 'Invoice' : 'Sales receipt';
+// Caption used inside the shared English receipt template.
+$epc_print_doc_title = ($doc_name === 'invoice_for_payment' || $doc_name === 'uae_tax_invoice' || $doc_name === 'fta_tax_invoice')
+	? 'Tax Invoice'
+	: 'Sales receipt';
 
 $handler = $handlers[$doc_name];
 if (!is_file($handler)) {
