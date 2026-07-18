@@ -2341,12 +2341,19 @@ function epcOpenFitmentCheckRow(btn)
 function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 {
 	mode = mode || 'cart_only';
+	var stockExist = exist * 1;
+	if(isNaN(stockExist) || stockExist < 0){ stockExist = 0; }
+	var inStock = stockExist > 0;
 	var pMin = minOrder * 1;
-	var pExist = exist * 1;
+	var pExist = stockExist > 0 ? stockExist : 1;
 	if(pMin === 0){ pMin = 1; }
-	if(pExist === 0){ pExist = 1; }
-	var html = '<div class="epc-product-actions">';
-	html += '<div class="epc-product-actions__tools">';
+	// In stock: Fitment → WhatsApp → qty → Add to Cart (no Quote).
+	// Out of stock: Fitment → WhatsApp → Add to Quote (no Cart).
+	var showCart = (mode === 'cart_only') || (mode === 'both' && inStock);
+	var showQuote = (mode === 'quote_only') || (mode === 'both' && !inStock);
+	if(mode === 'cart_only'){ showQuote = false; }
+	if(mode === 'quote_only'){ showCart = false; }
+	var html = '<div class="epc-product-actions' + (showQuote && !showCart ? ' epc-product-actions--quote-only' : '') + '">';
 	html += epcFitmentCheckButtonHTML(brand, article);
 	if(typeof epcWaShareBtnHTML === 'function')
 	{
@@ -2355,19 +2362,16 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 		var pr = prod && prod.price != null ? prod.price : '';
 		html += epcWaShareBtnHTML(brand || (prod ? prod.manufacturer : ''), article || (prod ? prod.article : ''), nm, pr);
 	}
-	html += '</div>';
-	if(mode === 'both' || mode === 'cart_only')
+	if(showCart)
 	{
-		html += '<div class="epc-product-actions__buy">';
 		html += '<div class="epc-product-actions__qty">';
 		html += '<a class="count_need_minus" href="javascript:void(0);" onclick="minusCountNeed(' + aid + ', ' + pExist + ', ' + pMin + ');"><i class="fa fa-minus"></i></a>';
 		html += '<input class="epc-qty-input" type="text" value="' + pMin + '" onchange="onKeyUpCountNeed(' + aid + ', ' + pExist + ', ' + pMin + ');" id="count_need_' + aid + '" />';
 		html += '<a class="count_need_plus" href="javascript:void(0);" onclick="plusCountNeed(' + aid + ', ' + pExist + ', ' + pMin + ');"><i class="fa fa-plus"></i></a>';
 		html += '</div>';
 		html += '<button type="button" class="btn btn-sm btn-danger epc-btn-cart" onclick="addToCart(' + aid + ');">Add to Cart</button>';
-		html += '</div>';
 	}
-	if(mode === 'both' || mode === 'quote_only')
+	if(showQuote)
 	{
 		html += '<button type="button" class="btn btn-sm btn-primary epc-btn-quote" onclick="addToQuote(' + aid + ');">Add to Quote</button>';
 	}
@@ -2376,11 +2380,10 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 }
 function epcManualQuoteButtonHTML(brand, article, articleShow, name)
 {
+	// Out-of-stock / catalog-only: Fitment → WhatsApp → Add to Quote (one row).
 	return '<div class="epc-product-actions epc-product-actions--quote-only">'
-		+ '<div class="epc-product-actions__tools">'
 		+ epcFitmentCheckButtonHTML(brand, article)
 		+ (typeof epcWaShareBtnHTML === 'function' ? epcWaShareBtnHTML(brand, articleShow || article, name || '', '') : '')
-		+ '</div>'
 		+ '<button type="button" class="btn btn-sm btn-primary epc-btn-quote"'
 		+ ' data-epc-brand="' + epcAttrEsc(brand) + '"'
 		+ ' data-epc-article="' + epcAttrEsc(article) + '"'
@@ -4838,14 +4841,12 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 	// Кнопки увеличения количества товара добавляемого в корзину //////////////////////////////////////////////////////////////////////////////////////////////
 	var p_min_order = Product.min_order * 1;
 	var p_exist = Product.exist * 1;
+	if(isNaN(p_exist) || p_exist < 0){ p_exist = 0; }
 	
 	if(p_min_order == 0){
 		p_min_order = 1;
 	}
-	if(p_exist == 0){
-		p_exist = 1;
-	}
-	
+	// Pass real stock qty (0 = out of stock → Quote only, no Cart).
 	cart_html = epcProductActionsHTML(Product.aid, p_exist, p_min_order, 'both', Product.manufacturer, Product.article);
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	

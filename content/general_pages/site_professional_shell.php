@@ -3484,7 +3484,7 @@ defined('_ASTEXE_') or die('No access');
 		display: inline-flex;
 		flex-direction: row;
 		flex-wrap: nowrap;
-		gap: 8px;
+		gap: 6px;
 		justify-content: flex-end;
 		min-width: 0;
 		width: 100%;
@@ -3495,7 +3495,7 @@ defined('_ASTEXE_') or die('No access');
 		display: inline-flex;
 		flex: 0 0 auto;
 		flex-wrap: nowrap;
-		gap: 8px;
+		gap: 6px;
 		justify-content: flex-start;
 		width: auto;
 	}
@@ -3574,14 +3574,14 @@ defined('_ASTEXE_') or die('No access');
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions {
 		max-width: 100%;
-		overflow-x: visible;
-		flex-wrap: wrap;
-		row-gap: 6px;
+		overflow-x: auto;
+		flex-wrap: nowrap;
+		row-gap: 0;
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions__tools {
-		flex: 1 1 100%;
-		justify-content: flex-end;
-		width: 100%;
+		flex: 0 0 auto;
+		justify-content: flex-start;
+		width: auto;
 	}
 	.epc-product-actions .epc-btn-cart,
 	.epc-product-actions .epc-btn-quote {

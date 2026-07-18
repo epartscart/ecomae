@@ -944,12 +944,10 @@ function getProductRecordHTML(Product)
 	// Кнопки увеличения количества товара добавляемого в корзину //////////////////////////////////////////////////////////////////////////////////////////////
 	var p_min_order = Product.min_order * 1;
 	var p_exist = Product.exist * 1;
+	if(isNaN(p_exist) || p_exist < 0){ p_exist = 0; }
 	
 	if(p_min_order == 0){
 		p_min_order = 1;
-	}
-	if(p_exist == 0){
-		p_exist = 1;
 	}
 	
 	if(typeof epcProductActionsHTML === 'function')
