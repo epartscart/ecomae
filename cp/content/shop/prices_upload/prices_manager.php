@@ -323,6 +323,11 @@ elseif (!empty($epc_prices_render_manager))//Действий нет - выво�
 					<div class="panel_a_caption">Commerce data (S / P / L)</div>
 				</a>
 
+				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>/shop/prices/multivendor" title="One Excel with many vendors → auto-create warehouses (short name for customers, full name for CP)">
+					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/excel.png') 0 0 no-repeat;"></div>
+					<div class="panel_a_caption">Multi-vendor upload</div>
+				</a>
+
 				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>/shop/prices/guide" title="All upload methods, e-mail per list, upload history">
 					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/content_add.png') 0 0 no-repeat;"></div>
 					<div class="panel_a_caption">Upload guide &amp; status</div>

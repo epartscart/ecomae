@@ -215,6 +215,17 @@ function epc_price_upload_channel_definitions(array $config)
 			'test' => 'Upload sales CSV → BASE-S list; purchase with margin → SUPPLIER.P; inventory → BASE-L.',
 		],
 		[
+			'id' => 'multivendor',
+			'title' => 'Multi-vendor Excel → auto warehouses (full + short name)',
+			'load_mode' => null,
+			'engine' => 'epc_multivendor_price_ingest.php',
+			'cp_url' => '/' . $backend . '/shop/prices/multivendor',
+			'config_url' => '/epc-upload-multivendor-prices.php',
+			'upload_source' => 'multivendor',
+			'formats' => 'Excel/CSV with Vendor full name + Vendor short columns',
+			'test' => 'Upload sample CSV → one warehouse/list per vendor_short; storefront shows short_name only.',
+		],
+		[
 			'id' => 'api_upload_price',
 			'title' => 'Legacy API (api/prices/upload_price.php)',
 			'load_mode' => null,

@@ -442,6 +442,24 @@ try {
 					</div>
 				</div>
 
+				<!-- 7b Multi-vendor -->
+				<div class="panel panel-default">
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_multivendor" class="collapsed">7b. Multi-vendor Excel (many vendors → auto warehouses)</a></h5></div>
+					<div id="guide_multivendor" class="panel-collapse collapse">
+						<div class="panel-body">
+							<p><a class="btn btn-sm btn-primary" href="<?php echo $backend; ?>/shop/prices/multivendor">Open Multi-vendor upload</a></p>
+							<p>Upload <strong>one Excel/CSV containing many vendors</strong>. The system creates a warehouse + price list per vendor short name — no need to create 100 warehouses by hand.</p>
+							<ul>
+								<li><strong>Vendor full name</strong> → warehouse <code>name</code> (CP / backend only)</li>
+								<li><strong>Vendor short</strong> → warehouse <code>short_name</code> (what customers see in search)</li>
+								<li>Required columns: Article, Price, Vendor full name, Vendor short (plus Brand / Qty recommended)</li>
+								<li>Re-upload replaces that vendor’s list (same short name = same warehouse)</li>
+							</ul>
+							<p><span class="label label-primary">API</span> <code>/epc-upload-multivendor-prices.php</code> — POST <code>token</code>, optional <code>key</code>, <code>price_file</code>.</p>
+						</div>
+					</div>
+				</div>
+
 				<!-- 8 Deploy API -->
 				<div class="panel panel-default">
 					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">8. Deploy API (automation / UAE uploads)</a></h5></div>
