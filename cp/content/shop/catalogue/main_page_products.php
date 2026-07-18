@@ -123,6 +123,7 @@ else//Действий нет - выводит страницу
 	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 	$user_session = DP_User::getAdminSession();
 	
+	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/dp_category_record.php");// DP_CatalogueCategory
 	require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/get_catalogue_tree.php");//Получение объекта иерархии существующих категорий для вывода в дерево-webix
 	
 	

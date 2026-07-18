@@ -112,7 +112,41 @@ function epc_platform_erp_login_url(): string
 
 function epc_platform_erp_shell_url(): string
 {
+	// On the platform hostname the standalone /erp/ portal is canonical.
+	if (function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname()) {
+		return '/erp/';
+	}
 	return epc_platform_erp_path_prefix() . 'shop/finance/erp?epc_erp_shell=1';
+}
+
+/**
+ * Map legacy CP ERP sub-paths onto the standalone /erp/ portal routes.
+ * /erp only understands /, /guide, /ajax — not /shop/finance/erp/* or bare aliases.
+ *
+ * $subPath may be a full "shop/finance/erp/..." remnant or a short alias from
+ * epc_erp_cp_route_subpath() (e.g. "guide", "uae-tax-compliance").
+ */
+function epc_platform_erp_portal_target_from_subpath(string $subPath): string
+{
+	$sub = trim(str_replace('\\', '/', $subPath), '/');
+	if ($sub === '' || $sub === 'shop/finance/erp') {
+		return '/erp/';
+	}
+	$leaf = $sub;
+	if (strpos($sub, 'shop/finance/erp/') === 0) {
+		$leaf = substr($sub, strlen('shop/finance/erp/'));
+	} elseif ($sub === 'shop/finance/erp') {
+		return '/erp/';
+	}
+	$leaf = trim($leaf, '/');
+	if ($leaf === '' || $leaf === 'ajax') {
+		return $leaf === 'ajax' ? '/erp/ajax' : '/erp/';
+	}
+	if ($leaf === 'guide' || substr($leaf, -5) === 'guide' || strpos($leaf, 'guide') !== false) {
+		return '/erp/guide';
+	}
+	// Unknown CP ERP tabs (uae-tax-compliance, etc.) land on the portal home.
+	return '/erp/';
 }
 
 function epc_platform_erp_original_uri(): string
@@ -188,13 +222,16 @@ function epc_platform_erp_bootstrap(): void
 	}
 
 	if (function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname()) {
-		$target = '/erp/';
-		if (!empty($parsed['sub_path'])) {
-			$target = '/erp/' . ltrim($parsed['sub_path'], '/');
-		}
+		$target = epc_platform_erp_portal_target_from_subpath((string) ($parsed['sub_path'] ?? ''));
 		$query = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
-		if ($query !== null && $query !== '') {
-			$target .= '?' . $query;
+		if (is_string($query) && $query !== '') {
+			// Drop CP-shell flags — /erp/ does not use epc_erp_shell.
+			$qs = array();
+			parse_str($query, $qs);
+			unset($qs['epc_erp_shell']);
+			if ($qs !== array()) {
+				$target .= (strpos($target, '?') !== false ? '&' : '?') . http_build_query($qs);
+			}
 		}
 		if (!headers_sent()) {
 			header('Location: ' . $target, true, 301);

@@ -4,7 +4,13 @@
 */
 defined('_ASTEXE_') or die('No access');
 
-require_once("content/shop/geo/dp_geo_node_record.php");//Определение класса географического узла
+// Absolute paths — relative requires fail under CP template eval() cwd.
+$epcGeoNode = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/geo/dp_geo_node_record.php';
+if (!is_file($epcGeoNode)) {
+	echo '<div class="col-lg-12"><div class="alert alert-danger">Geo node record class is missing.</div></div>';
+} else {
+	require_once $epcGeoNode;
+}
 
 
 /*
@@ -190,7 +196,7 @@ else//Действий нет - выводим страницу
 	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 	$user_session = DP_User::getAdminSession();
 	
-    require_once("content/shop/geo/get_geo_tree.php");//Получение объекта иерархии существующих географических узлов для вывода в дерево-webix
+    require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/geo/get_geo_tree.php");//Получение объекта иерархии существующих географических узлов для вывода в дерево-webix
 	
 	/*
 	//Получаем ID следующего добавляемого узла
@@ -210,7 +216,7 @@ else//Действий нет - выводим страницу
 	
     ?>
     <?php
-        require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
+        require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/control/actions_alert.php");//Вывод сообщений о результатах действий
     ?>
     
     

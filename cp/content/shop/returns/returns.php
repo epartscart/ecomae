@@ -25,5 +25,11 @@ defined('_ASTEXE_') or die('No access');
     </div>
 </div>
 <?php
-    require_once  $_SERVER["DOCUMENT_ROOT"] . "/". $DP_Config->backend_dir . "/content/shop/returns/router.php";
+$epcReturnsRouter = $_SERVER["DOCUMENT_ROOT"] . "/" . $DP_Config->backend_dir . "/content/shop/returns/router.php";
+if (is_file($epcReturnsRouter)) {
+	require_once $epcReturnsRouter;
+} else {
+	echo '<div class="col-lg-12"><div class="alert alert-warning">Returns router module is not installed on this host.</div></div>';
+}
+// Do not return — CP pages are eval()'d inside the template shell.
 ?>
