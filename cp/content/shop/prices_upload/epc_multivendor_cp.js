@@ -1,11 +1,39 @@
 (function () {
 	'use strict';
 
-	var cfg = window.EPC_MULTIVENDOR_CP || {};
-	var ajaxUrl = cfg.ajaxUrl || '';
-	var csrf = cfg.csrfKey || '';
-	var pricesUrl = cfg.pricesUrl || '/cp/shop/prices';
-	var storagesUrl = cfg.storagesUrl || '/cp/shop/logistics/storages';
+	function cfg() {
+		return window.EPC_MULTIVENDOR_CP || {};
+	}
+
+	function ajaxUrl() {
+		var c = cfg();
+		return c.ajaxUrl || '';
+	}
+
+	function csrfKey() {
+		var c = cfg();
+		return c.csrfKey || '';
+	}
+
+	function sampleUrl() {
+		var c = cfg();
+		if (c.sampleUrl) {
+			return c.sampleUrl;
+		}
+		var base = ajaxUrl();
+		if (!base) {
+			return '/cp/content/shop/prices_upload/epc_multivendor_sample_file.php';
+		}
+		return base.replace(/ajax_epc_multivendor_ingest\.php.*/i, 'epc_multivendor_sample_file.php');
+	}
+
+	function pricesUrl() {
+		return cfg().pricesUrl || '/cp/shop/prices';
+	}
+
+	function storagesUrl() {
+		return cfg().storagesUrl || '/cp/shop/logistics/storages';
+	}
 
 	function $(id) {
 		return document.getElementById(id);
@@ -35,6 +63,21 @@
 		}
 	}
 
+	function triggerDownload(url, filename) {
+		var a = document.createElement('a');
+		a.href = url;
+		if (filename) {
+			a.download = filename;
+		}
+		a.rel = 'noopener';
+		a.style.display = 'none';
+		document.body.appendChild(a);
+		a.click();
+		setTimeout(function () {
+			a.remove();
+		}, 500);
+	}
+
 	function renderVendors(vendors) {
 		if (!vendors || !vendors.length) {
 			return '';
@@ -57,15 +100,16 @@
 			}
 		});
 		html += '</tbody></table>' +
-			'<p><a href="' + escapeHtml(pricesUrl) + '">Open price lists</a> · ' +
-			'<a href="' + escapeHtml(storagesUrl) + '">Open warehouses</a></p></div>';
+			'<p><a href="' + escapeHtml(pricesUrl()) + '">Open price lists</a> · ' +
+			'<a href="' + escapeHtml(storagesUrl()) + '">Open warehouses</a></p></div>';
 		return html;
 	}
 
 	function upload() {
 		var fileInput = $('epcMultivendorFile');
 		var btn = $('epcMultivendorUploadBtn');
-		if (!ajaxUrl) {
+		var url = ajaxUrl();
+		if (!url) {
 			setResult('<div class="alert alert-danger">Upload is not configured (reload the page after login).</div>');
 			return;
 		}
@@ -74,7 +118,7 @@
 			return;
 		}
 		var fd = new FormData();
-		fd.append('csrf_guard_key', csrf);
+		fd.append('csrf_guard_key', csrfKey());
 		fd.append('action', 'upload');
 		fd.append('price_file', fileInput.files[0]);
 		if (btn) {
@@ -83,12 +127,23 @@
 		}
 		setResult('<div class="alert alert-info">Uploading and creating warehouses. Large files with many vendors can take a few minutes…</div>');
 
-		fetch(ajaxUrl, {
+		fetch(url, {
 			method: 'POST',
 			body: fd,
-			credentials: 'same-origin'
+			credentials: 'same-origin',
+			headers: { 'Accept': 'application/json' }
 		}).then(function (r) {
-			return r.json();
+			return r.text().then(function (text) {
+				var ct = (r.headers.get('content-type') || '').toLowerCase();
+				if (!text || text.charAt(0) === '<' || ct.indexOf('json') === -1) {
+					throw new Error('Server returned HTML instead of JSON (HTTP ' + r.status + '). Reload CP and try again.');
+				}
+				try {
+					return JSON.parse(text);
+				} catch (e) {
+					throw new Error('Invalid JSON from upload endpoint');
+				}
+			});
 		}).then(function (data) {
 			if (!data || typeof data !== 'object') {
 				setResult('<div class="alert alert-danger">Unexpected server response.</div>');
@@ -112,49 +167,16 @@
 		});
 	}
 
-	function downloadSample() {
-		if (!ajaxUrl) {
-			setResult('<div class="alert alert-danger">Sample download is not configured (reload the page after login).</div>');
+	function downloadSample(ev) {
+		if (ev && ev.preventDefault) {
+			ev.preventDefault();
+		}
+		var direct = sampleUrl();
+		if (direct) {
+			triggerDownload(direct, 'epc-multivendor-sample.csv');
 			return;
 		}
-		var fd = new FormData();
-		fd.append('csrf_guard_key', csrf);
-		fd.append('action', 'sample');
-		fetch(ajaxUrl, {
-			method: 'POST',
-			body: fd,
-			credentials: 'same-origin',
-			headers: { 'Accept': 'application/json' }
-		}).then(function (r) {
-			return r.text().then(function (text) {
-				var ct = (r.headers.get('content-type') || '').toLowerCase();
-				if (!r.ok || ct.indexOf('json') === -1 || (text && text.charAt(0) === '<')) {
-					throw new Error('Server returned HTML instead of JSON (HTTP ' + r.status + '). Check you are logged into CP.');
-				}
-				try {
-					return JSON.parse(text);
-				} catch (e) {
-					throw new Error('Invalid JSON from sample endpoint');
-				}
-			});
-		}).then(function (data) {
-			if (!data || !data.status || !data.csv) {
-				setResult('<div class="alert alert-danger">' + escapeHtml((data && data.message) || 'Could not build sample CSV.') + '</div>');
-				return;
-			}
-			var blob = new Blob([data.csv], { type: 'text/csv;charset=utf-8' });
-			var a = document.createElement('a');
-			a.href = URL.createObjectURL(blob);
-			a.download = data.filename || 'epc-multivendor-sample.csv';
-			document.body.appendChild(a);
-			a.click();
-			setTimeout(function () {
-				URL.revokeObjectURL(a.href);
-				a.remove();
-			}, 500);
-		}).catch(function (err) {
-			setResult('<div class="alert alert-danger">Sample download failed: ' + escapeHtml(err && err.message ? err.message : err) + '</div>');
-		});
+		setResult('<div class="alert alert-danger">Sample download is not configured (reload the page).</div>');
 	}
 
 	function init() {
@@ -164,6 +186,11 @@
 			uploadBtn.addEventListener('click', upload);
 		}
 		if (sampleBtn) {
+			// Keep href working even if JS fails; click handler uses same direct file URL.
+			if (!sampleBtn.getAttribute('href')) {
+				sampleBtn.setAttribute('href', sampleUrl());
+				sampleBtn.setAttribute('download', 'epc-multivendor-sample.csv');
+			}
 			sampleBtn.addEventListener('click', downloadSample);
 		}
 	}
