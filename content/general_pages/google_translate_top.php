@@ -522,11 +522,24 @@ defined('_ASTEXE_') or die('No access');
 	function googleTranslateElementInit() {
 		new google.translate.TranslateElement({
 			pageLanguage: 'en',
-			layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+			layout: google.translate.TranslateElement.inlineLayout.HORIZONTAL,
 			autoDisplay: false
 		}, 'google_translate_element');
 		epcInitNativeTranslateSelect();
 		epcAttachGoogleTranslateChange(0);
 	}
+	// Load Google Translate after first paint — sync head script blocked every navigation.
+	function epcLoadGoogleTranslate() {
+		if (window.__epcGoogleTranslateLoading) { return; }
+		window.__epcGoogleTranslateLoading = true;
+		var s = document.createElement('script');
+		s.async = true;
+		s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+		document.head.appendChild(s);
+	}
+	if (window.requestIdleCallback) {
+		requestIdleCallback(epcLoadGoogleTranslate, { timeout: 3500 });
+	} else {
+		window.addEventListener('load', function () { setTimeout(epcLoadGoogleTranslate, 800); }, { once: true });
+	}
 </script>
-<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

@@ -5519,13 +5519,22 @@ function epcPrimeWarehouseFilter()
 		<p class="epc-brand-picker-top__hint">Several manufacturers use this part number. Choose a brand, then open warehouse prices and stock.</p>
 	</div>
 	<div id="work_area" class="epc-brand-picker-work-area" align="center">
-		<div id="processing_indicator">
+		<?php
+		$epc_picker_ssr_html = '';
+		if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
+			$epc_picker_ssr_html = epc_chpu_ssr_warehouse_table_html(
+				$epc_initial_price_bunch['Products'],
+				isset($currency_indicator) ? $currency_indicator : ''
+			);
+		}
+		?>
+		<div id="processing_indicator"<?php if ($epc_picker_ssr_html !== '') { ?> style="display:none"<?php } ?>>
+			<?php if ($epc_picker_ssr_html === '') { ?>
 			<p><?php echo translate_str_by_id(4314); ?>...</p><img src="/content/files/images/ajax-loader-transparent.gif" alt="" />
+			<?php } ?>
 		</div>
 		<div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results"><?php
-		if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
-			echo epc_chpu_ssr_warehouse_table_html($epc_initial_price_bunch['Products'], isset($currency_indicator) ? $currency_indicator : '');
-		}
+			echo $epc_picker_ssr_html;
 		?></div>
 	</div>
 </div>
