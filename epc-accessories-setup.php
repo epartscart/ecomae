@@ -9,6 +9,8 @@
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...&seed=1&reset=1
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=...&price=1199&make=Toyota&city=Karachi&condition=new
+ *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=seed_demo&per_sub=1
+ *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=form
  */
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -94,7 +96,102 @@ function epc_acc_find_cat_id(PDO $pdo, $slug, $parentId = 0)
 	return (int) $stmt->fetchColumn();
 }
 
-$action = isset($_GET['action']) ? trim((string) $_GET['action']) : '';
+$action = isset($_GET['action']) ? trim((string) ($_REQUEST['action'] ?? '')) : '';
+
+// --- Simple HTML form to add listings one category at a time ---
+if ($action === 'form') {
+	header('Content-Type: text/html; charset=utf-8');
+	epc_acc_ensure_schema($pdo);
+	$tree = epc_acc_get_category_tree($pdo);
+	$tax = epc_acc_load_taxonomy_json();
+	$makes = isset($tax['makes']) ? $tax['makes'] : array();
+	$cities = isset($tax['cities']) ? $tax['cities'] : array();
+	$token = htmlspecialchars((string) ($_GET['token'] ?? ''), ENT_QUOTES, 'UTF-8');
+	echo '<!doctype html><html><head><meta charset="utf-8"><title>Add Accessories Listing</title>';
+	echo '<style>body{font:15px/1.4 system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px}label{display:block;margin:12px 0 4px;font-weight:700}input,select,textarea{width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px}button{margin-top:16px;padding:10px 16px;border:0;border-radius:8px;background:#dc2626;color:#fff;font-weight:800;cursor:pointer}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}</style></head><body>';
+	echo '<h1>Add accessories listing</h1><p>Put data into a PakWheels-style category one by one.</p>';
+	echo '<form method="post" action="?token=' . $token . '&action=add_listing">';
+	echo '<input type="hidden" name="token" value="' . $token . '" />';
+	echo '<label>Category</label><select name="category" id="cat" required><option value="">Select…</option>';
+	foreach ($tree as $p) {
+		echo '<option value="' . htmlspecialchars($p['slug'], ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($p['label'], ENT_QUOTES, 'UTF-8') . '</option>';
+	}
+	echo '</select><label>Sub category</label><select name="subcategory" id="sub"><option value="">Optional…</option></select>';
+	echo '<label>Title</label><input name="title" required maxlength="255" />';
+	echo '<label>Description</label><textarea name="description" rows="3"></textarea>';
+	echo '<div class="row"><div><label>Make</label><select name="make"><option value="">—</option>';
+	foreach ($makes as $m) {
+		echo '<option>' . htmlspecialchars($m, ENT_QUOTES, 'UTF-8') . '</option>';
+	}
+	echo '</select></div><div><label>Model</label><input name="model" /></div></div>';
+	echo '<div class="row"><div><label>City</label><select name="city"><option value="">—</option>';
+	foreach ($cities as $c) {
+		echo '<option>' . htmlspecialchars($c, ENT_QUOTES, 'UTF-8') . '</option>';
+	}
+	echo '</select></div><div><label>Condition</label><select name="condition"><option value="new">New</option><option value="used">Used</option></select></div></div>';
+	echo '<div class="row"><div><label>Price</label><input name="price" type="number" step="1" min="0" /></div><div><label>Currency</label><input name="currency" value="PKR" /></div></div>';
+	echo '<label>Image URL</label><input name="image_url" />';
+	echo '<label>External / detail URL</label><input name="external_url" />';
+	echo '<button type="submit">Publish listing</button></form>';
+	$treeJson = json_encode($tree, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	echo '<script>var tree=' . $treeJson . ';var cat=document.getElementById("cat");var sub=document.getElementById("sub");function fill(){sub.innerHTML="<option value=\\"\\">Optional…</option>";var slug=cat.value;for(var i=0;i<tree.length;i++){if(tree[i].slug===slug){(tree[i].children||[]).forEach(function(c){var o=document.createElement("option");o.value=c.slug;o.textContent=c.label;sub.appendChild(o);});break;}}}cat.addEventListener("change",fill);</script>';
+	echo '</body></html>';
+	exit;
+}
+
+// --- Seed one demo listing per subcategory (fill categories) ---
+if ($action === 'seed_demo') {
+	epc_acc_ensure_schema($pdo);
+	epc_acc_seed_categories_from_json($pdo, false);
+	$perSub = max(1, min(3, (int) ($_GET['per_sub'] ?? 1)));
+	$clear = isset($_GET['clear']) && $_GET['clear'] === '1';
+	if ($clear) {
+		$pdo->exec('DELETE FROM `epc_acc_listings`');
+	}
+	$tax = epc_acc_load_taxonomy_json();
+	$makes = isset($tax['makes']) && is_array($tax['makes']) ? $tax['makes'] : array('Toyota', 'Honda', 'Suzuki');
+	$cities = isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array('Karachi', 'Lahore', 'Islamabad');
+	$tree = epc_acc_get_category_tree($pdo);
+	$added = 0;
+	$mi = 0;
+	$ci = 0;
+	$prices = array(799, 1199, 1499, 2499, 3999, 5499, 8999, 12999, 19999, 34999, 55999, 89999);
+	foreach ($tree as $parent) {
+		$children = !empty($parent['children']) ? $parent['children'] : array(array('id' => 0, 'slug' => '', 'label' => $parent['label']));
+		foreach ($children as $child) {
+			for ($n = 0; $n < $perSub; $n++) {
+				$make = $makes[$mi % count($makes)];
+				$city = $cities[$ci % count($cities)];
+				$mi++;
+				$ci++;
+				$price = $prices[($added + $n) % count($prices)];
+				$cond = (($added + $n) % 5 === 0) ? 'used' : 'new';
+				$subLabel = !empty($child['label']) ? $child['label'] : $parent['label'];
+				$title = $subLabel . ' for ' . $make . ' — ' . $city;
+				epc_acc_add_listing($pdo, array(
+					'category_id' => (int) $parent['id'],
+					'subcategory_id' => (int) ($child['id'] ?? 0),
+					'title' => $title,
+					'description' => $subLabel . ' listing under ' . $parent['label'] . '. Add real product photos and details next.',
+					'make' => $make,
+					'model' => '',
+					'city' => $city,
+					'condition_type' => $cond,
+					'price' => $price,
+					'currency' => 'PKR',
+					'image_url' => '',
+					'external_url' => '/en/accessories-spare-parts?category=' . rawurlencode($parent['slug']) . '&subcategory=' . rawurlencode((string) ($child['slug'] ?? '')),
+					'stock_qty' => 1 + (($added + $n) % 12),
+					'status' => 'published',
+				));
+				$added++;
+			}
+		}
+	}
+	$total = (int) $pdo->query('SELECT COUNT(*) FROM `epc_acc_listings`')->fetchColumn();
+	echo "OK seed_demo added={$added} listings_total={$total} per_sub={$perSub}\n";
+	exit;
+}
 
 // --- Add listing one-by-one into a crawled category ---
 if ($action === 'add_listing') {

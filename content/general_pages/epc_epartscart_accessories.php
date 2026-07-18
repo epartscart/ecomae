@@ -8,7 +8,7 @@ defined('_ASTEXE_') or die('No access');
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] !== '')
 	? rtrim((string) $multilang_params['lang_href'], '/')
 	: '/en';
-$epc_acc_ver = '20260718accPw2';
+$epc_acc_ver = '20260718accPw3';
 ?>
 <link rel="stylesheet" href="/content/general_pages/epc_accessories.css?v=<?php echo rawurlencode($epc_acc_ver); ?>">
 
