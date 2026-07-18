@@ -3052,7 +3052,9 @@ defined('_ASTEXE_') or die('No access');
 	}
 	/* CHPU results: header search only — hide redundant in-page search card. */
 	.epc-chpu-direct-part-search .search_limo,
-	.epc-chpu-direct-part-search .epc-parts-result-tools:empty {
+	.epc-chpu-direct-part-search .epc-parts-result-tools:empty,
+	.epc-chpu-direct-part-search .epc-parts-result-hero__photo,
+	#epc-search-result-photo {
 		display: none !important;
 	}
 	.epc-chpu-direct-part-search #work_area {

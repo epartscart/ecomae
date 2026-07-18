@@ -3963,9 +3963,6 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		<i class="fa fa-random" aria-hidden="true"></i>
 		<span id="epc-cross-search-count"><?php echo count($epc_cross_fallback_rows); ?> references</span>
 	</button>
-	<?php if (!$epc_universal_mode && $epc_result_article !== '') { ?>
-	<a class="btn btn-default btn-sm" href="<?php echo htmlspecialchars($multilang_params['lang_href'] . '/shop/part_search?universal=1&article=' . rawurlencode($epc_result_article), ENT_QUOTES, 'UTF-8'); ?>" title="Fluids, clips, and consumables without vehicle fitment"><i class="fa fa-wrench"></i> Universal parts</a>
-	<?php } ?>
 </div>
 <div class="epc-fitment-panel" id="epc-fitment-panel" aria-live="polite">
 	<div class="epc-fitment-panel__head">
@@ -3989,7 +3986,6 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		</div>
 	</div>
 </div>
-<div class="epc-parts-result-hero__photo" id="epc-search-result-photo" hidden></div>
 <?php } ?>
 <script>
 (function(){
@@ -4619,35 +4615,6 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 			epcCloseImageLightbox();
 		}
 	});
-})();
-(function(){
-	var heroBrand = <?php echo json_encode($epc_result_brand, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-	var heroArticle = <?php echo json_encode($epc_result_article, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-	var heroPhoto = document.getElementById('epc-search-result-photo');
-	if(!heroPhoto || !heroBrand || !heroArticle) { return; }
-	function esc(value) {
-		return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
-			return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch];
-		});
-	}
-	heroPhoto.hidden = false;
-	heroPhoto.innerHTML = '<button type="button" class="epc-parts-result-hero__photo-btn epc-search-row-photo__btn--load" data-epc-photo-brand="' + esc(heroBrand) + '" data-epc-photo-article="' + esc(heroArticle) + '" title="Click to load product photo" aria-label="Load product photo"><i class="fa fa-image"></i></button>';
-	var heroBtn = heroPhoto.querySelector('button');
-	heroBtn.onclick = function() {
-		if(typeof window.epcLoadSearchRowPhotoOnClick === 'function') {
-			window.epcLoadSearchRowPhotoOnClick(heroBrand, heroArticle, heroBtn);
-			return;
-		}
-		function tryLoad(attempts) {
-			if(typeof window.epcLoadSearchRowPhotoOnClick === 'function') {
-				window.epcLoadSearchRowPhotoOnClick(heroBrand, heroArticle, heroBtn);
-				return;
-			}
-			if(attempts > 40) { return; }
-			window.setTimeout(function() { tryLoad(attempts + 1); }, 100);
-		}
-		tryLoad(0);
-	};
 })();
 (function(){
 	var crossBtn = document.getElementById('epc-cross-search-btn');
