@@ -123,6 +123,14 @@ try {
 				</ul>
 			</div>
 
+			<div class="alert alert-success" style="border-left:4px solid #1a7f37;">
+				<strong><i class="fa fa-warehouse"></i> Multi-vendor price upload</strong>
+				— one Excel/CSV with many vendors; warehouses + price lists are created automatically.
+				<a class="btn btn-success btn-sm" href="<?php echo $backend; ?>/shop/prices/multivendor" style="margin-left:8px;"><i class="fa fa-upload"></i> Open Multi-vendor upload</a>
+				<a class="btn btn-default btn-sm" href="#guide_multivendor" data-toggle="collapse" style="margin-left:4px;"><i class="fa fa-book"></i> Jump to guide §8</a>
+				<a class="btn btn-default btn-sm" href="<?php echo $backend; ?>/content/shop/prices_upload/epc_multivendor_sample_file.php" download="epc-multivendor-sample.csv" style="margin-left:4px;"><i class="fa fa-download"></i> Sample CSV</a>
+			</div>
+
 			<p class="text-muted">Generated <?php echo htmlspecialchars($snapshot['generated_at'], ENT_QUOTES, 'UTF-8'); ?>.
 				This page describes <strong>every channel</strong> that loads data into <code>shop_docpart_prices_data</code>,
 				how many price lists use each source, and how to test each path.</p>
@@ -442,27 +450,179 @@ try {
 					</div>
 				</div>
 
-				<!-- 7b Multi-vendor -->
-				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_multivendor" class="collapsed">7b. Multi-vendor Excel (many vendors → auto warehouses)</a></h5></div>
-					<div id="guide_multivendor" class="panel-collapse collapse">
+				<!-- 8 Multi-vendor -->
+				<div class="panel panel-default" id="epc_guide_mv_panel">
+					<div class="panel-heading">
+						<h5 class="panel-title">
+							<a data-toggle="collapse" href="#guide_multivendor">
+								8. Multi-vendor price upload (many vendors → auto warehouses)
+							</a>
+						</h5>
+					</div>
+					<div id="guide_multivendor" class="panel-collapse collapse in">
 						<div class="panel-body">
-							<p><a class="btn btn-sm btn-primary" href="<?php echo $backend; ?>/shop/prices/multivendor">Open Multi-vendor upload</a></p>
-							<p>Upload <strong>one Excel/CSV containing many vendors</strong>. The system creates a warehouse + price list per vendor short name — no need to create 100 warehouses by hand.</p>
+							<p>
+								<a class="btn btn-sm btn-success" href="<?php echo $backend; ?>/shop/prices/multivendor"><i class="fa fa-upload"></i> Open Multi-vendor upload</a>
+								<a class="btn btn-sm btn-default" href="<?php echo $backend; ?>/content/shop/prices_upload/epc_multivendor_sample_file.php" download="epc-multivendor-sample.csv"><i class="fa fa-download"></i> Download sample CSV</a>
+								<a class="btn btn-sm btn-default" href="<?php echo $backend; ?>/shop/logistics/storages"><i class="fa fa-warehouse"></i> Warehouses</a>
+								<a class="btn btn-sm btn-default" href="<?php echo $backend; ?>/shop/prices"><i class="fa fa-list"></i> Price lists</a>
+							</p>
+
+							<p><span class="label label-success">Best for</span>
+								Tenants with <strong>many suppliers/vendors</strong> in one file.
+								Upload once — the system creates a Docpart <strong>price list + warehouse</strong> per vendor short code.
+								Customers see only the short warehouse label (e.g. <code>S-UAE</code>); the legal/full company name stays in CP.</p>
+
+							<h5>Step-by-step</h5>
+							<ol>
+								<li>Open <a href="<?php echo $backend; ?>/shop/prices/multivendor">Shop → Price lists → Multi-vendor upload</a> (or the button above).</li>
+								<li>Download the <strong>sample CSV</strong> and keep the header row (column names can vary — see table below).</li>
+								<li>Choose a <strong>Default data type</strong> on the form (<em>Inventory</em>, <em>Sales</em>, or <em>Purchase</em>). A per-row <code>Data type</code> column overrides this.</li>
+								<li>Fill rows: at least <strong>Article</strong>, <strong>Price</strong>, <strong>Vendor full name</strong>, <strong>Vendor short</strong>. Add Brand / Qty / Name / Delivery when available.</li>
+								<li>Click <strong>Upload &amp; create warehouses</strong>. Review the result table (lists created/updated, row counts).</li>
+								<li>Confirm on <a href="<?php echo $backend; ?>/shop/prices">Price lists</a> and <a href="<?php echo $backend; ?>/shop/logistics/storages">Warehouses</a>. Search the article on the storefront — offers appear under the vendor short code.</li>
+							</ol>
+
+							<h5>Data types (how duplicates are handled)</h5>
+							<table class="table table-bordered table-condensed">
+								<thead>
+									<tr>
+										<th>Data type</th>
+										<th>Price list name pattern</th>
+										<th>Match key</th>
+										<th>Rule when the same key repeats</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td><strong>inventory</strong></td>
+										<td><code>S-UAE</code> (vendor short only)</td>
+										<td>data type + brand + article + vendor full + vendor short</td>
+										<td><strong>Unique</strong> — quantities are summed into one stock row</td>
+									</tr>
+									<tr>
+										<td><strong>sales</strong></td>
+										<td><code>S-UAE · Sales</code></td>
+										<td>same as above</td>
+										<td>Keep only <strong>min + max</strong> price rows (middle prices dropped)</td>
+									</tr>
+									<tr>
+										<td><strong>purchase</strong></td>
+										<td><code>S-UAE · Purchase</code></td>
+										<td>same as above</td>
+										<td>Keep only <strong>min + max</strong> price rows</td>
+									</tr>
+								</tbody>
+							</table>
+							<p class="text-muted"><small>Inventory lists keep the warehouse’s primary <code>price_id</code>. Sales/Purchase use sibling lists on the same warehouse so storefront search still shows the short code.</small></p>
+
+							<h5>Expected columns</h5>
+							<div class="table-responsive">
+								<table class="table table-striped table-bordered table-condensed">
+									<thead>
+										<tr>
+											<th>Column</th>
+											<th>Required</th>
+											<th>Accepted header names</th>
+											<th>Purpose</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><strong>Brand</strong></td>
+											<td>Recommended</td>
+											<td>Brand, Manufacturer, Mfr</td>
+											<td>Part manufacturer</td>
+										</tr>
+										<tr>
+											<td><strong>Article</strong></td>
+											<td>Yes</td>
+											<td>Article, SKU, Number, OEM</td>
+											<td>Part number</td>
+										</tr>
+										<tr>
+											<td><strong>Name</strong></td>
+											<td>No</td>
+											<td>Name, Description</td>
+											<td>Product title</td>
+										</tr>
+										<tr>
+											<td><strong>Qty</strong></td>
+											<td>Recommended</td>
+											<td>Qty, Stock, Exist</td>
+											<td>Availability (inventory sums duplicates)</td>
+										</tr>
+										<tr>
+											<td><strong>Price</strong></td>
+											<td>Yes</td>
+											<td>Price, Sales price</td>
+											<td>Shelf / offer price</td>
+										</tr>
+										<tr>
+											<td><strong>Vendor full name</strong></td>
+											<td>Yes</td>
+											<td>Vendor full name, Supplier full, Company name</td>
+											<td>CP warehouse legal/full name (not shown to customers)</td>
+										</tr>
+										<tr>
+											<td><strong>Vendor short / code</strong></td>
+											<td>Yes</td>
+											<td>Vendor short, Vendor code, Warehouse, WH</td>
+											<td>Customer-facing warehouse code (e.g. S-UAE)</td>
+										</tr>
+										<tr>
+											<td><strong>Data type</strong></td>
+											<td>No</td>
+											<td>Data type, Type, Role, Channel</td>
+											<td><code>inventory</code> / <code>sales</code> / <code>purchase</code> (overrides form default)</td>
+										</tr>
+										<tr>
+											<td><strong>Delivery</strong></td>
+											<td>No</td>
+											<td>Delivery, Days, Term</td>
+											<td>Lead time days (<code>0</code> = in warehouse)</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<h5>Sample CSV (header + rows)</h5>
+							<pre style="background:#f9f9f9;padding:10px;overflow:auto;font-size:12px;">Brand,Article,Name,Qty,Price,"Vendor full name","Vendor short","Data type",Delivery
+TOYOTA,446610010,"PAD KIT, DISC BRAKE",8,103.51,"S-UAE Trading LLC",S-UAE,inventory,0
+AISIN,DT068,"WATER PUMP",3,45.00,"R-UAE Spare Parts FZE",R-UAE,inventory,0
+DENSO,0671007450,FILTER,12,18.00,"S-UAE Trading LLC",S-UAE,sales,0
+DENSO,0671007450,FILTER,5,22.50,"S-UAE Trading LLC",S-UAE,sales,0
+DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
+							<p>In the sample, the three DENSO <em>sales</em> rows collapse to <strong>min 18.00 + max 29.90</strong> only. Inventory rows stay unique per brand+article+vendor.</p>
+
+							<h5>Re-upload / replace rules</h5>
 							<ul>
-								<li><strong>Vendor full name</strong> → warehouse <code>name</code> (CP / backend only)</li>
-								<li><strong>Vendor short</strong> → warehouse <code>short_name</code> (what customers see in search)</li>
-								<li>Required columns: Article, Price, Vendor full name, Vendor short (plus Brand / Qty recommended)</li>
-								<li>Re-upload replaces that vendor’s list (same short name = same warehouse)</li>
+								<li>Same <strong>Vendor short</strong> → same warehouse and list(s) are reused (not duplicated).</li>
+								<li>Re-importing a vendor’s inventory list replaces that list’s rows for the uploaded file (clean + load for that vendor’s list).</li>
+								<li>Changing only the full company name updates the CP warehouse name; the storefront short code stays stable.</li>
 							</ul>
-							<p><span class="label label-primary">API</span> <code>/epc-upload-multivendor-prices.php</code> — POST <code>token</code>, optional <code>key</code>, <code>price_file</code>.</p>
+
+							<h5>API / automation</h5>
+							<p><span class="label label-primary">Endpoint</span>
+								<code>/epc-upload-multivendor-prices.php</code>
+								— POST <code>token</code>, optional <code>key</code> (tech_key), <code>price_file</code>, optional <code>data_type=inventory|sales|purchase</code>.</p>
+							<p>Sample via API: <code>?token=…&amp;action=sample</code> returns JSON with the CSV body.</p>
+
+							<p><strong>Test checklist:</strong></p>
+							<ol>
+								<li>Upload the sample CSV with default data type <em>Inventory</em> (rows with <code>Data type</code> still win per row).</li>
+								<li>Expect warehouses <code>S-UAE</code> and <code>R-UAE</code>, lists <code>S-UAE</code>, <code>R-UAE</code>, and <code>S-UAE · Sales</code>.</li>
+								<li>On storefront part search for <code>446610010</code> / <code>0671007450</code>, offers show under short codes (not full legal names).</li>
+								<li>Re-upload the same file — lists update without creating duplicate warehouses.</li>
+							</ol>
+							<p class="text-muted"><small>Engine: <code>content/shop/docpart/epc_multivendor_price_ingest.php</code> · CP AJAX: <code>ajax_epc_multivendor_ingest.php</code>. History source tag when archived: related price-list upload history on each created list.</small></p>
 						</div>
 					</div>
 				</div>
 
-				<!-- 8 Deploy API -->
+				<!-- 9 Deploy API -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">8. Deploy API (automation / UAE uploads)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">9. Deploy API (automation / UAE uploads)</a></h5></div>
 					<div id="guide_deploy" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><span class="label label-primary">Endpoint</span> <code>/epc-upload-uae-prices.php</code> — POST <code>token</code>, <code>key</code> (tech_key), <code>price_file</code>, <code>price_name</code> or <code>price_id</code>.</p>
@@ -472,9 +632,9 @@ try {
 					</div>
 				</div>
 
-				<!-- 9 Legacy API -->
+				<!-- 10 Legacy API -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_api" class="collapsed">9. Legacy Treelax API</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_api" class="collapsed">10. Legacy Treelax API</a></h5></div>
 					<div id="guide_api" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><code>/api/prices/upload_price.php</code> — POST <code>tech_key</code> + file; chains to CP <code>ajax_5_import_csv_to_db.php</code>.</p>
@@ -482,9 +642,9 @@ try {
 					</div>
 				</div>
 
-				<!-- 9 Manual edit -->
+				<!-- 11 Manual edit -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_edit" class="collapsed">10. Manual grid edit (single rows)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_edit" class="collapsed">11. Manual grid edit (single rows)</a></h5></div>
 					<div id="guide_edit" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><a href="<?php echo $backend; ?>/shop/prices/prices_edit">Edit price list records</a> — not a file import; for corrections only.</p>
@@ -492,9 +652,9 @@ try {
 					</div>
 				</div>
 
-				<!-- 10 Price review -->
+				<!-- 12 Price review -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_review" class="collapsed">11. Price review (cross-check / adjust)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_review" class="collapsed">12. Price review (cross-check / adjust)</a></h5></div>
 					<div id="guide_review" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><code>/shop/prices/review?price_id=</code> — updates existing prices after import; does not load new catalog from file.</p>
@@ -524,6 +684,9 @@ try {
 TEST,ABC123,Test part,10,99.50,1
 TEST,XYZ999,Another part,5,12.00,2</pre>
 			<p>Map columns in price list settings to match your file (manufacturer=1, article=2, etc.).</p>
+			<p><strong>Multi-vendor sample:</strong>
+				<a href="<?php echo $backend; ?>/content/shop/prices_upload/epc_multivendor_sample_file.php" download="epc-multivendor-sample.csv">Download epc-multivendor-sample.csv</a>
+				or see <a href="#guide_multivendor" data-toggle="collapse">§8 Multi-vendor price upload</a>.</p>
 
 			<p class="text-muted"><small>Regenerate skipped-line report for an old upload: <code>/epc-regenerate-issues-report.php?token=…&amp;key=…&amp;history_id=</code></small></p>
 		</div>
