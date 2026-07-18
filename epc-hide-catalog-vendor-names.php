@@ -154,6 +154,100 @@ foreach ($tabRows as $row) {
 	}
 }
 
+// Frontend translation strings (page titles / descriptions)
+try {
+	$langRows = $pdo->query(
+		"SELECT `id`, `str_key`, `lang_code`, `value`
+		 FROM `lang_text_strings_translation`
+		 WHERE `value` LIKE '%Laximo%'
+		    OR `value` LIKE '%UMAPI%'
+		    OR `value` LIKE '%Umapi%'
+		    OR `value` LIKE '%Carcat%'
+		    OR `value` LIKE '%TecDoc%'
+		    OR `value` LIKE '%Docpart%'
+		    OR `value` LIKE '%Levam%'
+		    OR `value` LIKE '%Carmod%'
+		    OR `value` LIKE '%Guayaquil%'
+		    OR `str_key` LIKE 'epc_laximo%'
+		    OR `str_key` LIKE 'epc_umapi_catalog%'"
+	)->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+	$langRows = array();
+}
+$report['checks']['lang_hits'] = count($langRows);
+
+/** Preferred clean captions for known keys */
+$keyDefaults = array(
+	'epc_laximo_catalog_title' => 'OEM Parts Catalog',
+	'epc_laximo_catalog_desc' => 'Search original OEM parts by vehicle brand, VIN, or part name.',
+	'epc_laximo_aftermarket_title' => 'Aftermarket Catalog',
+	'epc_laximo_aftermarket_desc' => 'Search aftermarket parts and cross-references.',
+	'epc_umapi_catalog_title' => 'Vehicle Parts Catalog',
+	'epc_umapi_catalog_desc' => 'Select spare parts by passenger car, commercial vehicle, motorbike, or article analogs.',
+);
+
+foreach ($langRows as $row) {
+	$id = (int) $row['id'];
+	$key = (string) $row['str_key'];
+	$before = (string) $row['value'];
+	$after = isset($keyDefaults[$key]) ? $keyDefaults[$key] : epc_scrub_vendor_text($before, $replacements);
+	if ($after === $before) {
+		continue;
+	}
+	$report['changes'][] = array(
+		'table' => 'lang_text_strings_translation',
+		'id' => $id,
+		'str_key' => $key,
+		'lang_code' => $row['lang_code'],
+		'field' => 'value',
+		'from' => $before,
+		'to' => $after,
+	);
+	if ($apply) {
+		$pdo->prepare('UPDATE `lang_text_strings_translation` SET `value` = ? WHERE `id` = ?')->execute(array($after, $id));
+	}
+}
+
+// Also scrub text_for_url overlays if present
+try {
+	$urlRows = $pdo->query(
+		"SELECT `id`, `url`, `content`, `title_tag`, `description_tag`, `keywords_tag`
+		 FROM `text_for_url`
+		 WHERE `content` LIKE '%Laximo%' OR `title_tag` LIKE '%Laximo%' OR `description_tag` LIKE '%Laximo%' OR `keywords_tag` LIKE '%Laximo%'
+		    OR `content` LIKE '%UMAPI%' OR `title_tag` LIKE '%UMAPI%'
+		    OR `content` LIKE '%TecDoc%' OR `title_tag` LIKE '%TecDoc%'
+		    OR `content` LIKE '%Docpart%' OR `title_tag` LIKE '%Docpart%'"
+	)->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+	$urlRows = array();
+}
+$report['checks']['text_for_url_hits'] = count($urlRows);
+foreach ($urlRows as $row) {
+	$id = (int) $row['id'];
+	$sets = array();
+	$params = array();
+	foreach (array('content', 'title_tag', 'description_tag', 'keywords_tag') as $col) {
+		$before = (string) ($row[$col] ?? '');
+		$after = epc_scrub_vendor_text($before, $replacements);
+		if ($after !== $before) {
+			$sets[] = "`{$col}` = ?";
+			$params[] = $after;
+			$report['changes'][] = array(
+				'table' => 'text_for_url',
+				'id' => $id,
+				'url' => $row['url'],
+				'field' => $col,
+				'from' => $before,
+				'to' => $after,
+			);
+		}
+	}
+	if ($apply && $sets !== array()) {
+		$params[] = $id;
+		$pdo->prepare('UPDATE `text_for_url` SET ' . implode(', ', $sets) . ' WHERE `id` = ?')->execute($params);
+	}
+}
+
 $report['change_count'] = count($report['changes']);
 if (!$apply) {
 	$report['hint'] = 'Dry run. Pass apply=1 to write changes.';
