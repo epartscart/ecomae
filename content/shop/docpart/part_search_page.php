@@ -2759,7 +2759,22 @@ function epcRunChpuPriceSearch()
 		epcResetChpuFilterState();
 	}
 	Products_All_Asked = false;
-	epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4294); ?></p><img src=\"/content/files/images/ajax-loader-transparent.gif\" /><br><br>");
+	var productsAreaNow = document.getElementById('products_area');
+	var alreadyHasStock = typeof epcChpuAreaHasStockPaint === 'function' && epcChpuAreaHasStockPaint(productsAreaNow);
+	if(!alreadyHasStock && typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+	{
+		alreadyHasStock = true;
+		productsAreaNow = document.getElementById('products_area');
+	}
+	// Keep warehouse rows visible; only show the warehouse spinner when area is empty.
+	if(!alreadyHasStock)
+	{
+		epcChpuShowProcessingIndicator("<p><?php echo translate_str_by_id(4294); ?></p><img src=\"/content/files/images/ajax-loader-transparent.gif\" /><br><br>");
+	}
+	else
+	{
+		epcChpuHideProcessingIndicator();
+	}
 	var priceFetchPromise = null;
 	var priceFetchUrl = '<?= $DP_Config->domain_path . 'content/shop/docpart/ajax_getProductsOfBunch.php' ?>';
 	var priceFetchOpts = {
