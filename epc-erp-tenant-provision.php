@@ -218,15 +218,36 @@ if (!$connectBefore) {
 		}
 		if (empty($prov['ok'])) {
 			// CloudPanel may lack db:add / stale admin password — use pre-seeded pool.
-			echo "provision_failed — trying demo DB pool claim...\n";
+			// Promote later with epc-tenant-dedicated-db.php?site_key=...&clp_pass=...&apply=1
+			$wantedDb = preg_replace('/[^a-z0-9_]/', '', strtolower($siteKey));
+			echo "provision_failed — trying demo DB pool claim (temporary; wanted={$wantedDb})...\n";
 			$claimed = epc_portal_demo_pool_claim($platformPdo, $siteKey);
 			if ($claimed === null) {
-				exit("provision_failed (no ready pool DB; seed via epc-demo-pool-seed.php)\n");
+				exit("provision_failed (no ready pool DB; seed via epc-demo-pool-seed.php"
+					. " or fix CloudPanel admin via epc-tenant-dedicated-db.php)\n");
 			}
 			$dbName = (string) $claimed['db_name'];
 			$dbUser = (string) $claimed['db_user'];
 			$dbPass = (string) $claimed['db_password'];
 			echo "pool_claim=ok db={$dbName} user={$dbUser} pool_id=" . (int) ($claimed['pool_id'] ?? 0) . "\n";
+			echo "promote_later=epc-tenant-dedicated-db.php?site_key={$siteKey}&clp_pass=...&apply=1&desired_db={$wantedDb}\n";
+			try {
+				$intro = array();
+				if (!empty($row['intro_json'])) {
+					$decoded = json_decode((string) $row['intro_json'], true);
+					if (is_array($decoded)) {
+						$intro = $decoded;
+					}
+				}
+				$intro['desired_db_name'] = $wantedDb;
+				$intro['pool_db_name'] = $dbName;
+				$intro['pool_claimed_at'] = date('c');
+				$platformPdo->prepare(
+					'UPDATE `epc_portal_tenants` SET `intro_json` = ?, `updated_at` = ? WHERE `site_key` = ?'
+				)->execute(array(json_encode($intro, JSON_UNESCAPED_UNICODE), time(), $siteKey));
+			} catch (Throwable $e) {
+				echo 'desired_db_note_fail: ' . $e->getMessage() . "\n";
+			}
 		} elseif (!empty($prov['db_name'])) {
 			$dbName = (string) $prov['db_name'];
 		}
