@@ -2627,6 +2627,11 @@ function epcChpuProductKey(manufacturer, article, storageId)
 }
 function epcChpuNormalizeGroupBrand(manufacturer)
 {
+	// CHPU: never collapse warehouse brands via synonym/canonical maps.
+	if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
+	{
+		return String(manufacturer || '').trim().toUpperCase();
+	}
 	var canon = epcCrossCanonicalBrand(manufacturer);
 	var req = (typeof search_object !== 'undefined' && search_object.requested_manufacturer) ? search_object.requested_manufacturer : (typeof SelectedManufacturer !== 'undefined' ? SelectedManufacturer : null);
 	if(req && epcSameManufacturer(manufacturer, req))
@@ -2657,7 +2662,8 @@ function epcChpuFindEquivalentGroupKey(groupKey, groupsMap)
 		{
 			continue;
 		}
-		if(epcSameManufacturer(existingParts[0], parts[0]) || epcCrossBrandsEquivalent(existingParts[0], parts[0]))
+		// Exact manufacturer equality only — do not merge AISINC into AISIN via synonyms.
+		if(epcSameManufacturer(existingParts[0], parts[0]))
 		{
 			return existingKey;
 		}
@@ -3315,18 +3321,11 @@ function epcSameManufacturer(left, right)
 	{
 		return true;
 	}
+	// Exact brand match only (case-insensitive). Do not prefix-match or use
+	// synonym map here — warehouse brands like AISINC must stay distinct from AISIN.
 	var leftNorm = String(left || '').trim().toUpperCase();
 	var rightNorm = String(right || '').trim().toUpperCase();
-	if(leftNorm === rightNorm)
-	{
-		return true;
-	}
-	// Synonym map only — never prefix-match (AISINC must not equal AISIN).
-	if(typeof epcCrossBrandsEquivalent === 'function')
-	{
-		return epcCrossBrandsEquivalent(leftNorm, rightNorm);
-	}
-	return false;
+	return leftNorm !== '' && leftNorm === rightNorm;
 }
 
 //Обработка полученного результата
@@ -3367,7 +3366,8 @@ function bindBunchResult(answer)
     {
 		if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
 		{
-			answer.Products[i].manufacturer = epcCrossCanonicalBrand(answer.Products[i].manufacturer);
+			// Keep warehouse brand labels as returned (AISINC must not become AISIN).
+			answer.Products[i].manufacturer = String(answer.Products[i].manufacturer || '').trim();
 			if(!answer.Products[i].storage_caption)
 			{
 				var sid = parseInt(answer.Products[i].storage_id, 10);
