@@ -3050,6 +3050,22 @@ defined('_ASTEXE_') or die('No access');
 	.epc-chpu-direct-part-search .epc-parts-result-hero {
 		display: none !important;
 	}
+	/* CHPU results: header search only — hide redundant in-page search card. */
+	.epc-chpu-direct-part-search .search_limo,
+	.epc-chpu-direct-part-search .epc-parts-result-tools:empty {
+		display: none !important;
+	}
+	.epc-chpu-direct-part-search #work_area {
+		min-height: 0;
+	}
+	.epc-chpu-direct-part-search #products_area {
+		min-height: 120px;
+	}
+	.epc-chpu-direct-part-search #all_table_products {
+		display: table !important;
+		visibility: visible !important;
+		opacity: 1 !important;
+	}
 	.epc-chpu-actions-bar {
 		align-items: center;
 		display: flex;

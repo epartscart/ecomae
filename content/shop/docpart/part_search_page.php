@@ -237,10 +237,11 @@ $initial_position_filter = (int)$DP_Config->show_filter;
 // Отображать строку поиска (1 - да, 0 - нет)
 $initial_position_search = (int)$DP_Config->show_search_string;
 
-// CHPU part pages (/parts/BRAND/ARTICLE): always show the Docpart filter column and search row.
+// CHPU part pages (/parts/BRAND/ARTICLE): show filter, but never the redundant
+// in-page "Search by part number" panel (header search is enough).
 if (!empty($epc_chpu_direct_pricing)) {
 	$initial_position_filter = 1;
-	$initial_position_search = 1;
+	$initial_position_search = 0;
 }
 
 /* ********************************* */
@@ -1864,6 +1865,7 @@ function epcMountChpuCrossActions()
 		return;
 	}
 	var bar = document.getElementById('epc-chpu-actions-bar');
+	var tools = document.querySelector('.epc-parts-result-tools');
 	var crossBtn = document.getElementById('epc-cross-search-btn');
 	var fitmentBtn = document.getElementById('epc-fitment-check-btn');
 	if(bar && crossBtn && crossBtn.parentNode !== bar)
@@ -1873,6 +1875,18 @@ function epcMountChpuCrossActions()
 	if(bar && fitmentBtn && fitmentBtn.parentNode !== bar)
 	{
 		bar.insertBefore(fitmentBtn, crossBtn && crossBtn.parentNode === bar ? crossBtn : null);
+	}
+	if(bar && tools)
+	{
+		var leftover = tools.querySelectorAll('a,button');
+		for(var t = 0; t < leftover.length; t++)
+		{
+			if(leftover[t].parentNode === tools)
+			{
+				bar.appendChild(leftover[t]);
+			}
+		}
+		tools.style.display = 'none';
 	}
 }
 function epcChpuInitFiltersAfterLoad()
@@ -4851,14 +4865,14 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 </script>
 <?php
 // Поиск отображается только в мобильной версии, нужен что бы отобразить поиск выше фильтра.
-if($initial_position_search == 1 && empty($epc_brand_picker_mode)){
+if($initial_position_search == 1 && empty($epc_brand_picker_mode) && empty($epc_chpu_direct_pricing)){
 	$value_for_input_search = str_replace('"','',$value_for_input_search);
 ?>
 <div class="hidden-md hidden-lg col-md-12 search_limo">
 	<div class="panel panel-primary">
 		<div class="panel-heading"><i class="fa fa-search" aria-hidden="true"></i> <?php echo translate_str_by_id(4176); ?></div>
 		<div style="position:relative;" class="panel-body">
-			<form role="form" action="<?php echo $multilang_params['lang_href']; ?>/shop/part_search" method="GET"<?php if (!empty($epc_chpu_direct_pricing)) { ?> onsubmit="return epcChpuInlineSearchSubmit(event);"<?php } ?>>
+			<form role="form" action="<?php echo $multilang_params['lang_href']; ?>/shop/part_search" method="GET">
 				<div class="input-group">
 					<input value="<?php echo $value_for_input_search; ?>" type="text" class="form-control" placeholder="<?php echo translate_str_by_id(4176); ?>" name="article" />
 					<span class="input-group-btn">
@@ -5134,14 +5148,14 @@ function epcPrimeWarehouseFilter()
 </div>
 <?php } ?>
 <?php
-if($initial_position_search == 1 && empty($epc_brand_picker_mode)){
+if($initial_position_search == 1 && empty($epc_brand_picker_mode) && empty($epc_chpu_direct_pricing)){
 	$value_for_input_search = str_replace('"','',$value_for_input_search);
 ?>
 <div class="hidden-xs hidden-sm search_limo" style="margin-bottom:12px;">
 	<div class="panel panel-primary">
 		<div class="panel-heading"><i class="fa fa-search" aria-hidden="true"></i> <?php echo translate_str_by_id(4176); ?></div>
 		<div style="position:relative;" class="panel-body">
-			<form role="form" action="<?php echo $multilang_params['lang_href']; ?>/shop/part_search" method="GET"<?php if (!empty($epc_chpu_direct_pricing)) { ?> onsubmit="return epcChpuInlineSearchSubmit(event);"<?php } ?>>
+			<form role="form" action="<?php echo $multilang_params['lang_href']; ?>/shop/part_search" method="GET">
 				<div class="input-group">
 					<input value="<?php echo $value_for_input_search; ?>" type="text" class="form-control" placeholder="<?php echo translate_str_by_id(4176); ?>" name="article" />
 					<span class="input-group-btn">
@@ -6591,22 +6605,44 @@ else if( $search_type == "prices_by_article_and_manufacturer" )
 		if(typeof epcMountChpuCrossActions === 'function'){
 			epcMountChpuCrossActions();
 		}
-		if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch()){
+		function epcChpuEnsureStockTableVisible()
+		{
+			var area = document.getElementById('products_area');
+			var hasTable = area && area.innerHTML && area.innerHTML.indexOf('all_table_products') !== -1;
+			if(hasTable)
+			{
+				if(typeof epcChpuHideProcessingIndicator === 'function')
+				{
+					epcChpuHideProcessingIndicator();
+				}
+				return true;
+			}
+			if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+			{
+				return true;
+			}
+			return false;
+		}
+		if(epcChpuEnsureStockTableVisible()){
 			if(typeof epcFetchCrossData === 'function'){
 				epcFetchCrossData(search_object.article);
 			}
 		}else if(typeof epcChpuStartFullPriceSearch === 'function'){
 			epcChpuStartFullPriceSearch('<?php echo str_replace(array("\\", "'"), array("\\\\", "\\'"), $epc_direct_manufacturer); ?>');
-			setTimeout(function(){
-				var epcProc = document.getElementById('processing_indicator');
-				if(!epcProc || !epcProc.querySelector('img')){ return; }
-				if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch()){
-					if(typeof epcFetchCrossData === 'function'){
-						epcFetchCrossData(search_object.article);
-					}
-				}
-			}, 3000);
 		}
+		// Retry paint — empty white area under Fitment/Crosses is usually a late/failed first review.
+		var epcChpuPaintTries = 0;
+		var epcChpuPaintTimer = setInterval(function(){
+			epcChpuPaintTries++;
+			if(epcChpuEnsureStockTableVisible() || epcChpuPaintTries >= 12)
+			{
+				clearInterval(epcChpuPaintTimer);
+				if(typeof epcFetchCrossData === 'function' && epcChpuPaintTries > 1)
+				{
+					epcFetchCrossData(search_object.article);
+				}
+			}
+		}, 500);
 		});
 		<?php
 	}
