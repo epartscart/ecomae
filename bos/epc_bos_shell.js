@@ -5,6 +5,29 @@
 (function () {
     'use strict';
 
+    function bosCsrf() {
+        if (window.EPC_BOS_CSRF) return String(window.EPC_BOS_CSRF);
+        var meta = document.querySelector('meta[name="epc-bos-csrf"]');
+        return meta ? String(meta.getAttribute('content') || '') : '';
+    }
+
+    function bosAjax(fd) {
+        if (!(fd instanceof FormData)) {
+            fd = new FormData();
+        }
+        var token = bosCsrf();
+        if (token) {
+            fd.append('epc_csrf', token);
+        }
+        return fetch('/bos/?action=ajax', {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin',
+            headers: token ? { 'X-EPC-CSRF': token } : {}
+        }).then(function (r) { return r.json(); });
+    }
+    window.bosAjax = bosAjax;
+
     /* ═══════════════════ LOGIN PAGE ═══════════════════ */
     var loginForm = document.getElementById('bosLoginForm');
     var loginFormErp = document.getElementById('bosLoginFormErp');

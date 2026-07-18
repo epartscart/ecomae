@@ -1,21 +1,21 @@
 <?php
 /**
  * Ensure Super CP operator login.
- * https://www.ecomae.com/ecomae-setup-super-admin.php?token=epartscart-deploy-2026&apply=1
+ * https://www.ecomae.com/ecomae-setup-super-admin.php?token=...&apply=1&email=...&password=...
  */
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+error_reporting(0);
+ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
-$token = isset($_GET['token']) ? (string) $_GET['token'] : '';
-if ($token !== 'epartscart-deploy-2026') {
-	http_response_code(403);
-	exit(json_encode(array('status' => false, 'message' => 'Forbidden')));
-}
+require_once __DIR__ . '/epc_deploy_auth.php';
+epc_deploy_require_token(false, 'secret');
 
 $apply = !empty($_GET['apply']);
-$email = trim(isset($_GET['email']) ? (string) $_GET['email'] : 'taxofin2025@gmail.com');
-$password = isset($_GET['password']) ? (string) $_GET['password'] : '12345678';
-
+$email = trim(isset($_GET['email']) ? (string) $_GET['email'] : '');
+$password = isset($_GET['password']) ? (string) $_GET['password'] : '';
+if ($email === '' || $password === '') {
+	http_response_code(400);
+	exit(json_encode(array('status' => false, 'message' => 'email and password required')));
+}
 require_once __DIR__ . '/config.php';
 $cfg = new DP_Config();
 require_once __DIR__ . '/content/general_pages/epc_portal.php';

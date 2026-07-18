@@ -26,6 +26,13 @@ epc_bos_session_start();
 $bosAction = isset($_GET['action']) ? trim($_GET['action']) : '';
 
 if ($bosAction === 'ajax') {
+    $bosSec = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_security.php';
+    if (is_file($bosSec)) {
+        require_once $bosSec;
+        if (function_exists('epc_bos_ajax_entry_guard')) {
+            epc_bos_ajax_entry_guard();
+        }
+    }
     require_once __DIR__ . '/ajax_epc_bos.php';
     exit;
 }
@@ -129,6 +136,15 @@ $industriesJson = json_encode($industries, JSON_UNESCAPED_UNICODE);
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <link rel="preload" href="/epc-static.php?f=bos/epc_bos_shell.css&v=<?php echo EPC_BOS_VERSION; ?>" as="style">
 <link rel="stylesheet" href="/epc-static.php?f=bos/epc_bos_shell.css&v=<?php echo EPC_BOS_VERSION; ?>">
+<?php
+$bosSecHead = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_security.php';
+if ($isLoggedIn && is_file($bosSecHead)) {
+	require_once $bosSecHead;
+	if (function_exists('epc_bos_csrf_meta')) {
+		echo epc_bos_csrf_meta();
+	}
+}
+?>
 </head>
 <body class="bos-body<?php echo !$isLoggedIn ? ' bos-body--login' : ''; ?><?php echo $tenantCountryProfile && ($tenantCountryProfile['dir'] ?? '') === 'rtl' ? ' bos-rtl' : ''; ?>">
 

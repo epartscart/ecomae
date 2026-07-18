@@ -88,10 +88,26 @@ function epc_portal_shared_erp_tenant_pdo(array $tenantRow): ?PDO
 
 function epc_portal_shared_erp_cookie_site_key(): string
 {
-	if (empty($_COOKIE[epc_portal_shared_erp_cookie_name()])) {
-		return '';
+	$cookieName = epc_portal_shared_erp_cookie_name();
+	$fromCookie = '';
+	if (!empty($_COOKIE[$cookieName])) {
+		$fromCookie = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $_COOKIE[$cookieName]));
 	}
-	return preg_replace('/[^a-z0-9_]/', '', strtolower((string) $_COOKIE[epc_portal_shared_erp_cookie_name()]));
+	$fromSession = '';
+	if (session_status() === PHP_SESSION_NONE) {
+		@session_start();
+	}
+	if (session_status() === PHP_SESSION_ACTIVE) {
+		$fromSession = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($_SESSION['epc_erp_tenant_bound'] ?? '')));
+	}
+	// Session binding wins; reject cookie spoofing that disagrees with the bound tenant.
+	if ($fromSession !== '') {
+		if ($fromCookie !== '' && $fromCookie !== $fromSession) {
+			return '';
+		}
+		return $fromSession;
+	}
+	return $fromCookie;
 }
 
 function epc_portal_shared_erp_set_tenant_cookie(string $siteKey): void
@@ -100,14 +116,28 @@ function epc_portal_shared_erp_set_tenant_cookie(string $siteKey): void
 	if ($key === '') {
 		return;
 	}
-	setcookie(epc_portal_shared_erp_cookie_name(), $key, 0, '/', '', false, true);
+	$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+		|| (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+	// HttpOnly cookie; Secure when HTTPS. Avoid array options for older PHP.
+	setcookie(epc_portal_shared_erp_cookie_name(), $key, 0, '/; samesite=Lax', '', $secure, true);
 	$_COOKIE[epc_portal_shared_erp_cookie_name()] = $key;
+	if (session_status() === PHP_SESSION_NONE) {
+		@session_start();
+	}
+	if (session_status() === PHP_SESSION_ACTIVE) {
+		$_SESSION['epc_erp_tenant_bound'] = $key;
+	}
 }
 
 function epc_portal_shared_erp_clear_tenant_cookie(): void
 {
-	setcookie(epc_portal_shared_erp_cookie_name(), '', time() - 3600, '/', '', false, true);
+	$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+		|| (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+	setcookie(epc_portal_shared_erp_cookie_name(), '', time() - 3600, '/; samesite=Lax', '', $secure, true);
 	unset($_COOKIE[epc_portal_shared_erp_cookie_name()]);
+	if (session_status() === PHP_SESSION_ACTIVE) {
+		unset($_SESSION['epc_erp_tenant_bound']);
+	}
 }
 
 function epc_portal_shared_erp_session_valid(?array $tenantRow = null): bool

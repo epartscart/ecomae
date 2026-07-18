@@ -2580,8 +2580,15 @@ function epcFetchCrossData(article)
 			{
 				epcCrossRebuildBrandByArticleMap();
 			}
-			var refLoaded = data.reference_count ? parseInt(data.reference_count, 10) : window.epcCrossAllReferences.length;
+			var refLoaded = data.unique_reference_count
+				? parseInt(data.unique_reference_count, 10)
+				: (data.reference_count ? parseInt(data.reference_count, 10) : window.epcCrossAllReferences.length);
+			// Prefer API unique total; never treat raw catalog row counts as "still loading" when all uniques are present.
 			var refTotal = data.total ? parseInt(data.total, 10) : refLoaded;
+			if(refLoaded > 0 && refTotal < refLoaded)
+			{
+				refTotal = refLoaded;
+			}
 			if((!data.status || refLoaded <= 0) && epcApplyCrossFallbackState('Cross search is using saved CP crosses while live lookup catches up.'))
 			{
 				data.references = window.epcCrossAllReferences.slice(0);
@@ -7162,6 +7169,10 @@ if(screen.width < 991 && (typeof epc_chpu_direct_pricing === 'undefined' || !epc
 
 <?php
 //В зависимости от режима - отображаем результат соответствующим скриптом
+if (!function_exists('epc_storefront_prices_styles')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+}
+echo epc_storefront_prices_styles();
 echo epc_wa_styles();
 echo epc_wa_frontend_script($DP_Config);
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/part_search_page_".$table_mode.".php");

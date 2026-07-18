@@ -21,6 +21,20 @@ define('EPC_BOS_SESSION_KEY', 'epc_bos_context');
 
 function epc_bos_session_start(): void
 {
+    $secFile = __DIR__ . '/epc_security_kernel.php';
+    if (is_file($secFile)) {
+        require_once $secFile;
+        if (function_exists('epc_sec_send_headers')) {
+            epc_sec_send_headers('DENY');
+        }
+    }
+    $sessionFile = __DIR__ . '/../users/epc_session_security.php';
+    if (is_file($sessionFile)) {
+        require_once $sessionFile;
+        if (function_exists('epc_session_harden_ini') && session_status() === PHP_SESSION_NONE) {
+            epc_session_harden_ini();
+        }
+    }
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -47,6 +61,25 @@ function epc_bos_session_start(): void
                 }
                 echo json_encode(epc_bos_ajax_login_secure());
                 exit;
+            }
+        }
+    }
+
+    // bos/ is often root-owned — enforce AJAX auth here before ajax_epc_bos.php loads.
+    static $ajaxGuarded = false;
+    if (
+        !$ajaxGuarded
+        && defined('EPC_BOS_ENTRY')
+        && PHP_SAPI !== 'cli'
+        && isset($_GET['action'])
+        && (string) $_GET['action'] === 'ajax'
+    ) {
+        $ajaxGuarded = true;
+        $secBos = __DIR__ . '/epc_bos_security.php';
+        if (is_file($secBos)) {
+            require_once $secBos;
+            if (function_exists('epc_bos_ajax_entry_guard')) {
+                epc_bos_ajax_entry_guard();
             }
         }
     }

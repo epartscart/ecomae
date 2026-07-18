@@ -1,10 +1,13 @@
 <?php
 /**
  * Portal + Taxofinca install setup.
- * https://www.epartscart.com/epc-portal-setup.php
- * https://www.taxofinca.com/epc-portal-setup.php
+ * https://www.epartscart.com/epc-portal-setup.php?token=...
+ * https://www.taxofinca.com/epc-portal-setup.php?token=...
  */
+require_once __DIR__ . '/epc_deploy_auth.php';
+epc_deploy_require_token(false, 'secret');
 header('Content-Type: text/plain; charset=utf-8');
+header('Cache-Control: no-store');
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/content/general_pages/epc_portal.php';

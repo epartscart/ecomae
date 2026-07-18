@@ -189,17 +189,27 @@ switch($action){
 			}
 		}
 		
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+		$epc_guest_commerce_blocked = epc_storefront_guest_commerce_blocked();
+
 		// Цена
-		$price = number_format($product['price'], 2, '.', ' ');
-		
-		//Индикатор валюты
-		if($DP_Config->currency_show_mode == "sign_before")
-		{
-			$price = $product['currency_indicator'] .' '. $price;
-		}
-		else if($DP_Config->currency_show_mode == "sign_after" || $DP_Config->currency_show_mode == "short_name_after")
-		{
-			$price = $price .' '. $product['currency_indicator'];
+		if ($epc_guest_commerce_blocked) {
+			$price = epc_storefront_prices_login_cta_html(
+				isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null
+			);
+		} else {
+			$price = number_format($product['price'], 2, '.', ' ');
+
+			//Индикатор валюты
+			if($DP_Config->currency_show_mode == "sign_before")
+			{
+				$price = $product['currency_indicator'] .' '. $price;
+			}
+			else if($DP_Config->currency_show_mode == "sign_after" || $DP_Config->currency_show_mode == "short_name_after")
+			{
+				$price = $price .' '. $product['currency_indicator'];
+			}
 		}
 		?>
 		<div class="row" style="margin: 0;">
@@ -269,6 +279,10 @@ switch($action){
 					</table>
 					
 					<div style="text-align:right; margin-top: 10px;">
+						<?php if ($epc_guest_commerce_blocked) { ?>
+						<div><?=$price;?></div>
+						<div style="margin-top:10px;"><?php echo epc_storefront_commerce_login_cta_html(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null); ?></div>
+						<?php } else { ?>
 						<div style="display:inline-block;">
 							<table>
 								<tr>
@@ -292,6 +306,7 @@ switch($action){
 							
 							<a style="border-radius: 4px;" href="javascript:void(0);" class="btn btn-ar btn-primary" onclick="addToCart(<?=$product['aid'];?>);"><?php echo translate_str_by_id(4199); ?></a>
 						</div>
+						<?php } ?>
 					</div>
 					
 				</div>

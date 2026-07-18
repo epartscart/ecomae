@@ -398,6 +398,9 @@ function epcWaShareCart() {
 	epcWaOpen(s.sales, epcWaBilingual(en, ar));
 }
 function epcWaShareBtnHTML(brand, article, name, price) {
+	if (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible) {
+		return '';
+	}
 	var href = epcWaShareProductHref(brand, article, name, price);
 	if (!href) { return ''; }
 	var disp = (window.epcWaShare && window.epcWaShare.salesDisplay) ? window.epcWaShare.salesDisplay : '';

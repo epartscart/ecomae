@@ -34,7 +34,9 @@ else
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 $user_id = DP_User::getUserId();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_whatsapp_share.php';
+echo epc_storefront_prices_styles();
 echo epc_wa_styles();
 echo epc_wa_frontend_script($DP_Config);
 $session_record = false;
@@ -55,6 +57,27 @@ else
 	else
 	{
 		$session_id = (int)$session_record["id"];
+	}
+	if (epc_storefront_guest_commerce_blocked(0)) {
+		if ($session_id > 0 && isset($db_link) && $db_link instanceof PDO) {
+			epc_storefront_clear_guest_cart($db_link, $session_id);
+		}
+		$login = htmlspecialchars(epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), ENT_QUOTES, 'UTF-8');
+		$signup = htmlspecialchars(epc_storefront_auth_signup_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), ENT_QUOTES, 'UTF-8');
+		?>
+		<div id="cart_area">
+			<div class="epc-cart-login-gate">
+				<h2>Sign in to use your cart</h2>
+				<p>Prices, checkout, quotes, and WhatsApp ordering are available after you log in or register.</p>
+				<div class="epc-commerce-login-cta">
+					<a class="btn btn-sm btn-primary" href="<?php echo $login; ?>">Log in</a>
+					<span class="epc-commerce-login-cta__sep">or</span>
+					<a class="btn btn-sm btn-default" href="<?php echo $signup; ?>">Register</a>
+				</div>
+			</div>
+		</div>
+		<?php
+		return;
 	}
 }
 
