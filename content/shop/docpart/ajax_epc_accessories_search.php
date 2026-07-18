@@ -48,7 +48,13 @@ try {
 			if (session_status() !== PHP_SESSION_ACTIVE) {
 				@session_start();
 			}
-			$pricesVisible = epc_storefront_prices_visible_for_user(null);
+			// DP_User helpers expect the portal $db_link global.
+			$GLOBALS['db_link'] = $db;
+			try {
+				$pricesVisible = epc_storefront_prices_visible_for_user(null);
+			} catch (Throwable $priceErr) {
+				$pricesVisible = true;
+			}
 		}
 	}
 	$result['status'] = true;
@@ -57,5 +63,9 @@ try {
 	echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (Throwable $e) {
 	error_log('[epc_accessories] ' . $e->getMessage());
-	echo json_encode(array('status' => false, 'message' => 'Catalog error'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	$payload = array('status' => false, 'message' => 'Catalog error');
+	if (!empty($_GET['epc_debug']) && $_GET['epc_debug'] === '1') {
+		$payload['debug'] = $e->getMessage();
+	}
+	echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
