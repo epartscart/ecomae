@@ -1044,9 +1044,15 @@ if (function_exists('sys_getloadavg')) {
 }
 if ($epc_article_only_price_bunch) {
 	try {
-		// Only skip SSR warehouse SQL under extreme load. Skipping too early leaves
-		// guests with an empty #products_area ("Goods not found") when ajax is slow.
-		if ($epc_host_load1 !== null && $epc_host_load1 >= 22.0) {
+		// Brand+article CHPU: skip blocking SSR — warehouse AJAX is ~30–50ms with indexed
+		// article_search. SSR was adding multi-second TTFB while the JS path already paints
+		// results immediately via epcRunChpuPriceSearch().
+		// Brand-picker (/parts/brands/ARTICLE) keeps a light SSR seed for first paint.
+		$epc_skip_blocking_ssr = !empty($epc_chpu_direct_pricing);
+		if ($epc_skip_blocking_ssr) {
+			throw new RuntimeException('skip_ssr_use_ajax_fast_path');
+		}
+		if ($epc_host_load1 !== null && $epc_host_load1 >= 8.0) {
 			throw new RuntimeException('load_shed_ssr_bunch');
 		}
 		$epc_ss_price_bunches = array();
@@ -1068,13 +1074,19 @@ if ($epc_article_only_price_bunch) {
 				'analogs' => array(),
 			);
 			// Article-only SQL across mapped UAE price warehouses (ignore URL brand for stock lookup).
+			$epc_ss_t0 = microtime(true);
 			$epc_ss_prices = new prices_enclosure($article, array(), $epc_ss_storage_options, $article);
-			$epc_initial_price_bunch = json_decode(json_encode($epc_ss_prices), true);
-			if (empty($epc_initial_price_bunch['Products'])) {
+			// Hard budget: never block first paint more than ~400ms for SSR seed.
+			if ((microtime(true) - $epc_ss_t0) > 0.40) {
 				$epc_initial_price_bunch = null;
 			} else {
-				$epc_initial_price_bunch['result'] = 1;
-				$epc_initial_price_bunch['storage_id'] = 0;
+				$epc_initial_price_bunch = json_decode(json_encode($epc_ss_prices), true);
+				if (empty($epc_initial_price_bunch['Products'])) {
+					$epc_initial_price_bunch = null;
+				} else {
+					$epc_initial_price_bunch['result'] = 1;
+					$epc_initial_price_bunch['storage_id'] = 0;
+				}
 			}
 		}
 	} catch (Throwable $e) {
