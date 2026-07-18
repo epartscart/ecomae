@@ -162,7 +162,16 @@ if($article_norm_for_cross !== '' && $epc_use_local_crosses)
 	{
 		// Keep SSR/TTFB small: deep cross expansion runs in JS ajax_epc_cross_search.
 		// Large 6×500 local walks here saturate PHP-FPM and trigger Cloudflare 524s.
-		$cross_partners = docpart_load_interchange_partners($db_link, $article_norm_for_cross, 2, 80);
+		$epc_chpu_cross_rounds = 2;
+		$epc_chpu_cross_limit = 80;
+		if (function_exists('sys_getloadavg')) {
+			$__epc_cross_load = @sys_getloadavg();
+			if (is_array($__epc_cross_load) && isset($__epc_cross_load[0]) && (float) $__epc_cross_load[0] >= 8.0) {
+				$epc_chpu_cross_rounds = 1;
+				$epc_chpu_cross_limit = 40;
+			}
+		}
+		$cross_partners = docpart_load_interchange_partners($db_link, $article_norm_for_cross, $epc_chpu_cross_rounds, $epc_chpu_cross_limit);
 		$cross_seen = array();
 		$cross_anchor_brand = !empty($manufacturer) ? trim(html_entity_decode($manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8')) : '';
 		$cross_anchor_article = trim($article_input);
