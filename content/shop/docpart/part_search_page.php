@@ -160,7 +160,18 @@ if($article_norm_for_cross !== '' && $epc_use_local_crosses)
 {
 	try
 	{
-		$cross_partners = docpart_load_interchange_partners($db_link, $article_norm_for_cross, 6, 500);
+		// Keep SSR/TTFB small: deep cross expansion runs in JS ajax_epc_cross_search.
+		// Large 6×500 local walks here saturate PHP-FPM and trigger Cloudflare 524s.
+		$epc_chpu_cross_rounds = 2;
+		$epc_chpu_cross_limit = 80;
+		if (function_exists('sys_getloadavg')) {
+			$__epc_cross_load = @sys_getloadavg();
+			if (is_array($__epc_cross_load) && isset($__epc_cross_load[0]) && (float) $__epc_cross_load[0] >= 8.0) {
+				$epc_chpu_cross_rounds = 1;
+				$epc_chpu_cross_limit = 40;
+			}
+		}
+		$cross_partners = docpart_load_interchange_partners($db_link, $article_norm_for_cross, $epc_chpu_cross_rounds, $epc_chpu_cross_limit);
 		$cross_seen = array();
 		$cross_anchor_brand = !empty($manufacturer) ? trim(html_entity_decode($manufacturer, ENT_QUOTES | ENT_XML1, 'UTF-8')) : '';
 		$cross_anchor_article = trim($article_input);
@@ -1006,8 +1017,20 @@ for ($epc_bunch_index = 0; $epc_bunch_index < count($office_storage_bunches); $e
 // CHPU brand+article and /parts/brands/ARTICLE: pre-load price-list stock server-side (article-only SQL).
 $epc_initial_price_bunch = null;
 $epc_article_only_price_bunch = (!empty($epc_chpu_direct_pricing) || !empty($epc_brand_picker_mode)) && $article !== '';
+$epc_host_load1 = null;
+if (function_exists('sys_getloadavg')) {
+	$epc_load_tmp = @sys_getloadavg();
+	if (is_array($epc_load_tmp) && isset($epc_load_tmp[0])) {
+		$epc_host_load1 = (float) $epc_load_tmp[0];
+	}
+}
 if ($epc_article_only_price_bunch) {
 	try {
+		// Under extreme load, skip SSR price SQL so the HTML shell returns before CF 524.
+		// Client still paints via ajax_getProductsOfBunch / epcRunChpuPriceSearch.
+		if ($epc_host_load1 !== null && $epc_host_load1 >= 14.0) {
+			throw new RuntimeException('load_shed_ssr_bunch');
+		}
 		$epc_ss_price_bunches = array();
 		foreach ($office_storage_bunches as $epc_ss_bunch) {
 			if ((int) $epc_ss_bunch['protocol_version'] === 3 && !empty($epc_ss_bunch['office_storage_bunches'])) {

@@ -14,10 +14,8 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 set_time_limit(60);
 
-if (($_GET['token'] ?? '') !== 'epartscart-deploy-2026') {
-	http_response_code(403);
-	exit(json_encode(array('ok' => false, 'error' => 'Forbidden')));
-}
+require_once __DIR__ . '/epc_deploy_auth.php';
+epc_deploy_require_token(false);
 
 if (!defined('_ASTEXE_')) {
 	define('_ASTEXE_', 1);
@@ -35,9 +33,14 @@ $_SERVER['HTTP_HOST'] = $hostname !== '' ? $hostname : 'www.epartscart.com';
 $cfg = new DP_Config();
 epc_portal_apply_config($cfg);
 
-if ((string) ($_GET['key'] ?? '') !== (string) $cfg->tech_key) {
-	http_response_code(403);
-	exit(json_encode(array('ok' => false, 'error' => 'Invalid key')));
+// Optional tech_key: if provided it must match; deploy token alone is enough.
+$requestKey = trim((string) ($_GET['key'] ?? $_POST['key'] ?? ''));
+if ($requestKey !== '') {
+	$tech = (string) ($cfg->tech_key ?? '');
+	if ($tech === '' || !hash_equals($tech, $requestKey)) {
+		http_response_code(403);
+		exit(json_encode(array('ok' => false, 'error' => 'Invalid key')));
+	}
 }
 
 $apply = !empty($_GET['apply']);
@@ -105,6 +108,7 @@ $killPatterns = array(
 	'ALTER TABLE',
 	'shop_docpart_prices_data',
 	'shop_docpart_prices',
+	'shop_docpart_articles_analogs_list',
 	'information_schema',
 	'metadata lock',
 	'Waiting for table',
