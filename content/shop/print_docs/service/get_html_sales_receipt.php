@@ -95,6 +95,9 @@ if ($buyer === '') {
 
 $order_time = !empty($order_record['time']) ? date('Y-m-d H:i', (int) $order_record['time']) : date('Y-m-d H:i');
 $total = 0.0;
+$epc_print_doc_title = (!empty($epc_print_doc_title) && is_string($epc_print_doc_title))
+	? $epc_print_doc_title
+	: 'Sales receipt';
 
 ob_start();
 ?>
@@ -102,7 +105,7 @@ ob_start();
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Sales receipt #<?php echo (int) $order_id; ?></title>
+<title><?php echo htmlspecialchars($epc_print_doc_title, ENT_QUOTES, 'UTF-8'); ?> #<?php echo (int) $order_id; ?></title>
 <style>
 body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #111; margin: 24px; }
 h1 { font-size: 22px; margin: 0 0 6px; }
@@ -120,7 +123,7 @@ th { background: #f5f5f5; text-align: left; }
 <div class="no-print" style="margin-bottom:12px;">
 	<button onclick="window.print()">Print</button>
 </div>
-<h1>Sales receipt</h1>
+<h1><?php echo htmlspecialchars($epc_print_doc_title, ENT_QUOTES, 'UTF-8'); ?></h1>
 <div class="muted"><?php echo htmlspecialchars($company_name, ENT_QUOTES, 'UTF-8'); ?>
 <?php if ($company_address !== '') { ?> — <?php echo htmlspecialchars($company_address, ENT_QUOTES, 'UTF-8'); ?><?php } ?>
 <?php if ($company_phone !== '') { ?> — <?php echo htmlspecialchars($company_phone, ENT_QUOTES, 'UTF-8'); ?><?php } ?>

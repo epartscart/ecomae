@@ -55,6 +55,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 define('_ASTEXE_', 1);
 define('_INTASK_', 1);
 
+// Legacy invoice template calls get_date(); helper is missing from this codebase.
+if (!function_exists('get_date')) {
+	function get_date($time)
+	{
+		$ts = (int) $time;
+		return $ts > 0 ? date('d.m.Y', $ts) : date('d.m.Y');
+	}
+}
+
 $user_id = (int) DP_User::getUserId();
 $doc_name = preg_replace('/[^a-zA-Z0-9_\\-]/', '', (string) ($_GET['doc_name'] ?? ''));
 $order_id = (int) ($_GET['order_id'] ?? 0);
@@ -64,15 +73,19 @@ if ($doc_name === '' || $order_id <= 0) {
 	exit('doc_name and order_id are required');
 }
 
+// English templates only. Legacy Russian invoice HTML is incomplete (missing helpers).
 $handlers = array(
 	'sales_receipt' => __DIR__ . '/get_html_sales_receipt.php',
-	'invoice_for_payment' => __DIR__ . '/get_html_invoice_for_payment.php',
+	'invoice_for_payment' => __DIR__ . '/get_html_sales_receipt.php',
 );
 
-// Russian legacy accounting docs are not shipped — fall back to sales receipt.
+// Russian legacy accounting docs (torg_12 / upd / …) fall back to sales receipt.
 if (!isset($handlers[$doc_name])) {
 	$doc_name = 'sales_receipt';
 }
+
+// Caption used inside the shared English template.
+$epc_print_doc_title = ($doc_name === 'invoice_for_payment') ? 'Invoice' : 'Sales receipt';
 
 $handler = $handlers[$doc_name];
 if (!is_file($handler)) {

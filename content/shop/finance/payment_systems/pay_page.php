@@ -12,6 +12,39 @@ $handler = preg_replace('/[^a-z0-9_]/', '', (string)$EPC_PAY_HANDLER);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 $DP_Config = new DP_Config;
+
+try {
+	$db_link = new PDO(
+		'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db . ';charset=utf8',
+		$DP_Config->user,
+		$DP_Config->password,
+		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+	);
+	$db_link->query('SET NAMES utf8;');
+} catch (Throwable $e) {
+	http_response_code(500);
+	exit('Database connection error');
+}
+
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+	if (function_exists('epc_portal_apply_config')) {
+		epc_portal_apply_config($DP_Config);
+		try {
+			$db_link = new PDO(
+				'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db . ';charset=utf8',
+				$DP_Config->user,
+				$DP_Config->password,
+				array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+			);
+			$db_link->query('SET NAMES utf8;');
+		} catch (Throwable $e) {
+			http_response_code(500);
+			exit('Database connection error');
+		}
+	}
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lang/dp_lang.php';
 $multilang_params = multilang_init();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
