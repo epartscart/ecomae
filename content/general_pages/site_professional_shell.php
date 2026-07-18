@@ -1504,8 +1504,11 @@ defined('_ASTEXE_') or die('No access');
 		white-space: nowrap !important;
 		width: 1px !important;
 	}
-	/* Result chrome: keep search card + related parts only (hide marketing column). */
-	.epc-parts-result-hero__content {
+	/* Result chrome: hide Searching-for hero + related-parts strip (header search is enough). */
+	.epc-parts-result-hero,
+	.epc-parts-result-hero__content,
+	.epc-parts-result-hero__card,
+	.epc-complementary-panel {
 		display: none !important;
 	}
 	.epc-parts-result-hero {

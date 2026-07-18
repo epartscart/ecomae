@@ -3321,9 +3321,10 @@ function epcSameManufacturer(left, right)
 	{
 		return true;
 	}
-	if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
+	// Synonym map only — never prefix-match (AISINC must not equal AISIN).
+	if(typeof epcCrossBrandsEquivalent === 'function')
 	{
-		return leftNorm.indexOf(rightNorm) === 0 || rightNorm.indexOf(leftNorm) === 0;
+		return epcCrossBrandsEquivalent(leftNorm, rightNorm);
 	}
 	return false;
 }
@@ -4743,11 +4744,17 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
     }
 	else if(isChpuWarehouseSubRow)
 	{
+		var subBrand = Product.manufacturer || rowBrand || '';
+		var subArticle = Product.article_show || Product.article || rowArticle || '';
+		var subName = Product.name || ProductType.name || '';
 		var subWarehouse = epcProductWarehouseCaption(Product);
+		manufacturer = '<span title="'+ subBrand +'">'+ subBrand +'</span>';
 		if(subWarehouse !== '')
 		{
-			manufacturer = '<span class="epc-warehouse-subrow__label" title="Warehouse offer"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i> '+ subWarehouse +'</span>';
+			manufacturer += '<div class="epc-warehouse-subrow__label" title="Warehouse offer"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i> '+ subWarehouse +'</div>';
 		}
+		article_show = "<a title='<?php echo translate_str_by_id(4335); ?>: "+ subArticle +"' class=\"bread_crumbs_a\" style=\"text-decoration:underline; color:#000; font-weight:700;\" href=\""+ (typeof epcChpuBrandArticleUrl === 'function' ? epcCrossEsc(epcChpuBrandArticleUrl(subBrand, Product.article || subArticle)) : ('<?php echo $multilang_params['lang_href']; ?>/shop/part_search?article=' + encodeURIComponent(Product.article || subArticle))) +"\">"+ subArticle +"</a>";
+		name = "<span title=\""+subName+"\">"+subName+"</span>";
 	}
     
 	
@@ -4785,15 +4792,13 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 	
 	if(!isChpuWarehouseSubRow)
 	{
-	name = "<span title=\""+Product.name+"\">"+Product.name+"</span>";
+		name = "<span title=\""+Product.name+"\">"+Product.name+"</span>";
 	}
 	
 	// <!-------------------------------------------- End Картинки в проценке ---------------------------------------->
 	
-	if(!isChpuWarehouseSubRow)
-	{
 	// Товары Б\У - Добавляем картинку товара, если она есть
-	if(typeof Product.json_params == "string"){
+	if(!isChpuWarehouseSubRow && typeof Product.json_params == "string"){
 		if(Product.json_params != ""){
 			let json_params = JSON.parse(Product.json_params);
 			if(json_params.used == 1){
@@ -4809,7 +4814,6 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 					}
 				}
 				name += images;
-			}
 			}
 		}
 	}

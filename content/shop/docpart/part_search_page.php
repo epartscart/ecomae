@@ -3933,79 +3933,47 @@ $epc_result_article = !empty($article_input) ? $article_input : $article;
 $epc_result_brand_display = $epc_result_brand !== '' ? $epc_result_brand : translate_str_by_id(2070);
 $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] === '1';
 ?>
+<?php
+/* Search-result hero ("Searching for") + related-parts strip removed from UI —
+   header search + results table are enough. Fitment/cross helpers stay available
+   via compact toolbar controls below when needed. */
+?>
 <?php if (empty($epc_brand_picker_mode)) { ?>
-<div class="epc-parts-result-hero">
-	<div class="epc-parts-result-hero__content">
-		<span class="epc-parts-result-hero__eyebrow"><i class="fa fa-bolt" aria-hidden="true"></i> Fast spare parts pricing</span>
-		<h2><?php echo htmlspecialchars($epc_result_brand_display, ENT_QUOTES, 'UTF-8'); ?> <?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?></h2>
-		<p>Compare availability, delivery time, brand matches and alternative parts from connected suppliers in one professional result area.</p>
-		<div class="epc-parts-result-hero__chips">
-			<span><i class="fa fa-check-circle" aria-hidden="true"></i> Live availability</span>
-			<span><i class="fa fa-truck" aria-hidden="true"></i> Delivery options</span>
-			<span><i class="fa fa-shield" aria-hidden="true"></i> Verified part data</span>
-			<?php if ($epc_universal_mode) { ?>
-			<span class="label label-info"><i class="fa fa-wrench"></i> Universal parts mode</span>
-			<?php } else { ?>
-			<a class="label label-default" href="<?php echo htmlspecialchars($multilang_params['lang_href'] . '/shop/part_search?universal=1' . ($epc_result_article !== '' ? '&article=' . rawurlencode($epc_result_article) : ''), ENT_QUOTES, 'UTF-8'); ?>" title="Fluids, clips, and consumables without vehicle fitment"><i class="fa fa-wrench"></i> Universal parts</a>
-			<?php } ?>
+<div class="epc-parts-result-tools" style="margin:8px 0 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+	<button type="button" class="btn btn-default btn-sm epc-fitment-check-btn" id="epc-fitment-check-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>"<?php if ($epc_result_brand !== '') { ?> data-brand="<?php echo htmlspecialchars($epc_result_brand, ENT_QUOTES, 'UTF-8'); ?>"<?php } ?>>
+		<i class="fa fa-car" aria-hidden="true"></i> Fitment check
+	</button>
+	<button type="button" class="btn btn-default btn-sm epc-cross-search-btn" id="epc-cross-search-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>" title="Open all cross references">
+		<i class="fa fa-random" aria-hidden="true"></i>
+		<span id="epc-cross-search-count"><?php echo count($epc_cross_fallback_rows); ?> references</span>
+	</button>
+	<?php if (!$epc_universal_mode && $epc_result_article !== '') { ?>
+	<a class="btn btn-default btn-sm" href="<?php echo htmlspecialchars($multilang_params['lang_href'] . '/shop/part_search?universal=1&article=' . rawurlencode($epc_result_article), ENT_QUOTES, 'UTF-8'); ?>" title="Fluids, clips, and consumables without vehicle fitment"><i class="fa fa-wrench"></i> Universal parts</a>
+	<?php } ?>
+</div>
+<div class="epc-fitment-panel" id="epc-fitment-panel" aria-live="polite">
+	<div class="epc-fitment-panel__head">
+		<div>
+			<div class="epc-fitment-panel__title">Part Fitment</div>
+			<div class="epc-fitment-panel__hint">Choose the matching brand/number — photo, specifications and vehicle fitment load automatically.</div>
 		</div>
+		<button type="button" class="epc-fitment-panel__close" id="epc-fitment-close" aria-label="Close fitment check">&times;</button>
 	</div>
-	<div class="epc-parts-result-hero__card">
-		<div class="epc-parts-result-hero__label">Searching for</div>
-		<div class="epc-parts-result-hero__photo" id="epc-search-result-photo" hidden></div>
-		<div class="epc-parts-result-hero__brand"><?php echo htmlspecialchars($epc_result_brand_display, ENT_QUOTES, 'UTF-8'); ?></div>
-		<div class="epc-parts-result-hero__article"><?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?></div>
-		<form role="form" action="<?php echo $multilang_params['lang_href']; ?>/shop/part_search" method="GET"<?php if (!empty($epc_chpu_direct_pricing)) { ?> onsubmit="return epcChpuInlineSearchSubmit(event);"<?php } ?>>
-			<div class="input-group">
-				<input value="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>" type="text" class="form-control" placeholder="<?php echo translate_str_by_id(4176); ?>" name="article" />
-				<span class="input-group-btn">
-					<button class="btn btn-ar btn-primary" type="submit"><?php echo translate_str_by_id(2763); ?></button>
-				</span>
-			</div>
-		</form>
-		<button type="button" class="epc-fitment-check-btn" id="epc-fitment-check-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>"<?php if ($epc_result_brand !== '') { ?> data-brand="<?php echo htmlspecialchars($epc_result_brand, ENT_QUOTES, 'UTF-8'); ?>"<?php } ?>>
-			<i class="fa fa-car" aria-hidden="true"></i> Fitment check
-		</button>
-		<div class="epc-fitment-panel" id="epc-fitment-panel" aria-live="polite">
-			<div class="epc-fitment-panel__head">
-				<div>
-					<div class="epc-fitment-panel__title">Part Fitment</div>
-					<div class="epc-fitment-panel__hint">Choose the matching brand/number — photo, specifications and vehicle fitment load automatically.</div>
-				</div>
-				<button type="button" class="epc-fitment-panel__close" id="epc-fitment-close" aria-label="Close fitment check">&times;</button>
-			</div>
-			<div class="epc-fitment-panel__body">
-			<div id="epc-fitment-brands" class="epc-fitment-message">Click Fitment check to load matching brands from eparts catalog.</div>
-			<div class="epc-fitment-type-tabs" id="epc-fitment-types" style="display:none;">
-				<button type="button" data-section="PC" class="active">Passenger</button>
-				<button type="button" data-section="CV">Commercial</button>
-				<button type="button" data-section="Motorcycle">Motorbike</button>
-				<button type="button" data-section="ALL">All vehicles</button>
-			</div>
-			<div class="epc-fitment-widget-shell" id="epc-fitment-widget-shell" style="display:none;">
-				<div id="epc-fitment-part" class="epc-fitment-part" style="display:none;" aria-live="polite"></div>
-				<div id="applicability_widget" class="epc-fitment-message">Select a brand/part box to load fitment.</div>
-			</div>
-			</div>
+	<div class="epc-fitment-panel__body">
+		<div id="epc-fitment-brands" class="epc-fitment-message">Click Fitment check to load matching brands from eparts catalog.</div>
+		<div class="epc-fitment-type-tabs" id="epc-fitment-types" style="display:none;">
+			<button type="button" data-section="PC" class="active">Passenger</button>
+			<button type="button" data-section="CV">Commercial</button>
+			<button type="button" data-section="Motorcycle">Motorbike</button>
+			<button type="button" data-section="ALL">All vehicles</button>
 		</div>
-		<button type="button" class="epc-cross-search-btn" id="epc-cross-search-btn" data-article="<?php echo htmlspecialchars($epc_result_article, ENT_QUOTES, 'UTF-8'); ?>" title="Open all cross references">
-			<i class="fa fa-random" aria-hidden="true"></i>
-			<span id="epc-cross-search-count"><?php echo count($epc_cross_fallback_rows); ?> references</span>
-		</button>
+		<div class="epc-fitment-widget-shell" id="epc-fitment-widget-shell" style="display:none;">
+			<div id="epc-fitment-part" class="epc-fitment-part" style="display:none;" aria-live="polite"></div>
+			<div id="applicability_widget" class="epc-fitment-message">Select a brand/part box to load fitment.</div>
+		</div>
 	</div>
 </div>
-<?php
-if ($epc_result_article !== '') {
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_complementary_parts.php';
-	$epc_part_complementary = epc_complementary_render_html(
-		epc_complementary_suggest_for_article($db_link, $epc_result_brand, $epc_result_article, 6),
-		'Related parts — frequently ordered together'
-	);
-	if ($epc_part_complementary !== '') {
-		echo $epc_part_complementary;
-	}
-}
-?>
+<div class="epc-parts-result-hero__photo" id="epc-search-result-photo" hidden></div>
 <?php } ?>
 <script>
 (function(){
