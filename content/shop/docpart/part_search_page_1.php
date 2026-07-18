@@ -2707,7 +2707,7 @@ function epcChpuFindEquivalentGroupKey(groupKey, groupsMap)
 		{
 			continue;
 		}
-		// Exact manufacturer equality only — do not merge AISINC into AISIN via synonyms.
+		// Synonym-aware brand equality (AISIN ≡ AISINC).
 		if(epcSameManufacturer(existingParts[0], parts[0]))
 		{
 			return existingKey;
@@ -3366,11 +3366,25 @@ function epcSameManufacturer(left, right)
 	{
 		return true;
 	}
-	// Exact brand match only (case-insensitive). Do not prefix-match or use
-	// synonym map here — warehouse brands like AISINC must stay distinct from AISIN.
+	// Exact match, or CP synonym group (AISIN ≡ AISINC).
 	var leftNorm = String(left || '').trim().toUpperCase();
 	var rightNorm = String(right || '').trim().toUpperCase();
-	return leftNorm !== '' && leftNorm === rightNorm;
+	if(leftNorm === '' || rightNorm === '')
+	{
+		return false;
+	}
+	if(leftNorm === rightNorm)
+	{
+		return true;
+	}
+	if(typeof epcCrossBrandsEquivalent === 'function')
+	{
+		return epcCrossBrandsEquivalent(leftNorm, rightNorm);
+	}
+	var canonicalMap = window.epcManufacturerCanonicalMap || {};
+	var leftCanon = String(canonicalMap[leftNorm] || leftNorm).toUpperCase();
+	var rightCanon = String(canonicalMap[rightNorm] || rightNorm).toUpperCase();
+	return leftCanon === rightCanon;
 }
 
 //Обработка полученного результата
@@ -3411,8 +3425,22 @@ function bindBunchResult(answer)
     {
 		if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
 		{
-			// Keep warehouse brand labels as returned (AISINC must not become AISIN).
-			answer.Products[i].manufacturer = String(answer.Products[i].manufacturer || '').trim();
+			// Keep warehouse label, but group synonym brands under the page brand when equivalent.
+			var rawMfr = String(answer.Products[i].manufacturer || '').trim();
+			answer.Products[i].manufacturer_warehouse = rawMfr;
+			var pageMfr = '';
+			if(typeof search_object !== 'undefined' && search_object)
+			{
+				pageMfr = String(search_object.requested_manufacturer || SelectedManufacturer || '').trim();
+			}
+			if(pageMfr && typeof epcSameManufacturer === 'function' && epcSameManufacturer(rawMfr, pageMfr))
+			{
+				answer.Products[i].manufacturer = pageMfr;
+			}
+			else
+			{
+				answer.Products[i].manufacturer = rawMfr;
+			}
 			if(!answer.Products[i].storage_caption)
 			{
 				var sid = parseInt(answer.Products[i].storage_id, 10);

@@ -261,6 +261,37 @@ function epc_article_brands_apply_synonyms($db_link, &$brands)
 		}
 	}
 	unset($brand_row);
+
+	// Merge synonym rows (AISINC → AISIN) into one picker brand.
+	$merged = array();
+	$seen_show = array();
+	foreach ($brands as $brand_row) {
+		$show = mb_strtoupper(trim((string) ($brand_row['manufacturer_show'] ?? '')), 'UTF-8');
+		if ($show === '') {
+			$show = mb_strtoupper(trim((string) ($brand_row['manufacturer'] ?? '')), 'UTF-8');
+		}
+		if ($show === '') {
+			continue;
+		}
+		if (isset($seen_show[$show])) {
+			$idx = $seen_show[$show];
+			if (!empty($brand_row['name'])
+				&& ($merged[$idx]['name'] === '' || $merged[$idx]['name'] === 'Name not specified by the supplier')
+			) {
+				$merged[$idx]['name'] = $brand_row['name'];
+			}
+			foreach ((array) ($brand_row['sources'] ?? array()) as $source) {
+				if (!in_array($source, $merged[$idx]['sources'], true)) {
+					$merged[$idx]['sources'][] = $source;
+				}
+			}
+			continue;
+		}
+		$seen_show[$show] = count($merged);
+		$brand_row['manufacturer_show'] = $show;
+		$merged[] = $brand_row;
+	}
+	$brands = $merged;
 }
 
 function epc_collect_article_catalog_brands($db_link, $DP_Config, $article_input)
