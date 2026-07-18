@@ -34,7 +34,7 @@ $industryData = array(
 		array('name' => 'AC Compressor', 'price' => 'AED 780', 'icon' => 'fa-snowflake-o', 'category' => 'Climate', 'image' => 'https://images.unsplash.com/photo-1614200187524-dc4b892acf16?w=400&q=75'),
 	),
 	'features' => array(
-		array('title' => 'Parts Cross-Reference', 'icon' => 'fa-exchange', 'desc' => 'OE, aftermarket and TecDoc cross-references with live stock'),
+		array('title' => 'Parts Cross-Reference', 'icon' => 'fa-exchange', 'desc' => 'OE and aftermarket cross-references with live stock'),
 		array('title' => 'Workshop Calendar', 'icon' => 'fa-calendar', 'desc' => 'Bay scheduling, tech allocation and job card automation'),
 		array('title' => 'Fleet Contracts', 'icon' => 'fa-truck', 'desc' => 'Corporate fleet maintenance contracts with SLA tracking'),
 		array('title' => 'VIN Decoder', 'icon' => 'fa-barcode', 'desc' => 'Decode any VIN to year/make/model and parts compatibility'),
@@ -77,9 +77,9 @@ $industryData = array(
 		'Classic & vintage car restoration',
 	),
 	    'about_video' => 'https://www.youtube.com/embed/XfV4pZsSgmQ',
-    'about_text' => 'The automotive industry spans vehicle manufacturing, parts distribution, dealership networks, aftermarket services, and fleet management. With over 80 million vehicles produced annually worldwide, this sector demands sophisticated inventory management, cross-referencing databases like TecDoc, warranty tracking, and multi-location parts logistics. Our platform supports everything from independent workshops to multi-brand dealer groups with tailored ERP processes.',
+    'about_text' => 'The automotive industry spans vehicle manufacturing, parts distribution, dealership networks, aftermarket services, and fleet management. With over 80 million vehicles produced annually worldwide, this sector demands sophisticated inventory management, parts cross-referencing, warranty tracking, and multi-location parts logistics. Our platform supports everything from independent workshops to multi-brand dealer groups with tailored ERP processes.',
     'about_highlights' => array(
-        'TecDoc and OE parts cross-reference with VIN-based fitment',
+        'OE and aftermarket parts cross-reference with VIN-based fitment',
         'Workshop job card management with bay scheduling and labor tracking',
         'Dealership DMS integration for sales, F&I, and post-sale CRM',
         'Fleet maintenance contracts with SLA monitoring and alerts',
@@ -87,7 +87,7 @@ $industryData = array(
     ),
 
 'sub_industry_products' => array(
-		'Parts catalog & cross-references' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'OEM and aftermarket parts lookup with cross-reference databases (TecDoc, Partslink). Covers engine, transmission, brakes, electrical, and body panels with VIN-based fitment verification','categories'=>array('Parts Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
+		'Parts catalog & cross-references' => array('photo'=>'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&q=75','desc'=>'OEM and aftermarket parts lookup with cross-reference databases. Covers engine, transmission, brakes, electrical, and body panels with VIN-based fitment verification','categories'=>array('Parts Solutions','Core Services','Premium Tier','Add-On Modules','Analytics','Support & Training'),'products'=>array(
 			array('name'=>'Parts Catalog Management Platform','price'=>'AED 150','image'=>'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=75'),
 			array('name'=>'Parts Catalog Operations Suite','price'=>'AED 5,000','image'=>'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&q=75'),
 			array('name'=>'Parts Catalog Analytics Dashboard','price'=>'AED 950','image'=>'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&q=75'),

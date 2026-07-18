@@ -947,7 +947,7 @@ function epc_lax_action_catalogs()
         }
     }
 
-    epc_lax_json(['status' => false, 'error' => 'Laximo API credentials not configured or service unavailable. Configure via CP > Settings > Laximo.'], 503);
+    epc_lax_json(['status' => false, 'error' => 'OEM catalog credentials not configured or service unavailable. Configure catalog settings in the control panel.'], 503);
 }
 
 function epc_lax_action_find_vehicle()
@@ -978,7 +978,7 @@ function epc_lax_action_find_vehicle()
         if ($cached) {
             epc_lax_json(['status' => true, 'source' => 'cache_stale', 'vehicles' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $vehicles = epc_lax_parse_vehicles($xml);
@@ -1011,7 +1011,7 @@ function epc_lax_action_wizard()
         if ($cached) {
             epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache_stale', 'steps' => $cached, 'wizard' => ['steps' => $cached]]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $steps = epc_lax_parse_wizard($xml);
@@ -1053,7 +1053,7 @@ function epc_lax_action_wizard_next()
     $vehicles = $vehXml !== false ? epc_lax_parse_vehicles($vehXml) : [];
 
     if ($wizardXml === false && $vehXml === false) {
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     if (!empty($vehicles)) {
@@ -1107,7 +1107,7 @@ function epc_lax_action_vehicle_info()
         if ($cached) {
             epc_lax_json(['status' => true, 'source' => 'cache_stale', 'vehicle' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $data = epc_lax_xml_to_array($xml);
@@ -1142,7 +1142,7 @@ function epc_lax_action_categories()
         if ($cached) {
             epc_lax_json(['status' => true, 'source' => 'cache_stale', 'categories' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $categories = epc_lax_parse_categories($xml);
@@ -1177,7 +1177,7 @@ function epc_lax_action_units()
         if ($cached) {
             epc_lax_json(['status' => true, 'source' => 'cache_stale', 'units' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $units = epc_lax_parse_units($xml);
@@ -1211,7 +1211,7 @@ function epc_lax_action_unit_details()
         if ($cached) {
             epc_lax_json(['status' => true, 'source' => 'cache_stale', 'details' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $details = epc_lax_parse_details($xml);
@@ -1245,7 +1245,7 @@ function epc_lax_action_quick_groups()
         if ($cached) {
             epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache_stale', 'groups' => $cached, 'quick_groups' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $groups = epc_lax_parse_quick_groups($xml);
@@ -1280,7 +1280,7 @@ function epc_lax_action_quick_details()
     }
     $xml = epc_lax_soap_call($request, true);
     if ($xml === false) {
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $details = epc_lax_parse_details($xml);
@@ -1336,7 +1336,7 @@ function epc_lax_action_part_search()
         }
     }
 
-    epc_lax_json(['status' => false, 'error' => 'Part name search unavailable for this vehicle/catalog (needs fulltextsearch), or Laximo API error'], 503);
+    epc_lax_json(['status' => false, 'error' => 'Part name search unavailable for this vehicle/catalog, or catalog service error'], 503);
 }
 
 function epc_lax_action_part_refs()
@@ -1359,7 +1359,7 @@ function epc_lax_action_part_refs()
     $request = 'FINDPARTREFERENCES:Locale=' . $locale . '|OEM=' . $oem;
     $xml = epc_lax_soap_call($request, true);
     if ($xml === false) {
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $data = epc_lax_xml_to_array($xml);
@@ -1389,7 +1389,7 @@ function epc_lax_action_applicability()
     $request = 'GetOEMPartApplicability:Locale=' . $locale . '|OEM=' . $oem . '|Catalog=' . $catalog . '|ssd=' . $ssd;
     $xml = epc_lax_soap_call($request, true);
     if ($xml === false) {
-        epc_lax_json(['status' => false, 'error' => 'Laximo API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Catalog service unavailable'], 503);
     }
 
     $data = epc_lax_xml_to_array($xml);
@@ -1426,7 +1426,7 @@ function epc_lax_action_aftermarket()
         if ($cached) {
             epc_lax_json(['status' => true, 'success' => true, 'source' => 'cache_stale', 'aftermarket' => $cached]);
         }
-        epc_lax_json(['status' => false, 'error' => 'Laximo DOC API unavailable'], 503);
+        epc_lax_json(['status' => false, 'error' => 'Aftermarket catalog service unavailable'], 503);
     }
 
     $data = epc_lax_parse_aftermarket($xml);
@@ -1484,8 +1484,8 @@ function epc_lax_action_sync_status()
 
     $result['connected'] = $result['cat']['connected'];
     $result['message'] = $result['cat']['connected']
-        ? 'Laximo.CAT connected' . ($result['doc']['connected'] ? ', Laximo.DOC connected' : ', Laximo.DOC unavailable')
-        : 'Laximo.CAT not connected — using cached data';
+        ? 'OEM catalog connected' . ($result['doc']['connected'] ? ', aftermarket catalog connected' : ', aftermarket catalog unavailable')
+        : 'OEM catalog not connected — using cached data';
 
     epc_lax_json(['status' => true, 'success' => true, 'services' => $result, 'connected' => $result['connected'], 'message' => $result['message'], 'last_checked' => $result['last_checked'], 'cache_rows' => $result['cache_rows'], 'offline_ready' => $result['offline_ready'], 'cat_login' => $catCreds['login'], 'doc_login' => $docCreds['login']]);
 }

@@ -883,7 +883,7 @@ if(!empty($DP_Template->data_value->message_header)){
 										<input type="hidden" name="c" value="" />
 										<input type="hidden" name="ssd" value="" />
 										<div class="input-group">
-											<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="Enter VIN / Frame (Laximo)" name="identString" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+											<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="Enter VIN / Frame" name="identString" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" />
 											<span class="input-group-btn">
 												<button class="btn btn-ar btn-primary" type="submit"><?php echo translate_str_by_id(2763); ?></button>
 											</span>
@@ -1112,7 +1112,7 @@ if(!empty($DP_Template->data_value->message_header)){
 							<input type="hidden" name="c" value="" />
 							<input type="hidden" name="ssd" value="" />
 							<div class="input-group">
-								<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="VIN / Frame (Laximo)" name="identString" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+								<input value="" type="text" class="form-control epc-header-search__vin-input" placeholder="VIN / Frame" name="identString" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" />
 								<span class="input-group-btn">
 									<button class="btn btn-ar" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
 								</span>

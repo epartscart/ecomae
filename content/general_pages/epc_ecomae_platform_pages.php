@@ -858,7 +858,7 @@ function epc_ecomae_platform_page_industries()
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px">
 <?php
 $liveClients = array(
-	array('name'=>'epartscart.com','industry'=>'Automotive Parts','color'=>'#0284c7','icon'=>'fa-car','url'=>'https://www.epartscart.com','desc'=>'OEM & aftermarket auto parts — complete catalog with Laximo integration'),
+	array('name'=>'epartscart.com','industry'=>'Automotive Parts','color'=>'#0284c7','icon'=>'fa-car','url'=>'https://www.epartscart.com','desc'=>'OEM & aftermarket auto parts — complete vehicle catalog with VIN search'),
 	array('name'=>'electronicae.com','industry'=>'Electronics','color'=>'#7c3aed','icon'=>'fa-microchip','url'=>'https://www.electronicae.com','desc'=>'Consumer electronics marketplace — smartphones, laptops, accessories'),
 	array('name'=>'stylenlook.com','industry'=>'Fashion & Beauty','color'=>'#db2777','icon'=>'fa-diamond','url'=>'https://www.stylenlook.com','desc'=>'Fashion boutique — clothing, beauty products, trending styles'),
 	array('name'=>'thejewellerytrend.com','industry'=>'Jewellery','color'=>'#d97706','icon'=>'fa-gem','url'=>'https://www.thejewellerytrend.com','desc'=>'Gold & diamond jewellery — TAG system, hallmark certified'),

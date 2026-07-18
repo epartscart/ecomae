@@ -37,10 +37,10 @@ if (!$page) {
         'katalog-laximo',
         'php',
         '/content/laximo/index.php',
-        'OEM Parts Catalog (Laximo)',
-        'OEM Parts Catalog — Laximo',
+        'OEM Parts Catalog',
+        'OEM Parts Catalog',
         'Search original OEM parts by vehicle brand, VIN, or part name.',
-        'OEM parts, Laximo, vehicle catalog, VIN search',
+        'OEM parts, vehicle catalog, VIN search',
         '', '', 0, 1, 1, '[]', ''
     ]);
     echo "Created CMS page (id=" . $db->lastInsertId() . ") with content=/content/laximo/index.php\n";
