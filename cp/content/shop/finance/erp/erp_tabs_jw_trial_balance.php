@@ -19,11 +19,21 @@ erp_page_header(
 	)
 );
 
-$wtTB = epc_jw_weight_trial_balance($db_link, $date_from, $date_to);
-$valTB = epc_jw_value_trial_balance($db_link, $date_from, $date_to);
+$wtTB = array();
+$valTB = array();
+$jwTbError = '';
+try {
+	$wtTB = epc_jw_weight_trial_balance($db_link, $date_from, $date_to);
+	$valTB = epc_jw_value_trial_balance($db_link, $date_from, $date_to);
+} catch (Throwable $e) {
+	$jwTbError = $e->getMessage();
+}
 $activeView = isset($_GET['tb_view']) ? (string)$_GET['tb_view'] : 'weight';
 ?>
 <div class="ef-window">
+	<?php if ($jwTbError !== ''): ?>
+	<div class="alert alert-warning" style="margin:12px">Dual trial balance could not load: <?php echo epc_erp_h($jwTbError); ?></div>
+	<?php endif; ?>
 	<div class="ef-title"><i class="fa fa-balance-scale"></i> Dual Trial Balance</div>
 	<div class="ef-toolbar">
 		<button class="btn btn-default btn-xs<?php echo $activeView === 'weight' ? ' active' : ''; ?>" onclick="jwTbView('weight')"><i class="fa fa-balance-scale"></i> Weight TB</button>

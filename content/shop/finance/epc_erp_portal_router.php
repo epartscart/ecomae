@@ -302,6 +302,9 @@ function epc_erp_portal_render_page(PDO $db_link, $page)
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/lang/dp_lang.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 	epc_erp_portal_ensure_guest_session($db_link);
+	if (function_exists('epc_erp_portal_bridge_cp_admin_session')) {
+		epc_erp_portal_bridge_cp_admin_session($db_link);
+	}
 	epc_erp_portal_handle_auth_post($db_link);
 	if (!isset($multilang_params) || !is_array($multilang_params)) {
 		$multilang_params = multilang_init();

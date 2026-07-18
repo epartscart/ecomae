@@ -637,16 +637,27 @@ function epc_erp_create_supplier(PDO $db, array $data)
 function epc_erp_create_purchase(PDO $db, array $data)
 {
 	epc_erp_ensure_schema($db);
+	// DDL (CREATE TABLE) implicitly commits in MySQL — run all schema ensures
+	// before beginTransaction() or commit() throws "There is no active transaction".
+	require_once __DIR__ . '/epc_erp_vouchers.php';
+	epc_erp_vouchers_ensure_schema($db);
+	if (!empty($data['receive_inventory']) && (!empty($data['inventory_lines']) || !empty($data['inventory_csv']))) {
+		require_once __DIR__ . '/epc_erp_inventory.php';
+		epc_erp_inventory_ensure_schema($db);
+	}
 	$linked_order_id = (int)($data['order_id'] ?? 0);
 	if ($linked_order_id > 0 && empty($data['allow_open_order'])) {
 		epc_erp_assert_order_complete($db, $linked_order_id, 'Purchase invoice for order');
+	}
+	$supplier_id = (int)($data['supplier_id'] ?? 0);
+	if ($supplier_id <= 0) {
+		throw new Exception('Supplier is required');
 	}
 	if (!$db->beginTransaction()) {
 		throw new Exception('Transaction start failed');
 	}
 	try {
 		$amount_ex = round((float)$data['amount_ex_vat'], 2);
-		$supplier_id = (int)$data['supplier_id'];
 		require_once __DIR__ . '/epc_tax_toolkit.php';
 		$vatCalc = epc_tax_toolkit_purchase_amounts($db, $amount_ex, $supplier_id, array(
 			'import' => !empty($data['is_import']) || !empty($data['cross_border']),
@@ -677,8 +688,6 @@ function epc_erp_create_purchase(PDO $db, array $data)
 			(`supplier_id`, `order_id`, `storage_id`, `invoice_number`, `purchase_date`, `amount_ex_vat`, `vat_amount`, `total_amount`, `vat_applicable`, `vat_rate`, `uae_vat_treatment`, `uae_tax_legislation_ref`, `status`, `note`, `admin_id`, `time_created`)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 		);
-		require_once __DIR__ . '/epc_erp_vouchers.php';
-		epc_erp_vouchers_ensure_schema($db);
 		$invNo = trim((string)($data['invoice_number'] ?? ''));
 		if ($invNo === '') {
 			$invNo = epc_erp_next_voucher_no($db, 'PI');
@@ -706,7 +715,6 @@ function epc_erp_create_purchase(PDO $db, array $data)
 		$invPosted = 0;
 		if (!empty($data['receive_inventory']) && (!empty($data['inventory_lines']) || !empty($data['inventory_csv']))) {
 			require_once __DIR__ . '/epc_erp_inventory.php';
-			epc_erp_inventory_ensure_schema($db);
 			$invRes = epc_erp_inventory_receive_purchase($db, $purchase_id, $data);
 			$invPosted = (int)($invRes['posted'] ?? 0);
 		}
@@ -726,7 +734,9 @@ function epc_erp_create_purchase(PDO $db, array $data)
 			epc_erp_admin_id(),
 			'invoice',
 		));
-		$db->commit();
+		if ($db->inTransaction()) {
+			$db->commit();
+		}
 		$jid = 0;
 		try {
 			$jid = epc_erp_gl_post_purchase($db, $purchase_id);
@@ -746,6 +756,8 @@ function epc_erp_supplier_payment(PDO $db, array $data)
 	epc_erp_ensure_schema($db);
 	require_once __DIR__ . '/epc_erp_advances.php';
 	epc_erp_advances_ensure_schema($db);
+	require_once __DIR__ . '/epc_erp_vouchers.php';
+	epc_erp_vouchers_ensure_schema($db);
 	if (!$db->beginTransaction()) {
 		throw new Exception('Transaction start failed');
 	}
@@ -759,8 +771,6 @@ function epc_erp_supplier_payment(PDO $db, array $data)
 		if ($amount <= 0 || $supplier_id <= 0 || $account_id <= 0) {
 			throw new Exception('Invalid payment data');
 		}
-		require_once __DIR__ . '/epc_erp_vouchers.php';
-		epc_erp_vouchers_ensure_schema($db);
 		$pvNo = trim((string)($data['reference'] ?? ''));
 		if ($pvNo === '' || strpos($pvNo, 'PV-') !== 0) {
 			$pvNo = epc_erp_next_voucher_no($db, 'PV');

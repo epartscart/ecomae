@@ -355,7 +355,8 @@ function epc_jw_weight_trial_balance(PDO $db, int $dateFrom = 0, int $dateTo = 0
     if ($dateFrom > 0) { $where .= ' AND transaction_date >= ?'; $params[] = $dateFrom; }
     if ($dateTo > 0)   { $where .= ' AND transaction_date <= ?'; $params[] = $dateTo; }
 
-    $sql = "SELECT account_code, account_name, metal_type, karat,
+    // ONLY_FULL_GROUP_BY: aggregate non-grouped text columns.
+    $sql = "SELECT account_code, MAX(account_name) AS account_name, metal_type, karat,
                    SUM(weight_in) AS total_weight_in,
                    SUM(weight_out) AS total_weight_out,
                    (SUM(weight_in) - SUM(weight_out)) AS weight_balance,
@@ -380,7 +381,7 @@ function epc_jw_value_trial_balance(PDO $db, int $dateFrom = 0, int $dateTo = 0)
     if ($dateFrom > 0) { $where .= ' AND transaction_date >= ?'; $params[] = $dateFrom; }
     if ($dateTo > 0)   { $where .= ' AND transaction_date <= ?'; $params[] = $dateTo; }
 
-    $sql = "SELECT account_code, account_name,
+    $sql = "SELECT account_code, MAX(account_name) AS account_name,
                    SUM(value_debit) AS total_debit,
                    SUM(value_credit) AS total_credit,
                    (SUM(value_debit) - SUM(value_credit)) AS balance

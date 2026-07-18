@@ -293,6 +293,34 @@ function epc_client_erp_bootstrap(): void
 			503
 		);
 	}
+	// Fail fast with a clear page when the tenant DB is missing / credentials are wrong
+	// instead of letting core die with a bare "No DB connect".
+	$sharedPdoFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_shared_erp.php';
+	if (is_file($sharedPdoFile)) {
+		require_once $sharedPdoFile;
+		if (function_exists('epc_portal_shared_erp_tenant_pdo')) {
+			$probePdo = epc_portal_shared_erp_tenant_pdo($tenantRow);
+			if (!$probePdo instanceof PDO) {
+				$label = htmlspecialchars((string) ($tenantRow['trade_name'] ?? $parsed['site_key']), ENT_QUOTES, 'UTF-8');
+				$dbName = htmlspecialchars((string) ($tenantRow['db_name'] ?? ''), ENT_QUOTES, 'UTF-8');
+				http_response_code(503);
+				header('Content-Type: text/html; charset=utf-8');
+				echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Client ERP unavailable</title></head>';
+				echo '<body style="font-family:system-ui,sans-serif;padding:28px;background:#f8fafc;color:#0f172a">';
+				echo '<div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px">';
+				echo '<h1 style="margin:0 0 12px;font-size:1.35rem">Client ERP unavailable</h1>';
+				echo '<p style="margin:0 0 10px"><strong>' . $label . '</strong> cannot connect to its company database';
+				if ($dbName !== '') {
+					echo ' (<code>' . $dbName . '</code>)';
+				}
+				echo '.</p>';
+				echo '<p style="margin:0 0 16px;color:#64748b">The tenant registry entry exists, but MySQL rejected the connection (missing database or bad credentials). Fix the tenant DB in Super CP → Tenant hub, then retry.</p>';
+				echo '<p style="margin:0"><a href="/cp/shop/tenant_hub/tenant_hub">Open Tenant hub</a> · <a href="/cp/">Super CP</a></p>';
+				echo '</div></body></html>';
+				exit;
+			}
+		}
+	}
 	$GLOBALS['epc_client_erp_tenant_row'] = $tenantRow;
 
 	if (function_exists('epc_platform_erp_clear_cookie')) {
