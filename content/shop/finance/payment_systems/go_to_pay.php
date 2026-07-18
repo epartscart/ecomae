@@ -56,7 +56,7 @@ if (!$demoMode) {
 	exit;
 }
 ?>
-<form name="pay_form" style="display:none" method="post" action="/content/shop/finance/payment_systems/epc_demo/pay_page.php">
+<form name="pay_form" style="display:none" method="post" action="/content/shop/finance/payment_systems/pay_page_entry.php">
 	<input type="hidden" name="EPC_PAY_HANDLER" value="<?php echo htmlspecialchars($handler, ENT_QUOTES, 'UTF-8'); ?>">
 	<input type="hidden" name="operation_id" value="<?php echo (int)$operation_id; ?>">
 	<input type="hidden" name="sum" value="<?php echo htmlspecialchars((string)$sum, ENT_QUOTES, 'UTF-8'); ?>">

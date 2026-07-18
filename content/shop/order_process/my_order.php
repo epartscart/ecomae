@@ -970,8 +970,15 @@ if($user_id > 0)
 	$print_docs_buttons = "";
 	$print_docs_query = $db_link->prepare("SELECT * FROM `shop_print_docs` WHERE `control_available` = ? ORDER BY `id` ASC;");
 	$print_docs_query->execute(array(1));
+	// Customer-facing English print docs only (legacy RU forms are incomplete).
+	$epc_customer_print_docs = array('sales_receipt', 'invoice_for_payment');
 	while( $print_doc = $print_docs_query->fetch() )
 	{
+		if( !in_array((string)$print_doc["name"], $epc_customer_print_docs, true) )
+		{
+			continue;
+		}
+
 		$print_doc["parameters_values"] = json_decode($print_doc["parameters_values"], true);
 		
 		
