@@ -624,7 +624,11 @@ if ($epcCpScriptRelocate) {
         if (function_exists("epc_cp_footer_scripts_reset")) {
             epc_cp_footer_scripts_reset();
         }
-        if (function_exists("epc_cp_prepare_cp_page_content")) {
+        // Never rewrite PHP page sources before eval — stripping <script>/<style>
+        // from source (e.g. website tracker) corrupts the file and yields empty HTTP 500.
+        // Script relocation still runs on rendered HTML via epc_cp_finalize_cp_html().
+        if (function_exists("epc_cp_prepare_cp_page_content")
+            && (string) ($DP_Content->content_type ?? '') !== 'php') {
             $DP_Content->content = epc_cp_prepare_cp_page_content((string) $DP_Content->content);
         }
     } else {

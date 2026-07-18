@@ -10,6 +10,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php'
 
 function epc_portal_db_ensure(PDO $pdo)
 {
+	static $done = array();
+	$oid = spl_object_id($pdo);
+	if (isset($done[$oid])) {
+		return;
+	}
+	$done[$oid] = true;
+
 	$pdo->exec(
 		'CREATE TABLE IF NOT EXISTS `epc_portal_industry` (
 			`code` VARCHAR(32) NOT NULL PRIMARY KEY,
