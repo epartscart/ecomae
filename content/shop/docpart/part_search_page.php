@@ -2857,21 +2857,28 @@ function epcChpuApplyCombinedResults(priceData)
 			// resultReview can filter everything away; restore warehouse/actions paint.
 			if(productsArea && !epcChpuAreaHasStockPaint(productsArea))
 			{
-				if(crossStock.length && typeof epcChpuEnsureCrossStockTableVisible === 'function' && epcChpuEnsureCrossStockTableVisible(crossStock, false))
+				var restored = false;
+				if(crossStock.length && typeof epcChpuEnsureCrossStockTableVisible === 'function')
 				{
-					// restored from cross stock
+					restored = !!epcChpuEnsureCrossStockTableVisible(crossStock, false);
 				}
-				else if(typeof epcApplyInitialPriceBunch === 'function')
-				{
-					epcApplyInitialPriceBunch();
-				}
-				else if(typeof epcChpuBuildDirectStockTableHtml === 'function')
+				if(!epcChpuAreaHasStockPaint(productsArea) && typeof epcChpuBuildDirectStockTableHtml === 'function')
 				{
 					var rebuildHtml = epcChpuBuildDirectStockTableHtml();
 					if(rebuildHtml)
 					{
 						productsArea.innerHTML = rebuildHtml;
+						restored = true;
 					}
+				}
+				if(!epcChpuAreaHasStockPaint(productsArea) && typeof epcApplyInitialPriceBunch === 'function')
+				{
+					epcApplyInitialPriceBunch();
+					restored = epcChpuAreaHasStockPaint(productsArea) || restored;
+				}
+				if(restored)
+				{
+					epcChpuHideProcessingIndicator();
 				}
 			}
 		}
@@ -5737,6 +5744,10 @@ function epcPrimeWarehouseFilter()
 			
 			<?php
 				//Определяем формат вывода таблицы
+				// CHPU warehouse pages must use Grouping (mode 1). End-to-end (mode 2) lacks
+				// the CHPU stock bind/recovery path and can show "Goods not found" while
+				// the status bar correctly reports stock.
+				$epc_force_chpu_grouping = !empty($epc_chpu_direct_pricing);
 				if($DP_Config->products_table_mode == 0)//На выбор покупателя
 				{
 					//Покупатель ранее ставил куки
@@ -5748,6 +5759,9 @@ function epcPrimeWarehouseFilter()
 					{
 						$table_mode = 1;
 					}
+					if ($epc_force_chpu_grouping) {
+						$table_mode = 1;
+					}
 					//Отображаем возможность для настройки покупателем
 					$products_table_mode_query = $db_link->prepare('SELECT `options` FROM `config_items` WHERE `name` = ?;');
 					$products_table_mode_query->execute( array('products_table_mode') );
@@ -5755,12 +5769,14 @@ function epcPrimeWarehouseFilter()
 					$modes = json_decode($products_table_mode_record["options"], true);
 					?>
 						<div class="input-group" style="width:100%;">
-							<select id="products_table_mode_select" onchange="on_products_table_mode_selected();" class="form-control" style="max-height:34px; width:100%;">
+							<select id="products_table_mode_select" onchange="on_products_table_mode_selected();" class="form-control" style="max-height:34px; width:100%;"<?php echo $epc_force_chpu_grouping ? ' disabled title="Warehouse pages use Grouping so in-stock rows always render."' : ''; ?>>
 							<?php
 							for($i=0; $i < count($modes); $i++)
 							{
 								if($modes[$i]["value"] == 0)continue;//Этот пункт "На выбор покупателя" - пропускаем
-								
+								if ($epc_force_chpu_grouping && (int) $modes[$i]["value"] !== 1) {
+									continue;
+								}
 								?>
 								<option value="<?php echo $modes[$i]["value"]; ?>"><?php echo translate_str_by_id($modes[$i]["caption"]); ?></option>
 								<?php
@@ -5770,7 +5786,12 @@ function epcPrimeWarehouseFilter()
 						</div>
 						<script>
 						//Ставим текущий способ отображения:
-						document.getElementById("products_table_mode_select").value = '<?php echo $table_mode; ?>';
+						document.getElementById("products_table_mode_select").value = '<?php echo (int) $table_mode; ?>';
+						<?php if ($epc_force_chpu_grouping) { ?>
+						try {
+							document.cookie = "products_table_mode=1; path=/; expires=" + (new Date(new Date().getTime() + 15552000 * 1000)).toUTCString();
+						} catch (epcModeCookieErr) {}
+						<?php } ?>
 						
 						//Обрабобка селектора
 						function on_products_table_mode_selected()
@@ -5791,6 +5812,9 @@ function epcPrimeWarehouseFilter()
 				else//Указано менеджером
 				{
 					$table_mode = $DP_Config->products_table_mode;
+					if (!empty($epc_force_chpu_grouping)) {
+						$table_mode = 1;
+					}
 					
 					// Если отображается поиск выравниваем блоки
 					if($initial_position_search == 1){
