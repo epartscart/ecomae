@@ -883,6 +883,13 @@ function epc_cross_load_local_aftermarket_for_oem($db_link, $article_norm, &$ref
 
 	}
 
+	if (function_exists('docpart_analogs_host_load1')) {
+		$load1 = docpart_analogs_host_load1();
+		if ($load1 !== null && $load1 >= 5.0) {
+			return 0;
+		}
+	}
+
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
 
 	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
@@ -891,6 +898,8 @@ function epc_cross_load_local_aftermarket_for_oem($db_link, $article_norm, &$ref
 
 	{
 
+		@$db_link->exec('SET SESSION max_statement_time = 2');
+		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
 		$cross_query = $db_link->prepare(
 
 			'SELECT `article`, `manufacturer_article`, `analog`, `manufacturer_analog` '
@@ -899,7 +908,7 @@ function epc_cross_load_local_aftermarket_for_oem($db_link, $article_norm, &$ref
 
 				.'WHERE '.$analog_expr.' = ? OR '.$analog_expr.' LIKE ? '
 
-				.'ORDER BY `id` DESC LIMIT 500'
+				.'ORDER BY `id` DESC LIMIT 80'
 
 		);
 
@@ -985,6 +994,14 @@ function epc_cross_load_local_references($db_link, $DP_Config, $article_norm, &$
 
 		return 0;
 
+	}
+
+	// Protect mysqld CPU: local analogs REPLACE() walks are the main Hostinger CPU reset trigger.
+	if (function_exists('docpart_analogs_host_load1')) {
+		$load1 = docpart_analogs_host_load1();
+		if ($load1 !== null && $load1 >= 6.0) {
+			return 0;
+		}
 	}
 
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
@@ -1107,11 +1124,11 @@ function epc_cross_load_local_references($db_link, $DP_Config, $article_norm, &$
 		$limit = 80;
 		if (function_exists('docpart_analogs_host_load1')) {
 			$load1 = docpart_analogs_host_load1();
-			if ($load1 !== null && $load1 >= 10.0) {
+			if ($load1 !== null && $load1 >= 5.0) {
 				$rounds = 0;
-			} elseif ($load1 !== null && $load1 >= 6.0) {
+			} elseif ($load1 !== null && $load1 >= 3.0) {
 				$rounds = 1;
-				$limit = 40;
+				$limit = 30;
 			}
 		}
 		if ($rounds > 0) {
@@ -2332,11 +2349,11 @@ function epc_cross_persist_interchange_for_customer($db_link, $DP_Config, $artic
 	// Under load this floods MySQL and 524s CP (e.g. /cp/shop/prices/multivendor).
 	if (function_exists('docpart_analogs_host_load1')) {
 		$load1 = docpart_analogs_host_load1();
-		if ($load1 !== null && $load1 >= 8.0) {
+		if ($load1 !== null && $load1 >= 5.0) {
 			return 0;
 		}
-		if ($load1 !== null && $load1 >= 5.0) {
-			$max_pairs = min((int) $max_pairs, 20);
+		if ($load1 !== null && $load1 >= 3.0) {
+			$max_pairs = min((int) $max_pairs, 10);
 		}
 	}
 

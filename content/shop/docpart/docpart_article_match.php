@@ -141,6 +141,20 @@ function docpart_sql_article_values_match_clause(PDO $db_link, array $article_va
 	$ph = implode(',', array_fill(0, count($article_values), '?'));
 	$norm_expr = docpart_sql_article_normalized_expr($column);
 	if (docpart_price_data_ensure_article_search_column($db_link)) {
+		$load1 = null;
+		if (function_exists('sys_getloadavg')) {
+			$tmp = @sys_getloadavg();
+			if (is_array($tmp) && isset($tmp[0])) {
+				$load1 = (float) $tmp[0];
+			}
+		}
+		// Under load, use indexed article_search only — OR REPLACE() forces a full scan.
+		if ($load1 !== null && $load1 >= 4.0) {
+			foreach ($article_values as $value) {
+				$binding_values[] = $value;
+			}
+			return '(`article_search` IN (' . $ph . '))';
+		}
 		foreach ($article_values as $value) {
 			$binding_values[] = $value;
 		}
@@ -168,22 +182,41 @@ function docpart_collect_article_candidates($db_link, $article_norm, $use_crosse
 	if (!$use_crosses) {
 		return array_keys($article_candidates);
 	}
+	$load1 = null;
+	if (function_exists('sys_getloadavg')) {
+		$tmp = @sys_getloadavg();
+		if (is_array($tmp) && isset($tmp[0])) {
+			$load1 = (float) $tmp[0];
+		}
+	}
+	// Warehouse search under load: skip analogs expansion (REPLACE scans peg mysqld).
+	if ($load1 !== null && $load1 >= 6.0) {
+		return array_keys($article_candidates);
+	}
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
 	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
-	// Analogs table has no article_search column — keep REPLACE expr here.
-	$analogs_query = $db_link->prepare(
-		'SELECT `article`, `analog` FROM `shop_docpart_articles_analogs_list` WHERE ' . $art_expr . ' = ? OR ' . $analog_expr . ' = ? LIMIT 5000;'
-	);
-	$analogs_query->execute(array($article_norm, $article_norm));
-	while ($analog_record = $analogs_query->fetch(PDO::FETCH_ASSOC)) {
-		$article_candidate = docpart_normalize_article_for_price($analog_record['article']);
-		$analog_candidate = docpart_normalize_article_for_price($analog_record['analog']);
-		if ($article_candidate !== '') {
-			$article_candidates[$article_candidate] = true;
+	$limit = ($load1 !== null && $load1 >= 4.0) ? 80 : 400;
+	try {
+		@$db_link->exec('SET SESSION max_statement_time = 2');
+		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
+		// Analogs table has no article_search column — keep REPLACE expr here, but capped.
+		$analogs_query = $db_link->prepare(
+			'SELECT `article`, `analog` FROM `shop_docpart_articles_analogs_list` WHERE '
+			. $art_expr . ' = ? OR ' . $analog_expr . ' = ? LIMIT ' . (int) $limit
+		);
+		$analogs_query->execute(array($article_norm, $article_norm));
+		while ($analog_record = $analogs_query->fetch(PDO::FETCH_ASSOC)) {
+			$article_candidate = docpart_normalize_article_for_price($analog_record['article']);
+			$analog_candidate = docpart_normalize_article_for_price($analog_record['analog']);
+			if ($article_candidate !== '') {
+				$article_candidates[$article_candidate] = true;
+			}
+			if ($analog_candidate !== '') {
+				$article_candidates[$analog_candidate] = true;
+			}
 		}
-		if ($analog_candidate !== '') {
-			$article_candidates[$analog_candidate] = true;
-		}
+	} catch (Throwable $e) {
+		// Timed out / load shed — return direct article only.
 	}
 	return array_keys($article_candidates);
 }

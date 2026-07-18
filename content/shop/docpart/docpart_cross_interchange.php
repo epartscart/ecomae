@@ -30,15 +30,16 @@ function docpart_load_interchange_partners($db_link, $article_norm, $max_rounds 
 	$row_limit = max(0, min(200, (int) $row_limit));
 	$load1 = docpart_analogs_host_load1();
 	if ($load1 !== null) {
-		if ($load1 >= 12.0) {
+		// mysqld REPLACE() scans peg CPU (100%+) — shed early on small VPS plans.
+		if ($load1 >= 6.0) {
 			return array();
 		}
-		if ($load1 >= 8.0) {
+		if ($load1 >= 4.0) {
 			$max_rounds = min($max_rounds, 1);
-			$row_limit = min($row_limit, 40);
-		} elseif ($load1 >= 5.0) {
-			$max_rounds = min($max_rounds, 2);
-			$row_limit = min($row_limit, 80);
+			$row_limit = min($row_limit, 30);
+		} elseif ($load1 >= 2.5) {
+			$max_rounds = min($max_rounds, 1);
+			$row_limit = min($row_limit, 60);
 		}
 	}
 	if ($max_rounds <= 0 || $row_limit <= 0) {
