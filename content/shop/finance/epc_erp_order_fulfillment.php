@@ -447,6 +447,16 @@ function epc_erp_order_fulfillment_swap_line_supplier(PDO $db, int $orderId, int
 		throw new Exception('Line is already assigned to this supplier');
 	}
 
+	// Keep commerce line warehouse in sync with ERP supplier swap.
+	$db->prepare('UPDATE `shop_orders_items` SET `t2_storage_id` = ? WHERE `id` = ? AND `order_id` = ?')
+		->execute(array($newStorageId, $orderItemId, $orderId));
+	try {
+		$db->prepare('UPDATE `shop_orders_items_details` SET `storage_id` = ? WHERE `order_item_id` = ?')
+			->execute(array($newStorageId, $orderItemId));
+	} catch (Throwable $e) {
+		// details row may not exist for pure price-of-day lines
+	}
+
 	$unitCost = round((float) ($item['t2_price_purchase'] ?? 0), 4);
 	$desc = trim((string) ($item['t2_name'] ?? ''));
 	if ($desc === '') {
