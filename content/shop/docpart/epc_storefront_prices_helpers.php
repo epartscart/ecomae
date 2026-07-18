@@ -393,7 +393,7 @@ function epc_storefront_backend_group_ids(PDO $db): array
 }
 
 /**
- * True when a groups.value label is an ERP department role, not a pricing profile.
+ * True when a groups.value / display label is an ERP department role, not a pricing profile.
  */
 function epc_storefront_group_label_is_erp($label): bool
 {
@@ -401,13 +401,36 @@ function epc_storefront_group_label_is_erp($label): bool
 	if ($label === '') {
 		return false;
 	}
+	// Stored codes: EPC_ERP_DEPT_IT, EPC_ERP_TEAM, …
+	if (preg_match('/^EPC_ERP_/i', $label)) {
+		return true;
+	}
+	// Translated labels: "Information Technology (ERP)", …
 	return (bool) preg_match('/\(\s*ERP\s*\)/i', $label);
 }
 
 /**
+ * True when this groups row is an ERP role (by code, backend-tree child, or translated label).
+ */
+function epc_storefront_group_row_is_erp(array $row): bool
+{
+	$value = isset($row['value']) ? (string) $row['value'] : '';
+	if (epc_storefront_group_label_is_erp($value)) {
+		return true;
+	}
+	if (function_exists('translate_str_by_id') && $value !== '') {
+		$translated = (string) translate_str_by_id($value);
+		if ($translated !== '' && epc_storefront_group_label_is_erp($translated)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Storefront pricing profiles for the admin "view as" margin dropdown.
- * Excludes ERP department roles under the backend tree; keeps customer pricing
- * groups (Retail, Wholesale, CIS, GCC, Visitors, etc.) and the Administrators root.
+ * Keeps Visitors / All users / Administrators / Retail / Wholesale / CIS / GCC.
+ * Excludes ERP department roles (EPC_ERP_*).
  *
  * @return array<int, array<string, mixed>>
  */
@@ -418,24 +441,27 @@ function epc_storefront_pricing_profile_groups(PDO $db): array
 		return $cached;
 	}
 
-	$backend_ids = array_fill_keys(epc_storefront_backend_group_ids($db), true);
 	$out = array();
 	try {
 		$q = $db->query('SELECT * FROM `groups` ORDER BY `order` ASC, `id` ASC');
 		while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
 			$id = (int) ($row['id'] ?? 0);
-			if ($id <= 1) {
+			if ($id < 1) {
 				continue;
 			}
-			$label = isset($row['value']) ? (string) $row['value'] : '';
-			if (epc_storefront_group_label_is_erp($label)) {
+			if (epc_storefront_group_row_is_erp($row)) {
 				continue;
 			}
-			// Drop ERP/backend department children; keep the for_backend root (Administrators).
-			if (isset($backend_ids[$id]) && empty($row['for_backend'])) {
-				continue;
+			$value = isset($row['value']) ? (string) $row['value'] : '';
+			$is_named_profile = (bool) preg_match('/^EPC_PROFILE_/i', $value);
+			$is_customer_flag = !empty($row['for_guests']) || !empty($row['for_registrated']);
+			$is_admin_root = !empty($row['for_backend']);
+			$is_percentage_viewer = !empty($row['for_percentage']);
+			// id=1 is typically "All users" (legacy pricing root shown in the switcher).
+			$is_all_users_root = ($id === 1);
+			if ($is_named_profile || $is_customer_flag || $is_admin_root || $is_percentage_viewer || $is_all_users_root) {
+				$out[] = $row;
 			}
-			$out[] = $row;
 		}
 	} catch (Throwable $e) {
 		$out = array();
