@@ -1,7 +1,14 @@
 <?php
 /**
- * One-time: Accessories & Spare Parts marketplace page + top menu link.
- * Run: https://www.epartscart.com/epc-accessories-setup.php?token=epartscart-deploy-2026
+ * Accessories marketplace setup:
+ * - Registers /accessories-spare-parts + /accessories pages and top menu
+ * - Seeds PakWheels-crawled categories into epc_acc_categories
+ * - Optional: add a listing into a category
+ *
+ * Run:
+ *   https://www.epartscart.com/epc-accessories-setup.php?token=...
+ *   https://www.epartscart.com/epc-accessories-setup.php?token=...&seed=1&reset=1
+ *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=...&price=1199&make=Toyota&city=Karachi&condition=new
  */
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -12,6 +19,7 @@ epc_deploy_require_token();
 
 define('_ASTEXE_', 1);
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/content/shop/docpart/epc_accessories_db.php';
 
 $cfg = new DP_Config();
 $epcTenantHostDbFile = __DIR__ . '/config.tenant-host-db.php';
@@ -31,7 +39,7 @@ if (is_file($epcTenantHostDbFile)) {
 	}
 }
 
-$pdo = new PDO('mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8', $cfg->user, $cfg->password);
+$pdo = new PDO('mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8mb4', $cfg->user, $cfg->password);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 function epc_acc_tr($pdo, $key, $en, $ru)
@@ -59,7 +67,7 @@ function epc_acc_content($pdo, $url, $alias, $titleKey, $descKey, $path, $module
 	return (int) $pdo->lastInsertId();
 }
 
-function epc_acc_menu_item($captionKey, $href, $id, $contentId = 0)
+function epc_acc_menu_item($captionKey, $id, $contentId = 0)
 {
 	return array(
 		'value' => $captionKey,
@@ -69,7 +77,7 @@ function epc_acc_menu_item($captionKey, $href, $id, $contentId = 0)
 		'a_innerhtml' => $captionKey,
 		'link_mode' => $contentId ? 'content' : 'url',
 		'content_id' => $contentId,
-		'href' => $contentId ? '' : $href,
+		'href' => '',
 		'target' => '', 'onclick' => '',
 		'img_src' => '',
 		'$count' => 0,
@@ -79,42 +87,79 @@ function epc_acc_menu_item($captionKey, $href, $id, $contentId = 0)
 	);
 }
 
-function epc_acc_href_match($item, array $needles)
+function epc_acc_find_cat_id(PDO $pdo, $slug, $parentId = 0)
 {
-	$href = isset($item['href']) ? (string) $item['href'] : '';
-	foreach ($needles as $n) {
-		if ($n !== '' && (strpos($href, $n) !== false || (isset($item['a_innerhtml']) && $item['a_innerhtml'] === $n))) {
-			return true;
+	$stmt = $pdo->prepare('SELECT `id` FROM `epc_acc_categories` WHERE `slug` = ? AND `parent_id` = ? LIMIT 1');
+	$stmt->execute(array($slug, (int) $parentId));
+	return (int) $stmt->fetchColumn();
+}
+
+$action = isset($_GET['action']) ? trim((string) $_GET['action']) : '';
+
+// --- Add listing one-by-one into a crawled category ---
+if ($action === 'add_listing') {
+	epc_acc_ensure_schema($pdo);
+	epc_acc_seed_categories_from_json($pdo, false);
+	$catSlug = trim((string) ($_REQUEST['category'] ?? ''));
+	$subSlug = trim((string) ($_REQUEST['subcategory'] ?? ''));
+	$title = trim((string) ($_REQUEST['title'] ?? ''));
+	if ($catSlug === '' || $title === '') {
+		exit("category and title required\n");
+	}
+	$catId = epc_acc_find_cat_id($pdo, $catSlug, 0);
+	if ($catId < 1) {
+		exit("unknown category slug: {$catSlug}\n");
+	}
+	$subId = 0;
+	if ($subSlug !== '') {
+		$subId = epc_acc_find_cat_id($pdo, $subSlug, $catId);
+		if ($subId < 1) {
+			// allow subcategory slug unique lookup
+			$stmt = $pdo->prepare('SELECT `id` FROM `epc_acc_categories` WHERE `slug` = ? AND `parent_id` > 0 LIMIT 1');
+			$stmt->execute(array($subSlug));
+			$subId = (int) $stmt->fetchColumn();
 		}
 	}
-	return false;
+	$id = epc_acc_add_listing($pdo, array(
+		'category_id' => $catId,
+		'subcategory_id' => $subId,
+		'title' => $title,
+		'description' => (string) ($_REQUEST['description'] ?? ''),
+		'make' => (string) ($_REQUEST['make'] ?? ''),
+		'model' => (string) ($_REQUEST['model'] ?? ''),
+		'city' => (string) ($_REQUEST['city'] ?? ''),
+		'condition_type' => (string) ($_REQUEST['condition'] ?? 'new'),
+		'price' => (float) ($_REQUEST['price'] ?? 0),
+		'currency' => (string) ($_REQUEST['currency'] ?? 'PKR'),
+		'image_url' => (string) ($_REQUEST['image_url'] ?? ''),
+		'external_url' => (string) ($_REQUEST['external_url'] ?? ''),
+		'stock_qty' => (int) ($_REQUEST['stock_qty'] ?? 0),
+		'status' => (string) ($_REQUEST['status'] ?? 'published'),
+	));
+	echo "OK listing_id={$id} category={$catSlug} subcategory={$subSlug}\n";
+	exit;
+}
+
+if ($action === 'list_categories') {
+	epc_acc_ensure_schema($pdo);
+	$tree = epc_acc_get_category_tree($pdo);
+	foreach ($tree as $p) {
+		echo $p['slug'] . "\t" . $p['label'] . "\t" . count($p['children']) . " subs\n";
+		foreach ($p['children'] as $c) {
+			echo "  - " . $c['slug'] . "\t" . $c['label'] . "\n";
+		}
+	}
+	exit;
 }
 
 epc_acc_tr($pdo, 'epc_accessories_title', 'Accessories & Spare Parts', 'Аксессуары и запчасти');
-epc_acc_tr($pdo, 'epc_accessories_desc', 'Browse UAE warehouse car accessories and spare parts by category, brand, price and region.', 'Каталог автоаксессуаров и запчастей со склада ОАЭ: категории, бренды, цены и регионы.');
+epc_acc_tr($pdo, 'epc_accessories_desc', 'Browse car accessories and spare parts by PakWheels-style categories, make, city and price.', 'Каталог автоаксессуаров и запчастей по категориям, марке, городу и цене.');
 epc_acc_tr($pdo, 'epc_menu_accessories', 'Accessories', 'Аксессуары');
 
 $modules = '[1,22,32,34]';
 $path = '/content/general_pages/epc_epartscart_accessories.php';
-$contentId = epc_acc_content(
-	$pdo,
-	'accessories-spare-parts',
-	'accessories_spare_parts',
-	'epc_accessories_title',
-	'epc_accessories_desc',
-	$path,
-	$modules
-);
-// Short alias URL
-$contentIdShort = epc_acc_content(
-	$pdo,
-	'accessories',
-	'accessories_hub',
-	'epc_accessories_title',
-	'epc_accessories_desc',
-	$path,
-	$modules
-);
+$contentId = epc_acc_content($pdo, 'accessories-spare-parts', 'accessories_spare_parts', 'epc_accessories_title', 'epc_accessories_desc', $path, $modules);
+$contentIdShort = epc_acc_content($pdo, 'accessories', 'accessories_hub', 'epc_accessories_title', 'epc_accessories_desc', $path, $modules);
 
 $menuIds = array();
 $stmt = $pdo->query('SELECT `id` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id`');
@@ -139,18 +184,15 @@ foreach ($menuIds as $menuId) {
 		$structure = array();
 	}
 	$has = false;
-	$nextId = time() + 77;
 	foreach ($structure as $item) {
 		if ((isset($item['content_id']) && ((int) $item['content_id'] === $contentId || (int) $item['content_id'] === $contentIdShort))
-			|| (isset($item['a_innerhtml']) && $item['a_innerhtml'] === 'epc_menu_accessories')
-			|| epc_acc_href_match($item, array('accessories-spare-parts', 'accessories'))) {
+			|| (isset($item['a_innerhtml']) && $item['a_innerhtml'] === 'epc_menu_accessories')) {
 			$has = true;
 			break;
 		}
 	}
 	if (!$has) {
-		// Insert near top after first item when possible.
-		$item = epc_acc_menu_item('epc_menu_accessories', '/accessories-spare-parts', $nextId, $contentId);
+		$item = epc_acc_menu_item('epc_menu_accessories', time() + 77, $contentId);
 		if (count($structure) > 1) {
 			array_splice($structure, 1, 0, array($item));
 		} else {
@@ -164,6 +206,20 @@ foreach ($menuIds as $menuId) {
 	}
 }
 
+$reset = isset($_GET['reset']) && $_GET['reset'] === '1';
+$seed = !isset($_GET['seed']) || $_GET['seed'] !== '0';
+$seedStats = array('parents' => 0, 'children' => 0);
+if ($seed) {
+	$seedStats = epc_acc_seed_categories_from_json($pdo, $reset);
+}
+
+$listingCount = (int) $pdo->query('SELECT COUNT(*) FROM `epc_acc_listings`')->fetchColumn();
+$catCount = (int) $pdo->query('SELECT COUNT(*) FROM `epc_acc_categories`')->fetchColumn();
+
 echo "OK accessories content_id={$contentId} short_id={$contentIdShort} menus=" . implode(',', $updated) . "\n";
+echo "categories_seeded parents={$seedStats['parents']} children={$seedStats['children']} total_rows={$catCount}\n";
+echo "listings_count={$listingCount} (add with action=add_listing)\n";
 echo "URLs: /en/accessories-spare-parts and /en/accessories\n";
+echo "Example add:\n";
+echo "  ?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=Dashboard+Cover&price=1199&make=Toyota&city=Karachi&condition=new\n";
 exit;
