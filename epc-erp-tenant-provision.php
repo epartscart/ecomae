@@ -207,6 +207,7 @@ echo 'connect_before=' . ($connectBefore ? 'ok' : 'fail') . "\n";
 if (!$connectBefore) {
 	if (!$apply) {
 		echo "Would provision MySQL database {$dbName} / user {$dbUser}\n";
+		echo "Fallback if CREATE fails: claim a ready demo DB pool slot\n";
 	} else {
 		$prov = epc_portal_demo_provision_database_raw($dbName, $dbUser, $dbPass);
 		echo "provision_ok=" . (!empty($prov['ok']) ? 'yes' : 'no') . "\n";
@@ -216,9 +217,17 @@ if (!$connectBefore) {
 			}
 		}
 		if (empty($prov['ok'])) {
-			exit("provision_failed\n");
-		}
-		if (!empty($prov['db_name'])) {
+			// CloudPanel may lack db:add / stale admin password — use pre-seeded pool.
+			echo "provision_failed — trying demo DB pool claim...\n";
+			$claimed = epc_portal_demo_pool_claim($platformPdo, $siteKey);
+			if ($claimed === null) {
+				exit("provision_failed (no ready pool DB; seed via epc-demo-pool-seed.php)\n");
+			}
+			$dbName = (string) $claimed['db_name'];
+			$dbUser = (string) $claimed['db_user'];
+			$dbPass = (string) $claimed['db_password'];
+			echo "pool_claim=ok db={$dbName} user={$dbUser} pool_id=" . (int) ($claimed['pool_id'] ?? 0) . "\n";
+		} elseif (!empty($prov['db_name'])) {
 			$dbName = (string) $prov['db_name'];
 		}
 	}
