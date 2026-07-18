@@ -194,6 +194,87 @@ function epc_cross_count_refs_by_source($references, $source)
 
 
 
+function epc_cross_merge_source_into_ref(&$ref, $source)
+{
+	$source = trim((string)$source);
+	if($source === '')
+	{
+		return;
+	}
+	$existing = isset($ref['source']) ? trim((string)$ref['source']) : '';
+	if($existing === '')
+	{
+		$ref['source'] = $source;
+		return;
+	}
+	$parts = preg_split('~\s*\+\s*~', $existing);
+	if(!is_array($parts))
+	{
+		$parts = array($existing);
+	}
+	foreach($parts as $part)
+	{
+		if(strcasecmp(trim((string)$part), $source) === 0)
+		{
+			return;
+		}
+	}
+	$ref['source'] = $existing.'+'.$source;
+}
+
+function epc_cross_merge_reference_rows($a, $b)
+{
+	if(!is_array($a))
+	{
+		return is_array($b) ? $b : array();
+	}
+	if(!is_array($b))
+	{
+		return $a;
+	}
+	$brand_a = isset($a['brand']) ? trim((string)$a['brand']) : '';
+	$brand_b = isset($b['brand']) ? trim((string)$b['brand']) : '';
+	if($brand_a === '' && $brand_b !== '')
+	{
+		$a['brand'] = $brand_b;
+	}
+	$art_a = isset($a['article']) ? trim((string)$a['article']) : '';
+	$art_b = isset($b['article']) ? trim((string)$b['article']) : '';
+	if($art_a === '' && $art_b !== '')
+	{
+		$a['article'] = $art_b;
+	}
+	elseif($art_b !== '' && strlen($art_b) > strlen($art_a))
+	{
+		$a['article'] = $art_b;
+	}
+	$norm_a = !empty($a['article_norm']) ? docpart_normalize_article_for_price($a['article_norm']) : docpart_normalize_article_for_price($art_a);
+	$norm_b = !empty($b['article_norm']) ? docpart_normalize_article_for_price($b['article_norm']) : docpart_normalize_article_for_price($art_b);
+	if($norm_a === '' && $norm_b !== '')
+	{
+		$a['article_norm'] = $norm_b;
+	}
+	elseif($norm_a !== '')
+	{
+		$a['article_norm'] = $norm_a;
+	}
+	$name_a = isset($a['name']) ? trim((string)$a['name']) : '';
+	$name_b = isset($b['name']) ? trim((string)$b['name']) : '';
+	if($name_a === '' && $name_b !== '')
+	{
+		$a['name'] = $name_b;
+	}
+	elseif($name_b !== '' && strlen($name_b) > strlen($name_a))
+	{
+		$a['name'] = $name_b;
+	}
+	if(!empty($b['source']))
+	{
+		epc_cross_merge_source_into_ref($a, $b['source']);
+	}
+	return $a;
+}
+
 function epc_cross_add_reference(&$references, &$seen, $brand, $article, $source = '')
 
 {
@@ -204,13 +285,141 @@ function epc_cross_add_reference(&$references, &$seen, $brand, $article, $source
 
 	$brand = trim((string)$brand);
 
-	$key = mb_strtoupper($brand.'|'.$article_norm, 'UTF-8');
-
-	if($article_norm == '' || isset($seen[$key]))
+	if($article_norm == '')
 
 	{
 
 		return false;
+
+	}
+
+	$key = mb_strtoupper($brand.'|'.$article_norm, 'UTF-8');
+
+	if(isset($seen[$key]))
+
+	{
+
+		foreach($references as &$ref)
+
+		{
+
+			$ref_norm = !empty($ref['article_norm'])
+
+				? docpart_normalize_article_for_price($ref['article_norm'])
+
+				: docpart_normalize_article_for_price(isset($ref['article']) ? $ref['article'] : '');
+
+			$ref_brand = isset($ref['brand']) ? trim((string)$ref['brand']) : '';
+
+			if($ref_norm === $article_norm && mb_strtoupper($ref_brand.'|'.$ref_norm, 'UTF-8') === $key)
+
+			{
+
+				epc_cross_merge_source_into_ref($ref, $source);
+
+				break;
+
+			}
+
+		}
+
+		unset($ref);
+
+		return false;
+
+	}
+
+	// Empty brand: attach to any existing row with the same article_norm.
+	if($brand === '')
+
+	{
+
+		foreach($references as &$ref)
+
+		{
+
+			$ref_norm = !empty($ref['article_norm'])
+
+				? docpart_normalize_article_for_price($ref['article_norm'])
+
+				: docpart_normalize_article_for_price(isset($ref['article']) ? $ref['article'] : '');
+
+			if($ref_norm !== $article_norm)
+
+			{
+
+				continue;
+
+			}
+
+			epc_cross_merge_source_into_ref($ref, $source);
+
+			unset($ref);
+
+			return false;
+
+		}
+
+		unset($ref);
+
+	}
+
+	else
+
+	{
+
+		// Promote a previously empty-brand row for the same article_norm.
+		$empty_key = mb_strtoupper('|'.$article_norm, 'UTF-8');
+
+		if(isset($seen[$empty_key]))
+
+		{
+
+			foreach($references as &$ref)
+
+			{
+
+				$ref_norm = !empty($ref['article_norm'])
+
+					? docpart_normalize_article_for_price($ref['article_norm'])
+
+					: docpart_normalize_article_for_price(isset($ref['article']) ? $ref['article'] : '');
+
+				$ref_brand = isset($ref['brand']) ? trim((string)$ref['brand']) : '';
+
+				if($ref_norm !== $article_norm || $ref_brand !== '')
+
+				{
+
+					continue;
+
+				}
+
+				$ref['brand'] = $brand;
+
+				if($article !== '')
+
+				{
+
+					$ref['article'] = $article;
+
+				}
+
+				epc_cross_merge_source_into_ref($ref, $source);
+
+				unset($seen[$empty_key]);
+
+				$seen[$key] = true;
+
+				unset($ref);
+
+				return false;
+
+			}
+
+			unset($ref);
+
+		}
 
 	}
 
@@ -498,9 +707,9 @@ function epc_cross_enrich_reference_names(&$references, $stock, $db_link, $synon
 
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
 	$norm_list = array_keys($missing_norms);
-	if(count($norm_list) > 120)
+	if(count($norm_list) > EPC_CROSS_CROSSBASE_MAX)
 	{
-		$norm_list = array_slice($norm_list, 0, 120);
+		$norm_list = array_slice($norm_list, 0, EPC_CROSS_CROSSBASE_MAX);
 	}
 
 	$db_name_by_pair = array();
@@ -1773,14 +1982,6 @@ function epc_cross_load_stock_for_references($db_link, $references, $epc_price_s
 
 	}
 
-	if(count($reference_norms) > 80)
-
-	{
-
-		$reference_norms = array_slice($reference_norms, 0, 80);
-
-	}
-
 	$art_expr = docpart_sql_article_normalized_expr('`article`');
 
 	$batches = array_chunk($reference_norms, EPC_CROSS_STOCK_BATCH);
@@ -2535,6 +2736,111 @@ function epc_cross_sort_interchange_bucket($refs)
 
 
 
+/**
+ * Collapse references to unique brand+article_norm combinations.
+ * Synonym brands (e.g. AISIN/AISINC) and empty-brand rows for the same article count as one.
+ */
+function epc_cross_dedupe_unique_references($references, $synonym_map = array(), $canonical_map = array())
+{
+	if(!is_array($references) || count($references) < 2)
+	{
+		return is_array($references) ? array_values($references) : array();
+	}
+
+	$merged = array();
+	$order = array();
+
+	foreach($references as $ref)
+	{
+		if(!is_array($ref))
+		{
+			continue;
+		}
+		$article = isset($ref['article']) ? trim((string)$ref['article']) : '';
+		$article_norm = !empty($ref['article_norm'])
+			? docpart_normalize_article_for_price($ref['article_norm'])
+			: docpart_normalize_article_for_price($article);
+		if($article_norm === '')
+		{
+			continue;
+		}
+		$brand = isset($ref['brand']) ? trim((string)$ref['brand']) : '';
+		$canon = ($brand !== '' && is_array($canonical_map))
+			? docpart_synonym_canonical_brand($brand, $canonical_map)
+			: $brand;
+		$key = mb_strtoupper(($canon !== '' ? $canon : '').'|'.$article_norm, 'UTF-8');
+
+		if($canon === '')
+		{
+			foreach($merged as $existing_key => $existing_ref)
+			{
+				$existing_norm = !empty($existing_ref['article_norm'])
+					? docpart_normalize_article_for_price($existing_ref['article_norm'])
+					: docpart_normalize_article_for_price(isset($existing_ref['article']) ? $existing_ref['article'] : '');
+				if($existing_norm === $article_norm)
+				{
+					$key = $existing_key;
+					break;
+				}
+			}
+		}
+		else
+		{
+			$empty_key = mb_strtoupper('|'.$article_norm, 'UTF-8');
+			if(isset($merged[$empty_key]))
+			{
+				$ref = epc_cross_merge_reference_rows($merged[$empty_key], $ref);
+				unset($merged[$empty_key]);
+				$order = array_values(array_filter($order, function($existing_order_key) use ($empty_key) {
+					return $existing_order_key !== $empty_key;
+				}));
+			}
+			foreach($merged as $existing_key => $existing_ref)
+			{
+				$existing_norm = !empty($existing_ref['article_norm'])
+					? docpart_normalize_article_for_price($existing_ref['article_norm'])
+					: docpart_normalize_article_for_price(isset($existing_ref['article']) ? $existing_ref['article'] : '');
+				if($existing_norm !== $article_norm)
+				{
+					continue;
+				}
+				$existing_brand = isset($existing_ref['brand']) ? trim((string)$existing_ref['brand']) : '';
+				if($existing_brand !== '' && docpart_synonym_brands_equivalent($existing_brand, $brand, $synonym_map))
+				{
+					$key = $existing_key;
+					break;
+				}
+			}
+		}
+
+		$ref['article_norm'] = $article_norm;
+		if($brand !== '' && (!isset($ref['brand']) || trim((string)$ref['brand']) === ''))
+		{
+			$ref['brand'] = $brand;
+		}
+
+		if(!isset($merged[$key]))
+		{
+			$merged[$key] = $ref;
+			$order[] = $key;
+		}
+		else
+		{
+			$merged[$key] = epc_cross_merge_reference_rows($merged[$key], $ref);
+		}
+	}
+
+	$result = array();
+	foreach($order as $key)
+	{
+		if(isset($merged[$key]))
+		{
+			$result[] = $merged[$key];
+		}
+	}
+	return $result;
+}
+
 function epc_cross_cap_references_for_api($references, $max_count = 120)
 
 {
@@ -2735,7 +3041,7 @@ function epc_cross_reciprocal_crossbase_expand($article_input, $article_norm, &$
 
 {
 
-	if(count($references) >= 120)
+	if(count($references) >= EPC_CROSS_LOCAL_MAX)
 
 	{
 
@@ -2829,7 +3135,8 @@ if(!empty($_GET['cp_bulk']) && !empty($_GET['tech_key']) && hash_equals((string)
 
 }
 
-$epc_cross_api_ref_max = $epc_cross_cp_bulk ? 5000 : 120;
+// Storefront must return every unique brand+article cross (not a 120-row sample).
+$epc_cross_api_ref_max = $epc_cross_cp_bulk ? 5000 : EPC_CROSS_LOCAL_MAX;
 
 $epc_cross_crossbase_parse_max = $epc_cross_cp_bulk ? 5000 : EPC_CROSS_CROSSBASE_MAX;
 
@@ -2910,6 +3217,17 @@ if(
 	$reciprocal_crossbase_count = epc_cross_reciprocal_crossbase_expand($article_input, $article_norm, $references, $seen, 3);
 }
 
+$epc_price_storage_map = epc_cross_build_price_storage_map($db_link);
+
+$manufacturer_synonym_map = docpart_load_manufacturer_synonym_map($db_link);
+
+$manufacturer_canonical_map = docpart_load_manufacturer_canonical_map($db_link);
+
+// Fill empty brands first, then collapse to unique brand+article before stock/name work.
+epc_cross_enrich_reference_brands($references, $anchor_brand);
+
+$references = epc_cross_dedupe_unique_references($references, $manufacturer_synonym_map, $manufacturer_canonical_map);
+
 if(count($references) > $epc_cross_api_ref_max)
 
 {
@@ -2918,17 +3236,9 @@ if(count($references) > $epc_cross_api_ref_max)
 
 }
 
-
-
-$epc_price_storage_map = epc_cross_build_price_storage_map($db_link);
-
-$manufacturer_synonym_map = docpart_load_manufacturer_synonym_map($db_link);
-
-$manufacturer_canonical_map = docpart_load_manufacturer_canonical_map($db_link);
-
 $stock = array();
 
-if(!$epc_cross_cp_bulk && count($references) <= 120)
+if(!$epc_cross_cp_bulk)
 
 {
 
@@ -2938,9 +3248,10 @@ if(!$epc_cross_cp_bulk && count($references) <= 120)
 
 epc_cross_merge_anchor_stock($stock, $db_link, $article_norm, $anchor_brand, $epc_price_storage_map, $manufacturer_canonical_map);
 
-epc_cross_enrich_reference_brands($references, $anchor_brand);
-
 epc_cross_enrich_reference_names($references, $stock, $db_link, $manufacturer_synonym_map, $anchor_brand, $article_input);
+
+// Names/stock enrichment can leave synonym duplicates; collapse once more for the API payload.
+$references = epc_cross_dedupe_unique_references($references, $manufacturer_synonym_map, $manufacturer_canonical_map);
 
 foreach($stock as &$stock_row)
 {
@@ -2987,9 +3298,13 @@ if(($crossbase_persisted > 0 || $reciprocal_crossbase_count > 0) && count($refer
 
 	$local_count += epc_cross_load_local_references($db_link, $DP_Config, $article_norm, $references, $seen);
 
+	$references = epc_cross_dedupe_unique_references($references, $manufacturer_synonym_map, $manufacturer_canonical_map);
+
 }
 
 
+
+$unique_reference_count = count($references);
 
 $source_parts = array();
 
@@ -3035,7 +3350,8 @@ epc_cross_json(array(
 
 	'source' => $source,
 
-	'total' => $crossbase_total !== null ? $crossbase_total : count($references),
+	// Unique brand+article count (not raw crossbase HTML row count).
+	'total' => $unique_reference_count,
 
 	'local_count' => $local_count,
 
@@ -3051,9 +3367,11 @@ epc_cross_json(array(
 
 	'reciprocal_crossbase_count' => $reciprocal_crossbase_count,
 
-	'reference_count' => count($references),
+	'reference_count' => $unique_reference_count,
 
-	'references_loaded' => count($references),
+	'references_loaded' => $unique_reference_count,
+
+	'unique_reference_count' => $unique_reference_count,
 
 	'total_catalog' => $crossbase_total,
 
