@@ -98,12 +98,19 @@ class ProductsOfBunch//Класс ответа
 				$all_shop_storages[] = $all_shop_storages_record['id'];
 			}
 			
-			// Получаем все id групп
-			$all_groups_query = $db_link->prepare('SELECT `id` FROM `groups`;');
-			$all_groups_query->execute();
-			while($all_groups_record = $all_groups_query->fetch())
+			// Pricing profiles only — skip ERP department roles in multi-profile markups.
+			if(function_exists('epc_storefront_pricing_profile_group_ids'))
 			{
-				$all_groups[] = $all_groups_record["id"];
+				$all_groups = epc_storefront_pricing_profile_group_ids($db_link);
+			}
+			else
+			{
+				$all_groups_query = $db_link->prepare('SELECT `id` FROM `groups`;');
+				$all_groups_query->execute();
+				while($all_groups_record = $all_groups_query->fetch())
+				{
+					$all_groups[] = $all_groups_record["id"];
+				}
 			}
 			
 			// Получаем все наценки

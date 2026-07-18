@@ -728,20 +728,18 @@ function resultReview()
 		if(flag_show_data){
 			show_data_checked = 'checked';
 		}
-		for_percentage += '<div class="div_show_data_checked" style="text-align: right; position: relative;"><input '+show_data_checked+' style="margin: 0; padding: 0; margin-right: 0px; height: 20px; width: 20px; position: absolute; top: 1px; cursor: pointer; right: 0px;" type="checkbox" id="show_data" onChange="show_data();"/></div><div class="show_data_class" style="text-align: right; padding-right: 25px;"><select id="select_the_groups_margin" onChange="changing_the_groups_margin();">';
+		for_percentage += '<div class="div_show_data_checked" style="text-align: right; position: relative;"><input '+show_data_checked+' style="margin: 0; padding: 0; margin-right: 0px; height: 20px; width: 20px; position: absolute; top: 1px; cursor: pointer; right: 0px;" type="checkbox" id="show_data" onChange="show_data();"/></div><div class="show_data_class" style="text-align: right; padding-right: 25px;"><select id="select_the_groups_margin" onChange="changing_the_groups_margin();" title="Pricing profile">';
 			<?php
-			$group_query = $db_link->prepare('SELECT * FROM `groups` ORDER BY `order`;');
-			$group_query->execute();
-			while($group_record = $group_query->fetch()){
-				$selected = "";
-				if($group_record['id'] === '1'){
-					continue;
-				}
-				if($group_id == $group_record['id'])
-				{
-					$selected = "selected=\"selected\"";
-				}
-				echo "for_percentage += '<option ".$selected." value=\"".$group_record['id']."\">".translate_str_by_id($group_record['value'])."</option>';";
+			// Pricing profiles only (Retail/Wholesale/CIS/GCC/…) — not ERP department roles.
+			$epc_pricing_profiles = function_exists('epc_storefront_pricing_profile_groups')
+				? epc_storefront_pricing_profile_groups($db_link)
+				: array();
+			$epc_selected_margin_id = isset($this_group_id_margin) ? (int)$this_group_id_margin : (int)$group_id;
+			foreach($epc_pricing_profiles as $group_record){
+				$selected = ((int)$group_record['id'] === $epc_selected_margin_id) ? 'selected=\"selected\"' : '';
+				$option_label = translate_str_by_id($group_record['value']);
+				$option_label = str_replace(array("\\", "'"), array("\\\\", "\\'"), $option_label);
+				echo "for_percentage += '<option ".$selected." value=\"".(int)$group_record['id']."\">".$option_label."</option>';";
 			}
 			?>
 		for_percentage += '</select></div>';
