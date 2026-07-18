@@ -17,17 +17,45 @@ if ($epc_checkout_user_id > 0 && !epc_trade_can_place_order($db_link, $epc_check
 }
 
 
-//Определяем текущий способ
-if( !isset($_COOKIE["obtain_mode"]) )
+// Available modes that still have a customer_interface handler on disk.
+$epc_obtain_modes = array();
+$obtain_modes_query = $db_link->prepare('SELECT * FROM `shop_obtaining_modes` WHERE `available` = 1 ORDER BY `order`;');
+$obtain_modes_query->execute();
+while ($obtain_mode = $obtain_modes_query->fetch())
 {
-	$first_obtain_mode_query = $db_link->prepare('SELECT `id` FROM `shop_obtaining_modes` WHERE `available` = 1 ORDER BY `order` LIMIT 1;');
-	$first_obtain_mode_query->execute();
-	$first_obtain_mode_record = $first_obtain_mode_query->fetch();
-	$current_obtain_mode = (int) $first_obtain_mode_record["id"];
+	$handler_name = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$obtain_mode['handler']);
+	$interface_path = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/obtaining_modes/' . $handler_name . '/customer_interface.php';
+	if ($handler_name === '' || !is_file($interface_path))
+	{
+		continue;
+	}
+	$obtain_mode['handler'] = $handler_name;
+	$obtain_mode['_interface_path'] = $interface_path;
+	$epc_obtain_modes[] = $obtain_mode;
 }
-else
+
+//Определяем текущий способ
+$current_obtain_mode = 0;
+if (isset($_COOKIE['obtain_mode']))
 {
-	$current_obtain_mode = (int) $_COOKIE["obtain_mode"];
+	$current_obtain_mode = (int)$_COOKIE['obtain_mode'];
+}
+$handler = '';
+$epc_obtain_interface = '';
+foreach ($epc_obtain_modes as $obtain_mode)
+{
+	if ($current_obtain_mode === (int)$obtain_mode['id'])
+	{
+		$handler = $obtain_mode['handler'];
+		$epc_obtain_interface = $obtain_mode['_interface_path'];
+		break;
+	}
+}
+if ($handler === '' && !empty($epc_obtain_modes))
+{
+	$current_obtain_mode = (int)$epc_obtain_modes[0]['id'];
+	$handler = $epc_obtain_modes[0]['handler'];
+	$epc_obtain_interface = $epc_obtain_modes[0]['_interface_path'];
 }
 ?>
 
@@ -36,16 +64,20 @@ else
 
 
 <?php
+if (empty($epc_obtain_modes))
+{
+	?>
+	<div class="alert alert-danger">No delivery / pickup methods are available right now. Please contact support.</div>
+	<?php
+	return;
+}
 //Вывод способов получения
-$obtain_modes_query = $db_link->prepare('SELECT  * FROM `shop_obtaining_modes` WHERE `available` = 1 ORDER BY `order`;');
-$obtain_modes_query->execute();
-while( $obtain_mode = $obtain_modes_query->fetch() )
+foreach ($epc_obtain_modes as $obtain_mode)
 {
 	$checked = "";
 	if( $current_obtain_mode == $obtain_mode["id"] )
 	{
 		$checked = " checked=\"checked\" ";
-		$handler = $obtain_mode["handler"];
 	}
 	
 	?>
@@ -61,11 +93,10 @@ while( $obtain_mode = $obtain_modes_query->fetch() )
 
 
 
-
 <!-- Блок с настроками способа получения -->
 <div id="how_get_options_div">
 <?php
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/obtaining_modes/".$handler."/customer_interface.php");
+require_once $epc_obtain_interface;
 ?>
 </div>
 

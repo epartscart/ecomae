@@ -16,6 +16,10 @@ $user_session = DP_User::getUserSession();
 //Рекурвиная функция. Обрабатывает все значения древовидного массива через htmlentities
 function prepare_json_htmlentities($how_get)
 {
+	if (!is_array($how_get))
+	{
+		return array();
+	}
 	foreach($how_get AS $key=>$value)
 	{
 		if( is_array($value) )
@@ -24,7 +28,7 @@ function prepare_json_htmlentities($how_get)
 		}
 		else
 		{
-			$how_get[$key] = htmlentities($value);
+			$how_get[$key] = htmlentities((string)$value);
 		}
 	}
 	
@@ -81,6 +85,31 @@ else
 	}
 	
 	$session_id = $session_record["id"];
+}
+
+// Validate delivery method before rendering confirm (missing cookie used to fatal mid-page).
+$epc_how_get_url = (isset($multilang_params['lang_href']) ? $multilang_params['lang_href'] : '') . '/shop/checkout/how_get';
+$how_get_raw = isset($_COOKIE['how_get']) ? (string)$_COOKIE['how_get'] : '';
+$how_get_json = json_decode($how_get_raw, true);
+$epc_obtain_handler = '';
+$epc_obtain_details = '';
+$epc_how_get_ok = false;
+if (is_array($how_get_json) && !empty($how_get_json['mode']))
+{
+	$how_get_json = prepare_json_htmlentities($how_get_json);
+	$obtain_query = $db_link->prepare('SELECT * FROM `shop_obtaining_modes` WHERE `id` = ? AND `available` = 1;');
+	$obtain_query->execute(array((int)$how_get_json['mode']));
+	$obtain_mode = $obtain_query->fetch();
+	$epc_obtain_handler = (is_array($obtain_mode) && !empty($obtain_mode['handler']))
+		? preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$obtain_mode['handler'])
+		: '';
+	$epc_obtain_details = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/obtaining_modes/' . $epc_obtain_handler . '/show_details.php';
+	$epc_how_get_ok = ($epc_obtain_handler !== '' && is_file($epc_obtain_details));
+}
+if (!$epc_how_get_ok && !headers_sent())
+{
+	header('Location: ' . $epc_how_get_url);
+	exit;
 }
 
 
@@ -235,14 +264,17 @@ else if($DP_Config->currency_show_mode == "sign_after" || $DP_Config->currency_s
 
 <?php
 //2. ВЫВОДИМ СПОСОБ ПОЛУЧЕНИЯ
-$how_get_json = json_decode($_COOKIE["how_get"], true);
-$how_get_json = prepare_json_htmlentities($how_get_json);
-//Получаем имя папки с обработчиком:
-$obtain_query = $db_link->prepare('SELECT * FROM `shop_obtaining_modes` WHERE `id` = ?;');
-$obtain_query->execute( array($how_get_json["mode"]) );
-$obtain_mode = $obtain_query->fetch();
+if (!$epc_how_get_ok)
+{
+	?>
+	<div class="alert alert-warning" style="margin:16px 0;">Please choose a delivery / pickup method to continue checkout.</div>
+	<p><a class="btn btn-ar btn-primary" href="<?php echo htmlspecialchars($epc_how_get_url, ENT_QUOTES, 'UTF-8'); ?>">Choose delivery method</a></p>
+	<?php
+}
+else
+{
 echo '<div style="overflow-x: auto;">';
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/obtaining_modes/".$obtain_mode["handler"]."/show_details.php");
+require_once $epc_obtain_details;
 echo '</div>';
 ?>
 
@@ -515,3 +547,6 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/users_agreement_module.ph
 	</div>
 	<?php } ?>
 </div>
+<?php
+} // end else $epc_how_get_ok
+?>
