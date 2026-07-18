@@ -36,6 +36,41 @@ function docpart_sql_article_normalized_expr($column = '`article`')
 }
 
 /**
+ * True when shop_docpart_articles_analogs_list has indexed article_search/analog_search.
+ */
+function docpart_analogs_has_search_columns(PDO $db_link): bool
+{
+	static $ready = null;
+	if ($ready !== null) {
+		return $ready;
+	}
+	$ready = false;
+	try {
+		$db_link->query('SELECT `article_search`, `analog_search` FROM `shop_docpart_articles_analogs_list` LIMIT 1');
+		$ready = true;
+	} catch (Throwable $e) {
+		$ready = false;
+	}
+	return $ready;
+}
+
+/**
+ * Prefer indexed analogs search columns to avoid REPLACE() full scans.
+ *
+ * @return array{0:string,1:string} [article_expr, analog_expr]
+ */
+function docpart_analogs_match_exprs(PDO $db_link): array
+{
+	if (docpart_analogs_has_search_columns($db_link)) {
+		return array('`article_search`', '`analog_search`');
+	}
+	return array(
+		docpart_sql_article_normalized_expr('`article`'),
+		docpart_sql_article_normalized_expr('`analog`'),
+	);
+}
+
+/**
  * Ensure indexed article_search column exists for fast warehouse price lookups.
  * Web/search path: probe only (never ALTER — locks → 524 on epartscart).
  * Setup scripts may pass $allowAlter=true.
@@ -193,13 +228,11 @@ function docpart_collect_article_candidates($db_link, $article_norm, $use_crosse
 	if ($load1 !== null && $load1 >= 6.0) {
 		return array_keys($article_candidates);
 	}
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
 	$limit = ($load1 !== null && $load1 >= 4.0) ? 80 : 400;
 	try {
 		@$db_link->exec('SET SESSION max_statement_time = 2');
 		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
-		// Analogs table has no article_search column — keep REPLACE expr here, but capped.
 		$analogs_query = $db_link->prepare(
 			'SELECT `article`, `analog` FROM `shop_docpart_articles_analogs_list` WHERE '
 			. $art_expr . ' = ? OR ' . $analog_expr . ' = ? LIMIT ' . (int) $limit

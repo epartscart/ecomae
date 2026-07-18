@@ -98,8 +98,12 @@ function epc_article_brands_from_local_crosses($db_link, $DP_Config, $article_no
 		return 0;
 	}
 	try {
-		$art_expr = docpart_sql_article_normalized_expr('`article`');
-		$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+		if (function_exists('docpart_analogs_match_exprs')) {
+			list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+		} else {
+			$art_expr = docpart_sql_article_normalized_expr('`article`');
+			$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+		}
 		$cross_query = $db_link->prepare(
 			'SELECT `article`, `manufacturer_article`, `analog`, `manufacturer_analog` '
 			.'FROM `shop_docpart_articles_analogs_list` '

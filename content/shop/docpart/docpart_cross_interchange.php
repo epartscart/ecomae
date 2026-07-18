@@ -48,8 +48,12 @@ function docpart_load_interchange_partners($db_link, $article_norm, $max_rounds 
 	$partners = array();
 	$seen = array();
 	$known_norms = array($article_norm => true);
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	if (function_exists('docpart_analogs_match_exprs')) {
+		list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+	} else {
+		$art_expr = docpart_sql_article_normalized_expr('`article`');
+		$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	}
 	for ($round = 0; $round < $max_rounds; $round++) {
 		$norm_batch = array_keys($known_norms);
 		if (empty($norm_batch)) {
@@ -161,7 +165,10 @@ function docpart_cross_refs_from_price_name_cluster($db_link, $article_norm, $li
 	}
 	$refs = array();
 	$seen = array();
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
+	$art_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
 	$cores = array();
 	try {
 		$names_query = $db_link->prepare(
@@ -237,7 +244,10 @@ function docpart_cross_refs_from_stock_oem_mention($db_link, $article_norm, $lim
 	}
 	$refs = array();
 	$seen = array();
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
+	$art_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
 	try {
 		$like = '%' . $article_norm . '%';
 		$oem_query = $db_link->prepare(
@@ -335,8 +345,16 @@ function docpart_cross_resolve_brand_for_article(PDO $db_link, $article, array $
 	if ($article_norm === '') {
 		return '';
 	}
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	$art_expr = (function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db_link))
+		? '`article_search`'
+		: docpart_sql_article_normalized_expr('`article`');
+	if (function_exists('docpart_analogs_match_exprs')) {
+		list($analog_art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+	} else {
+		$analog_art_expr = docpart_sql_article_normalized_expr('`article`');
+		$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	}
 	try {
 		$price_query = $db_link->prepare(
 			'SELECT UPPER(TRIM(`manufacturer`)) AS `mfr`, COUNT(*) AS `cnt` '
@@ -357,7 +375,7 @@ function docpart_cross_resolve_brand_for_article(PDO $db_link, $article, array $
 		$cross_query = $db_link->prepare(
 			'SELECT `manufacturer_article`, `manufacturer_analog`, `article`, `analog` '
 			. 'FROM `shop_docpart_articles_analogs_list` '
-			. 'WHERE ' . $art_expr . ' = ? OR ' . $analog_expr . ' = ? '
+			. 'WHERE ' . $analog_art_expr . ' = ? OR ' . $analog_expr . ' = ? '
 			. 'ORDER BY `id` DESC LIMIT 40'
 		);
 		$cross_query->execute(array($article_norm, $article_norm));
@@ -403,8 +421,12 @@ function docpart_cross_repair_empty_manufacturers(PDO $db_link, $article_filter 
 	if (trim((string) $article_filter) !== '') {
 		$norm = docpart_normalize_article_for_price($article_filter);
 		if ($norm !== '') {
-			$art_expr = docpart_sql_article_normalized_expr('`article`');
-			$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+			if (function_exists('docpart_analogs_match_exprs')) {
+				list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+			} else {
+				$art_expr = docpart_sql_article_normalized_expr('`article`');
+				$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+			}
 			$where .= ' AND (' . $art_expr . ' = ? OR ' . $analog_expr . ' = ?)';
 			$params[] = $norm;
 			$params[] = $norm;
@@ -471,8 +493,12 @@ function docpart_cross_pair_exists_with_brands(PDO $db_link, $article_a, $brand_
 		// Under load, skip expensive REPLACE() existence checks — inserts use INSERT IGNORE.
 		return array('linked' => false, 'id' => 0);
 	}
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	if (function_exists('docpart_analogs_match_exprs')) {
+		list($art_expr, $analog_expr) = docpart_analogs_match_exprs($db_link);
+	} else {
+		$art_expr = docpart_sql_article_normalized_expr('`article`');
+		$analog_expr = docpart_sql_article_normalized_expr('`analog`');
+	}
 	try {
 		@$db_link->exec('SET SESSION max_statement_time = 2');
 		@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
@@ -534,14 +560,23 @@ function docpart_cross_persist_interchange_pair($db_link, $article, $manufacture
 	if (!empty(docpart_cross_pair_exists_with_brands($db_link, $article, $manufacturer_article, $analog, $manufacturer_analog)['linked'])) {
 		return false;
 	}
-	$art_expr = docpart_sql_article_normalized_expr('`article`');
-	$analog_expr = docpart_sql_article_normalized_expr('`analog`');
 	try {
-		$insert_query = $db_link->prepare(
-			'INSERT INTO `shop_docpart_articles_analogs_list` '
-			. '(`article`, `manufacturer_article`, `analog`, `manufacturer_analog`) VALUES (?,?,?,?)'
-		);
-		$insert_query->execute(array($article, $manufacturer_article, $analog, $manufacturer_analog));
+		if (function_exists('docpart_analogs_has_search_columns') && docpart_analogs_has_search_columns($db_link)) {
+			$insert_query = $db_link->prepare(
+				'INSERT INTO `shop_docpart_articles_analogs_list` '
+				. '(`article`, `article_search`, `manufacturer_article`, `analog`, `analog_search`, `manufacturer_analog`) '
+				. 'VALUES (?,?,?,?,?,?)'
+			);
+			$insert_query->execute(array(
+				$article, $a_norm, $manufacturer_article, $analog, $an_norm, $manufacturer_analog,
+			));
+		} else {
+			$insert_query = $db_link->prepare(
+				'INSERT INTO `shop_docpart_articles_analogs_list` '
+				. '(`article`, `manufacturer_article`, `analog`, `manufacturer_analog`) VALUES (?,?,?,?)'
+			);
+			$insert_query->execute(array($article, $manufacturer_article, $analog, $manufacturer_analog));
+		}
 		return true;
 	} catch (Exception $e) {
 		return false;
