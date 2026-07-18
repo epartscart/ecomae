@@ -271,7 +271,9 @@ if (!empty($epc_chpu_direct_pricing)) {
 //Получаем данные по валюте отображения
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/pricing/epc_currency.php");
 $epc_part_currency_records = epc_currency_records($db_link, $DP_Config);
-$epc_part_selected_currency_iso = epc_currency_selected_iso($epc_part_currency_records, $DP_Config);
+$epc_part_selected_currency_iso = epc_currency_selected_iso($epc_part_currency_records, $DP_Config, $db_link);
+$GLOBALS['epc_part_currency_records'] = $epc_part_currency_records;
+$GLOBALS['epc_part_selected_currency_iso'] = $epc_part_selected_currency_iso;
 $currency_record = $epc_part_currency_records[$epc_part_selected_currency_iso];
 $currency_sign = $currency_record["sign"];
 $seo_currency_code = 'USD';
@@ -1162,7 +1164,24 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 			$term .= ' · ' . $warehouse;
 		}
 		if ($pricesVisible) {
-			$priceHtml = '<span class="epc-price-value">' . htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8') . '</span>';
+			$priceDisplay = number_format($priceRaw, 2, '.', '');
+			if (function_exists('epc_currency_format_amount')
+				&& !empty($GLOBALS['epc_part_currency_records'])
+				&& !empty($GLOBALS['epc_part_selected_currency_iso'])) {
+				$priceDisplay = epc_currency_format_amount(
+					$priceRaw,
+					$GLOBALS['epc_part_currency_records'],
+					$GLOBALS['epc_part_selected_currency_iso'],
+					'no'
+				);
+				$currencyLabel = trim((string) $currency_indicator);
+				if ($currencyLabel !== '') {
+					$priceDisplay = $currencyLabel . ' ' . $priceDisplay;
+				}
+			}
+			$priceHtml = '<span class="epc-price-value" data-epc-base-price="'
+				. htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8')
+				. '">' . htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8') . '</span>';
 		} else {
 			$priceHtml = $priceCta !== '' ? $priceCta : '&mdash;';
 		}
@@ -1335,10 +1354,25 @@ function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, 
 		}
 		$termEsc = htmlspecialchars($term, ENT_QUOTES, 'UTF-8');
 		if ($pricesVisible && $row['min_price'] !== null) {
-			$priceHtml = htmlspecialchars(number_format((float) $row['min_price'], 2, '.', ''), ENT_QUOTES, 'UTF-8');
+			$priceRawBrand = (float) $row['min_price'];
+			$priceHtml = number_format($priceRawBrand, 2, '.', '');
+			if (function_exists('epc_currency_format_amount')
+				&& !empty($GLOBALS['epc_part_currency_records'])
+				&& !empty($GLOBALS['epc_part_selected_currency_iso'])) {
+				$priceHtml = epc_currency_format_amount(
+					$priceRawBrand,
+					$GLOBALS['epc_part_currency_records'],
+					$GLOBALS['epc_part_selected_currency_iso'],
+					'no'
+				);
+			}
+			$priceHtml = htmlspecialchars($priceHtml, ENT_QUOTES, 'UTF-8');
 			if ($currencyLabel !== '') {
 				$priceHtml = htmlspecialchars($currencyLabel, ENT_QUOTES, 'UTF-8') . ' ' . $priceHtml;
 			}
+			$priceHtml = '<span class="epc-price-value" data-epc-base-price="'
+				. htmlspecialchars(number_format($priceRawBrand, 2, '.', ''), ENT_QUOTES, 'UTF-8')
+				. '">' . $priceHtml . '</span>';
 		} elseif (!$pricesVisible) {
 			$priceHtml = $priceCta !== '' ? $priceCta : '&mdash;';
 		} else {
@@ -4122,10 +4156,13 @@ function manufacturersReview()
 			}
 			else if(ProductsManufacturers[i].min_price != null && ProductsManufacturers[i].min_price > 0)
 			{
-				var priceNum = Number(ProductsManufacturers[i].min_price).toFixed(2);
-				priceVal = (typeof currency_indicator !== 'undefined' && currency_indicator)
-					? (String(currency_indicator) + ' ' + priceNum)
-					: priceNum;
+				var basePrice = Number(ProductsManufacturers[i].min_price);
+				var priceNum = (typeof epcFormatMoney === 'function')
+					? epcFormatMoney(basePrice)
+					: ((typeof currency_indicator !== 'undefined' && currency_indicator)
+						? (String(currency_indicator) + ' ' + basePrice.toFixed(2))
+						: basePrice.toFixed(2));
+				priceVal = '<span class="epc-price-value" data-epc-base-price="' + String(basePrice) + '">' + priceNum + '</span>';
 			}
 			stockCols = " <td class='text-center'>" + a_tag + existVal + "</a></td> <td>" + a_tag + termVal + "</a></td> <td class='text-right'>" + a_tag + priceVal + "</a></td>";
 		}
