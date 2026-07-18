@@ -5,15 +5,36 @@
 defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
 
-$coa_list = epc_erp_gl_list_coa($db_link);
-$gl_journals = epc_erp_gl_list_journals($db_link, $date_from, $date_to);
-$pl = epc_erp_gl_pl_report($db_link, $date_from, $date_to);
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_tax_compliance.php';
-$uae_ct = epc_uae_corporate_tax_report($db_link, $date_from, $date_to);
-$bs = epc_erp_gl_balance_sheet($db_link, $date_to);
-$trial = epc_erp_gl_trial_balance($db_link, $date_to);
+// Tab-scoped loads — previously every GL/COA/P&L/BS view paid for all four reports.
+$coa_list = array();
+$gl_journals = array();
+$pl = array('revenue' => array(), 'expense' => array(), 'net_profit' => 0);
+$uae_ct = array();
+$bs = array('assets' => array(), 'liabilities' => array(), 'equity' => array());
+$trial = array();
+if ($tab === 'coa') {
+	$coa_list = epc_erp_gl_list_coa($db_link);
+} elseif ($tab === 'gl') {
+	$gl_journals = epc_erp_gl_list_journals($db_link, $date_from, $date_to);
+} elseif ($tab === 'pl') {
+	$pl = epc_erp_gl_pl_report($db_link, $date_from, $date_to);
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_tax_compliance.php';
+	$uae_ct = epc_uae_corporate_tax_report($db_link, $date_from, $date_to);
+} elseif ($tab === 'balance_sheet') {
+	$bs = epc_erp_gl_balance_sheet($db_link, $date_to);
+	$trial = epc_erp_gl_trial_balance($db_link, $date_to);
+} else {
+	// Unknown accounting sub-tab — keep prior behaviour as a safe fallback.
+	$coa_list = epc_erp_gl_list_coa($db_link);
+	$gl_journals = epc_erp_gl_list_journals($db_link, $date_from, $date_to);
+	$pl = epc_erp_gl_pl_report($db_link, $date_from, $date_to);
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_tax_compliance.php';
+	$uae_ct = epc_uae_corporate_tax_report($db_link, $date_from, $date_to);
+	$bs = epc_erp_gl_balance_sheet($db_link, $date_to);
+	$trial = epc_erp_gl_trial_balance($db_link, $date_to);
+}
 $view_journal = isset($_GET['journal_id']) ? (int)$_GET['journal_id'] : 0;
-$journal_lines = $view_journal > 0 ? epc_erp_gl_journal_lines($db_link, $view_journal) : array();
+$journal_lines = ($tab === 'gl' && $view_journal > 0) ? epc_erp_gl_journal_lines($db_link, $view_journal) : array();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_fiscal_periods.php';
 $fiscal_lock = epc_erp_fiscal_lock_date($db_link);
 $fiscal_lock_str = $fiscal_lock > 0 ? date('Y-m-d', $fiscal_lock) : '';

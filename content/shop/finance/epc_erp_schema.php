@@ -6,6 +6,13 @@ defined('_ASTEXE_') or die('No access');
 
 function epc_erp_ensure_schema(PDO $db)
 {
+	static $done = array();
+	$oid = spl_object_id($db);
+	if (isset($done[$oid])) {
+		return;
+	}
+	$done[$oid] = true;
+
 	$db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_cash_bank_accounts` (
 		`id` int(11) NOT NULL AUTO_INCREMENT,
 		`name` varchar(255) NOT NULL,

@@ -155,3 +155,4 @@ curl -s -H "X-API-Key: epc_YOUR_TENANT_read_XXXXXXXX" \
 </div>
 <?php
 epc_cp_page_frame_close();
+?>

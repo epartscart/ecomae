@@ -19,6 +19,33 @@ function epc_erp_gl_account_types()
 
 function epc_erp_full_ensure_schema(PDO $db)
 {
+	// Once per request/connection — /erp and /erp-demo were re-running the full
+	// CREATE/SHOW COLUMNS chain on every tab navigation (~0.5–1s baseline tax).
+	static $done = array();
+	$oid = spl_object_id($db);
+	if (isset($done[$oid])) {
+		return;
+	}
+
+	// Cross-request short-circuit: after schema is known-good, skip the full DDL
+	// sweep. Bump $schemaVer whenever any ensure_* body below gains new DDL.
+	$schemaVer = 20260718;
+	try {
+		$db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_runtime_meta` (
+			`meta_key` varchar(64) NOT NULL,
+			`meta_value` varchar(255) NOT NULL DEFAULT '',
+			PRIMARY KEY (`meta_key`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP runtime flags (schema version, etc.)'");
+		$q = $db->query("SELECT `meta_value` FROM `epc_erp_runtime_meta` WHERE `meta_key` = 'full_schema_ver' LIMIT 1");
+		$cur = $q ? (int) $q->fetchColumn() : 0;
+		if ($cur >= $schemaVer) {
+			$done[$oid] = true;
+			return;
+		}
+	} catch (Throwable $e) {
+		// Fall through to full ensure.
+	}
+
 	require_once __DIR__ . '/epc_erp_vouchers.php';
 	epc_erp_vouchers_ensure_schema($db);
 	epc_erp_gl_ensure_schema($db);
@@ -38,6 +65,16 @@ function epc_erp_full_ensure_schema(PDO $db)
 	epc_erp_order_fulfillment_ensure_schema($db);
 	require_once __DIR__ . '/epc_erp_advances.php';
 	epc_erp_advances_ensure_schema($db);
+
+	try {
+		$up = $db->prepare(
+			"INSERT INTO `epc_erp_runtime_meta` (`meta_key`, `meta_value`) VALUES ('full_schema_ver', ?)
+			ON DUPLICATE KEY UPDATE `meta_value` = VALUES(`meta_value`)"
+		);
+		$up->execute(array((string) $schemaVer));
+	} catch (Throwable $e) {
+	}
+	$done[$oid] = true;
 }
 
 function epc_erp_gl_ensure_schema(PDO $db)
@@ -220,7 +257,7 @@ function epc_erp_gl_add_index_if_missing(PDO $db, $table, $indexName, $columnsSp
  * explicit id to scope to a specific company, or 0 to see every company's
  * activity unscoped (used by consolidated/group reporting).
  */
-function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0, $companyId = null)
+function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0, $companyId = null, $date_from = 0)
 {
 	$sql = 'SELECT l.`coa_id` AS coa_id,
 			IFNULL(SUM(l.`debit`),0) AS debits,
@@ -233,6 +270,10 @@ function epc_erp_gl_all_coa_activity(PDO $db, $date_to = 0, $companyId = null)
 	if ($cid > 0) {
 		$sql .= ' AND j.company_id = ?';
 		$params[] = $cid;
+	}
+	if ((int)$date_from > 0) {
+		$sql .= ' AND j.journal_date >= ?';
+		$params[] = (int)$date_from;
 	}
 	if ((int)$date_to > 0) {
 		$sql .= ' AND j.journal_date <= ?';
@@ -837,16 +878,26 @@ function epc_erp_gl_sync_unposted(PDO $db)
 
 function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to, $companyId = null)
 {
+	// Per-request memo — dashboard + intel KPIs + BS current-earnings all ask for the same PL.
+	static $memo = array();
+	$cidKey = $companyId === null ? 'auto' : (string) (int) $companyId;
+	$mkey = spl_object_id($db) . ':' . (int) $date_from . ':' . (int) $date_to . ':' . $cidKey;
+	if (isset($memo[$mkey])) {
+		return $memo[$mkey];
+	}
+
 	epc_erp_gl_ensure_schema($db);
 	$accounts = $db->query(
 		"SELECT * FROM `epc_erp_coa_accounts` WHERE `active` = 1 AND `account_type` IN ('revenue','expense') ORDER BY `code`"
 	)->fetchAll(PDO::FETCH_ASSOC);
+	$activity = epc_erp_gl_all_coa_activity($db, $date_to, $companyId, $date_from);
 	$revenue = array();
 	$expenses = array();
 	$total_rev = 0.0;
 	$total_exp = 0.0;
 	foreach ($accounts as $a) {
-		$act = epc_erp_gl_coa_activity($db, (int)$a['id'], $date_from, $date_to, $companyId);
+		$id = (int) $a['id'];
+		$act = isset($activity[$id]) ? $activity[$id] : array('debits' => 0.0, 'credits' => 0.0);
 		$period = epc_erp_gl_signed_balance(0, $act['debits'], $act['credits'], $a['normal_side']);
 		if (abs($period) < 0.005) {
 			continue;
@@ -864,7 +915,7 @@ function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to, $companyId = null)
 			$total_exp += $period;
 		}
 	}
-	return array(
+	$memo[$mkey] = array(
 		'date_from' => $date_from,
 		'date_to' => $date_to,
 		'revenue' => $revenue,
@@ -873,6 +924,7 @@ function epc_erp_gl_pl_report(PDO $db, $date_from, $date_to, $companyId = null)
 		'total_expenses' => $total_exp,
 		'net_profit' => $total_rev - $total_exp,
 	);
+	return $memo[$mkey];
 }
 
 function epc_erp_gl_balance_sheet(PDO $db, $as_of, $companyId = null)
@@ -883,8 +935,17 @@ function epc_erp_gl_balance_sheet(PDO $db, $as_of, $companyId = null)
 	$accounts = $db->query(
 		"SELECT * FROM `epc_erp_coa_accounts` WHERE `active` = 1 AND `account_type` IN ('asset','liability','equity') ORDER BY `code`"
 	)->fetchAll(PDO::FETCH_ASSOC);
+	$date_to = $as_of > 0 ? (int) $as_of : time();
+	$activity = epc_erp_gl_all_coa_activity($db, $date_to, $companyId, 0);
 	foreach ($accounts as $a) {
-		$bal = epc_erp_gl_coa_balance($db, (int)$a['id'], $as_of, $companyId);
+		$id = (int) $a['id'];
+		$act = isset($activity[$id]) ? $activity[$id] : array('debits' => 0.0, 'credits' => 0.0);
+		$bal = epc_erp_gl_signed_balance(
+			$a['opening_balance'],
+			$act['debits'],
+			$act['credits'],
+			$a['normal_side']
+		);
 		if (abs($bal) < 0.005) {
 			continue;
 		}

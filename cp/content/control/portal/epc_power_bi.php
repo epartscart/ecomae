@@ -31,11 +31,12 @@ $pdo = function_exists('epc_portal_platform_pdo') ? epc_portal_platform_pdo() : 
 if (!$pdo instanceof PDO && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
 	$pdo = $GLOBALS['db_link'];
 }
-if (!$pdo instanceof PDO) {
+$epcPbiReady = $pdo instanceof PDO;
+if (!$epcPbiReady) {
 	echo '<div class="alert alert-danger">Platform database unavailable. Re-run '
 		. '<code>/epc-power-bi-setup.php?token=…</code> on this host, then reload.</div>';
-	return;
-}
+	// Do not return — CP pages are eval()'d inside the template shell.
+} else {
 epc_power_bi_ensure_schema($pdo);
 
 $tenants = function_exists('epc_portal_list_tenants') ? epc_portal_list_tenants($pdo) : array();
@@ -322,3 +323,5 @@ curl -s -H "X-API-Key: epc_YOUR_TENANT_read_XXXXXXXX" \
 </div>
 <?php
 epc_cp_page_frame_close();
+} // $epcPbiReady
+?>

@@ -21,12 +21,14 @@ if (is_file($epcTenantCpDash)) {
 	require_once $epcTenantCpDash;
 }
 
-// Tenant home dashboard is the full page — do not continue into legacy
-// statistics/control_items (those paths have fatals on PHP 8 and add latency).
-if (!empty($GLOBALS['epc_tenant_cp_dashboard_shown'])) {
-	return;
-}
+// Super / tenant dashboards replace legacy home chrome (avoids PHP 8 fatals /
+// latency on statistics/control_items). Do NOT `return` here — CP pages are
+// eval()'d inside the template (dp_core.php); a return aborts the whole shell
+// (truncated HTML, missing </body></html>).
+$epcSkipLegacyControlHome = !empty($GLOBALS['epc_super_cp_dashboard_shown'])
+	|| !empty($GLOBALS['epc_tenant_cp_dashboard_shown']);
 
+if (!$epcSkipLegacyControlHome):
 //Блок статистики
 if( ! isset($_COOKIE["statistical_mp_hidden"]) || ((int)$_COOKIE["statistical_mp_hidden"] === 0)){
 	//Проверяем доступ к статистике
@@ -142,4 +144,5 @@ foreach($tabs as $key => $tab)
 		<?php
 	}
 }//foreach()
+endif; // !$epcSkipLegacyControlHome
 ?>

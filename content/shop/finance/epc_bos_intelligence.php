@@ -58,7 +58,7 @@ function epc_bos_intel_context(PDO $db): array
  *
  * @return array<int,array<string,mixed>>
  */
-function epc_bos_intel_kpis(PDO $db, int $dateFrom, int $dateTo): array
+function epc_bos_intel_kpis(PDO $db, int $dateFrom, int $dateTo, array $precomputedDash = null, array $precomputedPl = null): array
 {
 	// Per-request memoization: the KPI set is rendered both on the home
 	// dashboard portlet and the Industry Intelligence tab, and aggregates GL +
@@ -68,8 +68,11 @@ function epc_bos_intel_kpis(PDO $db, int $dateFrom, int $dateTo): array
 	if (isset($memo[$key])) {
 		return $memo[$key];
 	}
-	$dash = epc_erp_dashboard($db, $dateFrom, $dateTo);
-	$pl = function_exists('epc_erp_gl_pl_report') ? epc_erp_gl_pl_report($db, $dateFrom, $dateTo) : array();
+	// Prefer figures already loaded by erp_main.php (avoids a second dashboard + PL pass).
+	$dash = is_array($precomputedDash) ? $precomputedDash : epc_erp_dashboard($db, $dateFrom, $dateTo);
+	$pl = is_array($precomputedPl)
+		? $precomputedPl
+		: (function_exists('epc_erp_gl_pl_report') ? epc_erp_gl_pl_report($db, $dateFrom, $dateTo) : array());
 	$invValue = 0.0;
 	if (function_exists('epc_erp_inventory_valuation_total')) {
 		try {

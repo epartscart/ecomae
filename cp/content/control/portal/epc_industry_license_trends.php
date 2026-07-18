@@ -446,3 +446,4 @@ if ($searchQuery !== '') {
 
 <?php
 epc_cp_page_frame_close();
+?>

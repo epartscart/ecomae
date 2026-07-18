@@ -265,18 +265,39 @@ function epc_bos_ajax_login(): array
     $userRow = null;
     $authPdo = null;
     $tables = array('users', 'admin', 'epc_cp_users');
+    // Prefer the site DB first — platform operator DB can have the same email
+    // with a different hash; accepting the first row without a password check
+    // made Super CP logins (ecomae.admin) fail while demo@ still worked.
     $pdoSources = array_filter(array($mainPdo, $platformPdo));
 
+    $passOk = false;
     foreach ($pdoSources as $tryPdo) {
         foreach ($tables as $table) {
             try {
+                // Docpart stores the CP "login name" in users.email (e.g. ecomae.admin).
                 $st = $tryPdo->prepare("SELECT * FROM `{$table}` WHERE `email` = ? LIMIT 1");
                 $st->execute(array($email));
                 $row = $st->fetch(PDO::FETCH_ASSOC);
-                if ($row) {
+                if (!$row) {
+                    continue;
+                }
+                $storedPass = (string) ($row['password'] ?? $row['pass'] ?? '');
+                if ($storedPass === '') {
+                    continue;
+                }
+                $ok = false;
+                if (password_verify($password, $storedPass)) {
+                    $ok = true;
+                } elseif ($secretSuccession !== '' && md5($password . $secretSuccession) === $storedPass) {
+                    $ok = true;
+                } elseif (md5($password) === $storedPass) {
+                    $ok = true;
+                }
+                if ($ok) {
                     $userRow = $row;
                     $userRow['_table'] = $table;
                     $authPdo = $tryPdo;
+                    $passOk = true;
                     break 2;
                 }
             } catch (Exception $e) {
@@ -285,26 +306,11 @@ function epc_bos_ajax_login(): array
         }
     }
 
-    if (!$userRow) {
+    if (!$userRow || !$passOk) {
         return array('ok' => false, 'error' => 'Invalid credentials');
     }
 
     $storedPass = (string) ($userRow['password'] ?? $userRow['pass'] ?? '');
-    $passOk = false;
-
-    if ($storedPass !== '') {
-        if (password_verify($password, $storedPass)) {
-            $passOk = true;
-        } elseif ($secretSuccession !== '' && md5($password . $secretSuccession) === $storedPass) {
-            $passOk = true;
-        } elseif (md5($password) === $storedPass) {
-            $passOk = true;
-        }
-    }
-
-    if (!$passOk) {
-        return array('ok' => false, 'error' => 'Invalid credentials');
-    }
 
     // Transparent password upgrade: MD5 → bcrypt on successful login
     $upgradeFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';

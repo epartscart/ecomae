@@ -4,8 +4,39 @@
 */
 defined('_ASTEXE_') or die('No access');
 
+$statsMain = $_SERVER["DOCUMENT_ROOT"] . "/" . $DP_Config->backend_dir . "/content/shop/statistics/statistics_main_page.php";
+$ratingPage = $_SERVER["DOCUMENT_ROOT"] . "/" . $DP_Config->backend_dir . "/content/shop/statistics/stat_article_queries_rating/page.php";
+$chartPage = $_SERVER["DOCUMENT_ROOT"] . "/" . $DP_Config->backend_dir . "/content/shop/statistics/stat_article_queries_time_chart/page.php";
+
+// Older Docpart builds shipped these report modules; some platform docroots
+// no longer include them. Guard so /cp/shop/statistika does not fatal (HTTP 500).
+if (!is_file($statsMain) && !is_file($ratingPage) && !is_file($chartPage)) {
+	?>
+	<div class="col-lg-12">
+		<div class="hpanel">
+			<div class="panel-heading hbuilt">Statistics</div>
+			<div class="panel-body">
+				<p class="text-muted" style="margin:0 0 12px">
+					The classic article-query statistics modules are not installed on this host.
+				</p>
+				<p style="margin:0">
+					Use
+					<a href="/<?php echo htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/control/portal/epc_web_tracker">Website tracker</a>
+					for traffic analytics, or
+					<a href="/<?php echo htmlspecialchars((string) $DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/control/portal/epc_boc_command_center">Command Center</a>
+					for fleet KPIs.
+				</p>
+			</div>
+		</div>
+	</div>
+	<?php
+	// Do not return — CP pages are eval()'d inside the template shell.
+} else {
+
 //Блок статистики
-require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/statistics_main_page.php");
+if (is_file($statsMain)) {
+	require_once $statsMain;
+}
 
 $statistics_type = "article_queries_rating";//По учолчанию - выбранный отчет - Рейтинг запросов по артикулу
 if( isset($_COOKIE["statistics_type"]) )
@@ -55,10 +86,20 @@ function onchange_statistics_type_select()
 //В зависимости от выставленного типа отчета - подключаем соответствующий скрипт
 if($statistics_type == "article_queries_rating")
 {
-	require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/stat_article_queries_rating/page.php");
+	if (is_file($ratingPage)) {
+		require_once $ratingPage;
+	} else {
+		echo '<div class="col-lg-12"><div class="alert alert-warning">Article queries rating report module is not installed.</div></div>';
+	}
 }
 else if($statistics_type == "article_queries_time_chart")
 {
-	require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/shop/statistics/stat_article_queries_time_chart/page.php");
+	if (is_file($chartPage)) {
+		require_once $chartPage;
+	} else {
+		echo '<div class="col-lg-12"><div class="alert alert-warning">Article queries time chart module is not installed.</div></div>';
+	}
 }
+
+} // modules present
 ?>

@@ -1,12 +1,48 @@
 <?php
 /**
- * Страничный скрипт для генерации файла sitemap.xml
-*/
+ * CP sitemap manager — CMS-eval safe.
+ *
+ * Scripts are stripped by epc_cp_prepare_cp_page_content() BEFORE eval, so any
+ * <?php inside <script> never runs and becomes literal footer HTML. Build JS
+ * after PHP setup and append via epc_cp_footer_scripts_append().
+ */
 defined('_ASTEXE_') or die('No access');
+
+require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/content/dp_content_record.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/content/get_content_records.php");
+
+if (!isset($is_frontend)) {
+	$is_frontend = 1;
+}
+
+$get_main_id_query = $db_link->prepare("SELECT * FROM `content` WHERE `main_flag`=1 AND `is_frontend`=?;");
+$get_main_id_query->execute(array($is_frontend));
+$get_main_id_record = $get_main_id_query->fetch();
+$current_main_id = ($get_main_id_record && isset($get_main_id_record["id"])) ? (int)$get_main_id_record["id"] : 0;
+unset($current_main_id); // reserved for future deep-link; tree dump covers all pages
+
+if (!isset($content_tree_dump_JSON) || $content_tree_dump_JSON === '' || $content_tree_dump_JSON === false) {
+	$content_tree_dump_JSON = '[]';
+}
+
+require_once($_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php");
+$user_session = DP_User::getAdminSession();
+$csrf = is_array($user_session) && isset($user_session["csrf_guard_key"]) ? (string)$user_session["csrf_guard_key"] : '';
+
+$backend_dir = (string)$DP_Config->backend_dir;
+$template_name = (string)$DP_Template->name;
+$save_icon = '/'.$backend_dir.'/templates/'.$template_name.'/images/save.png';
+$power_icon = '/'.$backend_dir.'/templates/'.$template_name.'/images/power_off.png';
+$gear_icon = '/'.$backend_dir.'/templates/'.$template_name.'/images/gear.png';
+$lock_icon = '/'.$backend_dir.'/templates/'.$template_name.'/images/lock.png';
+$star_icon = '/'.$backend_dir.'/templates/'.$template_name.'/images/star.png';
+
+$alert_empty = translate_str_by_id(2298);
+$alert_ok = translate_str_by_id(2299);
+$ajax_url = '/'.$backend_dir.'/content/content/ajax_create_sitemap.php';
 ?>
 
 <div id="messages"></div>
-
 
 <div class="col-lg-12">
 	<div class="hpanel">
@@ -15,37 +51,16 @@ defined('_ASTEXE_') or die('No access');
 		</div>
 		<div class="panel-body">
 			<a class="panel_a" onClick="create_sitemap();" href="javascript:void(0);">
-				<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir;?>/templates/<?php echo $DP_Template->name; ?>/images/save.png') 0 0 no-repeat;"></div>
+				<div class="panel_a_img" style="background: url('<?php echo htmlspecialchars($save_icon, ENT_QUOTES, 'UTF-8'); ?>') 0 0 no-repeat;"></div>
 				<div class="panel_a_caption"><?php echo translate_str_by_id(2292); ?></div>
 			</a>
-
-
-			<a class="panel_a" href="/<?php echo $DP_Config->backend_dir?>">
-				<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir;?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
+			<a class="panel_a" href="/<?php echo htmlspecialchars($backend_dir, ENT_QUOTES, 'UTF-8'); ?>">
+				<div class="panel_a_img" style="background: url('<?php echo htmlspecialchars($power_icon, ENT_QUOTES, 'UTF-8'); ?>') 0 0 no-repeat;"></div>
 				<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
 			</a>
 		</div>
 	</div>
 </div>
-
-
-
-
-
-
-<?php
-require_once("content/content/dp_content_record.php");//Определение класса записи материала
-require_once("content/content/get_content_records.php");//Получение объекта иерархии существующих материалов для вывода в дерево-webix
-
-//Получить текущий главный материал (id дерева webix)
-$get_main_id_query = $db_link->prepare("SELECT * FROM `content` WHERE `main_flag`=1 AND `is_frontend`=?;");
-$get_main_id_query->execute( array($is_frontend) );
-$get_main_id_record = $get_main_id_query->fetch();
-$current_main_id = $get_main_id_record["id"];
-?>
-
-
-
 
 <div class="col-lg-6">
 	<div class="hpanel">
@@ -57,14 +72,10 @@ $current_main_id = $get_main_id_record["id"];
 				<button onclick="content_tree.checkAll();" class="btn w-xs btn-success"><?php echo translate_str_by_id(2293); ?></button>
 				<button onclick="content_tree.uncheckAll();" class="btn w-xs btn-primary2"><?php echo translate_str_by_id(2294); ?></button>
 			</div>
-			<div id="container_A" style="height:350px;">
-			</div>
+			<div id="container_A" style="height:350px;"></div>
 		</div>
 	</div>
 </div>
-
-
-
 
 <div class="col-lg-6">
 	<div class="hpanel">
@@ -75,223 +86,55 @@ $current_main_id = $get_main_id_record["id"];
 			<?php echo translate_str_by_id(2296); ?>
 			<br/>
 			<?php echo translate_str_by_id(2297); ?>
-			<?php/*
-			<div style="padding:0 0 10px 0;">
-				<button onclick="catalogue_tree.checkAll();" class="btn w-xs btn-success">Отметить все</button>
-				<button onclick="catalogue_tree.uncheckAll();" class="btn w-xs btn-primary2">Снять все</button>
-			</div>
-			<div id="container_B" style="height:350px;">
-			</div>
-			*/?>
 		</div>
 	</div>
 </div>
 
-
-
-
-<script>
-//Создание файла
-function create_sitemap()
-{
-    document.getElementById("messages").innerHTML = "";
-    
-    var url_list = new Array();
-    
-    //Работаем с деревом материалов
-    var checked_content = content_tree.getChecked();
-    for(var i=0; i < checked_content.length; i++)
-    {
-        //Объект webix
-        var node = content_tree.getItem(checked_content[i]);
-    
-        var url = new Object;
-        url.url = node.url;
-        
-        url_list.push(url);
-    }
-    
-    /*
-    //Работаем с деревом каталога
-    var checked_catalogue = catalogue_tree.getChecked();
-    for(var i=0; i < checked_catalogue.length; i++)
-    {
-        //Объект webix
-        var node = catalogue_tree.getItem(checked_catalogue[i]);
-    
-        var url = new Object;
-        url.url = node.url;
-        
-        url_list.push(url);
-    }
-    */
-    if(url_list.length == 0)
-    {
-        alert("<?php echo translate_str_by_id(2298); ?>");
-        return;
-    }
-    
-	<?php
-	//Для работы с пользователем
-	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
-	$user_session = DP_User::getAdminSession();
-	?>
-	
-    //Запрос на создание файла
-    jQuery.ajax({
-    type: "POST",
-    async: false, //Запрос синхронный
-    url: "/<?php echo $DP_Config->backend_dir; ?>/content/content/ajax_create_sitemap.php",
-    dataType: "text",//Тип возвращаемого значения
-    data: "url_list="+JSON.stringify(url_list)+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
-    success: function(answer)
-    {
-        alert("<?php echo translate_str_by_id(2299); ?>");
-    }
-});
-}
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<script type="text/javascript" charset="utf-8">
-//Создаем дерево
-content_tree = new webix.ui({
-    
-    //Шаблон элемента дерева
-	template:function(obj, common)//Шаблон узла дерева
-    	{
-            var folder = common.folder(obj, common);
-    	    var icon = "";
-    	    var value_text = "<span>" + obj.value + "</span>";//Вывод текста
-    	    var checkbox = common.checkbox(obj, common);
-    	    
-    	    //Индикация системного материала
-    	    var icon_system = "";
-    	    if(obj.system_flag == true)
-            {
-                icon_system = "<img src='/<?php echo $DP_Config->backend_dir;?>/templates/<?php echo $DP_Template->name; ?>/images/gear.png' class='col_img' style='float:right; margin:0px 4px 8px 4px;'>";
-            }
-    	    
-    	    //Индикация материала, снятого с публикации
-    	    if(obj.published_flag == false)
-            {
-                icon_system += "<img src='/<?php echo $DP_Config->backend_dir;?>/templates/<?php echo $DP_Template->name; ?>/images/lock.png' class='col_img' style='float:right; margin:0px 4px 8px 4px;'>";
-                value_text = "<span style=\"color:#AAA\">" + obj.value + "</span>";//Вывод текста
-            }
-    	    
-    	    //Индикация главного материала
-    	    if(obj.main_flag == 1)
-            {
-                icon_system += "<img src='/<?php echo $DP_Config->backend_dir;?>/templates/<?php echo $DP_Template->name; ?>/images/star.png' class='col_img' style='float:right; margin:0px 4px 8px 4px;'>";
-                value_text = "<span style=\"font-weight:bold\">" + obj.value + "</span>";//Вывод текста
-            }
-    	    
-            return common.icon(obj, common) + checkbox + icon + folder + icon_system + value_text;
-    	},//~template
-
-
-
-	editable:false,//Не редактируемое
-    container:"container_A",//id блока div для дерева
-    view:"tree",
-	select:true,//можно выделять элементы
-	drag:false//Нельзя переносить
-});
-
-webix.event(window, "resize", function(){ content_tree.adjust(); });
-
-var site_content = <?php echo $content_tree_dump_JSON;?>;
-content_tree.parse(site_content);
-/*~ДЕРЕВО МАТЕРИАЛОВ*/
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <?php
-/**
- * **************************************************************************************
- * *******************  ДАЛЬШЕ ИДЕТ ЧАСТЬ ДЛЯ КАРТЫ КАТАЛОГА ТОВАРОВ  *******************
- * **************************************************************************************
-*/
+$cfg = array(
+	'ajaxUrl' => $ajax_url,
+	'csrf' => $csrf,
+	'alertEmpty' => $alert_empty,
+	'alertOk' => $alert_ok,
+	'gear' => $gear_icon,
+	'lock' => $lock_icon,
+	'star' => $star_icon,
+);
+$js = '<script>(function(){'
+	. 'var CFG=' . json_encode($cfg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';'
+	. 'window.create_sitemap=function(){'
+	. 'document.getElementById("messages").innerHTML="";'
+	. 'var url_list=[];'
+	. 'var checked=content_tree.getChecked();'
+	. 'for(var i=0;i<checked.length;i++){url_list.push({url:content_tree.getItem(checked[i]).url});}'
+	. 'if(url_list.length==0){alert(CFG.alertEmpty);return;}'
+	. 'jQuery.ajax({type:"POST",async:false,url:CFG.ajaxUrl,dataType:"text",'
+	. 'data:"url_list="+JSON.stringify(url_list)+"&csrf_guard_key="+encodeURIComponent(CFG.csrf),'
+	. 'success:function(){alert(CFG.alertOk);}});'
+	. '};'
+	. 'content_tree=new webix.ui({'
+	. 'template:function(obj,common){'
+	. 'var folder=common.folder(obj,common),icon="",value_text="<span>"+obj.value+"</span>",checkbox=common.checkbox(obj,common),icon_system="";'
+	. 'if(obj.system_flag==true){icon_system="<img src=\""+CFG.gear+"\" class=\"col_img\" style=\"float:right;margin:0px 4px 8px 4px;\">";}'
+	. 'if(obj.published_flag==false){icon_system+="<img src=\""+CFG.lock+"\" class=\"col_img\" style=\"float:right;margin:0px 4px 8px 4px;\">";value_text="<span style=\"color:#AAA\">"+obj.value+"</span>";}'
+	. 'if(obj.main_flag==1){icon_system+="<img src=\""+CFG.star+"\" class=\"col_img\" style=\"float:right;margin:0px 4px 8px 4px;\">";value_text="<span style=\"font-weight:bold\">"+obj.value+"</span>";}'
+	. 'return common.icon(obj,common)+checkbox+icon+folder+icon_system+value_text;'
+	. '},'
+	. 'editable:false,container:"container_A",view:"tree",select:true,drag:false'
+	. '});'
+	. 'webix.event(window,"resize",function(){content_tree.adjust();});'
+	. 'content_tree.parse(' . $content_tree_dump_JSON . ');'
+	. '})();</script>';
 
-/*
-define('_FULL_CATALOGUE_TREE_', 1);//Для формирования полного дерева каталога (катагории+товары)
-
-
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/dp_category_record.php");//Определение класса записи категории
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/get_catalogue_tree.php");//Получение объекта иерархии существующих категорий для вывода в дерево-webix
+if (!function_exists('epc_cp_footer_scripts_append')) {
+	$relocate = $_SERVER['DOCUMENT_ROOT'].'/content/general_pages/epc_cp_script_relocate.php';
+	if (is_file($relocate)) {
+		require_once $relocate;
+	}
+}
+if (function_exists('epc_cp_footer_scripts_append')) {
+	epc_cp_footer_scripts_append($js);
+} else {
+	echo $js;
+}
 ?>
-
-
-<script type="text/javascript" charset="utf-8">
-//ДЕРЕВО КАТАЛОГА ТОВАРОВ
-//Для редактируемости дерева
-webix.protoUI({
-    name:"edittree"
-}, webix.EditAbility, webix.ui.tree);
-//Формирование дерева
-catalogue_tree = new webix.ui({
-    editable:false,//не редактируемое
-    container:"container_B",//id блока div для дерева
-    view:"tree",
-	select:true,//можно выделять элементы
-	drag:false,//можно переносить
-	//Шаблон элемента дерева
-	template:function(obj, common)//Шаблон узла дерева
-    	{
-            var folder = common.folder(obj, common);
-    	    var value_text = "<span>" + obj.value + "</span>";//Вывод текста
-    	    var checkbox = common.checkbox(obj, common);
-            return common.icon(obj, common) + checkbox + folder + value_text;
-    	},//~template
-});
-webix.event(window, "resize", function(){ catalogue_tree.adjust(); });
-
-var saved_catalogue = <?php echo $catalogue_tree_dump_JSON;?>;
-catalogue_tree.parse(saved_catalogue);
-catalogue_tree.openAll();
-</script>
-*/?>
-
-
-
-
-
-
-
-
-
-
-
-

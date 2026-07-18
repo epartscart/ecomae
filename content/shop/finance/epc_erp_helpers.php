@@ -291,14 +291,29 @@ function epc_erp_supplier_balance_sql(PDO $db)
 	return epc_erp_incomplete_order_exclude_sql($db);
 }
 
-function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0)
+function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0, $light = false)
 {
+	// Per-request memo — erp_main + intel KPIs + previous-period trends all call this.
+	static $memo = array();
+	$lightFlag = $light ? '1' : '0';
+	$fromKey = (int) $date_from;
+	$toKey = (int) $date_to;
+	$mkey = spl_object_id($db) . ':' . $fromKey . ':' . $toKey . ':' . $lightFlag;
+	if (isset($memo[$mkey])) {
+		return $memo[$mkey];
+	}
+
 	epc_erp_ensure_schema($db);
 	if ($date_to <= 0) {
 		$date_to = time();
 	}
 	if ($date_from <= 0) {
 		$date_from = strtotime(date('Y-m-01 00:00:00'));
+	}
+	// Re-key after normalising defaults so later callers with 0,0 hit the cache.
+	$mkey = spl_object_id($db) . ':' . (int) $date_from . ':' . (int) $date_to . ':' . $lightFlag;
+	if (isset($memo[$mkey])) {
+		return $memo[$mkey];
 	}
 	$sql = epc_erp_order_sum_sql($db);
 	$q = $db->prepare(
@@ -325,7 +340,6 @@ function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0)
 	$payable_balance = epc_erp_payable_balance($db);
 
 	$cash_total = epc_erp_cash_bank_total($db);
-	$vat_report = epc_uae_vat_return_report($db, $date_from, $date_to);
 
 	$result = array(
 		'date_from' => $date_from,
@@ -338,37 +352,67 @@ function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0)
 		'customer_ledger_balance' => $customer_balance,
 		'payable_balance' => $payable_balance,
 		'cash_bank_total' => $cash_total,
-		'vat_5_on_revenue' => (float)$vat_report['output_vat'],
-		'vat_output' => (float)$vat_report['output_vat'],
-		'vat_input' => (float)$vat_report['input_vat'],
-		'vat_net_payable' => (float)$vat_report['net_vat_payable'],
-		'vat_net_status' => (string)$vat_report['net_status'],
-		'sales_incl_vat' => (float)$vat_report['sales_incl_vat'],
+		'vat_5_on_revenue' => 0.0,
+		'vat_output' => 0.0,
+		'vat_input' => 0.0,
+		'vat_net_payable' => 0.0,
+		'vat_net_status' => '',
+		'sales_incl_vat' => 0.0,
 	);
 
-	// Merge command center KPI tiles into dashboard (P0 #7 — correct layer)
-	$ccFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
-	if (file_exists($ccFile)) {
-		require_once $ccFile;
-		if (function_exists('epc_erp_cc_kpi_tiles')) {
-			$result['kpi_tiles'] = epc_erp_cc_kpi_tiles($db, $date_from, $date_to);
-		}
-		if (function_exists('epc_erp_cc_approval_queue')) {
-			$result['approval_queue'] = epc_erp_cc_approval_queue($db);
+	// Light mode (previous-period trend arrows): skip VAT return + command-center tiles.
+	if (!$light) {
+		$vat_report = epc_uae_vat_return_report($db, $date_from, $date_to);
+		$result['vat_5_on_revenue'] = (float)$vat_report['output_vat'];
+		$result['vat_output'] = (float)$vat_report['output_vat'];
+		$result['vat_input'] = (float)$vat_report['input_vat'];
+		$result['vat_net_payable'] = (float)$vat_report['net_vat_payable'];
+		$result['vat_net_status'] = (string)$vat_report['net_status'];
+		$result['sales_incl_vat'] = (float)$vat_report['sales_incl_vat'];
+
+		// Merge command center KPI tiles into dashboard (P0 #7 — correct layer)
+		$ccFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_command_center.php';
+		if (file_exists($ccFile)) {
+			require_once $ccFile;
+			if (function_exists('epc_erp_cc_kpi_tiles')) {
+				$result['kpi_tiles'] = epc_erp_cc_kpi_tiles($db, $date_from, $date_to);
+			}
+			if (function_exists('epc_erp_cc_approval_queue')) {
+				$result['approval_queue'] = epc_erp_cc_approval_queue($db);
+			}
 		}
 	}
 
+	$memo[$mkey] = $result;
 	return $result;
 }
 
 function epc_erp_cash_bank_total(PDO $db)
 {
-	$total = 0.0;
-	$accounts = epc_erp_list_cash_accounts($db);
-	foreach ($accounts as $acc) {
-		$total += (float)$acc['balance'];
+	epc_erp_ensure_schema($db);
+	// Single batched balance query instead of N+1 per cash/bank account.
+	try {
+		$sql = "SELECT IFNULL(SUM(a.`opening_balance`
+				+ IFNULL(x.in_amt, 0) - IFNULL(x.out_amt, 0)), 0) AS total
+			FROM `epc_erp_cash_bank_accounts` a
+			LEFT JOIN (
+				SELECT `account_id`,
+					SUM(CASE WHEN `direction` = 1 THEN `amount` ELSE 0 END) AS in_amt,
+					SUM(CASE WHEN `direction` = 0 THEN `amount` ELSE 0 END) AS out_amt
+				FROM `epc_erp_cash_bank_entries`
+				WHERE `active` = 1
+				GROUP BY `account_id`
+			) x ON x.`account_id` = a.`id`
+			WHERE a.`active` = 1";
+		return (float) $db->query($sql)->fetchColumn();
+	} catch (Throwable $e) {
+		$total = 0.0;
+		$accounts = epc_erp_list_cash_accounts($db);
+		foreach ($accounts as $acc) {
+			$total += (float)$acc['balance'];
+		}
+		return $total;
 	}
-	return $total;
 }
 
 function epc_erp_list_cash_accounts(PDO $db)

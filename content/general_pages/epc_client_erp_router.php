@@ -437,6 +437,16 @@ function epc_client_erp_redirect_legacy_shell(): void
 	$subPath = function_exists('epc_erp_cp_route_subpath') ? epc_erp_cp_route_subpath($path) : '';
 
 	if (function_exists('epc_portal_is_platform_operator') && epc_portal_is_platform_operator()) {
+		// Super CP operators on ecomae use the standalone /erp/ portal.
+		if (function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname()
+			&& function_exists('epc_platform_erp_portal_target_from_subpath')) {
+			header('Location: ' . epc_platform_erp_portal_target_from_subpath($subPath), true, 302);
+			exit;
+		}
+		if (function_exists('epc_platform_erp_shell_url')) {
+			header('Location: ' . epc_platform_erp_shell_url(), true, 302);
+			exit;
+		}
 		$base = function_exists('epc_platform_erp_path_prefix')
 			? epc_platform_erp_path_prefix() . 'shop/finance/erp?epc_erp_shell=1'
 			: '/' . epc_client_erp_backend_dir() . '/platform-erp/shop/finance/erp?epc_erp_shell=1';
