@@ -144,10 +144,6 @@ function epc_cp_auth_gate_run()
 		exit;
 	}
 
-	if (!function_exists('epc_portal_is_platform_operator') || !epc_portal_is_platform_operator()) {
-		return;
-	}
-
 	if ($isDemoCp) {
 		return;
 	}
@@ -156,20 +152,18 @@ function epc_cp_auth_gate_run()
 		return;
 	}
 
+	// Unauthenticated visitors: force login for operator / ERP / demo surfaces (all hosts).
 	$operatorPrefixes = array(
 		$cpBase . '/shop/tenant_hub/',
-		$cpBase . '/control/portal/industry_settings',
-		$cpBase . '/control/portal/epc_platform_failover_guide',
-		$cpBase . '/control/portal/epc_platform_health_checkup',
-		$cpBase . '/control/portal/epc_platform_governance',
-		$cpBase . '/control/portal/epc_custom_shipping_guide',
-		$cpBase . '/control/portal/epc_erp_only_onboard_guide',
-		$cpBase . '/control/portal/epc_cp_auth_settings',
-		$cpBase . '/control/portal/epc_tenant_control_center',
+		$cpBase . '/control/portal/',
+		$cpBase . '/control/ajax/',
+		$cpBase . '/shop/finance/erp',
+		$cpBase . '/client-erp/',
+		$cpBase . '/demo/',
 	);
 	foreach ($operatorPrefixes as $prefix) {
 		if (strpos($path, $prefix) === 0) {
-			header('Location: ' . $cpControlUrl, true, 302);
+			header('Location: ' . $cpBase . '/', true, 302);
 			exit;
 		}
 	}

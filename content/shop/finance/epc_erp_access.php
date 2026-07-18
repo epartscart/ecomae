@@ -4,6 +4,14 @@
  */
 defined('_ASTEXE_') or die('No access');
 
+$epcSecKernel = dirname(__DIR__, 2) . '/general_pages/epc_security_kernel.php';
+if (is_file($epcSecKernel)) {
+	require_once $epcSecKernel;
+	if (function_exists('epc_sec_send_headers')) {
+		epc_sec_send_headers('SAMEORIGIN');
+	}
+}
+
 function epc_erp_group_value_key()
 {
 	return 'EPC_ERP_TEAM';

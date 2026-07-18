@@ -90,6 +90,12 @@ function epc_bos_ajax_login_secure(): array
 		return array('ok' => false, 'error' => 'Invalid credentials');
 	}
 
+	require_once __DIR__ . '/epc_security_kernel.php';
+	$roleInfo = epc_sec_bos_resolve_role($authPdo instanceof PDO ? $authPdo : $mainPdo, $userRow, $email);
+	if (empty($roleInfo['allowed'])) {
+		return array('ok' => false, 'error' => 'Access denied — operator credentials required');
+	}
+
 	$upgradeFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_password_upgrade.php';
 	if (is_file($upgradeFile)) {
 		require_once $upgradeFile;
@@ -100,20 +106,28 @@ function epc_bos_ajax_login_secure(): array
 	}
 
 	$userId = (int) ($userRow['id'] ?? $userRow['ID'] ?? $userRow['user_id'] ?? 0);
-	$role = 'provider';
-	$tenantSiteKey = '';
-	if (isset($userRow['site_key']) && $userRow['site_key'] !== '') {
-		$role = 'tenant';
-		$tenantSiteKey = $userRow['site_key'];
+	$role = (string) $roleInfo['role'];
+	$tenantSiteKey = (string) ($roleInfo['tenant_key'] ?? '');
+
+	$sessionFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_session_security.php';
+	if (is_file($sessionFile)) {
+		require_once $sessionFile;
+		if (function_exists('epc_session_regenerate')) {
+			epc_session_regenerate();
+		} else {
+			session_regenerate_id(true);
+		}
+	} else {
+		session_regenerate_id(true);
 	}
 
-	session_regenerate_id(true);
 	epc_bos_set_context(array(
 		'role' => $role,
 		'user_id' => $userId,
 		'email' => $email,
 		'tenant_key' => $tenantSiteKey,
 	));
+	$csrf = epc_sec_csrf_token('bos');
 
 	$kernel = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_kernel.php';
 	if (is_file($kernel)) {
@@ -133,5 +147,10 @@ function epc_bos_ajax_login_secure(): array
 	if ($tenantSiteKey !== '') {
 		$redirect = '/bos/?t=' . urlencode($tenantSiteKey);
 	}
-	return array('ok' => true, 'redirect' => $redirect, 'role' => $role);
+	return array(
+		'ok' => true,
+		'redirect' => $redirect,
+		'role' => $role,
+		'csrf' => $csrf,
+	);
 }

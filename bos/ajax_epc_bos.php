@@ -6,6 +6,13 @@ defined('_ASTEXE_') or define('_ASTEXE_', 1);
 defined('EPC_BOS_ENTRY') or define('EPC_BOS_ENTRY', true);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_unified.php';
+$bosSec = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bos_security.php';
+if (is_file($bosSec)) {
+    require_once $bosSec;
+    if (function_exists('epc_bos_ajax_entry_guard')) {
+        epc_bos_ajax_entry_guard();
+    }
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -310,6 +317,13 @@ function epc_bos_ajax_login(): array
         return array('ok' => false, 'error' => 'Invalid credentials');
     }
 
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_security_kernel.php';
+    $rolePdo = $authPdo instanceof PDO ? $authPdo : ($mainPdo ?: $platformPdo);
+    $roleInfo = epc_sec_bos_resolve_role($rolePdo, $userRow, $email);
+    if (empty($roleInfo['allowed'])) {
+        return array('ok' => false, 'error' => 'Access denied — operator credentials required');
+    }
+
     $storedPass = (string) ($userRow['password'] ?? $userRow['pass'] ?? '');
 
     // Transparent password upgrade: MD5 → bcrypt on successful login
@@ -323,15 +337,20 @@ function epc_bos_ajax_login(): array
     }
 
     $userId = (int) ($userRow['id'] ?? $userRow['ID'] ?? $userRow['user_id'] ?? 0);
-    $role = 'provider';
+    $role = (string) $roleInfo['role'];
+    $tenantSiteKey = (string) ($roleInfo['tenant_key'] ?? '');
 
-    $tenantSiteKey = '';
-    if (isset($userRow['site_key']) && $userRow['site_key'] !== '') {
-        $role = 'tenant';
-        $tenantSiteKey = $userRow['site_key'];
+    $sessionFile = $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_session_security.php';
+    if (is_file($sessionFile)) {
+        require_once $sessionFile;
+        if (function_exists('epc_session_regenerate')) {
+            epc_session_regenerate();
+        } else {
+            session_regenerate_id(true);
+        }
+    } else {
+        session_regenerate_id(true);
     }
-
-    session_regenerate_id(true);
 
     epc_bos_set_context(array(
         'role'       => $role,
@@ -339,6 +358,7 @@ function epc_bos_ajax_login(): array
         'email'      => $email,
         'tenant_key' => $tenantSiteKey,
     ));
+    $csrf = epc_sec_csrf_token('bos');
 
     require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_kernel.php';
     if (function_exists('epc_boc_audit_log')) {
@@ -357,7 +377,7 @@ function epc_bos_ajax_login(): array
         $redirect = '/bos/?t=' . urlencode($tenantSiteKey);
     }
 
-    return array('ok' => true, 'redirect' => $redirect, 'role' => $role);
+    return array('ok' => true, 'redirect' => $redirect, 'role' => $role, 'csrf' => $csrf);
 }
 
 /* ───────────────────── switch tenant ───────────────────── */

@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/epc_deploy_auth.php';
-epc_deploy_require_token();
+epc_deploy_require_token(false, 'secret');
 header('Content-Type: text/plain; charset=utf-8');
+header('X-Robots-Tag: noindex');
+header('Cache-Control: no-store');
 require_once __DIR__ . '/content/general_pages/epc_cloudpanel_helpers.php';
 
 $clpPass = trim((string) ($_GET['clp_pass'] ?? ''));
