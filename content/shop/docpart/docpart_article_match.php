@@ -441,6 +441,22 @@ function epc_chpu_distinct_warehouse_brands_for_article($db_link, $DP_Config, $a
 			$brands[] = $brand_name;
 		}
 	}
+	// Collapse synonym brands (AISIN / AISINC) to one canonical warehouse brand.
+	if (count($brands) > 1 && is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_manufacturer_synonyms.php')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_manufacturer_synonyms.php';
+		$canonical_map = docpart_load_manufacturer_canonical_map($db_link);
+		$collapsed = array();
+		foreach ($brands as $brand_name) {
+			$canonical = docpart_synonym_canonical_brand($brand_name, $canonical_map);
+			$key = $canonical !== '' ? $canonical : docpart_synonym_normalize_brand($brand_name);
+			if ($key === '' || isset($collapsed[$key])) {
+				continue;
+			}
+			$collapsed[$key] = $canonical !== '' ? $canonical : $brand_name;
+		}
+		$brands = array_values($collapsed);
+		sort($brands, SORT_STRING);
+	}
 	return $brands;
 }
 

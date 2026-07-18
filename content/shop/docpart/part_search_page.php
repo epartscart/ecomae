@@ -1222,6 +1222,140 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 		. '</tbody></table>';
 }
 
+/**
+ * Simple multi-brand picker table (price + availability) for /parts/brands/{ARTICLE}.
+ * One row per synonym-collapsed brand; click opens the C110J-style brand page.
+ *
+ * @param array<int,array<string,mixed>> $products
+ * @param array<string,mixed> $opts
+ */
+function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, string $lang_href = '/en/', $currency_indicator = '', array $opts = array()): string
+{
+	if ($products === array()) {
+		return '';
+	}
+	if (!function_exists('docpart_load_manufacturer_canonical_map')) {
+		$synFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_manufacturer_synonyms.php';
+		if (is_file($synFile)) {
+			require_once $synFile;
+		}
+	}
+	if (!function_exists('epc_storefront_prices_visible_for_user')) {
+		$helpers = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+		if (is_file($helpers)) {
+			require_once $helpers;
+		}
+	}
+	$pricesVisible = function_exists('epc_storefront_prices_visible_for_user')
+		? epc_storefront_prices_visible_for_user(isset($GLOBALS['user_id']) ? (int) $GLOBALS['user_id'] : null)
+		: true;
+	$priceCta = (!$pricesVisible && function_exists('epc_storefront_prices_login_cta_html'))
+		? epc_storefront_prices_login_cta_html()
+		: '';
+	$canonicalMap = array();
+	if (function_exists('docpart_load_manufacturer_canonical_map') && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+		$canonicalMap = docpart_load_manufacturer_canonical_map($GLOBALS['db_link']);
+	}
+	$articleShow = trim((string) $article);
+	$langHref = rtrim((string) $lang_href, '/') . '/';
+	$partsUrl = !empty($opts['parts_url']) ? (string) $opts['parts_url'] : 'parts';
+	$slashCode = !empty($opts['slash_code']) ? (string) $opts['slash_code'] : 'FORWARD_SLASH';
+	$currencyLabel = trim((string) $currency_indicator);
+
+	$byBrand = array();
+	foreach ($products as $product) {
+		if (!is_array($product)) {
+			continue;
+		}
+		$exist = (float) ($product['exist'] ?? 0);
+		if ($exist <= 0) {
+			continue;
+		}
+		$rawBrand = trim((string) ($product['manufacturer'] ?? $product['manufacturer_show'] ?? ''));
+		if ($rawBrand === '') {
+			continue;
+		}
+		$show = function_exists('docpart_synonym_canonical_brand')
+			? docpart_synonym_canonical_brand($rawBrand, $canonicalMap)
+			: mb_strtoupper($rawBrand, 'UTF-8');
+		if ($show === '') {
+			$show = mb_strtoupper($rawBrand, 'UTF-8');
+		}
+		$key = mb_strtoupper($show, 'UTF-8');
+		$price = (float) ($product['price'] ?? 0);
+		$warehouse = trim((string) ($product['storage_caption'] ?? ''));
+		$name = trim((string) ($product['name'] ?? ''));
+		if (!isset($byBrand[$key])) {
+			$byBrand[$key] = array(
+				'manufacturer_show' => $show,
+				'name' => $name,
+				'exist' => 0.0,
+				'min_price' => null,
+				'warehouse' => $warehouse,
+			);
+		}
+		$byBrand[$key]['exist'] += $exist;
+		if ($price > 0 && ($byBrand[$key]['min_price'] === null || $price < $byBrand[$key]['min_price'])) {
+			$byBrand[$key]['min_price'] = $price;
+		}
+		if ($byBrand[$key]['name'] === '' && $name !== '') {
+			$byBrand[$key]['name'] = $name;
+		}
+		if ($byBrand[$key]['warehouse'] === '' && $warehouse !== '') {
+			$byBrand[$key]['warehouse'] = $warehouse;
+		}
+	}
+	if ($byBrand === array()) {
+		return '';
+	}
+	ksort($byBrand, SORT_STRING);
+
+	$rows = '';
+	foreach ($byBrand as $row) {
+		$brand = (string) $row['manufacturer_show'];
+		$brandAlias = str_replace('/', $slashCode, $brand);
+		$href = $langHref . $partsUrl . '/' . rawurlencode($brandAlias) . '/' . rawurlencode($articleShow);
+		$hrefEsc = htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
+		$brandEsc = htmlspecialchars($brand, ENT_QUOTES, 'UTF-8');
+		$artEsc = htmlspecialchars($articleShow, ENT_QUOTES, 'UTF-8');
+		$nameEsc = htmlspecialchars((string) $row['name'], ENT_QUOTES, 'UTF-8');
+		$existEsc = htmlspecialchars((string) (int) $row['exist'], ENT_QUOTES, 'UTF-8');
+		$term = 'In warehouse';
+		if (!empty($row['warehouse'])) {
+			$term .= ' · ' . $row['warehouse'];
+		}
+		$termEsc = htmlspecialchars($term, ENT_QUOTES, 'UTF-8');
+		if ($pricesVisible && $row['min_price'] !== null) {
+			$priceHtml = htmlspecialchars(number_format((float) $row['min_price'], 2, '.', ''), ENT_QUOTES, 'UTF-8');
+			if ($currencyLabel !== '') {
+				$priceHtml = htmlspecialchars($currencyLabel, ENT_QUOTES, 'UTF-8') . ' ' . $priceHtml;
+			}
+		} elseif (!$pricesVisible) {
+			$priceHtml = $priceCta !== '' ? $priceCta : '&mdash;';
+		} else {
+			$priceHtml = '&mdash;';
+		}
+		$rows .= '<tr class="epc-brand-picker-row">'
+			. '<td><a href="' . $hrefEsc . '">' . $brandEsc . '</a></td>'
+			. '<td><a href="' . $hrefEsc . '">' . $artEsc . '</a></td>'
+			. '<td><a href="' . $hrefEsc . '">' . $nameEsc . '</a></td>'
+			. '<td class="text-center"><a href="' . $hrefEsc . '">' . $existEsc . '</a></td>'
+			. '<td><a href="' . $hrefEsc . '">' . $termEsc . '</a></td>'
+			. '<td class="text-right"><a href="' . $hrefEsc . '">' . $priceHtml . '</a></td>'
+			. '<td class="text-right"><a class="btn btn-ar btn-primary btn-sm" href="' . $hrefEsc . '">Open prices</a></td>'
+			. '</tr>';
+	}
+
+	return '<div id="table-manufacturers" class="table-responsive epc-brand-picker-ssr">'
+		. '<table cellpadding="1" cellspacing="1" class="table table-condensed table-striped epc-brand-picker-table">'
+		. '<thead><tr>'
+		. '<th>Manufacturer</th><th>Article</th><th>Name</th>'
+		. '<th class="text-center">Availability</th><th>Term</th><th class="text-right">Price</th><th></th>'
+		. '</tr></thead><tbody>'
+		. $rows
+		. '</tbody></table></div>';
+}
+
 // Bootstrap manufacturer rows for CHPU URLs (e.g. /parts/AISIN/DT068) so price-list search can run.
 $epc_chpu_manufacturer_bootstrap = array();
 if (!empty($epc_chpu_direct_pricing) && !empty($manufacturer)) {
@@ -1916,6 +2050,29 @@ function epcChpuNavigateToBrandArticle(manufacturer_show)
 	manufacturer_alias = String(manufacturer_alias).split('/').join('<?php echo $DP_Config->chpu_search_config["slash_code"]; ?>');
 	location = '<?php echo $multilang_params['lang_href']; ?>/<?php echo $DP_Config->chpu_search_config["level_1"]["url"]; ?>/' + encodeURI(manufacturer_alias) + '/<?php echo $article; ?>';
 }
+function epcBrandPickerCanonicalShow(brand)
+{
+	var raw = String(brand || '').trim();
+	if(!raw)
+	{
+		return '';
+	}
+	var key = raw.toUpperCase();
+	var canonicalMap = window.epcManufacturerCanonicalMap || {};
+	if(canonicalMap[key])
+	{
+		return String(canonicalMap[key]).toUpperCase();
+	}
+	if(typeof epcCrossBrandsEquivalent === 'function')
+	{
+		var map = window.epcManufacturerSynonymMap || {};
+		if(map[key] && map[key].length)
+		{
+			return String(map[key][0] || key).toUpperCase();
+		}
+	}
+	return key;
+}
 function epcMergeCatalogBrandsIntoPicker(catalogManufacturers)
 {
 	if(!catalogManufacturers || !catalogManufacturers.length)
@@ -1927,17 +2084,52 @@ function epcMergeCatalogBrandsIntoPicker(catalogManufacturers)
 	{
 		if(ProductsManufacturers[i] && ProductsManufacturers[i].manufacturer_show)
 		{
-			existing[ProductsManufacturers[i].manufacturer_show] = true;
+			var existingShow = epcBrandPickerCanonicalShow(ProductsManufacturers[i].manufacturer_show);
+			existing[existingShow] = i;
 		}
 	}
 	var merged = [];
 	for(var c = 0; c < catalogManufacturers.length; c++)
 	{
 		var catalogRow = catalogManufacturers[c];
-		if(!catalogRow || !catalogRow.manufacturer_show || existing[catalogRow.manufacturer_show])
+		if(!catalogRow || !catalogRow.manufacturer_show)
 		{
 			continue;
 		}
+		var show = epcBrandPickerCanonicalShow(catalogRow.manufacturer_show || catalogRow.manufacturer);
+		if(!show)
+		{
+			continue;
+		}
+		catalogRow.manufacturer_show = show;
+		if(existing[show] !== undefined)
+		{
+			var idx = existing[show];
+			var current = ProductsManufacturers[idx] || {};
+			if((!current.name || current.name === '' || current.name === 'Name not specified by the supplier') && catalogRow.name)
+			{
+				current.name = catalogRow.name;
+			}
+			if(catalogRow.exist != null && (current.exist == null || catalogRow.exist > current.exist))
+			{
+				current.exist = catalogRow.exist;
+			}
+			if(catalogRow.min_price != null && (current.min_price == null || catalogRow.min_price < current.min_price))
+			{
+				current.min_price = catalogRow.min_price;
+			}
+			if(catalogRow.warehouse && !current.warehouse)
+			{
+				current.warehouse = catalogRow.warehouse;
+			}
+			if(catalogRow.have_price)
+			{
+				current.have_price = 1;
+			}
+			ProductsManufacturers[idx] = current;
+			continue;
+		}
+		existing[show] = ProductsManufacturers.length + merged.length;
 		merged.push(catalogRow);
 	}
 	if(merged.length)
@@ -1961,18 +2153,48 @@ function epcBrandPickerMergeBrandsFromStockProducts(products)
 		{
 			continue;
 		}
-		var key = brand.toUpperCase();
-		if(seen[key])
+		var show = epcBrandPickerCanonicalShow(brand);
+		if(!show)
 		{
 			continue;
 		}
-		seen[key] = true;
-		brands.push({
-			manufacturer: brand,
-			manufacturer_show: brand,
-			name: String(p.name || ''),
-			have_price: 1
-		});
+		var exist = parseFloat(p.exist);
+		if(!(exist > 0))
+		{
+			continue;
+		}
+		var price = parseFloat(p.price);
+		if(isNaN(price) || price < 0)
+		{
+			price = null;
+		}
+		var warehouse = String(p.storage_caption || '').trim();
+		if(!seen[show])
+		{
+			seen[show] = {
+				manufacturer: show,
+				manufacturer_show: show,
+				name: String(p.name || ''),
+				have_price: 1,
+				exist: 0,
+				min_price: null,
+				warehouse: warehouse
+			};
+			brands.push(seen[show]);
+		}
+		seen[show].exist += exist;
+		if(price != null && price > 0 && (seen[show].min_price == null || price < seen[show].min_price))
+		{
+			seen[show].min_price = price;
+		}
+		if((!seen[show].name || seen[show].name === '') && p.name)
+		{
+			seen[show].name = String(p.name);
+		}
+		if(!seen[show].warehouse && warehouse)
+		{
+			seen[show].warehouse = warehouse;
+		}
 	}
 	if(brands.length)
 	{
@@ -2039,12 +2261,9 @@ function epcBrandPickerFetchStockPreview()
 			storage_id: 0,
 			Products: chunk.Products
 		};
-		epc_brand_picker_stock_preview = true;
+		// Keep the simple brand-picker table — do not paint full Pricing UI here.
+		epc_brand_picker_stock_preview = false;
 		epcBrandPickerMergeBrandsFromStockProducts(chunk.Products);
-		if(typeof epcApplyInitialPriceBunch === 'function')
-		{
-			epcApplyInitialPriceBunch();
-		}
 		return true;
 	}).catch(function(err) {
 		console.error('epcBrandPickerFetchStockPreview', err);
@@ -2104,19 +2323,40 @@ function epcFinalizeManufacturersPicker()
 	{
 		return;
 	}
-	if(typeof epc_brand_picker_stock_preview !== 'undefined' && epc_brand_picker_stock_preview)
+	if(typeof epc_initial_price_bunch !== 'undefined' && epc_initial_price_bunch && epc_initial_price_bunch.Products && epc_initial_price_bunch.Products.length)
 	{
-		var processingPreview = document.getElementById('processing_indicator');
-		if(processingPreview)
-		{
-			processingPreview.innerHTML = '<br/>';
-		}
-		return;
+		epcBrandPickerMergeBrandsFromStockProducts(epc_initial_price_bunch.Products);
 	}
 	manufacturersReview();
 	if(ProductsManufacturers_Shown_Count == 0 && ProductsManufacturers.length == 0)
 	{
 		onManufacturerSelected(null);
+		return;
+	}
+	// Prefer the synonym-collapsed warehouse brand with stock (AISIN ≡ AISINC → open AISIN page).
+	var stockBrands = [];
+	var stockSeen = {};
+	for(var sb = 0; sb < ProductsManufacturers.length; sb++)
+	{
+		var row = ProductsManufacturers[sb];
+		if(!row || !row.manufacturer_show)
+		{
+			continue;
+		}
+		var show = epcBrandPickerCanonicalShow(row.manufacturer_show) || row.manufacturer_show;
+		if(stockSeen[show])
+		{
+			continue;
+		}
+		if((row.exist != null && row.exist > 0) || row.have_price == 1 || row.min_price != null)
+		{
+			stockSeen[show] = true;
+			stockBrands.push(show);
+		}
+	}
+	if(stockBrands.length === 1)
+	{
+		epcChpuNavigateToBrandArticle(stockBrands[0]);
 		return;
 	}
 	if(ProductsManufacturers_Shown_Count == 1)
@@ -2130,6 +2370,7 @@ function epcFinalizeManufacturersPicker()
 		if(processing)
 		{
 			processing.innerHTML = '<br/>';
+			processing.style.display = 'none';
 		}
 		var productsArea = document.getElementById('products_area');
 		if(productsArea)
@@ -2923,9 +3164,12 @@ function epcApplyInitialPriceBunch()
 	{
 		return false;
 	}
+	// Brand picker: enrich the simple brand table only — never open full Pricing UI here.
 	if(typeof epc_brand_picker_mode !== 'undefined' && epc_brand_picker_mode)
 	{
-		epc_brand_picker_stock_preview = true;
+		epc_brand_picker_stock_preview = false;
+		epcBrandPickerMergeBrandsFromStockProducts(epc_initial_price_bunch.Products);
+		return true;
 	}
 	var productsArea = document.getElementById('products_area');
 	if(productsArea)
@@ -2996,8 +3240,20 @@ function epcApplyInitialPriceBunch()
 }
 var epc_chpu_direct_pricing = <?php echo !empty($epc_chpu_direct_pricing) ? 'true' : 'false'; ?>;
 var epc_brand_picker_mode = <?php echo !empty($epc_brand_picker_mode) ? 'true' : 'false'; ?>;
-var epc_brand_picker_stock_preview = <?php echo (!empty($epc_brand_picker_mode) && !empty($epc_initial_price_bunch['Products'])) ? 'true' : 'false'; ?>;
+var epc_brand_picker_stock_preview = false;
 var epc_chpu_search_on = <?php echo !empty($DP_Config->chpu_search_config['chpu_search_on']) ? 'true' : 'false'; ?>;
+<?php
+$epc_js_synonym_map = array();
+$epc_js_canonical_map = array();
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_manufacturer_synonyms.php') && isset($db_link) && $db_link instanceof PDO) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_manufacturer_synonyms.php';
+	$epc_js_synonym_map = docpart_load_manufacturer_synonym_map($db_link);
+	$epc_js_canonical_map = docpart_load_manufacturer_canonical_map($db_link);
+}
+?>
+window.epcManufacturerSynonymMap = <?php echo json_encode($epc_js_synonym_map, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+window.epcManufacturerCanonicalMap = <?php echo json_encode($epc_js_canonical_map, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+var currency_indicator = <?php echo json_encode(isset($currency_indicator) ? (string) $currency_indicator : '', JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 var epc_chpu_lang_href = <?php echo json_encode($multilang_params['lang_href'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 var epc_chpu_parts_url = <?php echo json_encode($DP_Config->chpu_search_config['level_1']['url'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 var epc_chpu_brands_url = <?php echo json_encode($DP_Config->chpu_search_config['level_2']['mode_1']['url'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
@@ -3136,8 +3392,7 @@ function epcChpuStartFullPriceSearch(manufacturer_show)
 	window.epcCrossReferencesTotal = 0;
 	window.epcPendingCrossStock = null;
 	window.epcCrossStockKeyMap = {};
-	window.epcManufacturerSynonymMap = {};
-	window.epcManufacturerCanonicalMap = {};
+	// Keep CP synonym maps (AISIN ≡ AISINC) for CHPU warehouse grouping.
 	window.epcChpuActiveFilterState = null;
 	window.epcChpuManufacturersFilterSynced = false;
 	if(typeof epcSyncCrossReferenceGlobals === 'function')
@@ -3753,10 +4008,20 @@ function manufacturersReview()
 	
 	
 	
-	html += "<thead><tr> <th><?php echo translate_str_by_id(4276); ?></th> <th><?php echo translate_str_by_id(2071); ?></th> <th><?php echo translate_str_by_id(2102); ?></th> <th></th> </tr></thead><tbody>";
+	var brandPickerMode = (typeof epc_brand_picker_mode !== 'undefined' && epc_brand_picker_mode);
+	html += "<thead><tr> <th><?php echo translate_str_by_id(4276); ?></th> <th><?php echo translate_str_by_id(2071); ?></th> <th><?php echo translate_str_by_id(2102); ?></th>";
+	if(brandPickerMode)
+	{
+		html += " <th class=\"text-center\">Availability</th> <th>Term</th> <th class=\"text-right\">Price</th>";
+	}
+	html += " <th></th> </tr></thead><tbody>";
 	
 	for(var i=0; i < ProductsManufacturers.length; i++)
 	{
+		if(ProductsManufacturers[i] && ProductsManufacturers[i].manufacturer_show)
+		{
+			ProductsManufacturers[i].manufacturer_show = epcBrandPickerCanonicalShow(ProductsManufacturers[i].manufacturer_show) || ProductsManufacturers[i].manufacturer_show;
+		}
 		//Если это первый такой производитель - создаем для него массив всех объектов
 		if( ProductsManufacturers_Shown[ProductsManufacturers[i].manufacturer_show] == undefined )
 		{
@@ -3795,9 +4060,38 @@ function manufacturersReview()
 		{
 			ProductsManufacturers[i].name = not_name_text;
 		}
-		
 
-		html += "<tr> <td>" + a_tag + ProductsManufacturers[i].manufacturer_show+"</a></td> <td>" + a_tag + "<?php echo $article; ?></a></td> <td>" + a_tag + ProductsManufacturers[i].name+"</a></td> <td class='text-right'>"+button_tag+"<?php echo translate_str_by_id(4291); ?></button></td> </tr>";
+		var stockCols = '';
+		if(brandPickerMode)
+		{
+			var existVal = (ProductsManufacturers[i].exist != null && ProductsManufacturers[i].exist > 0) ? String(parseInt(ProductsManufacturers[i].exist, 10)) : '—';
+			var termVal = '—';
+			if(ProductsManufacturers[i].exist != null && ProductsManufacturers[i].exist > 0)
+			{
+				termVal = 'In warehouse';
+				if(ProductsManufacturers[i].warehouse)
+				{
+					termVal += ' · ' + String(ProductsManufacturers[i].warehouse);
+				}
+			}
+			var priceVal = '—';
+			if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+			{
+				priceVal = (typeof epc_storefront_price_login_cta_html !== 'undefined' && epc_storefront_price_login_cta_html)
+					? epc_storefront_price_login_cta_html
+					: 'Log in to see prices';
+			}
+			else if(ProductsManufacturers[i].min_price != null && ProductsManufacturers[i].min_price > 0)
+			{
+				var priceNum = Number(ProductsManufacturers[i].min_price).toFixed(2);
+				priceVal = (typeof currency_indicator !== 'undefined' && currency_indicator)
+					? (String(currency_indicator) + ' ' + priceNum)
+					: priceNum;
+			}
+			stockCols = " <td class='text-center'>" + a_tag + existVal + "</a></td> <td>" + a_tag + termVal + "</a></td> <td class='text-right'>" + a_tag + priceVal + "</a></td>";
+		}
+
+		html += "<tr> <td>" + a_tag + ProductsManufacturers[i].manufacturer_show+"</a></td> <td>" + a_tag + "<?php echo $article; ?></a></td> <td>" + a_tag + ProductsManufacturers[i].name+"</a></td>" + stockCols + " <td class='text-right'>"+button_tag+(brandPickerMode ? 'Open prices' : '<?php echo translate_str_by_id(4291); ?>')+"</button></td> </tr>";
 
 		ProductsManufacturers_Shown_Count ++;//Количество показанных производителей
 	}
@@ -5543,9 +5837,19 @@ function epcPrimeWarehouseFilter()
 		<?php
 		$epc_picker_ssr_html = '';
 		if (!empty($epc_initial_price_bunch['Products']) && is_array($epc_initial_price_bunch['Products'])) {
-			$epc_picker_ssr_html = epc_chpu_ssr_warehouse_table_html(
+			$epc_picker_ssr_html = epc_chpu_ssr_brand_picker_table_html(
 				$epc_initial_price_bunch['Products'],
-				isset($currency_indicator) ? $currency_indicator : ''
+				(string) $article,
+				isset($multilang_params['lang_href']) ? (string) $multilang_params['lang_href'] : '/en/',
+				isset($currency_indicator) ? $currency_indicator : '',
+				array(
+					'parts_url' => !empty($DP_Config->chpu_search_config['level_1']['url'])
+						? (string) $DP_Config->chpu_search_config['level_1']['url']
+						: 'parts',
+					'slash_code' => !empty($DP_Config->chpu_search_config['slash_code'])
+						? (string) $DP_Config->chpu_search_config['slash_code']
+						: 'FORWARD_SLASH',
+				)
 			);
 		}
 		?>
