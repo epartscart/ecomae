@@ -73,6 +73,6 @@ function epcCarrierNext() {
 	};
 	document.cookie = 'how_get_epc_carriers=' + encodeURIComponent(JSON.stringify(how_get)) + '; path=/; max-age=86400';
 	if (typeof next_step_checkout === 'function') { next_step_checkout(); }
-	else { location.href = '<?php echo isset($multilang_params["lang_href"]) ? $multilang_params["lang_href"] : ""; ?>/shop/checkout_confirm'; }
+	else { location.href = '<?php echo isset($multilang_params["lang_href"]) ? $multilang_params["lang_href"] : ""; ?>/shop/checkout/confirm'; }
 }
 </script>

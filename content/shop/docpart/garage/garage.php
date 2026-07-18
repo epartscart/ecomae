@@ -14,13 +14,13 @@ $transmission = array("akpp"=>translate_str_by_id(4052), "mkpp"=>translate_str_b
 //Получаем id древовидного списка с наименованием Автомобили
 $tree_list_cars_id = 0;
 
-$tree_list_cars_query = $db_link->prepare('SELECT COUNT(*) FROM `shop_tree_lists` WHERE `caption` IN (SELECT `str_id` FROM `lang_text_strings_translation` WHERE `value` IN (:caption_ru, :caption_en) ) ;');
+$tree_list_cars_query = $db_link->prepare('SELECT COUNT(*) FROM `shop_tree_lists` WHERE `caption` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN (:caption_ru, :caption_en) ) ;');
 $tree_list_cars_query->bindValue(':caption_ru', 'Автомобили');
 $tree_list_cars_query->bindValue(':caption_en', 'Cars');
 $tree_list_cars_query->execute();
 if( $tree_list_cars_query->fetchColumn() > 0 )
 {
-	$tree_list_cars_query = $db_link->prepare('SELECT `id` FROM `shop_tree_lists` WHERE `caption` IN (SELECT `str_id` FROM `lang_text_strings_translation` WHERE `value` IN (:caption_ru, :caption_en) );');
+	$tree_list_cars_query = $db_link->prepare('SELECT `id` FROM `shop_tree_lists` WHERE `caption` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN (:caption_ru, :caption_en) );');
 	$tree_list_cars_query->bindValue(':caption_ru', 'Автомобили');
 	$tree_list_cars_query->bindValue(':caption_en', 'Cars');
 	$tree_list_cars_query->execute();
