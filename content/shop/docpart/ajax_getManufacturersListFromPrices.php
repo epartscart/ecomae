@@ -55,89 +55,107 @@ class prices_enclosure
 			$article_norm,
 			!empty($DP_Config->local_crosses)
 		);
+		$disabledStorages = function_exists('epc_ssf_disabled_storage_ids') ? epc_ssf_disabled_storage_ids($db_link) : array();
+		$disabledPrices = function_exists('epc_ssf_disabled_price_ids') ? epc_ssf_disabled_price_ids($db_link) : array();
+
+		$storageIds = array();
+		$bunchPairs = array();
+		foreach ($office_storage_bunches as $office_storage_bunch) {
+			$sid = (int) ($office_storage_bunch['storage_id'] ?? 0);
+			$oid = (int) ($office_storage_bunch['office_id'] ?? 0);
+			if ($sid < 1 || isset($disabledStorages[$sid])) {
+				continue;
+			}
+			$storageIds[$sid] = true;
+			$bunchPairs[] = array($oid, $sid);
+		}
+
+		$priceToPairs = array();
 		$price_ids_for_direct_check = array();
-		foreach($office_storage_bunches as $office_storage_bunch)
-		{
-			$storage_check_query = $db_link->prepare('SELECT `connection_options` FROM `shop_storages` WHERE `id` = ?;');
-			$storage_check_query->execute(array((int)$office_storage_bunch["storage_id"]));
-			$storage_check_record = $storage_check_query->fetch();
-			if($storage_check_record == false)
-			{
-				continue;
-			}
-			$connection_check_options = json_decode($storage_check_record["connection_options"], true);
-			if(!empty($connection_check_options["price_id"]))
-			{
-				$price_ids_for_direct_check[] = (int)$connection_check_options["price_id"];
-			}
-		}
-		$price_ids_for_direct_check = array_unique($price_ids_for_direct_check);
-		$direct_stock_exists = false;
-		if(!empty($price_ids_for_direct_check))
-		{
-			$price_placeholders = str_repeat('?,', count($price_ids_for_direct_check) - 1) . '?';
-			$direct_check_query = $db_link->prepare("SELECT COUNT(*) FROM `shop_docpart_prices_data` WHERE " . $art_expr . " = ? AND `price_id` IN (" . $price_placeholders . ") LIMIT 1;");
-			$direct_check_values = array_merge(array($article_norm), $price_ids_for_direct_check);
-			$direct_check_query->execute($direct_check_values);
-			$direct_stock_exists = ((int)$direct_check_query->fetchColumn() > 0);
-		}
-		$article_candidates_for_query = $direct_stock_exists ? array($article_norm) : $article_candidates;
-		$article_placeholders = str_repeat('?,', count($article_candidates_for_query) - 1) . '?';
-		$cnt = count($office_storage_bunches);
-		for($i=0; $i < $cnt; $i++)
-		{
-			$storage_id = (int)$office_storage_bunches[$i]["storage_id"];
-			$office_id = (int)$office_storage_bunches[$i]["office_id"];
-
-			if (epc_ssf_is_storage_disabled($db_link, $storage_id)) {
-				continue;
-			}
-
-			$storage_query = $db_link->prepare('SELECT `connection_options` FROM `shop_storages` WHERE `id` = ?;');
-			$storage_query->execute( array($storage_id) );
-			$storage_record = $storage_query->fetch();
-			if( $storage_record == false )
-			{
-				continue;
-			}
-			$connection_options = json_decode($storage_record["connection_options"], true);
-			if( empty($connection_options["price_id"]) )
-			{
-				continue;
-			}
-			$price_id = (int)$connection_options["price_id"];
-			if (epc_ssf_storage_disabled_by_price($db_link, $price_id)) {
-				continue;
-			}
-
-			$SQL = "SELECT * FROM `shop_docpart_prices_data` WHERE " . $art_expr . " IN (" . $article_placeholders . ") AND `price_id` = ?";
-			$products_query = $db_link->prepare( $SQL );
-			$binding_values = $article_candidates_for_query;
-			$binding_values[] = $price_id;
-			$products_query->execute( $binding_values );
-
-			while($product = $products_query->fetch())
-			{
-				$epc_brand_rule = epc_pricing_get_brand_rule($db_link, $group_id, $product["manufacturer"]);
-				if((int)$epc_brand_rule["visible"] === 0)
-				{
+		if ($storageIds) {
+			$idList = array_keys($storageIds);
+			$ph = implode(',', array_fill(0, count($idList), '?'));
+			$storage_check_query = $db_link->prepare('SELECT `id`, `connection_options` FROM `shop_storages` WHERE `id` IN (' . $ph . ')');
+			$storage_check_query->execute($idList);
+			$storagePriceMap = array();
+			while ($storage_check_record = $storage_check_query->fetch(PDO::FETCH_ASSOC)) {
+				$connection_check_options = json_decode((string) ($storage_check_record['connection_options'] ?? ''), true);
+				if (empty($connection_check_options['price_id'])) {
 					continue;
 				}
+				$pid = (int) $connection_check_options['price_id'];
+				if ($pid < 1 || isset($disabledPrices[$pid])) {
+					continue;
+				}
+				$storagePriceMap[(int) $storage_check_record['id']] = $pid;
+				$price_ids_for_direct_check[$pid] = true;
+			}
+			foreach ($bunchPairs as $pair) {
+				$oid = $pair[0];
+				$sid = $pair[1];
+				if (!isset($storagePriceMap[$sid])) {
+					continue;
+				}
+				$pid = $storagePriceMap[$sid];
+				if (!isset($priceToPairs[$pid])) {
+					$priceToPairs[$pid] = array();
+				}
+				$priceToPairs[$pid][] = array($oid, $sid);
+			}
+		}
+		$price_ids_for_direct_check = array_keys($price_ids_for_direct_check);
+		$direct_stock_exists = false;
+		if (!empty($price_ids_for_direct_check)) {
+			$price_placeholders = str_repeat('?,', count($price_ids_for_direct_check) - 1) . '?';
+			$direct_check_query = $db_link->prepare(
+				'SELECT 1 FROM `shop_docpart_prices_data` WHERE ' . $art_expr . ' = ? AND `price_id` IN (' . $price_placeholders . ') LIMIT 1'
+			);
+			$direct_check_values = array_merge(array($article_norm), $price_ids_for_direct_check);
+			try {
+				@$db_link->exec('SET SESSION max_statement_time = 2');
+				@$db_link->exec('SET SESSION MAX_EXECUTION_TIME = 2000');
+			} catch (Throwable $e) {
+			}
+			$direct_check_query->execute($direct_check_values);
+			$direct_stock_exists = (bool) $direct_check_query->fetchColumn();
+		}
+		$article_candidates_for_query = $direct_stock_exists ? array($article_norm) : $article_candidates;
+		if (empty($article_candidates_for_query) || empty($priceToPairs)) {
+			$this->status = true;
+			return;
+		}
+		$article_placeholders = str_repeat('?,', count($article_candidates_for_query) - 1) . '?';
+		$priceIdList = array_keys($priceToPairs);
+		$price_placeholders = implode(',', array_map('intval', $priceIdList));
+		$SQL = 'SELECT `manufacturer`, `name`, `price_id` FROM `shop_docpart_prices_data`
+			WHERE ' . $art_expr . ' IN (' . $article_placeholders . ')
+			AND `price_id` IN (' . $price_placeholders . ')';
+		$products_query = $db_link->prepare($SQL);
+		$products_query->execute($article_candidates_for_query);
+		while ($product = $products_query->fetch(PDO::FETCH_ASSOC)) {
+			$price_id = (int) ($product['price_id'] ?? 0);
+			if (!isset($priceToPairs[$price_id])) {
+				continue;
+			}
+			$epc_brand_rule = epc_pricing_get_brand_rule($db_link, $group_id, $product['manufacturer']);
+			if ((int) $epc_brand_rule['visible'] === 0) {
+				continue;
+			}
+			foreach ($priceToPairs[$price_id] as $pair) {
+				$office_id = $pair[0];
+				$storage_id = $pair[1];
 				$DocpartManufacturer = new DocpartManufacturer(
-					$product["manufacturer"],
+					$product['manufacturer'],
 					0,
-					$product["name"],
+					$product['name'],
 					$office_id,
 					$storage_id,
 					true,
-					array('type'=>'prices')
+					array('type' => 'prices')
 				);
-
-				if($DocpartManufacturer->valid === true)
-				{
+				if ($DocpartManufacturer->valid === true) {
 					$hash = md5($DocpartManufacturer->manufacturer . '|' . $storage_id . '|' . $office_id);
-					if (!isset($hashes[$hash]))
-					{
+					if (!isset($hashes[$hash])) {
 						array_push($this->ProductsManufacturers, $DocpartManufacturer);
 						$hashes[$hash] = true;
 					}
