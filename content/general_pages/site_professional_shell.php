@@ -3473,9 +3473,9 @@ defined('_ASTEXE_') or die('No access');
 	#products_area .td_add_to_cart,
 	#products_area .th_add_to_cart {
 		display: table-cell !important;
-		min-width: 0;
+		min-width: 300px;
 		padding: 3px 5px !important;
-		text-align: right;
+		text-align: left;
 		vertical-align: middle;
 		white-space: nowrap;
 	}
@@ -3485,7 +3485,7 @@ defined('_ASTEXE_') or die('No access');
 		flex-direction: row;
 		flex-wrap: nowrap;
 		gap: 6px;
-		justify-content: flex-end;
+		justify-content: flex-start;
 		min-width: 0;
 		width: 100%;
 	}
@@ -3573,14 +3573,16 @@ defined('_ASTEXE_') or die('No access');
 		color: #fff !important;
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions {
-		max-width: 100%;
-		overflow-x: auto;
+		max-width: none;
+		overflow-x: visible;
 		flex-wrap: nowrap;
+		justify-content: flex-start;
 		row-gap: 0;
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions__tools {
 		flex: 0 0 auto;
 		justify-content: flex-start;
+		min-width: max-content;
 		width: auto;
 	}
 	.epc-product-actions .epc-btn-cart,

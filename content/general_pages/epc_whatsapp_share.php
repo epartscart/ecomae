@@ -327,10 +327,10 @@ function epc_wa_styles(): string
 		. '.epc-wa-share-panel h5{margin:0 0 8px;font-size:14px;font-weight:700;color:#166534;}'
 		. '.epc-wa-share-panel .text-muted{font-size:12px;margin-bottom:8px;}'
 		. '.epc-product-actions .epc-wa-share-btn{padding:6px 10px;font-size:11px;text-decoration:none!important;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}'
-		. '.epc-product-actions{display:inline-flex;flex-direction:row;flex-wrap:nowrap;gap:6px;align-items:center;justify-content:flex-end;}'
+		. '.epc-product-actions{display:inline-flex;flex-direction:row;flex-wrap:nowrap;gap:6px;align-items:center;justify-content:flex-start;}'
 		. '.epc-product-actions__tools,.epc-product-actions__buy{display:inline-flex;flex-wrap:nowrap;gap:6px;align-items:center;justify-content:flex-start;width:auto;flex:0 0 auto;}'
 		. '.epc-product-actions__tools .epc-wa-share-btn,.epc-product-actions__tools .epc-fitment-check-btn--row{flex:0 0 auto;}'
-		. '#all_table_products .td_add_to_cart .epc-product-actions{flex-wrap:nowrap;}'
+		. '#all_table_products .td_add_to_cart .epc-product-actions{flex-wrap:nowrap;justify-content:flex-start;overflow:visible;}'
 		. '#all_table_products .td_price .epc-price-value{display:block;font-weight:700;white-space:nowrap;line-height:1.3;}'
 		. '</style>';
 }

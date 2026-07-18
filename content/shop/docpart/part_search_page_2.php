@@ -964,13 +964,25 @@ function getProductRecordHTML(Product)
 	
 	if(typeof epcProductActionsHTML === 'function')
 	{
-		cart_html = epcProductActionsHTML(Product.aid, p_exist, p_min_order, 'both', Product.manufacturer, Product.article);
+		cart_html = epcProductActionsHTML(
+			Product.aid,
+			p_exist,
+			p_min_order,
+			p_exist > 0 ? 'cart_only' : 'quote_only',
+			Product.manufacturer || '',
+			Product.article || Product.article_show || ''
+		);
 	}
-	else
+	else if(p_exist > 0)
 	{
 		cart_html = '<div class="epc-product-actions">';
 		cart_html += '<div class="epc-product-actions__qty"><input type="text" value="'+p_min_order+'" id="count_need_'+Product.aid+'" /></div>';
 		cart_html += '<button type="button" class="btn btn-sm btn-danger epc-btn-cart" onclick="addToCart('+Product.aid+');">Add to Cart</button></div>';
+	}
+	else
+	{
+		cart_html = '<div class="epc-product-actions epc-product-actions--quote-only">';
+		cart_html += '<button type="button" class="btn btn-sm btn-primary epc-btn-quote" onclick="addToQuote('+Product.aid+');">Add to Quote</button></div>';
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	
