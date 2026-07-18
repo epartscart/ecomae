@@ -116,9 +116,8 @@ function epc_genuine_build_frontend_index($db_link, $DP_Config, $catalog_url)
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/docpart_manufacturer_synonyms.php';
 
 	$min_expected = 50;
-	if (epc_genuine_count_umapi_rows($db_link) < $min_expected) {
-		epc_genuine_sync_umapi_sections(epc_genuine_site_base_url($DP_Config));
-	}
+	// Never sync UMAPI during storefront page render — remote sync under load causes 524s.
+	// Cache miss / empty catalog: return stale cache or empty brands; cron/setup fills data.
 
 	$cached = epc_genuine_read_cache();
 	$cache_ttl = 86400;
@@ -127,7 +126,6 @@ function epc_genuine_build_frontend_index($db_link, $DP_Config, $catalog_url)
 		&& !empty($cached['brands'])
 		&& isset($cached['meta']['updated_at'])
 		&& (time() - (int)$cached['meta']['updated_at']) < $cache_ttl
-		&& epc_genuine_count_umapi_rows($db_link) >= $min_expected
 	) {
 		if (!empty($catalog_url)) {
 			$cached['meta']['catalog_url'] = $catalog_url;
@@ -136,6 +134,29 @@ function epc_genuine_build_frontend_index($db_link, $DP_Config, $catalog_url)
 			'brands' => $cached['brands'],
 			'meta' => $cached['meta'],
 		);
+	}
+	// Prefer any non-empty cache over rebuilding when load is high.
+	if (is_array($cached) && !empty($cached['brands'])) {
+		if (!empty($catalog_url)) {
+			$cached['meta']['catalog_url'] = $catalog_url;
+		}
+		return array(
+			'brands' => $cached['brands'],
+			'meta' => isset($cached['meta']) && is_array($cached['meta']) ? $cached['meta'] : array(),
+		);
+	}
+	if (function_exists('sys_getloadavg')) {
+		$load = @sys_getloadavg();
+		if (is_array($load) && isset($load[0]) && (float) $load[0] >= 6.0) {
+			return array(
+				'brands' => array(),
+				'meta' => array(
+					'source' => 'load_shed',
+					'catalog_url' => $catalog_url,
+					'updated_at' => time(),
+				),
+			);
+		}
 	}
 
 	$synonym_map = docpart_load_manufacturer_synonym_map($db_link);
