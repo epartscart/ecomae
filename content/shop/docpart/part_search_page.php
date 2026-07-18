@@ -1105,7 +1105,7 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 			. '<td class="td_time_to_exe"><span class="epc-warehouse-term">' . htmlspecialchars($term, ENT_QUOTES, 'UTF-8') . '</span></td>'
 			. '<td class="td_info">' . $infoHtml . '</td>'
 			. '<td class="td_price product_price">' . $priceHtml . '</td>'
-			. '<td class="td_add_to_cart"></td>'
+			. '<td class="td_add_to_cart"><span class="epc-ssr-actions-pending" style="font-size:11px;color:#64748b">Loading actions…</span></td>'
 			. '<td class="td_color"></td>'
 			. '</tr>';
 	}
@@ -1129,7 +1129,7 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 		. '<th class="th_time_to_exe">Term</th>'
 		. '<th class="th_info">Info</th>'
 		. '<th class="th_price">' . $priceHeader . '</th>'
-		. '<th class="th_add_to_cart"></th>'
+		. '<th class="th_add_to_cart">Actions</th>'
 		. '<th class="th_color"></th>'
 		. '</tr></thead><tbody>'
 		. '<tr class="epc-part-type-caption epc-part-type-caption--genuine"><td colspan="10"><span class="epc-part-type-pill">Genuine (OE) (' . (int) $count . ')</span></td></tr>'
@@ -2636,6 +2636,25 @@ function epcUsesArticleOnlyStockUi()
 	return (typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
 		|| (typeof epc_brand_picker_stock_preview !== 'undefined' && epc_brand_picker_stock_preview);
 }
+function epcChpuTableNeedsActionHydration(area)
+{
+	if(!area || !area.innerHTML)
+	{
+		return false;
+	}
+	// SSR warehouse seed has stock rows but empty Actions (no cart/quote/WhatsApp/fitment).
+	if(area.querySelector && area.querySelector('.epc-ssr-warehouse-table, .epc-ssr-warehouse-row, .epc-ssr-warehouse-banner'))
+	{
+		return true;
+	}
+	if(area.innerHTML.indexOf('all_table_products') === -1)
+	{
+		return false;
+	}
+	return area.innerHTML.indexOf('epc-product-actions') === -1
+		&& area.innerHTML.indexOf('epc-btn-cart') === -1
+		&& area.innerHTML.indexOf('epc-btn-quote') === -1;
+}
 function epcApplyInitialPriceBunch()
 {
 	if(typeof epc_initial_price_bunch === 'undefined' || !epc_initial_price_bunch || !epc_initial_price_bunch.Products || !epc_initial_price_bunch.Products.length)
@@ -2655,10 +2674,10 @@ function epcApplyInitialPriceBunch()
 			crossBlock.parentNode.removeChild(crossBlock);
 		}
 	}
-	// Re-bind even when SSR already painted — keeps Products.* in sync for filters/crosses.
-	if(typeof epcResetChpuProductsState === 'function' && (!Products || !Products.All || !Products.All.length))
+	// Fresh bind so SSR seed is replaced by full search-result rows with actions.
+	if(typeof epcResetChpuProductsState === 'function' && (!Products || !Products.All || !Products.All.length || (productsArea && epcChpuTableNeedsActionHydration(productsArea))))
 	{
-		// Products may already hold the initial bunch from a prior apply; only soft-reset when empty.
+		epcResetChpuProductsState();
 	}
 	bindBunchResult(epc_initial_price_bunch);
 	Products_All_Asked = true;
@@ -2686,8 +2705,8 @@ function epcApplyInitialPriceBunch()
 	{
 		console.error('epcApplyInitialPriceBunch', renderErr);
 	}
-	// If resultReview failed/filtered everything, keep SSR warehouse HTML instead of blanking.
-	if(productsArea && productsArea.innerHTML.indexOf('all_table_products') === -1)
+	// If resultReview failed/filtered everything, or left SSR without actions, rebuild from bound Products.
+	if(productsArea && (productsArea.innerHTML.indexOf('all_table_products') === -1 || epcChpuTableNeedsActionHydration(productsArea)))
 	{
 		try
 		{
@@ -6744,8 +6763,25 @@ else if( $search_type == "prices_by_article_and_manufacturer" )
 		function epcChpuEnsureStockTableVisible()
 		{
 			var area = document.getElementById('products_area');
+			var needsHydrate = (typeof epcChpuTableNeedsActionHydration === 'function')
+				? epcChpuTableNeedsActionHydration(area)
+				: false;
+			if(needsHydrate && typeof epcApplyInitialPriceBunch === 'function')
+			{
+				// Replace SSR seed with full search-result rows (qty + Add to Cart + Quote + WhatsApp + Fitment).
+				epcApplyInitialPriceBunch();
+				area = document.getElementById('products_area');
+				needsHydrate = (typeof epcChpuTableNeedsActionHydration === 'function')
+					? epcChpuTableNeedsActionHydration(area)
+					: false;
+			}
 			var hasTable = area && area.innerHTML && area.innerHTML.indexOf('all_table_products') !== -1;
-			if(hasTable)
+			var hasActions = area && (
+				area.innerHTML.indexOf('epc-product-actions') !== -1
+				|| area.innerHTML.indexOf('epc-btn-cart') !== -1
+				|| area.innerHTML.indexOf('epc-btn-quote') !== -1
+			);
+			if(hasTable && hasActions && !needsHydrate)
 			{
 				if(typeof epcChpuHideProcessingIndicator === 'function')
 				{
@@ -6753,9 +6789,22 @@ else if( $search_type == "prices_by_article_and_manufacturer" )
 				}
 				return true;
 			}
-			if(typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
+			if(!hasTable && typeof epcApplyInitialPriceBunch === 'function' && epcApplyInitialPriceBunch())
 			{
-				return true;
+				area = document.getElementById('products_area');
+				hasActions = area && (
+					area.innerHTML.indexOf('epc-product-actions') !== -1
+					|| area.innerHTML.indexOf('epc-btn-cart') !== -1
+					|| area.innerHTML.indexOf('epc-btn-quote') !== -1
+				);
+				if(hasActions)
+				{
+					if(typeof epcChpuHideProcessingIndicator === 'function')
+					{
+						epcChpuHideProcessingIndicator();
+					}
+					return true;
+				}
 			}
 			return false;
 		}
