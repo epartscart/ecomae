@@ -2627,6 +2627,11 @@ function epcChpuProductKey(manufacturer, article, storageId)
 }
 function epcChpuNormalizeGroupBrand(manufacturer)
 {
+	// CHPU: never collapse warehouse brands via synonym/canonical maps.
+	if(typeof epc_chpu_direct_pricing !== 'undefined' && epc_chpu_direct_pricing)
+	{
+		return String(manufacturer || '').trim().toUpperCase();
+	}
 	var canon = epcCrossCanonicalBrand(manufacturer);
 	var req = (typeof search_object !== 'undefined' && search_object.requested_manufacturer) ? search_object.requested_manufacturer : (typeof SelectedManufacturer !== 'undefined' ? SelectedManufacturer : null);
 	if(req && epcSameManufacturer(manufacturer, req))
