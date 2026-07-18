@@ -2083,12 +2083,84 @@ function epcChpuBrandPickerArticle()
 		? String(search_object.article)
 		: '<?php echo $article; ?>';
 }
+function epcBrandPickerShowEmptyState()
+{
+	var processing = document.getElementById('processing_indicator');
+	if(processing)
+	{
+		processing.innerHTML = '';
+		processing.style.display = 'none';
+	}
+	var productsArea = document.getElementById('products_area');
+	if(!productsArea)
+	{
+		return;
+	}
+	var articleLabel = '';
+	try
+	{
+		articleLabel = epcChpuBrandPickerArticle();
+	}
+	catch(e)
+	{
+		articleLabel = '<?php echo $article; ?>';
+	}
+	productsArea.innerHTML =
+		'<div class="epc-brand-picker-empty" style="margin:12px 0;padding:16px 18px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;color:#0f172a;text-align:left">'
+		+ '<p style="margin:0 0 8px;font-size:16px;font-weight:700">No manufacturers found for <span style="font-family:ui-monospace,Menlo,Consolas,monospace">'
+		+ String(articleLabel || '').replace(/</g, '&lt;')
+		+ '</span></p>'
+		+ '<p style="margin:0;font-size:14px;line-height:1.5;color:#475569">Warehouse price lists, Crossbase, and catalog brand lookup returned no brands for this article. Try another part number, or open a brand page if you already know the manufacturer.</p>'
+		+ '</div>';
+	if(typeof epcFetchCrossData === 'function' && articleLabel)
+	{
+		epcFetchCrossData(articleLabel).then(function(data) {
+			if(!data || !productsArea)
+			{
+				return;
+			}
+			var refCount = data.unique_reference_count
+				? parseInt(data.unique_reference_count, 10)
+				: (data.reference_count ? parseInt(data.reference_count, 10) : ((data.references && data.references.length) ? data.references.length : 0));
+			var stockCount = (data.stock && data.stock.length) ? data.stock.length : 0;
+			if(refCount > 0 || stockCount > 0)
+			{
+				var note = document.createElement('p');
+				note.style.cssText = 'margin:10px 0 0;font-size:13px;color:#334155';
+				note.textContent = 'Cross lookup found ' + (refCount || 0) + ' reference'
+					+ ((refCount === 1) ? '' : 's')
+					+ (stockCount > 0 ? (' · ' + stockCount + ' in stock') : '')
+					+ '. Open a brand+article URL to see warehouse prices.';
+				var box = productsArea.querySelector('.epc-brand-picker-empty');
+				if(box)
+				{
+					box.appendChild(note);
+				}
+			}
+		});
+	}
+}
 function epcChpuNavigateToBrandArticle(manufacturer_show)
 {
 	var manufacturer_alias = manufacturer_show;
 	if(manufacturer_alias == null || manufacturer_alias === '')
 	{
+		// Never bounce empty brand selection back to /parts/all/{article} (reload loop).
+		if(typeof epc_brand_picker_mode !== 'undefined' && epc_brand_picker_mode)
+		{
+			epcBrandPickerShowEmptyState();
+			return;
+		}
 		manufacturer_alias = '<?php echo $DP_Config->chpu_search_config["level_2"]["mode_2"]["url"]; ?>';
+	}
+	var allAlias = '<?php echo $DP_Config->chpu_search_config["level_2"]["mode_2"]["url"]; ?>';
+	if(String(manufacturer_alias).toLowerCase() === String(allAlias).toLowerCase())
+	{
+		if(typeof epc_brand_picker_mode !== 'undefined' && epc_brand_picker_mode)
+		{
+			epcBrandPickerShowEmptyState();
+			return;
+		}
 	}
 	manufacturer_alias = String(manufacturer_alias).split('/').join('<?php echo $DP_Config->chpu_search_config["slash_code"]; ?>');
 	location = '<?php echo $multilang_params['lang_href']; ?>/<?php echo $DP_Config->chpu_search_config["level_1"]["url"]; ?>/' + encodeURI(manufacturer_alias) + '/<?php echo $article; ?>';
@@ -2373,7 +2445,9 @@ function epcFinalizeManufacturersPicker()
 	manufacturersReview();
 	if(ProductsManufacturers_Shown_Count == 0 && ProductsManufacturers.length == 0)
 	{
-		onManufacturerSelected(null);
+		// Empty warehouse + crossbase + supplier brand lists: show a clear result, do not
+		// redirect to /parts/all/{article} (that recreates this picker and loops forever).
+		epcBrandPickerShowEmptyState();
 		return;
 	}
 	// Prefer the synonym-collapsed warehouse brand with stock (AISIN ≡ AISINC → open AISIN page).
@@ -4188,8 +4262,16 @@ function manufacturersReview()
 	<?php
 	}else{
 	?>
-	//Таблицу производителей показываем только если в ней больше 1 производителя
-	if( ProductsManufacturers_Shown_Count > 1 )
+	// Brand picker: show the brand table whenever we have at least one option.
+	// Legacy non-picker flow still waits for 2+ brands (single brand auto-selects).
+	if( brandPickerMode )
+	{
+		if( ProductsManufacturers_Shown_Count >= 1 )
+		{
+			document.getElementById("products_area").innerHTML = html;
+		}
+	}
+	else if( ProductsManufacturers_Shown_Count > 1 )
 	{
 		document.getElementById("products_area").innerHTML = html;
 	}
@@ -4264,6 +4346,11 @@ function onManufacturerSelected(manufacturer_show)
 		}
 		
 		SelectedManufacturer = manufacturer_show;
+		if((manufacturer_show == null || manufacturer_show === '') && typeof epc_brand_picker_mode !== 'undefined' && epc_brand_picker_mode)
+		{
+			epcBrandPickerShowEmptyState();
+			return;
+		}
 		epcChpuNavigateToBrandArticle(manufacturer_show);
 		
 		<?php
