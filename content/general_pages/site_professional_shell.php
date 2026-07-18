@@ -3473,9 +3473,9 @@ defined('_ASTEXE_') or die('No access');
 	#products_area .td_add_to_cart,
 	#products_area .th_add_to_cart {
 		display: table-cell !important;
-		min-width: 0;
+		min-width: 300px;
 		padding: 3px 5px !important;
-		text-align: right;
+		text-align: left;
 		vertical-align: middle;
 		white-space: nowrap;
 	}
@@ -3484,8 +3484,8 @@ defined('_ASTEXE_') or die('No access');
 		display: inline-flex;
 		flex-direction: row;
 		flex-wrap: nowrap;
-		gap: 8px;
-		justify-content: flex-end;
+		gap: 6px;
+		justify-content: flex-start;
 		min-width: 0;
 		width: 100%;
 	}
@@ -3495,7 +3495,7 @@ defined('_ASTEXE_') or die('No access');
 		display: inline-flex;
 		flex: 0 0 auto;
 		flex-wrap: nowrap;
-		gap: 8px;
+		gap: 6px;
 		justify-content: flex-start;
 		width: auto;
 	}
@@ -3573,15 +3573,17 @@ defined('_ASTEXE_') or die('No access');
 		color: #fff !important;
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions {
-		max-width: 100%;
+		max-width: none;
 		overflow-x: visible;
-		flex-wrap: wrap;
-		row-gap: 6px;
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+		row-gap: 0;
 	}
 	#all_table_products .td_add_to_cart .epc-product-actions__tools {
-		flex: 1 1 100%;
-		justify-content: flex-end;
-		width: 100%;
+		flex: 0 0 auto;
+		justify-content: flex-start;
+		min-width: max-content;
+		width: auto;
 	}
 	.epc-product-actions .epc-btn-cart,
 	.epc-product-actions .epc-btn-quote {

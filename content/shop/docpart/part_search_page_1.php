@@ -2336,7 +2336,7 @@ function epcFitmentCheckButtonHTML(brand, article)
 		+ ' data-epc-fitment-article="' + epcAttrEsc(art) + '"'
 		+ ' data-epc-fitment-brand="' + epcAttrEsc(brand || '') + '"'
 		+ ' onclick="epcOpenFitmentCheckRow(this);"'
-		+ ' title="Fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>';
+		+ ' title="Add to Fitment / fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>';
 }
 function epcOpenFitmentCheckRow(btn)
 {
@@ -2353,20 +2353,33 @@ function epcOpenFitmentCheckRow(btn)
 function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 {
 	mode = mode || 'cart_only';
+	var prod = (typeof Products !== 'undefined' && Products.All && Products.All[aid]) ? Products.All[aid] : null;
+	brand = String(brand || (prod && prod.manufacturer) || '').trim();
+	article = String(article || (prod && prod.article) || (prod && prod.article_show) || '').trim();
+	var stockExist = exist * 1;
+	if(isNaN(stockExist) || stockExist < 0){ stockExist = 0; }
+	var inStock = stockExist > 0;
 	var pMin = minOrder * 1;
-	var pExist = exist * 1;
+	var pExist = stockExist > 0 ? stockExist : 1;
 	if(pMin === 0){ pMin = 1; }
-	if(pExist === 0){ pExist = 1; }
+	// In stock: Fitment → WhatsApp → qty → Add to Cart (no Quote).
+	// Out of stock: Fitment → WhatsApp → Add to Quote (no Cart).
+	var showCart = (mode === 'cart_only') || (mode === 'both' && inStock);
+	var showQuote = (mode === 'quote_only') || (mode === 'both' && !inStock);
+	if(mode === 'cart_only'){ showQuote = false; }
+	if(mode === 'quote_only'){ showCart = false; }
+	// Never show Quote next to Cart for available stock, regardless of mode.
+	if(inStock){ showQuote = false; }
+	if(!inStock){ showCart = false; showQuote = true; }
 	var guestBlocked = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible);
-	var html = '<div class="epc-product-actions">';
+	var html = '<div class="epc-product-actions' + (showQuote && !showCart ? ' epc-product-actions--quote-only' : '') + '">';
 	html += '<div class="epc-product-actions__tools">';
 	html += epcFitmentCheckButtonHTML(brand, article);
 	if(!guestBlocked && typeof epcWaShareBtnHTML === 'function')
 	{
-		var prod = (typeof Products !== 'undefined' && Products.All && Products.All[aid]) ? Products.All[aid] : null;
 		var nm = prod && prod.name ? prod.name : '';
 		var pr = prod && prod.price != null ? prod.price : '';
-		html += epcWaShareBtnHTML(brand || (prod ? prod.manufacturer : ''), article || (prod ? prod.article : ''), nm, pr);
+		html += epcWaShareBtnHTML(brand, article, nm, pr);
 	}
 	html += '</div>';
 	if(guestBlocked)
@@ -2377,7 +2390,7 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 		html += '</div>';
 		return html;
 	}
-	if(mode === 'both' || mode === 'cart_only')
+	if(showCart)
 	{
 		html += '<div class="epc-product-actions__buy">';
 		html += '<div class="epc-product-actions__qty">';
@@ -2388,7 +2401,7 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 		html += '<button type="button" class="btn btn-sm btn-danger epc-btn-cart" onclick="addToCart(' + aid + ');">Add to Cart</button>';
 		html += '</div>';
 	}
-	if(mode === 'both' || mode === 'quote_only')
+	if(showQuote)
 	{
 		html += '<button type="button" class="btn btn-sm btn-primary epc-btn-quote" onclick="addToQuote(' + aid + ');">Add to Quote</button>';
 	}
@@ -2408,6 +2421,7 @@ function epcManualQuoteButtonHTML(brand, article, articleShow, name)
 				: (epc_storefront_price_login_cta_html || ''))
 			+ '</div>';
 	}
+	// Out-of-stock / catalog-only: Fitment → WhatsApp → Add to Quote (one row).
 	return '<div class="epc-product-actions epc-product-actions--quote-only">'
 		+ '<div class="epc-product-actions__tools">'
 		+ epcFitmentCheckButtonHTML(brand, article)
@@ -4886,15 +4900,20 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 	// Кнопки увеличения количества товара добавляемого в корзину //////////////////////////////////////////////////////////////////////////////////////////////
 	var p_min_order = Product.min_order * 1;
 	var p_exist = Product.exist * 1;
+	if(isNaN(p_exist) || p_exist < 0){ p_exist = 0; }
 	
 	if(p_min_order == 0){
 		p_min_order = 1;
 	}
-	if(p_exist == 0){
-		p_exist = 1;
-	}
-	
-	cart_html = epcProductActionsHTML(Product.aid, p_exist, p_min_order, 'both', Product.manufacturer, Product.article);
+	// Pass real stock qty (0 = out of stock → Quote only, no Cart).
+	cart_html = epcProductActionsHTML(
+		Product.aid,
+		p_exist,
+		p_min_order,
+		p_exist > 0 ? 'cart_only' : 'quote_only',
+		Product.manufacturer || (typeof ProductType !== 'undefined' ? ProductType.manufacturer : '') || '',
+		Product.article || Product.article_show || (typeof ProductType !== 'undefined' ? (ProductType.article || ProductType.article_show) : '') || ''
+	);
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
