@@ -1025,6 +1025,45 @@ function epc_portal_ga_measurement_id(string $host = null): string
 	return $map[$host] ?? 'G-J19D1KHXCG';
 }
 
+/**
+ * Microsoft Clarity project ID (https://clarity.microsoft.com).
+ * Empty = do not inject Clarity on this host.
+ */
+function epc_portal_clarity_project_id(string $host = null): string
+{
+	if ($host === null) {
+		$host = function_exists('epc_portal_host') ? epc_portal_host() : strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+	}
+	$host = strtolower(trim(preg_replace('/:\d+$/', '', $host)));
+	$profile = function_exists('epc_portal_site_profile') ? epc_portal_site_profile() : array();
+	if (!empty($profile['contact']['clarity_project_id'])) {
+		$id = preg_replace('/[^a-z0-9]/', '', strtolower((string) $profile['contact']['clarity_project_id']));
+		return $id;
+	}
+	$map = array(
+		'www.epartscart.com' => 'xoflbamawu',
+		'epartscart.com' => 'xoflbamawu',
+	);
+	return $map[$host] ?? '';
+}
+
+/** Inline Microsoft Clarity tag (empty string when not configured for this host). */
+function epc_portal_clarity_script_html(string $host = null): string
+{
+	$id = epc_portal_clarity_project_id($host);
+	if ($id === '') {
+		return '';
+	}
+	$idJs = htmlspecialchars($id, ENT_QUOTES, 'UTF-8');
+	return '<script type="text/javascript">'
+		. '(function(c,l,a,r,i,t,y){'
+		. 'c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};'
+		. 't=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;'
+		. 'y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);'
+		. '})(window, document, "clarity", "script", "' . $idJs . '");'
+		. '</script>';
+}
+
 /** Floating seller button label — retail vs B2B (PDF §9.5). */
 function epc_portal_seller_request_label(): string
 {
