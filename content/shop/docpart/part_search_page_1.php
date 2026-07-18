@@ -4718,9 +4718,9 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 	
 	
 	
-	//Строка для показа цены
+	//Строка для показа цены (base shop currency in data-epc-base-price; display converts only)
 	var priceValue = (typeof epcFormatMoney === 'function') ? epcFormatMoney(Product.price) : digit(Product.price);
-	var price = '<span class="epc-price-value">' + priceValue + '</span>';
+	var price = '<span class="epc-price-value" data-epc-base-price="' + String(Number(Product.price) || 0) + '">' + priceValue + '</span>';
 	price = epcStorefrontPriceCellHTML(price, Product);
 	
 	

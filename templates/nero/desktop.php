@@ -383,6 +383,12 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 		cfg.selected = iso;
 		window.epcCurrencyConfig = cfg;
 	}
+	function epcCurrencyIndicator(rec) {
+		var cfg = window.epcCurrencyConfig || {};
+		if(!rec) { return ''; }
+		if(cfg.mode === 'no') { return ''; }
+		return (cfg.mode === 'short_name_after') ? rec.caption_short : rec.sign;
+	}
 	function epcFormatMoney(amount) {
 		var cfg = window.epcCurrencyConfig || {};
 		var rec = epcGetCurrencyRecord(cfg.selected);
@@ -391,10 +397,77 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 		if(rate <= 0) { rate = 1; }
 		var value = Number(amount || 0) / rate;
 		var number = value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-		var indicator = cfg.mode === 'short_name_after' ? rec.caption_short : rec.sign;
-		if(cfg.mode === 'no') { return number; }
+		var indicator = epcCurrencyIndicator(rec);
+		if(cfg.mode === 'no' || !indicator) { return number; }
 		if(cfg.mode === 'sign_after' || cfg.mode === 'short_name_after') { return number + ' ' + indicator; }
 		return indicator + ' ' + number;
+	}
+	/**
+	 * Re-format visible money only. Do NOT reload — a reload re-runs part search and
+	 * can change which rows are painted (filters/race), while prices must stay the same set.
+	 */
+	function epcRefreshStorefrontMoneyUI() {
+		var cfg = window.epcCurrencyConfig || {};
+		var rec = epcGetCurrencyRecord(cfg.selected);
+		if(!rec) { return; }
+		var indicator = epcCurrencyIndicator(rec);
+		if(typeof currency_indicator !== 'undefined') { currency_indicator = indicator; }
+		if(typeof currency_sign !== 'undefined') { currency_sign = rec.sign; }
+		var select = document.getElementById('epc_currency_select');
+		if(select && select.value !== cfg.selected) { select.value = cfg.selected; }
+		var mobileSelect = document.getElementById('epc_currency_select_mobile');
+		if(mobileSelect && mobileSelect.value !== cfg.selected) { mobileSelect.value = cfg.selected; }
+		var inds = document.querySelectorAll('.balance_indicator');
+		for(var i = 0; i < inds.length; i++) { inds[i].textContent = indicator; }
+		var balanceNodes = document.querySelectorAll('[data-epc-base-balance]');
+		for(var b = 0; b < balanceNodes.length; b++) {
+			var bal = parseFloat(balanceNodes[b].getAttribute('data-epc-base-balance'));
+			if(isNaN(bal)) { continue; }
+			var rate = Number(rec.rate || 1);
+			if(rate <= 0) { rate = 1; }
+			balanceNodes[b].textContent = (bal / rate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+		}
+		if(typeof headlines !== 'undefined' && headlines && headlines.price && headlines.price.caption) {
+			var cap = String(headlines.price.caption);
+			var sortHtml = '';
+			var imgMatch = cap.match(/(\s*<img[\s\S]*)/i);
+			if(imgMatch) { sortHtml = imgMatch[1]; }
+			var mainPart = cap.replace(/\s*<img[\s\S]*/i, '').replace(/,\s*[^,<]+$/i, '');
+			if(!mainPart) { mainPart = 'Price'; }
+			headlines.price.caption = mainPart + ', ' + indicator + sortHtml;
+		}
+		var priceNodes = document.querySelectorAll('[data-epc-base-price]');
+		if(priceNodes.length) {
+			for(var p = 0; p < priceNodes.length; p++) {
+				var base = parseFloat(priceNodes[p].getAttribute('data-epc-base-price'));
+				if(isNaN(base)) { continue; }
+				priceNodes[p].textContent = epcFormatMoney(base);
+			}
+		} else {
+			// Fallback only when price nodes are not annotated — never preferred (avoids re-filter races).
+			try {
+				if(typeof manufacturersReview === 'function' && typeof epc_brand_picker_mode !== 'undefined' && epc_brand_picker_mode) {
+					manufacturersReview();
+				} else if(typeof resultReview === 'function' && typeof Products !== 'undefined' && Products && Products.All && Products.All.length) {
+					resultReview();
+				}
+			} catch (reviewErr) {}
+		}
+		// Keep price column header label in sync when table already rendered.
+		var thPrices = document.querySelectorAll('#all_table_products th.th_price');
+		for(var th = 0; th < thPrices.length; th++) {
+			var thNode = thPrices[th];
+			var thImg = thNode.querySelector('img');
+			var thLabel = (thNode.textContent || '').replace(/\s+/g, ' ').trim().replace(/,\s*[^,]+$/i, '');
+			if(!thLabel) { thLabel = 'Price'; }
+			thNode.textContent = '';
+			thNode.appendChild(document.createTextNode(thLabel + ', ' + indicator + ' '));
+			if(thImg) { thNode.appendChild(thImg); }
+		}
+	}
+	function epcApplyDisplayCurrency(iso, manual) {
+		epcSetDisplayCurrency(iso, !!manual);
+		epcRefreshStorefrontMoneyUI();
 	}
 	function epcDetectCurrencyByCountry() {
 		var cfg = window.epcCurrencyConfig || {};
@@ -410,8 +483,7 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 			var iso = country && cfg.countryMap[country] ? cfg.countryMap[country] : '';
 			if(country) { epcSetCookie('epc_country', country, 30); }
 			if(iso && cfg.currencies && cfg.currencies[iso] && iso !== cfg.selected) {
-				epcSetDisplayCurrency(iso, false);
-				window.location.reload();
+				epcApplyDisplayCurrency(iso, false);
 			}
 		}).catch(function(){});
 	}
@@ -419,12 +491,12 @@ $epc_storefront_package = function_exists('epc_portal_active_storefront_package'
 		var select = document.getElementById('epc_currency_select');
 		if(select) {
 			select.value = (window.epcCurrencyConfig || {}).selected || select.value;
-			select.onchange = function(){ epcSetDisplayCurrency(this.value, true); window.location.reload(); };
+			select.onchange = function(){ epcApplyDisplayCurrency(this.value, true); };
 		}
 		var mobileSelect = document.getElementById('epc_currency_select_mobile');
 		if(mobileSelect) {
 			mobileSelect.value = (window.epcCurrencyConfig || {}).selected || mobileSelect.value;
-			mobileSelect.onchange = function(){ epcSetDisplayCurrency(this.value, true); window.location.reload(); };
+			mobileSelect.onchange = function(){ epcApplyDisplayCurrency(this.value, true); };
 		}
 		// Defer geo currency probe until after first paint / idle.
 		var runGeo = function(){ try { epcDetectCurrencyByCountry(); } catch (e) {} };
@@ -672,21 +744,15 @@ if(!empty($DP_Template->data_value->message_header)){
 							<div class="new-header-user-box">
 								<a href="<?php echo $multilang_params['lang_href']; ?>/shop/balans" class="user_balance">
 									<i><span class="balance_indicator"><?=$currency_indicator;?></span></i>
-									<span class="balance_text">
-										<?php
-										$stmt = $db_link->prepare('SELECT *,( IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = :user_id AND `income`=1 AND `active` = 1), 0) - IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = :user_id AND `income`=0 AND `active` = 1),0) ) AS `balance` FROM `shop_users_accounting` WHERE `user_id` = :user_id AND `active` = 1;');
-										$stmt->bindValue(':user_id', DP_User::getUserId());
-										$stmt->execute();
-										$balance_record = $stmt->fetch(PDO::FETCH_ASSOC);
-										if($balance_record !== false){
-											$balance = (float) $balance_record["balance"];
-										}else{
-											$balance = 0;
-										}
-										$balance = number_format($balance, 2, '.', ' ');
-										echo $balance;
-										?>
-									</span>
+									<?php
+									$stmt = $db_link->prepare('SELECT *,( IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = :user_id AND `income`=1 AND `active` = 1), 0) - IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = :user_id AND `income`=0 AND `active` = 1),0) ) AS `balance` FROM `shop_users_accounting` WHERE `user_id` = :user_id AND `active` = 1;');
+									$stmt->bindValue(':user_id', DP_User::getUserId());
+									$stmt->execute();
+									$balance_record = $stmt->fetch(PDO::FETCH_ASSOC);
+									$balance = ($balance_record !== false) ? (float) $balance_record['balance'] : 0.0;
+									$balance_display = epc_currency_format_amount($balance, $epc_currency_records, $epc_selected_currency_iso, 'no');
+									?>
+									<span class="balance_text" data-epc-base-balance="<?php echo htmlspecialchars(number_format($balance, 2, '.', ''), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($balance_display, ENT_QUOTES, 'UTF-8'); ?></span>
 								</a>
 							</div>
 							

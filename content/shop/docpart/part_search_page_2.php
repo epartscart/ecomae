@@ -866,7 +866,9 @@ function getProductRecordHTML(Product)
     var color = Product.color;
     
 	//Строка для показа цены
-	var price = (typeof epcFormatMoney === 'function') ? epcFormatMoney(Product.price) : digit(Product.price);
+	var price = '<span class="epc-price-value" data-epc-base-price="' + String(Number(Product.price) || 0) + '">'
+		+ ((typeof epcFormatMoney === 'function') ? epcFormatMoney(Product.price) : digit(Product.price))
+		+ '</span>';
 	price = epcStorefrontPriceCellHTML(price);
 	
 	
