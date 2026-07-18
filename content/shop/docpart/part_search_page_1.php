@@ -1006,7 +1006,13 @@ function epcChpuEnsureCrossStockTableVisible(stockItems, showUnavailableNotice)
 	{
 		return false;
 	}
-	if(productsArea.innerHTML.indexOf('all_table_products') !== -1)
+	// Only keep an existing table when it already has real stock rows.
+	// Caption-only / "not found" tables must be rebuilt (otherwise status bar
+	// can show "2 IN STOCK" while the products area stays empty).
+	var areaHasStock = (typeof epcChpuAreaHasStockPaint === 'function')
+		? epcChpuAreaHasStockPaint(productsArea)
+		: (productsArea.innerHTML.indexOf('td_exist') !== -1 || productsArea.innerHTML.indexOf('epc-btn-cart') !== -1);
+	if(productsArea.innerHTML.indexOf('all_table_products') !== -1 && areaHasStock)
 	{
 		epcChpuSyncCrossDataBeforeRender(items);
 		epcChpuAppendCrossNotInStockToTable();
@@ -1983,7 +1989,26 @@ function epcPartSearchNotAvailableHTML()
 }
 function epcPartSearchHasAnyStockRows()
 {
-	return (Products_Required_count + Products_Quick_Analogs_count + Products_Analogs_count + Products_PossibleReplacement_count + Products_SearchName_count + Products_Spare_Box_count) > 0;
+	// Prefer bound Products.All — mode-local counters are often shadowed/reset inside resultReview.
+	if(typeof Products !== 'undefined' && Products && Products.All && Products.All.length)
+	{
+		for(var i = 0; i < Products.All.length; i++)
+		{
+			var bound = (typeof epcGetBoundProductByAid === 'function') ? epcGetBoundProductByAid(i) : null;
+			var exist = bound ? parseFloat(bound.exist) : 0;
+			if(!isNaN(exist) && exist > 0)
+			{
+				return true;
+			}
+		}
+	}
+	var required = (typeof Products_Required_count === 'number') ? Products_Required_count : 0;
+	var quick = (typeof Products_Quick_Analogs_count === 'number') ? Products_Quick_Analogs_count : 0;
+	var analogs = (typeof Products_Analogs_count === 'number') ? Products_Analogs_count : 0;
+	var possible = (typeof Products_PossibleReplacement_count === 'number') ? Products_PossibleReplacement_count : 0;
+	var searchName = (typeof Products_SearchName_count === 'number') ? Products_SearchName_count : 0;
+	var spare = (typeof Products_Spare_Box_count === 'number') ? Products_Spare_Box_count : 0;
+	return (required + quick + analogs + possible + searchName + spare) > 0;
 }
 function epcCrossStockToProducts(stockItems)
 {
@@ -4449,14 +4474,18 @@ function resultReview()
 	}
 	if(typeof epcUsesArticleOnlyStockUi === 'function' && epcUsesArticleOnlyStockUi() && typeof epcChpuBuildDirectStockTableHtml === 'function')
 	{
-		var needsDirectStockTable = (products_html.indexOf('all_table_products') === -1) && Products.All && Products.All.length > 0;
+		var hasTableShell = products_html.indexOf('all_table_products') !== -1;
+		var hasStockMarkers = products_html.indexOf('td_exist') !== -1
+			|| products_html.indexOf('epc-btn-cart') !== -1
+			|| products_html.indexOf('epc-product-actions') !== -1
+			|| products_html.indexOf('epc-ssr-warehouse') !== -1;
+		var needsDirectStockTable = Products.All && Products.All.length > 0 && (!hasTableShell || !hasStockMarkers);
 		if(needsDirectStockTable)
 		{
 			var directStockHtml = epcChpuBuildDirectStockTableHtml();
 			if(directStockHtml !== '')
 			{
-				var noticeHtml = epcPartSearchNotAvailableHTML();
-				products_html = (noticeHtml !== '' ? noticeHtml : '') + directStockHtml;
+				products_html = directStockHtml;
 			}
 		}
 	}
