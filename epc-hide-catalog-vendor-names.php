@@ -176,21 +176,48 @@ try {
 }
 $report['checks']['lang_hits'] = count($langRows);
 
-/** Preferred clean captions for known keys */
+/** Preferred clean captions for known keys (lang => text). */
 $keyDefaults = array(
-	'epc_laximo_catalog_title' => 'OEM Parts Catalog',
-	'epc_laximo_catalog_desc' => 'Search original OEM parts by vehicle brand, VIN, or part name.',
-	'epc_laximo_aftermarket_title' => 'Aftermarket Catalog',
-	'epc_laximo_aftermarket_desc' => 'Search aftermarket parts and cross-references.',
-	'epc_umapi_catalog_title' => 'Vehicle Parts Catalog',
-	'epc_umapi_catalog_desc' => 'Select spare parts by passenger car, commercial vehicle, motorbike, or article analogs.',
+	'epc_laximo_catalog_title' => array(
+		'en' => 'OEM Parts Catalog',
+		'ru' => 'Каталог оригинальных запчастей',
+	),
+	'epc_laximo_catalog_desc' => array(
+		'en' => 'Search original OEM parts by vehicle brand, VIN, or part name.',
+		'ru' => 'Поиск оригинальных запчастей по марке, VIN или артикулу.',
+	),
+	'epc_laximo_aftermarket_title' => array(
+		'en' => 'Aftermarket Catalog',
+		'ru' => 'Каталог aftermarket',
+	),
+	'epc_laximo_aftermarket_desc' => array(
+		'en' => 'Search aftermarket parts and cross-references.',
+		'ru' => 'Поиск aftermarket-запчастей и кроссов.',
+	),
+	'epc_umapi_catalog_title' => array(
+		'en' => 'Vehicle Parts Catalog',
+		'ru' => 'Каталог запчастей',
+	),
+	'epc_umapi_catalog_desc' => array(
+		'en' => 'Select spare parts by passenger car, commercial vehicle, motorbike, or article analogs.',
+		'ru' => 'Подбор запчастей по легковым авто, коммерческому транспорту, мотоциклам или аналогам артикула.',
+	),
+	'epc_levam_oem_title' => array(
+		'en' => 'OEM Catalog',
+		'ru' => 'OEM-каталог',
+	),
 );
 
 foreach ($langRows as $row) {
 	$id = (int) $row['id'];
 	$key = (string) $row['str_key'];
+	$lang = (string) $row['lang_code'];
 	$before = (string) $row['value'];
-	$after = isset($keyDefaults[$key]) ? $keyDefaults[$key] : epc_scrub_vendor_text($before, $replacements);
+	if (isset($keyDefaults[$key]) && is_array($keyDefaults[$key])) {
+		$after = $keyDefaults[$key][$lang] ?? ($keyDefaults[$key]['en'] ?? epc_scrub_vendor_text($before, $replacements));
+	} else {
+		$after = epc_scrub_vendor_text($before, $replacements);
+	}
 	if ($after === $before) {
 		continue;
 	}
