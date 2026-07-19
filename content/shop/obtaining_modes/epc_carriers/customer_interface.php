@@ -21,7 +21,7 @@ $demo_rate = epc_channel_demo_rate($how_get['carrier'], (float)$how_get['weight_
 .epc-carrier-rates input { margin-right: 8px; }
 </style>
 <p class="lead">International carriers — DHL, FedEx, Aramex, UPS</p>
-<p class="text-muted">Demo rates shown until live API keys are configured in CP → Logistics → Carriers.</p>
+<p class="text-muted">Customer pays the courier fee — it is added to your tax invoice. UAE destinations: VAT applies on courier (income). Outside UAE: zero-rated (no VAT). Demo rates until live API keys are set in CP → Logistics → Carriers.</p>
 
 <table class="table">
 <tr><td>Destination city</td><td><input class="form-control" id="epc_c_city" type="text" value="<?php echo epc_channel_h($how_get['city']); ?>"></td></tr>
@@ -61,15 +61,27 @@ function epcCarrierNext() {
 	var pick = document.querySelector('input[name="epc_carrier_pick"]:checked');
 	if (!pick) { alert('Select a carrier service'); return; }
 	var parts = pick.value.split('|');
+	var carrier = parts[0] || '';
+	var service = parts[1] || '';
+	var country = (document.getElementById('epc_c_country').value || 'AE').toUpperCase().substring(0, 2);
+	var weight = parseFloat(document.getElementById('epc_c_weight').value || '1') || 1;
+	// Demo tariff table (must match PHP epc_channel_demo_rate) — customer pays this fee on the invoice.
+	var base = {dhl: 45, fedex: 42, aramex: 28, ups: 38};
+	var b = base[carrier] != null ? base[carrier] : 35;
+	var intl = (country && country !== 'AE') ? 1.35 : 1.0;
+	var rate = Math.round((b + (Math.max(0.1, weight) * 8.5)) * intl * 100) / 100;
 	var how_get = {
 		mode: <?php echo (int)$current_obtain_mode; ?>,
-		carrier: parts[0] || '',
-		service: parts[1] || '',
+		carrier: carrier,
+		service: service,
 		city: document.getElementById('epc_c_city').value || '',
-		country: document.getElementById('epc_c_country').value || '',
+		country: country,
 		address: document.getElementById('epc_c_address').value || '',
 		phone: document.getElementById('epc_c_phone').value || '',
-		weight_kg: document.getElementById('epc_c_weight').value || '1'
+		weight_kg: String(weight),
+		rate: rate,
+		delivery_price: rate,
+		courier_payer: 'customer'
 	};
 	// Checkout confirm + ajax_checkout_create both require the standard how_get cookie.
 	var date = new Date(new Date().getTime() + 15552000 * 1000);

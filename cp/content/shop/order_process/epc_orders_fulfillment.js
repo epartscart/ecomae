@@ -1,11 +1,19 @@
 /**
- * ERP order fulfillment panel — SO/PO linkage, sync, posting hooks.
+ * ERP order fulfillment panel — SO/PO/invoice/bill map + VAT/courier notes.
  */
 (function (window, document) {
 	'use strict';
 
 	function qs(sel, root) {
 		return (root || document).querySelector(sel);
+	}
+
+	function esc(s) {
+		return String(s == null ? '' : s)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
 	}
 
 	function postJson(url, data) {
@@ -24,7 +32,23 @@
 	}
 
 	function badge(text, tone) {
-		return '<span class="epc-scp-badge epc-scp-badge--' + (tone || 'normal') + '">' + text + '</span>';
+		return '<span class="epc-scp-badge epc-scp-badge--' + (tone || 'normal') + '">' + esc(text) + '</span>';
+	}
+
+	function normalizeStatus(res) {
+		if (!res) {
+			return null;
+		}
+		if (res.fulfillment_status && (res.sales_order || res.purchase_orders || res.shop_order_id)) {
+			return res;
+		}
+		if (res.status && typeof res.status === 'object' && (res.status.fulfillment_status || res.status.sales_order)) {
+			return res.status;
+		}
+		if (res.sales_order || res.purchase_orders) {
+			return res;
+		}
+		return res.status && typeof res.status === 'object' ? res.status : res;
 	}
 
 	function renderPanel(el, status) {
@@ -33,21 +57,68 @@
 		}
 		var so = status.sales_order || null;
 		var pos = status.purchase_orders || [];
+		var bills = status.purchase_invoices || [];
+		var inv = status.sales_invoice || null;
+		var map = status.document_map || null;
+		var vat = (map && map.vat) || status.vat || null;
+		var courier = (map && map.courier) || status.courier || null;
+
 		var html = '<div class="epc-of-panel">';
-		html += '<h4 class="epc-of-panel__title"><i class="fa fa-random"></i> ERP fulfillment</h4>';
+		html += '<h4 class="epc-of-panel__title"><i class="fa fa-random"></i> ERP fulfillment &amp; document map</h4>';
 		html += '<div class="epc-of-panel__row">Status: ' + badge(status.fulfillment_status || 'none', status.fulfillment_status === 'fulfilled' ? 'tenant' : 'high') + '</div>';
-		if (so) {
-			html += '<div class="epc-of-panel__row">Sales order: <strong>' + (so.so_no || ('#' + so.id)) + '</strong> (' + (so.status || 'open') + ')</div>';
+
+		html += '<ol class="epc-of-panel__chain">';
+		html += '<li><strong>Order</strong> #' + esc(status.shop_order_id || '') + '</li>';
+		if (vat) {
+			html += '<li><strong>VAT</strong> ' + esc(vat.label || vat.type || '') +
+				(vat.zero_rated ? ' · zero-rated export' : ' · UAE standard') + '</li>';
 		} else {
-			html += '<div class="epc-of-panel__row text-muted">No ERP sales order linked yet.</div>';
+			html += '<li><strong>VAT</strong> — see OMS header (UAE vs outside UAE)</li>';
 		}
+		if (so) {
+			html += '<li><strong>Sales order</strong> ' + esc(so.so_no || ('#' + so.id)) + ' ' + badge(so.status || 'open', 'normal') + '</li>';
+		} else {
+			html += '<li><strong>Sales order</strong> <span class="text-muted">not linked</span></li>';
+		}
+		html += '<li><strong>Supplier POs</strong> ' + esc(String(pos.length)) + '</li>';
+		html += '<li><strong>AP bills</strong> ' + esc(String(bills.length)) + '</li>';
+		if (inv) {
+			html += '<li><strong>AR tax invoice</strong> ' + esc(inv.invoice_number || ('#' + inv.id)) +
+				' ' + badge(inv.validation_ok ? 'validated' : 'draft', inv.validation_ok ? 'tenant' : 'high') + '</li>';
+		} else {
+			html += '<li><strong>AR tax invoice</strong> <span class="text-muted">not posted</span></li>';
+		}
+		if (courier && Number(courier.line_net || 0) > 0) {
+			html += '<li><strong>Courier (customer pays)</strong> ' +
+				esc(Number(courier.line_net).toFixed(2)) + ' + VAT ' +
+				esc(Number(courier.vat_amount || 0).toFixed(2)) + ' = ' +
+				esc(Number(courier.gross || 0).toFixed(2)) + ' AED' +
+				(Number(courier.vat_amount || 0) <= 0 ? ' (no VAT outside UAE)' : ' (VAT = income)') +
+				'</li>';
+		} else {
+			html += '<li><strong>Courier</strong> <span class="text-muted">none set</span></li>';
+		}
+		html += '</ol>';
+
 		if (pos.length) {
 			html += '<ul class="epc-of-panel__po-list">';
 			pos.forEach(function (po) {
-				html += '<li>PO ' + (po.po_no || po.id) + ' — ' + (po.supplier_name || 'Supplier') +
+				html += '<li>PO ' + esc(po.po_no || po.id) + ' — ' + esc(po.supplier_name || 'Supplier') +
 					' ' + badge(po.status || 'draft', po.status === 'received' ? 'tenant' : 'normal') + '</li>';
 			});
 			html += '</ul>';
+		}
+		if (bills.length) {
+			html += '<ul class="epc-of-panel__po-list">';
+			bills.forEach(function (b) {
+				html += '<li>Bill ' + esc(b.invoice_number || b.id) +
+					' · ' + esc(Number(b.total_amount || 0).toFixed(2)) + ' AED ' +
+					badge(b.status || 'open', 'normal') + '</li>';
+			});
+			html += '</ul>';
+		}
+		if (vat && vat.documentation) {
+			html += '<div class="epc-of-panel__docs small"><i class="fa fa-file-text-o"></i> ' + esc(vat.documentation) + '</div>';
 		}
 		var acct = status.accounting || {};
 		html += '<div class="epc-of-panel__row small text-muted">Cost posted: ' + (acct.cost_posted ? 'yes' : 'no') +
@@ -75,7 +146,6 @@
 			}
 			var msg = qs('.epc-of-panel__msg', el);
 			var action = '';
-			var payload = { order_id: cfg.orderId };
 			if (t.classList.contains('epc-of-btn-bootstrap')) {
 				action = 'order_fulfillment_bootstrap';
 			} else if (t.classList.contains('epc-of-btn-sync')) {
@@ -91,25 +161,19 @@
 			}
 			postJson(cfg.ajaxUrl, { action: action, order_id: cfg.orderId })
 				.then(function (res) {
-					if (!res || !res.status) {
-						throw new Error((res && res.message) || 'Request failed');
+					var st = normalizeStatus(res);
+					if (!st || (!st.fulfillment_status && !st.sales_order && !st.shop_order_id)) {
+						return postJson(cfg.ajaxUrl, { action: 'order_fulfillment_status', order_id: cfg.orderId })
+							.then(function (r2) {
+								return normalizeStatus(r2) || r2;
+							});
 					}
-					var st = res.status && res.sales_order ? res : (res.status || res);
-					if (res.status && res.fulfillment_status) {
-						st = res;
-					} else if (res.status && res.status.fulfillment_status) {
-						st = res.status;
-					} else if (res.status && res.status.sales_order) {
-						st = res.status;
-					} else if (res.sales_order || res.purchase_orders) {
-						st = res;
-					} else if (res.status && typeof res.status === 'object' && res.status.shop_order_id) {
-						st = res.status;
-					}
-					renderPanel(el, st);
-					bindPanel(el, cfg);
+					return st;
+				})
+				.then(function (st) {
+					renderPanel(el, st || { fulfillment_status: 'none', purchase_orders: [], accounting: {} });
 					if (msg) {
-						msg.textContent = res.message || 'Done';
+						msg.textContent = 'Done';
 					}
 				})
 				.catch(function (err) {
@@ -127,15 +191,7 @@
 		}
 		postJson(cfg.ajaxUrl, { action: 'order_fulfillment_status', order_id: cfg.orderId })
 			.then(function (res) {
-				if (!res || !res.status) {
-					renderPanel(el, { fulfillment_status: 'none', purchase_orders: [], accounting: {} });
-					bindPanel(el, cfg);
-					return;
-				}
-				var st = res;
-				if (res.sales_order || res.purchase_orders) {
-					st = res;
-				}
+				var st = normalizeStatus(res) || { fulfillment_status: 'none', purchase_orders: [], accounting: {} };
 				renderPanel(el, st);
 				bindPanel(el, cfg);
 			})

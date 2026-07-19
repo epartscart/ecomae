@@ -756,6 +756,31 @@ function epc_erp_order_fulfillment_status(PDO $db, int $orderId): array
 		$salesInvoice = $invSt->fetch(PDO::FETCH_ASSOC) ?: null;
 	}
 
+	$courier = null;
+	$vatInfo = null;
+	try {
+		require_once __DIR__ . '/epc_order_courier_vat.php';
+		$ost = $db->prepare('SELECT * FROM `shop_orders` WHERE `id` = ? LIMIT 1');
+		$ost->execute(array($orderId));
+		$orderRow = $ost->fetch(PDO::FETCH_ASSOC) ?: array('id' => $orderId);
+		$userId = (int) ($orderRow['user_id'] ?? 0);
+		$courier = epc_order_courier_vat_amounts($db, $orderRow, $userId);
+		$dest = (string) ($courier['destination_country'] ?? 'AE');
+		$zeroRated = function_exists('epc_uae_vat_is_uae_country') ? !epc_uae_vat_is_uae_country($dest) : ($dest !== 'AE');
+		$resolved = epc_uae_customer_vat_resolve($db, $userId);
+		$vatInfo = array(
+			'type' => (string) ($resolved['vat_type'] ?? ''),
+			'label' => (string) ($resolved['vat_type_label'] ?? ''),
+			'zero_rated' => $zeroRated,
+			'documentation' => $zeroRated
+				? 'Export / non-UAE supply: zero-rated (tax category Z). Keep shipping docs, commercial invoice, and buyer country evidence for FTA.'
+				: 'UAE domestic supply: standard rate on goods and courier. Tax invoice (PINT-AE) required; keep TRN and invoice XML/PDF.',
+		);
+	} catch (Throwable $e) {
+		$courier = null;
+		$vatInfo = null;
+	}
+
 	return array(
 		'shop_order_id' => $orderId,
 		'order_complete' => epc_erp_order_is_complete($db, $orderId),
@@ -764,6 +789,8 @@ function epc_erp_order_fulfillment_status(PDO $db, int $orderId): array
 		'purchase_orders' => $pos,
 		'purchase_invoices' => $purchaseInvoices,
 		'sales_invoice' => $salesInvoice,
+		'courier' => $courier,
+		'vat' => $vatInfo,
 		'accounting' => array(
 			'cost_posted' => count(array_filter($purchaseInvoices, function ($p) {
 				return (int) ($p['gl_journal_id'] ?? 0) > 0;

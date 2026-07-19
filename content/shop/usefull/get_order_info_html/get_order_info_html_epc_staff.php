@@ -111,8 +111,14 @@ $price_purchase_sum_total = 0.0;
 $profit_total = 0.0;
 $weight_total = 0.0;
 $rows_html = '';
+$staff_vat_lines = array();
 
 while ($order_item = $order_items_query->fetch(PDO::FETCH_ASSOC)) {
+	$staff_vat_lines[] = array(
+		'price' => (float) $order_item['price'],
+		'count_need' => (float) $order_item['count_need'],
+		'status' => (int) $order_item['status'],
+	);
 	$item_status = (int)$order_item['status'];
 	$item_count = (int)$order_item['count_need'];
 	$item_price = (float)$order_item['price'];
@@ -161,14 +167,66 @@ while ($order_item = $order_items_query->fetch(PDO::FETCH_ASSOC)) {
 }
 
 $gross = $price_sum_total;
-$vat = round($gross * 0.05, 2);
-$net = $gross + $vat;
+$vat = 0.0;
+$net = $gross;
 $margin = $gross - $price_purchase_sum_total;
 $delivery_cost = 0.0;
-if (is_array($how_get_json) && isset($how_get_json['delivery_price'])) {
-	$delivery_cost = (float)$how_get_json['delivery_price'];
+$delivery_vat = 0.0;
+$delivery_gross = 0.0;
+$vat_note = '';
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_courier_vat.php';
+	$order_for_vat = is_array($order) ? $order : array();
+	if (!isset($order_for_vat['how_get_json']) && is_array($how_get_json)) {
+		$order_for_vat['how_get_json'] = $how_get_json;
+	}
+	$flags = epc_order_vat_transaction_flags($db_link, $order_for_vat, $customer_id);
+	$items_net = 0.0;
+	$items_vat = 0.0;
+	foreach ($staff_vat_lines as $oi) {
+		if (isset($orders_items_statuses_not_count) && is_array($orders_items_statuses_not_count)
+			&& array_search((int) $oi['status'], $orders_items_statuses_not_count, true) !== false) {
+			continue;
+		}
+		$lc = epc_uae_customer_vat_order_line(
+			$db_link,
+			$customer_id,
+			(float) ($oi['price'] ?? 0),
+			(float) ($oi['count_need'] ?? 0),
+			$flags
+		);
+		$items_net += (float) $lc['line_net'];
+		$items_vat += (float) $lc['vat_amount'];
+	}
+	if ($items_net > 0 || $items_vat > 0) {
+		$vat = round($items_vat, 2);
+		$net = round($items_net + $items_vat, 2);
+		// Prefer stored gross for B2C inclusive consistency when VAT split unavailable.
+		if ($gross > 0 && abs($net - $gross) < 0.02) {
+			$net = $gross;
+		}
+	} else {
+		// Fallback only when line helper unavailable.
+		$vat = round($gross * 0.05, 2);
+		$net = $gross + $vat;
+	}
+	$courierCalc = epc_order_courier_vat_amounts($db_link, $order_for_vat, $customer_id, $flags);
+	$delivery_cost = (float) $courierCalc['line_net'];
+	$delivery_vat = (float) $courierCalc['vat_amount'];
+	$delivery_gross = (float) $courierCalc['gross'];
+	$dest = (string) ($courierCalc['destination_country'] ?? 'AE');
+	$vat_note = !epc_uae_vat_is_uae_country($dest)
+		? 'Zero-rated export (ship to ' . $dest . ') — no VAT on goods/courier'
+		: 'UAE — VAT on goods and courier (income)';
+} catch (Throwable $e) {
+	if (is_array($how_get_json) && isset($how_get_json['delivery_price'])) {
+		$delivery_cost = (float) $how_get_json['delivery_price'];
+		$delivery_gross = $delivery_cost;
+	}
+	$vat = round($gross * 0.05, 2);
+	$net = $gross + $vat;
 }
-$total = $net + $delivery_cost;
+$total = $net + ($delivery_gross > 0 ? $delivery_gross : $delivery_cost);
 
 $order_message_query = $db_link->prepare('SELECT `text` FROM `shop_orders_messages` WHERE `order_id` = ? AND `is_customer` = 1 ORDER BY `id` ASC LIMIT 1');
 $order_message_query->execute(array($order_id));
@@ -201,12 +259,17 @@ $order_message = $order_message_query->fetch(PDO::FETCH_ASSOC);
 </div>
 
 <table style="font-family:Calibri,Arial,sans-serif;font-size:14px;margin:16px 0 0 auto;border-collapse:collapse;min-width:320px;float:right;">
-<tr><td style="padding:4px 16px 4px 0;text-align:right;">Gross Amount:</td><td style="padding:4px 0;text-align:right;font-weight:bold;"><?php echo $epc_price_dual($gross); ?></td></tr>
-<tr><td style="padding:4px 16px 4px 0;text-align:right;">VAT 5%:</td><td style="padding:4px 0;text-align:right;font-weight:bold;"><?php echo $epc_price_dual($vat); ?></td></tr>
-<tr><td style="padding:4px 16px 4px 0;text-align:right;">Net Amount (Including VAT @ 5%):</td><td style="padding:4px 0;text-align:right;font-weight:bold;"><?php echo $epc_price_dual($net); ?></td></tr>
+<tr><td style="padding:4px 16px 4px 0;text-align:right;">Items amount:</td><td style="padding:4px 0;text-align:right;font-weight:bold;"><?php echo $epc_price_dual($gross); ?></td></tr>
+<tr><td style="padding:4px 16px 4px 0;text-align:right;">VAT on items:</td><td style="padding:4px 0;text-align:right;font-weight:bold;"><?php echo $epc_price_dual($vat); ?></td></tr>
+<tr><td style="padding:4px 16px 4px 0;text-align:right;">Items incl. VAT:</td><td style="padding:4px 0;text-align:right;font-weight:bold;"><?php echo $epc_price_dual($net); ?></td></tr>
 <tr><td style="padding:4px 16px 4px 0;text-align:right;">Purchase amount:</td><td style="padding:4px 0;text-align:right;"><?php echo $epc_price_dual($price_purchase_sum_total); ?></td></tr>
 <tr><td style="padding:4px 16px 4px 0;text-align:right;">Your margin for this order:</td><td style="padding:4px 0;text-align:right;font-weight:bold;color:#1a7f37;"><?php echo $epc_price_dual($margin); ?></td></tr>
-<tr><td style="padding:4px 16px 4px 0;text-align:right;">Delivery cost:</td><td style="padding:4px 0;text-align:right;"><?php echo $epc_price_dual($delivery_cost); ?></td></tr>
+<tr><td style="padding:4px 16px 4px 0;text-align:right;">Courier (customer pays, ex-VAT):</td><td style="padding:4px 0;text-align:right;"><?php echo $epc_price_dual($delivery_cost); ?></td></tr>
+<tr><td style="padding:4px 16px 4px 0;text-align:right;">VAT on courier:</td><td style="padding:4px 0;text-align:right;"><?php echo $epc_price_dual($delivery_vat); ?></td></tr>
+<tr><td style="padding:4px 16px 4px 0;text-align:right;">Courier incl. VAT:</td><td style="padding:4px 0;text-align:right;"><?php echo $epc_price_dual($delivery_gross > 0 ? $delivery_gross : $delivery_cost); ?></td></tr>
+<?php if ($vat_note !== '') { ?>
+<tr><td colspan="2" style="padding:6px 0 2px;text-align:right;font-size:12px;color:#555;"><?php echo htmlspecialchars($vat_note, ENT_QUOTES, 'UTF-8'); ?></td></tr>
+<?php } ?>
 <tr><td style="padding:4px 16px 4px 0;text-align:right;font-size:16px;"><strong>TOTAL:</strong></td><td style="padding:4px 0;text-align:right;font-size:16px;"><strong><?php echo $epc_price_dual($total); ?></strong></td></tr>
 <tr><td style="padding:4px 16px 4px 0;text-align:right;">Weight:</td><td style="padding:4px 0;text-align:right;"><?php echo $weight_total > 0 ? number_format($weight_total, 3, '.', '') : '—'; ?></td></tr>
 </table>

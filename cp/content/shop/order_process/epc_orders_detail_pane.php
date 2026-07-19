@@ -168,6 +168,50 @@ $customerBalance = (float) ($order['customer_balance'] ?? 0);
 $lastMod = (int) ($order['last_modified'] ?? $order['time']);
 $userMgrUrl = '/' . $backend . '/users/usermanager?user_id=' . $customer_id;
 
+$courierNet = 0.0;
+$courierVat = 0.0;
+$courierGross = 0.0;
+$courierDest = 'AE';
+$vatTypeLabel = '';
+$vatZeroRated = false;
+$itemsVat = 0.0;
+$itemsNet = $priceSum;
+try {
+	$courierLib = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_courier_vat.php';
+	if (is_file($courierLib)) {
+		require_once $courierLib;
+		$flags = epc_order_vat_transaction_flags($db_link, $order, $customer_id);
+		$courierCalc = epc_order_courier_vat_amounts($db_link, $order, $customer_id, $flags);
+		$courierNet = (float) $courierCalc['line_net'];
+		$courierVat = (float) $courierCalc['vat_amount'];
+		$courierGross = (float) $courierCalc['gross'];
+		$courierDest = (string) $courierCalc['destination_country'];
+		$vatTypeLabel = (string) ($courierCalc['vat_type_label'] ?? '');
+		$vatZeroRated = !epc_uae_vat_is_uae_country($courierDest);
+		$itemsNet = 0.0;
+		$itemsVat = 0.0;
+		foreach ($items as $itRow) {
+			$lc = epc_uae_customer_vat_order_line(
+				$db_link,
+				$customer_id,
+				(float) ($itRow['price'] ?? 0),
+				(float) ($itRow['count_need'] ?? 0),
+				$flags
+			);
+			$itemsNet += (float) $lc['line_net'];
+			$itemsVat += (float) $lc['vat_amount'];
+		}
+		$itemsNet = round($itemsNet, 2);
+		$itemsVat = round($itemsVat, 2);
+		$invoiceTotal = round($itemsNet + $itemsVat + $courierGross, 2);
+		// For B2C inclusive lines, itemsNet+itemsVat ≈ priceSum; courierGross adds on top.
+		$amountDueBase = round($priceSum + $courierGross, 2);
+		$paidLeft = max(0, round($amountDueBase - $paidSum, 2));
+	}
+} catch (Throwable $e) {
+	$courierNet = 0.0;
+}
+
 $itemIds = array();
 foreach ($items as $it) {
 	$itemIds[] = (int) $it['id'];
@@ -203,12 +247,23 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 			<?php if ($customer_name !== '') { ?><strong><?php echo epc_orders_ws_h($customer_name); ?></strong> · <?php } ?>
 			<?php echo epc_orders_ws_h($customer_label); ?>
 		</div>
-		<div class="epc-od__totals epc-od__totals--5">
-			<div><span>Amount</span><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ' ')); ?></strong></div>
+		<div class="epc-od__totals epc-od__totals--6">
+			<div><span>Items</span><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ' ')); ?></strong></div>
+			<div><span>Courier (customer)</span><strong><?php echo epc_orders_ws_h(number_format($courierGross, 2, '.', ' ')); ?></strong></div>
 			<div><span>Paid</span><strong class="is-ok"><?php echo epc_orders_ws_h(number_format($paidSum, 2, '.', ' ')); ?></strong></div>
 			<div><span>Balance due</span><strong class="<?php echo $paidLeft > 0 ? 'is-bad' : 'is-ok'; ?>"><?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', ' ')); ?></strong></div>
 			<div><span>Purchase</span><strong><?php echo epc_orders_ws_h(number_format($purchaseSum, 2, '.', ' ')); ?></strong></div>
 			<div><span>Benefit</span><strong class="<?php echo $benefit >= 0 ? 'is-ok' : 'is-bad'; ?>"><?php echo epc_orders_ws_h(number_format($benefit, 2, '.', ' ')); ?></strong></div>
+		</div>
+		<div class="epc-od__vat-strip">
+			<span><i class="fa fa-globe"></i> Ship to <strong><?php echo epc_orders_ws_h($courierDest !== '' ? $courierDest : 'AE'); ?></strong></span>
+			<span><i class="fa fa-percent"></i> VAT:
+				<strong><?php echo $vatZeroRated ? 'Zero-rated (export / outside UAE)' : 'UAE standard on goods + courier'; ?></strong>
+				<?php if ($vatTypeLabel !== '') { ?> · <?php echo epc_orders_ws_h($vatTypeLabel); ?><?php } ?>
+			</span>
+			<span><i class="fa fa-truck"></i> Courier ex-VAT <?php echo epc_orders_ws_h(number_format($courierNet, 2, '.', ' ')); ?>
+				+ VAT <?php echo epc_orders_ws_h(number_format($courierVat, 2, '.', ' ')); ?>
+				= <strong><?php echo epc_orders_ws_h(number_format($courierGross, 2, '.', ' ')); ?></strong> (customer pays)</span>
 		</div>
 	</div>
 
@@ -249,6 +304,24 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 			<a class="btn btn-default btn-sm" href="<?php echo epc_orders_ws_h($fullUrl); ?>"><i class="fa fa-external-link"></i> Classic full card</a>
 		</div>
 		<div id="epc-order-fulfillment-panel-<?php echo (int) $order_id; ?>" class="epc-scp-orders-detail__erp-fulfillment"></div>
+		<div id="epc-order-erp-map-<?php echo (int) $order_id; ?>" class="epc-od__erp-map" data-order-id="<?php echo (int) $order_id; ?>">
+			<div class="epc-od__edit-title">ERP document map</div>
+			<p class="text-muted small">Order → VAT → Sales order → Supplier POs → AP bills → Customer tax invoice. Courier is customer-paid income on the AR invoice<?php echo $vatZeroRated ? ' (zero-rated outside UAE)' : ' (with UAE VAT)'; ?>.</p>
+			<ol class="epc-od__erp-chain">
+				<li><strong>Shop order</strong> #<?php echo (int) $order_id; ?></li>
+				<li><strong>VAT</strong> — <?php echo $vatZeroRated ? 'Zero-rated export (' . epc_orders_ws_h($courierDest) . ')' : 'UAE standard rate'; ?><?php if ($vatTypeLabel !== '') { ?> · <?php echo epc_orders_ws_h($vatTypeLabel); ?><?php } ?></li>
+				<li><strong>ERP sales order</strong> — linked via fulfillment panel above</li>
+				<li><strong>Supplier POs / AP bills</strong> — cost side (procurement)</li>
+				<li><strong>AR tax invoice</strong> — goods + courier + VAT documentation</li>
+			</ol>
+			<p class="epc-od__vat-docs small"><i class="fa fa-file-text-o"></i>
+				<?php if ($vatZeroRated) { ?>
+				<strong>VAT docs (export):</strong> keep shipping proof, commercial invoice, and buyer country evidence for FTA zero-rating.
+				<?php } else { ?>
+				<strong>VAT docs (UAE):</strong> issue PINT-AE tax invoice covering goods and courier; retain TRN, XML/PDF, and payment records.
+				<?php } ?>
+			</p>
+		</div>
 	</section>
 
 	<section class="epc-od__panel" data-epc-od-panel="items">
@@ -348,7 +421,9 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 		<div class="epc-od__pay">
 			<div class="epc-od__edit-title">Payment</div>
 			<div class="epc-od__kv">
-				<div><span>Order amount</span><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ' ')); ?></strong></div>
+				<div><span>Items amount</span><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ' ')); ?></strong></div>
+				<div><span>Courier (customer pays)</span><strong><?php echo epc_orders_ws_h(number_format($courierGross, 2, '.', ' ')); ?></strong></div>
+				<div><span>VAT on courier</span><strong><?php echo epc_orders_ws_h(number_format($courierVat, 2, '.', ' ')); ?><?php echo $vatZeroRated ? ' (zero)' : ''; ?></strong></div>
 				<div><span>Paid</span><strong class="is-ok"><?php echo epc_orders_ws_h(number_format($paidSum, 2, '.', ' ')); ?></strong></div>
 				<div><span>Balance due</span><strong class="<?php echo $paidLeft > 0 ? 'is-bad' : 'is-ok'; ?>"><?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', ' ')); ?></strong></div>
 				<div><span>Paid flag</span><strong><?php echo (int) $paid; ?></strong></div>
@@ -356,6 +431,19 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 				<div><span>Method</span><strong><?php echo epc_orders_ws_h(translate_str_by_id($shop_orders_paid_type[$paid_type])); ?></strong></div>
 				<?php } ?>
 			</div>
+			<?php if ($canEditItems) { ?>
+			<div class="epc-od__edit" style="margin-top:12px;">
+				<div class="epc-od__edit-title">Courier charge (customer pays — billed on invoice)</div>
+				<div class="epc-od__edit-row">
+					<label for="epc_od_courier_fee">Fee ex-VAT (AED)</label>
+					<input type="number" step="0.01" min="0" id="epc_od_courier_fee" class="form-control" value="<?php echo epc_orders_ws_h(number_format($courierNet, 2, '.', '')); ?>" />
+					<label for="epc_od_courier_country">Ship country (ISO)</label>
+					<input type="text" maxlength="2" id="epc_od_courier_country" class="form-control" value="<?php echo epc_orders_ws_h($courierDest); ?>" style="max-width:80px;text-transform:uppercase;" />
+					<button type="button" class="btn btn-primary btn-sm" onclick="epcOmsSaveCourier(<?php echo (int) $order_id; ?>);"><i class="fa fa-truck"></i> Save courier</button>
+				</div>
+				<p class="text-muted small" style="margin:6px 0 0;">UAE destinations add VAT on this fee (income). Outside UAE → no VAT.</p>
+			</div>
+			<?php } ?>
 			<?php if ($paidLeft > 0.0001) { ?>
 			<div class="epc-od__edit" style="margin-top:12px;">
 				<div class="epc-od__edit-title">Record payment</div>
@@ -388,7 +476,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 	<section class="epc-od__panel" data-epc-od-panel="docs">
 		<div class="epc-od__docs">
 			<div class="epc-od__edit-title">Invoice &amp; documents</div>
-			<p class="text-muted small">Open documents for this order in a new tab. Document Control templates + classic print docs.</p>
+			<p class="text-muted small">Tax invoice includes goods <em>and</em> customer-paid courier. <?php echo $vatZeroRated ? 'Export / outside UAE: zero-rated (no VAT).' : 'UAE: VAT on goods and courier.'; ?> Keep FTA-ready VAT documentation with the invoice.</p>
 			<div class="epc-od__doc-grid">
 				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'fta_tax_invoice'); ?>"><i class="fa fa-file-text"></i> UAE tax invoice</a>
 				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'packing_slip'); ?>"><i class="fa fa-truck"></i> Packing slip</a>
