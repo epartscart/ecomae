@@ -155,9 +155,13 @@ function epc_cp_brochure_css(array $p): string
 .epc-br__area-banner-copy .epc-br__count{display:inline-block;margin-top:12px;padding:4px 10px;background:var(--br-accent);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .epc-br__area-banner-media{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.55}
 .epc-br__cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.epc-br__card{background:#fff;border:1px solid rgba(15,23,42,.08);padding:18px 16px 16px;cursor:pointer;transition:border-color .2s,transform .2s;min-height:168px;display:flex;flex-direction:column}
+.epc-br__card{background:#fff;border:1px solid rgba(15,23,42,.08);padding:0;cursor:pointer;transition:border-color .2s,transform .2s;min-height:280px;display:flex;flex-direction:column;overflow:hidden}
 .epc-br__card:hover,.epc-br__card:focus{border-color:var(--br-accent);transform:translateY(-2px);outline:none}
-.epc-br__card-ico{width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(0,0,0,.04),rgba(0,0,0,.02));border:1px solid rgba(15,23,42,.08);color:var(--br-accent);font-size:1.1rem;margin-bottom:12px}
+.epc-br__card-photo{position:relative;display:block;width:100%;aspect-ratio:16/9;background:#0f172a;overflow:hidden}
+.epc-br__card-photo img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.02);transition:transform .45s ease}
+.epc-br__card:hover .epc-br__card-photo img{transform:scale(1.07)}
+.epc-br__card-photo-ico{position:absolute;left:10px;bottom:10px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:.95rem;backdrop-filter:blur(4px)}
+.epc-br__card-body{padding:14px 14px 14px;display:flex;flex-direction:column;flex:1}
 .epc-br__card h3{margin:0 0 8px;font-family:Syne,sans-serif;font-size:1rem;letter-spacing:-.01em;line-height:1.25}
 .epc-br__card p{margin:0;flex:1;font-size:.86rem;color:var(--br-muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .epc-br__card-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;font-size:.72rem}
@@ -168,10 +172,13 @@ function epc_cp_brochure_css(array $p): string
 .epc-br__modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,10,10,.55);backdrop-filter:blur(4px)}
 .epc-br__modal.is-open{display:flex;animation:epc-br-fade .2s ease}
 @keyframes epc-br-fade{from{opacity:0}to{opacity:1}}
-.epc-br__modal-panel{background:#fff;max-width:520px;width:100%;padding:28px 24px;border-left:4px solid var(--br-accent);max-height:85vh;overflow:auto}
+.epc-br__modal-panel{background:#fff;max-width:560px;width:100%;padding:0;border-left:4px solid var(--br-accent);max-height:85vh;overflow:auto}
+.epc-br__modal-photo{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#0f172a}
+.epc-br__modal-copy{padding:22px 22px 24px}
 .epc-br__modal-panel h3{font-family:Syne,sans-serif;margin:0 0 10px;font-size:1.35rem}
 .epc-br__modal-panel p{margin:0 0 14px;color:var(--br-muted);line-height:1.55}
 .epc-br__modal-panel code{display:block;font-size:.8rem;color:var(--br-accent);word-break:break-all;margin-bottom:16px}
+.epc-br__fn-photo{width:72px;height:40px;object-fit:cover;border-radius:4px;background:#0f172a;display:block}
 .epc-br__sources{font-size:.78rem;color:var(--br-muted);margin:8px 0 0}
 /* catalogue (text) view */
 .epc-br__toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:0 0 36px}
@@ -271,6 +278,7 @@ function epc_cp_full_brochure_render_html(array $opts = array()): string
   var mTitle=document.getElementById('epc-br-modal-title');
   var mBody=document.getElementById('epc-br-modal-body');
   var mUrl=document.getElementById('epc-br-modal-url');
+  var mPhoto=document.getElementById('epc-br-modal-photo');
   var mClose=document.getElementById('epc-br-modal-close');
   function filter(){
     var q=(search&&search.value||'').toLowerCase().trim();
@@ -295,6 +303,11 @@ function epc_cp_full_brochure_render_html(array $opts = array()): string
     var u=card.getAttribute('data-url')||'';
     mUrl.textContent=u||'Route available inside Control Panel';
     mUrl.style.display=u?'block':'none';
+    var photo=card.getAttribute('data-photo')||'';
+    if(mPhoto){
+      if(photo){mPhoto.src=photo;mPhoto.alt=mTitle.textContent||'Process';mPhoto.style.display='block';}
+      else{mPhoto.removeAttribute('src');mPhoto.style.display='none';}
+    }
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden','false');
   }
@@ -352,11 +365,13 @@ JS;
 		. '</div></footer></div>'
 		. '<div class="epc-br__modal" id="epc-br-modal" aria-hidden="true" role="dialog">'
 		. '<div class="epc-br__modal-panel">'
+		. '<img class="epc-br__modal-photo" id="epc-br-modal-photo" alt="" width="960" height="540">'
+		. '<div class="epc-br__modal-copy">'
 		. '<h3 id="epc-br-modal-title"></h3>'
 		. '<p id="epc-br-modal-body"></p>'
 		. '<code id="epc-br-modal-url"></code>'
 		. '<button type="button" class="epc-br__btn epc-br__btn--pri" id="epc-br-modal-close">Close</button>'
-		. '</div></div>'
+		. '</div></div></div>'
 		. '<script>' . $js . '</script>'
 		. $autoPrint
 		. '</body></html>';
@@ -425,26 +440,34 @@ function epc_cp_brochure_render_deck_body(array $inv, array $visuals, int $total
 			if (strpos($icon, 'fa-') !== 0) {
 				$icon = 'fa-cube';
 			}
+			$photo = function_exists('epc_cp_brochure_item_image')
+				? epc_cp_brochure_item_image($item, (string) $area)
+				: '/content/general_pages/marketing_screens/og_cover.png';
 			$q = strtolower($name . ' ' . $does . ' ' . $url . ' ' . $area);
 			$areasHtml .= '<article class="epc-br__card" tabindex="0" role="button"'
 				. ' data-q="' . epc_brochure_h($q) . '"'
 				. ' data-name="' . epc_brochure_h($name) . '"'
 				. ' data-does="' . epc_brochure_h($does) . '"'
-				. ' data-url="' . epc_brochure_h($url) . '">'
-				. '<span class="epc-br__card-ico"><i class="fa ' . epc_brochure_h($icon) . '" aria-hidden="true"></i></span>'
+				. ' data-url="' . epc_brochure_h($url) . '"'
+				. ' data-photo="' . epc_brochure_h($photo) . '">'
+				. '<span class="epc-br__card-photo">'
+				. '<img src="' . epc_brochure_h($photo) . '" alt="' . epc_brochure_h($name) . '" loading="lazy" width="480" height="270">'
+				. '<span class="epc-br__card-photo-ico" aria-hidden="true"><i class="fa ' . epc_brochure_h($icon) . '"></i></span>'
+				. '</span>'
+				. '<div class="epc-br__card-body">'
 				. '<h3>' . epc_brochure_h($name) . '</h3>'
 				. '<p>' . epc_brochure_h($does) . '</p>'
 				. '<div class="epc-br__card-foot">'
 				. '<span class="epc-br__scope' . $scopeClass . '">' . epc_brochure_h($sc) . '</span>'
 				. ($url !== '' ? '<code>' . epc_brochure_h($url) . '</code>' : '<span></span>')
-				. '</div></article>';
+				. '</div></div></article>';
 		}
 		$areasHtml .= '</div></section>';
 	}
 
 	return $stats
 		. '<section class="epc-br__sec"><h2>Explore by area</h2>'
-		. '<p>Visual tiles jump into each Control Panel domain. Cards open full detail — synced from live ERP navigation and the platform capabilities catalog.</p></section>'
+		. '<p>Every process has a presentation photo. Tiles jump into each Control Panel domain — cards open full detail, auto-synced from live ERP navigation and the platform capabilities catalog.</p></section>'
 		. $mosaic
 		. $toolbar
 		. $areasHtml;
@@ -473,9 +496,15 @@ function epc_cp_brochure_render_catalog_body(array $inv, string $scopeLabel, int
 			$sc = (string) ($item['scope'] ?? 'client');
 			$scopeClass = $sc === 'super' ? ' epc-br__scope--super' : ($sc === 'both' ? ' epc-br__scope--both' : '');
 			$url = trim((string) ($item['url'] ?? ''));
+			$name = (string) ($item['name'] ?? '');
+			$photo = function_exists('epc_cp_brochure_item_image')
+				? epc_cp_brochure_item_image(is_array($item) ? $item : array(), (string) $area)
+				: '/content/general_pages/marketing_screens/og_cover.png';
 			$html .= '<div class="epc-br__fn">';
-			$html .= '<div><strong>' . epc_brochure_h($item['name'] ?? '') . '</strong><br>';
-			$html .= '<span class="epc-br__scope' . $scopeClass . '">' . epc_brochure_h($sc) . '</span></div>';
+			$html .= '<div style="display:flex;gap:10px;align-items:flex-start">'
+				. '<img class="epc-br__fn-photo" src="' . epc_brochure_h($photo) . '" alt="' . epc_brochure_h($name) . '" loading="lazy" width="72" height="40">'
+				. '<div><strong>' . epc_brochure_h($name) . '</strong><br>'
+				. '<span class="epc-br__scope' . $scopeClass . '">' . epc_brochure_h($sc) . '</span></div></div>';
 			$html .= '<p>' . epc_brochure_h($item['does'] ?? '') . '</p>';
 			$html .= '<div>' . ($url !== '' ? '<code>' . epc_brochure_h($url) . '</code>' : '—') . '</div>';
 			$html .= '</div>';

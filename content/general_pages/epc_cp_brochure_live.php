@@ -13,6 +13,48 @@ defined('_ASTEXE_') or die('No access');
  *
  * @return array<string, array{icon:string,image:string,blurb:string}>
  */
+/**
+ * Presentation photo for one process (real image if set, else generated dummy UI shot).
+ *
+ * @param array{name?:string,icon?:string,image?:string,url?:string} $item
+ */
+function epc_cp_brochure_item_image(array $item, string $area): string
+{
+	$custom = trim((string) ($item['image'] ?? ''));
+	if ($custom !== '' && (strpos($custom, '/') === 0 || preg_match('#^https?://#i', $custom))) {
+		return $custom;
+	}
+	$name = trim((string) ($item['name'] ?? 'Process'));
+	$icon = trim((string) ($item['icon'] ?? 'fa-cube'));
+	if ($icon === '') {
+		$icon = 'fa-cube';
+	}
+	return '/content/general_pages/epc_brochure_process_photo.php?' . http_build_query(array(
+		't' => $name,
+		'a' => $area,
+		'i' => $icon,
+	));
+}
+
+/**
+ * Pool of real marketing screens for area banners / mosaic tiles.
+ *
+ * @return list<string>
+ */
+function epc_cp_brochure_screen_pool(): array
+{
+	$base = '/content/general_pages/marketing_screens/';
+	return array(
+		$base . 'pf_workforce.png',
+		$base . 'pf_orgmap.png',
+		$base . 'pf_tracker.png',
+		$base . 'pf_location.png',
+		$base . 'og_cover.png',
+		$base . 'epartscart-brochure-cover.jpg',
+		$base . 'ecomae-brochure-cover.jpg',
+	);
+}
+
 function epc_cp_brochure_area_visuals(): array
 {
 	$base = '/content/general_pages/marketing_screens/';
