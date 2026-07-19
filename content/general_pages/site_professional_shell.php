@@ -484,7 +484,7 @@ defined('_ASTEXE_') or die('No access');
 		align-items: center;
 		display: grid !important;
 		gap: 16px 24px;
-		grid-template-columns: minmax(280px, 32%) minmax(260px, 1fr) minmax(420px, 38%);
+		grid-template-columns: minmax(260px, 28%) minmax(320px, 1fr) minmax(360px, 34%);
 		width: 100%;
 	}
 	.logo-line .table-control {
@@ -510,6 +510,24 @@ defined('_ASTEXE_') or die('No access');
 		gap: 10px;
 		justify-content: center;
 		padding: 4px 8px;
+	}
+	.epc-header-geo-phone {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 18px;
+		width: 100%;
+	}
+	.epc-header-geo-phone .geo-point-box {
+		flex: 0 1 auto;
+		width: auto;
+		max-width: 100%;
+	}
+	.epc-header-geo-phone .header-phone-box {
+		flex: 0 0 auto;
+		margin: 0;
+		text-align: left;
+		width: auto;
 	}
 	.epc-header-right-col {
 		align-items: flex-end;
@@ -595,8 +613,8 @@ defined('_ASTEXE_') or die('No access');
 		width: auto;
 	}
 	.header-phone-box {
-		text-align: right;
-		width: 100%;
+		text-align: left;
+		width: auto;
 	}
 	.header-phone-box .phone {
 		background: transparent;
@@ -604,14 +622,14 @@ defined('_ASTEXE_') or die('No access');
 		border-radius: 0;
 		box-shadow: none;
 		color: #0f172a !important;
-		display: block;
-		font-size: clamp(26px, 2.2vw, 34px);
+		display: inline-block;
+		font-size: clamp(20px, 1.7vw, 26px);
 		font-weight: 900;
 		letter-spacing: -.02em;
-		line-height: 1.05;
+		line-height: 1.1;
 		margin: 0;
 		padding: 0;
-		text-align: right;
+		text-align: left;
 		text-decoration: none !important;
 		white-space: nowrap;
 	}
@@ -4201,12 +4219,15 @@ defined('_ASTEXE_') or die('No access');
 		.epc-header-actions-row {
 			justify-content: center;
 		}
-		.header-phone-box,
-		.header-phone-box .phone {
-			text-align: center;
-		}
 		.epc-header-right-col {
 			align-items: center;
+		}
+		.epc-header-geo-phone {
+			justify-content: flex-start;
+		}
+		.header-phone-box,
+		.header-phone-box .phone {
+			text-align: left;
 		}
 	}
 	@media (max-width: 991px) {
@@ -4232,9 +4253,13 @@ defined('_ASTEXE_') or die('No access');
 		.epc-header-right-col {
 			align-items: center;
 		}
+		.epc-header-geo-phone {
+			justify-content: center;
+			flex-wrap: wrap;
+		}
 		.header-phone-box .phone {
-			font-size: 24px;
-			text-align: center;
+			font-size: 22px;
+			text-align: left;
 		}
 		.epc-header-actions-row {
 			justify-content: center;
