@@ -98,6 +98,334 @@ if (!function_exists('epc_acc_ensure_schema')) {
 				}
 			}
 		}
+
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS `epc_acc_terms` (
+				`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+				`term_type` VARCHAR(32) NOT NULL,
+				`parent_id` INT UNSIGNED NOT NULL DEFAULT 0,
+				`value` VARCHAR(190) NOT NULL,
+				`label` VARCHAR(190) NOT NULL,
+				`sort_order` INT NOT NULL DEFAULT 0,
+				`active` TINYINT(1) NOT NULL DEFAULT 1,
+				PRIMARY KEY (`id`),
+				UNIQUE KEY `type_value_parent` (`term_type`, `value`, `parent_id`),
+				KEY `term_type_active` (`term_type`, `active`),
+				KEY `parent_id` (`parent_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+		);
+	}
+}
+
+if (!function_exists('epc_acc_slugify')) {
+	function epc_acc_slugify(string $label): string
+	{
+		$s = strtolower(trim($label));
+		$s = preg_replace('/[^a-z0-9]+/', '-', $s);
+		$s = trim((string) $s, '-');
+		return $s !== '' ? $s : 'item';
+	}
+}
+
+if (!function_exists('epc_acc_seed_terms_from_json')) {
+	/**
+	 * @return array{makes:int, cities:int, conditions:int, years:int}
+	 */
+	function epc_acc_seed_terms_from_json(PDO $db): array
+	{
+		epc_acc_ensure_schema($db);
+		$tax = epc_acc_load_taxonomy_json();
+		$upsert = $db->prepare(
+			'INSERT INTO `epc_acc_terms` (`term_type`, `parent_id`, `value`, `label`, `sort_order`, `active`)
+			VALUES (?, 0, ?, ?, ?, 1)
+			ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `sort_order` = VALUES(`sort_order`)'
+		);
+		$counts = array('makes' => 0, 'cities' => 0, 'conditions' => 0, 'years' => 0);
+		$i = 0;
+		foreach ((isset($tax['makes']) && is_array($tax['makes']) ? $tax['makes'] : array()) as $make) {
+			$make = trim((string) $make);
+			if ($make === '') {
+				continue;
+			}
+			$i++;
+			$upsert->execute(array('make', $make, $make, $i));
+			$counts['makes']++;
+		}
+		$i = 0;
+		foreach ((isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array()) as $city) {
+			$city = trim((string) $city);
+			if ($city === '') {
+				continue;
+			}
+			$i++;
+			$upsert->execute(array('city', $city, $city, $i));
+			$counts['cities']++;
+		}
+		$i = 0;
+		foreach (array('New' => 'new', 'Used' => 'used') as $label => $value) {
+			$i++;
+			$upsert->execute(array('condition', $value, $label, $i));
+			$counts['conditions']++;
+		}
+		$yearNow = (int) date('Y');
+		$i = 0;
+		for ($y = $yearNow; $y >= $yearNow - 30; $y--) {
+			$i++;
+			$upsert->execute(array('year', (string) $y, (string) $y, $i));
+			$counts['years']++;
+		}
+		return $counts;
+	}
+}
+
+if (!function_exists('epc_acc_get_terms')) {
+	/**
+	 * @return list<array{id:int, term_type:string, parent_id:int, value:string, label:string, sort_order:int, active:int}>
+	 */
+	function epc_acc_get_terms(PDO $db, string $type, bool $includeInactive = false, int $parentId = -1): array
+	{
+		epc_acc_ensure_schema($db);
+		$type = preg_replace('/[^a-z_]/', '', strtolower($type));
+		$sql = 'SELECT `id`, `term_type`, `parent_id`, `value`, `label`, `sort_order`, `active`
+			FROM `epc_acc_terms` WHERE `term_type` = ?';
+		$bind = array($type);
+		if (!$includeInactive) {
+			$sql .= ' AND `active` = 1';
+		}
+		if ($parentId >= 0) {
+			$sql .= ' AND `parent_id` = ?';
+			$bind[] = $parentId;
+		}
+		$sql .= ' ORDER BY `sort_order` ASC, `label` ASC';
+		$st = $db->prepare($sql);
+		$st->execute($bind);
+		$rows = $st->fetchAll(PDO::FETCH_ASSOC);
+		if (!$rows && in_array($type, array('make', 'city', 'condition', 'year'), true)) {
+			epc_acc_seed_terms_from_json($db);
+			$st->execute($bind);
+			$rows = $st->fetchAll(PDO::FETCH_ASSOC);
+		}
+		$out = array();
+		foreach ($rows as $row) {
+			$out[] = array(
+				'id' => (int) $row['id'],
+				'term_type' => (string) $row['term_type'],
+				'parent_id' => (int) $row['parent_id'],
+				'value' => (string) $row['value'],
+				'label' => (string) $row['label'],
+				'sort_order' => (int) $row['sort_order'],
+				'active' => (int) $row['active'],
+			);
+		}
+		return $out;
+	}
+}
+
+if (!function_exists('epc_acc_term_labels')) {
+	/** @return list<string> */
+	function epc_acc_term_labels(PDO $db, string $type): array
+	{
+		$labels = array();
+		foreach (epc_acc_get_terms($db, $type, false) as $term) {
+			$labels[] = $term['label'];
+		}
+		return $labels;
+	}
+}
+
+if (!function_exists('epc_acc_save_term')) {
+	function epc_acc_save_term(PDO $db, string $type, string $label, int $id = 0, int $parentId = 0, int $sortOrder = 0): int
+	{
+		epc_acc_ensure_schema($db);
+		$type = preg_replace('/[^a-z_]/', '', strtolower($type));
+		$label = trim($label);
+		if ($label === '' || $type === '') {
+			return 0;
+		}
+		$value = ($type === 'condition') ? epc_acc_slugify($label) : $label;
+		if ($type === 'condition' && !in_array($value, array('new', 'used', 'refurbished'), true)) {
+			$value = epc_acc_slugify($label);
+		}
+		if ($sortOrder <= 0) {
+			$mx = $db->prepare('SELECT COALESCE(MAX(`sort_order`), 0) + 1 FROM `epc_acc_terms` WHERE `term_type` = ? AND `parent_id` = ?');
+			$mx->execute(array($type, $parentId));
+			$sortOrder = (int) $mx->fetchColumn();
+		}
+		if ($id > 0) {
+			$st = $db->prepare(
+				'UPDATE `epc_acc_terms` SET `label` = ?, `value` = ?, `parent_id` = ?, `sort_order` = ?, `active` = 1 WHERE `id` = ? AND `term_type` = ?'
+			);
+			$st->execute(array($label, $value, $parentId, $sortOrder, $id, $type));
+			return $id;
+		}
+		$st = $db->prepare(
+			'INSERT INTO `epc_acc_terms` (`term_type`, `parent_id`, `value`, `label`, `sort_order`, `active`)
+			VALUES (?, ?, ?, ?, ?, 1)
+			ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `sort_order` = VALUES(`sort_order`), `active` = 1, `id` = LAST_INSERT_ID(`id`)'
+		);
+		$st->execute(array($type, $parentId, $value, $label, $sortOrder));
+		return (int) $db->lastInsertId();
+	}
+}
+
+if (!function_exists('epc_acc_set_term_active')) {
+	function epc_acc_set_term_active(PDO $db, int $id, bool $active): bool
+	{
+		epc_acc_ensure_schema($db);
+		$st = $db->prepare('UPDATE `epc_acc_terms` SET `active` = ? WHERE `id` = ?');
+		$st->execute(array($active ? 1 : 0, $id));
+		return $st->rowCount() > 0;
+	}
+}
+
+if (!function_exists('epc_acc_delete_term')) {
+	function epc_acc_delete_term(PDO $db, int $id): bool
+	{
+		epc_acc_ensure_schema($db);
+		$db->prepare('DELETE FROM `epc_acc_terms` WHERE `parent_id` = ?')->execute(array($id));
+		$st = $db->prepare('DELETE FROM `epc_acc_terms` WHERE `id` = ?');
+		$st->execute(array($id));
+		return $st->rowCount() > 0;
+	}
+}
+
+if (!function_exists('epc_acc_admin_category_tree')) {
+	/** Full category tree including inactive (for CP management). */
+	function epc_acc_admin_category_tree(PDO $db): array
+	{
+		epc_acc_ensure_schema($db);
+		$rows = $db->query(
+			'SELECT `id`, `parent_id`, `slug`, `label`, `pw_id`, `sort_order`, `active`
+			FROM `epc_acc_categories` ORDER BY `parent_id` ASC, `sort_order` ASC, `label` ASC'
+		)->fetchAll(PDO::FETCH_ASSOC);
+		if (!$rows) {
+			epc_acc_seed_categories_from_json($db, false);
+			$rows = $db->query(
+				'SELECT `id`, `parent_id`, `slug`, `label`, `pw_id`, `sort_order`, `active`
+				FROM `epc_acc_categories` ORDER BY `parent_id` ASC, `sort_order` ASC, `label` ASC'
+			)->fetchAll(PDO::FETCH_ASSOC);
+		}
+		$parents = array();
+		$children = array();
+		foreach ($rows as $row) {
+			if ((int) $row['parent_id'] === 0) {
+				$parents[(int) $row['id']] = array(
+					'id' => (int) $row['id'],
+					'slug' => $row['slug'],
+					'label' => $row['label'],
+					'pw_id' => (int) $row['pw_id'],
+					'sort_order' => (int) $row['sort_order'],
+					'active' => (int) $row['active'],
+					'children' => array(),
+				);
+			} else {
+				$children[] = $row;
+			}
+		}
+		foreach ($children as $row) {
+			$pid = (int) $row['parent_id'];
+			if (!isset($parents[$pid])) {
+				continue;
+			}
+			$parents[$pid]['children'][] = array(
+				'id' => (int) $row['id'],
+				'slug' => $row['slug'],
+				'label' => $row['label'],
+				'pw_id' => (int) $row['pw_id'],
+				'sort_order' => (int) $row['sort_order'],
+				'active' => (int) $row['active'],
+				'parent_id' => $pid,
+			);
+		}
+		return array_values($parents);
+	}
+}
+
+if (!function_exists('epc_acc_save_category')) {
+	function epc_acc_save_category(PDO $db, string $label, int $parentId = 0, int $id = 0, int $sortOrder = 0): int
+	{
+		epc_acc_ensure_schema($db);
+		$label = trim($label);
+		if ($label === '') {
+			return 0;
+		}
+		$slug = epc_acc_slugify($label);
+		if ($sortOrder <= 0) {
+			$mx = $db->prepare('SELECT COALESCE(MAX(`sort_order`), 0) + 1 FROM `epc_acc_categories` WHERE `parent_id` = ?');
+			$mx->execute(array($parentId));
+			$sortOrder = (int) $mx->fetchColumn();
+		}
+		if ($id > 0) {
+			$st = $db->prepare(
+				'UPDATE `epc_acc_categories` SET `label` = ?, `slug` = ?, `parent_id` = ?, `sort_order` = ?, `active` = 1 WHERE `id` = ?'
+			);
+			$st->execute(array($label, $slug, $parentId, $sortOrder, $id));
+			return $id;
+		}
+		// Unique slug under parent — append suffix if needed.
+		$base = $slug;
+		$n = 1;
+		while (true) {
+			$chk = $db->prepare('SELECT `id` FROM `epc_acc_categories` WHERE `parent_id` = ? AND `slug` = ? LIMIT 1');
+			$chk->execute(array($parentId, $slug));
+			$existing = (int) $chk->fetchColumn();
+			if ($existing < 1) {
+				break;
+			}
+			$n++;
+			$slug = $base . '-' . $n;
+		}
+		$st = $db->prepare(
+			'INSERT INTO `epc_acc_categories` (`parent_id`, `slug`, `label`, `pw_id`, `sort_order`, `active`)
+			VALUES (?, ?, ?, 0, ?, 1)'
+		);
+		$st->execute(array($parentId, $slug, $label, $sortOrder));
+		return (int) $db->lastInsertId();
+	}
+}
+
+if (!function_exists('epc_acc_set_category_active')) {
+	function epc_acc_set_category_active(PDO $db, int $id, bool $active): bool
+	{
+		epc_acc_ensure_schema($db);
+		$st = $db->prepare('UPDATE `epc_acc_categories` SET `active` = ? WHERE `id` = ?');
+		$st->execute(array($active ? 1 : 0, $id));
+		if (!$active) {
+			$db->prepare('UPDATE `epc_acc_categories` SET `active` = 0 WHERE `parent_id` = ?')->execute(array($id));
+		}
+		return true;
+	}
+}
+
+if (!function_exists('epc_acc_delete_category')) {
+	/**
+	 * @return array{ok:bool, message:string}
+	 */
+	function epc_acc_delete_category(PDO $db, int $id): array
+	{
+		epc_acc_ensure_schema($db);
+		if ($id < 1) {
+			return array('ok' => false, 'message' => 'Invalid category');
+		}
+		$used = $db->prepare(
+			'SELECT COUNT(*) FROM `epc_acc_listings` WHERE `category_id` = ? OR `subcategory_id` = ?'
+		);
+		$used->execute(array($id, $id));
+		if ((int) $used->fetchColumn() > 0) {
+			return array('ok' => false, 'message' => 'Category has listings — deactivate instead of delete');
+		}
+		$childUsed = $db->prepare(
+			'SELECT COUNT(*) FROM `epc_acc_listings` l
+			 INNER JOIN `epc_acc_categories` c ON c.id = l.subcategory_id
+			 WHERE c.parent_id = ?'
+		);
+		$childUsed->execute(array($id));
+		if ((int) $childUsed->fetchColumn() > 0) {
+			return array('ok' => false, 'message' => 'Sub-categories have listings — deactivate instead');
+		}
+		$db->prepare('DELETE FROM `epc_acc_categories` WHERE `parent_id` = ?')->execute(array($id));
+		$db->prepare('DELETE FROM `epc_acc_categories` WHERE `id` = ?')->execute(array($id));
+		return array('ok' => true, 'message' => 'Category deleted');
 	}
 }
 
@@ -623,8 +951,14 @@ if (!function_exists('epc_acc_marketplace_search')) {
 			);
 		}
 
-		$makesTax = isset($tax['makes']) && is_array($tax['makes']) ? $tax['makes'] : array();
-		$citiesTax = isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array();
+		$makesTax = epc_acc_term_labels($db, 'make');
+		if (!$makesTax && isset($tax['makes']) && is_array($tax['makes'])) {
+			$makesTax = $tax['makes'];
+		}
+		$citiesTax = epc_acc_term_labels($db, 'city');
+		if (!$citiesTax && isset($tax['cities']) && is_array($tax['cities'])) {
+			$citiesTax = $tax['cities'];
+		}
 		$facetMakes = array();
 		foreach ($makesTax as $mName) {
 			$facetMakes[] = array('make' => $mName, 'count' => (int) ($makeCounts[$mName] ?? 0));
@@ -643,6 +977,16 @@ if (!function_exists('epc_acc_marketplace_search')) {
 				$facetCities[] = array('city' => $cName, 'count' => $cnt);
 			}
 		}
+		$facetConditions = array();
+		foreach (epc_acc_get_terms($db, 'condition', false) as $cond) {
+			$facetConditions[] = array('value' => $cond['value'], 'label' => $cond['label']);
+		}
+		if (!$facetConditions) {
+			$facetConditions = array(
+				array('value' => 'new', 'label' => 'New'),
+				array('value' => 'used', 'label' => 'Used'),
+			);
+		}
 
 		$from = $total === 0 ? 0 : ($offset + 1);
 		$to = min($total, $offset + count($items));
@@ -659,10 +1003,7 @@ if (!function_exists('epc_acc_marketplace_search')) {
 				'categories' => $facetCats,
 				'makes' => $facetMakes,
 				'cities' => $facetCities,
-				'conditions' => array(
-					array('value' => 'new', 'label' => 'New'),
-					array('value' => 'used', 'label' => 'Used'),
-				),
+				'conditions' => $facetConditions,
 			),
 			'taxonomy' => $facetCats,
 			'makes' => $makesTax,

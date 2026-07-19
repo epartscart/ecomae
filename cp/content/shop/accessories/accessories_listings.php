@@ -15,11 +15,29 @@ $backend = isset($DP_Config->backend_dir) ? $DP_Config->backend_dir : 'cp';
 $baseUrl = '/' . $backend . '/shop/accessories';
 
 epc_acc_ensure_schema($db_link);
+// Seed filter terms once when empty (make/city/year/condition). Safe to call repeatedly.
+try {
+	$termCount = (int) $db_link->query("SELECT COUNT(*) FROM `epc_acc_terms`")->fetchColumn();
+	if ($termCount < 1) {
+		epc_acc_seed_terms_from_json($db_link);
+	}
+} catch (Exception $e) {
+	epc_acc_seed_terms_from_json($db_link);
+}
 
 function epc_acc_cp_redirect($url)
 {
 	echo '<script>location = ' . json_encode($url) . ';</script>';
 	exit;
+}
+
+function epc_acc_cp_back_url($fallback)
+{
+	$back = trim((string) ($_POST['back'] ?? ''));
+	if ($back === '' || strpos($back, 'http') === 0) {
+		return $fallback;
+	}
+	return $back;
 }
 
 function epc_acc_cp_payload_from_post(array $tree)
@@ -89,7 +107,7 @@ if (!empty($_POST['action'])) {
 		if ($id > 0) {
 			epc_acc_set_listing_status($db_link, $id, $status);
 		}
-		$back = trim((string) ($_POST['back'] ?? $baseUrl));
+		$back = epc_acc_cp_back_url($baseUrl);
 		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'success_message=' . rawurlencode('Status → ' . $status));
 	}
 
@@ -100,16 +118,88 @@ if (!empty($_POST['action'])) {
 		}
 		epc_acc_cp_redirect($baseUrl . '?success_message=' . rawurlencode('Listing deleted'));
 	}
+
+	// —— Taxonomy management (categories + filter terms) ——
+	if ($action === 'save_category') {
+		$id = (int) ($_POST['id'] ?? 0);
+		$parentId = (int) ($_POST['parent_id'] ?? 0);
+		$label = trim((string) ($_POST['label'] ?? ''));
+		$sort = (int) ($_POST['sort_order'] ?? 0);
+		$newId = epc_acc_save_category($db_link, $label, $parentId, $id, $sort);
+		$back = epc_acc_cp_back_url($baseUrl . '?tab=taxonomy');
+		if ($newId < 1) {
+			epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'error_message=' . rawurlencode('Category label required'));
+		}
+		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'success_message=' . rawurlencode($id > 0 ? 'Category saved' : 'Category added'));
+	}
+
+	if ($action === 'set_category_active') {
+		$id = (int) ($_POST['id'] ?? 0);
+		$active = !empty($_POST['active']);
+		if ($id > 0) {
+			epc_acc_set_category_active($db_link, $id, $active);
+		}
+		$back = epc_acc_cp_back_url($baseUrl . '?tab=taxonomy');
+		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'success_message=' . rawurlencode($active ? 'Category activated' : 'Category deactivated'));
+	}
+
+	if ($action === 'delete_category') {
+		$id = (int) ($_POST['id'] ?? 0);
+		$res = epc_acc_delete_category($db_link, $id);
+		$back = epc_acc_cp_back_url($baseUrl . '?tab=taxonomy');
+		$param = !empty($res['ok']) ? 'success_message' : 'error_message';
+		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . $param . '=' . rawurlencode((string) ($res['message'] ?? 'Done')));
+	}
+
+	if ($action === 'save_term') {
+		$type = preg_replace('/[^a-z_]/', '', strtolower((string) ($_POST['term_type'] ?? '')));
+		$id = (int) ($_POST['id'] ?? 0);
+		$parentId = (int) ($_POST['parent_id'] ?? 0);
+		$label = trim((string) ($_POST['label'] ?? ''));
+		$sort = (int) ($_POST['sort_order'] ?? 0);
+		$newId = epc_acc_save_term($db_link, $type, $label, $id, $parentId, $sort);
+		$back = epc_acc_cp_back_url($baseUrl . '?tab=taxonomy&term=' . rawurlencode($type ?: 'make'));
+		if ($newId < 1) {
+			epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'error_message=' . rawurlencode('Term label required'));
+		}
+		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'success_message=' . rawurlencode($id > 0 ? 'Term saved' : 'Term added'));
+	}
+
+	if ($action === 'set_term_active') {
+		$id = (int) ($_POST['id'] ?? 0);
+		$active = !empty($_POST['active']);
+		if ($id > 0) {
+			epc_acc_set_term_active($db_link, $id, $active);
+		}
+		$back = epc_acc_cp_back_url($baseUrl . '?tab=taxonomy');
+		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'success_message=' . rawurlencode($active ? 'Term activated' : 'Term deactivated'));
+	}
+
+	if ($action === 'delete_term') {
+		$id = (int) ($_POST['id'] ?? 0);
+		if ($id > 0) {
+			epc_acc_delete_term($db_link, $id);
+		}
+		$back = epc_acc_cp_back_url($baseUrl . '?tab=taxonomy');
+		epc_acc_cp_redirect($back . (strpos($back, '?') !== false ? '&' : '?') . 'success_message=' . rawurlencode('Term deleted'));
+	}
 }
 
 require_once 'content/control/actions_alert.php';
 
-$tax = epc_acc_load_taxonomy_json();
-$makes = isset($tax['makes']) && is_array($tax['makes']) ? $tax['makes'] : array();
-$cities = isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array();
+$makes = epc_acc_term_labels($db_link, 'make');
+$cities = epc_acc_term_labels($db_link, 'city');
+$years = epc_acc_term_labels($db_link, 'year');
+$conditions = epc_acc_get_terms($db_link, 'condition', false);
+$modelTerms = epc_acc_get_terms($db_link, 'model', false);
 $tree = epc_acc_get_category_tree($db_link);
+$cpTab = preg_replace('/[^a-z_]/', '', strtolower((string) ($_GET['tab'] ?? 'listings')));
+if (!in_array($cpTab, array('listings', 'taxonomy'), true)) {
+	$cpTab = 'listings';
+}
 $editId = isset($_GET['edit']) ? (int) $_GET['edit'] : -1;
 $showForm = isset($_GET['edit']) || isset($_GET['new']);
+$showTaxonomy = (!$showForm && $cpTab === 'taxonomy');
 
 ?>
 <style>
@@ -123,8 +213,21 @@ $showForm = isset($_GET['edit']) || isset($_GET['new']);
 .epc-acc-cp .filters .form-control.w-q { min-width:200px; }
 .epc-acc-cp .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; }
 .epc-acc-cp .form-grid .full { grid-column:1 / -1; }
+.epc-acc-cp .epc-acc-tabs { margin:0 0 14px; padding:0; list-style:none; border-bottom:1px solid #ddd; }
+.epc-acc-cp .epc-acc-tabs li { display:inline-block; margin:0 8px 0 0; }
+.epc-acc-cp .epc-acc-tabs a { display:inline-block; padding:8px 12px; color:#555; text-decoration:none; border-bottom:2px solid transparent; }
+.epc-acc-cp .epc-acc-tabs li.active a { color:#2c3e50; font-weight:700; border-bottom-color:#2980b9; }
 @media (max-width:767px){ .epc-acc-cp .form-grid { grid-template-columns:1fr; } }
 </style>
+
+<?php if (!$showForm) { ?>
+<div class="col-lg-12 epc-acc-cp">
+	<ul class="epc-acc-tabs">
+		<li<?php echo !$showTaxonomy ? ' class="active"' : ''; ?>><a href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>">Listings</a></li>
+		<li<?php echo $showTaxonomy ? ' class="active"' : ''; ?>><a href="<?php echo htmlspecialchars($baseUrl . '?tab=taxonomy', ENT_QUOTES, 'UTF-8'); ?>">Categories &amp; filters</a></li>
+	</ul>
+</div>
+<?php } ?>
 
 <?php if ($showForm) {
 	$listing = array(
@@ -214,11 +317,31 @@ if ($showForm) {
 						</div>
 						<div>
 							<label>Model</label>
-							<input class="form-control" name="model" value="<?php echo htmlspecialchars((string) ($listing['model'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" />
+							<?php if ($modelTerms) { ?>
+								<select name="model" class="form-control">
+									<option value="">—</option>
+									<?php foreach ($modelTerms as $mt) {
+										$mv = (string) $mt['label'];
+										?>
+										<option value="<?php echo htmlspecialchars($mv, ENT_QUOTES, 'UTF-8'); ?>" <?php echo (($listing['model'] ?? '') === $mv) ? 'selected' : ''; ?>><?php echo htmlspecialchars($mv, ENT_QUOTES, 'UTF-8'); ?></option>
+									<?php } ?>
+								</select>
+							<?php } else { ?>
+								<input class="form-control" name="model" value="<?php echo htmlspecialchars((string) ($listing['model'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" />
+							<?php } ?>
 						</div>
 						<div>
 							<label>Year</label>
-							<input class="form-control" name="year" maxlength="16" value="<?php echo htmlspecialchars((string) ($listing['year'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="2018" />
+							<?php if ($years) { ?>
+								<select name="year" class="form-control">
+									<option value="">—</option>
+									<?php foreach ($years as $y) { ?>
+										<option value="<?php echo htmlspecialchars($y, ENT_QUOTES, 'UTF-8'); ?>" <?php echo (($listing['year'] ?? '') === $y) ? 'selected' : ''; ?>><?php echo htmlspecialchars($y, ENT_QUOTES, 'UTF-8'); ?></option>
+									<?php } ?>
+								</select>
+							<?php } else { ?>
+								<input class="form-control" name="year" maxlength="16" value="<?php echo htmlspecialchars((string) ($listing['year'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="2018" />
+							<?php } ?>
 						</div>
 						<div>
 							<label>City</label>
@@ -232,8 +355,17 @@ if ($showForm) {
 						<div>
 							<label>Condition</label>
 							<select name="condition_type" class="form-control">
-								<option value="new" <?php echo (($listing['condition_type'] ?? '') === 'new') ? 'selected' : ''; ?>>New</option>
-								<option value="used" <?php echo (($listing['condition_type'] ?? '') === 'used') ? 'selected' : ''; ?>>Used</option>
+								<?php
+								$condOpts = $conditions ?: array(
+									array('value' => 'new', 'label' => 'New'),
+									array('value' => 'used', 'label' => 'Used'),
+								);
+								foreach ($condOpts as $co) {
+									$cv = (string) $co['value'];
+									$cl = (string) $co['label'];
+									?>
+									<option value="<?php echo htmlspecialchars($cv, ENT_QUOTES, 'UTF-8'); ?>" <?php echo (($listing['condition_type'] ?? '') === $cv) ? 'selected' : ''; ?>><?php echo htmlspecialchars($cl, ENT_QUOTES, 'UTF-8'); ?></option>
+								<?php } ?>
 							</select>
 						</div>
 						<div>
@@ -314,6 +446,8 @@ if ($showForm) {
 	})();
 	</script>
 	<?php
+} elseif ($showTaxonomy) {
+	require $_SERVER['DOCUMENT_ROOT'] . '/' . $backend . '/content/shop/accessories/accessories_taxonomy_panel.php';
 } else {
 	$filters = array(
 		'q' => isset($_GET['q']) ? (string) $_GET['q'] : '',
@@ -342,6 +476,7 @@ if ($showForm) {
 				Accessories Marketplace
 				<span class="pull-right">
 					<a class="btn btn-xs btn-primary" href="<?php echo htmlspecialchars($baseUrl . '?new=1', ENT_QUOTES, 'UTF-8'); ?>">+ Add listing</a>
+					<a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($baseUrl . '?tab=taxonomy', ENT_QUOTES, 'UTF-8'); ?>">Manage categories &amp; filters</a>
 					<a class="btn btn-xs btn-default" href="/en/accessories-spare-parts" target="_blank">View storefront</a>
 				</span>
 			</div>
@@ -472,7 +607,10 @@ if ($showForm) {
 		</div>
 
 		<div class="hpanel">
-			<div class="panel-heading hbuilt">Categories ready to fill</div>
+			<div class="panel-heading hbuilt">
+				Categories ready to fill
+				<span class="pull-right"><a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($baseUrl . '?tab=taxonomy', ENT_QUOTES, 'UTF-8'); ?>">Add / remove categories &amp; filters</a></span>
+			</div>
 			<div class="panel-body">
 				<table class="table table-condensed">
 					<thead><tr><th>Category</th><th>Sub categories</th><th></th></tr></thead>

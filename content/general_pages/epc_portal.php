@@ -417,21 +417,27 @@ function epc_portal_cp_pack_routes()
 		'commerce' => array(
 			'/shop/orders', '/shop/cart', '/shop/catalogue', '/shop/payments', '/shop/channels',
 			'/shop/marketing', '/shop/customer', '/customers', '/shop/bulk', '/shop/pos',
+			'/shop/accessories', '/shop/quote-requests', '/shop/returns-manager',
 		),
 		'auto_parts' => array(
 			'/shop/prices', '/shop/crosses', '/shop/procurement', '/shop/demand',
 			'/shop/parts', '/shop/docpart', '/shop/price-management', '/shop/logistics',
 			'/shop/vehicle', '/shop/product-family', '/shop/umapi', '/shop/agent',
+			'/shop/accessories', '/shop/workshop', '/shop/statistics',
+			'/shop/eparts-cata', '/shop/eparts-mod', '/shop/manufacturers_synonyms',
+			'/shop/quote-requests',
 		),
 		'logistics' => array(
 			'/shop/logistics', '/shop/storages', '/shop/offices', '/shop/warehouse',
+			'/shop/geo',
 		),
 		'catalogue' => array(
-			'/shop/catalogue', '/shop/bulk-upload', '/shop/product-family',
+			'/shop/catalogue', '/shop/bulk-upload', '/shop/product-family', '/shop/accessories',
 		),
 		'professional' => array(
 			'/shop/finance', '/shop/erp', '/shop/customer_mgmt', '/shop/einvoice',
 			'/shop/customer-approval', '/shop/demand_countries', '/shop/document_control',
+			'/shop/returns-manager', '/shop/statistics',
 		),
 		'crm' => array(
 		),

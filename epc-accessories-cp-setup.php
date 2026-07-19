@@ -48,10 +48,15 @@ function epc_acc_cp_lang(PDO $pdo, $key, $en, $ru)
 	$ins->execute(array($key, 'ru', $ru));
 }
 
-epc_acc_cp_lang($pdo, 'epc_accessories_marketplace_cp', 'Accessories Marketplace', 'Маркетплейс аксессуаров');
+epc_acc_cp_lang($pdo, 'epc_accessories_marketplace_cp', 'Accessories', 'Аксессуары');
 
 epc_acc_ensure_schema($pdo);
 $seedStats = epc_acc_seed_categories_from_json($pdo, false);
+
+$mmHelpers = __DIR__ . '/epc_cp_mainstream_menu.php';
+if (is_file($mmHelpers)) {
+	require_once $mmHelpers;
+}
 
 $parent = $pdo->prepare('SELECT `id`, `level` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
 $parent->execute(array('shop'));
@@ -135,14 +140,17 @@ if ($refId > 0 && $contentId > 0) {
 }
 
 $itemsGroup = 6;
-$menuOrder = 710;
+$menuOrder = 16;
+if (function_exists('epc_cp_mm_find_shop_group')) {
+	$shopGroup = epc_cp_mm_find_shop_group($pdo);
+	$itemsGroup = (int) ($shopGroup['id'] ?? 6);
+}
 $pricesRef = $pdo->prepare('SELECT `items_group`, `order` FROM `control_items` WHERE `url` LIKE ? LIMIT 1');
 $pricesRef->execute(array('%/shop/prices'));
 $pricesRow = $pricesRef->fetch(PDO::FETCH_ASSOC);
 if ($pricesRow) {
-	$itemsGroup = (int) $pricesRow['items_group'];
-	if ($itemsGroup <= 0) {
-		$itemsGroup = 6;
+	if ((int) $pricesRow['items_group'] > 0) {
+		$itemsGroup = (int) $pricesRow['items_group'];
 	}
 	$menuOrder = (int) $pricesRow['order'] + 3;
 } else {
@@ -150,28 +158,49 @@ if ($pricesRow) {
 	$crossRef->execute(array('%/shop/crosses'));
 	$crossRow = $crossRef->fetch(PDO::FETCH_ASSOC);
 	if ($crossRow) {
-		$itemsGroup = (int) $crossRow['items_group'];
-		if ($itemsGroup <= 0) {
-			$itemsGroup = 6;
+		if ((int) $crossRow['items_group'] > 0) {
+			$itemsGroup = (int) $crossRow['items_group'];
 		}
 		$menuOrder = (int) $crossRow['order'] + 2;
 	}
 }
 
 $controlUrl = '/<backend>/shop/accessories';
-$existingControl = $pdo->prepare('SELECT `id` FROM `control_items` WHERE `url` = ? OR `url` LIKE ? LIMIT 1');
-$existingControl->execute(array($controlUrl, '%/shop/accessories'));
-$controlId = (int) $existingControl->fetchColumn();
-if ($controlId > 0) {
-	$pdo->prepare(
-		'UPDATE `control_items` SET `items_group` = ?, `caption` = ?, `url` = ?, `order` = ?, `background_color` = ?, `fontawesome_class` = ? WHERE `id` = ?'
-	)->execute(array($itemsGroup, 'epc_accessories_marketplace_cp', $controlUrl, $menuOrder, '#dc2626', 'fas fa-shopping-bag', $controlId));
+if (function_exists('epc_cp_mm_ensure_item')) {
+	$controlId = epc_cp_mm_ensure_item(
+		$pdo,
+		$itemsGroup,
+		'epc_accessories_marketplace_cp',
+		$controlUrl,
+		$menuOrder,
+		'#dc2626',
+		'fas fa-shopping-bag',
+		1
+	);
 } else {
-	$pdo->prepare(
-		'INSERT INTO `control_items` (`items_group`, `caption`, `url`, `img`, `order`, `background_color`, `fontawesome_class`, `target`, `show_anyway`)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)'
-	)->execute(array($itemsGroup, 'epc_accessories_marketplace_cp', $controlUrl, '', $menuOrder, '#dc2626', 'fas fa-shopping-bag', ''));
-	$controlId = (int) $pdo->lastInsertId();
+	$existingControl = $pdo->prepare('SELECT `id` FROM `control_items` WHERE `url` = ? OR `url` LIKE ? LIMIT 1');
+	$existingControl->execute(array($controlUrl, '%/shop/accessories'));
+	$controlId = (int) $existingControl->fetchColumn();
+	if ($controlId > 0) {
+		$pdo->prepare(
+			'UPDATE `control_items` SET `items_group` = ?, `caption` = ?, `url` = ?, `order` = ?, `background_color` = ?, `fontawesome_class` = ?, `show_anyway` = 1 WHERE `id` = ?'
+		)->execute(array($itemsGroup, 'epc_accessories_marketplace_cp', $controlUrl, $menuOrder, '#dc2626', 'fas fa-shopping-bag', $controlId));
+	} else {
+		$pdo->prepare(
+			'INSERT INTO `control_items` (`items_group`, `caption`, `url`, `img`, `order`, `background_color`, `fontawesome_class`, `target`, `show_anyway`)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)'
+		)->execute(array($itemsGroup, 'epc_accessories_marketplace_cp', $controlUrl, '', $menuOrder, '#dc2626', 'fas fa-shopping-bag', ''));
+		$controlId = (int) $pdo->lastInsertId();
+	}
+}
+
+// Bust left-menu cache so Accessories appears immediately.
+$perf = __DIR__ . '/content/general_pages/epc_perf_cache.php';
+if (is_file($perf)) {
+	require_once $perf;
+	if (function_exists('epc_perf_cache_bust_prefix')) {
+		epc_perf_cache_bust_prefix('epc_cp_menu_rows');
+	}
 }
 
 $listingCount = (int) $pdo->query('SELECT COUNT(*) FROM `epc_acc_listings`')->fetchColumn();
