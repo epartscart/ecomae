@@ -70,9 +70,10 @@ $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 					<tr>
 						<th>ID</th>
 						<th>Vendor</th>
+						<th>Legal / TRN</th>
 						<th>Code</th>
 						<th>Email</th>
-						<th>City</th>
+						<th>City / Emirate</th>
 						<th>Warehouse</th>
 						<th>Status</th>
 						<th>Created</th>
@@ -81,15 +82,28 @@ $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 				</thead>
 				<tbody>
 				<?php if (!$rows) { ?>
-					<tr><td colspan="9">No vendor accounts yet.</td></tr>
+					<tr><td colspan="10">No vendor accounts yet.</td></tr>
 				<?php } ?>
 				<?php foreach ($rows as $r) { ?>
 					<tr>
 						<td><?php echo (int) $r['id']; ?></td>
 						<td><?php echo htmlspecialchars((string) $r['vendor_full'], ENT_QUOTES, 'UTF-8'); ?></td>
+						<td>
+							<?php echo htmlspecialchars((string) ($r['legal_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>
+							<?php if (!empty($r['trn'])) { ?>
+								<br><code><?php echo htmlspecialchars((string) $r['trn'], ENT_QUOTES, 'UTF-8'); ?></code>
+							<?php } ?>
+							<?php if (!empty($r['legal_reg_no'])) { ?>
+								<br><small><?php echo htmlspecialchars((string) (($r['legal_reg_type'] ?? 'TL') . ' ' . $r['legal_reg_no']), ENT_QUOTES, 'UTF-8'); ?></small>
+							<?php } ?>
+						</td>
 						<td><strong><?php echo htmlspecialchars((string) $r['vendor_short'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
 						<td><?php echo htmlspecialchars((string) ($r['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-						<td><?php echo htmlspecialchars((string) $r['city'], ENT_QUOTES, 'UTF-8'); ?></td>
+						<td><?php
+							$loc = trim((string) ($r['city'] ?? ''));
+							$em = trim((string) ($r['emirate'] ?? ''));
+							echo htmlspecialchars($loc . ($em !== '' ? ', ' . $em : ''), ENT_QUOTES, 'UTF-8');
+						?></td>
 						<td><?php echo (int) $r['storage_id']; ?></td>
 						<td><?php echo htmlspecialchars((string) $r['status'], ENT_QUOTES, 'UTF-8'); ?></td>
 						<td><?php echo !empty($r['created_at']) ? date('Y-m-d H:i', (int) $r['created_at']) : ''; ?></td>
