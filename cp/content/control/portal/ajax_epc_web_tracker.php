@@ -106,6 +106,26 @@ try {
 	}
 
 	$all = ($isSuper && ($siteKey === '_all' || $siteKey === ''));
+
+	if ($action === 'csv' || $action === 'export_csv') {
+		$csv = epc_web_tracker_export_csv(
+			$pdo,
+			$all ? '_all' : $siteKey,
+			$range['from'],
+			$range['to'],
+			$all
+		);
+		$label = $all ? 'all' : preg_replace('/[^a-z0-9_\-]/', '', $siteKey);
+		$fname = 'web-tracker-' . $label . '-' . date('Ymd', $range['from']) . '-' . date('Ymd', $range['to']) . '.csv';
+		header_remove('Content-Type');
+		header('Content-Type: text/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="' . $fname . '"');
+		header('Cache-Control: no-store');
+		header('X-Content-Type-Options: nosniff');
+		echo $csv;
+		exit;
+	}
+
 	$data = epc_web_tracker_dashboard($pdo, $all ? '_all' : $siteKey, $range['from'], $range['to'], $all);
 	exit(json_encode(array(
 		'ok' => true,
