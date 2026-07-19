@@ -223,11 +223,24 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace,
 .epc-orders-page .epc-scp-orders-workspace:not(.is-oms-active) .epc-scp-orders-workspace__detail {
 	display: none !important;
 }
-.epc-orders-page .epc-scp-orders-workspace__list,
-.epc-orders-page .epc-scp-orders-workspace__list .epc-scp-table-card {
+.epc-orders-page .epc-scp-orders-workspace:not(.is-oms-active) .epc-scp-orders-workspace__list,
+.epc-orders-page .epc-scp-orders-workspace:not(.is-oms-active) .epc-scp-orders-workspace__list .epc-scp-table-card {
 	width: 100% !important;
 	max-width: 100% !important;
 	min-width: 0;
+}
+/* When OMS is open, let grid columns size the panes — width:100% on the list
+   was collapsing the detail track to 0px. */
+body.epc-cp-shell #wrapper .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active > .epc-scp-orders-workspace__list,
+body.epc-cp-shell #wrapper .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active > .epc-scp-orders-workspace__detail {
+	width: auto !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	justify-self: stretch;
+}
+.epc-orders-page .epc-scp-orders-workspace.is-oms-active > .epc-scp-orders-workspace__list .epc-scp-table-card {
+	width: 100% !important;
+	max-width: 100% !important;
 }
 .epc-orders-page .epc-scp-orders-workspace__list .epc-scp-table-card,
 .epc-orders-page .epc-scp-orders-detail {
@@ -533,9 +546,21 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace,
 }
 
 /* One-window OMS: detail dominates when an order is open */
+body.epc-cp-shell #wrapper .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active,
 body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active,
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active {
-	grid-template-columns: minmax(280px, 0.45fr) minmax(0, 1.55fr) !important;
+	display: grid !important;
+	grid-template-columns: minmax(260px, 38%) minmax(320px, 1fr) !important;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active > .epc-scp-orders-workspace__list,
+body.epc-cp-shell #wrapper .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active > .epc-scp-orders-workspace__detail {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	min-width: 0 !important;
+	width: auto !important;
+	max-width: none !important;
+	float: none !important;
 }
 body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-workspace__detail,
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-workspace__detail {
