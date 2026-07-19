@@ -266,6 +266,9 @@ function epc_storefront_prices_redact_product(array &$product): void
 		if (array_key_exists($key, $product)) {
 			if ($key === 'groups_price' || $key === 'groups_markup' || $key === 'groups_check_hash') {
 				$product[$key] = array();
+			} elseif ($key === 'check_hash') {
+				// Empty string (not 0): cart treats "0" as a real hash and rejects as expired.
+				$product[$key] = '';
 			} else {
 				$product[$key] = 0;
 			}
