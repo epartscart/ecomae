@@ -74,19 +74,40 @@ if ($action === 'update_item') {
 	$purchase = isset($_REQUEST['t2_price_purchase']) ? (float) $_REQUEST['t2_price_purchase'] : (float) $item['t2_price_purchase'];
 	$storageId = isset($_REQUEST['t2_storage_id']) ? (int) $_REQUEST['t2_storage_id'] : (int) $item['t2_storage_id'];
 	$name = isset($_REQUEST['t2_name']) ? trim((string) $_REQUEST['t2_name']) : (string) $item['t2_name'];
-	$name = str_replace(array("\"", "\\", "'", "\n", "\r", "\t"), '', $name);
+	$brand = isset($_REQUEST['t2_manufacturer']) ? trim((string) $_REQUEST['t2_manufacturer']) : (string) $item['t2_manufacturer'];
+	$article = isset($_REQUEST['t2_article']) ? trim((string) $_REQUEST['t2_article']) : (string) $item['t2_article'];
+	$sanitize = static function ($v) {
+		return str_replace(array("\"", "\\", "'", "\n", "\r", "\t"), '', (string) $v);
+	};
+	$name = $sanitize($name);
+	$brand = $sanitize($brand);
+	$article = $sanitize($article);
 	if ($qty < 1) {
 		epc_oms_fail('Quantity must be at least 1');
 	}
 	if ($price <= 0) {
 		epc_oms_fail('Price must be greater than 0');
 	}
+	if ($brand === '' || $article === '') {
+		epc_oms_fail('Brand and article number are required');
+	}
 
+	$storageCaption = '';
+	if ($storageId > 0) {
+		try {
+			$stCap = $db_link->prepare('SELECT COALESCE(NULLIF(TRIM(`short_name`), \'\'), `name`) FROM `shop_storages` WHERE `id` = ? LIMIT 1');
+			$stCap->execute(array($storageId));
+			$storageCaption = (string) $stCap->fetchColumn();
+		} catch (Throwable $e) {
+			$storageCaption = '';
+		}
+	}
 	$db_link->prepare(
-		'UPDATE `shop_orders_items` SET `price` = ?, `count_need` = ?, `t2_price_purchase` = ?, `t2_storage_id` = ?, `t2_name` = ? WHERE `id` = ? AND `order_id` = ?'
-	)->execute(array($price, $qty, $purchase, $storageId, $name, $itemId, $orderId));
+		'UPDATE `shop_orders_items` SET `price` = ?, `count_need` = ?, `t2_price_purchase` = ?, `t2_storage_id` = ?, `t2_storage` = ?, `t2_name` = ?, `t2_manufacturer` = ?, `t2_article` = ? WHERE `id` = ? AND `order_id` = ?'
+	)->execute(array($price, $qty, $purchase, $storageId, $storageCaption, $name, $brand, $article, $itemId, $orderId));
 
-	$log = 'OMS updated item <b>id ' . $itemId . '</b>: price=' . number_format($price, 2, '.', '')
+	$log = 'OMS updated item <b>id ' . $itemId . '</b>: ' . $brand . ' / ' . $article
+		. ', price=' . number_format($price, 2, '.', '')
 		. ', qty=' . $qty . ', purchase=' . number_format($purchase, 2, '.', '')
 		. ', storage_id=' . $storageId;
 	$db_link->prepare(
@@ -245,6 +266,97 @@ if ($action === 'erp_document_map') {
 		epc_oms_fail($e->getMessage());
 	}
 	epc_oms_ok(array('map' => $map));
+}
+
+if ($action === 'refresh_item_cost') {
+	$itemId = (int) ($_REQUEST['item_id'] ?? 0);
+	if ($itemId <= 0) {
+		epc_oms_fail('Invalid item');
+	}
+	if ((int) $order['paid'] !== 0) {
+		epc_oms_fail('Cannot refresh cost on a paid order');
+	}
+	$st = $db_link->prepare('SELECT * FROM `shop_orders_items` WHERE `id` = ? AND `order_id` = ? LIMIT 1');
+	$st->execute(array($itemId, $orderId));
+	$item = $st->fetch(PDO::FETCH_ASSOC);
+	if (!$item) {
+		epc_oms_fail('Item not found');
+	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_supplier_fulfillment.php';
+	$eff = epc_order_item_effective_purchase($db_link, $item);
+	$unit = (float) $eff['unit'];
+	if ($unit <= 0) {
+		epc_oms_fail('No purchase cost found for this line');
+	}
+	$db_link->prepare(
+		'UPDATE `shop_orders_items` SET `t2_price_purchase` = ? WHERE `id` = ? AND `order_id` = ?'
+	)->execute(array($unit, $itemId, $orderId));
+	$db_link->prepare(
+		'INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)'
+	)->execute(array(
+		$orderId, time(), $adminId, 1,
+		'OMS refreshed purchase cost for item <b>id ' . $itemId . '</b>: '
+			. number_format($unit, 2, '.', '') . ' AED (source ' . (string) $eff['source'] . ')',
+	));
+	epc_oms_ok(array('item_id' => $itemId, 'purchase' => $unit, 'source' => $eff['source']));
+}
+
+if ($action === 'supplier_fulfillment_status') {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_supplier_fulfillment.php';
+	try {
+		$r = epc_order_supplier_fulfillment_bootstrap($db_link, $orderId, $adminId);
+	} catch (Throwable $e) {
+		epc_oms_fail($e->getMessage());
+	}
+	epc_oms_ok(array('fulfillment' => $r));
+}
+
+if ($action === 'supplier_fulfillment_set_stage') {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_supplier_fulfillment.php';
+	$key = trim((string) ($_REQUEST['supplier_key'] ?? ''));
+	$stage = trim((string) ($_REQUEST['stage'] ?? ''));
+	if ($key === '' || $stage === '') {
+		epc_oms_fail('supplier_key and stage required');
+	}
+	try {
+		$r = epc_order_supplier_fulfillment_set_stage($db_link, $orderId, $key, $stage, $adminId);
+	} catch (Throwable $e) {
+		epc_oms_fail($e->getMessage());
+	}
+	$db_link->prepare(
+		'INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)'
+	)->execute(array(
+		$orderId, time(), $adminId, 1,
+		'OMS supplier fulfillment <b>' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '</b> → ' . htmlspecialchars($stage, ENT_QUOTES, 'UTF-8'),
+	));
+	epc_oms_ok(array('fulfillment' => $r));
+}
+
+if ($action === 'supplier_fulfillment_advance') {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_supplier_fulfillment.php';
+	$key = trim((string) ($_REQUEST['supplier_key'] ?? ''));
+	if ($key === '') {
+		epc_oms_fail('supplier_key required');
+	}
+	try {
+		$r = epc_order_supplier_fulfillment_advance($db_link, $orderId, $key, $adminId);
+	} catch (Throwable $e) {
+		epc_oms_fail($e->getMessage());
+	}
+	$stage = '';
+	foreach ($r['suppliers'] ?? array() as $s) {
+		if (($s['supplier_key'] ?? '') === $key) {
+			$stage = (string) ($s['stage'] ?? '');
+			break;
+		}
+	}
+	$db_link->prepare(
+		'INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)'
+	)->execute(array(
+		$orderId, time(), $adminId, 1,
+		'OMS advanced supplier fulfillment <b>' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '</b> → ' . htmlspecialchars($stage, ENT_QUOTES, 'UTF-8'),
+	));
+	epc_oms_ok(array('fulfillment' => $r));
 }
 
 epc_oms_fail('Unknown action');

@@ -330,6 +330,25 @@
 					ajaxUrl: urls.erpAjax,
 				});
 			}
+			var mountItems = document.getElementById('epc-order-fulfillment-panel-items-' + orderId);
+			if (mountItems) {
+				window.epcOrdersFulfillment.load({
+					mount: mountItems,
+					orderId: orderId,
+					ajaxUrl: urls.erpAjax,
+				});
+			}
+		}
+		if (window.epcSupplierFulfillment && urls.omsAjax) {
+			var sf = document.getElementById('epc-order-supplier-fulfillment-' + orderId);
+			if (sf) {
+				window.epcSupplierFulfillment.load({
+					mount: sf,
+					orderId: orderId,
+					ajaxUrl: urls.omsAjax,
+					csrf: cfg.csrf || ''
+				});
+			}
 		}
 	}
 
@@ -484,7 +503,7 @@
 	}
 
 	window.epcOmsSaveItem = function (orderId, itemId) {
-		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
 			return;
 		}
@@ -496,8 +515,18 @@
 			count_need: (card.querySelector('[data-field="count_need"]') || {}).value,
 			t2_price_purchase: (card.querySelector('[data-field="t2_price_purchase"]') || {}).value,
 			t2_storage_id: (card.querySelector('[data-field="t2_storage_id"]') || {}).value,
-			t2_name: (card.querySelector('[data-field="t2_name"]') || {}).value
+			t2_name: (card.querySelector('[data-field="t2_name"]') || {}).value,
+			t2_manufacturer: (card.querySelector('[data-field="t2_manufacturer"]') || {}).value,
+			t2_article: (card.querySelector('[data-field="t2_article"]') || {}).value
 		}, msg.itemSaved || 'Item updated', msg.itemFail || 'Could not update item');
+	};
+
+	window.epcOmsRefreshCost = function (orderId, itemId) {
+		epcOmsPost({
+			action: 'refresh_item_cost',
+			order_id: orderId,
+			item_id: itemId
+		}, 'Purchase cost refreshed', 'Could not refresh cost');
 	};
 
 	window.epcOmsSaveCourier = function (orderId) {
@@ -512,7 +541,7 @@
 	};
 
 	window.epcOmsSetItemStatus = function (orderId, itemId) {
-		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
 			return;
 		}
