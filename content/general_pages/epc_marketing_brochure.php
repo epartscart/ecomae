@@ -323,11 +323,23 @@ html,body{margin:0;padding:0;background:var(--br-paper);color:var(--br-ink);
 .epc-br__foot{margin-top:48px;padding:28px 0 8px;border-top:1px solid rgba(15,23,42,.1);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .epc-br__foot strong{font-family:Syne,sans-serif}
 .epc-br__foot a{color:var(--br-accent);font-weight:600;text-decoration:none}
+.epc-br__gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 40px}
+.epc-br__gallery figure{margin:0;position:relative;overflow:hidden;min-height:140px;background:var(--br-ink)}
+.epc-br__gallery img{width:100%;height:100%;object-fit:cover;display:block;min-height:140px;opacity:.9;transition:transform .45s ease}
+.epc-br__gallery figure:hover img{transform:scale(1.05)}
+.epc-br__gallery figcaption{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;font-size:.78rem;font-weight:700;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.epc-br__cta-band{margin:8px 0 40px;padding:28px 24px;background:linear-gradient(120deg,var(--br-ink),var(--br-ink2));color:#fff;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.epc-br__cta-band h2{margin:0 0 6px;font-family:Syne,sans-serif;font-size:1.45rem}
+.epc-br__cta-band p{margin:0;color:rgba(255,255,255,.82);max-width:36em;font-size:.95rem}
+.epc-br__hero{width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw)}
+.epc-br__hero-media{animation:epc-br-ken 20s ease-in-out infinite alternate}
+@keyframes epc-br-ken{from{transform:scale(1)}to{transform:scale(1.05)}}
 @media (max-width:860px){
   .epc-br__strip{grid-template-columns:repeat(2,1fr)}
   .epc-br__journey{grid-template-columns:1fr 1fr}
   .epc-br__cp{grid-template-columns:1fr}
   .epc-br__points{grid-template-columns:1fr}
+  .epc-br__gallery{grid-template-columns:1fr 1fr}
 }
 @media print{
   .epc-br__bar,.epc-br__actions{display:none!important}
@@ -381,6 +393,36 @@ function epc_brochure_render_html(string $brand, array $opts = array()): string
 		$menuHtml .= '<span' . ($i === 0 ? ' class="is-on"' : '') . '>' . epc_brochure_h($item) . '</span>';
 	}
 
+	$shots = array(
+		array('src' => '/content/general_pages/marketing_screens/pf_workforce.png', 'cap' => 'Operations desk'),
+		array('src' => '/content/general_pages/marketing_screens/pf_orgmap.png', 'cap' => 'Organisation map'),
+		array('src' => '/content/general_pages/marketing_screens/pf_tracker.png', 'cap' => 'Live tracking'),
+		array('src' => '/content/general_pages/marketing_screens/pf_location.png', 'cap' => 'Locations & logistics'),
+	);
+	$galleryHtml = '<div class="epc-br__gallery">';
+	foreach ($shots as $shot) {
+		$galleryHtml .= '<figure><img src="' . epc_brochure_h($shot['src']) . '" alt="' . epc_brochure_h($shot['cap']) . '" loading="lazy" width="640" height="400">'
+			. '<figcaption>' . epc_brochure_h($shot['cap']) . '</figcaption></figure>';
+	}
+	$galleryHtml .= '</div>';
+
+	$cpCount = 0;
+	$liveFile = __DIR__ . '/epc_cp_brochure_live.php';
+	if (is_file($liveFile)) {
+		require_once $liveFile;
+		if (function_exists('epc_cp_brochure_build_live_inventory')) {
+			$live = epc_cp_brochure_build_live_inventory();
+			$cpCount = (int) ($live['meta']['total'] ?? 0);
+		}
+	}
+	$cpBrochureHref = (string) ($p['cp_brochure'] ?? '/brochure-cp');
+	$ctaBand = '<aside class="epc-br__cta-band">'
+		. '<div><h2>Full Control Panel — graphical deck</h2>'
+		. '<p>' . ($cpCount > 0 ? ((int) $cpCount . ' functions') : 'Every CP function')
+		. ' with icons, area visuals, and live sync when modules are added.</p></div>'
+		. '<a class="epc-br__btn epc-br__btn--pri" href="' . epc_brochure_h($cpBrochureHref) . '">Open graphical CP brochure</a>'
+		. '</aside>';
+
 	$title = epc_brochure_h($p['name'] . ' — Product brochure');
 	$desc = epc_brochure_h($p['tagline']);
 	$cover = epc_brochure_h($p['cover']);
@@ -412,8 +454,11 @@ function epc_brochure_render_html(string $brand, array $opts = array()): string
 		. '<a class="epc-br__btn epc-br__btn--ghost" href="' . epc_brochure_h($p['cta_secondary']['href']) . '">' . epc_brochure_h($p['cta_secondary']['label']) . '</a>'
 		. '</div></div></header>'
 		. '<div class="epc-br__strip">' . $statsHtml . '</div>'
+		. '<section class="epc-br__sec"><h2>See the product in context</h2><p>Real operational surfaces — not a text wall.</p></section>'
+		. $galleryHtml
 		. '<section class="epc-br__sec"><h2>How work flows</h2><p>A simple journey customers and staff can follow.</p></section>'
 		. '<div class="epc-br__journey">' . $journeyHtml . '</div>'
+		. $ctaBand
 		. '<div class="epc-br__cp"><div class="epc-br__cp-copy">'
 		. '<h2>' . ($id === 'epartscart' ? 'Inside the Control Panel' : 'Inside the Control Panels') . '</h2>'
 		. '<p>' . ($id === 'epartscart'
