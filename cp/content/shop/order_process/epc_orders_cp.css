@@ -206,6 +206,8 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 	}
 }
 
+body.epc-cp-shell #wrapper .content .epc-orders-page.col-lg-12 .epc-scp-orders-workspace.col-lg-12,
+body.epc-cp-shell #wrapper .content .epc-orders-page .epc-scp-orders-workspace,
 body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace,
 .epc-orders-page .epc-scp-orders-workspace {
 	display: grid !important;
@@ -215,6 +217,7 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace,
 	width: 100% !important;
 	max-width: 100% !important;
 	float: none !important;
+	flex: none !important;
 }
 /* Keep list full-width until an order is opened in OMS */
 .epc-orders-page .epc-scp-orders-workspace:not(.is-oms-active) .epc-scp-orders-workspace__detail {
