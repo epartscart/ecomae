@@ -130,11 +130,11 @@ if ($epc_di_default_country === '' || !in_array($epc_di_default_country, $epc_di
 	data-logged-in="<?php echo $epc_di_logged_in ? '1' : '0'; ?>"
 	data-access="<?php echo htmlspecialchars(json_encode($epc_di_access, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8'); ?>"
 	data-meta-api="/content/shop/docpart/ajax_epc_demand_meta.php">
-	<h1 class="epc-di-title">Country - Vehicle &amp; Parts Intelligence AI</h1>
+	<h1 class="epc-di-title">Vehicle Parts intelligence AI</h1>
 <?php if (!$epc_di_logged_in) { ?>
 	<div class="epc-di-login-panel">
 		<h2><i class="fa fa-lock"></i> Sign in required</h2>
-		<p class="epc-di-lead">Country - Vehicle &amp; Parts Intelligence AI is available only for <strong>registered customers</strong>. Please log in to scan country demand, product lines, and vehicle fitment.</p>
+		<p class="epc-di-lead">Vehicle Parts intelligence AI is available only for <strong>registered customers</strong>. Please log in to scan country demand, product lines, and vehicle fitment.</p>
 		<div class="panel panel-primary">
 		<?php
 		$login_form_postfix = 'vehicle_intelligence';

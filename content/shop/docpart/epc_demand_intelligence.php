@@ -142,7 +142,7 @@ function epc_demand_require_customer_login(bool $json = true): void
 		echo json_encode(array(
 			'status' => false,
 			'code' => 'auth',
-			'message' => 'Please sign in to use Country - Vehicle & Parts Intelligence AI.',
+			'message' => 'Please sign in to use Vehicle Parts intelligence AI.',
 		), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 		exit;
 	}
