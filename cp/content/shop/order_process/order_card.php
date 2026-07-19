@@ -42,10 +42,15 @@ else//Действий нет - выводим страницу
 	require_once($_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/actions_alert.php');//Вывод сообщений о результатах действий
 
 	$order_id = isset($_GET['order_id']) ? (int) $_GET['order_id'] : 0;
+	$epc_classic_order_card = isset($_GET['classic']) && (string) $_GET['classic'] === '1';
 	if ($order_id <= 0) {
 		echo '<div class="alert alert-warning"><strong>Order not specified.</strong> '
 			. 'Open an order from <a href="/' . htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8')
 			. '/shop/orders/orders">Orders</a> or add <code>?order_id=</code> to the URL.</div>';
+	} else if (!$epc_classic_order_card) {
+		// One-page OMS is the primary workspace — classic full card stays available via ?classic=1
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_script_relocate.php';
+		epc_cp_redirect('/shop/orders/orders?order_id=' . (int) $order_id);
 	} else {
     
 	//Ставим флаг "Просмотрен"
@@ -138,7 +143,40 @@ else//Действий нет - выводим страницу
 	$paid_left_incl_vat = max(0, round($order_sale_incl_vat - $paid_sum_num, 2));
 	$paid_left_display = ($order_uae_vat['vat_applicable'] && $order_vat_rate > 0) ? $paid_left_incl_vat : (float)$paid_left;
     ?>
-    
+	<div class="col-lg-12 epc-oc-page epc-orders-page">
+		<div class="epc-oc-oms-banner">
+			<div>
+				<strong>One-page OMS</strong>
+				<span>Daily order work (items, payment, documents, messages) lives on the Orders console.</span>
+			</div>
+			<a class="btn btn-primary btn-sm" href="/<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/orders/orders?order_id=<?php echo (int) $order_id; ?>"><i class="fa fa-columns"></i> Open in OMS</a>
+		</div>
+		<div class="epc-oc-summary-grid">
+			<div class="epc-oc-summary-card">
+				<span class="epc-oc-k">Order #</span>
+				<strong class="epc-oc-v"><?php echo (int) $order_id; ?></strong>
+			</div>
+			<div class="epc-oc-summary-card">
+				<span class="epc-oc-k"><?php echo translate_str_by_id(2242); ?></span>
+				<strong class="epc-oc-v"><?php echo date("d.m.Y", $time)." ".date("G:i", $time); ?></strong>
+			</div>
+			<div class="epc-oc-summary-card">
+				<span class="epc-oc-k"><?php echo translate_str_by_id(5294); ?></span>
+				<strong class="epc-oc-v"><?php echo htmlspecialchars(translate_str_by_id($offices_list[$office_id]), ENT_QUOTES, 'UTF-8'); ?></strong>
+			</div>
+			<div class="epc-oc-summary-card">
+				<span class="epc-oc-k"><?php echo translate_str_by_id(3507); ?></span>
+				<strong class="epc-oc-v"><?php echo htmlspecialchars(translate_str_by_id($obtain_caption), ENT_QUOTES, 'UTF-8'); ?></strong>
+			</div>
+			<div class="epc-oc-summary-card">
+				<span class="epc-oc-k"><?php echo translate_str_by_id(4645); ?></span>
+				<strong class="epc-oc-v"><?=(!empty($shop_orders_paid_type[$paid_type]))?htmlspecialchars(translate_str_by_id($shop_orders_paid_type[$paid_type]), ENT_QUOTES, 'UTF-8'):'';?></strong>
+			</div>
+			<div class="epc-oc-summary-card">
+				<span class="epc-oc-k">Total</span>
+				<strong class="epc-oc-v"><?php echo number_format((float)$price_sum, 2, '.', ' '); ?></strong>
+			</div>
+		</div>
     
     <div class="col-lg-6">
 		<div class="hpanel">
@@ -148,61 +186,12 @@ else//Действий нет - выводим страницу
                 </div>
 				<?php echo translate_str_by_id(3505); ?>
 			</div>
-			<div class="panel-body">
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(1082); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo $order_id; ?>
-					</div>
+			<div class="panel-body epc-oc-form-body">
+				<div class="epc-oc-field-row">
+					<label><?php echo translate_str_by_id(1082); ?></label>
+					<div><?php echo $order_id; ?></div>
 				</div>
 				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2242); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo date("d.m.Y", $time)." ".date("G:i", $time); ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(5294); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo translate_str_by_id($offices_list[$office_id]); ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(3507); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo translate_str_by_id($obtain_caption); ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(4645); ?>
-					</label>
-					<div class="col-lg-9">
-						<?=(!empty($shop_orders_paid_type[$paid_type]))?translate_str_by_id($shop_orders_paid_type[$paid_type]):'';?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
 				
 				<div class="form-group">
 					<label for="" class="col-lg-3 control-label">
@@ -317,7 +306,7 @@ else//Действий нет - выводим страницу
 										if(answer.status == true)
 										{
 											//Обновляем страницу
-											location='/<?php echo $DP_Config->backend_dir; ?>/shop/orders/order?order_id=<?php echo $order_id; ?>&success_message='+encodeURI('<?php echo translate_str_by_id(2157); ?>');
+											location='/<?php echo $DP_Config->backend_dir; ?>/shop/orders/order?order_id=<?php echo $order_id; ?>&classic=1&success_message='+encodeURI('<?php echo translate_str_by_id(2157); ?>');
 										}
 										else
 										{
@@ -1802,6 +1791,7 @@ else//Действий нет - выводим страницу
 			</div>
 		</div>
 	</div>
+	</div><!-- /.epc-oc-page -->
     <script>
 	document.getElementById("order_log").scrollTop = document.getElementById("order_log").scrollHeight;
 	// -----------------------------------------------------------------------
@@ -1825,7 +1815,7 @@ else//Действий нет - выводим страницу
 			{
 				if(answer.status == true)
 				{
-					location = "/<?php echo $DP_Config->backend_dir; ?>/shop/orders/order?order_id=<?php echo $order_id; ?>";
+					location = "/<?php echo $DP_Config->backend_dir; ?>/shop/orders/order?order_id=<?php echo $order_id; ?>&classic=1";
 				}
 				else
 				{

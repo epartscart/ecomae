@@ -207,23 +207,19 @@ function epc_cp_page_asset_url_map(): array
 			),
 			'js' => array('/content/shop/pos/epc_pos_terminal_js.php?v=' . rawurlencode($ver)),
 		),
-		'shop/orders/items/edit' => array(
-			'js' => array(
-				'/' . $backend . '/content/shop/order_process/orders_items_edit_cp.js?v=' . rawurlencode($ver),
-			),
-		),
 		'shop/orders/items' => array(
 			'css' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/lib/multiple_select/multiple-select.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/lib/multiple_select/jquery.multiple.select.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/order_process/orders_items_config.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/shop/order_process/orders_items_cp.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/order_process/orders_items_config.php?v=' . rawurlencode($ver . 'omsForms2'),
+				'/' . $backend . '/content/shop/order_process/orders_items_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
 		'shop/orders/items/edit' => array(
@@ -234,7 +230,7 @@ function epc_cp_page_asset_url_map(): array
 		),
 		'shop/orders/oms-guide' => array(
 			'css' => array(
-				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide3'),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide4'),
 			),
 		),
 		'shop/orders/orders' => array(
@@ -242,17 +238,17 @@ function epc_cp_page_asset_url_map(): array
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/lib/multiple_select/multiple-select.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide3'),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide4'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/lib/multiple_select/jquery.multiple.select.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'omsGuide3')
+				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'omsGuide4')
 					. (isset($_GET['order_id']) ? '&order_id=' . (int) $_GET['order_id'] : '')
 					. (isset($_GET['status_id']) ? '&status_id=' . (int) $_GET['status_id'] : ''),
-				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'omsGuide3'),
-				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'omsGuide3'),
+				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'omsGuide4'),
+				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'omsGuide4'),
 			),
 		),
 		'shop/orders/statuses' => array(
@@ -261,9 +257,12 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/orders/order' => array(
+			'css' => array(
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsForms2'),
+			),
 			'js' => array(
-				'/' . $backend . '/content/shop/order_process/order_card_config.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/order_process/order_card_config.php?v=' . rawurlencode($ver . 'omsForms2'),
+				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
 		'shop/parts_agent_chats' => array(
