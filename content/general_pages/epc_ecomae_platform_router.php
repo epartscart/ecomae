@@ -292,7 +292,9 @@ function epc_ecomae_marketing_serve_seo_file()
 			array('/bos', '0.7', 'weekly'),
 			array('/blockchain', '0.9', 'weekly'),
 			array('/brochure', '0.8', 'monthly'),
+			array('/brochure/cp', '0.8', 'monthly'),
 			array('/platform/brochure', '0.7', 'monthly'),
+			array('/platform/brochure/cp', '0.6', 'monthly'),
 			array('/solutions', '0.7', 'weekly'),
 			array('/legal', '0.6', 'monthly'),
 			array('/privacy', '0.5', 'monthly'),
@@ -373,6 +375,13 @@ function epc_ecomae_platform_match_path($path)
 	}
 	if ($path === '/brochure' || $path === '/platform/brochure') {
 		return array('page' => 'brochure', 'params' => array(
+			'print' => (isset($_GET['print']) && (string) $_GET['print'] === '1'),
+		));
+	}
+	if ($path === '/brochure/cp' || $path === '/platform/brochure/cp' || $path === '/brochure-cp') {
+		$scope = preg_replace('/[^a-z]/', '', strtolower((string) ($_GET['scope'] ?? 'all')));
+		return array('page' => 'brochure_cp', 'params' => array(
+			'scope' => $scope !== '' ? $scope : 'all',
 			'print' => (isset($_GET['print']) && (string) $_GET['print'] === '1'),
 		));
 	}
@@ -534,6 +543,15 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 			'print' => !empty($match['params']['print']),
 		));
 	}
+	if ($match['page'] === 'brochure_cp') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_full_brochure.php';
+		epc_cp_full_brochure_render_and_exit(array(
+			'brand' => 'ecomae',
+			'scope' => (string) ($match['params']['scope'] ?? 'all'),
+			'print' => !empty($match['params']['print']),
+			'base_path' => '/brochure/cp',
+		));
+	}
 
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_platform_pages.php';
 
@@ -555,6 +573,7 @@ function epc_ecomae_platform_absorb_route($urlRoute, $DP_Content, $isFrontMode)
 		'industry' => 'Industry solution',
 		'blockchain' => 'Blockchain BOS — structure, process & proof layer — ECOM AE',
 		'brochure' => 'Product brochure — ECOM AE',
+		'brochure_cp' => 'Full Control Panel brochure — ECOM AE',
 	);
 	$title = isset($titles[$match['page']]) ? $titles[$match['page']] : 'ecomae platform';
 	if ($match['page'] === 'industry') {
@@ -626,6 +645,7 @@ function epc_ecomae_platform_page_title($page, array $params = array())
 		'industry' => 'Industry solution',
 		'blockchain' => 'Blockchain BOS — structure, process & proof layer — ECOM AE',
 		'brochure' => 'Product brochure — ECOM AE',
+		'brochure_cp' => 'Full Control Panel brochure — ECOM AE',
 		'legal' => 'Legal policies — ECOM AE',
 	);
 	$title = isset($titles[$page]) ? $titles[$page] : 'ecomae platform';
@@ -779,6 +799,17 @@ function epc_ecomae_platform_render_standalone($path = null)
 		epc_ecomae_platform_send_marketing_headers();
 		echo epc_brochure_render_html('ecomae', array(
 			'print' => !empty($match['params']['print']),
+		));
+		return true;
+	}
+	if ($match['page'] === 'brochure_cp') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_full_brochure.php';
+		epc_ecomae_platform_send_marketing_headers();
+		echo epc_cp_full_brochure_render_html(array(
+			'brand' => 'ecomae',
+			'scope' => (string) ($match['params']['scope'] ?? 'all'),
+			'print' => !empty($match['params']['print']),
+			'base_path' => '/brochure/cp',
 		));
 		return true;
 	}

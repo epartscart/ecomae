@@ -49,6 +49,15 @@ function epc_ecomae_platform_render_page($page, array $params = array(), $mode =
 			'print' => !empty($params['print']),
 		));
 	}
+	if ($page === 'brochure_cp') {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_full_brochure.php';
+		return epc_cp_full_brochure_render_html(array(
+			'brand' => 'ecomae',
+			'scope' => (string) ($params['scope'] ?? 'all'),
+			'print' => !empty($params['print']),
+			'base_path' => '/brochure/cp',
+		));
+	}
 	$inner = epc_ecomae_platform_render_inner($page, $params);
 	if ($mode === 'inner') {
 		return $inner;

@@ -36,7 +36,8 @@ function epc_brochure_profile(string $brand): array
 			'muted' => '#64748b',
 			'hero_sub' => 'One system for parts search, pricing, warehouses, orders, WhatsApp, AI chat, and ERP — so buyers and your team always see the same truth.',
 			'cta_primary' => array('label' => 'Open storefront', 'href' => 'https://www.epartscart.com'),
-			'cta_secondary' => array('label' => 'Open Control Panel', 'href' => 'https://www.epartscart.com/cp'),
+			'cta_secondary' => array('label' => 'Full CP brochure', 'href' => '/brochure-cp'),
+			'cp_brochure' => '/brochure-cp',
 		);
 	}
 	return array(
@@ -58,7 +59,8 @@ function epc_brochure_profile(string $brand): array
 		'muted' => '#64748b',
 		'hero_sub' => 'Hosted multi-tenant platform for UAE & GCC businesses: storefronts, Super CP, Client CP, ERP finance, Peppol e-invoice, and industry packs — one database, one operator story.',
 		'cta_primary' => array('label' => 'Book a demo', 'href' => 'https://www.ecomae.com/platform/demo'),
-		'cta_secondary' => array('label' => 'Platform capabilities', 'href' => 'https://www.ecomae.com/platform/capabilities'),
+		'cta_secondary' => array('label' => 'Full CP brochure', 'href' => '/brochure/cp'),
+		'cp_brochure' => '/brochure/cp',
 	);
 }
 
@@ -431,6 +433,7 @@ function epc_brochure_render_html(string $brand, array $opts = array()): string
 		. '<a href="mailto:' . epc_brochure_h($p['contact_email']) . '">' . epc_brochure_h($p['contact_email']) . '</a><br>'
 		. '<a href="tel:' . epc_brochure_h(preg_replace('/\s+/', '', $p['contact_phone'])) . '">' . epc_brochure_h($p['contact_phone']) . '</a><br>'
 		. '<a href="' . epc_brochure_h($p['url']) . '">' . epc_brochure_h($p['domain']) . '</a>'
+		. '<br><a href="' . epc_brochure_h($p['cp_brochure'] ?? '/brochure-cp') . '">Full CP brochure (every function) →</a>'
 		. ($id === 'epartscart' ? '<br><a href="' . epc_brochure_h($p['cp_url']) . '">Control Panel →</a>' : '')
 		. '</div></footer></div>'
 		. $autoPrint

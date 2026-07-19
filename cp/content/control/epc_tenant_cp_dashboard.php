@@ -237,8 +237,10 @@ $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 
 	<p class="epc-tcp-help">
 		Tip: use the left menu search to jump to any page. Share the
-		<a href="/brochure" target="_blank" rel="noopener">customer brochure</a>
-		(storefront + CP) or read the
+		<a href="/brochure" target="_blank" rel="noopener">product brochure</a>,
+		the full
+		<a href="<?php echo epc_tcp_dash_h($base . '/control/cp_brochure'); ?>" target="_blank" rel="noopener">CP brochure</a>
+		(every function), or the
 		<a href="https://www.ecomae.com/platform/faq" target="_blank" rel="noopener">Platform FAQ</a>.
 	</p>
 </div>
