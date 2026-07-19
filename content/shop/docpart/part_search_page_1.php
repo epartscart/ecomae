@@ -2922,12 +2922,9 @@ function epcApplyCrossStockItemToBoundProduct(item)
 	{
 		product.exist = exist;
 	}
-	var price = parseFloat(item.price);
-	if(!isNaN(price) && price > 0)
-	{
-		product.price = price;
-		product.price_purchase = String(price);
-	}
+	// Never overwrite price / price_purchase / check_hash from cross-stock.
+	// Warehouse AJAX already priced the row; mutating purchase price invalidates
+	// check_hash and causes "price data expired" on Add to Cart (e.g. S-UAE).
 	return product;
 }
 function epcDedupeChpuProductsByBrandArticle(products)
