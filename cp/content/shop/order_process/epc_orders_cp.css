@@ -10,6 +10,16 @@
 	--eo-warn: #d97706;
 	--eo-danger: #dc2626;
 	margin-bottom: 24px;
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box;
+}
+body.epc-cp-shell .content .epc-orders-page.col-lg-12,
+body.epc-cp-shell .content .epc-orders-page {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	float: none !important;
 }
 
 .epc-orders-page__hero {
@@ -64,8 +74,9 @@
 }
 
 .epc-orders-toolbar {
-	display: flex;
-	flex-wrap: wrap;
+	display: flex !important;
+	flex-direction: row !important;
+	flex-wrap: wrap !important;
 	align-items: center;
 	gap: 8px;
 	margin: 0 0 12px;
@@ -73,6 +84,7 @@
 	background: #fff;
 	border: 1px solid var(--eo-line);
 	border-radius: 12px;
+	width: 100%;
 }
 .epc-orders-toolbar__hint {
 	margin-left: auto;
@@ -113,8 +125,8 @@
 body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 .epc-orders-page .epc-orders-filter-grid {
 	display: grid !important;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 12px 14px;
+	grid-template-columns: repeat(4, minmax(180px, 1fr));
+	gap: 14px 16px;
 	width: 100%;
 	float: none !important;
 	flex: none !important;
@@ -196,9 +208,21 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 
 .epc-orders-page .epc-scp-orders-workspace {
 	display: grid;
-	grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+	grid-template-columns: minmax(0, 1fr);
 	gap: 14px;
 	align-items: start;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+/* Keep list full-width until an order is opened in OMS */
+.epc-orders-page .epc-scp-orders-workspace:not(.is-oms-active) .epc-scp-orders-workspace__detail {
+	display: none !important;
+}
+.epc-orders-page .epc-scp-orders-workspace__list,
+.epc-orders-page .epc-scp-orders-workspace__list .epc-scp-table-card {
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0;
 }
 .epc-orders-page .epc-scp-orders-workspace__list .epc-scp-table-card,
 .epc-orders-page .epc-scp-orders-detail {
@@ -210,6 +234,7 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 .epc-orders-page .epc-scp-orders-workspace__detail {
 	position: sticky;
 	top: 10px;
+	min-width: 0;
 }
 .epc-orders-page .epc-scp-orders-detail {
 	max-height: calc(100vh - 120px);
@@ -504,7 +529,10 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 
 /* One-window OMS: detail dominates when an order is open */
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active {
-	grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1.58fr);
+	grid-template-columns: minmax(280px, 0.45fr) minmax(0, 1.55fr);
+}
+.epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-workspace__detail {
+	display: block !important;
 }
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-detail {
 	max-height: calc(100vh - 90px);
