@@ -181,262 +181,158 @@ else//Действий нет - выводим страницу
 			<span class="epc-orders-toolbar__hint"><i class="fa fa-mouse-pointer"></i> Click row → OMS console · Ctrl+click → classic full card</span>
 		</div>
 	<div class="epc-scp-orders-filter">
-	<div class="col-lg-12" style="padding:0;">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
 				<div class="panel-tools">
-                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
-                </div>
+					<a class="showhide"><i class="fa fa-chevron-up"></i></a>
+				</div>
 				<?php echo translate_str_by_id(3574); ?> <button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo translate_str_by_id(5310); ?>');"><i class="fa fa-info"></i></button>
 			</div>
 			<div class="panel-body filter_panel">
 				<?php
-				
-				//Способ оплаты - на странице созданного заказа
 				$shop_orders_paid_type = array();
 				$query = $db_link->prepare('SELECT * FROM `shop_orders_paid_type` WHERE `active` = 1 ORDER BY `order`;');
 				$query->execute();
-				while($rov = $query->fetch()){
+				while ($rov = $query->fetch()) {
 					$shop_orders_paid_type[$rov['id']] = $rov['name'];
 				}
-				
-				$time_from = "";
-				$time_to = "";
-				$order_id = "";
-				$status = "0";
+
+				$time_from = '';
+				$time_to = '';
+				$order_id = '';
+				$status = '0';
 				$paid = -1;
-				$customer = "";
-				$customer_id = "";
+				$customer = '';
+				$customer_id = '';
 				$viewed = -1;
 				$paid_type = -1;
 				$office = 0;
-				$phone = "";
-				$article = "";
-				
-				//Получаем текущие значения фильтра:
-				$orders_filter = NULL;
-				if( isset($_COOKIE["orders_filter"]) )
-				{
-					$orders_filter = $_COOKIE["orders_filter"];
+				$phone = '';
+				$article = '';
+
+				$orders_filter = null;
+				if (isset($_COOKIE['orders_filter'])) {
+					$orders_filter = $_COOKIE['orders_filter'];
 				}
-				if($orders_filter != NULL)
-				{
+				if ($orders_filter != null) {
 					$orders_filter = json_decode($orders_filter, true);
-					$time_from = $orders_filter["time_from"];
-					$time_to = $orders_filter["time_to"];
-					$order_id = $orders_filter["order_id"];
-					$status = $orders_filter["status"];
-					$paid = $orders_filter["paid"];
-					$customer = $orders_filter["customer"];
-					$customer_id = $orders_filter["customer_id"];
-					$viewed = $orders_filter["viewed"];
-					$paid_type = (int) $orders_filter["paid_type"];
-					if( isset($orders_filter["office"]) ){
-						$office = $orders_filter["office"];
+					if (is_array($orders_filter)) {
+						$time_from = isset($orders_filter['time_from']) ? (string) $orders_filter['time_from'] : '';
+						$time_to = isset($orders_filter['time_to']) ? (string) $orders_filter['time_to'] : '';
+						$order_id = isset($orders_filter['order_id']) ? (string) $orders_filter['order_id'] : '';
+						$status = isset($orders_filter['status']) ? $orders_filter['status'] : '0';
+						$paid = isset($orders_filter['paid']) ? $orders_filter['paid'] : -1;
+						$customer = isset($orders_filter['customer']) ? (string) $orders_filter['customer'] : '';
+						$customer_id = isset($orders_filter['customer_id']) ? (string) $orders_filter['customer_id'] : '';
+						$viewed = isset($orders_filter['viewed']) ? $orders_filter['viewed'] : -1;
+						$paid_type = isset($orders_filter['paid_type']) ? (int) $orders_filter['paid_type'] : -1;
+						if (isset($orders_filter['office'])) {
+							$office = $orders_filter['office'];
+						}
+						if (isset($orders_filter['phone'])) {
+							$phone = (string) $orders_filter['phone'];
+						}
+						if (isset($orders_filter['article'])) {
+							$article = trim((string) $orders_filter['article']);
+						}
 					}
-					if( isset($orders_filter["phone"]) ){
-						$phone = $orders_filter["phone"];
-					}
-					if( isset($orders_filter["article"]) ){
-						$article = trim($orders_filter["article"]);
-					}
+				}
+
+				$epc_filter_date_show = static function ($unix) {
+					$unix = (int) $unix;
+					return $unix > 0 ? date('d.m.Y H:i', $unix) : '';
+				};
+				$time_from_show = $epc_filter_date_show($time_from);
+				$time_to_show = $epc_filter_date_show($time_to);
+
+				$fields_for_customer_search = 'ID, E-mail, ' . translate_str_by_id(1312);
+				$users_profile_fields_query = $db_link->prepare('SELECT `caption` FROM `reg_fields` WHERE `to_users_table` = 1;');
+				$users_profile_fields_query->execute();
+				while ($users_profile_field = $users_profile_fields_query->fetch()) {
+					$fields_for_customer_search .= ', ' . $users_profile_field['caption'];
+				}
+				$phone_show = str_replace(array('+7', '+375', '+380'), '', (string) $phone);
+				if ($phone_show !== '' && function_exists('urldecode')) {
+					$phone_show = rawurldecode($phone_show);
 				}
 				?>
-				
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3237); ?>
-						</label>
-						<div class="col-lg-6">
-							<div style="position:relative;height:34px;">
-								<input style="position:absolute; z-index:2; opacity:0;" type="text"  id="time_from" value="<?php echo $time_from; ?>" class="form-control" />
-								<input style="position:absolute; z-index:1; <?=(!empty($time_from))?'background:#b9fcab;':'';?>" type="text" id="time_from_show" class="form-control" />
-							</div>
-						</div>
+				<div class="epc-orders-filter-grid">
+					<div class="epc-orders-filter-field<?php echo $time_from_show !== '' ? ' is-active' : ''; ?>">
+						<label for="time_from_show"><?php echo translate_str_by_id(3237); ?></label>
+						<input type="hidden" id="time_from" value="<?php echo htmlspecialchars((string) $time_from, ENT_QUOTES, 'UTF-8'); ?>" />
+						<input type="text" id="time_from_show" class="form-control" value="<?php echo htmlspecialchars($time_from_show, ENT_QUOTES, 'UTF-8'); ?>" placeholder="dd.mm.yyyy hh:mm" autocomplete="off" />
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3238); ?>
-						</label>
-						<div class="col-lg-6">
-							<div style="position:relative;height:34px;">
-								<input style="position:absolute; z-index:2; opacity:0;" type="text"  id="time_to" value="<?php echo $time_to; ?>" class="form-control" />
-								<input style="position:absolute; z-index:1; <?=(!empty($time_to))?'background:#b9fcab;':'';?>" type="text" id="time_to_show" class="form-control" />
-							</div>
-						</div>
+					<div class="epc-orders-filter-field<?php echo $time_to_show !== '' ? ' is-active' : ''; ?>">
+						<label for="time_to_show"><?php echo translate_str_by_id(3238); ?></label>
+						<input type="hidden" id="time_to" value="<?php echo htmlspecialchars((string) $time_to, ENT_QUOTES, 'UTF-8'); ?>" />
+						<input type="text" id="time_to_show" class="form-control" value="<?php echo htmlspecialchars($time_to_show, ENT_QUOTES, 'UTF-8'); ?>" placeholder="dd.mm.yyyy hh:mm" autocomplete="off" />
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3244); ?>
-						</label>
-						<div class="col-lg-6">
-							<input <?=(!empty($order_id))?'style="background:#b9fcab;"':'';?> type="text" id="order_id" value="<?php echo $order_id; ?>" class="form-control" />
-						</div>
+					<div class="epc-orders-filter-field<?php echo $order_id !== '' ? ' is-active' : ''; ?>">
+						<label for="order_id"><?php echo translate_str_by_id(3244); ?></label>
+						<input type="text" id="order_id" value="<?php echo htmlspecialchars((string) $order_id, ENT_QUOTES, 'UTF-8'); ?>" class="form-control" />
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3584); ?>
-						</label>
-						<div class="col-lg-6" id="paid_div">
-							<select multiple="multiple" id="paid">
-								<option value="1"><?php echo translate_str_by_id(3514); ?></option>
-								<option value="2"><?php echo translate_str_by_id(3515); ?></option>
-								<option value="0"><?php echo translate_str_by_id(3513); ?></option>
-							</select>
-						</div>
+					<div class="epc-orders-filter-field" id="paid_div">
+						<label for="paid"><?php echo translate_str_by_id(3584); ?></label>
+						<select multiple="multiple" id="paid">
+							<option value="1"><?php echo translate_str_by_id(3514); ?></option>
+							<option value="2"><?php echo translate_str_by_id(3515); ?></option>
+							<option value="0"><?php echo translate_str_by_id(3513); ?></option>
+						</select>
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(4645); ?>
-						</label>
-						<div class="col-lg-6" id="paid_type_div">
-							<select multiple="multiple" id="paid_type">
-								<option value="0"><?php echo translate_str_by_id(4207); ?></option>
-								<?php
-								foreach($shop_orders_paid_type as $paid_type_id => $paid_type_data)
-								{
-								?>
-									<option value="<?php echo $paid_type_id; ?>"><?php echo translate_str_by_id($paid_type_data); ?></option>
-								<?php
-								}
-								?>
-							</select>
-						</div>
+					<div class="epc-orders-filter-field" id="paid_type_div">
+						<label for="paid_type"><?php echo translate_str_by_id(4645); ?></label>
+						<select multiple="multiple" id="paid_type">
+							<option value="0"><?php echo translate_str_by_id(4207); ?></option>
+							<?php foreach ($shop_orders_paid_type as $paid_type_id => $paid_type_data) { ?>
+							<option value="<?php echo (int) $paid_type_id; ?>"><?php echo translate_str_by_id($paid_type_data); ?></option>
+							<?php } ?>
+						</select>
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(2081); ?>
-						</label>
-						<div class="col-lg-6" id="status_div">
-							<select multiple="multiple" id="status">
-								<?php
-								foreach($orders_statuses as $status_id => $status_data)
-								{
-								?>
-									<option value="<?php echo $status_id; ?>"><?php echo translate_str_by_id($status_data["name"]); ?></option>
-								<?php
-								}
-								?>
-							</select>
-						</div>
+					<div class="epc-orders-filter-field" id="status_div">
+						<label for="status"><?php echo translate_str_by_id(2081); ?></label>
+						<select multiple="multiple" id="status">
+							<?php foreach ($orders_statuses as $status_id => $status_data) { ?>
+							<option value="<?php echo (int) $status_id; ?>"><?php echo translate_str_by_id($status_data['name']); ?></option>
+							<?php } ?>
+						</select>
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3818); ?>
-						</label>
-						<div class="col-lg-6">
-							<input <?=(!empty($customer_id))?'style="background:#b9fcab;"':'';?> type="text" id="customer_id" value="<?php echo $customer_id; ?>" class="form-control" />
-						</div>
+					<div class="epc-orders-filter-field<?php echo $customer_id !== '' ? ' is-active' : ''; ?>">
+						<label for="customer_id"><?php echo translate_str_by_id(3818); ?></label>
+						<input type="text" id="customer_id" value="<?php echo htmlspecialchars((string) $customer_id, ENT_QUOTES, 'UTF-8'); ?>" class="form-control" />
 					</div>
-				</div>
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
+					<div class="epc-orders-filter-field<?php echo $customer !== '' ? ' is-active' : ''; ?>">
+						<label for="customer">
+							<?php echo translate_str_by_id(3245); ?>
+							<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo htmlspecialchars(translate_str_by_id(3579) . ': ' . $fields_for_customer_search . '. ' . translate_str_by_id(3580), ENT_QUOTES, 'UTF-8'); ?>');"><i class="fa fa-info"></i></button>
+						</label>
+						<input type="text" id="customer" value="<?php echo htmlspecialchars((string) $customer, ENT_QUOTES, 'UTF-8'); ?>" class="form-control" />
+					</div>
+					<div class="epc-orders-filter-field" id="viewed_div">
+						<label for="viewed"><?php echo translate_str_by_id(3581); ?></label>
+						<select multiple="multiple" id="viewed">
+							<option value="1"><?php echo translate_str_by_id(3581); ?></option>
+							<option value="0"><?php echo translate_str_by_id(3582); ?></option>
+						</select>
+					</div>
+					<div class="epc-orders-filter-field" id="office_div">
+						<label for="office"><?php echo translate_str_by_id(3506); ?></label>
+						<select multiple="multiple" id="office">
 							<?php
-							//Для подсказки для поля Клиент
-							$fields_for_customer_search = "ID, E-mail, ".translate_str_by_id(1312);
-							//Дополнительно сюда выводим перечень полей профиля пользователя:
-							$users_profile_fields_query = $db_link->prepare("SELECT `caption` FROM `reg_fields` WHERE `to_users_table` = 1;");
-							$users_profile_fields_query->execute();
-							while( $users_profile_field = $users_profile_fields_query->fetch() )
-							{
-								$fields_for_customer_search = $fields_for_customer_search.", ".$users_profile_field["caption"];
+							foreach ($offices_list as $office_id => $office_caption) {
+								echo '<option value="' . (int) $office_id . '">' . htmlspecialchars(translate_str_by_id($office_caption), ENT_QUOTES, 'UTF-8') . '</option>';
 							}
 							?>
-						
-							<?php echo translate_str_by_id(3245); ?> <button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo translate_str_by_id(3579); ?>: <?php echo $fields_for_customer_search; ?>. <?php echo translate_str_by_id(3580); ?>');"><i class="fa fa-info"></i></button>
-						</label>
-						<div class="col-lg-6">
-							<input <?=(!empty($customer))?'style="background:#b9fcab;"':'';?> type="text" id="customer" value="<?php echo $customer; ?>" class="form-control" />
-						</div>
+						</select>
+					</div>
+					<div class="epc-orders-filter-field<?php echo $phone_show !== '' ? ' is-active' : ''; ?>">
+						<label for="phone"><?php echo translate_str_by_id(1312); ?></label>
+						<input type="text" id="phone" value="<?php echo htmlspecialchars($phone_show, ENT_QUOTES, 'UTF-8'); ?>" class="form-control" />
+					</div>
+					<div class="epc-orders-filter-field<?php echo $article !== '' ? ' is-active' : ''; ?>">
+						<label for="article"><?php echo translate_str_by_id(2071); ?></label>
+						<input type="text" id="article" value="<?php echo htmlspecialchars(trim((string) $article), ENT_QUOTES, 'UTF-8'); ?>" class="form-control" />
 					</div>
 				</div>
-				
-				
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3581); ?>
-						</label>
-						<div class="col-lg-6" id="viewed_div">
-							<select multiple="multiple" id="viewed">
-								<option value="1"><?php echo translate_str_by_id(3581); ?></option>
-								<option value="0"><?php echo translate_str_by_id(3582); ?></option>
-							</select>
-						</div>
-					</div>
-				</div>
-				
-				
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(3506); ?>
-						</label>
-						<div class="col-lg-6" id="office_div">
-							<select multiple="multiple" id="office">
-								<?php
-								foreach($offices_list as $office_id => $office_caption)
-								{
-									echo '<option value="'.$office_id.'">'.translate_str_by_id($office_caption).'</option>';
-								}
-								?>
-							</select>
-						</div>
-					</div>
-				</div>
-				
-				
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(1312); ?>
-						</label>
-						<div class="col-lg-6">
-							<input <?=(!empty($phone))?'style="background:#b9fcab;"':'';?> type="text" id="phone" value="<?php echo str_replace(array("+7","+375","+380"),"",$phone); ?>" class="form-control" />
-						</div>
-					</div>
-				</div>
-				
-				
-				
-				<div class="col-lg-4">
-					<div class="form-group">
-						<label for="" class="col-lg-6 control-label">
-							<?php echo translate_str_by_id(2071); ?>
-						</label>
-						<div class="col-lg-6">
-							<input <?=(!empty($article))?'style="background:#b9fcab;"':'';?> type="text" id="article" value="<?php echo trim($article); ?>" class="form-control" />
-						</div>
-					</div>
-				</div>
-				
-				
-				
 			</div>
 			<div class="panel-footer epc-scp-filter-bar">
 				<button class="btn btn-success" type="button" onclick="filterOrders();"><i class="fa fa-filter"></i> <?php echo translate_str_by_id(2232); ?></button>
@@ -444,7 +340,6 @@ else//Действий нет - выводим страницу
 				<button class="btn btn-info" type="button" onclick="ordersInProcess();"><i class="fa fa-toolbox"></i> <?php echo translate_str_by_id(5311); ?></button>
 			</div>
 		</div>
-	</div>
 	</div>
 	
 	
@@ -557,20 +452,21 @@ else//Действий нет - выводим страницу
 					{
 						$orders_filter = json_decode($orders_filter, true);
 						
-						//1. Время с
-						if($orders_filter["time_from"] != "")
-						{
-							$WHERE_CONDITIONS .= " AND `time` > ?";
-							
-							array_push( $binding_values, $orders_filter["time_from"] );
+						//1. Date from (inclusive)
+						if (!empty($orders_filter['time_from'])) {
+							$WHERE_CONDITIONS .= ' AND `time` >= ?';
+							array_push($binding_values, (int) $orders_filter['time_from']);
 						}
-						
-						//2. Время по
-						if($orders_filter["time_to"] != "")
-						{
-							$WHERE_CONDITIONS .= " AND `time` < ?";
-							
-							array_push( $binding_values, $orders_filter["time_to"] );
+
+						//2. Date to (inclusive — end of selected minute/day)
+						if (!empty($orders_filter['time_to'])) {
+							$time_to_bound = (int) $orders_filter['time_to'];
+							// If user picked midnight (date only), include the whole day.
+							if ($time_to_bound > 0 && ((int) date('H', $time_to_bound) === 0) && ((int) date('i', $time_to_bound) === 0) && ((int) date('s', $time_to_bound) === 0)) {
+								$time_to_bound += 86399;
+							}
+							$WHERE_CONDITIONS .= ' AND `time` <= ?';
+							array_push($binding_values, $time_to_bound);
 						}
 						
 						//3. Номер заказа
