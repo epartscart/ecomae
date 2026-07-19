@@ -37,6 +37,7 @@ try {
 
 require_once $docRoot . '/content/users/dp_user.php';
 require_once $docRoot . '/content/social_media/epc_social_media_helpers.php';
+require_once $docRoot . '/content/social_media/epc_social_publish.php';
 
 if (!DP_User::isAdmin()) {
 	echo json_encode(array('ok' => false, 'message' => 'Admin required'));
@@ -69,6 +70,24 @@ if ($action === 'generate_caption') {
 
 if ($action === 'save_draft') {
 	$result = epc_social_save_draft($pdo, $siteKey, $_POST);
+	echo json_encode($result);
+	exit;
+}
+
+if ($action === 'test_account') {
+	$result = epc_social_test_account($pdo, $siteKey, (string) ($_POST['platform'] ?? ''));
+	echo json_encode($result);
+	exit;
+}
+
+if ($action === 'publish_draft') {
+	$result = epc_social_publish_draft($pdo, $siteKey, (int) ($_POST['draft_id'] ?? 0));
+	echo json_encode($result);
+	exit;
+}
+
+if ($action === 'publish_now') {
+	$result = epc_social_publish_now($pdo, $siteKey, $_POST);
 	echo json_encode($result);
 	exit;
 }

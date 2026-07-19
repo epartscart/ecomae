@@ -7,6 +7,7 @@ defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/social_media/epc_social_media_helpers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/social_media/epc_social_media_pack_data.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/social_media/epc_social_publish.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 
 function epc_social_media_explore_hint_html(): string
@@ -80,6 +81,12 @@ function epc_social_media_render_hub(array $opts = array()): void
 				$accounts = epc_social_list_accounts($platformPdo, $siteKey);
 			} elseif ($action === 'save_draft') {
 				$flash = epc_social_save_draft($platformPdo, $siteKey, $_POST);
+				$drafts = epc_social_list_drafts($platformPdo, $siteKey);
+			} elseif ($action === 'publish_draft') {
+				$flash = epc_social_publish_draft($platformPdo, $siteKey, (int) ($_POST['draft_id'] ?? 0));
+				$drafts = epc_social_list_drafts($platformPdo, $siteKey);
+			} elseif ($action === 'publish_now') {
+				$flash = epc_social_publish_now($platformPdo, $siteKey, $_POST);
 				$drafts = epc_social_list_drafts($platformPdo, $siteKey);
 			}
 		}
@@ -206,7 +213,12 @@ function epc_social_render_pack_tab(array $brand): void
 			echo '<div class="epc-social-post__head">' . epc_social_h($post['title']) . '</div>';
 			echo '<div class="epc-social-post__body">' . epc_social_h($caption) . '</div>';
 			echo '<div class="epc-social-post__bar"><span class="text-muted small">' . epc_social_h($meta['label']) . '</span>';
-			echo '<button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-copy"></i> Copy</button></div>';
+			echo '<button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-copy"></i> Copy</button> ';
+			if ($plat === 'instagram' || $plat === 'facebook') {
+				echo '<button type="button" class="btn btn-xs btn-default epc-social-save-draft" data-platform="' . epc_social_h($plat) . '" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-save"></i> Draft</button> ';
+				echo '<button type="button" class="btn btn-xs btn-success epc-social-publish-now" data-platform="' . epc_social_h($plat) . '" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-share"></i> Publish</button>';
+			}
+			echo '</div>';
 			echo '</div>';
 		}
 		echo '</div>';
@@ -239,8 +251,8 @@ function epc_social_render_tiktok_tab(array $brand): void
 	}
 	echo '</dl></div></div>';
 	echo '<div class="panel panel-default"><div class="panel-heading"><strong>Upload / link</strong></div><div class="panel-body">';
-	echo '<p class="text-muted small">Paste a draft video URL (Google Drive, Dropbox, or CDN) when saving a draft. Direct upload to TikTok requires API keys — connect under <em>Connected accounts</em>.</p>';
-	echo '<input type="url" class="form-control input-sm" id="epc_social_video_url" placeholder="https://…/your-reel.mp4">';
+	echo '<p class="text-muted small">Public HTTPS <code>.mp4</code> URL required for live Publish (TikTok PULL_FROM_URL — verify domain in TikTok Developer Portal). Connect token under <em>Connected accounts</em>, then Publish.</p>';
+	echo '<input type="url" class="form-control input-sm" id="epc_social_video_url" placeholder="https://cdn.example.com/your-reel.mp4">';
 	echo '</div></div></div>';
 	echo '<div class="col-md-8"><div class="epc-social-grid">';
 	foreach ($posts as $post) {
@@ -248,7 +260,8 @@ function epc_social_render_tiktok_tab(array $brand): void
 		echo '<div class="epc-social-post"><div class="epc-social-post__head">' . epc_social_h($post['title']) . '</div>';
 		echo '<div class="epc-social-post__body">' . epc_social_h($caption) . '</div>';
 		echo '<div class="epc-social-post__bar"><button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-copy"></i> Copy caption</button>';
-		echo '<button type="button" class="btn btn-xs btn-default epc-social-save-draft" data-platform="tiktok" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-save"></i> Save draft</button></div></div>';
+		echo '<button type="button" class="btn btn-xs btn-default epc-social-save-draft" data-platform="tiktok" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-save"></i> Save draft</button> ';
+		echo '<button type="button" class="btn btn-xs btn-success epc-social-publish-now" data-platform="tiktok" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-share"></i> Publish</button></div></div>';
 	}
 	echo '</div></div></div>';
 }
@@ -264,7 +277,9 @@ function epc_social_render_instagram_tab(array $brand): void
 		$caption = (string) $post['caption'];
 		echo '<div class="epc-social-post"><div class="epc-social-post__head">' . epc_social_h($post['title']) . '</div>';
 		echo '<div class="epc-social-post__body">' . epc_social_h($caption) . '</div>';
-		echo '<div class="epc-social-post__bar"><button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-copy"></i> Copy</button></div></div>';
+		echo '<div class="epc-social-post__bar"><button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-copy"></i> Copy</button> ';
+		echo '<button type="button" class="btn btn-xs btn-default epc-social-save-draft" data-platform="instagram" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-save"></i> Save draft</button> ';
+		echo '<button type="button" class="btn btn-xs btn-success epc-social-publish-now" data-platform="instagram" data-title="' . epc_social_h($post['title']) . '" data-caption="' . epc_social_h($caption) . '"><i class="fa fa-share"></i> Publish</button></div></div>';
 	}
 	echo '</div>';
 	echo '<div class="panel panel-default" style="margin-top:18px"><div class="panel-heading"><strong>Reels &amp; carousel ideas</strong></div><div class="panel-body"><div class="epc-social-grid">';
@@ -272,21 +287,49 @@ function epc_social_render_instagram_tab(array $brand): void
 		$cap = epc_social_adapt_text((string) $idea['caption'], $brand);
 		echo '<div class="epc-social-post"><div class="epc-social-post__head">' . epc_social_h($idea['title']) . '</div>';
 		echo '<div class="epc-social-post__body">' . epc_social_h($cap) . '</div>';
-		echo '<div class="epc-social-post__bar"><button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($cap) . '"><i class="fa fa-copy"></i> Copy</button></div></div>';
+		echo '<div class="epc-social-post__bar"><button type="button" class="btn btn-xs btn-primary epc-social-copy" data-caption="' . epc_social_h($cap) . '"><i class="fa fa-copy"></i> Copy</button> ';
+		echo '<button type="button" class="btn btn-xs btn-default epc-social-save-draft" data-platform="instagram" data-title="' . epc_social_h($idea['title']) . '" data-caption="' . epc_social_h($cap) . '"><i class="fa fa-save"></i> Save draft</button></div></div>';
 	}
 	echo '</div></div></div>';
 }
 
 function epc_social_render_accounts_tab(array $brand, string $siteKey, array $accountMap, string $integrationsUrl, string $csrf): void
 {
-	echo '<div class="alert alert-warning"><i class="fa fa-lock"></i> <strong>Secure vault</strong> — passwords and tokens are AES-256 encrypted per tenant. Never shown after save. Full OAuth flows: add API keys in <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>.</div>';
+	global $db_link;
+	$pdo = epc_social_pdo($db_link instanceof PDO ? $db_link : null);
+	echo '<div class="alert alert-info"><i class="fa fa-bullhorn"></i> <strong>Live publish enabled</strong> for Facebook, Instagram, and TikTok. '
+		. 'Paste a Page / IG user / TikTok user access token, save, then <em>Test connection</em> (hits the real API). '
+		. 'Publish from the Drafts tab with a public media URL.</div>';
+	echo '<div class="alert alert-warning"><i class="fa fa-lock"></i> <strong>Secure vault</strong> — tokens are AES-256 encrypted per tenant and never shown after save. '
+		. 'Meta: Page token + Page ID (FB) or IG Business user ID. TikTok: user token with <code>video.publish</code>; unaudited apps post <code>SELF_ONLY</code> only. '
+		. 'App registration: <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>.</div>';
 	foreach (epc_social_platforms() as $key => $plat) {
 		$existing = $accountMap[$key] ?? null;
 		$status = $existing ? (string) ($existing['status'] ?? 'pending') : 'not_connected';
+		$meta = ($pdo instanceof PDO && $existing)
+			? epc_social_account_public_meta($pdo, $siteKey, $key)
+			: array('page_id' => '', 'ig_user_id' => '', 'open_id' => '', 'privacy_level' => 'SELF_ONLY', 'has_token' => false);
+		$idLabel = 'Page / Business ID';
+		$idHint = '';
+		if ($key === 'instagram') {
+			$idLabel = 'Instagram Business user ID';
+			$idHint = 'Graph: Page → instagram_business_account.id';
+		} elseif ($key === 'facebook') {
+			$idLabel = 'Facebook Page ID';
+		} elseif ($key === 'tiktok') {
+			$idLabel = 'Open ID (optional)';
+			$idHint = 'Filled by TikTok OAuth when available';
+		} elseif ($key === 'linkedin' || $key === 'x') {
+			$idHint = 'Vault only — live publish not enabled yet';
+		}
 		echo '<div class="epc-social-account-card">';
 		echo '<div class="epc-social-account-card__head">';
 		echo '<span class="epc-social-platform-icon" style="background:' . epc_social_h($plat['color']) . '"><i class="fa ' . epc_social_h($plat['icon']) . '"></i></span>';
-		echo '<div><strong>' . epc_social_h($plat['label']) . '</strong><br><span class="label label-' . ($status === 'verified' ? 'success' : 'default') . '">' . epc_social_h($status) . '</span></div>';
+		echo '<div><strong>' . epc_social_h($plat['label']) . '</strong><br><span class="label label-' . ($status === 'verified' ? 'success' : ($status === 'error' ? 'danger' : 'default')) . '">' . epc_social_h($status) . '</span>';
+		if (!empty($meta['has_token'])) {
+			echo ' <span class="label label-info">token saved</span>';
+		}
+		echo '</div>';
 		if ($existing && !empty($existing['last_test_at'])) {
 			echo '<span class="text-muted small pull-right">Last test: ' . epc_social_h(date('Y-m-d H:i', (int) $existing['last_test_at'])) . '</span>';
 		}
@@ -305,14 +348,32 @@ function epc_social_render_accounts_tab(array $brand, string $siteKey, array $ac
 		echo '<input class="form-control input-sm" name="api_key" type="password" placeholder="Optional" autocomplete="new-password"></div></div>';
 		echo '<div class="row"><div class="col-md-3 form-group"><label class="control-label">API secret</label>';
 		echo '<input class="form-control input-sm" name="api_secret" type="password" placeholder="Optional" autocomplete="new-password"></div>';
-		echo '<div class="col-md-3 form-group"><label class="control-label">Page / Business ID</label>';
-		echo '<input class="form-control input-sm" name="page_id" autocomplete="off"></div>';
-		echo '<div class="col-md-6 form-group" style="padding-top:24px">';
+		echo '<div class="col-md-3 form-group"><label class="control-label">' . epc_social_h($idLabel) . '</label>';
+		$pageVal = ($key === 'instagram' && ($meta['ig_user_id'] ?? '') !== '')
+			? (string) $meta['ig_user_id']
+			: (string) ($meta['page_id'] ?? '');
+		if ($key === 'tiktok' && $pageVal === '' && ($meta['open_id'] ?? '') !== '') {
+			$pageVal = (string) $meta['open_id'];
+		}
+		echo '<input class="form-control input-sm" name="page_id" value="' . epc_social_h($pageVal) . '" autocomplete="off" placeholder="' . epc_social_h($idHint) . '"></div>';
+		if ($key === 'instagram') {
+			echo '<input type="hidden" name="ig_user_id" value="' . epc_social_h((string) ($meta['ig_user_id'] !== '' ? $meta['ig_user_id'] : $pageVal)) . '">';
+		}
+		if ($key === 'tiktok') {
+			echo '<div class="col-md-3 form-group"><label class="control-label">TikTok privacy</label>';
+			$priv = (string) ($meta['privacy_level'] ?? 'SELF_ONLY');
+			echo '<select class="form-control input-sm" name="privacy_level">';
+			foreach (array('SELF_ONLY' => 'Private (SELF_ONLY — unaudited apps)', 'FOLLOWER_OF_CREATOR' => 'Followers', 'MUTUAL_FOLLOW_FRIENDS' => 'Friends', 'PUBLIC_TO_EVERYONE' => 'Public (needs TikTok audit)') as $pv => $plab) {
+				echo '<option value="' . epc_social_h($pv) . '"' . ($priv === $pv ? ' selected' : '') . '>' . epc_social_h($plab) . '</option>';
+			}
+			echo '</select></div>';
+		}
+		echo '<div class="col-md-3 form-group" style="padding-top:24px">';
 		echo '<button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-save"></i> Save securely</button>';
 		echo '</div></div></form>';
 		echo '<form method="post" style="display:inline"><input type="hidden" name="csrf_token" value="' . epc_social_h($csrf) . '">';
 		echo '<input type="hidden" name="epc_social_action" value="test_account"><input type="hidden" name="platform" value="' . epc_social_h($key) . '">';
-		echo '<button type="submit" class="btn btn-sm btn-default"><i class="fa fa-plug"></i> Test connection</button></form> ';
+		echo '<button type="submit" class="btn btn-sm btn-default"><i class="fa fa-plug"></i> Test connection (live API)</button></form> ';
 		if ($existing) {
 			echo '<form method="post" style="display:inline" onsubmit="return confirm(\'Remove credentials?\')"><input type="hidden" name="csrf_token" value="' . epc_social_h($csrf) . '">';
 			echo '<input type="hidden" name="epc_social_action" value="delete_account"><input type="hidden" name="platform" value="' . epc_social_h($key) . '">';
@@ -347,14 +408,57 @@ function epc_social_render_ai_tab(array $brand, array $trends, array $hooks, str
 
 function epc_social_render_drafts_tab(array $brand, array $drafts, string $csrf): void
 {
+	echo '<div class="panel panel-default"><div class="panel-heading"><strong>Compose &amp; publish</strong></div><div class="panel-body">';
+	echo '<p class="text-muted">Facebook / Instagram / TikTok post live from CP. Media URL must be public HTTPS (Meta/TikTok fetch it).</p>';
+	echo '<form method="post" class="form-horizontal" id="epc_social_publish_form">';
+	echo '<input type="hidden" name="csrf_token" value="' . epc_social_h($csrf) . '">';
+	echo '<div class="row">';
+	echo '<div class="col-md-3 form-group"><label>Platform</label><select class="form-control input-sm" name="platform" required>';
+	foreach (array('instagram' => 'Instagram', 'facebook' => 'Facebook', 'tiktok' => 'TikTok') as $pk => $pl) {
+		echo '<option value="' . epc_social_h($pk) . '">' . epc_social_h($pl) . '</option>';
+	}
+	echo '</select></div>';
+	echo '<div class="col-md-5 form-group"><label>Title</label><input class="form-control input-sm" name="title" value="' . epc_social_h($brand['brand_name'] . ' post') . '"></div>';
+	echo '<div class="col-md-4 form-group"><label>Public media URL</label><input class="form-control input-sm" name="media_url" id="epc_social_compose_media" placeholder="https://…/image.jpg or video.mp4"></div>';
+	echo '</div>';
+	echo '<div class="form-group"><label>Caption</label><textarea class="form-control" name="caption" id="epc_social_compose_caption" rows="4" placeholder="Post caption…"></textarea></div>';
+	echo '<div class="form-group"><label>Hashtags</label><input class="form-control input-sm" name="hashtags" placeholder="#AutoParts #UAEBusiness"></div>';
+	echo '<button type="submit" class="btn btn-primary" name="epc_social_action" value="publish_now" onclick="return confirm(\'Publish this post to the selected platform now?\')"><i class="fa fa-share"></i> Publish now</button> ';
+	echo '<button type="submit" class="btn btn-default" name="epc_social_action" value="save_draft"><i class="fa fa-save"></i> Save as draft only</button>';
+	echo '</form></div></div>';
+
 	echo '<div class="panel panel-default"><div class="panel-heading"><strong>Saved drafts</strong></div><div class="panel-body">';
 	if (count($drafts) === 0) {
-		echo '<p class="text-muted">No drafts yet. Copy a caption from Marketing pack or TikTok and click <em>Save draft</em>.</p>';
+		echo '<p class="text-muted">No drafts yet. Save from Marketing pack / TikTok, or use Compose above.</p>';
 	}
-	echo '<table class="table table-striped"><thead><tr><th>Title</th><th>Platform</th><th>Updated</th><th></th></tr></thead><tbody>';
+	echo '<table class="table table-striped"><thead><tr><th>Title</th><th>Platform</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody>';
 	foreach ($drafts as $d) {
-		echo '<tr><td>' . epc_social_h($d['title']) . '</td><td>' . epc_social_h($d['platform']) . '</td><td>' . epc_social_h(date('Y-m-d H:i', (int) $d['updated_at'])) . '</td>';
-		echo '<td><button type="button" class="btn btn-xs btn-default epc-social-copy" data-caption="' . epc_social_h($d['caption'] ?? '') . '"><i class="fa fa-copy"></i></button></td></tr>';
+		$status = (string) ($d['status'] ?? 'draft');
+		$statusClass = $status === 'published' ? 'success' : ($status === 'error' ? 'danger' : 'default');
+		$canPublish = in_array((string) ($d['platform'] ?? ''), array('facebook', 'instagram', 'tiktok'), true) && $status !== 'published';
+		echo '<tr><td>' . epc_social_h($d['title']);
+		if (!empty($d['media_url'])) {
+			echo '<br><small class="text-muted">' . epc_social_h(mb_substr((string) $d['media_url'], 0, 60)) . '</small>';
+		}
+		if ($status === 'error' && !empty($d['last_error'])) {
+			echo '<br><small class="text-danger">' . epc_social_h((string) $d['last_error']) . '</small>';
+		}
+		if ($status === 'published' && !empty($d['external_post_id'])) {
+			echo '<br><small class="text-success">ID: ' . epc_social_h((string) $d['external_post_id']) . '</small>';
+		}
+		echo '</td><td>' . epc_social_h($d['platform']) . '</td>';
+		echo '<td><span class="label label-' . $statusClass . '">' . epc_social_h($status) . '</span></td>';
+		echo '<td>' . epc_social_h(date('Y-m-d H:i', (int) $d['updated_at'])) . '</td>';
+		echo '<td style="white-space:nowrap">';
+		echo '<button type="button" class="btn btn-xs btn-default epc-social-copy" data-caption="' . epc_social_h($d['caption'] ?? '') . '"><i class="fa fa-copy"></i></button> ';
+		if ($canPublish) {
+			echo '<form method="post" style="display:inline" onsubmit="return confirm(\'Publish this draft to ' . epc_social_h((string) $d['platform']) . '?\')">';
+			echo '<input type="hidden" name="csrf_token" value="' . epc_social_h($csrf) . '">';
+			echo '<input type="hidden" name="epc_social_action" value="publish_draft">';
+			echo '<input type="hidden" name="draft_id" value="' . (int) $d['id'] . '">';
+			echo '<button type="submit" class="btn btn-xs btn-primary"><i class="fa fa-share"></i> Publish</button></form>';
+		}
+		echo '</td></tr>';
 	}
 	echo '</tbody></table></div></div>';
 }
@@ -362,11 +466,11 @@ function epc_social_render_drafts_tab(array $brand, array $drafts, string $csrf)
 function epc_social_render_guide_tab(array $brand, string $integrationsUrl, string $guideUrl): void
 {
 	$steps = array(
-		array('title' => 'Connect accounts', 'body' => 'Open <strong>Connected accounts</strong>. Save username + API token (encrypted). Use <em>Test connection</em> to verify vault storage. For Meta/TikTok OAuth apps, register keys in <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>.'),
+		array('title' => 'Connect accounts', 'body' => 'Open <strong>Connected accounts</strong>. Save access token + Page / IG Business user ID (encrypted). Click <em>Test connection (live API)</em> — Facebook/Instagram hit Meta Graph; TikTok hits creator_info. Register Meta/TikTok apps in <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>.'),
 		array('title' => 'Pick content from pack', 'body' => 'Marketing pack includes 16 ECOM AE posts (LinkedIn, Instagram, Facebook, X). Tenant CP auto-adapts brand name, domain, and hashtags for ' . epc_social_h($brand['brand_name']) . '.'),
-		array('title' => 'TikTok & Instagram video', 'body' => 'Use TikTok tab for 9:16 specs and caption scripts. Instagram tab adds Reels/carousel storyboards. Paste video URL into draft — schedule manually until API posting is enabled.'),
+		array('title' => 'Publish from Drafts', 'body' => 'Open <strong>Drafts</strong> → Compose. Choose Facebook / Instagram / TikTok, paste a <em>public HTTPS</em> image or .mp4 URL, then <strong>Publish now</strong>. Instagram uses media → poll → media_publish. TikTok uses PULL_FROM_URL (verify your domain in TikTok Developer Portal). Unaudited TikTok apps: privacy SELF_ONLY only.'),
 		array('title' => 'AI advisor', 'body' => 'Check weekly trending formats and industry hooks. Generate captions for your product line. GCC: mix English + Arabic hashtags. Pakistan: Urdu/English captions perform well on Facebook.'),
-		array('title' => 'Post & measure', 'body' => 'Copy → native app or Meta Business Suite. Track link-in-bio clicks. Super CP operators manage platform + per-tenant accounts; tenants only see their own <code>site_key</code> credentials.'),
+		array('title' => 'Measure', 'body' => 'Published drafts store external post IDs. Track clicks via Web tracker / GA4. LinkedIn and X remain copy→native until those APIs are wired.'),
 	);
 	echo '<div class="alert alert-info"><i class="fa fa-book"></i> Guide URL: <a href="' . epc_social_h($guideUrl) . '"><code>' . epc_social_h($guideUrl) . '</code></a></div>';
 	foreach ($steps as $i => $step) {
