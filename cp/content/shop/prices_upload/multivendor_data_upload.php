@@ -13,7 +13,7 @@ if ($backend_raw === '') {
 	$backend_raw = 'cp';
 }
 $backend = htmlspecialchars($backend_raw, ENT_QUOTES, 'UTF-8');
-// Inline bootstrap so sample/upload works even if footer config script 403s.
+// Boot JSON (not a <script>) survives CP script relocation; JS merges it into EPC_MULTIVENDOR_CP.
 $epc_mv_sample = '/' . $backend_raw . '/content/shop/prices_upload/epc_multivendor_sample_file.php';
 $epc_mv_inline = array(
 	'ajaxUrl' => '/' . $backend_raw . '/content/shop/prices_upload/ajax_epc_multivendor_ingest.php',
@@ -23,9 +23,11 @@ $epc_mv_inline = array(
 	'pricesUrl' => '/' . $backend_raw . '/shop/prices',
 	'storagesUrl' => '/' . $backend_raw . '/shop/logistics/storages',
 );
+$epc_mv_boot_json = json_encode($epc_mv_inline, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 ?>
+<div id="epc-multivendor-boot" style="display:none"><?php echo htmlspecialchars((string) $epc_mv_boot_json, ENT_QUOTES, 'UTF-8'); ?></div>
 <script>
-window.EPC_MULTIVENDOR_CP = <?php echo json_encode($epc_mv_inline, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+window.EPC_MULTIVENDOR_CP = Object.assign({}, window.EPC_MULTIVENDOR_CP || {}, <?php echo $epc_mv_boot_json; ?>);
 </script>
 <div class="epc-multivendor-page">
 	<div class="epc-multivendor-hero">
