@@ -669,6 +669,10 @@ function epc_seo_head_extras_html($DP_Content, $DP_Config): string
 		return '';
 	}
 	$out = '';
+	// Bing Webmaster Tools — HTML meta verification (epartscart.com)
+	if (function_exists('epc_portal_is_epartscart_hostname') && epc_portal_is_epartscart_hostname()) {
+		$out .= '<meta name="msvalidate.01" content="A5F1A0C564CD9037AAD1E7874D8F4FA8" />' . "\n";
+	}
 	if (!empty($DP_Content->service_data['epc_seo_page_title'])) {
 		$out .= '<meta property="og:title" content="' . htmlspecialchars((string) $DP_Content->service_data['epc_seo_page_title'], ENT_QUOTES, 'UTF-8') . '">' . "\n";
 	}
