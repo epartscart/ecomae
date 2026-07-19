@@ -42,14 +42,15 @@ class DocpartMailer extends PHPMailer
 			$this->Mailer = 'smtp';
 		}
 
-		if (empty($this->From)) {
-			$this->From = (string)$DP_Config->from_email;
+		// Always prefer site config over PHPMailer defaults (root@localhost).
+		$fromEmail = trim((string) $DP_Config->from_email);
+		$fromName = trim((string) $DP_Config->from_name);
+		if ($fromEmail !== '') {
+			$this->From = $fromEmail;
+			$this->Sender = $fromEmail;
 		}
-		if (empty($this->FromName)) {
-			$this->FromName = (string)$DP_Config->from_name;
-		}
-		if (empty($this->Sender)) {
-			$this->Sender = (string)$DP_Config->from_email;
+		if ($fromName !== '') {
+			$this->FromName = $fromName;
 		}
 		$this->Priority = $this->priority;
 	}

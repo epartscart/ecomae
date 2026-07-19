@@ -70,7 +70,7 @@ function epc_portal_tenant_templates(): array
 			'industry' => 'auto_parts',
 			'trade_name' => 'eParts Cart',
 			'hub_name' => 'Electronic World Group',
-			'from_email' => 'partsdoc2025@gmail.com',
+			'from_email' => 'epartscart@gmail.com',
 			'storefront_package' => 'automotive_spareparts_pro',
 			'theme_template' => 'classic',
 			'onboard_notes' => 'Preset automotive_spareparts_pro: piston homepage, animated SVG logo (not hub/tenant brand). Colours via theme JSON in Industry Settings.',
