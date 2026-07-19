@@ -1,6 +1,6 @@
 {
   "source": "pakwheels.com/accessories-spare-parts",
-  "crawled_note": "PakWheels accessories category tree + filter chrome. Listings are stored in ePartsCart DB and filled per category — PakWheels product ads are not scraped/imported.",
+  "crawled_note": "PakWheels accessories category tree + filter chrome (cleaned: removed sibling-category cross-links and city geo pages). Listings are stored in ePartsCart DB and filled per category — PakWheels product ads are not scraped/imported.",
   "categories": [
     {
       "slug": "car-care",
@@ -122,18 +122,6 @@
           "pw_id": 213333,
           "label": "Car Ceramic Coating",
           "href": "/accessories-spare-parts/sealant-glass-coat/213333"
-        },
-        {
-          "slug": "porsche-car-care",
-          "pw_id": 2821362,
-          "label": "Porsche Car Care",
-          "href": "/accessories-spare-parts/porsche-car-care/2821362"
-        },
-        {
-          "slug": "car-care-lahore",
-          "pw_id": 165158,
-          "label": "Care Lahore",
-          "href": "/accessories-spare-parts/car-care-lahore/165158"
         }
       ]
     },
@@ -257,24 +245,6 @@
           "pw_id": 488371,
           "label": "Car Console Box",
           "href": "/accessories-spare-parts/console-box/488371"
-        },
-        {
-          "slug": "jetour-interior",
-          "pw_id": 2915461,
-          "label": "Jetour Interior",
-          "href": "/accessories-spare-parts/jetour-interior/2915461"
-        },
-        {
-          "slug": "porsche-interior",
-          "pw_id": 687074,
-          "label": "Porsche Interior",
-          "href": "/accessories-spare-parts/porsche-interior/687074"
-        },
-        {
-          "slug": "interior-lahore",
-          "pw_id": 165225,
-          "label": "Interior Lahore",
-          "href": "/accessories-spare-parts/interior-lahore/165225"
         }
       ]
     },
@@ -398,42 +368,6 @@
           "pw_id": 164832,
           "label": "Car Body Kits",
           "href": "/accessories-spare-parts/spoilers-body-kits/164832"
-        },
-        {
-          "slug": "ford-exterior",
-          "pw_id": 2686078,
-          "label": "Ford Exterior",
-          "href": "/accessories-spare-parts/ford-exterior/2686078"
-        },
-        {
-          "slug": "faw-exterior",
-          "pw_id": 399102,
-          "label": "FAW Exterior",
-          "href": "/accessories-spare-parts/faw-exterior/399102"
-        },
-        {
-          "slug": "others-exterior",
-          "pw_id": 2678431,
-          "label": "Others Exterior",
-          "href": "/accessories-spare-parts/others-exterior/2678431"
-        },
-        {
-          "slug": "subaru-exterior",
-          "pw_id": 3023082,
-          "label": "Subaru Exterior",
-          "href": "/accessories-spare-parts/subaru-exterior/3023082"
-        },
-        {
-          "slug": "peugeot-exterior",
-          "pw_id": 2481281,
-          "label": "Peugeot Exterior",
-          "href": "/accessories-spare-parts/peugeot-exterior/2481281"
-        },
-        {
-          "slug": "exterior-karachi",
-          "pw_id": 165176,
-          "label": "Exterior Karachi",
-          "href": "/accessories-spare-parts/exterior-karachi/165176"
         }
       ]
     },
@@ -469,136 +403,16 @@
           "href": "/accessories-spare-parts/brake-caliper-cover/3221046"
         },
         {
-          "slug": "isuzu-brakes",
-          "pw_id": 382071,
-          "label": "Isuzu Brakes",
-          "href": "/accessories-spare-parts/isuzu-brakes/382071"
-        },
-        {
-          "slug": "faw-brakes",
-          "pw_id": 244217,
-          "label": "FAW Brakes",
-          "href": "/accessories-spare-parts/faw-brakes/244217"
-        },
-        {
           "slug": "chevrolet-brakes",
           "pw_id": 243601,
           "label": "Chevrolet Brakes",
           "href": "/accessories-spare-parts/chevrolet-brakes/243601"
         },
         {
-          "slug": "ford-brakes",
-          "pw_id": 2830258,
-          "label": "Ford Brakes",
-          "href": "/accessories-spare-parts/ford-brakes/2830258"
-        },
-        {
           "slug": "dfsk-brakes",
           "pw_id": 2590024,
           "label": "DFSK Brakes",
           "href": "/accessories-spare-parts/dfsk-brakes/2590024"
-        },
-        {
-          "slug": "subaru-brakes",
-          "pw_id": 382876,
-          "label": "Subaru Brakes",
-          "href": "/accessories-spare-parts/subaru-brakes/382876"
-        },
-        {
-          "slug": "brakes-karachi",
-          "pw_id": 165211,
-          "label": "Brakes Karachi",
-          "href": "/accessories-spare-parts/brakes-karachi/165211"
-        },
-        {
-          "slug": "brakes-lahore",
-          "pw_id": 165212,
-          "label": "Brakes Lahore",
-          "href": "/accessories-spare-parts/brakes-lahore/165212"
-        },
-        {
-          "slug": "brakes-mirpur-khas",
-          "pw_id": 2579401,
-          "label": "Brakes Mirpur khas",
-          "href": "/accessories-spare-parts/brakes-mirpur-khas/2579401"
-        },
-        {
-          "slug": "brakes-okara",
-          "pw_id": 2587760,
-          "label": "Brakes Okara",
-          "href": "/accessories-spare-parts/brakes-okara/2587760"
-        },
-        {
-          "slug": "brakes-sialkot",
-          "pw_id": 165208,
-          "label": "Brakes Sialkot",
-          "href": "/accessories-spare-parts/brakes-sialkot/165208"
-        },
-        {
-          "slug": "brakes-islamabad",
-          "pw_id": 165210,
-          "label": "Brakes Islamabad",
-          "href": "/accessories-spare-parts/brakes-islamabad/165210"
-        },
-        {
-          "slug": "brakes-rawalpindi",
-          "pw_id": 165206,
-          "label": "Brakes Rawalpindi",
-          "href": "/accessories-spare-parts/brakes-rawalpindi/165206"
-        },
-        {
-          "slug": "brakes-gujranwala",
-          "pw_id": 357018,
-          "label": "Brakes Gujranwala",
-          "href": "/accessories-spare-parts/brakes-gujranwala/357018"
-        },
-        {
-          "slug": "brakes-multan",
-          "pw_id": 228703,
-          "label": "Brakes Multan",
-          "href": "/accessories-spare-parts/brakes-multan/228703"
-        },
-        {
-          "slug": "car-care",
-          "pw_id": 165146,
-          "label": "Car Care",
-          "href": "/accessories-spare-parts/car-care/165146"
-        },
-        {
-          "slug": "interior",
-          "pw_id": 165213,
-          "label": "Interior",
-          "href": "/accessories-spare-parts/interior/165213"
-        },
-        {
-          "slug": "exterior",
-          "pw_id": 165159,
-          "label": "Exterior",
-          "href": "/accessories-spare-parts/exterior/165159"
-        },
-        {
-          "slug": "engine-mechanical",
-          "pw_id": 165178,
-          "label": "Engine & Mechanical",
-          "href": "/accessories-spare-parts/engine-mechanical/165178"
-        },
-        {
-          "slug": "tools-gadgets",
-          "pw_id": 212973,
-          "label": "Tools & Gadgets",
-          "href": "/accessories-spare-parts/tools-gadgets/212973"
-        },
-        {
-          "slug": "lights-electrical",
-          "pw_id": 165126,
-          "label": "Lights & Electrical",
-          "href": "/accessories-spare-parts/lights-electrical/165126"
-        },
-        {
-          "slug": "oils-lubricants",
-          "pw_id": 212969,
-          "label": "Oils & Lubricants",
-          "href": "/accessories-spare-parts/oils-lubricants/212969"
         }
       ]
     },
@@ -724,40 +538,16 @@
           "href": "/accessories-spare-parts/fuel-filters/1790256"
         },
         {
-          "slug": "subaru-engine-mechanical",
-          "pw_id": 2936061,
-          "label": "Subaru Engine & Mechanical",
-          "href": "/accessories-spare-parts/subaru-engine-mechanical/2936061"
-        },
-        {
           "slug": "dfsk-engine-mechanical",
           "pw_id": 2709773,
           "label": "DFSK Engine & Mechanical",
           "href": "/accessories-spare-parts/dfsk-engine-mechanical/2709773"
         },
         {
-          "slug": "faw-engine-mechanical",
-          "pw_id": 375643,
-          "label": "FAW Engine & Mechanical",
-          "href": "/accessories-spare-parts/faw-engine-mechanical/375643"
-        },
-        {
-          "slug": "peugeot-engine-mechanical",
-          "pw_id": 2723590,
-          "label": "Peugeot Engine & Mechanical",
-          "href": "/accessories-spare-parts/peugeot-engine-mechanical/2723590"
-        },
-        {
           "slug": "baic-engine-mechanical",
           "pw_id": 2956946,
           "label": "BAIC Engine & Mechanical",
           "href": "/accessories-spare-parts/baic-engine-mechanical/2956946"
-        },
-        {
-          "slug": "engine-mechanical-karachi",
-          "pw_id": 165200,
-          "label": "Engine & Mechanical Karachi",
-          "href": "/accessories-spare-parts/engine-mechanical-karachi/165200"
         }
       ]
     },
@@ -847,118 +637,10 @@
           "href": "/accessories-spare-parts/catalytic-converter-cleaner/3221047"
         },
         {
-          "slug": "subaru-oils-lubricants",
-          "pw_id": 3049071,
-          "label": "Subaru Oils & Lubricants",
-          "href": "/accessories-spare-parts/subaru-oils-lubricants/3049071"
-        },
-        {
           "slug": "dfsk-oils-lubricants",
           "pw_id": 3039130,
           "label": "DFSK Oils & Lubricants",
           "href": "/accessories-spare-parts/dfsk-oils-lubricants/3039130"
-        },
-        {
-          "slug": "peugeot-oils-lubricants",
-          "pw_id": 2723591,
-          "label": "Peugeot Oils & Lubricants",
-          "href": "/accessories-spare-parts/peugeot-oils-lubricants/2723591"
-        },
-        {
-          "slug": "oils-lubricants-karachi",
-          "pw_id": 212971,
-          "label": "Oils & Lubricants Karachi",
-          "href": "/accessories-spare-parts/oils-lubricants-karachi/212971"
-        },
-        {
-          "slug": "oils-lubricants-lahore",
-          "pw_id": 212972,
-          "label": "Oils & Lubricants Lahore",
-          "href": "/accessories-spare-parts/oils-lubricants-lahore/212972"
-        },
-        {
-          "slug": "oils-lubricants-islamabad",
-          "pw_id": 239845,
-          "label": "Oils & Lubricants Islamabad",
-          "href": "/accessories-spare-parts/oils-lubricants-islamabad/239845"
-        },
-        {
-          "slug": "oils-lubricants-okara",
-          "pw_id": 686047,
-          "label": "Oils & Lubricants Okara",
-          "href": "/accessories-spare-parts/oils-lubricants-okara/686047"
-        },
-        {
-          "slug": "oils-lubricants-mirpur-khas",
-          "pw_id": 2559113,
-          "label": "Oils & Lubricants Mirpur khas",
-          "href": "/accessories-spare-parts/oils-lubricants-mirpur-khas/2559113"
-        },
-        {
-          "slug": "oils-lubricants-sialkot",
-          "pw_id": 230855,
-          "label": "Oils & Lubricants Sialkot",
-          "href": "/accessories-spare-parts/oils-lubricants-sialkot/230855"
-        },
-        {
-          "slug": "oils-lubricants-multan",
-          "pw_id": 238358,
-          "label": "Oils & Lubricants Multan",
-          "href": "/accessories-spare-parts/oils-lubricants-multan/238358"
-        },
-        {
-          "slug": "oils-lubricants-rawalpindi",
-          "pw_id": 219443,
-          "label": "Oils & Lubricants Rawalpindi",
-          "href": "/accessories-spare-parts/oils-lubricants-rawalpindi/219443"
-        },
-        {
-          "slug": "car-care",
-          "pw_id": 165146,
-          "label": "Car Care",
-          "href": "/accessories-spare-parts/car-care/165146"
-        },
-        {
-          "slug": "interior",
-          "pw_id": 165213,
-          "label": "Interior",
-          "href": "/accessories-spare-parts/interior/165213"
-        },
-        {
-          "slug": "exterior",
-          "pw_id": 165159,
-          "label": "Exterior",
-          "href": "/accessories-spare-parts/exterior/165159"
-        },
-        {
-          "slug": "brakes",
-          "pw_id": 165202,
-          "label": "Brakes",
-          "href": "/accessories-spare-parts/brakes/165202"
-        },
-        {
-          "slug": "engine-mechanical",
-          "pw_id": 165178,
-          "label": "Engine & Mechanical",
-          "href": "/accessories-spare-parts/engine-mechanical/165178"
-        },
-        {
-          "slug": "tools-gadgets",
-          "pw_id": 212973,
-          "label": "Tools & Gadgets",
-          "href": "/accessories-spare-parts/tools-gadgets/212973"
-        },
-        {
-          "slug": "lights-electrical",
-          "pw_id": 165126,
-          "label": "Lights & Electrical",
-          "href": "/accessories-spare-parts/lights-electrical/165126"
-        },
-        {
-          "slug": "bikes--2",
-          "pw_id": 212995,
-          "label": "Bikes Spare Parts",
-          "href": "/accessories-spare-parts/bikes--2/212995"
         }
       ]
     },
@@ -1084,34 +766,16 @@
           "href": "/accessories-spare-parts/obd-scanners/3167598"
         },
         {
-          "slug": "jetour-tools-gadgets",
-          "pw_id": 3030878,
-          "label": "Jetour Tools & Gadgets",
-          "href": "/accessories-spare-parts/jetour-tools-gadgets/3030878"
-        },
-        {
           "slug": "jac-tools-gadgets",
           "pw_id": 2931160,
           "label": "JAC Tools & Gadgets",
           "href": "/accessories-spare-parts/jac-tools-gadgets/2931160"
         },
         {
-          "slug": "peugeot-tools-gadgets",
-          "pw_id": 2559201,
-          "label": "Peugeot Tools & Gadgets",
-          "href": "/accessories-spare-parts/peugeot-tools-gadgets/2559201"
-        },
-        {
           "slug": "dongfeng-tools-gadgets",
           "pw_id": 3183074,
           "label": "Dongfeng Tools & Gadgets",
           "href": "/accessories-spare-parts/dongfeng-tools-gadgets/3183074"
-        },
-        {
-          "slug": "tools-gadgets-lahore",
-          "pw_id": 212977,
-          "label": "Tools & Gadgets Lahore",
-          "href": "/accessories-spare-parts/tools-gadgets-lahore/212977"
         }
       ]
     },
@@ -1243,58 +907,10 @@
           "href": "/accessories-spare-parts/land-rover-lights-electrical/706040"
         },
         {
-          "slug": "others-lights-electrical",
-          "pw_id": 2668123,
-          "label": "Others Lights & Electrical",
-          "href": "/accessories-spare-parts/others-lights-electrical/2668123"
-        },
-        {
           "slug": "dfsk-lights-electrical",
           "pw_id": 2862632,
           "label": "DFSK Lights & Electrical",
           "href": "/accessories-spare-parts/dfsk-lights-electrical/2862632"
-        },
-        {
-          "slug": "lights-electrical-lahore",
-          "pw_id": 165144,
-          "label": "Lights & Electrical Lahore",
-          "href": "/accessories-spare-parts/lights-electrical-lahore/165144"
-        },
-        {
-          "slug": "lights-electrical-karachi",
-          "pw_id": 165143,
-          "label": "Lights & Electrical Karachi",
-          "href": "/accessories-spare-parts/lights-electrical-karachi/165143"
-        },
-        {
-          "slug": "lights-electrical-rawalpindi",
-          "pw_id": 165139,
-          "label": "Lights & Electrical Rawalpindi",
-          "href": "/accessories-spare-parts/lights-electrical-rawalpindi/165139"
-        },
-        {
-          "slug": "lights-electrical-sialkot",
-          "pw_id": 165140,
-          "label": "Lights & Electrical Sialkot",
-          "href": "/accessories-spare-parts/lights-electrical-sialkot/165140"
-        },
-        {
-          "slug": "lights-electrical-okara",
-          "pw_id": 258559,
-          "label": "Lights & Electrical Okara",
-          "href": "/accessories-spare-parts/lights-electrical-okara/258559"
-        },
-        {
-          "slug": "lights-electrical-islamabad",
-          "pw_id": 165142,
-          "label": "Lights & Electrical Islamabad",
-          "href": "/accessories-spare-parts/lights-electrical-islamabad/165142"
-        },
-        {
-          "slug": "lights-electrical-peshawar",
-          "pw_id": 165137,
-          "label": "Lights & Electrical Peshawar",
-          "href": "/accessories-spare-parts/lights-electrical-peshawar/165137"
         }
       ]
     },
@@ -1354,88 +970,10 @@
           "href": "/accessories-spare-parts/dfsk-tyres-wheels/2867388"
         },
         {
-          "slug": "tyres-wheels-karachi",
-          "pw_id": 165104,
-          "label": "Tyres & Wheels Karachi",
-          "href": "/accessories-spare-parts/tyres-wheels-karachi/165104"
-        },
-        {
-          "slug": "tyres-wheels-lahore",
-          "pw_id": 165105,
-          "label": "Tyres & Wheels Lahore",
-          "href": "/accessories-spare-parts/tyres-wheels-lahore/165105"
-        },
-        {
-          "slug": "tyres-wheels-okara",
-          "pw_id": 165092,
-          "label": "Tyres & Wheels Okara",
-          "href": "/accessories-spare-parts/tyres-wheels-okara/165092"
-        },
-        {
-          "slug": "tyres-wheels-peshawar",
-          "pw_id": 165093,
-          "label": "Tyres & Wheels Peshawar",
-          "href": "/accessories-spare-parts/tyres-wheels-peshawar/165093"
-        },
-        {
-          "slug": "tyres-wheels-rawalpindi",
-          "pw_id": 165095,
-          "label": "Tyres & Wheels Rawalpindi",
-          "href": "/accessories-spare-parts/tyres-wheels-rawalpindi/165095"
-        },
-        {
-          "slug": "tyres-wheels-islamabad",
-          "pw_id": 165103,
-          "label": "Tyres & Wheels Islamabad",
-          "href": "/accessories-spare-parts/tyres-wheels-islamabad/165103"
-        },
-        {
-          "slug": "tyres-wheels-faisalabad",
-          "pw_id": 165085,
-          "label": "Tyres & Wheels Faisalabad",
-          "href": "/accessories-spare-parts/tyres-wheels-faisalabad/165085"
-        },
-        {
-          "slug": "tyres-wheels-gujranwala",
-          "pw_id": 165086,
-          "label": "Tyres & Wheels Gujranwala",
-          "href": "/accessories-spare-parts/tyres-wheels-gujranwala/165086"
-        },
-        {
-          "slug": "tyres-wheels-sialkot",
-          "pw_id": 165098,
-          "label": "Tyres & Wheels Sialkot",
-          "href": "/accessories-spare-parts/tyres-wheels-sialkot/165098"
-        },
-        {
-          "slug": "tyres-wheels-abbottabad",
-          "pw_id": 730245,
-          "label": "Tyres & Wheels Abbottabad",
-          "href": "/accessories-spare-parts/tyres-wheels-abbottabad/730245"
-        },
-        {
           "slug": "tyres-wheels-khanewal",
           "pw_id": 515938,
           "label": "Tyres & Wheels Khanewal",
           "href": "/accessories-spare-parts/tyres-wheels-khanewal/515938"
-        },
-        {
-          "slug": "tyres-wheels-quetta",
-          "pw_id": 165094,
-          "label": "Tyres & Wheels Quetta",
-          "href": "/accessories-spare-parts/tyres-wheels-quetta/165094"
-        },
-        {
-          "slug": "tyres-wheels-multan",
-          "pw_id": 165090,
-          "label": "Tyres & Wheels Multan",
-          "href": "/accessories-spare-parts/tyres-wheels-multan/165090"
-        },
-        {
-          "slug": "tyres-wheels-bahawalpur",
-          "pw_id": 212934,
-          "label": "Tyres & Wheels Bahawalpur",
-          "href": "/accessories-spare-parts/tyres-wheels-bahawalpur/212934"
         },
         {
           "slug": "tyres-wheels-jalalpur-bhattian",
@@ -1456,12 +994,6 @@
           "href": "/accessories-spare-parts/tyres-wheels-gujrat/165087"
         },
         {
-          "slug": "tyres-wheels-hyderabad",
-          "pw_id": 212936,
-          "label": "Tyres & Wheels Hyderabad",
-          "href": "/accessories-spare-parts/tyres-wheels-hyderabad/212936"
-        },
-        {
           "slug": "tyres-wheels-abdul-hakeem",
           "pw_id": 722238,
           "label": "Tyres & Wheels Abdul Hakeem",
@@ -1472,36 +1004,6 @@
           "pw_id": 341237,
           "label": "Tyres & Wheels Burewala",
           "href": "/accessories-spare-parts/tyres-wheels-burewala/341237"
-        },
-        {
-          "slug": "car-care",
-          "pw_id": 165146,
-          "label": "Car Care",
-          "href": "/accessories-spare-parts/car-care/165146"
-        },
-        {
-          "slug": "interior",
-          "pw_id": 165213,
-          "label": "Interior",
-          "href": "/accessories-spare-parts/interior/165213"
-        },
-        {
-          "slug": "exterior",
-          "pw_id": 165159,
-          "label": "Exterior",
-          "href": "/accessories-spare-parts/exterior/165159"
-        },
-        {
-          "slug": "brakes",
-          "pw_id": 165202,
-          "label": "Brakes",
-          "href": "/accessories-spare-parts/brakes/165202"
-        },
-        {
-          "slug": "engine-mechanical",
-          "pw_id": 165178,
-          "label": "Engine & Mechanical",
-          "href": "/accessories-spare-parts/engine-mechanical/165178"
         }
       ]
     },
@@ -1621,70 +1123,10 @@
           "href": "/accessories-spare-parts/bike-clutch-plates/2038416"
         },
         {
-          "slug": "others-bikes--2",
-          "pw_id": 2838769,
-          "label": "Others Bikes",
-          "href": "/accessories-spare-parts/others-bikes--2/2838769"
-        },
-        {
-          "slug": "bikes--2-lahore",
-          "pw_id": 213004,
-          "label": "Bikes Lahore",
-          "href": "/accessories-spare-parts/bikes--2-lahore/213004"
-        },
-        {
-          "slug": "bikes--2-karachi",
-          "pw_id": 213003,
-          "label": "Bikes Karachi",
-          "href": "/accessories-spare-parts/bikes--2-karachi/213003"
-        },
-        {
-          "slug": "bikes--2-okara",
-          "pw_id": 227975,
-          "label": "Bikes Okara",
-          "href": "/accessories-spare-parts/bikes--2-okara/227975"
-        },
-        {
-          "slug": "bikes--2-rawalpindi",
-          "pw_id": 213001,
-          "label": "Bikes Rawalpindi",
-          "href": "/accessories-spare-parts/bikes--2-rawalpindi/213001"
-        },
-        {
-          "slug": "bikes--2-islamabad",
-          "pw_id": 213002,
-          "label": "Bikes Islamabad",
-          "href": "/accessories-spare-parts/bikes--2-islamabad/213002"
-        },
-        {
-          "slug": "bikes--2-sialkot",
-          "pw_id": 219445,
-          "label": "Bikes Sialkot",
-          "href": "/accessories-spare-parts/bikes--2-sialkot/219445"
-        },
-        {
-          "slug": "bikes--2-faisalabad",
-          "pw_id": 212996,
-          "label": "Bikes Faisalabad",
-          "href": "/accessories-spare-parts/bikes--2-faisalabad/212996"
-        },
-        {
           "slug": "bikes--2-haripur--2",
           "pw_id": 740977,
           "label": "Bikes Haripur",
           "href": "/accessories-spare-parts/bikes--2-haripur--2/740977"
-        },
-        {
-          "slug": "bikes--2-abbottabad",
-          "pw_id": 731108,
-          "label": "Bikes Abbottabad",
-          "href": "/accessories-spare-parts/bikes--2-abbottabad/731108"
-        },
-        {
-          "slug": "bikes--2-peshawar",
-          "pw_id": 212999,
-          "label": "Bikes Peshawar",
-          "href": "/accessories-spare-parts/bikes--2-peshawar/212999"
         },
         {
           "slug": "bikes--2-fateh-jang",
@@ -1727,18 +1169,6 @@
           "pw_id": 620345,
           "label": "Bikes Dadu",
           "href": "/accessories-spare-parts/bikes--2-dadu/620345"
-        },
-        {
-          "slug": "bikes--2-mirpur-khas",
-          "pw_id": 692035,
-          "label": "Bikes Mirpur khas",
-          "href": "/accessories-spare-parts/bikes--2-mirpur-khas/692035"
-        },
-        {
-          "slug": "bikes--2-chichawatni",
-          "pw_id": 445313,
-          "label": "Bikes Chichawatni",
-          "href": "/accessories-spare-parts/bikes--2-chichawatni/445313"
         }
       ]
     },

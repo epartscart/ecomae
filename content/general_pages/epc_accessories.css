@@ -116,6 +116,85 @@
 	color: #fff;
 }
 
+.epc-acc__vehicle {
+	background: #fff;
+	border: 1px solid var(--acc-line);
+	border-radius: 16px;
+	box-shadow: var(--acc-shadow);
+	padding: 14px 16px;
+	margin: 0 0 16px;
+	animation: epcAccCardIn .4s ease both;
+}
+.epc-acc__vehicle-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px 14px;
+	margin: 0 0 12px;
+}
+.epc-acc__vehicle-head strong {
+	font-family: Syne, Manrope, sans-serif;
+	font-size: 18px;
+}
+.epc-acc__vehicle-head span {
+	color: var(--acc-muted);
+	font-size: 13px;
+	font-weight: 600;
+}
+.epc-acc__vehicle-row {
+	display: grid;
+	grid-template-columns: 1.2fr 1.2fr .8fr auto auto;
+	gap: 10px;
+	align-items: end;
+}
+.epc-acc__vehicle-row label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--acc-muted);
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+.epc-acc__vehicle-row select,
+.epc-acc__vehicle-row input {
+	height: 40px;
+	border: 1px solid var(--acc-line);
+	border-radius: 8px;
+	padding: 0 10px;
+	font-weight: 600;
+	color: var(--acc-ink);
+	background: #fff;
+}
+.epc-acc__vehicle-row .epc-acc__btn,
+.epc-acc__vehicle-row .epc-acc__btn-muted {
+	height: 40px;
+	margin: 0;
+	width: auto;
+	min-width: 96px;
+}
+.epc-acc__saved-bar {
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px dashed var(--acc-line);
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--acc-muted);
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+.epc-acc__saved-bar strong { color: var(--acc-ink); }
+.epc-acc__saved-bar button {
+	border: 0;
+	background: transparent;
+	color: var(--acc-red);
+	font-weight: 800;
+	cursor: pointer;
+	padding: 0;
+}
+
 .epc-acc__layout {
 	display: grid;
 	grid-template-columns: 280px minmax(0, 1fr);
@@ -284,6 +363,36 @@
 	font-weight: 800;
 	border-radius: 999px;
 	padding: 4px 8px;
+	z-index: 1;
+}
+.epc-acc__featured {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	background: linear-gradient(135deg, #f59e0b, #d97706);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 800;
+	border-radius: 999px;
+	padding: 4px 8px;
+	z-index: 1;
+	letter-spacing: .02em;
+}
+.epc-acc__photos {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+	background: rgba(15, 23, 42, .72);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	border-radius: 999px;
+	padding: 4px 8px;
+	z-index: 1;
+}
+.epc-acc__card.is-featured {
+	border-color: #fcd34d;
+	box-shadow: 0 0 0 1px rgba(245, 158, 11, .25), var(--acc-shadow);
 }
 .epc-acc__media-mark {
 	font-family: Syne, Manrope, sans-serif;
@@ -335,6 +444,16 @@
 	font-weight: 800;
 	color: var(--acc-ink);
 	font-variant-numeric: tabular-nums;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px;
+}
+.epc-acc__compare {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--acc-muted);
+	text-decoration: line-through;
 }
 .epc-acc__stock {
 	font-size: 12px;
@@ -367,6 +486,70 @@
 	background: #fff;
 	border-color: var(--acc-line);
 	color: var(--acc-ink);
+}
+.epc-acc__actions .epc-acc__save.is-saved {
+	background: #fff7ed;
+	border-color: #fdba74;
+	color: #c2410c;
+}
+
+.epc-acc__dialog {
+	border: 0;
+	border-radius: 16px;
+	padding: 0;
+	max-width: 420px;
+	width: calc(100% - 32px);
+	box-shadow: 0 24px 60px rgba(15, 23, 42, .28);
+}
+.epc-acc__dialog::backdrop {
+	background: rgba(15, 23, 42, .45);
+}
+.epc-acc__dialog-inner {
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.epc-acc__dialog-inner h3 {
+	margin: 0;
+	font-family: Syne, Manrope, sans-serif;
+	font-size: 22px;
+}
+.epc-acc__dialog-inner p {
+	margin: 0;
+	color: var(--acc-muted);
+	font-size: 14px;
+}
+.epc-acc__dialog-inner label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--acc-muted);
+	text-transform: uppercase;
+}
+.epc-acc__dialog-inner input {
+	height: 42px;
+	border: 1px solid var(--acc-line);
+	border-radius: 8px;
+	padding: 0 12px;
+	font-weight: 600;
+	text-transform: none;
+}
+.epc-acc__dialog-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 4px;
+}
+.epc-acc__dialog-actions .epc-acc__btn,
+.epc-acc__dialog-actions .epc-acc__btn-muted {
+	flex: 1;
+	height: 40px;
+}
+.epc-acc__dialog-note {
+	color: #15803d !important;
+	font-weight: 700;
 }
 
 .epc-acc__pager {
@@ -463,6 +646,7 @@
 	.epc-acc__side { position: static; }
 	.epc-acc__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.epc-acc__trust { grid-template-columns: 1fr 1fr; }
+	.epc-acc__vehicle-row { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
 	.epc-acc__grid,
@@ -471,4 +655,5 @@
 	.epc-acc__grid.is-list .epc-acc__media { width: 100%; }
 	.epc-acc__trust { grid-template-columns: 1fr; }
 	.epc-acc__search { flex-direction: column; }
+	.epc-acc__vehicle-row { grid-template-columns: 1fr; }
 }
