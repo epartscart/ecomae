@@ -14,26 +14,48 @@ defined('_ASTEXE_') or die('No access');
  * @return array<string, array{icon:string,image:string,blurb:string}>
  */
 /**
- * Presentation photo for one process (real image if set, else generated dummy UI shot).
+ * Topic-related presentation photo for one process.
+ * Inventory → warehouse/parts photos; currency → banknotes; etc.
  *
- * @param array{name?:string,icon?:string,image?:string,url?:string} $item
+ * @param array{name?:string,icon?:string,image?:string,url?:string,does?:string} $item
  */
 function epc_cp_brochure_item_image(array $item, string $area): string
 {
-	$custom = trim((string) ($item['image'] ?? ''));
-	if ($custom !== '' && (strpos($custom, '/') === 0 || preg_match('#^https?://#i', $custom))) {
-		return $custom;
+	$topicFile = __DIR__ . '/epc_cp_brochure_topic_photos.php';
+	if (is_file($topicFile)) {
+		require_once $topicFile;
+	}
+	if (function_exists('epc_cp_brochure_item_topic_photo')) {
+		$meta = epc_cp_brochure_item_topic_photo($item, $area);
+		return (string) ($meta['photo'] ?? '');
 	}
 	$name = trim((string) ($item['name'] ?? 'Process'));
 	$icon = trim((string) ($item['icon'] ?? 'fa-cube'));
-	if ($icon === '') {
-		$icon = 'fa-cube';
-	}
 	return '/content/general_pages/epc_brochure_process_photo.php?' . http_build_query(array(
 		't' => $name,
 		'a' => $area,
-		'i' => $icon,
+		'i' => $icon !== '' ? $icon : 'fa-cube',
 	));
+}
+
+/**
+ * @param array{name?:string,does?:string,url?:string,image?:string} $item
+ * @return array{topic:string,label:string,photo:string}
+ */
+function epc_cp_brochure_item_photo_meta(array $item, string $area): array
+{
+	$topicFile = __DIR__ . '/epc_cp_brochure_topic_photos.php';
+	if (is_file($topicFile)) {
+		require_once $topicFile;
+	}
+	if (function_exists('epc_cp_brochure_item_topic_photo')) {
+		return epc_cp_brochure_item_topic_photo($item, $area);
+	}
+	return array(
+		'topic' => 'default',
+		'label' => 'Operations',
+		'photo' => epc_cp_brochure_item_image($item, $area),
+	);
 }
 
 /**
@@ -57,30 +79,41 @@ function epc_cp_brochure_screen_pool(): array
 
 function epc_cp_brochure_area_visuals(): array
 {
-	$base = '/content/general_pages/marketing_screens/';
+	$topicFile = __DIR__ . '/epc_cp_brochure_topic_photos.php';
+	if (is_file($topicFile)) {
+		require_once $topicFile;
+	}
+	$pick = static function (string $topic) use ($topicFile): string {
+		if (!function_exists('epc_cp_brochure_topic_catalog')) {
+			return '/content/general_pages/marketing_screens/og_cover.png';
+		}
+		$cat = epc_cp_brochure_topic_catalog();
+		$photos = $cat[$topic]['photos'] ?? ($cat['default']['photos'] ?? array());
+		return (string) ($photos[0] ?? '/content/general_pages/marketing_screens/og_cover.png');
+	};
 	return array(
-		'Super CP / Platform' => array('icon' => 'fa-cloud', 'image' => $base . 'pf_orgmap.png', 'blurb' => 'Host every tenant from one operator console.'),
-		'Super CP / Operator' => array('icon' => 'fa-user-secret', 'image' => $base . 'pf_workforce.png', 'blurb' => 'Cross-tenant tools for platform operators.'),
-		'Super CP / BOC' => array('icon' => 'fa-shield', 'image' => $base . 'pf_tracker.png', 'blurb' => 'Business operations control and audit.'),
-		'Portal' => array('icon' => 'fa-sliders', 'image' => $base . 'pf_location.png', 'blurb' => 'Industry packs, branding, and site settings.'),
-		'Integrations' => array('icon' => 'fa-plug', 'image' => $base . 'pf_tracker.png', 'blurb' => 'APIs, webhooks, and partner connections.'),
-		'Shop / OMS' => array('icon' => 'fa-shopping-cart', 'image' => $base . 'pf_workforce.png', 'blurb' => 'Orders, fulfilment, and daily desk work.'),
-		'Prices & Catalogue' => array('icon' => 'fa-tags', 'image' => $base . 'pf_location.png', 'blurb' => 'Price lists, warehouses, and catalogue truth.'),
-		'Payments' => array('icon' => 'fa-credit-card', 'image' => $base . 'og_cover.png', 'blurb' => 'Gateways, currency, and reconciliation.'),
-		'Logistics' => array('icon' => 'fa-truck', 'image' => $base . 'pf_location.png', 'blurb' => 'Carriers, branches, and shipping methods.'),
-		'Channels / Marketplace' => array('icon' => 'fa-share-alt', 'image' => $base . 'pf_orgmap.png', 'blurb' => 'Sell beyond your own storefront.'),
-		'Procurement' => array('icon' => 'fa-clipboard', 'image' => $base . 'pf_tracker.png', 'blurb' => 'Suppliers, POs, and three-way match.'),
-		'ERP / Finance' => array('icon' => 'fa-university', 'image' => $base . 'pf_orgmap.png', 'blurb' => 'GL, AR/AP, treasury, and close.'),
-		'ERP / Modules' => array('icon' => 'fa-th-large', 'image' => $base . 'pf_workforce.png', 'blurb' => 'Every ERP area and tab — auto-synced from live nav.'),
-		'ERP / Tax & VAT' => array('icon' => 'fa-percent', 'image' => $base . 'og_cover.png', 'blurb' => 'VAT, tax toolkit, and jurisdiction rules.'),
-		'ERP / External Reporting' => array('icon' => 'fa-file-text-o', 'image' => $base . 'pf_tracker.png', 'blurb' => 'Statutory returns and export packs.'),
-		'Documents' => array('icon' => 'fa-folder-open', 'image' => $base . 'pf_location.png', 'blurb' => 'Print packs, PDFs, and document control.'),
-		'Customers / CRM' => array('icon' => 'fa-users', 'image' => $base . 'pf_workforce.png', 'blurb' => 'Customers, profiles, and CRM pipelines.'),
-		'AI' => array('icon' => 'fa-magic', 'image' => $base . 'pf_orgmap.png', 'blurb' => 'Parts Expert chat and agent review.'),
-		'Marketing' => array('icon' => 'fa-bullhorn', 'image' => $base . 'pf_tracker.png', 'blurb' => 'Broadcast, social hub, and campaigns.'),
-		'Content / CMS' => array('icon' => 'fa-pencil', 'image' => $base . 'og_cover.png', 'blurb' => 'Pages, blocks, and storefront content.'),
-		'System & Admin' => array('icon' => 'fa-cogs', 'image' => $base . 'pf_orgmap.png', 'blurb' => 'Users, roles, and platform admin.'),
-		'Industry Templates' => array('icon' => 'fa-industry', 'image' => $base . 'pf_location.png', 'blurb' => 'Vertical packs ready to deploy.'),
+		'Super CP / Platform' => array('icon' => 'fa-cloud', 'image' => $pick('platform'), 'blurb' => 'Host every tenant from one operator console.'),
+		'Super CP / Operator' => array('icon' => 'fa-user-secret', 'image' => $pick('platform'), 'blurb' => 'Cross-tenant tools for platform operators.'),
+		'Super CP / BOC' => array('icon' => 'fa-shield', 'image' => $pick('platform'), 'blurb' => 'Business operations control and audit.'),
+		'Portal' => array('icon' => 'fa-sliders', 'image' => $pick('settings'), 'blurb' => 'Industry packs, branding, and site settings.'),
+		'Integrations' => array('icon' => 'fa-plug', 'image' => $pick('platform'), 'blurb' => 'APIs, webhooks, and partner connections.'),
+		'Shop / OMS' => array('icon' => 'fa-shopping-cart', 'image' => $pick('orders'), 'blurb' => 'Orders, fulfilment, and daily desk work.'),
+		'Prices & Catalogue' => array('icon' => 'fa-tags', 'image' => $pick('inventory'), 'blurb' => 'Price lists, warehouses, and catalogue truth.'),
+		'Payments' => array('icon' => 'fa-credit-card', 'image' => $pick('money'), 'blurb' => 'Gateways, currency, and reconciliation.'),
+		'Logistics' => array('icon' => 'fa-truck', 'image' => $pick('logistics'), 'blurb' => 'Carriers, branches, and shipping methods.'),
+		'Channels / Marketplace' => array('icon' => 'fa-share-alt', 'image' => $pick('orders'), 'blurb' => 'Sell beyond your own storefront.'),
+		'Procurement' => array('icon' => 'fa-clipboard', 'image' => $pick('procurement'), 'blurb' => 'Suppliers, POs, and three-way match.'),
+		'ERP / Finance' => array('icon' => 'fa-university', 'image' => $pick('money'), 'blurb' => 'GL, AR/AP, treasury, and close.'),
+		'ERP / Modules' => array('icon' => 'fa-th-large', 'image' => $pick('erp'), 'blurb' => 'Every ERP area and tab — auto-synced from live nav.'),
+		'ERP / Tax & VAT' => array('icon' => 'fa-percent', 'image' => $pick('money'), 'blurb' => 'VAT, tax toolkit, and jurisdiction rules.'),
+		'ERP / External Reporting' => array('icon' => 'fa-file-text-o', 'image' => $pick('documents'), 'blurb' => 'Statutory returns and export packs.'),
+		'Documents' => array('icon' => 'fa-folder-open', 'image' => $pick('documents'), 'blurb' => 'Print packs, PDFs, and document control.'),
+		'Customers / CRM' => array('icon' => 'fa-users', 'image' => $pick('customers'), 'blurb' => 'Customers, profiles, and CRM pipelines.'),
+		'AI' => array('icon' => 'fa-magic', 'image' => $pick('ai'), 'blurb' => 'Parts Expert chat and agent review.'),
+		'Marketing' => array('icon' => 'fa-bullhorn', 'image' => $pick('marketing'), 'blurb' => 'Broadcast, social hub, and campaigns.'),
+		'Content / CMS' => array('icon' => 'fa-pencil', 'image' => $pick('content'), 'blurb' => 'Pages, blocks, and storefront content.'),
+		'System & Admin' => array('icon' => 'fa-cogs', 'image' => $pick('settings'), 'blurb' => 'Users, roles, and platform admin.'),
+		'Industry Templates' => array('icon' => 'fa-industry', 'image' => $pick('platform'), 'blurb' => 'Vertical packs ready to deploy.'),
 	);
 }
 

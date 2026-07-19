@@ -161,7 +161,13 @@ function epc_cp_brochure_css(array $p): string
 .epc-br__card-photo img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.02);transition:transform .45s ease}
 .epc-br__card:hover .epc-br__card-photo img{transform:scale(1.07)}
 .epc-br__card-photo-ico{position:absolute;left:10px;bottom:10px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:.95rem;backdrop-filter:blur(4px)}
+.epc-br__topic{position:absolute;right:10px;top:10px;padding:4px 8px;border-radius:4px;background:rgba(0,0,0,.55);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(4px)}
 .epc-br__card-body{padding:14px 14px 14px;display:flex;flex-direction:column;flex:1}
+.epc-br__book{counter-reset:epc-br-chapter}
+.epc-br__chapter{counter-increment:epc-br-chapter}
+.epc-br__chapter-no{display:inline-block;font-family:Syne,sans-serif;font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--br-accent);margin:0 0 6px}
+.epc-br__chapter-no::before{content:"Chapter " counter(epc-br-chapter) " · "}
+.epc-br__pagehint{font-size:.8rem;color:var(--br-muted);margin:0 0 28px}
 .epc-br__card h3{margin:0 0 8px;font-family:Syne,sans-serif;font-size:1rem;letter-spacing:-.01em;line-height:1.25}
 .epc-br__card p{margin:0;flex:1;font-size:.86rem;color:var(--br-muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .epc-br__card-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;font-size:.72rem}
@@ -342,10 +348,10 @@ JS;
 		. '<div class="epc-br__hero-veil" aria-hidden="true"></div>'
 		. '<div class="epc-br__hero-inner">'
 		. '<div class="epc-br__live"><i class="fa fa-circle"></i> Live synced · ' . epc_brochure_h($syncedAt) . '</div>'
-		. '<div class="epc-br__eyebrow">Control Panel · graphical presentation</div>'
+		. '<div class="epc-br__eyebrow">Control Panel · illustrated operations book</div>'
 		. '<h1>' . epc_brochure_h($p['name']) . '</h1>'
-		. '<p>Every operator capability as a visual map — <strong>' . $total . '</strong> functions across '
-		. $areaCount . ' areas. Auto-updates when ERP modules or platform capabilities change.</p>'
+		. '<p>A complete book of every operator capability — <strong>' . $total . '</strong> processes across '
+		. $areaCount . ' chapters, each with a topic-related photo and full detail. Auto-updates when ERP modules or platform capabilities change.</p>'
 		. '<div class="epc-br__hero-ctas">'
 		. '<a class="epc-br__btn epc-br__btn--pri" href="#areas">Explore areas</a>'
 		. '<a class="epc-br__btn epc-br__btn--ghost" href="' . epc_brochure_h($p['cp_url']) . '">Open /cp</a>'
@@ -421,10 +427,11 @@ function epc_cp_brochure_render_deck_body(array $inv, array $visuals, int $total
 		$aid = 'area-' . preg_replace('/[^a-z0-9]+/', '-', strtolower($area));
 		$v = $visuals[$area] ?? array('icon' => 'fa-cube', 'image' => '/content/general_pages/marketing_screens/og_cover.png', 'blurb' => '');
 		$img = epc_brochure_h((string) $v['image']);
-		$areasHtml .= '<section class="epc-br__area" id="' . epc_brochure_h($aid) . '" data-area="' . epc_brochure_h(strtolower($area)) . '">';
+		$areasHtml .= '<section class="epc-br__area epc-br__chapter" id="' . epc_brochure_h($aid) . '" data-area="' . epc_brochure_h(strtolower($area)) . '">';
 		$areasHtml .= '<div class="epc-br__area-banner">'
 			. '<div class="epc-br__area-banner-media" style="background-image:url(' . $img . ')"></div>'
 			. '<div class="epc-br__area-banner-copy">'
+			. '<div class="epc-br__chapter-no">' . epc_brochure_h($area) . '</div>'
 			. '<h2><i class="fa ' . epc_brochure_h((string) $v['icon']) . '"></i> ' . epc_brochure_h($area) . '</h2>'
 			. '<p>' . epc_brochure_h((string) ($v['blurb'] !== '' ? $v['blurb'] : 'Operator capabilities in this area.')) . '</p>'
 			. '<span class="epc-br__count">' . count($items) . ' capabilities</span>'
@@ -440,18 +447,22 @@ function epc_cp_brochure_render_deck_body(array $inv, array $visuals, int $total
 			if (strpos($icon, 'fa-') !== 0) {
 				$icon = 'fa-cube';
 			}
-			$photo = function_exists('epc_cp_brochure_item_image')
-				? epc_cp_brochure_item_image($item, (string) $area)
-				: '/content/general_pages/marketing_screens/og_cover.png';
-			$q = strtolower($name . ' ' . $does . ' ' . $url . ' ' . $area);
+			$photoMeta = function_exists('epc_cp_brochure_item_photo_meta')
+				? epc_cp_brochure_item_photo_meta($item, (string) $area)
+				: array('photo' => epc_cp_brochure_item_image($item, (string) $area), 'label' => 'Operations', 'topic' => 'default');
+			$photo = (string) ($photoMeta['photo'] ?? '');
+			$topicLabel = (string) ($photoMeta['label'] ?? 'Operations');
+			$q = strtolower($name . ' ' . $does . ' ' . $url . ' ' . $area . ' ' . $topicLabel);
 			$areasHtml .= '<article class="epc-br__card" tabindex="0" role="button"'
 				. ' data-q="' . epc_brochure_h($q) . '"'
 				. ' data-name="' . epc_brochure_h($name) . '"'
 				. ' data-does="' . epc_brochure_h($does) . '"'
 				. ' data-url="' . epc_brochure_h($url) . '"'
-				. ' data-photo="' . epc_brochure_h($photo) . '">'
+				. ' data-photo="' . epc_brochure_h($photo) . '"'
+				. ' data-topic="' . epc_brochure_h($topicLabel) . '">'
 				. '<span class="epc-br__card-photo">'
-				. '<img src="' . epc_brochure_h($photo) . '" alt="' . epc_brochure_h($name) . '" loading="lazy" width="480" height="270">'
+				. '<img src="' . epc_brochure_h($photo) . '" alt="' . epc_brochure_h($topicLabel . ' — ' . $name) . '" loading="lazy" width="480" height="270">'
+				. '<span class="epc-br__topic">' . epc_brochure_h($topicLabel) . '</span>'
 				. '<span class="epc-br__card-photo-ico" aria-hidden="true"><i class="fa ' . epc_brochure_h($icon) . '"></i></span>'
 				. '</span>'
 				. '<div class="epc-br__card-body">'
@@ -466,11 +477,11 @@ function epc_cp_brochure_render_deck_body(array $inv, array $visuals, int $total
 	}
 
 	return $stats
-		. '<section class="epc-br__sec"><h2>Explore by area</h2>'
-		. '<p>Every process has a presentation photo. Tiles jump into each Control Panel domain — cards open full detail, auto-synced from live ERP navigation and the platform capabilities catalog.</p></section>'
+		. '<section class="epc-br__sec"><h2>Complete illustrated book</h2>'
+		. '<p class="epc-br__pagehint">Every process uses a <strong>topic-related photo</strong> — warehouse shelves for inventory, banknotes for currency, parcels for orders, auto parts for catalogue. Chapters below are the Control Panel domains.</p></section>'
 		. $mosaic
 		. $toolbar
-		. $areasHtml;
+		. '<div class="epc-br__book">' . $areasHtml . '</div>';
 }
 
 /**

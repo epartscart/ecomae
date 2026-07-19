@@ -389,7 +389,7 @@ function epc_brochure_render_html(string $brand, array $opts = array()): string
 	$journeyHtml = '';
 	foreach ($journey as $j) {
 		$photo = function_exists('epc_cp_brochure_item_image')
-			? epc_cp_brochure_item_image(array('name' => $j['title'], 'icon' => 'fa-play'), 'How work flows')
+			? epc_cp_brochure_item_image(array('name' => $j['title'], 'does' => $j['body'], 'icon' => 'fa-play'), 'How work flows')
 			: '/content/general_pages/marketing_screens/og_cover.png';
 		$journeyHtml .= '<div class="epc-br__j">'
 			. '<img class="epc-br__j-photo" src="' . epc_brochure_h($photo) . '" alt="' . epc_brochure_h($j['title']) . '" loading="lazy" width="640" height="400">'
@@ -400,7 +400,7 @@ function epc_brochure_render_html(string $brand, array $opts = array()): string
 	$secHtml = '';
 	foreach ($sections as $si => $sec) {
 		$secPhoto = function_exists('epc_cp_brochure_item_image')
-			? epc_cp_brochure_item_image(array('name' => $sec['title'], 'icon' => 'fa-image'), (string) $sec['title'])
+			? epc_cp_brochure_item_image(array('name' => $sec['title'], 'does' => $sec['body'], 'icon' => 'fa-image'), (string) $sec['title'])
 			: '/content/general_pages/marketing_screens/og_cover.png';
 		$secHtml .= '<section class="epc-br__sec">'
 			. '<img class="epc-br__sec-photo" src="' . epc_brochure_h($secPhoto) . '" alt="' . epc_brochure_h($sec['title']) . '" loading="lazy" width="1100" height="220">'
@@ -410,9 +410,14 @@ function epc_brochure_render_html(string $brand, array $opts = array()): string
 			$ptPhoto = function_exists('epc_cp_brochure_item_image')
 				? epc_cp_brochure_item_image(array('name' => $pt, 'icon' => 'fa-check'), (string) $sec['title'])
 				: '/content/general_pages/marketing_screens/og_cover.png';
+			$ptMeta = function_exists('epc_cp_brochure_item_photo_meta')
+				? epc_cp_brochure_item_photo_meta(array('name' => $pt), (string) $sec['title'])
+				: array('label' => '');
 			$secHtml .= '<li class="epc-br__point-card">'
 				. '<img src="' . epc_brochure_h($ptPhoto) . '" alt="' . epc_brochure_h($pt) . '" loading="lazy" width="480" height="270">'
-				. '<span>' . epc_brochure_h($pt) . '</span></li>';
+				. '<span>' . epc_brochure_h($pt)
+				. (!empty($ptMeta['label']) ? ' <em style="display:block;margin-top:4px;font-style:normal;font-size:.72rem;color:var(--br-muted);text-transform:uppercase;letter-spacing:.06em">' . epc_brochure_h($ptMeta['label']) . '</em>' : '')
+				. '</span></li>';
 		}
 		$secHtml .= '</ul></section>';
 	}
