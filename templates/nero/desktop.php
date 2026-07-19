@@ -822,38 +822,43 @@ if(!empty($DP_Template->data_value->message_header)){
 				</div>
 				
 				<div class="table-control epc-header-contact-col">
-					<div class="geo-point-box text-left">
-						<?php
-						$geo_point_class = 'hidden';
-						$query_geo = $db_link->prepare("SELECT `activated` FROM `modules` WHERE `id` = ?;");
-						$query_geo->execute( array(38) );
-						$module_geo = $query_geo->fetch();
-						if($module_geo['activated'] == 1)
-						{
-							$geo_point_class = '';
-						}
-						?>
-						<div class="<?=$geo_point_class;?>">
-							<table>
-								<tr>
-									<td><i class="fa fa-location-arrow" aria-hidden="true"></i></td>
-									<td><span><docpart type="module" name="geo_point" /></span></td>
-								</tr>
-							</table>
+					<div class="epc-header-geo-phone">
+						<div class="geo-point-box text-left">
+							<?php
+							$geo_point_class = 'hidden';
+							$query_geo = $db_link->prepare("SELECT `activated` FROM `modules` WHERE `id` = ?;");
+							$query_geo->execute( array(38) );
+							$module_geo = $query_geo->fetch();
+							if($module_geo['activated'] == 1)
+							{
+								$geo_point_class = '';
+							}
+							?>
+							<div class="<?=$geo_point_class;?>">
+								<table>
+									<tr>
+										<td><i class="fa fa-location-arrow" aria-hidden="true"></i></td>
+										<td><span><docpart type="module" name="geo_point" /></span></td>
+									</tr>
+								</table>
+							</div>
+							<?php
+							if($module_geo['activated'] == 0)
+							{
+							?>
+								<table>
+									<tr>
+										<td><i class="fa fa-location-arrow" aria-hidden="true"></i></td>
+										<td><span><?=trim(translate_str_by_id($customer_office_info['city'])).'<br/>'.trim(translate_str_by_id($customer_office_info['address']));?></span></td>
+									</tr>
+								</table>
+							<?php
+							}
+							?>
 						</div>
-						<?php
-						if($module_geo['activated'] == 0)
-						{
-						?>
-							<table>
-								<tr>
-									<td><i class="fa fa-location-arrow" aria-hidden="true"></i></td>
-									<td><span><?=trim(translate_str_by_id($customer_office_info['city'])).'<br/>'.trim(translate_str_by_id($customer_office_info['address']));?></span></td>
-								</tr>
-							</table>
-						<?php
-						}
-						?>
+						<div class="header-phone-box text-left">
+							<a href="tel:<?=htmlspecialchars($epc_contact_phone_href, ENT_QUOTES, 'UTF-8');?>" class="phone call-me"><?=htmlspecialchars($epc_contact_phone, ENT_QUOTES, 'UTF-8');?></a>
+						</div>
 					</div>
 					<div class="timetable-box text-left">
 					<table>
@@ -866,7 +871,6 @@ if(!empty($DP_Template->data_value->message_header)){
 				</div>
 				
 				<div class="table-control epc-header-right-col">
-					<div class="header-phone-box"><a href="tel:<?=htmlspecialchars($epc_contact_phone_href, ENT_QUOTES, 'UTF-8');?>" class="phone call-me"><?=htmlspecialchars($epc_contact_phone, ENT_QUOTES, 'UTF-8');?></a></div>
 					<div class="epc-header-actions-row">
 						<div class="header-call-box"><a href="<?php echo $multilang_params['lang_href']; ?>/zapros-prodavczu"><?php echo translate_str_by_id(4817); ?></a></div>
 						<?php if ($epc_whatsapp_href_number !== '') { ?>
