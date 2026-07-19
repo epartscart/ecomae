@@ -3,12 +3,23 @@
  * AJAX: load order detail pane HTML for dual-pane orders workspace.
  */
 header('Content-Type: text/html; charset=utf-8');
+
+if (!defined('_ASTEXE_')) {
+	define('_ASTEXE_', 1);
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-$DP_Config = new DP_Config;
+$DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
+
+$dbHost = trim((string) ($DP_Config->host ?? ''));
+if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+	$dbHost = '127.0.0.1';
+}
 
 try {
 	$db_link = new PDO(
-		'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db,
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
 		$DP_Config->user,
 		$DP_Config->password,
 		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
@@ -18,6 +29,7 @@ try {
 	echo '<div class="epc-scp-orders-detail__empty"><p>Database unavailable</p></div>';
 	exit;
 }
+$GLOBALS['db_link'] = $db_link;
 $db_link->query('SET NAMES utf8;');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
