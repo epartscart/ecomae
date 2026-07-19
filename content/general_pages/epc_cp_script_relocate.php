@@ -95,6 +95,9 @@ function epc_cp_relocate_main_pane_scripts(string $html): string
 	}
 	$start += strlen($begin);
 	$main = substr($html, $start, $stop - $start);
+	// PHP-eval'd pages still emit inline <style>/<script> into the main pane;
+	// with <base href="/cp/templates/..."> those tags can render as visible text.
+	$main = epc_cp_extract_styles_from_html($main);
 	$main = epc_cp_extract_scripts_from_html($main);
 	return substr($html, 0, $start) . $main . substr($html, $stop);
 }
