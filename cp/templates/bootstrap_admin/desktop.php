@@ -1018,6 +1018,12 @@ function print_backend_button($button_params)
 	}
 	?>
 	
+	<?php
+	// Home (/cp/control) already has the tenant dashboard hero — skip duplicate CMS page header.
+	$epcSkipPageHeader = !empty($DP_Content->main_flag)
+		|| (isset($DP_Content->url) && in_array((string) $DP_Content->url, array('control', ''), true));
+	if (!$epcSkipPageHeader) {
+	?>
 	<div class="epc-cp-page-header transition animated fadeIn">
 		<?php
 		$epcPageHeader = epc_cp_page_header_context();
@@ -1041,6 +1047,7 @@ function print_backend_button($button_params)
 			</div>
 		</div>
 	</div>
+	<?php } ?>
 	
 	
 	

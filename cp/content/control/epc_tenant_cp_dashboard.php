@@ -1,6 +1,6 @@
 <?php
 /**
- * Tenant CP home dashboard — KPI row + quick links (matches Super CP layout, tenant-scoped).
+ * Tenant CP home — simple daily workspace: KPIs + primary actions + optional more tools.
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -103,37 +103,41 @@ $industryLabel = trim((string) ($industry['name'] ?? 'Commerce'));
 $industryIcon = trim((string) ($industry['icon'] ?? 'fa-cog'));
 $storefrontUrl = trim((string) ($GLOBALS['DP_Config']->domain_path ?? ''));
 $settingsUrl = $base . '/control/portal/industry_settings';
+$ordersUrl = $base . '/shop/orders/orders';
+$catalogueUrl = $base . '/shop/catalogue/products';
+$clientsUrl = $base . '/shop/customer_mgmt/customer_mgmt';
 
-$quickLinks = array(
-	array('label' => 'Customer orders', 'icon' => 'fa-shopping-cart', 'url' => $base . '/shop/orders/orders', 'tone' => 'orders', 'hint' => 'Orders, fulfilment & status'),
-	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $base . '/shop/catalogue/products', 'tone' => 'catalog', 'hint' => 'Products, categories & media'),
-	array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing & compare'),
-	array('label' => 'ERP & finance', 'icon' => 'fa-university', 'url' => $base . '/shop/finance/erp?epc_erp_shell=1', 'tone' => 'finance', 'hint' => 'Ledger, VAT & reports'),
-	array('label' => 'Clients & CRM', 'icon' => 'fa-address-book', 'url' => $base . '/shop/customer_mgmt/customer_mgmt', 'tone' => 'clients', 'hint' => 'Customers, groups & CRM'),
+$primaryLinks = array(
+	array('label' => 'Orders', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'orders', 'hint' => 'Process customer orders'),
+	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'catalog', 'hint' => 'Products & categories'),
 	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'prices', 'hint' => 'Price lists & markups'),
+	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'clients', 'hint' => 'Customers & CRM'),
+	array('label' => 'ERP & finance', 'icon' => 'fa-university', 'url' => $base . '/shop/finance/erp?epc_erp_shell=1', 'tone' => 'finance', 'hint' => 'Ledger, VAT & reports'),
+	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding & modules'),
+);
+
+$moreLinks = array(
+	array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing'),
 	array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'warehouse', 'hint' => 'Purchasing & suppliers'),
+	array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'docs', 'hint' => 'Invoices & PDFs'),
 	array('label' => 'POS Terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'orders', 'hint' => 'In-store checkout'),
-	array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'docs', 'hint' => 'Invoices, templates & PDFs'),
-	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'platform', 'hint' => 'Storefront blocks & layout'),
-	array('label' => 'Modern auth', 'icon' => 'fa-sign-in', 'url' => $base . '/control/portal/epc_cp_auth_settings', 'tone' => 'auth', 'hint' => 'OAuth, OTP & sign-in options'),
-	array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'platform', 'hint' => 'Marketing pack, captions & accounts'),
-	array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'finance', 'hint' => 'VAT/GST jurisdiction kits'),
-	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding, theme & modules'),
-	array('label' => 'Platform FAQ', 'icon' => 'fa-question-circle', 'url' => 'https://www.ecomae.com/platform/faq', 'tone' => 'docs', 'hint' => 'ECOM AE capability answers for tenants'),
+	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'platform', 'hint' => 'Storefront layout'),
+	array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'finance', 'hint' => 'VAT / GST kits'),
+	array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'platform', 'hint' => 'Captions & accounts'),
 );
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 ?>
-<div class="col-lg-12 epc-scp-dashboard epc-tcp-dashboard">
+<div class="col-lg-12 epc-scp-dashboard epc-tcp-dashboard epc-tcp-dashboard--easy">
 	<div class="epc-scp-dashboard__hero epc-tcp-dashboard__hero">
 		<div>
 			<span class="epc-scp-dashboard__badge"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> <?php echo epc_tcp_dash_h($industryLabel); ?></span>
 			<h2 class="epc-scp-dashboard__title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
-			<p class="epc-scp-dashboard__sub">Your commerce workspace — orders, catalogue, ERP, and client operations in one place. Powered by <strong>ECOM AE</strong>.</p>
+			<p class="epc-scp-dashboard__sub">Start with today’s work — orders, catalogue, prices, and clients. Everything else is one click away in the menu.</p>
 		</div>
 		<div class="epc-scp-dashboard__hero-actions">
-			<a class="btn btn-sm btn-primary epc-cp-page-header__pill--primary" href="<?php echo epc_tcp_dash_h($base . '/shop/orders/orders'); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
-			<a class="btn btn-sm btn-default" href="<?php echo epc_tcp_dash_h($base . '/shop/catalogue/products'); ?>"><i class="fa fa-th-large"></i> Catalogue</a>
+			<a class="btn btn-sm btn-primary epc-cp-page-header__pill--primary" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
+			<a class="btn btn-sm btn-default" href="<?php echo epc_tcp_dash_h($catalogueUrl); ?>"><i class="fa fa-th-large"></i> Catalogue</a>
 			<?php if ($storefrontUrl !== '') { ?>
 			<a class="btn btn-sm btn-default" href="<?php echo epc_tcp_dash_h($storefrontUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> View site</a>
 			<?php } ?>
@@ -142,36 +146,57 @@ $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 	</div>
 
 	<div class="epc-scp-kpi">
-		<div class="epc-scp-kpi__card epc-cp-card epc-cp-stat">
+		<a class="epc-scp-kpi__card epc-cp-card epc-cp-stat" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
 			<div class="epc-scp-kpi__label">Orders today</div>
 			<div class="epc-scp-kpi__val" data-epc-stat><?php echo (int) $stats['orders_today']; ?></div>
-			<div class="epc-scp-kpi__hint">Since midnight</div>
-		</div>
-		<div class="epc-scp-kpi__card epc-cp-card epc-cp-stat">
+			<div class="epc-scp-kpi__hint">Open orders list</div>
+		</a>
+		<a class="epc-scp-kpi__card epc-cp-card epc-cp-stat" href="<?php echo epc_tcp_dash_h($catalogueUrl); ?>">
 			<div class="epc-scp-kpi__label">Products</div>
 			<div class="epc-scp-kpi__val" data-epc-stat><?php echo (int) $stats['products']; ?></div>
-			<div class="epc-scp-kpi__hint">Published in catalogue</div>
-		</div>
-		<div class="epc-scp-kpi__card epc-cp-card epc-cp-stat">
+			<div class="epc-scp-kpi__hint">Published catalogue</div>
+		</a>
+		<a class="epc-scp-kpi__card epc-cp-card epc-cp-stat" href="<?php echo epc_tcp_dash_h($clientsUrl); ?>">
 			<div class="epc-scp-kpi__label">Clients</div>
 			<div class="epc-scp-kpi__val" data-epc-stat><?php echo (int) $stats['clients']; ?></div>
-			<div class="epc-scp-kpi__hint">Registered accounts</div>
-		</div>
-		<div class="epc-scp-kpi__card epc-cp-card epc-cp-stat">
+			<div class="epc-scp-kpi__hint">Customer accounts</div>
+		</a>
+		<a class="epc-scp-kpi__card epc-cp-card epc-cp-stat" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
 			<div class="epc-scp-kpi__label">Open orders</div>
 			<div class="epc-scp-kpi__val epc-scp-kpi__val--warn" data-epc-stat><?php echo (int) $stats['pending_tasks']; ?></div>
-			<div class="epc-scp-kpi__hint">Awaiting fulfilment</div>
-		</div>
+			<div class="epc-scp-kpi__hint">Need fulfilment</div>
+		</a>
 	</div>
 
-	<h3 class="epc-scp-section-title"><i class="fa fa-bolt"></i> Quick actions</h3>
-	<div class="epc-scp-quick-grid">
-		<?php foreach ($quickLinks as $link) { ?>
-		<a class="epc-scp-quick-card epc-cp-card epc-scp-quick-card--<?php echo epc_tcp_dash_h($link['tone']); ?>" href="<?php echo epc_tcp_dash_h($link['url']); ?>"<?php if (!empty($link['hint'])) { ?> title="<?php echo epc_tcp_dash_h($link['hint']); ?>"<?php } ?>>
+	<h3 class="epc-scp-section-title"><i class="fa fa-bolt"></i> Daily work</h3>
+	<div class="epc-scp-quick-grid epc-tcp-primary-grid">
+		<?php foreach ($primaryLinks as $link) { ?>
+		<a class="epc-scp-quick-card epc-cp-card epc-scp-quick-card--<?php echo epc_tcp_dash_h($link['tone']); ?>" href="<?php echo epc_tcp_dash_h($link['url']); ?>" title="<?php echo epc_tcp_dash_h($link['hint']); ?>">
 			<span class="epc-scp-quick-card__icon"><i class="fa <?php echo epc_tcp_dash_h($link['icon']); ?>"></i></span>
 			<span class="epc-scp-quick-card__label"><?php echo epc_tcp_dash_h($link['label']); ?></span>
-			<?php if (!empty($link['hint'])) { ?><span class="epc-scp-quick-card__hint"><?php echo epc_tcp_dash_h($link['hint']); ?></span><?php } ?>
+			<span class="epc-scp-quick-card__hint"><?php echo epc_tcp_dash_h($link['hint']); ?></span>
 		</a>
 		<?php } ?>
 	</div>
+
+	<details class="epc-tcp-more">
+		<summary>
+			<span><i class="fa fa-ellipsis-h"></i> More tools</span>
+			<span class="epc-tcp-more__hint">POS, documents, pricing AI, accessories…</span>
+		</summary>
+		<div class="epc-scp-quick-grid epc-tcp-more-grid">
+			<?php foreach ($moreLinks as $link) { ?>
+			<a class="epc-scp-quick-card epc-cp-card epc-scp-quick-card--<?php echo epc_tcp_dash_h($link['tone']); ?>" href="<?php echo epc_tcp_dash_h($link['url']); ?>" title="<?php echo epc_tcp_dash_h($link['hint']); ?>">
+				<span class="epc-scp-quick-card__icon"><i class="fa <?php echo epc_tcp_dash_h($link['icon']); ?>"></i></span>
+				<span class="epc-scp-quick-card__label"><?php echo epc_tcp_dash_h($link['label']); ?></span>
+				<span class="epc-scp-quick-card__hint"><?php echo epc_tcp_dash_h($link['hint']); ?></span>
+			</a>
+			<?php } ?>
+		</div>
+	</details>
+
+	<p class="epc-tcp-help">
+		Tip: use the left menu search to jump to any page. Need help?
+		<a href="https://www.ecomae.com/platform/faq" target="_blank" rel="noopener">Platform FAQ</a>
+	</p>
 </div>

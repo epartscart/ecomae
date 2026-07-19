@@ -23,6 +23,10 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/con
 
 
 ?>
+<div class="epc-cp-menu-search" id="epc-cp-menu-search">
+	<label class="sr-only" for="epc-cp-menu-q">Search menu</label>
+	<input type="search" id="epc-cp-menu-q" placeholder="Search menu…" autocomplete="off" />
+</div>
 <ul class="nav metismenu" id="side-menu">
 	<?php
 	//1. Кнопка главной страницы панели управления.
@@ -135,28 +139,37 @@ if (function_exists('epc_cp_trace')) {
 
 
 
-//Выводим перечень задач на страницу:
-foreach($tabs as $key => $tab)
-{
+// Dedupe items, then tenant-friendly order: primary daily groups first, advanced after.
+foreach ($tabs as $key => $tab) {
 	$tab['items'] = epc_portal_cp_menu_dedupe_items($tab['items']);
 	$tabs[$key] = $tab;
-	//В данном блоке нет доступных страниц
-	if(count($tab["items"]) == 0)
-	{
-		continue;
+}
+
+$epcPrimaryKeys = function_exists('epc_portal_cp_primary_group_keys')
+	? epc_portal_cp_primary_group_keys()
+	: array('744', 'epc_cp_group_customers', 'epc_cp_group_documents', 'epc_cp_group_erp');
+$epcAdvancedKeys = function_exists('epc_portal_cp_advanced_group_keys')
+	? epc_portal_cp_advanced_group_keys()
+	: array();
+$epcIsSuperHost = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host();
+
+$epcRenderNavGroup = static function ($key, $tab, $extraClass = '') {
+	if (count($tab['items']) === 0) {
+		return;
 	}
+	$captionKey = (string) ($tab['caption_key'] ?? '');
 	$groupSubtitle = function_exists('epc_portal_cp_group_subtitle')
-		? epc_portal_cp_group_subtitle((string) ($tab['caption_key'] ?? ''))
+		? epc_portal_cp_group_subtitle($captionKey)
 		: '';
-	$groupLiClass = 'epc-cp-nav-section';
-	if (($tab['caption_key'] ?? '') === 'epc_cp_group_operator') {
+	$groupLiClass = trim('epc-cp-nav-section ' . $extraClass);
+	if ($captionKey === 'epc_cp_group_operator') {
 		$groupLiClass .= ' epc-cp-menu-group--operator';
 	}
-    ?>
-	<li class="<?php echo htmlspecialchars(trim($groupLiClass), ENT_QUOTES, 'UTF-8'); ?>">
+	?>
+	<li class="<?php echo htmlspecialchars($groupLiClass, ENT_QUOTES, 'UTF-8'); ?>" data-epc-group="<?php echo htmlspecialchars($captionKey, ENT_QUOTES, 'UTF-8'); ?>">
 		<a href="javascript:void(0);" class="epc-cp-nav-section__toggle">
 			<span class="nav-label-wrap">
-				<span class="nav-label epc-cp-nav-section__label"><?php echo $tab["caption"];?></span>
+				<span class="nav-label epc-cp-nav-section__label"><?php echo $tab['caption']; ?></span>
 				<?php if ($groupSubtitle !== '') { ?>
 				<span class="epc-cp-group-subtitle epc-cp-nav-section__sub"><?php echo htmlspecialchars($groupSubtitle, ENT_QUOTES, 'UTF-8'); ?></span>
 				<?php } ?>
@@ -164,31 +177,117 @@ foreach($tabs as $key => $tab)
 			<span class="fa arrow"></span>
 		</a>
 		<ul class="nav nav-second-level epc-cp-nav-section__children">
-	
-       
-            <?php
-            for($i=0; $i<count($tab["items"]); $i++)
-            {
-    	        ?>
-				<li class="epc-cp-nav-item epc-cp-nav-item--sub">
-					<a href="<?php echo $tab["items"][$i]["url"]; ?>" class="epc-cp-nav-item__link">
-						<?php
-						if( !empty($tab["items"][$i]["fontawesome_class"]) )
-						{
-							?>
-							<i class="<?php echo $tab["items"][$i]["fontawesome_class"]; ?>"></i> 
-							<?php
-						}
-						?>
-						<?php echo translate_str_by_id($tab["items"][$i]["caption"]); ?>
-					</a>
-				</li>
-    	        <?php
-            }//for()
-            ?>
+			<?php for ($i = 0; $i < count($tab['items']); $i++) { ?>
+			<li class="epc-cp-nav-item epc-cp-nav-item--sub">
+				<a href="<?php echo $tab['items'][$i]['url']; ?>" class="epc-cp-nav-item__link">
+					<?php if (!empty($tab['items'][$i]['fontawesome_class'])) { ?>
+					<i class="<?php echo $tab['items'][$i]['fontawesome_class']; ?>"></i>
+					<?php } ?>
+					<?php echo translate_str_by_id($tab['items'][$i]['caption']); ?>
+				</a>
+			</li>
+			<?php } ?>
 		</ul>
-    </li>
-    <?php
-}//foreach()
+	</li>
+	<?php
+};
+
+$rendered = array();
+// 1) Primary groups in preferred order
+foreach ($epcPrimaryKeys as $pkey) {
+	foreach ($tabs as $key => $tab) {
+		$ck = (string) ($tab['caption_key'] ?? '');
+		if ($ck === $pkey || (string) $key === $pkey) {
+			$epcRenderNavGroup($key, $tab, 'epc-cp-nav-section--primary');
+			$rendered[$key] = true;
+			break;
+		}
+	}
+}
+// 2) Other non-advanced groups (legacy leftovers) still as primary-ish
+foreach ($tabs as $key => $tab) {
+	if (!empty($rendered[$key])) {
+		continue;
+	}
+	$ck = (string) ($tab['caption_key'] ?? '');
+	if (in_array($ck, $epcAdvancedKeys, true)) {
+		continue;
+	}
+	$epcRenderNavGroup($key, $tab, 'epc-cp-nav-section--primary');
+	$rendered[$key] = true;
+}
+// 3) Advanced divider + groups (tenants only — Super CP keeps flat density)
+$advancedToShow = array();
+foreach ($tabs as $key => $tab) {
+	if (!empty($rendered[$key])) {
+		continue;
+	}
+	if (count($tab['items']) === 0) {
+		continue;
+	}
+	$advancedToShow[$key] = $tab;
+}
+if (!$epcIsSuperHost && count($advancedToShow) > 0) {
+	?>
+	<li class="epc-cp-nav-divider" aria-hidden="true">
+		<span>More modules</span>
+	</li>
+	<?php
+	foreach ($epcAdvancedKeys as $akey) {
+		foreach ($advancedToShow as $key => $tab) {
+			$ck = (string) ($tab['caption_key'] ?? '');
+			if ($ck === $akey || (string) $key === $akey) {
+				$epcRenderNavGroup($key, $tab, 'epc-cp-nav-section--advanced');
+				unset($advancedToShow[$key]);
+				break;
+			}
+		}
+	}
+	foreach ($advancedToShow as $key => $tab) {
+		$epcRenderNavGroup($key, $tab, 'epc-cp-nav-section--advanced');
+	}
+} elseif (count($advancedToShow) > 0) {
+	foreach ($advancedToShow as $key => $tab) {
+		$epcRenderNavGroup($key, $tab, '');
+	}
+}
 ?>
 </ul>
+<script>
+(function () {
+	var input = document.getElementById('epc-cp-menu-q');
+	var menu = document.getElementById('side-menu');
+	if (!input || !menu) return;
+	function norm(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+	input.addEventListener('input', function () {
+		var q = norm(input.value);
+		menu.classList.toggle('is-filtering', q.length > 0);
+		Array.prototype.forEach.call(menu.querySelectorAll('li.epc-cp-nav-section'), function (section) {
+			var label = section.querySelector('.epc-cp-nav-section__label');
+			var sub = section.querySelector('.epc-cp-nav-section__sub');
+			var sectionText = norm((label ? label.textContent : '') + ' ' + (sub ? sub.textContent : ''));
+			var anyItem = false;
+			Array.prototype.forEach.call(section.querySelectorAll('li.epc-cp-nav-item--sub'), function (li) {
+				var t = norm(li.textContent);
+				var show = !q || t.indexOf(q) !== -1 || sectionText.indexOf(q) !== -1;
+				li.style.display = show ? '' : 'none';
+				if (show) anyItem = true;
+			});
+			var showSection = !q || anyItem || sectionText.indexOf(q) !== -1;
+			section.style.display = showSection ? '' : 'none';
+			if (q && showSection) {
+				section.classList.add('active');
+			}
+		});
+		var home = menu.querySelector('li.epc-cp-nav-item--home');
+		if (home) {
+			var ht = norm(home.textContent);
+			home.style.display = (!q || ht.indexOf(q) !== -1) ? '' : 'none';
+		}
+		var div = menu.querySelector('li.epc-cp-nav-divider');
+		if (div) {
+			div.style.display = q ? 'none' : '';
+		}
+	});
+})();
+</script>
