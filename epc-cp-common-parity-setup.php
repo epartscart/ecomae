@@ -76,8 +76,8 @@ $fileChecks = array(
 	'oms_guide_page' => $docroot . '/cp/content/shop/order_process/oms_daily_guide_page.php',
 	'menu_lib' => $docroot . '/epc_cp_mainstream_menu.php',
 	'parity_lib' => $docroot . '/content/general_pages/epc_cp_common_parity.php',
-	'mv_config' => $docroot . '/cp/content/shop/prices/epc_multivendor_cp_config.php',
-	'mv_js' => $docroot . '/cp/content/shop/prices/epc_multivendor_cp.js',
+	'mv_config' => $docroot . '/cp/content/shop/prices_upload/epc_multivendor_cp_config.php',
+	'mv_js' => $docroot . '/cp/content/shop/prices_upload/epc_multivendor_cp.js',
 );
 
 $files = array();
