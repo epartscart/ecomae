@@ -3,12 +3,23 @@
  * AJAX: load order detail pane HTML for dual-pane orders workspace.
  */
 header('Content-Type: text/html; charset=utf-8');
+
+if (!defined('_ASTEXE_')) {
+	define('_ASTEXE_', 1);
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-$DP_Config = new DP_Config;
+$DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
+
+$dbHost = trim((string) ($DP_Config->host ?? ''));
+if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+	$dbHost = '127.0.0.1';
+}
 
 try {
 	$db_link = new PDO(
-		'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db,
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
 		$DP_Config->user,
 		$DP_Config->password,
 		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
@@ -18,9 +29,11 @@ try {
 	echo '<div class="epc-scp-orders-detail__empty"><p>Database unavailable</p></div>';
 	exit;
 }
+$GLOBALS['db_link'] = $db_link;
 $db_link->query('SET NAMES utf8;');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/lang/dp_lang.php';
 
 if (!DP_User::isAdmin()) {
 	http_response_code(403);
@@ -29,14 +42,37 @@ if (!DP_User::isAdmin()) {
 }
 
 $order_id = isset($_GET['order_id']) ? (int) $_GET['order_id'] : 0;
-require_once $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/order_process/orders_background.php';
 
-$epc_orders_detail_pane = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir
-	. '/content/shop/order_process/epc_orders_detail_pane.php';
-ob_start();
-if (is_file($epc_orders_detail_pane)) {
-	include $epc_orders_detail_pane;
-} else {
-	echo '<div class="epc-scp-orders-detail__empty"><p>Detail pane file not found</p></div>';
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/shop/order_process/orders_background.php';
+
+	// Paid-type captions used by the OMS console (optional on list page).
+	if (!isset($shop_orders_paid_type) || !is_array($shop_orders_paid_type)) {
+		$shop_orders_paid_type = array();
+		try {
+			$pt = $db_link->query('SELECT `id`, `name` FROM `shop_orders_paid_type` WHERE `active` = 1 ORDER BY `order`');
+			while ($row = $pt->fetch(PDO::FETCH_ASSOC)) {
+				$shop_orders_paid_type[(int) $row['id']] = $row['name'];
+			}
+		} catch (Throwable $e) {
+			$shop_orders_paid_type = array();
+		}
+	}
+
+	$epc_orders_detail_pane = $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir
+		. '/content/shop/order_process/epc_orders_detail_pane.php';
+	ob_start();
+	if (is_file($epc_orders_detail_pane)) {
+		include $epc_orders_detail_pane;
+	} else {
+		echo '<div class="epc-scp-orders-detail__empty"><p>Detail pane file not found</p></div>';
+	}
+	$html = ob_get_clean();
+	http_response_code(200);
+	echo $html;
+} catch (Throwable $e) {
+	http_response_code(500);
+	echo '<div class="epc-scp-orders-detail__empty"><p>Could not load OMS console</p><span class="text-muted small">'
+		. htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8')
+		. '</span></div>';
 }
-echo ob_get_clean();

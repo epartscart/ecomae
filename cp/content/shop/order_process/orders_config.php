@@ -20,36 +20,56 @@ try {
 
 	$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
 	require_once $docRoot . '/config.php';
+	require_once $docRoot . '/content/users/dp_user.php';
+
+	$epcOrdersConnect = static function ($cfg) {
+		$dbHost = trim((string) ($cfg->host ?? ''));
+		if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+			$dbHost = '127.0.0.1';
+		}
+		return new PDO(
+			'mysql:host=' . $dbHost . ';dbname=' . $cfg->db . ';charset=utf8',
+			$cfg->user,
+			$cfg->password,
+			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+		);
+	};
+
+	// Prefer the same DB bootstrap as OMS AJAX (docroot config). Portal apply can
+	// point at a different schema where admin_session is missing.
 	$DP_Config = new DP_Config();
 	$GLOBALS['DP_Config'] = $DP_Config;
+	$db_link = $epcOrdersConnect($DP_Config);
+	$GLOBALS['db_link'] = $db_link;
 
-	if (is_file($docRoot . '/content/general_pages/epc_portal.php')) {
-		require_once $docRoot . '/content/general_pages/epc_portal.php';
-		if (function_exists('epc_portal_apply_config')) {
-			ob_start();
-			try {
-				epc_portal_apply_config($DP_Config);
-			} catch (Throwable $e) {
-				// keep default config if portal apply fails
+	$user_session = DP_User::getAdminSession();
+	if ((empty($user_session) || !is_array($user_session)) && !DP_User::isAdmin()) {
+		if (is_file($docRoot . '/content/general_pages/epc_portal.php')) {
+			require_once $docRoot . '/content/general_pages/epc_portal.php';
+			if (function_exists('epc_portal_apply_config')) {
+				$portalCfg = new DP_Config();
+				ob_start();
+				try {
+					epc_portal_apply_config($portalCfg);
+				} catch (Throwable $e) {
+				}
+				ob_end_clean();
+				$DP_Config = $portalCfg;
+				$GLOBALS['DP_Config'] = $DP_Config;
+				$db_link = $epcOrdersConnect($DP_Config);
+				$GLOBALS['db_link'] = $db_link;
+				$user_session = DP_User::getAdminSession();
 			}
-			ob_end_clean();
 		}
 	}
 
-	$dbHost = trim((string) ($DP_Config->host ?? ''));
-	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
-		$dbHost = '127.0.0.1';
+	if ((empty($user_session) || !is_array($user_session)) && DP_User::isAdmin()) {
+		$user_session = array(
+			'csrf_guard_key' => (string) ($_COOKIE['csrf_guard_key'] ?? ''),
+			'user_id' => (int) DP_User::getAdminId(),
+		);
 	}
-	$db_link = new PDO(
-		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
-		$DP_Config->user,
-		$DP_Config->password,
-		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-	);
-	$GLOBALS['db_link'] = $db_link;
 
-	require_once $docRoot . '/content/users/dp_user.php';
-	$user_session = DP_User::getAdminSession();
 	if (empty($user_session) || !is_array($user_session)) {
 		echo 'window.EPC_ORDERS={};';
 		exit;
@@ -114,7 +134,23 @@ try {
 	} catch (Throwable $e) {
 	}
 
-	require_once $docRoot . '/content/general_pages/epc_cp_translate.php';
+	require_once $docRoot . '/lang/dp_lang.php';
+	if (is_file($docRoot . '/content/general_pages/epc_cp_translate.php')) {
+		require_once $docRoot . '/content/general_pages/epc_cp_translate.php';
+	}
+
+	$epcOrdersMsg = static function ($id, $fallback = '') {
+		if (function_exists('translate_str_by_id')) {
+			try {
+				$v = translate_str_by_id($id);
+				if ($v !== '' && $v !== null) {
+					return (string) $v;
+				}
+			} catch (Throwable $e) {
+			}
+		}
+		return (string) $fallback;
+	};
 
 	$in_process_filter = $filter_status_id > 0
 		? array((string) $filter_status_id)
@@ -151,22 +187,22 @@ try {
 			'legacyPrintBase' => '/content/shop/print_docs/service/print.php',
 		),
 		'msg' => array(
-			'selectOrders' => translate_str_by_id(3597),
-			'selectOrdersViewed' => translate_str_by_id(3598),
-			'setViewedFail' => translate_str_by_id(3599),
-			'deleteConfirm' => translate_str_by_id(3600),
-			'setStatusFail' => translate_str_by_id(3508),
+			'selectOrders' => $epcOrdersMsg(3597, 'Select orders'),
+			'selectOrdersViewed' => $epcOrdersMsg(3598, 'Select orders to mark viewed'),
+			'setViewedFail' => $epcOrdersMsg(3599, 'Could not mark viewed'),
+			'deleteConfirm' => $epcOrdersMsg(3600, 'Delete selected orders?'),
+			'setStatusFail' => $epcOrdersMsg(3508, 'Could not update status'),
 			'setStatusOk' => 'Status updated',
 			'commentEmpty' => 'Enter a note first',
 			'commentOk' => 'Note saved',
 			'commentFail' => 'Could not save note',
-			'finishConfirm' => translate_str_by_id(5297),
-			'inverseConfirm' => translate_str_by_id(5299),
-			'userModalFail' => translate_str_by_id(3541),
-			'selectPlaceholder' => translate_str_by_id(2094),
-			'selectAllText' => translate_str_by_id(2355),
-			'allSelected' => translate_str_by_id(5660),
-			'countSelected' => translate_str_by_id(5661),
+			'finishConfirm' => $epcOrdersMsg(5297, 'Finish selected orders?'),
+			'inverseConfirm' => $epcOrdersMsg(5299, 'Cancel selected orders?'),
+			'userModalFail' => $epcOrdersMsg(3541, 'Could not open customer'),
+			'selectPlaceholder' => $epcOrdersMsg(2094, 'Select'),
+			'selectAllText' => $epcOrdersMsg(2355, 'Select all'),
+			'allSelected' => $epcOrdersMsg(5660, 'All selected'),
+			'countSelected' => $epcOrdersMsg(5661, '# of % selected'),
 			'itemSaved' => 'Item updated',
 			'itemFail' => 'Could not update item',
 			'msgSent' => 'Message sent to customer',
@@ -185,5 +221,5 @@ try {
 
 	echo 'window.EPC_ORDERS=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
 } catch (Throwable $e) {
-	echo 'window.EPC_ORDERS={};';
+	echo 'window.EPC_ORDERS={};/* ' . str_replace(array('*/', "\n", "\r"), '', $e->getMessage()) . ' */';
 }

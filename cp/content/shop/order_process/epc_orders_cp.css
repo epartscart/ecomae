@@ -206,13 +206,15 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 	}
 }
 
+body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace,
 .epc-orders-page .epc-scp-orders-workspace {
-	display: grid;
+	display: grid !important;
 	grid-template-columns: minmax(0, 1fr);
 	gap: 14px;
 	align-items: start;
 	width: 100% !important;
 	max-width: 100% !important;
+	float: none !important;
 }
 /* Keep list full-width until an order is opened in OMS */
 .epc-orders-page .epc-scp-orders-workspace:not(.is-oms-active) .epc-scp-orders-workspace__detail {
@@ -528,11 +530,18 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 }
 
 /* One-window OMS: detail dominates when an order is open */
+body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active,
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active {
-	grid-template-columns: minmax(280px, 0.45fr) minmax(0, 1.55fr);
+	grid-template-columns: minmax(280px, 0.45fr) minmax(0, 1.55fr) !important;
 }
+body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-workspace__detail,
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-workspace__detail {
 	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	min-width: 0;
+	width: auto !important;
+	max-width: none !important;
 }
 .epc-orders-page .epc-scp-orders-workspace.is-oms-active .epc-scp-orders-detail {
 	max-height: calc(100vh - 90px);
