@@ -242,7 +242,7 @@ function epc_cp_page_asset_url_map(): array
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/lib/multiple_select/multiple-select.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide2'),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide2'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
