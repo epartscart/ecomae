@@ -1,6 +1,8 @@
 <?php
 /**
- * Ensure top nav shows Sell with us + Vendor registration (visible CTAs).
+ * Remove Sell with us / Vendor registration from top menu.
+ * Vendor access stays on the right: Vendor login/Register next to ERP + Customer auth.
+ *
  * https://www.epartscart.com/epc-vendor-nav-fix.php?token=...
  */
 error_reporting(E_ALL);
@@ -17,47 +19,6 @@ $cfg = new DP_Config();
 $pdo = new PDO('mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=utf8mb4', $cfg->user, $cfg->password);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-function epc_vn_lang(PDO $pdo, $key, $en, $ru)
-{
-	$pdo->prepare('INSERT IGNORE INTO `lang_text_strings` (`str_key`, `description`, `same`, `is_error`, `is_custom`, `used_found`) VALUES (?, ?, NULL, 0, 1, 1)')
-		->execute(array($key, $en));
-	$ins = $pdo->prepare('INSERT INTO `lang_text_strings_translation` (`str_key`, `lang_code`, `value`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)');
-	$ins->execute(array($key, 'en', $en));
-	$ins->execute(array($key, 'ru', $ru));
-}
-
-function epc_vn_content_id(PDO $pdo, $url)
-{
-	$st = $pdo->prepare('SELECT `id` FROM `content` WHERE `is_frontend` = 1 AND `url` = ? LIMIT 1');
-	$st->execute(array($url));
-	return (int) $st->fetchColumn();
-}
-
-function epc_vn_item($captionKey, $contentId, $id, $level = 1, $classA = '', $classLi = '')
-{
-	return array(
-		'value' => $captionKey,
-		'class_li' => $classLi,
-		'class_ul' => '',
-		'class_a' => $classA,
-		'id_li' => '',
-		'id_ul' => '',
-		'id_a' => '',
-		'a_innerhtml_mode' => 'auto',
-		'a_innerhtml' => $captionKey,
-		'link_mode' => $contentId ? 'content' : 'url',
-		'content_id' => $contentId,
-		'href' => '',
-		'target' => '',
-		'onclick' => '',
-		'img_src' => '',
-		'$count' => 0,
-		'$level' => (int) $level,
-		'$parent' => 0,
-		'id' => $id,
-	);
-}
-
 function epc_vn_is_vendor_nav(array $item)
 {
 	$key = (string) ($item['a_innerhtml'] ?? $item['value'] ?? '');
@@ -65,88 +26,69 @@ function epc_vn_is_vendor_nav(array $item)
 		return true;
 	}
 	$href = (string) ($item['href'] ?? '');
-	return (strpos($href, '/vendor') !== false);
-}
-
-epc_vn_lang($pdo, 'epc_menu_vendor_portal', 'Sell with us', 'Стать продавцом');
-epc_vn_lang($pdo, 'epc_menu_vendor_register', 'Vendor registration', 'Регистрация продавца');
-
-$portalId = epc_vn_content_id($pdo, 'vendor');
-$registerId = epc_vn_content_id($pdo, 'vendor/register');
-if ($portalId < 1 || $registerId < 1) {
-	exit("FAIL missing content pages portal={$portalId} register={$registerId}\n");
-}
-
-// Ensure pages published.
-$pdo->prepare('UPDATE `content` SET `published_flag` = 1 WHERE `id` IN (?, ?)')->execute(array($portalId, $registerId));
-
-$menuIds = array();
-$stmt = $pdo->query('SELECT `id` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id`');
-while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-	if ((int) $row['id'] === 15) {
-		$menuIds[] = 15;
+	if ($href !== '' && preg_match('#/(en/)?vendor(/register)?/?$#', $href)) {
+		return true;
 	}
-}
-if (!$menuIds) {
-	$first = $pdo->query('SELECT `id` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id` LIMIT 1')->fetchColumn();
-	if ($first) {
-		$menuIds[] = (int) $first;
-	}
+	$cid = isset($item['content_id']) ? (int) $item['content_id'] : 0;
+	return false;
 }
 
-foreach ($menuIds as $menuId) {
-	$st = $pdo->prepare('SELECT `structure` FROM `menu` WHERE `id` = ?');
-	$st->execute(array($menuId));
-	$structure = json_decode((string) $st->fetchColumn(), true);
-	if (!is_array($structure)) {
-		$structure = array();
-	}
-
+function epc_vn_strip(array $structure, array $vendorContentIds)
+{
 	$kept = array();
 	foreach ($structure as $item) {
 		if (!is_array($item)) {
 			continue;
 		}
-		if (epc_vn_is_vendor_nav($item)) {
+		$cid = isset($item['content_id']) ? (int) $item['content_id'] : 0;
+		if (epc_vn_is_vendor_nav($item) || ($cid && in_array($cid, $vendorContentIds, true))) {
 			continue;
 		}
 		if (!empty($item['data']) && is_array($item['data'])) {
-			$children = array();
-			foreach ($item['data'] as $child) {
-				if (is_array($child) && epc_vn_is_vendor_nav($child)) {
-					continue;
-				}
-				$children[] = $child;
-			}
-			$item['data'] = $children;
+			$item['data'] = epc_vn_strip($item['data'], $vendorContentIds);
 			if (isset($item['$count'])) {
-				$item['$count'] = count($children);
+				$item['$count'] = count($item['data']);
 			}
 		}
 		$kept[] = $item;
 	}
-	$structure = $kept;
+	return $kept;
+}
 
-	$sell = epc_vn_item('epc_menu_vendor_portal', $portalId, time() + 91, 1, 'epc-nav-sell-cta', 'epc-nav-sell-li');
-	$reg = epc_vn_item('epc_menu_vendor_register', $registerId, time() + 92, 1, 'epc-nav-sell-cta epc-nav-register-cta', 'epc-nav-register-li');
-
-	// Place immediately after Home (index 0) so they stay visible.
-	$insertAt = 1;
-	foreach ($structure as $i => $item) {
-		$key = (string) ($item['a_innerhtml'] ?? $item['value'] ?? '');
-		$href = (string) ($item['href'] ?? '');
-		if ($key === '812' || $href === '/' || $href === '/en/' || $href === '/en') {
-			$insertAt = $i + 1;
-			break;
-		}
+$vendorContentIds = array();
+foreach (array('vendor', 'vendor/register', 'vendor/upload') as $url) {
+	$st = $pdo->prepare('SELECT `id` FROM `content` WHERE `is_frontend` = 1 AND `url` = ? LIMIT 1');
+	$st->execute(array($url));
+	$id = (int) $st->fetchColumn();
+	if ($id) {
+		$vendorContentIds[] = $id;
 	}
-	array_splice($structure, $insertAt, 0, array($sell, $reg));
+}
 
+$menuIds = array(15);
+$first = $pdo->query('SELECT `id` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id` LIMIT 1')->fetchColumn();
+if ($first && !in_array((int) $first, $menuIds, true)) {
+	$menuIds[] = (int) $first;
+}
+
+foreach ($menuIds as $menuId) {
+	$st = $pdo->prepare('SELECT `structure` FROM `menu` WHERE `id` = ?');
+	$st->execute(array($menuId));
+	$raw = $st->fetchColumn();
+	if ($raw === false) {
+		continue;
+	}
+	$structure = json_decode((string) $raw, true);
+	if (!is_array($structure)) {
+		continue;
+	}
+	$before = count($structure);
+	$structure = epc_vn_strip($structure, $vendorContentIds);
 	$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(
 		json_encode($structure, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
 		$menuId,
 	));
-	echo "OK menu {$menuId}: Sell with us + Vendor registration after Home\n";
+	echo "OK menu {$menuId}: removed vendor top-nav items ({$before} -> " . count($structure) . ")\n";
 }
 
-echo "Done.\n";
+echo "Done. Use right-side Vendor login/Register instead of Sell with us.\n";

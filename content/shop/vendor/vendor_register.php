@@ -226,7 +226,7 @@ $selEmirate = (string) ($_POST['emirate'] ?? '');
 $selRegType = (string) ($_POST['legal_reg_type'] ?? 'TL');
 $vatChecked = !isset($_POST['email']) || !empty($_POST['vat_registered']);
 ?>
-<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vpNav1">
+<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vpNav2">
 <section class="epc-vp">
 	<div class="epc-vp__wrap">
 		<div class="epc-vp__card epc-vp__card--wide">
