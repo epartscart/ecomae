@@ -318,6 +318,98 @@
 	}
 	var epcOrdersFullBase = urls.orderFullBase || '/cp/shop/orders/order?order_id=';
 
+	var epcOmsActiveTabKey = 'epc_oms_active_tab';
+	function epcOmsGetActiveTab() {
+		try { return sessionStorage.getItem(epcOmsActiveTabKey) || 'manage'; } catch (e) { return 'manage'; }
+	}
+	function epcOmsSetActiveTab(id) {
+		try { sessionStorage.setItem(epcOmsActiveTabKey, id || 'manage'); } catch (e) {}
+	}
+	function epcOmsOrderIds() {
+		var ids = [];
+		var rows = document.querySelectorAll('.epc-scp-orders-row[data-order-id]');
+		Array.prototype.forEach.call(rows, function (row) {
+			var id = parseInt(row.getAttribute('data-order-id') || '0', 10);
+			if (id > 0 && ids.indexOf(id) === -1) {
+				ids.push(id);
+			}
+		});
+		return ids;
+	}
+	function epcOmsSelectRelative(delta) {
+		var ids = epcOmsOrderIds();
+		if (!ids.length) {
+			return;
+		}
+		var cur = epcOrdersSelectedId || 0;
+		var idx = ids.indexOf(cur);
+		if (idx < 0) {
+			idx = delta > 0 ? -1 : 0;
+		}
+		var next = ids[Math.max(0, Math.min(ids.length - 1, idx + delta))];
+		if (next && next !== cur) {
+			epcLoadOrderDetail(next);
+		}
+	}
+	function epcOmsSoftReload(keepOrderId) {
+		var id = keepOrderId || epcOrdersSelectedId || 0;
+		var url = baseOrders;
+		if (id > 0) {
+			url += (url.indexOf('?') >= 0 ? '&' : '?') + 'order_id=' + encodeURIComponent(String(id));
+		}
+		location = url;
+	}
+	function epcOmsCollectLinePayload(card) {
+		if (!card) {
+			return null;
+		}
+		var itemId = parseInt(card.getAttribute('data-item-id') || '0', 10);
+		if (itemId <= 0) {
+			return null;
+		}
+		return {
+			item_id: itemId,
+			price: (card.querySelector('[data-field="price"]') || {}).value,
+			count_need: (card.querySelector('[data-field="count_need"]') || {}).value,
+			t2_price_purchase: (card.querySelector('[data-field="t2_price_purchase"]') || {}).value,
+			t2_storage_id: (card.querySelector('[data-field="t2_storage_id"]') || {}).value,
+			t2_name: (card.querySelector('[data-field="t2_name"]') || {}).value,
+			t2_manufacturer: (card.querySelector('[data-field="t2_manufacturer"]') || {}).value,
+			t2_article: (card.querySelector('[data-field="t2_article"]') || {}).value
+		};
+	}
+	function epcOmsRecalcLine(card) {
+		if (!card) {
+			return;
+		}
+		var sell = parseFloat((card.querySelector('[data-field="price"]') || {}).value || '0') || 0;
+		var qty = parseInt((card.querySelector('[data-field="count_need"]') || {}).value || '1', 10) || 1;
+		var purchase = parseFloat((card.querySelector('[data-field="t2_price_purchase"]') || {}).value || '0') || 0;
+		var lineTotal = sell * qty;
+		var lineMargin = (sell - purchase) * qty;
+		var root = card.closest('.epc-od--oms');
+		var usdRate = root ? parseFloat(root.getAttribute('data-usd-rate') || '0') : 0;
+		var lineUsd = usdRate > 0 ? (lineTotal / usdRate) : 0;
+		var mEl = card.querySelector('.epc-od__margin');
+		var aEl = card.querySelector('.epc-od__amt');
+		var uEl = card.querySelector('.epc-od__usd');
+		var fmt = function (n) {
+			return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+		};
+		if (mEl) {
+			mEl.textContent = fmt(lineMargin);
+			mEl.classList.toggle('is-ok', lineMargin >= 0);
+			mEl.classList.toggle('is-bad', lineMargin < 0);
+		}
+		if (aEl) {
+			aEl.textContent = fmt(lineTotal);
+		}
+		if (uEl) {
+			uEl.textContent = fmt(lineUsd);
+		}
+		card.classList.add('is-dirty');
+	}
+
 	function epcMarkWorkspaceActive(orderId) {
 		var ws = document.querySelector('.epc-scp-orders-workspace');
 		if (ws) {
@@ -329,24 +421,57 @@
 		}
 	}
 
+	function epcActivateOmsTab(root, id) {
+		if (!root || !id) {
+			return;
+		}
+		var tabs = root.querySelectorAll('[data-epc-od-tab]');
+		var panels = root.querySelectorAll('[data-epc-od-panel]');
+		var found = false;
+		Array.prototype.forEach.call(tabs, function (b) {
+			var on = b.getAttribute('data-epc-od-tab') === id;
+			b.classList.toggle('is-active', on);
+			if (on) {
+				found = true;
+			}
+		});
+		if (!found) {
+			id = 'manage';
+			Array.prototype.forEach.call(tabs, function (b) {
+				b.classList.toggle('is-active', b.getAttribute('data-epc-od-tab') === id);
+			});
+		}
+		Array.prototype.forEach.call(panels, function (p) {
+			p.classList.toggle('is-active', p.getAttribute('data-epc-od-panel') === id);
+		});
+		epcOmsSetActiveTab(id);
+		// Lazy-load ERP panel only when Fulfillment tab is shown
+		if (id === 'fulfillment' && window.epcOrdersFulfillment && urls.erpAjax) {
+			var orderId = parseInt(root.getAttribute('data-order-id') || '0', 10);
+			var mountItems = document.getElementById('epc-order-fulfillment-panel-items-' + orderId);
+			if (mountItems && mountItems.getAttribute('data-erp-loaded') !== '1') {
+				mountItems.setAttribute('data-erp-loaded', '1');
+				window.epcOrdersFulfillment.load({
+					mount: mountItems,
+					orderId: orderId,
+					ajaxUrl: urls.erpAjax,
+				});
+			}
+		}
+	}
+
 	function epcBindOmsTabs(root) {
 		if (!root || root.getAttribute('data-tabs-bound') === '1') {
 			return;
 		}
 		root.setAttribute('data-tabs-bound', '1');
 		var tabs = root.querySelectorAll('[data-epc-od-tab]');
-		var panels = root.querySelectorAll('[data-epc-od-panel]');
 		Array.prototype.forEach.call(tabs, function (btn) {
 			btn.addEventListener('click', function () {
-				var id = btn.getAttribute('data-epc-od-tab');
-				Array.prototype.forEach.call(tabs, function (b) {
-					b.classList.toggle('is-active', b === btn);
-				});
-				Array.prototype.forEach.call(panels, function (p) {
-					p.classList.toggle('is-active', p.getAttribute('data-epc-od-panel') === id);
-				});
+				epcActivateOmsTab(root, btn.getAttribute('data-epc-od-tab'));
 			});
 		});
+		epcActivateOmsTab(root, epcOmsGetActiveTab());
 	}
 
 	function epcInitOmsPane(orderId) {
@@ -356,22 +481,29 @@
 		epcBindOmsTabs(root);
 		if (window.epcOrdersFulfillment && urls.erpAjax) {
 			var mount = document.getElementById('epc-order-fulfillment-panel-' + orderId);
-			if (mount) {
+			if (mount && mount.getAttribute('data-erp-loaded') !== '1') {
+				mount.setAttribute('data-erp-loaded', '1');
 				window.epcOrdersFulfillment.load({
 					mount: mount,
 					orderId: orderId,
 					ajaxUrl: urls.erpAjax,
 				});
 			}
-			var mountItems = document.getElementById('epc-order-fulfillment-panel-items-' + orderId);
-			if (mountItems) {
-				window.epcOrdersFulfillment.load({
-					mount: mountItems,
-					orderId: orderId,
-					ajaxUrl: urls.erpAjax,
-				});
-			}
 		}
+		// Live margin recalc while editing lines
+		var lines = root ? root.querySelectorAll('.epc-od__line [data-field]') : [];
+		Array.prototype.forEach.call(lines, function (inp) {
+			if (inp.getAttribute('data-recalc-bound') === '1') {
+				return;
+			}
+			inp.setAttribute('data-recalc-bound', '1');
+			inp.addEventListener('input', function () {
+				epcOmsRecalcLine(inp.closest('.epc-od__line'));
+			});
+			inp.addEventListener('change', function () {
+				epcOmsRecalcLine(inp.closest('.epc-od__line'));
+			});
+		});
 		if (window.epcSupplierFulfillment && urls.omsAjax) {
 			var sf = document.getElementById('epc-order-supplier-fulfillment-' + orderId);
 			if (sf) {
@@ -511,8 +643,9 @@
 		}
 	};
 
-	function epcOmsPost(data, okMsg, failMsg) {
+	function epcOmsPost(data, okMsg, failMsg, opts) {
 		data = data || {};
+		opts = opts || {};
 		data.csrf_guard_key = cfg.csrf || '';
 		jQuery.ajax({
 			type: 'POST',
@@ -522,7 +655,10 @@
 			success: function (answer) {
 				if (answer && answer.status === true) {
 					epcOdToast(okMsg || 'OK', true);
-					if (data.order_id) {
+					if (typeof opts.onSuccess === 'function') {
+						opts.onSuccess(answer);
+					}
+					if (!opts.skipReload && data.order_id) {
 						epcLoadOrderDetail(data.order_id);
 					}
 				} else {
@@ -537,21 +673,55 @@
 
 	window.epcOmsSaveItem = function (orderId, itemId) {
 		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
-		if (!card) {
+		var payload = epcOmsCollectLinePayload(card);
+		if (!payload) {
+			return;
+		}
+		payload.action = 'update_item';
+		payload.order_id = orderId;
+		epcOmsPost(payload, msg.itemSaved || 'Item updated', msg.itemFail || 'Could not update item');
+	};
+
+	window.epcOmsSaveAllItems = function (orderId) {
+		var root = document.querySelector('.epc-od--oms[data-order-id="' + orderId + '"]') || document.querySelector('.epc-od--oms');
+		if (!root) {
+			return;
+		}
+		var cards = root.querySelectorAll('.epc-od__line[data-item-id]');
+		var items = [];
+		Array.prototype.forEach.call(cards, function (card) {
+			var row = epcOmsCollectLinePayload(card);
+			if (row) {
+				items.push(row);
+			}
+		});
+		if (!items.length) {
+			epcOdToast('No lines to save', false);
 			return;
 		}
 		epcOmsPost({
-			action: 'update_item',
+			action: 'update_items',
 			order_id: orderId,
-			item_id: itemId,
-			price: (card.querySelector('[data-field="price"]') || {}).value,
-			count_need: (card.querySelector('[data-field="count_need"]') || {}).value,
-			t2_price_purchase: (card.querySelector('[data-field="t2_price_purchase"]') || {}).value,
-			t2_storage_id: (card.querySelector('[data-field="t2_storage_id"]') || {}).value,
-			t2_name: (card.querySelector('[data-field="t2_name"]') || {}).value,
-			t2_manufacturer: (card.querySelector('[data-field="t2_manufacturer"]') || {}).value,
-			t2_article: (card.querySelector('[data-field="t2_article"]') || {}).value
-		}, msg.itemSaved || 'Item updated', msg.itemFail || 'Could not update item');
+			items: JSON.stringify(items)
+		}, 'Saved ' + items.length + ' line(s)', 'Could not save lines');
+	};
+
+	window.epcOmsSetAllItemStatus = function (orderId) {
+		var sel = document.getElementById('epc_od_bulk_item_status');
+		var status = sel ? parseInt(sel.value || '0', 10) : 0;
+		if (status <= 0) {
+			epcOdToast('Pick a line status', false);
+			return;
+		}
+		if (!confirm('Apply this status to all lines on this order?')) {
+			return;
+		}
+		epcOmsPost({
+			action: 'set_items_status',
+			order_id: orderId,
+			status: status,
+			item_ids: '[]'
+		}, 'All line statuses updated', 'Could not update statuses');
 	};
 
 	window.epcOmsRefreshCost = function (orderId, itemId) {
@@ -802,7 +972,7 @@
 				'&csrf_guard_key=' + encodeURIComponent(cfg.csrf || ''),
 			success: function (answer) {
 				if (answer.status === true) {
-					location = baseOrders;
+					epcOmsSoftReload(epcOrdersSelectedId);
 				} else if (answer.message) {
 					alert((msg.setStatusFail || 'Error') + '. ' + answer.message);
 				} else {
@@ -830,7 +1000,7 @@
 			})) + '&csrf_guard_key=' + encodeURIComponent(cfg.csrf || ''),
 			success: function (answer) {
 				if (answer.status === true) {
-					location = baseOrders;
+					epcOmsSoftReload(epcOrdersSelectedId);
 				} else {
 					alert(msg.setViewedFail || 'Error');
 				}
@@ -855,7 +1025,7 @@
 			data: 'orders_list=' + JSON.stringify(checkedOrders) + '&csrf_guard_key=' + encodeURIComponent(cfg.csrf || ''),
 			success: function (answer) {
 				if (answer.status === true) {
-					location = baseOrders;
+					epcOmsSoftReload(0);
 				} else {
 					alert(answer.message || 'Error');
 				}
@@ -905,6 +1075,86 @@
 			window.elements_id_array = [];
 		}
 	}
+
+	window.ordersTodayTab = function () {
+		var now = new Date();
+		var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+		var end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0);
+		var f = epcBlankFilter(0);
+		f.time_from = String(Math.floor(start.getTime() / 1000));
+		f.time_to = String(Math.floor(end.getTime() / 1000));
+		setLongCookie('orders_tab', 'all');
+		setLongCookie('orders_filter', JSON.stringify(f));
+		goToPage(0);
+	};
+
+	window.ordersPendingShipTab = function () {
+		var f = epcBlankFilter(cfg.openStatuses || cfg.inProcessStatuses || []);
+		f.paid = ['1', '2'];
+		setLongCookie('orders_tab', 'open');
+		setLongCookie('orders_filter', JSON.stringify(f));
+		goToPage(0);
+	};
+
+	function epcOmsBindKeyboard() {
+		if (document.documentElement.getAttribute('data-epc-oms-keys') === '1') {
+			return;
+		}
+		document.documentElement.setAttribute('data-epc-oms-keys', '1');
+		document.addEventListener('keydown', function (e) {
+			if (e.altKey) {
+				return;
+			}
+			var tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+			var inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable);
+			var root = document.querySelector('.epc-od--oms');
+			var orderId = root ? parseInt(root.getAttribute('data-order-id') || '0', 10) : (epcOrdersSelectedId || 0);
+
+			if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's') {
+				e.preventDefault();
+				if (!orderId) {
+					return;
+				}
+				var line = e.target && e.target.closest ? e.target.closest('.epc-od__line') : null;
+				if (line && line.getAttribute('data-item-id')) {
+					epcOmsSaveItem(orderId, parseInt(line.getAttribute('data-item-id'), 10));
+				} else if (root && root.getAttribute('data-can-edit') === '1') {
+					epcOmsSaveAllItems(orderId);
+				}
+				return;
+			}
+
+			if (inField || e.ctrlKey || e.metaKey) {
+				return;
+			}
+
+			if (e.key === 'j' || e.key === 'ArrowDown') {
+				e.preventDefault();
+				epcOmsSelectRelative(1);
+				return;
+			}
+			if (e.key === 'k' || e.key === 'ArrowUp') {
+				e.preventDefault();
+				epcOmsSelectRelative(-1);
+				return;
+			}
+			var tabMap = {
+				'1': 'manage',
+				'2': 'items',
+				'3': 'fulfillment',
+				'4': 'customer',
+				'5': 'payment',
+				'6': 'docs',
+				'7': 'timeline',
+				'8': 'messages'
+			};
+			if (tabMap[e.key] && root) {
+				e.preventDefault();
+				epcActivateOmsTab(root, tabMap[e.key]);
+			}
+		});
+	}
+
 
 	function initPage() {
 		loadBootData();
@@ -968,6 +1218,7 @@
 				}
 			}
 		}
+		epcOmsBindKeyboard();
 	}
 
 	if (document.readyState === 'loading') {

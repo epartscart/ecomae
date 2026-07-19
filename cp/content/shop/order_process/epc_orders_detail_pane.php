@@ -286,7 +286,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 	. '&order_items=' . rawurlencode(json_encode($itemIds))
 	. '&doc_name=';
 ?>
-<div class="epc-od epc-od--oms" data-order-id="<?php echo (int) $order_id; ?>" data-can-edit="<?php echo $canEditItems ? '1' : '0'; ?>" data-paid-left="<?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', '')); ?>" data-customer-balance="<?php echo epc_orders_ws_h(number_format($customerBalance, 2, '.', '')); ?>" data-customer-id="<?php echo (int) $customer_id; ?>" data-item-ids="<?php echo $itemIdsJson; ?>">
+<div class="epc-od epc-od--oms" data-order-id="<?php echo (int) $order_id; ?>" data-can-edit="<?php echo $canEditItems ? '1' : '0'; ?>" data-paid-left="<?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', '')); ?>" data-customer-balance="<?php echo epc_orders_ws_h(number_format($customerBalance, 2, '.', '')); ?>" data-customer-id="<?php echo (int) $customer_id; ?>" data-item-ids="<?php echo $itemIdsJson; ?>" data-usd-rate="<?php echo epc_orders_ws_h(number_format($usdRate, 6, '.', '')); ?>">
 	<div class="epc-od__head">
 		<div class="epc-od__title-row">
 			<h3 class="epc-od__title">Order #<?php echo (int) $order_id; ?> <span class="epc-od__oms-tag">OMS</span></h3>
@@ -397,9 +397,27 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 		<div class="epc-od__items">
 			<div class="epc-od__items-head">
 				<h4 class="epc-od__items-title">Line items</h4>
-				<span class="text-muted small"><?php echo $canEditItems ? 'Brand / part editable · margin from real purchase · multi-supplier fulfillment' : 'Paid order — prices locked'; ?></span>
-				<button type="button" class="btn btn-primary btn-xs" onclick="epcOmsGotoTab('fulfillment');"><i class="fa fa-random"></i> Fulfillment · Order #<?php echo (int) $order_id; ?></button>
+				<span class="text-muted small"><?php echo $canEditItems ? 'Brand / part editable · margin live · Ctrl+S saves' : 'Paid order — prices locked'; ?></span>
+				<div class="epc-od__items-actions">
+					<?php if ($canEditItems) { ?>
+					<button type="button" class="btn btn-primary btn-xs" onclick="epcOmsSaveAllItems(<?php echo (int) $order_id; ?>);"><i class="fa fa-save"></i> Save all lines</button>
+					<a class="btn btn-default btn-xs" href="/<?php echo epc_orders_ws_h($backend); ?>/shop/orders/items/add?id=<?php echo (int) $order_id; ?>"><i class="fa fa-plus"></i> Add line</a>
+					<?php } ?>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcOmsGotoTab('fulfillment');"><i class="fa fa-random"></i> Fulfillment</button>
+				</div>
 			</div>
+			<?php if ($items) { ?>
+			<div class="epc-od__bulk-status">
+				<label for="epc_od_bulk_item_status">Set all line statuses</label>
+				<select id="epc_od_bulk_item_status" class="form-control input-sm">
+					<option value="0">— choose —</option>
+					<?php foreach ($orders_items_statuses as $isid => $isdata) { ?>
+					<option value="<?php echo (int) $isid; ?>"><?php echo epc_orders_ws_h(translate_str_by_id($isdata['name'])); ?></option>
+					<?php } ?>
+				</select>
+				<button type="button" class="btn btn-default btn-xs" onclick="epcOmsSetAllItemStatus(<?php echo (int) $order_id; ?>);"><i class="fa fa-flag"></i> Apply to all lines</button>
+			</div>
+			<?php } ?>
 			<?php if (!$items) { ?>
 			<p class="text-muted">No line items</p>
 			<?php } else { ?>
@@ -563,7 +581,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 				<div><span>VAT on courier</span><strong><?php echo epc_orders_ws_h(number_format($courierVat, 2, '.', ' ')); ?><?php echo $vatZeroRated ? ' (zero)' : ''; ?></strong></div>
 				<div><span>Paid</span><strong class="is-ok"><?php echo epc_orders_ws_h(number_format($paidSum, 2, '.', ' ')); ?></strong></div>
 				<div><span>Balance due</span><strong class="<?php echo $paidLeft > 0 ? 'is-bad' : 'is-ok'; ?>"><?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', ' ')); ?></strong></div>
-				<div><span>Paid flag</span><strong><?php echo (int) $paid; ?></strong></div>
+				<div><span>Paid status</span><strong><?php echo epc_orders_ws_paid_badge($paid); ?></strong></div>
 				<?php if (!empty($shop_orders_paid_type[$paid_type])) { ?>
 				<div><span>Method</span><strong><?php echo epc_orders_ws_h(translate_str_by_id($shop_orders_paid_type[$paid_type])); ?></strong></div>
 				<?php } ?>
@@ -662,9 +680,18 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 	</section>
 
 	<section class="epc-od__panel" data-epc-od-panel="messages">
+		<div class="epc-od__wa-block">
+			<?php
+			$customer_profile = array('phone' => $customer_phone);
+			$waShare = $_SERVER['DOCUMENT_ROOT'] . '/' . $backend . '/content/shop/order_process/epc_order_whatsapp_share.php';
+			if (is_file($waShare)) {
+				require $waShare;
+			}
+			?>
+		</div>
 		<div class="epc-od__chat">
 			<div class="epc-od__edit-title">Message to customer</div>
-			<p class="text-muted small">Order-wide message, or use “Message customer about item” on a line for price-change / item-specific notes.</p>
+			<p class="text-muted small">Order-wide message, or use “Message customer about item” on a line for price-change / item-specific notes. WhatsApp share is above.</p>
 			<div id="epc_od_chat_thread" class="epc-od__chat-thread">
 				<?php if (!$messages) { ?>
 				<div class="text-muted">No messages yet</div>

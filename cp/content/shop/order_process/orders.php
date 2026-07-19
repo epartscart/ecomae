@@ -150,7 +150,7 @@ else//Действий нет - выводим страницу
 		<div class="epc-orders-page__hero">
 			<div>
 				<h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
-				<p>One-window order management: list on the left, full console on the right — items, payment, documents, status, and messages. Follow the daily guide for step-by-step areas.</p>
+				<p>One-window order management: list on the left, full console on the right — items, fulfillment, payment, courier VAT, documents, and WhatsApp. Click KPI cards to filter; use keyboard shortcuts for speed.</p>
 			</div>
 			<div class="epc-orders-page__hero-actions">
 				<a class="btn btn-primary btn-sm" href="/<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/orders/oms-guide"><i class="fa fa-book"></i> OMS daily guide</a>
@@ -159,22 +159,23 @@ else//Действий нет - выводим страницу
 			</div>
 		</div>
 		<div class="epc-scp-kpi epc-scp-orders-kpi">
-			<div class="epc-scp-kpi__card" style="cursor:pointer;" onclick="ordersOpenTab();">
+			<div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" onclick="ordersOpenTab();" onkeydown="if(event.key==='Enter')ordersOpenTab();" title="Show open orders">
 				<div class="epc-scp-kpi__label">Open orders</div>
 				<div class="epc-scp-kpi__val"><?php echo (int) $epc_orders_open_count; ?></div>
-				<div class="epc-scp-kpi__hint">Active pipeline</div>
+				<div class="epc-scp-kpi__hint">Click to filter · active pipeline</div>
 			</div>
-			<div class="epc-scp-kpi__card">
+			<div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" onclick="ordersTodayTab();" onkeydown="if(event.key==='Enter')ordersTodayTab();" title="Orders created today">
 				<div class="epc-scp-kpi__label">Today</div>
 				<div class="epc-scp-kpi__val"><?php echo (int) $epc_orders_kpi['today']; ?></div>
-				<div class="epc-scp-kpi__hint">New today</div>
+				<div class="epc-scp-kpi__hint">Click to filter · new today</div>
 			</div>
-			<div class="epc-scp-kpi__card">
+			<div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" onclick="ordersPendingShipTab();" onkeydown="if(event.key==='Enter')ordersPendingShipTab();" title="Paid orders not finished">
 				<div class="epc-scp-kpi__label">Pending ship</div>
 				<div class="epc-scp-kpi__val"><?php echo (int) $epc_orders_kpi['pending_ship']; ?></div>
-				<div class="epc-scp-kpi__hint">Paid, not finished</div>
+				<div class="epc-scp-kpi__hint">Click to filter · paid, not finished</div>
 			</div>
 		</div>
+		<p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: <kbd>j</kbd>/<kbd>k</kbd> or ↑/↓ next/prev order · <kbd>1</kbd>–<kbd>8</kbd> console tabs · <kbd>Ctrl</kbd>+<kbd>S</kbd> save line / all lines</p>
 		<div class="epc-orders-tabs" role="tablist" aria-label="Orders tabs">
 			<button type="button" class="epc-orders-tab<?php echo $epc_orders_tab === 'open' ? ' is-active' : ''; ?>" onclick="ordersOpenTab();">Open <span class="epc-tab-count"><?php echo (int) $epc_orders_open_count; ?></span></button>
 			<button type="button" class="epc-orders-tab is-completed<?php echo $epc_orders_tab === 'completed' ? ' is-active' : ''; ?>" onclick="ordersCompletedTab();">Completed <span class="epc-tab-count"><?php echo (int) $epc_orders_completed_count; ?></span></button>
