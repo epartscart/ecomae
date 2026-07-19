@@ -50,14 +50,54 @@
 			fd.append('title', draftBtn.getAttribute('data-title') || 'Draft');
 			fd.append('caption', draftBtn.getAttribute('data-caption') || '');
 			var videoUrl = document.getElementById('epc_social_video_url');
+			var composeMedia = document.getElementById('epc_social_compose_media');
 			if (videoUrl && videoUrl.value) {
 				fd.append('media_url', videoUrl.value);
+			} else if (composeMedia && composeMedia.value) {
+				fd.append('media_url', composeMedia.value);
 			}
 			fetch(cfg.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
 				.then(function (r) { return r.json(); })
 				.then(function (j) {
 					alert(j.message || (j.ok ? 'Draft saved' : 'Error'));
 				});
+			return;
+		}
+		var pubBtn = e.target.closest('.epc-social-publish-now');
+		if (pubBtn && cfg.ajaxUrl) {
+			var platform = pubBtn.getAttribute('data-platform') || 'instagram';
+			var mediaEl = document.getElementById('epc_social_video_url') || document.getElementById('epc_social_compose_media');
+			var mediaUrl = mediaEl && mediaEl.value ? mediaEl.value.trim() : '';
+			if ((platform === 'instagram' || platform === 'tiktok') && !mediaUrl) {
+				mediaUrl = window.prompt('Public HTTPS media URL required for ' + platform + ' publish:', '') || '';
+			}
+			if ((platform === 'instagram' || platform === 'tiktok') && !mediaUrl) {
+				alert('Publish cancelled — media URL is required for ' + platform + '.');
+				return;
+			}
+			if (!window.confirm('Publish this post to ' + platform + ' now?')) {
+				return;
+			}
+			pubBtn.disabled = true;
+			var pfd = new FormData();
+			pfd.append('action', 'publish_now');
+			pfd.append('csrf_token', cfg.csrfToken || '');
+			pfd.append('platform', platform);
+			pfd.append('title', pubBtn.getAttribute('data-title') || 'Published post');
+			pfd.append('caption', pubBtn.getAttribute('data-caption') || '');
+			pfd.append('media_url', mediaUrl);
+			fetch(cfg.ajaxUrl, { method: 'POST', body: pfd, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (j) {
+					alert(j.message || (j.ok ? 'Published' : 'Publish failed'));
+					if (j.ok && cfg.hubUrl) {
+						window.location.href = cfg.hubUrl;
+					} else if (j.ok) {
+						window.location.search = 'tab=drafts';
+					}
+				})
+				.catch(function () { alert('Network error'); })
+				.finally(function () { pubBtn.disabled = false; });
 		}
 	});
 

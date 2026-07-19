@@ -56,6 +56,7 @@ $brand = epc_social_brand_context($siteKey, $pdo);
 $config = array(
 	'ajaxUrl' => '/content/general_pages/ajax_epc_social_media.php',
 	'csrfToken' => epc_social_csrf_token(),
+	'hubUrl' => epc_social_hub_url('drafts', function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host() ? $siteKey : null),
 	'siteKey' => $siteKey,
 	'brandName' => (string) $brand['brand_name'],
 	'industry' => (string) $brand['industry'],

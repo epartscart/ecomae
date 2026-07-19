@@ -103,6 +103,9 @@ function epc_social_ensure_schema(PDO $pdo): void
 			`media_url` VARCHAR(512) NOT NULL DEFAULT \'\',
 			`status` VARCHAR(32) NOT NULL DEFAULT \'draft\',
 			`scheduled_at` INT NOT NULL DEFAULT 0,
+			`external_post_id` VARCHAR(128) NOT NULL DEFAULT \'\',
+			`published_at` INT NOT NULL DEFAULT 0,
+			`last_error` TEXT NULL,
 			`created_at` INT NOT NULL DEFAULT 0,
 			`updated_at` INT NOT NULL DEFAULT 0,
 			PRIMARY KEY (`id`),
@@ -110,6 +113,31 @@ function epc_social_ensure_schema(PDO $pdo): void
 			KEY `status` (`status`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8'
 	);
+	epc_social_schema_add_column_if_missing($pdo, 'epc_social_post_drafts', 'external_post_id', "VARCHAR(128) NOT NULL DEFAULT ''");
+	epc_social_schema_add_column_if_missing($pdo, 'epc_social_post_drafts', 'published_at', 'INT NOT NULL DEFAULT 0');
+	epc_social_schema_add_column_if_missing($pdo, 'epc_social_post_drafts', 'last_error', 'TEXT NULL');
+}
+
+function epc_social_schema_add_column_if_missing(PDO $pdo, string $table, string $column, string $definition): void
+{
+	static $checked = array();
+	$key = $table . '.' . $column;
+	if (isset($checked[$key])) {
+		return;
+	}
+	$checked[$key] = true;
+	try {
+		$st = $pdo->prepare(
+			'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+			 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+		);
+		$st->execute(array($table, $column));
+		if ((int) $st->fetchColumn() > 0) {
+			return;
+		}
+		$pdo->exec('ALTER TABLE `' . str_replace('`', '', $table) . '` ADD COLUMN `' . str_replace('`', '', $column) . '` ' . $definition);
+	} catch (Throwable $e) {
+	}
 }
 
 function epc_social_resolve_site_key(?PDO $platformPdo = null): string
@@ -249,12 +277,28 @@ function epc_social_save_account(PDO $pdo, string $siteKey, array $data): array
 	$apiKey = trim((string) ($data['api_key'] ?? ''));
 	$apiSecret = trim((string) ($data['api_secret'] ?? ''));
 	$pageId = trim((string) ($data['page_id'] ?? ''));
+	$igUserId = trim((string) ($data['ig_user_id'] ?? ''));
+	$openId = trim((string) ($data['open_id'] ?? ''));
+	$privacy = strtoupper(trim((string) ($data['privacy_level'] ?? 'SELF_ONLY')));
+	if (!in_array($privacy, array('PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'SELF_ONLY'), true)) {
+		$privacy = 'SELF_ONLY';
+	}
+
+	if ($platform === 'instagram' && $igUserId === '' && $pageId !== '') {
+		$igUserId = $pageId;
+	}
+	if ($platform === 'tiktok' && $openId === '' && $pageId !== '') {
+		$openId = $pageId;
+	}
 
 	$credPayload = array(
 		'access_token' => $accessToken,
 		'api_key' => $apiKey,
 		'api_secret' => $apiSecret,
 		'page_id' => $pageId,
+		'ig_user_id' => $igUserId,
+		'open_id' => $openId,
+		'privacy_level' => $privacy,
 		'updated' => time(),
 	);
 	$encrypted = epc_social_encrypt(json_encode($credPayload), $siteKey);
@@ -264,13 +308,30 @@ function epc_social_save_account(PDO $pdo, string $siteKey, array $data): array
 	$existing->execute(array($siteKey, $platform));
 	$row = $existing->fetch(PDO::FETCH_ASSOC);
 
-	if ($accessToken === '' && $apiKey === '' && $row) {
+	if ($row) {
 		$old = json_decode(epc_social_decrypt((string) ($row['encrypted_credentials'] ?? ''), $siteKey), true);
 		if (is_array($old)) {
-			$credPayload['access_token'] = (string) ($old['access_token'] ?? '');
-			$credPayload['api_key'] = (string) ($old['api_key'] ?? '');
-			$credPayload['api_secret'] = (string) ($old['api_secret'] ?? '');
-			$credPayload['page_id'] = (string) ($old['page_id'] ?? $pageId);
+			if ($accessToken === '') {
+				$credPayload['access_token'] = (string) ($old['access_token'] ?? '');
+			}
+			if ($apiKey === '') {
+				$credPayload['api_key'] = (string) ($old['api_key'] ?? '');
+			}
+			if ($apiSecret === '') {
+				$credPayload['api_secret'] = (string) ($old['api_secret'] ?? '');
+			}
+			if ($pageId === '') {
+				$credPayload['page_id'] = (string) ($old['page_id'] ?? '');
+			}
+			if ($igUserId === '') {
+				$credPayload['ig_user_id'] = (string) ($old['ig_user_id'] ?? '');
+			}
+			if ($openId === '') {
+				$credPayload['open_id'] = (string) ($old['open_id'] ?? '');
+			}
+			if (trim((string) ($data['privacy_level'] ?? '')) === '' && !empty($old['privacy_level'])) {
+				$credPayload['privacy_level'] = (string) $old['privacy_level'];
+			}
 			$encrypted = epc_social_encrypt(json_encode($credPayload), $siteKey);
 		}
 	}
@@ -290,6 +351,13 @@ function epc_social_save_account(PDO $pdo, string $siteKey, array $data): array
 
 function epc_social_test_account(PDO $pdo, string $siteKey, string $platform): array
 {
+	$publishFile = __DIR__ . '/epc_social_publish.php';
+	if (is_file($publishFile)) {
+		require_once $publishFile;
+		if (function_exists('epc_social_test_account_live')) {
+			return epc_social_test_account_live($pdo, $siteKey, $platform);
+		}
+	}
 	epc_social_ensure_schema($pdo);
 	$platform = preg_replace('/[^a-z0-9_]/', '', strtolower($platform));
 	$st = $pdo->prepare('SELECT `encrypted_credentials`, `username` FROM `epc_social_accounts` WHERE `site_key` = ? AND `platform` = ? LIMIT 1');
@@ -305,9 +373,9 @@ function epc_social_test_account(PDO $pdo, string $siteKey, string $platform): a
 	$pdo->prepare('UPDATE `epc_social_accounts` SET `last_test_at` = ?, `last_test_ok` = ?, `status` = ? WHERE `site_key` = ? AND `platform` = ?')
 		->execute(array($now, $ok ? 1 : 0, $ok ? 'verified' : 'pending', $siteKey, $platform));
 	if (!$ok) {
-		return array('ok' => false, 'message' => 'Credentials incomplete. Add username and API token/key, or configure OAuth in Integrations hub.');
+		return array('ok' => false, 'message' => 'Credentials incomplete. Add username and access token.');
 	}
-	return array('ok' => true, 'message' => 'Connection check passed (credential vault OK). Live posting requires platform API keys in Integrations.');
+	return array('ok' => true, 'message' => 'Credential vault OK (live API module unavailable).');
 }
 
 function epc_social_delete_account(PDO $pdo, string $siteKey, string $platform): array
@@ -322,7 +390,8 @@ function epc_social_list_drafts(PDO $pdo, string $siteKey, int $limit = 20): arr
 {
 	epc_social_ensure_schema($pdo);
 	$st = $pdo->prepare(
-		'SELECT `id`, `platform`, `title`, `caption`, `hashtags`, `media_url`, `status`, `scheduled_at`, `updated_at`
+		'SELECT `id`, `platform`, `title`, `caption`, `hashtags`, `media_url`, `status`, `scheduled_at`,
+		 `external_post_id`, `published_at`, `last_error`, `updated_at`
 		 FROM `epc_social_post_drafts` WHERE `site_key` = ? ORDER BY `updated_at` DESC LIMIT ' . (int) $limit
 	);
 	$st->execute(array($siteKey));
