@@ -18,6 +18,39 @@
 
 	window.getCookie = getCookie;
 
+	/**
+	 * Open legacy print_docs with a fresh admin CSRF key from EPC_ORDERS.
+	 * OMS AJAX pane used to emit empty csrf_guard_key → "Error! CSRF 3".
+	 */
+	window.epcOdOpenLegacyPrint = function (el) {
+		if (!el) {
+			return true;
+		}
+		var docName = el.getAttribute('data-doc-name') || '';
+		var orderId = el.getAttribute('data-order-id') || '';
+		var itemsRaw = el.getAttribute('data-order-items') || '[]';
+		var csrf = (cfg && cfg.csrf) ? String(cfg.csrf) : '';
+		if (!csrf) {
+			csrf = getCookie('csrf_guard_key') || '';
+		}
+		var base = (urls && urls.legacyPrintBase) ? String(urls.legacyPrintBase) : '/content/shop/print_docs/service/print.php';
+		if (!docName || !orderId) {
+			return true;
+		}
+		if (!csrf) {
+			alert('Print session expired. Refresh the Control Panel page and try again.');
+			return false;
+		}
+		var href = base
+			+ '?order_id=' + encodeURIComponent(orderId)
+			+ '&csrf_admin=1'
+			+ '&csrf_guard_key=' + encodeURIComponent(csrf)
+			+ '&order_items=' + encodeURIComponent(itemsRaw)
+			+ '&doc_name=' + encodeURIComponent(docName);
+		window.open(href, '_blank');
+		return false;
+	};
+
 	function pad2(n) {
 		return (n < 10 ? '0' : '') + n;
 	}
@@ -206,29 +239,18 @@
 			? -1 : jQuery('#paid_type').multipleSelect('getSelects', 'value');
 		f.office = jQuery('#office').multipleSelect('getSelects', 'value').length === 0
 			? 0 : jQuery('#office').multipleSelect('getSelects', 'value');
+		var tab = getCookie('orders_tab') || cfg.defaultTab || 'open';
+		setLongCookie('orders_tab', tab);
 		setLongCookie('orders_filter', JSON.stringify(f));
 		goToPage(0);
 	};
 
 	window.unsetFilterOrders = function () {
-		var f = {
-			time_from: '', time_to: '', order_id: '', status: 0, paid: -1,
-			customer: '', customer_id: '', viewed: -1, paid_type: -1,
-			office: 0, phone: '', article: ''
-		};
-		setLongCookie('orders_filter', JSON.stringify(f));
-		goToPage(0);
+		ordersAllTab();
 	};
 
 	window.ordersInProcess = function () {
-		var f = {
-			time_from: '', time_to: '', order_id: '',
-			status: cfg.inProcessStatuses || [],
-			paid: -1, customer: '', customer_id: '', viewed: -1,
-			paid_type: -1, office: 0, phone: '', article: ''
-		};
-		setLongCookie('orders_filter', JSON.stringify(f));
-		goToPage(0);
+		ordersOpenTab();
 	};
 
 	window.epcFilterByStatus = function (statusId) {
@@ -238,8 +260,54 @@
 			paid: -1, customer: '', customer_id: '', viewed: -1,
 			paid_type: -1, office: 0, phone: '', article: ''
 		};
+		setLongCookie('orders_tab', 'open');
 		setLongCookie('orders_filter', JSON.stringify(f));
 		goToPage(0);
+	};
+
+	function epcBlankFilter(statusVal) {
+		return {
+			time_from: '', time_to: '', order_id: '',
+			status: statusVal,
+			paid: -1, customer: '', customer_id: '', viewed: -1,
+			paid_type: -1, office: 0, phone: '', article: ''
+		};
+	}
+
+	window.ordersOpenTab = function () {
+		setLongCookie('orders_tab', 'open');
+		setLongCookie('orders_filter', JSON.stringify(epcBlankFilter(cfg.openStatuses || cfg.inProcessStatuses || [])));
+		goToPage(0);
+	};
+
+	window.ordersCompletedTab = function () {
+		setLongCookie('orders_tab', 'completed');
+		setLongCookie('orders_filter', JSON.stringify(epcBlankFilter(cfg.completedStatuses || [])));
+		goToPage(0);
+	};
+
+	window.ordersAllTab = function () {
+		setLongCookie('orders_tab', 'all');
+		setLongCookie('orders_filter', JSON.stringify(epcBlankFilter(0)));
+		goToPage(0);
+	};
+
+	window.epcToggleOrdersFilter = function () {
+		var panel = document.querySelector('.epc-orders-filter-panel');
+		if (!panel) {
+			return;
+		}
+		panel.classList.toggle('is-collapsed');
+		var icon = panel.querySelector('.panel-tools .showhide i');
+		if (icon) {
+			icon.className = panel.classList.contains('is-collapsed') ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
+		}
+		var label = panel.querySelector('.epc-filter-toggle');
+		if (label) {
+			label.textContent = panel.classList.contains('is-collapsed')
+				? 'Advanced · click to expand'
+				: 'Advanced · click to collapse';
+		}
 	};
 
 	var epcOrdersSelectedId = cfg.selectedOrderId || 0;
@@ -449,7 +517,7 @@
 	}
 
 	window.epcOmsSaveItem = function (orderId, itemId) {
-		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
 			return;
 		}
@@ -466,7 +534,7 @@
 	};
 
 	window.epcOmsSetItemStatus = function (orderId, itemId) {
-		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
 			return;
 		}
@@ -800,6 +868,10 @@
 
 	function initPage() {
 		loadBootData();
+		if (cfg.rewriteFilter && cfg.defaultFilter) {
+			setLongCookie('orders_tab', cfg.defaultTab || 'open');
+			setLongCookie('orders_filter', JSON.stringify(cfg.defaultFilter));
+		}
 		initDatePicker('time_from', 'time_from_show', '00:00');
 		initDatePicker('time_to', 'time_to_show', '23:59');
 		initMultipleSelect('paid', 'paid_div', 'paid', -1);
@@ -824,6 +896,10 @@
 			});
 		}
 
+		if (!getCookie('orders_tab')) {
+			setLongCookie('orders_tab', cfg.defaultTab || 'open');
+		}
+
 		if (cfg.autoRunInProcess) {
 			ordersInProcess();
 		} else {
@@ -831,11 +907,25 @@
 			var ssrOd = pane ? pane.querySelector('.epc-od[data-order-id]') : null;
 			var ssrId = ssrOd ? parseInt(ssrOd.getAttribute('data-order-id') || '0', 10) : 0;
 			if (ssrId > 0) {
-				// SSR already painted OMS for ?order_id=… (config may omit order_id).
 				epcOrdersSelectedId = ssrId;
 				epcInitOmsPane(ssrId);
 			} else if (epcOrdersSelectedId > 0) {
 				epcLoadOrderDetail(epcOrdersSelectedId);
+			} else if (cfg.autoOpenFirstOrder && cfg.firstOrderId > 0) {
+				epcLoadOrderDetail(cfg.firstOrderId);
+			} else {
+				// Boot payload may carry first visible order when config omitted it
+				var bootEl = document.getElementById('epc-orders-boot');
+				if (bootEl && bootEl.textContent && cfg.autoOpenFirstOrder) {
+					try {
+						var boot = JSON.parse(bootEl.textContent);
+						var fid = parseInt(boot.firstOrderId || 0, 10);
+						if (fid > 0) {
+							epcLoadOrderDetail(fid);
+						}
+					} catch (e2) {
+					}
+				}
 			}
 		}
 	}

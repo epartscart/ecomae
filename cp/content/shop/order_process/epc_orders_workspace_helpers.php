@@ -9,6 +9,51 @@ function epc_orders_ws_h($v): string
 	return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Warehouse / supplier caption — do not run through translate_str_by_id
+ * (plain codes like S-UAE return null and blank the OMS UI).
+ */
+function epc_orders_ws_storage_label($raw): string
+{
+	$raw = trim((string) $raw);
+	if ($raw === '') {
+		return '—';
+	}
+	if (ctype_digit($raw) && function_exists('translate_str_by_id')) {
+		$tr = translate_str_by_id($raw);
+		if (is_string($tr) && $tr !== '' && strpos($tr, 'ERROR STR_KEY') !== 0) {
+			return $tr;
+		}
+	}
+	return $raw;
+}
+
+/** AED → approx USD using shop currency rate (fallback 3.6725). */
+function epc_orders_ws_usd_rate($db_link = null, $DP_Config = null): float
+{
+	$rate = 3.6725;
+	try {
+		$currencyFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_currency.php';
+		if (is_file($currencyFile)) {
+			require_once $currencyFile;
+			if ($db_link instanceof PDO && is_object($DP_Config) && function_exists('epc_currency_records')) {
+				$records = epc_currency_records($db_link, $DP_Config);
+				if (isset($records['840']['rate']) && (float) $records['840']['rate'] > 0) {
+					$rate = (float) $records['840']['rate'];
+				}
+			}
+		}
+	} catch (Throwable $e) {
+	}
+	return $rate > 0 ? $rate : 3.6725;
+}
+
+function epc_orders_ws_aed_usd(float $aed, float $usdRate): string
+{
+	$usd = $usdRate > 0 ? ($aed / $usdRate) : 0.0;
+	return number_format($aed, 2, '.', ',') . ' AED / ' . number_format($usd, 2, '.', ',') . ' USD';
+}
+
 function epc_orders_ws_badge_class(int $statusId, PDO $db): string
 {
 	static $cache = array();
@@ -58,11 +103,7 @@ function epc_orders_ws_kpi(PDO $db, array $offices_list, int $manager_id): array
 	$ph = implode(',', array_fill(0, count($officeIds), '?'));
 	$todayStart = strtotime('today midnight');
 
-	$openStatuses = array();
-	$q = $db->query("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_inverse` != 1 AND `for_finish` != 1 AND `for_created` != 1");
-	while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
-		$openStatuses[] = (int) $r['id'];
-	}
+	$openStatuses = epc_orders_ws_open_status_ids($db);
 
 	$open = 0;
 	if (count($openStatuses) > 0) {
@@ -104,4 +145,107 @@ function epc_orders_ws_in_process_status_ids(PDO $db): array
 		$ids[] = (int) $r['id'];
 	}
 	return $ids;
+}
+
+/** Open = not finished and not canceled (includes newly placed / for_created). */
+function epc_orders_ws_open_status_ids(PDO $db): array
+{
+	$ids = array();
+	$q = $db->query("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_inverse` != 1 AND `for_finish` != 1");
+	while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
+		$ids[] = (int) $r['id'];
+	}
+	return $ids;
+}
+
+function epc_orders_ws_completed_status_ids(PDO $db): array
+{
+	$ids = array();
+	$q = $db->query("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1");
+	while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
+		$ids[] = (int) $r['id'];
+	}
+	return $ids;
+}
+
+function epc_orders_ws_tab_from_cookie(): string
+{
+	$tab = isset($_COOKIE['orders_tab']) ? strtolower(trim((string) $_COOKIE['orders_tab'])) : 'open';
+	if (!in_array($tab, array('open', 'completed', 'all'), true)) {
+		return 'open';
+	}
+	return $tab;
+}
+
+function epc_orders_ws_filter_has_search(array $f): bool
+{
+	foreach (array('order_id', 'customer', 'customer_id', 'phone', 'article', 'time_from', 'time_to') as $k) {
+		if (!empty($f[$k])) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Normalize orders_filter for the active OMS tab.
+ * Open/Completed own the status set; sticky paid/viewed cleared when not searching.
+ */
+function epc_orders_ws_normalize_filter_for_tab(array $filter, string $tab, array $openIds, array $completedIds, bool $forceDefaults): array
+{
+	$defaults = array(
+		'time_from' => '', 'time_to' => '', 'order_id' => '', 'status' => 0, 'paid' => -1,
+		'customer' => '', 'customer_id' => '', 'viewed' => -1, 'paid_type' => -1,
+		'office' => 0, 'phone' => '', 'article' => '',
+	);
+	$out = array_merge($defaults, $filter);
+	$strIds = static function (array $ids) {
+		$r = array();
+		foreach ($ids as $id) {
+			$r[] = (string) (int) $id;
+		}
+		return $r;
+	};
+	$hasSearch = epc_orders_ws_filter_has_search($out);
+
+	if ($tab === 'open') {
+		$statusEmpty = !isset($out['status']) || $out['status'] === 0 || $out['status'] === '0' || $out['status'] === array() || $out['status'] === '';
+		if ($forceDefaults || $statusEmpty) {
+			$out['status'] = $strIds($openIds);
+		}
+		// Clear sticky paid/viewed only when establishing tab defaults (first visit / tab switch via JS).
+		if ($forceDefaults) {
+			$out['paid'] = -1;
+			$out['viewed'] = -1;
+			$out['paid_type'] = -1;
+		}
+	} elseif ($tab === 'completed') {
+		// Completed tab always shows finished statuses
+		$out['status'] = $strIds($completedIds);
+		if ($forceDefaults) {
+			$out['paid'] = -1;
+			$out['viewed'] = -1;
+			$out['paid_type'] = -1;
+		}
+	} elseif ($tab === 'all' && $forceDefaults) {
+		$out['status'] = 0;
+		$out['paid'] = -1;
+		$out['viewed'] = -1;
+		$out['paid_type'] = -1;
+	}
+
+	return $out;
+}
+
+function epc_orders_ws_count_by_statuses(PDO $db, array $officeIds, array $statusIds): int
+{
+	if (count($officeIds) === 0 || count($statusIds) === 0) {
+		return 0;
+	}
+	$ph = implode(',', array_fill(0, count($officeIds), '?'));
+	$sp = implode(',', array_fill(0, count($statusIds), '?'));
+	$args = array_merge($officeIds, $statusIds);
+	$st = $db->prepare("SELECT COUNT(*) FROM `shop_orders` WHERE `office_id` IN ($ph) AND `status` IN ($sp)");
+	$st->execute($args);
+	return (int) $st->fetchColumn();
 }

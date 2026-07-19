@@ -1,18 +1,71 @@
 (function () {
 	'use strict';
 
+	var DEFAULT_AJAX = '/cp/content/shop/prices_upload/ajax_epc_multivendor_ingest.php';
+	var DEFAULT_SAMPLE = '/cp/content/shop/prices_upload/epc_multivendor_sample_file.php';
+
+	function readBootJson() {
+		var el = document.getElementById('epc-multivendor-boot');
+		if (!el || !el.textContent) {
+			return null;
+		}
+		try {
+			return JSON.parse(el.textContent);
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function ensureCfg() {
+		var boot = readBootJson();
+		var current = window.EPC_MULTIVENDOR_CP;
+		if (!current || typeof current !== 'object') {
+			current = {};
+		}
+		if (boot && typeof boot === 'object') {
+			current = Object.assign({}, boot, current);
+		}
+		if (!current.ajaxUrl) {
+			current.ajaxUrl = DEFAULT_AJAX;
+		}
+		if (!current.sampleUrl) {
+			current.sampleUrl = DEFAULT_SAMPLE;
+		}
+		if (!current.backend) {
+			current.backend = 'cp';
+		}
+		if (!current.pricesUrl) {
+			current.pricesUrl = '/' + current.backend + '/shop/prices';
+		}
+		if (!current.storagesUrl) {
+			current.storagesUrl = '/' + current.backend + '/shop/logistics/storages';
+		}
+		if (!current.csrfKey) {
+			var csrfInput = document.querySelector('#epcMultivendorIngestForm input[name="csrf_guard_key"]');
+			if (csrfInput && csrfInput.value) {
+				current.csrfKey = csrfInput.value;
+			}
+		}
+		window.EPC_MULTIVENDOR_CP = current;
+		return current;
+	}
+
 	function cfg() {
-		return window.EPC_MULTIVENDOR_CP || {};
+		return ensureCfg();
 	}
 
 	function ajaxUrl() {
 		var c = cfg();
-		return c.ajaxUrl || '';
+		return c.ajaxUrl || DEFAULT_AJAX;
 	}
 
 	function csrfKey() {
 		var c = cfg();
-		return c.csrfKey || '';
+		if (c.csrfKey) {
+			return c.csrfKey;
+		}
+		var csrfInput = document.querySelector('#epcMultivendorIngestForm input[name="csrf_guard_key"]');
+		return csrfInput && csrfInput.value ? csrfInput.value : '';
 	}
 
 	function sampleUrl() {
@@ -22,7 +75,7 @@
 		}
 		var base = ajaxUrl();
 		if (!base) {
-			return '/cp/content/shop/prices_upload/epc_multivendor_sample_file.php';
+			return DEFAULT_SAMPLE;
 		}
 		return base.replace(/ajax_epc_multivendor_ingest\.php.*/i, 'epc_multivendor_sample_file.php');
 	}
@@ -107,6 +160,7 @@
 	}
 
 	function upload() {
+		ensureCfg();
 		var fileInput = $('epcMultivendorFile');
 		var btn = $('epcMultivendorUploadBtn');
 		var url = ajaxUrl();
@@ -118,8 +172,13 @@
 			setResult('<div class="alert alert-warning">Choose an Excel/CSV file first.</div>');
 			return;
 		}
+		var key = csrfKey();
+		if (!key) {
+			setResult('<div class="alert alert-danger">Session CSRF missing — reload the page after login, then try again.</div>');
+			return;
+		}
 		var fd = new FormData();
-		fd.append('csrf_guard_key', csrfKey());
+		fd.append('csrf_guard_key', key);
 		fd.append('action', 'upload');
 		fd.append('price_file', fileInput.files[0]);
 		var typeSel = $('epcMultivendorDataType');
@@ -176,6 +235,7 @@
 		if (ev && ev.preventDefault) {
 			ev.preventDefault();
 		}
+		ensureCfg();
 		var direct = sampleUrl();
 		if (direct) {
 			triggerDownload(direct, 'epc-multivendor-sample.csv');
@@ -185,13 +245,13 @@
 	}
 
 	function init() {
+		ensureCfg();
 		var uploadBtn = $('epcMultivendorUploadBtn');
 		var sampleBtn = $('epcMultivendorSampleBtn');
 		if (uploadBtn) {
 			uploadBtn.addEventListener('click', upload);
 		}
 		if (sampleBtn) {
-			// Keep href working even if JS fails; click handler uses same direct file URL.
 			if (!sampleBtn.getAttribute('href')) {
 				sampleBtn.setAttribute('href', sampleUrl());
 				sampleBtn.setAttribute('download', 'epc-multivendor-sample.csv');
