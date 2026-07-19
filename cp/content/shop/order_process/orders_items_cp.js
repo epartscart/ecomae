@@ -68,36 +68,115 @@
 		}
 	}
 
-	function formatPickerTime(currentTime) {
-		var dateOb = new Date(currentTime);
-		return dateOb.getDate() + '.' + (dateOb.getMonth() + 1) + '.' + dateOb.getFullYear() + ' ' +
-			dateOb.getHours() + ':' + dateOb.getMinutes();
+	function pad2(n) {
+		return (n < 10 ? '0' : '') + n;
 	}
 
-	function initDatePicker(inputId, showId) {
-		if (!window.jQuery || !jQuery.fn.datetimepicker) {
+	function formatPickerTime(currentTime) {
+		if (!currentTime) {
+			return '';
+		}
+		var dateOb = currentTime instanceof Date ? currentTime : new Date(currentTime);
+		if (isNaN(dateOb.getTime())) {
+			return '';
+		}
+		return pad2(dateOb.getDate()) + '.' + pad2(dateOb.getMonth() + 1) + '.' + dateOb.getFullYear() + ' ' +
+			pad2(dateOb.getHours()) + ':' + pad2(dateOb.getMinutes());
+	}
+
+	function parseShowDate(value) {
+		var v = String(value || '').trim();
+		if (!v) {
+			return null;
+		}
+		var m = v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\s+(\d{1,2}):(\d{1,2}))?$/);
+		if (!m) {
+			return null;
+		}
+		var d = new Date(
+			parseInt(m[3], 10),
+			parseInt(m[2], 10) - 1,
+			parseInt(m[1], 10),
+			parseInt(m[4] || '0', 10),
+			parseInt(m[5] || '0', 10),
+			0
+		);
+		return isNaN(d.getTime()) ? null : d;
+	}
+
+	function syncDateHidden(showId, hiddenId) {
+		var showEl = document.getElementById(showId);
+		var hidEl = document.getElementById(hiddenId);
+		if (!showEl || !hidEl) {
 			return;
 		}
-		var opts = {
-			lang: cfg.lang || 'en',
-			closeOnDateSelect: true,
-			closeOnTimeSelect: false,
-			dayOfWeekStart: 1,
-			format: 'unixtime',
-			onClose: function (currentTime) {
-				var el = document.getElementById(showId);
-				if (el) {
-					el.value = formatPickerTime(currentTime);
+		var parsed = parseShowDate(showEl.value);
+		if (!parsed) {
+			if (!String(showEl.value || '').trim()) {
+				hidEl.value = '';
+			}
+			return;
+		}
+		hidEl.value = String(Math.floor(parsed.getTime() / 1000));
+		var field = showEl.closest('.epc-orders-filter-field');
+		if (field) {
+			field.classList.add('is-active');
+		}
+	}
+
+	function initDatePicker(hiddenId, showId, defaultTime) {
+		var showEl = document.getElementById(showId);
+		var hidEl = document.getElementById(hiddenId);
+		if (!showEl || !hidEl) {
+			return;
+		}
+		if (!String(showEl.value || '').trim()) {
+			var unix = parseInt(hidEl.value || (hiddenId === 'time_from' ? cfg.timeFrom : cfg.timeTo) || '0', 10);
+			if (unix > 0) {
+				showEl.value = formatPickerTime(new Date(unix * 1000));
+				var field = showEl.closest('.epc-orders-filter-field');
+				if (field) {
+					field.classList.add('is-active');
 				}
 			}
-		};
-		if ((inputId === 'time_from' && cfg.timeFrom) || (inputId === 'time_to' && cfg.timeTo)) {
-			opts.onGenerate = opts.onClose;
 		}
-		jQuery('#' + inputId).datetimepicker(opts);
+		if (!window.jQuery || !jQuery.fn.datetimepicker) {
+			showEl.addEventListener('change', function () {
+				syncDateHidden(showId, hiddenId);
+			});
+			return;
+		}
+		var syncFromPicker = function (currentTime) {
+			if (!currentTime) {
+				hidEl.value = '';
+				showEl.value = '';
+				return;
+			}
+			showEl.value = formatPickerTime(currentTime);
+			hidEl.value = String(Math.floor(currentTime.getTime() / 1000));
+			var field = showEl.closest('.epc-orders-filter-field');
+			if (field) {
+				field.classList.add('is-active');
+			}
+		};
+		jQuery('#' + showId).datetimepicker({
+			lang: cfg.lang || 'en',
+			closeOnDateSelect: false,
+			closeOnTimeSelect: true,
+			dayOfWeekStart: 1,
+			format: 'd.m.Y H:i',
+			defaultTime: defaultTime || '00:00',
+			onChangeDateTime: syncFromPicker,
+			onClose: syncFromPicker
+		});
+		showEl.addEventListener('change', function () {
+			syncDateHidden(showId, hiddenId);
+		});
 	}
 
 	window.filterOrdersItems = function () {
+		syncDateHidden('time_from_show', 'time_from');
+		syncDateHidden('time_to_show', 'time_to');
 		var f = {
 			time_from: document.getElementById('time_from').value,
 			time_to: document.getElementById('time_to').value,
@@ -290,8 +369,8 @@
 
 	function initPage() {
 		loadBootData();
-		initDatePicker('time_from', 'time_from_show');
-		initDatePicker('time_to', 'time_to_show');
+		initDatePicker('time_from', 'time_from_show', '00:00');
+		initDatePicker('time_to', 'time_to_show', '23:59');
 		initMultipleSelect('paid', 'paid_div', 'paid', -1);
 		initMultipleSelect('order_status', 'order_status_div', 'order_status', 0);
 		initMultipleSelect('order_item_status', 'order_item_status_div', 'order_item_status', 0);

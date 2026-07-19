@@ -123,7 +123,9 @@ body.epc-cp-shell .content .epc-orders-page {
 	background: #fff;
 }
 body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
-.epc-orders-page .epc-orders-filter-grid {
+body.epc-cp-shell .content .epc-oi-page .epc-orders-filter-grid,
+.epc-orders-page .epc-orders-filter-grid,
+.epc-oi-page .epc-orders-filter-grid {
 	display: grid !important;
 	grid-template-columns: repeat(4, minmax(180px, 1fr));
 	gap: 14px 16px;
@@ -131,13 +133,15 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 	float: none !important;
 	flex: none !important;
 }
-.epc-orders-page .epc-orders-filter-field {
+.epc-orders-page .epc-orders-filter-field,
+.epc-oi-page .epc-orders-filter-field {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 	min-width: 0;
 }
-.epc-orders-page .epc-orders-filter-field > label {
+.epc-orders-page .epc-orders-filter-field > label,
+.epc-oi-page .epc-orders-filter-field > label {
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -149,26 +153,34 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 }
 .epc-orders-page .epc-orders-filter-field .form-control,
 .epc-orders-page .epc-orders-filter-field .ms-parent,
-.epc-orders-page .epc-orders-filter-field .ms-choice {
+.epc-orders-page .epc-orders-filter-field .ms-choice,
+.epc-oi-page .epc-orders-filter-field .form-control,
+.epc-oi-page .epc-orders-filter-field .ms-parent,
+.epc-oi-page .epc-orders-filter-field .ms-choice {
 	width: 100% !important;
 	max-width: 100%;
 }
-.epc-orders-page .epc-orders-filter-field .form-control {
+.epc-orders-page .epc-orders-filter-field .form-control,
+.epc-oi-page .epc-orders-filter-field .form-control {
 	height: 36px;
 	border-radius: 8px;
 	border-color: #cbd5e1;
 	box-shadow: none;
 }
-.epc-orders-page .epc-orders-filter-field .form-control:focus {
+.epc-orders-page .epc-orders-filter-field .form-control:focus,
+.epc-oi-page .epc-orders-filter-field .form-control:focus {
 	border-color: var(--eo-accent);
 	box-shadow: 0 0 0 3px var(--eo-accent-soft);
 }
 .epc-orders-page .epc-orders-filter-field.is-active .form-control,
-.epc-orders-page .epc-orders-filter-field .ms-choice[style*="b9fcab"] {
+.epc-orders-page .epc-orders-filter-field .ms-choice[style*="b9fcab"],
+.epc-oi-page .epc-orders-filter-field.is-active .form-control,
+.epc-oi-page .epc-orders-filter-field .ms-choice[style*="b9fcab"] {
 	background: #ecfdf5 !important;
 	border-color: #6ee7b7;
 }
-.epc-orders-page .epc-orders-filter-field .ms-choice {
+.epc-orders-page .epc-orders-filter-field .ms-choice,
+.epc-oi-page .epc-orders-filter-field .ms-choice {
 	height: 36px !important;
 	border-radius: 8px !important;
 	border-color: #cbd5e1 !important;
@@ -177,7 +189,9 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 	line-height: 34px;
 }
 .epc-orders-page .epc-scp-orders-filter .epc-scp-filter-bar,
-.epc-orders-page .epc-scp-orders-filter .panel-footer {
+.epc-orders-page .epc-scp-orders-filter .panel-footer,
+.epc-oi-page .epc-scp-orders-filter .epc-scp-filter-bar,
+.epc-oi-page .epc-scp-orders-filter .panel-footer {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
@@ -201,7 +215,8 @@ body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 	}
 }
 @media (max-width: 575px) {
-	.epc-orders-page .epc-orders-filter-grid {
+	.epc-orders-page .epc-orders-filter-grid,
+	.epc-oi-page .epc-orders-filter-grid {
 		grid-template-columns: 1fr;
 	}
 }
@@ -1040,6 +1055,110 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-act
 	color: #64748b;
 }
 
+/* Order classic card + items page */
+.epc-oi-page .epc-scp-orders-filter .hpanel,
+.epc-oc-page .hpanel {
+	border-radius: 12px;
+	border: 1px solid var(--eo-line, #e2e8f0);
+	overflow: visible;
+}
+.epc-oc-oms-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0 0 14px;
+	padding: 14px 16px;
+	border: 1px solid #99f6e4;
+	border-radius: 12px;
+	background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
+}
+.epc-oc-oms-banner strong {
+	display: block;
+	font-size: 14px;
+	color: #0f766e;
+	margin-bottom: 2px;
+}
+.epc-oc-oms-banner span {
+	font-size: 12px;
+	color: #334155;
+}
+.epc-oc-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(120px, 1fr));
+	gap: 10px;
+	margin: 0 0 16px;
+}
+.epc-oc-summary-card {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 12px 14px;
+	min-width: 0;
+}
+.epc-oc-summary-card .epc-oc-k {
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	margin-bottom: 4px;
+}
+.epc-oc-summary-card .epc-oc-v {
+	display: block;
+	font-size: 14px;
+	font-weight: 800;
+	color: #0f172a;
+	word-break: break-word;
+}
+.epc-oc-page .epc-oc-form-body .epc-oc-field-row,
+.epc-oc-page .panel-body .epc-oc-field-row,
+.epc-oc-page .epc-oc-form-body .form-group,
+.epc-oc-page .panel-body .form-group {
+	display: grid !important;
+	grid-template-columns: minmax(120px, 180px) 1fr;
+	gap: 8px 16px;
+	align-items: center;
+	margin: 0 0 10px !important;
+	float: none !important;
+	width: 100% !important;
+}
+.epc-oc-page .panel-body .form-group > .control-label,
+.epc-oc-page .panel-body .epc-oc-field-row > label,
+.epc-oc-page .panel-body .form-group > label {
+	width: auto !important;
+	float: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	color: #64748b !important;
+}
+.epc-oc-page .panel-body .form-group > [class*="col-"],
+.epc-oc-page .panel-body .epc-oc-field-row > div {
+	width: auto !important;
+	float: none !important;
+	padding: 0 !important;
+}
+.epc-oc-page .panel-body .hr-line-dashed {
+	display: none !important;
+}
+@media (max-width: 1199px) {
+	.epc-oc-summary-grid {
+		grid-template-columns: repeat(3, minmax(140px, 1fr));
+	}
+}
+@media (max-width: 767px) {
+	.epc-oc-summary-grid {
+		grid-template-columns: repeat(2, minmax(120px, 1fr));
+	}
+	.epc-oc-page .panel-body .epc-oc-field-row,
+	.epc-oc-page .panel-body .form-group {
+		grid-template-columns: 1fr;
+	}
+}
 
 .epc-od__cost-hint {
 	display: block;
