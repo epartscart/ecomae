@@ -130,7 +130,6 @@ $backend = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
 if ($backend === '') {
 	$backend = 'cp';
 }
-// Fix backend content path placeholder
 $pdo->prepare(
 	'UPDATE `content` SET `content` = ? WHERE `is_frontend` = 0 AND `url` = ?'
 )->execute(array(
