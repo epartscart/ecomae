@@ -134,6 +134,7 @@ if ($industryCode === 'auto_parts') {
 	);
 	$moreLinks = array(
 		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'catalog', 'hint' => 'Products & categories'),
+		array('label' => 'CP brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure', 'tone' => 'docs', 'hint' => 'Every CP function — share / print'),
 		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'catalog', 'hint' => 'Marketplace listings'),
 		array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing'),
 		array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'warehouse', 'hint' => 'Purchasing & suppliers'),
@@ -154,6 +155,7 @@ if ($industryCode === 'auto_parts') {
 		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding & modules'),
 	);
 	$moreLinks = array(
+		array('label' => 'CP brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure', 'tone' => 'docs', 'hint' => 'Every CP function — share / print'),
 		array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing'),
 		array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'warehouse', 'hint' => 'Purchasing & suppliers'),
 		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'docs', 'hint' => 'Invoices & PDFs'),
@@ -181,6 +183,7 @@ $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 			<?php if ($storefrontUrl !== '') { ?>
 			<a class="btn btn-sm btn-default" href="<?php echo epc_tcp_dash_h($storefrontUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> View site</a>
 			<?php } ?>
+			<a class="btn btn-sm btn-default" href="<?php echo epc_tcp_dash_h($base . '/control/cp_brochure'); ?>" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>
 			<a class="btn btn-sm btn-default" href="<?php echo epc_tcp_dash_h($settingsUrl); ?>"><i class="fa fa-cog"></i> Settings</a>
 		</div>
 	</div>

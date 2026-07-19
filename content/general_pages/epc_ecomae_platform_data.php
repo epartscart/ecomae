@@ -1074,6 +1074,8 @@ function epc_ecomae_platform_nav_dropdowns()
 			'key' => 'resources',
 			'label' => 'Resources',
 			'items' => array(
+				array('key' => 'brochure', 'label' => 'Product brochure', 'href' => $base . 'brochure'),
+				array('key' => 'brochure_cp', 'label' => 'Full CP brochure', 'href' => $base . 'brochure/cp'),
 				array('key' => 'docs', 'label' => 'Documentation', 'href' => $base . 'documentation'),
 				array('key' => 'compare', 'label' => 'Compare', 'href' => $base . 'compare'),
 				array('key' => 'blockchain', 'label' => 'Blockchain BOS', 'href' => $base . 'blockchain'),

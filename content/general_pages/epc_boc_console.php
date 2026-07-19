@@ -201,7 +201,11 @@ if (!function_exists('epc_boc_render_command_center')) {
         $audit = epc_boc_audit_recent($db, 10);
         $base = rtrim($base, '/');
         echo '<div class="epc-boc__hero"><div><span class="epc-boc__env" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25)">' . $h($brand['short']) . '</span><h2><i class="fa fa-tachometer"></i> Operations Command Center</h2><p>' . $h($brand['tagline']) . '</p></div>';
-        echo '<div><a class="epc-boc__btn" style="background:#fff" href="' . $h($base . '/shop/tenant_hub/tenant_hub?tab=onboard') . '"><i class="fa fa-rocket"></i> Onboard client</a></div></div>';
+        echo '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end">';
+        echo '<a class="epc-boc__btn" style="background:#fff" href="' . $h($base . '/shop/tenant_hub/tenant_hub?tab=onboard') . '"><i class="fa fa-rocket"></i> Onboard client</a>';
+        echo '<a class="epc-boc__btn" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35)" href="' . $h($base . '/control/cp_brochure') . '" target="_blank" rel="noopener"><i class="fa fa-book"></i> Full CP brochure</a>';
+        echo '<a class="epc-boc__btn" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35)" href="/brochure" target="_blank" rel="noopener"><i class="fa fa-file-text-o"></i> Product brochure</a>';
+        echo '</div></div>';
         // Tiles
         echo '<div class="epc-boc__tiles">';
         echo '<div class="epc-boc__tile"><div class="epc-boc__tile-label">Total units</div><div class="epc-boc__tile-val">' . (int) $summary['total'] . '</div><div class="epc-boc__tile-hint">all tenant types</div></div>';

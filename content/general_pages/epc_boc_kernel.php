@@ -144,6 +144,8 @@ if (!function_exists('epc_boc_areas')) {
             'communication'     => $a('Communication', 'identity', 'fa-comments', 'control/portal/epc_super_cp_communication', 'auth', 'boc.identity.manage', $ALL, 'Email policy & tasks'),
 
             'operator_guide'    => $a('Operator guide', 'knowledge', 'fa-book', 'control/portal/epc_super_cp_operator_guide', 'docs', 'boc.knowledge.view', $ALL, 'Who uses what'),
+            'cp_brochure'       => $a('Full CP brochure', 'knowledge', 'fa-book', 'control/cp_brochure', 'docs', 'boc.knowledge.view', $ALL, 'Every CP function — live graphical deck'),
+            'product_brochure'  => $a('Product brochure', 'knowledge', 'fa-file-text-o', 'control/portal/epc_boc_product_brochure', 'docs', 'boc.knowledge.view', $ALL, 'Marketing product brochure'),
             'api_docs'          => $a('API docs', 'knowledge', 'fa-file-code-o', 'control/portal/epc_api_documentation_guide', 'docs', 'boc.knowledge.view', $ALL, 'Key management guide'),
         );
     }
