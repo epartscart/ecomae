@@ -5,7 +5,7 @@
 
 /* —— Form controls (including bare inputs missing .form-control) —— */
 body.epc-cp-shell #wrapper .content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="file"]),
-body.epc-cp-shell #wrapper .content select,
+body.epc-cp-shell #wrapper .content select:not([multiple]),
 body.epc-cp-shell #wrapper .content textarea,
 body.epc-cp-shell #wrapper .content .form-control {
 	appearance: none;
@@ -29,12 +29,26 @@ body.epc-cp-shell #wrapper .content textarea.form-control {
 	resize: vertical;
 	line-height: 1.5 !important;
 }
-body.epc-cp-shell #wrapper .content select {
+body.epc-cp-shell #wrapper .content select:not([multiple]) {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1.4.6L6 5.2 10.6.6 12 2 6 8 0 2z'/%3E%3C/svg%3E") !important;
 	background-repeat: no-repeat !important;
 	background-position: right 12px center !important;
 	background-size: 12px 8px !important;
 	padding-right: 32px !important;
+}
+body.epc-cp-shell #wrapper .content select[multiple] {
+	display: none !important;
+}
+body.epc-cp-shell #wrapper .content .ms-parent,
+body.epc-cp-shell #wrapper .content .ms-choice {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+body.epc-cp-shell #wrapper .content .ms-choice {
+	border: 1px solid #cbd5e1 !important;
+	border-radius: 8px !important;
+	height: 36px !important;
+	line-height: 34px !important;
 }
 body.epc-cp-shell #wrapper .content input:focus,
 body.epc-cp-shell #wrapper .content select:focus,
@@ -236,4 +250,93 @@ body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-quick-card__hint {
 	body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi {
 		grid-template-columns: 1fr !important;
 	}
+}
+
+
+/* EPC Orders tabs + OMS clarity */
+body.epc-cp-shell #wrapper .content .epc-orders-tabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 12px;
+	padding: 0;
+	list-style: none;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-tabs .epc-orders-tab {
+	appearance: none;
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #334155;
+	border-radius: 999px;
+	padding: 8px 16px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	line-height: 1.2;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-tabs .epc-orders-tab:hover {
+	border-color: #94a3b8;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-tabs .epc-orders-tab.is-active {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-tabs .epc-orders-tab.is-completed.is-active {
+	background: #15803d;
+	border-color: #15803d;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-tabs .epc-orders-tab .epc-tab-count {
+	display: inline-block;
+	margin-left: 6px;
+	min-width: 18px;
+	padding: 1px 6px;
+	border-radius: 999px;
+	background: rgba(15, 23, 42, 0.08);
+	font-size: 11px;
+	font-weight: 800;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-tabs .epc-orders-tab.is-active .epc-tab-count {
+	background: rgba(255,255,255,0.22);
+}
+body.epc-cp-shell #wrapper .content .epc-orders-workspace-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin: 0 0 10px;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-workspace-head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 800;
+	color: #0f172a;
+}
+body.epc-cp-shell #wrapper .content .epc-oms-hint {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #64748b;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-filter-panel {
+	margin-bottom: 12px !important;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-filter-panel .panel-heading {
+	cursor: pointer;
+	user-select: none;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-filter-panel.is-collapsed .panel-body,
+body.epc-cp-shell #wrapper .content .epc-orders-filter-panel.is-collapsed .panel-footer {
+	display: none !important;
+}
+body.epc-cp-shell #wrapper .content .epc-orders-filter-panel .epc-filter-toggle {
+	float: right;
+	font-size: 12px;
+	color: #64748b;
+	font-weight: 600;
+}
+body.epc-cp-shell #wrapper .content .ms-drop {
+	border: 1px solid #cbd5e1 !important;
+	border-radius: 8px !important;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12) !important;
+	z-index: 1200 !important;
 }
