@@ -342,7 +342,7 @@ if ($action === 'list_categories') {
 }
 
 epc_acc_tr($pdo, 'epc_accessories_title', 'Accessories & Spare Parts', 'Аксессуары и запчасти');
-epc_acc_tr($pdo, 'epc_accessories_desc', 'Browse car accessories and spare parts by PakWheels-style categories, make, city and price.', 'Каталог автоаксессуаров и запчастей по категориям, марке, городу и цене.');
+epc_acc_tr($pdo, 'epc_accessories_desc', 'Browse car accessories and spare parts by category, make, city and price.', 'Каталог автоаксессуаров и запчастей по категориям, марке, городу и цене.');
 epc_acc_tr($pdo, 'epc_menu_accessories', 'Accessories', 'Аксессуары');
 
 $modules = '[1,22,32,34]';
