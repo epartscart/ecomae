@@ -860,6 +860,61 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-act
 }
 
 
+/* OMS tabs */
+.epc-orders-page .epc-orders-tabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 12px;
+}
+.epc-orders-page .epc-orders-tab {
+	appearance: none;
+	border: 1px solid #cbd5e1;
+	background: #fff;
+	color: #334155;
+	border-radius: 999px;
+	padding: 8px 16px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.epc-orders-page .epc-orders-tab.is-active {
+	background: #0f766e;
+	border-color: #0f766e;
+	color: #fff;
+}
+.epc-orders-page .epc-orders-tab.is-completed.is-active {
+	background: #15803d;
+	border-color: #15803d;
+}
+.epc-orders-page .epc-orders-tab .epc-tab-count {
+	display: inline-block;
+	margin-left: 6px;
+	min-width: 18px;
+	padding: 1px 6px;
+	border-radius: 999px;
+	background: rgba(15, 23, 42, 0.08);
+	font-size: 11px;
+	font-weight: 800;
+}
+.epc-orders-page .epc-orders-tab.is-active .epc-tab-count {
+	background: rgba(255,255,255,0.22);
+}
+.epc-orders-page .epc-orders-filter-panel.is-collapsed .panel-body,
+.epc-orders-page .epc-orders-filter-panel.is-collapsed .panel-footer {
+	display: none !important;
+}
+.epc-orders-page .epc-orders-workspace-head h3 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 800;
+}
+.epc-orders-page .epc-oms-hint {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #64748b;
+}
+
 /* OMS daily guide */
 .epc-oms-guide-page {
 	--og-ink: #0f172a;

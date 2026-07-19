@@ -138,26 +138,31 @@ else//Действий нет - выводим страницу
     <?php
     $epc_orders_kpi = epc_orders_ws_kpi($db_link, $offices_list, $manager_id);
     $epc_orders_selected_id = isset($_GET['order_id']) ? (int) $_GET['order_id'] : 0;
+	$epc_orders_open_ids = epc_orders_ws_open_status_ids($db_link);
+	$epc_orders_completed_ids = epc_orders_ws_completed_status_ids($db_link);
+	$epc_orders_tab = epc_orders_ws_tab_from_cookie();
+	$epc_orders_force_tab_defaults = !isset($_COOKIE['orders_tab']) || !isset($_COOKIE['orders_filter']);
+	$epc_orders_office_ids = array_keys($offices_list);
+	$epc_orders_completed_count = epc_orders_ws_count_by_statuses($db_link, $epc_orders_office_ids, $epc_orders_completed_ids);
+	$epc_orders_open_count = epc_orders_ws_count_by_statuses($db_link, $epc_orders_office_ids, $epc_orders_open_ids);
     ?>
 	<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page">
 		<div class="epc-orders-page__hero">
 			<div>
-				<h2><i class="fa fa-columns"></i> OMS · Orders</h2>
+				<h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
 				<p>One-window order management: list on the left, full console on the right — items, payment, documents, status, and messages. Follow the daily guide for step-by-step areas.</p>
 			</div>
 			<div class="epc-orders-page__hero-actions">
 				<a class="btn btn-primary btn-sm" href="/<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/orders/oms-guide"><i class="fa fa-book"></i> OMS daily guide</a>
 				<button type="button" class="btn btn-default btn-sm" onclick="sortOrders('id');" title="Order number sequence"><i class="fa fa-sort-numeric-desc"></i> By order #</button>
 				<button type="button" class="btn btn-default btn-sm" onclick="sortOrders('last_modified');" title="Last activity / modification"><i class="fa fa-clock-o"></i> By last modified</button>
-				<button type="button" class="btn btn-default btn-sm" onclick="ordersInProcess();"><i class="fa fa-bolt"></i> In progress</button>
-				<button type="button" class="btn btn-default btn-sm" onclick="unsetFilterOrders();"><i class="fa fa-refresh"></i> All orders</button>
 			</div>
 		</div>
 		<div class="epc-scp-kpi epc-scp-orders-kpi">
-			<div class="epc-scp-kpi__card">
+			<div class="epc-scp-kpi__card" style="cursor:pointer;" onclick="ordersOpenTab();">
 				<div class="epc-scp-kpi__label">Open orders</div>
-				<div class="epc-scp-kpi__val"><?php echo (int) $epc_orders_kpi['open']; ?></div>
-				<div class="epc-scp-kpi__hint">In progress</div>
+				<div class="epc-scp-kpi__val"><?php echo (int) $epc_orders_open_count; ?></div>
+				<div class="epc-scp-kpi__hint">Active pipeline</div>
 			</div>
 			<div class="epc-scp-kpi__card">
 				<div class="epc-scp-kpi__label">Today</div>
@@ -170,24 +175,40 @@ else//Действий нет - выводим страницу
 				<div class="epc-scp-kpi__hint">Paid, not finished</div>
 			</div>
 		</div>
+		<div class="epc-orders-tabs" role="tablist" aria-label="Orders tabs">
+			<button type="button" class="epc-orders-tab<?php echo $epc_orders_tab === 'open' ? ' is-active' : ''; ?>" onclick="ordersOpenTab();">Open <span class="epc-tab-count"><?php echo (int) $epc_orders_open_count; ?></span></button>
+			<button type="button" class="epc-orders-tab is-completed<?php echo $epc_orders_tab === 'completed' ? ' is-active' : ''; ?>" onclick="ordersCompletedTab();">Completed <span class="epc-tab-count"><?php echo (int) $epc_orders_completed_count; ?></span></button>
+			<button type="button" class="epc-orders-tab<?php echo $epc_orders_tab === 'all' ? ' is-active' : ''; ?>" onclick="ordersAllTab();">All</button>
+		</div>
 		<div class="epc-orders-toolbar">
-			<a class="epc-scp-badge epc-scp-badge--normal" href="javascript:void(0);" onclick="ordersInProcess();"><?php echo translate_str_by_id(5311); ?></a>
-			<a class="epc-scp-badge epc-scp-badge--high" href="javascript:void(0);" onclick="unsetFilterOrders();"><?php echo translate_str_by_id(2555); ?></a>
 			<?php
+			$epc_skip_pill_ids = array_flip(array_merge($epc_orders_completed_ids, array()));
+			// Also skip canceled (for_inverse) via badge class lookup set
+			$epc_inverse_ids = array();
+			$epc_inv_q = $db_link->query("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_inverse` = 1");
+			if ($epc_inv_q) {
+				while ($epc_inv_r = $epc_inv_q->fetch(PDO::FETCH_ASSOC)) {
+					$epc_inverse_ids[] = (int) $epc_inv_r['id'];
+				}
+			}
+			$epc_skip_pill_ids = array_flip(array_merge($epc_orders_completed_ids, $epc_inverse_ids));
 			foreach ($orders_statuses as $pill_status_id => $pill_status_data) {
+				if (isset($epc_skip_pill_ids[(int) $pill_status_id])) {
+					continue; // Completed / Canceled live in their own tabs or out of Open toolbar
+				}
 				$pill_cls = epc_orders_ws_badge_class((int) $pill_status_id, $db_link);
 				?>
 			<a class="epc-scp-badge <?php echo epc_orders_ws_h($pill_cls); ?>" href="javascript:void(0);" onclick="epcFilterByStatus(<?php echo (int) $pill_status_id; ?>);"><?php echo epc_orders_ws_h(translate_str_by_id($pill_status_data['name'])); ?></a>
 			<?php } ?>
-			<span class="epc-orders-toolbar__hint"><i class="fa fa-mouse-pointer"></i> Click row → OMS console · Ctrl+click → classic full card</span>
+			<span class="epc-orders-toolbar__hint"><i class="fa fa-columns"></i> Click a row to open OMS on the right · Ctrl+click → classic full card</span>
 		</div>
-	<div class="epc-scp-orders-filter">
+	<div class="epc-scp-orders-filter epc-orders-filter-panel is-collapsed">
 		<div class="hpanel">
-			<div class="panel-heading hbuilt">
+			<div class="panel-heading hbuilt" onclick="if(window.epcToggleOrdersFilter){epcToggleOrdersFilter();}">
 				<div class="panel-tools">
-					<a class="showhide"><i class="fa fa-chevron-up"></i></a>
+					<a class="showhide" href="javascript:void(0);" onclick="event.stopPropagation();if(window.epcToggleOrdersFilter){epcToggleOrdersFilter();}return false;"><i class="fa fa-chevron-down"></i></a>
 				</div>
-				<?php echo translate_str_by_id(3574); ?> <button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo translate_str_by_id(5310); ?>');"><i class="fa fa-info"></i></button>
+				<?php echo translate_str_by_id(3574); ?> <span class="epc-filter-toggle">Advanced · click to expand</span> <button class="btn btn-xs btn-info btn-circle" type="button" onclick="event.stopPropagation();show_hint('<?php echo translate_str_by_id(5310); ?>');"><i class="fa fa-info"></i></button>
 			</div>
 			<div class="panel-body filter_panel">
 				<?php
@@ -217,26 +238,38 @@ else//Действий нет - выводим страницу
 				}
 				if ($orders_filter != null) {
 					$orders_filter = json_decode($orders_filter, true);
-					if (is_array($orders_filter)) {
-						$time_from = isset($orders_filter['time_from']) ? (string) $orders_filter['time_from'] : '';
-						$time_to = isset($orders_filter['time_to']) ? (string) $orders_filter['time_to'] : '';
-						$order_id = isset($orders_filter['order_id']) ? (string) $orders_filter['order_id'] : '';
-						$status = isset($orders_filter['status']) ? $orders_filter['status'] : '0';
-						$paid = isset($orders_filter['paid']) ? $orders_filter['paid'] : -1;
-						$customer = isset($orders_filter['customer']) ? (string) $orders_filter['customer'] : '';
-						$customer_id = isset($orders_filter['customer_id']) ? (string) $orders_filter['customer_id'] : '';
-						$viewed = isset($orders_filter['viewed']) ? $orders_filter['viewed'] : -1;
-						$paid_type = isset($orders_filter['paid_type']) ? (int) $orders_filter['paid_type'] : -1;
-						if (isset($orders_filter['office'])) {
-							$office = $orders_filter['office'];
-						}
-						if (isset($orders_filter['phone'])) {
-							$phone = (string) $orders_filter['phone'];
-						}
-						if (isset($orders_filter['article'])) {
-							$article = trim((string) $orders_filter['article']);
-						}
-					}
+				}
+				if (!is_array($orders_filter)) {
+					$orders_filter = array(
+						'time_from' => '', 'time_to' => '', 'order_id' => '', 'status' => 0, 'paid' => -1,
+						'customer' => '', 'customer_id' => '', 'viewed' => -1, 'paid_type' => -1,
+						'office' => 0, 'phone' => '', 'article' => '',
+					);
+				}
+				$orders_filter = epc_orders_ws_normalize_filter_for_tab(
+					$orders_filter,
+					$epc_orders_tab,
+					$epc_orders_open_ids,
+					$epc_orders_completed_ids,
+					$epc_orders_force_tab_defaults
+				);
+				$time_from = isset($orders_filter['time_from']) ? (string) $orders_filter['time_from'] : '';
+				$time_to = isset($orders_filter['time_to']) ? (string) $orders_filter['time_to'] : '';
+				$order_id = isset($orders_filter['order_id']) ? (string) $orders_filter['order_id'] : '';
+				$status = isset($orders_filter['status']) ? $orders_filter['status'] : '0';
+				$paid = isset($orders_filter['paid']) ? $orders_filter['paid'] : -1;
+				$customer = isset($orders_filter['customer']) ? (string) $orders_filter['customer'] : '';
+				$customer_id = isset($orders_filter['customer_id']) ? (string) $orders_filter['customer_id'] : '';
+				$viewed = isset($orders_filter['viewed']) ? $orders_filter['viewed'] : -1;
+				$paid_type = isset($orders_filter['paid_type']) ? $orders_filter['paid_type'] : -1;
+				if (isset($orders_filter['office'])) {
+					$office = $orders_filter['office'];
+				}
+				if (isset($orders_filter['phone'])) {
+					$phone = (string) $orders_filter['phone'];
+				}
+				if (isset($orders_filter['article'])) {
+					$article = trim((string) $orders_filter['article']);
 				}
 
 				$epc_filter_date_show = static function ($unix) {
@@ -348,8 +381,19 @@ else//Действий нет - выводим страницу
 	<div class="epc-scp-orders-workspace<?php echo $epc_orders_selected_id > 0 ? ' is-oms-active' : ''; ?>">
 		<div class="epc-scp-orders-workspace__list">
 		<div class="epc-scp-table-card">
-			<div class="epc-scp-table-card__head" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
-				<h4 style="margin:0;"><?php echo translate_str_by_id(3583); ?></h4>
+			<div class="epc-scp-table-card__head epc-orders-workspace-head">
+				<div>
+					<h3><?php
+						if ($epc_orders_tab === 'completed') {
+							echo 'Completed orders';
+						} elseif ($epc_orders_tab === 'all') {
+							echo 'All orders';
+						} else {
+							echo 'Open orders';
+						}
+					?></h3>
+					<p class="epc-oms-hint">Select a row — OMS console opens on the right</p>
+				</div>
 				<span>
 					<a class="btn btn-primary btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/oms-guide"><i class="fa fa-book"></i> OMS daily guide</a>
 					<a class="btn btn-success btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/whatsapp-guide"><i class="fa fa-whatsapp"></i> WhatsApp</a>
@@ -444,16 +488,25 @@ else//Действий нет - выводим страницу
 					}
 					$WHERE_CONDITIONS .= "(".$sub_WHERE_offices.")";
 					
-					//По куки фильтра:
-					$orders_filter = NULL;
-					if( isset($_COOKIE["orders_filter"]) )
-					{
-						$orders_filter = $_COOKIE["orders_filter"];
+					// Filter from cookie + OMS tab normalization (Open / Completed / All)
+					if (!isset($orders_filter) || !is_array($orders_filter)) {
+						$orders_filter = array();
+						if (isset($_COOKIE['orders_filter'])) {
+							$decoded = json_decode((string) $_COOKIE['orders_filter'], true);
+							if (is_array($decoded)) {
+								$orders_filter = $decoded;
+							}
+						}
+						$orders_filter = epc_orders_ws_normalize_filter_for_tab(
+							$orders_filter,
+							isset($epc_orders_tab) ? $epc_orders_tab : 'open',
+							isset($epc_orders_open_ids) ? $epc_orders_open_ids : epc_orders_ws_open_status_ids($db_link),
+							isset($epc_orders_completed_ids) ? $epc_orders_completed_ids : epc_orders_ws_completed_status_ids($db_link),
+							!empty($epc_orders_force_tab_defaults)
+						);
 					}
-					if($orders_filter != NULL)
+					if (is_array($orders_filter))
 					{
-						$orders_filter = json_decode($orders_filter, true);
-						
 						//1. Date from (inclusive)
 						if (!empty($orders_filter['time_from'])) {
 							$WHERE_CONDITIONS .= ' AND `time` >= ?';
@@ -710,6 +763,8 @@ else//Действий нет - выводим страницу
 					$orders_boot = array(
 						'elements_array' => array(),
 						'elements_id_array' => array(),
+						'tab' => $epc_orders_tab,
+						'firstOrderId' => 0,
 					);
 									
 					//Далее идет вывод таблицы с плагином footable. При этом постраничный вывод обеспечивает PHP. Поэтому, в таблицу ставятся параметры data-sort="false", data-page-size = всему количеству записей, <tfoot style="display:none;"> - заглушка, чтобы JS не затрагивал свой переключатель станиц
@@ -751,6 +806,9 @@ else//Действий нет - выводим страницу
 							//Для Javascript
 							$orders_boot['elements_array'][] = 'checked_' . $element_record['id'];
 							$orders_boot['elements_id_array'][] = (int) $element_record['id'];
+							if (empty($orders_boot['firstOrderId'])) {
+								$orders_boot['firstOrderId'] = (int) $element_record['id'];
+							}
 							
 							
 							$order_id = $element_record["id"];
@@ -889,8 +947,8 @@ else//Действий нет - выводим страницу
 				} else {
 					?>
 				<div class="epc-scp-orders-detail__empty">
-					<i class="fa fa-hand-pointer-o"></i>
-					<p>Select an order to manage<br><span class="text-muted small">One-window OMS: summary, items, customer, payment, invoices &amp; documents · Ctrl+click for classic full card</span></p>
+					<i class="fa fa-columns"></i>
+					<p><strong>OMS console</strong><br>Click an open order on the left to manage items, payment, documents, and status here.<br><span class="text-muted small">Ctrl+click opens the classic full order card</span></p>
 				</div>
 					<?php
 				}
