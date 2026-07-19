@@ -134,7 +134,23 @@ try {
 	} catch (Throwable $e) {
 	}
 
-	require_once $docRoot . '/content/general_pages/epc_cp_translate.php';
+	require_once $docRoot . '/lang/dp_lang.php';
+	if (is_file($docRoot . '/content/general_pages/epc_cp_translate.php')) {
+		require_once $docRoot . '/content/general_pages/epc_cp_translate.php';
+	}
+
+	$epcOrdersMsg = static function ($id, $fallback = '') {
+		if (function_exists('translate_str_by_id')) {
+			try {
+				$v = translate_str_by_id($id);
+				if ($v !== '' && $v !== null) {
+					return (string) $v;
+				}
+			} catch (Throwable $e) {
+			}
+		}
+		return (string) $fallback;
+	};
 
 	$in_process_filter = $filter_status_id > 0
 		? array((string) $filter_status_id)
@@ -171,22 +187,22 @@ try {
 			'legacyPrintBase' => '/content/shop/print_docs/service/print.php',
 		),
 		'msg' => array(
-			'selectOrders' => translate_str_by_id(3597),
-			'selectOrdersViewed' => translate_str_by_id(3598),
-			'setViewedFail' => translate_str_by_id(3599),
-			'deleteConfirm' => translate_str_by_id(3600),
-			'setStatusFail' => translate_str_by_id(3508),
+			'selectOrders' => $epcOrdersMsg(3597, 'Select orders'),
+			'selectOrdersViewed' => $epcOrdersMsg(3598, 'Select orders to mark viewed'),
+			'setViewedFail' => $epcOrdersMsg(3599, 'Could not mark viewed'),
+			'deleteConfirm' => $epcOrdersMsg(3600, 'Delete selected orders?'),
+			'setStatusFail' => $epcOrdersMsg(3508, 'Could not update status'),
 			'setStatusOk' => 'Status updated',
 			'commentEmpty' => 'Enter a note first',
 			'commentOk' => 'Note saved',
 			'commentFail' => 'Could not save note',
-			'finishConfirm' => translate_str_by_id(5297),
-			'inverseConfirm' => translate_str_by_id(5299),
-			'userModalFail' => translate_str_by_id(3541),
-			'selectPlaceholder' => translate_str_by_id(2094),
-			'selectAllText' => translate_str_by_id(2355),
-			'allSelected' => translate_str_by_id(5660),
-			'countSelected' => translate_str_by_id(5661),
+			'finishConfirm' => $epcOrdersMsg(5297, 'Finish selected orders?'),
+			'inverseConfirm' => $epcOrdersMsg(5299, 'Cancel selected orders?'),
+			'userModalFail' => $epcOrdersMsg(3541, 'Could not open customer'),
+			'selectPlaceholder' => $epcOrdersMsg(2094, 'Select'),
+			'selectAllText' => $epcOrdersMsg(2355, 'Select all'),
+			'allSelected' => $epcOrdersMsg(5660, 'All selected'),
+			'countSelected' => $epcOrdersMsg(5661, '# of % selected'),
 			'itemSaved' => 'Item updated',
 			'itemFail' => 'Could not update item',
 			'msgSent' => 'Message sent to customer',
@@ -205,5 +221,5 @@ try {
 
 	echo 'window.EPC_ORDERS=' . json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';';
 } catch (Throwable $e) {
-	echo 'window.EPC_ORDERS={};';
+	echo 'window.EPC_ORDERS={};/* ' . str_replace(array('*/', "\n", "\r"), '', $e->getMessage()) . ' */';
 }
