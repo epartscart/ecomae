@@ -359,4 +359,102 @@ if ($action === 'supplier_fulfillment_advance') {
 	epc_oms_ok(array('fulfillment' => $r));
 }
 
+
+if ($action === 'update_items') {
+	if ((int) $order['paid'] !== 0) {
+		epc_oms_fail('Cannot edit items on a paid order');
+	}
+	$raw = $_REQUEST['items'] ?? '[]';
+	if (is_string($raw)) {
+		$itemsIn = json_decode($raw, true);
+	} else {
+		$itemsIn = $raw;
+	}
+	if (!is_array($itemsIn) || !$itemsIn) {
+		epc_oms_fail('No items to update');
+	}
+	$sanitize = static function ($v) {
+		return str_replace(array("\"", "\\", "'", "\n", "\r", "\t"), '', (string) $v);
+	};
+	$updated = 0;
+	foreach ($itemsIn as $row) {
+		if (!is_array($row)) {
+			continue;
+		}
+		$itemId = (int) ($row['item_id'] ?? 0);
+		if ($itemId <= 0) {
+			continue;
+		}
+		$st = $db_link->prepare('SELECT * FROM `shop_orders_items` WHERE `id` = ? AND `order_id` = ? LIMIT 1');
+		$st->execute(array($itemId, $orderId));
+		$item = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$item) {
+			continue;
+		}
+		$price = isset($row['price']) ? (float) $row['price'] : (float) $item['price'];
+		$qty = isset($row['count_need']) ? (int) $row['count_need'] : (int) $item['count_need'];
+		$purchase = isset($row['t2_price_purchase']) ? (float) $row['t2_price_purchase'] : (float) $item['t2_price_purchase'];
+		$storageId = isset($row['t2_storage_id']) ? (int) $row['t2_storage_id'] : (int) $item['t2_storage_id'];
+		$name = isset($row['t2_name']) ? $sanitize($row['t2_name']) : (string) $item['t2_name'];
+		$brand = isset($row['t2_manufacturer']) ? $sanitize($row['t2_manufacturer']) : (string) $item['t2_manufacturer'];
+		$article = isset($row['t2_article']) ? $sanitize($row['t2_article']) : (string) $item['t2_article'];
+		if ($qty < 1 || $price <= 0 || $brand === '' || $article === '') {
+			continue;
+		}
+		$storageCaption = '';
+		if ($storageId > 0) {
+			try {
+				$stCap = $db_link->prepare('SELECT COALESCE(NULLIF(TRIM(`short_name`), \'\'), `name`) FROM `shop_storages` WHERE `id` = ? LIMIT 1');
+				$stCap->execute(array($storageId));
+				$storageCaption = (string) $stCap->fetchColumn();
+			} catch (Throwable $e) {
+				$storageCaption = '';
+			}
+		}
+		$db_link->prepare(
+			'UPDATE `shop_orders_items` SET `price` = ?, `count_need` = ?, `t2_price_purchase` = ?, `t2_storage_id` = ?, `t2_storage` = ?, `t2_name` = ?, `t2_manufacturer` = ?, `t2_article` = ? WHERE `id` = ? AND `order_id` = ?'
+		)->execute(array($price, $qty, $purchase, $storageId, $storageCaption, $name, $brand, $article, $itemId, $orderId));
+		$updated++;
+	}
+	if ($updated <= 0) {
+		epc_oms_fail('No lines updated');
+	}
+	$db_link->prepare(
+		'INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)'
+	)->execute(array($orderId, time(), $adminId, 1, 'OMS batch-updated <b>' . $updated . '</b> line(s)'));
+	epc_oms_ok(array('updated' => $updated));
+}
+
+if ($action === 'set_items_status') {
+	$status = (int) ($_REQUEST['status'] ?? 0);
+	if ($status <= 0) {
+		epc_oms_fail('Invalid status');
+	}
+	$raw = $_REQUEST['item_ids'] ?? '[]';
+	$ids = is_string($raw) ? json_decode($raw, true) : $raw;
+	if (!is_array($ids) || !$ids) {
+		// all lines on order
+		$q = $db_link->prepare('SELECT `id` FROM `shop_orders_items` WHERE `order_id` = ?');
+		$q->execute(array($orderId));
+		$ids = array();
+		while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
+			$ids[] = (int) $r['id'];
+		}
+	}
+	$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+	if (!$ids) {
+		epc_oms_fail('No items');
+	}
+	$ph = implode(',', array_fill(0, count($ids), '?'));
+	$args = array_merge(array($status), $ids, array($orderId));
+	$db_link->prepare("UPDATE `shop_orders_items` SET `status` = ? WHERE `id` IN ($ph) AND `order_id` = ?")->execute($args);
+	$db_link->prepare(
+		'INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)'
+	)->execute(array(
+		$orderId, time(), $adminId, 1,
+		'OMS set status ' . $status . ' on <b>' . count($ids) . '</b> line(s)',
+	));
+	epc_oms_ok(array('updated' => count($ids), 'status' => $status));
+}
+
 epc_oms_fail('Unknown action');

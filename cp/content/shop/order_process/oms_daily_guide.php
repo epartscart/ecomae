@@ -77,14 +77,18 @@ $h = static function ($v) {
 			<li>Totals strip: Amount · Paid · Balance due · Purchase · Benefit.</li>
 			<li>Tabs inside the console:
 				<ul>
-					<li><strong>Manage</strong> — status, payment, quick actions</li>
-					<li><strong>Items</strong> — lines, qty, prices, line status</li>
-					<li><strong>Customer</strong> — contact &amp; account</li>
-					<li><strong>Documents</strong> — invoices / print</li>
-					<li><strong>Timeline</strong> — status log</li>
-					<li><strong>Messages</strong> — customer chat</li>
+					<li><strong>Manage</strong> — order status, notes, ERP map · shortcut <kbd>1</kbd></li>
+					<li><strong>Items</strong> — editable lines, live margin, save all · <kbd>2</kbd></li>
+					<li><strong>Fulfillment</strong> — per-supplier pipeline · <kbd>3</kbd></li>
+					<li><strong>Customer</strong> — contact &amp; account · <kbd>4</kbd></li>
+					<li><strong>Payment</strong> — pay / refund / courier fee + UAE VAT · <kbd>5</kbd></li>
+					<li><strong>Documents</strong> — tax invoice, packing, receipts · <kbd>6</kbd></li>
+					<li><strong>Timeline</strong> — status log · <kbd>7</kbd></li>
+					<li><strong>Messages</strong> — chat + WhatsApp share · <kbd>8</kbd></li>
 				</ul>
 			</li>
+			<li>Stay on the same tab after saves — OMS remembers your active tab.</li>
+			<li>Queue keys: <kbd>j</kbd>/<kbd>k</kbd> (or ↑/↓) move between orders without leaving the console.</li>
 		</ol>
 	</section>
 
@@ -92,10 +96,12 @@ $h = static function ($v) {
 		<h2><span class="epc-oms-step">4</span> Items &amp; stock</h2>
 		<ol>
 			<li>Open the <strong>Items</strong> tab for the selected order.</li>
-			<li>Confirm brand, article, qty, sale price, and purchase cost.</li>
-			<li>Update <strong>line status</strong> as you reserve, purchase, receive, or issue goods.</li>
-			<li>If the order is unpaid, you can edit lines; after payment, edits may be locked — take payment carefully.</li>
-			<li>Need a cross-order parts search? That is an advanced tool. For daily work, stay inside OMS Items for the open order.</li>
+			<li>Confirm brand, article, qty, sale price, and purchase cost — margin &amp; USD update live as you type.</li>
+			<li>Use <strong>Save all lines</strong> or <kbd>Ctrl</kbd>+<kbd>S</kbd> (saves focused line, or all when focus is not on a line).</li>
+			<li>Use <strong>Refresh</strong> on a line to pull real purchase cost from warehouse / APAI details.</li>
+			<li><strong>Set all line statuses</strong> when every line moves together (e.g. all received).</li>
+			<li>Open <strong>Fulfillment</strong> for multi-supplier confirm → pay → ship → warehouse → pack → deliver.</li>
+			<li>If the order is unpaid, you can edit lines and add a line; after payment, price edits lock.</li>
 		</ol>
 		<div class="epc-oms-guide-tip"><i class="fa fa-info-circle"></i> Price lists &amp; warehouses are managed under <a href="<?php echo $h($pricesUrl); ?>">Price lists</a> — keep stock/prices correct so OMS lines stay accurate.</div>
 	</section>
@@ -103,12 +109,14 @@ $h = static function ($v) {
 	<section class="epc-oms-guide-section" id="oms-area-pay">
 		<h2><span class="epc-oms-step">5</span> Payment</h2>
 		<ol>
-			<li>On <strong>Manage</strong>, check <strong>Balance due</strong>.</li>
-			<li>Record payment (cash / card / transfer / wallet) for the amount received.</li>
+			<li>Open the <strong>Payment</strong> tab (shortcut <kbd>5</kbd>) — Amount due includes goods + customer-paid courier.</li>
+			<li>Set <strong>Courier fee</strong> (ex-VAT) and ship country: UAE adds VAT on courier; outside UAE is zero-rated.</li>
+			<li>Record payment (cash / card / transfer / wallet) for the balance due.</li>
 			<li>Confirm paid badge updates (Paid / Partial / Not paid).</li>
 			<li>Do not mark the order <strong>Completed</strong> until payment rules for your shop are satisfied (usually fully paid).</li>
-			<li>Refunds: use the refund action only when reversing a recorded payment.</li>
+			<li>Refunds: use refund actions only when reversing a recorded payment.</li>
 		</ol>
+		<div class="epc-oms-guide-tip"><i class="fa fa-truck"></i> KPI <strong>Pending ship</strong> = paid but not finished — click it to jump straight into that queue.</div>
 	</section>
 
 	<section class="epc-oms-guide-section" id="oms-area-docs">
@@ -135,10 +143,10 @@ $h = static function ($v) {
 	<section class="epc-oms-guide-section" id="oms-area-msg">
 		<h2><span class="epc-oms-step">8</span> Customer messages / WhatsApp</h2>
 		<ol>
-			<li>Open <strong>Messages</strong> for in-app chat with the customer.</li>
+			<li>Open <strong>Messages</strong> (shortcut <kbd>8</kbd>) — WhatsApp share buttons are at the top of this tab (customer, sales, supplier LPO).</li>
+			<li>Use in-app chat for order-wide notes; use the envelope on a line for item-specific messages.</li>
 			<li>Reply clearly: ETA, payment request, pickup ready, or delivery update.</li>
-			<li>For WhatsApp share templates (EN/AR), use the <a href="<?php echo $h($waUrl); ?>">WhatsApp guide</a>.</li>
-			<li>Mark customer messages read by working the order in OMS (viewing clears unread flags).</li>
+			<li>Full WhatsApp templates (EN/AR): <a href="<?php echo $h($waUrl); ?>">WhatsApp guide</a>.</li>
 		</ol>
 	</section>
 
