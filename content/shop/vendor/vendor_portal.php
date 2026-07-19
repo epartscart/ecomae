@@ -21,7 +21,7 @@ if ($loggedIn && isset($db_link) && $db_link instanceof PDO) {
 $urls = epc_vendor_urls();
 $userSession = $loggedIn ? DP_User::getUserSession() : null;
 ?>
-<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vp1">
+<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vpUae1">
 <section class="epc-vp" id="epc-vendor-portal">
 <?php if (!$loggedIn) { ?>
 	<div class="epc-vp__wrap">
@@ -100,6 +100,36 @@ $userSession = $loggedIn ? DP_User::getUserSession() : null;
 				<span>Status</span>
 				<strong class="ok">Approved</strong>
 			</div>
+		</div>
+
+		<div class="epc-vp__panel" style="margin-bottom:16px;">
+			<div class="epc-vp__panel-head">
+				<h2>UAE e-invoice seller profile</h2>
+			</div>
+			<?php
+			$legalName = trim((string) ($account['legal_name'] ?? ''));
+			$trn = trim((string) ($account['trn'] ?? ''));
+			$addr = trim((string) ($account['address_line1'] ?? ''));
+			?>
+			<?php if ($legalName === '' && $trn === '') { ?>
+				<p class="epc-vp__muted">No legal/tax details on file yet. New vendors should re-register with TRN and address for FTA e-invoicing.</p>
+			<?php } else { ?>
+			<dl class="epc-vp__tax-grid">
+				<div><dt>Legal name</dt><dd><?php echo htmlspecialchars($legalName !== '' ? $legalName : '—', ENT_QUOTES, 'UTF-8'); ?></dd></div>
+				<div><dt>TRN</dt><dd><?php echo htmlspecialchars($trn !== '' ? $trn : '—', ENT_QUOTES, 'UTF-8'); ?></dd></div>
+				<div><dt>Trade licence</dt><dd><?php
+					$lic = trim((string) (($account['legal_reg_type'] ?? '') . ' ' . ($account['legal_reg_no'] ?? '')));
+					echo htmlspecialchars($lic !== '' ? $lic : '—', ENT_QUOTES, 'UTF-8');
+				?></dd></div>
+				<div><dt>Peppol</dt><dd><?php echo htmlspecialchars((string) ($account['peppol_endpoint'] ?? '—'), ENT_QUOTES, 'UTF-8'); ?></dd></div>
+				<div><dt>Address</dt><dd><?php echo htmlspecialchars($addr !== '' ? $addr : '—', ENT_QUOTES, 'UTF-8'); ?></dd></div>
+				<div><dt>City / Emirate</dt><dd><?php
+					$loc = trim((string) ($account['city'] ?? ''));
+					$em = trim((string) ($account['emirate'] ?? ''));
+					echo htmlspecialchars($loc . ($em !== '' ? ', ' . $em : ''), ENT_QUOTES, 'UTF-8') ?: '—';
+				?></dd></div>
+			</dl>
+			<?php } ?>
 		</div>
 
 		<div class="epc-vp__panel">

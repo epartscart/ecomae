@@ -21,7 +21,7 @@ $userSession = DP_User::getUserSession();
 $csrf = htmlspecialchars((string) ($userSession['csrf_guard_key'] ?? ''), ENT_QUOTES, 'UTF-8');
 $welcome = isset($_GET['welcome']);
 ?>
-<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vp1">
+<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vpUae1">
 <section class="epc-vp" id="epc-vendor-upload"
 	data-ajax="/content/shop/vendor/ajax_vendor_ingest.php"
 	data-sample="/content/shop/vendor/epc_vendor_sample.php"
