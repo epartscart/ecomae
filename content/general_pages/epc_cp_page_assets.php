@@ -228,22 +228,27 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/orders_items_edit_cp.js?v=' . rawurlencode($ver),
 			),
 		),
+		'shop/orders/oms-guide' => array(
+			'css' => array(
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide4'),
+			),
+		),
 		'shop/orders/orders' => array(
 			'css' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/lib/multiple_select/multiple-select.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'courierVat4'),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide4'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/lib/multiple_select/jquery.multiple.select.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'courierVat4')
+				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'courierVat5')
 					. (isset($_GET['order_id']) ? '&order_id=' . (int) $_GET['order_id'] : '')
 					. (isset($_GET['status_id']) ? '&status_id=' . (int) $_GET['status_id'] : ''),
-				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'courierVat4'),
-				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'courierVat4'),
+				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'courierVat5'),
+				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'courierVat5'),
 			),
 		),
 		'shop/orders/statuses' => array(
