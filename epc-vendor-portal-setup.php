@@ -135,55 +135,39 @@ $uploadId = epc_vp_register_content(
 	2
 );
 
-// Optional frontend menu link (menu id 15 = top nav when present).
+// Do not inject "Sell with us" into the top menu — vendor access is on the
+// right-side header auth links (Vendor login/Register next to ERP + Customer).
 $menuUpdated = array();
 $stmt = $pdo->query('SELECT `id`, `structure` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id`');
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 	$menuId = (int) $row['id'];
-	if ($menuId !== 15 && count($menuUpdated) > 0) {
-		continue;
+	if ($menuId !== 15 && count($menuUpdated) === 0) {
+		// Prefer menu 15; still clean other frontend menus if needed.
 	}
 	$structure = json_decode((string) $row['structure'], true);
 	if (!is_array($structure)) {
-		$structure = array();
-	}
-	$has = false;
-	foreach ($structure as $item) {
-		if ((isset($item['content_id']) && (int) $item['content_id'] === $mainId)
-			|| (isset($item['a_innerhtml']) && $item['a_innerhtml'] === 'epc_menu_vendor_portal')) {
-			$has = true;
-			break;
-		}
-	}
-	if ($has) {
 		continue;
 	}
-	$item = array(
-		'value' => 'epc_menu_vendor_portal',
-		'class_li' => '', 'class_ul' => '', 'class_a' => '',
-		'id_li' => '', 'id_ul' => '', 'id_a' => '',
-		'a_innerhtml_mode' => 'auto',
-		'a_innerhtml' => 'epc_menu_vendor_portal',
-		'link_mode' => 'content',
-		'content_id' => $mainId,
-		'href' => '',
-		'target' => '', 'onclick' => '',
-		'img_src' => '',
-		'$count' => 0,
-		'$level' => 1,
-		'$parent' => 0,
-		'id' => time() + 91,
-	);
-	if (count($structure) > 2) {
-		array_splice($structure, 2, 0, array($item));
-	} else {
-		$structure[] = $item;
+	$changed = false;
+	$kept = array();
+	foreach ($structure as $item) {
+		if (!is_array($item)) {
+			continue;
+		}
+		if ((isset($item['content_id']) && (int) $item['content_id'] === $mainId)
+			|| (isset($item['a_innerhtml']) && in_array($item['a_innerhtml'], array('epc_menu_vendor_portal', 'epc_menu_vendor_register'), true))) {
+			$changed = true;
+			continue;
+		}
+		$kept[] = $item;
 	}
-	$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(
-		json_encode($structure, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-		$menuId,
-	));
-	$menuUpdated[] = $menuId;
+	if ($changed) {
+		$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(
+			json_encode($kept, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+			$menuId,
+		));
+		$menuUpdated[] = $menuId;
+	}
 }
 
 // Optional CP approvals page under users.
