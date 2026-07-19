@@ -36,18 +36,40 @@ try {
 
 require_once $docRoot . '/content/users/dp_user.php';
 require_once $docRoot . '/content/general_pages/epc_web_tracker.php';
+// Ensure platform PDO helper is loaded (epc_portal.php does not always pull tenant helpers).
+if (!function_exists('epc_portal_platform_pdo') && is_file($docRoot . '/content/general_pages/epc_portal_tenant.php')) {
+	require_once $docRoot . '/content/general_pages/epc_portal_tenant.php';
+}
 
 if ((int) DP_User::getAdminId() <= 0) {
 	http_response_code(403);
 	exit(json_encode(array('ok' => false, 'error' => 'forbidden')));
 }
 
-$pdo = null;
+/**
+ * Tracker rows live on the platform DB (ecomae). Tenant CP DB (docpart) may only have empty schema.
+ * Prefer the connection that actually has sessions.
+ */
+$pdoPlatform = null;
 if (function_exists('epc_portal_platform_pdo')) {
-	$pdo = epc_portal_platform_pdo();
+	$pdoPlatform = epc_portal_platform_pdo();
 }
-if (!$pdo instanceof PDO) {
-	$pdo = $db_link;
+$pdo = $db_link;
+$dbLabel = 'tenant';
+try {
+	$platCount = ($pdoPlatform instanceof PDO)
+		? (int) $pdoPlatform->query('SELECT COUNT(*) FROM `epc_web_tracker_sessions`')->fetchColumn()
+		: -1;
+	$tenCount = (int) $db_link->query('SELECT COUNT(*) FROM `epc_web_tracker_sessions`')->fetchColumn();
+	if ($pdoPlatform instanceof PDO && $platCount >= $tenCount) {
+		$pdo = $pdoPlatform;
+		$dbLabel = 'platform';
+	}
+} catch (Throwable $e) {
+	if ($pdoPlatform instanceof PDO) {
+		$pdo = $pdoPlatform;
+		$dbLabel = 'platform';
+	}
 }
 
 $isSuper = function_exists('epc_portal_is_platform_operator') && epc_portal_is_platform_operator();
@@ -91,6 +113,7 @@ try {
 		'from' => $range['from'],
 		'to' => $range['to'],
 		'is_super' => $isSuper,
+		'db' => $dbLabel,
 		'data' => $data,
 	)));
 } catch (Throwable $e) {

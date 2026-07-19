@@ -63,6 +63,20 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/control/portal/epc_platform_health_checkup.js?v=' . rawurlencode($ver),
 			),
 		),
+		'control/portal/epc_web_tracker' => array(
+			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt2')),
+			'js' => array(
+				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt2'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt2'),
+			),
+		),
+		'shop/statistics/web_tracker' => array(
+			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt2')),
+			'js' => array(
+				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt2'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt2'),
+			),
+		),
 		'control/portal/epc_power_bi' => array(
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),

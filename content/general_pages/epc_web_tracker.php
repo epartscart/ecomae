@@ -523,7 +523,7 @@ function epc_web_tracker_ingest(PDO $pdo, array $payload): array
 		if (!is_array($ev)) {
 			continue;
 		}
-		$type = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($ev['type'] ?? '')));
+		$type = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($ev['type'] ?? $ev['event_type'] ?? '')));
 		if ($type === '' || strlen($type) > 32) {
 			continue;
 		}
