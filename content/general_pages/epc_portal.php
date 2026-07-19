@@ -748,7 +748,7 @@ function epc_portal_site_profile()
 				$profile['industry'] = 'auto_parts';
 				$profile['trade_name'] = 'eParts Cart';
 				$profile['hub_name'] = 'Electronic World Group';
-				$profile['from_email'] = 'partsdoc2025@gmail.com';
+				$profile['from_email'] = 'epartscart@gmail.com';
 			}
 		}
 		$profile['domain_path'] = 'https://' . $host . '/';
