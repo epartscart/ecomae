@@ -197,13 +197,33 @@ $courierGross = 0.0;
 $courierDest = 'AE';
 $vatTypeLabel = '';
 $vatZeroRated = false;
-
-// VAT from stored line prices (B2C inclusive → split; never add 5% again).
 $vatNet = 0.0;
 $vatAmt = 0.0;
 $vatGross = 0.0;
 $vatInclusive = false;
 $vatRateLabel = 5.0;
+$flags = array();
+
+// Effective purchase for real margin (details / APAI / warehouse — not sell copied into purchase).
+$effPurchaseLib = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_supplier_fulfillment.php';
+if (is_file($effPurchaseLib)) {
+	require_once $effPurchaseLib;
+}
+$purchaseSumEff = 0.0;
+foreach ($items as $pi) {
+	$qtyPi = max(1, (int) ($pi['count_need'] ?? 1));
+	if (function_exists('epc_order_item_effective_purchase')) {
+		$eff = epc_order_item_effective_purchase($db_link, $pi);
+		$purchaseSumEff += round((float) $eff['unit'] * $qtyPi, 2);
+	} else {
+		$purchaseSumEff += round((float) ($pi['t2_price_purchase'] ?? 0) * $qtyPi, 2);
+	}
+}
+if ($purchaseSumEff > 0) {
+	$purchaseSum = $purchaseSumEff;
+	$benefit = round($priceSum - $purchaseSum, 2);
+}
+
 try {
 	$courierLib = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_courier_vat.php';
 	if (is_file($courierLib)) {
@@ -216,51 +236,29 @@ try {
 		$courierDest = (string) $courierCalc['destination_country'];
 		$vatTypeLabel = (string) ($courierCalc['vat_type_label'] ?? '');
 		$vatZeroRated = !epc_uae_vat_is_uae_country($courierDest);
-		foreach ($items as $itRow) {
-			$lc = epc_uae_customer_vat_order_line(
-				$db_link,
-				$customer_id,
-				(float) ($itRow['price'] ?? 0),
-				(float) ($itRow['count_need'] ?? 0),
-				$flags
-			);
-			$vatNet += (float) ($lc['line_net'] ?? 0);
-			$vatAmt += (float) ($lc['vat_amount'] ?? 0);
-			$vatGross += (float) ($lc['gross'] ?? 0);
-			$vatInclusive = $vatInclusive || !empty($lc['prices_inclusive']);
-			if (!empty($lc['tax_rate'])) {
-				$vatRateLabel = (float) $lc['tax_rate'];
-			}
-		}
-		$vatNet = round($vatNet, 2);
-		$vatAmt = round($vatAmt, 2);
-		$vatGross = round($vatGross, 2);
-		// For B2C inclusive lines, vatGross ≈ priceSum; courierGross adds on top.
-		$amountDueBase = round($priceSum + $courierGross, 2);
-		$paidLeft = max(0, round($amountDueBase - $paidSum, 2));
 	}
 } catch (Throwable $e) {
 	$courierNet = 0.0;
 }
-if ($vatGross <= 0) {
-	$vatFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_customer_vat.php';
-	if (is_file($vatFile)) {
-		require_once $vatFile;
-		if (function_exists('epc_uae_customer_vat_order_line')) {
-			foreach ($items as $vatItem) {
-				$line = epc_uae_customer_vat_order_line(
-					$db_link,
-					$customer_id,
-					(float) ($vatItem['price'] ?? 0),
-					(float) ($vatItem['count_need'] ?? 0)
-				);
-				$vatNet += (float) ($line['line_net'] ?? 0);
-				$vatAmt += (float) ($line['vat_amount'] ?? 0);
-				$vatGross += (float) ($line['gross'] ?? 0);
-				$vatInclusive = $vatInclusive || !empty($line['prices_inclusive']);
-				if (!empty($line['tax_rate'])) {
-					$vatRateLabel = (float) $line['tax_rate'];
-				}
+
+$vatFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_customer_vat.php';
+if (is_file($vatFile)) {
+	require_once $vatFile;
+	if (function_exists('epc_uae_customer_vat_order_line')) {
+		foreach ($items as $vatItem) {
+			$line = epc_uae_customer_vat_order_line(
+				$db_link,
+				$customer_id,
+				(float) ($vatItem['price'] ?? 0),
+				(float) ($vatItem['count_need'] ?? 0),
+				$flags
+			);
+			$vatNet += (float) ($line['line_net'] ?? 0);
+			$vatAmt += (float) ($line['vat_amount'] ?? 0);
+			$vatGross += (float) ($line['gross'] ?? 0);
+			$vatInclusive = $vatInclusive || !empty($line['prices_inclusive']);
+			if (!empty($line['tax_rate'])) {
+				$vatRateLabel = (float) $line['tax_rate'];
 			}
 		}
 	}
@@ -268,10 +266,13 @@ if ($vatGross <= 0) {
 if ($vatGross <= 0) {
 	$vatGross = $priceSum;
 }
-$vatDueLabel = $vatInclusive
-	? ('incl. VAT ' . number_format($vatRateLabel, 0) . '%')
-	: ('excl. + VAT ' . number_format($vatRateLabel, 0) . '%');
-$amountDueDisplay = round($priceSum + $courierGross, 2);
+$vatDueLabel = $vatZeroRated
+	? 'Zero-rated export'
+	: ($vatInclusive
+		? ('incl. VAT ' . number_format($vatRateLabel, 0) . '%')
+		: ('excl. + VAT ' . number_format($vatRateLabel, 0) . '%'));
+$amountDueBase = round($priceSum + $courierGross, 2);
+$paidLeft = max(0, round($amountDueBase - $paidSum, 2));
 
 $itemIds = array();
 foreach ($items as $it) {
@@ -309,8 +310,8 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 			<?php echo epc_orders_ws_h($customer_label); ?>
 		</div>
 		<div class="epc-od__totals epc-od__totals--primary">
-			<div><span>Amount due</span><strong><?php echo epc_orders_ws_h(number_format($amountDueDisplay, 2, '.', ' ')); ?></strong>
-				<small><?php echo epc_orders_ws_h($vatDueLabel); ?><?php if ($courierGross > 0) { ?> + courier<?php } ?></small></div>
+			<div><span>Amount due</span><strong><?php echo epc_orders_ws_h(number_format($amountDueBase, 2, '.', ' ')); ?></strong>
+				<small><?php echo epc_orders_ws_h($vatDueLabel); ?><?php echo $courierGross > 0 ? ' + courier' : ''; ?></small></div>
 			<div><span>Paid</span><strong class="is-ok"><?php echo epc_orders_ws_h(number_format($paidSum, 2, '.', ' ')); ?></strong></div>
 			<div><span>Balance</span><strong class="<?php echo $paidLeft > 0 ? 'is-bad' : 'is-ok'; ?>"><?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', ' ')); ?></strong></div>
 		</div>
@@ -338,6 +339,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 	<nav class="epc-od__tabs" role="tablist">
 		<button type="button" class="is-active" data-epc-od-tab="manage">Manage</button>
 		<button type="button" data-epc-od-tab="items">Items (<?php echo count($items); ?>)</button>
+		<button type="button" data-epc-od-tab="fulfillment">Fulfillment</button>
 		<button type="button" data-epc-od-tab="customer">Customer</button>
 		<button type="button" data-epc-od-tab="payment">Payment</button>
 		<button type="button" data-epc-od-tab="docs">Invoice / docs</button>
@@ -364,6 +366,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 			</div>
 		</div>
 		<div class="epc-od__actions">
+			<button type="button" class="btn btn-primary btn-sm" onclick="epcOmsGotoTab('fulfillment');"><i class="fa fa-random"></i> Fulfillment · #<?php echo (int) $order_id; ?></button>
 			<button type="button" class="btn btn-default btn-sm" onclick="epcOmsGotoTab('payment');"><i class="fa fa-credit-card"></i> Payment</button>
 			<button type="button" class="btn btn-default btn-sm" onclick="epcOmsGotoTab('docs');"><i class="fa fa-file-text-o"></i> Invoice / docs</button>
 			<button type="button" class="btn btn-default btn-sm" onclick="epcOmsGotoTab('customer');"><i class="fa fa-user"></i> Customer</button>
@@ -394,7 +397,8 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 		<div class="epc-od__items">
 			<div class="epc-od__items-head">
 				<h4 class="epc-od__items-title">Line items</h4>
-				<span class="text-muted small"><?php echo $canEditItems ? 'Invoice-style lines · sell / purchase / margin / USD · warehouse' : 'Paid order — prices locked'; ?></span>
+				<span class="text-muted small"><?php echo $canEditItems ? 'Brand / part editable · margin from real purchase · multi-supplier fulfillment' : 'Paid order — prices locked'; ?></span>
+				<button type="button" class="btn btn-primary btn-xs" onclick="epcOmsGotoTab('fulfillment');"><i class="fa fa-random"></i> Fulfillment · Order #<?php echo (int) $order_id; ?></button>
 			</div>
 			<?php if (!$items) { ?>
 			<p class="text-muted">No line items</p>
@@ -421,6 +425,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 				<tbody>
 			<?php
 			$lineNo = 0;
+			$marginTotalEff = 0.0;
 			foreach ($items as $item) {
 				$lineNo++;
 				$itemId = (int) $item['id'];
@@ -434,17 +439,28 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 					? epc_orders_ws_storage_label($storageLabel)
 					: ($storageLabel !== '' ? $storageLabel : '—');
 				$sell = (float) $item['price'];
-				$purchase = (float) $item['t2_price_purchase'];
 				$qty = max(1, (int) $item['count_need']);
+				$eff = function_exists('epc_order_item_effective_purchase')
+					? epc_order_item_effective_purchase($db_link, $item)
+					: array('unit' => (float) $item['t2_price_purchase'], 'source' => 't2_price_purchase', 'stored' => (float) $item['t2_price_purchase']);
+				$purchase = (float) $eff['unit'];
+				$purchaseStored = (float) ($eff['stored'] ?? $item['t2_price_purchase']);
 				$lineTotal = $sell * $qty;
 				$lineMargin = ($sell - $purchase) * $qty;
+				$marginTotalEff += $lineMargin;
 				$lineUsd = $usdRate > 0 ? ($lineTotal / $usdRate) : 0.0;
-				$statusLabel = translate_str_by_id($orders_items_statuses[$itemStatus]['name'] ?? '');
+				$purchaseHint = ((string) ($eff['source'] ?? '') !== 't2_price_purchase' && abs($purchase - $purchaseStored) > 0.0001)
+					? ('Cost from ' . (string) $eff['source'] . ' — save to store')
+					: '';
 				?>
 					<tr class="epc-od__line" data-item-id="<?php echo $itemId; ?>">
 						<td class="epc-od__num"><?php echo (int) $lineNo; ?></td>
-						<td class="epc-od__brand"><?php echo epc_orders_ws_h($item['t2_manufacturer']); ?></td>
-						<td class="epc-od__part"><code><?php echo epc_orders_ws_h($item['t2_article']); ?></code></td>
+						<td class="epc-od__brand">
+							<input type="text" class="form-control input-sm" data-field="t2_manufacturer" value="<?php echo epc_orders_ws_h($item['t2_manufacturer']); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+						</td>
+						<td class="epc-od__part">
+							<input type="text" class="form-control input-sm" data-field="t2_article" value="<?php echo epc_orders_ws_h($item['t2_article']); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+						</td>
 						<td class="epc-od__desc" title="<?php echo epc_orders_ws_h($item['t2_name']); ?>">
 							<input type="text" class="form-control input-sm" data-field="t2_name" value="<?php echo epc_orders_ws_h($item['t2_name']); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
 						</td>
@@ -464,7 +480,8 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="price" value="<?php echo epc_orders_ws_h(number_format($sell, 2, '.', '')); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
 						</td>
 						<td class="epc-od__buy">
-							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="t2_price_purchase" value="<?php echo epc_orders_ws_h(number_format($purchase, 2, '.', '')); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="t2_price_purchase" value="<?php echo epc_orders_ws_h(number_format($purchase, 2, '.', '')); ?>" title="<?php echo epc_orders_ws_h($purchaseHint); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<?php if ($purchaseHint !== '') { ?><small class="epc-od__cost-hint"><?php echo epc_orders_ws_h($purchaseHint); ?></small><?php } ?>
 						</td>
 						<td class="epc-od__margin <?php echo $lineMargin >= 0 ? 'is-ok' : 'is-bad'; ?>"><?php echo epc_orders_ws_h(number_format($lineMargin, 2, '.', ',')); ?></td>
 						<td class="epc-od__amt"><?php echo epc_orders_ws_h(number_format($lineTotal, 2, '.', ',')); ?></td>
@@ -479,6 +496,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 						<td class="epc-od__acts">
 							<?php if ($canEditItems) { ?>
 							<button type="button" class="btn btn-primary btn-xs" title="Save" onclick="epcOmsSaveItem(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-save"></i></button>
+							<button type="button" class="btn btn-default btn-xs" title="Refresh purchase cost" onclick="epcOmsRefreshCost(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-refresh"></i></button>
 							<?php } ?>
 							<button type="button" class="btn btn-default btn-xs" title="Update status" onclick="epcOmsSetItemStatus(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-flag"></i></button>
 							<button type="button" class="btn btn-warning btn-xs" title="Message customer" onclick="epcOmsMessageItem(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>, <?php echo htmlspecialchars(json_encode((string) $item['t2_article']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode(number_format($sell, 2, '.', '')), ENT_QUOTES, 'UTF-8'); ?>);"><i class="fa fa-envelope"></i></button>
@@ -491,15 +509,26 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 						<td colspan="5" class="epc-od__foot-label">Order summary</td>
 						<td></td>
 						<td colspan="2" class="text-muted small"><?php echo epc_orders_ws_h($vatDueLabel); ?></td>
-						<td class="<?php echo $benefit >= 0 ? 'is-ok' : 'is-bad'; ?>"><?php echo epc_orders_ws_h(number_format($benefit, 2, '.', ',')); ?></td>
-						<td><strong><?php echo epc_orders_ws_h(number_format($vatGross, 2, '.', ',')); ?></strong></td>
-						<td><?php echo epc_orders_ws_h(number_format($usdRate > 0 ? $vatGross / $usdRate : 0, 2, '.', ',')); ?></td>
-						<td colspan="2" class="text-muted small">VAT <?php echo epc_orders_ws_h(number_format($vatAmt, 2, '.', ',')); ?></td>
+						<td class="<?php echo $marginTotalEff >= 0 ? 'is-ok' : 'is-bad'; ?>"><?php echo epc_orders_ws_h(number_format($marginTotalEff, 2, '.', ',')); ?></td>
+						<td><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ',')); ?></strong></td>
+						<td><?php echo epc_orders_ws_h(number_format($usdRate > 0 ? $priceSum / $usdRate : 0, 2, '.', ',')); ?></td>
+						<td colspan="2" class="text-muted small">VAT <?php echo epc_orders_ws_h(number_format($vatAmt, 2, '.', ',')); ?><?php echo $courierGross > 0 ? ' · courier ' . number_format($courierGross, 2, '.', ',') : ''; ?></td>
 					</tr>
 				</tfoot>
 			</table>
 			</div>
 			<?php } ?>
+		</div>
+	</section>
+
+	<section class="epc-od__panel" data-epc-od-panel="fulfillment">
+		<div class="epc-od__fulfill-tab">
+			<div class="epc-od__items-head">
+				<h4 class="epc-od__items-title">Fulfillment · Order #<?php echo (int) $order_id; ?></h4>
+				<span class="text-muted small">Per-supplier pipeline — confirm → pay → ship → warehouse → pack → dispatch → deliver → complete</span>
+			</div>
+			<div id="epc-order-supplier-fulfillment-<?php echo (int) $order_id; ?>" class="epc-od__supplier-fulfillment" data-order-id="<?php echo (int) $order_id; ?>"></div>
+			<div id="epc-order-fulfillment-panel-items-<?php echo (int) $order_id; ?>" class="epc-scp-orders-detail__erp-fulfillment" style="margin-top:12px;"></div>
 		</div>
 	</section>
 

@@ -1300,3 +1300,48 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-act
 		grid-template-columns: 1fr;
 	}
 }
+
+.epc-od__cost-hint {
+	display: block;
+	font-size: 9px;
+	color: var(--eo-warn);
+	line-height: 1.2;
+	margin-top: 2px;
+}
+.epc-od__brand .form-control,
+.epc-od__part .form-control { min-width: 72px; }
+.epc-sf-panel { margin-top: 8px; }
+.epc-sf-card {
+	border: 1px solid var(--eo-line);
+	border-radius: 12px;
+	background: #fff;
+	padding: 12px 14px;
+	margin-bottom: 10px;
+}
+.epc-sf-card__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+.epc-sf-card__head h5 { margin: 0; font-size: 14px; font-weight: 700; }
+.epc-sf-pipe {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 8px 0 10px;
+}
+.epc-sf-step {
+	font-size: 10px;
+	padding: 3px 6px;
+	border-radius: 999px;
+	background: #f1f5f9;
+	color: #64748b;
+	border: 1px solid #e2e8f0;
+}
+.epc-sf-step.is-done { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+.epc-sf-step.is-current { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; font-weight: 700; }
+.epc-sf-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.epc-sf-meta { font-size: 12px; color: var(--eo-muted); }
