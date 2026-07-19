@@ -111,7 +111,13 @@ function translate_str_by_key($str_key, $lang_code=null)
 		
 		if( $isError === 1 )
 		{
-			$str = "ERROR STR_KEY: ".$str_key.". ".$str;
+			// Keep clean copy in CP chrome — "ERROR STR_KEY" looks like broken code to tenants.
+			$epcCpUi = !empty($GLOBALS['epc_cp_shell']) || (defined('_ASTEXE_') && strpos((string) ($_SERVER['SCRIPT_NAME'] ?? ''), '/cp/') !== false);
+			if (!$epcCpUi) {
+				$str = "ERROR STR_KEY: ".$str_key.". ".$str;
+			} elseif ($str === null || $str === '' || $str === false) {
+				$str = 'Something went wrong. Please try again.';
+			}
 		}
 		
 		if( isset($DP_Config->multilang_debug) && $DP_Config->multilang_debug == true )
@@ -165,7 +171,12 @@ function translate_str_by_key($str_key, $lang_code=null)
 	//Если эта строка является текстом ошибки, то, добавляем обозначение:
 	if( $is_error == 1 )
 	{
-		$str = "ERROR STR_KEY: ".$str_key.". ".$str;
+		$epcCpUi = !empty($GLOBALS['epc_cp_shell']) || (defined('_ASTEXE_') && strpos((string) ($_SERVER['SCRIPT_NAME'] ?? ''), '/cp/') !== false);
+		if (!$epcCpUi) {
+			$str = "ERROR STR_KEY: ".$str_key.". ".$str;
+		} elseif ($str === false || $str === null || $str === '') {
+			$str = 'Something went wrong. Please try again.';
+		}
 	}
 	
 	

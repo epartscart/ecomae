@@ -238,7 +238,7 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 			</div>
 			<div class="epc-od__edit-row">
 				<label for="epc_od_comment">Internal note (status log)</label>
-				<textarea id="epc_od_comment" placeholder="Internal note for staff…"></textarea>
+				<textarea id="epc_od_comment" class="form-control" rows="3" placeholder="Internal note for staff…"></textarea>
 				<button type="button" class="btn btn-default btn-sm" onclick="epcAddOrderComment(<?php echo (int) $order_id; ?>);"><i class="fa fa-sticky-note-o"></i> Save note</button>
 			</div>
 		</div>
