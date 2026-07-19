@@ -73,6 +73,25 @@ $deptCfg = epc_erp_departments_config();
 				Generated <?php echo epc_erp_h($snapshot['generated_at']); ?>.
 			</div>
 
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-truck"></i> Courier charges, VAT &amp; document map</h5>
+				<div class="epc-erp-flow">
+					<p><strong>Who pays courier?</strong> The <em>customer</em>. The fee is stored on the order (<code>how_get_json.delivery_price</code>), shown in OMS, and added as a line on the UAE tax invoice (AR).</p>
+					<p><strong>VAT on courier:</strong> Courier is taxable <em>income</em> for UAE destinations (output VAT on the invoice). Customers outside the UAE are <strong>zero-rated</strong> — no VAT on goods or courier. Destination country on the shipping record drives this.</p>
+					<p><strong>VAT documentation:</strong> UAE → keep PINT-AE tax invoice (XML/PDF), TRN, and payment records. Export → keep shipping proof, commercial invoice, and buyer country evidence for FTA zero-rating.</p>
+					<p><strong>ERP map (OMS → Manage):</strong></p>
+					<ol>
+						<li><strong>Shop order</strong> — commerce order</li>
+						<li><strong>VAT treatment</strong> — UAE standard vs export zero-rate</li>
+						<li><strong>ERP sales order (SO)</strong> — revenue side bootstrap</li>
+						<li><strong>Supplier POs</strong> — per-supplier purchase orders</li>
+						<li><strong>AP bills</strong> — supplier purchase invoices (cost)</li>
+						<li><strong>AR tax invoice</strong> — customer invoice including goods + courier + VAT</li>
+					</ol>
+					<p>Use <strong>Link ERP / Sync / Auto-post</strong> on the OMS fulfillment panel to keep SO ↔ PO ↔ bill ↔ invoice aligned.</p>
+				</div>
+			</div>
+
 			<h4><i class="fa fa-bar-chart"></i> Live snapshot</h4>
 			<table class="table table-striped table-bordered">
 				<tbody>

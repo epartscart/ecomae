@@ -211,4 +211,50 @@ if ($action === 'list_messages') {
 	epc_oms_ok(array('messages' => $msgs));
 }
 
+if ($action === 'set_courier') {
+	if ((int) $order['paid'] !== 0) {
+		epc_oms_fail('Cannot change courier on a paid order');
+	}
+	$fee = isset($_REQUEST['delivery_price']) ? (float) $_REQUEST['delivery_price'] : 0.0;
+	if ($fee < 0) {
+		epc_oms_fail('Courier fee cannot be negative');
+	}
+	$country = strtoupper(substr(trim((string) ($_REQUEST['country'] ?? '')), 0, 2));
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_courier_vat.php';
+	$extra = array();
+	if (strlen($country) === 2) {
+		$extra['country'] = $country;
+	}
+	$how = epc_order_set_courier_charge($db_link, $orderId, $fee, $extra);
+	$full = $db_link->prepare('SELECT * FROM `shop_orders` WHERE `id` = ? LIMIT 1');
+	$full->execute(array($orderId));
+	$orderRow = $full->fetch(PDO::FETCH_ASSOC) ?: array('id' => $orderId, 'user_id' => $order['user_id'], 'how_get_json' => json_encode($how));
+	$calc = epc_order_courier_vat_amounts($db_link, $orderRow, (int) $order['user_id']);
+	$db_link->prepare(
+		'INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)'
+	)->execute(array(
+		$orderId,
+		time(),
+		$adminId,
+		1,
+		'OMS set courier fee (customer pays) ex-VAT=' . number_format($fee, 2, '.', '')
+			. ' AED, ship=' . (string) ($calc['destination_country'] ?? '')
+			. ', VAT=' . number_format((float) $calc['vat_amount'], 2, '.', ''),
+	));
+	epc_oms_ok(array(
+		'delivery_price' => (float) $how['delivery_price'],
+		'courier' => $calc,
+	));
+}
+
+if ($action === 'erp_document_map') {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_courier_vat.php';
+	try {
+		$map = epc_order_erp_document_map($db_link, $orderId);
+	} catch (Throwable $e) {
+		epc_oms_fail($e->getMessage());
+	}
+	epc_oms_ok(array('map' => $map));
+}
+
 epc_oms_fail('Unknown action');

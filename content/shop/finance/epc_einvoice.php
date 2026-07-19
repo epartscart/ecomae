@@ -198,18 +198,36 @@ function epc_einvoice_buyer_profile_from_user(PDO $db, int $user_id): array
 	$ust->execute(array($user_id));
 	$u = $ust->fetch(PDO::FETCH_ASSOC) ?: array();
 	$name = trim($fields['company'] !== '' ? $fields['company'] : trim($fields['name'] . ' ' . $fields['surname']));
+
+	$country = 'AE';
+	$trn = '';
+	try {
+		require_once __DIR__ . '/../pricing/epc_customer_trade.php';
+		$regCountry = strtoupper(trim(epc_trade_profile_get($db, $user_id, 'epc_reg_country', 'AE')));
+		if (strlen($regCountry) === 2) {
+			$country = $regCountry;
+		}
+		$trn = preg_replace('/\D/', '', epc_trade_profile_get($db, $user_id, 'epc_reg_trn', ''));
+	} catch (Throwable $e) {
+		$country = 'AE';
+	}
+	if (function_exists('epc_uae_vat_normalize_country')) {
+		require_once __DIR__ . '/epc_uae_vat.php';
+		$country = epc_uae_vat_normalize_country($country);
+	}
+
 	return array(
 		'user_id' => $user_id,
 		'buyer_name' => $name !== '' ? $name : ('Customer #' . $user_id),
-		'trn' => '',
+		'trn' => $trn,
 		'tin' => '',
 		'legal_reg_no' => '',
 		'legal_reg_type' => 'TL',
 		'authority_name' => '',
 		'address_line1' => $fields['address'],
-		'city' => $fields['city'] !== '' ? $fields['city'] : 'Dubai',
-		'emirate' => 'Dubai',
-		'country_code' => 'AE',
+		'city' => $fields['city'] !== '' ? $fields['city'] : ($country === 'AE' ? 'Dubai' : ''),
+		'emirate' => $country === 'AE' ? 'Dubai' : '',
+		'country_code' => $country !== '' ? $country : 'AE',
 		'phone' => $fields['phone'] !== '' ? $fields['phone'] : ($u['phone'] ?? ''),
 		'email' => $fields['email'] !== '' ? $fields['email'] : ($u['email'] ?? ''),
 		'electronic_id' => '0235',
@@ -441,6 +459,12 @@ function epc_einvoice_build_from_order(PDO $db, int $order_id, array $opts = arr
 	$buyerRaw = epc_einvoice_buyer_profile($db, $user_id);
 	$const = epc_einvoice_constants();
 	$flags = isset($opts['transaction_flags']) && is_array($opts['transaction_flags']) ? $opts['transaction_flags'] : array();
+
+	require_once __DIR__ . '/epc_order_courier_vat.php';
+	require_once __DIR__ . '/epc_uae_customer_vat.php';
+
+	$flags = epc_order_vat_transaction_flags($db, $order, $user_id, $flags);
+	$destCountry = epc_order_destination_country($db, $order, $user_id);
 	$txCode = epc_einvoice_build_transaction_code($flags);
 
 	$buyerEndpoint = '';
@@ -454,6 +478,11 @@ function epc_einvoice_build_from_order(PDO $db, int $order_id, array $opts = arr
 		$buyerEndpoint = $const['endpoint_not_onboarded'];
 	}
 
+	$buyerCountry = $destCountry !== '' ? $destCountry : ($buyerRaw['country_code'] ?? 'AE');
+	$howGet = epc_order_how_get_array($order);
+	$shipCity = trim((string) ($howGet['city'] ?? ''));
+	$shipAddress = trim((string) ($howGet['address'] ?? ''));
+
 	$buyer = array(
 		'buyer_name' => $buyerRaw['buyer_name'] ?? 'Buyer',
 		'buyer_trn' => $buyerRaw['trn'] ?? '',
@@ -461,11 +490,11 @@ function epc_einvoice_build_from_order(PDO $db, int $order_id, array $opts = arr
 		'buyer_legal_reg_no' => $buyerRaw['legal_reg_no'] ?? '',
 		'buyer_legal_reg_type' => $buyerRaw['legal_reg_type'] ?? 'TL',
 		'buyer_authority_name' => $buyerRaw['authority_name'] ?? '',
-		'buyer_address_line1' => $buyerRaw['address_line1'] ?? '',
-		'buyer_city' => $buyerRaw['city'] ?? 'Dubai',
-		'buyer_emirate' => $buyerRaw['emirate'] ?? 'Dubai',
-		'buyer_country_code' => $buyerRaw['country_code'] ?? 'AE',
-		'buyer_phone' => $buyerRaw['phone'] ?? '',
+		'buyer_address_line1' => $shipAddress !== '' ? $shipAddress : ($buyerRaw['address_line1'] ?? ''),
+		'buyer_city' => $shipCity !== '' ? $shipCity : ($buyerRaw['city'] ?? 'Dubai'),
+		'buyer_emirate' => $buyerCountry === 'AE' ? ($buyerRaw['emirate'] ?? 'Dubai') : '',
+		'buyer_country_code' => $buyerCountry,
+		'buyer_phone' => !empty($howGet['phone']) ? (string) $howGet['phone'] : ($buyerRaw['phone'] ?? ''),
 		'buyer_email' => $buyerRaw['email'] ?? '',
 		'buyer_electronic_id' => '0235',
 		'buyer_peppol_endpoint' => $buyerEndpoint,
@@ -474,8 +503,6 @@ function epc_einvoice_build_from_order(PDO $db, int $order_id, array $opts = arr
 	$supplyTax = epc_uae_vat_supply_tax_category($db, $buyer, $flags);
 	$taxCat = $supplyTax['tax_category'];
 	$taxRate = (float)$supplyTax['tax_rate'];
-
-	require_once __DIR__ . '/epc_uae_customer_vat.php';
 
 	$lines = array();
 	$lineNo = 0;
@@ -515,6 +542,17 @@ function epc_einvoice_build_from_order(PDO $db, int $order_id, array $opts = arr
 		$subtotal += $net;
 		$totalVat += $vatLine;
 	}
+
+	// Customer-paid courier — taxable income in UAE; zero-rated outside UAE.
+	$courierLine = epc_order_courier_invoice_line($db, $order, $lineNo + 1, $user_id, $flags);
+	if ($courierLine) {
+		$lineNo++;
+		$courierLine['line_no'] = $lineNo;
+		$lines[] = $courierLine;
+		$subtotal += (float) $courierLine['line_net'];
+		$totalVat += (float) $courierLine['tax_amount'];
+	}
+
 	$subtotal = round($subtotal, 2);
 	$totalVat = round($totalVat, 2);
 	$totalIncl = round($subtotal + $totalVat, 2);

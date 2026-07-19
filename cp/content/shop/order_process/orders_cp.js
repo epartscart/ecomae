@@ -533,6 +533,17 @@
 		}, msg.itemSaved || 'Item updated', msg.itemFail || 'Could not update item');
 	};
 
+	window.epcOmsSaveCourier = function (orderId) {
+		var feeEl = document.getElementById('epc_od_courier_fee');
+		var cEl = document.getElementById('epc_od_courier_country');
+		epcOmsPost({
+			action: 'set_courier',
+			order_id: orderId,
+			delivery_price: feeEl ? feeEl.value : 0,
+			country: cEl ? String(cEl.value || '').toUpperCase() : ''
+		}, 'Courier saved — customer pays on invoice', 'Could not save courier');
+	};
+
 	window.epcOmsSetItemStatus = function (orderId, itemId) {
 		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
