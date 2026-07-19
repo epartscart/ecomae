@@ -202,24 +202,6 @@ $showForm = isset($_GET['edit']) || isset($_GET['new']);
 $showTaxonomy = (!$showForm && $cpTab === 'taxonomy');
 
 ?>
-<style>
-.epc-acc-cp .table td { vertical-align: middle; }
-.epc-acc-cp .badge-pub { background:#27ae60; }
-.epc-acc-cp .badge-draft { background:#7f8c8d; }
-.epc-acc-cp .badge-unpub { background:#e67e22; }
-.epc-acc-cp .feat { color:#d97706; font-weight:700; }
-.epc-acc-cp .muted { color:#7f8c8d; font-size:12px; }
-.epc-acc-cp .filters .form-control { margin-right:6px; margin-bottom:6px; display:inline-block; width:auto; min-width:120px; }
-.epc-acc-cp .filters .form-control.w-q { min-width:200px; }
-.epc-acc-cp .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; }
-.epc-acc-cp .form-grid .full { grid-column:1 / -1; }
-.epc-acc-cp .epc-acc-tabs { margin:0 0 14px; padding:0; list-style:none; border-bottom:1px solid #ddd; }
-.epc-acc-cp .epc-acc-tabs li { display:inline-block; margin:0 8px 0 0; }
-.epc-acc-cp .epc-acc-tabs a { display:inline-block; padding:8px 12px; color:#555; text-decoration:none; border-bottom:2px solid transparent; }
-.epc-acc-cp .epc-acc-tabs li.active a { color:#2c3e50; font-weight:700; border-bottom-color:#2980b9; }
-@media (max-width:767px){ .epc-acc-cp .form-grid { grid-template-columns:1fr; } }
-</style>
-
 <?php if (!$showForm) { ?>
 <div class="col-lg-12 epc-acc-cp">
 	<ul class="epc-acc-tabs">
