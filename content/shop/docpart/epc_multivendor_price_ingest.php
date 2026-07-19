@@ -694,11 +694,16 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 	$countQ->execute(array($priceId));
 	$recordsInDb = (int) $countQ->fetchColumn();
 
+	$uploadedBy = (int) ($group['uploaded_by'] ?? 0);
+	$uploadSource = trim((string) ($group['upload_source'] ?? 'multivendor'));
+	if ($uploadSource === '') {
+		$uploadSource = 'multivendor';
+	}
 	$storedRel = epc_price_history_archive_file($tmpCsv, $priceId, $vendorShort . '.csv');
 	$historyId = epc_price_history_save($db, array(
 		'price_id' => $priceId,
 		'price_name' => $listName,
-		'upload_source' => 'multivendor',
+		'upload_source' => $uploadSource,
 		'original_filename' => $vendorShort . '.csv',
 		'stored_relpath' => $storedRel,
 		'file_size' => is_file($tmpCsv) ? (int) filesize($tmpCsv) : 0,
@@ -709,12 +714,14 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 		'brands_count' => epc_price_history_count_brands($db, $priceId),
 		'items_count' => $recordsInDb,
 		'error_text' => empty($result['status']) ? (string) ($result['message'] ?? '') : '',
+		'uploaded_by' => $uploadedBy,
 		'stats_json' => json_encode(array(
 			'multivendor' => true,
 			'vendor_full' => $vendorFull,
 			'vendor_short' => $vendorShort,
 			'data_type' => $dataType,
 			'storage_id' => $storageId,
+			'frontend_vendor' => ($uploadSource === 'vendor_portal'),
 		), JSON_UNESCAPED_UNICODE),
 	));
 	if ($historyId > 0 && !empty($result['status'])) {
@@ -880,6 +887,144 @@ function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $origin
 		'column_map' => $read['map'] ?? array(),
 		'vendors' => $vendorResults,
 	);
+}
+
+/**
+ * Frontend vendor portal: ingest a file for ONE vendor only (scoped).
+ * Vendor columns in the file are ignored / forced from the vendor account.
+ *
+ * @return array<string,mixed>
+ */
+function epc_multivendor_ingest_for_vendor(
+	PDO $db,
+	string $sourcePath,
+	string $originalFilename,
+	string $vendorFull,
+	string $vendorShort,
+	string $defaultDataType = 'inventory',
+	int $uploadedBy = 0
+): array {
+	$vendorFull = epc_multivendor_sanitize_full($vendorFull);
+	$vendorShort = epc_multivendor_sanitize_short($vendorShort);
+	$defaultDataType = epc_multivendor_normalize_data_type($defaultDataType, 'inventory');
+	if ($vendorShort === '') {
+		return array('status' => false, 'message' => 'Vendor code is required', 'vendors' => array());
+	}
+	if ($vendorFull === '') {
+		$vendorFull = $vendorShort;
+	}
+
+	$converted = epc_commerce_excel_to_csv($sourcePath);
+	if (empty($converted['ok'])) {
+		return array(
+			'status' => false,
+			'message' => (string) ($converted['message'] ?? 'File conversion failed'),
+			'vendors' => array(),
+		);
+	}
+	$csvPath = (string) $converted['path'];
+	$read = epc_multivendor_read_source_rows($csvPath, $defaultDataType);
+	if ($csvPath !== $sourcePath) {
+		@unlink($csvPath);
+	}
+	if (empty($read['ok'])) {
+		return array(
+			'status' => false,
+			'message' => (string) ($read['message'] ?? 'Parse failed'),
+			'headers' => $read['headers'] ?? array(),
+			'vendors' => array(),
+		);
+	}
+
+	$rows = isset($read['rows']) && is_array($read['rows']) ? $read['rows'] : array();
+	$forced = array();
+	$rejectedOtherVendor = 0;
+	$accountKey = epc_multivendor_vendor_key($vendorShort);
+	foreach ($rows as $row) {
+		$fileShort = epc_multivendor_sanitize_short((string) ($row['vendor_short'] ?? ''));
+		if ($fileShort !== '' && epc_multivendor_vendor_key($fileShort) !== $accountKey) {
+			$rejectedOtherVendor++;
+			continue;
+		}
+		$row['vendor_full'] = $vendorFull;
+		$row['vendor_short'] = $vendorShort;
+		if (empty($row['data_type'])) {
+			$row['data_type'] = $defaultDataType;
+		}
+		$forced[] = $row;
+	}
+	if ($forced === array()) {
+		return array(
+			'status' => false,
+			'message' => $rejectedOtherVendor > 0
+				? ('No rows for your vendor code. ' . $rejectedOtherVendor . ' rows belonged to other vendors.')
+				: 'No valid product rows found. Need Brand, Article, Price columns.',
+			'vendors' => array(),
+			'rows_rejected_other_vendor' => $rejectedOtherVendor,
+		);
+	}
+
+	$groups = epc_multivendor_group_by_vendor($forced);
+	$vendorResults = array();
+	$okCount = 0;
+	$failCount = 0;
+	$totalRows = 0;
+	foreach ($groups as $group) {
+		$group['vendor_full'] = $vendorFull;
+		$group['vendor_short'] = $vendorShort;
+		$group['uploaded_by'] = $uploadedBy;
+		$group['upload_source'] = 'vendor_portal';
+		$one = epc_multivendor_import_vendor($db, $group);
+		$vendorResults[] = $one;
+		if (!empty($one['status'])) {
+			$okCount++;
+			$totalRows += (int) ($one['records_handled'] ?? 0);
+		} else {
+			$failCount++;
+		}
+	}
+
+	$overallOk = $okCount > 0;
+	return array(
+		'status' => $overallOk,
+		'message' => $overallOk
+			? ('Uploaded ' . number_format($totalRows) . ' rows for ' . $vendorShort . '.'
+				. ($rejectedOtherVendor > 0 ? ' Skipped ' . $rejectedOtherVendor . ' other-vendor rows.' : ''))
+			: ('Upload failed. ' . ($failCount > 0 ? $failCount . ' list(s) failed.' : 'Check columns.')),
+		'data_type_default' => $defaultDataType,
+		'original_filename' => $originalFilename !== '' ? $originalFilename : basename($sourcePath),
+		'vendor_full' => $vendorFull,
+		'vendor_short' => $vendorShort,
+		'vendors_ok' => $okCount,
+		'vendors_failed' => $failCount,
+		'rows_source' => count($rows),
+		'rows_imported' => $totalRows,
+		'rows_rejected_other_vendor' => $rejectedOtherVendor,
+		'headers' => $read['headers'] ?? array(),
+		'column_map' => $read['map'] ?? array(),
+		'vendors' => $vendorResults,
+	);
+}
+
+/**
+ * Sample CSV for frontend vendor portal (vendor columns optional — account is used).
+ */
+function epc_vendor_portal_sample_csv(): string
+{
+	$lines = array(
+		array('Brand', 'Article', 'Name', 'Qty', 'Price', 'Data type', 'Delivery'),
+		array('TOYOTA', '446610010', 'PAD KIT, DISC BRAKE', '8', '103.51', 'inventory', '0'),
+		array('AISIN', 'DT068', 'WATER PUMP', '3', '45.00', 'inventory', '0'),
+		array('DENSO', '0671007450', 'FILTER', '12', '18.00', 'sales', '0'),
+	);
+	$fh = fopen('php://temp', 'r+b');
+	foreach ($lines as $line) {
+		fputcsv($fh, $line);
+	}
+	rewind($fh);
+	$csv = stream_get_contents($fh);
+	fclose($fh);
+	return $csv === false ? '' : $csv;
 }
 
 /**
