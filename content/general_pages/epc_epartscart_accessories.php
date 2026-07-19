@@ -1,14 +1,14 @@
 <?php
 /**
- * ePartsCart — Accessories & Spare Parts marketplace (PakWheels-style categories/filters).
- * Categories crawled from PakWheels IA. Listings are stored in epc_acc_listings and filled over time.
+ * ePartsCart — Accessories & Spare Parts marketplace.
+ * Listings are stored in epc_acc_listings and filled over time.
  */
 defined('_ASTEXE_') or die('No access');
 
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] !== '')
 	? rtrim((string) $multilang_params['lang_href'], '/')
 	: '/en';
-$epc_acc_ver = '20260718accPw4';
+$epc_acc_ver = '20260719accNoPw1';
 ?>
 <link rel="stylesheet" href="/content/general_pages/epc_accessories.css?v=<?php echo rawurlencode($epc_acc_ver); ?>">
 
@@ -20,7 +20,7 @@ $epc_acc_ver = '20260718accPw4';
 		<div class="container">
 			<div class="epc-acc__brand">eParts<span>Cart</span></div>
 			<h1>Car spare parts and accessories</h1>
-			<p>Browse PakWheels-style categories and filters. Listings are added into each category over time.</p>
+			<p>Browse categories and filters. Listings are added into each category over time.</p>
 			<div class="epc-acc__hero-cta">
 				<form class="epc-acc__search" id="epc-acc-search-form" role="search">
 					<label class="sr-only" for="epc-acc-q">Search accessories</label>
@@ -36,7 +36,7 @@ $epc_acc_ver = '20260718accPw4';
 		<div class="epc-acc__vehicle" id="epc-acc-vehicle">
 			<div class="epc-acc__vehicle-head">
 				<strong>Select Vehicle</strong>
-				<span>Filter ads by make and model — like PakWheels</span>
+				<span>Filter ads by make and model</span>
 			</div>
 			<div class="epc-acc__vehicle-row">
 				<label>
@@ -430,7 +430,7 @@ $epc_acc_ver = '20260718accPw4';
 			els.results.innerHTML =
 				'<div class="epc-acc__empty">'
 				+ '<strong>' + (state.showSavedOnly ? 'No saved ads yet' : 'No ads in this search yet') + '</strong>'
-				+ '<p>Categories and filters match the PakWheels accessories structure. Listings will appear here as they are added category by category.</p>'
+				+ '<p>Browse by category, make, model, and city. Listings will appear here as they are added category by category.</p>'
 				+ (emptyCatalog && !state.showSavedOnly ? '<p class="epc-acc__empty-hint">Catalog is ready — start by adding products under Car Care, Interior, Exterior, Brakes, and other categories.</p>' : '')
 				+ '</div>';
 			return;
