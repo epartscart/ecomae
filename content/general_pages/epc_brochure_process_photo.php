@@ -1,9 +1,7 @@
 <?php
 /**
- * Dummy presentation photo for brochure processes.
- * Returns an SVG "CP screen" mock unique to title + area — no auth required.
- *
- * GET: t=title&a=area&i=fa-icon
+ * Unique topic-related presentation illustration for brochure processes.
+ * topic=autoparts|inventory|money|orders|...&t=Title&a=Area
  */
 declare(strict_types=1);
 
@@ -12,48 +10,191 @@ header('Cache-Control: public, max-age=86400');
 header('X-Content-Type-Options: nosniff');
 
 $title = trim((string) ($_GET['t'] ?? 'Process'));
-$area = trim((string) ($_GET['a'] ?? 'Control Panel'));
-$icon = preg_replace('/[^a-z0-9\-]/', '', strtolower((string) ($_GET['i'] ?? 'cube'))) ?? 'cube';
-$icon = preg_replace('/^fa-/', '', $icon) ?? 'cube';
+$area = trim((string) ($_GET['a'] ?? ''));
+$topic = preg_replace('/[^a-z]/', '', strtolower((string) ($_GET['topic'] ?? 'platform'))) ?? 'platform';
+$seedKey = trim((string) ($_GET['seed'] ?? ''));
 if ($title === '') {
 	$title = 'Process';
 }
 if (function_exists('mb_substr')) {
-	$title = mb_substr($title, 0, 48);
+	$title = mb_substr($title, 0, 52);
 	$area = mb_substr($area, 0, 40);
 } else {
-	$title = substr($title, 0, 48);
+	$title = substr($title, 0, 52);
 	$area = substr($area, 0, 40);
 }
 
-$hash = crc32($title . '|' . $area);
 $palettes = array(
-	array('#0f172a', '#1e293b', '#0ea5e9', '#38bdf8'),
-	array('#14532d', '#166534', '#22c55e', '#86efac'),
-	array('#7c2d12', '#9a3412', '#f97316', '#fdba74'),
-	array('#312e81', '#3730a3', '#818cf8', '#c7d2fe'),
-	array('#134e4a', '#115e59', '#14b8a6', '#5eead4'),
-	array('#4c0519', '#9f1239', '#f43f5e', '#fda4af'),
-	array('#1e3a5f', '#0c4a6e', '#0284c7', '#7dd3fc'),
-	array('#3b0764', '#581c87', '#a855f7', '#d8b4fe'),
+	'autoparts' => array('#1c1917', '#292524', '#f97316', '#fdba74', 'Auto parts'),
+	'inventory' => array('#0f172a', '#1e293b', '#0ea5e9', '#7dd3fc', 'Inventory'),
+	'money' => array('#14532d', '#166534', '#22c55e', '#bbf7d0', 'Money'),
+	'orders' => array('#7c2d12', '#9a3412', '#f97316', '#fed7aa', 'Orders'),
+	'logistics' => array('#164e63', '#155e75', '#06b6d4', '#a5f3fc', 'Logistics'),
+	'shipping' => array('#164e63', '#155e75', '#06b6d4', '#a5f3fc', 'Shipping'),
+	'customers' => array('#4c1d95', '#5b21b6', '#a78bfa', '#ddd6fe', 'Customers'),
+	'ai' => array('#312e81', '#3730a3', '#818cf8', '#c7d2fe', 'AI'),
+	'marketing' => array('#9f1239', '#be123c', '#fb7185', '#fecdd3', 'Marketing'),
+	'documents' => array('#334155', '#475569', '#94a3b8', '#e2e8f0', 'Documents'),
+	'platform' => array('#0c4a6e', '#075985', '#38bdf8', '#bae6fd', 'Platform'),
+	'settings' => array('#18181b', '#27272a', '#a1a1aa', '#e4e4e7', 'Settings'),
+	'erp' => array('#1e3a5f', '#1e40af', '#60a5fa', '#bfdbfe', 'ERP'),
+	'procurement' => array('#3f3f46', '#52525b', '#f59e0b', '#fde68a', 'Procurement'),
+	'suppliers' => array('#3f3f46', '#52525b', '#f59e0b', '#fde68a', 'Suppliers'),
+	'content' => array('#134e4a', '#115e59', '#2dd4bf', '#99f6e4', 'Content'),
+	'default' => array('#1e293b', '#334155', '#94a3b8', '#e2e8f0', 'Operations'),
+	'operations' => array('#1e293b', '#334155', '#94a3b8', '#e2e8f0', 'Operations'),
 );
-$p = $palettes[$hash % count($palettes)];
+if ($topic === 'shipping') {
+	$topic = 'logistics';
+}
+if ($topic === 'suppliers') {
+	$topic = 'procurement';
+}
+if ($topic === 'operations') {
+	$topic = 'default';
+}
+$p = $palettes[$topic] ?? $palettes['platform'];
 $bg = $p[0];
 $panel = $p[1];
 $accent = $p[2];
 $accent2 = $p[3];
-$seed = abs($hash) % 97;
+$topicLabel = $p[4];
+$hash = abs(crc32(($seedKey !== '' ? $seedKey : $title) . '|' . $topic . '|' . $area));
+$seed = $hash % 97;
 
-function epc_br_photo_esc(string $s): string
+function epc_br_esc(string $s): string
 {
 	return htmlspecialchars($s, ENT_QUOTES | ENT_XML1, 'UTF-8');
 }
 
-$t = epc_br_photo_esc($title);
-$a = epc_br_photo_esc($area !== '' ? $area : 'Control Panel');
-$i = epc_br_photo_esc($icon);
+$t = epc_br_esc($title);
+$tl = epc_br_esc($topicLabel);
+$a = epc_br_esc($area !== '' ? $area : $topicLabel);
 
-// Fake UI chrome: sidebar + workspace + chart bars — reads as a presentation screenshot.
+// Topic-specific foreground shapes (related visuals, not random).
+ob_start();
+switch ($topic) {
+	case 'money':
+		// Banknotes + coins
+		echo '<rect x="120" y="150" width="280" height="140" rx="10" fill="' . $accent . '" opacity=".9" transform="rotate(-8 260 220)"/>';
+		echo '<rect x="150" y="170" width="220" height="20" rx="4" fill="#fff" opacity=".35"/>';
+		echo '<circle cx="200" cy="230" r="28" fill="#fff" opacity=".25"/>';
+		echo '<rect x="420" y="180" width="280" height="140" rx="10" fill="' . $accent2 . '" opacity=".85" transform="rotate(6 560 250)"/>';
+		echo '<rect x="450" y="200" width="220" height="18" rx="4" fill="#14532d" opacity=".35"/>';
+		echo '<circle cx="680" cy="340" r="36" fill="' . $accent . '" opacity=".8"/>';
+		echo '<circle cx="740" cy="360" r="28" fill="' . $accent2 . '" opacity=".75"/>';
+		echo '<circle cx="620" cy="370" r="22" fill="#fff" opacity=".3"/>';
+		break;
+	case 'autoparts':
+		// Gear + wrench + car silhouette
+		echo '<circle cx="280" cy="250" r="70" fill="none" stroke="' . $accent . '" stroke-width="18"/>';
+		echo '<circle cx="280" cy="250" r="28" fill="' . $accent2 . '"/>';
+		for ($i = 0; $i < 8; $i++) {
+			$ang = ($i * 45 + $seed) * M_PI / 180;
+			$x = 280 + cos($ang) * 78;
+			$y = 250 + sin($ang) * 78;
+			echo '<rect x="' . ($x - 10) . '" y="' . ($y - 16) . '" width="20" height="32" rx="4" fill="' . $accent . '" transform="rotate(' . ($i * 45) . ' ' . $x . ' ' . $y . ')"/>';
+		}
+		echo '<rect x="520" y="200" width="220" height="40" rx="8" fill="' . $accent2 . '" transform="rotate(25 630 220)"/>';
+		echo '<rect x="680" y="160" width="36" height="120" rx="8" fill="' . $accent . '"/>';
+		echo '<ellipse cx="650" cy="360" rx="120" ry="36" fill="#fff" opacity=".12"/>';
+		echo '<path d="M540 340 h180 l40 30 h60 v20 h-300 z" fill="' . $accent2 . '" opacity=".55"/>';
+		break;
+	case 'inventory':
+		// Warehouse shelves + boxes
+		for ($r = 0; $r < 3; $r++) {
+			$y = 150 + $r * 90;
+			echo '<rect x="140" y="' . $y . '" width="680" height="12" fill="' . $accent2 . '" opacity=".5"/>';
+			for ($c = 0; $c < 5; $c++) {
+				$x = 170 + $c * 120 + (($seed + $r + $c) % 3) * 4;
+				$h = 40 + (($seed + $c * 7) % 28);
+				echo '<rect x="' . $x . '" y="' . ($y - $h) . '" width="70" height="' . $h . '" rx="4" fill="' . (($c + $r) % 2 ? $accent : $accent2) . '" opacity=".85"/>';
+			}
+		}
+		break;
+	case 'orders':
+		// Parcels stack
+		echo '<rect x="220" y="280" width="160" height="120" rx="8" fill="' . $accent . '"/>';
+		echo '<rect x="220" y="280" width="160" height="24" fill="#fff" opacity=".2"/>';
+		echo '<path d="M220 304 L300 250 L380 304" fill="' . $accent2 . '"/>';
+		echo '<rect x="420" y="240" width="150" height="160" rx="8" fill="' . $accent2 . '" opacity=".9"/>';
+		echo '<rect x="420" y="240" width="150" height="28" fill="#fff" opacity=".2"/>';
+		echo '<rect x="600" y="260" width="140" height="140" rx="8" fill="' . $accent . '" opacity=".8"/>';
+		echo '<line x1="600" y1="330" x2="740" y2="330" stroke="#fff" stroke-width="3" opacity=".35"/>';
+		echo '<line x1="670" y1="260" x2="670" y2="400" stroke="#fff" stroke-width="3" opacity=".35"/>';
+		break;
+	case 'shipping':
+	case 'logistics':
+		// Truck
+		echo '<rect x="180" y="250" width="280" height="110" rx="12" fill="' . $accent . '"/>';
+		echo '<rect x="460" y="280" width="160" height="80" rx="10" fill="' . $accent2 . '"/>';
+		echo '<polygon points="620,280 700,280 740,330 740,360 620,360" fill="' . $accent . '"/>';
+		echo '<rect x="640" y="295" width="50" height="30" rx="4" fill="#fff" opacity=".35"/>';
+		echo '<circle cx="260" cy="370" r="28" fill="#0f172a"/><circle cx="260" cy="370" r="14" fill="#94a3b8"/>';
+		echo '<circle cx="520" cy="370" r="28" fill="#0f172a"/><circle cx="520" cy="370" r="14" fill="#94a3b8"/>';
+		echo '<circle cx="680" cy="370" r="28" fill="#0f172a"/><circle cx="680" cy="370" r="14" fill="#94a3b8"/>';
+		break;
+	case 'customers':
+		// People circles
+		$xs = array(280, 420, 560, 700);
+		foreach ($xs as $i => $x) {
+			$y = 220 + (($seed + $i * 11) % 40);
+			echo '<circle cx="' . $x . '" cy="' . $y . '" r="36" fill="' . ($i % 2 ? $accent : $accent2) . '" opacity=".9"/>';
+			echo '<circle cx="' . $x . '" cy="' . ($y + 70) . '" r="48" fill="' . ($i % 2 ? $accent2 : $accent) . '" opacity=".45"/>';
+		}
+		break;
+	case 'ai':
+		// Neural nodes
+		for ($i = 0; $i < 12; $i++) {
+			$x = 180 + ($i % 4) * 160;
+			$y = 170 + intdiv($i, 4) * 90;
+			echo '<circle cx="' . $x . '" cy="' . $y . '" r="16" fill="' . $accent . '"/>';
+			if ($i % 4 < 3) {
+				echo '<line x1="' . $x . '" y1="' . $y . '" x2="' . ($x + 160) . '" y2="' . $y . '" stroke="' . $accent2 . '" stroke-width="3" opacity=".5"/>';
+			}
+			if ($i < 8) {
+				echo '<line x1="' . $x . '" y1="' . $y . '" x2="' . $x . '" y2="' . ($y + 90) . '" stroke="' . $accent2 . '" stroke-width="3" opacity=".35"/>';
+			}
+		}
+		break;
+	case 'documents':
+		for ($i = 0; $i < 4; $i++) {
+			$x = 220 + $i * 130;
+			$y = 160 + ($i % 2) * 20;
+			echo '<rect x="' . $x . '" y="' . $y . '" width="110" height="150" rx="6" fill="#fff" opacity="' . (0.75 - $i * 0.08) . '"/>';
+			echo '<rect x="' . ($x + 14) . '" y="' . ($y + 24) . '" width="80" height="8" rx="2" fill="' . $accent . '" opacity=".7"/>';
+			echo '<rect x="' . ($x + 14) . '" y="' . ($y + 44) . '" width="70" height="6" rx="2" fill="' . $panel . '" opacity=".5"/>';
+			echo '<rect x="' . ($x + 14) . '" y="' . ($y + 60) . '" width="75" height="6" rx="2" fill="' . $panel . '" opacity=".4"/>';
+		}
+		break;
+	case 'marketing':
+		echo '<rect x="200" y="180" width="360" height="200" rx="16" fill="' . $accent . '" opacity=".85"/>';
+		echo '<circle cx="280" cy="250" r="40" fill="#fff" opacity=".25"/>';
+		echo '<rect x="340" y="220" width="180" height="14" rx="4" fill="#fff" opacity=".5"/>';
+		echo '<rect x="340" y="250" width="140" height="10" rx="3" fill="#fff" opacity=".35"/>';
+		echo '<rect x="600" y="200" width="160" height="160" rx="20" fill="' . $accent2 . '" opacity=".8"/>';
+		echo '<circle cx="680" cy="260" r="28" fill="#fff" opacity=".35"/>';
+		echo '<rect x="640" y="310" width="80" height="10" rx="3" fill="#fff" opacity=".45"/>';
+		break;
+	case 'suppliers':
+	case 'procurement':
+		echo '<rect x="200" y="200" width="200" height="160" rx="10" fill="' . $accent . '"/>';
+		echo '<rect x="230" y="230" width="140" height="12" rx="3" fill="#fff" opacity=".4"/>';
+		echo '<rect x="230" y="260" width="120" height="10" rx="3" fill="#fff" opacity=".3"/>';
+		echo '<rect x="480" y="180" width="240" height="200" rx="12" fill="' . $accent2 . '" opacity=".85"/>';
+		echo '<path d="M520 240 h160 M520 280 h140 M520 320 h150" stroke="#fff" stroke-width="8" opacity=".35" stroke-linecap="round"/>';
+		break;
+	default:
+		// Generic but topic-colored workspace
+		echo '<rect x="160" y="160" width="640" height="240" rx="16" fill="' . $panel . '" opacity=".9"/>';
+		echo '<rect x="190" y="190" width="180" height="180" rx="12" fill="' . $accent . '" opacity=".45"/>';
+		echo '<rect x="400" y="190" width="360" height="40" rx="8" fill="' . $accent2 . '" opacity=".55"/>';
+		echo '<rect x="400" y="250" width="280" height="20" rx="6" fill="#fff" opacity=".2"/>';
+		echo '<rect x="400" y="290" width="320" height="20" rx="6" fill="#fff" opacity=".15"/>';
+		echo '<rect x="400" y="330" width="200" height="20" rx="6" fill="#fff" opacity=".12"/>';
+}
+$scene = ob_get_clean();
+
 echo '<?xml version="1.0" encoding="UTF-8"?>';
 ?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="<?= $t ?>">
@@ -62,78 +203,15 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
       <stop offset="0%" stop-color="<?= $bg ?>"/>
       <stop offset="100%" stop-color="<?= $panel ?>"/>
     </linearGradient>
-    <linearGradient id="a" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="<?= $accent ?>"/>
-      <stop offset="100%" stop-color="<?= $accent2 ?>"/>
-    </linearGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity=".35"/>
-    </filter>
   </defs>
   <rect width="960" height="540" fill="url(#g)"/>
-  <circle cx="<?= 120 + ($seed % 40) ?>" cy="<?= 80 + ($seed % 30) ?>" r="160" fill="<?= $accent ?>" opacity=".12"/>
-  <circle cx="<?= 820 - ($seed % 50) ?>" cy="<?= 420 ?>" r="200" fill="<?= $accent2 ?>" opacity=".1"/>
-
-  <!-- Window chrome -->
-  <g filter="url(#soft)">
-    <rect x="48" y="40" width="864" height="460" rx="16" fill="#0b1220" opacity=".92"/>
-    <rect x="48" y="40" width="864" height="36" rx="16" fill="#111827"/>
-    <rect x="48" y="64" width="864" height="12" fill="#111827"/>
-    <circle cx="72" cy="58" r="5" fill="#f87171"/>
-    <circle cx="90" cy="58" r="5" fill="#fbbf24"/>
-    <circle cx="108" cy="58" r="5" fill="#34d399"/>
-    <rect x="140" y="50" width="220" height="16" rx="4" fill="#1f2937"/>
-
-    <!-- Sidebar -->
-    <rect x="60" y="88" width="180" height="396" rx="10" fill="#111827"/>
-    <rect x="76" y="108" width="110" height="10" rx="3" fill="<?= $accent ?>" opacity=".9"/>
-    <?php for ($n = 0; $n < 7; $n++) {
-		$y = 140 + $n * 36;
-		$on = ($n === ($seed % 7));
-		$fill = $on ? $accent : '#1f2937';
-		$w = $on ? 148 : (100 + (($seed + $n * 13) % 40));
-		echo '<rect x="76" y="' . $y . '" width="' . $w . '" height="18" rx="5" fill="' . $fill . '" opacity="' . ($on ? '1' : '.75') . '"/>';
-	} ?>
-
-    <!-- Main canvas -->
-    <rect x="256" y="88" width="640" height="396" rx="10" fill="#0f172a"/>
-    <rect x="276" y="108" width="200" height="14" rx="4" fill="#e2e8f0" opacity=".9"/>
-    <rect x="276" y="132" width="320" height="10" rx="3" fill="#64748b" opacity=".8"/>
-
-    <!-- KPI tiles -->
-    <?php for ($n = 0; $n < 3; $n++) {
-		$x = 276 + $n * 200;
-		echo '<rect x="' . $x . '" y="168" width="180" height="88" rx="10" fill="#1e293b"/>';
-		echo '<rect x="' . ($x + 16) . '" y="186" width="70" height="8" rx="2" fill="' . $accent2 . '" opacity=".7"/>';
-		echo '<rect x="' . ($x + 16) . '" y="206" width="' . (90 + (($seed + $n) % 50)) . '" height="22" rx="4" fill="#f8fafc" opacity=".85"/>';
-	} ?>
-
-    <!-- Chart bars -->
-    <rect x="276" y="280" width="380" height="180" rx="10" fill="#1e293b"/>
-    <?php
-	$bars = array(48, 72, 56, 96, 64, 88, 40, 78);
-	for ($n = 0; $n < 8; $n++) {
-		$h = 30 + (($bars[$n] + $seed) % 90);
-		$x = 296 + $n * 42;
-		$y = 420 - $h;
-		echo '<rect x="' . $x . '" y="' . $y . '" width="28" height="' . $h . '" rx="4" fill="url(#a)" opacity="' . (0.55 + ($n % 3) * 0.12) . '"/>';
-	}
-	?>
-
-    <!-- Side photo panel -->
-    <rect x="672" y="280" width="204" height="180" rx="10" fill="#1e293b"/>
-    <rect x="688" y="296" width="172" height="96" rx="8" fill="url(#a)" opacity=".55"/>
-    <circle cx="774" cy="344" r="28" fill="#fff" opacity=".2"/>
-    <path d="M760 348 l10 10 18-22" stroke="#fff" stroke-width="4" fill="none" opacity=".75" stroke-linecap="round" stroke-linejoin="round"/>
-    <rect x="688" y="408" width="120" height="10" rx="3" fill="#94a3b8" opacity=".7"/>
-    <rect x="688" y="426" width="80" height="8" rx="3" fill="#64748b" opacity=".7"/>
-  </g>
-
-  <!-- Caption plate -->
-  <rect x="48" y="430" width="864" height="70" fill="#000" opacity=".55"/>
-  <text x="72" y="458" fill="<?= $accent2 ?>" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2"><?= strtoupper($a) ?></text>
-  <text x="72" y="486" fill="#ffffff" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" font-weight="800"><?= $t ?></text>
-  <text x="880" y="486" fill="#ffffff" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" opacity=".55" text-anchor="end">#<?= $i ?></text>
+  <circle cx="<?= 100 + ($seed % 60) ?>" cy="<?= 80 + ($seed % 40) ?>" r="180" fill="<?= $accent ?>" opacity=".12"/>
+  <circle cx="<?= 820 - ($seed % 50) ?>" cy="420" r="200" fill="<?= $accent2 ?>" opacity=".1"/>
+  <?= $scene ?>
+  <rect x="0" y="400" width="960" height="140" fill="#000" opacity=".55"/>
+  <text x="40" y="440" fill="<?= $accent2 ?>" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="2"><?= strtoupper($tl) ?></text>
+  <text x="40" y="478" fill="#ffffff" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="800"><?= $t ?></text>
+  <text x="40" y="508" fill="#ffffff" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" opacity=".65"><?= $a ?> · #<?= (string) ($hash % 10000) ?></text>
 </svg>
 <?php
 exit;
