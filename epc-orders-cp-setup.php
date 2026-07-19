@@ -234,6 +234,7 @@ $canonicalRoutes = array(
 	array('shop/orders', 'shop/orders/carts', 'carts', '291', '/<backend_dir>/content/shop/order_process/carts.php', '293', 73),
 	array('shop/orders/orders', 'shop/orders/guide', 'guide', 'Order fulfilment guide', '/<backend_dir>/content/shop/order_process/order_fulfilment_guide_page.php', 'Order fulfilment guide — eParts Cart', 80),
 	array('shop/orders/orders', 'shop/orders/whatsapp-guide', 'whatsapp-guide', 'epc_whatsapp_guide_cp', '/<backend_dir>/content/shop/order_process/whatsapp_guide_page.php', 'WhatsApp sharing guide', 82),
+	array('shop/orders/orders', 'shop/orders/oms-guide', 'oms-guide', 'epc_oms_guide_cp', '/<backend_dir>/content/shop/order_process/oms_daily_guide_page.php', 'OMS daily guide — step by step', 81),
 );
 
 $report = array(
