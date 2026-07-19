@@ -243,7 +243,11 @@
 	};
 
 	var epcOrdersSelectedId = cfg.selectedOrderId || 0;
-	var epcOrdersAjaxUrl = urls.ajaxDetail || '';
+	var epcOrdersAjaxUrl = urls.ajaxDetail || ((cfg.backend ? '/' + cfg.backend : '/cp') + '/content/shop/order_process/ajax_epc_orders_detail_pane.php');
+	if (!urls.ajaxDetail && !(cfg && cfg.csrf)) {
+		// Config boot failed — still allow OMS detail fetch with a sane default path.
+		epcOrdersAjaxUrl = '/cp/content/shop/order_process/ajax_epc_orders_detail_pane.php';
+	}
 	var epcOrdersFullBase = urls.orderFullBase || '/cp/shop/orders/order?order_id=';
 
 	function epcMarkWorkspaceActive(orderId) {

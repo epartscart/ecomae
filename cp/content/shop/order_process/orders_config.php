@@ -20,36 +20,56 @@ try {
 
 	$docRoot = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
 	require_once $docRoot . '/config.php';
+	require_once $docRoot . '/content/users/dp_user.php';
+
+	$epcOrdersConnect = static function ($cfg) {
+		$dbHost = trim((string) ($cfg->host ?? ''));
+		if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+			$dbHost = '127.0.0.1';
+		}
+		return new PDO(
+			'mysql:host=' . $dbHost . ';dbname=' . $cfg->db . ';charset=utf8',
+			$cfg->user,
+			$cfg->password,
+			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+		);
+	};
+
+	// Prefer the same DB bootstrap as OMS AJAX (docroot config). Portal apply can
+	// point at a different schema where admin_session is missing.
 	$DP_Config = new DP_Config();
 	$GLOBALS['DP_Config'] = $DP_Config;
+	$db_link = $epcOrdersConnect($DP_Config);
+	$GLOBALS['db_link'] = $db_link;
 
-	if (is_file($docRoot . '/content/general_pages/epc_portal.php')) {
-		require_once $docRoot . '/content/general_pages/epc_portal.php';
-		if (function_exists('epc_portal_apply_config')) {
-			ob_start();
-			try {
-				epc_portal_apply_config($DP_Config);
-			} catch (Throwable $e) {
-				// keep default config if portal apply fails
+	$user_session = DP_User::getAdminSession();
+	if ((empty($user_session) || !is_array($user_session)) && !DP_User::isAdmin()) {
+		if (is_file($docRoot . '/content/general_pages/epc_portal.php')) {
+			require_once $docRoot . '/content/general_pages/epc_portal.php';
+			if (function_exists('epc_portal_apply_config')) {
+				$portalCfg = new DP_Config();
+				ob_start();
+				try {
+					epc_portal_apply_config($portalCfg);
+				} catch (Throwable $e) {
+				}
+				ob_end_clean();
+				$DP_Config = $portalCfg;
+				$GLOBALS['DP_Config'] = $DP_Config;
+				$db_link = $epcOrdersConnect($DP_Config);
+				$GLOBALS['db_link'] = $db_link;
+				$user_session = DP_User::getAdminSession();
 			}
-			ob_end_clean();
 		}
 	}
 
-	$dbHost = trim((string) ($DP_Config->host ?? ''));
-	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
-		$dbHost = '127.0.0.1';
+	if ((empty($user_session) || !is_array($user_session)) && DP_User::isAdmin()) {
+		$user_session = array(
+			'csrf_guard_key' => (string) ($_COOKIE['csrf_guard_key'] ?? ''),
+			'user_id' => (int) DP_User::getAdminId(),
+		);
 	}
-	$db_link = new PDO(
-		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
-		$DP_Config->user,
-		$DP_Config->password,
-		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
-	);
-	$GLOBALS['db_link'] = $db_link;
 
-	require_once $docRoot . '/content/users/dp_user.php';
-	$user_session = DP_User::getAdminSession();
 	if (empty($user_session) || !is_array($user_session)) {
 		echo 'window.EPC_ORDERS={};';
 		exit;
