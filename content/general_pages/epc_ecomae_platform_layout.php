@@ -246,6 +246,8 @@ function epc_ecomae_platform_layout_close()
 			<a href="<?php echo epc_ecomae_h($base); ?>platform">Platform</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/platform-guides">Super CP guides</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/capabilities">Capabilities</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>brochure">Product brochure</a>
+			<a href="<?php echo epc_ecomae_h($base); ?>brochure/cp">Full CP brochure</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/customer-results">Customer results</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/industries">Industries</a>
 			<a href="<?php echo epc_ecomae_h($base); ?>platform/pricing">Pricing</a>

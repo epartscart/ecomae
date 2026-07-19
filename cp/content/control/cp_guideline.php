@@ -119,6 +119,8 @@ epc_cp_page_frame_open(array(
 		'actions' => array(
 			array('label' => 'CP home', 'icon' => 'fa-home', 'url' => $base_cp),
 			array('label' => 'Price management', 'icon' => 'fa-tags', 'url' => $base_cp . '/shop/price-management', 'primary' => true),
+			array('label' => 'Product brochure', 'icon' => 'fa-file-text-o', 'url' => '/brochure'),
+			array('label' => 'Full CP brochure', 'icon' => 'fa-book', 'url' => $base_cp . '/control/cp_brochure', 'primary' => false),
 		),
 	),
 ));
@@ -127,6 +129,9 @@ epc_cp_page_frame_open(array(
 <p class="text-muted" style="margin:0 0 14px;max-width:52rem;line-height:1.45;">
 	<strong>Platform roles:</strong> <code>epartscart.com</code> is spare-parts (auto_parts).
 	<code>ecomae.com/cp</code> is overall platform control. Common OMS / commerce CP packs stay in sync across tenants; industry tools (vehicle catalog, etc.) stay scoped.
+	Share the <a href="/brochure" target="_blank" rel="noopener">product brochure</a> or the exhaustive
+	<a href="<?=epc_cpg_h($base_cp . '/control/cp_brochure');?>" target="_blank" rel="noopener">full CP brochure</a>
+	(every function, Print / PDF) — also at <a href="/brochure-cp" target="_blank" rel="noopener">/brochure-cp</a>.
 </p>
 <div class="epc-cpg-quick">
 	<a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">
