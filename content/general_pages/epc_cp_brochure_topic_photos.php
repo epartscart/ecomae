@@ -213,12 +213,16 @@ function epc_cp_brochure_topic_catalog(): array
 }
 
 /**
- * Resolve topic key from process name / area / url / description.
+ * Resolve topic key from process name / url / description first, then area.
+ * (Area titles like "Prices & Catalogue" must not override "Warehouse stock".)
  */
 function epc_cp_brochure_resolve_topic(string $name, string $area = '', string $url = '', string $does = ''): string
 {
-	$hay = strtolower(trim($name . ' ' . $area . ' ' . $url . ' ' . $does));
-	$hay = preg_replace('/[^a-z0-9\/\s_\-]+/', ' ', $hay) ?? $hay;
+	$norm = static function (string $s): string {
+		$s = strtolower(trim($s));
+		$s = preg_replace('/[^a-z0-9\/\s_\-]+/', ' ', $s) ?? $s;
+		return trim(preg_replace('/\s+/', ' ', $s) ?? $s);
+	};
 
 	// Priority order matters (more specific first).
 	$order = array(
@@ -226,28 +230,40 @@ function epc_cp_brochure_resolve_topic(string $name, string $area = '', string $
 		'ai', 'marketing', 'documents', 'customers', 'erp', 'content', 'platform', 'settings',
 	);
 	$catalog = epc_cp_brochure_topic_catalog();
-	foreach ($order as $topic) {
-		$queries = $catalog[$topic]['queries'] ?? array();
-		foreach ($queries as $q) {
-			$q = strtolower(trim((string) $q));
-			if ($q !== '' && strpos($hay, $q) !== false) {
-				return $topic;
+	$match = static function (string $hay) use ($order, $catalog): string {
+		if ($hay === '') {
+			return '';
+		}
+		foreach ($order as $topic) {
+			$queries = $catalog[$topic]['queries'] ?? array();
+			foreach ($queries as $q) {
+				$q = strtolower(trim((string) $q));
+				if ($q !== '' && strpos($hay, $q) !== false) {
+					return $topic;
+				}
 			}
 		}
+		return '';
+	};
+
+	// 1) Name + URL + description (process-specific)
+	$hit = $match($norm($name . ' ' . $url . ' ' . $does));
+	if ($hit !== '') {
+		return $hit;
 	}
-	// Area-based fallback.
-	$areaL = strtolower($area);
-	if (strpos($areaL, 'price') !== false || strpos($areaL, 'catalog') !== false) {
-		return 'inventory';
+	// 2) Area fallback map
+	$areaL = $norm($area);
+	if (strpos($areaL, 'logistic') !== false) {
+		return 'logistics';
 	}
 	if (strpos($areaL, 'oms') !== false || strpos($areaL, 'shop') !== false) {
 		return 'orders';
 	}
-	if (strpos($areaL, 'finance') !== false || strpos($areaL, 'tax') !== false || strpos($areaL, 'payment') !== false) {
+	if (strpos($areaL, 'payment') !== false || strpos($areaL, 'finance') !== false || strpos($areaL, 'tax') !== false) {
 		return 'money';
 	}
-	if (strpos($areaL, 'logistic') !== false) {
-		return 'logistics';
+	if (strpos($areaL, 'price') !== false || strpos($areaL, 'catalog') !== false) {
+		return 'inventory';
 	}
 	if (strpos($areaL, 'customer') !== false || strpos($areaL, 'crm') !== false) {
 		return 'customers';
@@ -267,7 +283,18 @@ function epc_cp_brochure_resolve_topic(string $name, string $area = '', string $
 	if (strpos($areaL, 'erp') !== false) {
 		return 'erp';
 	}
-	return 'default';
+	if (strpos($areaL, 'procure') !== false) {
+		return 'procurement';
+	}
+	if (strpos($areaL, 'content') !== false || strpos($areaL, 'cms') !== false) {
+		return 'content';
+	}
+	if (strpos($areaL, 'system') !== false || strpos($areaL, 'admin') !== false) {
+		return 'settings';
+	}
+	// 3) Keyword match on area text last
+	$hit = $match($areaL);
+	return $hit !== '' ? $hit : 'default';
 }
 
 /**
