@@ -113,6 +113,10 @@ $config = array(
 		'setOrderStatus' => '/content/shop/protocol/set_order_status.php',
 		'addComment' => '/' . $backend . '/content/shop/order_process/ajax_add_comment_to_log.php',
 		'erpAjax' => '/' . $backend . '/content/shop/finance/erp/ajax_erp_endpoint.php',
+		'payForOrder' => '/content/shop/protocol/pay_for_order.php',
+		'payRefund' => '/' . $backend . '/content/shop/order_process/ajax_order_pay_refund.php',
+		'dcPrintBase' => '/content/shop/document_control/service/print.php',
+		'legacyPrintBase' => '/content/shop/print_docs/service/print.php',
 	),
 	'msg' => array(
 		'selectOrders' => translate_str_by_id(3597),
@@ -136,6 +140,14 @@ $config = array(
 		'msgSent' => 'Message sent to customer',
 		'msgFail' => 'Could not send message',
 		'msgEmpty' => 'Enter a message first',
+		'payEmpty' => 'Enter a payment amount',
+		'payTooMuch' => 'Amount exceeds balance due',
+		'payBalanceWarn' => 'Customer balance is lower than this amount. Continue?',
+		'payOk' => 'Payment recorded',
+		'payFail' => 'Payment failed',
+		'refundConfirm' => 'Refund this order payment?',
+		'refundOk' => 'Refund completed',
+		'refundFail' => 'Refund failed',
 	),
 );
 

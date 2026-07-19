@@ -143,9 +143,11 @@ else//Действий нет - выводим страницу
 		<div class="epc-orders-page__hero">
 			<div>
 				<h2><i class="fa fa-shopping-basket"></i> Orders</h2>
-				<p>One-window order management: open an order to update status, edit items &amp; suppliers, follow the status timeline, and message the customer (order-wide or per item). Classic full card remains available for print/pay.</p>
+				<p>One-window OMS for daily ops: order summary, items, customer, payment, invoices/documents, status timeline, and messages — without leaving this screen.</p>
 			</div>
 			<div class="epc-orders-page__hero-actions">
+				<button type="button" class="btn btn-default btn-sm" onclick="sortOrders('id');" title="Order number sequence"><i class="fa fa-sort-numeric-desc"></i> By order #</button>
+				<button type="button" class="btn btn-default btn-sm" onclick="sortOrders('last_modified');" title="Last activity / modification"><i class="fa fa-clock-o"></i> By last modified</button>
 				<button type="button" class="btn btn-default btn-sm" onclick="ordersInProcess();"><i class="fa fa-bolt"></i> In progress</button>
 				<button type="button" class="btn btn-default btn-sm" onclick="unsetFilterOrders();"><i class="fa fa-refresh"></i> All orders</button>
 			</div>
@@ -483,7 +485,7 @@ else//Действий нет - выводим страницу
 						$sort_asc_desc = "desc";
 					}
 					
-					if( array_search($sort_field, array('id', 'time', 'price_sum', 'price_purchase', 'profit', 'paid', 'paid_type', 'status', 'obtain_caption', 'customer', 'office_id', 'checks_count', 'count_items')) === false )
+					if( array_search($sort_field, array('id', 'time', 'last_modified', 'price_sum', 'price_purchase', 'profit', 'paid', 'paid_type', 'status', 'obtain_caption', 'customer', 'office_id', 'checks_count', 'count_items')) === false )
 					{
 						$sort_field = "id";
 					}
@@ -734,9 +736,19 @@ else//Действий нет - выводим страницу
 					
 					//Количество чеков, привязанных к позициям заказа
 					//$SQL_SELECT_ORDERS .= "(SELECT `id` FROM `shop_kkt_checks_products_to_orders_items_map` WHERE `order_item_id` IN (SELECT `id` FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` ) ) AS `checks_count`";
-					$SQL_SELECT_ORDERS .= "(SELECT COUNT(DISTINCT(`check_id`)) FROM `shop_kkt_checks_products` WHERE `id` IN (SELECT `check_product_id` FROM `shop_kkt_checks_products_to_orders_items_map` WHERE `order_item_id` IN (SELECT `id` FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` ) ) ) AS `checks_count`";
+					$SQL_SELECT_ORDERS .= "(SELECT COUNT(DISTINCT(`check_id`)) FROM `shop_kkt_checks_products` WHERE `id` IN (SELECT `check_product_id` FROM `shop_kkt_checks_products_to_orders_items_map` WHERE `order_item_id` IN (SELECT `id` FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` ) ) ) AS `checks_count`, ";
+
+					// Last modified = latest log/message activity, else created time (for OMS daily queue)
+					$SQL_SELECT_ORDERS .= "GREATEST(
+						IFNULL((SELECT MAX(`time`) FROM `shop_orders_logs` WHERE `order_id` = `shop_orders`.`id`), 0),
+						IFNULL((SELECT MAX(`time`) FROM `shop_orders_messages` WHERE `order_id` = `shop_orders`.`id`), 0),
+						`shop_orders`.`time`
+					) AS `last_modified`";
 					
-					$SQL_SELECT_ORDERS .= " FROM `shop_orders` $WHERE_CONDITIONS ORDER BY `$sort_field` $sort_asc_desc LIMIT $start_elements_of_page,$p";
+					$order_by_sql = ($sort_field === 'last_modified')
+						? ("last_modified " . $sort_asc_desc)
+						: ("`" . $sort_field . "` " . $sort_asc_desc);
+					$SQL_SELECT_ORDERS .= " FROM `shop_orders` $WHERE_CONDITIONS ORDER BY $order_by_sql LIMIT $start_elements_of_page,$p";
 					
 					//echo $SQL_SELECT_ORDERS;
 					
@@ -809,8 +821,9 @@ else//Действий нет - выводим страницу
 							<tr>
 								<th><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
 								<th data-toggle="true"></th>
-								<th><a href="javascript:void(0);" onclick="sortOrders('id');" id="id_sorter">ID</a></th>
+								<th><a href="javascript:void(0);" onclick="sortOrders('id');" id="id_sorter">Order #</a></th>
 								<th><a href="javascript:void(0);" onclick="sortOrders('time');" id="time_sorter"><?php echo translate_str_by_id(3250); ?></a></th>
+								<th data-hide="phone"><a href="javascript:void(0);" onclick="sortOrders('last_modified');" id="last_modified_sorter">Modified</a></th>
 								<th><a href="javascript:void(0);" onclick="sortOrders('count_items');" id="count_items_sorter"><?php echo translate_str_by_id(4569); ?></a></th>
 								<th><a href="javascript:void(0);" onclick="sortOrders('price_sum');" id="price_sum_sorter"><?php echo translate_str_by_id(3251); ?></a></th>
 								<th data-hide="phone,tablet"><a href="javascript:void(0);" onclick="sortOrders('price_purchase');" id="price_purchase_sorter"><?php echo translate_str_by_id(5306); ?></a></th>
@@ -899,6 +912,10 @@ else//Действий нет - выводим страницу
 								</td>
 								<td><?php echo $a_item.$order_id; ?></a></td>
 								<td><?php echo $a_item.date("d.m.Y", $time)."<br>".date("G:i", $time); ?></a></td>
+								<td><?php
+									$lm = (int) ($element_record['last_modified'] ?? $time);
+									echo $a_item . date('d.m.Y', $lm) . '<br>' . date('G:i', $lm);
+								?></a></td>
 								<td><?php echo $a_item.$count_items; ?></a></td>
 								<td><?php echo $a_item.number_format($price_sum, 2, '.', ''); ?></a></td>
 								<td><?php echo $a_item.number_format($price_purchase, 2, '.', ''); ?></a></td>
