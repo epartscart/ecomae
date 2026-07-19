@@ -906,3 +906,201 @@ function epc_web_tracker_format_duration(int $ms): string
 	$rm = $m % 60;
 	return $h . 'h ' . $rm . 'm';
 }
+
+/**
+ * Escape one CSV cell (Excel-friendly).
+ */
+function epc_web_tracker_csv_cell($v): string
+{
+	$s = (string) ($v ?? '');
+	$s = str_replace(array("\r\n", "\r", "\n"), ' ', $s);
+	if (strpos($s, '"') !== false || strpos($s, ',') !== false || strpos($s, ';') !== false) {
+		return '"' . str_replace('"', '""', $s) . '"';
+	}
+	return $s;
+}
+
+/**
+ * @param list<mixed> $row
+ */
+function epc_web_tracker_csv_line(array $row): string
+{
+	$out = array();
+	foreach ($row as $cell) {
+		$out[] = epc_web_tracker_csv_cell($cell);
+	}
+	return implode(',', $out) . "\r\n";
+}
+
+/**
+ * Full multi-section CSV report for the selected site + date range.
+ */
+function epc_web_tracker_export_csv(PDO $pdo, string $siteKey, int $from, int $to, bool $allSites = false): string
+{
+	$data = epc_web_tracker_dashboard($pdo, $siteKey, $from, $to, $allSites);
+	$params = array($from, $to);
+	$siteSql = '';
+	if (!$allSites && $siteKey !== '' && $siteKey !== '_all') {
+		$siteSql = ' AND `site_key` = ? ';
+		$params[] = $siteKey;
+	}
+
+	$csv = "\xEF\xBB\xBF"; // UTF-8 BOM for Excel
+	$csv .= epc_web_tracker_csv_line(array('Website tracker full report'));
+	$csv .= epc_web_tracker_csv_line(array(
+		'Site',
+		$allSites || $siteKey === '_all' ? '_all' : $siteKey,
+		'From',
+		gmdate('Y-m-d H:i:s', $from) . ' UTC',
+		'To',
+		gmdate('Y-m-d H:i:s', $to) . ' UTC',
+		'Generated',
+		gmdate('Y-m-d H:i:s') . ' UTC',
+	));
+	$csv .= "\r\n";
+
+	$s = $data['summary'] ?? array();
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Summary'));
+	$csv .= epc_web_tracker_csv_line(array(
+		'Sessions', 'Visitors', 'Pageviews', 'Clicks', 'Searches',
+		'Guest sessions', 'Registered sessions', 'Avg duration ms', 'Avg pages', 'Bounce %',
+	));
+	$csv .= epc_web_tracker_csv_line(array(
+		$s['sessions'] ?? 0,
+		$s['visitors'] ?? 0,
+		$s['pageviews'] ?? 0,
+		$s['clicks'] ?? 0,
+		$s['searches'] ?? 0,
+		$s['guest_sessions'] ?? 0,
+		$s['registered_sessions'] ?? 0,
+		$s['avg_duration_ms'] ?? 0,
+		$s['avg_pages'] ?? 0,
+		$s['bounce_rate'] ?? 0,
+	));
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Traffic by day'));
+	$csv .= epc_web_tracker_csv_line(array('Date', 'Sessions', 'Pageviews'));
+	foreach (($data['daily'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array($row['date'] ?? '', $row['sessions'] ?? 0, $row['pageviews'] ?? 0));
+	}
+	$csv .= "\r\n";
+
+	if (!empty($data['by_tenant'])) {
+		$csv .= epc_web_tracker_csv_line(array('SECTION', 'By tenant / hostname'));
+		$csv .= epc_web_tracker_csv_line(array('Site key', 'Hostname', 'Sessions', 'Pageviews', 'Visitors'));
+		foreach ($data['by_tenant'] as $row) {
+			$csv .= epc_web_tracker_csv_line(array(
+				$row['site_key'] ?? '', $row['hostname'] ?? '', $row['sessions'] ?? 0,
+				$row['pageviews'] ?? 0, $row['visitors'] ?? 0,
+			));
+		}
+		$csv .= "\r\n";
+	}
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Top pages'));
+	$csv .= epc_web_tracker_csv_line(array('Path', 'Views', 'Sessions', 'Avg time ms', 'Avg scroll %'));
+	foreach (($data['top_pages'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['path'] ?? '', $row['views'] ?? 0, $row['sessions'] ?? 0,
+			$row['avg_time_ms'] ?? 0, $row['avg_scroll'] ?? 0,
+		));
+	}
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Geography'));
+	$csv .= epc_web_tracker_csv_line(array('Country code', 'Country', 'City', 'Sessions'));
+	foreach (($data['geo'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['country_code'] ?? '', $row['country_name'] ?? '', $row['city'] ?? '', $row['sessions'] ?? 0,
+		));
+	}
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Devices'));
+	$csv .= epc_web_tracker_csv_line(array('Device', 'Browser', 'OS', 'Sessions'));
+	foreach (($data['devices'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['device_type'] ?? '', $row['browser'] ?? '', $row['os'] ?? '', $row['sessions'] ?? 0,
+		));
+	}
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Search terms'));
+	$csv .= epc_web_tracker_csv_line(array('Query', 'Context', 'Hits', 'Sessions'));
+	foreach (($data['searches'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['search_query'] ?? '', $row['search_context'] ?? '', $row['hits'] ?? 0, $row['sessions'] ?? 0,
+		));
+	}
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Top clicks'));
+	$csv .= epc_web_tracker_csv_line(array('Path', 'Tag', 'Element id', 'Text', 'Href', 'Hits'));
+	foreach (($data['top_clicks'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['path'] ?? '', $row['element_tag'] ?? '', $row['element_id'] ?? '',
+			$row['element_text'] ?? '', $row['element_href'] ?? '', $row['hits'] ?? 0,
+		));
+	}
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Referrers & UTM'));
+	$csv .= epc_web_tracker_csv_line(array('Referrer host', 'UTM source', 'UTM medium', 'UTM campaign', 'Sessions'));
+	foreach (($data['referrers'] ?? array()) as $row) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['host'] ?? '', $row['utm_source'] ?? '', $row['utm_medium'] ?? '',
+			$row['utm_campaign'] ?? '', $row['sessions'] ?? 0,
+		));
+	}
+	$csv .= "\r\n";
+
+	$csv .= epc_web_tracker_csv_line(array('SECTION', 'Sessions (full export, up to 10000)'));
+	$csv .= epc_web_tracker_csv_line(array(
+		'ID', 'Session UID', 'Site', 'Hostname', 'User ID', 'Registered',
+		'First seen UTC', 'Last seen UTC', 'Pageviews', 'Events', 'Duration ms',
+		'Landing', 'Exit', 'Country', 'City', 'Region', 'Device', 'Browser', 'OS',
+		'IP', 'Referrer host', 'UTM source', 'UTM medium', 'UTM campaign',
+	));
+	$st = $pdo->prepare(
+		'SELECT `id`, `session_uid`, `site_key`, `hostname`, `user_id`, `is_registered`,
+			`first_seen_at`, `last_seen_at`, `pageview_count`, `event_count`, `duration_ms`,
+			`landing_path`, `exit_path`, `country_code`, `country_name`, `city`, `region`,
+			`device_type`, `browser`, `os`, `ip`, `referrer_host`,
+			`utm_source`, `utm_medium`, `utm_campaign`
+		 FROM `epc_web_tracker_sessions`
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
+		 ORDER BY `last_seen_at` DESC LIMIT 10000'
+	);
+	$st->execute($params);
+	while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+		$csv .= epc_web_tracker_csv_line(array(
+			$row['id'] ?? '',
+			$row['session_uid'] ?? '',
+			$row['site_key'] ?? '',
+			$row['hostname'] ?? '',
+			$row['user_id'] ?? 0,
+			!empty($row['is_registered']) ? 'yes' : 'no',
+			!empty($row['first_seen_at']) ? gmdate('Y-m-d H:i:s', (int) $row['first_seen_at']) : '',
+			!empty($row['last_seen_at']) ? gmdate('Y-m-d H:i:s', (int) $row['last_seen_at']) : '',
+			$row['pageview_count'] ?? 0,
+			$row['event_count'] ?? 0,
+			$row['duration_ms'] ?? 0,
+			$row['landing_path'] ?? '',
+			$row['exit_path'] ?? '',
+			trim((string) ($row['country_name'] ?? '') . ' ' . (string) ($row['country_code'] ?? '')),
+			$row['city'] ?? '',
+			$row['region'] ?? '',
+			$row['device_type'] ?? '',
+			$row['browser'] ?? '',
+			$row['os'] ?? '',
+			$row['ip'] ?? '',
+			$row['referrer_host'] ?? '',
+			$row['utm_source'] ?? '',
+			$row['utm_medium'] ?? '',
+			$row['utm_campaign'] ?? '',
+		));
+	}
+
+	return $csv;
+}

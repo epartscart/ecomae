@@ -228,10 +228,26 @@
 			});
 	}
 
+	function downloadCsv() {
+		var siteEl = $('wt_site');
+		var fromEl = $('wt_from');
+		var toEl = $('wt_to');
+		if (!siteEl || !fromEl || !toEl) return;
+		var url = AJAX + '?action=csv&site_key=' + encodeURIComponent(siteEl.value)
+			+ '&from=' + encodeURIComponent(fromEl.value)
+			+ '&to=' + encodeURIComponent(toEl.value);
+		// Full page navigation keeps auth cookies and triggers file download.
+		window.location.href = url;
+	}
+
 	function init() {
 		var reload = $('wt_reload');
 		if (!reload || !document.querySelector('.epc-wt')) return;
 		reload.addEventListener('click', load);
+		var csvBtn = $('wt_csv');
+		if (csvBtn) {
+			csvBtn.addEventListener('click', downloadCsv);
+		}
 		var site = $('wt_site');
 		if (site && site.tagName === 'SELECT') {
 			site.addEventListener('change', load);

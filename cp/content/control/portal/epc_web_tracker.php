@@ -22,7 +22,7 @@ if (!$isSuper && function_exists('epc_portal_is_super_cp_host') && epc_portal_is
 	$isSuper = true;
 }
 $backend = htmlspecialchars((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), ENT_QUOTES, 'UTF-8');
-$ver = '20260719wt2';
+$ver = '20260719wt3';
 
 if (function_exists('epc_cp_register_page_assets')) {
 	epc_cp_register_page_assets(
@@ -118,6 +118,9 @@ epc_cp_page_frame_open(array(
 		</div>
 		<div>
 			<button type="button" class="btn btn-primary" id="wt_reload"><i class="fa fa-refresh"></i> Refresh</button>
+		</div>
+		<div>
+			<button type="button" class="btn btn-default" id="wt_csv" title="Download full report (CSV) for the selected site and date range"><i class="fa fa-download"></i> Download full report (CSV)</button>
 		</div>
 		<div class="wt-muted" style="align-self:center;">
 			Beacon: <code>/epc-web-tracker-collect.php</code> · storefront + ecomae marketing
