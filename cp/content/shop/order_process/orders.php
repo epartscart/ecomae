@@ -344,7 +344,7 @@ else//Действий нет - выводим страницу
 	
 	
 	
-	<div class="col-lg-12 epc-scp-orders-workspace<?php echo $epc_orders_selected_id > 0 ? ' is-oms-active' : ''; ?>">
+	<div class="epc-scp-orders-workspace<?php echo $epc_orders_selected_id > 0 ? ' is-oms-active' : ''; ?>">
 		<div class="epc-scp-orders-workspace__list">
 		<div class="epc-scp-table-card">
 			<div class="epc-scp-table-card__head" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
