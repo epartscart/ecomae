@@ -44,6 +44,11 @@ try {
 				<strong>Temporary disable for storefront</strong> — hides a warehouse or price list from part search and pricing on the public site.
 				CP price management is unchanged; data is not deleted. Set the switch, then click <strong>Save</strong> — changes apply to the public storefront immediately after save.
 			</p>
+			<div class="epc-cp-table-filter-bar" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px;">
+				<label for="epc_ssf_filter" style="margin:0;font-weight:700;font-size:12px;color:#64748b;">Find warehouse / price list</label>
+				<input type="search" id="epc_ssf_filter" class="form-control input-sm" style="max-width:340px;" placeholder="Name, ID, type…" autocomplete="off" />
+				<span class="text-muted small">Showing <strong id="epc_ssf_filter_count">—</strong></span>
+			</div>
 			<div class="table-responsive">
 				<table class="table table-striped table-hover" id="epc_storefront_storage_table">
 					<thead>
@@ -62,16 +67,19 @@ try {
 						$epc_disabled = !empty($epc_row['storefront_disabled']);
 						$epc_type = (string) ($epc_row['entity_type'] ?? 'storage');
 						$epc_id = (int) ($epc_row['entity_id'] ?? 0);
-						$epc_name = htmlspecialchars((string) ($epc_row['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+						$epc_name_raw = (string) ($epc_row['name'] ?? '');
+						$epc_name = htmlspecialchars($epc_name_raw, ENT_QUOTES, 'UTF-8');
 						$epc_short = trim((string) ($epc_row['short_name'] ?? ''));
-						if ($epc_short !== '' && strcasecmp($epc_short, (string) ($epc_row['name'] ?? '')) !== 0) {
+						if ($epc_short !== '' && strcasecmp($epc_short, $epc_name_raw) !== 0) {
 							$epc_name .= ' <small class="text-muted">(' . htmlspecialchars($epc_short, ENT_QUOTES, 'UTF-8') . ')</small>';
 						}
+						$epc_type_label = (string) ($epc_row['type_label'] ?? '');
+						$epc_ssf_filter = strtolower(trim($epc_id . ' ' . $epc_name_raw . ' ' . $epc_short . ' ' . $epc_type . ' ' . $epc_type_label . ' ' . ($epc_disabled ? 'disabled' : 'active')));
 						?>
-						<tr data-entity-type="<?php echo htmlspecialchars($epc_type, ENT_QUOTES, 'UTF-8'); ?>" data-entity-id="<?php echo $epc_id; ?>" data-saved-enabled="<?php echo $epc_disabled ? '0' : '1'; ?>">
+						<tr data-epc-filter="<?php echo htmlspecialchars($epc_ssf_filter, ENT_QUOTES, 'UTF-8'); ?>" data-entity-type="<?php echo htmlspecialchars($epc_type, ENT_QUOTES, 'UTF-8'); ?>" data-entity-id="<?php echo $epc_id; ?>" data-saved-enabled="<?php echo $epc_disabled ? '0' : '1'; ?>">
 							<td><?php echo $epc_id; ?></td>
 							<td><?php echo $epc_name; ?></td>
-							<td><?php echo htmlspecialchars((string) ($epc_row['type_label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+							<td><?php echo htmlspecialchars($epc_type_label, ENT_QUOTES, 'UTF-8'); ?></td>
 							<td class="text-center">
 								<span class="label epc-ssf-badge <?php echo $epc_disabled ? 'label-warning' : 'label-success'; ?>">
 									<?php echo $epc_disabled ? 'Temporarily disabled' : 'Active'; ?>
@@ -130,3 +138,21 @@ try {
 		</div>
 	</div>
 </div>
+<script>
+(function () {
+	function bindSsfFilter() {
+		if (typeof window.epcCpBindTableFilter === 'function') {
+			window.epcCpBindTableFilter({
+				inputId: 'epc_ssf_filter',
+				tableId: 'epc_storefront_storage_table',
+				countId: 'epc_ssf_filter_count'
+			});
+		}
+	}
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', bindSsfFilter);
+	} else {
+		bindSsfFilter();
+	}
+})();
+</script>

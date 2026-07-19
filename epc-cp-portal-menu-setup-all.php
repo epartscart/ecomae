@@ -204,7 +204,8 @@ foreach ($unique as $t) {
 	if (!$apply) {
 		$rows = epc_cp_portal_menu_rows($pdo);
 		echo '  portal_group=' . (int) $rows['portal_group'];
-		echo ' pos=' . ($rows['pos'] ? 'yes' : 'NO');
+		// POS must NOT sit under Portal (ERP Suite owns it).
+		echo ' portal_pos_dupe=' . ($rows['pos'] ? 'YES(bad)' : 'no');
 		echo ' visual=' . ($rows['visual'] ? 'yes' : 'NO');
 		echo ' social=' . ($rows['social'] ? 'yes' : 'NO') . "\n\n";
 		continue;
@@ -216,12 +217,13 @@ foreach ($unique as $t) {
 		$portalMenu = epc_cp_portal_menu_apply($pdo);
 		$vpeContentId = epc_cp_portal_register_visual_content($pdo, $backend);
 		$rows = epc_cp_portal_menu_rows($pdo);
+		$erpPosId = (int) ($posResult['menu']['items']['pos_terminal'] ?? 0);
 		echo '  OK pos_content=' . (int) ($posResult['content_id'] ?? 0);
-		echo ' portal_pos_item=' . (int) ($portalMenu['items']['pos_terminal'] ?? 0);
+		echo ' erp_pos_item=' . $erpPosId;
 		echo ' portal_vpe_item=' . (int) ($portalMenu['items']['visual_editor'] ?? 0);
 		echo ' portal_social_item=' . (int) ($portalMenu['items']['social_media_hub'] ?? 0);
 		echo ' vpe_content=' . $vpeContentId;
-		echo ' portal_pos_menu=' . ($rows['pos'] ? 'yes' : 'NO');
+		echo ' portal_pos_dupe=' . ($rows['pos'] ? 'YES(bad)' : 'no');
 		echo ' portal_vpe_menu=' . ($rows['visual'] ? 'yes' : 'NO');
 		echo ' portal_social_menu=' . ($rows['social'] ? 'yes' : 'NO') . "\n\n";
 	} catch (Throwable $e) {

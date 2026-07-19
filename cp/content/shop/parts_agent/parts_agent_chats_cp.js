@@ -294,6 +294,35 @@
 		});
 	}
 
+	function exportCsv() {
+		var csrf = getCsrfKey();
+		if (!csrf) {
+			showMsg('CSRF token missing. Please reload this CP page.', false);
+			return;
+		}
+		var form = document.createElement('form');
+		form.method = 'POST';
+		form.action = ajaxUrl;
+		form.style.display = 'none';
+		var fields = {
+			action: 'export_csv',
+			csrf_guard_key: csrf,
+			q: qInput ? qInput.value.trim() : '',
+			date_from: fromInput ? fromInput.value : '',
+			date_to: toInput ? toInput.value : ''
+		};
+		Object.keys(fields).forEach(function (k) {
+			var input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = k;
+			input.value = fields[k];
+			form.appendChild(input);
+		});
+		document.body.appendChild(form);
+		form.submit();
+		document.body.removeChild(form);
+	}
+
 	document.getElementById('epc-agent-search').addEventListener('click', function () {
 		offset = 0;
 		loadList();
@@ -316,6 +345,10 @@
 			loadList();
 		});
 	});
+	var exportBtn = document.getElementById('epc-agent-export');
+	if (exportBtn) {
+		exportBtn.addEventListener('click', exportCsv);
+	}
 	prevBtn.addEventListener('click', function () {
 		offset = Math.max(0, offset - limit);
 		loadList();

@@ -266,11 +266,16 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
-		'shop/parts_agent_chats' => array(
-			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver)),
+		'shop/logistics/storages' => array(
 			'js' => array(
-				'/content/shop/parts_agent/parts_agent_chats_config.php?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_agent_cp_js.php?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/epc_cp_table_filter.js?v=' . rawurlencode($ver . 'cpFull2'),
+			),
+		),
+		'shop/parts_agent_chats' => array(
+			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'cpFull2')),
+			'js' => array(
+				'/content/shop/parts_agent/parts_agent_chats_config.php?v=' . rawurlencode($ver . 'cpFull2'),
+				'/content/general_pages/epc_agent_cp_js.php?v=' . rawurlencode($ver . 'cpFull2'),
 			),
 		),
 		'shop/accessories' => array(
@@ -279,6 +284,7 @@ function epc_cp_page_asset_url_map(): array
 		'shop/prices' => array(
 			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
 			'js' => array(
+				'/' . $backend . '/content/shop/epc_cp_table_filter.js?v=' . rawurlencode($ver . 'cpFull2'),
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history.js?v=' . rawurlencode($ver),
 				'/' . $backend . '/content/shop/prices_upload/epc_storefront_storage_toggle_config.php?v=' . rawurlencode($ver),

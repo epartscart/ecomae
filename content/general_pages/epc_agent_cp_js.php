@@ -9,7 +9,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260607agentcp1';
+$ver = '20260719cpFull2';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

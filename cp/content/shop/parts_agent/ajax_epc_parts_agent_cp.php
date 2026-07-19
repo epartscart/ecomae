@@ -1,5 +1,4 @@
 <?php
-header('Content-Type: application/json;charset=utf-8;');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
 $DP_Config = new DP_Config;
 
@@ -37,6 +36,10 @@ if (!DP_User::isAdmin()) {
 }
 
 $action = isset($_REQUEST['action']) ? (string)$_REQUEST['action'] : 'list';
+
+if ($action !== 'export_csv') {
+	header('Content-Type: application/json;charset=utf-8;');
+}
 
 try {
 	if ($action === 'sync') {
@@ -124,8 +127,57 @@ try {
 		)));
 	}
 
+	if ($action === 'export_csv') {
+		$result = epc_agent_cp_list_sessions($db_link, $filters, 2000, 0);
+		$filename = 'parts_agent_chats_' . date('Ymd_His') . '.csv';
+		header('Content-Type: text/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="' . $filename . '"');
+		header('Cache-Control: no-store');
+		$out = fopen('php://output', 'w');
+		if ($out === false) {
+			header('Content-Type: application/json;charset=utf-8;');
+			exit(epc_agent_cp_json_encode(array('status' => false, 'message' => 'Could not open export stream')));
+		}
+		fwrite($out, "\xEF\xBB\xBF");
+		fputcsv($out, array(
+			'session_id',
+			'updated_at_iso',
+			'message_count',
+			'user_id',
+			'customer',
+			'country',
+			'client_ip',
+			'last_user_text',
+			'last_agent_text',
+		));
+		foreach ($result['sessions'] as $row) {
+			$customer = '';
+			if (isset($row['customer']) && is_array($row['customer'])) {
+				$customer = (string) ($row['customer']['label'] ?? '');
+			}
+			$country = trim((string) ($row['country_name'] ?? '') . ' ' . (string) ($row['country_code'] ?? ''));
+			$updated = !empty($row['updated_at']) ? gmdate('c', (int) $row['updated_at']) : '';
+			fputcsv($out, array(
+				(string) ($row['session_id'] ?? ''),
+				$updated,
+				(int) ($row['message_count'] ?? 0),
+				(int) ($row['user_id'] ?? 0),
+				$customer,
+				$country,
+				(string) ($row['client_ip'] ?? ''),
+				(string) ($row['last_user_text'] ?? ''),
+				(string) ($row['last_agent_text'] ?? ''),
+			));
+		}
+		fclose($out);
+		exit;
+	}
+
 	exit(epc_agent_cp_json_encode(array('status' => false, 'message' => 'Unknown action')));
 } catch (Throwable $e) {
+	if ($action === 'export_csv' && !headers_sent()) {
+		header('Content-Type: application/json;charset=utf-8;');
+	}
 	exit(epc_agent_cp_json_encode(array(
 		'status' => false,
 		'message' => 'Server error: ' . $e->getMessage(),

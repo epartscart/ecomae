@@ -102,10 +102,13 @@ function epc_pos_cp_install(PDO $pdo, $backendDir = 'cp')
 		87
 	);
 
-	$menu = function_exists('epc_cp_pos_menu_apply') ? epc_cp_pos_menu_apply($pdo) : array();
+	// Portal first, then POS — POS must land under ERP (not Portal).
+	$menu = array();
 	if (function_exists('epc_cp_portal_menu_apply')) {
-		$portalMenu = epc_cp_portal_menu_apply($pdo);
-		$menu['portal'] = $portalMenu;
+		$menu['portal'] = epc_cp_portal_menu_apply($pdo);
+	}
+	if (function_exists('epc_cp_pos_menu_apply')) {
+		$menu = array_merge($menu, epc_cp_pos_menu_apply($pdo));
 	}
 
 	$superContentId = 0;

@@ -110,6 +110,15 @@ if ($action === 'save_settings') {
 		),
 	);
 	epc_portal_save_site_settings($pdo, $data);
+	$perfCache = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_perf_cache.php';
+	if (is_file($perfCache)) {
+		require_once $perfCache;
+		if (function_exists('epc_perf_cache_bust_prefix')) {
+			epc_perf_cache_bust_prefix('epc_cp_menu_rows');
+			epc_perf_cache_bust_prefix('epc_site_settings:v1:');
+			epc_perf_cache_bust_prefix('epc_tcp_dash_stats:');
+		}
+	}
 	$extra = '';
 	$targetHost = strtolower(trim((string) ($_POST['target_host'] ?? '')));
 	if ($targetHost !== '' && function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host()) {

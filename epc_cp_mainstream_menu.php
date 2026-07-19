@@ -811,13 +811,13 @@ function epc_cp_integrations_menu_apply(PDO $pdo)
 }
 
 /**
- * Portal CP group — POS Terminal + Visual page editor (tenant + Super CP sidebar).
+ * Portal CP group — Visual page editor / social / broadcast (tenant + Super CP sidebar).
+ * POS Terminal stays under ERP Suite only (see epc_cp_pos_menu_apply).
  *
  * @return array{portal_group:int,items:array<string,int>}
  */
 function epc_cp_portal_menu_apply(PDO $pdo)
 {
-	epc_cp_mm_lang($pdo, 'epc_pos_terminal_cp', 'POS Terminal', 'Касса POS');
 	epc_cp_mm_lang($pdo, 'epc_visual_page_editor', 'Visual page editor', 'Визуальный редактор страниц');
 	epc_cp_mm_lang($pdo, 'epc_social_media_hub_cp', 'Social media hub', 'Соцсети — хаб');
 	epc_cp_mm_lang($pdo, 'epc_marketing_broadcast_cp', 'Marketing broadcast', 'Рассылка — маркетинг');
@@ -825,16 +825,10 @@ function epc_cp_portal_menu_apply(PDO $pdo)
 	$portalGroup = epc_cp_mm_ensure_group($pdo, 'epc_cp_group_portal', 'Portal', 'Портал', 2);
 
 	$items = array();
-	$items['pos_terminal'] = epc_cp_mm_ensure_item(
-		$pdo,
-		$portalGroup,
-		'epc_pos_terminal_cp',
-		'/<backend>/shop/pos/terminal',
-		15,
-		'#2563eb',
-		'fa-cash-register',
-		1
-	);
+	// POS is ERP-only. Re-home any historical Portal POS seed under ERP.
+	if (function_exists('epc_cp_pos_menu_apply')) {
+		epc_cp_pos_menu_apply($pdo);
+	}
 	$items['visual_editor'] = epc_cp_mm_ensure_item(
 		$pdo,
 		$portalGroup,
