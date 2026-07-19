@@ -106,6 +106,7 @@ $config = array(
 		'orders' => '/' . $backend . '/shop/orders/orders',
 		'orderFullBase' => '/' . $backend . '/shop/orders/order?order_id=',
 		'ajaxDetail' => '/' . $backend . '/content/shop/order_process/ajax_epc_orders_detail_pane.php',
+		'omsAjax' => '/' . $backend . '/content/shop/order_process/ajax_epc_orders_oms.php',
 		'setViewed' => '/' . $backend . '/content/shop/order_process/ajax_set_orders_viewed.php',
 		'deleteOrders' => '/' . $backend . '/content/shop/order_process/ajax_delete_orders.php',
 		'userModal' => '/' . $backend . '/content/users/statistics/frontAjax/ajax_loadUserModal.php',
@@ -130,6 +131,11 @@ $config = array(
 		'selectAllText' => translate_str_by_id(2355),
 		'allSelected' => translate_str_by_id(5660),
 		'countSelected' => translate_str_by_id(5661),
+		'itemSaved' => 'Item updated',
+		'itemFail' => 'Could not update item',
+		'msgSent' => 'Message sent to customer',
+		'msgFail' => 'Could not send message',
+		'msgEmpty' => 'Enter a message first',
 	),
 );
 

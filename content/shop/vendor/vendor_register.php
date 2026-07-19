@@ -226,7 +226,7 @@ $selEmirate = (string) ($_POST['emirate'] ?? '');
 $selRegType = (string) ($_POST['legal_reg_type'] ?? 'TL');
 $vatChecked = !isset($_POST['email']) || !empty($_POST['vat_registered']);
 ?>
-<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vpUae1">
+<link rel="stylesheet" href="/content/shop/vendor/epc_vendor_portal.css?v=20260719vpNav2">
 <section class="epc-vp">
 	<div class="epc-vp__wrap">
 		<div class="epc-vp__card epc-vp__card--wide">
@@ -249,6 +249,9 @@ $vatChecked = !isset($_POST['email']) || !empty($_POST['vat_registered']);
 			<?php } ?>
 
 			<form method="post" class="epc-vp__form" autocomplete="on" id="epc-vendor-register-form">
+				<div class="epc-vp__top-actions">
+					<button type="submit" class="epc-vp__btn">Create vendor account</button>
+				</div>
 				<h2 class="epc-vp__section">1. Account login</h2>
 				<label>Login email *</label>
 				<input type="email" name="email" required value="<?php echo $pv('email'); ?>" />
@@ -357,7 +360,9 @@ $vatChecked = !isset($_POST['email']) || !empty($_POST['vat_registered']);
 				<label>Vendor short code * <span class="epc-vp__hint">(shown to customers)</span></label>
 				<input type="text" name="vendor_short" required maxlength="64" value="<?php echo $pv('vendor_short'); ?>" placeholder="S-UAE" />
 
-				<button type="submit" class="epc-vp__btn">Create vendor account</button>
+				<div class="epc-vp__sticky-submit">
+					<button type="submit" class="epc-vp__btn">Create vendor account</button>
+				</div>
 			</form>
 
 			<p class="epc-vp__foot">

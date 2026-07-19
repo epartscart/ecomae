@@ -143,7 +143,7 @@ else//Действий нет - выводим страницу
 		<div class="epc-orders-page__hero">
 			<div>
 				<h2><i class="fa fa-shopping-basket"></i> Orders</h2>
-				<p>Select an order to manage status and notes in the side panel. Use <strong>Edit full order</strong> for payments, line edits, and refunds. Ctrl+click a row to open the full editor.</p>
+				<p>One-window order management: open an order to update status, edit items &amp; suppliers, follow the status timeline, and message the customer (order-wide or per item). Classic full card remains available for print/pay.</p>
 			</div>
 			<div class="epc-orders-page__hero-actions">
 				<button type="button" class="btn btn-default btn-sm" onclick="ordersInProcess();"><i class="fa fa-bolt"></i> In progress</button>
@@ -176,7 +176,7 @@ else//Действий нет - выводим страницу
 				?>
 			<a class="epc-scp-badge <?php echo epc_orders_ws_h($pill_cls); ?>" href="javascript:void(0);" onclick="epcFilterByStatus(<?php echo (int) $pill_status_id; ?>);"><?php echo epc_orders_ws_h(translate_str_by_id($pill_status_data['name'])); ?></a>
 			<?php } ?>
-			<span class="epc-orders-toolbar__hint"><i class="fa fa-mouse-pointer"></i> Click row → manage · Ctrl+click → full edit</span>
+			<span class="epc-orders-toolbar__hint"><i class="fa fa-mouse-pointer"></i> Click row → OMS console · Ctrl+click → classic full card</span>
 		</div>
 	<div class="epc-scp-orders-filter">
 	<div class="col-lg-12" style="padding:0;">
@@ -447,7 +447,7 @@ else//Действий нет - выводим страницу
 	
 	
 	
-	<div class="col-lg-12 epc-scp-orders-workspace">
+	<div class="col-lg-12 epc-scp-orders-workspace<?php echo $epc_orders_selected_id > 0 ? ' is-oms-active' : ''; ?>">
 		<div class="epc-scp-orders-workspace__list">
 		<div class="epc-scp-table-card">
 			<div class="epc-scp-table-card__head" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">

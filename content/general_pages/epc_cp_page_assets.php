@@ -63,6 +63,20 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/control/portal/epc_platform_health_checkup.js?v=' . rawurlencode($ver),
 			),
 		),
+		'control/portal/epc_web_tracker' => array(
+			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt2')),
+			'js' => array(
+				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt2'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt2'),
+			),
+		),
+		'shop/statistics/web_tracker' => array(
+			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt2')),
+			'js' => array(
+				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt2'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt2'),
+			),
+		),
 		'control/portal/epc_power_bi' => array(
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
@@ -223,15 +237,15 @@ function epc_cp_page_asset_url_map(): array
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/lib/multiple_select/multiple-select.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'oms1'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/lib/multiple_select/jquery.multiple.select.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver),
+				'/' . $backend . '/content/shop/order_process/orders_config.php?v=' . rawurlencode($ver . 'oms1'),
+				'/' . $backend . '/content/shop/order_process/orders_cp.js?v=' . rawurlencode($ver . 'oms1'),
+				'/' . $backend . '/content/shop/order_process/epc_orders_fulfillment.js?v=' . rawurlencode($ver . 'oms1'),
 			),
 		),
 		'shop/orders/statuses' => array(

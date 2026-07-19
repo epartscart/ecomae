@@ -160,6 +160,31 @@
 	var epcOrdersAjaxUrl = urls.ajaxDetail || '';
 	var epcOrdersFullBase = urls.orderFullBase || '/cp/shop/orders/order?order_id=';
 
+	function epcMarkWorkspaceActive(orderId) {
+		var ws = document.querySelector('.epc-scp-orders-workspace');
+		if (ws) {
+			ws.classList.toggle('is-oms-active', !!orderId);
+		}
+		jQuery('.epc-scp-orders-row').removeClass('is-selected');
+		if (orderId) {
+			jQuery('.epc-scp-orders-row[data-order-id="' + orderId + '"]').addClass('is-selected');
+		}
+	}
+
+	function epcInitOmsPane(orderId) {
+		epcMarkWorkspaceActive(orderId);
+		if (window.epcOrdersFulfillment && urls.erpAjax) {
+			var mount = document.getElementById('epc-order-fulfillment-panel-' + orderId);
+			if (mount) {
+				window.epcOrdersFulfillment.load({
+					mount: mount,
+					orderId: orderId,
+					ajaxUrl: urls.erpAjax,
+				});
+			}
+		}
+	}
+
 	window.epcLoadOrderDetail = function (orderId) {
 		if (!orderId) {
 			return;
@@ -170,8 +195,7 @@
 			return;
 		}
 		pane.classList.add('is-loading');
-		jQuery('.epc-scp-orders-row').removeClass('is-selected');
-		jQuery('.epc-scp-orders-row[data-order-id="' + orderId + '"]').addClass('is-selected');
+		epcMarkWorkspaceActive(orderId);
 		jQuery.ajax({
 			type: 'GET',
 			url: epcOrdersAjaxUrl,
@@ -179,16 +203,7 @@
 			success: function (html) {
 				pane.innerHTML = html;
 				pane.classList.remove('is-loading');
-				if (window.epcOrdersFulfillment && urls.erpAjax) {
-					var mount = document.getElementById('epc-order-fulfillment-panel-' + orderId);
-					if (mount) {
-						window.epcOrdersFulfillment.load({
-							mount: mount,
-							orderId: orderId,
-							ajaxUrl: urls.erpAjax,
-						});
-					}
-				}
+				epcInitOmsPane(orderId);
 			},
 			error: function () {
 				pane.innerHTML = '<div class="epc-scp-orders-detail__empty"><i class="fa fa-exclamation-triangle"></i><p>Could not load order detail</p></div>';
@@ -200,6 +215,112 @@
 			u.searchParams.set('order_id', orderId);
 			window.history.replaceState({}, '', u.toString());
 		}
+	};
+
+	function epcOmsPost(data, okMsg, failMsg) {
+		data = data || {};
+		data.csrf_guard_key = cfg.csrf || '';
+		jQuery.ajax({
+			type: 'POST',
+			url: urls.omsAjax || '',
+			dataType: 'json',
+			data: data,
+			success: function (answer) {
+				if (answer && answer.status === true) {
+					epcOdToast(okMsg || 'OK', true);
+					if (data.order_id) {
+						epcLoadOrderDetail(data.order_id);
+					}
+				} else {
+					epcOdToast((answer && answer.message) || failMsg || 'Error', false);
+				}
+			},
+			error: function () {
+				epcOdToast(failMsg || 'Error', false);
+			}
+		});
+	}
+
+	window.epcOmsSaveItem = function (orderId, itemId) {
+		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		if (!card) {
+			return;
+		}
+		epcOmsPost({
+			action: 'update_item',
+			order_id: orderId,
+			item_id: itemId,
+			price: (card.querySelector('[data-field="price"]') || {}).value,
+			count_need: (card.querySelector('[data-field="count_need"]') || {}).value,
+			t2_price_purchase: (card.querySelector('[data-field="t2_price_purchase"]') || {}).value,
+			t2_storage_id: (card.querySelector('[data-field="t2_storage_id"]') || {}).value,
+			t2_name: (card.querySelector('[data-field="t2_name"]') || {}).value
+		}, msg.itemSaved || 'Item updated', msg.itemFail || 'Could not update item');
+	};
+
+	window.epcOmsSetItemStatus = function (orderId, itemId) {
+		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		if (!card) {
+			return;
+		}
+		var status = (card.querySelector('[data-field="item_status"]') || {}).value;
+		epcOmsPost({
+			action: 'set_item_status',
+			order_id: orderId,
+			item_id: itemId,
+			status: status
+		}, msg.setStatusOk || 'Status updated', msg.setStatusFail || 'Error');
+	};
+
+	window.epcOmsMessageItem = function (orderId, itemId, article, price) {
+		var hid = document.getElementById('epc_od_msg_item_id');
+		var hint = document.getElementById('epc_od_msg_item_hint');
+		var ta = document.getElementById('epc_od_msg_text');
+		var tabBtn = document.querySelector('.epc-od--oms [data-epc-od-tab="messages"]');
+		if (hid) {
+			hid.value = String(itemId || 0);
+		}
+		if (hint) {
+			hint.style.display = '';
+			hint.textContent = 'Item context: #' + itemId + (article ? ' ' + article : '') + (price ? ' @ ' + price : '');
+		}
+		if (ta && !String(ta.value || '').trim()) {
+			ta.value = 'Price update for item ' + (article || ('#' + itemId)) + ': new price is ' + (price || '') + '. Please confirm.';
+		}
+		if (tabBtn) {
+			tabBtn.click();
+		}
+		if (ta) {
+			ta.focus();
+		}
+	};
+
+	window.epcOmsClearItemMsg = function () {
+		var hid = document.getElementById('epc_od_msg_item_id');
+		var hint = document.getElementById('epc_od_msg_item_hint');
+		if (hid) {
+			hid.value = '0';
+		}
+		if (hint) {
+			hint.style.display = 'none';
+			hint.textContent = '';
+		}
+	};
+
+	window.epcOmsSendMessage = function (orderId) {
+		var ta = document.getElementById('epc_od_msg_text');
+		var hid = document.getElementById('epc_od_msg_item_id');
+		var text = ta ? String(ta.value || '').trim() : '';
+		if (!text) {
+			epcOdToast(msg.msgEmpty || 'Enter a message first', false);
+			return;
+		}
+		epcOmsPost({
+			action: 'send_message',
+			order_id: orderId,
+			item_id: hid ? (hid.value || 0) : 0,
+			text: text
+		}, msg.msgSent || 'Message sent to customer', msg.msgFail || 'Could not send message');
 	};
 
 	window.epcSelectOrder = function (orderId, ev) {
@@ -499,7 +620,14 @@
 		if (cfg.autoRunInProcess) {
 			ordersInProcess();
 		} else if (epcOrdersSelectedId > 0) {
-			epcLoadOrderDetail(epcOrdersSelectedId);
+			var pane = document.getElementById('epc_orders_detail_pane');
+			var already = pane && pane.querySelector('.epc-od[data-order-id="' + epcOrdersSelectedId + '"]');
+			if (already) {
+				// Avoid double-render ("2 windows" flash): SSR already painted this order.
+				epcInitOmsPane(epcOrdersSelectedId);
+			} else {
+				epcLoadOrderDetail(epcOrdersSelectedId);
+			}
 		}
 	}
 
