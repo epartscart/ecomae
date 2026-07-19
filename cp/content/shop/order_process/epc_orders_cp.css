@@ -89,15 +89,106 @@
 	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
+.epc-orders-page .epc-scp-orders-filter {
+	margin: 0 0 14px;
+	width: 100%;
+}
 .epc-orders-page .epc-scp-orders-filter .hpanel {
 	border-radius: 12px;
-	overflow: hidden;
+	overflow: visible;
 	border: 1px solid var(--eo-line);
 	box-shadow: none;
+	margin-bottom: 0;
 }
 .epc-orders-page .epc-scp-orders-filter .panel-heading {
 	background: var(--eo-soft);
 	border-bottom: 1px solid var(--eo-line);
+	font-weight: 700;
+	color: var(--eo-ink);
+}
+.epc-orders-page .epc-scp-orders-filter .panel-body.filter_panel {
+	padding: 16px 16px 8px;
+	background: #fff;
+}
+.epc-orders-page .epc-orders-filter-grid {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 12px 14px;
+	width: 100%;
+}
+.epc-orders-page .epc-orders-filter-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+.epc-orders-page .epc-orders-filter-field > label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--eo-muted);
+	line-height: 1.2;
+}
+.epc-orders-page .epc-orders-filter-field .form-control,
+.epc-orders-page .epc-orders-filter-field .ms-parent,
+.epc-orders-page .epc-orders-filter-field .ms-choice {
+	width: 100% !important;
+	max-width: 100%;
+}
+.epc-orders-page .epc-orders-filter-field .form-control {
+	height: 36px;
+	border-radius: 8px;
+	border-color: #cbd5e1;
+	box-shadow: none;
+}
+.epc-orders-page .epc-orders-filter-field .form-control:focus {
+	border-color: var(--eo-accent);
+	box-shadow: 0 0 0 3px var(--eo-accent-soft);
+}
+.epc-orders-page .epc-orders-filter-field.is-active .form-control,
+.epc-orders-page .epc-orders-filter-field .ms-choice[style*="b9fcab"] {
+	background: #ecfdf5 !important;
+	border-color: #6ee7b7;
+}
+.epc-orders-page .epc-orders-filter-field .ms-choice {
+	height: 36px !important;
+	border-radius: 8px !important;
+	border-color: #cbd5e1 !important;
+}
+.epc-orders-page .epc-orders-filter-field .ms-choice > span {
+	line-height: 34px;
+}
+.epc-orders-page .epc-scp-orders-filter .epc-scp-filter-bar,
+.epc-orders-page .epc-scp-orders-filter .panel-footer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	background: var(--eo-soft);
+	border-top: 1px solid var(--eo-line);
+	padding: 12px 16px;
+}
+.epc-orders-page .epc-scp-orders-filter .panel-footer .btn {
+	border-radius: 8px;
+	font-weight: 600;
+}
+@media (max-width: 1199px) {
+	.epc-orders-page .epc-orders-filter-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+@media (max-width: 991px) {
+	.epc-orders-page .epc-orders-filter-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 575px) {
+	.epc-orders-page .epc-orders-filter-grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .epc-orders-page .epc-scp-orders-workspace {
