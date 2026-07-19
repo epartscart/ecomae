@@ -28,19 +28,14 @@ if($customer_offices[0] > 0){
 	$customer_office_query->execute(array($customer_offices[0]));
 	$customer_office_info = $customer_office_query->fetch(PDO::FETCH_ASSOC);
 }
-$epc_contact_phone = !empty($DP_Config->epc_contact_phone) ? trim($DP_Config->epc_contact_phone) : trim($customer_office_info['phone']);
+$epc_contact_phone = !empty($DP_Config->epc_contact_phone) ? trim($DP_Config->epc_contact_phone) : trim((string) ($customer_office_info['phone'] ?? ''));
 $epc_whatsapp_number = !empty($DP_Config->epc_whatsapp_number) ? trim($DP_Config->epc_whatsapp_number) : $epc_contact_phone;
 $epc_contact_phone_href = preg_replace('/[^0-9+]/', '', $epc_contact_phone);
 $epc_whatsapp_href_number = preg_replace('/[^0-9]/', '', $epc_whatsapp_number);
-if (!function_exists('epc_storefront_guest_commerce_blocked')) {
-	$epc_prices_helpers = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
-	if (is_file($epc_prices_helpers)) {
-		require_once $epc_prices_helpers;
-	}
-}
-if (function_exists('epc_storefront_guest_commerce_blocked') && epc_storefront_guest_commerce_blocked()) {
-	// Hide header WhatsApp for guests on warehouse_supplier tenants (login required).
-	$epc_whatsapp_href_number = '';
+// Header WhatsApp is a public contact channel (after Request a call back).
+// Product-row WhatsApp ordering stays gated separately for guests.
+if ($epc_whatsapp_href_number === '' && $epc_contact_phone_href !== '') {
+	$epc_whatsapp_href_number = preg_replace('/[^0-9]/', '', $epc_contact_phone_href);
 }
 $epc_head_office_title = !empty($DP_Config->epc_head_office_title) ? trim($DP_Config->epc_head_office_title) : 'Head Office';
 $epc_head_office_address = !empty($DP_Config->epc_head_office_address) ? trim(str_replace('\\n', "\n", $DP_Config->epc_head_office_address)) : '';
@@ -873,9 +868,13 @@ if(!empty($DP_Template->data_value->message_header)){
 				<div class="table-control epc-header-right-col">
 					<div class="header-phone-box"><a href="tel:<?=htmlspecialchars($epc_contact_phone_href, ENT_QUOTES, 'UTF-8');?>" class="phone call-me"><?=htmlspecialchars($epc_contact_phone, ENT_QUOTES, 'UTF-8');?></a></div>
 					<div class="epc-header-actions-row">
-					<div class="header-call-box"><a href="<?php echo $multilang_params['lang_href']; ?>/zapros-prodavczu"><?php echo translate_str_by_id(4817); ?></a></div>
-						<?php if($epc_whatsapp_href_number != '') { ?>
-						<div class="header-whatsapp-box"><a href="https://wa.me/<?=htmlspecialchars($epc_whatsapp_href_number, ENT_QUOTES, 'UTF-8');?>" target="_blank" rel="noopener"><i class="fa fa-whatsapp"></i> WhatsApp chat</a></div>
+						<div class="header-call-box"><a href="<?php echo $multilang_params['lang_href']; ?>/zapros-prodavczu"><?php echo translate_str_by_id(4817); ?></a></div>
+						<?php if ($epc_whatsapp_href_number !== '') { ?>
+						<div class="header-whatsapp-box">
+							<a href="https://wa.me/<?= htmlspecialchars($epc_whatsapp_href_number, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
+								<i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact
+							</a>
+						</div>
 						<?php } ?>
 						<?php if ($epc_commerce_storefront) { ?>
 						<div class="header-bulk-upload-box"><a href="<?php echo $multilang_params['lang_href']; ?>/shop/bulk-upload"><i class="fa fa-file-excel-o"></i> Excel bulk upload</a></div>
@@ -1100,8 +1099,8 @@ if(!empty($DP_Template->data_value->message_header)){
 				</a>
 				
 				<a class="mobile-box-phone" href="tel:<?=htmlspecialchars($epc_contact_phone_href, ENT_QUOTES, 'UTF-8');?>"><?=htmlspecialchars($epc_contact_phone, ENT_QUOTES, 'UTF-8');?></a>
-				<?php if($epc_whatsapp_href_number != '') { ?>
-				<a class="mobile-box-whatsapp" href="https://wa.me/<?=htmlspecialchars($epc_whatsapp_href_number, ENT_QUOTES, 'UTF-8');?>" target="_blank" rel="noopener"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+				<?php if ($epc_whatsapp_href_number !== '') { ?>
+				<a class="mobile-box-whatsapp" href="https://wa.me/<?= htmlspecialchars($epc_whatsapp_href_number, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp contact</a>
 				<?php } ?>
 				<a class="mobile-box-bulk-upload" href="<?php echo $multilang_params['lang_href']; ?>/shop/bulk-upload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel upload</a>
 				<?php if (!function_exists('epc_portal_storefront_enabled') || epc_portal_storefront_enabled()): ?>
