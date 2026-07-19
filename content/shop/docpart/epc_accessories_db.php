@@ -241,6 +241,192 @@ if (!function_exists('epc_acc_add_listing')) {
 	}
 }
 
+if (!function_exists('epc_acc_get_listing')) {
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	function epc_acc_get_listing(PDO $db, int $id): ?array
+	{
+		epc_acc_ensure_schema($db);
+		$stmt = $db->prepare(
+			'SELECT l.*, c.slug AS category_slug, c.label AS category_label,
+				s.slug AS subcategory_slug, s.label AS subcategory_label
+			FROM `epc_acc_listings` l
+			LEFT JOIN `epc_acc_categories` c ON c.id = l.category_id
+			LEFT JOIN `epc_acc_categories` s ON s.id = l.subcategory_id
+			WHERE l.id = ? LIMIT 1'
+		);
+		$stmt->execute(array($id));
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
+		return $row ? $row : null;
+	}
+}
+
+if (!function_exists('epc_acc_update_listing')) {
+	/**
+	 * @param array<string, mixed> $data
+	 */
+	function epc_acc_update_listing(PDO $db, int $id, array $data): bool
+	{
+		epc_acc_ensure_schema($db);
+		$stmt = $db->prepare(
+			'UPDATE `epc_acc_listings` SET
+				`category_id` = ?, `subcategory_id` = ?, `title` = ?, `description` = ?,
+				`make` = ?, `model` = ?, `year` = ?, `city` = ?, `condition_type` = ?,
+				`price` = ?, `compare_price` = ?, `currency` = ?, `image_url` = ?, `external_url` = ?,
+				`photo_count` = ?, `featured` = ?, `stock_qty` = ?, `status` = ?, `updated_at` = ?
+			WHERE `id` = ?'
+		);
+		return $stmt->execute(array(
+			(int) ($data['category_id'] ?? 0),
+			(int) ($data['subcategory_id'] ?? 0),
+			trim((string) ($data['title'] ?? '')),
+			trim((string) ($data['description'] ?? '')),
+			trim((string) ($data['make'] ?? '')),
+			trim((string) ($data['model'] ?? '')),
+			trim((string) ($data['year'] ?? '')),
+			trim((string) ($data['city'] ?? '')),
+			trim((string) ($data['condition_type'] ?? 'new')),
+			(float) ($data['price'] ?? 0),
+			(float) ($data['compare_price'] ?? 0),
+			trim((string) ($data['currency'] ?? 'PKR')) ?: 'PKR',
+			trim((string) ($data['image_url'] ?? '')),
+			trim((string) ($data['external_url'] ?? '')),
+			max(1, (int) ($data['photo_count'] ?? 1)),
+			!empty($data['featured']) ? 1 : 0,
+			(int) ($data['stock_qty'] ?? 0),
+			trim((string) ($data['status'] ?? 'published')) ?: 'published',
+			time(),
+			$id,
+		));
+	}
+}
+
+if (!function_exists('epc_acc_set_listing_status')) {
+	function epc_acc_set_listing_status(PDO $db, int $id, string $status): bool
+	{
+		epc_acc_ensure_schema($db);
+		$status = trim($status);
+		if ($status === '') {
+			$status = 'draft';
+		}
+		$stmt = $db->prepare('UPDATE `epc_acc_listings` SET `status` = ?, `updated_at` = ? WHERE `id` = ?');
+		return $stmt->execute(array($status, time(), $id));
+	}
+}
+
+if (!function_exists('epc_acc_delete_listing')) {
+	function epc_acc_delete_listing(PDO $db, int $id): bool
+	{
+		epc_acc_ensure_schema($db);
+		$stmt = $db->prepare('DELETE FROM `epc_acc_listings` WHERE `id` = ?');
+		return $stmt->execute(array($id));
+	}
+}
+
+if (!function_exists('epc_acc_admin_search')) {
+	/**
+	 * Admin list — includes drafts/unpublished.
+	 *
+	 * @param array<string, mixed> $filters
+	 * @return array<string, mixed>
+	 */
+	function epc_acc_admin_search(PDO $db, array $filters = array()): array
+	{
+		epc_acc_ensure_schema($db);
+		$tree = epc_acc_get_category_tree($db);
+		$q = trim((string) ($filters['q'] ?? ''));
+		$category = trim((string) ($filters['category'] ?? ''));
+		$subcategory = trim((string) ($filters['subcategory'] ?? ''));
+		$status = trim((string) ($filters['status'] ?? ''));
+		$make = trim((string) ($filters['make'] ?? ''));
+		$page = max(1, (int) ($filters['page'] ?? 1));
+		$perPage = max(10, min(100, (int) ($filters['per_page'] ?? 50)));
+
+		$categoryId = 0;
+		$subcategoryId = 0;
+		foreach ($tree as $parent) {
+			if ($category !== '' && ($parent['slug'] === $category || (string) $parent['id'] === $category)) {
+				$categoryId = (int) $parent['id'];
+			}
+			foreach ($parent['children'] as $child) {
+				if ($subcategory !== '' && ($child['slug'] === $subcategory || (string) $child['id'] === $subcategory)) {
+					$subcategoryId = (int) $child['id'];
+					if ($categoryId < 1) {
+						$categoryId = (int) $parent['id'];
+					}
+				}
+			}
+		}
+
+		$where = array('1=1');
+		$bind = array();
+		if ($categoryId > 0) {
+			$where[] = 'l.`category_id` = ?';
+			$bind[] = $categoryId;
+		}
+		if ($subcategoryId > 0) {
+			$where[] = 'l.`subcategory_id` = ?';
+			$bind[] = $subcategoryId;
+		}
+		if ($status !== '') {
+			$where[] = 'l.`status` = ?';
+			$bind[] = $status;
+		}
+		if ($make !== '') {
+			$where[] = 'l.`make` = ?';
+			$bind[] = $make;
+		}
+		if ($q !== '') {
+			$where[] = '(l.`title` LIKE ? OR l.`make` LIKE ? OR l.`model` LIKE ? OR l.`city` LIKE ? OR l.`id` = ?)';
+			$like = '%' . $q . '%';
+			array_push($bind, $like, $like, $like, $like, (int) $q);
+		}
+		$whereSql = implode(' AND ', $where);
+
+		$countStmt = $db->prepare('SELECT COUNT(*) FROM `epc_acc_listings` l WHERE ' . $whereSql);
+		$countStmt->execute($bind);
+		$total = (int) $countStmt->fetchColumn();
+		$pages = max(1, (int) ceil($total / $perPage));
+		if ($page > $pages) {
+			$page = $pages;
+		}
+		$offset = ($page - 1) * $perPage;
+
+		$listStmt = $db->prepare(
+			'SELECT l.*, c.label AS category_label, c.slug AS category_slug,
+				s.label AS subcategory_label, s.slug AS subcategory_slug
+			FROM `epc_acc_listings` l
+			LEFT JOIN `epc_acc_categories` c ON c.id = l.category_id
+			LEFT JOIN `epc_acc_categories` s ON s.id = l.subcategory_id
+			WHERE ' . $whereSql . '
+			ORDER BY l.`updated_at` DESC, l.`id` DESC
+			LIMIT ' . (int) $perPage . ' OFFSET ' . (int) $offset
+		);
+		$listStmt->execute($bind);
+		$items = $listStmt->fetchAll(PDO::FETCH_ASSOC);
+
+		$statusCounts = array();
+		try {
+			foreach ($db->query('SELECT `status`, COUNT(*) AS cnt FROM `epc_acc_listings` GROUP BY `status`') as $row) {
+				$statusCounts[(string) $row['status']] = (int) $row['cnt'];
+			}
+		} catch (Exception $e) {
+			$statusCounts = array();
+		}
+
+		return array(
+			'total' => $total,
+			'page' => $page,
+			'pages' => $pages,
+			'per_page' => $perPage,
+			'items' => $items,
+			'tree' => $tree,
+			'status_counts' => $statusCounts,
+		);
+	}
+}
+
 if (!function_exists('epc_acc_marketplace_search')) {
 	/**
 	 * Search published listings with PakWheels-style filters.
