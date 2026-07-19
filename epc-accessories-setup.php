@@ -1,7 +1,8 @@
 <?php
 /**
  * Accessories marketplace setup:
- * - Registers /accessories-spare-parts + /accessories pages and top menu
+ * - Registers /accessories-spare-parts + /accessories pages
+ * - Places Accessories under the Product dropdown only (not top-level)
  * - Seeds PakWheels-crawled categories into epc_acc_categories
  * - Optional: add a listing into a category
  *
@@ -69,7 +70,7 @@ function epc_acc_content($pdo, $url, $alias, $titleKey, $descKey, $path, $module
 	return (int) $pdo->lastInsertId();
 }
 
-function epc_acc_menu_item($captionKey, $id, $contentId = 0)
+function epc_acc_menu_item($captionKey, $id, $contentId = 0, $level = 1)
 {
 	return array(
 		'value' => $captionKey,
@@ -83,10 +84,66 @@ function epc_acc_menu_item($captionKey, $id, $contentId = 0)
 		'target' => '', 'onclick' => '',
 		'img_src' => '',
 		'$count' => 0,
-		'$level' => 1,
+		'$level' => (int) $level,
 		'$parent' => 0,
 		'id' => $id,
 	);
+}
+
+function epc_acc_menu_label_key(array $item)
+{
+	if (!empty($item['a_innerhtml'])) {
+		return (string) $item['a_innerhtml'];
+	}
+	if (!empty($item['value'])) {
+		return (string) $item['value'];
+	}
+	return '';
+}
+
+function epc_acc_menu_en_label(PDO $pdo, $key)
+{
+	if ($key === '') {
+		return '';
+	}
+	$stmt = $pdo->prepare('SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ? LIMIT 1');
+	$stmt->execute(array($key, 'en'));
+	$v = $stmt->fetchColumn();
+	return $v !== false ? (string) $v : (string) $key;
+}
+
+function epc_acc_is_accessories_item(array $item, $contentId, $contentIdShort)
+{
+	if ((isset($item['content_id']) && ((int) $item['content_id'] === (int) $contentId || (int) $item['content_id'] === (int) $contentIdShort))
+		|| (isset($item['a_innerhtml']) && $item['a_innerhtml'] === 'epc_menu_accessories')
+		|| (isset($item['value']) && $item['value'] === 'epc_menu_accessories')) {
+		return true;
+	}
+	return false;
+}
+
+function epc_acc_is_product_parent(PDO $pdo, array $item)
+{
+	$key = epc_acc_menu_label_key($item);
+	$label = strtolower(trim(epc_acc_menu_en_label($pdo, $key)));
+	if ($label === 'product') {
+		return true;
+	}
+	if (!empty($item['data']) && is_array($item['data'])) {
+		foreach ($item['data'] as $child) {
+			if (!is_array($child)) {
+				continue;
+			}
+			$ck = epc_acc_menu_label_key($child);
+			if ($ck === 'epc_menu_product_family') {
+				return true;
+			}
+			if (strtolower(trim(epc_acc_menu_en_label($pdo, $ck))) === 'product family') {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 function epc_acc_find_cat_id(PDO $pdo, $slug, $parentId = 0)
@@ -315,27 +372,57 @@ foreach ($menuIds as $menuId) {
 	if (!is_array($structure)) {
 		$structure = array();
 	}
-	$has = false;
+
+	// Remove top-level Accessories and any nested copy so it lives under Product only.
+	$kept = array();
 	foreach ($structure as $item) {
-		if ((isset($item['content_id']) && ((int) $item['content_id'] === $contentId || (int) $item['content_id'] === $contentIdShort))
-			|| (isset($item['a_innerhtml']) && $item['a_innerhtml'] === 'epc_menu_accessories')) {
-			$has = true;
+		if (!is_array($item)) {
+			continue;
+		}
+		if (epc_acc_is_accessories_item($item, $contentId, $contentIdShort)) {
+			continue;
+		}
+		if (!empty($item['data']) && is_array($item['data'])) {
+			$children = array();
+			foreach ($item['data'] as $child) {
+				if (is_array($child) && epc_acc_is_accessories_item($child, $contentId, $contentIdShort)) {
+					continue;
+				}
+				$children[] = $child;
+			}
+			$item['data'] = $children;
+			if (isset($item['$count'])) {
+				$item['$count'] = count($children);
+			}
+		}
+		$kept[] = $item;
+	}
+	$structure = $kept;
+
+	$productIndex = null;
+	foreach ($structure as $index => $item) {
+		if (is_array($item) && epc_acc_is_product_parent($pdo, $item)) {
+			$productIndex = $index;
 			break;
 		}
 	}
-	if (!$has) {
-		$item = epc_acc_menu_item('epc_menu_accessories', time() + 77, $contentId);
-		if (count($structure) > 1) {
-			array_splice($structure, 1, 0, array($item));
-		} else {
-			$structure[] = $item;
-		}
-		$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(
-			json_encode($structure, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-			$menuId,
-		));
-		$updated[] = $menuId;
+
+	if ($productIndex === null) {
+		echo "WARN menu {$menuId}: Product parent not found; Accessories not added to menu\n";
+		continue;
 	}
+	if (!isset($structure[$productIndex]['data']) || !is_array($structure[$productIndex]['data'])) {
+		$structure[$productIndex]['data'] = array();
+	}
+	$structure[$productIndex]['data'][] = epc_acc_menu_item('epc_menu_accessories', time() + 77, $contentId, 2);
+	if (isset($structure[$productIndex]['$count'])) {
+		$structure[$productIndex]['$count'] = count($structure[$productIndex]['data']);
+	}
+	$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(
+		json_encode($structure, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+		$menuId,
+	));
+	$updated[] = $menuId;
 }
 
 $reset = isset($_GET['reset']) && $_GET['reset'] === '1';

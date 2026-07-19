@@ -87,9 +87,9 @@ function epc_di_href_matches($item, $needles)
 	return false;
 }
 
-epc_di_translation($pdo, 'epc_demand_intelligence_title', 'Country - Vehicle & Parts Intelligence AI', 'Страна — авто и запчасти (AI)');
+epc_di_translation($pdo, 'epc_demand_intelligence_title', 'Vehicle Parts intelligence AI', 'Страна — авто и запчасти (AI)');
 epc_di_translation($pdo, 'epc_demand_intelligence_desc', 'Country demand tags, UAE stock, in-stock crosses and vehicle fitment for planning.', 'Теги спроса по странам, склад ОАЭ, кроссы в наличии и применимость по автомобилям.');
-epc_di_translation($pdo, 'epc_menu_demand_intelligence', 'Country - Vehicle & Parts Intelligence AI', 'Страна — авто и запчасти (AI)');
+epc_di_translation($pdo, 'epc_menu_demand_intelligence', 'Vehicle Parts intelligence AI', 'Страна — авто и запчасти (AI)');
 
 $commonModules = '[1,22,32,34]';
 $demandContentId = epc_di_content(

@@ -18,8 +18,8 @@ $pdo = new PDO('mysql:host=' . $cfg->host . ';dbname=' . $cfg->db . ';charset=ut
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $keys = array(
-	'epc_demand_intelligence_title' => array('Country - Vehicle & Parts Intelligence AI', 'Страна — авто и запчасти (AI)'),
-	'epc_menu_demand_intelligence' => array('Country - Vehicle & Parts Intelligence AI', 'Страна — авто и запчасти (AI)'),
+	'epc_demand_intelligence_title' => array('Vehicle Parts intelligence AI', 'Страна — авто и запчасти (AI)'),
+	'epc_menu_demand_intelligence' => array('Vehicle Parts intelligence AI', 'Страна — авто и запчасти (AI)'),
 );
 
 $stmt = $pdo->prepare(
@@ -33,4 +33,4 @@ foreach ($keys as $key => $labels) {
 	echo "Updated {$key}\n";
 }
 
-echo "Done. Menu and browser title should show Country - Vehicle & Parts Intelligence AI.\n";
+echo "Done. Menu and browser title should show Vehicle Parts intelligence AI.\n";
