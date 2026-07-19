@@ -517,7 +517,7 @@
 	}
 
 	window.epcOmsSaveItem = function (orderId, itemId) {
-		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
 			return;
 		}
@@ -545,7 +545,7 @@
 	};
 
 	window.epcOmsSetItemStatus = function (orderId, itemId) {
-		var card = document.querySelector('.epc-od__item-card[data-item-id="' + itemId + '"]');
+		var card = document.querySelector('.epc-od__line[data-item-id="' + itemId + '"], .epc-od__item-card[data-item-id="' + itemId + '"]');
 		if (!card) {
 			return;
 		}
