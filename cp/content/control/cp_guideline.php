@@ -124,6 +124,10 @@ epc_cp_page_frame_open(array(
 ));
 ?>
 
+<p class="text-muted" style="margin:0 0 14px;max-width:52rem;line-height:1.45;">
+	<strong>Platform roles:</strong> <code>epartscart.com</code> is spare-parts (auto_parts).
+	<code>ecomae.com/cp</code> is overall platform control. Common OMS / commerce CP packs stay in sync across tenants; industry tools (vehicle catalog, etc.) stay scoped.
+</p>
 <div class="epc-cpg-quick">
 	<a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">
 		<strong>Price profiles &amp; margins</strong>

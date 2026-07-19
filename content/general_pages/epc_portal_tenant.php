@@ -73,7 +73,8 @@ function epc_portal_tenant_templates(): array
 			'from_email' => 'epartscart@gmail.com',
 			'storefront_package' => 'automotive_spareparts_pro',
 			'theme_template' => 'classic',
-			'onboard_notes' => 'Preset automotive_spareparts_pro: piston homepage, animated SVG logo (not hub/tenant brand). Colours via theme JSON in Industry Settings.',
+			'cp_role' => 'spare_parts',
+			'onboard_notes' => 'Spare-parts tenant only (industry auto_parts). Shared commerce CP packs sync with ecomae/cp; vehicle catalog stays here. Preset automotive_spareparts_pro.',
 		),
 		'taxofinca' => array(
 			'label' => 'Taxofinca (tax advisory)',
@@ -117,7 +118,8 @@ function epc_portal_tenant_templates(): array
 			'access_mode' => 'erp_only',
 			'hosted_on' => 'platform',
 			'erp_only_shared' => 1,
-			'onboard_notes' => 'Shared ERP on www.ecomae.com/cp/ — no client domain or DNS. Separate MySQL DB + CP users per company.',
+			'cp_role' => 'platform_control',
+			'onboard_notes' => 'Platform CP on www.ecomae.com/cp/ — overall control (not spare-parts-only). Shared ERP; separate MySQL DB + CP users per company.',
 		),
 		'asap' => array(
 			'label' => 'ASAP (ERP only — shared on ecomae.com)',
