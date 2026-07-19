@@ -1,11 +1,15 @@
 <?php
 defined('_ASTEXE_') or die('No access');
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/general_pages/epc_storefront_auth_links.php");
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_prices_helpers.php");
 $user_id = DP_User::getUserId();
 $user_session = DP_User::getUserSession();
 $is_admin_viewer = DP_User::isAdmin();
 $admin_session = $is_admin_viewer ? DP_User::getAdminSession() : false;
 $bulk_csrf_guard_key = ($user_id > 0 && is_array($user_session)) ? $user_session["csrf_guard_key"] : (is_array($admin_session) ? $admin_session["csrf_guard_key"] : '');
+$bulk_login_url = htmlspecialchars(epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), ENT_QUOTES, 'UTF-8');
+$bulk_signup_url = htmlspecialchars(epc_storefront_auth_signup_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), ENT_QUOTES, 'UTF-8');
 $price_profiles = array();
 if($is_admin_viewer)
 {
@@ -115,9 +119,16 @@ catch(Exception $e)
 .epc-bulk-history-table td{border-top:1px solid #edf2f7;color:#334155;padding:8px;}
 .epc-bulk-history-file{color:#0f172a;font-weight:900;max-width:270px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .epc-bulk-history-empty{color:#64748b;margin:0;}
+.epc-bulk-login-gate{max-width:560px;margin:8px auto 0;padding:28px 24px;text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 12px 28px rgba(15,23,42,.06)}
+.epc-bulk-login-gate h2{margin:0 0 10px;font-size:22px;color:#0f172a;font-weight:900}
+.epc-bulk-login-gate p{margin:0 0 18px;color:#475569;line-height:1.5}
+.epc-bulk-login-gate .epc-commerce-login-cta{display:inline-flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;max-width:none}
+.epc-bulk-login-gate .epc-commerce-login-cta .btn{margin:0;border-radius:999px;font-weight:800;min-height:42px;padding:10px 18px}
+.epc-bulk-login-gate .epc-commerce-login-cta__sep{font-size:13px;color:#94a3b8}
 @keyframes epcBulkProgressPulse{0%{opacity:.55}50%{opacity:1}100%{opacity:.55}}
 @media(max-width:900px){.epc-bulk-grid,.epc-bulk-summary{grid-template-columns:1fr}}
 </style>
+<?php echo epc_storefront_prices_styles(); ?>
 
 <div class="epc-bulk-wrap">
 	<div class="epc-bulk-hero">
@@ -132,7 +143,15 @@ catch(Exception $e)
 	</div>
 
 	<?php if($user_id <= 0 && !$is_admin_viewer) { ?>
-		<div class="alert alert-warning">Please log in to upload a bulk spare parts list and add results to cart.</div>
+		<div class="epc-bulk-login-gate">
+			<h2>Customer login required</h2>
+			<p>Excel / CSV bulk upload, price checks, and add-to-cart are available only for logged-in customers.</p>
+			<div class="epc-commerce-login-cta">
+				<a class="btn btn-sm btn-primary" href="<?php echo $bulk_login_url; ?>">Log in</a>
+				<span class="epc-commerce-login-cta__sep">or</span>
+				<a class="btn btn-sm btn-default" href="<?php echo $bulk_signup_url; ?>">Register</a>
+			</div>
+		</div>
 	<?php } else { ?>
 		<div class="epc-bulk-panel">
 			<form id="epc_bulk_form" enctype="multipart/form-data">
@@ -233,8 +252,6 @@ catch(Exception $e)
 		</div>
 
 		<div id="epc_bulk_results"></div>
-	<?php } ?>
-</div>
 
 <script>
 (function(){
@@ -583,3 +600,5 @@ catch(Exception $e)
 	});
 })();
 </script>
+	<?php } ?>
+</div>

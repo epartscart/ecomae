@@ -97,13 +97,13 @@ function epc_bulk_check_csrf() {
 	epc_bulk_error('Error! CSRF 4');
 }
 
-epc_bulk_check_csrf();
-
 $user_id = DP_User::getUserId();
 $is_admin_viewer = DP_User::isAdmin();
 if($user_id <= 0 && !$is_admin_viewer) {
 	epc_bulk_error('Please log in first.');
 }
+
+epc_bulk_check_csrf();
 $group_id = 0;
 if($is_admin_viewer && !empty($_POST['admin_group_id'])) {
 	$profile_check = $db_link->prepare("SELECT `group_id` FROM `epc_price_profiles` WHERE `group_id` = ? LIMIT 1;");
