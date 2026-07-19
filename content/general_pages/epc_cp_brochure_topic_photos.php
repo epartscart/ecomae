@@ -78,7 +78,7 @@ function epc_cp_brochure_topic_catalog(): array
 			'label' => 'Orders & fulfilment',
 			'queries' => array(
 				'order', 'oms', 'cart', 'checkout', 'fulfilment', 'fulfilment',
-				'quotation', 'quote', 'rfq', 'sales desk', 'retail',
+				'quotation', 'quote', 'rfq', 'sales desk', 'retailer', 'pos terminal',
 			),
 			'photos' => array(
 				$u('photo-1556742044-3c52d6e88c62'),
@@ -141,9 +141,9 @@ function epc_cp_brochure_topic_catalog(): array
 		'marketing' => array(
 			'label' => 'Marketing & growth',
 			'queries' => array(
-				'market', 'broadcast', 'newsletter', 'campaign', 'promo',
+				'marketing', 'broadcast', 'newsletter', 'campaign', 'promo',
 				'whatsapp', 'social hub', 'facebook', 'instagram',
-				'notification', 'email blast',
+				'notification', 'email blast', 'ads manager',
 			),
 			'photos' => array(
 				$u('photo-1432888622747-4eb9a8efeb07'),
@@ -308,12 +308,26 @@ function epc_cp_brochure_resolve_topic(string $name, string $area = '', string $
 		return $best;
 	};
 
+	// 1) Name first — process title wins over long marketing blurbs in "does".
+	$nameHay = $norm($name);
+	if (preg_match('/\bai\b/', $nameHay)) {
+		return 'ai';
+	}
+	$hit = $matchBest($nameHay);
+	if ($hit !== '') {
+		return $hit;
+	}
+	// 2) Name + URL
+	$hit = $matchBest($norm($name . ' ' . $url));
+	if ($hit !== '') {
+		return $hit;
+	}
+	// 3) Full text including description
 	$hay = $norm($name . ' ' . $url . ' ' . $does);
 	$hit = $matchBest($hay);
 	if ($hit !== '') {
 		return $hit;
 	}
-	// Explicit AI token (avoid matching inside other words via short "ai" query).
 	if (preg_match('/\bai\b/', $hay)) {
 		return 'ai';
 	}
