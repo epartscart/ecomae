@@ -47,10 +47,23 @@ function epc_tcp_dash_stats(PDO $db): array
 		} catch (Exception $e) {
 		}
 		try {
+			// Storefront customers only — exclude users bound to backend/admin groups.
 			$stats['clients'] = (int) $db->query(
-				'SELECT COUNT(*) FROM `users` WHERE `user_id` > 0'
+				'SELECT COUNT(*) FROM `users` u
+				 WHERE u.`user_id` > 0
+				 AND NOT EXISTS (
+					SELECT 1 FROM `users_groups_bind` b
+					INNER JOIN `groups` g ON g.`id` = b.`group_id`
+					WHERE b.`user_id` = u.`user_id` AND g.`for_backend` = 1
+				 )'
 			)->fetchColumn();
 		} catch (Exception $e) {
+			try {
+				$stats['clients'] = (int) $db->query(
+					'SELECT COUNT(*) FROM `users` WHERE `user_id` > 0'
+				)->fetchColumn();
+			} catch (Exception $e2) {
+			}
 		}
 		try {
 			$openStatuses = array();
@@ -78,7 +91,7 @@ function epc_tcp_dash_stats(PDO $db): array
 				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
 			} catch (Throwable $e) {
 			}
-			return epc_perf_cache_remember('epc_tcp_dash_stats:v2:' . $dbName, 180, $compute);
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v3:' . $dbName, 180, $compute);
 		}
 	}
 	return $compute();
@@ -107,25 +120,49 @@ $ordersUrl = $base . '/shop/orders/orders';
 $catalogueUrl = $base . '/shop/catalogue/products';
 $clientsUrl = $base . '/shop/customer_mgmt/customer_mgmt';
 
-$primaryLinks = array(
-	array('label' => 'Orders', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'orders', 'hint' => 'Process customer orders'),
-	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'catalog', 'hint' => 'Products & categories'),
-	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'prices', 'hint' => 'Price lists & markups'),
-	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'clients', 'hint' => 'Customers & CRM'),
-	array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'catalog', 'hint' => 'Marketplace listings'),
-	array('label' => 'ERP & finance', 'icon' => 'fa-university', 'url' => $base . '/shop/finance/erp?epc_erp_shell=1', 'tone' => 'finance', 'hint' => 'Ledger, VAT & reports'),
-	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding & modules'),
-);
-
-$moreLinks = array(
-	array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing'),
-	array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'warehouse', 'hint' => 'Purchasing & suppliers'),
-	array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'docs', 'hint' => 'Invoices & PDFs'),
-	array('label' => 'POS Terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'orders', 'hint' => 'In-store checkout'),
-	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'platform', 'hint' => 'Storefront layout'),
-	array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'finance', 'hint' => 'VAT / GST kits'),
-	array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'platform', 'hint' => 'Captions & accounts'),
-);
+if ($industryCode === 'auto_parts') {
+	$primaryLinks = array(
+		array('label' => 'OMS', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'orders', 'hint' => 'Orders, fulfilment & messaging'),
+		array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages', 'tone' => 'warehouse', 'hint' => 'Storages & price-list links'),
+		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'prices', 'hint' => 'Price lists & storefront toggles'),
+		array('label' => 'Multivendor', 'icon' => 'fa-handshake-o', 'url' => $base . '/shop/prices/multivendor', 'tone' => 'prices', 'hint' => 'Supplier price pipelines'),
+		array('label' => 'Crosses', 'icon' => 'fa-exchange', 'url' => $base . '/shop/crosses', 'tone' => 'catalog', 'hint' => 'OEM / aftermarket crosses'),
+		array('label' => 'AI chats', 'icon' => 'fa-comments', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'platform', 'hint' => 'Parts agent conversations'),
+		array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'clients', 'hint' => 'Customers & CRM'),
+		array('label' => 'ERP & finance', 'icon' => 'fa-university', 'url' => $base . '/shop/finance/erp?epc_erp_shell=1', 'tone' => 'finance', 'hint' => 'Ledger, VAT & reports'),
+		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding & modules'),
+	);
+	$moreLinks = array(
+		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'catalog', 'hint' => 'Products & categories'),
+		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'catalog', 'hint' => 'Marketplace listings'),
+		array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing'),
+		array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'warehouse', 'hint' => 'Purchasing & suppliers'),
+		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'docs', 'hint' => 'Invoices & PDFs'),
+		array('label' => 'POS Terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'orders', 'hint' => 'In-store checkout'),
+		array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'platform', 'hint' => 'Storefront layout'),
+		array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'finance', 'hint' => 'VAT / GST kits'),
+		array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'platform', 'hint' => 'Captions & accounts'),
+	);
+} else {
+	$primaryLinks = array(
+		array('label' => 'Orders', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'orders', 'hint' => 'Process customer orders'),
+		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'catalog', 'hint' => 'Products & categories'),
+		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'prices', 'hint' => 'Price lists & markups'),
+		array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'clients', 'hint' => 'Customers & CRM'),
+		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'catalog', 'hint' => 'Marketplace listings'),
+		array('label' => 'ERP & finance', 'icon' => 'fa-university', 'url' => $base . '/shop/finance/erp?epc_erp_shell=1', 'tone' => 'finance', 'hint' => 'Ledger, VAT & reports'),
+		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding & modules'),
+	);
+	$moreLinks = array(
+		array('label' => 'Auto Price AI', 'icon' => 'fa-chart-line', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'prices', 'hint' => 'Multi-source pricing'),
+		array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'warehouse', 'hint' => 'Purchasing & suppliers'),
+		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'docs', 'hint' => 'Invoices & PDFs'),
+		array('label' => 'POS Terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'orders', 'hint' => 'In-store checkout'),
+		array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'platform', 'hint' => 'Storefront layout'),
+		array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'finance', 'hint' => 'VAT / GST kits'),
+		array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'platform', 'hint' => 'Captions & accounts'),
+	);
+}
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 ?>
@@ -134,7 +171,9 @@ $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 		<div>
 			<span class="epc-scp-dashboard__badge"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> <?php echo epc_tcp_dash_h($industryLabel); ?></span>
 			<h2 class="epc-scp-dashboard__title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
-			<p class="epc-scp-dashboard__sub">Your workspace for today’s trading — clear actions, clean screens, fast answers. Start with orders, catalogue, prices, or clients.</p>
+			<p class="epc-scp-dashboard__sub"><?php echo $industryCode === 'auto_parts'
+				? 'Spare-parts workspace — OMS, warehouses, prices, crosses, and AI chats for today’s trading.'
+				: 'Your workspace for today’s trading — clear actions, clean screens, fast answers. Start with orders, catalogue, prices, or clients.'; ?></p>
 		</div>
 		<div class="epc-scp-dashboard__hero-actions">
 			<a class="btn btn-sm btn-primary epc-cp-page-header__pill--primary" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
@@ -160,7 +199,7 @@ $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 		<a class="epc-scp-kpi__card epc-cp-card epc-cp-stat" href="<?php echo epc_tcp_dash_h($clientsUrl); ?>">
 			<div class="epc-scp-kpi__label">Clients</div>
 			<div class="epc-scp-kpi__val" data-epc-stat><?php echo (int) $stats['clients']; ?></div>
-			<div class="epc-scp-kpi__hint">Customer accounts</div>
+			<div class="epc-scp-kpi__hint">Storefront customers</div>
 		</a>
 		<a class="epc-scp-kpi__card epc-cp-card epc-cp-stat" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
 			<div class="epc-scp-kpi__label">Open orders</div>

@@ -28,6 +28,28 @@ function epc_jw_is_jewellery_tenant(PDO $db): bool
     static $result = null;
     if ($result !== null) return $result;
     try {
+        // Portal industry wins — auto_parts / non-jewellery tenants never see jw ERP tabs
+        // even if an ERP profile was mis-set to jewellery.
+        $portalFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+        if (is_file($portalFile)) {
+            require_once $portalFile;
+            if (function_exists('epc_portal_cp_active_industry')) {
+                $portalIndustry = preg_replace(
+                    '/[^a-z0-9_]/',
+                    '',
+                    strtolower((string) epc_portal_cp_active_industry())
+                );
+                if ($portalIndustry !== '') {
+                    if ($portalIndustry === 'jewellery' || strpos($portalIndustry, 'jewellery') === 0) {
+                        $result = true;
+                        return true;
+                    }
+                    $result = false;
+                    return false;
+                }
+            }
+        }
+
         require_once __DIR__ . '/epc_erp_advanced.php';
         $key = epc_erp_adv_get_setting($db, 'erp_industry_profile', '');
         if ($key === 'jewellery') { $result = true; return true; }

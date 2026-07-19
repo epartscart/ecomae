@@ -10,12 +10,19 @@ if (!isset($user_session) || !is_array($user_session)) {
 }
 $epc_agent_cp_csrf = (is_array($user_session) && !empty($user_session['csrf_guard_key']))
 	? (string)$user_session['csrf_guard_key'] : '';
+$epc_agent_backend = (isset($DP_Config) && is_object($DP_Config) && !empty($DP_Config->backend_dir))
+	? trim((string) $DP_Config->backend_dir, '/')
+	: 'cp';
+$epc_prices_url = '/' . $epc_agent_backend . '/shop/prices';
 ?>
 <div class="hpanel epc-agent-cp">
 	<div class="panel-heading hbuilt">AI agent — chats &amp; configuration</div>
 	<div class="panel-body">
 		<input type="hidden" id="epc-agent-cp-csrf" value="<?php echo htmlspecialchars($epc_agent_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>">
-		<p>Configure the storefront chat agent and review customer conversations.</p>
+		<p>Configure the storefront chat agent and review customer conversations.
+			<a href="<?php echo htmlspecialchars($epc_prices_url, ENT_QUOTES, 'UTF-8'); ?>">Storefront price-list toggles</a>
+			control what the agent can quote.
+		</p>
 
 		<div class="epc-agent-config">
 			<div class="epc-agent-config__head"><strong>Agent configuration</strong> — per-tenant branding &amp; prompts</div>
@@ -49,6 +56,7 @@ $epc_agent_cp_csrf = (is_array($user_session) && !empty($user_session['csrf_guar
 						<textarea id="epc-agent-cfg-prompt" class="form-control input-sm" rows="3" placeholder="Extra guidance for agent replies…"></textarea>
 						<p class="help-block" style="margin:6px 0 0;font-size:12px;color:#666;line-height:1.45;">
 							Temporary price list toggles affect what the agent can quote to customers. The agent will not disclose disabled lists or admin controls.
+							<a href="<?php echo htmlspecialchars($epc_prices_url, ENT_QUOTES, 'UTF-8'); ?>">Open storefront toggles on Prices</a>.
 						</p>
 					</div>
 					<div class="form-group">
@@ -86,6 +94,7 @@ $epc_agent_cp_csrf = (is_array($user_session) && !empty($user_session['csrf_guar
 				<button type="button" class="btn btn-primary btn-sm" id="epc-agent-search">Search</button>
 				<button type="button" class="btn btn-default btn-sm" id="epc-agent-reset">Reset</button>
 				<button type="button" class="btn btn-default btn-sm" id="epc-agent-sync">Sync temp files</button>
+				<button type="button" class="btn btn-default btn-sm" id="epc-agent-export" title="Download filtered chats as CSV">Export CSV</button>
 			</div>
 		</div>
 

@@ -168,8 +168,13 @@ else//Действий нет - выводим страницу
 				<?php echo translate_str_by_id(3472); ?>
 			</div>
 			<div class="panel-body">
+				<div class="epc-cp-table-filter-bar" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px;">
+					<label for="epc_storages_filter" style="margin:0;font-weight:700;font-size:12px;color:#64748b;">Find warehouse</label>
+					<input type="search" id="epc_storages_filter" class="form-control input-sm" style="max-width:320px;" placeholder="Name, code, price list, ID…" autocomplete="off" />
+					<span class="text-muted small">Showing <strong id="epc_storages_filter_count">—</strong> warehouses</span>
+				</div>
 				<div class="table-responsive">
-					<table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+					<table cellpadding="1" cellspacing="1" class="table table-condensed table-striped" id="epc_storages_table">
 						<thead> 
 							<tr> 
 								<th><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();"/></th>
@@ -253,8 +258,15 @@ else//Действий нет - выводим страницу
 									$prices_list_name = $connection_options['price_id'] .' - '. $all_prices_list[$connection_options['price_id']]['name'];
 								}
 							}
+							$epc_filter_hay = strtolower(trim(
+								(string) $element_record['id'] . ' ' .
+								(string) $element_record['name'] . ' ' .
+								(string) $element_record['short_name'] . ' ' .
+								(string) $prices_list_name . ' ' .
+								(string) ($element_record['interface_type_name'] ?? '')
+							));
 						?>
-							<tr>
+							<tr data-epc-filter="<?php echo htmlspecialchars($epc_filter_hay, ENT_QUOTES, 'UTF-8'); ?>">
 								<td><input type="checkbox" onchange="on_one_check_changed('checked_<?php echo $element_record["id"]; ?>');" id="checked_<?php echo $element_record["id"]; ?>" name="checked_<?php echo $element_record["id"]; ?>"/></td>
 								<td><?php echo $a_item.$element_record["id"]; ?></a></td>
 								<td><?php echo ($element_record['hidden'])?'<i class="fa fa-ban" aria-hidden="true" title="<?php echo translate_str_by_id(4640); ?>"></i>':''; ?></td>
@@ -415,6 +427,23 @@ else//Действий нет - выводим страницу
         
         return checked_ids;
     }
+
+	(function () {
+		function bindStoragesFilter() {
+			if (typeof window.epcCpBindTableFilter === 'function') {
+				window.epcCpBindTableFilter({
+					inputId: 'epc_storages_filter',
+					tableId: 'epc_storages_table',
+					countId: 'epc_storages_filter_count'
+				});
+			}
+		}
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', bindStoragesFilter);
+		} else {
+			bindStoragesFilter();
+		}
+	})();
     </script>
     
     <?php
