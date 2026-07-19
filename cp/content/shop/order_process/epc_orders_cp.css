@@ -110,11 +110,14 @@
 	padding: 16px 16px 8px;
 	background: #fff;
 }
+body.epc-cp-shell .content .epc-orders-page .epc-orders-filter-grid,
 .epc-orders-page .epc-orders-filter-grid {
 	display: grid !important;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
 	gap: 12px 14px;
 	width: 100%;
+	float: none !important;
+	flex: none !important;
 }
 .epc-orders-page .epc-orders-filter-field {
 	display: flex;
