@@ -35,7 +35,7 @@ if (is_readable($epc_vat_file) && isset($db_link) && $db_link instanceof PDO) {
 <script>
 var epc_storefront_prices_visible = <?php echo !empty($epc_storefront_prices_visible) ? 'true' : 'false'; ?>;
 var epc_storefront_price_login_cta_html = <?php echo json_encode(epc_storefront_prices_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
-var epc_storefront_commerce_login_cta_html = <?php echo json_encode(epc_storefront_commerce_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+var epc_storefront_commerce_login_cta_html = <?php echo json_encode(epc_storefront_commerce_login_cta_html(null, true), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_login_url = <?php echo json_encode(epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_vat_price_label = <?php echo json_encode($epc_vat_price_label, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_vat_display_mode = <?php echo json_encode($epc_vat_display_mode, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
@@ -67,7 +67,8 @@ function epcStorefrontPriceCellHTML(priceHtml, product)
 {
 	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
 	{
-		return epc_storefront_price_login_cta_html || '&mdash;';
+		// Guest login/register text lives next to Fitment in the actions cell (one row).
+		return '&mdash;';
 	}
 	var label = epcVatPriceLabelHTML(product || null);
 	if(label){ priceHtml += label; }
@@ -2372,24 +2373,28 @@ function epcProductActionsHTML(aid, exist, minOrder, mode, brand, article)
 	if(inStock){ showQuote = false; }
 	if(!inStock){ showCart = false; showQuote = true; }
 	var guestBlocked = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible);
+	var guestCta = (typeof epc_storefront_commerce_login_cta_html !== 'undefined' && epc_storefront_commerce_login_cta_html)
+		? epc_storefront_commerce_login_cta_html
+		: (epc_storefront_price_login_cta_html || '');
+	// Guests: Fitment + "Log in or register" text on a single row (no stacked buttons).
+	if(guestBlocked)
+	{
+		return '<div class="epc-product-actions epc-product-actions--guest">'
+			+ '<div class="epc-product-actions__tools epc-product-actions__tools--guest">'
+			+ epcFitmentCheckButtonHTML(brand, article)
+			+ guestCta
+			+ '</div></div>';
+	}
 	var html = '<div class="epc-product-actions' + (showQuote && !showCart ? ' epc-product-actions--quote-only' : '') + '">';
 	html += '<div class="epc-product-actions__tools">';
 	html += epcFitmentCheckButtonHTML(brand, article);
-	if(!guestBlocked && typeof epcWaShareBtnHTML === 'function')
+	if(typeof epcWaShareBtnHTML === 'function')
 	{
 		var nm = prod && prod.name ? prod.name : '';
 		var pr = prod && prod.price != null ? prod.price : '';
 		html += epcWaShareBtnHTML(brand, article, nm, pr);
 	}
 	html += '</div>';
-	if(guestBlocked)
-	{
-		html += (typeof epc_storefront_commerce_login_cta_html !== 'undefined' && epc_storefront_commerce_login_cta_html)
-			? epc_storefront_commerce_login_cta_html
-			: (epc_storefront_price_login_cta_html || '');
-		html += '</div>';
-		return html;
-	}
 	if(showCart)
 	{
 		html += '<div class="epc-product-actions__buy">';
@@ -2412,14 +2417,13 @@ function epcManualQuoteButtonHTML(brand, article, articleShow, name)
 {
 	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
 	{
-		return '<div class="epc-product-actions epc-product-actions--quote-only">'
-			+ '<div class="epc-product-actions__tools">'
+		return '<div class="epc-product-actions epc-product-actions--guest">'
+			+ '<div class="epc-product-actions__tools epc-product-actions__tools--guest">'
 			+ epcFitmentCheckButtonHTML(brand, article)
-			+ '</div>'
 			+ ((typeof epc_storefront_commerce_login_cta_html !== 'undefined' && epc_storefront_commerce_login_cta_html)
 				? epc_storefront_commerce_login_cta_html
 				: (epc_storefront_price_login_cta_html || ''))
-			+ '</div>';
+			+ '</div></div>';
 	}
 	// Out-of-stock / catalog-only: Fitment → WhatsApp → Add to Quote (one row).
 	return '<div class="epc-product-actions epc-product-actions--quote-only">'
