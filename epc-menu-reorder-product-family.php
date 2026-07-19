@@ -1,7 +1,7 @@
 <?php
 /**
- * Top menu: Product Family directly after Vehicle parts catalog.
- * Run: https://www.epartscart.com/epc-menu-reorder-product-family.php
+ * Storefront menu: Product Family under Product only (no separate top-level item).
+ * Run: https://www.epartscart.com/epc-menu-reorder-product-family.php?token=...
  */
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -19,10 +19,11 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 function epc_menu_matches(array $item, array $needles): bool
 {
-	$href = isset($item['href']) ? (string)$item['href'] : '';
-	$inner = isset($item['a_innerhtml']) ? (string)$item['a_innerhtml'] : '';
+	$href = isset($item['href']) ? (string) $item['href'] : '';
+	$inner = isset($item['a_innerhtml']) ? (string) $item['a_innerhtml'] : '';
+	$value = isset($item['value']) ? (string) $item['value'] : '';
 	foreach ($needles as $n) {
-		if ($n !== '' && (strpos($href, $n) !== false || $inner === $n)) {
+		if ($n !== '' && (strpos($href, $n) !== false || $inner === $n || $value === $n)) {
 			return true;
 		}
 	}
@@ -33,42 +34,60 @@ function epc_menu_content_id(PDO $pdo, string $url): int
 {
 	$stmt = $pdo->prepare('SELECT `id` FROM `content` WHERE `is_frontend` = 1 AND `url` = ? LIMIT 1');
 	$stmt->execute(array($url));
-	return (int)$stmt->fetchColumn();
+	return (int) $stmt->fetchColumn();
 }
 
-$vehicleContentId = epc_menu_content_id($pdo, 'vehicle-catalog');
-$productFamilyContentId = epc_menu_content_id($pdo, 'product-family');
-
-function epc_menu_is_vehicle(array $item, int $vehicleContentId): bool
+function epc_menu_en_label(PDO $pdo, string $key): string
 {
-	return ($vehicleContentId > 0 && isset($item['content_id']) && (int)$item['content_id'] === $vehicleContentId)
-		|| epc_menu_matches($item, array('/vehicle-catalog', 'epc_menu_vehicle_catalog', 'vehicle-catalog'));
+	if ($key === '') {
+		return '';
+	}
+	$stmt = $pdo->prepare('SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ? LIMIT 1');
+	$stmt->execute(array($key, 'en'));
+	$v = $stmt->fetchColumn();
+	return $v !== false ? (string) $v : $key;
 }
+
+$productFamilyContentId = epc_menu_content_id($pdo, 'product-family');
 
 function epc_menu_is_product_family(array $item, int $productFamilyContentId): bool
 {
-	return ($productFamilyContentId > 0 && isset($item['content_id']) && (int)$item['content_id'] === $productFamilyContentId)
+	return ($productFamilyContentId > 0 && isset($item['content_id']) && (int) $item['content_id'] === $productFamilyContentId)
 		|| epc_menu_matches($item, array('/product-family', 'epc_menu_product_family', 'product-family'));
+}
+
+function epc_menu_is_product_parent(PDO $pdo, array $item): bool
+{
+	$key = '';
+	if (!empty($item['a_innerhtml'])) {
+		$key = (string) $item['a_innerhtml'];
+	} elseif (!empty($item['value'])) {
+		$key = (string) $item['value'];
+	}
+	if ($key === 'epc_menu_product') {
+		return true;
+	}
+	return strtolower(trim(epc_menu_en_label($pdo, $key))) === 'product';
 }
 
 $menuIds = array();
 $stmt = $pdo->query('SELECT `id` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id`');
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-	if ((int)$row['id'] === 15) {
-		$menuIds[] = (int)$row['id'];
+	if ((int) $row['id'] === 15) {
+		$menuIds[] = (int) $row['id'];
 	}
 }
 if (!$menuIds) {
 	$first = $pdo->query('SELECT `id` FROM `menu` WHERE `is_frontend` = 1 ORDER BY `id` LIMIT 1')->fetchColumn();
 	if ($first) {
-		$menuIds[] = (int)$first;
+		$menuIds[] = (int) $first;
 	}
 }
 
 foreach ($menuIds as $menuId) {
 	$stmt = $pdo->prepare('SELECT `structure` FROM `menu` WHERE `id` = ?');
 	$stmt->execute(array($menuId));
-	$structure = json_decode($stmt->fetchColumn(), true);
+	$structure = json_decode((string) $stmt->fetchColumn(), true);
 	if (!is_array($structure)) {
 		echo "Menu {$menuId}: invalid structure\n";
 		continue;
@@ -76,8 +95,6 @@ foreach ($menuIds as $menuId) {
 
 	$productFamilyItem = null;
 	$final = array();
-	$pfPlaced = false;
-
 	foreach ($structure as $item) {
 		if (!is_array($item)) {
 			continue;
@@ -89,10 +106,23 @@ foreach ($menuIds as $menuId) {
 			continue;
 		}
 		$final[] = $item;
-		if (epc_menu_is_vehicle($item, $vehicleContentId) && $productFamilyItem !== null && !$pfPlaced) {
-			$final[] = $productFamilyItem;
-			$pfPlaced = true;
+	}
+	$structure = $final;
+
+	$productIndex = null;
+	foreach ($structure as $index => $item) {
+		if (is_array($item) && epc_menu_is_product_parent($pdo, $item)) {
+			$productIndex = $index;
+			break;
 		}
+	}
+	if ($productIndex === null) {
+		echo "Menu {$menuId}: Product parent not found\n";
+		continue;
+	}
+
+	if (!isset($structure[$productIndex]['data']) || !is_array($structure[$productIndex]['data'])) {
+		$structure[$productIndex]['data'] = array();
 	}
 
 	if ($productFamilyItem === null) {
@@ -106,37 +136,34 @@ foreach ($menuIds as $menuId) {
 			'content_id' => $productFamilyContentId,
 			'href' => $productFamilyContentId ? '' : '/product-family',
 			'target' => '', 'onclick' => '', 'img_src' => '',
-			'$count' => 0, '$level' => 1, '$parent' => 0,
+			'$count' => 0, '$level' => 2, '$parent' => 0,
 			'id' => time() + 77,
 		);
+	} else {
+		$productFamilyItem['$level'] = 2;
+		$productFamilyItem['$parent'] = 1;
 	}
 
-	if (!$pfPlaced) {
-		$rebuilt = array();
-		$placed = false;
-		foreach ($final as $item) {
-			$rebuilt[] = $item;
-			if (!$placed && epc_menu_is_vehicle($item, $vehicleContentId)) {
-				$rebuilt[] = $productFamilyItem;
-				$placed = true;
-			}
+	$hasUnder = false;
+	foreach ($structure[$productIndex]['data'] as $ci => $child) {
+		if (is_array($child) && epc_menu_is_product_family($child, $productFamilyContentId)) {
+			$structure[$productIndex]['data'][$ci] = $productFamilyItem;
+			$hasUnder = true;
+			break;
 		}
-		if (!$placed) {
-			$rebuilt[] = $productFamilyItem;
-		}
-		$final = $rebuilt;
+	}
+	if (!$hasUnder) {
+		array_unshift($structure[$productIndex]['data'], $productFamilyItem);
+	}
+	if (isset($structure[$productIndex]['$count'])) {
+		$structure[$productIndex]['$count'] = count($structure[$productIndex]['data']);
 	}
 
-	$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(json_encode($final), $menuId));
-
-	$labels = array();
-	foreach ($final as $item) {
-		if (!is_array($item)) {
-			continue;
-		}
-		$labels[] = isset($item['a_innerhtml']) ? (string)$item['a_innerhtml'] : (isset($item['href']) ? (string)$item['href'] : '?');
-	}
-	echo "Menu {$menuId}:\n  " . implode("\n  ", $labels) . "\n\n";
+	$pdo->prepare('UPDATE `menu` SET `structure` = ? WHERE `id` = ?')->execute(array(
+		json_encode($structure, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+		$menuId,
+	));
+	echo "OK menu {$menuId}: Product Family under Product only\n";
 }
 
-echo "OK — Product Family is directly after Vehicle parts catalog.\n";
+echo "Done.\n";
