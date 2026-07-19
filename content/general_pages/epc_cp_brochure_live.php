@@ -83,7 +83,10 @@ function epc_cp_brochure_area_visuals(): array
 	if (is_file($topicFile)) {
 		require_once $topicFile;
 	}
-	$pick = static function (string $topic) use ($topicFile): string {
+	$pick = static function (string $topic): string {
+		if (function_exists('epc_cp_brochure_topic_svg_url')) {
+			return epc_cp_brochure_topic_svg_url($topic, 'chapter-' . $topic, ucfirst($topic), 'Chapter');
+		}
 		if (!function_exists('epc_cp_brochure_topic_catalog')) {
 			return '/content/general_pages/marketing_screens/og_cover.png';
 		}
@@ -376,6 +379,16 @@ function epc_cp_brochure_build_live_inventory(): array
 	$total = 0;
 	foreach ($out as $items) {
 		$total += count($items);
+	}
+
+	// One unique related photo per process (no repeats across the brochure).
+	$topicFile = __DIR__ . '/epc_cp_brochure_topic_photos.php';
+	if (is_file($topicFile)) {
+		require_once $topicFile;
+	}
+	if (function_exists('epc_cp_brochure_assign_unique_photos')) {
+		$GLOBALS['epc_cp_brochure_photo_map'] = epc_cp_brochure_assign_unique_photos($out);
+		$sources[] = 'unique topic photos (' . count($GLOBALS['epc_cp_brochure_photo_map']) . ')';
 	}
 
 	$built = array(

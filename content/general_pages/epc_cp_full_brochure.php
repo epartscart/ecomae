@@ -478,7 +478,7 @@ function epc_cp_brochure_render_deck_body(array $inv, array $visuals, int $total
 
 	return $stats
 		. '<section class="epc-br__sec"><h2>Complete illustrated book</h2>'
-		. '<p class="epc-br__pagehint">Every process uses a <strong>topic-related photo</strong> — warehouse shelves for inventory, banknotes for currency, parcels for orders, auto parts for catalogue. Chapters below are the Control Panel domains.</p></section>'
+		. '<p class="epc-br__pagehint">Every process has its own <strong>unique topic photo</strong> — no repeats. Inventory shows warehouse shelves, currency shows money, orders show parcels, catalogue shows auto parts.</p></section>'
 		. $mosaic
 		. $toolbar
 		. '<div class="epc-br__book">' . $areasHtml . '</div>';
