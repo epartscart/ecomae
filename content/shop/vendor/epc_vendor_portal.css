@@ -33,6 +33,18 @@
 	box-shadow: 0 18px 40px rgba(15, 23, 42, .08);
 }
 .epc-vp__card--wide { max-width: 720px; }
+.epc-vp__top-actions { margin: 0 0 8px; }
+.epc-vp__top-actions .epc-vp__btn { margin-top: 0; width: 100%; }
+.epc-vp__sticky-submit {
+	position: sticky;
+	bottom: 0;
+	margin: 18px -26px -24px;
+	padding: 12px 26px;
+	background: rgba(255,255,255,.96);
+	border-top: 1px solid var(--vp-line);
+	backdrop-filter: blur(6px);
+}
+.epc-vp__sticky-submit .epc-vp__btn { width: 100%; margin-top: 0; }
 .epc-vp__section {
 	margin: 22px 0 8px;
 	padding-top: 14px;
