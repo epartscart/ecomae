@@ -1,6 +1,6 @@
 <?php
 /**
- * One-window Order Management console (detail pane).
+ * One-window OMS console — daily ops: summary, items, customer, payment, docs, timeline, messages.
  * Expects: $order_id, $db_link, $DP_Config, $orders_statuses, $orders_items_statuses,
  *          $offices_list, $orders_items_statuses_not_count, $shop_orders_paid_type (optional),
  *          $storages_list (optional).
@@ -18,7 +18,7 @@ if (!function_exists('epc_orders_ws_h')) {
 
 $order_id = (int) ($order_id ?? 0);
 if ($order_id <= 0) {
-	echo '<div class="epc-scp-orders-detail__empty"><i class="fa fa-hand-pointer-o"></i><p>Select an order to manage</p><span class="text-muted small">One-window OMS: items, status timeline, supplier &amp; customer messages</span></div>';
+	echo '<div class="epc-scp-orders-detail__empty"><i class="fa fa-hand-pointer-o"></i><p>Select an order to manage</p><span class="text-muted small">One-window OMS: summary, items, customer, payment, invoices &amp; documents</span></div>';
 	return;
 }
 
@@ -27,10 +27,31 @@ for ($i = 0; $i < count($orders_items_statuses_not_count); $i++) {
 	$WHERE_statuses_not_count .= ' AND `status` != ' . (int) $orders_items_statuses_not_count[$i];
 }
 
+$INCOME_SQL = "IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 1 AND `order_id` = `shop_orders`.`id`), 0)";
+$ISSUE_SQL = "IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 0 AND `order_id` = `shop_orders`.`id`), 0)";
+$sub_balance_SQL = '';
+if (isset($DP_Config->wholesaler) && !empty($DP_Config->wholesaler)) {
+	$sub_balance_SQL = ' AND `office_id` = `shop_orders`.`office_id` ';
+}
+$INCOME_USER_SQL = "IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 1 AND `user_id` = `shop_orders`.`user_id` $sub_balance_SQL), 0)";
+$ISSUE_USER_SQL = "IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 0 AND `user_id` = `shop_orders`.`user_id` $sub_balance_SQL), 0)";
+
 $order_query = $db_link->prepare(
-	"SELECT *, (SELECT `caption` FROM `shop_obtaining_modes` WHERE `id` = `shop_orders`.`how_get`) AS `obtain_caption`,
-	CAST((SELECT SUM(`price`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` $WHERE_statuses_not_count) AS DECIMAL(20,2)) AS `price_sum`,
-	CAST((SELECT SUM(`t2_price_purchase`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` $WHERE_statuses_not_count) AS DECIMAL(20,2)) AS `purchase_sum`
+	"SELECT *,
+		(SELECT `caption` FROM `shop_obtaining_modes` WHERE `id` = `shop_orders`.`how_get`) AS `obtain_caption`,
+		CAST((SELECT SUM(`price`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` $WHERE_statuses_not_count) AS DECIMAL(20,2)) AS `price_sum`,
+		CAST((SELECT SUM(`t2_price_purchase`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` $WHERE_statuses_not_count) AS DECIMAL(20,2)) AS `purchase_sum`,
+		CAST(($ISSUE_SQL - $INCOME_SQL) AS DECIMAL(20,2)) AS `paid_sum`,
+		CAST(($INCOME_USER_SQL - $ISSUE_USER_SQL) AS DECIMAL(20,2)) AS `customer_balance`,
+		CAST((
+			(SELECT SUM(`price`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = `shop_orders`.`id` $WHERE_statuses_not_count)
+			- ($ISSUE_SQL - $INCOME_SQL)
+		) AS DECIMAL(20,2)) AS `paid_left`,
+		GREATEST(
+			IFNULL((SELECT MAX(`time`) FROM `shop_orders_logs` WHERE `order_id` = `shop_orders`.`id`), 0),
+			IFNULL((SELECT MAX(`time`) FROM `shop_orders_messages` WHERE `order_id` = `shop_orders`.`id`), 0),
+			`shop_orders`.`time`
+		) AS `last_modified`
 	FROM `shop_orders` WHERE `id` = ? LIMIT 1"
 );
 $order_query->execute(array($order_id));
@@ -66,12 +87,19 @@ $db_link->prepare('UPDATE `shop_orders_messages` SET `read` = 1 WHERE `order_id`
 $status = (int) $order['status'];
 $paid = (int) $order['paid'];
 $paid_type = (int) ($order['paid_type'] ?? 0);
+$customer_id = (int) ($order['user_id'] ?? 0);
 $backend = trim((string) $DP_Config->backend_dir, '/');
 if ($backend === '') {
 	$backend = 'cp';
 }
 $fullUrl = '/' . $backend . '/shop/orders/order?order_id=' . $order_id;
 $canEditItems = ($paid === 0);
+$csrf = '';
+if (!empty($GLOBALS['user_session']['csrf_guard_key'])) {
+	$csrf = (string) $GLOBALS['user_session']['csrf_guard_key'];
+} elseif (isset($user_session) && !empty($user_session['csrf_guard_key'])) {
+	$csrf = (string) $user_session['csrf_guard_key'];
+}
 
 $items_query = $db_link->prepare('SELECT * FROM `shop_orders_items` WHERE `order_id` = ? ORDER BY `id`');
 $items_query->execute(array($order_id));
@@ -97,46 +125,70 @@ try {
 
 $customer_label = '';
 $customer_name = '';
-if ((int) $order['user_id'] > 0) {
+$customer_email = '';
+$customer_phone = '';
+if ($customer_id > 0) {
 	$u = $db_link->prepare('SELECT `email`, `phone` FROM `users` WHERE `user_id` = ? LIMIT 1');
-	$u->execute(array($order['user_id']));
-	$ur = $u->fetch(PDO::FETCH_ASSOC);
-	$customer_label = 'ID ' . (int) $order['user_id'];
-	if (!empty($ur['email'])) {
-		$customer_label .= ' · ' . $ur['email'];
+	$u->execute(array($customer_id));
+	$ur = $u->fetch(PDO::FETCH_ASSOC) ?: array();
+	$customer_email = (string) ($ur['email'] ?? '');
+	$customer_phone = (string) ($ur['phone'] ?? '');
+	$customer_label = 'ID ' . $customer_id;
+	if ($customer_email !== '') {
+		$customer_label .= ' · ' . $customer_email;
 	}
-	if (!empty($ur['phone'])) {
-		$customer_label .= ' · ' . $ur['phone'];
+	if ($customer_phone !== '') {
+		$customer_label .= ' · ' . $customer_phone;
 	}
 	try {
 		$pn = $db_link->prepare("SELECT MAX(CASE WHEN `data_key` IN ('name','first_name') THEN `value` END) AS n, MAX(CASE WHEN `data_key` IN ('surname','last_name') THEN `value` END) AS s FROM `users_profiles` WHERE `user_id` = ?");
-		$pn->execute(array($order['user_id']));
+		$pn->execute(array($customer_id));
 		$pr = $pn->fetch(PDO::FETCH_ASSOC);
 		$customer_name = trim((string) ($pr['n'] ?? '') . ' ' . (string) ($pr['s'] ?? ''));
 	} catch (Throwable $e) {
 	}
 } else {
-	$customer_label = translate_str_by_id(3549) . ' (ID 0)';
-	if (!empty($order['phone_not_auth'])) {
-		$customer_label .= ' · ' . $order['phone_not_auth'];
+	$customer_label = translate_str_by_id(3549) . ' (guest)';
+	$customer_phone = (string) ($order['phone_not_auth'] ?? '');
+	$customer_email = (string) ($order['email_not_auth'] ?? '');
+	if ($customer_phone !== '') {
+		$customer_label .= ' · ' . $customer_phone;
 	}
-	if (!empty($order['email_not_auth'])) {
-		$customer_label .= ' · ' . $order['email_not_auth'];
+	if ($customer_email !== '') {
+		$customer_label .= ' · ' . $customer_email;
 	}
 }
 
 $priceSum = (float) $order['price_sum'];
 $purchaseSum = (float) ($order['purchase_sum'] ?? 0);
 $benefit = $priceSum - $purchaseSum;
+$paidSum = (float) ($order['paid_sum'] ?? 0);
+$paidLeft = (float) ($order['paid_left'] ?? max(0, $priceSum - $paidSum));
+$customerBalance = (float) ($order['customer_balance'] ?? 0);
+$lastMod = (int) ($order['last_modified'] ?? $order['time']);
+$userMgrUrl = '/' . $backend . '/users/usermanager?user_id=' . $customer_id;
+
+$itemIds = array();
+foreach ($items as $it) {
+	$itemIds[] = (int) $it['id'];
+}
+$itemIdsJson = htmlspecialchars(json_encode($itemIds), ENT_QUOTES, 'UTF-8');
+
+$dcBase = '/content/shop/document_control/service/print.php?order_id=' . $order_id . '&doc=';
+$legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $order_id
+	. '&csrf_admin=1&csrf_guard_key=' . rawurlencode($csrf)
+	. '&order_items=' . rawurlencode(json_encode($itemIds))
+	. '&doc_name=';
 ?>
-<div class="epc-od epc-od--oms" data-order-id="<?php echo (int) $order_id; ?>" data-can-edit="<?php echo $canEditItems ? '1' : '0'; ?>">
+<div class="epc-od epc-od--oms" data-order-id="<?php echo (int) $order_id; ?>" data-can-edit="<?php echo $canEditItems ? '1' : '0'; ?>" data-paid-left="<?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', '')); ?>" data-customer-balance="<?php echo epc_orders_ws_h(number_format($customerBalance, 2, '.', '')); ?>" data-customer-id="<?php echo (int) $customer_id; ?>" data-item-ids="<?php echo $itemIdsJson; ?>">
 	<div class="epc-od__head">
 		<div class="epc-od__title-row">
 			<h3 class="epc-od__title">Order #<?php echo (int) $order_id; ?> <span class="epc-od__oms-tag">OMS</span></h3>
 			<span id="epc_od_status_badge"><?php echo epc_orders_ws_status_badge($status, $orders_statuses, $db_link); ?></span>
 		</div>
 		<div class="epc-od__meta">
-			<span><i class="fa fa-clock-o"></i> <?php echo epc_orders_ws_h(date('d.m.Y H:i', (int) $order['time'])); ?></span>
+			<span><i class="fa fa-clock-o"></i> Created <?php echo epc_orders_ws_h(date('d.m.Y H:i', (int) $order['time'])); ?></span>
+			<span><i class="fa fa-refresh"></i> Modified <?php echo epc_orders_ws_h(date('d.m.Y H:i', $lastMod)); ?></span>
 			<span><i class="fa fa-building-o"></i> <?php echo epc_orders_ws_h(translate_str_by_id($offices_list[$order['office_id']])); ?></span>
 			<span><i class="fa fa-truck"></i> <?php echo epc_orders_ws_h(translate_str_by_id($order['obtain_caption'])); ?></span>
 		</div>
@@ -151,8 +203,10 @@ $benefit = $priceSum - $purchaseSum;
 			<?php if ($customer_name !== '') { ?><strong><?php echo epc_orders_ws_h($customer_name); ?></strong> · <?php } ?>
 			<?php echo epc_orders_ws_h($customer_label); ?>
 		</div>
-		<div class="epc-od__totals">
+		<div class="epc-od__totals epc-od__totals--5">
 			<div><span>Amount</span><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ' ')); ?></strong></div>
+			<div><span>Paid</span><strong class="is-ok"><?php echo epc_orders_ws_h(number_format($paidSum, 2, '.', ' ')); ?></strong></div>
+			<div><span>Balance due</span><strong class="<?php echo $paidLeft > 0 ? 'is-bad' : 'is-ok'; ?>"><?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', ' ')); ?></strong></div>
 			<div><span>Purchase</span><strong><?php echo epc_orders_ws_h(number_format($purchaseSum, 2, '.', ' ')); ?></strong></div>
 			<div><span>Benefit</span><strong class="<?php echo $benefit >= 0 ? 'is-ok' : 'is-bad'; ?>"><?php echo epc_orders_ws_h(number_format($benefit, 2, '.', ' ')); ?></strong></div>
 		</div>
@@ -163,6 +217,9 @@ $benefit = $priceSum - $purchaseSum;
 	<nav class="epc-od__tabs" role="tablist">
 		<button type="button" class="is-active" data-epc-od-tab="manage">Manage</button>
 		<button type="button" data-epc-od-tab="items">Items (<?php echo count($items); ?>)</button>
+		<button type="button" data-epc-od-tab="customer">Customer</button>
+		<button type="button" data-epc-od-tab="payment">Payment</button>
+		<button type="button" data-epc-od-tab="docs">Invoice / docs</button>
 		<button type="button" data-epc-od-tab="timeline">Status / time</button>
 		<button type="button" data-epc-od-tab="messages">Messages (<?php echo count($messages); ?>)</button>
 	</nav>
@@ -186,8 +243,10 @@ $benefit = $priceSum - $purchaseSum;
 			</div>
 		</div>
 		<div class="epc-od__actions">
+			<button type="button" class="btn btn-default btn-sm" onclick="epcOmsGotoTab('payment');"><i class="fa fa-credit-card"></i> Payment</button>
+			<button type="button" class="btn btn-default btn-sm" onclick="epcOmsGotoTab('docs');"><i class="fa fa-file-text-o"></i> Invoice / docs</button>
+			<button type="button" class="btn btn-default btn-sm" onclick="epcOmsGotoTab('customer');"><i class="fa fa-user"></i> Customer</button>
 			<a class="btn btn-default btn-sm" href="<?php echo epc_orders_ws_h($fullUrl); ?>"><i class="fa fa-external-link"></i> Classic full card</a>
-			<a class="btn btn-default btn-sm" href="<?php echo epc_orders_ws_h($fullUrl); ?>#order_items"><i class="fa fa-print"></i> Print / pay</a>
 		</div>
 		<div id="epc-order-fulfillment-panel-<?php echo (int) $order_id; ?>" class="epc-scp-orders-detail__erp-fulfillment"></div>
 	</section>
@@ -208,12 +267,14 @@ $benefit = $priceSum - $purchaseSum;
 				$itemStatus = (int) $item['status'];
 				$storageId = (int) ($item['t2_storage_id'] ?? 0);
 				$storageName = $storages_list[$storageId] ?? ($item['t2_storage'] ?? '—');
+				$lineTotal = (float) $item['price'] * (int) $item['count_need'];
 				?>
 			<article class="epc-od__item-card" data-item-id="<?php echo $itemId; ?>">
 				<header>
 					<div>
 						<strong><?php echo epc_orders_ws_h($item['t2_manufacturer']); ?></strong>
 						<code><?php echo epc_orders_ws_h($item['t2_article']); ?></code>
+						<span class="epc-od__item-line-total"><?php echo epc_orders_ws_h(number_format($lineTotal, 2, '.', ' ')); ?></span>
 					</div>
 					<span class="epc-scp-badge epc-scp-badge--normal"><?php echo epc_orders_ws_h(translate_str_by_id($orders_items_statuses[$itemStatus]['name'] ?? '')); ?></span>
 				</header>
@@ -258,6 +319,87 @@ $benefit = $priceSum - $purchaseSum;
 			</article>
 			<?php } ?>
 			<?php } ?>
+		</div>
+	</section>
+
+	<section class="epc-od__panel" data-epc-od-panel="customer">
+		<div class="epc-od__customer-panel">
+			<div class="epc-od__edit-title">Customer</div>
+			<div class="epc-od__kv">
+				<div><span>Name</span><strong><?php echo epc_orders_ws_h($customer_name !== '' ? $customer_name : '—'); ?></strong></div>
+				<div><span>Type</span><strong><?php echo $customer_id > 0 ? 'Registered #' . $customer_id : 'Guest'; ?></strong></div>
+				<div><span>Email</span><strong><?php echo epc_orders_ws_h($customer_email !== '' ? $customer_email : '—'); ?></strong></div>
+				<div><span>Phone</span><strong><?php echo epc_orders_ws_h($customer_phone !== '' ? $customer_phone : '—'); ?></strong></div>
+				<?php if ($customer_id > 0) { ?>
+				<div><span>Account balance</span><strong><?php echo epc_orders_ws_h(number_format($customerBalance, 2, '.', ' ')); ?></strong></div>
+				<?php } ?>
+			</div>
+			<div class="epc-od__actions">
+				<?php if ($customer_id > 0) { ?>
+				<a class="btn btn-default btn-sm" href="<?php echo epc_orders_ws_h($userMgrUrl); ?>"><i class="fa fa-user"></i> Open customer account</a>
+				<button type="button" class="btn btn-default btn-sm" onclick="showCustomerModalInfo(<?php echo (int) $customer_id; ?>);"><i class="fa fa-info-circle"></i> Quick profile</button>
+				<?php } ?>
+				<button type="button" class="btn btn-primary btn-sm" onclick="epcOmsGotoTab('messages');"><i class="fa fa-envelope"></i> Message customer</button>
+			</div>
+		</div>
+	</section>
+
+	<section class="epc-od__panel" data-epc-od-panel="payment">
+		<div class="epc-od__pay">
+			<div class="epc-od__edit-title">Payment</div>
+			<div class="epc-od__kv">
+				<div><span>Order amount</span><strong><?php echo epc_orders_ws_h(number_format($priceSum, 2, '.', ' ')); ?></strong></div>
+				<div><span>Paid</span><strong class="is-ok"><?php echo epc_orders_ws_h(number_format($paidSum, 2, '.', ' ')); ?></strong></div>
+				<div><span>Balance due</span><strong class="<?php echo $paidLeft > 0 ? 'is-bad' : 'is-ok'; ?>"><?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', ' ')); ?></strong></div>
+				<div><span>Paid flag</span><strong><?php echo (int) $paid; ?></strong></div>
+				<?php if (!empty($shop_orders_paid_type[$paid_type])) { ?>
+				<div><span>Method</span><strong><?php echo epc_orders_ws_h(translate_str_by_id($shop_orders_paid_type[$paid_type])); ?></strong></div>
+				<?php } ?>
+			</div>
+			<?php if ($paidLeft > 0.0001) { ?>
+			<div class="epc-od__edit" style="margin-top:12px;">
+				<div class="epc-od__edit-title">Record payment</div>
+				<div class="epc-od__edit-row">
+					<label for="epc_od_pay_value">Amount</label>
+					<input type="number" step="0.01" min="0.01" id="epc_od_pay_value" class="form-control" value="<?php echo epc_orders_ws_h(number_format($paidLeft, 2, '.', '')); ?>" />
+				</div>
+				<?php if ($customer_id > 0) { ?>
+				<div class="epc-od__pay-source">
+					<label><input type="radio" name="epc_od_pay_source" value="1" checked /> Direct payment (cash / card / transfer)</label>
+					<label><input type="radio" name="epc_od_pay_source" value="0" /> From customer balance (<?php echo epc_orders_ws_h(number_format($customerBalance, 2, '.', ' ')); ?>)</label>
+				</div>
+				<?php } else { ?>
+				<input type="hidden" name="epc_od_pay_source" value="1" />
+				<?php } ?>
+				<button type="button" class="btn btn-success btn-sm" onclick="epcOmsPayOrder(<?php echo (int) $order_id; ?>);"><i class="fa fa-check"></i> Apply payment</button>
+			</div>
+			<?php } else { ?>
+			<p class="text-success" style="margin-top:10px;"><i class="fa fa-check-circle"></i> Order is fully paid.</p>
+			<?php } ?>
+			<?php if ($paidSum > 0) { ?>
+			<div class="epc-od__actions" style="margin-top:12px;">
+				<button type="button" class="btn btn-default btn-sm" onclick="epcOmsRefundOrder(<?php echo (int) $order_id; ?>, 0);"><i class="fa fa-undo"></i> Refund to balance</button>
+				<button type="button" class="btn btn-warning btn-sm" onclick="epcOmsRefundOrder(<?php echo (int) $order_id; ?>, 1);"><i class="fa fa-money"></i> Direct refund</button>
+			</div>
+			<?php } ?>
+		</div>
+	</section>
+
+	<section class="epc-od__panel" data-epc-od-panel="docs">
+		<div class="epc-od__docs">
+			<div class="epc-od__edit-title">Invoice &amp; documents</div>
+			<p class="text-muted small">Open documents for this order in a new tab. Document Control templates + classic print docs.</p>
+			<div class="epc-od__doc-grid">
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'fta_tax_invoice'); ?>"><i class="fa fa-file-text"></i> UAE tax invoice</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'packing_slip'); ?>"><i class="fa fa-truck"></i> Packing slip</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'delivery_note'); ?>"><i class="fa fa-file-o"></i> Delivery note</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'payment_receipt'); ?>"><i class="fa fa-receipt"></i> Payment receipt</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($legacyPrintBase . 'invoice_for_payment'); ?>"><i class="fa fa-print"></i> Invoice for payment</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($legacyPrintBase . 'sales_receipt'); ?>"><i class="fa fa-print"></i> Sales receipt</a>
+			</div>
+			<div class="epc-od__actions" style="margin-top:12px;">
+				<a class="btn btn-default btn-sm" href="/<?php echo epc_orders_ws_h($backend); ?>/shop/document_control/document_control?order_id=<?php echo (int) $order_id; ?>"><i class="fa fa-folder-open"></i> Document Control module</a>
+			</div>
 		</div>
 	</section>
 
@@ -309,19 +451,3 @@ $benefit = $priceSum - $purchaseSum;
 		</div>
 	</section>
 </div>
-<script>
-(function(){
-	var root=document.querySelector('.epc-od--oms[data-order-id="<?php echo (int) $order_id; ?>"]');
-	if(!root||root.getAttribute('data-tabs-bound')==='1') return;
-	root.setAttribute('data-tabs-bound','1');
-	var tabs=root.querySelectorAll('[data-epc-od-tab]');
-	var panels=root.querySelectorAll('[data-epc-od-panel]');
-	tabs.forEach(function(btn){
-		btn.addEventListener('click', function(){
-			var id=btn.getAttribute('data-epc-od-tab');
-			tabs.forEach(function(b){ b.classList.toggle('is-active', b===btn); });
-			panels.forEach(function(p){ p.classList.toggle('is-active', p.getAttribute('data-epc-od-panel')===id); });
-		});
-	});
-})();
-</script>

@@ -171,8 +171,31 @@
 		}
 	}
 
+	function epcBindOmsTabs(root) {
+		if (!root || root.getAttribute('data-tabs-bound') === '1') {
+			return;
+		}
+		root.setAttribute('data-tabs-bound', '1');
+		var tabs = root.querySelectorAll('[data-epc-od-tab]');
+		var panels = root.querySelectorAll('[data-epc-od-panel]');
+		Array.prototype.forEach.call(tabs, function (btn) {
+			btn.addEventListener('click', function () {
+				var id = btn.getAttribute('data-epc-od-tab');
+				Array.prototype.forEach.call(tabs, function (b) {
+					b.classList.toggle('is-active', b === btn);
+				});
+				Array.prototype.forEach.call(panels, function (p) {
+					p.classList.toggle('is-active', p.getAttribute('data-epc-od-panel') === id);
+				});
+			});
+		});
+	}
+
 	function epcInitOmsPane(orderId) {
 		epcMarkWorkspaceActive(orderId);
+		var root = document.querySelector('.epc-od--oms[data-order-id="' + orderId + '"]')
+			|| document.querySelector('.epc-od--oms');
+		epcBindOmsTabs(root);
 		if (window.epcOrdersFulfillment && urls.erpAjax) {
 			var mount = document.getElementById('epc-order-fulfillment-panel-' + orderId);
 			if (mount) {
@@ -184,6 +207,89 @@
 			}
 		}
 	}
+
+	window.epcOmsGotoTab = function (tabId) {
+		var btn = document.querySelector('.epc-od--oms [data-epc-od-tab="' + tabId + '"]');
+		if (btn) {
+			btn.click();
+		}
+	};
+
+	window.epcOmsPayOrder = function (orderId) {
+		var input = document.getElementById('epc_od_pay_value');
+		var root = document.querySelector('.epc-od--oms[data-order-id="' + orderId + '"]');
+		var payValue = input ? parseFloat(input.value) : NaN;
+		var maxLeft = root ? parseFloat(root.getAttribute('data-paid-left') || '0') : 0;
+		if (!payValue || isNaN(payValue) || payValue <= 0) {
+			epcOdToast(msg.payEmpty || 'Enter a payment amount', false);
+			return;
+		}
+		if (payValue > maxLeft + 0.001) {
+			epcOdToast(msg.payTooMuch || 'Amount exceeds balance due', false);
+			return;
+		}
+		var directPay = 1;
+		var src = document.querySelector('input[name="epc_od_pay_source"]:checked');
+		if (src) {
+			directPay = parseInt(src.value, 10);
+		}
+		if (directPay === 0) {
+			var bal = root ? parseFloat(root.getAttribute('data-customer-balance') || '0') : 0;
+			if (payValue > bal && !window.confirm(msg.payBalanceWarn || 'Customer balance is lower than this amount. Continue?')) {
+				return;
+			}
+		}
+		jQuery.ajax({
+			type: 'GET',
+			url: urls.payForOrder || '/content/shop/protocol/pay_for_order.php',
+			dataType: 'json',
+			data: {
+				order_id: orderId,
+				pay_sum: payValue.toFixed(2),
+				direct_pay: directPay,
+				initiator: 1,
+				csrf_guard_key: cfg.csrf || ''
+			},
+			success: function (answer) {
+				if (answer && answer.status === true) {
+					epcOdToast(msg.payOk || 'Payment recorded', true);
+					epcLoadOrderDetail(orderId);
+				} else {
+					epcOdToast((answer && answer.message) || msg.payFail || 'Payment failed', false);
+				}
+			},
+			error: function () {
+				epcOdToast(msg.payFail || 'Payment failed', false);
+			}
+		});
+	};
+
+	window.epcOmsRefundOrder = function (orderId, directRefund) {
+		if (!window.confirm(msg.refundConfirm || 'Refund this order payment?')) {
+			return;
+		}
+		jQuery.ajax({
+			type: 'GET',
+			url: urls.payRefund || '',
+			dataType: 'json',
+			data: {
+				order_id: orderId,
+				direct_refund: directRefund ? 1 : 0,
+				csrf_guard_key: cfg.csrf || ''
+			},
+			success: function (answer) {
+				if (answer && answer.status === true) {
+					epcOdToast(msg.refundOk || 'Refund completed', true);
+					epcLoadOrderDetail(orderId);
+				} else {
+					epcOdToast((answer && answer.message) || msg.refundFail || 'Refund failed', false);
+				}
+			},
+			error: function () {
+				epcOdToast(msg.refundFail || 'Refund failed', false);
+			}
+		});
+	};
 
 	window.epcLoadOrderDetail = function (orderId) {
 		if (!orderId) {
