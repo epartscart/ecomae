@@ -873,20 +873,25 @@ function epc_cp_portal_menu_apply(PDO $pdo)
 }
 
 /**
- * Shop sidebar — explicit "Orders" link (/cp/shop/orders/orders) under Shop (alongside Logistics → Customer orders).
+ * Shop sidebar — single "OMS · Orders" entry (/cp/shop/orders/orders).
+ * Removes separate Orders items / Orders statuses menu rows (content routes remain).
  *
- * @return array{shop_group:int,shop_orders_item:int,order:int}
+ * @return array{shop_group:int,shop_orders_item:int,order:int,removed:int}
  */
 function epc_cp_shop_orders_menu_apply(PDO $pdo)
 {
-	epc_cp_mm_lang($pdo, '282', 'Orders', 'Заказы');
-	epc_cp_mm_lang($pdo, '284', 'Orders', 'Заказы');
-	epc_cp_mm_lang($pdo, 'epc_shop_orders_cp', 'Orders', 'Заказы');
+	// One OMS entry in Shop — not separate Orders / Items / Statuses sidebar rows.
+	epc_cp_mm_lang($pdo, '282', 'OMS · Orders', 'OMS · Заказы');
+	epc_cp_mm_lang($pdo, '284', 'OMS · Orders', 'OMS · Заказы');
+	epc_cp_mm_lang($pdo, 'epc_shop_orders_cp', 'OMS · Orders', 'OMS · Заказы');
+	epc_cp_mm_lang($pdo, 'epc_oms_orders_cp', 'OMS · Orders', 'OMS · Заказы');
+	epc_cp_mm_lang($pdo, 'epc_oms_guide_cp', 'OMS daily guide', 'OMS — ежедневный гид');
+	epc_cp_mm_lang($pdo, 'epc_logistics_orders_cp', 'OMS · Orders', 'OMS · Заказы');
 
 	$shop = epc_cp_mm_find_shop_group($pdo);
 	$shopGroupId = (int) ($shop['id'] ?? 0);
 	if ($shopGroupId <= 0) {
-		return array('shop_group' => 0, 'shop_orders_item' => 0, 'order' => 0);
+		return array('shop_group' => 0, 'shop_orders_item' => 0, 'order' => 0, 'removed' => 0);
 	}
 
 	$ordersUrl = '/<backend>/shop/orders/orders';
@@ -917,27 +922,65 @@ function epc_cp_shop_orders_menu_apply(PDO $pdo)
 	if ($itemId > 0) {
 		$pdo->prepare(
 			'UPDATE `control_items` SET `caption` = ?, `order` = ?, `background_color` = ?, `fontawesome_class` = ?, `show_anyway` = 0 WHERE `id` = ?'
-		)->execute(array('282', $orderSlot, '#2563eb', 'fas fa-shopping-cart', $itemId));
+		)->execute(array('epc_oms_orders_cp', $orderSlot, '#0f766e', 'fas fa-columns', $itemId));
 	} else {
 		$pdo->prepare(
 			'INSERT INTO `control_items` (`items_group`, `caption`, `url`, `img`, `order`, `background_color`, `fontawesome_class`, `target`, `show_anyway`)
 			 VALUES (?, ?, ?, \'\', ?, ?, ?, \'\', 0)'
-		)->execute(array($shopGroupId, '282', $ordersUrl, $orderSlot, '#2563eb', 'fas fa-shopping-cart'));
+		)->execute(array($shopGroupId, 'epc_oms_orders_cp', $ordersUrl, $orderSlot, '#0f766e', 'fas fa-columns'));
 		$itemId = (int) $pdo->lastInsertId();
 	}
+
+	$removed = epc_cp_oms_menu_cleanup($pdo, $shopGroupId, $itemId);
 
 	return array(
 		'shop_group' => $shopGroupId,
 		'shop_orders_item' => $itemId,
 		'order' => $orderSlot,
+		'removed' => $removed,
 	);
 }
 
 /**
- * Legacy Docpart SYSTEM menu rows — hidden on Super CP and tenant CP.
- *
- * @return array<int, string> URL substrings (lowercase)
+ * Remove separate Shop sidebar rows for order items / statuses (routes stay published).
+ * Keeps the single OMS · Orders item (+ carts / quotes / SAO if present).
  */
+function epc_cp_oms_menu_cleanup(PDO $pdo, $shopGroupId, $keepOrdersItemId)
+{
+	$removed = 0;
+	$keepOrdersItemId = (int) $keepOrdersItemId;
+	$shopGroupId = (int) $shopGroupId;
+
+	// Remove sidebar rows for statuses / items list pages (keep deep routes published).
+	$st = $pdo->query(
+		"SELECT `id`, `url` FROM `control_items`
+		 WHERE `url` LIKE '%/shop/orders/statuses%'
+		    OR (`url` LIKE '%/shop/orders/items%' AND `url` NOT LIKE '%/shop/orders/items/%')"
+	);
+	while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+		$id = (int) $row['id'];
+		$url = preg_replace('#\?.*$#', '', (string) $row['url']);
+		if ($id === $keepOrdersItemId) {
+			continue;
+		}
+		if (
+			preg_match('#/shop/orders/statuses/?$#', $url)
+			|| preg_match('#/shop/orders/items/?$#', $url)
+		) {
+			$pdo->prepare('DELETE FROM `control_items` WHERE `id` = ?')->execute(array($id));
+			$removed++;
+		}
+	}
+
+	// Align Logistics "Customer orders" label with OMS
+	$pdo->prepare(
+		"UPDATE `control_items` SET `caption` = 'epc_oms_orders_cp', `fontawesome_class` = 'fas fa-columns', `background_color` = '#0f766e'
+		 WHERE `url` = '/<backend>/shop/orders/orders' AND `id` != ?"
+	)->execute(array($keepOrdersItemId));
+
+	return $removed;
+}
+
 function epc_cp_system_menu_hidden_url_patterns()
 {
 	return array(

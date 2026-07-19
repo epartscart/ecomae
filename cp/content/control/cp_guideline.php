@@ -41,10 +41,11 @@ function epc_cpg_page_hints()
 		'/shop/prices/guide' => 'Step-by-step: upload CSV price lists, multi-vendor Excel, map columns, import to warehouse stock.',
 		'/shop/prices/prices_edit' => 'Browse imported price rows, preview site price per customer profile, edit lines.',
 		'/shop/prices' => 'Price list manager — upload, schedule, and monitor supplier price files.',
+		'/shop/orders/oms-guide' => 'Daily OMS: open queue → console areas (items, pay, docs, status, messages) → complete.',
 		'/shop/orders/guide' => 'Full order workflow: registration → checkout → emails → supplier LPO → CP processing.',
 		'/shop/orders/whatsapp-guide' => 'WhatsApp Phase 1: wa.me share buttons — customer quotes, staff order/LPO messages (EN+AR).',
 		'/shop/marketing/marketing' => 'Marketing & growth — 10 strategies (SEO, ads, marketplaces, WhatsApp, trust, international, email, B2B) with follow/review/KPI tracking.',
-		'/shop/orders/orders' => 'Open orders, change status, edit lines, print documents, contact customer.',
+		'/shop/orders/orders' => 'OMS one-page console: open orders, manage items/payment/docs/status/messages.',
 		'/shop/parts_agent_chats' => 'Review AI Parts Expert chat sessions — customer details, country, full transcript.',
 		'/shop/logistics' => 'Hub for warehouses, pickup points, delivery modes, and stock management.',
 		'/shop/logistics/storages' => 'Warehouses — address, LPO e-mail for supplier purchase orders.',
@@ -131,6 +132,10 @@ epc_cp_page_frame_open(array(
 	<a href="<?=epc_cpg_h($base_cp . '/shop/prices/guide');?>">
 		<strong>Price upload guide</strong>
 		<span>Import supplier CSV price lists into warehouse stock.</span>
+	</a>
+	<a href="<?=epc_cpg_h($base_cp . '/shop/orders/oms-guide');?>">
+		<strong>OMS daily guide</strong>
+		<span>Step-by-step areas: open queue → items → payment → docs → status → messages → complete.</span>
 	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/shop/orders/guide');?>">
 		<strong>Order fulfilment guide</strong>

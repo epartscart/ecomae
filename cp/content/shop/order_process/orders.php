@@ -150,9 +150,10 @@ else//Действий нет - выводим страницу
 		<div class="epc-orders-page__hero">
 			<div>
 				<h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
-				<p>Open the left list, work the order on the right: items, customer, payment, documents, status, and messages — one screen.</p>
+				<p>One-window order management: list on the left, full console on the right — items, payment, documents, status, and messages. Follow the daily guide for step-by-step areas.</p>
 			</div>
 			<div class="epc-orders-page__hero-actions">
+				<a class="btn btn-primary btn-sm" href="/<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/orders/oms-guide"><i class="fa fa-book"></i> OMS daily guide</a>
 				<button type="button" class="btn btn-default btn-sm" onclick="sortOrders('id');" title="Order number sequence"><i class="fa fa-sort-numeric-desc"></i> By order #</button>
 				<button type="button" class="btn btn-default btn-sm" onclick="sortOrders('last_modified');" title="Last activity / modification"><i class="fa fa-clock-o"></i> By last modified</button>
 			</div>
@@ -394,8 +395,9 @@ else//Действий нет - выводим страницу
 					<p class="epc-oms-hint">Select a row — OMS console opens on the right</p>
 				</div>
 				<span>
-					<a class="btn btn-success btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/whatsapp-guide"><i class="fa fa-whatsapp"></i> WhatsApp guide</a>
-					<a class="btn btn-info btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/guide"><i class="fa fa-book"></i> Order fulfilment guide</a>
+					<a class="btn btn-primary btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/oms-guide"><i class="fa fa-book"></i> OMS daily guide</a>
+					<a class="btn btn-success btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/whatsapp-guide"><i class="fa fa-whatsapp"></i> WhatsApp</a>
+					<a class="btn btn-default btn-xs" href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/guide"><i class="fa fa-truck"></i> Fulfilment</a>
 				</span>
 			</div>
 				<div class="table-responsive">
