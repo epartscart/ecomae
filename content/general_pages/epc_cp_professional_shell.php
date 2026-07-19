@@ -1558,6 +1558,11 @@ function epc_cp_shell_enqueue_assets($includeLoginHero = false)
 		ENT_QUOTES,
 		'UTF-8'
 	) . '" />' . "\n";
+	echo '<link rel="stylesheet" href="' . htmlspecialchars(
+		epc_cp_shell_asset_href($base . 'epc_cp_density.css', '/content/general_pages/epc_cp_density_css.php'),
+		ENT_QUOTES,
+		'UTF-8'
+	) . '" />' . "\n";
 	epc_ecomae_hub_logo_enqueue();
 	if ($includeLoginHero) {
 		epc_cp_login_hero_enqueue();
@@ -1610,6 +1615,7 @@ function epc_cp_shell_inline_style_block()
 	$files = array(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_ui.css',
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_professional.css',
+		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_density.css',
 		'/content/general_pages/epc_ecomae_hub_logo.css',
 	);
 	$css = '';
