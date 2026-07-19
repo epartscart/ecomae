@@ -5,6 +5,11 @@
  */
 declare(strict_types=1);
 
+// Must emit pure JS — never HTML warnings (breaks OMS boot in the browser).
+@ini_set('display_errors', '0');
+@ini_set('html_errors', '0');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_NOTICE & ~E_STRICT);
+
 header('Content-Type: application/javascript; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
@@ -21,7 +26,13 @@ try {
 	if (is_file($docRoot . '/content/general_pages/epc_portal.php')) {
 		require_once $docRoot . '/content/general_pages/epc_portal.php';
 		if (function_exists('epc_portal_apply_config')) {
-			epc_portal_apply_config($DP_Config);
+			ob_start();
+			try {
+				epc_portal_apply_config($DP_Config);
+			} catch (Throwable $e) {
+				// keep default config if portal apply fails
+			}
+			ob_end_clean();
 		}
 	}
 
