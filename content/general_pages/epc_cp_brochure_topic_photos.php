@@ -364,24 +364,24 @@ function epc_cp_brochure_resolve_topic(string $name, string $area = '', string $
 }
 
 /**
- * Assign one unique related photo to every item. Never reuses a URL.
- * Process cards use topic illustrations (money→notes, inventory→shelves, etc.)
- * keyed by process id — related + unique. Unsplash pools stay for chapter banners.
+ * Assign one unique related photo to every item (mutates $areas in place).
+ * Never reuses a URL. Topic illustrations: money→notes, inventory→shelves, etc.
  *
  * @param array<string, array<int, array<string,mixed>>> $areas
  * @return array<string, array{topic:string,label:string,photo:string}>
  */
-function epc_cp_brochure_assign_unique_photos(array $areas): array
+function epc_cp_brochure_assign_unique_photos(array &$areas): array
 {
 	$catalog = epc_cp_brochure_topic_catalog();
 	$used = array();
 	$map = array();
+	$seq = 0;
 
-	foreach ($areas as $area => $items) {
+	foreach ($areas as $area => &$items) {
 		if (!is_array($items)) {
 			continue;
 		}
-		foreach ($items as $item) {
+		foreach ($items as &$item) {
 			if (!is_array($item)) {
 				continue;
 			}
@@ -391,7 +391,9 @@ function epc_cp_brochure_assign_unique_photos(array $areas): array
 			$urlPath = trim((string) ($item['url'] ?? ''));
 			if ($id === '') {
 				$id = 'fn-' . substr(md5($area . '|' . $name . '|' . $urlPath), 0, 12);
+				$item['id'] = $id;
 			}
+			$seq++;
 
 			$topic = epc_cp_brochure_resolve_topic($name, (string) $area, $urlPath, $does);
 			if (!isset($catalog[$topic])) {
@@ -400,27 +402,35 @@ function epc_cp_brochure_assign_unique_photos(array $areas): array
 			$label = (string) ($catalog[$topic]['label'] ?? 'Operations');
 
 			$custom = trim((string) ($item['image'] ?? ''));
-			if ($custom !== '' && (strpos($custom, '/') === 0 || preg_match('#^https?://#i', $custom)) && !isset($used[$custom])) {
+			// Ignore previously stamped/shared images — always mint a unique related photo.
+			if ($custom !== '' && strpos($custom, 'epc_brochure_process_photo.php') === false
+				&& (strpos($custom, '/') === 0 || preg_match('#^https?://#i', $custom))
+				&& !isset($used[$custom])) {
 				$photo = $custom;
 			} else {
-				// Unique related illustration — seed = process id (never repeats).
-				$photo = epc_cp_brochure_topic_svg_url($topic, $id, $name, (string) $area);
-				// Guard against accidental collisions.
+				$seed = preg_replace('/[^a-zA-Z0-9_\-]/', '', $id) . '-u' . $seq;
+				$photo = epc_cp_brochure_topic_svg_url($topic, $seed, $name, (string) $area);
 				$n = 0;
-				while (isset($used[$photo]) && $n < 5) {
+				while (isset($used[$photo]) && $n < 8) {
 					$n++;
-					$photo = epc_cp_brochure_topic_svg_url($topic, $id . '-' . $n, $name, (string) $area);
+					$photo = epc_cp_brochure_topic_svg_url($topic, $seed . 'x' . $n, $name, (string) $area);
 				}
 			}
 
 			$used[$photo] = 1;
-			$map[$id] = array(
+			$meta = array(
 				'topic' => $topic,
 				'label' => $label,
 				'photo' => $photo,
 			);
+			$item['image'] = $photo;
+			$item['photo_topic'] = $topic;
+			$item['photo_label'] = $label;
+			$map[$id . '#u' . $seq] = $meta;
 		}
+		unset($item);
 	}
+	unset($items);
 
 	return $map;
 }
@@ -439,7 +449,20 @@ function epc_cp_brochure_item_topic_photo(array $item, string $area): array
 		$id = 'fn-' . substr(md5($area . '|' . $name . '|' . $url), 0, 12);
 	}
 
+	// Prefer photo stamped on the item during inventory build (guaranteed unique).
+	if (!empty($item['image']) && !empty($item['photo_label'])) {
+		return array(
+			'topic' => (string) ($item['photo_topic'] ?? 'default'),
+			'label' => (string) $item['photo_label'],
+			'photo' => (string) $item['image'],
+		);
+	}
+
 	$map = $GLOBALS['epc_cp_brochure_photo_map'] ?? null;
+	$na = 'na:' . md5(strtolower($name) . '|' . strtolower($area) . '|' . $url);
+	if (is_array($map) && isset($map[$na])) {
+		return $map[$na];
+	}
 	if (is_array($map) && isset($map[$id])) {
 		return $map[$id];
 	}
@@ -461,6 +484,6 @@ function epc_cp_brochure_item_topic_photo(array $item, string $area): array
 	return array(
 		'topic' => $topic,
 		'label' => (string) ($meta['label'] ?? 'Operations'),
-		'photo' => epc_cp_brochure_topic_svg_url($topic, $id, $name, $area),
+		'photo' => epc_cp_brochure_topic_svg_url($topic, $id . '-' . substr(md5($area . '|' . $url), 0, 6), $name, $area),
 	);
 }
