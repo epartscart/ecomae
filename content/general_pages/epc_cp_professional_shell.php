@@ -9,7 +9,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 
 function epc_cp_shell_css_version()
 {
-	return '20260719tenantEasy1';
+	return '20260719cpDenseRow1';
 }
 
 /** True on www.ecomae.com where nginx often 404s static /cp/templates/*.css. */
@@ -154,6 +154,123 @@ function epc_cp_nuclear_critical_css(): string
 			opacity: 1 !important;
 			visibility: visible !important;
 			min-height: 0 !important;
+		}
+		/* density1: Actions tiles + nested grids — row wrap (nuclear forces block/100%) */
+		body.epc-cp-shell .content .panel-body:has(> .panel_a),
+		body.epc-cp-shell .content .panel-body:has(> a.panel_a),
+		body.epc-cp-shell .content .epc-prices-toolbar .panel-body,
+		body.epc-cp-shell .content .epc-cp-actions,
+		body.epc-cp-shell .content .epc-cp-action-grid {
+			display: flex !important;
+			flex-wrap: wrap !important;
+			align-items: stretch !important;
+			align-content: flex-start !important;
+			gap: 10px 12px !important;
+			width: 100% !important;
+			float: none !important;
+			min-height: 0 !important;
+		}
+		body.epc-cp-shell .content .panel_a,
+		body.epc-cp-shell .content a.panel_a {
+			display: inline-flex !important;
+			flex: 0 1 auto !important;
+			float: none !important;
+			width: auto !important;
+			max-width: 220px !important;
+			min-width: 148px !important;
+			height: auto !important;
+			min-height: 0 !important;
+			max-height: none !important;
+			align-items: center !important;
+			gap: 10px !important;
+			margin: 0 !important;
+			padding: 10px 12px !important;
+			box-sizing: border-box !important;
+			text-align: left !important;
+			vertical-align: top !important;
+		}
+		body.epc-cp-shell .content .panel_a .panel_a_img,
+		body.epc-cp-shell .content a.panel_a .panel_a_img {
+			display: block !important;
+			width: 28px !important;
+			height: 28px !important;
+			min-width: 28px !important;
+			min-height: 28px !important;
+			max-width: 28px !important;
+			max-height: 28px !important;
+			flex: 0 0 28px !important;
+			background-size: contain !important;
+			margin: 0 !important;
+		}
+		body.epc-cp-shell .content .panel_a .panel_a_caption,
+		body.epc-cp-shell .content a.panel_a .panel_a_caption {
+			display: block !important;
+			height: auto !important;
+			max-width: 160px !important;
+			margin: 0 !important;
+			line-height: 1.25 !important;
+			white-space: normal !important;
+			text-align: left !important;
+		}
+		/* Nested Bootstrap rows inside panels — side-by-side again */
+		body.epc-cp-shell .content .panel-body > .row,
+		body.epc-cp-shell .content .hpanel .panel-body .row,
+		body.epc-cp-shell .content .epc-cp-content-inner .panel-body .row {
+			display: flex !important;
+			flex-wrap: wrap !important;
+			width: 100% !important;
+			float: none !important;
+			margin-left: -8px !important;
+			margin-right: -8px !important;
+		}
+		body.epc-cp-shell .content .panel-body > .row > [class*="col-"],
+		body.epc-cp-shell .content .hpanel .panel-body .row > [class*="col-"],
+		body.epc-cp-shell .content .epc-cp-content-inner .panel-body .row > [class*="col-"] {
+			display: block !important;
+			float: none !important;
+			box-sizing: border-box !important;
+			padding-left: 8px !important;
+			padding-right: 8px !important;
+			min-height: 0 !important;
+		}
+		@media (min-width: 768px) {
+			body.epc-cp-shell .content .panel-body .row > .col-sm-6,
+			body.epc-cp-shell .content .panel-body .row > .col-md-6,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-6 { width: 50% !important; max-width: 50% !important; flex: 0 0 50% !important; }
+			body.epc-cp-shell .content .panel-body .row > .col-sm-4,
+			body.epc-cp-shell .content .panel-body .row > .col-md-4,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-4 { width: 33.3333% !important; max-width: 33.3333% !important; flex: 0 0 33.3333% !important; }
+			body.epc-cp-shell .content .panel-body .row > .col-sm-3,
+			body.epc-cp-shell .content .panel-body .row > .col-md-3,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-3 { width: 25% !important; max-width: 25% !important; flex: 0 0 25% !important; }
+			body.epc-cp-shell .content .panel-body .row > .col-sm-8,
+			body.epc-cp-shell .content .panel-body .row > .col-md-8,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-8 { width: 66.6667% !important; max-width: 66.6667% !important; flex: 0 0 66.6667% !important; }
+			body.epc-cp-shell .content .panel-body .row > .col-sm-9,
+			body.epc-cp-shell .content .panel-body .row > .col-md-9,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-9 { width: 75% !important; max-width: 75% !important; flex: 0 0 75% !important; }
+			body.epc-cp-shell .content .panel-body .row > .col-sm-5,
+			body.epc-cp-shell .content .panel-body .row > .col-md-5,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-5 { width: 41.6667% !important; max-width: 41.6667% !important; flex: 0 0 41.6667% !important; }
+			body.epc-cp-shell .content .panel-body .row > .col-sm-7,
+			body.epc-cp-shell .content .panel-body .row > .col-md-7,
+			body.epc-cp-shell .content .panel-body .row > .col-lg-7 { width: 58.3333% !important; max-width: 58.3333% !important; flex: 0 0 58.3333% !important; }
+		}
+		body.epc-cp-shell .content .form-inline,
+		body.epc-cp-shell .content .filters.form-inline,
+		body.epc-cp-shell .content .filters {
+			display: flex !important;
+			flex-wrap: wrap !important;
+			align-items: center !important;
+			gap: 8px 10px !important;
+			width: 100% !important;
+		}
+		body.epc-cp-shell .content .form-inline .form-control,
+		body.epc-cp-shell .content .filters .form-control {
+			width: auto !important;
+			max-width: 100% !important;
+			display: inline-block !important;
+			flex: 0 1 auto !important;
 		}
 		html.epc-cp-sidebar-collapsed .epc-cp-shell #menu {
 			width: 0 !important;
@@ -1441,6 +1558,11 @@ function epc_cp_shell_enqueue_assets($includeLoginHero = false)
 		ENT_QUOTES,
 		'UTF-8'
 	) . '" />' . "\n";
+	echo '<link rel="stylesheet" href="' . htmlspecialchars(
+		epc_cp_shell_asset_href($base . 'epc_cp_density.css', '/content/general_pages/epc_cp_density_css.php'),
+		ENT_QUOTES,
+		'UTF-8'
+	) . '" />' . "\n";
 	epc_ecomae_hub_logo_enqueue();
 	if ($includeLoginHero) {
 		epc_cp_login_hero_enqueue();
@@ -1493,6 +1615,7 @@ function epc_cp_shell_inline_style_block()
 	$files = array(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_ui.css',
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_professional.css',
+		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_density.css',
 		'/content/general_pages/epc_ecomae_hub_logo.css',
 	);
 	$css = '';

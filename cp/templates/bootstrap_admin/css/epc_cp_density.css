@@ -1,0 +1,141 @@
+/* 20260719density1 — compact CP Actions + nested grids (row wrap) */
+body.epc-cp-shell .content .panel-body:has(> .panel_a),
+body.epc-cp-shell .content .panel-body:has(> a.panel_a),
+body.epc-cp-shell .content .epc-prices-toolbar .panel-body,
+body.epc-cp-shell .content .epc-cp-actions,
+body.epc-cp-shell .content .epc-cp-action-grid {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: stretch !important;
+	align-content: flex-start !important;
+	gap: 10px 12px !important;
+	width: 100% !important;
+	float: none !important;
+	min-height: 0 !important;
+}
+
+body.epc-cp-shell .content .panel_a,
+body.epc-cp-shell .content a.panel_a {
+	display: inline-flex !important;
+	flex: 0 1 auto !important;
+	float: none !important;
+	width: auto !important;
+	max-width: 220px !important;
+	min-width: 148px !important;
+	height: auto !important;
+	min-height: 0 !important;
+	max-height: none !important;
+	align-items: center !important;
+	gap: 10px !important;
+	margin: 0 !important;
+	padding: 10px 12px !important;
+	box-sizing: border-box !important;
+	text-align: left !important;
+	text-decoration: none !important;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+body.epc-cp-shell .content .panel_a:hover,
+body.epc-cp-shell .content a.panel_a:hover {
+	border-color: #93c5fd;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+	transform: translateY(-1px);
+}
+
+body.epc-cp-shell .content .panel_a .panel_a_img,
+body.epc-cp-shell .content a.panel_a .panel_a_img {
+	display: block !important;
+	width: 28px !important;
+	height: 28px !important;
+	min-width: 28px !important;
+	min-height: 28px !important;
+	max-width: 28px !important;
+	max-height: 28px !important;
+	flex: 0 0 28px !important;
+	background-size: contain !important;
+	margin: 0 !important;
+	box-shadow: none !important;
+}
+
+body.epc-cp-shell .content .panel_a .panel_a_caption,
+body.epc-cp-shell .content a.panel_a .panel_a_caption {
+	display: block !important;
+	height: auto !important;
+	max-width: 160px !important;
+	margin: 0 !important;
+	line-height: 1.25 !important;
+	white-space: normal !important;
+	text-align: left !important;
+	font-size: 12px !important;
+	font-weight: 650;
+	color: #0f172a;
+}
+
+body.epc-cp-shell .content .panel-body > .row,
+body.epc-cp-shell .content .hpanel .panel-body .row {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	width: 100% !important;
+	float: none !important;
+	margin-left: -8px !important;
+	margin-right: -8px !important;
+}
+
+body.epc-cp-shell .content .panel-body > .row > [class*="col-"],
+body.epc-cp-shell .content .hpanel .panel-body .row > [class*="col-"] {
+	display: block !important;
+	float: none !important;
+	box-sizing: border-box !important;
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+	min-height: 0 !important;
+}
+
+@media (min-width: 768px) {
+	body.epc-cp-shell .content .panel-body .row > .col-sm-6,
+	body.epc-cp-shell .content .panel-body .row > .col-md-6,
+	body.epc-cp-shell .content .panel-body .row > .col-lg-6 {
+		width: 50% !important; max-width: 50% !important; flex: 0 0 50% !important;
+	}
+	body.epc-cp-shell .content .panel-body .row > .col-sm-4,
+	body.epc-cp-shell .content .panel-body .row > .col-md-4,
+	body.epc-cp-shell .content .panel-body .row > .col-lg-4 {
+		width: 33.3333% !important; max-width: 33.3333% !important; flex: 0 0 33.3333% !important;
+	}
+	body.epc-cp-shell .content .panel-body .row > .col-sm-3,
+	body.epc-cp-shell .content .panel-body .row > .col-md-3,
+	body.epc-cp-shell .content .panel-body .row > .col-lg-3 {
+		width: 25% !important; max-width: 25% !important; flex: 0 0 25% !important;
+	}
+	body.epc-cp-shell .content .panel-body .row > .col-sm-8,
+	body.epc-cp-shell .content .panel-body .row > .col-md-8,
+	body.epc-cp-shell .content .panel-body .row > .col-lg-8 {
+		width: 66.6667% !important; max-width: 66.6667% !important; flex: 0 0 66.6667% !important;
+	}
+	body.epc-cp-shell .content .panel-body .row > .col-sm-9,
+	body.epc-cp-shell .content .panel-body .row > .col-md-9,
+	body.epc-cp-shell .content .panel-body .row > .col-lg-9 {
+		width: 75% !important; max-width: 75% !important; flex: 0 0 75% !important;
+	}
+}
+
+body.epc-cp-shell .content .form-inline,
+body.epc-cp-shell .content .filters.form-inline,
+body.epc-cp-shell .content .filters {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 8px 10px !important;
+	width: 100% !important;
+}
+
+body.epc-cp-shell .content .form-inline .form-control,
+body.epc-cp-shell .content .filters .form-control {
+	width: auto !important;
+	max-width: 100% !important;
+	display: inline-block !important;
+	flex: 0 1 auto !important;
+}

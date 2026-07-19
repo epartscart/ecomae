@@ -719,26 +719,61 @@ body.epc-cp--blue-theme .epc-cp .table > tbody > tr > td {
 	font-size: 14px;
 }
 
-/* ── Dashboard action tiles ── */
+/* ── Dashboard action tiles (compact chips in a wrapping row) ── */
 .epc-cp .panel_a {
-	margin-right: 12px;
-	margin-bottom: 12px;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 10px 10px 0;
+	padding: 10px 12px;
+	min-width: 148px;
+	max-width: 220px;
+	width: auto;
+	height: auto;
+	min-height: 0;
+	max-height: none;
+	text-align: left;
+	vertical-align: top;
+	border: 1px solid var(--epc-cp-border, #e2e8f0);
+	border-radius: var(--epc-cp-radius, 10px);
+	background: var(--epc-cp-card, #fff);
+	box-shadow: var(--epc-cp-shadow, 0 1px 2px rgba(15, 23, 42, 0.04));
+	box-sizing: border-box;
 }
 .epc-cp .panel_a_img {
-	border-radius: var(--epc-cp-radius);
-	box-shadow: var(--epc-cp-shadow);
+	width: 28px;
+	height: 28px;
+	min-width: 28px;
+	min-height: 28px;
+	max-width: 28px;
+	max-height: 28px;
+	border-radius: 6px;
+	box-shadow: none;
 	transition: transform 0.2s, box-shadow 0.2s;
 	overflow: hidden;
+	background-size: contain;
+	flex: 0 0 28px;
+	margin: 0;
 }
 .epc-cp .panel_a:hover > .panel_a_img {
-	transform: translateY(-4px);
-	box-shadow: var(--epc-cp-shadow-md);
+	transform: none;
+	box-shadow: none;
+}
+.epc-cp .panel_a:hover {
+	border-color: #93c5fd;
+	box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+	transform: translateY(-1px);
 }
 .epc-cp .panel_a_caption {
-	color: var(--epc-cp-text-secondary);
-	font-weight: 600;
-	font-size: 11px;
-	margin-top: 8px;
+	color: var(--epc-cp-text-secondary, #334155);
+	font-weight: 650;
+	font-size: 12px;
+	margin-top: 0;
+	height: auto;
+	line-height: 1.25;
+	white-space: normal;
+	text-align: left;
+	max-width: 160px;
 }
 
 /* ── Footer ── */
