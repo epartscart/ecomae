@@ -108,8 +108,16 @@ $canEditItems = ($paid === 0);
 $csrf = '';
 if (!empty($GLOBALS['user_session']['csrf_guard_key'])) {
 	$csrf = (string) $GLOBALS['user_session']['csrf_guard_key'];
-} elseif (isset($user_session) && !empty($user_session['csrf_guard_key'])) {
+} elseif (isset($user_session) && is_array($user_session) && !empty($user_session['csrf_guard_key'])) {
 	$csrf = (string) $user_session['csrf_guard_key'];
+} elseif (class_exists('DP_User')) {
+	// AJAX detail pane may not have set $user_session — resolve admin session directly.
+	$adminSession = DP_User::getAdminSession();
+	if (is_array($adminSession) && !empty($adminSession['csrf_guard_key'])) {
+		$csrf = (string) $adminSession['csrf_guard_key'];
+		$user_session = $adminSession;
+		$GLOBALS['user_session'] = $adminSession;
+	}
 }
 
 $items_query = $db_link->prepare('SELECT * FROM `shop_orders_items` WHERE `order_id` = ? ORDER BY `id`');
@@ -491,8 +499,20 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'packing_slip'); ?>"><i class="fa fa-truck"></i> Packing slip</a>
 				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'delivery_note'); ?>"><i class="fa fa-file-o"></i> Delivery note</a>
 				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($dcBase . 'payment_receipt'); ?>"><i class="fa fa-receipt"></i> Payment receipt</a>
-				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($legacyPrintBase . 'invoice_for_payment'); ?>"><i class="fa fa-print"></i> Invoice for payment</a>
-				<a class="epc-od__doc-btn" target="_blank" rel="noopener" href="<?php echo epc_orders_ws_h($legacyPrintBase . 'sales_receipt'); ?>"><i class="fa fa-print"></i> Sales receipt</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener"
+					href="<?php echo epc_orders_ws_h($legacyPrintBase . 'invoice_for_payment'); ?>"
+					data-epc-legacy-print="1"
+					data-doc-name="invoice_for_payment"
+					data-order-id="<?php echo (int) $order_id; ?>"
+					data-order-items="<?php echo $itemIdsJson; ?>"
+					onclick="return (typeof window.epcOdOpenLegacyPrint === 'function') ? window.epcOdOpenLegacyPrint(this) : true;"><i class="fa fa-print"></i> Invoice for payment</a>
+				<a class="epc-od__doc-btn" target="_blank" rel="noopener"
+					href="<?php echo epc_orders_ws_h($legacyPrintBase . 'sales_receipt'); ?>"
+					data-epc-legacy-print="1"
+					data-doc-name="sales_receipt"
+					data-order-id="<?php echo (int) $order_id; ?>"
+					data-order-items="<?php echo $itemIdsJson; ?>"
+					onclick="return (typeof window.epcOdOpenLegacyPrint === 'function') ? window.epcOdOpenLegacyPrint(this) : true;"><i class="fa fa-print"></i> Sales receipt</a>
 			</div>
 			<div class="epc-od__actions" style="margin-top:12px;">
 				<a class="btn btn-default btn-sm" href="/<?php echo epc_orders_ws_h($backend); ?>/shop/document_control/document_control?order_id=<?php echo (int) $order_id; ?>"><i class="fa fa-folder-open"></i> Document Control module</a>
