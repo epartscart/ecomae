@@ -21,6 +21,7 @@ define('_ASTEXE_', 1);
 $docRoot = __DIR__;
 require_once $docRoot . '/config.php';
 $DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
 
 $apply = $isCli
 	? in_array('--apply', $argv ?? array(), true)
@@ -43,6 +44,16 @@ if ($isCli) {
 	}
 	if (!empty($_GET['host'])) {
 		$host = strtolower(trim((string) $_GET['host']));
+	}
+}
+
+// Force host for portal site profile (Super CP → ecomae DB, tenants → docpart / dedicated).
+$_SERVER['HTTP_HOST'] = $host;
+$portalFile = $docRoot . '/content/general_pages/epc_portal.php';
+if (is_file($portalFile)) {
+	require_once $portalFile;
+	if (function_exists('epc_portal_apply_config')) {
+		epc_portal_apply_config($DP_Config);
 	}
 }
 
@@ -77,6 +88,34 @@ function epc_brochure_setup_pdo($DP_Config): PDO
 /**
  * @param array{url:string,php:string,alias:string,title:string,desc:string,keywords:string,order:int,frontend:int} $spec
  */
+function epc_brochure_content_tree_meta(PDO $pdo, array $spec): array
+{
+	$parent = 0;
+	$level = 1;
+	$system = ((int) ($spec['frontend'] ?? 1) === 0) ? 1 : 0;
+	$like = trim((string) ($spec['parent_like'] ?? ''));
+	if ($like !== '') {
+		$st = $pdo->prepare(
+			'SELECT `parent`, `level`, `system_flag` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1'
+		);
+		$st->execute(array($like));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (is_array($row)) {
+			$parent = (int) ($row['parent'] ?? 0);
+			$level = (int) ($row['level'] ?? 1);
+			$system = (int) ($row['system_flag'] ?? $system);
+		}
+	}
+	if ($parent <= 0 && (int) ($spec['frontend'] ?? 1) === 0) {
+		$st = $pdo->query("SELECT `id` FROM `content` WHERE `url` = 'control' AND `is_frontend` = 0 LIMIT 1");
+		$parent = (int) $st->fetchColumn();
+		if ($parent > 0) {
+			$level = 2;
+		}
+	}
+	return array($parent, max(1, $level), $system);
+}
+
 function epc_brochure_upsert_content(PDO $pdo, array $spec, bool $apply): int
 {
 	$url = $spec['url'];
@@ -92,24 +131,29 @@ function epc_brochure_upsert_content(PDO $pdo, array $spec, bool $apply): int
 	$now = time();
 	// CMS expects JSON module ids (see dp_core json_decode), not PHP serialize.
 	$modules = '[]';
+	list($parent, $level, $system) = epc_brochure_content_tree_meta($pdo, $spec);
 	if ($id > 0) {
 		$pdo->prepare(
 			'UPDATE `content` SET `content` = ?, `content_type` = ?, `title_tag` = ?, `description_tag` = ?,
-			 `published_flag` = 1, `time_edited` = ?, `alias` = ?, `value` = ?, `keywords_tag` = ? WHERE `id` = ?'
+			 `published_flag` = 1, `time_edited` = ?, `alias` = ?, `value` = ?, `keywords_tag` = ?,
+			 `parent` = ?, `level` = ?, `system_flag` = ? WHERE `id` = ?'
 		)->execute(array(
 			$spec['php'], 'php', $spec['title'], $spec['desc'], $now,
-			$spec['alias'], $spec['alias'], $spec['keywords'], $id,
+			$spec['alias'], $spec['alias'], $spec['keywords'],
+			$parent, $level, $system, $id,
 		));
-		echo "    updated\n";
+		echo "    updated parent={$parent} level={$level}\n";
 		return $id;
 	}
 	$pdo->prepare(
 		'INSERT INTO `content` (`count`, `url`, `level`, `alias`, `value`, `parent`, `description`, `is_frontend`, `content_type`, `content`, `title_tag`, `description_tag`, `keywords_tag`, `author_tag`, `main_flag`, `modules_array`, `css_js`, `robots_tag`, `system_flag`, `published_flag`, `open`, `time_created`, `time_edited`, `order`)
-		 VALUES (0, ?, 1, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, "", "", 0, 1, 0, ?, ?, ?)'
+		 VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, "", "", ?, 1, 0, ?, ?, ?)'
 	)->execute(array(
 		$url,
+		$level,
 		$spec['alias'],
 		$spec['alias'],
+		$parent,
 		$spec['desc'],
 		(int) $spec['frontend'],
 		'php',
@@ -119,12 +163,13 @@ function epc_brochure_upsert_content(PDO $pdo, array $spec, bool $apply): int
 		$spec['keywords'],
 		'0',
 		$modules,
+		$system,
 		$now,
 		$now,
 		(int) $spec['order'],
 	));
 	$id = (int) $pdo->lastInsertId();
-	echo "    inserted id={$id}\n";
+	echo "    inserted id={$id} parent={$parent} level={$level}\n";
 	return $id;
 }
 
@@ -217,6 +262,7 @@ $pages = array(
 		'keywords' => 'cp brochure, training, capabilities',
 		'order' => 12,
 		'frontend' => 0,
+		'parent_like' => 'control/cp-guideline',
 	),
 );
 
