@@ -36,12 +36,58 @@ function epc_portal_cp_group_pack_map()
 	);
 }
 
-/** Short sidebar subtitles for known CP groups (caption lang keys). */
+/** Short sidebar subtitles for known CP groups (caption lang keys or plain EN). */
 function epc_portal_cp_group_subtitle_map()
 {
 	return array(
-		'epc_cp_group_operator' => 'epc_cp_group_operator_desc',
+		'744' => 'Orders, catalogue & prices',
+		'epc_cp_group_customers' => 'Clients & CRM',
+		'epc_cp_group_documents' => 'Invoices & PDFs',
+		'epc_cp_group_erp' => 'Finance, VAT & reports',
+		'epc_cp_group_procurement' => 'Purchasing & suppliers',
+		'epc_cp_group_channels' => 'Marketplaces & feeds',
+		'epc_cp_group_logistics' => 'Shipping & delivery',
+		'epc_cp_group_payments' => 'Cards & online pay',
+		'epc_cp_group_marketing' => 'Campaigns & social',
+		'epc_cp_group_ai' => 'Pricing & assistants',
 		'epc_cp_group_integrations' => 'epc_cp_group_integrations_desc',
+		'epc_cp_group_portal' => 'Site & industry settings',
+		'epc_cp_group_tenant_hub' => 'Platform tools',
+		'epc_cp_group_operator' => 'epc_cp_group_operator_desc',
+	);
+}
+
+/**
+ * Primary (daily) sidebar groups for tenant CP — shown first.
+ * @return list<string>
+ */
+function epc_portal_cp_primary_group_keys()
+{
+	return array(
+		'744',
+		'epc_cp_group_customers',
+		'epc_cp_group_documents',
+		'epc_cp_group_erp',
+		'epc_cp_group_procurement',
+		'epc_cp_group_channels',
+		'epc_cp_group_logistics',
+	);
+}
+
+/**
+ * Advanced / less-used groups — rendered after a "More modules" divider.
+ * @return list<string>
+ */
+function epc_portal_cp_advanced_group_keys()
+{
+	return array(
+		'epc_cp_group_ai',
+		'epc_cp_group_marketing',
+		'epc_cp_group_payments',
+		'epc_cp_group_integrations',
+		'epc_cp_group_portal',
+		'epc_cp_group_tenant_hub',
+		'epc_cp_group_operator',
 	);
 }
 
@@ -51,14 +97,23 @@ function epc_portal_cp_group_subtitle($captionKey)
 	if (!isset($map[$captionKey])) {
 		return '';
 	}
-	$langKey = (string) $map[$captionKey];
-	if (function_exists('translate_str_by_key')) {
-		$text = translate_str_by_key($langKey);
-		if ($text !== '' && $text !== $langKey) {
+	$value = (string) $map[$captionKey];
+	// Lang-key style values still go through translation.
+	if (strpos($value, 'epc_') === 0 && function_exists('translate_str_by_key')) {
+		$text = translate_str_by_key($value);
+		if ($text !== '' && $text !== $value) {
 			return $text;
 		}
+		// Fallback EN when translation missing.
+		if ($value === 'epc_cp_group_operator_desc') {
+			return 'Cross-tenant platform tools';
+		}
+		if ($value === 'epc_cp_group_integrations_desc') {
+			return 'Email, mobile, payments & more';
+		}
+		return '';
 	}
-	return '';
+	return $value;
 }
 
 function epc_portal_cp_menu_policy(?array $settings = null)
