@@ -992,7 +992,7 @@ else//Действий нет - выводим страницу
 					?>
 				<div class="epc-scp-orders-detail__empty">
 					<i class="fa fa-hand-pointer-o"></i>
-					<p>Select an order to manage<br><span class="text-muted small">Update status &amp; notes here · Ctrl+click for full editor</span></p>
+					<p>Select an order to manage<br><span class="text-muted small">One-window OMS: summary, items, customer, payment, invoices &amp; documents · Ctrl+click for classic full card</span></p>
 				</div>
 					<?php
 				}

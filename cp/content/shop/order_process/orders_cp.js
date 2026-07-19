@@ -725,13 +725,15 @@
 
 		if (cfg.autoRunInProcess) {
 			ordersInProcess();
-		} else if (epcOrdersSelectedId > 0) {
+		} else {
 			var pane = document.getElementById('epc_orders_detail_pane');
-			var already = pane && pane.querySelector('.epc-od[data-order-id="' + epcOrdersSelectedId + '"]');
-			if (already) {
-				// Avoid double-render ("2 windows" flash): SSR already painted this order.
-				epcInitOmsPane(epcOrdersSelectedId);
-			} else {
+			var ssrOd = pane ? pane.querySelector('.epc-od[data-order-id]') : null;
+			var ssrId = ssrOd ? parseInt(ssrOd.getAttribute('data-order-id') || '0', 10) : 0;
+			if (ssrId > 0) {
+				// SSR already painted OMS for ?order_id=… (config may omit order_id).
+				epcOrdersSelectedId = ssrId;
+				epcInitOmsPane(ssrId);
+			} else if (epcOrdersSelectedId > 0) {
 				epcLoadOrderDetail(epcOrdersSelectedId);
 			}
 		}
