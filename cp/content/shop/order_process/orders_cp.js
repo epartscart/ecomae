@@ -388,16 +388,27 @@
 		}
 		pane.classList.add('is-loading');
 		epcMarkWorkspaceActive(orderId);
+		var applyDetailHtml = function (html) {
+			pane.innerHTML = html || '';
+			pane.classList.remove('is-loading');
+			if (html && html.indexOf('epc-od') >= 0) {
+				epcInitOmsPane(orderId);
+			}
+		};
 		jQuery.ajax({
 			type: 'GET',
 			url: epcOrdersAjaxUrl,
 			data: { order_id: orderId },
+			dataType: 'html',
 			success: function (html) {
-				pane.innerHTML = html;
-				pane.classList.remove('is-loading');
-				epcInitOmsPane(orderId);
+				applyDetailHtml(html);
 			},
-			error: function () {
+			error: function (xhr) {
+				var html = (xhr && xhr.responseText) ? xhr.responseText : '';
+				if (html && html.indexOf('epc-od') >= 0) {
+					applyDetailHtml(html);
+					return;
+				}
 				pane.innerHTML = '<div class="epc-scp-orders-detail__empty"><i class="fa fa-exclamation-triangle"></i><p>Could not load order detail</p></div>';
 				pane.classList.remove('is-loading');
 			}
