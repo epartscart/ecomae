@@ -119,6 +119,39 @@ if (is_file($__epcTenantControl)) {
 	}
 }
 
+// Tenant brochures at bare /brochure and /brochure-cp (no /en prefix; multilang CMS would 404).
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET'
+	&& (!function_exists('epc_ecomae_is_marketing_platform_host') || !epc_ecomae_is_marketing_platform_host())
+	&& empty($GLOBALS['epc_industry_subdomain_active'])) {
+	$__epcBrochurePath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+	if (is_string($__epcBrochurePath)) {
+		$__epcBrochurePath = '/' . trim(str_replace('\\', '/', $__epcBrochurePath), '/');
+		if ($__epcBrochurePath === '//') {
+			$__epcBrochurePath = '/';
+		}
+		// Strip optional multilang prefix so /en/brochure* works too.
+		$__epcBrochureBare = preg_replace('#^/(en|ru|ar)(/|$)#i', '/', $__epcBrochurePath);
+		if (!is_string($__epcBrochureBare) || $__epcBrochureBare === '') {
+			$__epcBrochureBare = '/';
+		}
+		if ($__epcBrochureBare[0] !== '/') {
+			$__epcBrochureBare = '/' . $__epcBrochureBare;
+		}
+		$__epcBrochureBare = '/' . trim($__epcBrochureBare, '/');
+		if ($__epcBrochureBare === '//') {
+			$__epcBrochureBare = '/';
+		}
+		if ($__epcBrochureBare === '/brochure') {
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_brochure.php';
+			exit;
+		}
+		if ($__epcBrochureBare === '/brochure-cp' || $__epcBrochureBare === '/brochure/cp') {
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_epartscart_cp_brochure.php';
+			exit;
+		}
+	}
+}
+
 // Demo storefront: /demo/{site_key}/ → isolated tenant DB on www.ecomae.com
 $__epcDemoBootstrap = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal_demo.php';
 if (is_file($__epcDemoBootstrap)) {

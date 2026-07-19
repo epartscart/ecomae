@@ -1,29 +1,70 @@
 <?php
 /**
  * Register product + full CP brochures on a tenant (e.g. epartscart.com).
- * Usage: php epc-brochure-setup.php [--apply] [--host=www.epartscart.com]
+ *
+ * CLI:  php epc-brochure-setup.php --apply [--host=www.epartscart.com]
+ * HTTP: https://www.epartscart.com/epc-brochure-setup.php?token=...&apply=1
  */
+declare(strict_types=1);
+
+$isCli = PHP_SAPI === 'cli';
+if (!$isCli) {
+	header('Content-Type: text/plain; charset=utf-8');
+	require_once __DIR__ . '/epc_deploy_auth.php';
+	epc_deploy_require_token();
+}
+
 define('_ASTEXE_', 1);
 $docRoot = __DIR__;
 require_once $docRoot . '/config.php';
 $DP_Config = new DP_Config();
 
-$apply = in_array('--apply', $argv ?? array(), true);
+$apply = $isCli
+	? in_array('--apply', $argv ?? array(), true)
+	: (!empty($_GET['apply']) || !empty($_POST['apply']));
+
 $host = 'www.epartscart.com';
-foreach ($argv ?? array() as $arg) {
-	if (strpos($arg, '--host=') === 0) {
-		$host = strtolower(trim(substr($arg, 7)));
+if ($isCli) {
+	foreach ($argv ?? array() as $arg) {
+		if (strpos($arg, '--host=') === 0) {
+			$host = strtolower(trim(substr($arg, 7)));
+		}
+	}
+} else {
+	$reqHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? $host));
+	if (strpos($reqHost, ':') !== false) {
+		$reqHost = explode(':', $reqHost, 2)[0];
+	}
+	if ($reqHost !== '') {
+		$host = $reqHost;
+	}
+	if (!empty($_GET['host'])) {
+		$host = strtolower(trim((string) $_GET['host']));
+	}
+}
+
+// Prefer per-host tenant DB mapping when present (shared ecomae docroot).
+$epcTenantHostDbFile = $docRoot . '/config.tenant-host-db.php';
+if (is_file($epcTenantHostDbFile)) {
+	$epc_tenant_host_db = null;
+	require $epcTenantHostDbFile;
+	if (isset($epc_tenant_host_db) && is_array($epc_tenant_host_db) && isset($epc_tenant_host_db[$host])) {
+		foreach (array('db', 'user', 'password') as $epcTk) {
+			if (!empty($epc_tenant_host_db[$host][$epcTk]) && property_exists($DP_Config, $epcTk)) {
+				$DP_Config->$epcTk = $epc_tenant_host_db[$host][$epcTk];
+			}
+		}
 	}
 }
 
 function epc_brochure_setup_pdo($DP_Config): PDO
 {
-	$host = trim((string) $DP_Config->host);
-	if ($host === '' || strtolower($host) === 'localhost') {
-		$host = '127.0.0.1';
+	$dbHost = trim((string) $DP_Config->host);
+	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+		$dbHost = '127.0.0.1';
 	}
 	return new PDO(
-		'mysql:host=' . $host . ';dbname=' . $DP_Config->db . ';charset=utf8',
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
 		$DP_Config->user,
 		$DP_Config->password,
 		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
@@ -46,7 +87,8 @@ function epc_brochure_upsert_content(PDO $pdo, array $spec, bool $apply): void
 		return;
 	}
 	$now = time();
-	$modules = 'a:0:{}';
+	// CMS expects JSON module ids (see dp_core json_decode), not PHP serialize.
+	$modules = '[]';
 	if ($id > 0) {
 		$pdo->prepare(
 			'UPDATE `content` SET `content` = ?, `content_type` = ?, `title_tag` = ?, `description_tag` = ?,
@@ -82,7 +124,7 @@ function epc_brochure_upsert_content(PDO $pdo, array $spec, bool $apply): void
 }
 
 $pdo = epc_brochure_setup_pdo($DP_Config);
-echo "Host context DB={$DP_Config->db}\n";
+echo "Host={$host} DB={$DP_Config->db}\n";
 
 $pages = array(
 	array(
@@ -122,7 +164,7 @@ foreach ($pages as $spec) {
 }
 
 if (!$apply) {
-	echo "Dry run. Re-run with --apply to upsert.\n";
+	echo "Dry run. Re-run with --apply or apply=1 to upsert.\n";
 	exit(0);
 }
 
