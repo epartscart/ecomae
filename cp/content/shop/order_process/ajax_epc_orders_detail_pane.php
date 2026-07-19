@@ -35,11 +35,38 @@ $db_link->query('SET NAMES utf8;');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/lang/dp_lang.php';
 
+if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
+	if (function_exists('epc_portal_apply_config')) {
+		epc_portal_apply_config($DP_Config);
+		try {
+			$db_link = new PDO(
+				'mysql:host=' . (strtolower((string) $DP_Config->host) === 'localhost' ? '127.0.0.1' : $DP_Config->host)
+					. ';dbname=' . $DP_Config->db . ';charset=utf8',
+				$DP_Config->user,
+				$DP_Config->password,
+				array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+			);
+			$db_link->query('SET NAMES utf8;');
+			$GLOBALS['db_link'] = $db_link;
+		} catch (Throwable $e) {
+			// Keep first connection.
+		}
+	}
+}
+
 if (!DP_User::isAdmin()) {
 	http_response_code(403);
 	echo '<div class="epc-scp-orders-detail__empty"><p>Access denied</p></div>';
 	exit;
 }
+
+// Print-doc links in the OMS pane need the admin CSRF key (stop_csrf CSRF 3 if empty).
+$user_session = DP_User::getAdminSession();
+if (!is_array($user_session)) {
+	$user_session = array();
+}
+$GLOBALS['user_session'] = $user_session;
 
 $order_id = isset($_GET['order_id']) ? (int) $_GET['order_id'] : 0;
 

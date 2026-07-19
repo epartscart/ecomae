@@ -27,6 +27,23 @@ if (is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php')
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
 	if (function_exists('epc_portal_apply_config')) {
 		epc_portal_apply_config($DP_Config);
+		// Reconnect after tenant DB bind (shared docroot / multi-host).
+		try {
+			$dbHost = trim((string) ($DP_Config->host ?? ''));
+			if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+				$dbHost = '127.0.0.1';
+			}
+			$db_link = new PDO(
+				'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8',
+				$DP_Config->user,
+				$DP_Config->password,
+				array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+			);
+			$db_link->query('SET NAMES utf8;');
+		} catch (Throwable $e) {
+			http_response_code(500);
+			exit('Database connection error');
+		}
 	}
 }
 
@@ -46,6 +63,25 @@ if (!isset($csrf_check_admin)) {
 		$ref_path = is_string($ref) && $ref !== '' ? (string) (parse_url($ref, PHP_URL_PATH) ?: '') : '';
 		if ($ref_path !== '' && preg_match('#/(?:cp|control)(?:/|$)#i', $ref_path)) {
 			$csrf_check_admin = true;
+		}
+	}
+}
+
+// OMS / cached links sometimes ship csrf_guard_key= empty. When this is an
+// admin print request, fill the key from the live admin session so stop_csrf
+// can still verify it (CSRF 3 → fixed for sales_receipt + invoice_for_payment).
+if ($csrf_check_admin) {
+	$csrfFromReq = '';
+	if (isset($_GET['csrf_guard_key'])) {
+		$csrfFromReq = trim((string) $_GET['csrf_guard_key']);
+	} elseif (isset($_POST['csrf_guard_key'])) {
+		$csrfFromReq = trim((string) $_POST['csrf_guard_key']);
+	}
+	if ($csrfFromReq === '') {
+		$adminSession = DP_User::getAdminSession();
+		if (is_array($adminSession) && !empty($adminSession['csrf_guard_key'])) {
+			$_GET['csrf_guard_key'] = (string) $adminSession['csrf_guard_key'];
+			$_REQUEST['csrf_guard_key'] = $_GET['csrf_guard_key'];
 		}
 	}
 }
