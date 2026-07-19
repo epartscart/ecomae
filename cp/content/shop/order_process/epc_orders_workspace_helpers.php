@@ -9,6 +9,51 @@ function epc_orders_ws_h($v): string
 	return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Warehouse / supplier caption — do not run through translate_str_by_id
+ * (plain codes like S-UAE return null and blank the OMS UI).
+ */
+function epc_orders_ws_storage_label($raw): string
+{
+	$raw = trim((string) $raw);
+	if ($raw === '') {
+		return '—';
+	}
+	if (ctype_digit($raw) && function_exists('translate_str_by_id')) {
+		$tr = translate_str_by_id($raw);
+		if (is_string($tr) && $tr !== '' && strpos($tr, 'ERROR STR_KEY') !== 0) {
+			return $tr;
+		}
+	}
+	return $raw;
+}
+
+/** AED → approx USD using shop currency rate (fallback 3.6725). */
+function epc_orders_ws_usd_rate($db_link = null, $DP_Config = null): float
+{
+	$rate = 3.6725;
+	try {
+		$currencyFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_currency.php';
+		if (is_file($currencyFile)) {
+			require_once $currencyFile;
+			if ($db_link instanceof PDO && is_object($DP_Config) && function_exists('epc_currency_records')) {
+				$records = epc_currency_records($db_link, $DP_Config);
+				if (isset($records['840']['rate']) && (float) $records['840']['rate'] > 0) {
+					$rate = (float) $records['840']['rate'];
+				}
+			}
+		}
+	} catch (Throwable $e) {
+	}
+	return $rate > 0 ? $rate : 3.6725;
+}
+
+function epc_orders_ws_aed_usd(float $aed, float $usdRate): string
+{
+	$usd = $usdRate > 0 ? ($aed / $usdRate) : 0.0;
+	return number_format($aed, 2, '.', ',') . ' AED / ' . number_format($usd, 2, '.', ',') . ' USD';
+}
+
 function epc_orders_ws_badge_class(int $statusId, PDO $db): string
 {
 	static $cache = array();
