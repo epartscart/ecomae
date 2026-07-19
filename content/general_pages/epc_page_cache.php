@@ -40,6 +40,10 @@ function epc_page_cache_enabled(): bool
 	if (preg_match('#^/(cp|bos|api|epc-api|admin)(/|$)#i', $path)) {
 		return false;
 	}
+	// Brochures are standalone HTML (early exit); never cache CMS 404 shells for them.
+	if (preg_match('#^/(?:(?:en|ru|ar)/)?brochure(?:-cp|/cp)?/?$#i', $path)) {
+		return false;
+	}
 	// Skip if nocache param
 	if (isset($_GET['nocache']) || isset($_GET['epc_debug'])) {
 		return false;
