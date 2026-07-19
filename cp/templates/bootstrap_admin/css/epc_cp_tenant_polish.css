@@ -1,0 +1,239 @@
+/**
+ * Tenant CP presentation polish — professional forms, clean labels, dashboard.
+ * Loaded for all CP shells via epc_cp_shell_enqueue_assets().
+ */
+
+/* —— Form controls (including bare inputs missing .form-control) —— */
+body.epc-cp-shell #wrapper .content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="file"]),
+body.epc-cp-shell #wrapper .content select,
+body.epc-cp-shell #wrapper .content textarea,
+body.epc-cp-shell #wrapper .content .form-control {
+	appearance: none;
+	-webkit-appearance: none;
+	background: #fff !important;
+	border: 1px solid #cbd5e1 !important;
+	border-radius: 8px !important;
+	box-shadow: none !important;
+	color: #0f172a !important;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+	line-height: 1.4 !important;
+	max-width: 100%;
+	min-height: 36px;
+	padding: 8px 12px !important;
+	transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+body.epc-cp-shell #wrapper .content textarea,
+body.epc-cp-shell #wrapper .content textarea.form-control {
+	min-height: 96px;
+	resize: vertical;
+	line-height: 1.5 !important;
+}
+body.epc-cp-shell #wrapper .content select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1.4.6L6 5.2 10.6.6 12 2 6 8 0 2z'/%3E%3C/svg%3E") !important;
+	background-repeat: no-repeat !important;
+	background-position: right 12px center !important;
+	background-size: 12px 8px !important;
+	padding-right: 32px !important;
+}
+body.epc-cp-shell #wrapper .content input:focus,
+body.epc-cp-shell #wrapper .content select:focus,
+body.epc-cp-shell #wrapper .content textarea:focus,
+body.epc-cp-shell #wrapper .content .form-control:focus {
+	border-color: #2563eb !important;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14) !important;
+	outline: none !important;
+}
+body.epc-cp-shell #wrapper .content label,
+body.epc-cp-shell #wrapper .content .control-label {
+	color: #334155 !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.01em;
+	margin-bottom: 6px !important;
+}
+body.epc-cp-shell #wrapper .content .form-group {
+	margin-bottom: 14px !important;
+}
+body.epc-cp-shell #wrapper .content .help-block,
+body.epc-cp-shell #wrapper .content .text-muted.small {
+	color: #64748b !important;
+	font-size: 12px !important;
+}
+
+/* —— Panels / tables —— */
+body.epc-cp-shell #wrapper .content .hpanel,
+body.epc-cp-shell #wrapper .content .panel {
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+	overflow: hidden;
+}
+body.epc-cp-shell #wrapper .content .panel-heading,
+body.epc-cp-shell #wrapper .content .hpanel .panel-heading {
+	background: #f8fafc !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	color: #0f172a !important;
+	font-size: 14px !important;
+	font-weight: 800 !important;
+	padding: 12px 16px !important;
+}
+body.epc-cp-shell #wrapper .content .panel-body {
+	padding: 16px !important;
+	background: #fff !important;
+}
+body.epc-cp-shell #wrapper .content .panel-footer {
+	background: #f8fafc !important;
+	border-top: 1px solid #e2e8f0 !important;
+	padding: 12px 16px !important;
+}
+body.epc-cp-shell #wrapper .content .table > thead > tr > th {
+	background: #f8fafc !important;
+	border-bottom: 1px solid #e2e8f0 !important;
+	color: #64748b !important;
+	font-size: 11px !important;
+	font-weight: 800 !important;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+body.epc-cp-shell #wrapper .content .btn {
+	border-radius: 8px !important;
+	font-weight: 700 !important;
+}
+
+/* —— Hide leaked style/script nodes that sometimes render as text —— */
+body.epc-cp-shell #wrapper .content .epc-cp-content-inner > style,
+body.epc-cp-shell #wrapper .content .epc-cp-content-inner > script,
+body.epc-cp-shell #wrapper .content .row > [class*="col-"] > style,
+body.epc-cp-shell #wrapper .content .row > [class*="col-"] > script {
+	display: none !important;
+}
+body.epc-cp-shell #wrapper .content code {
+	background: #f1f5f9;
+	border-radius: 4px;
+	color: #334155;
+	font-size: 12px;
+	padding: 1px 5px;
+}
+
+/* —— Frontpage / tenant dashboard —— */
+body.epc-cp-shell .epc-tcp-dashboard--easy {
+	padding-bottom: 8px;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__hero {
+	align-items: center;
+	background:
+		radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.18), transparent 42%),
+		linear-gradient(135deg, #0f172a 0%, #1e3a8a 42%, #2563eb 78%, #38bdf8 120%) !important;
+	border-radius: 16px !important;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+	gap: 18px;
+	margin-bottom: 18px !important;
+	padding: 22px 24px !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__badge {
+	background: rgba(255, 255, 255, 0.14) !important;
+	border: 1px solid rgba(255, 255, 255, 0.22);
+	border-radius: 999px;
+	color: #e2e8f0 !important;
+	font-size: 11px !important;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	padding: 5px 10px;
+	text-transform: uppercase;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__title {
+	color: #fff !important;
+	font-size: clamp(1.35rem, 2.2vw, 1.75rem) !important;
+	font-weight: 900 !important;
+	letter-spacing: -0.02em;
+	margin: 10px 0 6px !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__sub {
+	color: rgba(248, 250, 252, 0.88) !important;
+	font-size: 14px !important;
+	line-height: 1.45;
+	max-width: 36rem;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__hero-actions .btn {
+	border: 0 !important;
+	box-shadow: none !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__hero-actions .btn-default {
+	background: rgba(255, 255, 255, 0.12) !important;
+	color: #fff !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-dashboard__hero-actions .btn-primary {
+	background: #fff !important;
+	color: #1e3a8a !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi {
+	display: grid !important;
+	gap: 12px !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+	margin-bottom: 18px !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi__card {
+	background: #fff !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 14px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	display: block !important;
+	padding: 16px 18px !important;
+	width: 100% !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi__label {
+	color: #64748b !important;
+	font-size: 12px !important;
+	font-weight: 800 !important;
+	text-transform: uppercase;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi__val {
+	color: #0f172a !important;
+	font-size: 1.75rem !important;
+	font-weight: 900 !important;
+	letter-spacing: -0.03em;
+	line-height: 1.1;
+	margin: 6px 0 4px;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-section-title {
+	align-items: center;
+	color: #0f172a !important;
+	display: flex;
+	font-size: 15px !important;
+	font-weight: 900 !important;
+	gap: 8px;
+	margin: 4px 0 12px !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-quick-card {
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 14px !important;
+	box-shadow: none !important;
+	min-height: 108px;
+	padding: 16px !important;
+	transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-quick-card:hover {
+	border-color: #93c5fd !important;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
+	transform: translateY(-2px);
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-quick-card__label {
+	font-size: 15px !important;
+	font-weight: 800 !important;
+}
+body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-quick-card__hint {
+	color: #64748b !important;
+	font-size: 12px !important;
+}
+
+@media (max-width: 991px) {
+	body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+}
+@media (max-width: 575px) {
+	body.epc-cp-shell .epc-tcp-dashboard--easy .epc-scp-kpi {
+		grid-template-columns: 1fr !important;
+	}
+}

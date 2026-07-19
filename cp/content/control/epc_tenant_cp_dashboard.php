@@ -78,7 +78,7 @@ function epc_tcp_dash_stats(PDO $db): array
 				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
 			} catch (Throwable $e) {
 			}
-			return epc_perf_cache_remember('epc_tcp_dash_stats:v1:' . $dbName, 60, $compute);
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v2:' . $dbName, 180, $compute);
 		}
 	}
 	return $compute();
@@ -112,6 +112,7 @@ $primaryLinks = array(
 	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'catalog', 'hint' => 'Products & categories'),
 	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'prices', 'hint' => 'Price lists & markups'),
 	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'clients', 'hint' => 'Customers & CRM'),
+	array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'catalog', 'hint' => 'Marketplace listings'),
 	array('label' => 'ERP & finance', 'icon' => 'fa-university', 'url' => $base . '/shop/finance/erp?epc_erp_shell=1', 'tone' => 'finance', 'hint' => 'Ledger, VAT & reports'),
 	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'governance', 'hint' => 'Branding & modules'),
 );
@@ -133,7 +134,7 @@ $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
 		<div>
 			<span class="epc-scp-dashboard__badge"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> <?php echo epc_tcp_dash_h($industryLabel); ?></span>
 			<h2 class="epc-scp-dashboard__title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
-			<p class="epc-scp-dashboard__sub">Start with today’s work — orders, catalogue, prices, and clients. Everything else is one click away in the menu.</p>
+			<p class="epc-scp-dashboard__sub">Your workspace for today’s trading — clear actions, clean screens, fast answers. Start with orders, catalogue, prices, or clients.</p>
 		</div>
 		<div class="epc-scp-dashboard__hero-actions">
 			<a class="btn btn-sm btn-primary epc-cp-page-header__pill--primary" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>

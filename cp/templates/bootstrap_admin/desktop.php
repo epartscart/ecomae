@@ -78,6 +78,7 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 <?php
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professional_shell.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_top_alerts.php';
+	$GLOBALS['epc_cp_shell'] = true;
 	echo epc_cp_sidebar_early_init_script();
 	echo epc_cp_menu_sections_early_style();
 	echo epc_cp_sidebar_collapse_script();
@@ -1107,22 +1108,35 @@ function print_backend_button($button_params)
 <button type="button" id="epc-cp-sidebar-toggle" class="epc-cp-sidebar-toggle-tab" aria-expanded="true" aria-label="Hide menu" title="Menu"><i class="fa fa-chevron-left"></i></button>
 
 <!-- Vendor scripts -->
+<?php
+$epcCpFastTenant = function_exists('epc_cp_fast_tenant_active') && epc_cp_fast_tenant_active();
+$epcCpNeedCharts = !$epcCpFastTenant;
+$epcContentUrlForJs = isset($DP_Content) && is_object($DP_Content) ? trim((string) ($DP_Content->url ?? ''), '/') : '';
+if ($epcCpFastTenant) {
+	// Skip flot/peity/sparkline on tenant CP for ~1s feel; statistics can still load them.
+	$epcCpNeedCharts = ($epcContentUrlForJs !== '' && strpos($epcContentUrlForJs, 'users/statistics') === 0);
+}
+?>
 <script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery/dist/jquery.min.js"></script>
 <script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-ui/jquery-ui.min.js"></script>
 <script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/slimScroll/jquery.slimscroll.min.js"></script>
 <script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.resize.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.pie.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/flot.curvedlines/curvedLines.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery.flot.spline/index.js"></script>
+<?php if ($epcCpNeedCharts) { ?>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.js" defer></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.resize.js" defer></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery-flot/jquery.flot.pie.js" defer></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/flot.curvedlines/curvedLines.js" defer></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/jquery.flot.spline/index.js" defer></script>
+<?php } ?>
 <?php if (!$epcApaiPage) { ?>
 <script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/metisMenu/dist/metisMenu.min.js" defer></script>
 <?php } ?>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/iCheck/icheck.min.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/peity/jquery.peity.min.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/sparkline/index.js"></script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fooTable/dist/footable.all.min.js"></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/iCheck/icheck.min.js" defer></script>
+<?php if ($epcCpNeedCharts) { ?>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/peity/jquery.peity.min.js" defer></script>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/sparkline/index.js" defer></script>
+<?php } ?>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/vendor/fooTable/dist/footable.all.min.js" defer></script>
 
 
 <!-- App scripts -->
@@ -1149,7 +1163,32 @@ function print_backend_button($button_params)
 	}
 })();
 </script>
-<script src="/epc-static.php?f=cp/templates/bootstrap_admin/scripts/charts.js"></script>
+<?php if (!empty($epcCpNeedCharts)) { ?>
+<script src="/epc-static.php?f=cp/templates/bootstrap_admin/scripts/charts.js" defer></script>
+<?php } ?>
+<script>
+/* Strip leftover developer-facing language prefixes from CP chrome. */
+(function () {
+	function epcCpCleanTextNodes(root) {
+		if (!root) return;
+		var walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+		var node;
+		while ((node = walk.nextNode())) {
+			var t = node.nodeValue;
+			if (!t || t.indexOf('ERROR STR_KEY') === -1) continue;
+			node.nodeValue = t.replace(/ERROR STR_KEY:\s*[^\.]+\.\s*/g, '').replace(/==Empty string==/g, '');
+		}
+	}
+	function run() {
+		epcCpCleanTextNodes(document.getElementById('wrapper') || document.body);
+	}
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', run);
+	} else {
+		run();
+	}
+})();
+</script>
 
 
 <script>
