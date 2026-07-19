@@ -114,6 +114,7 @@ try {
 	}
 
 	$in_process = array();
+	$open_statuses = array();
 	$statuses_for_finish = array();
 	$statuses_for_inverse = array();
 	try {
@@ -122,6 +123,13 @@ try {
 		);
 		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
 			$in_process[] = (string) $row['id'];
+		}
+		// Open tab includes newly placed (for_created)
+		$st = $db_link->query(
+			'SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_inverse` != 1 AND `for_finish` != 1'
+		);
+		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+			$open_statuses[] = (string) $row['id'];
 		}
 		$st = $db_link->query('SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1');
 		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
@@ -133,6 +141,35 @@ try {
 		}
 	} catch (Throwable $e) {
 	}
+
+	$default_tab = 'open';
+	if (!empty($_COOKIE['orders_tab'])) {
+		$t = strtolower(trim((string) $_COOKIE['orders_tab']));
+		if (in_array($t, array('open', 'completed', 'all'), true)) {
+			$default_tab = $t;
+		}
+	}
+	$rewrite_filter = !isset($_COOKIE['orders_tab']) || !isset($_COOKIE['orders_filter']);
+	$default_filter_status = $open_statuses;
+	if ($default_tab === 'completed') {
+		$default_filter_status = $statuses_for_finish;
+	} elseif ($default_tab === 'all') {
+		$default_filter_status = 0;
+	}
+	$default_filter = array(
+		'time_from' => '',
+		'time_to' => '',
+		'order_id' => '',
+		'status' => $default_filter_status,
+		'paid' => -1,
+		'customer' => '',
+		'customer_id' => '',
+		'viewed' => -1,
+		'paid_type' => -1,
+		'office' => 0,
+		'phone' => '',
+		'article' => '',
+	);
 
 	require_once $docRoot . '/lang/dp_lang.php';
 	if (is_file($docRoot . '/content/general_pages/epc_cp_translate.php')) {
@@ -167,6 +204,13 @@ try {
 		'timeFrom' => $time_from,
 		'timeTo' => $time_to,
 		'inProcessStatuses' => $in_process_filter,
+		'openStatuses' => $open_statuses,
+		'completedStatuses' => $statuses_for_finish,
+		'defaultTab' => $default_tab,
+		'rewriteFilter' => $rewrite_filter,
+		'defaultFilter' => $default_filter,
+		'autoOpenFirstOrder' => $selected_order_id <= 0,
+		'firstOrderId' => 0,
 		'autoRunInProcess' => $filter_status_id > 0,
 		'statusesForFinish' => $statuses_for_finish,
 		'statusesForInverse' => $statuses_for_inverse,
