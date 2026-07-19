@@ -519,6 +519,7 @@ if (is_readable($_epc_ff_banner)) {
 
 <?php require($_SERVER["DOCUMENT_ROOT"]."/content/general_pages/google_translate_top.php"); ?>
 <?php require($_SERVER["DOCUMENT_ROOT"]."/content/general_pages/site_professional_shell.php"); ?>
+<link rel="stylesheet" href="/content/general_pages/epc_vendor_nav_cta.css?v=20260719vn1">
 
 
 <?php
@@ -622,6 +623,10 @@ if(!empty($DP_Template->data_value->message_header)){
 						<nav class="navbar navbar-default navbar-header-full yamm navbar-static-top" role="navigation">
 							<docpart type="module" name="top_menu" />
 						</nav>
+					</td>
+					<td class="epc-vendor-nav-ctas">
+						<a class="epc-nav-sell-cta" href="<?php echo htmlspecialchars((string) $multilang_params['lang_href'], ENT_QUOTES, 'UTF-8'); ?>/vendor"><i class="fa fa-handshake-o" aria-hidden="true"></i> Sell with us</a>
+						<a class="epc-nav-sell-cta epc-nav-register-cta" href="<?php echo htmlspecialchars((string) $multilang_params['lang_href'], ENT_QUOTES, 'UTF-8'); ?>/vendor/register"><i class="fa fa-user-plus" aria-hidden="true"></i> Vendor registration</a>
 					</td>
 					<td>
 						<?php
@@ -1104,6 +1109,8 @@ if(!empty($DP_Template->data_value->message_header)){
 				<a class="mobile-box-whatsapp" href="https://wa.me/<?=htmlspecialchars($epc_whatsapp_href_number, ENT_QUOTES, 'UTF-8');?>" target="_blank" rel="noopener"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
 				<?php } ?>
 				<a class="mobile-box-bulk-upload" href="<?php echo $multilang_params['lang_href']; ?>/shop/bulk-upload"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Excel upload</a>
+				<a class="mobile-box-vendor epc-nav-sell-cta" href="<?php echo htmlspecialchars((string) $multilang_params['lang_href'], ENT_QUOTES, 'UTF-8'); ?>/vendor"><i class="fa fa-handshake-o" aria-hidden="true"></i> Sell with us</a>
+				<a class="mobile-box-vendor epc-nav-sell-cta epc-nav-register-cta" href="<?php echo htmlspecialchars((string) $multilang_params['lang_href'], ENT_QUOTES, 'UTF-8'); ?>/vendor/register"><i class="fa fa-user-plus" aria-hidden="true"></i> Vendor registration</a>
 				<?php if (!function_exists('epc_portal_storefront_enabled') || epc_portal_storefront_enabled()): ?>
 				<a class="mobile-box-erp-login" href="<?php echo function_exists('epc_portal_erp_url') ? epc_portal_erp_url((string) $multilang_params['lang_href']) : ($multilang_params['lang_href'] . '/erp'); ?>"><i class="fa fa-line-chart" aria-hidden="true"></i> <?php echo htmlspecialchars(translate_str_by_key('epc_menu_erp_login') ?: 'ERP Login', ENT_QUOTES, 'UTF-8'); ?></a>
 				<?php endif; ?>
