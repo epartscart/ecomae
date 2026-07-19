@@ -82,9 +82,19 @@ if ($action === 'update_item') {
 		epc_oms_fail('Price must be greater than 0');
 	}
 
+	$storageCaption = '';
+	if ($storageId > 0) {
+		try {
+			$stCap = $db_link->prepare('SELECT COALESCE(NULLIF(TRIM(`short_name`), \'\'), `name`) FROM `shop_storages` WHERE `id` = ? LIMIT 1');
+			$stCap->execute(array($storageId));
+			$storageCaption = (string) $stCap->fetchColumn();
+		} catch (Throwable $e) {
+			$storageCaption = '';
+		}
+	}
 	$db_link->prepare(
-		'UPDATE `shop_orders_items` SET `price` = ?, `count_need` = ?, `t2_price_purchase` = ?, `t2_storage_id` = ?, `t2_name` = ? WHERE `id` = ? AND `order_id` = ?'
-	)->execute(array($price, $qty, $purchase, $storageId, $name, $itemId, $orderId));
+		'UPDATE `shop_orders_items` SET `price` = ?, `count_need` = ?, `t2_price_purchase` = ?, `t2_storage_id` = ?, `t2_storage` = ?, `t2_name` = ? WHERE `id` = ? AND `order_id` = ?'
+	)->execute(array($price, $qty, $purchase, $storageId, $storageCaption, $name, $itemId, $orderId));
 
 	$log = 'OMS updated item <b>id ' . $itemId . '</b>: price=' . number_format($price, 2, '.', '')
 		. ', qty=' . $qty . ', purchase=' . number_format($purchase, 2, '.', '')
