@@ -136,13 +136,21 @@ function epc_storefront_prices_login_cta_html(?array $multilang_params = null): 
 		. '</span>';
 }
 
-function epc_storefront_commerce_login_cta_html(?array $multilang_params = null): string
+function epc_storefront_commerce_login_cta_html(?array $multilang_params = null, bool $compact = false): string
 {
 	if ($multilang_params === null && !empty($GLOBALS['multilang_params']) && is_array($GLOBALS['multilang_params'])) {
 		$multilang_params = $GLOBALS['multilang_params'];
 	}
 	$login = htmlspecialchars(epc_storefront_auth_login_url($multilang_params), ENT_QUOTES, 'UTF-8');
 	$signup = htmlspecialchars(epc_storefront_auth_signup_url($multilang_params), ENT_QUOTES, 'UTF-8');
+	// Search-result rows: one-line text next to Fitment (no stacked buttons).
+	if ($compact) {
+		return '<span class="epc-commerce-login-cta epc-commerce-login-cta--inline">'
+			. '<a href="' . $login . '">Log in</a>'
+			. '<span class="epc-commerce-login-cta__sep"> or </span>'
+			. '<a href="' . $signup . '">register</a>'
+			. '</span>';
+	}
 	return '<div class="epc-commerce-login-cta">'
 		. '<a class="btn btn-sm btn-primary" href="' . $login . '">Log in</a>'
 		. '<span class="epc-commerce-login-cta__sep"> or </span>'
@@ -217,6 +225,12 @@ function epc_storefront_prices_styles(): string
 		. '.epc-commerce-login-cta .btn{margin:0}'
 		. '.epc-commerce-login-cta__sep{font-size:12px;color:#94a3b8}'
 		. '.epc-commerce-login-cta__hint{font-size:11px;line-height:1.35;color:#64748b}'
+		. '.epc-commerce-login-cta--inline{display:inline-flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:4px;max-width:none;white-space:nowrap;font-size:12px;line-height:1.2;color:#64748b}'
+		. '.epc-commerce-login-cta--inline a{font-weight:700;color:#2563eb;text-decoration:none}'
+		. '.epc-commerce-login-cta--inline a:hover{text-decoration:underline}'
+		. '.epc-product-actions--guest{flex-wrap:nowrap;width:auto}'
+		. '.epc-product-actions__tools--guest{flex-wrap:nowrap;white-space:nowrap;gap:8px}'
+		. '#all_table_products .td_add_to_cart .epc-product-actions--guest{justify-content:flex-start}'
 		. '.epc-cart-login-gate{max-width:520px;margin:32px auto;padding:28px 24px;text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px}'
 		. '.epc-cart-login-gate h2{margin:0 0 10px;font-size:22px;color:#0f172a}'
 		. '.epc-cart-login-gate p{margin:0 0 18px;color:#475569}'

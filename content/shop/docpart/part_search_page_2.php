@@ -15,7 +15,7 @@ if (!isset($epc_storefront_prices_visible)) {
 <script>
 var epc_storefront_prices_visible = <?php echo !empty($epc_storefront_prices_visible) ? 'true' : 'false'; ?>;
 var epc_storefront_price_login_cta_html = <?php echo json_encode(epc_storefront_prices_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
-var epc_storefront_commerce_login_cta_html = <?php echo json_encode(function_exists('epc_storefront_commerce_login_cta_html') ? epc_storefront_commerce_login_cta_html() : '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+var epc_storefront_commerce_login_cta_html = <?php echo json_encode(function_exists('epc_storefront_commerce_login_cta_html') ? epc_storefront_commerce_login_cta_html(null, true) : '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_login_url = <?php echo json_encode(function_exists('epc_storefront_auth_login_url') ? epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null) : '/en/users/login', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 function epcStorefrontRequireLoginForCommerce()
 {
@@ -31,7 +31,8 @@ function epcStorefrontPriceCellHTML(priceHtml)
 {
 	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
 	{
-		return epc_storefront_price_login_cta_html || '&mdash;';
+		// Guest login/register text lives next to Fitment in the actions cell (one row).
+		return '&mdash;';
 	}
 	return priceHtml;
 }

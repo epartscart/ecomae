@@ -1183,7 +1183,8 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 				. htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8') . '</span>';
 		} else {
-			$priceHtml = $priceCta !== '' ? $priceCta : '&mdash;';
+			// Guest login/register text is shown next to Fitment in the actions cell (one row).
+			$priceHtml = '&mdash;';
 		}
 		$infoHtml = '';
 		if ($warehouse !== '') {

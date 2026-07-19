@@ -3489,6 +3489,9 @@ defined('_ASTEXE_') or die('No access');
 		min-width: 0;
 		width: 100%;
 	}
+	.epc-product-actions--guest {
+		width: auto;
+	}
 	.epc-product-actions__tools,
 	.epc-product-actions__buy {
 		align-items: center;
@@ -3498,6 +3501,31 @@ defined('_ASTEXE_') or die('No access');
 		gap: 6px;
 		justify-content: flex-start;
 		width: auto;
+	}
+	.epc-product-actions__tools--guest {
+		gap: 8px;
+		white-space: nowrap;
+	}
+	.epc-product-actions .epc-commerce-login-cta--inline {
+		align-items: center;
+		color: #64748b;
+		display: inline-flex;
+		flex: 0 0 auto;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		font-size: 12px;
+		gap: 4px;
+		line-height: 1.2;
+		max-width: none;
+		white-space: nowrap;
+	}
+	.epc-product-actions .epc-commerce-login-cta--inline a {
+		color: #2563eb;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.epc-product-actions .epc-commerce-login-cta--inline a:hover {
+		text-decoration: underline;
 	}
 	.epc-product-actions .epc-fitment-check-btn--row,
 	.epc-product-actions .epc-btn-fitment {
