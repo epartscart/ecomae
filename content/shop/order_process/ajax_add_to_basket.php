@@ -325,8 +325,12 @@ for($i=0; $i < count($product_objects); $i++)
 		
 		//Проверяем хеш, защищающий от подмены данных злоумышлненниками через JavaScript
 		$computed_hash = docpart_type2_cart_check_hash($product_object, $price, $DP_Config->tech_key);
-		$client_hash = isset($product_object["check_hash"]) ? (string) $product_object["check_hash"] : '';
-		if ($client_hash !== '' && $client_hash !== $computed_hash)
+		$client_hash = isset($product_object["check_hash"]) ? trim((string) $product_object["check_hash"]) : '';
+		// Guest price redaction used to set check_hash=0; treat placeholder zeros as missing.
+		if ($client_hash === '0' || strtolower($client_hash) === 'null' || strtolower($client_hash) === 'undefined') {
+			$client_hash = '';
+		}
+		if ($client_hash !== '' && !hash_equals($computed_hash, $client_hash))
 		{
 			$result = array();
 			$result["status"] = false;

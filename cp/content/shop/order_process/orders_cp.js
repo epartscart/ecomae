@@ -18,6 +18,39 @@
 
 	window.getCookie = getCookie;
 
+	/**
+	 * Open legacy print_docs with a fresh admin CSRF key from EPC_ORDERS.
+	 * OMS AJAX pane used to emit empty csrf_guard_key → "Error! CSRF 3".
+	 */
+	window.epcOdOpenLegacyPrint = function (el) {
+		if (!el) {
+			return true;
+		}
+		var docName = el.getAttribute('data-doc-name') || '';
+		var orderId = el.getAttribute('data-order-id') || '';
+		var itemsRaw = el.getAttribute('data-order-items') || '[]';
+		var csrf = (cfg && cfg.csrf) ? String(cfg.csrf) : '';
+		if (!csrf) {
+			csrf = getCookie('csrf_guard_key') || '';
+		}
+		var base = (urls && urls.legacyPrintBase) ? String(urls.legacyPrintBase) : '/content/shop/print_docs/service/print.php';
+		if (!docName || !orderId) {
+			return true;
+		}
+		if (!csrf) {
+			alert('Print session expired. Refresh the Control Panel page and try again.');
+			return false;
+		}
+		var href = base
+			+ '?order_id=' + encodeURIComponent(orderId)
+			+ '&csrf_admin=1'
+			+ '&csrf_guard_key=' + encodeURIComponent(csrf)
+			+ '&order_items=' + encodeURIComponent(itemsRaw)
+			+ '&doc_name=' + encodeURIComponent(docName);
+		window.open(href, '_blank');
+		return false;
+	};
+
 	function pad2(n) {
 		return (n < 10 ? '0' : '') + n;
 	}
