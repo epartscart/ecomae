@@ -234,7 +234,7 @@ function epc_cp_page_asset_url_map(): array
 		),
 		'shop/orders/oms-guide' => array(
 			'css' => array(
-				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide2'),
+				'/content/general_pages/epc_orders_cp_css.php?v=' . rawurlencode($ver . 'omsGuide3'),
 			),
 		),
 		'shop/orders/orders' => array(
