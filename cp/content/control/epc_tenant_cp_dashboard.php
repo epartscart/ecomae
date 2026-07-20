@@ -1,6 +1,6 @@
 <?php
 /**
- * Tenant CP home — Command Centre dashboard (red + black + white).
+ * Tenant CP home — Command Centre dashboard (red + white).
  * Mirrors the ERP overview dashboard structure for /cp/control.
  */
 defined('_ASTEXE_') or die('No access');
@@ -248,10 +248,10 @@ if (function_exists('epc_co_profile_get') && isset($db_link) && $db_link instanc
 
 $tiles = array(
 	array('label' => 'Orders (OMS)', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
+	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'rose'),
 	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'crimson'),
 	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'stone'),
-	array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages', 'tone' => 'black'),
+	array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages', 'tone' => 'rose'),
 	array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'red'),
 	array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'stone'),
 	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'crimson'),
@@ -259,33 +259,33 @@ $tiles = array(
 
 $quickActions = array(
 	array('label' => 'Open OMS', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-	array('label' => 'Upload prices', 'icon' => 'fa-upload', 'url' => $base . '/shop/prices', 'tone' => 'black'),
+	array('label' => 'Upload prices', 'icon' => 'fa-upload', 'url' => $base . '/shop/prices', 'tone' => 'rose'),
 	array('label' => 'Multivendor', 'icon' => 'fa-handshake-o', 'url' => $base . '/shop/prices/multivendor', 'tone' => 'stone'),
 	array('label' => 'Crosses', 'icon' => 'fa-exchange', 'url' => $base . '/shop/crosses', 'tone' => 'red'),
-	array('label' => 'AI chats', 'icon' => 'fa-comments', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'black'),
+	array('label' => 'AI chats', 'icon' => 'fa-comments', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'rose'),
 	array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'stone'),
 	array('label' => 'POS terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'red'),
-	array('label' => 'ERP dashboard', 'icon' => 'fa-dashboard', 'url' => $erpUrl . '&area=overview&tab=dashboard', 'tone' => 'black'),
+	array('label' => 'ERP dashboard', 'icon' => 'fa-dashboard', 'url' => $erpUrl . '&area=overview&tab=dashboard', 'tone' => 'rose'),
 );
 
 if ($industryCode !== 'auto_parts') {
 	$quickActions = array(
 		array('label' => 'Orders', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
+		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'rose'),
 		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'stone'),
 		array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'red'),
-		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'black'),
+		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'rose'),
 		array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'stone'),
 		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'red'),
-		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'black'),
+		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'rose'),
 	);
 }
 
 $moreLinks = array(
-	array('label' => 'CP brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure', 'tone' => 'black'),
+	array('label' => 'CP brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure', 'tone' => 'rose'),
 	array('label' => 'Auto Price AI', 'icon' => 'fa-line-chart', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'red'),
 	array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'stone'),
-	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'black'),
+	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'rose'),
 	array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'red'),
 	array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'stone'),
 );
@@ -350,7 +350,7 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 			<div class="cp-dash-kicker"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> Control Command Centre</div>
 			<h2 class="cp-dash-title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
 			<p class="cp-dash-sub"><?php echo $industryCode === 'auto_parts'
-				? 'Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.'
+				? 'Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-white command view.'
 				: 'Your daily control dashboard — orders, catalogue, clients, and finance shortcuts in one place.'; ?></p>
 			<div class="cp-dash-meta">
 				<span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> <?php echo epc_tcp_dash_h($industryLabel); ?></span>

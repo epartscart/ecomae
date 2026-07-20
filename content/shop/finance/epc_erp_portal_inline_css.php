@@ -49,9 +49,17 @@ body.epc-erp-standalone a:hover,body.epc-erp-standalone a:focus{color:#7dd3fc;te
 .epc-erp-topbar{background:rgba(2,6,23,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(99,102,241,.15);box-shadow:0 2px 12px rgba(0,0,0,.3);position:relative;z-index:10;}
 .epc-erp-topbar__inner{max-width:1180px;margin:0 auto;padding:7px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 .epc-erp-topbar__brand{display:flex;align-items:center;gap:11px;color:#fff!important;text-decoration:none;}
-.epc-erp-topbar__brand .ech-static__logo,.epc-erp-topbar__brand img{width:32px;height:32px;border-radius:8px;display:block;}
+.epc-erp-topbar__brand .ech-static__logo,.epc-erp-topbar__brand img{width:32px;height:32px;border-radius:8px;display:block;object-fit:contain;}
+.epc-erp-topbar__tenant-logo{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);flex-shrink:0;overflow:hidden;}
+.epc-erp-topbar__tenant-logo img{width:100%;height:100%;object-fit:contain;border-radius:0;display:block;background:#fff;}
+.epc-erp-topbar__tenant-logo--epartscart{background:#fff;padding:3px;}
+.epc-erp-topbar__initials{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;font-size:13px;font-weight:800;letter-spacing:.02em;flex-shrink:0;}
 .epc-erp-topbar__brand-text strong{display:block;font-size:16px;font-weight:700;line-height:1.1;letter-spacing:.2px;color:#fff;}
 .epc-erp-topbar__brand-text small{display:block;font-size:11.5px;color:var(--ep-muted);}
+.epc-erp-login-tenant-brand{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:0 0 14px;}
+.epc-erp-login-tenant-brand .epc-erp-topbar__tenant-logo{width:56px;height:56px;border-radius:12px;}
+.epc-erp-login-tenant-brand__title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.15;}
+.epc-erp-login-tenant-brand__tag{font-size:12.5px;color:rgba(226,232,240,.85);font-weight:600;}
 .epc-erp-topbar__nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
 .epc-erp-topbar__nav a{color:var(--ep-muted)!important;font-size:13.5px;font-weight:600;padding:7px 12px;border-radius:8px;text-decoration:none;transition:.15s;}
 .epc-erp-topbar__nav a:hover{background:rgba(14,165,233,.12);color:var(--ep-accent-2)!important;}
@@ -203,6 +211,131 @@ body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content .btn-default{
 }
 body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content .alert{
   background:#eff6ff;border-color:#bfdbfe;color:#1e293b;
+}
+
+/* /erp/guide — white reading surface; dark portal ink must not leak into content */
+body.epc-erp-standalone--guide .epc-erp-main{
+  max-width:1100px;
+}
+body.epc-erp-standalone--guide .epc-erp-portal-wrap,
+body.epc-erp-standalone--guide .epc-erp-workspace{
+  background:#ffffff!important;
+  color:#1e293b!important;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  box-shadow:0 12px 36px rgba(2,6,23,.28);
+  padding:18px 20px 28px;
+  margin:0 0 24px;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace,
+body.epc-erp-standalone--guide .epc-erp-workspace *:not(.fa):not(i):not(.btn):not(.btn *):not(a):not(code):not(pre){
+  color:#1e293b;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace a{color:#1d4ed8!important;font-weight:600;}
+body.epc-erp-standalone--guide .epc-erp-workspace a:hover{color:#1e3a8a!important;}
+body.epc-erp-standalone--guide .epc-erp-workspace .text-muted,
+body.epc-erp-standalone--guide .epc-erp-workspace .help-block,
+body.epc-erp-standalone--guide .epc-erp-workspace small{
+  color:#475569!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .hpanel,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-body,
+body.epc-erp-standalone--guide .epc-erp-workspace .well,
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-step,
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-flow,
+body.epc-erp-standalone--guide .epc-erp-workspace .table,
+body.epc-erp-standalone--guide .epc-erp-workspace .table td,
+body.epc-erp-standalone--guide .epc-erp-workspace .table th,
+body.epc-erp-standalone--guide .epc-erp-workspace p,
+body.epc-erp-standalone--guide .epc-erp-workspace li,
+body.epc-erp-standalone--guide .epc-erp-workspace dd,
+body.epc-erp-standalone--guide .epc-erp-workspace dt,
+body.epc-erp-standalone--guide .epc-erp-workspace h3,
+body.epc-erp-standalone--guide .epc-erp-workspace h4,
+body.epc-erp-standalone--guide .epc-erp-workspace h5{
+  color:#1e293b!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .hpanel,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel{
+  background:#fff!important;
+  border:1px solid #e2e8f0!important;
+  box-shadow:none!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-heading,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-heading.hbuilt{
+  background:#f8fafc!important;
+  color:#0f172a!important;
+  border-bottom:1px solid #e2e8f0!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-body,
+body.epc-erp-standalone--guide .epc-erp-workspace .well,
+body.epc-erp-standalone--guide .epc-erp-workspace .well-sm{
+  background:#fff!important;
+  color:#1e293b!important;
+  border-color:#e2e8f0!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .alert{
+  background:#eff6ff!important;
+  border-color:#bfdbfe!important;
+  color:#1e293b!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .alert-info{
+  background:#eff6ff!important;
+  border-color:#93c5fd!important;
+  color:#1e3a8a!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .alert-warning{
+  background:#fffbeb!important;
+  border-color:#fcd34d!important;
+  color:#92400e!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .table{
+  background:#fff!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .table>thead>tr>th,
+body.epc-erp-standalone--guide .epc-erp-workspace .table>tbody>tr>th,
+body.epc-erp-standalone--guide .epc-erp-workspace .table>tbody>tr>td{
+  background:#fff!important;
+  color:#1e293b!important;
+  border-color:#e2e8f0!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .table-striped>tbody>tr:nth-of-type(odd)>td{
+  background:#f8fafc!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace code,
+body.epc-erp-standalone--guide .epc-erp-workspace pre{
+  color:#0f172a!important;
+  background:#f1f5f9!important;
+  border:1px solid #e2e8f0;
+  border-radius:4px;
+  padding:1px 6px;
+  font-size:12.5px;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-step{
+  background:#f8fafc!important;
+  border-left:4px solid #2563eb!important;
+  color:#1e293b!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro{
+  background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#0ea5e9 100%)!important;
+  color:#fff!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro,
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro *{
+  color:#fff!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro a{
+  color:#dbeafe!important;
+  text-decoration:underline;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .btn-default{
+  background:#fff!important;
+  border-color:#cbd5e1!important;
+  color:#334155!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .btn-primary{
+  color:#fff!important;
 }
 
 @media (max-width:860px){

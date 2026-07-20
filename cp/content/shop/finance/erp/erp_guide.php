@@ -34,17 +34,190 @@ $pl = isset($snapshot['pl']) ? $snapshot['pl'] : array('net_profit' => 0, 'total
 $bs = isset($snapshot['balance_sheet']) ? $snapshot['balance_sheet'] : array('total_assets' => 0, 'total_liabilities_equity' => 0);
 $staffDash = epc_erp_staff_dashboard($db_link);
 $deptCfg = epc_erp_departments_config();
+
+$snapAmt = function ($amount) {
+	$n = (float) $amount;
+	$cls = 'epc-erp-guide-snap__amt' . ($n < 0 ? ' epc-erp-guide-snap__amt--neg' : '');
+	return '<span class="' . $cls . '">' . epc_erp_money($n) . ' AED</span>';
+};
+$revMtd = isset($dash['revenue_ex_vat']) ? $dash['revenue_ex_vat'] : 0;
+$marginMtd = isset($dash['profit_ex_vat']) ? $dash['profit_ex_vat'] : 0;
+$recvDue = isset($dash['receivable_due_orders']) ? $dash['receivable_due_orders'] : 0;
+$custBal = isset($dash['customer_ledger_balance']) ? $dash['customer_ledger_balance'] : 0;
+$payBal = isset($dash['payable_balance']) ? $dash['payable_balance'] : 0;
+$cashTot = isset($dash['cash_bank_total']) ? $dash['cash_bank_total'] : 0;
+$plNet = isset($pl['net_profit']) ? $pl['net_profit'] : 0;
+$bsAssets = isset($bs['total_assets']) ? $bs['total_assets'] : 0;
+$bsLe = isset($bs['total_liabilities_equity']) ? $bs['total_liabilities_equity'] : 0;
 ?>
 
-<style>
-.epc-erp-guide-intro { background: linear-gradient(135deg, #0f172a 0%, #1e4d3a 100%); color: #fff; border-radius: 8px; padding: 20px 22px; margin-bottom: 18px; }
-.epc-erp-guide-intro h3 { margin: 0 0 8px; color: #fff; }
-.epc-erp-guide-step { border-left: 4px solid #27ae60; padding: 12px 16px; margin: 14px 0; background: #f8fafc; border-radius: 0 6px 6px 0; }
-.epc-erp-guide-step h5 { margin: 0 0 8px; font-weight: 700; color: #0f172a; }
-.epc-erp-flow { font-size: 13px; line-height: 1.7; }
+<style id="epc-erp-guide-contrast">
+/* Self-contained readable guide (survives dark ERP portal shell) */
+.epc-erp-guide-root,
+.epc-erp-guide-root .panel-body,
+.epc-erp-guide-root .epc-erp-flow {
+	color: #1e293b !important;
+	font-size: 14px;
+	line-height: 1.55;
+}
+.epc-erp-guide-root h3,
+.epc-erp-guide-root h4,
+.epc-erp-guide-root h5 {
+	color: #0f172a !important;
+	font-weight: 700;
+}
+.epc-erp-guide-root p,
+.epc-erp-guide-root li,
+.epc-erp-guide-root td,
+.epc-erp-guide-root th,
+.epc-erp-guide-root dd,
+.epc-erp-guide-root dt {
+	color: #1e293b !important;
+}
+.epc-erp-guide-root a { color: #1d4ed8 !important; font-weight: 600; }
+.epc-erp-guide-intro {
+	background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #0ea5e9 100%) !important;
+	color: #fff !important;
+	border-radius: 10px;
+	padding: 20px 22px;
+	margin-bottom: 18px;
+}
+.epc-erp-guide-intro,
+.epc-erp-guide-intro h3,
+.epc-erp-guide-intro p,
+.epc-erp-guide-intro strong { color: #fff !important; }
+.epc-erp-guide-intro a { color: #dbeafe !important; text-decoration: underline; }
+.epc-erp-guide-step {
+	border-left: 4px solid #2563eb !important;
+	padding: 14px 16px;
+	margin: 14px 0;
+	background: #f8fafc !important;
+	border-radius: 0 8px 8px 0;
+	color: #1e293b !important;
+}
+.epc-erp-guide-step h5 { margin: 0 0 8px; font-weight: 700; color: #0f172a !important; }
+.epc-erp-flow { font-size: 14px; line-height: 1.65; color: #1e293b !important; }
+.epc-erp-guide-root .table > tbody > tr > td,
+.epc-erp-guide-root .table > tbody > tr > th {
+	color: #1e293b !important;
+	background: #fff !important;
+	border-color: #e2e8f0 !important;
+}
+.epc-erp-guide-root .well,
+.epc-erp-guide-root .well-sm {
+	background: #f8fafc !important;
+	border: 1px solid #e2e8f0 !important;
+	color: #1e293b !important;
+}
+.epc-erp-guide-root code {
+	color: #0f172a !important;
+	background: #e2e8f0 !important;
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+.epc-erp-guide-toc {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 18px;
+}
+.epc-erp-guide-toc a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 12px;
+	border-radius: 8px;
+	border: 1px solid #cbd5e1;
+	background: #fff !important;
+	color: #1e293b !important;
+	font-size: 12.5px;
+	font-weight: 600;
+	text-decoration: none !important;
+}
+.epc-erp-guide-toc a:hover { border-color: #2563eb; color: #1d4ed8 !important; }
+.epc-erp-guide-snap {
+	width: 100%;
+	margin: 0 0 14px;
+	border: 1px solid #e2e8f0 !important;
+	background: #fff !important;
+}
+.epc-erp-guide-snap th {
+	background: #0f172a !important;
+	color: #fff !important;
+	font-size: 12px;
+	font-weight: 700;
+	padding: 10px 12px !important;
+	border: 0 !important;
+}
+.epc-erp-guide-snap td {
+	padding: 10px 12px !important;
+	vertical-align: top !important;
+	color: #1e293b !important;
+	background: #fff !important;
+	border-color: #e2e8f0 !important;
+	font-size: 13.5px;
+	line-height: 1.45;
+}
+.epc-erp-guide-snap tr:nth-child(even) td { background: #f8fafc !important; }
+.epc-erp-guide-snap__group td {
+	background: #eff6ff !important;
+	color: #1e3a8a !important;
+	font-weight: 800;
+	font-size: 12px;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	padding: 8px 12px !important;
+}
+.epc-erp-guide-snap__amt {
+	white-space: nowrap;
+	font-weight: 800;
+	color: #0f172a !important;
+	font-variant-numeric: tabular-nums;
+}
+.epc-erp-guide-snap__amt--neg { color: #b91c1c !important; }
+.epc-erp-guide-snap__mean {
+	color: #475569 !important;
+	font-size: 12.5px;
+	font-weight: 500;
+}
+.epc-erp-guide-legend {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 10px;
+	margin: 0 0 16px;
+}
+.epc-erp-guide-legend__item {
+	background: #f8fafc !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 8px;
+	padding: 10px 12px;
+	color: #1e293b !important;
+}
+.epc-erp-guide-legend__item strong {
+	display: block;
+	margin-bottom: 4px;
+	color: #0f172a !important;
+	font-size: 13px;
+}
+.epc-erp-guide-legend__item span {
+	display: block;
+	color: #475569 !important;
+	font-size: 12.5px;
+	line-height: 1.45;
+}
+.epc-erp-guide-note {
+	margin: 0 0 16px;
+	padding: 12px 14px;
+	border-radius: 8px;
+	border: 1px solid #fde68a;
+	background: #fffbeb !important;
+	color: #78350f !important;
+	font-size: 13px;
+	line-height: 1.5;
+}
 </style>
 
-<div class="col-lg-12">
+<div class="col-lg-12 epc-erp-guide-root">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
 			ERP — step-by-step guide
@@ -58,57 +231,155 @@ $deptCfg = epc_erp_departments_config();
 		<div class="panel-body">
 
 			<div class="epc-erp-guide-intro">
-				<h3><i class="fa fa-book"></i> How to use ERP in the control panel</h3>
-				<p style="margin:0;opacity:.92;">Complete workflow: <strong>Sales → Revenue → Receivable → Balance</strong>,
-					<strong>Purchase → Supplier → Payable → Balance</strong>, <strong>Cash &amp; Bank</strong>,
-					and <strong>COA → GL → P&amp;L → Balance Sheet</strong>.
-					URL: <a href="<?php echo epc_erp_h($erpUrl); ?>" style="color:#a7f3d0;"><?php echo epc_erp_h($erpUrl); ?></a></p>
+				<h3><i class="fa fa-book"></i> How to use ERP</h3>
+				<p style="margin:0;">Clear path from day-to-day work to the books:
+					<strong>Sales → Revenue → Receivable → Balance</strong>,
+					<strong>Purchase → Payable → Balance</strong>,
+					<strong>Cash &amp; Bank</strong>, and
+					<strong>Chart of accounts → GL → P&amp;L → Balance sheet</strong>.</p>
 			</div>
+
+			<nav class="epc-erp-guide-toc" aria-label="Guide sections">
+				<a href="#epc-guide-snapshot"><i class="fa fa-bar-chart"></i> Live numbers</a>
+				<a href="#epc-guide-terms"><i class="fa fa-info-circle"></i> Key terms</a>
+				<a href="#epc-guide-courier"><i class="fa fa-truck"></i> Courier &amp; VAT</a>
+				<a href="#epc-guide-flow"><i class="fa fa-list-ol"></i> Daily steps</a>
+				<a href="#epc-guide-setup"><i class="fa fa-cogs"></i> First-time setup</a>
+				<a href="#epc-erp-full-guide"><i class="fa fa-book"></i> Module guide</a>
+			</nav>
 
 			<div class="alert alert-info">
-				<strong>Menu:</strong> Shop → <em>ERP Finance</em>. Tabs include <strong>Inventory</strong> (multi-warehouse, weighted average cost), <strong>Fixed assets</strong> (depreciation &amp; book value), <strong>Opening balances</strong> (migration date), plus Revenue, Purchases, Cash &amp; bank, <strong>COA</strong>, <strong>GL</strong>, <strong>P&amp;L</strong>, <strong>Balance sheet</strong>.
-				Full doc: <code>docs/ERP_INVENTORY_ASSETS_GUIDE.md</code>.
-				<strong>Customer data</strong> → <a href="/<?php echo epc_erp_h(isset($DP_Config) ? (string)$DP_Config->backend_dir : 'cp'); ?>/shop/customer_mgmt/customer_mgmt">Customers → Customer management</a>.
-				<strong>Suppliers</strong> → <a href="/<?php echo epc_erp_h(isset($DP_Config) ? (string)$DP_Config->backend_dir : 'cp'); ?>/shop/procurement/procurement">Procurement panel</a>.
-				Generated <?php echo epc_erp_h($snapshot['generated_at']); ?>.
+				<strong>Where to open ERP:</strong> use <em>Open ERP module</em> above, or Shop → ERP Finance.
+				Work left-to-right: <strong>Sales / Purchases → Cash &amp; bank → Chart of accounts → GL → P&amp;L → Balance sheet</strong>.
+				Numbers below are live from this company (refreshed <?php echo epc_erp_h($snapshot['generated_at']); ?>).
 			</div>
 
-			<div class="epc-erp-guide-step">
-				<h5><i class="fa fa-truck"></i> Courier charges, VAT &amp; document map</h5>
-				<div class="epc-erp-flow">
-					<p><strong>Who pays courier?</strong> The <em>customer</em>. The fee is stored on the order (<code>how_get_json.delivery_price</code>), shown in OMS, and added as a line on the UAE tax invoice (AR).</p>
-					<p><strong>VAT on courier:</strong> Courier is taxable <em>income</em> for UAE destinations (output VAT on the invoice). Customers outside the UAE are <strong>zero-rated</strong> — no VAT on goods or courier. Destination country on the shipping record drives this.</p>
-					<p><strong>VAT documentation:</strong> UAE → keep PINT-AE tax invoice (XML/PDF), TRN, and payment records. Export → keep shipping proof, commercial invoice, and buyer country evidence for FTA zero-rating.</p>
-					<p><strong>ERP map (OMS → Manage):</strong></p>
-					<ol>
-						<li><strong>Shop order</strong> — commerce order</li>
-						<li><strong>VAT treatment</strong> — UAE standard vs export zero-rate</li>
-						<li><strong>ERP sales order (SO)</strong> — revenue side bootstrap</li>
-						<li><strong>Supplier POs</strong> — per-supplier purchase orders</li>
-						<li><strong>AP bills</strong> — supplier purchase invoices (cost)</li>
-						<li><strong>AR tax invoice</strong> — customer invoice including goods + courier + VAT</li>
-					</ol>
-					<p>Use <strong>Link ERP / Sync / Auto-post</strong> on the OMS fulfillment panel to keep SO ↔ PO ↔ bill ↔ invoice aligned.</p>
+			<h4 id="epc-guide-snapshot"><i class="fa fa-bar-chart"></i> Live numbers — what each figure means</h4>
+			<p class="epc-erp-flow" style="margin:0 0 12px;">These are <strong>this company’s current books</strong>, not demo placeholders. Red amounts are negative (money out / overdrawn / credit balance). Click a related ERP tab to drill into the detail.</p>
+
+			<?php if ((float)$cashTot < 0): ?>
+			<div class="epc-erp-guide-note">
+				<strong>Cash &amp; bank is negative.</strong>
+				That usually means payments were posted without matching receipts, or opening balances were not entered.
+				Open <a href="<?php echo epc_erp_h($erpUrl . (strpos($erpUrl, '?') !== false ? '&' : '?') . 'area=banking&amp;tab=cash_bank'); ?>">Cash &amp; bank</a>
+				and reconcile account by account — do not treat this as available cash.
+			</div>
+			<?php endif; ?>
+
+			<table class="table table-bordered epc-erp-guide-snap">
+				<thead>
+					<tr>
+						<th style="width:28%;">Metric</th>
+						<th style="width:18%;">Amount</th>
+						<th>What it means</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="epc-erp-guide-snap__group"><td colspan="3">Sales this month</td></tr>
+					<tr>
+						<td><strong>Sales revenue (ex VAT)</strong></td>
+						<td><?php echo $snapAmt($revMtd); ?></td>
+						<td class="epc-erp-guide-snap__mean">Completed shop orders this month, before VAT. Open / in-progress orders do not count until status is <strong>Completed</strong>.</td>
+					</tr>
+					<tr>
+						<td><strong>Gross margin</strong></td>
+						<td><?php echo $snapAmt($marginMtd); ?></td>
+						<td class="epc-erp-guide-snap__mean">Sales revenue minus purchase cost on those same completed orders (operational view — not the full P&amp;L).</td>
+					</tr>
+
+					<tr class="epc-erp-guide-snap__group"><td colspan="3">Customers (money in)</td></tr>
+					<tr>
+						<td><strong>Unpaid orders (due)</strong></td>
+						<td><?php echo $snapAmt($recvDue); ?></td>
+						<td class="epc-erp-guide-snap__mean">How much customers still owe on specific completed orders (invoice total minus payments). ERP → Customer receivables / Revenue.</td>
+					</tr>
+					<tr>
+						<td><strong>Customer wallet balance</strong></td>
+						<td><?php echo $snapAmt($custBal); ?></td>
+						<td class="epc-erp-guide-snap__mean">Prepaid customer account ledger (top-ups minus charges). Positive = credit on account; negative = customer owes on the wallet. Different from unpaid orders above.</td>
+					</tr>
+
+					<tr class="epc-erp-guide-snap__group"><td colspan="3">Suppliers (money out)</td></tr>
+					<tr>
+						<td><strong>Supplier bills unpaid</strong></td>
+						<td><?php echo $snapAmt($payBal); ?></td>
+						<td class="epc-erp-guide-snap__mean">What you still owe suppliers (purchase invoices minus payments). ERP → Payables / Procurement.</td>
+					</tr>
+
+					<tr class="epc-erp-guide-snap__group"><td colspan="3">Cash &amp; bank</td></tr>
+					<tr>
+						<td><strong>Cash + bank total</strong></td>
+						<td><?php echo $snapAmt($cashTot); ?></td>
+						<td class="epc-erp-guide-snap__mean">Sum of all cash/bank account balances (opening + receipts − payments). Negative = overdrawn or mis-posted — reconcile before trusting this number.</td>
+					</tr>
+
+					<tr class="epc-erp-guide-snap__group"><td colspan="3">Books (accounting)</td></tr>
+					<tr>
+						<td><strong>P&amp;L net profit (MTD)</strong></td>
+						<td><?php echo $snapAmt($plNet); ?></td>
+						<td class="epc-erp-guide-snap__mean">From posted general-ledger journals this month (Revenue − Expenses). Can differ from Gross margin until sales are posted to GL.</td>
+					</tr>
+					<tr>
+						<td><strong>Total assets</strong></td>
+						<td><?php echo $snapAmt($bsAssets); ?></td>
+						<td class="epc-erp-guide-snap__mean">Balance sheet assets as of today (cash, bank, receivables, stock, VAT recoverable, etc.).</td>
+					</tr>
+					<tr>
+						<td><strong>Liabilities + equity</strong></td>
+						<td><?php echo $snapAmt($bsLe); ?></td>
+						<td class="epc-erp-guide-snap__mean">Should match Total assets. If it does not, post missing journals or fix opening balances.</td>
+					</tr>
+					<tr>
+						<td><strong>Chart of accounts / journals</strong></td>
+						<td><span class="epc-erp-guide-snap__amt"><?php echo (int)$snapshot['coa_count']; ?> accounts · <?php echo (int)$snapshot['gl_journal_count']; ?> journals</span></td>
+						<td class="epc-erp-guide-snap__mean">How many GL account codes exist, and how many journal entries have been posted.</td>
+					</tr>
+					<tr>
+						<td><strong>Masters loaded</strong></td>
+						<td><span class="epc-erp-guide-snap__amt"><?php echo (int)$snapshot['supplier_count']; ?> suppliers · <?php echo (int)$snapshot['purchase_count']; ?> bills · <?php echo (int)$snapshot['cash_account_count']; ?> cash accts · <?php echo (int)$snapshot['storage_count']; ?> warehouses</span></td>
+						<td class="epc-erp-guide-snap__mean">Counts of active master/setup records. Warehouses are stock locations — not the same as suppliers (use Procurement for supplier master).</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h4 id="epc-guide-terms"><i class="fa fa-info-circle"></i> Key terms (read once)</h4>
+			<div class="epc-erp-guide-legend">
+				<div class="epc-erp-guide-legend__item">
+					<strong>Revenue vs P&amp;L</strong>
+					<span>Revenue / margin on the dashboard come from completed orders. P&amp;L comes from posted GL journals. Post sales to GL to keep them aligned.</span>
+				</div>
+				<div class="epc-erp-guide-legend__item">
+					<strong>Due vs wallet</strong>
+					<span><em>Unpaid orders</em> = money tied to invoices. <em>Wallet balance</em> = prepaid customer ledger. Both can be non-zero at once.</span>
+				</div>
+				<div class="epc-erp-guide-legend__item">
+					<strong>COA / GL</strong>
+					<span>COA = Chart of Accounts (account codes). GL = General Ledger (debit/credit journals that feed P&amp;L and the balance sheet).</span>
+				</div>
+				<div class="epc-erp-guide-legend__item">
+					<strong>When amounts appear</strong>
+					<span>Sales, receivable and order-linked payable figures update when the shop order status is <strong>Completed</strong> — not while fulfilment is still open.</span>
 				</div>
 			</div>
 
-			<h4><i class="fa fa-bar-chart"></i> Live snapshot</h4>
-			<table class="table table-striped table-bordered">
-				<tbody>
-					<tr><td>Revenue MTD (ex VAT)</td><td><strong><?php echo epc_erp_money($dash['revenue_ex_vat']); ?> AED</strong></td></tr>
-					<tr><td>Margin MTD</td><td><strong><?php echo epc_erp_money($dash['profit_ex_vat']); ?> AED</strong></td></tr>
-					<tr><td>Customer receivable (order due)</td><td><?php echo epc_erp_money($dash['receivable_due_orders']); ?> AED</td></tr>
-					<tr><td>Customer ledger balance</td><td><?php echo epc_erp_money($dash['customer_ledger_balance']); ?> AED</td></tr>
-					<tr><td>Supplier payable</td><td><?php echo epc_erp_money($dash['payable_balance']); ?> AED</td></tr>
-					<tr><td>Cash &amp; bank total</td><td><?php echo epc_erp_money($dash['cash_bank_total']); ?> AED</td></tr>
-					<tr><td>COA accounts / GL journals</td><td><?php echo (int)$snapshot['coa_count']; ?> / <?php echo (int)$snapshot['gl_journal_count']; ?></td></tr>
-					<tr><td>GL net profit MTD (P&amp;L)</td><td><strong><?php echo epc_erp_money($pl['net_profit']); ?> AED</strong></td></tr>
-					<tr><td>Balance sheet — total assets</td><td><?php echo epc_erp_money($bs['total_assets']); ?> AED</td></tr>
-					<tr><td>Balance sheet — liabilities + equity</td><td><?php echo epc_erp_money($bs['total_liabilities_equity']); ?> AED</td></tr>
-					<tr><td>Suppliers / purchases / cash accounts</td><td><?php echo (int)$snapshot['supplier_count']; ?> / <?php echo (int)$snapshot['purchase_count']; ?> / <?php echo (int)$snapshot['cash_account_count']; ?></td></tr>
-					<tr><td>Warehouses (for supplier sync)</td><td><?php echo (int)$snapshot['storage_count']; ?></td></tr>
-				</tbody>
-			</table>
+			<div class="epc-erp-guide-step" id="epc-guide-courier">
+				<h5><i class="fa fa-truck"></i> Courier charges, VAT &amp; document map</h5>
+				<div class="epc-erp-flow">
+					<p><strong>Who pays courier?</strong> The customer. The delivery fee is saved on the order, shown in OMS, and added as a line on the UAE tax invoice (Accounts Receivable).</p>
+					<p><strong>VAT on courier:</strong> For UAE destinations, courier is taxable income (output VAT on the invoice). Outside the UAE it is <strong>zero-rated</strong> — no VAT on goods or courier. The shipping destination country drives this.</p>
+					<p><strong>What to keep on file:</strong> UAE → tax invoice (PDF/XML), TRN, and payment proof. Export → shipping proof, commercial invoice, and buyer-country evidence for zero-rating.</p>
+					<p><strong>Document chain (OMS → ERP):</strong></p>
+					<ol>
+						<li><strong>Shop order</strong> — customer commerce order</li>
+						<li><strong>VAT treatment</strong> — UAE standard or export zero-rate</li>
+						<li><strong>Sales order (SO)</strong> — revenue document in ERP</li>
+						<li><strong>Purchase orders (PO)</strong> — one per supplier when buying stock</li>
+						<li><strong>Supplier bills (AP)</strong> — cost side</li>
+						<li><strong>Customer tax invoice (AR)</strong> — goods + courier + VAT</li>
+					</ol>
+					<p>On the OMS fulfilment panel use <strong>Link ERP / Sync / Auto-post</strong> so sales order, PO, bill and invoice stay aligned.</p>
+				</div>
+			</div>
 
 			<h4><i class="fa fa-star"></i> What&#39;s new — enterprise capabilities</h4>
 			<div class="well well-sm">
@@ -257,7 +528,7 @@ $deptCfg = epc_erp_departments_config();
 				</ol>
 			</div>
 
-			<h4><i class="fa fa-list-ol"></i> Step-by-step (daily use)</h4>
+			<h4 id="epc-guide-flow"><i class="fa fa-list-ol"></i> Step-by-step (daily use)</h4>
 
 			<div class="epc-erp-guide-step">
 				<h5>Step 1 — Open ERP &amp; set date range</h5>
@@ -290,7 +561,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 3 — Manage customer receivables</h5>
+				<h5>Step 4 — Manage customer receivables</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>Customer receivables</strong> — customers with ledger balance and order count.</li>
 					<li>Click <strong>Statement</strong> to see credit/debit lines (top-ups, order payments, ERP adjustments).</li>
@@ -302,7 +573,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 4 — Set up suppliers &amp; record purchases</h5>
+				<h5>Step 5 — Set up suppliers &amp; record purchases</h5>
 				<div class="alert alert-warning" style="margin-bottom:10px;">
 					<strong>Warehouse ≠ supplier.</strong> Use the dedicated
 					<a href="/<?php echo epc_erp_h((string)$DP_Config->backend_dir); ?>/shop/procurement/procurement">Procurement panel</a>
@@ -319,7 +590,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 5 — Pay suppliers (reduce payable)</h5>
+				<h5>Step 6 — Pay suppliers (reduce payable)</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>Supplier payables</strong> → check balance per supplier.</li>
 					<li>Form <strong>Record supplier payment</strong>: choose supplier, pay-from cash/bank account, amount, reference.</li>
@@ -330,7 +601,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 6 — Cash &amp; bank management</h5>
+				<h5>Step 7 — Cash &amp; bank management</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>Cash &amp; bank</strong> — view all accounts and balances.</li>
 					<li>Create new account (cash drawer or bank account with opening balance).</li>
@@ -341,7 +612,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 7 — Chart of accounts (COA)</h5>
+				<h5>Step 8 — Chart of accounts (COA)</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>COA</strong> — review default accounts and opening balances.</li>
 					<li>Add new accounts with unique code (e.g. 6200 Rent expense) if your business needs them.</li>
@@ -350,7 +621,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 8 — General ledger (GL) posting</h5>
+				<h5>Step 9 — General ledger (GL) posting</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>GL</strong> — view all journal entries for the date range.</li>
 					<li>Click <strong>Post sales orders to GL</strong> once per period (or after batch of orders).</li>
@@ -361,7 +632,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 9 — Profit &amp; loss (P&amp;L)</h5>
+				<h5>Step 10 — Profit &amp; loss (P&amp;L)</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>P&amp;L</strong> — set date range to month/quarter/year.</li>
 					<li>Revenue section: mainly 4000 Sales Revenue (from posted orders).</li>
@@ -371,7 +642,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 10 — Balance sheet</h5>
+				<h5>Step 11 — Balance sheet</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Tab <strong>Balance sheet</strong> — as-of date = <strong>To</strong> date in filter.</li>
 					<li>Assets: cash, bank, receivables, VAT recoverable.</li>
@@ -382,7 +653,7 @@ $deptCfg = epc_erp_departments_config();
 			</div>
 
 			<div class="epc-erp-guide-step">
-				<h5>Step 11 — Month-end checklist</h5>
+				<h5>Step 12 — Month-end checklist</h5>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">
 					<li>Post all sales to GL; sync unposted purchases and cash.</li>
 					<li>Reconcile AR (1100) with receivables tab; AP (2000) with payables tab.</li>
@@ -397,8 +668,7 @@ $deptCfg = epc_erp_departments_config();
 				<strong><?php echo (int)$staffDash['staff_count']; ?></strong> staff ·
 				<strong><?php echo (int)$staffDash['tasks_open']; ?></strong> open workflow tasks ·
 				<strong><?php echo count($staffDash['departments']); ?></strong> departments.
-				Each user sees only tabs for their department (Admin sees all).
-				Setup: <code>epc-erp-staff-setup.php?token=epartscart-deploy-2026&amp;sample=1</code>
+				Each user sees only the ERP tabs for their department (Admin sees all).
 			</div>
 			<table class="table table-bordered table-condensed epc-erp-flow">
 				<thead><tr><th>Department</th><th>Who</th><th>ERP tabs</th><th>Daily workflow</th></tr></thead>
@@ -427,8 +697,7 @@ $deptCfg = epc_erp_departments_config();
 				</ol>
 				<p>Open <a href="<?php echo epc_erp_h($erpUrl . '?tab=workflow'); ?>">Workflow board</a> ·
 				<a href="<?php echo epc_erp_h($erpUrl . '?tab=staff'); ?>">Staff directory</a> ·
-				<a href="<?php echo epc_erp_h($erpUrl . '?tab=payroll'); ?>">Payroll</a> ·
-				Frontend login: <a href="/en/shop/erp">/en/shop/erp</a> (password <code>EpcStaff2026!</code> for dummy users).</p>
+				<a href="<?php echo epc_erp_h($erpUrl . '?tab=payroll'); ?>">Payroll</a>.</p>
 			</div>
 
 			<h4><i class="fa fa-money"></i> Payroll process</h4>
@@ -453,7 +722,7 @@ $deptCfg = epc_erp_departments_config();
 				<p class="epc-erp-flow">Tab <a href="<?php echo epc_erp_h($erpUrl . '?tab=opening_balances'); ?>">Opening balances</a>: create batch with <em>as of date</em>, add COA and inventory lines, then <strong>Post</strong>. Register fixed assets with opening accumulated depreciation on the <a href="<?php echo epc_erp_h($erpUrl . '?tab=fixed_assets'); ?>">Fixed assets</a> tab.</p>
 			</div>
 
-			<h4 id="epc-erp-full-setup"><i class="fa fa-cogs"></i> Complete platform setup &amp; configuration — every module, step by step</h4>
+			<h4 id="epc-guide-setup"><i class="fa fa-cogs"></i> Complete platform setup &amp; configuration — every module, step by step</h4>
 			<div class="well well-sm">
 				<p style="margin:0 0 6px;">This is the full walkthrough for a brand-new company: first do the <strong>one-time platform setup</strong> (Section&nbsp;A) in order, then configure and run <strong>each module</strong> (Section&nbsp;B). Everything is per-company and country-driven — set your country once and currency, tax, fiscal year and labour law follow. Each step lists the <strong>action</strong> and the <strong>result</strong> you should see.</p>
 				<p style="margin:0;"><strong>Recommended order:</strong> Company profile &amp; country &rarr; Companies/legal entities &rarr; Industry pack &rarr; Chart of accounts &rarr; Number sequences &rarr; Financial dimensions &rarr; Currency &amp; tax &rarr; Product dimensions &amp; variants &rarr; Opening balances &rarr; Users, departments &amp; security roles. Then open each operational module.</p>
@@ -640,8 +909,8 @@ $deptCfg = epc_erp_departments_config();
 				<dd>Sales revenue is ex VAT; customer invoice and due include 5% output VAT. UAE supplier purchases store ex VAT + input VAT. Net payable: ERP tab <strong>UAE VAT</strong>.</dd>
 				<dt>When does revenue / receivable / payable count?</dt>
 				<dd>Only when the order is in <strong>Completed</strong> status in CP (<code>for_finish</code> order status — typically after all lines are delivered/finished). Open or in-progress orders show in Revenue with no amounts until then.</dd>
-				<dt>Difference between receivable due and customer balance?</dt>
-				<dd><em>Due</em> = unpaid portion of specific orders. <em>Balance</em> = prepaid customer wallet from account operations.</dd>
+				<dt>Difference between unpaid orders and customer wallet?</dt>
+				<dd><em>Unpaid orders (due)</em> = money still owed on specific invoices. <em>Customer wallet</em> = prepaid ledger from account top-ups and charges. They are separate ledgers.</dd>
 				<dt>How do LPO e-mails relate to purchases?</dt>
 				<dd>LPO is sent on order creation (warehouse e-mail). Record the supplier invoice in Purchases when goods are invoiced.</dd>
 				<dt>What is the COA?</dt>
@@ -650,12 +919,10 @@ $deptCfg = epc_erp_departments_config();
 				<dd>Purchase invoices, supplier payments, and cash/bank entries post to GL on save. Sales revenue requires clicking <strong>Post sales orders to GL</strong>.</dd>
 				<dt>P&amp;L vs Dashboard margin?</dt>
 				<dd>Dashboard margin is from order lines (operational). P&amp;L is from posted GL journals (accounting).</dd>
-				<dt>First-time deploy?</dt>
-				<dd>Run <code>epc-erp-cp-setup.php?token=epartscart-deploy-2026</code> once. For inventory &amp; assets: <code>epc-erp-inventory-assets-setup.php?token=epartscart-deploy-2026</code>. COA seeds on first ERP open.</dd>
-				<dt>Dummy staff users?</dt>
-				<dd>Run <code>epc-erp-staff-setup.php?token=epartscart-deploy-2026&amp;sample=1</code> — creates 9 department users including IT Manager. Rename in CP Users later.</dd>
+				<dt>First-time company setup?</dt>
+				<dd>Follow <a href="#epc-guide-setup">First-time setup</a> above: company country → COA → opening balances → users. Chart of accounts seeds automatically on first ERP open.</dd>
 				<dt>Payroll?</dt>
-				<dd>Tab <strong>Payroll</strong> — fixed 30-day salary pro-rated by days worked → generate → approve → pay. Re-seed demo: add <code>&amp;payroll_reseed=1</code> to staff setup URL.</dd>
+				<dd>Tab <strong>Payroll</strong> — fixed 30-day salary pro-rated by days worked → generate → approve → pay &amp; post to bank.</dd>
 				<dt>Why don&apos;t I see all ERP tabs?</dt>
 				<dd>Tabs are filtered by department group. Sales sees Revenue; Accounts sees GL/P&amp;L; Admin sees everything.</dd>
 			</dl>
