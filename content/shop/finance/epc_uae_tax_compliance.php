@@ -1503,9 +1503,10 @@ function epc_uae_fta_fetch_legislation_updates(PDO $db, bool $force = false): ar
 		VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `payload_json` = VALUES(`payload_json`), `source_url` = VALUES(`source_url`), `time_fetched` = VALUES(`time_fetched`)'
 	)->execute(array('fta_overall_tax_summary', json_encode($overallSummaries, JSON_UNESCAPED_UNICODE), $url, time()));
 
-	if (!empty($legislation)) {
+	$legislationRows = $payload['legislation'] ?? array();
+	if (!empty($legislationRows) && is_array($legislationRows)) {
 		require_once __DIR__ . '/epc_uae_tax_knowledge.php';
-		epc_uae_tax_legislation_seed_kb($db, $legislation);
+		epc_uae_tax_legislation_seed_kb($db, $legislationRows);
 	}
 
 	return $payload;

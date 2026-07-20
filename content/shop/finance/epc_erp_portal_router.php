@@ -228,6 +228,18 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<?php
+// ERP tabs register JS via $GLOBALS['epc_cp_page_assets'] (e.g. tax compliance
+// "Fetch legislation updates"). CP shells flush those assets; the standalone
+// /erp portal must do the same or buttons silently do nothing.
+$epcPortalPageAssets = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_assets.php';
+if (is_file($epcPortalPageAssets)) {
+	require_once $epcPortalPageAssets;
+	if (function_exists('epc_cp_page_footer_scripts')) {
+		epc_cp_page_footer_scripts('shop/finance/erp');
+	}
+}
+?>
 <script>
 (function(){
 	/* BOS-style Matrix particle rain */
