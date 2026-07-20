@@ -380,7 +380,7 @@ foreach ($nsCssCandidates as $c) {
 	if (is_file($abs)) { $nsCssHref = $c; break; }
 }
 ?>
-<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720role1">
+<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720colors2">
 
 <div class="ns-dash" data-dashboard-profile="<?php echo epc_erp_h($nsRole); ?>">
 	<div class="ns-hero">
@@ -559,9 +559,9 @@ foreach ($nsCssCandidates as $c) {
 						<svg viewBox="0 0 200 120" width="100%" height="120">
 							<defs>
 								<linearGradient id="nsGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-									<stop offset="0%" stop-color="#0d9488"/>
-									<stop offset="55%" stop-color="#0b6e99"/>
-									<stop offset="100%" stop-color="#c2811a"/>
+									<stop offset="0%" stop-color="#0f766e"/>
+									<stop offset="55%" stop-color="#1d4f91"/>
+									<stop offset="100%" stop-color="#b45309"/>
 								</linearGradient>
 							</defs>
 							<path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#d9e4ec" stroke-width="16" stroke-linecap="round"/>
