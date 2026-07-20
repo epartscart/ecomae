@@ -455,27 +455,7 @@
 			}
 		});
 
-		var moreBtn = document.getElementById('epc_erp_topnav_more');
-		if (moreBtn && !moreBtn._epcErpTopnavMoreBound) {
-			moreBtn._epcErpTopnavMoreBound = true;
-			moreBtn.addEventListener('click', function (e) {
-				e.preventDefault();
-				closeAll();
-				applyNavCollapsed(false);
-				try {
-					localStorage.setItem(NAV_COLLAPSE_KEY, '0');
-				} catch (err) {}
-				document.body.classList.add('epc-erp-sidebar-open');
-				var toggleBtn = document.getElementById('epc_erp_sidebar_toggle');
-				if (toggleBtn) {
-					toggleBtn.setAttribute('aria-expanded', 'true');
-				}
-				var sidebar = document.getElementById('epc_erp_sidebar');
-				if (sidebar) {
-					sidebar.scrollTop = 0;
-				}
-			});
-		}
+		// Side-rail "All" control removed — top mega-menu is primary nav.
 	}
 
 	function clearCpCollapseForErp() {
