@@ -368,6 +368,33 @@
 			document.body.classList.remove('epc-erp-topnav-open');
 		}
 
+		function placePanel(item, panel) {
+			if (!panel || !root) {
+				return;
+			}
+			var rootRect = root.getBoundingClientRect();
+			var btn = item.querySelector('.epc-erp-topnav-btn');
+			var btnRect = btn ? btn.getBoundingClientRect() : rootRect;
+			var gap = 0;
+			var top = Math.round(rootRect.bottom + gap);
+			panel.style.top = top + 'px';
+			panel.style.maxHeight = Math.max(180, Math.floor(window.innerHeight - top - 12)) + 'px';
+			// Prefer aligning under the button; clamp into the viewport.
+			panel.style.left = '0px';
+			panel.style.right = 'auto';
+			panel.hidden = false;
+			var panelWidth = panel.offsetWidth || 720;
+			var left = Math.round(btnRect.left);
+			var maxLeft = Math.max(8, window.innerWidth - panelWidth - 8);
+			if (left > maxLeft) {
+				left = maxLeft;
+			}
+			if (left < 8) {
+				left = 8;
+			}
+			panel.style.left = left + 'px';
+		}
+
 		function openItem(item) {
 			if (!item) {
 				return;
@@ -380,7 +407,7 @@
 				btn.setAttribute('aria-expanded', 'true');
 			}
 			if (panel) {
-				panel.hidden = false;
+				placePanel(item, panel);
 			}
 			document.body.classList.add('epc-erp-topnav-open');
 		}

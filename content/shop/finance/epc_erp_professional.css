@@ -1882,9 +1882,16 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	align-items: stretch;
 	flex: 1 1 auto;
 	min-width: 0;
-	overflow-x: auto;
+	/* Keep visible so mega panels are not clipped by scroll containment. */
+	overflow: visible;
 	scrollbar-width: thin;
 	scrollbar-color: rgba(255,255,255,0.35) transparent;
+}
+@media (max-width: 1100px) {
+	.epc-erp-topnav-inner {
+		overflow-x: auto;
+		overflow-y: visible;
+	}
 }
 
 .epc-erp-topnav-item {
@@ -1960,11 +1967,12 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	outline: none;
 }
 
-/* Mega panel */
+/* Mega panel — fixed so parent overflow/scroll never clips it */
 .epc-erp-topnav-panel {
-	position: absolute;
-	left: 0;
-	top: calc(100% + 0px);
+	position: fixed;
+	left: 12px;
+	right: auto;
+	top: 48px; /* JS updates to topnav bottom */
 	min-width: min(920px, calc(100vw - 24px));
 	max-width: min(1100px, calc(100vw - 16px));
 	max-height: min(70vh, 560px);
@@ -1975,11 +1983,7 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	border-radius: 0 0 8px 8px;
 	box-shadow: 0 14px 36px rgba(15, 23, 42, 0.22);
 	padding: 0;
-	z-index: 230;
-}
-.epc-erp-topnav-item:nth-last-child(-n+3) .epc-erp-topnav-panel {
-	left: auto;
-	right: 0;
+	z-index: 240;
 }
 .epc-erp-topnav-panel[hidden] { display: none !important; }
 
