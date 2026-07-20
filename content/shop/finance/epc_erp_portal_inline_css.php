@@ -49,9 +49,17 @@ body.epc-erp-standalone a:hover,body.epc-erp-standalone a:focus{color:#7dd3fc;te
 .epc-erp-topbar{background:rgba(2,6,23,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(99,102,241,.15);box-shadow:0 2px 12px rgba(0,0,0,.3);position:relative;z-index:10;}
 .epc-erp-topbar__inner{max-width:1180px;margin:0 auto;padding:7px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 .epc-erp-topbar__brand{display:flex;align-items:center;gap:11px;color:#fff!important;text-decoration:none;}
-.epc-erp-topbar__brand .ech-static__logo,.epc-erp-topbar__brand img{width:32px;height:32px;border-radius:8px;display:block;}
+.epc-erp-topbar__brand .ech-static__logo,.epc-erp-topbar__brand img{width:32px;height:32px;border-radius:8px;display:block;object-fit:contain;}
+.epc-erp-topbar__tenant-logo{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);flex-shrink:0;overflow:hidden;}
+.epc-erp-topbar__tenant-logo img{width:100%;height:100%;object-fit:contain;border-radius:0;display:block;background:#fff;}
+.epc-erp-topbar__tenant-logo--epartscart{background:#fff;padding:3px;}
+.epc-erp-topbar__initials{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;font-size:13px;font-weight:800;letter-spacing:.02em;flex-shrink:0;}
 .epc-erp-topbar__brand-text strong{display:block;font-size:16px;font-weight:700;line-height:1.1;letter-spacing:.2px;color:#fff;}
 .epc-erp-topbar__brand-text small{display:block;font-size:11.5px;color:var(--ep-muted);}
+.epc-erp-login-tenant-brand{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin:0 0 14px;}
+.epc-erp-login-tenant-brand .epc-erp-topbar__tenant-logo{width:56px;height:56px;border-radius:12px;}
+.epc-erp-login-tenant-brand__title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.15;}
+.epc-erp-login-tenant-brand__tag{font-size:12.5px;color:rgba(226,232,240,.85);font-weight:600;}
 .epc-erp-topbar__nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
 .epc-erp-topbar__nav a{color:var(--ep-muted)!important;font-size:13.5px;font-weight:600;padding:7px 12px;border-radius:8px;text-decoration:none;transition:.15s;}
 .epc-erp-topbar__nav a:hover{background:rgba(14,165,233,.12);color:var(--ep-accent-2)!important;}
