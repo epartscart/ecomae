@@ -156,7 +156,30 @@ if (!function_exists('epc_erp_company_industry_pack')) {
             return $perCo;
         }
         if (function_exists('epc_erp_platform_setting_get')) {
-            return (string) epc_erp_platform_setting_get($db, 'active_industry_pack', '');
+            $platform = (string) epc_erp_platform_setting_get($db, 'active_industry_pack', '');
+            if ($platform !== '') {
+                return $platform;
+            }
+        }
+        // Infer jewellery pack from sample / demo legal entities (JEWEL · Jewellery Co)
+        // when no explicit pack is stored — keeps industry modules aligned per company.
+        if ($companyId > 0) {
+            foreach (epc_erp_companies_list($db) as $c) {
+                if ((int) ($c['id'] ?? 0) !== $companyId) {
+                    continue;
+                }
+                $code = strtolower(trim((string) ($c['code'] ?? '')));
+                $name = strtolower(trim((string) ($c['name'] ?? '')));
+                if (
+                    $code === 'jewel'
+                    || strpos($code, 'jewel') === 0
+                    || strpos($name, 'jewell') !== false
+                    || strpos($name, 'jewel') !== false
+                ) {
+                    return 'jewellery_diamond';
+                }
+                break;
+            }
         }
         return '';
     }
