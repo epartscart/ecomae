@@ -1,21 +1,20 @@
 /**
- * CP Control Command Centre — red + black + white (mirrors ERP dashboard structure).
+ * CP Control Command Centre — red + white (mirrors ERP dashboard structure).
  */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Sora:wght@400;500;600;700;800&display=swap');
 
 .cp-dash {
-	--cpd-ink: #1c1917;
-	--cpd-head: #0a0a0a;
-	--cpd-muted: #57534e;
-	--cpd-bd: rgba(0, 0, 0, 0.1);
+	--cpd-ink: #1e293b;
+	--cpd-head: #7f1d1d;
+	--cpd-muted: #78716c;
+	--cpd-bd: rgba(220, 38, 38, 0.14);
 	--cpd-red: #dc2626;
 	--cpd-red-deep: #991b1b;
-	--cpd-black: #0a0a0a;
-	--cpd-soft: #f5f5f4;
+	--cpd-soft: #fef2f2;
 	--cpd-surface: #ffffff;
 	--cpd-good: #15803d;
 	--cpd-warn: #b45309;
-	--cpd-elev: 0 8px 22px rgba(0, 0, 0, 0.07);
+	--cpd-elev: 0 8px 22px rgba(185, 28, 28, 0.08);
 	--cpd-font: "Sora", ui-sans-serif, sans-serif;
 	--cpd-display: "Fraunces", "Times New Roman", serif;
 	position: relative;
@@ -35,9 +34,9 @@
 	pointer-events: none;
 	border-radius: 16px;
 	background:
-		radial-gradient(ellipse 55% 80% at 4% 0%, rgba(220, 38, 38, 0.12), transparent 55%),
-		radial-gradient(ellipse 40% 70% at 96% 10%, rgba(0, 0, 0, 0.06), transparent 50%),
-		linear-gradient(180deg, #fafafa 0%, transparent 100%);
+		radial-gradient(ellipse 55% 80% at 4% 0%, rgba(220, 38, 38, 0.14), transparent 55%),
+		radial-gradient(ellipse 40% 70% at 96% 10%, rgba(248, 113, 113, 0.1), transparent 50%),
+		linear-gradient(180deg, #fff7f7 0%, transparent 100%);
 }
 .cp-dash::after {
 	content: "";
@@ -45,12 +44,12 @@
 	inset: 0;
 	z-index: 0;
 	pointer-events: none;
-	opacity: 0.22;
+	opacity: 0.18;
 	background-image:
-		linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-		linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+		linear-gradient(rgba(220, 38, 38, 0.05) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(220, 38, 38, 0.05) 1px, transparent 1px);
 	background-size: 28px 28px;
-	mask-image: linear-gradient(180deg, #000 0%, transparent 42%);
+	mask-image: linear-gradient(180deg, #fff 0%, transparent 42%);
 }
 .cp-dash > * { position: relative; z-index: 1; }
 
@@ -81,7 +80,7 @@
 	position: absolute;
 	left: 0; top: 0; bottom: 0;
 	width: 4px;
-	background: linear-gradient(180deg, var(--cpd-red), var(--cpd-black));
+	background: linear-gradient(180deg, var(--cpd-red), #f87171);
 }
 .cp-dash-kicker {
 	font-size: 11px;
@@ -130,11 +129,11 @@
 .cp-dash-chip:hover { border-color: var(--cpd-red); color: var(--cpd-red-deep); }
 .cp-dash-chip i { color: var(--cpd-red); }
 .cp-dash-chip--dark {
-	background: var(--cpd-black);
-	border-color: #27272a;
+	background: var(--cpd-red);
+	border-color: #fecaca;
 	color: #fff;
 }
-.cp-dash-chip--dark i { color: #f87171; }
+.cp-dash-chip--dark i { color: #fecaca; }
 
 .cp-dash-metrics {
 	display: grid;
@@ -161,9 +160,9 @@
 	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
 }
 .cp-dash-metric:nth-child(1) { border-left-color: var(--cpd-red); }
-.cp-dash-metric:nth-child(2) { border-left-color: var(--cpd-black); animation-delay: 0.05s; }
+.cp-dash-metric:nth-child(2) { border-left-color: #e11d48; animation-delay: 0.05s; }
 .cp-dash-metric:nth-child(3) { border-left-color: #b91c1c; animation-delay: 0.1s; }
-.cp-dash-metric:nth-child(4) { border-left-color: #44403c; animation-delay: 0.15s; }
+.cp-dash-metric:nth-child(4) { border-left-color: #f87171; animation-delay: 0.15s; }
 .cp-dash-metric__label {
 	font-size: 11px;
 	font-weight: 700;
@@ -209,10 +208,11 @@
 .cp-dash-tile:hover { transform: translateY(-2px); color: #fff !important; }
 .cp-dash-tile .ic { font-size: 18px; opacity: 0.95; }
 .cp-dash-tile .tl { font-size: 13px; font-weight: 700; line-height: 1.25; }
-.cp-dash-tile--red { background: linear-gradient(145deg, #dc2626 0%, #7f1d1d 100%); }
-.cp-dash-tile--black { background: linear-gradient(145deg, #1c1917 0%, #0a0a0a 100%); }
-.cp-dash-tile--stone { background: linear-gradient(145deg, #57534e 0%, #292524 100%); }
-.cp-dash-tile--crimson { background: linear-gradient(145deg, #b91c1c 0%, #450a0a 100%); }
+.cp-dash-tile--red { background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%); }
+.cp-dash-tile--black,
+.cp-dash-tile--rose { background: linear-gradient(145deg, #fb7185 0%, #e11d48 100%); }
+.cp-dash-tile--stone { background: linear-gradient(145deg, #f87171 0%, #b91c1c 100%); }
+.cp-dash-tile--crimson { background: linear-gradient(145deg, #dc2626 0%, #991b1b 100%); }
 
 .cp-dash-port {
 	background: var(--cpd-surface);
@@ -229,10 +229,10 @@
 	font-size: 13px;
 	font-weight: 700;
 	color: #fff;
-	background: linear-gradient(90deg, #0a0a0a 0%, #1c1917 55%, #7f1d1d 100%);
-	border-bottom: 2px solid var(--cpd-red);
+	background: linear-gradient(90deg, #dc2626 0%, #ef4444 55%, #f87171 100%);
+	border-bottom: 2px solid #fecaca;
 }
-.cp-dash-port > h4 .fa { margin-right: 8px; color: #f87171; }
+.cp-dash-port > h4 .fa { margin-right: 8px; color: #fff; }
 .cp-dash-port > .bd { padding: 14px; }
 
 .cp-dash-qa-grid {
@@ -265,11 +265,12 @@
 	justify-content: center;
 	color: #fff;
 	flex-shrink: 0;
-	background: var(--cpd-black);
+	background: var(--cpd-red);
 }
 .cp-dash-qa .qa-ic--red { background: var(--cpd-red); }
-.cp-dash-qa .qa-ic--black { background: #171717; }
-.cp-dash-qa .qa-ic--stone { background: #57534e; }
+.cp-dash-qa .qa-ic--black,
+.cp-dash-qa .qa-ic--rose { background: #e11d48; }
+.cp-dash-qa .qa-ic--stone { background: #f87171; }
 .cp-dash-qa .qa-lb { font-size: 12.5px; font-weight: 600; line-height: 1.25; }
 
 .cp-dash-grid {
@@ -342,8 +343,8 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	background: #0a0a0a;
-	color: #f87171;
+	background: #fee2e2;
+	color: #dc2626;
 	flex-shrink: 0;
 }
 .cp-dash-nav h5 {
@@ -367,11 +368,12 @@
 	text-align: left;
 }
 .cp-dash-kpi-tbl th {
-	background: #0a0a0a;
-	color: #fff;
+	background: #fef2f2;
+	color: #7f1d1d;
 	font-size: 11px;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
+	border-bottom: 2px solid #fecaca;
 }
 .cp-dash-kpi-tbl th:first-child { border-radius: 0; }
 .cp-dash-kpi-tbl td:nth-child(2),
