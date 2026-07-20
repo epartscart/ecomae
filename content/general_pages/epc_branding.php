@@ -114,18 +114,9 @@ function epc_brand_cp_context()
 			$hubTagline = 'ERP sandbox · finance & operations';
 		}
 	} elseif (function_exists('epc_portal_is_epartscart_hostname') && epc_portal_is_epartscart_hostname()) {
-		// Tenant ERP on epartscart.com — never show platform "e-world" / ecomae chrome.
-		$settings = function_exists('epc_portal_load_site_settings') ? epc_portal_load_site_settings() : array();
-		$trade = trim((string) (($settings['contact']['trade_name'] ?? '') ?: ($settings['trade_name'] ?? '')));
-		$sys = trim((string) ($settings['system_name'] ?? ''));
-		if ($trade === '' || stripos($trade, 'e-world') !== false) {
-			$trade = 'eParts Cart';
-		}
-		if ($sys === '' || stripos($sys, 'e-world') !== false || stripos($sys, 'ecom ae') !== false) {
-			$sys = $trade;
-		}
-		$productName = $sys;
-		$companyName = $trade;
+		// Tenant ERP on epartscart.com — storefront brand, not parent hub name.
+		$productName = 'eParts Cart';
+		$companyName = 'eParts Cart';
 		$hubTagline = 'epartscart.com · Finance & operations';
 	} elseif (function_exists('epc_portal_demo_is_autoparts_parity') && epc_portal_demo_is_autoparts_parity()) {
 		$settings = epc_portal_load_site_settings();

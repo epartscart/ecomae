@@ -75,13 +75,10 @@ function epc_erp_topbar_brand_context(): array
 		return $cached;
 	}
 
-	// 2) eParts Cart tenant host.
+	// 2) eParts Cart tenant host — always tenant storefront brand (not hub/parent name).
 	if ($isEparts) {
 		$mode = 'epartscart';
-		$title = trim((string) ($brand['company_name'] ?? ''));
-		if ($title === '' || stripos($title, 'e-world') !== false || stripos($title, 'ecom ae') !== false) {
-			$title = 'eParts Cart';
-		}
+		$title = 'eParts Cart';
 		$tagline = 'epartscart.com · Finance & operations';
 		$hostLabel = 'epartscart.com';
 		$logoUrl = '/content/files/images/ecomae-platform/assets/epartscart.png';
