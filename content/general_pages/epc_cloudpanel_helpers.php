@@ -1840,7 +1840,10 @@ server {
   include /etc/nginx/global_settings;
   index index.php index.html;
   location = /cp {
-    return 301 /cp/;
+    return 301 https://$host/cp/control;
+  }
+  location = /cp/ {
+    return 301 https://$host/cp/control;
   }
   location /cp/ {
     try_files $uri $uri/ /cp/index.php?$args;

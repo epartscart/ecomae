@@ -77,7 +77,11 @@ $changed = false;
 $cpBlock = <<<'NGINX'
 
   location = /cp {
-    return 301 /cp/;
+    return 301 https://$host/cp/control;
+  }
+
+  location = /cp/ {
+    return 301 https://$host/cp/control;
   }
 
   location /cp/ {

@@ -75,6 +75,10 @@ function epc_cp_auth_gate_run()
 	if (!is_string($path) || $path === '') {
 		$path = '/';
 	}
+	$qs = '';
+	if (isset($_SERVER['QUERY_STRING']) && is_string($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== '') {
+		$qs = '?' . $_SERVER['QUERY_STRING'];
+	}
 
 	// Handle MFA AJAX requests
 	if (isset($_GET['epc_mfa_ajax'])) {
@@ -95,52 +99,53 @@ function epc_cp_auth_gate_run()
 		$demoLoginRoot = is_array($demoParsed) && !empty($demoParsed['is_login_root']);
 	}
 
+	// Nginx ignores cp/.htaccess (RewriteRule ^$ → control). Bare /cp and /cp/
+	// must jump to /cp/control for guests and operators alike — login renders
+	// on the control URL; logged-in admins get ERP/demo landings when needed.
 	$isCpRoot = ($path === $cpBase || $path === $cpBase . '/' || $path === $cpBase . '/index.php');
 	$cpControlUrl = function_exists('epc_cp_control_url') ? epc_cp_control_url($backend) : ($cpBase . '/control');
 
 	if (($isCpRoot || $demoLoginRoot) && $requestMethod === 'GET') {
-		if (!$isAdmin) {
-			return;
-		}
-		if ($isDemoCp) {
-			if (function_exists('epc_portal_demo_cp_is_erp_only') && epc_portal_demo_cp_is_erp_only()
-				&& function_exists('epc_portal_demo_erp_shell_url') && function_exists('epc_portal_demo_cp_site_key')) {
-				$key = epc_portal_demo_cp_site_key();
-				if ($key !== '') {
-					header('Location: ' . epc_portal_demo_erp_shell_url($key), true, 302);
-					exit;
+		if ($isAdmin) {
+			if ($isDemoCp) {
+				if (function_exists('epc_portal_demo_cp_is_erp_only') && epc_portal_demo_cp_is_erp_only()
+					&& function_exists('epc_portal_demo_erp_shell_url') && function_exists('epc_portal_demo_cp_site_key')) {
+					$key = epc_portal_demo_cp_site_key();
+					if ($key !== '') {
+						header('Location: ' . epc_portal_demo_erp_shell_url($key), true, 302);
+						exit;
+					}
+				}
+				if ($demoLoginRoot && function_exists('epc_portal_demo_cp_site_key') && function_exists('epc_portal_demo_cp_post_login_url')) {
+					$key = epc_portal_demo_cp_site_key();
+					if ($key !== '') {
+						header('Location: ' . epc_portal_demo_cp_post_login_url($key), true, 302);
+						exit;
+					}
 				}
 			}
-			if ($demoLoginRoot && function_exists('epc_portal_demo_cp_site_key') && function_exists('epc_portal_demo_cp_post_login_url')) {
-				$key = epc_portal_demo_cp_site_key();
-				if ($key !== '') {
-					header('Location: ' . epc_portal_demo_cp_post_login_url($key), true, 302);
-					exit;
-				}
-			}
-			return;
-		}
-		if (function_exists('epc_platform_erp_is_active') && epc_platform_erp_is_active()
-			&& function_exists('epc_platform_erp_shell_url')) {
-			header('Location: ' . epc_platform_erp_shell_url(), true, 302);
-			exit;
-		}
-		if (function_exists('epc_client_erp_is_active') && epc_client_erp_is_active()) {
-			$key = function_exists('epc_client_erp_site_key') ? epc_client_erp_site_key() : '';
-			if ($key !== '' && function_exists('epc_client_erp_shell_url')) {
-				header('Location: ' . epc_client_erp_shell_url($key), true, 302);
+			if (function_exists('epc_platform_erp_is_active') && epc_platform_erp_is_active()
+				&& function_exists('epc_platform_erp_shell_url')) {
+				header('Location: ' . epc_platform_erp_shell_url(), true, 302);
 				exit;
 			}
+			if (function_exists('epc_client_erp_is_active') && epc_client_erp_is_active()) {
+				$key = function_exists('epc_client_erp_site_key') ? epc_client_erp_site_key() : '';
+				if ($key !== '' && function_exists('epc_client_erp_shell_url')) {
+					header('Location: ' . epc_client_erp_shell_url($key), true, 302);
+					exit;
+				}
+			}
+			if (!$isDemoCp) {
+				$erpLanding = epc_cp_auth_gate_erp_only_landing();
+				if ($erpLanding !== '' && (!function_exists('epc_portal_is_platform_hostname') || !epc_portal_is_platform_hostname())) {
+					header('Location: ' . $erpLanding, true, 302);
+					exit;
+				}
+			}
 		}
-		if (function_exists('epc_portal_demo_is_cp_context') && epc_portal_demo_is_cp_context()) {
-			return;
-		}
-		$erpLanding = epc_cp_auth_gate_erp_only_landing();
-		if ($erpLanding !== '' && (!function_exists('epc_portal_is_platform_hostname') || !epc_portal_is_platform_hostname())) {
-			header('Location: ' . $erpLanding, true, 302);
-			exit;
-		}
-		header('Location: ' . $cpControlUrl, true, 302);
+		// Guests + default admin landing: canonical dashboard URL (login form lives here).
+		header('Location: ' . $cpControlUrl . $qs, true, 302);
 		exit;
 	}
 
@@ -163,7 +168,7 @@ function epc_cp_auth_gate_run()
 	);
 	foreach ($operatorPrefixes as $prefix) {
 		if (strpos($path, $prefix) === 0) {
-			header('Location: ' . $cpBase . '/', true, 302);
+			header('Location: ' . $cpControlUrl . $qs, true, 302);
 			exit;
 		}
 	}

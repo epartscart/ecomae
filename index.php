@@ -195,12 +195,19 @@ if (function_exists('epc_erp_portal_block_consultancy_commerce_path') && epc_erp
 	exit;
 }
 
-// cp.ecomae.com — send / to Super CP login (tenant hub after auth).
+// cp.ecomae.com — send / to Super CP login / command center.
 if (function_exists('epc_portal_host') && epc_portal_host() === 'cp.ecomae.com'
 	&& ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && isset($_SERVER['REQUEST_URI'])) {
 	$epcCpHostPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 	if ($epcCpHostPath === '/' || $epcCpHostPath === '' || $epcCpHostPath === false) {
-		header('Location: /' . trim((string) $DP_Config->backend_dir, '/') . '/', true, 302);
+		$epcCpBackend = trim((string) $DP_Config->backend_dir, '/');
+		if ($epcCpBackend === '') {
+			$epcCpBackend = 'cp';
+		}
+		$epcCpHome = function_exists('epc_cp_control_url')
+			? epc_cp_control_url($epcCpBackend)
+			: ('/' . $epcCpBackend . '/control');
+		header('Location: ' . $epcCpHome, true, 302);
 		exit;
 	}
 }

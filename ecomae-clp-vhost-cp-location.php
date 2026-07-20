@@ -23,7 +23,11 @@ $vhost = html_entity_decode($em[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 $cpBlock = <<<'NGINX'
 
   location = /cp {
-    return 301 /cp/;
+    return 301 https://$host/cp/control;
+  }
+
+  location = /cp/ {
+    return 301 https://$host/cp/control;
   }
 
   location /cp/ {
