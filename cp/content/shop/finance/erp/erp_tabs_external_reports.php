@@ -93,15 +93,16 @@ if ($selTool === 'import') {
 	$impCountryName = $regName;
 	$impCcy = (string) ($regProf['currency'] ?? 'AED');
 	if ($impKind === 'fin') {
-		$impAuth = array('name' => 'IFRS Foundation (IASB)', 'law' => 'IFRS as issued by the IASB · ISA (IAASB)', 'url' => 'https://www.ifrs.org', 'format' => 'https://www.iaasb.org/standards-pronouncements');
+		$impAuth = array('name' => 'IFRS Foundation (IASB)', 'law' => 'IFRS as issued by the IASB (IFRS 18 early applied for FY2026+) · ISA (IAASB)', 'url' => 'https://www.ifrs.org', 'format' => 'https://www.ifrs.org/issued-standards/list-of-standards/ifrs-18-presentation-and-disclosure-in-financial-statements/');
 	} elseif ($impKind === 'ct') {
 		$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'Corporate Tax — Federal Decree-Law 47/2022', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
 	} else {
-		$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'VAT — Federal Decree-Law 8/2017', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
+		$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'VAT — Federal Decree-Law 8/2017 & Executive Regulations', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
 	}
 
 	$impBuilt = null;
 	$impError = '';
+	$impNotice = '';
 	if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imp_file']) && is_array($_FILES['imp_file'])) {
 		$file = $_FILES['imp_file'];
 		if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
@@ -112,19 +113,27 @@ if ($selTool === 'import') {
 				$impError = 'Could not read the file. Save it as .xlsx or .csv using the provided template and try again.';
 			} else {
 				$map = epc_ext_import_map($rows);
+				// Auto-detect kind when the selected type has no matching codes but another does.
+				if ($impKind === 'fin' && empty($map['fin']) && !empty($map['vat'])) { $impKind = 'vat'; $impNotice = 'Detected VAT boxes in the file — switched to VAT Return.'; }
+				elseif ($impKind === 'fin' && empty($map['fin']) && !empty($map['values'])) { $impKind = 'ct'; $impNotice = 'Detected CT computation lines — switched to Corporate Tax Return.'; }
+				elseif ($impKind === 'vat' && empty($map['vat']) && !empty($map['fin'])) { $impKind = 'fin'; $impNotice = 'Detected IFRS financial lines — switched to IFRS Financial Statements.'; }
+				elseif ($impKind === 'ct' && empty($map['values']) && !empty($map['fin'])) { $impKind = 'fin'; $impNotice = 'Detected IFRS financial lines — switched to IFRS Financial Statements.'; }
 				if ($impKind === 'fin') {
+					$impAuth = array('name' => 'IFRS Foundation (IASB)', 'law' => 'IFRS as issued by the IASB (IFRS 18 early applied for FY2026+) · ISA (IAASB)', 'url' => 'https://www.ifrs.org', 'format' => 'https://www.ifrs.org/issued-standards/list-of-standards/ifrs-18-presentation-and-disclosure-in-financial-statements/');
 					if (empty($map['fin'])) {
-						$impError = 'No financial-statement lines found. Use the IFRS Financials template (Code column: FIN_REVENUE, FIN_PPE, …).';
+						$impError = 'No financial-statement lines found. Use the IFRS Financials template (Code column: FIN_REVENUE, FIN_PPE, …). Set META_PERIOD_TO to 2026-12-31 (or later) for IFRS 18 presentation.';
 					} else {
 						$impBuilt = epc_ext_b_fin_summary($map, $impCcy);
 					}
 				} elseif ($impKind === 'ct') {
+					$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'Corporate Tax — Federal Decree-Law 47/2022', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
 					if (empty($map['values'])) {
 						$impError = 'No CT computation lines found. Use the CT template (Code column: ACCT_PROFIT, FINES, …).';
 					} else {
 						$impBuilt = epc_ext_b_ct_summary($map, $impCcy);
 					}
 				} else {
+					$impAuth = array('name' => 'Federal Tax Authority (FTA)', 'law' => 'VAT — Federal Decree-Law 8/2017 & Executive Regulations', 'url' => 'https://tax.gov.ae', 'format' => 'https://eservices.tax.gov.ae');
 					if (empty($map['vat'])) {
 						$impError = 'No VAT boxes found. Use the VAT template (Code column: BOX1A, BOX9, …).';
 					} else {
@@ -135,30 +144,52 @@ if ($selTool === 'import') {
 		}
 	}
 	$impDlBase = $baseUrl . $sep . 'tool=import';
+	$impFinY = 2026;
+	if ($impBuilt !== null && $impKind === 'fin') {
+		$pToMeta = (string) (($impBuilt['meta']['META_PERIOD_TO'] ?? '') ?: '');
+		if ($pToMeta !== '') { $impFinY = (int) date('Y', (int) strtotime($pToMeta)); }
+	}
+	$impUseIfrs18 = function_exists('epc_ext_ifrs18_applies') ? epc_ext_ifrs18_applies($impFinY) : ($impFinY >= 2026);
 	?>
 	<p style="margin-bottom:10px;"><a href="<?php echo epc_erp_h($baseUrl); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
 	<div class="epc-erp-section" style="margin-bottom:14px;">
-		<h3 style="margin-top:0;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → Return (off-system)</h3>
+		<h3 style="margin-top:0;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → Return / Report (off-system)</h3>
 		<p class="text-muted" style="font-size:12.5px;max-width:900px;">
-			Prepare a VAT 201 or Corporate Tax return from an uploaded spreadsheet. The <strong>complete multi-sheet workbook</strong> carries the
-			<strong>company &amp; TRN details</strong>, the box / line totals, invoice-wise detail sheets and a compliance checklist — the return is built from the totals
-			(<strong>summary</strong>, no invoice rows in the output) and stamped with the company's own TRN / address from the file.
-			This is completely <strong>outside the ERP</strong>: nothing is read from or written to your live data, so you can use it to check or report for other clients.
-			The output renders in the proper UAE format with compliance checks and the same professional Print / PDF.
+			Prepare a <strong>VAT 201</strong>, <strong>Corporate Tax</strong> return, or <strong>IFRS financial statements &amp; audit report</strong> from an uploaded spreadsheet.
+			The <strong>complete multi-sheet workbook</strong> carries the <strong>company &amp; TRN details</strong>, the box / line totals, supporting schedules and a compliance checklist —
+			built from the totals (<strong>summary</strong>) and stamped with the company's own TRN / address from the file.
+			Completely <strong>outside the ERP</strong>: nothing is read from or written to your live data — use it for other clients too.
 		</p>
+		<?php if ($impKind === 'fin'): ?>
+			<div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+				<i class="fa fa-bookmark"></i> <strong>IFRS Financials:</strong> for periods ending in FY2026+, the builder <strong>early-applies IFRS 18</strong>
+				(five P&amp;L categories, three mandatory subtotals, OCI, MPM assessment). IAS 1 is superseded for presentation &amp; disclosure.
+				Mandatory IFRS 18 periods begin on/after 1 Jan 2027. Sample template periods are FY2026 / FY2025.
+				Need a guided PDF path instead? Use <a href="<?php echo epc_erp_h($baseUrl . $sep . 'tool=intake'); ?>">Guided IFRS intake</a>.
+			</div>
+		<?php elseif ($impKind === 'ct'): ?>
+			<div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+				<i class="fa fa-balance-scale"></i> <strong>Corporate Tax:</strong> Federal Decree-Law 47/2022 — taxable income reconciliation, interest cap (Art. 30),
+				loss relief (Art. 37), non-deductible donations/fines (Art. 33), 0%/9% bands, SBR (MD 73/2023).
+			</div>
+		<?php else: ?>
+			<div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+				<i class="fa fa-balance-scale"></i> <strong>VAT 201:</strong> Federal Decree-Law 8/2017 &amp; Executive Regulations — emirate boxes, reverse charge, zero-rated / exempt treatments, filing within 28 days.
+			</div>
+		<?php endif; ?>
 		<div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:10px;">
 			<div style="flex:1;min-width:320px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
 				<div style="font-weight:700;color:#1d2740;margin-bottom:6px;">1 · Download a template</div>
-				<p class="text-muted" style="font-size:12px;">Complete multi-sheet workbook — <strong>Company &amp; TRN</strong>, <strong>boxes / computation</strong>, <strong>invoice-wise detail</strong> and a <strong>compliance checklist</strong>. Keep the <code>Code</code> column unchanged; edit the values. Re-upload to build the return.</p>
+				<p class="text-muted" style="font-size:12px;">Complete multi-sheet workbook — <strong>Company &amp; TRN</strong>, <strong>boxes / computation</strong>, <strong>supporting schedules</strong> and a <strong>compliance checklist</strong>. Keep the <code>Code</code> column unchanged; edit the values. Choosing a template also selects the matching upload type.</p>
 				<div style="margin-bottom:6px;">
-					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplVatX','VAT201_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.xlsx)</button>
-					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplCtX','CT_return_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.xlsx)</button>
-					<button type="button" class="btn btn-success btn-sm" onclick="epcDlB64('epcTplFinX','IFRS_financials_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> IFRS Financials workbook (.xlsx)</button>
+					<button type="button" class="btn btn-success btn-sm" onclick="epcImpPick('vat');epcDlB64('epcTplVatX','VAT201_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.xlsx)</button>
+					<button type="button" class="btn btn-success btn-sm" onclick="epcImpPick('ct');epcDlB64('epcTplCtX','CT_return_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.xlsx)</button>
+					<button type="button" class="btn btn-success btn-sm" onclick="epcImpPick('fin');epcDlB64('epcTplFinX','IFRS18_financials_import_template.xlsx')"><i class="fa fa-file-excel-o"></i> IFRS 18 Financials workbook (.xlsx)</button>
 				</div>
 				<div>
-					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplVat','VAT201_import_template.csv')"><i class="fa fa-file-text-o"></i> VAT CSV (summary only)</button>
-					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplCt','CT_return_import_template.csv')"><i class="fa fa-file-text-o"></i> CT CSV (summary only)</button>
-					<button type="button" class="btn btn-default btn-xs" onclick="epcDlCsv('epcTplFin','IFRS_financials_import_template.csv')"><i class="fa fa-file-text-o"></i> Financials CSV (summary only)</button>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcImpPick('vat');epcDlCsv('epcTplVat','VAT201_import_template.csv')"><i class="fa fa-file-text-o"></i> VAT CSV (summary only)</button>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcImpPick('ct');epcDlCsv('epcTplCt','CT_return_import_template.csv')"><i class="fa fa-file-text-o"></i> CT CSV (summary only)</button>
+					<button type="button" class="btn btn-default btn-xs" onclick="epcImpPick('fin');epcDlCsv('epcTplFin','IFRS18_financials_import_template.csv')"><i class="fa fa-file-text-o"></i> IFRS 18 Financials CSV</button>
 				</div>
 				<textarea id="epcTplVat" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('vat')); ?></textarea>
 				<textarea id="epcTplCt" style="display:none;"><?php echo epc_erp_h(epc_ext_import_template_csv('ct')); ?></textarea>
@@ -169,26 +200,36 @@ if ($selTool === 'import') {
 				<script>
 				function epcDlCsv(id,fn){var el=document.getElementById(id);if(!el)return;var t=(el.value!==undefined?el.value:el.textContent);var blob=new Blob([t],{type:"text/csv;charset=utf-8;"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
 				function epcDlB64(id,fn){var el=document.getElementById(id);if(!el)return;var b64=(el.value!==undefined?el.value:el.textContent).replace(/\s+/g,'');var bin=atob(b64);var len=bin.length;var bytes=new Uint8Array(len);for(var i=0;i<len;i++){bytes[i]=bin.charCodeAt(i);}var blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+				function epcImpPick(k){var s=document.getElementById('epcImpKind');if(s){s.value=k;}var h=document.getElementById('epcImpKindHint');if(h){h.textContent=k==='fin'?'IFRS 18 Financials — codes FIN_… + META_PERIOD_TO for presentation year.':(k==='ct'?'Corporate Tax — codes ACCT_PROFIT, FINES, … (FDL 47/2022).':'VAT 201 — codes BOX1A…BOX14 (FDL 8/2017).');}}
 				</script>
 			</div>
 			<div style="flex:1;min-width:320px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;">
 				<div style="font-weight:700;color:#1d2740;margin-bottom:6px;">2 · Upload &amp; build</div>
 				<form method="post" enctype="multipart/form-data" action="<?php echo epc_erp_h($impDlBase); ?>" class="form-inline" style="margin:0;">
-					<select name="imp_kind" class="form-control input-sm" style="margin:4px 6px 4px 0;">
+					<select name="imp_kind" id="epcImpKind" class="form-control input-sm" style="margin:4px 6px 4px 0;" onchange="epcImpPick(this.value)">
 						<option value="vat" <?php echo $impKind === 'vat' ? 'selected' : ''; ?>>VAT Return (FTA VAT 201)</option>
 						<option value="ct" <?php echo $impKind === 'ct' ? 'selected' : ''; ?>>Corporate Tax Return</option>
-						<option value="fin" <?php echo $impKind === 'fin' ? 'selected' : ''; ?>>IFRS Financial Statements &amp; Audit Report</option>
+						<option value="fin" <?php echo $impKind === 'fin' ? 'selected' : ''; ?>>IFRS 18 Financial Statements &amp; Audit Report</option>
 					</select>
 					<input type="file" name="imp_file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" required>
-					<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> Build return</button>
+					<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> <?php echo $impKind === 'fin' ? 'Build report' : 'Build return'; ?></button>
 				</form>
-				<p class="text-muted" style="font-size:11px;margin-top:8px;">Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — your file is parsed in-memory and not stored.</p>
+				<p class="text-muted" style="font-size:11px;margin-top:8px;" id="epcImpKindHint"><?php
+					echo $impKind === 'fin'
+						? 'IFRS 18 Financials — codes FIN_… + META_PERIOD_TO for presentation year.'
+						: ($impKind === 'ct'
+							? 'Corporate Tax — codes ACCT_PROFIT, FINES, … (FDL 47/2022).'
+							: 'VAT 201 — codes BOX1A…BOX14 (FDL 8/2017).');
+				?> Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — parsed in-memory, not stored.</p>
 			</div>
 		</div>
 	</div>
 
 	<?php if ($impError !== ''): ?>
 		<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> <?php echo epc_erp_h($impError); ?></div>
+	<?php endif; ?>
+	<?php if ($impNotice !== ''): ?>
+		<div class="alert alert-warning" style="font-size:12.5px;"><i class="fa fa-info-circle"></i> <?php echo epc_erp_h($impNotice); ?></div>
 	<?php endif; ?>
 
 	<?php if ($impBuilt !== null):
@@ -207,12 +248,16 @@ if ($selTool === 'import') {
 		), static function ($v) { return $v !== ''; });
 		$impContactL = implode(' · ', $impContact);
 		if ($impAddr === '') { $impAddr = $impCountryName; }
+		$impPresBadge = ($impKind === 'fin' && $impUseIfrs18) ? 'IFRS 18 (early applied)' : (($impKind === 'fin') ? 'IAS 1 presentation' : 'Off-system data');
 	?>
 		<div class="epc-erp-section" style="margin-bottom:14px;">
 			<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
 				<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-print"></i> Print / PDF</button>
 				<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($impAuth['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — <?php echo epc_erp_h($impAuth['name']); ?></a>
-				<span class="label label-info" style="font-size:11px;"><i class="fa fa-upload"></i> Off-system data</span>
+				<span class="label label-info" style="font-size:11px;"><i class="fa fa-upload"></i> <?php echo epc_erp_h($impPresBadge); ?></span>
+				<?php if ($impKind === 'fin' && !empty($impAuth['format'])): ?>
+					<a class="btn btn-link btn-sm" href="<?php echo epc_erp_h($impAuth['format']); ?>" target="_blank" rel="noopener noreferrer">IFRS 18 standard</a>
+				<?php endif; ?>
 			</div>
 		</div>
 		<div id="epc_ext_doc" class="epc-erp-section" style="background:#fff;border:1px solid #e2e6ee;padding:26px;">
@@ -913,8 +958,16 @@ if ($selTool === 'import') {
 			</form>
 			<?php if ($fetched): ?>
 				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.<?php
-					if ($selRep === 'audit__external_audit_report' && (int) date('Y', $repTo) >= 2026) {
-						echo ' Standards index refreshed — IFRS 18 early-applied (IAS 1 superseded for presentation).';
+					if ((int) date('Y', $repTo) >= 2026 && in_array($selRep, array(
+						'audit__external_audit_report',
+						'fin__annual_financial_statements',
+						'fin__statutory_accounts_filing',
+						'fin__ifrs_reporting',
+						'fin__gaap_reporting',
+						'fin__interim_financial_statements',
+						'fin__consolidated_financial_statements',
+					), true)) {
+						echo ' Presentation refreshed — IFRS 18 early-applied (IAS 1 superseded for presentation &amp; disclosure).';
 					}
 				?></span>
 			<?php endif; ?>
@@ -1012,7 +1065,8 @@ if ($selTool === 'import') {
 					<div style="font-weight:700;"><i class="fa fa-file-text-o text-primary"></i> <?php echo epc_erp_h($def['name']); ?></div>
 					<div style="margin-top:4px;">
 						<?php if ($def['builder'] !== ''): ?><span class="label label-success" style="font-size:10px;">Live build</span><?php else: ?><span class="label label-default" style="font-size:10px;">Formatted template</span><?php endif; ?>
-						<?php if ($def['std'] !== ''): ?><span class="label label-info" style="font-size:10px;">IFRS/Std</span><?php endif; ?>
+						<?php if (($def['std'] ?? '') === 'IFRS18'): ?><span class="label" style="font-size:10px;background:#0b6e99;">IFRS 18</span>
+						<?php elseif ($def['std'] !== ''): ?><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h((string) $def['std']); ?></span><?php endif; ?>
 					</div>
 				</a>
 			</div>
@@ -1023,10 +1077,26 @@ if ($selTool === 'import') {
 } else {
 	// ---------------------------------------------------------------- catalogue (all categories)
 	$total = count($registry);
+	$catYear = (int) date('Y', is_numeric($date_to ?? null) ? (int) $date_to : (int) strtotime((string) ($date_to_str ?? 'now')));
+	if ($catYear <= 0) { $catYear = (int) date('Y'); }
+	$catIfrs18 = function_exists('epc_ext_ifrs18_applies') ? epc_ext_ifrs18_applies($catYear) : ($catYear >= 2026);
 	?>
 	<div class="epc-erp-section" style="margin-bottom:12px;">
 		<p class="text-muted" style="margin:0;"><strong><?php echo (int) count($cats); ?></strong> categories · <strong><?php echo (int) $total; ?></strong> report types. Priority statutory reports (VAT, Corporate Tax, IFRS financial statements, WPS, UBO, Economic Substance ...) build from live ERP data; the rest provide the formatted statutory structure with the correct authority, law &amp; format links for <?php echo epc_erp_h($regName); ?>.</p>
 	</div>
+	<?php if ($catIfrs18): ?>
+	<div class="epc-erp-section" style="margin-bottom:14px;background:#f3fafd;border:1px solid #0b6e99;border-radius:8px;padding:12px 16px;">
+		<div style="font-weight:800;color:#0b6e99;font-size:14px;"><i class="fa fa-balance-scale"></i> New laws refresh — FY<?php echo (int) $catYear; ?> reporting pack</div>
+		<div class="text-muted" style="font-size:12px;margin-top:6px;line-height:1.55;">
+			<strong>IFRS 18</strong> early applied for financial statements &amp; audit packs (five P&amp;L categories, three mandatory subtotals; IAS 1 superseded for presentation). Mandatory IFRS 18 periods begin on/after 1 Jan 2027.
+			<?php if ($regCountry === 'AE'): ?>
+				&nbsp;·&nbsp; <strong>UAE Corporate Tax</strong> — Federal Decree-Law 47/2022 (incl. Art. 33 add-backs).
+				&nbsp;·&nbsp; <strong>UAE VAT</strong> — Federal Decree-Law 8/2017 &amp; Executive Regulations (bad-debt relief Art. 64; filing Art. 65).
+			<?php endif; ?>
+			Open a report and use <em>Fetch &amp; build</em> to regenerate under the refreshed standards.
+		</div>
+	</div>
+	<?php endif; ?>
 	<div class="epc-erp-section" style="margin-bottom:14px;background:#f5f8ff;border:1px solid #d6e4ff;border-radius:8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
 		<div>
 			<div style="font-weight:700;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → VAT / CT return (off-system)</div>

@@ -111,7 +111,7 @@ if (!function_exists('epc_hr_gratuity')) {
                 $out['eligible'] = true;
                 $out['days'] = round($days, 2);
                 $out['amount'] = round($amount, 2);
-                $out['notes'] = 'UAE Federal Decree-Law 33/2021: 21 days first 5 yrs, 30 days beyond; capped at 2 years pay.';
+                $out['notes'] = 'UAE Federal Decree-Law 33/2021 arts. 51–52 (as amended): 21 days basic/yr first 5 yrs, 30 days/yr beyond; capped at 2 years’ basic wage; accrued after 1 year continuous service.';
                 return $out;
 
             case 'SA':
@@ -226,16 +226,16 @@ if (!function_exists('epc_hr_leave_entitlement')) {
         $notes = '';
         switch ($country) {
             case 'AE':
-                $annual = 30.0; // calendar days/year after 1 year
+                $annual = 30.0; // calendar days/year after 1 year — FDL 33/2021 Art. 29
                 if ($serviceMonths < 6.0) {
-                    return array('country' => $country, 'annual_days' => $annual, 'accrued_days' => 0.0, 'notes' => 'UAE: no paid leave under 6 months.');
+                    return array('country' => $country, 'annual_days' => $annual, 'accrued_days' => 0.0, 'notes' => 'UAE FDL 33/2021 Art. 29: no paid annual leave under 6 months.');
                 }
                 if ($serviceMonths < 12.0) {
                     $accrued = floor($serviceMonths) * 2.0; // 2 days per completed month
-                    return array('country' => $country, 'annual_days' => $annual, 'accrued_days' => round($accrued, 2), 'notes' => 'UAE: 2 days per month between 6-12 months.');
+                    return array('country' => $country, 'annual_days' => $annual, 'accrued_days' => round($accrued, 2), 'notes' => 'UAE FDL 33/2021 Art. 29: 2 days per month between 6–12 months.');
                 }
                 $accrued = ($serviceMonths / 12.0) * $annual;
-                return array('country' => $country, 'annual_days' => $annual, 'accrued_days' => round($accrued, 2), 'notes' => 'UAE: 30 calendar days/year after 1 year.');
+                return array('country' => $country, 'annual_days' => $annual, 'accrued_days' => round($accrued, 2), 'notes' => 'UAE FDL 33/2021 Art. 29: 30 calendar days/year after 1 year.');
             case 'SA':
                 $annual = $serviceMonths >= 60.0 ? 30.0 : 21.0; // 21 days, 30 after 5 years
                 $notes = 'KSA: 21 days/year, 30 days after 5 years.';
@@ -276,32 +276,42 @@ if (!function_exists('epc_hr_policy')) {
     /**
      * Statutory notice period, max probation, standard weekly hours.
      *
-     * @return array{country:string,notice_days:int,max_probation_months:int,weekly_hours:int}
+     * @return array{country:string,notice_days:int,max_probation_months:int,weekly_hours:int,probation_notice_days:int,ot_max_hours_day:int}
      */
     function epc_hr_policy(string $country): array
     {
         $country = epc_hr_resolve_country($country);
+        // notice_days, max_probation_months, weekly_hours, probation_notice_days, ot_max_hours_day
         $map = array(
-            'AE' => array(30, 6, 48),
-            'SA' => array(60, 3, 48),
-            'QA' => array(30, 6, 48),
-            'OM' => array(30, 3, 45),
-            'BH' => array(30, 3, 48),
-            'KW' => array(90, 3, 48),
-            'IN' => array(30, 6, 48),
-            'PK' => array(30, 3, 48),
-            'generic' => array(30, 3, 48),
+            'AE' => array(30, 6, 48, 14, 2),
+            'SA' => array(60, 3, 48, 0, 0),
+            'QA' => array(30, 6, 48, 0, 0),
+            'OM' => array(30, 3, 45, 0, 0),
+            'BH' => array(30, 3, 48, 0, 0),
+            'KW' => array(90, 3, 48, 0, 0),
+            'IN' => array(30, 6, 48, 0, 0),
+            'PK' => array(30, 3, 48, 0, 0),
+            'generic' => array(30, 3, 48, 0, 0),
         );
         $p = $map[$country] ?? $map['generic'];
-        return array('country' => $country, 'notice_days' => $p[0], 'max_probation_months' => $p[1], 'weekly_hours' => $p[2]);
+        return array(
+            'country' => $country,
+            'notice_days' => $p[0],
+            'max_probation_months' => $p[1],
+            'weekly_hours' => $p[2],
+            'probation_notice_days' => $p[3],
+            'ot_max_hours_day' => $p[4],
+        );
     }
 }
 
 if (!function_exists('epc_hr_overtime')) {
     /**
-     * Overtime pay. UAE: 125% normal, 150% for night (22:00-04:00) / rest day.
+     * Overtime pay. UAE FDL 33/2021 Art. 19: basic + ≥25% normal; basic + ≥50%
+     * for night (22:00–04:00) / rest day; OT generally capped at 2 hours/day
+     * and 144 hours every 3 weeks.
      *
-     * @return array{hours:float,hourly:float,rate:float,amount:float}
+     * @return array{hours:float,hourly:float,rate:float,amount:float,notes:string}
      */
     function epc_hr_overtime(string $country, float $basicSalary, float $hours, bool $nightOrRestDay = false, array $opts = array()): array
     {
@@ -310,10 +320,13 @@ if (!function_exists('epc_hr_overtime')) {
         $dailyHours = (float) ($opts['daily_hours'] ?? 8);
         $hourly = ($dailyBasis > 0 && $dailyHours > 0) ? ($basicSalary / $dailyBasis) / $dailyHours : 0.0;
         $rate = $nightOrRestDay ? 1.5 : 1.25;
-        if ($country === 'IN' || $country === 'PK') {
+        $notes = '';
+        if ($country === 'AE') {
+            $notes = 'UAE FDL 33/2021 Art. 19: OT on basic wage; max 2 hours/day (exceptions per Exec. Reg.); total hours ≤144 every 3 weeks.';
+        } elseif ($country === 'IN' || $country === 'PK') {
             $rate = 2.0; // India/Pakistan: OT typically 2x
         }
-        return array('hours' => round($hours, 2), 'hourly' => round($hourly, 4), 'rate' => $rate, 'amount' => round($hourly * $rate * $hours, 2));
+        return array('hours' => round($hours, 2), 'hourly' => round($hourly, 4), 'rate' => $rate, 'amount' => round($hourly * $rate * $hours, 2), 'notes' => $notes);
     }
 }
 
@@ -346,6 +359,46 @@ if (!function_exists('epc_hr_resolve_rule_version')) {
 
 /* ------------------------------------- Worldwide statutory law profiles --- */
 
+if (!function_exists('epc_hr_law_ae_versions')) {
+    /**
+     * Date-effective overlays for the UAE labour-law pack.
+     *
+     * Federal Decree-Law 33/2021 (in force 2 Feb 2022) remains the primary
+     * statute, as amended by FDL 20/2023 and FDL 9/2024. Wage Protection System
+     * rules switch from Ministerial Resolution 598/2022 to MR 340/2026 on
+     * 1 June 2026.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_hr_law_ae_versions(): array
+    {
+        return array(
+            array(
+                'valid_from' => (int) strtotime('2022-02-02'),
+                'valid_to' => (int) strtotime('2026-05-31 23:59:59'),
+                'pack_id' => 'AE-FDL33-WPS598',
+                'pack_label' => 'FDL 33/2021 + WPS MR 598/2022',
+                'wage_protection' => 'WPS mandatory (MOHRE) — Ministerial Resolution 598/2022: pay wages on the contractual due date; establishments deemed compliant at ≥80% of wages transferred on time (superseded 1 Jun 2026 by MR 340/2026)',
+                'wps_due' => 'Contractual / sector due date (MR 598/2022)',
+                'wps_threshold_pct' => 80,
+                'wps_resolution' => 'Ministerial Resolution 598/2022',
+                'emirati_min_wage' => 0.0,
+            ),
+            array(
+                'valid_from' => (int) strtotime('2026-06-01'),
+                'valid_to' => null,
+                'pack_id' => 'AE-FDL33-WPS340',
+                'pack_label' => 'FDL 33/2021 (as amended) + WPS MR 340/2026',
+                'wage_protection' => 'WPS mandatory (MOHRE) — Ministerial Resolution 340/2026 (from 1 Jun 2026): wages for the prior Gregorian month due on the 1st of the following month; establishment compliant if ≥85% of total wages transferred by the due date; new hires in WPS from first pay cycle; escalated MOHRE enforcement from day 2',
+                'wps_due' => '1st of each Gregorian month (prior month’s wages)',
+                'wps_threshold_pct' => 85,
+                'wps_resolution' => 'Ministerial Resolution 340/2026',
+                'emirati_min_wage' => 6000.0, // AED/month for Emirati private-sector new/renewed permits (from 1 Jan 2026)
+            ),
+        );
+    }
+}
+
 if (!function_exists('epc_hr_law_profile')) {
     /**
      * Worldwide statutory employment-law reference profile for a country.
@@ -355,18 +408,41 @@ if (!function_exists('epc_hr_law_profile')) {
      * notice, annual / sick / maternity / paternity leave, public holidays,
      * end-of-service basis, wage-protection scheme and the governing authority.
      *
+     * For AE, date-effective overlays (WPS MR 598/2022 → MR 340/2026) are
+     * applied from $asOf (0 = now).
+     *
      * Informational only — figures are representative statutory minimums and
      * must be confirmed against current local law and any collective agreement.
      *
      * @return array<string,mixed>
      */
-    function epc_hr_law_profile(string $country): array
+    function epc_hr_law_profile(string $country, int $asOf = 0): array
     {
         $c = strtoupper(trim($country));
         $P = epc_hr_law_profiles_all();
         $base = isset($P[$c]) ? $P[$c] : $P['generic'];
         $code = isset($P[$c]) ? $c : ($c !== '' ? $c : 'XX');
-        return array('country' => $code, 'authority_url' => epc_hr_law_authority_url($code)) + $base;
+        $asOf = $asOf > 0 ? $asOf : time();
+        $out = array('country' => $code, 'authority_url' => epc_hr_law_authority_url($code), 'as_of' => $asOf) + $base;
+
+        if ($code === 'AE') {
+            // Bridge: Emirati private-sector minimum wage applies from 1 Jan 2026
+            // even before the WPS 340 switch on 1 Jun 2026.
+            $ver = epc_hr_resolve_rule_version(epc_hr_law_ae_versions(), $asOf);
+            if (is_array($ver)) {
+                foreach (array('wage_protection', 'wps_due', 'wps_threshold_pct', 'wps_resolution', 'pack_id', 'pack_label', 'emirati_min_wage') as $k) {
+                    if (array_key_exists($k, $ver)) {
+                        $out[$k] = $ver[$k];
+                    }
+                }
+            }
+            if ($asOf >= (int) strtotime('2026-01-01') && (float) ($out['emirati_min_wage'] ?? 0) < 6000.0) {
+                $out['emirati_min_wage'] = 6000.0;
+            }
+            $out['law_effective_from'] = '2022-02-02';
+            $out['pack_refreshed'] = '2026-07';
+        }
+        return $out;
     }
 }
 
@@ -439,7 +515,28 @@ if (!function_exists('epc_hr_law_profiles_all')) {
     {
         return array(
             // ---------------------------------------------------------- GCC ---
-            'AE' => array('name' => 'United Arab Emirates', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Mon–Fri (Sat/Sun weekend)', 'overtime' => '125% normal · 150% night (22:00–04:00) / rest day', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 30, 'sick_leave' => '90 days/yr (15 full · 30 half · 45 unpaid)', 'maternity' => '60 days (45 full + 15 half)', 'paternity' => '5 working days', 'public_holidays' => '~14 days', 'eos' => '21 days/yr first 5 yrs, 30 days/yr beyond; capped at 2 yrs pay', 'eos_model' => 'AE', 'wage_protection' => 'WPS mandatory (MOHRE)', 'authority' => 'MOHRE — Federal Decree-Law 33/2021'),
+            'AE' => array(
+                'name' => 'United Arab Emirates',
+                'region' => 'GCC',
+                'weekly_hours' => 48,
+                'workweek' => 'Up to 8h/day · 48h/week (Ramadan −2h/day); ≥1 paid weekly rest day; flexible models recognised',
+                'overtime' => 'Art. 19: basic+≥25% normal · basic+≥50% night (22:00–04:00) / rest day; max 2h OT/day; ≤144h / 3 weeks',
+                'probation_max_months' => 6,
+                'probation_notice_days' => 14,
+                'notice_days' => 30,
+                'annual_leave_days' => 30,
+                'sick_leave' => 'Art. 31: 90 days/yr (15 full · 30 half · 45 unpaid) after 3 months’ service',
+                'maternity' => 'Art. 30: 60 days (45 full + 15 half)',
+                'paternity' => 'Art. 32: 5 working days parental leave',
+                'public_holidays' => '~14 days (Cabinet-declared)',
+                'eos' => 'Arts. 51–52: 21 days basic/yr first 5 yrs, 30 days/yr beyond; after 1 yr; capped at 2 yrs’ basic wage',
+                'eos_model' => 'AE',
+                'wage_protection' => 'WPS mandatory (MOHRE) — see date-effective pack (MR 598/2022 → MR 340/2026 from 1 Jun 2026)',
+                'contract_model' => 'Fixed-term contracts only (typically ≤3 years, renewable); unlimited contracts abolished',
+                'emirati_min_wage' => 6000.0,
+                'key_articles' => 'Art. 9 probation · Art. 19 overtime · Art. 25 deductions · Art. 29 annual leave · Art. 30 maternity · Art. 31 sick · Art. 32 parental · Art. 43 notice · Arts. 51–52 EOS',
+                'authority' => 'MOHRE — Federal Decree-Law 33/2021 (as amended by FDL 20/2023 & FDL 9/2024) + Exec. Regulations; WPS MR 340/2026 (from 1 Jun 2026)',
+            ),
             'SA' => array('name' => 'Saudi Arabia', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu (Fri/Sat weekend); 36h Ramadan', 'overtime' => '150% (basic + 50%)', 'probation_max_months' => 3, 'notice_days' => 60, 'annual_leave_days' => 21, 'sick_leave' => '120 days (30 full · 60 at 75% · 30 unpaid)', 'maternity' => '10 weeks', 'paternity' => '3 days', 'public_holidays' => '~4 official', 'eos' => 'Half month/yr first 5 yrs, full month/yr after; resignation factor (art.85)', 'eos_model' => 'SA', 'wage_protection' => 'WPS / Mudad mandatory', 'authority' => 'MHRSD — Saudi Labor Law'),
             'QA' => array('name' => 'Qatar', 'region' => 'GCC', 'weekly_hours' => 48, 'workweek' => 'Sun–Thu; 36h Ramadan', 'overtime' => '125% · 150% night', 'probation_max_months' => 6, 'notice_days' => 30, 'annual_leave_days' => 21, 'sick_leave' => '2 weeks full + 4 weeks half', 'maternity' => '50 days', 'paternity' => '—', 'public_holidays' => '~3 official', 'eos' => 'Min 3 weeks (21 days) basic per year, after 1 year', 'eos_model' => 'QA', 'wage_protection' => 'WPS mandatory', 'authority' => 'MOL — Law 14/2004'),
             'OM' => array('name' => 'Oman', 'region' => 'GCC', 'weekly_hours' => 45, 'workweek' => 'Sun–Thu', 'overtime' => '125% · 150% night / rest day', 'probation_max_months' => 3, 'notice_days' => 30, 'annual_leave_days' => 30, 'sick_leave' => 'Up to 10 weeks (graded)', 'maternity' => '98 days', 'paternity' => '7 days', 'public_holidays' => '~9 days', 'eos' => 'GCC end-of-service: 15 days/yr first 3 yrs, 30 days/yr after (non-Omanis)', 'eos_model' => 'OM', 'wage_protection' => 'WPS (Oman) mandatory', 'authority' => 'MOL — Labour Law 53/2023'),
@@ -500,12 +597,14 @@ if (!function_exists('epc_hr_compliance_check')) {
     function epc_hr_compliance_check(string $country, array $emp, int $asOf = 0): array
     {
         $asOf = $asOf > 0 ? $asOf : time();
-        $prof = epc_hr_law_profile($country);
+        $prof = epc_hr_law_profile($country, $asOf);
+        $pol = epc_hr_policy($country);
         $hire = (int) ($emp['hire_date'] ?? 0);
         $basic = (float) ($emp['basic_salary'] ?? 0);
         $leaveBal = (float) ($emp['leave_balance_days'] ?? 0);
         $years = $hire > 0 ? epc_hr_service_years($hire, $asOf) : 0.0;
         $flags = array();
+        $cc = epc_hr_resolve_country($country);
 
         // --- data completeness ------------------------------------------------
         if ($hire <= 0) {
@@ -517,6 +616,7 @@ if (!function_exists('epc_hr_compliance_check')) {
 
         // --- probation --------------------------------------------------------
         $probMonths = (int) ($prof['probation_max_months'] ?? 0);
+        $probNotice = (int) ($prof['probation_notice_days'] ?? $pol['probation_notice_days'] ?? 0);
         $probEnds = 0;
         $inProbation = false;
         if ($hire > 0 && $probMonths > 0) {
@@ -524,8 +624,28 @@ if (!function_exists('epc_hr_compliance_check')) {
             if ($asOf < $probEnds) {
                 $inProbation = true;
                 $daysLeft = (int) ceil(($probEnds - $asOf) / 86400);
-                $sev = $daysLeft <= 14 ? 'warn' : 'info';
-                $flags[] = array('severity' => $sev, 'code' => 'probation', 'message' => 'In probation — ends ' . date('d M Y', $probEnds) . ' (' . $daysLeft . ' day' . ($daysLeft === 1 ? '' : 's') . ' left). Confirm or act before the statutory cap.', 'basis' => 'Max probation ' . $probMonths . ' months (' . $prof['authority'] . ')');
+                $sev = $daysLeft <= max(14, $probNotice) ? 'warn' : 'info';
+                $msg = 'In probation — ends ' . date('d M Y', $probEnds) . ' (' . $daysLeft . ' day' . ($daysLeft === 1 ? '' : 's') . ' left). Confirm or act before the statutory cap.';
+                if ($probNotice > 0) {
+                    $msg .= ' Employer termination during probation requires ≥' . $probNotice . ' days’ written notice.';
+                }
+                $flags[] = array('severity' => $sev, 'code' => 'probation', 'message' => $msg, 'basis' => 'Max probation ' . $probMonths . ' months' . ($probNotice > 0 ? '; probation notice ' . $probNotice . ' days' : '') . ' (' . $prof['authority'] . ')');
+            }
+        }
+
+        // --- UAE WPS / contract pack reminders --------------------------------
+        if ($cc === 'AE') {
+            $wpsRes = (string) ($prof['wps_resolution'] ?? '');
+            $wpsDue = (string) ($prof['wps_due'] ?? '');
+            $wpsPct = (int) ($prof['wps_threshold_pct'] ?? 0);
+            // Pack-level reminders (info only — company banner carries the action items).
+            if ($wpsRes !== '') {
+                $flags[] = array(
+                    'severity' => 'info',
+                    'code' => 'wps_pack',
+                    'message' => 'WPS — due ' . $wpsDue . '; ≥' . $wpsPct . '% of wages on time via SIF.',
+                    'basis' => $wpsRes,
+                );
             }
         }
 
