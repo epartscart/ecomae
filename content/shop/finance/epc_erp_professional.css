@@ -1834,14 +1834,17 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 }
 
 /* ERP top menu: blue + white */
-.epc-erp-topnav {
+.epc-erp-topnav,
+.epc-erp-shell--topnav .epc-erp-topnav,
+.epc-erp-shell--topnav-only .epc-erp-topnav {
 	position: sticky;
 	top: 0;
 	z-index: 220;
-	background: #ffffff;
-	border-bottom: 2px solid #1d4ed8;
+	background: #ffffff !important;
+	background-image: none !important;
+	border-bottom: 2px solid #1d4ed8 !important;
 	box-shadow: 0 2px 10px rgba(29, 78, 216, 0.08);
-	color: #0f172a;
+	color: #0f172a !important;
 }
 
 .epc-erp-topnav-inner {

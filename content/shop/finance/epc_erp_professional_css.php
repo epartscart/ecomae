@@ -13,7 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260720cptopnav1';
+$ver = '20260720cptopnav2';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

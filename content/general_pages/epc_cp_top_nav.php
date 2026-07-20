@@ -97,4 +97,12 @@ function epc_cp_render_top_nav(): void
 	}
 
 	echo '</ul></div></nav>';
+
+	// Inline boot script next to the nav so flyouts work even if footer script tags are stripped/relocated.
+	$jsPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/js/epc_cp_topnav.js';
+	if (is_file($jsPath)) {
+		echo '<script id="epc-cp-topnav-inline">' . "\n";
+		echo file_get_contents($jsPath);
+		echo "\n</script>\n";
+	}
 }
