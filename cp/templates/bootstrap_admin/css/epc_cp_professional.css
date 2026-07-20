@@ -6012,7 +6012,7 @@ body.epc-cp-shell #side-menu > li.epc-cp-nav-section.active > a .fa.arrow::befor
 }
 
 /* ==========================================================================
-   CP top mega-menu — red + black (primary nav; left rail hidden)
+   CP top mega-menu — solid red bar (primary nav; left rail hidden)
    ========================================================================== */
 body.epc-cp-topnav-only #menu,
 body.epc-cp-topnav-only .epc-cp-sidebar-toggle-tab,
@@ -6056,10 +6056,10 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 }
 
 .epc-cp-topnav {
-	background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-	border-bottom: 2px solid #dc2626;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-	color: #f8fafc;
+	background: linear-gradient(180deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%);
+	border-bottom: 2px solid #7f1d1d;
+	box-shadow: 0 2px 14px rgba(185, 28, 28, 0.35);
+	color: #fff;
 }
 .epc-cp-topnav-inner {
 	display: flex;
@@ -6082,17 +6082,17 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
 	text-decoration: none !important;
-	border-right: 1px solid rgba(220, 38, 38, 0.45);
+	border-right: 1px solid rgba(255, 255, 255, 0.28);
 	white-space: nowrap;
 }
 .epc-cp-topnav-brand:hover,
 .epc-cp-topnav-brand:focus {
-	color: #fecaca !important;
-	background: rgba(220, 38, 38, 0.12);
+	color: #fff !important;
+	background: rgba(0, 0, 0, 0.12);
 }
 .epc-cp-topnav-brand .fa {
 	font-size: 15px;
-	color: #ef4444;
+	color: #fff;
 }
 .epc-cp-topnav-list {
 	list-style: none;
@@ -6104,7 +6104,7 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	min-width: 0;
 	overflow: visible;
 	scrollbar-width: thin;
-	scrollbar-color: rgba(239, 68, 68, 0.45) transparent;
+	scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
 }
 @media (max-width: 1100px) {
 	.epc-cp-topnav-inner {
@@ -6117,7 +6117,7 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	flex: 0 0 auto;
 }
 .epc-cp-topnav-item--advanced .epc-cp-topnav-btn {
-	opacity: 0.88;
+	opacity: 0.92;
 }
 .epc-cp-topnav-btn {
 	display: inline-flex;
@@ -6128,41 +6128,49 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	padding: 0 11px;
 	border: 0;
 	background: transparent;
-	color: rgba(255, 255, 255, 0.88);
+	color: rgba(255, 255, 255, 0.95);
 	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.01em;
 	white-space: nowrap;
 	cursor: pointer;
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-user-select: none;
 	border-bottom: 2px solid transparent;
 	transition: background .12s, color .12s, border-color .12s;
+}
+.epc-cp-topnav-btn > *,
+.epc-cp-topnav-btn > *::before,
+.epc-cp-topnav-btn > *::after {
+	pointer-events: none !important;
 }
 .epc-cp-topnav-btn:hover,
 .epc-cp-topnav-btn:focus,
 .epc-cp-topnav-item.is-open > .epc-cp-topnav-btn {
-	background: rgba(220, 38, 38, 0.22);
+	background: rgba(0, 0, 0, 0.16);
 	color: #fff;
 	outline: none;
 }
 .epc-cp-topnav-item.is-active > .epc-cp-topnav-btn {
 	color: #fff;
-	border-bottom-color: #ef4444;
-	background: rgba(220, 38, 38, 0.28);
+	border-bottom-color: #fff;
+	background: rgba(0, 0, 0, 0.22);
 }
 .epc-cp-topnav-btn > .fa:first-child {
 	font-size: 13px;
-	color: #f87171;
+	color: #fff;
 }
 .epc-cp-topnav-caret {
 	font-size: 10px;
-	opacity: 0.55;
+	opacity: 0.75;
 	margin-left: 1px;
 	transition: transform .15s ease;
 }
 .epc-cp-topnav-item.is-open .epc-cp-topnav-caret {
 	transform: rotate(180deg);
-	opacity: 0.95;
-	color: #fecaca;
+	opacity: 1;
+	color: #fff;
 }
 
 /* Mega panel */
