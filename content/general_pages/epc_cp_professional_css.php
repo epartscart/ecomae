@@ -13,11 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-<<<<<<< HEAD
-$ver = '20260720topnavclick2';
-=======
-$ver = '20260720cpblackmenu1';
->>>>>>> origin/main
+$ver = '20260720topnavmerge3';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 
