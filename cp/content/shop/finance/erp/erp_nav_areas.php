@@ -639,11 +639,13 @@ function epc_erp_nav_categories_config(): array
 	return array(
 		'home' => array(
 			'label' => 'Home & workspace',
+			'short' => 'Home',
 			'icon'  => 'fa-th-large',
 			'areas' => array('overview'),
 		),
 		'record_to_report' => array(
 			'label' => 'Record to Report',
+			'short' => 'R2R',
 			'icon'  => 'fa-university',
 			'areas' => array(
 				'finance',        // General ledger
@@ -656,6 +658,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'procure_to_pay' => array(
 			'label' => 'Procure to Pay',
+			'short' => 'P2P',
 			'icon'  => 'fa-shopping-basket',
 			'areas' => array(
 				'purchasing',         // Procurement & sourcing
@@ -666,6 +669,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'order_to_cash' => array(
 			'label' => 'Order to Cash',
+			'short' => 'O2C',
 			'icon'  => 'fa-line-chart',
 			'areas' => array(
 				'sales',        // Sales & marketing
@@ -677,6 +681,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'cash_treasury' => array(
 			'label' => 'Cash & Treasury',
+			'short' => 'Cash',
 			'icon'  => 'fa-money',
 			'areas' => array(
 				'banking', // Cash & bank management
@@ -684,6 +689,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'inventory_fulfilment' => array(
 			'label' => 'Inventory & Fulfilment',
+			'short' => 'Stock',
 			'icon'  => 'fa-cubes',
 			'areas' => array(
 				'inventory_mgmt',      // Inventory management
@@ -699,6 +705,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'hr_payroll' => array(
 			'label' => 'HR & Payroll',
+			'short' => 'HR',
 			'icon'  => 'fa-users',
 			'areas' => array(
 				'people',      // Human resources
@@ -709,6 +716,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'compliance_tax' => array(
 			'label' => 'Compliance & Tax',
+			'short' => 'Tax',
 			'icon'  => 'fa-shield',
 			'areas' => array(
 				'tax',  // Tax
@@ -717,6 +725,7 @@ function epc_erp_nav_categories_config(): array
 		),
 		'setup_admin' => array(
 			'label' => 'Setup & Administration',
+			'short' => 'Setup',
 			'icon'  => 'fa-sliders',
 			'areas' => array(
 				'setup',      // System administration
@@ -983,14 +992,116 @@ function epc_erp_get_favourites(PDO $db): array
 	} catch (Throwable $e) { return array(); }
 }
 
-function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to, array $allowedTabs)
+/**
+ * Top process-area mega menu (Dynamics / NetSuite style).
+ * Renders the same categories as the left sidebar across the full width so
+ * modules are one hover/click away — faster than drilling three accordion levels.
+ */
+function epc_erp_render_top_nav($erpUrl, $activeArea, $activeTab, $from, $to, array $allowedTabs)
+{
+	$areas = epc_erp_nav_areas_for_tenant();
+	$categories = epc_erp_nav_categories_config();
+	$activeCat = '';
+	foreach ($categories as $catKey => $cat) {
+		if (in_array($activeArea, (array) ($cat['areas'] ?? array()), true)) {
+			$activeCat = $catKey;
+			break;
+		}
+	}
+
+	echo '<nav class="epc-erp-topnav" id="epc_erp_topnav" aria-label="ERP process areas">';
+	echo '<div class="epc-erp-topnav-inner">';
+	echo '<a class="epc-erp-topnav-brand" href="' . epc_erp_h(epc_erp_tab_url($erpUrl, 'dashboard', $from, $to, 'overview')) . '"' . epc_erp_nav_shell_link_attrs() . '>';
+	echo '<i class="fa fa-cubes" aria-hidden="true"></i><span>Ecom BOS</span></a>';
+	echo '<ul class="epc-erp-topnav-list" role="menubar">';
+
+	foreach ($categories as $catKey => $cat) {
+		$catAreas = array();
+		foreach ((array) ($cat['areas'] ?? array()) as $areaKey) {
+			if (!isset($areas[$areaKey])) {
+				continue;
+			}
+			$visibleTabs = epc_erp_nav_area_visible_tabs($areaKey, $allowedTabs);
+			if (!empty($visibleTabs)) {
+				$catAreas[$areaKey] = $visibleTabs;
+			}
+		}
+		if (empty($catAreas)) {
+			continue;
+		}
+
+		$isActive = ($catKey === $activeCat);
+		$short = (string) ($cat['short'] ?? $cat['label']);
+		$firstArea = array_key_first($catAreas);
+		$firstTabs = $catAreas[$firstArea];
+		$firstTab = array_key_first($firstTabs);
+		$hubHref = epc_erp_tab_url($erpUrl, $firstTab, $from, $to, $firstArea);
+
+		echo '<li class="epc-erp-topnav-item' . ($isActive ? ' is-active' : '') . '" data-category="' . epc_erp_h($catKey) . '" role="none">';
+		echo '<button type="button" class="epc-erp-topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-topnav-toggle="' . epc_erp_h($catKey) . '">';
+		echo '<i class="fa ' . epc_erp_h($cat['icon']) . '" aria-hidden="true"></i>';
+		echo '<span class="epc-erp-topnav-label" data-full="' . epc_erp_h($cat['label']) . '" data-short="' . epc_erp_h($short) . '">' . epc_erp_h($cat['label']) . '</span>';
+		echo '<i class="fa fa-angle-down epc-erp-topnav-caret" aria-hidden="true"></i>';
+		echo '</button>';
+
+		// Mega panel — columns of modules (areas) with their tabs.
+		echo '<div class="epc-erp-topnav-panel" role="menu" hidden data-topnav-panel="' . epc_erp_h($catKey) . '">';
+		echo '<div class="epc-erp-topnav-panel-hd">';
+		echo '<div class="epc-erp-topnav-panel-title"><i class="fa ' . epc_erp_h($cat['icon']) . '"></i> ' . epc_erp_h($cat['label']) . '</div>';
+		echo '<a class="epc-erp-topnav-panel-hub" href="' . epc_erp_h($hubHref) . '"' . epc_erp_nav_shell_link_attrs() . '>Open first module <i class="fa fa-arrow-right"></i></a>';
+		echo '</div>';
+		echo '<div class="epc-erp-topnav-cols">';
+		foreach ($catAreas as $areaKey => $visibleTabs) {
+			$area = $areas[$areaKey];
+			$isAreaActive = ($areaKey === $activeArea);
+			echo '<div class="epc-erp-topnav-col' . ($isAreaActive ? ' is-active-col' : '') . '">';
+			echo '<div class="epc-erp-topnav-col-hd"><i class="fa ' . epc_erp_h($area['icon']) . '"></i> ' . epc_erp_h(epc_erp_nav_label_plain($area['label'])) . '</div>';
+			echo '<ul class="epc-erp-topnav-links">';
+			$n = 0;
+			foreach ($visibleTabs as $tabKey => $meta) {
+				if (!empty($meta['external']) || $tabKey === 'procurement_link') {
+					echo '<li><a href="' . epc_erp_h(epc_erp_procurement_url()) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> ' . epc_erp_h(epc_erp_nav_label_plain($meta['label'] ?? 'Procurement')) . '</a></li>';
+					continue;
+				}
+				$hrefTab = ($tabKey === 'bank_recon') ? 'cash_bank' : $tabKey;
+				$isTabActive = ($activeTab === $tabKey)
+					|| ($tabKey === 'bank_recon' && $activeTab === 'cash_bank' && !empty($_GET['account_id']));
+				// Cap dense columns so the mega panel stays scannable.
+				if ($n >= 8) {
+					$moreHref = epc_erp_tab_url($erpUrl, $hrefTab, $from, $to, $areaKey);
+					echo '<li class="epc-erp-topnav-more"><a href="' . epc_erp_h($moreHref) . '"' . epc_erp_nav_shell_link_attrs() . '>More…</a></li>';
+					break;
+				}
+				$lbl = epc_erp_nav_label_plain($meta['label'] ?? $tabKey);
+				echo '<li' . ($isTabActive ? ' class="is-active"' : '') . '>';
+				echo '<a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, $hrefTab, $from, $to, $areaKey)) . '"' . epc_erp_nav_shell_link_attrs() . '>';
+				echo '<i class="fa ' . epc_erp_h($meta['icon'] ?? 'fa-circle-o') . '"></i> ' . epc_erp_h($lbl);
+				echo '</a></li>';
+				$n++;
+			}
+			echo '</ul></div>';
+		}
+		echo '</div></div>'; // panel cols + panel
+		echo '</li>';
+	}
+
+	echo '</ul>'; // list
+	echo '<button type="button" class="epc-erp-topnav-more-btn" id="epc_erp_topnav_more" aria-label="More modules" title="Browse all modules in the side rail"><i class="fa fa-bars"></i><span>All</span></button>';
+	echo '</div></nav>';
+}
+
+/**
+ * Left rail. When $contextual is true (top mega-menu is primary), only the
+ * active process category is listed so the rail stays short and fast.
+ */
+function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to, array $allowedTabs, $contextual = false)
 {
 	$areas = epc_erp_nav_areas_for_tenant();
 
 	// Favourites section at top of sidebar — unchanged
 	$dbForFav = isset($GLOBALS['db_link']) ? $GLOBALS['db_link'] : null;
 	$favItems = $dbForFav ? epc_erp_get_favourites($dbForFav) : array();
-	echo '<nav class="epc-erp-sidebar-nav" aria-label="ERP modules">';
+	echo '<nav class="epc-erp-sidebar-nav' . ($contextual ? ' epc-erp-sidebar-nav--contextual' : '') . '" aria-label="ERP modules">';
 	if (!empty($favItems)) {
 		echo '<div class="epc-erp-sidebar-favourites">';
 		echo '<div class="epc-erp-sidebar-fav-head"><i class="fa fa-star" style="color:#f59e0b"></i> <span>Favourites</span></div>';
@@ -1014,6 +1125,18 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 	// Render one <li> per process category, each collapsible.
 	// Inside each category, render the existing area groups exactly as before.
 	$categories = epc_erp_nav_categories_config();
+	$hasActiveCategory = false;
+	foreach ($categories as $cat) {
+		if (in_array($activeArea, (array) ($cat['areas'] ?? array()), true)) {
+			$hasActiveCategory = true;
+			break;
+		}
+	}
+	// If the current area is unknown, fall back to the full list.
+	$filterToActive = ($contextual && $hasActiveCategory);
+	if ($filterToActive) {
+		echo '<div class="epc-erp-sidebar-rail-hint"><i class="fa fa-mouse-pointer"></i> <span>Modules for this area</span></div>';
+	}
 	echo '<ul class="epc-erp-sidebar-list">';
 	foreach ($categories as $catKey => $cat) {
 		// Collect all areas for this category that have at least one visible tab.
@@ -1031,7 +1154,12 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 			continue;
 		}
 		$isCatActive = isset($catAreas[$activeArea]);
-		$isCatOpen   = $isCatActive;
+		// With top mega-menu as primary nav, only render the active category
+		// so the left rail stays contextual and fast.
+		if ($filterToActive && !$isCatActive) {
+			continue;
+		}
+		$isCatOpen   = $isCatActive || $filterToActive;
 		echo '<li class="epc-erp-sidebar-category' . ($isCatActive ? ' is-active-category' : '')
 			. ($isCatOpen ? ' is-open' : '') . '" data-category="' . epc_erp_h($catKey) . '">';
 		echo '<button type="button" class="epc-erp-sidebar-category-hd" aria-expanded="' . ($isCatOpen ? 'true' : 'false') . '">';
@@ -1044,7 +1172,7 @@ function epc_erp_render_sidebar_nav($erpUrl, $activeArea, $activeTab, $from, $to
 		foreach ($catAreas as $areaKey => $visibleTabs) {
 			$area = $areas[$areaKey];
 			$isActiveArea = ($areaKey === $activeArea);
-			$isOpen = $isActiveArea;
+			$isOpen = $isActiveArea || ($filterToActive && count($catAreas) === 1);
 			echo '<li class="epc-erp-sidebar-group' . ($isActiveArea ? ' is-active-area' : '')
 				. ($isOpen ? ' is-open' : '') . '" data-area="' . epc_erp_h($areaKey) . '">';
 			echo '<button type="button" class="epc-erp-sidebar-group-hd" aria-expanded="' . ($isOpen ? 'true' : 'false') . '">';

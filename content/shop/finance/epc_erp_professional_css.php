@@ -13,7 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260609erpshell1';
+$ver = '20260720erptopnav1';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 
