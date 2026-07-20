@@ -59,6 +59,12 @@ function epc_dc_get_company(PDO $db): array
 function epc_dc_save_company(PDO $db, array $data): void
 {
 	epc_dc_ensure($db);
+	// Optimistic version check+bump first so concurrent editors cannot silently overwrite.
+	if (is_file(__DIR__ . '/../finance/epc_erp_concurrency.php')) {
+		require_once __DIR__ . '/../finance/epc_erp_concurrency.php';
+		$expected = (int) ($data['expected_version'] ?? $_POST['expected_version'] ?? 0);
+		epc_erp_version_assert_and_bump($db, 'epc_document_company', 1, $expected);
+	}
 	$fields = array(
 		'legal_name', 'trade_name', 'address_line1', 'address_line2', 'city', 'country',
 		'trn', 'phone', 'email', 'website', 'logo_path', 'bank_name', 'bank_iban', 'legal_footer',
