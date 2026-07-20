@@ -9,6 +9,12 @@ defined('_ASTEXE_') or die('No access');
 - задачи панели управления
 */
 
+// Top mega-menu is primary — skip left-rail build (ACL + DOM) for speed.
+if (!empty($GLOBALS['epc_cp_topnav_only'])) {
+	echo '<!-- epc: left_cp_menu skipped (topnav-only) -->';
+	return;
+}
+
 // Catalogue tree is expensive — only load on catalogue/stock CP pages (not every /cp request).
 require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/modules/left_cp_menu/catalogue_menu_helper.php");
 

@@ -115,6 +115,24 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 			min-height: 56px !important;
 			max-height: 56px !important;
 		}
+		/* First-paint: CP topnav-only full width under header */
+		body.epc-cp-topnav-only #menu,
+		body.epc-cp-topnav-only .epc-cp-sidebar-toggle-tab {
+			display: none !important;
+		}
+		body.epc-cp-topnav-only .epc-cp-topnav {
+			position: fixed !important;
+			top: 56px !important;
+			left: 0; right: 0; width: 100%;
+			z-index: 1090;
+		}
+		body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper {
+			margin-left: 0 !important;
+			width: 100% !important;
+			margin-top: 100px !important;
+			height: calc(100vh - 100px) !important;
+			max-height: calc(100vh - 100px) !important;
+		}
 		body.epc-cp-shell {
 			top: 0 !important;
 		}
@@ -239,8 +257,9 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 	$epcPlatformErpNavUrl = '/' . $DP_Config->backend_dir . '/platform-erp/';
 ?>
 </head>
-<body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
+<body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
 <?php
+$GLOBALS['epc_cp_topnav_only'] = true;
 echo epc_cp_force_visible_body_style();
 echo epc_cp_force_visible_script();
 //Для работы с пользователем
@@ -865,23 +884,46 @@ function print_backend_button($button_params)
     </nav>
 </div>
 
-<!-- Navigation -->
-<aside id="menu">
+<?php
+// Hidden logout form still needed by header actions when left rail is off.
+$admin_profile = DP_User::getAdminProfile();
+if (!is_array($admin_profile)) {
+	$admin_profile = array('name' => '', 'surname' => '');
+}
+?>
+<form id="logout_form" method="POST" name="logout_form" style="display:none;">
+	<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
+	<input type="hidden" name="logout" value="logout" />
+</form>
+<?php
+$epcCpTopNavFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_top_nav.php';
+if (is_file($epcCpTopNavFile)) {
+	require_once $epcCpTopNavFile;
+	if (function_exists('epc_cp_render_top_nav')) {
+		epc_cp_render_top_nav();
+	}
+}
+?>
+
+<!-- Navigation (hidden when top mega-menu is primary) -->
+<aside id="menu" aria-hidden="true">
     <div id="navigation">
         <div class="profile-picture epc-cp-user-card">
             <div class="stats-label text-color epc-cp-user-card__body">
-                <?php
-				//Блок слева - профиль пользователя и форма выхода
-				//Получаем данные пользователя
-				$admin_profile = DP_User::getAdminProfile();
+				<?php
+				//Блок слева - профиль пользователя и форма выхода (kept for legacy; hidden in topnav-only)
+				$epcCpAdminName = trim((string) ($admin_profile['name'] ?? '') . ' ' . (string) ($admin_profile['surname'] ?? ''));
+				if ($epcCpAdminName === '') {
+					$epcCpAdminName = 'Admin';
+				}
 				?>
-				<form id="logout_form" method="POST" name="logout_form">
+				<form id="logout_form_sidebar" method="POST" name="logout_form_sidebar" onsubmit="document.forms['logout_form'].submit(); return false;">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
 					<input type="hidden" name="logout" value="logout" />
 				</form>
 				<div class="epc-cp-user-card__row">
 					<div class="epc-cp-user-card__identity">
-						<span class="font-extra-bold font-uppercase epc-cp-user-card__name"><?php echo $admin_profile["name"]." ".$admin_profile["surname"]; ?></span>
+						<span class="font-extra-bold font-uppercase epc-cp-user-card__name"><?php echo htmlspecialchars($epcCpAdminName, ENT_QUOTES, 'UTF-8'); ?></span>
 						<small class="text-muted epc-cp-user-card__role"><?php echo translate_str_by_id(3452); ?></small>
 					</div>
 					<button type="button" class="epc-cp-user-card__quit" onclick="document.forms['logout_form'].submit();"><?php echo translate_str_by_id(3996); ?></button>
@@ -925,11 +967,18 @@ function print_backend_button($button_params)
 				?>
 			</div>
 			<?php
-			require( $_SERVER['DOCUMENT_ROOT'].'/'.$DP_Config->backend_dir.'/modules/lang/module.php' );
+			$epcLangMod = $_SERVER['DOCUMENT_ROOT'].'/'.$DP_Config->backend_dir.'/modules/lang/module.php';
+			if (is_file($epcLangMod) && empty($GLOBALS['epc_cp_topnav_only'])) {
+				require $epcLangMod;
+			}
 			?>
 		</div>
 		
+		<?php if (empty($GLOBALS['epc_cp_topnav_only'])) { ?>
 		<docpart type="module" name="left_cp_menu" />
+		<?php } else { ?>
+		<!-- left_cp_menu skipped: topnav-only -->
+		<?php } ?>
     </div>
 </aside>
 
@@ -1140,6 +1189,11 @@ if ($epcCpFastTenant) {
 
 
 <!-- App scripts -->
+<?php
+// Always use PHP proxy — /cp/js/* often 404s behind nginx on tenants.
+$epcCpTopnavJsVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720cptopnav1';
+echo '<script src="/content/general_pages/epc_cp_topnav_js.php?v=' . htmlspecialchars($epcCpTopnavJsVer, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+?>
 <?php echo epc_cp_sidebar_collapse_script(); ?>
 <?php if (!$epcApaiPage) {
 	echo epc_cp_menu_sections_script();
