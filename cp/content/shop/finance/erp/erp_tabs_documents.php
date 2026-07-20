@@ -3,6 +3,7 @@ defined('_ASTEXE_') or die('No access');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/document_control/epc_document_control_helpers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 
 $dcCat = isset($_GET['dc_cat']) ? (string)$_GET['dc_cat'] : '';
 $docEntity = isset($_GET['doc_entity']) ? (string)$_GET['doc_entity'] : '';
@@ -15,8 +16,19 @@ $attachments = ($docSource === 'erp' || $docSource === 'all')
 $dcAttachments = ($docSource === 'dc' || $docSource === 'all')
 	? epc_dc_list_attachments($db_link, $docEntity, $docEntityId, $dcCat)
 	: array();
-$dcHub = function_exists('epc_document_control_cp_url') ? epc_document_control_cp_url() : ('/' . (isset($DP_Config) ? (string) $DP_Config->backend_dir : 'cp') . '/shop/document_control/document_control');
+$dcErpHub = epc_erp_tab_url($erpUrl, 'document_control', $date_from_str, $date_to_str, 'tax');
+$isErpOnlyDocs = function_exists('epc_erp_is_erp_only_context') && epc_erp_is_erp_only_context();
+$dcHub = (!$isErpOnlyDocs && function_exists('epc_document_control_cp_url'))
+	? epc_document_control_cp_url()
+	: $dcErpHub;
 $totalShown = count($attachments) + count($dcAttachments);
+
+$docHeaderActions = array(
+	array('label' => 'Document Control', 'url' => $dcErpHub, 'class' => 'btn-primary', 'icon' => 'fa-print'),
+);
+if (!$isErpOnlyDocs && $dcHub !== $dcErpHub) {
+	$docHeaderActions[] = array('label' => 'Open in CP', 'url' => $dcHub, 'class' => 'btn-default', 'icon' => 'fa-external-link');
+}
 
 erp_page_header(
 	'<i class="fa fa-folder-open-o"></i> Document control',
@@ -25,9 +37,7 @@ erp_page_header(
 		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
 		array('label' => 'Documents'),
 	),
-	array(
-		array('label' => 'Document Control CP', 'url' => $dcHub, 'class' => 'btn-default', 'icon' => 'fa-external-link'),
-	)
+	$docHeaderActions
 );
 erp_filter_bar($erpUrl, 'documents', $date_from_str, $date_to_str,
 	'<input type="hidden" name="area" value="collaboration">'

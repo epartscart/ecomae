@@ -22,21 +22,39 @@ try {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
-if (!DP_User::isAdmin() && !DP_User::isBackendGroup()) {
+define('_ASTEXE_', 1);
+
+$epcDcPrintOk = DP_User::isAdmin() || DP_User::isBackendGroup();
+if (!$epcDcPrintOk) {
+	// ERP portal team (ERP-only tenants have no CP admin session).
+	try {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
+		if (function_exists('epc_erp_user_can_access')) {
+			$epcDcPrintOk = epc_erp_user_can_access($db_link);
+		}
+	} catch (Throwable $e) {
+		$epcDcPrintOk = false;
+	}
+}
+if (!$epcDcPrintOk) {
 	http_response_code(403);
-	echo 'Access denied — log in to the control panel.';
+	echo 'Access denied — sign in to ERP or the control panel.';
 	exit;
 }
 
-define('_ASTEXE_', 1);
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/document_control/epc_document_control_helpers.php';
 
 $doc = trim((string)($_GET['doc'] ?? 'fta_tax_invoice'));
 $order_id = (int)($_GET['order_id'] ?? 0);
+$invoice_id = (int)($_GET['invoice_id'] ?? 0);
 $preview = !empty($_GET['preview']);
 
 try {
-	echo epc_dc_render_template($db_link, $doc, $preview ? 0 : $order_id);
+	$extra = array();
+	if (!$preview && $invoice_id > 0) {
+		$extra['invoice_id'] = $invoice_id;
+	}
+	echo epc_dc_render_template($db_link, $doc, $preview ? 0 : $order_id, $extra);
 } catch (Throwable $e) {
 	http_response_code(400);
 	echo '<p>' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
