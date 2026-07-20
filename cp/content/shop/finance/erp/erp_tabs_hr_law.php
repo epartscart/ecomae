@@ -34,7 +34,14 @@ $allProfiles = epc_hr_law_profiles_all();
 if ($viewCode === '' || !isset($allProfiles[$viewCode])) {
 	$viewCode = isset($allProfiles[$hrCountry]) ? $hrCountry : 'generic';
 }
-$view = epc_hr_law_profile($viewCode);
+$lawAsOf = !empty($date_to) ? (int) $date_to : time();
+if ($lawAsOf <= 0) {
+	$lawAsOf = (int) strtotime((string) ($date_to_str ?? 'now'));
+}
+if ($lawAsOf <= 0) {
+	$lawAsOf = time();
+}
+$view = epc_hr_law_profile($viewCode, $lawAsOf);
 $pol = epc_hr_policy($viewCode);
 
 $baseUrl = epc_erp_tab_url($erpUrl, 'hr_law', $date_from_str, $date_to_str);
@@ -46,6 +53,9 @@ $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
 $officialUrl = (string) ($view['authority_url'] ?? '');
 $refreshUrl = $baseUrl . $sep . 'law_country=' . urlencode($viewCode) . '&law_fetch=' . time();
 $lawFetched = isset($_GET['law_fetch']);
+$packLabel = (string) ($view['pack_label'] ?? '');
+$isAePack = ($viewCode === 'AE');
+$wps340Live = $isAePack && $lawAsOf >= (int) strtotime('2026-06-01');
 
 erp_page_header(
 	'<i class="fa fa-gavel"></i> Labour law &amp; compliance',
@@ -71,7 +81,7 @@ foreach ($hrRows as $h) {
 		'leave_balance_days' => (float) ($h['leave_balance_days'] ?? 0),
 		'name' => (string) ($h['display_name'] ?? ''),
 	);
-	$chk = epc_hr_compliance_check($hrCountry, $emp);
+	$chk = epc_hr_compliance_check($hrCountry, $emp, $lawAsOf);
 	$worst = epc_hr_compliance_worst_severity($chk['flags']);
 	$totLiability += (float) $chk['eos_liability'];
 	if ($worst === 'warn') { $nWarn++; }
@@ -103,9 +113,29 @@ $sevBadge = function ($sev) {
 <div class="alert alert-info" style="margin-top:10px;">
 	<i class="fa fa-info-circle"></i>
 	<strong>Informational compliance aid.</strong> Statutory figures are representative minimums localized from the company country
-	(<strong><?php echo epc_erp_h($locProf['name'] ?? $erpCountry); ?></strong>). Always confirm against the current local law,
+	(<strong><?php echo epc_erp_h($locProf['name'] ?? $erpCountry); ?></strong>), resolved as of
+	<strong><?php echo epc_erp_h(date('d M Y', $lawAsOf)); ?></strong>. Always confirm against the current local law,
 	any collective/contractual agreement and qualified counsel before acting.
 </div>
+
+<?php if ($isAePack): ?>
+<div class="epc-erp-section" style="margin-bottom:14px;background:<?php echo $wps340Live ? '#f3fafd' : '#fff8e8'; ?>;border:1px solid <?php echo $wps340Live ? '#0b6e99' : '#d4a017'; ?>;border-radius:8px;padding:12px 16px;">
+	<div style="font-weight:800;color:<?php echo $wps340Live ? '#0b6e99' : '#8a6d1b'; ?>;font-size:14px;">
+		<i class="fa fa-balance-scale"></i> UAE labour-law pack refresh — <?php echo epc_erp_h($packLabel !== '' ? $packLabel : 'FDL 33/2021'); ?>
+	</div>
+	<div class="text-muted" style="font-size:12px;margin-top:6px;line-height:1.55;">
+		<strong>Governing law:</strong> Federal Decree-Law 33/2021 (as amended by FDL 20/2023 &amp; FDL 9/2024) + Executive Regulations.
+		&nbsp;·&nbsp; <strong>WPS:</strong>
+		<?php if ($wps340Live): ?>
+			<strong>Ministerial Resolution 340/2026</strong> is in force — prior month’s wages due on the <strong>1st</strong> of each Gregorian month; establishment compliant at ≥<strong>85%</strong> of wages transferred; new hires on WPS from the first pay cycle; MOHRE escalation from day 2.
+		<?php else: ?>
+			Ministerial Resolution 598/2022 still applies until <strong>31 May 2026</strong>; from <strong>1 Jun 2026</strong> MR 340/2026 switches the due date to the 1st and raises the threshold to 85%.
+		<?php endif; ?>
+		&nbsp;·&nbsp; <strong>Emirati private-sector minimum wage</strong> AED 6,000/month (new/renewed permits from 1 Jan 2026).
+		&nbsp;·&nbsp; Fixed-term contracts only · probation ≤6 months (14-day notice) · EOS Arts. 51–52.
+	</div>
+</div>
+<?php endif; ?>
 
 <div class="epc-erp-section">
 	<form method="get" class="form-inline" style="margin-bottom:12px;">
@@ -136,29 +166,33 @@ $sevBadge = function ($sev) {
 			</a>
 		<?php endif; ?>
 		<?php if ($lawFetched): ?>
-			<span class="text-success" style="margin-left:6px;"><i class="fa fa-check-circle"></i> Synced from the built-in statutory pack · <?php echo date('d M Y H:i'); ?> — verify on the official source.</span>
+			<span class="text-success" style="margin-left:6px;"><i class="fa fa-check-circle"></i> Synced from the built-in statutory pack<?php echo $packLabel !== '' ? ' (' . epc_erp_h($packLabel) . ')' : ''; ?> · <?php echo date('d M Y H:i'); ?> — as of <?php echo epc_erp_h(date('d M Y', $lawAsOf)); ?>. Verify on the official source.</span>
 		<?php endif; ?>
 	</div>
 
 	<h4><i class="fa fa-balance-scale"></i> Statutory employment law — <?php echo epc_erp_h($view['name']); ?>
-		<small class="text-muted"><?php echo epc_erp_h($view['region'] ?? ''); ?></small>
+		<small class="text-muted"><?php echo epc_erp_h($view['region'] ?? ''); ?><?php echo $packLabel !== '' ? ' · ' . epc_erp_h($packLabel) : ''; ?></small>
 	</h4>
 	<div class="row">
 		<?php
+		$probNoticeDays = (int) ($view['probation_notice_days'] ?? $pol['probation_notice_days'] ?? 0);
 		$cards = array(
 			array('fa-clock-o', 'Working week', $view['weekly_hours'] . ' h/week', $view['workweek']),
 			array('fa-bolt', 'Overtime', $view['overtime'], ''),
-			array('fa-hourglass-half', 'Probation (max)', ((int) $view['probation_max_months'] > 0 ? $view['probation_max_months'] . ' months' : 'No statutory cap'), ''),
+			array('fa-hourglass-half', 'Probation (max)', ((int) $view['probation_max_months'] > 0 ? $view['probation_max_months'] . ' months' : 'No statutory cap'), ($probNoticeDays > 0 ? 'Employer notice during probation ≥' . $probNoticeDays . ' days' : '')),
 			array('fa-bell', 'Notice period', ((int) $view['notice_days'] > 0 ? $view['notice_days'] . ' days' : 'No statutory minimum'), ''),
 			array('fa-plane', 'Annual leave', ((float) $view['annual_leave_days'] > 0 ? $view['annual_leave_days'] . ' days/yr' : 'No statutory minimum'), ''),
 			array('fa-medkit', 'Sick leave', $view['sick_leave'], ''),
 			array('fa-child', 'Maternity', $view['maternity'], ''),
-			array('fa-male', 'Paternity', $view['paternity'], ''),
+			array('fa-male', 'Parental / paternity', $view['paternity'], ''),
 			array('fa-calendar', 'Public holidays', $view['public_holidays'], ''),
 			array('fa-money', 'End of service', $view['eos'], ''),
-			array('fa-university', 'Wage protection', $view['wage_protection'], ''),
-			array('fa-institution', 'Governing law', $view['authority'], '', $officialUrl),
+			array('fa-university', 'Wage protection (WPS)', $view['wage_protection'], ($isAePack && !empty($view['wps_due']) ? 'Due: ' . $view['wps_due'] . ' · threshold ≥' . (int) ($view['wps_threshold_pct'] ?? 0) . '%' : '')),
+			array('fa-institution', 'Governing law', $view['authority'], (!empty($view['key_articles']) ? (string) $view['key_articles'] : ''), $officialUrl),
 		);
+		if ($isAePack && !empty($view['contract_model'])) {
+			$cards[] = array('fa-file-text-o', 'Contract model', (string) $view['contract_model'], ((float) ($view['emirati_min_wage'] ?? 0) > 0 ? 'Emirati private-sector min. wage AED ' . number_format((float) $view['emirati_min_wage'], 0) . '/month (new/renewed permits)' : ''));
+		}
 		foreach ($cards as $c):
 			$cLink = isset($c[4]) ? (string) $c[4] : '';
 		?>
