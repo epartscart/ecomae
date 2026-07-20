@@ -6177,7 +6177,7 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	color: #dc2626;
 }
 
-/* Mega panel — pure black (ERP-style module flyout) */
+/* Mega panel — pure black opaque (ERP-style module flyout; never glass/see-through) */
 .epc-cp-topnav-panel {
 	position: fixed;
 	left: 12px;
@@ -6188,13 +6188,18 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	max-height: min(70vh, 560px);
 	overflow: auto;
 	background: #000000 !important;
+	background-color: #000000 !important;
 	color: #f8fafc;
 	border: 1px solid #1c1c1c;
 	border-top: 3px solid #dc2626;
 	border-radius: 0 0 8px 8px;
 	box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
 	padding: 0;
-	z-index: 1040;
+	z-index: 1200;
+	opacity: 1 !important;
+	isolation: isolate;
+	-webkit-backdrop-filter: none !important;
+	backdrop-filter: none !important;
 }
 .epc-cp-topnav-panel[hidden] { display: none !important; }
 .epc-cp-topnav-panel-hd {
