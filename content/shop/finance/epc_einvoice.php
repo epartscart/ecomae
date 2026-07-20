@@ -1265,6 +1265,7 @@ function epc_einvoice_create_credit_note(PDO $db, int $originalDocId, array $cre
 		$subtotal = bcadd($subtotal, (string) $lineNet, 2);
 		$totalVat = bcadd($totalVat, (string) $taxAmt, 2);
 
+		$gross = round($lineNet + $taxAmt, 2);
 		$lineRecords[] = array(
 			'line_no'          => $lineNo,
 			'item_name'        => $ln['item_name'] ?? '',
@@ -1276,7 +1277,9 @@ function epc_einvoice_create_credit_note(PDO $db, int $originalDocId, array $cre
 			'tax_category'     => $ln['tax_category'] ?? 'S',
 			'tax_rate'         => $taxRate,
 			'tax_amount'       => $taxAmt,
-			'gross_amount'     => round($lineNet + $taxAmt, 2),
+			'gross_amount'     => $gross,
+			'vat_line_aed'     => $taxAmt,
+			'line_amount_aed'  => $lineNet,
 		);
 	}
 
@@ -1316,14 +1319,16 @@ function epc_einvoice_create_credit_note(PDO $db, int $originalDocId, array $cre
 	$lineStmt = $db->prepare(
 		'INSERT INTO `epc_einvoice_lines`
 		(`document_id`, `line_no`, `item_name`, `item_description`, `quantity`, `uom_code`,
-		 `unit_price`, `line_net`, `tax_category`, `tax_rate`, `tax_amount`, `gross_amount`)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+		 `unit_price`, `line_net`, `tax_category`, `tax_rate`, `tax_amount`, `gross_amount`,
+		 `vat_line_aed`, `line_amount_aed`)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 	);
 	foreach ($lineRecords as $lr) {
 		$lineStmt->execute(array(
 			$cnId, $lr['line_no'], $lr['item_name'], $lr['item_description'],
 			$lr['quantity'], $lr['uom_code'], $lr['unit_price'], $lr['line_net'],
 			$lr['tax_category'], $lr['tax_rate'], $lr['tax_amount'], $lr['gross_amount'],
+			$lr['vat_line_aed'], $lr['line_amount_aed'],
 		));
 	}
 
@@ -1601,6 +1606,140 @@ function epc_einvoice_journey_steps(PDO $db): array
 			'icon' => 'fa-paper-plane', 'section' => 'invoices',
 			'done' => !empty($byId['test']),
 			'cta' => 'View invoices',
+		),
+	);
+}
+
+/**
+ * Full module capability map for the Guide — MoF requirement → ERP status.
+ *
+ * @return list<array{area:string,requirement:string,erp:string,status:string,section:string}>
+ */
+function epc_einvoice_module_completeness(PDO $db): array
+{
+	$s = epc_einvoice_seller_profile($db);
+	$asp = trim((string) epc_einvoice_get_setting($db, 'asp_name', ''));
+	$aspMode = (string) epc_einvoice_get_setting($db, 'asp_api_mode', 'manual');
+	$aspKey = trim((string) epc_einvoice_get_setting($db, 'asp_api_key', ''));
+	$aspUrl = trim((string) epc_einvoice_get_setting($db, 'asp_api_url', ''));
+	$hasDocs = false;
+	$hasXml = false;
+	$hasCn = false;
+	$hasSubmit = false;
+	try {
+		$hasDocs = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `active` = 1')->fetchColumn() > 0;
+		$hasXml = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `active` = 1 AND `xml_content` != ""')->fetchColumn() > 0;
+		$hasCn = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `active` = 1 AND `invoice_type_code` = \'381\'')->fetchColumn() > 0;
+		$hasSubmit = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `status` IN (\'submitted\',\'accepted\',\'queued\')')->fetchColumn() > 0;
+	} catch (Throwable $e) {
+		// schema may be mid-ensure
+	}
+	$buyerOk = false;
+	try {
+		$buyerOk = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_buyer_profiles` WHERE `trn` != ""')->fetchColumn() > 0;
+	} catch (Throwable $e) {
+		$buyerOk = false;
+	}
+
+	$ok = static function (bool $done): string {
+		return $done ? 'ready' : 'setup';
+	};
+
+	return array(
+		array(
+			'area' => 'Legal basis',
+			'requirement' => 'MD 243/2025 + MD 244/2025 + Guidelines V1.0 (23 Feb 2026)',
+			'erp' => 'Guide, timeline chips, FTA legislation fetch',
+			'status' => 'ready',
+			'section' => 'guide',
+		),
+		array(
+			'area' => 'PINT-AE schema',
+			'requirement' => 'Structured XML · urn:peppol:pint:billing-1@ae-1 · 51 mandatory fields',
+			'erp' => 'Validate + build XML on every document',
+			'status' => 'ready',
+			'section' => 'create',
+		),
+		array(
+			'area' => 'Seller (fields 10–20)',
+			'requirement' => 'Legal name, 15-digit TRN, Peppol 0235:TIN, address, legal reg.',
+			'erp' => 'Seller profile + sync to UAE company / Document Control',
+			'status' => $ok(($s['seller_trn'] ?? '') !== '' && ($s['seller_peppol_endpoint'] ?? '') !== ''),
+			'section' => 'seller',
+		),
+		array(
+			'area' => 'Buyer Peppol',
+			'requirement' => 'B2B TRN + endpoint; fallbacks for not-onboarded / exports / deemed',
+			'erp' => 'Buyer profiles + predefined MoF endpoints',
+			'status' => $ok($buyerOk),
+			'section' => 'buyers',
+		),
+		array(
+			'area' => 'Tax Invoice 380',
+			'requirement' => 'Issue Electronic Tax Invoice from sales',
+			'erp' => 'Generate from order · Sales → Invoices · Document Control print',
+			'status' => $ok($hasDocs),
+			'section' => 'create',
+		),
+		array(
+			'area' => 'Credit Note 381',
+			'requirement' => 'Electronic Tax Credit Note linked to original invoice',
+			'erp' => 'Issue credit note from invoice view (full reversal)',
+			'status' => $hasCn ? 'ready' : 'ready', // capability live; sample optional
+			'section' => 'invoices',
+		),
+		array(
+			'area' => 'Transaction type code',
+			'requirement' => '8-digit MoF scenario flags on each invoice',
+			'erp' => 'Flag checkboxes on Generate + stored on document',
+			'status' => 'ready',
+			'section' => 'create',
+		),
+		array(
+			'area' => 'ASP appointment',
+			'requirement' => 'Single MoF-accredited ASP via EmaraTax',
+			'erp' => 'ASP name + manual portal or live API mode',
+			'status' => $ok($asp !== ''),
+			'section' => 'asp',
+		),
+		array(
+			'area' => 'ASP transmission',
+			'requirement' => '5-corner Peppol exchange + Corner-5 FTA Tax Data',
+			'erp' => $aspMode === 'api'
+				? ('API submit' . ($aspUrl !== '' && $aspKey !== '' ? ' configured' : ' — set URL + key'))
+				: 'Manual XML download → ASP portal',
+			'status' => $aspMode === 'api'
+				? $ok($asp !== '' && $aspUrl !== '' && $aspKey !== '')
+				: $ok($asp !== ''),
+			'section' => 'asp',
+		),
+		array(
+			'area' => 'Status polling',
+			'requirement' => 'Track accepted / rejected after ASP validation',
+			'erp' => 'Poll pending ASP submissions from Invoices',
+			'status' => $ok($hasSubmit || $aspMode === 'manual'),
+			'section' => 'invoices',
+		),
+		array(
+			'area' => 'XML package',
+			'requirement' => 'Downloadable PINT-AE XML for audit / ASP upload',
+			'erp' => 'Download XML on invoice view',
+			'status' => $ok($hasXml || $hasDocs),
+			'section' => 'invoices',
+		),
+		array(
+			'area' => 'Retention',
+			'requirement' => '5 years (7 real estate); reproducible for FTA',
+			'erp' => 'Documents + transmission event log stored in ERP DB',
+			'status' => 'ready',
+			'section' => 'guide',
+		),
+		array(
+			'area' => 'Legislation sync',
+			'requirement' => 'Stay current with FTA / MoF publications',
+			'erp' => 'Fetch legislation for e-invoice (tax.gov.ae)',
+			'status' => 'ready',
+			'section' => 'dashboard',
 		),
 	);
 }

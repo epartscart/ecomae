@@ -30,8 +30,17 @@ $einvBase = epc_erp_tab_url($erpUrl, 'einvoice', $date_from_str, $date_to_str, $
 if (!isset($DP_Config) && isset($GLOBALS['DP_Config'])) {
 	$DP_Config = $GLOBALS['DP_Config'];
 }
-$einvAjaxUrl = '/' . (isset($DP_Config->backend_dir) ? (string)$DP_Config->backend_dir : 'cp')
-	. '/content/shop/finance/erp/ajax_erp_endpoint.php';
+$einvAjaxUrl = (isset($erpAjaxEndpoint) && $erpAjaxEndpoint !== '')
+	? (string) $erpAjaxEndpoint
+	: ('/' . (isset($DP_Config->backend_dir) ? (string) $DP_Config->backend_dir : 'cp')
+		. '/content/shop/finance/erp/ajax_erp_endpoint.php');
+$einvModuleMap = epc_einvoice_module_completeness($db_link);
+$einvReadyCount = 0;
+foreach ($einvModuleMap as $mm) {
+	if (($mm['status'] ?? '') === 'ready') {
+		$einvReadyCount++;
+	}
+}
 function epc_einv_url($base, $section, $extra = '')
 {
 	$u = $base . '&einv_section=' . rawurlencode($section);
@@ -281,6 +290,9 @@ if ($einvSection === 'dashboard') {
 			<?php if ($doc['validation_ok'] && !in_array($doc['status'], array('submitted', 'accepted', 'queued'), true)): ?>
 				<button type="button" class="btn btn-success btn-sm" onclick="epcEinvSubmit(<?php echo (int)$doc['id']; ?>)"><i class="fa fa-cloud-upload"></i> Submit to ASP</button>
 			<?php endif; ?>
+			<?php if ((string) ($doc['invoice_type_code'] ?? '380') !== '381'): ?>
+				<button type="button" class="btn btn-warning btn-sm" onclick="epcEinvCreditNote(<?php echo (int)$doc['id']; ?>)"><i class="fa fa-undo"></i> Issue credit note (381)</button>
+			<?php endif; ?>
 			</p>
 
 			<?php if (!$doc['validation_ok']): ?>
@@ -436,16 +448,23 @@ if ($einvSection === 'dashboard') {
 				<?php endif; ?>
 			</div>
 		<?php endif; else: ?>
-			<h4><i class="fa fa-list"></i> Electronic invoices</h4>
+			<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
+				<h4 style="margin:0;"><i class="fa fa-list"></i> Electronic invoices</h4>
+				<div style="display:flex;flex-wrap:wrap;gap:8px;">
+					<button type="button" class="btn btn-default btn-sm" id="epc_einv_poll_asp"><i class="fa fa-refresh"></i> Poll ASP statuses</button>
+					<a class="btn btn-primary btn-sm" href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'create')); ?>"><i class="fa fa-plus"></i> Generate</a>
+				</div>
+			</div>
 			<?php $docs = epc_einvoice_list_documents($db_link, $date_from, $date_to, 150); ?>
 			<table class="table table-striped table-bordered table-condensed">
 				<thead><tr>
-					<th>Invoice</th><th>Date</th><th>Order</th><th>Customer</th><th>Ex VAT</th><th>VAT</th><th>Incl VAT</th><th>Due</th><th>Status</th><th></th>
+					<th>Invoice</th><th>Type</th><th>Date</th><th>Order</th><th>Customer</th><th>Ex VAT</th><th>VAT</th><th>Incl VAT</th><th>Due</th><th>Status</th><th></th>
 				</tr></thead>
 				<tbody>
 				<?php foreach ($docs as $d): ?>
 					<tr>
 						<td><strong><?php echo epc_erp_h($d['invoice_number']); ?></strong><br><small class="text-muted"><code><?php echo epc_erp_h(substr($d['uuid'], 0, 8)); ?>…</code></small></td>
+						<td><span class="label label-<?php echo ((string)($d['invoice_type_code'] ?? '380') === '381') ? 'warning' : 'info'; ?>"><?php echo epc_erp_h((string)($d['invoice_type_code'] ?? '380')); ?></span></td>
 						<td><?php echo epc_erp_h(date('Y-m-d', (int)$d['issue_date'])); ?></td>
 						<td><?php echo (int)$d['order_id'] ? ('#' . (int)$d['order_id']) : '—'; ?></td>
 						<td><?php echo (int)$d['user_id'] ? ('ID ' . (int)$d['user_id']) : 'Guest'; ?></td>
@@ -457,7 +476,7 @@ if ($einvSection === 'dashboard') {
 						<td><a class="btn btn-xs btn-primary" href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'view', 'einv_doc=' . (int)$d['id'])); ?>">View</a></td>
 					</tr>
 				<?php endforeach; ?>
-				<?php if (!$docs): ?><tr><td colspan="10" class="text-muted text-center">No e-invoices in this period. Generate from a completed order.</td></tr><?php endif; ?>
+				<?php if (!$docs): ?><tr><td colspan="11" class="text-muted text-center">No e-invoices in this period. Generate from a completed order.</td></tr><?php endif; ?>
 				</tbody>
 			</table>
 		<?php endif; ?>
@@ -626,8 +645,12 @@ if ($einvSection === 'dashboard') {
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="col-sm-3 control-label">ASP API URL</label>
-				<div class="col-sm-6"><input type="url" name="asp_api_url" class="form-control" value="<?php echo epc_erp_h(epc_einvoice_get_setting($db_link, 'asp_api_url', '')); ?>" placeholder="https://asp.example/api/invoices"></div>
+				<label class="col-sm-3 control-label">ASP API base URL</label>
+				<div class="col-sm-6"><input type="url" name="asp_api_url" class="form-control" value="<?php echo epc_erp_h(epc_einvoice_get_setting($db_link, 'asp_api_url', '')); ?>" placeholder="https://asp.example/api"></div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label">ASP API key</label>
+				<div class="col-sm-6"><input type="password" name="asp_api_key" class="form-control" value="<?php echo epc_erp_h(epc_einvoice_get_setting($db_link, 'asp_api_key', '')); ?>" placeholder="Bearer token from your ASP" autocomplete="off"></div>
 			</div>
 			<div class="form-group"><div class="col-sm-offset-3"><button type="submit" class="btn btn-primary">Save ASP settings</button></div></div>
 		</form>
@@ -639,58 +662,144 @@ if ($einvSection === 'dashboard') {
 		</table>
 
 	<?php elseif ($einvSection === 'guide'): ?>
-		<h4><i class="fa fa-book"></i> UAE e-Invoicing guide (ERP implementation)</h4>
+		<div class="epc-einv-panel-card">
+			<h4 style="margin-top:0;"><i class="fa fa-book"></i> UAE e-Invoicing complete guide</h4>
+			<p style="margin:0;font-size:13px;line-height:1.5;">
+				This ERP module implements the MoF <strong>Electronic Invoicing Guidelines V1.0 (23 Feb 2026)</strong>,
+				<strong>Mandatory Fields V1.0</strong>, and the Peppol <strong>PINT-AE</strong> billing specification
+				(<code><?php echo epc_erp_h($const['specification_id']); ?></code>) under Ministerial Decisions
+				<strong>243/2025</strong> and <strong>244/2025</strong>.
+			</p>
+			<p style="margin:10px 0 0;font-size:13px;">
+				Module map:
+				<strong><?php echo (int) $einvReadyCount; ?> / <?php echo (int) count($einvModuleMap); ?></strong> capability areas ready ·
+				Readiness checklist <strong><?php echo (int) $readiness['percent']; ?>%</strong> ·
+				<a href="https://www.mof.gov.ae/eInvoicing" target="_blank" rel="noopener">mof.gov.ae/eInvoicing</a> ·
+				<a href="<?php echo epc_erp_h($legislationUrl); ?>" target="_blank" rel="noopener">FTA legislation</a>
+			</p>
+		</div>
+
+		<div class="epc-einv-panel-card">
+			<h4><i class="fa fa-check-circle"></i> What is fully implemented in ERP</h4>
+			<table class="table table-bordered table-condensed" style="margin:0;font-size:12.5px;">
+				<thead>
+					<tr>
+						<th style="width:16%;">Area</th>
+						<th>MoF / Peppol requirement</th>
+						<th>ERP capability</th>
+						<th style="width:10%;">Status</th>
+						<th style="width:10%;"></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php foreach ($einvModuleMap as $mm): ?>
+					<tr>
+						<td><strong><?php echo epc_erp_h($mm['area']); ?></strong></td>
+						<td><?php echo epc_erp_h($mm['requirement']); ?></td>
+						<td><?php echo epc_erp_h($mm['erp']); ?></td>
+						<td>
+							<?php if (($mm['status'] ?? '') === 'ready'): ?>
+								<span class="label label-success">Ready</span>
+							<?php else: ?>
+								<span class="label label-warning">Setup</span>
+							<?php endif; ?>
+						</td>
+						<td><a class="btn btn-xs btn-default" href="<?php echo epc_erp_h(epc_einv_url($einvBase, (string) $mm['section'])); ?>">Open</a></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+
 		<div class="row">
 			<div class="col-md-6">
-				<h5>Implementation timeline (MD 244/2025)</h5>
-				<table class="table table-bordered table-condensed">
-					<tr><th>Phase</th><th>Date</th></tr>
-					<tr><td>Pilot programme</td><td>From 1 Jul 2026 (by invitation)</td></tr>
-					<tr><td>Voluntary e-invoicing</td><td>From 1 Jul 2026 (all businesses)</td></tr>
-					<tr><td>Mandatory — revenue ≥ AED 50M</td><td>ASP by 31 Jul 2026 · live 1 Jan 2027</td></tr>
-					<tr><td>Mandatory — revenue &lt; AED 50M</td><td>ASP by 31 Mar 2027 · live 1 Jul 2027</td></tr>
-					<tr><td>Government entities</td><td>Live 1 Oct 2027</td></tr>
-				</table>
-				<h5>Document categories</h5>
-				<ul>
-					<li><strong>Electronic Tax Invoice</strong> (type 380) — taxable supplies, TRN required</li>
-					<li><strong>Electronic Tax Credit Note</strong> (381) — output tax reductions</li>
-					<li><strong>Commercial Invoice</strong> — non-taxable / non-VAT registered supplies</li>
-				</ul>
+				<div class="epc-einv-panel-card">
+					<h4><i class="fa fa-calendar"></i> Implementation timeline (MD 244/2025)</h4>
+					<table class="table table-bordered table-condensed">
+						<thead><tr><th>Phase</th><th>ASP by</th><th>Go-live</th></tr></thead>
+						<tbody>
+							<tr><td>Pilot (invitation)</td><td>—</td><td>1 Jul 2026</td></tr>
+							<tr><td>Voluntary (all businesses)</td><td>—</td><td>1 Jul 2026</td></tr>
+							<tr><td>Mandatory · revenue ≥ AED 50M</td><td>31 Jul 2026</td><td>1 Jan 2027</td></tr>
+							<tr><td>Mandatory · revenue &lt; AED 50M</td><td>31 Mar 2027</td><td>1 Jul 2027</td></tr>
+							<tr><td>Government entities</td><td>31 Mar 2027</td><td>1 Oct 2027</td></tr>
+						</tbody>
+					</table>
+					<p class="text-muted" style="margin:0;font-size:12px;">Today is inside the voluntary window — configure seller + ASP now and start testing PINT-AE XML.</p>
+				</div>
+				<div class="epc-einv-panel-card">
+					<h4><i class="fa fa-sitemap"></i> 5-corner Peppol model</h4>
+					<ol style="font-size:13px;line-height:1.55;margin-bottom:0;">
+						<li><strong>Corner 1 — You (supplier)</strong> create the e-invoice in this ERP.</li>
+						<li><strong>Corner 2 — Your ASP</strong> validates PINT-AE XML and routes it on Peppol.</li>
+						<li><strong>Corner 3 — Buyer ASP</strong> receives and delivers to the buyer.</li>
+						<li><strong>Corner 4 — Buyer</strong> gets the structured invoice.</li>
+						<li><strong>Corner 5 — FTA</strong> receives Tax Data reporting from your ASP in parallel.</li>
+					</ol>
+					<p class="text-muted" style="margin:10px 0 0;font-size:12px;">Compliance stays with you as supplier — appoint <em>one</em> ASP for send + receive via EmaraTax.</p>
+				</div>
 			</div>
 			<div class="col-md-6">
-				<h5>Getting ready (4 steps)</h5>
-				<ol>
-					<li><strong>Understand requirements</strong> — this ERP panel + MoF guidelines</li>
-					<li><strong>Select ASP</strong> — contract + onboard via EmaraTax → obtain Peppol ID</li>
-					<li><strong>Test</strong> — generate XML here, transmit via ASP, confirm FTA reporting</li>
-					<li><strong>Go live</strong> — submit every B2B / B2G invoice through ASP</li>
-				</ol>
-				<h5>Tax categories (field #37)</h5>
-				<table class="table table-condensed table-bordered">
-					<?php foreach ($taxCats as $code => $tc): ?>
-						<tr><td><code><?php echo epc_erp_h($code); ?></code></td><td><?php echo epc_erp_h($tc['label']); ?></td></tr>
-					<?php endforeach; ?>
-				</table>
-				<h5>Data retention</h5>
-				<p class="text-muted">5 years (7 for real estate). Must be retrievable for FTA on request. XML + transmission log stored in ERP.</p>
-				<p><a href="https://www.mof.gov.ae/eInvoicing" target="_blank" rel="noopener">mof.gov.ae/eInvoicing</a> · Peppol PINT-AE specifications</p>
+				<div class="epc-einv-panel-card">
+					<h4><i class="fa fa-road"></i> How to use this ERP module</h4>
+					<ol style="font-size:13px;line-height:1.55;">
+						<li>Read this guide, then fetch FTA legislation from the Overview bar.</li>
+						<li>Complete <a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'seller')); ?>">Seller profile</a> (15-digit TRN → Peppol <code>0235:TIN</code>).</li>
+						<li>Capture <a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'buyers')); ?>">Buyer Peppol / TRN</a> for B2B customers (or use MoF fallback endpoints).</li>
+						<li>Select your <a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'asp')); ?>">ASP</a> — manual portal upload or live API (URL + key).</li>
+						<li><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'create')); ?>">Generate</a> a Tax Invoice (380) from a completed order; set transaction scenario flags.</li>
+						<li>Open the invoice → download XML → <strong>Submit to ASP</strong>. Poll statuses from the invoice list.</li>
+						<li>Issue a <strong>Credit Note (381)</strong> from the invoice view when you need an output-tax reduction.</li>
+					</ol>
+					<p style="margin:0;font-size:12.5px;">Also available: Sales → Invoices, Document Control print templates, Blockchain BOS proof badges on submitted docs.</p>
+				</div>
+				<div class="epc-einv-panel-card">
+					<h4><i class="fa fa-file-text-o"></i> Document types &amp; tax categories</h4>
+					<ul style="font-size:13px;">
+						<li><strong>380 Tax Invoice</strong> — taxable supplies (TRN required)</li>
+						<li><strong>381 Tax Credit Note</strong> — linked reversal / partial credit</li>
+						<li><strong>Commercial invoice</strong> — non-VAT / non-taxable supplies (same pipeline)</li>
+					</ul>
+					<table class="table table-condensed table-bordered" style="margin-bottom:0;">
+						<?php foreach ($taxCats as $code => $tc): ?>
+							<tr><td><code><?php echo epc_erp_h($code); ?></code></td><td><?php echo epc_erp_h($tc['label']); ?></td></tr>
+						<?php endforeach; ?>
+					</table>
+				</div>
 			</div>
 		</div>
-		<h5>Mandatory fields checklist (51 fields — Tax Invoice)</h5>
-		<p class="text-muted">ERP validates all fields before ASP submission. See MoF mandatory fields document V1.0 (23 Feb 2026).</p>
-		<div class="row">
-			<?php
-			$mandatory = epc_einvoice_mandatory_field_map();
-			$chunks = array_chunk($mandatory, (int)ceil(count($mandatory) / 2), true);
-			foreach ($chunks as $chunk):
-			?>
-			<div class="col-md-6">
-				<ul style="font-size:13px;">
-					<?php foreach ($chunk as $k => $lbl): ?><li><?php echo epc_erp_h($lbl); ?></li><?php endforeach; ?>
-				</ul>
+
+		<div class="epc-einv-panel-card">
+			<h4><i class="fa fa-list-ol"></i> Mandatory fields validated before ASP submission</h4>
+			<p class="text-muted" style="font-size:12.5px;">Aligned to MoF Mandatory Fields V1.0 (23 Feb 2026). Line-level name, qty, UoM, net, tax category, rate and VAT are also enforced.</p>
+			<div class="row">
+				<?php
+				$mandatory = epc_einvoice_mandatory_field_map();
+				$chunks = array_chunk($mandatory, (int) ceil(count($mandatory) / 2), true);
+				foreach ($chunks as $chunk):
+				?>
+				<div class="col-md-6">
+					<ul style="font-size:12.5px;columns:1;">
+						<?php foreach ($chunk as $k => $lbl): ?><li><?php echo epc_erp_h($lbl); ?> <span class="text-muted">(<code><?php echo epc_erp_h($k); ?></code>)</span></li><?php endforeach; ?>
+					</ul>
+				</div>
+				<?php endforeach; ?>
 			</div>
-			<?php endforeach; ?>
+		</div>
+
+		<div class="epc-einv-panel-card">
+			<h4><i class="fa fa-shield"></i> Retention, penalties &amp; official links</h4>
+			<ul style="font-size:13px;line-height:1.55;margin-bottom:8px;">
+				<li>Retain e-invoice data <strong>5 years</strong> (7 for real estate) and reproduce for FTA on request — ERP keeps XML + transmission log.</li>
+				<li>Appointing an ASP late or failing to transmit can attract FTA administrative penalties (e.g. AED 5,000 / month for non-appointment under published penalty rules).</li>
+				<li>Data must be accessible “within the State” for FTA — cloud storage is fine if reproducible on demand.</li>
+			</ul>
+			<p style="margin:0;font-size:12.5px;">
+				<a href="https://www.mof.gov.ae/eInvoicing" target="_blank" rel="noopener">MoF e-Invoicing hub</a> ·
+				<a href="https://tax.gov.ae" target="_blank" rel="noopener">EmaraTax / tax.gov.ae</a> ·
+				<a href="<?php echo epc_erp_h($legislationUrl); ?>" target="_blank" rel="noopener">FTA legislation.aspx</a> ·
+				<a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, $erpArea ?? 'tax') . '&tax_panel=legislation'); ?>">ERP tax library</a>
+			</p>
 		</div>
 	<?php endif; ?>
 </div>
@@ -750,9 +859,38 @@ if ($einvSection === 'dashboard') {
 			if (res.status) location.reload();
 		});
 	};
-	window.epcEinvDownloadXml = function(id) {
-		window.open(erpAjaxUrl + '?action=einvoice_download_xml&document_id=' + id + '&csrf_guard_key=' + encodeURIComponent(<?php echo json_encode($csrf); ?>), '_blank');
+	window.epcEinvCreditNote = function(id) {
+		var reason = prompt('Credit note reason (e.g. Sales return, pricing adjustment):', 'Sales return');
+		if (reason === null) return;
+		if (!confirm('Issue Electronic Tax Credit Note (type 381) as a full reversal of this invoice?')) return;
+		post('einvoice_credit_note', {
+			document_id: id,
+			reason: reason || 'Sales return',
+			csrf_guard_key: <?php echo json_encode($csrf); ?>
+		}, function(res) {
+			alert(res.message || '');
+			if (res.status && res.redirect) location.href = res.redirect;
+			else if (res.status) location.reload();
+		});
 	};
+	window.epcEinvDownloadXml = function(id) {
+		var dlBase = <?php echo json_encode($erpUrl); ?>;
+		var sep = dlBase.indexOf('?') >= 0 ? '&' : '?';
+		window.open(dlBase + sep + 'action=einvoice_download_xml&document_id=' + id + '&csrf_guard_key=' + encodeURIComponent(<?php echo json_encode($csrf); ?>), '_blank');
+	};
+	var pollBtn = document.getElementById('epc_einv_poll_asp');
+	if (pollBtn) {
+		pollBtn.addEventListener('click', function() {
+			pollBtn.disabled = true;
+			pollBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Polling…';
+			post('einvoice_poll_asp', { csrf_guard_key: <?php echo json_encode($csrf); ?> }, function(res) {
+				pollBtn.disabled = false;
+				pollBtn.innerHTML = '<i class="fa fa-refresh"></i> Poll ASP statuses';
+				alert(res.message || (res.status ? 'Poll complete' : 'Poll failed'));
+				if (res.status) location.reload();
+			});
+		});
+	}
 	var fetchBtn = document.getElementById('epc_einv_fetch_legislation');
 	var fetchStatus = document.getElementById('epc_einv_leg_status');
 	if (fetchBtn) {
