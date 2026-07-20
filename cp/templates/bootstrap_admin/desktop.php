@@ -255,16 +255,30 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 	$epcShowPlatformErpNav = function_exists('epc_portal_is_platform_operator') && epc_portal_is_platform_operator()
 		&& !(function_exists('epc_portal_demo_is_cp_context') && epc_portal_demo_is_cp_context());
 	$epcPlatformErpNavUrl = '/' . $DP_Config->backend_dir . '/platform-erp/';
+	// Admin session/profile must be ready before ACL-filtered nav (is_anable).
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	$user_session = DP_User::getAdminSession();
+	if (is_array($user_session) && !empty($user_session)) {
+		DP_User::getAdminProfile();
+	}
+	// Decide topnav-only before <body> so we never hide the left rail when the
+	// mega-menu tree is empty (common tenant complaint: no top menu + no sidebar).
+	$epcCpTopNavFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_top_nav.php';
+	$epcCpUseTopnav = false;
+	if (is_file($epcCpTopNavFile)) {
+		require_once $epcCpTopNavFile;
+		if (function_exists('epc_cp_build_nav_tabs')) {
+			$epcCpUseTopnav = count(epc_cp_build_nav_tabs()) > 0;
+		}
+	}
+	$GLOBALS['epc_cp_topnav_only'] = $epcCpUseTopnav;
 ?>
 </head>
-<body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
+<body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell<?php echo $epcCpUseTopnav ? ' epc-cp-topnav-only' : ''; ?> epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
 <?php
-$GLOBALS['epc_cp_topnav_only'] = true;
 echo epc_cp_force_visible_body_style();
 echo epc_cp_force_visible_script();
-//Для работы с пользователем
-require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
-$user_session = DP_User::getAdminSession();
+// $user_session already loaded above for ACL/topnav decision
 
 
 //Функция вывода кнопок для панели управления
@@ -902,7 +916,7 @@ if (!is_array($admin_profile)) {
 </form>
 <?php
 $epcCpTopNavFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_top_nav.php';
-if (is_file($epcCpTopNavFile)) {
+if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 	require_once $epcCpTopNavFile;
 	if (function_exists('epc_cp_render_top_nav')) {
 		epc_cp_render_top_nav();
@@ -1196,8 +1210,10 @@ if ($epcCpFastTenant) {
 <!-- App scripts -->
 <?php
 // Always use PHP proxy — /cp/js/* often 404s behind nginx on tenants.
-$epcCpTopnavJsVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720topnavmerge3';
-echo '<script src="/content/general_pages/epc_cp_topnav_js.php?v=' . htmlspecialchars($epcCpTopnavJsVer, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+if (!empty($GLOBALS['epc_cp_topnav_only'])) {
+	$epcCpTopnavJsVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720tenantnav1';
+	echo '<script src="/content/general_pages/epc_cp_topnav_js.php?v=' . htmlspecialchars($epcCpTopnavJsVer, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+}
 ?>
 <?php echo epc_cp_sidebar_collapse_script(); ?>
 <?php if (!$epcApaiPage) {
