@@ -1,6 +1,6 @@
 <?php
 /**
- * Serve CP professional CSS when nginx 404s /cp/templates/bootstrap_admin/css/*.css on ecomae.
+ * Serve CSS when nginx 404s static /cp/templates path.
  */
 declare(strict_types=1);
 
@@ -13,7 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260720storedash2';
+$ver = '20260720storedash3';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

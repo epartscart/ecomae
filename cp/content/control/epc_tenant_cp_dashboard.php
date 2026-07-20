@@ -285,28 +285,55 @@ $tiles = array(
 	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'crimson'),
 );
 
-$quickActions = array(
-	array('label' => 'Open OMS', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-	array('label' => 'Upload prices', 'icon' => 'fa-upload', 'url' => $base . '/shop/prices', 'tone' => 'black'),
-	array('label' => 'Multivendor', 'icon' => 'fa-handshake-o', 'url' => $base . '/shop/prices/multivendor', 'tone' => 'stone'),
-	array('label' => 'Crosses', 'icon' => 'fa-exchange', 'url' => $base . '/shop/crosses', 'tone' => 'red'),
-	array('label' => 'AI chats', 'icon' => 'fa-comments', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'black'),
-	array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'stone'),
-	array('label' => 'POS terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'red'),
-	array('label' => 'ERP dashboard', 'icon' => 'fa-dashboard', 'url' => $erpUrl . '&area=overview&tab=dashboard', 'tone' => 'black'),
-);
-
-if ($industryCode !== 'auto_parts') {
-	$quickActions = array(
-		array('label' => 'Orders', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
-		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'stone'),
-		array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'red'),
-		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'black'),
-		array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'stone'),
-		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'red'),
-		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'black'),
+// Per-user customizable shortcuts (add/remove on the dashboard).
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_dash_shortcuts_ui.php';
+$cpShortcutUrls = epc_erp_configure_portal_urls('cp');
+$cpShortcutAjax = (string) ($cpShortcutUrls['erpAjaxUrl'] ?? ('/' . $backend . '/content/shop/finance/erp/ajax_erp.php'));
+$cpShortcutCsrf = '';
+if (class_exists('DP_User')) {
+	$cpSess = DP_User::getAdminSession();
+	if (is_array($cpSess) && !empty($cpSess['csrf_guard_key'])) {
+		$cpShortcutCsrf = (string) $cpSess['csrf_guard_key'];
+	}
+}
+$cpShortcutCatalog = epc_shortcuts_catalog_cp($base);
+if ($industryCode !== 'auto_parts' && !isset($cpShortcutCatalog['accessories'])) {
+	$cpShortcutCatalog['accessories'] = array(
+		'key' => 'accessories',
+		'label' => 'Accessories',
+		'icon' => 'fa fa-puzzle-piece',
+		'color' => '#7c3aed',
+		'url' => $base . '/shop/accessories',
+		'tone' => 'violet',
 	);
+}
+$cpShortcutDefaults = ($industryCode === 'auto_parts')
+	? array('orders', 'prices', 'multivendor', 'crosses', 'procurement', 'pos', 'erp', 'stock')
+	: array('orders', 'catalogue', 'prices', 'clients', 'accessories', 'erp', 'documents', 'settings');
+$cpShortcutUid = epc_shortcuts_user_id();
+if (isset($db_link) && $db_link instanceof PDO && $cpShortcutUid > 0) {
+	epc_shortcuts_seed_defaults($db_link, $cpShortcutUid, 'cp', $cpShortcutDefaults, $cpShortcutCatalog);
+	$cpShortcutItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db_link, $cpShortcutUid, 'cp'));
+} else {
+	$cpShortcutItems = array();
+	foreach ($cpShortcutDefaults as $dk) {
+		if (!isset($cpShortcutCatalog[$dk])) {
+			continue;
+		}
+		$c = $cpShortcutCatalog[$dk];
+		$cpShortcutItems[] = array(
+			'id' => 0,
+			'key' => $dk,
+			'label' => $c['label'],
+			'icon' => preg_replace('/^fa\s+/', '', $c['icon']),
+			'color' => $c['color'],
+			'url' => $c['url'],
+			'tone' => $c['tone'] ?? 'blue',
+		);
+	}
 }
 
 $moreLinks = array(
@@ -360,7 +387,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720storedash1';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720storedash3';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -416,29 +443,34 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 		</div>
 	</div>
 
-	<div class="cp-dash-tiles">
-		<?php foreach ($tiles as $t) { ?>
-		<a class="cp-dash-tile cp-dash-tile--<?php echo epc_tcp_dash_h($t['tone']); ?>" href="<?php echo epc_tcp_dash_h($t['url']); ?>">
-			<i class="fa <?php echo epc_tcp_dash_h($t['icon']); ?> ic"></i>
-			<span class="tl"><?php echo epc_tcp_dash_h($t['label']); ?></span>
-		</a>
-		<?php } ?>
-	</div>
-
-	<div class="cp-dash-port">
-		<h4><i class="fa fa-bolt"></i> Quick actions</h4>
-		<div class="bd">
-			<div class="cp-dash-qa-grid">
-				<?php foreach ($quickActions as $qa) { ?>
-				<a class="cp-dash-qa" href="<?php echo epc_tcp_dash_h($qa['url']); ?>">
-					<span class="qa-ic qa-ic--<?php echo epc_tcp_dash_h($qa['tone']); ?>"><i class="fa <?php echo epc_tcp_dash_h($qa['icon']); ?>"></i></span>
-					<span class="qa-lb"><?php echo epc_tcp_dash_h($qa['label']); ?></span>
-				</a>
-				<?php } ?>
-			</div>
-		</div>
-	</div>
-
+	<?php
+// Customizable shortcut tiles replace the old hard-coded tile strip.
+	// Keep catalogue tones aligned with CP red/black command centre.
+	$cpToneMap = array(
+		'orders' => 'red', 'catalogue' => 'black', 'prices' => 'crimson', 'clients' => 'stone',
+		'warehouses' => 'black', 'stock' => 'emerald', 'procurement' => 'indigo', 'erp' => 'red',
+		'documents' => 'stone', 'pos' => 'rose', 'multivendor' => 'teal', 'crosses' => 'blue',
+		'ai_chats' => 'violet', 'settings' => 'crimson', 'brochure' => 'indigo', 'accessories' => 'violet',
+	);
+	foreach ($cpShortcutItems as $ci => $cit) {
+		$ck = (string) ($cit['key'] ?? '');
+		if ($ck !== '' && isset($cpToneMap[$ck])) {
+			$cpShortcutItems[$ci]['tone'] = $cpToneMap[$ck];
+		} elseif (empty($cit['tone']) || !in_array((string) $cit['tone'], array('red', 'black', 'stone', 'crimson'), true)) {
+			$cycle = array('red', 'black', 'crimson', 'stone');
+			$cpShortcutItems[$ci]['tone'] = $cycle[$ci % 4];
+		}
+	}
+	echo epc_dash_shortcuts_render(array(
+		'surface' => 'cp',
+		'variant' => 'cp',
+		'title' => 'My shortcuts',
+		'ajax_url' => $cpShortcutAjax,
+		'csrf' => $cpShortcutCsrf,
+		'catalog' => $cpShortcutCatalog,
+		'items' => $cpShortcutItems,
+	));
+	?>
 	<div class="cp-dash-grid">
 		<div class="cp-dash-col-left">
 			<div class="cp-dash-port">

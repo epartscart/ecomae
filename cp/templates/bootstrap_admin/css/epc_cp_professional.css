@@ -6173,7 +6173,7 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	color: #fff;
 }
 
-/* Mega panel */
+/* Mega panel — pure black (ERP-style module flyout) */
 .epc-cp-topnav-panel {
 	position: fixed;
 	left: 12px;
@@ -6183,12 +6183,12 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	max-width: min(1040px, calc(100vw - 16px));
 	max-height: min(70vh, 560px);
 	overflow: auto;
-	background: #111111;
+	background: #000000 !important;
 	color: #f8fafc;
-	border: 1px solid #7f1d1d;
+	border: 1px solid #1c1c1c;
 	border-top: 3px solid #dc2626;
 	border-radius: 0 0 8px 8px;
-	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+	box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
 	padding: 0;
 	z-index: 1040;
 }
@@ -6199,8 +6199,8 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	justify-content: space-between;
 	gap: 12px;
 	padding: 12px 16px;
-	background: #1a1a1a;
-	border-bottom: 1px solid #3f3f46;
+	background: #000000 !important;
+	border-bottom: 1px solid #262626;
 	position: sticky;
 	top: 0;
 	z-index: 1;
@@ -6208,17 +6208,17 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 .epc-cp-topnav-panel-title {
 	font-size: 13px;
 	font-weight: 700;
-	color: #fff;
+	color: #ffffff;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
 	gap: 8px;
 }
-.epc-cp-topnav-panel-title .fa { margin-right: 4px; color: #ef4444; }
+.epc-cp-topnav-panel-title .fa { margin-right: 4px; color: #f87171; }
 .epc-cp-topnav-panel-sub {
 	font-size: 11px;
 	font-weight: 500;
-	color: #a1a1aa;
+	color: #a3a3a3;
 }
 .epc-cp-topnav-panel-hub {
 	font-size: 12px;
@@ -6233,14 +6233,25 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 	gap: 0;
 	padding: 8px 4px 12px;
-	background: #0a0a0a;
+	background: #000000 !important;
 }
 .epc-cp-topnav-col {
 	padding: 8px 12px 10px;
-	border-right: 1px solid #27272a;
+	border-right: 1px solid #1f1f1f;
 	min-width: 0;
 }
 .epc-cp-topnav-col:last-child { border-right: 0; }
+.epc-cp-topnav-col-hd {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #a3a3a3;
+	margin-bottom: 6px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #262626;
+}
+.epc-cp-topnav-col-hd .fa { margin-right: 5px; color: #f87171; }
 .epc-cp-topnav-links {
 	list-style: none;
 	margin: 0;
@@ -6253,7 +6264,7 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	padding: 6px 8px;
 	border-radius: 4px;
 	font-size: 12.5px;
-	color: #e4e4e7 !important;
+	color: #e5e5e5 !important;
 	text-decoration: none !important;
 	line-height: 1.3;
 }
@@ -6267,8 +6278,8 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 }
 .epc-cp-topnav-links a:hover,
 .epc-cp-topnav-links a:focus {
-	background: rgba(220, 38, 38, 0.22);
-	color: #fff !important;
+	background: rgba(220, 38, 38, 0.28);
+	color: #ffffff !important;
 }
 .epc-cp-topnav-links li.is-active > a {
 	background: #dc2626;
