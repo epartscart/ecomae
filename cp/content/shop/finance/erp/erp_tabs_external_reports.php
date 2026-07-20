@@ -905,7 +905,11 @@ if ($selTool === 'import') {
 				<button type="submit" class="btn btn-success btn-sm" style="margin-left:6px;" title="Recalculate the return for the selected period"><i class="fa fa-calculator"></i> Run / Recalculate</button>
 			</form>
 			<?php if ($fetched): ?>
-				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.</span>
+				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.<?php
+					if ($selRep === 'audit__external_audit_report' && (int) date('Y', $repTo) >= 2026) {
+						echo ' Standards index refreshed — IFRS 18 early-applied (IAS 1 superseded for presentation).';
+					}
+				?></span>
 			<?php endif; ?>
 		</div>
 		<div style="margin-top:8px;font-size:12px;" class="text-muted">
