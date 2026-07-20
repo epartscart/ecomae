@@ -2445,7 +2445,11 @@ if (!function_exists('epc_ext_b_audit')) {
         };
 
         // ============ 2 · Statement of Financial Position ====================
-        $sofp = $tblOpen('Statement of Financial Position — as at 31 Dec');
+        $sofpTitle = $useIfrs18
+            ? 'Statement of Financial Position — as at 31 Dec (IFRS 18)'
+            : 'Statement of Financial Position — as at 31 Dec';
+        $sofp = $tblOpen($sofpTitle);
+        $sofp .= $line('Assets', '', '', '', 'head');
         $sofp .= $line('Non-current assets', '', '', '', 'head');
         $sofp .= $line('Property, plant & equipment', $cur['ppe'], $pri['ppe'], 'IAS 16|Property, plant & equipment', 'row', epc_ext_ct_txns($cur['ppe'], $from2, $to2, 'FA', array('Buildings', 'Plant & machinery', 'Motor vehicles', 'Furniture & fixtures', 'IT equipment'), 'Fixed-asset NBV by class'));
         $detail($split($cur['ppe'], $pri['ppe'], $ppeSplit));
@@ -2460,6 +2464,7 @@ if (!function_exists('epc_ext_b_audit')) {
         $detail($split($cur['cash'], $pri['cash'], $cashSplit));
         $sofp .= $line('Total current assets', $cur['inventory'] + $cur['receivables'] + $cur['cash'], $pri['inventory'] + $pri['receivables'] + $pri['cash'], '', 'sub');
         $sofp .= $line('Total assets', $cur['totalAssets'], $pri['totalAssets'], '', 'total');
+        $sofp .= $line('Equity and liabilities', '', '', '', 'head');
         $sofp .= $line('Equity', '', '', '', 'head');
         $sofp .= $line('Share capital', $cur['shareCap'], $pri['shareCap'], $presStd . '|Capital management');
         $sofp .= $line('Other reserves', $cur['reserves'], $pri['reserves'], $presStd . '|Capital management');
@@ -2477,29 +2482,26 @@ if (!function_exists('epc_ext_b_audit')) {
         $sofp .= $line('Current tax payable', $cur['tax'], $pri['tax'], 'IAS 12|Income tax');
         $sofp .= $line('Current portion of borrowings', $cur['borrowCur'], $pri['borrowCur'], 'IFRS 7|Borrowings');
         $sofp .= $line('Total current liabilities', $cur['payables'] + $cur['tax'] + $cur['borrowCur'], $pri['payables'] + $pri['tax'] + $pri['borrowCur'], '', 'sub');
-        $sofp .= $line('Total equity & liabilities', $cur['totalEquity'] + $cur['totalLiab'], $pri['totalEquity'] + $pri['totalLiab'], '', 'total');
+        $sofp .= $line('Total liabilities', $cur['totalLiab'], $pri['totalLiab'], '', 'sub');
+        $sofp .= $line('Total equity and liabilities', $cur['totalEquity'] + $cur['totalLiab'], $pri['totalEquity'] + $pri['totalLiab'], '', 'total');
         $sofp .= $tblClose;
         $balOk = abs(($cur['totalAssets']) - ($cur['totalEquity'] + $cur['totalLiab'])) < 0.5;
-        $sofp .= '<p class="text-muted" style="font-size:11.5px;"><i class="fa fa-check-circle" style="color:' . ($balOk ? '#1a7f37' : '#c0392b') . ';"></i> Balance check: total assets ' . ($balOk ? 'equal' : 'do NOT equal') . ' total equity &amp; liabilities (' . $m($cur['totalAssets']) . ').</p>';
+        $sofp .= '<p class="text-muted" style="font-size:11.5px;"><i class="fa fa-check-circle" style="color:' . ($balOk ? '#1a7f37' : '#c0392b') . ';"></i> Balance check: total assets ' . ($balOk ? 'equal' : 'do NOT equal') . ' total equity and liabilities (' . $m($cur['totalAssets']) . ').</p>';
+        if ($useIfrs18) {
+            $sofp .= '<p class="text-muted" style="font-size:11px;">IFRS 18 — statement of financial position presented with current / non-current classification; aggregation provides a useful structured summary of assets, liabilities and equity.</p>';
+        }
 
         // ============ 3 · Statement of Profit or Loss & OCI ==================
-        // IFRS 18 (early-adopted for FY2026+): classify income/expenses into
-        // operating / investing / financing and present mandatory subtotals.
+        // IFRS 18: five categories (operating / investing / financing / income
+        // taxes / discontinued operations) + three mandatory subtotals.
         $oci = round($cur['reserves'] - $pri['reserves'], 2);
         $ociP = round($pri['reserves'] * 0.10, 2);
         $opProfitC = $cur['gross'] - $cur['opex'] - $cur['depr'];
         $opProfitP = $pri['gross'] - $pri['opex'] - $pri['depr'];
-        $soplTitle = $useIfrs18
-            ? 'Statement of Profit or Loss & Other Comprehensive Income — year ended 31 Dec (IFRS 18)'
-            : 'Statement of Profit or Loss & Other Comprehensive Income — year ended 31 Dec';
-        $sopl = $tblOpen($soplTitle);
-        if ($useIfrs18) {
-            $sopl .= $line('Operating', '', '', '', 'head');
-        }
-        $sopl .= $line('Revenue', $cur['rev'], $pri['rev'], 'IFRS 15|Revenue', 'row', epc_ext_ct_txns($cur['rev'], $from2, $to2, 'INV', $custPool, 'Sales invoice — revenue'));
-        $sopl .= $line('Cost of sales', -$cur['cogs'], -$pri['cogs'], 'IAS 2|Cost of sales', 'row', epc_ext_ct_txns($cur['cogs'], $from2, $to2, 'COGS', $supPool, 'Cost of goods sold'));
-        $sopl .= $line('Gross profit', $cur['gross'], $pri['gross'], '', 'sub');
-        $sopl .= $line('Operating & administrative expenses by nature', '', '', '', 'head');
+        $finBorrowC = round($cur['interest'] * 0.78, 2);
+        $finLeaseC = round($cur['interest'] - $finBorrowC, 2);
+        $finBorrowP = round($pri['interest'] * 0.78, 2);
+        $finLeaseP = round($pri['interest'] - $finBorrowP, 2);
         $opexSplit = array(
             'Staff costs (salaries, wages & benefits)' => 0.34,
             'Rent & premises costs' => 0.12,
@@ -2515,33 +2517,82 @@ if (!function_exists('epc_ext_b_audit')) {
             'Printing, stationery & office expenses' => 0.04,
             'Other operating expenses' => 0.10,
         );
-        foreach ($split($cur['opex'], $pri['opex'], $opexSplit) as $r) {
-            $sopl .= $line('   ' . $r[0], -$r[1], -$r[2], '');
-        }
-        $sopl .= $line('Total operating & administrative expenses', -$cur['opex'], -$pri['opex'], '', 'sub', epc_ext_ct_txns($cur['opex'], $from2, $to2, 'OPEX', $supPool, 'Operating expense'));
-        $sopl .= $line('Depreciation & amortisation', -$cur['depr'], -$pri['depr'], 'IAS 16|Property, plant & equipment');
-        $sopl .= $line($useIfrs18 ? 'Operating profit' : 'Operating profit (EBIT)', $opProfitC, $opProfitP, $useIfrs18 ? 'IFRS 18|Presentation of profit or loss' : '', 'sub');
+
         if ($useIfrs18) {
-            $sopl .= $line('Investing', '', '', '', 'head');
-            $sopl .= $line('Income / (expenses) from investments', 0, 0, 'IFRS 18|Presentation of profit or loss');
-            $sopl .= $line('Profit before financing and income taxes', $opProfitC, $opProfitP, 'IFRS 18|Presentation of profit or loss', 'sub');
-            $sopl .= $line('Financing', '', '', '', 'head');
-        }
-        $sopl .= $line('Finance costs', -$cur['interest'], -$pri['interest'], 'IFRS 7|Borrowings');
-        $sopl .= $line('Profit before tax', $cur['pbt'], $pri['pbt'], '', 'sub');
-        $sopl .= $line('Income tax expense', -$cur['tax'], -$pri['tax'], 'IAS 12|Income tax');
-        $sopl .= $line('Profit for the year', $cur['profit'], $pri['profit'], '', 'total');
-        $sopl .= $line('Other comprehensive income', '', '', '', 'head');
-        $sopl .= $line('Revaluation of property / FV through OCI', $oci, $ociP, 'IAS 16/IFRS 9');
-        $sopl .= $line('Total comprehensive income', $cur['profit'] + $oci, $pri['profit'] + $ociP, '', 'total');
-        $sopl .= $tblClose;
-        if ($useIfrs18) {
-            $sopl .= '<p class="text-muted" style="font-size:11px;">IFRS 18 — income and expenses classified into operating, investing and financing categories; mandatory subtotals presented (operating profit; profit before financing and income taxes).</p>';
+            $sopl = '<div style="border:1px solid #0b6e99;border-radius:6px;padding:10px 14px;margin:0 0 10px;background:#f3fafd;max-width:880px;">'
+                . '<div style="font-weight:800;color:#0b6e99;font-size:13px;">Presented under IFRS 18 — Presentation and Disclosure in Financial Statements</div>'
+                . '<div style="font-size:11.5px;color:#355;margin-top:3px;">Income and expenses are classified into five categories. Mandatory subtotals: <em>operating profit or loss</em>; <em>profit or loss before financing and income taxes</em>; and <em>profit or loss</em>. IAS 1 is superseded for presentation and disclosure.</div></div>';
+            $sopl .= $tblOpen('Statement of Profit or Loss — year ended 31 Dec (IFRS 18)');
+            // —— Operating category ——
+            $sopl .= $line('Operating category', '', '', 'IFRS 18|Presentation of profit or loss', 'head');
+            $sopl .= $line('Revenue', $cur['rev'], $pri['rev'], 'IFRS 15|Revenue', 'row', epc_ext_ct_txns($cur['rev'], $from2, $to2, 'INV', $custPool, 'Sales invoice — revenue'));
+            $sopl .= $line('Cost of sales', -$cur['cogs'], -$pri['cogs'], 'IAS 2|Cost of sales', 'row', epc_ext_ct_txns($cur['cogs'], $from2, $to2, 'COGS', $supPool, 'Cost of goods sold'));
+            $sopl .= $line('Gross profit', $cur['gross'], $pri['gross'], 'IFRS 18|Presentation of profit or loss', 'sub');
+            $sopl .= $line('Operating expenses (disaggregated by nature)', '', '', '', 'head');
+            foreach ($split($cur['opex'], $pri['opex'], $opexSplit) as $r) {
+                $sopl .= $line('   ' . $r[0], -$r[1], -$r[2], '');
+            }
+            $sopl .= $line('Total operating expenses', -$cur['opex'], -$pri['opex'], '', 'sub', epc_ext_ct_txns($cur['opex'], $from2, $to2, 'OPEX', $supPool, 'Operating expense'));
+            $sopl .= $line('Depreciation & amortisation', -$cur['depr'], -$pri['depr'], 'IAS 16|Property, plant & equipment');
+            $sopl .= $line('Operating profit or loss', $opProfitC, $opProfitP, 'IFRS 18|Presentation of profit or loss', 'sub');
+            // —— Investing category ——
+            $sopl .= $line('Investing category', '', '', 'IFRS 18|Presentation of profit or loss', 'head');
+            $sopl .= $line('Income / (expenses) from cash and cash equivalents', 0, 0, 'IFRS 18|Presentation of profit or loss');
+            $sopl .= $line('Income / (expenses) from other investments', 0, 0, 'IFRS 18|Presentation of profit or loss');
+            $sopl .= $line('Share of profit / (loss) of associates and joint ventures', 0, 0, 'IFRS 18|Presentation of profit or loss');
+            $sopl .= $line('Profit or loss before financing and income taxes', $opProfitC, $opProfitP, 'IFRS 18|Presentation of profit or loss', 'sub');
+            // —— Financing category ——
+            $sopl .= $line('Financing category', '', '', 'IFRS 18|Presentation of profit or loss', 'head');
+            $sopl .= $line('Interest expense on borrowings', -$finBorrowC, -$finBorrowP, 'IFRS 7|Borrowings');
+            $sopl .= $line('Interest expense on lease liabilities', -$finLeaseC, -$finLeaseP, 'IFRS 16|Leases');
+            $sopl .= $line('Total financing income / (expenses)', -$cur['interest'], -$pri['interest'], '', 'sub');
+            $sopl .= $line('Profit or loss before income taxes', $cur['pbt'], $pri['pbt'], 'IFRS 18|Presentation of profit or loss', 'sub');
+            // —— Income taxes category ——
+            $sopl .= $line('Income taxes category', '', '', 'IAS 12|Income tax', 'head');
+            $sopl .= $line('Income tax expense', -$cur['tax'], -$pri['tax'], 'IAS 12|Income tax');
+            $sopl .= $line('Profit or loss', $cur['profit'], $pri['profit'], 'IFRS 18|Presentation of profit or loss', 'total');
+            // —— Discontinued operations ——
+            $sopl .= $line('Discontinued operations category', '', '', 'IFRS 5|Held for sale & discontinued ops', 'head');
+            $sopl .= $line('Profit / (loss) from discontinued operations', 0, 0, 'IFRS 5|Held for sale & discontinued ops');
+            $sopl .= $tblClose;
+            // OCI statement (still part of the complete set under IFRS 18)
+            $sopl .= $tblOpen('Statement of Other Comprehensive Income — year ended 31 Dec (IFRS 18)');
+            $sopl .= $line('Profit or loss', $cur['profit'], $pri['profit'], 'IFRS 18|Presentation of profit or loss', 'sub');
+            $sopl .= $line('Other comprehensive income', '', '', '', 'head');
+            $sopl .= $line('Items that will not be reclassified to profit or loss', '', '', '', 'head');
+            $sopl .= $line('Revaluation of property, plant & equipment', $oci, $ociP, 'IAS 16|Property, plant & equipment');
+            $sopl .= $line('Items that may be reclassified subsequently to profit or loss', '', '', '', 'head');
+            $sopl .= $line('Fair value changes on debt instruments (FVOCI)', 0, 0, 'IFRS 9|Trade & other receivables / financial instruments');
+            $sopl .= $line('Other comprehensive income for the year, net of tax', $oci, $ociP, '', 'sub');
+            $sopl .= $line('Total comprehensive income for the year', $cur['profit'] + $oci, $pri['profit'] + $ociP, 'IFRS 18|Presentation of profit or loss', 'total');
+            $sopl .= $tblClose;
+            $sopl .= '<p class="text-muted" style="font-size:11px;">IFRS 18.47–72 — five categories and three mandatory subtotals on the statement of profit or loss; OCI presented to complete the statement of comprehensive income. Gross profit and profit before income taxes are additional (non-mandatory) subtotals for a useful structured summary.</p>';
+        } else {
+            $sopl = $tblOpen('Statement of Profit or Loss & Other Comprehensive Income — year ended 31 Dec');
+            $sopl .= $line('Revenue', $cur['rev'], $pri['rev'], 'IFRS 15|Revenue', 'row', epc_ext_ct_txns($cur['rev'], $from2, $to2, 'INV', $custPool, 'Sales invoice — revenue'));
+            $sopl .= $line('Cost of sales', -$cur['cogs'], -$pri['cogs'], 'IAS 2|Cost of sales', 'row', epc_ext_ct_txns($cur['cogs'], $from2, $to2, 'COGS', $supPool, 'Cost of goods sold'));
+            $sopl .= $line('Gross profit', $cur['gross'], $pri['gross'], '', 'sub');
+            $sopl .= $line('Operating & administrative expenses by nature', '', '', '', 'head');
+            foreach ($split($cur['opex'], $pri['opex'], $opexSplit) as $r) {
+                $sopl .= $line('   ' . $r[0], -$r[1], -$r[2], '');
+            }
+            $sopl .= $line('Total operating & administrative expenses', -$cur['opex'], -$pri['opex'], '', 'sub', epc_ext_ct_txns($cur['opex'], $from2, $to2, 'OPEX', $supPool, 'Operating expense'));
+            $sopl .= $line('Depreciation & amortisation', -$cur['depr'], -$pri['depr'], 'IAS 16|Property, plant & equipment');
+            $sopl .= $line('Operating profit (EBIT)', $opProfitC, $opProfitP, '', 'sub');
+            $sopl .= $line('Finance costs', -$cur['interest'], -$pri['interest'], 'IFRS 7|Borrowings');
+            $sopl .= $line('Profit before tax', $cur['pbt'], $pri['pbt'], '', 'sub');
+            $sopl .= $line('Income tax expense', -$cur['tax'], -$pri['tax'], 'IAS 12|Income tax');
+            $sopl .= $line('Profit for the year', $cur['profit'], $pri['profit'], '', 'total');
+            $sopl .= $line('Other comprehensive income', '', '', '', 'head');
+            $sopl .= $line('Revaluation of property / FV through OCI', $oci, $ociP, 'IAS 16/IFRS 9');
+            $sopl .= $line('Total comprehensive income', $cur['profit'] + $oci, $pri['profit'] + $ociP, '', 'total');
+            $sopl .= $tblClose;
         }
 
         // ============ 4 · Statement of Changes in Equity =====================
+        $soceTitle = $useIfrs18 ? 'Statement of Changes in Equity (IFRS 18)' : 'Statement of Changes in Equity';
         $soce = '<table class="table table-bordered table-condensed" style="font-size:12px;max-width:880px;"><thead><tr style="background:#f0f3f8;">'
-            . '<th>Statement of Changes in Equity</th><th style="text-align:right;">Share capital</th><th style="text-align:right;">Other reserves</th><th style="text-align:right;">Retained earnings</th><th style="text-align:right;">Total</th></tr></thead><tbody>';
+            . '<th>' . epc_erp_h($soceTitle) . '</th><th style="text-align:right;">Share capital</th><th style="text-align:right;">Other reserves</th><th style="text-align:right;">Retained earnings</th><th style="text-align:right;">Total</th></tr></thead><tbody>';
         $rowEq = function (string $label, $sc, $res, $ret, bool $strong = false) use ($m) {
             $tot = (float) $sc + (float) $res + (float) $ret;
             return '<tr' . ($strong ? ' style="font-weight:700;background:#f5f7fa;"' : '') . '><td style="padding:5px 10px;">' . epc_erp_h($label) . '</td>'
@@ -2551,8 +2602,8 @@ if (!function_exists('epc_ext_b_audit')) {
                 . '<td style="padding:5px 10px;text-align:right;">' . $m($tot) . '</td></tr>';
         };
         $retOpen = $pri['retained'];
-        $soce .= $rowEq('Balance at 1 Jan ' . $d['curYear'] . ' (as previously reported)', $pri['shareCap'], $pri['reserves'], $retOpen, true);
-        $soce .= $rowEq('Profit for the year', 0, 0, $cur['profit']);
+        $soce .= $rowEq('Balance at 1 Jan ' . $d['curYear'] . ($useIfrs18 ? '' : ' (as previously reported)'), $pri['shareCap'], $pri['reserves'], $retOpen, true);
+        $soce .= $rowEq($useIfrs18 ? 'Profit or loss' : 'Profit for the year', 0, 0, $cur['profit']);
         $soce .= $rowEq('Other comprehensive income', 0, $oci, 0);
         $soce .= $rowEq('Dividends declared', 0, 0, -$d['dividends']);
         $soce .= $rowEq('Shares issued', $mov['issue'], 0, 0);
@@ -2561,7 +2612,9 @@ if (!function_exists('epc_ext_b_audit')) {
             . ($useIfrs18 ? 'IFRS 18' : 'IAS 1') . ' — Statement of changes in equity.</p>';
 
         // ============ 5 · Statement of Cash Flows (indirect) =================
-        $scf = $tblOpen('Statement of Cash Flows — year ended 31 Dec (indirect method, IAS 7)');
+        $scf = $tblOpen($useIfrs18
+            ? 'Statement of Cash Flows — year ended 31 Dec (IAS 7, as amended by IFRS 18)'
+            : 'Statement of Cash Flows — year ended 31 Dec (indirect method, IAS 7)');
         $tradeRecMov = round(0.60 * $mov['dRec'], 2); $otherRecMov = round($mov['dRec'] - $tradeRecMov, 2);
         $tradePayMov = round(0.62 * $mov['dPay'], 2); $otherPayMov = round($mov['dPay'] - $tradePayMov, 2);
         $cashFromOps = round($cur['pbt'] + $cur['depr'] + $cur['interest'] - $mov['dRec'] - $mov['dInv'] + $mov['dPay'] + $mov['dProv'], 2);
@@ -2740,11 +2793,11 @@ if (!function_exists('epc_ext_b_audit')) {
                 : '')
             . '<p>The preparation of financial statements requires management to make judgements, estimates and assumptions that affect the reported amounts; see Note on critical judgements and key estimates. Comparative figures are reclassified where necessary to conform with the current-year presentation.</p>');
         if ($useIfrs18) {
-            $notes .= $note('Presentation of profit or loss', 'IFRS 18', '<p>In accordance with IFRS 18, the statement of profit or loss classifies income and expenses into <strong>operating</strong>, <strong>investing</strong> and <strong>financing</strong> categories and presents the mandatory subtotals of operating profit and profit before financing and income taxes. Aggregation and disaggregation of line items follow the principles in IFRS 18 so that material information is not obscured.</p>'
+            $notes .= $note('Presentation of profit or loss', 'IFRS 18', '<p>In accordance with IFRS 18, the statement of profit or loss classifies all income and expenses into five categories — <strong>operating</strong>, <strong>investing</strong>, <strong>financing</strong>, <strong>income taxes</strong> and <strong>discontinued operations</strong> — and presents the three mandatory subtotals: <strong>operating profit or loss</strong>; <strong>profit or loss before financing and income taxes</strong>; and <strong>profit or loss</strong>. Aggregation and disaggregation of line items follow IFRS 18 so that material information is not obscured.</p>'
                 . $pol(array(
-                    'Presentation' => 'Income and expenses are classified by their nature into the three IFRS 18 categories; management-defined performance measures, if used, are disclosed in a single note with reconciliations to the nearest IFRS subtotal.',
-                    'Procedure' => 'The face of the statement presents operating profit, then investing items, then profit before financing and income taxes, then financing items, then profit before tax and profit for the year.',
-                ), 'IFRS 18 — categories, mandatory subtotals and aggregation/disaggregation.'));
+                    'Presentation' => 'Income and expenses are classified into the five IFRS 18 categories. Operating expenses are disaggregated by nature on the face. Gross profit and profit or loss before income taxes are presented as additional (non-mandatory) subtotals for a useful structured summary.',
+                    'Procedure' => 'The face presents: Operating category → Operating profit or loss → Investing category → Profit or loss before financing and income taxes → Financing category → Profit or loss before income taxes → Income taxes category → Profit or loss → Discontinued operations (nil).',
+                ), 'IFRS 18.47–72 — categories, mandatory subtotals and aggregation/disaggregation.'));
         }
         $notes .= $note('Material accounting policies', 'IFRS 15/9/16; IAS 2/16/38/12', '<p>The principal accounting policies applied in the preparation of these financial statements are set out below and have been applied consistently:</p>'
             . '<ul style="margin:4px 0 6px 18px;">'
@@ -3053,7 +3106,7 @@ if (!function_exists('epc_ext_b_audit')) {
                 'Capital commitments' => 'Amounts contracted for the acquisition of property, plant & equipment but not yet recognised as liabilities are disclosed.',
                 'Contingencies' => 'Guarantees, letters of credit and other contingent items are disclosed where a possible obligation exists whose outcome is not wholly within the Company\'s control.',
             ), 'IAS 16.74(c); IAS 37.86, 89.'));
-        $notes .= $note('Dividends', 'IAS 1 / IAS 10', '<p>Dividends are recognised in equity when approved and no longer at the discretion of the Company.</p>'
+        $notes .= $note('Dividends', $presStd . ' / IAS 10', '<p>Dividends are recognised in equity when approved and no longer at the discretion of the Company.</p>'
             . $ntbl(array(
                 array('Dividends declared & paid', $d['dividends'], round($pri['profit'] * 0.30, 2)),
                 array('Dividend per share', $m(round($d['dividends'] / $shares, 3)), $m(round(round($pri['profit'] * 0.30, 2) / $shares, 3))),
@@ -3061,7 +3114,7 @@ if (!function_exists('epc_ext_b_audit')) {
             . $pol(array(
                 'Recognition' => 'Dividends are recognised as a deduction from equity in the period in which they are approved by the shareholders (or, for interim dividends, when paid) and are no longer at the Company\'s discretion.',
                 'Procedure' => 'Dividends proposed after the reporting date but before authorisation of the financial statements are disclosed, not recognised as a liability.',
-            ), 'IAS 10.12–13; IAS 1.107; UAE FDL 32/2021 (Commercial Companies), art. 30.'));
+            ), ($useIfrs18 ? 'IFRS 18 — equity distributions; ' : 'IAS 1.107; ') . 'IAS 10.12–13; UAE FDL 32/2021 (Commercial Companies), art. 30.'));
         $notes .= $note('Foreign currency', 'IAS 21', '<p>The functional and presentation currency is ' . epc_erp_h($ccy) . '. Foreign-currency transactions are translated at the spot rate on the transaction date; monetary items are retranslated at the closing rate and exchange differences recognised in profit or loss. The Company\'s exposure to foreign-currency balances is not material at the reporting date.</p>'
             . $pol(array(
                 'Functional currency' => 'The currency of the primary economic environment in which the Company operates (AED), also used as the presentation currency.',
@@ -3073,7 +3126,11 @@ if (!function_exists('epc_ext_b_audit')) {
                 'Reversal' => 'An impairment loss (other than on goodwill) is reversed if the recoverable amount subsequently increases, limited to the carrying amount that would have existed had no impairment been recognised.',
             ), 'IAS 36.9–12, 18–22, 59, 110–114.'));
         $notes .= $note('Events after the reporting period', 'IAS 10', '<p>No adjusting or material non-adjusting events have occurred between the reporting date and the date these financial statements were authorised for issue.</p>');
-        $notes .= $note('Going concern', 'IAS 1 / ISA 570', '<p>Based on the Company\'s net current asset position, profitability and cash flows, the directors have a reasonable expectation that the Company has adequate resources to continue in operational existence for the foreseeable future. Accordingly, the going-concern basis of accounting continues to be adopted.</p>');
+        $notes .= $note('Going concern', $presStd . ' / ISA 570', '<p>Based on the Company\'s net current asset position, profitability and cash flows, the directors have a reasonable expectation that the Company has adequate resources to continue in operational existence for the foreseeable future. Accordingly, the going-concern basis of accounting continues to be adopted.</p>');
+        if ($useIfrs18) {
+            $notes .= $note('Management-defined performance measures (MPMs)', 'IFRS 18', '<p>IFRS 18 requires public communication of management-defined performance measures (subtotals of income and expenses that are not IFRS-defined totals/subtotals) to be disclosed in a single note with reconciliations to the most directly comparable IFRS subtotal.</p>'
+                . '<p><strong>Assessment:</strong> The Company does not communicate any MPMs outside the financial statements. The face of the statement of profit or loss presents only IFRS 18 mandatory subtotals (operating profit or loss; profit or loss before financing and income taxes; profit or loss) plus commonly used additional subtotals (gross profit; profit or loss before income taxes) that are part of a useful structured summary. No MPM note reconciliation is therefore required.</p>');
+        }
 
         // ---- standards not applicable to the Company (structured, not blank) -
         $notes .= '<p style="font-weight:700;margin:14px 0 4px;color:#1d2740;border-top:1px solid #e3e8f0;padding-top:10px;">Standards considered but not applicable in the current period</p>'
@@ -3312,11 +3369,14 @@ if (!function_exists('epc_ext_b_audit')) {
         $cover = epc_ext_cover_page(
             $entity,
             'Audited Financial Statements & Independent Auditor\'s Report',
-            'External audit report · ISA 700 · IFRS',
+            $useIfrs18
+                ? 'External audit report · ISA 700 · IFRS 18 (early applied)'
+                : 'External audit report · ISA 700 · IFRS',
             array(
                 'Reporting period' => '01 Jan ' . $d['curYear'] . ' — 31 Dec ' . $d['curYear'],
                 'Comparative period' => 'FY' . $d['priYear'],
                 'Reporting framework' => $fwk,
+                'Presentation standard' => $useIfrs18 ? 'IFRS 18 (early application — replaces IAS 1)' : 'IAS 1',
                 'Auditing standards' => 'International Standards on Auditing (ISA)',
                 'Presentation currency' => $ccy,
                 'Independent auditor' => $auditor,
@@ -3325,10 +3385,10 @@ if (!function_exists('epc_ext_b_audit')) {
             ),
             array(
                 array('1', 'Independent Auditor\'s Report'),
-                array('2', 'Statement of Financial Position'),
-                array('3', 'Statement of Profit or Loss & Other Comprehensive Income'),
-                array('4', 'Statement of Changes in Equity'),
-                array('5', 'Statement of Cash Flows'),
+                array('2', 'Statement of Financial Position' . ($useIfrs18 ? ' (IFRS 18)' : '')),
+                array('3', $useIfrs18 ? 'Statement of Profit or Loss & OCI (IFRS 18)' : 'Statement of Profit or Loss & Other Comprehensive Income'),
+                array('4', 'Statement of Changes in Equity' . ($useIfrs18 ? ' (IFRS 18)' : '')),
+                array('5', 'Statement of Cash Flows (IAS 7' . ($useIfrs18 ? ', as amended by IFRS 18)' : ')')),
                 array('6', 'Notes to the Financial Statements'),
                 array('7', 'Standards applicability index (every IAS/IFRS)'),
                 array('8', 'Consolidated & separate (individual) financial statements'),
@@ -3342,27 +3402,31 @@ if (!function_exists('epc_ext_b_audit')) {
 
         $body = '<div class="epc-aud-doc">' . $printCss . $cover
             . '<div class="epc-aud-front">'
-            . '<p class="text-muted">Complete <strong>External Audit Report</strong> under the International Standards on Auditing — an Independent Auditor\'s Report (ISA 700/701/705/570/720) on the full set of <strong>IFRS</strong> financial statements with <strong>prior-year comparatives</strong>: statement of financial position, profit or loss &amp; OCI, changes in equity, cash flows, and detailed notes referencing each IAS/IFRS standard. Figures are period-aware (reporting period vs comparative); a live tenant maps each line from tagged GL accounts.</p>'
+            . '<p class="text-muted">Complete <strong>External Audit Report</strong> under the International Standards on Auditing — an Independent Auditor\'s Report (ISA 700/701/705/570/720) on the full set of <strong>' . ($useIfrs18 ? 'IFRS 18' : 'IFRS') . '</strong> financial statements with <strong>prior-year comparatives</strong>: statement of financial position, profit or loss' . ($useIfrs18 ? ' (five categories + mandatory subtotals)' : ' &amp; OCI') . ', changes in equity, cash flows, and detailed notes referencing each IAS/IFRS standard. Figures are period-aware (reporting period vs comparative); a live tenant maps each line from tagged GL accounts.</p>'
             . $fetchNote
             . epc_ext_field_guide('Field guide — what each statement & note shows (and the standard behind it)',
-                'Plain-language explanation so a learner understands the audit pack. Framework: IFRS (IASB) + ISA (IAASB); UAE oversight: SCA / Ministry of Economy.',
+                'Plain-language explanation so a learner understands the audit pack. Framework: ' . ($useIfrs18 ? 'IFRS 18 (IASB, early applied)' : 'IFRS (IASB)') . ' + ISA (IAASB); UAE oversight: SCA / Ministry of Economy.',
                 epc_ext_audit_guide_rows())
             . epc_ext_commentary('Report explained — how this audit pack works', array(
                 'This is a complete <strong>external audit report</strong>. It opens with the <strong>Independent Auditor\'s Report</strong> — the auditor\'s <em>opinion</em> on whether the statements give a true and fair view (ISA 700), the <em>basis</em> for that opinion, <em>going concern</em> (ISA 570), the <em>Key Audit Matters</em> (ISA 701) and the respective responsibilities of management and the auditor.',
-                'It then presents the four <strong>primary IFRS statements</strong> with the prior year alongside for comparison: the <strong>Statement of Financial Position</strong> (what the company owns and owes), the <strong>Statement of Profit or Loss &amp; OCI</strong> (performance for the year), the <strong>Statement of Changes in Equity</strong> (how equity moved), and the <strong>Statement of Cash Flows</strong> (where cash came from and went). Each face line carries its IAS/IFRS reference as a clickable <strong>Note number</strong>, and key lines drill down to the underlying transactions.',
-                'Finally, the <strong>notes to the accounts</strong> set out the accounting policies and disclosures required by each standard. Every note is <strong>numbered and linked</strong> from the face of the statements and carries a detailed <strong>standard explanation</strong> (objective, scope, recognition, measurement and disclosure) together with the <strong>build-up figures and prior-year comparatives that reconcile to the face</strong> of the statements. A <strong>standards applicability index</strong> lists every IAS/IFRS, and a <strong>consolidated &amp; separate (individual)</strong> section shows the group consolidation breakup. The statements reconcile — assets equal equity plus liabilities, and opening cash plus the net cash flow equals closing cash.',
+                $useIfrs18
+                    ? 'Primary statements follow <strong>IFRS 18</strong> (early applied for FY' . $d['curYear'] . '): the <strong>Statement of Financial Position</strong>, the <strong>Statement of Profit or Loss</strong> with operating / investing / financing / income taxes / discontinued-operations categories and the three mandatory subtotals, the <strong>Statement of OCI</strong>, the <strong>Statement of Changes in Equity</strong>, and the <strong>Statement of Cash Flows</strong> (IAS 7 as amended). Each face line carries its IAS/IFRS reference as a clickable <strong>Note number</strong>.'
+                    : 'It then presents the four <strong>primary IFRS statements</strong> with the prior year alongside for comparison: the <strong>Statement of Financial Position</strong>, the <strong>Statement of Profit or Loss &amp; OCI</strong>, the <strong>Statement of Changes in Equity</strong>, and the <strong>Statement of Cash Flows</strong>. Each face line carries its IAS/IFRS reference as a clickable <strong>Note number</strong>, and key lines drill down to the underlying transactions.',
+                'Finally, the <strong>notes to the accounts</strong> set out the accounting policies and disclosures required by each standard. Every note is <strong>numbered and linked</strong> from the face of the statements. A <strong>standards applicability index</strong> lists every IAS/IFRS' . ($useIfrs18 ? ' (IFRS 18 Applied (early); IAS 1 Superseded)' : '') . ', and a <strong>consolidated &amp; separate (individual)</strong> section shows the group consolidation breakup.',
             ))
             . '</div>'
             . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">1 · Independent Auditor\'s Report</h4>' . $audit . '</section>'
-            . '<section class="epc-aud-sec"><a id="audit-statements"></a><h4 style="color:#1d2740;">2 · Statement of Financial Position</h4>'
+            . '<section class="epc-aud-sec"><a id="audit-statements"></a><h4 style="color:#1d2740;">2 · Statement of Financial Position' . ($useIfrs18 ? ' <span style="font-size:12px;color:#0b6e99;">(IFRS 18)</span>' : '') . '</h4>'
             . '<p class="text-muted epc-no-print" style="font-size:11.5px;margin:0 0 4px;">Click an underlined line to drill to the underlying transactions; click a <strong>Note</strong> number to jump to the note.</p>'
             . epc_ext_ct_drill_js() . $sofp . '</section>'
-            . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">3 · Statement of Profit or Loss &amp; Other Comprehensive Income</h4>' . $sopl . '</section>'
-            . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">4 · Statement of Changes in Equity</h4>' . $soce . '</section>'
-            . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">5 · Statement of Cash Flows</h4>' . $scf . '</section>'
+            . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">3 · Statement of Profit or Loss' . ($useIfrs18 ? ' &amp; OCI <span style="font-size:12px;color:#0b6e99;">(IFRS 18 — five categories)</span>' : ' &amp; Other Comprehensive Income') . '</h4>' . $sopl . '</section>'
+            . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">4 · Statement of Changes in Equity' . ($useIfrs18 ? ' <span style="font-size:12px;color:#0b6e99;">(IFRS 18)</span>' : '') . '</h4>' . $soce . '</section>'
+            . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">5 · Statement of Cash Flows' . ($useIfrs18 ? ' <span style="font-size:12px;color:#0b6e99;">(IAS 7 / IFRS 18)</span>' : '') . '</h4>' . $scf . '</section>'
             . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">6 · Notes to the financial statements</h4>' . $notes . '</section>'
             . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">7 · Standards applicability index — every IAS/IFRS</h4>'
-            . '<p class="text-muted" style="font-size:11.5px;margin:0 0 6px;">Confirms full coverage of the framework: each standard is either applied (with the note/treatment) or marked not applicable with the reason.</p>'
+            . '<p class="text-muted" style="font-size:11.5px;margin:0 0 6px;">Confirms full coverage of the framework: each standard is either applied (with the note/treatment) or marked not applicable with the reason.'
+            . ($useIfrs18 ? ' For this pack IFRS 18 is <strong>Applied (early)</strong> and IAS 1 is <strong>Superseded</strong> for presentation and disclosure.' : '')
+            . '</p>'
             . $stdIndexTbl . '</section>'
             . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">8 · Consolidated &amp; separate (individual) financial statements</h4>' . $consol . '</section>'
             . '<section class="epc-aud-sec"><h4 style="color:#1d2740;">9 · Financial analysis &amp; commentary</h4>' . $analysis . '</section>'
@@ -3373,7 +3437,7 @@ if (!function_exists('epc_ext_b_audit')) {
         }, $body);
 
         return array(
-            'title' => $name . ' (ISA 700 · IFRS)',
+            'title' => $name . ($useIfrs18 ? ' (ISA 700 · IFRS 18)' : ' (ISA 700 · IFRS)'),
             'body' => $body,
             'summary' => array(
                 'Opinion' => array('val' => 'Unmodified (true & fair)', 'note' => 'ISA 700 — true & fair view', 'color' => '#1d6fb8'),
@@ -3417,13 +3481,21 @@ if (!function_exists('epc_ext_ifrs_explain')) {
     function epc_ext_ifrs_explain(): array
     {
         return array(
+            'IFRS 18' => array(
+                'objective' => 'Sets out presentation and disclosure requirements for general-purpose financial statements so that they provide useful structured summaries of an entity\'s assets, liabilities, equity, income, expenses and cash flows.',
+                'scope' => 'Replaces IAS 1 for presentation and disclosure. Applies to the complete set of financial statements: statement of financial position, statement of profit or loss, statement of comprehensive income, statement of changes in equity, statement of cash flows and notes.',
+                'recognition' => 'Requires classification of income and expenses in the statement of profit or loss into five categories — operating, investing, financing, income taxes and discontinued operations — and presentation of three mandatory subtotals: operating profit or loss; profit or loss before financing and income taxes; and profit or loss.',
+                'measurement' => 'IFRS 18 does not set measurement rules; measurement continues under the applicable IFRS Accounting Standards. Aggregation and disaggregation principles ensure material information is not obscured.',
+                'disclosure' => 'Management-defined performance measures (MPMs), if communicated publicly, must be disclosed in a single note with reconciliations. Capital, going concern, judgements and estimation uncertainty disclosures transferred from IAS 1 continue under IFRS 18.',
+                'paras' => 'IFRS 18.47–72 (categories & mandatory subtotals); IFRS 18.23–43 (useful structured summaries); IFRS 18.117–125 (MPMs); consequential amendments to IAS 7 and IAS 8.',
+            ),
             'IAS 1' => array(
-                'objective' => 'Prescribes the basis for presentation of general-purpose financial statements so they are comparable both with the entity’s own prior periods and with other entities.',
-                'scope' => 'Applies to all general-purpose financial statements prepared and presented under IFRS — the complete set being the statement of financial position, statement of profit or loss & OCI, statement of changes in equity, statement of cash flows and notes.',
-                'recognition' => 'Requires fair presentation and compliance with IFRS, going concern, the accrual basis, materiality and aggregation, no offsetting unless permitted, and consistency of presentation from period to period.',
-                'measurement' => 'IAS 1 does not set measurement rules itself; it requires the measurement bases used (historical cost, fair value, NRV, present value) to be disclosed in the material accounting-policy information.',
-                'disclosure' => 'Comparative information for the preceding period; current/non-current classification; the nature and amount of material items; judgements with the most significant effect; and sources of estimation uncertainty.',
-                'paras' => 'IAS 1.10–138 (esp. 15 fair presentation, 25 going concern, 27 accrual, 38 comparatives, 54/82 minimum line items, 122/125 judgements & estimates).',
+                'objective' => 'Previously prescribed the basis for presentation of general-purpose financial statements. For periods applying IFRS 18, IAS 1 is superseded for presentation and disclosure (remaining guidance moved to IFRS 18 / IAS 8).',
+                'scope' => 'Historical: complete set of financial statements under IFRS. Superseded by IFRS 18 for presentation and disclosure when IFRS 18 is applied (early or from 2027).',
+                'recognition' => 'Required fair presentation, going concern, accrual basis, materiality/aggregation, and consistency of presentation — now addressed by IFRS 18.',
+                'measurement' => 'IAS 1 did not set measurement rules; measurement bases remain disclosed in material accounting-policy information (IAS 8 / IFRS 18).',
+                'disclosure' => 'Comparatives, current/non-current classification, judgements and estimation uncertainty — carried forward under IFRS 18 when that standard is applied.',
+                'paras' => 'IAS 1.10–138 (historical). See IFRS 18 for current presentation and disclosure requirements.',
             ),
             'IAS 2' => array(
                 'objective' => 'Prescribes the accounting treatment for inventories, including the determination of cost and its subsequent recognition as an expense.',
@@ -7511,25 +7583,28 @@ if (!function_exists('epc_ext_audit_xlsx')) {
         $grossC = round($C['rev'] - $C['cogs'], 2); $grossP = round($P['rev'] - $P['cogs'], 2);
         $ebitC = round($grossC - $C['opex'] - $C['depr'], 2); $ebitP = round($grossP - $P['opex'] - $P['depr'], 2);
         // Title/labels only — row numbers stay fixed so live formulas elsewhere keep working.
-        $plTitle = epc_ext_ifrs18_applies($cyr)
-            ? 'Statement of Profit or Loss & Other Comprehensive Income (IFRS 18 — early applied)'
+        $xlsxIfrs18 = epc_ext_ifrs18_applies($cyr);
+        $plTitle = $xlsxIfrs18
+            ? 'Statement of Profit or Loss (IFRS 18 — five categories; early applied)'
             : 'Statement of Profit or Loss & Other Comprehensive Income';
-        $plOpLabel = epc_ext_ifrs18_applies($cyr) ? 'Operating profit' : 'Operating profit (EBIT)';
         $PL = array(
             array($plTitle, $cyL, $pyL, 'Note / source'),
-            array('Revenue', $fml('-' . $tbc(13), $C['rev']), $fml('-' . $tbp(13), $P['rev']), 'TB I-REV'),
-            array('Cost of sales', $fml('-' . $tbc(14), -$C['cogs']), $fml('-' . $tbp(14), -$P['cogs']), 'TB X-COGS'),
-            array('Gross profit', $fml('B2+B3', $grossC), $fml('C2+C3', $grossP), ''),
-            array('Operating & administrative expenses', $fml('-' . $tbc(15), -$C['opex']), $fml('-' . $tbp(15), -$P['opex']), 'TB X-OPEX'),
-            array('Depreciation & amortisation', $fml('-' . $tbc(16), -$C['depr']), $fml('-' . $tbp(16), -$P['depr']), 'TB X-DEP'),
-            array($plOpLabel, $fml('B4+B5+B6', $ebitC), $fml('C4+C5+C6', $ebitP), epc_ext_ifrs18_applies($cyr) ? 'IFRS 18 mandatory subtotal' : ''),
-            array('Finance costs', $fml('-' . $tbc(17), -$C['interest']), $fml('-' . $tbp(17), -$P['interest']), 'TB X-FIN'),
-            array('Profit before tax', $fml('B7+B8', $C['pbt']), $fml('C7+C8', $P['pbt']), ''),
-            array('Income tax expense', $fml('-' . $tbc(18), -$C['tax']), $fml('-' . $tbp(18), -$P['tax']), 'TB X-TAX'),
-            array('Profit for the year', $fml('B9+B10', $C['profit']), $fml('C9+C10', $P['profit']), 'row 11'),
+            array('Revenue', $fml('-' . $tbc(13), $C['rev']), $fml('-' . $tbp(13), $P['rev']), $xlsxIfrs18 ? 'Operating · TB I-REV' : 'TB I-REV'),
+            array('Cost of sales', $fml('-' . $tbc(14), -$C['cogs']), $fml('-' . $tbp(14), -$P['cogs']), $xlsxIfrs18 ? 'Operating · TB X-COGS' : 'TB X-COGS'),
+            array('Gross profit', $fml('B2+B3', $grossC), $fml('C2+C3', $grossP), $xlsxIfrs18 ? 'IFRS 18 additional subtotal' : ''),
+            array($xlsxIfrs18 ? 'Operating expenses' : 'Operating & administrative expenses', $fml('-' . $tbc(15), -$C['opex']), $fml('-' . $tbp(15), -$P['opex']), $xlsxIfrs18 ? 'Operating · TB X-OPEX' : 'TB X-OPEX'),
+            array('Depreciation & amortisation', $fml('-' . $tbc(16), -$C['depr']), $fml('-' . $tbp(16), -$P['depr']), $xlsxIfrs18 ? 'Operating · TB X-DEP' : 'TB X-DEP'),
+            array($xlsxIfrs18 ? 'Operating profit or loss' : 'Operating profit (EBIT)', $fml('B4+B5+B6', $ebitC), $fml('C4+C5+C6', $ebitP), $xlsxIfrs18 ? 'IFRS 18 mandatory subtotal' : ''),
+            array($xlsxIfrs18 ? 'Financing expenses (interest)' : 'Finance costs', $fml('-' . $tbc(17), -$C['interest']), $fml('-' . $tbp(17), -$P['interest']), $xlsxIfrs18 ? 'Financing · TB X-FIN' : 'TB X-FIN'),
+            array($xlsxIfrs18 ? 'Profit or loss before income taxes' : 'Profit before tax', $fml('B7+B8', $C['pbt']), $fml('C7+C8', $P['pbt']), $xlsxIfrs18 ? 'IFRS 18 additional subtotal' : ''),
+            array('Income tax expense', $fml('-' . $tbc(18), -$C['tax']), $fml('-' . $tbp(18), -$P['tax']), $xlsxIfrs18 ? 'Income taxes · TB X-TAX' : 'TB X-TAX'),
+            array($xlsxIfrs18 ? 'Profit or loss' : 'Profit for the year', $fml('B9+B10', $C['profit']), $fml('C9+C10', $P['profit']), $xlsxIfrs18 ? 'IFRS 18 mandatory subtotal' : 'row 11'),
             array('Other comprehensive income — revaluation/FV', $fml('-' . $tbc(10) . '+' . $tbp(10), $ociC), $num($ociP), 'Δ reserves'),
             array('Total comprehensive income', $fml('B11+B12', round($C['profit'] + $ociC, 2)), $fml('C11+C12', round($P['profit'] + $ociP, 2)), ''),
         );
+        if ($xlsxIfrs18) {
+            $PL[] = array('IFRS 18 note: investing category nil in this pack; profit before financing and income taxes equals operating profit or loss.', '', '', 'IFRS 18.69–71');
+        }
 
         // ---- Sheet 4: Cash Flows (indirect, formulas → TB / P&L) -----------
         $capex = round(($C['ppe'] - $P['ppe']) + $C['depr'], 2);
