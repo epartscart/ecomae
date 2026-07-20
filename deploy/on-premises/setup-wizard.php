@@ -2,23 +2,31 @@
 /**
  * ecomae ERP — Setup Wizard (CLI)
  *
- * Run after Docker services are up:
- *   docker compose exec app php /var/www/html/deploy/on-premises/setup-wizard.php
+ * Run after Docker services are up AND the license has been activated
+ * (activation installs core/dp_*.php + config.php — nothing below this point
+ * works without them):
+ *
+ *   docker compose exec app php deploy/on-premises/activate-license.php YOUR_KEY
+ *   docker compose exec app php deploy/on-premises/setup-wizard.php
  *
  * Performs:
- *   1. Database schema import
- *   2. Admin user creation
- *   3. Company profile setup
- *   4. Industry selection + module activation
- *   5. Initial data seeding
- *   6. License verification
+ *   1. Verifies the core engine + config.php are installed
+ *   2. Runs the platform's real, idempotent schema migrations
+ *      (epc-post-deploy-setup-all.php — the same script every ecomae.com
+ *      deploy runs; it creates the ERP/GL/CRM/etc. tables this app actually
+ *      reads and writes, not a placeholder schema)
+ *   3. Confirms license status
+ *   4. Points you to /cp/ to finish company + admin setup through the
+ *      product's own onboarding, so the first admin account and company
+ *      profile are created by the same code path every tenant uses —
+ *      not by this script guessing at table names.
  */
 
 if (!defined('_ASTEXE_')) define('_ASTEXE_', true);
 
 if (php_sapi_name() !== 'cli') {
-    echo "CLI only — run: docker compose exec app php /var/www/html/deploy/on-premises/setup-wizard.php\n";
-    exit(1);
+	echo "CLI only — run: docker compose exec app php /var/www/html/deploy/on-premises/setup-wizard.php\n";
+	exit(1);
 }
 
 set_time_limit(0);
@@ -28,163 +36,58 @@ echo "╔═══════════════════════�
 echo "║    ecomae ERP — Initial Setup Wizard     ║\n";
 echo "╚══════════════════════════════════════════╝\n\n";
 
-$dbHost = getenv('DB_HOST') ?: 'db';
-$dbPort = getenv('DB_PORT') ?: '3306';
-$dbName = getenv('DB_DATABASE') ?: 'ecomae_erp';
-$dbUser = getenv('DB_USERNAME') ?: 'ecomae';
-$dbPass = getenv('DB_PASSWORD') ?: '';
+$docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/var/www/html';
+$_SERVER['DOCUMENT_ROOT'] = $docRoot;
 $appUrl = getenv('APP_URL') ?: 'https://localhost';
 
-// Connect to database
-echo "[1/6] Connecting to database...\n";
-try {
-    $pdo = new PDO(
-        "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4",
-        $dbUser,
-        $dbPass,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-    echo "  OK — MySQL " . $pdo->query('SELECT VERSION()')->fetchColumn() . "\n";
-} catch (PDOException $e) {
-    echo "  FAILED: " . $e->getMessage() . "\n";
-    exit(1);
+// Step 1: core engine present?
+echo "[1/4] Checking core engine files...\n";
+$coreFiles = array('/config.php', '/core/dp_core.php', '/core/dp_content.php', '/core/dp_module.php', '/core/dp_template.php');
+$missing = array();
+foreach ($coreFiles as $f) {
+	if (!is_file($docRoot . $f)) {
+		$missing[] = $f;
+	}
+}
+if (!empty($missing)) {
+	echo "  MISSING: " . implode(', ', $missing) . "\n";
+	echo "  These are installed by license activation, not by this wizard.\n";
+	echo "  Run: docker compose exec app php deploy/on-premises/activate-license.php YOUR_KEY\n";
+	exit(1);
+}
+echo "  OK — core engine present\n";
+
+// Step 2: connect + run real schema migrations
+echo "\n[2/4] Running platform schema migrations...\n";
+$setupAllScript = $docRoot . '/epc-post-deploy-setup-all.php';
+if (!is_file($setupAllScript)) {
+	echo "  FAILED: {$setupAllScript} not found — was the app code cloned correctly?\n";
+	exit(1);
+}
+$exitCode = 0;
+passthru('php ' . escapeshellarg($setupAllScript), $exitCode);
+if ($exitCode !== 0) {
+	echo "\n  Some migration steps failed — see output above. Fix and re-run this wizard; it is safe to run repeatedly.\n";
 }
 
-// Import schema
-echo "\n[2/6] Importing database schema...\n";
-$schemaFile = __DIR__ . '/schema/ecomae_base_schema.sql';
-if (is_file($schemaFile)) {
-    $sql = file_get_contents($schemaFile);
-    $pdo->exec($sql);
-    echo "  OK — Schema imported\n";
-} else {
-    echo "  Schema file not found — creating minimal tables...\n";
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS epc_users (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(100) NOT NULL UNIQUE,
-            email VARCHAR(255) NOT NULL,
-            password_hash VARCHAR(255) NOT NULL,
-            role ENUM('admin','manager','user','readonly') DEFAULT 'user',
-            first_name VARCHAR(100) DEFAULT '',
-            last_name VARCHAR(100) DEFAULT '',
-            is_active TINYINT(1) DEFAULT 1,
-            last_login DATETIME NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-        CREATE TABLE IF NOT EXISTS epc_company_profile (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            company_name VARCHAR(255) NOT NULL,
-            trade_name VARCHAR(255) DEFAULT '',
-            industry VARCHAR(100) DEFAULT '',
-            country CHAR(2) DEFAULT 'AE',
-            currency CHAR(3) DEFAULT 'AED',
-            timezone VARCHAR(50) DEFAULT 'Asia/Dubai',
-            trn VARCHAR(50) DEFAULT '',
-            address TEXT,
-            phone VARCHAR(50) DEFAULT '',
-            email VARCHAR(255) DEFAULT '',
-            logo_url VARCHAR(500) DEFAULT '',
-            fiscal_year_start TINYINT DEFAULT 1,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-        CREATE TABLE IF NOT EXISTS epc_site_settings (
-            setting_key VARCHAR(100) PRIMARY KEY,
-            setting_value TEXT,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-        CREATE TABLE IF NOT EXISTS epc_modules (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            module_code VARCHAR(50) NOT NULL UNIQUE,
-            module_name VARCHAR(100) NOT NULL,
-            is_active TINYINT(1) DEFAULT 0,
-            activated_at DATETIME NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
-    echo "  OK — Minimal schema created\n";
-}
-
-// Admin user
-echo "\n[3/6] Creating admin user...\n";
-$adminUser = 'admin';
-$adminPass = bin2hex(random_bytes(8));
-$adminEmail = 'admin@' . parse_url($appUrl, PHP_URL_HOST);
-
-$existing = $pdo->query("SELECT COUNT(*) FROM epc_users WHERE username = 'admin'")->fetchColumn();
-if ($existing > 0) {
-    echo "  Admin user already exists — skipping\n";
-} else {
-    $hash = password_hash($adminPass, PASSWORD_BCRYPT, ['cost' => 12]);
-    $stmt = $pdo->prepare("INSERT INTO epc_users (username, email, password_hash, role, first_name) VALUES (?, ?, ?, 'admin', 'System')");
-    $stmt->execute([$adminUser, $adminEmail, $hash]);
-    echo "  Created: {$adminUser} / {$adminPass}\n";
-    echo "  ⚠️  SAVE THIS PASSWORD — it won't be shown again!\n";
-}
-
-// Company profile
-echo "\n[4/6] Setting up company profile...\n";
-$companyName = getenv('COMPANY_NAME') ?: 'My Company';
-$companyCountry = getenv('COMPANY_COUNTRY') ?: 'AE';
-$companyCurrency = getenv('COMPANY_CURRENCY') ?: 'AED';
-$companyTrn = getenv('COMPANY_TRN') ?: '';
-
-$existing = $pdo->query("SELECT COUNT(*) FROM epc_company_profile")->fetchColumn();
-if ($existing > 0) {
-    echo "  Company profile already exists — skipping\n";
-} else {
-    $stmt = $pdo->prepare("INSERT INTO epc_company_profile (company_name, country, currency, trn) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$companyName, $companyCountry, $companyCurrency, $companyTrn]);
-    echo "  Company: {$companyName} ({$companyCountry}, {$companyCurrency})\n";
-}
-
-// Modules
-echo "\n[5/6] Activating ERP modules...\n";
-$coreModules = [
-    'finance' => 'Finance & GL',
-    'inventory' => 'Inventory Management',
-    'sales' => 'Sales & Invoicing',
-    'procurement' => 'Procurement & PO',
-    'hr' => 'HR & Payroll',
-    'crm' => 'CRM & Contacts',
-    'reporting' => 'Reports & BI',
-    'compliance' => 'Compliance & Audit',
-];
-
-foreach ($coreModules as $code => $name) {
-    $stmt = $pdo->prepare("INSERT IGNORE INTO epc_modules (module_code, module_name, is_active, activated_at) VALUES (?, ?, 1, NOW())");
-    $stmt->execute([$code, $name]);
-}
-echo "  Activated " . count($coreModules) . " core modules\n";
-
-// Site settings
-echo "\n[6/6] Configuring site settings...\n";
-$settings = [
-    'app_url' => $appUrl,
-    'timezone' => getenv('TIMEZONE') ?: 'UTC',
-    'deployment_type' => 'on_premises',
-    'installed_at' => date('Y-m-d H:i:s'),
-    'version' => '1.0.0',
-];
-
-$stmt = $pdo->prepare("INSERT INTO epc_site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-foreach ($settings as $key => $value) {
-    $stmt->execute([$key, $value]);
-}
-echo "  OK — {$appUrl}\n";
-
-// License check
-echo "\n";
+// Step 3: license status
+echo "\n[3/4] Checking license...\n";
 require_once __DIR__ . '/epc_license_manager.php';
 $licInfo = epc_license_info();
 if ($licInfo['valid']) {
-    echo "License: ACTIVE ({$licInfo['tier']}, expires: {$licInfo['expires']})\n";
+	echo "  License: ACTIVE ({$licInfo['tier']}, expires: {$licInfo['expires']})\n";
 } else {
-    echo "License: NOT ACTIVATED — run: php activate-license.php YOUR_KEY\n";
+	echo "  License: NOT ACTIVE (status: {$licInfo['status']})\n";
+	echo "  Run: docker compose exec app php deploy/on-premises/activate-license.php YOUR_KEY\n";
 }
+
+// Step 4: hand off to the product's own onboarding
+echo "\n[4/4] Finish setup in the browser...\n";
+echo "  Open {$appUrl}/cp/ and complete company + first-admin onboarding there.\n";
+echo "  Using the product's own onboarding (instead of this script inserting\n";
+echo "  rows directly) keeps the company profile and admin account consistent\n";
+echo "  with every other ecomae tenant — including validation, password rules,\n";
+echo "  and the ERP module activation flow.\n";
 
 echo "\n";
 echo "╔══════════════════════════════════════════╗\n";
