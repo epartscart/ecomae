@@ -272,16 +272,6 @@ if (class_exists('DP_User')) {
 	}
 }
 $cpShortcutCatalog = epc_shortcuts_catalog_cp($base);
-if ($industryCode !== 'auto_parts' && !isset($cpShortcutCatalog['accessories'])) {
-	$cpShortcutCatalog['accessories'] = array(
-		'key' => 'accessories',
-		'label' => 'Accessories',
-		'icon' => 'fa fa-puzzle-piece',
-		'color' => '#7c3aed',
-		'url' => $base . '/shop/accessories',
-		'tone' => 'violet',
-	);
-}
 $cpShortcutDefaults = ($industryCode === 'auto_parts')
 	? array('orders', 'prices', 'multivendor', 'crosses', 'procurement', 'pos', 'erp', 'stock')
 	: array('orders', 'catalogue', 'prices', 'clients', 'accessories', 'erp', 'documents', 'settings');
@@ -324,27 +314,6 @@ $reminders = array(
 	array('n' => (int) $stats['returns_open'], 'label' => 'Open returns', 'url' => $base . '/shop/returns-manager'),
 );
 
-$navGroups = array(
-	'Commerce' => array(
-		array('label' => 'OMS', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl),
-		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl),
-		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices'),
-		array('label' => 'Clients', 'icon' => 'fa-users', 'url' => $clientsUrl),
-	),
-	'Operations' => array(
-		array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages'),
-		array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement'),
-		array('label' => 'Stock', 'icon' => 'fa-cubes', 'url' => $base . '/shop/logistics/stock'),
-		array('label' => 'POS', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal'),
-	),
-	'Finance' => array(
-		array('label' => 'ERP home', 'icon' => 'fa-dashboard', 'url' => $erpUrl . '&area=overview&tab=dashboard'),
-		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control'),
-		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl),
-		array('label' => 'Brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure'),
-	),
-);
-
 $kpiRows = array(
 	array('name' => 'Orders (7 days)', 'cur' => (float) $stats['orders_week'], 'prev' => (float) $stats['orders_prev_week'], 'goodUp' => true, 'money' => false),
 	array('name' => 'Orders today', 'cur' => (float) $stats['orders_today'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
@@ -357,7 +326,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720qafmt1';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpqa1';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -365,9 +334,11 @@ if (function_exists('epc_cp_shell_asset_href')) {
 	);
 }
 if (strpos($cssHref, '?') === false) {
-	$cssHref .= '?v=20260720qafmt1';
+	$cssHref .= '?v=20260720cpqa1';
 } elseif (strpos($cssHref, 'v=') === false) {
-	$cssHref .= '&v=20260720qafmt1';
+	$cssHref .= '&v=20260720cpqa1';
+} elseif (strpos($cssHref, '20260720qafmt1') !== false) {
+	$cssHref = str_replace('20260720qafmt1', '20260720cpqa1', $cssHref);
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -468,20 +439,11 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 					</ul>
 				</div>
 			</div>
-			<div class="cp-dash-port cp-dash-nav">
-				<h4><i class="fa fa-bars"></i> Navigation shortcuts</h4>
-				<div class="bd">
-					<?php foreach ($navGroups as $grp => $links) { ?>
-					<h5><?php echo epc_tcp_dash_h($grp); ?></h5>
-					<div class="cp-dash-mini-grid">
-						<?php foreach ($links as $l) { ?>
-						<a class="cp-dash-mini" href="<?php echo epc_tcp_dash_h($l['url']); ?>">
-							<span class="mi"><i class="fa <?php echo epc_tcp_dash_h($l['icon']); ?>"></i></span>
-							<span><?php echo epc_tcp_dash_h($l['label']); ?></span>
-						</a>
-						<?php } ?>
-					</div>
-					<?php } ?>
+			<div class="cp-dash-port">
+				<h4><i class="fa fa-pencil"></i> Customize shortcuts</h4>
+				<div class="bd" style="font-size:13px;color:#475569;line-height:1.5">
+					Use <strong>Edit shortcuts</strong> in Quick actions above — same graphical builder as ERP.
+					Toggle catalogue modules, add a custom URL, or reset to defaults. Changes save immediately.
 				</div>
 			</div>
 		</div>
