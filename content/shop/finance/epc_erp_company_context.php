@@ -236,22 +236,26 @@ if (!function_exists('epc_erp_company_picker_html')) {
         $h = static function (string $s): string {
             return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
         };
-        $out = '<div class="epc-erp-company-picker dropdown" style="display:inline-block;">';
-        $out .= '<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" title="Active company (legal entity)">';
+        $out = '<div class="epc-erp-company-picker dropdown" data-epc-company-picker="1">';
+        $out .= '<button type="button" class="btn btn-default btn-xs dropdown-toggle epc-erp-company-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Active company (legal entity)">';
         $out .= '<i class="fa fa-building"></i> <span class="epc-erp-company-name">' . $h($activeName) . '</span> <span class="caret"></span>';
         $out .= '</button>';
-        $out .= '<ul class="dropdown-menu dropdown-menu-right epc-erp-company-menu">';
+        // Menu is positioned fixed (see CSS + boot script) so flex toolbars never clip it.
+        $out .= '<ul class="dropdown-menu dropdown-menu-right epc-erp-company-menu" role="menu">';
         $out .= '<li class="dropdown-header">Company / legal entity</li>';
         foreach ($companies as $c) {
             $sel = (int) $c['id'] === $activeId;
             $url = epc_erp_company_switch_url((int) $c['id']);
             $meta = trim((string) ($c['currency_code'] ?? '') . ((string) ($c['country_code'] ?? '') !== '' ? ' · ' . (string) $c['country_code'] : ''));
-            $out .= '<li' . ($sel ? ' class="active"' : '') . '><a href="' . $h($url) . '">'
+            $out .= '<li' . ($sel ? ' class="active"' : '') . ' role="none"><a role="menuitem" href="' . $h($url) . '">'
                 . ($sel ? '<i class="fa fa-check"></i> ' : '<i class="fa fa-building-o"></i> ')
                 . '<strong>' . $h((string) $c['code']) . '</strong> · ' . $h((string) $c['name'])
-                . ' <span class="text-muted" style="font-size:11px;">' . $h($meta) . '</span></a></li>';
+                . ($meta !== '' ? ' <span class="text-muted epc-erp-company-meta">' . $h($meta) . '</span>' : '')
+                . '</a></li>';
         }
         $out .= '</ul></div>';
+        // Keep open menu fully visible above page chrome (toolbar flex clipping).
+        $out .= '<script>(function(){function place(p){var m=p.querySelector(".epc-erp-company-menu");var b=p.querySelector(".epc-erp-company-btn");if(!m||!b){return;}var r=b.getBoundingClientRect();m.style.position="fixed";m.style.top=Math.round(r.bottom+4)+"px";m.style.left="auto";m.style.right=Math.max(8,Math.round(window.innerWidth-r.right))+"px";m.style.zIndex="4000";}function bind(p){if(p.getAttribute("data-epc-bound")==="1"){return;}p.setAttribute("data-epc-bound","1");p.addEventListener("shown.bs.dropdown",function(){place(p);});window.addEventListener("resize",function(){if(p.classList.contains("open")){place(p);}});window.addEventListener("scroll",function(){if(p.classList.contains("open")){place(p);}},true);}document.querySelectorAll("[data-epc-company-picker]").forEach(bind);})();</script>';
         return $out;
     }
 }

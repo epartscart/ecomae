@@ -381,17 +381,24 @@ body.epc-erp-cp-shell {
 .epc-erp-content-toolbar {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
+	align-items: flex-start;
 	gap: 8px 14px;
 	padding: 8px 20px 7px;
 	background: #fff;
 	border-bottom: 1px solid #e2e8f0;
 	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+	overflow: visible;
+	position: relative;
+	z-index: 30;
 }
 
 .epc-erp-sidebar-toggle { display: none; }
 
-.epc-erp-content-toolbar-main { flex: 1; min-width: 200px; }
+.epc-erp-content-toolbar-main {
+	flex: 1;
+	min-width: 200px;
+	overflow: visible;
+}
 
 .epc-erp-content-actions {
 	display: flex;
@@ -399,9 +406,87 @@ body.epc-erp-cp-shell {
 	align-items: center;
 	gap: 6px;
 	margin-left: auto;
+	overflow: visible;
+	position: relative;
+	z-index: 40;
 }
 
-.epc-erp-content-header { margin: 0; }
+.epc-erp-content-header {
+	margin: 0;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	overflow: visible;
+}
+.epc-erp-content-header__main { flex: 1; min-width: 0; }
+
+/* Company / legal-entity picker — must never be clipped by toolbar flex */
+.epc-erp-company-scope {
+	position: relative;
+	z-index: 50;
+	flex: 0 0 auto;
+}
+.epc-erp-company-picker {
+	display: inline-block;
+	position: relative;
+	z-index: 50;
+}
+.epc-erp-company-btn {
+	max-width: min(280px, 42vw);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.epc-erp-company-menu {
+	z-index: 4000 !important;
+	min-width: 280px;
+	max-width: min(420px, calc(100vw - 16px));
+	max-height: min(50vh, 320px);
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding: 6px 0;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+	background: #fff !important;
+}
+.epc-erp-company-menu > .dropdown-header {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #64748b;
+	padding: 6px 14px 4px;
+}
+.epc-erp-company-menu > li > a {
+	display: block;
+	padding: 8px 14px;
+	font-size: 12.5px;
+	color: #0f172a !important;
+	white-space: normal;
+	line-height: 1.35;
+}
+.epc-erp-company-menu > li > a .fa {
+	width: 14px;
+	text-align: center;
+	margin-right: 4px;
+	color: #2563eb;
+}
+.epc-erp-company-menu > li.active > a,
+.epc-erp-company-menu > li.active > a:hover {
+	background: #eff6ff;
+	color: #1d4ed8 !important;
+	font-weight: 600;
+}
+.epc-erp-company-menu > li > a:hover {
+	background: #f8fafc;
+}
+.epc-erp-company-meta {
+	display: inline;
+	font-size: 11px !important;
+	color: #64748b !important;
+}
 
 .epc-erp-content-title {
 	margin: 0 0 4px;
@@ -1493,7 +1578,11 @@ table.table-epc tbody tr,
 }
 
 /* Page header: gradient icon badge + animated accent underline */
-.epc-erp-content-header { animation: epcErpFadeUp 0.35s var(--epc-erp-ease) both; }
+/* No transform animation on content-header — it clipped the company dropdown. */
+.epc-erp-content-header__main .epc-erp-breadcrumb,
+.epc-erp-content-header__main .epc-erp-content-title {
+	animation: epcErpFadeUp 0.35s var(--epc-erp-ease) both;
+}
 .epc-erp-content-title {
 	position: relative;
 	display: inline-flex;

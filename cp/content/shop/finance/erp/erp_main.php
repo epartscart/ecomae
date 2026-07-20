@@ -594,6 +594,11 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 					<div class="epc-erp-gs-results" id="epc_erp_gs_results" hidden></div>
 				</div>
 				<div class="epc-erp-content-actions">
+					<?php
+					if (function_exists('epc_erp_render_company_picker_toolbar')) {
+						epc_erp_render_company_picker_toolbar();
+					}
+					?>
 					<?php epc_erp_render_notifications_stub($db_link); ?>
 					<a class="btn btn-default btn-xs" href="<?php echo epc_erp_h(epc_erp_shell_append_query($guideUrl)); ?>"><i class="fa fa-book"></i> Guide</a>
 					<?php if (!empty($epc_erp_cp_links) && !$epc_erp_shell_mode): ?>
