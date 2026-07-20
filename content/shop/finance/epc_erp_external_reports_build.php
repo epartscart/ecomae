@@ -2552,8 +2552,8 @@ if (!function_exists('epc_ext_b_audit')) {
             $sopl .= $line('Income tax expense', -$cur['tax'], -$pri['tax'], 'IAS 12|Income tax');
             $sopl .= $line('Profit or loss', $cur['profit'], $pri['profit'], 'IFRS 18|Presentation of profit or loss', 'total');
             // —— Discontinued operations ——
-            $sopl .= $line('Discontinued operations category', '', '', 'IFRS 5|Held for sale & discontinued ops', 'head');
-            $sopl .= $line('Profit / (loss) from discontinued operations', 0, 0, 'IFRS 5|Held for sale & discontinued ops');
+            $sopl .= $line('Discontinued operations category', '', '', 'IFRS 5|Non-current assets held for sale & discontinued operations', 'head');
+            $sopl .= $line('Profit / (loss) from discontinued operations', 0, 0, 'IFRS 5|Non-current assets held for sale & discontinued operations');
             $sopl .= $tblClose;
             // OCI statement (still part of the complete set under IFRS 18)
             $sopl .= $tblOpen('Statement of Other Comprehensive Income — year ended 31 Dec (IFRS 18)');
