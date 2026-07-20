@@ -1191,7 +1191,7 @@ if ($epcCpFastTenant) {
 <!-- App scripts -->
 <?php
 // Always use PHP proxy — /cp/js/* often 404s behind nginx on tenants.
-$epcCpTopnavJsVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720cptopnav1';
+$epcCpTopnavJsVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720topnavmerge3';
 echo '<script src="/content/general_pages/epc_cp_topnav_js.php?v=' . htmlspecialchars($epcCpTopnavJsVer, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
 ?>
 <?php echo epc_cp_sidebar_collapse_script(); ?>
