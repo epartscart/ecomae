@@ -32,6 +32,8 @@ if (!function_exists('epc_erp_is_erp_only_context')) {
 }
 $epc_erp_is_erp_only = function_exists('epc_erp_is_erp_only_context') && epc_erp_is_erp_only_context();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_topbar_brand.php';
+$epcErpLoginBrand = epc_erp_topbar_brand_context();
 ?>
 <div class="epc-erp-portal-wrap">
 <?php if (!$logged_in): ?>
@@ -55,7 +57,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_
 	<div id="sign-in" class="epc-erp-login-panel epc-erp-login-panel--standalone epc-erp-login-panel--split">
 		<div class="row">
 			<div class="col-md-5 epc-erp-login-panel__brand">
-				<?php echo epc_ecomae_static_logo('login', array('show_title' => true, 'show_tagline' => true, 'aria_label' => 'ECOM AE')); ?>
+				<?php if (($epcErpLoginBrand['mode'] ?? '') === 'ecomae') {
+					echo epc_ecomae_static_logo('login', array('show_title' => true, 'show_tagline' => true, 'aria_label' => 'ECOM AE'));
+				} else {
+					echo '<div class="epc-erp-login-tenant-brand">'
+						. $epcErpLoginBrand['logo_html']
+						. '<strong class="epc-erp-login-tenant-brand__title">' . htmlspecialchars((string) $epcErpLoginBrand['title'], ENT_QUOTES, 'UTF-8') . '</strong>'
+						. '<span class="epc-erp-login-tenant-brand__tag">' . htmlspecialchars((string) $epcErpLoginBrand['tagline'], ENT_QUOTES, 'UTF-8') . '</span>'
+						. '</div>';
+				} ?>
 				<h1><i class="fa fa-line-chart"></i> ERP Finance</h1>
 				<p class="epc-erp-login-lead">
 					Department sign-in for finance, sales, logistics, purchase, HR, and operations.

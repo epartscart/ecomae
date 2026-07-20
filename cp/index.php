@@ -183,6 +183,29 @@ if ($epcCpAjaxRoute !== '' && isset($epcCpAjaxMap[$epcCpAjaxRoute])) {
 	}
 }
 
+// Full CP brochure replaces the shell — never eval inside desktop.php (timeout / empty 500).
+// Guests fall through to CMS auth (login). Logged-in admins get a direct render.
+if (
+	$epcCpAjaxRoute === 'control/cp_brochure'
+	&& function_exists('epc_cp_auth_gate_is_admin')
+	&& epc_cp_auth_gate_is_admin()
+) {
+	@set_time_limit(120);
+	@ini_set('memory_limit', '512M');
+	while (ob_get_level() > 0) {
+		@ob_end_clean();
+	}
+	$epcCpBackend = trim((string) $DP_Config->backend_dir, '/');
+	if ($epcCpBackend === '') {
+		$epcCpBackend = 'cp';
+	}
+	$epcCpBrochureFile = $_SERVER['DOCUMENT_ROOT'] . '/' . $epcCpBackend . '/content/control/epc_cp_brochure_page.php';
+	if (is_file($epcCpBrochureFile)) {
+		require $epcCpBrochureFile;
+		exit;
+	}
+}
+
 $isFrontMode = 0;
 if (function_exists('epc_cp_trace')) { epc_cp_trace('cp/index: before dp_core'); }
 require_once $_SERVER["DOCUMENT_ROOT"] . "/core/dp_helper.php";

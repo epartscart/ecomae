@@ -1,7 +1,7 @@
 /**
  * eParts Cart PWA — network-first with offline fallback (Phase 1).
  */
-const CACHE_NAME = 'epc-pwa-shell-v1';
+const CACHE_NAME = 'epc-pwa-shell-v2';
 const OFFLINE_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>' +
   '<meta name="viewport" content="width=device-width,initial-scale=1"/>' +
@@ -25,6 +25,10 @@ self.addEventListener('fetch', function (event) {
   }
   var url = new URL(event.request.url);
   if (url.origin !== self.location.origin) {
+    return;
+  }
+  // Control Panel has its own SW (/cp/sw.js) — never intercept /cp/* here.
+  if (url.pathname === '/cp' || url.pathname.indexOf('/cp/') === 0) {
     return;
   }
   event.respondWith(
