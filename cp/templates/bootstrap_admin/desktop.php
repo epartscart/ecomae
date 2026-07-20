@@ -887,6 +887,9 @@ function print_backend_button($button_params)
 <?php
 // Hidden logout form still needed by header actions when left rail is off.
 $admin_profile = DP_User::getAdminProfile();
+if (!is_array($admin_profile)) {
+	$admin_profile = array('name' => '', 'surname' => '');
+}
 ?>
 <form id="logout_form" method="POST" name="logout_form" style="display:none;">
 	<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
@@ -909,6 +912,10 @@ if (is_file($epcCpTopNavFile)) {
             <div class="stats-label text-color epc-cp-user-card__body">
 				<?php
 				//Блок слева - профиль пользователя и форма выхода (kept for legacy; hidden in topnav-only)
+				$epcCpAdminName = trim((string) ($admin_profile['name'] ?? '') . ' ' . (string) ($admin_profile['surname'] ?? ''));
+				if ($epcCpAdminName === '') {
+					$epcCpAdminName = 'Admin';
+				}
 				?>
 				<form id="logout_form_sidebar" method="POST" name="logout_form_sidebar" onsubmit="document.forms['logout_form'].submit(); return false;">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
@@ -916,7 +923,7 @@ if (is_file($epcCpTopNavFile)) {
 				</form>
 				<div class="epc-cp-user-card__row">
 					<div class="epc-cp-user-card__identity">
-						<span class="font-extra-bold font-uppercase epc-cp-user-card__name"><?php echo $admin_profile["name"]." ".$admin_profile["surname"]; ?></span>
+						<span class="font-extra-bold font-uppercase epc-cp-user-card__name"><?php echo htmlspecialchars($epcCpAdminName, ENT_QUOTES, 'UTF-8'); ?></span>
 						<small class="text-muted epc-cp-user-card__role"><?php echo translate_str_by_id(3452); ?></small>
 					</div>
 					<button type="button" class="epc-cp-user-card__quit" onclick="document.forms['logout_form'].submit();"><?php echo translate_str_by_id(3996); ?></button>
@@ -960,11 +967,18 @@ if (is_file($epcCpTopNavFile)) {
 				?>
 			</div>
 			<?php
-			require( $_SERVER['DOCUMENT_ROOT'].'/'.$DP_Config->backend_dir.'/modules/lang/module.php' );
+			$epcLangMod = $_SERVER['DOCUMENT_ROOT'].'/'.$DP_Config->backend_dir.'/modules/lang/module.php';
+			if (is_file($epcLangMod) && empty($GLOBALS['epc_cp_topnav_only'])) {
+				require $epcLangMod;
+			}
 			?>
 		</div>
 		
+		<?php if (empty($GLOBALS['epc_cp_topnav_only'])) { ?>
 		<docpart type="module" name="left_cp_menu" />
+		<?php } else { ?>
+		<!-- left_cp_menu skipped: topnav-only -->
+		<?php } ?>
     </div>
 </aside>
 

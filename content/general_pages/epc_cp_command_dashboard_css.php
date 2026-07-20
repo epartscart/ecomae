@@ -1,23 +1,23 @@
 <?php
 /**
- * Serve epc_erp_shell_nav.js when nginx 404s /cp/js/*.js on ecomae.
+ * Serve CP command dashboard CSS when nginx 404s /cp/templates/.../*.css.
  */
 declare(strict_types=1);
 
 $root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
-$path = $root . '/cp/js/epc_erp_shell_nav.js';
+$path = $root . '/cp/templates/bootstrap_admin/css/epc_cp_command_dashboard.css';
 if (!is_file($path)) {
 	http_response_code(404);
 	header('Content-Type: text/plain; charset=utf-8');
-	echo 'epc_erp_shell_nav.js missing';
+	echo 'epc_cp_command_dashboard.css missing';
 	exit;
 }
 
-$ver = '20260720cptopnav3';
+$ver = '20260720cpdash1';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 
-header('Content-Type: application/javascript; charset=utf-8');
+header('Content-Type: text/css; charset=utf-8');
 header('Cache-Control: public, max-age=604800, immutable');
 header('ETag: ' . $etag);
 
