@@ -1269,22 +1269,10 @@ function epc_erp_render_content_header($erpUrl, $activeArea, $activeTab, $from, 
 		$tabIcon = 'fa-check-square';
 	}
 	$dashUrl = epc_erp_h(epc_erp_tab_url($erpUrl, 'dashboard', $from, $to, 'overview'));
+	// Company picker is rendered in the toolbar actions (erp_main) so the
+	// dropdown is never clipped by the flex header / title stack.
 	echo '<div class="epc-erp-content-header">';
-	// Company (legal-entity) picker, top-right of the header.
-	$companyPicker = '';
-	if (isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
-		if (!function_exists('epc_erp_company_picker_html')) {
-			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
-		}
-		try {
-			$companyPicker = epc_erp_company_picker_html($GLOBALS['db_link']);
-		} catch (Throwable $e) {
-			$companyPicker = '';
-		}
-	}
-	if ($companyPicker !== '') {
-		echo '<div class="epc-erp-company-scope" style="float:right;margin-top:2px;">' . $companyPicker . '</div>';
-	}
+	echo '<div class="epc-erp-content-header__main">';
 	echo '<nav class="epc-erp-breadcrumb" aria-label="Breadcrumb">';
 	echo '<a href="' . $dashUrl . '"' . epc_erp_nav_shell_link_attrs() . '>ERP</a>';
 	echo ' <span class="sep">/</span> <span>' . epc_erp_h($areaLabel) . '</span>';
@@ -1295,7 +1283,29 @@ function epc_erp_render_content_header($erpUrl, $activeArea, $activeTab, $from, 
 	if ($areaDesc !== '') {
 		echo '<p class="epc-erp-content-subtitle">' . epc_erp_h($areaDesc) . '</p>';
 	}
-	echo '</div>';
+	echo '</div></div>';
+}
+
+/**
+ * Render the company / legal-entity picker for the ERP toolbar actions slot.
+ */
+function epc_erp_render_company_picker_toolbar(): void
+{
+	if (!isset($GLOBALS['db_link']) || !($GLOBALS['db_link'] instanceof PDO)) {
+		return;
+	}
+	if (!function_exists('epc_erp_company_picker_html')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+	}
+	try {
+		$html = epc_erp_company_picker_html($GLOBALS['db_link']);
+	} catch (Throwable $e) {
+		$html = '';
+	}
+	if ($html === '') {
+		return;
+	}
+	echo '<div class="epc-erp-company-scope">' . $html . '</div>';
 }
 
 /**
