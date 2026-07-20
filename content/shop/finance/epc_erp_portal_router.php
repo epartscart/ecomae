@@ -139,13 +139,23 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 	$isErpOnly = function_exists('epc_erp_is_erp_only_context') && epc_erp_is_erp_only_context();
 	$cssVer = '20260530a';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_topbar_brand.php';
+	$epcErpTopBrand = epc_erp_topbar_brand_context();
+	$pageBrandTitle = (string) ($epcErpTopBrand['title'] ?? ($brand['product_name'] ?? 'ERP'));
 	?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title><?php echo htmlspecialchars($pageTitle . ' — ' . ($brand['product_name'] ?? 'ERP'), ENT_QUOTES, 'UTF-8'); ?></title>
+	<title><?php echo htmlspecialchars($pageTitle . ' — ' . $pageBrandTitle, ENT_QUOTES, 'UTF-8'); ?></title>
+	<?php
+	if (!empty($epcErpTopBrand['logo_url'])) {
+		$fav = (string) $epcErpTopBrand['logo_url'];
+		$favType = (substr($fav, -4) === '.svg' || strpos($fav, 'logo_svg') !== false) ? 'image/svg+xml' : 'image/png';
+		echo '<link rel="icon" type="' . htmlspecialchars($favType, ENT_QUOTES, 'UTF-8') . '" href="' . htmlspecialchars($fav, ENT_QUOTES, 'UTF-8') . '" />' . "\n";
+	}
+	?>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" />
 	<?php
@@ -181,18 +191,16 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 	// login and home. Kept inline (always served via PHP) so the sign-in page
 	// looks right regardless of static-asset availability.
 	require $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_portal_inline_css.php';
-	epc_ecomae_hub_logo_enqueue();
+	if (($epcErpTopBrand['mode'] ?? '') === 'ecomae') {
+		epc_ecomae_hub_logo_enqueue();
+	}
 	?>
 </head>
 <body class="<?php echo htmlspecialchars($bodyClass, ENT_QUOTES, 'UTF-8'); ?>">
 <header class="epc-erp-topbar">
 	<div class="epc-erp-topbar__inner">
-		<a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="<?php echo $erpBase; ?>">
-			<?php echo epc_ecomae_static_logo('compact', array('show_title' => false, 'show_tagline' => false, 'aria_label' => 'ECOM AE')); ?>
-			<span class="epc-erp-topbar__brand-text">
-				<strong><?php echo htmlspecialchars((string) ($brand['product_name'] ?? 'ERP'), ENT_QUOTES, 'UTF-8'); ?></strong>
-				<small><?php echo htmlspecialchars((string) ($brand['hub_tagline'] ?? 'Finance & operations'), ENT_QUOTES, 'UTF-8'); ?></small>
-			</span>
+		<a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="<?php echo $erpBase; ?>" aria-label="<?php echo htmlspecialchars((string) ($epcErpTopBrand['aria'] ?? 'ERP'), ENT_QUOTES, 'UTF-8'); ?>">
+			<?php echo epc_erp_topbar_brand_markup(); ?>
 		</a>
 		<nav class="epc-erp-topbar__nav">
 			<a href="<?php echo $erpBase; ?>"><i class="fa fa-dashboard"></i> ERP</a>

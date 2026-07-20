@@ -36,18 +36,14 @@ if ($isPlatformErp) {
 		? trim((string) $brand['company_name']) . ' ERP'
 		: 'Client ERP';
 }
-$headerTitle = trim((string) ($brand['company_name'] ?? ''));
-if ($isPlatformErp) {
-	$headerTitle = 'ECOM AE Operations';
-}
-if ($headerTitle === '') {
-	$headerTitle = trim((string) ($brand['product_name'] ?? 'ERP Suite'));
-}
-$hubTagline = $isPlatformErp ? 'Platform ERP · ecomae registry' : (string) ($brand['hub_tagline'] ?? 'Finance & operations');
 $tenantHubUrl = '/' . $backend . '/shop/tenant_hub/tenant_hub';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professional_shell.php';
 $cssVer = epc_cp_shell_css_version();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_topbar_brand.php';
+$epcErpTopBrand = epc_erp_topbar_brand_context();
+$headerTitle = (string) ($epcErpTopBrand['title'] ?? 'ERP Suite');
+$hubTagline = (string) ($epcErpTopBrand['tagline'] ?? 'Finance & operations');
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translate.php';
 ?>
 <!DOCTYPE html>
@@ -57,8 +53,14 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php echo htmlspecialchars((string) ($DP_Content->value ?? 'ERP Suite'), ENT_QUOTES, 'UTF-8'); ?> — <?php echo htmlspecialchars((string) ($brand['product_name'] ?? 'ERP'), ENT_QUOTES, 'UTF-8'); ?></title>
 <?php
-	// ECOM AE brand mark as tab icon on the operator/platform ERP shell.
-	if ($platformHost || $isPlatformErp || $isPlatformOperator) {
+	// Favicon follows ERP top-bar brand (tenant logo or ECOM AE).
+	if (!empty($epcErpTopBrand['logo_url'])) {
+		$epcErpFaviconUrl = (string) $epcErpTopBrand['logo_url'];
+		$epcFavType = (substr($epcErpFaviconUrl, -4) === '.svg' || strpos($epcErpFaviconUrl, 'logo_svg') !== false)
+			? 'image/svg+xml' : 'image/png';
+		echo "\t<link rel=\"icon\" type=\"" . htmlspecialchars($epcFavType, ENT_QUOTES, 'UTF-8') . "\" href=\"" . htmlspecialchars($epcErpFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
+		echo "\t<link rel=\"apple-touch-icon\" href=\"" . htmlspecialchars($epcErpFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
+	} elseif ($platformHost || $isPlatformErp || $isPlatformOperator) {
 		$epcErpFaviconUrl = '/content/general_pages/epc_ecomae_logo_svg.php';
 		echo "\t<link rel=\"icon\" type=\"image/svg+xml\" href=\"" . htmlspecialchars($epcErpFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
 		echo "\t<link rel=\"apple-touch-icon\" href=\"" . htmlspecialchars($epcErpFaviconUrl, ENT_QUOTES, 'UTF-8') . "\" />\n";
@@ -88,7 +90,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 	<?php if (function_exists('epc_erp_voice_command_js_script_tag')) { echo epc_erp_voice_command_js_script_tag(); } ?>
 	<?php if (function_exists('epc_erp_ai_assistant_js_script_tag')) { echo epc_erp_ai_assistant_js_script_tag(); } ?>
 	<?php if (function_exists('epc_erp_seed_form_js_script_tag')) { echo epc_erp_seed_form_js_script_tag(); } ?>
-	<?php epc_ecomae_hub_logo_enqueue(); ?>
+	<?php if (($epcErpTopBrand['mode'] ?? '') === 'ecomae') { epc_ecomae_hub_logo_enqueue(); } ?>
 	<docpart type="head" name="head" />
 <?php
 	// PWA: make the ERP shell installable on Android + iOS.
@@ -105,12 +107,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 <body class="epc-erp-standalone epc-erp-cp-shell epc-cp-shell <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
 <header class="epc-erp-topbar epc-erp-topbar--cp">
 	<div class="epc-erp-topbar__inner">
-		<a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="<?php echo $erpHome; ?>">
-			<?php echo epc_ecomae_static_logo('compact', array('show_title' => false, 'show_tagline' => false, 'aria_label' => 'ECOM AE')); ?>
-			<span class="epc-erp-topbar__brand-text">
-				<strong><?php echo htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8'); ?></strong>
-				<small><?php echo htmlspecialchars($hubTagline, ENT_QUOTES, 'UTF-8'); ?></small>
-			</span>
+		<a class="epc-erp-topbar__brand epc-erp-topbar__brand--hub" href="<?php echo $erpHome; ?>" aria-label="<?php echo htmlspecialchars((string) ($epcErpTopBrand['aria'] ?? $headerTitle), ENT_QUOTES, 'UTF-8'); ?>">
+			<?php echo epc_erp_topbar_brand_markup(); ?>
 		</a>
 		<nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact">
 			<a href="<?php echo htmlspecialchars($guideUrl, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-book"></i> Guide</a>
