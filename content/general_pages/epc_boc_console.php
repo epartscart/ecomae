@@ -133,6 +133,9 @@ body.epc-cp-shell .content .epc-boc__rail,.epc-cp-shell .epc-boc__rail{flex:0 0 
 .epc-boc__legend b{font-variant-numeric:tabular-nums;}
 .epc-boc__dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
 .epc-boc__dot.g{background:var(--boc-green);} .epc-boc__dot.a{background:var(--boc-amber);} .epc-boc__dot.r{background:var(--boc-red);}
+.epc-boc__qa-port{background:#fff;border:1px solid var(--boc-card-line);border-radius:14px;padding:16px 18px;margin:0 0 18px;box-shadow:0 1px 2px rgba(13,22,38,.04);animation:bocRise .55s ease .05s both;}
+.epc-boc__qa-port .eds-wrap{margin:0;}
+.epc-boc__qa-port .eds-head h4{font-size:14px;}
 .epc-boc__ops{background:#fff;border:1px solid var(--boc-card-line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(13,22,38,.04);}
 .epc-boc__ops h3{margin:0 0 12px;font-size:13px;font-weight:750;color:var(--boc-ink-1);display:flex;align-items:center;gap:8px;}
 .epc-boc__ops h3 .fa{color:var(--boc-accent);}
@@ -325,8 +328,75 @@ if (!function_exists('epc_boc_render_command_center')) {
         echo '<div class="epc-boc__tile epc-boc__tile--red"><div class="epc-boc__tile-ico"><i class="fa fa-bolt"></i></div><div class="epc-boc__tile-label">Critical</div><div class="epc-boc__tile-val" data-boc-count="' . $critical . '">0</div><div class="epc-boc__tile-bar" style="--boc-bar:' . $bar($critical, (int) $summary['total']) . '%"><i></i></div></div>';
         echo '</div>';
 
-        // Fleet pulse + quick ops
-        echo '<div class="epc-boc__cc-row">';
+        // Graphical Quick actions (same Edit shortcuts builder as ERP / tenant CP)
+        $bocShortcutsHtml = '';
+        $shortcutUi = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_dash_shortcuts_ui.php';
+        $shortcutLib = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+        $helpersLib = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_helpers.php';
+        if (is_file($shortcutLib) && is_file($shortcutUi)) {
+            require_once $shortcutLib;
+            require_once $shortcutUi;
+            if (is_file($helpersLib)) {
+                require_once $helpersLib;
+            }
+            $bocAjax = $base . '/content/shop/finance/erp/ajax_erp.php';
+            if (function_exists('epc_erp_configure_portal_urls')) {
+                $bocUrls = epc_erp_configure_portal_urls('cp');
+                if (!empty($bocUrls['erpAjaxUrl'])) {
+                    $bocAjax = (string) $bocUrls['erpAjaxUrl'];
+                }
+            }
+            $bocCsrf = '';
+            if (class_exists('DP_User') && method_exists('DP_User', 'getAdminSession')) {
+                $bocSess = DP_User::getAdminSession();
+                if (is_array($bocSess) && !empty($bocSess['csrf_guard_key'])) {
+                    $bocCsrf = (string) $bocSess['csrf_guard_key'];
+                }
+            }
+            $bocCatalog = function_exists('epc_shortcuts_catalog_boc')
+                ? epc_shortcuts_catalog_boc($base)
+                : array();
+            $bocDefaults = array('tenant_hub', 'health', 'channels', 'governance', 'audit', 'industry', 'onboard', 'brochure');
+            $bocUid = function_exists('epc_shortcuts_user_id') ? epc_shortcuts_user_id() : 0;
+            $bocItems = array();
+            if ($bocUid > 0 && function_exists('epc_shortcuts_seed_defaults')) {
+                epc_shortcuts_seed_defaults($db, $bocUid, 'cp', $bocDefaults, $bocCatalog);
+                $bocItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db, $bocUid, 'cp'));
+            } else {
+                foreach ($bocDefaults as $dk) {
+                    if (!isset($bocCatalog[$dk])) {
+                        continue;
+                    }
+                    $c = $bocCatalog[$dk];
+                    $bocItems[] = array(
+                        'id' => 0,
+                        'key' => $dk,
+                        'label' => $c['label'],
+                        'icon' => preg_replace('/^fa\s+/', '', (string) $c['icon']),
+                        'color' => $c['color'],
+                        'url' => $c['url'],
+                        'tone' => $c['tone'] ?? 'red',
+                    );
+                }
+            }
+            if (function_exists('epc_dash_shortcuts_render')) {
+                $bocShortcutsHtml = epc_dash_shortcuts_render(array(
+                    'surface' => 'cp',
+                    'variant' => 'cp',
+                    'title' => 'Quick actions',
+                    'ajax_url' => $bocAjax,
+                    'csrf' => $bocCsrf,
+                    'catalog' => $bocCatalog,
+                    'items' => $bocItems,
+                ));
+            }
+        }
+        if ($bocShortcutsHtml !== '') {
+            echo '<div class="epc-boc__qa-port">' . $bocShortcutsHtml . '</div>';
+        }
+
+        // Fleet pulse
+        echo '<div class="epc-boc__cc-row" style="grid-template-columns:1fr;margin-bottom:18px">';
         echo '<div class="epc-boc__pulse">';
         echo '<div class="epc-boc__ring" style="--pct:' . $healthPct . '"><div class="epc-boc__ring-inner"><strong>' . $healthPct . '%</strong><span>Healthy</span></div></div>';
         echo '<div class="epc-boc__pulse-meta"><h3>Fleet health pulse</h3>';
@@ -337,20 +407,7 @@ if (!function_exists('epc_boc_render_command_center')) {
         echo '<span><i class="epc-boc__dot a"></i>Attention <b>' . $attention . '</b></span>';
         echo '<span><i class="epc-boc__dot r"></i>Critical <b>' . $critical . '</b></span>';
         echo '</div></div></div>';
-
-        echo '<div class="epc-boc__ops"><h3><i class="fa fa-bolt"></i> Operator shortcuts</h3><div class="epc-boc__ops-grid">';
-        $ops = array(
-            array('Tenant hub', 'Onboard & features', 'fa-sitemap', $base . '/shop/tenant_hub/tenant_hub'),
-            array('Health checkup', 'SSL · ERP · backups', 'fa-stethoscope', $base . '/control/portal/epc_platform_health_checkup'),
-            array('Channels & OMS', 'Fleet order surfaces', 'fa-exchange', $base . '/control/portal/epc_boc_channel_control'),
-            array('Governance', 'Cross-tenant rules', 'fa-gavel', $base . '/control/portal/epc_platform_governance'),
-            array('Audit log', 'Who did what', 'fa-history', $base . '/control/portal/epc_boc_audit_log'),
-            array('Industry packs', 'Deploy templates', 'fa-industry', $base . '/control/portal/industry_settings'),
-        );
-        foreach ($ops as $op) {
-            echo '<a href="' . $h($op[3]) . '"><i class="fa ' . $h($op[2]) . '"></i><span>' . $h($op[0]) . '<small>' . $h($op[1]) . '</small></span></a>';
-        }
-        echo '</div></div></div>';
+        echo '</div>';
 
         // Fleet cards by type
         $typeOrder = array('commerce', 'erp_only', 'demo');
