@@ -308,14 +308,20 @@ function epc_erp_dashboard_profile_meta(PDO $db, int $userId = 0): array
 {
 	$cfg = epc_erp_dashboard_profiles_config();
 	$key = epc_erp_dashboard_resolve_profile($db, $userId);
-	// Admins may preview another centre: ?dash_profile=sales
+	// Preview another centre: ?dash_profile=sales
+	// Allowed for full admins, or the public Super ERP demo mirror (no login).
 	$preview = strtolower(trim((string) ($_GET['dash_profile'] ?? '')));
-	if ($preview !== '' && isset($cfg[$preview]) && function_exists('epc_erp_staff_user_is_full_admin')) {
-		try {
-			if (epc_erp_staff_user_is_full_admin($db, $userId)) {
-				$key = $preview;
+	if ($preview !== '' && isset($cfg[$preview])) {
+		$allowPreview = !empty($GLOBALS['epc_erp_demo_mirror']);
+		if (!$allowPreview && function_exists('epc_erp_staff_user_is_full_admin')) {
+			try {
+				$allowPreview = (bool) epc_erp_staff_user_is_full_admin($db, $userId);
+			} catch (Throwable $e) {
+				$allowPreview = false;
 			}
-		} catch (Throwable $e) {
+		}
+		if ($allowPreview) {
+			$key = $preview;
 		}
 	}
 	$meta = $cfg[$key] ?? $cfg['finance'];
