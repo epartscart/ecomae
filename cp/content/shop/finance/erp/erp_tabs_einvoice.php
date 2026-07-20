@@ -17,8 +17,16 @@ $seller = epc_einvoice_seller_profile($db_link);
 $const = epc_einvoice_constants();
 $flags = epc_einvoice_transaction_flags();
 $taxCats = epc_einvoice_tax_categories();
+$journey = epc_einvoice_journey_steps($db_link);
+$einvLegislation = epc_einvoice_legislation_items($db_link);
+$ftaCache = function_exists('epc_uae_fta_get_cached_legislation')
+	? epc_uae_fta_get_cached_legislation($db_link)
+	: array();
+$legislationUrl = function_exists('epc_uae_fta_legislation_url')
+	? epc_uae_fta_legislation_url()
+	: 'https://tax.gov.ae/en/legislation.aspx';
 
-$einvBase = epc_erp_tab_url($erpUrl, 'einvoice', $date_from_str, $date_to_str);
+$einvBase = epc_erp_tab_url($erpUrl, 'einvoice', $date_from_str, $date_to_str, $erpArea ?? 'tax');
 if (!isset($DP_Config) && isset($GLOBALS['DP_Config'])) {
 	$DP_Config = $GLOBALS['DP_Config'];
 }
@@ -29,60 +37,232 @@ function epc_einv_url($base, $section, $extra = '')
 	$u = $base . '&einv_section=' . rawurlencode($section);
 	return $extra !== '' ? ($u . '&' . $extra) : $u;
 }
+$activeStepKey = 'learn';
+foreach ($journey as $js) {
+	if ($einvSection === $js['section'] || ($einvSection === 'view' && $js['section'] === 'invoices') || ($einvSection === 'dashboard' && $js['key'] === 'learn')) {
+		if ($einvSection === 'dashboard') {
+			break;
+		}
+		$activeStepKey = $js['key'];
+		break;
+	}
+}
+if ($einvSection === 'dashboard') {
+	foreach ($journey as $js) {
+		if (empty($js['done'])) {
+			$activeStepKey = $js['key'];
+			break;
+		}
+		$activeStepKey = $js['key'];
+	}
+}
 ?>
 
+<style>
+.epc-einv-hero{position:relative;overflow:hidden;border-radius:14px;padding:22px 24px 18px;margin:0 0 18px;background:linear-gradient(125deg,#0a0a0a 0%,#1c1917 42%,#7f1d1d 100%);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.14);}
+.epc-einv-hero::after{content:"";position:absolute;right:-40px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(248,113,113,.35),transparent 68%);pointer-events:none;}
+.epc-einv-hero>*{position:relative;z-index:1;}
+.epc-einv-hero h2{margin:0 0 6px;font-size:22px;font-weight:800;color:#fff!important;letter-spacing:.01em;}
+.epc-einv-hero p{margin:0;max-width:720px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.88);}
+.epc-einv-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.epc-einv-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;}
+.epc-einv-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 18px;}
+.epc-einv-actions .btn-fetch{background:#0a0a0a;border-color:#0a0a0a;color:#fff;font-weight:700;}
+.epc-einv-actions .btn-fetch:hover{background:#dc2626;border-color:#b91c1c;color:#fff;}
+.epc-einv-actions .btn-fetch.is-busy{opacity:.7;pointer-events:none;}
+.epc-einv-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 20px;}
+@media(max-width:1100px){.epc-einv-steps{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:640px){.epc-einv-steps{grid-template-columns:1fr 1fr;}}
+.epc-einv-step{display:flex;flex-direction:column;gap:8px;padding:14px 12px 12px;border-radius:12px;background:#fff;border:1px solid #e5e5e5;text-decoration:none!important;color:#0a0a0a!important;min-height:128px;box-shadow:0 4px 14px rgba(0,0,0,.04);transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease;position:relative;}
+.epc-einv-step:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.08);border-color:#fca5a5;color:#0a0a0a!important;}
+.epc-einv-step.is-done{border-color:#86efac;background:linear-gradient(180deg,#f0fdf4,#fff);}
+.epc-einv-step.is-current{border-color:#dc2626;box-shadow:0 0 0 2px rgba(220,38,38,.18),0 10px 22px rgba(0,0,0,.08);}
+.epc-einv-step__n{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#0a0a0a;color:#fff;}
+.epc-einv-step.is-done .epc-einv-step__n{background:#16a34a;}
+.epc-einv-step.is-current .epc-einv-step__n{background:#dc2626;}
+.epc-einv-step__ico{position:absolute;top:12px;right:12px;font-size:18px;color:#a3a3a3;}
+.epc-einv-step.is-done .epc-einv-step__ico{color:#16a34a;}
+.epc-einv-step.is-current .epc-einv-step__ico{color:#dc2626;}
+.epc-einv-step__t{font-size:13px;font-weight:800;line-height:1.25;margin-top:2px;}
+.epc-einv-step__b{font-size:11.5px;color:#737373;line-height:1.35;flex:1;}
+.epc-einv-step__cta{font-size:11px;font-weight:700;color:#dc2626;}
+.epc-einv-flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 4px;margin:0 0 20px;padding:16px;border-radius:12px;background:#fafafa;border:1px solid #e5e5e5;}
+.epc-einv-flow__node{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #e5e5e5;font-size:12px;font-weight:700;color:#0a0a0a;}
+.epc-einv-flow__node .fa{color:#dc2626;}
+.epc-einv-flow__arrow{color:#a3a3a3;font-size:12px;padding:0 2px;}
+.epc-einv-leg{margin:0 0 20px;padding:16px 18px;border-radius:12px;background:#fff;border:1px solid #e5e5e5;box-shadow:0 4px 14px rgba(0,0,0,.04);}
+.epc-einv-leg h4{margin:0 0 6px;font-size:15px;font-weight:800;}
+.epc-einv-leg__list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px;}
+.epc-einv-leg__list li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:#fafafa;border:1px solid #f0f0f0;}
+.epc-einv-leg__list li .badge-new{background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;text-transform:uppercase;}
+.epc-einv-leg__list li .badge-upd{background:#b45309;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;text-transform:uppercase;}
+.epc-einv-leg__list a{font-weight:700;color:#1d4ed8;}
+.epc-einv-kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 18px;}
+.epc-einv-kpi{padding:14px;border-radius:12px;background:#fff;border:1px solid #e5e5e5;}
+.epc-einv-kpi .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#737373;}
+.epc-einv-kpi .val{font-size:22px;font-weight:800;color:#0a0a0a;margin-top:4px;line-height:1.1;}
+.epc-einv-kpi .val.ok{color:#16a34a;}
+.epc-einv-kpi .val.bad{color:#dc2626;}
+.epc-einv-panel-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px 18px;margin:0 0 16px;box-shadow:0 4px 14px rgba(0,0,0,.03);}
+.epc-einv-panel-card h4{margin-top:0;}
+.epc-einvoice-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px;padding:0;list-style:none;}
+.epc-einvoice-nav>li>a{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #e5e5e5;background:#fff;color:#404040!important;font-size:12px;font-weight:700;text-decoration:none!important;}
+.epc-einvoice-nav>li.active>a,.epc-einvoice-nav>li>a:hover{background:#0a0a0a;border-color:#0a0a0a;color:#fff!important;}
+</style>
+
 <div class="epc-erp-section epc-einvoice-panel">
-	<div class="alert alert-info" style="border-left:4px solid #1d4ed8;">
-		<strong><i class="fa fa-file-code-o"></i> UAE Electronic Invoicing</strong> — 5-corner Peppol model (Supplier → ASP → Buyer ASP → Buyer + FTA reporting).
-		Guidelines <strong>V1.0 · 23 Feb 2026</strong> · PINT-AE XML · mandatory fields enforced before ASP submission.
-		Voluntary from <strong>1 Jul 2026</strong> · Mandatory phased from <strong>1 Jan 2027</strong> (revenue ≥ AED 50M).
+	<div class="epc-einv-hero">
+		<h2><i class="fa fa-file-code-o"></i> UAE Electronic Invoicing</h2>
+		<p>5-corner Peppol model — Supplier → ASP → Buyer ASP → Buyer, with parallel FTA Tax Data reporting. Follow the steps below to go live with PINT-AE.</p>
+		<div class="epc-einv-chips">
+			<span class="epc-einv-chip"><i class="fa fa-book"></i> Guidelines V1.0 · 23 Feb 2026</span>
+			<span class="epc-einv-chip"><i class="fa fa-calendar"></i> Voluntary 1 Jul 2026</span>
+			<span class="epc-einv-chip"><i class="fa fa-flag"></i> Mandatory ≥ AED 50M · 1 Jan 2027</span>
+			<span class="epc-einv-chip"><i class="fa fa-code"></i> PINT-AE XML</span>
+		</div>
 	</div>
 
-	<ul class="nav nav-pills epc-einvoice-nav" style="margin-bottom:20px;flex-wrap:wrap;">
-		<li class="<?php echo $einvSection === 'dashboard' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'dashboard')); ?>"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-		<li class="<?php echo $einvSection === 'invoices' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'invoices')); ?>"><i class="fa fa-list"></i> Invoices</a></li>
+	<div class="epc-einv-actions">
+		<button type="button" class="btn btn-sm btn-fetch" id="epc_einv_fetch_legislation" title="Pull latest FTA legislation for e-invoicing">
+			<i class="fa fa-refresh"></i> Fetch new legislation for e-invoice
+		</button>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h($legislationUrl); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> FTA legislation.aspx</a>
+		<a class="btn btn-default btn-sm" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, $erpArea ?? 'tax') . '&tax_panel=legislation'); ?>"><i class="fa fa-gavel"></i> Full tax library</a>
+		<span id="epc_einv_leg_status" class="text-muted" style="font-size:12px;">
+			<?php
+			if (!empty($ftaCache['time_fetched_label'])) {
+				echo 'Last FTA sync: ' . epc_erp_h((string) $ftaCache['time_fetched_label']);
+				echo ' · ' . count($einvLegislation) . ' e-invoice related item(s)';
+			} else {
+				echo 'No legislation cache yet — click Fetch to pull from tax.gov.ae';
+			}
+			?>
+		</span>
+	</div>
+
+	<div class="epc-einv-flow" aria-label="5-corner Peppol model">
+		<span class="epc-einv-flow__node"><i class="fa fa-building"></i> You (Supplier)</span>
+		<span class="epc-einv-flow__arrow"><i class="fa fa-long-arrow-right"></i></span>
+		<span class="epc-einv-flow__node"><i class="fa fa-cloud"></i> Your ASP</span>
+		<span class="epc-einv-flow__arrow"><i class="fa fa-long-arrow-right"></i></span>
+		<span class="epc-einv-flow__node"><i class="fa fa-exchange"></i> Buyer ASP</span>
+		<span class="epc-einv-flow__arrow"><i class="fa fa-long-arrow-right"></i></span>
+		<span class="epc-einv-flow__node"><i class="fa fa-user"></i> Buyer</span>
+		<span class="epc-einv-flow__arrow">+</span>
+		<span class="epc-einv-flow__node"><i class="fa fa-university"></i> FTA report</span>
+	</div>
+
+	<div class="epc-einv-steps" role="navigation" aria-label="E-invoice go-live steps">
+		<?php foreach ($journey as $step):
+			$isCurrent = ($activeStepKey === $step['key']) || ($einvSection === $step['section']);
+			$cls = 'epc-einv-step';
+			if (!empty($step['done'])) {
+				$cls .= ' is-done';
+			}
+			if ($isCurrent && $einvSection !== 'dashboard') {
+				$cls .= ' is-current';
+			} elseif ($einvSection === 'dashboard' && $activeStepKey === $step['key'] && empty($step['done'])) {
+				$cls .= ' is-current';
+			}
+			?>
+		<a class="<?php echo epc_erp_h($cls); ?>" href="<?php echo epc_erp_h(epc_einv_url($einvBase, $step['section'])); ?>">
+			<span class="epc-einv-step__n"><?php echo !empty($step['done']) ? '<i class="fa fa-check"></i>' : (int) $step['n']; ?></span>
+			<span class="epc-einv-step__ico"><i class="fa <?php echo epc_erp_h($step['icon']); ?>"></i></span>
+			<span class="epc-einv-step__t">Step <?php echo (int) $step['n']; ?> · <?php echo epc_erp_h($step['title']); ?></span>
+			<span class="epc-einv-step__b"><?php echo epc_erp_h($step['blurb']); ?></span>
+			<span class="epc-einv-step__cta"><?php echo epc_erp_h($step['cta']); ?> <i class="fa fa-angle-right"></i></span>
+		</a>
+		<?php endforeach; ?>
+	</div>
+
+	<ul class="epc-einvoice-nav">
+		<li class="<?php echo $einvSection === 'dashboard' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'dashboard')); ?>"><i class="fa fa-th-large"></i> Overview</a></li>
+		<li class="<?php echo in_array($einvSection, array('invoices', 'view'), true) ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'invoices')); ?>"><i class="fa fa-list"></i> Invoices</a></li>
 		<li class="<?php echo $einvSection === 'create' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'create')); ?>"><i class="fa fa-plus-circle"></i> Generate</a></li>
-		<li class="<?php echo $einvSection === 'seller' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'seller')); ?>"><i class="fa fa-building"></i> Seller profile</a></li>
-		<li class="<?php echo $einvSection === 'buyers' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'buyers')); ?>"><i class="fa fa-users"></i> Buyer Peppol</a></li>
-		<li class="<?php echo $einvSection === 'asp' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'asp')); ?>"><i class="fa fa-cloud-upload"></i> ASP &amp; FTA</a></li>
+		<li class="<?php echo $einvSection === 'seller' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'seller')); ?>"><i class="fa fa-building"></i> Seller</a></li>
+		<li class="<?php echo $einvSection === 'buyers' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'buyers')); ?>"><i class="fa fa-users"></i> Buyers</a></li>
+		<li class="<?php echo $einvSection === 'asp' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'asp')); ?>"><i class="fa fa-cloud-upload"></i> ASP</a></li>
 		<li class="<?php echo $einvSection === 'guide' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'guide')); ?>"><i class="fa fa-book"></i> Guide</a></li>
 	</ul>
 
 	<?php if ($einvSection === 'dashboard'): ?>
-		<div class="epc-erp-kpi">
-			<div class="kpi"><div class="lbl">E-invoices (period)</div><div class="val"><?php echo (int)$einvDash['total']; ?></div></div>
-			<div class="kpi"><div class="lbl">Validated</div><div class="val green"><?php echo (int)$einvDash['validated']; ?></div></div>
-			<div class="kpi"><div class="lbl">Submitted / queued</div><div class="val"><?php echo (int)$einvDash['submitted']; ?></div></div>
-			<div class="kpi"><div class="lbl">Accepted by ASP</div><div class="val green"><?php echo (int)$einvDash['accepted']; ?></div></div>
-			<div class="kpi"><div class="lbl">Rejected</div><div class="val red"><?php echo (int)$einvDash['rejected']; ?></div></div>
-			<div class="kpi"><div class="lbl">Total incl. VAT</div><div class="val"><?php echo epc_erp_money($einvDash['amount_incl_vat']); ?> AED</div></div>
+		<div class="epc-einv-kpi-strip">
+			<div class="epc-einv-kpi"><div class="lbl">Readiness</div><div class="val"><?php echo (int) $readiness['percent']; ?>%</div></div>
+			<div class="epc-einv-kpi"><div class="lbl">E-invoices</div><div class="val"><?php echo (int) $einvDash['total']; ?></div></div>
+			<div class="epc-einv-kpi"><div class="lbl">Validated</div><div class="val ok"><?php echo (int) $einvDash['validated']; ?></div></div>
+			<div class="epc-einv-kpi"><div class="lbl">Submitted</div><div class="val"><?php echo (int) $einvDash['submitted']; ?></div></div>
+			<div class="epc-einv-kpi"><div class="lbl">Accepted</div><div class="val ok"><?php echo (int) $einvDash['accepted']; ?></div></div>
+			<div class="epc-einv-kpi"><div class="lbl">Rejected</div><div class="val bad"><?php echo (int) $einvDash['rejected']; ?></div></div>
+			<div class="epc-einv-kpi"><div class="lbl">Incl. VAT</div><div class="val" style="font-size:16px;"><?php echo epc_erp_money($einvDash['amount_incl_vat']); ?></div></div>
+		</div>
+
+		<div class="epc-einv-leg" id="epc_einv_legislation_box">
+			<h4><i class="fa fa-gavel"></i> E-invoice legislation</h4>
+			<p class="text-muted" style="margin:0;font-size:12.5px;">Filtered from FTA <a href="<?php echo epc_erp_h($legislationUrl); ?>" target="_blank" rel="noopener">legislation.aspx</a> — Peppol / PINT-AE / e-invoicing decisions that affect this module.</p>
+			<?php if (empty($einvLegislation)): ?>
+				<p class="text-muted" style="margin:12px 0 0;">No e-invoice legislation in cache yet. Click <strong>Fetch new legislation for e-invoice</strong> to pull the latest from FTA.</p>
+			<?php else: ?>
+				<ul class="epc-einv-leg__list">
+					<?php foreach (array_slice($einvLegislation, 0, 12) as $leg): ?>
+					<li>
+						<span><i class="fa fa-file-text-o" style="color:#dc2626;"></i></span>
+						<span style="flex:1;min-width:0;">
+							<?php if (!empty($leg['_is_new'])): ?><span class="badge-new">New</span> <?php endif; ?>
+							<?php if (!empty($leg['_is_changed'])): ?><span class="badge-upd">Updated</span> <?php endif; ?>
+							<?php
+							$legTitle = (string) ($leg['title'] ?? 'Legislation item');
+							$legHref = trim((string) ($leg['url'] ?? $leg['detail_url'] ?? ''));
+							if ($legHref !== ''):
+							?>
+								<a href="<?php echo epc_erp_h($legHref); ?>" target="_blank" rel="noopener"><?php echo epc_erp_h($legTitle); ?></a>
+							<?php else: ?>
+								<strong><?php echo epc_erp_h($legTitle); ?></strong>
+							<?php endif; ?>
+							<?php if (!empty($leg['issue_date'])): ?>
+								<span class="text-muted" style="font-size:11px;"> · <?php echo epc_erp_h((string) $leg['issue_date']); ?></span>
+							<?php endif; ?>
+							<?php if (!empty($leg['erp_summary']) || !empty($leg['summary'])): ?>
+								<div style="font-size:12px;color:#525252;margin-top:3px;line-height:1.4;"><?php echo epc_erp_h((string) ($leg['erp_summary'] ?? $leg['summary'])); ?></div>
+							<?php endif; ?>
+							<?php if (!empty($leg['erp_apply'])): ?>
+								<div style="font-size:11.5px;color:#737373;margin-top:2px;"><i class="fa fa-wrench"></i> <?php echo epc_erp_h((string) $leg['erp_apply']); ?></div>
+							<?php endif; ?>
+						</span>
+					</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
 		</div>
 
 		<div class="row">
 			<div class="col-md-6">
-				<h4><i class="fa fa-check-square-o"></i> Readiness checklist</h4>
-				<div class="progress" style="height:22px;margin-bottom:12px;">
-					<div class="progress-bar progress-bar-success" style="width:<?php echo (int)$readiness['percent']; ?>%;line-height:22px;"><?php echo (int)$readiness['percent']; ?>%</div>
+				<div class="epc-einv-panel-card">
+					<h4><i class="fa fa-check-square-o"></i> Readiness checklist</h4>
+					<div class="progress" style="height:22px;margin-bottom:12px;">
+						<div class="progress-bar progress-bar-success" style="width:<?php echo (int)$readiness['percent']; ?>%;line-height:22px;"><?php echo (int)$readiness['percent']; ?>%</div>
+					</div>
+					<ul class="list-group" style="margin-bottom:0;">
+						<?php foreach ($readiness['items'] as $it): ?>
+							<li class="list-group-item">
+								<i class="fa fa-<?php echo $it['done'] ? 'check-circle text-success' : 'circle-o text-muted'; ?>"></i>
+								<?php echo epc_erp_h($it['label']); ?>
+							</li>
+						<?php endforeach; ?>
+					</ul>
 				</div>
-				<ul class="list-group">
-					<?php foreach ($readiness['items'] as $it): ?>
-						<li class="list-group-item">
-							<i class="fa fa-<?php echo $it['done'] ? 'check-circle text-success' : 'circle-o text-muted'; ?>"></i>
-							<?php echo epc_erp_h($it['label']); ?>
-						</li>
-					<?php endforeach; ?>
-				</ul>
 			</div>
 			<div class="col-md-6">
-				<h4><i class="fa fa-info-circle"></i> Seller status</h4>
-				<table class="table table-condensed table-bordered">
-					<tr><td>Legal name</td><td><strong><?php echo epc_erp_h($seller['seller_name'] ?: '—'); ?></strong></td></tr>
-					<tr><td>TRN</td><td><?php echo epc_erp_h($seller['seller_trn'] ?: '— configure in Seller profile'); ?></td></tr>
-					<tr><td>Peppol endpoint</td><td><code><?php echo epc_erp_h($seller['seller_peppol_endpoint'] ?: '0235:__________'); ?></code></td></tr>
-					<tr><td>ASP</td><td><?php echo epc_erp_h($einvDash['asp_name'] ?: '— not selected'); ?></td></tr>
-					<tr><td>Specification</td><td><small><code><?php echo epc_erp_h($const['specification_id']); ?></code></small></td></tr>
-				</table>
-				<p class="text-muted">Onboard with your ASP via <a href="https://tax.gov.ae" target="_blank" rel="noopener">EmaraTax</a> → E-Invoicing tile.</p>
+				<div class="epc-einv-panel-card">
+					<h4><i class="fa fa-building"></i> Seller status</h4>
+					<table class="table table-condensed table-bordered" style="margin-bottom:10px;">
+						<tr><td>Legal name</td><td><strong><?php echo epc_erp_h($seller['seller_name'] ?: '—'); ?></strong></td></tr>
+						<tr><td>TRN</td><td><?php echo epc_erp_h($seller['seller_trn'] ?: '— configure in Seller profile'); ?></td></tr>
+						<tr><td>Peppol endpoint</td><td><code><?php echo epc_erp_h($seller['seller_peppol_endpoint'] ?: '0235:__________'); ?></code></td></tr>
+						<tr><td>ASP</td><td><?php echo epc_erp_h($einvDash['asp_name'] ?: '— not selected'); ?></td></tr>
+						<tr><td>Specification</td><td><small><code><?php echo epc_erp_h($const['specification_id']); ?></code></small></td></tr>
+					</table>
+					<p class="text-muted" style="margin:0;font-size:12.5px;">Next incomplete step is highlighted in red above. Onboard via <a href="https://tax.gov.ae" target="_blank" rel="noopener">EmaraTax</a> → E-Invoicing.</p>
+				</div>
 			</div>
 		</div>
 
@@ -573,5 +753,47 @@ function epc_einv_url($base, $section, $extra = '')
 	window.epcEinvDownloadXml = function(id) {
 		window.open(erpAjaxUrl + '?action=einvoice_download_xml&document_id=' + id + '&csrf_guard_key=' + encodeURIComponent(<?php echo json_encode($csrf); ?>), '_blank');
 	};
+	var fetchBtn = document.getElementById('epc_einv_fetch_legislation');
+	var fetchStatus = document.getElementById('epc_einv_leg_status');
+	if (fetchBtn) {
+		fetchBtn.addEventListener('click', function() {
+			fetchBtn.classList.add('is-busy');
+			fetchBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Fetching FTA legislation…';
+			if (fetchStatus) {
+				fetchStatus.textContent = 'Contacting tax.gov.ae/en/legislation.aspx — this can take a minute…';
+			}
+			var fd = new FormData();
+			fd.append('action', 'uae_tax_fta_fetch');
+			fd.append('force', '1');
+			fd.append('csrf_guard_key', <?php echo json_encode($csrf); ?>);
+			fetch(erpPostUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+				.then(parseJsonResponse)
+				.then(function(res) {
+					fetchBtn.classList.remove('is-busy');
+					fetchBtn.innerHTML = '<i class="fa fa-refresh"></i> Fetch new legislation for e-invoice';
+					var msg = res.message || (res.status ? 'Legislation updated' : 'Fetch failed');
+					var nNew = res.new_count != null ? res.new_count
+						: (res.new_since_last ? res.new_since_last.length : null);
+					var nAll = res.legislation ? res.legislation.length : null;
+					if (fetchStatus) {
+						fetchStatus.innerHTML = msg
+							+ (nAll != null ? (' · ' + nAll + ' item(s) cached') : '')
+							+ (nNew != null ? (' · <span class="text-success">' + nNew + ' new</span>') : '');
+					}
+					if (res.status || res.ok) {
+						setTimeout(function() { location.reload(); }, 700);
+					} else {
+						alert(msg);
+					}
+				})
+				.catch(function(e) {
+					fetchBtn.classList.remove('is-busy');
+					fetchBtn.innerHTML = '<i class="fa fa-refresh"></i> Fetch new legislation for e-invoice';
+					var m = e.message || 'Request failed';
+					if (fetchStatus) { fetchStatus.textContent = m; }
+					alert(m);
+				});
+		});
+	}
 })();
 </script>
