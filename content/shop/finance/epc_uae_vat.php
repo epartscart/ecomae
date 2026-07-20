@@ -355,6 +355,74 @@ function epc_uae_vat_invoice_totals(PDO $db, float $amount_ex): array
 }
 
 /**
+ * UAE VAT law pack — governing statute, key articles, filing & 2026 credit rules.
+ *
+ * Primary law: Federal Decree-Law 8/2017 on VAT, as amended (incl. FDL 18/2022,
+ * FDL 16/2024 e-invoicing, FDL 16/2025 excess recoverable tax). Procedures:
+ * Federal Decree-Law 28/2022 as amended by FDL 17/2025 (5-year refund/credit
+ * limitation from 1 Jan 2026; transitional window to 31 Dec 2026).
+ *
+ * @return array<string,mixed>
+ */
+function epc_uae_vat_law_pack(int $asOf = 0): array
+{
+	$asOf = $asOf > 0 ? $asOf : time();
+	$creditLimitLive = $asOf >= (int) strtotime('2026-01-01');
+	return array(
+		'as_of' => $asOf,
+		'pack_id' => $creditLimitLive ? 'AE-VAT-FDL8-2026' : 'AE-VAT-FDL8',
+		'pack_label' => $creditLimitLive
+			? 'FDL 8/2017 (as amended) · credit limit from 1 Jan 2026'
+			: 'FDL 8/2017 (as amended)',
+		'authority' => 'Federal Tax Authority (FTA)',
+		'authority_url' => 'https://tax.gov.ae',
+		'portal_url' => 'https://eservices.tax.gov.ae',
+		'law' => 'Federal Decree-Law 8/2017 on Value Added Tax (as amended by FDL 18/2022, FDL 16/2024 & FDL 16/2025) + VAT Executive Regulations',
+		'procedures_law' => 'Federal Decree-Law 28/2022 on Tax Procedures (as amended by FDL 17/2025)',
+		'standard_rate_pct' => 5.0,
+		'articles' => array(
+			'bad_debt' => 'Art. 64 — bad-debt relief (write-off + >6 months from supply + notify recipient; VATP024)',
+			'tax_invoice' => 'Art. 65 — tax invoice conditions (e-invoicing alignment per FDL 16/2024)',
+			'returns' => 'Art. 72 — submission of tax returns for each tax period',
+			'payment' => 'Art. 73 — settlement of tax payable; Exec. Reg. filing/payment within 28 days of period end',
+			'excess' => 'Art. 74 — excess recoverable tax (from 1 Jan 2026: carry-forward/refund ≤5 years from period end — FDL 16/2025)',
+			'refund_limit' => 'Tax Procedures Art. 38 — refund of credit balance within 5 years (FDL 17/2025); transitional claims to 31 Dec 2026',
+		),
+		'filing_days_after_period' => 28,
+		'credit_limit_years' => 5,
+		'credit_limit_from' => '2026-01-01',
+		'credit_transitional_to' => '2026-12-31',
+		'credit_limit_live' => $creditLimitLive,
+		'form' => 'FTA VAT 201',
+		'pack_refreshed' => '2026-07',
+	);
+}
+
+/**
+ * Filing / payment deadline for a VAT period end (Exec. Reg. — 28 days).
+ *
+ * @return array{due_ts:int,due_label:string,days_left:int,overdue:bool,period_end:int}
+ */
+function epc_uae_vat_filing_deadline(int $periodTo, int $asOf = 0): array
+{
+	$asOf = $asOf > 0 ? $asOf : time();
+	$pack = epc_uae_vat_law_pack($asOf);
+	$days = (int) ($pack['filing_days_after_period'] ?? 28);
+	$due = (int) strtotime('+' . $days . ' days', $periodTo);
+	// Normalise to end of due day for display consistency.
+	$due = (int) strtotime(date('Y-m-d', $due) . ' 23:59:59');
+	$daysLeft = (int) floor(($due - $asOf) / 86400);
+	return array(
+		'due_ts' => $due,
+		'due_label' => date('d M Y', $due),
+		'days_left' => $daysLeft,
+		'overdue' => $asOf > $due,
+		'period_end' => $periodTo,
+		'rule' => 'File & pay within ' . $days . ' days of tax-period end (Art. 72–73 + Exec. Reg.)',
+	);
+}
+
+/**
  * VAT return summary for a period (completed orders + purchase invoices).
  */
 function epc_uae_vat_return_report(PDO $db, int $date_from, int $date_to): array
@@ -413,6 +481,9 @@ function epc_uae_vat_return_report(PDO $db, int $date_from, int $date_to): array
 
 	$advance = epc_uae_vat_advance_period_summary($db, $date_from, $date_to);
 	$expInput = epc_uae_vat_input_expenses_report($db, $date_from, $date_to);
+	$law = epc_uae_vat_law_pack($date_to > 0 ? $date_to : time());
+	$filing = epc_uae_vat_filing_deadline($date_to > 0 ? $date_to : time(), time());
+	$co = epc_uae_company_profile($db);
 
 	return array(
 		'date_from' => $date_from,
@@ -437,6 +508,10 @@ function epc_uae_vat_return_report(PDO $db, int $date_from, int $date_to): array
 		'input_vat_recoverable_expenses' => $expInput['totals']['recoverable_vat'],
 		'input_vat_blocked_expenses' => $expInput['totals']['blocked_vat'],
 		'input_vat_expense_gross' => $expInput['totals']['gross_amount'],
+		'law' => $law,
+		'filing' => $filing,
+		'company' => $co,
+		'form' => (string) ($law['form'] ?? 'FTA VAT 201'),
 	);
 }
 
