@@ -269,6 +269,82 @@
 		}
 	}
 
+	function epcLegApplyFilter(filterKey, pushUrl) {
+		var bar = document.getElementById('epc_leg_filter_bar');
+		var list = document.getElementById('epc_leg_list');
+		var shownEl = document.getElementById('epc_leg_filter_shown');
+		var emptyEl = document.getElementById('epc_leg_filter_empty');
+		if (!list) {
+			return;
+		}
+		filterKey = (filterKey || '').toLowerCase();
+		if (filterKey === 'ct') {
+			filterKey = 'corporate_tax';
+		}
+		var shown = 0;
+		var total = 0;
+		list.querySelectorAll('.epc-leg-item').forEach(function (row) {
+			total++;
+			var tt = (row.getAttribute('data-tax-type') || 'general').toLowerCase();
+			var ok = !filterKey || tt === filterKey;
+			row.style.display = ok ? '' : 'none';
+			if (ok) {
+				shown++;
+			}
+		});
+		if (shownEl) {
+			shownEl.textContent = String(shown);
+		}
+		if (emptyEl) {
+			emptyEl.style.display = shown === 0 ? '' : 'none';
+		}
+		if (bar) {
+			bar.setAttribute('data-filter', filterKey);
+			bar.querySelectorAll('.epc-leg-filter-btn').forEach(function (btn) {
+				var f = (btn.getAttribute('data-filter') || '').toLowerCase();
+				if (f === filterKey) {
+					btn.classList.add('active');
+				} else {
+					btn.classList.remove('active');
+				}
+			});
+		}
+		if (pushUrl) {
+			try {
+				var u = new URL(window.location.href);
+				if (filterKey) {
+					u.searchParams.set('tax_type', filterKey);
+				} else {
+					u.searchParams.delete('tax_type');
+					u.searchParams.delete('leg_filter');
+				}
+				u.searchParams.set('tax_panel', 'legislation');
+				window.history.replaceState({}, '', u.toString());
+			} catch (e) {}
+		}
+	}
+
+	document.querySelectorAll('.epc-leg-filter-btn').forEach(function (btn) {
+		btn.addEventListener('click', function (e) {
+			// Instant client-side filter — do not rely on a full reload.
+			e.preventDefault();
+			epcLegApplyFilter(btn.getAttribute('data-filter') || '', true);
+		});
+	});
+
+	(function epcLegInitFilterFromUrl() {
+		var bar = document.getElementById('epc_leg_filter_bar');
+		if (!bar) {
+			return;
+		}
+		var initial = bar.getAttribute('data-filter') || '';
+		try {
+			var u = new URL(window.location.href);
+			initial = u.searchParams.get('tax_type') || u.searchParams.get('leg_filter') || initial || '';
+		} catch (e) {}
+		epcLegApplyFilter(initial, false);
+	})();
+
 	document.querySelectorAll('.epc-leg-check').forEach(function (cb) {
 		cb.addEventListener('change', function () {
 			var itemKey = cb.getAttribute('data-item-key') || '';

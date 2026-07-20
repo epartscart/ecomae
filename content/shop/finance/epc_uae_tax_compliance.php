@@ -1250,7 +1250,9 @@ function epc_uae_tax_legislation_enrich_item(array $item, ?PDO $db = null): arra
 		(string)($item['category'] ?? '')
 	);
 	$item['tax_category'] = $tc;
-	$item['tax_type'] = in_array($tc, array('einvoicing', 'procedures'), true) ? $tc : $built['tax_type'];
+	// Prefer title/category classification for filters & badges so VAT/CT/Excise
+	// tabs match what the user sees (pattern catalog alone often collapses to general).
+	$item['tax_type'] = $tc !== '' ? $tc : (string)($built['tax_type'] ?? 'general');
 	$item['erp_summary'] = $built['erp_summary'];
 	$item['summary'] = $built['erp_summary'];
 	$item['pdf_excerpt'] = (string)($built['pdf_excerpt'] ?? '');
@@ -1976,7 +1978,7 @@ function epc_uae_fta_legislation_tax_category(string $title, string $category): 
 	if (preg_match('/tax\s*procedures|procedure/i', $hay)) {
 		return 'procedures';
 	}
-	if (preg_match('/value\s*added|vat|decree.?law\s*no\.?\s*8/i', $hay)) {
+	if (preg_match('/value\s*added|\bvat\b|decree.?law\s*no\.?\s*8|tourist\s*refund|tax\s*group|judicial\s*expert|directive\s+on\s+tax\s+transactions/i', $hay)) {
 		return 'vat';
 	}
 	return 'general';
