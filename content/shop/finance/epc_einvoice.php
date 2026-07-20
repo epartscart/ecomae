@@ -1506,3 +1506,101 @@ function epc_einvoice_readiness_checklist(PDO $db): array
 	}
 	return array('items' => $items, 'done' => $done, 'total' => count($items), 'percent' => count($items) ? round($done * 100 / count($items)) : 0);
 }
+
+/**
+ * FTA legislation items relevant to UAE e-invoicing / Peppol / PINT-AE.
+ *
+ * @return list<array<string,mixed>>
+ */
+function epc_einvoice_legislation_items(PDO $db): array
+{
+	if (!function_exists('epc_uae_fta_get_cached_legislation')) {
+		require_once __DIR__ . '/epc_uae_tax_compliance.php';
+	}
+	$cached = epc_uae_fta_get_cached_legislation($db);
+	$out = array();
+	foreach (($cached['legislation'] ?? $cached['items'] ?? array()) as $leg) {
+		if (!is_array($leg)) {
+			continue;
+		}
+		$leg = epc_uae_tax_legislation_enrich_item($leg, $db);
+		$hay = strtolower(
+			(string) ($leg['title'] ?? '') . ' '
+			. (string) ($leg['category'] ?? '') . ' '
+			. (string) ($leg['pattern_key'] ?? '') . ' '
+			. (string) ($leg['erp_summary'] ?? '')
+		);
+		$mods = function_exists('epc_uae_tax_legislation_erp_modules')
+			? epc_uae_tax_legislation_erp_modules($leg)
+			: array();
+		$isEinv = in_array('einvoice', $mods, true)
+			|| (($leg['pattern_key'] ?? '') === 'einvoicing-decision')
+			|| (bool) preg_match('/e.?invoice|peppol|pint|accredited\s*service|electronic\s*invoic/i', $hay);
+		if (!$isEinv) {
+			continue;
+		}
+		$leg['_is_new'] = !empty($leg['is_new']) || !empty($leg['new_since_last']);
+		$leg['_is_changed'] = !empty($leg['is_changed']) || !empty($leg['changed_since_last']);
+		$out[] = $leg;
+	}
+	return $out;
+}
+
+/**
+ * Graphical go-live steps for the e-invoice command centre.
+ *
+ * @return list<array{key:string,n:int,title:string,blurb:string,icon:string,section:string,done:bool,cta:string}>
+ */
+function epc_einvoice_journey_steps(PDO $db): array
+{
+	$ready = epc_einvoice_readiness_checklist($db);
+	$byId = array();
+	foreach ($ready['items'] as $it) {
+		$byId[(string) $it['id']] = !empty($it['done']);
+	}
+	$hasDocs = (int) $db->query('SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `active` = 1')->fetchColumn() > 0;
+	return array(
+		array(
+			'key' => 'learn', 'n' => 1, 'title' => 'Learn the rules',
+			'blurb' => 'MoF guidelines, timeline and PINT-AE mandatory fields.',
+			'icon' => 'fa-book', 'section' => 'guide',
+			'done' => !empty($byId['guidelines']),
+			'cta' => 'Open guide',
+		),
+		array(
+			'key' => 'seller', 'n' => 2, 'title' => 'Seller profile',
+			'blurb' => 'Legal name, 15-digit TRN, Peppol 0235:TIN endpoint.',
+			'icon' => 'fa-building', 'section' => 'seller',
+			'done' => !empty($byId['seller_trn']) && !empty($byId['seller_peppol']),
+			'cta' => 'Configure seller',
+		),
+		array(
+			'key' => 'buyers', 'n' => 3, 'title' => 'Buyer Peppol IDs',
+			'blurb' => 'Capture B2B customer TRN and Peppol endpoints.',
+			'icon' => 'fa-users', 'section' => 'buyers',
+			'done' => !empty($byId['buyer_profiles']),
+			'cta' => 'Manage buyers',
+		),
+		array(
+			'key' => 'asp', 'n' => 4, 'title' => 'Choose ASP',
+			'blurb' => 'Accredited Service Provider for Peppol + FTA reporting.',
+			'icon' => 'fa-cloud-upload', 'section' => 'asp',
+			'done' => !empty($byId['asp']),
+			'cta' => 'ASP settings',
+		),
+		array(
+			'key' => 'generate', 'n' => 5, 'title' => 'Generate invoice',
+			'blurb' => 'Build & validate PINT-AE XML from a completed order.',
+			'icon' => 'fa-magic', 'section' => 'create',
+			'done' => $hasDocs,
+			'cta' => 'Generate',
+		),
+		array(
+			'key' => 'submit', 'n' => 6, 'title' => 'Submit & monitor',
+			'blurb' => 'Send to ASP, track accepted / rejected statuses.',
+			'icon' => 'fa-paper-plane', 'section' => 'invoices',
+			'done' => !empty($byId['test']),
+			'cta' => 'View invoices',
+		),
+	);
+}
