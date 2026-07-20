@@ -77,6 +77,18 @@ function epc_uae_tax_compliance_ensure_schema(PDO $db): void
 		UNIQUE KEY `x_period_adj` (`period_key`,`adjustment_key`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='UAE CT P&L adjustments by period';");
 
+	$db->exec("CREATE TABLE IF NOT EXISTS `epc_uae_tax_legislation_checklist` (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`item_key` varchar(512) NOT NULL,
+		`action_key` varchar(64) NOT NULL,
+		`action_text` varchar(700) NOT NULL DEFAULT '',
+		`status` enum('pending','done') NOT NULL DEFAULT 'pending',
+		`time_updated` int(11) NOT NULL DEFAULT 0,
+		PRIMARY KEY (`id`),
+		UNIQUE KEY `x_item_action` (`item_key`(191),`action_key`),
+		KEY `x_status` (`status`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Per-instrument ERP compliance checklist implementation status';");
+
 	epc_erp_schema_add_column_if_missing($db, 'epc_crm_expenses', 'amount_ex_vat', 'decimal(14,2) NOT NULL DEFAULT 0.00');
 	epc_erp_schema_add_column_if_missing($db, 'epc_crm_expenses', 'vat_amount', 'decimal(14,2) NOT NULL DEFAULT 0.00');
 	epc_erp_schema_add_column_if_missing($db, 'epc_crm_expenses', 'vat_expense_type', "varchar(64) NOT NULL DEFAULT ''");
@@ -824,7 +836,11 @@ function epc_uae_tax_legislation_build_summary(array $item): array
 	$hay = strtolower($title . ' ' . $category);
 
 	$docType = 'legislation';
-	if (preg_match('/federal\s+decree.?law/i', $hay)) {
+	if (preg_match('/directive\s+on\s+tax\s+transactions/i', $hay)) {
+		$docType = 'FTA Directive on Tax Transactions';
+	} elseif (preg_match('/federal\s+tax\s+authority\s+decision|fta\s+decision/i', $hay)) {
+		$docType = 'FTA Decision';
+	} elseif (preg_match('/federal\s+decree.?law/i', $hay)) {
 		$docType = 'Federal Decree-Law';
 	} elseif (preg_match('/cabinet\s+decision|ministerial\s+decision/i', $hay)) {
 		$docType = 'Cabinet/Ministerial decision';
@@ -841,25 +857,37 @@ function epc_uae_tax_legislation_build_summary(array $item): array
 		$year = $ym2[1];
 	}
 
-	$specific = '';
-	if (preg_match('/amend/i', $hay)) {
-		$specific = 'Amends prior provisions — review whether ERP tax codes, invoice templates, or CT adjustments need updating.';
-	} elseif (preg_match('/penalt|fine|sanction/i', $hay)) {
-		$specific = 'Covers penalties and enforcement — ensure audit trail and voluntary disclosure process in ERP records.';
-	} elseif (preg_match('/refund|recovery|credit\s*note/i', $hay)) {
-		$specific = 'Addresses refunds/credits — map credit notes (381) and input VAT recovery in purchases and VAT return.';
-	} elseif (preg_match('/designated\s*zone|free\s*zone/i', $hay)) {
-		$specific = 'Designated/free zone rules — verify supply location and zero-rated/exempt flags on affected transactions.';
-	} elseif (preg_match('/reverse\s*charge|import/i', $hay)) {
-		$specific = 'Import/reverse-charge treatment — set purchase VAT treatment to reverse_charge or import_rc where applicable.';
-	}
-
 	$pdfExcerpt = trim((string)($item['pdf_excerpt'] ?? ''));
 	if ($pdfExcerpt === '' && !empty($item['_fetch_pdf'])) {
 		$pdfUrl = trim((string)($item['pdf_url'] ?? ''));
 		if ($pdfUrl !== '') {
 			$pdfExcerpt = epc_uae_fta_fetch_pdf_text($pdfUrl);
 		}
+	}
+
+	// Instrument-specific lead (overrides generic Decree-Law boilerplate when title is a directive/decision).
+	$topicLead = epc_uae_tax_legislation_topic_lead($title, $category, $pdfExcerpt);
+	if ($topicLead !== '') {
+		$base = $topicLead;
+	}
+
+	$specific = '';
+	if (preg_match('/amend/i', $hay) && !preg_match('/tourist/i', $hay)) {
+		$specific = 'Amends prior provisions — review whether ERP tax codes, invoice templates, or CT adjustments need updating.';
+	} elseif (preg_match('/penalt|fine|sanction/i', $hay)) {
+		$specific = 'Covers penalties and enforcement — ensure audit trail and voluntary disclosure process in ERP records.';
+	} elseif (preg_match('/tourist/i', $hay)) {
+		$specific = 'Tourist refund scheme — ensure retail tax invoices capture passport/eligibility data where refunds apply; do not treat tourist refunds as ordinary credit notes.';
+	} elseif (preg_match('/tax\s*group|exit\s*from/i', $hay)) {
+		$specific = 'Tax group exit adjustments — re-map supplies between remaining members and the exiting registrant; correct VAT return boxes for the exit period.';
+	} elseif (preg_match('/judicial|expert\s*service/i', $hay)) {
+		$specific = 'Judicial expert services — confirm whether the service is a taxable supply (5%) or exempt/out-of-scope; code purchase and sales VAT treatments accordingly.';
+	} elseif (preg_match('/refund|recovery|credit\s*note/i', $hay)) {
+		$specific = 'Addresses refunds/credits — map credit notes (381) and input VAT recovery in purchases and VAT return.';
+	} elseif (preg_match('/designated\s*zone|free\s*zone/i', $hay)) {
+		$specific = 'Designated/free zone rules — verify supply location and zero-rated/exempt flags on affected transactions.';
+	} elseif (preg_match('/reverse\s*charge|import/i', $hay)) {
+		$specific = 'Import/reverse-charge treatment — set purchase VAT treatment to reverse_charge or import_rc where applicable.';
 	}
 
 	$parts = array();
@@ -898,58 +926,322 @@ function epc_uae_tax_legislation_build_summary(array $item): array
 	);
 }
 
+/**
+ * Topic-specific summary lead for a legislation title (so directives are not
+ * summarised as generic Decree-Law No. 8 boilerplate).
+ */
+function epc_uae_tax_legislation_topic_lead(string $title, string $category = '', string $pdfExcerpt = ''): string
+{
+	$hay = strtolower($title . ' ' . $category . ' ' . $pdfExcerpt);
+	if (preg_match('/judicial|expert\s*service/i', $hay)) {
+		return 'VAT on judicial expert services — sets when expert fees charged in court/arbitration proceedings are taxable supplies (5%), who is the supplier, and how tax invoices must be issued for those services.';
+	}
+	if (preg_match('/tax\s*group/i', $hay) && preg_match('/exit|leav|adjust/i', $hay)) {
+		return 'VAT adjustments when a registrant exits a Tax Group — governs output/input tax corrections, supplies between the exiting member and remaining members, and VAT return reporting for the exit tax period.';
+	}
+	if (preg_match('/tax\s*group/i', $hay)) {
+		return 'VAT Tax Group rules — single representative registrant, intra-group supplies disregarded, and joint liability; ERP must track group membership and member TRNs.';
+	}
+	if (preg_match('/tourist/i', $hay) && preg_match('/refund/i', $hay)) {
+		return 'Tax Refunds for Tourists Scheme — conditions for VAT refunds to eligible tourists, retailer/operator obligations, and documentation that must appear on the tax invoice.';
+	}
+	if (preg_match('/e.?invoice|peppol|pint/i', $hay)) {
+		return 'E-invoicing / PINT-AE mandate — structured tax invoice exchange via accredited ASP on Peppol; TRN endpoint 0235:TIN and mandatory field validation.';
+	}
+	if (preg_match('/credit\s*note/i', $hay)) {
+		return 'Credit notes under UAE VAT — type 381 documents must reference the original tax invoice number and date and adjust output/input VAT in the correct period.';
+	}
+	if (preg_match('/reverse\s*charge/i', $hay)) {
+		return 'Reverse-charge VAT — recipient accounts for output VAT and claims input VAT (where recoverable) on specified imported services/goods.';
+	}
+	if (preg_match('/designated\s*zone/i', $hay)) {
+		return 'Designated zone VAT rules — supplies of goods in/between designated zones may be outside the scope or zero-rated; verify place of supply flags in ERP.';
+	}
+	if (preg_match('/zero.?rat|export/i', $hay)) {
+		return 'Zero-rated supplies / exports — category Z treatment requires export evidence; ERP must flag export invoices and exclude them from 5% output VAT.';
+	}
+	if (preg_match('/transfer\s*pric/i', $hay)) {
+		return 'Transfer pricing for Corporate Tax — related-party pricing must be arm\'s length; document and post CT add-backs on the P&L tab.';
+	}
+	if (preg_match('/voluntary\s*disclosure/i', $hay)) {
+		return 'Voluntary disclosure procedures — correct under-/over-declared VAT or CT via EmaraTax and retain ERP audit evidence for the disclosure period.';
+	}
+	if (preg_match('/penalt|administrative\s*penalt/i', $hay)) {
+		return 'Administrative penalties — late registration, late filing, and incorrect tax invoices; ERP retention and filing calendars reduce exposure.';
+	}
+	if (preg_match('/directive\s+on\s+tax\s+transactions/i', $hay)) {
+		return 'FTA Directive on Tax Transactions — binding operational guidance for a specific VAT scenario; apply the treatment in ERP for matching supplies and purchases from the effective date.';
+	}
+	return '';
+}
+
+/**
+ * Topic-specific ERP compliance actions derived from the instrument title /
+ * category / PDF excerpt — not a generic VAT boilerplate list.
+ *
+ * @return array<int,string>
+ */
+function epc_uae_tax_legislation_topic_actions(string $title, string $category = '', string $pdfExcerpt = ''): array
+{
+	$hay = strtolower($title . ' ' . $category . ' ' . $pdfExcerpt);
+	$actions = array();
+
+	if (preg_match('/judicial|expert\s*service/i', $hay)) {
+		$actions[] = 'Classify judicial expert fee invoices: set sales VAT treatment to standard 5% where the directive treats the service as a taxable supply (or exempt/out-of-scope if the directive excludes it).';
+		$actions[] = 'Create/update a purchase expense type for “Judicial expert / court fees” with the correct input VAT recovery flag.';
+		$actions[] = 'Require tax invoice fields (supplier TRN, description “judicial expert services”, court/case ref in notes) before posting the AP voucher.';
+		$actions[] = 'Tag GL journals with legislation_ref = this directive number; include expert fees in the VAT return Box for standard-rated purchases/supplies in the correct period.';
+		$actions[] = 'Block posting of expert-fee bills without a valid tax invoice (or approved self-billing arrangement if applicable).';
+		return $actions;
+	}
+
+	if (preg_match('/tax\s*group/i', $hay) && preg_match('/exit|leav|adjust/i', $hay)) {
+		$actions[] = 'Record the Tax Group exit date on the company/VAT profile; stop using the group representative TRN for the exiting member from that date.';
+		$actions[] = 'Raise VAT adjustment journals for open intra-group balances that become taxable supplies on exit (output VAT / corresponding input VAT).';
+		$actions[] = 'Re-code open AR/AP between exiting member and remaining members to standard-rated (or correct treatment) for supplies after exit.';
+		$actions[] = 'File the exit-period VAT return with adjustment boxes completed; attach exit calculation worksheet in records.';
+		$actions[] = 'Stamp affected GL vouchers with legislation_ref = this directive; retain group membership history for FTA audit.';
+		return $actions;
+	}
+
+	if (preg_match('/tax\s*group/i', $hay)) {
+		$actions[] = 'Maintain Tax Group member list (TRNs) in company profile; invoice under the representative TRN while membership is active.';
+		$actions[] = 'Suppress VAT on intra-group supplies (treat as disregarded) while both parties remain in the group.';
+		$actions[] = 'Include all members’ external supplies in the representative’s VAT return consolidation.';
+		return $actions;
+	}
+
+	if (preg_match('/tourist/i', $hay) && preg_match('/refund/i', $hay)) {
+		$actions[] = 'Enable tourist-refund eligible sales flag on retail tax invoices (passport/eligibility captured where scheme requires).';
+		$actions[] = 'Do not post tourist VAT refunds as ordinary credit notes (381) — use the scheme refund process / operator interface.';
+		$actions[] = 'Reconcile tourist refund claims to original tax invoice numbers before reducing output VAT in the return.';
+		$actions[] = 'Update invoice template notes with Tourist Refund Scheme eligibility text per FTA Decision No. 2 of 2018 (as amended).';
+		$actions[] = 'Retain refund operator acknowledgements with the tax invoice PDF for the statutory record period.';
+		return $actions;
+	}
+
+	if (preg_match('/e.?invoice|peppol|pint/i', $hay)) {
+		$actions[] = 'Configure seller TRN (15 digits) and Peppol endpoint 0235:TIN on the E-Invoicing tab.';
+		$actions[] = 'Validate all PINT-AE mandatory fields before ASP submission; reject incomplete invoices.';
+		$actions[] = 'Map invoice type 380 / credit note 381 and test XML export against the accredited ASP.';
+		$actions[] = 'Diary the Cabinet/Ministerial go-live date; block non-compliant channels after mandate.';
+		return $actions;
+	}
+
+	if (preg_match('/credit\s*note/i', $hay)) {
+		$actions[] = 'Issue credit notes (type 381) that reference the original tax invoice number and date.';
+		$actions[] = 'Reverse output/input VAT in the period the credit note is issued; link legislation_ref on the voucher.';
+		return $actions;
+	}
+
+	if (preg_match('/reverse\s*charge/i', $hay)) {
+		$actions[] = 'Set purchase VAT treatment to reverse_charge for in-scope imported services/goods.';
+		$actions[] = 'Auto-post output VAT (2100) and matching input VAT (1150) on reverse-charge purchases where recoverable.';
+		$actions[] = 'Include reverse-charge lines in the correct VAT return boxes for the period.';
+		return $actions;
+	}
+
+	if (preg_match('/designated\s*zone/i', $hay)) {
+		$actions[] = 'Flag designated-zone customers/warehouses; set place-of-supply / zero-rated or out-of-scope treatment per the decision.';
+		$actions[] = 'Block 5% VAT on qualifying designated-zone goods movements; retain zone evidence on the invoice.';
+		return $actions;
+	}
+
+	if (preg_match('/zero.?rat|export/i', $hay)) {
+		$actions[] = 'Mark export invoices as VAT category Z; require bill of lading / export evidence before zero-rating.';
+		$actions[] = 'Exclude zero-rated exports from 5% output VAT and report them in the export box of the VAT return.';
+		return $actions;
+	}
+
+	if (preg_match('/transfer\s*pric/i', $hay)) {
+		$actions[] = 'Document related-party transactions; post CT add-backs on the P&L Corporate Tax adjustments tab.';
+		$actions[] = 'Retain master file / local file references with the CT provision working papers.';
+		return $actions;
+	}
+
+	if (preg_match('/voluntary\s*disclosure/i', $hay)) {
+		$actions[] = 'Prepare voluntary disclosure pack from ERP (return period, box deltas, supporting invoices).';
+		$actions[] = 'Post correcting journals with legislation_ref and file the disclosure on EmaraTax before penalty escalation.';
+		return $actions;
+	}
+
+	if (preg_match('/penalt|administrative\s*penalt/i', $hay)) {
+		$actions[] = 'Review filing calendar (VAT/CT) and enable reminder tasks before EmaraTax deadlines.';
+		$actions[] = 'Ensure tax invoice mandatory fields are complete to avoid incorrect-invoice penalties.';
+		return $actions;
+	}
+
+	if (preg_match('/corporate\s*tax|decree.?law\s*no\.?\s*47/i', $hay)) {
+		$actions[] = 'Estimate 9% CT on adjusted profit above AED 375,000 on the P&L tab.';
+		$actions[] = 'Complete CT add-back / deduction lines (entertainment, exempt income, losses) for the tax period.';
+		$actions[] = 'Export adjusted taxable profit and file the CT return on EmaraTax.';
+		return $actions;
+	}
+
+	if (preg_match('/excise/i', $hay)) {
+		$actions[] = 'Tag excise-affected SKUs in inventory; keep excise separate from storefront 5% VAT.';
+		$actions[] = 'Attach customs/import evidence for excise imports; file excise returns on EmaraTax.';
+		return $actions;
+	}
+
+	if (preg_match('/directive\s+on\s+tax\s+transactions/i', $hay)) {
+		$actions[] = 'Read the directive scope and effective date; list ERP transaction types that match the scenario.';
+		$actions[] = 'Update sales/purchase VAT treatments for matching lines from the effective date; stamp legislation_ref on vouchers.';
+		$actions[] = 'Include impacted supplies/deductions in the UAE VAT return for the first period after the effective date.';
+		$actions[] = 'Retain the FTA PDF with the ERP change log until the record-keeping period ends.';
+		return $actions;
+	}
+
+	return $actions;
+}
+
 /** Compliance checklist bullets — what the tenant must do in ERP for this item. */
 function epc_uae_tax_legislation_build_compliance_actions(array $item): array
 {
 	$built = epc_uae_tax_legislation_build_summary($item);
 	$tt = (string)($built['tax_type'] ?? 'general');
 	$pk = (string)($built['pattern_key'] ?? '');
-	$actions = array();
-	$mods = epc_uae_tax_legislation_erp_modules(array_merge($item, $built));
+	$title = (string)($item['title'] ?? '');
+	$category = (string)($item['category'] ?? '');
+	$pdfExcerpt = (string)($item['pdf_excerpt'] ?? $built['pdf_excerpt'] ?? '');
 
-	$moduleActions = array(
-		'einvoice' => 'Validate tax invoice mandatory fields (PINT-AE) before ASP submission.',
-		'vat_return' => 'Include affected supplies/deductions in UAE VAT return for the correct period.',
-		'purchases' => 'Set purchase VAT treatment (standard, zero-rated, reverse charge) per this instrument.',
-		'gl_journals' => 'Post to VAT/CT GL accounts (2100 output, 1150 input) with legislation_ref on vouchers.',
-		'pl_ct' => 'Review P&L Corporate Tax provision and CT adjustment fields if CT-related.',
-		'inventory' => 'Tag excise-affected SKUs; excise is tracked separately from storefront VAT.',
-		'customs' => 'Attach customs/import evidence for excise or export zero-rating.',
-		'records' => 'Retain PDF, ERP event log, and supporting docs for FTA record-keeping period.',
-	);
-	foreach ($mods as $m) {
-		if (isset($moduleActions[$m])) {
-			$actions[] = $moduleActions[$m];
+	// Prefer topic-specific actions so each instrument has its own implementation list.
+	$actions = epc_uae_tax_legislation_topic_actions($title, $category, $pdfExcerpt);
+
+	if (empty($actions)) {
+		$mods = epc_uae_tax_legislation_erp_modules(array_merge($item, $built));
+		$moduleActions = array(
+			'einvoice' => 'Validate tax invoice mandatory fields (PINT-AE) before ASP submission for supplies covered by this instrument.',
+			'vat_return' => 'Include affected supplies/deductions in the UAE VAT return for the first open period after the issue date.',
+			'purchases' => 'Set purchase VAT treatment (standard, zero-rated, reverse charge) to match this instrument’s scope.',
+			'gl_journals' => 'Post VAT/CT to GL (2100 output, 1150 input) and set legislation_ref = this instrument on vouchers.',
+			'pl_ct' => 'Review P&L Corporate Tax provision and CT adjustment fields for impacts of this instrument.',
+			'inventory' => 'Tag excise-affected SKUs; keep excise separate from storefront VAT.',
+			'customs' => 'Attach customs/import evidence required by this instrument.',
+			'records' => 'Retain the FTA PDF, ERP event log, and supporting docs for the statutory record-keeping period.',
+		);
+		foreach ($mods as $m) {
+			if (isset($moduleActions[$m])) {
+				$actions[] = $moduleActions[$m];
+			}
 		}
-	}
-
-	if ($tt === 'vat') {
-		$actions[] = 'Apply 5% VAT on taxable supplies; zero-rate exports (category Z) where conditions met.';
-		if ($pk === 'vat-decree-8-2017') {
+		if ($tt === 'vat' && $pk === 'vat-decree-8-2017') {
+			$actions[] = 'Apply 5% VAT on taxable supplies; zero-rate exports (category Z) where conditions met.';
 			$actions[] = 'Record output VAT on customer advance payments; credit on final tax invoice.';
+		} elseif ($tt === 'corporate_tax') {
+			$actions[] = 'Estimate 9% CT on adjusted profit above AED 375,000 threshold (P&L tab).';
+		} elseif ($tt === 'excise') {
+			$actions[] = 'Register excise products on EmaraTax; file excise returns outside storefront VAT.';
+		} elseif ($pk === 'tax-procedures') {
+			$actions[] = 'File returns and voluntary disclosures on EmaraTax by published deadlines.';
+		} elseif ($pk === 'einvoicing-decision') {
+			$actions[] = 'Configure seller TRN, Peppol endpoint 0235:TIN, and XML export for mandated go-live.';
 		}
-	} elseif ($tt === 'corporate_tax') {
-		$actions[] = 'Estimate 9% CT on adjusted profit above AED 375,000 threshold (P&L tab).';
-	} elseif ($tt === 'excise') {
-		$actions[] = 'Register excise products on EmaraTax; file excise returns outside storefront VAT.';
-	} elseif ($pk === 'tax-procedures') {
-		$actions[] = 'File returns and voluntary disclosures on EmaraTax by published deadlines.';
-	} elseif ($pk === 'einvoicing-decision') {
-		$actions[] = 'Configure seller TRN, Peppol endpoint 0235:TIN, and XML export for mandated go-live.';
 	}
 
-	$hay = strtolower((string)($item['title'] ?? ''));
-	if (preg_match('/credit\s*note/i', $hay)) {
-		$actions[] = 'Issue credit notes (type 381) referencing original invoice number and date.';
-	}
-	if (preg_match('/transfer\s*pric/i', $hay)) {
-		$actions[] = 'Document related-party transactions; CT add-back field for transfer pricing adjustments.';
-	}
+	// Always close with an implementation gate so "new law" is not left silent.
+	$ref = trim($title) !== '' ? $title : 'this FTA instrument';
+	$actions[] = 'Mark each checklist step done in ERP once implemented; leave as Pending until the treatment is live for ' . $ref . '.';
 
 	return array_values(array_unique($actions));
 }
 
-function epc_uae_tax_legislation_enrich_item(array $item): array
+/** Stable key for a checklist action text. */
+function epc_uae_tax_legislation_action_key(string $actionText): string
+{
+	return substr(hash('sha256', strtolower(trim($actionText))), 0, 32);
+}
+
+/**
+ * Load saved implementation statuses for an item_key.
+ *
+ * @return array<string,string> action_key => pending|done
+ */
+function epc_uae_tax_legislation_checklist_status_map(PDO $db, string $itemKey): array
+{
+	epc_uae_tax_compliance_ensure_schema($db);
+	$st = $db->prepare('SELECT `action_key`, `status` FROM `epc_uae_tax_legislation_checklist` WHERE `item_key` = ?');
+	$st->execute(array($itemKey));
+	$map = array();
+	while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+		$map[(string)$row['action_key']] = (string)$row['status'];
+	}
+	return $map;
+}
+
+/**
+ * @param array<int,string> $actions
+ * @return array{items:array<int,array{key:string,text:string,status:string}>,pending:int,done:int,impl_status:string}
+ */
+function epc_uae_tax_legislation_checklist_with_status(PDO $db, string $itemKey, array $actions): array
+{
+	$map = $itemKey !== '' ? epc_uae_tax_legislation_checklist_status_map($db, $itemKey) : array();
+	$items = array();
+	$pending = 0;
+	$done = 0;
+	foreach ($actions as $text) {
+		$text = trim((string)$text);
+		if ($text === '') {
+			continue;
+		}
+		$key = epc_uae_tax_legislation_action_key($text);
+		$status = isset($map[$key]) && $map[$key] === 'done' ? 'done' : 'pending';
+		if ($status === 'done') {
+			$done++;
+		} else {
+			$pending++;
+		}
+		$items[] = array('key' => $key, 'text' => $text, 'status' => $status);
+	}
+	$impl = 'not_started';
+	if ($done > 0 && $pending === 0) {
+		$impl = 'implemented';
+	} elseif ($done > 0) {
+		$impl = 'in_progress';
+	} else {
+		$impl = 'pending';
+	}
+	return array(
+		'items' => $items,
+		'pending' => $pending,
+		'done' => $done,
+		'impl_status' => $impl,
+	);
+}
+
+/** Persist a single checklist action status (pending|done). */
+function epc_uae_tax_legislation_checklist_set_status(PDO $db, string $itemKey, string $actionKey, string $actionText, string $status): array
+{
+	epc_uae_tax_compliance_ensure_schema($db);
+	$status = $status === 'done' ? 'done' : 'pending';
+	$itemKey = trim($itemKey);
+	$actionKey = trim($actionKey);
+	$actionText = trim($actionText);
+	if ($itemKey === '' || $actionKey === '') {
+		return array('ok' => false, 'message' => 'Missing item or action key.');
+	}
+	if ($actionText === '') {
+		$actionText = $actionKey;
+	}
+	$db->prepare(
+		'INSERT INTO `epc_uae_tax_legislation_checklist`
+		(`item_key`, `action_key`, `action_text`, `status`, `time_updated`)
+		VALUES (?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+		 `action_text` = VALUES(`action_text`), `status` = VALUES(`status`), `time_updated` = VALUES(`time_updated`)'
+	)->execute(array($itemKey, $actionKey, $actionText, $status, time()));
+
+	return array(
+		'ok' => true,
+		'status' => true,
+		'item_key' => $itemKey,
+		'action_key' => $actionKey,
+		'action_status' => $status,
+		'message' => $status === 'done' ? 'Checklist step marked implemented.' : 'Checklist step marked pending.',
+	);
+}
+
+function epc_uae_tax_legislation_enrich_item(array $item, ?PDO $db = null): array
 {
 	$built = epc_uae_tax_legislation_build_summary($item);
 	$item['pattern_key'] = $built['pattern_key'];
@@ -963,8 +1255,28 @@ function epc_uae_tax_legislation_enrich_item(array $item): array
 	$item['summary'] = $built['erp_summary'];
 	$item['pdf_excerpt'] = (string)($built['pdf_excerpt'] ?? '');
 	$item['erp_apply'] = $built['erp_apply'];
-	$item['compliance_actions'] = epc_uae_tax_legislation_build_compliance_actions($item);
+	$actions = epc_uae_tax_legislation_build_compliance_actions($item);
+	$item['compliance_actions'] = $actions;
 	$item['erp_modules'] = epc_uae_tax_legislation_erp_modules($item);
+	$itemKey = (string)($item['item_key'] ?? $item['slug'] ?? '');
+	if ($db instanceof PDO && $itemKey !== '') {
+		$chk = epc_uae_tax_legislation_checklist_with_status($db, $itemKey, $actions);
+		$item['checklist_items'] = $chk['items'];
+		$item['impl_pending'] = $chk['pending'];
+		$item['impl_done'] = $chk['done'];
+		$item['impl_status'] = $chk['impl_status'];
+	} else {
+		$item['checklist_items'] = array_map(static function ($t) {
+			return array(
+				'key' => epc_uae_tax_legislation_action_key((string)$t),
+				'text' => (string)$t,
+				'status' => 'pending',
+			);
+		}, $actions);
+		$item['impl_pending'] = count($actions);
+		$item['impl_done'] = 0;
+		$item['impl_status'] = !empty($item['is_new']) ? 'pending' : 'pending';
+	}
 	if (!empty($item['is_changed'])) {
 		$item['is_updated'] = true;
 	}
@@ -1355,6 +1667,9 @@ function epc_uae_tax_legislation_summaries_need_regen(array $legislation): bool
 	if (empty($legislation)) {
 		return false;
 	}
+	$genericSig = 'Validate tax invoice mandatory fields (PINT-AE) before ASP submission.';
+	$seenFirst = null;
+	$identicalGeneric = 0;
 	foreach ($legislation as $leg) {
 		if (trim((string)($leg['erp_summary'] ?? $leg['summary'] ?? '')) === '') {
 			return true;
@@ -1365,6 +1680,21 @@ function epc_uae_tax_legislation_summaries_need_regen(array $legislation): bool
 			$actions = is_array($decoded) ? $decoded : array();
 		}
 		if (empty($actions)) {
+			return true;
+		}
+		// Stale boilerplate: every VAT row still shows the old identical module list.
+		$sig = implode('|', array_slice($actions, 0, 3));
+		if ($seenFirst === null) {
+			$seenFirst = $sig;
+		} elseif ($sig === $seenFirst && strpos($sig, $genericSig) !== false) {
+			$identicalGeneric++;
+			if ($identicalGeneric >= 2) {
+				return true;
+			}
+		}
+		$title = (string)($leg['title'] ?? '');
+		$topic = epc_uae_tax_legislation_topic_actions($title, (string)($leg['category'] ?? ''), '');
+		if (!empty($topic) && !empty($actions) && $actions[0] === $genericSig) {
 			return true;
 		}
 	}

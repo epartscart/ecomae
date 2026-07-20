@@ -248,4 +248,73 @@
 			epcLegQaSubmit();
 		});
 	});
+
+	function epcLegImplBadge(card, implStatus, done, total) {
+		if (!card) {
+			return;
+		}
+		var label = implStatus === 'implemented' ? 'Implemented' : (implStatus === 'in_progress' ? 'In progress' : 'Implementation pending');
+		var color = implStatus === 'implemented' ? '#1a7f37' : (implStatus === 'in_progress' ? '#b8860b' : '#c0392b');
+		var badges = card.querySelectorAll('.epc-leg-item-hd .label');
+		badges.forEach(function (b) {
+			var t = (b.textContent || '').toLowerCase();
+			if (t.indexOf('implementation') !== -1 || t === 'implemented' || t === 'in progress') {
+				b.textContent = label;
+				b.style.background = color;
+			}
+		});
+		var countEl = card.querySelector('.epc-leg-item-bd .text-muted');
+		if (countEl && typeof done === 'number' && typeof total === 'number') {
+			countEl.textContent = done + '/' + total + ' done';
+		}
+	}
+
+	document.querySelectorAll('.epc-leg-check').forEach(function (cb) {
+		cb.addEventListener('change', function () {
+			var itemKey = cb.getAttribute('data-item-key') || '';
+			var actionKey = cb.getAttribute('data-action-key') || '';
+			var actionText = cb.getAttribute('data-action-text') || '';
+			var card = cb.closest('.epc-leg-item');
+			var allTexts = [];
+			if (card) {
+				card.querySelectorAll('.epc-leg-check').forEach(function (x) {
+					var t = x.getAttribute('data-action-text') || '';
+					if (t) {
+						allTexts.push(t);
+					}
+				});
+			}
+			var fd = new FormData();
+			fd.append('action', 'uae_tax_legislation_checklist_set');
+			fd.append('item_key', itemKey);
+			fd.append('action_key', actionKey);
+			fd.append('action_text', actionText);
+			fd.append('done', cb.checked ? '1' : '0');
+			fd.append('all_actions_json', JSON.stringify(allTexts));
+			if (csrf) {
+				fd.append('csrf_guard_key', csrf);
+			}
+			postJson(fd)
+				.then(function (j) {
+					if (!(j.status || j.ok)) {
+						cb.checked = !cb.checked;
+						showMsg('warning', j.message || 'Could not save checklist step');
+						return;
+					}
+					var row = cb.closest('.epc-leg-check-row');
+					if (row) {
+						if (cb.checked) {
+							row.classList.add('is-done');
+						} else {
+							row.classList.remove('is-done');
+						}
+					}
+					epcLegImplBadge(card, j.impl_status || 'pending', j.impl_done || 0, allTexts.length);
+				})
+				.catch(function (err) {
+					cb.checked = !cb.checked;
+					showMsg('danger', (err && err.message) || 'Request failed');
+				});
+		});
+	});
 })();
