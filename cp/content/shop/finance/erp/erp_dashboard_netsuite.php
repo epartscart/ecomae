@@ -285,6 +285,67 @@ foreach ((array) ($nsProfile['quick'] ?? array()) as $qKey) {
 	$quickActions[] = $qa;
 }
 
+// Per-user customizable Quick actions (add/remove on the dashboard).
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_dash_shortcuts_ui.php';
+$erpShortcutAjax = isset($erpAjaxEndpoint) ? (string) $erpAjaxEndpoint : '';
+if ($erpShortcutAjax === '' && function_exists('epc_erp_configure_portal_urls')) {
+	$erpShortcutUrls = epc_erp_configure_portal_urls(
+		(isset($epc_erp_portal) && $epc_erp_portal === 'frontend') ? 'frontend' : 'cp'
+	);
+	$erpShortcutAjax = (string) ($erpShortcutUrls['erpAjaxUrl'] ?? '');
+}
+$erpShortcutCsrf = isset($csrf) ? (string) $csrf : '';
+$erpShortcutCatalog = epc_shortcuts_catalog_erp($nsUrl);
+// Keep catalogue aligned with role capabilities (hide locked modules).
+foreach ($erpShortcutCatalog as $scKey => $scItem) {
+	if (!isset($quickCatalog[$scKey])) {
+		continue;
+	}
+	$need = (string) ($quickCatalog[$scKey]['need'] ?? '');
+	if ($need !== '' && !$nsCan($need)) {
+		unset($erpShortcutCatalog[$scKey]);
+	}
+}
+$erpShortcutDefaults = array();
+foreach ((array) ($nsProfile['quick'] ?? array()) as $qKey) {
+	$qKey = (string) $qKey;
+	if ($qKey !== '' && isset($erpShortcutCatalog[$qKey])) {
+		$erpShortcutDefaults[] = $qKey;
+	}
+}
+if ($erpShortcutDefaults === []) {
+	$erpShortcutDefaults = array_slice(array_keys($erpShortcutCatalog), 0, 8);
+}
+$erpShortcutUid = epc_shortcuts_user_id();
+$erpShortcutItems = array();
+if ($db_link instanceof PDO && $erpShortcutUid > 0) {
+	epc_shortcuts_seed_defaults($db_link, $erpShortcutUid, 'erp', $erpShortcutDefaults, $erpShortcutCatalog);
+	$erpShortcutItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db_link, $erpShortcutUid, 'erp'));
+} else {
+	foreach ($erpShortcutDefaults as $dk) {
+		if (!isset($erpShortcutCatalog[$dk])) {
+			continue;
+		}
+		$c = $erpShortcutCatalog[$dk];
+		$erpShortcutItems[] = array(
+			'id' => 0,
+			'key' => $dk,
+			'label' => $c['label'],
+			'icon' => preg_replace('/^fa\s+/', '', $c['icon']),
+			'color' => $c['color'],
+			'url' => $c['url'],
+			'tone' => $c['tone'] ?? 'blue',
+		);
+	}
+}
+foreach ($erpShortcutItems as $ei => $eit) {
+	$ek = (string) ($eit['key'] ?? '');
+	if ($ek !== '' && isset($erpShortcutCatalog[$ek]['tone'])) {
+		$erpShortcutItems[$ei]['tone'] = (string) $erpShortcutCatalog[$ek]['tone'];
+	}
+}
+
 // ---- KPI table values (capability-gated) ----
 $kpiRows = array();
 if ($nsCan('ap')) {
@@ -433,16 +494,18 @@ if (function_exists('epc_erp_shell_asset_href')) {
 	</div>
 
 	<div class="ns-port">
-		<h4><i class="fa fa-bolt"></i> Quick actions</h4>
-		<div class="bd">
-			<div class="ns-qa-grid">
-				<?php foreach ($quickActions as $qa): ?>
-					<a class="ns-qa" href="<?php echo $qa['url']; ?>">
-						<span class="qa-ic <?php echo epc_erp_h($qa['tone']); ?>"><i class="fa <?php echo epc_erp_h($qa['icon']); ?>"></i></span>
-						<span class="qa-lb"><?php echo epc_erp_h($qa['label']); ?></span>
-					</a>
-				<?php endforeach; ?>
-			</div>
+		<div class="bd" style="padding-top:14px">
+			<?php
+			echo epc_dash_shortcuts_render(array(
+				'surface' => 'erp',
+				'variant' => 'erp',
+				'title' => 'Quick actions',
+				'ajax_url' => $erpShortcutAjax,
+				'csrf' => $erpShortcutCsrf,
+				'catalog' => $erpShortcutCatalog,
+				'items' => $erpShortcutItems,
+			));
+			?>
 		</div>
 	</div>
 
