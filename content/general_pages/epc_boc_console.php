@@ -75,7 +75,7 @@ body.epc-cp-shell .content .epc-boc__rail,.epc-cp-shell .epc-boc__rail{flex:0 0 
 .epc-boc__btn--ai{background:#0a0a0a;color:#fff;border:1px solid #0a0a0a;box-shadow:none;}
 .epc-boc__btn--ai:hover{background:#dc2626;border-color:#b91c1c;color:#fff;filter:none;}
 .epc-boc__avatar{width:32px;height:32px;border-radius:50%;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:.3px;}
-.epc-boc__canvas{padding:22px 26px 36px;flex:1;max-width:1640px;width:100%;position:relative;}
+.epc-boc__canvas{padding:18px 20px 32px;flex:1;max-width:none;width:100%;position:relative;}
 .epc-boc__canvas::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.9;background-color:#f1f5f9;background-image:
  linear-gradient(rgba(15,23,42,.04) 1px,transparent 1px),
  linear-gradient(90deg,rgba(15,23,42,.04) 1px,transparent 1px),
