@@ -357,7 +357,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720shortcuts2';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720qafmt1';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -365,9 +365,9 @@ if (function_exists('epc_cp_shell_asset_href')) {
 	);
 }
 if (strpos($cssHref, '?') === false) {
-	$cssHref .= '?v=20260720shortcuts2';
+	$cssHref .= '?v=20260720qafmt1';
 } elseif (strpos($cssHref, 'v=') === false) {
-	$cssHref .= '&v=20260720shortcuts2';
+	$cssHref .= '&v=20260720qafmt1';
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -436,16 +436,22 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 			$cpShortcutItems[$ci]['tone'] = $cycle[$ci % 4];
 		}
 	}
-	echo epc_dash_shortcuts_render(array(
-		'surface' => 'cp',
-		'variant' => 'cp',
-		'title' => 'My shortcuts',
-		'ajax_url' => $cpShortcutAjax,
-		'csrf' => $cpShortcutCsrf,
-		'catalog' => $cpShortcutCatalog,
-		'items' => $cpShortcutItems,
-	));
 	?>
+	<div class="cp-dash-port">
+		<div class="bd" style="padding-top:14px">
+			<?php
+			echo epc_dash_shortcuts_render(array(
+				'surface' => 'cp',
+				'variant' => 'cp',
+				'title' => 'Quick actions',
+				'ajax_url' => $cpShortcutAjax,
+				'csrf' => $cpShortcutCsrf,
+				'catalog' => $cpShortcutCatalog,
+				'items' => $cpShortcutItems,
+			));
+			?>
+		</div>
+	</div>
 
 	<div class="cp-dash-grid">
 		<div class="cp-dash-col-left">
