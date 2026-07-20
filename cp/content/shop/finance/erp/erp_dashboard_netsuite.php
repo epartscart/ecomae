@@ -40,12 +40,15 @@ try {
 }
 
 $nsCurrency = '';
+$nsCo = array();
 if (function_exists('epc_co_profile_get')) {
 	try {
 		$nsCo = epc_co_profile_get($db_link);
+		if (!is_array($nsCo)) { $nsCo = array(); }
 		$nsCurrency = isset($nsCo['base_currency']) ? (string) $nsCo['base_currency'] : '';
 	} catch (Exception $e) {
 		$nsCurrency = '';
+		$nsCo = array();
 	}
 }
 if ($nsCurrency === '') {
@@ -215,96 +218,54 @@ $gaugeScale = max(abs($gaugeVal), abs((float) ($dashboard['revenue_ex_vat'] ?? 0
 $gaugeFrac = max(0.0, min(1.0, ($gaugeVal + $gaugeScale) / (2 * $gaugeScale))); // -scale..+scale mapped 0..1
 $gaugeAngle = -90 + ($gaugeFrac * 180); // degrees for needle
 
-// ---- Aging chart geometry ----
-$arMax = max(0.01, max($nsAr['totals']));
-$arColors = array('#107c10', '#0078d4', '#c19c00', '#dc6803', '#a4262c');
+// ---- Hero metric strip (primary financial pulse) ----
+$nsHeroEntity = 'Operations';
+if (!empty($nsCo) && is_array($nsCo)) {
+	$nsHeroEntity = (string) (($nsCo['legal_name'] ?? '') !== '' ? $nsCo['legal_name'] : (($nsCo['trade_name'] ?? '') !== '' ? $nsCo['trade_name'] : $nsHeroEntity));
+}
+$nsHeroMetrics = array(
+	array('label' => 'Cash & bank', 'cur' => (float) ($dashboard['cash_bank_total'] ?? 0), 'prev' => (float) ($nsPrev['cash_bank_total'] ?? 0), 'goodUp' => true, 'money' => true),
+	array('label' => 'Sales (ex VAT)', 'cur' => (float) ($dashboard['revenue_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['revenue_ex_vat'] ?? 0), 'goodUp' => true, 'money' => true),
+	array('label' => 'Receivables', 'cur' => (float) ($dashboard['customer_ledger_balance'] ?? 0), 'prev' => (float) ($nsPrev['customer_ledger_balance'] ?? 0), 'goodUp' => true, 'money' => true),
+	array('label' => 'Payables', 'cur' => (float) ($dashboard['payable_balance'] ?? 0), 'prev' => (float) ($nsPrev['payable_balance'] ?? 0), 'goodUp' => false, 'money' => true),
+);
+$nsRoleLabel = array('finance' => 'Finance centre', 'sales' => 'Sales centre', 'purchasing' => 'Purchasing centre');
+// Theme URL relative to docroot (works under /erp/ shell and CP).
+$nsCssCandidates = array(
+	'/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css',
+	'/content/shop/finance/erp/theme/erp_dashboard_premium.css',
+);
+$nsCssHref = '/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css';
+foreach ($nsCssCandidates as $c) {
+	$abs = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/') . $c;
+	if (is_file($abs)) { $nsCssHref = $c; break; }
+}
 ?>
-<style>
-.ns-dash{--ns-bd:#e2e8f0;--ns-head:#0f172a;--ns-muted:#64748b;--ns-accent:#2563eb;font-size:13px;color:#1e293b}
-.ns-dash *{box-sizing:border-box}
-.ns-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:4px 0 16px}
-.ns-tile{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:104px;border-radius:10px;padding:14px;text-decoration:none;box-shadow:0 1px 3px rgba(15,23,42,.10);overflow:hidden;transition:transform .12s ease,box-shadow .12s ease}
-.ns-tile,.ns-tile:link,.ns-tile:visited,.ns-tile:hover,.ns-tile:focus,.ns-tile .tl,.ns-tile .ic{color:#fff!important}
-.ns-tile:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,30,50,.30)}
-.ns-tile .ic{position:absolute;top:12px;right:14px;font-size:30px;opacity:.40;text-shadow:0 1px 2px rgba(0,0,0,.25)}
-.ns-tile .tl{position:relative;z-index:1;font-size:15px;font-weight:700;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.45)}
-.ns-tile::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 45%);pointer-events:none}
-.ns-tile.gold{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
-.ns-tile.green{background:linear-gradient(135deg,#0ea5e9,#0284c7)}
-.ns-tile.rust{background:linear-gradient(135deg,#0369a1,#075985)}
-.ns-tile.slate{background:linear-gradient(135deg,#475569,#1e293b)}
-.ns-grid{display:grid;grid-template-columns:240px 1fr 320px;gap:16px;align-items:start}
-.ns-port{background:#fff;border:1px solid var(--ns-bd);border-radius:10px;margin-bottom:16px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
-.ns-port>h4{margin:0;padding:12px 16px;font-size:15px;font-weight:700;color:var(--ns-head);border-bottom:1px solid var(--ns-bd);background:#f8fafc;border-radius:10px 10px 0 0}
-.ns-port .bd{padding:11px 13px}
-.ns-rem{list-style:none;margin:0;padding:0}
-.ns-rem li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #e7edf3}
-.ns-rem li:last-child{border-bottom:0}
-.ns-rem .cnt{flex:0 0 34px;text-align:center;font-weight:700;color:#fff;background:#2563eb;border-radius:6px;padding:3px 0;font-size:13px}
-.ns-rem .cnt.zero{background:#cbd5e1}
-.ns-rem a{color:#1e293b;text-decoration:none}
-.ns-rem a:hover{color:#2563eb;text-decoration:underline}
-.ns-nav h5{margin:11px 0 6px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ns-muted)}
-.ns-nav h5:first-child{margin-top:0}
-.ns-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
-.ns-mini{display:flex;align-items:center;gap:8px;padding:8px 9px;border:1px solid var(--ns-bd);border-radius:8px;text-decoration:none;color:#1e293b;background:#fff;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
-.ns-mini:hover{border-color:#93c5fd;box-shadow:0 4px 10px rgba(37,99,235,.12);transform:translateY(-1px);color:#1e293b}
-.ns-mini .mi{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex:0 0 28px}
-.ns-mini .ml{font-size:11.5px;font-weight:600;line-height:1.2}
-.ns-mi-teal{background:linear-gradient(135deg,#0ea5e9,#0284c7)}
-.ns-mi-blue{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
-.ns-mi-amber{background:linear-gradient(135deg,#0369a1,#075985)}
-/* Quick actions — visual icon cards */
-.ns-qa-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px}
-.ns-qa{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;text-align:center;padding:16px 8px;background:#fff;border:1px solid var(--ns-bd);border-radius:8px;text-decoration:none;color:#1e293b;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
-.ns-qa:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(37,99,235,.14);border-color:#93c5fd;color:#1e293b}
-.ns-qa .qa-ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;color:#fff;box-shadow:0 2px 6px rgba(15,23,42,.12)}
-.ns-qa,.ns-qa:link,.ns-qa:visited,.ns-qa:hover,.ns-qa:focus,.ns-qa .qa-lb{color:#0f172a!important}
-.ns-qa .qa-lb{font-size:12px;font-weight:700;line-height:1.25}
-.ns-qa .qa-blue{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
-.ns-qa .qa-indigo{background:linear-gradient(135deg,#0369a1,#075985)}
-.ns-qa .qa-amber{background:linear-gradient(135deg,#0ea5e9,#0284c7)}
-.ns-qa .qa-pink{background:linear-gradient(135deg,#6366f1,#4338ca)}
-.ns-qa .qa-teal{background:linear-gradient(135deg,#0ea5e9,#0284c7)}
-.ns-qa .qa-green{background:linear-gradient(135deg,#107c10,#0b6a0b)}
-.ns-qa .qa-slate{background:linear-gradient(135deg,#475569,#1e293b)}
-.ns-qa .qa-rust{background:linear-gradient(135deg,#0369a1,#075985)}
-@media(max-width:1100px){.ns-qa-grid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:600px){.ns-qa-grid{grid-template-columns:repeat(2,1fr)}}
-.ns-kpi-tbl{width:100%;border-collapse:collapse}
-.ns-kpi-tbl th,.ns-kpi-tbl td{padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:right}
-.ns-kpi-tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ns-muted);background:#f8fafc}
-.ns-kpi-tbl td:first-child,.ns-kpi-tbl th:first-child{text-align:left}
-.ns-chg{font-weight:600;font-size:12px;white-space:nowrap}
-.ns-up{color:#0b6a0b}.ns-down{color:#a4262c}.ns-flat{color:#94a3b8}
-.ns-fin{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.ns-fin .cell{border:1px solid #e2e8f0;border-radius:8px;padding:10px;background:#f8fafc}
-.ns-fin .cell .l{font-size:11px;color:var(--ns-muted);text-transform:uppercase;letter-spacing:.03em}
-.ns-fin .cell .v{font-size:17px;font-weight:700;margin-top:3px}
-.ns-gauge{text-align:center;padding:4px 0 2px}
-.ns-gauge .gval{font-size:22px;font-weight:800;margin-top:-6px}
-.ns-gauge .gsub{font-size:11px;color:var(--ns-muted)}
-.ns-bars{display:flex;align-items:flex-end;gap:10px;height:160px;padding:6px 4px 0}
-.ns-bars .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-.ns-bars .bar{width:100%;max-width:34px;border-radius:3px 3px 0 0;min-height:2px}
-.ns-bars .amt{font-size:10px;color:var(--ns-muted);margin-bottom:3px}
-.ns-bars .lab{font-size:10px;color:#1e293b;margin-top:5px;text-align:center}
-.ns-total{text-align:right;font-size:12px;color:var(--ns-muted);margin-top:6px}
-.ns-kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.ns-kpi-card{position:relative;border:1px solid var(--ns-bd);border-radius:8px;padding:12px 13px;background:#fff;border-left:4px solid #cbd5e1;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.ns-kpi-card .kl{font-size:11px;color:var(--ns-muted);line-height:1.25;min-height:28px}
-.ns-kpi-card .kv{font-size:21px;font-weight:700;color:#0f172a;margin-top:4px}
-.ns-kpi-card .kh{font-size:10px;color:var(--ns-muted);margin-top:3px}
-.ns-kpi-card.good{border-left-color:#107c10}
-.ns-kpi-card.warn{border-left-color:#c19c00}
-.ns-kpi-card.bad{border-left-color:#a4262c}
-.ns-kpi-card.info{border-left-color:#0078d4}
-.ns-kpi-card .dot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%;background:#cbd5e1}
-.ns-kpi-card.good .dot{background:#107c10}.ns-kpi-card.warn .dot{background:#c19c00}.ns-kpi-card.bad .dot{background:#a4262c}.ns-kpi-card.info .dot{background:#0078d4}
-@media(max-width:1100px){.ns-grid{grid-template-columns:1fr}.ns-tiles{grid-template-columns:repeat(2,1fr)}.ns-kpi-grid{grid-template-columns:repeat(2,1fr)}}
-</style>
+<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720">
 
 <div class="ns-dash">
+	<div class="ns-hero">
+		<div class="ns-hero-panel">
+			<div class="ns-hero-kicker">Command centre</div>
+			<h2 class="ns-hero-title"><?php echo epc_erp_h($nsHeroEntity); ?></h2>
+			<p class="ns-hero-sub">Premium operational view — live KPIs, receivables aging and executive trends for the selected period, presented with depth and clarity.</p>
+			<div class="ns-hero-meta">
+				<span class="ns-chip"><i class="fa fa-calendar"></i> <?php echo epc_erp_h($date_from_str); ?> → <?php echo epc_erp_h($date_to_str); ?></span>
+				<span class="ns-chip"><i class="fa fa-money"></i> <?php echo epc_erp_h($nsCurrency); ?></span>
+				<span class="ns-chip"><i class="fa fa-user"></i> <?php echo epc_erp_h($nsRoleLabel[$nsRole] ?? 'Finance centre'); ?></span>
+			</div>
+		</div>
+		<div class="ns-hero-metrics">
+			<?php foreach ($nsHeroMetrics as $hm): ?>
+				<div class="ns-metric3d">
+					<div class="ml"><?php echo epc_erp_h($hm['label']); ?></div>
+					<div class="mv" data-ns-count="<?php echo epc_erp_h((string) $hm['cur']); ?>" data-ns-prefix=""><?php echo $nsMoney($hm['cur']); ?></div>
+					<div class="md"><?php echo $nsChange($hm['cur'], $hm['prev'], $hm['goodUp']); ?> vs prior period</div>
+				</div>
+			<?php endforeach; ?>
+		</div>
+	</div>
+
 	<div class="ns-tiles">
 		<?php foreach ($tiles as $t): ?>
 			<a class="ns-tile <?php echo epc_erp_h($t['tone']); ?>" href="<?php echo $t['url']; ?>">
@@ -438,32 +399,31 @@ $arColors = array('#107c10', '#0078d4', '#c19c00', '#dc6803', '#a4262c');
 				<div class="bd">
 					<div class="ns-gauge">
 						<svg viewBox="0 0 200 120" width="100%" height="120">
-							<path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#e2e8f0" stroke-width="16" stroke-linecap="round"/>
-							<path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#2563eb" stroke-width="16" stroke-linecap="round"
+							<defs>
+								<linearGradient id="nsGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+									<stop offset="0%" stop-color="#0d9488"/>
+									<stop offset="55%" stop-color="#0b6e99"/>
+									<stop offset="100%" stop-color="#c2811a"/>
+								</linearGradient>
+							</defs>
+							<path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#d9e4ec" stroke-width="16" stroke-linecap="round"/>
+							<path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#nsGaugeGrad)" stroke-width="16" stroke-linecap="round"
 								stroke-dasharray="<?php echo number_format($gaugeFrac * 251.3, 1); ?> 251.3"/>
 							<g transform="rotate(<?php echo number_format($gaugeAngle, 1); ?> 100 110)">
-								<line x1="100" y1="110" x2="100" y2="40" stroke="#0f172a" stroke-width="3"/>
+								<line x1="100" y1="110" x2="100" y2="40" stroke="#102a43" stroke-width="3"/>
 							</g>
-							<circle cx="100" cy="110" r="6" fill="#0f172a"/>
+							<circle cx="100" cy="110" r="7" fill="#102a43"/>
+							<circle cx="100" cy="110" r="3" fill="#0d9488"/>
 						</svg>
-						<div class="gval" style="color:<?php echo $gaugeVal >= 0 ? '#107c10' : '#a4262c'; ?>"><?php echo $nsMoney($gaugeVal); ?></div>
+						<div class="gval" style="color:<?php echo $gaugeVal >= 0 ? '#1a7f4b' : '#b42318'; ?>"><?php echo $nsMoney($gaugeVal); ?></div>
 						<div class="gsub"><?php echo $nsCurrency; ?> · live cash &amp; bank position</div>
 					</div>
 				</div>
 			</div>
 			<div class="ns-port">
-				<h4><i class="fa fa-bar-chart"></i> A/R aging — graph</h4>
+				<h4><i class="fa fa-bar-chart"></i> A/R aging — graphical</h4>
 				<div class="bd">
-					<div class="ns-bars">
-						<?php foreach ($nsAr['labels'] as $i => $lab): ?>
-							<?php $amt = (float) ($nsAr['totals'][$i] ?? 0); $h = (int) round(($amt / $arMax) * 140); ?>
-							<div class="col">
-								<span class="amt"><?php echo $amt > 0 ? $nsMoney($amt) : ''; ?></span>
-								<div class="bar" style="height:<?php echo max(2, $h); ?>px;background:<?php echo $arColors[$i % count($arColors)]; ?>"></div>
-								<span class="lab"><?php echo epc_erp_h($lab); ?></span>
-							</div>
-						<?php endforeach; ?>
-					</div>
+					<div class="ns-chart-wrap"><canvas id="nsChartAr" aria-label="A/R aging chart"></canvas></div>
 					<div class="ns-total">Total receivable: <strong><?php echo $nsMoney($nsAr['grand']); ?> <?php echo $nsCurrency; ?></strong></div>
 				</div>
 			</div>
@@ -553,43 +513,15 @@ $pfHasTasks = (((int) $pfSummary['open']) + ((int) $pfSummary['done']) + ((int) 
 $pfUrl = function ($view = 'monitor') use ($erpUrl, $date_from_str, $date_to_str) {
 	return epc_erp_h(epc_erp_tab_url($erpUrl, 'processflow', $date_from_str, $date_to_str) . '&pf_view=' . $view);
 };
+$nsTrendLabels = array();
+$nsTrendRev = array();
+$nsTrendProf = array();
+foreach ($nsTrend as $t) {
+	$nsTrendLabels[] = (string) ($t['label'] ?? '');
+	$nsTrendRev[] = (float) ($t['revenue'] ?? 0);
+	$nsTrendProf[] = (float) ($t['profit'] ?? 0);
+}
 ?>
-<style>
-.ns-exec{margin-top:18px;}
-.ns-exec h3.ns-exec-h{font-size:16px;font-weight:700;color:#0f172a;margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;}
-.ns-exec h3.ns-exec-h .fa{color:#2563eb;margin-right:6px;}
-.ns-exec-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start;}
-@media(max-width:1100px){.ns-exec-grid{grid-template-columns:1fr;}}
-.ns-bars2{display:flex;align-items:flex-end;gap:14px;height:190px;padding:12px 8px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;}
-.ns-bars2 .col{flex:1;text-align:center;}
-.ns-bars2 .pair{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:140px;}
-.ns-bars2 .b{width:16px;border-radius:3px 3px 0 0;}
-.ns-bars2 .cap{font-size:11px;color:#64748b;margin-top:6px;}
-.ns-leg{font-size:12px;color:#64748b;margin-top:8px;}
-.ns-leg .sq{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;}
-.ns-pf-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
-@media(max-width:1100px){.ns-pf-kpis{grid-template-columns:repeat(2,1fr);}}
-.ns-pf-card{background:#fff;border:1px solid #e2e8f0;border-left:4px solid #2563eb;border-radius:8px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04);}
-.ns-pf-card.good{border-left-color:#107c10;}
-.ns-pf-card.bad{border-left-color:#a4262c;}
-.ns-pf-card .v{font-size:26px;font-weight:700;color:#0f172a;line-height:1;}
-.ns-pf-card .v small{font-size:13px;font-weight:600;color:#64748b;}
-.ns-pf-card .l{font-size:12px;color:#64748b;margin-top:6px;}
-.ns-pf-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.ns-pf-bar .nm{width:130px;font-size:13px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ns-pf-bar .tr,.ns-pf-perf .tr{flex:1;background:#e2e8f0;border-radius:6px;height:14px;overflow:hidden;}
-.ns-pf-bar .fl{height:100%;background:linear-gradient(90deg,#2563eb,#0284c7);border-radius:6px;}
-.ns-pf-bar .ct{width:36px;text-align:right;font-size:13px;font-weight:700;color:#0f172a;}
-.ns-pf-perf{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
-.ns-pf-perf .rk{width:16px;text-align:right;font-size:12px;color:#64748b;}
-.ns-pf-perf img{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;border:1px solid #e2e8f0;}
-.ns-pf-perf .who{width:150px;min-width:0;}
-.ns-pf-perf .who .n{display:block;font-size:13px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ns-pf-perf .who .d{display:block;font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ns-pf-perf .tr{height:10px;}
-.ns-pf-perf .fl{height:100%;background:linear-gradient(90deg,#0284c7,#107c10);border-radius:6px;}
-.ns-pf-perf .ct{width:28px;text-align:right;font-size:13px;font-weight:700;color:#107c10;}
-</style>
 
 <div class="ns-dash ns-exec">
 	<h3 class="ns-exec-h"><i class="fa fa-dashboard"></i> Executive cockpit — full-system analytics</h3>
@@ -610,20 +542,8 @@ $pfUrl = function ($view = 'monitor') use ($erpUrl, $date_from_str, $date_to_str
 		<div class="ns-port">
 			<h4><i class="fa fa-line-chart"></i> Revenue &amp; profit — last 6 months</h4>
 			<div class="bd">
-				<div class="ns-bars2">
-					<?php foreach ($nsTrend as $t):
-						$rh = (int) round(140 * ((float) $t['revenue']) / $nsTrendMax);
-						$ph = (int) round(140 * max(0, (float) $t['profit']) / $nsTrendMax); ?>
-						<div class="col">
-							<div class="pair">
-								<div class="b" style="height:<?php echo $rh; ?>px;background:#2563eb;" title="Revenue <?php echo epc_erp_h(number_format((float) $t['revenue'], 0)); ?>"></div>
-								<div class="b" style="height:<?php echo $ph; ?>px;background:#107c10;" title="Profit <?php echo epc_erp_h(number_format((float) $t['profit'], 0)); ?>"></div>
-							</div>
-							<div class="cap"><?php echo epc_erp_h($t['label']); ?></div>
-						</div>
-					<?php endforeach; ?>
-				</div>
-				<div class="ns-leg"><span class="sq" style="background:#2563eb;"></span>Revenue &nbsp; <span class="sq" style="background:#107c10;"></span>Profit (ex-VAT)</div>
+				<div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue and profit trend"></canvas></div>
+				<div class="ns-leg"><span class="sq" style="background:#0b6e99;"></span>Revenue &nbsp; <span class="sq" style="background:#0d9488;"></span>Profit (ex-VAT)</div>
 			</div>
 		</div>
 		<div class="ns-port">
@@ -762,3 +682,122 @@ $pfUrl = function ($view = 'monitor') use ($erpUrl, $date_from_str, $date_to_str
 	</div>
 	<?php endif; ?>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script>
+(function () {
+	var arLabels = <?php echo json_encode(array_values($nsAr['labels'])); ?>;
+	var arTotals = <?php echo json_encode(array_map('floatval', array_values($nsAr['totals']))); ?>;
+	var trendLabels = <?php echo json_encode($nsTrendLabels); ?>;
+	var trendRev = <?php echo json_encode($nsTrendRev); ?>;
+	var trendProf = <?php echo json_encode($nsTrendProf); ?>;
+	var currency = <?php echo json_encode($nsCurrency); ?>;
+
+	function nsFmt(n) {
+		try { return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
+		catch (e) { return String(n); }
+	}
+
+	function drawCharts() {
+		if (typeof Chart === 'undefined') { return; }
+		Chart.defaults.font.family = 'Sora, ui-sans-serif, sans-serif';
+		Chart.defaults.color = '#5c6b7a';
+		var grid = 'rgba(16,42,67,0.06)';
+
+		var arEl = document.getElementById('nsChartAr');
+		if (arEl) {
+			new Chart(arEl.getContext('2d'), {
+				type: 'bar',
+				data: {
+					labels: arLabels,
+					datasets: [{
+						data: arTotals,
+						backgroundColor: ['#1a7f4b', '#0b6e99', '#0d9488', '#c2811a', '#b42318'],
+						borderRadius: 8,
+						borderSkipped: false,
+						maxBarThickness: 36
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: { display: false },
+						tooltip: {
+							callbacks: {
+								label: function (ctx) { return currency + ' ' + nsFmt(ctx.parsed.y); }
+							}
+						}
+					},
+					scales: {
+						x: { grid: { display: false } },
+						y: { grid: { color: grid }, ticks: { callback: function (v) { return nsFmt(v); } } }
+					},
+					animation: { duration: 1100, easing: 'easeOutCubic' }
+				}
+			});
+		}
+
+		var trEl = document.getElementById('nsChartTrend');
+		if (trEl) {
+			var ctx = trEl.getContext('2d');
+			var g = ctx.createLinearGradient(0, 0, 0, 200);
+			g.addColorStop(0, 'rgba(11,110,153,0.28)');
+			g.addColorStop(1, 'rgba(11,110,153,0.02)');
+			new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: trendLabels,
+					datasets: [
+						{
+							label: 'Revenue',
+							data: trendRev,
+							borderColor: '#0b6e99',
+							backgroundColor: g,
+							fill: true,
+							tension: 0.35,
+							borderWidth: 2.5,
+							pointRadius: 3,
+							pointBackgroundColor: '#0b6e99'
+						},
+						{
+							label: 'Profit',
+							data: trendProf,
+							borderColor: '#0d9488',
+							backgroundColor: 'transparent',
+							fill: false,
+							tension: 0.35,
+							borderWidth: 2.5,
+							pointRadius: 3,
+							pointBackgroundColor: '#0d9488'
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: { display: false },
+						tooltip: {
+							callbacks: {
+								label: function (ctx) { return ctx.dataset.label + ': ' + currency + ' ' + nsFmt(ctx.parsed.y); }
+							}
+						}
+					},
+					scales: {
+						x: { grid: { color: grid } },
+						y: { grid: { color: grid }, ticks: { callback: function (v) { return nsFmt(v); } } }
+					},
+					animation: { duration: 1200, easing: 'easeOutCubic' }
+				}
+			});
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', drawCharts);
+	} else {
+		drawCharts();
+	}
+})();
+</script>
