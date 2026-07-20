@@ -522,6 +522,85 @@ function epc_crm_handle_ajax_action(PDO $db, $action, array $post)
 		case 'crm_approve_expense':
 			$r = epc_crm_approve_expense($db, (int)($post['expense_id'] ?? 0), !empty($post['post_cash']));
 			return array_merge($r, array('message' => 'Expense approved' . ($r['cash_entry_id'] ? ' (cash entry #' . $r['cash_entry_id'] . ')' : '')));
+		case 'crm_get_lead':
+		case 'get_lead':
+			$lead = epc_crm_get_lead($db, (int)($post['id'] ?? 0));
+			if (!$lead) {
+				throw new Exception('Lead not found');
+			}
+			require_once __DIR__ . '/epc_erp_crm_advanced.php';
+			$scored = epc_crm_adv_score_lead($db, $lead);
+			$lead['lead_score'] = $scored['score'];
+			$lead['lead_band'] = $scored['band'];
+			$lead['score_reasons'] = $scored['reasons'];
+			// Nest under `lead` so entity `status` does not overwrite JSON ok flag.
+			return array('lead' => $lead, 'message' => 'OK');
+		case 'crm_get_opportunity':
+		case 'get_opportunity':
+			$opp = epc_crm_get_opportunity($db, (int)($post['id'] ?? 0));
+			if (!$opp) {
+				throw new Exception('Opportunity not found');
+			}
+			return array('opportunity' => $opp, 'message' => 'OK');
+		case 'crm_get_ticket':
+		case 'get_ticket':
+			require_once __DIR__ . '/epc_crm_modules.php';
+			$ticket = epc_crm_get_ticket($db, (int)($post['id'] ?? 0));
+			if (!$ticket) {
+				throw new Exception('Ticket not found');
+			}
+			return array('ticket' => $ticket, 'message' => 'OK');
+		case 'crm_update_ticket_status':
+		case 'update_ticket_status':
+			require_once __DIR__ . '/epc_crm_modules.php';
+			$tid = (int)($post['id'] ?? 0);
+			$ticket = epc_crm_get_ticket($db, $tid);
+			if (!$ticket) {
+				throw new Exception('Ticket not found');
+			}
+			$status = (string)($post['status'] ?? $ticket['status']);
+			$priority = (string)($post['priority'] ?? $ticket['priority']);
+			epc_crm_save_ticket($db, array(
+				'customer_user_id' => (int)$ticket['customer_user_id'],
+				'order_id' => (int)$ticket['order_id'],
+				'subject' => (string)$ticket['subject'],
+				'status' => $status,
+				'priority' => $priority,
+				'assigned_user_id' => (int)$ticket['assigned_user_id'],
+				'message' => trim((string)($post['message'] ?? '')),
+			), $tid);
+			return array('message' => 'Ticket updated');
+		case 'crm_get_project':
+		case 'get_project':
+			require_once __DIR__ . '/epc_crm_modules.php';
+			$project = epc_crm_get_project($db, (int)($post['id'] ?? 0));
+			if (!$project) {
+				throw new Exception('Project not found');
+			}
+			return array('project' => $project, 'message' => 'OK');
+		case 'crm_adv_dashboard':
+		case 'adv_dashboard':
+			require_once __DIR__ . '/epc_erp_crm_advanced.php';
+			return array('data' => epc_crm_adv_dashboard($db), 'message' => 'OK');
+		case 'crm_customer_360':
+		case 'customer_360':
+			require_once __DIR__ . '/epc_erp_crm_advanced.php';
+			$uid = (int)($post['user_id'] ?? 0);
+			return array('customer360' => epc_crm_adv_customer_360($db, $uid), 'message' => 'OK');
+		case 'crm_score_lead':
+		case 'score_lead':
+			require_once __DIR__ . '/epc_erp_crm_advanced.php';
+			$lead = epc_crm_get_lead($db, (int)($post['id'] ?? 0));
+			if (!$lead) {
+				throw new Exception('Lead not found');
+			}
+			$scored = epc_crm_adv_score_lead($db, $lead);
+			return array('score' => $scored, 'message' => 'OK');
+		case 'crm_quote_tax':
+		case 'quote_tax':
+			require_once __DIR__ . '/epc_erp_crm_advanced.php';
+			$tax = epc_crm_adv_quote_tax_totals($db, (int)($post['quote_id'] ?? 0));
+			return array('tax' => $tax, 'message' => 'OK');
 		default:
 			throw new Exception('Unknown CRM action');
 	}

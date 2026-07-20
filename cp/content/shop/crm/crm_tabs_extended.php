@@ -4,8 +4,10 @@ defined('_ASTEXE_') or die('No access');
 
 if ($tab === 'quotes'): ?>
 	<div class="epc-crm-section">
-		<h4><i class="fa fa-file-text-o"></i> Quotes</h4>
-		<form id="epc_crm_quote_form" class="form-inline epc-crm-form-inline" style="margin-bottom:12px;">
+		<h4><i class="fa fa-file-text-o"></i> Quotes &amp; proposals</h4>
+		<p class="text-muted" style="margin-top:-4px;">Create proposals, preview, email, tax-check totals, and accept into shop orders.</p>
+		<div class="epc-crm-form-card">
+		<form id="epc_crm_quote_form" class="form-inline epc-crm-form-inline">
 			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_crm_h($csrf); ?>">
 			<input type="number" name="opportunity_id" class="form-control input-sm" placeholder="Opp ID" value="0">
 			<select name="status" class="form-control input-sm"><?php foreach (epc_crm_quote_statuses() as $k => $lbl): ?><option value="<?php echo epc_crm_h($k); ?>"><?php echo epc_crm_h($lbl); ?></option><?php endforeach; ?></select>
@@ -14,6 +16,7 @@ if ($tab === 'quotes'): ?>
 			<input type="number" step="0.01" name="line_unit_price" class="form-control input-sm" placeholder="Unit AED" required>
 			<button type="submit" class="btn btn-sm btn-primary">Create quote</button>
 		</form>
+		</div>
 		<table class="table table-striped table-bordered table-condensed epc-erp-table-compact">
 			<thead><tr><th>#</th><th>Number</th><th>Opp</th><th>Status</th><th>Total</th><th>Order</th><th></th></tr></thead>
 			<tbody>
@@ -25,8 +28,9 @@ if ($tab === 'quotes'): ?>
 					<td><span class="label label-info"><?php echo epc_crm_h($q['status']); ?></span></td>
 					<td><?php echo epc_crm_money($q['subtotal']); ?> AED</td>
 					<td><?php echo (int)$q['shop_order_id'] ? (($ordersUrl !== '') ? ('<a href="' . epc_crm_h($ordersUrl) . '?order_id=' . (int)$q['shop_order_id'] . '">#' . (int)$q['shop_order_id'] . '</a>') : ('#' . (int)$q['shop_order_id'])) : '—'; ?></td>
-					<td>
+					<td style="white-space:nowrap;">
 						<button type="button" class="btn btn-xs btn-default epc-crm-quote-preview" data-id="<?php echo (int)$q['id']; ?>">Preview</button>
+						<button type="button" class="btn btn-xs btn-default epc-crm-quote-tax" data-id="<?php echo (int)$q['id']; ?>">Tax</button>
 						<button type="button" class="btn btn-xs btn-info epc-crm-quote-email" data-id="<?php echo (int)$q['id']; ?>">Email</button>
 						<?php if ($q['status'] !== 'accepted'): ?><button type="button" class="btn btn-xs btn-success epc-crm-accept-quote" data-id="<?php echo (int)$q['id']; ?>">Accept → order</button><?php endif; ?>
 					</td>
@@ -38,8 +42,10 @@ if ($tab === 'quotes'): ?>
 
 <?php elseif ($tab === 'tickets'): ?>
 	<div class="epc-crm-section">
-		<h4><i class="fa fa-life-ring"></i> Support tickets</h4>
-		<form id="epc_crm_ticket_form" class="form-inline epc-crm-form-inline" style="margin-bottom:12px;">
+		<h4><i class="fa fa-life-ring"></i> Support desk</h4>
+		<p class="text-muted" style="margin-top:-4px;">Open tickets, reply in-thread, and move status through open → pending → resolved → closed.</p>
+		<div class="epc-crm-form-card">
+		<form id="epc_crm_ticket_form" class="form-inline epc-crm-form-inline">
 			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_crm_h($csrf); ?>">
 			<input type="text" name="subject" class="form-control input-sm" placeholder="Subject" required>
 			<input type="number" name="customer_user_id" class="form-control input-sm" placeholder="User ID">
@@ -48,17 +54,19 @@ if ($tab === 'quotes'): ?>
 			<input type="text" name="message" class="form-control input-sm" placeholder="First message">
 			<button type="submit" class="btn btn-sm btn-primary">Open ticket</button>
 		</form>
+		</div>
 		<table class="table table-striped table-bordered table-condensed epc-erp-table-compact">
-			<thead><tr><th>Subject</th><th>Customer</th><th>Order</th><th>Status</th><th>Priority</th><th>Updated</th></tr></thead>
+			<thead><tr><th>Subject</th><th>Customer</th><th>Order</th><th>Status</th><th>Priority</th><th>Updated</th><th></th></tr></thead>
 			<tbody>
 			<?php foreach ($tickets as $t): ?>
 				<tr>
-					<td><?php echo epc_crm_h($t['subject']); ?></td>
+					<td><strong><?php echo epc_crm_h($t['subject']); ?></strong></td>
 					<td><?php echo (int)$t['customer_user_id'] ? ('#' . (int)$t['customer_user_id'] . ' ' . epc_crm_h($t['customer_email'] ?? '')) : '—'; ?></td>
 					<td><?php echo (int)$t['order_id'] ? ('#' . (int)$t['order_id']) : '—'; ?></td>
 					<td><span class="label label-warning"><?php echo epc_crm_h($t['status']); ?></span></td>
 					<td><?php echo epc_crm_h($t['priority']); ?></td>
 					<td><?php echo epc_crm_h(date('Y-m-d', (int)$t['time_updated'])); ?></td>
+					<td><button type="button" class="btn btn-xs btn-primary epc-crm-open-ticket" data-id="<?php echo (int)$t['id']; ?>"><i class="fa fa-comments"></i> Thread</button></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -67,8 +75,10 @@ if ($tab === 'quotes'): ?>
 
 <?php elseif ($tab === 'projects'): ?>
 	<div class="epc-crm-section">
-		<h4><i class="fa fa-tasks"></i> Projects (Gantt-lite)</h4>
-		<form id="epc_crm_project_form" class="form-inline epc-crm-form-inline" style="margin-bottom:12px;">
+		<h4><i class="fa fa-tasks"></i> Delivery projects</h4>
+		<p class="text-muted" style="margin-top:-4px;">Gantt-lite timeline plus task board — open a project to add tasks and auto-recalc progress.</p>
+		<div class="epc-crm-form-card">
+		<form id="epc_crm_project_form" class="form-inline epc-crm-form-inline">
 			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_crm_h($csrf); ?>">
 			<input type="text" name="name" class="form-control input-sm" placeholder="Project name" required>
 			<input type="number" name="opportunity_id" class="form-control input-sm" placeholder="Opp ID" value="0">
@@ -77,8 +87,9 @@ if ($tab === 'quotes'): ?>
 			<select name="status" class="form-control input-sm"><?php foreach (epc_crm_project_statuses() as $k => $lbl): ?><option value="<?php echo epc_crm_h($k); ?>"><?php echo epc_crm_h($lbl); ?></option><?php endforeach; ?></select>
 			<button type="submit" class="btn btn-sm btn-primary">Add project</button>
 		</form>
+		</div>
 		<table class="table table-striped table-bordered table-condensed epc-erp-table-compact">
-			<thead><tr><th>Project</th><th>Status</th><th>Progress</th><th>Timeline</th><th>Linked</th></tr></thead>
+			<thead><tr><th>Project</th><th>Status</th><th>Progress</th><th>Timeline</th><th>Linked</th><th></th></tr></thead>
 			<tbody>
 			<?php foreach ($projects as $p):
 				$prog = (int)$p['progress_pct'];
@@ -97,11 +108,12 @@ if ($tab === 'quotes'): ?>
 					</td>
 					<td>
 						<div style="background:#e2e8f0;height:8px;border-radius:4px;position:relative;max-width:200px;">
-							<div style="background:#6366f1;height:8px;border-radius:4px;width:<?php echo $prog; ?>%;"></div>
+							<div style="background:#1d4ed8;height:8px;border-radius:4px;width:<?php echo $prog; ?>%;"></div>
 							<?php if ($start && $end): ?><span style="font-size:10px;color:#64748b;"><?php echo epc_crm_h(date('d M', $start)); ?> → <?php echo epc_crm_h(date('d M', $end)); ?></span><?php endif; ?>
 						</div>
 					</td>
 					<td><?php echo epc_crm_h($p['opp_title'] ?: ('Order #' . (int)$p['order_id'])); ?></td>
+					<td><button type="button" class="btn btn-xs btn-primary epc-crm-open-project" data-id="<?php echo (int)$p['id']; ?>"><i class="fa fa-list"></i> Tasks</button></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
