@@ -23,20 +23,46 @@ defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aging.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_intelligence.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_dashboard_profiles.php';
+
+/** Profile centre for this signed-in user (CEO / CFO / Sales / …). */
+$nsProfile = epc_erp_dashboard_profile_meta($db_link);
+$nsRole = (string) ($nsProfile['key'] ?? 'finance');
+$nsCan = function (string $cap) use ($nsProfile): bool {
+	return epc_erp_dashboard_can($nsProfile, $cap);
+};
 
 // ---- Operational KPIs (BOS industry-intelligence engine, tenant-scoped) ----
 // Reuse $dashboard / $dashboard_pl already computed in erp_main.php.
 $opKpis = array();
-try {
-	$opKpis = epc_bos_intel_kpis(
-		$db_link,
-		(int) $date_from,
-		(int) $date_to,
-		isset($dashboard) && is_array($dashboard) ? $dashboard : null,
-		isset($dashboard_pl) && is_array($dashboard_pl) ? $dashboard_pl : null
-	);
-} catch (Throwable $e) {
-	$opKpis = array();
+if ($nsCan('op_kpis')) {
+	try {
+		$opKpis = epc_bos_intel_kpis(
+			$db_link,
+			(int) $date_from,
+			(int) $date_to,
+			isset($dashboard) && is_array($dashboard) ? $dashboard : null,
+			isset($dashboard_pl) && is_array($dashboard_pl) ? $dashboard_pl : null
+		);
+	} catch (Throwable $e) {
+		$opKpis = array();
+	}
+	$allowedOpKeys = isset($nsProfile['op_kpi_keys']) && is_array($nsProfile['op_kpi_keys'])
+		? $nsProfile['op_kpi_keys']
+		: array();
+	if (!empty($allowedOpKeys)) {
+		$opKpis = array_values(array_filter($opKpis, function ($k) use ($allowedOpKeys) {
+			return in_array((string) ($k['key'] ?? ''), $allowedOpKeys, true);
+		}));
+	}
+	// Defence in depth: never surface profit/margin cards without capability.
+	if (!$nsCan('profit')) {
+		$opKpis = array_values(array_filter($opKpis, function ($k) {
+			$key = (string) ($k['key'] ?? '');
+			return $key !== 'gross_margin' && stripos((string) ($k['label'] ?? ''), 'margin') === false
+				&& stripos((string) ($k['label'] ?? ''), 'profit') === false;
+		}));
+	}
 }
 
 $nsCurrency = '';
@@ -53,20 +79,6 @@ if (function_exists('epc_co_profile_get')) {
 }
 if ($nsCurrency === '') {
 	$nsCurrency = 'AED';
-}
-
-/** Resolve the dashboard role centre for the signed-in user (config-driven). */
-$nsRole = 'finance';
-if (function_exists('epc_erp_staff_primary_department')) {
-	try {
-		$dep = strtolower((string) epc_erp_staff_primary_department($db_link));
-		if (strpos($dep, 'sales') !== false || strpos($dep, 'crm') !== false) {
-			$nsRole = 'sales';
-		} elseif (strpos($dep, 'purchas') !== false || strpos($dep, 'procure') !== false) {
-			$nsRole = 'purchasing';
-		}
-	} catch (Exception $e) {
-	}
 }
 
 /** Previous equal-length period, for trend arrows. */
@@ -134,83 +146,165 @@ $remConfirmSO = $nsCount("SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `sta
 $remOpenPO = $nsCount("SELECT COUNT(*) FROM `epc_erp_purchase_orders` WHERE `status` IN ('draft','sent','confirmed')");
 $remInvDue = $nsCount("SELECT COUNT(*) FROM `epc_einvoice_documents` WHERE `active` = 1 AND `status` <> 'cancelled' AND (`total_incl_vat` - `paid_amount`) > 0.005");
 
-$reminders = array(
-	array('n' => $remDraftSO, 'label' => 'Draft sales orders to confirm', 'url' => $nsUrl('sales_orders', 'sales')),
-	array('n' => $remConfirmSO, 'label' => 'Confirmed orders to invoice', 'url' => $nsUrl('sales_orders', 'sales')),
-	array('n' => $remOpenPO, 'label' => 'Open purchase orders', 'url' => $nsUrl('purchase_orders', 'purchasing')),
-	array('n' => $remInvDue, 'label' => 'Invoices with balance due', 'url' => $nsUrl('aging', 'finance') . '&amp;aging_view=ar'),
-);
+$reminders = array();
+if ($nsCan('sales')) {
+	$reminders[] = array('n' => $remDraftSO, 'label' => 'Draft sales orders to confirm', 'url' => $nsUrl('sales_orders', 'sales'));
+	$reminders[] = array('n' => $remConfirmSO, 'label' => 'Confirmed orders to invoice', 'url' => $nsUrl('sales_orders', 'sales'));
+}
+if ($nsCan('purchases')) {
+	$reminders[] = array('n' => $remOpenPO, 'label' => 'Open purchase orders', 'url' => $nsUrl('purchase_orders', 'purchasing'));
+}
+if ($nsCan('ar')) {
+	$reminders[] = array('n' => $remInvDue, 'label' => 'Invoices with balance due', 'url' => $nsUrl('aging', 'finance') . '&amp;aging_view=ar');
+}
 
-// ---- Tiles (role-aware) ----
-$tilesByRole = array(
-	'finance' => array(
-		array('label' => 'Balance Sheet', 'icon' => 'fa-balance-scale', 'tone' => 'gold', 'url' => $nsUrl('balance_sheet', 'insights')),
-		array('label' => 'General Journal', 'icon' => 'fa-book', 'tone' => 'green', 'url' => $nsUrl('gl', 'finance')),
-		array('label' => 'Reconcile Bank', 'icon' => 'fa-university', 'tone' => 'rust', 'url' => $nsUrl('bank_recon', 'finance')),
-		array('label' => 'Income Statement', 'icon' => 'fa-line-chart', 'tone' => 'slate', 'url' => $nsUrl('pl', 'insights')),
-	),
-	'sales' => array(
-		array('label' => 'New Sales Order', 'icon' => 'fa-shopping-cart', 'tone' => 'gold', 'url' => $nsUrl('sales_orders', 'sales')),
-		array('label' => 'CRM Pipeline', 'icon' => 'fa-handshake-o', 'tone' => 'green', 'url' => $nsUrl('crm', 'sales')),
-		array('label' => 'Receivables', 'icon' => 'fa-users', 'tone' => 'rust', 'url' => $nsUrl('receivables', 'sales')),
-		array('label' => 'A/R Aging', 'icon' => 'fa-hourglass-half', 'tone' => 'slate', 'url' => $nsUrl('aging', 'finance') . '&amp;aging_view=ar'),
-	),
-	'purchasing' => array(
-		array('label' => 'New Purchase Order', 'icon' => 'fa-clipboard', 'tone' => 'gold', 'url' => $nsUrl('purchase_orders', 'purchasing')),
-		array('label' => 'Payables', 'icon' => 'fa-truck', 'tone' => 'green', 'url' => $nsUrl('payables', 'purchasing')),
-		array('label' => '3-way Match', 'icon' => 'fa-check-square-o', 'tone' => 'rust', 'url' => $nsUrl('three_way_match', 'purchasing')),
-		array('label' => 'A/P Aging', 'icon' => 'fa-hourglass-half', 'tone' => 'slate', 'url' => $nsUrl('aging', 'finance') . '&amp;aging_view=ap'),
-	),
+// ---- Tile / quick-action catalogues (keys referenced by profile config) ----
+$tileCatalog = array(
+	'balance_sheet' => array('label' => 'Balance Sheet', 'icon' => 'fa-balance-scale', 'tone' => 'gold', 'url' => $nsUrl('balance_sheet', 'insights'), 'need' => 'gl'),
+	'gl' => array('label' => 'General Journal', 'icon' => 'fa-book', 'tone' => 'green', 'url' => $nsUrl('gl', 'finance'), 'need' => 'gl'),
+	'bank_recon' => array('label' => 'Reconcile Bank', 'icon' => 'fa-university', 'tone' => 'rust', 'url' => $nsUrl('bank_recon', 'finance'), 'need' => 'cash'),
+	'pl' => array('label' => 'Income Statement', 'icon' => 'fa-line-chart', 'tone' => 'slate', 'url' => $nsUrl('pl', 'insights'), 'need' => 'profit'),
+	'sales_orders' => array('label' => 'New Sales Order', 'icon' => 'fa-shopping-cart', 'tone' => 'gold', 'url' => $nsUrl('sales_orders', 'sales'), 'need' => 'sales'),
+	'crm' => array('label' => 'CRM Pipeline', 'icon' => 'fa-handshake-o', 'tone' => 'green', 'url' => $nsUrl('crm', 'sales'), 'need' => 'sales'),
+	'receivables' => array('label' => 'Receivables', 'icon' => 'fa-users', 'tone' => 'rust', 'url' => $nsUrl('receivables', 'sales'), 'need' => 'ar'),
+	'aging_ar' => array('label' => 'A/R Aging', 'icon' => 'fa-hourglass-half', 'tone' => 'slate', 'url' => $nsUrl('aging', 'finance') . '&amp;aging_view=ar', 'need' => 'aging_ar'),
+	'purchase_orders' => array('label' => 'New Purchase Order', 'icon' => 'fa-clipboard', 'tone' => 'gold', 'url' => $nsUrl('purchase_orders', 'purchasing'), 'need' => 'purchases'),
+	'payables' => array('label' => 'Payables', 'icon' => 'fa-truck', 'tone' => 'green', 'url' => $nsUrl('payables', 'purchasing'), 'need' => 'ap'),
+	'three_way_match' => array('label' => '3-way Match', 'icon' => 'fa-check-square-o', 'tone' => 'rust', 'url' => $nsUrl('three_way_match', 'purchasing'), 'need' => 'purchases'),
+	'aging_ap' => array('label' => 'A/P Aging', 'icon' => 'fa-hourglass-half', 'tone' => 'slate', 'url' => $nsUrl('aging', 'finance') . '&amp;aging_view=ap', 'need' => 'aging_ap'),
+	'cash_bank' => array('label' => 'Cash &amp; bank', 'icon' => 'fa-money', 'tone' => 'green', 'url' => $nsUrl('cash_bank', 'finance'), 'need' => 'cash'),
+	'vat_return' => array('label' => 'VAT Return', 'icon' => 'fa-percent', 'tone' => 'rust', 'url' => $nsUrl('vat_return', 'finance'), 'need' => 'vat'),
+	'inventory' => array('label' => 'Inventory', 'icon' => 'fa-cubes', 'tone' => 'slate', 'url' => $nsUrl('inventory', 'operations'), 'need' => 'inventory'),
+	'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-truck', 'tone' => 'gold', 'url' => $nsUrl('fulfilment', 'sales'), 'need' => 'sales'),
+	'hr' => array('label' => 'Human resources', 'icon' => 'fa-users', 'tone' => 'green', 'url' => $nsUrl('hr', 'people'), 'need' => 'hr_tasks'),
+	'payroll' => array('label' => 'Payroll', 'icon' => 'fa-credit-card', 'tone' => 'rust', 'url' => $nsUrl('payroll', 'people'), 'need' => 'hr_tasks'),
+	'staff' => array('label' => 'Staff directory', 'icon' => 'fa-id-badge', 'tone' => 'slate', 'url' => $nsUrl('staff', 'people'), 'need' => 'hr_tasks'),
+	'workflow' => array('label' => 'Workflow', 'icon' => 'fa-tasks', 'tone' => 'gold', 'url' => $nsUrl('workflow', 'overview'), 'need' => 'hr_tasks'),
+	'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn', 'tone' => 'rust', 'url' => $nsUrl('marketing', 'sales'), 'need' => 'sales'),
+	'processflow' => array('label' => 'Process flow', 'icon' => 'fa-sitemap', 'tone' => 'green', 'url' => $nsUrl('processflow', 'overview'), 'need' => 'hr_tasks'),
+	'dashboard' => array('label' => 'Home', 'icon' => 'fa-home', 'tone' => 'slate', 'url' => $nsUrl('dashboard', 'overview'), 'need' => 'sales'),
 );
-$tiles = $tilesByRole[$nsRole];
+$tiles = array();
+foreach ((array) ($nsProfile['tiles'] ?? array()) as $tileKey) {
+	if (!isset($tileCatalog[$tileKey])) {
+		continue;
+	}
+	$t = $tileCatalog[$tileKey];
+	if (!$nsCan((string) ($t['need'] ?? 'sales'))) {
+		continue;
+	}
+	$tiles[] = $t;
+}
+if (empty($tiles)) {
+	$tiles[] = $tileCatalog['dashboard'];
+}
 
-// ---- Navigation shortcut group ----
-$navGroups = array(
-	'Lists' => array(
-		array('label' => 'Items', 'icon' => 'fa-cubes', 'url' => $nsUrl('inventory', 'operations')),
-		array('label' => 'Customers', 'icon' => 'fa-users', 'url' => $nsUrl('receivables', 'sales')),
-		array('label' => 'Vendors', 'icon' => 'fa-truck', 'url' => $nsUrl('payables', 'purchasing')),
-		array('label' => 'Contacts', 'icon' => 'fa-address-book-o', 'url' => $nsUrl('contacts', 'collaboration')),
-	),
-	'Transactions' => array(
-		array('label' => 'Sales order', 'icon' => 'fa-shopping-cart', 'url' => $nsUrl('sales_orders', 'sales')),
-		array('label' => 'Purchase order', 'icon' => 'fa-clipboard', 'url' => $nsUrl('purchase_orders', 'purchasing')),
-		array('label' => 'Receipt voucher', 'icon' => 'fa-money', 'url' => $nsUrl('cash_bank', 'finance')),
-		array('label' => 'General ledger', 'icon' => 'fa-book', 'url' => $nsUrl('gl', 'finance')),
-	),
-	'Reports' => array(
-		array('label' => 'Financial report (IFRS)', 'icon' => 'fa-file-text-o', 'url' => $nsExtUrl('audit', 'audit__external_audit_report')),
-		array('label' => 'VAT return (VAT 201)', 'icon' => 'fa-percent', 'url' => $nsExtUrl('tax', 'tax__vat_return')),
-		array('label' => 'Corporate tax return', 'icon' => 'fa-balance-scale', 'url' => $nsExtUrl('tax', 'tax__corporate_income_tax_return')),
-		array('label' => 'Profit &amp; loss', 'icon' => 'fa-line-chart', 'url' => $nsUrl('pl', 'insights')),
-	),
-);
+// ---- Navigation shortcut group (capability-filtered) ----
+$navGroups = array();
+$navLists = array();
+if ($nsCan('inventory')) {
+	$navLists[] = array('label' => 'Items', 'icon' => 'fa-cubes', 'url' => $nsUrl('inventory', 'operations'));
+}
+if ($nsCan('ar') || $nsCan('sales')) {
+	$navLists[] = array('label' => 'Customers', 'icon' => 'fa-users', 'url' => $nsUrl('receivables', 'sales'));
+}
+if ($nsCan('ap') || $nsCan('purchases')) {
+	$navLists[] = array('label' => 'Vendors', 'icon' => 'fa-truck', 'url' => $nsUrl('payables', 'purchasing'));
+}
+$navLists[] = array('label' => 'Contacts', 'icon' => 'fa-address-book-o', 'url' => $nsUrl('contacts', 'collaboration'));
+if (!empty($navLists)) {
+	$navGroups['Lists'] = $navLists;
+}
+$navTx = array();
+if ($nsCan('sales')) {
+	$navTx[] = array('label' => 'Sales order', 'icon' => 'fa-shopping-cart', 'url' => $nsUrl('sales_orders', 'sales'));
+}
+if ($nsCan('purchases')) {
+	$navTx[] = array('label' => 'Purchase order', 'icon' => 'fa-clipboard', 'url' => $nsUrl('purchase_orders', 'purchasing'));
+}
+if ($nsCan('cash')) {
+	$navTx[] = array('label' => 'Receipt voucher', 'icon' => 'fa-money', 'url' => $nsUrl('cash_bank', 'finance'));
+}
+if ($nsCan('gl')) {
+	$navTx[] = array('label' => 'General ledger', 'icon' => 'fa-book', 'url' => $nsUrl('gl', 'finance'));
+}
+if (!empty($navTx)) {
+	$navGroups['Transactions'] = $navTx;
+}
+$navRep = array();
+if ($nsCan('gl') || $nsCan('profit')) {
+	$navRep[] = array('label' => 'Financial report (IFRS)', 'icon' => 'fa-file-text-o', 'url' => $nsExtUrl('audit', 'audit__external_audit_report'));
+}
+if ($nsCan('vat')) {
+	$navRep[] = array('label' => 'VAT return (VAT 201)', 'icon' => 'fa-percent', 'url' => $nsExtUrl('tax', 'tax__vat_return'));
+	$navRep[] = array('label' => 'Corporate tax return', 'icon' => 'fa-balance-scale', 'url' => $nsExtUrl('tax', 'tax__corporate_income_tax_return'));
+}
+if ($nsCan('profit')) {
+	$navRep[] = array('label' => 'Profit &amp; loss', 'icon' => 'fa-line-chart', 'url' => $nsUrl('pl', 'insights'));
+}
+if (!empty($navRep)) {
+	$navGroups['Reports'] = $navRep;
+}
 
-// ---- Quick actions (visual icon cards, role-aware first row) ----
-// Statutory reports first — quick-open straight into the External Reporting pack
-// (tenant-country-driven: UAE -> IFRS/ISA + FTA VAT 201 / CT; auto-localises).
-$quickActions = array(
-	array('label' => 'Financial Report (IFRS)', 'icon' => 'fa-file-text-o', 'tone' => 'qa-indigo', 'url' => $nsExtUrl('audit', 'audit__external_audit_report')),
-	array('label' => 'VAT Return (VAT 201)', 'icon' => 'fa-percent', 'tone' => 'qa-green', 'url' => $nsExtUrl('tax', 'tax__vat_return')),
-	array('label' => 'Corporate Tax Return', 'icon' => 'fa-balance-scale', 'tone' => 'qa-rust', 'url' => $nsExtUrl('tax', 'tax__corporate_income_tax_return')),
-	array('label' => 'New Sales Order', 'icon' => 'fa-shopping-cart', 'tone' => 'qa-blue', 'url' => $nsUrl('sales_orders', 'sales')),
-	array('label' => 'New Purchase Order', 'icon' => 'fa-clipboard', 'tone' => 'qa-indigo', 'url' => $nsUrl('purchase_orders', 'purchasing')),
-	array('label' => 'New Item', 'icon' => 'fa-cubes', 'tone' => 'qa-amber', 'url' => $nsUrl('inventory', 'operations')),
-	array('label' => 'New Customer', 'icon' => 'fa-user-plus', 'tone' => 'qa-pink', 'url' => $nsUrl('receivables', 'sales')),
-	array('label' => 'New Vendor', 'icon' => 'fa-truck', 'tone' => 'qa-teal', 'url' => $nsUrl('payables', 'purchasing')),
-	array('label' => 'Receipt Voucher', 'icon' => 'fa-money', 'tone' => 'qa-green', 'url' => $nsUrl('cash_bank', 'finance')),
-	array('label' => 'General Ledger', 'icon' => 'fa-book', 'tone' => 'qa-slate', 'url' => $nsUrl('gl', 'finance')),
-	array('label' => 'VAT Return', 'icon' => 'fa-percent', 'tone' => 'qa-rust', 'url' => $nsUrl('vat_return', 'finance')),
+$quickCatalog = array(
+	'ext_ifrs' => array('label' => 'Financial Report (IFRS)', 'icon' => 'fa-file-text-o', 'tone' => 'qa-indigo', 'url' => $nsExtUrl('audit', 'audit__external_audit_report'), 'need' => 'profit'),
+	'ext_vat' => array('label' => 'VAT Return (VAT 201)', 'icon' => 'fa-percent', 'tone' => 'qa-green', 'url' => $nsExtUrl('tax', 'tax__vat_return'), 'need' => 'vat'),
+	'ext_ct' => array('label' => 'Corporate Tax Return', 'icon' => 'fa-balance-scale', 'tone' => 'qa-rust', 'url' => $nsExtUrl('tax', 'tax__corporate_income_tax_return'), 'need' => 'vat'),
+	'sales_orders' => array('label' => 'New Sales Order', 'icon' => 'fa-shopping-cart', 'tone' => 'qa-blue', 'url' => $nsUrl('sales_orders', 'sales'), 'need' => 'sales'),
+	'purchase_orders' => array('label' => 'New Purchase Order', 'icon' => 'fa-clipboard', 'tone' => 'qa-indigo', 'url' => $nsUrl('purchase_orders', 'purchasing'), 'need' => 'purchases'),
+	'inventory' => array('label' => 'New Item', 'icon' => 'fa-cubes', 'tone' => 'qa-amber', 'url' => $nsUrl('inventory', 'operations'), 'need' => 'inventory'),
+	'customers' => array('label' => 'New Customer', 'icon' => 'fa-user-plus', 'tone' => 'qa-pink', 'url' => $nsUrl('receivables', 'sales'), 'need' => 'ar'),
+	'vendors' => array('label' => 'New Vendor', 'icon' => 'fa-truck', 'tone' => 'qa-teal', 'url' => $nsUrl('payables', 'purchasing'), 'need' => 'ap'),
+	'cash_bank' => array('label' => 'Receipt Voucher', 'icon' => 'fa-money', 'tone' => 'qa-green', 'url' => $nsUrl('cash_bank', 'finance'), 'need' => 'cash'),
+	'gl' => array('label' => 'General Ledger', 'icon' => 'fa-book', 'tone' => 'qa-slate', 'url' => $nsUrl('gl', 'finance'), 'need' => 'gl'),
+	'vat_return' => array('label' => 'VAT Return', 'icon' => 'fa-percent', 'tone' => 'qa-rust', 'url' => $nsUrl('vat_return', 'finance'), 'need' => 'vat'),
+	'pl' => array('label' => 'Profit &amp; Loss', 'icon' => 'fa-line-chart', 'tone' => 'qa-indigo', 'url' => $nsUrl('pl', 'insights'), 'need' => 'profit'),
+	'receivables' => array('label' => 'Receivables', 'icon' => 'fa-users', 'tone' => 'qa-blue', 'url' => $nsUrl('receivables', 'sales'), 'need' => 'ar'),
+	'payables' => array('label' => 'Payables', 'icon' => 'fa-truck', 'tone' => 'qa-teal', 'url' => $nsUrl('payables', 'purchasing'), 'need' => 'ap'),
+	'crm' => array('label' => 'CRM Pipeline', 'icon' => 'fa-handshake-o', 'tone' => 'qa-pink', 'url' => $nsUrl('crm', 'sales'), 'need' => 'sales'),
+	'coa' => array('label' => 'Chart of accounts', 'icon' => 'fa-list', 'tone' => 'qa-slate', 'url' => $nsUrl('coa', 'finance'), 'need' => 'gl'),
+	'balance_sheet' => array('label' => 'Balance Sheet', 'icon' => 'fa-balance-scale', 'tone' => 'qa-amber', 'url' => $nsUrl('balance_sheet', 'insights'), 'need' => 'gl'),
+	'hr' => array('label' => 'HR', 'icon' => 'fa-users', 'tone' => 'qa-blue', 'url' => $nsUrl('hr', 'people'), 'need' => 'hr_tasks'),
+	'payroll' => array('label' => 'Payroll', 'icon' => 'fa-credit-card', 'tone' => 'qa-green', 'url' => $nsUrl('payroll', 'people'), 'need' => 'hr_tasks'),
+	'staff' => array('label' => 'Staff', 'icon' => 'fa-id-badge', 'tone' => 'qa-slate', 'url' => $nsUrl('staff', 'people'), 'need' => 'hr_tasks'),
+	'workflow' => array('label' => 'Workflow', 'icon' => 'fa-tasks', 'tone' => 'qa-indigo', 'url' => $nsUrl('workflow', 'overview'), 'need' => 'hr_tasks'),
+	'marketing' => array('label' => 'Marketing', 'icon' => 'fa-bullhorn', 'tone' => 'qa-pink', 'url' => $nsUrl('marketing', 'sales'), 'need' => 'sales'),
+	'leads' => array('label' => 'Leads', 'icon' => 'fa-user-plus', 'tone' => 'qa-amber', 'url' => $nsUrl('leads', 'sales'), 'need' => 'sales'),
+	'processflow' => array('label' => 'Process flow', 'icon' => 'fa-sitemap', 'tone' => 'qa-teal', 'url' => $nsUrl('processflow', 'overview'), 'need' => 'hr_tasks'),
+	'fulfilment' => array('label' => 'Fulfilment', 'icon' => 'fa-truck', 'tone' => 'qa-blue', 'url' => $nsUrl('fulfilment', 'sales'), 'need' => 'sales'),
 );
+$quickActions = array();
+foreach ((array) ($nsProfile['quick'] ?? array()) as $qKey) {
+	if (!isset($quickCatalog[$qKey])) {
+		continue;
+	}
+	$qa = $quickCatalog[$qKey];
+	if (!$nsCan((string) ($qa['need'] ?? 'sales'))) {
+		continue;
+	}
+	$quickActions[] = $qa;
+}
 
-// ---- KPI table values ----
-$kpiRows = array(
-	array('name' => 'Payables', 'cur' => (float) ($dashboard['payable_balance'] ?? 0), 'prev' => (float) ($nsPrev['payable_balance'] ?? 0), 'goodUp' => false),
-	array('name' => 'Sales (ex VAT)', 'cur' => (float) ($dashboard['revenue_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['revenue_ex_vat'] ?? 0), 'goodUp' => true),
-	array('name' => 'Expenses (purchases)', 'cur' => (float) ($dashboard['purchase_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['purchase_ex_vat'] ?? 0), 'goodUp' => false),
-	array('name' => 'Receivables', 'cur' => (float) ($dashboard['customer_ledger_balance'] ?? 0), 'prev' => (float) ($nsPrev['customer_ledger_balance'] ?? 0), 'goodUp' => true),
-	array('name' => 'Total bank balance', 'cur' => (float) ($dashboard['cash_bank_total'] ?? 0), 'prev' => (float) ($nsPrev['cash_bank_total'] ?? 0), 'goodUp' => true),
-);
+// ---- KPI table values (capability-gated) ----
+$kpiRows = array();
+if ($nsCan('ap')) {
+	$kpiRows[] = array('name' => 'Payables', 'cur' => (float) ($dashboard['payable_balance'] ?? 0), 'prev' => (float) ($nsPrev['payable_balance'] ?? 0), 'goodUp' => false);
+}
+if ($nsCan('sales')) {
+	$kpiRows[] = array('name' => 'Sales (ex VAT)', 'cur' => (float) ($dashboard['revenue_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['revenue_ex_vat'] ?? 0), 'goodUp' => true);
+}
+if ($nsCan('purchases')) {
+	$kpiRows[] = array('name' => 'Expenses (purchases)', 'cur' => (float) ($dashboard['purchase_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['purchase_ex_vat'] ?? 0), 'goodUp' => false);
+}
+if ($nsCan('ar')) {
+	$kpiRows[] = array('name' => 'Receivables', 'cur' => (float) ($dashboard['customer_ledger_balance'] ?? 0), 'prev' => (float) ($nsPrev['customer_ledger_balance'] ?? 0), 'goodUp' => true);
+}
+if ($nsCan('cash')) {
+	$kpiRows[] = array('name' => 'Total bank balance', 'cur' => (float) ($dashboard['cash_bank_total'] ?? 0), 'prev' => (float) ($nsPrev['cash_bank_total'] ?? 0), 'goodUp' => true);
+}
+if ($nsCan('profit')) {
+	$kpiRows[] = array('name' => 'Gross profit (ex VAT)', 'cur' => (float) ($dashboard['profit_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['profit_ex_vat'] ?? 0), 'goodUp' => true);
+}
 
 // ---- Gauge (cash & bank) ----
 $gaugeVal = (float) ($dashboard['cash_bank_total'] ?? 0);
@@ -223,13 +317,58 @@ $nsHeroEntity = 'Operations';
 if (!empty($nsCo) && is_array($nsCo)) {
 	$nsHeroEntity = (string) (($nsCo['legal_name'] ?? '') !== '' ? $nsCo['legal_name'] : (($nsCo['trade_name'] ?? '') !== '' ? $nsCo['trade_name'] : $nsHeroEntity));
 }
-$nsHeroMetrics = array(
-	array('label' => 'Cash & bank', 'cur' => (float) ($dashboard['cash_bank_total'] ?? 0), 'prev' => (float) ($nsPrev['cash_bank_total'] ?? 0), 'goodUp' => true, 'money' => true),
-	array('label' => 'Sales (ex VAT)', 'cur' => (float) ($dashboard['revenue_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['revenue_ex_vat'] ?? 0), 'goodUp' => true, 'money' => true),
-	array('label' => 'Receivables', 'cur' => (float) ($dashboard['customer_ledger_balance'] ?? 0), 'prev' => (float) ($nsPrev['customer_ledger_balance'] ?? 0), 'goodUp' => true, 'money' => true),
-	array('label' => 'Payables', 'cur' => (float) ($dashboard['payable_balance'] ?? 0), 'prev' => (float) ($nsPrev['payable_balance'] ?? 0), 'goodUp' => false, 'money' => true),
+$nsHeroCatalog = array(
+	'cash' => array('label' => 'Cash & bank', 'cur' => (float) ($dashboard['cash_bank_total'] ?? 0), 'prev' => (float) ($nsPrev['cash_bank_total'] ?? 0), 'goodUp' => true, 'need' => 'cash'),
+	'sales' => array('label' => 'Sales (ex VAT)', 'cur' => (float) ($dashboard['revenue_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['revenue_ex_vat'] ?? 0), 'goodUp' => true, 'need' => 'sales'),
+	'profit' => array('label' => 'Gross profit', 'cur' => (float) ($dashboard['profit_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['profit_ex_vat'] ?? 0), 'goodUp' => true, 'need' => 'profit'),
+	'ar' => array('label' => 'Receivables', 'cur' => (float) ($dashboard['customer_ledger_balance'] ?? 0), 'prev' => (float) ($nsPrev['customer_ledger_balance'] ?? 0), 'goodUp' => true, 'need' => 'ar'),
+	'ap' => array('label' => 'Payables', 'cur' => (float) ($dashboard['payable_balance'] ?? 0), 'prev' => (float) ($nsPrev['payable_balance'] ?? 0), 'goodUp' => false, 'need' => 'ap'),
+	'purchases' => array('label' => 'Purchases (ex VAT)', 'cur' => (float) ($dashboard['purchase_ex_vat'] ?? 0), 'prev' => (float) ($nsPrev['purchase_ex_vat'] ?? 0), 'goodUp' => false, 'need' => 'purchases'),
+	'vat' => array('label' => 'Net VAT', 'cur' => (float) ($dashboard['vat_net_payable'] ?? 0), 'prev' => (float) ($nsPrev['vat_net_payable'] ?? 0), 'goodUp' => false, 'need' => 'vat'),
+	'orders' => array('label' => 'Completed orders', 'cur' => (float) ($dashboard['order_count'] ?? 0), 'prev' => (float) ($nsPrev['order_count'] ?? 0), 'goodUp' => true, 'need' => 'sales', 'money' => false),
+	'due' => array('label' => 'Due on orders', 'cur' => (float) ($dashboard['receivable_due_orders'] ?? 0), 'prev' => (float) ($nsPrev['receivable_due_orders'] ?? 0), 'goodUp' => true, 'need' => 'ar'),
+	'inventory' => array('label' => 'Inventory value', 'cur' => (float) ($dashboard['inventory_value'] ?? 0), 'prev' => 0.0, 'goodUp' => true, 'need' => 'inventory'),
+	'open_po' => array('label' => 'Open purchase orders', 'cur' => (float) $remOpenPO, 'prev' => 0.0, 'goodUp' => false, 'need' => 'purchases', 'money' => false),
+	'staff_open' => array('label' => 'Open tasks', 'cur' => 0.0, 'prev' => 0.0, 'goodUp' => false, 'need' => 'hr_tasks', 'money' => false),
+	'staff_done' => array('label' => 'Tasks completed', 'cur' => 0.0, 'prev' => 0.0, 'goodUp' => true, 'need' => 'hr_tasks', 'money' => false),
+	'staff_overdue' => array('label' => 'Overdue tasks', 'cur' => 0.0, 'prev' => 0.0, 'goodUp' => false, 'need' => 'hr_tasks', 'money' => false),
+	'staff_busy' => array('label' => 'Staff busy now', 'cur' => 0.0, 'prev' => 0.0, 'goodUp' => true, 'need' => 'hr_tasks', 'money' => false),
 );
-$nsRoleLabel = array('finance' => 'Finance centre', 'sales' => 'Sales centre', 'purchasing' => 'Purchasing centre');
+// Fill HR hero metrics early when needed (process-flow summary is loaded later for exec too).
+if ($nsCan('hr_tasks')) {
+	try {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_processflow.php';
+		$pfRangeHero = array('from' => (int) $date_from, 'to' => (int) $date_to);
+		if (function_exists('epc_pf_monitor_summary')) {
+			$pfH = epc_pf_monitor_summary($db_link, $pfRangeHero);
+			$nsHeroCatalog['staff_open']['cur'] = (float) ($pfH['open'] ?? 0);
+			$nsHeroCatalog['staff_done']['cur'] = (float) ($pfH['done'] ?? 0);
+			$nsHeroCatalog['staff_overdue']['cur'] = (float) ($pfH['overdue'] ?? 0);
+		}
+		if (function_exists('epc_pf_workforce_data')) {
+			$wfH = epc_pf_workforce_data($db_link, $pfRangeHero);
+			$nsHeroCatalog['staff_busy']['cur'] = (float) ($wfH['busy'] ?? 0);
+			if ($nsHeroCatalog['staff_done']['cur'] <= 0) {
+				$nsHeroCatalog['staff_done']['cur'] = (float) ($wfH['doneTotal'] ?? 0);
+			}
+		}
+	} catch (Throwable $e) {
+	}
+}
+$nsHeroMetrics = array();
+foreach ((array) ($nsProfile['hero'] ?? array()) as $hKey) {
+	if (!isset($nsHeroCatalog[$hKey])) {
+		continue;
+	}
+	$hm = $nsHeroCatalog[$hKey];
+	if (!$nsCan((string) ($hm['need'] ?? 'sales'))) {
+		continue;
+	}
+	$hm['money'] = array_key_exists('money', $hm) ? (bool) $hm['money'] : true;
+	$nsHeroMetrics[] = $hm;
+}
+$nsRoleLabel = (string) ($nsProfile['label'] ?? 'Finance centre');
+$nsRoleSub = (string) ($nsProfile['subtitle'] ?? 'Live KPIs for your role and the selected period.');
 // Theme URL relative to docroot (works under /erp/ shell and CP).
 $nsCssCandidates = array(
 	'/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css',
@@ -241,25 +380,30 @@ foreach ($nsCssCandidates as $c) {
 	if (is_file($abs)) { $nsCssHref = $c; break; }
 }
 ?>
-<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720">
+<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720role1">
 
-<div class="ns-dash">
+<div class="ns-dash" data-dashboard-profile="<?php echo epc_erp_h($nsRole); ?>">
 	<div class="ns-hero">
 		<div class="ns-hero-panel">
-			<div class="ns-hero-kicker">Command centre</div>
+			<div class="ns-hero-kicker"><i class="fa <?php echo epc_erp_h((string) ($nsProfile['icon'] ?? 'fa-dashboard')); ?>"></i> <?php echo epc_erp_h($nsRoleLabel); ?></div>
 			<h2 class="ns-hero-title"><?php echo epc_erp_h($nsHeroEntity); ?></h2>
-			<p class="ns-hero-sub">Premium operational view — live KPIs, receivables aging and executive trends for the selected period, presented with depth and clarity.</p>
+			<p class="ns-hero-sub"><?php echo epc_erp_h($nsRoleSub); ?></p>
 			<div class="ns-hero-meta">
 				<span class="ns-chip"><i class="fa fa-calendar"></i> <?php echo epc_erp_h($date_from_str); ?> → <?php echo epc_erp_h($date_to_str); ?></span>
 				<span class="ns-chip"><i class="fa fa-money"></i> <?php echo epc_erp_h($nsCurrency); ?></span>
-				<span class="ns-chip"><i class="fa fa-user"></i> <?php echo epc_erp_h($nsRoleLabel[$nsRole] ?? 'Finance centre'); ?></span>
+				<span class="ns-chip"><i class="fa fa-user"></i> <?php echo epc_erp_h($nsRoleLabel); ?></span>
+				<?php if (!$nsCan('profit')): ?>
+				<span class="ns-chip" title="Profit and margin are hidden for this profile"><i class="fa fa-lock"></i> Profit restricted</span>
+				<?php endif; ?>
 			</div>
 		</div>
 		<div class="ns-hero-metrics">
 			<?php foreach ($nsHeroMetrics as $hm): ?>
 				<div class="ns-metric3d">
 					<div class="ml"><?php echo epc_erp_h($hm['label']); ?></div>
-					<div class="mv" data-ns-count="<?php echo epc_erp_h((string) $hm['cur']); ?>" data-ns-prefix=""><?php echo $nsMoney($hm['cur']); ?></div>
+					<div class="mv" data-ns-count="<?php echo epc_erp_h((string) $hm['cur']); ?>" data-ns-prefix=""><?php
+						echo !empty($hm['money']) ? $nsMoney($hm['cur']) : number_format((float) $hm['cur'], 0);
+					?></div>
 					<div class="md"><?php echo $nsChange($hm['cur'], $hm['prev'], $hm['goodUp']); ?> vs prior period</div>
 				</div>
 			<?php endforeach; ?>
@@ -346,6 +490,7 @@ foreach ($nsCssCandidates as $c) {
 
 		<!-- CENTER: KPI table + financials -->
 		<div class="ns-col-mid">
+			<?php if (!empty($kpiRows)): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-tachometer"></i> Key performance indicators</h4>
 				<div class="bd" style="padding:0">
@@ -364,6 +509,8 @@ foreach ($nsCssCandidates as $c) {
 					</table>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($nsCan('financials')): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-money"></i> Financials</h4>
 				<div class="bd">
@@ -372,16 +519,25 @@ foreach ($nsCssCandidates as $c) {
 					$prof = (float) ($dashboard['profit_ex_vat'] ?? 0);
 					$gpPct = $rev > 0.005 ? ($prof / $rev) * 100.0 : 0.0;
 					$netPl = (float) ($dashboard_pl['net_profit'] ?? 0);
-					$fin = array(
-						array('l' => 'Gross profit %', 'v' => number_format($gpPct, 1) . '%'),
-						array('l' => 'Margin (ex VAT)', 'v' => $nsMoney($prof) . ' ' . $nsCurrency),
-						array('l' => 'GL net profit', 'v' => $nsMoney($netPl) . ' ' . $nsCurrency),
-						array('l' => 'Cash &amp; bank', 'v' => $nsMoney((float) ($dashboard['cash_bank_total'] ?? 0)) . ' ' . $nsCurrency),
-						array('l' => 'Net VAT', 'v' => $nsMoney((float) ($dashboard['vat_net_payable'] ?? 0)) . ' ' . $nsCurrency),
-						array('l' => 'Sales incl. VAT', 'v' => $nsMoney((float) ($dashboard['sales_incl_vat'] ?? 0)) . ' ' . $nsCurrency),
-						array('l' => 'Completed orders', 'v' => (string) (int) ($dashboard['order_count'] ?? 0)),
-						array('l' => 'Due on orders', 'v' => $nsMoney((float) ($dashboard['receivable_due_orders'] ?? 0)) . ' ' . $nsCurrency),
-					);
+					$fin = array();
+					if ($nsCan('profit')) {
+						$fin[] = array('l' => 'Gross profit %', 'v' => number_format($gpPct, 1) . '%');
+						$fin[] = array('l' => 'Margin (ex VAT)', 'v' => $nsMoney($prof) . ' ' . $nsCurrency);
+						$fin[] = array('l' => 'GL net profit', 'v' => $nsMoney($netPl) . ' ' . $nsCurrency);
+					}
+					if ($nsCan('cash')) {
+						$fin[] = array('l' => 'Cash &amp; bank', 'v' => $nsMoney((float) ($dashboard['cash_bank_total'] ?? 0)) . ' ' . $nsCurrency);
+					}
+					if ($nsCan('vat')) {
+						$fin[] = array('l' => 'Net VAT', 'v' => $nsMoney((float) ($dashboard['vat_net_payable'] ?? 0)) . ' ' . $nsCurrency);
+					}
+					if ($nsCan('sales')) {
+						$fin[] = array('l' => 'Sales incl. VAT', 'v' => $nsMoney((float) ($dashboard['sales_incl_vat'] ?? 0)) . ' ' . $nsCurrency);
+						$fin[] = array('l' => 'Completed orders', 'v' => (string) (int) ($dashboard['order_count'] ?? 0));
+					}
+					if ($nsCan('ar')) {
+						$fin[] = array('l' => 'Due on orders', 'v' => $nsMoney((float) ($dashboard['receivable_due_orders'] ?? 0)) . ' ' . $nsCurrency);
+					}
 					?>
 					<div class="ns-fin">
 						<?php foreach ($fin as $f): ?>
@@ -390,10 +546,12 @@ foreach ($nsCssCandidates as $c) {
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
 		</div>
 
 		<!-- RIGHT: gauge + aging chart -->
 		<div class="ns-col-right">
+			<?php if ($nsCan('gauge') && $nsCan('cash')): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-dashboard"></i> KPI meter — Total bank balance</h4>
 				<div class="bd">
@@ -420,6 +578,8 @@ foreach ($nsCssCandidates as $c) {
 					</div>
 				</div>
 			</div>
+			<?php endif; ?>
+			<?php if ($nsCan('aging_ar')): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-bar-chart"></i> A/R aging — graphical</h4>
 				<div class="bd">
@@ -427,6 +587,7 @@ foreach ($nsCssCandidates as $c) {
 					<div class="ns-total">Total receivable: <strong><?php echo $nsMoney($nsAr['grand']); ?> <?php echo $nsCurrency; ?></strong></div>
 				</div>
 			</div>
+			<?php endif; ?>
 		</div>
 	</div>
 </div>
@@ -521,11 +682,18 @@ foreach ($nsTrend as $t) {
 	$nsTrendRev[] = (float) ($t['revenue'] ?? 0);
 	$nsTrendProf[] = (float) ($t['profit'] ?? 0);
 }
+$nsShowExec = $nsCan('exec');
+$nsShowProfitTrend = $nsCan('profit');
+$nsShowSuppliers = $nsCan('suppliers');
+$nsShowDemoSeed = $nsCan('demo_seed');
+$nsShowHrTasks = $nsCan('hr_tasks');
 ?>
 
+<?php if ($nsShowExec): ?>
 <div class="ns-dash ns-exec">
 	<h3 class="ns-exec-h"><i class="fa fa-dashboard"></i> Executive cockpit — full-system analytics</h3>
 	<div id="epc_erp_msg" class="alert" style="display:none;"></div>
+	<?php if ($nsShowDemoSeed): ?>
 	<div style="margin-bottom:14px;">
 		<form data-bos-action="demo_seed_sales" style="display:inline-block;margin:0;">
 			<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($nsCsrf); ?>">
@@ -537,13 +705,14 @@ foreach ($nsTrend as $t) {
 		</form>
 		<span class="text-muted" style="margin-left:8px;font-size:12px;">Seeds 6 months of completed orders (tagged, re-runnable) so the revenue trend and KPIs populate.</span>
 	</div>
+	<?php endif; ?>
 
 	<div class="ns-exec-grid">
 		<div class="ns-port">
-			<h4><i class="fa fa-line-chart"></i> Revenue &amp; profit — last 6 months</h4>
+			<h4><i class="fa fa-line-chart"></i> <?php echo $nsShowProfitTrend ? 'Revenue &amp; profit — last 6 months' : 'Revenue — last 6 months'; ?></h4>
 			<div class="bd">
-				<div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue and profit trend"></canvas></div>
-				<div class="ns-leg"><span class="sq" style="background:#0b6e99;"></span>Revenue &nbsp; <span class="sq" style="background:#0d9488;"></span>Profit (ex-VAT)</div>
+				<div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend"></canvas></div>
+				<div class="ns-leg"><span class="sq" style="background:#0b6e99;"></span>Revenue<?php if ($nsShowProfitTrend): ?> &nbsp; <span class="sq" style="background:#0d9488;"></span>Profit (ex-VAT)<?php endif; ?></div>
 			</div>
 		</div>
 		<div class="ns-port">
@@ -564,6 +733,7 @@ foreach ($nsTrend as $t) {
 	</div>
 
 	<div class="ns-exec-grid" style="margin-top:16px;">
+		<?php if ($nsShowSuppliers): ?>
 		<div class="ns-port">
 			<h4><i class="fa fa-truck"></i> Top suppliers by spend</h4>
 			<div class="bd">
@@ -587,19 +757,25 @@ foreach ($nsTrend as $t) {
 				<?php endif; ?>
 			</div>
 		</div>
+		<?php endif; ?>
 		<div class="ns-port">
 			<h4><i class="fa fa-link"></i> Quick links</h4>
 			<div class="bd">
 				<div class="list-group" style="margin-bottom:0;">
 					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'ai_advisor', $date_from_str, $date_to_str)); ?>"><i class="fa fa-magic"></i> AI advisor &amp; forecasts</a>
+					<?php if ($nsShowProfitTrend): ?>
 					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'pl', $date_from_str, $date_to_str)); ?>"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
+					<?php endif; ?>
 					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'order_planning', $date_from_str, $date_to_str)); ?>"><i class="fa fa-cubes"></i> Order planning</a>
+					<?php if ($nsShowSuppliers): ?>
 					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'supplier_portal', $date_from_str, $date_to_str)); ?>"><i class="fa fa-handshake-o"></i> Supplier portal</a>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
 	</div>
 
+	<?php if ($nsShowHrTasks): ?>
 	<h3 class="ns-exec-h" id="ns-task-analytics" style="margin-top:22px;"><i class="fa fa-sitemap"></i> Task analytics — process flow across every department
 		<small class="text-muted" style="font-weight:400;">· auto-tracked customer orders, purchase orders &amp; your own processes</small>
 		<a href="<?php echo $pfUrl('monitor'); ?>" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
@@ -648,7 +824,8 @@ foreach ($nsTrend as $t) {
 			</div>
 		</div>
 	</div>
-	<?php endif; ?>
+	<?php endif; /* pfHasTasks */ ?>
+	<?php endif; /* nsShowHrTasks inside exec */ ?>
 
 	<?php if (!empty($nsControls)): ?>
 	<h3 class="ns-exec-h" id="ns-industry-controls" style="margin-top:22px;"><i class="fa fa-check-square-o"></i> Industry intelligence — recommended controls
@@ -682,6 +859,21 @@ foreach ($nsTrend as $t) {
 	</div>
 	<?php endif; ?>
 </div>
+<?php endif; /* nsShowExec */ ?>
+
+<?php if (!$nsShowExec && $nsShowHrTasks): ?>
+<div class="ns-dash ns-exec">
+	<h3 class="ns-exec-h" id="ns-task-analytics"><i class="fa fa-sitemap"></i> Task analytics
+		<a href="<?php echo $pfUrl('monitor'); ?>" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
+	</h3>
+	<div class="ns-pf-kpis">
+		<div class="ns-pf-card"><div class="v"><?php echo (int) $pfSummary['open']; ?></div><div class="l">Open tasks</div></div>
+		<div class="ns-pf-card <?php echo ((int) $pfSummary['overdue'] > 0) ? 'bad' : ''; ?>"><div class="v"><?php echo (int) $pfSummary['overdue']; ?></div><div class="l">Overdue (SLA)</div></div>
+		<div class="ns-pf-card good"><div class="v"><?php echo (int) $pfDoneTotal; ?></div><div class="l">Tasks completed in period</div></div>
+		<div class="ns-pf-card"><div class="v"><?php echo (int) $pfBusy; ?></div><div class="l">Staff busy now</div></div>
+	</div>
+</div>
+<?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
@@ -690,7 +882,8 @@ foreach ($nsTrend as $t) {
 	var arTotals = <?php echo json_encode(array_map('floatval', array_values($nsAr['totals']))); ?>;
 	var trendLabels = <?php echo json_encode($nsTrendLabels); ?>;
 	var trendRev = <?php echo json_encode($nsTrendRev); ?>;
-	var trendProf = <?php echo json_encode($nsTrendProf); ?>;
+	var trendProf = <?php echo json_encode($nsShowProfitTrend ? $nsTrendProf : array()); ?>;
+	var showProfitTrend = <?php echo $nsShowProfitTrend ? 'true' : 'false'; ?>;
 	var currency = <?php echo json_encode($nsCurrency); ?>;
 
 	function nsFmt(n) {
@@ -744,34 +937,37 @@ foreach ($nsTrend as $t) {
 			var g = ctx.createLinearGradient(0, 0, 0, 200);
 			g.addColorStop(0, 'rgba(11,110,153,0.28)');
 			g.addColorStop(1, 'rgba(11,110,153,0.02)');
+			var trendDatasets = [
+				{
+					label: 'Revenue',
+					data: trendRev,
+					borderColor: '#0b6e99',
+					backgroundColor: g,
+					fill: true,
+					tension: 0.35,
+					borderWidth: 2.5,
+					pointRadius: 3,
+					pointBackgroundColor: '#0b6e99'
+				}
+			];
+			if (showProfitTrend) {
+				trendDatasets.push({
+					label: 'Profit',
+					data: trendProf,
+					borderColor: '#0d9488',
+					backgroundColor: 'transparent',
+					fill: false,
+					tension: 0.35,
+					borderWidth: 2.5,
+					pointRadius: 3,
+					pointBackgroundColor: '#0d9488'
+				});
+			}
 			new Chart(ctx, {
 				type: 'line',
 				data: {
 					labels: trendLabels,
-					datasets: [
-						{
-							label: 'Revenue',
-							data: trendRev,
-							borderColor: '#0b6e99',
-							backgroundColor: g,
-							fill: true,
-							tension: 0.35,
-							borderWidth: 2.5,
-							pointRadius: 3,
-							pointBackgroundColor: '#0b6e99'
-						},
-						{
-							label: 'Profit',
-							data: trendProf,
-							borderColor: '#0d9488',
-							backgroundColor: 'transparent',
-							fill: false,
-							tension: 0.35,
-							borderWidth: 2.5,
-							pointRadius: 3,
-							pointBackgroundColor: '#0d9488'
-						}
-					]
+					datasets: trendDatasets
 				},
 				options: {
 					responsive: true,
