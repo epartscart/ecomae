@@ -1,7 +1,7 @@
 <?php
 /**
- * Tenant CP home — Command Centre dashboard (red + black + white).
- * Mirrors the ERP overview dashboard structure for /cp/control.
+ * Tenant CP home — colourful Command Centre for /cp/control.
+ * Surfaces catalogue, warehouse goods value, customers, and commerce pulse.
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -35,6 +35,9 @@ function epc_tcp_dash_stats(PDO $db): array
 			'orders_prev_week' => 0,
 			'products' => 0,
 			'clients' => 0,
+			'warehouse_qty' => 0.0,
+			'warehouse_skus' => 0,
+			'warehouse_value' => 0.0,
 			'pending_tasks' => 0,
 			'returns_open' => 0,
 			'vin_open' => 0,
@@ -84,6 +87,28 @@ function epc_tcp_dash_stats(PDO $db): array
 				)->fetchColumn();
 			} catch (Exception $e2) {
 			}
+		}
+		// Goods in warehouse: total units + value (purchase cost, else sell price).
+		try {
+			if ($db->query("SHOW TABLES LIKE 'shop_storages_data'")->fetchColumn()) {
+				$row = $db->query(
+					"SELECT
+						COALESCE(SUM(CASE WHEN `exist` > 0 THEN `exist` ELSE 0 END), 0) AS qty,
+						COUNT(DISTINCT CASE WHEN `exist` > 0 THEN `product_id` END) AS skus,
+						COALESCE(SUM(
+							CASE WHEN `exist` > 0 THEN
+								`exist` * COALESCE(NULLIF(`price_purchase`, 0), NULLIF(`price`, 0), 0)
+							ELSE 0 END
+						), 0) AS stock_value
+					 FROM `shop_storages_data`"
+				)->fetch(PDO::FETCH_ASSOC);
+				if (is_array($row)) {
+					$stats['warehouse_qty'] = (float) ($row['qty'] ?? 0);
+					$stats['warehouse_skus'] = (int) ($row['skus'] ?? 0);
+					$stats['warehouse_value'] = (float) ($row['stock_value'] ?? 0);
+				}
+			}
+		} catch (Exception $e) {
 		}
 		try {
 			$openStatuses = array();
@@ -157,7 +182,7 @@ function epc_tcp_dash_stats(PDO $db): array
 				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
 			} catch (Throwable $e) {
 			}
-			return epc_perf_cache_remember('epc_tcp_dash_stats:v4:' . $dbName, 180, $compute);
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v6:' . $dbName, 180, $compute);
 		}
 	}
 	return $compute();
@@ -182,6 +207,9 @@ $stats = array(
 	'orders_prev_week' => 0,
 	'products' => 0,
 	'clients' => 0,
+	'warehouse_qty' => 0.0,
+	'warehouse_skus' => 0,
+	'warehouse_value' => 0.0,
 	'pending_tasks' => 0,
 	'returns_open' => 0,
 	'vin_open' => 0,
@@ -248,46 +276,46 @@ if (function_exists('epc_co_profile_get') && isset($db_link) && $db_link instanc
 
 $tiles = array(
 	array('label' => 'Orders (OMS)', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
-	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'crimson'),
-	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'stone'),
-	array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages', 'tone' => 'black'),
-	array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'red'),
-	array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'stone'),
-	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'crimson'),
+	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'blue'),
+	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'amber'),
+	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'teal'),
+	array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages', 'tone' => 'violet'),
+	array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'indigo'),
+	array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'emerald'),
+	array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'rose'),
 );
 
 $quickActions = array(
 	array('label' => 'Open OMS', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-	array('label' => 'Upload prices', 'icon' => 'fa-upload', 'url' => $base . '/shop/prices', 'tone' => 'black'),
-	array('label' => 'Multivendor', 'icon' => 'fa-handshake-o', 'url' => $base . '/shop/prices/multivendor', 'tone' => 'stone'),
-	array('label' => 'Crosses', 'icon' => 'fa-exchange', 'url' => $base . '/shop/crosses', 'tone' => 'red'),
-	array('label' => 'AI chats', 'icon' => 'fa-comments', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'black'),
-	array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'stone'),
-	array('label' => 'POS terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'red'),
-	array('label' => 'ERP dashboard', 'icon' => 'fa-dashboard', 'url' => $erpUrl . '&area=overview&tab=dashboard', 'tone' => 'black'),
+	array('label' => 'Upload prices', 'icon' => 'fa-upload', 'url' => $base . '/shop/prices', 'tone' => 'amber'),
+	array('label' => 'Multivendor', 'icon' => 'fa-handshake-o', 'url' => $base . '/shop/prices/multivendor', 'tone' => 'teal'),
+	array('label' => 'Crosses', 'icon' => 'fa-exchange', 'url' => $base . '/shop/crosses', 'tone' => 'blue'),
+	array('label' => 'AI chats', 'icon' => 'fa-comments', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'violet'),
+	array('label' => 'Procurement', 'icon' => 'fa-truck', 'url' => $base . '/shop/procurement/procurement', 'tone' => 'emerald'),
+	array('label' => 'POS terminal', 'icon' => 'fa-credit-card', 'url' => $base . '/shop/pos/terminal', 'tone' => 'rose'),
+	array('label' => 'ERP dashboard', 'icon' => 'fa-dashboard', 'url' => $erpUrl . '&area=overview&tab=dashboard', 'tone' => 'indigo'),
 );
 
 if ($industryCode !== 'auto_parts') {
 	$quickActions = array(
 		array('label' => 'Orders', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
-		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
-		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'stone'),
-		array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'red'),
-		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'black'),
-		array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'stone'),
-		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'red'),
-		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'black'),
+		array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'blue'),
+		array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'amber'),
+		array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'teal'),
+		array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'violet'),
+		array('label' => 'ERP finance', 'icon' => 'fa-university', 'url' => $erpUrl, 'tone' => 'indigo'),
+		array('label' => 'Documents', 'icon' => 'fa-file-text-o', 'url' => $base . '/shop/document_control/document_control', 'tone' => 'emerald'),
+		array('label' => 'Settings', 'icon' => 'fa-cog', 'url' => $settingsUrl, 'tone' => 'rose'),
 	);
 }
 
 $moreLinks = array(
-	array('label' => 'CP brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure', 'tone' => 'black'),
-	array('label' => 'Auto Price AI', 'icon' => 'fa-line-chart', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'red'),
-	array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'stone'),
-	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'black'),
-	array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'red'),
-	array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'stone'),
+	array('label' => 'CP brochure', 'icon' => 'fa-book', 'url' => $base . '/control/cp_brochure', 'tone' => 'indigo'),
+	array('label' => 'Auto Price AI', 'icon' => 'fa-line-chart', 'url' => $base . '/control/portal/epc_auto_price_engine', 'tone' => 'amber'),
+	array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'url' => $base . '/shop/accessories', 'tone' => 'violet'),
+	array('label' => 'Visual editor', 'icon' => 'fa-magic', 'url' => $base . '/control/portal/epc_visual_page_editor', 'tone' => 'teal'),
+	array('label' => 'Tax Toolkit', 'icon' => 'fa-balance-scale', 'url' => $base . '/control/portal/epc_tax_toolkit_manage', 'tone' => 'blue'),
+	array('label' => 'Social media', 'icon' => 'fa-share-alt', 'url' => $base . '/control/portal/epc_social_media_hub', 'tone' => 'rose'),
 );
 
 $reminders = array(
@@ -319,18 +347,21 @@ $navGroups = array(
 );
 
 $kpiRows = array(
+	array('name' => 'Goods in warehouse (value)', 'cur' => (float) $stats['warehouse_value'], 'prev' => 0.0, 'goodUp' => true, 'money' => true),
+	array('name' => 'In warehouse (units)', 'cur' => (float) $stats['warehouse_qty'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Warehouse SKUs', 'cur' => (float) $stats['warehouse_skus'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Published products', 'cur' => (float) $stats['products'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Customers', 'cur' => (float) $stats['clients'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 	array('name' => 'Orders (7 days)', 'cur' => (float) $stats['orders_week'], 'prev' => (float) $stats['orders_prev_week'], 'goodUp' => true, 'money' => false),
 	array('name' => 'Orders today', 'cur' => (float) $stats['orders_today'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 	array('name' => 'Open orders', 'cur' => (float) $stats['pending_tasks'], 'prev' => 0.0, 'goodUp' => false, 'money' => false),
-	array('name' => 'Published products', 'cur' => (float) $stats['products'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
-	array('name' => 'Storefront clients', 'cur' => (float) $stats['clients'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 );
 if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Sales ex VAT (MTD)', 'cur' => $finance['revenue_ex_vat'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpdash1';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpdash2';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -349,9 +380,12 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 		<div class="cp-dash-hero-panel">
 			<div class="cp-dash-kicker"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> Control Command Centre</div>
 			<h2 class="cp-dash-title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
-			<p class="cp-dash-sub"><?php echo $industryCode === 'auto_parts'
-				? 'Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.'
-				: 'Your daily control dashboard — orders, catalogue, clients, and finance shortcuts in one place.'; ?></p>
+			<p class="cp-dash-sub">Live store pulse — catalogue, goods in warehouse, customers, orders, and finance shortcuts in one colourful view.</p>
+			<div class="cp-dash-stock-banner">
+				<span class="cp-dash-stock-banner__label"><i class="fa fa-cubes"></i> Goods in warehouse</span>
+				<strong class="cp-dash-stock-banner__val"><?php echo number_format((float) $stats['warehouse_value'], 2); ?> <?php echo epc_tcp_dash_h($currency); ?></strong>
+				<span class="cp-dash-stock-banner__meta"><?php echo number_format((float) $stats['warehouse_qty'], 0); ?> units · <?php echo (int) $stats['warehouse_skus']; ?> SKUs with stock</span>
+			</div>
 			<div class="cp-dash-meta">
 				<span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> <?php echo epc_tcp_dash_h($industryLabel); ?></span>
 				<span class="cp-dash-chip"><i class="fa fa-calendar"></i> <?php echo epc_tcp_dash_h(date('Y-m-d')); ?></span>
@@ -363,23 +397,23 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 			</div>
 		</div>
 		<div class="cp-dash-metrics">
-			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
-				<div class="cp-dash-metric__label">Orders today</div>
-				<div class="cp-dash-metric__val"><?php echo (int) $stats['orders_today']; ?></div>
-				<div class="cp-dash-metric__hint">New successfully created orders</div>
-			</a>
-			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
-				<div class="cp-dash-metric__label">Open orders</div>
-				<div class="cp-dash-metric__val cp-dash-metric__val--warn"><?php echo (int) $stats['pending_tasks']; ?></div>
-				<div class="cp-dash-metric__hint">Need fulfilment</div>
+			<a class="cp-dash-metric cp-dash-metric--stock" href="<?php echo epc_tcp_dash_h($base . '/shop/logistics/stock'); ?>">
+				<div class="cp-dash-metric__label">Goods in warehouse</div>
+				<div class="cp-dash-metric__val cp-dash-metric__val--money"><?php echo number_format((float) $stats['warehouse_value'], 2); ?></div>
+				<div class="cp-dash-metric__hint"><?php echo epc_tcp_dash_h($currency); ?> · <?php echo number_format((float) $stats['warehouse_qty'], 0); ?> units</div>
 			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($catalogueUrl); ?>">
 				<div class="cp-dash-metric__label">Products</div>
 				<div class="cp-dash-metric__val"><?php echo (int) $stats['products']; ?></div>
 				<div class="cp-dash-metric__hint">Published catalogue</div>
 			</a>
+			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($base . '/shop/logistics/storages'); ?>">
+				<div class="cp-dash-metric__label">In warehouse</div>
+				<div class="cp-dash-metric__val"><?php echo number_format((float) $stats['warehouse_qty'], 0); ?></div>
+				<div class="cp-dash-metric__hint"><?php echo (int) $stats['warehouse_skus']; ?> SKUs with stock</div>
+			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($clientsUrl); ?>">
-				<div class="cp-dash-metric__label">Clients</div>
+				<div class="cp-dash-metric__label">Customers</div>
 				<div class="cp-dash-metric__val"><?php echo (int) $stats['clients']; ?></div>
 				<div class="cp-dash-metric__hint">Storefront customers</div>
 			</a>
@@ -539,8 +573,16 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 				datasets: [{
 					label: 'Orders',
 					data: data,
-					backgroundColor: 'rgba(220, 38, 38, 0.75)',
-					borderColor: '#0a0a0a',
+					backgroundColor: [
+						'rgba(220, 38, 38, 0.85)',
+						'rgba(37, 99, 235, 0.85)',
+						'rgba(13, 148, 136, 0.85)',
+						'rgba(217, 119, 6, 0.85)',
+						'rgba(124, 58, 237, 0.85)',
+						'rgba(225, 29, 72, 0.85)',
+						'rgba(5, 150, 105, 0.85)'
+					],
+					borderColor: '#ffffff',
 					borderWidth: 1,
 					borderRadius: 4,
 					maxBarThickness: 28
@@ -552,20 +594,20 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 				plugins: {
 					legend: { display: false },
 					tooltip: {
-						backgroundColor: '#0a0a0a',
+						backgroundColor: '#0f172a',
 						titleColor: '#fff',
-						bodyColor: '#fecaca'
+						bodyColor: '#e2e8f0'
 					}
 				},
 				scales: {
 					x: {
 						grid: { display: false },
-						ticks: { color: '#57534e', font: { size: 11, weight: '600' } }
+						ticks: { color: '#64748b', font: { size: 11, weight: '600' } }
 					},
 					y: {
 						beginAtZero: true,
-						ticks: { precision: 0, color: '#57534e' },
-						grid: { color: 'rgba(0,0,0,0.06)' }
+						ticks: { precision: 0, color: '#64748b' },
+						grid: { color: 'rgba(15,23,42,0.06)' }
 					}
 				}
 			}
