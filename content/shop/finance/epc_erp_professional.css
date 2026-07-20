@@ -1918,8 +1918,17 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	letter-spacing: 0.01em;
 	white-space: nowrap;
 	cursor: pointer;
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-user-select: none;
 	border-bottom: 2px solid transparent;
 	transition: background .12s, color .12s, border-color .12s;
+}
+/* Whole tab is the hit target — text/icon/caret must not steal clicks */
+.epc-erp-topnav-btn > *,
+.epc-erp-topnav-btn > *::before,
+.epc-erp-topnav-btn > *::after {
+	pointer-events: none !important;
 }
 .epc-erp-topnav-btn:hover,
 .epc-erp-topnav-btn:focus,
