@@ -643,6 +643,13 @@ function epc_ecomae_platform_page_industries()
 <span>Email: <code>demo@ecomae.com</code> &nbsp;|&nbsp; Password: <code>demo2026</code></span>
 </div>
 </div>
+<div class="epm-demo2" style="margin-top:12px;background:rgba(15,118,110,.18);border-color:rgba(45,212,191,.35)">
+<div class="key-icon" style="background:#0f766e"><i class="fa fa-magic"></i></div>
+<div class="info">
+<strong>Operator control — apply templates to tenants</strong>
+<span>Super CP → Tenant hub → <a href="<?php echo epc_ecomae_h(epc_ecomae_platform_templates_url()); ?>" style="color:#5eead4;font-weight:800">Templates</a> shows every industry template, demo CP/ERP links, and one-click apply + guide.</span>
+</div>
+</div>
 <!-- Stats -->
 <div class="epm-stats2">
 <div class="epm-stat2"><div class="val"><?php echo (int) $portalIndustryCount; ?></div><div class="lbl">Client Industries</div></div>
@@ -697,6 +704,7 @@ function epc_ecomae_platform_page_industries()
 			<a href="<?php echo epc_ecomae_h($pr['platform']); ?>" class="epm-ind-card__link epm-ind-card__link--cp"><i class="fa fa-info-circle"></i> Details</a>
 			<?php if ($tpl !== ''): ?>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($tpl); ?>/" class="epm-ind-card__link epm-ind-card__link--erp"><i class="fa fa-th-large"></i> CP</a>
+			<a href="<?php echo epc_ecomae_h(epc_ecomae_platform_templates_url($tpl)); ?>" class="epm-ind-card__link" style="background:#0f766e"><i class="fa fa-magic"></i> Apply</a>
 			<?php endif; ?>
 		</div>
 	</div>
@@ -751,6 +759,7 @@ function epc_ecomae_platform_page_industries()
 			<a href="<?php echo epc_ecomae_h($siteUrl); ?>" class="epm-ind-card__link epm-ind-card__link--site" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Hub site</a>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($templateKey); ?>/" class="epm-ind-card__link epm-ind-card__link--cp"><i class="fa fa-th-large"></i> CP</a>
 			<a href="/cp/demo/<?php echo epc_ecomae_h($templateKey); ?>/shop/finance/erp" class="epm-ind-card__link epm-ind-card__link--erp"><i class="fa fa-calculator"></i> ERP</a>
+			<a href="<?php echo epc_ecomae_h(epc_ecomae_platform_templates_url($templateKey)); ?>" class="epm-ind-card__link" style="background:#0f766e"><i class="fa fa-magic"></i> Apply</a>
 		</div>
 		<div class="epm-ind-card__expand" onclick="toggleDetail(this)"><i class="fa fa-chevron-down"></i> Browse <?php echo count($subs); ?> dedicated sub-industry pages</div>
 	</div>

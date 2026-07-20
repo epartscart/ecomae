@@ -103,7 +103,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_apply_theme'])
 	));
 	$tenants = epc_th_list_tenants($db_link);
 	$stats = epc_th_platform_stats($db_link);
-	$tab = 'tenants';
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['epc_th_apply_template'])) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/tenant_hub/epc_tenant_templates_catalog.php';
+	$flash = epc_th_apply_industry_template(
+		$db_link,
+		(string) ($_POST['site_key'] ?? ''),
+		(string) ($_POST['template_key'] ?? ''),
+		array(
+			'industry_code' => (string) ($_POST['industry_code'] ?? ''),
+			'push_client' => !isset($_POST['push_client']) || !empty($_POST['push_client']),
+		)
+	);
+	$tenants = epc_th_list_tenants($db_link);
+	$stats = epc_th_platform_stats($db_link);
+	$tab = 'templates';
 }
 
 $dnsHost = isset($_GET['dns']) ? preg_replace('/[^a-z0-9.-]/', '', (string) $_GET['dns']) : '';
@@ -147,6 +161,7 @@ epc_boc_console_open(array('active' => 'tenant_hub', 'title' => 'Tenant hub / on
 
 			<div class="epc-th-tabs epc-cp-tabs--pill epc-th-tabs--compact">
 				<a class="btn btn-sm <?php echo $tab === 'onboard' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=onboard"><i class="fa fa-rocket"></i> Onboard client</a>
+				<a class="btn btn-sm <?php echo $tab === 'templates' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=templates"><i class="fa fa-th-large"></i> Templates</a>
 				<a class="btn btn-sm <?php echo $tab === 'tenants' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=tenants">Tenants</a>
 				<a class="btn btn-sm <?php echo $tab === 'dns' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=dns">GoDaddy DNS</a>
 				<a class="btn btn-sm <?php echo $tab === 'guide' ? 'btn-primary' : 'btn-default'; ?>" href="<?php echo epc_th_h($hubUrl); ?>?tab=guide">Guide</a>
@@ -181,6 +196,9 @@ epc_boc_console_open(array('active' => 'tenant_hub', 'title' => 'Tenant hub / on
 
 			<?php if ($tab === 'onboard'): ?>
 				<?php include $_SERVER['DOCUMENT_ROOT'] . '/content/shop/tenant_hub/epc_tenant_onboard_panel.php'; ?>
+
+			<?php elseif ($tab === 'templates'): ?>
+				<?php include $_SERVER['DOCUMENT_ROOT'] . '/content/shop/tenant_hub/epc_tenant_templates_panel.php'; ?>
 
 			<?php elseif ($tab === 'blockchain'): ?>
 				<?php

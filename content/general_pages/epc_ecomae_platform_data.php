@@ -55,6 +55,16 @@ function epc_ecomae_platform_onboard_url($industryCode = '')
 	return $url;
 }
 
+/** Super CP Industry Templates control (show / apply / guide). */
+function epc_ecomae_platform_templates_url($templateKey = '')
+{
+	$url = epc_ecomae_platform_super_cp_url() . '/shop/tenant_hub/tenant_hub?tab=templates';
+	if ($templateKey !== '') {
+		$url .= '&tpl_section=gallery&template=' . rawurlencode(preg_replace('/[^a-z0-9_]/', '', strtolower((string) $templateKey)));
+	}
+	return $url;
+}
+
 function epc_ecomae_platform_industry_marketing()
 {
 	$portal = epc_portal_industries();
