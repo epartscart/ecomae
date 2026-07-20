@@ -671,6 +671,10 @@ function epc_erp_staff_create_user(PDO $db, $cfg, array $spec)
 			$profileId,
 		));
 	}
+	if (array_key_exists('dashboard_profile', $spec)) {
+		require_once __DIR__ . '/epc_erp_dashboard_profiles.php';
+		epc_erp_dashboard_profile_set($db, $userId, (string) ($spec['dashboard_profile'] ?? ''));
+	}
 	if (!empty($spec['hr'])) {
 		require_once __DIR__ . '/epc_erp_payroll.php';
 		epc_erp_payroll_ensure_schema($db);
@@ -747,14 +751,16 @@ function epc_erp_staff_seed_demo(PDO $db, $cfg)
 		'it' => array(18000, 1500),
 	);
 	$staffSpecs = array(
-		array('code' => 'admin', 'email' => 'erp.admin@epartscart.local', 'name' => 'Dummy Admin User', 'title' => 'ERP Administrator', 'days' => 30),
-		array('code' => 'sales', 'email' => 'erp.sales@epartscart.local', 'name' => 'Dummy Sales User', 'title' => 'Sales Executive', 'days' => 28),
+		array('code' => 'admin', 'email' => 'erp.ceo@epartscart.local', 'name' => 'Dummy CEO User', 'title' => 'Chief Executive Officer', 'days' => 30, 'dashboard_profile' => 'ceo'),
+		array('code' => 'admin', 'email' => 'erp.admin@epartscart.local', 'name' => 'Dummy Admin User', 'title' => 'ERP Administrator', 'days' => 30, 'dashboard_profile' => 'admin'),
+		array('code' => 'finance', 'email' => 'erp.cfo@epartscart.local', 'name' => 'Dummy CFO User', 'title' => 'Chief Financial Officer', 'days' => 30, 'dashboard_profile' => 'cfo'),
+		array('code' => 'sales', 'email' => 'erp.sales@epartscart.local', 'name' => 'Dummy Sales User', 'title' => 'Sales Executive', 'days' => 28, 'dashboard_profile' => 'sales'),
 		array('code' => 'logistics', 'email' => 'erp.logistics@epartscart.local', 'name' => 'Dummy Logistics User', 'title' => 'Logistics Coordinator', 'days' => 31),
 		array('code' => 'marketing', 'email' => 'erp.marketing@epartscart.local', 'name' => 'Dummy Marketing User', 'title' => 'Marketing Specialist', 'days' => 30),
-		array('code' => 'finance', 'email' => 'erp.finance@epartscart.local', 'name' => 'Dummy Finance User', 'title' => 'Finance Officer', 'days' => 30),
+		array('code' => 'finance', 'email' => 'erp.finance@epartscart.local', 'name' => 'Dummy Finance User', 'title' => 'Finance Officer', 'days' => 30, 'dashboard_profile' => 'finance'),
 		array('code' => 'hr', 'email' => 'erp.hr@epartscart.local', 'name' => 'Dummy HR User', 'title' => 'HR Manager', 'days' => 29),
-		array('code' => 'purchase', 'email' => 'erp.purchase@epartscart.local', 'name' => 'Dummy Purchase User', 'title' => 'Purchase Officer', 'days' => 27),
-		array('code' => 'accounts', 'email' => 'erp.accounts@epartscart.local', 'name' => 'Dummy Accounts User', 'title' => 'Accountant', 'days' => 30),
+		array('code' => 'purchase', 'email' => 'erp.purchase@epartscart.local', 'name' => 'Dummy Purchase User', 'title' => 'Purchase Officer', 'days' => 27, 'dashboard_profile' => 'purchase'),
+		array('code' => 'accounts', 'email' => 'erp.accounts@epartscart.local', 'name' => 'Dummy Accounts User', 'title' => 'Accountant', 'days' => 30, 'dashboard_profile' => 'accounts'),
 		array('code' => 'it', 'email' => 'erp.it@epartscart.local', 'name' => 'Dummy IT Manager', 'title' => 'IT Manager', 'days' => 32),
 	);
 
