@@ -1512,6 +1512,37 @@ try {
 			epc_uae_ct_save_adjustments($db_link, $df, $dt, $amounts);
 			epc_erp_json(true, 'Corporate Tax adjustments saved for this period');
 
+		case 'uae_tax_legislation_checklist_set':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_tax_compliance.php';
+			$itemKey = trim((string)($_POST['item_key'] ?? ''));
+			$actionKey = trim((string)($_POST['action_key'] ?? ''));
+			$actionText = trim((string)($_POST['action_text'] ?? ''));
+			$actionStatus = !empty($_POST['done']) || (string)($_POST['status'] ?? '') === 'done' ? 'done' : 'pending';
+			$result = epc_uae_tax_legislation_checklist_set_status($db_link, $itemKey, $actionKey, $actionText, $actionStatus);
+			$allTexts = array();
+			if (!empty($_POST['all_actions_json'])) {
+				$decoded = json_decode((string)$_POST['all_actions_json'], true);
+				if (is_array($decoded)) {
+					foreach ($decoded as $t) {
+						$t = trim((string)$t);
+						if ($t !== '') {
+							$allTexts[] = $t;
+						}
+					}
+				}
+			}
+			if (empty($allTexts) && $actionText !== '') {
+				$allTexts = array($actionText);
+			}
+			$chk = !empty($allTexts)
+				? epc_uae_tax_legislation_checklist_with_status($db_link, $itemKey, $allTexts)
+				: array('pending' => 0, 'done' => 0, 'impl_status' => 'pending');
+			epc_erp_json((bool)($result['ok'] ?? false), (string)($result['message'] ?? 'Updated'), array_merge($result, array(
+				'impl_status' => $chk['impl_status'] ?? 'pending',
+				'impl_pending' => (int)($chk['pending'] ?? 0),
+				'impl_done' => (int)($chk['done'] ?? 0),
+			)));
+
 		case 'einvoice_create':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
 			$orderId = (int)($_POST['order_id'] ?? 0);

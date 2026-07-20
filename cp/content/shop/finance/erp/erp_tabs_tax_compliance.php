@@ -13,7 +13,7 @@ epc_uae_tax_knowledge_seed_kb($db_link);
 $ftaCache = epc_uae_fta_get_cached_legislation($db_link);
 $legislation = $ftaCache['legislation'] ?? $ftaCache['items'] ?? array();
 foreach ($legislation as $i => $legRow) {
-	$legislation[$i] = epc_uae_tax_legislation_enrich_item($legRow);
+	$legislation[$i] = epc_uae_tax_legislation_enrich_item($legRow, $db_link);
 }
 $newSince = $ftaCache['new_since_last'] ?? array();
 $newCountTotal = (int)($ftaCache['new_count'] ?? count($newSince));
@@ -39,7 +39,7 @@ $invoiceChecklist = epc_uae_tax_invoice_format_checklist();
 $legislationUrl = epc_uae_fta_legislation_url();
 $ajaxUrl = isset($erpAjaxEndpoint) ? $erpAjaxEndpoint : ('/' . ($GLOBALS['DP_Config']->backend_dir ?? 'cp') . '/content/shop/finance/erp/ajax_erp_endpoint.php');
 $csrf = isset($csrf) ? $csrf : '';
-$tcAssetVer = function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260720fta3';
+$tcAssetVer = function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260720fta5';
 $tcBackend = trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/');
 if ($tcBackend === '') {
 	$tcBackend = 'cp';
@@ -50,7 +50,20 @@ if (!isset($GLOBALS['epc_cp_page_assets']) || !is_array($GLOBALS['epc_cp_page_as
 }
 $GLOBALS['epc_cp_page_assets']['js'][$tcJsSrc] = true;
 $panel = isset($_GET['tax_panel']) ? (string)$_GET['tax_panel'] : 'legislation';
-$taxFilter = isset($_GET['tax_type']) ? (string)$_GET['tax_type'] : '';
+$taxFilter = isset($_GET['tax_type']) ? strtolower(trim((string)$_GET['tax_type'])) : '';
+if ($taxFilter === '' && isset($_GET['leg_filter'])) {
+	$taxFilter = strtolower(trim((string)$_GET['leg_filter']));
+}
+if ($taxFilter === 'ct') {
+	$taxFilter = 'corporate_tax';
+}
+if ($taxFilter === 'e-invoice' || $taxFilter === 'einvoice') {
+	$taxFilter = 'einvoicing';
+}
+$taxArea = function_exists('epc_erp_tab_to_area') ? epc_erp_tab_to_area('tax_compliance') : 'tax';
+if ($taxArea === '' || $taxArea === 'overview') {
+	$taxArea = 'tax';
+}
 $qaHistory = epc_uae_tax_legislation_qa_history_get($db_link);
 ?>
 
@@ -63,9 +76,9 @@ $qaHistory = epc_uae_tax_legislation_qa_history_get($db_link);
 	</div>
 
 	<ul class="nav nav-pills" style="margin-bottom:16px;">
-		<li class="<?php echo $panel === 'legislation' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, 'finance') . '&tax_panel=legislation'); ?>"><i class="fa fa-gavel"></i> Legislation library</a></li>
-		<li class="<?php echo $panel === 'operations' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, 'finance') . '&tax_panel=operations'); ?>"><i class="fa fa-calculator"></i> Operations</a></li>
-		<li class="<?php echo $panel === 'knowledge' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, 'finance') . '&tax_panel=knowledge'); ?>"><i class="fa fa-book"></i> Process guides</a></li>
+		<li class="<?php echo $panel === 'legislation' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, $taxArea) . '&tax_panel=legislation'); ?>"><i class="fa fa-gavel"></i> Legislation library</a></li>
+		<li class="<?php echo $panel === 'operations' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, $taxArea) . '&tax_panel=operations'); ?>"><i class="fa fa-calculator"></i> Operations</a></li>
+		<li class="<?php echo $panel === 'knowledge' ? 'active' : ''; ?>"><a href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, $taxArea) . '&tax_panel=knowledge'); ?>"><i class="fa fa-book"></i> Process guides</a></li>
 	</ul>
 
 <?php if ($panel === 'legislation'):
@@ -86,15 +99,33 @@ $moduleColors = array(
 	'einvoice' => '#059669', 'vat_return' => '#2563eb', 'pl_ct' => '#7c3aed',
 	'purchases' => '#0ea5e9', 'gl_journals' => '#64748b', 'inventory' => '#ea580c', 'customs' => '#ca8a04',
 );
-$filteredLeg = array();
+$filterCounts = array(
+	'' => 0, 'vat' => 0, 'corporate_tax' => 0, 'excise' => 0,
+	'procedures' => 0, 'einvoicing' => 0, 'general' => 0,
+);
+// Keep full list in the DOM so VAT/CT/… filters work even if the query string
+// is dropped by the shell; JS shows/hides rows and updates the URL.
+$allLegItems = array();
 foreach ($legislation as $leg) {
-	$leg = epc_uae_tax_legislation_enrich_item($leg);
-	$tt = (string)($leg['tax_type'] ?? $leg['tax_category'] ?? 'general');
-	if ($taxFilter !== '' && $tt !== $taxFilter) {
-		continue;
+	$leg = epc_uae_tax_legislation_enrich_item($leg, $db_link);
+	$tt = strtolower(trim((string)($leg['tax_category'] ?? $leg['tax_type'] ?? 'general')));
+	if ($tt === '' || !isset($filterCounts[$tt])) {
+		$tt = 'general';
 	}
-	$filteredLeg[] = $leg;
+	$leg['tax_type'] = $tt;
+	$leg['tax_category'] = $tt;
+	$filterCounts[$tt]++;
+	$filterCounts['']++;
+	$allLegItems[] = $leg;
 }
+$filteredLeg = array();
+foreach ($allLegItems as $leg) {
+	$tt = (string)($leg['tax_type'] ?? 'general');
+	if ($taxFilter === '' || $tt === $taxFilter) {
+		$filteredLeg[] = $leg;
+	}
+}
+$legFilterBase = epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, $taxArea) . '&tax_panel=legislation';
 $timelineYears = $chartStats['timeline_by_year'] ?? array();
 $timelineMax = 1;
 foreach ($timelineYears as $cnt) {
@@ -128,8 +159,9 @@ foreach ($timelineYears as $cnt) {
 	.epc-leg-item.open .epc-leg-chevron { transform:rotate(90deg); }
 	.epc-leg-chevron { transition:transform .15s; color:#94a3b8; margin-top:2px; }
 	.epc-leg-summary { font-size:12px; line-height:1.55; color:#334155; margin:10px 0; }
-	.epc-leg-checklist { margin:0; padding-left:18px; font-size:12px; }
-	.epc-leg-checklist li { margin-bottom:4px; }
+	.epc-leg-checklist { margin:0; padding-left:0; list-style:none; font-size:12px; }
+	.epc-leg-checklist li { margin-bottom:6px; }
+	.epc-leg-check-row.is-done span { text-decoration:line-through; color:#64748b; }
 	.epc-leg-qa { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px 16px; margin:0 0 18px; }
 	.epc-leg-qa h4 { margin:0 0 10px; font-size:15px; font-weight:600; }
 	.epc-leg-qa-prompts { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
@@ -333,42 +365,52 @@ foreach ($timelineYears as $cnt) {
 	</div>
 	<?php endif; ?>
 
-	<div class="btn-group btn-group-sm" style="margin-bottom:12px;">
-		<a class="btn btn-default<?php echo $taxFilter === '' ? ' active' : ''; ?>" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, 'finance') . '&tax_panel=legislation'); ?>">All</a>
+	<div class="btn-group btn-group-sm epc-leg-filter-bar" style="margin-bottom:12px;" id="epc_leg_filter_bar" data-filter="<?php echo epc_erp_h($taxFilter); ?>">
+		<a class="btn btn-default epc-leg-filter-btn<?php echo $taxFilter === '' ? ' active' : ''; ?>" href="<?php echo epc_erp_h($legFilterBase); ?>" data-filter="" data-count="<?php echo (int)$filterCounts['']; ?>">All <small>(<?php echo (int)$filterCounts['']; ?>)</small></a>
 		<?php foreach (array('vat' => 'VAT', 'corporate_tax' => 'CT', 'excise' => 'Excise', 'procedures' => 'Procedures', 'einvoicing' => 'E-invoice', 'general' => 'General') as $tk => $tl): ?>
-			<a class="btn btn-default<?php echo $taxFilter === $tk ? ' active' : ''; ?>" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'tax_compliance', $date_from_str, $date_to_str, 'finance') . '&tax_panel=legislation&tax_type=' . $tk); ?>"><?php echo epc_erp_h($tl); ?></a>
+			<a class="btn btn-default epc-leg-filter-btn<?php echo $taxFilter === $tk ? ' active' : ''; ?>" href="<?php echo epc_erp_h($legFilterBase . '&tax_type=' . rawurlencode($tk)); ?>" data-filter="<?php echo epc_erp_h($tk); ?>" data-count="<?php echo (int)($filterCounts[$tk] ?? 0); ?>"><?php echo epc_erp_h($tl); ?> <small>(<?php echo (int)($filterCounts[$tk] ?? 0); ?>)</small></a>
 		<?php endforeach; ?>
 	</div>
 
 	<?php if (empty($legislation)): ?>
 		<p class="text-muted">No legislation in cache. Click <strong>Fetch legislation updates</strong> (source: legislation.aspx only).</p>
-	<?php elseif (empty($filteredLeg)): ?>
-		<p class="text-muted">No items match this filter.</p>
 	<?php else: ?>
-		<p class="text-muted" style="margin-bottom:10px;"><small><?php echo count($filteredLeg); ?> of <?php echo count($legislation); ?> items — click a row to expand summary &amp; compliance checklist.</small></p>
-		<?php foreach ($filteredLeg as $idx => $leg):
-			$leg = epc_uae_tax_legislation_enrich_item($leg);
-			$tt = (string)($leg['tax_type'] ?? $leg['tax_category'] ?? 'general');
+		<p class="text-muted" style="margin-bottom:10px;" id="epc_leg_filter_count"><small><span id="epc_leg_filter_shown"><?php echo count($filteredLeg); ?></span> of <?php echo count($allLegItems); ?> items — click a row to expand summary &amp; compliance checklist.</small></p>
+		<p class="text-muted" id="epc_leg_filter_empty" style="<?php echo empty($filteredLeg) ? '' : 'display:none;'; ?>">No items match this filter. <a href="<?php echo epc_erp_h($legFilterBase); ?>" class="epc-leg-filter-btn" data-filter="">Show all</a></p>
+		<div id="epc_leg_list">
+		<?php foreach ($allLegItems as $idx => $leg):
+			$tt = strtolower(trim((string)($leg['tax_type'] ?? $leg['tax_category'] ?? 'general')));
+			if ($tt === '') {
+				$tt = 'general';
+			}
+			$hiddenByFilter = ($taxFilter !== '' && $tt !== $taxFilter);
 			$summary = trim((string)($leg['erp_summary'] ?? $leg['summary'] ?? ''));
 			if ($summary === '') {
 				$built = epc_uae_tax_legislation_build_summary($leg);
 				$summary = (string)($built['erp_summary'] ?? 'UAE FTA legislation — review ERP tax settings with your advisor.');
 			}
-			$actions = $leg['compliance_actions'] ?? array();
-			if (!is_array($actions)) {
-				$actions = json_decode((string)$actions, true) ?: array();
+			$checkItems = $leg['checklist_items'] ?? array();
+			if (!is_array($checkItems) || empty($checkItems)) {
+				$actions = $leg['compliance_actions'] ?? epc_uae_tax_legislation_build_compliance_actions($leg);
+				$chk = epc_uae_tax_legislation_checklist_with_status($db_link, (string)($leg['item_key'] ?? ''), (array)$actions);
+				$checkItems = $chk['items'];
+				$leg['impl_status'] = $chk['impl_status'];
+				$leg['impl_pending'] = $chk['pending'];
+				$leg['impl_done'] = $chk['done'];
 			}
-			if (empty($actions)) {
-				$actions = epc_uae_tax_legislation_build_compliance_actions($leg);
-			}
+			$implStatus = (string)($leg['impl_status'] ?? 'pending');
+			$implLabel = $implStatus === 'implemented' ? 'Implemented' : ($implStatus === 'in_progress' ? 'In progress' : 'Implementation pending');
+			$implColor = $implStatus === 'implemented' ? '#1a7f37' : ($implStatus === 'in_progress' ? '#b8860b' : '#c0392b');
 			$itemClass = !empty($leg['is_new']) ? 'is-new' : '';
+			$itemKey = (string)($leg['item_key'] ?? '');
 		?>
-		<div class="epc-leg-item <?php echo epc_erp_h($itemClass); ?>" data-leg-idx="<?php echo (int)$idx; ?>">
+		<div class="epc-leg-item <?php echo epc_erp_h($itemClass); ?>" data-leg-idx="<?php echo (int)$idx; ?>" data-item-key="<?php echo epc_erp_h($itemKey); ?>" data-tax-type="<?php echo epc_erp_h($tt); ?>"<?php echo $hiddenByFilter ? ' style="display:none;"' : ''; ?>>
 			<div class="epc-leg-item-hd" onclick="this.parentElement.classList.toggle('open');">
 				<i class="fa fa-chevron-right epc-leg-chevron"></i>
 				<div style="flex:1;min-width:200px;">
 					<?php if (!empty($leg['is_new'])): ?><span class="label label-success">New</span> <?php endif; ?>
 					<?php if (!empty($leg['is_updated']) || !empty($leg['is_changed'])): ?><span class="label label-warning">Updated</span> <?php endif; ?>
+					<span class="label" style="background:<?php echo epc_erp_h($implColor); ?>;"><?php echo epc_erp_h($implLabel); ?></span>
 					<strong><?php echo epc_erp_h($leg['title'] ?? ''); ?></strong>
 					<br><small class="text-muted"><?php echo epc_erp_h($leg['category'] ?? ''); ?></small>
 				</div>
@@ -379,9 +421,17 @@ foreach ($timelineYears as $cnt) {
 			<div class="epc-leg-item-bd">
 				<p class="epc-leg-summary"><strong>Summary</strong> — <?php echo epc_erp_h($summary); ?></p>
 				<strong style="font-size:12px;"><i class="fa fa-check-square-o"></i> ERP compliance checklist</strong>
+				<span class="text-muted" style="font-size:11px;margin-left:6px;"><?php echo (int)($leg['impl_done'] ?? 0); ?>/<?php echo count($checkItems); ?> done</span>
 				<ul class="epc-leg-checklist">
-					<?php foreach ($actions as $act): ?>
-						<li><?php echo epc_erp_h($act); ?></li>
+					<?php foreach ($checkItems as $ci):
+						$done = (($ci['status'] ?? '') === 'done');
+						?>
+						<li class="epc-leg-check-row<?php echo $done ? ' is-done' : ''; ?>">
+							<label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;cursor:pointer;margin:0;">
+								<input type="checkbox" class="epc-leg-check" data-item-key="<?php echo epc_erp_h($itemKey); ?>" data-action-key="<?php echo epc_erp_h((string)($ci['key'] ?? '')); ?>" data-action-text="<?php echo epc_erp_h((string)($ci['text'] ?? '')); ?>" <?php echo $done ? 'checked' : ''; ?> onclick="event.stopPropagation();">
+								<span><?php echo epc_erp_h((string)($ci['text'] ?? '')); ?></span>
+							</label>
+						</li>
 					<?php endforeach; ?>
 				</ul>
 				<?php if (!empty($leg['erp_modules'])): ?>
@@ -394,6 +444,7 @@ foreach ($timelineYears as $cnt) {
 			</div>
 		</div>
 		<?php endforeach; ?>
+		</div>
 	<?php endif; ?>
 
 <?php elseif ($panel === 'operations'): ?>

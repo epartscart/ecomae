@@ -248,4 +248,149 @@
 			epcLegQaSubmit();
 		});
 	});
+
+	function epcLegImplBadge(card, implStatus, done, total) {
+		if (!card) {
+			return;
+		}
+		var label = implStatus === 'implemented' ? 'Implemented' : (implStatus === 'in_progress' ? 'In progress' : 'Implementation pending');
+		var color = implStatus === 'implemented' ? '#1a7f37' : (implStatus === 'in_progress' ? '#b8860b' : '#c0392b');
+		var badges = card.querySelectorAll('.epc-leg-item-hd .label');
+		badges.forEach(function (b) {
+			var t = (b.textContent || '').toLowerCase();
+			if (t.indexOf('implementation') !== -1 || t === 'implemented' || t === 'in progress') {
+				b.textContent = label;
+				b.style.background = color;
+			}
+		});
+		var countEl = card.querySelector('.epc-leg-item-bd .text-muted');
+		if (countEl && typeof done === 'number' && typeof total === 'number') {
+			countEl.textContent = done + '/' + total + ' done';
+		}
+	}
+
+	function epcLegApplyFilter(filterKey, pushUrl) {
+		var bar = document.getElementById('epc_leg_filter_bar');
+		var list = document.getElementById('epc_leg_list');
+		var shownEl = document.getElementById('epc_leg_filter_shown');
+		var emptyEl = document.getElementById('epc_leg_filter_empty');
+		if (!list) {
+			return;
+		}
+		filterKey = (filterKey || '').toLowerCase();
+		if (filterKey === 'ct') {
+			filterKey = 'corporate_tax';
+		}
+		var shown = 0;
+		var total = 0;
+		list.querySelectorAll('.epc-leg-item').forEach(function (row) {
+			total++;
+			var tt = (row.getAttribute('data-tax-type') || 'general').toLowerCase();
+			var ok = !filterKey || tt === filterKey;
+			row.style.display = ok ? '' : 'none';
+			if (ok) {
+				shown++;
+			}
+		});
+		if (shownEl) {
+			shownEl.textContent = String(shown);
+		}
+		if (emptyEl) {
+			emptyEl.style.display = shown === 0 ? '' : 'none';
+		}
+		if (bar) {
+			bar.setAttribute('data-filter', filterKey);
+			bar.querySelectorAll('.epc-leg-filter-btn').forEach(function (btn) {
+				var f = (btn.getAttribute('data-filter') || '').toLowerCase();
+				if (f === filterKey) {
+					btn.classList.add('active');
+				} else {
+					btn.classList.remove('active');
+				}
+			});
+		}
+		if (pushUrl) {
+			try {
+				var u = new URL(window.location.href);
+				if (filterKey) {
+					u.searchParams.set('tax_type', filterKey);
+				} else {
+					u.searchParams.delete('tax_type');
+					u.searchParams.delete('leg_filter');
+				}
+				u.searchParams.set('tax_panel', 'legislation');
+				window.history.replaceState({}, '', u.toString());
+			} catch (e) {}
+		}
+	}
+
+	document.querySelectorAll('.epc-leg-filter-btn').forEach(function (btn) {
+		btn.addEventListener('click', function (e) {
+			// Instant client-side filter — do not rely on a full reload.
+			e.preventDefault();
+			epcLegApplyFilter(btn.getAttribute('data-filter') || '', true);
+		});
+	});
+
+	(function epcLegInitFilterFromUrl() {
+		var bar = document.getElementById('epc_leg_filter_bar');
+		if (!bar) {
+			return;
+		}
+		var initial = bar.getAttribute('data-filter') || '';
+		try {
+			var u = new URL(window.location.href);
+			initial = u.searchParams.get('tax_type') || u.searchParams.get('leg_filter') || initial || '';
+		} catch (e) {}
+		epcLegApplyFilter(initial, false);
+	})();
+
+	document.querySelectorAll('.epc-leg-check').forEach(function (cb) {
+		cb.addEventListener('change', function () {
+			var itemKey = cb.getAttribute('data-item-key') || '';
+			var actionKey = cb.getAttribute('data-action-key') || '';
+			var actionText = cb.getAttribute('data-action-text') || '';
+			var card = cb.closest('.epc-leg-item');
+			var allTexts = [];
+			if (card) {
+				card.querySelectorAll('.epc-leg-check').forEach(function (x) {
+					var t = x.getAttribute('data-action-text') || '';
+					if (t) {
+						allTexts.push(t);
+					}
+				});
+			}
+			var fd = new FormData();
+			fd.append('action', 'uae_tax_legislation_checklist_set');
+			fd.append('item_key', itemKey);
+			fd.append('action_key', actionKey);
+			fd.append('action_text', actionText);
+			fd.append('done', cb.checked ? '1' : '0');
+			fd.append('all_actions_json', JSON.stringify(allTexts));
+			if (csrf) {
+				fd.append('csrf_guard_key', csrf);
+			}
+			postJson(fd)
+				.then(function (j) {
+					if (!(j.status || j.ok)) {
+						cb.checked = !cb.checked;
+						showMsg('warning', j.message || 'Could not save checklist step');
+						return;
+					}
+					var row = cb.closest('.epc-leg-check-row');
+					if (row) {
+						if (cb.checked) {
+							row.classList.add('is-done');
+						} else {
+							row.classList.remove('is-done');
+						}
+					}
+					epcLegImplBadge(card, j.impl_status || 'pending', j.impl_done || 0, allTexts.length);
+				})
+				.catch(function (err) {
+					cb.checked = !cb.checked;
+					showMsg('danger', (err && err.message) || 'Request failed');
+				});
+		});
+	});
 })();
