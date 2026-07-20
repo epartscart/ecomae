@@ -26,10 +26,55 @@ require_once __DIR__ . '/epc_erp_inventory.php';
 function epc_jw_is_jewellery_tenant(PDO $db): bool
 {
     static $result = null;
-    if ($result !== null) return $result;
+    if ($result !== null) {
+        return $result;
+    }
     try {
-        // Portal industry wins — auto_parts / non-jewellery tenants never see jw ERP tabs
-        // even if an ERP profile was mis-set to jewellery.
+        // Live Super ERP demo exposes the full industry suite (repairs, karat, gold…).
+        if (!empty($GLOBALS['epc_erp_demo_mirror'])) {
+            $result = true;
+            return true;
+        }
+
+        // Active company / legal-entity pack wins (multi-company: JEWEL vs MAIN).
+        if (function_exists('epc_erp_company_industry_pack') || is_file(__DIR__ . '/epc_erp_company_context.php')) {
+            require_once __DIR__ . '/epc_erp_company_context.php';
+            $companyId = function_exists('epc_erp_active_company_id')
+                ? epc_erp_active_company_id($db) : 0;
+            if ($companyId > 0 && function_exists('epc_erp_company_industry_pack')) {
+                $pack = strtolower(trim((string) epc_erp_company_industry_pack($db, $companyId)));
+                if ($pack !== '' && strpos($pack, 'jewellery') === 0) {
+                    $result = true;
+                    return true;
+                }
+            }
+            // Demo / sample legal entities often use code JEWEL or "Jewellery" in the name
+            // without an explicit pack row — treat them as jewellery so repair & masters show.
+            if ($companyId > 0 && function_exists('epc_erp_active_company')) {
+                $co = epc_erp_active_company($db);
+                $code = strtolower(trim((string) ($co['code'] ?? '')));
+                $name = strtolower(trim((string) ($co['name'] ?? '')));
+                if (
+                    $code === 'jewel'
+                    || strpos($code, 'jewel') === 0
+                    || strpos($name, 'jewell') !== false
+                    || strpos($name, 'jewel') !== false
+                ) {
+                    $result = true;
+                    return true;
+                }
+            }
+        }
+
+        require_once __DIR__ . '/epc_erp_advanced.php';
+        $key = epc_erp_adv_get_setting($db, 'erp_industry_profile', '');
+        if ($key === 'jewellery') {
+            $result = true;
+            return true;
+        }
+
+        // Portal industry: jewellery hosts keep jw tabs; other industries hide them
+        // unless the active company above already selected jewellery.
         $portalFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_portal.php';
         if (is_file($portalFile)) {
             require_once $portalFile;
@@ -50,20 +95,6 @@ function epc_jw_is_jewellery_tenant(PDO $db): bool
             }
         }
 
-        require_once __DIR__ . '/epc_erp_advanced.php';
-        $key = epc_erp_adv_get_setting($db, 'erp_industry_profile', '');
-        if ($key === 'jewellery') { $result = true; return true; }
-
-        // Also check company industry pack (e.g. 'jewellery_diamond')
-        if (function_exists('epc_erp_company_industry_pack')) {
-            require_once __DIR__ . '/epc_erp_company_context.php';
-            $companyId = function_exists('epc_erp_active_company_id')
-                ? epc_erp_active_company_id($db) : 0;
-            $pack = epc_erp_company_industry_pack($db, $companyId);
-            if ($pack !== '' && strpos($pack, 'jewellery') === 0) {
-                $result = true; return true;
-            }
-        }
         $result = false;
     } catch (Throwable $e) {
         $result = false;

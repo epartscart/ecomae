@@ -263,12 +263,14 @@ function epc_erp_nav_areas_config()
 				'jw_stock_verification' => array('label' => 'Stock verification', 'icon' => 'fa-check-square-o', 'jw' => true),
 				'jw_stock_balance' => array('label' => 'Stock balance (weight)', 'icon' => 'fa-bar-chart', 'jw' => true),
 				'jw_barcode' => array('label' => 'Barcode (jewellery)', 'icon' => 'fa-barcode', 'jw' => true),
+				'gold_rate' => array('label' => 'Gold rate board', 'icon' => 'fa-line-chart', 'jw' => true),
+				'jewellery_tag' => array('label' => 'Jewellery tags / labels', 'icon' => 'fa-tags', 'jw' => true),
 			),
 			'groups' => array(
 				'Common' => array('inventory', 'inv_groups'),
 				'Periodic' => array('order_planning'),
-				'Jewellery master data' => array('jw_karat', 'jw_rate_type', 'jw_metal_stock', 'jw_design', 'jw_diamond', 'jw_pearl', 'jw_color_stone'),
-				'Jewellery stock' => array('jw_stock_verification', 'jw_stock_balance', 'jw_barcode'),
+				'Jewellery master data' => array('jw_karat', 'jw_rate_type', 'jw_metal_stock', 'jw_design', 'jw_diamond', 'jw_pearl', 'jw_color_stone', 'gold_rate'),
+				'Jewellery stock' => array('jw_stock_verification', 'jw_stock_balance', 'jw_barcode', 'jewellery_tag'),
 				'Setup' => array('retail_barcode'),
 			),
 		),
@@ -453,12 +455,13 @@ function epc_erp_nav_areas_config()
 				'jw_sales_return' => array('label' => 'Sales return', 'icon' => 'fa-reply', 'jw' => true),
 				'jw_pos_advance' => array('label' => 'POS advance', 'icon' => 'fa-money', 'jw' => true),
 				'jw_sales_analysis' => array('label' => 'Sales analysis (weight)', 'icon' => 'fa-area-chart', 'jw' => true),
+				'gold_scheme' => array('label' => 'Gold savings scheme', 'icon' => 'fa-gift', 'jw' => true),
 			),
 			'groups' => array(
 				'Common' => array('crm', 'marketing'),
 				'Pipeline' => array('leads', 'opportunities'),
 				'Orders' => array('proposals', 'sales_orders', 'subscriptions', 'delivery_notes', 'invoices'),
-				'Jewellery sales' => array('jw_retail_sales', 'jw_metal_sales', 'jw_sales_fixing', 'jw_sales_return', 'jw_pos_advance'),
+				'Jewellery sales' => array('jw_retail_sales', 'jw_metal_sales', 'jw_sales_fixing', 'jw_sales_return', 'jw_pos_advance', 'gold_scheme'),
 				'Inquiries and reports' => array('revenue', 'fulfilment', 'jw_sales_analysis'),
 			),
 		),
@@ -525,12 +528,13 @@ function epc_erp_nav_areas_config()
 				'elec_reporting' => array('label' => 'Electronic reporting', 'icon' => 'fa-file-code-o'),
 				'document_control' => array('label' => 'Document control', 'icon' => 'fa-print'),
 				'jw_tourist_vat' => array('label' => 'Tourist VAT refund (jewellery)', 'icon' => 'fa-plane', 'jw' => true),
+				'aml_compliance' => array('label' => 'AML / DNFBP (jewellery)', 'icon' => 'fa-balance-scale', 'jw' => true),
 			),
 			'groups' => array(
 				'Declarations' => array('vat_return', 'tax_compliance', 'vat_refund', 'withholding'),
 				'Common' => array('einvoice', 'blockchain_proofs', 'compliance'),
 				'Reports' => array('ext_reports', 'elec_reporting'),
-				'Jewellery' => array('jw_tourist_vat'),
+				'Jewellery' => array('jw_tourist_vat', 'aml_compliance'),
 				'Setup' => array('document_control'),
 			),
 		),
@@ -554,9 +558,17 @@ function epc_erp_nav_areas_config()
  * Tabs marked with 'jw' => true are only visible when industry = 'jewellery'.
  * This ensures jewellery-specific tabs are integrated into existing modules
  * but only shown for jewellery tenants — like Oracle/SAP industry configuration.
+ *
+ * Live Super ERP demo (`epc_erp_demo_mirror`) keeps every industry module so
+ * clients can browse jewellery repairs, karat masters, gold rate, etc.
  */
 function epc_erp_nav_filter_by_industry(array $areas, PDO $db): array
 {
+	// Full public Super ERP demo: show all industry-specific modules.
+	if (!empty($GLOBALS['epc_erp_demo_mirror'])) {
+		return $areas;
+	}
+
 	$jwFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_jewellery_integration.php';
 	$isJewellery = false;
 	if (is_file($jwFile)) {
