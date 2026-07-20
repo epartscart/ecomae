@@ -6012,7 +6012,7 @@ body.epc-cp-shell #side-menu > li.epc-cp-nav-section.active > a .fa.arrow::befor
 }
 
 /* ==========================================================================
-   CP top mega-menu — red + white (primary nav; left rail hidden)
+   CP top mega-menu — solid red bar (primary nav; left rail hidden)
    ========================================================================== */
 body.epc-cp-topnav-only #menu,
 body.epc-cp-topnav-only .epc-cp-sidebar-toggle-tab,
@@ -6055,13 +6055,11 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	width: 100% !important;
 }
 
-.epc-cp-topnav,
-body.epc-cp-topnav-only .epc-cp-topnav {
-	background: #ffffff !important;
-	background-image: none !important;
-	border-bottom: 2px solid #dc2626 !important;
-	box-shadow: 0 2px 10px rgba(220, 38, 38, 0.1);
-	color: #7f1d1d !important;
+.epc-cp-topnav {
+	background: linear-gradient(180deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%);
+	border-bottom: 2px solid #7f1d1d;
+	box-shadow: 0 2px 14px rgba(185, 28, 28, 0.35);
+	color: #fff;
 }
 .epc-cp-topnav-inner {
 	display: flex;
@@ -6078,23 +6076,23 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	flex-shrink: 0;
 	padding: 0 12px 0 4px;
 	margin-right: 4px;
-	color: #dc2626 !important;
+	color: #fff !important;
 	font-weight: 800;
 	font-size: 13px;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
 	text-decoration: none !important;
-	border-right: 1px solid #fecaca;
+	border-right: 1px solid rgba(255, 255, 255, 0.28);
 	white-space: nowrap;
 }
 .epc-cp-topnav-brand:hover,
 .epc-cp-topnav-brand:focus {
-	color: #991b1b !important;
-	background: #fef2f2;
+	color: #fff !important;
+	background: rgba(0, 0, 0, 0.12);
 }
 .epc-cp-topnav-brand .fa {
 	font-size: 15px;
-	color: #dc2626;
+	color: #fff;
 }
 .epc-cp-topnav-list {
 	list-style: none;
@@ -6106,7 +6104,7 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	min-width: 0;
 	overflow: visible;
 	scrollbar-width: thin;
-	scrollbar-color: rgba(220, 38, 38, 0.35) transparent;
+	scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
 }
 @media (max-width: 1100px) {
 	.epc-cp-topnav-inner {
@@ -6130,42 +6128,49 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	padding: 0 11px;
 	border: 0;
 	background: transparent;
-	color: #7f1d1d;
+	color: rgba(255, 255, 255, 0.95);
 	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.01em;
 	white-space: nowrap;
 	cursor: pointer;
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-user-select: none;
 	border-bottom: 2px solid transparent;
 	transition: background .12s, color .12s, border-color .12s;
+}
+.epc-cp-topnav-btn > *,
+.epc-cp-topnav-btn > *::before,
+.epc-cp-topnav-btn > *::after {
+	pointer-events: none !important;
 }
 .epc-cp-topnav-btn:hover,
 .epc-cp-topnav-btn:focus,
 .epc-cp-topnav-item.is-open > .epc-cp-topnav-btn {
-	background: #fef2f2;
-	color: #dc2626;
+	background: rgba(0, 0, 0, 0.16);
+	color: #fff;
 	outline: none;
 }
 .epc-cp-topnav-item.is-active > .epc-cp-topnav-btn {
-	color: #b91c1c;
-	border-bottom-color: #dc2626;
-	background: #fee2e2;
+	color: #fff;
+	border-bottom-color: #fff;
+	background: rgba(0, 0, 0, 0.22);
 }
 .epc-cp-topnav-btn > .fa:first-child {
 	font-size: 13px;
-	color: #ef4444;
+	color: #fff;
 }
 .epc-cp-topnav-caret {
 	font-size: 10px;
-	opacity: 0.55;
+	opacity: 0.75;
 	margin-left: 1px;
 	transition: transform .15s ease;
-	color: #f87171;
 }
 .epc-cp-topnav-item.is-open .epc-cp-topnav-caret {
 	transform: rotate(180deg);
-	opacity: 0.95;
-	color: #dc2626;
+	opacity: 1;
+	color: #fff;
 }
 
 /* Mega panel — pure black (ERP-style module flyout) */

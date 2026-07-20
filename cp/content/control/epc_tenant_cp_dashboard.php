@@ -1,7 +1,7 @@
 <?php
 /**
- * Tenant CP home — Command Centre dashboard (red + black + white).
- * Mirrors the ERP overview dashboard structure for /cp/control.
+ * Tenant CP home — store information dashboard for /cp/control.
+ * Top menu carries brand red; this surface stays neutral.
  */
 defined('_ASTEXE_') or die('No access');
 
@@ -35,6 +35,9 @@ function epc_tcp_dash_stats(PDO $db): array
 			'orders_prev_week' => 0,
 			'products' => 0,
 			'clients' => 0,
+			'warehouse_qty' => 0.0,
+			'warehouse_skus' => 0,
+			'warehouse_value' => 0.0,
 			'pending_tasks' => 0,
 			'returns_open' => 0,
 			'vin_open' => 0,
@@ -84,6 +87,28 @@ function epc_tcp_dash_stats(PDO $db): array
 				)->fetchColumn();
 			} catch (Exception $e2) {
 			}
+		}
+		// Warehouse stock: total units + stock value (cost, else sell price).
+		try {
+			if ($db->query("SHOW TABLES LIKE 'shop_storages_data'")->fetchColumn()) {
+				$row = $db->query(
+					"SELECT
+						COALESCE(SUM(CASE WHEN `exist` > 0 THEN `exist` ELSE 0 END), 0) AS qty,
+						COUNT(DISTINCT CASE WHEN `exist` > 0 THEN `product_id` END) AS skus,
+						COALESCE(SUM(
+							CASE WHEN `exist` > 0 THEN
+								`exist` * COALESCE(NULLIF(`price_purchase`, 0), NULLIF(`price`, 0), 0)
+							ELSE 0 END
+						), 0) AS stock_value
+					 FROM `shop_storages_data`"
+				)->fetch(PDO::FETCH_ASSOC);
+				if (is_array($row)) {
+					$stats['warehouse_qty'] = (float) ($row['qty'] ?? 0);
+					$stats['warehouse_skus'] = (int) ($row['skus'] ?? 0);
+					$stats['warehouse_value'] = (float) ($row['stock_value'] ?? 0);
+				}
+			}
+		} catch (Exception $e) {
 		}
 		try {
 			$openStatuses = array();
@@ -157,7 +182,7 @@ function epc_tcp_dash_stats(PDO $db): array
 				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
 			} catch (Throwable $e) {
 			}
-			return epc_perf_cache_remember('epc_tcp_dash_stats:v4:' . $dbName, 180, $compute);
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v5:' . $dbName, 180, $compute);
 		}
 	}
 	return $compute();
@@ -182,6 +207,9 @@ $stats = array(
 	'orders_prev_week' => 0,
 	'products' => 0,
 	'clients' => 0,
+	'warehouse_qty' => 0.0,
+	'warehouse_skus' => 0,
+	'warehouse_value' => 0.0,
 	'pending_tasks' => 0,
 	'returns_open' => 0,
 	'vin_open' => 0,
@@ -346,28 +374,25 @@ $navGroups = array(
 );
 
 $kpiRows = array(
-	array('name' => 'Orders (7 days)', 'cur' => (float) $stats['orders_week'], 'prev' => (float) $stats['orders_prev_week'], 'goodUp' => true, 'money' => false),
-	array('name' => 'Orders today', 'cur' => (float) $stats['orders_today'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
-	array('name' => 'Open orders', 'cur' => (float) $stats['pending_tasks'], 'prev' => 0.0, 'goodUp' => false, 'money' => false),
 	array('name' => 'Published products', 'cur' => (float) $stats['products'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
-	array('name' => 'Storefront clients', 'cur' => (float) $stats['clients'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'In warehouse (units)', 'cur' => (float) $stats['warehouse_qty'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Warehouse SKUs', 'cur' => (float) $stats['warehouse_skus'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Stock value', 'cur' => (float) $stats['warehouse_value'], 'prev' => 0.0, 'goodUp' => true, 'money' => true),
+	array('name' => 'Customers', 'cur' => (float) $stats['clients'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Orders (7 days)', 'cur' => (float) $stats['orders_week'], 'prev' => (float) $stats['orders_prev_week'], 'goodUp' => true, 'money' => false),
+	array('name' => 'Open orders', 'cur' => (float) $stats['pending_tasks'], 'prev' => 0.0, 'goodUp' => false, 'money' => false),
 );
 if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Sales ex VAT (MTD)', 'cur' => $finance['revenue_ex_vat'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720shortcuts2';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720storedash3';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
 		'/content/general_pages/epc_cp_command_dashboard_css.php'
 	);
-}
-if (strpos($cssHref, '?') === false) {
-	$cssHref .= '?v=20260720shortcuts2';
-} elseif (strpos($cssHref, 'v=') === false) {
-	$cssHref .= '&v=20260720shortcuts2';
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -379,11 +404,11 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
 	<div class="cp-dash-hero">
 		<div class="cp-dash-hero-panel">
-			<div class="cp-dash-kicker"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> Control Command Centre</div>
+			<div class="cp-dash-kicker"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> Store information</div>
 			<h2 class="cp-dash-title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
 			<p class="cp-dash-sub"><?php echo $industryCode === 'auto_parts'
-				? 'Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.'
-				: 'Your daily control dashboard — orders, catalogue, clients, and finance shortcuts in one place.'; ?></p>
+				? 'Catalogue, warehouse stock, stock value, and customers — your store at a glance.'
+				: 'Catalogue, warehouse stock, stock value, and customers — your store at a glance.'; ?></p>
 			<div class="cp-dash-meta">
 				<span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> <?php echo epc_tcp_dash_h($industryLabel); ?></span>
 				<span class="cp-dash-chip"><i class="fa fa-calendar"></i> <?php echo epc_tcp_dash_h(date('Y-m-d')); ?></span>
@@ -395,23 +420,23 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 			</div>
 		</div>
 		<div class="cp-dash-metrics">
-			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
-				<div class="cp-dash-metric__label">Orders today</div>
-				<div class="cp-dash-metric__val"><?php echo (int) $stats['orders_today']; ?></div>
-				<div class="cp-dash-metric__hint">New successfully created orders</div>
-			</a>
-			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($ordersUrl); ?>">
-				<div class="cp-dash-metric__label">Open orders</div>
-				<div class="cp-dash-metric__val cp-dash-metric__val--warn"><?php echo (int) $stats['pending_tasks']; ?></div>
-				<div class="cp-dash-metric__hint">Need fulfilment</div>
-			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($catalogueUrl); ?>">
 				<div class="cp-dash-metric__label">Products</div>
 				<div class="cp-dash-metric__val"><?php echo (int) $stats['products']; ?></div>
 				<div class="cp-dash-metric__hint">Published catalogue</div>
 			</a>
+			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($base . '/shop/logistics/storages'); ?>">
+				<div class="cp-dash-metric__label">In warehouse</div>
+				<div class="cp-dash-metric__val"><?php echo number_format((float) $stats['warehouse_qty'], 0); ?></div>
+				<div class="cp-dash-metric__hint"><?php echo (int) $stats['warehouse_skus']; ?> SKUs with stock</div>
+			</a>
+			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($base . '/shop/logistics/stock'); ?>">
+				<div class="cp-dash-metric__label">Stock value</div>
+				<div class="cp-dash-metric__val cp-dash-metric__val--money"><?php echo number_format((float) $stats['warehouse_value'], 2); ?></div>
+				<div class="cp-dash-metric__hint"><?php echo epc_tcp_dash_h($currency); ?> at cost / price</div>
+			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($clientsUrl); ?>">
-				<div class="cp-dash-metric__label">Clients</div>
+				<div class="cp-dash-metric__label">Customers</div>
 				<div class="cp-dash-metric__val"><?php echo (int) $stats['clients']; ?></div>
 				<div class="cp-dash-metric__hint">Storefront customers</div>
 			</a>
@@ -419,7 +444,7 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 	</div>
 
 	<?php
-	// Customizable shortcut tiles replace the old hard-coded tile strip.
+// Customizable shortcut tiles replace the old hard-coded tile strip.
 	// Keep catalogue tones aligned with CP red/black command centre.
 	$cpToneMap = array(
 		'orders' => 'red', 'catalogue' => 'black', 'prices' => 'crimson', 'clients' => 'stone',
@@ -446,7 +471,6 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 		'items' => $cpShortcutItems,
 	));
 	?>
-
 	<div class="cp-dash-grid">
 		<div class="cp-dash-col-left">
 			<div class="cp-dash-port">
@@ -528,7 +552,7 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 				<div class="bd">
 					<div class="cp-dash-fin">
 						<div class="cell"><div class="l">Week orders</div><div class="v"><?php echo (int) $stats['orders_week']; ?></div></div>
-						<div class="cell"><div class="l">Open work</div><div class="v" style="color:#dc2626"><?php echo (int) $stats['pending_tasks']; ?></div></div>
+						<div class="cell"><div class="l">Open work</div><div class="v"><?php echo (int) $stats['pending_tasks']; ?></div></div>
 						<div class="cell"><div class="l">VIN / requests</div><div class="v"><?php echo (int) $stats['vin_open']; ?></div></div>
 						<div class="cell"><div class="l">Returns</div><div class="v"><?php echo (int) $stats['returns_open']; ?></div></div>
 					</div>
@@ -577,8 +601,8 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 				datasets: [{
 					label: 'Orders',
 					data: data,
-					backgroundColor: 'rgba(220, 38, 38, 0.75)',
-					borderColor: '#0a0a0a',
+					backgroundColor: 'rgba(71, 85, 105, 0.75)',
+					borderColor: '#334155',
 					borderWidth: 1,
 					borderRadius: 4,
 					maxBarThickness: 28
@@ -590,20 +614,20 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 				plugins: {
 					legend: { display: false },
 					tooltip: {
-						backgroundColor: '#0a0a0a',
+						backgroundColor: '#0f172a',
 						titleColor: '#fff',
-						bodyColor: '#fecaca'
+						bodyColor: '#e2e8f0'
 					}
 				},
 				scales: {
 					x: {
 						grid: { display: false },
-						ticks: { color: '#57534e', font: { size: 11, weight: '600' } }
+						ticks: { color: '#64748b', font: { size: 11, weight: '600' } }
 					},
 					y: {
 						beginAtZero: true,
-						ticks: { precision: 0, color: '#57534e' },
-						grid: { color: 'rgba(0,0,0,0.06)' }
+						ticks: { precision: 0, color: '#64748b' },
+						grid: { color: 'rgba(15,23,42,0.06)' }
 					}
 				}
 			}
