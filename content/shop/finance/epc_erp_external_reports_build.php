@@ -411,23 +411,23 @@ if (!function_exists('epc_ext_vat_box')) {
      */
     function epc_ext_vat_box(string $box, string $desc, float $amount, float $vat, float $adj, string $ccy, array $detail = array(), bool $sample = false, array $invoices = array(), string $partyLabel = 'Customer'): string
     {
-        $cell = 'style="text-align:right;white-space:nowrap;padding:6px 10px;"';
+        $cell = 'style="text-align:right;white-space:nowrap;padding:6px 10px;color:#1e293b;"';
         $hasInv = !empty($invoices);
         $hasDrill = $hasInv || !empty($detail);
         $hint = $hasInv
             ? ' <span class="epc-drill-hint" style="font-size:10px;color:#2b6cb0;font-weight:600;">▸ ' . count($invoices) . ' invoice' . (count($invoices) === 1 ? '' : 's') . '</span>'
             : ($hasDrill ? ' <span class="epc-drill-hint text-muted" style="font-size:10px;">▸ drill-down</span>' : '');
-        $summary = '<div style="display:flex;align-items:center;width:100%;gap:8px;">'
-            . '<span style="width:46px;font-weight:700;color:#2b3a55;">' . epc_erp_h($box) . '</span>'
-            . '<span style="flex:1;">' . epc_erp_h($desc)
+        $summary = '<div style="display:flex;align-items:center;width:100%;gap:8px;color:#1e293b;">'
+            . '<span style="width:46px;font-weight:700;color:#1e293b;">' . epc_erp_h($box) . '</span>'
+            . '<span style="flex:1;color:#1e293b;">' . epc_erp_h($desc)
             . ($sample ? ' <span class="label label-warning" style="font-size:9px;">sample</span>' : '')
             . $hint . '</span>'
-            . '<span style="width:150px;text-align:right;">' . epc_ext_m($amount, $ccy) . '</span>'
-            . '<span style="width:130px;text-align:right;font-weight:600;">' . epc_ext_m($vat, $ccy) . '</span>'
-            . '<span style="width:120px;text-align:right;color:#888;">' . epc_ext_m($adj, $ccy) . '</span>'
+            . '<span style="width:150px;text-align:right;color:#1e293b;">' . epc_ext_m($amount, $ccy) . '</span>'
+            . '<span style="width:130px;text-align:right;font-weight:600;color:#0f172a;">' . epc_ext_m($vat, $ccy) . '</span>'
+            . '<span style="width:120px;text-align:right;color:#475569;">' . epc_ext_m($adj, $ccy) . '</span>'
             . '</div>';
         if (!$hasDrill) {
-            return '<div style="border-bottom:1px solid #edf0f5;padding:8px 6px;">' . $summary . '</div>';
+            return '<div style="border-bottom:1px solid #edf0f5;padding:8px 6px;color:#1e293b;background:#fff;">' . $summary . '</div>';
         }
         if ($hasInv) {
             $rows = '';
@@ -466,10 +466,10 @@ if (!function_exists('epc_ext_vat_box')) {
                 . '<td colspan="4" style="padding:5px 10px;">Total — ' . count($invoices) . ' invoice' . (count($invoices) === 1 ? '' : 's') . '</td>'
                 . '<td ' . $cell . '>' . epc_ext_m($tn, $ccy) . '</td>'
                 . '<td ' . $cell . '>' . epc_ext_m($tv, $ccy) . '</td></tr>';
-            return '<details class="epc-box-drill" style="border-bottom:1px solid #edf0f5;">'
-                . '<summary style="cursor:pointer;padding:8px 6px;list-style:none;">' . $summary . '</summary>'
-                . '<div style="background:#fafbfd;padding:6px 10px 12px 52px;overflow-x:auto;">'
-                . '<table class="table table-condensed" style="margin:0;background:#fff;border:1px solid #e6eaf1;font-size:11.5px;">'
+            return '<details class="epc-box-drill" style="border-bottom:1px solid #edf0f5;color:#1e293b;background:#fff;">'
+                . '<summary style="cursor:pointer;padding:8px 6px;list-style:none;color:#1e293b;">' . $summary . '</summary>'
+                . '<div style="background:#fafbfd;padding:6px 10px 12px 52px;overflow-x:auto;color:#1e293b;">'
+                . '<table class="table table-condensed" style="margin:0;background:#fff;border:1px solid #e6eaf1;font-size:11.5px;color:#1e293b;">'
                 . '<thead><tr style="background:#f0f3f8;"><th style="padding:5px 10px;">Invoice</th><th style="padding:5px 10px;">Date</th><th style="padding:5px 10px;">' . epc_erp_h($partyLabel) . '</th><th style="padding:5px 10px;">TRN</th><th style="text-align:right;padding:5px 10px;">Net</th><th style="text-align:right;padding:5px 10px;">VAT</th></tr></thead>'
                 . '<tbody>' . $rows . '</tbody></table></div></details>';
         }
@@ -480,11 +480,11 @@ if (!function_exists('epc_ext_vat_box')) {
                 . '<td ' . $cell . '>' . epc_ext_m((float) $d[1], $ccy) . '</td>'
                 . '<td ' . $cell . '>' . $dv . '</td></tr>';
         }
-        return '<details class="epc-box-drill" style="border-bottom:1px solid #edf0f5;">'
-            . '<summary style="cursor:pointer;padding:8px 6px;list-style:none;">' . $summary . '</summary>'
-            . '<div style="background:#fafbfd;padding:6px 10px 12px 52px;">'
-            . '<table class="table table-condensed" style="margin:0;background:#fff;border:1px solid #e6eaf1;">'
-            . '<thead><tr style="background:#f0f3f8;"><th style="padding:5px 10px;">Source transaction</th><th style="text-align:right;padding:5px 10px;">Amount</th><th style="text-align:right;padding:5px 10px;">VAT</th></tr></thead>'
+        return '<details class="epc-box-drill" style="border-bottom:1px solid #edf0f5;color:#1e293b;background:#fff;">'
+            . '<summary style="cursor:pointer;padding:8px 6px;list-style:none;color:#1e293b;">' . $summary . '</summary>'
+            . '<div style="background:#fafbfd;padding:6px 10px 12px 52px;color:#1e293b;">'
+            . '<table class="table table-condensed" style="margin:0;background:#fff;border:1px solid #e6eaf1;color:#1e293b;">'
+            . '<thead><tr style="background:#f0f3f8;"><th style="padding:5px 10px;color:#1e293b;">Source transaction</th><th style="text-align:right;padding:5px 10px;color:#1e293b;">Amount</th><th style="text-align:right;padding:5px 10px;color:#1e293b;">VAT</th></tr></thead>'
             . '<tbody>' . $rows . '</tbody></table></div></details>';
     }
 }

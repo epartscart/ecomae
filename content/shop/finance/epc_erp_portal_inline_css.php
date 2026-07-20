@@ -178,6 +178,33 @@ body.epc-erp-standalone:has(.epc-erp-shell--layout) .epc-erp-foot{max-width:none
 /* Access-denied / alerts */
 .epc-erp-standalone .alert{border-radius:10px;border:1px solid rgba(99,102,241,.3);background:rgba(15,23,42,.7);color:#e2e8f0;}
 
+/* Workspace content sits on a light panel — never inherit the dark-portal
+   body ink (#f1f5f9) into tables/forms/report rows (near-invisible on white). */
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body{
+  color:#1e293b;
+}
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body .text-muted,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body .help-block{
+  color:#475569!important;
+}
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body td,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body th,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body p,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body li,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body label,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body .form-control,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body .epc-box-drill,
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content-body summary{
+  color:#1e293b;
+}
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content .btn-default{
+  background:#fff;border-color:#cbd5e1;color:#334155;
+}
+body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content .alert{
+  background:#eff6ff;border-color:#bfdbfe;color:#1e293b;
+}
+
 @media (max-width:860px){
   .epc-erp-login-panel--split .col-md-5,.epc-erp-login-panel--split .col-md-7{width:100%;}
   .epc-erp-bos-hero__capabilities{grid-template-columns:1fr;}
