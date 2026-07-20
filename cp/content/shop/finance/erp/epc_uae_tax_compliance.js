@@ -1,17 +1,38 @@
 (function () {
 	'use strict';
 
+	if (window.__epcUaeTaxComplianceBound) {
+		return;
+	}
+	window.__epcUaeTaxComplianceBound = true;
+
 	var root = document.getElementById('epc_uae_tax_compliance_root');
 	var cfg = window.EPC_UAE_TAX_COMPLIANCE || {};
 	var ajaxUrl = (root && root.getAttribute('data-erp-ajax')) || cfg.ajaxUrl || '';
 	var csrf = (root && root.getAttribute('data-csrf')) || cfg.csrf || '';
+	if (!csrf) {
+		var csrfInput = document.querySelector('input[name="csrf_guard_key"]');
+		if (csrfInput && csrfInput.value) {
+			csrf = csrfInput.value;
+		}
+	}
+	// Standalone /erp portal: prefer the portal ajax door when data-attr is empty.
 	if (!ajaxUrl) {
-		return;
+		var path = (location.pathname || '');
+		if (path.indexOf('/erp') !== -1) {
+			ajaxUrl = '/erp/ajax';
+		} else if (path.indexOf('/cp/') !== -1 || path.indexOf('/shop/finance/erp') !== -1) {
+			ajaxUrl = '/cp/content/shop/finance/erp/ajax_erp_endpoint.php';
+		}
+	}
+	if (!ajaxUrl) {
+		console.error('EPC tax compliance: ajax URL missing — Fetch legislation button disabled');
 	}
 
 	function showMsg(level, text) {
 		var msg = document.getElementById('epc_erp_msg');
 		if (!msg) {
+			window.alert(text || '');
 			return;
 		}
 		msg.className = 'alert alert-' + level;
@@ -19,9 +40,22 @@
 		msg.textContent = text || '';
 	}
 
+	function parseJsonResponse(r) {
+		return r.text().then(function (t) {
+			try {
+				return JSON.parse(t);
+			} catch (e) {
+				throw new Error('Server returned invalid JSON (HTTP ' + r.status + '). Try refreshing the page.');
+			}
+		});
+	}
+
 	function postJson(fd) {
+		if (!ajaxUrl) {
+			return Promise.reject(new Error('AJAX endpoint not configured'));
+		}
 		return fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
-			.then(function (r) { return r.json(); });
+			.then(parseJsonResponse);
 	}
 
 	var fdCt = document.getElementById('epc_ct_adjustments_form');
@@ -30,11 +64,16 @@
 			e.preventDefault();
 			var fd = new FormData(fdCt);
 			fd.append('action', 'uae_tax_save_ct_adjustments');
+			if (csrf) {
+				fd.append('csrf_guard_key', csrf);
+			}
 			postJson(fd).then(function (j) {
 				showMsg(j.status ? 'success' : 'danger', j.message || '');
 				if (j.status) {
 					location.reload();
 				}
+			}).catch(function (err) {
+				showMsg('danger', (err && err.message) || 'Request failed');
 			});
 		});
 	}
@@ -42,6 +81,10 @@
 	var btnFetch = document.getElementById('epc_fta_check_updates');
 	if (btnFetch) {
 		btnFetch.addEventListener('click', function () {
+			if (!ajaxUrl) {
+				showMsg('danger', 'AJAX endpoint missing — reload the page or open Tax compliance from ERP.');
+				return;
+			}
 			btnFetch.disabled = true;
 			var st = document.getElementById('epc_fta_status');
 			if (st) {
@@ -50,11 +93,16 @@
 			var fd = new FormData();
 			fd.append('action', 'uae_tax_fta_fetch');
 			fd.append('force', '1');
-			fd.append('csrf_guard_key', csrf);
+			if (csrf) {
+				fd.append('csrf_guard_key', csrf);
+			}
 			postJson(fd)
 				.then(function (j) {
 					btnFetch.disabled = false;
 					if (j.status || j.ok) {
+						if (st) {
+							st.textContent = j.message || 'Updated — reloading…';
+						}
 						location.reload();
 						return;
 					}
@@ -63,12 +111,13 @@
 					}
 					showMsg('warning', j.message || 'Fetch failed');
 				})
-				.catch(function () {
+				.catch(function (err) {
 					btnFetch.disabled = false;
+					var m = (err && err.message) ? err.message : 'Request failed — check network or try again.';
 					if (st) {
-						st.textContent = 'Request failed';
+						st.textContent = m;
 					}
-					showMsg('danger', 'Request failed — check network or try again.');
+					showMsg('danger', m);
 				});
 		});
 	}
@@ -82,7 +131,9 @@
 			btnRegen.disabled = true;
 			var fd = new FormData();
 			fd.append('action', 'uae_tax_legislation_regen_summaries');
-			fd.append('csrf_guard_key', csrf);
+			if (csrf) {
+				fd.append('csrf_guard_key', csrf);
+			}
 			postJson(fd)
 				.then(function (j) {
 					btnRegen.disabled = false;
@@ -92,9 +143,9 @@
 					}
 					showMsg('warning', j.message || 'Regenerate failed');
 				})
-				.catch(function () {
+				.catch(function (err) {
 					btnRegen.disabled = false;
-					showMsg('danger', 'Request failed');
+					showMsg('danger', (err && err.message) || 'Request failed');
 				});
 		});
 	}
@@ -156,7 +207,9 @@
 		var fd = new FormData();
 		fd.append('action', 'uae_tax_legislation_ask');
 		fd.append('question', q);
-		fd.append('csrf_guard_key', csrf);
+		if (csrf) {
+			fd.append('csrf_guard_key', csrf);
+		}
 		postJson(fd)
 			.then(function (j) {
 				qaAsk.disabled = false;
@@ -169,10 +222,10 @@
 					showMsg('warning', j.message || 'Ask failed');
 				}
 			})
-			.catch(function () {
+			.catch(function (err) {
 				qaAsk.disabled = false;
 				if (st) {
-					st.textContent = 'Request failed';
+					st.textContent = (err && err.message) || 'Request failed';
 				}
 			});
 	}

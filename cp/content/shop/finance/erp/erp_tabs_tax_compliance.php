@@ -39,15 +39,16 @@ $invoiceChecklist = epc_uae_tax_invoice_format_checklist();
 $legislationUrl = epc_uae_fta_legislation_url();
 $ajaxUrl = isset($erpAjaxEndpoint) ? $erpAjaxEndpoint : ('/' . ($GLOBALS['DP_Config']->backend_dir ?? 'cp') . '/content/shop/finance/erp/ajax_erp_endpoint.php');
 $csrf = isset($csrf) ? $csrf : '';
-$tcAssetVer = function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260609fta2';
+$tcAssetVer = function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260720fta3';
 $tcBackend = trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/');
 if ($tcBackend === '') {
 	$tcBackend = 'cp';
 }
+$tcJsSrc = '/' . $tcBackend . '/content/shop/finance/erp/epc_uae_tax_compliance.js?v=' . rawurlencode($tcAssetVer);
 if (!isset($GLOBALS['epc_cp_page_assets']) || !is_array($GLOBALS['epc_cp_page_assets'])) {
 	$GLOBALS['epc_cp_page_assets'] = array('css' => array(), 'js' => array());
 }
-$GLOBALS['epc_cp_page_assets']['js']['/' . $tcBackend . '/content/shop/finance/erp/epc_uae_tax_compliance.js?v=' . rawurlencode($tcAssetVer)] = true;
+$GLOBALS['epc_cp_page_assets']['js'][$tcJsSrc] = true;
 $panel = isset($_GET['tax_panel']) ? (string)$_GET['tax_panel'] : 'legislation';
 $taxFilter = isset($_GET['tax_type']) ? (string)$_GET['tax_type'] : '';
 $qaHistory = epc_uae_tax_legislation_qa_history_get($db_link);
@@ -506,3 +507,10 @@ foreach ($timelineYears as $cnt) {
 
 	<p class="text-muted"><small><?php echo epc_erp_h($ct['note']); ?></small></p>
 </div>
+<?php
+// Fallback when the host shell does not flush epc_cp_page_assets (standalone /erp).
+// Guarded by __epcUaeTaxComplianceBound inside the script so CP double-load is safe.
+if (!empty($tcJsSrc)):
+?>
+<script src="<?php echo epc_erp_h($tcJsSrc); ?>"></script>
+<?php endif; ?>
