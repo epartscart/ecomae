@@ -369,18 +369,31 @@ foreach ((array) ($nsProfile['hero'] ?? array()) as $hKey) {
 }
 $nsRoleLabel = (string) ($nsProfile['label'] ?? 'Finance centre');
 $nsRoleSub = (string) ($nsProfile['subtitle'] ?? 'Live KPIs for your role and the selected period.');
-// Theme URL relative to docroot (works under /erp/ shell and CP).
-$nsCssCandidates = array(
-	'/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css',
-	'/content/shop/finance/erp/theme/erp_dashboard_premium.css',
-);
-$nsCssHref = '/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css';
-foreach ($nsCssCandidates as $c) {
-	$abs = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/') . $c;
-	if (is_file($abs)) { $nsCssHref = $c; break; }
+// Theme URL — prefer PHP proxy on platform hosts (nginx often 404s /cp/*.css).
+$nsCssHref = '/content/shop/finance/epc_erp_dashboard_premium_css.php';
+if (function_exists('epc_erp_shell_asset_href')) {
+	$nsCssHref = epc_erp_shell_asset_href(
+		'/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css',
+		'/content/shop/finance/epc_erp_dashboard_premium_css.php'
+	);
+} elseif (function_exists('epc_erp_shell_use_asset_proxies') && epc_erp_shell_use_asset_proxies()) {
+	$nsCssHref = '/content/shop/finance/epc_erp_dashboard_premium_css.php?v=20260720colors2';
+} else {
+	$nsCssCandidates = array(
+		'/cp/content/shop/finance/erp/theme/erp_dashboard_premium.css',
+		'/content/shop/finance/erp/theme/erp_dashboard_premium.css',
+		'/content/shop/finance/epc_erp_dashboard_premium.css',
+	);
+	foreach ($nsCssCandidates as $c) {
+		$abs = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/') . $c;
+		if (is_file($abs)) { $nsCssHref = $c . '?v=20260720colors2'; break; }
+	}
+	if (strpos($nsCssHref, '?') === false) {
+		$nsCssHref .= (strpos($nsCssHref, '.php') !== false ? '?v=20260720colors2' : '?v=20260720colors2');
+	}
 }
 ?>
-<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720colors2">
+<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>">
 
 <div class="ns-dash" data-dashboard-profile="<?php echo epc_erp_h($nsRole); ?>">
 	<div class="ns-hero">
