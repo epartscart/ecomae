@@ -113,6 +113,11 @@ function epc_brand_cp_context()
 			$companyName = $trade;
 			$hubTagline = 'ERP sandbox · finance & operations';
 		}
+	} elseif (function_exists('epc_portal_is_epartscart_hostname') && epc_portal_is_epartscart_hostname()) {
+		// Tenant ERP on epartscart.com — storefront brand, not parent hub name.
+		$productName = 'eParts Cart';
+		$companyName = 'eParts Cart';
+		$hubTagline = 'epartscart.com · Finance & operations';
 	} elseif (function_exists('epc_portal_demo_is_autoparts_parity') && epc_portal_demo_is_autoparts_parity()) {
 		$settings = epc_portal_load_site_settings();
 		$productName = (string) ($settings['system_name'] ?? 'eParts Cart');

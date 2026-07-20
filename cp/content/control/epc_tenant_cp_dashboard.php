@@ -361,7 +361,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpdash2';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpdashwh2';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',

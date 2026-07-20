@@ -6138,8 +6138,11 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	border-bottom: 2px solid transparent;
 	transition: background .12s, color .12s, border-color .12s;
 }
-.epc-cp-topnav-btn > * {
-	pointer-events: none;
+/* Whole tab is the hit target — text/icon/caret must not steal clicks */
+.epc-cp-topnav-btn > *,
+.epc-cp-topnav-btn > *::before,
+.epc-cp-topnav-btn > *::after {
+	pointer-events: none !important;
 }
 .epc-cp-topnav-btn:hover,
 .epc-cp-topnav-btn:focus,
