@@ -58,7 +58,8 @@ function epc_erp_json($ok, $message, $extra = array())
 	$payload = array_merge(array('status' => (bool)$ok, 'message' => (string)$message), $extra);
 	// Cache successful mutating responses under the client idempotency key so
 	// network retries / double-clicks do not create duplicate documents.
-	if ($ok && !empty($GLOBALS['epc_erp_idem_key']) && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+	// On failure, clear the pending claim so the operator can retry cleanly.
+	if (!empty($GLOBALS['epc_erp_idem_key']) && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
 		try {
 			if (!function_exists('epc_erp_idempotency_store')) {
 				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_concurrency.php';
@@ -66,7 +67,11 @@ function epc_erp_json($ok, $message, $extra = array())
 			$idemAct = (string) ($GLOBALS['epc_erp_idem_action'] ?? ($GLOBALS['action'] ?? ''));
 			if ($idemAct !== '' && function_exists('epc_erp_concurrency_idempotent_actions')
 				&& in_array($idemAct, epc_erp_concurrency_idempotent_actions(), true)) {
-				epc_erp_idempotency_store($GLOBALS['db_link'], (string) $GLOBALS['epc_erp_idem_key'], $idemAct, $payload);
+				if ($ok) {
+					epc_erp_idempotency_store($GLOBALS['db_link'], (string) $GLOBALS['epc_erp_idem_key'], $idemAct, $payload);
+				} elseif (function_exists('epc_erp_idempotency_clear')) {
+					epc_erp_idempotency_clear($GLOBALS['db_link'], (string) $GLOBALS['epc_erp_idem_key']);
+				}
 			}
 		} catch (Throwable $idemErr) {
 			// never break the response
@@ -96,27 +101,45 @@ try {
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_concurrency.php';
 	epc_erp_concurrency_ensure_schema($db_link);
 
-	// Multi-user safety: idempotent replay + edit-lock / optimistic-version gate.
+	// Capture idempotency key before preflight so failed claims can be cleared.
+	$GLOBALS['epc_erp_idem_key'] = trim((string) ($_POST['idempotency_key'] ?? $_POST['idem_key'] ?? ''));
+	$GLOBALS['epc_erp_idem_action'] = $action;
+
+	// Multi-user safety: idempotent claim/replay + edit-lock / optimistic-version gate.
 	$concurrencyReplay = epc_erp_concurrency_preflight($db_link, $action, $_POST);
 	if (is_array($concurrencyReplay)) {
+		if (!empty($concurrencyReplay['conflict']) && !headers_sent()) {
+			http_response_code(409);
+		}
 		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode($concurrencyReplay);
 		exit;
 	}
 
-	// Capture idempotency key so successful mutating responses can be cached.
-	$GLOBALS['epc_erp_idem_key'] = trim((string) ($_POST['idempotency_key'] ?? $_POST['idem_key'] ?? ''));
-	$GLOBALS['epc_erp_idem_action'] = $action;
-
 	switch ($action) {
 		case 'edit_lock_acquire':
+			$forceLock = !empty($_POST['force']);
+			if ($forceLock && !epc_erp_concurrency_can_force_lock($db_link)) {
+				if (!headers_sent()) {
+					http_response_code(403);
+				}
+				epc_erp_json(false, 'Only an ERP administrator can force-take an edit lock', array(
+					'conflict' => true,
+					'conflict_code' => 'force_denied',
+					'can_force' => false,
+				));
+			}
 			$res = epc_erp_edit_lock_acquire(
 				$db_link,
 				(string) ($_POST['entity_type'] ?? ''),
 				(string) ($_POST['entity_id'] ?? ''),
 				(int) ($_POST['ttl'] ?? 120),
-				!empty($_POST['force'])
+				$forceLock
 			);
+			if (empty($res['ok']) && !empty($res['conflict']) && !headers_sent()) {
+				http_response_code(409);
+			}
+			$res['can_force'] = !empty($res['can_force']) || epc_erp_concurrency_can_force_lock($db_link);
 			epc_erp_json(!empty($res['ok']), (string) ($res['message'] ?? ''), $res);
 
 		case 'edit_lock_heartbeat':
@@ -174,6 +197,7 @@ try {
 				'lock' => $lock,
 				'row_version' => $version,
 				'server_time' => time(),
+				'can_force_lock' => epc_erp_concurrency_can_force_lock($db_link),
 			));
 
 		case 'create_supplier':
@@ -2521,13 +2545,25 @@ try {
 			epc_erp_json(false, 'Unknown action');
 	}
 } catch (\Throwable $e) {
+	// Failed mutation after idempotency claim — clear pending so the user can retry.
+	if (!empty($GLOBALS['epc_erp_idem_key']) && isset($db_link) && $db_link instanceof PDO) {
+		try {
+			if (function_exists('epc_erp_idempotency_clear')) {
+				epc_erp_idempotency_clear($db_link, (string) $GLOBALS['epc_erp_idem_key']);
+			}
+		} catch (Throwable $clearErr) {
+			// ignore
+		}
+	}
 	$extra = array('ok' => false);
 	$msg = $e->getMessage();
 	if (stripos($msg, 'Version conflict') !== false
 		|| stripos($msg, 'edit lock') !== false
 		|| stripos($msg, 'Submit conflict') !== false
 		|| stripos($msg, 'being edited') !== false
-		|| stripos($msg, 'already submitted') !== false) {
+		|| stripos($msg, 'already submitted') !== false
+		|| stripos($msg, 'already in progress') !== false
+		|| stripos($msg, 'Insufficient stock') !== false) {
 		$extra['conflict'] = true;
 		$extra['conflict_code'] = 'erp_multiuser_conflict';
 		if (!headers_sent()) {

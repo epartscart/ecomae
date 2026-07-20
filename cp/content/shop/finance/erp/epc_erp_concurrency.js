@@ -1,6 +1,6 @@
 /**
  * ERP multi-user concurrency client — presence, edit locks, idempotency keys.
- * Safe under many simultaneous users on the same tenant.
+ * Safe under ~1000 simultaneous users on the same tenant.
  */
 (function () {
 	'use strict';
@@ -33,7 +33,14 @@
 			}
 		});
 		return fetch(ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
-			.then(function (r) { return r.json(); });
+			.then(function (r) {
+				return r.json().then(function (j) {
+					if (j && typeof j === 'object') {
+						j._http_status = r.status;
+					}
+					return j;
+				});
+			});
 	}
 
 	var state = {
@@ -41,11 +48,12 @@
 		entityType: '',
 		entityId: '',
 		rowVersion: 0,
+		canForce: false,
 		heartbeatTimer: null,
 		presenceTimer: null
 	};
 
-	function showBanner(msg, isWarn) {
+	function showBanner(msg, isWarn, extraHtml) {
 		var el = document.getElementById('epc_erp_concurrency_banner');
 		if (!el) {
 			el = document.createElement('div');
@@ -61,10 +69,14 @@
 		el.style.background = isWarn ? '#fef3c7' : '#ecfdf5';
 		el.style.color = isWarn ? '#92400e' : '#065f46';
 		el.style.borderBottom = isWarn ? '1px solid #fcd34d' : '1px solid #86efac';
-		el.textContent = msg || '';
+		if (extraHtml) {
+			el.innerHTML = (msg || '') + ' ' + extraHtml;
+		} else {
+			el.textContent = msg || '';
+		}
 	}
 
-	function updatePresenceStrip(active, selfId) {
+	function updatePresenceStrip(payload) {
 		var strip = document.getElementById('epc_erp_presence_strip');
 		if (!strip) {
 			strip = document.createElement('div');
@@ -75,17 +87,29 @@
 				host.insertBefore(strip, host.firstChild);
 			}
 		}
-		var others = (active || []).filter(function (u) { return parseInt(u.user_id, 10) !== parseInt(selfId, 10); });
-		if (!others.length) {
+		var selfId = payload && payload.self_user_id;
+		var count = parseInt((payload && payload.count) || 0, 10) || 0;
+		var sample = (payload && (payload.sample || payload.active)) || [];
+		if (payload && typeof payload.can_force_lock !== 'undefined') {
+			state.canForce = !!payload.can_force_lock;
+		}
+		var othersSample = sample.filter(function (u) {
+			return parseInt(u.user_id, 10) !== parseInt(selfId, 10);
+		});
+		var othersCount = Math.max(0, count - 1);
+		if (othersCount <= 0) {
 			strip.innerHTML = '<span><i class="fa fa-users"></i> Only you in ERP</span>';
 			return;
 		}
-		var labels = others.slice(0, 8).map(function (u) {
+		var labels = othersSample.slice(0, 8).map(function (u) {
 			var tab = u.tab ? (' · ' + u.tab) : '';
 			return '<span style="padding:2px 8px;border-radius:999px;background:#fff;border:1px solid #e5e5e5;">'
 				+ (u.user_label || ('#' + u.user_id)) + tab + '</span>';
 		}).join('');
-		strip.innerHTML = '<span><i class="fa fa-users"></i> ' + others.length + ' other user(s) online:</span> ' + labels;
+		var more = othersCount > othersSample.length
+			? ' <span style="color:#737373;">+' + (othersCount - Math.min(8, othersSample.length)) + ' more</span>'
+			: '';
+		strip.innerHTML = '<span><i class="fa fa-users"></i> ' + othersCount + ' other user(s) online:</span> ' + labels + more;
 	}
 
 	function presenceBeat() {
@@ -96,8 +120,8 @@
 			entity_type: state.entityType,
 			entity_id: state.entityId
 		}).then(function (j) {
-			if (j && j.active) {
-				updatePresenceStrip(j.active, j.self_user_id);
+			if (j && (j.active || j.sample || typeof j.count !== 'undefined')) {
+				updatePresenceStrip(j);
 			}
 		}).catch(function () {});
 	}
@@ -119,6 +143,31 @@
 		}).catch(function () {});
 	}
 
+	function conflictBanner(j) {
+		var msg = (j && j.message) || 'Another user changed this record — reload and try again';
+		var forceBtn = '';
+		if (state.canForce && state.entityType && state.entityId && j && j.conflict) {
+			forceBtn = '<button type="button" id="epc_erp_force_lock_btn" style="margin-left:10px;font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;">Admin takeover</button>';
+		}
+		var reloadBtn = '<button type="button" id="epc_erp_reload_btn" style="margin-left:8px;font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;">Reload</button>';
+		showBanner(msg, true, forceBtn + reloadBtn);
+		var rb = document.getElementById('epc_erp_reload_btn');
+		if (rb) {
+			rb.onclick = function () { window.location.reload(); };
+		}
+		var fb = document.getElementById('epc_erp_force_lock_btn');
+		if (fb) {
+			fb.onclick = function () {
+				window.EpcErpConcurrency.bindEntity({
+					entityType: state.entityType,
+					entityId: state.entityId,
+					rowVersion: state.rowVersion,
+					force: true
+				});
+			};
+		}
+	}
+
 	window.EpcErpConcurrency = {
 		/** Attach lock + version to a form (invoice, PO, etc.). */
 		bindEntity: function (opts) {
@@ -135,8 +184,11 @@
 				ttl: 120,
 				force: opts.force ? 1 : 0
 			}).then(function (j) {
+				if (j && typeof j.can_force !== 'undefined') {
+					state.canForce = !!j.can_force;
+				}
 				if (!j || !j.status) {
-					showBanner((j && j.message) || 'Record locked by another user', true);
+					conflictBanner(j);
 					return j;
 				}
 				state.lockToken = (j.lock && j.lock.lock_token) || '';
@@ -187,10 +239,12 @@
 		newIdempotencyKey: uuid,
 		getLockToken: function () { return state.lockToken; },
 		getRowVersion: function () { return state.rowVersion; },
-		setRowVersion: function (v) { state.rowVersion = parseInt(v, 10) || 0; }
+		setRowVersion: function (v) { state.rowVersion = parseInt(v, 10) || 0; },
+		handleConflictResponse: conflictBanner
 	};
 
-	// Auto-augment fetch POSTs to ERP ajax with idempotency when missing.
+	// Auto-augment fetch POSTs to ERP ajax with idempotency when missing;
+	// surface HTTP 409 multi-user conflicts in the sticky banner.
 	var origFetch = window.fetch;
 	window.fetch = function (input, init) {
 		try {
@@ -201,7 +255,19 @@
 				}
 			}
 		} catch (e) { /* ignore */ }
-		return origFetch.apply(this, arguments);
+		return origFetch.apply(this, arguments).then(function (resp) {
+			try {
+				var url2 = typeof input === 'string' ? input : (input && input.url) || '';
+				if (url2 && ajaxUrl && url2.indexOf(ajaxUrl) !== -1 && resp && resp.status === 409) {
+					resp.clone().json().then(function (j) {
+						if (j && (j.conflict || j.conflict_code)) {
+							conflictBanner(j);
+						}
+					}).catch(function () {});
+				}
+			} catch (e2) { /* ignore */ }
+			return resp;
+		});
 	};
 
 	// Auto-bind when page declares data-erp-entity / data-erp-entity-id
@@ -214,8 +280,12 @@
 				rowVersion: root.getAttribute('data-erp-row-version') || 0
 			});
 		}
-		presenceBeat();
-		state.presenceTimer = setInterval(presenceBeat, 30000);
+		// Stagger presence across clients to avoid thundering-herd DB writes at 1000 users.
+		var staggerMs = 2000 + Math.floor(Math.random() * 8000);
+		setTimeout(function () {
+			presenceBeat();
+			state.presenceTimer = setInterval(presenceBeat, 28000 + Math.floor(Math.random() * 8000));
+		}, staggerMs);
 	});
 
 	window.addEventListener('beforeunload', function () {

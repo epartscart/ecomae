@@ -203,6 +203,12 @@ function epc_erp_po_save(PDO $db, array $data)
 	$status = in_array($data['status'] ?? '', array('draft', 'approved', 'partial', 'received', 'cancelled'), true)
 		? $data['status'] : 'draft';
 	if ($id > 0) {
+		$expectedVersion = (int) ($data['expected_version'] ?? $_POST['expected_version'] ?? 0);
+		if (!function_exists('epc_erp_version_assert_and_bump')) {
+			require_once __DIR__ . '/epc_erp_concurrency.php';
+		}
+		// Optimistic concurrency — refuse stale PO updates from parallel editors.
+		epc_erp_version_assert_and_bump($db, 'epc_erp_purchase_orders', $id, $expectedVersion);
 		$db->prepare(
 			'UPDATE `epc_erp_purchase_orders` SET `supplier_id`=?, `title`=?, `amount_ex_vat`=?, `vat_amount`=?, `total_amount`=?, `status`=?, `notes`=?, `time_updated`=? WHERE `id`=?'
 		)->execute(array($supplierId, $title, $amountEx, $vat, $total, $status, trim((string) ($data['notes'] ?? '')), $now, $id));
