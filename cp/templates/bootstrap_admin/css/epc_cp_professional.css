@@ -2672,8 +2672,8 @@ html.epc-cp-sidebar-collapsed .epc-cp-shell #wrapper {
    (does not override crossbrowser1 visibility / block layout)
    ══════════════════════════════════════ */
 body.epc-cp-shell:not(.epc-erp-standalone) {
-	--epc-cp-content-max: 1520px;
-	--epc-cp-content-pad-x: clamp(16px, 2.5vw, 32px);
+	--epc-cp-content-max: 100%;
+	--epc-cp-content-pad-x: clamp(12px, 1.5vw, 20px);
 }
 
 body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .epc-cp-content-inner,
@@ -6022,17 +6022,26 @@ body.epc-cp-topnav-only .epc-cp-sidebar-edge-toggle {
 	visibility: hidden !important;
 	pointer-events: none !important;
 }
-body.epc-cp-topnav-only.fixed-sidebar #wrapper,
-body.epc-cp-topnav-only #wrapper,
-body.epc-cp-topnav-only.epc-cp-shell #wrapper {
+/* Topnav-only: beat html:not(.epc-cp-sidebar-collapsed) sidebar width rules
+   (those left max-width: calc(100% - 240px) → empty right gutter). */
+html body.epc-cp-topnav-only.fixed-sidebar #wrapper,
+html body.epc-cp-topnav-only #wrapper,
+html body.epc-cp-topnav-only.epc-cp-shell #wrapper,
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell #wrapper,
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-topnav-only.epc-cp-shell.fixed-sidebar #wrapper,
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper {
 	margin-left: 0 !important;
 	width: 100% !important;
+	max-width: 100% !important;
 	left: 0 !important;
+	right: 0 !important;
+	box-sizing: border-box !important;
 }
 body.epc-cp-topnav-only.fixed-navbar #header,
 body.epc-cp-topnav-only #header {
 	left: 0 !important;
 	width: 100% !important;
+	max-width: 100% !important;
 }
 /* Fixed topnav under 56px header — content clears both */
 body.epc-cp-topnav-only .epc-cp-topnav {
@@ -6043,16 +6052,21 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	width: 100% !important;
 	z-index: 1090;
 }
-body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper,
-body.epc-cp-topnav-only.fixed-navbar #wrapper {
+html body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper,
+html body.epc-cp-topnav-only.fixed-navbar #wrapper,
+html:not(.epc-cp-sidebar-collapsed) body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper {
 	margin-top: 100px !important; /* 56 header + 44 topnav */
 	height: calc(100vh - 100px) !important;
 	max-height: calc(100vh - 100px) !important;
+	margin-left: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
 }
 html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only #wrapper,
 html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	margin-left: 0 !important;
 	width: 100% !important;
+	max-width: 100% !important;
 }
 
 .epc-cp-topnav,
@@ -6304,14 +6318,34 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	body.epc-cp-topnav-only .epc-cp-topnav {
 		top: 50px !important;
 	}
-	body.epc-cp-topnav-only.fixed-navbar #wrapper {
+	html body.epc-cp-topnav-only.fixed-navbar #wrapper {
 		margin-top: 94px !important;
 		height: calc(100vh - 94px) !important;
 		max-height: calc(100vh - 94px) !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		margin-left: 0 !important;
 	}
 	.epc-cp-topnav-label {
 		max-width: 72px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   20260720fullwidth1 — CP main pane uses full viewport width
+   ═══════════════════════════════════════════════════════════ */
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .epc-cp-content-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) .content > .epc-cp-content-inner,
+body.epc-cp-shell #wrapper .epc-cp-page-header,
+body.epc-cp-shell #wrapper .content.epc-cp-main-pane {
+	width: 100% !important;
+	max-width: 100% !important;
+	box-sizing: border-box !important;
+}
+body.epc-cp-shell:not(.epc-erp-standalone) .content.epc-cp-main-pane > .epc-cp-content-inner,
+body.epc-cp-shell:not(.epc-erp-standalone) .content > .epc-cp-content-inner {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 }

@@ -126,12 +126,15 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 			left: 0; right: 0; width: 100%;
 			z-index: 1090;
 		}
-		body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper {
+		html body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper,
+		html:not(.epc-cp-sidebar-collapsed) body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper {
 			margin-left: 0 !important;
 			width: 100% !important;
+			max-width: 100% !important;
 			margin-top: 100px !important;
 			height: calc(100vh - 100px) !important;
 			max-height: calc(100vh - 100px) !important;
+			box-sizing: border-box !important;
 		}
 		body.epc-cp-shell {
 			top: 0 !important;

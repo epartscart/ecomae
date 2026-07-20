@@ -9,13 +9,14 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 
 function epc_cp_shell_css_version()
 {
-	return '20260720coclip1';
+	return '20260720fullwidth1';
 }
 
 /** True on www.ecomae.com where nginx often 404s static /cp/templates/*.css. */
+/** Prefer PHP CSS/JS proxies on all hosts (Cloudflare caches /cp/templates/*.css). */
 function epc_cp_shell_use_asset_proxies(): bool
 {
-	return function_exists('epc_portal_is_platform_hostname') && epc_portal_is_platform_hostname();
+	return true;
 }
 
 function epc_cp_shell_asset_href(string $staticPath, string $phpProxyPath): string
