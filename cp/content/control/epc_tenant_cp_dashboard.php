@@ -357,12 +357,17 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpdash1';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpdash2';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
 		'/content/general_pages/epc_cp_command_dashboard_css.php'
 	);
+}
+if (strpos($cssHref, '?') === false) {
+	$cssHref .= '?v=20260720cpdash2';
+} elseif (strpos($cssHref, 'v=') === false) {
+	$cssHref .= '&v=20260720cpdash2';
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -413,30 +418,34 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 		</div>
 	</div>
 
-	<div class="cp-dash-tiles">
-		<?php foreach ($tiles as $t) { ?>
-		<a class="cp-dash-tile cp-dash-tile--<?php echo epc_tcp_dash_h($t['tone']); ?>" href="<?php echo epc_tcp_dash_h($t['url']); ?>">
-			<i class="fa <?php echo epc_tcp_dash_h($t['icon']); ?> ic"></i>
-			<span class="tl"><?php echo epc_tcp_dash_h($t['label']); ?></span>
-		</a>
-		<?php } ?>
-	</div>
-
-	<div class="cp-dash-port">
-		<div class="bd">
-			<?php
-			echo epc_dash_shortcuts_render(array(
-				'surface' => 'cp',
-				'variant' => 'cp',
-				'title' => 'My shortcuts',
-				'ajax_url' => $cpShortcutAjax,
-				'csrf' => $cpShortcutCsrf,
-				'catalog' => $cpShortcutCatalog,
-				'items' => $cpShortcutItems,
-			));
-			?>
-		</div>
-	</div>
+	<?php
+	// Customizable shortcut tiles replace the old hard-coded tile strip.
+	// Keep catalogue tones aligned with CP red/black command centre.
+	$cpToneMap = array(
+		'orders' => 'red', 'catalogue' => 'black', 'prices' => 'crimson', 'clients' => 'stone',
+		'warehouses' => 'black', 'stock' => 'emerald', 'procurement' => 'indigo', 'erp' => 'red',
+		'documents' => 'stone', 'pos' => 'rose', 'multivendor' => 'teal', 'crosses' => 'blue',
+		'ai_chats' => 'violet', 'settings' => 'crimson', 'brochure' => 'indigo', 'accessories' => 'violet',
+	);
+	foreach ($cpShortcutItems as $ci => $cit) {
+		$ck = (string) ($cit['key'] ?? '');
+		if ($ck !== '' && isset($cpToneMap[$ck])) {
+			$cpShortcutItems[$ci]['tone'] = $cpToneMap[$ck];
+		} elseif (empty($cit['tone']) || !in_array((string) $cit['tone'], array('red', 'black', 'stone', 'crimson'), true)) {
+			$cycle = array('red', 'black', 'crimson', 'stone');
+			$cpShortcutItems[$ci]['tone'] = $cycle[$ci % 4];
+		}
+	}
+	echo epc_dash_shortcuts_render(array(
+		'surface' => 'cp',
+		'variant' => 'cp',
+		'title' => 'My shortcuts',
+		'ajax_url' => $cpShortcutAjax,
+		'csrf' => $cpShortcutCsrf,
+		'catalog' => $cpShortcutCatalog,
+		'items' => $cpShortcutItems,
+	));
+	?>
 
 	<div class="cp-dash-grid">
 		<div class="cp-dash-col-left">

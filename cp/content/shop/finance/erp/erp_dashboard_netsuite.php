@@ -339,6 +339,12 @@ if ($db_link instanceof PDO && $erpShortcutUid > 0) {
 		);
 	}
 }
+foreach ($erpShortcutItems as $ei => $eit) {
+	$ek = (string) ($eit['key'] ?? '');
+	if ($ek !== '' && isset($erpShortcutCatalog[$ek]['tone'])) {
+		$erpShortcutItems[$ei]['tone'] = (string) $erpShortcutCatalog[$ek]['tone'];
+	}
+}
 
 // ---- KPI table values (capability-gated) ----
 $kpiRows = array();

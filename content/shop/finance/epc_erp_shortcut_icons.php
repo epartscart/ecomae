@@ -314,7 +314,7 @@ if (!function_exists('epc_shortcuts_ensure_schema')) {
 	 */
 	function epc_shortcuts_as_tiles(array $rows): array
 	{
-		$tones = array('red', 'blue', 'teal', 'amber', 'violet', 'indigo', 'emerald', 'rose', 'slate');
+		$tones = array('red', 'black', 'crimson', 'stone', 'blue', 'teal', 'amber', 'violet', 'indigo', 'emerald', 'rose', 'slate');
 		$out = array();
 		$i = 0;
 		foreach ($rows as $row) {
@@ -323,9 +323,10 @@ if (!function_exists('epc_shortcuts_ensure_schema')) {
 				$icon = 'fa ' . $icon;
 			}
 			$iconBare = preg_replace('/^fa\s+/', '', $icon);
+			$key = (string) ($row['shortcut_key'] ?? '');
 			$out[] = array(
 				'id' => (int) ($row['id'] ?? 0),
-				'key' => (string) ($row['shortcut_key'] ?? ''),
+				'key' => $key,
 				'label' => (string) ($row['label'] ?? 'Shortcut'),
 				'icon' => $iconBare,
 				'icon_class' => $icon,
