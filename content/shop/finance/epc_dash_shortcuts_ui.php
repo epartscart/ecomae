@@ -36,7 +36,7 @@ function epc_dash_shortcuts_render(array $opts): string
 	$csrf = (string) ($opts['csrf'] ?? '');
 	$catalog = is_array($opts['catalog'] ?? null) ? $opts['catalog'] : array();
 	$items = is_array($opts['items'] ?? null) ? $opts['items'] : array();
-	$title = trim((string) ($opts['title'] ?? 'My shortcuts'));
+	$title = trim((string) ($opts['title'] ?? 'Quick actions'));
 	$uid = 'eds_' . $surface . '_' . substr(md5($ajax . $surface), 0, 6);
 
 	$pinnedKeys = array();
@@ -53,20 +53,21 @@ function epc_dash_shortcuts_render(array $opts): string
 	ob_start();
 	?>
 <style id="epc-dash-shortcuts-css">
+/* Shared Quick actions format (CP + ERP): tall gradient tiles, frosted icon top-left, label bottom-left */
 .eds-wrap{margin:0 0 16px;}
 .eds-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;}
-.eds-head h4{margin:0;font-size:14px;font-weight:800;color:#0f172a;letter-spacing:.01em;}
+.eds-head h4{margin:0;font-size:13px;font-weight:700;color:#0f172a;letter-spacing:.01em;}
 .eds-head h4 .fa{margin-right:8px;color:#dc2626;}
 .eds-actions{display:flex;gap:8px;flex-wrap:wrap;}
 .eds-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none!important;line-height:1.2;}
 .eds-btn:hover{border-color:#dc2626;color:#b91c1c;}
 .eds-btn--primary{background:#dc2626;border-color:#b91c1c;color:#fff!important;}
 .eds-btn--primary:hover{background:#b91c1c;color:#fff!important;}
-.eds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;}
-.eds-item{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 14px 12px;border-radius:12px;text-decoration:none!important;color:#fff!important;min-height:92px;box-shadow:0 8px 22px rgba(0,0,0,.07);transition:transform .15s ease,box-shadow .15s ease;overflow:hidden;}
-.eds-item:hover{transform:translateY(-2px);color:#fff!important;box-shadow:0 12px 28px rgba(0,0,0,.12);}
-.eds-item__ic{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:rgba(255,255,255,.16);font-size:16px;}
-.eds-item__lb{font-size:13px;font-weight:700;line-height:1.25;}
+.eds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:12px;}
+.eds-item{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 14px 12px;border-radius:12px;text-decoration:none!important;color:#fff!important;min-height:118px;box-shadow:0 8px 22px rgba(0,0,0,.08);transition:transform .15s ease,box-shadow .15s ease;overflow:hidden;}
+.eds-item:hover{transform:translateY(-2px);color:#fff!important;box-shadow:0 12px 28px rgba(0,0,0,.14);}
+.eds-item__ic{width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:rgba(255,255,255,.18);font-size:17px;}
+.eds-item__lb{font-size:14px;font-weight:700;line-height:1.25;letter-spacing:.01em;}
 .eds-item__rm{position:absolute;top:6px;right:6px;width:24px;height:24px;border:0;border-radius:999px;background:rgba(0,0,0,.28);color:#fff;font-size:15px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;}
 .eds-wrap.is-editing .eds-item__rm{display:inline-flex;}
 .eds-item__rm:hover{background:#fee2e2;color:#b91c1c;}
@@ -103,23 +104,22 @@ function epc_dash_shortcuts_render(array $opts): string
 .eds-msg.is-err{color:#b91c1c;}
 @media (max-width:700px){
 	.eds-custom{grid-template-columns:1fr;}
-	.eds-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+	.eds-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;}
+	.eds-item{min-height:104px;}
 }
-/* CP: sit flush inside command centre (no nested white card chrome) */
-.eds-wrap--cp{margin:0 0 16px;}
-.eds-wrap--cp .eds-head h4{font-size:13px;font-weight:700;color:#0a0a0a;}
+/* CP accents only — same tile geometry as ERP */
+.eds-wrap--cp{margin:0;}
+.eds-wrap--cp .eds-head h4{color:#0a0a0a;}
 .eds-wrap--cp .eds-head h4 .fa{color:#dc2626;}
 .eds-wrap--cp .eds-btn--primary{background:#0a0a0a;border-color:#0a0a0a;}
 .eds-wrap--cp .eds-btn--primary:hover{background:#dc2626;border-color:#b91c1c;}
 .eds-wrap--cp .eds-panel{border-color:rgba(0,0,0,.1);box-shadow:0 8px 22px rgba(0,0,0,.07);}
-/* ERP: match NetSuite portlet spacing */
+/* ERP accents only — same tile geometry as CP */
 .eds-wrap--erp{margin:0;}
-.eds-wrap--erp .eds-head{margin:0 0 12px;}
-.eds-wrap--erp .eds-head h4{font-size:13px;font-weight:700;color:inherit;}
+.eds-wrap--erp .eds-head h4{color:inherit;}
 .eds-wrap--erp .eds-head h4 .fa{color:#2563eb;}
 .eds-wrap--erp .eds-btn--primary{background:#2563eb;border-color:#1d4ed8;}
 .eds-wrap--erp .eds-btn--primary:hover{background:#1d4ed8;}
-.eds-wrap--erp .eds-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
 </style>
 <div class="eds-wrap eds-wrap--<?php echo htmlspecialchars($variant, ENT_QUOTES, 'UTF-8'); ?>" id="<?php echo htmlspecialchars($uid, ENT_QUOTES, 'UTF-8'); ?>" data-surface="<?php echo htmlspecialchars($surface, ENT_QUOTES, 'UTF-8'); ?>">
 	<div class="eds-head">
