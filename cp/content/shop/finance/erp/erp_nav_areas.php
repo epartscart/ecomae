@@ -1086,7 +1086,7 @@ function epc_erp_render_top_nav($erpUrl, $activeArea, $activeTab, $from, $to, ar
 	}
 
 	echo '</ul>'; // list
-	echo '<button type="button" class="epc-erp-topnav-more-btn" id="epc_erp_topnav_more" aria-label="More modules" title="Browse all modules in the side rail"><i class="fa fa-bars"></i><span>All</span></button>';
+	// No side-rail "All" control — top mega-menu is the sole primary navigation.
 	echo '</div></nav>';
 }
 

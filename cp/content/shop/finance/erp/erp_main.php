@@ -576,22 +576,13 @@ $epcErpD365Tabs = array('sales_orders', 'purchase_orders', 'inventory', 'receiva
 $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 ?>
 
-<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout epc-erp-shell--topnav<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?><?php echo $epcErpD365Tab ? ' epc-erp-d365' : ''; ?>">
+<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout epc-erp-shell--topnav epc-erp-shell--topnav-only<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?><?php echo $epcErpD365Tab ? ' epc-erp-d365' : ''; ?>">
 	<?php epc_erp_render_top_nav($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str, $userAllowedTabs); ?>
-	<div class="epc-erp-layout epc-erp-layout--topnav">
-		<aside class="epc-erp-sidebar epc-erp-sidebar--rail" id="epc_erp_sidebar" aria-label="ERP navigation">
-			<div class="epc-erp-sidebar-head">
-				<span class="epc-erp-sidebar-brand"><i class="fa fa-list"></i> Modules</span>
-				<button type="button" class="epc-erp-sidebar-collapse-toggle" id="epc_erp_sidebar_collapse_toggle" aria-expanded="true" aria-label="Collapse sidebar"><i class="fa fa-chevron-left"></i></button>
-				<button type="button" class="epc-erp-sidebar-close" id="epc_erp_sidebar_close" aria-label="Close menu"><i class="fa fa-times"></i></button>
-			</div>
-			<?php epc_erp_render_sidebar_nav($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str, $userAllowedTabs, true); ?>
-		</aside>
-		<div class="epc-erp-sidebar-backdrop" id="epc_erp_sidebar_backdrop" aria-hidden="true"></div>
+	<div class="epc-erp-layout epc-erp-layout--topnav epc-erp-layout--full">
+		<?php /* Left rail removed: top process mega-menu is the sole primary nav. */ ?>
 
 		<div class="epc-erp-content">
 			<div class="epc-erp-content-toolbar">
-				<button type="button" class="epc-erp-sidebar-toggle btn btn-default btn-sm" id="epc_erp_sidebar_toggle" aria-label="Open menu" aria-expanded="false"><i class="fa fa-bars"></i></button>
 				<div class="epc-erp-content-toolbar-main">
 					<?php epc_erp_render_content_header($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str); ?>
 				</div>

@@ -2087,6 +2087,28 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	min-height: calc(100vh - 108px);
 }
 
+/* Top-menu-only shell: no left rail — content uses full width */
+.epc-erp-shell--topnav-only .epc-erp-sidebar,
+.epc-erp-shell--topnav-only .epc-erp-sidebar-backdrop,
+.epc-erp-shell--topnav-only .epc-erp-sidebar-toggle,
+.epc-erp-shell--topnav-only .epc-erp-topnav-more-btn {
+	display: none !important;
+}
+.epc-erp-shell--topnav-only .epc-erp-layout--full,
+.epc-erp-shell--topnav-only .epc-erp-layout--topnav {
+	display: block;
+	width: 100%;
+}
+.epc-erp-shell--topnav-only .epc-erp-content {
+	width: 100%;
+	max-width: none;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.epc-erp-shell--topnav-only .epc-erp-content-body {
+	max-width: none;
+}
+
 .epc-erp-sidebar-rail-hint {
 	display: flex;
 	align-items: center;
