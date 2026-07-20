@@ -128,12 +128,12 @@ if (!function_exists('epc_ext_reports_registry')) {
                 array('Tax Audit Response Filing', '', ''),
             ),
             'fin' => array(
-                array('Annual Financial Statements', 'afs', 'IAS1'),
+                array('Annual Financial Statements', 'afs', 'IFRS18'),
                 array('Interim Financial Statements', 'interim', 'IAS34'),
                 array('Consolidated Financial Statements', 'consolidated', 'IFRS10'),
-                array('Statutory Accounts Filing', 'afs', 'IAS1'),
-                array('IFRS Reporting', 'afs', 'IAS1'),
-                array('GAAP Reporting', 'afs', 'IAS1'),
+                array('Statutory Accounts Filing', 'afs', 'IFRS18'),
+                array('IFRS Reporting', 'afs', 'IFRS18'),
+                array('GAAP Reporting', 'afs', 'IFRS18'),
                 array('Audit Report Filing', 'audit_report', 'ISA700'),
                 array('Qualified Audit Disclosure', '', 'ISA705'),
                 array('Financial Model & Forecast', 'fin_model', 'IFRS'),
@@ -437,7 +437,7 @@ if (!function_exists('epc_ext_authority')) {
         $uae = array(
             'corp'   => array('Ministry of Economy (MoEC) / licensing authority', 'UAE Commercial Companies Law — Federal Decree-Law 32/2021', 'https://www.moec.gov.ae', 'https://www.moec.gov.ae/en/commercial-register'),
             'tax'    => array('Federal Tax Authority (FTA)', 'Corporate Tax — Federal Decree-Law 47/2022; VAT — Federal Decree-Law 8/2017', 'https://tax.gov.ae', 'https://eservices.tax.gov.ae'),
-            'fin'    => array('Securities & Commodities Authority (SCA) / IFRS Foundation', 'IFRS as adopted in the UAE', 'https://www.sca.gov.ae', 'https://www.ifrs.org/issued-standards/list-of-standards/'),
+            'fin'    => array('Securities & Commodities Authority (SCA) / IFRS Foundation', 'IFRS as adopted in the UAE — IFRS 18 early applied for FY2026+ (mandatory periods beginning on/after 1 Jan 2027); IAS 1 superseded for presentation & disclosure', 'https://www.sca.gov.ae', 'https://www.ifrs.org/issued-standards/list-of-standards/ifrs-18-presentation-and-disclosure-in-financial-statements/'),
             'audit'  => array('Ministry of Economy — Auditors Register / IAASB', 'International Standards on Auditing (ISA)', 'https://www.moec.gov.ae', 'https://www.iaasb.org/standards-pronouncements'),
             'hr'     => array('Ministry of Human Resources & Emiratisation (MOHRE)', 'UAE Labour Law — Federal Decree-Law 33/2021; WPS', 'https://www.mohre.gov.ae', 'https://www.mohre.gov.ae/en/services.aspx'),
             'aml'    => array('UAE Financial Intelligence Unit (goAML) / EOCN', 'Anti-Money Laundering — Federal Decree-Law 20/2018', 'https://www.uaefiu.gov.ae', 'https://services.uaefiu.gov.ae'),
@@ -469,7 +469,7 @@ if (!function_exists('epc_ext_authority')) {
 
         // Worldwide: global standard bodies per domain (apply everywhere).
         $global = array(
-            'fin'    => array('IFRS Foundation', 'IFRS Accounting Standards', 'https://www.ifrs.org', 'https://www.ifrs.org/issued-standards/list-of-standards/'),
+            'fin'    => array('IFRS Foundation', 'IFRS Accounting Standards — IFRS 18 Presentation and Disclosure in Financial Statements (early application permitted; mandatory for periods beginning on/after 1 Jan 2027)', 'https://www.ifrs.org', 'https://www.ifrs.org/issued-standards/list-of-standards/ifrs-18-presentation-and-disclosure-in-financial-statements/'),
             'audit'  => array('IAASB', 'International Standards on Auditing (ISA)', 'https://www.iaasb.org', 'https://www.iaasb.org/standards-pronouncements'),
             'tax'    => array('OECD / national tax authority', 'OECD model tax framework + local tax law', 'https://www.oecd.org/tax/', 'https://www.oecd.org/tax/forum-on-tax-administration/'),
             'aml'    => array('FATF / national FIU', 'FATF 40 Recommendations', 'https://www.fatf-gafi.org', 'https://www.fatf-gafi.org/en/topics/fatf-recommendations.html'),
@@ -511,6 +511,7 @@ if (!function_exists('epc_ext_ifrs_link')) {
             return null;
         }
         $map = array(
+            'IFRS18' => array('IFRS 18 — Presentation and Disclosure in Financial Statements', 'https://www.ifrs.org/issued-standards/list-of-standards/ifrs-18-presentation-and-disclosure-in-financial-statements/'),
             'IAS1'   => array('IAS 1 — Presentation of Financial Statements', 'https://www.ifrs.org/issued-standards/list-of-standards/ias-1-presentation-of-financial-statements/'),
             'IAS34'  => array('IAS 34 — Interim Financial Reporting', 'https://www.ifrs.org/issued-standards/list-of-standards/ias-34-interim-financial-reporting/'),
             'IFRS10' => array('IFRS 10 — Consolidated Financial Statements', 'https://www.ifrs.org/issued-standards/list-of-standards/ifrs-10-consolidated-financial-statements/'),
