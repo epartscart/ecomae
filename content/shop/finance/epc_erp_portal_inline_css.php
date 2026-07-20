@@ -205,6 +205,131 @@ body.epc-erp-standalone .epc-erp-shell--layout .epc-erp-content .alert{
   background:#eff6ff;border-color:#bfdbfe;color:#1e293b;
 }
 
+/* /erp/guide — white reading surface; dark portal ink must not leak into content */
+body.epc-erp-standalone--guide .epc-erp-main{
+  max-width:1100px;
+}
+body.epc-erp-standalone--guide .epc-erp-portal-wrap,
+body.epc-erp-standalone--guide .epc-erp-workspace{
+  background:#ffffff!important;
+  color:#1e293b!important;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  box-shadow:0 12px 36px rgba(2,6,23,.28);
+  padding:18px 20px 28px;
+  margin:0 0 24px;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace,
+body.epc-erp-standalone--guide .epc-erp-workspace *:not(.fa):not(i):not(.btn):not(.btn *):not(a):not(code):not(pre){
+  color:#1e293b;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace a{color:#1d4ed8!important;font-weight:600;}
+body.epc-erp-standalone--guide .epc-erp-workspace a:hover{color:#1e3a8a!important;}
+body.epc-erp-standalone--guide .epc-erp-workspace .text-muted,
+body.epc-erp-standalone--guide .epc-erp-workspace .help-block,
+body.epc-erp-standalone--guide .epc-erp-workspace small{
+  color:#475569!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .hpanel,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-body,
+body.epc-erp-standalone--guide .epc-erp-workspace .well,
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-step,
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-flow,
+body.epc-erp-standalone--guide .epc-erp-workspace .table,
+body.epc-erp-standalone--guide .epc-erp-workspace .table td,
+body.epc-erp-standalone--guide .epc-erp-workspace .table th,
+body.epc-erp-standalone--guide .epc-erp-workspace p,
+body.epc-erp-standalone--guide .epc-erp-workspace li,
+body.epc-erp-standalone--guide .epc-erp-workspace dd,
+body.epc-erp-standalone--guide .epc-erp-workspace dt,
+body.epc-erp-standalone--guide .epc-erp-workspace h3,
+body.epc-erp-standalone--guide .epc-erp-workspace h4,
+body.epc-erp-standalone--guide .epc-erp-workspace h5{
+  color:#1e293b!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .hpanel,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel{
+  background:#fff!important;
+  border:1px solid #e2e8f0!important;
+  box-shadow:none!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-heading,
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-heading.hbuilt{
+  background:#f8fafc!important;
+  color:#0f172a!important;
+  border-bottom:1px solid #e2e8f0!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .panel-body,
+body.epc-erp-standalone--guide .epc-erp-workspace .well,
+body.epc-erp-standalone--guide .epc-erp-workspace .well-sm{
+  background:#fff!important;
+  color:#1e293b!important;
+  border-color:#e2e8f0!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .alert{
+  background:#eff6ff!important;
+  border-color:#bfdbfe!important;
+  color:#1e293b!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .alert-info{
+  background:#eff6ff!important;
+  border-color:#93c5fd!important;
+  color:#1e3a8a!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .alert-warning{
+  background:#fffbeb!important;
+  border-color:#fcd34d!important;
+  color:#92400e!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .table{
+  background:#fff!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .table>thead>tr>th,
+body.epc-erp-standalone--guide .epc-erp-workspace .table>tbody>tr>th,
+body.epc-erp-standalone--guide .epc-erp-workspace .table>tbody>tr>td{
+  background:#fff!important;
+  color:#1e293b!important;
+  border-color:#e2e8f0!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .table-striped>tbody>tr:nth-of-type(odd)>td{
+  background:#f8fafc!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace code,
+body.epc-erp-standalone--guide .epc-erp-workspace pre{
+  color:#0f172a!important;
+  background:#f1f5f9!important;
+  border:1px solid #e2e8f0;
+  border-radius:4px;
+  padding:1px 6px;
+  font-size:12.5px;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-step{
+  background:#f8fafc!important;
+  border-left:4px solid #2563eb!important;
+  color:#1e293b!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro{
+  background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 55%,#0ea5e9 100%)!important;
+  color:#fff!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro,
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro *{
+  color:#fff!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .epc-erp-guide-intro a{
+  color:#dbeafe!important;
+  text-decoration:underline;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .btn-default{
+  background:#fff!important;
+  border-color:#cbd5e1!important;
+  color:#334155!important;
+}
+body.epc-erp-standalone--guide .epc-erp-workspace .btn-primary{
+  color:#fff!important;
+}
+
 @media (max-width:860px){
   .epc-erp-login-panel--split .col-md-5,.epc-erp-login-panel--split .col-md-7{width:100%;}
   .epc-erp-bos-hero__capabilities{grid-template-columns:1fr;}
