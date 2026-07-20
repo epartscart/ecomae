@@ -391,10 +391,10 @@ body.epc-cp--blue-theme .epc-cp-auth-tab.is-active {
 	transition: width 0.25s ease;
 	display: flex;
 	flex-direction: column;
-	top: 62px !important;
+	top: var(--epc-cp-header-h, 56px) !important;
 	bottom: 0 !important;
-	height: calc(100vh - 62px) !important;
-	max-height: calc(100vh - 62px) !important;
+	height: calc(100vh - var(--epc-cp-header-h, 56px)) !important;
+	max-height: calc(100vh - var(--epc-cp-header-h, 56px)) !important;
 	min-height: 0;
 	overflow-x: hidden !important;
 	overflow-y: hidden !important;
@@ -474,11 +474,11 @@ body.epc-cp-shell:not(.epc-erp-standalone) {
 	overflow: hidden !important;
 }
 body.epc-cp-shell.fixed-navbar:not(.epc-erp-standalone) #wrapper {
-	margin-top: 62px;
+	margin-top: var(--epc-cp-header-h, 56px);
 	top: 0 !important;
 	padding-top: 0 !important;
-	height: calc(100vh - 62px);
-	max-height: calc(100vh - 62px);
+	height: calc(100vh - var(--epc-cp-header-h, 56px));
+	max-height: calc(100vh - var(--epc-cp-header-h, 56px));
 	min-height: 0;
 	overflow-x: hidden;
 	overflow-y: auto;
@@ -870,7 +870,7 @@ body.epc-cp-shell.modal-open:not(.epc-cp-modal-active) {
 body.epc-cp-shell.fixed-navbar:not(.epc-erp-standalone) #wrapper {
 	top: 0 !important;
 	padding-top: 0 !important;
-	margin-top: 62px;
+	margin-top: 56px;
 	position: relative;
 	z-index: 1;
 	box-sizing: border-box;
@@ -885,9 +885,9 @@ body.epc-cp-shell.fixed-navbar:not(.epc-erp-standalone) #wrapper {
 	display: flex;
 	align-items: stretch;
 	flex-wrap: nowrap;
-	height: 62px;
-	min-height: 62px;
-	max-height: 62px;
+	height: 56px !important;
+	min-height: 56px !important;
+	max-height: 56px !important;
 	overflow: hidden;
 }
 
@@ -4321,7 +4321,7 @@ html.translated-ltr body.epc-cp-shell #wrapper,
 html.translated-rtl body.epc-cp-shell #wrapper,
 body.epc-cp-shell.translated-ltr #wrapper,
 body.epc-cp-shell.translated-rtl #wrapper {
-	margin-top: 62px !important;
+	margin-top: var(--epc-cp-header-h, 56px) !important;
 	top: 0 !important;
 }
 
@@ -6034,7 +6034,7 @@ body.epc-cp-topnav-only #header {
 	left: 0 !important;
 	width: 100% !important;
 }
-/* Fixed topnav under 56px header — content clears both */
+/* Fixed topnav under 56px header — content clears both (header + 44px mega bar) */
 body.epc-cp-topnav-only .epc-cp-topnav {
 	position: fixed !important;
 	top: 56px !important;
@@ -6042,12 +6042,31 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	right: 0 !important;
 	width: 100% !important;
 	z-index: 1090;
+	min-height: 44px;
 }
 body.epc-cp-topnav-only.fixed-sidebar.epc-cp-shell.fixed-navbar #wrapper,
 body.epc-cp-topnav-only.fixed-navbar #wrapper {
 	margin-top: 100px !important; /* 56 header + 44 topnav */
 	height: calc(100vh - 100px) !important;
 	max-height: calc(100vh - 100px) !important;
+}
+/* When top mega-menu failed to render, restore left rail instead of a blank chrome */
+body.epc-cp-topnav-only:not(:has(#epc_cp_topnav)) #menu,
+body.epc-cp-topnav-only:not(:has(#epc_cp_topnav)) .epc-cp-sidebar-toggle-tab,
+body.epc-cp-topnav-only:not(:has(#epc_cp_topnav)) .epc-cp-sidebar-edge-toggle {
+	display: block !important;
+	width: auto !important;
+	visibility: visible !important;
+	pointer-events: auto !important;
+}
+body.epc-cp-topnav-only:not(:has(#epc_cp_topnav)).fixed-sidebar #wrapper,
+body.epc-cp-topnav-only:not(:has(#epc_cp_topnav)) #wrapper,
+body.epc-cp-topnav-only:not(:has(#epc_cp_topnav)).epc-cp-shell #wrapper {
+	margin-left: 220px !important;
+	width: calc(100% - 220px) !important;
+	margin-top: 56px !important;
+	height: calc(100vh - 56px) !important;
+	max-height: calc(100vh - 56px) !important;
 }
 html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only #wrapper,
 html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
