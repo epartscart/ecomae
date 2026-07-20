@@ -527,6 +527,11 @@ function epc_cp_brochure_render_catalog_body(array $inv, string $scopeLabel, int
 
 function epc_cp_full_brochure_render_and_exit(array $opts = array()): void
 {
+	@set_time_limit(120);
+	@ini_set('memory_limit', '512M');
+	while (ob_get_level() > 0) {
+		@ob_end_clean();
+	}
 	if (!headers_sent()) {
 		header('Content-Type: text/html; charset=utf-8');
 		header('X-Robots-Tag: index, follow');
