@@ -528,7 +528,7 @@ function epc_erp_nav_areas_config()
 				'elec_reporting' => array('label' => 'Electronic reporting', 'icon' => 'fa-file-code-o'),
 				'document_control' => array('label' => 'Document control', 'icon' => 'fa-print'),
 				'jw_tourist_vat' => array('label' => 'Tourist VAT refund (jewellery)', 'icon' => 'fa-plane', 'jw' => true),
-				'aml_compliance' => array('label' => 'AML / DNFBP (jewellery)', 'icon' => 'fa-balance-scale', 'jw' => true),
+				'aml_compliance' => array('label' => 'AML Compliance', 'icon' => 'fa-shield', 'jw' => true),
 			),
 			'groups' => array(
 				'Declarations' => array('vat_return', 'tax_compliance', 'vat_refund', 'withholding'),
