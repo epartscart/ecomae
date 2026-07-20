@@ -1,13 +1,15 @@
 <?php
 /**
- * CP — Document Control System (English, FTA templates, attachments).
- * URL: /cp/shop/document_control/document_control
+ * Document Control System (English, FTA templates, attachments).
+ * CP URL: /cp/shop/document_control/document_control
+ * ERP embed: set $epc_dc_embed=true, $dcUrl, $dcAjaxUrl before include.
  */
 defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/document_control/epc_document_control_helpers.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
+$epc_dc_embed = !empty($epc_dc_embed);
+if (!$epc_dc_embed && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 	$epc_dc_backend = isset($GLOBALS['DP_Config']->backend_dir) ? trim((string) $GLOBALS['DP_Config']->backend_dir, '/') : 'cp';
 	require $_SERVER['DOCUMENT_ROOT'] . '/' . $epc_dc_backend . '/content/shop/document_control/ajax_document_control.php';
 	exit;
@@ -27,14 +29,26 @@ $backend = isset($GLOBALS['DP_Config']->backend_dir)
 if ($backend === '') {
 	$backend = 'cp';
 }
-$dcUrl = function_exists('epc_document_control_cp_url') ? epc_document_control_cp_url() : ('/' . $backend . '/shop/document_control/document_control');
-$dcAjaxUrl = function_exists('epc_document_control_cp_ajax_url')
-	? epc_document_control_cp_ajax_url()
-	: ('/' . $backend . '/content/shop/document_control/ajax_document_control_endpoint.php');
-$printBase = '/content/shop/document_control/service/print.php';
+if (empty($dcUrl)) {
+	$dcUrl = function_exists('epc_document_control_cp_url') ? epc_document_control_cp_url() : ('/' . $backend . '/shop/document_control/document_control');
+}
+if (empty($dcAjaxUrl)) {
+	$dcAjaxUrl = function_exists('epc_document_control_cp_ajax_url')
+		? epc_document_control_cp_ajax_url()
+		: ('/' . $backend . '/content/shop/document_control/ajax_document_control_endpoint.php');
+}
+$printBase = !empty($printBase) ? (string) $printBase : '/content/shop/document_control/service/print.php';
 $legacyUrl = '/' . $backend . '/shop/modul-pechati-dokumentov';
-$erpUrl = '/' . $backend . '/shop/finance/erp?tab=einvoice';
-$ordersUrl = '/' . $backend . '/shop/orders/orders';
+if (empty($erpEinvoiceUrl)) {
+	$erpEinvoiceUrl = '/' . $backend . '/shop/finance/erp?tab=einvoice';
+}
+if (empty($ordersUrl)) {
+	$ordersUrl = '/' . $backend . '/shop/orders/orders';
+}
+$epc_dc_erp_only = !empty($epc_dc_erp_only);
+if (!$epc_dc_erp_only && function_exists('epc_erp_is_erp_only_context')) {
+	$epc_dc_erp_only = epc_erp_is_erp_only_context();
+}
 
 $tabs = array(
 	'dashboard' => 'Dashboard',
@@ -42,42 +56,60 @@ $tabs = array(
 	'templates' => 'Templates',
 	'print' => 'Print documents',
 	'attachments' => 'Attachments',
+	'library' => 'ERP library',
 	'guide' => 'Guide',
 );
-$tab = isset($_GET['tab']) ? (string)$_GET['tab'] : 'dashboard';
+if (!$epc_dc_embed) {
+	unset($tabs['library']);
+}
+$tabParam = !empty($GLOBALS['epc_dc_tab_param']) ? (string) $GLOBALS['epc_dc_tab_param'] : 'tab';
+$tab = isset($_GET[$tabParam]) ? (string) $_GET[$tabParam] : 'dashboard';
 if (!isset($tabs[$tab])) {
 	$tab = 'dashboard';
 }
 
-if (!isset($user_session) || !is_array($user_session)) {
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
-	$user_session = DP_User::getAdminSession();
+if (!isset($csrf) || $csrf === '') {
+	if (!isset($user_session) || !is_array($user_session)) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+		$user_session = function_exists('epc_erp_resolve_user_session')
+			? epc_erp_resolve_user_session()
+			: DP_User::getAdminSession();
+	}
+	$csrf = isset($user_session['csrf_guard_key']) ? (string) $user_session['csrf_guard_key'] : '';
 }
-$csrf = isset($user_session['csrf_guard_key']) ? (string)$user_session['csrf_guard_key'] : '';
 $dash = epc_dc_dashboard($db_link);
 $company = epc_dc_get_company($db_link);
 $templates = epc_dc_list_templates($db_link);
 $orders = ($tab === 'print' || $tab === 'attachments') ? epc_dc_recent_orders($db_link) : array();
+$invoices = ($tab === 'print') ? epc_dc_recent_invoices($db_link) : array();
 $editCode = isset($_GET['tpl']) ? (string)$_GET['tpl'] : '';
 $editTpl = $editCode !== '' ? epc_dc_get_template($db_link, $editCode) : null;
 $filterOrder = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
-$attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filterOrder > 0 ? 'order' : '', $filterOrder) : array();
+$filterEntity = isset($_GET['dc_entity']) ? (string) $_GET['dc_entity'] : ($filterOrder > 0 ? 'order' : '');
+$attachments = $tab === 'attachments'
+	? epc_dc_list_attachments($db_link, $filterEntity, $filterOrder)
+	: array();
+$wrapClass = $epc_dc_embed ? 'epc-dc-erp-embed' : 'col-lg-12 epc-erp-shell';
 ?>
 
-<div class="col-lg-12 epc-erp-shell">
+<div class="<?php echo epc_dc_h($wrapClass); ?>">
 	<div class="hpanel">
+		<?php if (!$epc_dc_embed): ?>
 		<div class="panel-heading hbuilt">
 			<i class="fa fa-file-text-o"></i> Document Control System
 			<span class="pull-right">
+				<?php if (!$epc_dc_erp_only): ?>
 				<a class="btn btn-default btn-xs" href="<?php echo epc_dc_h($ordersUrl); ?>"><i class="fa fa-shopping-cart"></i> Orders</a>
-				<a class="btn btn-default btn-xs" href="<?php echo epc_dc_h($erpUrl); ?>"><i class="fa fa-certificate"></i> E-Invoicing (FTA)</a>
+				<?php endif; ?>
+				<a class="btn btn-default btn-xs" href="<?php echo epc_dc_h($erpEinvoiceUrl); ?>"><i class="fa fa-certificate"></i> E-Invoicing (FTA)</a>
 			</span>
 		</div>
-		<div class="panel-body">
+		<?php endif; ?>
+		<div class="panel-body<?php echo $epc_dc_embed ? ' epc-dc-erp-body' : ''; ?>">
 
 			<div class="epc-dc-hero">
-				<h3><i class="fa fa-files-o"></i> Industrial document management — English</h3>
-				<p style="margin:0;opacity:.92;">FTA-aligned tax invoices, packing slips, delivery notes, and payment receipts. Editable HTML templates with company logo, TRN, legal footer, and supplier purchase invoice attachments.</p>
+				<h3><i class="fa fa-files-o"></i> <?php echo $epc_dc_embed ? 'ERP Document Control' : 'Industrial document management — English'; ?></h3>
+				<p style="margin:0;opacity:.92;">FTA-aligned tax invoices, packing slips, delivery notes, and payment receipts. Editable HTML templates with company logo, TRN, legal footer, and supplier purchase invoice attachments<?php echo $epc_dc_embed ? ' — native to ERP (no CP required)' : ''; ?>.</p>
 			</div>
 
 			<div id="epc_dc_msg" class="alert epc-dc-msg"></div>
@@ -100,7 +132,12 @@ $attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filte
 					<strong>Quick start:</strong> Configure <a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'company')); ?>">Company profile</a> (logo, TRN, address, legal text),
 					review <a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'templates')); ?>">Templates</a>, then print from
 					<a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'print')); ?>">Print documents</a>.
-					Legacy Russian print module: <a href="<?php echo epc_dc_h($legacyUrl); ?>"><?php echo epc_dc_h($legacyUrl); ?></a> (redirects here).
+					<?php if ($epc_dc_embed): ?>
+						Upload supplier files under <a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'attachments')); ?>">Attachments</a>
+						or the <a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'library')); ?>">ERP library</a>.
+					<?php elseif (!$epc_dc_erp_only): ?>
+						Legacy Russian print module: <a href="<?php echo epc_dc_h($legacyUrl); ?>"><?php echo epc_dc_h($legacyUrl); ?></a> (redirects here).
+					<?php endif; ?>
 				</div>
 				<h4>Document types included</h4>
 				<ul>
@@ -193,6 +230,8 @@ $attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filte
 				<?php endif; ?>
 			<?php elseif ($tab === 'print'): ?>
 				<h4>Generate &amp; print documents</h4>
+				<?php if ($orders): ?>
+				<h5><i class="fa fa-shopping-cart"></i> Sales orders</h5>
 				<table class="table table-hover table-condensed">
 					<thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Amount (excl.)</th><th>Documents</th></tr></thead>
 					<tbody>
@@ -209,20 +248,67 @@ $attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filte
 										<?php echo epc_dc_h($t['title']); ?>
 									</a>
 								<?php endforeach; ?>
-								<a class="btn btn-xs btn-info" href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'attachments', array('order_id' => (int)$o['id']))); ?>">Attach supplier docs</a>
+								<a class="btn btn-xs btn-info" href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'attachments', array('order_id' => (int)$o['id'], 'dc_entity' => 'order'))); ?>">Attach</a>
 							</td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>
 				</table>
+				<?php endif; ?>
+
+				<?php if ($invoices): ?>
+				<h5><i class="fa fa-file-text-o"></i> ERP tax invoices</h5>
+				<table class="table table-hover table-condensed">
+					<thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Amount (incl.)</th><th>Documents</th></tr></thead>
+					<tbody>
+					<?php foreach ($invoices as $inv): ?>
+						<tr>
+							<td><?php echo epc_dc_h($inv['invoice_number'] ?: ('#' . (int)$inv['id'])); ?></td>
+							<td><?php echo epc_dc_h(date('Y-m-d', (int)$inv['issue_date'])); ?></td>
+							<td><?php echo epc_dc_h($inv['email'] ?? ''); ?></td>
+							<td><?php echo epc_dc_h(epc_dc_money((float)($inv['total_incl_vat'] ?? 0))); ?></td>
+							<td>
+								<?php foreach ($templates as $t): if (empty($t['active'])) continue; ?>
+									<a class="btn btn-xs btn-default" target="_blank"
+									   href="<?php echo epc_dc_h($printBase . '?doc=' . urlencode($t['code']) . '&invoice_id=' . (int)$inv['id']); ?>">
+										<?php echo epc_dc_h($t['title']); ?>
+									</a>
+								<?php endforeach; ?>
+								<a class="btn btn-xs btn-info" href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'attachments', array('order_id' => (int)$inv['id'], 'dc_entity' => 'invoice'))); ?>">Attach</a>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<?php endif; ?>
+
+				<?php if (!$orders && !$invoices): ?>
+					<div class="alert alert-info">
+						No sales orders or ERP invoices yet.
+						<a href="<?php echo epc_dc_h($erpEinvoiceUrl); ?>">Create an e-invoice</a>,
+						then return here to print FTA tax invoices, packing slips, and receipts.
+						You can still <a href="<?php echo epc_dc_h($printBase . '?doc=fta_tax_invoice&preview=1'); ?>" target="_blank">preview templates</a>
+						and manage the <a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'company')); ?>">company letterhead</a>.
+					</div>
+				<?php endif; ?>
 			<?php elseif ($tab === 'attachments'): ?>
 				<h4>Document attachments (supplier purchase invoices &amp; other files)</h4>
 				<form id="epc_dc_att_form" class="well" enctype="multipart/form-data">
 					<input type="hidden" name="action" value="upload_attachment">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_dc_h($csrf); ?>">
 					<div class="row">
-						<div class="col-sm-2"><label>Order ID</label><input class="form-control" name="entity_id" type="number" value="<?php echo $filterOrder ?: ''; ?>" required></div>
-						<div class="col-sm-3"><label>Category</label>
+						<div class="col-sm-2"><label>Entity</label>
+							<select class="form-control" name="entity_type">
+								<option value="order"<?php echo $filterEntity === 'order' ? ' selected' : ''; ?>>Sales order</option>
+								<option value="invoice"<?php echo $filterEntity === 'invoice' ? ' selected' : ''; ?>>ERP invoice</option>
+								<option value="purchase_order"<?php echo $filterEntity === 'purchase_order' ? ' selected' : ''; ?>>Purchase order</option>
+								<option value="purchase"<?php echo $filterEntity === 'purchase' ? ' selected' : ''; ?>>Purchase</option>
+								<option value="project"<?php echo $filterEntity === 'project' ? ' selected' : ''; ?>>Project</option>
+								<option value="lead"<?php echo $filterEntity === 'lead' ? ' selected' : ''; ?>>CRM lead</option>
+							</select>
+						</div>
+						<div class="col-sm-2"><label>Record ID</label><input class="form-control" name="entity_id" type="number" value="<?php echo $filterOrder ?: ''; ?>" required></div>
+						<div class="col-sm-2"><label>Category</label>
 							<select class="form-control" name="doc_category">
 								<option value="supplier_invoice">Supplier purchase invoice</option>
 								<option value="delivery_proof">Delivery proof</option>
@@ -230,7 +316,7 @@ $attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filte
 								<option value="other">Other</option>
 							</select>
 						</div>
-						<div class="col-sm-3"><label>Supplier name</label><input class="form-control" name="supplier_name"></div>
+						<div class="col-sm-2"><label>Supplier name</label><input class="form-control" name="supplier_name"></div>
 						<div class="col-sm-2"><label>Reference no.</label><input class="form-control" name="reference_no"></div>
 						<div class="col-sm-2"><label>File</label><input type="file" name="file" required></div>
 					</div>
@@ -240,14 +326,15 @@ $attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filte
 					</div></div>
 				</form>
 				<?php if ($filterOrder > 0): ?>
-					<p>Filtering order #<?php echo $filterOrder; ?> — <a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'attachments')); ?>">Show all</a></p>
+					<p>Filtering <?php echo epc_dc_h($filterEntity !== '' ? $filterEntity : 'record'); ?> #<?php echo $filterOrder; ?> —
+						<a href="<?php echo epc_dc_h(epc_dc_tab_url($dcUrl, 'attachments')); ?>">Show all</a></p>
 				<?php endif; ?>
 				<table class="table table-striped">
-					<thead><tr><th>Order</th><th>Category</th><th>Supplier</th><th>Ref</th><th>File</th><th>Date</th><th></th></tr></thead>
+					<thead><tr><th>Entity</th><th>Category</th><th>Supplier</th><th>Ref</th><th>File</th><th>Date</th><th></th></tr></thead>
 					<tbody>
 					<?php foreach ($attachments as $a): ?>
 						<tr>
-							<td>#<?php echo (int)$a['entity_id']; ?></td>
+							<td><?php echo epc_dc_h(($a['entity_type'] ?? 'order') . ' #' . (int)$a['entity_id']); ?></td>
 							<td><?php echo epc_dc_h($a['doc_category']); ?></td>
 							<td><?php echo epc_dc_h($a['supplier_name']); ?></td>
 							<td><?php echo epc_dc_h($a['reference_no']); ?></td>
@@ -259,6 +346,15 @@ $attachments = $tab === 'attachments' ? epc_dc_list_attachments($db_link, $filte
 					<?php if (!$attachments): ?><tr><td colspan="7" class="text-muted">No attachments yet.</td></tr><?php endif; ?>
 					</tbody>
 				</table>
+			<?php elseif ($tab === 'library' && $epc_dc_embed): ?>
+				<?php
+				// Filled by erp_tabs_document_control.php after include when $epc_dc_library_html is set.
+				if (!empty($epc_dc_library_html)) {
+					echo $epc_dc_library_html;
+				} else {
+					echo '<div class="alert alert-info">ERP document library loads from the ERP documents module.</div>';
+				}
+				?>
 			<?php elseif ($tab === 'guide'): ?>
 				<?php
 				$epc_dc_backend = isset($GLOBALS['DP_Config']->backend_dir) ? trim((string) $GLOBALS['DP_Config']->backend_dir, '/') : 'cp';

@@ -1852,6 +1852,27 @@ try {
 			epc_erp_document_delete($db_link, (int)($_POST['doc_id'] ?? 0), $allowed);
 			epc_erp_json(true, 'Document deleted');
 
+		// Document Control (ERP-native — ERP-only tenants have no CP AJAX endpoint).
+		case 'save_company':
+		case 'save_template':
+		case 'upload_logo':
+		case 'upload_attachment':
+		case 'delete_attachment':
+		case 'sync_einvoice_seller':
+			$epc_dc_backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
+			if ($epc_dc_backend === '') {
+				$epc_dc_backend = 'cp';
+			}
+			$epcDcAjax = $_SERVER['DOCUMENT_ROOT'] . '/' . $epc_dc_backend . '/content/shop/document_control/ajax_document_control.php';
+			if (!is_file($epcDcAjax)) {
+				$epcDcAjax = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/shop/document_control/ajax_document_control.php';
+			}
+			if (!is_file($epcDcAjax)) {
+				epc_erp_json(false, 'Document Control AJAX missing');
+			}
+			require $epcDcAjax;
+			// ajax_document_control.php exits
+
 		case 'expense_report_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';

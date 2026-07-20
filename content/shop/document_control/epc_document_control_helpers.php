@@ -20,8 +20,10 @@ function epc_dc_money($n)
 
 function epc_dc_tab_url($base, $tab, $extra = array())
 {
-	$q = array_merge(array('tab' => $tab), $extra);
-	return $base . '?' . http_build_query($q);
+	$tabKey = !empty($GLOBALS['epc_dc_tab_param']) ? (string) $GLOBALS['epc_dc_tab_param'] : 'tab';
+	$q = array_merge(array($tabKey => $tab), $extra);
+	$sep = (strpos((string) $base, '?') !== false) ? '&' : '?';
+	return $base . $sep . http_build_query($q);
 }
 
 function epc_dc_ensure(PDO $db): void
@@ -132,15 +134,49 @@ function epc_dc_dashboard(PDO $db): array
 
 function epc_dc_recent_orders(PDO $db, int $limit = 40): array
 {
-	$st = $db->query(
-		'SELECT o.`id`, o.`user_id`, o.`time`, o.`paid`, u.`email`,
-		(SELECT SUM(`price`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = o.`id`) AS sale_ex
-		FROM `shop_orders` o
-		LEFT JOIN `users` u ON u.`user_id` = o.`user_id`
-		WHERE o.`successfully_created` = 1
-		ORDER BY o.`id` DESC LIMIT ' . (int)$limit
-	);
-	return $st->fetchAll(PDO::FETCH_ASSOC);
+	try {
+		$chk = $db->query("SHOW TABLES LIKE 'shop_orders'");
+		if (!$chk || !$chk->fetchColumn()) {
+			return array();
+		}
+		$st = $db->query(
+			'SELECT o.`id`, o.`user_id`, o.`time`, o.`paid`, u.`email`,
+			(SELECT SUM(`price`*`count_need`) FROM `shop_orders_items` WHERE `order_id` = o.`id`) AS sale_ex
+			FROM `shop_orders` o
+			LEFT JOIN `users` u ON u.`user_id` = o.`user_id`
+			WHERE o.`successfully_created` = 1
+			ORDER BY o.`id` DESC LIMIT ' . (int)$limit
+		);
+		return $st->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Throwable $e) {
+		return array();
+	}
+}
+
+/**
+ * Recent ERP e-invoices for Document Control print (ERP-only / no shop orders).
+ */
+function epc_dc_recent_invoices(PDO $db, int $limit = 40): array
+{
+	try {
+		$chk = $db->query("SHOW TABLES LIKE 'epc_einvoice_documents'");
+		if (!$chk || !$chk->fetchColumn()) {
+			return array();
+		}
+		$st = $db->query(
+			'SELECT d.`id`, d.`invoice_number`, d.`issue_date`, d.`user_id`, d.`order_id`,
+				d.`total_incl_vat`, d.`subtotal_ex_vat`, d.`status`,
+				u.`email`
+			FROM `epc_einvoice_documents` d
+			LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
+			WHERE d.`active` = 1
+			ORDER BY d.`issue_date` DESC, d.`id` DESC
+			LIMIT ' . (int) $limit
+		);
+		return $st->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Throwable $e) {
+		return array();
+	}
 }
 
 function epc_dc_list_attachments(PDO $db, string $entity_type = '', int $entity_id = 0, string $category = ''): array
@@ -508,6 +544,158 @@ function epc_dc_lines_table_delivery(array $rows): string
 	return epc_dc_lines_table_packing($rows);
 }
 
+/**
+ * Build Document Control placeholders from an ERP e-invoice (no shop_orders required).
+ */
+function epc_dc_einvoice_context(PDO $db, int $invoice_id): array
+{
+	require_once __DIR__ . '/../finance/epc_einvoice.php';
+
+	$st = $db->prepare('SELECT * FROM `epc_einvoice_documents` WHERE `id` = ? AND `active` = 1 LIMIT 1');
+	$st->execute(array($invoice_id));
+	$doc = $st->fetch(PDO::FETCH_ASSOC);
+	if (!$doc) {
+		throw new Exception('Invoice not found');
+	}
+
+	$lines = array();
+	try {
+		$lst = $db->prepare('SELECT * FROM `epc_einvoice_lines` WHERE `document_id` = ? ORDER BY `line_no`, `id`');
+		$lst->execute(array($invoice_id));
+		$lines = $lst->fetchAll(PDO::FETCH_ASSOC);
+	} catch (Throwable $e) {
+		$lines = array();
+	}
+
+	$company = epc_dc_get_company($db);
+	$seller = function_exists('epc_einvoice_seller_profile') ? epc_einvoice_seller_profile($db) : array();
+	$userId = (int) ($doc['user_id'] ?? 0);
+	$buyer = $userId > 0 && function_exists('epc_einvoice_buyer_profile')
+		? epc_einvoice_buyer_profile($db, $userId)
+		: array();
+
+	$legal = trim((string) ($company['legal_name'] ?? ''));
+	if ($legal === '') {
+		$legal = trim((string) ($seller['seller_name'] ?? $company['trade_name'] ?? 'Company'));
+	}
+	$coAddr = trim(implode(', ', array_filter(array(
+		$company['address_line1'] ?? ($seller['seller_address_line1'] ?? ''),
+		$company['address_line2'] ?? '',
+		$company['city'] ?? ($seller['seller_city'] ?? ''),
+		$company['country'] ?? '',
+	))));
+	$trn = trim((string) ($company['trn'] ?? ''));
+	if ($trn === '') {
+		$trn = trim((string) ($seller['seller_trn'] ?? ''));
+	}
+	$logo = trim((string) ($company['logo_path'] ?? ''));
+	if ($logo === '') {
+		$logo = '/content/files/epc_doc/logo.png';
+	}
+
+	$buyerName = trim((string) ($buyer['buyer_name'] ?? $doc['buyer_name'] ?? 'Customer'));
+	$buyerAddr = trim(implode(', ', array_filter(array(
+		$buyer['address_line1'] ?? ($doc['buyer_address_line1'] ?? ''),
+		$buyer['city'] ?? ($doc['buyer_city'] ?? ''),
+		$buyer['emirate'] ?? ($doc['buyer_emirate'] ?? ''),
+		$buyer['country_code'] ?? ($doc['buyer_country_code'] ?? 'AE'),
+	))));
+	$buyerTrn = trim((string) ($buyer['trn'] ?? $doc['buyer_trn'] ?? ''));
+
+	$rows = array();
+	$rate = 5.0;
+	foreach ($lines as $ln) {
+		$qty = (float) ($ln['quantity'] ?? 1);
+		$net = round((float) ($ln['line_net'] ?? 0), 2);
+		$vat = round((float) ($ln['vat_line_aed'] ?? $ln['vat_amount'] ?? 0), 2);
+		$gross = round((float) ($ln['gross_amount'] ?? ($net + $vat)), 2);
+		$lineRate = (float) ($ln['tax_rate'] ?? 5);
+		if ($lineRate > 0) {
+			$rate = $lineRate;
+		}
+		$rows[] = array(
+			't2_name' => (string) ($ln['item_name'] ?? $ln['description'] ?? 'Item'),
+			't2_manufacturer' => (string) ($ln['item_code'] ?? ''),
+			't2_article' => '',
+			'qty' => $qty,
+			'price' => (float) ($ln['unit_price'] ?? 0),
+			'unit_net' => (float) ($ln['unit_price'] ?? 0),
+			'line_net' => $net,
+			'vat_amount' => $vat,
+			'gross' => $gross,
+			'tax_rate' => $lineRate,
+		);
+	}
+
+	$subtotal = round((float) ($doc['subtotal_ex_vat'] ?? 0), 2);
+	$vatTotal = round((float) ($doc['total_vat'] ?? 0), 2);
+	$totalIncl = round((float) ($doc['total_incl_vat'] ?? ($subtotal + $vatTotal)), 2);
+	$paid = round((float) ($doc['paid_amount'] ?? 0), 2);
+	$invNo = trim((string) ($doc['invoice_number'] ?? ('INV-' . $invoice_id)));
+	$issueTs = (int) ($doc['issue_date'] ?? time());
+	$orderRef = (int) ($doc['order_id'] ?? 0);
+	if ($orderRef <= 0) {
+		$orderRef = (int) ($doc['sales_order_id'] ?? 0);
+	}
+
+	return array(
+		'invoice' => $doc,
+		'items' => $rows,
+		'company' => $company,
+		'buyer' => $buyer,
+		'invoice_number' => $invNo,
+		'subtotal_excl_vat' => $subtotal,
+		'vat_amount' => $vatTotal,
+		'total_incl_vat' => $totalIncl,
+		'vat_rate' => $rate,
+		'amount_paid' => $paid,
+		'amount_due' => max(0, round($totalIncl - $paid, 2)),
+		'placeholders' => array(
+			'company_logo' => $logo,
+			'company_legal_name' => $legal,
+			'company_trade_name' => (string) ($company['trade_name'] ?? ''),
+			'company_address' => $coAddr,
+			'company_trn' => $trn,
+			'company_phone' => (string) ($company['phone'] ?? ($seller['seller_phone'] ?? '')),
+			'company_email' => (string) ($company['email'] ?? ($seller['seller_email'] ?? '')),
+			'company_website' => (string) ($company['website'] ?? ''),
+			'document_number' => $invNo,
+			'document_date' => date('d M Y', $issueTs),
+			'order_id' => (string) ($orderRef > 0 ? $orderRef : $invoice_id),
+			'supply_date' => date('d M Y', (int) ($doc['vat_point_date'] ?? $issueTs)),
+			'buyer_name' => $buyerName,
+			'buyer_address' => $buyerAddr,
+			'buyer_trn' => $buyerTrn,
+			'ship_to_name' => $buyerName,
+			'ship_to_address' => $buyerAddr,
+			'ship_to_phone' => (string) ($buyer['phone'] ?? ''),
+			'subtotal_excl_vat' => epc_dc_money($subtotal),
+			'vat_amount' => epc_dc_money($vatTotal),
+			'total_incl_vat' => epc_dc_money($totalIncl),
+			'vat_rate' => (string) $rate,
+			'amount_words' => epc_dc_amount_words_en($totalIncl),
+			'payment_terms' => (string) ($doc['payment_terms'] ?? 'Due on receipt unless agreed otherwise'),
+			'bank_name' => (string) ($company['bank_name'] ?? ''),
+			'bank_iban' => (string) ($company['bank_iban'] ?? ''),
+			'legal_footer' => (string) ($company['legal_footer'] ?? ''),
+			'carrier' => '—',
+			'tracking_no' => '—',
+			'package_count' => '1',
+			'total_weight' => '—',
+			'prepared_by' => 'Accounts',
+			'driver_info' => '—',
+			'delivery_notes' => '',
+			'amount_received' => epc_dc_money($paid > 0 ? $paid : $totalIncl),
+			'payment_method' => $paid >= $totalIncl && $totalIncl > 0 ? 'Paid in full' : 'Pending',
+			'payment_reference' => $invNo,
+			'payment_date' => date('d M Y'),
+			'lines_table' => epc_dc_lines_table_sales($rows, $rate),
+			'lines_table_packing' => epc_dc_lines_table_packing($rows),
+			'lines_table_delivery' => epc_dc_lines_table_delivery($rows),
+		),
+	);
+}
+
 function epc_dc_render_template(PDO $db, string $code, int $order_id = 0, array $extra = array()): string
 {
 	$tpl = epc_dc_get_template($db, $code);
@@ -515,7 +703,12 @@ function epc_dc_render_template(PDO $db, string $code, int $order_id = 0, array 
 		throw new Exception('Template not found or inactive');
 	}
 	$ph = array();
-	if ($order_id > 0) {
+	$invoiceId = (int) ($extra['invoice_id'] ?? 0);
+	unset($extra['invoice_id']);
+	if ($invoiceId > 0) {
+		$ctx = epc_dc_einvoice_context($db, $invoiceId);
+		$ph = $ctx['placeholders'];
+	} elseif ($order_id > 0) {
 		$ctx = epc_dc_order_context($db, $order_id);
 		$ph = $ctx['placeholders'];
 	} else {
@@ -531,7 +724,7 @@ function epc_dc_render_template(PDO $db, string $code, int $order_id = 0, array 
 			'document_date' => date('d M Y'),
 			'order_id' => '0',
 			'legal_footer' => (string)($company['legal_footer'] ?? ''),
-			'lines_table' => '<p><em>Preview — select an order to populate line items.</em></p>',
+			'lines_table' => '<p><em>Preview — select an order or invoice to populate line items.</em></p>',
 			'lines_table_packing' => '<p><em>Preview packing lines.</em></p>',
 			'lines_table_delivery' => '<p><em>Preview delivery lines.</em></p>',
 		);
