@@ -125,8 +125,33 @@ if (!function_exists('epc_erp_modules_ajax_handler')) {
 
             case 'aml_compliance':
                 epc_aml_ensure_schema($db);
-                if ($action === 'check') return epc_aml_check_transaction($db, $companyId, (int) ($_POST['customer_id'] ?? 0), (float) ($_POST['amount'] ?? 0), $_POST['currency'] ?? 'AED');
+                if ($action === 'check') {
+                    $res = epc_aml_check_transaction(
+                        $db,
+                        $companyId,
+                        (int) ($_POST['customer_id'] ?? 0),
+                        (float) ($_POST['amount'] ?? 0),
+                        (string) ($_POST['currency'] ?? 'AED'),
+                        array(
+                            'customer_name' => (string) ($_POST['customer_name'] ?? ''),
+                            'transaction_type' => (string) ($_POST['transaction_type'] ?? 'cash_sale'),
+                            'reference' => (string) ($_POST['reference'] ?? ''),
+                        )
+                    );
+                    return array('ok' => true, 'data' => $res) + $res;
+                }
                 if ($action === 'default_rules') return ['ok' => true, 'data' => epc_aml_default_rules($companyId)];
+                if ($action === 'seed_rules') return epc_aml_seed_rules($db, $companyId);
+                if ($action === 'kyc_save') return epc_aml_kyc_save($db, array_merge($_POST, ['company_id' => $companyId]));
+                if ($action === 'report_generate') {
+                    return epc_aml_generate_report(
+                        $db,
+                        (string) ($_POST['report_type'] ?? 'compliance_summary'),
+                        (string) ($_POST['period_from'] ?? date('Y-m-01')),
+                        (string) ($_POST['period_to'] ?? date('Y-m-d')),
+                        $userId
+                    );
+                }
                 break;
 
             case 'jewellery_tag':

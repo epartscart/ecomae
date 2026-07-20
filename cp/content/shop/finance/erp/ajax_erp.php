@@ -1485,6 +1485,69 @@ try {
 			$payload = epc_uae_fta_fetch_legislation_updates($db_link, $force);
 			epc_erp_json((bool)($payload['status'] ?? $payload['ok'] ?? false), (string)($payload['message'] ?? 'Done'), $payload);
 
+		case 'aml_check':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$amlCid = function_exists('epc_erp_active_company_id') ? (int) epc_erp_active_company_id($db_link) : 0;
+			$amlRes = epc_aml_check_transaction(
+				$db_link,
+				$amlCid,
+				(int) ($_POST['customer_id'] ?? 0),
+				(float) ($_POST['amount'] ?? 0),
+				(string) ($_POST['currency'] ?? 'AED'),
+				array(
+					'customer_name' => (string) ($_POST['customer_name'] ?? ''),
+					'transaction_type' => (string) ($_POST['transaction_type'] ?? 'cash_sale'),
+					'reference' => (string) ($_POST['reference'] ?? ''),
+				)
+			);
+			epc_erp_json(true, (string) ($amlRes['message'] ?? 'Checked'), array('data' => $amlRes) + $amlRes);
+
+		case 'aml_kyc_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$amlKyc = epc_aml_kyc_save($db_link, array_merge($_POST, array(
+				'company_id' => function_exists('epc_erp_active_company_id') ? (int) epc_erp_active_company_id($db_link) : 0,
+			)));
+			epc_erp_json(!empty($amlKyc['ok']), (string) ($amlKyc['message'] ?? ''), $amlKyc);
+
+		case 'aml_alert_status':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+			$amlAlert = epc_aml_alert_set_status(
+				$db_link,
+				(int) ($_POST['transaction_id'] ?? $_POST['id'] ?? 0),
+				(string) ($_POST['status'] ?? 'reviewed'),
+				function_exists('epc_erp_admin_id') ? (int) epc_erp_admin_id() : 0,
+				!empty($_POST['file_sar']),
+				(string) ($_POST['sar_reference'] ?? '')
+			);
+			epc_erp_json(!empty($amlAlert['ok']), (string) ($amlAlert['message'] ?? ''), $amlAlert);
+
+		case 'aml_report_generate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+			$amlRep = epc_aml_generate_report(
+				$db_link,
+				(string) ($_POST['report_type'] ?? 'compliance_summary'),
+				(string) ($_POST['period_from'] ?? date('Y-m-01')),
+				(string) ($_POST['period_to'] ?? date('Y-m-d')),
+				function_exists('epc_erp_admin_id') ? (int) epc_erp_admin_id() : 0
+			);
+			epc_erp_json(!empty($amlRep['ok']), (string) ($amlRep['message'] ?? ''), $amlRep);
+
+		case 'aml_settings_save':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+			$amlSet = epc_aml_settings_save($db_link, $_POST);
+			epc_erp_json(!empty($amlSet['ok']), (string) ($amlSet['message'] ?? ''), $amlSet);
+
+		case 'aml_seed_rules':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_aml_compliance.php';
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_company_context.php';
+			$amlSeed = epc_aml_seed_rules(
+				$db_link,
+				function_exists('epc_erp_active_company_id') ? (int) epc_erp_active_company_id($db_link) : 0
+			);
+			epc_erp_json(!empty($amlSeed['ok']), (string) ($amlSeed['message'] ?? ''), $amlSeed);
+
 		case 'uae_tax_legislation_regen_summaries':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_tax_compliance.php';
 			$fetchPdf = !empty($_POST['fetch_pdf']);
