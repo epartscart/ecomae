@@ -1305,6 +1305,24 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 	document.querySelectorAll('.epc-erp-po-status').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('po_status', f); });
 	});
+	document.querySelectorAll('.epc-erp-po-lines-toggle').forEach(function(el){
+		el.addEventListener('click', function(ev){
+			ev.preventDefault();
+			var row = document.getElementById('epc_erp_po_lines_row_' + el.getAttribute('data-po'));
+			if (row) row.style.display = (row.style.display === 'none' || !row.style.display) ? '' : 'none';
+		});
+	});
+	document.querySelectorAll('.epc-erp-po-receive').forEach(function(f){
+		f.addEventListener('submit', function(ev){
+			ev.preventDefault();
+			var received = {};
+			f.querySelectorAll('.epc-erp-po-recv-input').forEach(function(inp){
+				received[inp.getAttribute('data-line')] = parseFloat(inp.value || '0');
+			});
+			f.querySelector('.epc-erp-po-received-json').value = JSON.stringify(received);
+			postAction('po_receive_lines', f);
+		});
+	});
 	var syncBtn = document.getElementById('epc_erp_sync_suppliers');
 	if (syncBtn) {
 		syncBtn.addEventListener('click', function(){

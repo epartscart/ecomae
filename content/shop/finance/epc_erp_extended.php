@@ -163,10 +163,39 @@ function epc_erp_po_save(PDO $db, array $data)
 	$now = time();
 	$supplierId = (int) ($data['supplier_id'] ?? 0);
 	$title = trim((string) ($data['title'] ?? ''));
-	$amountEx = round((float) ($data['amount_ex_vat'] ?? 0), 2);
 	if ($title === '' || $supplierId <= 0) {
 		throw new Exception('Supplier and title are required');
 	}
+
+	// Optional structured line items, submitted as parallel arrays (po_line_desc[],
+	// po_line_qty[], po_line_unit[] — same convention as the invoice line grid).
+	// When present they replace the single lump-sum amount field: the PO total is
+	// derived from qty x cost per line by epc_erp_order_fulfillment_append_po_lines(),
+	// the same helper already used for POs auto-generated from a sales order — so both
+	// creation paths share one source of truth for totals, and manual POs become
+	// eligible for the same per-line receiving/picking-status tracking.
+	$lines = array();
+	$poLineDescs = $data['po_line_desc'] ?? array();
+	if (is_array($poLineDescs)) {
+		$poLineQtys = $data['po_line_qty'] ?? array();
+		$poLineUnits = $data['po_line_unit'] ?? array();
+		foreach ($poLineDescs as $i => $descRaw) {
+			$desc = trim((string) $descRaw);
+			$qty = round((float) ($poLineQtys[$i] ?? 0), 3);
+			$unitCost = round((float) ($poLineUnits[$i] ?? 0), 4);
+			if ($desc === '' || $qty <= 0) {
+				continue;
+			}
+			$lines[] = array(
+				'description' => $desc,
+				'qty' => $qty,
+				'unit_cost_ex_vat' => $unitCost,
+				'line_ex_vat' => round($qty * $unitCost, 2),
+			);
+		}
+	}
+
+	$amountEx = round((float) ($data['amount_ex_vat'] ?? 0), 2);
 	require_once __DIR__ . '/epc_tax_toolkit.php';
 	$taxCalc = epc_tax_toolkit_calc_amounts($db, $amountEx, 0, (int) ($data['contact_id'] ?? 0));
 	$vat = $taxCalc['vat_amount'];
@@ -177,19 +206,115 @@ function epc_erp_po_save(PDO $db, array $data)
 		$db->prepare(
 			'UPDATE `epc_erp_purchase_orders` SET `supplier_id`=?, `title`=?, `amount_ex_vat`=?, `vat_amount`=?, `total_amount`=?, `status`=?, `notes`=?, `time_updated`=? WHERE `id`=?'
 		)->execute(array($supplierId, $title, $amountEx, $vat, $total, $status, trim((string) ($data['notes'] ?? '')), $now, $id));
+		if ($lines) {
+			require_once __DIR__ . '/epc_erp_order_fulfillment.php';
+			epc_erp_order_fulfillment_append_po_lines($db, $id, $lines);
+		}
 		epc_erp_po_pf_sync($db, $id);
 		return $id;
 	}
 	require_once __DIR__ . '/epc_erp_vouchers.php';
 	epc_erp_vouchers_ensure_schema($db);
 	$poNo = epc_erp_next_voucher_no($db, 'PO');
+	// When creating from structured lines, start the header amount at zero and let
+	// append_po_lines() below compute the real total from qty x cost, so it isn't
+	// double-counted between the header insert and the line insert.
+	$headerAmountEx = $lines ? 0.0 : $amountEx;
+	$headerVat = $lines ? 0.0 : $vat;
+	$headerTotal = $lines ? 0.0 : $total;
 	$db->prepare(
 		'INSERT INTO `epc_erp_purchase_orders` (`po_no`, `voucher_no`, `supplier_id`, `title`, `amount_ex_vat`, `vat_amount`, `total_amount`, `status`, `notes`, `admin_id`, `time_created`, `time_updated`)
 		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
-	)->execute(array($poNo, $poNo, $supplierId, $title, $amountEx, $vat, $total, 'draft', trim((string) ($data['notes'] ?? '')), epc_erp_admin_id(), $now, $now));
+	)->execute(array($poNo, $poNo, $supplierId, $title, $headerAmountEx, $headerVat, $headerTotal, 'draft', trim((string) ($data['notes'] ?? '')), epc_erp_admin_id(), $now, $now));
 	$newPoId = (int) $db->lastInsertId();
+	if ($lines) {
+		require_once __DIR__ . '/epc_erp_order_fulfillment.php';
+		epc_erp_order_fulfillment_append_po_lines($db, $newPoId, $lines);
+	}
 	epc_erp_po_pf_sync($db, $newPoId);
 	return $newPoId;
+}
+
+/**
+ * Manual per-line receiving for purchase orders that have structured lines (created
+ * via the "Add line" grid — POs auto-generated from a sales order instead go through
+ * the order_fulfillment goods-receipt flow). Sets qty_received directly per line and
+ * recomputes this PO's status from qty/qty_received/qty_cancelled — mirrors the rule
+ * in epc_erp_order_fulfillment_sync_po_statuses() but scoped to a single PO id, since
+ * manual POs share `order_id = 0` and must not be grouped together by that column.
+ *
+ * @param array<int, float> $receivedByLineId line id => new cumulative qty received
+ * @return array{po_id:int,status:string,qty_received:float,qty_open:float}
+ */
+function epc_erp_po_receive_lines(PDO $db, int $poId, array $receivedByLineId): array
+{
+	epc_erp_extended_ensure_schema($db);
+	require_once __DIR__ . '/epc_erp_order_fulfillment.php';
+	epc_erp_order_fulfillment_ensure_schema($db);
+	$poId = (int) $poId;
+	$poSt = $db->prepare('SELECT * FROM `epc_erp_purchase_orders` WHERE `id` = ? LIMIT 1');
+	$poSt->execute(array($poId));
+	$po = $poSt->fetch(PDO::FETCH_ASSOC);
+	if (!$po) {
+		throw new Exception('Purchase order not found');
+	}
+	if ($po['status'] === 'cancelled') {
+		throw new Exception('Cannot receive a cancelled purchase order');
+	}
+
+	$lineSt = $db->prepare('SELECT * FROM `epc_erp_po_lines` WHERE `po_id` = ? ORDER BY `line_no`');
+	$lineSt->execute(array($poId));
+	$lines = $lineSt->fetchAll(PDO::FETCH_ASSOC);
+	if (!$lines) {
+		throw new Exception('This purchase order has no line items to receive');
+	}
+
+	$now = time();
+	$upd = $db->prepare('UPDATE `epc_erp_po_lines` SET `qty_received` = ?, `time_updated` = ? WHERE `id` = ?');
+	foreach ($lines as $ln) {
+		$lineId = (int) $ln['id'];
+		if (!array_key_exists($lineId, $receivedByLineId)) {
+			continue;
+		}
+		$qty = (float) $ln['qty'];
+		$cancelled = (float) $ln['qty_cancelled'];
+		$max = max(0.0, round($qty - $cancelled, 3));
+		$newQty = round((float) $receivedByLineId[$lineId], 3);
+		if ($newQty < 0) {
+			$newQty = 0.0;
+		}
+		if ($newQty > $max) {
+			$newQty = $max;
+		}
+		$upd->execute(array($newQty, $now, $lineId));
+	}
+
+	$agg = $db->prepare(
+		'SELECT IFNULL(SUM(`qty_received`),0) AS qty_recv,
+		 IFNULL(SUM(GREATEST(0, `qty` - `qty_received` - `qty_cancelled`)), 0) AS qty_open
+		 FROM `epc_erp_po_lines` WHERE `po_id` = ?'
+	);
+	$agg->execute(array($poId));
+	$a = $agg->fetch(PDO::FETCH_ASSOC) ?: array();
+	$qtyRecv = round((float) ($a['qty_recv'] ?? 0), 3);
+	$qtyOpen = round((float) ($a['qty_open'] ?? 0), 3);
+
+	$newStatus = (string) $po['status'];
+	if ($qtyRecv > 0 && $qtyOpen <= 0.001) {
+		$newStatus = 'received';
+	} elseif ($qtyRecv > 0 && $qtyOpen > 0.001) {
+		$newStatus = 'partial';
+	}
+	if ($newStatus !== $po['status']) {
+		epc_erp_po_set_status($db, $poId, $newStatus);
+	}
+
+	require_once __DIR__ . '/epc_erp_audit.php';
+	epc_erp_audit_log($db, 'po_receive_lines', 'purchase_order', $poId, 'Received purchase order lines', array(
+		'received' => $receivedByLineId,
+	));
+
+	return array('po_id' => $poId, 'status' => $newStatus, 'qty_received' => $qtyRecv, 'qty_open' => $qtyOpen);
 }
 
 /** Best-effort: keep the procurement process-flow case in step with a PO. Never throws. */
