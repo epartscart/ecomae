@@ -380,7 +380,7 @@ foreach ($nsCssCandidates as $c) {
 	if (is_file($abs)) { $nsCssHref = $c; break; }
 }
 ?>
-<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720role1">
+<link rel="stylesheet" href="<?php echo epc_erp_h($nsCssHref); ?>?v=20260720colors2">
 
 <div class="ns-dash" data-dashboard-profile="<?php echo epc_erp_h($nsRole); ?>">
 	<div class="ns-hero">
@@ -559,9 +559,9 @@ foreach ($nsCssCandidates as $c) {
 						<svg viewBox="0 0 200 120" width="100%" height="120">
 							<defs>
 								<linearGradient id="nsGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-									<stop offset="0%" stop-color="#0d9488"/>
-									<stop offset="55%" stop-color="#0b6e99"/>
-									<stop offset="100%" stop-color="#c2811a"/>
+									<stop offset="0%" stop-color="#0f766e"/>
+									<stop offset="55%" stop-color="#1d4f91"/>
+									<stop offset="100%" stop-color="#b45309"/>
 								</linearGradient>
 							</defs>
 							<path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#d9e4ec" stroke-width="16" stroke-linecap="round"/>
@@ -571,7 +571,7 @@ foreach ($nsCssCandidates as $c) {
 								<line x1="100" y1="110" x2="100" y2="40" stroke="#102a43" stroke-width="3"/>
 							</g>
 							<circle cx="100" cy="110" r="7" fill="#102a43"/>
-							<circle cx="100" cy="110" r="3" fill="#0d9488"/>
+							<circle cx="100" cy="110" r="3" fill="#1d4f91"/>
 						</svg>
 						<div class="gval" style="color:<?php echo $gaugeVal >= 0 ? '#1a7f4b' : '#b42318'; ?>"><?php echo $nsMoney($gaugeVal); ?></div>
 						<div class="gsub"><?php echo $nsCurrency; ?> · live cash &amp; bank position</div>
@@ -712,7 +712,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 			<h4><i class="fa fa-line-chart"></i> <?php echo $nsShowProfitTrend ? 'Revenue &amp; profit — last 6 months' : 'Revenue — last 6 months'; ?></h4>
 			<div class="bd">
 				<div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend"></canvas></div>
-				<div class="ns-leg"><span class="sq" style="background:#0b6e99;"></span>Revenue<?php if ($nsShowProfitTrend): ?> &nbsp; <span class="sq" style="background:#0d9488;"></span>Profit (ex-VAT)<?php endif; ?></div>
+				<div class="ns-leg"><span class="sq" style="background:#1d4f91;"></span>Revenue<?php if ($nsShowProfitTrend): ?> &nbsp; <span class="sq" style="background:#0f766e;"></span>Profit (ex-VAT)<?php endif; ?></div>
 			</div>
 		</div>
 		<div class="ns-port">
@@ -905,7 +905,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 					labels: arLabels,
 					datasets: [{
 						data: arTotals,
-						backgroundColor: ['#1a7f4b', '#0b6e99', '#0d9488', '#c2811a', '#b42318'],
+						backgroundColor: ['#047857', '#2563eb', '#0f766e', '#b45309', '#b91c1c'],
 						borderRadius: 8,
 						borderSkipped: false,
 						maxBarThickness: 36
@@ -935,32 +935,32 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 		if (trEl) {
 			var ctx = trEl.getContext('2d');
 			var g = ctx.createLinearGradient(0, 0, 0, 200);
-			g.addColorStop(0, 'rgba(11,110,153,0.28)');
-			g.addColorStop(1, 'rgba(11,110,153,0.02)');
+			g.addColorStop(0, 'rgba(29,79,145,0.22)');
+			g.addColorStop(1, 'rgba(29,79,145,0.02)');
 			var trendDatasets = [
 				{
 					label: 'Revenue',
 					data: trendRev,
-					borderColor: '#0b6e99',
+					borderColor: '#1d4f91',
 					backgroundColor: g,
 					fill: true,
 					tension: 0.35,
 					borderWidth: 2.5,
 					pointRadius: 3,
-					pointBackgroundColor: '#0b6e99'
+					pointBackgroundColor: '#1d4f91'
 				}
 			];
 			if (showProfitTrend) {
 				trendDatasets.push({
 					label: 'Profit',
 					data: trendProf,
-					borderColor: '#0d9488',
+					borderColor: '#0f766e',
 					backgroundColor: 'transparent',
 					fill: false,
 					tension: 0.35,
 					borderWidth: 2.5,
 					pointRadius: 3,
-					pointBackgroundColor: '#0d9488'
+					pointBackgroundColor: '#0f766e'
 				});
 			}
 			new Chart(ctx, {
