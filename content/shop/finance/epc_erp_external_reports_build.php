@@ -1458,7 +1458,7 @@ if (!function_exists('epc_ext_ct_schedule_data')) {
             'addbacks' => array(
                 array('item' => 'Fines & administrative penalties', 'total' => 12000.0, 'addback' => 12000.0, 'basis' => '100% non-deductible — Art. 33'),
                 array('item' => 'Entertainment expenditure', 'total' => 18000.0, 'addback' => 9000.0, 'basis' => '50% disallowed — Art. 32'),
-                array('item' => 'Donations to non-approved bodies', 'total' => 5000.0, 'addback' => 5000.0, 'basis' => 'Non-qualifying donee — Art. 37'),
+                array('item' => 'Donations to non-approved bodies', 'total' => 5000.0, 'addback' => 5000.0, 'basis' => 'Non-qualifying donee — Art. 33'),
                 array('item' => 'General (non-specific) provisions', 'total' => 8000.0, 'addback' => 8000.0, 'basis' => 'Not yet incurred (timing)'),
             ),
             'assets' => array(
@@ -1796,7 +1796,7 @@ if (!function_exists('epc_ext_b_ct')) {
         $t .= epc_ext_ct_schedule_row('Add back: non-deductible & timing items', '', $ccy, 'head');
         $t .= epc_ext_ct_schedule_row('Fines & administrative penalties', $finesPenalties, $ccy, 'add', '100% non-deductible — Art. 33', $dFines);
         $t .= epc_ext_ct_schedule_row('Entertainment expenditure (50% disallowed)', $entertainmentAddBack, $ccy, 'add', 'Art. 32 (of ' . epc_erp_money($entertainmentTotal) . ')', $dEnt);
-        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donationsNonApproved, $ccy, 'add', 'Art. 37', $dDon);
+        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donationsNonApproved, $ccy, 'add', 'Art. 33', $dDon);
         $t .= epc_ext_ct_schedule_row('General (non-specific) provisions', $generalProvision, $ccy, 'add', 'Not yet incurred', $dProv);
         $t .= epc_ext_ct_schedule_row('Accounting depreciation', $acctDepreciation, $ccy, 'add', 'Replaced by tax depreciation', $dAcctDep);
         $t .= epc_ext_ct_schedule_row('Less: deductions & exempt income', '', $ccy, 'head');
@@ -4526,18 +4526,24 @@ if (!function_exists('epc_ext_import_template_csv')) {
                 array('META_TRN', 'Tax / commercial registration number', '100000000000003', ''),
                 array('META_ADDRESS', 'Registered address', 'Office 101, Business Bay, Dubai', ''),
                 array('META_EMIRATE', 'Emirate / region', 'Dubai', ''),
-                array('META_PERIOD_FROM', 'Reporting period from (YYYY-MM-DD)', '2024-01-01', ''),
-                array('META_PERIOD_TO', 'Reporting period to (YYYY-MM-DD)', '2024-12-31', ''),
+                array('META_PERIOD_FROM', 'Reporting period from (YYYY-MM-DD)', '2026-01-01', ''),
+                array('META_PERIOD_TO', 'Reporting period to (YYYY-MM-DD)', '2026-12-31', ''),
                 array('META_AUDITOR', 'Independent auditor', 'Gulf Audit & Assurance', ''),
-                array('FIN_REVENUE', 'Revenue (IFRS 15)', '8400000', '7500000'),
-                array('FIN_COGS', 'Cost of sales', '4704000', '4200000'),
-                array('FIN_OTHER_INCOME', 'Other income', '60000', '50000'),
-                array('FIN_ADMIN_EXP', 'Administrative expenses', '1450000', '1300000'),
-                array('FIN_SELLING_EXP', 'Selling & distribution expenses', '520000', '470000'),
+                array('META_IFRS18', 'Early apply IFRS 18 presentation (Y/N; default Y for FY2026+)', 'Y', ''),
+                array('FIN_REVENUE', 'Revenue (IFRS 15) — operating category', '8400000', '7500000'),
+                array('FIN_COGS', 'Cost of sales — operating category', '4704000', '4200000'),
+                array('FIN_OTHER_INCOME', 'Other income — operating category (IFRS 18)', '60000', '50000'),
+                array('FIN_ADMIN_EXP', 'Administrative expenses — operating (IFRS 18)', '1450000', '1300000'),
+                array('FIN_SELLING_EXP', 'Selling & distribution — operating (IFRS 18)', '520000', '470000'),
                 array('FIN_DEPR', 'Depreciation & amortisation (IAS 16/38)', '336000', '300000'),
-                array('FIN_FINANCE_COST', 'Finance costs', '100800', '90000'),
+                array('FIN_INVEST_INCOME', 'Investing category — income from investments / cash (IFRS 18)', '0', '0'),
+                array('FIN_ASSOC_PL', 'Investing category — share of associates / JVs (IFRS 18)', '0', '0'),
+                array('FIN_FINANCE_COST', 'Finance costs — financing category (IFRS 18)', '100800', '90000'),
                 array('FIN_TAX', 'Income tax expense (IAS 12)', '113148', '90000'),
-                array('FIN_OCI', 'Other comprehensive income', '0', '0'),
+                array('FIN_DISC_OPS', 'Discontinued operations (IFRS 5 / IFRS 18)', '0', '0'),
+                array('FIN_OCI', 'Other comprehensive income (IFRS 18)', '0', '0'),
+                array('META_MPM_FLAG', 'Any management-defined performance measures communicated? (Y/N)', 'N', ''),
+                array('META_MPM_NOTE', 'MPM description / reconciliation (if META_MPM_FLAG=Y)', '', ''),
                 array('FIN_PPE', 'Property, plant & equipment (IAS 16)', '3528000', '3150000'),
                 array('FIN_INTANGIBLES', 'Intangible assets (IAS 38)', '420000', '375000'),
                 array('FIN_INVENTORY', 'Inventories (IAS 2)', '924000', '825000'),
@@ -4559,8 +4565,8 @@ if (!function_exists('epc_ext_import_template_csv')) {
                 array('Code', 'Description', 'Amount'),
                 array('META_LEGAL_NAME', 'Legal name (taxable person)', 'Sample Client Trading LLC'),
                 array('META_TRN', 'Corporate Tax registration number (TRN)', '100000000000003'),
-                array('META_PERIOD_FROM', 'Financial year from (YYYY-MM-DD)', '2025-01-01'),
-                array('META_PERIOD_TO', 'Financial year to (YYYY-MM-DD)', '2025-12-31'),
+                array('META_PERIOD_FROM', 'Financial year from (YYYY-MM-DD)', '2026-01-01'),
+                array('META_PERIOD_TO', 'Financial year to (YYYY-MM-DD)', '2026-12-31'),
                 array('ACCT_PROFIT', 'Accounting net profit per financial statements', '1250000'),
                 array('REVENUE', 'Total revenue (for Small Business Relief test)', '8400000'),
                 array('FINES', 'Fines & administrative penalties (added back)', '15000'),
@@ -4743,30 +4749,37 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                 'Instructions' => array(
                     array('IFRS Financial Statements & Audit Report — complete import template (off-system)'),
                     array('Framework', 'International Financial Reporting Standards (IFRS) as issued by the IASB'),
+                    array('Presentation', 'IFRS 18 Presentation and Disclosure in Financial Statements — early applied for FY2026+ (mandatory for periods beginning on/after 1 Jan 2027; replaces IAS 1 for presentation & disclosure)'),
                     array('Auditing', 'International Standards on Auditing (ISA 700/701/705/570/720)'),
-                    array('Output', 'Cover page + Independent Auditor\'s Report + SOFP + SOPL & OCI + Changes in Equity + Cash Flows + full notes + standards index, with prior-year comparatives'),
+                    array('Output', 'Cover page + Independent Auditor\'s Report + SOFP + SOPL (five categories) & OCI + Changes in Equity + Cash Flows + full notes (incl. MPM assessment) + standards index, with prior-year comparatives'),
                     array(''),
                     array('This workbook is designed so you can enter EVERYTHING needed to generate a complete, audit-ready IFRS report for any client.'),
+                    array('IFRS 18 presentation (FY2026+):'),
+                    array('•', 'Classify income & expenses into operating / investing / financing / income taxes / discontinued operations.'),
+                    array('•', 'Mandatory subtotals: operating profit or loss; profit or loss before financing and income taxes; profit or loss.'),
+                    array('•', 'Set META_MPM_FLAG=Y and complete META_MPM_NOTE only if management communicates non-IFRS performance measures publicly.'),
+                    array('•', 'Use FIN_INVEST_INCOME / FIN_ASSOC_PL for investing-category amounts; FIN_DISC_OPS for discontinued operations.'),
+                    array(''),
                     array('Sheets in this workbook:'),
-                    array('1', 'Company & details — entity, TRN, country, industry/principal activity, period & comparative, auditor & authority, share data.'),
-                    array('2', 'Financial data — every statement line, Current + Prior columns (the single source for the face of the statements).'),
+                    array('1', 'Company & details — entity, TRN, country, industry/principal activity, period & comparative, auditor & authority, share data, IFRS 18 / MPM flags.'),
+                    array('2', 'Financial data — every statement line, Current + Prior columns (the single source for the face of the statements; IFRS 18 category hints on P&L lines).'),
                     array('3', 'Revenue & segments — disaggregation of revenue by stream, geography and reportable segment (IFRS 15 / IFRS 8).'),
                     array('4', 'PPE & intangible movement — cost / accumulated depreciation / additions / disposals / charge, both years (IAS 16 / IAS 38).'),
                     array('5', 'Receivables, payables, inventory & ECL — gross receivables + ECL, receivables ageing, payables ageing, inventory categories and inventory ageing (IFRS 9 / IFRS 7 / IAS 2).'),
                     array('6', 'Tax reconciliation — current vs deferred tax and the effective-rate reconciliation (IAS 12).'),
                     array('7', 'Leases, borrowings & financial risk — maturity analysis and risk inputs (IFRS 16 / IFRS 7).'),
-                    array('8', 'Equity, EPS & dividends — share movements, weighted shares, dividend per share (IAS 33 / IAS 1).'),
+                    array('8', 'Equity, EPS & dividends — share movements, weighted shares, dividend per share (IAS 33 / IFRS 18).'),
                     array('9', 'Related parties & KMP — key management remuneration and related-party balances (IAS 24).'),
-                    array('10', 'Other disclosures — commitments, contingencies, events after reporting date, going concern (IAS 37 / IAS 10).'),
+                    array('10', 'Other disclosures — commitments, contingencies, events after reporting date, going concern (IAS 37 / IAS 10 / IFRS 18).'),
                     array('11', 'Notes inputs — narrative accounting policies the report quotes for each standard.'),
-                    array('12', 'Compliance checklist — the checks the engine validates before issuing.'),
+                    array('12', 'Compliance checklist — the checks the engine validates before issuing (incl. IFRS 18).'),
                     array(''),
                     array('How to use:'),
                     array('a', 'Keep the Code column EXACTLY as provided — those codes are machine-read. Edit only the value/amount columns.'),
                     array('b', 'Enter amounts as positive numbers; the builder applies the correct sign on each statement.'),
-                    array('c', 'Current year = column C, Prior year (comparative) = column D, on every "FIN_" line.'),
+                    array('c', 'Current year = column C, Prior year (comparative) = column D, on every "FIN_" line. Sample periods are FY2026 / FY2025.'),
                     array('d', 'Detail sheets (PPE movement, receivables, tax, etc.) feed the notes — fill them for a richer report; blanks fall back to sensible derived values.'),
-                    array('e', 'Save as .xlsx (or .csv) and upload under Import from Excel → Build return → "IFRS Financial Statements".'),
+                    array('e', 'Save as .xlsx (or .csv) and upload under Import from Excel → Build report → "IFRS Financial Statements".'),
                     array('f', 'Off-system: nothing is read from or written to your ERP/GL — ideal for preparing other clients\' accounts.'),
                 ),
                 'Company & details' => array(
@@ -4788,10 +4801,13 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('META_CURRENCY', 'Presentation currency', 'AED'),
                     array('META_FUNCTIONAL_CCY', 'Functional currency', 'AED'),
                     array('META_ROUNDING', 'Figures rounded to', 'Nearest currency unit'),
-                    array('META_PERIOD_FROM', 'Reporting period from (YYYY-MM-DD)', '2024-01-01'),
-                    array('META_PERIOD_TO', 'Reporting period to (YYYY-MM-DD)', '2024-12-31'),
-                    array('META_PRIOR_FROM', 'Comparative period from (YYYY-MM-DD)', '2023-01-01'),
-                    array('META_PRIOR_TO', 'Comparative period to (YYYY-MM-DD)', '2023-12-31'),
+                    array('META_PERIOD_FROM', 'Reporting period from (YYYY-MM-DD)', '2026-01-01'),
+                    array('META_PERIOD_TO', 'Reporting period to (YYYY-MM-DD)', '2026-12-31'),
+                    array('META_PRIOR_FROM', 'Comparative period from (YYYY-MM-DD)', '2025-01-01'),
+                    array('META_PRIOR_TO', 'Comparative period to (YYYY-MM-DD)', '2025-12-31'),
+                    array('META_IFRS18', 'Early apply IFRS 18 presentation (Y/N; default Y for FY2026+)', 'Y'),
+                    array('META_MPM_FLAG', 'Any management-defined performance measures communicated? (Y/N)', 'N'),
+                    array('META_MPM_NOTE', 'MPM description / reconciliation (if META_MPM_FLAG=Y)', ''),
                     array('META_SHARE_COUNT', 'Number of shares in issue', '500000'),
                     array('META_PAR_VALUE', 'Par value per share', '1'),
                     array('META_EMPLOYEES', 'Average number of employees', '45'),
@@ -4800,20 +4816,23 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('META_AUDITOR_AUTH', 'Auditor oversight authority', 'Ministry of Economy — UAE Auditors Register'),
                     array('META_DIRECTOR', 'Director signing the accounts', 'Managing Director'),
                     array('META_PREPARER', 'Accounts prepared by', 'Finance Manager'),
-                    array('META_APPROVAL_DATE', 'Date accounts approved (YYYY-MM-DD)', '2025-03-31'),
+                    array('META_APPROVAL_DATE', 'Date accounts approved (YYYY-MM-DD)', '2027-03-31'),
                 ),
                 'Financial data' => array(
                     array('Code', 'Description', 'Current year', 'Prior year'),
-                    array('— Statement of profit or loss & OCI —', '', '', ''),
-                    array('FIN_REVENUE', 'Revenue (IFRS 15)', '8400000', '7500000'),
-                    array('FIN_COGS', 'Cost of sales', '4704000', '4200000'),
-                    array('FIN_OTHER_INCOME', 'Other income', '60000', '50000'),
-                    array('FIN_ADMIN_EXP', 'Administrative expenses', '1450000', '1300000'),
-                    array('FIN_SELLING_EXP', 'Selling & distribution expenses', '520000', '470000'),
-                    array('FIN_DEPR', 'Depreciation & amortisation (IAS 16/38)', '336000', '300000'),
-                    array('FIN_FINANCE_COST', 'Finance costs', '100800', '90000'),
-                    array('FIN_TAX', 'Income tax expense (IAS 12)', '113148', '90000'),
-                    array('FIN_OCI', 'Other comprehensive income (revaluation etc.)', '0', '0'),
+                    array('— Statement of profit or loss (IFRS 18 categories) & OCI —', '', '', ''),
+                    array('FIN_REVENUE', 'Revenue (IFRS 15) — operating category', '8400000', '7500000'),
+                    array('FIN_COGS', 'Cost of sales — operating category', '4704000', '4200000'),
+                    array('FIN_OTHER_INCOME', 'Other income — operating category (IFRS 18)', '60000', '50000'),
+                    array('FIN_ADMIN_EXP', 'Administrative expenses — operating (IFRS 18)', '1450000', '1300000'),
+                    array('FIN_SELLING_EXP', 'Selling & distribution — operating (IFRS 18)', '520000', '470000'),
+                    array('FIN_DEPR', 'Depreciation & amortisation (IAS 16/38) — operating', '336000', '300000'),
+                    array('FIN_INVEST_INCOME', 'Investing category — income from investments / cash (IFRS 18)', '0', '0'),
+                    array('FIN_ASSOC_PL', 'Investing category — share of associates / JVs (IFRS 18)', '0', '0'),
+                    array('FIN_FINANCE_COST', 'Finance costs — financing category (IFRS 18)', '100800', '90000'),
+                    array('FIN_TAX', 'Income tax expense (IAS 12) — income taxes category', '113148', '90000'),
+                    array('FIN_DISC_OPS', 'Discontinued operations (IFRS 5 / IFRS 18)', '0', '0'),
+                    array('FIN_OCI', 'Other comprehensive income (IFRS 18)', '0', '0'),
                     array('— Statement of financial position: assets —', '', '', ''),
                     array('FIN_PPE', 'Property, plant & equipment (IAS 16)', '3528000', '3150000'),
                     array('FIN_INTANGIBLES', 'Intangible assets (IAS 38)', '420000', '375000'),
@@ -4872,7 +4891,7 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('FIN_REC_60', 'Receivables ageing — 31 to 60 days past due', '120000', '108000'),
                     array('FIN_REC_90', 'Receivables ageing — 61 to 90 days past due', '52000', '45000'),
                     array('FIN_REC_90PLUS', 'Receivables ageing — more than 90 days past due', '35000', '25000'),
-                    array('— Trade & other payables ageing (IFRS 7 / IAS 1) —', '', '', ''),
+                    array('— Trade & other payables ageing (IFRS 7 / IFRS 18) —', '', '', ''),
                     array('FIN_PAY_CURRENT', 'Payables ageing — not yet due', '720000', '645000'),
                     array('FIN_PAY_30', 'Payables ageing — 1 to 30 days past due', '230000', '205000'),
                     array('FIN_PAY_60', 'Payables ageing — 31 to 60 days past due', '98000', '85000'),
@@ -4911,7 +4930,7 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('FIN_FX_EXPOSURE', 'Net foreign-currency monetary exposure', '0', '0'),
                 ),
                 'Equity, EPS & dividends' => array(
-                    array('Code', 'Equity, EPS & dividends (IAS 33 / IAS 1)', 'Current year', 'Prior year'),
+                    array('Code', 'Equity, EPS & dividends (IAS 33 / IFRS 18)', 'Current year', 'Prior year'),
                     array('FIN_SHARES_WEIGHTED', 'Weighted average shares in issue', '500000', '500000'),
                     array('FIN_SHARES_ISSUED_YR', 'Shares issued during the year', '0', '0'),
                     array('FIN_DIV_PER_SHARE', 'Dividend per share declared', '0.60', '0.40'),
@@ -4933,13 +4952,14 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('FIN_CONTINGENT', 'Contingent liabilities (guarantees, claims)', '0'),
                     array('FIN_OPERATING_COMMIT', 'Other operating commitments', '0'),
                     array('DISC_SUBSEQUENT', 'Events after the reporting date (IAS 10)', 'None to report'),
-                    array('DISC_GOING_CONCERN', 'Going-concern assessment (IAS 1 / ISA 570)', 'Going concern appropriate; no material uncertainty'),
+                    array('DISC_GOING_CONCERN', 'Going-concern assessment (IFRS 18 / ISA 570)', 'Going concern appropriate; no material uncertainty'),
                     array('DISC_CONTINGENT_NOTE', 'Narrative on contingencies/guarantees', 'None'),
                 ),
                 'Notes inputs' => array(
                     array('Note', 'Disclosure', 'Detail'),
-                    array('Reporting entity (IAS 1)', 'Nature of business / principal activity', 'General trading and related services'),
-                    array('Basis of preparation (IAS 1/8)', 'Measurement basis', 'Historical cost; going concern; accrual basis'),
+                    array('Reporting entity (IFRS 18)', 'Nature of business / principal activity', 'General trading and related services'),
+                    array('Basis of preparation (IFRS 18 / IAS 8)', 'Measurement basis', 'Historical cost; going concern; accrual basis; IFRS 18 early applied for FY2026+'),
+                    array('Presentation of profit or loss (IFRS 18)', 'Categories & subtotals', 'Operating / investing / financing / income taxes / discontinued; three mandatory subtotals'),
                     array('Functional & presentation currency (IAS 21)', 'Currency policy', 'Functional and presentation currency is AED'),
                     array('Revenue (IFRS 15)', 'Disaggregation & timing', 'Goods at a point in time; services over time'),
                     array('Segments (IFRS 8)', 'Reportable segments', 'Trading and Services'),
@@ -4956,20 +4976,24 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('Provisions (IAS 37)', 'Recognition', 'Present obligation, probable outflow, reliable estimate'),
                     array('Related parties (IAS 24)', 'Transactions', 'Key management & group balances at arm\'s length'),
                     array('Earnings per share (IAS 33)', 'Basic EPS', 'Profit ÷ weighted average shares'),
+                    array('MPMs (IFRS 18)', 'Management-defined performance measures', 'None communicated outside the financial statements'),
                     array('Events after reporting date (IAS 10)', 'Adjusting/non-adjusting', 'None to report'),
                 ),
                 'Compliance checklist' => array(
                     array('Check', 'Requirement', 'Expected'),
-                    array('Framework stated', 'IFRS basis of preparation disclosed', 'IAS 1 note present'),
+                    array('Framework stated', 'IFRS basis of preparation disclosed', 'IFRS 18 / IAS 8 note present'),
+                    array('IFRS 18 categories', 'P&L income/expenses in five categories', 'Operating / investing / financing / tax / discontinued'),
+                    array('IFRS 18 subtotals', 'Three mandatory subtotals presented', 'Operating profit; PBT before financing & tax; profit or loss'),
+                    array('MPM assessment', 'MPMs reconciled or confirmed none', 'IFRS 18 MPM note present'),
                     array('Comparatives', 'Prior-year figures for every statement', 'Two periods shown'),
                     array('SOFP balances', 'Assets = Equity + Liabilities', 'Difference = 0'),
                     array('Equity roll-forward', 'Opening + profit + OCI − dividends = closing', 'SOCE reconciles'),
-                    array('Cash flow reconciles', 'Opening cash + net flow = closing cash', 'SCF ties to SOFP'),
+                    array('Cash flow reconciles', 'Opening cash + net flow = closing cash', 'SCF ties to SOFP (IAS 7 as amended by IFRS 18)'),
                     array('Revenue disaggregation', 'Revenue split sums to total revenue', 'IFRS 15 note ties'),
                     array('PPE movement', 'Opening + additions − disposals − depreciation = closing NBV', 'IAS 16 note ties'),
                     array('Receivables ageing', 'Ageing buckets sum to gross receivables', 'IFRS 9 note ties'),
                     array('Tax reconciliation', 'Current + deferred = income tax expense', 'IAS 12 note ties'),
-                    array('Going concern', 'Going-concern basis assessed (ISA 570)', 'Statement present'),
+                    array('Going concern', 'Going-concern basis assessed (ISA 570 / IFRS 18)', 'Statement present'),
                     array('Auditor independence', 'Independence & ethics confirmed', 'Basis-for-opinion note'),
                     array('Key audit matters', 'KAM disclosed for listed/PIE (ISA 701)', 'Where applicable'),
                 ),
@@ -5041,7 +5065,7 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('Ref', 'Description', 'Amount', 'Treatment / basis'),
                     array('ADJ-001', 'Traffic & administrative fines', '15000', '100% non-deductible (Art. 33)'),
                     array('ADJ-002', 'Client entertainment', '40000', '50% disallowed (Art. 32)'),
-                    array('ADJ-003', 'Donation - non-approved body', '10000', 'Non-deductible (Art. 37)'),
+                    array('ADJ-003', 'Donation - non-approved body', '10000', 'Non-deductible (Art. 33)'),
                     array('ADJ-004', 'General provision', '25000', 'Not yet incurred'),
                     array('…', 'add your own add-back rows below', '', ''),
                 ),
@@ -5091,8 +5115,8 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('CT registration', 'Taxable person registered & TRN obtained', 'TRN on file', 'Art. 51'),
                     array('Fines add-back', 'Fines/penalties added back 100%', 'FINES fully added back', 'Art. 33'),
                     array('Entertainment', '50% of entertainment disallowed', 'ENTERTAINMENT x 50% added back', 'Art. 32'),
-                    array('Donations', 'Donations to non-approved bodies added back', 'DONATIONS added back', 'Art. 37'),
-                    array('Provisions', 'General provisions added back', 'PROVISIONS added back', 'Art. 28'),
+                    array('Donations', 'Donations to non-approved bodies added back', 'DONATIONS added back', 'Art. 33'),
+                    array('Provisions', 'General provisions added back until incurred', 'PROVISIONS added back', 'Art. 28 / Art. 33 timing'),
                     array('Depreciation', 'Accounting depreciation replaced by tax depreciation', 'ACCT_DEP back, TAX_DEP deducted', 'Art. 28'),
                     array('Exempt income', 'Dividends / participation excluded', 'EXEMPT_INCOME deducted', 'Art. 22-23'),
                     array('Interest cap', 'Net interest within 30% EBITDA / AED 12m de-minimis', 'NET_INTEREST <= cap', 'Art. 30'),
@@ -5194,7 +5218,7 @@ if (!function_exists('epc_ext_import_template_sheets')) {
             'Adjustments' => array(
                 array('Ref', 'Date', 'Type', 'Description', 'Net adjustment', 'VAT adjustment', 'Basis'),
                 array('ADJ-001', '2026-02-15', 'Credit note', 'Sales return - Gulf Distributors', '-8000', '-400', 'Output VAT adjustment'),
-                array('ADJ-002', '2026-03-05', 'Bad debt relief', 'Receivable > 6 months written off', '-12000', '-600', 'Art. 64 bad-debt relief'),
+                array('ADJ-002', '2026-03-05', 'Bad debt relief', 'Receivable > 6 months written off', '-12000', '-600', 'Exec. Reg. Art. 64 — bad-debt relief'),
                 array('ADJ-003', '2026-03-20', 'Input correction', 'Prior-period under-claimed input VAT', '5000', '250', 'Voluntary correction'),
                 array('…', '', 'add your own adjustment rows below', '', '', '', ''),
             ),
@@ -5247,7 +5271,7 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                 array('Tax group', 'Intra-group supplies disregarded (single TRN)', 'Excluded from boxes 1-14', 'Art. 9'),
                 array('Input recovery', 'Input VAT only on taxable (not exempt) supplies', 'Block on exempt', 'Art. 54'),
                 array('Reconciliation', 'Box 14 = Box 12 - Box 13', 'Net = output - input', 'FTA VAT 201'),
-                array('Filing & payment', 'File & pay within 28 days of period end', 'By 28th of next month', 'Art. 64'),
+                array('Filing & payment', 'File & pay within 28 days of period end', 'By 28th of next month', 'FDL 8/2017 Art. 65 / Exec. Reg. filing rules'),
             ),
         );
     }
@@ -5492,8 +5516,8 @@ if (!function_exists('epc_ext_import_map')) {
                 $v = str_replace(array(',', ' ', "\xC2\xA0"), '', $v);
                 return is_numeric($v) ? (float) $v : 0.0;
             };
-            if (strpos($code, 'META_') === 0) {
-                // meta value is in column C (index 2) for both templates
+            if (strpos($code, 'META_') === 0 || strpos($code, 'DISC_') === 0) {
+                // meta / narrative disclosure value is in column C (index 2)
                 $meta[$code] = trim((string) ($r[2] ?? ($r[1] ?? '')));
                 continue;
             }
@@ -5693,7 +5717,7 @@ if (!function_exists('epc_ext_b_ct_summary')) {
         $t .= epc_ext_ct_schedule_row('Add back: non-deductible & timing items', '', $ccy, 'head');
         $t .= epc_ext_ct_schedule_row('Fines & administrative penalties', $fines, $ccy, 'add', '100% non-deductible — Art. 33');
         $t .= epc_ext_ct_schedule_row('Entertainment expenditure (50% disallowed)', $entAdd, $ccy, 'add', 'Art. 32 (of ' . epc_erp_money($entTotal) . ')');
-        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donations, $ccy, 'add', 'Art. 37');
+        $t .= epc_ext_ct_schedule_row('Donations to non-approved bodies', $donations, $ccy, 'add', 'Art. 33');
         $t .= epc_ext_ct_schedule_row('General (non-specific) provisions', $provisions, $ccy, 'add', 'Timing');
         $t .= epc_ext_ct_schedule_row('Accounting depreciation', $acctDep, $ccy, 'add', 'Replaced by tax depreciation');
         $t .= epc_ext_ct_schedule_row('Less: deductions & exempt income', '', $ccy, 'head');
@@ -5797,11 +5821,15 @@ if (!function_exists('epc_ext_b_fin_summary')) {
         $calc = static function (callable $v): array {
             $rev = $v('FIN_REVENUE'); $cogs = $v('FIN_COGS'); $oth = $v('FIN_OTHER_INCOME');
             $admin = $v('FIN_ADMIN_EXP'); $sell = $v('FIN_SELLING_EXP'); $depr = $v('FIN_DEPR');
-            $finc = $v('FIN_FINANCE_COST'); $tax = $v('FIN_TAX'); $oci = $v('FIN_OCI');
+            $invest = $v('FIN_INVEST_INCOME'); $assoc = $v('FIN_ASSOC_PL');
+            $finc = $v('FIN_FINANCE_COST'); $tax = $v('FIN_TAX'); $disc = $v('FIN_DISC_OPS');
+            $oci = $v('FIN_OCI');
             $gross = $rev - $cogs;
             $op = $gross + $oth - $admin - $sell - $depr;
-            $pbt = $op - $finc;
-            $profit = $pbt - $tax;
+            $beforeFin = $op + $invest + $assoc; // IFRS 18: profit before financing and income taxes
+            $pbt = $beforeFin - $finc;
+            $profitCont = $pbt - $tax;
+            $profit = $profitCont + $disc;
             $ppe = $v('FIN_PPE'); $intang = $v('FIN_INTANGIBLES');
             $invn = $v('FIN_INVENTORY'); $recv = $v('FIN_RECEIVABLES'); $cash = $v('FIN_CASH');
             $pay = $v('FIN_PAYABLES'); $bcur = $v('FIN_BORROW_CUR'); $bnon = $v('FIN_BORROW_NONCUR');
@@ -5816,6 +5844,8 @@ if (!function_exists('epc_ext_b_fin_summary')) {
             return array(
                 'rev' => $rev, 'cogs' => $cogs, 'gross' => $gross, 'oth' => $oth,
                 'admin' => $admin, 'sell' => $sell, 'depr' => $depr, 'fin' => $finc,
+                'invest' => $invest, 'assoc' => $assoc, 'beforeFin' => $beforeFin,
+                'disc' => $disc, 'profitCont' => $profitCont,
                 'op' => $op, 'pbt' => $pbt, 'tax' => $tax, 'profit' => $profit, 'oci' => $oci,
                 'tci' => $profit + $oci,
                 'ppe' => $ppe, 'intang' => $intang, 'inv' => $invn, 'recv' => $recv, 'cash' => $cash,
@@ -5911,15 +5941,17 @@ if (!function_exists('epc_ext_b_fin_summary')) {
                 . $line('Depreciation &amp; amortisation', -$C['depr'], -$P['depr'], 'IAS 16/38')
                 . $line('Operating profit or loss', $C['op'], $P['op'], 'IFRS 18', 'sub')
                 . $line('Investing category', '', '', 'IFRS 18', 'head')
-                . $line('Income / (expenses) from cash and cash equivalents', 0, 0, 'IFRS 18')
-                . $line('Income / (expenses) from other investments', 0, 0, 'IFRS 18')
-                . $line('Share of profit / (loss) of associates and joint ventures', 0, 0, 'IFRS 18')
-                . $line('Profit or loss before financing and income taxes', $C['op'], $P['op'], 'IFRS 18', 'sub')
+                . $line('Income / (expenses) from cash and cash equivalents &amp; other investments', $C['invest'], $P['invest'], 'IFRS 18')
+                . $line('Share of profit / (loss) of associates and joint ventures', $C['assoc'], $P['assoc'], 'IFRS 18')
+                . $line('Profit or loss before financing and income taxes', $C['beforeFin'], $P['beforeFin'], 'IFRS 18', 'sub')
                 . $line('Financing category', '', '', 'IFRS 18', 'head')
                 . $line('Finance costs', -$C['fin'], -$P['fin'], 'IFRS 7')
                 . $line('Profit or loss before income taxes', $C['pbt'], $P['pbt'], 'IFRS 18', 'sub')
                 . $line('Income taxes category', '', '', 'IAS 12', 'head')
                 . $line('Income tax expense', -$C['tax'], -$P['tax'], 'IAS 12')
+                . $line('Profit or loss from continuing operations', $C['profitCont'], $P['profitCont'], 'IFRS 18', 'sub')
+                . $line('Discontinued operations category', '', '', 'IFRS 5', 'head')
+                . $line('Profit or loss from discontinued operations', $C['disc'], $P['disc'], 'IFRS 5')
                 . $line('Profit or loss', $C['profit'], $P['profit'], 'IFRS 18', 'total')
                 . $tblClose;
             $sopl .= $tblOpen
@@ -6152,7 +6184,14 @@ if (!function_exists('epc_ext_b_fin_summary')) {
             . $note('Commitments &amp; contingencies', 'IAS 37', 'Capital commitments ' . $m($cur('FIN_CAPITAL_COMMIT')) . '; contingent liabilities ' . $m($cur('FIN_CONTINGENT')) . '. ' . epc_erp_h((string) ($meta['DISC_CONTINGENT_NOTE'] ?? '')))
             . $note('Events after the reporting period', 'IAS 10', (string) (($meta['DISC_SUBSEQUENT'] ?? '') !== '' ? epc_erp_h((string) $meta['DISC_SUBSEQUENT']) : 'No material adjusting or non-adjusting events occurred between the reporting date and the date of approval.'))
             . ($useIfrs18Imp
-                ? $note('Management-defined performance measures (MPMs)', 'IFRS 18', 'IFRS 18 requires public communication of management-defined performance measures (subtotals of income and expenses that are not IFRS-defined totals/subtotals) to be disclosed in a single note with reconciliations to the most directly comparable IFRS subtotal. Assessment: the face of the statement of profit or loss presents only IFRS 18 mandatory subtotals (operating profit or loss; profit or loss before financing and income taxes; profit or loss) plus commonly used additional subtotals (gross profit; profit or loss before income taxes) that are part of a useful structured summary. No MPM note reconciliation is therefore required unless management communicates other MPMs outside the financial statements.')
+                ? $note(
+                    'Management-defined performance measures (MPMs)',
+                    'IFRS 18',
+                    (strtoupper(trim((string) ($meta['META_MPM_FLAG'] ?? 'N'))) === 'Y'
+                        ? ('Management communicates the following management-defined performance measure(s) outside the financial statements. Reconciliation to the most directly comparable IFRS subtotal: '
+                            . epc_erp_h((string) (($meta['META_MPM_NOTE'] ?? '') !== '' ? $meta['META_MPM_NOTE'] : 'Provide the MPM name, definition and reconciliation in META_MPM_NOTE.')))
+                        : 'IFRS 18 requires public communication of management-defined performance measures (subtotals of income and expenses that are not IFRS-defined totals/subtotals) to be disclosed in a single note with reconciliations to the most directly comparable IFRS subtotal. Assessment: the Company does not communicate any MPMs outside the financial statements. The face of the statement of profit or loss presents only IFRS 18 mandatory subtotals (operating profit or loss; profit or loss before financing and income taxes; profit or loss) plus commonly used additional subtotals (gross profit; profit or loss before income taxes) that are part of a useful structured summary. No MPM note reconciliation is therefore required.')
+                )
                 : '');
 
         // ---- compliance checks --------------------------------------------
