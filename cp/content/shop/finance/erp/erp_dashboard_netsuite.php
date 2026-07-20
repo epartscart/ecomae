@@ -494,7 +494,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 	</div>
 
 	<div class="ns-port">
-		<div class="bd">
+		<div class="bd" style="padding-top:14px">
 			<?php
 			echo epc_dash_shortcuts_render(array(
 				'surface' => 'erp',
@@ -514,7 +514,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 		<h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted);font-size:11px;">— live, period <?php echo epc_erp_h($date_from_str); ?> to <?php echo epc_erp_h($date_to_str); ?></span>
 			<a href="#ns-industry-controls" style="float:right;font-weight:400;font-size:11px;">Industry controls &darr;</a>
 		</h4>
-		<div class="bd">
+		<div class="bd" style="padding-top:14px">
 			<div class="ns-kpi-grid">
 				<?php foreach ($opKpis as $k): $hc = epc_erp_h($k['health']); ?>
 					<div class="ns-kpi-card <?php echo $hc; ?>" title="<?php echo epc_erp_h($k['hint']); ?>">
@@ -534,7 +534,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 		<div class="ns-col-left">
 			<div class="ns-port">
 				<h4><i class="fa fa-bell-o"></i> Reminders</h4>
-				<div class="bd">
+				<div class="bd" style="padding-top:14px">
 					<ul class="ns-rem">
 						<?php foreach ($reminders as $r): ?>
 							<li>
@@ -547,7 +547,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 			</div>
 			<div class="ns-port ns-nav">
 				<h4><i class="fa fa-bars"></i> Navigation shortcuts</h4>
-				<div class="bd">
+				<div class="bd" style="padding-top:14px">
 					<?php
 					$navTones = array('Lists' => 'ns-mi-teal', 'Transactions' => 'ns-mi-blue', 'Reports' => 'ns-mi-amber');
 					foreach ($navGroups as $grp => $links):
@@ -589,7 +589,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 			<?php if ($nsCan('financials')): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-money"></i> Financials</h4>
-				<div class="bd">
+				<div class="bd" style="padding-top:14px">
 					<?php
 					$rev = (float) ($dashboard['revenue_ex_vat'] ?? 0);
 					$prof = (float) ($dashboard['profit_ex_vat'] ?? 0);
@@ -630,7 +630,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 			<?php if ($nsCan('gauge') && $nsCan('cash')): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-dashboard"></i> KPI meter — Total bank balance</h4>
-				<div class="bd">
+				<div class="bd" style="padding-top:14px">
 					<div class="ns-gauge">
 						<svg viewBox="0 0 200 120" width="100%" height="120">
 							<defs>
@@ -658,7 +658,7 @@ if (function_exists('epc_erp_shell_asset_href')) {
 			<?php if ($nsCan('aging_ar')): ?>
 			<div class="ns-port">
 				<h4><i class="fa fa-bar-chart"></i> A/R aging — graphical</h4>
-				<div class="bd">
+				<div class="bd" style="padding-top:14px">
 					<div class="ns-chart-wrap"><canvas id="nsChartAr" aria-label="A/R aging chart"></canvas></div>
 					<div class="ns-total">Total receivable: <strong><?php echo $nsMoney($nsAr['grand']); ?> <?php echo $nsCurrency; ?></strong></div>
 				</div>
@@ -786,14 +786,14 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 	<div class="ns-exec-grid">
 		<div class="ns-port">
 			<h4><i class="fa fa-line-chart"></i> <?php echo $nsShowProfitTrend ? 'Revenue &amp; profit — last 6 months' : 'Revenue — last 6 months'; ?></h4>
-			<div class="bd">
+			<div class="bd" style="padding-top:14px">
 				<div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend"></canvas></div>
 				<div class="ns-leg"><span class="sq" style="background:#1d4f91;"></span>Revenue<?php if ($nsShowProfitTrend): ?> &nbsp; <span class="sq" style="background:#0f766e;"></span>Profit (ex-VAT)<?php endif; ?></div>
 			</div>
 		</div>
 		<div class="ns-port">
 			<h4><i class="fa fa-exclamation-triangle"></i> Planning alerts</h4>
-			<div class="bd">
+			<div class="bd" style="padding-top:14px">
 				<table class="table table-condensed table-bordered" style="margin-bottom:8px;">
 					<tbody>
 						<tr class="danger"><th>Stock-out / critical</th><td class="text-right"><?php echo (int) $nsAlerts['danger']; ?></td></tr>
@@ -812,7 +812,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 		<?php if ($nsShowSuppliers): ?>
 		<div class="ns-port">
 			<h4><i class="fa fa-truck"></i> Top suppliers by spend</h4>
-			<div class="bd">
+			<div class="bd" style="padding-top:14px">
 				<?php if (empty($nsTopSup)): ?>
 					<p class="text-muted">No supplier spend recorded yet.</p>
 				<?php else: ?>
@@ -836,7 +836,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 		<?php endif; ?>
 		<div class="ns-port">
 			<h4><i class="fa fa-link"></i> Quick links</h4>
-			<div class="bd">
+			<div class="bd" style="padding-top:14px">
 				<div class="list-group" style="margin-bottom:0;">
 					<a class="list-group-item" href="<?php echo epc_erp_h(epc_erp_tab_url($erpUrl, 'ai_advisor', $date_from_str, $date_to_str)); ?>"><i class="fa fa-magic"></i> AI advisor &amp; forecasts</a>
 					<?php if ($nsShowProfitTrend): ?>
@@ -857,7 +857,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 		<a href="<?php echo $pfUrl('monitor'); ?>" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
 	</h3>
 	<?php if (!$pfHasTasks): ?>
-	<div class="ns-port"><div class="bd">
+	<div class="ns-port"><div class="bd" style="padding-top:14px">
 		<p class="text-muted" style="margin:0;">No tasks tracked yet. Customer orders, purchase orders and your own processes auto-create cases and appear here as soon as work starts flowing. <a href="<?php echo $pfUrl('monitor'); ?>">Open process flow &raquo;</a></p>
 	</div></div>
 	<?php else: ?>
@@ -871,7 +871,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 	<div class="ns-exec-grid" style="margin-top:16px;">
 		<div class="ns-port">
 			<h4><i class="fa fa-building-o"></i> Open workload by department</h4>
-			<div class="bd">
+			<div class="bd" style="padding-top:14px">
 				<?php if (empty($pfDeptRows)): ?>
 					<p class="text-muted" style="margin:0;">No open tasks.</p>
 				<?php else: foreach ($pfDeptRows as $code => $cnt): $w = $pfDeptMax > 0 ? max(4, round(($cnt / $pfDeptMax) * 100)) : 0; ?>
@@ -885,7 +885,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 		</div>
 		<div class="ns-port">
 			<h4><i class="fa fa-trophy"></i> Top performers <small class="text-muted" style="font-weight:400;">(tasks completed)</small></h4>
-			<div class="bd">
+			<div class="bd" style="padding-top:14px">
 				<?php if (empty($pfTop)): ?>
 					<p class="text-muted" style="margin:0;">No completed tasks in this period yet.</p>
 				<?php else: $rank = 0; foreach ($pfTop as $p): $rank++; $w = $pfTopMax > 0 ? max(4, round(((int) $p['done'] / $pfTopMax) * 100)) : 0; ?>
@@ -908,7 +908,7 @@ $nsShowHrTasks = $nsCan('hr_tasks');
 		<small class="text-muted" style="font-weight:400;">· <?php echo epc_erp_h($nsIndustryLabel); ?> · <?php echo $nsCtrlDone; ?>/<?php echo count($nsControls); ?> in place</small>
 	</h3>
 	<div class="ns-port">
-		<div class="bd">
+		<div class="bd" style="padding-top:14px">
 			<p class="text-muted" style="margin-top:0;">Best-practice operational controls for your industry. Tick the ones you have in place; the checklist is saved per tenant.</p>
 			<table class="table table-bordered table-condensed" style="margin-bottom:0;">
 				<thead><tr><th style="width:70px;">In place</th><th>Control</th><th>What to do</th></tr></thead>
