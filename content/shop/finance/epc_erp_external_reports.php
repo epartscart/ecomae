@@ -436,7 +436,7 @@ if (!function_exists('epc_ext_authority')) {
         // UAE — the tenant-country sub-layer with precise sources.
         $uae = array(
             'corp'   => array('Ministry of Economy (MoEC) / licensing authority', 'UAE Commercial Companies Law — Federal Decree-Law 32/2021', 'https://www.moec.gov.ae', 'https://www.moec.gov.ae/en/commercial-register'),
-            'tax'    => array('Federal Tax Authority (FTA)', 'Corporate Tax — Federal Decree-Law 47/2022; VAT — Federal Decree-Law 8/2017', 'https://tax.gov.ae', 'https://eservices.tax.gov.ae'),
+            'tax'    => array('Federal Tax Authority (FTA)', 'Corporate Tax — Federal Decree-Law 47/2022; VAT — Federal Decree-Law 8/2017 (as amended, incl. FDL 16/2025 Art. 74 5-year excess recoverable limit from 1 Jan 2026) + Exec. Regulations; Tax Procedures FDL 28/2022 (as amended by FDL 17/2025)', 'https://tax.gov.ae', 'https://eservices.tax.gov.ae'),
             'fin'    => array('Securities & Commodities Authority (SCA) / IFRS Foundation', 'IFRS as adopted in the UAE', 'https://www.sca.gov.ae', 'https://www.ifrs.org/issued-standards/list-of-standards/'),
             'audit'  => array('Ministry of Economy — Auditors Register / IAASB', 'International Standards on Auditing (ISA)', 'https://www.moec.gov.ae', 'https://www.iaasb.org/standards-pronouncements'),
             'hr'     => array('Ministry of Human Resources & Emiratisation (MOHRE)', 'UAE Labour Law — Federal Decree-Law 33/2021; WPS', 'https://www.mohre.gov.ae', 'https://www.mohre.gov.ae/en/services.aspx'),
