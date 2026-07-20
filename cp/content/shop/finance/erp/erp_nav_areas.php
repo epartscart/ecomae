@@ -1057,7 +1057,6 @@ function epc_erp_render_top_nav($erpUrl, $activeArea, $activeTab, $from, $to, ar
 			echo '<div class="epc-erp-topnav-col' . ($isAreaActive ? ' is-active-col' : '') . '">';
 			echo '<div class="epc-erp-topnav-col-hd"><i class="fa ' . epc_erp_h($area['icon']) . '"></i> ' . epc_erp_h(epc_erp_nav_label_plain($area['label'])) . '</div>';
 			echo '<ul class="epc-erp-topnav-links">';
-			$n = 0;
 			foreach ($visibleTabs as $tabKey => $meta) {
 				if (!empty($meta['external']) || $tabKey === 'procurement_link') {
 					echo '<li><a href="' . epc_erp_h(epc_erp_procurement_url()) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> ' . epc_erp_h(epc_erp_nav_label_plain($meta['label'] ?? 'Procurement')) . '</a></li>';
@@ -1066,18 +1065,11 @@ function epc_erp_render_top_nav($erpUrl, $activeArea, $activeTab, $from, $to, ar
 				$hrefTab = ($tabKey === 'bank_recon') ? 'cash_bank' : $tabKey;
 				$isTabActive = ($activeTab === $tabKey)
 					|| ($tabKey === 'bank_recon' && $activeTab === 'cash_bank' && !empty($_GET['account_id']));
-				// Cap dense columns so the mega panel stays scannable.
-				if ($n >= 8) {
-					$moreHref = epc_erp_tab_url($erpUrl, $hrefTab, $from, $to, $areaKey);
-					echo '<li class="epc-erp-topnav-more"><a href="' . epc_erp_h($moreHref) . '"' . epc_erp_nav_shell_link_attrs() . '>More…</a></li>';
-					break;
-				}
 				$lbl = epc_erp_nav_label_plain($meta['label'] ?? $tabKey);
 				echo '<li' . ($isTabActive ? ' class="is-active"' : '') . '>';
 				echo '<a href="' . epc_erp_h(epc_erp_tab_url($erpUrl, $hrefTab, $from, $to, $areaKey)) . '"' . epc_erp_nav_shell_link_attrs() . '>';
 				echo '<i class="fa ' . epc_erp_h($meta['icon'] ?? 'fa-circle-o') . '"></i> ' . epc_erp_h($lbl);
 				echo '</a></li>';
-				$n++;
 			}
 			echo '</ul></div>';
 		}
