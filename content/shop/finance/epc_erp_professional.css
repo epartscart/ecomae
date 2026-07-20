@@ -358,6 +358,7 @@ body.epc-erp-cp-shell {
 	padding: 0;
 	display: flex;
 	flex-direction: column;
+	color: #1e293b;
 }
 
 .epc-erp-content-toolbar {
@@ -415,21 +416,47 @@ body.epc-erp-cp-shell {
 .epc-erp-content-body {
 	padding: 10px 20px 24px;
 	flex: 1;
+	color: #1e293b;
 }
 
-/* Guard against invisible text: several ERP module tabs (e.g. Inventory
-   stock/groups) render plain Bootstrap tables with no explicit color of
-   their own, so they silently inherit whatever ambient text color is set
-   higher up the tree. If that ambient color is ever light/white (as it is
-   for parts of the dark sidebar/topbar chrome), the cells read as blank —
-   white text on a white/light table background. Force explicit, legible
-   colors on any plain table inside the ERP content area so this can't
-   regress silently again. Tables opted into the dense D365 grid theme
-   (.epc-erp-d365) already set their own contrast-correct colors and are
-   unaffected by this rule.
+/* Guard against invisible text: light chrome (standalone portal body,
+   dark sidebars) must never bleed into white ERP panels. Force dark ink
+   on content surfaces, tables, forms, and report copy across every ERP tab.
+   Do not blanket-force color on every span/div — dark header bands (white
+   text on navy) rely on inheriting their own inline color.
 */
+.epc-erp-content-body .epc-erp-section,
+.epc-erp-content-body .well,
+.epc-erp-content-body .panel,
+.epc-erp-content-body .panel-body,
+.epc-erp-content-body .panel-heading,
+.epc-erp-content-body .alert:not(.alert-info):not(.alert-success):not(.alert-warning):not(.alert-danger),
+.epc-erp-content-body p,
+.epc-erp-content-body li,
+.epc-erp-content-body td,
+.epc-erp-content-body th,
+.epc-erp-content-body h1,
+.epc-erp-content-body h2,
+.epc-erp-content-body h3,
+.epc-erp-content-body h4,
+.epc-erp-content-body h5,
+.epc-erp-content-body h6,
+.epc-erp-content-body summary,
+.epc-erp-content-body .epc-box-drill,
+.epc-erp-content-body .mis-commentary {
+	color: #1e293b;
+}
+/* Light alert panels keep Bootstrap tones but stay readable. */
+.epc-erp-content-body .alert-info,
+.epc-erp-content-body .alert-success,
+.epc-erp-content-body .alert-warning,
+.epc-erp-content-body .alert-danger {
+	color: #1e293b;
+}
 .epc-erp-content-body table.table,
-.epc-erp-content-body .table-responsive table {
+.epc-erp-content-body .table-responsive table,
+.epc-erp-content-body .epc-erp-table,
+.epc-erp-content-body .table-epc {
 	color: #1e293b;
 	background-color: #fff;
 }
@@ -441,8 +468,51 @@ body.epc-erp-cp-shell {
 .epc-erp-content-body table.table.table-striped > tbody > tr:nth-of-type(odd) > td {
 	background-color: #f9fafb;
 }
-.epc-erp-content-body table.table > tbody > tr > td {
+.epc-erp-content-body table.table > tbody > tr > td,
+.epc-erp-content-body .epc-erp-table > tbody > tr > td,
+.epc-erp-content-body .table-epc > tbody > tr > td {
 	color: #1e293b;
+	background-color: #fff;
+}
+
+/* Muted helpers stay readable on white (AA contrast). */
+.epc-erp-content-body .text-muted,
+.epc-erp-content-body .help-block,
+.epc-erp-content-body .small.text-muted,
+.epc-erp-content-body .epc-erp-page-sub,
+.epc-erp-content-body .epc-erp-content-subtitle {
+	color: #475569 !important;
+}
+
+/* Keep semantic colors after the base ink reset. */
+.epc-erp-content-body .text-danger,
+.epc-erp-content-body .val.red,
+.epc-erp-content-body a.text-danger {
+	color: #b91c1c !important;
+}
+.epc-erp-content-body .text-success,
+.epc-erp-content-body .val.green,
+.epc-erp-content-body a.text-success {
+	color: #15803d !important;
+}
+.epc-erp-content-body .text-warning {
+	color: #b45309 !important;
+}
+.epc-erp-content-body .text-info {
+	color: #1d4ed8 !important;
+}
+.epc-erp-content-body a:not(.btn):not(.label) {
+	color: #1d4ed8;
+}
+.epc-erp-content-body .label,
+.epc-erp-content-body .badge {
+	color: #fff;
+}
+.epc-erp-content-body .label-warning {
+	color: #fff !important;
+}
+.epc-erp-content-body .label-default {
+	color: #fff !important;
 }
 
 /* Guard: form labels inside any .well or plain .form-group in the content body
@@ -452,6 +522,15 @@ body.epc-erp-cp-shell {
 .epc-erp-content-body .well .form-group label,
 .epc-erp-content-body label {
 	color: #1e293b !important;
+}
+.epc-erp-content-body .form-control {
+	color: #1e293b;
+	background-color: #fff;
+}
+.epc-erp-content-body .form-control[disabled],
+.epc-erp-content-body .form-control[readonly] {
+	color: #334155;
+	background-color: #f8fafc;
 }
 
 /* ── Global search ─────────────────────────────────────────────────────── */
@@ -1716,4 +1795,31 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	body.epc-erp-nav-collapsed .epc-erp-sidebar-category-hd .epc-erp-sidebar-chevron {
 		display: none;
 	}
+}
+
+/* ── Contrast lock (2026-07): white ERP forms must stay dark-ink ─────────
+   Covers External Reporting VAT boxes, plain Bootstrap tables, and forms
+   that previously inherited near-white body text from the dark portal shell.
+*/
+.epc-erp-shell .epc-erp-content-body .epc-box-drill > summary,
+.epc-erp-shell .epc-erp-content-body .epc-box-drill > summary > div,
+.epc-erp-shell .epc-erp-content-body .epc-box-drill > summary span:not(.label):not(.badge):not(.epc-drill-hint) {
+	color: #1e293b !important;
+}
+.epc-erp-shell .epc-erp-content-body .epc-drill-hint {
+	color: #1d4ed8 !important;
+}
+.epc-erp-shell .epc-erp-content-body .table > tbody > tr > td,
+.epc-erp-shell .epc-erp-content-body .table > tfoot > tr > td,
+.epc-erp-shell .epc-erp-content-body .table > thead > tr > th {
+	color: #1e293b;
+}
+.epc-erp-shell .epc-erp-content-body .ef-field label,
+.epc-erp-shell .epc-erp-content-body .ef-field input,
+.epc-erp-shell .epc-erp-content-body .ef-field select,
+.epc-erp-shell .epc-erp-content-body .ef-grid td {
+	color: #1e293b;
+}
+.epc-erp-shell .epc-erp-content-body .ef-grid th {
+	color: #1e293b;
 }

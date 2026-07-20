@@ -402,7 +402,7 @@ $erpTabIncludes = array(
 ?>
 
 <?php if (!$epc_erp_shell_mode): ?>
-<?php $epcErpCssVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260530erp1'; ?>
+<?php $epcErpCssVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720erp-contrast'; ?>
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_ui.css?v=<?php echo htmlspecialchars($epcErpCssVer, ENT_QUOTES, 'UTF-8'); ?>">
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_professional.css?v=<?php echo htmlspecialchars($epcErpCssVer, ENT_QUOTES, 'UTF-8'); ?>">
 <?php endif; ?>
@@ -489,7 +489,10 @@ $erpTabIncludes = array(
 /* Tables → Suntech grid style */
 .epc-erp-shell .table,.epc-erp-table,.table-epc{border-collapse:collapse;font-size:11px}
 .epc-erp-shell .table>thead>tr>th,.epc-erp-table>thead>tr>th,.table-epc>thead>tr>th{background:#c8dce6;color:#2c4a5a;font-weight:600;padding:4px 6px;border:1px solid #a8c0cc;font-size:11px;white-space:nowrap}
-.epc-erp-shell .table>tbody>tr>td,.epc-erp-table>tbody>tr>td,.table-epc>tbody>tr>td{padding:3px 6px;border:1px solid #c8d8e0;background:#fff}
+.epc-erp-shell .table>tbody>tr>td,.epc-erp-table>tbody>tr>td,.table-epc>tbody>tr>td{padding:3px 6px;border:1px solid #c8d8e0;background:#fff;color:#1e293b}
+.epc-erp-content,.epc-erp-content-body{color:#1e293b}
+.epc-erp-content-body .text-muted,.epc-erp-content-body .help-block{color:#475569!important}
+.epc-erp-content-body .form-control{color:#1e293b}
 .epc-erp-shell .table>tbody>tr:hover>td,.epc-erp-table>tbody>tr:hover>td,.table-epc>tbody>tr:hover>td{background:#f0f8ff}
 .epc-erp-shell .table>tfoot>tr>td,.epc-erp-table>tfoot>tr>td,.table-epc>tfoot>tr>td{background:#e0ecf2;font-weight:600;border:1px solid #a8c0cc}
 .epc-d365-sumrow td{background:#e0ecf2!important;font-weight:600}
