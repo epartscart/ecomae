@@ -1,6 +1,6 @@
 <?php
 /**
- * Serve CP command dashboard CSS when nginx 404s /cp/templates/.../*.css.
+ * Serve CSS when nginx 404s static /cp/templates path.
  */
 declare(strict_types=1);
 
@@ -13,7 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = '20260720shortcuts2';
+$ver = '20260720cpdashwh3';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

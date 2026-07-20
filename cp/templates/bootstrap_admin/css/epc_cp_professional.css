@@ -6012,7 +6012,7 @@ body.epc-cp-shell #side-menu > li.epc-cp-nav-section.active > a .fa.arrow::befor
 }
 
 /* ==========================================================================
-   CP top mega-menu — red + white (primary nav; left rail hidden)
+   CP top mega-menu — ERP layout (white bar) with red text
    ========================================================================== */
 body.epc-cp-topnav-only #menu,
 body.epc-cp-topnav-only .epc-cp-sidebar-toggle-tab,
@@ -6055,18 +6055,17 @@ html.epc-cp-sidebar-collapsed body.epc-cp-topnav-only.epc-cp-shell #wrapper {
 	width: 100% !important;
 }
 
-.epc-cp-topnav,
-body.epc-cp-topnav-only .epc-cp-topnav {
+.epc-cp-topnav {
 	background: #ffffff !important;
 	background-image: none !important;
 	border-bottom: 2px solid #dc2626 !important;
-	box-shadow: 0 2px 10px rgba(220, 38, 38, 0.1);
-	color: #7f1d1d !important;
+	box-shadow: 0 2px 10px rgba(220, 38, 38, 0.08);
+	color: #0f172a !important;
 }
 .epc-cp-topnav-inner {
 	display: flex;
 	align-items: stretch;
-	gap: 2px;
+	gap: 4px;
 	min-height: 44px;
 	padding: 0 10px 0 12px;
 	max-width: 100%;
@@ -6079,10 +6078,9 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	padding: 0 12px 0 4px;
 	margin-right: 4px;
 	color: #dc2626 !important;
-	font-weight: 800;
+	font-weight: 700;
 	font-size: 13px;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
+	letter-spacing: 0.02em;
 	text-decoration: none !important;
 	border-right: 1px solid #fecaca;
 	white-space: nowrap;
@@ -6094,6 +6092,7 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 }
 .epc-cp-topnav-brand .fa {
 	font-size: 15px;
+	opacity: 0.95;
 	color: #dc2626;
 }
 .epc-cp-topnav-list {
@@ -6130,7 +6129,7 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	padding: 0 11px;
 	border: 0;
 	background: transparent;
-	color: #7f1d1d;
+	color: #991b1b;
 	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.01em;
@@ -6138,6 +6137,12 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	cursor: pointer;
 	border-bottom: 2px solid transparent;
 	transition: background .12s, color .12s, border-color .12s;
+}
+/* Whole tab is the hit target — text/icon/caret must not steal clicks */
+.epc-cp-topnav-btn > *,
+.epc-cp-topnav-btn > *::before,
+.epc-cp-topnav-btn > *::after {
+	pointer-events: none !important;
 }
 .epc-cp-topnav-btn:hover,
 .epc-cp-topnav-btn:focus,
@@ -6147,24 +6152,25 @@ body.epc-cp-topnav-only .epc-cp-topnav {
 	outline: none;
 }
 .epc-cp-topnav-item.is-active > .epc-cp-topnav-btn {
-	color: #b91c1c;
+	color: #dc2626;
 	border-bottom-color: #dc2626;
 	background: #fee2e2;
 }
 .epc-cp-topnav-btn > .fa:first-child {
 	font-size: 13px;
-	color: #ef4444;
+	opacity: 0.95;
+	color: #dc2626;
 }
 .epc-cp-topnav-caret {
 	font-size: 10px;
 	opacity: 0.55;
 	margin-left: 1px;
 	transition: transform .15s ease;
-	color: #f87171;
+	color: #64748b;
 }
 .epc-cp-topnav-item.is-open .epc-cp-topnav-caret {
 	transform: rotate(180deg);
-	opacity: 0.95;
+	opacity: 0.9;
 	color: #dc2626;
 }
 
