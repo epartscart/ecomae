@@ -13,7 +13,11 @@ if (!is_file($path)) {
 	exit;
 }
 
+<<<<<<< HEAD
 $ver = '20260720topnavclick2';
+=======
+$ver = '20260720cpblackmenu1';
+>>>>>>> origin/main
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 

@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # ecomae ERP — On-Premises Installer
-# Usage: curl -sSL https://install.ecomae.com | bash -s -- --license YOUR_KEY
-#        OR: ./install.sh --license YOUR_KEY [--domain erp.company.com] [--port 443]
+# Usage: ./install.sh --license YOUR_KEY [--domain erp.company.com] [--port 443]
+#
+# For a quick local/laptop trial on macOS or Windows (Docker Desktop) instead
+# of a Linux server, see DESKTOP_QUICKSTART.md — this script assumes Linux.
 #
 # This script:
 #   1. Checks system requirements (Docker, disk, RAM)
-#   2. Downloads the latest ecomae release
-#   3. Sets up Docker Compose environment
+#   2. Clones the ecomae application code
+#   3. Sets up the Docker Compose environment
 #   4. Generates SSL (Let's Encrypt or self-signed)
 #   5. Starts all services
-#   6. Runs initial setup wizard
-#   7. Activates license (online or offline)
+#   6. Activates the license (which installs the core engine files)
+#   7. Runs the setup wizard (real schema migrations)
 
 set -euo pipefail
 
@@ -27,6 +29,8 @@ DOMAIN=""
 INSTALL_DIR="/opt/ecomae"
 HTTP_PORT=80
 HTTPS_PORT=443
+GIT_REPO_URL="${GIT_REPO_URL:-https://github.com/epartscart/ecomae.git}"
+GIT_REPO_REF="${GIT_REPO_REF:-main}"
 DB_PASSWORD=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 32)
 DB_ROOT_PASSWORD=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 32)
 
@@ -37,8 +41,10 @@ while [[ $# -gt 0 ]]; do
         --domain)    DOMAIN="$2"; shift 2 ;;
         --dir)       INSTALL_DIR="$2"; shift 2 ;;
         --port)      HTTPS_PORT="$2"; shift 2 ;;
+        --repo)      GIT_REPO_URL="$2"; shift 2 ;;
+        --ref)       GIT_REPO_REF="$2"; shift 2 ;;
         --help|-h)
-            echo "Usage: ./install.sh --license KEY [--domain erp.company.com] [--dir /opt/ecomae] [--port 443]"
+            echo "Usage: ./install.sh --license KEY [--domain erp.company.com] [--dir /opt/ecomae] [--port 443] [--repo GIT_URL] [--ref BRANCH]"
             exit 0 ;;
         *) err "Unknown option: $1"; exit 1 ;;
     esac
@@ -46,7 +52,7 @@ done
 
 if [[ -z "$LICENSE_KEY" ]]; then
     err "License key required. Use: ./install.sh --license YOUR_KEY"
-    err "Get a license from your ecomae BOS → On-Premises → Generate License"
+    err "Get a license from your ecomae account manager."
     exit 1
 fi
 
@@ -59,7 +65,6 @@ echo ""
 # Step 1: Check requirements
 log "Checking system requirements..."
 
-# Docker
 if ! command -v docker &>/dev/null; then
     warn "Docker not found. Installing Docker..."
     curl -fsSL https://get.docker.com | sh
@@ -67,16 +72,19 @@ if ! command -v docker &>/dev/null; then
     log "Docker installed successfully"
 fi
 
+if ! command -v git &>/dev/null; then
+    err "git is required. Install it (e.g. apt-get install -y git) and re-run."
+    exit 1
+fi
+
 DOCKER_VERSION=$(docker --version | grep -oP '\d+\.\d+' | head -1)
 log "Docker version: $DOCKER_VERSION"
 
-# Docker Compose
 if ! docker compose version &>/dev/null; then
     err "Docker Compose v2 required. Install: apt-get install docker-compose-plugin"
     exit 1
 fi
 
-# System resources
 TOTAL_RAM_GB=$(free -g | awk '/^Mem:/{print $2}')
 TOTAL_DISK_GB=$(df -BG / | awk 'NR==2{print $4}' | tr -dc '0-9')
 CPU_CORES=$(nproc)
@@ -102,15 +110,28 @@ log "Installing to: $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
-# Step 3: Download latest release (or copy local)
+# Step 3: Get the deploy package (this script's own directory) + app code
 if [[ -f "./docker-compose.yml" ]]; then
     log "Existing installation detected — upgrading"
     docker compose down 2>/dev/null || true
 fi
 
-# For now, create the structure locally (in production this downloads from releases server)
-log "Setting up deployment structure..."
-mkdir -p app nginx/ssl mysql php storage backups/mysql
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "$SCRIPT_DIR" != "$INSTALL_DIR" ]]; then
+    log "Copying deploy package into $INSTALL_DIR..."
+    cp -a "$SCRIPT_DIR"/. "$INSTALL_DIR"/
+fi
+
+log "Fetching application code (${GIT_REPO_URL} @ ${GIT_REPO_REF})..."
+if [[ -d "app/.git" ]]; then
+    git -C app fetch --depth 1 origin "$GIT_REPO_REF"
+    git -C app checkout "$GIT_REPO_REF"
+    git -C app reset --hard "origin/${GIT_REPO_REF}"
+else
+    rm -rf app
+    git clone --depth 1 --branch "$GIT_REPO_REF" "$GIT_REPO_URL" app
+fi
+mkdir -p nginx/ssl mysql php storage backups/mysql
 
 # Step 4: Generate configs
 cat > .env << ENVEOF
@@ -118,6 +139,8 @@ APP_URL=https://${DOMAIN:-localhost}
 APP_ENV=production
 TIMEZONE=UTC
 LICENSE_KEY=${LICENSE_KEY}
+GIT_REPO_URL=${GIT_REPO_URL}
+GIT_REPO_REF=${GIT_REPO_REF}
 DB_DATABASE=ecomae_erp
 DB_USERNAME=ecomae
 DB_PASSWORD=${DB_PASSWORD}
@@ -226,11 +249,13 @@ else
     log "Self-signed certificate generated (replace with real cert for production)"
 fi
 
-# Step 6: Start services
+# Step 6: Build + start services
+log "Building images (installs required PHP extensions)..."
+docker compose build
+
 log "Starting ecomae ERP services..."
 docker compose up -d
 
-# Wait for MySQL
 log "Waiting for database to be ready..."
 for i in $(seq 1 30); do
     if docker compose exec -T db mysqladmin ping -h localhost -u root "-p${DB_ROOT_PASSWORD}" &>/dev/null; then
@@ -239,11 +264,21 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-# Step 7: License activation
+# Step 7: License activation (installs the core engine + config.php)
 log "Activating license: $LICENSE_KEY"
-docker compose exec -T app php /var/www/html/deploy/on-premises/activate-license.php "$LICENSE_KEY" 2>/dev/null || {
-    warn "Online activation failed — offline activation available at https://${DOMAIN:-localhost}/setup"
-}
+if docker compose exec -T app php /var/www/html/deploy/on-premises/activate-license.php "$LICENSE_KEY"; then
+    log "License activated — core engine installed."
+else
+    warn "Online activation failed. If this server is air-gapped, run:"
+    warn "  docker compose exec app php deploy/on-premises/activate-license.php --request"
+    warn "and follow the offline activation steps in README.md."
+    warn "Setup wizard will not proceed until the license is activated."
+    exit 1
+fi
+
+# Step 8: Setup wizard (real schema migrations)
+log "Running setup wizard..."
+docker compose exec -T app php /var/www/html/deploy/on-premises/setup-wizard.php
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════╗${NC}"
@@ -257,5 +292,5 @@ echo -e ""
 echo -e "  Database:  ${DB_PASSWORD} (saved in .env)"
 echo -e "  Install:   ${INSTALL_DIR}"
 echo ""
-log "Run 'docker compose logs -f' to monitor services"
-log "Run 'docker compose exec app php artisan setup:wizard' for initial configuration"
+log "Open https://${DOMAIN:-localhost}/cp/ to finish company + admin onboarding."
+log "Run 'docker compose logs -f' to monitor services."
