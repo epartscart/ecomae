@@ -5031,9 +5031,9 @@ if (!function_exists('epc_ext_import_template_sheets')) {
                     array('META_RESIDENT', 'Resident person? (Yes/No)', 'Yes'),
                     array('META_BASIS_ACCT', 'Basis of accounting', 'Accrual (IFRS)'),
                     array('META_RETURN_TYPE', 'Return type', 'Annual Corporate Tax return'),
-                    array('META_PERIOD_FROM', 'Financial year from (YYYY-MM-DD)', '2025-01-01'),
-                    array('META_PERIOD_TO', 'Financial year to (YYYY-MM-DD)', '2025-12-31'),
-                    array('META_FILING_DUE', 'Filing due date (YYYY-MM-DD)', '2026-09-30'),
+                    array('META_PERIOD_FROM', 'Financial year from (YYYY-MM-DD)', '2026-01-01'),
+                    array('META_PERIOD_TO', 'Financial year to (YYYY-MM-DD)', '2026-12-31'),
+                    array('META_FILING_DUE', 'Filing due date (YYYY-MM-DD)', '2027-09-30'),
                     array('META_GROUP_TRN', 'CT Tax Group TRN (if any)', ''),
                 ),
                 'Elections & reliefs' => array(
