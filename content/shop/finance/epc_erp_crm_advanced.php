@@ -427,6 +427,195 @@ if (!function_exists('epc_crm_adv_dashboard')) {
             'top_leads' => array_slice($scored, 0, 10),
             'forecast' => epc_crm_adv_pipeline_forecast($db),
             'next_actions' => epc_crm_adv_next_actions($db, 10),
+            'funnel' => epc_crm_adv_conversion_funnel($db),
+            'sources' => epc_crm_adv_lead_sources($db),
         );
+    }
+}
+
+if (!function_exists('epc_crm_adv_conversion_funnel')) {
+    /**
+     * Lead → opportunity → won conversion funnel for intelligence views.
+     *
+     * @return array<string,mixed>
+     */
+    function epc_crm_adv_conversion_funnel(PDO $db): array
+    {
+        $out = array(
+            'leads' => 0,
+            'qualified' => 0,
+            'opportunities' => 0,
+            'proposals' => 0,
+            'won' => 0,
+            'lead_to_opp_pct' => 0.0,
+            'opp_to_won_pct' => 0.0,
+        );
+        if (!epc_crm_adv_table_exists($db, 'epc_crm_leads')) {
+            return $out;
+        }
+        try {
+            $out['leads'] = (int) $db->query("SELECT COUNT(*) FROM `epc_crm_leads` WHERE `active` = 1")->fetchColumn();
+            $out['qualified'] = (int) $db->query(
+                "SELECT COUNT(*) FROM `epc_crm_leads` WHERE `active` = 1 AND `status` IN ('qualified','converted')"
+            )->fetchColumn();
+        } catch (Exception $e) {
+            return $out;
+        }
+        if (epc_crm_adv_table_exists($db, 'epc_crm_opportunities')) {
+            try {
+                $out['opportunities'] = (int) $db->query(
+                    "SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE `active` = 1"
+                )->fetchColumn();
+                $out['proposals'] = (int) $db->query(
+                    "SELECT COUNT(*) FROM `epc_crm_opportunities`
+                     WHERE `active` = 1 AND `stage` IN ('proposal','negotiation','won')"
+                )->fetchColumn();
+                $out['won'] = (int) $db->query(
+                    "SELECT COUNT(*) FROM `epc_crm_opportunities` WHERE `active` = 1 AND `stage` = 'won'"
+                )->fetchColumn();
+            } catch (Exception $e) {
+                // keep zeros
+            }
+        }
+        $out['lead_to_opp_pct'] = $out['leads'] > 0
+            ? round(($out['opportunities'] / $out['leads']) * 100, 1)
+            : 0.0;
+        $out['opp_to_won_pct'] = $out['opportunities'] > 0
+            ? round(($out['won'] / $out['opportunities']) * 100, 1)
+            : 0.0;
+        return $out;
+    }
+}
+
+if (!function_exists('epc_crm_adv_lead_sources')) {
+    /**
+     * Lead volume and expected value by source.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_crm_adv_lead_sources(PDO $db, int $limit = 12): array
+    {
+        if (!epc_crm_adv_table_exists($db, 'epc_crm_leads')) {
+            return array();
+        }
+        $lim = max(1, min(50, $limit));
+        try {
+            $st = $db->query(
+                "SELECT COALESCE(NULLIF(TRIM(`source`), ''), 'unknown') AS source,
+                        COUNT(*) AS c,
+                        SUM(`expected_value`) AS expected_value,
+                        SUM(CASE WHEN `status` IN ('qualified','converted') THEN 1 ELSE 0 END) AS qualified_c
+                 FROM `epc_crm_leads` WHERE `active` = 1
+                 GROUP BY COALESCE(NULLIF(TRIM(`source`), ''), 'unknown')
+                 ORDER BY c DESC LIMIT {$lim}"
+            );
+            return $st ? ($st->fetchAll(PDO::FETCH_ASSOC) ?: array()) : array();
+        } catch (Exception $e) {
+            return array();
+        }
+    }
+}
+
+if (!function_exists('epc_crm_adv_accounts')) {
+    /**
+     * Account rollup: companies from leads + linked shop customers.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function epc_crm_adv_accounts(PDO $db, int $limit = 100): array
+    {
+        $map = array();
+        if (epc_crm_adv_table_exists($db, 'epc_crm_leads')) {
+            try {
+                $st = $db->query(
+                    "SELECT `id`, `company`, `contact_name`, `email`, `phone`, `status`, `expected_value`, `time_updated`
+                     FROM `epc_crm_leads` WHERE `active` = 1 ORDER BY `time_updated` DESC LIMIT 500"
+                );
+                foreach (($st ? $st->fetchAll(PDO::FETCH_ASSOC) : array()) as $L) {
+                    $key = strtolower(trim((string) ($L['company'] !== '' ? $L['company'] : ($L['email'] ?: ('lead-' . $L['id'])))));
+                    if ($key === '') {
+                        continue;
+                    }
+                    if (!isset($map[$key])) {
+                        $map[$key] = array(
+                            'name' => (string) ($L['company'] !== '' ? $L['company'] : ($L['contact_name'] ?: $L['email'])),
+                            'email' => (string) ($L['email'] ?? ''),
+                            'phone' => (string) ($L['phone'] ?? ''),
+                            'leads' => 0,
+                            'expected_value' => 0.0,
+                            'opportunities' => 0,
+                            'open_pipeline' => 0.0,
+                            'won_value' => 0.0,
+                            'linked_user_id' => 0,
+                            'last_touch' => (int) ($L['time_updated'] ?? 0),
+                            'lead_ids' => array(),
+                        );
+                    }
+                    $map[$key]['leads']++;
+                    $map[$key]['expected_value'] += (float) ($L['expected_value'] ?? 0);
+                    $map[$key]['lead_ids'][] = (int) $L['id'];
+                    $map[$key]['last_touch'] = max($map[$key]['last_touch'], (int) ($L['time_updated'] ?? 0));
+                    if ($map[$key]['email'] === '' && !empty($L['email'])) {
+                        $map[$key]['email'] = (string) $L['email'];
+                    }
+                }
+            } catch (Exception $e) {
+                // ignore
+            }
+        }
+        if (epc_crm_adv_table_exists($db, 'epc_crm_opportunities')) {
+            try {
+                $st = $db->query(
+                    "SELECT o.`id`, o.`lead_id`, o.`amount`, o.`stage`, o.`linked_user_id`, o.`time_updated`,
+                            l.`company`, l.`email`
+                     FROM `epc_crm_opportunities` o
+                     LEFT JOIN `epc_crm_leads` l ON l.`id` = o.`lead_id`
+                     WHERE o.`active` = 1 ORDER BY o.`time_updated` DESC LIMIT 500"
+                );
+                foreach (($st ? $st->fetchAll(PDO::FETCH_ASSOC) : array()) as $o) {
+                    $company = trim((string) ($o['company'] ?? ''));
+                    $key = strtolower($company !== '' ? $company : ('opp-' . (int) $o['id']));
+                    if (!isset($map[$key])) {
+                        $map[$key] = array(
+                            'name' => $company !== '' ? $company : ('Opportunity #' . (int) $o['id']),
+                            'email' => (string) ($o['email'] ?? ''),
+                            'phone' => '',
+                            'leads' => 0,
+                            'expected_value' => 0.0,
+                            'opportunities' => 0,
+                            'open_pipeline' => 0.0,
+                            'won_value' => 0.0,
+                            'linked_user_id' => (int) ($o['linked_user_id'] ?? 0),
+                            'last_touch' => (int) ($o['time_updated'] ?? 0),
+                            'lead_ids' => array(),
+                        );
+                    }
+                    $map[$key]['opportunities']++;
+                    $stage = (string) ($o['stage'] ?? '');
+                    $amt = (float) ($o['amount'] ?? 0);
+                    if ($stage === 'won') {
+                        $map[$key]['won_value'] += $amt;
+                    } elseif ($stage !== 'lost') {
+                        $map[$key]['open_pipeline'] += $amt;
+                    }
+                    if ((int) ($o['linked_user_id'] ?? 0) > 0) {
+                        $map[$key]['linked_user_id'] = (int) $o['linked_user_id'];
+                    }
+                    $map[$key]['last_touch'] = max($map[$key]['last_touch'], (int) ($o['time_updated'] ?? 0));
+                }
+            } catch (Exception $e) {
+                // ignore
+            }
+        }
+        $rows = array_values($map);
+        usort($rows, static function ($a, $b) {
+            $scoreA = $a['open_pipeline'] + $a['won_value'] + $a['expected_value'];
+            $scoreB = $b['open_pipeline'] + $b['won_value'] + $b['expected_value'];
+            if ($scoreA === $scoreB) {
+                return ($b['last_touch'] ?? 0) <=> ($a['last_touch'] ?? 0);
+            }
+            return $scoreB <=> $scoreA;
+        });
+        return array_slice($rows, 0, max(1, min(300, $limit)));
     }
 }
