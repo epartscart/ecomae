@@ -958,8 +958,16 @@ if ($selTool === 'import') {
 			</form>
 			<?php if ($fetched): ?>
 				<span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data · <?php echo date('d M Y H:i'); ?> — verify on the official source.<?php
-					if ($selRep === 'audit__external_audit_report' && (int) date('Y', $repTo) >= 2026) {
-						echo ' Standards index refreshed — IFRS 18 early-applied (IAS 1 superseded for presentation).';
+					if ((int) date('Y', $repTo) >= 2026 && in_array($selRep, array(
+						'audit__external_audit_report',
+						'fin__annual_financial_statements',
+						'fin__statutory_accounts_filing',
+						'fin__ifrs_reporting',
+						'fin__gaap_reporting',
+						'fin__interim_financial_statements',
+						'fin__consolidated_financial_statements',
+					), true)) {
+						echo ' Presentation refreshed — IFRS 18 early-applied (IAS 1 superseded for presentation &amp; disclosure).';
 					}
 				?></span>
 			<?php endif; ?>
@@ -1057,7 +1065,8 @@ if ($selTool === 'import') {
 					<div style="font-weight:700;"><i class="fa fa-file-text-o text-primary"></i> <?php echo epc_erp_h($def['name']); ?></div>
 					<div style="margin-top:4px;">
 						<?php if ($def['builder'] !== ''): ?><span class="label label-success" style="font-size:10px;">Live build</span><?php else: ?><span class="label label-default" style="font-size:10px;">Formatted template</span><?php endif; ?>
-						<?php if ($def['std'] !== ''): ?><span class="label label-info" style="font-size:10px;">IFRS/Std</span><?php endif; ?>
+						<?php if (($def['std'] ?? '') === 'IFRS18'): ?><span class="label" style="font-size:10px;background:#0b6e99;">IFRS 18</span>
+						<?php elseif ($def['std'] !== ''): ?><span class="label label-info" style="font-size:10px;"><?php echo epc_erp_h((string) $def['std']); ?></span><?php endif; ?>
 					</div>
 				</a>
 			</div>
@@ -1068,10 +1077,26 @@ if ($selTool === 'import') {
 } else {
 	// ---------------------------------------------------------------- catalogue (all categories)
 	$total = count($registry);
+	$catYear = (int) date('Y', is_numeric($date_to ?? null) ? (int) $date_to : (int) strtotime((string) ($date_to_str ?? 'now')));
+	if ($catYear <= 0) { $catYear = (int) date('Y'); }
+	$catIfrs18 = function_exists('epc_ext_ifrs18_applies') ? epc_ext_ifrs18_applies($catYear) : ($catYear >= 2026);
 	?>
 	<div class="epc-erp-section" style="margin-bottom:12px;">
 		<p class="text-muted" style="margin:0;"><strong><?php echo (int) count($cats); ?></strong> categories · <strong><?php echo (int) $total; ?></strong> report types. Priority statutory reports (VAT, Corporate Tax, IFRS financial statements, WPS, UBO, Economic Substance ...) build from live ERP data; the rest provide the formatted statutory structure with the correct authority, law &amp; format links for <?php echo epc_erp_h($regName); ?>.</p>
 	</div>
+	<?php if ($catIfrs18): ?>
+	<div class="epc-erp-section" style="margin-bottom:14px;background:#f3fafd;border:1px solid #0b6e99;border-radius:8px;padding:12px 16px;">
+		<div style="font-weight:800;color:#0b6e99;font-size:14px;"><i class="fa fa-balance-scale"></i> New laws refresh — FY<?php echo (int) $catYear; ?> reporting pack</div>
+		<div class="text-muted" style="font-size:12px;margin-top:6px;line-height:1.55;">
+			<strong>IFRS 18</strong> early applied for financial statements &amp; audit packs (five P&amp;L categories, three mandatory subtotals; IAS 1 superseded for presentation). Mandatory IFRS 18 periods begin on/after 1 Jan 2027.
+			<?php if ($regCountry === 'AE'): ?>
+				&nbsp;·&nbsp; <strong>UAE Corporate Tax</strong> — Federal Decree-Law 47/2022 (incl. Art. 33 add-backs).
+				&nbsp;·&nbsp; <strong>UAE VAT</strong> — Federal Decree-Law 8/2017 &amp; Executive Regulations (bad-debt relief Art. 64; filing Art. 65).
+			<?php endif; ?>
+			Open a report and use <em>Fetch &amp; build</em> to regenerate under the refreshed standards.
+		</div>
+	</div>
+	<?php endif; ?>
 	<div class="epc-erp-section" style="margin-bottom:14px;background:#f5f8ff;border:1px solid #d6e4ff;border-radius:8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
 		<div>
 			<div style="font-weight:700;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → VAT / CT return (off-system)</div>

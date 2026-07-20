@@ -2041,6 +2041,12 @@ if (!function_exists('epc_ext_b_afs')) {
         $pl = epc_erp_gl_pl_report($db, $from, $to);
         $condensed = ($mode === 'interim');
         $consol = ($mode === 'consolidated');
+        $toTs = is_numeric($to) ? (int) $to : (int) strtotime((string) $to);
+        if ($toTs <= 0) {
+            $toTs = time();
+        }
+        $reportYear = (int) date('Y', $toTs);
+        $useIfrs18 = epc_ext_ifrs18_applies($reportYear);
 
         $sec = function (string $title) {
             return '<h4 style="margin-top:22px;border-bottom:2px solid #2b3a55;padding-bottom:4px;">' . epc_erp_h($title) . '</h4>';
@@ -2055,35 +2061,207 @@ if (!function_exists('epc_ext_b_afs')) {
                 . '<td style="text-align:right;white-space:nowrap;">' . epc_ext_m($total, $ccy) . '</td></tr>';
             return $h . '</table>';
         };
+        $kvLine = static function (string $label, float $amt, string $ccy, string $kind = '') {
+            $style = 'padding:5px 8px;';
+            $lbl = $style;
+            $num = $style . 'text-align:right;white-space:nowrap;';
+            if ($kind === 'head') {
+                return '<tr style="background:#eef2f8;"><td colspan="2" style="' . $style . 'font-weight:700;color:#13294b;">' . epc_erp_h($label) . '</td></tr>';
+            }
+            if ($kind === 'sub') {
+                $lbl .= 'font-weight:700;border-top:1px solid #cfd8e6;';
+                $num .= 'font-weight:700;border-top:1px solid #cfd8e6;';
+            }
+            if ($kind === 'total') {
+                $lbl .= 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;';
+                $num .= 'font-weight:800;border-top:2px solid #13294b;background:#f4fbf6;';
+            }
+            return '<tr><td style="' . $lbl . '">' . epc_erp_h($label) . '</td>'
+                . '<td style="' . $num . '">' . epc_ext_m($amt, $ccy) . '</td></tr>';
+        };
 
         $body = '';
         // Statement of Financial Position
-        $body .= $sec('Statement of Financial Position (as at period end)');
+        $body .= $sec($useIfrs18
+            ? 'Statement of Financial Position (as at period end — IFRS 18)'
+            : 'Statement of Financial Position (as at period end)');
         $body .= '<strong>Assets</strong>' . $lineTable($bs['assets'], 'Total assets', (float) $bs['total_assets']);
         $body .= '<strong>Liabilities</strong>' . $lineTable($bs['liabilities'], 'Total liabilities', (float) $bs['total_liabilities']);
         $body .= '<strong>Equity</strong>' . $lineTable($bs['equity'], 'Total equity', (float) $bs['total_equity']);
         $body .= epc_ext_kv_table(array(
             array('Total liabilities & equity', epc_ext_m($bs['total_liabilities_equity'], $ccy), true),
         ));
+        if ($useIfrs18) {
+            $body .= '<p class="text-muted" style="font-size:11px;">IFRS 18 — statement of financial position presented with useful structured summary of assets, liabilities and equity (current / non-current classification retained from the general ledger coding).</p>';
+        }
 
         // Statement of Profit or Loss
-        $body .= $sec('Statement of Profit or Loss (period)');
-        $body .= '<strong>Revenue</strong>' . $lineTable($pl['revenue'], 'Total revenue', (float) $pl['total_revenue']);
-        $body .= '<strong>Expenses</strong>' . $lineTable($pl['expenses'], 'Total expenses', (float) $pl['total_expenses']);
-        $body .= epc_ext_kv_table(array(
-            array('Profit / (loss) for the period', epc_ext_m($pl['net_profit'], $ccy), true),
-        ));
+        $revTot = (float) ($pl['total_revenue'] ?? 0);
+        $expTot = (float) ($pl['total_expenses'] ?? 0);
+        $profit = (float) ($pl['net_profit'] ?? ($revTot - $expTot));
+
+        if ($useIfrs18) {
+            // Classify GL P&L lines into IFRS 18 categories by account name/code.
+            $opRev = array(); $opExp = array(); $invInc = array(); $finExp = array(); $taxExp = array(); $discPL = array();
+            $opRevT = 0.0; $opExpT = 0.0; $invT = 0.0; $finT = 0.0; $taxT = 0.0; $discT = 0.0;
+            $classify = static function (string $code, string $name): string {
+                $s = strtolower($code . ' ' . $name);
+                if (preg_match('/discontinu|held.?for.?sale|disposal.?group/', $s)) {
+                    return 'disc';
+                }
+                if (preg_match('/\bincome.?tax\b|\bcorp(orate)?.?tax\b|\btax.?expense\b|\bdeferred.?tax\b/', $s)) {
+                    return 'tax';
+                }
+                if (preg_match('/interest|finance.?cost|finance.?exp|lease.?interest|borrowing.?cost/', $s)) {
+                    return 'fin';
+                }
+                if (preg_match('/invest(ment)?.?income|dividend.?income|associate|joint.?venture|share.?of.?profit/', $s)) {
+                    return 'inv';
+                }
+                return 'op';
+            };
+            foreach ((array) ($pl['revenue'] ?? array()) as $r) {
+                $amt = (float) ($r['balance'] ?? $r['amount'] ?? 0);
+                $cat = $classify((string) ($r['code'] ?? ''), (string) ($r['name'] ?? ''));
+                if ($cat === 'inv') {
+                    $invInc[] = $r; $invT += $amt;
+                } elseif ($cat === 'disc') {
+                    $discPL[] = $r; $discT += $amt;
+                } else {
+                    $opRev[] = $r; $opRevT += $amt;
+                }
+            }
+            foreach ((array) ($pl['expenses'] ?? array()) as $r) {
+                $amt = (float) ($r['balance'] ?? $r['amount'] ?? 0);
+                $cat = $classify((string) ($r['code'] ?? ''), (string) ($r['name'] ?? ''));
+                if ($cat === 'fin') {
+                    $finExp[] = $r; $finT += $amt;
+                } elseif ($cat === 'tax') {
+                    $taxExp[] = $r; $taxT += $amt;
+                } elseif ($cat === 'inv') {
+                    // investment-related expense reduces investing result
+                    $invInc[] = $r; $invT -= $amt;
+                } elseif ($cat === 'disc') {
+                    $discPL[] = $r; $discT -= $amt;
+                } else {
+                    $opExp[] = $r; $opExpT += $amt;
+                }
+            }
+            $opProfit = $opRevT - $opExpT;
+            $beforeFin = $opProfit + $invT;
+            $pbt = $beforeFin - $finT;
+            $profitCont = $pbt - $taxT;
+            $profit18 = $profitCont + $discT;
+
+            $body .= $sec('Statement of Profit or Loss (period — IFRS 18)');
+            $body .= '<div style="border:1px solid #0b6e99;border-radius:6px;padding:10px 14px;margin:0 0 10px;background:#f3fafd;max-width:820px;">'
+                . '<div style="font-weight:800;color:#0b6e99;font-size:13px;">Presented under IFRS 18 — Presentation and Disclosure in Financial Statements</div>'
+                . '<div style="font-size:11.5px;color:#355;margin-top:3px;">Income and expenses are classified into five categories from posted GL accounts. Mandatory subtotals: <em>operating profit or loss</em>; <em>profit or loss before financing and income taxes</em>; and <em>profit or loss</em>. IAS 1 is superseded for presentation and disclosure. Early applied for FY' . (int) $reportYear . ' (mandatory for periods beginning on/after 1 Jan 2027).</div></div>';
+
+            $body .= '<table class="table table-condensed" style="max-width:820px;">';
+            $body .= $kvLine('Operating category', 0, $ccy, 'head');
+            foreach ($opRev as $r) {
+                $body .= $kvLine(($r['code'] ?? '') . ' · ' . ($r['name'] ?? 'Revenue'), (float) ($r['balance'] ?? $r['amount'] ?? 0), $ccy);
+            }
+            if (count($opRev) === 0) {
+                $body .= $kvLine('Revenue', $opRevT, $ccy);
+            }
+            foreach ($opExp as $r) {
+                $body .= $kvLine(($r['code'] ?? '') . ' · ' . ($r['name'] ?? 'Expense'), -1 * (float) ($r['balance'] ?? $r['amount'] ?? 0), $ccy);
+            }
+            $body .= $kvLine('Operating profit or loss', $opProfit, $ccy, 'sub');
+            $body .= $kvLine('Investing category', 0, $ccy, 'head');
+            if (count($invInc) === 0) {
+                $body .= $kvLine('Income / (expenses) from investments & associates', 0, $ccy);
+            } else {
+                foreach ($invInc as $r) {
+                    $amt = (float) ($r['balance'] ?? $r['amount'] ?? 0);
+                    $fromExp = false;
+                    foreach ((array) ($pl['expenses'] ?? array()) as $er) {
+                        if (($er['code'] ?? '') === ($r['code'] ?? '') && ($er['name'] ?? '') === ($r['name'] ?? '')) {
+                            $fromExp = true;
+                            break;
+                        }
+                    }
+                    $body .= $kvLine(($r['code'] ?? '') . ' · ' . ($r['name'] ?? ''), $fromExp ? -$amt : $amt, $ccy);
+                }
+            }
+            $body .= $kvLine('Profit or loss before financing and income taxes', $beforeFin, $ccy, 'sub');
+            $body .= $kvLine('Financing category', 0, $ccy, 'head');
+            if (count($finExp) === 0) {
+                $body .= $kvLine('Financing income / (expenses)', 0, $ccy);
+            } else {
+                foreach ($finExp as $r) {
+                    $body .= $kvLine(($r['code'] ?? '') . ' · ' . ($r['name'] ?? ''), -1 * (float) ($r['balance'] ?? $r['amount'] ?? 0), $ccy);
+                }
+            }
+            $body .= $kvLine('Profit or loss before income taxes', $pbt, $ccy, 'sub');
+            $body .= $kvLine('Income taxes category', 0, $ccy, 'head');
+            if (count($taxExp) === 0) {
+                $body .= $kvLine('Income tax expense', 0, $ccy);
+            } else {
+                foreach ($taxExp as $r) {
+                    $body .= $kvLine(($r['code'] ?? '') . ' · ' . ($r['name'] ?? ''), -1 * (float) ($r['balance'] ?? $r['amount'] ?? 0), $ccy);
+                }
+            }
+            $body .= $kvLine('Profit or loss from continuing operations', $profitCont, $ccy, 'sub');
+            $body .= $kvLine('Discontinued operations category', 0, $ccy, 'head');
+            if (count($discPL) === 0) {
+                $body .= $kvLine('Profit / (loss) from discontinued operations', 0, $ccy);
+            } else {
+                foreach ($discPL as $r) {
+                    $fromExp = false;
+                    foreach ((array) ($pl['expenses'] ?? array()) as $er) {
+                        if (($er['code'] ?? '') === ($r['code'] ?? '') && ($er['name'] ?? '') === ($r['name'] ?? '')) {
+                            $fromExp = true;
+                            break;
+                        }
+                    }
+                    $amt = (float) ($r['balance'] ?? $r['amount'] ?? 0);
+                    $body .= $kvLine(($r['code'] ?? '') . ' · ' . ($r['name'] ?? ''), $fromExp ? -$amt : $amt, $ccy);
+                }
+            }
+            $body .= $kvLine('Profit or loss', $profit18, $ccy, 'total');
+            $body .= '</table>';
+            $body .= '<p class="text-muted" style="font-size:11px;">IFRS 18.47–72 — five categories and three mandatory subtotals. Line classification uses GL account names/codes; refine with tagged mapping or the IFRS import workbook for investing / MPM / discontinued lines.</p>';
+            // Prefer IFRS 18 derived profit for summary when categories used.
+            $profit = $profit18;
+        } else {
+            $body .= $sec('Statement of Profit or Loss (period)');
+            $body .= '<strong>Revenue</strong>' . $lineTable($pl['revenue'], 'Total revenue', $revTot);
+            $body .= '<strong>Expenses</strong>' . $lineTable($pl['expenses'], 'Total expenses', $expTot);
+            $body .= epc_ext_kv_table(array(
+                array('Profit / (loss) for the period', epc_ext_m($profit, $ccy), true),
+            ));
+        }
 
         // Notes
         $body .= $sec('Notes to the Financial Statements');
+        $entity = epc_erp_h((string) (epc_ext_company($db)['legal_name'] ?: 'The Company'));
+        if ($condensed) {
+            $basis = $useIfrs18
+                ? 'These condensed interim financial statements are prepared in accordance with IAS 34 Interim Financial Reporting, using the same presentation and disclosure principles as the annual IFRS financial statements (including early application of IFRS 18).'
+                : 'These condensed interim financial statements are prepared in accordance with IAS 34 Interim Financial Reporting.';
+        } elseif ($useIfrs18) {
+            $basis = 'These financial statements are prepared in accordance with International Financial Reporting Standards (IFRS) as issued by the IASB, including early application of IFRS 18 Presentation and Disclosure in Financial Statements (issued April 2024; mandatory for periods beginning on or after 1 January 2027). IFRS 18 replaces IAS 1 for presentation and disclosure'
+                . ($consol ? '; the Group is consolidated under IFRS 10.' : '.');
+        } else {
+            $basis = 'These financial statements are prepared in accordance with International Financial Reporting Standards (IFRS) as issued by the IASB'
+                . ($consol ? ', consolidated under IFRS 10.' : '.');
+        }
         $notes = array(
-            '1. Reporting entity — ' . epc_erp_h((string) (epc_ext_company($db)['legal_name'] ?: 'The Company')) . ($consol ? ' and its subsidiaries (the "Group").' : '.'),
-            '2. Basis of preparation — ' . ($condensed ? 'These condensed interim financial statements are prepared in accordance with IAS 34 Interim Financial Reporting.' : 'These financial statements are prepared in accordance with International Financial Reporting Standards (IFRS) as issued by the IASB' . ($consol ? ', consolidated under IFRS 10.' : '.')),
+            '1. Reporting entity — ' . $entity . ($consol ? ' and its subsidiaries (the "Group").' : '.'),
+            '2. Basis of preparation — ' . $basis,
             '3. Functional & presentation currency — ' . epc_erp_h($ccy) . '; figures are derived from the posted general ledger.',
-            '4. Summary of material accounting policies — revenue recognised under IFRS 15; financial instruments under IFRS 9; leases under IFRS 16; property & equipment under IAS 16.',
-            '5. Revenue — total recognised revenue for the period is ' . epc_ext_m($pl['total_revenue'], $ccy) . '.',
+            '4. Summary of material accounting policies — revenue recognised under IFRS 15; financial instruments under IFRS 9; leases under IFRS 16; property & equipment under IAS 16'
+                . ($useIfrs18 ? '; presentation and disclosure under IFRS 18 (five categories and mandatory subtotals).' : '.'),
+            '5. Revenue — total recognised revenue for the period is ' . epc_ext_m($revTot, $ccy) . '.',
             '6. Going concern — the financial statements are prepared on a going-concern basis.',
         );
+        if ($useIfrs18) {
+            $notes[] = '7. Management-defined performance measures (MPMs) — IFRS 18 requires public communication of MPMs outside the financial statements to be disclosed in a single note with reconciliations. Assessment: no MPMs are communicated outside these statements; the face presents only IFRS 18 mandatory / useful-structured-summary subtotals.';
+            $notes[] = '8. Current / non-current classification — assets and liabilities are classified as current when expected to be realised or settled within twelve months after the reporting period (IFRS 18 presentation requirements transferred from IAS 1.69–76).';
+        }
         $body .= '<ol style="max-width:820px;">';
         foreach ($notes as $n) {
             $body .= '<li style="margin-bottom:8px;">' . $n . '</li>';
@@ -2093,13 +2271,20 @@ if (!function_exists('epc_ext_b_afs')) {
         $bal = abs((float) $bs['total_assets'] - (float) $bs['total_liabilities_equity']) < 0.01;
         $body .= '<p class="text-muted"><i class="fa fa-info-circle"></i> Balance check: assets ' . ($bal ? 'equal' : 'differ from') . ' liabilities + equity.</p>';
 
+        $titleSuffix = $condensed
+            ? ($useIfrs18 ? ' (condensed — IAS 34 / IFRS 18)' : ' (condensed — IAS 34)')
+            : ($consol
+                ? ($useIfrs18 ? ' (consolidated — IFRS 10 / IFRS 18)' : ' (consolidated — IFRS 10)')
+                : ($useIfrs18 ? ' (IFRS 18)' : ' (IFRS)'));
+
         return array(
-            'title' => $name . ($condensed ? ' (condensed — IAS 34)' : ($consol ? ' (consolidated — IFRS 10)' : ' (IFRS)')),
+            'title' => $name . $titleSuffix,
             'body' => $body,
             'summary' => array(
                 'Total assets' => epc_ext_m($bs['total_assets'], $ccy),
                 'Total equity' => epc_ext_m($bs['total_equity'], $ccy),
-                'Profit / (loss)' => epc_ext_m($pl['net_profit'], $ccy),
+                'Profit / (loss)' => epc_ext_m($profit, $ccy),
+                'Presentation' => $useIfrs18 ? 'IFRS 18 (early)' : 'IAS 1 / IFRS',
             ),
             'live' => true,
         );
@@ -2937,7 +3122,11 @@ if (!function_exists('epc_ext_b_audit')) {
                 'Recognition' => 'Cash and cash equivalents comprise cash on hand, demand deposits and short-term, highly liquid investments readily convertible to known amounts of cash with insignificant risk of changes in value.',
                 'Procedure' => 'Used as the reconciling total for the statement of cash flows; bank overdrafts repayable on demand, if any, are included as a component.',
             ), 'IAS 7.6–9, 45.'));
-        $notes .= $note('Trade & other payables', 'IFRS 9 / IAS 1', '<p>Trade and other payables are recognised at amortised cost.</p>'
+        $payPresStd = $useIfrs18 ? 'IFRS 9 / IFRS 18' : 'IFRS 9 / IAS 1';
+        $payPresRef = $useIfrs18
+            ? 'IFRS 9.3.1.1, 5.3.1; IFRS 18 — current/non-current classification (transferred from IAS 1.69–76).'
+            : 'IFRS 9.3.1.1, 5.3.1; IAS 1.69–76 (current/non-current).';
+        $notes .= $note('Trade & other payables', $payPresStd, '<p>Trade and other payables are recognised at amortised cost.</p>'
             . $ntbl(array(
                 array('Trade payables', $payTradeC, $payTradeP),
                 array('Accruals', $payAccrC, $payAccrP),
@@ -2954,8 +3143,12 @@ if (!function_exists('epc_ext_b_audit')) {
             . $pol(array(
                 'Recognition' => 'Liabilities are recognised for amounts to be paid for goods or services received, whether billed or not.',
                 'Measurement' => 'Initially at fair value and subsequently at amortised cost using the effective-interest method; short-term payables are carried at invoice amount as the effect of discounting is immaterial.',
-            ), 'IFRS 9.3.1.1, 5.3.1; IAS 1.69–76 (current/non-current).'));
-        $notes .= $note('Borrowings', 'IFRS 7 / IAS 23', '<p>Borrowings are carried at amortised cost and are split between current and non-current portions. Finance costs for the year were ' . $m($cur['interest']) . ' (' . $pL . ': ' . $m($pri['interest']) . ').</p>'
+            ), $payPresRef));
+        $borPresRef = $useIfrs18
+            ? 'IFRS 9.5.3.1; IAS 23.8; IFRS 18 — current/non-current classification (transferred from IAS 1.69–76).'
+            : 'IFRS 9.5.3.1; IAS 23.8; IAS 1.69–76.';
+        $notes .= $note('Borrowings', 'IFRS 7 / IAS 23', '<p>Borrowings are carried at amortised cost and are split between current and non-current portions. Finance costs for the year were ' . $m($cur['interest']) . ' (' . $pL . ': ' . $m($pri['interest']) . ')'
+            . ($useIfrs18 ? ' and are presented in the financing category under IFRS 18' : '') . '.</p>'
             . $ntbl(array(
                 array('Non-current borrowings', $cur['borrowNon'], $pri['borrowNon']),
                 array('Current portion of borrowings', $cur['borrowCur'], $pri['borrowCur']),
@@ -2964,8 +3157,8 @@ if (!function_exists('epc_ext_b_audit')) {
             . $pol(array(
                 'Recognition' => 'Borrowings are recognised initially at fair value, net of transaction costs incurred.',
                 'Measurement' => 'Subsequently at amortised cost; any difference between proceeds (net of costs) and the redemption value is recognised in profit or loss over the term using the effective-interest method.',
-                'Procedure' => 'Classified as current when due within twelve months; finance costs are presented separately in profit or loss.',
-            ), 'IFRS 9.5.3.1; IAS 23.8; IAS 1.69–76.'));
+                'Procedure' => 'Classified as current when due within twelve months; finance costs are presented separately' . ($useIfrs18 ? ' in the financing category of profit or loss under IFRS 18' : ' in profit or loss') . '.',
+            ), $borPresRef));
         $notes .= $note('Leases', 'IFRS 16', '<p>Lease liabilities represent the present value of remaining lease payments, with corresponding right-of-use assets within property, plant &amp; equipment. The maturity of lease liabilities (carrying amount) was:</p>'
             . $ntbl(array(
                 array('Due within 1 year', $lease1C, $lease1P),
@@ -7581,6 +7774,7 @@ if (!function_exists('epc_ext_audit_xlsx')) {
         $d = epc_ext_fin_dataset($db, $from, $to);
         $C = $d['cur']; $P = $d['pri'];
         $cyr = (int) $d['curYear']; $pyr = (int) $d['priYear'];
+        $useIfrs18X = epc_ext_ifrs18_applies($cyr);
 
         // ---- derived build-ups (same basis as the on-screen notes) ----------
         $eclC = round($C['receivables'] * 0.031, 2); $grossRecC = round($C['receivables'] + $eclC, 2);
@@ -7941,8 +8135,8 @@ if (!function_exists('epc_ext_audit_xlsx')) {
         $nR('Total cash & cash equivalents', $fml('B' . $rCa0 . '+B' . $rCa1, $C['cash']), $fml('C' . $rCa0 . '+C' . $rCa1, $P['cash']), "='Financial Position'!B9");
         $nT('Policy adopted', 'Cash comprises cash on hand, demand deposits and short-term highly-liquid investments; used as the reconciling total for the statement of cash flows. Ref: IAS 7.6–9, 45.');
 
-        // Note 10 — Trade & other payables (IFRS 9 / IAS 1) + ageing
-        $nH('Note 10 — Trade & other payables (IFRS 9 / IAS 1)');
+        // Note 10 — Trade & other payables (IFRS 9 / IFRS 18 or IAS 1) + ageing
+        $nH('Note 10 — Trade & other payables (' . ($useIfrs18X ? 'IFRS 9 / IFRS 18' : 'IFRS 9 / IAS 1') . ')');
         $nR('Trade payables', $payTradeC, $payTradeP, '');
         $nR('Accruals', $payAccrC, $payAccrP, '');
         $nR('Other payables', $payOthC, $payOthP, '');
@@ -7953,7 +8147,9 @@ if (!function_exists('epc_ext_audit_xlsx')) {
         $nR('31–60 days past due', $pay60C, $pay60P, 'ageing');
         $nR('More than 60 days past due', $pay90C, $pay90P, 'ageing');
         $nR('Total payables (by ageing)', $C['payables'], $P['payables'], 'agrees to above');
-        $nT('Policy adopted', 'Payables for goods/services received (billed or not) at amortised cost; short-term payables at invoice amount. Ageing supports liquidity-risk management. Ref: IFRS 9.5.3.1; IAS 1.69–76.');
+        $nT('Policy adopted', $useIfrs18X
+            ? 'Payables for goods/services received (billed or not) at amortised cost; short-term payables at invoice amount. Ageing supports liquidity-risk management. Ref: IFRS 9.5.3.1; IFRS 18 current/non-current (transferred from IAS 1.69–76).'
+            : 'Payables for goods/services received (billed or not) at amortised cost; short-term payables at invoice amount. Ageing supports liquidity-risk management. Ref: IFRS 9.5.3.1; IAS 1.69–76.');
 
         // Note 11 — Borrowings (IFRS 7 / IAS 23)
         $nH('Note 11 — Borrowings (IFRS 7 / IAS 23)');
