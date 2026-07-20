@@ -29,7 +29,7 @@ function epc_erp_full_ensure_schema(PDO $db)
 
 	// Cross-request short-circuit: after schema is known-good, skip the full DDL
 	// sweep. Bump $schemaVer whenever any ensure_* body below gains new DDL.
-	$schemaVer = 20260718;
+	$schemaVer = 20260721; // + multi-user concurrency harden (admin force, user-scoped idem, lean presence)
 	try {
 		$db->exec("CREATE TABLE IF NOT EXISTS `epc_erp_runtime_meta` (
 			`meta_key` varchar(64) NOT NULL,
@@ -46,6 +46,8 @@ function epc_erp_full_ensure_schema(PDO $db)
 		// Fall through to full ensure.
 	}
 
+	require_once __DIR__ . '/epc_erp_concurrency.php';
+	epc_erp_concurrency_ensure_schema($db);
 	require_once __DIR__ . '/epc_erp_vouchers.php';
 	epc_erp_vouchers_ensure_schema($db);
 	epc_erp_gl_ensure_schema($db);

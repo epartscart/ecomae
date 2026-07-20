@@ -343,34 +343,83 @@ function epc_erp_inventory_apply_weighted_average($oldQty, $oldCost, $inQty, $in
 
 function epc_erp_inventory_upsert_stock(PDO $db, $warehouseId, $itemId, $qtyDelta, $unitCost, $batchNo = '', $variant = '', $expiry = null)
 {
-	$row = epc_erp_inventory_get_stock_row($db, $warehouseId, $itemId, $batchNo, $variant);
 	$now = time();
-	if (!$row) {
-		$avg = $qtyDelta > 0 ? (float) $unitCost : 0;
+	$wh = (int) $warehouseId;
+	$iid = (int) $itemId;
+	$batchNo = (string) $batchNo;
+	$variant = (string) $variant;
+
+	$ownTxn = !$db->inTransaction();
+	if ($ownTxn) {
+		$db->beginTransaction();
+	}
+	try {
+		// Row-level lock so concurrent issues/receipts on the same SKU cannot lose updates.
+		$sql = 'SELECT * FROM `epc_erp_inv_stock` WHERE `warehouse_id` = ? AND `item_id` = ?';
+		$params = array($wh, $iid);
+		if ($batchNo !== '') {
+			$sql .= ' AND `batch_no` = ?';
+			$params[] = $batchNo;
+		} else {
+			$sql .= ' AND (`batch_no` IS NULL OR `batch_no` = \'\')';
+		}
+		if ($variant !== '') {
+			$sql .= ' AND `variant_label` = ?';
+			$params[] = $variant;
+		} else {
+			$sql .= ' AND (`variant_label` IS NULL OR `variant_label` = \'\')';
+		}
+		$sql .= ' LIMIT 1 FOR UPDATE';
+		$st = $db->prepare($sql);
+		$st->execute($params);
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+
+		if (!$row) {
+			$avg = $qtyDelta > 0 ? (float) $unitCost : 0;
+			try {
+				$db->prepare(
+					'INSERT INTO `epc_erp_inv_stock` (`warehouse_id`,`item_id`,`qty_on_hand`,`avg_unit_cost`,`batch_no`,`variant_label`,`expiry_date`,`time_updated`)
+					VALUES (?,?,?,?,?,?,?,?)'
+				)->execute(array(
+					$wh, $iid, max(0, (float) $qtyDelta), $avg,
+					$batchNo !== '' ? $batchNo : null,
+					$variant !== '' ? $variant : null,
+					$expiry ?: null,
+					$now,
+				));
+				if ($ownTxn) {
+					$db->commit();
+				}
+				return;
+			} catch (Throwable $e) {
+				$st->execute($params);
+				$row = $st->fetch(PDO::FETCH_ASSOC);
+				if (!$row) {
+					throw $e;
+				}
+			}
+		}
+		$oldQty = (float) $row['qty_on_hand'];
+		$newQty = $oldQty + (float) $qtyDelta;
+		if ($newQty < 0) {
+			throw new Exception('Insufficient stock (would go negative)');
+		}
+		$newAvg = (float) $row['avg_unit_cost'];
+		if ($qtyDelta > 0) {
+			$newAvg = epc_erp_inventory_apply_weighted_average($oldQty, $newAvg, $qtyDelta, $unitCost);
+		}
 		$db->prepare(
-			'INSERT INTO `epc_erp_inv_stock` (`warehouse_id`,`item_id`,`qty_on_hand`,`avg_unit_cost`,`batch_no`,`variant_label`,`expiry_date`,`time_updated`)
-			VALUES (?,?,?,?,?,?,?,?)'
-		)->execute(array(
-			(int) $warehouseId, (int) $itemId, max(0, (float) $qtyDelta), $avg,
-			$batchNo !== '' ? $batchNo : null,
-			$variant !== '' ? $variant : null,
-			$expiry ?: null,
-			$now,
-		));
-		return;
+			'UPDATE `epc_erp_inv_stock` SET `qty_on_hand` = ?, `avg_unit_cost` = ?, `expiry_date` = COALESCE(?, `expiry_date`), `time_updated` = ? WHERE `id` = ?'
+		)->execute(array($newQty, $newAvg, $expiry ?: null, $now, (int) $row['id']));
+		if ($ownTxn) {
+			$db->commit();
+		}
+	} catch (Throwable $e) {
+		if ($ownTxn && $db->inTransaction()) {
+			$db->rollBack();
+		}
+		throw $e;
 	}
-	$oldQty = (float) $row['qty_on_hand'];
-	$newQty = $oldQty + (float) $qtyDelta;
-	if ($newQty < 0) {
-		throw new Exception('Insufficient stock (would go negative)');
-	}
-	$newAvg = (float) $row['avg_unit_cost'];
-	if ($qtyDelta > 0) {
-		$newAvg = epc_erp_inventory_apply_weighted_average($oldQty, $newAvg, $qtyDelta, $unitCost);
-	}
-	$db->prepare(
-		'UPDATE `epc_erp_inv_stock` SET `qty_on_hand` = ?, `avg_unit_cost` = ?, `expiry_date` = COALESCE(?, `expiry_date`), `time_updated` = ? WHERE `id` = ?'
-	)->execute(array($newQty, $newAvg, $expiry ?: null, $now, (int) $row['id']));
 }
 
 function epc_erp_inventory_record_movement(PDO $db, array $data)

@@ -242,18 +242,25 @@ function epc_erp_invoice_update(PDO $db, int $id, array $doc, int $admin_id = 0)
 	$xml = epc_einvoice_build_xml($doc);
 	$now = time();
 	$status = $validation['ok'] ? 'validated' : 'draft';
+	$expectedVersion = (int) ($doc['expected_version'] ?? $_POST['expected_version'] ?? 0);
 
 	$db->beginTransaction();
 	try {
-		$db->prepare(
+		if (!function_exists('epc_erp_version_assert_and_bump')) {
+			require_once __DIR__ . '/epc_erp_concurrency.php';
+		}
+		epc_erp_version_assert_and_bump($db, 'epc_einvoice_documents', $id, $expectedVersion);
+
+		$upd = $db->prepare(
 			'UPDATE `epc_einvoice_documents` SET
 			 `invoice_number`=?, `order_id`=?, `user_id`=?, `issue_date`=?, `payment_due_date`=?, `vat_point_date`=?,
 			 `currency_code`=?, `transaction_type_code`=?, `payment_terms`=?, `bank_account`=?,
 			 `seller_json`=?, `buyer_json`=?, `subtotal_ex_vat`=?, `total_vat`=?, `total_incl_vat`=?,
 			 `paid_amount`=?, `amount_due`=?, `tax_breakdown_json`=?, `status`=?, `validation_ok`=?,
 			 `validation_errors_json`=?, `xml_content`=?, `time_updated`=?
-			 WHERE `id`=? AND `active`=1'
-		)->execute(array(
+			 WHERE `id`=? AND `active`=1 AND `status` NOT IN (\'submitted\',\'accepted\',\'queued\')'
+		);
+		$upd->execute(array(
 			$doc['invoice_number'],
 			(int)$doc['order_id'],
 			(int)$doc['user_id'],
@@ -279,6 +286,9 @@ function epc_erp_invoice_update(PDO $db, int $id, array $doc, int $admin_id = 0)
 			$now,
 			$id,
 		));
+		if ($upd->rowCount() < 1) {
+			throw new Exception('Invoice could not be updated — another user may have submitted it. Reload and try again.');
+		}
 		$db->prepare('DELETE FROM `epc_einvoice_lines` WHERE `document_id` = ?')->execute(array($id));
 		$lins = $db->prepare(
 			'INSERT INTO `epc_einvoice_lines`

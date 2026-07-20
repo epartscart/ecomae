@@ -5,6 +5,7 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_concurrency.php';
 
 $einvSection = isset($_GET['einv_section']) ? (string)$_GET['einv_section'] : 'dashboard';
 $viewDocId = isset($_GET['einv_doc']) ? (int)$_GET['einv_doc'] : 0;
@@ -309,8 +310,19 @@ if ($einvSection === 'dashboard') {
 				</div>
 			<?php endif; ?>
 
-			<div class="epc-einvoice-preview well" style="background:#fff;padding:24px;border:1px solid #cbd5e1;">
-				<h3 style="text-align:center;margin-top:0;">Tax Invoice</h3>
+			<?php
+			$einvRowVer = 0;
+			if (function_exists('epc_erp_version_get')) {
+				$einvRowVer = epc_erp_version_get($db_link, 'epc_einvoice_documents', (int) $doc['id']);
+			} elseif (!empty($doc['row_version'])) {
+				$einvRowVer = (int) $doc['row_version'];
+			}
+			?>
+			<div class="epc-einvoice-preview well" style="background:#fff;padding:24px;border:1px solid #cbd5e1;"
+				data-erp-entity="invoice"
+				data-erp-entity-id="<?php echo (int) $doc['id']; ?>"
+				data-erp-row-version="<?php echo (int) $einvRowVer; ?>">
+				<h3 style="text-align:center;margin-top:0;"><?php echo ((string)($doc['invoice_type_code'] ?? '380') === '381') ? 'Tax Credit Note' : 'Tax Invoice'; ?></h3>
 				<p style="text-align:center;color:#64748b;font-size:12px;">
 					<code><?php echo epc_erp_h($const['business_process']); ?></code> ·
 					<code><?php echo epc_erp_h($const['specification_id']); ?></code>
