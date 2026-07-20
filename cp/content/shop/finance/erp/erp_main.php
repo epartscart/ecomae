@@ -402,7 +402,7 @@ $erpTabIncludes = array(
 ?>
 
 <?php if (!$epc_erp_shell_mode): ?>
-<?php $epcErpCssVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720erp-contrast'; ?>
+<?php $epcErpCssVer = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260720erp-topnav'; ?>
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_ui.css?v=<?php echo htmlspecialchars($epcErpCssVer, ENT_QUOTES, 'UTF-8'); ?>">
 <link rel="stylesheet" href="/content/shop/finance/epc_erp_professional.css?v=<?php echo htmlspecialchars($epcErpCssVer, ENT_QUOTES, 'UTF-8'); ?>">
 <?php endif; ?>
@@ -576,15 +576,16 @@ $epcErpD365Tabs = array('sales_orders', 'purchase_orders', 'inventory', 'receiva
 $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 ?>
 
-<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?><?php echo $epcErpD365Tab ? ' epc-erp-d365' : ''; ?>">
-	<div class="epc-erp-layout">
-		<aside class="epc-erp-sidebar" id="epc_erp_sidebar" aria-label="ERP navigation">
+<div class="col-lg-12 epc-erp-shell epc-erp-shell--layout epc-erp-shell--topnav<?php echo $epc_erp_shell_mode ? ' epc-erp-shell--pro' : ''; ?><?php echo $epcErpD365Tab ? ' epc-erp-d365' : ''; ?>">
+	<?php epc_erp_render_top_nav($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str, $userAllowedTabs); ?>
+	<div class="epc-erp-layout epc-erp-layout--topnav">
+		<aside class="epc-erp-sidebar epc-erp-sidebar--rail" id="epc_erp_sidebar" aria-label="ERP navigation">
 			<div class="epc-erp-sidebar-head">
-				<span class="epc-erp-sidebar-brand"><i class="fa fa-cubes"></i> Ecom BOS</span>
+				<span class="epc-erp-sidebar-brand"><i class="fa fa-list"></i> Modules</span>
 				<button type="button" class="epc-erp-sidebar-collapse-toggle" id="epc_erp_sidebar_collapse_toggle" aria-expanded="true" aria-label="Collapse sidebar"><i class="fa fa-chevron-left"></i></button>
 				<button type="button" class="epc-erp-sidebar-close" id="epc_erp_sidebar_close" aria-label="Close menu"><i class="fa fa-times"></i></button>
 			</div>
-			<?php epc_erp_render_sidebar_nav($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str, $userAllowedTabs); ?>
+			<?php epc_erp_render_sidebar_nav($erpUrl, $erpArea, $tab, $date_from_str, $date_to_str, $userAllowedTabs, true); ?>
 		</aside>
 		<div class="epc-erp-sidebar-backdrop" id="epc_erp_sidebar_backdrop" aria-hidden="true"></div>
 
