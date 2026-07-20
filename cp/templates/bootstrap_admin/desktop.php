@@ -340,7 +340,12 @@ function print_backend_button($button_params)
 <div id="header">
     <div class="color-line">
     </div>
-	<a href="/<?php echo $DP_Config->backend_dir; ?>">
+	<?php
+	$epcCpHeaderHome = function_exists('epc_cp_control_url')
+		? epc_cp_control_url((string) $DP_Config->backend_dir)
+		: ('/' . $DP_Config->backend_dir . '/control');
+	?>
+	<a href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>">
     <div id="logo" class="light-version ech-logo-wrap epc-cp-header-logo">
 		<?php echo epc_ecomae_static_logo('header', array('show_title' => false, 'show_tagline' => false, 'aria_label' => 'ECOM AE')); ?>
     </div>
@@ -363,7 +368,7 @@ function print_backend_button($button_params)
 		
 		
         <div class="small-logo hidden">
-			<a href="/<?php echo $DP_Config->backend_dir; ?>">
+			<a href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>">
 				<span class="text-primary"><?php echo translate_str_by_id(3992); ?></span>
 			</a>
         </div>

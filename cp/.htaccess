@@ -1,9 +1,10 @@
-#На единую точку входа
+# Single entry — bare /cp and /cp/index.php jump to /cp/control (Apache).
+# Nginx ignores this file; PHP epc_cp_auth_gate_run() mirrors these rules.
 RewriteEngine On
 RewriteRule ^control/cp-guideline/?$ control/guideline [R=302,L,QSA]
 RewriteCond %{REQUEST_METHOD} GET
-RewriteRule ^index\.php$ control [R=302,L]
+RewriteRule ^index\.php$ control [R=302,L,QSA]
 RewriteCond %{REQUEST_METHOD} GET
-RewriteRule ^$ control [R=302,L]
+RewriteRule ^$ control [R=302,L,QSA]
 RewriteCond %{SCRIPT_FILENAME} !-f
 RewriteRule (.*) index.php
