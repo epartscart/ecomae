@@ -1,142 +1,157 @@
 <?php
 /**
- * Shortcut Icon Builder — per-user customizable quick-access shortcuts.
- * Users pin favourite ERP modules/tabs to their dashboard for one-click access.
+ * ERP → Shortcut Icons (legacy tab).
+ * Same per-user store as ERP/CP dashboard custom shortcuts.
  */
+declare(strict_types=1);
 defined('_ASTEXE_') or die('No access');
 
-require_once __DIR__ . '/erp_pm_render.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
-epc_erp_pm_inline_assets();
 
-epc_shortcuts_ensure_schema($db_link);
-$csrfLocal = isset($csrf) ? $csrf : '';
-// Resolve current user ID — same convention used in ajax_erp.php
-$scUserId = 0;
-if (isset($_SESSION['user_id'])) { $scUserId = (int) $_SESSION['user_id']; }
-elseif (isset($_SESSION['admin_id'])) { $scUserId = (int) $_SESSION['admin_id']; }
-$shortcuts = epc_shortcuts_list($db_link, $scUserId);
-
-erp_page_header(
-	'<i class="fa fa-th-large"></i> Shortcut Icons',
-	'Build your personal ERP dashboard shortcuts — pin frequently used modules, reports, and actions for one-click access.',
-	array(
-		array('label' => 'ERP', 'url' => epc_erp_tab_url($erpUrl, 'dashboard', $date_from_str, $date_to_str)),
-		array('label' => 'Shortcut Icons'),
-	),
-	array(array('label' => 'Add shortcut', 'id' => 'sc_add_btn', 'class' => 'btn-primary', 'icon' => 'fa-plus'))
-);
-
-ob_start();
+$uid = epc_shortcuts_user_id();
+$rows = array();
+if (isset($db_link) && $db_link instanceof PDO && $uid > 0) {
+	$rows = epc_shortcuts_list_for_surface($db_link, $uid, 'erp');
+}
+$tiles = epc_shortcuts_as_tiles($rows);
+$csrf = isset($csrf) ? (string) $csrf : '';
+$ajax = isset($erpAjaxEndpoint) ? (string) $erpAjaxEndpoint : '';
+if ($ajax === '' && function_exists('epc_erp_configure_portal_urls')) {
+	$u = epc_erp_configure_portal_urls(
+		(isset($epc_erp_portal) && $epc_erp_portal === 'frontend') ? 'frontend' : 'cp'
+	);
+	$ajax = (string) ($u['erpAjaxUrl'] ?? '');
+}
 ?>
-<div class="epc-erp-section">
-	<h4><i class="fa fa-star"></i> My shortcuts</h4>
-	<p class="text-muted">Click × to remove a shortcut. Drag-to-reorder is a planned follow-up — not yet wired.</p>
-	<div class="row" id="sc_grid" style="margin-top:12px;">
-	<?php if (empty($shortcuts)): ?>
-		<div class="col-md-12"><p class="text-muted" style="text-align:center;">No shortcuts yet. Use the form below to add your first shortcut.</p></div>
-	<?php else: foreach ($shortcuts as $sc): ?>
-		<div class="col-md-3 col-sm-4 col-xs-6" style="margin-bottom:12px;position:relative;">
-			<div class="panel panel-default text-center" style="cursor:pointer;border-top:3px solid <?php echo epc_erp_h($sc['icon_color']); ?>;">
-				<div class="panel-body" style="padding:16px 8px;">
-					<i class="<?php echo epc_erp_h($sc['icon_class']); ?> fa-2x" style="color:<?php echo epc_erp_h($sc['icon_color']); ?>;margin-bottom:8px;display:block;"></i>
-					<strong style="font-size:12px;"><?php echo epc_erp_h($sc['label']); ?></strong>
-					<?php if ($sc['target_url']): ?>
-						<a href="<?php echo epc_erp_h($sc['target_url']); ?>" class="stretched-link" style="position:absolute;inset:0;"></a>
-					<?php endif; ?>
-					<a class="text-danger sc-delete" data-id="<?php echo (int) $sc['id']; ?>" style="position:absolute;top:4px;right:8px;font-size:14px;cursor:pointer;z-index:10;">&times;</a>
-				</div>
-			</div>
-		</div>
-	<?php endforeach; endif; ?>
-	</div>
-</div>
-<div class="epc-erp-section">
-	<h4><i class="fa fa-plus-circle"></i> Add new shortcut</h4>
-	<form id="sc_new_form" method="POST" action="<?php echo epc_erp_h($erpAjaxUrl); ?>" style="display:none;margin-bottom:16px;">
-		<input type="hidden" name="csrf_guard_key" value="<?php echo epc_erp_h($csrfLocal); ?>">
-		<input type="hidden" name="action" value="shortcut_add">
-		<div class="pm-fields">
-			<div class="pm-field"><label>Label</label><input type="text" name="label" class="form-control input-sm" required placeholder="e.g. Daily Sales"></div>
-			<div class="pm-field"><label>Target URL</label><input type="text" name="target_url" class="form-control input-sm" placeholder="/cp/..."></div>
-			<div class="pm-field"><label>ERP tab name (optional)</label><input type="text" name="target_tab" class="form-control input-sm" placeholder="e.g. invoices"></div>
-			<div class="pm-field"><label>Icon class</label>
-				<select name="icon_class" class="form-control input-sm">
-					<option value="fa fa-file-text">📄 Document</option>
-					<option value="fa fa-calculator">🧮 Calculator</option>
-					<option value="fa fa-bar-chart">📊 Chart</option>
-					<option value="fa fa-money">💰 Money</option>
-					<option value="fa fa-truck">🚚 Delivery</option>
-					<option value="fa fa-users">👥 People</option>
-					<option value="fa fa-diamond">💎 Diamond</option>
-					<option value="fa fa-shopping-cart">🛒 Cart</option>
-					<option value="fa fa-star">⭐ Star</option>
-					<option value="fa fa-cubes">📦 Inventory</option>
-					<option value="fa fa-clock-o">🕐 Clock</option>
-					<option value="fa fa-university">🏦 Bank</option>
-				</select>
-			</div>
-			<div class="pm-field"><label>Color</label><input type="color" name="icon_color" class="form-control input-sm" value="#3b82f6" style="height:30px;padding:2px;"></div>
-		</div>
-		<button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add shortcut</button>
-	</form>
-</div>
-<div class="epc-erp-section">
-	<h4><i class="fa fa-cog"></i> Shortcut settings</h4>
-	<div class="pm-fields">
-		<div class="pm-field"><label>Grid size</label>
-			<select class="form-control input-sm"><option>Large (4 per row)</option><option>Medium (6 per row)</option><option>Small (8 per row)</option></select>
-		</div>
-		<div class="pm-field"><label>Show on dashboard</label>
-			<select class="form-control input-sm"><option value="1">Yes — show shortcuts on ERP dashboard</option><option value="0">No — only this page</option></select>
-		</div>
-		<div class="pm-field"><label>Reset to defaults</label>
-			<button class="btn btn-danger btn-xs"><i class="fa fa-undo"></i> Reset all shortcuts</button>
-		</div>
-	</div>
+<style>
+.si-wrap{max-width:1100px}
+.si-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.si-head h2{margin:0;font-size:1.2rem}
+.si-head p{margin:6px 0 0;color:#64748b;font-size:.9rem;max-width:52rem}
+.si-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.si-card{border:1px solid #e2e8f0;border-radius:12px;background:#fff;padding:14px;display:flex;gap:10px;align-items:flex-start;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.si-card:hover{border-color:#94a3b8}
+.si-ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:1rem;flex:0 0 auto;color:#fff}
+.si-meta{min-width:0;flex:1}
+.si-meta strong{display:block;font-size:.92rem}
+.si-meta span{display:block;font-size:.78rem;color:#64748b;word-break:break-all;margin-top:2px}
+.si-del{border:0;background:#fee2e2;color:#991b1b;border-radius:8px;width:28px;height:28px;cursor:pointer;font-weight:800}
+.si-form{margin-top:16px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;padding:14px}
+.si-form h3{margin:0 0 10px;font-size:1rem}
+.si-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:720px){.si-row{grid-template-columns:1fr}}
+.si-form label{display:block;font-size:.78rem;font-weight:700;color:#475569;margin:0 0 4px}
+.si-form input{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:8px 10px;font:inherit;box-sizing:border-box}
+.si-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.si-btn{border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;background:#2563eb;color:#fff}
+.si-btn.ghost{background:#e2e8f0;color:#0f172a}
+.si-msg{margin:10px 0 0;font-size:.85rem;color:#0f766e;min-height:1.2em}
+.si-empty{padding:20px;border:1px dashed #cbd5e1;border-radius:12px;color:#64748b;text-align:center}
+</style>
+
+<div class="si-wrap" id="siRoot" data-ajax="<?= htmlspecialchars($ajax, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" data-csrf="<?= htmlspecialchars($csrf, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+  <div class="si-head">
+    <div>
+      <h2>Shortcut icons</h2>
+      <p>Same shortcuts as your ERP dashboard Quick actions. Prefer editing there (Edit shortcuts → add/remove). Changes sync here.</p>
+    </div>
+    <a class="si-btn ghost" href="<?= htmlspecialchars((string) ($erpUrl ?? '/erp/'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" style="text-decoration:none;display:inline-flex;align-items:center">Open dashboard</a>
+  </div>
+
+  <div class="si-grid" id="siGrid">
+    <?php if ($tiles === []): ?>
+      <div class="si-empty" style="grid-column:1/-1">No shortcuts yet. Add below or use Edit shortcuts on the ERP dashboard.</div>
+    <?php else: ?>
+      <?php foreach ($tiles as $r): ?>
+        <div class="si-card" data-id="<?= (int) ($r['id'] ?? 0) ?>">
+          <div class="si-ico" style="background:<?= htmlspecialchars((string) ($r['color'] ?? '#2563eb'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"><i class="fa <?= htmlspecialchars((string) ($r['icon'] ?? 'fa-star'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></i></div>
+          <div class="si-meta">
+            <strong><?= htmlspecialchars((string) ($r['label'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></strong>
+            <span><?= htmlspecialchars((string) ($r['url'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
+          </div>
+          <button type="button" class="si-del" data-del="<?= (int) ($r['id'] ?? 0) ?>" title="Remove">×</button>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+
+  <form class="si-form" id="siForm">
+    <h3>Add shortcut</h3>
+    <div class="si-row">
+      <div>
+        <label for="siLabel">Label</label>
+        <input id="siLabel" name="label" required maxlength="100" placeholder="e.g. New GRN">
+      </div>
+      <div>
+        <label for="siHref">Link</label>
+        <input id="siHref" name="target_url" required maxlength="500" placeholder="/erp/?area=operations&amp;tab=inventory">
+      </div>
+      <div>
+        <label for="siIcon">Icon class</label>
+        <input id="siIcon" name="icon_class" maxlength="100" value="fa fa-star" placeholder="fa fa-star">
+      </div>
+      <div>
+        <label for="siColor">Color</label>
+        <input id="siColor" name="icon_color" maxlength="20" value="#2563eb" placeholder="#2563eb">
+      </div>
+    </div>
+    <div class="si-actions">
+      <button type="submit" class="si-btn">Add</button>
+      <button type="button" class="si-btn ghost" id="siReset">Reset to defaults</button>
+    </div>
+    <p class="si-msg" id="siMsg" aria-live="polite"></p>
+  </form>
 </div>
 <script>
-(function(){
-	var endpoint = <?php echo json_encode($erpAjaxUrl); ?>;
-	var csrf = <?php echo json_encode($csrfLocal); ?>;
-
-	// Toggle add form
-	var addBtn = document.getElementById('sc_add_btn');
-	if (addBtn) {
-		addBtn.addEventListener('click', function () {
-			var f = document.getElementById('sc_new_form');
-			if (f) { f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
-		});
-	}
-
-	// Submit add form
-	var form = document.getElementById('sc_new_form');
-	if (form) {
-		form.addEventListener('submit', function (e) {
-			e.preventDefault();
-			var fd = new FormData(form);
-			fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
-				.then(function (r) { return r.json(); })
-				.then(function () { location.reload(); });
-		});
-	}
-
-	// Delete shortcut
-	document.querySelectorAll('.sc-delete').forEach(function (btn) {
-		btn.addEventListener('click', function (e) {
-			e.preventDefault();
-			e.stopPropagation();
-			if (!window.confirm('Remove this shortcut?')) { return; }
-			var fd = new FormData();
-			fd.append('action', 'shortcut_delete');
-			fd.append('csrf_guard_key', csrf);
-			fd.append('id', btn.getAttribute('data-id'));
-			fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
-				.then(function (r) { return r.json(); })
-				.then(function () { location.reload(); });
-		});
-	});
+(function () {
+  var root = document.getElementById('siRoot');
+  if (!root) return;
+  var ajax = root.getAttribute('data-ajax') || '';
+  var csrf = root.getAttribute('data-csrf') || '';
+  var msg = document.getElementById('siMsg');
+  function setMsg(t, ok) {
+    if (!msg) return;
+    msg.textContent = t || '';
+    msg.style.color = ok === false ? '#b91c1c' : '#0f766e';
+  }
+  function post(action, extra) {
+    var fd = new FormData();
+    fd.append('action', action);
+    fd.append('csrf_guard_key', csrf);
+    fd.append('surface', 'erp');
+    if (extra) Object.keys(extra).forEach(function (k) { fd.append(k, extra[k]); });
+    return fetch(ajax, { method: 'POST', body: fd, credentials: 'same-origin' })
+      .then(function (r) { return r.json(); });
+  }
+  document.getElementById('siForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var label = document.getElementById('siLabel').value.trim();
+    var href = document.getElementById('siHref').value.trim();
+    var icon = document.getElementById('siIcon').value.trim() || 'fa fa-star';
+    var color = document.getElementById('siColor').value.trim() || '#2563eb';
+    post('shortcut_add', { label: label, target_url: href, icon_class: icon, icon_color: color }).then(function (j) {
+      if (!j || !j.status) { setMsg((j && j.message) || 'Failed', false); return; }
+      setMsg('Added — reloading…', true);
+      location.reload();
+    }).catch(function () { setMsg('Network error', false); });
+  });
+  root.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.getAttribute) return;
+    var id = t.getAttribute('data-del');
+    if (!id) return;
+    if (!confirm('Remove this shortcut?')) return;
+    post('shortcut_delete', { id: id }).then(function (j) {
+      if (!j || !j.status) { setMsg((j && j.message) || 'Failed', false); return; }
+      location.reload();
+    });
+  });
+  document.getElementById('siReset').addEventListener('click', function () {
+    if (!confirm('Reset ERP shortcuts to defaults?')) return;
+    post('shortcut_reset', {}).then(function (j) {
+      if (!j || !j.status) { setMsg((j && j.message) || 'Failed', false); return; }
+      location.reload();
+    });
+  });
 })();
 </script>
-<?php
-erp_section_card('Shortcut Icons', ob_get_clean(), array('icon' => 'fa-th-large'));

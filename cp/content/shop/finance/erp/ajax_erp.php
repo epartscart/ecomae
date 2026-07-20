@@ -2119,6 +2119,106 @@ try {
 			$chId = epc_erp_pm_cheque_save($db_link, $_POST);
 			epc_erp_json(true, 'Cheque recorded', array('id' => $chId));
 
+		/* Dashboard shortcuts — add / remove / reset (CP + ERP homes) */
+		case 'shortcut_list':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+			epc_shortcuts_ensure_schema($db_link);
+			$scUid = epc_shortcuts_user_id();
+			if ($scUid <= 0) {
+				epc_erp_json(false, 'No user session');
+			}
+			$scSurface = trim((string) ($_POST['surface'] ?? 'both'));
+			$list = ($scSurface === 'cp' || $scSurface === 'erp')
+				? epc_shortcuts_list_for_surface($db_link, $scUid, $scSurface)
+				: epc_shortcuts_list($db_link, $scUid);
+			epc_erp_json(true, 'OK', array('items' => epc_shortcuts_as_tiles($list)));
+
+		case 'shortcut_add':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+			epc_shortcuts_ensure_schema($db_link);
+			$scUid = epc_shortcuts_user_id();
+			if ($scUid <= 0) {
+				epc_erp_json(false, 'No user session');
+			}
+			$label = trim((string) ($_POST['label'] ?? ''));
+			$url = trim((string) ($_POST['target_url'] ?? ''));
+			if ($label === '' || $url === '') {
+				epc_erp_json(false, 'Label and URL are required');
+			}
+			// Allow relative site URLs only (no javascript:).
+			if (preg_match('#^(javascript|data):#i', $url)) {
+				epc_erp_json(false, 'Invalid URL');
+			}
+			$id = epc_shortcuts_add($db_link, array(
+				'user_id' => $scUid,
+				'surface' => trim((string) ($_POST['surface'] ?? 'both')),
+				'shortcut_key' => trim((string) ($_POST['shortcut_key'] ?? '')),
+				'label' => $label,
+				'icon_class' => trim((string) ($_POST['icon_class'] ?? 'fa fa-star')),
+				'icon_color' => trim((string) ($_POST['icon_color'] ?? '#3498db')),
+				'target_url' => $url,
+				'target_tab' => trim((string) ($_POST['target_tab'] ?? '')),
+			));
+			epc_erp_json($id > 0, $id > 0 ? 'Shortcut added' : 'Could not add shortcut', array('id' => $id));
+
+		case 'shortcut_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+			epc_shortcuts_ensure_schema($db_link);
+			$scUid = epc_shortcuts_user_id();
+			if ($scUid <= 0) {
+				epc_erp_json(false, 'No user session');
+			}
+			$scId = (int) ($_POST['id'] ?? 0);
+			if ($scId <= 0) {
+				epc_erp_json(false, 'Missing id');
+			}
+			epc_shortcuts_delete($db_link, $scId, $scUid);
+			epc_erp_json(true, 'Shortcut removed');
+
+		case 'shortcut_delete_key':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+			epc_shortcuts_ensure_schema($db_link);
+			$scUid = epc_shortcuts_user_id();
+			if ($scUid <= 0) {
+				epc_erp_json(false, 'No user session');
+			}
+			$key = trim((string) ($_POST['shortcut_key'] ?? ''));
+			if ($key === '') {
+				epc_erp_json(false, 'Missing shortcut_key');
+			}
+			epc_shortcuts_delete_by_key($db_link, $scUid, $key, trim((string) ($_POST['surface'] ?? '')));
+			epc_erp_json(true, 'Shortcut removed');
+
+		case 'shortcut_reset':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+			epc_shortcuts_ensure_schema($db_link);
+			$scUid = epc_shortcuts_user_id();
+			if ($scUid <= 0) {
+				epc_erp_json(false, 'No user session');
+			}
+			$scSurface = trim((string) ($_POST['surface'] ?? ''));
+			epc_shortcuts_reset($db_link, $scUid, $scSurface);
+			// Optional re-seed: client may POST default_keys[] + catalog JSON is not sent;
+			// dashboards re-seed on next page load when the surface list is empty.
+			epc_erp_json(true, 'Shortcuts reset');
+
+		case 'shortcut_reorder':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_shortcut_icons.php';
+			epc_shortcuts_ensure_schema($db_link);
+			$scUid = epc_shortcuts_user_id();
+			if ($scUid <= 0) {
+				epc_erp_json(false, 'No user session');
+			}
+			$idsRaw = $_POST['ids'] ?? array();
+			if (is_string($idsRaw)) {
+				$idsRaw = array_filter(array_map('intval', explode(',', $idsRaw)));
+			}
+			if (!is_array($idsRaw)) {
+				epc_erp_json(false, 'Missing ids');
+			}
+			epc_shortcuts_reorder($db_link, $scUid, array_map('intval', $idsRaw));
+			epc_erp_json(true, 'Order saved');
+
 		/* Favourites — add / remove */
 		case 'erp_fav_add':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/cp/content/shop/finance/erp/erp_nav_areas.php';
