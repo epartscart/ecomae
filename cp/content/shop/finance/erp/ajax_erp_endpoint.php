@@ -2,8 +2,16 @@
 /**
  * Standalone ERP AJAX endpoint — returns JSON only (no CP HTML wrapper).
  * URL: /cp/content/shop/finance/erp/ajax_erp_endpoint.php
+ * Also serves GET document exports (print HTML / XML / JSON) before JSON mode.
  */
-header('Content-Type: application/json; charset=utf-8');
+$epcErpDocGetAction = (
+	($_SERVER['REQUEST_METHOD'] ?? '') === 'GET'
+	&& isset($_GET['action'])
+	&& in_array((string) $_GET['action'], array('invoice_print', 'invoice_download_json', 'einvoice_download_xml'), true)
+);
+if (!$epcErpDocGetAction) {
+	header('Content-Type: application/json; charset=utf-8');
+}
 
 if (ob_get_level()) {
 	ob_end_clean();
@@ -104,32 +112,24 @@ if (function_exists('epc_erp_assert_tenant_db_context')) {
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
 
-define('_ASTEXE_', 1);
+if (!defined('_ASTEXE_')) {
+	define('_ASTEXE_', 1);
+}
 
 if (!epc_erp_user_can_access($db_link)) {
+	if (!empty($epcErpDocGetAction)) {
+		http_response_code(403);
+		header('Content-Type: text/plain; charset=utf-8');
+		echo 'Access denied';
+		exit;
+	}
 	echo json_encode(array('status' => false, 'message' => 'Access denied'));
 	exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'einvoice_download_xml') {
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
-	if (!epc_erp_user_can_access($db_link)) {
-		http_response_code(403);
-		echo json_encode(array('status' => false, 'message' => 'Access denied'));
-		exit;
-	}
-	$docId = (int)($_GET['document_id'] ?? 0);
-	$doc = epc_einvoice_get_document($db_link, $docId);
-	if (!$doc || empty($doc['xml_content'])) {
-		http_response_code(404);
-		echo json_encode(array('status' => false, 'message' => 'Document not found'));
-		exit;
-	}
-	header('Content-Type: application/xml; charset=utf-8');
-	header('Content-Disposition: attachment; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $doc['invoice_number']) . '.xml"');
-	echo $doc['xml_content'];
-	exit;
+if (!empty($epcErpDocGetAction)) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
+	epc_erp_handle_document_export_get($db_link);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['action'])) {

@@ -81,6 +81,8 @@ function epc_erp_portal_handle_ajax(PDO $db_link)
 	if (ob_get_level()) {
 		ob_end_clean();
 	}
+	// Document GET exports are handled by epc_erp_portal_try_document_export()
+	// before this function runs. Remaining ajax traffic is JSON.
 	header('Content-Type: application/json; charset=utf-8');
 	// DP_User::isAdmin() and other legacy helpers read the connection from the
 	// global $db_link, so it must be set before any access check runs — otherwise
@@ -422,6 +424,14 @@ function epc_erp_portal_try_route()
 		return true;
 	}
 
+	// Print / XML / JSON exports must run before the HTML shell (and before the
+	// ajax JSON Content-Type header). Bookmarks like
+	// /erp/?action=einvoice_download_xml&document_id=… used to render the login
+	// page or corrupt the download with portal chrome.
+	if (epc_erp_portal_try_document_export($db_link)) {
+		return true;
+	}
+
 	if ($match['page'] === 'ajax') {
 		if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' || isset($_GET['action'])) {
 			epc_erp_portal_handle_ajax($db_link);
@@ -452,6 +462,36 @@ function epc_erp_portal_try_route()
 	}
 
 	epc_erp_portal_render_page($db_link, $match['page']);
+	return true;
+}
+
+/**
+ * Handle GET e-invoice print / XML / JSON before any portal HTML is emitted.
+ * Returns true when the request was a document export (handler exits on success).
+ */
+function epc_erp_portal_try_document_export(PDO $db_link): bool
+{
+	if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET' || empty($_GET['action'])) {
+		return false;
+	}
+	$action = (string) $_GET['action'];
+	if (!in_array($action, array('invoice_print', 'invoice_download_json', 'einvoice_download_xml'), true)) {
+		return false;
+	}
+
+	$GLOBALS['db_link'] = $db_link;
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
+	if (function_exists('epc_erp_portal_ensure_guest_session')) {
+		epc_erp_portal_ensure_guest_session($db_link);
+	}
+	if (function_exists('epc_erp_portal_bridge_cp_admin_session')) {
+		epc_erp_portal_bridge_cp_admin_session($db_link);
+	}
+
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
+	// Handler exits when the action matches; false would mean a logic mismatch.
+	epc_erp_handle_document_export_get($db_link);
 	return true;
 }
 

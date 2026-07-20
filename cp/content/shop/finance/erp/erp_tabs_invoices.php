@@ -57,15 +57,24 @@ if ($invAction === 'view' && $invId > 0):
 		erp_empty_state('Invoice not found.');
 		echo '<p><a href="' . epc_erp_h($invBase) . '" class="btn btn-default btn-sm">Back to list</a></p>';
 	else:
-		$printUrl = $erpUrl . '?area=sales&tab=invoices&action=invoice_print&invoice_id=' . (int)$invId
-			. '&from=' . rawurlencode($date_from_str) . '&to=' . rawurlencode($date_to_str);
-		$jsonUrl = $erpUrl . '?area=sales&tab=invoices&action=invoice_download_json&invoice_id=' . (int)$invId;
-		$xmlUrl = $erpUrl . '?action=einvoice_download_xml&document_id=' . (int)$invId;
+		$invAjaxBase = (isset($erpAjaxEndpoint) && $erpAjaxEndpoint !== '')
+			? (string) $erpAjaxEndpoint
+			: ((isset($erpAjaxUrl) && $erpAjaxUrl !== '') ? (string) $erpAjaxUrl : '/erp/ajax');
+		$invExportSep = (strpos($invAjaxBase, '?') !== false) ? '&' : '?';
+		$printUrl = $invAjaxBase . $invExportSep . 'action=invoice_print&invoice_id=' . (int) $invId
+			. '&document_id=' . (int) $invId
+			. '&csrf_guard_key=' . rawurlencode((string) $csrf);
+		$jsonUrl = $invAjaxBase . $invExportSep . 'action=invoice_download_json&invoice_id=' . (int) $invId
+			. '&document_id=' . (int) $invId
+			. '&csrf_guard_key=' . rawurlencode((string) $csrf);
+		$xmlUrl = $invAjaxBase . $invExportSep . 'action=einvoice_download_xml&document_id=' . (int) $invId
+			. '&invoice_id=' . (int) $invId
+			. '&csrf_guard_key=' . rawurlencode((string) $csrf);
 ?>
 	<p>
 		<a href="<?php echo epc_erp_h($invBase); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> List</a>
 		<a href="<?php echo epc_erp_h($invBase . '&inv_action=edit&inv_id=' . (int)$invId); ?>" class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit</a>
-		<a href="<?php echo epc_erp_h($printUrl); ?>" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-print"></i> Print</a>
+		<a href="<?php echo epc_erp_h($printUrl); ?>" class="btn btn-primary btn-sm" target="_blank"><i class="fa fa-print"></i> Print PDF</a>
 		<a href="<?php echo epc_erp_h($jsonUrl); ?>" class="btn btn-default btn-sm" target="_blank"><i class="fa fa-code"></i> JSON</a>
 		<a href="<?php echo epc_erp_h($xmlUrl); ?>" class="btn btn-default btn-sm" target="_blank"><i class="fa fa-download"></i> PINT-AE XML</a>
 	</p>

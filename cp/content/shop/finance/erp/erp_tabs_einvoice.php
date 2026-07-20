@@ -287,6 +287,7 @@ if ($einvSection === 'dashboard') {
 				$buyerD = $doc['buyer'];
 		?>
 			<p><a href="<?php echo epc_erp_h(epc_einv_url($einvBase, 'invoices')); ?>" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> Back to list</a>
+			<button type="button" class="btn btn-default btn-sm" onclick="epcEinvPrintPdf(<?php echo (int)$doc['id']; ?>)"><i class="fa fa-print"></i> Print PDF</button>
 			<button type="button" class="btn btn-primary btn-sm" onclick="epcEinvDownloadXml(<?php echo (int)$doc['id']; ?>)"><i class="fa fa-download"></i> Download PINT-AE XML</button>
 			<?php if ($doc['validation_ok'] && !in_array($doc['status'], array('submitted', 'accepted', 'queued'), true)): ?>
 				<button type="button" class="btn btn-success btn-sm" onclick="epcEinvSubmit(<?php echo (int)$doc['id']; ?>)"><i class="fa fa-cloud-upload"></i> Submit to ASP</button>
@@ -885,10 +886,19 @@ if ($einvSection === 'dashboard') {
 			else if (res.status) location.reload();
 		});
 	};
-	window.epcEinvDownloadXml = function(id) {
-		var dlBase = <?php echo json_encode($erpUrl); ?>;
+	function epcEinvDocExportUrl(action, id) {
+		var dlBase = <?php echo json_encode($einvAjaxUrl); ?>;
 		var sep = dlBase.indexOf('?') >= 0 ? '&' : '?';
-		window.open(dlBase + sep + 'action=einvoice_download_xml&document_id=' + id + '&csrf_guard_key=' + encodeURIComponent(<?php echo json_encode($csrf); ?>), '_blank');
+		return dlBase + sep + 'action=' + encodeURIComponent(action)
+			+ '&document_id=' + encodeURIComponent(id)
+			+ '&invoice_id=' + encodeURIComponent(id)
+			+ '&csrf_guard_key=' + encodeURIComponent(<?php echo json_encode($csrf); ?>);
+	}
+	window.epcEinvDownloadXml = function(id) {
+		window.open(epcEinvDocExportUrl('einvoice_download_xml', id), '_blank');
+	};
+	window.epcEinvPrintPdf = function(id) {
+		window.open(epcEinvDocExportUrl('invoice_print', id), '_blank');
 	};
 	var pollBtn = document.getElementById('epc_einv_poll_asp');
 	if (pollBtn) {

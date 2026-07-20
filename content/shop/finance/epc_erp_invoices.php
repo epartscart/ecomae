@@ -384,6 +384,87 @@ function epc_erp_invoice_peppol_json(array $doc): string
 	return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 }
 
+/**
+ * Serve GET print / JSON / PINT-AE XML for an e-invoice document.
+ * Call before any HTML shell is emitted (standalone /erp and /erp/ajax).
+ * Exits on match; returns false when the request is not a document export.
+ */
+function epc_erp_handle_document_export_get(PDO $db): bool
+{
+	if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET' || empty($_GET['action'])) {
+		return false;
+	}
+	$action = (string) $_GET['action'];
+	$allowed = array('invoice_print', 'invoice_download_json', 'einvoice_download_xml');
+	if (!in_array($action, $allowed, true)) {
+		return false;
+	}
+
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
+	require_once __DIR__ . '/epc_einvoice.php';
+
+	if (ob_get_level()) {
+		@ob_end_clean();
+	}
+
+	if (!epc_erp_user_can_access($db)) {
+		http_response_code(403);
+		header('Content-Type: text/plain; charset=utf-8');
+		echo 'Access denied';
+		exit;
+	}
+
+	$docId = (int) ($_GET['invoice_id'] ?? $_GET['document_id'] ?? 0);
+	$doc = epc_einvoice_get_document($db, $docId);
+	if (!$doc) {
+		http_response_code(404);
+		header('Content-Type: text/plain; charset=utf-8');
+		echo 'Document not found';
+		exit;
+	}
+
+	$safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', (string) ($doc['invoice_number'] ?? ('invoice_' . $docId)));
+
+	if ($action === 'invoice_print') {
+		header('Content-Type: text/html; charset=utf-8');
+		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+		echo epc_erp_invoice_print_html($doc);
+		exit;
+	}
+
+	if ($action === 'invoice_download_json') {
+		header('Content-Type: application/json; charset=utf-8');
+		header('Content-Disposition: attachment; filename="' . $safeName . '.json"');
+		header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+		echo epc_erp_invoice_peppol_json($doc);
+		exit;
+	}
+
+	// einvoice_download_xml — rebuild PINT-AE XML when not cached yet
+	$xml = trim((string) ($doc['xml_content'] ?? ''));
+	if ($xml === '') {
+		$xml = epc_einvoice_build_xml($doc);
+		try {
+			$db->prepare('UPDATE `epc_einvoice_documents` SET `xml_content` = ? WHERE `id` = ?')
+				->execute(array($xml, $docId));
+		} catch (Throwable $e) {
+			// still serve generated XML even if persist fails
+		}
+	}
+	if ($xml === '') {
+		http_response_code(500);
+		header('Content-Type: text/plain; charset=utf-8');
+		echo 'Unable to build e-invoice XML';
+		exit;
+	}
+
+	header('Content-Type: application/xml; charset=utf-8');
+	header('Content-Disposition: attachment; filename="' . $safeName . '.xml"');
+	header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+	echo $xml;
+	exit;
+}
+
 function epc_erp_invoice_print_html(array $doc): string
 {
 	$seller = $doc['seller'];
@@ -409,7 +490,11 @@ function epc_erp_invoice_print_html(array $doc): string
 	.foot{margin-top:40px;font-size:11px;color:#64748b;}
 	@media print{.no-print{display:none;}}
 	</style></head><body>';
-	$html .= '<div class="no-print" style="margin-bottom:16px;"><button onclick="window.print()">Print</button></div>';
+	$html .= '<div class="no-print" style="margin-bottom:16px;">'
+		. '<button type="button" onclick="window.print()" style="padding:8px 14px;font-size:13px;cursor:pointer;">'
+		. 'Print / Save as PDF</button>'
+		. '<span style="margin-left:10px;color:#64748b;font-size:12px;">Use your browser print dialog → Save as PDF</span>'
+		. '</div>';
 	$html .= '<div class="hdr"><h1>TAX INVOICE</h1><p style="margin:4px 0 0;color:#64748b;">UAE Federal Tax Authority · e-Invoice (PINT-AE) · '
 		. htmlspecialchars($doc['invoice_number'], ENT_QUOTES, 'UTF-8') . '</p></div>';
 	$sellerTrn = htmlspecialchars($seller['seller_trn'] ?? '—', ENT_QUOTES, 'UTF-8');
