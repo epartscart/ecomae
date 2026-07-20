@@ -30,48 +30,10 @@ if ($epc_erp_demo_mirror && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
-	$getAction = (string)$_GET['action'];
-	if ($getAction === 'invoice_print' || $getAction === 'invoice_download_json') {
-		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
-		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
-		if (!epc_erp_user_can_access($db_link)) {
-			http_response_code(403);
-			exit('Access denied');
-		}
-		$invId = (int)($_GET['invoice_id'] ?? $_GET['document_id'] ?? 0);
-		$doc = epc_einvoice_get_document($db_link, $invId);
-		if (!$doc) {
-			http_response_code(404);
-			exit('Not found');
-		}
-		if ($getAction === 'invoice_print') {
-			header('Content-Type: text/html; charset=utf-8');
-			echo epc_erp_invoice_print_html($doc);
-			exit;
-		}
-		header('Content-Type: application/json; charset=utf-8');
-		header('Content-Disposition: attachment; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $doc['invoice_number']) . '.json"');
-		echo epc_erp_invoice_peppol_json($doc);
-		exit;
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
+	if (function_exists('epc_erp_handle_document_export_get')) {
+		epc_erp_handle_document_export_get($db_link);
 	}
-}
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'einvoice_download_xml') {
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_access.php';
-	if (!epc_erp_user_can_access($db_link)) {
-		http_response_code(403);
-		exit('Access denied');
-	}
-	$docId = (int)($_GET['document_id'] ?? 0);
-	$doc = epc_einvoice_get_document($db_link, $docId);
-	if (!$doc || empty($doc['xml_content'])) {
-		http_response_code(404);
-		exit('Not found');
-	}
-	header('Content-Type: application/xml; charset=utf-8');
-	header('Content-Disposition: attachment; filename="' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $doc['invoice_number']) . '.xml"');
-	echo $doc['xml_content'];
-	exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
