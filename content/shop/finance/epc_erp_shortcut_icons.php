@@ -227,6 +227,38 @@ if (!function_exists('epc_shortcuts_ensure_schema')) {
 			'ai_chats' => array('label' => 'AI chats', 'icon' => 'fa-comments', 'color' => '#7c3aed', 'url' => $base . '/shop/parts_agent_chats', 'tone' => 'violet'),
 			'settings' => array('label' => 'Settings', 'icon' => 'fa-cog', 'color' => '#475569', 'url' => $base . '/control/portal/industry_settings', 'tone' => 'slate'),
 			'brochure' => array('label' => 'CP brochure', 'icon' => 'fa-book', 'color' => '#4f46e5', 'url' => $base . '/control/cp_brochure', 'tone' => 'indigo'),
+			'accessories' => array('label' => 'Accessories', 'icon' => 'fa-puzzle-piece', 'color' => '#7c3aed', 'url' => $base . '/shop/accessories', 'tone' => 'violet'),
+		);
+		$out = array();
+		foreach ($items as $key => $row) {
+			$row['key'] = $key;
+			$row['icon'] = (strpos($row['icon'], 'fa ') === 0) ? $row['icon'] : ('fa ' . $row['icon']);
+			$out[$key] = $row;
+		}
+		return $out;
+	}
+
+	/**
+	 * Catalogue for Super CP / BOC Operations Command Center (ecomae.com/cp).
+	 *
+	 * @return array<string, array{key:string,label:string,icon:string,color:string,url:string,tone?:string}>
+	 */
+	function epc_shortcuts_catalog_boc(string $base): array
+	{
+		$base = rtrim($base, '/');
+		$items = array(
+			'tenant_hub' => array('label' => 'Tenant hub', 'icon' => 'fa-sitemap', 'color' => '#dc2626', 'url' => $base . '/shop/tenant_hub/tenant_hub', 'tone' => 'red'),
+			'onboard' => array('label' => 'Onboard client', 'icon' => 'fa-rocket', 'color' => '#0a0a0a', 'url' => $base . '/shop/tenant_hub/tenant_hub?tab=onboard', 'tone' => 'black'),
+			'health' => array('label' => 'Health checkup', 'icon' => 'fa-stethoscope', 'color' => '#059669', 'url' => $base . '/control/portal/epc_platform_health_checkup', 'tone' => 'emerald'),
+			'channels' => array('label' => 'Channels & OMS', 'icon' => 'fa-exchange', 'color' => '#2563eb', 'url' => $base . '/control/portal/epc_boc_channel_control', 'tone' => 'blue'),
+			'governance' => array('label' => 'Governance', 'icon' => 'fa-gavel', 'color' => '#7c3aed', 'url' => $base . '/control/portal/epc_platform_governance', 'tone' => 'violet'),
+			'audit' => array('label' => 'Audit log', 'icon' => 'fa-history', 'color' => '#475569', 'url' => $base . '/control/portal/epc_boc_audit_log', 'tone' => 'slate'),
+			'industry' => array('label' => 'Industry packs', 'icon' => 'fa-industry', 'color' => '#d97706', 'url' => $base . '/control/portal/industry_settings', 'tone' => 'amber'),
+			'brochure' => array('label' => 'CP brochure', 'icon' => 'fa-book', 'color' => '#4f46e5', 'url' => $base . '/control/cp_brochure', 'tone' => 'indigo'),
+			'platform_erp' => array('label' => 'Platform ERP', 'icon' => 'fa-university', 'color' => '#e11d48', 'url' => $base . '/platform-erp/', 'tone' => 'rose'),
+			'deploy' => array('label' => 'Deploy & DNS', 'icon' => 'fa-cloud-upload', 'color' => '#0891b2', 'url' => $base . '/shop/tenant_hub/tenant_hub?tab=deploy', 'tone' => 'teal'),
+			'demos' => array('label' => 'Demo tenants', 'icon' => 'fa-flask', 'color' => '#db2777', 'url' => $base . '/shop/tenant_hub/tenant_hub?tab=demos', 'tone' => 'pink'),
+			'features' => array('label' => 'Feature flags', 'icon' => 'fa-toggle-on', 'color' => '#0d9488', 'url' => $base . '/shop/tenant_hub/tenant_hub?tab=features', 'tone' => 'teal'),
 		);
 		$out = array();
 		foreach ($items as $key => $row) {
