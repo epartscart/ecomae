@@ -352,10 +352,10 @@ if ($selTool === 'import') {
 		} else {
 			$inNotice = 'No PDF was attached — continuing with a blank data-request form for manual entry.';
 		}
-		$review  = epc_ext_intake_review($scan['figures'], $inCountry);
-		$reqRows = epc_ext_intake_request_rows($scan['figures']);
-		$inSchedules = epc_ext_intake_schedules($scan['figures'], $inRawText);
-		$inCompliance = epc_ext_intake_compliance($scan['figures'], $inRawText, $inCountry);
+		$review  = epc_ext_intake_review($scan['figures'], $inCountry, $inTargetY);
+		$reqRows = epc_ext_intake_request_rows($scan['figures'], $inTargetY);
+		$inSchedules = epc_ext_intake_schedules($scan['figures'], $inRawText, $inTargetY);
+		$inCompliance = epc_ext_intake_compliance($scan['figures'], $inRawText, $inCountry, $inTargetY);
 		$inView  = 'review';
 	} elseif ($inStage === 'data' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		// Step 4 — the data-entry form. The PDF is never stored, so the figures
@@ -370,7 +370,7 @@ if ($selTool === 'import') {
 			}
 		}
 		$scan['found'] = count($scan['figures']);
-		$reqRows = epc_ext_intake_request_rows($scan['figures']);
+		$reqRows = epc_ext_intake_request_rows($scan['figures'], $inTargetY);
 		$inView  = 'data';
 	} elseif ($inStage === 'build' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		$curIn  = (array) ($_POST['cur'] ?? array());
@@ -378,7 +378,7 @@ if ($selTool === 'import') {
 		$unitIn = (array) ($_POST['unit'] ?? array());
 		$elimIn = (array) ($_POST['elim'] ?? array());
 		$fin = array();
-		foreach (epc_ext_fin_line_spec() as $s) {
+		foreach (epc_ext_fin_line_spec($inTargetY) as $s) {
 			$code = $s['code'];
 			if ($multiUnit) {
 				// New-period TB is entered per business unit/division across columns;
@@ -420,6 +420,8 @@ if ($selTool === 'import') {
 		$inView  = 'report';
 	}
 	$inBase = $baseUrl . $sep . 'tool=intake';
+	$inUseIfrs18 = function_exists('epc_ext_ifrs18_applies') ? epc_ext_ifrs18_applies($inTargetY) : ($inTargetY >= 2026);
+	$inPresLabel = $inUseIfrs18 ? 'IFRS 18' : 'IAS 1';
 	// step number for the indicator (review + advice share the analysis screen)
 	$stepName = array(1 => 'Upload financials', 2 => 'IFRS review', 3 => 'Compliance advice', 4 => 'Provide new-year data', 5 => 'Compliant report');
 	$inStepMax = ($inView === 'report') ? 5 : (($inView === 'data') ? 4 : (($inView === 'review') ? 3 : 1));
@@ -430,9 +432,14 @@ if ($selTool === 'import') {
 		<p class="text-muted" style="font-size:12.5px;max-width:980px;">
 			A multi-step engagement: <strong>upload your latest financials (PDF)</strong> → the system <strong>reviews them against IFRS and your country's legal requirements</strong> →
 			it then <strong>requests exactly the Trial Balance / data it needs</strong> to build the new period's report (prior figures pre-filled from your upload) →
-			it <strong>generates a fully IFRS-compliant report</strong>, even if the uploaded accounts weren't. Off-system: your PDF is read in memory and not stored.
+			it <strong>generates a fully IFRS-compliant report</strong><?php echo $inUseIfrs18 ? ' under <strong>IFRS 18</strong> (early applied for FY' . (int) $inTargetY . '; IAS 1 superseded for presentation)' : ''; ?>, even if the uploaded accounts weren't. Off-system: your PDF is read in memory and not stored.
 			Country &amp; law resolve from your registration: <strong><?php echo epc_erp_h($regName . ' (' . $regCountry . ')'); ?></strong>.
 		</p>
+		<?php if ($inUseIfrs18): ?>
+			<div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+				<i class="fa fa-bookmark"></i> <strong>FY<?php echo (int) $inTargetY; ?> presentation:</strong> IFRS 18 early applied — five P&amp;L categories, three mandatory subtotals, separate OCI, MPM assessment. Mandatory IFRS 18 periods begin on/after 1 Jan 2027; earlier application is permitted.
+			</div>
+		<?php endif; ?>
 		<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
 			<?php foreach (array(1, 2, 3, 4, 5) as $sn): ?>
 				<span class="label" style="font-size:12px;padding:6px 10px;<?php echo $sn <= $inStepMax ? 'background:#b3122a;color:#fff;' : 'background:#f1e3e6;color:#7a0c1c;'; ?>">
@@ -472,7 +479,7 @@ if ($selTool === 'import') {
 						<div class="text-muted" style="font-size:11px;margin-top:3px;">If your new trial balance is unit-wise, list the units — the request form gives you a column per unit and the system consolidates them (with an eliminations column) to the report figure.</div>
 					</div>
 				</div>
-				<button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-search"></i> Upload &amp; review against IFRS</button>
+				<button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-search"></i> Upload &amp; review against IFRS<?php echo $inUseIfrs18 ? ' 18' : ''; ?></button>
 			</form>
 		</div>
 
@@ -508,7 +515,7 @@ if ($selTool === 'import') {
 						<?php if (count($histYears) >= 2): ?><th style="text-align:right;">YoY %</th><?php endif; ?>
 					</tr></thead>
 					<tbody>
-					<?php foreach (epc_ext_fin_line_spec() as $sp):
+					<?php foreach (epc_ext_fin_line_spec($inTargetY) as $sp):
 						$code = $sp['code'];
 						if (empty($inHistory[$code])) { continue; }
 						$y0 = $histYears[0] ?? 0; $y1 = $histYears[1] ?? 0;
@@ -576,8 +583,8 @@ if ($selTool === 'import') {
 		</div>
 
 		<div class="epc-erp-section" style="margin-bottom:14px;">
-			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-balance-scale"></i> IFRS compliance advice — how your report measures up against full IFRS</h4>
-			<p class="text-muted" style="font-size:12px;">The system analysed your uploaded report against <strong><?php echo epc_erp_h($inCompliance['framework']); ?></strong> and your country's requirements. Each disclosure area is graded: <span class="label" style="background:#1a7f37;font-size:10px;">Compliant</span> evidenced in your report · <span class="label" style="background:#9a6700;font-size:10px;">Needs review</span> the balance exists but the required IFRS disclosure wasn't clearly evidenced · <span class="label" style="background:#b3122a;font-size:10px;">Gap</span> applicable under IFRS but not found. The new report closes these so it is fully IFRS-compliant even if the source wasn't.</p>
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-balance-scale"></i> IFRS compliance advice — how your report measures up against full IFRS<?php echo $inUseIfrs18 ? ' 18' : ''; ?></h4>
+			<p class="text-muted" style="font-size:12px;">The system analysed your uploaded report against <strong><?php echo epc_erp_h($inCompliance['framework']); ?></strong> (target presentation: <strong><?php echo epc_erp_h($inPresLabel); ?></strong>) and your country's requirements. Each disclosure area is graded: <span class="label" style="background:#1a7f37;font-size:10px;">Compliant</span> evidenced in your report · <span class="label" style="background:#9a6700;font-size:10px;">Needs review</span> the balance exists but the required IFRS disclosure wasn't clearly evidenced · <span class="label" style="background:#b3122a;font-size:10px;">Gap</span> applicable under IFRS but not found. The new report closes these so it is fully IFRS-compliant<?php echo $inUseIfrs18 ? ' under IFRS 18' : ''; ?> even if the source wasn't.</p>
 			<div style="display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;">
 				<div style="flex:1;min-width:150px;border-left:4px solid #1a7f37;background:#f0faf3;padding:10px;border-radius:4px;"><div style="font-size:11px;color:#1a7f37;">Compliant</div><div style="font-size:20px;font-weight:800;color:#1a7f37;"><?php echo (int) $inCompliance['counts']['green']; ?></div></div>
 				<div style="flex:1;min-width:150px;border-left:4px solid #9a6700;background:#fbf6e9;padding:10px;border-radius:4px;"><div style="font-size:11px;color:#9a6700;">Needs review</div><div style="font-size:20px;font-weight:800;color:#9a6700;"><?php echo (int) $inCompliance['counts']['amber']; ?></div></div>
@@ -606,8 +613,8 @@ if ($selTool === 'import') {
 			foreach ($inSchedules as $sc) { if (($sc['status'] ?? '') === 'triggered') { $schTrig[] = $sc; } else { $schReq[] = $sc; } }
 		?>
 		<div class="epc-erp-section" style="margin-bottom:14px;">
-			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-tasks"></i> Supporting schedules the system needs (driven by IFRS — not by your sample)</h4>
-			<p class="text-muted" style="font-size:12px;">These are the disclosure schedules an <strong>IFRS-compliant</strong> FY<?php echo (int) $inTargetY; ?> report requires. <span class="label label-danger" style="font-size:10px;">Required</span> apply to every report; <span class="label label-warning" style="font-size:10px;">Triggered</span> are switched on because the system detected the matching fact pattern in your uploaded accounts (so the report is compliant even if the source wasn't). Items marked <em>pre-filled</em> already have a figure lifted from your upload.</p>
+			<h4 style="margin-top:0;color:#b3122a;"><i class="fa fa-tasks"></i> Supporting schedules the system needs (driven by IFRS<?php echo $inUseIfrs18 ? ' 18' : ''; ?> — not by your sample)</h4>
+			<p class="text-muted" style="font-size:12px;">These are the disclosure schedules an <strong><?php echo $inUseIfrs18 ? 'IFRS 18' : 'IFRS'; ?>-compliant</strong> FY<?php echo (int) $inTargetY; ?> report requires. <span class="label label-danger" style="font-size:10px;">Required</span> apply to every report; <span class="label label-warning" style="font-size:10px;">Triggered</span> are switched on because the system detected the matching fact pattern in your uploaded accounts (so the report is compliant even if the source wasn't). Items marked <em>pre-filled</em> already have a figure lifted from your upload.</p>
 			<table class="table table-condensed" style="font-size:12px;">
 				<thead><tr style="background:#7a0c1c;color:#fff;"><th>Schedule</th><th>Standard</th><th>Status</th><th>Why the system asks</th></tr></thead>
 				<tbody>
@@ -632,7 +639,7 @@ if ($selTool === 'import') {
 				<input type="hidden" name="intake_entity" value="<?php echo epc_erp_h($inEntity); ?>">
 				<input type="hidden" name="intake_units" value="<?php echo epc_erp_h($inUnitsRaw); ?>">
 				<input type="hidden" name="intake_figures" value="<?php echo epc_erp_h((string) json_encode($scan['figures'])); ?>">
-				<p class="text-muted" style="font-size:12px;margin-bottom:8px;">Reviewed the analysis above? Continue and the system hands you the exact <strong>data-entry form</strong> it needs to build the IFRS-compliant FY<?php echo (int) $inTargetY; ?> report — with your FY<?php echo (int) $inPriorY; ?> comparative pre-filled — or you can complete it in Excel and upload.</p>
+				<p class="text-muted" style="font-size:12px;margin-bottom:8px;">Reviewed the analysis above? Continue and the system hands you the exact <strong>data-entry form</strong> it needs to build the <?php echo $inUseIfrs18 ? 'IFRS 18' : 'IFRS'; ?>-compliant FY<?php echo (int) $inTargetY; ?> report — with your FY<?php echo (int) $inPriorY; ?> comparative pre-filled — or you can complete it in Excel and upload.</p>
 				<button type="submit" class="btn btn-primary btn-sm" style="background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-arrow-right"></i> Continue → provide the data the system needs</button>
 				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm">Start over</a>
 			</form>
@@ -707,7 +714,7 @@ if ($selTool === 'import') {
 						</tr>
 					<?php endfor; ?>
 				</tbody></table>
-				<button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-cogs"></i> Generate IFRS-compliant FY<?php echo (int) $inTargetY; ?> report</button>
+				<button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-cogs"></i> Generate <?php echo $inUseIfrs18 ? 'IFRS 18' : 'IFRS'; ?>-compliant FY<?php echo (int) $inTargetY; ?> report</button>
 				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm" style="margin-top:10px;">Start over</a>
 			</form>
 		</div>
@@ -724,7 +731,7 @@ if ($selTool === 'import') {
 				<button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
 				<button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('<?php echo epc_erp_h($inDocName); ?>');"><i class="fa fa-file-word-o"></i> Download Word</button>
 				<a href="<?php echo epc_erp_h($inBase); ?>" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i> New engagement</a>
-				<span class="label label-success" style="font-size:11px;"><i class="fa fa-magic"></i> Built from guided intake · IFRS-compliant</span>
+				<span class="label label-success" style="font-size:11px;"><i class="fa fa-magic"></i> Built from guided intake · <?php echo $inUseIfrs18 ? 'IFRS 18' : 'IFRS'; ?>-compliant</span>
 			</div>
 		</div>
 		<?php if (!empty($inExtras)): ?>
@@ -736,7 +743,7 @@ if ($selTool === 'import') {
 		<?php endif; ?>
 		<?php if ($multiUnit && !empty($inUnitBreak)):
 			$assetCodes = array();
-			foreach (epc_ext_fin_line_spec() as $sg) { if ($sg['group'] === 'Assets') { $assetCodes[] = $sg['code']; } }
+			foreach (epc_ext_fin_line_spec($inTargetY) as $sg) { if ($sg['group'] === 'Assets') { $assetCodes[] = $sg['code']; } }
 			$rev = isset($inUnitBreak['FIN_REVENUE']) ? $inUnitBreak['FIN_REVENUE'] : array('units' => array(), 'elim' => 0.0, 'total' => 0.0);
 			$assetUnit = array(); $assetElim = 0.0; $assetTot = 0.0;
 			foreach ($assetCodes as $ac) { if (!isset($inUnitBreak[$ac])) { continue; } foreach ($inUnitBreak[$ac]['units'] as $ui => $v) { $assetUnit[$ui] = ($assetUnit[$ui] ?? 0.0) + $v; } $assetElim += $inUnitBreak[$ac]['elim']; $assetTot += $inUnitBreak[$ac]['total']; }
