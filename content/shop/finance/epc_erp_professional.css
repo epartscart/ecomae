@@ -1833,14 +1833,18 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	flex-direction: column;
 }
 
-.epc-erp-topnav {
+/* ERP top menu: blue + white */
+.epc-erp-topnav,
+.epc-erp-shell--topnav .epc-erp-topnav,
+.epc-erp-shell--topnav-only .epc-erp-topnav {
 	position: sticky;
 	top: 0;
 	z-index: 220;
-	background: linear-gradient(180deg, #0b3a56 0%, #0c4a6e 100%);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18);
-	color: #fff;
+	background: #ffffff !important;
+	background-image: none !important;
+	border-bottom: 2px solid #1d4ed8 !important;
+	box-shadow: 0 2px 10px rgba(29, 78, 216, 0.08);
+	color: #0f172a !important;
 }
 
 .epc-erp-topnav-inner {
@@ -1859,20 +1863,20 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	flex-shrink: 0;
 	padding: 0 12px 0 4px;
 	margin-right: 4px;
-	color: #fff !important;
+	color: #1d4ed8 !important;
 	font-weight: 700;
 	font-size: 13px;
 	letter-spacing: 0.02em;
 	text-decoration: none !important;
-	border-right: 1px solid rgba(255, 255, 255, 0.12);
+	border-right: 1px solid #dbeafe;
 	white-space: nowrap;
 }
 .epc-erp-topnav-brand:hover,
 .epc-erp-topnav-brand:focus {
-	color: #bae6fd !important;
-	background: transparent;
+	color: #1e3a8a !important;
+	background: #eff6ff;
 }
-.epc-erp-topnav-brand .fa { font-size: 15px; opacity: 0.95; }
+.epc-erp-topnav-brand .fa { font-size: 15px; opacity: 0.95; color: #2563eb; }
 
 .epc-erp-topnav-list {
 	list-style: none;
@@ -1885,7 +1889,7 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	/* Keep visible so mega panels are not clipped by scroll containment. */
 	overflow: visible;
 	scrollbar-width: thin;
-	scrollbar-color: rgba(255,255,255,0.35) transparent;
+	scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
 }
 @media (max-width: 1100px) {
 	.epc-erp-topnav-inner {
@@ -1908,7 +1912,7 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	padding: 0 11px;
 	border: 0;
 	background: transparent;
-	color: rgba(255, 255, 255, 0.88);
+	color: #1e3a8a;
 	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.01em;
@@ -1920,28 +1924,31 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 .epc-erp-topnav-btn:hover,
 .epc-erp-topnav-btn:focus,
 .epc-erp-topnav-item.is-open > .epc-erp-topnav-btn {
-	background: rgba(255, 255, 255, 0.1);
-	color: #fff;
+	background: #eff6ff;
+	color: #1d4ed8;
 	outline: none;
 }
 .epc-erp-topnav-item.is-active > .epc-erp-topnav-btn {
-	color: #fff;
-	border-bottom-color: #38bdf8;
-	background: rgba(56, 189, 248, 0.14);
+	color: #1d4ed8;
+	border-bottom-color: #2563eb;
+	background: #dbeafe;
 }
 .epc-erp-topnav-btn > .fa:first-child {
 	font-size: 13px;
 	opacity: 0.9;
+	color: #2563eb;
 }
 .epc-erp-topnav-caret {
 	font-size: 10px;
 	opacity: 0.55;
 	margin-left: 1px;
 	transition: transform .15s ease;
+	color: #64748b;
 }
 .epc-erp-topnav-item.is-open .epc-erp-topnav-caret {
 	transform: rotate(180deg);
 	opacity: 0.9;
+	color: #1d4ed8;
 }
 
 .epc-erp-topnav-more-btn {
@@ -1951,10 +1958,10 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 	flex-shrink: 0;
 	margin: 6px 0 6px 4px;
 	padding: 0 12px;
-	border: 1px solid rgba(255, 255, 255, 0.22);
+	border: 1px solid #93c5fd;
 	border-radius: 4px;
-	background: rgba(255, 255, 255, 0.08);
-	color: #fff;
+	background: #eff6ff;
+	color: #1d4ed8;
 	font-size: 12px;
 	font-weight: 600;
 	cursor: pointer;
@@ -1962,8 +1969,8 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 }
 .epc-erp-topnav-more-btn:hover,
 .epc-erp-topnav-more-btn:focus {
-	background: rgba(255, 255, 255, 0.16);
-	border-color: rgba(255, 255, 255, 0.4);
+	background: #dbeafe;
+	border-color: #2563eb;
 	outline: none;
 }
 
