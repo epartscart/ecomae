@@ -1557,6 +1557,9 @@ try {
 			}
 			$built = epc_einvoice_build_from_order($db_link, $orderId, array('transaction_flags' => $flags));
 			$adminId = class_exists('DP_User') ? (int)DP_User::getAdminId() : 0;
+			if ($adminId <= 0 && class_exists('DP_User')) {
+				$adminId = (int) DP_User::getUserId();
+			}
 			$docId = epc_einvoice_save_document($db_link, $built, $adminId);
 			$doc = epc_einvoice_get_document($db_link, $docId);
 			$adjMsg = '';
@@ -1564,7 +1567,9 @@ try {
 				$adjMsg = ' Advance VAT credited: ' . number_format((float)$doc['advance_vat_credit'], 2) . ' AED.';
 			}
 			$cfg = $GLOBALS['DP_Config'] ?? new DP_Config();
-			$redirect = epc_erp_cp_redirect_url('/' . $cfg->backend_dir . '/shop/finance/erp?tab=einvoice&einv_section=view&einv_doc=' . $docId);
+			$redirect = function_exists('epc_erp_cp_redirect_url')
+				? epc_erp_cp_redirect_url('/' . $cfg->backend_dir . '/shop/finance/erp?area=tax&tab=einvoice&einv_section=view&einv_doc=' . $docId)
+				: ('/erp/?area=tax&tab=einvoice&einv_section=view&einv_doc=' . $docId);
 			epc_erp_json(true, ($doc['validation_ok'] ? 'E-invoice generated and validated' : 'E-invoice saved as draft — fix validation errors') . $adjMsg,
 				array('document_id' => $docId, 'redirect' => $redirect));
 
@@ -1602,8 +1607,70 @@ try {
 		case 'einvoice_submit':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
 			$adminId = class_exists('DP_User') ? (int)DP_User::getAdminId() : 0;
+			if ($adminId <= 0 && class_exists('DP_User')) {
+				$adminId = (int) DP_User::getUserId();
+			}
 			$res = epc_einvoice_submit_to_asp($db_link, (int)($_POST['document_id'] ?? 0), $adminId);
 			epc_erp_json(true, 'Submitted to ASP — reference ' . $res['asp_reference'], $res);
+
+		case 'einvoice_credit_note':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
+			$adminId = class_exists('DP_User') ? (int) DP_User::getAdminId() : 0;
+			if ($adminId <= 0 && class_exists('DP_User')) {
+				$adminId = (int) DP_User::getUserId();
+			}
+			$origId = (int) ($_POST['document_id'] ?? 0);
+			$cnRes = epc_einvoice_create_credit_note($db_link, $origId, array(
+				'reason' => trim((string) ($_POST['reason'] ?? 'Sales return')),
+			), $adminId);
+			$cnId = (int) ($cnRes['credit_note_id'] ?? $cnRes['document_id'] ?? 0);
+			// Build XML + re-validate so the credit note is submission-ready.
+			if ($cnId > 0) {
+				$cnDoc = epc_einvoice_get_document($db_link, $cnId);
+				if ($cnDoc) {
+					try {
+						$xml = epc_einvoice_build_xml($cnDoc);
+						$v = epc_einvoice_validate_document($cnDoc, $cnDoc['lines'] ?? array(), true);
+						$db_link->prepare(
+							'UPDATE `epc_einvoice_documents` SET `xml_content` = ?, `validation_ok` = ?, `validation_errors_json` = ?, `status` = ?, `time_updated` = ? WHERE `id` = ?'
+						)->execute(array(
+							$xml,
+							!empty($v['ok']) ? 1 : 0,
+							json_encode($v['errors'] ?? array()),
+							!empty($v['ok']) ? 'validated' : 'draft',
+							time(),
+							$cnId,
+						));
+					} catch (Throwable $e) {
+						// keep draft; user can still open the document
+					}
+				}
+			}
+			$redirect = '';
+			if ($cnId > 0) {
+				$cfg = $GLOBALS['DP_Config'] ?? new DP_Config();
+				$redirect = function_exists('epc_erp_cp_redirect_url')
+					? epc_erp_cp_redirect_url('/' . $cfg->backend_dir . '/shop/finance/erp?area=tax&tab=einvoice&einv_section=view&einv_doc=' . $cnId)
+					: ('/erp/?area=tax&tab=einvoice&einv_section=view&einv_doc=' . $cnId);
+			}
+			epc_erp_json(true, 'Credit note (381) created' . (!empty($cnRes['credit_note_number']) ? (': ' . $cnRes['credit_note_number']) : ''), array(
+				'document_id' => $cnId,
+				'redirect' => $redirect,
+				'credit_note' => $cnRes,
+			));
+
+		case 'einvoice_poll_asp':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_einvoice.php';
+			$poll = epc_einvoice_poll_all_pending($db_link);
+			$msg = sprintf(
+				'Polled %d · accepted %d · rejected %d · still pending %d · errors %d',
+				(int) ($poll['polled'] ?? 0),
+				(int) ($poll['accepted'] ?? 0),
+				(int) ($poll['rejected'] ?? 0),
+				(int) ($poll['pending'] ?? 0),
+				(int) ($poll['errors'] ?? 0)
+			);
+			epc_erp_json(true, $msg, array('results' => $poll));
 
 		case 'invoice_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_invoices.php';
