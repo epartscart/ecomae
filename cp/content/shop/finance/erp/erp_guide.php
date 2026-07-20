@@ -36,15 +36,93 @@ $staffDash = epc_erp_staff_dashboard($db_link);
 $deptCfg = epc_erp_departments_config();
 ?>
 
-<style>
-.epc-erp-guide-intro { background: linear-gradient(135deg, #0f172a 0%, #1e4d3a 100%); color: #fff; border-radius: 8px; padding: 20px 22px; margin-bottom: 18px; }
-.epc-erp-guide-intro h3 { margin: 0 0 8px; color: #fff; }
-.epc-erp-guide-step { border-left: 4px solid #27ae60; padding: 12px 16px; margin: 14px 0; background: #f8fafc; border-radius: 0 6px 6px 0; }
-.epc-erp-guide-step h5 { margin: 0 0 8px; font-weight: 700; color: #0f172a; }
-.epc-erp-flow { font-size: 13px; line-height: 1.7; }
+<style id="epc-erp-guide-contrast">
+/* Self-contained readable guide (survives dark ERP portal shell) */
+.epc-erp-guide-root,
+.epc-erp-guide-root .panel-body,
+.epc-erp-guide-root .epc-erp-flow {
+	color: #1e293b !important;
+	font-size: 14px;
+	line-height: 1.55;
+}
+.epc-erp-guide-root h3,
+.epc-erp-guide-root h4,
+.epc-erp-guide-root h5 {
+	color: #0f172a !important;
+	font-weight: 700;
+}
+.epc-erp-guide-root p,
+.epc-erp-guide-root li,
+.epc-erp-guide-root td,
+.epc-erp-guide-root th,
+.epc-erp-guide-root dd,
+.epc-erp-guide-root dt {
+	color: #1e293b !important;
+}
+.epc-erp-guide-root a { color: #1d4ed8 !important; font-weight: 600; }
+.epc-erp-guide-intro {
+	background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #0ea5e9 100%) !important;
+	color: #fff !important;
+	border-radius: 10px;
+	padding: 20px 22px;
+	margin-bottom: 18px;
+}
+.epc-erp-guide-intro,
+.epc-erp-guide-intro h3,
+.epc-erp-guide-intro p,
+.epc-erp-guide-intro strong { color: #fff !important; }
+.epc-erp-guide-intro a { color: #dbeafe !important; text-decoration: underline; }
+.epc-erp-guide-step {
+	border-left: 4px solid #2563eb !important;
+	padding: 14px 16px;
+	margin: 14px 0;
+	background: #f8fafc !important;
+	border-radius: 0 8px 8px 0;
+	color: #1e293b !important;
+}
+.epc-erp-guide-step h5 { margin: 0 0 8px; font-weight: 700; color: #0f172a !important; }
+.epc-erp-flow { font-size: 14px; line-height: 1.65; color: #1e293b !important; }
+.epc-erp-guide-root .table > tbody > tr > td,
+.epc-erp-guide-root .table > tbody > tr > th {
+	color: #1e293b !important;
+	background: #fff !important;
+	border-color: #e2e8f0 !important;
+}
+.epc-erp-guide-root .well,
+.epc-erp-guide-root .well-sm {
+	background: #f8fafc !important;
+	border: 1px solid #e2e8f0 !important;
+	color: #1e293b !important;
+}
+.epc-erp-guide-root code {
+	color: #0f172a !important;
+	background: #e2e8f0 !important;
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+.epc-erp-guide-toc {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 18px;
+}
+.epc-erp-guide-toc a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 12px;
+	border-radius: 8px;
+	border: 1px solid #cbd5e1;
+	background: #fff !important;
+	color: #1e293b !important;
+	font-size: 12.5px;
+	font-weight: 600;
+	text-decoration: none !important;
+}
+.epc-erp-guide-toc a:hover { border-color: #2563eb; color: #1d4ed8 !important; }
 </style>
 
-<div class="col-lg-12">
+<div class="col-lg-12 epc-erp-guide-root">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
 			ERP — step-by-step guide
@@ -58,41 +136,49 @@ $deptCfg = epc_erp_departments_config();
 		<div class="panel-body">
 
 			<div class="epc-erp-guide-intro">
-				<h3><i class="fa fa-book"></i> How to use ERP in the control panel</h3>
-				<p style="margin:0;opacity:.92;">Complete workflow: <strong>Sales → Revenue → Receivable → Balance</strong>,
-					<strong>Purchase → Supplier → Payable → Balance</strong>, <strong>Cash &amp; Bank</strong>,
-					and <strong>COA → GL → P&amp;L → Balance Sheet</strong>.
-					URL: <a href="<?php echo epc_erp_h($erpUrl); ?>" style="color:#a7f3d0;"><?php echo epc_erp_h($erpUrl); ?></a></p>
+				<h3><i class="fa fa-book"></i> How to use ERP</h3>
+				<p style="margin:0;">Clear path from day-to-day work to the books:
+					<strong>Sales → Revenue → Receivable → Balance</strong>,
+					<strong>Purchase → Payable → Balance</strong>,
+					<strong>Cash &amp; Bank</strong>, and
+					<strong>Chart of accounts → GL → P&amp;L → Balance sheet</strong>.</p>
 			</div>
+
+			<nav class="epc-erp-guide-toc" aria-label="Guide sections">
+				<a href="#epc-guide-snapshot"><i class="fa fa-bar-chart"></i> Live numbers</a>
+				<a href="#epc-guide-courier"><i class="fa fa-truck"></i> Courier &amp; VAT</a>
+				<a href="#epc-guide-flow"><i class="fa fa-sitemap"></i> Daily flow</a>
+				<a href="#epc-guide-setup"><i class="fa fa-cogs"></i> First-time setup</a>
+			</nav>
 
 			<div class="alert alert-info">
-				<strong>Menu:</strong> Shop → <em>ERP Finance</em>. Tabs include <strong>Inventory</strong> (multi-warehouse, weighted average cost), <strong>Fixed assets</strong> (depreciation &amp; book value), <strong>Opening balances</strong> (migration date), plus Revenue, Purchases, Cash &amp; bank, <strong>COA</strong>, <strong>GL</strong>, <strong>P&amp;L</strong>, <strong>Balance sheet</strong>.
-				Full doc: <code>docs/ERP_INVENTORY_ASSETS_GUIDE.md</code>.
-				<strong>Customer data</strong> → <a href="/<?php echo epc_erp_h(isset($DP_Config) ? (string)$DP_Config->backend_dir : 'cp'); ?>/shop/customer_mgmt/customer_mgmt">Customers → Customer management</a>.
-				<strong>Suppliers</strong> → <a href="/<?php echo epc_erp_h(isset($DP_Config) ? (string)$DP_Config->backend_dir : 'cp'); ?>/shop/procurement/procurement">Procurement panel</a>.
-				Generated <?php echo epc_erp_h($snapshot['generated_at']); ?>.
+				<strong>Where to open ERP:</strong> Shop → <em>ERP Finance</em> (or the Open ERP button above).
+				Main areas: Inventory, Fixed assets, Opening balances, Revenue, Purchases, Cash &amp; bank, Chart of accounts, GL, P&amp;L, Balance sheet.
+				<strong>Customers</strong> → Customer management.
+				<strong>Suppliers</strong> → Procurement.
+				Snapshot generated <?php echo epc_erp_h($snapshot['generated_at']); ?>.
 			</div>
 
-			<div class="epc-erp-guide-step">
+			<div class="epc-erp-guide-step" id="epc-guide-courier">
 				<h5><i class="fa fa-truck"></i> Courier charges, VAT &amp; document map</h5>
 				<div class="epc-erp-flow">
-					<p><strong>Who pays courier?</strong> The <em>customer</em>. The fee is stored on the order (<code>how_get_json.delivery_price</code>), shown in OMS, and added as a line on the UAE tax invoice (AR).</p>
-					<p><strong>VAT on courier:</strong> Courier is taxable <em>income</em> for UAE destinations (output VAT on the invoice). Customers outside the UAE are <strong>zero-rated</strong> — no VAT on goods or courier. Destination country on the shipping record drives this.</p>
-					<p><strong>VAT documentation:</strong> UAE → keep PINT-AE tax invoice (XML/PDF), TRN, and payment records. Export → keep shipping proof, commercial invoice, and buyer country evidence for FTA zero-rating.</p>
-					<p><strong>ERP map (OMS → Manage):</strong></p>
+					<p><strong>Who pays courier?</strong> The customer. The delivery fee is saved on the order, shown in OMS, and added as a line on the UAE tax invoice (Accounts Receivable).</p>
+					<p><strong>VAT on courier:</strong> For UAE destinations, courier is taxable income (output VAT on the invoice). Outside the UAE it is <strong>zero-rated</strong> — no VAT on goods or courier. The shipping destination country drives this.</p>
+					<p><strong>What to keep on file:</strong> UAE → tax invoice (PDF/XML), TRN, and payment proof. Export → shipping proof, commercial invoice, and buyer-country evidence for zero-rating.</p>
+					<p><strong>Document chain (OMS → ERP):</strong></p>
 					<ol>
-						<li><strong>Shop order</strong> — commerce order</li>
-						<li><strong>VAT treatment</strong> — UAE standard vs export zero-rate</li>
-						<li><strong>ERP sales order (SO)</strong> — revenue side bootstrap</li>
-						<li><strong>Supplier POs</strong> — per-supplier purchase orders</li>
-						<li><strong>AP bills</strong> — supplier purchase invoices (cost)</li>
-						<li><strong>AR tax invoice</strong> — customer invoice including goods + courier + VAT</li>
+						<li><strong>Shop order</strong> — customer commerce order</li>
+						<li><strong>VAT treatment</strong> — UAE standard or export zero-rate</li>
+						<li><strong>Sales order (SO)</strong> — revenue document in ERP</li>
+						<li><strong>Purchase orders (PO)</strong> — one per supplier when buying stock</li>
+						<li><strong>Supplier bills (AP)</strong> — cost side</li>
+						<li><strong>Customer tax invoice (AR)</strong> — goods + courier + VAT</li>
 					</ol>
-					<p>Use <strong>Link ERP / Sync / Auto-post</strong> on the OMS fulfillment panel to keep SO ↔ PO ↔ bill ↔ invoice aligned.</p>
+					<p>On the OMS fulfilment panel use <strong>Link ERP / Sync / Auto-post</strong> so sales order, PO, bill and invoice stay aligned.</p>
 				</div>
 			</div>
 
-			<h4><i class="fa fa-bar-chart"></i> Live snapshot</h4>
+			<h4 id="epc-guide-snapshot"><i class="fa fa-bar-chart"></i> Live snapshot</h4>
 			<table class="table table-striped table-bordered">
 				<tbody>
 					<tr><td>Revenue MTD (ex VAT)</td><td><strong><?php echo epc_erp_money($dash['revenue_ex_vat']); ?> AED</strong></td></tr>
@@ -257,7 +343,7 @@ $deptCfg = epc_erp_departments_config();
 				</ol>
 			</div>
 
-			<h4><i class="fa fa-list-ol"></i> Step-by-step (daily use)</h4>
+			<h4 id="epc-guide-flow"><i class="fa fa-list-ol"></i> Step-by-step (daily use)</h4>
 
 			<div class="epc-erp-guide-step">
 				<h5>Step 1 — Open ERP &amp; set date range</h5>
@@ -453,7 +539,7 @@ $deptCfg = epc_erp_departments_config();
 				<p class="epc-erp-flow">Tab <a href="<?php echo epc_erp_h($erpUrl . '?tab=opening_balances'); ?>">Opening balances</a>: create batch with <em>as of date</em>, add COA and inventory lines, then <strong>Post</strong>. Register fixed assets with opening accumulated depreciation on the <a href="<?php echo epc_erp_h($erpUrl . '?tab=fixed_assets'); ?>">Fixed assets</a> tab.</p>
 			</div>
 
-			<h4 id="epc-erp-full-setup"><i class="fa fa-cogs"></i> Complete platform setup &amp; configuration — every module, step by step</h4>
+			<h4 id="epc-guide-setup"><i class="fa fa-cogs"></i> Complete platform setup &amp; configuration — every module, step by step</h4>
 			<div class="well well-sm">
 				<p style="margin:0 0 6px;">This is the full walkthrough for a brand-new company: first do the <strong>one-time platform setup</strong> (Section&nbsp;A) in order, then configure and run <strong>each module</strong> (Section&nbsp;B). Everything is per-company and country-driven — set your country once and currency, tax, fiscal year and labour law follow. Each step lists the <strong>action</strong> and the <strong>result</strong> you should see.</p>
 				<p style="margin:0;"><strong>Recommended order:</strong> Company profile &amp; country &rarr; Companies/legal entities &rarr; Industry pack &rarr; Chart of accounts &rarr; Number sequences &rarr; Financial dimensions &rarr; Currency &amp; tax &rarr; Product dimensions &amp; variants &rarr; Opening balances &rarr; Users, departments &amp; security roles. Then open each operational module.</p>
