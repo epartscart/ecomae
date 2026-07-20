@@ -25,8 +25,8 @@ function epc_erp_json($ok, $message, $extra = array())
 	// are skipped to keep the trail signal-rich.
 	if ($ok && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
 		$act = isset($GLOBALS['action']) ? (string)$GLOBALS['action'] : '';
-		$readOnlyPrefixes = array('list_', 'load_', 'get_', 'fetch_', 'search_', 'lookup_', 'open_docs', 'preview_', 'report_', 'export_');
-		$readOnlyExact = array('settlement_open_docs', 'gl_preview', 'aging', 'trial_balance');
+		$readOnlyPrefixes = array('list_', 'load_', 'get_', 'fetch_', 'search_', 'lookup_', 'open_docs', 'preview_', 'report_', 'export_', 'presence_', 'concurrency_', 'edit_lock_');
+		$readOnlyExact = array('settlement_open_docs', 'gl_preview', 'aging', 'trial_balance', 'presence_heartbeat', 'concurrency_status', 'edit_lock_heartbeat');
 		$skip = in_array($act, $readOnlyExact, true);
 		foreach ($readOnlyPrefixes as $p) {
 			if (strncmp($act, $p, strlen($p)) === 0) { $skip = true; break; }
@@ -36,7 +36,7 @@ function epc_erp_json($ok, $message, $extra = array())
 				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_audit.php';
 				$snapshot = array();
 				foreach ($_POST as $k => $v) {
-					if (in_array($k, array('csrf_guard_key', 'action', 'password', 'pass', 'pwd'), true)) {
+					if (in_array($k, array('csrf_guard_key', 'action', 'password', 'pass', 'pwd', 'asp_api_key', 'edit_lock_token', 'lock_token'), true)) {
 						continue;
 					}
 					if (is_scalar($v)) {
@@ -55,7 +55,29 @@ function epc_erp_json($ok, $message, $extra = array())
 			}
 		}
 	}
-	echo json_encode(array_merge(array('status' => (bool)$ok, 'message' => (string)$message), $extra));
+	$payload = array_merge(array('status' => (bool)$ok, 'message' => (string)$message), $extra);
+	// Cache successful mutating responses under the client idempotency key so
+	// network retries / double-clicks do not create duplicate documents.
+	// On failure, clear the pending claim so the operator can retry cleanly.
+	if (!empty($GLOBALS['epc_erp_idem_key']) && isset($GLOBALS['db_link']) && $GLOBALS['db_link'] instanceof PDO) {
+		try {
+			if (!function_exists('epc_erp_idempotency_store')) {
+				require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_concurrency.php';
+			}
+			$idemAct = (string) ($GLOBALS['epc_erp_idem_action'] ?? ($GLOBALS['action'] ?? ''));
+			if ($idemAct !== '' && function_exists('epc_erp_concurrency_idempotent_actions')
+				&& in_array($idemAct, epc_erp_concurrency_idempotent_actions(), true)) {
+				if ($ok) {
+					epc_erp_idempotency_store($GLOBALS['db_link'], (string) $GLOBALS['epc_erp_idem_key'], $idemAct, $payload);
+				} elseif (function_exists('epc_erp_idempotency_clear')) {
+					epc_erp_idempotency_clear($GLOBALS['db_link'], (string) $GLOBALS['epc_erp_idem_key']);
+				}
+			}
+		} catch (Throwable $idemErr) {
+			// never break the response
+		}
+	}
+	echo json_encode($payload);
 	exit;
 }
 
@@ -72,11 +94,112 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['action'])) {
 }
 
 $action = (string)$_POST['action'];
+$GLOBALS['action'] = $action;
 
 try {
 	epc_erp_full_ensure_schema($db_link);
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_concurrency.php';
+	epc_erp_concurrency_ensure_schema($db_link);
+
+	// Capture idempotency key before preflight so failed claims can be cleared.
+	$GLOBALS['epc_erp_idem_key'] = trim((string) ($_POST['idempotency_key'] ?? $_POST['idem_key'] ?? ''));
+	$GLOBALS['epc_erp_idem_action'] = $action;
+
+	// Multi-user safety: idempotent claim/replay + edit-lock / optimistic-version gate.
+	$concurrencyReplay = epc_erp_concurrency_preflight($db_link, $action, $_POST);
+	if (is_array($concurrencyReplay)) {
+		if (!empty($concurrencyReplay['conflict']) && !headers_sent()) {
+			http_response_code(409);
+		}
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($concurrencyReplay);
+		exit;
+	}
 
 	switch ($action) {
+		case 'edit_lock_acquire':
+			$forceLock = !empty($_POST['force']);
+			if ($forceLock && !epc_erp_concurrency_can_force_lock($db_link)) {
+				if (!headers_sent()) {
+					http_response_code(403);
+				}
+				epc_erp_json(false, 'Only an ERP administrator can force-take an edit lock', array(
+					'conflict' => true,
+					'conflict_code' => 'force_denied',
+					'can_force' => false,
+				));
+			}
+			$res = epc_erp_edit_lock_acquire(
+				$db_link,
+				(string) ($_POST['entity_type'] ?? ''),
+				(string) ($_POST['entity_id'] ?? ''),
+				(int) ($_POST['ttl'] ?? 120),
+				$forceLock
+			);
+			if (empty($res['ok']) && !empty($res['conflict']) && !headers_sent()) {
+				http_response_code(409);
+			}
+			$res['can_force'] = !empty($res['can_force']) || epc_erp_concurrency_can_force_lock($db_link);
+			epc_erp_json(!empty($res['ok']), (string) ($res['message'] ?? ''), $res);
+
+		case 'edit_lock_heartbeat':
+			$res = epc_erp_edit_lock_heartbeat(
+				$db_link,
+				(string) ($_POST['entity_type'] ?? ''),
+				(string) ($_POST['entity_id'] ?? ''),
+				(string) ($_POST['lock_token'] ?? ''),
+				(int) ($_POST['ttl'] ?? 120)
+			);
+			epc_erp_json(!empty($res['ok']), (string) ($res['message'] ?? ''), $res);
+
+		case 'edit_lock_release':
+			$res = epc_erp_edit_lock_release(
+				$db_link,
+				(string) ($_POST['entity_type'] ?? ''),
+				(string) ($_POST['entity_id'] ?? ''),
+				(string) ($_POST['lock_token'] ?? '')
+			);
+			epc_erp_json(true, (string) ($res['message'] ?? 'Released'), $res);
+
+		case 'presence_heartbeat':
+			$res = epc_erp_presence_heartbeat($db_link, array(
+				'tab' => (string) ($_POST['tab'] ?? ''),
+				'area' => (string) ($_POST['area'] ?? ''),
+				'entity_type' => (string) ($_POST['entity_type'] ?? ''),
+				'entity_id' => (string) ($_POST['entity_id'] ?? ''),
+			));
+			epc_erp_json(true, (int) ($res['count'] ?? 0) . ' active', $res);
+
+		case 'concurrency_status':
+			$entityType = (string) ($_POST['entity_type'] ?? '');
+			$entityId = (string) ($_POST['entity_id'] ?? '');
+			$presence = epc_erp_presence_heartbeat($db_link, array(
+				'tab' => (string) ($_POST['tab'] ?? ''),
+				'area' => (string) ($_POST['area'] ?? ''),
+				'entity_type' => $entityType,
+				'entity_id' => $entityId,
+			));
+			$lock = null;
+			if ($entityType !== '' && $entityId !== '') {
+				$st = $db_link->prepare('SELECT `user_id`,`user_label`,`expires_at`,`heartbeat_at`,`lock_token` FROM `epc_erp_edit_locks` WHERE `entity_type`=? AND `entity_id`=? AND `expires_at`>=? LIMIT 1');
+				$st->execute(array($entityType, $entityId, time()));
+				$lock = $st->fetch(PDO::FETCH_ASSOC) ?: null;
+				if ($lock) {
+					unset($lock['lock_token']); // never leak other users' tokens
+				}
+			}
+			$version = 0;
+			if ($entityType === 'invoice' && ctype_digit($entityId)) {
+				$version = epc_erp_version_get($db_link, 'epc_einvoice_documents', (int) $entityId);
+			}
+			epc_erp_json(true, 'OK', array(
+				'presence' => $presence,
+				'lock' => $lock,
+				'row_version' => $version,
+				'server_time' => time(),
+				'can_force_lock' => epc_erp_concurrency_can_force_lock($db_link),
+			));
+
 		case 'create_supplier':
 			$id = epc_erp_create_supplier($db_link, $_POST);
 			epc_erp_dim_save_from_post($db_link, 'vendor', (int) $id, $_POST);
@@ -2489,7 +2612,31 @@ try {
 			epc_erp_json(false, 'Unknown action');
 	}
 } catch (\Throwable $e) {
+	// Failed mutation after idempotency claim — clear pending so the user can retry.
+	if (!empty($GLOBALS['epc_erp_idem_key']) && isset($db_link) && $db_link instanceof PDO) {
+		try {
+			if (function_exists('epc_erp_idempotency_clear')) {
+				epc_erp_idempotency_clear($db_link, (string) $GLOBALS['epc_erp_idem_key']);
+			}
+		} catch (Throwable $clearErr) {
+			// ignore
+		}
+	}
 	$extra = array('ok' => false);
+	$msg = $e->getMessage();
+	if (stripos($msg, 'Version conflict') !== false
+		|| stripos($msg, 'edit lock') !== false
+		|| stripos($msg, 'Submit conflict') !== false
+		|| stripos($msg, 'being edited') !== false
+		|| stripos($msg, 'already submitted') !== false
+		|| stripos($msg, 'already in progress') !== false
+		|| stripos($msg, 'Insufficient stock') !== false) {
+		$extra['conflict'] = true;
+		$extra['conflict_code'] = 'erp_multiuser_conflict';
+		if (!headers_sent()) {
+			http_response_code(409);
+		}
+	}
 	if ($action === 'cs_import_declaration_pdf' && function_exists('epc_cs_pdf_pdftotext_diagnostics')) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_custom_declaration_pdf_import.php';
 		$diag = epc_cs_pdf_pdftotext_diagnostics();
@@ -2497,5 +2644,5 @@ try {
 		$extra['pdftotext_path'] = (string) ($diag['path'] ?? '');
 		$extra['pdftotext_diag_url'] = '/epc-custom-shipping-pdf-test.php?token=epartscart-deploy-2026';
 	}
-	epc_erp_json(false, $e->getMessage(), $extra);
+	epc_erp_json(false, $msg, $extra);
 }

@@ -1511,4 +1511,17 @@ include __DIR__ . '/erp_voice_command.php';
 if (function_exists('epc_erp_voice_command_js_script_tag')) {
 	echo epc_erp_voice_command_js_script_tag();
 }
+
+// Multi-user concurrency (edit locks, presence, idempotency) — required when
+// many staff work the same tenant ERP at once.
+$epcConcJs = __DIR__ . '/epc_erp_concurrency.js';
+if (is_file($epcConcJs)) {
+	echo '<script>window.EPC_ERP_CONCURRENCY=' . json_encode(array(
+		'ajaxUrl' => (string) $erpAjaxEndpoint,
+		'csrf' => (string) $csrf,
+		'tab' => (string) $tab,
+		'area' => (string) ($erpArea ?? ($_GET['area'] ?? '')),
+	), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . ';</script>' . "\n";
+	echo '<script id="epc-erp-concurrency-js">' . "\n" . file_get_contents($epcConcJs) . "\n</script>\n";
+}
 ?>

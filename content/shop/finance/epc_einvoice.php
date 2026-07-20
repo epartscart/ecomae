@@ -883,9 +883,31 @@ function epc_einvoice_submit_to_asp(PDO $db, int $doc_id, int $admin_id = 0): ar
 	if (!$doc['validation_ok']) {
 		throw new Exception('Fix validation errors before submission');
 	}
+	if (in_array((string) ($doc['status'] ?? ''), array('submitted', 'accepted', 'queued'), true)) {
+		throw new Exception('This e-invoice was already submitted by another user (status: ' . $doc['status'] . ')');
+	}
 	$asp = epc_einvoice_get_setting($db, 'asp_name', '');
 	if ($asp === '') {
 		throw new Exception('Configure Accredited Service Provider (ASP) in e-Invoicing settings first');
+	}
+
+	// Atomic claim — only one concurrent submitter wins.
+	if (!function_exists('epc_erp_claim_status')) {
+		require_once __DIR__ . '/epc_erp_concurrency.php';
+	}
+	$claimed = epc_erp_claim_status(
+		$db,
+		'epc_einvoice_documents',
+		$doc_id,
+		array('draft', 'validated'),
+		'queued'
+	);
+	if (!$claimed) {
+		$fresh = epc_einvoice_get_document($db, $doc_id);
+		throw new Exception(
+			'Submit conflict — another user already submitted this invoice'
+			. (!empty($fresh['status']) ? (' (status: ' . $fresh['status'] . ')') : '')
+		);
 	}
 
 	$mode = epc_einvoice_get_setting($db, 'asp_api_mode', 'manual');
