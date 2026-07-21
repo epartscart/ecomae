@@ -1106,8 +1106,18 @@ if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 	
 	<?php
 	// Home (/cp/control) already has the tenant dashboard hero — skip duplicate CMS page header.
+	// BOS-wrapped portal modules also skip it (avoids nested "detail window" chrome).
 	$epcSkipPageHeader = !empty($DP_Content->main_flag)
-		|| (isset($DP_Content->url) && in_array((string) $DP_Content->url, array('control', ''), true));
+		|| (isset($DP_Content->url) && in_array((string) $DP_Content->url, array('control', ''), true))
+		|| !empty($GLOBALS['epc_cp_skip_page_header'])
+		|| !empty($GLOBALS['epc_cp_boc_page']);
+	if (!$epcSkipPageHeader && is_file($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_page_shell.php')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_page_shell.php';
+		if (function_exists('epc_boc_should_use_page_shell') && epc_boc_should_use_page_shell()) {
+			$epcSkipPageHeader = true;
+			$GLOBALS['epc_cp_skip_page_header'] = true;
+		}
+	}
 	if (!$epcSkipPageHeader) {
 	?>
 	<div class="epc-cp-page-header transition animated fadeIn">
@@ -1145,12 +1155,34 @@ if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 			<?php
 				require_once $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/actions_alert.php';
 				if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: before main content'); }
+				// Super CP portal modules: open BOS topnav shell BEFORE content so pages
+				// that forget page_frame still stay in the main dashboard (no nested window).
+				$epcBocShellFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_boc_page_shell.php';
+				$epcBocShellAuto = false;
+				if (is_file($epcBocShellFile)) {
+					require_once $epcBocShellFile;
+					if (function_exists('epc_boc_should_use_page_shell') && epc_boc_should_use_page_shell()
+						&& empty($GLOBALS['epc_cp_boc_page']) && empty($GLOBALS['epc_boc_page_shell_open'])) {
+						epc_boc_page_shell_open();
+						$epcBocShellAuto = true;
+						$GLOBALS['epc_boc_desktop_auto_shell'] = true;
+					}
+				}
 			?>
 		
 			<!--epc-cp-main-begin-->
 			<docpart type="main" name="main" />
 			<!--epc-cp-main-end-->
-			<?php if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: after main content'); } ?>
+			<?php
+				if (!empty($GLOBALS['epc_boc_desktop_auto_shell']) && function_exists('epc_boc_page_shell_close')) {
+					// Close only if page content did not already close via page_frame.
+					if (!empty($GLOBALS['epc_boc_page_shell_open'])) {
+						epc_boc_page_shell_close();
+					}
+					$GLOBALS['epc_boc_desktop_auto_shell'] = false;
+				}
+				if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: after main content'); }
+			?>
 		</div>
 		</div>
     </div>
