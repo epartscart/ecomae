@@ -320,6 +320,13 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/prices_upload/epc_multivendor_cp.js?v=' . rawurlencode($ver . 'mvMin1'),
 			),
 		),
+		'shop/catalogue/sku_media' => array(
+			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia2')),
+			'js' => array(
+				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia2'),
+				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia2'),
+			),
+		),
 		'shop/prices/upload' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),

@@ -478,4 +478,27 @@
   };
 
   window.EpcSkuMedia = EpcSkuMedia;
+
+  function epcSkuMediaBootFromDom() {
+    var root = document.getElementById('epc-sku-media');
+    if (!root || root.getAttribute('data-epc-booted') === '1') {
+      return;
+    }
+    var cfg = Object.assign({}, window.EPC_SKU_MEDIA_CP || {});
+    cfg.root = '#epc-sku-media';
+    cfg.endpoint = cfg.endpoint || root.getAttribute('data-endpoint') || '/content/shop/catalogue/ajax_epc_sku_media.php';
+    cfg.csrf = cfg.csrf || root.getAttribute('data-csrf') || '';
+    cfg.profileId = parseInt(root.getAttribute('data-profile-id') || '0', 10) || 0;
+    cfg.productId = parseInt(root.getAttribute('data-product-id') || '0', 10) || 0;
+    cfg.brand = root.getAttribute('data-brand') || '';
+    cfg.article = root.getAttribute('data-article') || '';
+    root.setAttribute('data-epc-booted', '1');
+    window.epcSkuMediaApp = new EpcSkuMedia(cfg);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', epcSkuMediaBootFromDom);
+  } else {
+    epcSkuMediaBootFromDom();
+  }
 })(window, document);

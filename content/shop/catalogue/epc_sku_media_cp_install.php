@@ -92,18 +92,24 @@ function epc_sku_media_cp_install(PDO $pdo, string $backendDir = 'cp', bool $app
 
 	if (is_file($_SERVER['DOCUMENT_ROOT'] . '/epc_cp_mainstream_menu.php')) {
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/epc_cp_mainstream_menu.php';
-		if (function_exists('epc_cp_mm_ensure_group') && function_exists('epc_cp_mm_ensure_item')) {
-			$commerce = epc_cp_mm_ensure_group($pdo, 'epc_cp_group_commerce', 'Commerce', 'Коммерция', 10);
-			$result['menu_item_id'] = (int) epc_cp_mm_ensure_item(
-				$pdo,
-				$commerce,
-				'epc_sku_media_manager',
-				'/<backend>/shop/catalogue/sku_media',
-				42,
-				'#0f766e',
-				'fa-picture-o',
-				1
-			);
+		if (function_exists('epc_cp_shop_catalogue_prices_menu_apply')) {
+			$menu = epc_cp_shop_catalogue_prices_menu_apply($pdo);
+			$result['menu_item_id'] = (int) ($menu['items']['sku_media'] ?? 0);
+		} elseif (function_exists('epc_cp_mm_find_shop_group') && function_exists('epc_cp_mm_ensure_item')) {
+			$shop = epc_cp_mm_find_shop_group($pdo);
+			$shopId = (int) ($shop['id'] ?? 0);
+			if ($shopId > 0) {
+				$result['menu_item_id'] = (int) epc_cp_mm_ensure_item(
+					$pdo,
+					$shopId,
+					'epc_sku_media_manager',
+					'/<backend>/shop/catalogue/sku_media',
+					16,
+					'#0f766e',
+					'fa-picture-o',
+					1
+				);
+			}
 		}
 	}
 
