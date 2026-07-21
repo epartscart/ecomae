@@ -529,6 +529,38 @@ if (function_exists('epc_erp_shell_asset_href')) {
 	</div>
 	<?php endif; ?>
 
+	<?php
+	$nsInsightsFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_insights_suite.php';
+	$nsInsightsHtml = '';
+	if (is_file($nsInsightsFile)) {
+		require_once $nsInsightsFile;
+		if (function_exists('epc_insights_suite_build') && function_exists('epc_insights_suite_render') && isset($db_link) && $db_link instanceof PDO) {
+			try {
+				$nsBackend = trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/');
+				$nsCurrency = 'AED';
+				if (function_exists('epc_co_profile_get')) {
+					$nsCo = epc_co_profile_get($db_link);
+					if (is_array($nsCo) && !empty($nsCo['base_currency'])) {
+						$nsCurrency = (string) $nsCo['base_currency'];
+					}
+				}
+				$nsSuite = epc_insights_suite_build($db_link, array(
+					'backend' => $nsBackend !== '' ? $nsBackend : 'cp',
+					'currency' => $nsCurrency,
+					'light' => false,
+				));
+				$nsInsightsHtml = epc_insights_suite_render($nsSuite, 'erp');
+			} catch (Throwable $e) {
+				$nsInsightsHtml = '';
+			}
+		}
+	}
+	if ($nsInsightsHtml !== '') {
+		echo '<link rel="stylesheet" href="/content/shop/finance/epc_insights_suite.css?v=20260721insights1">';
+		echo '<div class="ns-port"><div class="bd" style="padding:12px">' . $nsInsightsHtml . '</div></div>';
+	}
+	?>
+
 	<div class="ns-grid">
 		<!-- LEFT: reminders + nav shortcuts -->
 		<div class="ns-col-left">
