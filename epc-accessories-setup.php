@@ -9,7 +9,7 @@
  * Run:
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...&seed=1&reset=1
- *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=...&price=1199&make=Toyota&city=Karachi&condition=new
+ *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=...&price=1199&make=Toyota&city=Dubai&condition=new
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=seed_demo&per_sub=1
  *   https://www.epartscart.com/epc-accessories-setup.php?token=...&action=form
  */
@@ -188,7 +188,7 @@ if ($action === 'form') {
 	}
 	echo '</select></div><div><label>Featured</label><select name="featured"><option value="0">No</option><option value="1">Yes</option></select></div></div>';
 	echo '<div class="row"><div><label>Price</label><input name="price" type="number" step="1" min="0" /></div><div><label>Compare price</label><input name="compare_price" type="number" step="1" min="0" /></div></div>';
-	echo '<div class="row"><div><label>Currency</label><input name="currency" value="PKR" /></div><div><label>Photo count</label><input name="photo_count" type="number" min="1" value="1" /></div></div>';
+	echo '<div class="row"><div><label>Currency</label><input name="currency" value="AED" /></div><div><label>Photo count</label><input name="photo_count" type="number" min="1" value="1" /></div></div>';
 	echo '<label>Image URL</label><input name="image_url" />';
 	echo '<label>External / detail URL</label><input name="external_url" />';
 	echo '<button type="submit">Publish listing</button></form>';
@@ -209,7 +209,7 @@ if ($action === 'seed_demo') {
 	}
 	$tax = epc_acc_load_taxonomy_json();
 	$makes = isset($tax['makes']) && is_array($tax['makes']) ? $tax['makes'] : array('Toyota', 'Honda', 'Suzuki');
-	$cities = isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array('Karachi', 'Lahore', 'Islamabad');
+	$cities = isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array('Dubai', 'Abu Dhabi', 'Sharjah');
 	$modelsByMake = array(
 		'Toyota' => array('Corolla', 'Yaris', 'Fortuner', 'Hilux', 'Vitz'),
 		'Honda' => array('Civic', 'City', 'BR-V', 'Vezel', 'N Wgn'),
@@ -250,7 +250,7 @@ if ($action === 'seed_demo') {
 				$featured = (($added + $n) % 11 === 0) ? 1 : 0;
 				$photos = 1 + (($added + $n) % 8);
 				$subLabel = !empty($child['label']) ? $child['label'] : $parent['label'];
-				// PakWheels-like ad title: "Dash Cover for Toyota Corolla - 2018 | Karachi"
+				// Ad title: "Dash Cover for Toyota Corolla - 2018 | Dubai"
 				$title = $subLabel . ' for ' . $make . ' ' . $model . ' - ' . $year . ' | ' . $city;
 				epc_acc_add_listing($pdo, array(
 					'category_id' => (int) $parent['id'],
@@ -264,7 +264,7 @@ if ($action === 'seed_demo') {
 					'condition_type' => $cond,
 					'price' => $price,
 					'compare_price' => $compare,
-					'currency' => 'PKR',
+					'currency' => 'AED',
 					'image_url' => '',
 					'external_url' => '/en/accessories-spare-parts?category=' . rawurlencode($parent['slug']) . '&subcategory=' . rawurlencode((string) ($child['slug'] ?? '')),
 					'photo_count' => $photos,
@@ -317,7 +317,7 @@ if ($action === 'add_listing') {
 		'condition_type' => (string) ($_REQUEST['condition'] ?? 'new'),
 		'price' => (float) ($_REQUEST['price'] ?? 0),
 		'compare_price' => (float) ($_REQUEST['compare_price'] ?? 0),
-		'currency' => (string) ($_REQUEST['currency'] ?? 'PKR'),
+		'currency' => (string) ($_REQUEST['currency'] ?? 'AED'),
 		'image_url' => (string) ($_REQUEST['image_url'] ?? ''),
 		'external_url' => (string) ($_REQUEST['external_url'] ?? ''),
 		'photo_count' => (int) ($_REQUEST['photo_count'] ?? 1),
@@ -440,5 +440,5 @@ echo "categories_seeded parents={$seedStats['parents']} children={$seedStats['ch
 echo "listings_count={$listingCount} (add with action=add_listing)\n";
 echo "URLs: /en/accessories-spare-parts and /en/accessories\n";
 echo "Example add:\n";
-echo "  ?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=Dashboard+Cover&price=1199&make=Toyota&city=Karachi&condition=new\n";
+echo "  ?token=...&action=add_listing&category=car-care&subcategory=car-top-covers&title=Dashboard+Cover&price=1199&make=Toyota&city=Dubai&condition=new\n";
 exit;

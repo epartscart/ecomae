@@ -1,6 +1,6 @@
 {
   "source": "pakwheels.com/accessories-spare-parts",
-  "crawled_note": "PakWheels accessories category tree + filter chrome (cleaned: removed sibling-category cross-links and city geo pages). Listings are stored in ePartsCart DB and filled per category — PakWheels product ads are not scraped/imported.",
+  "crawled_note": "Accessories category tree adapted for ePartsCart UAE. City filters use UAE emirates/cities; listing prices display in AED.",
   "categories": [
     {
       "slug": "car-care",
@@ -1262,20 +1262,14 @@
     "Proton"
   ],
   "cities": [
-    "Karachi",
-    "Lahore",
-    "Okara",
-    "Islamabad",
-    "Sialkot",
-    "Mirpur Khas",
-    "Rawalpindi",
-    "Peshawar",
-    "Faisalabad",
-    "Gujranwala",
-    "Multan",
-    "Quetta",
-    "Hyderabad",
-    "Bahawalpur"
+    "Dubai",
+    "Abu Dhabi",
+    "Sharjah",
+    "Ajman",
+    "Ras Al Khaimah",
+    "Fujairah",
+    "Umm Al Quwain",
+    "Al Ain"
   ],
   "filters": [
     {

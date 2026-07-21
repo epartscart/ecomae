@@ -55,7 +55,7 @@ if (!function_exists('epc_acc_ensure_schema')) {
 				`condition_type` VARCHAR(32) NOT NULL DEFAULT 'new',
 				`price` DECIMAL(12,2) NOT NULL DEFAULT 0,
 				`compare_price` DECIMAL(12,2) NOT NULL DEFAULT 0,
-				`currency` VARCHAR(8) NOT NULL DEFAULT 'PKR',
+				`currency` VARCHAR(8) NOT NULL DEFAULT 'AED',
 				`image_url` VARCHAR(500) NOT NULL DEFAULT '',
 				`external_url` VARCHAR(500) NOT NULL DEFAULT '',
 				`photo_count` INT NOT NULL DEFAULT 1,
@@ -98,6 +98,12 @@ if (!function_exists('epc_acc_ensure_schema')) {
 				}
 			}
 		}
+		// Prefer AED as the column default for new rows (UAE marketplace).
+		try {
+			$db->exec("ALTER TABLE `epc_acc_listings` MODIFY COLUMN `currency` VARCHAR(8) NOT NULL DEFAULT 'AED'");
+		} catch (Exception $e) {
+			// ignore
+		}
 
 		$db->exec(
 			"CREATE TABLE IF NOT EXISTS `epc_acc_terms` (
@@ -124,6 +130,177 @@ if (!function_exists('epc_acc_slugify')) {
 		$s = preg_replace('/[^a-z0-9]+/', '-', $s);
 		$s = trim((string) $s, '-');
 		return $s !== '' ? $s : 'item';
+	}
+}
+
+if (!function_exists('epc_acc_uae_cities')) {
+	/**
+	 * Canonical UAE city / emirate list for accessories marketplace filters.
+	 *
+	 * @return list<string>
+	 */
+	function epc_acc_uae_cities(): array
+	{
+		$tax = epc_acc_load_taxonomy_json();
+		$fromJson = array();
+		foreach ((isset($tax['cities']) && is_array($tax['cities']) ? $tax['cities'] : array()) as $city) {
+			$city = trim((string) $city);
+			if ($city !== '') {
+				$fromJson[] = $city;
+			}
+		}
+		if ($fromJson) {
+			return array_values(array_unique($fromJson));
+		}
+		return array(
+			'Dubai',
+			'Abu Dhabi',
+			'Sharjah',
+			'Ajman',
+			'Ras Al Khaimah',
+			'Fujairah',
+			'Umm Al Quwain',
+			'Al Ain',
+		);
+	}
+}
+
+if (!function_exists('epc_acc_legacy_pk_cities')) {
+	/**
+	 * Former Pakistan city list (replaced by UAE cities).
+	 *
+	 * @return list<string>
+	 */
+	function epc_acc_legacy_pk_cities(): array
+	{
+		return array(
+			'Karachi',
+			'Lahore',
+			'Okara',
+			'Islamabad',
+			'Sialkot',
+			'Mirpur Khas',
+			'Rawalpindi',
+			'Peshawar',
+			'Faisalabad',
+			'Gujranwala',
+			'Multan',
+			'Quetta',
+			'Hyderabad',
+			'Bahawalpur',
+		);
+	}
+}
+
+if (!function_exists('epc_acc_migrate_uae_locale')) {
+	/**
+	 * Switch accessories marketplace locale to UAE cities + AED currency.
+	 * Idempotent: safe to call on every CP page load.
+	 *
+	 * @return array{cities_active:int, cities_deactivated:int, listings_city:int, listings_currency:int, titles:int}
+	 */
+	function epc_acc_migrate_uae_locale(PDO $db): array
+	{
+		static $done = null;
+		if (is_array($done)) {
+			return $done;
+		}
+		epc_acc_ensure_schema($db);
+		$result = array(
+			'cities_active' => 0,
+			'cities_deactivated' => 0,
+			'listings_city' => 0,
+			'listings_currency' => 0,
+			'titles' => 0,
+		);
+
+		$uae = epc_acc_uae_cities();
+		$pk = epc_acc_legacy_pk_cities();
+		$cityMap = array(
+			'Karachi' => 'Dubai',
+			'Lahore' => 'Abu Dhabi',
+			'Islamabad' => 'Abu Dhabi',
+			'Rawalpindi' => 'Al Ain',
+			'Peshawar' => 'Sharjah',
+			'Faisalabad' => 'Ajman',
+			'Gujranwala' => 'Ajman',
+			'Multan' => 'Ras Al Khaimah',
+			'Quetta' => 'Fujairah',
+			'Hyderabad' => 'Sharjah',
+			'Bahawalpur' => 'Umm Al Quwain',
+			'Sialkot' => 'Ras Al Khaimah',
+			'Mirpur Khas' => 'Fujairah',
+			'Okara' => 'Al Ain',
+		);
+
+		$upsert = $db->prepare(
+			'INSERT INTO `epc_acc_terms` (`term_type`, `parent_id`, `value`, `label`, `sort_order`, `active`)
+			VALUES (\'city\', 0, ?, ?, ?, 1)
+			ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `sort_order` = VALUES(`sort_order`), `active` = 1'
+		);
+		$i = 0;
+		foreach ($uae as $city) {
+			$i++;
+			$upsert->execute(array($city, $city, $i));
+			$result['cities_active']++;
+		}
+
+		// Deactivate any city term that is not in the UAE list (covers legacy PK cities).
+		$activeCities = $db->query("SELECT `id`, `value` FROM `epc_acc_terms` WHERE `term_type` = 'city' AND `active` = 1")->fetchAll(PDO::FETCH_ASSOC);
+		$uaeLookup = array_fill_keys($uae, true);
+		$deactivate = $db->prepare('UPDATE `epc_acc_terms` SET `active` = 0 WHERE `id` = ?');
+		foreach ($activeCities as $row) {
+			$val = trim((string) ($row['value'] ?? ''));
+			if ($val !== '' && empty($uaeLookup[$val])) {
+				$deactivate->execute(array((int) $row['id']));
+				$result['cities_deactivated']++;
+			}
+		}
+		// Also deactivate known PK values even if already inactive (no-op) — ensure value match case.
+		$deactByValue = $db->prepare("UPDATE `epc_acc_terms` SET `active` = 0 WHERE `term_type` = 'city' AND `value` = ?");
+		foreach ($pk as $oldCity) {
+			$deactByValue->execute(array($oldCity));
+		}
+
+		$updCity = $db->prepare('UPDATE `epc_acc_listings` SET `city` = ?, `updated_at` = ? WHERE `city` = ?');
+		$now = time();
+		foreach ($cityMap as $from => $to) {
+			$updCity->execute(array($to, $now, $from));
+			$result['listings_city'] += $updCity->rowCount();
+		}
+		// Any remaining unknown non-UAE city → Dubai.
+		$st = $db->query('SELECT DISTINCT `city` FROM `epc_acc_listings` WHERE TRIM(`city`) <> \'\'');
+		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+			$city = trim((string) ($row['city'] ?? ''));
+			if ($city === '' || isset($uaeLookup[$city])) {
+				continue;
+			}
+			$updCity->execute(array('Dubai', $now, $city));
+			$result['listings_city'] += $updCity->rowCount();
+		}
+
+		// Swap Pakistan city names embedded in listing titles.
+		foreach ($cityMap as $from => $to) {
+			$like = '%| ' . $from . '%';
+			$sel = $db->prepare('SELECT `id`, `title` FROM `epc_acc_listings` WHERE `title` LIKE ?');
+			$sel->execute(array($like));
+			$fixTitle = $db->prepare('UPDATE `epc_acc_listings` SET `title` = ?, `updated_at` = ? WHERE `id` = ?');
+			while ($row = $sel->fetch(PDO::FETCH_ASSOC)) {
+				$title = str_replace('| ' . $from, '| ' . $to, (string) $row['title']);
+				$title = str_replace($from, $to, $title);
+				if ($title !== (string) $row['title']) {
+					$fixTitle->execute(array($title, $now, (int) $row['id']));
+					$result['titles']++;
+				}
+			}
+		}
+
+		$cur = $db->prepare("UPDATE `epc_acc_listings` SET `currency` = 'AED', `updated_at` = ? WHERE `currency` <> 'AED' OR `currency` = '' OR `currency` IS NULL");
+		$cur->execute(array($now));
+		$result['listings_currency'] = $cur->rowCount();
+
+		$done = $result;
+		return $result;
 	}
 }
 
@@ -555,7 +732,7 @@ if (!function_exists('epc_acc_add_listing')) {
 			trim((string) ($data['condition_type'] ?? 'new')),
 			(float) ($data['price'] ?? 0),
 			(float) ($data['compare_price'] ?? 0),
-			trim((string) ($data['currency'] ?? 'PKR')) ?: 'PKR',
+			trim((string) ($data['currency'] ?? 'AED')) ?: 'AED',
 			trim((string) ($data['image_url'] ?? '')),
 			trim((string) ($data['external_url'] ?? '')),
 			max(1, (int) ($data['photo_count'] ?? 1)),
@@ -617,7 +794,7 @@ if (!function_exists('epc_acc_update_listing')) {
 			trim((string) ($data['condition_type'] ?? 'new')),
 			(float) ($data['price'] ?? 0),
 			(float) ($data['compare_price'] ?? 0),
-			trim((string) ($data['currency'] ?? 'PKR')) ?: 'PKR',
+			trim((string) ($data['currency'] ?? 'AED')) ?: 'AED',
 			trim((string) ($data['image_url'] ?? '')),
 			trim((string) ($data['external_url'] ?? '')),
 			max(1, (int) ($data['photo_count'] ?? 1)),

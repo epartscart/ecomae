@@ -15,6 +15,12 @@ $backend = isset($DP_Config->backend_dir) ? $DP_Config->backend_dir : 'cp';
 $baseUrl = '/' . $backend . '/shop/accessories';
 
 epc_acc_ensure_schema($db_link);
+// UAE cities + AED currency (idempotent; replaces legacy Pakistan city terms).
+try {
+	epc_acc_migrate_uae_locale($db_link);
+} catch (Exception $e) {
+	// Best-effort — page still usable if migrate fails.
+}
 // Seed filter terms once when empty (make/city/year/condition). Safe to call repeatedly.
 try {
 	$termCount = (int) $db_link->query("SELECT COUNT(*) FROM `epc_acc_terms`")->fetchColumn();
@@ -70,7 +76,7 @@ function epc_acc_cp_payload_from_post(array $tree)
 		'condition_type' => trim((string) ($_POST['condition_type'] ?? 'new')) ?: 'new',
 		'price' => (float) ($_POST['price'] ?? 0),
 		'compare_price' => (float) ($_POST['compare_price'] ?? 0),
-		'currency' => trim((string) ($_POST['currency'] ?? 'PKR')) ?: 'PKR',
+		'currency' => trim((string) ($_POST['currency'] ?? 'AED')) ?: 'AED',
 		'image_url' => trim((string) ($_POST['image_url'] ?? '')),
 		'external_url' => trim((string) ($_POST['external_url'] ?? '')),
 		'photo_count' => max(1, (int) ($_POST['photo_count'] ?? 1)),
@@ -225,7 +231,7 @@ $showTaxonomy = (!$showForm && $cpTab === 'taxonomy');
 		'condition_type' => 'new',
 		'price' => '',
 		'compare_price' => '',
-		'currency' => 'PKR',
+		'currency' => 'AED',
 		'image_url' => '',
 		'external_url' => '',
 		'photo_count' => 1,
@@ -282,7 +288,7 @@ if ($showForm) {
 						</div>
 						<div class="full">
 							<label>Title *</label>
-							<input class="form-control" name="title" required maxlength="255" value="<?php echo htmlspecialchars((string) $listing['title'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Car Brake Pads for Toyota Corolla - 2018 | Karachi" />
+							<input class="form-control" name="title" required maxlength="255" value="<?php echo htmlspecialchars((string) $listing['title'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Car Brake Pads for Toyota Corolla - 2018 | Dubai" />
 						</div>
 						<div class="full">
 							<label>Description</label>
@@ -359,16 +365,18 @@ if ($showForm) {
 							</select>
 						</div>
 						<div>
-							<label>Price</label>
+							<label>Price (AED)</label>
 							<input class="form-control" type="number" step="1" min="0" name="price" value="<?php echo htmlspecialchars((string) ($listing['price'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" />
 						</div>
 						<div>
-							<label>Compare price</label>
+							<label>Compare price (AED)</label>
 							<input class="form-control" type="number" step="1" min="0" name="compare_price" value="<?php echo htmlspecialchars((string) ($listing['compare_price'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" />
 						</div>
 						<div>
 							<label>Currency</label>
-							<input class="form-control" name="currency" value="<?php echo htmlspecialchars((string) ($listing['currency'] ?? 'PKR'), ENT_QUOTES, 'UTF-8'); ?>" />
+							<select class="form-control" name="currency">
+								<option value="AED" <?php echo (($listing['currency'] ?? 'AED') === 'AED') ? 'selected' : ''; ?>>AED</option>
+							</select>
 						</div>
 						<div>
 							<label>Stock qty</label>
@@ -514,7 +522,7 @@ if ($showForm) {
 							<th>Category</th>
 							<th>Vehicle</th>
 							<th>City</th>
-							<th>Price</th>
+							<th>Price (AED)</th>
 							<th>Status</th>
 							<th>Updated</th>
 							<th style="min-width:220px;">Actions</th>
@@ -539,7 +547,7 @@ if ($showForm) {
 							<td><?php echo htmlspecialchars((string) ($row['category_label'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
 							<td class="muted"><?php echo htmlspecialchars(trim(($row['make'] ?? '') . ' ' . ($row['model'] ?? '') . ' ' . ($row['year'] ?? '')), ENT_QUOTES, 'UTF-8'); ?></td>
 							<td><?php echo htmlspecialchars((string) ($row['city'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
-							<td><?php echo htmlspecialchars((string) ($row['currency'] ?? 'PKR'), ENT_QUOTES, 'UTF-8'); ?> <?php echo number_format((float) $row['price'], 0); ?></td>
+							<td>AED <?php echo number_format((float) $row['price'], 0); ?></td>
 							<td><span class="badge <?php echo $badge; ?>"><?php echo htmlspecialchars($st, ENT_QUOTES, 'UTF-8'); ?></span></td>
 							<td class="muted"><?php echo !empty($row['updated_at']) ? date('Y-m-d H:i', (int) $row['updated_at']) : ''; ?></td>
 							<td>
