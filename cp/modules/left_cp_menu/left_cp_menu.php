@@ -10,10 +10,11 @@ defined('_ASTEXE_') or die('No access');
 */
 
 // Top mega-menu is primary — skip left-rail build (ACL + DOM) for speed.
+// Do NOT `return` here: module PHP is eval()'d inside the CP template
+// (dp_core.php); a return aborts the whole shell (truncated HTML, no #wrapper).
 if (!empty($GLOBALS['epc_cp_topnav_only'])) {
 	echo '<!-- epc: left_cp_menu skipped (topnav-only) -->';
-	return;
-}
+} else {
 
 // Catalogue tree is expensive — only load on catalogue/stock CP pages (not every /cp request).
 require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/modules/left_cp_menu/catalogue_menu_helper.php");
@@ -297,3 +298,6 @@ if (!$epcIsSuperHost && count($advancedToShow) > 0) {
 	});
 })();
 </script>
+<?php
+} // !epc_cp_topnav_only — eval-safe (no return)
+?>
