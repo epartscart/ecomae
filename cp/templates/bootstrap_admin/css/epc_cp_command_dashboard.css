@@ -233,17 +233,132 @@
 	overflow: hidden;
 	animation: cpdRise 0.5s ease both;
 }
-.cp-dash-port > h4 {
-	margin: 0;
-	padding: 12px 14px;
-	font-size: 13px;
-	font-weight: 700;
-	color: #fff;
-	background: linear-gradient(90deg, #dc2626 0%, #ef4444 55%, #f87171 100%);
-	border-bottom: 2px solid #fecaca;
+/* Beat .epc-cp h4 / panel-body h4 (dark ink) so red bar titles stay white + readable */
+body.epc-cp .content .panel-body .cp-dash .cp-dash-port > h4,
+body.epc-cp .cp-dash .cp-dash-port > h4,
+body.epc-cp-shell .content .panel-body .cp-dash .cp-dash-port > h4,
+body.epc-cp-shell .cp-dash .cp-dash-port > h4,
+.cp-dash .cp-dash-port > h4 {
+	margin: 0 !important;
+	padding: 12px 14px !important;
+	font-size: 13px !important;
+	font-weight: 800 !important;
+	letter-spacing: 0.02em !important;
+	line-height: 1.3 !important;
+	color: #ffffff !important;
+	background: linear-gradient(90deg, #b91c1c 0%, #dc2626 45%, #ef4444 100%) !important;
+	border-bottom: 1px solid #991b1b !important;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+	-webkit-font-smoothing: antialiased;
 }
-.cp-dash-port > h4 .fa { margin-right: 8px; color: #fff; }
+body.epc-cp .content .panel-body .cp-dash .cp-dash-port > h4 .fa,
+body.epc-cp .cp-dash .cp-dash-port > h4 .fa,
+body.epc-cp-shell .cp-dash .cp-dash-port > h4 .fa,
+.cp-dash .cp-dash-port > h4 .fa {
+	margin-right: 8px !important;
+	color: #ffffff !important;
+	opacity: 1 !important;
+}
 .cp-dash-port > .bd { padding: 14px; }
+
+/* Nested insight column titles stay dark on white (not red bars) */
+body.epc-cp .cp-dash .cp-dash-port .epc-insights__col > h4,
+.cp-dash .cp-dash-port .epc-insights__col > h4 {
+	color: #0f172a !important;
+	background: transparent !important;
+	text-shadow: none !important;
+	padding: 0 0 8px !important;
+	border: 0 !important;
+	margin: 0 0 8px !important;
+	font-weight: 800 !important;
+}
+
+/* Quick actions heading (eds) — keep dark text on light strip */
+body.epc-cp .cp-dash .eds-head h4,
+body.epc-cp-shell .cp-dash .eds-head h4,
+.cp-dash .eds-head h4 {
+	color: #0a0a0a !important;
+	background: transparent !important;
+	text-shadow: none !important;
+	padding: 0 !important;
+	border: 0 !important;
+}
+body.epc-cp .cp-dash .eds-head h4 .fa,
+.cp-dash .eds-head h4 .fa {
+	color: #dc2626 !important;
+}
+
+/* KPI table — clear headers & values */
+.cp-dash .cp-dash-kpi-tbl thead th {
+	color: #7f1d1d !important;
+	background: #fef2f2 !important;
+	font-weight: 800 !important;
+}
+.cp-dash .cp-dash-kpi-tbl tbody td {
+	color: #1e293b !important;
+}
+.cp-dash .cp-dash-kpi-tbl tbody td:first-child {
+	color: #0f172a !important;
+	font-weight: 600 !important;
+}
+
+/* Reminder / focus labels */
+.cp-dash .cp-dash-rem a {
+	color: #1e293b !important;
+}
+.cp-dash .cp-dash-fin .l {
+	color: #57534e !important;
+}
+.cp-dash .cp-dash-fin .v {
+	color: #7f1d1d !important;
+}
+.cp-dash .cp-dash-chip {
+	color: #7f1d1d !important;
+}
+.cp-dash .cp-dash-chip--dark {
+	color: #ffffff !important;
+}
+.cp-dash .cp-dash-more > summary {
+	color: #7f1d1d !important;
+}
+.cp-dash .cp-dash-more > summary .hint {
+	color: #78716c !important;
+}
+.cp-dash .cp-dash-qa {
+	color: #7f1d1d !important;
+}
+.cp-dash .cp-dash-qa .qa-lb {
+	color: #7f1d1d !important;
+}
+.cp-dash .cp-dash-chg.up {
+	color: #15803d !important;
+}
+.cp-dash .cp-dash-chg.down {
+	color: #dc2626 !important;
+}
+.cp-dash .cp-dash-chg.flat {
+	color: #78716c !important;
+}
+.cp-dash .cp-dash-metric__label {
+	color: #78716c !important;
+}
+.cp-dash .cp-dash-metric__val {
+	color: #0a0a0a !important;
+}
+.cp-dash .cp-dash-metric__hint {
+	color: #78716c !important;
+}
+.cp-dash .cp-dash-kicker,
+.cp-dash .cp-dash-title,
+.cp-dash .cp-dash-sub {
+	opacity: 1 !important;
+}
+.cp-dash .cp-dash-title {
+	color: #7f1d1d !important;
+}
+.cp-dash .cp-dash-sub {
+	color: #57534e !important;
+}
 
 .cp-dash-qa-grid {
 	display: grid;
