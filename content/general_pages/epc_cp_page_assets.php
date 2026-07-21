@@ -252,6 +252,18 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/epc_orders_supplier_fulfillment.js?v=' . rawurlencode($ver . 'omsPower1'),
 			),
 		),
+		'shop/finance/account_operations' => array(
+			'css' => array(
+				'/lib/datetimepicker/jquery.datetimepicker.css',
+				'/' . $backend . '/content/users/statistics/assets/modal.css',
+				'/' . $backend . '/content/shop/finance/epc_account_operations.css?v=' . rawurlencode($ver . 'aoFix2'),
+			),
+			'js' => array(
+				'/lib/datetimepicker/jquery.datetimepicker.js',
+				'/' . $backend . '/content/users/statistics/assets/main.js',
+				'/' . $backend . '/content/shop/finance/account_operations_cp.js?v=' . rawurlencode($ver . 'aoFix2'),
+			),
+		),
 		'shop/orders/statuses' => array(
 			'css' => array(
 				'/content/general_pages/epc_statuses_cp_css.php?v=' . rawurlencode($ver),

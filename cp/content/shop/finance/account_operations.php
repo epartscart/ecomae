@@ -116,567 +116,145 @@ else//Действий нет - выводим страницу
 	}
 	?>
 
-    <link rel="stylesheet" href="/<?php echo $DP_Config->backend_dir; ?>/content/users/statistics/assets/modal.css"><!--//Статистика-->
-	<div class="col-lg-12">
+	<?php
+	$add_operation_arg = '';
+	if ((int) $user_id > 0) {
+		$add_operation_arg = '?user_id='.(int) $user_id;
+	}
+	$epc_ao_cfg = array(
+		'lang' => isset($multilang_params['lang']) ? (string) $multilang_params['lang'] : 'en',
+		'pageUrl' => '/'.$DP_Config->backend_dir.'/shop/finance/account_operations',
+		'autocompleteUrl' => '/'.$DP_Config->backend_dir.'/content/users/ajax_get_users_autocomplete.php',
+		'csrf' => isset($user_session['csrf_guard_key']) ? (string) $user_session['csrf_guard_key'] : '',
+		'wholesaler' => isset($DP_Config->wholesaler),
+		'userId' => (string) $user_id,
+		'userLabel' => (string) $user_id_show,
+		'labels' => array(
+			'selected' => translate_str_by_id(3247),
+			'modalError' => translate_str_by_id(3541),
+		),
+	);
+	?>
+	<textarea id="epc-ao-config" hidden aria-hidden="true"><?php echo htmlspecialchars(json_encode($epc_ao_cfg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8'); ?></textarea>
+
+	<div class="col-lg-12 epc-ao">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
 				<?php echo translate_str_by_id(2113); ?>
 			</div>
-			<div class="panel-body">
-			
-
+			<div class="panel-body epc-ao-toolbar">
 				<?php
-				$add_operation_arg = "";
-				if( $user_id > 0 )
-				{
-					$add_operation_arg = "?user_id=".$user_id;
-				}
-				
-				//Добавить поступление/списание
-				print_backend_button( array("background_color"=>"#63ce1c", "fontawesome_class"=>"fas fa-plus", "caption"=>translate_str_by_id(3234), "url"=>"/".$DP_Config->backend_dir."/shop/finance/account_operations/create".$add_operation_arg) );
+				print_backend_button(array('background_color' => '#63ce1c', 'fontawesome_class' => 'fas fa-plus', 'caption' => translate_str_by_id(3234), 'url' => '/'.$DP_Config->backend_dir.'/shop/finance/account_operations/create'.$add_operation_arg));
+				print_backend_button(array('background_color' => '#3498db', 'fontawesome_class' => 'fas fa-align-justify', 'caption' => translate_str_by_id(3235), 'url' => '/'.$DP_Config->backend_dir.'/shop/finance/operations_editor'));
 				?>
-				
-				
-				
-				<?php
-				//Редактор видов операций
-				print_backend_button( array("background_color"=>"#3498db", "fontawesome_class"=>"fas fa-align-justify", "caption"=>translate_str_by_id(3235), "url"=>"/".$DP_Config->backend_dir."/shop/finance/operations_editor") );
-				?>
-				
-				
-				
-				
 				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>">
 					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
 					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
 				</a>
-				
 			</div>
 		</div>
 	</div>
-	
-	
-    
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
+
+	<div class="col-lg-12 epc-ao">
+		<div class="hpanel epc-ao-filter">
 			<div class="panel-heading hbuilt">
 				<?php echo translate_str_by_id(3236); ?>
 			</div>
-			<div class="panel-body filter_panel">			
-				
-				<div class="form-group col-lg-4">
-					<label for="" class="col-lg-4 control-label">
-						<?php echo translate_str_by_id(3237); ?>
-					</label>
-					<div class="col-lg-8">
-						<div style="position:relative;height:34px;">
-							<input style="position:absolute; z-index:2; opacity:0;" type="text"  id="time_from" value="<?php echo $time_from; ?>" class="form-control" />
-							<input style="position:absolute; z-index:1; <?=(!empty($time_from))?'background:#b9fcab;':'';?>" type="text" id="time_from_show" class="form-control" />
-							<script>
-							//Инициализируем datetimepicker
-							jQuery("#time_from").datetimepicker({
-								lang:"<?php echo $multilang_params['lang']; ?>",
-								closeOnDateSelect:true,
-								closeOnTimeSelect:false,
-								dayOfWeekStart:1,
-								format:'unixtime',
-								onClose:function(current_time, input)//При закрытии datetimepicker - отображаем в поле индикации
-								{
-									var time_string = "";
-									var date_ob = new Date(current_time);
-									time_string += date_ob.getDate()+".";
-									time_string += (date_ob.getMonth() + 1)+".";
-									time_string += date_ob.getFullYear()+" ";
-									time_string += date_ob.getHours()+":"+date_ob.getMinutes();
-									document.getElementById("time_from_show").value = time_string;//Показываем время в понятном виде
-								}
-								<?php
-								if($time_from != "")
-								{
-									?>
-									,
-									onGenerate:function(current_time, input)//При закрытии datetimepicker - отображаем в поле индикации
-									{
-										var time_string = "";
-										var date_ob = new Date(current_time);
-										time_string += date_ob.getDate()+".";
-										time_string += (date_ob.getMonth() + 1)+".";
-										time_string += date_ob.getFullYear()+" ";
-										time_string += date_ob.getHours()+":"+date_ob.getMinutes();
-										document.getElementById("time_from_show").value = time_string;//Показываем время в понятном виде
-									}
-									<?php
-								}
-								?>
-							});
-							</script>
+			<div class="panel-body">
+				<p class="epc-ao-hint">Set date range, customer, or operation type, then apply the filter. Dates use the calendar picker.</p>
+				<div class="epc-ao-grid">
+					<div class="epc-ao-field">
+						<label for="time_from_show"><?php echo translate_str_by_id(3237); ?></label>
+						<div class="epc-ao-date">
+							<input type="text" id="time_from_show" class="form-control" placeholder="dd.mm.yyyy hh:mm" autocomplete="off" />
+							<input type="hidden" id="time_from" value="<?php echo htmlspecialchars((string) $time_from, ENT_QUOTES, 'UTF-8'); ?>" />
+							<span class="epc-ao-date__icon"><i class="fa fa-calendar"></i></span>
 						</div>
 					</div>
-				</div>
-				
-				
-				
-				<div class="form-group col-lg-4">
-					<label for="" class="col-lg-4 control-label">
-						<?php echo translate_str_by_id(3238); ?>
-					</label>
-					<div class="col-lg-8">
-						<div style="position:relative;height:34px;">
-							<input style="position:absolute; z-index:2; opacity:0;" type="text"  id="time_to" value="<?php echo $time_to; ?>" class="form-control" />
-							<input style="position:absolute; z-index:1; <?=(!empty($time_to))?'background:#b9fcab;':'';?>" type="text" id="time_to_show" class="form-control" />
-							<script>
-							//Инициализируем datetimepicker
-							jQuery("#time_to").datetimepicker({
-								lang:"<?php echo $multilang_params['lang']; ?>",
-								closeOnDateSelect:true,
-								closeOnTimeSelect:false,
-								dayOfWeekStart:1,
-								format:'unixtime',
-								onClose:function(current_time, input)//При закрытии datetimepicker - отображаем в поле индикации
-								{
-									var time_string = "";
-									var date_ob = new Date(current_time);
-									time_string += date_ob.getDate()+".";
-									time_string += (date_ob.getMonth() + 1)+".";
-									time_string += date_ob.getFullYear()+" ";
-									time_string += date_ob.getHours()+":"+date_ob.getMinutes();
-									document.getElementById("time_to_show").value = time_string;//Показываем время в понятном виде
-								}
-								<?php
-								if($time_to != "")
-								{
-									?>
-									,
-									onGenerate:function(current_time, input)//При закрытии datetimepicker - отображаем в поле индикации
-									{
-										var time_string = "";
-										var date_ob = new Date(current_time);
-										time_string += date_ob.getDate()+".";
-										time_string += (date_ob.getMonth() + 1)+".";
-										time_string += date_ob.getFullYear()+" ";
-										time_string += date_ob.getHours()+":"+date_ob.getMinutes();
-										document.getElementById("time_to_show").value = time_string;//Показываем время в понятном виде
-									}
-									<?php
-								}
-								?>
-							});
-							</script>
+					<div class="epc-ao-field">
+						<label for="time_to_show"><?php echo translate_str_by_id(3238); ?></label>
+						<div class="epc-ao-date">
+							<input type="text" id="time_to_show" class="form-control" placeholder="dd.mm.yyyy hh:mm" autocomplete="off" />
+							<input type="hidden" id="time_to" value="<?php echo htmlspecialchars((string) $time_to, ENT_QUOTES, 'UTF-8'); ?>" />
+							<span class="epc-ao-date__icon"><i class="fa fa-calendar"></i></span>
 						</div>
 					</div>
-				</div>
-				
-				<div class="row"></div>
-	
-				<div class="form-group col-lg-4">
-					<label for="" class="col-lg-4 control-label">
-						<?php echo translate_str_by_id(3239); ?>
-					</label>
-					<div class="col-lg-8">
-						<select <?=($income >= 0)?'style="background:#b9fcab;"':'';?> id="income" class="form-control">
+					<div class="epc-ao-field">
+						<label for="income"><?php echo translate_str_by_id(3239); ?></label>
+						<select id="income" class="form-control">
 							<option value="-1"><?php echo translate_str_by_id(2094); ?></option>
-							<option value="1"><?php echo translate_str_by_id(3240); ?></option>
-							<option value="0"><?php echo translate_str_by_id(3241); ?></option>
-						<select>
-						<script>
-							document.getElementById("income").value = <?php echo $income; ?>;
-						</script>
+							<option value="1" <?php echo ((string) $income === '1') ? 'selected' : ''; ?>><?php echo translate_str_by_id(3240); ?></option>
+							<option value="0" <?php echo ((string) $income === '0') ? 'selected' : ''; ?>><?php echo translate_str_by_id(3241); ?></option>
+						</select>
 					</div>
-				</div>
-				
-
-				
-				<div class="form-group col-lg-4">
-					<label for="" class="col-lg-4 control-label">
-						<?php echo translate_str_by_id(3242); ?>
-					</label>
-					<div class="col-lg-8">
-						<select <?=($operation_code >= 0)?'style="background:#b9fcab;"':'';?> id="operation_code" class="form-control">
+					<div class="epc-ao-field">
+						<label for="operation_code"><?php echo translate_str_by_id(3242); ?></label>
+						<select id="operation_code" class="form-control">
 							<option value="-1"><?php echo translate_str_by_id(2094); ?></option>
 							<?php
-							$accounting_codes_query = $db_link->prepare("SELECT * FROM `shop_accounting_codes` ORDER BY `id`;");
+							$accounting_codes_query = $db_link->prepare('SELECT * FROM `shop_accounting_codes` ORDER BY `id`;');
 							$accounting_codes_query->execute();
-							while($accounting_code = $accounting_codes_query->fetch() )
-							{
+							while ($accounting_code = $accounting_codes_query->fetch()) {
 								$accounting_code['name'] = translate_str_by_id($accounting_code['name']);
-								
-								$selected = "";
-								if($operation_code == $accounting_code["id"])
-								{
-									$selected = "selected=\"selected\"";
-								}
-								
-								$direction = translate_str_by_id(3240);
-								if( $accounting_code['income']==0 )
-								{
-									$direction = translate_str_by_id(3241);
-								}
+								$selected = ((string) $operation_code === (string) $accounting_code['id']) ? 'selected="selected"' : '';
+								$direction = ((int) $accounting_code['income'] === 0) ? translate_str_by_id(3241) : translate_str_by_id(3240);
 								?>
-								<option value="<?php echo $accounting_code["id"]; ?>" <?php echo $selected; ?>><?php echo translate_str_by_id(2533)." ".$accounting_code["id"]." ".$accounting_code["name"]." (".$direction.")"; ?></option>
+								<option value="<?php echo (int) $accounting_code['id']; ?>" <?php echo $selected; ?>><?php echo htmlspecialchars(translate_str_by_id(2533).' '.$accounting_code['id'].' '.$accounting_code['name'].' ('.$direction.')', ENT_QUOTES, 'UTF-8'); ?></option>
 								<?php
 							}
 							?>
 						</select>
 					</div>
-				</div>
-				
-				
-				
-				<div class="form-group col-lg-4">
-					<label for="" class="col-lg-4 control-label">
-						<?php echo translate_str_by_id(3243); ?>
-					</label>
-					<div class="col-lg-8">
-						<input <?=(!empty($order_id))?'style="background:#b9fcab;"':'';?> type="text" id="order_id" value="<?php echo $order_id; ?>" class="form-control" placeholder="<?php echo translate_str_by_id(3244); ?>" />
+					<div class="epc-ao-field">
+						<label for="order_id"><?php echo translate_str_by_id(3243); ?></label>
+						<input type="text" id="order_id" value="<?php echo htmlspecialchars((string) $order_id, ENT_QUOTES, 'UTF-8'); ?>" class="form-control" placeholder="<?php echo htmlspecialchars(translate_str_by_id(3244), ENT_QUOTES, 'UTF-8'); ?>" />
 					</div>
-				</div>
-
-				<div class="row"></div>
-				
-				<div class="form-group col-lg-4">
-					<label for="" class="col-lg-4 control-label">
-						<?php echo translate_str_by_id(3245); ?>
-					</label>
-					<div class="col-lg-8">
-						<input type="text" id="user_id_search" value="" class="form-control" placeholder="<?php echo translate_str_by_id(3246); ?>" />
-						<input type="hidden" id="user_id" value="<?php echo $user_id; ?>" />
-						<div style="" id="user_id_show" class=""></div>
-					</div>
-				</div>
-				<script>
-				//Выбор покупателя
-				/*
-				- пользователь начинает вводить данные покупателя (ФИО, ID, контакты и т.д.)
-				- под полем ввода начинают предлагаться варианты
-				- пользователь должен выбрать один из вариантов
-				- после этого в поле отображаются данные покупатеоя, а в hidden-поле записывается его ID
-
-				- при инициализации, id покупателя записывается в hidden-поле, а данные покупателя в видимое поле
-				*/
-				// ------------------------------------------------------------------------
-				//Поле ввода города привязки - обработка заполнения
-				jQuery("#user_id_search").autocomplete({
-					source: function(request, response)
-					{
-						//Нужно ввести достаточное количество знаков для запуска autocomplete
-						if( jQuery("#user_id_search").val().length < 2 )
-						{
-							//return;
-						}
-						
-						jQuery.ajax({
-							type: "POST",
-							async: true, //Запрос асинхронный
-							url: "/<?php echo $DP_Config->backend_dir; ?>/content/users/ajax_get_users_autocomplete.php",
-							dataType: "text",//Тип возвращаемого значения
-							data: "input_str="+jQuery("#user_id_search").val()+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
-							success: function(answer)
-							{
-								//console.log(answer);
-								
-								answer_ob = JSON.parse(answer);
-
-								if( answer_ob["status"] == undefined )
-								{
-									//console.log("Ошибка получения подходящих вариантов");
-									//console.log(answer);
-								}
-								else
-								{
-									if( answer_ob["status"] == false )
-									{
-										//console.log( "Ошибка! " + answer_ob["message"] );
-									}
-									else//Возможные варианты успешно получены
-									{
-										if( answer_ob.vars.length == 0 )
-										{
-											//console.log("Нет подходящих вариантов");
-											return;
-										}
-										
-										response(jQuery.map( answer_ob.vars, function( item ) {
-											return {
-												label: item.user_info,
-												object: item,
-												value: item.user_info
-											}
-										}));
-									}
-								}
-							},
-							error: function(msg)
-							{
-								//console.log("Ошибка получения ответа от сервера");
-							}
-						});
-					},
-					//Обработка выбора пользователя:
-					select: function (event, ui) 
-					{
-						var user_var = ui.item.object;
-						
-						handle_user_selected(user_var.user_id+'', user_var.user_info);
-						
-						return false;
-					}
-				});
-				// ------------------------------------------------------------------------
-				//Обработка текущего выбора пользователя
-				function handle_user_selected(user_id, user_info)
-				{
-					//Поисковую строку очищаем
-					jQuery("#user_id_search").val('');
-					
-					//Здесь указываем ID пользователя в hidden-поле
-					jQuery("#user_id").val(user_id);
-					
-					//Здесь указываем индикацию текущего выбора
-					if( user_id == '' )
-					{
-						document.getElementById('user_id_show').innerHTML = '';
-						
-						document.getElementById("user_id_search").setAttribute('class', 'form-control');
-						document.getElementById("user_id_show").setAttribute('style', '');
-						//$("#user_id_show").addClass('hidden');
-					}
-					else
-					{
-						document.getElementById('user_id_show').innerHTML = '<?php echo translate_str_by_id(3247); ?>: '+user_info+' <i class="far fa-window-close" style="color:#F00;cursor:pointer;" onclick="handle_user_selected(\'\', \'\');"></i>';
-						
-						document.getElementById("user_id_search").setAttribute('class', 'hidden');
-						document.getElementById("user_id_show").setAttribute('style', 'background: #b9fcab; height: 34px; padding: 6px 12px; font-size: 14px; line-height: 1.42857143; border: 1px solid #e4e5e7; border-radius: 4px; white-space: nowrap; position: absolute;');
-						//$("#user_id_show").removeClass('hidden');
-					}
-					
-				}
-				// ------------------------------------------------------------------------
-				handle_user_selected('<?php echo $user_id; ?>', '<?php echo $user_id_show; ?>');
-				</script>
-				
-				
-				
-				<?php
-				if( isset( $DP_Config->wholesaler ) )
-				{
-					?>
-					<div class="form-group col-lg-6">
-						<label for="" class="col-lg-2 control-label">
-							<?php echo translate_str_by_id(3248); ?>
-						</label>
-						<div class="col-lg-10">
-							<select id="office_id" class="form-control">
-								<option value="-1"><?php echo translate_str_by_id(2094); ?></option>
-								<?php
-								$offices_query = $db_link->prepare("SELECT * FROM `shop_offices` WHERE `users` LIKE ?;");
-								$offices_query->execute( array('%"'.DP_User::getAdminId().'"%') );
-								while( $office = $offices_query->fetch() )
-								{
-									?>
-									<option value="<?php echo $office['id']; ?>"><?php echo $office['caption'].', '.$office['city'].', '.$office['address'].'. Тел. '.$office['phone']; ?></option>
-									<?php
-								}
-								?>
-							</select>
-							<script>
-							document.getElementById('office_id').value = '<?php echo $office_id; ?>';
-							</script>
+					<div class="epc-ao-field">
+						<label for="user_id_search"><?php echo translate_str_by_id(3245); ?></label>
+						<div class="epc-ao-customer">
+							<input type="text" id="user_id_search" value="" class="form-control" placeholder="<?php echo htmlspecialchars(translate_str_by_id(3246), ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off" />
+							<input type="hidden" id="user_id" value="<?php echo htmlspecialchars((string) $user_id, ENT_QUOTES, 'UTF-8'); ?>" />
+							<div id="user_id_show" class="epc-ao-customer-chip" role="status">
+								<span id="user_id_show_text" class="epc-ao-customer-chip__text"></span>
+								<button type="button" id="user_id_clear" class="epc-ao-customer-chip__clear" title="Clear" aria-label="Clear">&times;</button>
+							</div>
 						</div>
 					</div>
-					<?php
-				}
-				?>
-				
-
+					<?php if (isset($DP_Config->wholesaler)) { ?>
+					<div class="epc-ao-field">
+						<label for="office_id"><?php echo translate_str_by_id(3248); ?></label>
+						<select id="office_id" class="form-control">
+							<option value="-1"><?php echo translate_str_by_id(2094); ?></option>
+							<?php
+							$offices_query = $db_link->prepare('SELECT * FROM `shop_offices` WHERE `users` LIKE ?;');
+							$offices_query->execute(array('%"'.DP_User::getAdminId().'"%'));
+							while ($office = $offices_query->fetch()) {
+								$sel = ((string) $office_id === (string) $office['id']) ? 'selected="selected"' : '';
+								?>
+								<option value="<?php echo (int) $office['id']; ?>" <?php echo $sel; ?>><?php echo htmlspecialchars($office['caption'].', '.$office['city'].', '.$office['address'].'. '.$office['phone'], ENT_QUOTES, 'UTF-8'); ?></option>
+								<?php
+							}
+							?>
+						</select>
+					</div>
+					<?php } ?>
+				</div>
 			</div>
-			<script>
-			$(".filter_panel .form-control").keyup(function(event){
-				if(event.keyCode == 13){
-					filterOperations();
-				}
-			});
-			</script>
 			<div class="panel-footer">
-				<button class="btn btn-success" style="margin-top:3px;" type="button" onclick="filterOperations();"><i class="fa fa-filter"></i> <?php echo translate_str_by_id(2232); ?></button>
-				<button class="btn btn-primary" style="margin-top:3px;" type="button" onclick="unsetFilterOperations();"><i class="fa fa-square"></i> <?php echo translate_str_by_id(2233); ?></button>
+				<div class="epc-ao-actions">
+					<button class="btn btn-success" type="button" onclick="filterOperations();"><i class="fa fa-filter"></i> <?php echo translate_str_by_id(2232); ?></button>
+					<button class="btn btn-default" type="button" onclick="unsetFilterOperations();"><i class="fa fa-times"></i> <?php echo translate_str_by_id(2233); ?></button>
+				</div>
 			</div>
 		</div>
 	</div>
 
-
-    <!--//Статистика-->
-    <script src="/<?php echo $DP_Config->backend_dir; ?>/content/users/statistics/assets/main.js"></script>
-    <script>
-        function closeCustomerModalInfo(user_id) {
-            if (window.event.srcElement.id == 'customer-modal-info-' + user_id || window.event.srcElement.id == 'close-customer-modal-info-' + user_id)
-                document.querySelector('#customer-modal-info-' + user_id).classList.remove('customer-modal-info-wrapper-show');
-        }
-
-        function showCustomerModalInfo(customer_id)
-        {
-            jQuery.ajax({
-                type: "POST",
-                async: false, //Запрос синхронный
-                url: "/<?php echo $DP_Config->backend_dir; ?>/content/users/statistics/frontAjax/ajax_loadUserModal.php",
-                dataType: "json",//Тип возвращаемого значения
-                data: "customer_id="+customer_id+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
-                success: function(answer){
-                    if(answer.status == true)
-                    {
-                        document.querySelector('#customer-modal-info-' + customer_id).classList.add('customer-modal-info-wrapper-show');
-                        document.querySelector('#customer-modal-info-' + customer_id).innerHTML = answer.modal;
-                    }
-                    else
-                    {
-                        alert("<?php echo translate_str_by_id(3541); ?>");
-                    }
-                }
-            });
-        }
-    </script>
-    <!--END //Статистика-->
-    
-    
-    <script>
-
-    // ------------------------------------------------------------------------------------------------
-    //Устновка cookie в соответствии с фильтром
-    function filterOperations()
-    {
-        var account_operations_filter = new Object;
-        
-        account_operations_filter.time_from = document.getElementById("time_from").value;
-        account_operations_filter.time_to = document.getElementById("time_to").value;
-        account_operations_filter.income = document.getElementById("income").value;
-        account_operations_filter.operation_code = document.getElementById("operation_code").value;
-        account_operations_filter.user_id = document.getElementById("user_id").value;
-        account_operations_filter.order_id = document.getElementById("order_id").value;
-		
-		<?php
-		if( isset( $DP_Config->wholesaler ) )
-		{
-			?>
-			account_operations_filter.office_id = document.getElementById("office_id").value;
-			<?php
-		}
-		?>
-		
-        
-        //Устанавливаем cookie (на полгода)
-        var date = new Date(new Date().getTime() + 15552000 * 1000);
-        document.cookie = "account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
-        
-        //Обновляем страницу
-        location='/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-    }
-    // ------------------------------------------------------------------------------------------------
-    //Снять все фильтры
-    function unsetFilterOperations()
-    {
-        var account_operations_filter = new Object;
-
-        account_operations_filter.time_from = "";
-        account_operations_filter.time_to = "";
-        account_operations_filter.income = -1;
-        account_operations_filter.operation_code = -1;
-        account_operations_filter.user_id = "";
-        account_operations_filter.order_id = "";
-        account_operations_filter.office_id = -1;
-        
-        //Устанавливаем cookie (на полгода)
-        var date = new Date(new Date().getTime() - 15552000 * 1000);
-        document.cookie = "account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
-        
-        //Обновляем страницу
-        location='/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-    }
-    // ------------------------------------------------------------------------------------------------
-    </script>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    <script>
-    // ------------------------------------------------------------------------------------------------
-    //Установка куки сортировки
-    function sortOperationsItems(field)
-    {
-        var asc_desc = "asc";//Направление по умолчанию
-        
-        //Берем из куки текущий вариант сортировки
-        var current_sort_cookie = getCookie("account_operations_sort");
-        if(current_sort_cookie != undefined)
-        {
-            current_sort_cookie = JSON.parse(getCookie("account_operations_sort"));
-            //Если поле это же - обращаем направление
-            if(current_sort_cookie.field == field)
-            {
-                if(current_sort_cookie.asc_desc == "asc")
-                {
-                    asc_desc = "desc";
-                }
-                else
-                {
-                    asc_desc = "asc";
-                }
-            }
-        }
-        
-        
-        var account_operations_sort = new Object;
-        account_operations_sort.field = field;//Поле, по которому сортировать
-        account_operations_sort.asc_desc = asc_desc;//Направление сортировки
-        
-        //Устанавливаем cookie (на полгода)
-        var date = new Date(new Date().getTime() + 15552000 * 1000);
-        document.cookie = "account_operations_sort="+JSON.stringify(account_operations_sort)+"; path=/; expires=" + date.toUTCString();
-        
-        //Обновляем страницу
-        location='/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-    }
-    // ------------------------------------------------------------------------------------------------
-    // возвращает cookie с именем name, если есть, если нет, то undefined
-    function getCookie(name) 
-    {
-        var matches = document.cookie.match(new RegExp(
-            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-        ));
-        return matches ? decodeURIComponent(matches[1]) : undefined;
-    }
-    // ------------------------------------------------------------------------------------------------
-    //Переход на другую страницу заказа
-    function goToPage(need_page)
-    {
-        //Устанавливаем cookie (на полгода)
-        var date = new Date(new Date().getTime() + 15552000 * 1000);
-        document.cookie = "account_operations_need_page="+need_page+"; path=/; expires=" + date.toUTCString();
-        
-        //Обновляем страницу
-        location='/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-    }
-    // ------------------------------------------------------------------------------------------------
-    </script>
-	
-	
-	<div class="col-lg-12">
+	<div class="col-lg-12 epc-ao">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
 				<?php echo translate_str_by_id(3249); ?>
 			</div>
-			<div class="panel-body">
+			<div class="panel-body epc-ao-table-wrap">
 				<div class="table-responsive">
 					<table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
 						<thead>
@@ -734,7 +312,7 @@ else//Действий нет - выводим страницу
 								$sort_fields_exeptable[] = 'office_caption';
 							}
 							
-							if( array_search( $sort_field, $sort_fields_exeptable ) == false )
+							if( array_search( $sort_field, $sort_fields_exeptable, true ) === false )
 							{
 								$sort_field = "id";
 							}
