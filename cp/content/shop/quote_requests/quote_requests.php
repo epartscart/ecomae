@@ -32,6 +32,7 @@ function epc_quote_ensure_alternative_columns()
 			'alt_name' => 'VARCHAR(512) DEFAULT NULL',
 			'alt_count_need' => 'INT(11) DEFAULT NULL',
 			'alt_quoted_price' => 'DECIMAL(12,2) DEFAULT NULL',
+			'alt_storage_id' => 'INT(11) DEFAULT NULL COMMENT \'Supplier warehouse for order process\'',
 		);
 		foreach ($want as $name => $ddl) {
 			if (!in_array($name, $cols, true)) {
@@ -144,7 +145,8 @@ if (!empty($_POST['action'])) {
 				`alt_article_show` = ?,
 				`alt_name` = ?,
 				`alt_count_need` = ?,
-				`alt_quoted_price` = ?
+				`alt_quoted_price` = ?,
+				`alt_storage_id` = ?
 			 WHERE `id` = ? AND `quote_id` = ?'
 		);
 		foreach ($lines as $line_id_key => $row) {
@@ -168,6 +170,7 @@ if (!empty($_POST['action'])) {
 			$alt_name = isset($row['alt_name']) ? trim((string) $row['alt_name']) : '';
 			$alt_qty_raw = isset($row['alt_count_need']) ? trim((string) $row['alt_count_need']) : '';
 			$alt_price_raw = isset($row['alt_quoted_price']) ? str_replace(',', '.', trim((string) $row['alt_quoted_price'])) : '';
+			$alt_storage_raw = isset($row['alt_storage_id']) ? trim((string) $row['alt_storage_id']) : '';
 
 			$alt_manufacturer = null;
 			$alt_article = null;
@@ -175,6 +178,7 @@ if (!empty($_POST['action'])) {
 			$alt_name_db = null;
 			$alt_count_need = null;
 			$alt_quoted_price = null;
+			$alt_storage_id = null;
 
 			if ($offer_alt === 1) {
 				if ($alt_mfr === '' || $alt_art_raw === '') {
@@ -201,6 +205,16 @@ if (!empty($_POST['action'])) {
 					exit;
 				}
 				$alt_quoted_price = (float) $alt_price_raw;
+				$alt_storage_id = ($alt_storage_raw !== '' && is_numeric($alt_storage_raw)) ? (int) $alt_storage_raw : 0;
+				if ($alt_storage_id <= 0) {
+					$error_message = 'Alternative offer on line #'.$line_id.' needs a supplier warehouse';
+					?>
+					<script>
+					location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo (int) $quote_id; ?>&error_message=<?php echo urlencode($error_message); ?>";
+					</script>
+					<?php
+					exit;
+				}
 				// Keep main quoted_price in sync so publish / accept still work
 				$quoted_price = $alt_quoted_price;
 			} else {
@@ -218,6 +232,7 @@ if (!empty($_POST['action'])) {
 				$alt_name_db,
 				$alt_count_need,
 				$alt_quoted_price,
+				$alt_storage_id,
 				$line_id,
 				$quote_id,
 			));
@@ -264,14 +279,14 @@ if (!empty($_POST['action'])) {
 
 		$chk = $db_link->prepare(
 			'SELECT COUNT(*) FROM `shop_quote_items` WHERE `quote_id` = ? AND (
-				(`offer_alternative` = 1 AND (`alt_quoted_price` IS NULL OR `alt_quoted_price` <= 0 OR `alt_manufacturer` IS NULL OR `alt_manufacturer` = \'\' OR `alt_article` IS NULL OR `alt_article` = \'\'))
+				(`offer_alternative` = 1 AND (`alt_quoted_price` IS NULL OR `alt_quoted_price` <= 0 OR `alt_manufacturer` IS NULL OR `alt_manufacturer` = \'\' OR `alt_article` IS NULL OR `alt_article` = \'\' OR `alt_storage_id` IS NULL OR `alt_storage_id` <= 0))
 				OR
 				(`offer_alternative` = 0 AND (`quoted_price` IS NULL OR `quoted_price` <= 0))
 			)'
 		);
 		$chk->execute(array($quote_id));
 		if ((int) $chk->fetchColumn() > 0) {
-			$error_message = 'Set a positive price on every line (or complete each alternative offer: brand, article, qty, price)';
+			$error_message = 'Set a positive price on every line (or complete each alternative: part, warehouse, qty, price)';
 			?>
 			<script>
 			location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo $quote_id; ?>&error_message=<?php echo urlencode($error_message); ?>";
@@ -410,7 +425,7 @@ if ($edit_id > 0) {
 						</div>
 
 						<p class="text-muted">
-							Customer requested part A — if you stock B instead, use <strong>Amend / alternative</strong> (opens a second window)
+							Customer requested part A — if you stock B instead, use <strong>Amend / alternative</strong> (cross/OEM dropdown + supplier warehouse)
 							to set brand, article, qty, and price. The customer will see both the request and your offer.
 						</p>
 
@@ -435,13 +450,28 @@ if ($edit_id > 0) {
 								$label = trim($req_mfr.' '.$req_art.($req_name !== '' ? ' — '.$req_name : ''));
 								$lid = (int) $ln['id'];
 								$has_alt = !empty($ln['offer_alternative']);
+								$alt_storage_id = isset($ln['alt_storage_id']) ? (int) $ln['alt_storage_id'] : 0;
+								$alt_wh_label = '';
+								if ($alt_storage_id > 0) {
+									try {
+										$wh_q = $db_link->prepare('SELECT COALESCE(NULLIF(TRIM(`short_name`), \'\'), `name`) FROM `shop_storages` WHERE `id` = ? LIMIT 1');
+										$wh_q->execute(array($alt_storage_id));
+										$alt_wh_label = (string) $wh_q->fetchColumn();
+									} catch (Throwable $e) {
+										$alt_wh_label = '';
+									}
+									if ($alt_wh_label === '') {
+										$alt_wh_label = 'WH #'.$alt_storage_id;
+									}
+								}
 								$alt_summary = '';
 								if ($has_alt) {
 									$alt_summary = trim(
 										(string) $ln['alt_manufacturer'].' '.
 										(string) ($ln['alt_article_show'] !== null && $ln['alt_article_show'] !== '' ? $ln['alt_article_show'] : $ln['alt_article']).
 										' × '.(int) $ln['alt_count_need'].
-										' @ '.$ln['alt_quoted_price']
+										' @ '.$ln['alt_quoted_price'].
+										($alt_wh_label !== '' ? ' · '.$alt_wh_label : '')
 									);
 								}
 								?>
@@ -456,7 +486,7 @@ if ($edit_id > 0) {
 										<input class="form-control epc-quote-main-price" type="text" name="lines[<?php echo $lid; ?>][quoted_price]" value="<?php echo $ln['quoted_price'] !== null ? htmlspecialchars($ln['quoted_price']) : ''; ?>" <?php echo $has_alt ? 'readonly' : ''; ?> />
 									</td>
 									<td>
-										<input class="form-control" type="text" name="lines[<?php echo $lid; ?>][quoted_time_to_exe]" value="<?php echo $ln['quoted_time_to_exe'] !== null ? (int) $ln['quoted_time_to_exe'] : ''; ?>" />
+										<input class="form-control epc-quote-lead" type="text" name="lines[<?php echo $lid; ?>][quoted_time_to_exe]" value="<?php echo $ln['quoted_time_to_exe'] !== null ? (int) $ln['quoted_time_to_exe'] : ''; ?>" />
 									</td>
 									<td>
 										<input class="form-control" type="text" name="lines[<?php echo $lid; ?>][line_admin_note]" value="<?php echo htmlspecialchars((string) $ln['line_admin_note']); ?>" />
@@ -468,13 +498,18 @@ if ($edit_id > 0) {
 										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_name]" class="epc-alt-name" value="<?php echo htmlspecialchars((string) $ln['alt_name']); ?>" />
 										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_count_need]" class="epc-alt-qty" value="<?php echo $ln['alt_count_need'] !== null ? (int) $ln['alt_count_need'] : ''; ?>" />
 										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_quoted_price]" class="epc-alt-price" value="<?php echo $ln['alt_quoted_price'] !== null ? htmlspecialchars($ln['alt_quoted_price']) : ''; ?>" />
+										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_storage_id]" class="epc-alt-storage-id" value="<?php echo $alt_storage_id > 0 ? (int) $alt_storage_id : ''; ?>" />
+										<input type="hidden" class="epc-alt-storage-label" value="<?php echo htmlspecialchars($alt_wh_label); ?>" />
 										<div class="epc-alt-summary" style="margin-bottom:6px;<?php echo $has_alt ? '' : 'display:none;'; ?>">
 											<span class="label label-warning">Alternative</span>
 											<span class="epc-alt-summary-text"><?php echo htmlspecialchars($alt_summary); ?></span>
 										</div>
 										<button type="button" class="btn btn-xs btn-default epc-open-alt-modal"
 											data-line-id="<?php echo $lid; ?>"
+											data-quote-id="<?php echo (int) $edit_id; ?>"
 											data-req-label="<?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>"
+											data-req-brand="<?php echo htmlspecialchars($req_mfr, ENT_QUOTES, 'UTF-8'); ?>"
+											data-req-article="<?php echo htmlspecialchars($req_art, ENT_QUOTES, 'UTF-8'); ?>"
 											data-req-qty="<?php echo (int) $ln['count_need']; ?>">
 											<?php echo $has_alt ? 'Edit alternative' : 'Amend / alternative'; ?>
 										</button>
@@ -499,20 +534,37 @@ if ($edit_id > 0) {
 								<div class="modal-body">
 									<p class="text-muted" style="margin-bottom:12px;">
 										Customer requested: <strong id="epcAltReqLabel"></strong>
-										(qty <span id="epcAltReqQty"></span>). Enter the brand / article you can supply instead.
+										(qty <span id="epcAltReqQty"></span>). Choose a cross / OEM alternative and the supplier warehouse for ordering.
 									</p>
 									<input type="hidden" id="epcAltLineId" value="" />
+									<input type="hidden" id="epcAltQuoteId" value="<?php echo (int) $edit_id; ?>" />
+									<div id="epcAltOptionsStatus" class="text-muted" style="margin-bottom:10px;display:none;"></div>
 									<div class="form-group">
-										<label>Alternative brand</label>
-										<input type="text" class="form-control" id="epcAltBrand" placeholder="e.g. TOYOTA" />
+										<label for="epcAltPartSelect">Alternative part <span class="text-muted">(cross / article / OEM)</span></label>
+										<select class="form-control" id="epcAltPartSelect">
+											<option value="">Loading alternatives…</option>
+										</select>
 									</div>
-									<div class="form-group">
-										<label>Alternative article</label>
-										<input type="text" class="form-control" id="epcAltArticle" placeholder="e.g. 31250-05021" />
+									<div id="epcAltManualFields" style="display:none;">
+										<div class="form-group">
+											<label>Alternative brand</label>
+											<input type="text" class="form-control" id="epcAltBrand" placeholder="e.g. TOYOTA" />
+										</div>
+										<div class="form-group">
+											<label>Alternative article</label>
+											<input type="text" class="form-control" id="epcAltArticle" placeholder="e.g. 31250-05021" />
+										</div>
 									</div>
 									<div class="form-group">
 										<label>Name / description (optional)</label>
 										<input type="text" class="form-control" id="epcAltName" placeholder="Part description" />
+									</div>
+									<div class="form-group">
+										<label for="epcAltWarehouseSelect">Supplier warehouse <span class="text-muted">(for LPO / order process)</span></label>
+										<select class="form-control" id="epcAltWarehouseSelect">
+											<option value="">Select warehouse…</option>
+										</select>
+										<p class="help-block" style="margin-bottom:0;font-size:12px;">Warehouses with stock for the selected part are listed first; you can still pick any active warehouse.</p>
 									</div>
 									<div class="row">
 										<div class="col-sm-6">
@@ -536,6 +588,13 @@ if ($edit_id > 0) {
 							</div>
 						</div>
 					</div>
+					<script>
+					window.epcQuoteAltConfig = {
+						ajaxUrl: <?php echo json_encode('/'.$DP_Config->backend_dir.'/content/shop/quote_requests/ajax_epc_quote_alt_options.php'); ?>,
+						csrf: <?php echo json_encode((string) $user_session['csrf_guard_key']); ?>,
+						quoteId: <?php echo (int) $edit_id; ?>
+					};
+					</script>
 					<!-- quote_alt_offer.js loaded in CP footer (after jQuery reload) -->
 
 					<?php if (in_array($quote['status'], array('submitted', 'quoted'), true)) { ?>
