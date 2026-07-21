@@ -148,6 +148,19 @@
     });
   };
 
+  EpcSkuMedia.prototype.storefrontUrl = function (brand, article, fallback) {
+    if (fallback) return String(fallback);
+    brand = String(brand || '').trim();
+    article = String(article || '').trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (!article) return '';
+    var cfg = window.EPC_SKU_MEDIA_CP || {};
+    var lang = (cfg.langHref || '/en').replace(/\/$/, '') || '/en';
+    if (!brand) {
+      return lang + '/parts/brands/' + encodeURIComponent(article);
+    }
+    return lang + '/parts/' + encodeURIComponent(brand.toUpperCase()) + '/' + encodeURIComponent(article);
+  };
+
   EpcSkuMedia.prototype.refreshList = function () {
     var self = this;
     var q = (qs('#epc-sku-search', this.root) || {}).value || '';
@@ -161,7 +174,7 @@
         return;
       }
       items.forEach(function (it) {
-        var li = el('li');
+        var li = el('li', 'epc-sku-media__list-item');
         var b = el('button');
         b.setAttribute('type', 'button');
         b.setAttribute('data-sku-action', 'pick');
@@ -192,6 +205,17 @@
           '<div class="meta">' + self.esc(it.title || '') +
           (mediaBits.length ? ' · ' + mediaBits.join(' · ') : '') + '</div>';
         li.appendChild(b);
+        var frontUrl = self.storefrontUrl(it.brand, it.article || it.article_show, it.storefront_url);
+        if (frontUrl) {
+          var a = el('a', 'epc-sku-media__front-link');
+          a.href = frontUrl;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.title = 'Open on storefront';
+          a.innerHTML = '<i class="fa fa-external-link"></i> Frontend';
+          a.addEventListener('click', function (ev) { ev.stopPropagation(); });
+          li.appendChild(a);
+        }
         list.appendChild(li);
       });
     });
@@ -279,6 +303,23 @@
       empty.style.display = 'none';
     }
     if (body) body.style.display = '';
+
+    var viewBtn = document.getElementById('epc-sku-view-storefront');
+    var frontUrl = this.storefrontUrl(p.brand, p.article);
+    if (viewBtn) {
+      if (frontUrl) {
+        viewBtn.href = frontUrl;
+        viewBtn.style.display = '';
+      } else {
+        viewBtn.href = '#';
+        viewBtn.style.display = 'none';
+      }
+    }
+    var demo = document.getElementById('epc-sku-storefront-demo');
+    if (demo && frontUrl) {
+      demo.href = frontUrl;
+      demo.innerHTML = '<i class="fa fa-external-link"></i> Open this SKU on storefront';
+    }
 
     this.renderPhotos(payload ? payload.photos || [] : []);
     this.renderSpecs(payload ? payload.spec_groups || [] : []);

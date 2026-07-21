@@ -68,10 +68,22 @@ try {
 		$user_session['csrf_guard_key'] = (string) $_COOKIE['csrf_guard_key'];
 	}
 
+	$langHref = '/en';
+	if (!empty($DP_Config->lang) && is_string($DP_Config->lang)) {
+		$langHref = '/' . trim($DP_Config->lang, '/');
+	} elseif (!empty($DP_Config->default_language_url)) {
+		$langHref = '/' . trim((string) $DP_Config->default_language_url, '/');
+	}
+	if ($langHref === '/' || $langHref === '') {
+		$langHref = '/en';
+	}
+
 	$config = array(
 		'endpoint' => '/content/shop/catalogue/ajax_epc_sku_media.php',
 		'csrf' => (string) ($user_session['csrf_guard_key'] ?? ''),
 		'root' => '#epc-sku-media',
+		'langHref' => $langHref,
+		'storefrontOrigin' => '',
 	);
 
 	echo 'window.EPC_SKU_MEDIA_CP=Object.assign({},window.EPC_SKU_MEDIA_CP||{},'

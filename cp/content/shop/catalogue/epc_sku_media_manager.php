@@ -35,7 +35,7 @@ $productId = (int) ($_GET['product_id'] ?? 0);
 $brand = trim((string) ($_GET['brand'] ?? ''));
 $article = trim((string) ($_GET['article'] ?? ''));
 
-$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'skuMedia3';
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'skuMedia4';
 $cssPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.css';
 $jsPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.js';
 $cssVer = is_file($cssPath) ? (string) filemtime($cssPath) : $assetVer;
@@ -75,9 +75,15 @@ if (function_exists('epc_cp_page_frame_open')) {
 		</div>
 		<div style="display:flex;gap:8px;flex-wrap:wrap;">
 			<a class="epc-sku-media__btn epc-sku-media__btn--ghost" href="<?php echo htmlspecialchars($base . '/shop/catalogue/products', ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-th-large"></i> Catalogue</a>
+			<a class="epc-sku-media__btn epc-sku-media__btn--ghost" id="epc-sku-storefront-demo" href="/en/parts/AISIN/CMT033" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Example on storefront</a>
 			<button type="button" class="epc-sku-media__btn" data-sku-action="new"><i class="fa fa-plus"></i> New SKU profile</button>
 		</div>
 	</div>
+	<p class="epc-sku-media__hint" id="epc-sku-frontend-hint">
+		Each SKU with brand + article opens on the storefront at
+		<code>/en/parts/{BRAND}/{ARTICLE}</code> — photo + specifications appear in part search.
+		Use <strong>View on storefront</strong> on any library row or in the detail panel.
+	</p>
 
 	<div class="epc-sku-media__layout">
 		<div class="epc-sku-media__panel">
@@ -97,7 +103,8 @@ if (function_exists('epc_cp_page_frame_open')) {
 		<div class="epc-sku-media__panel">
 			<div class="epc-sku-media__panel-h">
 				<strong>SKU detail</strong>
-				<div style="display:flex;gap:6px;">
+				<div style="display:flex;gap:6px;flex-wrap:wrap;">
+					<a class="epc-sku-media__btn epc-sku-media__btn--ghost epc-sku-media__btn--sm" id="epc-sku-view-storefront" href="#" target="_blank" rel="noopener" style="display:none;"><i class="fa fa-external-link"></i> View on storefront</a>
 					<button type="button" class="epc-sku-media__btn epc-sku-media__btn--sm" data-sku-action="save-profile"><i class="fa fa-save"></i> Save</button>
 					<button type="button" class="epc-sku-media__btn epc-sku-media__btn--ghost epc-sku-media__btn--sm" data-sku-action="delete-profile">Delete</button>
 				</div>
