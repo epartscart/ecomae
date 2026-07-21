@@ -234,124 +234,127 @@ else//если действий нет - выводим страницу
     {
         $for_backend_current = 0;
     }
+
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
+	$backend = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
+	if ($backend === '') {
+		$backend = 'cp';
+	}
+	$backendH = htmlspecialchars($backend, ENT_QUOTES, 'UTF-8');
+
+	function epc_ug_t($id, $fallback = '')
+	{
+		$t = translate_str_by_id($id);
+		if ($t === null || $t === false) {
+			$t = '';
+		}
+		$t = trim((string) $t);
+		if ($t === '' || strcasecmp($t, 'null') === 0) {
+			return $fallback;
+		}
+		return $t;
+	}
+
+	if (function_exists('epc_cp_page_frame_open')) {
+		epc_cp_page_frame_open(array(
+			'class' => 'epc-users-cp-frame',
+			'hero' => array(
+				'badge' => 'Users',
+				'title' => epc_ug_t(3956, 'User groups'),
+				'sub' => 'Organize access roles — guest default, registration default, control-panel access, and pricing tiers.',
+				'actions' => array(
+					array(
+						'url' => '/' . $backend . '/users/usermanager',
+						'label' => 'Users list',
+						'icon' => 'fa-users',
+						'primary' => true,
+					),
+					array(
+						'url' => '/' . $backend . '/users/usermanager/user',
+						'label' => 'New user',
+						'icon' => 'fa-user-plus',
+					),
+				),
+			),
+		));
+	}
 ?>
 
 
     <?php
         require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
     ?>
-    
-    
-    
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2113); ?>
-			</div>
-			<div class="panel-body">
-				<a class="panel_a" onClick="add_new_item();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/add.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2267); ?></div>
-				</a>
-				
-				<a class="panel_a" onClick="delete_selected_item();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/delete.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2224); ?></div>
-				</a>
-				
-				<a class="panel_a" onClick="unselect_tree();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/selection_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2268); ?></div>
-				</a>
-				
 
-				<a class="panel_a" onClick="save_tree();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/save.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2114); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" onClick="setForGuests();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/guest.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(3952); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" onClick="setForRegistrated();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/check.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(3953); ?></div>
-				</a>
-				
-				<a class="panel_a" onClick="setForBackend();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/shield.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(3954); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" onClick="lock_unlock();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/lock.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(3955); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" onClick="setForPercentage();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/star.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(4654); ?></div>
-				</a>
-				
-			 
-				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
-				</a>
+	<div class="epc-users-cp">
+		<div class="epc-users-cp__toolbar" role="toolbar" aria-label="Group actions">
+			<button type="button" class="epc-u-btn" onclick="add_new_item();"><i class="fa fa-plus"></i> <?php echo htmlspecialchars(epc_ug_t(2267, 'Add'), ENT_QUOTES, 'UTF-8'); ?></button>
+			<button type="button" class="epc-u-btn epc-u-btn--danger" onclick="delete_selected_item();"><i class="fa fa-trash"></i> <?php echo htmlspecialchars(epc_ug_t(2224, 'Delete'), ENT_QUOTES, 'UTF-8'); ?></button>
+			<button type="button" class="epc-u-btn" onclick="unselect_tree();"><i class="fa fa-times"></i> <?php echo htmlspecialchars(epc_ug_t(2268, 'Clear selection'), ENT_QUOTES, 'UTF-8'); ?></button>
+			<button type="button" class="epc-u-btn epc-u-btn--primary" onclick="save_tree();"><i class="fa fa-save"></i> <?php echo htmlspecialchars(epc_ug_t(2114, 'Save'), ENT_QUOTES, 'UTF-8'); ?></button>
+			<span class="epc-users-cp__toolbar-spacer"></span>
+			<div class="epc-users-cp__toolbar-group" aria-label="Role flags">
+				<span>Roles</span>
+				<button type="button" class="epc-u-btn" onclick="setForGuests();" title="Default group for guests"><i class="fa fa-user"></i> Guest</button>
+				<button type="button" class="epc-u-btn" onclick="setForRegistrated();" title="Default group after registration"><i class="fa fa-check"></i> Registration</button>
+				<button type="button" class="epc-u-btn" onclick="setForBackend();" title="Control panel access group"><i class="fa fa-shield"></i> Control panel</button>
+				<button type="button" class="epc-u-btn" onclick="lock_unlock();" title="Block or unblock this group"><i class="fa fa-lock"></i> Block</button>
+				<button type="button" class="epc-u-btn" onclick="setForPercentage();" title="Pricing / percentage group"><i class="fa fa-percent"></i> Pricing</button>
 			</div>
+			<a class="epc-u-btn epc-u-btn--muted" href="/<?php echo $backendH; ?>"><i class="fa fa-home"></i> <?php echo htmlspecialchars(epc_ug_t(2116, 'Control panel'), ENT_QUOTES, 'UTF-8'); ?></a>
 		</div>
-	</div>
-	
 
-	
-	
-	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(3956); ?>
+		<p class="epc-users-cp__hint">
+			Select a group, set its role flags, then <strong>Save</strong>. Double-click a name to rename. Drag to reorder or nest groups.
+		</p>
+
+		<div class="epc-users-cp__legend">
+			<span><i class="fa fa-user"></i> <strong>Guest</strong> — storefront visitors</span>
+			<span><i class="fa fa-check"></i> <strong>Registration</strong> — new accounts</span>
+			<span><i class="fa fa-shield"></i> <strong>Control panel</strong> — admin access</span>
+			<span><i class="fa fa-lock"></i> <strong>Blocked</strong> — cannot sign in</span>
+			<span><i class="fa fa-percent"></i> <strong>Pricing</strong> — price-list tier</span>
+		</div>
+
+		<div class="epc-users-cp__workspace">
+			<div class="epc-users-cp__pane">
+				<div class="epc-users-cp__pane-h">
+					<h3><?php echo htmlspecialchars(epc_ug_t(3956, 'Groups tree'), ENT_QUOTES, 'UTF-8'); ?></h3>
+					<span>Drag to nest · double-click to rename</span>
+				</div>
+				<div class="epc-users-cp__search">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<input type="search" id="epc_ug_tree_filter" placeholder="Filter groups…" autocomplete="off" />
+				</div>
+				<div class="epc-users-cp__tree-wrap">
+					<div id="container_A"></div>
+				</div>
 			</div>
-			<div class="panel-body">
-				<div id="container_A" style="height:350px;">
+
+			<div class="epc-users-cp__pane" id="group_info_div_col">
+				<div class="epc-users-cp__pane-h">
+					<h3><?php echo htmlspecialchars(epc_ug_t(3957, 'Group details'), ENT_QUOTES, 'UTF-8'); ?></h3>
+					<span>Select a group to edit description and review flags</span>
+				</div>
+				<div class="epc-users-cp__detail-body" id="group_info_div">
+					<div class="epc-u-empty">Select a group in the tree to view and edit its details.</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	
-	
-	
-	
-	<div class="col-lg-6" id="group_info_div_col">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(3957); ?>
-			</div>
-			<div class="panel-body">
-				<div id="group_info_div">
-				</div>
-			</div>
-		</div>
-	</div>
-	
 
     
     <!--Форма для отправки-->
-    <form name="form_to_save" method="post" style="display:none">
-        <input name="save_tree" id="save_tree" type="text" value="ok" style="display:none"/>
-        <input name="tree_json" id="tree_json" type="text" value="" style="display:none"/>
-		<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
+    <form name="form_to_save" method="post" style="display:none" aria-hidden="true">
+        <input name="save_tree" id="save_tree" type="hidden" value="ok"/>
+        <input name="tree_json" id="tree_json" type="hidden" value=""/>
+		<input type="hidden" name="csrf_guard_key" value="<?php echo htmlspecialchars((string) $user_session["csrf_guard_key"], ENT_QUOTES, 'UTF-8'); ?>" />
     </form>
     <!--Форма для отправки-->
     
     
     
     <script type="text/javascript" charset="utf-8">
-    var next_id = <?php echo $next_id; ?>;//Следующий id
+    var next_id = <?php echo (int) $next_id; ?>;//Следующий id
     /*ДЕРЕВО*/
     //Для редактируемости дерева
     webix.protoUI({
@@ -366,7 +369,8 @@ else//если действий нет - выводим страницу
         	{
                 var folder = common.folder(obj, common);
         	    var icon = "";
-        	    var value_text = "<span>" + obj.value + "</span>";//Вывод текста
+        	    var label = (obj.value == null || obj.value === 'null') ? ('Group #' + obj.id) : String(obj.value);
+        	    var value_text = "<span>" + label.replace(/</g,'&lt;') + "</span>";
                 
                 
                 if(obj.for_registrated == true)
@@ -404,10 +408,13 @@ else//если действий нет - выводим страницу
     	select:true,//можно выделять элементы
     	drag:true,//можно переносить
     	editor:"text",//тип редактирование - текстовый
-        
+    	filterMode:{ showSubItems:true }
     });
     /*~ДЕРЕВО*/
 	webix.event(window, "resize", function(){ tree.adjust(); });
+	if (typeof window.epcUsersBindTreeFilter === 'function') {
+		window.epcUsersBindTreeFilter('epc_ug_tree_filter', function () { return tree; });
+	}
     //-----------------------------------------------------
     webix.protoUI({
         name:"editlist" // or "edittree", "dataview-edit" in case you work with them
@@ -572,49 +579,52 @@ else//если действий нет - выводим страницу
     //Обработка выбора элемента
     function onSelected()
     {
+		var detailCol = document.getElementById("group_info_div_col");
+		var detailBox = document.getElementById("group_info_div");
+		if (detailCol) { detailCol.style.display = ""; }
+
         //Если материалы не созданы
     	if(tree.count() == 0)
     	{
-    	    document.getElementById("group_info_div").innerHTML = "";
-			
-			//Скрыть контейнер для параметров
-			document.getElementById("group_info_div_col").setAttribute("style", "display:none");
+    	    detailBox.innerHTML = "<div class=\"epc-u-empty\">No groups yet. Click <b>Add</b> to create the first group.</div>";
     	    return;
     	}
     	
     	//Выделенный узел
     	var node_id = tree.getSelectedId();//ID выделенного узла
-    	if(node_id == 0)
+    	if(!node_id)
     	{
-    	    document.getElementById("group_info_div").innerHTML = "";
-			
-			//Скрыть контейнер для параметров
-			document.getElementById("group_info_div_col").setAttribute("style", "display:none");
+    	    detailBox.innerHTML = "<div class=\"epc-u-empty\">Select a group in the tree to view and edit its details.</div>";
     	    return;
     	}
-		
-		//Скрыть контейнер для параметров
-		document.getElementById("group_info_div_col").setAttribute("style", "display:block;");
     	
-    	
-    	
-    	var node = "";//Ссылка на объект узла
-    	//Выделенный узел
-    	node = tree.getItem(node_id);
-    	
-    	var parameters_table_html = "";
-		
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\">ID</label><div class=\"col-lg-6\">"+node.id+"</div></div>";
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2277); ?></label><div class=\"col-lg-6\">"+node.value+"</div></div>";
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2278); ?></label><div class=\"col-lg-6\">"+node.$level+"</div></div>";
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2279); ?></label><div class=\"col-lg-6\">"+node.$parent+"</div></div>";
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2175); ?></label><div class=\"col-lg-6\"><textarea class=\"form-control\" id=\"description\" onKeyUp=\"dynamicApplying('description');\">"+node.description+"</textarea></div></div>";
+    	var node = tree.getItem(node_id);
+    	var name = (node.value == null || node.value === 'null') ? ('Group #' + node.id) : String(node.value);
+    	var desc = (node.description == null || node.description === 'null') ? '' : String(node.description);
+    	var esc = window.epcUsersEsc || function (v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+    	var badges = "";
+    	if (node.for_guests == 1) { badges += "<span class=\"epc-users-cp__badge epc-users-cp__badge--guest\"><i class=\"fa fa-user\"></i> Guest</span>"; }
+    	if (node.for_registrated == 1) { badges += "<span class=\"epc-users-cp__badge epc-users-cp__badge--reg\"><i class=\"fa fa-check\"></i> Registration</span>"; }
+    	if (node.for_backend == 1) { badges += "<span class=\"epc-users-cp__badge epc-users-cp__badge--cp\"><i class=\"fa fa-shield\"></i> Control panel</span>"; }
+    	if (node.unblocked == 0) { badges += "<span class=\"epc-users-cp__badge epc-users-cp__badge--lock\"><i class=\"fa fa-lock\"></i> Blocked</span>"; }
+    	if (node.for_percentage == 1) { badges += "<span class=\"epc-users-cp__badge epc-users-cp__badge--pct\"><i class=\"fa fa-percent\"></i> Pricing</span>"; }
+    	if (!badges) { badges = "<span class=\"epc-users-cp__badge\">No special roles</span>"; }
 
-    	document.getElementById("group_info_div").innerHTML = parameters_table_html;
+    	var parameters_table_html = "";
+		parameters_table_html += "<div class=\"epc-u-section\"><div class=\"epc-u-section-title\">General</div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\">ID</label><div class=\"col-lg-6\">"+esc(node.id)+"</div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_ug_t(2277, 'Name'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><strong>"+esc(name)+"</strong> <span class=\"text-muted\">(double-click in tree)</span></div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\">Roles</label><div class=\"col-lg-6\"><div class=\"epc-users-cp__badges\">"+badges+"</div></div></div>";
+		parameters_table_html += "</div>";
+		parameters_table_html += "<div class=\"epc-u-section\"><div class=\"epc-u-section-title\">Structure</div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_ug_t(2278, 'Level'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\">"+esc(node.$level)+"</div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_ug_t(2279, 'Parent ID'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\">"+esc(node.$parent)+"</div></div>";
+		parameters_table_html += "</div>";
+		parameters_table_html += "<div class=\"epc-u-section\"><div class=\"epc-u-section-title\">Notes</div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_ug_t(2175, 'Description'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><textarea class=\"form-control\" id=\"description\" onKeyUp=\"dynamicApplying('description');\">"+esc(desc)+"</textarea></div></div>";
+		parameters_table_html += "</div>";
+
+    	detailBox.innerHTML = parameters_table_html;
     	
     }//function onSelected()
     
@@ -884,5 +894,8 @@ else//если действий нет - выводим страницу
     </script>
 
 <?php
+	if (function_exists('epc_cp_page_frame_close')) {
+		epc_cp_page_frame_close();
+	}
 }//else - выводим страницу
 ?>
