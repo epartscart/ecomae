@@ -156,6 +156,12 @@ if (empty($pos)) {
 		} elseif (!empty($p['purchase_id'])) {
 			echo '<span class="text-muted">PI linked #' . (int) $p['purchase_id'] . '</span>';
 		}
+		if ($p['status'] === 'draft') {
+			echo ' <button type="button" class="btn btn-xs btn-danger epc-erp-doc-delete" data-action="po_delete" data-id-field="po_id" data-id="' . $epcPoId . '"><i class="fa fa-trash"></i> Delete</button>';
+		}
+		if (in_array($p['status'], array('draft', 'approved', 'partial', 'received'), true)) {
+			echo ' <button type="button" class="btn btn-xs btn-warning epc-erp-doc-void" data-action="po_status" data-id-field="po_id" data-id="' . $epcPoId . '" data-status="cancelled"><i class="fa fa-ban"></i> Cancel</button>';
+		}
 		echo '</td></tr>';
 		if ($epcPoLines) {
 			$epcPoCanReceive = in_array($p['status'], array('approved', 'partial'), true);

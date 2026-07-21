@@ -267,16 +267,30 @@ ob_start();
 if (empty($entries)) {
 	erp_empty_state('No entries for this filter.');
 } else {
-	erp_table_open(array('Date', 'Account', 'Type', 'In/Out', 'Amount', 'Order', 'Reference'));
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+	epc_erp_doc_lifecycle_ensure_schema($db_link);
+	erp_table_open(array('Date', 'Account', 'Type', 'Voucher', 'In/Out', 'Amount', 'Order', 'Reference', 'Actions'));
 	foreach ($entries as $e) {
+		$vno = trim((string) ($e['voucher_no'] ?? ''));
+		if ($vno === '') {
+			$vno = trim((string) ($e['reference'] ?? ''));
+		}
 		echo '<tr><td>' . epc_erp_h(date('Y-m-d H:i', (int)$e['time'])) . '</td><td>' . epc_erp_h($e['account_name']) . '</td>';
-		echo '<td>' . epc_erp_h($e['entry_type']) . '</td><td>' . (((int)$e['direction'] === 1) ? '+' : '−') . '</td>';
+		echo '<td>' . epc_erp_h($e['entry_type']) . '</td>';
+		echo '<td><code>' . epc_erp_h($vno !== '' ? $vno : ('#' . (int) $e['id'])) . '</code></td>';
+		echo '<td>' . (((int)$e['direction'] === 1) ? '+' : '−') . '</td>';
 		echo '<td>' . epc_erp_money($e['amount']) . '</td><td>' . ((int)$e['order_id'] ? '#' . (int)$e['order_id'] : '—') . '</td>';
-		echo '<td>' . epc_erp_h($e['reference']) . '</td></tr>';
+		echo '<td>' . epc_erp_h($e['reference']) . '</td>';
+		echo '<td>' . epc_erp_doc_actions_html('cash', $e, $csrf, array('id_field' => 'entry_id')) . '</td></tr>';
 	}
 	erp_table_close();
 }
 erp_section_card('Recent entries', ob_get_clean(), array('icon' => 'fa-list-alt'));
+
+echo '<div class="alert alert-info" style="margin-top:8px;font-size:12px;">'
+	. '<strong>Document control:</strong> Posted vouchers are never deleted. '
+	. '<em>Edit</em> amends reference/note only. <em>Void</em> posts a reversing GL journal and soft-flags the voucher (IFRS/GAAP audit trail).'
+	. '</div>';
 
 if ($erpOnlyCash):
 ?>

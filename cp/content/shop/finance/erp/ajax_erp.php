@@ -2194,6 +2194,67 @@ try {
 			epc_erp_sales_order_delete($db_link, (int) ($_POST['so_id'] ?? 0));
 			epc_erp_json(true, 'Sales order deleted');
 
+		case 'so_cancel':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_sales_order_cancel(
+				$db_link,
+				(int) ($_POST['so_id'] ?? $_POST['id'] ?? 0),
+				trim((string) ($_POST['reason'] ?? $_POST['void_reason'] ?? ''))
+			);
+			epc_erp_json(true, 'Sales order cancelled');
+
+		case 'po_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_po_delete($db_link, (int) ($_POST['po_id'] ?? $_POST['id'] ?? 0));
+			epc_erp_json(true, 'Draft purchase order deleted');
+
+		case 'cash_voucher_void':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			$r = epc_erp_cash_voucher_void(
+				$db_link,
+				(int) ($_POST['entry_id'] ?? $_POST['id'] ?? 0),
+				trim((string) ($_POST['reason'] ?? $_POST['void_reason'] ?? ''))
+			);
+			epc_erp_json(true, 'Voucher voided — reversing journal posted', $r);
+
+		case 'cash_voucher_amend':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_cash_voucher_amend($db_link, (int) ($_POST['entry_id'] ?? $_POST['id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Voucher narrative updated');
+
+		case 'purchase_void':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			$r = epc_erp_purchase_void(
+				$db_link,
+				(int) ($_POST['purchase_id'] ?? $_POST['id'] ?? 0),
+				trim((string) ($_POST['reason'] ?? $_POST['void_reason'] ?? ''))
+			);
+			epc_erp_json(true, 'Purchase invoice voided — reversing journal posted', $r);
+
+		case 'purchase_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_purchase_delete($db_link, (int) ($_POST['purchase_id'] ?? $_POST['id'] ?? 0));
+			epc_erp_json(true, 'Draft purchase deleted');
+
+		case 'purchase_amend':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_purchase_amend($db_link, (int) ($_POST['purchase_id'] ?? $_POST['id'] ?? 0), $_POST);
+			epc_erp_json(true, 'Purchase updated');
+
+		case 'invoice_delete':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_invoice_delete($db_link, (int) ($_POST['invoice_id'] ?? $_POST['id'] ?? 0));
+			epc_erp_json(true, 'Draft invoice deleted');
+
+		case 'invoice_cancel':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+			epc_erp_invoice_cancel(
+				$db_link,
+				(int) ($_POST['invoice_id'] ?? $_POST['id'] ?? 0),
+				trim((string) ($_POST['reason'] ?? $_POST['void_reason'] ?? ''))
+			);
+			epc_erp_json(true, 'Invoice cancelled');
+
 		case 'receipt_voucher':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_bos_workflow.php';
