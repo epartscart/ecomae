@@ -13,7 +13,7 @@ if (!is_file($path)) {
 	exit;
 }
 
-$ver = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260719accCss1';
+$ver = function_exists('epc_cp_shell_css_version') ? epc_cp_shell_css_version() : '20260721accPhotos1';
 $mtime = (int) filemtime($path);
 $etag = '"' . md5($mtime . '|' . filesize($path) . '|' . $ver) . '"';
 
