@@ -54,6 +54,126 @@
 			+ '" target="_blank" rel="noopener" title="Open page">' + esc(text) + '</a>';
 	}
 
+	function filterValues() {
+		return {
+			device: ($('wt_device') && $('wt_device').value) || '',
+			country: ($('wt_country') && $('wt_country').value) || '',
+			ip: ($('wt_ip') && $('wt_ip').value.trim()) || '',
+			user_id: ($('wt_user_id') && $('wt_user_id').value.trim()) || '',
+			user_type: ($('wt_user_type') && $('wt_user_type').value) || '',
+			browser: ($('wt_browser') && $('wt_browser').value) || '',
+			path: ($('wt_path') && $('wt_path').value.trim()) || ''
+		};
+	}
+
+	function filterQuery() {
+		var f = filterValues();
+		var q = '';
+		Object.keys(f).forEach(function (k) {
+			if (f[k]) q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(f[k]);
+		});
+		return q;
+	}
+
+	function activeFilterChips(f) {
+		var chips = [];
+		if (f.device) chips.push('device ' + f.device);
+		if (f.country) chips.push('country ' + f.country);
+		if (f.ip) chips.push('IP ' + f.ip);
+		if (f.user_id) chips.push('user #' + f.user_id);
+		if (f.user_type) chips.push(f.user_type);
+		if (f.browser) chips.push('browser ' + f.browser);
+		if (f.path) chips.push('path ' + f.path);
+		if (!chips.length) return '';
+		return chips.map(function (c) {
+			return '<span class="wt-filter-chip">' + esc(c) + '</span>';
+		}).join('');
+	}
+
+	function fillSelect(el, items, valueKey, labelFn, current) {
+		if (!el) return;
+		var keep = current != null ? String(current) : String(el.value || '');
+		var html = '<option value="">' + esc(el.options[0] ? el.options[0].text : 'All') + '</option>';
+		(items || []).forEach(function (it) {
+			var v = String(it[valueKey] || '');
+			if (!v) return;
+			var lab = labelFn ? labelFn(it) : v;
+			html += '<option value="' + esc(v) + '"' + (v === keep ? ' selected' : '') + '>' + esc(lab) + '</option>';
+		});
+		el.innerHTML = html;
+		if (keep) el.value = keep;
+	}
+
+	function applyFacets(d) {
+		var facets = d.facets || {};
+		fillSelect($('wt_country'), facets.countries || [], 'country_code', function (it) {
+			var name = it.country_name || it.country_code;
+			return (it.country_code || '') + (name && name !== it.country_code ? ' — ' + name : '') + ' (' + (it.sessions || 0) + ')';
+		}, filterValues().country);
+		var devices = facets.devices || [];
+		if (devices.length) {
+			fillSelect($('wt_device'), devices, 'device_type', function (it) {
+				return (it.device_type || '') + ' (' + (it.sessions || 0) + ')';
+			}, filterValues().device);
+			// Ensure standard options remain if missing from facets
+			['desktop', 'mobile', 'tablet'].forEach(function (d) {
+				var el = $('wt_device');
+				if (!el) return;
+				var found = false;
+				Array.prototype.forEach.call(el.options, function (o) { if (o.value === d) found = true; });
+				if (!found) {
+					var opt = document.createElement('option');
+					opt.value = d;
+					opt.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+					el.appendChild(opt);
+				}
+			});
+		}
+		fillSelect($('wt_browser'), facets.browsers || [], 'browser', function (it) {
+			return (it.browser || '') + ' (' + (it.sessions || 0) + ')';
+		}, filterValues().browser);
+	}
+
+	function setFilterAndLoad(patch) {
+		Object.keys(patch || {}).forEach(function (k) {
+			var map = {
+				device: 'wt_device',
+				country: 'wt_country',
+				ip: 'wt_ip',
+				user_id: 'wt_user_id',
+				user_type: 'wt_user_type',
+				browser: 'wt_browser',
+				path: 'wt_path'
+			};
+			var id = map[k];
+			if (id && $(id)) $(id).value = patch[k] == null ? '' : String(patch[k]);
+		});
+		load();
+	}
+
+	function clearFilters() {
+		['wt_device', 'wt_country', 'wt_ip', 'wt_user_id', 'wt_user_type', 'wt_browser', 'wt_path'].forEach(function (id) {
+			if ($(id)) $(id).value = '';
+		});
+		load();
+	}
+
+	function bindFilterClicks(root) {
+		if (!root) return;
+		Array.prototype.forEach.call(root.querySelectorAll('[data-filter-key]'), function (el) {
+			el.addEventListener('click', function (ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				var key = el.getAttribute('data-filter-key');
+				var val = el.getAttribute('data-filter-val') || '';
+				if (!key) return;
+				var patch = {};
+				patch[key] = val;
+				setFilterAndLoad(patch);
+			});
+		});
+	}
+
 	function load() {
 		var siteEl = $('wt_site');
 		var fromEl = $('wt_from');
@@ -64,7 +184,8 @@
 		status.textContent = 'Loading traffic…';
 		var url = AJAX + '?action=dashboard&site_key=' + encodeURIComponent(siteEl.value)
 			+ '&from=' + encodeURIComponent(fromEl.value)
-			+ '&to=' + encodeURIComponent(toEl.value);
+			+ '&to=' + encodeURIComponent(toEl.value)
+			+ filterQuery();
 		fetch(url, { credentials: 'same-origin' }).then(function (r) {
 			return r.json();
 		}).then(function (j) {
@@ -83,9 +204,13 @@
 	function render(j) {
 		var d = j.data || {};
 		var s = d.summary || {};
+		var f = j.filters || filterValues();
+		applyFacets(d);
+		var chips = activeFilterChips(f);
 		$('wt_status').className = 'wt-status alert alert-success';
-		$('wt_status').textContent = 'Updated · site ' + (j.site_key || '') + ' · ' + fmtTs(j.from) + ' → ' + fmtTs(j.to)
-			+ (j.db ? (' · db ' + j.db) : '');
+		$('wt_status').innerHTML = 'Updated · site ' + esc(j.site_key || '') + ' · ' + esc(fmtTs(j.from)) + ' → ' + esc(fmtTs(j.to))
+			+ (j.db ? (' · db ' + esc(j.db)) : '')
+			+ (chips ? (' · filters ' + chips) : ' · no extra filters');
 
 		$('wt_kpis').innerHTML = [
 			['Sessions', s.sessions],
@@ -111,42 +236,45 @@
 		}).join('') + '</div>';
 		var dailyRows = daily.map(function (x) {
 			return '<tr><td>' + esc(x.date) + '</td><td>' + esc(x.sessions) + '</td><td>' + esc(x.pageviews) + '</td></tr>';
-		}).join('') || '<tr><td colspan="3" class="wt-muted">No data yet — browse the storefront to generate traffic.</td></tr>';
+		}).join('') || '<tr><td colspan="3" class="wt-muted">No data for this range/filters.</td></tr>';
 		$('wt_daily').innerHTML = bars + table(['Date', 'Sessions', 'Pageviews'], dailyRows);
 
 		var byTenant = d.by_tenant || [];
 		var devices = d.devices || [];
+		function deviceRows(list) {
+			return list.map(function (x) {
+				return '<tr><td><span class="wt-device-click" data-filter-key="device" data-filter-val="' + esc(x.device_type) + '" title="Filter by device">' + esc(x.device_type) + '</span></td>'
+					+ '<td><span class="wt-device-click" data-filter-key="browser" data-filter-val="' + esc(x.browser) + '" title="Filter by browser">' + esc(x.browser) + '</span></td>'
+					+ '<td>' + esc(x.os) + '</td><td>' + esc(x.sessions) + '</td></tr>';
+			}).join('') || '<tr><td colspan="4" class="wt-muted">—</td></tr>';
+		}
 		if (IS_SUPER && (j.site_key === '_all' || byTenant.length)) {
 			$('wt_side_a').innerHTML = table(['Site', 'Host', 'Sessions', 'Views', 'Visitors'],
 				byTenant.map(function (x) {
 					return '<tr><td><span class="wt-link" data-site="' + esc(x.site_key) + '">' + esc(x.site_key) + '</span></td><td>' + esc(x.hostname) + '</td><td>' + esc(x.sessions) + '</td><td>' + esc(x.pageviews) + '</td><td>' + esc(x.visitors) + '</td></tr>';
 				}).join('') || '<tr><td colspan="5" class="wt-muted">No tenant traffic yet.</td></tr>'
 			);
-			$('wt_side_b').innerHTML = table(['Device', 'Browser', 'OS', 'Sessions'],
-				devices.map(function (x) {
-					return '<tr><td>' + esc(x.device_type) + '</td><td>' + esc(x.browser) + '</td><td>' + esc(x.os) + '</td><td>' + esc(x.sessions) + '</td></tr>';
-				}).join('') || '<tr><td colspan="4" class="wt-muted">—</td></tr>'
-			);
+			$('wt_side_b').innerHTML = table(['Device', 'Browser', 'OS', 'Sessions'], deviceRows(devices));
 		} else {
-			$('wt_side_a').innerHTML = table(['Device', 'Browser', 'OS', 'Sessions'],
-				devices.map(function (x) {
-					return '<tr><td>' + esc(x.device_type) + '</td><td>' + esc(x.browser) + '</td><td>' + esc(x.os) + '</td><td>' + esc(x.sessions) + '</td></tr>';
-				}).join('') || '<tr><td colspan="4" class="wt-muted">—</td></tr>'
-			);
-			$('wt_side_b').innerHTML = '<p class="wt-muted">Open a recent session below for the full click-by-click timeline, page experience (time on page, scroll), geography, and search events.</p>';
+			$('wt_side_a').innerHTML = table(['Device', 'Browser', 'OS', 'Sessions'], deviceRows(devices));
+			$('wt_side_b').innerHTML = '<p class="wt-muted">Use filters above (device, country, IP, user, path). Click a country, IP, device, or user in the tables to filter quickly.</p>';
 		}
 
 		$('wt_pages').innerHTML = table(['Path', 'Views', 'Sessions', 'Avg time', 'Scroll %'],
 			(d.top_pages || []).map(function (x) {
-				return '<tr><td>' + pageLink(x.path || '/') + '</td><td>' + esc(x.views) + '</td><td>' + esc(x.sessions) + '</td><td>' + esc(dur(x.avg_time_ms)) + '</td><td>' + esc(x.avg_scroll) + '</td></tr>';
+				return '<tr><td>' + pageLink(x.path || '/')
+					+ ' <span class="wt-device-click" data-filter-key="path" data-filter-val="' + esc(x.path || '/') + '" title="Filter by this path">filter</span></td>'
+					+ '<td>' + esc(x.views) + '</td><td>' + esc(x.sessions) + '</td><td>' + esc(dur(x.avg_time_ms)) + '</td><td>' + esc(x.avg_scroll) + '</td></tr>';
 			}).join('') || '<tr><td colspan="5" class="wt-muted">—</td></tr>'
 		);
 
 		$('wt_geo').innerHTML = table(['Country', 'City', 'Sessions'],
 			(d.geo || []).map(function (x) {
-				var c = (x.country_name || x.country_code || 'Unknown');
-				if (x.country_code) c += ' (' + x.country_code + ')';
-				return '<tr><td>' + esc(c) + '</td><td>' + esc(x.city || '—') + '</td><td>' + esc(x.sessions) + '</td></tr>';
+				var code = x.country_code || '';
+				var c = (x.country_name || code || 'Unknown');
+				if (code) c += ' (' + code + ')';
+				return '<tr><td><span class="wt-geo-click" data-filter-key="country" data-filter-val="' + esc(code) + '" title="Filter by country">' + esc(c) + '</span></td>'
+					+ '<td>' + esc(x.city || '—') + '</td><td>' + esc(x.sessions) + '</td></tr>';
 			}).join('') || '<tr><td colspan="3" class="wt-muted">—</td></tr>'
 		);
 
@@ -176,10 +304,13 @@
 		$('wt_sessions').innerHTML = table(['When', 'Who', 'IP', 'Geo', 'Device', 'Land → Exit', 'Pages', 'Clicks', 'Time', ''],
 			(d.recent_sessions || []).map(function (x) {
 				var who = x.is_registered == '1' || x.is_registered == 1
-					? '<span class="wt-pill reg">User #' + esc(x.user_id) + '</span>'
-					: '<span class="wt-pill guest">Guest</span>';
+					? '<span class="wt-pill reg wt-user-click" data-filter-key="user_id" data-filter-val="' + esc(x.user_id) + '" title="Filter by this user">User #' + esc(x.user_id) + '</span>'
+					: '<span class="wt-pill guest wt-user-click" data-filter-key="user_type" data-filter-val="guest" title="Filter guests">Guest</span>';
 				if (IS_SUPER) who += ' <span class="wt-pill">' + esc(x.site_key) + '</span>';
 				var geo = [x.city, x.country_code].filter(Boolean).join(', ') || '—';
+				var geoHtml = x.country_code
+					? '<span class="wt-geo-click" data-filter-key="country" data-filter-val="' + esc(x.country_code) + '" title="Filter by country">' + esc(geo) + '</span>'
+					: esc(geo);
 				var host = x.hostname || '';
 				var land = x.landing_path || '/';
 				var exitP = x.exit_path || '';
@@ -189,14 +320,18 @@
 				} else if (exitP) {
 					pathHtml += ' → <span class="wt-muted">same</span>';
 				}
-				var ip = (x.ip && String(x.ip).trim()) ? esc(x.ip) : '—';
+				var ipRaw = (x.ip && String(x.ip).trim()) ? String(x.ip).trim() : '';
+				var ipHtml = ipRaw
+					? '<span class="wt-ip wt-ip-click" data-filter-key="ip" data-filter-val="' + esc(ipRaw) + '" title="Filter by this IP">' + esc(ipRaw) + '</span>'
+					: '—';
 				return '<tr class="wt-row-click" data-id="' + esc(x.id) + '" title="Open session timeline">'
 					+ '<td>' + esc(fmtTs(x.last_seen_at)) + '</td><td>' + who + '</td>'
-					+ '<td class="wt-ip">' + ip + '</td><td>' + esc(geo) + '</td>'
-					+ '<td>' + esc((x.device_type || '') + ' / ' + (x.browser || '')) + '</td><td class="wt-paths">' + pathHtml + '</td>'
+					+ '<td>' + ipHtml + '</td><td>' + geoHtml + '</td>'
+					+ '<td><span class="wt-device-click" data-filter-key="device" data-filter-val="' + esc(x.device_type || '') + '" title="Filter by device">'
+					+ esc((x.device_type || '') + ' / ' + (x.browser || '')) + '</span></td><td class="wt-paths">' + pathHtml + '</td>'
 					+ '<td>' + esc(x.pageview_count) + '</td><td>' + esc(x.event_count) + '</td><td>' + esc(dur(x.duration_ms)) + '</td>'
 					+ '<td><a href="#" class="wt-link wt-open" data-id="' + esc(x.id) + '">Timeline</a></td></tr>';
-			}).join('') || '<tr><td colspan="10" class="wt-muted">No sessions yet.</td></tr>'
+			}).join('') || '<tr><td colspan="10" class="wt-muted">No sessions for these filters.</td></tr>'
 		);
 
 		Array.prototype.forEach.call(document.querySelectorAll('#wt_side_a [data-site]'), function (a) {
@@ -207,7 +342,7 @@
 		});
 		Array.prototype.forEach.call(document.querySelectorAll('#wt_sessions tr.wt-row-click'), function (row) {
 			row.addEventListener('click', function (ev) {
-				if (ev.target && ev.target.closest && ev.target.closest('a')) {
+				if (ev.target && ev.target.closest && ev.target.closest('a, [data-filter-key]')) {
 					return;
 				}
 				var id = row.getAttribute('data-id');
@@ -221,6 +356,7 @@
 				openSession(a.getAttribute('data-id'));
 			});
 		});
+		bindFilterClicks(document.querySelector('.epc-wt'));
 	}
 
 	function openSession(id) {
@@ -297,7 +433,8 @@
 		if (!siteEl || !fromEl || !toEl) return;
 		var url = AJAX + '?action=csv&site_key=' + encodeURIComponent(siteEl.value)
 			+ '&from=' + encodeURIComponent(fromEl.value)
-			+ '&to=' + encodeURIComponent(toEl.value);
+			+ '&to=' + encodeURIComponent(toEl.value)
+			+ filterQuery();
 		// Full page navigation keeps auth cookies and triggers file download.
 		window.location.href = url;
 	}
@@ -306,6 +443,8 @@
 		var reload = $('wt_reload');
 		if (!reload || !document.querySelector('.epc-wt')) return;
 		reload.addEventListener('click', load);
+		var clearBtn = $('wt_clear_filters');
+		if (clearBtn) clearBtn.addEventListener('click', clearFilters);
 		var csvBtn = $('wt_csv');
 		if (csvBtn) {
 			csvBtn.addEventListener('click', downloadCsv);
@@ -314,6 +453,20 @@
 		if (site && site.tagName === 'SELECT') {
 			site.addEventListener('change', load);
 		}
+		['wt_device', 'wt_country', 'wt_user_type', 'wt_browser'].forEach(function (id) {
+			var el = $(id);
+			if (el) el.addEventListener('change', load);
+		});
+		['wt_ip', 'wt_user_id', 'wt_path', 'wt_from', 'wt_to'].forEach(function (id) {
+			var el = $(id);
+			if (!el) return;
+			el.addEventListener('keydown', function (ev) {
+				if (ev.key === 'Enter') {
+					ev.preventDefault();
+					load();
+				}
+			});
+		});
 		load();
 	}
 

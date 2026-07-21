@@ -117,10 +117,54 @@ epc_cp_page_frame_open(array(
 			<input type="date" id="wt_to" class="form-control" value="<?php echo epc_web_tracker_h($to); ?>" />
 		</div>
 		<div>
-			<button type="button" class="btn btn-primary" id="wt_reload"><i class="fa fa-refresh"></i> Refresh</button>
+			<label>Device</label>
+			<select id="wt_device" class="form-control">
+				<option value="">All devices</option>
+				<option value="desktop">Desktop</option>
+				<option value="mobile">Mobile</option>
+				<option value="tablet">Tablet</option>
+			</select>
 		</div>
 		<div>
-			<button type="button" class="btn btn-default" id="wt_csv" title="Download full report (CSV) for the selected site and date range"><i class="fa fa-download"></i> Download full report (CSV)</button>
+			<label>Country</label>
+			<select id="wt_country" class="form-control">
+				<option value="">All countries</option>
+			</select>
+		</div>
+		<div>
+			<label>IP address</label>
+			<input type="text" id="wt_ip" class="form-control" placeholder="e.g. 86.96." autocomplete="off" />
+		</div>
+		<div>
+			<label>User ID</label>
+			<input type="text" id="wt_user_id" class="form-control" placeholder="e.g. 5" inputmode="numeric" autocomplete="off" />
+		</div>
+		<div>
+			<label>Who</label>
+			<select id="wt_user_type" class="form-control">
+				<option value="">All visitors</option>
+				<option value="guest">Guests only</option>
+				<option value="registered">Registered only</option>
+			</select>
+		</div>
+		<div>
+			<label>Browser</label>
+			<select id="wt_browser" class="form-control">
+				<option value="">All browsers</option>
+			</select>
+		</div>
+		<div>
+			<label>Page path contains</label>
+			<input type="text" id="wt_path" class="form-control" placeholder="/en/parts/" autocomplete="off" />
+		</div>
+		<div>
+			<button type="button" class="btn btn-primary" id="wt_reload"><i class="fa fa-refresh"></i> Apply filters</button>
+		</div>
+		<div>
+			<button type="button" class="btn btn-default" id="wt_clear_filters" title="Clear device / country / IP / user filters">Clear filters</button>
+		</div>
+		<div>
+			<button type="button" class="btn btn-default" id="wt_csv" title="Download full report (CSV) for the selected filters"><i class="fa fa-download"></i> Download full report (CSV)</button>
 		</div>
 		<div class="wt-muted" style="align-self:center;">
 			Beacon: <code>/epc-web-tracker-collect.php</code> · storefront + ecomae marketing

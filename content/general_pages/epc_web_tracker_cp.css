@@ -3,6 +3,17 @@
 .epc-wt .wt-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin:0 0 16px; padding:14px; background:var(--wt-card); border:1px solid var(--wt-line); border-radius:10px; }
 .epc-wt .wt-filters label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--wt-muted); margin:0 0 4px; }
 .epc-wt .wt-filters .form-control { min-width:140px; }
+.epc-wt .wt-filters #wt_ip,
+.epc-wt .wt-filters #wt_user_id { min-width:120px; max-width:160px; }
+.epc-wt .wt-filters #wt_path { min-width:160px; }
+.epc-wt .wt-filters #wt_country,
+.epc-wt .wt-filters #wt_browser { min-width:150px; }
+.epc-wt .wt-filter-chip { display:inline-block; margin:0 6px 0 0; padding:2px 8px; border-radius:999px; background:#e0f2fe; color:#075985; font-size:11px; }
+.epc-wt .wt-filter-hint { font-size:11px; color:var(--wt-muted); margin:0 0 10px; }
+.epc-wt .wt-geo-click,
+.epc-wt .wt-ip-click,
+.epc-wt .wt-user-click,
+.epc-wt .wt-device-click { cursor:pointer !important; text-decoration:underline; text-decoration-style:dotted; }
 .epc-wt .wt-kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
 .epc-wt .wt-kpi { background:linear-gradient(160deg,#fff 0%,#f1f5f9 100%); border:1px solid var(--wt-line); border-radius:10px; padding:12px 14px; }
 .epc-wt .wt-kpi b { display:block; font-size:22px; color:var(--wt-ink); line-height:1.2; }
