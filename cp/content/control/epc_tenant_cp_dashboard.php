@@ -254,6 +254,29 @@ if (function_exists('epc_co_profile_get') && isset($db_link) && $db_link instanc
 	}
 }
 
+$insightsSuite = null;
+$insightsHtml = '';
+$insightsFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_insights_suite.php';
+if (is_file($insightsFile) && isset($db_link) && $db_link instanceof PDO) {
+	require_once $insightsFile;
+	if (function_exists('epc_insights_suite_build')) {
+		try {
+			$insightsSuite = epc_insights_suite_build($db_link, array(
+				'backend' => $backend,
+				'currency' => $currency,
+				'light' => true,
+				'industry' => $industryCode,
+			));
+			if (is_array($insightsSuite) && function_exists('epc_insights_suite_render')) {
+				$insightsHtml = epc_insights_suite_render($insightsSuite, 'cp');
+			}
+		} catch (Throwable $e) {
+			$insightsSuite = null;
+			$insightsHtml = '';
+		}
+	}
+}
+
 $tiles = array(
 	array('label' => 'Orders (OMS)', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
 	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
@@ -341,7 +364,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260720cpqa1';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260721insights1';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -349,11 +372,9 @@ if (function_exists('epc_cp_shell_asset_href')) {
 	);
 }
 if (strpos($cssHref, '?') === false) {
-	$cssHref .= '?v=20260720cpqa1';
+	$cssHref .= '?v=20260721insights1';
 } elseif (strpos($cssHref, 'v=') === false) {
-	$cssHref .= '&v=20260720cpqa1';
-} elseif (strpos($cssHref, '20260720qafmt1') !== false) {
-	$cssHref = str_replace('20260720qafmt1', '20260720cpqa1', $cssHref);
+	$cssHref .= '&v=20260721insights1';
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -361,6 +382,7 @@ $dayLabelsJson = json_encode(array_values((array) $stats['day_labels']));
 $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['day_counts'])));
 ?>
 <link rel="stylesheet" href="<?php echo epc_tcp_dash_h($cssHref); ?>">
+<link rel="stylesheet" href="/content/shop/finance/epc_insights_suite.css?v=20260721insights1">
 
 <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
 	<div class="cp-dash-hero">
@@ -439,6 +461,14 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 		</div>
 	</div>
 
+	<?php if ($insightsHtml !== '') { ?>
+	<div class="cp-dash-port cp-dash-port--insights">
+		<div class="bd" style="padding:12px">
+			<?php echo $insightsHtml; ?>
+		</div>
+	</div>
+	<?php } ?>
+
 	<div class="cp-dash-grid">
 		<div class="cp-dash-col-left">
 			<div class="cp-dash-port">
@@ -482,7 +512,7 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 					</table>
 				</div>
 			</div>
-			<?php if (!empty($finance['has_finance'])) { ?>
+			<?php if ($insightsHtml === '' && !empty($finance['has_finance'])) { ?>
 			<div class="cp-dash-port">
 				<h4><i class="fa fa-money"></i> Finance pulse (MTD)</h4>
 				<div class="bd">
