@@ -95,6 +95,16 @@ function epc_seo_regional_hub_description($hubKey, $lang = ''): string
 			'ar' => 'ابحث عن قطع الغيار حسب الماركة ورقم القطعة.',
 			'ru' => 'Поиск запчастей на складе по бренду и артикулу.',
 		),
+		'accessories-spare-parts' => array(
+			'en' => 'Browse UAE warehouse car accessories and spare parts by category, make, city and price.',
+			'ar' => 'تصفح إكسسوارات وقطع غيار السيارات من مستودع الإمارات حسب الفئة والماركة والمدينة والسعر.',
+			'ru' => 'Каталог автоаксессуаров и запчастей со склада ОАЭ — категория, марка, город и цена.',
+		),
+		'accessories' => array(
+			'en' => 'Browse UAE warehouse car accessories and spare parts by category, make, city and price.',
+			'ar' => 'تصفح إكسسوارات وقطع غيار السيارات من مستودع الإمارات حسب الفئة والماركة والمدينة والسعر.',
+			'ru' => 'Каталог автоаксессуаров и запчастей со склада ОАЭ — категория, марка, город и цена.',
+		),
 		'parts' => array(
 			'en' => 'Search in-stock auto parts by brand and article number.',
 			'ar' => 'ابحث عن قطع الغيار المتوفرة حسب الماركة ورقم القطعة.',
@@ -308,8 +318,8 @@ function epc_seo_apply_storefront_content_meta(&$DP_Content, $db_link)
 	$descMap = array(
 		'available-brands' => epc_seo_regional_hub_description('available-brands', $lang),
 		'spare-parts' => epc_seo_regional_hub_description('spare-parts', $lang),
-		'accessories' => 'Browse UAE warehouse car accessories and spare parts by category, brand, price and region. ' . epc_seo_regional_shipping_phrase($lang),
-		'accessories-spare-parts' => 'Browse UAE warehouse car accessories and spare parts by category, brand, price and region. ' . epc_seo_regional_shipping_phrase($lang),
+		'accessories' => epc_seo_regional_hub_description('accessories', $lang),
+		'accessories-spare-parts' => epc_seo_regional_hub_description('accessories-spare-parts', $lang),
 		'umapi_catalog' => 'Vehicle parts catalog — find compatible spare parts by make and model. ' . epc_seo_regional_shipping_phrase($lang),
 		'vehicle-catalog' => 'Vehicle catalog for OEM and aftermarket spare parts lookup. ' . epc_seo_regional_shipping_phrase($lang),
 		'shipping-export' => epc_seo_regional_hub_description('parts', $lang),
@@ -321,16 +331,228 @@ function epc_seo_apply_storefront_content_meta(&$DP_Content, $db_link)
 		$labels = array(
 			'available-brands' => ($lang === 'ar') ? 'الماركات المتوفرة' : (($lang === 'ru') ? 'Доступные бренды' : 'Available brands'),
 			'spare-parts' => ($lang === 'ar') ? 'قطع الغيار' : (($lang === 'ru') ? 'Запчасти' : 'Spare parts'),
+			'accessories' => ($lang === 'ar') ? 'إكسسوارات وقطع غيار' : (($lang === 'ru') ? 'Аксессуары и запчасти' : 'Accessories & spare parts'),
+			'accessories-spare-parts' => ($lang === 'ar') ? 'إكسسوارات وقطع غيار' : (($lang === 'ru') ? 'Аксессуары и запчасти' : 'Accessories & spare parts'),
 			'umapi_catalog' => ($lang === 'ar') ? 'كتالوج القطع' : (($lang === 'ru') ? 'Каталог запчастей' : 'Parts catalog'),
 			'vehicle-catalog' => ($lang === 'ar') ? 'كتالوج المركبات' : (($lang === 'ru') ? 'Каталог авто' : 'Vehicle catalog'),
 			'shipping-export' => ($lang === 'ar') ? 'الشحن والتصدير' : (($lang === 'ru') ? 'Доставка и экспорт' : 'Shipping & export'),
 		);
 		$DP_Content->title_tag = $labels[$url] ?? ucfirst(str_replace('-', ' ', $url));
 		$DP_Content->description_tag = $descMap[$url];
+		if ($url === 'accessories' || $url === 'accessories-spare-parts') {
+			$DP_Content->keywords_tag = ($lang === 'ar')
+				? 'إكسسوارات سيارات, قطع غيار, مستودع الإمارات, الخليج, باكستان'
+				: (($lang === 'ru')
+					? 'автоаксессуары, запчасти, склад ОАЭ, GCC, Пакистан'
+					: 'car accessories, spare parts UAE, auto parts Dubai, GCC shipping, Pakistan export');
+			$DP_Content->service_data['epc_seo_page_title'] = $DP_Content->title_tag . ' | ' . $siteName;
+			epc_seo_apply_accessories_hub_schema($DP_Content, $DP_Config, $url);
+			epc_seo_apply_accessories_listing_meta($DP_Content, $db_link, $DP_Config);
+			return;
+		}
 	}
 	if ($DP_Content->title_tag !== '') {
 		$DP_Content->service_data['epc_seo_page_title'] = $DP_Content->title_tag . ' | ' . $siteName;
 	}
+}
+
+/** CollectionPage JSON-LD for accessories marketplace hub. */
+function epc_seo_apply_accessories_hub_schema(&$DP_Content, $DP_Config, string $url): void
+{
+	$langHref = epc_seo_lang_href();
+	$base = rtrim((string) $DP_Config->domain_path, '/');
+	$pageUrl = $base . $langHref . '/' . trim($url, '/');
+	$schema = array(
+		'@context' => 'https://schema.org',
+		'@type' => 'CollectionPage',
+		'name' => (string) ($DP_Content->title_tag ?? 'Accessories & spare parts'),
+		'description' => (string) ($DP_Content->description_tag ?? ''),
+		'url' => $pageUrl,
+		'isPartOf' => array(
+			'@type' => 'WebSite',
+			'name' => epc_seo_site_display_name($DP_Config),
+			'url' => $base,
+		),
+		'about' => array(
+			'@type' => 'Thing',
+			'name' => 'Car accessories and spare parts',
+		),
+		'areaServed' => epc_seo_schema_country_entries(),
+	);
+	$DP_Content->service_data['epc_seo_jsonld'] = array($schema);
+	$DP_Content->service_data['epc_canonical_url'] = $pageUrl;
+	$DP_Content->service_data['epc_seo_og'] = array(
+		'title' => ((string) ($DP_Content->service_data['epc_seo_page_title'] ?? '') !== '')
+			? (string) $DP_Content->service_data['epc_seo_page_title']
+			: ((string) ($DP_Content->title_tag ?? 'Accessories & spare parts') . ' | ' . epc_seo_site_display_name($DP_Config)),
+		'description' => (string) ($DP_Content->description_tag ?? ''),
+		'type' => 'website',
+	);
+}
+
+/**
+ * Per-listing SEO when /accessories-spare-parts?id=N (or /accessories?id=N).
+ */
+function epc_seo_apply_accessories_listing_meta(&$DP_Content, $db_link, $DP_Config): void
+{
+	$id = (int) ($_GET['id'] ?? 0);
+	if ($id <= 0 || !($db_link instanceof PDO)) {
+		return;
+	}
+	$accDb = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_accessories_db.php';
+	if (!is_file($accDb)) {
+		return;
+	}
+	require_once $accDb;
+	if (!function_exists('epc_acc_get_listing')) {
+		return;
+	}
+	$row = epc_acc_get_listing($db_link, $id);
+	if ($row === null) {
+		$DP_Content->robots_tag = 'noindex, follow';
+		return;
+	}
+	$status = strtolower(trim((string) ($row['status'] ?? '')));
+	if ($status !== '' && $status !== 'published') {
+		$DP_Content->robots_tag = 'noindex, follow';
+		return;
+	}
+
+	$lang = epc_seo_current_lang_code();
+	$siteName = epc_seo_site_display_name($DP_Config);
+	$title = trim((string) ($row['title'] ?? ''));
+	if ($title === '') {
+		$title = trim((string) ($row['make'] ?? '') . ' ' . (string) ($row['model'] ?? '') . ' accessory');
+	}
+	$desc = trim((string) ($row['description'] ?? ''));
+	if ($desc === '') {
+		$bits = array_filter(array(
+			$title,
+			trim((string) ($row['make'] ?? '')),
+			trim((string) ($row['model'] ?? '')),
+			trim((string) ($row['year'] ?? '')),
+			trim((string) ($row['city'] ?? '')),
+			trim((string) ($row['category_label'] ?? $row['category_slug'] ?? '')),
+		));
+		$desc = implode(' · ', $bits) . '. ' . epc_seo_regional_shipping_phrase($lang);
+	} else {
+		$desc = preg_replace('/\s+/', ' ', $desc);
+		if (function_exists('mb_substr')) {
+			$desc = mb_substr($desc, 0, 160);
+		} else {
+			$desc = substr($desc, 0, 160);
+		}
+		$desc = trim($desc) . ' ' . epc_seo_regional_shipping_phrase($lang);
+	}
+
+	$DP_Content->title_tag = $title;
+	$DP_Content->description_tag = $desc;
+	$DP_Content->keywords_tag = implode(', ', array_filter(array(
+		$title,
+		trim((string) ($row['make'] ?? '')),
+		trim((string) ($row['model'] ?? '')),
+		trim((string) ($row['city'] ?? '')),
+		'car accessories',
+		'spare parts UAE',
+	)));
+	$DP_Content->robots_tag = 'index, follow';
+	$DP_Content->service_data['epc_seo_page_title'] = $title . ' | ' . $siteName;
+
+	$langHref = epc_seo_lang_href();
+	$canonical = function_exists('epc_acc_storefront_url')
+		? (rtrim((string) $DP_Config->domain_path, '/') . epc_acc_storefront_url($row, $langHref))
+		: (rtrim((string) $DP_Config->domain_path, '/') . $langHref . '/accessories-spare-parts?id=' . $id);
+	$DP_Content->service_data['epc_canonical_url'] = $canonical;
+
+	$image = trim((string) ($row['image_url'] ?? ''));
+	if ($image !== '' && strpos($image, 'http') !== 0) {
+		$image = rtrim((string) $DP_Config->domain_path, '/') . '/' . ltrim($image, '/');
+	}
+	$DP_Content->service_data['epc_seo_og'] = array(
+		'title' => $DP_Content->service_data['epc_seo_page_title'],
+		'description' => $desc,
+		'type' => 'product',
+		'image' => $image,
+	);
+
+	$currency = trim((string) ($row['currency'] ?? 'AED')) ?: 'AED';
+	$price = (float) ($row['price'] ?? 0);
+	$condition = strtolower(trim((string) ($row['condition_type'] ?? $row['condition'] ?? 'new')));
+	$itemCondition = ($condition === 'used' || $condition === 'refurbished')
+		? 'https://schema.org/UsedCondition'
+		: 'https://schema.org/NewCondition';
+	$offer = array(
+		'@type' => 'Offer',
+		'url' => $canonical,
+		'availability' => ((int) ($row['stock_qty'] ?? 1) > 0)
+			? 'https://schema.org/InStock'
+			: 'https://schema.org/OutOfStock',
+		'itemCondition' => $itemCondition,
+		'seller' => array(
+			'@type' => 'Organization',
+			'name' => $siteName,
+		),
+		'areaServed' => epc_seo_schema_country_entries(),
+		'shippingDetails' => array(
+			'@type' => 'OfferShippingDetails',
+			'shippingDestination' => epc_seo_schema_shipping_destinations(),
+		),
+	);
+	if ($price > 0 && epc_seo_schema_include_price($db_link)) {
+		$offer['price'] = number_format($price, 2, '.', '');
+		$offer['priceCurrency'] = $currency;
+	}
+	$product = array(
+		'@context' => 'https://schema.org',
+		'@type' => 'Product',
+		'name' => $title,
+		'description' => $desc,
+		'url' => $canonical,
+		'brand' => array(
+			'@type' => 'Brand',
+			'name' => trim((string) ($row['make'] ?? '')) !== '' ? trim((string) $row['make']) : $siteName,
+		),
+		'category' => trim((string) ($row['category_label'] ?? $row['category_slug'] ?? 'Car accessories')),
+		'offers' => $offer,
+		'areaServed' => epc_seo_schema_country_entries(),
+	);
+	if ($image !== '') {
+		$product['image'] = array($image);
+	}
+	$skuBits = array_filter(array(
+		(string) $id,
+		trim((string) ($row['make'] ?? '')),
+		trim((string) ($row['model'] ?? '')),
+		trim((string) ($row['year'] ?? '')),
+	));
+	if ($skuBits !== array()) {
+		$product['sku'] = implode('-', $skuBits);
+	}
+	$breadcrumb = array(
+		'@context' => 'https://schema.org',
+		'@type' => 'BreadcrumbList',
+		'itemListElement' => array(
+			array(
+				'@type' => 'ListItem',
+				'position' => 1,
+				'name' => 'Home',
+				'item' => rtrim((string) $DP_Config->domain_path, '/') . $langHref . '/',
+			),
+			array(
+				'@type' => 'ListItem',
+				'position' => 2,
+				'name' => ($lang === 'ar') ? 'إكسسوارات وقطع غيار' : (($lang === 'ru') ? 'Аксессуары и запчасти' : 'Accessories & spare parts'),
+				'item' => rtrim((string) $DP_Config->domain_path, '/') . $langHref . '/accessories-spare-parts',
+			),
+			array(
+				'@type' => 'ListItem',
+				'position' => 3,
+				'name' => $title,
+				'item' => $canonical,
+			),
+		),
+	);
+	$DP_Content->service_data['epc_seo_jsonld'] = array($product, $breadcrumb);
 }
 
 function epc_seo_site_display_name($DP_Config): string
@@ -673,26 +895,50 @@ function epc_seo_head_extras_html($DP_Content, $DP_Config): string
 	if (function_exists('epc_portal_is_epartscart_hostname') && epc_portal_is_epartscart_hostname()) {
 		$out .= '<meta name="msvalidate.01" content="A5F1A0C564CD9037AAD1E7874D8F4FA8" />' . "\n";
 	}
-	if (!empty($DP_Content->service_data['epc_seo_page_title'])) {
-		$out .= '<meta property="og:title" content="' . htmlspecialchars((string) $DP_Content->service_data['epc_seo_page_title'], ENT_QUOTES, 'UTF-8') . '">' . "\n";
+	$og = (isset($DP_Content->service_data['epc_seo_og']) && is_array($DP_Content->service_data['epc_seo_og']))
+		? $DP_Content->service_data['epc_seo_og']
+		: array();
+	$ogTitle = '';
+	if (!empty($og['title'])) {
+		$ogTitle = (string) $og['title'];
+	} elseif (!empty($DP_Content->service_data['epc_seo_page_title'])) {
+		$ogTitle = (string) $DP_Content->service_data['epc_seo_page_title'];
 	}
-	if (!empty($DP_Content->description_tag)) {
-		$out .= '<meta property="og:description" content="' . htmlspecialchars((string) $DP_Content->description_tag, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+	if ($ogTitle !== '') {
+		$out .= '<meta property="og:title" content="' . htmlspecialchars($ogTitle, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+	}
+	$ogDesc = '';
+	if (!empty($og['description'])) {
+		$ogDesc = (string) $og['description'];
+	} elseif (!empty($DP_Content->description_tag)) {
+		$ogDesc = (string) $DP_Content->description_tag;
+	}
+	if ($ogDesc !== '') {
+		$out .= '<meta property="og:description" content="' . htmlspecialchars($ogDesc, ENT_QUOTES, 'UTF-8') . '">' . "\n";
 	}
 	$canonical = !empty($DP_Content->service_data['epc_canonical_url'])
 		? (string) $DP_Content->service_data['epc_canonical_url']
 		: rtrim((string) $DP_Config->domain_path, '/') . (isset($_SERVER['REQUEST_URI']) ? strtok((string) $_SERVER['REQUEST_URI'], '?') : '/');
 	$out .= '<meta property="og:url" content="' . htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8') . '">' . "\n";
-	$ogType = !empty($DP_Content->service_data['epc_seo_og']['type'])
-		? (string) $DP_Content->service_data['epc_seo_og']['type']
-		: 'website';
+	$ogType = !empty($og['type']) ? (string) $og['type'] : 'website';
 	$out .= '<meta property="og:type" content="' . htmlspecialchars($ogType, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+	if (!empty($og['image'])) {
+		$out .= '<meta property="og:image" content="' . htmlspecialchars((string) $og['image'], ENT_QUOTES, 'UTF-8') . '">' . "\n";
+	}
 	global $db_link;
 	if ($db_link instanceof PDO && epc_seo_warehouse_indexing_enabled($db_link)) {
 		$out .= epc_seo_geo_meta_html($DP_Config, $db_link);
 		$out .= epc_seo_hreflang_links($DP_Config);
 		$orgSchema = epc_seo_build_organization_schema_array($DP_Config, $db_link);
 		$out .= '<script type="application/ld+json">' . json_encode($orgSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+	}
+	if (!empty($DP_Content->service_data['epc_seo_jsonld']) && is_array($DP_Content->service_data['epc_seo_jsonld'])) {
+		foreach ($DP_Content->service_data['epc_seo_jsonld'] as $schemaDoc) {
+			if (!is_array($schemaDoc) || $schemaDoc === array()) {
+				continue;
+			}
+			$out .= '<script type="application/ld+json">' . json_encode($schemaDoc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+		}
 	}
 	return $out;
 }

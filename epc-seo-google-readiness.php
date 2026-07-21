@@ -102,6 +102,8 @@ $pagePaths = $isEcomae
 		'/en/parts/JS%20ASAKASHI/C110J',
 		'/en/available-brands',
 		'/en/spare-parts',
+		'/en/accessories-spare-parts',
+		'/en/accessories-spare-parts?id=648',
 		'/en/parts',
 		'/robots.txt',
 	);
