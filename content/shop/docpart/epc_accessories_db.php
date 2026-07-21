@@ -1334,48 +1334,48 @@ if (!function_exists('epc_acc_marketplace_search')) {
 			}
 		}
 
-		$where = array("`status` = 'published'");
+		$where = array("l.`status` = 'published'");
 		$bind = array();
 		// Deep-link: focus one listing (CP "View on storefront").
 		if ($listingId > 0) {
-			$where[] = '`id` = ?';
+			$where[] = 'l.`id` = ?';
 			$bind[] = $listingId;
 		}
 		if ($listingId < 1) {
 			if ($categoryId > 0) {
-				$where[] = '`category_id` = ?';
+				$where[] = 'l.`category_id` = ?';
 				$bind[] = $categoryId;
 			}
 			if ($subcategoryId > 0) {
-				$where[] = '`subcategory_id` = ?';
+				$where[] = 'l.`subcategory_id` = ?';
 				$bind[] = $subcategoryId;
 			}
 			if ($make !== '') {
-				$where[] = '`make` = ?';
+				$where[] = 'l.`make` = ?';
 				$bind[] = $make;
 			}
 			if ($model !== '') {
-				$where[] = '`model` LIKE ?';
+				$where[] = 'l.`model` LIKE ?';
 				$bind[] = '%' . $model . '%';
 			}
 			if ($city !== '') {
-				$where[] = '`city` = ?';
+				$where[] = 'l.`city` = ?';
 				$bind[] = $city;
 			}
 			if ($condition !== '') {
-				$where[] = '`condition_type` = ?';
+				$where[] = 'l.`condition_type` = ?';
 				$bind[] = strtolower($condition);
 			}
 			if ($priceMin > 0) {
-				$where[] = '`price` >= ?';
+				$where[] = 'l.`price` >= ?';
 				$bind[] = $priceMin;
 			}
 			if ($priceMax > 0) {
-				$where[] = '`price` <= ?';
+				$where[] = 'l.`price` <= ?';
 				$bind[] = $priceMax;
 			}
 			if ($q !== '') {
-				$where[] = '(`title` LIKE ? OR `description` LIKE ? OR `make` LIKE ? OR `model` LIKE ?)';
+				$where[] = '(l.`title` LIKE ? OR l.`description` LIKE ? OR l.`make` LIKE ? OR l.`model` LIKE ?)';
 				$like = '%' . $q . '%';
 				array_push($bind, $like, $like, $like, $like);
 			}
@@ -1384,24 +1384,24 @@ if (!function_exists('epc_acc_marketplace_search')) {
 
 		switch ($sort) {
 			case 'price-asc':
-				$orderSql = '`featured` DESC, `price` ASC, `updated_at` DESC';
+				$orderSql = 'l.`featured` DESC, l.`price` ASC, l.`updated_at` DESC';
 				break;
 			case 'price-desc':
-				$orderSql = '`featured` DESC, `price` DESC, `updated_at` DESC';
+				$orderSql = 'l.`featured` DESC, l.`price` DESC, l.`updated_at` DESC';
 				break;
 			case 'updated-asc':
-				$orderSql = '`featured` DESC, `updated_at` ASC';
+				$orderSql = 'l.`featured` DESC, l.`updated_at` ASC';
 				break;
 			case 'top-sales':
-				$orderSql = '`featured` DESC, `stock_qty` DESC, `updated_at` DESC';
+				$orderSql = 'l.`featured` DESC, l.`stock_qty` DESC, l.`updated_at` DESC';
 				break;
 			case 'updated-desc':
 			default:
-				$orderSql = '`featured` DESC, `updated_at` DESC, `id` DESC';
+				$orderSql = 'l.`featured` DESC, l.`updated_at` DESC, l.`id` DESC';
 				break;
 		}
 
-		$countStmt = $db->prepare('SELECT COUNT(*) FROM `epc_acc_listings` WHERE ' . $whereSql);
+		$countStmt = $db->prepare('SELECT COUNT(*) FROM `epc_acc_listings` l WHERE ' . $whereSql);
 		$countStmt->execute($bind);
 		$total = (int) $countStmt->fetchColumn();
 		$pages = max(1, (int) ceil($total / $perPage));
