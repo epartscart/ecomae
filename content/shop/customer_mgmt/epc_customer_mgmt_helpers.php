@@ -67,27 +67,41 @@ function epc_cm_list_customers(PDO $db, $search = '', $limit = 50, $offset = 0):
 {
 	$limit = max(1, min(200, (int)$limit));
 	$offset = max(0, (int)$offset);
-	$sql = "SELECT u.`user_id`, u.`email`, u.`phone`, u.`time_reg`,
+	// users.time_registered (not time_reg). Aggregate buyer fields for ONLY_FULL_GROUP_BY.
+	$sql = "SELECT u.`user_id`, u.`email`, u.`phone`, u.`time_registered`,
 		MAX(CASE WHEN up.`data_key` = 'name' THEN up.`data_value` END) AS fname,
 		MAX(CASE WHEN up.`data_key` = 'surname' THEN up.`data_value` END) AS sname,
 		MAX(CASE WHEN up.`data_key` = 'company' THEN up.`data_value` END) AS company,
-		b.`trn`, b.`peppol_endpoint`, b.`buyer_onboarded`
+		MAX(b.`trn`) AS trn,
+		MAX(b.`peppol_endpoint`) AS peppol_endpoint,
+		MAX(b.`buyer_onboarded`) AS buyer_onboarded,
+		MAX(b.`buyer_name`) AS buyer_name,
+		MAX(b.`city`) AS buyer_city,
+		MAX(b.`country_code`) AS buyer_country
 		FROM `users` u
 		LEFT JOIN `users_profiles` up ON up.`user_id` = u.`user_id`
 		LEFT JOIN `epc_einvoice_buyer_profiles` b ON b.`user_id` = u.`user_id`
 		WHERE u.`user_id` > 0";
 	$params = array();
 	if ($search !== '') {
-		$sql .= ' AND (u.`email` LIKE ? OR u.`phone` LIKE ? OR up.`data_value` LIKE ?)';
-		$q = '%' . $search . '%';
-		$params = array($q, $q, $q);
+		if (ctype_digit($search)) {
+			$sql .= ' AND (u.`user_id` = ? OR u.`email` LIKE ? OR u.`phone` LIKE ? OR up.`data_value` LIKE ?)';
+			$q = '%' . $search . '%';
+			$params = array((int)$search, $q, $q, $q);
+		} else {
+			$sql .= ' AND (u.`email` LIKE ? OR u.`phone` LIKE ? OR up.`data_value` LIKE ? OR b.`trn` LIKE ? OR b.`buyer_name` LIKE ?)';
+			$q = '%' . $search . '%';
+			$params = array($q, $q, $q, $q, $q);
+		}
 	}
-	$sql .= ' GROUP BY u.`user_id` ORDER BY u.`user_id` DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
+	$sql .= ' GROUP BY u.`user_id`, u.`email`, u.`phone`, u.`time_registered`
+		ORDER BY u.`user_id` DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
 	$st = $db->prepare($sql);
 	$st->execute($params);
 	$rows = $st->fetchAll(PDO::FETCH_ASSOC);
 	foreach ($rows as &$row) {
-		$row['order_count'] = null;
+		$row['order_count'] = 0;
+		$row['display_name'] = epc_cm_customer_display_name($row);
 	}
 	unset($row);
 	if (!$rows) {
@@ -114,6 +128,52 @@ function epc_cm_list_customers(PDO $db, $search = '', $limit = 50, $offset = 0):
 	}
 	unset($row);
 	return $rows;
+}
+
+/**
+ * Human label for a customer list/detail row.
+ */
+function epc_cm_customer_display_name(array $row): string
+{
+	$company = trim((string)($row['company'] ?? ''));
+	if ($company !== '') {
+		return $company;
+	}
+	$buyer = trim((string)($row['buyer_name'] ?? ''));
+	if ($buyer !== '') {
+		return $buyer;
+	}
+	$name = trim(((string)($row['fname'] ?? '')) . ' ' . ((string)($row['sname'] ?? '')));
+	if ($name !== '') {
+		return $name;
+	}
+	$email = trim((string)($row['email'] ?? ''));
+	if ($email !== '') {
+		$at = strpos($email, '@');
+		return $at > 0 ? substr($email, 0, $at) : $email;
+	}
+	return 'Customer #' . (int)($row['user_id'] ?? 0);
+}
+
+/**
+ * Initials for avatar chip.
+ */
+function epc_cm_customer_initials(array $row): string
+{
+	$label = epc_cm_customer_display_name($row);
+	$parts = preg_split('/[\s@._-]+/', $label) ?: array();
+	$letters = '';
+	foreach ($parts as $p) {
+		$p = trim((string)$p);
+		if ($p === '') {
+			continue;
+		}
+		$letters .= mb_strtoupper(mb_substr($p, 0, 1));
+		if (mb_strlen($letters) >= 2) {
+			break;
+		}
+	}
+	return $letters !== '' ? $letters : 'C';
 }
 
 function epc_cm_customer_orders(PDO $db, int $user_id, $limit = 50): array
@@ -222,19 +282,38 @@ function epc_cm_get_customer(PDO $db, int $user_id): ?array
 	if ($user_id <= 0) {
 		return null;
 	}
-	$rows = epc_cm_list_customers($db, (string)$user_id, 1);
-	foreach ($rows as $r) {
-		if ((int)$r['user_id'] === $user_id) {
-			$st = $db->prepare('SELECT * FROM `epc_einvoice_buyer_profiles` WHERE `user_id` = ? LIMIT 1');
-			$st->execute(array($user_id));
-			$profile = $st->fetch(PDO::FETCH_ASSOC);
-			return array_merge($r, $profile ?: array());
-		}
-	}
-	$st = $db->prepare('SELECT u.* FROM `users` u WHERE u.`user_id` = ? LIMIT 1');
+	$st = $db->prepare(
+		"SELECT u.`user_id`, u.`email`, u.`phone`, u.`time_registered`,
+			MAX(CASE WHEN up.`data_key` = 'name' THEN up.`data_value` END) AS fname,
+			MAX(CASE WHEN up.`data_key` = 'surname' THEN up.`data_value` END) AS sname,
+			MAX(CASE WHEN up.`data_key` = 'company' THEN up.`data_value` END) AS company
+		FROM `users` u
+		LEFT JOIN `users_profiles` up ON up.`user_id` = u.`user_id`
+		WHERE u.`user_id` = ?
+		GROUP BY u.`user_id`, u.`email`, u.`phone`, u.`time_registered`
+		LIMIT 1"
+	);
 	$st->execute(array($user_id));
 	$row = $st->fetch(PDO::FETCH_ASSOC);
-	return $row ?: null;
+	if (!$row) {
+		return null;
+	}
+	try {
+		$pst = $db->prepare('SELECT * FROM `epc_einvoice_buyer_profiles` WHERE `user_id` = ? LIMIT 1');
+		$pst->execute(array($user_id));
+		$profile = $pst->fetch(PDO::FETCH_ASSOC);
+		if (is_array($profile)) {
+			$row = array_merge($row, $profile);
+		}
+	} catch (Exception $e) {
+	}
+	$row['display_name'] = epc_cm_customer_display_name($row);
+	$oc = $db->prepare(
+		'SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `user_id` = ?'
+	);
+	$oc->execute(array($user_id));
+	$row['order_count'] = (int)$oc->fetchColumn();
+	return $row;
 }
 
 function epc_cm_recent_orders(PDO $db, $limit = 50): array
