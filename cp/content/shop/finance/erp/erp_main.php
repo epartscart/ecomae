@@ -1069,7 +1069,13 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 								<td><?php echo epc_erp_h($p['status']); ?></td>
 								<td><?php echo !empty($p['inv_receipt_posted']) ? '<span class="label label-success">GRN</span>' : '<span class="text-muted">—</span>'; ?></td>
 								<td><?php echo $pBadge !== '' ? $pBadge : '<span class="text-muted">—</span>'; ?></td>
-								<td><a class="btn btn-default btn-xs" href="<?php echo epc_erp_h($pView); ?>">View</a></td>
+								<td><?php
+									require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_doc_lifecycle.php';
+									echo epc_erp_doc_actions_html('purchase', $p, $csrf, array(
+										'view_url' => $pView,
+										'id_field' => 'purchase_id',
+									));
+								?></td>
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
@@ -1242,6 +1248,54 @@ $epcErpD365Tab = in_array($tab, $epcErpD365Tabs, true);
 	});
 	document.querySelectorAll('.epc-erp-so-delete').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); if (window.confirm('Delete this draft sales order? This cannot be undone.')) { postAction('so_delete', f); } });
+	});
+	// Shared Edit / Delete / Void handlers (vouchers, purchases, SO/PO/invoices).
+	document.addEventListener('click', function(ev){
+		var btn = ev.target.closest('.epc-erp-doc-void, .epc-erp-doc-delete, .epc-erp-doc-amend');
+		if (!btn || !btn.closest('.epc-erp-shell, .cp-dash, body')) return;
+		if (btn.closest('#epc_boc_topnav')) return;
+		ev.preventDefault();
+		var action = btn.getAttribute('data-action');
+		var idField = btn.getAttribute('data-id-field') || 'id';
+		var id = btn.getAttribute('data-id');
+		var fd = new FormData();
+		fd.append('action', action);
+		var csrf = document.querySelector('input[name="csrf_guard_key"]');
+		if (csrf) fd.append('csrf_guard_key', csrf.value);
+		fd.append(idField, id);
+		fd.append('id', id);
+		if (btn.classList.contains('epc-erp-doc-void')) {
+			if (btn.getAttribute('data-status')) fd.append('status', btn.getAttribute('data-status'));
+			var reason = window.prompt('Void / cancel reason (required for audit trail):', '');
+			if (reason === null) return;
+			reason = (reason || '').trim();
+			if (!reason) { window.alert('A reason is required.'); return; }
+			fd.append('reason', reason);
+			fd.append('void_reason', reason);
+			if (!window.confirm('Void / cancel this document? Posted amounts are reversed via journal — the original number is kept for audit.')) return;
+		} else if (btn.classList.contains('epc-erp-doc-delete')) {
+			if (!window.confirm('Permanently delete this draft? This cannot be undone.')) return;
+		} else if (btn.classList.contains('epc-erp-doc-amend')) {
+			var ref = window.prompt('Reference / invoice number:', '');
+			if (ref === null) return;
+			var note = window.prompt('Note / narrative:', '');
+			if (note === null) return;
+			fd.append('reference', ref);
+			fd.append('note', note);
+			fd.append('invoice_number', ref);
+		}
+		var url = (typeof erpPostUrl !== 'undefined' && erpPostUrl) ? erpPostUrl : (window.epcErpPostUrl || '');
+		if (!url) {
+			var m = document.querySelector('meta[name="epc-erp-ajax"]');
+			url = m ? m.getAttribute('content') : '';
+		}
+		fetch(url, { method: 'POST', body: fd, credentials: 'same-origin' })
+			.then(function(r){ return r.json(); })
+			.then(function(j){
+				showMsg(!!j.status, j.message || (j.status ? 'OK' : 'Error'));
+				if (j.status) setTimeout(function(){ location.reload(); }, 700);
+			})
+			.catch(function(){ showMsg(false, 'Request failed'); });
 	});
 	document.querySelectorAll('.epc-erp-pm-form').forEach(function(f){
 		f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction('pm_save', f); });

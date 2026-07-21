@@ -154,6 +154,9 @@ if ($erpOnly) {
 				echo '<input type="hidden" name="so_id" value="' . (int) $r['id'] . '">';
 				echo '<button type="submit" class="btn btn-xs btn-danger">Delete</button></form>';
 			}
+			if (in_array($r['status'], array('draft', 'confirmed'), true) && (int) ($r['sales_invoice_id'] ?? 0) <= 0) {
+				echo ' <button type="button" class="btn btn-xs btn-warning epc-erp-doc-void" data-action="so_cancel" data-id-field="so_id" data-id="' . (int) $r['id'] . '"><i class="fa fa-ban"></i> Cancel</button>';
+			}
 			echo '</td></tr>';
 		}
 		$epcSoFoot = '<tr class="epc-d365-sumrow"><td class="epc-d365-statcol"></td>'

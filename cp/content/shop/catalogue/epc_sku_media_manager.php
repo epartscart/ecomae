@@ -2,12 +2,16 @@
 /**
  * CP: SKU photos & multi-type specifications manager.
  * Route: /cp/shop/catalogue/sku_media
+ *
+ * Eval-safe: no inline <script>/<style>/<link> in the main pane (those break
+ * under CP <base href>). CSS/JS load via page assets + footer config.
  */
 defined('_ASTEXE_') or die('No access');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media_cp_install.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 
 global $db_link, $DP_Config;
 epc_sku_media_ensure_schema($db_link);
@@ -19,15 +23,29 @@ try {
 
 $session = DP_User::getAdminSession();
 $csrf = is_array($session) ? (string) ($session['csrf_guard_key'] ?? '') : '';
-$backend = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
-$base = '/' . $backend;
+$backendRaw = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
+if ($backendRaw === '') {
+	$backendRaw = 'cp';
+}
+$base = '/' . $backendRaw;
 $profileId = (int) ($_GET['profile_id'] ?? 0);
 $productId = (int) ($_GET['product_id'] ?? 0);
 $brand = trim((string) ($_GET['brand'] ?? ''));
 $article = trim((string) ($_GET['article'] ?? ''));
 
-$cssHref = '/content/shop/catalogue/epc_sku_media.css?v=' . (string) @filemtime($_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.css');
-$jsHref = '/content/shop/catalogue/epc_sku_media.js?v=' . (string) @filemtime($_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.js');
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'skuMedia2';
+$cssPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.css';
+$jsPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.js';
+$cssVer = is_file($cssPath) ? (string) filemtime($cssPath) : $assetVer;
+$jsVer = is_file($jsPath) ? (string) filemtime($jsPath) : $assetVer;
+
+epc_cp_register_page_assets(
+	array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($cssVer)),
+	array(
+		$base . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($assetVer),
+		'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($jsVer),
+	)
+);
 
 if (function_exists('epc_cp_page_frame_open')) {
 	epc_cp_page_frame_open(array(
@@ -38,10 +56,16 @@ if (function_exists('epc_cp_page_frame_open')) {
 	));
 }
 ?>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="<?php echo htmlspecialchars($cssHref, ENT_QUOTES, 'UTF-8'); ?>">
-
-<div class="epc-sku-media" id="epc-sku-media">
+<div
+	class="epc-sku-media"
+	id="epc-sku-media"
+	data-endpoint="/content/shop/catalogue/ajax_epc_sku_media.php"
+	data-csrf="<?php echo htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8'); ?>"
+	data-profile-id="<?php echo (int) $profileId; ?>"
+	data-product-id="<?php echo (int) $productId; ?>"
+	data-brand="<?php echo htmlspecialchars($brand, ENT_QUOTES, 'UTF-8'); ?>"
+	data-article="<?php echo htmlspecialchars($article, ENT_QUOTES, 'UTF-8'); ?>"
+>
 	<div class="epc-sku-media__hero">
 		<div>
 			<h2>SKU photos &amp; specifications</h2>
@@ -156,21 +180,6 @@ if (function_exists('epc_cp_page_frame_open')) {
 		</div>
 	</div>
 </div>
-
-<script src="<?php echo htmlspecialchars($jsHref, ENT_QUOTES, 'UTF-8'); ?>"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  new EpcSkuMedia({
-    root: '#epc-sku-media',
-    endpoint: '/content/shop/catalogue/ajax_epc_sku_media.php',
-    csrf: <?php echo json_encode($csrf); ?>,
-    profileId: <?php echo (int) $profileId; ?>,
-    productId: <?php echo (int) $productId; ?>,
-    brand: <?php echo json_encode($brand); ?>,
-    article: <?php echo json_encode($article); ?>
-  });
-});
-</script>
 <?php
 if (function_exists('epc_cp_page_frame_close')) {
 	epc_cp_page_frame_close();

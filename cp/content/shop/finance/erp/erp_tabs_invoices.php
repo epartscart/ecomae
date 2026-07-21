@@ -269,7 +269,18 @@ else:
 			echo '<td>' . epc_erp_money($d['amount_due']) . '</td>';
 			echo '<td><span class="label label-' . ($d['status'] === 'validated' ? 'success' : 'default') . '">' . epc_erp_h($d['status']) . '</span></td>';
 			echo '<td><a class="btn btn-xs btn-primary" href="' . epc_erp_h($invBase . '&inv_id=' . (int)$d['id']) . '">View</a> ';
-			echo '<a class="btn btn-xs btn-default" href="' . epc_erp_h($invBase . '&inv_action=edit&inv_id=' . (int)$d['id']) . '">Edit</a></td></tr>';
+			if (!in_array((string) $d['status'], array('submitted', 'accepted', 'queued', 'cancelled'), true)) {
+				echo '<a class="btn btn-xs btn-default" href="' . epc_erp_h($invBase . '&inv_action=edit&inv_id=' . (int)$d['id']) . '">Edit</a> ';
+			}
+			if ((string) $d['status'] === 'draft') {
+				echo '<button type="button" class="btn btn-xs btn-danger epc-erp-doc-delete" data-action="invoice_delete" data-id-field="invoice_id" data-id="' . (int) $d['id'] . '"><i class="fa fa-trash"></i> Delete</button> ';
+			}
+			if (in_array((string) $d['status'], array('draft', 'validated', 'rejected'), true)) {
+				echo '<button type="button" class="btn btn-xs btn-warning epc-erp-doc-void" data-action="invoice_cancel" data-id-field="invoice_id" data-id="' . (int) $d['id'] . '"><i class="fa fa-ban"></i> Cancel</button>';
+			} elseif (in_array((string) $d['status'], array('submitted', 'accepted'), true)) {
+				echo '<span class="text-muted" style="font-size:11px;">Use credit note</span>';
+			}
+			echo '</td></tr>';
 		}
 		erp_table_close();
 	}
