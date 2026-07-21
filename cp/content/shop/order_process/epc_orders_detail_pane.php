@@ -104,7 +104,9 @@ if ($backend === '') {
 	$backend = 'cp';
 }
 $fullUrl = '/' . $backend . '/shop/orders/order?order_id=' . $order_id;
-$canEditItems = ($paid === 0);
+// Staff may amend warehouse / brand / article (alternatives) even after payment.
+$canEditItems = true;
+$isPaidOrder = ($paid !== 0);
 $csrf = '';
 if (!empty($GLOBALS['user_session']['csrf_guard_key'])) {
 	$csrf = (string) $GLOBALS['user_session']['csrf_guard_key'];
@@ -397,12 +399,12 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 		<div class="epc-od__items">
 			<div class="epc-od__items-head">
 				<h4 class="epc-od__items-title">Line items</h4>
-				<span class="text-muted small"><?php echo $canEditItems ? 'Brand / part editable · margin live · Ctrl+S saves' : 'Paid order — prices locked'; ?></span>
+				<span class="text-muted small"><?php echo $isPaidOrder
+					? 'Paid order — warehouse / brand / article still editable for alternatives · changing warehouse refreshes price'
+					: 'Brand / part / warehouse editable · warehouse change refreshes price · Ctrl+S saves'; ?></span>
 				<div class="epc-od__items-actions">
-					<?php if ($canEditItems) { ?>
 					<button type="button" class="btn btn-primary btn-xs" onclick="epcOmsSaveAllItems(<?php echo (int) $order_id; ?>);"><i class="fa fa-save"></i> Save all lines</button>
 					<a class="btn btn-default btn-xs" href="/<?php echo epc_orders_ws_h($backend); ?>/shop/orders/items/add?id=<?php echo (int) $order_id; ?>"><i class="fa fa-plus"></i> Add line</a>
-					<?php } ?>
 					<button type="button" class="btn btn-default btn-xs" onclick="epcOmsGotoTab('fulfillment');"><i class="fa fa-random"></i> Fulfillment</button>
 				</div>
 			</div>
@@ -470,20 +472,31 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 				$purchaseHint = ((string) ($eff['source'] ?? '') !== 't2_price_purchase' && abs($purchase - $purchaseStored) > 0.0001)
 					? ('Cost from ' . (string) $eff['source'] . ' — save to store')
 					: '';
+				$lineMeta = array();
+				$lineJson = (string) ($item['t2_json_params'] ?? '');
+				if ($lineJson !== '') {
+					$decodedMeta = json_decode($lineJson, true);
+					if (is_array($decodedMeta)) {
+						$lineMeta = $decodedMeta;
+					}
+				}
+				$isAltLine = !empty($lineMeta['offer_alternative']);
+				$reqBrand = (string) ($lineMeta['requested_manufacturer'] ?? $item['t2_manufacturer'] ?? '');
+				$reqArticle = (string) ($lineMeta['requested_article'] ?? $item['t2_article'] ?? '');
 				?>
-					<tr class="epc-od__line" data-item-id="<?php echo $itemId; ?>">
-						<td class="epc-od__num"><?php echo (int) $lineNo; ?></td>
+					<tr class="epc-od__line<?php echo $isAltLine ? ' is-alt' : ''; ?>" data-item-id="<?php echo $itemId; ?>" data-req-brand="<?php echo epc_orders_ws_h($reqBrand); ?>" data-req-article="<?php echo epc_orders_ws_h($reqArticle); ?>">
+						<td class="epc-od__num"><?php echo (int) $lineNo; ?><?php if ($isAltLine) { ?><div class="epc-od__alt-badge" title="Alternative offered">ALT</div><?php } ?></td>
 						<td class="epc-od__brand">
-							<input type="text" class="form-control input-sm" data-field="t2_manufacturer" value="<?php echo epc_orders_ws_h($item['t2_manufacturer']); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="text" class="form-control input-sm" data-field="t2_manufacturer" value="<?php echo epc_orders_ws_h($item['t2_manufacturer']); ?>" />
 						</td>
 						<td class="epc-od__part">
-							<input type="text" class="form-control input-sm" data-field="t2_article" value="<?php echo epc_orders_ws_h($item['t2_article']); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="text" class="form-control input-sm" data-field="t2_article" value="<?php echo epc_orders_ws_h($item['t2_article']); ?>" />
 						</td>
 						<td class="epc-od__desc" title="<?php echo epc_orders_ws_h($item['t2_name']); ?>">
-							<input type="text" class="form-control input-sm" data-field="t2_name" value="<?php echo epc_orders_ws_h($item['t2_name']); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="text" class="form-control input-sm" data-field="t2_name" value="<?php echo epc_orders_ws_h($item['t2_name']); ?>" />
 						</td>
 						<td class="epc-od__wh">
-							<select class="form-control input-sm" data-field="t2_storage_id" <?php echo $canEditItems ? '' : 'disabled'; ?>>
+							<select class="form-control input-sm" data-field="t2_storage_id" data-reprice="1">
 								<option value="0">—</option>
 								<?php foreach ($storages_list as $sid => $sname) { ?>
 								<option value="<?php echo (int) $sid; ?>"<?php echo ((int) $sid === $storageId) ? ' selected' : ''; ?>><?php echo epc_orders_ws_h(epc_orders_ws_storage_label($sname)); ?></option>
@@ -492,13 +505,13 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 							<span class="epc-od__wh-label"><?php echo epc_orders_ws_h($storageLabel); ?></span>
 						</td>
 						<td class="epc-od__qty">
-							<input type="number" step="1" min="1" class="form-control input-sm" data-field="count_need" value="<?php echo (int) $qty; ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="number" step="1" min="1" class="form-control input-sm" data-field="count_need" value="<?php echo (int) $qty; ?>" />
 						</td>
 						<td class="epc-od__sell">
-							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="price" value="<?php echo epc_orders_ws_h(number_format($sell, 2, '.', '')); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="price" value="<?php echo epc_orders_ws_h(number_format($sell, 2, '.', '')); ?>" />
 						</td>
 						<td class="epc-od__buy">
-							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="t2_price_purchase" value="<?php echo epc_orders_ws_h(number_format($purchase, 2, '.', '')); ?>" title="<?php echo epc_orders_ws_h($purchaseHint); ?>" <?php echo $canEditItems ? '' : 'disabled'; ?> />
+							<input type="number" step="0.01" min="0" class="form-control input-sm" data-field="t2_price_purchase" value="<?php echo epc_orders_ws_h(number_format($purchase, 2, '.', '')); ?>" title="<?php echo epc_orders_ws_h($purchaseHint); ?>" />
 							<?php if ($purchaseHint !== '') { ?><small class="epc-od__cost-hint"><?php echo epc_orders_ws_h($purchaseHint); ?></small><?php } ?>
 						</td>
 						<td class="epc-od__margin <?php echo $lineMargin >= 0 ? 'is-ok' : 'is-bad'; ?>"><?php echo epc_orders_ws_h(number_format($lineMargin, 2, '.', ',')); ?></td>
@@ -512,10 +525,9 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 							</select>
 						</td>
 						<td class="epc-od__acts">
-							<?php if ($canEditItems) { ?>
 							<button type="button" class="btn btn-primary btn-xs" title="Save" onclick="epcOmsSaveItem(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-save"></i></button>
-							<button type="button" class="btn btn-default btn-xs" title="Refresh purchase cost" onclick="epcOmsRefreshCost(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-refresh"></i></button>
-							<?php } ?>
+							<button type="button" class="btn btn-default btn-xs" title="Refresh price from warehouse" onclick="epcOmsRefreshCost(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-refresh"></i></button>
+							<button type="button" class="btn btn-info btn-xs" title="Amend / alternative" onclick="epcOmsOpenAlt(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-exchange"></i></button>
 							<button type="button" class="btn btn-default btn-xs" title="Update status" onclick="epcOmsSetItemStatus(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>);"><i class="fa fa-flag"></i></button>
 							<button type="button" class="btn btn-warning btn-xs" title="Message customer" onclick="epcOmsMessageItem(<?php echo (int) $order_id; ?>, <?php echo $itemId; ?>, <?php echo htmlspecialchars(json_encode((string) $item['t2_article']), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode(number_format($sell, 2, '.', '')), ENT_QUOTES, 'UTF-8'); ?>);"><i class="fa fa-envelope"></i></button>
 						</td>
@@ -714,4 +726,62 @@ $legacyPrintBase = '/content/shop/print_docs/service/print.php?order_id=' . $ord
 			</div>
 		</div>
 	</section>
+</div>
+
+<div class="modal fade" id="epcOmsAltModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Amend / alternative offer</h4>
+			</div>
+			<div class="modal-body">
+				<p class="text-muted small">Customer requested one part — offer an alternative from another warehouse. Sell price is calculated from the chosen warehouse + customer price profile.</p>
+				<p><strong>Requested:</strong> <span id="epcOmsAltReqLabel">—</span></p>
+				<input type="hidden" id="epcOmsAltOrderId" value="" />
+				<input type="hidden" id="epcOmsAltItemId" value="" />
+				<div class="row">
+					<div class="col-sm-6">
+						<label>Alt brand</label>
+						<input type="text" class="form-control input-sm" id="epcOmsAltBrand" />
+					</div>
+					<div class="col-sm-6">
+						<label>Alt article</label>
+						<input type="text" class="form-control input-sm" id="epcOmsAltArticle" />
+					</div>
+				</div>
+				<div class="row" style="margin-top:10px;">
+					<div class="col-sm-12">
+						<label>Description</label>
+						<input type="text" class="form-control input-sm" id="epcOmsAltName" />
+					</div>
+				</div>
+				<div class="row" style="margin-top:10px;">
+					<div class="col-sm-6">
+						<label>Warehouse</label>
+						<select class="form-control input-sm" id="epcOmsAltWarehouse">
+							<option value="0">—</option>
+							<?php foreach ($storages_list as $sid => $sname) { ?>
+							<option value="<?php echo (int) $sid; ?>"><?php echo epc_orders_ws_h(epc_orders_ws_storage_label($sname)); ?></option>
+							<?php } ?>
+						</select>
+					</div>
+					<div class="col-sm-3">
+						<label>Qty</label>
+						<input type="number" min="1" step="1" class="form-control input-sm" id="epcOmsAltQty" value="1" />
+					</div>
+					<div class="col-sm-3">
+						<label>Sell preview</label>
+						<input type="text" class="form-control input-sm" id="epcOmsAltSellPreview" readonly placeholder="—" />
+					</div>
+				</div>
+				<p class="help-block" id="epcOmsAltLookupHint" style="margin-top:10px;"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-info" onclick="epcOmsAltLookupPrice();"><i class="fa fa-search"></i> Lookup warehouse price</button>
+				<button type="button" class="btn btn-primary" onclick="epcOmsAltApply();"><i class="fa fa-check"></i> Apply alternative</button>
+			</div>
+		</div>
+	</div>
 </div>

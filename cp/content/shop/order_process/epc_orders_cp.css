@@ -899,6 +899,20 @@ body.epc-cp-shell .content .epc-orders-page .epc-scp-orders-workspace.is-oms-act
 .epc-od__lines .is-bad { color: var(--eo-danger); }
 .epc-od__usd { white-space: nowrap; color: var(--eo-muted); font-size: 11px; }
 .epc-od__amt { font-weight: 800; white-space: nowrap; }
+.epc-od__alt-badge {
+	display: inline-block;
+	margin-top: 4px;
+	padding: 1px 5px;
+	border-radius: 3px;
+	background: #0ea5e9;
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .04em;
+}
+.epc-od__line.is-alt {
+	background: #f0f9ff;
+}
 .epc-od__acts {
 	white-space: nowrap;
 }
