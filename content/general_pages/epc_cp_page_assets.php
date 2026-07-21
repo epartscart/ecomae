@@ -333,10 +333,10 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/catalogue/sku_media' => array(
-			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia2')),
+			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia3')),
 			'js' => array(
-				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia2'),
-				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia2'),
+				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia3'),
+				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia3'),
 			),
 		),
 		'shop/prices/upload' => array(
