@@ -129,7 +129,7 @@ else//Если нет перехода после нажатия "Сохрани
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_frame.php");
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_assets.php");
 
-	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg5';
+	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg6';
 	$epcCfgBackend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 	if ($epcCfgBackend === '') {
 		$epcCfgBackend = 'cp';
@@ -270,9 +270,9 @@ else//Если нет перехода после нажатия "Сохрани
 								for ($i = 0; $i < $itemCount; $i++) {
 									$item = $tab['items'][$i];
 									$itemName = (string)$item['name'];
-									$current_value = $DP_Config->{$itemName};
+									$current_value = isset($DP_Config->{$itemName}) ? $DP_Config->{$itemName} : '';
 									if ($itemName === 'epc_head_office_address' || $itemName === 'epc_global_locations_countries') {
-										$current_value = str_replace('\\n', "\n", $current_value);
+										$current_value = str_replace('\\n', "\n", (string) $current_value);
 									}
 
 									if (array_search($itemName, $translated_items) !== false) {
@@ -287,7 +287,7 @@ else//Если нет перехода после нажатия "Сохрани
 										$widgetOpts = array();
 									}
 									$widget = get_widget($item['type'], $itemName, $current_value, $widgetOpts);
-									$epc_config_label = epc_config_item_label($itemName, translate_str_by_id($item['caption']));
+									$epc_config_label = epc_config_item_label($itemName, (string) translate_str_by_id($item['caption']));
 									$frontendEffect = epc_config_item_frontend_effect($itemName);
 									$effectIsBackend = ($frontendEffect !== '' && (
 										stripos($frontendEffect, 'not a storefront') !== false

@@ -167,8 +167,9 @@ function epc_config_group_meta_for(int $groupId): array
 /**
  * Clearer English labels for EPC-specific keys (fallback: translated caption).
  */
-function epc_config_item_label(string $name, string $translatedCaption): string
+function epc_config_item_label(string $name, $translatedCaption = ''): string
 {
+	$translatedCaption = trim((string) $translatedCaption);
 	$labels = array(
 		'epc_contact_phone' => 'Frontend phone number',
 		'epc_whatsapp_number' => 'Frontend WhatsApp number',
