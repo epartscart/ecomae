@@ -25,7 +25,7 @@ $epc_mv_prices = '/' . $backend_raw . '/shop/prices';
 $epc_mv_storages = '/' . $backend_raw . '/shop/logistics/storages';
 $epc_mv_guide = '/' . $backend_raw . '/shop/prices/guide';
 
-$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvCode1';
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvCombine1';
 epc_cp_register_page_assets(
 	array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($assetVer)),
 	array(
@@ -52,7 +52,7 @@ epc_cp_register_page_assets(
 		<div class="epc-multivendor-hero__text">
 			<p class="epc-multivendor-kicker">Shop · Price lists · Multivendor</p>
 			<h2>Multi-vendor price upload</h2>
-			<p>Upload one Excel/CSV with many vendors. The system creates a warehouse and price list per vendor automatically. Customers see only the short warehouse name; the full vendor name stays in the control panel.</p>
+			<p>Upload <strong>one Excel/CSV</strong> with many vendors and mixed data types (inventory, sales, purchase). Each row’s <code>Data type</code> column routes the line — no need to upload three times. Warehouses are created automatically; customers see only the short code.</p>
 		</div>
 		<div class="epc-multivendor-hero__actions">
 			<a class="btn btn-default" href="<?php echo htmlspecialchars($epc_mv_prices, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-list"></i> Price lists</a>
@@ -74,7 +74,7 @@ epc_cp_register_page_assets(
 		</div>
 		<div class="epc-multivendor-stat">
 			<span class="epc-multivendor-stat__icon"><i class="fa fa-tags"></i></span>
-			<span class="epc-multivendor-stat__lbl">Data types</span>
+			<span class="epc-multivendor-stat__lbl">Combine</span>
 			<span class="epc-multivendor-stat__val">Inv · Sales · Buy</span>
 		</div>
 	</div>
@@ -178,13 +178,14 @@ epc_cp_register_page_assets(
 				<input type="hidden" name="csrf_guard_key" value="<?php echo $csrf; ?>" />
 				<div class="epc-multivendor-form-grid">
 					<div class="epc-multivendor-field">
-						<label for="epcMultivendorDataType">Default data type</label>
+						<label for="epcMultivendorDataType">Data type mode</label>
 						<select class="form-control" name="data_type" id="epcMultivendorDataType">
-							<option value="inventory" selected>Inventory (unique stock)</option>
-							<option value="sales">Sales (min + max price, total QTY)</option>
-							<option value="purchase">Purchase (min + max price, total QTY)</option>
+							<option value="combine" selected>Combine (one file — inventory + sales + purchase)</option>
+							<option value="inventory">Inventory only (unique stock)</option>
+							<option value="sales">Sales only (min + max price, total QTY)</option>
+							<option value="purchase">Purchase only (min + max price, total QTY)</option>
 						</select>
-						<small class="help-block">Used when the file has no <code>Data type</code> column. Per-row column overrides this.</small>
+						<small class="help-block"><strong>Combine</strong> (default): put <code>inventory</code>, <code>sales</code>, or <code>purchase</code> in each row’s Data type column. Single-type options apply that type to the whole file when the column is missing.</small>
 					</div>
 					<div class="epc-multivendor-field epc-multivendor-field--wide">
 						<label for="epcMultivendorFile">Excel / CSV file</label>
@@ -192,7 +193,7 @@ epc_cp_register_page_assets(
 							<input class="form-control" type="file" name="price_file" id="epcMultivendorFile" accept=".csv,.txt,.xls,.xlsx" required />
 							<p class="epc-multivendor-drop__hint"><i class="fa fa-paperclip"></i> Choose a file — required columns below</p>
 						</div>
-						<small class="help-block">Required: Brand, Article, Price, <strong>Vendor full name</strong>, <strong>Vendor short/code</strong>. Optional: Data type, Name, Qty, Delivery.</small>
+						<small class="help-block">Required: Brand, Article, Price, <strong>Vendor full name</strong>, <strong>Vendor short/code</strong>, and <strong>Data type</strong> (for Combine). Optional: Name, Qty, Delivery.</small>
 					</div>
 				</div>
 				<div class="epc-multivendor-form-actions">
@@ -271,9 +272,9 @@ epc_cp_register_page_assets(
 						</tr>
 						<tr>
 							<td><strong>Data type</strong></td>
-							<td>No</td>
+							<td><span class="label label-danger">Yes</span> (Combine)</td>
 							<td>Data type, Type, Role, Channel</td>
-							<td>inventory / sales / purchase (per row or form default)</td>
+							<td>Per row: inventory / sales / purchase — one file loads all three</td>
 						</tr>
 						<tr>
 							<td><strong>Delivery</strong></td>

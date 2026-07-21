@@ -72,7 +72,7 @@ if (!move_uploaded_file((string) $_FILES['price_file']['tmp_name'], $tmpPath)) {
 	exit(json_encode(array('status' => false, 'message' => 'Could not store upload')));
 }
 
-$dataType = epc_multivendor_normalize_data_type((string) ($_POST['data_type'] ?? $_GET['data_type'] ?? 'inventory'));
+$dataType = epc_multivendor_resolve_data_type_mode((string) ($_POST['data_type'] ?? $_GET['data_type'] ?? 'combine'));
 $result = epc_multivendor_ingest_file($db, $tmpPath, $origName, $dataType);
 $result['ingest_mode'] = 'api_upload';
 $result['data_type_default'] = $dataType;
