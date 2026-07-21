@@ -14,11 +14,13 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_frame.php';
 
 global $db_link, $DP_Config;
-epc_sku_media_ensure_schema($db_link);
 try {
-	epc_sku_media_cp_install($db_link, (string) ($DP_Config->backend_dir ?? 'cp'), true);
+	if ($db_link instanceof PDO) {
+		epc_sku_media_ensure_schema($db_link);
+		epc_sku_media_cp_install($db_link, (string) ($DP_Config->backend_dir ?? 'cp'), true);
+	}
 } catch (Throwable $e) {
-	// Menu install is best-effort on first open.
+	// Schema/menu install is best-effort on first open.
 }
 
 $session = DP_User::getAdminSession();
@@ -184,3 +186,4 @@ if (function_exists('epc_cp_page_frame_open')) {
 if (function_exists('epc_cp_page_frame_close')) {
 	epc_cp_page_frame_close();
 }
+?>
