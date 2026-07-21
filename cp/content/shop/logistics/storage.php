@@ -134,6 +134,13 @@ else//Вывод страницы
     <?php
         require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
     ?>
+
+    <?php
+    // multipleSelect is required by users_selector init + save_action().
+    // Load inline (before mid-page init) — footer asset map alone is too late.
+    ?>
+    <link rel="stylesheet" href="/lib/multiple_select/multiple-select.css" />
+    <script src="/lib/multiple_select/jquery.multiple.select.js"></script>
     
     <!--Форма для отправки-->
     <form name="form_to_save" method="post" style="display:none">
@@ -605,7 +612,7 @@ else//Вывод страницы
 						}
 						
 						?>
-						<select multiple="multiple" id="users_selector">
+						<select multiple="multiple" id="users_selector" name="users_selector[]">
 						<?php
 						$user_query = $db_link->prepare($SQL_SELECT_ADMINS);
 						$user_query->execute($binding_values);
@@ -648,7 +655,9 @@ else//Вывод страницы
 						</select>
 						<script>
 							//Делаем из селектора виджет с чекбоками
-							$('#users_selector').multipleSelect({placeholder: "<?php echo translate_str_by_id(3200); ?>...", width:"100%"});
+							if (window.jQuery && jQuery.fn.multipleSelect) {
+								$('#users_selector').multipleSelect({placeholder: "<?php echo translate_str_by_id(3200); ?>...", width:"100%"});
+							}
 						</script>
 					</div>
 				</div>
@@ -708,7 +717,21 @@ else//Вывод страницы
         document.getElementById("interface_type").value = interface_type;
         
         //3. Кладовщики
-        var users_array = [].concat( $("#users_selector").multipleSelect('getSelects') );
+        var users_array = [];
+        if (window.jQuery && jQuery.fn.multipleSelect) {
+            users_array = [].concat( $("#users_selector").multipleSelect('getSelects') );
+        } else if (window.jQuery) {
+            users_array = [].concat( $("#users_selector").val() || [] );
+        } else {
+            var sel = document.getElementById("users_selector");
+            if (sel) {
+                for (var ui = 0; ui < sel.options.length; ui++) {
+                    if (sel.options[ui].selected) {
+                        users_array.push(sel.options[ui].value);
+                    }
+                }
+            }
+        }
         document.getElementById("users").value = JSON.stringify(users_array);
         
         //3. Настройки подключения к интерфейсу
@@ -999,7 +1022,12 @@ else//Вывод страницы
         
         
         //Кладовщики
-        $('#users_selector').multipleSelect('setSelects', <?php echo $users; ?>);
+        var epc_storage_users = <?php echo $users; ?>;
+        if (window.jQuery && jQuery.fn.multipleSelect) {
+            $('#users_selector').multipleSelect('setSelects', epc_storage_users);
+        } else if (window.jQuery) {
+            $('#users_selector').val(epc_storage_users);
+        }
         
         //Настройки соединения
         var connection_options = JSON.parse('<?php echo $connection_options; ?>');

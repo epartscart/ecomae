@@ -283,6 +283,14 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/epc_cp_table_filter.js?v=' . rawurlencode($ver . 'cpFull2'),
 			),
 		),
+		'shop/logistics/storages/storage' => array(
+			'css' => array(
+				'/lib/multiple_select/multiple-select.css',
+			),
+			'js' => array(
+				'/lib/multiple_select/jquery.multiple.select.js',
+			),
+		),
 		'shop/parts_agent_chats' => array(
 			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'cpFull2')),
 			'js' => array(
