@@ -34,6 +34,7 @@ function epc_tcp_dash_stats(PDO $db): array
 			'orders_week' => 0,
 			'orders_prev_week' => 0,
 			'products' => 0,
+			'warehouse_qty' => 0,
 			'clients' => 0,
 			'pending_tasks' => 0,
 			'returns_open' => 0,
@@ -73,6 +74,30 @@ function epc_tcp_dash_stats(PDO $db): array
 			$stats['products'] = (int) $db->query(
 				'SELECT COUNT(*) FROM `shop_catalogue_products` WHERE `published_flag` = 1'
 			)->fetchColumn();
+		} catch (Exception $e) {
+		}
+		// Total units on hand in own warehouses (interface_type=1 = package / catalogue stock).
+		try {
+			if ($db->query("SHOW TABLES LIKE 'shop_storages_data'")->fetchColumn()) {
+				$ownQty = 0;
+				try {
+					$ownQty = (int) $db->query(
+						'SELECT COALESCE(SUM(sd.`exist`), 0)
+						 FROM `shop_storages_data` sd
+						 INNER JOIN `shop_storages` s ON s.`id` = sd.`storage_id`
+						 WHERE s.`interface_type` = 1 AND sd.`exist` > 0'
+					)->fetchColumn();
+				} catch (Exception $eOwn) {
+					$ownQty = 0;
+				}
+				if ($ownQty > 0) {
+					$stats['warehouse_qty'] = $ownQty;
+				} else {
+					$stats['warehouse_qty'] = (int) $db->query(
+						'SELECT COALESCE(SUM(`exist`), 0) FROM `shop_storages_data` WHERE `exist` > 0'
+					)->fetchColumn();
+				}
+			}
 		} catch (Exception $e) {
 		}
 		try {
@@ -165,7 +190,7 @@ function epc_tcp_dash_stats(PDO $db): array
 				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
 			} catch (Throwable $e) {
 			}
-			return epc_perf_cache_remember('epc_tcp_dash_stats:v4:' . $dbName, 180, $compute);
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v5:' . $dbName, 180, $compute);
 		}
 	}
 	return $compute();
@@ -189,6 +214,7 @@ $stats = array(
 	'orders_week' => 0,
 	'orders_prev_week' => 0,
 	'products' => 0,
+	'warehouse_qty' => 0,
 	'clients' => 0,
 	'pending_tasks' => 0,
 	'returns_open' => 0,
@@ -357,6 +383,7 @@ $kpiRows = array(
 	array('name' => 'Orders today', 'cur' => (float) $stats['orders_today'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 	array('name' => 'Open orders', 'cur' => (float) $stats['pending_tasks'], 'prev' => 0.0, 'goodUp' => false, 'money' => false),
 	array('name' => 'Published products', 'cur' => (float) $stats['products'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Warehouse stock qty', 'cur' => (float) $stats['warehouse_qty'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 	array('name' => 'Storefront clients', 'cur' => (float) $stats['clients'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 );
 if (!empty($finance['has_finance'])) {
@@ -364,7 +391,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260721insights1';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260721whqty2';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -372,9 +399,9 @@ if (function_exists('epc_cp_shell_asset_href')) {
 	);
 }
 if (strpos($cssHref, '?') === false) {
-	$cssHref .= '?v=20260721insights1';
+	$cssHref .= '?v=20260721whqty2';
 } elseif (strpos($cssHref, 'v=') === false) {
-	$cssHref .= '&v=20260721insights1';
+	$cssHref .= '&v=20260721whqty2';
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -425,12 +452,17 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($catalogueUrl); ?>">
 				<div class="cp-dash-metric__label">Products</div>
-				<div class="cp-dash-metric__val"><?php echo (int) $stats['products']; ?></div>
+				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['products']); ?></div>
 				<div class="cp-dash-metric__hint">Published catalogue</div>
+			</a>
+			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($base . '/shop/logistics/stock'); ?>">
+				<div class="cp-dash-metric__label">Warehouse qty</div>
+				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['warehouse_qty']); ?></div>
+				<div class="cp-dash-metric__hint">Total goods in warehouse</div>
 			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($clientsUrl); ?>">
 				<div class="cp-dash-metric__label">Clients</div>
-				<div class="cp-dash-metric__val"><?php echo (int) $stats['clients']; ?></div>
+				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['clients']); ?></div>
 				<div class="cp-dash-metric__hint">Storefront customers</div>
 			</a>
 		</div>
