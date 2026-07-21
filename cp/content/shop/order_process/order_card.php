@@ -119,29 +119,29 @@ else//Действий нет - выводим страницу
 	$customer_balance = $order["customer_balance"];
     $how_get_json = json_decode($order["how_get_json"], true);
 	
-	// Backend management margin is shown without VAT/tax. Prices in order items are net item prices.
 	$ORDER_MARGIN_purchase_sum_sql = "IFNULL((SELECT SUM(`price_purchase`*(`count_reserved`+`count_issued`+`count_canceled`)) FROM `shop_orders_items_details` WHERE `order_item_id` = `shop_orders_items`.`id`), CAST(`t2_price_purchase`*`count_need` AS DECIMAL(20,2)))";
 	$order_margin_query = $db_link->prepare("SELECT
-		CAST(IFNULL(SUM(`price`*`count_need`), 0) AS DECIMAL(20,2)) AS `sale_sum`,
-		CAST(IFNULL(SUM($ORDER_MARGIN_purchase_sum_sql), 0) AS DECIMAL(20,2)) AS `purchase_sum`,
-		CAST(IFNULL(SUM(`price`*`count_need` - $ORDER_MARGIN_purchase_sum_sql), 0) AS DECIMAL(20,2)) AS `profit_sum`
+		CAST(IFNULL(SUM($ORDER_MARGIN_purchase_sum_sql), 0) AS DECIMAL(20,2)) AS `purchase_sum`
 		FROM `shop_orders_items`
 		WHERE `order_id` = ? $WHERE_statuses_not_count;");
 	$order_margin_query->execute(array($order_id));
 	$order_margin_totals = $order_margin_query->fetch();
-	$order_sale_sum_without_vat = (float)$order_margin_totals["sale_sum"];
-	$order_purchase_sum_without_vat = (float)$order_margin_totals["purchase_sum"];
-	$order_profit_without_vat = (float)$order_margin_totals["profit_sum"];
+
+	// FTA e-invoice totals from stored unit prices (B2C may be VAT-inclusive; B2B ex-VAT).
+	// Never add VAT again on top of inclusive carts — that double-taxes.
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_customer_vat.php';
+	$order_vat_totals = epc_uae_customer_vat_shop_order_totals($db_link, (int) $order_id);
+	$order_sale_sum_without_vat = (float) $order_vat_totals['line_net'];
+	$order_purchase_sum_without_vat = (float) $order_margin_totals["purchase_sum"];
+	$order_profit_without_vat = round($order_sale_sum_without_vat - $order_purchase_sum_without_vat, 2);
 	$order_margin_percent_without_vat = ($order_sale_sum_without_vat > 0) ? round($order_profit_without_vat * 100 / $order_sale_sum_without_vat, 2) : 0;
 
-	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_uae_vat.php';
-	$order_uae_vat = epc_uae_vat_calc_on_exclusive($order_sale_sum_without_vat, $db_link);
-	$order_vat_amount = (float)$order_uae_vat['vat_amount'];
-	$order_sale_incl_vat = (float)$order_uae_vat['total_incl_vat'];
-	$order_vat_rate = (float)$order_uae_vat['vat_rate'];
+	$order_vat_amount = (float) $order_vat_totals['vat_amount'];
+	$order_sale_incl_vat = (float) $order_vat_totals['gross'];
+	$order_vat_rate = (float) $order_vat_totals['tax_rate'];
 	$paid_sum_num = (float)$paid_sum;
-	$paid_left_incl_vat = max(0, round($order_sale_incl_vat - $paid_sum_num, 2));
-	$paid_left_display = ($order_uae_vat['vat_applicable'] && $order_vat_rate > 0) ? $paid_left_incl_vat : (float)$paid_left;
+	$paid_left_incl_vat = max(0, round(((float) $order_vat_totals['amount_due_base']) - $paid_sum_num, 2));
+	$paid_left_display = ($order_vat_amount > 0 || !empty($order_vat_totals['prices_inclusive'])) ? $paid_left_incl_vat : (float)$paid_left;
     ?>
 	<div class="col-lg-12 epc-oc-page epc-orders-page">
 		<div class="epc-oc-oms-banner">

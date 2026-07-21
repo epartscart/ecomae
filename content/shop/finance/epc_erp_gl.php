@@ -819,7 +819,9 @@ function epc_erp_gl_post_sales_orders(PDO $db, $date_from, $date_to)
 	}
 	$posted = 0;
 	foreach ($orders as $o) {
-		$sale = round((float)$o['sale_ex_vat'], 2);
+		require_once __DIR__ . '/epc_uae_customer_vat.php';
+		$totals = epc_uae_customer_vat_shop_order_totals($db, (int) $o['id']);
+		$sale = round((float) $totals['line_net'], 2);
 		if ($sale <= 0) {
 			continue;
 		}
@@ -830,14 +832,12 @@ function epc_erp_gl_post_sales_orders(PDO $db, $date_from, $date_to)
 		if ((int)$chk->fetchColumn() > 0) {
 			continue;
 		}
-		require_once __DIR__ . '/epc_uae_vat.php';
-		$calc = epc_uae_vat_calc_on_exclusive($sale, $db);
-		$vat = round((float)$calc['vat_amount'], 2);
-		$total = round((float)$calc['total_incl_vat'], 2);
+		$vat = round((float) $totals['vat_amount'], 2);
+		$total = round((float) $totals['gross'], 2);
 		$salesTreatment = epc_uae_vat_sales_treatment_for_order($db, (int)($o['user_id'] ?? 0));
 		$lines = array(
 			array('coa_id' => (int)$ar['id'], 'debit' => $total, 'credit' => 0, 'line_note' => 'Order #' . (int)$o['id']),
-			array('coa_id' => (int)$rev['id'], 'debit' => 0, 'credit' => $sale, 'line_note' => 'Sales revenue'),
+			array('coa_id' => (int)$rev['id'], 'debit' => 0, 'credit' => $sale, 'line_note' => 'Sales revenue (ex VAT)'),
 		);
 		if ($vat > 0 && $vat_out) {
 			$lines[] = array('coa_id' => (int)$vat_out['id'], 'debit' => 0, 'credit' => $vat, 'line_note' => 'VAT output (' . $salesTreatment . ')');
