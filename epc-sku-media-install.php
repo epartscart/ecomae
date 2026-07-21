@@ -68,6 +68,21 @@ echo 'apply=' . ($apply ? '1' : '0') . "\n";
 $result = epc_sku_media_cp_install($pdo, $backend, $apply);
 echo 'content_id=' . (int) $result['content_id'] . "\n";
 echo 'menu_item_id=' . (int) $result['menu_item_id'] . "\n";
+
+if ($apply && is_file(__DIR__ . '/epc_cp_mainstream_menu.php')) {
+	require_once __DIR__ . '/epc_cp_mainstream_menu.php';
+	if (function_exists('epc_cp_shop_catalogue_prices_menu_apply')) {
+		$menu = epc_cp_shop_catalogue_prices_menu_apply($pdo);
+		echo 'shop_menu_items=' . json_encode($menu['items'] ?? array()) . "\n";
+	}
+	// Clear CP menu JSON caches so topnav picks up new rows immediately.
+	$cacheDir = __DIR__ . '/content/files/epc_cache';
+	foreach (glob($cacheDir . '/epc_cp_menu_rows_v1_*.json') ?: array() as $cacheFile) {
+		@unlink($cacheFile);
+		echo 'cleared_cache=' . basename($cacheFile) . "\n";
+	}
+}
+
 if ($apply) {
 	echo "Installed CP route: /{$backend}/shop/catalogue/sku_media\n";
 } else {
