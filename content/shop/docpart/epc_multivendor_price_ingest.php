@@ -615,7 +615,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
  *
  * Match principal: data_type + brand + article + vendor_name + vendor_code
  *  - inventory → unique (one row, qty summed)
- *  - sales/purchase → keep lowest + highest price only
+ *  - sales/purchase → keep lowest + highest price; QTY = combined total on both rows
  * Same vendor code with a different vendor name is a separate bucket (min/max do not mix).
  *
  * @param list<array<string,mixed>> $rows
