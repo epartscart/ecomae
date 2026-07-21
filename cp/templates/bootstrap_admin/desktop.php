@@ -430,9 +430,6 @@ function print_backend_button($button_params)
 	$epcCpShowErpCta = $epcCpErpUrl !== '';
 	?>
 	<div class="epc-cp-topbar-strip hidden-xs">
-		<?php if (!empty($epcCpShell['company'])) { ?>
-		<span class="epc-cp-topbar-company"><?php echo htmlspecialchars($epcCpShell['company'], ENT_QUOTES, 'UTF-8'); ?></span>
-		<?php } ?>
 		<nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
 			<?php if ($epcCpShowErpCta) { ?>
 			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>" title="Open ERP">

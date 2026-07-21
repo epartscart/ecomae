@@ -8,6 +8,12 @@ body.epc-cp-shell #header .epc-cp-topbar-strip {
 	gap: 8px;
 }
 
+/* Drop company / role text beside logo — keep only ERP + Storefront red CTAs */
+body.epc-cp-shell #header .epc-cp-topbar-company,
+body.epc-cp-shell #header .epc-cp-topbar-role {
+	display: none !important;
+}
+
 body.epc-cp-shell #header .epc-cp-topbar-ctas {
 	display: inline-flex;
 	align-items: center;
