@@ -1205,11 +1205,6 @@ if (empty($GLOBALS['epc_cp_bos_host']) && !empty($GLOBALS['epc_cp_topnav_only'])
 				<div class="epc-cp-page-header__eyebrow">
 					<span class="epc-cp-page-header__eyebrow-icon"><i class="fa <?php echo htmlspecialchars($epcPageHeader['icon'], ENT_QUOTES, 'UTF-8'); ?>"></i></span>
 					<span class="epc-cp-page-header__eyebrow-text"><?php echo htmlspecialchars($epcPageHeader['eyebrow'], ENT_QUOTES, 'UTF-8'); ?></span>
-					<?php if (!empty($epcPageHeader['role_label'])) { ?>
-					<span class="epc-cp-page-header__role epc-cp-page-header__role--<?php echo htmlspecialchars($epcPageHeader['role_type'], ENT_QUOTES, 'UTF-8'); ?>">
-						<?php echo htmlspecialchars($epcPageHeader['role_label'], ENT_QUOTES, 'UTF-8'); ?>
-					</span>
-					<?php } ?>
 				</div>
 				<h1 class="epc-cp-page-header__title"><?php echo $DP_Content->value; ?></h1>
 				<?php if (trim((string) $DP_Content->description) !== '') { ?>
