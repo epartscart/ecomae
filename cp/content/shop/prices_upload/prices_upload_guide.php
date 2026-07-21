@@ -127,7 +127,7 @@ try {
 				<strong><i class="fa fa-warehouse"></i> Multi-vendor price upload</strong>
 				— one Excel/CSV with many vendors; warehouses + price lists are created automatically.
 				<a class="btn btn-success btn-sm" href="<?php echo $backend; ?>/shop/prices/multivendor" style="margin-left:8px;"><i class="fa fa-upload"></i> Open Multi-vendor upload</a>
-				<a class="btn btn-default btn-sm" href="#guide_multivendor" data-toggle="collapse" style="margin-left:4px;"><i class="fa fa-book"></i> Jump to guide §8</a>
+				<a class="btn btn-default btn-sm" href="#guide_multivendor" data-toggle="collapse" style="margin-left:4px;"><i class="fa fa-book"></i> Jump to guide §7</a>
 				<a class="btn btn-default btn-sm" href="<?php echo $backend; ?>/content/shop/prices_upload/epc_multivendor_sample_file.php" download="epc-multivendor-sample.csv" style="margin-left:4px;"><i class="fa fa-download"></i> Sample CSV</a>
 			</div>
 
@@ -432,30 +432,12 @@ try {
 					</div>
 				</div>
 
-				<!-- 7 Commerce S/P/L -->
-				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_commerce" class="collapsed">7. Commerce data (sales / purchase / inventory → warehouses)</a></h5></div>
-					<div id="guide_commerce" class="panel-collapse collapse">
-						<div class="panel-body">
-							<p><a class="btn btn-sm btn-primary" href="<?php echo $backend; ?>/shop/prices/commerce">Open Commerce data upload</a></p>
-							<ul>
-								<li><strong>Sales (*-S)</strong> — highest sales price per brand+article becomes our shelf price; qty summed. List: <code>BASE-S</code>.</li>
-								<li><strong>Purchase (*.P)</strong> — one list per supplier; shelf = cost × (1 + margin%). List: <code>SUPPLIER.P</code>.</li>
-								<li><strong>Inventory (*-L)</strong> — stock qty + cost/list with margin. List: <code>BASE-L</code>.</li>
-							</ul>
-							<p>Creates matching Docpart price lists + warehouses (interface type “Simple price list”) so items appear in storefront search.</p>
-							<p><strong>Recurring:</strong> re-upload the Excel periodically, or set a file URL on import (stored as URL load mode). Margin + role are remembered. Refresh one list with <code>action=refresh_url&amp;price_id=…</code>, or all linked files with <code>action=refresh_all</code> (cron). URL-only import works without uploading a file.</p>
-							<p><span class="label label-primary">API</span> <code>/epc-upload-commerce-prices.php</code> — POST <code>token</code>, <code>key</code>, <code>role</code>, <code>base_name</code>, <code>margin_percent</code>, <code>price_file</code> and/or <code>source_url</code>.</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- 8 Multi-vendor -->
+				<!-- 7 Multi-vendor (replaces retired Commerce S/P/L upload) -->
 				<div class="panel panel-default" id="epc_guide_mv_panel">
 					<div class="panel-heading">
 						<h5 class="panel-title">
 							<a data-toggle="collapse" href="#guide_multivendor">
-								8. Multi-vendor price upload (many vendors → auto warehouses)
+								7. Multi-vendor price upload (many vendors → auto warehouses)
 							</a>
 						</h5>
 					</div>
@@ -620,9 +602,9 @@ DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
 					</div>
 				</div>
 
-				<!-- 9 Deploy API -->
+				<!-- 8 Deploy API -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">9. Deploy API (automation / UAE uploads)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_deploy" class="collapsed">8. Deploy API (automation / UAE uploads)</a></h5></div>
 					<div id="guide_deploy" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><span class="label label-primary">Endpoint</span> <code>/epc-upload-uae-prices.php</code> — POST <code>token</code>, <code>key</code> (tech_key), <code>price_file</code>, <code>price_name</code> or <code>price_id</code>.</p>
@@ -632,9 +614,9 @@ DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
 					</div>
 				</div>
 
-				<!-- 10 Legacy API -->
+				<!-- 9 Legacy API -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_api" class="collapsed">10. Legacy Treelax API</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_api" class="collapsed">9. Legacy Treelax API</a></h5></div>
 					<div id="guide_api" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><code>/api/prices/upload_price.php</code> — POST <code>tech_key</code> + file; chains to CP <code>ajax_5_import_csv_to_db.php</code>.</p>
@@ -642,9 +624,9 @@ DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
 					</div>
 				</div>
 
-				<!-- 11 Manual edit -->
+				<!-- 10 Manual edit -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_edit" class="collapsed">11. Manual grid edit (single rows)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_edit" class="collapsed">10. Manual grid edit (single rows)</a></h5></div>
 					<div id="guide_edit" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><a href="<?php echo $backend; ?>/shop/prices/prices_edit">Edit price list records</a> — not a file import; for corrections only.</p>
@@ -652,9 +634,9 @@ DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
 					</div>
 				</div>
 
-				<!-- 12 Price review -->
+				<!-- 11 Price review -->
 				<div class="panel panel-default">
-					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_review" class="collapsed">12. Price review (cross-check / adjust)</a></h5></div>
+					<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#guide_review" class="collapsed">11. Price review (cross-check / adjust)</a></h5></div>
 					<div id="guide_review" class="panel-collapse collapse">
 						<div class="panel-body">
 							<p><code>/shop/prices/review?price_id=</code> — updates existing prices after import; does not load new catalog from file.</p>
@@ -686,7 +668,7 @@ TEST,XYZ999,Another part,5,12.00,2</pre>
 			<p>Map columns in price list settings to match your file (manufacturer=1, article=2, etc.).</p>
 			<p><strong>Multi-vendor sample:</strong>
 				<a href="<?php echo $backend; ?>/content/shop/prices_upload/epc_multivendor_sample_file.php" download="epc-multivendor-sample.csv">Download epc-multivendor-sample.csv</a>
-				or see <a href="#guide_multivendor" data-toggle="collapse">§8 Multi-vendor price upload</a>.</p>
+				or see <a href="#guide_multivendor" data-toggle="collapse">§7 Multi-vendor price upload</a>.</p>
 
 			<p class="text-muted"><small>Regenerate skipped-line report for an old upload: <code>/epc-regenerate-issues-report.php?token=…&amp;key=…&amp;history_id=</code></small></p>
 		</div>

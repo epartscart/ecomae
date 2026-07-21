@@ -8,7 +8,7 @@ defined('_ASTEXE_') or die('No access');
 $lang_href = (isset($multilang_params['lang_href']) && $multilang_params['lang_href'] !== '')
 	? rtrim((string) $multilang_params['lang_href'], '/')
 	: '/en';
-$epc_acc_ver = '20260719accNoPw1';
+$epc_acc_ver = '20260721accDeepLink1';
 ?>
 <link rel="stylesheet" href="/content/general_pages/epc_accessories.css?v=<?php echo rawurlencode($epc_acc_ver); ?>">
 
@@ -166,6 +166,7 @@ $epc_acc_ver = '20260719accNoPw1';
 	var root = document.getElementById('epc-accessories');
 	if (!root) { return; }
 	var api = root.getAttribute('data-api') || '';
+	var lang = root.getAttribute('data-lang') || '/en';
 	var SAVE_KEY = 'epc_acc_saved_ads';
 	var NOTIFY_KEY = 'epc_acc_notify_alerts';
 	var els = {
@@ -208,7 +209,7 @@ $epc_acc_ver = '20260719accNoPw1';
 
 	var state = {
 		q: '', category: '', subcategory: '', make: '', model: '', city: '',
-		condition: '', price_min: '', price_max: '', sort: 'updated-desc', page: 1, view: 'grid',
+		condition: '', price_min: '', price_max: '', id: '', sort: 'updated-desc', page: 1, view: 'grid',
 		year: '', showSavedOnly: false,
 		taxonomy: [], makes: [], cities: []
 	};
@@ -259,7 +260,7 @@ $epc_acc_ver = '20260719accNoPw1';
 	function syncUrl() {
 		try {
 			var u = new URL(window.location.href);
-			['q','category','subcategory','make','model','city','condition','price_min','price_max','sort','page'].forEach(function (k) {
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page'].forEach(function (k) {
 				var v = state[k];
 				if (v && String(v) !== '' && !(k === 'page' && String(v) === '1') && !(k === 'sort' && v === 'updated-desc')) {
 					u.searchParams.set(k, v);
@@ -273,7 +274,7 @@ $epc_acc_ver = '20260719accNoPw1';
 	function readUrl() {
 		try {
 			var u = new URL(window.location.href);
-			['q','category','subcategory','make','model','city','condition','price_min','price_max','sort','page'].forEach(function (k) {
+			['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page'].forEach(function (k) {
 				if (u.searchParams.has(k)) { state[k] = u.searchParams.get(k) || ''; }
 			});
 			if (els.q) els.q.value = state.q;
@@ -436,8 +437,10 @@ $epc_acc_ver = '20260719accNoPw1';
 			return;
 		}
 		els.results.innerHTML = items.map(function (item, idx) {
-			var href = item.external_url || '#';
+			var selfHref = (lang || '/en') + '/accessories-spare-parts?id=' + encodeURIComponent(item.id);
+			var href = item.external_url || selfHref;
 			var saved = isSaved(item.id);
+			var focus = state.id && String(state.id) === String(item.id);
 			var img = item.image_url
 				? '<img src="' + esc(item.image_url) + '" alt="" loading="lazy" />'
 				: '<span class="epc-acc__media-mark">' + esc((item.make || item.category_label || 'AD').toString().slice(0, 3).toUpperCase()) + '</span>';
@@ -445,7 +448,7 @@ $epc_acc_ver = '20260719accNoPw1';
 				? '<span class="epc-acc__compare">' + esc(money(item.compare_price, item.currency)) + '</span>'
 				: '';
 			var vehicleBits = [item.make, item.model, item.year].filter(Boolean).join(' · ');
-			return '<article class="epc-acc__card' + (item.featured ? ' is-featured' : '') + '" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
+			return '<article class="epc-acc__card' + (item.featured ? ' is-featured' : '') + (focus ? ' is-focus' : '') + '" id="epc-acc-listing-' + esc(item.id) + '" data-listing-id="' + esc(item.id) + '" style="animation-delay:' + (Math.min(idx, 8) * 0.03) + 's">'
 				+ '<div class="epc-acc__media">'
 				+ (item.featured ? '<span class="epc-acc__featured">Featured</span>' : '')
 				+ '<span class="epc-acc__media-badge">' + esc(item.condition === 'used' ? 'Used' : 'New') + '</span>'
@@ -474,6 +477,14 @@ $epc_acc_ver = '20260719accNoPw1';
 				if (state.showSavedOnly) { renderCards(items, emptyCatalog); }
 			});
 		});
+		if (state.id) {
+			window.setTimeout(function () {
+				var focusEl = document.getElementById('epc-acc-listing-' + String(state.id));
+				if (focusEl && focusEl.scrollIntoView) {
+					focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}
+			}, 80);
+		}
 	}
 
 	function renderPager(page, pages) {
@@ -501,7 +512,7 @@ $epc_acc_ver = '20260719accNoPw1';
 		els.count.textContent = 'Loading…';
 		syncUrl();
 		var params = new URLSearchParams();
-		['q','category','subcategory','make','model','city','condition','price_min','price_max','sort','page'].forEach(function (k) {
+		['q','category','subcategory','make','model','city','condition','price_min','price_max','id','sort','page'].forEach(function (k) {
 			if (state[k] !== '' && state[k] != null) params.set(k, state[k]);
 		});
 		params.set('per_page', '24');
@@ -519,6 +530,11 @@ $epc_acc_ver = '20260719accNoPw1';
 					: '<strong>0</strong> results — categories ready, ads will be added category by category';
 				if (state.showSavedOnly) {
 					countLabel = 'Showing <strong>saved</strong> ads from this search';
+				}
+				if (state.id && data.total === 1) {
+					countLabel = 'Showing listing <strong>#' + esc(state.id) + '</strong>';
+				} else if (state.id && !data.total) {
+					countLabel = 'Listing <strong>#' + esc(state.id) + '</strong> not found or not published';
 				}
 				els.count.innerHTML = countLabel;
 				renderFacets(data.facets || {});
@@ -557,7 +573,7 @@ $epc_acc_ver = '20260719accNoPw1';
 	}
 	if (els.reset) {
 		els.reset.addEventListener('click', function () {
-			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition:'', price_min:'', price_max:'', sort:'updated-desc', page:1, view:state.view, year:'', showSavedOnly:false, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities };
+			state = { q:'', category:'', subcategory:'', make:'', model:'', city:'', condition:'', price_min:'', price_max:'', id:'', sort:'updated-desc', page:1, view:state.view, year:'', showSavedOnly:false, taxonomy:state.taxonomy, makes:state.makes, cities:state.cities };
 			if (els.q) els.q.value = '';
 			if (els.model) els.model.value = '';
 			if (els.vMake) els.vMake.value = '';

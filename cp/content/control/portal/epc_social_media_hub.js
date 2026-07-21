@@ -41,6 +41,33 @@
 			copyText(cap, copyBtn);
 			return;
 		}
+		var useVideoBtn = e.target.closest('.epc-social-use-video');
+		if (useVideoBtn) {
+			var mediaUrl = useVideoBtn.getAttribute('data-url') || '';
+			if (!mediaUrl) {
+				return;
+			}
+			// Prefer absolute URL so Meta/TikTok can fetch from public HTTPS.
+			if (mediaUrl.charAt(0) === '/') {
+				mediaUrl = window.location.origin + mediaUrl;
+			}
+			var videoUrlInput = document.getElementById('epc_social_video_url');
+			var composeMedia = document.getElementById('epc_social_compose_media');
+			if (videoUrlInput) {
+				videoUrlInput.value = mediaUrl;
+			}
+			if (composeMedia) {
+				composeMedia.value = mediaUrl;
+			}
+			copyText(mediaUrl, useVideoBtn);
+			var origLabel = useVideoBtn.innerHTML;
+			useVideoBtn.innerHTML = '<i class="fa fa-check"></i> Media URL set';
+			setTimeout(function () { useVideoBtn.innerHTML = origLabel; }, 1800);
+			if (!videoUrlInput && !composeMedia) {
+				alert('Media URL copied. Open Drafts or TikTok and paste into the media URL field.');
+			}
+			return;
+		}
 		var draftBtn = e.target.closest('.epc-social-save-draft');
 		if (draftBtn && cfg.ajaxUrl) {
 			var fd = new FormData();

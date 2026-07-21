@@ -25,6 +25,7 @@ if ($mfr === '') {
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_stock_brands_helpers.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 
 $rows = epc_stock_brand_parts_for_manufacturer($db_link, $mfr, 5000);
 $display_brand = $mfr;
@@ -32,6 +33,9 @@ if (count($rows) > 0 && !empty($rows[0]['manufacturer'])) {
 	$display_brand = $rows[0]['manufacturer'];
 }
 $n = count($rows);
+if (!epc_storefront_prices_visible_for_user() && function_exists('epc_storefront_prices_redact_brand_parts_rows')) {
+	epc_storefront_prices_redact_brand_parts_rows($rows);
+}
 $rows_json = json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 if ($rows_json === false) {
 	$rows_json = '[]';

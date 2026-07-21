@@ -24,6 +24,10 @@ require_once __DIR__ . '/docpart_price_upload_history.php';
 require_once __DIR__ . '/epc_price_import_helpers.php';
 require_once __DIR__ . '/epc_commerce_price_ingest.php';
 require_once __DIR__ . '/epc_multivendor_min_price_acl.php';
+require_once __DIR__ . '/epc_price_extra_fields.php';
+if (is_file(__DIR__ . '/docpart_article_match.php')) {
+	require_once __DIR__ . '/docpart_article_match.php';
+}
 
 /**
  * @return array<string,list<string>>
@@ -156,6 +160,14 @@ function epc_multivendor_collapse_product_candidates(array $candidates, string $
 		return array_values($candidates);
 	}
 
+	$mergedExtras = array();
+	foreach ($candidates as $cand) {
+		$ex = isset($cand['extras']) && is_array($cand['extras']) ? $cand['extras'] : array();
+		if ($ex !== array()) {
+			$mergedExtras = epc_price_extra_merge($mergedExtras, $ex);
+		}
+	}
+
 	if ($dataType === 'inventory') {
 		// Unique: one row — sum qty, keep lowest positive price (or first).
 		$keep = $candidates[0];
@@ -177,6 +189,9 @@ function epc_multivendor_collapse_product_candidates(array $candidates, string $
 		$keep['exist'] = $sumExist;
 		if ($minPrice !== null) {
 			$keep['price'] = $minPrice;
+		}
+		if ($mergedExtras !== array()) {
+			$keep['extras'] = $mergedExtras;
 		}
 		return array($keep);
 	}
@@ -201,6 +216,12 @@ function epc_multivendor_collapse_product_candidates(array $candidates, string $
 	}
 	if ($minRow === null) {
 		return array();
+	}
+	if ($mergedExtras !== array()) {
+		$minRow['extras'] = $mergedExtras;
+		if ($maxRow !== null) {
+			$maxRow['extras'] = $mergedExtras;
+		}
 	}
 	if ($maxRow === null || (float) $minRow['price'] === (float) $maxRow['price']) {
 		// Same price — one row with total qty.
@@ -541,6 +562,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 		return array('ok' => false, 'rows' => array(), 'message' => 'Missing header row', 'headers' => array(), 'map' => array(), 'mode' => $mode);
 	}
 	$map = epc_multivendor_map_headers($header);
+	$extraColMap = epc_price_extra_map_header_columns($header, $map);
 	if ($map['article'] < 0) {
 		fclose($fh);
 		return array('ok' => false, 'rows' => array(), 'message' => 'Could not find Article/SKU column', 'headers' => $header, 'map' => $map, 'mode' => $mode);
@@ -635,6 +657,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 		} else {
 			$dataType = epc_multivendor_normalize_data_type($dataTypeRaw, $rowFallback !== '' ? $rowFallback : 'inventory');
 		}
+		$extras = epc_price_extra_extract_from_row($raw, $extraColMap);
 		$rows[] = array(
 			'manufacturer' => $manufacturer,
 			'article' => $article,
@@ -648,6 +671,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 			'vendor_short' => $vendorShort,
 			'vendor_key' => epc_multivendor_vendor_key($vendorFull, $vendorShort),
 			'data_type' => $dataType,
+			'extras' => $extras,
 		);
 	}
 	fclose($fh);
@@ -667,6 +691,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 		'message' => 'OK',
 		'headers' => $header,
 		'map' => $map,
+		'extra_columns' => $extraColMap,
 		'mode' => $mode,
 		'rows_skipped' => $skipped,
 		'rows_skipped_no_type' => $skippedNoType,
@@ -744,7 +769,7 @@ function epc_multivendor_write_docpart_csv(string $path, array $products): bool
 	if ($fh === false) {
 		return false;
 	}
-	fwrite($fh, "Brand,Number,Name,Qty,Price,Delivery,MinOrder,Storage\n");
+	fwrite($fh, "Brand,Number,Name,Qty,Price,Delivery,MinOrder,Storage,ExtraJSON\n");
 	foreach ($products as $p) {
 		$tier = strtolower(trim((string) ($p['epc_price_tier'] ?? $p['storage'] ?? '')));
 		$storage = '';
@@ -755,6 +780,7 @@ function epc_multivendor_write_docpart_csv(string $path, array $products): bool
 		} else {
 			$storage = trim((string) ($p['storage'] ?? ''));
 		}
+		$extras = isset($p['extras']) && is_array($p['extras']) ? $p['extras'] : array();
 		$line = array(
 			(string) ($p['manufacturer'] ?? ''),
 			(string) ($p['article_show'] ?? $p['article'] ?? ''),
@@ -764,6 +790,7 @@ function epc_multivendor_write_docpart_csv(string $path, array $products): bool
 			(string) (int) ($p['time_to_exe'] ?? 0),
 			(string) (int) ($p['min_order'] ?? 0),
 			$storage,
+			epc_price_extra_encode($extras),
 		);
 		fputcsv($fh, $line);
 	}
@@ -888,6 +915,8 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePath): array
 {
 	$priceId = (int) $price['id'];
+	epc_price_extra_ensure_schema($db);
+	epc_price_extra_clear_for_price($db, $priceId);
 	$db->prepare('DELETE FROM `shop_docpart_prices_data` WHERE `price_id` = ?')->execute(array($priceId));
 	$fh = fopen($filePath, 'rb');
 	if ($fh === false) {
@@ -895,13 +924,24 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
 	}
 	fgetcsv($fh); // header
 	$nextId = (int) $db->query('SELECT COALESCE(MAX(`id`), 0) FROM `shop_docpart_prices_data`')->fetchColumn();
-	$ins = $db->prepare(
-		'INSERT INTO `shop_docpart_prices_data`
-		 (`id`,`price_id`,`manufacturer`,`article`,`article_show`,`name`,`exist`,`price`,`time_to_exe`,`storage`,`min_order`)
-		 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-	);
+	$hasArticleSearch = function_exists('docpart_price_data_ensure_article_search_column')
+		&& docpart_price_data_ensure_article_search_column($db);
+	if ($hasArticleSearch) {
+		$ins = $db->prepare(
+			'INSERT INTO `shop_docpart_prices_data`
+			 (`id`,`price_id`,`manufacturer`,`article`,`article_search`,`article_show`,`name`,`exist`,`price`,`time_to_exe`,`storage`,`min_order`)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+		);
+	} else {
+		$ins = $db->prepare(
+			'INSERT INTO `shop_docpart_prices_data`
+			 (`id`,`price_id`,`manufacturer`,`article`,`article_show`,`name`,`exist`,`price`,`time_to_exe`,`storage`,`min_order`)
+			 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+		);
+	}
 	$inserted = 0;
 	$skipped = 0;
+	$extrasSaved = 0;
 	while (($row = fgetcsv($fh)) !== false) {
 		$mfr = epc_commerce_clip(trim((string) ($row[0] ?? '')));
 		$show = epc_commerce_clip(trim((string) ($row[1] ?? '')));
@@ -920,24 +960,46 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
 		} elseif ($storageRaw !== '') {
 			$storage = epc_commerce_clip($storageRaw);
 		}
+		$extras = epc_price_extra_decode($row[8] ?? '');
 		if ($art === '' || $priceVal <= 0) {
 			$skipped++;
 			continue;
 		}
 		$nextId++;
-		$ins->execute(array(
-			$nextId,
-			$priceId,
-			$mfr,
-			$art,
-			$show,
-			$name,
-			$exist,
-			$priceVal,
-			max(0, $timeToExe),
-			$storage,
-			max(0, $minOrder),
-		));
+		if ($hasArticleSearch) {
+			$ins->execute(array(
+				$nextId,
+				$priceId,
+				$mfr,
+				$art,
+				$art,
+				$show,
+				$name,
+				$exist,
+				$priceVal,
+				max(0, $timeToExe),
+				$storage,
+				max(0, $minOrder),
+			));
+		} else {
+			$ins->execute(array(
+				$nextId,
+				$priceId,
+				$mfr,
+				$art,
+				$show,
+				$name,
+				$exist,
+				$priceVal,
+				max(0, $timeToExe),
+				$storage,
+				max(0, $minOrder),
+			));
+		}
+		if ($extras !== array()) {
+			epc_price_extra_save_for_row($db, $nextId, $priceId, $extras, $mfr, $art, $show, $name);
+			$extrasSaved++;
+		}
 		$inserted++;
 	}
 	fclose($fh);
@@ -954,6 +1016,7 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
 		'message' => $inserted > 0 ? 'Import completed' : 'No valid rows imported',
 		'records_handled' => $inserted,
 		'rows_skipped' => $skipped,
+		'extras_saved' => $extrasSaved,
 	);
 }
 
@@ -1184,17 +1247,18 @@ function epc_multivendor_sample_csv(): string
 		array(
 			'Brand', 'Article', 'Name', 'Qty', 'Price',
 			'Vendor full name', 'Vendor short', 'Data type', 'Delivery',
+			'Engine code', 'Country code', 'Size', 'Cross reference', 'OE number', 'Other information',
 		),
-		// Inventory: unique brand+article per vendor name+code
-		array('TOYOTA', '446610010', 'PAD KIT, DISC BRAKE', '8', '103.51', 'S-UAE Trading LLC', 'S-UAE', 'inventory', '0'),
-		array('AISIN', 'DT068', 'WATER PUMP', '3', '45.00', 'R-UAE Spare Parts FZE', 'R-UAE', 'inventory', '0'),
+		// Inventory: unique brand+article per vendor name+code (+ optional custom fields)
+		array('TOYOTA', '446610010', 'PAD KIT, DISC BRAKE', '8', '103.51', 'S-UAE Trading LLC', 'S-UAE', 'inventory', '0', '2JZGE', 'JP', '15"', '04465-YZZD2', '044650K090', 'Ceramic; front'),
+		array('AISIN', 'DT068', 'WATER PUMP', '3', '45.00', 'R-UAE Spare Parts FZE', 'R-UAE', 'inventory', '0', '1KZTE', 'TH', 'STD', '16100-69355', '1610069355', ''),
 		// Same vendor CODE, different vendor NAME → separate warehouses / min-max buckets
-		array('BOSCH', 'F026400039', 'FILTER', '4', '15.00', 'Gulf Parts Trading', 'S-UAE', 'inventory', '0'),
+		array('BOSCH', 'F026400039', 'FILTER', '4', '15.00', 'Gulf Parts Trading', 'S-UAE', 'inventory', '0', '', 'DE', 'OE', '0986AF0078', '', 'Oil filter'),
 		// Sales: same brand+article+vendor name+code can repeat — import keeps only min + max price
 		// with combined total QTY (12+5+2=19) on both rows
-		array('DENSO', '0671007450', 'FILTER', '12', '18.00', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
-		array('DENSO', '0671007450', 'FILTER', '5', '22.50', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
-		array('DENSO', '0671007450', 'FILTER', '2', '29.90', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
+		array('DENSO', '0671007450', 'FILTER', '12', '18.00', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0', '3L', 'JP', '', '', '', ''),
+		array('DENSO', '0671007450', 'FILTER', '5', '22.50', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0', '3L', 'JP', '', '', '', ''),
+		array('DENSO', '0671007450', 'FILTER', '2', '29.90', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0', '3L', 'JP', '', '', '', ''),
 	);
 	$fh = fopen('php://temp', 'r+b');
 	foreach ($lines as $line) {

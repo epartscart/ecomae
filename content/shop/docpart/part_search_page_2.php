@@ -14,7 +14,7 @@ if (!isset($epc_storefront_prices_visible)) {
 
 <script>
 var epc_storefront_prices_visible = <?php echo !empty($epc_storefront_prices_visible) ? 'true' : 'false'; ?>;
-var epc_storefront_sensitive_mask = <?php echo json_encode(function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+var epc_storefront_sensitive_mask = <?php echo json_encode(function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_price_login_cta_html = <?php echo json_encode(epc_storefront_prices_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_commerce_login_cta_html = <?php echo json_encode(function_exists('epc_storefront_commerce_login_cta_html') ? epc_storefront_commerce_login_cta_html(null, true) : '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_login_url = <?php echo json_encode(function_exists('epc_storefront_auth_login_url') ? epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null) : '/en/users/login', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
@@ -32,7 +32,7 @@ function epcStorefrontSensitiveMask()
 {
 	return (typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask)
 		? String(epc_storefront_sensitive_mask)
-		: '***';
+		: '**';
 }
 function epcStorefrontSensitiveCellHTML(html)
 {

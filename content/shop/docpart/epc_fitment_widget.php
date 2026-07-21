@@ -297,25 +297,31 @@ function epc_fitment_widget_render()
 			var cached = brandImageCache[key];
 			return cached && typeof cached.then === 'function' ? cached : Promise.resolve(cached);
 		}
-		brandImageCache[key] = api('analogs', { article: article, brand: brand, limit: 12, offset: 0 })
-			.then(function (data) {
-				var rows = rowsFromPayload(data);
-				var target = rows.filter(function (row) {
-					return compact(row.BRAND || row.SUP_BRAND) === compact(brand) && compact(row.ARTICLE_NR || row.ARTICLE || row.ART_ARTICLE_NR) === compact(article);
-				})[0] || rows.filter(function (row) {
-					return compact(row.BRAND || row.SUP_BRAND) === compact(brand);
-				})[0] || rows[0];
-				if (!target || !target.ART_ID) { return ''; }
-				return api('article', { id: target.ART_ID }).then(articleImageUrl);
-			})
-			.then(function (url) {
-				brandImageCache[key] = url || '';
-				return url || '';
-			})
-			.catch(function () {
-				brandImageCache[key] = '';
-				return '';
-			});
+		brandImageCache[key] = fetch('/content/shop/catalogue/ajax_epc_sku_media_public.php?action=lookup&brand=' + encodeURIComponent(brand || '') + '&article=' + encodeURIComponent(article || ''), {
+			credentials: 'same-origin'
+		}).then(function (r) { return r.json(); }).then(function (data) {
+			if (data && data.ok && data.url) { return String(data.url); }
+			return '';
+		}).catch(function () { return ''; }).then(function (cpUrl) {
+			if (cpUrl) { return cpUrl; }
+			return api('analogs', { article: article, brand: brand, limit: 12, offset: 0 })
+				.then(function (data) {
+					var rows = rowsFromPayload(data);
+					var target = rows.filter(function (row) {
+						return compact(row.BRAND || row.SUP_BRAND) === compact(brand) && compact(row.ARTICLE_NR || row.ARTICLE || row.ART_ARTICLE_NR) === compact(article);
+					})[0] || rows.filter(function (row) {
+						return compact(row.BRAND || row.SUP_BRAND) === compact(brand);
+					})[0] || rows[0];
+					if (!target || !target.ART_ID) { return ''; }
+					return api('article', { id: target.ART_ID }).then(articleImageUrl);
+				});
+		}).then(function (url) {
+			brandImageCache[key] = url || '';
+			return url || '';
+		}).catch(function () {
+			brandImageCache[key] = '';
+			return '';
+		});
 		return brandImageCache[key];
 	}
 	window.epcFetchBrandPartImage = fetchBrandImage;

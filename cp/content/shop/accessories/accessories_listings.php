@@ -104,6 +104,16 @@ if (!empty($_POST['action'])) {
 			$id = epc_acc_add_listing($db_link, $data);
 			$msg = 'Listing created';
 		}
+		// Attach any photos submitted with the form (create or edit).
+		if ($id > 0 && !empty($_FILES['photos']) && is_array($_FILES['photos'])) {
+			$up = epc_acc_photos_add_many_from_files($db_link, $id, $_FILES['photos']);
+			if ((int) ($up['ok'] ?? 0) > 0) {
+				$msg .= ' · ' . (int) $up['ok'] . ' photo' . ((int) $up['ok'] === 1 ? '' : 's') . ' uploaded';
+			}
+			if ((int) ($up['failed'] ?? 0) > 0 && !empty($up['errors'][0])) {
+				$msg .= ' · some photos failed: ' . (string) $up['errors'][0];
+			}
+		}
 		epc_acc_cp_redirect($baseUrl . '?edit=' . $id . '&success_message=' . rawurlencode($msg));
 	}
 
@@ -254,19 +264,38 @@ $showTaxonomy = (!$showForm && $cpTab === 'taxonomy');
 
 if ($showForm) {
 	$isNew = ((int) $listing['id'] < 1);
+	$listingPhotos = (!$isNew && (int) $listing['id'] > 0)
+		? epc_acc_photos_list($db_link, (int) $listing['id'])
+		: array();
+	$photoAjaxUrl = '/' . trim((string) $backend, '/') . '/content/shop/accessories/ajax_epc_accessories_photos.php';
+	$csrfKey = (string) ($user_session['csrf_guard_key'] ?? '');
+	$storefrontUrl = (!$isNew && (int) $listing['id'] > 0)
+		? epc_acc_storefront_url($listing, '/en')
+		: '/en/accessories-spare-parts';
 	?>
 	<div class="col-lg-12 epc-acc-cp">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
 				<?php echo $isNew ? 'Add accessories listing' : ('Edit listing #' . (int) $listing['id']); ?>
-				<span class="pull-right"><a href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>">← Back to list</a></span>
+				<span class="pull-right">
+					<?php if (!$isNew) { ?>
+					<a class="btn btn-xs btn-info" href="<?php echo htmlspecialchars($storefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="Open this listing on the storefront">
+						<i class="fa fa-external-link"></i> View on storefront
+					</a>
+					<?php } ?>
+					<a href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>">← Back to list</a>
+				</span>
 			</div>
 			<div class="panel-body">
-				<p class="muted">Fill one category at a time. Published ads appear on <a href="/en/accessories-spare-parts" target="_blank">/en/accessories-spare-parts</a>.</p>
-				<form method="post">
+				<p class="muted">Fill one category at a time. Published ads appear on <a href="/en/accessories-spare-parts" target="_blank">/en/accessories-spare-parts</a>.
+					<?php if (!$isNew) { ?>
+					· <a href="<?php echo htmlspecialchars($storefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">Open this product on storefront</a>
+					<?php } ?>
+				</p>
+				<form method="post" enctype="multipart/form-data" id="epcAccListingForm">
 					<input type="hidden" name="action" value="save" />
 					<input type="hidden" name="id" value="<?php echo (int) $listing['id']; ?>" />
-					<input type="hidden" name="csrf_guard_key" value="<?php echo htmlspecialchars($user_session['csrf_guard_key'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" />
+					<input type="hidden" name="csrf_guard_key" value="<?php echo htmlspecialchars($csrfKey, ENT_QUOTES, 'UTF-8'); ?>" />
 
 					<div class="form-grid">
 						<div>
@@ -384,7 +413,8 @@ if ($showForm) {
 						</div>
 						<div>
 							<label>Photo count</label>
-							<input class="form-control" type="number" min="1" name="photo_count" value="<?php echo max(1, (int) ($listing['photo_count'] ?? 1)); ?>" />
+							<input class="form-control" type="number" min="1" name="photo_count" id="epcAccPhotoCount" value="<?php echo max(1, (int) ($listing['photo_count'] ?? 1)); ?>" readonly title="Updated automatically from uploaded photos" />
+							<small class="muted">Auto-updated from gallery</small>
 						</div>
 						<div>
 							<label>Featured</label>
@@ -393,9 +423,62 @@ if ($showForm) {
 								<option value="1" <?php echo !empty($listing['featured']) ? 'selected' : ''; ?>>Yes</option>
 							</select>
 						</div>
-						<div class="full">
-							<label>Image URL</label>
-							<input class="form-control" name="image_url" value="<?php echo htmlspecialchars((string) ($listing['image_url'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" />
+						<div class="full epc-acc-photos-block"
+							id="epcAccPhotosBlock"
+							data-listing-id="<?php echo (int) $listing['id']; ?>"
+							data-ajax-url="<?php echo htmlspecialchars($photoAjaxUrl, ENT_QUOTES, 'UTF-8'); ?>"
+							data-csrf="<?php echo htmlspecialchars($csrfKey, ENT_QUOTES, 'UTF-8'); ?>">
+							<label>Photos</label>
+							<p class="muted" style="margin-top:0;">
+								<?php if ($isNew) { ?>
+									Choose photos below — they upload when you save the listing. After saving you can add more and see previews here.
+								<?php } else { ?>
+									Upload photos to see previews immediately. Cover photo is used on the storefront card.
+								<?php } ?>
+							</p>
+							<div class="epc-acc-photo-gallery" id="epcAccPhotoGallery">
+								<?php
+								if (!$listingPhotos && !empty($listing['image_url'])) {
+									$legacyUrl = (string) $listing['image_url'];
+									?>
+									<figure class="epc-acc-photo-card epc-acc-photo-card--legacy">
+										<a href="<?php echo htmlspecialchars($legacyUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
+											<img src="<?php echo htmlspecialchars($legacyUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="Current cover" />
+										</a>
+										<figcaption>Current cover (URL)</figcaption>
+									</figure>
+								<?php }
+								foreach ($listingPhotos as $ph) {
+									$phUrl = (string) ($ph['url'] ?? '');
+									$phId = (int) ($ph['id'] ?? 0);
+									$isCover = !empty($ph['is_primary']);
+									?>
+									<figure class="epc-acc-photo-card<?php echo $isCover ? ' is-cover' : ''; ?>" data-photo-id="<?php echo $phId; ?>">
+										<a href="<?php echo htmlspecialchars($phUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
+											<img src="<?php echo htmlspecialchars($phUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="Listing photo" />
+										</a>
+										<?php if ($isCover) { ?><span class="epc-acc-photo-badge">Cover</span><?php } ?>
+										<div class="epc-acc-photo-actions">
+											<?php if (!$isCover) { ?>
+											<button type="button" class="btn btn-xs btn-default epc-acc-photo-primary" data-photo-id="<?php echo $phId; ?>">Set cover</button>
+											<?php } ?>
+											<button type="button" class="btn btn-xs btn-danger epc-acc-photo-delete" data-photo-id="<?php echo $phId; ?>">Remove</button>
+										</div>
+									</figure>
+								<?php } ?>
+							</div>
+							<div class="epc-acc-photo-upload">
+								<input type="file" name="photos[]" id="epcAccPhotoInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple />
+								<?php if (!$isNew) { ?>
+								<button type="button" class="btn btn-default" id="epcAccPhotoUploadBtn"><i class="fa fa-upload"></i> Upload now</button>
+								<?php } ?>
+								<span class="muted" id="epcAccPhotoStatus"></span>
+							</div>
+							<div class="epc-acc-photo-pending" id="epcAccPhotoPending" aria-live="polite"></div>
+							<div class="full" style="margin-top:10px;">
+								<label>Cover image URL <span class="muted">(optional override)</span></label>
+								<input class="form-control" name="image_url" id="epcAccImageUrl" value="<?php echo htmlspecialchars((string) ($listing['image_url'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" placeholder="/content/files/images/accessories/…" />
+							</div>
 						</div>
 						<div class="full">
 							<label>Detail / external URL</label>
@@ -433,6 +516,194 @@ if ($showForm) {
 		}
 		cat.addEventListener('change', function () { selectedSub = ''; fillSubs(); });
 		fillSubs();
+
+		var block = document.getElementById('epcAccPhotosBlock');
+		if (!block) return;
+		var gallery = document.getElementById('epcAccPhotoGallery');
+		var input = document.getElementById('epcAccPhotoInput');
+		var pending = document.getElementById('epcAccPhotoPending');
+		var statusEl = document.getElementById('epcAccPhotoStatus');
+		var uploadBtn = document.getElementById('epcAccPhotoUploadBtn');
+		var countEl = document.getElementById('epcAccPhotoCount');
+		var imageUrlEl = document.getElementById('epcAccImageUrl');
+		var listingId = parseInt(block.getAttribute('data-listing-id') || '0', 10) || 0;
+		var ajaxUrl = block.getAttribute('data-ajax-url') || '';
+		var csrf = block.getAttribute('data-csrf') || '';
+
+		function setStatus(msg, isErr) {
+			if (!statusEl) return;
+			statusEl.textContent = msg || '';
+			statusEl.style.color = isErr ? '#c0392b' : '#7f8c8d';
+		}
+
+		function renderPending(files) {
+			if (!pending) return;
+			pending.innerHTML = '';
+			if (!files || !files.length) return;
+			var wrap = document.createElement('div');
+			wrap.className = 'epc-acc-photo-pending-list';
+			Array.prototype.forEach.call(files, function (file) {
+				if (!file || !file.type || file.type.indexOf('image/') !== 0) return;
+				var fig = document.createElement('figure');
+				fig.className = 'epc-acc-photo-card epc-acc-photo-card--pending';
+				var img = document.createElement('img');
+				img.alt = file.name || 'Preview';
+				img.src = URL.createObjectURL(file);
+				var cap = document.createElement('figcaption');
+				cap.textContent = 'New · ' + (file.name || 'image');
+				fig.appendChild(img);
+				fig.appendChild(cap);
+				wrap.appendChild(fig);
+			});
+			pending.appendChild(wrap);
+		}
+
+		function renderPhotos(photos) {
+			if (!gallery) return;
+			gallery.innerHTML = '';
+			photos = photos || [];
+			if (countEl) countEl.value = String(Math.max(1, photos.length || 1));
+			photos.forEach(function (ph) {
+				var fig = document.createElement('figure');
+				fig.className = 'epc-acc-photo-card' + (ph.is_primary ? ' is-cover' : '');
+				fig.setAttribute('data-photo-id', String(ph.id || 0));
+				var link = document.createElement('a');
+				link.href = ph.url || '#';
+				link.target = '_blank';
+				link.rel = 'noopener';
+				var img = document.createElement('img');
+				img.src = ph.url || '';
+				img.alt = 'Listing photo';
+				link.appendChild(img);
+				fig.appendChild(link);
+				if (ph.is_primary) {
+					var badge = document.createElement('span');
+					badge.className = 'epc-acc-photo-badge';
+					badge.textContent = 'Cover';
+					fig.appendChild(badge);
+					if (imageUrlEl && ph.url) imageUrlEl.value = ph.url;
+				}
+				var actions = document.createElement('div');
+				actions.className = 'epc-acc-photo-actions';
+				if (!ph.is_primary) {
+					var primaryBtn = document.createElement('button');
+					primaryBtn.type = 'button';
+					primaryBtn.className = 'btn btn-xs btn-default epc-acc-photo-primary';
+					primaryBtn.setAttribute('data-photo-id', String(ph.id || 0));
+					primaryBtn.textContent = 'Set cover';
+					actions.appendChild(primaryBtn);
+				}
+				var delBtn = document.createElement('button');
+				delBtn.type = 'button';
+				delBtn.className = 'btn btn-xs btn-danger epc-acc-photo-delete';
+				delBtn.setAttribute('data-photo-id', String(ph.id || 0));
+				delBtn.textContent = 'Remove';
+				actions.appendChild(delBtn);
+				fig.appendChild(actions);
+				gallery.appendChild(fig);
+			});
+		}
+
+		function postForm(fd, done) {
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', ajaxUrl, true);
+			xhr.onload = function () {
+				var data = null;
+				try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) { data = null; }
+				done(data, xhr.status);
+			};
+			xhr.onerror = function () { done(null, 0); };
+			xhr.send(fd);
+		}
+
+		function uploadSelected() {
+			if (!listingId) {
+				setStatus('Save the listing first, then upload photos.', true);
+				return;
+			}
+			if (!input || !input.files || !input.files.length) {
+				setStatus('Choose one or more images first.', true);
+				return;
+			}
+			setStatus('Uploading…');
+			var fd = new FormData();
+			fd.append('action', 'upload');
+			fd.append('listing_id', String(listingId));
+			fd.append('csrf_guard_key', csrf);
+			Array.prototype.forEach.call(input.files, function (file) {
+				fd.append('photos[]', file, file.name);
+			});
+			postForm(fd, function (data) {
+				if (!data || !data.ok) {
+					setStatus((data && data.error) ? data.error : 'Upload failed', true);
+					return;
+				}
+				renderPhotos(data.photos || []);
+				if (input) input.value = '';
+				renderPending([]);
+				setStatus('Uploaded. Cover syncs to storefront automatically.');
+			});
+		}
+
+		if (input) {
+			input.addEventListener('change', function () {
+				renderPending(input.files);
+				if (listingId && uploadBtn) {
+					setStatus(input.files && input.files.length
+						? (input.files.length + ' selected — click Upload now or they save with the form')
+						: '');
+				}
+			});
+		}
+		if (uploadBtn) {
+			uploadBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				uploadSelected();
+			});
+		}
+		if (gallery) {
+			gallery.addEventListener('click', function (e) {
+				var t = e.target;
+				if (!t || !t.getAttribute) return;
+				var photoId = parseInt(t.getAttribute('data-photo-id') || '0', 10) || 0;
+				if (!photoId || !listingId) return;
+				if (t.classList.contains('epc-acc-photo-delete')) {
+					e.preventDefault();
+					if (!window.confirm('Remove this photo?')) return;
+					var fd = new FormData();
+					fd.append('action', 'delete');
+					fd.append('listing_id', String(listingId));
+					fd.append('photo_id', String(photoId));
+					fd.append('csrf_guard_key', csrf);
+					setStatus('Removing…');
+					postForm(fd, function (data) {
+						if (!data || !data.ok) {
+							setStatus((data && data.error) ? data.error : 'Remove failed', true);
+							return;
+						}
+						renderPhotos(data.photos || []);
+						setStatus('Photo removed');
+					});
+				}
+				if (t.classList.contains('epc-acc-photo-primary')) {
+					e.preventDefault();
+					var fd2 = new FormData();
+					fd2.append('action', 'set_primary');
+					fd2.append('listing_id', String(listingId));
+					fd2.append('photo_id', String(photoId));
+					fd2.append('csrf_guard_key', csrf);
+					setStatus('Updating cover…');
+					postForm(fd2, function (data) {
+						if (!data || !data.ok) {
+							setStatus((data && data.error) ? data.error : 'Update failed', true);
+							return;
+						}
+						renderPhotos(data.photos || []);
+						setStatus('Cover updated');
+					});
+				}
+			});
+		}
 	})();
 	</script>
 	<?php
@@ -518,6 +789,7 @@ if ($showForm) {
 					<thead>
 						<tr>
 							<th>ID</th>
+							<th>Photo</th>
 							<th>Title</th>
 							<th>Category</th>
 							<th>Vehicle</th>
@@ -530,14 +802,22 @@ if ($showForm) {
 					</thead>
 					<tbody>
 					<?php if (!$items) { ?>
-						<tr><td colspan="9">No listings match these filters. <a href="<?php echo htmlspecialchars($baseUrl . '?new=1', ENT_QUOTES, 'UTF-8'); ?>">Add the first one</a>.</td></tr>
+						<tr><td colspan="10">No listings match these filters. <a href="<?php echo htmlspecialchars($baseUrl . '?new=1', ENT_QUOTES, 'UTF-8'); ?>">Add the first one</a>.</td></tr>
 					<?php } ?>
 					<?php foreach ($items as $row) {
 						$st = (string) $row['status'];
 						$badge = $st === 'published' ? 'badge-pub' : ($st === 'draft' ? 'badge-draft' : 'badge-unpub');
+						$thumb = trim((string) ($row['image_url'] ?? ''));
 						?>
 						<tr>
 							<td><?php echo (int) $row['id']; ?><?php if (!empty($row['featured'])) { ?> <span class="feat" title="Featured">★</span><?php } ?></td>
+							<td>
+								<?php if ($thumb !== '') { ?>
+									<img class="epc-acc-list-thumb" src="<?php echo htmlspecialchars($thumb, ENT_QUOTES, 'UTF-8'); ?>" alt="" />
+								<?php } else { ?>
+									<span class="epc-acc-list-thumb--empty" title="No photo"><i class="fa fa-camera"></i></span>
+								<?php } ?>
+							</td>
 							<td>
 								<strong><?php echo htmlspecialchars((string) $row['title'], ENT_QUOTES, 'UTF-8'); ?></strong>
 								<?php if (!empty($row['subcategory_label'])) { ?>
@@ -551,6 +831,16 @@ if ($showForm) {
 							<td><span class="badge <?php echo $badge; ?>"><?php echo htmlspecialchars($st, ENT_QUOTES, 'UTF-8'); ?></span></td>
 							<td class="muted"><?php echo !empty($row['updated_at']) ? date('Y-m-d H:i', (int) $row['updated_at']) : ''; ?></td>
 							<td>
+								<?php
+								$rowStorefront = epc_acc_storefront_url(array(
+									'id' => (int) $row['id'],
+									'category_slug' => (string) ($row['category_slug'] ?? ''),
+									'subcategory_slug' => (string) ($row['subcategory_slug'] ?? ''),
+								), '/en');
+								?>
+								<a class="btn btn-xs btn-info" href="<?php echo htmlspecialchars($rowStorefront, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="View on storefront">
+									<i class="fa fa-external-link"></i> View
+								</a>
 								<a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($baseUrl . '?edit=' . (int) $row['id'], ENT_QUOTES, 'UTF-8'); ?>">Edit</a>
 								<?php if ($st === 'published') { ?>
 									<form method="post" style="display:inline;" onsubmit="return confirm('Unpublish this ad?');">

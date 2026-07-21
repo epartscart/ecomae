@@ -146,11 +146,11 @@ $setupSrc = (string) file_get_contents($root . '/epc-commerce-prices-setup.php')
 check('setup allows deploy token without tech key', strpos($setupSrc, 'epc_deploy_require_token') !== false);
 check('setup documents omit-key hint', strpos($setupSrc, 'Omit key=') !== false || strpos($setupSrc, 'token= only') !== false);
 $mgr = (string) file_get_contents($root . '/cp/content/shop/prices_upload/prices_manager.php');
-check('manager links to commerce', strpos($mgr, 'shop/prices/commerce') !== false);
-require_once $root . '/content/general_pages/epc_cp_page_assets.php';
-$assets = epc_cp_page_assets_for_url('shop/prices/commerce');
-$jsJoined = implode(' ', array_keys($assets['js'] ?? array()));
-check('commerce page assets include JS', strpos($jsJoined, 'epc_commerce_cp.js') !== false);
+check('manager no longer links to commerce UI', strpos($mgr, 'shop/prices/commerce') === false);
+check('manager links to multivendor', strpos($mgr, 'shop/prices/multivendor') !== false);
+$retired = (string) file_get_contents($root . '/cp/content/shop/prices_upload/commerce_data_page.php');
+check('commerce route page points to multivendor', strpos($retired, 'shop/prices/multivendor') !== false);
+check('setup supports remove', strpos($setupSrc, 'remove=1') !== false || strpos($setupSrc, "\$remove") !== false);
 $cssSrc = (string) file_get_contents($root . '/cp/content/shop/prices_upload/epc_prices_cp.css');
 check('CSS includes commerce page styles', strpos($cssSrc, '.epc-commerce-page') !== false);
 

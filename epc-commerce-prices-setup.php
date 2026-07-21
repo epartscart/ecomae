@@ -1,12 +1,12 @@
 <?php
 /**
- * Register CP route shop/prices/commerce for commerce S/P/L uploads.
+ * Commerce S/P/L CP route lifecycle.
  *
- * Preferred (deploy token only — same as Power BI setup):
+ * Remove (retired — Multivendor replaces this UI):
+ *   https://www.epartscart.com/epc-commerce-prices-setup.php?token=epartscart-deploy-2026&remove=1
+ *
+ * Re-register (legacy, rarely needed):
  *   https://www.epartscart.com/epc-commerce-prices-setup.php?token=epartscart-deploy-2026&apply=1
- *
- * Optional: also pass key=<DP_Config->tech_key> if you have it.
- * Do NOT use the literal string TECH_KEY — that was a documentation placeholder.
  */
 declare(strict_types=1);
 
@@ -41,7 +41,8 @@ if (function_exists('epc_portal_apply_config')) {
 }
 
 $apply = !empty($_GET['apply']);
-$report = array('ok' => true, 'apply' => $apply, 'changes' => array(), 'checks' => array());
+$remove = !empty($_GET['remove']);
+$report = array('ok' => true, 'apply' => $apply, 'remove' => $remove, 'changes' => array(), 'checks' => array());
 
 try {
 	$pdo = new PDO(
@@ -107,7 +108,34 @@ $phpPath = '/<backend_dir>/content/shop/prices_upload/commerce_data_page.php';
 $fileOk = is_file(__DIR__ . '/cp/content/shop/prices_upload/commerce_data_page.php');
 $report['checks']['file'] = $fileOk;
 
-if ($apply) {
+if ($remove) {
+	$st = $pdo->prepare('SELECT `id` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
+	$st->execute(array('shop/prices/commerce'));
+	$contentId = (int) $st->fetchColumn();
+	if ($contentId > 0) {
+		$pdo->prepare('UPDATE `content` SET `published_flag` = 0, `time_edited` = ? WHERE `id` = ?')
+			->execute(array(time(), $contentId));
+		$report['changes'][] = 'unpublished content shop/prices/commerce id=' . $contentId;
+	} else {
+		$report['changes'][] = 'content shop/prices/commerce not found';
+	}
+
+	$menuRm = $pdo->prepare(
+		"DELETE FROM `control_items`
+		 WHERE `url` LIKE '%/shop/prices/commerce%'
+		    OR `caption` = 'epc_prices_commerce_cp'"
+	);
+	$menuRm->execute();
+	$report['changes'][] = 'removed control_items rows=' . (int) $menuRm->rowCount();
+
+	if (is_file(__DIR__ . '/epc_cp_mainstream_menu.php')) {
+		require_once __DIR__ . '/epc_cp_mainstream_menu.php';
+		if (function_exists('epc_cp_shop_catalogue_prices_menu_apply')) {
+			$menu = epc_cp_shop_catalogue_prices_menu_apply($pdo);
+			$report['changes'][] = 'menu reapply removed_commerce=' . (int) ($menu['removed_commerce'] ?? 0);
+		}
+	}
+} elseif ($apply) {
 	$id = epc_commerce_setup_ensure_content(
 		$pdo,
 		'shop/prices',
@@ -125,13 +153,24 @@ if ($apply) {
 $st = $pdo->prepare('SELECT `id`, `published_flag`, `content` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
 $st->execute(array('shop/prices/commerce'));
 $row = $st->fetch(PDO::FETCH_ASSOC);
+$menuLeft = (int) $pdo->query(
+	"SELECT COUNT(*) FROM `control_items`
+	 WHERE `url` LIKE '%/shop/prices/commerce%' OR `caption` = 'epc_prices_commerce_cp'"
+)->fetchColumn();
 $report['checks']['route'] = array(
-	'ok' => $row && (int) $row['published_flag'] === 1,
+	'published' => $row ? ((int) $row['published_flag'] === 1) : false,
 	'id' => $row ? (int) $row['id'] : 0,
 	'content' => $row ? (string) $row['content'] : null,
 );
+$report['checks']['menu_items_left'] = $menuLeft;
 $report['cp_url'] = 'https://www.epartscart.com/cp/shop/prices/commerce';
-$report['api_url'] = 'https://www.epartscart.com/epc-upload-commerce-prices.php';
-$report['hint'] = $apply ? 'Route ready. Open CP → Price lists → Commerce data.' : 'Dry run — add apply=1 to register route.';
+$report['multivendor_url'] = 'https://www.epartscart.com/cp/shop/prices/multivendor';
+if ($remove) {
+	$report['hint'] = 'Commerce CP page removed. Use Multi-vendor upload instead.';
+} elseif ($apply) {
+	$report['hint'] = 'Route ready. Open CP → Price lists → Commerce data.';
+} else {
+	$report['hint'] = 'Dry run — add remove=1 to retire the Commerce CP page, or apply=1 to register it.';
+}
 
 echo json_encode($report, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

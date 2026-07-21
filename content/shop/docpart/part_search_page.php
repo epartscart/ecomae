@@ -1183,7 +1183,7 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 				. htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8') . '</span>';
 		} else {
-			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***';
+			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**';
 			$priceHtml = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
 		}
 		$mask = (!$pricesVisible && function_exists('epc_storefront_sensitive_mask'))
@@ -1393,7 +1393,7 @@ function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, 
 				. htmlspecialchars(number_format($priceRawBrand, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . $priceHtml . '</span>';
 		} elseif (!$pricesVisible) {
-			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '***', ENT_QUOTES, 'UTF-8');
+			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '**', ENT_QUOTES, 'UTF-8');
 		} else {
 			$priceHtml = '&mdash;';
 		}
@@ -4256,7 +4256,7 @@ function manufacturersReview()
 			{
 				var mask = (typeof epcStorefrontSensitiveMask === 'function')
 					? epcStorefrontSensitiveMask()
-					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '***');
+					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '**');
 				existVal = mask;
 				termVal = mask;
 				priceVal = mask;
@@ -5181,28 +5181,45 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 			var cached = brandImageCache[key];
 			return cached && typeof cached.then === 'function' ? cached : Promise.resolve(cached);
 		}
-		brandImageCache[key] = api('analogs', {article: article, brand: brand, limit: 12, offset: 0, source: 'part_search'})
-			.then(function(data) {
-				var rows = rowsFromPayload(data);
-				var target = rows.filter(function(row) {
-					return compact(row.BRAND || row.SUP_BRAND) === compact(brand) && compact(row.ARTICLE_NR || row.ARTICLE || row.ART_ARTICLE_NR) === compact(article);
-				})[0] || rows.filter(function(row) {
-					return compact(row.BRAND || row.SUP_BRAND) === compact(brand);
-				})[0] || rows[0];
-				if(!target || !target.ART_ID) { return ''; }
-				return api('article', {id: target.ART_ID, source: 'part_search'}).then(articleImageUrl);
-			})
-			.then(function(url) {
-				brandImageCache[key] = url || '';
-				return url || '';
-			})
-			.catch(function() {
-				brandImageCache[key] = '';
-				return '';
-			});
+		// Prefer CP-managed SKU media photos (supplier warehouse / catalogue uploads).
+		brandImageCache[key] = fetch('/content/shop/catalogue/ajax_epc_sku_media_public.php?action=lookup&brand=' + encodeURIComponent(brand || '') + '&article=' + encodeURIComponent(article || ''), {
+			credentials: 'same-origin'
+		}).then(function(r) { return r.json(); }).then(function(data) {
+			if(data && data.ok && data.url) {
+				return String(data.url);
+			}
+			return '';
+		}).catch(function() { return ''; }).then(function(cpUrl) {
+			if(cpUrl) { return cpUrl; }
+			return api('analogs', {article: article, brand: brand, limit: 12, offset: 0, source: 'part_search'})
+				.then(function(data) {
+					var rows = rowsFromPayload(data);
+					var target = rows.filter(function(row) {
+						return compact(row.BRAND || row.SUP_BRAND) === compact(brand) && compact(row.ARTICLE_NR || row.ARTICLE || row.ART_ARTICLE_NR) === compact(article);
+					})[0] || rows.filter(function(row) {
+						return compact(row.BRAND || row.SUP_BRAND) === compact(brand);
+					})[0] || rows[0];
+					if(!target || !target.ART_ID) { return ''; }
+					return api('article', {id: target.ART_ID, source: 'part_search'}).then(articleImageUrl);
+				});
+		}).then(function(url) {
+			brandImageCache[key] = url || '';
+			return url || '';
+		}).catch(function() {
+			brandImageCache[key] = '';
+			return '';
+		});
 		return brandImageCache[key];
 	}
 	window.epcFetchBrandPartImage = fetchBrandImage;
+	window.epcFetchSkuMediaLookup = function(brand, article, productId) {
+		var qs = 'action=lookup&brand=' + encodeURIComponent(brand || '') +
+			'&article=' + encodeURIComponent(article || '') +
+			'&product_id=' + encodeURIComponent(productId || 0);
+		return fetch('/content/shop/catalogue/ajax_epc_sku_media_public.php?' + qs, { credentials: 'same-origin' })
+			.then(function(r) { return r.json(); })
+			.catch(function() { return { ok: false, url: '', photos: [], specs: [] }; });
+	};
 	function detailFacts(detail) {
 		var facts = [];
 		if(detail.PACK_UNIT) { facts.push({label: 'Pack unit', value: detail.PACK_UNIT}); }
@@ -5248,33 +5265,54 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		var factsHtml = facts.slice(0, 4).map(function(item) {
 			return '<span class="epc-fitment-spec-chip epc-fitment-spec-chip--muted"><b>' + esc(item.label) + '</b> ' + esc(item.value) + '</span>';
 		}).join('');
-		partBox.className = 'epc-fitment-part';
-		partBox.style.display = 'block';
-		partBox.innerHTML =
-			'<div class="epc-fitment-part-card">' +
-				'<div class="epc-fitment-part-card__media">' +
-					(img ? '<img src="' + esc(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' : '') +
-					'<div class="epc-fitment-part-card__placeholder"' + (img ? ' style="display:none;"' : '') + '><i class="fa fa-image"></i></div>' +
-				'</div>' +
-				'<div class="epc-fitment-part-card__main">' +
-					'<p class="epc-fitment-part-card__brand">' + esc(brand) + ' · <span>' + esc(article) + '</span></p>' +
-					'<h4 class="epc-fitment-part-card__name">' + esc(name) + '</h4>' +
-					'<dl class="epc-fitment-part-card__facts">' +
-						'<div><dt>Weight</dt><dd>' + esc(weight || '—') + '</dd></div>' +
-						'<div><dt>Country</dt><dd>' + esc(country || '—') + '</dd></div>' +
-					'</dl>' +
-				'</div>' +
-				'<div class="epc-fitment-part-card__specs">' +
-					'<div class="epc-fitment-part-card__specs-title">Specifications &amp; details</div>' +
-					'<div class="epc-fitment-part-card__chips">' + (specHtml || '') + (factsHtml || '') +
-						(!specHtml && !factsHtml ? '<span class="epc-fitment-spec-chip epc-fitment-spec-chip--muted">No extra specifications available for this part.</span>' : '') +
+		function paint(finalImg, cpSpecHtml) {
+			partBox.className = 'epc-fitment-part';
+			partBox.style.display = 'block';
+			partBox.innerHTML =
+				'<div class="epc-fitment-part-card">' +
+					'<div class="epc-fitment-part-card__media">' +
+						(finalImg ? '<img src="' + esc(finalImg) + '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' : '') +
+						'<div class="epc-fitment-part-card__placeholder"' + (finalImg ? ' style="display:none;"' : '') + '><i class="fa fa-image"></i></div>' +
 					'</div>' +
-				'</div>' +
-			'</div>';
-		bindPartImageClick(partBox, img, brand + ' ' + article);
-		if(img) {
-			brandImageCache[brandImageKey(brand, article)] = img;
-			updateBrandCardThumb(brandImageKey(brand, article), img, brand, article);
+					'<div class="epc-fitment-part-card__main">' +
+						'<p class="epc-fitment-part-card__brand">' + esc(brand) + ' · <span>' + esc(article) + '</span></p>' +
+						'<h4 class="epc-fitment-part-card__name">' + esc(name) + '</h4>' +
+						'<dl class="epc-fitment-part-card__facts">' +
+							'<div><dt>Weight</dt><dd>' + esc(weight || '—') + '</dd></div>' +
+							'<div><dt>Country</dt><dd>' + esc(country || '—') + '</dd></div>' +
+						'</dl>' +
+					'</div>' +
+					'<div class="epc-fitment-part-card__specs">' +
+						'<div class="epc-fitment-part-card__specs-title">Specifications &amp; details</div>' +
+						'<div class="epc-fitment-part-card__chips">' + (cpSpecHtml || '') + (specHtml || '') + (factsHtml || '') +
+							(!cpSpecHtml && !specHtml && !factsHtml ? '<span class="epc-fitment-spec-chip epc-fitment-spec-chip--muted">No extra specifications available for this part.</span>' : '') +
+						'</div>' +
+					'</div>' +
+				'</div>';
+			bindPartImageClick(partBox, finalImg, brand + ' ' + article);
+			if(finalImg) {
+				brandImageCache[brandImageKey(brand, article)] = finalImg;
+				updateBrandCardThumb(brandImageKey(brand, article), finalImg, brand, article);
+			}
+		}
+		paint(img, '');
+		if(typeof window.epcFetchSkuMediaLookup === 'function') {
+			window.epcFetchSkuMediaLookup(brand, article, 0).then(function(data) {
+				if(!data || !data.ok) { return; }
+				var cpImg = data.url || '';
+				var cpSpecHtml = '';
+				if(Array.isArray(data.specs)) {
+					data.specs.forEach(function(group) {
+						(group.rows || []).slice(0, 12).forEach(function(row) {
+							cpSpecHtml += '<span class="epc-fitment-spec-chip" title="' + esc(group.name || 'Spec') + '"><b>' +
+								esc(row.label || '') + '</b> ' + esc(row.value || '') + '</span>';
+						});
+					});
+				}
+				if(cpImg || cpSpecHtml) {
+					paint(cpImg || img, cpSpecHtml);
+				}
+			});
 		}
 	}
 	function sectionRows(fitment, section) {
@@ -5644,6 +5682,10 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		var filter = modal.querySelector('#epc-cross-modal-filter');
 		var headNote = modal.querySelector('.epc-cross-modal__head span');
 		function availabilityCell(row) {
+			if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+			{
+				return (typeof epcStorefrontSensitiveMask === 'function') ? epcStorefrontSensitiveMask() : '**';
+			}
 			if(typeof epcCrossAvailabilityBadgeHTML === 'function')
 			{
 				return epcCrossAvailabilityBadgeHTML(crossRefInStock(row), '');
@@ -5669,8 +5711,13 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 			}
 		}
 		stockRows.innerHTML = stock.length ? stock.map(function(item) {
-			var priceText = (typeof epcFormatMoney === 'function') ? epcFormatMoney(item.price || 0) : (esc(item.price || '') + ' ' + esc(item.currency || ''));
-			return '<div class="epc-cross-modal__stock-row"><span><strong>' + esc(item.brand || '') + ' ' + esc(item.article || '') + '</strong><small>' + esc(item.name || '') + '</small></span><b>' + priceText + '</b><em>Qty: ' + esc(item.qty || '') + '</em><a class="btn btn-xs btn-success" href="' + esc(stockSearchUrl(item)) + '">Open price/cart</a></div>';
+			var hideSensitive = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible);
+			var mask = (typeof epcStorefrontSensitiveMask === 'function') ? epcStorefrontSensitiveMask() : '**';
+			var priceText = hideSensitive
+				? mask
+				: ((typeof epcFormatMoney === 'function') ? epcFormatMoney(item.price || 0) : (esc(item.price || '') + ' ' + esc(item.currency || '')));
+			var qtyText = hideSensitive ? mask : esc(item.qty || '');
+			return '<div class="epc-cross-modal__stock-row"><span><strong>' + esc(item.brand || '') + ' ' + esc(item.article || '') + '</strong><small>' + esc(item.name || '') + '</small></span><b>' + priceText + '</b><em>Qty: ' + qtyText + '</em><a class="btn btn-xs btn-success" href="' + esc(stockSearchUrl(item)) + '">Open price/cart</a></div>';
 		}).join('') : '<div class="epc-cross-modal__empty">No cross stock match in loaded price lists.</div>';
 		renderRows();
 		filter.addEventListener('input', renderRows);
@@ -6164,6 +6211,14 @@ while( $storage = $storages_query->fetch() )
 		'full_name' => (string) ($storage['name'] ?? ''),
 		'bg_line_color' => $storage['bg_line_color'],
 	);
+}
+if (!function_exists('epc_storefront_prices_visible_for_user')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+}
+if (function_exists('epc_storefront_prices_visible_for_user')
+	&& !epc_storefront_prices_visible_for_user(isset($user_id) ? (int) $user_id : null)
+	&& function_exists('epc_storefront_prices_redact_storage_maps')) {
+	epc_storefront_prices_redact_storage_maps($all_storages, $all_storages_info);
 }
 ?>
 <script>

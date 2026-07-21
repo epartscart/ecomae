@@ -62,7 +62,8 @@ function change_header_search_form(id){
 		'2': '.header_search_form_2',
 		'3': '.header_search_form_3',
 		'engine': '.header_search_form_engine',
-		'car': '.header_search_form_car'
+		'car': '.header_search_form_car',
+		'attr': '.header_search_form_attr'
 	};
 	jQuery.each(map, function(key, selector){
 		if(mode === key){
@@ -111,6 +112,20 @@ function epcHeaderEngineSubmit(form){
 	input.value = code;
 	if(code.length < 2 || code.length > 12){
 		alert('Enter a valid engine code (2–12 characters, e.g. 3L, 12R, 5L).');
+		input.focus();
+		return false;
+	}
+	return true;
+}
+
+function epcHeaderAttrSubmit(form){
+	if(!form){ return false; }
+	var input = form.querySelector('input[name="q"]');
+	if(!input){ return true; }
+	var q = String(input.value || '').replace(/\s+/g, ' ').trim();
+	input.value = q;
+	if(q.replace(/\s+/g, '').length < 2){
+		alert('Enter at least 2 characters to search product information.');
 		input.focus();
 		return false;
 	}

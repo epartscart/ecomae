@@ -26,9 +26,9 @@ if ($root !== '' && is_file($ingest)) {
 }
 
 // Fallback if ingest helper is unavailable on this host.
-echo "Brand,Article,Name,Qty,Price,\"Vendor full name\",\"Vendor short\",\"Data type\",Delivery\n";
-echo "TOYOTA,446610010,\"PAD KIT, DISC BRAKE\",8,103.51,\"S-UAE Trading LLC\",S-UAE,inventory,0\n";
-echo "AISIN,DT068,\"WATER PUMP\",3,45.00,\"R-UAE Spare Parts FZE\",R-UAE,inventory,0\n";
-echo "DENSO,0671007450,FILTER,12,18.00,\"S-UAE Trading LLC\",S-UAE,sales,0\n";
-echo "DENSO,0671007450,FILTER,5,22.50,\"S-UAE Trading LLC\",S-UAE,sales,0\n";
-echo "DENSO,0671007450,FILTER,2,29.90,\"S-UAE Trading LLC\",S-UAE,sales,0\n";
+echo "Brand,Article,Name,Qty,Price,\"Vendor full name\",\"Vendor short\",\"Data type\",Delivery,\"Engine code\",\"Country code\",Size,\"Cross reference\",\"OE number\",\"Other information\"\n";
+echo "TOYOTA,446610010,\"PAD KIT, DISC BRAKE\",8,103.51,\"S-UAE Trading LLC\",S-UAE,inventory,0,2JZGE,JP,\"15\"\"\",04465-YZZD2,044650K090,\"Ceramic; front\"\n";
+echo "AISIN,DT068,\"WATER PUMP\",3,45.00,\"R-UAE Spare Parts FZE\",R-UAE,inventory,0,1KZTE,TH,STD,16100-69355,1610069355,\n";
+echo "DENSO,0671007450,FILTER,12,18.00,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\n";
+echo "DENSO,0671007450,FILTER,5,22.50,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\n";
+echo "DENSO,0671007450,FILTER,2,29.90,\"S-UAE Trading LLC\",S-UAE,sales,0,3L,JP,,,,\n";

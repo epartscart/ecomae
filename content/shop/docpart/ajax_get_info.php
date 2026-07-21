@@ -192,12 +192,15 @@ switch($action){
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 		$epc_guest_commerce_blocked = epc_storefront_guest_commerce_blocked();
+		$epc_sensitive_mask = function_exists('epc_storefront_sensitive_mask')
+			? epc_storefront_sensitive_mask()
+			: '**';
 
 		// Цена
 		if ($epc_guest_commerce_blocked) {
-			$price = epc_storefront_prices_login_cta_html(
-				isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null
-			);
+			$price = htmlspecialchars($epc_sensitive_mask, ENT_QUOTES, 'UTF-8');
+			$time_to_exe = $epc_sensitive_mask;
+			$exist_display = $epc_sensitive_mask;
 		} else {
 			$price = number_format($product['price'], 2, '.', ' ');
 
@@ -210,6 +213,7 @@ switch($action){
 			{
 				$price = $price .' '. $product['currency_indicator'];
 			}
+			$exist_display = $product['exist'] . ' ' . translate_str_by_id(4095) . '.';
 		}
 		?>
 		<div class="row" style="margin: 0;">
@@ -270,11 +274,11 @@ switch($action){
 						</tr>
 						<tr>
 							<td><?php echo translate_str_by_id(3433); ?>:</td>
-							<td style="font-size:12px; text-align:right; padding-right:20px;"><?=$time_to_exe;?></td>
+							<td style="font-size:12px; text-align:right; padding-right:20px;"><?=htmlspecialchars((string)$time_to_exe, ENT_QUOTES, 'UTF-8');?></td>
 						</tr>
 						<tr>
 							<td><?php echo translate_str_by_id(4094); ?>:</td>
-							<td style="font-size:12px; text-align:right; padding-right:20px;"><?=$product['exist'];?> <?php echo translate_str_by_id(4095); ?>.</td>
+							<td style="font-size:12px; text-align:right; padding-right:20px;"><?=htmlspecialchars((string)$exist_display, ENT_QUOTES, 'UTF-8');?></td>
 						</tr>
 					</table>
 					

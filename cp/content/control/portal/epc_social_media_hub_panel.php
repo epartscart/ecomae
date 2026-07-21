@@ -14,8 +14,36 @@ function epc_social_media_explore_hint_html(): string
 {
 	return '<div class="epc-social-explore-hint" role="status">'
 		. '<span class="epc-social-explore-hint__icon" aria-hidden="true"><i class="fa fa-hand-o-down"></i></span>'
-		. '<span class="epc-social-explore-hint__text">Click the tabs below — explore your marketing pack, video templates &amp; AI advisor</span>'
+		. '<span class="epc-social-explore-hint__text">Use the tabs — ready captions, sample reels, encrypted accounts, AI advisor, and a short video guide</span>'
 		. '</div>';
+}
+
+/**
+ * Render a video card with HTML5 player + use-as-media-url action.
+ *
+ * @param array{id?:string,title:string,kind?:string,url:string,aspect?:string,blurb?:string} $video
+ */
+function epc_social_render_video_card(array $video, bool $vertical = false): void
+{
+	$url = (string) ($video['url'] ?? '');
+	if ($url === '') {
+		return;
+	}
+	$title = (string) ($video['title'] ?? 'Video');
+	$blurb = (string) ($video['blurb'] ?? '');
+	$class = $vertical ? 'epc-social-video epc-social-video--vertical' : 'epc-social-video';
+	echo '<div class="' . $class . '">';
+	echo '<div class="epc-social-video__player"><video controls playsinline preload="metadata" src="' . epc_social_h($url) . '">';
+	echo 'Your browser does not support HTML5 video.</video></div>';
+	echo '<div class="epc-social-video__meta"><strong>' . epc_social_h($title) . '</strong>';
+	if ($blurb !== '') {
+		echo '<p class="text-muted small" style="margin:6px 0 8px">' . epc_social_h($blurb) . '</p>';
+	}
+	echo '<div class="epc-social-video__actions">';
+	echo '<a class="btn btn-xs btn-default" href="' . epc_social_h($url) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open</a> ';
+	echo '<button type="button" class="btn btn-xs btn-primary epc-social-use-video" data-url="' . epc_social_h($url) . '"><i class="fa fa-link"></i> Use as media URL</button> ';
+	echo '<button type="button" class="btn btn-xs btn-default epc-social-copy" data-caption="' . epc_social_h($url) . '"><i class="fa fa-copy"></i> Copy URL</button>';
+	echo '</div></div></div>';
 }
 
 function epc_social_media_render_hub(array $opts = array()): void
@@ -103,7 +131,7 @@ function epc_social_media_render_hub(array $opts = array()): void
 			'hero' => array(
 				'badge' => $isSuper ? 'Super CP · Social Marketing' : 'Social media hub',
 				'title' => $brand['brand_name'] . ' — Social Media Marketing',
-				'sub' => 'Ready-to-post pack, TikTok & Instagram templates, encrypted account vault, and AI caption advisor for ' . epc_social_h($brand['market']) . '.',
+				'sub' => 'Modern ready-to-post captions, sample Reels/TikTok videos, encrypted account vault, live publish (Facebook · Instagram · TikTok), and AI caption advisor for ' . epc_social_h($brand['market']) . '.',
 				'actions' => array(
 					array('label' => 'Guide', 'icon' => 'fa-book', 'url' => $guideUrl, 'primary' => true),
 					array('label' => 'Integrations', 'icon' => 'fa-plug', 'url' => $integrationsUrl),
@@ -115,7 +143,7 @@ function epc_social_media_render_hub(array $opts = array()): void
 		echo '<div class="epc-social-hub">';
 		echo '<div class="epc-th-hero epc-social-hub__hero-tenant" style="margin-bottom:16px"><span class="epc-th-hero__badge">Social media</span>';
 		echo '<h4><i class="fa fa-share-alt"></i> Marketing hub — ' . epc_social_h($brand['brand_name']) . '</h4>';
-		echo '<p class="epc-th-hero__sub">Content pack, video templates, connected accounts, and AI advisor. ';
+		echo '<p class="epc-th-hero__sub">Captions, sample videos, connected accounts, and AI advisor. ';
 		echo '<a href="' . epc_social_h(epc_social_hub_url('', 'platform')) . '">Open full hub</a></p></div>';
 		echo epc_social_media_explore_hint_html();
 	}
@@ -244,6 +272,9 @@ function epc_social_render_tiktok_tab(array $brand): void
 	$meta = epc_social_pack_platforms()['tiktok'];
 	$posts = epc_social_pack_posts_for_brand('tiktok', $brand);
 	$specs = epc_social_tiktok_specs();
+	$reels = array_values(array_filter(epc_social_video_library(), static function ($v) {
+		return (($v['kind'] ?? '') === 'reel');
+	}));
 	echo '<div class="epc-social-intro"><strong>' . epc_social_h($meta['label']) . '</strong> — ' . epc_social_h($meta['intro']) . '</div>';
 	echo '<div class="row"><div class="col-md-4"><div class="panel panel-default"><div class="panel-heading"><strong>Video specs</strong></div><div class="panel-body"><dl class="epc-social-specs">';
 	foreach ($specs as $k => $v) {
@@ -251,10 +282,18 @@ function epc_social_render_tiktok_tab(array $brand): void
 	}
 	echo '</dl></div></div>';
 	echo '<div class="panel panel-default"><div class="panel-heading"><strong>Upload / link</strong></div><div class="panel-body">';
-	echo '<p class="text-muted small">Public HTTPS <code>.mp4</code> URL required for live Publish (TikTok PULL_FROM_URL — verify domain in TikTok Developer Portal). Connect token under <em>Connected accounts</em>, then Publish.</p>';
-	echo '<input type="url" class="form-control input-sm" id="epc_social_video_url" placeholder="https://cdn.example.com/your-reel.mp4">';
+	echo '<p class="text-muted small">Public HTTPS <code>.mp4</code> URL required for live Publish (TikTok PULL_FROM_URL — verify domain in TikTok Developer Portal). Use a sample reel below or paste your CDN URL. Connect token under <em>Connected accounts</em>, then Publish.</p>';
+	echo '<input type="url" class="form-control input-sm" id="epc_social_video_url" placeholder="https://…/your-reel.mp4">';
 	echo '</div></div></div>';
-	echo '<div class="col-md-8"><div class="epc-social-grid">';
+	echo '<div class="col-md-8">';
+	if ($reels !== array()) {
+		echo '<div class="panel panel-default"><div class="panel-heading"><strong><i class="fa fa-film"></i> Sample reels (built-in)</strong></div><div class="panel-body"><div class="epc-social-video-grid epc-social-video-grid--reels">';
+		foreach ($reels as $video) {
+			epc_social_render_video_card($video, true);
+		}
+		echo '</div></div></div>';
+	}
+	echo '<div class="epc-social-grid">';
 	foreach ($posts as $post) {
 		$caption = (string) $post['caption'];
 		echo '<div class="epc-social-post"><div class="epc-social-post__head">' . epc_social_h($post['title']) . '</div>';
@@ -297,12 +336,12 @@ function epc_social_render_accounts_tab(array $brand, string $siteKey, array $ac
 {
 	global $db_link;
 	$pdo = epc_social_pdo($db_link instanceof PDO ? $db_link : null);
-	echo '<div class="alert alert-info"><i class="fa fa-bullhorn"></i> <strong>Live publish enabled</strong> for Facebook, Instagram, and TikTok. '
-		. 'Paste a Page / IG user / TikTok user access token, save, then <em>Test connection</em> (hits the real API). '
-		. 'Publish from the Drafts tab with a public media URL.</div>';
+	echo '<div class="alert alert-info"><i class="fa fa-bullhorn"></i> <strong>Live publish</strong> works for <strong>Facebook, Instagram, and TikTok</strong> once a valid token is saved and <em>Test connection</em> passes. '
+		. 'LinkedIn and X store credentials in the vault for ops handoff — post natively until those APIs are enabled. '
+		. 'Publish from <strong>Drafts</strong> with a public HTTPS media URL (sample reels are under the TikTok tab).</div>';
 	echo '<div class="alert alert-warning"><i class="fa fa-lock"></i> <strong>Secure vault</strong> — tokens are AES-256 encrypted per tenant and never shown after save. '
-		. 'Meta: Page token + Page ID (FB) or IG Business user ID. TikTok: user token with <code>video.publish</code>; unaudited apps post <code>SELF_ONLY</code> only. '
-		. 'App registration: <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>.</div>';
+		. 'Meta: Page token + Page ID (Facebook) or IG Business user ID. TikTok: user token with <code>video.publish</code>; unaudited apps stay <code>SELF_ONLY</code>. '
+		. 'Register apps in <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>, then return here to paste tokens and test.</div>';
 	foreach (epc_social_platforms() as $key => $plat) {
 		$existing = $accountMap[$key] ?? null;
 		$status = $existing ? (string) ($existing['status'] ?? 'pending') : 'not_connected';
@@ -402,14 +441,14 @@ function epc_social_render_ai_tab(array $brand, array $trends, array $hooks, str
 	echo '<div id="epc_social_gen_result" style="margin-top:14px;display:none"><pre class="epc-social-post__body" style="max-height:none;background:#f8fafc;padding:12px;border-radius:8px" id="epc_social_gen_caption"></pre>';
 	echo '<p id="epc_social_gen_tags" class="text-muted"></p>';
 	echo '<button type="button" class="btn btn-sm btn-primary epc-social-copy" id="epc_social_gen_copy"><i class="fa fa-copy"></i> Copy</button></div>';
-	echo '<p class="text-muted small" style="margin-top:10px">AI advisor uses industry + country rules. Connect LLM agent in Integrations for richer suggestions.</p>';
+	echo '<p class="text-muted small" style="margin-top:10px">AI advisor uses industry + country rules for fast captions. Sample reels live under the TikTok tab; connect Meta/TikTok apps via Integrations for live publish.</p>';
 	echo '</div></div>';
 }
 
 function epc_social_render_drafts_tab(array $brand, array $drafts, string $csrf): void
 {
 	echo '<div class="panel panel-default"><div class="panel-heading"><strong>Compose &amp; publish</strong></div><div class="panel-body">';
-	echo '<p class="text-muted">Facebook / Instagram / TikTok post live from CP. Media URL must be public HTTPS (Meta/TikTok fetch it).</p>';
+	echo '<p class="text-muted">Facebook / Instagram / TikTok post live from CP. Media URL must be public HTTPS (Meta/TikTok fetch it). Tip: open TikTok tab → <em>Use as media URL</em> on a sample reel, then return here.</p>';
 	echo '<form method="post" class="form-horizontal" id="epc_social_publish_form">';
 	echo '<input type="hidden" name="csrf_token" value="' . epc_social_h($csrf) . '">';
 	echo '<div class="row">';
@@ -466,19 +505,47 @@ function epc_social_render_drafts_tab(array $brand, array $drafts, string $csrf)
 function epc_social_render_guide_tab(array $brand, string $integrationsUrl, string $guideUrl): void
 {
 	$steps = array(
-		array('title' => 'Connect accounts', 'body' => 'Open <strong>Connected accounts</strong>. Save access token + Page / IG Business user ID (encrypted). Click <em>Test connection (live API)</em> — Facebook/Instagram hit Meta Graph; TikTok hits creator_info. Register Meta/TikTok apps in <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a>.'),
-		array('title' => 'Pick content from pack', 'body' => 'Marketing pack includes 16 ECOM AE posts (LinkedIn, Instagram, Facebook, X). Tenant CP auto-adapts brand name, domain, and hashtags for ' . epc_social_h($brand['brand_name']) . '.'),
-		array('title' => 'Publish from Drafts', 'body' => 'Open <strong>Drafts</strong> → Compose. Choose Facebook / Instagram / TikTok, paste a <em>public HTTPS</em> image or .mp4 URL, then <strong>Publish now</strong>. Instagram uses media → poll → media_publish. TikTok uses PULL_FROM_URL (verify your domain in TikTok Developer Portal). Unaudited TikTok apps: privacy SELF_ONLY only.'),
-		array('title' => 'AI advisor', 'body' => 'Check weekly trending formats and industry hooks. Generate captions for your product line. GCC: mix English + Arabic hashtags. Pakistan: Urdu/English captions perform well on Facebook.'),
-		array('title' => 'Measure', 'body' => 'Published drafts store external post IDs. Track clicks via Web tracker / GA4. LinkedIn and X remain copy→native until those APIs are wired.'),
+		array(
+			'title' => 'Connect accounts',
+			'body' => 'Open <strong>Connected accounts</strong>. Paste access token + Page / IG Business user ID (encrypted vault). Click <em>Test connection (live API)</em> — Facebook/Instagram hit Meta Graph; TikTok hits creator_info. Register apps in <a href="' . epc_social_h($integrationsUrl) . '">Integrations hub</a> first.',
+		),
+		array(
+			'title' => 'Pick content from the pack',
+			'body' => 'Marketing pack ships 16 modern captions (LinkedIn, Instagram, Facebook, X) plus TikTok reel scripts. Tenant CP auto-adapts brand name, domain, and hashtags for <strong>' . epc_social_h($brand['brand_name']) . '</strong>.',
+		),
+		array(
+			'title' => 'Publish from Drafts (with video)',
+			'body' => 'Open <strong>Drafts</strong> → Compose. Choose Facebook / Instagram / TikTok, paste a <em>public HTTPS</em> image or .mp4 URL (or click <em>Use as media URL</em> on a sample reel), then <strong>Publish now</strong>. Instagram: media → poll → media_publish. TikTok: PULL_FROM_URL (verify domain). Unaudited TikTok apps: SELF_ONLY only.',
+		),
+		array(
+			'title' => 'AI advisor',
+			'body' => 'Check weekly formats and industry hooks, then generate a caption for your product line. GCC: mix English + Arabic hashtags. Pakistan: Urdu/English on Facebook; English on LinkedIn.',
+		),
+		array(
+			'title' => 'Measure & handoff',
+			'body' => 'Published drafts store external post IDs. Track clicks via Web tracker / GA4. LinkedIn and X remain copy→native until those APIs are wired — vault still keeps tokens safe for your team.',
+		),
 	);
 	echo '<div class="alert alert-info"><i class="fa fa-book"></i> Guide URL: <a href="' . epc_social_h($guideUrl) . '"><code>' . epc_social_h($guideUrl) . '</code></a></div>';
+
+	$guideVideos = array_values(array_filter(epc_social_video_library(), static function ($v) {
+		return (($v['kind'] ?? '') === 'guide');
+	}));
+	if ($guideVideos !== array()) {
+		echo '<div class="panel panel-default"><div class="panel-heading"><strong><i class="fa fa-play-circle"></i> Watch the guide (built-in videos)</strong></div><div class="panel-body"><div class="epc-social-video-grid">';
+		foreach ($guideVideos as $video) {
+			epc_social_render_video_card($video, false);
+		}
+		echo '</div></div></div>';
+	}
+
 	foreach ($steps as $i => $step) {
 		echo '<div class="epc-social-guide-step"><h5 style="margin:0 0 6px">Step ' . ($i + 1) . ' — ' . epc_social_h($step['title']) . '</h5><div>' . $step['body'] . '</div></div>';
 	}
 	echo '<div class="panel panel-default"><div class="panel-heading"><strong>GCC &amp; Pakistan best practices</strong></div><div class="panel-body"><ul>';
-	echo '<li><strong>UAE/GCC:</strong> Post Sun–Thu 10am–1pm GST; compliance content (VAT, e-invoice) builds B2B trust.</li>';
-	echo '<li><strong>Pakistan:</strong> Facebook + WhatsApp status repurposing; Urdu captions for retail; English for B2B LinkedIn.</li>';
-	echo '<li><strong>All markets:</strong> Never post raw credentials; use CP vault only. Enable 2FA on social accounts.</li>';
+	echo '<li><strong>UAE/GCC:</strong> Post Sun–Thu 10am–1pm GST; compliance + trade-pricing posts build B2B trust.</li>';
+	echo '<li><strong>Pakistan:</strong> Facebook + WhatsApp Status repurposing; Urdu captions for retail; English for B2B LinkedIn.</li>';
+	echo '<li><strong>All markets:</strong> Never post raw credentials; use the CP vault only. Enable 2FA on every social account.</li>';
+	echo '<li><strong>Video:</strong> Start from sample reels under TikTok, replace with your screen recording, host on public HTTPS, then Publish.</li>';
 	echo '</ul></div></div>';
 }

@@ -125,6 +125,31 @@
 .epc-sku-media__list button.is-active {
   background: var(--sku-accent-soft);
 }
+.epc-sku-media__badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  margin-left: 4px;
+  vertical-align: middle;
+  background: #e2e8f0;
+  color: #334155;
+}
+.epc-sku-media__badge--supplier {
+  background: #ccfbf1;
+  color: #115e59;
+}
+.epc-sku-media__badge--catalogue {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+.epc-sku-media__badge--profile {
+  background: #fef3c7;
+  color: #92400e;
+}
 .epc-sku-media__list .meta {
   color: var(--sku-muted);
   font-size: 12px;

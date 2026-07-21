@@ -90,7 +90,7 @@
       if (act === 'new') self.newProfile();
       if (act === 'save-profile') self.saveProfile();
       if (act === 'delete-profile') self.deleteProfile();
-      if (act === 'pick') self.loadProfile(parseInt(btn.getAttribute('data-id'), 10) || 0);
+      if (act === 'pick') self.pickItem(btn);
       if (act === 'add-group') self.addGroup(btn.getAttribute('data-name'), btn.getAttribute('data-code'), btn.getAttribute('data-icon'));
       if (act === 'delete-group') self.deleteGroup(parseInt(btn.getAttribute('data-id'), 10) || 0);
       if (act === 'add-row') self.addRow(parseInt(btn.getAttribute('data-group'), 10) || 0);
@@ -157,7 +157,7 @@
       list.innerHTML = '';
       var items = json.items || [];
       if (!items.length) {
-        list.innerHTML = '<li class="epc-sku-media__empty">No SKU media profiles yet.</li>';
+        list.innerHTML = '<li class="epc-sku-media__empty">No matching brands / articles. Try a supplier article or create a new profile.</li>';
         return;
       }
       items.forEach(function (it) {
@@ -165,16 +165,53 @@
         var b = el('button');
         b.setAttribute('type', 'button');
         b.setAttribute('data-sku-action', 'pick');
-        b.setAttribute('data-id', String(it.id));
-        if (self.profileId === parseInt(it.id, 10)) b.classList.add('is-active');
-        var title = (it.brand || '') + ' ' + (it.article || '');
-        title = title.trim() || (it.title || ('SKU #' + it.id));
-        b.innerHTML = '<div><strong>' + self.esc(title) + '</strong></div>' +
+        b.setAttribute('data-id', String(it.id || 0));
+        b.setAttribute('data-source', String(it.source || 'profile'));
+        b.setAttribute('data-brand', String(it.brand || ''));
+        b.setAttribute('data-article', String(it.article || it.article_show || ''));
+        b.setAttribute('data-title', String(it.title || ''));
+        b.setAttribute('data-product-id', String(it.product_id || 0));
+        b.setAttribute('data-has-profile', it.has_profile ? '1' : '0');
+        if (self.profileId > 0 && self.profileId === parseInt(it.id, 10)) b.classList.add('is-active');
+        var title = (it.brand || '') + ' ' + (it.article || it.article_show || '');
+        title = title.trim() || (it.title || ('SKU #' + (it.id || '')));
+        var sourceLabel = it.source === 'supplier'
+          ? ('Warehouse' + (it.warehouse ? ': ' + it.warehouse : ''))
+          : (it.source === 'catalogue' ? 'Catalogue' : 'Media profile');
+        var mediaBits = [];
+        if (it.has_profile) {
+          mediaBits.push((it.photo_count || 0) + ' photos');
+          mediaBits.push((it.spec_count || 0) + ' specs');
+        } else {
+          mediaBits.push('No photos yet — click to add');
+        }
+        b.innerHTML =
+          '<div><strong>' + self.esc(title) + '</strong> ' +
+          '<span class="epc-sku-media__badge epc-sku-media__badge--' + self.esc(it.source || 'profile') + '">' +
+          self.esc(sourceLabel) + '</span></div>' +
           '<div class="meta">' + self.esc(it.title || '') +
-          ' · ' + (it.photo_count || 0) + ' photos · ' + (it.spec_count || 0) + ' specs</div>';
+          (mediaBits.length ? ' · ' + mediaBits.join(' · ') : '') + '</div>';
         li.appendChild(b);
         list.appendChild(li);
       });
+    });
+  };
+
+  EpcSkuMedia.prototype.pickItem = function (btn) {
+    var id = parseInt(btn.getAttribute('data-id'), 10) || 0;
+    var hasProfile = btn.getAttribute('data-has-profile') === '1';
+    if (id > 0 && hasProfile) {
+      return this.loadProfile(id);
+    }
+    var self = this;
+    return this.api('ensure', {
+      brand: btn.getAttribute('data-brand') || '',
+      article: btn.getAttribute('data-article') || '',
+      title: btn.getAttribute('data-title') || '',
+      product_id: parseInt(btn.getAttribute('data-product-id'), 10) || 0
+    }).then(function (json) {
+      self.applyPayload(json.payload);
+      return self.refreshList();
     });
   };
 

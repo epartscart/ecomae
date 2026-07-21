@@ -32,6 +32,7 @@ $filters = array(
 	'condition' => isset($_REQUEST['condition']) ? (string) $_REQUEST['condition'] : '',
 	'price_min' => isset($_REQUEST['price_min']) ? (string) $_REQUEST['price_min'] : '',
 	'price_max' => isset($_REQUEST['price_max']) ? (string) $_REQUEST['price_max'] : '',
+	'id' => isset($_REQUEST['id']) ? (string) $_REQUEST['id'] : (isset($_REQUEST['listing_id']) ? (string) $_REQUEST['listing_id'] : ''),
 	'sort' => isset($_REQUEST['sort']) ? (string) $_REQUEST['sort'] : 'updated-desc',
 	'page' => isset($_REQUEST['page']) ? (string) $_REQUEST['page'] : '1',
 	'per_page' => isset($_REQUEST['per_page']) ? (string) $_REQUEST['per_page'] : '24',

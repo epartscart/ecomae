@@ -149,11 +149,11 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
 				'/content/general_pages/epc_portal_module_pages_css.php?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_social_media_hub_css.php?v=' . rawurlencode($ver . 'socPub1'),
+				'/content/general_pages/epc_social_media_hub_css.php?v=' . rawurlencode($ver . 'socPub2'),
 			),
 			'js' => array(
-				'/content/general_pages/epc_social_media_hub_config.php?v=' . rawurlencode($ver . 'socPub1'),
-				'/content/general_pages/epc_social_media_hub_js.php?v=' . rawurlencode($ver . 'socPub1'),
+				'/content/general_pages/epc_social_media_hub_config.php?v=' . rawurlencode($ver . 'socPub2'),
+				'/content/general_pages/epc_social_media_hub_js.php?v=' . rawurlencode($ver . 'socPub2'),
 			),
 		),
 		'control/portal/epc_marketing_broadcast' => array(
@@ -283,6 +283,15 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/epc_cp_table_filter.js?v=' . rawurlencode($ver . 'cpFull2'),
 			),
 		),
+		'shop/logistics/storages/storage' => array(
+			'css' => array(
+				'/lib/multiple_select/multiple-select.css',
+			),
+			'js' => array(
+				'/lib/multiple_select/jquery.multiple.select.js',
+				'/' . $backend . '/content/shop/logistics/storage_users_ms.js?v=' . rawurlencode($ver . 'storMs1'),
+			),
+		),
 		'shop/quote-requests' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt1'),
@@ -296,7 +305,10 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/accessories' => array(
-			'css' => array('/content/general_pages/epc_accessories_cp_css.php?v=' . rawurlencode($ver . 'acc1')),
+			'css' => array('/content/general_pages/epc_accessories_cp_css.php?v=' . rawurlencode($ver . 'accPhotos1')),
+		),
+		'shop/crosses' => array(
+			'css' => array('/content/general_pages/epc_crosses_cp_css.php?v=' . rawurlencode($ver . 'cx1')),
 		),
 		'shop/prices' => array(
 			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
@@ -323,13 +335,6 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history.js?v=' . rawurlencode($ver),
 			),
 		),
-		'shop/prices/commerce' => array(
-			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
-			'js' => array(
-				'/' . $backend . '/content/shop/prices_upload/epc_commerce_cp_config.php?v=' . rawurlencode($ver),
-				'/' . $backend . '/content/shop/prices_upload/epc_commerce_cp.js?v=' . rawurlencode($ver),
-			),
-		),
 		'shop/prices/multivendor' => array(
 			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver . 'mvMin1')),
 			'js' => array(
@@ -338,10 +343,10 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/catalogue/sku_media' => array(
-			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia2')),
+			'css' => array('/content/shop/catalogue/epc_sku_media.css?v=' . rawurlencode($ver . 'skuMedia3')),
 			'js' => array(
-				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia2'),
-				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia2'),
+				'/' . $backend . '/content/shop/catalogue/epc_sku_media_cp_config.php?v=' . rawurlencode($ver . 'skuMedia3'),
+				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia3'),
 			),
 		),
 		'shop/prices/upload' => array(
