@@ -11,15 +11,69 @@ $admin_id = DP_User::getAdminId();
 //Для работы с пользователем
 require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 $user_session = DP_User::getAdminSession();
+
+// Linked storages for office warning
+$epc_ps_linked_storage_ids = array();
+try {
+	$office_id_probe = 1;
+	$oq = $db_link->query('SELECT `id` FROM `shop_offices` ORDER BY `id` ASC LIMIT 1');
+	if ($oq) {
+		$office_id_probe = (int)$oq->fetchColumn();
+	}
+	$lq = $db_link->prepare('SELECT DISTINCT `storage_id` FROM `shop_offices_storages_map` WHERE `office_id` = ?');
+	$lq->execute(array($office_id_probe));
+	while ($lr = $lq->fetch(PDO::FETCH_ASSOC)) {
+		$epc_ps_linked_storage_ids[] = (int)$lr['storage_id'];
+	}
+} catch (Throwable $e) {
+}
 ?>
-
-
-
-
+<style>
+.epc-ps-page{--ps-ink:#0f172a;--ps-muted:#64748b;--ps-line:#e2e8f0;--ps-accent:#b45309;--ps-ok:#047857;margin:0 -5px 24px}
+.epc-ps-page .epc-ps-hero{background:linear-gradient(135deg,#1c1917 0%,#78350f 50%,#b45309 100%);color:#fff7ed;border-radius:12px;padding:18px 20px;margin:0 5px 14px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.epc-ps-page .epc-ps-hero h2{margin:0 0 4px;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.epc-ps-page .epc-ps-hero p{margin:0;opacity:.88;font-size:13px;max-width:720px}
+.epc-ps-page .epc-ps-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 5px 14px}
+@media(max-width:1100px){.epc-ps-page .epc-ps-steps{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.epc-ps-page .epc-ps-steps{grid-template-columns:1fr}}
+.epc-ps-page .epc-ps-step{background:#fff;border:1px solid var(--ps-line);border-radius:10px;padding:12px 14px}
+.epc-ps-page .epc-ps-step b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ps-accent);margin-bottom:4px}
+.epc-ps-page .epc-ps-step span{font-size:13px;color:var(--ps-ink);line-height:1.4}
+.epc-ps-page .hpanel{border-radius:10px;overflow:hidden;border:1px solid var(--ps-line);box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.epc-ps-page .hpanel .panel-heading.hbuilt{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border-bottom:1px solid var(--ps-line);font-weight:600;color:var(--ps-ink)}
+.epc-ps-page .epc-ps-section-label{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ps-muted);margin-right:8px}
+.epc-ps-page .epc-ps-guide{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:8px;padding:12px 14px;margin:0 5px 14px;font-size:13px;line-height:1.5}
+.epc-ps-page .epc-ps-guide code{background:rgba(255,255,255,.7);padding:1px 5px;border-radius:4px}
+.epc-ps-page #create_prices_status{margin-top:10px;font-size:13px}
+.epc-ps-page .epc-ps-file-list a{display:inline-block;margin:4px 8px 4px 0}
+.epc-ps-page .btn-success{background:var(--ps-ok);border-color:var(--ps-ok)}
+.epc-ps-page .table-responsive{border:1px solid var(--ps-line);border-radius:8px}
+</style>
+<div class="epc-ps-page">
+<div class="epc-ps-hero">
+	<div>
+		<h2>Send price lists</h2>
+		<p>Build customer CSV price profiles with markup by group, optionally filtered by brand or article, then download or email. Docpart price storages and catalogue categories can be combined.</p>
+	</div>
+</div>
+<div class="epc-ps-steps">
+	<div class="epc-ps-step"><b>1 · Profile</b><span>Pick customers and/or a markup profile group (Retail, Wholesale, CIS, GCC…).</span></div>
+	<div class="epc-ps-step"><b>2 · Sources</b><span>Choose shop + Docpart / catalogue storages linked with markup.</span></div>
+	<div class="epc-ps-step"><b>3 · Filter</b><span>Optional: brand (e.g. TOYOTA), article, or catalogue tree groups.</span></div>
+	<div class="epc-ps-step"><b>4 · Generate</b><span>Create CSV files, download to review, then email if needed.</span></div>
+</div>
+<div class="epc-ps-guide">
+	<strong>How to generate a profile</strong><br>
+	• <strong>By group:</strong> select a markup profile below (or customers in that group) → Generate.<br>
+	• <strong>By brand:</strong> enter brand (e.g. <code>TOYOTA</code>) → select Docpart storages → Generate.<br>
+	• <strong>By item:</strong> enter article number and/or tick catalogue categories → Generate.<br>
+	Storages must be linked to the shop in the markup map. Use <em>Link selected storages</em> if generation reports unlinked warehouses.
+</div>
 
 <div class="col-lg-12">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
+			<span class="epc-ps-section-label">Step 1</span>
 			<?php echo translate_str_by_id(3662); ?>
 		</div>
 		<div class="panel-body">
@@ -30,6 +84,8 @@ $user_session = DP_User::getAdminSession();
 				<div class="panel-tools">
                     <a class="showhide"><i class="fa fa-chevron-up"></i></a>
                 </div>
+				<?php echo translate_str_by_id(3663); ?>
+			</div>
 				<?php echo translate_str_by_id(3663); ?>
 			</div>
 			<div class="panel-body">
@@ -247,10 +303,16 @@ $user_session = DP_User::getAdminSession();
     // возвращает cookie с именем name, если есть, если нет, то undefined
     function getCookie(name) 
     {
-        var matches = document.cookie.match(new RegExp(
-            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-        ));
-        return matches ? decodeURIComponent(matches[1]) : undefined;
+		name = String(name || '');
+		var prefix = name + '=';
+		var parts = String(document.cookie || '').split(';');
+		for (var i = 0; i < parts.length; i++) {
+			var part = parts[i].replace(/^\s+/, '');
+			if (part.indexOf(prefix) === 0) {
+				return decodeURIComponent(part.substring(prefix.length));
+			}
+		}
+		return undefined;
     }
     // ------------------------------------------------------------------------------------------------
     </script>
@@ -604,6 +666,7 @@ $user_session = DP_User::getAdminSession();
 <div class="col-lg-12">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
+			<span class="epc-ps-section-label">Step 2</span>
 			<?php echo translate_str_by_id(3670); ?>
 		</div>
 		<div class="panel-body">
@@ -636,7 +699,9 @@ $user_session = DP_User::getAdminSession();
 <div class="col-lg-12">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
+			<span class="epc-ps-section-label">Step 2</span>
 			<?php echo translate_str_by_id(3671); ?>
+			<small class="text-muted"> — Docpart price lists + catalogue warehouses</small>
 		</div>
 		<div class="panel-body" style="height: 436px; overflow-y: auto;">
 			<div class="table-responsive">
@@ -647,6 +712,7 @@ $user_session = DP_User::getAdminSession();
 							<th>ID</th>
 							<th><?php echo translate_str_by_id(2277); ?></th>
 							<th><?php echo translate_str_by_id(3474); ?></th>
+							<th>Linked</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -666,14 +732,16 @@ $user_session = DP_User::getAdminSession();
 						//Для Javascript
 						$for_js = $for_js."elements_array[elements_array.length] = \"checked_".$element_record["id"]."\";\n";//Добавляем элемент для JS
 						$for_js = $for_js."elements_id_array[elements_id_array.length] = ".$element_record["id"].";\n";//Добавляем элемент для JS
+						$is_linked = in_array((int)$element_record['id'], $epc_ps_linked_storage_ids, true);
 						?>
 					
 					
 						<tr>
 							<td><input checked type="checkbox" onchange="on_one_check_changed('checked_<?php echo $element_record["id"]; ?>');" id="checked_<?php echo $element_record["id"]; ?>" name="checked_<?php echo $element_record["id"]; ?>"/></td>
 							<td><?php echo $element_record["id"]; ?></td>
-							<td><?php echo $element_record["name"]; ?></td>
-							<td><?php echo $element_record["interface_type_name"]; ?></td>
+							<td><?php echo htmlspecialchars($element_record["name"], ENT_QUOTES, 'UTF-8'); ?></td>
+							<td><?php echo htmlspecialchars((string)$element_record["interface_type_name"], ENT_QUOTES, 'UTF-8'); ?></td>
+							<td><?php echo $is_linked ? '<span class="label label-success">Yes</span>' : '<span class="label label-warning">No</span>'; ?></td>
 						</tr>
 					<?php
 					}//for
@@ -703,7 +771,49 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/get_catalogue_tr
 <div class="col-lg-12">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
+			<span class="epc-ps-section-label">Step 3</span>
+			Filters — by brand / item / catalogue group
+		</div>
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-lg-4">
+					<label>Markup profile (by group)</label>
+					<select id="epc_ps_profile_group" class="form-control">
+						<option value="0">— Use selected customers / email group —</option>
+						<?php
+						$groups_query2 = $db_link->prepare("SELECT * FROM `groups` ORDER BY `id`");
+						$groups_query2->execute();
+						while ($g2 = $groups_query2->fetch()) {
+							$label = function_exists('translate_str_by_id') ? translate_str_by_id($g2['value']) : $g2['value'];
+							echo '<option value="'.(int)$g2['id'].'">'.htmlspecialchars($label.' (ID '.$g2['id'].')', ENT_QUOTES, 'UTF-8').'</option>';
+						}
+						?>
+					</select>
+					<p class="text-muted" style="font-size:12px;margin-top:6px;">Generates CSV using this group's markup even without selecting customers.</p>
+				</div>
+				<div class="col-lg-4">
+					<label>Brand filter (optional)</label>
+					<input type="text" id="epc_ps_filter_brand" class="form-control" placeholder="e.g. TOYOTA" list="epc_ps_brand_list"/>
+					<datalist id="epc_ps_brand_list"></datalist>
+					<p class="text-muted" style="font-size:12px;margin-top:6px;">Limits Docpart / catalogue rows to matching manufacturer.</p>
+				</div>
+				<div class="col-lg-4">
+					<label>Article / item filter (optional)</label>
+					<input type="text" id="epc_ps_filter_article" class="form-control" placeholder="e.g. 8114560Q51"/>
+					<p class="text-muted" style="font-size:12px;margin-top:6px;">Partial match on part number.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="col-lg-12">
+	<div class="hpanel">
+		<div class="panel-heading hbuilt">
+			<span class="epc-ps-section-label">Step 3</span>
 			<?php echo translate_str_by_id(3672); ?>
+			<small class="text-muted"> — catalogue categories (by group of items)</small>
 		</div>
 		<div class="panel-body">
 			
@@ -753,20 +863,23 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/get_catalogue_tr
 <div class="col-lg-12">
 	<div class="hpanel">
 		<div class="panel-heading hbuilt">
+			<span class="epc-ps-section-label">Step 4</span>
 			<?php echo translate_str_by_id(2755); ?>
 		</div>
 		<div class="panel-body">
 			
 			<div>
 				<div style="padding:0 0 10px 0;">
-				<button onclick="create_prices();" class="btn w-xs btn-success"><?php echo translate_str_by_id(3673); ?></button>
-				<button id="send_prices_btn" onclick="send_prices();" disabled class="btn w-xs btn-primary2"><?php echo translate_str_by_id(3674); ?></button>
+				<button onclick="create_prices();" class="btn btn-success"><i class="fa fa-cogs"></i> <?php echo translate_str_by_id(3673); ?></button>
+				<button type="button" onclick="epcPsLinkStorages();" class="btn btn-warning"><i class="fa fa-link"></i> Link selected storages</button>
+				<button id="send_prices_btn" onclick="send_prices();" disabled class="btn btn-primary"><i class="fa fa-envelope"></i> <?php echo translate_str_by_id(3674); ?></button>
 				</div>
 				<div id="create_prices_status"></div>
 			</div>
 			
 		</div>
 	</div>
+</div>
 </div>
 
 
@@ -782,103 +895,127 @@ function send_prices(){
 	
 	// Получаем список выбранных пользователей
 	var users_list = get_users_list();
-	//console.log(users_list);
 	
 	// Получаем список email перечисленных вручную
 	var group_id_my_list_emails = 0;
 	var emails_list = document.getElementById('my_list_emails').value;
-	//console.log(emails_list);
 	if(emails_list != ''){
-		// Получаем группу наценок
 		var n = document.getElementById("group_id_my_list_emails").options.selectedIndex;
 		group_id_my_list_emails = document.getElementById("group_id_my_list_emails").options[n].value;
-		//console.log(group_id_my_list_emails);
 	}
 	
 	if(users_list.length == 0 && emails_list == ''){
 		alert('<?php echo translate_str_by_id(3675); ?>');
+		document.getElementById('send_prices_btn').removeAttribute('disabled');
 		return;
 	}
 	
-	//--------------------------------------------------
-	
-	// Отображаем индикатор загрузки
-	document.getElementById('create_prices_status').innerHTML = '<div class="panel-body text-left"><img src="/content/files/images/ajax-loader-transparent.gif"/></div>';
+	document.getElementById('create_prices_status').innerHTML = '<div class="text-muted"><i class="fa fa-spinner fa-spin"></i> Sending…</div>';
 	
 	
-	//Объект для запроса
 	var request_object = new Object;
 	request_object.action = 'send_prices';
 	request_object.users_list = users_list;
 	request_object.emails_list = emails_list;
 	request_object.group_id_my_list_emails = group_id_my_list_emails;
 
-	// Отправляем запрос
 	jQuery.ajax({
 		type: "POST",
 		async: true,
 		url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_send/ajax_operations.php",
-		dataType: "json",//Тип возвращаемого значения
-		data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+		dataType: "json",
+		data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
 		success: function(answer)
 		{
-			if(answer.status == true)
+			if(answer && answer.status == true)
 			{
-			   document.getElementById('create_prices_status').innerHTML = '<?php echo translate_str_by_id(3676); ?>';
+			   document.getElementById('create_prices_status').innerHTML = '<div class="alert alert-success"><?php echo translate_str_by_id(3676); ?>'+(answer.sent?(' ('+answer.sent+' sent)'):'')+'</div>';
+			   document.getElementById('send_prices_btn').removeAttribute('disabled');
 			}
 			else
 			{
-				alert("<?php echo translate_str_by_id(3677); ?>");
+				alert((answer && answer.message) ? answer.message : "<?php echo translate_str_by_id(3677); ?>");
 				document.getElementById('create_prices_status').innerHTML = '';
+				document.getElementById('send_prices_btn').removeAttribute('disabled');
 			}
+		},
+		error: function(xhr){
+			alert('Send failed (HTTP '+(xhr&&xhr.status?xhr.status:'?')+')');
+			document.getElementById('send_prices_btn').removeAttribute('disabled');
 		}
 	});
 }
+
+function epcPsCollectFilters(request_object){
+	var profile = parseInt(document.getElementById('epc_ps_profile_group').value, 10) || 0;
+	request_object.profile_group_ids = profile > 0 ? [profile] : [];
+	request_object.filter_brand = (document.getElementById('epc_ps_filter_brand').value || '').trim();
+	request_object.filter_article = (document.getElementById('epc_ps_filter_article').value || '').trim();
+	if (profile > 0 && (!request_object.group_id_my_list_emails || request_object.group_id_my_list_emails == 0)) {
+		request_object.group_id_my_list_emails = profile;
+	}
+}
 	
-	
+function epcPsLinkStorages(){
+	var offices = document.getElementById("offices").options[document.getElementById("offices").options.selectedIndex].value;
+	var arr_storages = getCheckedElements();
+	if(arr_storages.length == 0){ alert('<?php echo translate_str_by_id(3678); ?>'); return; }
+	var profile = parseInt(document.getElementById('epc_ps_profile_group').value, 10) || 0;
+	var request_object = {
+		action: 'ensure_office_storage_links',
+		offices: offices,
+		arr_storages: arr_storages,
+		group_ids: profile > 0 ? [profile, 2, 4, 5, 6, 7] : [2, 4, 5, 6, 7]
+	};
+	document.getElementById('create_prices_status').innerHTML = '<div class="text-muted"><i class="fa fa-spinner fa-spin"></i> Linking storages…</div>';
+	jQuery.ajax({
+		type: "POST",
+		url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_send/ajax_operations.php",
+		dataType: "json",
+		data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+		success: function(answer){
+			if(answer && answer.status){
+				document.getElementById('create_prices_status').innerHTML = '<div class="alert alert-success">'+(answer.message||'Linked')+'. Reload to refresh Linked column.</div>';
+			} else {
+				document.getElementById('create_prices_status').innerHTML = '<div class="alert alert-danger">'+(answer&&answer.message?answer.message:'Link failed')+'</div>';
+			}
+		},
+		error: function(xhr){ document.getElementById('create_prices_status').innerHTML = '<div class="alert alert-danger">Link failed HTTP '+(xhr.status||'?')+'</div>'; }
+	});
+}
 	
 // Функция формирует файлы прайс листов по выбранным критериям
-var check_office_storages_map = false;//Флаг - означает, что пройдена проверка подключения выбранных складов к выбранному магазину (все выбранные склады подключены к магазину)
+var check_office_storages_map = false;
 function create_prices(){
 	
 	if(!document.getElementById('send_prices_btn').hasAttribute('disabled')){
 		document.getElementById('send_prices_btn').setAttribute('disabled', 'disabled');
 	}
 	
-	// Получаем список выбранных пользователей
 	var users_list = get_users_list();
-	//console.log(users_list);
 	
-	// Получаем список email перечисленных вручную
 	var group_id_my_list_emails = 0;
 	var emails_list = document.getElementById('my_list_emails').value;
-	//console.log(emails_list);
 	if(emails_list != ''){
-		// Получаем группу наценок
 		var n = document.getElementById("group_id_my_list_emails").options.selectedIndex;
 		group_id_my_list_emails = document.getElementById("group_id_my_list_emails").options[n].value;
-		//console.log(group_id_my_list_emails);
 	}
+	var profile = parseInt(document.getElementById('epc_ps_profile_group').value, 10) || 0;
 	
-	if(users_list.length == 0 && emails_list == ''){
-		alert('<?php echo translate_str_by_id(3675); ?>');
+	if(users_list.length == 0 && emails_list == '' && profile <= 0){
+		alert('Select customers, enter emails, or choose a markup profile group.');
 		return;
 	}
 	
-	//--------------------------------------------------
-	
-	// Получаем список выбранных категорий товаров
 	var storages = 0;
 	var arr_category = catalogue_tree.getChecked();
-	//console.log(arr_category);
 	if(arr_category.length > 0){
-		// Получаем склад
 		var n = document.getElementById("storages").options.selectedIndex;
-		storages = document.getElementById("storages").options[n].value;
-		//console.log(storages);
+		if (n >= 0) {
+			storages = document.getElementById("storages").options[n].value;
+		}
 	}
 	
-	// Получаем список выбранных складов
 	var arr_storages = getCheckedElements();
 	
 	if(arr_storages.length == 0)
@@ -887,17 +1024,8 @@ function create_prices(){
 		return false;
 	}
 	
-	//--------------------------------------------------
+	var offices = document.getElementById("offices").options[document.getElementById("offices").options.selectedIndex].value;
 	
-	// Получаем магазин
-	var offices = 0;
-	var n = document.getElementById("offices").options.selectedIndex;
-	offices = document.getElementById("offices").options[n].value;
-	//console.log(offices);
-	
-	//--------------------------------------------------
-	
-	//Объект для запроса
 	var request_object = new Object;
 	request_object.action = 'check_office_storages_map';
 	request_object.offices = offices;
@@ -906,27 +1034,26 @@ function create_prices(){
 	request_object.users_list = users_list;
 	request_object.emails_list = emails_list;
 	request_object.group_id_my_list_emails = group_id_my_list_emails;
+	request_object.storages = storages;
+	epcPsCollectFilters(request_object);
 	
-	//--------------------------------------------------
-	
-	
-	//Проверяем подключение каждого выбранного склада к магазину
 	check_office_storages_map = false;
 	jQuery.ajax({
 		type: "POST",
 		async: false,
 		url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_send/ajax_operations.php",
-		dataType: "json",//Тип возвращаемого значения
-		data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+		dataType: "json",
+		data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
 		success: function(answer)
 		{
-			console.log(answer);
-			
 			if(answer.status != true)
 			{
 				check_office_storages_map = false;
-				
-				alert("<?php echo translate_str_by_id(3679); ?>: " + answer.message + ". <?php echo translate_str_by_id(3680); ?>.");
+				var msg = "<?php echo translate_str_by_id(3679); ?>: " + (answer.message||'') + ". <?php echo translate_str_by_id(3680); ?>.";
+				if (answer.can_link) {
+					msg += "\n\nClick “Link selected storages” then try Generate again.";
+				}
+				alert(msg);
 			}
 			else
 			{
@@ -943,31 +1070,38 @@ function create_prices(){
 		request_object.action = 'create_prices';
 	}
 	
-	// -----------------------------------------------------------
-	// Отправляем запрос на формирование прайсов. 
-	// Отображаем индикатор загрузки
-	document.getElementById('create_prices_status').innerHTML = '<div class="panel-body text-left"><img src="/content/files/images/ajax-loader-transparent.gif"/></div>';
-	// Отправляем запрос
+	document.getElementById('create_prices_status').innerHTML = '<div class="text-muted"><i class="fa fa-spinner fa-spin"></i> Generating price profile…</div>';
 	jQuery.ajax({
 		type: "POST",
 		async: true,
 		url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_send/ajax_operations.php",
-		dataType: "json",//Тип возвращаемого значения
-		data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+		dataType: "json",
+		data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
 		success: function(answer)
 		{
-			console.log(answer);
-			
-			if(answer.status == true)
+			if(answer && answer.status == true)
 			{
-			   document.getElementById('create_prices_status').innerHTML = '<?php echo translate_str_by_id(3681); ?>.';
-			   document.getElementById('send_prices_btn').removeAttribute('disabled');
+				var html = '<div class="alert alert-success">'+(answer.message || '<?php echo translate_str_by_id(3681); ?>.')+'</div>';
+				if (answer.files && answer.files.length) {
+					html += '<div class="epc-ps-file-list">';
+					for (var i=0;i<answer.files.length;i++) {
+						var f = answer.files[i];
+						html += '<a class="btn btn-default btn-sm" href="'+f.url+'" download><i class="fa fa-download"></i> '+f.file+' ('+f.rows+' rows, group '+f.group_id+')</a>';
+					}
+					html += '</div>';
+				}
+				document.getElementById('create_prices_status').innerHTML = html;
+				document.getElementById('send_prices_btn').removeAttribute('disabled');
 			}
 			else
 			{
-				alert("<?php echo translate_str_by_id(3682); ?>");
+				alert((answer && answer.message) ? answer.message : "<?php echo translate_str_by_id(3682); ?>");
 				document.getElementById('create_prices_status').innerHTML = '';
 			}
+		},
+		error: function(xhr){
+			alert('Generate failed (HTTP '+(xhr&&xhr.status?xhr.status:'?')+')');
+			document.getElementById('create_prices_status').innerHTML = '';
 		}
 	});
 }
@@ -1101,4 +1235,28 @@ var saved_catalogue = <?php echo $catalogue_tree_dump_JSON; ?>;
 catalogue_tree.parse(saved_catalogue);
 catalogue_tree.openAll();
 /*~ДЕРЕВО*/
+
+// Popular brands for filter datalist
+(function(){
+	var request_object = {action:'list_brands', limit:40};
+	jQuery.ajax({
+		type:'POST',
+		url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/prices_send/ajax_operations.php",
+		dataType:'json',
+		data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+		success: function(answer){
+			if(!answer || !answer.status || !answer.brands) return;
+			var dl = document.getElementById('epc_ps_brand_list');
+			if(!dl) return;
+			dl.innerHTML = '';
+			answer.brands.forEach(function(b){
+				var opt = document.createElement('option');
+				opt.value = b.brand;
+				opt.label = b.brand + ' (' + b.count + ')';
+				dl.appendChild(opt);
+			});
+		}
+	});
+})();
 </script>
+</div>
