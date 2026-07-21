@@ -444,9 +444,25 @@ if( $product_block_type == 1 || $product_block_type == 4 || $product_block_type 
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 		}
 		if (!epc_storefront_prices_visible_for_user()) {
-			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***';
+			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**';
 			$products_objects[$product_id]["price"] = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
 			$products_objects[$product_id]["price_crossed_out"] = '';
+			$products_objects[$product_id]["min_price"] = 0;
+			$products_objects[$product_id]["max_price"] = 0;
+			if (!empty($products_objects[$product_id]["storage_data"]) && is_array($products_objects[$product_id]["storage_data"])) {
+				foreach ($products_objects[$product_id]["storage_data"] as $sdKey => $sdRow) {
+					if (!is_array($sdRow)) {
+						continue;
+					}
+					$sdRow['customer_price'] = 0;
+					$sdRow['price'] = 0;
+					$sdRow['price_crossed_out'] = 0;
+					$sdRow['price_purchase'] = 0;
+					$sdRow['time_to_exe'] = 0;
+					$sdRow['exist'] = 0;
+					$products_objects[$product_id]["storage_data"][$sdKey] = $sdRow;
+				}
+			}
 		} elseif(!empty($storage_data[$products_objects[$product_id]["cart_suggestion"]]["customer_price"])){
 			$price_string = $storage_data[$products_objects[$product_id]["cart_suggestion"]]["customer_price"];
 			if( $price_string == (int)$price_string )

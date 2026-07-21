@@ -93,7 +93,7 @@ if ($review_id > 0) {
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">Customer trade approvals</div>
 			<div class="panel-body">
-				<p>New registrations choose <strong>Retail</strong> (auto-approved — prices visible immediately) or <strong>Wholesale</strong> (pending). Wholesale customers see availability qty, term, info, and price as <strong>***</strong> until you approve and assign a <strong>dealing currency</strong> + price profile. Checkout stays blocked while pending.</p>
+				<p>New registrations choose <strong>Retail</strong> (auto-approved — prices visible immediately) or <strong>Wholesale</strong> (pending). Wholesale customers see availability qty, term, info, and price as <strong>**</strong> until you approve and assign a <strong>dealing currency</strong> + price profile. Checkout stays blocked while pending.</p>
 				<?php if ($message !== '') { ?><div class="alert alert-success"><?=epc_ca_h($message);?></div><?php } ?>
 				<?php if ($error !== '') { ?><div class="alert alert-danger"><?=epc_ca_h($error);?></div><?php } ?>
 			</div>

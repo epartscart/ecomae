@@ -68,7 +68,7 @@ function epcStorefrontSensitiveMask()
 {
 	return (typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask)
 		? String(epc_storefront_sensitive_mask)
-		: '***';
+		: '**';
 }
 function epcStorefrontSensitiveCellHTML(html)
 {

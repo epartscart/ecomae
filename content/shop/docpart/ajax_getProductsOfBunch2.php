@@ -405,5 +405,19 @@ $article = strtoupper($article);
 // http://shop.avtoross.com/content/shop/docpart/ajax_getProductsOfBunch2.php?article=0986487585&office_id=2&storage_id=18&user_id=65&this_article=0
 
 $ProductsOfBunch = new ProductsOfBunch($article, $office_id, $storage_id, $db_link, $DP_Config, $user_id, $this_article);
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
+	epc_storefront_fill_warehouse_captions($ProductsOfBunch->Products, $db_link);
+}
+if (!epc_storefront_prices_visible_for_user((int) $user_id)) {
+	if (!empty($ProductsOfBunch->Products) && is_array($ProductsOfBunch->Products)) {
+		epc_storefront_prices_redact_products($ProductsOfBunch->Products);
+	}
+	$ProductsOfBunch->prices_visible = false;
+} else {
+	$ProductsOfBunch->prices_visible = true;
+}
+
 exit(json_encode($ProductsOfBunch));
 ?>

@@ -1183,7 +1183,7 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 				. htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8') . '</span>';
 		} else {
-			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***';
+			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**';
 			$priceHtml = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
 		}
 		$mask = (!$pricesVisible && function_exists('epc_storefront_sensitive_mask'))
@@ -1393,7 +1393,7 @@ function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, 
 				. htmlspecialchars(number_format($priceRawBrand, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . $priceHtml . '</span>';
 		} elseif (!$pricesVisible) {
-			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '***', ENT_QUOTES, 'UTF-8');
+			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '**', ENT_QUOTES, 'UTF-8');
 		} else {
 			$priceHtml = '&mdash;';
 		}
@@ -4256,7 +4256,7 @@ function manufacturersReview()
 			{
 				var mask = (typeof epcStorefrontSensitiveMask === 'function')
 					? epcStorefrontSensitiveMask()
-					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '***');
+					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '**');
 				existVal = mask;
 				termVal = mask;
 				priceVal = mask;
@@ -6164,6 +6164,14 @@ while( $storage = $storages_query->fetch() )
 		'full_name' => (string) ($storage['name'] ?? ''),
 		'bg_line_color' => $storage['bg_line_color'],
 	);
+}
+if (!function_exists('epc_storefront_prices_visible_for_user')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+}
+if (function_exists('epc_storefront_prices_visible_for_user')
+	&& !epc_storefront_prices_visible_for_user(isset($user_id) ? (int) $user_id : null)
+	&& function_exists('epc_storefront_prices_redact_storage_maps')) {
+	epc_storefront_prices_redact_storage_maps($all_storages, $all_storages_info);
 }
 ?>
 <script>

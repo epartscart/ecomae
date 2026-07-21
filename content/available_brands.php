@@ -225,14 +225,14 @@ echo epc_storefront_prices_styles();
 
     function brandPriceCell(row) {
         if (!pricesVisible) {
-            return '***';
+            return '**';
         }
         return esc(row.price || '');
     }
 
     function brandStockCell(row) {
         if (!pricesVisible) {
-            return '***';
+            return '**';
         }
         return esc(row.exist || '');
     }

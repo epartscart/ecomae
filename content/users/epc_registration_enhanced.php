@@ -154,7 +154,7 @@ function epc_reg_render_account_tabs(): void
 	<div class="panel panel-primary epc-reg-account-panel">
 		<div class="panel-heading">Customer type</div>
 		<div class="panel-body">
-			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — approved immediately; browse, see prices (availability, term, warehouse, price), and checkout (default currency AED where configured). <strong>Wholesale customer</strong> — pending until a manager approves trade pricing and currency in the Control Panel; until then availability qty, term, info, and price show as ***.</p>
+			<p class="help-block" style="margin-top:0;">Fields marked <strong>*</strong> are mandatory. <strong>Retail customer</strong> — approved immediately; browse, see prices (availability, term, warehouse, price), and checkout (default currency AED where configured). <strong>Wholesale customer</strong> — pending until a manager approves trade pricing and currency in the Control Panel; until then availability qty, term, info, and price show as **.</p>
 			<ul class="nav nav-tabs epc-reg-type-tabs" role="tablist">
 				<li role="presentation" class="active"><a href="#epc_reg_tab_retail" aria-controls="epc_reg_tab_retail" role="tab" data-toggle="tab" data-epc-type="retail">Retail customer</a></li>
 				<li role="presentation"><a href="#epc_reg_tab_wholesale" aria-controls="epc_reg_tab_wholesale" role="tab" data-toggle="tab" data-epc-type="wholesale">Wholesale customer</a></li>
