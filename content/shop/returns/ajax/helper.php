@@ -2,16 +2,29 @@
     function uploadReturn() {
         global $db_link;
 
-        $query_select = $db_link->prepare("SELECT `id` FROM `shop_orders_returns_statuses` WHERE `caption` = 'Оформлена'");
-        $query_select->execute();
-        $result_id = $query_select->fetch();
-
-        if (!$result_id)
+        // Prefer "Under consideration" / "Created" lang keys — never hardcode Russian captions.
+        $status_id = 0;
+        foreach (array('3806', '3796', 'epc_ret_st_under_consideration', 'epc_ret_st_created') as $capKey) {
+            $query_select = $db_link->prepare("SELECT `id` FROM `shop_orders_returns_statuses` WHERE `caption` = ? LIMIT 1");
+            $query_select->execute(array($capKey));
+            $result_id = $query_select->fetch();
+            if ($result_id) {
+                $status_id = (int) $result_id['id'];
+                break;
+            }
+        }
+        if ($status_id < 1) {
+            $fallback = $db_link->query("SELECT `id` FROM `shop_orders_returns_statuses` ORDER BY `id` ASC LIMIT 1");
+            $row = $fallback ? $fallback->fetch() : false;
+            $status_id = $row ? (int) $row['id'] : 0;
+        }
+        if ($status_id < 1) {
             throw new Exception(translate_str_by_id(4572).".");
+        }
 
         $query = $db_link->prepare("INSERT INTO `shop_orders_returns` (`status_id`, `user_id`,`sum`) VALUES (?, ?, ?)");
 
-        if (!$query->execute([$result_id["id"], $_POST["user_id"], $_POST["total_sum"]]))
+        if (!$query->execute([$status_id, $_POST["user_id"], $_POST["total_sum"]]))
             throw new Exception(translate_str_by_id(4573).".");
 
         return $db_link->lastInsertId();
