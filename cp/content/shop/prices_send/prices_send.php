@@ -195,9 +195,20 @@ if (array_search($sort_field, array('user_id', 'email', 'fio')) === false) {
 	display:grid;
 	grid-template-columns:minmax(0,1.6fr) minmax(280px,.9fr);
 	gap:14px;
+	align-items:stretch;
 }
 @media(max-width:1100px){
 	.epc-ps-page .epc-ps-split{grid-template-columns:1fr}
+}
+.epc-ps-page .epc-ps-split > .hpanel{
+	display:flex;
+	flex-direction:column;
+	height:100%;
+}
+.epc-ps-page .epc-ps-split > .hpanel > .panel-body{
+	flex:1 1 auto;
+	display:flex;
+	flex-direction:column;
 }
 .epc-ps-page .epc-ps-scroll{
 	max-height:420px;
@@ -205,6 +216,7 @@ if (array_search($sort_field, array('user_id', 'email', 'fio')) === false) {
 	border:1px solid var(--ps-line);
 	border-radius:8px;
 }
+.epc-ps-page .epc-ps-split .epc-ps-scroll{flex:1 1 auto;max-height:none;min-height:320px}
 .epc-ps-page .epc-ps-scroll table{
 	margin:0;
 	font-size:13px;
@@ -229,8 +241,8 @@ if (array_search($sort_field, array('user_id', 'email', 'fio')) === false) {
 }
 .epc-ps-page #my_list_emails{
 	width:100%;
-	min-height:280px;
-	height:320px;
+	flex:1 1 auto;
+	min-height:240px;
 	resize:vertical;
 	border:1px solid var(--ps-line);
 	border-radius:8px;
@@ -238,6 +250,7 @@ if (array_search($sort_field, array('user_id', 'email', 'fio')) === false) {
 	font-size:13px;
 	line-height:1.4;
 }
+.epc-ps-page .epc-ps-split .epc-ps-field{flex:0 0 auto}
 .epc-ps-page .epc-ps-inline-shop{
 	display:flex;
 	flex-wrap:wrap;
