@@ -67,6 +67,15 @@ body.epc-cp-shell .content .epc-boc--topnav,.epc-cp-shell .epc-boc--topnav{flex-
 .epc-boc__topnav-btn .fa{color:#fecaca;font-size:13px;}
 .epc-boc__topnav-btn .epc-boc__topnav-caret{font-size:11px;opacity:.85;margin-left:2px;}
 .epc-boc__topnav-btn:hover,.epc-boc__topnav-item.is-open .epc-boc__topnav-btn,.epc-boc__topnav-item.is-active .epc-boc__topnav-btn{background:rgba(0,0,0,.16);border-bottom-color:#fff;}
+.epc-boc__topnav-actions{display:inline-flex;align-items:center;gap:8px;margin-left:auto;padding-left:10px;border-left:1px solid rgba(255,255,255,.22);flex:0 0 auto;}
+.epc-boc__topnav-actions .epc-boc__scope,.epc-boc__topnav-actions .epc-boc__env{color:#fff;background:rgba(0,0,0,.18);border-color:rgba(255,255,255,.2);}
+.epc-boc__topnav-actions .epc-boc__btn{background:rgba(0,0,0,.18);border-color:rgba(255,255,255,.25);color:#fff;}
+.epc-boc__topnav-actions .epc-boc__btn--ai{background:#0a0a0a;border-color:#0a0a0a;}
+.epc-boc__topnav-actions .epc-boc__lang select,.epc-boc__topnav-actions .epc-boc__lang .form-control{min-height:28px;padding:2px 8px;font-size:12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.2);color:#fff;}
+.epc-boc--topnav .epc-boc__topbar{display:none!important;}
+.epc-boc__page-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px;padding:0;}
+.epc-boc__page-title h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--boc-ink-1);}
+.epc-boc__page-title small{color:var(--boc-ink-3);font-size:12px;font-weight:600;}
 .epc-boc__topnav-panel{position:fixed;z-index:50;min-width:320px;max-width:min(920px,calc(100vw - 24px));background:#fff;color:#0a0a0a;border:1px solid #e5e5e5;border-radius:0 0 12px 12px;box-shadow:0 16px 40px rgba(0,0,0,.18);padding:0;overflow:auto;}
 .epc-boc__topnav-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa;}
 .epc-boc__topnav-panel-title{font-weight:800;font-size:13px;color:#0a0a0a;display:flex;align-items:center;gap:8px;}
@@ -240,7 +249,7 @@ if (!function_exists('epc_boc_render_top_nav')) {
      *
      * @param array<int, array{group:array,areas:array}> $nav
      */
-    function epc_boc_render_top_nav(array $nav, string $base, string $active, array $brand): void
+    function epc_boc_render_top_nav(array $nav, string $base, string $active, array $brand, string $actionsHtml = ''): void
     {
         $h = 'epc_boc_h';
         $home = $base . '/control';
@@ -288,7 +297,11 @@ if (!function_exists('epc_boc_render_top_nav')) {
             echo '</ul></div></div></div>';
             echo '</li>';
         }
-        echo '</ul></div></nav>';
+        echo '</ul>';
+        if ($actionsHtml !== '') {
+            echo '<div class="epc-boc__topnav-actions">' . $actionsHtml . '</div>';
+        }
+        echo '</div></nav>';
         echo '<script>(function(){function bind(){var root=document.getElementById("epc_boc_topnav");if(!root||root._bocTopBound){return;}root._bocTopBound=true;var items=root.querySelectorAll(".epc-boc__topnav-item");function closeAll(ex){items.forEach(function(it){if(ex&&it===ex){return;}it.classList.remove("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","false");}if(p){p.hidden=true;}});document.body.classList.remove("epc-boc-topnav-open");}function place(it,p){var rr=root.getBoundingClientRect();var btn=it.querySelector(".epc-boc__topnav-btn");var br=btn?btn.getBoundingClientRect():rr;var top=Math.round(rr.bottom);p.style.top=top+"px";p.style.maxHeight=Math.max(180,Math.floor(window.innerHeight-top-12))+"px";p.hidden=false;var w=p.offsetWidth||640;var left=Math.round(br.left);var maxLeft=Math.max(8,window.innerWidth-w-8);if(left>maxLeft){left=maxLeft;}if(left<8){left=8;}p.style.left=left+"px";p.style.right="auto";}function open(it){closeAll(it);it.classList.add("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","true");}if(p){place(it,p);}document.body.classList.add("epc-boc-topnav-open");}items.forEach(function(it){var b=it.querySelector("[data-boc-topnav-toggle]");if(!b){return;}b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(it.classList.contains("is-open")){closeAll();}else{open(it);}});});document.addEventListener("click",function(e){if(!root.contains(e.target)){closeAll();}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeAll();}});window.addEventListener("resize",function(){items.forEach(function(it){if(!it.classList.contains("is-open")){return;}var p=it.querySelector("[data-boc-topnav-panel]");if(p){place(it,p);}});});}if(document.readyState!=="loading"){bind();}else{document.addEventListener("DOMContentLoaded",bind);}})();</script>';
     }
 }
@@ -329,15 +342,30 @@ if (!function_exists('epc_boc_console_open')) {
             . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
             . '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">' . "\n";
         echo "<style>" . epc_boc_console_css() . "</style>\n";
-        echo "<script>(function(){try{document.body.classList.add('epc-boc-mode');}catch(e){}})();</script>\n";
+        echo "<script>(function(){try{document.body.classList.add('epc-boc-mode');document.body.classList.add('epc-cp-bos-host');}catch(e){}})();</script>\n";
         $bocClass = 'epc-boc' . ($layout === 'top' ? ' epc-boc--topnav' : '');
         $bocStyle = $layout === 'top'
             ? 'display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f5f5f5!important;isolation:isolate!important;'
             : 'display:flex!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f5f5f5!important;isolation:isolate!important;';
         echo '<div class="' . $bocClass . '" style="' . $bocStyle . '">';
 
+        $langSwitcher = '';
+        if (function_exists('epc_cp_translate_render')) {
+            try {
+                $langSwitcher = (string) epc_cp_translate_render('erp');
+            } catch (Throwable $e) {
+                $langSwitcher = '';
+            }
+        }
+        $actionsHtml = '';
+        $actionsHtml .= '<span class="epc-boc__lang" id="epc-boc-lang-slot" title="Change language">' . $langSwitcher . '</span>';
+        $actionsHtml .= '<span class="epc-boc__scope" title="What this login can see"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
+        $actionsHtml .= '<span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> ' . $h($env) . '</span>';
+        $actionsHtml .= '<span class="epc-boc__avatar" title="' . $h($operator) . '">' . $h($initials) . '</span>';
+
         if ($layout === 'top') {
-            epc_boc_render_top_nav($nav, $base, $active, $brand);
+            // One red top menu only — module flyouts + operator actions (no second bar).
+            epc_boc_render_top_nav($nav, $base, $active, $brand, $actionsHtml);
         } else {
             echo '<aside class="epc-boc__rail" style="flex:0 0 260px!important;width:260px!important;float:none!important;background:#000000!important;opacity:1!important;">';
             echo '<div class="epc-boc__brand"><div class="epc-boc__brand-badge">' . $h($brand['short']) . '</div><div><div class="epc-boc__brand-name">' . $h($brand['short']) . '</div><div class="epc-boc__brand-sub">' . $h($brandSub) . '</div></div></div>';
@@ -354,31 +382,20 @@ if (!function_exists('epc_boc_console_open')) {
             echo '</aside>';
         }
 
-        // Main + topbar
+        // Main + optional rail topbar (top layout uses single red menu only).
         echo '<div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">';
-        echo '<div class="epc-boc__topbar">';
-        echo '<div class="epc-boc__crumb">' . $h($title) . '<small>' . $h($brand['name']) . '</small></div>';
-        echo '<div class="epc-boc__search"><i class="fa fa-search"></i><input type="search" id="epc-boc-search" placeholder="Search tenants, orders, settings… (global)"></div>';
-        echo '<div class="epc-boc__topbar-actions">';
-        $langSwitcher = '';
-        if (function_exists('epc_cp_translate_render')) {
-            try {
-                $langSwitcher = (string) epc_cp_translate_render('erp');
-            } catch (Throwable $e) {
-                $langSwitcher = '';
-            }
+        if ($layout !== 'top') {
+            echo '<div class="epc-boc__topbar">';
+            echo '<div class="epc-boc__crumb">' . $h($title) . '<small>' . $h($brand['name']) . '</small></div>';
+            echo '<div class="epc-boc__search"><i class="fa fa-search"></i><input type="search" id="epc-boc-search" placeholder="Search tenants, orders, settings… (global)"></div>';
+            echo '<div class="epc-boc__topbar-actions">' . $actionsHtml . '</div></div>';
         }
-        echo '<span class="epc-boc__lang" id="epc-boc-lang-slot" title="Change language">' . $langSwitcher . '</span>';
-        echo '<span class="epc-boc__scope" title="What this login can see"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
-        echo '<span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> ' . $h($env) . '</span>';
-        echo '<a class="epc-boc__btn epc-boc__btn--ai" href="#" id="epc-boc-copilot"><i class="fa fa-magic"></i> AI Copilot</a>';
-        echo '<a class="epc-boc__btn" href="#" title="Notifications"><i class="fa fa-bell"></i></a>';
-        echo '<span class="epc-boc__avatar" title="' . $h($operator) . '">' . $h($initials) . '</span>';
-        echo '</div></div>';
-        // The legacy CP language switcher renders (hidden) inside #header on live
-        // CP pages; relocate it into the BOS topbar so language can be changed.
+        // Relocate legacy CP language switcher into the BOS chrome slot.
         echo '<script>(function(){function go(){var s=document.getElementById("epc-boc-lang-slot");if(!s){return;}if(s.querySelector("select")){return;}var w=document.querySelector(".epc-cp-translate-nav,.epc-cp-translate");if(w){s.appendChild(w);}}if(document.readyState!=="loading"){go();}else{document.addEventListener("DOMContentLoaded",go);}setTimeout(go,900);})();</script>';
         echo '<div class="epc-boc__canvas">';
+        if ($layout === 'top' && $title !== '' && $active !== 'command_center') {
+            echo '<div class="epc-boc__page-title"><h1>' . $h($title) . '</h1><small>' . $h($brand['name']) . '</small></div>';
+        }
     }
 }
 
