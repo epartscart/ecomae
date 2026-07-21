@@ -110,7 +110,13 @@ if (!function_exists('epc_sku_media_normalize_article')) {
 if (!function_exists('epc_sku_media_normalize_brand')) {
 	function epc_sku_media_normalize_brand(string $brand): string
 	{
-		return trim(preg_replace('/\s+/', ' ', $brand) ?? '');
+		$brand = trim(preg_replace('/\s+/', ' ', $brand) ?? '');
+		if ($brand === '') {
+			return '';
+		}
+		return function_exists('mb_strtoupper')
+			? mb_strtoupper($brand, 'UTF-8')
+			: strtoupper($brand);
 	}
 }
 
@@ -224,7 +230,11 @@ if (!function_exists('epc_sku_media_find_profile')) {
 		$brand = epc_sku_media_normalize_brand($brand);
 		$key = epc_sku_media_normalize_article($article);
 		if ($brand !== '' && $key !== '') {
-			$st = $db->prepare('SELECT * FROM `epc_sku_profiles` WHERE `brand` = ? AND `article_key` = ? ORDER BY `id` DESC LIMIT 1');
+			$st = $db->prepare(
+				'SELECT * FROM `epc_sku_profiles`
+				 WHERE UPPER(`brand`) = ? AND `article_key` = ?
+				 ORDER BY `id` DESC LIMIT 1'
+			);
 			$st->execute(array($brand, $key));
 			$row = $st->fetch(PDO::FETCH_ASSOC);
 			return is_array($row) ? $row : null;
@@ -344,6 +354,343 @@ if (!function_exists('epc_sku_media_list_profiles')) {
 		}
 		$rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : array();
 		return is_array($rows) ? $rows : array();
+	}
+}
+
+if (!function_exists('epc_sku_media_price_storage_map')) {
+	/**
+	 * Map price_list id → warehouse short labels (from shop_storages.connection_options.price_id).
+	 *
+	 * @return array<int,array{storage_id:int,short_name:string,name:string}>
+	 */
+	function epc_sku_media_price_storage_map(PDO $db): array
+	{
+		static $cache = null;
+		if (is_array($cache)) {
+			return $cache;
+		}
+		$cache = array();
+		try {
+			$st = $db->query('SELECT `id`, `name`, `short_name`, `connection_options` FROM `shop_storages`');
+			$rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : array();
+		} catch (Throwable $e) {
+			return $cache;
+		}
+		foreach ($rows as $row) {
+			$opts = json_decode((string) ($row['connection_options'] ?? ''), true);
+			if (!is_array($opts) || empty($opts['price_id'])) {
+				continue;
+			}
+			$priceId = (int) $opts['price_id'];
+			if ($priceId <= 0) {
+				continue;
+			}
+			$cache[$priceId] = array(
+				'storage_id' => (int) $row['id'],
+				'short_name' => (string) ($row['short_name'] !== '' ? $row['short_name'] : $row['name']),
+				'name' => (string) ($row['name'] ?? ''),
+			);
+		}
+		return $cache;
+	}
+}
+
+if (!function_exists('epc_sku_media_search_library')) {
+	/**
+	 * Unified CP library: existing media profiles + supplier warehouse brands/articles
+	 * (+ catalogue products with optional product_id link).
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	function epc_sku_media_search_library(PDO $db, string $q = '', int $limit = 120): array
+	{
+		epc_sku_media_ensure_schema($db);
+		$limit = max(1, min(200, $limit));
+		$q = trim($q);
+		$out = array();
+		$seen = array(); // brand|article_key
+		$priceMap = epc_sku_media_price_storage_map($db);
+
+		$profiles = epc_sku_media_list_profiles($db, $q, $limit, 0);
+		foreach ($profiles as $p) {
+			$brand = (string) ($p['brand'] ?? '');
+			$article = (string) ($p['article'] ?? '');
+			$key = epc_sku_media_normalize_article($article !== '' ? $article : (string) ($p['article_key'] ?? ''));
+			$sig = epc_sku_media_normalize_brand($brand) . '|' . $key;
+			if ($sig !== '|' && isset($seen[$sig])) {
+				continue;
+			}
+			if ($sig !== '|') {
+				$seen[$sig] = true;
+			}
+			$out[] = array(
+				'id' => (int) ($p['id'] ?? 0),
+				'source' => 'profile',
+				'brand' => $brand,
+				'article' => $article !== '' ? $article : $key,
+				'article_show' => $article !== '' ? $article : $key,
+				'title' => (string) ($p['title'] ?? ''),
+				'warehouse' => '',
+				'product_id' => (int) ($p['product_id'] ?? 0),
+				'photo_count' => (int) ($p['photo_count'] ?? 0),
+				'spec_count' => (int) ($p['spec_count'] ?? 0),
+				'group_count' => (int) ($p['group_count'] ?? 0),
+				'has_profile' => true,
+				'status' => (string) ($p['status'] ?? 'active'),
+			);
+		}
+
+		$supplierLimit = max(20, $limit - count($out));
+		try {
+			if ($q !== '') {
+				$like = '%' . $q . '%';
+				$key = epc_sku_media_normalize_article($q);
+				$st = $db->prepare(
+					'SELECT d.`manufacturer`,
+						MAX(d.`article`) AS `article`,
+						MAX(d.`article_show`) AS `article_show`,
+						d.`article_search`,
+						MAX(d.`name`) AS `name`,
+						MAX(d.`price_id`) AS `price_id`,
+						COUNT(*) AS `offer_count`
+					 FROM `shop_docpart_prices_data` d
+					 WHERE d.`manufacturer` LIKE ?
+						OR d.`article` LIKE ?
+						OR d.`article_show` LIKE ?
+						OR d.`article_search` LIKE ?
+						OR d.`name` LIKE ?
+						OR d.`article_search` = ?
+					 GROUP BY d.`manufacturer`, d.`article_search`
+					 ORDER BY MAX(d.`id`) DESC
+					 LIMIT ' . (int) $supplierLimit
+				);
+				$st->execute(array($like, $like, $like, $like, $like, $key));
+			} else {
+				$st = $db->query(
+					'SELECT d.`manufacturer`,
+						MAX(d.`article`) AS `article`,
+						MAX(d.`article_show`) AS `article_show`,
+						d.`article_search`,
+						MAX(d.`name`) AS `name`,
+						MAX(d.`price_id`) AS `price_id`,
+						COUNT(*) AS `offer_count`
+					 FROM `shop_docpart_prices_data` d
+					 WHERE d.`manufacturer` <> \'\' AND d.`article_search` <> \'\'
+					 GROUP BY d.`manufacturer`, d.`article_search`
+					 ORDER BY MAX(d.`id`) DESC
+					 LIMIT ' . (int) $supplierLimit
+				);
+			}
+			$supplierRows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : array();
+		} catch (Throwable $e) {
+			$supplierRows = array();
+		}
+
+		foreach ($supplierRows as $row) {
+			$brand = epc_sku_media_normalize_brand((string) ($row['manufacturer'] ?? ''));
+			$articleShow = trim((string) ($row['article_show'] ?? ''));
+			if ($articleShow === '') {
+				$articleShow = trim((string) ($row['article'] ?? ''));
+			}
+			$key = epc_sku_media_normalize_article(
+				$articleShow !== '' ? $articleShow : (string) ($row['article_search'] ?? '')
+			);
+			if ($brand === '' || $key === '') {
+				continue;
+			}
+			$sig = $brand . '|' . $key;
+			if (isset($seen[$sig])) {
+				// Enrich existing profile row with warehouse label if empty.
+				foreach ($out as &$existing) {
+					if (($existing['brand'] ?? '') === $brand
+						&& epc_sku_media_normalize_article((string) ($existing['article'] ?? '')) === $key
+						&& (string) ($existing['warehouse'] ?? '') === ''
+					) {
+						$priceId = (int) ($row['price_id'] ?? 0);
+						if (isset($priceMap[$priceId])) {
+							$existing['warehouse'] = $priceMap[$priceId]['short_name'];
+						}
+					}
+				}
+				unset($existing);
+				continue;
+			}
+			$seen[$sig] = true;
+			$priceId = (int) ($row['price_id'] ?? 0);
+			$wh = isset($priceMap[$priceId]) ? $priceMap[$priceId]['short_name'] : '';
+			$profile = epc_sku_media_find_profile($db, 0, 0, $brand, $key);
+			$hasProfile = is_array($profile);
+			$out[] = array(
+				'id' => $hasProfile ? (int) $profile['id'] : 0,
+				'source' => 'supplier',
+				'brand' => $brand,
+				'article' => $articleShow !== '' ? $articleShow : $key,
+				'article_show' => $articleShow !== '' ? $articleShow : $key,
+				'title' => (string) ($row['name'] ?? ''),
+				'warehouse' => $wh,
+				'product_id' => 0,
+				'photo_count' => 0,
+				'spec_count' => 0,
+				'group_count' => 0,
+				'has_profile' => $hasProfile,
+				'status' => $hasProfile ? (string) ($profile['status'] ?? 'active') : 'new',
+				'offer_count' => (int) ($row['offer_count'] ?? 1),
+			);
+		}
+
+		// Catalogue products (by caption) — optional product_id link for media.
+		$catBudget = max(0, $limit - count($out));
+		if ($catBudget > 0) {
+			try {
+				if ($q !== '') {
+					$like = '%' . $q . '%';
+					$st = $db->prepare(
+						'SELECT `id`, `caption`, `alias` FROM `shop_catalogue_products`
+						 WHERE `caption` LIKE ? OR `alias` LIKE ?
+						 ORDER BY `id` DESC LIMIT ' . (int) $catBudget
+					);
+					$st->execute(array($like, $like));
+				} else {
+					$st = $db->query(
+						'SELECT `id`, `caption`, `alias` FROM `shop_catalogue_products`
+						 ORDER BY `id` DESC LIMIT ' . (int) min(15, $catBudget)
+					);
+				}
+				$catRows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : array();
+			} catch (Throwable $e) {
+				$catRows = array();
+			}
+			foreach ($catRows as $c) {
+				$pid = (int) ($c['id'] ?? 0);
+				if ($pid <= 0) {
+					continue;
+				}
+				$profile = epc_sku_media_find_profile($db, 0, $pid, '', '');
+				$out[] = array(
+					'id' => is_array($profile) ? (int) $profile['id'] : 0,
+					'source' => 'catalogue',
+					'brand' => is_array($profile) ? (string) ($profile['brand'] ?? '') : '',
+					'article' => is_array($profile) ? (string) ($profile['article'] ?? '') : '',
+					'article_show' => is_array($profile) ? (string) ($profile['article'] ?? '') : '',
+					'title' => (string) ($c['caption'] ?? ''),
+					'warehouse' => '',
+					'product_id' => $pid,
+					'photo_count' => 0,
+					'spec_count' => 0,
+					'group_count' => 0,
+					'has_profile' => is_array($profile),
+					'status' => is_array($profile) ? (string) ($profile['status'] ?? 'active') : 'new',
+				);
+			}
+		}
+
+		return array_slice($out, 0, $limit);
+	}
+}
+
+if (!function_exists('epc_sku_media_ensure_from_identity')) {
+	/**
+	 * Create or return a profile for brand+article (supplier / manual) or product_id.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function epc_sku_media_ensure_from_identity(
+		PDO $db,
+		string $brand,
+		string $article,
+		string $title = '',
+		int $productId = 0
+	): array {
+		$brand = epc_sku_media_normalize_brand($brand);
+		$article = trim($article);
+		$key = epc_sku_media_normalize_article($article);
+		$existing = epc_sku_media_find_profile($db, 0, $productId, $brand, $article !== '' ? $article : $key);
+		if (is_array($existing)) {
+			return $existing;
+		}
+		if ($title === '' && $brand !== '' && $key !== '') {
+			$title = $brand . ' ' . ($article !== '' ? $article : $key);
+		}
+		return epc_sku_media_upsert_profile($db, array(
+			'product_id' => $productId,
+			'brand' => $brand,
+			'article' => $article !== '' ? $article : $key,
+			'title' => $title,
+			'status' => 'active',
+		));
+	}
+}
+
+if (!function_exists('epc_sku_media_public_lookup')) {
+	/**
+	 * Storefront-safe lookup: active profile photos + specs for brand/article/product.
+	 *
+	 * @return array{ok:bool,url:string,photos:array,specs:array,profile:array|null}
+	 */
+	function epc_sku_media_public_lookup(PDO $db, string $brand = '', string $article = '', int $productId = 0): array
+	{
+		$empty = array('ok' => true, 'url' => '', 'photos' => array(), 'specs' => array(), 'profile' => null);
+		$profile = epc_sku_media_resolve_for_product($db, $productId, $brand, $article);
+		if (!is_array($profile)) {
+			return $empty;
+		}
+		$status = (string) ($profile['status'] ?? 'active');
+		if ($status === 'hidden' || $status === 'draft') {
+			return $empty;
+		}
+		$payload = epc_sku_media_full_payload($db, (int) $profile['id']);
+		if (!is_array($payload)) {
+			return $empty;
+		}
+		$photos = array();
+		$primaryUrl = '';
+		foreach ($payload['photos'] ?? array() as $ph) {
+			$url = (string) ($ph['url'] ?? '');
+			if ($url === '') {
+				continue;
+			}
+			$photos[] = array(
+				'url' => $url,
+				'alt' => (string) ($ph['alt'] ?? ''),
+				'caption' => (string) ($ph['caption'] ?? ''),
+				'photo_type' => (string) ($ph['photo_type'] ?? 'product'),
+				'is_primary' => !empty($ph['is_primary']),
+			);
+			if ($primaryUrl === '' || !empty($ph['is_primary'])) {
+				$primaryUrl = $url;
+			}
+		}
+		$specs = array();
+		foreach ($payload['spec_groups'] ?? array() as $g) {
+			$rows = array();
+			foreach ($g['rows'] ?? array() as $row) {
+				$rows[] = array(
+					'label' => (string) ($row['label'] ?? ''),
+					'value' => (string) ($row['display'] ?? $row['value'] ?? ''),
+					'value_type' => (string) ($row['value_type'] ?? 'text'),
+				);
+			}
+			if (!$rows) {
+				continue;
+			}
+			$specs[] = array(
+				'name' => (string) ($g['name'] ?? 'Specifications'),
+				'icon' => (string) ($g['icon'] ?? 'fa-list'),
+				'rows' => $rows,
+			);
+		}
+		return array(
+			'ok' => true,
+			'url' => $primaryUrl,
+			'photos' => $photos,
+			'specs' => $specs,
+			'profile' => array(
+				'id' => (int) $profile['id'],
+				'brand' => (string) ($profile['brand'] ?? ''),
+				'article' => (string) ($profile['article'] ?? ''),
+				'title' => (string) ($profile['title'] ?? ''),
+			),
+		);
 	}
 }
 

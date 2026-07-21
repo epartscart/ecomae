@@ -95,7 +95,11 @@ try {
 	switch ($action) {
 		case 'list':
 			$q = (string) ($_GET['q'] ?? $_POST['q'] ?? '');
-			$out = array('ok' => true, 'items' => epc_sku_media_list_profiles($db_link, $q, 120));
+			$out = array(
+				'ok' => true,
+				'items' => epc_sku_media_search_library($db_link, $q, 120),
+				'warehouses' => array_values(epc_sku_media_price_storage_map($db_link)),
+			);
 			break;
 
 		case 'get':
@@ -108,6 +112,20 @@ try {
 				$out = array('ok' => true, 'payload' => null);
 				break;
 			}
+			$out = array('ok' => true, 'payload' => epc_sku_media_full_payload($db_link, (int) $profile['id']));
+			break;
+
+		case 'ensure':
+			// Open or create a media profile for a supplier warehouse brand/article (or catalogue product).
+			$productId = (int) ($_POST['product_id'] ?? $_GET['product_id'] ?? 0);
+			$brand = (string) ($_POST['brand'] ?? $_GET['brand'] ?? '');
+			$article = (string) ($_POST['article'] ?? $_GET['article'] ?? '');
+			$title = (string) ($_POST['title'] ?? $_GET['title'] ?? '');
+			if ($productId <= 0 && (trim($brand) === '' || trim($article) === '')) {
+				$out['error'] = 'Brand and article (or catalogue product) required';
+				break;
+			}
+			$profile = epc_sku_media_ensure_from_identity($db_link, $brand, $article, $title, $productId);
 			$out = array('ok' => true, 'payload' => epc_sku_media_full_payload($db_link, (int) $profile['id']));
 			break;
 

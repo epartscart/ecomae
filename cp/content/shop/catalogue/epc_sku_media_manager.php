@@ -35,7 +35,7 @@ $productId = (int) ($_GET['product_id'] ?? 0);
 $brand = trim((string) ($_GET['brand'] ?? ''));
 $article = trim((string) ($_GET['article'] ?? ''));
 
-$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'skuMedia2';
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'skuMedia3';
 $cssPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.css';
 $jsPath = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media.js';
 $cssVer = is_file($cssPath) ? (string) filemtime($cssPath) : $assetVer;
@@ -53,7 +53,7 @@ if (function_exists('epc_cp_page_frame_open')) {
 	epc_cp_page_frame_open(array(
 		'hero' => array(
 			'title' => 'SKU photos & specifications',
-			'sub' => 'Unlimited product photos and multi-type specification sheets for any SKU (brand + article or catalogue product).',
+			'sub' => 'Photos & specs for catalogue products and supplier warehouse brands / articles.',
 		),
 	));
 }
@@ -71,7 +71,7 @@ if (function_exists('epc_cp_page_frame_open')) {
 	<div class="epc-sku-media__hero">
 		<div>
 			<h2>SKU photos &amp; specifications</h2>
-			<p>Customers can see rich product photos and clear specification sheets. Add unlimited photos and any number of specification types (Technical, Dimensions, Packaging, Custom…) with unlimited rows.</p>
+			<p>Search any supplier warehouse brand / article (or catalogue product), open it, and upload photos + specification sheets. Anything with a brand + article can get a photo — it then shows on the storefront part search and product pages.</p>
 		</div>
 		<div style="display:flex;gap:8px;flex-wrap:wrap;">
 			<a class="epc-sku-media__btn epc-sku-media__btn--ghost" href="<?php echo htmlspecialchars($base . '/shop/catalogue/products', ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-th-large"></i> Catalogue</a>
@@ -83,10 +83,11 @@ if (function_exists('epc_cp_page_frame_open')) {
 		<div class="epc-sku-media__panel">
 			<div class="epc-sku-media__panel-h">
 				<strong>SKU library</strong>
+				<span style="font-size:12px;color:#64748b;font-weight:500;">profiles · warehouses · catalogue</span>
 			</div>
 			<div class="epc-sku-media__panel-b">
 				<div class="epc-sku-media__search">
-					<input type="text" id="epc-sku-search" placeholder="Search brand, article, title…">
+					<input type="text" id="epc-sku-search" placeholder="Search warehouse brand, article, name…">
 					<button type="button" class="epc-sku-media__btn epc-sku-media__btn--ghost" data-sku-action="search"><i class="fa fa-search"></i></button>
 				</div>
 				<ul class="epc-sku-media__list" id="epc-sku-list"></ul>
