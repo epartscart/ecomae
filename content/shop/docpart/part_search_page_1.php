@@ -34,6 +34,7 @@ if (is_readable($epc_vat_file) && isset($db_link) && $db_link instanceof PDO) {
 
 <script>
 var epc_storefront_prices_visible = <?php echo !empty($epc_storefront_prices_visible) ? 'true' : 'false'; ?>;
+var epc_storefront_sensitive_mask = <?php echo json_encode(epc_storefront_sensitive_mask(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_price_login_cta_html = <?php echo json_encode(epc_storefront_prices_login_cta_html(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_commerce_login_cta_html = <?php echo json_encode(epc_storefront_commerce_login_cta_html(null, true), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
 var epc_storefront_login_url = <?php echo json_encode(epc_storefront_auth_login_url(isset($multilang_params) && is_array($multilang_params) ? $multilang_params : null), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
@@ -63,12 +64,26 @@ function epcVatPriceLabelHTML(product)
 	if(!lbl){ return ''; }
 	return '<span class="epc-vat-price-label">' + lbl + '</span>';
 }
+function epcStorefrontSensitiveMask()
+{
+	return (typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask)
+		? String(epc_storefront_sensitive_mask)
+		: '***';
+}
+function epcStorefrontSensitiveCellHTML(html)
+{
+	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+	{
+		return epcStorefrontSensitiveMask();
+	}
+	return html;
+}
 function epcStorefrontPriceCellHTML(priceHtml, product)
 {
 	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
 	{
-		// Guest login/register text lives next to Fitment in the actions cell (one row).
-		return '&mdash;';
+		// Guests / pending wholesale: mask price the same as qty / term / info.
+		return epcStorefrontSensitiveMask();
 	}
 	var label = epcVatPriceLabelHTML(product || null);
 	if(label){ priceHtml += label; }
@@ -4720,6 +4735,7 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 			time_to_exe = time_to_exe + " <?php echo translate_str_by_id(4097); ?>.";
 		}
 	}
+	time_to_exe = epcStorefrontSensitiveCellHTML(time_to_exe);
     var color = Product.color;
     
 	
@@ -4801,14 +4817,20 @@ function getProductRecordHTML(Product, index, quantity, ProductType, blok)
 	}
     
 	info = '<div style="margin: 3px 0px;">'+ info +'</div>';
+	info = epcStorefrontSensitiveCellHTML(info);
 	
 	
 	
     //Формирование колонки "Наличие"
     //Объект с описанием наличия - для отображения в информационном окне
     var supply_info_json = "{&quot;exist&quot;:"+Product.exist+",&quot;time_to_exe&quot;:"+Product.time_to_exe+",&quot;time_to_exe_guaranteed&quot;:"+Product.time_to_exe_guaranteed+",&quot;probability&quot;:"+Product.probability+"}";
+	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+	{
+		supply_info_json = "{&quot;exist&quot;:0,&quot;time_to_exe&quot;:0,&quot;time_to_exe_guaranteed&quot;:0,&quot;probability&quot;:0}";
+	}
     //Колонка
     var exist = "<span onclick=\"openInfoWindow(null, null, 1, '"+supply_info_json+"');\">" + Product.exist + "<img src=\"/lib/TreelaxCharts/sectors.php?number=2&value0="+Product.probability+"&value1="+(100-Product.probability)+"&start_angle=30&size=50&inside_size=1&slope=1.1\" /></span>";
+	exist = epcStorefrontSensitiveCellHTML(exist);
     
 	
     

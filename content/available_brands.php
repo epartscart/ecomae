@@ -225,9 +225,16 @@ echo epc_storefront_prices_styles();
 
     function brandPriceCell(row) {
         if (!pricesVisible) {
-            return priceLoginCta || '&mdash;';
+            return '***';
         }
         return esc(row.price || '');
+    }
+
+    function brandStockCell(row) {
+        if (!pricesVisible) {
+            return '***';
+        }
+        return esc(row.exist || '');
     }
 
     function renderBrandParts(data) {
@@ -246,7 +253,7 @@ echo epc_storefront_prices_styles();
             rows.map(function (row) {
                 var article = row.article_show || row.article || '';
                 var searchUrl = (root.getAttribute('data-umapi-href') || '/umapi_catalog').replace('/umapi_catalog', '/shop/part_search') + '?article=' + encodeURIComponent(article);
-                return '<tr><td>' + esc(row.manufacturer || brand) + '</td><td><strong>' + esc(article) + '</strong></td><td>' + esc(row.name || '') + '</td><td>' + esc(row.exist || '') + '</td><td>' + brandPriceCell(row) + '</td><td><a class="btn btn-xs btn-primary" href="' + esc(searchUrl) + '">Search price</a></td></tr>';
+                return '<tr><td>' + esc(row.manufacturer || brand) + '</td><td><strong>' + esc(article) + '</strong></td><td>' + esc(row.name || '') + '</td><td>' + brandStockCell(row) + '</td><td>' + brandPriceCell(row) + '</td><td><a class="btn btn-xs btn-primary" href="' + esc(searchUrl) + '">Search price</a></td></tr>';
             }).join('') + '</tbody></table>';
         document.getElementById('epc-brands-back').onclick = render;
     }
