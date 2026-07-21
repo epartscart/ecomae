@@ -4,6 +4,21 @@
 	var DEFAULT_AJAX = '/cp/content/shop/prices_upload/ajax_epc_multivendor_ingest.php';
 	var DEFAULT_SAMPLE = '/cp/content/shop/prices_upload/epc_multivendor_sample_file.php';
 
+	function readRootData() {
+		var root = document.getElementById('epcMultivendorRoot');
+		if (!root || !root.getAttribute) {
+			return null;
+		}
+		return {
+			ajaxUrl: root.getAttribute('data-ajax-url') || '',
+			sampleUrl: root.getAttribute('data-sample-url') || '',
+			csrfKey: root.getAttribute('data-csrf-key') || '',
+			backend: root.getAttribute('data-backend') || '',
+			pricesUrl: root.getAttribute('data-prices-url') || '',
+			storagesUrl: root.getAttribute('data-storages-url') || ''
+		};
+	}
+
 	function readBootJson() {
 		var el = document.getElementById('epc-multivendor-boot');
 		if (!el || !el.textContent) {
@@ -18,12 +33,20 @@
 
 	function ensureCfg() {
 		var boot = readBootJson();
+		var rootData = readRootData();
 		var current = window.EPC_MULTIVENDOR_CP;
 		if (!current || typeof current !== 'object') {
 			current = {};
 		}
 		if (boot && typeof boot === 'object') {
 			current = Object.assign({}, boot, current);
+		}
+		if (rootData && typeof rootData === 'object') {
+			Object.keys(rootData).forEach(function (k) {
+				if ((!current[k] || current[k] === '') && rootData[k]) {
+					current[k] = rootData[k];
+				}
+			});
 		}
 		if (!current.ajaxUrl) {
 			current.ajaxUrl = DEFAULT_AJAX;

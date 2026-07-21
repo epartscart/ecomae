@@ -919,7 +919,7 @@ body.modal-open {
 	margin-bottom: 4px;
 }
 
-/* ---- Multi-vendor price upload ---- */
+/* ---- Multi-vendor price upload (teal graphical shell) ---- */
 .epc-multivendor-page {
 	max-width: 1100px;
 	margin: 0 auto 32px;
@@ -932,10 +932,32 @@ body.modal-open {
 	justify-content: space-between;
 	align-items: flex-start;
 	margin: 8px 0 18px;
-	padding: 18px 20px;
-	border: 1px solid #dbeafe;
-	border-radius: 12px;
-	background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 55%, #ecfeff 100%);
+	padding: 20px 22px;
+	border: 1px solid #99f6e4;
+	border-radius: 14px;
+	background:
+		radial-gradient(1200px 180px at 0% 0%, rgba(8, 145, 178, 0.14), transparent 55%),
+		linear-gradient(135deg, #f0fdfa 0%, #f8fafc 48%, #ecfeff 100%);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+.epc-multivendor-hero__visual {
+	flex: 0 0 auto;
+}
+.epc-multivendor-hero__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 56px;
+	height: 56px;
+	border-radius: 14px;
+	background: linear-gradient(145deg, #0891b2, #0e7490);
+	color: #fff;
+	font-size: 24px;
+	box-shadow: 0 10px 20px rgba(8, 145, 178, 0.28);
+}
+.epc-multivendor-hero__text {
+	flex: 1 1 280px;
+	min-width: 0;
 }
 .epc-multivendor-kicker {
 	margin: 0 0 4px;
@@ -943,7 +965,7 @@ body.modal-open {
 	font-weight: 700;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	color: #0369a1;
+	color: #0e7490;
 }
 .epc-multivendor-hero h2 {
 	margin: 0 0 8px;
@@ -961,6 +983,49 @@ body.modal-open {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
+	align-items: flex-start;
+}
+.epc-multivendor-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px;
+	margin: 0 0 16px;
+}
+.epc-multivendor-stat {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: auto auto;
+	column-gap: 12px;
+	row-gap: 2px;
+	align-items: center;
+	padding: 14px 16px;
+	border: 1px solid #ccfbf1;
+	border-radius: 12px;
+	background: #fff;
+}
+.epc-multivendor-stat__icon {
+	grid-row: 1 / span 2;
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: #ecfeff;
+	color: #0e7490;
+	font-size: 18px;
+}
+.epc-multivendor-stat__lbl {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #64748b;
+}
+.epc-multivendor-stat__val {
+	font-size: 15px;
+	font-weight: 800;
+	color: #0f172a;
 }
 .epc-multivendor-rules {
 	display: grid;
@@ -971,8 +1036,9 @@ body.modal-open {
 .epc-multivendor-rules article {
 	padding: 14px 16px;
 	border: 1px solid #e2e8f0;
-	border-radius: 10px;
+	border-radius: 12px;
 	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .epc-multivendor-rules h3 {
 	margin: 8px 0 6px;
@@ -996,8 +1062,8 @@ body.modal-open {
 	color: #334155;
 }
 .epc-multivendor-badge--short {
-	background: #dbeafe;
-	color: #1d4ed8;
+	background: #cffafe;
+	color: #0e7490;
 }
 .epc-multivendor-badge--auto {
 	background: #dcfce7;
@@ -1005,6 +1071,14 @@ body.modal-open {
 }
 .epc-multivendor-panel {
 	margin-bottom: 16px;
+	border-radius: 12px;
+	overflow: hidden;
+}
+.epc-multivendor-panel > .panel-heading {
+	background: linear-gradient(90deg, #ecfeff, #f8fafc) !important;
+	border-bottom: 1px solid #ccfbf1;
+	font-weight: 700;
+	color: #0f172a;
 }
 .epc-multivendor-form-grid {
 	display: grid;
@@ -1012,17 +1086,44 @@ body.modal-open {
 	gap: 12px;
 	margin-bottom: 14px;
 }
+@media (min-width: 900px) {
+	.epc-multivendor-form-grid {
+		grid-template-columns: minmax(220px, 280px) 1fr;
+	}
+}
 .epc-multivendor-field label {
 	display: block;
 	margin-bottom: 4px;
 	font-weight: 600;
 	color: #0f172a;
 }
+.epc-multivendor-drop {
+	position: relative;
+	padding: 10px;
+	border: 1.5px dashed #99f6e4;
+	border-radius: 10px;
+	background: #f0fdfa;
+}
+.epc-multivendor-drop__hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: #0e7490;
+}
 .epc-multivendor-form-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
 	margin-bottom: 12px;
+}
+.epc-multivendor-btn-primary,
+.epc-multivendor-page .btn-primary {
+	background: #0891b2 !important;
+	border-color: #0e7490 !important;
+}
+.epc-multivendor-btn-primary:hover,
+.epc-multivendor-page .btn-primary:hover {
+	background: #0e7490 !important;
+	border-color: #155e75 !important;
 }
 .epc-multivendor-result {
 	margin-top: 10px;
@@ -1039,5 +1140,6 @@ body.modal-open {
 	font-size: 13px;
 }
 .epc-multivendor-cols th {
-	background: #f8fafc;
+	background: #f0fdfa;
+	color: #0f172a;
 }
