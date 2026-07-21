@@ -247,6 +247,10 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 	<?php
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translate.php';
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_animated_epartscart_logo.php';
+	if (epc_animated_epartscart_logo_applies()) {
+		epc_animated_epartscart_logo_enqueue();
+	}
 	$epc_cp_industry_code = epc_portal_cp_active_industry();
 	if ($epc_cp_industry_code === '' && function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host()
 		&& !(function_exists('epc_portal_demo_is_cp_context') && epc_portal_demo_is_cp_context())) {
@@ -390,7 +394,16 @@ function print_backend_button($button_params)
 	?>
 	<a href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>">
     <div id="logo" class="light-version ech-logo-wrap epc-cp-header-logo">
-		<?php echo epc_ecomae_static_logo('header', array('show_title' => false, 'show_tagline' => false, 'aria_label' => 'ECOM AE')); ?>
+		<?php
+		$epcCpHeaderLogo = function_exists('epc_admin_shell_animated_logo_markup')
+			? epc_admin_shell_animated_logo_markup('header')
+			: '';
+		if ($epcCpHeaderLogo !== '') {
+			echo $epcCpHeaderLogo;
+		} else {
+			echo epc_ecomae_static_logo('header', array('show_title' => false, 'show_tagline' => false, 'aria_label' => 'ECOM AE'));
+		}
+		?>
     </div>
 	</a>
 	<?php if (!empty($epcCpShell['company'])) { ?>

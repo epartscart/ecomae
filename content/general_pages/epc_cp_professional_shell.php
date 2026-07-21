@@ -1581,6 +1581,11 @@ function epc_cp_shell_enqueue_assets($includeLoginHero = false)
  */
 function epc_cp_login_hero_markup()
 {
+	require_once __DIR__ . '/epc_animated_epartscart_logo.php';
+	if (epc_animated_epartscart_logo_applies()) {
+		epc_animated_epartscart_logo_enqueue();
+		return epc_animated_epartscart_logo_markup('login');
+	}
 	$useAnimated = true;
 	if (!empty($_COOKIE['epc_cp_login_static']) && (string) $_COOKIE['epc_cp_login_static'] === '1') {
 		$useAnimated = false;

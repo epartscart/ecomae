@@ -27,6 +27,7 @@
 	<link rel="stylesheet" href="/epc-static.php?f=<?php echo htmlspecialchars($DP_Config->backend_dir, ENT_QUOTES, 'UTF-8'); ?>/templates/bootstrap_admin/css/epc_cp_ui.css&v=20260527">
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professional_shell.php';
 epc_ecomae_hub_logo_enqueue();
 ?>
 
@@ -55,7 +56,7 @@ extract(epc_brand_cp_context());
 			<h1><?php echo $product_name; ?></h1>
 			<p><?php echo translate_str_by_id(4002); ?></p>
 			<div class="epc-cp-login-visual">
-				<?php echo epc_ecomae_static_logo('login', array('show_title' => true, 'show_tagline' => true, 'aria_label' => 'ECOM AE')); ?>
+				<?php echo epc_cp_login_hero_markup(); ?>
 			</div>
 		</div>
 	</div>

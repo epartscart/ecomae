@@ -177,6 +177,10 @@ function epc_erp_portal_render_shell($innerCallback, array $opts = array())
 			echo "\n</style>\n";
 		}
 	}
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_animated_epartscart_logo.php';
+	if (epc_animated_epartscart_logo_applies()) {
+		epc_animated_epartscart_logo_enqueue();
+	}
 	?>
 	<?php
 	// Theme tokens (Blue & White for the ERP surface). Injected inline so the

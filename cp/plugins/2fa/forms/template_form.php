@@ -28,6 +28,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_branding.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_ecomae_hub_logo.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_professional_shell.php';
 extract(epc_brand_cp_context());
 $loginBrand = epc_cp_login_branding();
 epc_ecomae_hub_logo_enqueue();
@@ -55,7 +56,7 @@ epc_cp_login_hero_enqueue();
 			<p class="epc-cp-login-brand-sub"><?php echo htmlspecialchars($loginBrand['sub'], ENT_QUOTES, 'UTF-8'); ?></p>
 			<p class="epc-cp-login-brand-tagline"><?php echo $loginBrand['hero_tagline']; ?></p>
 			<div class="epc-cp-login-visual">
-				<?php echo epc_ecomae_hub_logo('login', array('show_title' => true, 'show_tagline' => false, 'aria_label' => 'ECOM AE unified ERP and commerce cloud')); ?>
+				<?php echo epc_cp_login_hero_markup(); ?>
 			</div>
 		</div>
 	</div>

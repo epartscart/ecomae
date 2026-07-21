@@ -365,6 +365,16 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 <div class="col-lg-12 cp-dash" data-cp-dashboard="command">
 	<div class="cp-dash-hero">
 		<div class="cp-dash-hero-panel">
+			<?php
+			$epcDashLogoFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_animated_epartscart_logo.php';
+			if (is_file($epcDashLogoFile)) {
+				require_once $epcDashLogoFile;
+				if (epc_animated_epartscart_logo_applies()) {
+					epc_animated_epartscart_logo_enqueue();
+					echo '<div class="epc-cp-dash-brand" style="margin:0 0 10px">' . epc_animated_epartscart_logo_markup('dash') . '</div>';
+				}
+			}
+			?>
 			<div class="cp-dash-kicker"><i class="fa <?php echo epc_tcp_dash_h($industryIcon); ?>"></i> Control Command Centre</div>
 			<h2 class="cp-dash-title"><?php echo epc_tcp_dash_h($tenantName); ?></h2>
 			<p class="cp-dash-sub"><?php echo $industryCode === 'auto_parts'
