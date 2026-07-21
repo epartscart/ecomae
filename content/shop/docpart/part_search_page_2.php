@@ -1402,7 +1402,9 @@ function addToQuote(aid)
             {
                 if(answer.code == "auth")
                 {
-                    alert(answer.message || "Please sign in.");
+					if(answer.login_url){ window.location.href = answer.login_url; }
+					else if(typeof epcStorefrontRequireLoginForCommerce === 'function'){ epcStorefrontRequireLoginForCommerce(); }
+					else { alert(answer.message || "Please sign in to use quotes."); }
                 }
                 else
                 {

@@ -12,10 +12,11 @@ try {
 }
 $db_link->query('SET NAMES utf8;');
 require_once($_SERVER['DOCUMENT_ROOT'].'/content/users/dp_user.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/content/shop/docpart/epc_storefront_prices_helpers.php');
 
 $user_id = DP_User::getUserId();
 if ($user_id <= 0) {
-	exit(json_encode(array('status' => false, 'code' => 'auth', 'message' => 'Please sign in.')));
+	exit(json_encode(epc_storefront_guest_commerce_denied_payload()));
 }
 
 $quote_id = isset($_POST['quote_id']) ? (int) $_POST['quote_id'] : 0;
