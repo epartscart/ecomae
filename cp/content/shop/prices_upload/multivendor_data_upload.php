@@ -25,7 +25,7 @@ $epc_mv_prices = '/' . $backend_raw . '/shop/prices';
 $epc_mv_storages = '/' . $backend_raw . '/shop/logistics/storages';
 $epc_mv_guide = '/' . $backend_raw . '/shop/prices/guide';
 
-$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvUi3';
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvMin1';
 epc_cp_register_page_assets(
 	array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($assetVer)),
 	array(
@@ -92,9 +92,48 @@ epc_cp_register_page_assets(
 		</article>
 		<article>
 			<span class="epc-multivendor-badge epc-multivendor-badge--auto">Sales / Purchase</span>
-			<h3>Min + max price only</h3>
-			<p>If the same key repeats with different prices, only the <strong>lowest</strong> and <strong>highest</strong> prices are kept.</p>
+			<h3>Min + max price</h3>
+			<p>Repeats keep <strong>lowest</strong> and <strong>highest</strong> prices. Minimum is restricted to selected groups/customers; administrators always see it.</p>
 		</article>
+	</div>
+
+	<div class="hpanel epc-multivendor-panel">
+		<div class="panel-heading hbuilt">
+			<i class="fa fa-lock"></i> Sales / Purchase minimum price access
+		</div>
+		<div class="panel-body">
+			<p class="epc-multivendor-muted" style="margin-top:0;">
+				For <strong>Sales</strong> and <strong>Purchase</strong> uploads, the system keeps the lowest and highest price.
+				The <strong>minimum</strong> offer is hidden from general customers. Choose which customer groups or specific customers may see it.
+				<strong>Administrators always see minimum prices.</strong> Re-upload after changing rules so new files are tagged correctly; existing tagged rows apply immediately.
+			</p>
+			<form id="epcMultivendorMinAclForm" onsubmit="return false;">
+				<div class="epc-multivendor-acl">
+					<label class="epc-multivendor-acl__toggle">
+						<input type="checkbox" id="epcMvMinRestrict" checked />
+						<span>Restrict sales/purchase minimum prices (recommended)</span>
+					</label>
+					<div class="epc-multivendor-form-grid">
+						<div class="epc-multivendor-field epc-multivendor-field--wide">
+							<label for="epcMvMinGroups">Allowed customer groups</label>
+							<select class="form-control" id="epcMvMinGroups" multiple size="6"></select>
+							<small class="help-block">Hold Ctrl/Cmd to select multiple groups. Leave empty for administrators only.</small>
+						</div>
+						<div class="epc-multivendor-field epc-multivendor-field--wide">
+							<label for="epcMvMinUsers">Allowed customer IDs</label>
+							<input class="form-control" type="text" id="epcMvMinUsers" placeholder="e.g. 12, 45, 108" autocomplete="off" />
+							<small class="help-block">Comma-separated storefront user IDs that may see minimum prices.</small>
+						</div>
+					</div>
+					<div class="epc-multivendor-form-actions">
+						<button type="button" class="btn btn-primary" id="epcMvMinAclSaveBtn">
+							<i class="fa fa-save"></i> Save minimum price access
+						</button>
+					</div>
+					<div id="epcMvMinAclResult" class="epc-multivendor-result" aria-live="polite"></div>
+				</div>
+			</form>
+		</div>
 	</div>
 
 	<div class="hpanel epc-multivendor-panel">

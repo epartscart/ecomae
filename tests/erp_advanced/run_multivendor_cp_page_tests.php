@@ -52,7 +52,7 @@ check('js still supports legacy boot id', strpos($js, 'epc-multivendor-boot') !=
 check('css has teal hero', strpos($css, 'epc-multivendor-hero') !== false && strpos($css, '#0891b2') !== false);
 check('css has stats strip', strpos($css, 'epc-multivendor-stats') !== false);
 
-check('assets map cache-bust mvUi3', strpos($assets, 'mvUi3') !== false);
+check('assets map cache-bust mvMin1', strpos($assets, 'mvMin1') !== false);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";

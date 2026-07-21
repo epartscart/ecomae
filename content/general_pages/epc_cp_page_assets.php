@@ -314,10 +314,10 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/prices/multivendor' => array(
-			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver . 'mvUi3')),
+			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver . 'mvMin1')),
 			'js' => array(
-				'/' . $backend . '/content/shop/prices_upload/epc_multivendor_cp_config.php?v=' . rawurlencode($ver . 'mvUi3'),
-				'/' . $backend . '/content/shop/prices_upload/epc_multivendor_cp.js?v=' . rawurlencode($ver . 'mvUi3'),
+				'/' . $backend . '/content/shop/prices_upload/epc_multivendor_cp_config.php?v=' . rawurlencode($ver . 'mvMin1'),
+				'/' . $backend . '/content/shop/prices_upload/epc_multivendor_cp.js?v=' . rawurlencode($ver . 'mvMin1'),
 			),
 		),
 		'shop/prices/upload' => array(
