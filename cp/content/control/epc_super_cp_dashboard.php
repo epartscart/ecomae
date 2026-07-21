@@ -41,6 +41,7 @@ epc_boc_console_open(array(
 	'base'     => $base,
 	'operator' => $operatorName,
 	'env'      => 'Production',
+	'layout'   => 'top', // ERP-style top mega-menu (no left rail)
 ));
 epc_boc_render_command_center($db_link, $base);
 epc_boc_console_close();
