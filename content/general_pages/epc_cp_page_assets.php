@@ -289,6 +289,7 @@ function epc_cp_page_asset_url_map(): array
 			),
 			'js' => array(
 				'/lib/multiple_select/jquery.multiple.select.js',
+				'/' . $backend . '/content/shop/logistics/storage_users_ms.js?v=' . rawurlencode($ver . 'storMs1'),
 			),
 		),
 		'shop/parts_agent_chats' => array(

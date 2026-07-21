@@ -136,11 +136,9 @@ else//Вывод страницы
     ?>
 
     <?php
-    // multipleSelect is required by users_selector init + save_action().
-    // Load inline (before mid-page init) — footer asset map alone is too late.
+    // CSS early; JS is loaded in footer AFTER CP reloads jQuery (see storage_users_ms.js).
     ?>
     <link rel="stylesheet" href="/lib/multiple_select/multiple-select.css" />
-    <script src="/lib/multiple_select/jquery.multiple.select.js"></script>
     
     <!--Форма для отправки-->
     <form name="form_to_save" method="post" style="display:none">
@@ -612,7 +610,7 @@ else//Вывод страницы
 						}
 						
 						?>
-						<select multiple="multiple" id="users_selector" name="users_selector[]">
+						<select multiple="multiple" id="users_selector" name="users_selector[]" data-ms-placeholder="<?php echo htmlspecialchars(translate_str_by_id(3200) . '...', ENT_QUOTES, 'UTF-8'); ?>">
 						<?php
 						$user_query = $db_link->prepare($SQL_SELECT_ADMINS);
 						$user_query->execute($binding_values);
@@ -654,10 +652,8 @@ else//Вывод страницы
 						?>
 						</select>
 						<script>
-							//Делаем из селектора виджет с чекбоками
-							if (window.jQuery && jQuery.fn.multipleSelect) {
-								$('#users_selector').multipleSelect({placeholder: "<?php echo translate_str_by_id(3200); ?>...", width:"100%"});
-							}
+							// Widget init runs in footer (storage_users_ms.js) after CP reloads jQuery.
+							window.epcStorageUsersSelected = window.epcStorageUsersSelected || [];
 						</script>
 					</div>
 				</div>
@@ -1021,12 +1017,10 @@ else//Вывод страницы
         on_interface_changed();//Обработка текущего выбора типа интерфейса (для отображения полей ввода)
         
         
-        //Кладовщики
-        var epc_storage_users = <?php echo $users; ?>;
-        if (window.jQuery && jQuery.fn.multipleSelect) {
-            $('#users_selector').multipleSelect('setSelects', epc_storage_users);
-        } else if (window.jQuery) {
-            $('#users_selector').val(epc_storage_users);
+        //Кладовщики — applied by storage_users_ms.js after footer jQuery + plugin load
+        window.epcStorageUsersSelected = <?php echo $users; ?>;
+        if (window.jQuery && !jQuery.fn.multipleSelect) {
+            $('#users_selector').val(window.epcStorageUsersSelected);
         }
         
         //Настройки соединения
