@@ -301,6 +301,10 @@ if (!function_exists('epc_boc_console_open')) {
      */
     function epc_boc_console_open(array $ctx = array()): void
     {
+        // Idempotent: desktop auto-shell or page_frame may already have opened BOC.
+        if (!empty($GLOBALS['epc_cp_boc_page'])) {
+            return;
+        }
         $brand = epc_boc_brand();
         $active = (string) ($ctx['active'] ?? '');
         $title = (string) ($ctx['title'] ?? 'Command Center');
@@ -381,7 +385,12 @@ if (!function_exists('epc_boc_console_open')) {
 if (!function_exists('epc_boc_console_close')) {
     function epc_boc_console_close(): void
     {
+        if (empty($GLOBALS['epc_cp_boc_page'])) {
+            return;
+        }
         echo '</div></div></div>';
+        $GLOBALS['epc_cp_boc_page'] = false;
+        $GLOBALS['epc_boc_page_shell_open'] = false;
     }
 }
 
