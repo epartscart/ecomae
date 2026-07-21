@@ -1,6 +1,7 @@
 <?php
 /**
  * CP: quote requests — list, edit line prices, send quote to customer (status -> quoted).
+ * Quotes are for registered (logged-in) customers only; guest user_id=0 rows are hidden.
  *
  * Do not use `return` after output: page PHP is eval()'d with the template in dp_core.php;
  * return exits the whole eval and can leave the CP main area blank.
@@ -10,12 +11,93 @@ defined('_ASTEXE_') or die('No access');
 require_once($_SERVER['DOCUMENT_ROOT'].'/content/users/dp_user.php');
 $user_session = DP_User::getAdminSession();
 
+/**
+ * Build display fields for a registered quote customer.
+ *
+ * @param int $user_id
+ * @return array{user_id:int,name:string,email:string,phone:string,company:string,label:string,profile_url:string,ok:bool}
+ */
+function epc_quote_customer_details($user_id)
+{
+	global $DP_Config;
+
+	$user_id = (int) $user_id;
+	$out = array(
+		'user_id' => $user_id,
+		'name' => '',
+		'email' => '',
+		'phone' => '',
+		'company' => '',
+		'label' => '',
+		'profile_url' => '',
+		'ok' => false,
+	);
+
+	if ($user_id <= 0) {
+		$out['label'] = 'Guest (not allowed)';
+		return $out;
+	}
+
+	$profile = DP_User::getUserProfileById($user_id);
+	if (!is_array($profile)) {
+		$profile = array();
+	}
+
+	$parts = array();
+	foreach (array('surname', 'name', 'patronymic') as $k) {
+		if (!empty($profile[$k])) {
+			$parts[] = trim((string) $profile[$k]);
+		}
+	}
+	$out['name'] = trim(implode(' ', $parts));
+	$out['email'] = !empty($profile['email']) ? trim((string) $profile['email']) : '';
+	$out['phone'] = !empty($profile['phone']) ? trim((string) $profile['phone']) : '';
+	if ($out['phone'] === '' && !empty($profile['cellphone'])) {
+		$out['phone'] = trim((string) $profile['cellphone']);
+	}
+	$out['company'] = !empty($profile['company_name']) ? trim((string) $profile['company_name']) : '';
+	$out['profile_url'] = '/'.$DP_Config->backend_dir.'/users/usermanager/user?user_id='.$user_id;
+	$out['ok'] = true;
+
+	$label_bits = array();
+	if ($out['name'] !== '') {
+		$label_bits[] = $out['name'];
+	}
+	if ($out['company'] !== '') {
+		$label_bits[] = $out['company'];
+	}
+	if ($out['email'] !== '') {
+		$label_bits[] = $out['email'];
+	} elseif ($out['phone'] !== '') {
+		$label_bits[] = $out['phone'];
+	}
+	if (count($label_bits) < 1) {
+		$label_bits[] = 'Customer #'.$user_id;
+	}
+	$out['label'] = implode(' · ', $label_bits);
+
+	return $out;
+}
+
 if (!empty($_POST['action'])) {
 	require_once($_SERVER['DOCUMENT_ROOT'].'/content/users/stop_csrf.php');
 
 	if ($_POST['action'] === 'save_quote' && !empty($_POST['quote_id'])) {
 		$quote_id = (int) $_POST['quote_id'];
 		$admin_note = isset($_POST['admin_note']) ? trim($_POST['admin_note']) : '';
+
+		$owner_q = $db_link->prepare('SELECT `user_id` FROM `shop_quote_requests` WHERE `id` = ? LIMIT 1');
+		$owner_q->execute(array($quote_id));
+		$owner_id = (int) $owner_q->fetchColumn();
+		if ($owner_id <= 0) {
+			$error_message = 'Quotes are only for registered customers';
+			?>
+			<script>
+			location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?error_message=<?php echo urlencode($error_message); ?>";
+			</script>
+			<?php
+			exit;
+		}
 
 		$lines = isset($_POST['lines']) && is_array($_POST['lines']) ? $_POST['lines'] : array();
 		$upd_line = $db_link->prepare('UPDATE `shop_quote_items` SET `quoted_price` = ?, `quoted_time_to_exe` = ?, `line_admin_note` = ? WHERE `id` = ? AND `quote_id` = ?');
@@ -50,6 +132,19 @@ if (!empty($_POST['action'])) {
 
 	if ($_POST['action'] === 'send_quote' && !empty($_POST['quote_id'])) {
 		$quote_id = (int) $_POST['quote_id'];
+
+		$owner_q = $db_link->prepare('SELECT `user_id` FROM `shop_quote_requests` WHERE `id` = ? LIMIT 1');
+		$owner_q->execute(array($quote_id));
+		$owner_id = (int) $owner_q->fetchColumn();
+		if ($owner_id <= 0) {
+			$error_message = 'Quotes are only for registered customers';
+			?>
+			<script>
+			location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?error_message=<?php echo urlencode($error_message); ?>";
+			</script>
+			<?php
+			exit;
+		}
 
 		$line_count_query = $db_link->prepare('SELECT COUNT(*) FROM `shop_quote_items` WHERE `quote_id` = ?');
 		$line_count_query->execute(array($quote_id));
@@ -97,22 +192,98 @@ $currency_sign = $currency_record ? $currency_record['sign'] : '';
 $edit_id = isset($_GET['quote_id']) ? (int) $_GET['quote_id'] : 0;
 
 if ($edit_id > 0) {
-	$q = $db_link->prepare('SELECT * FROM `shop_quote_requests` WHERE `id` = ? LIMIT 1');
+	$q = $db_link->prepare('SELECT * FROM `shop_quote_requests` WHERE `id` = ? AND `user_id` > 0 LIMIT 1');
 	$q->execute(array($edit_id));
 	$quote = $q->fetch(PDO::FETCH_ASSOC);
 	if (!$quote) {
-		echo '<p>Not found</p>';
+		echo '<div class="col-lg-12"><div class="alert alert-warning">Quote not found, or it is not linked to a registered customer.</div>';
+		echo '<p><a href="/'.htmlspecialchars($DP_Config->backend_dir).'/shop/quote-requests">Back to list</a></p></div>';
 	} else {
+		$customer = epc_quote_customer_details((int) $quote['user_id']);
 		$iq = $db_link->prepare('SELECT * FROM `shop_quote_items` WHERE `quote_id` = ? ORDER BY `id` ASC');
 		$iq->execute(array($edit_id));
 		$lines = $iq->fetchAll(PDO::FETCH_ASSOC);
 		?>
 		<div class="col-lg-12">
 			<div class="hpanel">
-				<div class="panel-heading hbuilt">Quote #<?php echo (int) $quote['id']; ?> — user <?php echo (int) $quote['user_id']; ?></div>
+				<div class="panel-heading hbuilt">
+					Quote #<?php echo (int) $quote['id']; ?>
+					— <?php echo htmlspecialchars($customer['label'] !== '' ? $customer['label'] : ('Customer #'.$customer['user_id'])); ?>
+				</div>
 				<div class="panel-body">
-					<p><strong>Status:</strong> <?php echo htmlspecialchars($quote['status']); ?></p>
 					<p><a href="/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests">Back to list</a></p>
+
+					<div class="well" style="margin-bottom:20px;">
+						<h4 style="margin-top:0;">Customer details</h4>
+						<p class="text-muted" style="margin-bottom:12px;">Quotes are available only for logged-in / registered customers.</p>
+						<table class="table table-condensed" style="margin-bottom:0; max-width:720px;">
+							<tbody>
+								<tr>
+									<th style="width:160px;">Customer ID</th>
+									<td>
+										<?php echo (int) $customer['user_id']; ?>
+										<?php if ($customer['profile_url'] !== '') { ?>
+											&nbsp;<a href="<?php echo htmlspecialchars($customer['profile_url']); ?>" target="_blank">Open profile</a>
+										<?php } ?>
+									</td>
+								</tr>
+								<tr>
+									<th>Name</th>
+									<td><?php echo $customer['name'] !== '' ? htmlspecialchars($customer['name']) : '—'; ?></td>
+								</tr>
+								<?php if ($customer['company'] !== '') { ?>
+								<tr>
+									<th>Company</th>
+									<td><?php echo htmlspecialchars($customer['company']); ?></td>
+								</tr>
+								<?php } ?>
+								<tr>
+									<th>Email</th>
+									<td>
+										<?php if ($customer['email'] !== '') { ?>
+											<a href="mailto:<?php echo htmlspecialchars($customer['email']); ?>"><?php echo htmlspecialchars($customer['email']); ?></a>
+										<?php } else { echo '—'; } ?>
+									</td>
+								</tr>
+								<tr>
+									<th>Phone</th>
+									<td>
+										<?php if ($customer['phone'] !== '') { ?>
+											<a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $customer['phone'])); ?>"><?php echo htmlspecialchars($customer['phone']); ?></a>
+										<?php } else { echo '—'; } ?>
+									</td>
+								</tr>
+								<tr>
+									<th>Status</th>
+									<td><?php echo htmlspecialchars($quote['status']); ?></td>
+								</tr>
+								<tr>
+									<th>Created</th>
+									<td><?php echo !empty($quote['time_created']) ? date('Y-m-d H:i', (int) $quote['time_created']) : '—'; ?></td>
+								</tr>
+								<tr>
+									<th>Updated</th>
+									<td><?php echo !empty($quote['time_updated']) ? date('Y-m-d H:i', (int) $quote['time_updated']) : '—'; ?></td>
+								</tr>
+								<?php if (!empty($quote['time_submitted'])) { ?>
+								<tr>
+									<th>Submitted</th>
+									<td><?php echo date('Y-m-d H:i', (int) $quote['time_submitted']); ?></td>
+								</tr>
+								<?php } ?>
+								<?php if (!empty($quote['accepted_order_id'])) { ?>
+								<tr>
+									<th>Accepted order</th>
+									<td>
+										<a href="/<?php echo $DP_Config->backend_dir; ?>/shop/orders/orders?order_id=<?php echo (int) $quote['accepted_order_id']; ?>">
+											#<?php echo (int) $quote['accepted_order_id']; ?>
+										</a>
+									</td>
+								</tr>
+								<?php } ?>
+							</tbody>
+						</table>
+					</div>
 
 					<form method="post">
 						<input type="hidden" name="action" value="save_quote" />
@@ -184,7 +355,8 @@ if ($edit_id > 0) {
 } else {
 	$status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 
-	$sql = 'SELECT * FROM `shop_quote_requests` WHERE 1=1';
+	// Registered customers only (storefront quotes require login).
+	$sql = 'SELECT * FROM `shop_quote_requests` WHERE `user_id` > 0';
 	$args = array();
 	if ($status_filter !== '') {
 		$sql .= ' AND `status` = ?';
@@ -195,11 +367,14 @@ if ($edit_id > 0) {
 	$list = $db_link->prepare($sql);
 	$list->execute($args);
 	$rows = $list->fetchAll(PDO::FETCH_ASSOC);
+
+	$customer_cache = array();
 	?>
 	<div class="col-lg-12">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">Quote requests</div>
 			<div class="panel-body">
+				<p class="text-muted">Quotes are for registered (login / register) customers only. Customer name, email, and phone are shown below.</p>
 				<form method="get" class="form-inline">
 					<label>Status</label>
 					<select name="status" class="form-control" onchange="this.form.submit()">
@@ -215,17 +390,46 @@ if ($edit_id > 0) {
 					<thead>
 						<tr>
 							<th>ID</th>
-							<th>User</th>
+							<th>Customer</th>
+							<th>Email</th>
+							<th>Phone</th>
 							<th>Status</th>
 							<th>Updated</th>
 							<th></th>
 						</tr>
 					</thead>
 					<tbody>
-					<?php foreach ($rows as $r) { ?>
+					<?php
+					if (count($rows) < 1) {
+						?>
+						<tr><td colspan="7" class="text-muted">No quote requests for registered customers.</td></tr>
+						<?php
+					}
+					foreach ($rows as $r) {
+						$uid = (int) $r['user_id'];
+						if (!isset($customer_cache[$uid])) {
+							$customer_cache[$uid] = epc_quote_customer_details($uid);
+						}
+						$c = $customer_cache[$uid];
+						$name_cell = $c['name'] !== '' ? $c['name'] : ('Customer #'.$uid);
+						if ($c['company'] !== '') {
+							$name_cell .= ' ('.$c['company'].')';
+						}
+						?>
 						<tr>
 							<td><?php echo (int) $r['id']; ?></td>
-							<td><?php echo (int) $r['user_id']; ?></td>
+							<td>
+								<a href="/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo (int) $r['id']; ?>">
+									<?php echo htmlspecialchars($name_cell); ?>
+								</a>
+								<div class="text-muted" style="font-size:12px;">ID <?php echo $uid; ?>
+									<?php if ($c['profile_url'] !== '') { ?>
+										· <a href="<?php echo htmlspecialchars($c['profile_url']); ?>" target="_blank">profile</a>
+									<?php } ?>
+								</div>
+							</td>
+							<td><?php echo $c['email'] !== '' ? htmlspecialchars($c['email']) : '—'; ?></td>
+							<td><?php echo $c['phone'] !== '' ? htmlspecialchars($c['phone']) : '—'; ?></td>
 							<td><?php echo htmlspecialchars($r['status']); ?></td>
 							<td><?php echo $r['time_updated'] ? date('Y-m-d H:i', (int) $r['time_updated']) : ''; ?></td>
 							<td><a href="/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo (int) $r['id']; ?>">Open</a></td>
