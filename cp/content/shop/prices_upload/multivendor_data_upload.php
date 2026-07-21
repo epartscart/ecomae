@@ -93,7 +93,7 @@ epc_cp_register_page_assets(
 		<article>
 			<span class="epc-multivendor-badge epc-multivendor-badge--auto">Sales / Purchase</span>
 			<h3>Min + max price</h3>
-			<p>Repeats keep <strong>lowest</strong> and <strong>highest</strong> prices within the same vendor name + code. Customers see the code; CP shows the real vendor name.</p>
+			<p>Repeats keep <strong>lowest</strong> and <strong>highest</strong> prices within the same vendor name + code. <strong>QTY is combined</strong> as the total across all source rows and applied to both min and max. Customers see the code; CP shows the real vendor name.</p>
 		</article>
 	</div>
 
@@ -181,8 +181,8 @@ epc_cp_register_page_assets(
 						<label for="epcMultivendorDataType">Default data type</label>
 						<select class="form-control" name="data_type" id="epcMultivendorDataType">
 							<option value="inventory" selected>Inventory (unique stock)</option>
-							<option value="sales">Sales (keep min + max price)</option>
-							<option value="purchase">Purchase (keep min + max price)</option>
+							<option value="sales">Sales (min + max price, total QTY)</option>
+							<option value="purchase">Purchase (min + max price, total QTY)</option>
 						</select>
 						<small class="help-block">Used when the file has no <code>Data type</code> column. Per-row column overrides this.</small>
 					</div>

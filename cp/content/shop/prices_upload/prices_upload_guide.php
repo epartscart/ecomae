@@ -504,13 +504,13 @@ try {
 										<td><strong>sales</strong></td>
 										<td><code>S-UAE · Sales</code></td>
 										<td>same as above</td>
-										<td>Keep only <strong>min + max</strong> price rows (middle prices dropped)</td>
+										<td>Keep <strong>min + max</strong> price; <strong>QTY = total</strong> of all source rows (both tiers)</td>
 									</tr>
 									<tr>
 										<td><strong>purchase</strong></td>
 										<td><code>S-UAE · Purchase</code></td>
 										<td>same as above</td>
-										<td>Keep only <strong>min + max</strong> price rows</td>
+										<td>Keep <strong>min + max</strong> price; <strong>QTY = total</strong> of all source rows (both tiers)</td>
 									</tr>
 								</tbody>
 							</table>
@@ -593,7 +593,7 @@ AISIN,DT068,"WATER PUMP",3,45.00,"R-UAE Spare Parts FZE",R-UAE,inventory,0
 DENSO,0671007450,FILTER,12,18.00,"S-UAE Trading LLC",S-UAE,sales,0
 DENSO,0671007450,FILTER,5,22.50,"S-UAE Trading LLC",S-UAE,sales,0
 DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
-							<p>In the sample, the three DENSO <em>sales</em> rows collapse to <strong>min 18.00 + max 29.90</strong> only. Inventory rows stay unique per brand+article+vendor.</p>
+							<p>In the sample, the three DENSO <em>sales</em> rows collapse to <strong>min 18.00 + max 29.90</strong> with <strong>total QTY 19</strong> (12+5+2) on both rows. Inventory rows stay unique per brand+article+vendor.</p>
 
 							<h5>Re-upload / replace rules</h5>
 							<ul>

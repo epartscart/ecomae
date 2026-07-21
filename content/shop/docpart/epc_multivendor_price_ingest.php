@@ -9,6 +9,8 @@
  * Match key: data_type + brand + article + vendor_name + vendor_code
  *  - Same vendor code with a different vendor name is a SEPARATE vendor
  *  - inventory: combination is unique (one row; qty summed)
+ *  - sales / purchase: keep min + max price; QTY = total across all source rows
+ *    for that brand+article+vendor (both min and max rows share the same total)
  *  - sales / purchase: repeats allowed → keep only lowest + highest price rows
  *
  * Customers see vendor code (short_name); CP / office managers see vendor name (name).
@@ -154,9 +156,13 @@ function epc_multivendor_collapse_product_candidates(array $candidates, string $
 	}
 
 	// Sales / purchase: keep only lowest and highest price rows.
+	// QTY is the combined total for the item across all source rows (not just
+	// the qty sitting on the min- or max-price line).
 	$minRow = null;
 	$maxRow = null;
+	$totalExist = 0;
 	foreach ($candidates as $row) {
+		$totalExist += (int) ($row['exist'] ?? 0);
 		$p = (float) ($row['price'] ?? 0);
 		if ($minRow === null || $p < (float) $minRow['price']
 			|| ($p === (float) $minRow['price'] && (int) ($row['exist'] ?? 0) > (int) ($minRow['exist'] ?? 0))) {
@@ -171,19 +177,15 @@ function epc_multivendor_collapse_product_candidates(array $candidates, string $
 		return array();
 	}
 	if ($maxRow === null || (float) $minRow['price'] === (float) $maxRow['price']) {
-		// Same price — one row; sum qtys of equal-price lines.
-		$sum = 0;
-		foreach ($candidates as $row) {
-			if ((float) ($row['price'] ?? 0) === (float) $minRow['price']) {
-				$sum += (int) ($row['exist'] ?? 0);
-			}
-		}
-		$minRow['exist'] = $sum > 0 ? $sum : (int) ($minRow['exist'] ?? 0);
+		// Same price — one row with total qty.
+		$minRow['exist'] = $totalExist > 0 ? $totalExist : (int) ($minRow['exist'] ?? 0);
 		// Single price is the public (max) offer — not a restricted min tier.
 		$minRow['storage'] = EPC_MV_MAX_TIER;
 		$minRow['epc_price_tier'] = 'max';
 		return array($minRow);
 	}
+	$minRow['exist'] = $totalExist;
+	$maxRow['exist'] = $totalExist;
 	$minRow['storage'] = EPC_MV_MIN_TIER;
 	$minRow['epc_price_tier'] = 'min';
 	$maxRow['storage'] = EPC_MV_MAX_TIER;
@@ -1123,6 +1125,7 @@ function epc_multivendor_sample_csv(): string
 		// Same vendor CODE, different vendor NAME → separate warehouses / min-max buckets
 		array('BOSCH', 'F026400039', 'FILTER', '4', '15.00', 'Gulf Parts Trading', 'S-UAE', 'inventory', '0'),
 		// Sales: same brand+article+vendor name+code can repeat — import keeps only min + max price
+		// with combined total QTY (12+5+2=19) on both rows
 		array('DENSO', '0671007450', 'FILTER', '12', '18.00', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
 		array('DENSO', '0671007450', 'FILTER', '5', '22.50', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
 		array('DENSO', '0671007450', 'FILTER', '2', '29.90', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),

@@ -79,6 +79,23 @@ if (is_array($salesSuae)) {
 	}
 	check('sales min tier marked', isset($tiers['min']) && abs($tiers['min'] - 18.0) < 0.001);
 	check('sales max tier marked', isset($tiers['max']) && abs($tiers['max'] - 29.90) < 0.001);
+	// Sample: 12 + 5 + 2 = 19 total QTY on both min and max rows
+	$minQty = null;
+	$maxQty = null;
+	foreach ($salesSuae['products'] as $p) {
+		if (($p['article'] ?? '') !== '0671007450') {
+			continue;
+		}
+		if (($p['epc_price_tier'] ?? '') === 'min') {
+			$minQty = (int) ($p['exist'] ?? 0);
+		}
+		if (($p['epc_price_tier'] ?? '') === 'max') {
+			$maxQty = (int) ($p['exist'] ?? 0);
+		}
+	}
+	check('sales min qty is total 19', $minQty === 19);
+	check('sales max qty is total 19', $maxQty === 19);
+	check('sales min+max share same total qty', $minQty === $maxQty);
 	$minStorageOk = false;
 	foreach ($salesSuae['products'] as $p) {
 		if (($p['epc_price_tier'] ?? '') === 'min' && ($p['storage'] ?? '') === 'epc_mv_min') {
@@ -86,6 +103,18 @@ if (is_array($salesSuae)) {
 		}
 	}
 	check('sales min storage marker', $minStorageOk);
+
+	// Direct collapse unit: mid prices dropped, qty still total of all lines.
+	$collapse = epc_multivendor_collapse_product_candidates(array(
+		array('manufacturer' => 'X', 'article' => '1', 'exist' => 4, 'price' => 10, 'name' => 'A'),
+		array('manufacturer' => 'X', 'article' => '1', 'exist' => 7, 'price' => 15, 'name' => 'A'),
+		array('manufacturer' => 'X', 'article' => '1', 'exist' => 3, 'price' => 40, 'name' => 'A'),
+	), 'sales');
+	check('collapse sales returns 2 rows', count($collapse) === 2);
+	check('collapse sales total qty on min', (int) ($collapse[0]['exist'] ?? 0) === 14);
+	check('collapse sales total qty on max', (int) ($collapse[1]['exist'] ?? 0) === 14);
+	check('collapse sales min price 10', abs((float) ($collapse[0]['price'] ?? 0) - 10.0) < 0.001);
+	check('collapse sales max price 40', abs((float) ($collapse[1]['price'] ?? 0) - 40.0) < 0.001);
 }
 
 // Inventory uniqueness + qty sum
