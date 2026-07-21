@@ -32,8 +32,14 @@
 	font-weight: 700;
 	color: #115e59;
 }
+.epc-dc-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0 0 16px;
+}
 .epc-dc-nav .btn {
-	margin: 0 4px 6px 0;
+	margin: 0;
 }
 .epc-dc-msg {
 	display: none;
@@ -44,10 +50,187 @@
 	font-size: 12px;
 	min-height: 140px;
 }
-.epc-dc-logo {
-	max-height: 80px;
-	max-width: 220px;
-	border: 1px solid #ddd;
-	padding: 4px;
+
+/* —— Company profile layout (label above field, aligned grid) —— */
+.epc-dc-company {
+	direction: ltr;
+	text-align: left;
+}
+.epc-dc-company-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 280px;
+	gap: 16px;
+	align-items: start;
+}
+.epc-dc-company-main,
+.epc-dc-company-side {
+	min-width: 0;
+}
+.epc-dc-card {
 	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 16px 16px 14px;
+	margin: 0 0 14px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.epc-dc-card--logo {
+	position: sticky;
+	top: 12px;
+}
+.epc-dc-card__head {
+	margin: 0 0 12px;
+	padding: 0 0 10px;
+	border-bottom: 1px solid #f1f5f9;
+}
+.epc-dc-card__head h4 {
+	margin: 0 0 4px;
+	font-size: 15px;
+	font-weight: 700;
+	color: #0f172a;
+}
+.epc-dc-card__head p {
+	margin: 0;
+	font-size: 12px;
+	color: #64748b;
+	line-height: 1.4;
+}
+.epc-dc-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px 14px;
+}
+.epc-dc-grid--2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.epc-dc-field {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 5px;
+	margin: 0;
+	font-weight: 400;
+	min-width: 0;
+}
+.epc-dc-field--full {
+	grid-column: 1 / -1;
+}
+.epc-dc-field > span {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+	text-align: left;
+	letter-spacing: 0.01em;
+}
+.epc-dc-field .form-control,
+.epc-dc-company .form-control {
+	width: 100%;
+	max-width: 100%;
+	display: block;
+	text-align: left;
+	direction: ltr;
+	float: none;
+	height: 36px;
+	border-radius: 8px;
+	border-color: #cbd5e1;
+	box-shadow: none;
+}
+.epc-dc-field textarea.form-control {
+	height: auto;
+	min-height: 96px;
+	resize: vertical;
+}
+.epc-dc-company-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	padding: 4px 2px 8px;
+}
+.epc-dc-logo-box {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 140px;
+	margin: 0 0 12px;
+	padding: 14px;
+	border: 1px dashed #99f6e4;
+	border-radius: 10px;
+	background: linear-gradient(180deg, #f0fdfa, #fff);
+}
+.epc-dc-logo-box.is-empty {
+	border-color: #cbd5e1;
+	background: #f8fafc;
+}
+.epc-dc-logo {
+	display: block;
+	max-height: 96px;
+	max-width: 100%;
+	width: auto;
+	height: auto;
+	border: 0;
+	padding: 0;
+	background: transparent;
+}
+.epc-dc-logo-placeholder {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	color: #94a3b8;
+	font-size: 12px;
+}
+.epc-dc-logo-placeholder .fa {
+	font-size: 28px;
+}
+.epc-dc-file {
+	display: block;
+	margin: 0 0 8px;
+	cursor: pointer;
+}
+.epc-dc-file input[type="file"] {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+}
+.epc-dc-file__btn {
+	display: block;
+	width: 100%;
+	text-align: center;
+	padding: 8px 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	color: #334155;
+	font-size: 13px;
+	font-weight: 600;
+}
+.epc-dc-file:hover .epc-dc-file__btn {
+	border-color: #14b8a6;
+	color: #0f766e;
+}
+.epc-dc-card--logo .btn-block {
+	width: 100%;
+}
+
+@media (max-width: 991px) {
+	.epc-dc-company-layout {
+		grid-template-columns: 1fr;
+	}
+	.epc-dc-card--logo {
+		position: static;
+	}
+}
+@media (max-width: 640px) {
+	.epc-dc-grid,
+	.epc-dc-grid--2 {
+		grid-template-columns: 1fr;
+	}
+	.epc-dc-field--full {
+		grid-column: auto;
+	}
 }
