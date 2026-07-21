@@ -357,7 +357,7 @@ $user_session = DP_User::getAdminSession();
             async: false, //Запрос синхронный
             url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/manufacturers_synonyms/ajax_operations.php",
             dataType: "json",//Тип возвращаемого значения
-            data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+            data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
             success: function(answer)
             {
                 //console.log(answer);
@@ -395,9 +395,13 @@ $user_session = DP_User::getAdminSession();
             async: false, //Запрос синхронный
             url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/manufacturers_synonyms/ajax_operations.php",
             dataType: "json",//Тип возвращаемого значения
-            data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+            data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
             success: function(answer)
             {
+				if(!answer || answer.status !== true || !answer.manufacturers){
+					document.getElementById('manufacturers_div').innerHTML = '<p class="text-danger">Could not load manufacturers'+(answer && answer.message ? (' ('+answer.message+')') : '')+'.</p>';
+					return;
+				}
 				var manufacturers = answer['manufacturers'];
 				for(var i=0; i < manufacturers.length; i++){
 				
@@ -427,10 +431,12 @@ $user_session = DP_User::getAdminSession();
 				html += '</div>';
 				
 				}
-		    }
+				document.getElementById('manufacturers_div').innerHTML = html || '<p class="text-muted">No manufacturers yet. Add one above.</p>';
+		    },
+			error: function(xhr){
+				document.getElementById('manufacturers_div').innerHTML = '<p class="text-danger">Manufacturers AJAX failed (HTTP '+(xhr && xhr.status ? xhr.status : '?')+'). Missing ajax_operations.php or access denied.</p>';
+			}
         });
-		
-		document.getElementById('manufacturers_div').innerHTML = html;
 	}
 	
 	
@@ -441,7 +447,7 @@ $user_session = DP_User::getAdminSession();
 		// Задаем фон выбранному производителю
 		var manufacturer_line = document.getElementById('manufacturer_line_'+id);
 		$(".manufacturer_active").removeClass("manufacturer_active");
-		if(manufacturer_line.classList.contains("manufacturer_active") === false){
+		if(manufacturer_line && manufacturer_line.classList.contains("manufacturer_active") === false){
 			manufacturer_line.classList.add("manufacturer_active");
 		}
 		
@@ -455,10 +461,14 @@ $user_session = DP_User::getAdminSession();
             async: false, //Запрос синхронный
             url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/manufacturers_synonyms/ajax_operations.php",
             dataType: "json",//Тип возвращаемого значения
-            data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+            data: "request_object="+encodeURIComponent(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
             success: function(answer)
             {
-                var synonyms = answer['synonyms'];
+				if(!answer || answer.status !== true){
+					document.getElementById('synonyms_div').innerHTML = '<p class="text-danger">Could not load synonyms'+(answer && answer.message ? (' ('+answer.message+')') : '')+'.</p>';
+					return;
+				}
+                var synonyms = answer['synonyms'] || [];
 				//console.log(synonyms);
                 var html = '';
 				html += '<div>';
@@ -506,7 +516,10 @@ $user_session = DP_User::getAdminSession();
 				html += '</div>';
 				
 				document.getElementById('synonyms_div').innerHTML = html;
-            }
+            },
+			error: function(xhr){
+				document.getElementById('synonyms_div').innerHTML = '<p class="text-danger">Synonyms AJAX failed (HTTP '+(xhr && xhr.status ? xhr.status : '?')+').</p>';
+			}
         });
 	}
 	
