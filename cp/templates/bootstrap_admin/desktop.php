@@ -272,17 +272,39 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 	// mega-menu tree is empty (common tenant complaint: no top menu + no sidebar).
 	$epcCpTopNavFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_top_nav.php';
 	$epcCpUseTopnav = false;
-	if (is_file($epcCpTopNavFile)) {
+	// Super CP / BOS host uses the red BOS top menu only — never the legacy
+	// CONTROL/Commerce mega-menu (that is the "two different top menus" bug).
+	$epcCpBosHost = function_exists('epc_portal_is_super_cp_host') && epc_portal_is_super_cp_host()
+		&& !(function_exists('epc_portal_demo_is_cp_context') && epc_portal_demo_is_cp_context());
+	if (!$epcCpBosHost && is_file($epcCpTopNavFile)) {
 		require_once $epcCpTopNavFile;
 		if (function_exists('epc_cp_build_nav_tabs')) {
 			$epcCpUseTopnav = count(epc_cp_build_nav_tabs()) > 0;
 		}
 	}
 	$GLOBALS['epc_cp_topnav_only'] = $epcCpUseTopnav;
+	$GLOBALS['epc_cp_bos_host'] = $epcCpBosHost;
 ?>
 </head>
-<body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell<?php echo $epcCpUseTopnav ? ' epc-cp-topnav-only' : ''; ?> epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
+<body class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell<?php echo $epcCpUseTopnav ? ' epc-cp-topnav-only' : ''; ?><?php echo $epcCpBosHost ? ' epc-cp-bos-host epc-boc-mode' : ''; ?> epc-cp--<?php echo htmlspecialchars($epc_cp_industry_code, ENT_QUOTES, 'UTF-8'); ?><?php echo $epcApaiPage ? ' epc-apai-page' : ''; ?> <?php echo htmlspecialchars(epc_cp_shell_body_classes(), ENT_QUOTES, 'UTF-8'); ?>">
 <?php
+if (!empty($epcCpBosHost)) {
+	// First-paint: hide legacy header/topnav so only BOS red menu can appear.
+	echo '<style id="epc-bos-host-chrome">'
+		. 'body.epc-cp-bos-host #header,'
+		. 'body.epc-cp-bos-host #menu,'
+		. 'body.epc-cp-bos-host #right-sidebar,'
+		. 'body.epc-cp-bos-host .footer,'
+		. 'body.epc-cp-bos-host .epc-cp-topnav,'
+		. 'body.epc-cp-bos-host .epc-cp-topnav-panel,'
+		. 'body.epc-cp-bos-host .epc-cp-sidebar-toggle-tab,'
+		. 'body.epc-cp-bos-host .left_cp_menu,'
+		. 'body.epc-cp-bos-host .left_menu'
+		. '{display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;}'
+		. 'body.epc-cp-bos-host #wrapper,body.epc-cp-bos-host.fixed-navbar #wrapper'
+		. '{margin:0!important;margin-top:0!important;margin-left:0!important;width:100%!important;height:100vh!important;max-height:100vh!important;}'
+		. '</style>' . "\n";
+}
 echo epc_cp_force_visible_body_style();
 echo epc_cp_force_visible_script();
 // $user_session / $epc_cp_csrf already loaded above for ACL/topnav decision
@@ -923,7 +945,8 @@ if (!is_array($admin_profile)) {
 </form>
 <?php
 $epcCpTopNavFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_top_nav.php';
-if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
+// Never paint legacy CP top mega-menu on Super CP / BOS (one top menu only).
+if (empty($GLOBALS['epc_cp_bos_host']) && !empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 	require_once $epcCpTopNavFile;
 	if (function_exists('epc_cp_render_top_nav')) {
 		epc_cp_render_top_nav();

@@ -63,14 +63,22 @@ epc_boc_console_close();
 check('open uses topnav layout class', strpos($open, 'epc-boc--topnav') !== false);
 check('open emits topnav', strpos($open, 'id="epc_boc_topnav"') !== false);
 check('open does not emit left rail', strpos($open, 'class="epc-boc__rail"') === false && strpos($open, '<aside class="epc-boc__rail') === false);
+check('open puts actions in topnav (one bar)', strpos($open, 'epc-boc__topnav-actions') !== false);
+check('open does not emit second topbar row', strpos($open, 'class="epc-boc__topbar"') === false);
 
 $css = epc_boc_console_css();
 check('css has topnav styles', strpos($css, '.epc-boc__topnav') !== false);
 check('css hides rail in topnav mode', strpos($css, '.epc-boc--topnav .epc-boc__rail{display:none') !== false);
 check('css hides legacy left_cp_menu', strpos($css, '.left_cp_menu') !== false);
+check('css hides topbar in topnav mode', strpos($css, '.epc-boc--topnav .epc-boc__topbar{display:none') !== false);
 
 $dash = (string) file_get_contents($root . '/cp/content/control/epc_super_cp_dashboard.php');
 check('super dashboard requests layout=top', strpos($dash, "'layout'   => 'top'") !== false || strpos($dash, "'layout' => 'top'") !== false);
+
+$desktop = (string) file_get_contents($root . '/cp/templates/bootstrap_admin/desktop.php');
+check('desktop disables legacy topnav on BOS host', strpos($desktop, 'epc_cp_bos_host') !== false);
+check('desktop first-paint hides legacy chrome on BOS', strpos($desktop, 'epc-bos-host-chrome') !== false);
+check('desktop skips rendering legacy topnav on BOS', strpos($desktop, 'empty($GLOBALS[\'epc_cp_bos_host\'])') !== false);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";
