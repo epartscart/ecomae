@@ -51,11 +51,14 @@ function epc_trr_canonical_tenants(): array
 			'trade_name' => $tpl['taxofinca']['trade_name'],
 			'hub_name' => $tpl['taxofinca']['hub_name'],
 			'from_email' => $tpl['taxofinca']['from_email'],
-			'db_name' => 'docpart',
-			'db_user' => 'docpart',
+			// Must never share epartscart docpart (orders/bank leak).
+			'db_name' => 'taxofinca',
+			'db_user' => 'taxofinca',
+			'dedicated_db' => 1,
+			'scale_policy' => 'dedicated_mysql',
 			'erp_only_shared' => 0,
 			'hosted_on' => 'client',
-			'notes' => 'Canonical registry restore — tax advisory',
+			'notes' => 'Canonical registry restore — tax advisory (dedicated MySQL)',
 		),
 		'electronicae' => array(
 			'site_key' => 'electronicae',
@@ -65,11 +68,13 @@ function epc_trr_canonical_tenants(): array
 			'trade_name' => $tpl['electronicae']['trade_name'],
 			'hub_name' => $tpl['electronicae']['hub_name'],
 			'from_email' => $tpl['electronicae']['from_email'],
-			'db_name' => 'docpart',
-			'db_user' => 'docpart',
+			'db_name' => 'electronicae',
+			'db_user' => 'electronicae',
+			'dedicated_db' => 1,
+			'scale_policy' => 'dedicated_mysql',
 			'erp_only_shared' => 0,
 			'hosted_on' => 'client',
-			'notes' => 'Canonical registry restore — electronics retail',
+			'notes' => 'Canonical registry restore — electronics retail (dedicated MySQL)',
 		),
 		'stylenlook' => array(
 			'site_key' => 'stylenlook',
@@ -79,11 +84,13 @@ function epc_trr_canonical_tenants(): array
 			'trade_name' => $tpl['stylenlook']['trade_name'],
 			'hub_name' => $tpl['stylenlook']['hub_name'],
 			'from_email' => $tpl['stylenlook']['from_email'],
-			'db_name' => 'docpart',
-			'db_user' => 'docpart',
+			'db_name' => 'stylenlook',
+			'db_user' => 'stylenlook',
+			'dedicated_db' => 1,
+			'scale_policy' => 'dedicated_mysql',
 			'erp_only_shared' => 0,
 			'hosted_on' => 'client',
-			'notes' => 'Canonical registry restore — fashion retail',
+			'notes' => 'Canonical registry restore — fashion retail (dedicated MySQL)',
 		),
 		'thejewellerytrend' => array(
 			'site_key' => 'thejewellerytrend',
@@ -93,11 +100,13 @@ function epc_trr_canonical_tenants(): array
 			'trade_name' => $tpl['thejewellerytrend']['trade_name'],
 			'hub_name' => $tpl['thejewellerytrend']['hub_name'],
 			'from_email' => $tpl['thejewellerytrend']['from_email'],
-			'db_name' => 'docpart',
-			'db_user' => 'docpart',
+			'db_name' => 'thejewellerytrend',
+			'db_user' => 'thejewellerytrend',
+			'dedicated_db' => 1,
+			'scale_policy' => 'dedicated_mysql',
 			'erp_only_shared' => 0,
 			'hosted_on' => 'client',
-			'notes' => 'Canonical registry restore — jewellery retail',
+			'notes' => 'Canonical registry restore — jewellery retail (dedicated MySQL)',
 		),
 		'asap' => array(
 			'site_key' => 'asap',
@@ -315,7 +324,34 @@ foreach ($stDupEcomae as $dupKey) {
 
 echo "\n--- Upsert canonical tenants ---\n";
 foreach ($canonical as $key => $data) {
-	$dbPass = ($key === 'asap') ? $asapPass : $docpartPass;
+	$dbName = (string) ($data['db_name'] ?? '');
+	$wantsDedicated = !empty($data['dedicated_db'])
+		|| (string) ($data['scale_policy'] ?? '') === 'dedicated_mysql'
+		|| ($dbName !== '' && $dbName !== 'docpart');
+	if ($key === 'asap') {
+		$dbPass = $asapPass;
+	} elseif ($wantsDedicated) {
+		// Keep existing dedicated password if DB already works; never re-bind to docpart.
+		$existing = null;
+		try {
+			$stEx = $pdo->prepare('SELECT `db_password`, `db_name`, `db_user` FROM `epc_portal_tenants` WHERE `site_key` = ? LIMIT 1');
+			$stEx->execute(array($key));
+			$existing = $stEx->fetch(PDO::FETCH_ASSOC) ?: null;
+		} catch (Throwable $e) {
+			$existing = null;
+		}
+		$dbPass = is_array($existing) ? (string) ($existing['db_password'] ?? '') : '';
+		if ($dbPass !== '' && !epc_trr_mysqli_ok($dbName, (string) $data['db_user'], $dbPass)['ok']) {
+			$dbPass = '';
+		}
+		if ($dbPass === '') {
+			echo "{$key}: SKIP upsert — dedicated DB `{$dbName}` has no working password yet."
+				. " Run epc-client-tenant-db-isolate.php?site_key={$key}&apply=1 first.\n";
+			continue;
+		}
+	} else {
+		$dbPass = $docpartPass;
+	}
 	if ($key === 'asap' && $dbPass === '') {
 		echo "{$key}: SKIP — asap DB password unknown\n";
 		continue;

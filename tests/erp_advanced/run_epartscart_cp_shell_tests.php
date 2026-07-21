@@ -111,14 +111,47 @@ check('is_anable caches by URL', strpos($helperSrc, 'epc_cp_acl_result_by_url') 
 check('menu preloads ACL before loop', strpos($menuSrc, 'epc_cp_acl_preload') !== false);
 
 $controlSrc = (string) file_get_contents($root . '/cp/content/control/control.php');
-$earlyReturnPos = strpos($controlSrc, "epc_tenant_cp_dashboard_shown'])) {\n\treturn;\n}");
-if ($earlyReturnPos === false) {
-	$earlyReturnPos = strpos($controlSrc, 'epc_tenant_cp_dashboard_shown');
-}
+$skipFlagPos = strpos($controlSrc, 'epc_tenant_cp_dashboard_shown');
 $controlItemsPos = strpos($controlSrc, 'FROM `control_items`');
+$dangerousReturn = (bool) preg_match(
+	'/epc_tenant_cp_dashboard_shown[^\n]*\n\s*return\s*;/',
+	$controlSrc
+);
 check(
-	'tenant home returns before control_items loop',
-	$earlyReturnPos !== false && $controlItemsPos !== false && $earlyReturnPos < $controlItemsPos
+	'tenant home skips legacy via if/endif (no eval-aborting return)',
+	$skipFlagPos !== false
+		&& $controlItemsPos !== false
+		&& $skipFlagPos < $controlItemsPos
+		&& !$dangerousReturn
+		&& strpos($controlSrc, 'epcSkipLegacyControlHome') !== false
+);
+
+$relocateSrc = (string) file_get_contents($root . '/content/general_pages/epc_cp_script_relocate.php');
+check('finalize reinjects relocated footer assets', strpos($relocateSrc, 'epc_cp_inject_relocated_footer_assets') !== false);
+epc_cp_footer_scripts_reset();
+$GLOBALS['epc_cp_footer_styles'] = array();
+$sample = '<html><body>' . epc_cp_main_pane_begin_marker()
+	. '<style>.qa{color:red}</style><script>window.__qa=1;</script><div class="dash">ok</div>'
+	. epc_cp_main_pane_end_marker() . '</body></html>';
+$finalized = epc_cp_finalize_cp_html($sample);
+check('finalize keeps dashboard markup', strpos($finalized, '<div class="dash">ok</div>') !== false);
+check('finalize removes main-pane style tags', strpos($finalized, '<style>.qa{color:red}</style>') === false || strpos($finalized, '</body>') !== false);
+check('finalize re-emits style before body end', strpos($finalized, '.qa{color:red}') !== false);
+check('finalize re-emits script before body end', strpos($finalized, 'window.__qa=1') !== false);
+
+$desktopSrcFull = (string) file_get_contents($root . '/cp/templates/bootstrap_admin/desktop.php');
+check('desktop guards csrf via \$epc_cp_csrf', strpos($desktopSrcFull, '$epc_cp_csrf') !== false);
+check('desktop always renders left_cp_menu module', substr_count($desktopSrcFull, 'name="left_cp_menu"') >= 1);
+check('desktop does not skip left menu when topnav-only', strpos($desktopSrcFull, 'left_cp_menu skipped') === false);
+check('desktop news block guards fetch row', strpos($desktopSrcFull, '$epcNewsRowTime') !== false);
+check('desktop news block guards admin groups', strpos($desktopSrcFull, '$epcNewsGroupId') !== false);
+
+$superDashSrc = (string) file_get_contents($root . '/cp/content/control/epc_super_cp_dashboard.php');
+$shownPos = strpos($superDashSrc, "epc_super_cp_dashboard_shown'] = true");
+$dbMissingPos = strpos($superDashSrc, 'Platform database unavailable');
+check(
+	'super dash sets shown flag before early DB return',
+	$shownPos !== false && $dbMissingPos !== false && $shownPos < $dbMissingPos
 );
 
 $desktopSrc = (string) file_get_contents($root . '/cp/templates/bootstrap_admin/desktop.php');
@@ -143,7 +176,11 @@ check('getAdminId request-cached', preg_match(
 ) === 1);
 
 $dashSrc = (string) file_get_contents($root . '/cp/content/control/epc_tenant_cp_dashboard.php');
-check('tenant KPI stats cached 60s', strpos($dashSrc, 'epc_tcp_dash_stats:v1:') !== false);
+check(
+	'tenant KPI stats use perf cache',
+	strpos($dashSrc, 'epc_tcp_dash_stats:') !== false && strpos($dashSrc, 'epc_perf_cache_remember') !== false
+);
+check('tenant shortcuts seed is try/catch guarded', strpos($dashSrc, 'epc_shortcuts_seed_defaults') !== false && strpos($dashSrc, 'catch (Throwable') !== false);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";

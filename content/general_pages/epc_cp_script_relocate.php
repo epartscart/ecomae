@@ -111,10 +111,48 @@ function epc_cp_strip_main_pane_markers(string $html): string
 	);
 }
 
+/**
+ * Re-emit styles/scripts that were extracted from the main pane after eval.
+ * Footer render runs during eval (globals still empty for PHP pages), so
+ * finalize must splice queued assets back in before </body>.
+ */
+function epc_cp_inject_relocated_footer_assets(string $html): string
+{
+	$chunks = array();
+	if (!empty($GLOBALS['epc_cp_footer_styles']) && is_array($GLOBALS['epc_cp_footer_styles'])) {
+		foreach ($GLOBALS['epc_cp_footer_styles'] as $styleHtml) {
+			$styleHtml = trim((string) $styleHtml);
+			if ($styleHtml !== '') {
+				$chunks[] = $styleHtml;
+			}
+		}
+		// Avoid double-emitting if footer already printed the same queue.
+		$GLOBALS['epc_cp_footer_styles'] = array();
+	}
+	if (!empty($GLOBALS['epc_cp_footer_scripts']) && is_array($GLOBALS['epc_cp_footer_scripts'])) {
+		foreach ($GLOBALS['epc_cp_footer_scripts'] as $scriptHtml) {
+			$scriptHtml = trim((string) $scriptHtml);
+			if ($scriptHtml !== '') {
+				$chunks[] = $scriptHtml;
+			}
+		}
+		$GLOBALS['epc_cp_footer_scripts'] = array();
+	}
+	if ($chunks === []) {
+		return $html;
+	}
+	$block = "\n" . implode("\n", $chunks) . "\n";
+	if (stripos($html, '</body>') !== false) {
+		return preg_replace('/<\/body>/i', $block . '</body>', $html, 1) ?? ($html . $block);
+	}
+	return $html . $block;
+}
+
 function epc_cp_finalize_cp_html(string $html): string
 {
 	$html = epc_cp_relocate_main_pane_scripts($html);
 	$html = epc_cp_strip_main_pane_markers($html);
+	$html = epc_cp_inject_relocated_footer_assets($html);
 	$html = epc_cp_boc_first_paint_patch($html);
 	if (function_exists('epc_portal_demo_cp_rewrite_nav_urls')) {
 		$html = epc_portal_demo_cp_rewrite_nav_urls($html);

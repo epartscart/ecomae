@@ -1,6 +1,8 @@
 <?php
 /**
- * Tenant DB connect probe + registry repair (epartscart + taxofinca on Model C docroot).
+ * Tenant DB connect probe + registry repair.
+ * epartscart may use shared docpart; taxofinca and other clients must be dedicated
+ * (see epc-client-tenant-db-isolate.php). This script must NEVER re-bind them to docpart.
  * https://www.ecomae.com/epc-tenant-db-connect-fix.php?token=epartscart-deploy-2026&apply=1
  */
 declare(strict_types=1);
@@ -42,10 +44,26 @@ function epc_tdbf_probe_host(string $host): array
 {
 	$_SERVER['HTTP_HOST'] = $host;
 	$_SERVER['SERVER_NAME'] = 'www.ecomae.com';
-	$resolved = epc_portal_resolve_tenant_db_credentials();
-	$db = (string) $resolved['db'];
-	$user = (string) $resolved['user'];
-	$pass = (string) $resolved['password'];
+	require_once __DIR__ . '/config.php';
+	$cfg = new DP_Config();
+	if (function_exists('epc_portal_resolve_tenant_db')) {
+		epc_portal_resolve_tenant_db($cfg);
+	}
+	$db = (string) ($cfg->db ?? '');
+	$user = (string) ($cfg->user ?? '');
+	$pass = (string) ($cfg->password ?? '');
+	$isolation = (string) ($GLOBALS['epc_tenant_db_isolation_error'] ?? '');
+	if ($db === '' || $user === '' || $pass === '') {
+		return array(
+			'host' => $host,
+			'db' => $db,
+			'user' => $user,
+			'pass_len' => strlen($pass),
+			'domain_path' => 'https://' . $host . '/',
+			'ok' => false,
+			'detail' => $isolation !== '' ? $isolation : 'empty_credentials (dedicated DB required)',
+		);
+	}
 	$test = epc_tdbf_mysqli_test($db, $user, $pass);
 	return array(
 		'host' => $host,
@@ -149,6 +167,15 @@ if ($ecomaePass !== '') {
 		);
 		epc_portal_db_ensure($pdo);
 		foreach (epc_portal_tenant_templates() as $key => $tpl) {
+			if (!empty($tpl['erp_only_shared']) || (string) ($tpl['hosted_on'] ?? '') === 'platform') {
+				echo "registry {$key}: SKIP (shared ERP / platform)\n";
+				continue;
+			}
+			// Never re-bind taxofinca/etc. onto shared docpart.
+			if ($key !== 'epartscart') {
+				echo "registry {$key}: SKIP (dedicated isolate required — epc-client-tenant-db-isolate.php)\n";
+				continue;
+			}
 			$save = epc_portal_save_tenant($pdo, array(
 				'site_key' => $key,
 				'hostname' => $tpl['hostname'],
@@ -160,7 +187,9 @@ if ($ecomaePass !== '') {
 				'db_name' => 'docpart',
 				'db_user' => 'docpart',
 				'db_password' => $workingPass,
-				'notes' => 'epc-tenant-db-connect-fix.php',
+				'hosted_on' => 'client',
+				'erp_only_shared' => 0,
+				'notes' => 'epc-tenant-db-connect-fix.php (epartscart only)',
 			));
 			echo "registry {$key}: " . ($save['ok'] ? 'OK' : 'FAIL') . ' — ' . ($save['message'] ?? '') . "\n";
 		}
