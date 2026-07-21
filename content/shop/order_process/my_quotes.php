@@ -108,9 +108,8 @@ if ($detail_id > 0) {
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
-						<th>Manufacturer</th>
-						<th>Article</th>
-						<th>Name</th>
+						<th>Requested</th>
+						<th>Our offer</th>
 						<th>Qty</th>
 						<th>Quoted price</th>
 						<th>Lead time (days)</th>
@@ -123,15 +122,34 @@ if ($detail_id > 0) {
 					$m = is_array($po) && isset($po['manufacturer']) ? htmlspecialchars($po['manufacturer']) : '';
 					$a = is_array($po) && isset($po['article_show']) ? htmlspecialchars($po['article_show']) : '';
 					$n = is_array($po) && isset($po['name']) ? htmlspecialchars($po['name']) : '';
-					$qp = $ln['quoted_price'] !== null ? htmlspecialchars(epc_quote_money((float) $ln['quoted_price'])) : '—';
+					$use_alt = !empty($ln['offer_alternative']) && (int) $ln['offer_alternative'] === 1
+						&& !empty($ln['alt_manufacturer']) && !empty($ln['alt_article']);
+					if ($use_alt) {
+						$offer_m = htmlspecialchars((string) $ln['alt_manufacturer']);
+						$offer_a = htmlspecialchars((string) (!empty($ln['alt_article_show']) ? $ln['alt_article_show'] : $ln['alt_article']));
+						$offer_n = !empty($ln['alt_name']) ? htmlspecialchars((string) $ln['alt_name']) : '';
+						$qty = (int) ($ln['alt_count_need'] ?: $ln['count_need']);
+						$qp = $ln['alt_quoted_price'] !== null ? htmlspecialchars(epc_quote_money((float) $ln['alt_quoted_price'])) : '—';
+						$offer_cell = '<strong>'.$offer_m.' '.$offer_a.'</strong>'
+							.($offer_n !== '' ? '<div class="text-muted" style="font-size:12px;">'.$offer_n.'</div>' : '')
+							.'<div><span class="label label-warning">Alternative</span></div>';
+					} else {
+						$qty = (int) $ln['count_need'];
+						$qp = $ln['quoted_price'] !== null ? htmlspecialchars(epc_quote_money((float) $ln['quoted_price'])) : '—';
+						$offer_cell = '<strong>'.$m.' '.$a.'</strong>'
+							.($n !== '' ? '<div class="text-muted" style="font-size:12px;">'.$n.'</div>' : '')
+							.'<div class="text-muted" style="font-size:12px;">As requested</div>';
+					}
 					$lt = $ln['quoted_time_to_exe'] !== null ? (int) $ln['quoted_time_to_exe'] : '—';
 					$lnote = $ln['line_admin_note'] ? htmlspecialchars($ln['line_admin_note']) : '';
 					?>
 					<tr>
-						<td><?php echo $m; ?></td>
-						<td><?php echo $a; ?></td>
-						<td><?php echo $n; ?></td>
-						<td><?php echo (int) $ln['count_need']; ?></td>
+						<td>
+							<strong><?php echo $m.' '.$a; ?></strong>
+							<?php if ($n !== '') { ?><div class="text-muted" style="font-size:12px;"><?php echo $n; ?></div><?php } ?>
+						</td>
+						<td><?php echo $offer_cell; ?></td>
+						<td><?php echo $qty; ?></td>
 						<td><?php echo $qp; ?></td>
 						<td><?php echo $lt; ?></td>
 						<td><?php echo $lnote; ?></td>

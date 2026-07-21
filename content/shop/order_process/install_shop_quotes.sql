@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS `shop_quote_items` (
   `quoted_price` decimal(12,2) DEFAULT NULL,
   `quoted_time_to_exe` int(11) DEFAULT NULL,
   `line_admin_note` varchar(512) DEFAULT NULL,
+  `offer_alternative` tinyint(1) NOT NULL DEFAULT 0,
+  `alt_manufacturer` varchar(128) DEFAULT NULL,
+  `alt_article` varchar(128) DEFAULT NULL,
+  `alt_article_show` varchar(128) DEFAULT NULL,
+  `alt_name` varchar(512) DEFAULT NULL,
+  `alt_count_need` int(11) DEFAULT NULL,
+  `alt_quoted_price` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `quote_id` (`quote_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
