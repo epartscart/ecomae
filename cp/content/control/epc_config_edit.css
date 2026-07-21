@@ -56,7 +56,8 @@
 }
 .epc-cfg-nav {
 	position: sticky;
-	top: 12px;
+	top: 8px;
+	z-index: 5;
 	background: #fff;
 	border: 1px solid var(--cfg-line);
 	border-radius: 12px;

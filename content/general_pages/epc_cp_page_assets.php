@@ -18,8 +18,8 @@ function epc_cp_page_asset_url_map(): array
 
 	return array(
 		'control/config' => array(
-			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg3')),
-			'js' => array('/' . $backend . '/content/control/epc_config_edit.js?v=' . rawurlencode($ver . 'cfg3')),
+			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg4')),
+			'js' => array('/' . $backend . '/content/control/epc_config_edit.js?v=' . rawurlencode($ver . 'cfg4')),
 		),
 		'control/cp-guideline' => array(
 			'css' => array('/content/general_pages/epc_cp_guideline_css.php?v=' . rawurlencode($ver)),

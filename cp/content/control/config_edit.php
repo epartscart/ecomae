@@ -129,7 +129,7 @@ else//Если нет перехода после нажатия "Сохрани
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_frame.php");
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_assets.php");
 
-	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg3';
+	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg4';
 	$epcCfgBackend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 	if ($epcCfgBackend === '') {
 		$epcCfgBackend = 'cp';
