@@ -41,6 +41,14 @@ function epc_tcp_dash_stats(PDO $db): array
 			'day_labels' => array(),
 			'day_counts' => array(),
 		);
+		$guardFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_tenant_data_guard.php';
+		if (is_file($guardFile)) {
+			require_once $guardFile;
+			if (function_exists('epc_tenant_data_guard_active') && epc_tenant_data_guard_active()) {
+				// Do not count shared spare-parts orders while degraded on docpart.
+				return $stats;
+			}
+		}
 		try {
 			$stats['orders_today'] = (int) $db->query(
 				'SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `time` >= UNIX_TIMESTAMP(CURDATE())'
@@ -276,11 +284,17 @@ $cpShortcutDefaults = ($industryCode === 'auto_parts')
 	? array('orders', 'prices', 'multivendor', 'crosses', 'procurement', 'pos', 'erp', 'stock')
 	: array('orders', 'catalogue', 'prices', 'clients', 'accessories', 'erp', 'documents', 'settings');
 $cpShortcutUid = epc_shortcuts_user_id();
+$cpShortcutItems = array();
 if (isset($db_link) && $db_link instanceof PDO && $cpShortcutUid > 0) {
-	epc_shortcuts_seed_defaults($db_link, $cpShortcutUid, 'cp', $cpShortcutDefaults, $cpShortcutCatalog);
-	$cpShortcutItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db_link, $cpShortcutUid, 'cp'));
-} else {
-	$cpShortcutItems = array();
+	try {
+		epc_shortcuts_seed_defaults($db_link, $cpShortcutUid, 'cp', $cpShortcutDefaults, $cpShortcutCatalog);
+		$cpShortcutItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db_link, $cpShortcutUid, 'cp'));
+	} catch (Throwable $e) {
+		// First-visit DDL / seed must never take down /cp/control.
+		$cpShortcutItems = array();
+	}
+}
+if ($cpShortcutItems === []) {
 	foreach ($cpShortcutDefaults as $dk) {
 		if (!isset($cpShortcutCatalog[$dk])) {
 			continue;

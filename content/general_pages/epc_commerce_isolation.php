@@ -218,6 +218,21 @@ function epc_ci_run_full_audit(PDO $platformPdo, PDO $commercePdo): array
 		$results['summary']['passed']++;
 	}
 
+	// Check 1b: Client commerce tenants (taxofinca etc.) must NOT share epartscart docpart
+	$check1b = epc_ci_audit_client_docpart_isolation($platformPdo);
+	$results['checks']['client_docpart_isolation'] = $check1b;
+	if ($check1b['status'] === 'FAIL') {
+		$results['overall'] = 'FAIL';
+		$results['summary']['failed']++;
+	} elseif ($check1b['status'] === 'WARN') {
+		if ($results['overall'] !== 'FAIL') {
+			$results['overall'] = 'WARN';
+		}
+		$results['summary']['warnings']++;
+	} else {
+		$results['summary']['passed']++;
+	}
+
 	// Check 2: Price_id ownership — no price_id should belong to multiple tenants
 	$check2 = epc_ci_audit_price_id_ownership($commercePdo);
 	$results['checks']['price_id_ownership'] = $check2;
@@ -287,6 +302,63 @@ function epc_ci_run_full_audit(PDO $platformPdo, PDO $commercePdo): array
 	}
 
 	return $results;
+}
+
+/**
+ * Check 1b: Non–eParts client tenants must not bind shared `docpart`.
+ * (taxofinca seeing spare-parts orders/bank data was caused by this.)
+ */
+function epc_ci_audit_client_docpart_isolation(PDO $platformPdo): array
+{
+	$check = array('name' => 'Client tenant docpart isolation', 'status' => 'PASS', 'details' => array());
+	try {
+		$st = $platformPdo->query(
+			'SELECT `site_key`, `hostname`, `db_name`, `db_user`, `trade_name`, `industry_code`,
+			        `dedicated_db`, `scale_policy`, `erp_only_shared`, `hosted_on`, `status`
+			 FROM `epc_portal_tenants`
+			 WHERE `status` IN (\'live\', \'dns_pending\')
+			 ORDER BY `site_key`'
+		);
+		$rows = $st ? $st->fetchAll(PDO::FETCH_ASSOC) : array();
+		foreach ($rows as $row) {
+			$siteKey = (string) ($row['site_key'] ?? '');
+			$host = strtolower(trim((string) ($row['hostname'] ?? '')));
+			$db = strtolower(trim((string) ($row['db_name'] ?? '')));
+			if ($siteKey === 'epartscart') {
+				$check['details'][] = array(
+					'site_key' => $siteKey,
+					'db_name' => $db,
+					'ok' => true,
+					'note' => 'epartscart may share docpart',
+				);
+				continue;
+			}
+			if (!empty($row['erp_only_shared']) || (string) ($row['hosted_on'] ?? '') === 'platform') {
+				continue; // covered by erp_db_isolation
+			}
+			if ($host === '' || $host === 'www.ecomae.com' || $host === 'ecomae.com') {
+				continue;
+			}
+			$ok = ($db !== '' && $db !== 'docpart' && $db !== 'ecomae');
+			$check['details'][] = array(
+				'site_key' => $siteKey,
+				'hostname' => $host,
+				'db_name' => $db,
+				'industry' => (string) ($row['industry_code'] ?? ''),
+				'dedicated_db' => (int) ($row['dedicated_db'] ?? 0),
+				'scale_policy' => (string) ($row['scale_policy'] ?? ''),
+				'ok' => $ok,
+				'note' => $ok ? 'dedicated' : 'FAIL shares docpart/platform DB — run epc-client-tenant-db-isolate.php',
+			);
+			if (!$ok) {
+				$check['status'] = 'FAIL';
+			}
+		}
+	} catch (\Exception $e) {
+		$check['status'] = 'FAIL';
+		$check['error'] = $e->getMessage();
+	}
+	return $check;
 }
 
 /**

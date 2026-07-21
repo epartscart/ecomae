@@ -10,7 +10,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 function epc_cp_shell_css_version()
 {
 	// Bump whenever shell/topnav/layout CSS changes — Cloudflare caches tenant /cp/templates/*.css.
-	return '20260720fullwidth1';
+	return '20260721cpiso1';
 }
 
 /** Prefer PHP CSS/JS proxies on all hosts (nginx/Cloudflare often stale-cache /cp/templates). */

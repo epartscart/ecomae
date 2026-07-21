@@ -1,6 +1,7 @@
 <?php
 /**
- * Model C: point tenant storefronts at shared docpart DB.
+ * Model C: point ONLY eParts Cart at shared docpart DB.
+ * Non–eParts client tenants must use epc-client-tenant-db-isolate.php (dedicated MySQL).
  * https://www.ecomae.com/epc-tenant-modelc-db.php?token=...&apply=1
  */
 declare(strict_types=1);
@@ -55,7 +56,25 @@ $tenantCfg = "<?php\n\$epc_tenant_db = array(\n"
 if ($apply) {
 	file_put_contents($docroot . '/config.tenant-db.php', $tenantCfg);
 	echo "Wrote {$docroot}/config.tenant-db.php\n";
-	epc_portal_db_ensure($pdo);
+	// Registry updates need the platform DB, not docpart.
+	$platformPdo = null;
+	try {
+		$cfgLocal = null;
+		if (is_file($docroot . '/config.local.php')) {
+			$epc_config_local = null;
+			require $docroot . '/config.local.php';
+			$cfgLocal = $epc_config_local;
+		}
+		$platformPdo = new PDO(
+			'mysql:host=127.0.0.1;dbname=' . ($cfgLocal['db'] ?? 'ecomae') . ';charset=utf8mb4',
+			(string) ($cfgLocal['user'] ?? 'ecomae'),
+			(string) ($cfgLocal['password'] ?? ''),
+			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+		);
+		epc_portal_db_ensure($platformPdo);
+	} catch (Throwable $e) {
+		echo 'platform registry PDO FAIL: ' . $e->getMessage() . "\n";
+	}
 	$tenantTemplates = epc_portal_tenant_templates();
 	foreach (array_keys($tenantTemplates) as $siteKey) {
 		$tpl = $tenantTemplates[$siteKey];
@@ -63,7 +82,16 @@ if ($apply) {
 			echo "registry {$siteKey}: SKIP (shared ERP — dedicated DB required)\n";
 			continue;
 		}
-		$save = epc_portal_save_tenant($pdo, array(
+		// Privacy: only epartscart may live on shared docpart.
+		if ($siteKey !== 'epartscart') {
+			echo "registry {$siteKey}: SKIP (use epc-client-tenant-db-isolate.php — must not share docpart)\n";
+			continue;
+		}
+		if (!$platformPdo instanceof PDO) {
+			echo "registry {$siteKey}: SKIP (no platform PDO)\n";
+			continue;
+		}
+		$save = epc_portal_save_tenant($platformPdo, array(
 			'site_key' => $siteKey,
 			'hostname' => $tpl['hostname'],
 			'industry_code' => $tpl['industry'],
@@ -74,7 +102,9 @@ if ($apply) {
 			'db_name' => 'docpart',
 			'db_user' => 'docpart',
 			'db_password' => $docpartPass,
-			'notes' => 'epc-tenant-modelc-db.php Model C',
+			'hosted_on' => 'client',
+			'erp_only_shared' => 0,
+			'notes' => 'epc-tenant-modelc-db.php Model C (epartscart only)',
 		));
 		echo "registry {$siteKey}: " . ($save['ok'] ? 'OK' : 'FAIL') . ' — ' . ($save['message'] ?? '') . "\n";
 	}

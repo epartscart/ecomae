@@ -30,6 +30,9 @@ if (class_exists('DP_User') && method_exists('DP_User', 'getName')) {
 }
 
 global $db_link;
+// Mark home as handled before any early return so control.php never falls
+// through to legacy control_items (PHP 8 fatals / truncated shell).
+$GLOBALS['epc_super_cp_dashboard_shown'] = true;
 if (!isset($db_link) || !($db_link instanceof PDO)) {
 	echo '<div class="alert alert-danger">Platform database unavailable.</div>';
 	return;
@@ -45,8 +48,3 @@ epc_boc_console_open(array(
 ));
 epc_boc_render_command_center($db_link, $base);
 epc_boc_console_close();
-
-// Signal control.php to skip legacy statistics + control_items tabs.
-// Those paths still run N+1 is_anable checks and can fatal mid-render on PHP 8,
-// leaving /cp/control as HTTP 500 with a truncated HTML body.
-$GLOBALS['epc_super_cp_dashboard_shown'] = true;

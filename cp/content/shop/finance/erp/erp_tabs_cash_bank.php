@@ -1,5 +1,13 @@
 <?php
 defined('_ASTEXE_') or die('No access');
+$epcCashGuard = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_tenant_data_guard.php';
+if (is_file($epcCashGuard)) {
+	require_once $epcCashGuard;
+	if (function_exists('epc_tenant_data_guard_active') && epc_tenant_data_guard_active()) {
+		echo epc_tenant_data_guard_banner('bank');
+		return;
+	}
+}
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_phase8.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_vouchers.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_ui.php';
