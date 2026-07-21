@@ -446,8 +446,13 @@ if (!function_exists('epc_sku_media_search_library')) {
 				$like = '%' . $q . '%';
 				$key = epc_sku_media_normalize_article($q);
 				$st = $db->prepare(
-					'SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`article_search`,
-						MAX(d.`name`) AS `name`, MAX(d.`price_id`) AS `price_id`, COUNT(*) AS `offer_count`
+					'SELECT d.`manufacturer`,
+						MAX(d.`article`) AS `article`,
+						MAX(d.`article_show`) AS `article_show`,
+						d.`article_search`,
+						MAX(d.`name`) AS `name`,
+						MAX(d.`price_id`) AS `price_id`,
+						COUNT(*) AS `offer_count`
 					 FROM `shop_docpart_prices_data` d
 					 WHERE d.`manufacturer` LIKE ?
 						OR d.`article` LIKE ?
@@ -462,8 +467,13 @@ if (!function_exists('epc_sku_media_search_library')) {
 				$st->execute(array($like, $like, $like, $like, $like, $key));
 			} else {
 				$st = $db->query(
-					'SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`article_search`,
-						MAX(d.`name`) AS `name`, MAX(d.`price_id`) AS `price_id`, COUNT(*) AS `offer_count`
+					'SELECT d.`manufacturer`,
+						MAX(d.`article`) AS `article`,
+						MAX(d.`article_show`) AS `article_show`,
+						d.`article_search`,
+						MAX(d.`name`) AS `name`,
+						MAX(d.`price_id`) AS `price_id`,
+						COUNT(*) AS `offer_count`
 					 FROM `shop_docpart_prices_data` d
 					 WHERE d.`manufacturer` <> \'\' AND d.`article_search` <> \'\'
 					 GROUP BY d.`manufacturer`, d.`article_search`
