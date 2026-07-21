@@ -22,22 +22,30 @@ $tmp = sys_get_temp_dir() . '/epc_mv_test_' . getmypid() . '.csv';
 file_put_contents($tmp, epc_multivendor_sample_csv());
 $read = epc_multivendor_read_source_rows($tmp, 'inventory');
 check('sample CSV parses', !empty($read['ok']));
-check('sample has 5 source rows', count($read['rows'] ?? []) === 5);
+check('sample has 6 source rows', count($read['rows'] ?? []) === 6);
 check('maps vendor_full', ($read['map']['vendor_full'] ?? -1) >= 0);
 check('maps vendor_short', ($read['map']['vendor_short'] ?? -1) >= 0);
 check('maps data_type', ($read['map']['data_type'] ?? -1) >= 0);
 
 $groups = epc_multivendor_group_by_vendor($read['rows'] ?? []);
-// inventory S-UAE, inventory R-UAE, sales S-UAE
-check('groups into 3 vendor/type buckets', count($groups) === 3);
+// inventory S-UAE Trading LLC, inventory Gulf Parts (same code S-UAE), inventory R-UAE, sales S-UAE Trading LLC
+check('groups into 4 vendor-name+code/type buckets', count($groups) === 4);
 
 $salesSuae = null;
 $invSuae = null;
+$sameCodeDifferentName = 0;
 foreach ($groups as $g) {
 	if ($g['vendor_short'] === 'S-UAE' && ($g['data_type'] ?? '') === 'inventory') {
-		$invSuae = $g;
-		check('S-UAE inventory full name kept', $g['vendor_full'] === 'S-UAE Trading LLC');
-		check('S-UAE inventory has 1 product (TOYOTA)', count($g['products']) === 1);
+		$sameCodeDifferentName++;
+		if ($g['vendor_full'] === 'S-UAE Trading LLC') {
+			$invSuae = $g;
+			check('S-UAE Trading inventory full name kept', $g['vendor_full'] === 'S-UAE Trading LLC');
+			check('S-UAE Trading inventory has 1 product (TOYOTA)', count($g['products']) === 1);
+		}
+		if ($g['vendor_full'] === 'Gulf Parts Trading') {
+			check('same code different name stays separate', true);
+			check('Gulf Parts inventory has BOSCH', count($g['products']) === 1);
+		}
 	}
 	if ($g['vendor_short'] === 'R-UAE' && ($g['data_type'] ?? '') === 'inventory') {
 		check('R-UAE inventory full name kept', $g['vendor_full'] === 'R-UAE Spare Parts FZE');
@@ -46,6 +54,10 @@ foreach ($groups as $g) {
 		$salesSuae = $g;
 	}
 }
+check('same code yields 2 inventory buckets (different names)', $sameCodeDifferentName === 2);
+check('vendor_key uses name+code', epc_multivendor_vendor_key('Gulf Parts Trading', 'S-UAE')
+	!== epc_multivendor_vendor_key('S-UAE Trading LLC', 'S-UAE'));
+check('list base includes name when code shared', epc_multivendor_list_base_name('S-UAE', 'Gulf Parts Trading') === 'S-UAE · Gulf Parts Trading');
 check('has S-UAE sales group', is_array($salesSuae));
 if (is_array($salesSuae)) {
 	check('sales keeps 2 rows (min+max) for DENSO', count($salesSuae['products']) === 2);
@@ -100,9 +112,37 @@ file_put_contents($bad, "Brand,Article,Price\nTOYOTA,1,10\n");
 $badRead = epc_multivendor_read_source_rows($bad);
 check('rejects missing vendor columns', empty($badRead['ok']));
 
+// Same vendor CODE, different NAMES must not share sales min/max buckets.
+$dupCode = sys_get_temp_dir() . '/epc_mv_dup_' . getmypid() . '.csv';
+file_put_contents(
+	$dupCode,
+	"Brand,Article,Qty,Price,Vendor full name,Vendor short,Data type\n"
+	. "DENSO,X1,1,10,Alpha Trading,CODE1,sales\n"
+	. "DENSO,X1,1,50,Alpha Trading,CODE1,sales\n"
+	. "DENSO,X1,1,12,Beta Trading,CODE1,sales\n"
+	. "DENSO,X1,1,40,Beta Trading,CODE1,sales\n"
+);
+$dupRead = epc_multivendor_read_source_rows($dupCode, 'sales');
+$dupGroups = epc_multivendor_group_by_vendor($dupRead['rows'] ?? []);
+check('same code different names = 2 sales groups', count($dupGroups) === 2);
+foreach ($dupGroups as $g) {
+	$prices = array();
+	foreach ($g['products'] as $p) {
+		$prices[] = (float) $p['price'];
+	}
+	sort($prices);
+	if (($g['vendor_full'] ?? '') === 'Alpha Trading') {
+		check('Alpha min/max 10 and 50', count($prices) === 2 && abs($prices[0] - 10) < 0.01 && abs($prices[1] - 50) < 0.01);
+	}
+	if (($g['vendor_full'] ?? '') === 'Beta Trading') {
+		check('Beta min/max 12 and 40', count($prices) === 2 && abs($prices[0] - 12) < 0.01 && abs($prices[1] - 40) < 0.01);
+	}
+}
+
 @unlink($tmp);
 @unlink($invCsv);
 @unlink($bad);
+@unlink($dupCode);
 
 echo $failed === 0 ? "ALL PASSED\n" : "FAILED {$failed}\n";
 exit($failed === 0 ? 0 : 1);

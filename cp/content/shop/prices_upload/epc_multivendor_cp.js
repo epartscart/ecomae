@@ -400,11 +400,125 @@
 		});
 	}
 
+	function setVendorCodesResult(html) {
+		var el = $('epcMvVendorCodesResult');
+		if (el) {
+			el.innerHTML = html || '';
+		}
+	}
+
+	function renderVendorCodes(vendors) {
+		var body = $('epcMvVendorCodesBody');
+		if (!body) {
+			return;
+		}
+		if (!vendors || !vendors.length) {
+			body.innerHTML = '<tr><td colspan="5" class="text-muted">No warehouses yet. Upload a multi-vendor file first.</td></tr>';
+			return;
+		}
+		var html = '';
+		vendors.forEach(function (v) {
+			var id = String(v.id || '');
+			html += '<tr data-storage-id="' + escapeHtml(id) + '">' +
+				'<td>#' + escapeHtml(id) + '</td>' +
+				'<td><input type="text" class="form-control input-sm epc-mv-vc-full" value="' + escapeHtml(v.vendor_full || '') + '" /></td>' +
+				'<td><input type="text" class="form-control input-sm epc-mv-vc-code" value="' + escapeHtml(v.vendor_code || v.vendor_short || '') + '" /></td>' +
+				'<td>' + (v.price_id ? ('#' + escapeHtml(String(v.price_id))) : '—') + '</td>' +
+				'<td><button type="button" class="btn btn-primary btn-xs epc-mv-vc-save" data-id="' + escapeHtml(id) + '"><i class="fa fa-save"></i> Save</button></td>' +
+				'</tr>';
+		});
+		body.innerHTML = html;
+		body.querySelectorAll('.epc-mv-vc-save').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				saveVendorCode(btn);
+			});
+		});
+	}
+
+	function loadVendorCodes() {
+		var url = ajaxUrl();
+		var body = $('epcMvVendorCodesBody');
+		if (!url || !body) {
+			return;
+		}
+		body.innerHTML = '<tr><td colspan="5" class="text-muted">Loading vendor codes…</td></tr>';
+		var fd = new FormData();
+		fd.append('csrf_guard_key', csrfKey());
+		fd.append('action', 'vendor_codes_list');
+		fetch(url, {
+			method: 'POST',
+			body: fd,
+			credentials: 'same-origin',
+			headers: { 'Accept': 'application/json' }
+		}).then(function (r) {
+			return r.json();
+		}).then(function (data) {
+			if (!data || !data.status) {
+				body.innerHTML = '<tr><td colspan="5" class="text-danger">Could not load vendor codes.</td></tr>';
+				return;
+			}
+			renderVendorCodes(data.vendors || []);
+		}).catch(function () {
+			body.innerHTML = '<tr><td colspan="5" class="text-danger">Could not load vendor codes.</td></tr>';
+		});
+	}
+
+	function saveVendorCode(btn) {
+		var url = ajaxUrl();
+		if (!url || !btn) {
+			return;
+		}
+		var tr = btn.closest('tr');
+		if (!tr) {
+			return;
+		}
+		var id = btn.getAttribute('data-id') || '';
+		var codeInput = tr.querySelector('.epc-mv-vc-code');
+		var fullInput = tr.querySelector('.epc-mv-vc-full');
+		var key = csrfKey();
+		if (!key) {
+			setVendorCodesResult('<div class="alert alert-danger">Session CSRF missing — reload after login.</div>');
+			return;
+		}
+		var fd = new FormData();
+		fd.append('csrf_guard_key', key);
+		fd.append('action', 'vendor_code_save');
+		fd.append('storage_id', id);
+		fd.append('vendor_code', codeInput ? codeInput.value : '');
+		fd.append('vendor_full', fullInput ? fullInput.value : '');
+		btn.disabled = true;
+		fetch(url, {
+			method: 'POST',
+			body: fd,
+			credentials: 'same-origin',
+			headers: { 'Accept': 'application/json' }
+		}).then(function (r) {
+			return r.json();
+		}).then(function (data) {
+			var ok = !!(data && data.status);
+			setVendorCodesResult('<div class="alert alert-' + (ok ? 'success' : 'danger') + '">' +
+				escapeHtml((data && data.message) || (ok ? 'Saved' : 'Save failed')) + '</div>');
+			if (ok && data.vendor) {
+				if (codeInput) {
+					codeInput.value = data.vendor.vendor_code || '';
+				}
+				if (fullInput) {
+					fullInput.value = data.vendor.vendor_full || '';
+				}
+			}
+		}).catch(function (err) {
+			setVendorCodesResult('<div class="alert alert-danger">Save failed: ' + escapeHtml(err && err.message ? err.message : err) + '</div>');
+		}).finally(function () {
+			btn.disabled = false;
+		});
+	}
+
 	function init() {
 		ensureCfg();
 		var uploadBtn = $('epcMultivendorUploadBtn');
 		var sampleBtn = $('epcMultivendorSampleBtn');
 		var aclSaveBtn = $('epcMvMinAclSaveBtn');
+		var vcRefresh = $('epcMvVendorCodesRefreshBtn');
 		if (uploadBtn) {
 			uploadBtn.addEventListener('click', upload);
 		}
@@ -418,7 +532,11 @@
 		if (aclSaveBtn) {
 			aclSaveBtn.addEventListener('click', saveMinAcl);
 		}
+		if (vcRefresh) {
+			vcRefresh.addEventListener('click', loadVendorCodes);
+		}
 		loadMinAcl();
+		loadVendorCodes();
 	}
 
 	if (document.readyState === 'loading') {

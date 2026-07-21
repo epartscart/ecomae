@@ -52,7 +52,19 @@ check('js still supports legacy boot id', strpos($js, 'epc-multivendor-boot') !=
 check('css has teal hero', strpos($css, 'epc-multivendor-hero') !== false && strpos($css, '#0891b2') !== false);
 check('css has stats strip', strpos($css, 'epc-multivendor-stats') !== false);
 
-check('assets map cache-bust mvMin1', strpos($assets, 'mvMin1') !== false);
+check('page has vendor codes section', strpos($page, 'id="epcMvVendorCodesTable"') !== false);
+check('page cache-bust mvCode1', strpos($page, 'mvCode1') !== false);
+check('js loads vendor codes', strpos($js, 'vendor_codes_list') !== false && strpos($js, 'loadVendorCodes') !== false);
+check('js saves vendor code', strpos($js, 'vendor_code_save') !== false);
+check('match key mentions vendor name + code', stripos($page, 'vendor name + code') !== false || stripos($page, 'Vendor name + Code') !== false);
+
+$ajax = (string) file_get_contents($root . '/cp/content/shop/prices_upload/ajax_epc_multivendor_ingest.php');
+check('ajax has vendor_codes_list', strpos($ajax, "vendor_codes_list") !== false);
+check('ajax has vendor_code_save', strpos($ajax, "vendor_code_save") !== false);
+
+$ingest = (string) file_get_contents($root . '/content/shop/docpart/epc_multivendor_price_ingest.php');
+check('ingest warehouse matches name+code', strpos($ingest, 'AND UPPER(TRIM(`short_name`)) = UPPER(?)') !== false);
+check('ingest vendor_key uses full+short', strpos($ingest, 'function epc_multivendor_vendor_key(string $full, string $short') !== false);
 
 echo "\n----------------------------\n";
 echo "Passed: $pass  Failed: $fail\n";

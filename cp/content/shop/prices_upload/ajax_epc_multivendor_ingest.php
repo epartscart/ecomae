@@ -84,6 +84,27 @@ try {
 		), JSON_UNESCAPED_UNICODE));
 	}
 
+	if ($action === 'vendor_codes_list') {
+		$list = epc_multivendor_vendor_codes_list($db_link);
+		exit(json_encode(array(
+			'status' => true,
+			'vendors' => $list,
+			'count' => count($list),
+		), JSON_UNESCAPED_UNICODE));
+	}
+
+	if ($action === 'vendor_code_save') {
+		$storageId = (int) ($_POST['storage_id'] ?? $_POST['id'] ?? 0);
+		$newCode = (string) ($_POST['vendor_code'] ?? $_POST['vendor_short'] ?? $_POST['short_name'] ?? '');
+		$newFull = (string) ($_POST['vendor_full'] ?? $_POST['name'] ?? '');
+		$res = epc_multivendor_vendor_code_save($db_link, $storageId, $newCode, $newFull);
+		exit(json_encode(array(
+			'status' => !empty($res['ok']),
+			'message' => (string) ($res['message'] ?? ''),
+			'vendor' => $res['vendor'] ?? null,
+		), JSON_UNESCAPED_UNICODE));
+	}
+
 	$hasFile = !empty($_FILES['price_file']) && (int) $_FILES['price_file']['error'] === UPLOAD_ERR_OK;
 	if (!$hasFile) {
 		exit(json_encode(array('status' => false, 'message' => 'Choose an Excel/CSV file with multiple vendors')));
