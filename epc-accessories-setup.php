@@ -266,7 +266,8 @@ if ($action === 'seed_demo') {
 					'compare_price' => $compare,
 					'currency' => 'AED',
 					'image_url' => '',
-					'external_url' => '/en/accessories-spare-parts?category=' . rawurlencode($parent['slug']) . '&subcategory=' . rawurlencode((string) ($child['slug'] ?? '')),
+					// Leave blank — storefront "View ad" opens /accessories-spare-parts?id={listing}
+					'external_url' => '',
 					'photo_count' => $photos,
 					'featured' => $featured,
 					'stock_qty' => 1 + (($added + $n) % 12),
