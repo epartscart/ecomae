@@ -85,6 +85,65 @@ try {
 			'0.5'
 		);
 	}
+
+	// Accessories marketplace — published listings (+ category hubs when present).
+	$accDb = __DIR__ . '/content/shop/docpart/epc_accessories_db.php';
+	if (is_file($accDb)) {
+		require_once $accDb;
+		if (function_exists('epc_acc_ensure_schema')) {
+			epc_acc_ensure_schema($pdo);
+		}
+		$langHref = '/' . $lang;
+		$base = rtrim(epc_sitemap_base_url($cfg), '/');
+		try {
+			$catRows = $pdo->query(
+				"SELECT `slug` FROM `epc_acc_categories`
+				 WHERE `active` = 1 AND `parent_id` = 0 AND TRIM(IFNULL(`slug`, '')) != ''
+				 ORDER BY `sort_order` ASC, `id` ASC
+				 LIMIT 200"
+			);
+			if ($catRows) {
+				while ($cat = $catRows->fetch(PDO::FETCH_ASSOC)) {
+					$slug = trim((string) ($cat['slug'] ?? ''));
+					if ($slug === '') {
+						continue;
+					}
+					$loc = htmlspecialchars(
+						$base . $langHref . '/accessories-spare-parts?' . http_build_query(array('category' => $slug)),
+						ENT_XML1,
+						'UTF-8'
+					);
+					epc_sitemap_add_entry($entries, $seen, $loc, $lastmod, 'weekly', '0.55');
+				}
+			}
+			$listRows = $pdo->query(
+				"SELECT l.`id`, l.`updated_at`, l.`created_at`,
+					c.`slug` AS category_slug, s.`slug` AS subcategory_slug
+				 FROM `epc_acc_listings` l
+				 LEFT JOIN `epc_acc_categories` c ON c.id = l.category_id
+				 LEFT JOIN `epc_acc_categories` s ON s.id = l.subcategory_id
+				 WHERE l.`status` = 'published'
+				 ORDER BY l.`updated_at` DESC, l.`id` DESC
+				 LIMIT 5000"
+			);
+			if ($listRows) {
+				while ($row = $listRows->fetch(PDO::FETCH_ASSOC)) {
+					$rel = function_exists('epc_acc_storefront_url')
+						? epc_acc_storefront_url($row, $langHref)
+						: ($langHref . '/accessories-spare-parts?id=' . (int) $row['id']);
+					$loc = htmlspecialchars($base . $rel, ENT_XML1, 'UTF-8');
+					$ts = (int) ($row['updated_at'] ?? 0);
+					if ($ts <= 0) {
+						$ts = (int) ($row['created_at'] ?? 0);
+					}
+					$mod = $ts > 0 ? date('Y-m-d', $ts) : $lastmod;
+					epc_sitemap_add_entry($entries, $seen, $loc, $mod, 'weekly', '0.6');
+				}
+			}
+		} catch (Exception $accEx) {
+			// Table may be absent on non-warehouse tenants.
+		}
+	}
 } catch (Exception $e) {
 }
 
