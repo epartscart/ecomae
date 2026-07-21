@@ -34,7 +34,8 @@ $backend = (string)$DP_Config->backend_dir;
 $procUrl = '/' . $backend . '/shop/procurement/procurement';
 $procAjaxUrl = '/' . $backend . '/content/shop/procurement/ajax_procurement_endpoint.php';
 $erpUrl = '/' . $backend . '/shop/finance/erp';
-$ordersUrl = '/' . $backend . '/shop/order_process/orders';
+$ordersUrl = '/' . $backend . '/shop/orders/orders';
+$orderDetailUrl = '/' . $backend . '/shop/orders/order';
 $storagesUrl = '/' . $backend . '/shop/logistics/storages';
 $priceUrl = '/' . $backend . '/shop/pricing/price_management';
 $guideUrl = '/' . $backend . '/shop/procurement/procurement_guide';
@@ -288,7 +289,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 									<?php endif; ?>
 								</td>
 								<td>
-									<a class="btn btn-xs btn-primary" href="<?php echo epc_proc_h($ordersUrl); ?>?order_id=<?php echo $oid; ?>">Order detail</a>
+									<a class="btn btn-xs btn-primary" href="<?php echo epc_proc_h($orderDetailUrl); ?>?order_id=<?php echo $oid; ?>">Order detail</a>
 									<?php if ($bills <= 0): ?>
 									<a class="btn btn-xs btn-default" href="<?php echo epc_proc_h(epc_procurement_tab_url($procUrl, 'purchases')); ?>">Create bill</a>
 									<?php endif; ?>
@@ -335,7 +336,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 							<td><?php echo epc_proc_h($p['invoice_number']); ?></td>
 							<td><?php
 								if ((int)$p['order_id']) {
-									echo '<a href="' . epc_proc_h($ordersUrl) . '?order_id=' . (int)$p['order_id'] . '">#' . (int)$p['order_id'] . '</a>';
+									echo '<a href="' . epc_proc_h($orderDetailUrl) . '?order_id=' . (int)$p['order_id'] . '">#' . (int)$p['order_id'] . '</a>';
 								} else {
 									echo '—';
 								}
