@@ -164,8 +164,7 @@ if (!function_exists('epc_boc_areas')) {
             'cp_channels'       => $a('Channels', 'shop', 'fa-share-alt', 'shop/channels/channels', 'orders', 'boc.commerce.view', $COM, 'Sales channels'),
             'cp_pos'            => $a('POS terminal', 'shop', 'fa-calculator', 'shop/pos/terminal', 'orders', 'boc.commerce.view', $COM, 'Point of sale'),
             'cp_statistics'     => $a('Statistics', 'shop', 'fa-bar-chart', 'shop/statistics/statistics', 'orders', 'boc.commerce.view', $COM, 'Commerce stats'),
-            'cp_web_tracker'    => $a('Web tracker (shop)', 'shop', 'fa-line-chart', 'shop/statistics/web_tracker', 'orders', 'boc.commerce.view', $COM, 'Shop traffic'),
-            'portal_web_tracker'=> $a('Web tracker (portal)', 'shop', 'fa-area-chart', 'control/portal/epc_web_tracker', 'orders', 'boc.commerce.view', $COM, 'Platform web tracker'),
+            'cp_web_tracker'    => $a('Web tracker', 'shop', 'fa-line-chart', 'shop/statistics/web_tracker', 'orders', 'boc.commerce.view', $COM, 'Website traffic'),
 
             // Catalogue / prices
             'cp_products'       => $a('Products', 'catalogue', 'fa-cube', 'shop/catalogue/products', 'prices', 'boc.commerce.view', $COM, 'Product catalogue'),
