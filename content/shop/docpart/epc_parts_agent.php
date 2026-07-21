@@ -365,24 +365,34 @@ function epc_agent_reply_manufacturer_stock(PDO $db, $DP_Config, string $manufac
 	usort($samples, function ($a, $b) {
 		return (float)($b['exist'] ?? 0) <=> (float)($a['exist'] ?? 0);
 	});
+	$showPrices = epc_storefront_prices_visible_for_user();
+	$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**';
 	foreach ($samples as $row) {
 		$art = !empty($row['article_show']) ? (string)$row['article_show'] : (string)($row['article'] ?? '');
 		$name = trim((string)($row['name'] ?? ''));
 		$qty = (int)round((float)($row['exist'] ?? 0));
 		$price = trim((string)($row['price'] ?? ''));
 		$name_bit = $name !== '' ? ' — ' . $name : '';
-		$price_bit = (epc_storefront_prices_visible_for_user() && $price !== '') ? ' @ ' . $price : '';
-		$lines[] = '• **' . $resolved . ' ' . $art . '**' . $name_bit . ' — ' . number_format($qty) . ' pcs' . $price_bit;
+		if ($showPrices) {
+			$price_bit = ($price !== '') ? ' @ ' . $price : '';
+			$lines[] = '• **' . $resolved . ' ' . $art . '**' . $name_bit . ' — ' . number_format($qty) . ' pcs' . $price_bit;
+		} else {
+			$lines[] = '• **' . $resolved . ' ' . $art . '**' . $name_bit . ' — ' . $mask;
+		}
 	}
 
-	$pricingNote = epc_storefront_prices_visible_for_user()
+	$pricingNote = $showPrices
 		? 'search all part numbers, fitment, and pricing.'
-		: 'search all part numbers and fitment — **log in to see prices**.';
+		: 'search all part numbers and fitment — **log in to see prices, stock, terms, and warehouses**.';
+
+	$qtyLine = $showPrices
+		? ("• **" . number_format($total_qty) . " pcs** total quantity\n\n")
+		: ("• Availability qty: **" . $mask . "**\n\n");
 
 	return array(
 		'text' => "**Yes — we stock " . $resolved . " parts** in UAE warehouses.\n\n"
 			. "• **" . number_format($part_count) . " part numbers** in stock\n"
-			. "• **" . number_format($total_qty) . " pcs** total quantity\n\n"
+			. $qtyLine
 			. "**Sample lines:**\n" . implode("\n", $lines)
 			. "\n\nOpen the **" . $resolved . " brand catalog** to " . $pricingNote,
 		'links' => array(
@@ -1003,13 +1013,18 @@ function epc_agent_format_stock_lines(array $lines): string
 		return '';
 	}
 	$showPrices = epc_storefront_prices_visible_for_user();
+	$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**';
 	$parts = array();
 	foreach ($lines as $line) {
+		if (!$showPrices) {
+			$parts[] = $mask;
+			continue;
+		}
 		$wh = trim((string)($line['warehouse'] ?? ''));
 		$qty = (int)round((float)($line['qty'] ?? 0));
 		$price = trim((string)($line['price'] ?? ''));
 		$seg = ($wh !== '' ? $wh . ': ' : '') . number_format($qty) . ' pcs';
-		if ($showPrices && $price !== '') {
+		if ($price !== '') {
 			$seg .= ' @ ' . $price;
 		}
 		$parts[] = $seg;

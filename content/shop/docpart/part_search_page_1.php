@@ -68,7 +68,7 @@ function epcStorefrontSensitiveMask()
 {
 	return (typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask)
 		? String(epc_storefront_sensitive_mask)
-		: '***';
+		: '**';
 }
 function epcStorefrontSensitiveCellHTML(html)
 {
@@ -1687,6 +1687,10 @@ function epcFormatCrossCountLabel(loaded, total, stockCount)
 }
 function epcCrossAvailabilityBadgeHTML(inStock, qty)
 {
+	if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+	{
+		return epcStorefrontSensitiveMask();
+	}
 	if(inStock)
 	{
 		var q = parseFloat(qty);
@@ -2515,11 +2519,13 @@ function epcCrossReferenceRowHTML(row, inStock, qty)
 		? '<span title="' + epcCrossEsc(brandLabel) + '">' + epcCrossEsc(brandLabel) + '</span>'
 		: '&mdash;';
 	var articleLink = '<a class="bread_crumbs_a" style="text-decoration:underline; color:#000; font-weight:700;" href="' + epcCrossEsc(searchUrl) + '" title="' + epcCrossEsc(row.article) + '"><strong>' + epcCrossEsc(row.article) + '</strong></a>';
-	var dash = '&mdash;';
+	var sensitiveDash = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+		? epcStorefrontSensitiveMask()
+		: '&mdash;';
 	var partName = epcCrossRefResolveName(brandLabel, row.article_norm || row.article, row);
 	var nameCell = partName !== ''
 		? '<span title="' + epcCrossEsc(partName) + '">' + epcCrossEsc(partName) + '</span>'
-		: dash;
+		: '&mdash;';
 	var availCell = epcCrossAvailabilityBadgeHTML(!!inStock, qty);
 	var info = '<a title="Search availability and price" href="' + epcCrossEsc(searchUrl) + '"><span><i class="fa fa-search"></i></span></a>';
 	var quoteBtn = epcManualQuoteButtonHTML(brandLabel, row.article, partName || row.article, partName);
@@ -2530,9 +2536,9 @@ function epcCrossReferenceRowHTML(row, inStock, qty)
 		+ '<td class="td_article">' + articleLink + '</td>'
 		+ '<td class="td_name">' + nameCell + '</td>'
 		+ '<td class="td_exist">' + availCell + '</td>'
-		+ '<td class="td_time_to_exe">' + dash + '</td>'
+		+ '<td class="td_time_to_exe">' + sensitiveDash + '</td>'
 		+ '<td class="td_info">' + info + '</td>'
-		+ '<td class="td_price">' + dash + '</td>'
+		+ '<td class="td_price">' + sensitiveDash + '</td>'
 		+ '<td class="td_add_to_cart">' + quoteBtn + '</td>'
 		+ '<td class="td_color"></td></tr>';
 }

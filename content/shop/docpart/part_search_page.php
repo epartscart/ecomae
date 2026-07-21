@@ -1183,7 +1183,7 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 				. htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8') . '</span>';
 		} else {
-			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***';
+			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '**';
 			$priceHtml = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
 		}
 		$mask = (!$pricesVisible && function_exists('epc_storefront_sensitive_mask'))
@@ -1393,7 +1393,7 @@ function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, 
 				. htmlspecialchars(number_format($priceRawBrand, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . $priceHtml . '</span>';
 		} elseif (!$pricesVisible) {
-			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '***', ENT_QUOTES, 'UTF-8');
+			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '**', ENT_QUOTES, 'UTF-8');
 		} else {
 			$priceHtml = '&mdash;';
 		}
@@ -4256,7 +4256,7 @@ function manufacturersReview()
 			{
 				var mask = (typeof epcStorefrontSensitiveMask === 'function')
 					? epcStorefrontSensitiveMask()
-					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '***');
+					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '**');
 				existVal = mask;
 				termVal = mask;
 				priceVal = mask;
@@ -5682,6 +5682,10 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		var filter = modal.querySelector('#epc-cross-modal-filter');
 		var headNote = modal.querySelector('.epc-cross-modal__head span');
 		function availabilityCell(row) {
+			if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+			{
+				return (typeof epcStorefrontSensitiveMask === 'function') ? epcStorefrontSensitiveMask() : '**';
+			}
 			if(typeof epcCrossAvailabilityBadgeHTML === 'function')
 			{
 				return epcCrossAvailabilityBadgeHTML(crossRefInStock(row), '');
@@ -5707,8 +5711,13 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 			}
 		}
 		stockRows.innerHTML = stock.length ? stock.map(function(item) {
-			var priceText = (typeof epcFormatMoney === 'function') ? epcFormatMoney(item.price || 0) : (esc(item.price || '') + ' ' + esc(item.currency || ''));
-			return '<div class="epc-cross-modal__stock-row"><span><strong>' + esc(item.brand || '') + ' ' + esc(item.article || '') + '</strong><small>' + esc(item.name || '') + '</small></span><b>' + priceText + '</b><em>Qty: ' + esc(item.qty || '') + '</em><a class="btn btn-xs btn-success" href="' + esc(stockSearchUrl(item)) + '">Open price/cart</a></div>';
+			var hideSensitive = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible);
+			var mask = (typeof epcStorefrontSensitiveMask === 'function') ? epcStorefrontSensitiveMask() : '**';
+			var priceText = hideSensitive
+				? mask
+				: ((typeof epcFormatMoney === 'function') ? epcFormatMoney(item.price || 0) : (esc(item.price || '') + ' ' + esc(item.currency || '')));
+			var qtyText = hideSensitive ? mask : esc(item.qty || '');
+			return '<div class="epc-cross-modal__stock-row"><span><strong>' + esc(item.brand || '') + ' ' + esc(item.article || '') + '</strong><small>' + esc(item.name || '') + '</small></span><b>' + priceText + '</b><em>Qty: ' + qtyText + '</em><a class="btn btn-xs btn-success" href="' + esc(stockSearchUrl(item)) + '">Open price/cart</a></div>';
 		}).join('') : '<div class="epc-cross-modal__empty">No cross stock match in loaded price lists.</div>';
 		renderRows();
 		filter.addEventListener('input', renderRows);
@@ -6202,6 +6211,14 @@ while( $storage = $storages_query->fetch() )
 		'full_name' => (string) ($storage['name'] ?? ''),
 		'bg_line_color' => $storage['bg_line_color'],
 	);
+}
+if (!function_exists('epc_storefront_prices_visible_for_user')) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+}
+if (function_exists('epc_storefront_prices_visible_for_user')
+	&& !epc_storefront_prices_visible_for_user(isset($user_id) ? (int) $user_id : null)
+	&& function_exists('epc_storefront_prices_redact_storage_maps')) {
+	epc_storefront_prices_redact_storage_maps($all_storages, $all_storages_info);
 }
 ?>
 <script>

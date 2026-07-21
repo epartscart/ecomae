@@ -90,7 +90,7 @@ function epc_storefront_prices_hide_for_guests_enabled(): bool
  */
 function epc_storefront_sensitive_mask(): string
 {
-	return '***';
+	return '**';
 }
 
 /**
@@ -332,10 +332,11 @@ function epc_storefront_prices_agent_guest_rules(): string
 			. "- Do NOT offer add to cart, add to quote, or WhatsApp ordering\n"
 			. "- You may discuss brands and part numbers only";
 	}
+	$mask = epc_storefront_sensitive_mask();
 	return "IMPORTANT — guest (not logged in):\n"
 		. "- NEVER quote specific prices, currency amounts, or markups\n"
 		. "- NEVER reveal stock qty, lead time/term, or warehouse/info labels\n"
-		. "- Show those fields only as *** until the customer logs in\n"
+		. "- Show those fields only as {$mask} until the customer logs in\n"
 		. "- Say prices and availability details are available after login or registration\n"
 		. "- Retail registration is approved instantly; wholesale needs manager approval before prices\n"
 		. "- Do NOT offer add to cart, add to quote, or WhatsApp ordering for guests\n"
@@ -366,9 +367,9 @@ function epc_storefront_prices_redact_product(array &$product): void
 			}
 		}
 	}
-	// Also redact availability / term / warehouse so guests cannot read exact values from JSON.
+	// Redact availability / term / warehouse so guests cannot read values from JSON or DevTools.
 	// Keep exist as 1 when originally in stock so client-side "in stock" filters still include the row;
-	// the UI shows *** for the qty cell when prices are not visible.
+	// the UI shows the sensitive mask for the qty cell when prices are not visible.
 	if (array_key_exists('exist', $product)) {
 		$product['exist'] = ((float) $product['exist'] > 0) ? 1 : 0;
 	}
@@ -387,6 +388,18 @@ function epc_storefront_prices_redact_product(array &$product): void
 	if (array_key_exists('office_caption', $product)) {
 		$product['office_caption'] = '';
 	}
+	if (array_key_exists('storage', $product)) {
+		$product['storage'] = '';
+	}
+	if (array_key_exists('storage_id', $product)) {
+		$product['storage_id'] = 0;
+	}
+	if (array_key_exists('office_id', $product)) {
+		$product['office_id'] = 0;
+	}
+	if (array_key_exists('min_order', $product)) {
+		$product['min_order'] = 0;
+	}
 }
 
 /**
@@ -403,6 +416,8 @@ function epc_storefront_prices_redact_products(array &$products): void
 }
 
 /**
+ * Redact brand-parts / manufacturer-browse rows (price, stock, term, warehouse).
+ *
  * @param array<int,array<string,mixed>> $rows
  */
 function epc_storefront_prices_redact_brand_parts_rows(array &$rows): void
@@ -414,8 +429,47 @@ function epc_storefront_prices_redact_brand_parts_rows(array &$rows): void
 		if (array_key_exists('price', $row)) {
 			$row['price'] = null;
 		}
+		if (array_key_exists('exist', $row)) {
+			$row['exist'] = null;
+		}
+		if (array_key_exists('time_to_exe', $row)) {
+			$row['time_to_exe'] = null;
+		}
+		if (array_key_exists('storage', $row)) {
+			$row['storage'] = '';
+		}
+		if (array_key_exists('storage_id', $row)) {
+			$row['storage_id'] = 0;
+		}
+		if (array_key_exists('storage_caption', $row)) {
+			$row['storage_caption'] = '';
+		}
 	}
 	unset($row);
+}
+
+/**
+ * Strip warehouse name maps so guests cannot resolve storage_id → warehouse.
+ *
+ * @param array<int|string,mixed> $storages id => label
+ * @param array<int|string,array<string,mixed>> $storagesInfo id => info
+ */
+function epc_storefront_prices_redact_storage_maps(array &$storages, array &$storagesInfo): void
+{
+	$mask = epc_storefront_sensitive_mask();
+	foreach ($storages as $id => $_) {
+		$storages[$id] = $mask;
+	}
+	foreach ($storagesInfo as $id => $info) {
+		if (!is_array($info)) {
+			$storagesInfo[$id] = array('name' => $mask);
+			continue;
+		}
+		$info['name'] = $mask;
+		$info['short_name'] = '';
+		$info['full_name'] = '';
+		$storagesInfo[$id] = $info;
+	}
 }
 
 /**

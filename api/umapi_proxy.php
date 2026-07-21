@@ -1619,6 +1619,17 @@ function epc_brand_parts_payload($brand)
         $stmt->execute(array($brandUpper, $brandCompact));
         $data = $stmt->fetchAll();
 
+        $helpers = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+        if (is_file($helpers)) {
+            require_once $helpers;
+            if (function_exists('epc_storefront_prices_visible_for_user')
+                && !epc_storefront_prices_visible_for_user()
+                && function_exists('epc_storefront_prices_redact_brand_parts_rows')
+                && is_array($data)) {
+                epc_storefront_prices_redact_brand_parts_rows($data);
+            }
+        }
+
         epc_json_response(array(
             'brand' => $brand,
             'rows' => $rowsCount,
