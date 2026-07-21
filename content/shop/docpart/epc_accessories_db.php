@@ -197,6 +197,35 @@ if (!function_exists('epc_acc_storefront_url')) {
 	}
 }
 
+if (!function_exists('epc_acc_is_outbound_external_url')) {
+	/**
+	 * True only for a real outbound link. Category browse URLs (no id=) are not outbound.
+	 */
+	function epc_acc_is_outbound_external_url(string $url): bool
+	{
+		$url = trim($url);
+		if ($url === '') {
+			return false;
+		}
+		// Same-site accessories browse / category filters must not replace the detail page.
+		if (preg_match('#(^|/)accessories(-spare-parts)?([/?#]|$)#i', $url)) {
+			if (!preg_match('#[?&]id=\d+#', $url)) {
+				return false;
+			}
+			// Same-site detail deep-link — prefer our canonical detail_url instead.
+			return false;
+		}
+		if (preg_match('#^https?://#i', $url)) {
+			return true;
+		}
+		// Relative paths that are not accessories browse (e.g. /en/parts/…)
+		if (isset($url[0]) && $url[0] === '/') {
+			return true;
+		}
+		return false;
+	}
+}
+
 if (!function_exists('epc_acc_photos_list')) {
 	/**
 	 * @return list<array{id:int,listing_id:int,file_name:string,url:string,sort_order:int,is_primary:bool,created_at:int}>
@@ -1423,8 +1452,39 @@ if (!function_exists('epc_acc_marketplace_search')) {
 		$listStmt->execute($bind);
 		$items = array();
 		while ($row = $listStmt->fetch(PDO::FETCH_ASSOC)) {
+			$id = (int) $row['id'];
+			$photos = epc_acc_photos_list($db, $id);
+			$photoUrls = array();
+			foreach ($photos as $ph) {
+				$url = trim((string) ($ph['url'] ?? ''));
+				if ($url !== '') {
+					$photoUrls[] = array(
+						'id' => (int) ($ph['id'] ?? 0),
+						'url' => $url,
+						'is_primary' => !empty($ph['is_primary']),
+					);
+				}
+			}
+			$imageUrl = trim((string) ($row['image_url'] ?? ''));
+			if ($imageUrl === '' && $photoUrls !== array()) {
+				$imageUrl = (string) $photoUrls[0]['url'];
+				foreach ($photoUrls as $pu) {
+					if (!empty($pu['is_primary'])) {
+						$imageUrl = (string) $pu['url'];
+						break;
+					}
+				}
+			}
+			$photoCount = max(count($photoUrls), (int) ($row['photo_count'] ?? 0), $imageUrl !== '' ? 1 : 0);
+			$detailUrl = epc_acc_storefront_url(array(
+				'id' => $id,
+				'category' => (string) ($row['category_slug'] ?? ''),
+				'subcategory' => (string) ($row['subcategory_slug'] ?? ''),
+			));
+			$rawExternal = trim((string) ($row['external_url'] ?? ''));
+			$outbound = epc_acc_is_outbound_external_url($rawExternal) ? $rawExternal : '';
 			$items[] = array(
-				'id' => (int) $row['id'],
+				'id' => $id,
 				'title' => $row['title'],
 				'description' => $row['description'],
 				'make' => $row['make'],
@@ -1435,9 +1495,12 @@ if (!function_exists('epc_acc_marketplace_search')) {
 				'price' => (float) $row['price'],
 				'compare_price' => isset($row['compare_price']) ? (float) $row['compare_price'] : 0,
 				'currency' => $row['currency'],
-				'image_url' => $row['image_url'],
-				'external_url' => $row['external_url'],
-				'photo_count' => isset($row['photo_count']) ? max(1, (int) $row['photo_count']) : 1,
+				'image_url' => $imageUrl,
+				'photos' => $photoUrls,
+				'external_url' => $outbound,
+				'detail_url' => $detailUrl,
+				'url' => $detailUrl,
+				'photo_count' => max(1, $photoCount),
 				'featured' => !empty($row['featured']),
 				'stock_qty' => (int) $row['stock_qty'],
 				'category' => $row['category_slug'],
