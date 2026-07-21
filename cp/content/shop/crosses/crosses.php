@@ -39,90 +39,198 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 }
 ?>
 <style>
-	.panel-body > div{
-		padding-left:0px;
-		padding-right:10px;
+	.epc-cross-page {
+		--cx-ink: #0f172a;
+		--cx-muted: #64748b;
+		--cx-line: #e2e8f0;
+		--cx-bg: #f1f5f9;
+		--cx-card: #ffffff;
+		--cx-accent: #0f766e;
+		--cx-accent-2: #0369a1;
+		--cx-warn: #b45309;
+		--cx-ok: #047857;
+		margin: 0 -5px 20px;
 	}
-	.panel-body > div:last-child{
-		padding-right:0px;
+	.epc-cross-page .epc-cross-hero {
+		background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0f766e 100%);
+		color: #f8fafc;
+		border-radius: 12px;
+		padding: 18px 20px;
+		margin: 0 5px 14px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 20px;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.epc-cross-page .epc-cross-hero h2 {
+		margin: 0 0 4px;
+		font-size: 22px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+	.epc-cross-page .epc-cross-hero p {
+		margin: 0;
+		opacity: 0.85;
+		font-size: 13px;
+		max-width: 640px;
+	}
+	.epc-cross-page .epc-cross-stat {
+		background: rgba(255,255,255,0.12);
+		border: 1px solid rgba(255,255,255,0.18);
+		border-radius: 10px;
+		padding: 10px 14px;
+		min-width: 120px;
+		text-align: center;
+	}
+	.epc-cross-page .epc-cross-stat b {
+		display: block;
+		font-size: 18px;
+		line-height: 1.2;
+	}
+	.epc-cross-page .epc-cross-stat span {
+		font-size: 11px;
+		opacity: 0.8;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.epc-cross-page .hpanel {
+		border-radius: 10px;
+		overflow: hidden;
+		border: 1px solid var(--cx-line);
+		box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	}
+	.epc-cross-page .hpanel .panel-heading.hbuilt {
+		background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+		border-bottom: 1px solid var(--cx-line);
+		font-weight: 600;
+		color: var(--cx-ink);
+	}
+	.epc-cross-page .panel-body > div {
+		padding-left: 0;
+		padding-right: 10px;
+	}
+	.epc-cross-page .panel-body > div:last-child {
+		padding-right: 0;
 	}
 	@media screen and (max-width: 1200px) {
-		.panel-body > div{
-			padding-right:0px;
-		}
+		.epc-cross-page .panel-body > div { padding-right: 0; }
 	}
-	.panel-footer .btn{
-		margin-right: 5px;
-	}
-	.table_crosses td:last-child, .table_crosses th:last-child{
-		text-align:right;
-	}
-	.pagination_box{
-		text-align:center;
-	}
-	.pagination_box a{
-		font-size: 14px;
+	.epc-cross-page .panel-footer .btn { margin-right: 5px; margin-bottom: 4px; }
+	.epc-cross-page .table_crosses td:last-child,
+	.epc-cross-page .table_crosses th:last-child { text-align: right; }
+	.epc-cross-page .pagination_box { text-align: center; }
+	.epc-cross-page .pagination_box a {
+		font-size: 13px;
 		display: inline-block;
-		background: #eee;
-		border-radius: 2px;
-		color: #333;
-		padding: 2px 8px;
-		margin-right:2px;
-		border:1px solid #333;
+		background: #fff;
+		border-radius: 6px;
+		color: #0f172a;
+		padding: 4px 10px;
+		margin: 0 2px 4px 0;
+		border: 1px solid var(--cx-line);
+		cursor: pointer;
 	}
-	.pagination_active{
-		background: #34495e !important;
+	.epc-cross-page .pagination_active {
+		background: var(--cx-accent) !important;
+		border-color: var(--cx-accent) !important;
 		color: #fff !important;
 	}
-	#div_table_crosses > .panel-footer{
+	.epc-cross-page #div_table_crosses > .panel-footer {
 		color: inherit;
-		border: 1px solid #e4e5e7;
+		border: 1px solid var(--cx-line);
 		border-top: none;
 		font-size: 90%;
-		background: #f7f9fa;
+		background: #f8fafc;
 		padding: 10px 15px;
 	}
-	#div_table_crosses > .panel-body{
-		overflow-x: auto;
+	.epc-cross-page #div_table_crosses > .panel-body { overflow-x: auto; }
+	.epc-cross-page .table_crosses { margin-bottom: 0; }
+	.epc-cross-page .table_crosses thead th {
+		background: #f8fafc;
+		border-bottom-width: 2px;
+		white-space: nowrap;
 	}
-	.table_crosses{
-		margin-bottom:0px;
+	.epc-cross-page .epc-cross-banner {
+		background: #fff7ed;
+		border: 1px solid #fed7aa;
+		color: #9a3412;
+		border-radius: 8px;
+		padding: 10px 12px;
+		margin: 0 0 12px;
+		font-size: 13px;
 	}
-	#epc_cp_cross_lookup_panel .epc-cross-meta{
+	.epc-cross-page .epc-cross-banner-ok {
+		background: #ecfdf5;
+		border-color: #a7f3d0;
+		color: #065f46;
+	}
+	.epc-cross-page #epc_cp_cross_lookup_panel .epc-cross-meta {
 		margin: 8px 0 12px;
 		font-size: 13px;
-		color: #555;
+		color: #475569;
+		line-height: 1.5;
 	}
-	#epc_cp_cross_lookup_panel .label-linked{
-		background: #27ae60;
-	}
-	#epc_cp_cross_lookup_panel .label-missing{
-		background: #e67e22;
-	}
-	#epc_cp_cross_results_wrap{
+	.epc-cross-page #epc_cp_cross_lookup_panel .label-linked { background: var(--cx-ok); }
+	.epc-cross-page #epc_cp_cross_lookup_panel .label-missing { background: var(--cx-warn); }
+	.epc-cross-page #epc_cp_cross_results_wrap {
 		max-height: 420px;
 		overflow: auto;
 		margin-top: 10px;
+		border: 1px solid var(--cx-line);
+		border-radius: 8px;
 	}
-	#epc_cp_cross_results_table td{
-		vertical-align: middle !important;
-	}
-	.epc-cross-source{
+	.epc-cross-page #epc_cp_cross_results_table { margin: 0; }
+	.epc-cross-page #epc_cp_cross_results_table td { vertical-align: middle !important; }
+	.epc-cross-page .epc-cross-source { font-size: 11px; color: #777; }
+	.epc-cross-page .epc-cross-toolbar .btn { margin: 0 6px 6px 0; }
+	.epc-cross-page .epc-cross-section-label {
+		display: inline-block;
 		font-size: 11px;
-		color: #777;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--cx-muted);
+		margin-bottom: 6px;
+	}
+	.epc-cross-page .btn-primary { background: var(--cx-accent); border-color: var(--cx-accent); }
+	.epc-cross-page .btn-primary:hover,
+	.epc-cross-page .btn-primary:focus { background: #0d9488; border-color: #0d9488; }
+	.epc-cross-page .epc-cross-loading {
+		padding: 28px 16px;
+		text-align: center;
+		color: var(--cx-muted);
+		font-size: 13px;
+	}
+	.epc-cross-page .epc-cross-loading .spinner-border {
+		width: 1.6rem;
+		height: 1.6rem;
+		border-width: 0.15em;
+		color: var(--cx-accent);
 	}
 </style>
+<div class="epc-cross-page">
+<div class="epc-cross-hero">
+	<div>
+		<h2>Spare-parts cross references</h2>
+		<p>Link OEM / aftermarket part numbers so search finds interchangeable brands. Add pairs manually, import CSV, or pull from the interchange catalog into the CP crosses table (~700k+ links).</p>
+	</div>
+	<div class="epc-cross-stat">
+		<b>CP table</b>
+		<span>Article ↔ Analog</span>
+	</div>
+</div>
 <div class="row" style="margin: 0;">
 	<div class="col-lg-8">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
+				<span class="epc-cross-section-label">Step 1</span>
 				<?php echo translate_str_by_id(3115); ?>
 			</div>
 			<div class="panel-body">
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(2071); ?>:</label><input class="form-control" type="text" id="new_article" name="article"/></div>
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(2070); ?>:</label><input class="form-control" type="text" id="new_manufacturer_article" name="manufacturer"/></div>
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(3113); ?>:</label><input class="form-control" type="text" id="new_analog" name="article"/></div>
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(2070); ?>:</label><input class="form-control" type="text" id="new_manufacturer_analog" name="manufacturer"/></div>
+				<div class="col-lg-3"><label><?php echo translate_str_by_id(2071); ?>:</label><input class="form-control" type="text" id="new_article" name="article" placeholder="e.g. 45114STD"/></div>
+				<div class="col-lg-3"><label><?php echo translate_str_by_id(2070); ?>:</label><input class="form-control" type="text" id="new_manufacturer_article" name="manufacturer" placeholder="e.g. TEIKINP"/></div>
+				<div class="col-lg-3"><label><?php echo translate_str_by_id(3113); ?>:</label><input class="form-control" type="text" id="new_analog" name="article" placeholder="Interchange article"/></div>
+				<div class="col-lg-3"><label><?php echo translate_str_by_id(2070); ?>:</label><input class="form-control" type="text" id="new_manufacturer_analog" name="manufacturer" placeholder="Interchange brand"/></div>
 			</div>
 			<div class="panel-footer text-right">
 				<img id="img_crosses_add" style="height: 31px; margin-right: 5px;" class="hidden" src="/content/files/images/ajax-loader-transparent.gif"/><a id="btn_crosses_add" onclick="crosses_add();" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> <?php echo translate_str_by_id(2267); ?></a>
@@ -136,11 +244,13 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	<div class="col-lg-4">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt" style="position:relative;">
+				<span class="epc-cross-section-label">Step 2</span>
 				<?php echo translate_str_by_id(3116); ?>
 				<a style="position:absolute; right:20px;" href="/<?=$DP_Config->backend_dir;?>/content/shop/crosses/crosses.csv" download title="<?php echo translate_str_by_id(3117); ?>"><?php echo translate_str_by_id(3117); ?> <i class="fa fa-file"></i></a>
 			</div>
 			<div class="panel-body">
 				<label><?php echo translate_str_by_id(2727); ?>:</label><input class="form-control" type="file" id="file_csv" name="file"/>
+				<p class="text-muted" style="margin:8px 0 0;font-size:12px;">CSV (semicolon): <code>manufacturer;article;manufacturer_cross;article_cross</code></p>
 			</div>
 			<div class="panel-footer text-right">
 				<img id="img_crosses_add_of_csv" style="height: 31px; margin-right: 5px;" class="hidden" src="/content/files/images/ajax-loader-transparent.gif"/><a id="btn_crosses_add_of_csv" onclick="crosses_add_of_csv();" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> <?php echo translate_str_by_id(2267); ?></a>
@@ -153,6 +263,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	<div class="col-lg-12">
 		<div class="hpanel" id="epc_cp_cross_lookup_panel">
 			<div class="panel-heading hbuilt">
+				<span class="epc-cross-section-label">Step 3</span>
 				Cross-reference lookup &amp; link to CP crosses
 				<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('Search the same interchange catalog and local crosses as the storefront. Add missing rows to the CP crosses table with one click so future searches use your links.');"><i class="fa fa-info"></i></button>
 			</div>
@@ -165,7 +276,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 					<label>Brand / manufacturer:</label>
 					<input class="form-control" type="text" id="epc_cross_lookup_manufacturer" placeholder="e.g. TEIKINP"/>
 				</div>
-				<div class="col-lg-6" style="padding-top: 24px;">
+				<div class="col-lg-6 epc-cross-toolbar" style="padding-top: 24px;">
 					<a class="btn btn-ar btn-primary" onclick="epcCpCrossLookup();" id="epc_btn_cross_lookup"><i class="fa fa-search"></i> Search interchange</a>
 					<a class="btn btn-ar btn-success" onclick="epcCpCrossSyncCrossbase();" id="epc_btn_cross_sync"><i class="fa fa-sync"></i> Sync to CP crosses</a>
 					<a class="btn btn-ar btn-warning" onclick="epcCpCrossAddAllMissing();" id="epc_btn_cross_add_all" title="Link missing crosses from the preview table (max 120 rows)"><i class="fa fa-plus-square"></i> Add missing (preview)</a>
@@ -187,6 +298,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	<div class="col-lg-4 col-lg-push-8">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
+				<span class="epc-cross-section-label">Find in CP table</span>
 				<?php echo translate_str_by_id(5227); ?>
 			</div>
 			<div class="panel-body">
@@ -301,17 +413,22 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 		</div>
 	</div>
 </div>
+</div>
 
 
 
 
 <script>
 	var epcCpCrossLastReferences = [];
-	var epcCpCrossAjaxUrl = "/<?php echo $DP_Config->backend_dir; ?>/content/shop/crosses/ajax_epc_cross_cp.php";
-	var epcCpCrossCsrf = "<?php echo $user_session['csrf_guard_key']; ?>";
+	var epcCpCrossAjaxUrl = <?php echo json_encode('/' . $DP_Config->backend_dir . '/content/shop/crosses/ajax_epc_cross_cp.php'); ?>;
+	var epcCpCrossCsrf = <?php echo json_encode((string) $user_session['csrf_guard_key']); ?>;
 
 	function epcCpCrossEscapeHtml(value) {
-		return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+		return String(value || '')
+			.replace(/&/g, '&amp;')
+			.replace(new RegExp('<', 'g'), '&lt;')
+			.replace(new RegExp('>', 'g'), '&gt;')
+			.replace(/"/g, '&quot;');
 	}
 
 	function epcCpCrossGetAnchorFields() {
@@ -463,7 +580,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 			only_missing: 1
 		}, function(answer) {
 			if (answer.status === true) {
-				var msg = 'Preview table — added: ' + (answer.inserted || 0) + ', already linked: ' + (answer.already || 0) + ', skipped: ' + (answer.skipped || 0);
+				var msg = 'Preview table - added: ' + (answer.inserted || 0) + ', already linked: ' + (answer.already || 0) + ', skipped: ' + (answer.skipped || 0);
 				if (answer.reason) { msg += ' (' + answer.reason + ')'; }
 				alert(msg);
 				epcCpCrossLookup();
@@ -476,7 +593,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 
 	function epcCpCrossImportFullCatalog() {
 		var anchor = epcCpCrossGetAnchorFields();
-		if (!confirm('Import the full interchange catalog for ' + anchor.manufacturer + ' ' + anchor.article + ' into CP crosses?\n\nThis may take 1–3 minutes and can link thousands of rows (up to 5000 parsed from the catalog).')) {
+		if (!confirm('Import the full interchange catalog for ' + anchor.manufacturer + ' ' + anchor.article + ' into CP crosses?\n\nThis may take 1-3 minutes and can link thousands of rows (up to 5000 parsed from the catalog).')) {
 			return;
 		}
 		jQuery('#epc_btn_cross_import_full').prop('disabled', true);
@@ -508,7 +625,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	function epcCpCrossSyncCrossbase() {
 		epcCpCrossPost('sync_from_crossbase', null, function(answer) {
 			if (answer.status === true) {
-				alert('Interchange sync — added: ' + (answer.inserted || 0) + ', already: ' + (answer.already || 0));
+				alert('Interchange sync - added: ' + (answer.inserted || 0) + ', already: ' + (answer.already || 0));
 				epcCpCrossLookup();
 				show_table_crosses();
 			} else {
@@ -570,14 +687,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	
 	// Функция отображает таблицу кроссов с условиями фильтрации
 	function show_table_crosses(flag){
-		document.getElementById('div_table_crosses').innerHTML = '';
-		
-		setTimeout(function(){ 
-			if(document.getElementById('div_table_crosses').innerHTML == ''){
-				// Отображаем индикатор загрузки
-				document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body text-center"><img src="/content/files/images/ajax-loader-transparent.gif"/></div>';
-			}
-		}, 500)
+	document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body epc-cross-loading"><div class="spinner-border" role="status"></div><div class="mt-2">Loading crosses...</div></div>';
 
 		// Если заданы ограничения фильтрации
 		var article = document.getElementById("search_article").value;
@@ -627,6 +737,22 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
             data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
             success: function(answer)
             {
+				var raw = (answer == null) ? '' : String(answer);
+				var trimmed = raw.replace(/^\uFEFF/, '').trim();
+				if(trimmed.charAt(0) === '{')
+				{
+					try {
+						var parsed = JSON.parse(trimmed);
+						var msg = (parsed && parsed.message) ? parsed.message : 'Could not load crosses.';
+						document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">'+epcCpCrossEscapeHtml(msg)+'</div></div>';
+						return;
+					} catch (e) {}
+				}
+				if(trimmed === '')
+				{
+					document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">Empty response from crosses API. Reload or search by article.</div></div>';
+					return;
+				}
 				// Вставляем сформированный html на страницу
 				document.getElementById('div_table_crosses').innerHTML = answer;
 				
@@ -646,7 +772,12 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 				{
 					document.getElementById(sort_field +"_sorter").innerHTML += "<img src=\"/content/files/images/sort_"+ sort_asc_desc +".png\" style=\"width:15px\" />";
 				}
-		    }
+		    },
+			error: function(xhr)
+			{
+				var detail = (xhr && xhr.status) ? ('HTTP ' + xhr.status) : 'network error';
+				document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">Crosses table failed ('+detail+'). Try searching by article/brand, or reload.</div></div>';
+			}
         });
 	}
 	
@@ -1030,13 +1161,19 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
     }
     // ------------------------------------------------------------------------------------------------
 	
-	// возвращает cookie с именем name, если есть, если нет, то undefined
+	// returns cookie named name, or undefined
     function getCookie(name) 
     {
-        var matches = document.cookie.match(new RegExp(
-            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-        ));
-        return matches ? decodeURIComponent(matches[1]) : undefined;
+		name = String(name || '');
+		var prefix = name + '=';
+		var parts = String(document.cookie || '').split(';');
+		for (var i = 0; i < parts.length; i++) {
+			var part = parts[i].replace(/^\s+/, '');
+			if (part.indexOf(prefix) === 0) {
+				return decodeURIComponent(part.substring(prefix.length));
+			}
+		}
+		return undefined;
     }
 	
     // ------------------------------------------------------------------------------------------------

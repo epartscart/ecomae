@@ -2,33 +2,41 @@
 /**
  * CP crosses: crossbase lookup, one-click add, bulk sync, verification.
  */
-header('Content-Type: application/json;charset=utf-8;');
+header('Content-Type: application/json; charset=utf-8');
 set_time_limit(300);
+if (ob_get_level()) {
+	@ob_end_clean();
+}
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
-$DP_Config = new DP_Config;
+$DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
 
 try {
+	$dbHost = trim((string) $DP_Config->host);
+	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+		$dbHost = '127.0.0.1';
+	}
 	$db_link = new PDO(
-		'mysql:host=' . $DP_Config->host . ';dbname=' . $DP_Config->db,
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8mb4',
 		$DP_Config->user,
 		$DP_Config->password,
 		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
 	);
+	$GLOBALS['db_link'] = $db_link;
 } catch (PDOException $e) {
+	http_response_code(503);
 	exit(json_encode(array('status' => false, 'message' => 'No DB connect')));
 }
-$db_link->query('SET NAMES utf8;');
+$db_link->query('SET NAMES utf8mb4;');
 
-$pages_to_check = array(array('id' => 380, 'url' => 'shop/crosses'));
-require_once $_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/check_admin_access/check_admin_access.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
-
 if (!DP_User::isAdmin()) {
+	http_response_code(403);
 	exit(json_encode(array('status' => false, 'message' => 'Access denied')));
 }
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
 require_once __DIR__ . '/epc_cp_cross_helpers.php';
 
 $request_object = array();
@@ -45,6 +53,7 @@ $anchor_brand = isset($request_object['manufacturer']) ? urldecode((string) $req
 
 $answer = array('status' => false);
 
+try {
 switch ($action) {
 	case 'lookup_crosses':
 		$search = epc_cp_cross_fetch_search($DP_Config, $anchor_article, $anchor_brand);
@@ -249,6 +258,10 @@ switch ($action) {
 	default:
 		$answer['message'] = 'Unknown action';
 		break;
+}
+} catch (Throwable $e) {
+	http_response_code(500);
+	exit(json_encode(array('status' => false, 'message' => 'query_failed', 'error' => $e->getMessage())));
 }
 
 exit(json_encode($answer, JSON_UNESCAPED_UNICODE));
