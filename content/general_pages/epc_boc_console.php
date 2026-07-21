@@ -77,7 +77,7 @@ body.epc-cp-shell .content .epc-boc--topnav,.epc-cp-shell .epc-boc--topnav{flex-
 .epc-boc__page-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px;padding:0;}
 .epc-boc__page-title h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--boc-ink-1);}
 .epc-boc__page-title small{color:var(--boc-ink-3);font-size:12px;font-weight:600;}
-.epc-boc__topnav-panel{position:fixed;z-index:50;min-width:320px;max-width:min(980px,calc(100vw - 24px));background:#fff;color:#1f2937;border:1px solid var(--boc-rose-line);border-radius:0 0 12px 12px;box-shadow:0 16px 40px rgba(198,40,40,.14);padding:0;overflow:auto;}
+.epc-boc__topnav-panel{position:fixed;z-index:50;min-width:320px;max-width:min(1100px,calc(100vw - 16px));background:#fff;color:#1f2937;border:1px solid var(--boc-rose-line);border-radius:0 0 12px 12px;box-shadow:0 16px 40px rgba(198,40,40,.14);padding:0;overflow:auto;}
 .epc-boc__topnav-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--boc-rose-mid);background:linear-gradient(180deg,#ffffff 0%,#fff7f7 100%);}
 .epc-boc__topnav-panel-title{font-weight:800;font-size:13px;color:#1f2937;display:flex;align-items:center;gap:8px;}
 .epc-boc__topnav-panel-title .fa{color:var(--boc-red);}
@@ -286,11 +286,12 @@ if (!function_exists('epc_boc_render_top_nav')) {
             echo '<a class="epc-boc__topnav-panel-hub" href="' . $h($firstUrl) . '">Open panel <i class="fa fa-arrow-right"></i></a>';
             echo '</div>';
             // Multi-column mega-menu so large CP/ERP groups show every item.
-            $chunks = array_chunk($g['areas'], 8, true);
+            $chunks = array_chunk($g['areas'], 7, true);
             $colN = count($chunks);
+            $colTitles = array('Modules', 'More', 'Also', 'More tools', 'Extra');
             echo '<div class="epc-boc__topnav-cols">';
             foreach ($chunks as $ci => $chunk) {
-                $colLabel = $colN > 1 ? ('Panel ' . ($ci + 1)) : 'Modules';
+                $colLabel = $colN > 1 ? ($colTitles[$ci] ?? ('Panel ' . ($ci + 1))) : 'Modules';
                 echo '<div class="epc-boc__topnav-col">';
                 echo '<div class="epc-boc__topnav-col-hd"><i class="fa fa-sitemap"></i> ' . $h($colLabel) . '</div>';
                 echo '<ul class="epc-boc__topnav-links">';

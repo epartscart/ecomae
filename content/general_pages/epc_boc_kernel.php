@@ -113,6 +113,8 @@ if (!function_exists('epc_boc_areas')) {
         return array(
             // Command
             'command_center'    => $a('Command Center', 'command', 'fa-tachometer', 'control/portal/epc_boc_command_center', 'platform', 'boc.command.view', $ALL, 'Live fleet health'),
+            'fleet_cp'          => $a('CP fleet dashboard', 'command', 'fa-th', 'control/portal/epc_super_cp_fleet_dashboard', 'platform', 'boc.command.view', $ALL, 'Cross-tenant CP KPIs'),
+            'fleet_erp'         => $a('ERP fleet dashboard', 'command', 'fa-university', 'control/portal/epc_super_erp_fleet_dashboard', 'finance', 'boc.finance.view', $ERP, 'Cross-tenant ERP KPIs'),
             'insights_erp'      => $a('Insights hub', 'command', 'fa-lightbulb-o', 'shop/finance/erp?epc_erp_shell=1&area=overview&tab=dashboard#epc-insights', 'finance', 'boc.finance.view', $ERP, 'Financial / business / CP insights'),
 
             // Tenants
@@ -121,7 +123,10 @@ if (!function_exists('epc_boc_areas')) {
             'tenant_features'   => $a('Feature matrix', 'lifecycle', 'fa-th', 'control/portal/epc_tenant_features', 'platform', 'boc.tenants.manage', $ALL, 'Per-tenant flags'),
             'demo_tenants'      => $a('Demo tenants', 'lifecycle', 'fa-flask', 'control/portal/epc_demo_tenants_manage', 'platform', 'boc.demo.manage', array('demo'), 'Sandbox lifecycle'),
             'industry_settings' => $a('Industry / ERP packs', 'lifecycle', 'fa-cubes', 'control/portal/industry_settings', 'platform', 'boc.tenants.manage', $ERP, 'Module presets'),
+            'industry_consol'   => $a('Industry consolidation', 'lifecycle', 'fa-sitemap', 'control/portal/industry_consolidation', 'platform', 'boc.tenants.manage', $ALL, 'Industry roll-up'),
+            'license_trends'    => $a('License trends', 'lifecycle', 'fa-line-chart', 'control/portal/epc_industry_license_trends', 'platform', 'boc.tenants.view', $ALL, 'License usage trends'),
             'customer_board'    => $a('Customer board', 'lifecycle', 'fa-users', 'control/portal/epc_super_cp_customer_board', 'clients', 'boc.tenants.view', $ALL, 'Cross-tenant search'),
+            'erp_only_guide'    => $a('ERP-only onboard', 'lifecycle', 'fa-rocket', 'control/portal/epc_erp_only_onboard_guide', 'finance', 'boc.tenants.manage', $ERP, 'ERP-only client guide'),
             'tenant_config'     => $a('Tenant config', 'lifecycle', 'fa-cog', 'control/portal/epc_tenant_config', 'platform', 'boc.tenants.manage', $ALL, 'Tenant configuration'),
             'design_tokens'     => $a('Design tokens', 'lifecycle', 'fa-paint-brush', 'control/portal/epc_design_tokens', 'platform', 'boc.tenants.manage', $ALL, 'Brand tokens'),
 
@@ -159,7 +164,8 @@ if (!function_exists('epc_boc_areas')) {
             'cp_channels'       => $a('Channels', 'shop', 'fa-share-alt', 'shop/channels/channels', 'orders', 'boc.commerce.view', $COM, 'Sales channels'),
             'cp_pos'            => $a('POS terminal', 'shop', 'fa-calculator', 'shop/pos/terminal', 'orders', 'boc.commerce.view', $COM, 'Point of sale'),
             'cp_statistics'     => $a('Statistics', 'shop', 'fa-bar-chart', 'shop/statistics/statistics', 'orders', 'boc.commerce.view', $COM, 'Commerce stats'),
-            'cp_web_tracker'    => $a('Web tracker', 'shop', 'fa-line-chart', 'shop/statistics/web_tracker', 'orders', 'boc.commerce.view', $COM, 'Traffic analytics'),
+            'cp_web_tracker'    => $a('Web tracker (shop)', 'shop', 'fa-line-chart', 'shop/statistics/web_tracker', 'orders', 'boc.commerce.view', $COM, 'Shop traffic'),
+            'portal_web_tracker'=> $a('Web tracker (portal)', 'shop', 'fa-area-chart', 'control/portal/epc_web_tracker', 'orders', 'boc.commerce.view', $COM, 'Platform web tracker'),
 
             // Catalogue / prices
             'cp_products'       => $a('Products', 'catalogue', 'fa-cube', 'shop/catalogue/products', 'prices', 'boc.commerce.view', $COM, 'Product catalogue'),
@@ -223,6 +229,7 @@ if (!function_exists('epc_boc_areas')) {
             'integrations'      => $a('Integrations hub', 'identity', 'fa-plug', 'control/portal/epc_integrations_hub', 'platform', 'boc.identity.manage', $ALL, 'Connectors'),
             'modern_auth'       => $a('Modern auth', 'identity', 'fa-sign-in', 'control/portal/epc_cp_auth_settings', 'auth', 'boc.identity.manage', $ALL, 'OAuth / OTP / MFA'),
             'communication'     => $a('Communication', 'identity', 'fa-comments', 'control/portal/epc_super_cp_communication', 'auth', 'boc.identity.manage', $ALL, 'Email policy'),
+            'tenant_email'      => $a('Tenant email / SMTP', 'identity', 'fa-envelope', 'control/portal/epc_tenant_email_settings', 'auth', 'boc.identity.manage', $ALL, 'Per-tenant SMTP'),
             'mfa_management'    => $a('MFA / 2FA', 'identity', 'fa-lock', 'control/portal/epc_mfa_management', 'auth', 'boc.identity.manage', $ALL, '2FA admin'),
             'sso_saml'          => $a('SSO / SAML', 'identity', 'fa-key', 'control/portal/epc_sso_saml', 'auth', 'boc.identity.manage', $ALL, 'Enterprise SSO'),
             'event_bus'         => $a('Event bus', 'identity', 'fa-bolt', 'control/portal/epc_event_bus', 'platform', 'boc.identity.manage', $ALL, 'Events'),
@@ -244,6 +251,8 @@ if (!function_exists('epc_boc_areas')) {
             'industry_packs'    => $a('Industry packs', 'platform', 'fa-industry', 'control/portal/epc_industry_packs', 'platform', 'boc.tenants.manage', $ALL, 'Industry packs'),
             'portal_settings'   => $a('Portal settings', 'platform', 'fa-cog', 'control/portal/portal', 'platform', 'boc.ops.manage', $ALL, 'Portal config'),
             'data_policy'       => $a('Data policy', 'platform', 'fa-lock', 'control/portal/epc_tenant_data_policy', 'governance', 'boc.ops.manage', $ALL, 'Data policy'),
+            'config_edit'       => $a('Site config', 'platform', 'fa-wrench', 'control/config_edit', 'platform', 'boc.ops.manage', $ALL, 'DP config editor'),
+            'sms_turning'       => $a('SMS settings', 'platform', 'fa-mobile', 'control/sms_turning', 'auth', 'boc.ops.manage', $ALL, 'SMS gateway'),
 
             // Knowledge
             'operator_guide'    => $a('Operator guide', 'knowledge', 'fa-book', 'control/portal/epc_super_cp_operator_guide', 'docs', 'boc.knowledge.view', $ALL, 'Who uses what'),
@@ -251,13 +260,68 @@ if (!function_exists('epc_boc_areas')) {
             'product_brochure'  => $a('Product brochure', 'knowledge', 'fa-file-text-o', 'control/portal/epc_boc_product_brochure', 'docs', 'boc.knowledge.view', $ALL, 'Marketing brochure'),
             'api_docs'          => $a('API docs', 'knowledge', 'fa-file-code-o', 'control/portal/epc_api_documentation_guide', 'docs', 'boc.knowledge.view', $ALL, 'API guide'),
             'cp_guideline'      => $a('CP guideline', 'knowledge', 'fa-list-alt', 'control/cp-guideline', 'docs', 'boc.knowledge.view', $ALL, 'CP UX guideline'),
+            'auto_price_guide'  => $a('Auto Price guide', 'knowledge', 'fa-book', 'control/portal/epc_auto_price_guide', 'docs', 'boc.knowledge.view', $COM, 'Pricing AI guide'),
+            'custom_ship_guide' => $a('Custom & shipping guide', 'knowledge', 'fa-ship', 'control/portal/epc_custom_shipping_guide', 'docs', 'boc.knowledge.view', $COM, 'Customs guide'),
+            'workshop_guide'    => $a('Autoworkshop guide', 'knowledge', 'fa-wrench', 'control/portal/epc_autoworkshop_guide', 'docs', 'boc.knowledge.view', $COM, 'Workshop vertical'),
         );
+    }
+}
+
+if (!function_exists('epc_boc_area_path_resolvable')) {
+    /**
+     * Whether a BOC area path points at a real CP content PHP file.
+     * Non-portal shop/ERP URLs are treated as resolvable (routed via content table).
+     * Portal stubs without a PHP module are hidden from the top menu.
+     */
+    function epc_boc_area_path_resolvable(string $path): bool
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return false;
+        }
+        // Strip query/hash for filesystem checks.
+        $bare = preg_replace('/[?#].*$/', '', $path) ?: $path;
+        $bare = trim($bare, '/');
+        if ($bare === '') {
+            return false;
+        }
+        // Portal modules must exist on disk so operators never hit empty stubs.
+        if (strpos($bare, 'control/portal/') === 0) {
+            $root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
+            if ($root === '') {
+                $root = rtrim((string) (dirname(__DIR__, 2) ?? ''), '/\\');
+            }
+            $file = $root . '/cp/content/' . $bare . '.php';
+            return is_file($file);
+        }
+        // Classic control pages under cp/content/control/*.php
+        if (preg_match('#^control/([a-z0-9_\-]+)$#i', $bare, $m)) {
+            $root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
+            $alias = str_replace('-', '_', strtolower($m[1]));
+            $candidates = array(
+                $root . '/cp/content/control/' . $m[1] . '.php',
+                $root . '/cp/content/control/' . $alias . '.php',
+                $root . '/cp/content/control/' . $alias . '_page.php',
+            );
+            foreach ($candidates as $cand) {
+                if (is_file($cand)) {
+                    return true;
+                }
+            }
+            // Known content aliases that are registered in DB but file names differ.
+            if (in_array(strtolower($m[1]), array('cp_brochure', 'cp-guideline', 'cp_guideline'), true)) {
+                return true;
+            }
+        }
+        // Shop / ERP / tenant_hub routes are content-table driven.
+        return true;
     }
 }
 
 if (!function_exists('epc_boc_nav')) {
     /**
      * Areas grouped by domain, in group order, for rendering the nav.
+     * Portal stubs without a PHP module are omitted so every top-menu link works.
      *
      * @return array<string,array{group:array{label:string,icon:string,blurb:string},areas:array<string,mixed>}>
      */
@@ -270,11 +334,21 @@ if (!function_exists('epc_boc_nav')) {
             $out[$gid] = array('group' => $g, 'areas' => array());
         }
         foreach ($areas as $id => $area) {
+            $path = (string) ($area['path'] ?? '');
+            if (!epc_boc_area_path_resolvable($path)) {
+                continue;
+            }
             $gid = $area['group'];
             if (!isset($out[$gid])) {
                 $out[$gid] = array('group' => array('label' => $gid, 'icon' => 'fa-folder', 'blurb' => ''), 'areas' => array());
             }
             $out[$gid]['areas'][$id] = $area;
+        }
+        // Drop empty groups so the top bar only shows populated panels.
+        foreach ($out as $gid => $g) {
+            if (empty($g['areas'])) {
+                unset($out[$gid]);
+            }
         }
         return $out;
     }
