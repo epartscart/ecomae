@@ -94,35 +94,80 @@
         return; // login page — don't initialize dashboard JS
     }
 
-    /* ═══════════════════ SIDEBAR TOGGLE ═══════════════════ */
-    var sidebar = document.getElementById('bosSidebar');
-    var toggleBtn = document.getElementById('bosSidebarToggle');
+    /* ═══════════════════ BLACK TOP MEGA-MENU ═══════════════════ */
+    (function bindBosTopnav() {
+        var root = document.getElementById('bosTopnav');
+        if (!root || root._bosTopBound) return;
+        root._bosTopBound = true;
+        var items = root.querySelectorAll('.bos-topnav__item');
 
-    if (toggleBtn && sidebar) {
-        var collapsed = localStorage.getItem('bos_sidebar_collapsed') === '1';
-        if (collapsed) {
-            sidebar.classList.add('bos-sidebar--collapsed');
-            document.body.classList.add('bos-sidebar-collapsed');
+        function closeAll(except) {
+            items.forEach(function (it) {
+                if (except && it === except) return;
+                it.classList.remove('is-open');
+                var b = it.querySelector('[data-bos-topnav-toggle]');
+                var p = it.querySelector('[data-bos-topnav-panel]');
+                if (b) b.setAttribute('aria-expanded', 'false');
+                if (p) p.hidden = true;
+            });
+            document.body.classList.remove('bos-topnav-open');
         }
-        toggleBtn.addEventListener('click', function () {
-            var isCollapsed = sidebar.classList.toggle('bos-sidebar--collapsed');
-            document.body.classList.toggle('bos-sidebar-collapsed', isCollapsed);
-            localStorage.setItem('bos_sidebar_collapsed', isCollapsed ? '1' : '0');
 
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('bos-sidebar--mobile-open');
-            }
-        });
-    }
+        function place(it, p) {
+            var rr = root.getBoundingClientRect();
+            var btn = it.querySelector('.bos-topnav__btn');
+            var br = btn ? btn.getBoundingClientRect() : rr;
+            var top = Math.round(rr.bottom);
+            p.style.top = top + 'px';
+            p.style.maxHeight = Math.max(180, Math.floor(window.innerHeight - top - 12)) + 'px';
+            p.hidden = false;
+            var w = p.offsetWidth || 640;
+            var left = Math.round(br.left);
+            var maxLeft = Math.max(8, window.innerWidth - w - 8);
+            if (left > maxLeft) left = maxLeft;
+            if (left < 8) left = 8;
+            p.style.left = left + 'px';
+            p.style.right = 'auto';
+        }
 
-    /* ═══════════════════ SIDEBAR SECTIONS ═══════════════════ */
-    var sectionHeaders = document.querySelectorAll('.bos-sidebar__section-header');
-    sectionHeaders.forEach(function (header) {
-        header.addEventListener('click', function () {
-            var section = header.closest('.bos-sidebar__section');
-            section.classList.toggle('bos-sidebar__section--collapsed');
+        function open(it) {
+            closeAll(it);
+            it.classList.add('is-open');
+            var b = it.querySelector('[data-bos-topnav-toggle]');
+            var p = it.querySelector('[data-bos-topnav-panel]');
+            if (b) b.setAttribute('aria-expanded', 'true');
+            if (p) place(it, p);
+            document.body.classList.add('bos-topnav-open');
+        }
+
+        items.forEach(function (it) {
+            var b = it.querySelector('[data-bos-topnav-toggle]');
+            if (!b) return;
+            b.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (it.classList.contains('is-open')) {
+                    closeAll();
+                } else {
+                    open(it);
+                }
+            });
         });
-    });
+
+        document.addEventListener('click', function (e) {
+            if (!root.contains(e.target)) closeAll();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeAll();
+        });
+        window.addEventListener('resize', function () {
+            items.forEach(function (it) {
+                if (!it.classList.contains('is-open')) return;
+                var p = it.querySelector('[data-bos-topnav-panel]');
+                if (p) place(it, p);
+            });
+        });
+    })();
 
     /* ═══════════════════ TENANT SWITCHER ═══════════════════ */
     var switcherBtn = document.getElementById('bosTenantBtn');

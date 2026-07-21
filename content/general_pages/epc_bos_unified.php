@@ -1,8 +1,9 @@
 <?php
 /**
- * Unified BOS kernel — session bridge, tenant context, sidebar engine.
+ * Unified BOS kernel — session bridge, tenant context, navigation engine.
  *
  * Entry: ecomae.com/bos/
+ * Primary chrome: black ERP-style top mega-menu (sections → flyouts).
  * Provider  → boc.* permission → sees fleet + tenant switcher
  * Tenant    → own site_key only → sees their CP + ERP
  */
@@ -14,7 +15,7 @@ require_once __DIR__ . '/epc_portal_cp_menu.php';
 
 /* ───────────────────── constants ───────────────────── */
 
-define('EPC_BOS_VERSION', '1.4.0');
+define('EPC_BOS_VERSION', '1.5.0');
 define('EPC_BOS_SESSION_KEY', 'epc_bos_context');
 
 /* ───────────────────── session bridge ───────────────────── */

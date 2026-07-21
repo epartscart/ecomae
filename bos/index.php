@@ -146,7 +146,7 @@ if ($isLoggedIn && is_file($bosSecHead)) {
 }
 ?>
 </head>
-<body class="bos-body<?php echo !$isLoggedIn ? ' bos-body--login' : ''; ?><?php echo $tenantCountryProfile && ($tenantCountryProfile['dir'] ?? '') === 'rtl' ? ' bos-rtl' : ''; ?>">
+<body class="bos-body bos-body--topnav<?php echo !$isLoggedIn ? ' bos-body--login' : ''; ?><?php echo $tenantCountryProfile && ($tenantCountryProfile['dir'] ?? '') === 'rtl' ? ' bos-rtl' : ''; ?>">
 
 <?php if (!$isLoggedIn): ?>
 <!-- ═══════════════════ LOGIN SCREEN ═══════════════════ -->
@@ -330,104 +330,122 @@ if ($isLoggedIn && is_file($bosSecHead)) {
 </div>
 
 <?php else: ?>
-<!-- ═══════════════════ MAIN BOS SHELL ═══════════════════ -->
+<!-- ═══════════════════ MAIN BOS SHELL (black ERP-style top mega-menu) ═══════════════════ -->
 
-<!-- Top bar -->
-<header class="bos-topbar">
-    <div class="bos-topbar__left">
-        <button class="bos-topbar__toggle" id="bosSidebarToggle" title="Toggle sidebar">
-            <i class="fa fa-bars"></i>
-        </button>
-        <a href="/bos/" class="bos-topbar__brand">
-            <span class="bos-topbar__brand-icon"><i class="fa fa-th-large"></i></span>
-            <span class="bos-topbar__brand-text">BOS</span>
+<nav class="bos-topnav" id="bosTopnav" aria-label="BOS primary">
+    <div class="bos-topnav__inner">
+        <a href="/bos/" class="bos-topnav__brand" title="BOS home">
+            <i class="fa fa-th-large" aria-hidden="true"></i>
+            <span>BOS</span>
         </a>
-    </div>
 
-    <div class="bos-topbar__center">
-        <?php if (epc_bos_is_provider()): ?>
-        <div class="bos-tenant-switcher" id="bosTenantSwitcher">
-            <button class="bos-tenant-switcher__btn" id="bosTenantBtn">
-                <?php if ($tenantInfo): ?>
-                    <i class="fa <?php echo epc_bos_h($industries[$tenantInfo['industry_code']]['icon'] ?? 'fa-building'); ?>"></i>
-                    <span class="bos-tenant-switcher__name"><?php echo epc_bos_h($tenantInfo['trade_name'] ?: $activeTenant); ?></span>
-                    <span class="bos-tenant-switcher__industry"><?php echo epc_bos_h($tenantInfo['industry_code']); ?></span>
-                <?php else: ?>
-                    <i class="fa fa-building"></i>
-                    <span class="bos-tenant-switcher__name">Select Tenant</span>
-                <?php endif; ?>
-                <i class="fa fa-chevron-down bos-tenant-switcher__arrow"></i>
-            </button>
-            <div class="bos-tenant-switcher__dropdown" id="bosTenantDropdown">
-                <div class="bos-tenant-switcher__search">
-                    <i class="fa fa-search"></i>
-                    <input type="text" id="bosTenantSearch" placeholder="Search tenants..." autocomplete="off">
+        <ul class="bos-topnav__list" role="menubar">
+            <?php foreach ($sections as $section):
+                $secId = preg_replace('/[^a-z0-9_]/', '', strtolower((string) ($section['id'] ?? ''))) ?: 'section';
+                $secItems = isset($section['items']) && is_array($section['items']) ? $section['items'] : array();
+                if ($secItems === array()) {
+                    continue;
+                }
+                $secActive = false;
+                foreach ($secItems as $it) {
+                    if (($it['id'] ?? '') === $activeModule) {
+                        $secActive = true;
+                        break;
+                    }
+                }
+                $firstItem = reset($secItems);
+                $firstHref = '/bos/?' . ($activeTenant ? 't=' . rawurlencode($activeTenant) . '&' : '') . 'm=' . rawurlencode((string) ($firstItem['id'] ?? 'command_center'));
+            ?>
+            <li class="bos-topnav__item<?php echo $secActive ? ' is-active' : ''; ?>" data-bos-group="<?php echo epc_bos_h($secId); ?>" role="none">
+                <button type="button" class="bos-topnav__btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-bos-topnav-toggle="<?php echo epc_bos_h($secId); ?>">
+                    <i class="fa <?php echo epc_bos_h($section['icon'] ?? 'fa-th-large'); ?>" aria-hidden="true"></i>
+                    <span class="bos-topnav__label"><?php echo epc_bos_h($section['label'] ?? $secId); ?></span>
+                    <i class="fa fa-angle-down bos-topnav__caret" aria-hidden="true"></i>
+                </button>
+                <div class="bos-topnav__panel" role="menu" hidden data-bos-topnav-panel="<?php echo epc_bos_h($secId); ?>">
+                    <div class="bos-topnav__panel-hd">
+                        <div class="bos-topnav__panel-title">
+                            <i class="fa <?php echo epc_bos_h($section['icon'] ?? 'fa-th-large'); ?>" aria-hidden="true"></i>
+                            <?php echo epc_bos_h($section['label'] ?? $secId); ?>
+                        </div>
+                        <a class="bos-topnav__panel-hub" href="<?php echo epc_bos_h($firstHref); ?>">Open first <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+                    </div>
+                    <div class="bos-topnav__cols">
+                        <div class="bos-topnav__col">
+                            <div class="bos-topnav__col-hd"><i class="fa fa-sitemap" aria-hidden="true"></i> Modules</div>
+                            <ul class="bos-topnav__links">
+                                <?php foreach ($secItems as $item):
+                                    $itemHref = '/bos/?' . ($activeTenant ? 't=' . rawurlencode($activeTenant) . '&' : '') . 'm=' . rawurlencode((string) ($item['id'] ?? ''));
+                                    $itemActive = ($item['id'] ?? '') === $activeModule;
+                                ?>
+                                <li<?php echo $itemActive ? ' class="is-active"' : ''; ?>>
+                                    <a href="<?php echo epc_bos_h($itemHref); ?>"
+                                       class="bos-topnav__link<?php echo $itemActive ? ' is-active' : ''; ?>"
+                                       data-module="<?php echo epc_bos_h($item['id'] ?? ''); ?>"
+                                       data-path="<?php echo epc_bos_h($item['path'] ?? ''); ?>"
+                                       role="menuitem">
+                                        <i class="fa <?php echo epc_bos_h($item['icon'] ?? 'fa-circle-o'); ?>" aria-hidden="true"></i>
+                                        <span><?php echo epc_bos_h($item['label'] ?? ''); ?></span>
+                                    </a>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="bos-tenant-switcher__filters" id="bosTenantFilters">
-                    <button class="bos-filter-btn bos-filter-btn--active" data-filter="all">All</button>
-                    <button class="bos-filter-btn" data-filter="commerce">Commerce</button>
-                    <button class="bos-filter-btn" data-filter="erp_only">ERP Only</button>
-                    <button class="bos-filter-btn" data-filter="demo">Demo</button>
-                </div>
-                <div class="bos-tenant-switcher__list" id="bosTenantList">
-                    <!-- Populated by JS -->
+            </li>
+            <?php endforeach; ?>
+        </ul>
+
+        <div class="bos-topnav__right">
+            <?php if (epc_bos_is_provider()): ?>
+            <div class="bos-tenant-switcher bos-tenant-switcher--topnav" id="bosTenantSwitcher">
+                <button type="button" class="bos-tenant-switcher__btn" id="bosTenantBtn">
+                    <?php if ($tenantInfo): ?>
+                        <i class="fa <?php echo epc_bos_h($industries[$tenantInfo['industry_code']]['icon'] ?? 'fa-building'); ?>"></i>
+                        <span class="bos-tenant-switcher__name"><?php echo epc_bos_h($tenantInfo['trade_name'] ?: $activeTenant); ?></span>
+                        <span class="bos-tenant-switcher__industry"><?php echo epc_bos_h($tenantInfo['industry_code']); ?></span>
+                    <?php else: ?>
+                        <i class="fa fa-building"></i>
+                        <span class="bos-tenant-switcher__name">Select Tenant</span>
+                    <?php endif; ?>
+                    <i class="fa fa-chevron-down bos-tenant-switcher__arrow"></i>
+                </button>
+                <div class="bos-tenant-switcher__dropdown" id="bosTenantDropdown">
+                    <div class="bos-tenant-switcher__search">
+                        <i class="fa fa-search"></i>
+                        <input type="text" id="bosTenantSearch" placeholder="Search tenants..." autocomplete="off">
+                    </div>
+                    <div class="bos-tenant-switcher__filters" id="bosTenantFilters">
+                        <button type="button" class="bos-filter-btn bos-filter-btn--active" data-filter="all">All</button>
+                        <button type="button" class="bos-filter-btn" data-filter="commerce">Commerce</button>
+                        <button type="button" class="bos-filter-btn" data-filter="erp_only">ERP Only</button>
+                        <button type="button" class="bos-filter-btn" data-filter="demo">Demo</button>
+                    </div>
+                    <div class="bos-tenant-switcher__list" id="bosTenantList"></div>
                 </div>
             </div>
-        </div>
-        <?php endif; ?>
-    </div>
+            <?php endif; ?>
 
-    <div class="bos-topbar__right">
-        <?php if ($tenantCountryProfile): ?>
-        <div class="bos-topbar__locale" title="Tenant locale">
-            <span class="bos-topbar__flag"><?php echo epc_bos_h($tenantCountryProfile['country']); ?></span>
-            <span class="bos-topbar__currency"><?php echo epc_bos_h($tenantCountryProfile['currency']); ?></span>
-            <span class="bos-topbar__lang"><?php echo epc_bos_h(strtoupper($tenantCountryProfile['language'])); ?></span>
-        </div>
-        <?php endif; ?>
-        <div class="bos-topbar__user">
-            <i class="fa fa-user-circle"></i>
-            <span><?php echo epc_bos_h($ctx['email'] ?? 'Operator'); ?></span>
-        </div>
-        <a href="/bos/?action=logout" class="bos-topbar__logout" title="Sign out">
-            <i class="fa fa-sign-out"></i>
-        </a>
-    </div>
-</header>
-
-<!-- Sidebar -->
-<aside class="bos-sidebar" id="bosSidebar">
-    <nav class="bos-sidebar__nav" id="bosSidebarNav">
-        <?php foreach ($sections as $section): ?>
-        <div class="bos-sidebar__section" data-section="<?php echo epc_bos_h($section['id']); ?>">
-            <div class="bos-sidebar__section-header">
-                <i class="fa <?php echo epc_bos_h($section['icon']); ?>"></i>
-                <span><?php echo epc_bos_h($section['label']); ?></span>
-                <i class="fa fa-angle-down bos-sidebar__section-arrow"></i>
+            <?php if ($tenantCountryProfile): ?>
+            <div class="bos-topnav__locale" title="Tenant locale">
+                <span class="bos-topnav__flag"><?php echo epc_bos_h($tenantCountryProfile['country']); ?></span>
+                <span class="bos-topnav__currency"><?php echo epc_bos_h($tenantCountryProfile['currency']); ?></span>
+                <span class="bos-topnav__lang"><?php echo epc_bos_h(strtoupper($tenantCountryProfile['language'])); ?></span>
             </div>
-            <ul class="bos-sidebar__items">
-                <?php foreach ($section['items'] as $item): ?>
-                <li>
-                    <a href="/bos/?<?php echo $activeTenant ? 't=' . epc_bos_h($activeTenant) . '&' : ''; ?>m=<?php echo epc_bos_h($item['id']); ?>"
-                       class="bos-sidebar__link<?php echo $activeModule === $item['id'] ? ' bos-sidebar__link--active' : ''; ?>"
-                       data-module="<?php echo epc_bos_h($item['id']); ?>"
-                       data-path="<?php echo epc_bos_h($item['path']); ?>">
-                        <i class="fa <?php echo epc_bos_h($item['icon']); ?>"></i>
-                        <span><?php echo epc_bos_h($item['label']); ?></span>
-                    </a>
-                </li>
-                <?php endforeach; ?>
-            </ul>
+            <?php endif; ?>
+            <div class="bos-topnav__user">
+                <i class="fa fa-user-circle" aria-hidden="true"></i>
+                <span><?php echo epc_bos_h($ctx['email'] ?? 'Operator'); ?></span>
+            </div>
+            <a href="/bos/?action=logout" class="bos-topnav__logout" title="Sign out">
+                <i class="fa fa-sign-out" aria-hidden="true"></i>
+            </a>
         </div>
-        <?php endforeach; ?>
-    </nav>
-
-    <div class="bos-sidebar__footer">
-        <div class="bos-sidebar__version">BOS v<?php echo EPC_BOS_VERSION; ?></div>
     </div>
-</aside>
+</nav>
 
-<!-- Main content area -->
+<!-- Main content area (full width under black top mega-menu) -->
 <main class="bos-main" id="bosMain">
     <div class="bos-main__header" id="bosMainHeader">
         <div class="bos-main__breadcrumb">
