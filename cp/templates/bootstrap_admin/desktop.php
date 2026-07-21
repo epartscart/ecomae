@@ -962,21 +962,6 @@ function print_backend_button($button_params)
 
                 <!-- END Модуль индикации возвратов-->				
 				
-				<?php if (!empty($epcCpShowStorefront)) { ?>
-				<li class="dropdown epc-cp-header-keep epc-cp-header-storefront">
-					<a class="epc-cp-header-storefront__btn" href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Open public storefront<?php echo $epcCpStorefrontHost !== '' ? ' — ' . htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8') : ''; ?>">
-						<span class="epc-cp-header-storefront__icon" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
-						<span class="epc-cp-header-storefront__meta">
-							<span class="epc-cp-header-storefront__label">Storefront</span>
-							<?php if ($epcCpStorefrontHost !== '') { ?>
-							<span class="epc-cp-header-storefront__host"><?php echo htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8'); ?></span>
-							<?php } ?>
-						</span>
-						<span class="epc-cp-header-storefront__ext" aria-hidden="true"><i class="fa fa-external-link"></i></span>
-					</a>
-				</li>
-				<?php } ?>
-				
 				<?php echo epc_cp_translate_render('cp'); ?>
 				
                 <li class="dropdown epc-cp-header-keep epc-cp-header-action--logout">
