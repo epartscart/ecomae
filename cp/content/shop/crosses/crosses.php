@@ -37,382 +37,215 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 {
 	$sort_field = "article";
 }
+
+$epc_cx_approx = 0;
+if (isset($db_link) && $db_link instanceof PDO) {
+	try {
+		$stApprox = $db_link->query(
+			"SELECT TABLE_ROWS FROM information_schema.TABLES
+			 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shop_docpart_articles_analogs_list' LIMIT 1"
+		);
+		$epc_cx_approx = (int) $stApprox->fetchColumn();
+	} catch (Throwable $e) {
+		$epc_cx_approx = 0;
+	}
+}
+$epc_cx_src_local = !empty($DP_Config->local_crosses);
+$epc_cx_src_ucats = !empty($DP_Config->ucats_crosses);
+$epc_cx_src_api = (isset($DP_Config->storages_of_crosses) && trim((string) $DP_Config->storages_of_crosses) !== '');
+$epc_cx_src_brands = !empty($DP_Config->list_brends_crosses);
+$epc_cx_sources_on = (int) $epc_cx_src_local + (int) $epc_cx_src_ucats + (int) $epc_cx_src_api + (int) $epc_cx_src_brands;
+$epc_cx_csv = '/' . $DP_Config->backend_dir . '/content/shop/crosses/crosses.csv';
 ?>
-<style>
-	.epc-cross-page {
-		--cx-ink: #0f172a;
-		--cx-muted: #64748b;
-		--cx-line: #e2e8f0;
-		--cx-bg: #f1f5f9;
-		--cx-card: #ffffff;
-		--cx-accent: #0f766e;
-		--cx-accent-2: #0369a1;
-		--cx-warn: #b45309;
-		--cx-ok: #047857;
-		margin: 0 -5px 20px;
-	}
-	.epc-cross-page .epc-cross-hero {
-		background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0f766e 100%);
-		color: #f8fafc;
-		border-radius: 12px;
-		padding: 18px 20px;
-		margin: 0 5px 14px;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 12px 20px;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.epc-cross-page .epc-cross-hero h2 {
-		margin: 0 0 4px;
-		font-size: 22px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-	}
-	.epc-cross-page .epc-cross-hero p {
-		margin: 0;
-		opacity: 0.85;
-		font-size: 13px;
-		max-width: 640px;
-	}
-	.epc-cross-page .epc-cross-stat {
-		background: rgba(255,255,255,0.12);
-		border: 1px solid rgba(255,255,255,0.18);
-		border-radius: 10px;
-		padding: 10px 14px;
-		min-width: 120px;
-		text-align: center;
-	}
-	.epc-cross-page .epc-cross-stat b {
-		display: block;
-		font-size: 18px;
-		line-height: 1.2;
-	}
-	.epc-cross-page .epc-cross-stat span {
-		font-size: 11px;
-		opacity: 0.8;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-	.epc-cross-page .hpanel {
-		border-radius: 10px;
-		overflow: hidden;
-		border: 1px solid var(--cx-line);
-		box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-	}
-	.epc-cross-page .hpanel .panel-heading.hbuilt {
-		background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
-		border-bottom: 1px solid var(--cx-line);
-		font-weight: 600;
-		color: var(--cx-ink);
-	}
-	.epc-cross-page .panel-body > div {
-		padding-left: 0;
-		padding-right: 10px;
-	}
-	.epc-cross-page .panel-body > div:last-child {
-		padding-right: 0;
-	}
-	@media screen and (max-width: 1200px) {
-		.epc-cross-page .panel-body > div { padding-right: 0; }
-	}
-	.epc-cross-page .panel-footer .btn { margin-right: 5px; margin-bottom: 4px; }
-	.epc-cross-page .table_crosses td:last-child,
-	.epc-cross-page .table_crosses th:last-child { text-align: right; }
-	.epc-cross-page .pagination_box { text-align: center; }
-	.epc-cross-page .pagination_box a {
-		font-size: 13px;
-		display: inline-block;
-		background: #fff;
-		border-radius: 6px;
-		color: #0f172a;
-		padding: 4px 10px;
-		margin: 0 2px 4px 0;
-		border: 1px solid var(--cx-line);
-		cursor: pointer;
-	}
-	.epc-cross-page .pagination_active {
-		background: var(--cx-accent) !important;
-		border-color: var(--cx-accent) !important;
-		color: #fff !important;
-	}
-	.epc-cross-page #div_table_crosses > .panel-footer {
-		color: inherit;
-		border: 1px solid var(--cx-line);
-		border-top: none;
-		font-size: 90%;
-		background: #f8fafc;
-		padding: 10px 15px;
-	}
-	.epc-cross-page #div_table_crosses > .panel-body { overflow-x: auto; }
-	.epc-cross-page .table_crosses { margin-bottom: 0; }
-	.epc-cross-page .table_crosses thead th {
-		background: #f8fafc;
-		border-bottom-width: 2px;
-		white-space: nowrap;
-	}
-	.epc-cross-page .epc-cross-banner {
-		background: #fff7ed;
-		border: 1px solid #fed7aa;
-		color: #9a3412;
-		border-radius: 8px;
-		padding: 10px 12px;
-		margin: 0 0 12px;
-		font-size: 13px;
-	}
-	.epc-cross-page .epc-cross-banner-ok {
-		background: #ecfdf5;
-		border-color: #a7f3d0;
-		color: #065f46;
-	}
-	.epc-cross-page #epc_cp_cross_lookup_panel .epc-cross-meta {
-		margin: 8px 0 12px;
-		font-size: 13px;
-		color: #475569;
-		line-height: 1.5;
-	}
-	.epc-cross-page #epc_cp_cross_lookup_panel .label-linked { background: var(--cx-ok); }
-	.epc-cross-page #epc_cp_cross_lookup_panel .label-missing { background: var(--cx-warn); }
-	.epc-cross-page #epc_cp_cross_results_wrap {
-		max-height: 420px;
-		overflow: auto;
-		margin-top: 10px;
-		border: 1px solid var(--cx-line);
-		border-radius: 8px;
-	}
-	.epc-cross-page #epc_cp_cross_results_table { margin: 0; }
-	.epc-cross-page #epc_cp_cross_results_table td { vertical-align: middle !important; }
-	.epc-cross-page .epc-cross-source { font-size: 11px; color: #777; }
-	.epc-cross-page .epc-cross-toolbar .btn { margin: 0 6px 6px 0; }
-	.epc-cross-page .epc-cross-section-label {
-		display: inline-block;
-		font-size: 11px;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--cx-muted);
-		margin-bottom: 6px;
-	}
-	.epc-cross-page .btn-primary { background: var(--cx-accent); border-color: var(--cx-accent); }
-	.epc-cross-page .btn-primary:hover,
-	.epc-cross-page .btn-primary:focus { background: #0d9488; border-color: #0d9488; }
-	.epc-cross-page .epc-cross-loading {
-		padding: 28px 16px;
-		text-align: center;
-		color: var(--cx-muted);
-		font-size: 13px;
-	}
-	.epc-cross-page .epc-cross-loading .spinner-border {
-		width: 1.6rem;
-		height: 1.6rem;
-		border-width: 0.15em;
-		color: var(--cx-accent);
-	}
-</style>
-<div class="epc-cross-page">
-<div class="epc-cross-hero">
-	<div>
-		<h2>Spare-parts cross references</h2>
-		<p>Link OEM / aftermarket part numbers so search finds interchangeable brands. Add pairs manually, import CSV, or pull from the interchange catalog into the CP crosses table (~700k+ links).</p>
-	</div>
-	<div class="epc-cross-stat">
-		<b>CP table</b>
-		<span>Article ↔ Analog</span>
-	</div>
-</div>
-<div class="row" style="margin: 0;">
-	<div class="col-lg-8">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<span class="epc-cross-section-label">Step 1</span>
-				<?php echo translate_str_by_id(3115); ?>
+<link rel="stylesheet" href="/content/general_pages/epc_crosses_cp_css.php?v=cx1" />
+<div class="epc-cx">
+	<header class="epc-cx__hero">
+		<div>
+			<div class="epc-cx__eyebrow"><i class="fa fa-exchange"></i> Catalogue · Interchange</div>
+			<h2>Spare-parts cross references</h2>
+			<p>Link OEM and aftermarket part numbers so storefront search finds interchangeable brands. Add pairs manually, import CSV, or pull from the interchange catalog into the CP table.</p>
+		</div>
+		<div class="epc-cx__stats">
+			<div class="epc-cx__stat">
+				<b><?php echo $epc_cx_approx > 0 ? ('~' . number_format($epc_cx_approx)) : '—'; ?></b>
+				<span>CP links</span>
 			</div>
-			<div class="panel-body">
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(2071); ?>:</label><input class="form-control" type="text" id="new_article" name="article" placeholder="e.g. 45114STD"/></div>
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(2070); ?>:</label><input class="form-control" type="text" id="new_manufacturer_article" name="manufacturer" placeholder="e.g. TEIKINP"/></div>
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(3113); ?>:</label><input class="form-control" type="text" id="new_analog" name="article" placeholder="Interchange article"/></div>
-				<div class="col-lg-3"><label><?php echo translate_str_by_id(2070); ?>:</label><input class="form-control" type="text" id="new_manufacturer_analog" name="manufacturer" placeholder="Interchange brand"/></div>
-			</div>
-			<div class="panel-footer text-right">
-				<img id="img_crosses_add" style="height: 31px; margin-right: 5px;" class="hidden" src="/content/files/images/ajax-loader-transparent.gif"/><a id="btn_crosses_add" onclick="crosses_add();" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> <?php echo translate_str_by_id(2267); ?></a>
+			<div class="epc-cx__stat">
+				<b><?php echo (int) $epc_cx_sources_on; ?>/4</b>
+				<span>Sources on</span>
 			</div>
 		</div>
-	</div>
+	</header>
 
-
-
-
-	<div class="col-lg-4">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt" style="position:relative;">
-				<span class="epc-cross-section-label">Step 2</span>
-				<?php echo translate_str_by_id(3116); ?>
-				<a style="position:absolute; right:20px;" href="/<?=$DP_Config->backend_dir;?>/content/shop/crosses/crosses.csv" download title="<?php echo translate_str_by_id(3117); ?>"><?php echo translate_str_by_id(3117); ?> <i class="fa fa-file"></i></a>
+	<section class="epc-cx__workbench" aria-label="Add and lookup crosses">
+		<div class="epc-cx__card">
+			<div class="epc-cx__card-head">
+				<h3><i class="fa fa-plus"></i> <?php echo translate_str_by_id(3115); ?></h3>
+				<span class="epc-cx__step">Add</span>
 			</div>
-			<div class="panel-body">
-				<label><?php echo translate_str_by_id(2727); ?>:</label><input class="form-control" type="file" id="file_csv" name="file"/>
-				<p class="text-muted" style="margin:8px 0 0;font-size:12px;">CSV (semicolon): <code>manufacturer;article;manufacturer_cross;article_cross</code></p>
+			<div class="epc-cx__card-body">
+				<div class="epc-cx__pair-visual" aria-hidden="true">
+					<span class="epc-cx__pair-chip">Article + Brand</span>
+					<i class="fa fa-arrows-h"></i>
+					<span class="epc-cx__pair-chip">Analog + Brand</span>
+				</div>
+				<div class="epc-cx__fields">
+					<div class="epc-cx__field">
+						<label for="new_article"><?php echo translate_str_by_id(2071); ?></label>
+						<input class="form-control" type="text" id="new_article" name="article" placeholder="e.g. 45114STD" autocomplete="off"/>
+					</div>
+					<div class="epc-cx__field">
+						<label for="new_manufacturer_article"><?php echo translate_str_by_id(2070); ?></label>
+						<input class="form-control" type="text" id="new_manufacturer_article" name="manufacturer" placeholder="e.g. TEIKINP" autocomplete="off"/>
+					</div>
+					<div class="epc-cx__field">
+						<label for="new_analog"><?php echo translate_str_by_id(3113); ?></label>
+						<input class="form-control" type="text" id="new_analog" name="analog" placeholder="Interchange article" autocomplete="off"/>
+					</div>
+					<div class="epc-cx__field">
+						<label for="new_manufacturer_analog"><?php echo translate_str_by_id(2070); ?></label>
+						<input class="form-control" type="text" id="new_manufacturer_analog" name="manufacturer_analog" placeholder="Interchange brand" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="epc-cx__divider">or CSV import</div>
+				<div class="epc-cx__field">
+					<label for="file_csv"><?php echo translate_str_by_id(3116); ?></label>
+					<input class="form-control" type="file" id="file_csv" name="file" accept=".csv,text/csv"/>
+					<p class="epc-cx__hint">
+						CSV (semicolon): <code>manufacturer;article;manufacturer_cross;article_cross</code>
+						· <a href="<?php echo htmlspecialchars($epc_cx_csv, ENT_QUOTES, 'UTF-8'); ?>" download><?php echo translate_str_by_id(3117); ?></a>
+					</p>
+				</div>
 			</div>
-			<div class="panel-footer text-right">
-				<img id="img_crosses_add_of_csv" style="height: 31px; margin-right: 5px;" class="hidden" src="/content/files/images/ajax-loader-transparent.gif"/><a id="btn_crosses_add_of_csv" onclick="crosses_add_of_csv();" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> <?php echo translate_str_by_id(2267); ?></a>
+			<div class="epc-cx__card-foot">
+				<img id="img_crosses_add" class="hidden" style="height:28px;" src="/content/files/images/ajax-loader-transparent.gif" alt=""/>
+				<img id="img_crosses_add_of_csv" class="hidden" style="height:28px;" src="/content/files/images/ajax-loader-transparent.gif" alt=""/>
+				<a id="btn_crosses_add_of_csv" onclick="crosses_add_of_csv();" class="btn btn-ar btn-default"><i class="fa fa-upload"></i> Import CSV</a>
+				<a id="btn_crosses_add" onclick="crosses_add();" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> <?php echo translate_str_by_id(2267); ?></a>
 			</div>
 		</div>
-	</div>
-</div>
 
-<div class="row" style="margin: 0;">
-	<div class="col-lg-12">
-		<div class="hpanel" id="epc_cp_cross_lookup_panel">
-			<div class="panel-heading hbuilt">
-				<span class="epc-cross-section-label">Step 3</span>
-				Cross-reference lookup &amp; link to CP crosses
-				<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('Search the same interchange catalog and local crosses as the storefront. Add missing rows to the CP crosses table with one click so future searches use your links.');"><i class="fa fa-info"></i></button>
+		<div class="epc-cx__card" id="epc_cp_cross_lookup_panel">
+			<div class="epc-cx__card-head">
+				<h3><i class="fa fa-search"></i> Interchange lookup</h3>
+				<span class="epc-cx__step">Catalog</span>
 			</div>
-			<div class="panel-body">
-				<div class="col-lg-3">
-					<label>Part number (article):</label>
-					<input class="form-control" type="text" id="epc_cross_lookup_article" placeholder="e.g. 45114STD"/>
+			<div class="epc-cx__card-body">
+				<div class="epc-cx__fields">
+					<div class="epc-cx__field">
+						<label for="epc_cross_lookup_article">Part number</label>
+						<input class="form-control" type="text" id="epc_cross_lookup_article" placeholder="e.g. 45114STD" autocomplete="off"/>
+					</div>
+					<div class="epc-cx__field">
+						<label for="epc_cross_lookup_manufacturer">Brand / manufacturer</label>
+						<input class="form-control" type="text" id="epc_cross_lookup_manufacturer" placeholder="e.g. TEIKINP" autocomplete="off"/>
+					</div>
 				</div>
-				<div class="col-lg-3">
-					<label>Brand / manufacturer:</label>
-					<input class="form-control" type="text" id="epc_cross_lookup_manufacturer" placeholder="e.g. TEIKINP"/>
-				</div>
-				<div class="col-lg-6 epc-cross-toolbar" style="padding-top: 24px;">
+				<div class="epc-cx__tools epc-cx__tools-primary" style="margin-top:12px;">
 					<a class="btn btn-ar btn-primary" onclick="epcCpCrossLookup();" id="epc_btn_cross_lookup"><i class="fa fa-search"></i> Search interchange</a>
-					<a class="btn btn-ar btn-success" onclick="epcCpCrossSyncCrossbase();" id="epc_btn_cross_sync"><i class="fa fa-sync"></i> Sync to CP crosses</a>
-					<a class="btn btn-ar btn-warning" onclick="epcCpCrossAddAllMissing();" id="epc_btn_cross_add_all" title="Link missing crosses from the preview table (max 120 rows)"><i class="fa fa-plus-square"></i> Add missing (preview)</a>
-					<a class="btn btn-ar btn-warning" onclick="epcCpCrossImportFullCatalog();" id="epc_btn_cross_import_full" title="Fetch full interchange catalog (up to 5000) and link all to CP"><i class="fa fa-database"></i> Import full catalog to CP</a>
-					<a class="btn btn-ar btn-default" onclick="epcCpCrossVerify();" id="epc_btn_cross_verify"><i class="fa fa-check-circle"></i> Verify CP links</a>
-					<a class="btn btn-ar btn-danger" onclick="epcCpCrossRepairEmpty();" id="epc_btn_cross_repair"><i class="fa fa-wrench"></i> Fix empty brands in CP table</a>
-					<img id="epc_img_cross_lookup" class="hidden" style="height:31px;margin-left:8px;" src="/content/files/images/ajax-loader-transparent.gif"/>
+					<a class="btn btn-ar btn-success" onclick="epcCpCrossSyncCrossbase();" id="epc_btn_cross_sync"><i class="fa fa-sync"></i> Sync to CP</a>
+					<img id="epc_img_cross_lookup" class="hidden" style="height:28px;" src="/content/files/images/ajax-loader-transparent.gif" alt=""/>
 				</div>
-				<div class="col-lg-12">
-					<div id="epc_cp_cross_lookup_meta" class="epc-cross-meta"></div>
-					<div id="epc_cp_cross_results_wrap"></div>
+				<div class="epc-cx__tools epc-cx__tools-secondary">
+					<a class="btn btn-ar btn-warning btn-sm" onclick="epcCpCrossAddAllMissing();" id="epc_btn_cross_add_all" title="Link missing crosses from the preview table"><i class="fa fa-plus-square"></i> Add missing</a>
+					<a class="btn btn-ar btn-warning btn-sm" onclick="epcCpCrossImportFullCatalog();" id="epc_btn_cross_import_full" title="Fetch full catalog (up to 5000) into CP"><i class="fa fa-database"></i> Import full catalog</a>
+					<a class="btn btn-ar btn-default btn-sm" onclick="epcCpCrossVerify();" id="epc_btn_cross_verify"><i class="fa fa-check-circle"></i> Verify</a>
+					<a class="btn btn-ar btn-danger btn-sm" onclick="epcCpCrossRepairEmpty();" id="epc_btn_cross_repair"><i class="fa fa-wrench"></i> Fix empty brands</a>
 				</div>
+				<div id="epc_cp_cross_lookup_meta" class="epc-cx__meta"></div>
+				<div id="epc_cp_cross_results_wrap" class="epc-cx__results"></div>
 			</div>
 		</div>
-	</div>
-</div>
+	</section>
 
-<div class="row" style="margin: 0;">
-	<div class="col-lg-4 col-lg-push-8">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<span class="epc-cross-section-label">Find in CP table</span>
-				<?php echo translate_str_by_id(5227); ?>
-			</div>
-			<div class="panel-body">
-				<div class="col-lg-6">
-					<label><?php echo translate_str_by_id(3119); ?>:</label>
-					<input class="form-control" type="text" id="search_article" onchange="get_search_manufacturer();" onkeyup="get_search_manufacturer();" name="article"/>
+	<section class="epc-cx__main" aria-label="CP crosses table">
+		<aside class="epc-cx__side">
+			<div class="epc-cx__card">
+				<div class="epc-cx__card-head">
+					<h3><i class="fa fa-filter"></i> <?php echo translate_str_by_id(5227); ?></h3>
+					<span class="epc-cx__step">Filter</span>
 				</div>
-				<div class="col-lg-6">
-					<label><?php echo translate_str_by_id(3120); ?>:</label>
-					<select id="search_manufacturer" class="form-control"><option id="all"><?php echo translate_str_by_id(3121); ?></option></select>
-				</div>
-				<div class="col-lg-12">
-					<table>
-						<tr>
-							<td><label for="search_null" style="margin: 0; padding-right: 10px;"><?php echo translate_str_by_id(5228); ?></label></td>
-							<td><input style="width:25px;" class="form-control" type="checkbox" id="search_null" name="null"/></td>
-						</tr>
-					</table>
-				</div>
-				<div class="col-lg-12">
-					<table>
-						<tr>
-							<td><br/><label style="margin: 0; padding-right: 10px;">ID</label></td>
-							<td><?php echo translate_str_by_id(4143); ?><input style="width:125px;" class="form-control" type="number" id="search_id_from" name="null"/></td>
-							<td> &nbsp; </td>
-							<td><?php echo translate_str_by_id(4144); ?><input style="width:125px;" class="form-control" type="number" id="search_id_before" name="null"/></td>
-						</tr>
-					</table>
-				</div>
-			</div>
-			<div class="panel-footer text-right">
-				<a onclick="clear_search();" class="btn btn-ar btn-default"><i class="fa fa-eraser"></i> <?php echo translate_str_by_id(2762); ?></a>
-				<a onclick="epcCpCrossSyncLookupFromSearch(); show_table_crosses();" class="btn btn-ar btn-primary"><i class="fa fa-search"></i> <?php echo translate_str_by_id(2763); ?></a>
-			</div>
-		</div>
-		
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(5229); ?>
-			</div>
-			<div class="panel-body">
-				<div class="col-lg-12">
-					<div class="">
-						<div class="text-left">
-							<a onclick="del_search_crosses();" class="btn btn-ar btn-danger"><?php echo translate_str_by_id(3122); ?></a> <img id="img_crosses_del" style="height: 31px; margin-right: 5px;" class="hidden" src="/content/files/images/ajax-loader-transparent.gif"/>
-							<br/>
-							<br/>
-							<small><?php echo translate_str_by_id(5230); ?>. <br/> <?php echo translate_str_by_id(5231); ?>.</small>
+				<div class="epc-cx__card-body">
+					<div class="epc-cx__filter-grid">
+						<div class="epc-cx__field">
+							<label for="search_article"><?php echo translate_str_by_id(3119); ?></label>
+							<input class="form-control" type="text" id="search_article" name="article" placeholder="Part number" autocomplete="off"/>
+						</div>
+						<div class="epc-cx__field">
+							<label for="search_manufacturer"><?php echo translate_str_by_id(3120); ?></label>
+							<select id="search_manufacturer" class="form-control"><option id="all"><?php echo translate_str_by_id(3121); ?></option></select>
+						</div>
+						<label class="epc-cx__check" for="search_null">
+							<input type="checkbox" id="search_null" name="null"/>
+							<span><?php echo translate_str_by_id(5228); ?></span>
+						</label>
+						<div class="epc-cx__id-row">
+							<div class="epc-cx__field">
+								<label for="search_id_from">ID <?php echo translate_str_by_id(4143); ?></label>
+								<input class="form-control" type="number" id="search_id_from" name="id_from"/>
+							</div>
+							<div class="epc-cx__field">
+								<label for="search_id_before">ID <?php echo translate_str_by_id(4144); ?></label>
+								<input class="form-control" type="number" id="search_id_before" name="id_before"/>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
-		
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(5232); ?>
-			</div>
-			<div class="panel-body">
-				<div class="col-lg-12">
-					<div class="">
-						<div class="text-left">
-							<table>
-								<tr>
-									<td><input <?php echo ($DP_Config->local_crosses == 1)?'checked':''; ?> style="width:25px;" class="form-control" type="checkbox" disabled /></td>
-									<td><label style="margin: 0; padding-left: 10px;"><?php echo translate_str_by_id(5233); ?></label></td>
-								</tr>
-								<tr>
-									<td colspan="2"><div class="hr-line-dashed col-lg-12"></div></td>
-								</tr>
-								<tr>
-									<td><input <?php echo ($DP_Config->ucats_crosses == 1)?'checked':''; ?> style="width:25px;" class="form-control" type="checkbox" disabled /></td>
-									<td><label style="margin: 0; padding-left: 10px;"><?php echo translate_str_by_id(5234); ?></td>
-								</tr>
-								<tr>
-									<td colspan="2"><div class="hr-line-dashed col-lg-12"></div></td>
-								</tr>
-								<tr>
-									<td><input <?php echo (isset($DP_Config->storages_of_crosses) && $DP_Config->storages_of_crosses != '')?'checked':''; ?> style="width:25px;" class="form-control" type="checkbox" disabled /></td>
-									<td><label style="margin: 0; padding-left: 10px;"><?php echo translate_str_by_id(5235); ?></label></td>
-								</tr>
-								<tr>
-									<td colspan="2"><div class="hr-line-dashed col-lg-12"></div></td>
-								</tr>
-								<tr>
-									<td><input <?php echo ($DP_Config->list_brends_crosses == 1)?'checked':''; ?> style="width:25px;" class="form-control" type="checkbox" disabled /></td>
-									<td><label style="margin: 0; padding-left: 10px;"><?php echo translate_str_by_id(5236); ?></label></td>
-								</tr>
-							</table>
-						</div>
-					</div>
+				<div class="epc-cx__card-foot">
+					<a onclick="clear_search();" class="btn btn-ar btn-default"><i class="fa fa-eraser"></i> <?php echo translate_str_by_id(2762); ?></a>
+					<a onclick="epcCpCrossSyncLookupFromSearch(); show_table_crosses();" class="btn btn-ar btn-primary"><i class="fa fa-search"></i> <?php echo translate_str_by_id(2763); ?></a>
 				</div>
 			</div>
-			<div class="panel-footer text-left">
-				<i class="fa fa-exclamation-triangle" aria-hidden="true"></i> <?php echo translate_str_by_id(5237); ?>
+
+			<div class="epc-cx__card">
+				<div class="epc-cx__card-head">
+					<h3><i class="fa fa-trash"></i> <?php echo translate_str_by_id(5229); ?></h3>
+				</div>
+				<div class="epc-cx__card-body">
+					<p class="epc-cx__hint" style="margin-top:0;"><?php echo translate_str_by_id(5230); ?>. <?php echo translate_str_by_id(5231); ?>.</p>
+					<a onclick="del_search_crosses();" class="btn btn-ar btn-danger btn-block"><i class="fa fa-trash"></i> <?php echo translate_str_by_id(3122); ?></a>
+					<img id="img_crosses_del" class="hidden" style="height:28px;margin-top:8px;" src="/content/files/images/ajax-loader-transparent.gif" alt=""/>
+				</div>
 			</div>
-		</div>
-	</div>
 
+			<div class="epc-cx__card">
+				<div class="epc-cx__card-head">
+					<h3><i class="fa fa-sliders"></i> <?php echo translate_str_by_id(5232); ?></h3>
+				</div>
+				<div class="epc-cx__card-body">
+					<div class="epc-cx__sources">
+						<div class="epc-cx__source <?php echo $epc_cx_src_local ? '' : 'is-off'; ?>">
+							<i class="fa <?php echo $epc_cx_src_local ? 'fa-check-circle' : 'fa-circle-o'; ?>"></i>
+							<div><strong><?php echo translate_str_by_id(5233); ?></strong><small>Local CP table on this page</small></div>
+						</div>
+						<div class="epc-cx__source <?php echo $epc_cx_src_ucats ? '' : 'is-off'; ?>">
+							<i class="fa <?php echo $epc_cx_src_ucats ? 'fa-check-circle' : 'fa-circle-o'; ?>"></i>
+							<div><strong><?php echo translate_str_by_id(5234); ?></strong><small>Ucats catalog</small></div>
+						</div>
+						<div class="epc-cx__source <?php echo $epc_cx_src_api ? '' : 'is-off'; ?>">
+							<i class="fa <?php echo $epc_cx_src_api ? 'fa-check-circle' : 'fa-circle-o'; ?>"></i>
+							<div><strong><?php echo translate_str_by_id(5235); ?></strong><small>Supplier API crosses</small></div>
+						</div>
+						<div class="epc-cx__source <?php echo $epc_cx_src_brands ? '' : 'is-off'; ?>">
+							<i class="fa <?php echo $epc_cx_src_brands ? 'fa-check-circle' : 'fa-circle-o'; ?>"></i>
+							<div><strong><?php echo translate_str_by_id(5236); ?></strong><small>Brand list on article search</small></div>
+						</div>
+					</div>
+					<p class="epc-cx__hint"><i class="fa fa-exclamation-triangle"></i> <?php echo translate_str_by_id(5237); ?></p>
+				</div>
+			</div>
+		</aside>
 
-
-
-	<div class="col-lg-8 col-lg-pull-4">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt" style="position:relative;">
-				<?php echo translate_str_by_id(791); ?>
-				<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo translate_str_by_id(5238); ?>');"><i class="fa fa-info"></i></button>
-				
-				<a style="position:absolute; right:20px;" onclick="download_crosses();" title="Скачать кроссы в .csv файле"><?php echo translate_str_by_id(5239); ?> <i class="fa fa-file"></i></a>
+		<div class="epc-cx__card epc-cx__table-card">
+			<div class="epc-cx__card-head">
+				<h3><i class="fa fa-table"></i> <?php echo translate_str_by_id(791); ?>
+					<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo htmlspecialchars(translate_str_by_id(5238), ENT_QUOTES, 'UTF-8'); ?>');"><i class="fa fa-info"></i></button>
+				</h3>
+				<a href="javascript:void(0);" onclick="download_crosses();" title="Download crosses CSV"><i class="fa fa-download"></i> <?php echo translate_str_by_id(5239); ?></a>
 			</div>
 			<div id="div_table_crosses"></div>
 		</div>
-	</div>
-</div>
+	</section>
 </div>
 
 
@@ -480,8 +313,12 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	function epcCpCrossRenderResults(answer, anchorFields) {
 		anchorFields = anchorFields || epcCpCrossGetAnchorFields();
 		if (!answer || answer.status !== true) {
-			document.getElementById('epc_cp_cross_lookup_meta').innerHTML = '<span class="text-danger">' + epcCpCrossEscapeHtml(answer && answer.message ? answer.message : 'Search failed') + '</span>';
-			document.getElementById('epc_cp_cross_results_wrap').innerHTML = '';
+			var metaEl = document.getElementById('epc_cp_cross_lookup_meta');
+			if (metaEl) {
+				metaEl.innerHTML = '<span class="text-danger">' + epcCpCrossEscapeHtml(answer && answer.message ? answer.message : 'Search failed') + '</span>';
+			}
+			var wrapFail = document.getElementById('epc_cp_cross_results_wrap');
+			if (wrapFail) { wrapFail.innerHTML = ''; }
 			return;
 		}
 		epcCpCrossLastReferences = answer.references || [];
@@ -678,16 +515,20 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	}
 
 	var page = 1;// Текущая страница таблицы кроссов
+	var epcCxTableReq = 0;
+	var epcCxMfrTimer = null;
 	
 	// Функция перехода по страницам таблицы кроссов
 	function go_to_page(p){
-		page = p;
+		page = Math.max(1, parseInt(p, 10) || 1);
 		show_table_crosses(1);
 	}
 	
 	// Функция отображает таблицу кроссов с условиями фильтрации
 	function show_table_crosses(flag){
-	document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body epc-cross-loading"><div class="spinner-border" role="status"></div><div class="mt-2">Loading crosses...</div></div>';
+		var box = document.getElementById('div_table_crosses');
+		if (!box) { return; }
+		box.innerHTML = '<div class="panel-body epc-cross-loading"><div class="spinner-border" role="status"></div><div style="margin-top:8px;">Loading crosses…</div></div>';
 
 		// Если заданы ограничения фильтрации
 		var article = document.getElementById("search_article").value;
@@ -728,6 +569,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 		request_object.id_from = search_id_from;
 		request_object.id_before = search_id_before;
 
+		var reqId = ++epcCxTableReq;
 		// Отправляем запрос
 		jQuery.ajax({
             type: "POST",
@@ -737,6 +579,7 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
             data: "request_object="+encodeURI(JSON.stringify(request_object))+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
             success: function(answer)
             {
+				if (reqId !== epcCxTableReq) { return; }
 				var raw = (answer == null) ? '' : String(answer);
 				var trimmed = raw.replace(/^\uFEFF/, '').trim();
 				if(trimmed.charAt(0) === '{')
@@ -744,17 +587,17 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 					try {
 						var parsed = JSON.parse(trimmed);
 						var msg = (parsed && parsed.message) ? parsed.message : 'Could not load crosses.';
-						document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">'+epcCpCrossEscapeHtml(msg)+'</div></div>';
+						box.innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">'+epcCpCrossEscapeHtml(msg)+'</div></div>';
 						return;
 					} catch (e) {}
 				}
 				if(trimmed === '')
 				{
-					document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">Empty response from crosses API. Reload or search by article.</div></div>';
+					box.innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">Empty response from crosses API. Reload or search by article.</div></div>';
 					return;
 				}
 				// Вставляем сформированный html на страницу
-				document.getElementById('div_table_crosses').innerHTML = answer;
+				box.innerHTML = answer;
 				
 				let sort_field = "article";
 				let sort_asc_desc = "desc";
@@ -775,8 +618,9 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 		    },
 			error: function(xhr)
 			{
+				if (reqId !== epcCxTableReq) { return; }
 				var detail = (xhr && xhr.status) ? ('HTTP ' + xhr.status) : 'network error';
-				document.getElementById('div_table_crosses').innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">Crosses table failed ('+detail+'). Try searching by article/brand, or reload.</div></div>';
+				box.innerHTML = '<div class="panel-body"><div class="alert alert-danger mb-0">Crosses table failed ('+detail+'). Try searching by article/brand, or reload.</div></div>';
 			}
         });
 	}
@@ -1065,8 +909,12 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	
 	
 	
-	// Функция запроса списка производителей
+	// Функция запроса списка производителей (debounced)
 	function get_search_manufacturer(){
+		if (epcCxMfrTimer) { clearTimeout(epcCxMfrTimer); }
+		epcCxMfrTimer = setTimeout(epcCxFetchSearchManufacturers, 280);
+	}
+	function epcCxFetchSearchManufacturers(){
 		var article = document.getElementById('search_article').value;
 		if(article.length >= 2){
 			//Объект для запроса
@@ -1178,6 +1026,31 @@ if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'an
 	
     // ------------------------------------------------------------------------------------------------
 	
+
+	// Filter / lookup keyboard shortcuts
+	(function(){
+		var searchArt = document.getElementById('search_article');
+		if (searchArt) {
+			searchArt.addEventListener('input', get_search_manufacturer);
+			searchArt.addEventListener('keydown', function(e){
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					epcCpCrossSyncLookupFromSearch();
+					show_table_crosses();
+				}
+			});
+		}
+		['epc_cross_lookup_article', 'epc_cross_lookup_manufacturer'].forEach(function(id){
+			var el = document.getElementById(id);
+			if (!el) { return; }
+			el.addEventListener('keydown', function(e){
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					epcCpCrossLookup();
+				}
+			});
+		});
+	})();
 
 	// После открытия страницы отображаем таблицу кроссов
 	show_table_crosses();

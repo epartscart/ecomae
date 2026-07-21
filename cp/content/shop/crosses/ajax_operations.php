@@ -26,32 +26,33 @@ function pagination($all, $lim, $prev, $curr_link, $curr_css, $link)
 	if ($pages < 1) {
 		$pages = 1;
 	}
+	// Compact window only — never emit thousands of page links.
 	$first = max(1, $curr_link - $prev);
 	$last = min($pages, $curr_link + $prev);
+	if ($curr_link > 1) {
+		$html .= "<a onclick='go_to_page(" . ($curr_link - 1) . ")' title='Previous'>&laquo;</a>";
+	}
 	if ($first > 1) {
 		$html .= "<a onclick='go_to_page(1)'>1</a>";
-	}
-	$y = $first - 1;
-	if ($first > $prev) {
-		$html .= "<a onclick='go_to_page({$y})'>...</a>";
-	} else {
-		for ($i = 2; $i < $first; $i++) {
-			$html .= "<a onclick='go_to_page({$y})'>$i</a>";
+		if ($first > 2) {
+			$html .= "<a onclick='go_to_page(" . max(1, $first - 1) . ")'>…</a>";
 		}
 	}
 	for ($i = $first; $i <= $last; $i++) {
 		if ($i == $curr_link) {
-			$html .= '<a class="' . $curr_css . '">' . $i . '</a>';
+			$html .= '<a class="' . htmlspecialchars((string) $curr_css, ENT_QUOTES, 'UTF-8') . '">' . $i . '</a>';
 		} else {
-			$html .= "<a onclick='go_to_page(" . ($i != 1 ? $i : '') . ")'>$i</a>";
+			$html .= "<a onclick='go_to_page({$i})'>{$i}</a>";
 		}
 	}
-	$y = $last + 1;
-	if ($last < $pages && $pages - $last > 2) {
-		$html .= "<a onclick='go_to_page({$y})'>...</a>";
-	}
 	if ($last < $pages) {
-		$html .= "<a onclick='go_to_page({$pages})'>$pages</a>";
+		if ($last < $pages - 1) {
+			$html .= "<a onclick='go_to_page(" . min($pages, $last + 1) . ")'>…</a>";
+		}
+		$html .= "<a onclick='go_to_page({$pages})'>{$pages}</a>";
+	}
+	if ($curr_link < $pages) {
+		$html .= "<a onclick='go_to_page(" . ($curr_link + 1) . ")' title='Next'>&raquo;</a>";
 	}
 	return $html;
 }
@@ -195,7 +196,12 @@ switch ($action) {
 			$ma = htmlspecialchars((string) $rov['manufacturer_article'], ENT_QUOTES, 'UTF-8');
 			$an = htmlspecialchars((string) $rov['analog'], ENT_QUOTES, 'UTF-8');
 			$man = htmlspecialchars((string) $rov['manufacturer_analog'], ENT_QUOTES, 'UTF-8');
-			$html .= '<tr id="show_line_' . $id . '"><td>' . $a . '</td><td>' . $ma . '</td><td>' . $an . '</td><td>' . $man . '</td><td>' . $id . '</td><td>'
+			$html .= '<tr id="show_line_' . $id . '">'
+				. '<td><span class="epc-cx-pair__art">' . $a . '</span></td>'
+				. '<td><span class="epc-cx-pair__mfr">' . $ma . '</span></td>'
+				. '<td><span class="epc-cx-pair__art">' . $an . '</span></td>'
+				. '<td><span class="epc-cx-pair__mfr">' . $man . '</span></td>'
+				. '<td>' . $id . '</td><td>'
 				. '<a onclick="crosses_edit(' . $id . ');" class="btn btn-sm btn-primary" title="' . htmlspecialchars($t(2270, 'Edit'), ENT_QUOTES, 'UTF-8') . '"><i class="fas fa-pencil-alt"></i></a> '
 				. '<a onclick="crosses_del(' . $id . ');" class="btn btn-sm btn-danger" title="' . htmlspecialchars($t(2224, 'Delete'), ENT_QUOTES, 'UTF-8') . '"><i class="fa fa-times"></i></a></td></tr>'
 				. '<tr class="hidden" id="edit_line_' . $id . '"><td><input class="form-control" type="text" id="article_edit_' . $id . '" value="' . $a . '"/></td>'
@@ -218,8 +224,9 @@ switch ($action) {
 				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'manufacturer_analog\');" id="manufacturer_analog_sorter">' . htmlspecialchars($t(3114, 'Analog manufacturer'), ENT_QUOTES, 'UTF-8') . '</a></th>'
 				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'id\');" id="id_sorter">ID</a></th>'
 				. '<th>' . htmlspecialchars($t(2755, 'Actions'), ENT_QUOTES, 'UTF-8') . '</th></tr></thead><tbody>' . $html . '</tbody></table>';
-			$pagination = pagination($total, $kol, 3, $page, 'pagination_active', '');
-			$pagination = ($pagination !== '<a class="pagination_active">1</a>')
+			$pagination = pagination($total, $kol, 2, $page, 'pagination_active', '');
+			$pages = max(1, (int) ceil($total / max(1, $kol)));
+			$pagination = ($pages > 1)
 				? '<div class="panel-footer"><div class="pagination_box">' . $pagination . '</div></div>'
 				: '';
 			$html = '<div class="panel-body">' . $banner . $table . '</div>' . $pagination;

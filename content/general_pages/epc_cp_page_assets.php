@@ -293,6 +293,9 @@ function epc_cp_page_asset_url_map(): array
 		'shop/accessories' => array(
 			'css' => array('/content/general_pages/epc_accessories_cp_css.php?v=' . rawurlencode($ver . 'acc1')),
 		),
+		'shop/crosses' => array(
+			'css' => array('/content/general_pages/epc_crosses_cp_css.php?v=' . rawurlencode($ver . 'cx1')),
+		),
 		'shop/prices' => array(
 			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),
 			'js' => array(
