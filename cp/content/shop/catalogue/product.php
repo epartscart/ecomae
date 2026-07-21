@@ -2110,6 +2110,29 @@ else//Действий нет - выводим страницу
 			</div>
 		</div>
 	</div>
+	<?php
+	// Deep-link into unlimited SKU photos + multi-type specs manager.
+	$epcSkuMediaUrl = '/' . trim((string) ($DP_Config->backend_dir ?? 'cp'), '/') . '/shop/catalogue/sku_media';
+	if (!empty($product_id)) {
+		$epcSkuMediaUrl .= '?product_id=' . (int) $product_id;
+	}
+	?>
+	<div class="col-lg-12">
+		<div class="hpanel">
+			<div class="panel-heading hbuilt">
+				SKU photos &amp; specification sheets
+			</div>
+			<div class="panel-body">
+				<p class="text-muted" style="margin-bottom:10px;">
+					Add unlimited product photos and multiple specification types (Technical, Dimensions, Packaging, Custom…) with unlimited rows.
+					Customers see a gallery + formatted specification sheets on the product page.
+				</p>
+				<a class="btn btn-primary" href="<?php echo htmlspecialchars($epcSkuMediaUrl, ENT_QUOTES, 'UTF-8'); ?>">
+					<i class="fa fa-picture-o"></i> Manage photos &amp; specifications
+				</a>
+			</div>
+		</div>
+	</div>
     <script>
         //РАБОТА С ИЗОБРАЖЕНИЯМИ
         var images_count = 0;//Счетчик для изображений - используется исключительно для работы с изображениями на уровне браузера. Т.е. это ID изображения в сессии браузера
