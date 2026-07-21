@@ -430,17 +430,7 @@ function print_backend_button($button_params)
 	$epcCpShowErpCta = $epcCpErpUrl !== '';
 	?>
 	<div class="epc-cp-topbar-strip hidden-xs">
-		<?php if (!empty($epcCpShell['company'])) { ?>
-		<span class="epc-cp-topbar-company"><?php echo htmlspecialchars($epcCpShell['company'], ENT_QUOTES, 'UTF-8'); ?></span>
-		<?php } ?>
 		<nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
-			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--cp" href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>" title="Open Control Panel home">
-				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-th-large"></i></span>
-				<span class="epc-cp-topbar-cta__text">
-					<span class="epc-cp-topbar-cta__label">Control Panel</span>
-					<span class="epc-cp-topbar-cta__host">CP home</span>
-				</span>
-			</a>
 			<?php if ($epcCpShowErpCta) { ?>
 			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>" title="Open ERP">
 				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-briefcase"></i></span>
@@ -485,11 +475,6 @@ function print_backend_button($button_params)
             </button>
             <div class="collapse mobile-navbar" id="mobile-collapse">
 				<ul class="nav navbar-nav">
-					<li>
-						<a href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>">
-							<i class="fa fa-th-large"></i> Control Panel
-						</a>
-					</li>
 					<?php if (!empty($epcCpShowErpCta)) { ?>
 					<li>
 						<a href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>">
@@ -1220,11 +1205,6 @@ if (empty($GLOBALS['epc_cp_bos_host']) && !empty($GLOBALS['epc_cp_topnav_only'])
 				<div class="epc-cp-page-header__eyebrow">
 					<span class="epc-cp-page-header__eyebrow-icon"><i class="fa <?php echo htmlspecialchars($epcPageHeader['icon'], ENT_QUOTES, 'UTF-8'); ?>"></i></span>
 					<span class="epc-cp-page-header__eyebrow-text"><?php echo htmlspecialchars($epcPageHeader['eyebrow'], ENT_QUOTES, 'UTF-8'); ?></span>
-					<?php if (!empty($epcPageHeader['role_label'])) { ?>
-					<span class="epc-cp-page-header__role epc-cp-page-header__role--<?php echo htmlspecialchars($epcPageHeader['role_type'], ENT_QUOTES, 'UTF-8'); ?>">
-						<?php echo htmlspecialchars($epcPageHeader['role_label'], ENT_QUOTES, 'UTF-8'); ?>
-					</span>
-					<?php } ?>
 				</div>
 				<h1 class="epc-cp-page-header__title"><?php echo $DP_Content->value; ?></h1>
 				<?php if (trim((string) $DP_Content->description) !== '') { ?>

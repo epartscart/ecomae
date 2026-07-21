@@ -5535,19 +5535,9 @@ body.epc-cp-shell #header .epc-cp-topbar-strip {
 	align-items: center;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-company {
-	font-size: 14px;
-	font-weight: 600;
-	color: #0f172a;
-	letter-spacing: -0.01em;
-}
-
+body.epc-cp-shell #header .epc-cp-topbar-company,
 body.epc-cp-shell #header .epc-cp-topbar-role {
-	font-size: 10px;
-	font-weight: 700;
-	letter-spacing: 0.06em;
-	padding: 3px 9px;
-	white-space: nowrap;
+	display: none !important;
 }
 
 /* Header breadcrumb — single line ellipsis */
@@ -5666,9 +5656,9 @@ body.epc-cp-shell #header .navbar-right .epc-cp-header-action--logout > a:hover 
 	background: #fef2f2 !important;
 }
 
-/* ── Topbar destination CTAs (CP / ERP / Storefront) ── */
+/* ── Topbar destination CTAs (ERP / Storefront only) ── */
 body.epc-cp-shell #header .epc-cp-topbar-strip {
-	max-width: min(78vw, 720px);
+	max-width: min(52vw, 420px);
 	gap: 8px;
 }
 

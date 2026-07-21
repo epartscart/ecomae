@@ -1,11 +1,17 @@
 /**
- * CP top-bar destination CTAs (Control Panel / ERP / Storefront).
+ * CP top-bar destination CTAs — limited to ERP + Storefront only.
  * Hot-deployable without rewriting the large professional.css bundle.
  */
 
 body.epc-cp-shell #header .epc-cp-topbar-strip {
-	max-width: min(78vw, 720px);
+	max-width: min(52vw, 420px);
 	gap: 8px;
+}
+
+/* Drop company / role text beside logo — keep only ERP + Storefront red CTAs */
+body.epc-cp-shell #header .epc-cp-topbar-company,
+body.epc-cp-shell #header .epc-cp-topbar-role {
+	display: none !important;
 }
 
 body.epc-cp-shell #header .epc-cp-topbar-ctas {
@@ -105,8 +111,3 @@ body.epc-cp-shell #header .epc-cp-topbar-storefront {
 	}
 }
 
-@media (max-width: 992px) {
-	body.epc-cp-shell #header .epc-cp-topbar-cta--cp .epc-cp-topbar-cta__label {
-		font-size: 10px;
-	}
-}

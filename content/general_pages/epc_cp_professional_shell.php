@@ -10,7 +10,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 function epc_cp_shell_css_version()
 {
 	// Bump whenever shell/topnav/layout CSS changes — Cloudflare caches tenant /cp/templates/*.css.
-	return '20260721storefront1';
+	return '20260721erpSf3';
 }
 
 /** Prefer PHP CSS/JS proxies on all hosts (nginx/Cloudflare often stale-cache /cp/templates). */
@@ -489,14 +489,8 @@ function epc_cp_page_header_context(): array
 			'icon' => 'fa-globe',
 			'target' => '_blank',
 		);
-	} elseif (!empty($DP_Config->domain_path) && !(function_exists('epc_portal_demo_cp_is_erp_only') && epc_portal_demo_cp_is_erp_only())) {
-		$actions[] = array(
-			'url' => (string) $DP_Config->domain_path,
-			'label' => 'View site',
-			'icon' => 'fa-external-link',
-			'target' => '_blank',
-		);
 	} elseif (function_exists('epc_portal_demo_cp_is_erp_only') && epc_portal_demo_cp_is_erp_only()) {
+		// ERP-only demos have no storefront; keep a single status pill here.
 		$key = function_exists('epc_portal_demo_cp_site_key') ? epc_portal_demo_cp_site_key() : '';
 		if ($key !== '') {
 			$actions[] = array(
@@ -507,27 +501,8 @@ function epc_cp_page_header_context(): array
 			);
 		}
 	}
-
-	$clientErpFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_client_erp_router.php';
-	if (is_file($clientErpFile)) {
-		require_once $clientErpFile;
-	}
-	$erpShellFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cp_shell.php';
-	if (is_file($erpShellFile)) {
-		require_once $erpShellFile;
-	}
-	if (!$isSuper && !(function_exists('epc_portal_demo_cp_is_erp_only') && epc_portal_demo_cp_is_erp_only())
-		&& function_exists('epc_erp_cp_shell_launcher_url') && strpos($here, '/shop/finance/erp') === false) {
-		$erpUrl = epc_erp_cp_shell_launcher_url();
-		if ($erpUrl !== '') {
-			$actions[] = array(
-				'url' => $erpUrl,
-				'label' => 'Client ERP',
-				'icon' => 'fa-university',
-				'primary' => !$isPlatformOp,
-			);
-		}
-	}
+	// Tenant ERP + Storefront live as the limited red top-bar CTAs only
+	// (avoid duplicate "View site" / "Client ERP" pills under the page title).
 
 	return array(
 		'eyebrow' => $eyebrow,
