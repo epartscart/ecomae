@@ -518,6 +518,16 @@ $backend = $DP_Config->backend_dir;
 	<strong>How margins stack:</strong> Warehouse base price → <em>Profile overall %</em> → <em>Brand %</em> → <em>Article %</em> → <em>Guest %</em> (visitors only). Each step adds on top of the previous price.
 </div>
 
+<div class="epc-pm-callout" style="border-left-color:#0f766e;background:#f0fdfa;">
+	<strong>VAT policy (no double tax):</strong>
+	Price uploads and catalogue / warehouse prices are <strong>excluding VAT (ex VAT)</strong>.
+	Margins above stay on the ex-VAT base.
+	UAE output VAT (default <?=epc_pm_h($vat_percent);?>%) is applied <strong>once at invoice / e-invoice level</strong> in FTA format:
+	unit net → line net → VAT amount → total incl. VAT.
+	B2C storefront may <em>display</em> prices incl. VAT; e-invoice still splits that back to net + VAT (never adds 5% on top again).
+	B2B / export keep ex-VAT shelf prices and add VAT (or zero-rate) only on the tax invoice.
+</div>
+
 <div class="epc-pm-flow">
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step1"><span class="epc-pm-flow-num">1</span><div class="epc-pm-flow-label">Profiles &amp;<br>overall margin</div></a></div>
 	<div class="epc-pm-flow-step"><a href="#epc-pm-step2"><span class="epc-pm-flow-num">2</span><div class="epc-pm-flow-label">Guest &amp;<br>VAT settings</div></a></div>
@@ -597,7 +607,7 @@ $backend = $DP_Config->backend_dir;
 		<div class="epc-pm-section-num">2</div>
 		<div>
 			<h2>Guest margin &amp; default VAT</h2>
-			<p>Guest margin applies to visitors who are <strong>not logged in</strong>. Catalog prices are <strong>ex VAT</strong>. UAE sales add <?php echo epc_pm_h($vat_percent); ?>% output VAT on invoice only — VAT does not change catalog search prices.</p>
+			<p>Guest margin applies to visitors who are <strong>not logged in</strong>. Uploaded and catalogue prices stay <strong>ex VAT</strong>. UAE sales apply <?=epc_pm_h($vat_percent);?>% output VAT <strong>once on the tax invoice / e-invoice</strong> (FTA: net + VAT + total) — never twice.</p>
 		</div>
 	</div>
 	<div class="epc-pm-section-body">
@@ -625,7 +635,7 @@ $backend = $DP_Config->backend_dir;
 						<input class="form-control" name="vat_percent" type="number" step="0.01" value="<?=epc_pm_h($vat_percent);?>" />
 						<span class="input-group-btn"><button class="btn btn-primary" type="submit">Save VAT</button></span>
 					</div>
-					<p class="help-block" style="margin-top:8px;">UAE default: 5% output VAT on customer invoices. ERP purchase input VAT uses the same rate for UAE VAT-registered suppliers.</p>
+					<p class="help-block" style="margin-top:8px;">UAE default: 5% output VAT on customer tax invoices / e-invoices. Price uploads must be entered <strong>without VAT</strong>; the invoice layer adds VAT once.</p>
 				</form>
 			</div>
 		</div>

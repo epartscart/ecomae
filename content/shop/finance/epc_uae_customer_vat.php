@@ -333,6 +333,107 @@ function epc_uae_customer_vat_type_label(string $vat_type): string
 	return $types[$vat_type] ?? $vat_type;
 }
 
+/**
+ * Aggregate FTA-style order VAT totals from stored cart/order unit prices.
+ * Matches e-invoice: unit net, line net, VAT amount, gross — without double VAT.
+ *
+ * @param list<array{price?:float|int|string,count_need?:float|int|string,qty?:float|int|string}> $items
+ * @return array{
+ *   line_net:float,vat_amount:float,gross:float,tax_rate:float,prices_inclusive:bool,
+ *   lines:list<array>,courier_net:float,courier_vat:float,courier_gross:float,amount_due_base:float
+ * }
+ */
+function epc_uae_customer_vat_order_totals(PDO $db, int $user_id, array $items, array $transaction_flags = array(), array $courier = array()): array
+{
+	$lineNet = 0.0;
+	$vatAmt = 0.0;
+	$gross = 0.0;
+	$taxRate = 0.0;
+	$inclusive = false;
+	$lineOut = array();
+	foreach ($items as $item) {
+		$unit = (float) ($item['price'] ?? 0);
+		$qty = (float) ($item['count_need'] ?? ($item['qty'] ?? 0));
+		$line = epc_uae_customer_vat_order_line($db, $user_id, $unit, $qty, $transaction_flags);
+		$lineNet += (float) $line['line_net'];
+		$vatAmt += (float) $line['vat_amount'];
+		$gross += (float) $line['gross'];
+		$inclusive = $inclusive || !empty($line['prices_inclusive']);
+		if ((float) $line['tax_rate'] > 0) {
+			$taxRate = (float) $line['tax_rate'];
+		}
+		$lineOut[] = $line;
+	}
+	$courierNet = round((float) ($courier['line_net'] ?? 0), 2);
+	$courierVat = round((float) ($courier['vat_amount'] ?? 0), 2);
+	$courierGross = round((float) ($courier['gross'] ?? ($courierNet + $courierVat)), 2);
+	$goodsGross = round($gross, 2);
+	return array(
+		'line_net' => round($lineNet, 2),
+		'vat_amount' => round($vatAmt, 2),
+		'gross' => $goodsGross,
+		'tax_rate' => $taxRate,
+		'prices_inclusive' => $inclusive,
+		'lines' => $lineOut,
+		'courier_net' => $courierNet,
+		'courier_vat' => $courierVat,
+		'courier_gross' => $courierGross,
+		'amount_due_base' => round($goodsGross + $courierGross, 2),
+	);
+}
+
+/**
+ * Load shop order items and compute FTA VAT totals (goods + courier).
+ *
+ * @return array<string,mixed>
+ */
+function epc_uae_customer_vat_shop_order_totals(PDO $db, int $order_id): array
+{
+	$order_id = (int) $order_id;
+	$empty = array(
+		'line_net' => 0.0,
+		'vat_amount' => 0.0,
+		'gross' => 0.0,
+		'tax_rate' => 0.0,
+		'prices_inclusive' => false,
+		'lines' => array(),
+		'courier_net' => 0.0,
+		'courier_vat' => 0.0,
+		'courier_gross' => 0.0,
+		'amount_due_base' => 0.0,
+		'user_id' => 0,
+	);
+	if ($order_id <= 0) {
+		return $empty;
+	}
+	$oq = $db->prepare('SELECT * FROM `shop_orders` WHERE `id` = ? LIMIT 1');
+	$oq->execute(array($order_id));
+	$order = $oq->fetch(PDO::FETCH_ASSOC);
+	if (!$order) {
+		return $empty;
+	}
+	$userId = (int) ($order['user_id'] ?? 0);
+	$iq = $db->prepare('SELECT `price`, `count_need` FROM `shop_orders_items` WHERE `order_id` = ?');
+	$iq->execute(array($order_id));
+	$items = $iq->fetchAll(PDO::FETCH_ASSOC) ?: array();
+
+	$flags = array();
+	$courier = array();
+	$courierLib = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_order_courier_vat.php';
+	if (is_file($courierLib)) {
+		require_once $courierLib;
+		if (function_exists('epc_order_vat_transaction_flags')) {
+			$flags = epc_order_vat_transaction_flags($db, $order, $userId);
+		}
+		if (function_exists('epc_order_courier_vat_amounts')) {
+			$courier = epc_order_courier_vat_amounts($db, $order, $userId, $flags);
+		}
+	}
+	$totals = epc_uae_customer_vat_order_totals($db, $userId, $items, $flags, $courier);
+	$totals['user_id'] = $userId;
+	return $totals;
+}
+
 function epc_uae_customer_vat_styles(): string
 {
 	return '<style>'

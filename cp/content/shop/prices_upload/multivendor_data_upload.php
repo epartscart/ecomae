@@ -256,7 +256,7 @@ epc_cp_register_page_assets(
 							<td><strong>Price</strong></td>
 							<td><span class="label label-danger">Yes</span></td>
 							<td>Price, Sales price</td>
-							<td>Shelf / offer price</td>
+							<td>Shelf / offer price <strong>excluding VAT</strong> (ex VAT). Invoice / e-invoice adds UAE VAT once.</td>
 						</tr>
 						<tr>
 							<td><strong>Vendor full name</strong></td>

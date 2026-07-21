@@ -255,11 +255,12 @@ function epc_erp_order_sum_sql(PDO $db)
 	$paid_issue = 'IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 0 AND `order_id` = `shop_orders`.`id`), 0)';
 	$paid_income = 'IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 1 AND `order_id` = `shop_orders`.`id`), 0)';
 	$paid = 'CAST(IF(' . $cmp['order_complete_expr'] . ', (' . $paid_issue . ' - ' . $paid_income . '), 0) AS DECIMAL(20,2))';
-	$vat_mult = epc_uae_vat_sales_enabled($db) ? epc_uae_vat_multiplier($db) : 1;
-	$vat_mult_sql = number_format($vat_mult, 4, '.', '');
-	$due = 'CAST(IF(' . $cmp['order_complete_expr'] . ', GREATEST((' . $sale . ' * ' . $vat_mult_sql . ') - (' . $paid . '), 0), 0) AS DECIMAL(20,2))';
-	$sale_vat = 'CAST(IF(' . $cmp['order_complete_expr'] . ', (' . $sale . ' * ' . number_format(epc_uae_vat_rate_decimal($db), 4, '.', '') . '), 0) AS DECIMAL(20,2))';
-	$sale_incl = 'CAST(IF(' . $cmp['order_complete_expr'] . ', (' . $sale . ' * ' . $vat_mult_sql . '), 0) AS DECIMAL(20,2))';
+	// Do NOT multiply stored line prices by VAT here.
+	// B2C carts already store VAT-inclusive unit prices; a SQL *1.05 would double-tax.
+	// Exact FTA split (ex VAT / VAT / incl) is applied in PHP via epc_uae_customer_vat_shop_order_totals().
+	$due = 'CAST(IF(' . $cmp['order_complete_expr'] . ', GREATEST((' . $sale . ') - (' . $paid . '), 0), 0) AS DECIMAL(20,2))';
+	$sale_vat = 'CAST(0 AS DECIMAL(20,2))';
+	$sale_incl = 'CAST(IF(' . $cmp['order_complete_expr'] . ', (' . $sale . '), 0) AS DECIMAL(20,2))';
 	return array(
 		'sale' => $sale,
 		'purchase' => $purchase,
@@ -319,15 +320,26 @@ function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0, $light = false
 	$q = $db->prepare(
 		'SELECT
 			SUM(IF(' . $sql['order_complete_expr'] . ', 1, 0)) AS order_count,
-			IFNULL(SUM(' . $sql['sale'] . '), 0) AS revenue_ex_vat,
-			IFNULL(SUM(' . $sql['purchase'] . '), 0) AS purchase_ex_vat,
-			IFNULL(SUM(' . $sql['profit'] . '), 0) AS profit_ex_vat,
-			IFNULL(SUM(' . $sql['due'] . '), 0) AS receivable_due
+			IFNULL(SUM(' . $sql['purchase'] . '), 0) AS purchase_ex_vat
 		FROM `shop_orders`
 		WHERE `successfully_created` = 1 AND `time` >= ? AND `time` <= ?'
 	);
 	$q->execute(array($date_from, $date_to));
 	$row = $q->fetch(PDO::FETCH_ASSOC) ?: array();
+
+	// FTA totals (ex VAT / VAT / incl) — never treat inclusive B2C line prices as ex-VAT then *1.05.
+	$revRows = epc_erp_revenue_report($db, $date_from, $date_to, 5000);
+	$revenueEx = 0.0;
+	$receivableDue = 0.0;
+	foreach ($revRows as $rr) {
+		if (empty($rr['order_complete'])) {
+			continue;
+		}
+		$revenueEx += (float) ($rr['sale_ex_vat'] ?? 0);
+		$receivableDue += (float) ($rr['due_amount'] ?? 0);
+	}
+	$purchaseEx = (float) ($row['purchase_ex_vat'] ?? 0);
+	$profitEx = round($revenueEx - $purchaseEx, 2);
 
 	$receivable = (float)$db->query(
 		'SELECT IFNULL(SUM(`amount`),0) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 1'
@@ -345,10 +357,10 @@ function epc_erp_dashboard(PDO $db, $date_from = 0, $date_to = 0, $light = false
 		'date_from' => $date_from,
 		'date_to' => $date_to,
 		'order_count' => (int)($row['order_count'] ?? 0),
-		'revenue_ex_vat' => (float)($row['revenue_ex_vat'] ?? 0),
-		'purchase_ex_vat' => (float)($row['purchase_ex_vat'] ?? 0),
-		'profit_ex_vat' => (float)($row['profit_ex_vat'] ?? 0),
-		'receivable_due_orders' => (float)($row['receivable_due'] ?? 0),
+		'revenue_ex_vat' => round($revenueEx, 2),
+		'purchase_ex_vat' => $purchaseEx,
+		'profit_ex_vat' => $profitEx,
+		'receivable_due_orders' => round($receivableDue, 2),
 		'customer_ledger_balance' => $customer_balance,
 		'payable_balance' => $payable_balance,
 		'cash_bank_total' => $cash_total,
@@ -468,7 +480,35 @@ function epc_erp_revenue_report(PDO $db, $date_from, $date_to, $limit = 200)
 		LIMIT ' . (int)$limit
 	);
 	$q->execute(array($date_from, $date_to));
-	return $q->fetchAll(PDO::FETCH_ASSOC);
+	$rows = $q->fetchAll(PDO::FETCH_ASSOC);
+	return epc_erp_revenue_report_apply_customer_vat($db, $rows);
+}
+
+/**
+ * Replace blind sale*VAT with FTA e-invoice totals (no double VAT).
+ *
+ * @param list<array<string,mixed>> $rows
+ * @return list<array<string,mixed>>
+ */
+function epc_erp_revenue_report_apply_customer_vat(PDO $db, array $rows): array
+{
+	require_once __DIR__ . '/epc_uae_customer_vat.php';
+	foreach ($rows as &$row) {
+		$orderId = (int) ($row['id'] ?? 0);
+		if ($orderId <= 0 || empty($row['order_complete'])) {
+			continue;
+		}
+		$paid = round((float) ($row['paid_amount'] ?? 0), 2);
+		$totals = epc_uae_customer_vat_shop_order_totals($db, $orderId);
+		$row['sale_ex_vat'] = (float) $totals['line_net'];
+		$row['sale_vat'] = (float) $totals['vat_amount'];
+		$row['sale_incl_vat'] = (float) $totals['gross'];
+		$row['due_amount'] = max(0, round(((float) $totals['amount_due_base']) - $paid, 2));
+		$purchase = round((float) ($row['purchase_ex_vat'] ?? 0), 2);
+		$row['profit_ex_vat'] = round(((float) $row['sale_ex_vat']) - $purchase, 2);
+	}
+	unset($row);
+	return $rows;
 }
 
 function epc_erp_receivables(PDO $db, $limit = 300)

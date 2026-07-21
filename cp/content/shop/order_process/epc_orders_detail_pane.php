@@ -271,7 +271,7 @@ $vatDueLabel = $vatZeroRated
 	: ($vatInclusive
 		? ('incl. VAT ' . number_format($vatRateLabel, 0) . '%')
 		: ('excl. + VAT ' . number_format($vatRateLabel, 0) . '%'));
-$amountDueBase = round($priceSum + $courierGross, 2);
+$amountDueBase = round(($vatGross > 0 ? $vatGross : $priceSum) + $courierGross, 2);
 $paidLeft = max(0, round($amountDueBase - $paidSum, 2));
 
 $itemIds = array();
