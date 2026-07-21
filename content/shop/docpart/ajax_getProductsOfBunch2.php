@@ -307,11 +307,14 @@ class ProductsOfBunch//Класс ответа
 							(int) $this->group_id,
 							(string) ($this->Products[$i]['manufacturer'] ?? ''),
 							(float) $this->Products[$i]['price_purchase'],
-							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? '')
+							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? ''),
+							(int) ($this->Products[$i]['storage_id'] ?? 0)
 						);
 						if (!empty($epc_sell['visible'])) {
 							$this->Products[$i]['price'] = $epc_sell['price'];
 							$this->Products[$i]['markup'] = $epc_sell['markup_percent'];
+						} else {
+							$this->Products[$i]['price'] = 0;
 						}
 					}
 				}

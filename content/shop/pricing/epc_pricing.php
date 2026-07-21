@@ -216,17 +216,174 @@ if (!function_exists('epc_pricing_resolve_customer_group_id')) {
 	}
 }
 
+if (!function_exists('epc_pricing_ensure_storage_schema')) {
+	/**
+	 * Warehouse / supplier margin tables (top → bottom: supplier → brand → article).
+	 */
+	function epc_pricing_ensure_storage_schema($db_link): void
+	{
+		static $done = false;
+		if ($done) {
+			return;
+		}
+		$done = true;
+		try {
+			$db_link->exec(
+				"CREATE TABLE IF NOT EXISTS `epc_price_storage_rules` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`storage_id` int(11) NOT NULL,
+					`margin_percent` decimal(10,2) NOT NULL DEFAULT 0.00,
+					`visible` tinyint(1) NOT NULL DEFAULT 1,
+					`updated_at` int(11) NOT NULL DEFAULT 0,
+					PRIMARY KEY (`id`),
+					UNIQUE KEY `x_storage` (`storage_id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+			);
+			$db_link->exec(
+				"CREATE TABLE IF NOT EXISTS `epc_price_storage_brand_rules` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`storage_id` int(11) NOT NULL,
+					`manufacturer` varchar(255) NOT NULL,
+					`margin_percent` decimal(10,2) NOT NULL DEFAULT 0.00,
+					`visible` tinyint(1) NOT NULL DEFAULT 1,
+					`updated_at` int(11) NOT NULL DEFAULT 0,
+					PRIMARY KEY (`id`),
+					UNIQUE KEY `x_storage_brand` (`storage_id`, `manufacturer`),
+					KEY `x_manufacturer` (`manufacturer`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+			);
+			$db_link->exec(
+				"CREATE TABLE IF NOT EXISTS `epc_price_storage_article_rules` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`storage_id` int(11) NOT NULL,
+					`manufacturer` varchar(255) NOT NULL,
+					`article` varchar(64) NOT NULL,
+					`margin_percent` decimal(10,2) NOT NULL DEFAULT 0.00,
+					`visible` tinyint(1) NOT NULL DEFAULT 1,
+					`updated_at` int(11) NOT NULL DEFAULT 0,
+					PRIMARY KEY (`id`),
+					UNIQUE KEY `x_storage_brand_article` (`storage_id`, `manufacturer`, `article`),
+					KEY `x_article` (`article`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+			);
+		} catch (Exception $e) {
+		}
+	}
+}
+
+if (!function_exists('epc_pricing_get_storage_rule')) {
+	function epc_pricing_get_storage_rule($db_link, $storage_id)
+	{
+		static $cache = array();
+		$storage_id = (int) $storage_id;
+		if ($storage_id <= 0) {
+			return array('visible' => 1, 'margin_percent' => 0.0, 'matched' => false);
+		}
+		if (isset($cache[$storage_id])) {
+			return $cache[$storage_id];
+		}
+		$rule = array('visible' => 1, 'margin_percent' => 0.0, 'matched' => false);
+		try {
+			epc_pricing_ensure_storage_schema($db_link);
+			$stmt = $db_link->prepare(
+				'SELECT `visible`, `margin_percent` FROM `epc_price_storage_rules` WHERE `storage_id` = ? LIMIT 1;'
+			);
+			$stmt->execute(array($storage_id));
+			$row = $stmt->fetch(PDO::FETCH_ASSOC);
+			if ($row) {
+				$rule['visible'] = (int) $row['visible'];
+				$rule['margin_percent'] = (float) $row['margin_percent'];
+				$rule['matched'] = true;
+			}
+		} catch (Exception $e) {
+		}
+		$cache[$storage_id] = $rule;
+		return $rule;
+	}
+}
+
+if (!function_exists('epc_pricing_get_storage_brand_rule')) {
+	function epc_pricing_get_storage_brand_rule($db_link, $storage_id, $brand)
+	{
+		static $cache = array();
+		$storage_id = (int) $storage_id;
+		$brand = epc_pricing_normalize_brand($brand);
+		$key = $storage_id . '|' . $brand;
+		if ($storage_id <= 0 || $brand === '') {
+			return array('visible' => 1, 'margin_percent' => 0.0, 'matched' => false);
+		}
+		if (isset($cache[$key])) {
+			return $cache[$key];
+		}
+		$rule = array('visible' => 1, 'margin_percent' => 0.0, 'matched' => false);
+		try {
+			epc_pricing_ensure_storage_schema($db_link);
+			$stmt = $db_link->prepare(
+				'SELECT `visible`, `margin_percent` FROM `epc_price_storage_brand_rules`
+				 WHERE `storage_id` = ? AND `manufacturer` = ? LIMIT 1;'
+			);
+			$stmt->execute(array($storage_id, $brand));
+			$row = $stmt->fetch(PDO::FETCH_ASSOC);
+			if ($row) {
+				$rule['visible'] = (int) $row['visible'];
+				$rule['margin_percent'] = (float) $row['margin_percent'];
+				$rule['matched'] = true;
+			}
+		} catch (Exception $e) {
+		}
+		$cache[$key] = $rule;
+		return $rule;
+	}
+}
+
+if (!function_exists('epc_pricing_get_storage_article_rule')) {
+	function epc_pricing_get_storage_article_rule($db_link, $storage_id, $brand, $article)
+	{
+		static $cache = array();
+		$storage_id = (int) $storage_id;
+		$brand = epc_pricing_normalize_brand($brand);
+		$article = epc_pricing_normalize_article($article);
+		$key = $storage_id . '|' . $brand . '|' . $article;
+		if ($storage_id <= 0 || $brand === '' || $article === '') {
+			return array('visible' => 1, 'margin_percent' => 0.0, 'matched' => false);
+		}
+		if (isset($cache[$key])) {
+			return $cache[$key];
+		}
+		$rule = array('visible' => 1, 'margin_percent' => 0.0, 'matched' => false);
+		try {
+			epc_pricing_ensure_storage_schema($db_link);
+			$stmt = $db_link->prepare(
+				'SELECT `visible`, `margin_percent` FROM `epc_price_storage_article_rules`
+				 WHERE `storage_id` = ? AND `manufacturer` = ? AND `article` = ? LIMIT 1;'
+			);
+			$stmt->execute(array($storage_id, $brand, $article));
+			$row = $stmt->fetch(PDO::FETCH_ASSOC);
+			if ($row) {
+				$rule['visible'] = (int) $row['visible'];
+				$rule['margin_percent'] = (float) $row['margin_percent'];
+				$rule['matched'] = true;
+			}
+		} catch (Exception $e) {
+		}
+		$cache[$key] = $rule;
+		return $rule;
+	}
+}
+
 if (!function_exists('epc_pricing_apply_sell_from_purchase')) {
 	/**
 	 * Authoritative sell price from warehouse purchase using CP price-management stack.
+	 * Stack: supplier → supplier brand → supplier article → profile → brand → article → guest.
 	 *
 	 * @return array{visible:bool, price:float, markup_percent:int, markup_decimal:float, purchase:float}
 	 */
-	function epc_pricing_apply_sell_from_purchase($db_link, $group_id, $brand, $purchase, $article = ''): array
+	function epc_pricing_apply_sell_from_purchase($db_link, $group_id, $brand, $purchase, $article = '', $storage_id = 0): array
 	{
 		$purchase = (float) $purchase;
 		$group_id = (int) $group_id;
-		$result = epc_pricing_apply_price_rules($db_link, $group_id, $brand, $purchase, 0.0, $article);
+		$storage_id = (int) $storage_id;
+		$result = epc_pricing_apply_price_rules($db_link, $group_id, $brand, $purchase, 0.0, $article, $storage_id);
 		$price = (float) ($result['price'] ?? $purchase);
 		$markup_decimal = (float) ($result['markup_decimal'] ?? 0.0);
 		// Safety net: guest/retail never leave checkout path at cost.
@@ -247,6 +404,7 @@ if (!function_exists('epc_pricing_apply_sell_from_purchase')) {
 			'markup_percent' => (int) round($markup_decimal * 100),
 			'markup_decimal' => $markup_decimal,
 			'purchase' => $purchase,
+			'breakdown' => isset($result['breakdown']) ? $result['breakdown'] : array(),
 		);
 	}
 }
@@ -316,14 +474,19 @@ if (!function_exists('epc_pricing_apply_margin_step')) {
 }
 
 /**
- * Apply profile, brand, article, and guest margins. Returns breakdown for CP demo.
+ * Apply warehouse + profile margins. Returns breakdown for CP demo.
+ *
+ * Order (top → bottom):
+ *   Supplier overall → Supplier brand → Supplier article
+ *   → Profile overall → Profile brand → Profile article → Guest
  *
  * @return array{visible:bool, price:float, markup_decimal:float, brand_margin_percent:float, breakdown:array}
  */
 if (!function_exists('epc_pricing_apply_price_rules')) {
-	function epc_pricing_apply_price_rules($db_link, $group_id, $brand, $price, $markup_decimal, $article = '')
+	function epc_pricing_apply_price_rules($db_link, $group_id, $brand, $price, $markup_decimal, $article = '', $storage_id = 0)
 	{
 		$group_id = (int)$group_id;
+		$storage_id = (int)$storage_id;
 		$brand = epc_pricing_normalize_brand($brand);
 		$article = epc_pricing_normalize_article($article);
 		$base_price = (float)$price;
@@ -332,7 +495,43 @@ if (!function_exists('epc_pricing_apply_price_rules')) {
 			'steps' => array(),
 			'final_price' => round($base_price, 2),
 			'total_margin_percent' => 0.0,
+			'storage_id' => $storage_id,
 		);
+
+		// --- Warehouse / supplier visibility (before any margin) ---
+		$storage_rule = epc_pricing_get_storage_rule($db_link, $storage_id);
+		if (!empty($storage_rule['matched']) && (int) $storage_rule['visible'] === 0) {
+			return array(
+				'visible' => false,
+				'price' => $base_price,
+				'markup_decimal' => (float)$markup_decimal,
+				'brand_margin_percent' => 0,
+				'breakdown' => $breakdown,
+				'hidden_reason' => 'Supplier / warehouse hidden',
+			);
+		}
+		$storage_brand_rule = epc_pricing_get_storage_brand_rule($db_link, $storage_id, $brand);
+		if (!empty($storage_brand_rule['matched']) && (int) $storage_brand_rule['visible'] === 0) {
+			return array(
+				'visible' => false,
+				'price' => $base_price,
+				'markup_decimal' => (float)$markup_decimal,
+				'brand_margin_percent' => 0,
+				'breakdown' => $breakdown,
+				'hidden_reason' => 'Brand hidden for this supplier',
+			);
+		}
+		$storage_article_rule = epc_pricing_get_storage_article_rule($db_link, $storage_id, $brand, $article);
+		if (!empty($storage_article_rule['matched']) && (int) $storage_article_rule['visible'] === 0) {
+			return array(
+				'visible' => false,
+				'price' => $base_price,
+				'markup_decimal' => (float)$markup_decimal,
+				'brand_margin_percent' => 0,
+				'breakdown' => $breakdown,
+				'hidden_reason' => 'Article hidden for this supplier',
+			);
+		}
 
 		$brand_rule = epc_pricing_get_brand_rule($db_link, $group_id, $brand);
 		if ((int)$brand_rule['visible'] === 0) {
@@ -358,6 +557,45 @@ if (!function_exists('epc_pricing_apply_price_rules')) {
 			);
 		}
 
+		// --- 1–3: Supplier stack (warehouse → brand → article) ---
+		if (!empty($storage_rule['matched'])) {
+			$storage_margin = (float) $storage_rule['margin_percent'];
+			if ($storage_margin != 0.0) {
+				list($price, $markup_decimal) = epc_pricing_apply_margin_step($price, $markup_decimal, $storage_margin);
+				$breakdown['steps'][] = array(
+					'type' => 'supplier',
+					'label' => 'Supplier overall margin',
+					'percent' => $storage_margin,
+					'price_after' => round((float)$price, 2),
+				);
+			}
+		}
+		if (!empty($storage_brand_rule['matched'])) {
+			$sb_margin = (float) $storage_brand_rule['margin_percent'];
+			if ($sb_margin != 0.0) {
+				list($price, $markup_decimal) = epc_pricing_apply_margin_step($price, $markup_decimal, $sb_margin);
+				$breakdown['steps'][] = array(
+					'type' => 'supplier_brand',
+					'label' => 'Supplier brand margin (' . $brand . ')',
+					'percent' => $sb_margin,
+					'price_after' => round((float)$price, 2),
+				);
+			}
+		}
+		if (!empty($storage_article_rule['matched'])) {
+			$sa_margin = (float) $storage_article_rule['margin_percent'];
+			if ($sa_margin != 0.0) {
+				list($price, $markup_decimal) = epc_pricing_apply_margin_step($price, $markup_decimal, $sa_margin);
+				$breakdown['steps'][] = array(
+					'type' => 'supplier_article',
+					'label' => 'Supplier article margin (' . $brand . ' ' . $article . ')',
+					'percent' => $sa_margin,
+					'price_after' => round((float)$price, 2),
+				);
+			}
+		}
+
+		// --- 4–7: Customer profile stack ---
 		$profile_margin = epc_pricing_get_profile_margin_percent($db_link, $group_id);
 		if ($profile_margin != 0.0) {
 			list($price, $markup_decimal) = epc_pricing_apply_margin_step($price, $markup_decimal, $profile_margin);
@@ -401,15 +639,16 @@ if (!function_exists('epc_pricing_apply_price_rules')) {
 }
 
 if (!function_exists('epc_pricing_apply_brand_rule')) {
-	function epc_pricing_apply_brand_rule($db_link, $group_id, $brand, $price, $markup_decimal, $article = '')
+	function epc_pricing_apply_brand_rule($db_link, $group_id, $brand, $price, $markup_decimal, $article = '', $storage_id = 0)
 	{
-		$result = epc_pricing_apply_price_rules($db_link, $group_id, $brand, $price, $markup_decimal, $article);
+		$result = epc_pricing_apply_price_rules($db_link, $group_id, $brand, $price, $markup_decimal, $article, $storage_id);
 		return array(
 			'visible' => $result['visible'],
 			'price' => $result['price'],
 			'markup_decimal' => $result['markup_decimal'],
 			'brand_margin_percent' => $result['brand_margin_percent'],
 			'breakdown' => isset($result['breakdown']) ? $result['breakdown'] : array(),
+			'hidden_reason' => isset($result['hidden_reason']) ? $result['hidden_reason'] : '',
 		);
 	}
 }

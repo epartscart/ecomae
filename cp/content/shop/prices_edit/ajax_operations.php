@@ -306,7 +306,8 @@ switch($request_object['action'])
 					$mfr_raw,
 					$preview_group_id,
 					$office_id,
-					$storage_id
+					$storage_id,
+					(string) ($rov['article_show'] ?? $rov['article'] ?? '')
 				);
 				if (!$calc['visible']) {
 					if ($hide_hidden) {

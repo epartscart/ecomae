@@ -442,18 +442,22 @@ class ProductsOfBunch//Класс ответа
 						}
 					}
 					// CP price-management is authoritative: rebuild sell from purchase
-					// (profile / brand / article / guest). Prevents cost-price leak when map markup is 0.
+					// (supplier → brand → article → profile → guest). Prevents cost-price leak when map markup is 0.
 					if (function_exists('epc_pricing_apply_sell_from_purchase')) {
 						$epc_sell = epc_pricing_apply_sell_from_purchase(
 							$db_link,
 							(int) $this->group_id,
 							(string) ($this->Products[$i]['manufacturer'] ?? ''),
 							(float) $this->Products[$i]['price_purchase'],
-							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? '')
+							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? ''),
+							(int) ($this->Products[$i]['storage_id'] ?? 0)
 						);
 						if (!empty($epc_sell['visible'])) {
 							$this->Products[$i]['price'] = $epc_sell['price'];
 							$this->Products[$i]['markup'] = $epc_sell['markup_percent'];
+						} else {
+							// Hidden by supplier or profile visibility — drop from results.
+							$this->Products[$i]['price'] = 0;
 						}
 					}
 				}
@@ -587,7 +591,8 @@ class ProductsOfBunch//Класс ответа
 							(int) $group_id,
 							(string) ($this->Products[$i]['manufacturer'] ?? ''),
 							$purchase_base,
-							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? '')
+							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? ''),
+							(int) ($this->Products[$i]['storage_id'] ?? 0)
 						);
 						if (!empty($epc_sell['visible'])) {
 							$work_price = (float) $epc_sell['price'];
