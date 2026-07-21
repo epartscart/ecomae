@@ -131,12 +131,11 @@ else//Действий нет - выводим страницу
 		'userLabel' => (string) $user_id_show,
 		'labels' => array(
 			'selected' => translate_str_by_id(3247),
+			'modalError' => translate_str_by_id(3541),
 		),
 	);
 	?>
-	<script>
-	window.EPC_ACCOUNT_OPS = <?php echo json_encode($epc_ao_cfg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-	</script>
+	<textarea id="epc-ao-config" hidden aria-hidden="true"><?php echo htmlspecialchars(json_encode($epc_ao_cfg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8'); ?></textarea>
 
 	<div class="col-lg-12 epc-ao">
 		<div class="hpanel">
@@ -249,59 +248,6 @@ else//Действий нет - выводим страницу
 			</div>
 		</div>
 	</div>
-
-	<script>
-	function closeCustomerModalInfo(user_id) {
-		var ev = window.event;
-		if (!ev || !ev.srcElement) { return; }
-		if (ev.srcElement.id == 'customer-modal-info-' + user_id || ev.srcElement.id == 'close-customer-modal-info-' + user_id) {
-			var wrap = document.querySelector('#customer-modal-info-' + user_id);
-			if (wrap) { wrap.classList.remove('customer-modal-info-wrapper-show'); }
-		}
-	}
-	function showCustomerModalInfo(customer_id) {
-		jQuery.ajax({
-			type: 'POST',
-			async: false,
-			url: '/<?php echo $DP_Config->backend_dir; ?>/content/users/statistics/frontAjax/ajax_loadUserModal.php',
-			dataType: 'json',
-			data: 'customer_id=' + customer_id + '&csrf_guard_key=<?php echo htmlspecialchars($user_session['csrf_guard_key'], ENT_QUOTES, 'UTF-8'); ?>',
-			success: function (answer) {
-				if (answer.status == true) {
-					document.querySelector('#customer-modal-info-' + customer_id).classList.add('customer-modal-info-wrapper-show');
-					document.querySelector('#customer-modal-info-' + customer_id).innerHTML = answer.modal;
-				} else {
-					alert(<?php echo json_encode(translate_str_by_id(3541)); ?>);
-				}
-			}
-		});
-	}
-	function sortOperationsItems(field) {
-		var asc_desc = 'asc';
-		var current_sort_cookie = getCookie('account_operations_sort');
-		if (current_sort_cookie != undefined) {
-			current_sort_cookie = JSON.parse(getCookie('account_operations_sort'));
-			if (current_sort_cookie.field == field) {
-				asc_desc = (current_sort_cookie.asc_desc == 'asc') ? 'desc' : 'asc';
-			}
-		}
-		var account_operations_sort = { field: field, asc_desc: asc_desc };
-		var date = new Date(new Date().getTime() + 15552000 * 1000);
-		document.cookie = 'account_operations_sort=' + JSON.stringify(account_operations_sort) + '; path=/; expires=' + date.toUTCString();
-		location = '/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-	}
-	function getCookie(name) {
-		var matches = document.cookie.match(new RegExp(
-			"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-		));
-		return matches ? decodeURIComponent(matches[1]) : undefined;
-	}
-	function goToPage(need_page) {
-		var date = new Date(new Date().getTime() + 15552000 * 1000);
-		document.cookie = 'account_operations_need_page=' + need_page + '; path=/; expires=' + date.toUTCString();
-		location = '/<?php echo $DP_Config->backend_dir; ?>/shop/finance/account_operations';
-	}
-	</script>
 
 	<div class="col-lg-12 epc-ao">
 		<div class="hpanel">
