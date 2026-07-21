@@ -892,6 +892,50 @@ if (!function_exists('epc_guide_modules')) {
             'Recurring invoices post to AR and revenue recognition accounts per the billing cycle.',
             array('Set up dunning sequences for failed subscription payments to reduce churn.'));
 
+        $g['accounting_automation'] = $E('gl', 'Accounting automation centre',
+            'Graphical hub for every finance automation: Order→ERP posting, period/year-end close, bank reconciliation assist, collections dunning, report scheduler, VAT reminders, document→GL auto-post, AP payment due alerts and fixed-asset depreciation. Each automation shows a visual pipeline and can be enabled with one click.',
+            array(
+                'Open General ledger → Accounting automation (or Home → Automation Centre → Accounting).',
+                'Review the KPI strip (Total / Active / Available) and each card\'s pipeline.',
+                'Click Enable all accounting (or Enable on each card). Cards with a workflow template also install a runnable workflow.',
+                'Open linked modules (Collections, Year-end, Bank recon, Report scheduler) to finish any per-tenant configuration.',
+            ),
+            array(
+                'Step 1 — Hub overview. Result: every accounting automation is listed with Active / Available status and a chevron pipeline (e.g. Validate → AR Invoice → GL Journal → Inventory → VAT).',
+                'Step 2 — Enable Order→ERP. Result: storefront orders post AR + GL + stock + VAT automatically when the pipeline runs.',
+                'Step 3 — Enable Collections & dunning. Result: the scheduled tick advances overdue invoices through the 7-step reminder sequence.',
+                'Step 4 — Enable Report scheduler / VAT reminder. Result: scheduled workflows appear under Workflow builder and Run history after the tick.',
+                'Step 5 — Run history. Result: open Automation Centre → Run history (or click Run scheduled tick now) to see duration and status per run.',
+            ),
+            'Order→ERP and document→GL create balanced journals; collections read AR aging; period/year-end lock postings; depreciation posts expense/accumulated depreciation.',
+            array(
+                'Use Enable all accounting on a new tenant so finance automations are on before go-live.',
+                'Scheduled workflows need the platform cron (erp_automation_tick job) or the Run scheduled tick now button.',
+                'Open each linked module once after enabling — some engines create schema on first open.',
+            ));
+
+        $g['bpa_automation'] = $E('core', 'Business process automation (BPA)',
+            'Catalogue of every operational automation — PO approval, invoice auto-send, low stock, onboarding, daily sales summary, AML alerts, process-flow routing, 3-way match, subscriptions, RMA/warranty, credit-limit gate and GRN notify — with graphical pipelines, one-click enable, and installable workflow templates (trigger → condition → action).',
+            array(
+                'Open Home → Automation Centre → Business processes (also under System administration → Automation Centre).',
+                'Enable the processes you need; click Install workflow on cards that ship a template.',
+                'Open Workflow builder to edit the graphical node canvas (trigger → steps) or create a custom workflow.',
+                'Use Process flow for GPS-style live routing of human tasks across departments.',
+            ),
+            array(
+                'Step 1 — Business processes grid. Result: each BPA shows status, description and a teal pipeline of stages.',
+                'Step 2 — Install PO Approval / Invoice Auto-Send / Low Stock. Result: active workflows appear in the builder list with Run now.',
+                'Step 3 — Workflow builder canvas. Result: a dark graphical chain shows Trigger and each Action/Condition node; edit steps in the table and Save.',
+                'Step 4 — Run now / Run history. Result: actions create in-app notifications (and email when mail is configured); runs log duration and status.',
+                'Step 5 — Process flow. Result: for human hand-offs, use Overview → Process flow monitor/org map instead of (or alongside) no-code workflows.',
+            ),
+            'Most BPA steps are operational (notifications, tasks, status). Finance actions such as credit check and GL journal post when configured with amounts/accounts.',
+            array(
+                'Prefer templates for common patterns — they are idempotent (installing twice does not duplicate by name).',
+                'Conditions short-circuit the chain when they fail and on_failure=stop.',
+                'Keep Automation Centre bookmarked for operators; finance owners use Accounting automation inside General ledger.',
+            ));
+
         return $g;
     }
 }

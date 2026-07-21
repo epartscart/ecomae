@@ -335,6 +335,7 @@ $erpTabIncludes = array(
 	'tenant_config' => 'erp_tabs_tenant_config.php',
 	'print_designer' => 'erp_tabs_print_designer.php',
 	'workflow_automation' => 'erp_tabs_workflow_automation.php',
+	'accounting_automation' => 'erp_tabs_accounting_automation.php',
 	// ── New ERP modules (22-feature batch 2) ──
 	'sla' => 'erp_tabs_sla.php',
 	'tickets' => 'erp_tabs_tickets.php',

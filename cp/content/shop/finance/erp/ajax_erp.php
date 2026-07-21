@@ -2593,34 +2593,116 @@ try {
 			epc_workflow_ensure_schema($db_link);
 			$wfPost = $_POST;
 			$wfId = (int)($wfPost['id'] ?? 0);
-			$siteKey = isset($DP_Config) && isset($DP_Config->site_key) ? (string)$DP_Config->site_key : '';
+			$siteKey = '';
+			if (function_exists('epc_erp_site_key')) {
+				$siteKey = epc_erp_site_key();
+			} elseif (isset($DP_Config) && isset($DP_Config->site_key)) {
+				$siteKey = (string)$DP_Config->site_key;
+			}
+			$trigCfg = $wfPost['trigger_config'] ?? '{}';
+			if (is_string($trigCfg)) {
+				$decoded = json_decode($trigCfg, true);
+				$trigCfgArr = is_array($decoded) ? $decoded : array();
+			} else {
+				$trigCfgArr = is_array($trigCfg) ? $trigCfg : array();
+			}
+			$stepsIn = isset($wfPost['steps']) && is_array($wfPost['steps']) ? $wfPost['steps'] : array();
+			$stepsNorm = array();
+			foreach ($stepsIn as $s) {
+				$cfg = $s['config'] ?? '{}';
+				if (is_string($cfg)) {
+					$cd = json_decode($cfg, true);
+					$cfg = is_array($cd) ? $cd : array();
+				}
+				if (!empty($s['label'])) {
+					$cfg['label'] = (string)$s['label'];
+				}
+				$stepsNorm[] = array(
+					'step_type' => (string)($s['step_type'] ?? 'action'),
+					'action_type' => (string)($s['action_type'] ?? ''),
+					'label' => (string)($s['label'] ?? ''),
+					'config' => $cfg,
+					'on_failure' => (string)($s['on_failure'] ?? 'stop'),
+				);
+			}
 			$now = date('Y-m-d H:i:s');
+			$active = isset($wfPost['active']) ? 1 : 0;
+			$name = trim((string)($wfPost['name'] ?? ''));
+			$desc = trim((string)($wfPost['description'] ?? ''));
+			$trigType = (string)($wfPost['trigger_type'] ?? 'manual');
 			if ($wfId > 0) {
 				$db_link->prepare(
-					'UPDATE epc_workflows SET name=?, description=?, trigger_type=?, active=?, updated_at=? WHERE id=? AND site_key=?'
+					'UPDATE epc_workflows SET name=?, description=?, trigger_type=?, trigger_config=?, active=?, updated_at=? WHERE id=? AND site_key=?'
 				)->execute(array(
-					trim((string)($wfPost['name'] ?? '')),
-					trim((string)($wfPost['description'] ?? '')),
-					$wfPost['trigger_type'] ?? 'manual',
-					isset($wfPost['active']) ? 1 : 0,
-					$now, $wfId, $siteKey,
+					$name, $desc, $trigType, json_encode($trigCfgArr), $active, $now, $wfId, $siteKey,
 				));
+				if (function_exists('epc_workflow_replace_steps')) {
+					epc_workflow_replace_steps($db_link, $wfId, $stepsNorm);
+				}
 			} else {
-				$db_link->prepare(
-					'INSERT INTO epc_workflows (site_key, name, description, trigger_type, trigger_config, active, created_at, updated_at)
-					 VALUES (?,?,?,?,?,?,?,?)'
-				)->execute(array(
-					$siteKey,
-					trim((string)($wfPost['name'] ?? '')),
-					trim((string)($wfPost['description'] ?? '')),
-					$wfPost['trigger_type'] ?? 'manual',
-					'{}',
-					isset($wfPost['active']) ? 1 : 0,
-					$now, $now,
+				$res = epc_workflow_create($db_link, $siteKey, array(
+					'name' => $name !== '' ? $name : 'Untitled Workflow',
+					'description' => $desc,
+					'trigger_type' => $trigType,
+					'trigger_config' => $trigCfgArr,
+					'active' => $active,
+					'created_by' => isset($user_id) ? (int)$user_id : 0,
+					'steps' => $stepsNorm,
 				));
-				$wfId = (int)$db_link->lastInsertId();
+				$wfId = (int)($res['workflow_id'] ?? 0);
 			}
 			epc_erp_json($wfId > 0, 'Workflow saved', array('id' => $wfId));
+
+		case 'workflow_run':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_workflow_builder.php';
+			$runId = (int)($_POST['id'] ?? 0);
+			if ($runId <= 0) {
+				epc_erp_json(false, 'Missing workflow id');
+			}
+			$runRes = epc_workflow_execute($db_link, $runId, array('source' => 'manual_ui'));
+			epc_erp_json(!empty($runRes['ok']), !empty($runRes['ok']) ? ('Run ' . ($runRes['status'] ?? 'done')) : ($runRes['error'] ?? 'Run failed'), $runRes);
+
+		case 'automation_activate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_automation_catalogue.php';
+			$siteKey = function_exists('epc_erp_site_key') ? epc_erp_site_key() : ((isset($DP_Config->site_key) ? (string)$DP_Config->site_key : ''));
+			$autoId = trim((string)($_POST['id'] ?? ''));
+			$act = epc_erp_automation_activate($db_link, $siteKey, $autoId, isset($user_id) ? (int)$user_id : 0);
+			epc_erp_json(!empty($act['ok']), $act['message'] ?? 'OK', $act);
+
+		case 'automation_deactivate':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_automation_catalogue.php';
+			$autoId = trim((string)($_POST['id'] ?? ''));
+			$ok = epc_erp_automation_set_enabled($db_link, $autoId, false);
+			epc_erp_json($ok, $ok ? 'Automation disabled' : 'Unknown automation');
+
+		case 'automation_install_template':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_automation_catalogue.php';
+			$siteKey = function_exists('epc_erp_site_key') ? epc_erp_site_key() : ((isset($DP_Config->site_key) ? (string)$DP_Config->site_key : ''));
+			$tplId = trim((string)($_POST['template_id'] ?? ''));
+			$inst = epc_erp_automation_install_template($db_link, $siteKey, $tplId, isset($user_id) ? (int)$user_id : 0);
+			$msg = !empty($inst['ok'])
+				? (!empty($inst['created']) ? 'Template installed' : 'Template already installed')
+				: ($inst['error'] ?? 'Install failed');
+			epc_erp_json(!empty($inst['ok']), $msg, $inst);
+
+		case 'automation_enable_category':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_automation_catalogue.php';
+			$siteKey = function_exists('epc_erp_site_key') ? epc_erp_site_key() : ((isset($DP_Config->site_key) ? (string)$DP_Config->site_key : ''));
+			$cat = trim((string)($_POST['category'] ?? 'accounting'));
+			$n = 0;
+			foreach (epc_erp_automation_by_category($cat) as $id => $_item) {
+				$r = epc_erp_automation_activate($db_link, $siteKey, $id, isset($user_id) ? (int)$user_id : 0);
+				if (!empty($r['ok'])) {
+					$n++;
+				}
+			}
+			epc_erp_json(true, $n . ' automations enabled');
+
+		case 'automation_tick':
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_automation_catalogue.php';
+			$siteKey = function_exists('epc_erp_site_key') ? epc_erp_site_key() : ((isset($DP_Config->site_key) ? (string)$DP_Config->site_key : ''));
+			$tick = epc_erp_automation_tick($db_link, $siteKey);
+			epc_erp_json(!empty($tick['ok']), 'Scheduled tick ran ' . (int)($tick['ran'] ?? 0) . ' workflow(s)', $tick);
 
 		case 'tenant_config_save':
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_advanced.php';
