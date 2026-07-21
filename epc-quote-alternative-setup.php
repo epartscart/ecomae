@@ -31,6 +31,7 @@ $want = array(
 	'alt_name' => "VARCHAR(512) DEFAULT NULL",
 	'alt_count_need' => "INT(11) DEFAULT NULL",
 	'alt_quoted_price' => "DECIMAL(12,2) DEFAULT NULL",
+	'alt_storage_id' => "INT(11) DEFAULT NULL COMMENT 'Supplier warehouse for order process'",
 );
 
 foreach ($want as $name => $ddl) {

@@ -92,6 +92,24 @@ try {
 			$product_object['epc_requested_article'] = $requested_art;
 			$price = (float) $it['alt_quoted_price'];
 			$count_need = max(1, (int) ($it['alt_count_need'] ?: 1));
+
+			// Bind cart/order line to staff-chosen supplier warehouse.
+			$alt_storage_id = isset($it['alt_storage_id']) ? (int) $it['alt_storage_id'] : 0;
+			if ($alt_storage_id > 0) {
+				$storage_caption = '';
+				try {
+					$stCap = $db_link->prepare(
+						'SELECT COALESCE(NULLIF(TRIM(`short_name`), \'\'), `name`) FROM `shop_storages` WHERE `id` = ? LIMIT 1'
+					);
+					$stCap->execute(array($alt_storage_id));
+					$storage_caption = (string) $stCap->fetchColumn();
+				} catch (Throwable $e) {
+					$storage_caption = '';
+				}
+				$product_object['storage_id'] = $alt_storage_id;
+				$product_object['storage'] = $storage_caption !== '' ? $storage_caption : ('Storage #'.$alt_storage_id);
+				$product_object['epc_alt_storage_id'] = $alt_storage_id;
+			}
 		} else {
 			$price = (float) $it['quoted_price'];
 			$count_need = max(1, (int) $it['count_need']);

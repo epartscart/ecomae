@@ -294,7 +294,7 @@ function epc_cp_page_asset_url_map(): array
 		),
 		'shop/quote-requests' => array(
 			'js' => array(
-				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt1'),
+				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt2'),
 			),
 		),
 		'shop/parts_agent_chats' => array(
