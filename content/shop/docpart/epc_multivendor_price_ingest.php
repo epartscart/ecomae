@@ -18,6 +18,7 @@ defined('_ASTEXE_') or define('_ASTEXE_', true);
 require_once __DIR__ . '/docpart_price_upload_history.php';
 require_once __DIR__ . '/epc_price_import_helpers.php';
 require_once __DIR__ . '/epc_commerce_price_ingest.php';
+require_once __DIR__ . '/epc_multivendor_min_price_acl.php';
 
 /**
  * @return array<string,list<string>>
@@ -175,8 +176,15 @@ function epc_multivendor_collapse_product_candidates(array $candidates, string $
 			}
 		}
 		$minRow['exist'] = $sum > 0 ? $sum : (int) ($minRow['exist'] ?? 0);
+		// Single price is the public (max) offer — not a restricted min tier.
+		$minRow['storage'] = EPC_MV_MAX_TIER;
+		$minRow['epc_price_tier'] = 'max';
 		return array($minRow);
 	}
+	$minRow['storage'] = EPC_MV_MIN_TIER;
+	$minRow['epc_price_tier'] = 'min';
+	$maxRow['storage'] = EPC_MV_MAX_TIER;
+	$maxRow['epc_price_tier'] = 'max';
 	return array($minRow, $maxRow);
 }
 
@@ -620,8 +628,17 @@ function epc_multivendor_write_docpart_csv(string $path, array $products): bool
 	if ($fh === false) {
 		return false;
 	}
-	fwrite($fh, "Brand,Number,Name,Qty,Price,Delivery,MinOrder\n");
+	fwrite($fh, "Brand,Number,Name,Qty,Price,Delivery,MinOrder,Storage\n");
 	foreach ($products as $p) {
+		$tier = strtolower(trim((string) ($p['epc_price_tier'] ?? $p['storage'] ?? '')));
+		$storage = '';
+		if ($tier === 'min' || $tier === EPC_MV_MIN_TIER) {
+			$storage = EPC_MV_MIN_TIER;
+		} elseif ($tier === 'max' || $tier === EPC_MV_MAX_TIER) {
+			$storage = EPC_MV_MAX_TIER;
+		} else {
+			$storage = trim((string) ($p['storage'] ?? ''));
+		}
 		$line = array(
 			(string) ($p['manufacturer'] ?? ''),
 			(string) ($p['article_show'] ?? $p['article'] ?? ''),
@@ -630,6 +647,7 @@ function epc_multivendor_write_docpart_csv(string $path, array $products): bool
 			number_format((float) ($p['price'] ?? 0), 2, '.', ''),
 			(string) (int) ($p['time_to_exe'] ?? 0),
 			(string) (int) ($p['min_order'] ?? 0),
+			$storage,
 		);
 		fputcsv($fh, $line);
 	}
@@ -776,6 +794,15 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
 		$priceVal = epc_commerce_parse_number($row[4] ?? 0);
 		$timeToExe = (int) epc_commerce_parse_number($row[5] ?? 0);
 		$minOrder = (int) epc_commerce_parse_number($row[6] ?? 0);
+		$storageRaw = trim((string) ($row[7] ?? ''));
+		$storage = '';
+		if ($storageRaw === EPC_MV_MIN_TIER || strcasecmp($storageRaw, 'min') === 0) {
+			$storage = EPC_MV_MIN_TIER;
+		} elseif ($storageRaw === EPC_MV_MAX_TIER || strcasecmp($storageRaw, 'max') === 0) {
+			$storage = EPC_MV_MAX_TIER;
+		} elseif ($storageRaw !== '') {
+			$storage = epc_commerce_clip($storageRaw);
+		}
 		if ($art === '' || $priceVal <= 0) {
 			$skipped++;
 			continue;
@@ -791,7 +818,7 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
 			$exist,
 			$priceVal,
 			max(0, $timeToExe),
-			'',
+			$storage,
 			max(0, $minOrder),
 		));
 		$inserted++;

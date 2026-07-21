@@ -267,10 +267,144 @@
 		setResult('<div class="alert alert-danger">Sample download is not configured (reload the page).</div>');
 	}
 
+	function setAclResult(html) {
+		var box = $('epcMvMinAclResult');
+		if (box) {
+			box.innerHTML = html;
+		}
+	}
+
+	function selectedGroupIds() {
+		var sel = $('epcMvMinGroups');
+		var ids = [];
+		if (!sel) {
+			return ids;
+		}
+		Array.prototype.forEach.call(sel.options, function (opt) {
+			if (opt.selected) {
+				ids.push(parseInt(opt.value, 10) || 0);
+			}
+		});
+		return ids.filter(function (n) { return n > 0; });
+	}
+
+	function parseUserIds(raw) {
+		return String(raw || '')
+			.split(/[\s,;]+/)
+			.map(function (s) { return parseInt(s, 10) || 0; })
+			.filter(function (n) { return n > 0; });
+	}
+
+	function fillGroups(groups, selected) {
+		var sel = $('epcMvMinGroups');
+		if (!sel) {
+			return;
+		}
+		var selectedMap = {};
+		(selected || []).forEach(function (id) {
+			selectedMap[String(id)] = true;
+		});
+		sel.innerHTML = '';
+		(groups || []).forEach(function (g) {
+			var opt = document.createElement('option');
+			opt.value = String(g.id || '');
+			opt.textContent = (g.value || ('Group #' + g.id));
+			if (selectedMap[String(g.id)]) {
+				opt.selected = true;
+			}
+			sel.appendChild(opt);
+		});
+	}
+
+	function loadMinAcl() {
+		var url = ajaxUrl();
+		if (!url || !$('epcMvMinRestrict')) {
+			return;
+		}
+		var fd = new FormData();
+		fd.append('csrf_guard_key', csrfKey());
+		fd.append('action', 'min_price_acl_get');
+		fetch(url, {
+			method: 'POST',
+			body: fd,
+			credentials: 'same-origin',
+			headers: { 'Accept': 'application/json' }
+		}).then(function (r) {
+			return r.json();
+		}).then(function (data) {
+			if (!data || !data.status) {
+				return;
+			}
+			var acl = data.acl || {};
+			var restrictEl = $('epcMvMinRestrict');
+			if (restrictEl) {
+				restrictEl.checked = acl.restrict !== false;
+			}
+			fillGroups(data.groups || [], acl.group_ids || []);
+			var usersEl = $('epcMvMinUsers');
+			if (usersEl) {
+				usersEl.value = (acl.user_ids || []).join(', ');
+			}
+		}).catch(function () {
+			/* ignore — upload UI still works */
+		});
+	}
+
+	function saveMinAcl() {
+		var url = ajaxUrl();
+		var btn = $('epcMvMinAclSaveBtn');
+		if (!url) {
+			setAclResult('<div class="alert alert-danger">Save is not configured (reload the page).</div>');
+			return;
+		}
+		var key = csrfKey();
+		if (!key) {
+			setAclResult('<div class="alert alert-danger">Session CSRF missing — reload after login.</div>');
+			return;
+		}
+		var fd = new FormData();
+		fd.append('csrf_guard_key', key);
+		fd.append('action', 'min_price_acl_save');
+		fd.append('restrict', ($('epcMvMinRestrict') && $('epcMvMinRestrict').checked) ? '1' : '0');
+		fd.append('group_ids_json', JSON.stringify(selectedGroupIds()));
+		fd.append('user_ids_json', JSON.stringify(parseUserIds($('epcMvMinUsers') ? $('epcMvMinUsers').value : '')));
+		if (btn) {
+			btn.disabled = true;
+		}
+		fetch(url, {
+			method: 'POST',
+			body: fd,
+			credentials: 'same-origin',
+			headers: { 'Accept': 'application/json' }
+		}).then(function (r) {
+			return r.json();
+		}).then(function (data) {
+			var ok = !!(data && data.status);
+			setAclResult('<div class="alert alert-' + (ok ? 'success' : 'danger') + '">' +
+				escapeHtml((data && data.message) || (ok ? 'Saved' : 'Save failed')) + '</div>');
+			if (ok && data.acl) {
+				var acl = data.acl;
+				if ($('epcMvMinRestrict')) {
+					$('epcMvMinRestrict').checked = acl.restrict !== false;
+				}
+				if ($('epcMvMinUsers')) {
+					$('epcMvMinUsers').value = (acl.user_ids || []).join(', ');
+				}
+			}
+		}).catch(function (err) {
+			setAclResult('<div class="alert alert-danger">Save failed: ' + escapeHtml(err && err.message ? err.message : err) + '</div>');
+		}).finally(function () {
+			if (btn) {
+				btn.disabled = false;
+			}
+		});
+	}
+
 	function init() {
 		ensureCfg();
 		var uploadBtn = $('epcMultivendorUploadBtn');
 		var sampleBtn = $('epcMultivendorSampleBtn');
+		var aclSaveBtn = $('epcMvMinAclSaveBtn');
 		if (uploadBtn) {
 			uploadBtn.addEventListener('click', upload);
 		}
@@ -281,6 +415,10 @@
 			}
 			sampleBtn.addEventListener('click', downloadSample);
 		}
+		if (aclSaveBtn) {
+			aclSaveBtn.addEventListener('click', saveMinAcl);
+		}
+		loadMinAcl();
 	}
 
 	if (document.readyState === 'loading') {

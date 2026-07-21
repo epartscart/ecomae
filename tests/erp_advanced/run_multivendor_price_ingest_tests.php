@@ -59,6 +59,21 @@ if (is_array($salesSuae)) {
 	check('sales min price 18', isset($prices[0]) && abs($prices[0] - 18.0) < 0.001);
 	check('sales max price 29.90', isset($prices[1]) && abs($prices[1] - 29.90) < 0.001);
 	check('sales mid price 22.50 dropped', count($prices) === 2);
+	$tiers = array();
+	foreach ($salesSuae['products'] as $p) {
+		if (($p['article'] ?? '') === '0671007450') {
+			$tiers[(string) ($p['epc_price_tier'] ?? '')] = (float) ($p['price'] ?? 0);
+		}
+	}
+	check('sales min tier marked', isset($tiers['min']) && abs($tiers['min'] - 18.0) < 0.001);
+	check('sales max tier marked', isset($tiers['max']) && abs($tiers['max'] - 29.90) < 0.001);
+	$minStorageOk = false;
+	foreach ($salesSuae['products'] as $p) {
+		if (($p['epc_price_tier'] ?? '') === 'min' && ($p['storage'] ?? '') === 'epc_mv_min') {
+			$minStorageOk = true;
+		}
+	}
+	check('sales min storage marker', $minStorageOk);
 }
 
 // Inventory uniqueness + qty sum

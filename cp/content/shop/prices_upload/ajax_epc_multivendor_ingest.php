@@ -43,6 +43,47 @@ try {
 		), JSON_UNESCAPED_UNICODE));
 	}
 
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_multivendor_min_price_acl.php';
+
+	if ($action === 'min_price_acl_get') {
+		$acl = epc_mv_min_price_acl_get($db_link);
+		$groups = epc_mv_min_price_list_customer_groups($db_link);
+		exit(json_encode(array(
+			'status' => true,
+			'acl' => $acl,
+			'groups' => $groups,
+		), JSON_UNESCAPED_UNICODE));
+	}
+
+	if ($action === 'min_price_acl_save') {
+		$rawGroups = $_POST['group_ids'] ?? $_POST['group_ids_json'] ?? array();
+		if (is_string($rawGroups)) {
+			$decoded = json_decode($rawGroups, true);
+			$rawGroups = is_array($decoded) ? $decoded : preg_split('/[\s,;]+/', $rawGroups);
+		}
+		$rawUsers = $_POST['user_ids'] ?? $_POST['user_ids_json'] ?? array();
+		if (is_string($rawUsers)) {
+			$decoded = json_decode($rawUsers, true);
+			$rawUsers = is_array($decoded) ? $decoded : preg_split('/[\s,;]+/', $rawUsers);
+		}
+		$restrictRaw = $_POST['restrict'] ?? $_POST['restrict_min'] ?? '1';
+		$acl = array(
+			'restrict' => !in_array(strtolower(trim((string) $restrictRaw)), array('0', 'false', 'no', 'off'), true),
+			'group_ids' => is_array($rawGroups) ? $rawGroups : array(),
+			'user_ids' => is_array($rawUsers) ? $rawUsers : array(),
+		);
+		$adminId = 0;
+		if (method_exists('DP_User', 'getAdminId')) {
+			$adminId = (int) DP_User::getAdminId();
+		}
+		$ok = epc_mv_min_price_acl_save($db_link, $acl, $adminId);
+		exit(json_encode(array(
+			'status' => $ok,
+			'message' => $ok ? 'Minimum price access saved' : 'Could not save minimum price access',
+			'acl' => epc_mv_min_price_acl_get($db_link),
+		), JSON_UNESCAPED_UNICODE));
+	}
+
 	$hasFile = !empty($_FILES['price_file']) && (int) $_FILES['price_file']['error'] === UPLOAD_ERR_OK;
 	if (!$hasFile) {
 		exit(json_encode(array('status' => false, 'message' => 'Choose an Excel/CSV file with multiple vendors')));

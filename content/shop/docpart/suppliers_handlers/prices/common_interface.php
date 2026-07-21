@@ -7,6 +7,10 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/DocpartProduct.php
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_article_match.php");
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_storefront_storage_flags.php");
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_prices_office_storage_meta.php");
+$epcMvMinAcl = $_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_multivendor_min_price_acl.php";
+if (is_file($epcMvMinAcl)) {
+	require_once $epcMvMinAcl;
+}
 
 //Конфигурация Treelax
 require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
@@ -262,6 +266,13 @@ class prices_enclosure
 				
 				while($product = $products_query->fetch())
 				{
+					if (function_exists('epc_mv_min_price_should_hide_row')
+						&& epc_mv_min_price_should_hide_row($db_link, $product, (int) $user_id)) {
+						continue;
+					}
+					$epc_mv_storage_show = function_exists('epc_mv_min_price_display_storage')
+						? epc_mv_min_price_display_storage((string) ($product['storage'] ?? ''))
+						: (string) ($product['storage'] ?? '');
 
 					$product_price_id = $product["price_id"];
 
@@ -293,7 +304,7 @@ class prices_enclosure
 							$price, //OK
 							$product["time_to_exe"] + $office_storage_dataInfo_price_id["additional_time"],
 							$product["time_to_exe"] + $office_storage_dataInfo_price_id["additional_time"],
-							$product["storage"], //OK
+							$epc_mv_storage_show, //OK
 							$product["min_order"], //OK
 							$office_storage_dataInfo_price_id["probability"], //OK
 							$office_storage_dataInfo_price_id["office_id"], //OK
@@ -402,6 +413,13 @@ class prices_enclosure
 
 			while( $product = $products_query->fetch() )
 			{
+				if (function_exists('epc_mv_min_price_should_hide_row')
+					&& epc_mv_min_price_should_hide_row($db_link, $product, (int) $user_id)) {
+					continue;
+				}
+				$epc_mv_storage_show = function_exists('epc_mv_min_price_display_storage')
+					? epc_mv_min_price_display_storage((string) ($product['storage'] ?? ''))
+					: (string) ($product['storage'] ?? '');
 
 				$product_price_id = $product["price_id"];
 
@@ -433,7 +451,7 @@ class prices_enclosure
 						$price, //OK
 						$product["time_to_exe"] + $office_storage_dataInfo_price_id["additional_time"],
 						$product["time_to_exe"] + $office_storage_dataInfo_price_id["additional_time"],
-						$product["storage"], //OK
+						$epc_mv_storage_show, //OK
 						$product["min_order"], //OK
 						$office_storage_dataInfo_price_id["probability"], //OK
 						$office_storage_dataInfo_price_id["office_id"], //OK
@@ -621,6 +639,13 @@ class prices_enclosure
 			if($product["article"] === $article){
 				continue;
 			}
+			if (function_exists('epc_mv_min_price_should_hide_row')
+				&& epc_mv_min_price_should_hide_row($db_link, $product, (int) $user_id)) {
+				continue;
+			}
+			$epc_mv_storage_show = function_exists('epc_mv_min_price_display_storage')
+				? epc_mv_min_price_display_storage((string) ($product['storage'] ?? ''))
+				: (string) ($product['storage'] ?? '');
 			
 			//Создаем объек товара и добавляем его в список:
 			$DocpartProduct = new DocpartProduct($product["manufacturer"],
@@ -630,7 +655,7 @@ class prices_enclosure
 				$product["price"] + $product["price"]*$product["markup"],
 				$product["time_to_exe"] + $product["additional_time"],
 				$product["time_to_exe"] + $product["additional_time"],
-				$product["storage"],
+				$epc_mv_storage_show,
 				$product["min_order"],
 				$product["probability"],
 				$product["office_id"],
