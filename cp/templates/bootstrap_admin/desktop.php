@@ -406,12 +406,40 @@ function print_backend_button($button_params)
 		?>
     </div>
 	</a>
-	<?php if (!empty($epcCpShell['company'])) { ?>
+	<?php
+	$epcCpStorefrontUrl = trim((string) ($DP_Config->domain_path ?? ''));
+	$epcCpShowStorefront = $epcCpStorefrontUrl !== ''
+		&& !(function_exists('epc_portal_demo_cp_is_erp_only') && epc_portal_demo_cp_is_erp_only())
+		&& !(function_exists('epc_portal_storefront_enabled') && !epc_portal_storefront_enabled());
+	$epcCpStorefrontHost = '';
+	if ($epcCpShowStorefront) {
+		$epcCpStorefrontHost = (string) (parse_url($epcCpStorefrontUrl, PHP_URL_HOST) ?: '');
+		if ($epcCpStorefrontHost === '' && preg_match('#^https?://([^/]+)#i', $epcCpStorefrontUrl, $m)) {
+			$epcCpStorefrontHost = (string) $m[1];
+		}
+		$epcCpStorefrontHost = preg_replace('#^www\.#i', '', $epcCpStorefrontHost);
+	}
+	?>
+	<?php if (!empty($epcCpShell['company']) || $epcCpShowStorefront) { ?>
 	<div class="epc-cp-topbar-strip hidden-xs">
+		<?php if (!empty($epcCpShell['company'])) { ?>
 		<span class="epc-cp-topbar-company"><?php echo htmlspecialchars($epcCpShell['company'], ENT_QUOTES, 'UTF-8'); ?></span>
 		<span class="epc-cp-topbar-role epc-cp-topbar-role--<?php echo htmlspecialchars($epcCpShell['type'], ENT_QUOTES, 'UTF-8'); ?>">
 			<i class="fa fa-id-badge"></i> <?php echo htmlspecialchars($epcCpShell['label'], ENT_QUOTES, 'UTF-8'); ?>
 		</span>
+		<?php } ?>
+		<?php if ($epcCpShowStorefront) { ?>
+		<a class="epc-cp-topbar-storefront" href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Open public storefront">
+			<span class="epc-cp-topbar-storefront__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
+			<span class="epc-cp-topbar-storefront__text">
+				<span class="epc-cp-topbar-storefront__label">Storefront</span>
+				<?php if ($epcCpStorefrontHost !== '') { ?>
+				<span class="epc-cp-topbar-storefront__host"><?php echo htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8'); ?></span>
+				<?php } ?>
+			</span>
+			<span class="epc-cp-topbar-storefront__go" aria-hidden="true"><i class="fa fa-external-link"></i></span>
+		</a>
+		<?php } ?>
 	</div>
 	<?php } ?>
 	<div class="epc-cp-header-breadcrumb hidden-xs" aria-label="Breadcrumb">
@@ -435,6 +463,13 @@ function print_backend_button($button_params)
             </button>
             <div class="collapse mobile-navbar" id="mobile-collapse">
                 <ul class="nav navbar-nav">
+					<?php if (!empty($epcCpShowStorefront)) { ?>
+					<li>
+						<a href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer">
+							<i class="fa fa-shopping-bag"></i> Storefront<?php echo $epcCpStorefrontHost !== '' ? ' · ' . htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8') : ''; ?>
+						</a>
+					</li>
+					<?php } ?>
                     <li>
                         <a class="" href="javascript:void(0);" onclick="document.forms['logout_form'].submit();"><?php echo translate_str_by_id(3996); ?></a>
                     </li>
@@ -927,11 +962,20 @@ function print_backend_button($button_params)
 
                 <!-- END Модуль индикации возвратов-->				
 				
-				<li class="dropdown epc-cp-header-keep">
-                    <a href="<?php echo $DP_Config->domain_path; ?>" target="_blank" title="<?php echo translate_str_by_id(4031); ?>">
-                        <i class="fa fa-external-link"></i>
-                    </a>
-                </li>
+				<?php if (!empty($epcCpShowStorefront)) { ?>
+				<li class="dropdown epc-cp-header-keep epc-cp-header-storefront">
+					<a class="epc-cp-header-storefront__btn" href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Open public storefront<?php echo $epcCpStorefrontHost !== '' ? ' — ' . htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8') : ''; ?>">
+						<span class="epc-cp-header-storefront__icon" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
+						<span class="epc-cp-header-storefront__meta">
+							<span class="epc-cp-header-storefront__label">Storefront</span>
+							<?php if ($epcCpStorefrontHost !== '') { ?>
+							<span class="epc-cp-header-storefront__host"><?php echo htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8'); ?></span>
+							<?php } ?>
+						</span>
+						<span class="epc-cp-header-storefront__ext" aria-hidden="true"><i class="fa fa-external-link"></i></span>
+					</a>
+				</li>
+				<?php } ?>
 				
 				<?php echo epc_cp_translate_render('cp'); ?>
 				

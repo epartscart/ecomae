@@ -10,7 +10,7 @@ require_once __DIR__ . '/epc_ecomae_hub_logo.php';
 function epc_cp_shell_css_version()
 {
 	// Bump whenever shell/topnav/layout CSS changes — Cloudflare caches tenant /cp/templates/*.css.
-	return '20260721cpiso1';
+	return '20260721storefront1';
 }
 
 /** Prefer PHP CSS/JS proxies on all hosts (nginx/Cloudflare often stale-cache /cp/templates). */
@@ -1566,6 +1566,11 @@ function epc_cp_shell_enqueue_assets($includeLoginHero = false)
 	) . '" />' . "\n";
 	echo '<link rel="stylesheet" href="' . htmlspecialchars(
 		epc_cp_shell_asset_href($base . 'epc_cp_tenant_polish.css', '/content/general_pages/epc_cp_tenant_polish_css.php'),
+		ENT_QUOTES,
+		'UTF-8'
+	) . '" />' . "\n";
+	echo '<link rel="stylesheet" href="' . htmlspecialchars(
+		epc_cp_shell_asset_href($base . 'epc_cp_storefront_topbar.css', '/content/general_pages/epc_cp_storefront_topbar_css.php'),
 		ENT_QUOTES,
 		'UTF-8'
 	) . '" />' . "\n";

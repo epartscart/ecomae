@@ -1,15 +1,15 @@
 <?php
 /**
- * Serve CP professional CSS when nginx 404s /cp/templates/bootstrap_admin/css/*.css on ecomae.
+ * Serve CP storefront top-bar CSS (proxy for Cloudflare/nginx cache).
  */
 declare(strict_types=1);
 
 $root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
-$path = $root . '/cp/templates/bootstrap_admin/css/epc_cp_professional.css';
+$path = $root . '/cp/templates/bootstrap_admin/css/epc_cp_storefront_topbar.css';
 if (!is_file($path)) {
 	http_response_code(404);
 	header('Content-Type: text/plain; charset=utf-8');
-	echo 'epc_cp_professional.css missing';
+	echo 'epc_cp_storefront_topbar.css missing';
 	exit;
 }
 
