@@ -135,7 +135,11 @@ else//Действий нет - выводим страницу
 		),
 	);
 	?>
-	<textarea id="epc-ao-config" hidden aria-hidden="true"><?php echo htmlspecialchars(json_encode($epc_ao_cfg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8'); ?></textarea>
+	<?php
+	// Must NOT be a <textarea>: CP shell form polish forces textareas visible (overrides [hidden]).
+	// Must NOT be an inline <script>: main-pane scripts are relocated/stripped and can render as text.
+	?>
+	<input type="hidden" id="epc-ao-config" value="<?php echo htmlspecialchars(json_encode($epc_ao_cfg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off" />
 
 	<div class="col-lg-12 epc-ao">
 		<div class="hpanel">

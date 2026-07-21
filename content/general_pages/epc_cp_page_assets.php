@@ -256,12 +256,12 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.css',
 				'/' . $backend . '/content/users/statistics/assets/modal.css',
-				'/' . $backend . '/content/shop/finance/epc_account_operations.css?v=' . rawurlencode($ver . 'aoFix2'),
+				'/' . $backend . '/content/shop/finance/epc_account_operations.css?v=' . rawurlencode($ver . 'aoFix3'),
 			),
 			'js' => array(
 				'/lib/datetimepicker/jquery.datetimepicker.js',
 				'/' . $backend . '/content/users/statistics/assets/main.js',
-				'/' . $backend . '/content/shop/finance/account_operations_cp.js?v=' . rawurlencode($ver . 'aoFix2'),
+				'/' . $backend . '/content/shop/finance/account_operations_cp.js?v=' . rawurlencode($ver . 'aoFix3'),
 			),
 		),
 		'shop/orders/statuses' => array(
