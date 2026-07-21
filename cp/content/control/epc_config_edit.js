@@ -1,9 +1,17 @@
 /**
  * CP Settings — sticky group nav active state + smooth scroll.
- * CP shell scrolls inside .content (not window), so target that pane.
+ * CP shell scrolls inside #wrapper (not window), so target that pane.
  */
 (function () {
 	'use strict';
+
+	window.save_config = function () {
+		var form = document.forms.save_config_form || document.querySelector('form[name="save_config_form"]');
+		if (form) {
+			form.submit();
+		}
+	};
+
 	var root = document.querySelector('.epc-cfg');
 	if (!root) {
 		return;
@@ -17,6 +25,10 @@
 	}
 
 	function scrollParent(el) {
+		var wrapper = document.getElementById('wrapper');
+		if (wrapper) {
+			return wrapper;
+		}
 		var p = el.parentElement;
 		while (p && p !== document.body) {
 			var st = window.getComputedStyle(p);
@@ -26,7 +38,7 @@
 			}
 			p = p.parentElement;
 		}
-		return document.querySelector('#wrapper .content') || document.scrollingElement || document.documentElement;
+		return document.scrollingElement || document.documentElement;
 	}
 
 	function scrollToEl(el) {
