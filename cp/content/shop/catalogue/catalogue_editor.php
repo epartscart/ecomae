@@ -850,11 +850,17 @@ else//Если действий нет - выводим страницу
     {
     	onSelected();
     });
+    function epcActivateCopyCutButtons(activate)
+    {
+    	if (typeof activate_copy_cut_buttons === 'function') {
+    		activate_copy_cut_buttons(activate);
+    	}
+    }
     //Обработка выбора элемента
     function onSelected()
     {
 		//Кнопки Копировать и Вырезать не активны
-		activate_copy_cut_buttons(false);
+		epcActivateCopyCutButtons(false);
 		
 		var detailCol = document.getElementById("content_info_div_col");
 		var detailBox = document.getElementById("content_info_div");
@@ -877,7 +883,7 @@ else//Если действий нет - выводим страницу
     	}
     	
 		//Кнопки Копировать и Вырезать активны
-		activate_copy_cut_buttons(true);
+		epcActivateCopyCutButtons(true);
 		if (detailCol) { detailCol.style.display = ""; }
 		
     	var node = tree.getItem(node_id);
