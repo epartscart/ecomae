@@ -32,6 +32,27 @@
 			return '<th>' + esc(h) + '</th>';
 		}).join('') + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
 	}
+	/** Build storefront URL for a tracked path (opens the same page visitors saw). */
+	function pageHref(path, hostname) {
+		var p = String(path == null || path === '' ? '/' : path);
+		if (p.charAt(0) !== '/' && p.indexOf('http') !== 0) {
+			p = '/' + p;
+		}
+		if (p.indexOf('http://') === 0 || p.indexOf('https://') === 0) {
+			return p;
+		}
+		var host = String(hostname || '').replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+		if (host) {
+			return 'https://' + host + p;
+		}
+		return p;
+	}
+	function pageLink(path, hostname, label) {
+		var p = String(path == null || path === '' ? '/' : path);
+		var text = label != null ? label : p;
+		return '<a class="wt-link wt-page-link" href="' + esc(pageHref(p, hostname))
+			+ '" target="_blank" rel="noopener" title="Open page">' + esc(text) + '</a>';
+	}
 
 	function load() {
 		var siteEl = $('wt_site');
@@ -117,7 +138,7 @@
 
 		$('wt_pages').innerHTML = table(['Path', 'Views', 'Sessions', 'Avg time', 'Scroll %'],
 			(d.top_pages || []).map(function (x) {
-				return '<tr><td>' + esc(x.path) + '</td><td>' + esc(x.views) + '</td><td>' + esc(x.sessions) + '</td><td>' + esc(dur(x.avg_time_ms)) + '</td><td>' + esc(x.avg_scroll) + '</td></tr>';
+				return '<tr><td>' + pageLink(x.path || '/') + '</td><td>' + esc(x.views) + '</td><td>' + esc(x.sessions) + '</td><td>' + esc(dur(x.avg_time_ms)) + '</td><td>' + esc(x.avg_scroll) + '</td></tr>';
 			}).join('') || '<tr><td colspan="5" class="wt-muted">—</td></tr>'
 		);
 
@@ -139,7 +160,10 @@
 			(d.top_clicks || []).map(function (x) {
 				var el = (x.element_tag || '') + (x.element_id ? '#' + x.element_id : '');
 				var tx = (x.element_text || x.element_href || '—');
-				return '<tr><td>' + esc(x.path) + '</td><td>' + esc(el) + '</td><td>' + esc(tx) + '</td><td>' + esc(x.hits) + '</td></tr>';
+				var hrefCell = x.element_href
+					? '<a class="wt-link wt-page-link" href="' + esc(x.element_href) + '" target="_blank" rel="noopener">' + esc(tx) + '</a>'
+					: esc(tx);
+				return '<tr><td>' + pageLink(x.path || '/') + '</td><td>' + esc(el) + '</td><td>' + hrefCell + '</td><td>' + esc(x.hits) + '</td></tr>';
 			}).join('') || '<tr><td colspan="4" class="wt-muted">—</td></tr>'
 		);
 
@@ -149,20 +173,30 @@
 			}).join('') || '<tr><td colspan="5" class="wt-muted">—</td></tr>'
 		);
 
-		$('wt_sessions').innerHTML = table(['When', 'Who', 'Geo', 'Device', 'Land → Exit', 'Pages', 'Clicks', 'Time', ''],
+		$('wt_sessions').innerHTML = table(['When', 'Who', 'IP', 'Geo', 'Device', 'Land → Exit', 'Pages', 'Clicks', 'Time', ''],
 			(d.recent_sessions || []).map(function (x) {
 				var who = x.is_registered == '1' || x.is_registered == 1
 					? '<span class="wt-pill reg">User #' + esc(x.user_id) + '</span>'
 					: '<span class="wt-pill guest">Guest</span>';
 				if (IS_SUPER) who += ' <span class="wt-pill">' + esc(x.site_key) + '</span>';
 				var geo = [x.city, x.country_code].filter(Boolean).join(', ') || '—';
-				var path = esc(x.landing_path || '/') + ' → ' + esc(x.exit_path || '—');
+				var host = x.hostname || '';
+				var land = x.landing_path || '/';
+				var exitP = x.exit_path || '';
+				var pathHtml = pageLink(land, host);
+				if (exitP && exitP !== land) {
+					pathHtml += ' → ' + pageLink(exitP, host);
+				} else if (exitP) {
+					pathHtml += ' → <span class="wt-muted">same</span>';
+				}
+				var ip = (x.ip && String(x.ip).trim()) ? esc(x.ip) : '—';
 				return '<tr class="wt-row-click" data-id="' + esc(x.id) + '" title="Open session timeline">'
-					+ '<td>' + esc(fmtTs(x.last_seen_at)) + '</td><td>' + who + '</td><td>' + esc(geo) + '</td>'
-					+ '<td>' + esc((x.device_type || '') + ' / ' + (x.browser || '')) + '</td><td>' + path + '</td>'
+					+ '<td>' + esc(fmtTs(x.last_seen_at)) + '</td><td>' + who + '</td>'
+					+ '<td class="wt-ip">' + ip + '</td><td>' + esc(geo) + '</td>'
+					+ '<td>' + esc((x.device_type || '') + ' / ' + (x.browser || '')) + '</td><td class="wt-paths">' + pathHtml + '</td>'
 					+ '<td>' + esc(x.pageview_count) + '</td><td>' + esc(x.event_count) + '</td><td>' + esc(dur(x.duration_ms)) + '</td>'
 					+ '<td><a href="#" class="wt-link wt-open" data-id="' + esc(x.id) + '">Timeline</a></td></tr>';
-			}).join('') || '<tr><td colspan="9" class="wt-muted">No sessions yet.</td></tr>'
+			}).join('') || '<tr><td colspan="10" class="wt-muted">No sessions yet.</td></tr>'
 		);
 
 		Array.prototype.forEach.call(document.querySelectorAll('#wt_side_a [data-site]'), function (a) {
@@ -204,8 +238,10 @@
 				var s = j.detail.session;
 				var pvs = j.detail.pageviews || [];
 				var evs = j.detail.events || [];
+				var host = s.hostname || '';
 				var html = '';
-				html += '<p><strong>' + esc(s.site_key) + '</strong> · ' + esc(s.hostname) + ' · IP ' + esc(s.ip)
+				html += '<p><strong>' + esc(s.site_key) + '</strong> · ' + esc(s.hostname)
+					+ ' · <span class="wt-ip">IP ' + esc(s.ip || '—') + '</span>'
 					+ ' · ' + (s.is_registered == 1 || s.is_registered == '1' ? 'Registered user #' + esc(s.user_id) : 'Guest')
 					+ ' · ' + esc(s.city || '') + ' ' + esc(s.region || '') + ' ' + esc(s.country_name || s.country_code || '')
 					+ ' · ' + esc(s.device_type) + ' / ' + esc(s.browser) + ' / ' + esc(s.os) + '</p>';
@@ -214,13 +250,18 @@
 					+ ' · Referrer ' + esc(s.referrer_host || '(direct)')
 					+ (s.utm_source ? ' · UTM ' + esc(s.utm_source) + '/' + esc(s.utm_medium) + '/' + esc(s.utm_campaign) : '')
 					+ '</p>';
+				html += '<p>Pages: ' + pageLink(s.landing_path || '/', host, 'Land ' + (s.landing_path || '/'));
+				if (s.exit_path) {
+					html += ' · ' + pageLink(s.exit_path, host, 'Exit ' + s.exit_path);
+				}
+				html += '</p>';
 				html += '<h5>Page experience</h5><ul class="wt-timeline">';
 				pvs.forEach(function (p) {
 					var pathOnly = p.path || '/';
-					var href = pathOnly + (p.query ? '?' + p.query : '');
+					var href = pageHref(pathOnly + (p.query ? '?' + p.query : ''), host);
 					html += '<li class="wt-info-click" title="Open page">'
 						+ '<strong>' + esc(fmtTs(p.ts)) + '</strong> '
-						+ '<a class="wt-link" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(pathOnly) + '</a>'
+						+ '<a class="wt-link wt-page-link" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(pathOnly) + '</a>'
 						+ (p.query ? '<span class="wt-muted">?' + esc(p.query) + '</span>' : '')
 						+ ' <span class="wt-muted">· ' + esc(p.title) + ' · on-page ' + esc(dur(p.time_on_page_ms))
 						+ ' · scroll ' + esc(p.scroll_max_pct) + '% · load ' + esc(p.load_time_ms) + 'ms</span></li>';
@@ -234,11 +275,12 @@
 						line += esc(e.element_tag) + (e.element_id ? '#' + esc(e.element_id) : '')
 							+ ' “' + esc(e.element_text) + '” ';
 						if (e.element_href) {
-							line += '<a class="wt-link" href="' + esc(e.element_href) + '" target="_blank" rel="noopener">→ ' + esc(e.element_href) + '</a> ';
+							line += '<a class="wt-link wt-page-link" href="' + esc(e.element_href) + '" target="_blank" rel="noopener">→ ' + esc(e.element_href) + '</a> ';
 						}
-						line += ' <span class="wt-muted">@ ' + esc(e.x) + ',' + esc(e.y) + ' on ' + esc(e.path) + '</span>';
+						line += ' <span class="wt-muted">@ ' + esc(e.x) + ',' + esc(e.y) + ' on '
+							+ pageLink(e.path || '/', host) + '</span>';
 					} else {
-						line += esc(e.path || '') + ' <span class="wt-muted">' + (e.meta_json ? esc(e.meta_json) : '') + '</span>';
+						line += (e.path ? pageLink(e.path, host) : '') + ' <span class="wt-muted">' + (e.meta_json ? esc(e.meta_json) : '') + '</span>';
 					}
 					html += '<li class="wt-info-click">' + line + '</li>';
 				});

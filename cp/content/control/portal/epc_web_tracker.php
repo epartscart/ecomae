@@ -175,7 +175,7 @@ epc_cp_page_frame_open(array(
 	</div>
 
 	<div class="wt-panel" style="margin-bottom:20px;">
-		<h4>Recent sessions — click any row for full timeline (pages + every click)</h4>
+		<h4>Recent sessions — IP shown · click page links to open that page · click a row for full timeline</h4>
 		<div class="wt-body" id="wt_sessions" style="max-height:520px;"></div>
 	</div>
 </div>

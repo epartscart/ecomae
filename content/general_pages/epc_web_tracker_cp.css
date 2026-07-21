@@ -36,6 +36,9 @@
 .epc-wt tr.wt-row-click:hover { background:#f0f9ff; }
 .epc-wt tr.wt-row-click:hover .wt-link { color:#0c4a6e; }
 .epc-wt .wt-link { color:#0369a1; text-decoration:underline; }
+.epc-wt .wt-page-link { white-space:normal; word-break:break-all; }
+.epc-wt .wt-ip { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11px; color:#0f172a; white-space:nowrap; }
+.epc-wt .wt-paths { max-width:280px; }
 .epc-wt .wt-info-click:hover { color:#0c4a6e; }
 .epc-wt #wt_session_modal .modal-body { max-height:70vh; overflow:auto; }
 .epc-wt #wt_session_modal .modal-body a,
