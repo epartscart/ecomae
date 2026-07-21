@@ -272,6 +272,11 @@ function epc_cp_mainstream_menu_apply(PDO $pdo)
 		$items['shop_orders'] = (int) $shopOrdersMenu['shop_orders_item'];
 	}
 
+	$shopCataloguePrices = epc_cp_shop_catalogue_prices_menu_apply($pdo);
+	foreach ((array) ($shopCataloguePrices['items'] ?? array()) as $k => $itemId) {
+		$items['shop_' . $k] = (int) $itemId;
+	}
+
 	return array(
 		'shop_group' => (int)$shop['id'],
 		'channels_group' => $channelsGroup,
@@ -864,6 +869,109 @@ function epc_cp_portal_menu_apply(PDO $pdo)
 		'portal_group' => $portalGroup,
 		'items' => $items,
 	);
+}
+
+/**
+ * Shop top-menu rows for catalogue SKU media + price upload submodules.
+ * Keeps new modules discoverable under Commerce (group 744) next to Price lists.
+ *
+ * @return array{shop_group:int,items:array<string,int>}
+ */
+function epc_cp_shop_catalogue_prices_menu_apply(PDO $pdo)
+{
+	epc_cp_mm_lang($pdo, 'epc_sku_media_manager', 'SKU photos & specs', 'Фото и характеристики SKU');
+	epc_cp_mm_lang($pdo, 'epc_prices_multivendor_cp', 'Multi-vendor upload', 'Мульти-вендор загрузка');
+	epc_cp_mm_lang($pdo, 'epc_prices_commerce_cp', 'Commerce data upload', 'Commerce — загрузка');
+	epc_cp_mm_lang($pdo, 'epc_prices_guide_cp', 'Price upload guide', 'Гид по загрузке цен');
+
+	$shop = epc_cp_mm_find_shop_group($pdo);
+	$shopGroupId = (int) ($shop['id'] ?? 0);
+	$out = array('shop_group' => $shopGroupId, 'items' => array());
+	if ($shopGroupId <= 0) {
+		return $out;
+	}
+
+	// Prefer slots near Price lists (caption 771) when present.
+	$orderBase = 14;
+	$priceOrderSt = $pdo->prepare(
+		'SELECT `order` FROM `control_items` WHERE `items_group` = ? AND (`url` LIKE ? OR `caption` = ?) ORDER BY `order` ASC LIMIT 1'
+	);
+	$priceOrderSt->execute(array($shopGroupId, '%/shop/prices', '771'));
+	$priceOrder = (int) $priceOrderSt->fetchColumn();
+	if ($priceOrder > 0) {
+		$orderBase = $priceOrder + 1;
+	}
+
+	$defs = array(
+		'sku_media' => array(
+			'caption' => 'epc_sku_media_manager',
+			'url' => '/<backend>/shop/catalogue/sku_media',
+			'order' => $orderBase,
+			'color' => '#0f766e',
+			'icon' => 'fa-picture-o',
+		),
+		'multivendor' => array(
+			'caption' => 'epc_prices_multivendor_cp',
+			'url' => '/<backend>/shop/prices/multivendor',
+			'order' => $orderBase + 1,
+			'color' => '#0891b2',
+			'icon' => 'fa-handshake-o',
+		),
+		'commerce' => array(
+			'caption' => 'epc_prices_commerce_cp',
+			'url' => '/<backend>/shop/prices/commerce',
+			'order' => $orderBase + 2,
+			'color' => '#2563eb',
+			'icon' => 'fa-database',
+		),
+		'prices_guide' => array(
+			'caption' => 'epc_prices_guide_cp',
+			'url' => '/<backend>/shop/prices/guide',
+			'order' => $orderBase + 3,
+			'color' => '#26ad5f',
+			'icon' => 'fas fa-book',
+		),
+	);
+
+	foreach ($defs as $key => $def) {
+		$out['items'][$key] = (int) epc_cp_mm_ensure_item(
+			$pdo,
+			$shopGroupId,
+			$def['caption'],
+			$def['url'],
+			(int) $def['order'],
+			$def['color'],
+			$def['icon'],
+			1
+		);
+	}
+
+	// Drop orphan duplicate under the unused epc_cp_group_commerce group if present.
+	$orphanGroup = epc_cp_mm_group_id($pdo, 'epc_cp_group_commerce');
+	if ($orphanGroup > 0) {
+		$keepIds = array_values(array_filter(array_map('intval', $out['items'])));
+		$st = $pdo->prepare('SELECT `id`, `url` FROM `control_items` WHERE `items_group` = ?');
+		$st->execute(array($orphanGroup));
+		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+			$id = (int) $row['id'];
+			if (in_array($id, $keepIds, true)) {
+				continue;
+			}
+			$url = (string) ($row['url'] ?? '');
+			if (strpos($url, 'sku_media') !== false
+				|| strpos($url, 'prices/multivendor') !== false
+				|| strpos($url, 'prices/commerce') !== false
+				|| strpos($url, 'prices/guide') !== false) {
+				$pdo->prepare('DELETE FROM `control_items` WHERE `id` = ?')->execute(array($id));
+			}
+		}
+		$left = (int) $pdo->query('SELECT COUNT(*) FROM `control_items` WHERE `items_group` = ' . (int) $orphanGroup)->fetchColumn();
+		if ($left === 0) {
+			$pdo->prepare('DELETE FROM `control_groups` WHERE `id` = ?')->execute(array($orphanGroup));
+		}
+	}
+
+	return $out;
 }
 
 /**
