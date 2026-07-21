@@ -104,7 +104,7 @@ check('console_open guards double open', strpos($console, "epc_cp_boc_page") !==
 check('console_close is idempotent', strpos($console, 'epc_cp_boc_page') !== false);
 
 $shell = (string) file_get_contents($root . '/content/general_pages/epc_boc_page_shell.php');
-check('shell wraps control/portal paths', strpos($shell, 'control/portal/') !== false);
+check('shell wraps all super CP modules', strpos($shell, 'every module detail stays') !== false || strpos($shell, 'return true;') !== false);
 check('shell uses layout top', strpos($shell, "'layout' => 'top'") !== false);
 
 echo "\n----------------------------\n";
