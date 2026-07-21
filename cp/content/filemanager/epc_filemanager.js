@@ -4,6 +4,11 @@
 (function (window, document) {
 	'use strict';
 
+	if (window.__epcFilemanagerBooted) {
+		return;
+	}
+	window.__epcFilemanagerBooted = true;
+
 	function ready(fn) {
 		if (document.readyState === 'loading') {
 			document.addEventListener('DOMContentLoaded', fn);
@@ -44,20 +49,15 @@
 				return;
 			}
 			var existing = document.querySelector('script[src="' + src + '"]');
-			if (existing && existing.getAttribute('data-epc-fm-loaded') === '1') {
+			if (existing) {
 				resolve();
 				return;
 			}
 			var s = document.createElement('script');
 			s.src = src;
 			s.async = false;
-			s.onload = function () {
-				s.setAttribute('data-epc-fm-loaded', '1');
-				resolve();
-			};
-			s.onerror = function () {
-				reject(new Error('Failed to load ' + src));
-			};
+			s.onload = function () { resolve(); };
+			s.onerror = function () { reject(new Error('Failed to load ' + src)); };
 			document.head.appendChild(s);
 		});
 	}
@@ -67,6 +67,9 @@
 		var cfg = window.EPC_FILEMANAGER || {};
 		var mount = document.getElementById('elfinder');
 		if (!mount) {
+			return;
+		}
+		if (mount.getAttribute('data-epc-fm-ready') === '1' || mount.classList.contains('elfinder')) {
 			return;
 		}
 		if (!$ || typeof $.fn !== 'object') {
@@ -87,7 +90,10 @@
 		}
 
 		mount.classList.remove('epc-fm-loading');
-		mount.innerHTML = '';
+		if (!mount.classList.contains('elfinder')) {
+			mount.innerHTML = '';
+		}
+		mount.setAttribute('data-epc-fm-ready', '1');
 
 		try {
 			$('#elfinder').elfinder({
@@ -100,6 +106,7 @@
 				}
 			});
 		} catch (err) {
+			mount.removeAttribute('data-epc-fm-ready');
 			showError((err && err.message) ? err.message : 'Unable to start the file manager.');
 		}
 	}
@@ -108,7 +115,7 @@
 		var $ = window.jQuery;
 		var cfg = window.EPC_FILEMANAGER || {};
 		var mount = document.getElementById('elfinder');
-		if (mount) {
+		if (mount && !mount.classList.contains('elfinder')) {
 			mount.classList.add('epc-fm-loading');
 			if (!mount.innerHTML.trim()) {
 				mount.textContent = 'Loading file manager…';
@@ -117,8 +124,7 @@
 
 		var chain = Promise.resolve();
 		ensureJqueryBrowser($);
-		// Re-apply browser shim after footer jQuery reload, then (re)bind elFinder.
-		if (!$ || !$.browser || typeof $.fn.elfinder !== 'function') {
+		if (!$ || !$.browser) {
 			chain = chain.then(function () {
 				return loadScript('/lib/jquery_browser/jquery.browser.js').then(function () {
 					ensureJqueryBrowser(window.jQuery);

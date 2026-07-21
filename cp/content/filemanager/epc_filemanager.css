@@ -111,6 +111,47 @@
 	border-bottom: 1px solid var(--epc-fm-line);
 }
 
+/* Keep elFinder layout intact under CP nuclear force-visible styles */
+.epc-filemanager #elfinder.elfinder,
+.epc-filemanager .elfinder {
+	display: block !important;
+	height: min(70vh, 640px) !important;
+	min-height: 520px !important;
+	overflow: hidden !important;
+}
+
+.epc-filemanager .elfinder .elfinder-toolbar,
+.epc-filemanager .elfinder .elfinder-statusbar,
+.epc-filemanager .elfinder .elfinder-workzone,
+.epc-filemanager .elfinder .elfinder-navbar,
+.epc-filemanager .elfinder .elfinder-cwd,
+.epc-filemanager .elfinder .elfinder-cwd-wrapper {
+	display: block !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	height: auto !important;
+	max-height: none !important;
+}
+
+.epc-filemanager .elfinder .elfinder-button {
+	display: inline-block !important;
+}
+
+/* Icon sprites resolve against CP <base href>; force absolute image path */
+.epc-filemanager .elfinder-cwd-icon,
+.epc-filemanager .elfinder-button-icon,
+.epc-filemanager .elfinder-navbar-icon,
+.epc-filemanager .elfinder-toolbar .elfinder-button-icon {
+	background-image: url('/cp/lib/elfinder/img/toolbar.png') !important;
+}
+.epc-filemanager .elfinder-cwd-icon {
+	background-image: url('/cp/lib/elfinder/img/icons-big.png') !important;
+}
+.epc-filemanager .elfinder-navbar .elfinder-navbar-icon,
+.epc-filemanager .elfinder-tree .elfinder-navbar-icon {
+	background-image: url('/cp/lib/elfinder/img/icons-small.png') !important;
+}
+
 .epc-filemanager__error {
 	margin: 16px;
 	padding: 12px 14px;

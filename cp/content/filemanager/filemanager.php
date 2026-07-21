@@ -18,27 +18,8 @@ if ($backend === '') {
 }
 $backendH = htmlspecialchars($backend, ENT_QUOTES, 'UTF-8');
 
-$ver = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'fm4';
-$cssPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/filemanager/epc_filemanager.css';
-$jsPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/filemanager/epc_filemanager.js';
-$cssVer = (is_file($cssPath) ? (string) filemtime($cssPath) : $ver) . 'fm4';
-$jsVer = (is_file($jsPath) ? (string) filemtime($jsPath) : $ver) . 'fm4';
-
-if (function_exists('epc_cp_register_page_assets')) {
-	epc_cp_register_page_assets(
-		array(
-			'/' . $backend . '/lib/elfinder/css/elfinder.min.css',
-			'/' . $backend . '/lib/elfinder/css/theme.css',
-			'/' . $backend . '/content/filemanager/epc_filemanager.css?v=' . rawurlencode($cssVer),
-		),
-		array(
-			'/lib/jquery_browser/jquery.browser.js',
-			'/' . $backend . '/lib/elfinder/js/elfinder.min.js',
-			'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver),
-			'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($jsVer),
-		)
-	);
-}
+// Assets come from epc_cp_page_assets.php URL map (filemanager) so they load
+// once after the footer jQuery reload — do not also register a second copy here.
 
 if (function_exists('epc_cp_page_frame_open')) {
 	epc_cp_page_frame_open(array(
