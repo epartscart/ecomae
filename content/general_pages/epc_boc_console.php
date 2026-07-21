@@ -1,9 +1,8 @@
 <?php
 /**
- * BOC console shell — the professional "control-room" chrome for Business
- * Operation Control. Renders a fixed top command bar + grouped left rail
- * (from the area registry) + a clean content canvas, and neutralises the
- * legacy CP theme chrome on BOC pages so BOC has its own complete look.
+ * BOC console shell — Business Operation Control chrome.
+ * Default layout is ERP-style TOP mega-menu (red + white); optional left rail
+ * via ctx['layout'] = 'rail'. Neutralises legacy CP theme chrome on BOC pages.
  *
  * Pure presentation: open/close emit markup from plain data, so they can be
  * rendered both inside the live CP and in an offline screenshot harness.
@@ -22,13 +21,13 @@ if (!function_exists('epc_boc_console_css')) {
         return <<<CSS
 :root{--boc-bg:#000000;--boc-rail:#000000;--boc-rail-2:#0a0a0a;--boc-line:#1f1f1f;--boc-ink:#f5f5f5;--boc-mut:#a3a3a3;--boc-accent:#dc2626;--boc-accent-2:#ef4444;--boc-canvas:#f5f5f5;--boc-card:#ffffff;--boc-card-line:#e5e5e5;--boc-green:#0a7d3c;--boc-amber:#b45309;--boc-red:#dc2626;--boc-ink-1:#0a0a0a;--boc-ink-2:#404040;--boc-ink-3:#737373;}
 /* Neutralise legacy CP chrome on BOC pages (incl. top mega-menu that sat above a transparent rail) */
-body.epc-boc-mode #menu,body.epc-boc-mode .navbar-static-side,body.epc-boc-mode nav.navbar-default,body.epc-boc-mode #top-navigation,body.epc-boc-mode .epc-cp-topbar,body.epc-boc-mode .epc-cp-topnav,body.epc-boc-mode .epc-cp-topnav-panel,body.epc-boc-mode #header{display:none!important;visibility:hidden!important;}
+body.epc-boc-mode #menu,body.epc-boc-mode .navbar-static-side,body.epc-boc-mode nav.navbar-default,body.epc-boc-mode #top-navigation,body.epc-boc-mode .epc-cp-topbar,body.epc-boc-mode .epc-cp-topnav,body.epc-boc-mode .epc-cp-topnav-panel,body.epc-boc-mode #header,body.epc-boc-mode .left_cp_menu,body.epc-boc-mode .left_menu{display:none!important;visibility:hidden!important;}
 body.epc-boc-mode #wrapper,body.epc-boc-mode.epc-cp-shell #wrapper,body.epc-boc-mode.epc-cp-topnav-only.fixed-navbar #wrapper{margin:0!important;margin-top:0!important;margin-left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;max-height:100vh!important;background:var(--boc-canvas)!important;}
 body.epc-boc-mode .content,body.epc-boc-mode #wrapper .content{padding:0!important;margin:0!important;background:var(--boc-canvas)!important;}
 body.epc-boc-mode{background:var(--boc-canvas)!important;overflow:hidden!important;}
 .epc-boc{font-family:"Sora","Segoe UI",Helvetica,Arial,sans-serif;color:var(--boc-ink-1);display:flex;min-height:100vh;position:fixed;inset:0;z-index:4000;overflow:auto;background:var(--boc-canvas);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum";isolation:isolate;}
 /* :has() fallback: hide legacy CP chrome when a BOC console is present */
-body:has(.epc-boc) #header,body:has(.epc-boc) #menu,body:has(.epc-boc) #right-sidebar,body:has(.epc-boc) .footer,body:has(.epc-boc) .epc-cp-topnav,body:has(.epc-boc) .epc-cp-topnav-panel{display:none!important;visibility:hidden!important;}
+body:has(.epc-boc) #header,body:has(.epc-boc) #menu,body:has(.epc-boc) #right-sidebar,body:has(.epc-boc) .footer,body:has(.epc-boc) .epc-cp-topnav,body:has(.epc-boc) .epc-cp-topnav-panel,body:has(.epc-boc) .left_cp_menu,body:has(.epc-boc) .left_menu{display:none!important;visibility:hidden!important;}
 body:has(.epc-boc) #wrapper,body:has(.epc-boc).epc-cp-topnav-only.fixed-navbar #wrapper{margin:0!important;margin-top:0!important;padding:0!important;width:100%!important;height:100vh!important;max-height:100vh!important;}
 body:has(.epc-boc){overflow:hidden!important;}
 /* Beat legacy .epc-cp-shell rules that force .content>.row>div to display:block */
@@ -37,7 +36,7 @@ body.epc-cp-shell .content .epc-boc__main,.epc-cp-shell .epc-boc__main{display:f
 body.epc-cp-shell .content .epc-boc__rail,.epc-cp-shell .epc-boc__rail{flex:0 0 260px!important;width:260px!important;background:#000000!important;}
 .epc-boc *{box-sizing:border-box;}
 .epc-boc a{text-decoration:none;}
-/* Left rail — solid black ERP/CP dashboard menu (no glass / no see-through) */
+/* Optional left rail (layout=rail only) */
 .epc-boc__rail{width:260px;flex:0 0 260px;background:#000000!important;color:#f5f5f5;position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;border-right:1px solid #1f1f1f;scrollbar-width:thin;scrollbar-color:#404040 #000;opacity:1!important;}
 .epc-boc__rail::-webkit-scrollbar{width:8px;}.epc-boc__rail::-webkit-scrollbar-thumb{background:#404040;border-radius:8px;}
 .epc-boc__brand{display:flex;align-items:center;gap:11px;padding:16px 18px;border-bottom:3px solid #dc2626;position:sticky;top:0;background:#000000!important;z-index:2;opacity:1!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
@@ -54,9 +53,40 @@ body.epc-cp-shell .content .epc-boc__rail,.epc-cp-shell .epc-boc__rail{flex:0 0 
 .epc-boc__nav a:hover .fa{color:#fecaca;}
 .epc-boc__nav a.is-active{background:#dc2626;color:#fff;font-weight:700;box-shadow:none;}
 .epc-boc__nav a.is-active .fa{color:#fff;}
+/* ERP-style TOP mega-menu (default layout) — red bar + light flyouts */
+.epc-boc--topnav{flex-direction:column!important;}
+body.epc-cp-shell .content .epc-boc--topnav,.epc-cp-shell .epc-boc--topnav{flex-direction:column!important;}
+.epc-boc--topnav .epc-boc__rail{display:none!important;}
+.epc-boc__topnav{position:sticky;top:0;z-index:40;background:#dc2626;color:#fff;border-bottom:1px solid #b91c1c;box-shadow:0 2px 10px rgba(0,0,0,.12);}
+.epc-boc__topnav-inner{display:flex;align-items:stretch;gap:4px;padding:0 14px;min-height:52px;max-width:100%;}
+.epc-boc__topnav-brand{display:inline-flex;align-items:center;gap:8px;padding:0 14px 0 4px;color:#fff!important;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;border-right:1px solid rgba(255,255,255,.22);margin-right:6px;}
+.epc-boc__topnav-brand .fa{color:#fecaca;}
+.epc-boc__topnav-list{list-style:none;margin:0;padding:0;display:flex;align-items:stretch;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin;}
+.epc-boc__topnav-item{position:static;display:flex;align-items:stretch;}
+.epc-boc__topnav-btn{appearance:none;border:0;background:transparent;color:#fff;display:inline-flex;align-items:center;gap:7px;padding:0 12px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;}
+.epc-boc__topnav-btn .fa{color:#fecaca;font-size:13px;}
+.epc-boc__topnav-btn .epc-boc__topnav-caret{font-size:11px;opacity:.85;margin-left:2px;}
+.epc-boc__topnav-btn:hover,.epc-boc__topnav-item.is-open .epc-boc__topnav-btn,.epc-boc__topnav-item.is-active .epc-boc__topnav-btn{background:rgba(0,0,0,.16);border-bottom-color:#fff;}
+.epc-boc__topnav-panel{position:fixed;z-index:50;min-width:320px;max-width:min(920px,calc(100vw - 24px));background:#fff;color:#0a0a0a;border:1px solid #e5e5e5;border-radius:0 0 12px 12px;box-shadow:0 16px 40px rgba(0,0,0,.18);padding:0;overflow:auto;}
+.epc-boc__topnav-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa;}
+.epc-boc__topnav-panel-title{font-weight:800;font-size:13px;color:#0a0a0a;display:flex;align-items:center;gap:8px;}
+.epc-boc__topnav-panel-title .fa{color:#dc2626;}
+.epc-boc__topnav-panel-hub{font-size:12px;font-weight:700;color:#dc2626;}
+.epc-boc__topnav-cols{display:flex;flex-wrap:wrap;gap:4px 18px;padding:12px 16px 16px;}
+.epc-boc__topnav-col{min-width:180px;flex:1 1 180px;}
+.epc-boc__topnav-col-hd{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#737373;margin:4px 0 8px;display:flex;align-items:center;gap:6px;}
+.epc-boc__topnav-links{list-style:none;margin:0;padding:0;}
+.epc-boc__topnav-links a{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;color:#262626;font-size:12.5px;font-weight:600;}
+.epc-boc__topnav-links a .fa{width:14px;text-align:center;color:#dc2626;}
+.epc-boc__topnav-links a:hover{background:#fef2f2;color:#7f1d1d;}
+.epc-boc__topnav-links li.is-active a{background:#dc2626;color:#fff;}
+.epc-boc__topnav-links li.is-active a .fa{color:#fff;}
+body.epc-boc-topnav-open{overflow:hidden;}
 /* Main */
 .epc-boc__main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--boc-canvas);}
+.epc-boc--topnav .epc-boc__main{width:100%!important;flex:1 1 auto!important;}
 .epc-boc__topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;background:#ffffff!important;border-bottom:1px solid var(--boc-card-line);padding:11px 24px;box-shadow:0 2px 10px rgba(0,0,0,.06);opacity:1!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+.epc-boc--topnav .epc-boc__topbar{top:0;z-index:30;}
 .epc-boc__crumb{font-weight:700;font-size:15px;color:var(--boc-ink-1);letter-spacing:.2px;}
 .epc-boc__crumb small{display:block;font-weight:500;font-size:10.5px;color:var(--boc-ink-3);letter-spacing:.3px;margin-top:1px;}
 .epc-boc__search{flex:1;max-width:480px;position:relative;}
@@ -198,9 +228,68 @@ body.epc-cp-shell .content .epc-boc__rail,.epc-cp-shell .epc-boc__rail{flex:0 0 
 .epc-boc__timeline-body span{font-size:11.5px;color:var(--boc-ink-3);}
 .epc-boc__timeline-body em{font-style:normal;font-size:11px;color:#a3a3a3;float:right;}
 @media(max-width:1100px){.epc-boc__cc-row{grid-template-columns:1fr;}.epc-boc__ops-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:980px){.epc-boc__rail{display:none;}.epc-boc__canvas{padding:16px;}.epc-boc__hero{grid-template-columns:1fr;}.epc-boc__hero-actions{justify-content:flex-start;}}
-@media(max-width:640px){.epc-boc__ops-grid{grid-template-columns:1fr;}.epc-boc__pulse{flex-direction:column;align-items:flex-start;}}
+@media(max-width:980px){.epc-boc__rail{display:none;}.epc-boc__canvas{padding:16px;}.epc-boc__hero{grid-template-columns:1fr;}.epc-boc__hero-actions{justify-content:flex-start;}.epc-boc__topnav-label{max-width:9ch;overflow:hidden;text-overflow:ellipsis;}}
+@media(max-width:640px){.epc-boc__ops-grid{grid-template-columns:1fr;}.epc-boc__pulse{flex-direction:column;align-items:flex-start;}.epc-boc__topnav-brand span{display:none;}}
 CSS;
+    }
+}
+
+if (!function_exists('epc_boc_render_top_nav')) {
+    /**
+     * ERP-style top mega-menu from BOC area registry groups.
+     *
+     * @param array<int, array{group:array,areas:array}> $nav
+     */
+    function epc_boc_render_top_nav(array $nav, string $base, string $active, array $brand): void
+    {
+        $h = 'epc_boc_h';
+        $home = $base . '/control';
+        echo '<nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control">';
+        echo '<div class="epc-boc__topnav-inner">';
+        echo '<a class="epc-boc__topnav-brand" href="' . $h($home) . '"><i class="fa fa-cubes" aria-hidden="true"></i><span>' . $h($brand['short'] ?? 'BOC') . '</span></a>';
+        echo '<ul class="epc-boc__topnav-list" role="menubar">';
+        foreach ($nav as $gid => $g) {
+            if (empty($g['areas']) || !is_array($g['areas'])) {
+                continue;
+            }
+            $gKey = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $gid)) ?: 'group';
+            $gLabel = (string) ($g['group']['label'] ?? $gKey);
+            $gIcon = (string) ($g['group']['icon'] ?? 'fa-th-large');
+            $isActive = false;
+            foreach ($g['areas'] as $id => $area) {
+                if ((string) $id === $active) {
+                    $isActive = true;
+                    break;
+                }
+            }
+            $first = reset($g['areas']);
+            $firstUrl = $base . '/' . ltrim((string) ($first['path'] ?? 'control'), '/');
+            echo '<li class="epc-boc__topnav-item' . ($isActive ? ' is-active' : '') . '" data-boc-group="' . $h($gKey) . '" role="none">';
+            echo '<button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="' . $h($gKey) . '">';
+            echo '<i class="fa ' . $h($gIcon) . '" aria-hidden="true"></i>';
+            echo '<span class="epc-boc__topnav-label">' . $h($gLabel) . '</span>';
+            echo '<i class="fa fa-angle-down epc-boc__topnav-caret" aria-hidden="true"></i>';
+            echo '</button>';
+            echo '<div class="epc-boc__topnav-panel" role="menu" hidden data-boc-topnav-panel="' . $h($gKey) . '">';
+            echo '<div class="epc-boc__topnav-panel-hd">';
+            echo '<div class="epc-boc__topnav-panel-title"><i class="fa ' . $h($gIcon) . '"></i> ' . $h($gLabel) . '</div>';
+            echo '<a class="epc-boc__topnav-panel-hub" href="' . $h($firstUrl) . '">Open first <i class="fa fa-arrow-right"></i></a>';
+            echo '</div>';
+            echo '<div class="epc-boc__topnav-cols"><div class="epc-boc__topnav-col">';
+            echo '<div class="epc-boc__topnav-col-hd"><i class="fa fa-sitemap"></i> Modules</div>';
+            echo '<ul class="epc-boc__topnav-links">';
+            foreach ($g['areas'] as $id => $area) {
+                $url = $base . '/' . ltrim((string) ($area['path'] ?? ''), '/');
+                $cls = ((string) $id === $active) ? ' class="is-active"' : '';
+                echo '<li' . $cls . '><a href="' . $h($url) . '" title="' . $h($area['hint'] ?? '') . '">';
+                echo '<i class="fa ' . $h($area['icon'] ?? 'fa-circle-o') . '"></i> ' . $h($area['label'] ?? $id);
+                echo '</a></li>';
+            }
+            echo '</ul></div></div></div>';
+            echo '</li>';
+        }
+        echo '</ul></div></nav>';
+        echo '<script>(function(){function bind(){var root=document.getElementById("epc_boc_topnav");if(!root||root._bocTopBound){return;}root._bocTopBound=true;var items=root.querySelectorAll(".epc-boc__topnav-item");function closeAll(ex){items.forEach(function(it){if(ex&&it===ex){return;}it.classList.remove("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","false");}if(p){p.hidden=true;}});document.body.classList.remove("epc-boc-topnav-open");}function place(it,p){var rr=root.getBoundingClientRect();var btn=it.querySelector(".epc-boc__topnav-btn");var br=btn?btn.getBoundingClientRect():rr;var top=Math.round(rr.bottom);p.style.top=top+"px";p.style.maxHeight=Math.max(180,Math.floor(window.innerHeight-top-12))+"px";p.hidden=false;var w=p.offsetWidth||640;var left=Math.round(br.left);var maxLeft=Math.max(8,window.innerWidth-w-8);if(left>maxLeft){left=maxLeft;}if(left<8){left=8;}p.style.left=left+"px";p.style.right="auto";}function open(it){closeAll(it);it.classList.add("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","true");}if(p){place(it,p);}document.body.classList.add("epc-boc-topnav-open");}items.forEach(function(it){var b=it.querySelector("[data-boc-topnav-toggle]");if(!b){return;}b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(it.classList.contains("is-open")){closeAll();}else{open(it);}});});document.addEventListener("click",function(e){if(!root.contains(e.target)){closeAll();}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeAll();}});window.addEventListener("resize",function(){items.forEach(function(it){if(!it.classList.contains("is-open")){return;}var p=it.querySelector("[data-boc-topnav-panel]");if(p){place(it,p);}});});}if(document.readyState!=="loading"){bind();}else{document.addEventListener("DOMContentLoaded",bind);}})();</script>';
     }
 }
 
@@ -208,7 +297,7 @@ if (!function_exists('epc_boc_console_open')) {
     /**
      * Open the BOC console chrome and the content canvas.
      *
-     * @param array{active?:string,title?:string,subtitle?:string,base?:string,operator?:string,env?:string} $ctx
+     * @param array{active?:string,title?:string,subtitle?:string,base?:string,operator?:string,env?:string,layout?:string} $ctx
      */
     function epc_boc_console_open(array $ctx = array()): void
     {
@@ -221,39 +310,60 @@ if (!function_exists('epc_boc_console_open')) {
         $env = (string) ($ctx['env'] ?? 'Production');
         $scope = (string) ($ctx['scope'] ?? 'All units · Fleet');
         $brandSub = (string) ($ctx['brand_sub'] ?? ($brand['control'] ?? 'Control'));
+        $layout = strtolower(trim((string) ($ctx['layout'] ?? 'top')));
+        if ($layout !== 'rail') {
+            $layout = 'top';
+        }
         $nav = (isset($ctx['nav']) && is_array($ctx['nav'])) ? $ctx['nav'] : epc_boc_nav();
         $h = 'epc_boc_h';
         $initials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $operator) ?: 'OP', 0, 2));
         // Flag the page as a BOC console so the CP template can hide the legacy
         // chrome before first paint (eliminates the blue-flash before the dark shell).
         $GLOBALS['epc_cp_boc_page'] = true;
+        $GLOBALS['epc_boc_layout'] = $layout;
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">'
             . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
             . '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">' . "\n";
         echo "<style>" . epc_boc_console_css() . "</style>\n";
         echo "<script>(function(){try{document.body.classList.add('epc-boc-mode');}catch(e){}})();</script>\n";
-        echo '<div class="epc-boc" style="display:flex!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f5f5f5!important;isolation:isolate!important;">';
-        // Rail — solid black (ERP/CP dashboard menu format)
-        echo '<aside class="epc-boc__rail" style="flex:0 0 260px!important;width:260px!important;float:none!important;background:#000000!important;opacity:1!important;">';
-        echo '<div class="epc-boc__brand"><div class="epc-boc__brand-badge">' . $h($brand['short']) . '</div><div><div class="epc-boc__brand-name">' . $h($brand['short']) . '</div><div class="epc-boc__brand-sub">' . $h($brandSub) . '</div></div></div>';
-        foreach ($nav as $g) {
-            if (empty($g['areas'])) { continue; }
-            echo '<div class="epc-boc__group"><div class="epc-boc__group-h"><i class="fa ' . $h($g['group']['icon']) . '"></i> ' . $h($g['group']['label']) . '</div><div class="epc-boc__nav">';
-            foreach ($g['areas'] as $id => $area) {
-                $url = $base . '/' . ltrim((string) $area['path'], '/');
-                $cls = $id === $active ? ' class="is-active"' : '';
-                echo '<a href="' . $h($url) . '"' . $cls . ' title="' . $h($area['hint']) . '"><i class="fa ' . $h($area['icon']) . '"></i> ' . $h($area['label']) . '</a>';
+        $bocClass = 'epc-boc' . ($layout === 'top' ? ' epc-boc--topnav' : '');
+        $bocStyle = $layout === 'top'
+            ? 'display:flex!important;flex-direction:column!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f5f5f5!important;isolation:isolate!important;'
+            : 'display:flex!important;position:fixed!important;inset:0!important;z-index:4000!important;overflow:auto!important;width:100%!important;float:none!important;background:#f5f5f5!important;isolation:isolate!important;';
+        echo '<div class="' . $bocClass . '" style="' . $bocStyle . '">';
+
+        if ($layout === 'top') {
+            epc_boc_render_top_nav($nav, $base, $active, $brand);
+        } else {
+            echo '<aside class="epc-boc__rail" style="flex:0 0 260px!important;width:260px!important;float:none!important;background:#000000!important;opacity:1!important;">';
+            echo '<div class="epc-boc__brand"><div class="epc-boc__brand-badge">' . $h($brand['short']) . '</div><div><div class="epc-boc__brand-name">' . $h($brand['short']) . '</div><div class="epc-boc__brand-sub">' . $h($brandSub) . '</div></div></div>';
+            foreach ($nav as $g) {
+                if (empty($g['areas'])) { continue; }
+                echo '<div class="epc-boc__group"><div class="epc-boc__group-h"><i class="fa ' . $h($g['group']['icon']) . '"></i> ' . $h($g['group']['label']) . '</div><div class="epc-boc__nav">';
+                foreach ($g['areas'] as $id => $area) {
+                    $url = $base . '/' . ltrim((string) $area['path'], '/');
+                    $cls = $id === $active ? ' class="is-active"' : '';
+                    echo '<a href="' . $h($url) . '"' . $cls . ' title="' . $h($area['hint']) . '"><i class="fa ' . $h($area['icon']) . '"></i> ' . $h($area['label']) . '</a>';
+                }
+                echo '</div></div>';
             }
-            echo '</div></div>';
+            echo '</aside>';
         }
-        echo '</aside>';
+
         // Main + topbar
         echo '<div class="epc-boc__main" style="display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;float:none!important;">';
         echo '<div class="epc-boc__topbar">';
         echo '<div class="epc-boc__crumb">' . $h($title) . '<small>' . $h($brand['name']) . '</small></div>';
         echo '<div class="epc-boc__search"><i class="fa fa-search"></i><input type="search" id="epc-boc-search" placeholder="Search tenants, orders, settings… (global)"></div>';
         echo '<div class="epc-boc__topbar-actions">';
-        $langSwitcher = function_exists('epc_cp_translate_render') ? epc_cp_translate_render('erp') : '';
+        $langSwitcher = '';
+        if (function_exists('epc_cp_translate_render')) {
+            try {
+                $langSwitcher = (string) epc_cp_translate_render('erp');
+            } catch (Throwable $e) {
+                $langSwitcher = '';
+            }
+        }
         echo '<span class="epc-boc__lang" id="epc-boc-lang-slot" title="Change language">' . $langSwitcher . '</span>';
         echo '<span class="epc-boc__scope" title="What this login can see"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
         echo '<span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> ' . $h($env) . '</span>';
