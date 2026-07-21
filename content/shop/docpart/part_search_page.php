@@ -5644,6 +5644,10 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 		var filter = modal.querySelector('#epc-cross-modal-filter');
 		var headNote = modal.querySelector('.epc-cross-modal__head span');
 		function availabilityCell(row) {
+			if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
+			{
+				return (typeof epcStorefrontSensitiveMask === 'function') ? epcStorefrontSensitiveMask() : '**';
+			}
 			if(typeof epcCrossAvailabilityBadgeHTML === 'function')
 			{
 				return epcCrossAvailabilityBadgeHTML(crossRefInStock(row), '');
@@ -5669,8 +5673,13 @@ $epc_universal_mode = isset($_GET['universal']) && (string)$_GET['universal'] ==
 			}
 		}
 		stockRows.innerHTML = stock.length ? stock.map(function(item) {
-			var priceText = (typeof epcFormatMoney === 'function') ? epcFormatMoney(item.price || 0) : (esc(item.price || '') + ' ' + esc(item.currency || ''));
-			return '<div class="epc-cross-modal__stock-row"><span><strong>' + esc(item.brand || '') + ' ' + esc(item.article || '') + '</strong><small>' + esc(item.name || '') + '</small></span><b>' + priceText + '</b><em>Qty: ' + esc(item.qty || '') + '</em><a class="btn btn-xs btn-success" href="' + esc(stockSearchUrl(item)) + '">Open price/cart</a></div>';
+			var hideSensitive = (typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible);
+			var mask = (typeof epcStorefrontSensitiveMask === 'function') ? epcStorefrontSensitiveMask() : '**';
+			var priceText = hideSensitive
+				? mask
+				: ((typeof epcFormatMoney === 'function') ? epcFormatMoney(item.price || 0) : (esc(item.price || '') + ' ' + esc(item.currency || '')));
+			var qtyText = hideSensitive ? mask : esc(item.qty || '');
+			return '<div class="epc-cross-modal__stock-row"><span><strong>' + esc(item.brand || '') + ' ' + esc(item.article || '') + '</strong><small>' + esc(item.name || '') + '</small></span><b>' + priceText + '</b><em>Qty: ' + qtyText + '</em><a class="btn btn-xs btn-success" href="' + esc(stockSearchUrl(item)) + '">Open price/cart</a></div>';
 		}).join('') : '<div class="epc-cross-modal__empty">No cross stock match in loaded price lists.</div>';
 		renderRows();
 		filter.addEventListener('input', renderRows);
