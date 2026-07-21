@@ -269,15 +269,29 @@ if ($showForm) {
 		: array();
 	$photoAjaxUrl = '/' . trim((string) $backend, '/') . '/content/shop/accessories/ajax_epc_accessories_photos.php';
 	$csrfKey = (string) ($user_session['csrf_guard_key'] ?? '');
+	$storefrontUrl = (!$isNew && (int) $listing['id'] > 0)
+		? epc_acc_storefront_url($listing, '/en')
+		: '/en/accessories-spare-parts';
 	?>
 	<div class="col-lg-12 epc-acc-cp">
 		<div class="hpanel">
 			<div class="panel-heading hbuilt">
 				<?php echo $isNew ? 'Add accessories listing' : ('Edit listing #' . (int) $listing['id']); ?>
-				<span class="pull-right"><a href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>">← Back to list</a></span>
+				<span class="pull-right">
+					<?php if (!$isNew) { ?>
+					<a class="btn btn-xs btn-info" href="<?php echo htmlspecialchars($storefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="Open this listing on the storefront">
+						<i class="fa fa-external-link"></i> View on storefront
+					</a>
+					<?php } ?>
+					<a href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>">← Back to list</a>
+				</span>
 			</div>
 			<div class="panel-body">
-				<p class="muted">Fill one category at a time. Published ads appear on <a href="/en/accessories-spare-parts" target="_blank">/en/accessories-spare-parts</a>.</p>
+				<p class="muted">Fill one category at a time. Published ads appear on <a href="/en/accessories-spare-parts" target="_blank">/en/accessories-spare-parts</a>.
+					<?php if (!$isNew) { ?>
+					· <a href="<?php echo htmlspecialchars($storefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">Open this product on storefront</a>
+					<?php } ?>
+				</p>
 				<form method="post" enctype="multipart/form-data" id="epcAccListingForm">
 					<input type="hidden" name="action" value="save" />
 					<input type="hidden" name="id" value="<?php echo (int) $listing['id']; ?>" />
@@ -817,6 +831,16 @@ if ($showForm) {
 							<td><span class="badge <?php echo $badge; ?>"><?php echo htmlspecialchars($st, ENT_QUOTES, 'UTF-8'); ?></span></td>
 							<td class="muted"><?php echo !empty($row['updated_at']) ? date('Y-m-d H:i', (int) $row['updated_at']) : ''; ?></td>
 							<td>
+								<?php
+								$rowStorefront = epc_acc_storefront_url(array(
+									'id' => (int) $row['id'],
+									'category_slug' => (string) ($row['category_slug'] ?? ''),
+									'subcategory_slug' => (string) ($row['subcategory_slug'] ?? ''),
+								), '/en');
+								?>
+								<a class="btn btn-xs btn-info" href="<?php echo htmlspecialchars($rowStorefront, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="View on storefront">
+									<i class="fa fa-external-link"></i> View
+								</a>
 								<a class="btn btn-xs btn-default" href="<?php echo htmlspecialchars($baseUrl . '?edit=' . (int) $row['id'], ENT_QUOTES, 'UTF-8'); ?>">Edit</a>
 								<?php if ($st === 'published') { ?>
 									<form method="post" style="display:inline;" onsubmit="return confirm('Unpublish this ad?');">

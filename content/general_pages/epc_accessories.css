@@ -394,6 +394,11 @@
 	border-color: #fcd34d;
 	box-shadow: 0 0 0 1px rgba(245, 158, 11, .25), var(--acc-shadow);
 }
+.epc-acc__card.is-focus {
+	border-color: #dc2626;
+	box-shadow: 0 0 0 3px rgba(220, 38, 38, .28), var(--acc-shadow);
+	scroll-margin-top: 96px;
+}
 .epc-acc__media-mark {
 	font-family: Syne, Manrope, sans-serif;
 	font-size: 28px;

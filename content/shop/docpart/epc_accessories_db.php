@@ -160,6 +160,43 @@ if (!function_exists('epc_acc_photo_public_url')) {
 	}
 }
 
+if (!function_exists('epc_acc_storefront_url')) {
+	/**
+	 * Deep-link to a listing on the public accessories marketplace.
+	 *
+	 * @param array<string,mixed>|int $listingOrId
+	 */
+	function epc_acc_storefront_url($listingOrId, string $langHref = '/en'): string
+	{
+		$langHref = rtrim($langHref !== '' ? $langHref : '/en', '/');
+		$id = 0;
+		$cat = '';
+		$sub = '';
+		if (is_array($listingOrId)) {
+			$id = (int) ($listingOrId['id'] ?? 0);
+			$cat = trim((string) ($listingOrId['category_slug'] ?? $listingOrId['category'] ?? ''));
+			$sub = trim((string) ($listingOrId['subcategory_slug'] ?? $listingOrId['subcategory'] ?? ''));
+		} else {
+			$id = (int) $listingOrId;
+		}
+		$qs = array();
+		if ($id > 0) {
+			$qs['id'] = (string) $id;
+		}
+		if ($cat !== '') {
+			$qs['category'] = $cat;
+		}
+		if ($sub !== '') {
+			$qs['subcategory'] = $sub;
+		}
+		$path = $langHref . '/accessories-spare-parts';
+		if ($qs === array()) {
+			return $path;
+		}
+		return $path . '?' . http_build_query($qs);
+	}
+}
+
 if (!function_exists('epc_acc_photos_list')) {
 	/**
 	 * @return list<array{id:int,listing_id:int,file_name:string,url:string,sort_order:int,is_primary:bool,created_at:int}>
@@ -1276,6 +1313,7 @@ if (!function_exists('epc_acc_marketplace_search')) {
 		$condition = trim((string) ($filters['condition'] ?? ''));
 		$priceMin = (float) ($filters['price_min'] ?? 0);
 		$priceMax = (float) ($filters['price_max'] ?? 0);
+		$listingId = (int) ($filters['id'] ?? $filters['listing_id'] ?? 0);
 		$sort = (string) ($filters['sort'] ?? 'updated-desc');
 		$page = max(1, (int) ($filters['page'] ?? 1));
 		$perPage = max(12, min(48, (int) ($filters['per_page'] ?? 24)));
@@ -1298,42 +1336,49 @@ if (!function_exists('epc_acc_marketplace_search')) {
 
 		$where = array("`status` = 'published'");
 		$bind = array();
-		if ($categoryId > 0) {
-			$where[] = '`category_id` = ?';
-			$bind[] = $categoryId;
+		// Deep-link: focus one listing (CP "View on storefront").
+		if ($listingId > 0) {
+			$where[] = '`id` = ?';
+			$bind[] = $listingId;
 		}
-		if ($subcategoryId > 0) {
-			$where[] = '`subcategory_id` = ?';
-			$bind[] = $subcategoryId;
-		}
-		if ($make !== '') {
-			$where[] = '`make` = ?';
-			$bind[] = $make;
-		}
-		if ($model !== '') {
-			$where[] = '`model` LIKE ?';
-			$bind[] = '%' . $model . '%';
-		}
-		if ($city !== '') {
-			$where[] = '`city` = ?';
-			$bind[] = $city;
-		}
-		if ($condition !== '') {
-			$where[] = '`condition_type` = ?';
-			$bind[] = strtolower($condition);
-		}
-		if ($priceMin > 0) {
-			$where[] = '`price` >= ?';
-			$bind[] = $priceMin;
-		}
-		if ($priceMax > 0) {
-			$where[] = '`price` <= ?';
-			$bind[] = $priceMax;
-		}
-		if ($q !== '') {
-			$where[] = '(`title` LIKE ? OR `description` LIKE ? OR `make` LIKE ? OR `model` LIKE ?)';
-			$like = '%' . $q . '%';
-			array_push($bind, $like, $like, $like, $like);
+		if ($listingId < 1) {
+			if ($categoryId > 0) {
+				$where[] = '`category_id` = ?';
+				$bind[] = $categoryId;
+			}
+			if ($subcategoryId > 0) {
+				$where[] = '`subcategory_id` = ?';
+				$bind[] = $subcategoryId;
+			}
+			if ($make !== '') {
+				$where[] = '`make` = ?';
+				$bind[] = $make;
+			}
+			if ($model !== '') {
+				$where[] = '`model` LIKE ?';
+				$bind[] = '%' . $model . '%';
+			}
+			if ($city !== '') {
+				$where[] = '`city` = ?';
+				$bind[] = $city;
+			}
+			if ($condition !== '') {
+				$where[] = '`condition_type` = ?';
+				$bind[] = strtolower($condition);
+			}
+			if ($priceMin > 0) {
+				$where[] = '`price` >= ?';
+				$bind[] = $priceMin;
+			}
+			if ($priceMax > 0) {
+				$where[] = '`price` <= ?';
+				$bind[] = $priceMax;
+			}
+			if ($q !== '') {
+				$where[] = '(`title` LIKE ? OR `description` LIKE ? OR `make` LIKE ? OR `model` LIKE ?)';
+				$like = '%' . $q . '%';
+				array_push($bind, $like, $like, $like, $like);
+			}
 		}
 		$whereSql = implode(' AND ', $where);
 
