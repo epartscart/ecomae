@@ -164,21 +164,41 @@ if($all_categories_query->fetchColumn() > 0)
         $current_category->published_flag = $category_record["published_flag"];
 		
 		
-		//Мультиязычность
+		//Мультиязычность — never leave PHP null in JSON (Webix shows the literal "null")
 		for( $i=0 ; $i < count( $current_category->translated_items ) ; $i++ )
 		{
 			$field = $current_category->translated_items[$i];
 			$rawValue = $category_record[$field];
 			$current_category->{$field . "_lang_str_id"} = $rawValue;
 			$label = translate_str_by_id($rawValue);
-			if ($label === '' || preg_match('/^\?+$/u', $label)) {
+			if ($label === null || $label === false) {
+				$label = '';
+			}
+			$label = trim((string) $label);
+			if ($label === '' || strcasecmp($label, 'null') === 0 || preg_match('/^\?+$/u', $label)) {
 				$label = is_numeric($rawValue) ? '' : trim((string) $rawValue);
 			}
-			if ($label === '' && !empty($category_record['alias'])) {
-				$slug = preg_replace('/^apai-[a-z0-9_]+-/', '', (string) $category_record['alias']);
-				$label = ucwords(str_replace('-', ' ', $slug));
+			if ($label === '' || strcasecmp($label, 'null') === 0) {
+				if ($field === 'value' && !empty($category_record['alias'])) {
+					$slug = preg_replace('/^apai-[a-z0-9_]+-/', '', (string) $category_record['alias']);
+					$label = ucwords(str_replace(array('-', '_'), ' ', $slug));
+				} else {
+					$label = '';
+				}
+			}
+			if ($field === 'value' && ($label === '' || strcasecmp($label, 'null') === 0)) {
+				$label = 'Category #' . (int) $current_category->id;
 			}
 			$current_category->{$field} = $label;
+		}
+
+		// Scalar fields that may be NULL in MySQL
+		foreach (array('alias', 'url', 'robots_tag', 'import_format', 'export_format', 'image') as $scalarField) {
+			if ($current_category->{$scalarField} === null || $current_category->{$scalarField} === false) {
+				$current_category->{$scalarField} = '';
+			} else {
+				$current_category->{$scalarField} = (string) $current_category->{$scalarField};
+			}
 		}
 		
 		
@@ -191,7 +211,19 @@ if($all_categories_query->fetchColumn() > 0)
         {
 			//Мультиязычность
 			$property['value_lang_str_id'] = $property['value'];//ID строки
-			$property['value'] = translate_str_by_id($property['value']);//Перевод на текущий язык
+			$propLabel = translate_str_by_id($property['value']);
+			if ($propLabel === null || $propLabel === false) {
+				$propLabel = '';
+			}
+			$propLabel = trim((string) $propLabel);
+			if ($propLabel === '' || strcasecmp($propLabel, 'null') === 0 || preg_match('/^\?+$/u', $propLabel)) {
+				$rawProp = $property['value_lang_str_id'];
+				$propLabel = is_numeric($rawProp) ? '' : trim((string) $rawProp);
+			}
+			if ($propLabel === '' || strcasecmp($propLabel, 'null') === 0) {
+				$propLabel = 'Property #' . (int) ($property['id'] ?? 0);
+			}
+			$property['value'] = $propLabel;
 			
             array_push($current_category->properties, $property);
         }

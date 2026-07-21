@@ -349,6 +349,9 @@ function epc_cp_page_asset_url_map(): array
 				'/content/shop/catalogue/epc_sku_media.js?v=' . rawurlencode($ver . 'skuMedia4'),
 			),
 		),
+		'shop/catalogue/catalogue_editor' => array(
+			'css' => array('/content/shop/catalogue/epc_catalogue_editor.css?v=' . rawurlencode($ver . 'catEd1')),
+		),
 		'shop/prices/upload' => array(
 			'js' => array(
 				'/' . $backend . '/content/shop/prices_upload/epc_prices_upload_history_config.php?v=' . rawurlencode($ver),

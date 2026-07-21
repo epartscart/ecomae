@@ -5,11 +5,36 @@
 defined('_ASTEXE_') or die('No access');
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/dp_category_record.php");//Определение класса записи категории
-?>
+require_once($_SERVER["DOCUMENT_ROOT"]."/content/general_pages/epc_cp_page_frame.php");
 
+/**
+ * Safe UI string for catalogue editor — never echo PHP null / literal "null".
+ */
+function epc_cat_ed_t($str_id, $fallback = '')
+{
+	$t = translate_str_by_id($str_id);
+	if ($t === null || $t === false) {
+		$t = '';
+	}
+	$t = trim((string) $t);
+	if ($t === '' || strcasecmp($t, 'null') === 0) {
+		return $fallback !== '' ? $fallback : '';
+	}
+	return $t;
+}
 
+/**
+ * Coerce hierarchy field to a safe string before htmlentities / DB write.
+ */
+function epc_cat_ed_str($value)
+{
+	if ($value === null || $value === false) {
+		return '';
+	}
+	$s = trim((string) $value);
+	return (strcasecmp($s, 'null') === 0) ? '' : $s;
+}
 
-<?php
 // --------------------------------- Start PHP - метод ---------------------------------
 //Рекурсивная функция для перевода иерархического массива (JSON перечня категорий) в линейный массив (просто набор объектов категорий)
 function getLinearListOfCategories($hierarchy_array)
@@ -21,34 +46,34 @@ function getLinearListOfCategories($hierarchy_array)
         //Генерируем объект записи материала и заносим его в линейный массив
         $current_category = new DP_CatalogueCategory;
         $current_category->id = $hierarchy_array[$i]["id"];
-        $current_category->alias = $hierarchy_array[$i]["alias"];
-        $current_category->url = $hierarchy_array[$i]["url"];
+        $current_category->alias = epc_cat_ed_str($hierarchy_array[$i]["alias"] ?? '');
+        $current_category->url = epc_cat_ed_str($hierarchy_array[$i]["url"] ?? '');
         $current_category->count = $hierarchy_array[$i]['$count'];
         $current_category->level = $hierarchy_array[$i]['$level'];
-        //$current_category->value = htmlentities($hierarchy_array[$i]["value"], ENT_QUOTES, "UTF-8", false);
 		$current_category->parent = $hierarchy_array[$i]['$parent'];
-        //$current_category->title_tag = htmlentities($hierarchy_array[$i]['title_tag'], ENT_QUOTES, "UTF-8", false);
-        //$current_category->description_tag = htmlentities($hierarchy_array[$i]['description_tag'], ENT_QUOTES, "UTF-8", false);
-        //$current_category->keywords_tag = htmlentities($hierarchy_array[$i]['keywords_tag'], ENT_QUOTES, "UTF-8", false);
-        $current_category->robots_tag = htmlentities($hierarchy_array[$i]['robots_tag'], ENT_QUOTES, "UTF-8", false);
-        $current_category->import_format = $hierarchy_array[$i]['import_format'];
-        $current_category->export_format = $hierarchy_array[$i]['export_format'];
+        $current_category->robots_tag = htmlentities(epc_cat_ed_str($hierarchy_array[$i]['robots_tag'] ?? ''), ENT_QUOTES, "UTF-8", false);
+        $current_category->import_format = epc_cat_ed_str($hierarchy_array[$i]['import_format'] ?? '');
+        $current_category->export_format = epc_cat_ed_str($hierarchy_array[$i]['export_format'] ?? '');
         $current_category->properties = $hierarchy_array[$i]['properties'];
 		$current_category->published_flag = $hierarchy_array[$i]['published_flag'];
-		$current_category->image = $hierarchy_array[$i]['image'];
-		$current_category->img_blob = $hierarchy_array[$i]['img_blob'];
-		$current_category->img_blob_name = $hierarchy_array[$i]['img_blob_name'];
-		$current_category->by_template = $hierarchy_array[$i]['by_template'];
+		$current_category->image = epc_cat_ed_str($hierarchy_array[$i]['image'] ?? '');
+		$current_category->img_blob = $hierarchy_array[$i]['img_blob'] ?? '';
+		$current_category->img_blob_name = $hierarchy_array[$i]['img_blob_name'] ?? '';
+		$current_category->by_template = $hierarchy_array[$i]['by_template'] ?? 0;
         
 		
 		//Мультиязычность. Получаем поля для переводимых строк
 		for( $f=0 ; $f < count( $current_category->translated_items ) ; $f++ )
 		{
-			//Перевод строки
-			$current_category->{$current_category->translated_items[$f]} = htmlentities($hierarchy_array[$i][$current_category->translated_items[$f]], ENT_QUOTES, "UTF-8", false);
+			$fieldName = $current_category->translated_items[$f];
+			$fieldVal = isset($hierarchy_array[$i][$fieldName]) ? epc_cat_ed_str($hierarchy_array[$i][$fieldName]) : '';
+			if ($fieldName === 'value' && $fieldVal === '') {
+				$fieldVal = 'Category #' . (int) $current_category->id;
+			}
+			$current_category->{$fieldName} = htmlentities($fieldVal, ENT_QUOTES, "UTF-8", false);
 			
 			//ID строки
-			$current_category->{$current_category->translated_items[$f]."_lang_str_id"} = $hierarchy_array[$i][$current_category->translated_items[$f]."_lang_str_id"];
+			$current_category->{$fieldName."_lang_str_id"} = $hierarchy_array[$i][$fieldName."_lang_str_id"] ?? 0;
 		}
 		
 		
@@ -400,7 +425,7 @@ if(!empty($_POST["save_tree"]))
 				$file_extension = strtolower($file_extension);
 				if( array_search( $file_extension, array('png', 'jpg', 'jpeg', 'gif') ) === false )
 				{
-					throw new Exception(2774);
+					throw new Exception(epc_cat_ed_t(2774, 'Invalid image file type'));
 				}
 				
 				
@@ -515,183 +540,235 @@ else//Если действий нет - выводим страницу
 	$table_name = "shop_catalogue_categories";
 	$col_name = "id";//Имя колонки, в которой содержится id записей (обычно имя равно id)
 	require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/lib/docpart/get_next_id.php");
+
+	$backend_dir = trim((string) ($DP_Config->backend_dir ?? 'cp'), '/');
+	if ($backend_dir === '') {
+		$backend_dir = 'cp';
+	}
+	$css_path = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_catalogue_editor.css';
+	$css_ver = is_file($css_path) ? (string) filemtime($css_path) : '1';
+	if (function_exists('epc_cp_register_page_assets')) {
+		epc_cp_register_page_assets(array('/content/shop/catalogue/epc_catalogue_editor.css?v=' . rawurlencode($css_ver)));
+	}
+	if (function_exists('epc_cp_page_frame_open')) {
+		epc_cp_page_frame_open(array(
+			'class' => 'epc-cat-editor-frame',
+			'hero' => array(
+				'badge' => 'Catalogue',
+				'title' => epc_cat_ed_t(2113, 'Catalogue editor'),
+				'sub' => 'Build and maintain your product category tree — names, SEO, images, and properties.',
+				'actions' => array(
+					array(
+						'url' => '/' . $backend_dir . '/shop/catalogue/products',
+						'label' => 'Products',
+						'icon' => 'fa-th-large',
+						'primary' => true,
+					),
+					array(
+						'url' => '/' . $backend_dir . '/shop/catalogue/sku_media',
+						'label' => 'SKU media',
+						'icon' => 'fa-camera',
+					),
+				),
+			),
+		));
+	}
+
+	$lbl_add = htmlspecialchars(epc_cat_ed_t(2267, 'Add category'), ENT_QUOTES, 'UTF-8');
+	$lbl_delete = htmlspecialchars(epc_cat_ed_t(2224, 'Delete'), ENT_QUOTES, 'UTF-8');
+	$lbl_unselect = htmlspecialchars(epc_cat_ed_t(2268, 'Clear selection'), ENT_QUOTES, 'UTF-8');
+	$lbl_props = htmlspecialchars(epc_cat_ed_t(2778, 'Properties'), ENT_QUOTES, 'UTF-8');
+	$lbl_save = htmlspecialchars(epc_cat_ed_t(2114, 'Save'), ENT_QUOTES, 'UTF-8');
+	$lbl_home = htmlspecialchars(epc_cat_ed_t(2116, 'Control panel'), ENT_QUOTES, 'UTF-8');
+	$lbl_tree = htmlspecialchars(epc_cat_ed_t(2784, 'Category tree'), ENT_QUOTES, 'UTF-8');
+	$lbl_params = htmlspecialchars(epc_cat_ed_t(2799, 'Category parameters'), ENT_QUOTES, 'UTF-8');
+	$lbl_base = htmlspecialchars(epc_cat_ed_t(2779, 'Add base properties for new categories'), ENT_QUOTES, 'UTF-8');
+	$lbl_templates = htmlspecialchars(epc_cat_ed_t(2707, 'Templates'), ENT_QUOTES, 'UTF-8');
+	$lbl_create_tpl = htmlspecialchars(epc_cat_ed_t(2785, 'Save as template'), ENT_QUOTES, 'UTF-8');
+	$hint_base = htmlspecialchars(
+		epc_cat_ed_t(2778, 'Properties')
+		. '<ul><li><b>' . epc_cat_ed_t(2071, 'Manufacturer') . '</b> (' . epc_cat_ed_t(2781, 'type') . ' &quot;' . epc_cat_ed_t(2006, 'Text') . '&quot;)</li>'
+		. '<li><b>' . epc_cat_ed_t(2070, 'Article') . '</b> (' . epc_cat_ed_t(2781, 'type') . ' &quot;' . epc_cat_ed_t(2782, 'List') . '&quot;)</li></ul>'
+		. epc_cat_ed_t(2783, 'Base properties are added automatically when you create a category.'),
+		ENT_QUOTES,
+		'UTF-8'
+	);
+	$hint_tpl = htmlspecialchars(
+		'<b>' . epc_cat_ed_t(2786, 'Category templates') . '</b><br><br>'
+		. epc_cat_ed_t(2787, 'Save a branch as a reusable template, then paste it into another place in the tree.') . '<br><br>'
+		. '<b>' . epc_cat_ed_t(2788, 'Create') . '</b>, ' . epc_cat_ed_t(2789, 'select a category and click') . ' &quot;' . epc_cat_ed_t(2790, 'Save as template') . '&quot;. '
+		. epc_cat_ed_t(2791, 'The selected branch becomes a template.') . '<br><br>'
+		. '<b>' . epc_cat_ed_t(2792, 'Apply') . '</b> ' . epc_cat_ed_t(2793, 'open') . ' &quot;' . epc_cat_ed_t(2707, 'Templates') . '&quot; '
+		. epc_cat_ed_t(2794, 'and use') . ' &quot;' . epc_cat_ed_t(2795, 'Copy') . '&quot;. '
+		. epc_cat_ed_t(2796, 'Then paste with') . ' &quot;' . epc_cat_ed_t(2797, 'Paste') . '&quot; (' . epc_cat_ed_t(2798, 'tree footer') . ').',
+		ENT_QUOTES,
+		'UTF-8'
+	);
+
+	$base_properties_checked = ' checked="checked" ';
+	if (isset($_COOKIE['base_properties']) && (int) $_COOKIE['base_properties'] != 1) {
+		$base_properties_checked = '';
+	}
     ?>
     
     
     <?php
         require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
     ?>
-    
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2113); ?>
-			</div>
-			<div class="panel-body">
-				<a class="panel_a" onClick="add_new_item();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/content_add.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2267); ?></div>
-				</a>
-				
-				<a class="panel_a" onClick="delete_selected_item();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/content_delete.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2224); ?></div>
-				</a>
-				
-				<a class="panel_a" onClick="unselect_tree();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/selection_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2268); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" onClick="open_properties_window();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/share.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2778); ?></div>
-				</a>
-				
-				
-				<a class="panel_a" onClick="save_tree();" href="javascript:void(0);">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/save.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2114); ?></div>
-				</a>
-				
 
-				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir?>">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
-				</a>
-			</div>
-			
-			
-			<div class="panel-footer">
-				<div class="row">
-					<div class="col-md-6">
-						<script>
-						//Через куки запоминаем настройку - так, чтобы при следующем отображении страницы выставить этот чекбокс в тоже самое значение
-						// ------------------------------------------------------------------------------------------------
-						//Функция текущего получения флага "Добавлять базовые свойства"
-						function add_base_properties()
-						{
-							if(document.getElementById("base_properties").checked == true)
-							{
-								return true;
-							}
-							return false;
-						}
-						// ------------------------------------------------------------------------------------------------
-						//Обработка изменения значения на чекбоксе
-						function base_properties_changed()
-						{
-							var base_properties = "0";
-							if( add_base_properties() )
-							{
-								base_properties = "1";
-							}
-
-							
-							//Устанавливаем cookie
-							var date = new Date(new Date().getTime() + 15552000 * 1000);
-							document.cookie = "base_properties="+base_properties+"; path=/; expires=" + date.toUTCString();
-						}
-						// ------------------------------------------------------------------------------------------------
-						</script>
-						<?php
-						$base_properties_checked = " checked=\"checked\" ";//Исходное положение по умолчанию
-						if( isset($_COOKIE["base_properties"]) )
-						{
-							if((int)$_COOKIE["base_properties"] != 1)
-							{
-								$base_properties_checked = "";
-							}
-						}
-						?>
-						<input onchange="base_properties_changed();" type="checkbox" value="base_properties" id="base_properties" <?php echo $base_properties_checked; ?> /> <label for="base_properties"><?php echo translate_str_by_id(2779); ?></label> 
-						<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo translate_str_by_id(2778); ?><ul><li><b><?php echo translate_str_by_id(2071); ?></b> (<?php echo translate_str_by_id(2781); ?> &quot;<?php echo translate_str_by_id(2006); ?>&quot;)</li><li><b><?php echo translate_str_by_id(2070); ?></b> (<?php echo translate_str_by_id(2781); ?> &quot;<?php echo translate_str_by_id(2782); ?>&quot;)</li></ul><?php echo translate_str_by_id(2783); ?>');"><i class="fa fa-info"></i></button>
-					</div>
-				</div>
-			</div>
-			
+	<div class="epc-cat-editor">
+		<div class="epc-cat-editor__toolbar" role="toolbar" aria-label="Catalogue actions">
+			<button type="button" class="epc-ce-btn" onclick="add_new_item();"><i class="fa fa-plus"></i> <?php echo $lbl_add; ?></button>
+			<button type="button" class="epc-ce-btn epc-ce-btn--danger" onclick="delete_selected_item();"><i class="fa fa-trash"></i> <?php echo $lbl_delete; ?></button>
+			<button type="button" class="epc-ce-btn" onclick="unselect_tree();"><i class="fa fa-times"></i> <?php echo $lbl_unselect; ?></button>
+			<button type="button" class="epc-ce-btn" onclick="open_properties_window();"><i class="fa fa-list"></i> <?php echo $lbl_props; ?></button>
+			<button type="button" class="epc-ce-btn epc-ce-btn--primary" onclick="save_tree();"><i class="fa fa-save"></i> <?php echo $lbl_save; ?></button>
+			<span class="epc-cat-editor__toolbar-spacer"></span>
+			<a class="epc-ce-btn" href="/<?php echo htmlspecialchars($backend_dir, ENT_QUOTES, 'UTF-8'); ?>/shop/catalogue/products"><i class="fa fa-th-large"></i> Products</a>
+			<a class="epc-ce-btn" href="/<?php echo htmlspecialchars($backend_dir, ENT_QUOTES, 'UTF-8'); ?>"><i class="fa fa-home"></i> <?php echo $lbl_home; ?></a>
 		</div>
-	</div>
 
-	
-	<div class="col-lg-6">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2784); ?>
-			</div>
-			
-			<div class="panel-body">
-				<div id="container_A" style="height:350px;">
-				</div>
-			</div>
-			
-			<div class="panel-footer">
-				<div class="row">
-					<div class="col-md-6" id="tree_footer_buttons">
-					</div>
-					
-					<div class="col-md-6 text-right" id="copy_cut_buffer_div">
-					</div>
-				</div>
-			</div>
-			
-			
-			<div class="panel-footer">
-				<div class="row">
-					<div class="col-md-12">
-						
-						<a class="btn btn-primary" href="javascript:void(0);" style="border:0;" onclick="open_templates_window();"><i class="far fa-clone"></i> <span class="bold"><?php echo translate_str_by_id(2707); ?></span></a> 
-						
-						<a class="btn btn-info create-template-button" style="border:0;" href="javascript:void(0);" onclick="create_template();"><i class="fas fa-arrow-left"></i> <span class="bold"><?php echo translate_str_by_id(2785); ?></span></a> 
-						
-						<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<b><?php echo translate_str_by_id(2786); ?></b><br><br><?php echo translate_str_by_id(2787); ?><br><br><b><?php echo translate_str_by_id(2788); ?></b>, <?php echo translate_str_by_id(2789); ?> &quot;<?php echo translate_str_by_id(2790); ?>&quot;. <?php echo translate_str_by_id(2791); ?><br><br><b><?php echo translate_str_by_id(2792); ?></b> <?php echo translate_str_by_id(2793); ?> &quot;<?php echo translate_str_by_id(2707); ?>&quot; <?php echo translate_str_by_id(2794); ?> &quot;<?php echo translate_str_by_id(2795); ?>&quot;. <?php echo translate_str_by_id(2796); ?> &quot;<?php echo translate_str_by_id(2797); ?>&quot; (<?php echo translate_str_by_id(2798); ?>).');"><i class="fa fa-info"></i></button>
-						
-					</div>
-				</div>
-			</div>
-			
-			
+		<div class="epc-cat-editor__options">
+			<script>
+			function add_base_properties()
+			{
+				return document.getElementById("base_properties").checked === true;
+			}
+			function base_properties_changed()
+			{
+				var base_properties = add_base_properties() ? "1" : "0";
+				var date = new Date(new Date().getTime() + 15552000 * 1000);
+				document.cookie = "base_properties="+base_properties+"; path=/; expires=" + date.toUTCString();
+			}
+			</script>
+			<input onchange="base_properties_changed();" type="checkbox" value="base_properties" id="base_properties" <?php echo $base_properties_checked; ?> />
+			<label for="base_properties"><?php echo $lbl_base; ?></label>
+			<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo $hint_base; ?>');"><i class="fa fa-info"></i></button>
 		</div>
-	</div>
-	
-	
-	<div class="col-lg-6" id="content_info_div_col">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2799); ?>
+
+		<div class="epc-cat-editor__workspace">
+			<div class="epc-cat-editor__pane">
+				<div class="epc-cat-editor__pane-h">
+					<div>
+						<h3><?php echo $lbl_tree; ?></h3>
+						<span>Drag to reorder · double-click to rename</span>
+					</div>
+				</div>
+				<div class="epc-cat-editor__search">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<input type="search" id="epc_cat_tree_filter" placeholder="Filter categories…" autocomplete="off" />
+				</div>
+				<div class="epc-cat-editor__tree-wrap">
+					<div id="container_A"></div>
+				</div>
+				<div class="epc-cat-editor__pane-f">
+					<div id="tree_footer_buttons"></div>
+					<div id="copy_cut_buffer_div" class="text-right"></div>
+				</div>
+				<div class="epc-cat-editor__pane-f">
+					<a class="btn btn-primary btn-sm" href="javascript:void(0);" onclick="open_templates_window();"><i class="far fa-clone"></i> <span class="bold"><?php echo $lbl_templates; ?></span></a>
+					<a class="btn btn-info btn-sm create-template-button" href="javascript:void(0);" onclick="create_template();"><i class="fas fa-arrow-left"></i> <span class="bold"><?php echo $lbl_create_tpl; ?></span></a>
+					<button class="btn btn-xs btn-info btn-circle" type="button" onclick="show_hint('<?php echo $hint_tpl; ?>');"><i class="fa fa-info"></i></button>
+				</div>
 			</div>
-			<div class="panel-body">
-				<div id="content_info_div">
+
+			<div class="epc-cat-editor__pane" id="content_info_div_col">
+				<div class="epc-cat-editor__pane-h">
+					<div>
+						<h3><?php echo $lbl_params; ?></h3>
+						<span>Select a category to edit details</span>
+					</div>
+				</div>
+				<div class="epc-cat-editor__detail-body" id="content_info_div">
+					<div class="epc-ce-empty">Select a category in the tree to view and edit its parameters.</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	
-	
 
     <!--Форма для отправки-->
-    <form name="form_to_save" method="post" style="display:none" enctype="multipart/form-data">
-        <input name="save_tree" id="save_tree" type="text" value="ok" style="display:none"/>
-        <input name="tree_json" id="tree_json" type="text" value="" style="display:none"/>
-        
-		<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
-		
-        <!-- Изображения загружаются с помощью input[type="file"], которые добавляются сюда при добавлении новой категории -->
-        <div id="img_box">
-        </div>
+    <form name="form_to_save" method="post" enctype="multipart/form-data" aria-hidden="true">
+        <input name="save_tree" id="save_tree" type="hidden" value="ok"/>
+        <input name="tree_json" id="tree_json" type="hidden" value=""/>
+		<input type="hidden" name="csrf_guard_key" value="<?php echo htmlspecialchars((string) $user_session["csrf_guard_key"], ENT_QUOTES, 'UTF-8'); ?>" />
+        <div id="img_box"></div>
     </form>
     <!--Форма для отправки-->
-    
-	
-	
+
 	<script src="/<?php echo $DP_Config->backend_dir; ?>/content/shop/catalogue/copy_paste_categories.js.php"></script>
 
     
     <script type="text/javascript" charset="utf-8">
-    var next_id = <?php echo $next_id;?>;//id следующей категории
+    var next_id = <?php echo (int) $next_id; ?>;//id следующей категории
+    var epc_cat_no_image = <?php echo json_encode('/content/files/images/no_image.png', JSON_UNESCAPED_SLASHES); ?>;
+    var epc_cat_image_base = <?php echo json_encode(rtrim((string) $DP_Config->domain_path, '/') . '/content/files/images/catalogue_images/', JSON_UNESCAPED_SLASHES); ?>;
+
+    function epcCatStr(v, fallback)
+    {
+    	if (v === null || v === undefined || v === false || v === 'null') {
+    		return (fallback === undefined || fallback === null) ? '' : String(fallback);
+    	}
+    	var s = String(v);
+    	if (s.toLowerCase() === 'null') {
+    		return (fallback === undefined || fallback === null) ? '' : String(fallback);
+    	}
+    	return s;
+    }
+    function epcCatEscHtml(v)
+    {
+    	return epcCatStr(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function epcCatEscAttr(v)
+    {
+    	return epcCatEscHtml(v).replace(/'/g,'&#39;');
+    }
+    function epcCatDisplayName(obj)
+    {
+    	var name = epcCatStr(obj && obj.value, '');
+    	if (name === '') {
+    		name = 'Category #' + epcCatStr(obj && obj.id, '?');
+    	}
+    	return name;
+    }
+    function epcSanitizeCatalogueTree(nodes)
+    {
+    	if (!nodes || !nodes.length) {
+    		return;
+    	}
+    	for (var i = 0; i < nodes.length; i++) {
+    		var n = nodes[i];
+    		var keys = ['value','alias','url','title_tag','description_tag','keywords_tag','robots_tag','import_format','export_format','image','image_url'];
+    		for (var k = 0; k < keys.length; k++) {
+    			var key = keys[k];
+    			if (n[key] === null || n[key] === undefined || n[key] === false || n[key] === 'null') {
+    				n[key] = '';
+    			} else {
+    				n[key] = String(n[key]);
+    				if (n[key].toLowerCase() === 'null') {
+    					n[key] = '';
+    				}
+    			}
+    		}
+    		if (n.value === '') {
+    			n.value = 'Category #' + n.id;
+    		}
+    		if (n.properties && n.properties.length) {
+    			for (var p = 0; p < n.properties.length; p++) {
+    				if (n.properties[p].value === null || n.properties[p].value === undefined || n.properties[p].value === 'null') {
+    					n.properties[p].value = '';
+    				}
+    				n.properties[p].value = String(n.properties[p].value || '');
+    				if (n.properties[p].value === '' || n.properties[p].value.toLowerCase() === 'null') {
+    					n.properties[p].value = 'Property';
+    				}
+    			}
+    		}
+    		if (n.data && n.data.length) {
+    			epcSanitizeCatalogueTree(n.data);
+    		}
+    	}
+    }
+
     /*ДЕРЕВО*/
     //Для редактируемости дерева
     webix.protoUI({
@@ -705,14 +782,15 @@ else//Если действий нет - выводим страницу
         	{
                 var folder = common.folder(obj, common);
         	    var icon = "";
-        	    var value_text = "<span>" + obj.value + "</span>";//Вывод текста
+        	    var label = epcCatEscHtml(epcCatDisplayName(obj));
+        	    var value_text = "<span>" + label + "</span>";
 				
         	    //Индикация материала, снятого с публикации
         	    var icon_system = "";
 				if(obj.published_flag == false)
                 {
                     icon_system += "<img src='/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/lock.png' class='col_img' style='float:right; margin:0px 4px 8px 4px;'>";
-                    value_text = "<span style=\"color:#AAA\">" + obj.value + "</span>";//Вывод текста
+                    value_text = "<span style=\"color:#AAA\">" + label + "</span>";
                 }
 				
 				
@@ -721,9 +799,8 @@ else//Если действий нет - выводим страницу
 				{
 					if( obj.to_cut == true )
 					{
-						//icon_system += "<i class=\"fas fa-cut\" style='float:right; margin:0px 4px 8px 4px;'></i>";
 						folder = "<i class=\"fas fa-cut\" style='margin:0px 8px 8px 4px;color:#CCC;'></i>";
-						value_text = "<span style=\"color:#CCC;\">" + obj.value + "</span>";//Вывод текста
+						value_text = "<span style=\"color:#CCC;\">" + label + "</span>";
 					}
 				}
 				
@@ -742,8 +819,26 @@ else//Если действий нет - выводим страницу
     	select:true,//можно выделять элементы
     	drag:true,//можно переносить
     	editor:"text",//тип редактирование - текстовый
+    	filterMode:{ showSubItems:true }
     });
-	webix.event(window, "resize", function(){ tree.adjust(); })
+	webix.event(window, "resize", function(){ tree.adjust(); });
+	(function(){
+		var filterInput = document.getElementById('epc_cat_tree_filter');
+		if (!filterInput) { return; }
+		var filterTimer = null;
+		filterInput.addEventListener('input', function(){
+			var q = this.value;
+			clearTimeout(filterTimer);
+			filterTimer = setTimeout(function(){
+				if (!q) {
+					tree.filter('#value#', '');
+					tree.openAll();
+					return;
+				}
+				tree.filter('#value#', q);
+			}, 160);
+		});
+	})();
     /*~ДЕРЕВО*/
     //-----------------------------------------------------
     webix.protoUI({
@@ -761,90 +856,66 @@ else//Если действий нет - выводим страницу
 		//Кнопки Копировать и Вырезать не активны
 		activate_copy_cut_buttons(false);
 		
+		var detailCol = document.getElementById("content_info_div_col");
+		var detailBox = document.getElementById("content_info_div");
 		
         //Если категории не созданы
     	if(tree.count() == 0)
     	{
-    	    document.getElementById("content_info_div").innerHTML = "";
-			
-			//Скрыть контейнер для параметров
-			document.getElementById("content_info_div_col").setAttribute("style", "display:none");
+    	    detailBox.innerHTML = "<div class=\"epc-ce-empty\">No categories yet. Click <b>Add category</b> to create the first one.</div>";
+			if (detailCol) { detailCol.style.display = ""; }
     	    return;
     	}
     	
     	//Выделенный узел
     	var node_id = tree.getSelectedId();//ID выделенного узла
-    	if(node_id == 0)
+    	if(!node_id)
     	{
-    	    document.getElementById("content_info_div").innerHTML = "";
-			
-			//Скрыть контейнер для параметров
-			document.getElementById("content_info_div_col").setAttribute("style", "display:none");
+    	    detailBox.innerHTML = "<div class=\"epc-ce-empty\">Select a category in the tree to view and edit its parameters.</div>";
+			if (detailCol) { detailCol.style.display = ""; }
     	    return;
     	}
     	
 		//Кнопки Копировать и Вырезать активны
 		activate_copy_cut_buttons(true);
+		if (detailCol) { detailCol.style.display = ""; }
 		
-		//Показать контейнер для параметров
-		document.getElementById("content_info_div_col").setAttribute("style", "display:block");
-		
-		
-    	var node = "";//Ссылка на объект узла
-    	//Выделенный узел
-    	node = tree.getItem(node_id);
+    	var node = tree.getItem(node_id);
+    	// Normalize nullish fields on the live node object
+    	node.value = epcCatDisplayName(node);
+    	node.alias = epcCatStr(node.alias);
+    	node.title_tag = epcCatStr(node.title_tag);
+    	node.description_tag = epcCatStr(node.description_tag);
+    	node.keywords_tag = epcCatStr(node.keywords_tag);
+    	node.robots_tag = epcCatStr(node.robots_tag);
+    	node.image = epcCatStr(node.image);
+    	node.image_url = epcCatStr(node.image_url, epc_cat_no_image);
+    	if (!node.image_url) { node.image_url = epc_cat_no_image; }
     	
+    	var checked = (node.published_flag == 1) ? " checked=\"checked\" " : "";
     	var parameters_table_html = "";
+		parameters_table_html += "<div class=\"epc-ce-section\"><div class=\"epc-ce-section-title\">General</div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\">ID</label><div class=\"col-lg-6\">"+epcCatEscHtml(node.id)+"</div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2277, 'Name'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><strong>"+epcCatEscHtml(node.value)+"</strong> <span class=\"text-muted\">(double-click in tree)</span></div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2800, 'Published'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><input onchange=\"dynamicApplyingCheck('published_flag');\" type=\"checkbox\" id=\"published_flag\" "+checked+" class=\"form-control\"/></div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2166, 'Alias'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><input type=\"text\" onKeyUp=\"dynamicApplying('alias');\" id=\"alias\" value=\""+epcCatEscAttr(node.alias)+"\" class=\"form-control\" /></div></div>";
+		parameters_table_html += "</div>";
 
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\">ID</label><div class=\"col-lg-6\">"+node.id+"</div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2277); ?></label><div class=\"col-lg-6\">"+node.value+"</div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-        
-		var checked = "";
-		if(node.published_flag == 1)
-		{
-			checked = " checked=\"checked\" ";
-		}
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2800); ?></label><div class=\"col-lg-6\"><input onchange=\"dynamicApplyingCheck('published_flag');\" type=\"checkbox\" id=\"published_flag\" "+checked+" class=\"form-control\"/></div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		
-		//parameters_table_html += "<tr> <td>Уровень вложенности</td> <td>"+node.$level+"</td> </tr>";
-        //parameters_table_html += "<tr> <td>ID родителя</td> <td>"+node.$parent+"</td> </tr>";
+		parameters_table_html += "<div class=\"epc-ce-section\"><div class=\"epc-ce-section-title\">SEO</div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2167, 'Title tag'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><input type=\"text\" onKeyUp=\"dynamicApplying('title_tag');\" id=\"title_tag\" value=\""+epcCatEscAttr(node.title_tag)+"\" class=\"form-control\"/></div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2280, 'Description'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><textarea class=\"form-control\" onKeyUp=\"dynamicApplying('description_tag');\" id=\"description_tag\">"+epcCatEscHtml(node.description_tag)+"</textarea></div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2281, 'Keywords'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><textarea class=\"form-control\" onKeyUp=\"dynamicApplying('keywords_tag');\" id=\"keywords_tag\">"+epcCatEscHtml(node.keywords_tag)+"</textarea></div></div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2282, 'Robots'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><input type=\"text\" id=\"robots_tag\" onKeyUp=\"dynamicApplying('robots_tag');\" value=\""+epcCatEscAttr(node.robots_tag)+"\" class=\"form-control\"/></div></div>";
+		parameters_table_html += "</div>";
 
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2166); ?></label><div class=\"col-lg-6\"><input type=\"text\" onKeyUp=\"dynamicApplying('alias');\" id=\"alias\" value=\""+node.alias+"\" class=\"form-control\" /></div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2167); ?></label><div class=\"col-lg-6\"><input type=\"text\" onKeyUp=\"dynamicApplying('title_tag');\" id=\"title_tag\" value=\""+node.title_tag+"\" class=\"form-control\"/></div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-        
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2280); ?></label><div class=\"col-lg-6\"><textarea class=\"form-control\" onKeyUp=\"dynamicApplying('description_tag');\" id=\"description_tag\">"+node.description_tag+"</textarea></div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2281); ?></label><div class=\"col-lg-6\"><textarea class=\"form-control\" onKeyUp=\"dynamicApplying('keywords_tag');\" id=\"keywords_tag\">"+node.keywords_tag+"</textarea></div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2282); ?></label><div class=\"col-lg-6\"><input type=\"text\" id=\"robots_tag\" onKeyUp=\"dynamicApplying('robots_tag');\" value=\""+node.robots_tag+"\" class=\"form-control\"/></div></div>";
-		
-		parameters_table_html += "<div class=\"hr-line-dashed col-lg-12\"></div>";//РАЗДЕЛИТЕЛЬ-----
-		
-		//Изображение
-		parameters_table_html += "<div class=\"form-group\"><label for=\"\" class=\"col-lg-6 control-label\"><?php echo translate_str_by_id(2801); ?></label><div class=\"col-lg-6\"><button class=\"btn btn-success\" type=\"button\" onclick=\"document.getElementById('img_"+node.id+"').click();\"><i class=\"fa fa-file\"></i> <span class=\"bold\"><?php echo translate_str_by_id(2802); ?></span></button></div></div>";
+		parameters_table_html += "<div class=\"epc-ce-section\"><div class=\"epc-ce-section-title\">Image</div>";
+		parameters_table_html += "<div class=\"form-group\"><label class=\"col-lg-6 control-label\"><?php echo htmlspecialchars(epc_cat_ed_t(2801, 'Category image'), ENT_QUOTES, 'UTF-8'); ?></label><div class=\"col-lg-6\"><button class=\"btn btn-success\" type=\"button\" onclick=\"document.getElementById('img_"+node.id+"').click();\"><i class=\"fa fa-file\"></i> <span class=\"bold\"><?php echo htmlspecialchars(epc_cat_ed_t(2802, 'Choose image'), ENT_QUOTES, 'UTF-8'); ?></span></button></div></div>";
 		parameters_table_html += "<div class=\"col-lg-12 text-center\" id=\"image_div\"></div>";
+		parameters_table_html += "</div>";
 
-    	document.getElementById("content_info_div").innerHTML = parameters_table_html;
+    	detailBox.innerHTML = parameters_table_html;
     	
-    	
-    	//Выводим текущее изображение категории - для индикации
-    	document.getElementById("image_div").innerHTML = "<img onerror = \"this.src = '<?php echo "/content/files/images/no_image.png"; ?>'\" src=\""+node.image_url+"\" style=\"max-width:96px; max-height:96px\" />";
+    	document.getElementById("image_div").innerHTML = "<img onerror=\"this.src=epc_cat_no_image\" src=\""+epcCatEscAttr(node.image_url)+"\" alt=\"\" />";
     }//function onSelected()
     //-----------------------------------------------------
 	//Функция динамическиго применния значений
@@ -960,36 +1031,28 @@ else//Если действий нет - выводим страницу
 		}
 		
 		
+		<?php
+		$category_class = new DP_CatalogueCategory();
+		$new_node_fields_js = '';
+		for ($i = 0; $i < count($category_class->translated_items); $i++) {
+			$field = $category_class->translated_items[$i];
+			$fieldVal = epc_cat_ed_str($category_class->{$field});
+			if ($field === 'value' && $fieldVal === '') {
+				$fieldVal = 'New category';
+			}
+			$new_node_fields_js .= $field . ':' . json_encode($fieldVal, JSON_UNESCAPED_UNICODE) . ', ';
+			$new_node_fields_js .= $field . '_lang_str_id:' . (int) $category_class->{$field . '_lang_str_id'} . ', ';
+		}
+		$prop_mfr = json_encode(epc_cat_ed_t(2071, 'Manufacturer'), JSON_UNESCAPED_UNICODE);
+		$prop_art = json_encode(epc_cat_ed_t(2070, 'Article'), JSON_UNESCAPED_UNICODE);
+		?>
 		if( add_base_properties() )
 		{
-			//Добавляем категорию с базовыми свойствами (Производитель и Артикул)
-			newItemId = tree.add( {<?php
-			//Переводимые поля
-			$category_class = new DP_CatalogueCategory();
-			for( $i=0 ; $i < count( $category_class->translated_items ) ; $i++)
-			{
-				echo $category_class->translated_items[$i].":\"".$category_class->{$category_class->translated_items[$i]}."\", ";
-				echo $category_class->translated_items[$i]."_lang_str_id:".$category_class->{$category_class->translated_items[$i]."_lang_str_id"}.", ";
-			}
-			?>id:next_id, alias:"", url:"", robots_tag:"", import_format:"", export_format:"", image_url:"", published_flag:1, properties:[{value:"<?php echo translate_str_by_id(2071); ?>", category_id:next_id, property_type_id:3, just_created:1, list_id:0, for_similar:0, is_option:0},{value:"<?php echo translate_str_by_id(2070); ?>", category_id:next_id, property_type_id:5, just_created:1, list_id:10, for_similar:0, is_option:0}], image:''}, 0, parentId);//Добавляем новый узел и запоминаем его ID
-			/*
-			newItemId = tree.add( {value:"<?php echo translate_str_by_id(2806); ?>", id:next_id, alias:"", url:"", title_tag:"", description_tag:"", keywords_tag:"", robots_tag:"", import_format:"", export_format:"", image_url:"", published_flag:1, properties:[{value:"<?php echo translate_str_by_id(2071); ?>", category_id:next_id, property_type_id:3, just_created:1, list_id:0, for_similar:0, is_option:0},{value:"<?php echo translate_str_by_id(2070); ?>", category_id:next_id, property_type_id:5, just_created:1, list_id:10, for_similar:0, is_option:0}], image:''}, 0, parentId);//Добавляем новый узел и запоминаем его ID
-			*/
+			newItemId = tree.add( {<?php echo $new_node_fields_js; ?>id:next_id, alias:"", url:"", robots_tag:"", import_format:"", export_format:"", image_url:epc_cat_no_image, published_flag:1, properties:[{value:<?php echo $prop_mfr; ?>, category_id:next_id, property_type_id:3, just_created:1, list_id:0, for_similar:0, is_option:0},{value:<?php echo $prop_art; ?>, category_id:next_id, property_type_id:5, just_created:1, list_id:10, for_similar:0, is_option:0}], image:''}, 0, parentId);
 		}
 		else
 		{
-			//Добавляем категорию без свойств
-			newItemId = tree.add( {<?php
-			//Переводимые поля
-			$category_class = new DP_CatalogueCategory();
-			for( $i=0 ; $i < count( $category_class->translated_items ) ; $i++)
-			{
-				echo $category_class->translated_items[$i].":\"".$category_class->{$category_class->translated_items[$i]}."\", ";
-				echo $category_class->translated_items[$i]."_lang_str_id:".$category_class->{$category_class->translated_items[$i]."_lang_str_id"}.", ";
-			}
-			?>id:next_id, alias:"", url:"", robots_tag:"", import_format:"", export_format:"", image_url:"", published_flag:1, image:'', properties:[]}, 0, parentId);//Добавляем новый узел и запоминаем его ID
-			
-			//newItemId = tree.add( {value:"<?php echo translate_str_by_id(2806); ?>", id:next_id, alias:"", url:"", title_tag:"", description_tag:"", keywords_tag:"", robots_tag:"", import_format:"", export_format:"", image_url:"", published_flag:1, image:'', properties:[]}, 0, parentId);//Добавляем новый узел и запоминаем его ID
+			newItemId = tree.add( {<?php echo $new_node_fields_js; ?>id:next_id, alias:"", url:"", robots_tag:"", import_format:"", export_format:"", image_url:epc_cat_no_image, published_flag:1, image:'', properties:[]}, 0, parentId);
 		}
     	
     	//Добавляем поле для изображения в форму:
@@ -1220,12 +1283,16 @@ else//Если действий нет - выводим страницу
             input_file.setAttribute("id","img_"+level_array[i]["id"]);
             input_file.setAttribute("accept","image/jpeg,image/jpg,image/png,image/gif");
             input_file.setAttribute("onchange","onFileChanged();");
+            input_file.setAttribute("tabindex","-1");
+            input_file.setAttribute("aria-hidden","true");
             document.getElementById('img_box').appendChild(input_file);
-            
-                      
-            //Инициализируем image_url - будет использоваться скрипт для получения изображений каталога
-            //level_array[i]["image_url"] = "<?php echo $DP_Config->domain_path; ?>content/shop/catalogue/get_category_image.php?id="+level_array[i]["id"];
-            level_array[i]["image_url"] = "<?php echo $DP_Config->domain_path; ?>content/files/images/catalogue_images/"+level_array[i]["image"];
+
+            var imageName = epcCatStr(level_array[i]["image"]);
+            if (imageName) {
+            	level_array[i]["image_url"] = epc_cat_image_base + imageName;
+            } else {
+            	level_array[i]["image_url"] = epc_cat_no_image;
+            }
             
             //Рекурсивный вызов для вложенного уровня
             if(level_array[i]['$count'] > 0)
@@ -1240,9 +1307,14 @@ else//Если действий нет - выводим страницу
     function catalogue_start_init()
     {
     	var saved_catalogue = <?php echo $catalogue_tree_dump_JSON; ?>;
+    	if (!saved_catalogue || typeof saved_catalogue !== 'object') {
+    		saved_catalogue = [];
+    	}
+    	epcSanitizeCatalogueTree(saved_catalogue);
     	img_box_start_init(saved_catalogue);//Инициализируем изображения для категорий
 	    tree.parse(saved_catalogue);
 	    tree.openAll();
+	    tree.adjust();
     }
     catalogue_start_init();
     onSelected();//Обработка текущего выделения
@@ -1815,17 +1887,10 @@ else//Если действий нет - выводим страницу
 	</script>
 	<script src="/<?php echo $DP_Config->backend_dir; ?>/content/shop/catalogue/categories_templates/categories_templates.js.php"></script>
 	<!-- END МОДАЛЬНОЕ ОКНО - Шаблоны категорий -->
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
-    
     <?php
+	if (function_exists('epc_cp_page_frame_close')) {
+		epc_cp_page_frame_close();
+	}
 }//~else//Если действий нет - выводим страницу
 ?>
