@@ -18,7 +18,7 @@ if ($backend === '') {
 }
 $backendH = htmlspecialchars($backend, ENT_QUOTES, 'UTF-8');
 
-$ver = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'fm2';
+$ver = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'fm3';
 $cssPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/filemanager/epc_filemanager.css';
 $jsPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/filemanager/epc_filemanager.js';
 $cssVer = is_file($cssPath) ? (string) filemtime($cssPath) : $ver;
@@ -32,6 +32,7 @@ if (function_exists('epc_cp_register_page_assets')) {
 			'/' . $backend . '/content/filemanager/epc_filemanager.css?v=' . rawurlencode($cssVer),
 		),
 		array(
+			'/lib/jquery_browser/jquery.browser.js',
 			'/' . $backend . '/lib/elfinder/js/elfinder.min.js',
 			'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver),
 			'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($jsVer),

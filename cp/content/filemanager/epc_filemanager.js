@@ -21,6 +21,22 @@
 		box.innerHTML = '<div class="epc-filemanager__error">' + String(msg) + '</div>';
 	}
 
+	function ensureJqueryBrowser($) {
+		if (!$ || $.browser) {
+			return;
+		}
+		var ua = (navigator.userAgent || '').toLowerCase();
+		$.browser = {
+			msie: /msie|trident/.test(ua),
+			mozilla: /mozilla/.test(ua) && !/(compatible|webkit)/.test(ua),
+			webkit: /webkit/.test(ua),
+			opera: /opera|opr/.test(ua),
+			safari: /safari/.test(ua) && !/chrome|chromium|crios/.test(ua),
+			chrome: /chrome|chromium|crios/.test(ua),
+			version: ((ua.match(/.+(?:rv|it|ra|ie)[/: ]([\d.]+)/) || [])[1] || '0')
+		};
+	}
+
 	function loadScript(src) {
 		return new Promise(function (resolve, reject) {
 			if (!src) {
@@ -57,6 +73,7 @@
 			showError('jQuery is required for the file manager.');
 			return;
 		}
+		ensureJqueryBrowser($);
 		if (typeof $.fn.elfinder !== 'function') {
 			showError('File manager library failed to load. Refresh the page and try again.');
 			return;
@@ -73,7 +90,7 @@
 		mount.innerHTML = '';
 
 		try {
-			$('#elfinder').elfinder({
+			var inst = $('#elfinder').elfinder({
 				url: connectorUrl,
 				lang: cfg.lang || 'en',
 				height: cfg.height || 560,
@@ -82,6 +99,14 @@
 					csrf_guard_key: csrf
 				}
 			});
+			if (!inst || !inst.length || !mount.querySelector('.elfinder')) {
+				// Some elFinder builds throw asynchronously on $.browser — surface that.
+				setTimeout(function () {
+					if (!mount.querySelector('.elfinder')) {
+						showError('File manager UI failed to render. Check that jQuery.browser is available.');
+					}
+				}, 500);
+			}
 		} catch (err) {
 			showError((err && err.message) ? err.message : 'Unable to start the file manager.');
 		}
@@ -99,7 +124,15 @@
 		}
 
 		var chain = Promise.resolve();
-		// Always (re)bind the plugin to the current jQuery instance.
+		ensureJqueryBrowser($);
+		// Re-apply browser shim after footer jQuery reload, then (re)bind elFinder.
+		if (!$ || !$.browser || typeof $.fn.elfinder !== 'function') {
+			chain = chain.then(function () {
+				return loadScript('/lib/jquery_browser/jquery.browser.js').then(function () {
+					ensureJqueryBrowser(window.jQuery);
+				});
+			});
+		}
 		if (!$ || typeof $.fn.elfinder !== 'function') {
 			var elfSrc = '/cp/lib/elfinder/js/elfinder.min.js';
 			if (cfg.connectorUrl && cfg.connectorUrl.indexOf('/lib/elfinder/') !== -1) {
