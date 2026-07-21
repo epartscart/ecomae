@@ -136,7 +136,15 @@ $error = '';
 
 epc_pm_ensure_profile_schema($db_link);
 require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/pricing/epc_pricing.php");
-require_once(__DIR__ . '/epc_pm_storage_panel.php');
+// Prefer DOCUMENT_ROOT — CP may eval() this page so __DIR__ is unreliable.
+$epc_pm_storage_panel = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/shop/pricing/epc_pm_storage_panel.php';
+if (!is_file($epc_pm_storage_panel) && !empty($DP_Config->backend_dir)) {
+	$epc_pm_storage_panel = $_SERVER['DOCUMENT_ROOT'] . '/' . trim((string) $DP_Config->backend_dir, '/') . '/content/shop/pricing/epc_pm_storage_panel.php';
+}
+if (!is_file($epc_pm_storage_panel)) {
+	$epc_pm_storage_panel = dirname(__FILE__) . '/epc_pm_storage_panel.php';
+}
+require_once $epc_pm_storage_panel;
 epc_pricing_ensure_storage_schema($db_link);
 
 if($_SERVER['REQUEST_METHOD'] === 'POST')
