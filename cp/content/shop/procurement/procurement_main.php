@@ -65,6 +65,9 @@ $advances = $tab === 'advances' ? epc_procurement_list_advances($db_link) : arra
 $warehouses = $tab === 'warehouses' ? epc_procurement_list_warehouses($db_link) : array();
 $view_sup = isset($_GET['supplier_id']) ? (int)$_GET['supplier_id'] : 0;
 $edit_sup = $view_sup > 0 ? epc_procurement_get_supplier($db_link, $view_sup) : null;
+$supplier_orders = ($tab === 'suppliers' && $view_sup > 0)
+	? epc_procurement_supplier_order_links($db_link, $view_sup, 40)
+	: array();
 $ff_summary = $tab === 'fulfillment'
 	? epc_erp_fulfilment_summary_light($db_link, strtotime('-30 days'), time())
 	: array('total_orders' => 0, 'pipeline' => array());
@@ -82,6 +85,11 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 .epc-proc-nav .btn { margin: 0 4px 6px 0; }
 .epc-proc-msg { display: none; margin: 10px 0; }
 .epc-proc-note { border-left: 4px solid #f59e0b; padding: 10px 14px; background: #fffbeb; margin-bottom: 14px; border-radius: 0 6px 6px 0; }
+.epc-proc-name { font-weight: 700; color: #0f172a; }
+.epc-proc-code { display:inline-block; margin-top:3px; font-size:11px; font-weight:700; letter-spacing:.03em; color:#0f766e; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:999px; padding:2px 8px; }
+.epc-proc-sub { color:#64748b; font-size:12px; margin-top:2px; }
+.epc-proc-recon { margin-top:22px; padding-top:8px; border-top:1px solid #e2e8f0; }
+.epc-proc-recon h4 { margin-top:0; }
 </style>
 
 <div class="col-lg-12 epc-erp-shell">
@@ -135,38 +143,68 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 
 			<?php elseif ($tab === 'suppliers'): ?>
 				<div class="epc-proc-note">
-					Complete supplier profile for UAE purchase VAT (TRN, country AE, legal registration, address).
-					Prices come from linked warehouse price list — configure in <a href="<?php echo epc_proc_h($priceUrl); ?>">Price management</a>.
+					Show <strong>full legal / warehouse name</strong> together with the <strong>vendor code</strong> (storefront short name).
+					Link the warehouse so customer order lines (`t2_storage_id`) can be reconciled to purchase bills.
+					Prices come from the linked warehouse — <a href="<?php echo epc_proc_h($priceUrl); ?>">Price management</a>.
 				</div>
 				<p>
-					<button type="button" class="btn btn-sm btn-default" id="epc_proc_sync_wh"><i class="fa fa-link"></i> Link warehouses as suppliers (names only)</button>
+					<button type="button" class="btn btn-sm btn-default" id="epc_proc_sync_wh"><i class="fa fa-link"></i> Sync warehouses → full name + vendor code</button>
 				</p>
 				<table class="table table-striped table-bordered table-condensed">
-					<thead><tr><th>Supplier</th><th>TRN</th><th>Country</th><th>Warehouse link</th><th>Payable</th><th></th></tr></thead>
+					<thead>
+						<tr>
+							<th>Full name</th>
+							<th>Vendor code</th>
+							<th>TRN</th>
+							<th>Country</th>
+							<th>Warehouse</th>
+							<th>Payable</th>
+							<th></th>
+						</tr>
+					</thead>
 					<tbody>
+					<?php if (empty($suppliers)): ?>
+						<tr><td colspan="7" class="text-muted">No suppliers yet. Sync warehouses or create one below.</td></tr>
+					<?php endif; ?>
 					<?php foreach ($suppliers as $s): ?>
 						<tr>
-							<td><?php echo epc_proc_h($s['name']); ?></td>
+							<td>
+								<div class="epc-proc-name"><?php echo epc_proc_h($s['full_name'] ?? $s['name']); ?></div>
+								<?php if (!empty($s['warehouse_name']) && strcasecmp((string)$s['warehouse_name'], (string)($s['full_name'] ?? '')) !== 0): ?>
+									<div class="epc-proc-sub">WH: <?php echo epc_proc_h($s['warehouse_name']); ?></div>
+								<?php endif; ?>
+							</td>
+							<td>
+								<?php if (!empty($s['vendor_code'])): ?>
+									<span class="epc-proc-code"><?php echo epc_proc_h($s['vendor_code']); ?></span>
+								<?php else: ?>
+									<span class="text-muted">—</span>
+								<?php endif; ?>
+							</td>
 							<td><?php echo epc_proc_h($s['trn'] ?: '—'); ?></td>
 							<td><?php echo epc_proc_h($s['country_code'] ?? 'AE'); ?>
 								<?php if (!empty($s['vat_registered'])): ?><span class="label label-success">VAT</span><?php endif; ?>
 							</td>
 							<td><?php echo epc_proc_h($s['warehouse_name'] ?: '—'); ?></td>
-							<td><?php echo epc_proc_money($s['balance']); ?></td>
-							<td><a class="btn btn-xs btn-primary" href="<?php echo epc_proc_h(epc_procurement_tab_url($procUrl, 'suppliers', 'supplier_id=' . (int)$s['id'])); ?>">Edit</a></td>
+							<td><?php echo epc_proc_money($s['balance'] ?? 0); ?></td>
+							<td>
+								<a class="btn btn-xs btn-primary" href="<?php echo epc_proc_h(epc_procurement_tab_url($procUrl, 'suppliers', 'supplier_id=' . (int)$s['id'])); ?>">Open</a>
+								<a class="btn btn-xs btn-default" href="<?php echo epc_proc_h(epc_procurement_tab_url($procUrl, 'suppliers', 'supplier_id=' . (int)$s['id'] . '#epc_proc_recon')); ?>">Orders</a>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>
 				</table>
 
 				<?php if ($edit_sup): ?>
-				<h4>Edit supplier #<?php echo (int)$edit_sup['id']; ?></h4>
+				<h4>Edit supplier #<?php echo (int)$edit_sup['id']; ?> — <?php echo epc_proc_h(epc_procurement_supplier_label($edit_sup)); ?></h4>
 				<form id="epc_proc_form_update_sup" class="form-horizontal">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_proc_h($csrf); ?>">
 					<input type="hidden" name="supplier_id" value="<?php echo (int)$edit_sup['id']; ?>">
 					<div class="row">
 						<div class="col-md-6">
-							<div class="form-group"><label class="col-sm-4">Legal name</label><div class="col-sm-8"><input type="text" name="name" class="form-control input-sm" value="<?php echo epc_proc_h($edit_sup['name']); ?>" required></div></div>
+							<div class="form-group"><label class="col-sm-4">Full / legal name</label><div class="col-sm-8"><input type="text" name="name" class="form-control input-sm" value="<?php echo epc_proc_h($edit_sup['full_name'] ?? $edit_sup['name']); ?>" required></div></div>
+							<div class="form-group"><label class="col-sm-4">Vendor code</label><div class="col-sm-8"><input type="text" name="vendor_code" class="form-control input-sm" value="<?php echo epc_proc_h($edit_sup['vendor_code'] ?? ''); ?>" placeholder="e.g. R-UAE, TV6388"></div></div>
 							<div class="form-group"><label class="col-sm-4">TRN (VAT)</label><div class="col-sm-8"><input type="text" name="trn" class="form-control input-sm" value="<?php echo epc_proc_h($edit_sup['trn']); ?>"></div></div>
 							<div class="form-group"><label class="col-sm-4">Country</label><div class="col-sm-8"><input type="text" name="country_code" class="form-control input-sm" value="<?php echo epc_proc_h($edit_sup['country_code'] ?? 'AE'); ?>"></div></div>
 							<div class="form-group"><label class="col-sm-4">VAT registered</label><div class="col-sm-8"><label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" <?php echo !empty($edit_sup['vat_registered']) ? 'checked' : ''; ?>> UAE 5% input VAT</label></div></div>
@@ -191,20 +229,82 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 								<select name="storage_id" class="form-control input-sm">
 									<option value="">— None —</option>
 									<?php foreach (epc_procurement_list_warehouses($db_link) as $w): ?>
-									<option value="<?php echo (int)$w['id']; ?>" <?php echo (int)($edit_sup['storage_id'] ?? 0) === (int)$w['id'] ? 'selected' : ''; ?>><?php echo epc_proc_h($w['name']); ?></option>
+									<option value="<?php echo (int)$w['id']; ?>" <?php echo (int)($edit_sup['storage_id'] ?? 0) === (int)$w['id'] ? 'selected' : ''; ?>><?php
+										echo epc_proc_h($w['name']);
+										if (!empty($w['vendor_code'])) {
+											echo ' [' . epc_proc_h($w['vendor_code']) . ']';
+										}
+									?></option>
 									<?php endforeach; ?>
 								</select>
+								<p class="help-block" style="margin:4px 0 0;">Links customer order lines for reconciliation.</p>
 							</div></div>
 							<div class="form-group"><label class="col-sm-4">Notes</label><div class="col-sm-8"><textarea name="notes" class="form-control input-sm" rows="2"><?php echo epc_proc_h($edit_sup['notes'] ?? ''); ?></textarea></div></div>
 						</div>
 					</div>
 					<button type="submit" class="btn btn-primary">Save supplier profile</button>
+					<a class="btn btn-default" href="<?php echo epc_proc_h(epc_procurement_tab_url($procUrl, 'suppliers')); ?>">Back to list</a>
 				</form>
+
+				<div class="epc-proc-recon" id="epc_proc_recon">
+					<h4><i class="fa fa-exchange"></i> Customer order reconciliation</h4>
+					<p class="text-muted" style="margin-top:0;">
+						Orders with lines from this supplier’s warehouse, plus purchase bills already tied to an order.
+						Use this to match supplier cost against customer order detail.
+					</p>
+					<?php if (empty($supplier_orders)): ?>
+						<div class="alert alert-info" style="margin-bottom:0;">No linked customer orders yet. Link a warehouse above, or record a purchase bill with an order ID.</div>
+					<?php else: ?>
+					<table class="table table-striped table-bordered table-condensed">
+						<thead>
+							<tr>
+								<th>Order</th>
+								<th>Date</th>
+								<th>Customer</th>
+								<th>Lines</th>
+								<th>Purchase ex</th>
+								<th>Sale ex</th>
+								<th>Purchase bills</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+						<?php foreach ($supplier_orders as $so):
+							$oid = (int)($so['order_id'] ?? 0);
+							$bills = (int)($so['purchase_bills'] ?? 0);
+						?>
+							<tr>
+								<td><strong>#<?php echo $oid; ?></strong></td>
+								<td><?php echo !empty($so['time']) ? epc_proc_h(date('Y-m-d H:i', (int)$so['time'])) : '—'; ?></td>
+								<td><?php echo epc_proc_h($so['customer_email'] ?? ('User #' . (int)($so['user_id'] ?? 0))); ?></td>
+								<td><?php echo (int)($so['line_count'] ?? 0); ?></td>
+								<td><?php echo epc_proc_money($so['purchase_ex'] ?? 0); ?></td>
+								<td><?php echo epc_proc_money($so['sale_ex'] ?? 0); ?></td>
+								<td>
+									<?php if ($bills > 0): ?>
+										<span class="label label-success"><?php echo $bills; ?> linked</span>
+									<?php else: ?>
+										<span class="label label-warning">Open</span>
+									<?php endif; ?>
+								</td>
+								<td>
+									<a class="btn btn-xs btn-primary" href="<?php echo epc_proc_h($ordersUrl); ?>?order_id=<?php echo $oid; ?>">Order detail</a>
+									<?php if ($bills <= 0): ?>
+									<a class="btn btn-xs btn-default" href="<?php echo epc_proc_h(epc_procurement_tab_url($procUrl, 'purchases')); ?>">Create bill</a>
+									<?php endif; ?>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+					<?php endif; ?>
+				</div>
 				<?php else: ?>
 				<h4>Add supplier</h4>
 				<form id="epc_proc_form_supplier" class="form-inline">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_proc_h($csrf); ?>">
-					<input type="text" name="name" class="form-control input-sm" placeholder="Supplier legal name" required>
+					<input type="text" name="name" class="form-control input-sm" placeholder="Full / legal name" required>
+					<input type="text" name="vendor_code" class="form-control input-sm" placeholder="Vendor code">
 					<input type="text" name="trn" class="form-control input-sm" placeholder="TRN">
 					<input type="text" name="country_code" class="form-control input-sm" value="AE" placeholder="Country">
 					<input type="email" name="contact_email" class="form-control input-sm" placeholder="E-mail">
@@ -222,9 +322,24 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 						<tr>
 							<td><?php echo (int)$p['id']; ?></td>
 							<td><?php echo epc_proc_h(date('Y-m-d', (int)$p['purchase_date'])); ?></td>
-							<td><?php echo epc_proc_h($p['supplier_name']); ?></td>
+							<td><?php
+								$pLabel = (string)($p['supplier_name'] ?? '');
+								foreach ($suppliers as $ss) {
+									if ((int)$ss['id'] === (int)($p['supplier_id'] ?? 0)) {
+										$pLabel = epc_procurement_supplier_label($ss);
+										break;
+									}
+								}
+								echo epc_proc_h($pLabel);
+							?></td>
 							<td><?php echo epc_proc_h($p['invoice_number']); ?></td>
-							<td><?php echo (int)$p['order_id'] ? ('#' . (int)$p['order_id']) : '—'; ?></td>
+							<td><?php
+								if ((int)$p['order_id']) {
+									echo '<a href="' . epc_proc_h($ordersUrl) . '?order_id=' . (int)$p['order_id'] . '">#' . (int)$p['order_id'] . '</a>';
+								} else {
+									echo '—';
+								}
+							?></td>
 							<td><?php echo epc_proc_money($p['amount_ex_vat']); ?></td>
 							<td><?php echo epc_proc_money($p['vat_amount']); ?></td>
 							<td><?php echo epc_proc_money($p['total_amount']); ?></td>
@@ -236,7 +351,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 				<form id="epc_proc_form_purchase" class="form-inline">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_proc_h($csrf); ?>">
 					<select name="supplier_id" class="form-control input-sm" required><option value="">Supplier</option>
-					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h($s['name']); ?></option><?php endforeach; ?>
+					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h(epc_procurement_supplier_label($s)); ?></option><?php endforeach; ?>
 					</select>
 					<input type="text" name="invoice_number" class="form-control input-sm" placeholder="Supplier invoice #">
 					<input type="number" step="0.01" name="amount_ex_vat" class="form-control input-sm" placeholder="Amount ex VAT" required>
@@ -250,7 +365,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_proc_h($csrf); ?>">
 					<input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" required>
 					<select name="supplier_id" class="form-control input-sm" required><option value="">Supplier</option>
-					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h($s['name']); ?></option><?php endforeach; ?>
+					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h(epc_procurement_supplier_label($s)); ?></option><?php endforeach; ?>
 					</select>
 					<button type="submit" class="btn btn-sm btn-default">Generate bill</button>
 				</form>
@@ -261,7 +376,10 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 					<tbody>
 					<?php foreach ($suppliers as $s): ?>
 						<tr>
-							<td><?php echo epc_proc_h($s['name']); ?></td>
+							<td>
+								<div class="epc-proc-name"><?php echo epc_proc_h($s['full_name'] ?? $s['name']); ?></div>
+								<?php if (!empty($s['vendor_code'])): ?><span class="epc-proc-code"><?php echo epc_proc_h($s['vendor_code']); ?></span><?php endif; ?>
+							</td>
 							<td><?php echo epc_proc_h($s['trn'] ?: '—'); ?></td>
 							<td><strong><?php echo epc_proc_money($s['balance']); ?></strong></td>
 							<td><a class="btn btn-xs btn-default" href="<?php echo epc_proc_h($erpUrl); ?>?tab=payables&supplier_id=<?php echo (int)$s['id']; ?>">Ledger</a></td>
@@ -273,7 +391,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 				<form id="epc_proc_form_pay" class="form-inline">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_proc_h($csrf); ?>">
 					<select name="supplier_id" class="form-control input-sm" required><option value="">Supplier</option>
-					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h($s['name']); ?></option><?php endforeach; ?>
+					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h(epc_procurement_supplier_label($s)); ?></option><?php endforeach; ?>
 					</select>
 					<select name="account_id" class="form-control input-sm" required><option value="">Pay from</option>
 					<?php foreach ($accounts as $a): ?><option value="<?php echo (int)$a['id']; ?>"><?php echo epc_proc_h($a['name']); ?> (<?php echo epc_proc_money($a['balance']); ?>)</option><?php endforeach; ?>
@@ -292,7 +410,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 					<?php foreach ($advances as $a): ?>
 						<tr>
 							<td><?php echo epc_proc_h(date('Y-m-d H:i', (int)$a['time'])); ?></td>
-							<td><?php echo epc_proc_h($a['supplier_name']); ?></td>
+							<td><?php echo epc_proc_h($a['supplier_name'] ?? ''); ?></td>
 							<td><?php echo epc_proc_money($a['amount']); ?></td>
 							<td><?php echo epc_proc_h($a['reference']); ?></td>
 							<td><?php echo epc_proc_h($a['note']); ?></td>
@@ -303,7 +421,7 @@ $vatRate = epc_uae_vat_rate_percent($db_link);
 				<form id="epc_proc_form_advance" class="form-inline">
 					<input type="hidden" name="csrf_guard_key" value="<?php echo epc_proc_h($csrf); ?>">
 					<select name="supplier_id" class="form-control input-sm" required><option value="">Supplier</option>
-					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h($s['name']); ?></option><?php endforeach; ?>
+					<?php foreach ($suppliers as $s): ?><option value="<?php echo (int)$s['id']; ?>"><?php echo epc_proc_h(epc_procurement_supplier_label($s)); ?></option><?php endforeach; ?>
 					</select>
 					<select name="account_id" class="form-control input-sm" required><option value="">Pay from</option>
 					<?php foreach ($accounts as $a): ?><option value="<?php echo (int)$a['id']; ?>"><?php echo epc_proc_money($a['balance']); ?> — <?php echo epc_proc_h($a['name']); ?></option><?php endforeach; ?>
