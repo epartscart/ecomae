@@ -482,7 +482,22 @@ else//Действий нет - выводим страницу
     //Инициализация редактора дерева материалов после загруки страницы
     function tree_start_init()
     {
-    	var saved_tree = <?php echo $tree_dump_JSON; ?>;
+    	if (typeof webix === 'undefined' || typeof tree === 'undefined') {
+    		var box = document.getElementById('container_A');
+    		if (box) {
+    			box.innerHTML = '<div class="alert alert-danger" style="margin:0">Geo tree UI failed to load (Webix). Hard-refresh and try again.</div>';
+    		}
+    		return;
+    	}
+    	var saved_tree = <?php
+			$epcGeoDump = '[]';
+			if (!empty($tree_dump_JSON)) {
+				$epcGeoDump = (string) $tree_dump_JSON;
+			} elseif (!empty($geo_tree_dump_JSON)) {
+				$epcGeoDump = (string) $geo_tree_dump_JSON;
+			}
+			echo $epcGeoDump;
+		?>;
 	    tree.parse(saved_tree);
 	    tree.openAll();
     }
