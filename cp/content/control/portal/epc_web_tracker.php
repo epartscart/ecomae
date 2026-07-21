@@ -1,14 +1,24 @@
 <?php
 /**
  * CP — Website traffic tracker (all tenants on Super CP; own site on tenant CP).
- * Route: /cp/control/portal/epc_web_tracker
+ * Canonical menu route: /cp/shop/statistics/web_tracker
+ * Legacy portal URL redirects there (one menu item only).
  * CSS/JS load via epc_cp_page_assets (inline script inside .row does not run in CP shell).
  */
+$qs = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
+	? ('?' . $_SERVER['QUERY_STRING'])
+	: '';
+$reqUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+if (strpos($reqUri, '/control/portal/epc_web_tracker') !== false) {
+	$backend = 'cp';
+	if (isset($GLOBALS['DP_Config']->backend_dir) && (string) $GLOBALS['DP_Config']->backend_dir !== '') {
+		$backend = trim((string) $GLOBALS['DP_Config']->backend_dir, '/');
+	}
+	header('Location: /' . $backend . '/shop/statistics/web_tracker' . $qs, true, 302);
+	exit;
+}
 if (!defined('_ASTEXE_')) {
-	$qs = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
-		? ('?' . $_SERVER['QUERY_STRING'])
-		: '';
-	header('Location: /cp/control/portal/epc_web_tracker' . $qs, true, 302);
+	header('Location: /cp/shop/statistics/web_tracker' . $qs, true, 302);
 	exit;
 }
 

@@ -17,6 +17,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/content/general_pages/epc_portal.php';
 require_once __DIR__ . '/content/general_pages/epc_portal_db.php';
 require_once __DIR__ . '/content/general_pages/epc_web_tracker.php';
+require_once __DIR__ . '/content/general_pages/epc_perf_cache.php';
 require_once __DIR__ . '/epc_cp_mainstream_menu.php';
 
 $cfg = new DP_Config();
@@ -162,22 +163,8 @@ function epc_wt_register_page(
 	return array('item_id' => $itemId, 'content_id' => $contentId, 'ok' => $ok);
 }
 
-$portalGroup = epc_cp_mm_ensure_group($pdo, 'epc_cp_group_portal', 'Portal', 'Портал', 2);
 $shopGroup = epc_cp_mm_find_shop_group($pdo);
 $shopGroupId = (int) ($shopGroup['id'] ?? 6);
-
-$parent = $pdo->prepare('SELECT `id`, `level` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
-$parent->execute(array('control/config'));
-$parentRow = $parent->fetch(PDO::FETCH_ASSOC);
-if (!$parentRow) {
-	$parent->execute(array('control'));
-	$parentRow = $parent->fetch(PDO::FETCH_ASSOC);
-}
-if (!$parentRow) {
-	exit("Parent content not found\n");
-}
-$parentId = (int) $parentRow['id'];
-$level = (int) $parentRow['level'] + 1;
 
 $shopParent = $pdo->prepare('SELECT `id`, `level` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
 $shopParent->execute(array('shop/statistika'));
@@ -186,37 +173,21 @@ if (!$shopParentRow) {
 	$shopParent->execute(array('shop'));
 	$shopParentRow = $shopParent->fetch(PDO::FETCH_ASSOC);
 }
-$shopParentId = $shopParentRow ? (int) $shopParentRow['id'] : $parentId;
-$shopLevel = $shopParentRow ? ((int) $shopParentRow['level'] + 1) : $level;
+if (!$shopParentRow) {
+	exit("Shop parent content not found\n");
+}
+$shopParentId = (int) $shopParentRow['id'];
+$shopLevel = (int) $shopParentRow['level'] + 1;
 
 $ref = $pdo->prepare('SELECT `id` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
 $ref->execute(array('shop/statistika'));
 $refId = (int) $ref->fetchColumn();
 if ($refId <= 0) {
-	$ref->execute(array('control/portal/epc_power_bi'));
+	$ref->execute(array('shop/statistics/statistics'));
 	$refId = (int) $ref->fetchColumn();
 }
 
-$portal = epc_wt_register_page(
-	$pdo,
-	$portalGroup,
-	$parentId,
-	$level,
-	$refId,
-	'epc_portal_web_tracker',
-	'Website tracker',
-	'Трекер сайта',
-	'control/portal/epc_web_tracker',
-	'epc_web_tracker',
-	'/<backend>/control/portal/epc_web_tracker',
-	'/<backend_dir>/content/control/portal/epc_web_tracker.php',
-	'Website traffic — pageviews, clicks, search, geo, session timelines',
-	12,
-	'#0ea5e9',
-	'fa-line-chart',
-	1
-);
-
+// One menu item only — Shop → Web tracker (canonical).
 $shop = epc_wt_register_page(
 	$pdo,
 	$shopGroupId,
@@ -224,23 +195,48 @@ $shop = epc_wt_register_page(
 	$shopLevel,
 	$refId,
 	'epc_shop_web_tracker',
-	'Website traffic',
-	'Трафик сайта',
+	'Web tracker',
+	'Трекер сайта',
 	'shop/statistics/web_tracker',
 	'web_tracker',
 	'/<backend>/shop/statistics/web_tracker',
 	'/<backend_dir>/content/shop/statistics/web_tracker.php',
-	'Tenant website traffic tracker',
+	'Website traffic — pageviews, clicks, search, geo, session timelines',
 	35,
 	'#0284c7',
-	'fa-area-chart',
+	'fa-line-chart',
 	1
 );
 
+// Remove duplicate Control/Portal menu item (keep content URL as redirect-only).
+$portalRemoved = 0;
+$stPortalItems = $pdo->query(
+	"SELECT `id`, `url` FROM `control_items`
+	 WHERE `url` LIKE '%/control/portal/epc_web_tracker%'
+	    OR `url` = 'control/portal/epc_web_tracker'"
+);
+if ($stPortalItems) {
+	$delById = $pdo->prepare('DELETE FROM `control_items` WHERE `id` = ?');
+	while ($row = $stPortalItems->fetch(PDO::FETCH_ASSOC)) {
+		$delById->execute(array((int) $row['id']));
+		$portalRemoved += $delById->rowCount();
+		echo 'removed menu: ' . $row['url'] . "\n";
+	}
+}
+
+$cacheBusted = 0;
+if (function_exists('epc_cp_menu_cache_bust')) {
+	$cacheBusted = epc_cp_menu_cache_bust($pdo);
+}
+if (function_exists('epc_perf_cache_bust_prefix')) {
+	$cacheBusted += epc_perf_cache_bust_prefix('epc_cp_menu_rows');
+}
+
 echo 'db: ' . $cfg->db . "\n";
-echo 'Portal menu id: ' . $portal['item_id'] . ' content id: ' . $portal['content_id'] . ' verify: ' . ($portal['ok'] ? 'ok' : 'MISSING') . "\n";
 echo 'Shop menu id: ' . $shop['item_id'] . ' content id: ' . $shop['content_id'] . ' verify: ' . ($shop['ok'] ? 'ok' : 'MISSING') . "\n";
-echo "CP Super/Portal: /cp/control/portal/epc_web_tracker\n";
-echo "CP Tenant/Shop:  /cp/shop/statistics/web_tracker\n";
+echo 'Removed portal menu rows: ' . $portalRemoved . "\n";
+echo 'Menu cache busted: ' . $cacheBusted . "\n";
+echo "Canonical CP menu: /cp/shop/statistics/web_tracker (Web tracker)\n";
+echo "Legacy /cp/control/portal/epc_web_tracker redirects to canonical.\n";
 echo "Collect:         /epc-web-tracker-collect.php\n";
 echo "Done.\n";
