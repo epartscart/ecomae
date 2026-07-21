@@ -17,6 +17,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/content/general_pages/epc_portal.php';
 require_once __DIR__ . '/content/general_pages/epc_portal_db.php';
 require_once __DIR__ . '/content/general_pages/epc_web_tracker.php';
+require_once __DIR__ . '/content/general_pages/epc_perf_cache.php';
 require_once __DIR__ . '/epc_cp_mainstream_menu.php';
 
 $cfg = new DP_Config();
@@ -223,9 +224,18 @@ if ($stPortalItems) {
 	}
 }
 
+$cacheBusted = 0;
+if (function_exists('epc_cp_menu_cache_bust')) {
+	$cacheBusted = epc_cp_menu_cache_bust($pdo);
+}
+if (function_exists('epc_perf_cache_bust_prefix')) {
+	$cacheBusted += epc_perf_cache_bust_prefix('epc_cp_menu_rows');
+}
+
 echo 'db: ' . $cfg->db . "\n";
 echo 'Shop menu id: ' . $shop['item_id'] . ' content id: ' . $shop['content_id'] . ' verify: ' . ($shop['ok'] ? 'ok' : 'MISSING') . "\n";
 echo 'Removed portal menu rows: ' . $portalRemoved . "\n";
+echo 'Menu cache busted: ' . $cacheBusted . "\n";
 echo "Canonical CP menu: /cp/shop/statistics/web_tracker (Web tracker)\n";
 echo "Legacy /cp/control/portal/epc_web_tracker redirects to canonical.\n";
 echo "Collect:         /epc-web-tracker-collect.php\n";

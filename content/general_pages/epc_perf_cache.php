@@ -109,6 +109,34 @@ function epc_cp_menu_cache(PDO $pdo): array
 	});
 }
 
+/** Delete one cache key from APCu + file cache. */
+function epc_perf_cache_delete(string $key): bool
+{
+	$ok = false;
+	if (function_exists('apcu_delete')) {
+		$ok = (bool) @apcu_delete($key) || $ok;
+	}
+	$file = epc_perf_cache_dir() . '/' . epc_perf_cache_key_safe($key) . '.json';
+	if (is_file($file) && @unlink($file)) {
+		$ok = true;
+	}
+	return $ok;
+}
+
+/** Bust CP menu row cache for the current PDO database. */
+function epc_cp_menu_cache_bust(?PDO $pdo = null): int
+{
+	$dbName = 'default';
+	if ($pdo instanceof PDO) {
+		try {
+			$dbName = (string) $pdo->query('SELECT DATABASE()')->fetchColumn();
+		} catch (Throwable $e) {
+		}
+	}
+	$key = 'epc_cp_menu_rows:v1:' . $dbName;
+	return epc_perf_cache_delete($key) ? 1 : 0;
+}
+
 /** Delete file-cache entries whose key starts with $prefix (APCu keys are not cleared). */
 function epc_perf_cache_bust_prefix(string $prefix): int
 {
@@ -123,6 +151,18 @@ function epc_perf_cache_bust_prefix(string $prefix): int
 		if ($safePrefix === '' || strpos($base, $safePrefix) === 0) {
 			if (@unlink($file)) {
 				$removed++;
+			}
+		}
+	}
+	if ($prefix === '' || strpos('epc_cp_menu_rows:v1:', $prefix) === 0 || strpos($prefix, 'epc_cp_menu') === 0) {
+		if (function_exists('apcu_cache_info') && function_exists('apcu_delete')) {
+			$info = @apcu_cache_info(false);
+			foreach ((array) ($info['cache_list'] ?? array()) as $entry) {
+				$k = (string) ($entry['info'] ?? '');
+				if ($k !== '' && strpos($k, 'epc_cp_menu_rows:') === 0) {
+					@apcu_delete($k);
+					$removed++;
+				}
 			}
 		}
 	}
