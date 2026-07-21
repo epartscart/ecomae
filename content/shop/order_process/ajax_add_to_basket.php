@@ -309,6 +309,16 @@ for($i=0; $i < count($product_objects); $i++)
         $t2_office_id = $product_object["office_id"];
         $t2_storage_id = $product_object["storage_id"];
 		$t2_json_params = $product_object["json_params"].'';
+
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
+		if (!function_exists('epc_pricing_line_has_positive_margin')
+			|| !epc_pricing_line_has_positive_margin($price, $t2_price_purchase)) {
+			$result = array();
+			$result['status'] = false;
+			$result['code'] = 'no_margin';
+			$result['message'] = 'Cannot add to cart without margin. Guest/retail prices include 40% markup; B2B uses the approved profile.';
+			exit(json_encode($result));
+		}
         
 		if(!empty($product_object["count_need"])){
 			$count_need = (int)$product_object["count_need"];

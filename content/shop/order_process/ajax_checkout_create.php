@@ -78,6 +78,7 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 $user_id = DP_User::getUserId();
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_customer_trade.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
 if ($user_id > 0 && !epc_trade_can_place_order($db_link, (int)$user_id)) {
 	$result = array();
 	$result['status'] = false;
@@ -297,6 +298,30 @@ try
 		$product_id = $cart_record["product_id"];
 		$price = $cart_record["price"];
 		$count_need = $cart_record["count_need"];
+
+		// Never create an order line without positive margin (sell > purchase).
+		$epc_line_purchase = 0.0;
+		if ((int) $product_type === 2) {
+			$epc_line_purchase = (float) ($cart_record['t2_price_purchase'] ?? 0);
+		} elseif ((int) $product_type === 1) {
+			try {
+				$epc_pp = $db_link->prepare(
+					'SELECT IFNULL(`price_purchase`, 0) AS `price_purchase`
+					 FROM `shop_carts_details` WHERE `cart_record_id` = ? ORDER BY `id` ASC LIMIT 1'
+				);
+				$epc_pp->execute(array((int) $cart_record_id));
+				$epc_line_purchase = (float) $epc_pp->fetchColumn();
+			} catch (Exception $e) {
+			}
+		}
+		if (!function_exists('epc_pricing_line_has_positive_margin')
+			|| !epc_pricing_line_has_positive_margin($price, $epc_line_purchase)) {
+			$result = array();
+			$result['status'] = false;
+			$result['code'] = 'no_margin';
+			$result['message'] = 'Order blocked: every line must include a positive margin. Guest/retail use 40% markup; B2B prices follow the approved customer profile. Remove zero-margin items and try again.';
+			exit(json_encode($result));
+		}
 		
 		array_push($cart_items, $cart_record_id);
 		

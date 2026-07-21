@@ -328,7 +328,10 @@ class prices_enclosure
 							0,
 							'',
 							$epc_json_params !== '' ? $epc_json_params : null,
-							array("rate" => $office_storage_dataInfo_price_id["rate"]) //OK
+							array(
+							"rate" => $office_storage_dataInfo_price_id["rate"],
+							"customer_group_id" => (int) $group_id,
+						)
 						);
 	
 						if ($DocpartProduct->valid == true) {
@@ -478,7 +481,10 @@ class prices_enclosure
 						0,
 						'',
 						$epc_json_params !== '' ? $epc_json_params : null,
-						array("rate" => $office_storage_dataInfo_price_id["rate"]) //OK
+						array(
+							"rate" => $office_storage_dataInfo_price_id["rate"],
+							"customer_group_id" => (int) $group_id,
+						)
 					);
 
 					if ($DocpartProduct->valid == true) {
@@ -678,7 +684,11 @@ class prices_enclosure
 				$product["storage_caption"],
 				$product["price"],
 				$product["markup"],
-				2,0,0,'',$epc_json_params !== '' ? $epc_json_params : null,array('rate' => $product["rate"], 'search_name' => 1)
+				2,0,0,'',$epc_json_params !== '' ? $epc_json_params : null,array(
+					'rate' => $product["rate"],
+					'search_name' => 1,
+					'customer_group_id' => (int) $group_id,
+				)
 				);
 			
 			if($DocpartProduct->valid == true)
