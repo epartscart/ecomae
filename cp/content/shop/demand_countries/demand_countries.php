@@ -81,7 +81,89 @@ $csrf = isset($user_session['csrf_guard_key']) ? (string) $user_session['csrf_gu
 .epc-dc-page .epc-dc-markets code { margin-right: 4px; }
 .epc-dc-page .btn-primary { background: var(--dc-accent); border-color: var(--dc-accent); }
 .epc-dc-page .btn-success { background: var(--dc-ok); border-color: var(--dc-ok); }
-.epc-dc-page #epc-dc-by-country td { vertical-align: middle !important; }
+.epc-dc-page #epc-dc-country-table td { vertical-align: middle !important; }
+.epc-dc-page #epc-dc-country-table tbody tr {
+	cursor: pointer;
+	transition: background 0.12s ease;
+}
+.epc-dc-page #epc-dc-country-table tbody tr:hover { background: #e0f2fe; }
+.epc-dc-page #epc-dc-country-table tbody tr.is-active {
+	background: #bae6fd;
+	outline: 2px solid #0284c7;
+	outline-offset: -2px;
+}
+.epc-dc-page .epc-dc-parts-panel {
+	margin-top: 14px;
+	border: 1px solid var(--dc-line);
+	border-radius: 10px;
+	background: #fff;
+	overflow: hidden;
+}
+.epc-dc-page .epc-dc-parts-head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px;
+	background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+	border-bottom: 1px solid var(--dc-line);
+}
+.epc-dc-page .epc-dc-parts-head h4 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--dc-ink);
+}
+.epc-dc-page .epc-dc-parts-head h4 code {
+	font-size: 12px;
+	background: #e0f2fe;
+	color: #075985;
+	border-radius: 4px;
+	padding: 1px 6px;
+	margin-left: 4px;
+}
+.epc-dc-page .epc-dc-parts-tools {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+.epc-dc-page .epc-dc-parts-tools .form-control {
+	height: 32px;
+	min-width: 180px;
+	border-radius: 6px;
+}
+.epc-dc-page .epc-dc-parts-body { padding: 0; max-height: 420px; overflow: auto; }
+.epc-dc-page .epc-dc-parts-body table { margin: 0; font-size: 13px; }
+.epc-dc-page .epc-dc-parts-body td { vertical-align: middle !important; }
+.epc-dc-page .epc-dc-parts-foot {
+	padding: 10px 14px;
+	border-top: 1px solid var(--dc-line);
+	background: #f8fafc;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 12px;
+	color: var(--dc-muted);
+}
+.epc-dc-page .epc-dc-parts-empty {
+	padding: 20px 14px;
+	text-align: center;
+	color: var(--dc-muted);
+	font-size: 13px;
+}
+.epc-dc-page .epc-dc-chip {
+	display: inline-block;
+	font-size: 11px;
+	background: #eef2f7;
+	color: #475569;
+	border-radius: 999px;
+	padding: 1px 7px;
+	margin: 0 2px 2px 0;
+}
 </style>
 <div class="epc-dc-page">
 	<div class="epc-dc-hero">
@@ -134,12 +216,39 @@ MANN,W712/75,"SDN,DZA"</pre>
 			<div class="hpanel">
 				<div class="panel-heading hbuilt">Live demand tags (feeds AI Parts)</div>
 				<div class="panel-body">
-					<p class="text-muted" style="margin-top:0;font-size:13px;">Counts from <code>epc_article_demand</code>. After import, storefront Country Intelligence and the parts agent can filter by these markets.</p>
+					<p class="text-muted" style="margin-top:0;font-size:13px;">Counts from <code>epc_article_demand</code>. <strong>Click a country</strong> to see which brand + part numbers are tagged for that market.</p>
 					<div id="epc-dc-by-country"><div class="text-muted">Loading overview…</div></div>
 					<div class="epc-dc-markets" id="epc-dc-markets"></div>
 					<p style="margin-top:12px;margin-bottom:0;">
 						<button type="button" class="btn btn-default btn-sm" id="epc-dc-refresh-stats"><i class="fa fa-refresh"></i> Refresh</button>
 					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row" style="margin:14px 0 0;">
+		<div class="col-lg-12">
+			<div class="hpanel" id="epc-dc-parts-card" style="display:none;">
+				<div class="panel-heading hbuilt">Part numbers for selected country</div>
+				<div class="panel-body" style="padding:0;">
+					<div class="epc-dc-parts-panel" style="margin:0;border:none;border-radius:0;">
+						<div class="epc-dc-parts-head">
+							<h4 id="epc-dc-parts-title">Select a country</h4>
+							<div class="epc-dc-parts-tools">
+								<input type="search" class="form-control" id="epc-dc-parts-q" placeholder="Filter brand or article…" autocomplete="off"/>
+								<button type="button" class="btn btn-primary btn-sm" id="epc-dc-parts-search"><i class="fa fa-search"></i> Search</button>
+								<button type="button" class="btn btn-default btn-sm" id="epc-dc-parts-close"><i class="fa fa-times"></i> Close</button>
+							</div>
+						</div>
+						<div class="epc-dc-parts-body" id="epc-dc-parts-body">
+							<div class="epc-dc-parts-empty">Click a market in the overview to load its part numbers.</div>
+						</div>
+						<div class="epc-dc-parts-foot">
+							<span id="epc-dc-parts-meta"></span>
+							<span id="epc-dc-parts-pager"></span>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -253,6 +362,113 @@ MANN,W712/75,"SDN,DZA"</pre>
 		});
 	}
 
+	var selectedCountry = '';
+	var partsPage = 1;
+	var partsQ = '';
+
+	function setActiveCountryRow(code) {
+		var table = document.getElementById('epc-dc-country-table');
+		if (!table) { return; }
+		Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (tr) {
+			if (tr.getAttribute('data-code') === code) {
+				tr.classList.add('is-active');
+			} else {
+				tr.classList.remove('is-active');
+			}
+		});
+	}
+
+	function loadCountryParts(code, page, q) {
+		if (!code) { return; }
+		selectedCountry = code;
+		partsPage = page || 1;
+		partsQ = (typeof q === 'string') ? q : partsQ;
+		var card = document.getElementById('epc-dc-parts-card');
+		var body = document.getElementById('epc-dc-parts-body');
+		var title = document.getElementById('epc-dc-parts-title');
+		var meta = document.getElementById('epc-dc-parts-meta');
+		var pager = document.getElementById('epc-dc-parts-pager');
+		card.style.display = 'block';
+		body.innerHTML = '<div class="epc-dc-parts-empty"><i class="fa fa-spinner fa-spin"></i> Loading part numbers…</div>';
+		meta.textContent = '';
+		pager.innerHTML = '';
+		setActiveCountryRow(code);
+
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', importUrl, true);
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		xhr.onload = function () {
+			var data;
+			try { data = JSON.parse(xhr.responseText); } catch (e) {
+				body.innerHTML = '<div class="epc-dc-parts-empty text-danger">Could not load parts.</div>';
+				return;
+			}
+			if (!data || !data.status) {
+				body.innerHTML = '<div class="epc-dc-parts-empty text-danger">' + escapeHtml((data && data.message) || 'Failed') + '</div>';
+				return;
+			}
+			var cName = (data.country && data.country.name) ? data.country.name : code;
+			var cCode = (data.country && data.country.code) ? data.country.code : code;
+			title.innerHTML = escapeHtml(cName) + ' <code>' + escapeHtml(cCode) + '</code>';
+			var parts = data.parts || [];
+			if (!parts.length) {
+				body.innerHTML = '<div class="epc-dc-parts-empty">No part numbers tagged for this country'
+					+ (partsQ ? ' matching “' + escapeHtml(partsQ) + '”' : '') + '.</div>';
+			} else {
+				var html = '<table class="table table-striped table-condensed"><thead><tr>'
+					+ '<th>#</th><th>Brand</th><th>Part number</th><th>Also tagged</th><th>Source</th><th></th>'
+					+ '</tr></thead><tbody>';
+				var baseIdx = ((data.page || 1) - 1) * (data.per_page || 50);
+				parts.forEach(function (p, i) {
+					var others = (p.other_countries || []).map(function (oc) {
+						return '<span class="epc-dc-chip">' + escapeHtml(oc) + '</span>';
+					}).join(' ');
+					html += '<tr>'
+						+ '<td>' + (baseIdx + i + 1) + '</td>'
+						+ '<td><strong>' + escapeHtml(p.brand) + '</strong></td>'
+						+ '<td><code>' + escapeHtml(p.article) + '</code></td>'
+						+ '<td>' + (others || '<span class="text-muted">—</span>') + '</td>'
+						+ '<td class="text-muted">' + escapeHtml(p.source || '') + '</td>'
+						+ '<td class="text-right"><a class="btn btn-xs btn-primary" target="_blank" rel="noopener" href="'
+						+ escapeHtml(p.search_url || '#') + '">Open search</a></td>'
+						+ '</tr>';
+				});
+				html += '</tbody></table>';
+				body.innerHTML = html;
+			}
+			meta.textContent = 'Showing ' + parts.length + ' of ' + (data.total || 0)
+				+ ' part number(s) for ' + cName + ' (' + cCode + ')';
+			var pages = data.pages || 1;
+			var cur = data.page || 1;
+			if (pages > 1) {
+				var pHtml = '';
+				if (cur > 1) {
+					pHtml += '<a href="javascript:void(0)" class="btn btn-xs btn-default" data-page="' + (cur - 1) + '">&laquo; Prev</a> ';
+				}
+				pHtml += ' Page ' + cur + ' / ' + pages + ' ';
+				if (cur < pages) {
+					pHtml += '<a href="javascript:void(0)" class="btn btn-xs btn-default" data-page="' + (cur + 1) + '">Next &raquo;</a>';
+				}
+				pager.innerHTML = pHtml;
+				Array.prototype.forEach.call(pager.querySelectorAll('[data-page]'), function (a) {
+					a.addEventListener('click', function () {
+						loadCountryParts(selectedCountry, parseInt(a.getAttribute('data-page'), 10) || 1, partsQ);
+					});
+				});
+			}
+			try { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+		};
+		xhr.onerror = function () {
+			body.innerHTML = '<div class="epc-dc-parts-empty text-danger">Network error.</div>';
+		};
+		xhr.send('action=country_parts'
+			+ '&country=' + encodeURIComponent(code)
+			+ '&page=' + encodeURIComponent(String(partsPage))
+			+ '&q=' + encodeURIComponent(partsQ)
+			+ '&per_page=50'
+			+ '&csrf_guard_key=' + encodeURIComponent(csrf));
+	}
+
 	function loadOverview() {
 		var box = document.getElementById('epc-dc-by-country');
 		var xhr = new XMLHttpRequest();
@@ -275,12 +491,29 @@ MANN,W712/75,"SDN,DZA"</pre>
 			if (!rows.length) {
 				box.innerHTML = '<p class="text-muted" style="margin:0;">No demand tags yet. Preview and import a CSV to feed AI Parts Country Intelligence.</p>';
 			} else {
-				var html = '<table class="table table-striped table-condensed" id="epc-dc-by-country"><thead><tr><th>Market</th><th>Code</th><th>Parts</th><th>Tags</th></tr></thead><tbody>';
+				var html = '<table class="table table-striped table-condensed" id="epc-dc-country-table"><thead><tr><th>Market</th><th>Code</th><th>Parts</th><th>Tags</th><th></th></tr></thead><tbody>';
 				rows.forEach(function (r) {
-					html += '<tr><td>' + escapeHtml(r.name) + '</td><td><code>' + escapeHtml(r.code) + '</code></td><td>' + (r.parts || 0) + '</td><td>' + (r.tags || 0) + '</td></tr>';
+					html += '<tr data-code="' + escapeHtml(r.code) + '" title="Click to see part numbers">'
+						+ '<td><strong>' + escapeHtml(r.name) + '</strong></td>'
+						+ '<td><code>' + escapeHtml(r.code) + '</code></td>'
+						+ '<td>' + (r.parts || 0) + '</td>'
+						+ '<td>' + (r.tags || 0) + '</td>'
+						+ '<td class="text-right"><span class="btn btn-xs btn-info"><i class="fa fa-list"></i> Parts</span></td>'
+						+ '</tr>';
 				});
 				html += '</tbody></table>';
 				box.innerHTML = html;
+				Array.prototype.forEach.call(box.querySelectorAll('tbody tr[data-code]'), function (tr) {
+					tr.addEventListener('click', function () {
+						var code = tr.getAttribute('data-code') || '';
+						document.getElementById('epc-dc-parts-q').value = '';
+						partsQ = '';
+						loadCountryParts(code, 1, '');
+					});
+				});
+				if (selectedCountry) {
+					setActiveCountryRow(selectedCountry);
+				}
 			}
 			var markets = s.markets || [];
 			var mHtml = 'Selectable demand markets: ';
@@ -298,6 +531,22 @@ MANN,W712/75,"SDN,DZA"</pre>
 		callImport('import');
 	});
 	document.getElementById('epc-dc-refresh-stats').addEventListener('click', loadOverview);
+	document.getElementById('epc-dc-parts-search').addEventListener('click', function () {
+		if (!selectedCountry) { return; }
+		partsQ = document.getElementById('epc-dc-parts-q').value.trim();
+		loadCountryParts(selectedCountry, 1, partsQ);
+	});
+	document.getElementById('epc-dc-parts-q').addEventListener('keydown', function (e) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			document.getElementById('epc-dc-parts-search').click();
+		}
+	});
+	document.getElementById('epc-dc-parts-close').addEventListener('click', function () {
+		selectedCountry = '';
+		document.getElementById('epc-dc-parts-card').style.display = 'none';
+		setActiveCountryRow('');
+	});
 	loadOverview();
 })();
 </script>

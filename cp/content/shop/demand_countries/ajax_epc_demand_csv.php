@@ -94,6 +94,139 @@ if ($action === 'stats') {
 	), JSON_UNESCAPED_UNICODE));
 }
 
+// List brand + article rows tagged for one demand country (CP click-through).
+if ($action === 'country_parts') {
+	$registry = epc_demand_country_registry();
+	$code = epc_demand_normalize_country_code((string) ($_POST['country'] ?? $_GET['country'] ?? ''));
+	if ($code === '' || !isset($registry[$code])) {
+		exit(json_encode(array('status' => false, 'message' => 'Unknown country code')));
+	}
+	if (epc_demand_is_stock_pool_country_code($code)) {
+		exit(json_encode(array('status' => false, 'message' => 'ARE is UAE stock pool — not a demand market')));
+	}
+	$q = trim((string) ($_POST['q'] ?? $_GET['q'] ?? ''));
+	$page = max(1, (int) ($_POST['page'] ?? $_GET['page'] ?? 1));
+	$perPage = (int) ($_POST['per_page'] ?? $_GET['per_page'] ?? 50);
+	if ($perPage < 10) {
+		$perPage = 10;
+	}
+	if ($perPage > 200) {
+		$perPage = 200;
+	}
+	$where = '`country_code` = ?';
+	$bind = array($code);
+	if ($q !== '') {
+		$like = '%' . $q . '%';
+		$where .= ' AND (`manufacturer` LIKE ? OR `article_norm` LIKE ? OR `notes` LIKE ?)';
+		$bind[] = $like;
+		$bind[] = $like;
+		$bind[] = $like;
+	}
+	$total = 0;
+	try {
+		$cst = $db_link->prepare(
+			'SELECT COUNT(*) FROM (
+				SELECT 1 FROM `epc_article_demand` WHERE ' . $where . '
+				GROUP BY UPPER(`manufacturer`), `article_norm`
+			) AS t'
+		);
+		$cst->execute($bind);
+		$total = (int) $cst->fetchColumn();
+	} catch (Throwable $e) {
+		exit(json_encode(array('status' => false, 'message' => 'Count failed')));
+	}
+	$pages = max(1, (int) ceil($total / $perPage));
+	if ($page > $pages) {
+		$page = $pages;
+	}
+	$offset = ($page - 1) * $perPage;
+	$parts = array();
+	try {
+		$st = $db_link->prepare(
+			'SELECT UPPER(`manufacturer`) AS `manufacturer`, `article_norm`,
+				MAX(`source`) AS `source`, MAX(`notes`) AS `notes`, MAX(`created_at`) AS `created_at`
+			 FROM `epc_article_demand`
+			 WHERE ' . $where . '
+			 GROUP BY UPPER(`manufacturer`), `article_norm`
+			 ORDER BY `manufacturer` ASC, `article_norm` ASC
+			 LIMIT ' . (int) $perPage . ' OFFSET ' . (int) $offset
+		);
+		$st->execute($bind);
+		$keyPairs = array();
+		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+			$brand = trim((string) ($row['manufacturer'] ?? ''));
+			$article = trim((string) ($row['article_norm'] ?? ''));
+			if ($brand === '' || $article === '') {
+				continue;
+			}
+			$key = $brand . '|' . $article;
+			$keyPairs[$key] = array($brand, $article);
+			$parts[] = array(
+				'brand' => $brand,
+				'article' => $article,
+				'source' => (string) ($row['source'] ?? ''),
+				'notes' => (string) ($row['notes'] ?? ''),
+				'created_at' => (int) ($row['created_at'] ?? 0),
+				'other_countries' => array(),
+				'search_url' => '/en/shop/part_search?article=' . rawurlencode($article)
+					. '&manufacturer=' . rawurlencode($brand),
+			);
+		}
+		// Batch-load other demand markets for this page (avoid N+1).
+		if ($keyPairs !== array()) {
+			$or = array();
+			$obind = array();
+			foreach ($keyPairs as $pair) {
+				$or[] = '(UPPER(`manufacturer`) = ? AND `article_norm` = ?)';
+				$obind[] = $pair[0];
+				$obind[] = $pair[1];
+			}
+			$ost = $db_link->prepare(
+				'SELECT UPPER(`manufacturer`) AS `manufacturer`, `article_norm`, `country_code`
+				 FROM `epc_article_demand`
+				 WHERE `country_code` <> ? AND (' . implode(' OR ', $or) . ')'
+			);
+			$ost->execute(array_merge(array($code), $obind));
+			$otherMap = array();
+			while ($orow = $ost->fetch(PDO::FETCH_ASSOC)) {
+				$k = trim((string) $orow['manufacturer']) . '|' . trim((string) $orow['article_norm']);
+				$norm = epc_demand_normalize_country_code((string) ($orow['country_code'] ?? ''));
+				if ($norm === '' || epc_demand_is_stock_pool_country_code($norm)) {
+					continue;
+				}
+				if (!isset($otherMap[$k])) {
+					$otherMap[$k] = array();
+				}
+				$otherMap[$k][$norm] = true;
+			}
+			foreach ($parts as &$p) {
+				$k = $p['brand'] . '|' . $p['article'];
+				if (!empty($otherMap[$k])) {
+					$codes = array_keys($otherMap[$k]);
+					sort($codes);
+					$p['other_countries'] = $codes;
+				}
+			}
+			unset($p);
+		}
+	} catch (Throwable $e) {
+		exit(json_encode(array('status' => false, 'message' => 'Query failed')));
+	}
+	exit(json_encode(array(
+		'status' => true,
+		'country' => array(
+			'code' => $code,
+			'name' => (string) ($registry[$code]['name'] ?? $code),
+		),
+		'q' => $q,
+		'page' => $page,
+		'per_page' => $perPage,
+		'pages' => $pages,
+		'total' => $total,
+		'parts' => $parts,
+	), JSON_UNESCAPED_UNICODE));
+}
+
 if ($file_path === '') {
 	exit(json_encode(array('status' => false, 'message' => 'Missing file path')));
 }
