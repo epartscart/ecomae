@@ -51,6 +51,8 @@ function epc_acc_cp_lang(PDO $pdo, $key, $en, $ru)
 epc_acc_cp_lang($pdo, 'epc_accessories_marketplace_cp', 'Accessories', 'Аксессуары');
 
 epc_acc_ensure_schema($pdo);
+$migrate = epc_acc_migrate_uae_locale($pdo);
+echo 'uae_migrate=' . json_encode($migrate) . "\n";
 $seedStats = epc_acc_seed_categories_from_json($pdo, false);
 
 $mmHelpers = __DIR__ . '/epc_cp_mainstream_menu.php';

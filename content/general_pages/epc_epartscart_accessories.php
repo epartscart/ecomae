@@ -219,7 +219,7 @@ $epc_acc_ver = '20260719accNoPw1';
 	function money(amount, currency) {
 		var n = Number(amount);
 		if (!isFinite(n) || n <= 0) { return 'Price on request'; }
-		return String(currency || 'PKR') + ' ' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+		return String(currency || 'AED') + ' ' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 	}
 	function getSaved() {
 		try {

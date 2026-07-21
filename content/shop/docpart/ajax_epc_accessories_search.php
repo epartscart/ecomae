@@ -40,7 +40,7 @@ $filters = array(
 try {
 	$result = epc_acc_marketplace_search($db, $filters);
 	$result['status'] = true;
-	$result['currency_default'] = 'PKR';
+	$result['currency_default'] = 'AED';
 	echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (Throwable $e) {
 	error_log('[epc_accessories] ' . $e->getMessage());
