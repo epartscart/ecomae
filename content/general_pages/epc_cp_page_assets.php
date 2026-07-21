@@ -291,7 +291,7 @@ function epc_cp_page_asset_url_map(): array
 			),
 		),
 		'shop/accessories' => array(
-			'css' => array('/content/general_pages/epc_accessories_cp_css.php?v=' . rawurlencode($ver . 'acc1')),
+			'css' => array('/content/general_pages/epc_accessories_cp_css.php?v=' . rawurlencode($ver . 'accPhotos1')),
 		),
 		'shop/prices' => array(
 			'css' => array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($ver)),

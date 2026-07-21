@@ -120,6 +120,312 @@ if (!function_exists('epc_acc_ensure_schema')) {
 				KEY `parent_id` (`parent_id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
 		);
+
+		$db->exec(
+			"CREATE TABLE IF NOT EXISTS `epc_acc_photos` (
+				`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+				`listing_id` INT UNSIGNED NOT NULL,
+				`file_name` VARCHAR(255) NOT NULL,
+				`sort_order` INT NOT NULL DEFAULT 0,
+				`is_primary` TINYINT(1) NOT NULL DEFAULT 0,
+				`created_at` INT UNSIGNED NOT NULL DEFAULT 0,
+				PRIMARY KEY (`id`),
+				KEY `listing_id` (`listing_id`),
+				KEY `listing_primary` (`listing_id`, `is_primary`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+		);
+	}
+}
+
+if (!function_exists('epc_acc_photos_fs_dir')) {
+	function epc_acc_photos_fs_dir(): string
+	{
+		$root = rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/\\');
+		$dir = $root . '/content/files/images/accessories/';
+		if (!is_dir($dir)) {
+			@mkdir($dir, 0755, true);
+		}
+		return $dir;
+	}
+}
+
+if (!function_exists('epc_acc_photo_public_url')) {
+	function epc_acc_photo_public_url(string $fileName): string
+	{
+		$fileName = basename(trim($fileName));
+		if ($fileName === '') {
+			return '';
+		}
+		return '/content/files/images/accessories/' . rawurlencode($fileName);
+	}
+}
+
+if (!function_exists('epc_acc_photos_list')) {
+	/**
+	 * @return list<array{id:int,listing_id:int,file_name:string,url:string,sort_order:int,is_primary:bool,created_at:int}>
+	 */
+	function epc_acc_photos_list(PDO $db, int $listingId): array
+	{
+		if ($listingId <= 0) {
+			return array();
+		}
+		epc_acc_ensure_schema($db);
+		$st = $db->prepare(
+			'SELECT `id`, `listing_id`, `file_name`, `sort_order`, `is_primary`, `created_at`
+			 FROM `epc_acc_photos`
+			 WHERE `listing_id` = ?
+			 ORDER BY `is_primary` DESC, `sort_order` ASC, `id` ASC'
+		);
+		$st->execute(array($listingId));
+		$out = array();
+		while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+			$file = (string) ($row['file_name'] ?? '');
+			$out[] = array(
+				'id' => (int) $row['id'],
+				'listing_id' => (int) $row['listing_id'],
+				'file_name' => $file,
+				'url' => epc_acc_photo_public_url($file),
+				'sort_order' => (int) ($row['sort_order'] ?? 0),
+				'is_primary' => !empty($row['is_primary']),
+				'created_at' => (int) ($row['created_at'] ?? 0),
+			);
+		}
+		return $out;
+	}
+}
+
+if (!function_exists('epc_acc_photos_sync_listing')) {
+	/** Keep listing.image_url + photo_count in sync with gallery. */
+	function epc_acc_photos_sync_listing(PDO $db, int $listingId): void
+	{
+		if ($listingId <= 0) {
+			return;
+		}
+		$photos = epc_acc_photos_list($db, $listingId);
+		$count = count($photos);
+		$primaryUrl = '';
+		foreach ($photos as $p) {
+			if (!empty($p['is_primary']) && !empty($p['url'])) {
+				$primaryUrl = (string) $p['url'];
+				break;
+			}
+		}
+		if ($primaryUrl === '' && $photos !== array()) {
+			$primaryUrl = (string) ($photos[0]['url'] ?? '');
+		}
+		try {
+			if ($count > 0 && $primaryUrl !== '') {
+				$db->prepare(
+					'UPDATE `epc_acc_listings` SET `image_url` = ?, `photo_count` = ?, `updated_at` = ? WHERE `id` = ?'
+				)->execute(array($primaryUrl, $count, time(), $listingId));
+			} else {
+				$db->prepare(
+					'UPDATE `epc_acc_listings` SET `photo_count` = 1, `updated_at` = ? WHERE `id` = ?'
+				)->execute(array(time(), $listingId));
+			}
+		} catch (Throwable $e) {
+		}
+	}
+}
+
+if (!function_exists('epc_acc_photos_add')) {
+	/**
+	 * @param array<string,mixed> $file $_FILES element
+	 * @return array{ok:bool,id?:int,url?:string,error?:string,photo?:array<string,mixed>}
+	 */
+	function epc_acc_photos_add(PDO $db, int $listingId, array $file, bool $asPrimary = false): array
+	{
+		epc_acc_ensure_schema($db);
+		if ($listingId <= 0) {
+			return array('ok' => false, 'error' => 'Save the listing first, then upload photos.');
+		}
+		$exists = $db->prepare('SELECT `id` FROM `epc_acc_listings` WHERE `id` = ? LIMIT 1');
+		$exists->execute(array($listingId));
+		if (!(int) $exists->fetchColumn()) {
+			return array('ok' => false, 'error' => 'Listing not found');
+		}
+		if (empty($file['tmp_name']) || !is_uploaded_file((string) $file['tmp_name'])) {
+			return array('ok' => false, 'error' => 'No upload');
+		}
+		if ((int) ($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+			return array('ok' => false, 'error' => 'Upload error');
+		}
+		$size = (int) ($file['size'] ?? 0);
+		if ($size <= 0 || $size > 8 * 1024 * 1024) {
+			return array('ok' => false, 'error' => 'Image must be under 8 MB');
+		}
+		$orig = (string) ($file['name'] ?? 'photo.jpg');
+		$ext = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
+		$allowed = array('jpg' => true, 'jpeg' => true, 'png' => true, 'gif' => true, 'webp' => true);
+		if (!isset($allowed[$ext])) {
+			return array('ok' => false, 'error' => 'Use JPG, PNG, GIF or WEBP');
+		}
+		if (function_exists('exif_imagetype')) {
+			$type = @exif_imagetype((string) $file['tmp_name']);
+			$okTypes = array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF);
+			if (defined('IMAGETYPE_WEBP')) {
+				$okTypes[] = IMAGETYPE_WEBP;
+			}
+			if ($type === false || !in_array($type, $okTypes, true)) {
+				return array('ok' => false, 'error' => 'Invalid image file');
+			}
+		}
+		$dir = epc_acc_photos_fs_dir();
+		if (!is_dir($dir) || !is_writable($dir)) {
+			return array('ok' => false, 'error' => 'Photo folder is not writable');
+		}
+		$saved = 'acc_' . $listingId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+		$dest = $dir . $saved;
+		if (!@move_uploaded_file((string) $file['tmp_name'], $dest) && !@copy((string) $file['tmp_name'], $dest)) {
+			return array('ok' => false, 'error' => 'Could not save file');
+		}
+		@chmod($dest, 0644);
+
+		$mx = $db->prepare('SELECT COALESCE(MAX(`sort_order`),0) FROM `epc_acc_photos` WHERE `listing_id` = ?');
+		$mx->execute(array($listingId));
+		$sort = ((int) $mx->fetchColumn()) + 10;
+		$cnt = $db->prepare('SELECT COUNT(*) FROM `epc_acc_photos` WHERE `listing_id` = ?');
+		$cnt->execute(array($listingId));
+		$isPrimary = ($asPrimary || (int) $cnt->fetchColumn() === 0) ? 1 : 0;
+		if ($isPrimary) {
+			$db->prepare('UPDATE `epc_acc_photos` SET `is_primary` = 0 WHERE `listing_id` = ?')->execute(array($listingId));
+		}
+		$db->prepare(
+			'INSERT INTO `epc_acc_photos` (`listing_id`, `file_name`, `sort_order`, `is_primary`, `created_at`)
+			 VALUES (?, ?, ?, ?, ?)'
+		)->execute(array($listingId, $saved, $sort, $isPrimary, time()));
+		$id = (int) $db->lastInsertId();
+		epc_acc_photos_sync_listing($db, $listingId);
+		$photos = epc_acc_photos_list($db, $listingId);
+		$photo = null;
+		foreach ($photos as $p) {
+			if ((int) $p['id'] === $id) {
+				$photo = $p;
+				break;
+			}
+		}
+		return array(
+			'ok' => true,
+			'id' => $id,
+			'url' => epc_acc_photo_public_url($saved),
+			'photo' => $photo,
+			'photos' => $photos,
+		);
+	}
+}
+
+if (!function_exists('epc_acc_photos_delete')) {
+	/**
+	 * @return array{ok:bool,error?:string,photos?:list<array<string,mixed>>}
+	 */
+	function epc_acc_photos_delete(PDO $db, int $listingId, int $photoId): array
+	{
+		epc_acc_ensure_schema($db);
+		if ($listingId <= 0 || $photoId <= 0) {
+			return array('ok' => false, 'error' => 'Invalid photo');
+		}
+		$st = $db->prepare('SELECT `id`, `file_name`, `is_primary` FROM `epc_acc_photos` WHERE `id` = ? AND `listing_id` = ? LIMIT 1');
+		$st->execute(array($photoId, $listingId));
+		$row = $st->fetch(PDO::FETCH_ASSOC);
+		if (!$row) {
+			return array('ok' => false, 'error' => 'Photo not found');
+		}
+		$db->prepare('DELETE FROM `epc_acc_photos` WHERE `id` = ?')->execute(array($photoId));
+		$file = basename((string) ($row['file_name'] ?? ''));
+		if ($file !== '') {
+			$path = epc_acc_photos_fs_dir() . $file;
+			if (is_file($path)) {
+				@unlink($path);
+			}
+		}
+		if (!empty($row['is_primary'])) {
+			$next = $db->prepare(
+				'SELECT `id` FROM `epc_acc_photos` WHERE `listing_id` = ? ORDER BY `sort_order` ASC, `id` ASC LIMIT 1'
+			);
+			$next->execute(array($listingId));
+			$nextId = (int) $next->fetchColumn();
+			if ($nextId > 0) {
+				$db->prepare('UPDATE `epc_acc_photos` SET `is_primary` = 1 WHERE `id` = ?')->execute(array($nextId));
+			}
+		}
+		epc_acc_photos_sync_listing($db, $listingId);
+		return array('ok' => true, 'photos' => epc_acc_photos_list($db, $listingId));
+	}
+}
+
+if (!function_exists('epc_acc_photos_set_primary')) {
+	/**
+	 * @return array{ok:bool,error?:string,photos?:list<array<string,mixed>>}
+	 */
+	function epc_acc_photos_set_primary(PDO $db, int $listingId, int $photoId): array
+	{
+		epc_acc_ensure_schema($db);
+		$st = $db->prepare('SELECT `id` FROM `epc_acc_photos` WHERE `id` = ? AND `listing_id` = ? LIMIT 1');
+		$st->execute(array($photoId, $listingId));
+		if (!(int) $st->fetchColumn()) {
+			return array('ok' => false, 'error' => 'Photo not found');
+		}
+		$db->prepare('UPDATE `epc_acc_photos` SET `is_primary` = 0 WHERE `listing_id` = ?')->execute(array($listingId));
+		$db->prepare('UPDATE `epc_acc_photos` SET `is_primary` = 1 WHERE `id` = ?')->execute(array($photoId));
+		epc_acc_photos_sync_listing($db, $listingId);
+		return array('ok' => true, 'photos' => epc_acc_photos_list($db, $listingId));
+	}
+}
+
+if (!function_exists('epc_acc_photos_add_many_from_files')) {
+	/**
+	 * Process $_FILES['photos'] style multi-upload after listing save.
+	 *
+	 * @param array<string,mixed> $filesField
+	 * @return array{ok:int,failed:int,errors:list<string>}
+	 */
+	function epc_acc_photos_add_many_from_files(PDO $db, int $listingId, array $filesField): array
+	{
+		$ok = 0;
+		$failed = 0;
+		$errors = array();
+		if ($listingId <= 0 || empty($filesField['name'])) {
+			return array('ok' => 0, 'failed' => 0, 'errors' => array());
+		}
+		$names = $filesField['name'];
+		if (!is_array($names)) {
+			$one = array(
+				'name' => $filesField['name'] ?? '',
+				'type' => $filesField['type'] ?? '',
+				'tmp_name' => $filesField['tmp_name'] ?? '',
+				'error' => $filesField['error'] ?? UPLOAD_ERR_NO_FILE,
+				'size' => $filesField['size'] ?? 0,
+			);
+			$res = epc_acc_photos_add($db, $listingId, $one, false);
+			if (!empty($res['ok'])) {
+				$ok++;
+			} else {
+				$failed++;
+				$errors[] = (string) ($res['error'] ?? 'Upload failed');
+			}
+			return array('ok' => $ok, 'failed' => $failed, 'errors' => $errors);
+		}
+		$count = count($names);
+		for ($i = 0; $i < $count; $i++) {
+			$one = array(
+				'name' => $filesField['name'][$i] ?? '',
+				'type' => $filesField['type'][$i] ?? '',
+				'tmp_name' => $filesField['tmp_name'][$i] ?? '',
+				'error' => $filesField['error'][$i] ?? UPLOAD_ERR_NO_FILE,
+				'size' => $filesField['size'][$i] ?? 0,
+			);
+			if ((int) $one['error'] === UPLOAD_ERR_NO_FILE || (string) $one['tmp_name'] === '') {
+				continue;
+			}
+			$res = epc_acc_photos_add($db, $listingId, $one, false);
+			if (!empty($res['ok'])) {
+				$ok++;
+			} else {
+				$failed++;
+				$errors[] = (string) ($res['error'] ?? 'Upload failed');
+			}
+		}
+		return array('ok' => $ok, 'failed' => $failed, 'errors' => $errors);
 	}
 }
 
@@ -824,6 +1130,22 @@ if (!function_exists('epc_acc_delete_listing')) {
 	function epc_acc_delete_listing(PDO $db, int $id): bool
 	{
 		epc_acc_ensure_schema($db);
+		if ($id > 0) {
+			try {
+				$photos = epc_acc_photos_list($db, $id);
+				foreach ($photos as $p) {
+					$file = basename((string) ($p['file_name'] ?? ''));
+					if ($file !== '') {
+						$path = epc_acc_photos_fs_dir() . $file;
+						if (is_file($path)) {
+							@unlink($path);
+						}
+					}
+				}
+				$db->prepare('DELETE FROM `epc_acc_photos` WHERE `listing_id` = ?')->execute(array($id));
+			} catch (Throwable $e) {
+			}
+		}
 		$stmt = $db->prepare('DELETE FROM `epc_acc_listings` WHERE `id` = ?');
 		return $stmt->execute(array($id));
 	}
