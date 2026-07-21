@@ -5666,9 +5666,9 @@ body.epc-cp-shell #header .navbar-right .epc-cp-header-action--logout > a:hover 
 	background: #fef2f2 !important;
 }
 
-/* ── Topbar destination CTAs (CP / ERP / Storefront) ── */
+/* ── Topbar destination CTAs (ERP / Storefront only) ── */
 body.epc-cp-shell #header .epc-cp-topbar-strip {
-	max-width: min(78vw, 720px);
+	max-width: min(52vw, 420px);
 	gap: 8px;
 }
 

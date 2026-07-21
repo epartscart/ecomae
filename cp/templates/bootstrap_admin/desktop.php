@@ -434,13 +434,6 @@ function print_backend_button($button_params)
 		<span class="epc-cp-topbar-company"><?php echo htmlspecialchars($epcCpShell['company'], ENT_QUOTES, 'UTF-8'); ?></span>
 		<?php } ?>
 		<nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
-			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--cp" href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>" title="Open Control Panel home">
-				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-th-large"></i></span>
-				<span class="epc-cp-topbar-cta__text">
-					<span class="epc-cp-topbar-cta__label">Control Panel</span>
-					<span class="epc-cp-topbar-cta__host">CP home</span>
-				</span>
-			</a>
 			<?php if ($epcCpShowErpCta) { ?>
 			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>" title="Open ERP">
 				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-briefcase"></i></span>
@@ -485,11 +478,6 @@ function print_backend_button($button_params)
             </button>
             <div class="collapse mobile-navbar" id="mobile-collapse">
 				<ul class="nav navbar-nav">
-					<li>
-						<a href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>">
-							<i class="fa fa-th-large"></i> Control Panel
-						</a>
-					</li>
 					<?php if (!empty($epcCpShowErpCta)) { ?>
 					<li>
 						<a href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>">
