@@ -24,14 +24,6 @@ require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
 $DP_Config = new DP_Config;
 $GLOBALS['DP_Config'] = $DP_Config;
 
-// Anti-crawl before any stock work (bots + rate limit). tech_key+cp_bulk still allowed.
-$epc_cross_anti_crawl = epc_storefront_anti_crawl_enforce($DP_Config, array(
-	'bucket' => 'cross_search',
-	'guest_max' => 20,
-	'user_max' => 80,
-	'window' => 60,
-));
-
 $article_input = isset($_GET['article']) ? trim((string)$_GET['article']) : '';
 
 $anchor_brand = isset($_GET['brand']) ? trim((string)$_GET['brand']) : '';
@@ -100,6 +92,16 @@ catch(Exception $e)
 	epc_cross_json(array('status' => false, 'message' => 'Database unavailable', 'references' => array(), 'stock' => array()));
 
 }
+
+$GLOBALS['db_link'] = $db_link;
+
+// Anti-crawl after DB connect (session/visibility need PDO). tech_key+cp_bulk still allowed.
+$epc_cross_anti_crawl = epc_storefront_anti_crawl_enforce($DP_Config, array(
+	'bucket' => 'cross_search',
+	'guest_max' => 20,
+	'user_max' => 80,
+	'window' => 60,
+));
 
 
 

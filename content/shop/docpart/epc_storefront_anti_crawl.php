@@ -105,10 +105,17 @@ function epc_storefront_anti_crawl_has_tech_key($DP_Config = null): bool
  */
 function epc_storefront_anti_crawl_session_user_id(): int
 {
-	if (!class_exists('DP_User')) {
-		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	try {
+		if (!class_exists('DP_User')) {
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+		}
+		if (class_exists('DP_User') && method_exists('DP_User', 'getUserId')) {
+			return (int) DP_User::getUserId();
+		}
+	} catch (Throwable $e) {
+		return 0;
 	}
-	return (int) DP_User::getUserId();
+	return 0;
 }
 
 /**
