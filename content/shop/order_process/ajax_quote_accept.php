@@ -46,7 +46,16 @@ try {
 	}
 
 	foreach ($items as $it) {
-		if ($it['quoted_price'] === null || (float) $it['quoted_price'] <= 0) {
+		$use_alt = !empty($it['offer_alternative'])
+			&& (int) $it['offer_alternative'] === 1
+			&& !empty($it['alt_manufacturer'])
+			&& !empty($it['alt_article']);
+
+		$effective_price = $use_alt
+			? (isset($it['alt_quoted_price']) ? (float) $it['alt_quoted_price'] : 0.0)
+			: (isset($it['quoted_price']) ? (float) $it['quoted_price'] : 0.0);
+
+		if ($effective_price <= 0) {
 			$db_link->rollBack();
 			exit(json_encode(array('status' => false, 'message' => 'Quote is incomplete — wait for staff pricing on all lines')));
 		}
@@ -58,7 +67,36 @@ try {
 			throw new Exception('bad_line');
 		}
 
-		$price = (float) $it['quoted_price'];
+		$use_alt = !empty($it['offer_alternative'])
+			&& (int) $it['offer_alternative'] === 1
+			&& !empty($it['alt_manufacturer'])
+			&& !empty($it['alt_article']);
+
+		$requested_mfr = isset($product_object['manufacturer']) ? (string) $product_object['manufacturer'] : '';
+		$requested_art = isset($product_object['article_show']) ? (string) $product_object['article_show'] : (isset($product_object['article']) ? (string) $product_object['article'] : '');
+
+		if ($use_alt) {
+			$alt_mfr = mb_strtoupper(trim((string) $it['alt_manufacturer']), 'UTF-8');
+			$alt_art_show = trim((string) (!empty($it['alt_article_show']) ? $it['alt_article_show'] : $it['alt_article']));
+			$alt_art = mb_strtoupper(preg_replace('/[^a-zA-Z0-9А-Яа-яёЁ]+/ui', '', $alt_art_show), 'UTF-8');
+			$alt_name = trim((string) ($it['alt_name'] ?? ''));
+			if ($alt_name === '') {
+				$alt_name = $alt_mfr.' '.$alt_art_show.' (alternative)';
+			}
+			$product_object['manufacturer'] = $alt_mfr;
+			$product_object['article'] = $alt_art;
+			$product_object['article_show'] = $alt_art_show;
+			$product_object['name'] = $alt_name;
+			$product_object['epc_quote_alternative'] = 1;
+			$product_object['epc_requested_manufacturer'] = $requested_mfr;
+			$product_object['epc_requested_article'] = $requested_art;
+			$price = (float) $it['alt_quoted_price'];
+			$count_need = max(1, (int) ($it['alt_count_need'] ?: 1));
+		} else {
+			$price = (float) $it['quoted_price'];
+			$count_need = max(1, (int) $it['count_need']);
+		}
+
 		$product_object['price'] = $price;
 
 		if ($it['quoted_time_to_exe'] !== null && $it['quoted_time_to_exe'] !== '') {
@@ -86,7 +124,7 @@ try {
 		$check_hash = md5($t2_manufacturer.$t2_article.$t2_article_show.$t2_name.$t2_exist.$price.$t2_time_to_exe.$t2_time_to_exe_guaranteed.$t2_storage.$t2_min_order.$t2_probability.$t2_office_id.$t2_storage_id.$t2_price_purchase.$t2_markup.$t2_json_params.'2'.$DP_Config->tech_key);
 		$product_object['check_hash'] = $check_hash;
 
-		$count_need = max(1, (int) $it['count_need']);
+		$count_need = max(1, (int) $count_need);
 		$product_object['count_need'] = $count_need;
 
 		$by_flag = false;

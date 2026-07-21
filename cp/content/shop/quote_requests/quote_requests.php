@@ -12,6 +12,39 @@ require_once($_SERVER['DOCUMENT_ROOT'].'/content/users/dp_user.php');
 $user_session = DP_User::getAdminSession();
 
 /**
+ * Ensure alternative-offer columns exist on shop_quote_items (idempotent).
+ */
+function epc_quote_ensure_alternative_columns()
+{
+	global $db_link;
+	static $done = false;
+	if ($done || !($db_link instanceof PDO)) {
+		return;
+	}
+	$done = true;
+	try {
+		$cols = $db_link->query('SHOW COLUMNS FROM `shop_quote_items`')->fetchAll(PDO::FETCH_COLUMN);
+		$want = array(
+			'offer_alternative' => 'TINYINT(1) NOT NULL DEFAULT 0',
+			'alt_manufacturer' => 'VARCHAR(128) DEFAULT NULL',
+			'alt_article' => 'VARCHAR(128) DEFAULT NULL',
+			'alt_article_show' => 'VARCHAR(128) DEFAULT NULL',
+			'alt_name' => 'VARCHAR(512) DEFAULT NULL',
+			'alt_count_need' => 'INT(11) DEFAULT NULL',
+			'alt_quoted_price' => 'DECIMAL(12,2) DEFAULT NULL',
+		);
+		foreach ($want as $name => $ddl) {
+			if (!in_array($name, $cols, true)) {
+				$db_link->exec('ALTER TABLE `shop_quote_items` ADD COLUMN `'.$name.'` '.$ddl);
+			}
+		}
+	} catch (Throwable $e) {
+		// Leave save to surface DB errors if schema cannot be patched.
+	}
+}
+epc_quote_ensure_alternative_columns();
+
+/**
  * Build display fields for a registered quote customer.
  *
  * @param int $user_id
@@ -100,7 +133,20 @@ if (!empty($_POST['action'])) {
 		}
 
 		$lines = isset($_POST['lines']) && is_array($_POST['lines']) ? $_POST['lines'] : array();
-		$upd_line = $db_link->prepare('UPDATE `shop_quote_items` SET `quoted_price` = ?, `quoted_time_to_exe` = ?, `line_admin_note` = ? WHERE `id` = ? AND `quote_id` = ?');
+		$upd_line = $db_link->prepare(
+			'UPDATE `shop_quote_items` SET
+				`quoted_price` = ?,
+				`quoted_time_to_exe` = ?,
+				`line_admin_note` = ?,
+				`offer_alternative` = ?,
+				`alt_manufacturer` = ?,
+				`alt_article` = ?,
+				`alt_article_show` = ?,
+				`alt_name` = ?,
+				`alt_count_need` = ?,
+				`alt_quoted_price` = ?
+			 WHERE `id` = ? AND `quote_id` = ?'
+		);
 		foreach ($lines as $line_id_key => $row) {
 			$line_id = (int) $line_id_key;
 			$qp = isset($row['quoted_price']) ? str_replace(',', '.', trim($row['quoted_price'])) : '';
@@ -116,7 +162,65 @@ if (!empty($_POST['action'])) {
 				$quoted_time = (int) $qt;
 			}
 
-			$upd_line->execute(array($quoted_price, $quoted_time, $ln, $line_id, $quote_id));
+			$offer_alt = !empty($row['offer_alternative']) ? 1 : 0;
+			$alt_mfr = isset($row['alt_manufacturer']) ? trim((string) $row['alt_manufacturer']) : '';
+			$alt_art_raw = isset($row['alt_article']) ? trim((string) $row['alt_article']) : '';
+			$alt_name = isset($row['alt_name']) ? trim((string) $row['alt_name']) : '';
+			$alt_qty_raw = isset($row['alt_count_need']) ? trim((string) $row['alt_count_need']) : '';
+			$alt_price_raw = isset($row['alt_quoted_price']) ? str_replace(',', '.', trim((string) $row['alt_quoted_price'])) : '';
+
+			$alt_manufacturer = null;
+			$alt_article = null;
+			$alt_article_show = null;
+			$alt_name_db = null;
+			$alt_count_need = null;
+			$alt_quoted_price = null;
+
+			if ($offer_alt === 1) {
+				if ($alt_mfr === '' || $alt_art_raw === '') {
+					$error_message = 'Alternative offer on line #'.$line_id.' needs brand and article';
+					?>
+					<script>
+					location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo (int) $quote_id; ?>&error_message=<?php echo urlencode($error_message); ?>";
+					</script>
+					<?php
+					exit;
+				}
+				$alt_article = mb_strtoupper(preg_replace('/[^a-zA-Z0-9А-Яа-яёЁ]+/ui', '', $alt_art_raw), 'UTF-8');
+				$alt_manufacturer = mb_strtoupper($alt_mfr, 'UTF-8');
+				$alt_article_show = $alt_article;
+				$alt_name_db = $alt_name !== '' ? $alt_name : ($alt_manufacturer.' '.$alt_article_show.' (alternative)');
+				$alt_count_need = ($alt_qty_raw !== '' && is_numeric($alt_qty_raw)) ? max(1, (int) $alt_qty_raw) : 1;
+				if ($alt_price_raw === '' || !is_numeric($alt_price_raw) || (float) $alt_price_raw <= 0) {
+					$error_message = 'Alternative offer on line #'.$line_id.' needs a positive price';
+					?>
+					<script>
+					location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo (int) $quote_id; ?>&error_message=<?php echo urlencode($error_message); ?>";
+					</script>
+					<?php
+					exit;
+				}
+				$alt_quoted_price = (float) $alt_price_raw;
+				// Keep main quoted_price in sync so publish / accept still work
+				$quoted_price = $alt_quoted_price;
+			} else {
+				$offer_alt = 0;
+			}
+
+			$upd_line->execute(array(
+				$quoted_price,
+				$quoted_time,
+				$ln,
+				$offer_alt,
+				$alt_manufacturer,
+				$alt_article,
+				$alt_article_show,
+				$alt_name_db,
+				$alt_count_need,
+				$alt_quoted_price,
+				$line_id,
+				$quote_id,
+			));
 		}
 
 		$db_link->prepare('UPDATE `shop_quote_requests` SET `admin_note` = ?, `time_updated` = ? WHERE `id` = ?')->execute(array($admin_note, time(), $quote_id));
@@ -158,10 +262,16 @@ if (!empty($_POST['action'])) {
 			exit;
 		}
 
-		$chk = $db_link->prepare('SELECT COUNT(*) FROM `shop_quote_items` WHERE `quote_id` = ? AND (`quoted_price` IS NULL OR `quoted_price` <= 0)');
+		$chk = $db_link->prepare(
+			'SELECT COUNT(*) FROM `shop_quote_items` WHERE `quote_id` = ? AND (
+				(`offer_alternative` = 1 AND (`alt_quoted_price` IS NULL OR `alt_quoted_price` <= 0 OR `alt_manufacturer` IS NULL OR `alt_manufacturer` = \'\' OR `alt_article` IS NULL OR `alt_article` = \'\'))
+				OR
+				(`offer_alternative` = 0 AND (`quoted_price` IS NULL OR `quoted_price` <= 0))
+			)'
+		);
 		$chk->execute(array($quote_id));
 		if ((int) $chk->fetchColumn() > 0) {
-			$error_message = 'Set a positive quoted price on every line first';
+			$error_message = 'Set a positive price on every line (or complete each alternative offer: brand, article, qty, price)';
 			?>
 			<script>
 			location = "/<?php echo $DP_Config->backend_dir; ?>/shop/quote-requests?quote_id=<?php echo $quote_id; ?>&error_message=<?php echo urlencode($error_message); ?>";
@@ -299,37 +409,76 @@ if ($edit_id > 0) {
 							<textarea class="form-control" name="admin_note" rows="3"><?php echo htmlspecialchars($quote['admin_note']); ?></textarea>
 						</div>
 
-						<table class="table table-bordered table-condensed">
+						<p class="text-muted">
+							Customer requested part A — if you stock B instead, use <strong>Amend / alternative</strong> (opens a second window)
+							to set brand, article, qty, and price. The customer will see both the request and your offer.
+						</p>
+
+						<table class="table table-bordered table-condensed" id="epc-quote-lines-table">
 							<thead>
 								<tr>
 									<th>ID</th>
-									<th>Part</th>
+									<th>Customer request</th>
 									<th>Qty</th>
 									<th>Quoted price (<?php echo htmlspecialchars($currency_sign); ?>)</th>
 									<th>Lead time (days)</th>
 									<th>Line note</th>
+									<th>Alternative</th>
 								</tr>
 							</thead>
 							<tbody>
 							<?php foreach ($lines as $ln) {
 								$po = json_decode($ln['product_object_json'], true);
-								$label = '';
-								if (is_array($po)) {
-									$label = htmlspecialchars($po['manufacturer'].' '.$po['article_show'].' — '.$po['name']);
+								$req_mfr = is_array($po) && isset($po['manufacturer']) ? (string) $po['manufacturer'] : '';
+								$req_art = is_array($po) && isset($po['article_show']) ? (string) $po['article_show'] : (is_array($po) && isset($po['article']) ? (string) $po['article'] : '');
+								$req_name = is_array($po) && isset($po['name']) ? (string) $po['name'] : '';
+								$label = trim($req_mfr.' '.$req_art.($req_name !== '' ? ' — '.$req_name : ''));
+								$lid = (int) $ln['id'];
+								$has_alt = !empty($ln['offer_alternative']);
+								$alt_summary = '';
+								if ($has_alt) {
+									$alt_summary = trim(
+										(string) $ln['alt_manufacturer'].' '.
+										(string) ($ln['alt_article_show'] !== null && $ln['alt_article_show'] !== '' ? $ln['alt_article_show'] : $ln['alt_article']).
+										' × '.(int) $ln['alt_count_need'].
+										' @ '.$ln['alt_quoted_price']
+									);
 								}
 								?>
-								<tr>
-									<td><?php echo (int) $ln['id']; ?></td>
-									<td><?php echo $label; ?></td>
+								<tr data-line-id="<?php echo $lid; ?>">
+									<td><?php echo $lid; ?></td>
+									<td>
+										<div><strong><?php echo htmlspecialchars($label); ?></strong></div>
+										<div class="text-muted" style="font-size:12px;">Requested brand/article (window 1)</div>
+									</td>
 									<td><?php echo (int) $ln['count_need']; ?></td>
 									<td>
-										<input class="form-control" type="text" name="lines[<?php echo (int) $ln['id']; ?>][quoted_price]" value="<?php echo $ln['quoted_price'] !== null ? htmlspecialchars($ln['quoted_price']) : ''; ?>" />
+										<input class="form-control epc-quote-main-price" type="text" name="lines[<?php echo $lid; ?>][quoted_price]" value="<?php echo $ln['quoted_price'] !== null ? htmlspecialchars($ln['quoted_price']) : ''; ?>" <?php echo $has_alt ? 'readonly' : ''; ?> />
 									</td>
 									<td>
-										<input class="form-control" type="text" name="lines[<?php echo (int) $ln['id']; ?>][quoted_time_to_exe]" value="<?php echo $ln['quoted_time_to_exe'] !== null ? (int) $ln['quoted_time_to_exe'] : ''; ?>" />
+										<input class="form-control" type="text" name="lines[<?php echo $lid; ?>][quoted_time_to_exe]" value="<?php echo $ln['quoted_time_to_exe'] !== null ? (int) $ln['quoted_time_to_exe'] : ''; ?>" />
 									</td>
 									<td>
-										<input class="form-control" type="text" name="lines[<?php echo (int) $ln['id']; ?>][line_admin_note]" value="<?php echo htmlspecialchars($ln['line_admin_note']); ?>" />
+										<input class="form-control" type="text" name="lines[<?php echo $lid; ?>][line_admin_note]" value="<?php echo htmlspecialchars((string) $ln['line_admin_note']); ?>" />
+									</td>
+									<td style="min-width:200px;">
+										<input type="hidden" name="lines[<?php echo $lid; ?>][offer_alternative]" class="epc-alt-flag" value="<?php echo $has_alt ? '1' : '0'; ?>" />
+										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_manufacturer]" class="epc-alt-mfr" value="<?php echo htmlspecialchars((string) $ln['alt_manufacturer']); ?>" />
+										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_article]" class="epc-alt-art" value="<?php echo htmlspecialchars((string) ($ln['alt_article_show'] !== null && $ln['alt_article_show'] !== '' ? $ln['alt_article_show'] : $ln['alt_article'])); ?>" />
+										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_name]" class="epc-alt-name" value="<?php echo htmlspecialchars((string) $ln['alt_name']); ?>" />
+										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_count_need]" class="epc-alt-qty" value="<?php echo $ln['alt_count_need'] !== null ? (int) $ln['alt_count_need'] : ''; ?>" />
+										<input type="hidden" name="lines[<?php echo $lid; ?>][alt_quoted_price]" class="epc-alt-price" value="<?php echo $ln['alt_quoted_price'] !== null ? htmlspecialchars($ln['alt_quoted_price']) : ''; ?>" />
+										<div class="epc-alt-summary" style="margin-bottom:6px;<?php echo $has_alt ? '' : 'display:none;'; ?>">
+											<span class="label label-warning">Alternative</span>
+											<span class="epc-alt-summary-text"><?php echo htmlspecialchars($alt_summary); ?></span>
+										</div>
+										<button type="button" class="btn btn-xs btn-default epc-open-alt-modal"
+											data-line-id="<?php echo $lid; ?>"
+											data-req-label="<?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>"
+											data-req-qty="<?php echo (int) $ln['count_need']; ?>">
+											<?php echo $has_alt ? 'Edit alternative' : 'Amend / alternative'; ?>
+										</button>
+										<button type="button" class="btn btn-xs btn-link epc-clear-alt" style="<?php echo $has_alt ? '' : 'display:none;'; ?>">Clear</button>
 									</td>
 								</tr>
 							<?php } ?>
@@ -338,6 +487,56 @@ if ($edit_id > 0) {
 
 						<button type="submit" class="btn btn-primary">Save</button>
 					</form>
+
+					<!-- Window 2: alternative offer modal -->
+					<div class="modal fade" id="epcAltOfferModal" tabindex="-1" role="dialog" aria-labelledby="epcAltOfferModalLabel">
+						<div class="modal-dialog" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+									<h4 class="modal-title" id="epcAltOfferModalLabel">Offer alternative (window 2)</h4>
+								</div>
+								<div class="modal-body">
+									<p class="text-muted" style="margin-bottom:12px;">
+										Customer requested: <strong id="epcAltReqLabel"></strong>
+										(qty <span id="epcAltReqQty"></span>). Enter the brand / article you can supply instead.
+									</p>
+									<input type="hidden" id="epcAltLineId" value="" />
+									<div class="form-group">
+										<label>Alternative brand</label>
+										<input type="text" class="form-control" id="epcAltBrand" placeholder="e.g. TOYOTA" />
+									</div>
+									<div class="form-group">
+										<label>Alternative article</label>
+										<input type="text" class="form-control" id="epcAltArticle" placeholder="e.g. 31250-05021" />
+									</div>
+									<div class="form-group">
+										<label>Name / description (optional)</label>
+										<input type="text" class="form-control" id="epcAltName" placeholder="Part description" />
+									</div>
+									<div class="row">
+										<div class="col-sm-6">
+											<div class="form-group">
+												<label>Qty</label>
+												<input type="number" min="1" class="form-control" id="epcAltQty" value="1" />
+											</div>
+										</div>
+										<div class="col-sm-6">
+											<div class="form-group">
+												<label>Price (<?php echo htmlspecialchars($currency_sign); ?>)</label>
+												<input type="text" class="form-control" id="epcAltPrice" placeholder="0.00" />
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+									<button type="button" class="btn btn-primary" id="epcAltApplyBtn">Apply alternative</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- quote_alt_offer.js loaded in CP footer (after jQuery reload) -->
 
 					<?php if (in_array($quote['status'], array('submitted', 'quoted'), true)) { ?>
 					<form method="post" style="margin-top:15px;" onsubmit="return confirm('Publish this quote? Customer will be able to accept and add lines to cart.');">

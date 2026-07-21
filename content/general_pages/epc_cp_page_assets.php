@@ -292,6 +292,11 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/logistics/storage_users_ms.js?v=' . rawurlencode($ver . 'storMs1'),
 			),
 		),
+		'shop/quote-requests' => array(
+			'js' => array(
+				'/' . $backend . '/content/shop/quote_requests/quote_alt_offer.js?v=' . rawurlencode($ver . 'qAlt1'),
+			),
+		),
 		'shop/parts_agent_chats' => array(
 			'css' => array('/content/general_pages/epc_agent_cp_css.php?v=' . rawurlencode($ver . 'cpFull2')),
 			'js' => array(
