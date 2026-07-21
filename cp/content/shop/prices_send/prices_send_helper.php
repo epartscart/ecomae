@@ -1,7 +1,27 @@
 <?php
 
-require_once($_SERVER["DOCUMENT_ROOT"]."/modules/debug/debug.class.php");
-$debug = new Debug();
+$debug = null;
+// Debug logger is optional — never block price generation if its tmp dir is missing.
+
+if (!function_exists('translate_str_by_key')) {
+	function translate_str_by_key($key) {
+		if (function_exists('translate_str_by_id') && is_numeric($key)) {
+			return translate_str_by_id((int)$key);
+		}
+		$map = array(
+			'2070' => 'Manufacturer',
+			'2071' => 'Article',
+			'2102' => 'Name',
+			'4324' => 'Exist',
+			'2751' => 'Price',
+			'3433' => 'Time',
+			'3661' => 'Min order',
+			'3660' => 'Price list',
+		);
+		$k = (string)$key;
+		return isset($map[$k]) ? $map[$k] : $k;
+	}
+}
 
 function generate_price($request_object){
 	global $db_link;
@@ -14,8 +34,20 @@ function generate_price($request_object){
 	$arr_storages = $request_object['arr_storages'];
 	$arr_category = $request_object['arr_category'];
 
+	$filter_brand = isset($request_object['filter_brand']) ? trim((string)$request_object['filter_brand']) : '';
+	$filter_article = isset($request_object['filter_article']) ? trim((string)$request_object['filter_article']) : '';
+	$filter_brand_norm = $filter_brand !== '' ? mb_strtoupper($filter_brand, 'UTF-8') : '';
+	$filter_article_norm = $filter_article !== '' ? mb_strtoupper(preg_replace('/[^a-zA-Z0-9А-Яа-яёЁ]+/u', '', $filter_article), 'UTF-8') : '';
+	$profile_group_ids = array();
+	if (!empty($request_object['profile_group_ids']) && is_array($request_object['profile_group_ids'])) {
+		foreach ($request_object['profile_group_ids'] as $_gid) {
+			$_gid = (int)$_gid;
+			if ($_gid > 0) { $profile_group_ids[] = $_gid; }
+		}
+	}
+
 	$is_mailing = isset($request_object['is_mailing']) && !empty($request_object['is_mailing']) ? (int)$request_object['is_mailing'] : false;
-	$columns_price = isset($request_object['columns_price']) && !empty($request_object['columns_price']) ? (int)$request_object['columns_price'] : array();
+	$columns_price = (!empty($request_object['columns_price']) && is_array($request_object['columns_price'])) ? $request_object['columns_price'] : array();
 
 	if( isset($request_object['storages']) )
 	{
@@ -74,6 +106,10 @@ function generate_price($request_object){
 			$groups[] = $group_id_my_list_emails;
 		}
 	}
+	foreach ($profile_group_ids as $_gid) {
+		if (array_search($_gid, $groups) === false) { $groups[] = $_gid; }
+	}
+	$generated_files = array();
 
 	if(!empty($groups))
 	{
@@ -168,6 +204,7 @@ function generate_price($request_object){
 			
 			// Файл в который выгружаем данные
 			$file = fopen($_SERVER["DOCUMENT_ROOT"].'/content/files/Documents/prices_tmp/'.$price_name, 'w');
+			$rows_written = 0;
 
 			// Выводим содержимое файла
 			$str = '';
@@ -181,7 +218,7 @@ function generate_price($request_object){
 							$str .= translate_str_by_key('2070');
 						break;
 						case 'article':
-							$str .= translate_str_by_key('2071')
+							$str .= translate_str_by_key('2071');
 						break;
 						case 'name':
 							$str .= translate_str_by_key('2102');
@@ -213,7 +250,7 @@ function generate_price($request_object){
 			$str .= ';';
 			$str .= ';';
 			
-			$str = iconv('UTF-8', 'windows-1251', $str);
+			$str = @iconv('UTF-8', 'windows-1251//TRANSLIT//IGNORE', $str);
 
 			if(!empty($str))
 			{
@@ -275,14 +312,22 @@ function generate_price($request_object){
 				
 				$SQL_products = "SELECT
 					*,
-					(SELECT `markup`/100 AS `markup` FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ? AND `min_point` <= `shop_docpart_prices_data`.`price` AND `max_point` > `shop_docpart_prices_data`.`price`) AS `markup`
+					(SELECT `markup`/100 AS `markup` FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ? AND `min_point` <= `shop_docpart_prices_data`.`price` AND `max_point` > `shop_docpart_prices_data`.`price` LIMIT 1) AS `markup`
 				FROM
 					`shop_docpart_prices_data`
 				WHERE
-					`price_id` = ?;";
-				
+					`price_id` = ?";
+				$bind_dp = array($offices, $storage_id, $group, $price_id);
+				if ($filter_brand_norm !== '') {
+					$SQL_products .= " AND UPPER(`manufacturer`) LIKE ?";
+					$bind_dp[] = '%'.$filter_brand_norm.'%';
+				}
+				if ($filter_article_norm !== '') {
+					$SQL_products .= " AND REPLACE(REPLACE(REPLACE(UPPER(`article`),'-',''),' ',''),'_','') LIKE ?";
+					$bind_dp[] = '%'.$filter_article_norm.'%';
+				}
 				$products_query = $db_link->prepare($SQL_products);
-				$products_query->execute( array($offices, $storage_id, $group, $price_id) );
+				$products_query->execute($bind_dp);
 				while( $item = $products_query->fetch() )
 				{
 					// >>>
@@ -417,12 +462,13 @@ function generate_price($request_object){
 					$str .= ';';
 					$str .= ';';
 					
-					$str = iconv('UTF-8', 'windows-1251', $str);
+					$str = @iconv('UTF-8', 'windows-1251//TRANSLIT//IGNORE', $str);
 					
 					if(!empty($str))
 					{
 						$str .= "\r\n";
 						fwrite($file, $str);
+						$rows_written++;
 					}
 					
 				}
@@ -514,6 +560,15 @@ function generate_price($request_object){
 
 						$item['article'] = trim($item['article']);
 						$item['manufacturer'] = trim($item['manufacturer']);
+						if ($filter_brand_norm !== '' && mb_stripos($item['manufacturer'], $filter_brand, 0, 'UTF-8') === false) {
+							continue;
+						}
+						if ($filter_article_norm !== '') {
+							$art_n = mb_strtoupper(preg_replace('/[^a-zA-Z0-9А-Яа-яёЁ]+/u', '', $item['article']), 'UTF-8');
+							if ($art_n === '' || strpos($art_n, $filter_article_norm) === false) {
+								continue;
+							}
+						}
 						
 						//URL товара
 						if($DP_Config->product_url == "id")
@@ -662,22 +717,34 @@ function generate_price($request_object){
 						$str .= trim($item['img']).';';
 						$str .= trim($item['content']).';';
 						
-						$str = iconv('UTF-8', 'windows-1251', $str);
+						$str = @iconv('UTF-8', 'windows-1251//TRANSLIT//IGNORE', $str);
 						
 						if(!empty($str))
 						{
 							$str .= "\r\n";
 							fwrite($file, $str);
+							$rows_written++;
 						}
 					}
 				}
 			}
+			fclose($file);
+			$generated_files[] = array(
+				'group_id' => (int)$group,
+				'file' => $price_name,
+				'rows' => isset($rows_written) ? (int)$rows_written : 0,
+				'url' => '/content/files/Documents/prices_tmp/' . rawurlencode($price_name),
+			);
+			if (!is_array($answer)) { $answer = array(); }
+			$answer['files'] = $generated_files;
+			$answer['rows_total'] = 0;
+			foreach ($generated_files as $_gf) { $answer['rows_total'] += (int)$_gf['rows']; }
 		}
 
 		//Если не было ошибок
 		if( $is_mailing )
 		{
-			$debug->logger(translate_str_by_key('1711374149_1_5f735d1486aa51eb9a61df1cd635a0fb'));
+			if ($debug) { $debug->logger(translate_str_by_key('1711374149_1_5f735d1486aa51eb9a61df1cd635a0fb')); }
 			$send_result = true;
 			//Почтовый обработчик
 			//require_once($_SERVER["DOCUMENT_ROOT"]."/lib/DocpartMailer/docpart_mailer_distribution.php");
@@ -693,9 +760,9 @@ function generate_price($request_object){
 			$emails_list = explode(',', $request_object['emails_list']);
 			$group_id_my_list_emails = (int)$request_object['group_id_my_list_emails'];
 			$file = $_SERVER["DOCUMENT_ROOT"]."/content/files/Documents/prices_tmp/$price_name";
-			$debug->logger(translate_str_by_key('1711374417_1_5f735d1486aa51eb9a61df1cd635a0fb').".", file_exists($file), true);
-			$debug->logger(translate_str_by_key('1711374451_1_5f735d1486aa51eb9a61df1cd635a0fb').".", $users_list, true);
-			$debug->logger(translate_str_by_key('1711374475_1_5f735d1486aa51eb9a61df1cd635a0fb').".", $emails_list, true);
+			if ($debug) { $debug->logger(translate_str_by_key('1711374417_1_5f735d1486aa51eb9a61df1cd635a0fb').".", file_exists($file), true); }
+			if ($debug) { $debug->logger(translate_str_by_key('1711374451_1_5f735d1486aa51eb9a61df1cd635a0fb').".", $users_list, true); }
+			if ($debug) { $debug->logger(translate_str_by_key('1711374475_1_5f735d1486aa51eb9a61df1cd635a0fb').".", $emails_list, true); }
 			if(is_array($users_list) && !empty($users_list))
 			{
 				foreach($users_list as $user)
@@ -775,12 +842,12 @@ function generate_price($request_object){
 			}
 			if($send_result)
 			{
-				$debug->logger(translate_str_by_key('1711374559_1_5f735d1486aa51eb9a61df1cd635a0fb').".");
+				if ($debug) { $debug->logger(translate_str_by_key('1711374559_1_5f735d1486aa51eb9a61df1cd635a0fb')."."); }
 				$answer['status'] = true;
 			}
 			else
 			{
-				$debug->logger(translate_str_by_key('1711374618_1_5f735d1486aa51eb9a61df1cd635a0fb').".");
+				if ($debug) { $debug->logger(translate_str_by_key('1711374618_1_5f735d1486aa51eb9a61df1cd635a0fb')."."); }
 				$answer['message'] = translate_str_by_key('1711374672_1_5f735d1486aa51eb9a61df1cd635a0fb').'.';
 			}
 		}
