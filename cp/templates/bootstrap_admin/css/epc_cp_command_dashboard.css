@@ -164,6 +164,15 @@
 .cp-dash-metric:nth-child(3) { border-left-color: var(--cpd-red); animation-delay: 0.1s; }
 .cp-dash-metric:nth-child(4) { border-left-color: #0a0a0a; animation-delay: 0.15s; }
 .cp-dash-metric:nth-child(5) { border-left-color: #b91c1c; animation-delay: 0.2s; }
+.cp-dash-metric:nth-child(6) { border-left-color: #0a0a0a; animation-delay: 0.25s; }
+.cp-dash-metric--accent {
+	background: linear-gradient(180deg, #fff 0%, #fff7f7 100%);
+	border-color: #fecaca;
+}
+.cp-dash-metric--accent .cp-dash-metric__val {
+	font-size: 26px;
+	letter-spacing: -0.03em;
+}
 .cp-dash-metric__label {
 	font-size: 11px;
 	font-weight: 700;

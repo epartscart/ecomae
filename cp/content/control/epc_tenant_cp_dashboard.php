@@ -35,6 +35,8 @@ function epc_tcp_dash_stats(PDO $db): array
 			'orders_prev_week' => 0,
 			'products' => 0,
 			'warehouse_qty' => 0,
+			'goods_qty' => 0,
+			'sku_count' => 0,
 			'clients' => 0,
 			'pending_tasks' => 0,
 			'returns_open' => 0,
@@ -97,6 +99,38 @@ function epc_tcp_dash_stats(PDO $db): array
 						'SELECT COALESCE(SUM(`exist`), 0) FROM `shop_storages_data` WHERE `exist` > 0'
 					)->fetchColumn();
 				}
+			}
+		} catch (Exception $e) {
+		}
+		// Price-list totals (same figures as /cp/shop/prices "Quantity of goods"):
+		// SKUs = line count across all price lists; Total qty = SUM(exist) stock units.
+		try {
+			if ($db->query("SHOW TABLES LIKE 'shop_docpart_prices'")->fetchColumn()) {
+				$hasRc = false;
+				try {
+					$hasRc = (bool) $db->query("SHOW COLUMNS FROM `shop_docpart_prices` LIKE 'records_count'")->fetchColumn();
+				} catch (Exception $eCol) {
+					$hasRc = false;
+				}
+				if ($hasRc) {
+					$stats['sku_count'] = (int) $db->query(
+						'SELECT COALESCE(SUM(`records_count`), 0) FROM `shop_docpart_prices`'
+					)->fetchColumn();
+				}
+				if ($stats['sku_count'] <= 0 && $db->query("SHOW TABLES LIKE 'shop_docpart_prices_data'")->fetchColumn()) {
+					$stats['sku_count'] = (int) $db->query(
+						'SELECT COUNT(*) FROM `shop_docpart_prices_data`'
+					)->fetchColumn();
+				}
+			}
+			if ($db->query("SHOW TABLES LIKE 'shop_docpart_prices_data'")->fetchColumn()) {
+				$stats['goods_qty'] = (int) $db->query(
+					'SELECT COALESCE(SUM(`exist`), 0) FROM `shop_docpart_prices_data` WHERE `exist` > 0'
+				)->fetchColumn();
+			}
+			// Prefer price-list unit qty for the hero "Total qty" when warehouse package stock is tiny.
+			if ($stats['goods_qty'] > 0 && $stats['warehouse_qty'] <= 0) {
+				$stats['warehouse_qty'] = $stats['goods_qty'];
 			}
 		} catch (Exception $e) {
 		}
@@ -190,7 +224,7 @@ function epc_tcp_dash_stats(PDO $db): array
 				$dbName = (string) $db->query('SELECT DATABASE()')->fetchColumn();
 			} catch (Throwable $e) {
 			}
-			return epc_perf_cache_remember('epc_tcp_dash_stats:v5:' . $dbName, 180, $compute);
+			return epc_perf_cache_remember('epc_tcp_dash_stats:v6:' . $dbName, 180, $compute);
 		}
 	}
 	return $compute();
@@ -215,6 +249,8 @@ $stats = array(
 	'orders_prev_week' => 0,
 	'products' => 0,
 	'warehouse_qty' => 0,
+	'goods_qty' => 0,
+	'sku_count' => 0,
 	'clients' => 0,
 	'pending_tasks' => 0,
 	'returns_open' => 0,
@@ -383,7 +419,8 @@ $kpiRows = array(
 	array('name' => 'Orders today', 'cur' => (float) $stats['orders_today'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 	array('name' => 'Open orders', 'cur' => (float) $stats['pending_tasks'], 'prev' => 0.0, 'goodUp' => false, 'money' => false),
 	array('name' => 'Published products', 'cur' => (float) $stats['products'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
-	array('name' => 'Warehouse stock qty', 'cur' => (float) $stats['warehouse_qty'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Total qty of goods', 'cur' => (float) $stats['goods_qty'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
+	array('name' => 'Number of SKUs', 'cur' => (float) $stats['sku_count'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 	array('name' => 'Storefront clients', 'cur' => (float) $stats['clients'], 'prev' => 0.0, 'goodUp' => true, 'money' => false),
 );
 if (!empty($finance['has_finance'])) {
@@ -391,7 +428,7 @@ if (!empty($finance['has_finance'])) {
 	$kpiRows[] = array('name' => 'Cash & bank', 'cur' => $finance['cash_bank_total'], 'prev' => 0.0, 'goodUp' => true, 'money' => true);
 }
 
-$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260721whqty2';
+$cssHref = '/content/general_pages/epc_cp_command_dashboard_css.php?v=20260721pricesku1';
 if (function_exists('epc_cp_shell_asset_href')) {
 	$cssHref = epc_cp_shell_asset_href(
 		'/' . $backend . '/templates/bootstrap_admin/css/epc_cp_command_dashboard.css',
@@ -399,9 +436,9 @@ if (function_exists('epc_cp_shell_asset_href')) {
 	);
 }
 if (strpos($cssHref, '?') === false) {
-	$cssHref .= '?v=20260721whqty2';
+	$cssHref .= '?v=20260721pricesku1';
 } elseif (strpos($cssHref, 'v=') === false) {
-	$cssHref .= '&v=20260721whqty2';
+	$cssHref .= '&v=20260721pricesku1';
 }
 
 $GLOBALS['epc_tenant_cp_dashboard_shown'] = true;
@@ -455,10 +492,15 @@ $dayCountsJson = json_encode(array_map('intval', array_values((array) $stats['da
 				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['products']); ?></div>
 				<div class="cp-dash-metric__hint">Published catalogue</div>
 			</a>
-			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($base . '/shop/logistics/stock'); ?>">
-				<div class="cp-dash-metric__label">Warehouse qty</div>
-				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['warehouse_qty']); ?></div>
-				<div class="cp-dash-metric__hint">Total goods in warehouse</div>
+			<a class="cp-dash-metric cp-dash-metric--accent" href="<?php echo epc_tcp_dash_h($base . '/shop/prices'); ?>">
+				<div class="cp-dash-metric__label">Total qty of goods</div>
+				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['goods_qty']); ?></div>
+				<div class="cp-dash-metric__hint">Sum of stock qty (exist) in all price lists</div>
+			</a>
+			<a class="cp-dash-metric cp-dash-metric--accent" href="<?php echo epc_tcp_dash_h($base . '/shop/prices'); ?>">
+				<div class="cp-dash-metric__label">No. of SKUs</div>
+				<div class="cp-dash-metric__val"><?php echo number_format((int) $stats['sku_count']); ?></div>
+				<div class="cp-dash-metric__hint">Total quantity of goods across price lists</div>
 			</a>
 			<a class="cp-dash-metric" href="<?php echo epc_tcp_dash_h($clientsUrl); ?>">
 				<div class="cp-dash-metric__label">Clients</div>
