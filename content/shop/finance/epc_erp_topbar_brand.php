@@ -75,14 +75,15 @@ function epc_erp_topbar_brand_context(): array
 		return $cached;
 	}
 
-	// 2) eParts Cart tenant host — always tenant storefront brand (not hub/parent name).
+	// 2) eParts Cart tenant host — animated moving-cart mark (same as storefront).
 	if ($isEparts) {
 		$mode = 'epartscart';
 		$title = 'eParts Cart';
 		$tagline = 'epartscart.com · Finance & operations';
 		$hostLabel = 'epartscart.com';
-		$logoUrl = '/content/files/images/ecomae-platform/assets/epartscart.png';
-		$logoHtml = epc_erp_topbar_brand_img($logoUrl, 'eParts Cart', 'epc-erp-topbar__tenant-logo epc-erp-topbar__tenant-logo--epartscart');
+		$logoUrl = '';
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_animated_epartscart_logo.php';
+		$logoHtml = epc_animated_epartscart_logo_markup('compact');
 		$cached = array(
 			'mode' => $mode,
 			'title' => $title,
@@ -91,6 +92,7 @@ function epc_erp_topbar_brand_context(): array
 			'logo_html' => $logoHtml,
 			'aria' => 'eParts Cart',
 			'host_label' => $hostLabel,
+			'animated' => true,
 		);
 		return $cached;
 	}
@@ -220,13 +222,18 @@ function epc_erp_topbar_brand_initials(string $title): string
 function epc_erp_topbar_brand_markup(): string
 {
 	$ctx = epc_erp_topbar_brand_context();
+	$animated = !empty($ctx['animated']);
 	ob_start();
 	?>
+			<span class="epc-erp-topbar__brand-mark<?php echo $animated ? ' epc-erp-topbar__brand-mark--animated' : ''; ?>">
 			<?php echo $ctx['logo_html']; ?>
+			</span>
+			<?php if (!$animated): ?>
 			<span class="epc-erp-topbar__brand-text">
 				<strong><?php echo htmlspecialchars($ctx['title'], ENT_QUOTES, 'UTF-8'); ?></strong>
 				<small><?php echo htmlspecialchars($ctx['tagline'], ENT_QUOTES, 'UTF-8'); ?></small>
 			</span>
+			<?php endif; ?>
 	<?php
 	return ob_get_clean();
 }

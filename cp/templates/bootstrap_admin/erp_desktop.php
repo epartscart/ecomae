@@ -74,6 +74,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_translat
 	<link rel="stylesheet" href="<?php echo htmlspecialchars(epc_erp_shell_asset_href('/content/shop/finance/epc_erp_professional.css', '/content/shop/finance/epc_erp_professional_css.php'), ENT_QUOTES, 'UTF-8'); ?>" />
 	<link rel="stylesheet" href="<?php echo htmlspecialchars(epc_erp_shell_asset_href('/' . $backend . '/templates/bootstrap_admin/css/epc_cp_professional.css', '/content/general_pages/epc_cp_professional_css.php'), ENT_QUOTES, 'UTF-8'); ?>" />
 	<?php
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_animated_epartscart_logo.php';
+	if (epc_animated_epartscart_logo_applies()) {
+		epc_animated_epartscart_logo_enqueue();
+	}
 	$epcCpPageAssetsHead = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_cp_page_assets.php';
 	if (isset($DP_Content) && is_object($DP_Content)) {
 		$epcContentUrlHead = trim((string) ($DP_Content->url ?? ''), '/');

@@ -59,6 +59,13 @@ $epcErpLoginBrand = epc_erp_topbar_brand_context();
 			<div class="col-md-5 epc-erp-login-panel__brand">
 				<?php if (($epcErpLoginBrand['mode'] ?? '') === 'ecomae') {
 					echo epc_ecomae_static_logo('login', array('show_title' => true, 'show_tagline' => true, 'aria_label' => 'ECOM AE'));
+				} elseif (($epcErpLoginBrand['mode'] ?? '') === 'epartscart') {
+					require_once $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_animated_epartscart_logo.php';
+					epc_animated_epartscart_logo_enqueue();
+					echo '<div class="epc-erp-login-tenant-brand epc-erp-login-tenant-brand--animated">'
+						. epc_animated_epartscart_logo_markup('login')
+						. '<span class="epc-erp-login-tenant-brand__tag">' . htmlspecialchars((string) $epcErpLoginBrand['tagline'], ENT_QUOTES, 'UTF-8') . '</span>'
+						. '</div>';
 				} else {
 					echo '<div class="epc-erp-login-tenant-brand">'
 						. $epcErpLoginBrand['logo_html']
