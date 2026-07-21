@@ -100,15 +100,14 @@ function epc_boc_should_use_page_shell(?string $contentUrl = null): bool
 		// Home /cp/control already opens BOC itself via super dashboard.
 		return false;
 	}
-	// Any Super CP portal / tenant-hub / brochure route stays in BOS shell.
-	if (strpos($url, 'control/portal/') === 0
-		|| strpos($url, 'shop/tenant_hub/') === 0
-		|| $url === 'control/cp_brochure'
-		|| strpos($url, 'control/cp_brochure') === 0) {
-		return true;
+	// Never wrap auth / bare login endpoints.
+	$deny = array('login', 'logout', 'control/login', 'control/logout');
+	if (in_array($url, $deny, true)) {
+		return false;
 	}
-	// Also wrap if registered in BOC areas (covers ERP shell etc. when linked from BOS).
-	return epc_boc_resolve_area($url) !== null;
+	// Super CP: every module detail stays in the same BOS topnav shell as the
+	// Operations Command Center (no nested legacy "detail window").
+	return true;
 }
 
 /**

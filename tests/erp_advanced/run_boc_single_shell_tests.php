@@ -76,7 +76,10 @@ check('non-super host does not wrap', epc_boc_should_use_page_shell('control/por
 $GLOBALS['epc_test_super_cp'] = true;
 check('super host wraps portal health', epc_boc_should_use_page_shell('control/portal/epc_platform_health_checkup') === true);
 check('super host wraps audit log', epc_boc_should_use_page_shell('control/portal/epc_boc_audit_log') === true);
+check('super host wraps commerce module', epc_boc_should_use_page_shell('shop/orders') === true);
+check('super host wraps erp finance', epc_boc_should_use_page_shell('shop/finance/erp') === true);
 check('super host does not wrap home control', epc_boc_should_use_page_shell('control') === false);
+check('super host does not wrap login', epc_boc_should_use_page_shell('login') === false);
 
 $GLOBALS['epc_cp_boc_page'] = false;
 $GLOBALS['epc_boc_page_shell_open'] = false;
