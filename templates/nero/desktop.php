@@ -916,12 +916,30 @@ if(!empty($DP_Template->data_value->message_header)){
 	$header_search_form_3_hidden = 'hidden';
 	$header_search_form_engine_hidden = 'hidden';
 	$header_search_form_car_hidden = 'hidden';
+	$header_search_form_attr_hidden = 'hidden';
 	$epc_header_search_active = '1';
+	$epc_header_warehouse_search_url = rtrim($multilang_params['lang_href'], '/') . '/shop/warehouse-search';
+	$epc_header_attr_field = isset($_GET['field']) ? trim((string) $_GET['field']) : 'all';
+	$epc_header_attr_q = isset($_GET['q']) ? trim((string) $_GET['q']) : '';
+	if (!is_file($_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_price_extra_fields.php')) {
+		$epc_header_attr_options = array(array('key' => 'all', 'label' => 'All fields'));
+	} else {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_price_extra_fields.php';
+		$epc_header_attr_options = function_exists('epc_price_extra_search_options')
+			? epc_price_extra_search_options()
+			: array(array('key' => 'all', 'label' => 'All fields'));
+	}
 	if( $DP_Content->content_type == "category" || $DP_Content->url =="shop/search" )
 	{
 		$header_search_form_1_hidden = 'hidden';
 		$header_search_form_2_hidden = '';
 		$epc_header_search_active = '2';
+	}
+	if (isset($DP_Content->url) && (string) $DP_Content->url === 'shop/warehouse-search') {
+		$header_search_form_1_hidden = 'hidden';
+		$header_search_form_2_hidden = 'hidden';
+		$header_search_form_attr_hidden = '';
+		$epc_header_search_active = 'attr';
 	}
 	?>
 	<?php if ($epc_commerce_storefront) { ?>
@@ -953,6 +971,7 @@ if(!empty($DP_Template->data_value->message_header)){
 										<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === '3') ? ' active' : ''; ?>" data-search-mode="3" role="tab" aria-selected="<?php echo ($epc_header_search_active === '3') ? 'true' : 'false'; ?>"><i class="fa fa-id-card" aria-hidden="true"></i><span>VIN</span></button>
 										<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === 'engine') ? ' active' : ''; ?>" data-search-mode="engine" role="tab" aria-selected="<?php echo ($epc_header_search_active === 'engine') ? 'true' : 'false'; ?>"><i class="fa fa-cogs" aria-hidden="true"></i><span>Engine</span></button>
 										<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === 'car') ? ' active' : ''; ?>" data-search-mode="car" role="tab" aria-selected="<?php echo ($epc_header_search_active === 'car') ? 'true' : 'false'; ?>"><i class="fa fa-car" aria-hidden="true"></i><span>By car</span></button>
+										<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === 'attr') ? ' active' : ''; ?>" data-search-mode="attr" role="tab" aria-selected="<?php echo ($epc_header_search_active === 'attr') ? 'true' : 'false'; ?>"><i class="fa fa-sliders" aria-hidden="true"></i><span>More info</span></button>
 										<?php if( $epc_header_search_active === '2' ) { ?>
 										<button type="button" class="epc-header-search__tab active" data-search-mode="2" role="tab" aria-selected="true"><i class="fa fa-tag" aria-hidden="true"></i><span>By name</span></button>
 										<?php } ?>
@@ -1002,6 +1021,21 @@ if(!empty($DP_Template->data_value->message_header)){
 											<strong>Open vehicle catalog</strong>
 										</a>
 									</div>
+									<form action="<?php echo htmlspecialchars($epc_header_warehouse_search_url, ENT_QUOTES, 'UTF-8'); ?>" method="GET" class="header_search_form_attr <?=$header_search_form_attr_hidden;?>" onsubmit="return epcHeaderAttrSubmit(this);">
+										<div class="epc-header-search__attr-row">
+											<select class="form-control epc-header-search__attr-field" name="field" aria-label="Search field">
+												<?php foreach ($epc_header_attr_options as $epcAttrOpt) { ?>
+												<option value="<?php echo htmlspecialchars($epcAttrOpt['key'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo ($epc_header_attr_field === $epcAttrOpt['key']) ? ' selected' : ''; ?>><?php echo htmlspecialchars($epcAttrOpt['label'], ENT_QUOTES, 'UTF-8'); ?></option>
+												<?php } ?>
+											</select>
+											<div class="input-group">
+												<input value="<?php echo htmlspecialchars($epc_header_attr_q, ENT_QUOTES, 'UTF-8'); ?>" type="text" class="form-control epc-header-search__attr-input" placeholder="Engine, size, country, cross ref…" name="q" maxlength="120" autocomplete="off" />
+												<span class="input-group-btn">
+													<button class="btn btn-ar btn-primary" type="submit"><?php echo translate_str_by_id(2763); ?></button>
+												</span>
+											</div>
+										</div>
+									</form>
 									</div>
 								</div>
 							</td>
@@ -1182,6 +1216,7 @@ if(!empty($DP_Template->data_value->message_header)){
 							<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === '3') ? ' active' : ''; ?>" data-search-mode="3" role="tab"><i class="fa fa-id-card" aria-hidden="true"></i><span>VIN</span></button>
 							<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === 'engine') ? ' active' : ''; ?>" data-search-mode="engine" role="tab"><i class="fa fa-cogs" aria-hidden="true"></i><span>Eng</span></button>
 							<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === 'car') ? ' active' : ''; ?>" data-search-mode="car" role="tab"><i class="fa fa-car" aria-hidden="true"></i><span>Car</span></button>
+							<button type="button" class="epc-header-search__tab<?php echo ($epc_header_search_active === 'attr') ? ' active' : ''; ?>" data-search-mode="attr" role="tab"><i class="fa fa-sliders" aria-hidden="true"></i><span>Info</span></button>
 							<?php if( $epc_header_search_active === '2' ) { ?>
 							<button type="button" class="epc-header-search__tab active" data-search-mode="2" role="tab"><i class="fa fa-tag" aria-hidden="true"></i><span>Name</span></button>
 							<?php } ?>
@@ -1231,6 +1266,21 @@ if(!empty($DP_Template->data_value->message_header)){
 								<strong>Open catalog</strong>
 							</a>
 						</div>
+						<form action="<?php echo htmlspecialchars($epc_header_warehouse_search_url, ENT_QUOTES, 'UTF-8'); ?>" method="GET" class="header_search_form_attr <?=$header_search_form_attr_hidden;?>" onsubmit="return epcHeaderAttrSubmit(this);">
+							<div class="epc-header-search__attr-row">
+								<select class="form-control epc-header-search__attr-field" name="field" aria-label="Search field">
+									<?php foreach ($epc_header_attr_options as $epcAttrOpt) { ?>
+									<option value="<?php echo htmlspecialchars($epcAttrOpt['key'], ENT_QUOTES, 'UTF-8'); ?>"<?php echo ($epc_header_attr_field === $epcAttrOpt['key']) ? ' selected' : ''; ?>><?php echo htmlspecialchars($epcAttrOpt['label'], ENT_QUOTES, 'UTF-8'); ?></option>
+									<?php } ?>
+								</select>
+								<div class="input-group">
+									<input value="<?php echo htmlspecialchars($epc_header_attr_q, ENT_QUOTES, 'UTF-8'); ?>" type="text" class="form-control epc-header-search__attr-input" placeholder="Engine, size, country…" name="q" maxlength="120" autocomplete="off" />
+									<span class="input-group-btn">
+										<button class="btn btn-ar" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+									</span>
+								</div>
+							</div>
+						</form>
 						</div>
 					</div>
 				</td>

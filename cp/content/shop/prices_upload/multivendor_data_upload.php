@@ -25,7 +25,7 @@ $epc_mv_prices = '/' . $backend_raw . '/shop/prices';
 $epc_mv_storages = '/' . $backend_raw . '/shop/logistics/storages';
 $epc_mv_guide = '/' . $backend_raw . '/shop/prices/guide';
 
-$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvCombine1';
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvExtras1';
 epc_cp_register_page_assets(
 	array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($assetVer)),
 	array(
@@ -193,7 +193,7 @@ epc_cp_register_page_assets(
 							<input class="form-control" type="file" name="price_file" id="epcMultivendorFile" accept=".csv,.txt,.xls,.xlsx" required />
 							<p class="epc-multivendor-drop__hint"><i class="fa fa-paperclip"></i> Choose a file — required columns below</p>
 						</div>
-						<small class="help-block">Required: Brand, Article, Price, <strong>Vendor full name</strong>, <strong>Vendor short/code</strong>, and <strong>Data type</strong> (for Combine). Optional: Name, Qty, Delivery.</small>
+						<small class="help-block">Required: Brand, Article, Price, <strong>Vendor full name</strong>, <strong>Vendor short/code</strong>, and <strong>Data type</strong> (for Combine). Optional: Name, Qty, Delivery, plus custom fields (Engine code, Size, Cross reference, Country code, OE number, Other information, or any extra column).</small>
 					</div>
 				</div>
 				<div class="epc-multivendor-form-actions">
@@ -282,10 +282,46 @@ epc_cp_register_page_assets(
 							<td>Delivery, Days, Term</td>
 							<td>Lead time (0 = in warehouse)</td>
 						</tr>
+						<tr>
+							<td><strong>Engine code</strong></td>
+							<td>No</td>
+							<td>Engine code, Engine number, Engine</td>
+							<td>Searchable on storefront (More info → Engine code)</td>
+						</tr>
+						<tr>
+							<td><strong>Country code</strong></td>
+							<td>No</td>
+							<td>Country code, Country, Origin, Made in</td>
+							<td>Searchable country / origin</td>
+						</tr>
+						<tr>
+							<td><strong>Size</strong></td>
+							<td>No</td>
+							<td>Size, Dimension, Diameter</td>
+							<td>Searchable size / dimension</td>
+						</tr>
+						<tr>
+							<td><strong>Cross reference</strong></td>
+							<td>No</td>
+							<td>Cross reference, XRef, Interchange</td>
+							<td>Alternate / interchange numbers (searchable)</td>
+						</tr>
+						<tr>
+							<td><strong>OE number</strong></td>
+							<td>No</td>
+							<td>OE number, OE, OEM number</td>
+							<td>Original equipment number (searchable)</td>
+						</tr>
+						<tr>
+							<td><strong>Other information</strong></td>
+							<td>No</td>
+							<td>Other, Remarks, Notes, Info</td>
+							<td>Free-text notes; also any extra unnamed columns are stored here / as custom keys</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
-			<p class="epc-multivendor-muted">Lists are unique per vendor name + code (e.g. <em>S-UAE · S-UAE Trading LLC</em>). Storefront warehouse label stays the short code only.</p>
+			<p class="epc-multivendor-muted">Lists are unique per vendor name + code (e.g. <em>S-UAE · S-UAE Trading LLC</em>). Storefront warehouse label stays the short code only. Customers can search these custom fields from the header <strong>More info</strong> tab.</p>
 		</div>
 	</div>
 </div>
