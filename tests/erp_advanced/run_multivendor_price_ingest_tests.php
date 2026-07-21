@@ -20,6 +20,16 @@ function check(string $label, bool $ok): void
 
 $tmp = sys_get_temp_dir() . '/epc_mv_test_' . getmypid() . '.csv';
 file_put_contents($tmp, epc_multivendor_sample_csv());
+
+// Default mode is combine (one file, per-row Data type).
+$combineRead = epc_multivendor_read_source_rows($tmp);
+check('combine default parses sample', !empty($combineRead['ok']));
+check('combine mode flag', ($combineRead['mode'] ?? '') === 'combine');
+check('combine sample has 6 source rows', count($combineRead['rows'] ?? []) === 6);
+check('resolve empty → combine', epc_multivendor_resolve_data_type_mode('') === 'combine');
+check('resolve combine alias', epc_multivendor_resolve_data_type_mode('mixed') === 'combine');
+check('is_combine_mode', epc_multivendor_is_combine_mode('one file'));
+
 $read = epc_multivendor_read_source_rows($tmp, 'inventory');
 check('sample CSV parses', !empty($read['ok']));
 check('sample has 6 source rows', count($read['rows'] ?? []) === 6);
@@ -141,6 +151,22 @@ file_put_contents($bad, "Brand,Article,Price\nTOYOTA,1,10\n");
 $badRead = epc_multivendor_read_source_rows($bad);
 check('rejects missing vendor columns', empty($badRead['ok']));
 
+// Combine requires Data type column.
+$noType = sys_get_temp_dir() . '/epc_mv_notype_' . getmypid() . '.csv';
+file_put_contents(
+	$noType,
+	"Brand,Article,Qty,Price,Vendor full name,Vendor short\n"
+	. "TOYOTA,AAA,1,10,V Full,V1\n"
+);
+$noTypeRead = epc_multivendor_read_source_rows($noType, 'combine');
+check('combine rejects file without Data type column', empty($noTypeRead['ok']));
+check('combine missing-type message mentions Data type', strpos((string) ($noTypeRead['message'] ?? ''), 'Data type') !== false);
+
+// Same file with inventory-only override still works without Data type column.
+$noTypeInv = epc_multivendor_read_source_rows($noType, 'inventory');
+check('inventory override works without Data type column', !empty($noTypeInv['ok']));
+check('inventory override has 1 row', count($noTypeInv['rows'] ?? []) === 1);
+
 // Same vendor CODE, different NAMES must not share sales min/max buckets.
 $dupCode = sys_get_temp_dir() . '/epc_mv_dup_' . getmypid() . '.csv';
 file_put_contents(
@@ -171,6 +197,7 @@ foreach ($dupGroups as $g) {
 @unlink($tmp);
 @unlink($invCsv);
 @unlink($bad);
+@unlink($noType);
 @unlink($dupCode);
 
 echo $failed === 0 ? "ALL PASSED\n" : "FAILED {$failed}\n";

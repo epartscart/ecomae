@@ -477,8 +477,8 @@ try {
 							<ol>
 								<li>Open <a href="<?php echo $backend; ?>/shop/prices/multivendor">Shop → Price lists → Multi-vendor upload</a> (or the button above).</li>
 								<li>Download the <strong>sample CSV</strong> and keep the header row (column names can vary — see table below).</li>
-								<li>Choose a <strong>Default data type</strong> on the form (<em>Inventory</em>, <em>Sales</em>, or <em>Purchase</em>). A per-row <code>Data type</code> column overrides this.</li>
-								<li>Fill rows: at least <strong>Article</strong>, <strong>Price</strong>, <strong>Vendor full name</strong>, <strong>Vendor short</strong>. Add Brand / Qty / Name / Delivery when available.</li>
+								<li>Leave <strong>Data type mode</strong> on <em>Combine</em> (default) so one file can mix inventory, sales, and purchase — each row needs a <code>Data type</code> column. Or pick a single-type override (Inventory / Sales / Purchase) for the whole file.</li>
+								<li>Fill rows: at least <strong>Article</strong>, <strong>Price</strong>, <strong>Vendor full name</strong>, <strong>Vendor short</strong>, and <strong>Data type</strong> (for Combine). Add Brand / Qty / Name / Delivery when available.</li>
 								<li>Click <strong>Upload &amp; create warehouses</strong>. Review the result table (lists created/updated, row counts).</li>
 								<li>Confirm on <a href="<?php echo $backend; ?>/shop/prices">Price lists</a> and <a href="<?php echo $backend; ?>/shop/logistics/storages">Warehouses</a>. Search the article on the storefront — offers appear under the vendor short code.</li>
 							</ol>
@@ -572,9 +572,9 @@ try {
 										</tr>
 										<tr>
 											<td><strong>Data type</strong></td>
-											<td>No</td>
+											<td>Yes (Combine)</td>
 											<td>Data type, Type, Role, Channel</td>
-											<td><code>inventory</code> / <code>sales</code> / <code>purchase</code> (overrides form default)</td>
+											<td><code>inventory</code> / <code>sales</code> / <code>purchase</code> per row — one file loads all three</td>
 										</tr>
 										<tr>
 											<td><strong>Delivery</strong></td>
@@ -605,12 +605,12 @@ DENSO,0671007450,FILTER,2,29.90,"S-UAE Trading LLC",S-UAE,sales,0</pre>
 							<h5>API / automation</h5>
 							<p><span class="label label-primary">Endpoint</span>
 								<code>/epc-upload-multivendor-prices.php</code>
-								— POST <code>token</code>, optional <code>key</code> (tech_key), <code>price_file</code>, optional <code>data_type=inventory|sales|purchase</code>.</p>
+								— POST <code>token</code>, optional <code>key</code> (tech_key), <code>price_file</code>, optional <code>data_type=combine|inventory|sales|purchase</code> (default <code>combine</code>).</p>
 							<p>Sample via API: <code>?token=…&amp;action=sample</code> returns JSON with the CSV body.</p>
 
 							<p><strong>Test checklist:</strong></p>
 							<ol>
-								<li>Upload the sample CSV with default data type <em>Inventory</em> (rows with <code>Data type</code> still win per row).</li>
+								<li>Upload the sample CSV with mode <em>Combine</em> (default) — inventory and sales rows load from one file.</li>
 								<li>Expect warehouses <code>S-UAE</code> and <code>R-UAE</code>, lists <code>S-UAE</code>, <code>R-UAE</code>, and <code>S-UAE · Sales</code>.</li>
 								<li>On storefront part search for <code>446610010</code> / <code>0671007450</code>, offers show under short codes (not full legal names).</li>
 								<li>Re-upload the same file — lists update without creating duplicate warehouses.</li>

@@ -79,6 +79,7 @@ function epc_multivendor_header_aliases(): array
 
 /**
  * Normalize data type to inventory|sales|purchase.
+ * Pass fallback "combine" only as a mode sentinel (never a stored row type).
  */
 function epc_multivendor_normalize_data_type(string $raw, string $fallback = 'inventory'): string
 {
@@ -102,6 +103,31 @@ function epc_multivendor_normalize_data_type(string $raw, string $fallback = 'in
 	}
 	$fb = strtolower(trim($fallback));
 	return in_array($fb, array('inventory', 'sales', 'purchase'), true) ? $fb : 'inventory';
+}
+
+/**
+ * True when the CP form asks for one mixed file (per-row Data type column).
+ */
+function epc_multivendor_is_combine_mode(string $raw): bool
+{
+	$raw = strtolower(trim($raw));
+	$raw = str_replace(array('-', '_'), ' ', $raw);
+	$raw = preg_replace('/\s+/', ' ', (string) $raw);
+	return in_array($raw, array(
+		'combine', 'combined', 'mixed', 'mix', 'auto', 'all', 'from file', 'fromfile',
+		'one file', 'onefile', 'per row', 'perrow',
+	), true);
+}
+
+/**
+ * Resolve form/API data-type mode: combine|inventory|sales|purchase.
+ */
+function epc_multivendor_resolve_data_type_mode(string $raw): string
+{
+	if (epc_multivendor_is_combine_mode($raw) || trim($raw) === '') {
+		return 'combine';
+	}
+	return epc_multivendor_normalize_data_type($raw, 'inventory');
 }
 
 function epc_multivendor_data_type_list_suffix(string $dataType): string
@@ -496,30 +522,32 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 }
 
 /**
- * @return array{ok:bool,rows:list<array<string,mixed>>,message:string,headers:list<string>,map:array<string,int>}
+ * @return array{ok:bool,rows:list<array<string,mixed>>,message:string,headers:list<string>,map:array<string,int>,mode?:string}
  */
-function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataType = 'inventory'): array
+function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataType = 'combine'): array
 {
-	$defaultDataType = epc_multivendor_normalize_data_type($defaultDataType, 'inventory');
+	$mode = epc_multivendor_resolve_data_type_mode($defaultDataType);
+	$combine = ($mode === 'combine');
+	$rowFallback = $combine ? '' : $mode;
 
 	$delimiter = epc_commerce_detect_delimiter($csvPath);
 	$fh = fopen($csvPath, 'rb');
 	if ($fh === false) {
-		return array('ok' => false, 'rows' => array(), 'message' => 'Cannot open file', 'headers' => array(), 'map' => array());
+		return array('ok' => false, 'rows' => array(), 'message' => 'Cannot open file', 'headers' => array(), 'map' => array(), 'mode' => $mode);
 	}
 	$header = fgetcsv($fh, 0, $delimiter);
 	if (!is_array($header) || count($header) === 0) {
 		fclose($fh);
-		return array('ok' => false, 'rows' => array(), 'message' => 'Missing header row', 'headers' => array(), 'map' => array());
+		return array('ok' => false, 'rows' => array(), 'message' => 'Missing header row', 'headers' => array(), 'map' => array(), 'mode' => $mode);
 	}
 	$map = epc_multivendor_map_headers($header);
 	if ($map['article'] < 0) {
 		fclose($fh);
-		return array('ok' => false, 'rows' => array(), 'message' => 'Could not find Article/SKU column', 'headers' => $header, 'map' => $map);
+		return array('ok' => false, 'rows' => array(), 'message' => 'Could not find Article/SKU column', 'headers' => $header, 'map' => $map, 'mode' => $mode);
 	}
 	if ($map['price'] < 0) {
 		fclose($fh);
-		return array('ok' => false, 'rows' => array(), 'message' => 'Could not find Price column', 'headers' => $header, 'map' => $map);
+		return array('ok' => false, 'rows' => array(), 'message' => 'Could not find Price column', 'headers' => $header, 'map' => $map, 'mode' => $mode);
 	}
 	if ($map['vendor_short'] < 0) {
 		fclose($fh);
@@ -529,6 +557,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 			'message' => 'Could not find Vendor short / Warehouse short column (customer-facing warehouse name)',
 			'headers' => $header,
 			'map' => $map,
+			'mode' => $mode,
 		);
 	}
 	if ($map['vendor_full'] < 0) {
@@ -539,11 +568,24 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 			'message' => 'Could not find Vendor full name column (backend-only warehouse name)',
 			'headers' => $header,
 			'map' => $map,
+			'mode' => $mode,
+		);
+	}
+	if ($combine && $map['data_type'] < 0) {
+		fclose($fh);
+		return array(
+			'ok' => false,
+			'rows' => array(),
+			'message' => 'Combine mode needs a Data type column (inventory / sales / purchase) so one file can load all three. Or pick a single type override in the form.',
+			'headers' => $header,
+			'map' => $map,
+			'mode' => $mode,
 		);
 	}
 
 	$rows = array();
 	$skipped = 0;
+	$skippedNoType = 0;
 	while (($raw = fgetcsv($fh, 0, $delimiter)) !== false) {
 		if (!$raw || (count($raw) === 1 && trim((string) $raw[0]) === '')) {
 			continue;
@@ -570,9 +612,29 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 		$timeToExe = $map['time_to_exe'] >= 0 ? (int) epc_commerce_parse_number($raw[$map['time_to_exe']] ?? 0) : 0;
 		$minOrder = $map['min_order'] >= 0 ? (int) epc_commerce_parse_number($raw[$map['min_order']] ?? 0) : 0;
 		$dataTypeRaw = (isset($map['data_type']) && $map['data_type'] >= 0)
-			? (string) ($raw[$map['data_type']] ?? '')
+			? trim((string) ($raw[$map['data_type']] ?? ''))
 			: '';
-		$dataType = epc_multivendor_normalize_data_type($dataTypeRaw, $defaultDataType);
+		if ($combine) {
+			if ($dataTypeRaw === '') {
+				$skippedNoType++;
+				$skipped++;
+				continue;
+			}
+			$normalizedProbe = strtolower(preg_replace('/[\s\-_]+/', ' ', $dataTypeRaw) ?? '');
+			$known = in_array($normalizedProbe, array('inventory', 'inv', 'sales', 'sale', 'purchase', 'buy'), true)
+				|| strpos($normalizedProbe, 'invent') === 0
+				|| strpos($normalizedProbe, 'sale') === 0
+				|| strpos($normalizedProbe, 'purch') === 0
+				|| strpos($normalizedProbe, 'buy') === 0;
+			if (!$known) {
+				$skippedNoType++;
+				$skipped++;
+				continue;
+			}
+			$dataType = epc_multivendor_normalize_data_type($dataTypeRaw, 'inventory');
+		} else {
+			$dataType = epc_multivendor_normalize_data_type($dataTypeRaw, $rowFallback !== '' ? $rowFallback : 'inventory');
+		}
 		$rows[] = array(
 			'manufacturer' => $manufacturer,
 			'article' => $article,
@@ -591,22 +653,23 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 	fclose($fh);
 
 	if ($rows === array()) {
-		return array(
-			'ok' => false,
-			'rows' => array(),
-			'message' => 'No valid rows (need article, price > 0, vendor short, vendor full). Skipped: ' . $skipped,
-			'headers' => $header,
-			'map' => $map,
-		);
+		$msg = 'No valid product rows found';
+		if ($combine && $skippedNoType > 0) {
+			$msg = 'Combine mode: every row needs Data type = inventory, sales, or purchase ('
+				. $skippedNoType . ' row' . ($skippedNoType === 1 ? '' : 's') . ' missing/invalid type).';
+		}
+		return array('ok' => false, 'rows' => array(), 'message' => $msg, 'headers' => $header, 'map' => $map, 'mode' => $mode);
 	}
 
 	return array(
 		'ok' => true,
 		'rows' => $rows,
-		'message' => 'ok',
+		'message' => 'OK',
 		'headers' => $header,
 		'map' => $map,
-		'skipped' => $skipped,
+		'mode' => $mode,
+		'rows_skipped' => $skipped,
+		'rows_skipped_no_type' => $skippedNoType,
 	);
 }
 
@@ -899,9 +962,9 @@ function epc_multivendor_import_csv_local(PDO $db, array $price, string $filePat
  *
  * @return array<string,mixed>
  */
-function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $originalFilename = '', string $defaultDataType = 'inventory'): array
+function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $originalFilename = '', string $defaultDataType = 'combine'): array
 {
-	$defaultDataType = epc_multivendor_normalize_data_type($defaultDataType, 'inventory');
+	$mode = epc_multivendor_resolve_data_type_mode($defaultDataType);
 	$converted = epc_commerce_excel_to_csv($sourcePath);
 	if (empty($converted['ok'])) {
 		return array(
@@ -911,7 +974,7 @@ function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $origin
 		);
 	}
 	$csvPath = (string) $converted['path'];
-	$read = epc_multivendor_read_source_rows($csvPath, $defaultDataType);
+	$read = epc_multivendor_read_source_rows($csvPath, $mode);
 	if ($csvPath !== $sourcePath) {
 		@unlink($csvPath);
 	}
@@ -946,22 +1009,25 @@ function epc_multivendor_ingest_file(PDO $db, string $sourcePath, string $origin
 	}
 
 	$overallOk = $okCount > 0;
+	$typeLabel = ($mode === 'combine')
+		? 'combine (per-row Data type)'
+		: $mode;
 	$message = $overallOk
 		? ('Imported ' . $okCount . ' vendor list' . ($okCount === 1 ? '' : 's')
-			. ' (' . number_format($totalRows) . ' rows, data type rules applied).'
+			. ' (' . number_format($totalRows) . ' rows, mode: ' . $typeLabel . ').'
 			. ($failCount > 0 ? ' ' . $failCount . ' failed.' : ''))
 		: ('No vendors imported. ' . ($failCount > 0 ? $failCount . ' failed.' : 'Check columns.'));
 
 	return array(
 		'status' => $overallOk,
 		'message' => $message,
-		'data_type_default' => $defaultDataType,
+		'data_type_default' => $mode,
 		'original_filename' => $originalFilename !== '' ? $originalFilename : basename($sourcePath),
 		'vendors_total' => count($groups),
 		'vendors_ok' => $okCount,
 		'vendors_failed' => $failCount,
 		'rows_source' => count($read['rows']),
-		'rows_skipped_source' => (int) ($read['skipped'] ?? 0),
+		'rows_skipped_source' => (int) ($read['rows_skipped'] ?? 0),
 		'rows_imported' => $totalRows,
 		'warehouses_linked' => $warehousesLinked,
 		'headers' => $read['headers'] ?? array(),
