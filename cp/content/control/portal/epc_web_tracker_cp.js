@@ -157,7 +157,11 @@
 				if (IS_SUPER) who += ' <span class="wt-pill">' + esc(x.site_key) + '</span>';
 				var geo = [x.city, x.country_code].filter(Boolean).join(', ') || '—';
 				var path = esc(x.landing_path || '/') + ' → ' + esc(x.exit_path || '—');
-				return '<tr><td>' + esc(fmtTs(x.last_seen_at)) + '</td><td>' + who + '</td><td>' + esc(geo) + '</td><td>' + esc((x.device_type || '') + ' / ' + (x.browser || '')) + '</td><td>' + path + '</td><td>' + esc(x.pageview_count) + '</td><td>' + esc(x.event_count) + '</td><td>' + esc(dur(x.duration_ms)) + '</td><td><a class="wt-link wt-open" data-id="' + esc(x.id) + '">Timeline</a></td></tr>';
+				return '<tr class="wt-row-click" data-id="' + esc(x.id) + '" title="Open session timeline">'
+					+ '<td>' + esc(fmtTs(x.last_seen_at)) + '</td><td>' + who + '</td><td>' + esc(geo) + '</td>'
+					+ '<td>' + esc((x.device_type || '') + ' / ' + (x.browser || '')) + '</td><td>' + path + '</td>'
+					+ '<td>' + esc(x.pageview_count) + '</td><td>' + esc(x.event_count) + '</td><td>' + esc(dur(x.duration_ms)) + '</td>'
+					+ '<td><a href="#" class="wt-link wt-open" data-id="' + esc(x.id) + '">Timeline</a></td></tr>';
 			}).join('') || '<tr><td colspan="9" class="wt-muted">No sessions yet.</td></tr>'
 		);
 
@@ -167,9 +171,19 @@
 				load();
 			});
 		});
+		Array.prototype.forEach.call(document.querySelectorAll('#wt_sessions tr.wt-row-click'), function (row) {
+			row.addEventListener('click', function (ev) {
+				if (ev.target && ev.target.closest && ev.target.closest('a')) {
+					return;
+				}
+				var id = row.getAttribute('data-id');
+				if (id) openSession(id);
+			});
+		});
 		Array.prototype.forEach.call(document.querySelectorAll('.wt-open'), function (a) {
 			a.addEventListener('click', function (ev) {
 				ev.preventDefault();
+				ev.stopPropagation();
 				openSession(a.getAttribute('data-id'));
 			});
 		});
@@ -202,8 +216,12 @@
 					+ '</p>';
 				html += '<h5>Page experience</h5><ul class="wt-timeline">';
 				pvs.forEach(function (p) {
-					html += '<li><strong>' + esc(fmtTs(p.ts)) + '</strong> ' + esc(p.path)
-						+ (p.query ? '?' + esc(p.query) : '')
+					var pathOnly = p.path || '/';
+					var href = pathOnly + (p.query ? '?' + p.query : '');
+					html += '<li class="wt-info-click" title="Open page">'
+						+ '<strong>' + esc(fmtTs(p.ts)) + '</strong> '
+						+ '<a class="wt-link" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(pathOnly) + '</a>'
+						+ (p.query ? '<span class="wt-muted">?' + esc(p.query) + '</span>' : '')
 						+ ' <span class="wt-muted">· ' + esc(p.title) + ' · on-page ' + esc(dur(p.time_on_page_ms))
 						+ ' · scroll ' + esc(p.scroll_max_pct) + '% · load ' + esc(p.load_time_ms) + 'ms</span></li>';
 				});
@@ -214,13 +232,15 @@
 						line += 'search “' + esc(e.search_query) + '” <span class="wt-muted">(' + esc(e.search_context) + ')</span>';
 					} else if (e.event_type === 'click' || e.event_type === 'outbound') {
 						line += esc(e.element_tag) + (e.element_id ? '#' + esc(e.element_id) : '')
-							+ ' “' + esc(e.element_text) + '” '
-							+ (e.element_href ? '→ ' + esc(e.element_href) : '')
-							+ ' <span class="wt-muted">@ ' + esc(e.x) + ',' + esc(e.y) + ' on ' + esc(e.path) + '</span>';
+							+ ' “' + esc(e.element_text) + '” ';
+						if (e.element_href) {
+							line += '<a class="wt-link" href="' + esc(e.element_href) + '" target="_blank" rel="noopener">→ ' + esc(e.element_href) + '</a> ';
+						}
+						line += ' <span class="wt-muted">@ ' + esc(e.x) + ',' + esc(e.y) + ' on ' + esc(e.path) + '</span>';
 					} else {
 						line += esc(e.path || '') + ' <span class="wt-muted">' + (e.meta_json ? esc(e.meta_json) : '') + '</span>';
 					}
-					html += '<li>' + line + '</li>';
+					html += '<li class="wt-info-click">' + line + '</li>';
 				});
 				if (!evs.length) html += '<li class="wt-muted">No click/search events.</li>';
 				html += '</ul>';
