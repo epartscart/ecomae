@@ -22,7 +22,7 @@ epc_storefront_auth_layout_open();
 <div class="panel panel-primary epc-login-page">
 	<div class="panel-heading"><?php echo htmlspecialchars(translate_str_by_id(4008) ?: 'Login', ENT_QUOTES, 'UTF-8'); ?></div>
 	<div class="panel-body">
-		<p class="help-block">Sign in to browse, track orders, and checkout. New customer? <a href="<?php echo htmlspecialchars($signupUrl, ENT_QUOTES, 'UTF-8'); ?>"><strong>Sign up</strong></a> — retail accounts are approved instantly; wholesale requires manager approval.</p>
+		<p class="help-block">Sign in to browse, track orders, and checkout. New customer? <a href="<?php echo htmlspecialchars($signupUrl, ENT_QUOTES, 'UTF-8'); ?>"><strong>Sign up</strong></a> — retail accounts are approved instantly and can see prices; wholesale requires manager approval before prices and stock details unlock.</p>
 		<?php
 		$login_form_postfix = 'login_page';
 		$login_form_target = rtrim($langHref, '/') . '/';

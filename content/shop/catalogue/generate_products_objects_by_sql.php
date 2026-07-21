@@ -444,7 +444,8 @@ if( $product_block_type == 1 || $product_block_type == 4 || $product_block_type 
 			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
 		}
 		if (!epc_storefront_prices_visible_for_user()) {
-			$products_objects[$product_id]["price"] = epc_storefront_prices_login_cta_html($GLOBALS['multilang_params'] ?? null);
+			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***';
+			$products_objects[$product_id]["price"] = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
 			$products_objects[$product_id]["price_crossed_out"] = '';
 		} elseif(!empty($storage_data[$products_objects[$product_id]["cart_suggestion"]]["customer_price"])){
 			$price_string = $storage_data[$products_objects[$product_id]["cart_suggestion"]]["customer_price"];

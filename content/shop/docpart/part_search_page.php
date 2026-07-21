@@ -1183,11 +1183,22 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 				. htmlspecialchars(number_format($priceRaw, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8') . '</span>';
 		} else {
-			// Guest login/register text is shown next to Fitment in the actions cell (one row).
-			$priceHtml = '&mdash;';
+			$mask = function_exists('epc_storefront_sensitive_mask') ? epc_storefront_sensitive_mask() : '***';
+			$priceHtml = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
 		}
+		$mask = (!$pricesVisible && function_exists('epc_storefront_sensitive_mask'))
+			? epc_storefront_sensitive_mask()
+			: '';
+		$existHtml = $mask !== ''
+			? htmlspecialchars($mask, ENT_QUOTES, 'UTF-8')
+			: htmlspecialchars((string) (int) $exist, ENT_QUOTES, 'UTF-8');
+		$termHtml = $mask !== ''
+			? htmlspecialchars($mask, ENT_QUOTES, 'UTF-8')
+			: htmlspecialchars($term, ENT_QUOTES, 'UTF-8');
 		$infoHtml = '';
-		if ($warehouse !== '') {
+		if ($mask !== '') {
+			$infoHtml = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
+		} elseif ($warehouse !== '') {
 			$infoHtml = '<div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600" title="Warehouse"><span class="info_box">'
 				. htmlspecialchars($warehouse, ENT_QUOTES, 'UTF-8')
 				. '</span></div>';
@@ -1202,8 +1213,8 @@ function epc_chpu_ssr_warehouse_table_html(array $products, $currency_indicator 
 			. '<td class="td_manufacturer"><span>' . htmlspecialchars($brand, ENT_QUOTES, 'UTF-8') . '</span></td>'
 			. '<td class="td_article"><strong>' . htmlspecialchars($articleShow, ENT_QUOTES, 'UTF-8') . '</strong></td>'
 			. '<td class="td_name"><span title="' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</span></td>'
-			. '<td class="td_exist">' . htmlspecialchars((string) (int) $exist, ENT_QUOTES, 'UTF-8') . '</td>'
-			. '<td class="td_time_to_exe"><span class="epc-warehouse-term">' . htmlspecialchars($term, ENT_QUOTES, 'UTF-8') . '</span></td>'
+			. '<td class="td_exist">' . $existHtml . '</td>'
+			. '<td class="td_time_to_exe"><span class="epc-warehouse-term">' . $termHtml . '</span></td>'
 			. '<td class="td_info">' . $infoHtml . '</td>'
 			. '<td class="td_price product_price">' . $priceHtml . '</td>'
 			. '<td class="td_add_to_cart"><span class="epc-ssr-actions-pending" style="font-size:11px;color:#64748b">Loading actions…</span></td>'
@@ -1354,6 +1365,13 @@ function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, 
 			$term .= ' · ' . $row['warehouse'];
 		}
 		$termEsc = htmlspecialchars($term, ENT_QUOTES, 'UTF-8');
+		$mask = (!$pricesVisible && function_exists('epc_storefront_sensitive_mask'))
+			? epc_storefront_sensitive_mask()
+			: '';
+		if ($mask !== '') {
+			$existEsc = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
+			$termEsc = htmlspecialchars($mask, ENT_QUOTES, 'UTF-8');
+		}
 		if ($pricesVisible && $row['min_price'] !== null) {
 			$priceRawBrand = (float) $row['min_price'];
 			$priceHtml = number_format($priceRawBrand, 2, '.', '');
@@ -1375,7 +1393,7 @@ function epc_chpu_ssr_brand_picker_table_html(array $products, string $article, 
 				. htmlspecialchars(number_format($priceRawBrand, 2, '.', ''), ENT_QUOTES, 'UTF-8')
 				. '">' . $priceHtml . '</span>';
 		} elseif (!$pricesVisible) {
-			$priceHtml = $priceCta !== '' ? $priceCta : '&mdash;';
+			$priceHtml = htmlspecialchars($mask !== '' ? $mask : '***', ENT_QUOTES, 'UTF-8');
 		} else {
 			$priceHtml = '&mdash;';
 		}
@@ -3633,6 +3651,17 @@ if (!empty($epc_initial_price_bunch) && !empty($epc_initial_price_bunch['Product
 	foreach ($epc_initial_price_bunch['Products'] as $epc_product) {
 		$epc_products_for_js[] = $epc_product;
 	}
+	if (!function_exists('epc_storefront_prices_visible_for_user')) {
+		$helpers = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/docpart/epc_storefront_prices_helpers.php';
+		if (is_file($helpers)) {
+			require_once $helpers;
+		}
+	}
+	if (function_exists('epc_storefront_prices_visible_for_user')
+		&& !epc_storefront_prices_visible_for_user(isset($user_id) ? (int) $user_id : null)
+		&& function_exists('epc_storefront_prices_redact_products')) {
+		epc_storefront_prices_redact_products($epc_products_for_js);
+	}
 	echo json_encode(
 		array(
 			'result' => (int)$epc_initial_price_bunch['result'],
@@ -4225,9 +4254,12 @@ function manufacturersReview()
 			var priceVal = '—';
 			if(typeof epc_storefront_prices_visible !== 'undefined' && !epc_storefront_prices_visible)
 			{
-				priceVal = (typeof epc_storefront_price_login_cta_html !== 'undefined' && epc_storefront_price_login_cta_html)
-					? epc_storefront_price_login_cta_html
-					: 'Log in to see prices';
+				var mask = (typeof epcStorefrontSensitiveMask === 'function')
+					? epcStorefrontSensitiveMask()
+					: ((typeof epc_storefront_sensitive_mask !== 'undefined' && epc_storefront_sensitive_mask) ? String(epc_storefront_sensitive_mask) : '***');
+				existVal = mask;
+				termVal = mask;
+				priceVal = mask;
 			}
 			else if(ProductsManufacturers[i].min_price != null && ProductsManufacturers[i].min_price > 0)
 			{

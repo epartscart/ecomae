@@ -86,23 +86,68 @@ function epc_storefront_prices_hide_for_guests_enabled(): bool
 }
 
 /**
- * True when the current (or given) user may see storefront prices.
+ * Placeholder shown instead of availability / term / info / price when access is denied.
+ */
+function epc_storefront_sensitive_mask(): string
+{
+	return '***';
+}
+
+/**
+ * Resolve current storefront customer id (0 = guest).
+ */
+function epc_storefront_prices_resolve_user_id(?int $userId = null): int
+{
+	if ($userId !== null) {
+		return (int) $userId;
+	}
+	if (!class_exists('DP_User')) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+	}
+	return (int) DP_User::getUserId();
+}
+
+/**
+ * Access state for sensitive offer columns (qty / term / info / price).
+ *
+ * @return 'ok'|'guest'|'pending'|'rejected'
+ */
+function epc_storefront_prices_access_state(?int $userId = null): string
+{
+	$userId = epc_storefront_prices_resolve_user_id($userId);
+	if ($userId <= 0) {
+		return epc_storefront_prices_hide_for_guests_enabled() ? 'guest' : 'ok';
+	}
+
+	global $db_link;
+	$tradeFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_customer_trade.php';
+	if (is_file($tradeFile)) {
+		require_once $tradeFile;
+	}
+	if (!function_exists('epc_trade_approval_status') || !($db_link instanceof PDO)) {
+		// Fail open for tenants without the trade module.
+		return 'ok';
+	}
+	$status = epc_trade_approval_status($db_link, $userId);
+	if ($status === 'pending') {
+		return 'pending';
+	}
+	if ($status === 'rejected') {
+		return 'rejected';
+	}
+	return 'ok';
+}
+
+/**
+ * True when the current (or given) user may see storefront prices,
+ * availability qty, term, and warehouse info.
+ *
+ * Guests: hidden on warehouse_supplier tenants (epartscart).
+ * Logged-in: retail is auto-approved; wholesale must be CP-approved.
  */
 function epc_storefront_prices_visible_for_user(?int $userId = null): bool
 {
-	if ($userId === null) {
-		if (!class_exists('DP_User')) {
-			require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
-		}
-		$userId = (int) DP_User::getUserId();
-	}
-	if ($userId > 0) {
-		return true;
-	}
-	if (!epc_storefront_prices_hide_for_guests_enabled()) {
-		return true;
-	}
-	return false;
+	return epc_storefront_prices_access_state($userId) === 'ok';
 }
 
 /**
@@ -121,10 +166,21 @@ function epc_storefront_guest_commerce_blocked(?int $userId = null): bool
 	return !epc_storefront_commerce_allowed_for_user($userId);
 }
 
-function epc_storefront_prices_login_cta_html(?array $multilang_params = null): string
+function epc_storefront_prices_login_cta_html(?array $multilang_params = null, ?int $userId = null): string
 {
 	if ($multilang_params === null && !empty($GLOBALS['multilang_params']) && is_array($GLOBALS['multilang_params'])) {
 		$multilang_params = $GLOBALS['multilang_params'];
+	}
+	$state = epc_storefront_prices_access_state($userId);
+	if ($state === 'pending') {
+		return '<span class="epc-price-login-cta epc-price-login-cta--pending">'
+			. '<span class="epc-price-login-cta__hint">Wholesale account pending manager approval — prices unlock after CP approval</span>'
+			. '</span>';
+	}
+	if ($state === 'rejected') {
+		return '<span class="epc-price-login-cta epc-price-login-cta--rejected">'
+			. '<span class="epc-price-login-cta__hint">Trade account not approved — contact support</span>'
+			. '</span>';
 	}
 	$login = htmlspecialchars(epc_storefront_auth_login_url($multilang_params), ENT_QUOTES, 'UTF-8');
 	$signup = htmlspecialchars(epc_storefront_auth_signup_url($multilang_params), ENT_QUOTES, 'UTF-8');
@@ -136,10 +192,35 @@ function epc_storefront_prices_login_cta_html(?array $multilang_params = null): 
 		. '</span>';
 }
 
-function epc_storefront_commerce_login_cta_html(?array $multilang_params = null, bool $compact = false): string
+function epc_storefront_commerce_login_cta_html(?array $multilang_params = null, bool $compact = false, ?int $userId = null): string
 {
 	if ($multilang_params === null && !empty($GLOBALS['multilang_params']) && is_array($GLOBALS['multilang_params'])) {
 		$multilang_params = $GLOBALS['multilang_params'];
+	}
+	$state = epc_storefront_prices_access_state($userId);
+	if ($state === 'pending') {
+		$msg = 'Awaiting wholesale approval';
+		if ($compact) {
+			return '<span class="epc-commerce-login-cta epc-commerce-login-cta--inline epc-commerce-login-cta--pending">'
+				. htmlspecialchars($msg, ENT_QUOTES, 'UTF-8')
+				. '</span>';
+		}
+		return '<div class="epc-commerce-login-cta epc-commerce-login-cta--pending">'
+			. '<div class="epc-commerce-login-cta__hint">' . htmlspecialchars($msg, ENT_QUOTES, 'UTF-8')
+			. ' — a manager must approve your account in Control Panel before you can see prices or order.</div>'
+			. '</div>';
+	}
+	if ($state === 'rejected') {
+		$msg = 'Account not approved';
+		if ($compact) {
+			return '<span class="epc-commerce-login-cta epc-commerce-login-cta--inline epc-commerce-login-cta--rejected">'
+				. htmlspecialchars($msg, ENT_QUOTES, 'UTF-8')
+				. '</span>';
+		}
+		return '<div class="epc-commerce-login-cta epc-commerce-login-cta--rejected">'
+			. '<div class="epc-commerce-login-cta__hint">' . htmlspecialchars($msg, ENT_QUOTES, 'UTF-8')
+			. ' — contact support for trade access.</div>'
+			. '</div>';
 	}
 	$login = htmlspecialchars(epc_storefront_auth_login_url($multilang_params), ENT_QUOTES, 'UTF-8');
 	$signup = htmlspecialchars(epc_storefront_auth_signup_url($multilang_params), ENT_QUOTES, 'UTF-8');
@@ -240,19 +321,30 @@ function epc_storefront_prices_styles(): string
 
 function epc_storefront_prices_agent_guest_rules(): string
 {
-	if (epc_storefront_prices_visible_for_user()) {
+	$state = epc_storefront_prices_access_state();
+	if ($state === 'ok') {
 		return '';
+	}
+	if ($state === 'pending' || $state === 'rejected') {
+		return "IMPORTANT — wholesale account not yet approved for prices:\n"
+			. "- NEVER quote prices, stock qty, lead times, or warehouse names\n"
+			. "- Say availability and pricing unlock after manager approval in Control Panel\n"
+			. "- Do NOT offer add to cart, add to quote, or WhatsApp ordering\n"
+			. "- You may discuss brands and part numbers only";
 	}
 	return "IMPORTANT — guest (not logged in):\n"
 		. "- NEVER quote specific prices, currency amounts, or markups\n"
-		. "- Say prices are available after login or registration\n"
+		. "- NEVER reveal stock qty, lead time/term, or warehouse/info labels\n"
+		. "- Show those fields only as *** until the customer logs in\n"
+		. "- Say prices and availability details are available after login or registration\n"
+		. "- Retail registration is approved instantly; wholesale needs manager approval before prices\n"
 		. "- Do NOT offer add to cart, add to quote, or WhatsApp ordering for guests\n"
-		. "- You may confirm stock, brands, part numbers, and availability\n"
+		. "- You may confirm brands and part numbers only\n"
 		. "- Direct them to log in / register to see prices and place orders";
 }
 
 /**
- * Strip price fields from a product row (ajax / API).
+ * Strip price + stock/term/warehouse fields from a product row (ajax / API).
  *
  * @param array<string,mixed> $product
  */
@@ -273,6 +365,27 @@ function epc_storefront_prices_redact_product(array &$product): void
 				$product[$key] = 0;
 			}
 		}
+	}
+	// Also redact availability / term / warehouse so guests cannot read exact values from JSON.
+	// Keep exist as 1 when originally in stock so client-side "in stock" filters still include the row;
+	// the UI shows *** for the qty cell when prices are not visible.
+	if (array_key_exists('exist', $product)) {
+		$product['exist'] = ((float) $product['exist'] > 0) ? 1 : 0;
+	}
+	if (array_key_exists('time_to_exe', $product)) {
+		$product['time_to_exe'] = 0;
+	}
+	if (array_key_exists('time_to_exe_guaranteed', $product)) {
+		$product['time_to_exe_guaranteed'] = 0;
+	}
+	if (array_key_exists('probability', $product)) {
+		$product['probability'] = 0;
+	}
+	if (array_key_exists('storage_caption', $product)) {
+		$product['storage_caption'] = '';
+	}
+	if (array_key_exists('office_caption', $product)) {
+		$product['office_caption'] = '';
 	}
 }
 
