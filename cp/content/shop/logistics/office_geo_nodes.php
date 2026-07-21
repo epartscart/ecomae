@@ -5,7 +5,7 @@
 defined('_ASTEXE_') or die('No access');
 
 
-require_once("content/shop/geo/dp_geo_node_record.php");//Определение класса географического узла
+require_once($_SERVER['DOCUMENT_ROOT'] . '/content/shop/geo/dp_geo_node_record.php');//Определение класса географического узла
 ?>
 
 
@@ -60,10 +60,10 @@ else//Действий нет - выводим страницу
     
     //Исходные данные:
     $page_title = translate_str_by_id(3382);
-    require_once("content/shop/geo/get_geo_tree.php");//Получение объекта иерархии существующих географических узлов для вывода в дерево-webix
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/content/shop/geo/get_geo_tree.php');//Получение объекта иерархии существующих географических узлов для вывода в дерево-webix
     ?>
     <?php
-        require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
+        require_once($_SERVER['DOCUMENT_ROOT'] . '/' . $DP_Config->backend_dir . '/content/control/actions_alert.php');//Вывод сообщений о результатах действий
     ?>
     
 	
@@ -213,7 +213,15 @@ else//Действий нет - выводим страницу
     //Инициализация редактора дерева материалов после загруки страницы
     function tree_start_init()
     {
-    	var saved_tree = <?php echo $tree_dump_JSON; ?>;
+    	var saved_tree = <?php
+			$epcGeoDump = '[]';
+			if (!empty($tree_dump_JSON)) {
+				$epcGeoDump = (string) $tree_dump_JSON;
+			} elseif (!empty($geo_tree_dump_JSON)) {
+				$epcGeoDump = (string) $geo_tree_dump_JSON;
+			}
+			echo $epcGeoDump;
+		?>;
 	    tree.parse(saved_tree);
 	    tree.openAll();
     }

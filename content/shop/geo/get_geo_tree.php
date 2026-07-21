@@ -63,6 +63,8 @@ if( $all_nodes_count_rows > 0)
         $current_node->id = (integer)$node_record["id"];
         $current_node->count = (integer)$node_record['count'];
         $current_node->level = (integer)$node_record['level'];
+        // DB `value` holds the lang-string id; keep it for save + show translated label.
+        $current_node->value_lang_str_id = (integer)$node_record["value"];
         $current_node->value = translate_str_by_id($node_record["value"]);
         $current_node->parent = (integer)$node_record['parent'];
         $current_node->from_server = 1;//Флаг - говорит о том, что данный узел взят с сервера (т.е. уже был создан ранее)
@@ -74,7 +76,14 @@ if( $all_nodes_count_rows > 0)
     //3. Преобразовываем $root_node->data в JSON, добавляем знак $ к названиям некоторых полей и выдаем в javascript
     $encoded = json_encode($root_node->data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     $geo_tree_dump_JSON = ($encoded !== false) ? $encoded : '[]';
+    // Webix tree special fields (same pattern as catalogue tree)
+    $geo_tree_dump_JSON = str_replace('"level"', '"$level"', $geo_tree_dump_JSON);
+    $geo_tree_dump_JSON = str_replace('"parent"', '"$parent"', $geo_tree_dump_JSON);
+    $geo_tree_dump_JSON = str_replace('"count"', '"$count"', $geo_tree_dump_JSON);
 }
+
+// Alias expected by CP pages (geo_tree.php, office_geo_nodes.php)
+$tree_dump_JSON = $geo_tree_dump_JSON;
 
 // -------- End ЗАГРУКА ТЕКУЩЕЙ КОНФИГУРАЦИИ ДЕРЕВА --------
 ?>
