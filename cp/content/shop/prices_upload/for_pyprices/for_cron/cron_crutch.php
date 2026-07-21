@@ -48,4 +48,18 @@ while( $crontab_task = $crontab_query->fetch() )
 	//Для данного задания запускаем скрипт отсюда. Амперсант в конце - чтобы не ждать окончания выполнения.
 	exec( "cd ".$_SERVER["DOCUMENT_ROOT"]." && php ".$DP_Config->backend_dir."/content/shop/prices_upload/for_pyprices/for_cron/cron_task_executor.php ".$DP_Config->tech_key." ".$crontab_task['id']." &" );
 }
+
+// -------------------------------------------------------------------------------------------------
+// Nightly live FX rates (shop currencies) — safe to call every minute; runs once when due.
+try {
+	$fxHelper = $_SERVER["DOCUMENT_ROOT"]."/content/shop/finance/epc_currency_live_rates.php";
+	if (is_file($fxHelper)) {
+		require_once $fxHelper;
+		if (function_exists('epc_currency_live_schedule_tick')) {
+			epc_currency_live_schedule_tick($db_link, $DP_Config, false);
+		}
+	}
+} catch (Throwable $e) {
+	// Non-fatal: pyprices cron must keep working even if FX tick fails.
+}
 ?>
