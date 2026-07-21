@@ -7,11 +7,14 @@
  *  - vendor_short → shop_storages.short_name (storefront) [= vendor code]
  *
  * Match key: data_type + brand + article + vendor_name + vendor_code
+ *  - Same vendor code with a different vendor name is a SEPARATE vendor
  *  - inventory: combination is unique (one row; qty summed)
  *  - sales / purchase: repeats allowed → keep only lowest + highest price rows
  *
+ * Customers see vendor code (short_name); CP / office managers see vendor name (name).
+ *
  * Separate price lists per type so re-uploads do not wipe other types:
- *  inventory → "{short}", sales → "{short} · Sales", purchase → "{short} · Purchase"
+ *  inventory → "{code} · {name}", sales → "{code} · {name} · Sales", etc.
  */
 defined('_ASTEXE_') or define('_ASTEXE_', true);
 
@@ -288,13 +291,50 @@ function epc_multivendor_sanitize_full(string $raw): string
 	return substr($raw, 0, 255);
 }
 
-function epc_multivendor_vendor_key(string $short): string
+function epc_multivendor_vendor_key(string $full, string $short = ''): string
 {
-	return strtoupper(preg_replace('/\s+/u', ' ', trim($short)));
+	$fullN = strtoupper(preg_replace('/\s+/u', ' ', trim($full)));
+	$shortN = strtoupper(preg_replace('/\s+/u', ' ', trim($short)));
+	// Legacy single-arg calls passed only the code.
+	if ($shortN === '' && $fullN !== '') {
+		$shortN = $fullN;
+		$fullN = $fullN;
+	}
+	if ($shortN === '') {
+		return '';
+	}
+	if ($fullN === '') {
+		$fullN = $shortN;
+	}
+	// Identity for min/max + warehouse buckets: vendor name + vendor code.
+	return $fullN . "\x1e" . $shortN;
 }
 
 /**
- * Ensure warehouse exists: name = full (backend), short_name = short (storefront).
+ * Price-list base name unique per vendor name + code (customers never see this).
+ */
+function epc_multivendor_list_base_name(string $vendorShort, string $vendorFull): string
+{
+	$vendorShort = epc_multivendor_sanitize_short($vendorShort);
+	$vendorFull = epc_multivendor_sanitize_full($vendorFull);
+	if ($vendorShort === '') {
+		return $vendorFull !== '' ? $vendorFull : 'Vendor';
+	}
+	if ($vendorFull === '' || strcasecmp($vendorFull, $vendorShort) === 0) {
+		return $vendorShort;
+	}
+	$suffix = $vendorFull;
+	if (function_exists('mb_strlen') && mb_strlen($suffix, 'UTF-8') > 90) {
+		$suffix = mb_substr($suffix, 0, 90, 'UTF-8');
+	} elseif (strlen($suffix) > 90) {
+		$suffix = substr($suffix, 0, 90);
+	}
+	return $vendorShort . ' · ' . $suffix;
+}
+
+/**
+ * Ensure warehouse exists: name = full (CP / managers), short_name = code (storefront).
+ * Identity is name + short together — same code with different names stays separate.
  */
 function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $vendorShort, int $priceId, bool $setPrimaryPriceId = true): int
 {
@@ -310,43 +350,43 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 	$storageId = 0;
 	$row = null;
 
-	// Prefer match on storefront short name (stable warehouse identity).
+	// Primary match: vendor name + vendor code (never code alone).
 	try {
 		$q = $db->prepare(
 			'SELECT `id`, `name`, `short_name`, `connection_options`
 			 FROM `shop_storages`
-			 WHERE UPPER(TRIM(`short_name`)) = UPPER(?)
+			 WHERE UPPER(TRIM(`name`)) = UPPER(?)
+			   AND UPPER(TRIM(`short_name`)) = UPPER(?)
 			 LIMIT 1'
 		);
-		$q->execute(array($vendorShort));
+		$q->execute(array($vendorFull, $vendorShort));
 		$row = $q->fetch(PDO::FETCH_ASSOC) ?: null;
 	} catch (Throwable $e) {
 		$row = null;
 	}
 
+	// Legacy fallback: same full name with empty/missing short, then adopt this code.
 	if (!$row) {
-		$q = $db->prepare(
-			'SELECT `id`, `name`, `short_name`, `connection_options`
-			 FROM `shop_storages`
-			 WHERE UPPER(TRIM(`name`)) = UPPER(?)
-			 LIMIT 1'
-		);
-		$q->execute(array($vendorFull));
-		$row = $q->fetch(PDO::FETCH_ASSOC) ?: null;
+		try {
+			$q = $db->prepare(
+				'SELECT `id`, `name`, `short_name`, `connection_options`
+				 FROM `shop_storages`
+				 WHERE UPPER(TRIM(`name`)) = UPPER(?)
+				   AND (TRIM(COALESCE(`short_name`, \'\')) = \'\' OR UPPER(TRIM(`short_name`)) = UPPER(?))
+				 LIMIT 1'
+			);
+			$q->execute(array($vendorFull, $vendorShort));
+			$row = $q->fetch(PDO::FETCH_ASSOC) ?: null;
+		} catch (Throwable $e) {
+			$row = null;
+		}
 	}
 
-	if (!$row && strcasecmp($vendorFull, $vendorShort) !== 0) {
-		$q = $db->prepare(
-			'SELECT `id`, `name`, `short_name`, `connection_options`
-			 FROM `shop_storages`
-			 WHERE UPPER(TRIM(`name`)) = UPPER(?)
-			 LIMIT 1'
-		);
-		$q->execute(array($vendorShort));
-		$row = $q->fetch(PDO::FETCH_ASSOC) ?: null;
-	}
-
-	$opts = array('probability' => '100');
+	$opts = array(
+		'probability' => '100',
+		'epc_mv_vendor_full' => $vendorFull,
+		'epc_mv_vendor_code' => $vendorShort,
+	);
 	if ($setPrimaryPriceId) {
 		$opts['price_id'] = (string) $priceId;
 	}
@@ -418,6 +458,8 @@ function epc_multivendor_ensure_warehouse(PDO $db, string $vendorFull, string $v
 
 	// Keep name-based helper in sync for primary (inventory) lists only.
 	if ($setPrimaryPriceId) {
+		$listBase = epc_multivendor_list_base_name($vendorShort, $vendorFull);
+		epc_price_link_storage_to_list($db, $listBase, $priceId);
 		epc_price_link_storage_to_list($db, $vendorShort, $priceId);
 		if (strcasecmp($vendorFull, $vendorShort) !== 0) {
 			epc_price_link_storage_to_list($db, $vendorFull, $priceId);
@@ -540,7 +582,7 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 			'min_order' => max(0, $minOrder),
 			'vendor_full' => $vendorFull,
 			'vendor_short' => $vendorShort,
-			'vendor_key' => epc_multivendor_vendor_key($vendorShort),
+			'vendor_key' => epc_multivendor_vendor_key($vendorFull, $vendorShort),
 			'data_type' => $dataType,
 		);
 	}
@@ -567,11 +609,12 @@ function epc_multivendor_read_source_rows(string $csvPath, string $defaultDataTy
 }
 
 /**
- * Group rows by vendor_code + data_type, then collapse brand+article by type rules.
+ * Group rows by vendor_name + vendor_code + data_type, then collapse brand+article by type rules.
  *
  * Match principal: data_type + brand + article + vendor_name + vendor_code
  *  - inventory → unique (one row, qty summed)
  *  - sales/purchase → keep lowest + highest price only
+ * Same vendor code with a different vendor name is a separate bucket (min/max do not mix).
  *
  * @param list<array<string,mixed>> $rows
  * @return array<string,array{vendor_full:string,vendor_short:string,data_type:string,products:list<array<string,mixed>>}>
@@ -580,12 +623,20 @@ function epc_multivendor_group_by_vendor(array $rows): array
 {
 	$groups = array();
 	foreach ($rows as $row) {
+		$vendorFull = epc_multivendor_sanitize_full((string) ($row['vendor_full'] ?? ''));
+		$vendorShort = epc_multivendor_sanitize_short((string) ($row['vendor_short'] ?? ''));
 		$vendorKey = (string) ($row['vendor_key'] ?? '');
 		if ($vendorKey === '') {
+			$vendorKey = epc_multivendor_vendor_key($vendorFull, $vendorShort);
+		}
+		if ($vendorKey === '' || $vendorShort === '') {
 			continue;
 		}
 		$dataType = epc_multivendor_normalize_data_type((string) ($row['data_type'] ?? 'inventory'));
 		$row['data_type'] = $dataType;
+		$row['vendor_full'] = $vendorFull !== '' ? $vendorFull : $vendorShort;
+		$row['vendor_short'] = $vendorShort;
+		$row['vendor_key'] = $vendorKey;
 		$key = $vendorKey . '|' . $dataType;
 		if (!isset($groups[$key])) {
 			$groups[$key] = array(
@@ -599,7 +650,7 @@ function epc_multivendor_group_by_vendor(array $rows): array
 				$groups[$key]['vendor_full'] = (string) $row['vendor_full'];
 			}
 		}
-		// Product key inside vendor+type: brand + article (vendor name/code already in group).
+		// Product key inside vendor name+code+type: brand + article.
 		$prodKey = strtoupper((string) $row['manufacturer']) . '|' . (string) $row['article'];
 		if (!isset($groups[$key]['products'][$prodKey])) {
 			$groups[$key]['products'][$prodKey] = array();
@@ -674,7 +725,8 @@ function epc_multivendor_import_vendor(PDO $db, array $group): array
 		$vendorFull = $vendorShort;
 	}
 
-	$listName = $vendorShort . epc_multivendor_data_type_list_suffix($dataType);
+	$listName = epc_multivendor_list_base_name($vendorShort, $vendorFull)
+		. epc_multivendor_data_type_list_suffix($dataType);
 	$price = epc_price_resolve_or_create_list($db, 0, $listName);
 	if (!$price) {
 		return array(
@@ -966,15 +1018,16 @@ function epc_multivendor_ingest_for_vendor(
 	$rows = isset($read['rows']) && is_array($read['rows']) ? $read['rows'] : array();
 	$forced = array();
 	$rejectedOtherVendor = 0;
-	$accountKey = epc_multivendor_vendor_key($vendorShort);
+	$accountShort = epc_multivendor_sanitize_short($vendorShort);
 	foreach ($rows as $row) {
 		$fileShort = epc_multivendor_sanitize_short((string) ($row['vendor_short'] ?? ''));
-		if ($fileShort !== '' && epc_multivendor_vendor_key($fileShort) !== $accountKey) {
+		if ($fileShort !== '' && strcasecmp($fileShort, $accountShort) !== 0) {
 			$rejectedOtherVendor++;
 			continue;
 		}
 		$row['vendor_full'] = $vendorFull;
 		$row['vendor_short'] = $vendorShort;
+		$row['vendor_key'] = epc_multivendor_vendor_key($vendorFull, $vendorShort);
 		if (empty($row['data_type'])) {
 			$row['data_type'] = $defaultDataType;
 		}
@@ -1064,10 +1117,12 @@ function epc_multivendor_sample_csv(): string
 			'Brand', 'Article', 'Name', 'Qty', 'Price',
 			'Vendor full name', 'Vendor short', 'Data type', 'Delivery',
 		),
-		// Inventory: unique brand+article per vendor code
+		// Inventory: unique brand+article per vendor name+code
 		array('TOYOTA', '446610010', 'PAD KIT, DISC BRAKE', '8', '103.51', 'S-UAE Trading LLC', 'S-UAE', 'inventory', '0'),
 		array('AISIN', 'DT068', 'WATER PUMP', '3', '45.00', 'R-UAE Spare Parts FZE', 'R-UAE', 'inventory', '0'),
-		// Sales: same brand+article+vendor can repeat — import keeps only min + max price
+		// Same vendor CODE, different vendor NAME → separate warehouses / min-max buckets
+		array('BOSCH', 'F026400039', 'FILTER', '4', '15.00', 'Gulf Parts Trading', 'S-UAE', 'inventory', '0'),
+		// Sales: same brand+article+vendor name+code can repeat — import keeps only min + max price
 		array('DENSO', '0671007450', 'FILTER', '12', '18.00', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
 		array('DENSO', '0671007450', 'FILTER', '5', '22.50', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
 		array('DENSO', '0671007450', 'FILTER', '2', '29.90', 'S-UAE Trading LLC', 'S-UAE', 'sales', '0'),
@@ -1080,4 +1135,140 @@ function epc_multivendor_sample_csv(): string
 	$csv = stream_get_contents($fh);
 	fclose($fh);
 	return $csv === false ? '' : $csv;
+}
+
+/**
+ * List warehouses for the Vendor codes CP panel.
+ *
+ * @return list<array<string,mixed>>
+ */
+function epc_multivendor_vendor_codes_list(PDO $db): array
+{
+	$rows = array();
+	try {
+		$st = $db->query(
+			'SELECT `id`, `name`, `short_name`, `hidden`, `connection_options`, `interface_type`
+			 FROM `shop_storages`
+			 WHERE `interface_type` = 2
+			 ORDER BY TRIM(`short_name`) ASC, TRIM(`name`) ASC, `id` ASC
+			 LIMIT 2000'
+		);
+		$rows = $st ? ($st->fetchAll(PDO::FETCH_ASSOC) ?: array()) : array();
+	} catch (Throwable $e) {
+		return array();
+	}
+	$out = array();
+	foreach ($rows as $r) {
+		$opts = json_decode((string) ($r['connection_options'] ?? ''), true);
+		if (!is_array($opts)) {
+			$opts = array();
+		}
+		$priceId = (int) ($opts['price_id'] ?? 0);
+		$out[] = array(
+			'id' => (int) $r['id'],
+			'vendor_full' => (string) ($r['name'] ?? ''),
+			'vendor_code' => (string) ($r['short_name'] ?? ''),
+			'vendor_short' => (string) ($r['short_name'] ?? ''),
+			'hidden' => (int) ($r['hidden'] ?? 0),
+			'price_id' => $priceId,
+			'is_multivendor' => !empty($opts['epc_mv_vendor_code']) || !empty($opts['epc_typed_price_ids']),
+		);
+	}
+	return $out;
+}
+
+/**
+ * Update storefront vendor code (short_name) for a warehouse. CP keeps vendor name (name).
+ *
+ * @return array{ok:bool,message:string,vendor?:array<string,mixed>}
+ */
+function epc_multivendor_vendor_code_save(PDO $db, int $storageId, string $newCode, string $newFull = ''): array
+{
+	if ($storageId <= 0) {
+		return array('ok' => false, 'message' => 'Invalid warehouse id');
+	}
+	$newCode = epc_multivendor_sanitize_short($newCode);
+	if ($newCode === '') {
+		return array('ok' => false, 'message' => 'Vendor code cannot be empty');
+	}
+	$st = $db->prepare('SELECT `id`, `name`, `short_name`, `connection_options` FROM `shop_storages` WHERE `id` = ? LIMIT 1');
+	$st->execute(array($storageId));
+	$row = $st->fetch(PDO::FETCH_ASSOC);
+	if (!$row) {
+		return array('ok' => false, 'message' => 'Warehouse not found');
+	}
+	$oldCode = (string) ($row['short_name'] ?? '');
+	$full = $newFull !== '' ? epc_multivendor_sanitize_full($newFull) : (string) ($row['name'] ?? '');
+	if ($full === '') {
+		$full = $newCode;
+	}
+
+	// Do not collide with another warehouse that already uses this name+code pair.
+	$chk = $db->prepare(
+		'SELECT `id` FROM `shop_storages`
+		 WHERE UPPER(TRIM(`name`)) = UPPER(?) AND UPPER(TRIM(`short_name`)) = UPPER(?) AND `id` <> ?
+		 LIMIT 1'
+	);
+	$chk->execute(array($full, $newCode, $storageId));
+	if ($chk->fetchColumn()) {
+		return array('ok' => false, 'message' => 'Another warehouse already uses this vendor name + code');
+	}
+
+	$opts = json_decode((string) ($row['connection_options'] ?? ''), true);
+	if (!is_array($opts)) {
+		$opts = array();
+	}
+	$opts['epc_mv_vendor_full'] = $full;
+	$opts['epc_mv_vendor_code'] = $newCode;
+
+	$db->prepare(
+		'UPDATE `shop_storages` SET `name` = ?, `short_name` = ?, `connection_options` = ? WHERE `id` = ?'
+	)->execute(array($full, $newCode, json_encode($opts, JSON_UNESCAPED_UNICODE), $storageId));
+
+	// Rename linked price lists that still start with the old code (best-effort).
+	$priceIds = array();
+	if (!empty($opts['price_id'])) {
+		$priceIds[] = (int) $opts['price_id'];
+	}
+	if (!empty($opts['epc_typed_price_ids']) && is_array($opts['epc_typed_price_ids'])) {
+		foreach ($opts['epc_typed_price_ids'] as $pid) {
+			$priceIds[] = (int) $pid;
+		}
+	}
+	$priceIds = array_values(array_unique(array_filter($priceIds)));
+	if ($oldCode !== '' && $priceIds !== array()) {
+		foreach ($priceIds as $pid) {
+			try {
+				$pq = $db->prepare('SELECT `id`, `name` FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1');
+				$pq->execute(array($pid));
+				$pr = $pq->fetch(PDO::FETCH_ASSOC);
+				if (!$pr) {
+					continue;
+				}
+				$oldName = (string) ($pr['name'] ?? '');
+				$newList = epc_multivendor_list_base_name($newCode, $full);
+				foreach (array('', ' · Sales', ' · Purchase') as $suf) {
+					$candidateOld = epc_multivendor_list_base_name($oldCode, (string) ($row['name'] ?? $oldCode)) . $suf;
+					$candidateOldShort = $oldCode . $suf;
+					if ($oldName === $candidateOld || $oldName === $candidateOldShort || $oldName === $oldCode . $suf) {
+						$db->prepare('UPDATE `shop_docpart_prices` SET `name` = ? WHERE `id` = ?')
+							->execute(array($newList . $suf, $pid));
+						break;
+					}
+				}
+			} catch (Throwable $e) {
+			}
+		}
+	}
+
+	return array(
+		'ok' => true,
+		'message' => 'Vendor code updated — storefront shows the new code; CP still shows the vendor name',
+		'vendor' => array(
+			'id' => $storageId,
+			'vendor_full' => $full,
+			'vendor_code' => $newCode,
+			'vendor_short' => $newCode,
+		),
+	);
 }

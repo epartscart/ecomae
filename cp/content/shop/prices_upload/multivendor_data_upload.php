@@ -25,7 +25,7 @@ $epc_mv_prices = '/' . $backend_raw . '/shop/prices';
 $epc_mv_storages = '/' . $backend_raw . '/shop/logistics/storages';
 $epc_mv_guide = '/' . $backend_raw . '/shop/prices/guide';
 
-$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvMin1';
+$assetVer = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'mvCode1';
 epc_cp_register_page_assets(
 	array('/content/general_pages/epc_prices_cp_css.php?v=' . rawurlencode($assetVer)),
 	array(
@@ -82,8 +82,8 @@ epc_cp_register_page_assets(
 	<div class="epc-multivendor-rules">
 		<article>
 			<span class="epc-multivendor-badge">Match key</span>
-			<h3>Brand + Article + Vendor</h3>
-			<p>Matching uses <strong>data type</strong> + brand + article + vendor full name + vendor short/code.</p>
+			<h3>Brand + Article + Vendor name + Code</h3>
+			<p>Matching uses <strong>data type</strong> + brand + article + <strong>vendor full name</strong> + <strong>vendor code</strong>. Same code with a different name is treated as a separate vendor for min/max.</p>
 		</article>
 		<article>
 			<span class="epc-multivendor-badge epc-multivendor-badge--short">Inventory</span>
@@ -93,8 +93,41 @@ epc_cp_register_page_assets(
 		<article>
 			<span class="epc-multivendor-badge epc-multivendor-badge--auto">Sales / Purchase</span>
 			<h3>Min + max price</h3>
-			<p>Repeats keep <strong>lowest</strong> and <strong>highest</strong> prices. Minimum is restricted to selected groups/customers; administrators always see it.</p>
+			<p>Repeats keep <strong>lowest</strong> and <strong>highest</strong> prices within the same vendor name + code. Customers see the code; CP shows the real vendor name.</p>
 		</article>
+	</div>
+
+	<div class="hpanel epc-multivendor-panel">
+		<div class="panel-heading hbuilt">
+			<i class="fa fa-barcode"></i> Vendor codes
+			<button type="button" class="btn btn-default btn-xs pull-right" id="epcMvVendorCodesRefreshBtn" style="margin-top:-2px;">
+				<i class="fa fa-refresh"></i> Refresh
+			</button>
+		</div>
+		<div class="panel-body">
+			<p class="epc-multivendor-muted" style="margin-top:0;">
+				Customers always see the <strong>vendor code</strong> on the storefront.
+				In CP you see the <strong>actual vendor name</strong>.
+				Change a code anytime — the storefront label updates for that warehouse. Name + code together identify the vendor for min/max pricing.
+			</p>
+			<div class="table-responsive">
+				<table class="table table-striped table-bordered table-condensed" id="epcMvVendorCodesTable">
+					<thead>
+						<tr>
+							<th style="width:70px;">ID</th>
+							<th>Vendor name (CP)</th>
+							<th style="width:180px;">Vendor code (storefront)</th>
+							<th style="width:90px;">Price list</th>
+							<th style="width:110px;"></th>
+						</tr>
+					</thead>
+					<tbody id="epcMvVendorCodesBody">
+						<tr><td colspan="5" class="text-muted">Loading vendor codes…</td></tr>
+					</tbody>
+				</table>
+			</div>
+			<div id="epcMvVendorCodesResult" class="epc-multivendor-result" aria-live="polite"></div>
+		</div>
 	</div>
 
 	<div class="hpanel epc-multivendor-panel">
@@ -228,13 +261,13 @@ epc_cp_register_page_assets(
 							<td><strong>Vendor full name</strong></td>
 							<td><span class="label label-danger">Yes</span></td>
 							<td>Vendor full name, Supplier full, Company name</td>
-							<td>Backend warehouse name only</td>
+							<td>Backend warehouse name (actual vendor in CP)</td>
 						</tr>
 						<tr>
 							<td><strong>Vendor short / code</strong></td>
 							<td><span class="label label-danger">Yes</span></td>
 							<td>Vendor short, Vendor code, Warehouse, WH</td>
-							<td>Customer-facing warehouse code</td>
+							<td>Customer-facing warehouse code (same code + different name = separate vendor)</td>
 						</tr>
 						<tr>
 							<td><strong>Data type</strong></td>
@@ -251,7 +284,7 @@ epc_cp_register_page_assets(
 					</tbody>
 				</table>
 			</div>
-			<p class="epc-multivendor-muted">Lists: inventory uses <em>S-UAE</em>; sales uses <em>S-UAE · Sales</em>; purchase uses <em>S-UAE · Purchase</em>. Storefront warehouse label stays the short code.</p>
+			<p class="epc-multivendor-muted">Lists are unique per vendor name + code (e.g. <em>S-UAE · S-UAE Trading LLC</em>). Storefront warehouse label stays the short code only.</p>
 		</div>
 	</div>
 </div>
