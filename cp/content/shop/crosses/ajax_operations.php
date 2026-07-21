@@ -1,316 +1,234 @@
 <?php
 /**
- * Скрипт для обработки различных операций над таблицей кроссов
-*/
-ini_set('display_errors', 0);
-header('Content-Type: application/json;charset=utf-8;');
-function prepareString($string)
-{
-	$sweep=array("#", "`", "\r\n", "\r", "\n", "\t", "'", '"');
-	$string = str_replace($sweep,"", $string);
-	
-	return trim($string);
+ * CP AJAX — shop crosses (shop_docpart_articles_analogs_list).
+ */
+ini_set('display_errors', '0');
+ini_set('max_execution_time', '120');
+header('Content-Type: application/json; charset=utf-8');
+if (ob_get_level()) {
+	@ob_end_clean();
 }
 
-// формируем пагинацию
-// $all 		= количество постов в категории (определяем количество постов в базе данных)
-// $lim 		= количество постов, размещаемых на одной странице
-// $prev 		= количество отображаемых ссылок до и после номера текущей страницы
-// $curr_link 	= номер текущей страницы (получаем из URL)
-// $curr_css 	= css-стиль для ссылки на "текущую (активную)" страницу
-// $link 		= часть адреса, используемый для формирования линков на другие страницы
+function prepareString($string)
+{
+	$sweep = array('#', '`', "\r\n", "\r", "\n", "\t", "'", '"');
+	return trim(str_replace($sweep, '', (string) $string));
+}
+
 function pagination($all, $lim, $prev, $curr_link, $curr_css, $link)
 {
-    $html = '';
-	// осуществляем проверку, чтобы выводимые первая и последняя страницы
-    // не вышли за границы нумерации
-    $first = $curr_link - $prev;
-    if ($first < 1) $first = 1;
-    $last = $curr_link + $prev;
-    if ($last > ceil($all/$lim)) $last = ceil($all/$lim);
- 
-    // начало вывода нумерации
-    // выводим первую страницу
-    $y = 1;
-    if ($first > 1) $html .= "<a onclick='go_to_page({$y})'>1</a>";
-    // Если текущая страница далеко от 1-й (>10), то часть предыдущих страниц
-    // скрываем троеточием
-    // Если текущая страница имеет номер до 10, то выводим все номера
-    // перед заданным диапазоном без скрытия
-	// $prev
-    $y = $first - 1;
-    if ($first > $prev) {
-        $html .= "<a onclick='go_to_page({$y})'>...</a>";
-    } else {
-        for($i = 2;$i < $first;$i++){
-            $html .=  "<a onclick='go_to_page({$y})'>$i</a>";
-        }
-    }
-    // отображаем заданный диапазон: текущая страница +-$prev
-    for($i = $first;$i < $last + 1;$i++){
-        // если выводится текущая страница, то ей назначается особый стиль css
-        if($i == $curr_link) {
-			$html .= '<a class="'.$curr_css.'">'. $i .'</a>';
-        } else {
-            $alink = "<a onclick='go_to_page(";
-            if($i != 1) $alink .= "{$i}";
-            $alink .= ")'>$i</a>";
-            $html .= $alink;
-        }
-    }
-    $y = $last + 1;
-    // часть страниц скрываем троеточием
-    if ($last < ceil($all / $lim) && ceil($all / $lim) - $last > 2) $html .=  "<a onclick='go_to_page({$y})'>...</a>";
-    // выводим последнюю страницу
-    $e = ceil($all / $lim);
-    if ($last < ceil($all / $lim)) $html .=  "<a onclick='go_to_page({$e})'>$e</a>";
-	
+	$html = '';
+	$all = (int) $all;
+	$lim = max(1, (int) $lim);
+	$prev = max(1, (int) $prev);
+	$curr_link = max(1, (int) $curr_link);
+	$pages = (int) ceil($all / $lim);
+	if ($pages < 1) {
+		$pages = 1;
+	}
+	$first = max(1, $curr_link - $prev);
+	$last = min($pages, $curr_link + $prev);
+	if ($first > 1) {
+		$html .= "<a onclick='go_to_page(1)'>1</a>";
+	}
+	$y = $first - 1;
+	if ($first > $prev) {
+		$html .= "<a onclick='go_to_page({$y})'>...</a>";
+	} else {
+		for ($i = 2; $i < $first; $i++) {
+			$html .= "<a onclick='go_to_page({$y})'>$i</a>";
+		}
+	}
+	for ($i = $first; $i <= $last; $i++) {
+		if ($i == $curr_link) {
+			$html .= '<a class="' . $curr_css . '">' . $i . '</a>';
+		} else {
+			$html .= "<a onclick='go_to_page(" . ($i != 1 ? $i : '') . ")'>$i</a>";
+		}
+	}
+	$y = $last + 1;
+	if ($last < $pages && $pages - $last > 2) {
+		$html .= "<a onclick='go_to_page({$y})'>...</a>";
+	}
+	if ($last < $pages) {
+		$html .= "<a onclick='go_to_page({$pages})'>$pages</a>";
+	}
 	return $html;
 }
 
-
-
-
-
-//Соединение с БД
-require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
-$DP_Config = new DP_Config;
-try
-{
-	$db_link = new PDO('mysql:host='.$DP_Config->host.';dbname='.$DP_Config->db, $DP_Config->user, $DP_Config->password);
-}
-catch (PDOException $e) 
-{
-    $answer = array();
-	$answer["status"] = false;
-	$answer["message"] = "No DB connect";
-	exit( json_encode($answer) );
-}
-$db_link->query("SET NAMES utf8;");
-
-
-
-// -------------------------------------------------------------------------------
-//Подключение мультиязычности
-require_once($_SERVER["DOCUMENT_ROOT"]."/lang/dp_lang.php");
-$multilang_params = multilang_init();
-// -------------------------------------------------------------------------------
-
-
-// -------------------------------------------------------------------------------
-//Проверка привелегий (пользователь должен иметь доступ к следующим страницам)
-$pages_to_check = array();
-$pages_to_check[] = array('id'=>380, 'url'=>'shop/crosses');//Таблица кроссов
-require_once($_SERVER["DOCUMENT_ROOT"]."/".$DP_Config->backend_dir."/content/control/check_admin_access/check_admin_access.php");
-// -------------------------------------------------------------------------------
-
-
-// -------------------------------------------------------------------------------
-//Защита от CSRF-атак
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/stop_csrf.php");
-// -------------------------------------------------------------------------------
-
-
-//Проверяем право менеджера
-require_once($_SERVER["DOCUMENT_ROOT"]."/content/users/dp_user.php");
-if( ! DP_User::isAdmin())
-{
-	$answer = array('status'=>false);
-	exit(json_encode($answer));
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+	$DP_Config = new DP_Config();
+	$GLOBALS['DP_Config'] = $DP_Config;
+	$dbHost = trim((string) $DP_Config->host);
+	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+		$dbHost = '127.0.0.1';
+	}
+	$db_link = new PDO(
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8mb4',
+		$DP_Config->user,
+		$DP_Config->password,
+		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+	);
+	$GLOBALS['db_link'] = $db_link;
+	$db_link->query('SET NAMES utf8mb4');
+} catch (Throwable $e) {
+	http_response_code(503);
+	exit(json_encode(array('status' => false, 'message' => 'No DB connect')));
 }
 
-$answer = array('status'=>false);
-$request_object = json_decode($_POST['request_object'], true);
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
+if (!DP_User::isAdmin()) {
+	http_response_code(403);
+	exit(json_encode(array('status' => false, 'message' => 'forbidden')));
+}
 
-$sweep = array(" ", "-", "_", "`", "/", "'", '"', "\\", ".", ",", "#", "\r\n", "\r", "\n", "\t");
+try {
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/lang/dp_lang.php';
+	if (function_exists('multilang_init')) {
+		multilang_init();
+	}
+} catch (Throwable $e) {
+}
 
-switch($request_object['action'])
-{
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/stop_csrf.php';
+
+$answer = array('status' => false);
+$raw = (string) ($_POST['request_object'] ?? '');
+$request_object = json_decode($raw, true);
+if (!is_array($request_object)) {
+	$request_object = json_decode(urldecode($raw), true);
+}
+if (!is_array($request_object)) {
+	exit(json_encode(array('status' => false, 'message' => 'bad_request')));
+}
+
+$sweep = array(' ', '-', '_', '`', '/', "'", '"', '\\', '.', ',', '#', "\r\n", "\r", "\n", "\t");
+$action = (string) ($request_object['action'] ?? '');
+
+try {
+switch ($action) {
 	case 'get_table_crosses':
-		/*
-		$kol - количество записей для вывода
-		$art - с какой записи выводить
-		$total - всего записей
-		$page - текущая страница
-		$str_pag - количество страниц для пагинации
-		*/
-		// Текущая страница
-		$page = (int)$request_object['page'];
-		if(empty($page))
-		{
-			$page = 1;
-		}
-		
-		$kol = $DP_Config->list_page_limit;//Штук на страницу
-		$art = ($page * $kol) - $kol;//с какой записи выводить
-		$article = strip_tags(mb_strtoupper(trim(urldecode($request_object['article'])), 'UTF-8'));
-		$article = (string) str_replace($sweep, "", $article);
-		$manufacturer = strip_tags(mb_strtoupper(trim(urldecode($request_object['manufacturer'])), 'UTF-8'));
-		
+		$page = (int) ($request_object['page'] ?? 1);
+		if ($page < 1) { $page = 1; }
+		$kol = (int) ($DP_Config->list_page_limit ?? 30);
+		if ($kol < 1) { $kol = 30; }
+		$art = ($page * $kol) - $kol;
+		$article = strip_tags(mb_strtoupper(trim(urldecode((string) ($request_object['article'] ?? ''))), 'UTF-8'));
+		$article = (string) str_replace($sweep, '', $article);
+		$manufacturer = strip_tags(mb_strtoupper(trim(urldecode((string) ($request_object['manufacturer'] ?? ''))), 'UTF-8'));
 		$where = '';
 		$binding_values = array();
-		if(!empty($article))
-		{
-			if(!empty($manufacturer))
-			{
-				$where = " (`article` = ? AND `manufacturer_article` = ?) OR (`analog` = ? AND `manufacturer_analog` = ?) ";
-				
-				array_push($binding_values, $article);
-				array_push($binding_values, $manufacturer);
-				array_push($binding_values, $article);
-				array_push($binding_values, $manufacturer);
-			}
-			else
-			{
-				$where = " (`article` = ?) OR (`analog` = ?) ";
-				
-				array_push($binding_values, $article);
-				array_push($binding_values, $article);
+		if ($article !== '') {
+			if ($manufacturer !== '') {
+				$where = ' (`article` = ? AND `manufacturer_article` = ?) OR (`analog` = ? AND `manufacturer_analog` = ?) ';
+				$binding_values = array($article, $manufacturer, $article, $manufacturer);
+			} else {
+				$where = ' (`article` = ?) OR (`analog` = ?) ';
+				$binding_values = array($article, $article);
 			}
 		}
-		
-		if($request_object['null'] == 1){
-			if($where != ''){
-				$where = ' ('. $where .') AND (`article` = "" OR `manufacturer_article` = "" OR `analog` = "" OR `manufacturer_analog` = "") ';
-			}else{
-				$where = ' (`article` = "" OR `manufacturer_article` = "" OR `analog` = "" OR `manufacturer_analog` = "") ';
-			}
+		$nullFlag = (int) ($request_object['null'] ?? 0);
+		if ($nullFlag === 1) {
+			$where = ($where !== '')
+				? (' (' . $where . ') AND (`article` = "" OR `manufacturer_article` = "" OR `analog` = "" OR `manufacturer_analog` = "") ')
+				: ' (`article` = "" OR `manufacturer_article` = "" OR `analog` = "" OR `manufacturer_analog` = "") ';
 		}
-		
-		if($request_object['id_from'] != 'null' && ((int)$request_object['id_from'] > 0)){
-			if($where != ''){
-				$where = ' ('. $where .') AND (`id` >= ?) ';
-				array_push($binding_values, (int) $request_object['id_from']);
-			}else{
-				$where = ' (`id` >= ?) ';
-				array_push($binding_values, (int) $request_object['id_from']);
-			}
+		$idFrom = $request_object['id_from'] ?? 'null';
+		$idBefore = $request_object['id_before'] ?? 'null';
+		if ($idFrom != 'null' && (int) $idFrom > 0) {
+			$where = ($where !== '') ? (' (' . $where . ') AND (`id` >= ?) ') : ' (`id` >= ?) ';
+			$binding_values[] = (int) $idFrom;
 		}
-		if($request_object['id_before'] != 'null' && ((int)$request_object['id_before'] > 0)){
-			if($where != ''){
-				$where = ' ('. $where .') AND (`id` <= ?) ';
-				array_push($binding_values, (int) $request_object['id_before']);
-			}else{
-				$where = ' (`id` <= ?) ';
-				array_push($binding_values, (int) $request_object['id_before']);
-			}
+		if ($idBefore != 'null' && (int) $idBefore > 0) {
+			$where = ($where !== '') ? (' (' . $where . ') AND (`id` <= ?) ') : ' (`id` <= ?) ';
+			$binding_values[] = (int) $idBefore;
 		}
-		
-		if($where != ''){
+		$filtered = ($where !== '');
+		if ($where !== '') {
 			$where = ' WHERE ' . $where;
 		}
-		
-		//$f = fopen('log.txt', 'w');
-		//fwrite($f, "SELECT COUNT(*) AS `count` FROM `shop_docpart_articles_analogs_list` $where");
-		
-		// Определяем количество записей в таблице
-		$res = $db_link->prepare("SELECT COUNT(*) AS `count` FROM `shop_docpart_articles_analogs_list` $where");
-		$res->execute($binding_values);
-		$row = $res->fetch();
-		$total = (int)$row['count']; // всего записей	
-		
-		// Количество страниц для пагинации
-		$str_pag = ceil($total / $kol);
-		
-		//Определяем текущую сортировку и обозначаем ее:
-		$crosses_sort = null;
-		if( isset($_COOKIE["crosses_sort"]) )
-		{
-			$crosses_sort = $_COOKIE["crosses_sort"];
+		$total = 0;
+		$countApprox = false;
+		if ($filtered) {
+			$res = $db_link->prepare('SELECT COUNT(*) AS `count` FROM `shop_docpart_articles_analogs_list`' . $where);
+			$res->execute($binding_values);
+			$total = (int) ($res->fetchColumn());
+		} else {
+			try {
+				$st = $db_link->query("SELECT TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shop_docpart_articles_analogs_list' LIMIT 1");
+				$total = (int) $st->fetchColumn();
+				$countApprox = true;
+			} catch (Throwable $e) {
+				$total = $kol * 50;
+				$countApprox = true;
+			}
+			if ($total < 1) { $total = $kol; }
 		}
-		$sort_field = "id";
-		$sort_asc_desc = "desc";
-		if($crosses_sort != NULL)
-		{
-			$crosses_sort = json_decode($crosses_sort, true);
-			$sort_field = $crosses_sort["field"];
-			$sort_asc_desc = $crosses_sort["asc_desc"];
+		$sort_field = 'id';
+		$sort_asc_desc = 'desc';
+		if (!empty($_COOKIE['crosses_sort'])) {
+			$cs = json_decode((string) $_COOKIE['crosses_sort'], true);
+			if (is_array($cs)) {
+				$sort_field = (string) ($cs['field'] ?? 'id');
+				$sort_asc_desc = (string) ($cs['asc_desc'] ?? 'desc');
+			}
 		}
-		
-		if( strtolower($sort_asc_desc) == "asc" )
-		{
-			$sort_asc_desc = "asc";
+		$sort_asc_desc = (strtolower($sort_asc_desc) === 'asc') ? 'asc' : 'desc';
+		if (!in_array($sort_field, array('id', 'article', 'manufacturer_article', 'analog', 'manufacturer_analog'), true)) {
+			$sort_field = 'id';
 		}
-		else
-		{
-			$sort_asc_desc = "desc";
+		if (!$filtered) {
+			$sort_field = 'id';
+			$sort_asc_desc = 'desc';
 		}
-		
-		if( array_search($sort_field, array('id', 'article', 'manufacturer_article', 'analog', 'manufacturer_analog')) === false )
-		{
-			$sort_field = "article";
-		}
-		
-		$sql = "SELECT * FROM `shop_docpart_articles_analogs_list` $where ORDER BY `$sort_field` $sort_asc_desc LIMIT $art, $kol;";		
+		$sql = "SELECT * FROM `shop_docpart_articles_analogs_list`$where ORDER BY `$sort_field` $sort_asc_desc LIMIT $art, $kol";
 		$query = $db_link->prepare($sql);
 		$query->execute($binding_values);
-		
-		//$f = fopen('log.txt', 'w');
-		//fwrite($f, $sql);
-		
+		$t = function ($id, $fb) {
+			return function_exists('translate_str_by_id') ? translate_str_by_id($id) : $fb;
+		};
 		$html = '';
-		while($rov = $query->fetch() )
-		{
-			$html .= '
-			<tr id="show_line_'. $rov['id'] .'">
-				<td>'. $rov['article'] .'</td>
-				<td>'. $rov['manufacturer_article'] .'</td>
-				<td>'. $rov['analog'] .'</td>
-				<td>'. $rov['manufacturer_analog'] .'</td>
-				<td>'. $rov['id'] .'</td>
-				<td>
-					<a onclick="crosses_edit('. $rov['id'] .');" class="btn btn-sm btn-primary" title="'.translate_str_by_id(2270).'"><i class="fas fa-pencil-alt"></i></a>
-					<a onclick="crosses_del('. $rov['id'] .');" class="btn btn-sm btn-primary" title="'.translate_str_by_id(2224).'"><i class="fa fa-times"></i></a>
-				</td>
-			</tr>
-			
-			<tr class="hidden" id="edit_line_'. $rov['id'] .'">
-				<td>
-					<input class="form-control" type="text" id="article_edit_'. $rov['id'] .'" value="'. $rov['article'] .'"/>
-				</td>
-				<td>
-					<input class="form-control" type="text" id="manufacturer_article_edit_'. $rov['id'] .'" value="'. $rov['manufacturer_article'] .'"/>
-				</td>
-				<td>
-					<input class="form-control" type="text" id="analog_edit_'. $rov['id'] .'" value="'. $rov['analog'] .'"/>
-				</td>
-				<td>
-					<input class="form-control" type="text" id="manufacturer_analog_edit_'. $rov['id'] .'" value="'. $rov['manufacturer_analog'] .'"/>
-				</td>
-				<td>
-					<a onclick="crosses_edit_save('. $rov['id'] .');" class="btn btn-sm btn-primary"><i class="fa fa-floppy-o"></i> '.translate_str_by_id(2114).'</a>
-					<a onclick="crosses_edit_otmena('. $rov['id'] .');" class="btn btn-sm btn-primary"><i class="fa fa-chevron-left"></i> '.translate_str_by_id(2190).'</a>
-				</td>
-			</tr>
-			';
+		while ($rov = $query->fetch(PDO::FETCH_ASSOC)) {
+			$id = (int) $rov['id'];
+			$a = htmlspecialchars((string) $rov['article'], ENT_QUOTES, 'UTF-8');
+			$ma = htmlspecialchars((string) $rov['manufacturer_article'], ENT_QUOTES, 'UTF-8');
+			$an = htmlspecialchars((string) $rov['analog'], ENT_QUOTES, 'UTF-8');
+			$man = htmlspecialchars((string) $rov['manufacturer_analog'], ENT_QUOTES, 'UTF-8');
+			$html .= '<tr id="show_line_' . $id . '"><td>' . $a . '</td><td>' . $ma . '</td><td>' . $an . '</td><td>' . $man . '</td><td>' . $id . '</td><td>'
+				. '<a onclick="crosses_edit(' . $id . ');" class="btn btn-sm btn-primary" title="' . htmlspecialchars($t(2270, 'Edit'), ENT_QUOTES, 'UTF-8') . '"><i class="fas fa-pencil-alt"></i></a> '
+				. '<a onclick="crosses_del(' . $id . ');" class="btn btn-sm btn-danger" title="' . htmlspecialchars($t(2224, 'Delete'), ENT_QUOTES, 'UTF-8') . '"><i class="fa fa-times"></i></a></td></tr>'
+				. '<tr class="hidden" id="edit_line_' . $id . '"><td><input class="form-control" type="text" id="article_edit_' . $id . '" value="' . $a . '"/></td>'
+				. '<td><input class="form-control" type="text" id="manufacturer_article_edit_' . $id . '" value="' . $ma . '"/></td>'
+				. '<td><input class="form-control" type="text" id="analog_edit_' . $id . '" value="' . $an . '"/></td>'
+				. '<td><input class="form-control" type="text" id="manufacturer_analog_edit_' . $id . '" value="' . $man . '"/></td>'
+				. '<td colspan="2"><a onclick="crosses_edit_save(' . $id . ');" class="btn btn-sm btn-success"><i class="fa fa-floppy-o"></i> ' . htmlspecialchars($t(2114, 'Save'), ENT_QUOTES, 'UTF-8') . '</a> '
+				. '<a onclick="crosses_edit_otmena(' . $id . ');" class="btn btn-sm btn-default"><i class="fa fa-chevron-left"></i> ' . htmlspecialchars($t(2190, 'Cancel'), ENT_QUOTES, 'UTF-8') . '</a></td></tr>';
 		}
-		
-		if($html != ''){
-			$html = '<table class="table table_crosses">
-					<tr>
-						<th><a href="javascript:void(0);" onclick="sortCrosses(\'article\');" id="article_sorter">'.translate_str_by_id(2071).'</a></th>
-						<th><a href="javascript:void(0);" onclick="sortCrosses(\'manufacturer_article\');" id="manufacturer_article_sorter">'.translate_str_by_id(2070).'</a></th>
-						<th><a href="javascript:void(0);" onclick="sortCrosses(\'analog\');" id="analog_sorter">'.translate_str_by_id(3113).'</a></th>
-						<th><a href="javascript:void(0);" onclick="sortCrosses(\'manufacturer_analog\');" id="manufacturer_analog_sorter">'.translate_str_by_id(3114).'</a></th>
-						<th><a href="javascript:void(0);" onclick="sortCrosses(\'id\');" id="id_sorter">ID</a></th>
-						<th>'.translate_str_by_id(2755).'</th>
-					</tr>'. $html .'</table>';
-			
-			// формируем пагинацию
+		if (!$filtered) {
+			$banner = '<div class="epc-cross-banner">Browsing latest links' . ($countApprox ? (' (~' . number_format($total) . ' in catalog)') : '') . '. Search by part number for exact matches.</div>';
+		} else {
+			$banner = '<div class="epc-cross-banner epc-cross-banner-ok">Filtered: <strong>' . number_format($total) . '</strong> row(s).</div>';
+		}
+		if ($html !== '') {
+			$table = '<table class="table table-striped table_crosses"><thead><tr>'
+				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'article\');" id="article_sorter">' . htmlspecialchars($t(2071, 'Article'), ENT_QUOTES, 'UTF-8') . '</a></th>'
+				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'manufacturer_article\');" id="manufacturer_article_sorter">' . htmlspecialchars($t(2070, 'Manufacturer'), ENT_QUOTES, 'UTF-8') . '</a></th>'
+				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'analog\');" id="analog_sorter">' . htmlspecialchars($t(3113, 'Analog'), ENT_QUOTES, 'UTF-8') . '</a></th>'
+				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'manufacturer_analog\');" id="manufacturer_analog_sorter">' . htmlspecialchars($t(3114, 'Analog manufacturer'), ENT_QUOTES, 'UTF-8') . '</a></th>'
+				. '<th><a href="javascript:void(0);" onclick="sortCrosses(\'id\');" id="id_sorter">ID</a></th>'
+				. '<th>' . htmlspecialchars($t(2755, 'Actions'), ENT_QUOTES, 'UTF-8') . '</th></tr></thead><tbody>' . $html . '</tbody></table>';
 			$pagination = pagination($total, $kol, 3, $page, 'pagination_active', '');
-			if($pagination != '<a class="pagination_active">1</a>'){
-				$pagination = '<div class="panel-footer"><div class="pagination_box">'.$pagination.'</div></div>';
-			}else{
-				$pagination = '';
-			}
-			
-			$html = '<div class="panel-body">'.$html.'</div>'.$pagination;
-		}else{
-			$html = '<div class="panel-body">'.translate_str_by_id(2756).'</div>';
+			$pagination = ($pagination !== '<a class="pagination_active">1</a>')
+				? '<div class="panel-footer"><div class="pagination_box">' . $pagination . '</div></div>'
+				: '';
+			$html = '<div class="panel-body">' . $banner . $table . '</div>' . $pagination;
+		} else {
+			$html = '<div class="panel-body">' . $banner . '<p class="text-muted">' . htmlspecialchars($t(2756, 'No records'), ENT_QUOTES, 'UTF-8') . '</p></div>';
 		}
-		
+		header('Content-Type: text/html; charset=utf-8');
 		exit($html);
-		break;
+
 	case 'add_crosses':
 		require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/docpart_cross_interchange.php");
 		$article 				= strip_tags(mb_strtoupper(trim(urldecode($request_object['article'])), 'UTF-8'));
@@ -477,5 +395,8 @@ switch($request_object['action'])
 		
 		break;
 }
+} catch (Throwable $e) {
+	http_response_code(500);
+	exit(json_encode(array('status' => false, 'message' => 'query_failed', 'error' => $e->getMessage())));
+}
 exit(json_encode($answer));
-?>
