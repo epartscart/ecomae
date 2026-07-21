@@ -419,29 +419,51 @@ function print_backend_button($button_params)
 		}
 		$epcCpStorefrontHost = preg_replace('#^www\.#i', '', $epcCpStorefrontHost);
 	}
+	$epcCpErpUrl = '/' . $DP_Config->backend_dir . '/shop/finance/erp?epc_erp_shell=1';
+	$epcErpShellFile = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/finance/epc_erp_cp_shell.php';
+	if (is_file($epcErpShellFile)) {
+		require_once $epcErpShellFile;
+		if (function_exists('epc_erp_cp_shell_launcher_url')) {
+			$epcCpErpUrl = (string) epc_erp_cp_shell_launcher_url();
+		}
+	}
+	$epcCpShowErpCta = $epcCpErpUrl !== '';
 	?>
-	<?php if (!empty($epcCpShell['company']) || $epcCpShowStorefront) { ?>
 	<div class="epc-cp-topbar-strip hidden-xs">
 		<?php if (!empty($epcCpShell['company'])) { ?>
 		<span class="epc-cp-topbar-company"><?php echo htmlspecialchars($epcCpShell['company'], ENT_QUOTES, 'UTF-8'); ?></span>
-		<span class="epc-cp-topbar-role epc-cp-topbar-role--<?php echo htmlspecialchars($epcCpShell['type'], ENT_QUOTES, 'UTF-8'); ?>">
-			<i class="fa fa-id-badge"></i> <?php echo htmlspecialchars($epcCpShell['label'], ENT_QUOTES, 'UTF-8'); ?>
-		</span>
 		<?php } ?>
-		<?php if ($epcCpShowStorefront) { ?>
-		<a class="epc-cp-topbar-storefront" href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Open public storefront">
-			<span class="epc-cp-topbar-storefront__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
-			<span class="epc-cp-topbar-storefront__text">
-				<span class="epc-cp-topbar-storefront__label">Storefront</span>
-				<?php if ($epcCpStorefrontHost !== '') { ?>
-				<span class="epc-cp-topbar-storefront__host"><?php echo htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8'); ?></span>
-				<?php } ?>
-			</span>
-			<span class="epc-cp-topbar-storefront__go" aria-hidden="true"><i class="fa fa-external-link"></i></span>
-		</a>
-		<?php } ?>
+		<nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
+			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--cp" href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>" title="Open Control Panel home">
+				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-th-large"></i></span>
+				<span class="epc-cp-topbar-cta__text">
+					<span class="epc-cp-topbar-cta__label">Control Panel</span>
+					<span class="epc-cp-topbar-cta__host">CP home</span>
+				</span>
+			</a>
+			<?php if ($epcCpShowErpCta) { ?>
+			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>" title="Open ERP">
+				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-briefcase"></i></span>
+				<span class="epc-cp-topbar-cta__text">
+					<span class="epc-cp-topbar-cta__label">ERP</span>
+					<span class="epc-cp-topbar-cta__host">Operations</span>
+				</span>
+			</a>
+			<?php } ?>
+			<?php if ($epcCpShowStorefront) { ?>
+			<a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" title="Open public storefront">
+				<span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
+				<span class="epc-cp-topbar-cta__text">
+					<span class="epc-cp-topbar-cta__label">Storefront</span>
+					<?php if ($epcCpStorefrontHost !== '') { ?>
+					<span class="epc-cp-topbar-cta__host"><?php echo htmlspecialchars($epcCpStorefrontHost, ENT_QUOTES, 'UTF-8'); ?></span>
+					<?php } ?>
+				</span>
+				<span class="epc-cp-topbar-cta__go" aria-hidden="true"><i class="fa fa-external-link"></i></span>
+			</a>
+			<?php } ?>
+		</nav>
 	</div>
-	<?php } ?>
 	<div class="epc-cp-header-breadcrumb hidden-xs" aria-label="Breadcrumb">
 		<nav id="epc-cp-header-breadcrumb" class="epc-cp-header-breadcrumb__nav">
 			<docpart type="module" name="breadcrumb" />
@@ -462,7 +484,19 @@ function print_backend_button($button_params)
                 <i class="fa fa-chevron-down"></i>
             </button>
             <div class="collapse mobile-navbar" id="mobile-collapse">
-                <ul class="nav navbar-nav">
+				<ul class="nav navbar-nav">
+					<li>
+						<a href="<?php echo htmlspecialchars($epcCpHeaderHome, ENT_QUOTES, 'UTF-8'); ?>">
+							<i class="fa fa-th-large"></i> Control Panel
+						</a>
+					</li>
+					<?php if (!empty($epcCpShowErpCta)) { ?>
+					<li>
+						<a href="<?php echo htmlspecialchars($epcCpErpUrl, ENT_QUOTES, 'UTF-8'); ?>">
+							<i class="fa fa-briefcase"></i> ERP
+						</a>
+					</li>
+					<?php } ?>
 					<?php if (!empty($epcCpShowStorefront)) { ?>
 					<li>
 						<a href="<?php echo htmlspecialchars($epcCpStorefrontUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer">
@@ -477,15 +511,7 @@ function print_backend_button($button_params)
             </div>
         </div>
         <div class="navbar-right">
-            <ul class="nav navbar-nav no-borders epc-cp-header-icons">
-				<?php if ($epcShowPlatformErpNav) { ?>
-				<li class="epc-cp-header-extra">
-					<a href="<?php echo htmlspecialchars($epcPlatformErpNavUrl, ENT_QUOTES, 'UTF-8'); ?>" title="ECOM AE Platform ERP (ecomae DB)">
-						<i class="fa fa-chart-line"></i>
-						<span class="hidden-xs">Platform ERP</span>
-					</a>
-				</li>
-				<?php } ?>
+			<ul class="nav navbar-nav no-borders epc-cp-header-icons">
 				<li class="epc-cp-header-extra">
 					<a class="epc-cp-industry-toggle" href="/<?php echo $DP_Config->backend_dir; ?>/control/portal/industry_settings" title="Industry settings">
 						<i class="fa <?php echo htmlspecialchars($epc_cp_industry_meta['icon'], ENT_QUOTES, 'UTF-8'); ?>"></i>

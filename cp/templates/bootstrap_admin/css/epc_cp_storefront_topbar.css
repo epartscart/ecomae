@@ -1,14 +1,22 @@
 /**
- * CP top-bar Storefront CTA — loaded separately so it can be hot-deployed
- * without rewriting the large professional.css bundle.
- * Single red Storefront link in the left topbar (duplicate right-side CTA removed).
+ * CP top-bar destination CTAs (Control Panel / ERP / Storefront).
+ * Hot-deployable without rewriting the large professional.css bundle.
  */
 
 body.epc-cp-shell #header .epc-cp-topbar-strip {
-	max-width: min(52vw, 460px);
+	max-width: min(78vw, 720px);
+	gap: 8px;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront {
+body.epc-cp-shell #header .epc-cp-topbar-ctas {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+body.epc-cp-shell #header .epc-cp-topbar-cta {
 	display: inline-flex !important;
 	align-items: center;
 	gap: 8px;
@@ -16,7 +24,6 @@ body.epc-cp-shell #header .epc-cp-topbar-storefront {
 	border-radius: 10px;
 	transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 	flex: 0 0 auto;
-	margin-left: 4px;
 	padding: 5px 10px 5px 6px !important;
 	min-height: 36px;
 	background: linear-gradient(135deg, #b91c1c 0%, #dc2626 55%, #ef4444 100%);
@@ -25,15 +32,15 @@ body.epc-cp-shell #header .epc-cp-topbar-storefront {
 	color: #fff !important;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront:hover,
-body.epc-cp-shell #header .epc-cp-topbar-storefront:focus {
+body.epc-cp-shell #header .epc-cp-topbar-cta:hover,
+body.epc-cp-shell #header .epc-cp-topbar-cta:focus {
 	filter: brightness(1.06);
 	transform: translateY(-1px);
 	box-shadow: 0 6px 16px rgba(185, 28, 28, 0.34);
 	color: #fff !important;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront__glyph {
+body.epc-cp-shell #header .epc-cp-topbar-cta__glyph {
 	width: 26px;
 	height: 26px;
 	border-radius: 8px;
@@ -46,14 +53,14 @@ body.epc-cp-shell #header .epc-cp-topbar-storefront__glyph {
 	flex-shrink: 0;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront__text {
+body.epc-cp-shell #header .epc-cp-topbar-cta__text {
 	display: flex;
 	flex-direction: column;
 	line-height: 1.15;
 	min-width: 0;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront__label {
+body.epc-cp-shell #header .epc-cp-topbar-cta__label {
 	font-size: 11px;
 	font-weight: 800;
 	letter-spacing: 0.04em;
@@ -61,24 +68,45 @@ body.epc-cp-shell #header .epc-cp-topbar-storefront__label {
 	color: #fff;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront__host {
+body.epc-cp-shell #header .epc-cp-topbar-cta__host {
 	font-size: 10px;
 	font-weight: 600;
 	color: rgba(255, 255, 255, 0.88);
-	max-width: 140px;
+	max-width: 120px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-body.epc-cp-shell #header .epc-cp-topbar-storefront__go {
+body.epc-cp-shell #header .epc-cp-topbar-cta__go {
 	font-size: 11px;
 	opacity: 0.9;
 	margin-left: 2px;
 }
 
-@media (max-width: 1100px) {
-	body.epc-cp-shell #header .epc-cp-topbar-storefront__host {
+/* Backward-compatible alias if older markup remains cached briefly */
+body.epc-cp-shell #header .epc-cp-topbar-storefront {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 8px;
+	text-decoration: none !important;
+	border-radius: 10px;
+	padding: 5px 10px 5px 6px !important;
+	min-height: 36px;
+	background: linear-gradient(135deg, #b91c1c 0%, #dc2626 55%, #ef4444 100%);
+	border: 1px solid #991b1b;
+	box-shadow: 0 4px 12px rgba(185, 28, 28, 0.28);
+	color: #fff !important;
+}
+
+@media (max-width: 1200px) {
+	body.epc-cp-shell #header .epc-cp-topbar-cta__host {
 		display: none;
+	}
+}
+
+@media (max-width: 992px) {
+	body.epc-cp-shell #header .epc-cp-topbar-cta--cp .epc-cp-topbar-cta__label {
+		font-size: 10px;
 	}
 }
