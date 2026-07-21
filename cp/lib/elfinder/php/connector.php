@@ -51,7 +51,8 @@ $pages_with_elFinder = array();
 $pages_with_elFinder[] = array('id'=>223, 'url'=>'filemanager');//Файловый менеджер
 $pages_with_elFinder[] = array('id'=>244, 'url'=>'template');//Шаблон
 $pages_with_elFinder[] = array('id'=>381, 'url'=>'slider');//Слайдер
-//Цикл - проверяем доступ. Если доступ есть хотя бы к одной из страниц - разрешаем работать
+// Allow if the admin has access to ANY of the file-capable pages (not all of them).
+$access_allowed_any = false;
 for( $i=0 ; $i < count($pages_with_elFinder) ; $i++)
 {
 	//СПИСОК ДОПУЩЕННЫХ ГРУПП К ЭТОЙ СТРАНИЦЕ
@@ -66,22 +67,20 @@ for( $i=0 ; $i < count($pages_with_elFinder) ; $i++)
 	
 	
 	//ПРОВЕРКА ДОСТУПА К МАТЕРИАЛУ
-	$access_allowed = false;//Флаг "Доступ разрешен"
 	//Доступ разрешен, если хотя бы одна из групп пользователя имеет доступ.
 	//По всем группам пользователя:
 	for($g=0; $g < count($user_profile["groups"]); $g++)
 	{
 		if(array_search($user_profile["groups"][$g], $allowed_groups) !== false)
 		{
-			$access_allowed = true;
-			break;
+			$access_allowed_any = true;
+			break 2;
 		}
 	}
-	//Доступа к материалу у пользователя нет
-	if(!$access_allowed)
-	{
-		exit( json_encode( array('error'=>'Forbidden') ) );
-	}
+}
+if(!$access_allowed_any)
+{
+	exit( json_encode( array('error'=>'Forbidden') ) );
 }
 
 
@@ -123,8 +122,8 @@ $opts = array(
 	'roots' => array(
 		array(
 			'driver'        => 'LocalFileSystem',   // driver for accessing file system (REQUIRED)
-			'path'          => '../../../../content/files/',         // path to files (REQUIRED)
-			'URL'           => '/../../../../content/files/', // URL to files (REQUIRED)
+			'path'          => rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/content/files/', // path to files (REQUIRED)
+			'URL'           => '/content/files/', // URL to files (REQUIRED)
 			'accessControl' => 'access',             // disable and hide dot starting files (OPTIONAL)
 			
 			//Ограничения на загрузку файлов и переименование. При необходимости, под конкретного клиента, можно снимать эти ограничения по его запросу.
