@@ -1,0 +1,138 @@
+/* Account operations — filter + ledger presentation */
+.epc-ao .epc-ao-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: stretch;
+}
+.epc-ao .epc-ao-toolbar .panel_a {
+	margin: 0;
+}
+.epc-ao .epc-ao-filter .epc-ao-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px 18px;
+}
+@media (max-width: 991px) {
+	.epc-ao .epc-ao-filter .epc-ao-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 640px) {
+	.epc-ao .epc-ao-filter .epc-ao-grid {
+		grid-template-columns: 1fr;
+	}
+}
+.epc-ao .epc-ao-field label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	color: #5f6b7a;
+	margin: 0 0 6px;
+	letter-spacing: 0.02em;
+}
+.epc-ao .epc-ao-field .form-control {
+	height: 36px;
+	border-radius: 4px;
+	border-color: #d5dbe3;
+	box-shadow: none;
+}
+.epc-ao .epc-ao-field.is-active .form-control,
+.epc-ao .epc-ao-field.is-active .epc-ao-customer-chip {
+	border-color: #7ab56a;
+	background: #f3fbf0;
+}
+.epc-ao .epc-ao-date {
+	position: relative;
+}
+.epc-ao .epc-ao-date .form-control {
+	padding-right: 36px;
+}
+.epc-ao .epc-ao-date__icon {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #8a96a5;
+	pointer-events: none;
+}
+.epc-ao .epc-ao-customer {
+	position: relative;
+}
+.epc-ao .epc-ao-customer-chip {
+	display: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-height: 36px;
+	padding: 6px 10px;
+	border: 1px solid #d5dbe3;
+	border-radius: 4px;
+	background: #fff;
+	font-size: 13px;
+	line-height: 1.35;
+}
+.epc-ao .epc-ao-customer-chip.is-visible {
+	display: flex;
+}
+.epc-ao .epc-ao-customer-chip__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.epc-ao .epc-ao-customer-chip__clear {
+	flex: 0 0 auto;
+	border: 0;
+	background: transparent;
+	color: #c0392b;
+	cursor: pointer;
+	padding: 0 2px;
+	font-size: 16px;
+	line-height: 1;
+}
+.epc-ao .epc-ao-customer-chip__clear:hover {
+	color: #922b21;
+}
+.epc-ao .epc-ao-hint {
+	margin: 0 0 14px;
+	color: #6b7785;
+	font-size: 13px;
+}
+.epc-ao .epc-ao-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+.epc-ao .epc-ao-table-wrap {
+	margin-top: 0;
+}
+.epc-ao .table > thead > tr > th {
+	white-space: nowrap;
+	vertical-align: middle;
+}
+.epc-ao .table > tbody > tr > td {
+	vertical-align: middle;
+}
+.epc-ao .epc-ao-amount-in {
+	color: #1e7e34;
+	font-weight: 600;
+}
+.epc-ao .epc-ao-amount-out {
+	color: #c0392b;
+	font-weight: 600;
+}
+.epc-ao .ui-autocomplete {
+	z-index: 1200;
+	max-height: 260px;
+	overflow-y: auto;
+	border: 1px solid #d5dbe3;
+	background: #fff;
+	box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+}
+.epc-ao .ui-menu-item {
+	font-size: 13px;
+}
+.epc-ao .xdsoft_datetimepicker {
+	z-index: 1300 !important;
+}
