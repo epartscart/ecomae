@@ -158,12 +158,74 @@ else
 				
 				
 				
+				<a class="panel_a" href="javascript:void(0);" onclick="epcLiveRatesPreview();">
+					<div class="panel_a_img" style="background:#0ea5e9;border-radius:8px;width:48px;height:48px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;line-height:1;">↻</div>
+					<div class="panel_a_caption">Fetch live rates</div>
+				</a>
+				
+				
+				
+				<a class="panel_a" href="javascript:void(0);" onclick="epcLiveRatesApply(false);">
+					<div class="panel_a_img" style="background:#059669;border-radius:8px;width:48px;height:48px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;line-height:1;">✓</div>
+					<div class="panel_a_caption">Apply live rates</div>
+				</a>
+				
+				
+				
 				
 
 				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir?>">
 					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
 					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
 				</a>
+			</div>
+		</div>
+	</div>
+	
+	
+	<div class="col-lg-12">
+		<div class="hpanel">
+			<div class="panel-heading hbuilt">
+				Live FX vs main currency
+			</div>
+			<div class="panel-body">
+				<p style="margin:0 0 10px;color:#64748b;font-size:13px;">
+					Fetches mid-market rates against your main shop currency
+					(<strong><?php
+						$__mainIso = (string)$DP_Config->shop_currency;
+						$__mainName = $__mainIso;
+						try {
+							$__mq = $db_link->prepare('SELECT `iso_name` FROM `shop_currencies` WHERE `iso_code` = ? LIMIT 1');
+							$__mq->execute(array($__mainIso));
+							$__mn = $__mq->fetchColumn();
+							if ($__mn) { $__mainName = $__mn . ' (' . $__mainIso . ')'; }
+						} catch (Throwable $e) {}
+						echo htmlspecialchars($__mainName, ENT_QUOTES, 'UTF-8');
+					?></strong>).
+					Source priority: ExchangeRate-API (open.er-api.com) → ExchangeRate-API v4 → FloatRates.
+					Shop rate = how many main-currency units equal <em>1</em> unit of the listed currency (same model as this page).
+				</p>
+				<div id="epc_live_rates_status" class="alert alert-info" style="display:none;margin-bottom:12px;"></div>
+				<div class="table-responsive" id="epc_live_rates_wrap" style="display:none;">
+					<table class="table table-condensed table-striped" id="epc_live_rates_table">
+						<thead>
+							<tr>
+								<th>ISO</th>
+								<th>Code</th>
+								<th>Current rate</th>
+								<th>Live rate</th>
+								<th>Diff %</th>
+								<th>Main</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+					<p style="margin:8px 0 0;font-size:12px;color:#64748b;">
+						<button type="button" class="btn btn-sm btn-primary" onclick="epcLiveRatesFillForm();">Fill form fields from live rates</button>
+						<button type="button" class="btn btn-sm btn-success" onclick="epcLiveRatesApply(true);">Save live rates to database</button>
+						<span id="epc_live_rates_meta" style="margin-left:10px;"></span>
+					</p>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -388,6 +450,113 @@ else
 		document.forms["available_currency_form"].submit();
 	}
 	// ---------------------------------------------------------
+
+	var EPC_LIVE_RATES_AJAX = "/<?php echo $DP_Config->backend_dir; ?>/content/shop/finance/ajax_currency_live_rates.php";
+	var EPC_LIVE_CSRF = "<?php echo htmlspecialchars((string)$user_session['csrf_guard_key'], ENT_QUOTES, 'UTF-8'); ?>";
+	var epcLiveRatesLast = null;
+
+	function epcLiveRatesSetStatus(kind, text) {
+		var el = document.getElementById("epc_live_rates_status");
+		if (!el) return;
+		el.style.display = "block";
+		el.className = "alert alert-" + (kind || "info");
+		el.textContent = text || "";
+	}
+
+	function epcLiveRatesPreview() {
+		epcLiveRatesSetStatus("info", "Fetching live FX rates…");
+		var wrap = document.getElementById("epc_live_rates_wrap");
+		if (wrap) wrap.style.display = "none";
+		fetch(EPC_LIVE_RATES_AJAX + "?action=preview", { credentials: "same-origin" })
+			.then(function (r) { return r.json(); })
+			.then(function (j) {
+				if (!j || !j.ok) {
+					epcLiveRatesSetStatus("danger", (j && j.error) ? j.error : "Failed to fetch live rates");
+					return;
+				}
+				epcLiveRatesLast = j;
+				epcLiveRatesRender(j);
+				epcLiveRatesSetStatus("success", "Live rates loaded vs " + (j.base_alpha || "main") + " · " + (j.provider || ""));
+			})
+			.catch(function () {
+				epcLiveRatesSetStatus("danger", "Network error fetching live rates");
+			});
+	}
+
+	function epcLiveRatesRender(j) {
+		var wrap = document.getElementById("epc_live_rates_wrap");
+		var tbody = document.querySelector("#epc_live_rates_table tbody");
+		var meta = document.getElementById("epc_live_rates_meta");
+		if (!wrap || !tbody) return;
+		var html = "";
+		(j.rows || []).forEach(function (row) {
+			var live = row.has_live ? String(row.live_rate) : "—";
+			var diff = (row.diff_pct === null || row.diff_pct === undefined) ? "—" : (row.diff_pct + "%");
+			var diffColor = "";
+			if (typeof row.diff_pct === "number") {
+				if (Math.abs(row.diff_pct) >= 1) diffColor = "color:#b45309;font-weight:600;";
+				if (Math.abs(row.diff_pct) >= 5) diffColor = "color:#b91c1c;font-weight:700;";
+			}
+			html += "<tr>"
+				+ "<td>" + String(row.iso_code || "") + "</td>"
+				+ "<td><strong>" + String(row.iso_name || "") + "</strong></td>"
+				+ "<td>" + String(row.current_rate) + "</td>"
+				+ "<td>" + live + "</td>"
+				+ "<td style=\"" + diffColor + "\">" + diff + "</td>"
+				+ "<td>" + (row.is_main ? "★" : "") + "</td>"
+				+ "</tr>";
+		});
+		tbody.innerHTML = html || "<tr><td colspan=\"6\">No currencies</td></tr>";
+		wrap.style.display = "block";
+		if (meta) {
+			meta.textContent = "As of: " + (j.as_of || "—") + " · fetched " + new Date((j.fetched_at || 0) * 1000).toLocaleString();
+		}
+	}
+
+	function epcLiveRatesFillForm() {
+		if (!epcLiveRatesLast || !epcLiveRatesLast.rows) {
+			alert("Fetch live rates first.");
+			return;
+		}
+		var filled = 0;
+		epcLiveRatesLast.rows.forEach(function (row) {
+			if (!row.has_live && !row.is_main) return;
+			var name = "rate_" + row.iso_code;
+			var input = document.querySelector('input[name="' + name + '"]');
+			if (!input) return;
+			input.value = row.is_main ? "1" : String(row.live_rate);
+			input.style.background = "#ecfdf5";
+			filled++;
+		});
+		epcLiveRatesSetStatus("success", "Filled " + filled + " rate fields from live data. Click Save rates to store them, or use Save live rates to database.");
+	}
+
+	function epcLiveRatesApply(reloadAfter) {
+		if (!confirm("Apply live FX rates to the database for all currencies (main currency stays 1)?")) {
+			return;
+		}
+		epcLiveRatesSetStatus("info", "Saving live rates…");
+		var body = new FormData();
+		body.append("action", "apply");
+		body.append("csrf_guard_key", EPC_LIVE_CSRF);
+		fetch(EPC_LIVE_RATES_AJAX, { method: "POST", credentials: "same-origin", body: body })
+			.then(function (r) { return r.json(); })
+			.then(function (j) {
+				if (!j || !j.ok) {
+					epcLiveRatesSetStatus("danger", (j && (j.message || j.error)) ? (j.message || j.error) : "Apply failed");
+					return;
+				}
+				epcLiveRatesSetStatus("success", "Updated " + j.updated + " currencies from " + (j.provider || "live FX") + ". Skipped " + j.skipped + ".");
+				if (reloadAfter) {
+					setTimeout(function () { location.reload(); }, 900);
+				} else {
+					epcLiveRatesPreview();
+				}
+			})
+			.catch(function () {
+				epcLiveRatesSetStatus("danger", "Network error applying live rates");
+			});
+	}
 	</script>
 	
 	
