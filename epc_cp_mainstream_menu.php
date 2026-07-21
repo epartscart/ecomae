@@ -881,15 +881,23 @@ function epc_cp_shop_catalogue_prices_menu_apply(PDO $pdo)
 {
 	epc_cp_mm_lang($pdo, 'epc_sku_media_manager', 'SKU photos & specs', 'Фото и характеристики SKU');
 	epc_cp_mm_lang($pdo, 'epc_prices_multivendor_cp', 'Multi-vendor upload', 'Мульти-вендор загрузка');
-	epc_cp_mm_lang($pdo, 'epc_prices_commerce_cp', 'Commerce data upload', 'Commerce — загрузка');
 	epc_cp_mm_lang($pdo, 'epc_prices_guide_cp', 'Price upload guide', 'Гид по загрузке цен');
 
 	$shop = epc_cp_mm_find_shop_group($pdo);
 	$shopGroupId = (int) ($shop['id'] ?? 0);
-	$out = array('shop_group' => $shopGroupId, 'items' => array());
+	$out = array('shop_group' => $shopGroupId, 'items' => array(), 'removed_commerce' => 0);
 	if ($shopGroupId <= 0) {
 		return $out;
 	}
+
+	// Retired: Commerce S/P/L upload — Multivendor covers multi-supplier price files.
+	$rm = $pdo->prepare(
+		"DELETE FROM `control_items`
+		 WHERE `url` LIKE '%/shop/prices/commerce%'
+		    OR `caption` = 'epc_prices_commerce_cp'"
+	);
+	$rm->execute();
+	$out['removed_commerce'] = (int) $rm->rowCount();
 
 	// Prefer slots near Price lists (caption 771) when present.
 	$orderBase = 14;
@@ -917,17 +925,10 @@ function epc_cp_shop_catalogue_prices_menu_apply(PDO $pdo)
 			'color' => '#0891b2',
 			'icon' => 'fa-handshake-o',
 		),
-		'commerce' => array(
-			'caption' => 'epc_prices_commerce_cp',
-			'url' => '/<backend>/shop/prices/commerce',
-			'order' => $orderBase + 2,
-			'color' => '#2563eb',
-			'icon' => 'fa-database',
-		),
 		'prices_guide' => array(
 			'caption' => 'epc_prices_guide_cp',
 			'url' => '/<backend>/shop/prices/guide',
-			'order' => $orderBase + 3,
+			'order' => $orderBase + 2,
 			'color' => '#26ad5f',
 			'icon' => 'fas fa-book',
 		),

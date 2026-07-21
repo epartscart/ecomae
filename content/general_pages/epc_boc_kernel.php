@@ -172,7 +172,6 @@ if (!function_exists('epc_boc_areas')) {
             'cp_sku_media'      => $a('SKU photos & specs', 'catalogue', 'fa-picture-o', 'shop/catalogue/sku_media', 'prices', 'boc.commerce.view', $COM, 'Media & specs'),
             'cp_prices'         => $a('Price lists', 'catalogue', 'fa-upload', 'shop/prices', 'prices', 'boc.commerce.view', $COM, 'Price list manager'),
             'cp_multivendor'    => $a('Multivendor upload', 'catalogue', 'fa-handshake-o', 'shop/prices/multivendor', 'prices', 'boc.commerce.manage', $COM, 'One-file vendor prices'),
-            'cp_commerce_up'    => $a('Commerce upload', 'catalogue', 'fa-database', 'shop/prices/commerce', 'prices', 'boc.commerce.manage', $COM, 'Commerce data'),
             'cp_prices_guide'   => $a('Price upload guide', 'catalogue', 'fa-book', 'shop/prices/guide', 'prices', 'boc.commerce.view', $COM, 'Upload guide'),
             'cp_prices_edit'    => $a('Prices edit', 'catalogue', 'fa-tag', 'shop/prices/prices_edit', 'prices', 'boc.commerce.manage', $COM, 'Inline price edit'),
             'cp_prices_send'    => $a('Prices send', 'catalogue', 'fa-paper-plane', 'shop/prices_send', 'prices', 'boc.commerce.manage', $COM, 'Send price lists'),

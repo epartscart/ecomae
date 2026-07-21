@@ -424,7 +424,6 @@ function epc_bos_catalogue_items(array $packs): array
         array('id' => 'prices_edit',  'label' => 'Prices Edit',       'icon' => 'fa-tag',            'path' => 'shop/prices/prices_edit'),
         array('id' => 'prices_upload','label' => 'Prices Upload',     'icon' => 'fa-upload',         'path' => 'shop/prices'),
         array('id' => 'multivendor',  'label' => 'Multivendor upload','icon' => 'fa-handshake-o',    'path' => 'shop/prices/multivendor'),
-        array('id' => 'commerce',     'label' => 'Commerce upload',   'icon' => 'fa-database',       'path' => 'shop/prices/commerce'),
         array('id' => 'prices_guide', 'label' => 'Price upload guide','icon' => 'fa-book',           'path' => 'shop/prices/guide'),
         array('id' => 'prices_send',  'label' => 'Prices Send',       'icon' => 'fa-paper-plane',    'path' => 'shop/prices_send/prices_send'),
         array('id' => 'pricing',      'label' => 'Pricing Rules',     'icon' => 'fa-percent',        'path' => 'shop/price-management'),
