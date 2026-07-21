@@ -214,6 +214,7 @@ if (!function_exists('epc_shortcuts_ensure_schema')) {
 		$items = array(
 			'orders' => array('label' => 'Orders (OMS)', 'icon' => 'fa-shopping-cart', 'color' => '#dc2626', 'url' => $base . '/shop/orders/orders', 'tone' => 'red'),
 			'catalogue' => array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'color' => '#2563eb', 'url' => $base . '/shop/catalogue/products', 'tone' => 'blue'),
+			'sku_media' => array('label' => 'SKU photos & specs', 'icon' => 'fa-picture-o', 'color' => '#0f766e', 'url' => $base . '/shop/catalogue/sku_media', 'tone' => 'teal'),
 			'prices' => array('label' => 'Prices', 'icon' => 'fa-tags', 'color' => '#d97706', 'url' => $base . '/shop/prices', 'tone' => 'amber'),
 			'clients' => array('label' => 'Customers', 'icon' => 'fa-address-book', 'color' => '#0d9488', 'url' => $base . '/shop/customer_mgmt/customer_mgmt', 'tone' => 'teal'),
 			'warehouses' => array('label' => 'Warehouses', 'icon' => 'fa-building', 'color' => '#7c3aed', 'url' => $base . '/shop/logistics/storages', 'tone' => 'violet'),

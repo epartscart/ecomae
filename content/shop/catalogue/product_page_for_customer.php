@@ -253,6 +253,26 @@ $SQL_currency_rate = "(SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (
 		<div class="tab-pane active" id="tab_product_1">
 			<?php
 			require_once($_SERVER["DOCUMENT_ROOT"]."/content/shop/catalogue/product_specifications.php");
+			// Rich SKU photos + multi-type specification sheets (CP-managed).
+			$epcSkuMediaStorefront = $_SERVER['DOCUMENT_ROOT'] . '/content/shop/catalogue/epc_sku_media_storefront.php';
+			if (is_file($epcSkuMediaStorefront) && isset($db_link) && $db_link instanceof PDO) {
+				require_once $epcSkuMediaStorefront;
+				$epcSkuBrand = '';
+				$epcSkuArticle = '';
+				if (!empty($product_record) && is_array($product_record)) {
+					$epcSkuBrand = (string) ($product_record['manufacturer'] ?? $product_record['brand'] ?? '');
+					$epcSkuArticle = (string) ($product_record['article'] ?? '');
+				}
+				if (function_exists('epc_sku_media_render_storefront')) {
+					epc_sku_media_render_storefront($db_link, array(
+						'product_id' => (int) ($product_id ?? 0),
+						'brand' => $epcSkuBrand,
+						'article' => $epcSkuArticle,
+						'show_photos' => true,
+						'show_specs' => true,
+					));
+				}
+			}
 			?>
 		</div>
 		

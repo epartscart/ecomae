@@ -1,0 +1,369 @@
+.epc-sku-media {
+  --sku-ink: #0f172a;
+  --sku-muted: #64748b;
+  --sku-line: #e2e8f0;
+  --sku-bg: #f8fafc;
+  --sku-card: #ffffff;
+  --sku-accent: #0f766e;
+  --sku-accent-soft: #ccfbf1;
+  --sku-warn: #b45309;
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  color: var(--sku-ink);
+}
+.epc-sku-media * { box-sizing: border-box; }
+.epc-sku-media__hero {
+  background: linear-gradient(135deg, #0f766e 0%, #134e4a 55%, #0f172a 100%);
+  color: #f8fafc;
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.epc-sku-media__hero h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.epc-sku-media__hero p {
+  margin: 0;
+  max-width: 54ch;
+  opacity: 0.9;
+  line-height: 1.45;
+}
+.epc-sku-media__layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+}
+@media (max-width: 980px) {
+  .epc-sku-media__layout { grid-template-columns: 1fr; }
+}
+.epc-sku-media__panel {
+  background: var(--sku-card);
+  border: 1px solid var(--sku-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.epc-sku-media__panel-h {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--sku-line);
+  background: var(--sku-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.epc-sku-media__panel-h strong { font-size: 14px; }
+.epc-sku-media__panel-b { padding: 14px; }
+.epc-sku-media__search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.epc-sku-media__search input,
+.epc-sku-media input[type="text"],
+.epc-sku-media input[type="number"],
+.epc-sku-media select,
+.epc-sku-media textarea {
+  width: 100%;
+  border: 1px solid var(--sku-line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: #fff;
+}
+.epc-sku-media textarea { min-height: 64px; resize: vertical; }
+.epc-sku-media__btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--sku-accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.epc-sku-media__btn--ghost {
+  background: #fff;
+  color: var(--sku-ink);
+  border: 1px solid var(--sku-line);
+}
+.epc-sku-media__btn--danger {
+  background: #b91c1c;
+}
+.epc-sku-media__btn--sm {
+  padding: 5px 9px;
+  font-size: 12px;
+}
+.epc-sku-media__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 62vh;
+  overflow: auto;
+}
+.epc-sku-media__list li {
+  border-bottom: 1px solid var(--sku-line);
+}
+.epc-sku-media__list button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.epc-sku-media__list button:hover,
+.epc-sku-media__list button.is-active {
+  background: var(--sku-accent-soft);
+}
+.epc-sku-media__list .meta {
+  color: var(--sku-muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+.epc-sku-media__grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .epc-sku-media__grid2 { grid-template-columns: 1fr; }
+}
+.epc-sku-media__field label {
+  display: block;
+  font-size: 12px;
+  color: var(--sku-muted);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.epc-sku-media__photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.epc-sku-media__photo {
+  border: 1px solid var(--sku-line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.epc-sku-media__photo img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+  background: #f1f5f9;
+}
+.epc-sku-media__photo .body {
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+.epc-sku-media__photo .badge {
+  display: inline-block;
+  font-size: 11px;
+  background: var(--sku-accent-soft);
+  color: var(--sku-accent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+}
+.epc-sku-media__drop {
+  border: 2px dashed #99f6e4;
+  background: #f0fdfa;
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.epc-sku-media__drop strong { display: block; margin-bottom: 4px; }
+.epc-sku-media__drop span { color: var(--sku-muted); font-size: 12px; }
+.epc-sku-media__spec-type {
+  border: 1px solid var(--sku-line);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.epc-sku-media__spec-type-h {
+  background: var(--sku-bg);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--sku-line);
+}
+.epc-sku-media__spec-type-h h4 {
+  margin: 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.epc-sku-media__spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.epc-sku-media__spec-table th,
+.epc-sku-media__spec-table td {
+  border-bottom: 1px solid var(--sku-line);
+  padding: 8px 10px;
+  font-size: 13px;
+  vertical-align: top;
+}
+.epc-sku-media__spec-table th {
+  text-align: left;
+  color: var(--sku-muted);
+  font-weight: 600;
+  background: #fff;
+}
+.epc-sku-media__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+.epc-sku-media__chips button {
+  border: 1px solid var(--sku-line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.epc-sku-media__chips button:hover {
+  border-color: var(--sku-accent);
+  background: var(--sku-accent-soft);
+}
+.epc-sku-media__empty {
+  color: var(--sku-muted);
+  font-size: 13px;
+  padding: 18px 8px;
+  text-align: center;
+}
+.epc-sku-media__toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  background: #134e4a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  z-index: 9999;
+  display: none;
+}
+.epc-sku-media__toast.is-on { display: block; }
+
+/* Storefront display */
+.epc-sku-storefront {
+  margin: 16px 0 24px;
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+}
+.epc-sku-storefront__gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.45fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+@media (max-width: 720px) {
+  .epc-sku-storefront__gallery { grid-template-columns: 1fr; }
+}
+.epc-sku-storefront__main {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.epc-sku-storefront__main img {
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  display: block;
+}
+.epc-sku-storefront__thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow: auto;
+}
+@media (max-width: 720px) {
+  .epc-sku-storefront__thumbs {
+    flex-direction: row;
+    max-height: none;
+  }
+}
+.epc-sku-storefront__thumbs button {
+  border: 2px solid transparent;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+}
+.epc-sku-storefront__thumbs button.is-active {
+  border-color: #0f766e;
+}
+.epc-sku-storefront__thumbs img {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+  display: block;
+}
+.epc-sku-storefront__caption {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+.epc-sku-storefront__specs {
+  display: grid;
+  gap: 14px;
+}
+.epc-sku-storefront__group {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.epc-sku-storefront__group h3 {
+  margin: 0;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #f0fdfa, #f8fafc);
+  font-size: 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.epc-sku-storefront__group table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.epc-sku-storefront__group th,
+.epc-sku-storefront__group td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  vertical-align: top;
+}
+.epc-sku-storefront__group th {
+  width: 38%;
+  text-align: left;
+  color: #64748b;
+  font-weight: 600;
+  background: #fff;
+}
+.epc-sku-storefront__group tr:last-child th,
+.epc-sku-storefront__group tr:last-child td {
+  border-bottom: 0;
+}

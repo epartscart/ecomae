@@ -257,6 +257,7 @@ if (function_exists('epc_co_profile_get') && isset($db_link) && $db_link instanc
 $tiles = array(
 	array('label' => 'Orders (OMS)', 'icon' => 'fa-shopping-cart', 'url' => $ordersUrl, 'tone' => 'red'),
 	array('label' => 'Catalogue', 'icon' => 'fa-th-large', 'url' => $catalogueUrl, 'tone' => 'black'),
+	array('label' => 'SKU photos & specs', 'icon' => 'fa-picture-o', 'url' => $base . '/shop/catalogue/sku_media', 'tone' => 'stone'),
 	array('label' => 'Prices', 'icon' => 'fa-tags', 'url' => $base . '/shop/prices', 'tone' => 'crimson'),
 	array('label' => 'Clients', 'icon' => 'fa-address-book', 'url' => $clientsUrl, 'tone' => 'stone'),
 	array('label' => 'Warehouses', 'icon' => 'fa-building', 'url' => $base . '/shop/logistics/storages', 'tone' => 'black'),
