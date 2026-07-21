@@ -1,8 +1,8 @@
 /**
  * CP Account operations — datepickers, customer autocomplete, filter cookies.
  * Loaded after jquery.datetimepicker.js via epc_cp_page_assets.
- * Config is read from #epc-ao-config (DOM), because relocated inline scripts
- * are injected after page footer assets.
+ * Config is read from #epc-ao-config (hidden input), because relocated inline
+ * scripts are injected after page footer assets and textareas are polished visible.
  */
 (function (window, document, $) {
 	'use strict';
@@ -16,9 +16,20 @@
 			return null;
 		}
 		try {
-			var raw = (el.textContent || el.value || '').trim();
+			var raw = '';
+			if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+				raw = String(el.value || '').trim();
+			} else {
+				raw = String(el.textContent || el.value || '').trim();
+			}
 			if (!raw) {
 				return null;
+			}
+			// Decode common HTML entities if content was attribute-escaped twice.
+			if (raw.indexOf('&quot;') !== -1 || raw.indexOf('&#') !== -1) {
+				var tmp = document.createElement('textarea');
+				tmp.innerHTML = raw;
+				raw = String(tmp.value || raw).trim();
 			}
 			return JSON.parse(raw);
 		} catch (e) {
