@@ -264,6 +264,20 @@ function epc_portal_resolve_tenant_db_credentials(): array
 }
 
 /**
+ * Only the eParts Cart auto-parts storefront may share the legacy Model C `docpart` DB.
+ * Every other live client hostname (taxofinca, electronicae, …) must use a dedicated MySQL
+ * — otherwise orders / bank / ERP rows from spare-parts leak across tenants.
+ */
+function epc_portal_client_may_share_docpart(string $host = null): bool
+{
+	if ($host === null) {
+		$host = function_exists('epc_portal_host') ? epc_portal_host() : '';
+	}
+	return function_exists('epc_portal_is_epartscart_hostname')
+		&& epc_portal_is_epartscart_hostname($host);
+}
+
+/**
  * Apply tenant storefront DB credentials to DP_Config before any mysqli/PDO query on client hosts.
  */
 function epc_portal_resolve_tenant_db($DP_Config): void
@@ -276,11 +290,19 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 	$user = '';
 	$pass = '';
 	$usesDedicated = false;
+	$allowSharedDocpart = epc_portal_client_may_share_docpart($host);
 	$runtimeOverride = epc_portal_runtime_host_db($host);
 	if (is_array($runtimeOverride)) {
-		$db = (string) $runtimeOverride['db'];
-		$user = (string) $runtimeOverride['user'];
-		$pass = (string) $runtimeOverride['password'];
+		$overrideDb = strtolower(trim((string) ($runtimeOverride['db'] ?? '')));
+		// Never honour a runtime override that points a non–eParts tenant at docpart.
+		if ($overrideDb !== '' && ($allowSharedDocpart || $overrideDb !== 'docpart')) {
+			$db = (string) $runtimeOverride['db'];
+			$user = (string) $runtimeOverride['user'];
+			$pass = (string) $runtimeOverride['password'];
+			if ($overrideDb !== 'docpart') {
+				$usesDedicated = true;
+			}
+		}
 	}
 
 	// Dedicated-DB tenants (1000+ scale path): use registry credentials, not shared docpart.
@@ -305,7 +327,8 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 			$pass = (string) $tenant['password'];
 			$usesDedicated = true;
 		} elseif (
-			$tenant !== null
+			$allowSharedDocpart
+			&& $tenant !== null
 			&& !empty($tenant['user'])
 			&& isset($tenant['password'])
 			&& (string) $tenant['password'] !== ''
@@ -317,8 +340,10 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 		}
 	}
 
-	// Legacy Model C storefronts share docpart — registry may hold stale ecomae operator creds.
-	if ($pass === '' && !$usesDedicated) {
+	// Legacy Model C: ONLY epartscart may fall back to shared docpart.
+	// Silent fallback for taxofinca/etc. caused spare-parts orders + bank data to appear
+	// on unrelated tenant CPs.
+	if ($allowSharedDocpart && $pass === '' && !$usesDedicated) {
 		$resolved = epc_portal_resolve_tenant_db_credentials();
 		if ($resolved['password'] !== '') {
 			$db = (string) $resolved['db'];
@@ -326,12 +351,24 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 			$pass = (string) $resolved['password'];
 		}
 	}
-	if (($pass === '' || $db === '' || $user === '') && !$usesDedicated) {
+	if ($allowSharedDocpart && ($pass === '' || $db === '' || $user === '') && !$usesDedicated) {
 		$resolved = epc_portal_resolve_tenant_db_credentials();
 		$db = $resolved['db'];
 		$user = $resolved['user'];
 		$pass = $resolved['password'];
 	}
+
+	// Fail closed: non–eParts client with no dedicated credentials must not bind docpart.
+	if (!$allowSharedDocpart && (strtolower(trim($db)) === 'docpart' || $db === '' || $user === '' || $pass === '')) {
+		$db = '';
+		$user = '';
+		$pass = '';
+		if (property_exists($DP_Config, 'epc_tenant_db_isolation_error')) {
+			$DP_Config->epc_tenant_db_isolation_error = 'dedicated_db_required';
+		}
+		$GLOBALS['epc_tenant_db_isolation_error'] = 'dedicated_db_required:' . $host;
+	}
+
 	if (property_exists($DP_Config, 'db')) {
 		$DP_Config->db = $db;
 	}
@@ -383,7 +420,12 @@ function epc_portal_platform_pdo(): ?PDO
 		return $pdo;
 	}
 	try {
-		require_once $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+		$cfgPath = $_SERVER['DOCUMENT_ROOT'] . '/config.php';
+		if (!is_file($cfgPath)) {
+			$failed = true;
+			return null;
+		}
+		require_once $cfgPath;
 		$cfg = new DP_Config();
 		if (is_file($_SERVER['DOCUMENT_ROOT'] . '/config.local.php')) {
 			$epc_config_local = null;
@@ -402,7 +444,7 @@ function epc_portal_platform_pdo(): ?PDO
 			$cfg->password,
 			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 2)
 		);
-	} catch (Exception $e) {
+	} catch (Throwable $e) {
 		$pdo = null;
 		$failed = true;
 	}

@@ -261,7 +261,11 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 	// Admin session/profile must be ready before ACL-filtered nav (is_anable).
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 	$user_session = DP_User::getAdminSession();
-	if (is_array($user_session) && !empty($user_session)) {
+	if (!is_array($user_session)) {
+		$user_session = array();
+	}
+	$epc_cp_csrf = (string) ($user_session['csrf_guard_key'] ?? '');
+	if (!empty($user_session)) {
 		DP_User::getAdminProfile();
 	}
 	// Decide topnav-only before <body> so we never hide the left rail when the
@@ -281,7 +285,7 @@ if (function_exists('epc_cp_trace')) { epc_cp_trace('desktop: shell start'); }
 <?php
 echo epc_cp_force_visible_body_style();
 echo epc_cp_force_visible_script();
-// $user_session already loaded above for ACL/topnav decision
+// $user_session / $epc_cp_csrf already loaded above for ACL/topnav decision
 
 
 //Функция вывода кнопок для панели управления
@@ -532,7 +536,7 @@ function print_backend_button($button_params)
 						jQuery.ajax({
 							type: "POST",
 							async: true,
-							url: "/<?php echo $DP_Config->backend_dir; ?>/content/requests/ajax_get_vin_info.php?csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+							url: "/<?php echo $DP_Config->backend_dir; ?>/content/requests/ajax_get_vin_info.php?csrf_guard_key=<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>",
 							dataType: "json",//Тип возвращаемого значения
 							success: function(answer)
 							{
@@ -603,7 +607,7 @@ function print_backend_button($button_params)
 						jQuery.ajax({
 							type: "POST",
 							async: true,
-							url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/order_process/ajax_get_cnt_not_viewed_msg.php?csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+							url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/order_process/ajax_get_cnt_not_viewed_msg.php?csrf_guard_key=<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>",
 							dataType: "json",//Тип возвращаемого значения
 							success: function(answer)
 							{
@@ -659,7 +663,7 @@ function print_backend_button($button_params)
 							async: true,
 							url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/order_process/ajax_get_orders_info.php",
 							dataType: "json",//Тип возвращаемого значения
-							data: "request_object="+JSON.stringify(request_object)+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+							data: "request_object="+JSON.stringify(request_object)+"&csrf_guard_key=<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>",
 							success: function(answer)
 							{
 								if(answer.status == 1)
@@ -734,7 +738,7 @@ function print_backend_button($button_params)
 							async: true,
 							url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/order_process/ajax_get_cnt_for_paid_orders.php",
 							dataType: "json",//Тип возвращаемого значения
-							data: "csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+							data: "csrf_guard_key=<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>",
 							success: function(answer)
 							{
 								if(answer.status == 1)
@@ -802,7 +806,7 @@ function print_backend_button($button_params)
 						jQuery.ajax({
 							type: "POST",
 							async: true,
-							url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/order_process/ajax_get_cnt_not_viewed_msg.php?returns=1&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+							url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/order_process/ajax_get_cnt_not_viewed_msg.php?returns=1&csrf_guard_key=<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>",
 							dataType: "json",//Тип возвращаемого значения
 							success: function(answer)
 							{
@@ -852,7 +856,7 @@ function print_backend_button($button_params)
                             async: true,
                             url: "/<?php echo $DP_Config->backend_dir; ?>/content/shop/returns/ajax/ajax_get_returns_info.php",
                             dataType: "json",//Тип возвращаемого значения
-                            data: "request_object="+JSON.stringify(request_object)+"&csrf_guard_key=<?php echo $user_session["csrf_guard_key"]; ?>",
+                            data: "request_object="+JSON.stringify(request_object)+"&csrf_guard_key=<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>",
                             success: function(answer)
                             {
                                 if(answer.status == 1)
@@ -914,7 +918,7 @@ if (!is_array($admin_profile)) {
 }
 ?>
 <form id="logout_form" method="POST" name="logout_form" style="display:none;">
-	<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
+	<input type="hidden" name="csrf_guard_key" value="<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>" />
 	<input type="hidden" name="logout" value="logout" />
 </form>
 <?php
@@ -940,7 +944,7 @@ if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 				}
 				?>
 				<form id="logout_form_sidebar" method="POST" name="logout_form_sidebar" onsubmit="document.forms['logout_form'].submit(); return false;">
-					<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
+					<input type="hidden" name="csrf_guard_key" value="<?php echo htmlspecialchars($epc_cp_csrf, ENT_QUOTES, 'UTF-8'); ?>" />
 					<input type="hidden" name="logout" value="logout" />
 				</form>
 				<div class="epc-cp-user-card__row">
@@ -996,11 +1000,11 @@ if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 			?>
 		</div>
 		
-		<?php if (empty($GLOBALS['epc_cp_topnav_only'])) { ?>
+		<?php
+		// Always keep left menu HTML in the DOM. Topnav-only CSS hides #menu;
+		// if topnav fails to render, :not(:has(#epc_cp_topnav)) restores the rail.
+		?>
 		<docpart type="module" name="left_cp_menu" />
-		<?php } else { ?>
-		<!-- left_cp_menu skipped: topnav-only -->
-		<?php } ?>
     </div>
 </aside>
 
@@ -1024,14 +1028,24 @@ if (!empty($GLOBALS['epc_cp_topnav_only']) && is_file($epcCpTopNavFile)) {
 			$query = $db_link->prepare($SQL);
 			$query->execute();
 			$row = $query->fetch();
-			if($row['time'] < (time() - (86400 * 30)))
+			// PHP 8: fetch() may be false — never index without a guard (first-visit fatal
+			// on /cp/control truncates the shell: error flash, missing topnav/dashboard).
+			$epcNewsRowTime = (is_array($row) && isset($row['time'])) ? (int) $row['time'] : 0;
+			if($epcNewsRowTime > 0 && $epcNewsRowTime < (time() - (86400 * 30)))
 			{
 				//Отображаем блок только для Администраторов с доступом к Настройкам сайта
 				$adminProfile = DP_User::getAdminProfile();//Профиль администратора
+				$epcNewsGroupId = (is_array($adminProfile) && isset($adminProfile['groups'][0]))
+					? (int) $adminProfile['groups'][0]
+					: 0;
+				if ($epcNewsGroupId <= 0) {
+					$row = null;
+				} else {
 				$SQL = "SELECT * FROM `content_access` WHERE `content_id` IN(SELECT `id` FROM `content` WHERE `alias` = 'config' AND `is_frontend` = 0) AND `group_id` = ?;";
 				$query = $db_link->prepare($SQL);
-				$query->execute(array($adminProfile["groups"][0]));
+				$query->execute(array($epcNewsGroupId));
 				$row = $query->fetch();
+				}
 				if( !empty($row) )
 				{
 					// Bound timeout — unbounded file_get_contents hung CP when intask was down.

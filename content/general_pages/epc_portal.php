@@ -752,17 +752,45 @@ function epc_portal_site_profile()
 			}
 		}
 		$profile['domain_path'] = 'https://' . $host . '/';
-		// Model C client CP/storefront: registry db_name may be ecomae — runtime always uses shared docpart.
+		// Prefer dedicated registry credentials. Only eParts Cart may bind shared docpart.
+		$allowSharedDocpart = function_exists('epc_portal_client_may_share_docpart')
+			&& epc_portal_client_may_share_docpart($host);
 		$runtimeOverride = epc_portal_runtime_host_db($host);
-		if (is_array($runtimeOverride)) {
+		$tenantDedicated = is_array($tenant)
+			&& !empty($tenant['user'])
+			&& (string) ($tenant['password'] ?? '') !== ''
+			&& (
+				!empty($tenant['dedicated_db'])
+				|| (string) ($tenant['scale_policy'] ?? '') === 'dedicated_mysql'
+				|| (
+					(string) ($tenant['db'] ?? '') !== ''
+					&& strtolower((string) ($tenant['db'] ?? '')) !== 'docpart'
+				)
+			);
+		if ($tenantDedicated) {
+			$profile['db'] = (string) $tenant['db'];
+			$profile['user'] = (string) $tenant['user'];
+			$profile['password'] = (string) $tenant['password'];
+			$profile['dedicated_db'] = 1;
+			$profile['scale_policy'] = 'dedicated_mysql';
+		} elseif (is_array($runtimeOverride)
+			&& ($allowSharedDocpart || strtolower((string) ($runtimeOverride['db'] ?? '')) !== 'docpart')
+		) {
 			$profile['db'] = (string) $runtimeOverride['db'];
 			$profile['user'] = (string) $runtimeOverride['user'];
 			$profile['password'] = (string) $runtimeOverride['password'];
-		} else {
+		} elseif ($allowSharedDocpart) {
 			$resolved = epc_portal_resolve_tenant_db_credentials();
 			$profile['db'] = $resolved['db'];
 			$profile['user'] = $resolved['user'];
 			$profile['password'] = $resolved['password'];
+		} else {
+			// Fail closed — do not advertise docpart credentials on non–eParts tenants.
+			$profile['db'] = '';
+			$profile['user'] = '';
+			$profile['password'] = '';
+			$profile['dedicated_db'] = 1;
+			$profile['scale_policy'] = 'dedicated_mysql';
 		}
 	}
 	// Industry wildcard subdomains — use resolved industry from bootstrap
@@ -1004,7 +1032,8 @@ function epc_portal_apply_config($DP_Config)
 	if (function_exists('epc_portal_demo_lock_domain_path')) {
 		epc_portal_demo_lock_domain_path($DP_Config);
 	}
-	// Re-apply after site profile / config.local — registry must not override docpart on client CP.
+	// Re-apply after site profile / config.local — dedicated registry wins;
+	// only eParts Cart may remain on shared docpart.
 	if ($isClientHost && function_exists('epc_portal_resolve_tenant_db')) {
 		epc_portal_resolve_tenant_db($DP_Config);
 	}

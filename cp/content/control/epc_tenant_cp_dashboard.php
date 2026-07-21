@@ -276,11 +276,17 @@ $cpShortcutDefaults = ($industryCode === 'auto_parts')
 	? array('orders', 'prices', 'multivendor', 'crosses', 'procurement', 'pos', 'erp', 'stock')
 	: array('orders', 'catalogue', 'prices', 'clients', 'accessories', 'erp', 'documents', 'settings');
 $cpShortcutUid = epc_shortcuts_user_id();
+$cpShortcutItems = array();
 if (isset($db_link) && $db_link instanceof PDO && $cpShortcutUid > 0) {
-	epc_shortcuts_seed_defaults($db_link, $cpShortcutUid, 'cp', $cpShortcutDefaults, $cpShortcutCatalog);
-	$cpShortcutItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db_link, $cpShortcutUid, 'cp'));
-} else {
-	$cpShortcutItems = array();
+	try {
+		epc_shortcuts_seed_defaults($db_link, $cpShortcutUid, 'cp', $cpShortcutDefaults, $cpShortcutCatalog);
+		$cpShortcutItems = epc_shortcuts_as_tiles(epc_shortcuts_list_for_surface($db_link, $cpShortcutUid, 'cp'));
+	} catch (Throwable $e) {
+		// First-visit DDL / seed must never take down /cp/control.
+		$cpShortcutItems = array();
+	}
+}
+if ($cpShortcutItems === []) {
 	foreach ($cpShortcutDefaults as $dk) {
 		if (!isset($cpShortcutCatalog[$dk])) {
 			continue;
