@@ -50,7 +50,7 @@ function epc_erp_staff_all_tabs()
 		'jw_petty_cash', 'jw_journal_voucher', 'jw_tourist_vat',
 		'jw_trial_balance', 'jw_repairs', 'jw_seed_data',
 		'ai_assistant',
-		'tenant_config', 'print_designer', 'workflow_automation',
+		'tenant_config', 'print_designer', 'workflow_automation', 'accounting_automation',
 		// New ERP modules (22 features + on-premises)
 		'sla', 'tickets', 'doc_attachment', 'customer_groups', 'drilldown', 'shortcut_icons',
 		'gold_scheme', 'gold_rate', 'jewellery_tag', 'barcode_purchase', 'fix_unfix',

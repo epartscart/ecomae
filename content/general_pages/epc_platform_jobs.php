@@ -319,6 +319,25 @@ function epc_platform_jobs_dispatch(array $job): array
     if ($type === 'noop') {
         return ['ok' => true, 'result' => ['echo' => $payload]];
     }
+    if ($type === 'erp_automation_tick') {
+        require_once dirname(__DIR__) . '/shop/finance/epc_erp_automation_catalogue.php';
+        require_once __DIR__ . '/epc_tenant_pdo.php';
+        require_once __DIR__ . '/epc_portal_tenant_intro.php';
+        $platform = epc_platform_jobs_pdo();
+        if (!$platform instanceof PDO) {
+            return ['ok' => false, 'error' => 'Platform DB unavailable'];
+        }
+        $row = epc_portal_tenant_get($platform, $tenantKey);
+        if (!$row) {
+            return ['ok' => false, 'error' => 'Tenant not found'];
+        }
+        [$pdo, $err] = epc_tenant_pdo_from_row($row, ['timeout' => 8]);
+        if (!$pdo instanceof PDO) {
+            return ['ok' => false, 'error' => $err !== '' ? $err : 'DB connect failed'];
+        }
+        $tick = epc_erp_automation_tick($pdo, $tenantKey);
+        return ['ok' => !empty($tick['ok']), 'result' => $tick];
+    }
 
     return ['ok' => false, 'error' => 'Unknown job_type: ' . $type];
 }

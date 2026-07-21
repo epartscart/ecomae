@@ -457,6 +457,29 @@ $bsLe = isset($bs['total_liabilities_equity']) ? $bs['total_liabilities_equity']
 			</div>
 
 			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-magic"></i> Accounting automation centre (<a href="/erp/?area=finance&amp;tab=accounting_automation">General ledger &rsaquo; Accounting automation</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">One graphical hub for every finance automation: Order→ERP posting, period/year-end close, bank recon, collections dunning, report scheduler, VAT reminders, document→GL auto-post, AP payment due and depreciation. Each card shows a visual pipeline; enable with one click.</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open General ledger → <strong>Accounting automation</strong> (or Home → Automation Centre → Accounting). <strong>Result:</strong> KPI strip shows Total / Active / Available; each automation card shows its chevron pipeline.</li>
+					<li><strong>Action:</strong> Click <strong>Enable all accounting</strong> (or Enable on individual cards). <strong>Result:</strong> automations flip to Active; templates that ship a workflow are installed into the builder.</li>
+					<li><strong>Action:</strong> Open linked modules (Collections, Year-end, Bank recon, Report scheduler) once. <strong>Result:</strong> engine tables/schema are ready for live use.</li>
+					<li><strong>Action:</strong> Open Automation Centre → <strong>Run history</strong> and click <strong>Run scheduled tick now</strong>. <strong>Result:</strong> due scheduled workflows and dunning advance; runs show duration and status.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
+				<h5><i class="fa fa-cogs"></i> Business process automation — Automation Centre (<a href="/erp/?area=overview&amp;tab=workflow_automation">Home &rsaquo; Automation Centre</a>)</h5>
+				<p style="margin:6px 0 8px;opacity:.85;">Catalogue of every operational BPA (PO approval, invoice auto-send, low stock, onboarding, AML, 3-way match, subscriptions, RMA, credit gate, GRN notify) with graphical pipelines, installable templates, and a node-style workflow builder (trigger → condition → action).</p>
+				<ol class="epc-erp-flow" style="margin-bottom:0;">
+					<li><strong>Action:</strong> Open Home → <strong>Automation Centre</strong> → Business processes. <strong>Result:</strong> every BPA card shows status and a teal stage pipeline.</li>
+					<li><strong>Action:</strong> Click <strong>Enable</strong> and <strong>Install workflow</strong> on the processes you need (e.g. PO Approval, Invoice Auto-Send, Low Stock). <strong>Result:</strong> active workflows appear under Workflow builder.</li>
+					<li><strong>Action:</strong> Open <strong>Workflow builder</strong>. <strong>Result:</strong> a dark graphical canvas shows the Trigger node and each Action/Condition node; edit steps in the table and Save.</li>
+					<li><strong>Action:</strong> Click <strong>Run now</strong> on a workflow. <strong>Result:</strong> actions create in-app notifications (and email when mail is configured); the run appears in Run history.</li>
+					<li><strong>Action:</strong> For human hand-offs across departments, also use <a href="/erp/?area=overview&amp;tab=processflow">Process flow</a>. <strong>Result:</strong> GPS-style live routing complements the no-code workflows.</li>
+				</ol>
+			</div>
+
+			<div class="epc-erp-guide-step">
 				<h5><i class="fa fa-gavel"></i> Labour law &amp; compliance — worldwide statutory engine (<a href="/erp/?area=people&amp;tab=hr_law">People &rsaquo; Labour law &amp; compliance</a>)</h5>
 				<p style="margin:6px 0 8px;opacity:.85;">A country-aware employment-law engine that localizes statutory rules to your company country — working hours, overtime, probation cap, notice, annual/sick/maternity/paternity leave, public holidays, end-of-service and wage protection — across 25+ countries (UAE + GCC, South Asia, MENA, Europe, Americas, APAC, Africa). It also runs every employee through those rules and flags issues plus the accrued end-of-service liability. Informational only — confirm with local counsel.</p>
 				<ol class="epc-erp-flow" style="margin-bottom:0;">

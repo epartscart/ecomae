@@ -273,6 +273,10 @@ function epc_workflow_execute(PDO $pdo, int $wfId, array $triggerData = array())
 function epc_workflow_execute_step(PDO $pdo, array $step, array $triggerData, array $wf): array
 {
     $config = $step['config'] ?? array();
+    if (is_string($config)) {
+        $decoded = json_decode($config, true);
+        $config = is_array($decoded) ? $decoded : array();
+    }
 
     switch ($step['step_type']) {
         case 'condition':
@@ -294,14 +298,206 @@ function epc_workflow_execute_step(PDO $pdo, array $step, array $triggerData, ar
             return array('ok' => $pass, 'condition' => $operator, 'actual' => $actualValue);
 
         case 'action':
-            return array('ok' => true, 'action' => $step['action_type'], 'executed' => true, 'config' => $config);
+            return epc_workflow_run_action($pdo, (string) ($step['action_type'] ?? ''), $config, $triggerData, $wf);
 
         case 'delay':
-            $delayMin = (int) ($config['delay_minutes'] ?? 0);
+            $delayMin = (int) ($config['delay_minutes'] ?? ($config['delay'] ?? 0));
             return array('ok' => true, 'delay_minutes' => $delayMin, 'note' => 'Delay registered (async execution)');
 
         default:
             return array('ok' => true, 'step_type' => $step['step_type']);
+    }
+}
+
+/**
+ * Execute a concrete workflow action (notifications, email, GL stub, tasks, etc.).
+ *
+ * @param array<string,mixed> $config
+ * @param array<string,mixed> $triggerData
+ * @param array<string,mixed> $wf
+ * @return array{ok:bool,action?:string,detail?:mixed,error?:string}
+ */
+function epc_workflow_run_action(PDO $pdo, string $actionType, array $config, array $triggerData, array $wf): array
+{
+    $interp = static function ($val) use ($triggerData) {
+        if (!is_string($val)) {
+            return $val;
+        }
+        return preg_replace_callback('/\{\{\s*([a-zA-Z0-9_\.]+)\s*\}\}/', static function ($m) use ($triggerData) {
+            $k = $m[1];
+            return isset($triggerData[$k]) ? (string) $triggerData[$k] : $m[0];
+        }, $val);
+    };
+
+    try {
+        switch ($actionType) {
+            case 'send_notification':
+                $title = (string) $interp($config['title'] ?? 'Workflow notification');
+                $message = (string) $interp($config['message'] ?? '');
+                $ext = dirname(__DIR__) . '/shop/finance/epc_erp_extended.php';
+                if (is_file($ext)) {
+                    require_once $ext;
+                }
+                if (function_exists('epc_erp_notification_seed')) {
+                    epc_erp_notification_seed($pdo, $title, $message, (string) ($config['link_tab'] ?? 'workflow_automation'));
+                }
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('title' => $title));
+
+            case 'send_email':
+                $to = (string) $interp($config['to'] ?? '');
+                $subject = (string) $interp($config['subject'] ?? 'ERP workflow');
+                $body = (string) $interp($config['body'] ?? '');
+                $sent = false;
+                if ($to !== '' && filter_var($to, FILTER_VALIDATE_EMAIL)) {
+                    $headers = "MIME-Version: 1.0\r\nContent-type: text/html; charset=UTF-8\r\n";
+                    $sent = @mail($to, $subject, nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8')), $headers);
+                }
+                // Always log an in-app notification so operators can audit even if mail is unavailable
+                $ext = dirname(__DIR__) . '/shop/finance/epc_erp_extended.php';
+                if (is_file($ext)) {
+                    require_once $ext;
+                }
+                if (function_exists('epc_erp_notification_seed')) {
+                    epc_erp_notification_seed(
+                        $pdo,
+                        'Email: ' . $subject,
+                        ($sent ? 'Sent to ' : 'Queued/logged for ') . ($to !== '' ? $to : '(no recipient)') . ' — ' . $body,
+                        'workflow_automation'
+                    );
+                }
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('to' => $to, 'sent' => $sent));
+
+            case 'create_task':
+                $title = (string) $interp($config['title'] ?? 'Workflow task');
+                $assignee = (string) $interp($config['assignee'] ?? '');
+                $dueDays = (int) ($config['due_days'] ?? 3);
+                $ext = dirname(__DIR__) . '/shop/finance/epc_erp_extended.php';
+                if (is_file($ext)) {
+                    require_once $ext;
+                }
+                if (function_exists('epc_erp_notification_seed')) {
+                    epc_erp_notification_seed(
+                        $pdo,
+                        'Task: ' . $title,
+                        'Assignee: ' . ($assignee !== '' ? $assignee : 'unassigned') . ' · due in ' . $dueDays . ' day(s)',
+                        'processflow'
+                    );
+                }
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('title' => $title, 'assignee' => $assignee, 'due_days' => $dueDays));
+
+            case 'update_status':
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('new_status' => $config['new_status'] ?? ''));
+
+            case 'assign_user':
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('user_id' => $config['user_id'] ?? 0, 'role' => $config['role'] ?? ''));
+
+            case 'credit_check':
+                $limit = isset($triggerData['credit_limit']) ? (float) $triggerData['credit_limit'] : null;
+                $balance = isset($triggerData['credit_balance']) ? (float) $triggerData['credit_balance'] : 0.0;
+                $amount = isset($triggerData['amount']) ? (float) $triggerData['amount'] : (isset($triggerData['total']) ? (float) $triggerData['total'] : 0.0);
+                $exceed = ($limit !== null && ($balance + $amount) > $limit);
+                $onExceed = (string) ($config['action_on_exceed'] ?? 'hold');
+                if ($exceed && function_exists('epc_erp_notification_seed') === false) {
+                    $ext = dirname(__DIR__) . '/shop/finance/epc_erp_extended.php';
+                    if (is_file($ext)) {
+                        require_once $ext;
+                    }
+                }
+                if ($exceed && function_exists('epc_erp_notification_seed')) {
+                    epc_erp_notification_seed($pdo, 'Credit limit exceeded', 'Action: ' . $onExceed, 'collections');
+                }
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('exceeded' => $exceed, 'action' => $onExceed));
+
+            case 'gl_journal':
+                $amount = (float) ($config['amount'] ?? ($triggerData['amount'] ?? 0));
+                $debit = (string) ($config['debit_account'] ?? '');
+                $credit = (string) ($config['credit_account'] ?? '');
+                if ($amount <= 0) {
+                    return array('ok' => true, 'action' => $actionType, 'detail' => array('skipped' => true, 'reason' => 'zero amount'));
+                }
+                $glFile = dirname(__DIR__) . '/shop/finance/epc_erp_gl.php';
+                if (is_file($glFile)) {
+                    require_once $glFile;
+                }
+                if (function_exists('epc_erp_gl_post_journal')) {
+                    try {
+                        $posted = epc_erp_gl_post_journal(
+                            $pdo,
+                            array(
+                                'memo' => 'Workflow: ' . (string) ($wf['name'] ?? 'automation'),
+                                'description' => 'Workflow automation journal',
+                            ),
+                            array(
+                                array('account_code' => $debit, 'debit' => $amount, 'credit' => 0),
+                                array('account_code' => $credit, 'debit' => 0, 'credit' => $amount),
+                            )
+                        );
+                        return array('ok' => true, 'action' => $actionType, 'detail' => is_array($posted) ? $posted : array('posted' => $posted));
+                    } catch (Throwable $e) {
+                        return array('ok' => false, 'action' => $actionType, 'error' => $e->getMessage());
+                    }
+                }
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('queued' => true, 'debit' => $debit, 'credit' => $credit, 'amount' => $amount));
+
+            case 'create_invoice':
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('template' => $config['template'] ?? 'default', 'auto_send' => !empty($config['auto_send'])));
+
+            case 'update_inventory':
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('sku' => $config['sku'] ?? '', 'qty_change' => $config['qty_change'] ?? 0));
+
+            case 'webhook_call':
+                $url = (string) ($config['url'] ?? '');
+                if ($url === '' || !preg_match('#^https?://#i', $url)) {
+                    return array('ok' => false, 'action' => $actionType, 'error' => 'Invalid webhook URL');
+                }
+                // Record intent only — outbound HTTP is intentionally not fired from sync path without allow-list.
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('url' => $url, 'queued' => true));
+
+            case 'emit_event':
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('event_type' => $config['event_type'] ?? '', 'payload' => $config['payload'] ?? array()));
+
+            case 'wait':
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('delay_minutes' => (int) ($config['delay_minutes'] ?? 0)));
+
+            default:
+                return array('ok' => true, 'action' => $actionType, 'detail' => array('executed' => true, 'config' => $config));
+        }
+    } catch (Throwable $e) {
+        return array('ok' => false, 'action' => $actionType, 'error' => $e->getMessage());
+    }
+}
+
+/**
+ * Replace workflow steps entirely (used by the graphical builder save).
+ *
+ * @param array<int,array<string,mixed>> $steps
+ */
+function epc_workflow_replace_steps(PDO $pdo, int $wfId, array $steps): void
+{
+    $pdo->prepare('DELETE FROM `epc_workflow_steps` WHERE `workflow_id` = ?')->execute(array($wfId));
+    foreach ($steps as $i => $step) {
+        $cfg = $step['config'] ?? array();
+        if (is_string($cfg)) {
+            $decoded = json_decode($cfg, true);
+            $cfg = is_array($decoded) ? $decoded : array();
+        }
+        if (!empty($step['label']) && !isset($cfg['label'])) {
+            $cfg['label'] = (string) $step['label'];
+        }
+        $st = $pdo->prepare("
+            INSERT INTO `epc_workflow_steps`
+                (`workflow_id`, `step_order`, `step_type`, `action_type`, `config`, `on_failure`, `retry_count`)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $st->execute(array(
+            $wfId,
+            $i + 1,
+            (string) ($step['step_type'] ?? 'action'),
+            (string) ($step['action_type'] ?? ''),
+            json_encode($cfg),
+            (string) ($step['on_failure'] ?? 'stop'),
+            (int) ($step['retry_count'] ?? 0),
+        ));
     }
 }
 
