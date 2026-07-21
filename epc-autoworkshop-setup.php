@@ -173,5 +173,5 @@ foreach ($files as $rel) {
 
 echo "\nDone.\n";
 echo "Guide: /cp/control/portal/epc_autoworkshop_guide\n";
-echo "Site:  /auto-workshop\n";
+echo "Site:  /en/auto-workshop\n";
 echo "CP:    /cp/shop/workshop/workshop\n";

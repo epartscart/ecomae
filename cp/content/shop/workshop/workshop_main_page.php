@@ -22,7 +22,7 @@ $baseCp = '/' . $backend;
 $guideUrl = $baseCp . '/control/portal/epc_autoworkshop_guide';
 $erpUrl = $baseCp . '/shop/finance/erp?epc_erp_shell=1';
 $ordersUrl = $baseCp . '/shop/orders/orders';
-$storefront = rtrim((string) ($DP_Config->domain_path ?? ''), '/') . '/auto-workshop';
+$storefront = rtrim((string) ($DP_Config->domain_path ?? ''), '/') . '/en/auto-workshop';
 $pageUrl = $baseCp . '/shop/workshop/workshop';
 $ajaxUrl = $baseCp . '/content/shop/workshop/ajax_workshop_endpoint.php';
 

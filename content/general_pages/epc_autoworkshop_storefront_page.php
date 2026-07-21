@@ -10,8 +10,9 @@ if (preg_match('#^/(en|ar|ru|de|fr|es|it|pt|tr|zh|ja|ko)(/|$)#i', $uri, $m)) {
 }
 $cp = isset($GLOBALS['DP_Config']->backend_dir) ? (string) $GLOBALS['DP_Config']->backend_dir : 'cp';
 $guideUrl = '/' . $cp . '/control/portal/epc_autoworkshop_guide';
-$partsSearch = $langPrefix . '/parts';
-$katalog = $langPrefix . '/katalog-laximo';
+$lp = $langPrefix !== '' ? $langPrefix : '/en';
+$partsSearch = $lp . '/parts';
+$katalog = $lp . '/katalog-laximo';
 $ajaxPublic = '/content/shop/workshop/ajax_workshop_public.php';
 $h = static function ($v): string {
 	return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');

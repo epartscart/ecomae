@@ -20,7 +20,7 @@ function epc_awg_h($v): string
 
 $backend = trim((string) ($GLOBALS['DP_Config']->backend_dir ?? 'cp'), '/');
 $domain = rtrim((string) ($GLOBALS['DP_Config']->domain_path ?? ''), '/');
-$storefrontUrl = ($domain !== '' ? $domain : '') . '/auto-workshop';
+$storefrontUrl = ($domain !== '' ? $domain : '') . '/en/auto-workshop';
 $workshopCpUrl = '/' . $backend . '/shop/workshop/workshop';
 $checkinUrl = $workshopCpUrl . '?tab=checkin';
 $boardUrl = $workshopCpUrl . '?tab=board';
