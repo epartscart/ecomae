@@ -147,409 +147,239 @@ if( isset($_POST['action']) )
 }
 else//Действий нет - выводим страницу
 {
-	//Для работы с пользователем
-	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 	$user_session = DP_User::getAdminSession();
-	?>
-	
-	<?php
-        require_once("content/control/actions_alert.php");//Вывод сообщений о результатах действий
-    ?>
-	
-	
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2113); ?>
-			</div>
-			<div class="panel-body">
 
-				<?php
-				//Сохранить
-				print_backend_button( array("background_color"=>"#63ce1c", "fontawesome_class"=>"fas fa-save", "caption"=>translate_str_by_id(2114), "onclick"=>"document.forms['save_notification_form'].submit();", "url"=>"javascript:void(0);") );
-				?>
-				
-				
-				<?php
-				//Кнопка восстановления настроек по-умолчанию
-				print_backend_button( array("background_color"=>"#8e44ad", "fontawesome_class"=>"fas fa-undo", "caption"=>translate_str_by_id(2449), "url"=>"javascript:void(0);", "onclick"=>"set_default();") );
-				?>
-				
-				
-				<?php
-				//Обратно к уведомлениям
-				print_backend_button( array("background_color"=>"#e74c3c", "fontawesome_class"=>"fas fa-envelope-open-text", "caption"=>translate_str_by_id(2450), "url"=>$DP_Config->domain_path.$DP_Config->backend_dir."/control/notifications_settings") );
-				?>
-				
-				
-				<a class="panel_a" href="/<?php echo $DP_Config->backend_dir; ?>">
-					<div class="panel_a_img" style="background: url('/<?php echo $DP_Config->backend_dir; ?>/templates/<?php echo $DP_Template->name; ?>/images/power_off.png') 0 0 no-repeat;"></div>
-					<div class="panel_a_caption"><?php echo translate_str_by_id(2116); ?></div>
-				</a>
-				
-				
-			</div>
-		</div>
-	</div>
-	
-	
-	<?php
+	$backend = trim((string) $DP_Config->backend_dir, '/');
+	$baseCp = '/' . $backend;
+	$listUrl = rtrim((string) $DP_Config->domain_path, '/') . '/' . $backend . '/control/notifications_settings';
+
+	$epc_cn_h = static function ($v): string {
+		return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+	};
+	$epc_cn_t = static function ($id) use ($epc_cn_h): string {
+		$v = function_exists('translate_str_by_id') ? translate_str_by_id($id) : $id;
+		return $epc_cn_h($v === null || $v === false ? '' : $v);
+	};
+
 	$notification_query = $db_link->prepare('SELECT * FROM `notifications_settings` WHERE `id` = ?;');
-	$notification_query->execute( array($_GET['notification_id']) );
+	$notification_query->execute(array($_GET['notification_id'] ?? 0));
 	$notification = $notification_query->fetch();
-	if( $notification == false )
-	{
-		//Переадресация с сообщением о результатах выполнения
+	if ($notification == false) {
 		$warning_message = translate_str_by_id(2451);
 		?>
 		<script>
-			location="<?php echo $DP_Config->domain_path.$DP_Config->backend_dir; ?>/control/notifications_settings?warning_message=<?php echo urlencode($warning_message); ?>";
+			location="<?php echo $DP_Config->domain_path . $DP_Config->backend_dir; ?>/control/notifications_settings?warning_message=<?php echo urlencode($warning_message); ?>";
 		</script>
 		<?php
 		exit;
 	}
-	
-	//Переводим строки:
-	$notification['caption'] = translate_str_by_id($notification['caption']);
-	$notification['description'] = translate_str_by_id($notification['description']);
-	$notification['event'] = translate_str_by_id($notification['event']);
-	$notification['email_subject'] = translate_str_by_id($notification['email_subject']);
-	$notification['email_body'] = translate_str_by_id($notification['email_body']);
-	$notification['sms_body'] = translate_str_by_id($notification['sms_body']);
+
+	$notification['caption'] = (string) (translate_str_by_id($notification['caption']) ?? '');
+	$notification['description'] = (string) (translate_str_by_id($notification['description']) ?? '');
+	$notification['event'] = (string) (translate_str_by_id($notification['event']) ?? '');
+	$notification['email_subject'] = (string) (translate_str_by_id($notification['email_subject']) ?? '');
+	$notification['email_body'] = (string) (translate_str_by_id($notification['email_body']) ?? '');
+	$notification['sms_body'] = (string) (translate_str_by_id($notification['sms_body']) ?? '');
+	$notification_vars = json_decode((string) $notification['vars'], true);
+	if (!is_array($notification_vars)) {
+		$notification_vars = array();
+	}
+
+	$email_body_js = json_encode($notification['email_body'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	$default_email_subject_js = json_encode((string) (translate_str_by_id($notification['default_email_subject']) ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	$default_email_body_js = json_encode((string) (translate_str_by_id($notification['default_email_body']) ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	$default_sms_body_js = json_encode((string) (translate_str_by_id($notification['default_sms_body']) ?? ''), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+	require_once 'content/control/actions_alert.php';
 	?>
-	
-	
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel collapsed">
-			<div class="panel-heading hbuilt">
-				<div class="panel-tools">
-                    <a class="showhide"><i class="fa fa-chevron-up"></i></a>
-                </div>
-				<?php echo translate_str_by_id(2452); ?> "<?php echo $notification["caption"]; ?>"
+	<div class="col-lg-12 epc-cn">
+		<div class="epc-cn-hero">
+			<h3><?php echo $epc_cn_h($notification['caption']); ?></h3>
+			<p>Edit the e-mail and SMS template for this event. Use placeholders from the variables list. Restore factory text anytime, then Save.</p>
+			<div class="epc-cn-hero__actions">
+				<button type="button" class="btn btn-sm btn-primary" onclick="document.forms['save_notification_form'].submit();"><i class="fas fa-save"></i> <?php echo $epc_cn_t(2114); ?></button>
+				<button type="button" class="btn btn-sm" onclick="set_default();"><i class="fas fa-undo"></i> <?php echo $epc_cn_t(2449); ?></button>
+				<a class="btn btn-sm" href="<?php echo $epc_cn_h($listUrl); ?>"><i class="fas fa-envelope-open-text"></i> <?php echo $epc_cn_t(2450); ?></a>
+				<a class="btn btn-sm" href="<?php echo $epc_cn_h($baseCp . '/control/communications'); ?>"><i class="fas fa-vial"></i> Test delivery</a>
+				<a class="btn btn-sm" href="<?php echo $epc_cn_h($baseCp); ?>"><i class="fas fa-home"></i> <?php echo $epc_cn_t(2116); ?></a>
 			</div>
-			<div class="panel-body">
-				
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						ID
-					</label>
-					<div class="col-lg-9">
-						<?php echo $notification["id"]; ?>
+		</div>
+
+		<div class="epc-cn-guide">
+			<h4>Editing guide</h4>
+			<ol class="epc-cn-steps">
+				<li><strong>Channels</strong>Enable e-mail and/or SMS only if this event supports them.</li>
+				<li><strong>Placeholders</strong>Insert codes like <code>%order_id%</code> from the variables panel — they are replaced at send time.</li>
+				<li><strong>Restore</strong>Loads factory subject/body into the form; click Save to persist.</li>
+				<li><strong>Test</strong>After saving, verify SMTP/SMS from Communications.</li>
+			</ol>
+		</div>
+
+		<form method="POST" name="save_notification_form">
+			<input type="hidden" name="action" value="save" />
+			<input type="hidden" name="notification_id" value="<?php echo $epc_cn_h((string) ($_GET['notification_id'] ?? '')); ?>" />
+			<input type="hidden" name="csrf_guard_key" value="<?php echo $epc_cn_h((string) $user_session['csrf_guard_key']); ?>" />
+
+			<div class="epc-cn-edit-grid">
+				<div class="epc-cn-side">
+					<div class="epc-cn-card">
+						<div class="epc-cn-card__head">
+							<div>
+								<h4><?php echo $epc_cn_t(2452); ?></h4>
+								<p>Event metadata</p>
+							</div>
+						</div>
+						<div class="epc-cn-card__body">
+							<dl class="epc-cn-kv">
+								<dt>ID</dt><dd><?php echo (int) $notification['id']; ?></dd>
+								<dt><?php echo $epc_cn_t(2453); ?></dt><dd><code><?php echo $epc_cn_h($notification['name']); ?></code></dd>
+								<dt><?php echo $epc_cn_t(2277); ?></dt><dd><?php echo $epc_cn_h($notification['caption']); ?></dd>
+								<dt><?php echo $epc_cn_t(2454); ?></dt><dd><?php echo $epc_cn_h($notification['event']); ?></dd>
+								<dt><?php echo $epc_cn_t(2073); ?></dt><dd><?php echo $epc_cn_h($notification['description']); ?></dd>
+								<dt><?php echo $epc_cn_t(2455); ?></dt>
+								<dd><?php echo ((int) $notification['send_for_not_confirmed'] === 1) ? $epc_cn_t(2456) : $epc_cn_t(2457); ?></dd>
+							</dl>
+						</div>
 					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2453); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo $notification["name"]; ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2277); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo $notification["caption"]; ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2073); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo $notification["description"]; ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2454); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php echo $notification["event"]; ?>
-					</div>
-				</div>
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2455); ?>
-					</label>
-					<div class="col-lg-9">
-						<?php
-						if( $notification["send_for_not_confirmed"] == 1 )
-						{
-							echo translate_str_by_id(2456);
-						}
-						else
-						{
-							echo translate_str_by_id(2457);
-						}
-						?>
-					</div>
-				</div>
-				
-				
-				<div class="hr-line-dashed col-lg-12"></div>
-				
-				<div class="form-group">
-					<label for="" class="col-lg-3 control-label">
-						<?php echo translate_str_by_id(2458); ?>
-					</label>
-					<div class="col-lg-9">
-						<table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-							<thead>
-								<tr>
-									<th><?php echo translate_str_by_id(2459); ?></th>
-									<th><?php echo translate_str_by_id(2460); ?></th>
-								</tr>
-							</thead>
-							<tbody>
+
+					<div class="epc-cn-card">
+						<div class="epc-cn-card__head">
+							<div>
+								<h4><?php echo $epc_cn_t(2458); ?></h4>
+								<p>Available placeholders</p>
+							</div>
+						</div>
+						<div class="epc-cn-card__body" style="padding:0;">
+							<table class="table epc-cn-vars">
+								<thead>
+									<tr>
+										<th><?php echo $epc_cn_t(2459); ?></th>
+										<th><?php echo $epc_cn_t(2460); ?></th>
+									</tr>
+								</thead>
+								<tbody>
 								<?php
-								$notification_vars = json_decode($notification["vars"], true);
-								for( $i=0 ; $i < count($notification_vars) ; $i++ )
-								{
+								foreach ($notification_vars as $var) {
+									$vc = (string) (translate_str_by_id($var['caption'] ?? '') ?? '');
+									$vn = (string) ($var['name'] ?? '');
 									?>
 									<tr>
-										<td><?php echo translate_str_by_id($notification_vars[$i]['caption']); ?></td>
-										<td>%<?php echo $notification_vars[$i]['name']; ?>%</td>
+										<td><?php echo $epc_cn_h($vc); ?></td>
+										<td><code>%<?php echo $epc_cn_h($vn); ?>%</code></td>
 									</tr>
 									<?php
 								}
+								if (!$notification_vars) {
+									echo '<tr><td colspan="2" class="epc-cn-empty">No variables for this template.</td></tr>';
+								}
 								?>
-							</tbody>
-						</table>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
-				
-				
-			</div>
-		</div>
-	</div>
-	
-	
-	
-	<form method="POST" name="save_notification_form">
-	<input type="hidden" name="action" value="save" />
-	<input type="hidden" name="notification_id" value="<?php echo $_GET['notification_id']; ?>" />
-	<input type="hidden" name="csrf_guard_key" value="<?php echo $user_session["csrf_guard_key"]; ?>" />
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2461); ?>
-			</div>
-			<div class="panel-body">
-				<?php
-				if( $notification['foreseen_email'] == 1 )
-				{
-					?>
-					
-					<div class="form-group">
-						<label for="" class="col-lg-3 control-label">
-							<?php echo translate_str_by_id(2462); ?>
-						</label>
-						<div class="col-lg-9">
-							<?php
-							$checked = '';
-							if( $notification['email_on'] == 1 )
-							{
-								$checked = ' checked="checked" ';
-							}
-							?>
-							<input class="form-control" type="checkbox" name="email_on" id="email_on" <?php echo $checked; ?> />
-						</div>
-					</div>
-					
-					<div class="hr-line-dashed col-lg-12"></div>
-					
-					<div class="form-group">
-						<label for="" class="col-lg-3 control-label">
-							<?php echo translate_str_by_id(2463); ?>
-						</label>
-						<div class="col-lg-9">
-							<input class="form-control" type="text" name="email_subject" id="email_subject" value="<?php echo $notification['email_subject']; ?>" placeholder="<?php echo translate_str_by_id(2464); ?>" />
-						</div>
-					</div>
-					
-					<div class="hr-line-dashed col-lg-12"></div>
-					
-					<div class="form-group">
-						<div class="col-lg-12">
-							<label for="" class="control-label"><?php echo translate_str_by_id(2465); ?></label>
-							<div id="email_body_div"></div>
-							<script>
-							// --------------------------------------------------------------------------------
-							//Инициализация редактора
-							function init_TinyMCE()
-							{
-								var email_body_div = document.getElementById("email_body_div");
-								
 
-								email_body_div.innerHTML = "<textarea style=\"min-height:400px\" class=\"tinymce_editor\" id=\"email_body\" name=\"email_body\"></textarea>";
-								tinymce.init({
-									selector: "textarea.tinymce_editor",
-									toolbar: "bold italic | fontselect | fontsizeselect | styleselect | forecolor | backcolor",
-									plugins: [
-										"code fullscreen textcolor"
-									],
-								});
-								
-								
-								<?php
-								$email_body = addcslashes(str_replace(array("\n","\r"), '', $notification['email_body']), "'");
-								$email_body = str_replace("/", "\/", $email_body);
-								?>
-								
-								
-								//Заполняем текущее содержимое:
-								document.getElementById("email_body").value = '<?php echo $email_body; ?>';
-							}//~function init_TinyMCE()
-							// --------------------------------------------------------------------------------
-							init_TinyMCE();
-							</script>
-							
+				<div>
+					<div class="epc-cn-card is-email" style="margin-bottom:14px;">
+						<div class="epc-cn-card__head">
+							<div>
+								<h4><i class="far fa-envelope"></i> <?php echo $epc_cn_t(2461); ?></h4>
+								<p>Subject and HTML body</p>
+							</div>
+						</div>
+						<div class="epc-cn-card__body">
+							<?php if ((int) $notification['foreseen_email'] === 1) { ?>
+								<div class="epc-cn-field">
+									<label class="epc-cn-check">
+										<input type="checkbox" name="email_on" id="email_on" <?php echo ((int) $notification['email_on'] === 1) ? 'checked="checked"' : ''; ?> />
+										<?php echo $epc_cn_t(2462); ?>
+									</label>
+								</div>
+								<div class="epc-cn-field">
+									<label for="email_subject"><?php echo $epc_cn_t(2463); ?></label>
+									<input class="form-control" type="text" name="email_subject" id="email_subject" value="<?php echo $epc_cn_h($notification['email_subject']); ?>" placeholder="<?php echo $epc_cn_t(2464); ?>" />
+								</div>
+								<div class="epc-cn-field">
+									<label><?php echo $epc_cn_t(2465); ?></label>
+									<div id="email_body_div"></div>
+								</div>
+							<?php } else { ?>
+								<p class="epc-cn-meta"><?php echo $epc_cn_t(2466); ?></p>
+							<?php } ?>
 						</div>
 					</div>
-					
-					
-					
-					
-					
-					<?php
-				}
-				else
-				{
-					?>
-					<?php echo translate_str_by_id(2466); ?>
-					<?php
-				}
-				?>
+
+					<div class="epc-cn-card is-sms">
+						<div class="epc-cn-card__head">
+							<div>
+								<h4><i class="fas fa-mobile-alt"></i> <?php echo $epc_cn_t(2467); ?></h4>
+								<p>Short text for mobile</p>
+							</div>
+						</div>
+						<div class="epc-cn-card__body">
+							<?php if ((int) $notification['foreseen_sms'] === 1) { ?>
+								<div class="epc-cn-field">
+									<label class="epc-cn-check">
+										<input type="checkbox" name="sms_on" id="sms_on" <?php echo ((int) $notification['sms_on'] === 1) ? 'checked="checked"' : ''; ?> />
+										<?php echo $epc_cn_t(2468); ?>
+									</label>
+								</div>
+								<div class="epc-cn-field">
+									<label for="sms_body"><?php echo $epc_cn_t(2469); ?></label>
+									<textarea class="form-control" name="sms_body" id="sms_body" rows="5" placeholder="<?php echo $epc_cn_t(2470); ?>"><?php echo $epc_cn_h($notification['sms_body']); ?></textarea>
+								</div>
+							<?php } else { ?>
+								<p class="epc-cn-meta"><?php echo $epc_cn_t(2471); ?></p>
+							<?php } ?>
+						</div>
+					</div>
+				</div>
 			</div>
-		</div>
+
+			<div class="epc-cn-sticky">
+				<button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <?php echo $epc_cn_t(2114); ?></button>
+				<button type="button" class="btn btn-default" onclick="set_default();"><i class="fas fa-undo"></i> <?php echo $epc_cn_t(2449); ?></button>
+				<a class="btn btn-default" href="<?php echo $epc_cn_h($listUrl); ?>"><?php echo $epc_cn_t(2450); ?></a>
+				<span class="epc-cn-sticky__hint">Changes apply after Save · then test under Communications</span>
+			</div>
+		</form>
 	</div>
-	
-	
-	
-	
-	
-	
-	
-	<div class="col-lg-12">
-		<div class="hpanel">
-			<div class="panel-heading hbuilt">
-				<?php echo translate_str_by_id(2467); ?>
-			</div>
-			<div class="panel-body">
-				<?php
-				if( $notification['foreseen_sms'] == 1 )
-				{
-					?>
-					<div class="form-group">
-						<label for="" class="col-lg-3 control-label">
-							<?php echo translate_str_by_id(2468); ?>
-						</label>
-						<div class="col-lg-9">
-							<?php
-							$checked = '';
-							if( $notification['sms_on'] == 1 )
-							{
-								$checked = ' checked="checked" ';
-							}
-							?>
-							<input class="form-control" type="checkbox" name="sms_on" id="sms_on" <?php echo $checked; ?> />
-						</div>
-					</div>
-					
-					
-					<div class="hr-line-dashed col-lg-12"></div>
-					
-					
-					<div class="form-group">
-						<label for="" class="col-lg-3 control-label">
-							<?php echo translate_str_by_id(2469); ?>
-						</label>
-						<div class="col-lg-9">
-							
-							<textarea class="form-control" name="sms_body" id="sms_body" placeholder="<?php echo translate_str_by_id(2470); ?>"><?php echo $notification["sms_body"]; ?></textarea>
-							
-						</div>
-					</div>
-					
-					<?php
-				}
-				else
-				{
-					?>
-					<?php echo translate_str_by_id(2471); ?>
-					<?php
-				}
-				?>
-			</div>
-		</div>
-	</div>
-	
-	
-	</form>
-	
+
 	<script>
-	// -------------------------------------------------------------------------------------------
-	//Восстановление настроек по умолчанию
+	window.EPC_COMMS_NOTIFY = { page: 'notification_edit' };
+	<?php if ((int) $notification['foreseen_email'] === 1) { ?>
+	function init_TinyMCE()
+	{
+		var email_body_div = document.getElementById('email_body_div');
+		if (!email_body_div || typeof tinymce === 'undefined') { return; }
+		email_body_div.innerHTML = '<textarea style="min-height:400px" class="tinymce_editor" id="email_body" name="email_body"></textarea>';
+		tinymce.init({
+			selector: 'textarea.tinymce_editor',
+			toolbar: 'bold italic | fontselect | fontsizeselect | styleselect | forecolor | backcolor',
+			plugins: ['code fullscreen textcolor']
+		});
+		document.getElementById('email_body').value = <?php echo $email_body_js; ?>;
+	}
+	init_TinyMCE();
+	<?php } ?>
+
 	function set_default()
 	{
-		<?php
-		if( $notification['foreseen_email'] == 1 )
-		{
-			?>
-			document.getElementById('email_on').checked = true;
-			
-			document.getElementById('email_subject').value = '<?php echo translate_str_by_id($notification['default_email_subject']); ?>';
-			
-
-			<?php
-			$default_email_body = addcslashes(str_replace(array("\n","\r"), '', translate_str_by_id($notification['default_email_body'])), "'");
-			$default_email_body = str_replace("/", "\/", $default_email_body);
-			?>
-			
-			tinymce.get("email_body").setContent('<?php echo $default_email_body; ?>');
-			<?php
+		<?php if ((int) $notification['foreseen_email'] === 1) { ?>
+		document.getElementById('email_on').checked = true;
+		document.getElementById('email_subject').value = <?php echo $default_email_subject_js; ?>;
+		if (typeof tinymce !== 'undefined' && tinymce.get('email_body')) {
+			tinymce.get('email_body').setContent(<?php echo $default_email_body_js; ?>);
 		}
-		
-		if( $notification['foreseen_sms'] == 1 )
-		{
-			?>
-			document.getElementById('sms_on').checked = true;
-			
-			document.getElementById('sms_body').value = '<?php echo translate_str_by_id($notification['default_sms_body']); ?>';
-			<?php
-		}
-		?>
-		
-		alert('<?php echo translate_str_by_id(2472); ?>');
+		<?php } ?>
+		<?php if ((int) $notification['foreseen_sms'] === 1) { ?>
+		document.getElementById('sms_on').checked = true;
+		document.getElementById('sms_body').value = <?php echo $default_sms_body_js; ?>;
+		<?php } ?>
+		alert(<?php echo json_encode((string) translate_str_by_id(2472), JSON_UNESCAPED_UNICODE); ?>);
 	}
-	// -------------------------------------------------------------------------------------------
 	</script>
-	
 	<?php
 }
 ?>
