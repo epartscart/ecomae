@@ -129,7 +129,7 @@ else//Если нет перехода после нажатия "Сохрани
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_frame.php");
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_assets.php");
 
-	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg2';
+	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg3';
 	$epcCfgBackend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 	if ($epcCfgBackend === '') {
 		$epcCfgBackend = 'cp';
@@ -189,6 +189,10 @@ else//Если нет перехода после нажатия "Сохрани
 	}
 
 	require_once("content/control/get_widget.php");//Скрипт для получения html-кода виджетов различных типов
+	$epcCfgPageUrl = '/' . $epcCfgBackend . '/control/config';
+	if ($need_config_group > 0) {
+		$epcCfgPageUrl .= '?need_config_group=' . (int)$need_config_group;
+	}
 	?>
 	<script>
 	function save_config()
@@ -231,8 +235,10 @@ else//Если нет перехода после нажатия "Сохрани
 					foreach ($tabs as $navKey => $navTab) {
 						$navMeta = epc_config_group_meta_for((int)$navKey);
 						$navCount = isset($navTab['items']) ? count($navTab['items']) : 0;
+						// Absolute path+hash — bare #anchors break under CP <base href>.
+						$navHref = $epcCfgPageUrl . '#epc-cfg-group-' . (int)$navKey;
 						?>
-						<a href="#epc-cfg-group-<?php echo (int)$navKey; ?>">
+						<a href="<?php echo htmlspecialchars($navHref, ENT_QUOTES, 'UTF-8'); ?>">
 							<i class="fa <?php echo htmlspecialchars($navMeta['icon'], ENT_QUOTES, 'UTF-8'); ?>"></i>
 							<span><?php echo htmlspecialchars((string)$navTab['caption'], ENT_QUOTES, 'UTF-8'); ?> <small style="opacity:.7;">(<?php echo (int)$navCount; ?>)</small></span>
 						</a>
