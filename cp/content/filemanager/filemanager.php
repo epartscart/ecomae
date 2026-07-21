@@ -18,11 +18,11 @@ if ($backend === '') {
 }
 $backendH = htmlspecialchars($backend, ENT_QUOTES, 'UTF-8');
 
-$ver = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'fm3';
+$ver = (function_exists('epc_cp_page_asset_version') ? epc_cp_page_asset_version() : '20260721') . 'fm4';
 $cssPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/filemanager/epc_filemanager.css';
 $jsPath = $_SERVER['DOCUMENT_ROOT'] . '/cp/content/filemanager/epc_filemanager.js';
-$cssVer = is_file($cssPath) ? (string) filemtime($cssPath) : $ver;
-$jsVer = is_file($jsPath) ? (string) filemtime($jsPath) : $ver;
+$cssVer = (is_file($cssPath) ? (string) filemtime($cssPath) : $ver) . 'fm4';
+$jsVer = (is_file($jsPath) ? (string) filemtime($jsPath) : $ver) . 'fm4';
 
 if (function_exists('epc_cp_register_page_assets')) {
 	epc_cp_register_page_assets(

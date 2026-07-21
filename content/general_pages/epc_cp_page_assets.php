@@ -353,13 +353,13 @@ function epc_cp_page_asset_url_map(): array
 			'css' => array(
 				'/' . $backend . '/lib/elfinder/css/elfinder.min.css',
 				'/' . $backend . '/lib/elfinder/css/theme.css',
-				'/' . $backend . '/content/filemanager/epc_filemanager.css?v=' . rawurlencode($ver . 'fm3'),
+				'/' . $backend . '/content/filemanager/epc_filemanager.css?v=' . rawurlencode($ver . 'fm4'),
 			),
 			'js' => array(
 				'/lib/jquery_browser/jquery.browser.js',
 				'/' . $backend . '/lib/elfinder/js/elfinder.min.js',
-				'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver . 'fm3'),
-				'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($ver . 'fm3'),
+				'/' . $backend . '/content/filemanager/epc_filemanager_config.php?v=' . rawurlencode($ver . 'fm4'),
+				'/' . $backend . '/content/filemanager/epc_filemanager.js?v=' . rawurlencode($ver . 'fm4'),
 			),
 		),
 		'shop/prices/upload' => array(

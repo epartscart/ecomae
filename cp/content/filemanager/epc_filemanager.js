@@ -99,15 +99,6 @@
 					csrf_guard_key: csrf
 				}
 			});
-			// elFinder adds class "elfinder" to the mount node itself (not a child).
-			setTimeout(function () {
-				var ok = mount.classList.contains('elfinder')
-					|| mount.querySelector('.elfinder-toolbar')
-					|| mount.querySelector('.elfinder-cwd');
-				if (!ok && !mount.querySelector('.epc-filemanager__error')) {
-					showError('File manager UI failed to render. Refresh and try again.');
-				}
-			}, 800);
 		} catch (err) {
 			showError((err && err.message) ? err.message : 'Unable to start the file manager.');
 		}
