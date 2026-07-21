@@ -204,17 +204,6 @@ function epc_price_upload_channel_definitions(array $config)
 			'test' => 'POST with token + tech_key + price_file; verify history_id in JSON.',
 		],
 		[
-			'id' => 'commerce_spl',
-			'title' => 'Commerce data → *-S / *.P / *-L warehouses',
-			'load_mode' => null,
-			'engine' => 'epc_commerce_price_ingest.php',
-			'cp_url' => '/' . $backend . '/shop/prices/commerce',
-			'config_url' => '/epc-upload-commerce-prices.php',
-			'upload_source' => 'commerce_sales|commerce_purchase|commerce_inventory',
-			'formats' => 'Sales/Purchase/Inventory Excel or CSV',
-			'test' => 'Upload sales CSV → BASE-S list; purchase with margin → SUPPLIER.P; inventory → BASE-L.',
-		],
-		[
 			'id' => 'multivendor',
 			'title' => 'Multi-vendor Excel → auto warehouses (full + short name)',
 			'load_mode' => null,

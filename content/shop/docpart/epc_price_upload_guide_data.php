@@ -92,11 +92,6 @@ function epc_guide_channel_definitions($config)
 		array('title' => 'Cron schedule', 'formats' => 'FTP/email/URL per schedule', 'test' => 'wget cron every minute'),
 		array('title' => 'Deploy API', 'formats' => 'epc-upload-uae-prices.php', 'test' => 'POST price_file + tech_key'),
 		array(
-			'title' => 'Commerce data (sales / purchase / inventory)',
-			'formats' => 'Excel/CSV → *-S (max sales), *.P (supplier+margin), *-L (stock+margin); URL refresh',
-			'test' => 'CP /shop/prices/commerce or POST /epc-upload-commerce-prices.php (refresh_all for cron)',
-		),
-		array(
 			'title' => 'Multi-vendor price upload',
 			'formats' => 'Excel/CSV with Vendor full + Vendor short; data types inventory/sales/purchase; auto warehouse+list per vendor',
 			'test' => 'CP /shop/prices/multivendor (sample CSV) or POST /epc-upload-multivendor-prices.php — short code on storefront, full name in CP only',
