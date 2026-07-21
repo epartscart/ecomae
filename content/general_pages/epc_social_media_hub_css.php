@@ -138,4 +138,42 @@ header('Cache-Control: public, max-age=3600');
 @media (max-width: 768px) {
 	.epc-social-hub .epc-social-grid { grid-template-columns: 1fr; }
 	.epc-social-hub .epc-social-tabs .btn { font-size: 11px; padding: 6px 10px; }
+	.epc-social-hub .epc-social-video-grid--reels { grid-template-columns: 1fr 1fr; }
+}
+
+.epc-social-hub .epc-social-video-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 14px;
+}
+.epc-social-hub .epc-social-video-grid--reels {
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+.epc-social-hub .epc-social-video {
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	overflow: hidden;
+	background: #fff;
+	box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+.epc-social-hub .epc-social-video__player {
+	background: #0f172a;
+}
+.epc-social-hub .epc-social-video video {
+	display: block;
+	width: 100%;
+	max-height: 220px;
+	background: #0f172a;
+}
+.epc-social-hub .epc-social-video--vertical video {
+	max-height: 320px;
+	object-fit: contain;
+}
+.epc-social-hub .epc-social-video__meta {
+	padding: 10px 12px 12px;
+}
+.epc-social-hub .epc-social-video__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
 }

@@ -426,23 +426,30 @@ function epc_social_trending_formats(): array
 {
 	$week = (int) date('W');
 	$formats = array(
-		array('name' => 'Before / After workflow', 'platforms' => 'TikTok, Reels', 'tip' => 'Show manual process vs your platform in 15 seconds.'),
-		array('name' => 'POV operator day', 'platforms' => 'TikTok, Stories', 'tip' => 'Screen-record CP dashboard handling orders + ERP sync.'),
-		array('name' => 'Carousel feature list', 'platforms' => 'Instagram, LinkedIn', 'tip' => '5 slides: pain → solution → proof → CTA → link in bio.'),
-		array('name' => 'Compliance alert', 'platforms' => 'LinkedIn, Facebook', 'tip' => 'UAE VAT / e-invoice or Pakistan FBR angle — timely authority content.'),
-		array('name' => 'Customer quote stitch', 'platforms' => 'TikTok, X', 'tip' => 'Reply to common WhatsApp-quote pain with your B2B portal demo.'),
+		array('name' => 'Before / After workflow', 'platforms' => 'TikTok, Reels', 'tip' => '15s: WhatsApp quoting chaos → one search with crosses + stock.'),
+		array('name' => 'POV parts desk', 'platforms' => 'TikTok, Stories', 'tip' => 'Screen-record article → cross → warehouse → cart in real time.'),
+		array('name' => 'Carousel feature list', 'platforms' => 'Instagram, LinkedIn', 'tip' => '5 slides: pain → search → *** price lock → wholesale approve → CTA.'),
+		array('name' => 'Trade pricing alert', 'platforms' => 'LinkedIn, Facebook', 'tip' => 'Explain guest *** masks + retail instant / wholesale CP approval.'),
+		array('name' => 'Customer quote stitch', 'platforms' => 'TikTok, X', 'tip' => 'Reply to “send price on WhatsApp” with B2B portal / login CTA.'),
 	);
-	return array_slice($formats, $week % 2, 4) + array_slice($formats, 0, 4 - min(4, count($formats) - ($week % 2)));
+	$offset = $week % 2;
+	$slice = array_slice($formats, $offset, 4);
+	if (count($slice) < 4) {
+		$slice = array_merge($slice, array_slice($formats, 0, 4 - count($slice)));
+	}
+	return $slice;
 }
 
 function epc_social_industry_hooks(string $industry, array $brand): array
 {
 	$hooks = array(
 		'auto_parts' => array(
-			'VIN search demo in 10 seconds',
-			'OEM vs aftermarket — educate buyers',
-			'B2B trade account self-service',
-			'Stop WhatsApp quoting — show CP order flow',
+			'VIN / OEM lookup in under 10 seconds',
+			'Cross-reference education for buyers',
+			'Guest *** price lock vs retail unlock',
+			'Wholesale pending → CP approve story',
+			'Stop WhatsApp quoting — show search → cart',
+			'UAE warehouse stock + term transparency (for logged-in buyers)',
 		),
 		'electronics' => array(
 			'Spec comparison carousel',
