@@ -175,6 +175,14 @@ check('getAdminId request-cached', preg_match(
 	$userSrc
 ) === 1);
 
+$leftMenuSrc = (string) file_get_contents($root . '/cp/modules/left_cp_menu/left_cp_menu.php');
+check(
+	'left_cp_menu topnav-only skip does not use eval-aborting return',
+	strpos($leftMenuSrc, 'epc_cp_topnav_only') !== false
+		&& !preg_match('/epc_cp_topnav_only[^\n]*\n[^\n]*\n[^\n]*return\s*;/', $leftMenuSrc)
+		&& strpos($leftMenuSrc, '} // !epc_cp_topnav_only') !== false
+);
+
 $dashSrc = (string) file_get_contents($root . '/cp/content/control/epc_tenant_cp_dashboard.php');
 check(
 	'tenant KPI stats use perf cache',
