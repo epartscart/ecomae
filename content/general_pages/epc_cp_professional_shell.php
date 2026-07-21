@@ -1569,6 +1569,11 @@ function epc_cp_shell_enqueue_assets($includeLoginHero = false)
 		ENT_QUOTES,
 		'UTF-8'
 	) . '" />' . "\n";
+	echo '<link rel="stylesheet" href="' . htmlspecialchars(
+		epc_cp_shell_asset_href($base . 'epc_cp_storefront_topbar.css', '/content/general_pages/epc_cp_storefront_topbar_css.php'),
+		ENT_QUOTES,
+		'UTF-8'
+	) . '" />' . "\n";
 	epc_ecomae_hub_logo_enqueue();
 	if ($includeLoginHero) {
 		epc_cp_login_hero_enqueue();
