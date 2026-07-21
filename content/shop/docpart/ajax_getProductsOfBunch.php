@@ -63,7 +63,11 @@ class ProductsOfBunch//Класс ответа
 			$userProfile = DP_User::getUserProfile();//Профиль пользователя
 			$this->group_id = $userProfile["groups"][0];//Первая группа пользователя. Если у пользователя несколько групп - работаем только с первой
         }
-		
+		// Prefer assigned price-profile group (retail/wholesale/…) when present.
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
+		if (function_exists('epc_pricing_resolve_customer_group_id')) {
+			$this->group_id = epc_pricing_resolve_customer_group_id($db_link, (int) $this->user_id, (int) $this->group_id);
+		}
 		
 		
 		// ------------------------------------------------------------------------
@@ -437,6 +441,21 @@ class ProductsOfBunch//Класс ответа
 							break;
 						}
 					}
+					// CP price-management is authoritative: rebuild sell from purchase
+					// (profile / brand / article / guest). Prevents cost-price leak when map markup is 0.
+					if (function_exists('epc_pricing_apply_sell_from_purchase')) {
+						$epc_sell = epc_pricing_apply_sell_from_purchase(
+							$db_link,
+							(int) $this->group_id,
+							(string) ($this->Products[$i]['manufacturer'] ?? ''),
+							(float) $this->Products[$i]['price_purchase'],
+							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? '')
+						);
+						if (!empty($epc_sell['visible'])) {
+							$this->Products[$i]['price'] = $epc_sell['price'];
+							$this->Products[$i]['markup'] = $epc_sell['markup_percent'];
+						}
+					}
 				}
 				
 				//Для дальнейшей обработки цены
@@ -558,89 +577,67 @@ class ProductsOfBunch//Класс ответа
 				
 				foreach($markups_users_groups as $group_id => $markups_aray)
 				{
-					$work_price = $this->Products[$i]["price_purchase"];//Берем закупочную цену
-					
-					foreach( $markups_aray[$this->Products[$i]["office_id"]][$this->Products[$i]["storage_id"]] AS $markup_range )
-					{
-						if( $work_price >= $markup_range["min_point"] && $work_price <= $markup_range["max_point"] )
-						{
-							//Добавили наценку
-							$work_price = $work_price + $work_price*$markup_range["markup"];
-							
-							// ---------------
-							
-							$work_price = number_format($work_price, 2, '.', '');//Округление по умолчанию
-							
-							//Округление цены
-							if($DP_Config->price_rounding == '1')//Без копеечной части
-							{
-								if($work_price > (int)$work_price)
-								{
-									$work_price = (int)$work_price+1;
-								}
-								else
-								{
-									$work_price = (int)$work_price;
-								}
-							}
-							else if($DP_Config->price_rounding == '2')//До 5 руб
-							{
-								$work_price = (integer)$work_price;
-								$price_str = (string)$work_price;
-								$price_str_last_char = (integer)$price_str[strlen($price_str)-1];
-								if($price_str_last_char > 0 && $price_str_last_char < 5)
-								{
-									$work_price = $work_price + (5 - $price_str_last_char);
-								}
-								else if($price_str_last_char > 5 && $price_str_last_char <= 9)
-								{
-									$work_price = $work_price + (10 - $price_str_last_char);
-								}
-							}
-							else if($DP_Config->price_rounding == '3')//До 10 руб
-							{
-								$work_price = (integer)$work_price;
-								$price_str = (string)$work_price;
-								$price_str_last_char = (integer)$price_str[strlen($price_str)-1];
-								if($price_str_last_char != 0)
-								{
-									$work_price = $work_price + (10 - $price_str_last_char);
-								}
-							}
-							
-							//Строка была добавлена для создания фильтра проценки (для совместимости с JavaScript)
-							$work_price = (float)$work_price;
-							
-							// ---------------
-							
-							//Считаем хеш для защиты от подмены данных на уровне клиента
-							if(!empty($this->Products[$i]["manufacturer_transferred"])){
-								if($this->Products[$i]["product_type"] == 1)
-								{
-									$this->Products[$i]["groups_check_hash"][$group_id] = md5($this->Products[$i]["product_id"].$this->Products[$i]["office_id"].$this->Products[$i]["storage_id"].$this->Products[$i]["storage_record_id"].$work_price.$DP_Config->tech_key);
-								}
-								else
-								{
-									$this->Products[$i]["groups_check_hash"][$group_id] = md5($this->Products[$i]["manufacturer_transferred"].$this->Products[$i]["article"].$this->Products[$i]["article_show"].$this->Products[$i]["name"].$this->Products[$i]["exist"].$work_price.$this->Products[$i]["time_to_exe"].$this->Products[$i]["time_to_exe_guaranteed"].$this->Products[$i]["storage"].$this->Products[$i]["min_order"].$this->Products[$i]["probability"].$this->Products[$i]["office_id"].$this->Products[$i]["storage_id"].$this->Products[$i]["price_purchase"].((int)($markup_range["markup"]*100)).$this->Products[$i]["json_params"].$this->Products[$i]["product_type"].$DP_Config->tech_key);
-								}
-							}else{
-								if($this->Products[$i]["product_type"] == 1)
-								{
-									$this->Products[$i]["groups_check_hash"][$group_id] = md5($this->Products[$i]["product_id"].$this->Products[$i]["office_id"].$this->Products[$i]["storage_id"].$this->Products[$i]["storage_record_id"].$work_price.$DP_Config->tech_key);
-								}
-								else
-								{
-									$this->Products[$i]["groups_check_hash"][$group_id] = md5($this->Products[$i]["manufacturer"].$this->Products[$i]["article"].$this->Products[$i]["article_show"].$this->Products[$i]["name"].$this->Products[$i]["exist"].$work_price.$this->Products[$i]["time_to_exe"].$this->Products[$i]["time_to_exe_guaranteed"].$this->Products[$i]["storage"].$this->Products[$i]["min_order"].$this->Products[$i]["probability"].$this->Products[$i]["office_id"].$this->Products[$i]["storage_id"].$this->Products[$i]["price_purchase"].((int)($markup_range["markup"]*100)).$this->Products[$i]["json_params"].$this->Products[$i]["product_type"].$DP_Config->tech_key);
-								}
-							}
-							
-							// ---------------
-							
-							$this->Products[$i]["groups_price"][$group_id] = $work_price;
-							$this->Products[$i]["groups_markup"][$group_id] = (int)($markup_range["markup"]*100);
-							break;
+					$purchase_base = (float) $this->Products[$i]["price_purchase"];
+					$work_price = $purchase_base;
+					$group_markup_pct = 0;
+					$epc_applied = false;
+					if (function_exists('epc_pricing_apply_sell_from_purchase')) {
+						$epc_sell = epc_pricing_apply_sell_from_purchase(
+							$db_link,
+							(int) $group_id,
+							(string) ($this->Products[$i]['manufacturer'] ?? ''),
+							$purchase_base,
+							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? '')
+						);
+						if (!empty($epc_sell['visible'])) {
+							$work_price = (float) $epc_sell['price'];
+							$group_markup_pct = (int) $epc_sell['markup_percent'];
+							$epc_applied = true;
 						}
 					}
+					if (!$epc_applied) {
+						$ranges = $markups_aray[$this->Products[$i]["office_id"]][$this->Products[$i]["storage_id"]] ?? array();
+						foreach ($ranges as $markup_range) {
+							if ($purchase_base >= $markup_range["min_point"] && $purchase_base <= $markup_range["max_point"]) {
+								$work_price = $purchase_base + $purchase_base * $markup_range["markup"];
+								$group_markup_pct = (int) ($markup_range["markup"] * 100);
+								break;
+							}
+						}
+					}
+
+					$work_price = number_format($work_price, 2, '.', '');
+					if ($DP_Config->price_rounding == '1') {
+						$work_price = ($work_price > (int) $work_price) ? ((int) $work_price + 1) : (int) $work_price;
+					} else if ($DP_Config->price_rounding == '2') {
+						$work_price = (integer) $work_price;
+						$price_str = (string) $work_price;
+						$price_str_last_char = (integer) $price_str[strlen($price_str) - 1];
+						if ($price_str_last_char > 0 && $price_str_last_char < 5) {
+							$work_price = $work_price + (5 - $price_str_last_char);
+						} else if ($price_str_last_char > 5 && $price_str_last_char <= 9) {
+							$work_price = $work_price + (10 - $price_str_last_char);
+						}
+					} else if ($DP_Config->price_rounding == '3') {
+						$work_price = (integer) $work_price;
+						$price_str = (string) $work_price;
+						$price_str_last_char = (integer) $price_str[strlen($price_str) - 1];
+						if ($price_str_last_char != 0) {
+							$work_price = $work_price + (10 - $price_str_last_char);
+						}
+					}
+					$work_price = (float) $work_price;
+
+					$mfr_for_hash = !empty($this->Products[$i]["manufacturer_transferred"])
+						? $this->Products[$i]["manufacturer_transferred"]
+						: $this->Products[$i]["manufacturer"];
+					if ($this->Products[$i]["product_type"] == 1) {
+						$this->Products[$i]["groups_check_hash"][$group_id] = md5($this->Products[$i]["product_id"].$this->Products[$i]["office_id"].$this->Products[$i]["storage_id"].$this->Products[$i]["storage_record_id"].$work_price.$DP_Config->tech_key);
+					} else {
+						$this->Products[$i]["groups_check_hash"][$group_id] = md5($mfr_for_hash.$this->Products[$i]["article"].$this->Products[$i]["article_show"].$this->Products[$i]["name"].$this->Products[$i]["exist"].$work_price.$this->Products[$i]["time_to_exe"].$this->Products[$i]["time_to_exe_guaranteed"].$this->Products[$i]["storage"].$this->Products[$i]["min_order"].$this->Products[$i]["probability"].$this->Products[$i]["office_id"].$this->Products[$i]["storage_id"].$this->Products[$i]["price_purchase"].$group_markup_pct.$this->Products[$i]["json_params"].$this->Products[$i]["product_type"].$DP_Config->tech_key);
+					}
+					$this->Products[$i]["groups_price"][$group_id] = $work_price;
+					$this->Products[$i]["groups_markup"][$group_id] = $group_markup_pct;
 				}
 			}
 		}

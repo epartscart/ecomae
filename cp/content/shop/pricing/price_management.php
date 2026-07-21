@@ -516,6 +516,7 @@ $backend = $DP_Config->backend_dir;
 
 <div class="epc-pm-callout">
 	<strong>How margins stack:</strong> Warehouse base price → <em>Profile overall %</em> → <em>Brand %</em> → <em>Article %</em> → <em>Guest %</em> (visitors only). Each step adds on top of the previous price.
+	<br><strong>Policy:</strong> Guest + Retail default to <strong>40%</strong> markup. B2B (wholesale / CIS / GCC) prices apply only after manager approval and profile assignment. Checkout blocks any line with no positive margin.
 </div>
 
 <div class="epc-pm-callout" style="border-left-color:#0f766e;background:#f0fdfa;">

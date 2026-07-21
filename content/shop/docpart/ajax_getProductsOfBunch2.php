@@ -46,6 +46,10 @@ class ProductsOfBunch//Класс ответа
         $this->user_id = $user_id;//ID пользователя
         $userProfile = DP_User::getUserProfileById($user_id);//Профиль пользователя
         $this->group_id = $userProfile["groups"][0];//Первая группа пользователя. Если у пользователя несколько групп - работаем только с первой
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/pricing/epc_pricing.php';
+		if (function_exists('epc_pricing_resolve_customer_group_id')) {
+			$this->group_id = epc_pricing_resolve_customer_group_id($db_link, (int) $this->user_id, (int) $this->group_id);
+		}
         
 		// ----------------------------------------------------------------------------------------------
         // ----------------------------------------------------------------------------------------------
@@ -295,6 +299,19 @@ class ProductsOfBunch//Класс ответа
 							$this->Products[$i]["price"] = $work_price;
 							$this->Products[$i]["markup"] = (int)($markup_range["markup"]*100);
 							break;
+						}
+					}
+					if (function_exists('epc_pricing_apply_sell_from_purchase')) {
+						$epc_sell = epc_pricing_apply_sell_from_purchase(
+							$db_link,
+							(int) $this->group_id,
+							(string) ($this->Products[$i]['manufacturer'] ?? ''),
+							(float) $this->Products[$i]['price_purchase'],
+							(string) ($this->Products[$i]['article_show'] ?? $this->Products[$i]['article'] ?? '')
+						);
+						if (!empty($epc_sell['visible'])) {
+							$this->Products[$i]['price'] = $epc_sell['price'];
+							$this->Products[$i]['markup'] = $epc_sell['markup_percent'];
 						}
 					}
 				}
