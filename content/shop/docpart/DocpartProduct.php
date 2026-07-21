@@ -133,13 +133,30 @@ class DocpartProduct
 					$epc_db->query("SET NAMES utf8;");
 				}
 				// Apply CP price-management stack from warehouse purchase (not pre-mapped sell).
+				// Includes supplier → supplier brand → supplier article → profile stack.
+				$epc_storage_id = (int) $storage_id;
 				if (function_exists('epc_pricing_apply_sell_from_purchase')) {
-					$epc_sell = epc_pricing_apply_sell_from_purchase($epc_db, $epc_customer_group_id, $manufacturer, $price_purchase, $article);
+					$epc_sell = epc_pricing_apply_sell_from_purchase(
+						$epc_db,
+						$epc_customer_group_id,
+						$manufacturer,
+						$price_purchase,
+						$article,
+						$epc_storage_id
+					);
 					$epc_price_profile_visible = !empty($epc_sell['visible']);
 					$price = $epc_sell['price'];
 					$markup = $epc_sell['markup_decimal'];
 				} else {
-					$epc_rule_result = epc_pricing_apply_brand_rule($epc_db, $epc_customer_group_id, $manufacturer, $price_purchase, 0.0, $article);
+					$epc_rule_result = epc_pricing_apply_brand_rule(
+						$epc_db,
+						$epc_customer_group_id,
+						$manufacturer,
+						$price_purchase,
+						0.0,
+						$article,
+						$epc_storage_id
+					);
 					$epc_price_profile_visible = $epc_rule_result["visible"];
 					$price = $epc_rule_result["price"];
 					$markup = $epc_rule_result["markup_decimal"];

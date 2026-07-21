@@ -107,7 +107,14 @@ $SQL_currency_rate = "(SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (
 				if (function_exists('epc_pricing_apply_sell_from_purchase')) {
 					$epc_brand = (string) ($product['manufacturer'] ?? '');
 					$epc_article = (string) ($product['article'] ?? $product['article_show'] ?? '');
-					$epc_sell = epc_pricing_apply_sell_from_purchase($db_link, (int) $group_id, $epc_brand, $purchase_price, $epc_article);
+					$epc_sell = epc_pricing_apply_sell_from_purchase(
+						$db_link,
+						(int) $group_id,
+						$epc_brand,
+						$purchase_price,
+						$epc_article,
+						(int) $storage_id
+					);
 					if (!empty($epc_sell['visible']) && (float) $epc_sell['price'] > 0) {
 						$price = (float) $epc_sell['price'];
 					}

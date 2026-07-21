@@ -150,7 +150,7 @@ function epc_oms_lookup_warehouse_offer(PDO $db, int $storageId, string $brand, 
 	$sell = $purchase;
 	$markupPct = 0;
 	if (function_exists('epc_pricing_apply_sell_from_purchase') && $groupId > 0) {
-		$priced = epc_pricing_apply_sell_from_purchase($db, $groupId, $offerBrand, $purchase, $offerArticle);
+		$priced = epc_pricing_apply_sell_from_purchase($db, $groupId, $offerBrand, $purchase, $offerArticle, (int) $storageId);
 		if (!empty($priced['visible'])) {
 			$sell = round((float) $priced['price'], 2);
 			$markupPct = (int) ($priced['markup_percent'] ?? 0);

@@ -37,7 +37,7 @@ function epc_cpg_item_label($caption)
 function epc_cpg_page_hints()
 {
 	return array(
-		'/shop/price-management' => 'Customer profiles (Retail, Wholesale…), guest margin, brand & article pricing rules, VAT. Includes live demo calculator.',
+		'/shop/price-management' => 'Supplier/warehouse margins (overall → brand → article), customer profiles, guest margin, brand & article rules, VAT. Live calculator.',
 		'/shop/prices/guide' => 'Step-by-step: upload CSV price lists, multi-vendor Excel, map columns, import to warehouse stock.',
 		'/shop/prices/prices_edit' => 'Browse imported price rows, preview site price per customer profile, edit lines.',
 		'/shop/prices' => 'Price list manager — upload, schedule, and monitor supplier price files.',

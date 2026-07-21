@@ -61,6 +61,42 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS `epc_price_settings` (
     PRIMARY KEY (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS `epc_price_storage_rules` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `storage_id` int(11) NOT NULL,
+    `margin_percent` decimal(10,2) NOT NULL DEFAULT 0.00,
+    `visible` tinyint(1) NOT NULL DEFAULT 1,
+    `updated_at` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `x_storage` (`storage_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS `epc_price_storage_brand_rules` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `storage_id` int(11) NOT NULL,
+    `manufacturer` varchar(255) NOT NULL,
+    `margin_percent` decimal(10,2) NOT NULL DEFAULT 0.00,
+    `visible` tinyint(1) NOT NULL DEFAULT 1,
+    `updated_at` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `x_storage_brand` (`storage_id`, `manufacturer`),
+    KEY `x_manufacturer` (`manufacturer`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS `epc_price_storage_article_rules` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `storage_id` int(11) NOT NULL,
+    `manufacturer` varchar(255) NOT NULL,
+    `article` varchar(64) NOT NULL,
+    `margin_percent` decimal(10,2) NOT NULL DEFAULT 0.00,
+    `visible` tinyint(1) NOT NULL DEFAULT 1,
+    `updated_at` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `x_storage_brand_article` (`storage_id`, `manufacturer`, `article`),
+    KEY `x_article` (`article`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+echo "OK storage pricing tables\n";
+
 $now = time();
 $profiles = array(
     'retail' => array('EPC_PROFILE_RETAIL', 'Retail', 'Retail'),
