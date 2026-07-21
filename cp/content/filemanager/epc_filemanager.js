@@ -90,7 +90,7 @@
 		mount.innerHTML = '';
 
 		try {
-			var inst = $('#elfinder').elfinder({
+			$('#elfinder').elfinder({
 				url: connectorUrl,
 				lang: cfg.lang || 'en',
 				height: cfg.height || 560,
@@ -99,14 +99,15 @@
 					csrf_guard_key: csrf
 				}
 			});
-			if (!inst || !inst.length || !mount.querySelector('.elfinder')) {
-				// Some elFinder builds throw asynchronously on $.browser — surface that.
-				setTimeout(function () {
-					if (!mount.querySelector('.elfinder')) {
-						showError('File manager UI failed to render. Check that jQuery.browser is available.');
-					}
-				}, 500);
-			}
+			// elFinder adds class "elfinder" to the mount node itself (not a child).
+			setTimeout(function () {
+				var ok = mount.classList.contains('elfinder')
+					|| mount.querySelector('.elfinder-toolbar')
+					|| mount.querySelector('.elfinder-cwd');
+				if (!ok && !mount.querySelector('.epc-filemanager__error')) {
+					showError('File manager UI failed to render. Refresh and try again.');
+				}
+			}, 800);
 		} catch (err) {
 			showError((err && err.message) ? err.message : 'Unable to start the file manager.');
 		}
