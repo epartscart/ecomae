@@ -15,6 +15,54 @@ if (!defined('_ASTEXE_')) {
 }
 
 require_once $root . '/config.php';
+$DP_Config = new DP_Config();
+$GLOBALS['DP_Config'] = $DP_Config;
+
+// Tenant DB overlay (same host may map to different schemas).
+$tenantFile = $root . '/config.tenant-host-db.php';
+if (is_file($tenantFile)) {
+	$epc_tenant_host_db = null;
+	require $tenantFile;
+	$host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+	if (strpos($host, ':') !== false) {
+		$host = explode(':', $host, 2)[0];
+	}
+	if (isset($epc_tenant_host_db) && is_array($epc_tenant_host_db) && isset($epc_tenant_host_db[$host])) {
+		foreach (array('db', 'user', 'password', 'host') as $epcTk) {
+			if (!empty($epc_tenant_host_db[$host][$epcTk]) && property_exists($DP_Config, $epcTk)) {
+				$DP_Config->$epcTk = $epc_tenant_host_db[$host][$epcTk];
+			}
+		}
+	}
+}
+if (is_file($root . '/content/general_pages/epc_portal.php')) {
+	require_once $root . '/content/general_pages/epc_portal.php';
+	if (function_exists('epc_portal_apply_config')) {
+		try {
+			epc_portal_apply_config($DP_Config);
+		} catch (Throwable $e) {
+		}
+		$GLOBALS['DP_Config'] = $DP_Config;
+	}
+}
+
+try {
+	$dbHost = trim((string) ($DP_Config->host ?? ''));
+	if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+		$dbHost = '127.0.0.1';
+	}
+	$db_link = new PDO(
+		'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8mb4',
+		(string) $DP_Config->user,
+		(string) $DP_Config->password,
+		array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+	);
+	$GLOBALS['db_link'] = $db_link;
+} catch (Throwable $e) {
+	echo json_encode(array('ok' => false, 'error' => 'No database'));
+	exit;
+}
+
 require_once $root . '/content/users/dp_user.php';
 require_once $root . '/content/shop/catalogue/epc_sku_media.php';
 
