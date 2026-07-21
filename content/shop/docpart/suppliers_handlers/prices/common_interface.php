@@ -11,6 +11,10 @@ $epcMvMinAcl = $_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_multivendor_
 if (is_file($epcMvMinAcl)) {
 	require_once $epcMvMinAcl;
 }
+$epcPriceExtras = $_SERVER["DOCUMENT_ROOT"]."/content/shop/docpart/epc_price_extra_fields.php";
+if (is_file($epcPriceExtras)) {
+	require_once $epcPriceExtras;
+}
 
 //Конфигурация Treelax
 require_once($_SERVER["DOCUMENT_ROOT"]."/config.php");
@@ -296,6 +300,9 @@ class prices_enclosure
 						}
 
   					//Создаем объек товара и добавляем его в список:
+						$epc_json_params = function_exists('epc_price_extra_json_params')
+							? epc_price_extra_json_params($db_link, (int) $product_price_id, (string) $product["manufacturer"], (string) $product["article_show"])
+							: '';
 						$DocpartProduct = new DocpartProduct(
 							$product["manufacturer"], //OK
 							$product["article_show"], //OK
@@ -320,7 +327,7 @@ class prices_enclosure
 							0,
 							0,
 							'',
-							null,
+							$epc_json_params !== '' ? $epc_json_params : null,
 							array("rate" => $office_storage_dataInfo_price_id["rate"]) //OK
 						);
 	
@@ -443,6 +450,9 @@ class prices_enclosure
 					}
 
 					//Создаем объек товара и добавляем его в список:
+					$epc_json_params = function_exists('epc_price_extra_json_params')
+						? epc_price_extra_json_params($db_link, (int) $product_price_id, (string) $product["manufacturer"], (string) $product["article_show"])
+						: '';
 					$DocpartProduct = new DocpartProduct(
 						$product["manufacturer"], //OK
 						$product["article_show"], //OK
@@ -467,7 +477,7 @@ class prices_enclosure
 						0,
 						0,
 						'',
-						null,
+						$epc_json_params !== '' ? $epc_json_params : null,
 						array("rate" => $office_storage_dataInfo_price_id["rate"]) //OK
 					);
 
@@ -648,6 +658,9 @@ class prices_enclosure
 				: (string) ($product['storage'] ?? '');
 			
 			//Создаем объек товара и добавляем его в список:
+			$epc_json_params = function_exists('epc_price_extra_json_params')
+				? epc_price_extra_json_params($db_link, (int) ($product['price_id'] ?? 0), (string) $product["manufacturer"], (string) $product["article_show"])
+				: '';
 			$DocpartProduct = new DocpartProduct($product["manufacturer"],
 				$product["article_show"],
 				$product["name"],
@@ -665,7 +678,7 @@ class prices_enclosure
 				$product["storage_caption"],
 				$product["price"],
 				$product["markup"],
-				2,0,0,'',null,array('rate' => $product["rate"], 'search_name' => 1)
+				2,0,0,'',$epc_json_params !== '' ? $epc_json_params : null,array('rate' => $product["rate"], 'search_name' => 1)
 				);
 			
 			if($DocpartProduct->valid == true)

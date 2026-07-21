@@ -905,15 +905,33 @@ defined('_ASTEXE_') or die('No access');
 	.epc-header-search .header_search_form_2,
 	.epc-header-search .header_search_form_3,
 	.epc-header-search .header_search_form_engine,
-	.epc-header-search .header_search_form_car {
+	.epc-header-search .header_search_form_car,
+	.epc-header-search .header_search_form_attr {
 		display: none !important;
 	}
 	.epc-header-search[data-active-mode="1"] .header_search_form_1,
 	.epc-header-search[data-active-mode="2"] .header_search_form_2,
 	.epc-header-search[data-active-mode="3"] .header_search_form_3,
 	.epc-header-search[data-active-mode="engine"] .header_search_form_engine,
-	.epc-header-search[data-active-mode="car"] .header_search_form_car {
+	.epc-header-search[data-active-mode="car"] .header_search_form_car,
+	.epc-header-search[data-active-mode="attr"] .header_search_form_attr {
 		display: block !important;
+	}
+	.epc-header-search__attr-row {
+		align-items: stretch;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: 8px 10px 10px;
+	}
+	.epc-header-search__attr-field {
+		flex: 0 0 160px;
+		max-width: 100%;
+		min-height: 40px;
+	}
+	.epc-header-search__attr-row .input-group {
+		flex: 1 1 180px;
+		min-width: 0;
 	}
 	.epc-header-search__tab {
 		cursor: pointer;
@@ -5475,7 +5493,8 @@ defined('_ASTEXE_') or die('No access');
 			'2': '.header_search_form_2',
 			'3': '.header_search_form_3',
 			'engine': '.header_search_form_engine',
-			'car': '.header_search_form_car'
+			'car': '.header_search_form_car',
+			'attr': '.header_search_form_attr'
 		};
 		Object.keys(map).forEach(function (key) {
 			var nodes = root.querySelectorAll(map[key]);
@@ -5529,6 +5548,19 @@ defined('_ASTEXE_') or die('No access');
 		input.value = code;
 		if (code.length < 2 || code.length > 12) {
 			window.alert('Enter a valid engine code (2–12 characters, e.g. 3L, 12R, 5L).');
+			input.focus();
+			return false;
+		}
+		return true;
+	};
+	window.epcHeaderAttrSubmit = function (form) {
+		if (!form) { return false; }
+		var input = form.querySelector('input[name="q"]');
+		if (!input) { return true; }
+		var q = String(input.value || '').replace(/\s+/g, ' ').trim();
+		input.value = q;
+		if (q.replace(/\s+/g, '').length < 2) {
+			window.alert('Enter at least 2 characters to search product information.');
 			input.focus();
 			return false;
 		}
