@@ -10,6 +10,18 @@
 */
 defined('_ASTEXE_') or die('No access');
 
+$epcOrdersGuard = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_tenant_data_guard.php';
+if (is_file($epcOrdersGuard)) {
+	require_once $epcOrdersGuard;
+	if (function_exists('epc_tenant_data_guard_active') && epc_tenant_data_guard_active()) {
+		echo epc_tenant_data_guard_banner('orders');
+		echo '<div class="hpanel"><div class="panel-body"><p class="text-muted" style="margin:0">'
+			. 'No orders are shown while this tenant shares the platform commerce database.'
+			. '</p></div></div>';
+		return;
+	}
+}
+
 function str_replace_once($search, $replace, $text) 
 { 
    $pos = strpos($text, $search); 

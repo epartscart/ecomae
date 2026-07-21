@@ -41,6 +41,14 @@ function epc_tcp_dash_stats(PDO $db): array
 			'day_labels' => array(),
 			'day_counts' => array(),
 		);
+		$guardFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_tenant_data_guard.php';
+		if (is_file($guardFile)) {
+			require_once $guardFile;
+			if (function_exists('epc_tenant_data_guard_active') && epc_tenant_data_guard_active()) {
+				// Do not count shared spare-parts orders while degraded on docpart.
+				return $stats;
+			}
+		}
 		try {
 			$stats['orders_today'] = (int) $db->query(
 				'SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND `time` >= UNIX_TIMESTAMP(CURDATE())'

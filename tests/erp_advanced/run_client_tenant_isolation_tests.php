@@ -42,7 +42,7 @@ check('taxofinca must NOT share', !epc_portal_client_may_share_docpart('www.taxo
 check('electronicae must NOT share', !epc_portal_client_may_share_docpart('www.electronicae.com'));
 check('stylenlook must NOT share', !epc_portal_client_may_share_docpart('www.stylenlook.com'));
 
-echo "\n== Fail-closed resolve_tenant_db ==\n";
+echo "\n== Degraded shared-docpart containment ==\n";
 class EpcIsoFakeConfig
 {
 	public $db = 'docpart';
@@ -52,24 +52,29 @@ class EpcIsoFakeConfig
 	public $epc_tenant_db_isolation_error = '';
 }
 
-$_SERVER['HTTP_HOST'] = 'www.taxofinca.com';
-unset($GLOBALS['epc_tenant_db_isolation_error']);
+$_SERVER['HTTP_HOST'] = 'www.electronicae.com';
+unset($GLOBALS['epc_tenant_db_isolation_error'], $GLOBALS['epc_tenant_db_degraded_shared']);
 $cfg = new EpcIsoFakeConfig();
 epc_portal_resolve_tenant_db($cfg);
-check('taxofinca clears db name', (string) $cfg->db === '');
-check('taxofinca clears user', (string) $cfg->user === '');
-check('taxofinca clears password', (string) $cfg->password === '');
-check('taxofinca sets isolation error flag', (string) ($GLOBALS['epc_tenant_db_isolation_error'] ?? '') !== '');
+check('non-eparts on docpart keeps bind (site stays up)', (string) $cfg->db === 'docpart');
+check('non-eparts on docpart marks degraded', !empty($GLOBALS['epc_tenant_db_degraded_shared']));
+check('degraded helper true', function_exists('epc_portal_tenant_db_is_degraded_shared') && epc_portal_tenant_db_is_degraded_shared());
 
 $_SERVER['HTTP_HOST'] = 'www.epartscart.com';
-unset($GLOBALS['epc_tenant_db_isolation_error']);
+unset($GLOBALS['epc_tenant_db_isolation_error'], $GLOBALS['epc_tenant_db_degraded_shared']);
 $cfg2 = new EpcIsoFakeConfig();
-$cfg2->db = '';
-$cfg2->user = '';
-$cfg2->password = '';
-// Without live MySQL credentials this may stay empty — but must NOT trip isolation error.
 epc_portal_resolve_tenant_db($cfg2);
-check('epartscart does not set isolation error', empty($GLOBALS['epc_tenant_db_isolation_error']));
+check('epartscart is not degraded', empty($GLOBALS['epc_tenant_db_degraded_shared']));
+
+require_once $root . '/content/general_pages/epc_tenant_data_guard.php';
+$_SERVER['HTTP_HOST'] = 'www.stylenlook.com';
+$GLOBALS['epc_tenant_db_degraded_shared'] = true;
+$GLOBALS['DP_Config'] = (object) array('db' => 'docpart');
+check('data guard active when degraded', epc_tenant_data_guard_active());
+$GLOBALS['epc_tenant_db_degraded_shared'] = false;
+$_SERVER['HTTP_HOST'] = 'www.epartscart.com';
+$GLOBALS['DP_Config'] = (object) array('db' => 'docpart');
+check('data guard inactive for epartscart', !epc_tenant_data_guard_active());
 
 echo "\n== Ops scripts no longer force clients onto docpart ==\n";
 $modelc = (string) file_get_contents($root . '/epc-tenant-modelc-db.php');

@@ -779,18 +779,17 @@ function epc_portal_site_profile()
 			$profile['db'] = (string) $runtimeOverride['db'];
 			$profile['user'] = (string) $runtimeOverride['user'];
 			$profile['password'] = (string) $runtimeOverride['password'];
-		} elseif ($allowSharedDocpart) {
+		} else {
+			// Temporary degraded bind for clients not yet isolated (orders/bank must refuse).
 			$resolved = epc_portal_resolve_tenant_db_credentials();
 			$profile['db'] = $resolved['db'];
 			$profile['user'] = $resolved['user'];
 			$profile['password'] = $resolved['password'];
-		} else {
-			// Fail closed — do not advertise docpart credentials on non–eParts tenants.
-			$profile['db'] = '';
-			$profile['user'] = '';
-			$profile['password'] = '';
-			$profile['dedicated_db'] = 1;
-			$profile['scale_policy'] = 'dedicated_mysql';
+			if (!$allowSharedDocpart && strtolower((string) $resolved['db']) === 'docpart') {
+				$profile['dedicated_db'] = 0;
+				$profile['scale_policy'] = 'shared_docpart';
+				$profile['db_isolation'] = 'degraded_shared_docpart';
+			}
 		}
 	}
 	// Industry wildcard subdomains — use resolved industry from bootstrap

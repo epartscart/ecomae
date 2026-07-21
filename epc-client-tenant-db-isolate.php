@@ -34,6 +34,22 @@ require_once __DIR__ . '/content/general_pages/epc_portal_tenant_control.php';
 require_once __DIR__ . '/content/general_pages/epc_portal_demo.php';
 require_once __DIR__ . '/content/general_pages/epc_cloudpanel_helpers.php';
 
+// Prefer taxofinca first when isolating all clients (active privacy complaint).
+function epc_cti_sort_keys(array $keys): array
+{
+	$keys = array_values(array_unique($keys));
+	usort($keys, static function (string $a, string $b): int {
+		$prio = array('taxofinca' => 0, 'electronicae' => 1, 'stylenlook' => 2, 'thejewellerytrend' => 3);
+		$pa = $prio[$a] ?? 50;
+		$pb = $prio[$b] ?? 50;
+		if ($pa === $pb) {
+			return strcmp($a, $b);
+		}
+		return $pa <=> $pb;
+	});
+	return $keys;
+}
+
 $apply = !empty($_GET['apply']) || !empty($_POST['apply']);
 $allClients = !empty($_GET['all_clients']) || !empty($_POST['all_clients']);
 $siteKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim((string) ($_GET['site_key'] ?? $_POST['site_key'] ?? ''))));
@@ -260,35 +276,44 @@ function epc_cti_isolate_one(PDO $platformPdo, string $siteKey, bool $apply, str
 	if ($clpPass === '') {
 		$clpPass = epc_portal_demo_clp_password();
 	}
-	if ($clpPass === '') {
-		return array('ok' => false, 'message' => 'clp_pass_required ' . $msg);
-	}
-
-	$cookie = '';
-	$login = epc_clp_web_login('admin', $clpPass, $cookie, true);
-	if (empty($login['ok'])) {
-		return array('ok' => false, 'message' => 'clp_login_failed ' . $msg);
-	}
 
 	if (!epc_cti_connects($desiredDb, $desiredUser, $desiredPass)) {
 		if ($currentPass !== '' && epc_cti_connects($desiredDb, $desiredUser, $currentPass)) {
 			$desiredPass = $currentPass;
 		} else {
-			$created = epc_clp_web_add_database($cookie, 'www.ecomae.com', $desiredDb, $desiredUser, $desiredPass);
-			$ok = false;
-			for ($i = 0; $i < 15; $i++) {
-				if ($i > 0) {
-					sleep(2);
-				}
-				if (epc_cti_connects($desiredDb, $desiredUser, $desiredPass)) {
-					$ok = true;
-					break;
+			$createLog = array();
+			// 1) Full provision helper (clp web + clpctl + mysql/sudo + platform PDO grants)
+			if (function_exists('epc_portal_demo_provision_database_raw')) {
+				$raw = epc_portal_demo_provision_database_raw($desiredDb, $desiredUser, $desiredPass);
+				$createLog['raw_provision'] = array(
+					'ok' => !empty($raw['ok']),
+					'hint' => (string) ($raw['hint'] ?? ''),
+					'log_tail' => array_slice((array) ($raw['log'] ?? array()), -6),
+				);
+			}
+			// 2) Pre-seeded demo pool (temporary dedicated DB when CREATE is blocked)
+			if (!epc_cti_connects($desiredDb, $desiredUser, $desiredPass)
+				&& function_exists('epc_portal_demo_pool_claim')
+			) {
+				$claimed = epc_portal_demo_pool_claim($platformPdo, $siteKey);
+				if (is_array($claimed) && !empty($claimed['db_name'])) {
+					$desiredDb = (string) $claimed['db_name'];
+					$desiredUser = (string) ($claimed['db_user'] ?? $desiredDb);
+					$desiredPass = (string) ($claimed['db_password'] ?? '');
+					$createLog['pool_claim'] = array(
+						'db' => $desiredDb,
+						'user' => $desiredUser,
+						'pool_id' => (int) ($claimed['pool_id'] ?? 0),
+					);
+				} else {
+					$createLog['pool_claim'] = 'none_ready';
 				}
 			}
+			$ok = epc_cti_connects($desiredDb, $desiredUser, $desiredPass);
 			if (!$ok) {
 				return array(
 					'ok' => false,
-					'message' => 'db_create_failed ' . $msg . ' log=' . json_encode($created['log'] ?? array()),
+					'message' => 'db_create_failed ' . $msg . ' log=' . json_encode($createLog),
 				);
 			}
 		}
@@ -384,6 +409,7 @@ if ($allClients) {
 } else {
 	exit("site_key=... or all_clients=1 required\n");
 }
+$keys = epc_cti_sort_keys($keys);
 
 if ($clpPass === '') {
 	$clpPass = epc_portal_demo_clp_password();

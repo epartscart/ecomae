@@ -327,23 +327,22 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 			$pass = (string) $tenant['password'];
 			$usesDedicated = true;
 		} elseif (
-			$allowSharedDocpart
-			&& $tenant !== null
+			$tenant !== null
 			&& !empty($tenant['user'])
 			&& isset($tenant['password'])
 			&& (string) $tenant['password'] !== ''
 			&& (string) ($tenant['db'] ?? '') === 'docpart'
 		) {
+			// Registry still points at docpart — allowed for epartscart; degraded for others.
 			$db = (string) $tenant['db'];
 			$user = (string) $tenant['user'];
 			$pass = (string) $tenant['password'];
 		}
 	}
 
-	// Legacy Model C: ONLY epartscart may fall back to shared docpart.
-	// Silent fallback for taxofinca/etc. caused spare-parts orders + bank data to appear
-	// on unrelated tenant CPs.
-	if ($allowSharedDocpart && $pass === '' && !$usesDedicated) {
+	// Legacy Model C shared-docpart fallback (epartscart), or temporary degraded bind
+	// for clients not yet migrated off docpart (orders/bank UIs must refuse shared rows).
+	if ($pass === '' && !$usesDedicated) {
 		$resolved = epc_portal_resolve_tenant_db_credentials();
 		if ($resolved['password'] !== '') {
 			$db = (string) $resolved['db'];
@@ -351,22 +350,21 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 			$pass = (string) $resolved['password'];
 		}
 	}
-	if ($allowSharedDocpart && ($pass === '' || $db === '' || $user === '') && !$usesDedicated) {
+	if (($pass === '' || $db === '' || $user === '') && !$usesDedicated) {
 		$resolved = epc_portal_resolve_tenant_db_credentials();
 		$db = $resolved['db'];
 		$user = $resolved['user'];
 		$pass = $resolved['password'];
 	}
 
-	// Fail closed: non–eParts client with no dedicated credentials must not bind docpart.
-	if (!$allowSharedDocpart && (strtolower(trim($db)) === 'docpart' || $db === '' || $user === '' || $pass === '')) {
-		$db = '';
-		$user = '';
-		$pass = '';
+	// Mark non–eParts clients still on docpart as degraded (containment until isolate).
+	$GLOBALS['epc_tenant_db_degraded_shared'] = false;
+	if (!$allowSharedDocpart && strtolower(trim($db)) === 'docpart') {
+		$GLOBALS['epc_tenant_db_degraded_shared'] = true;
+		$GLOBALS['epc_tenant_db_isolation_error'] = 'degraded_shared_docpart:' . $host;
 		if (property_exists($DP_Config, 'epc_tenant_db_isolation_error')) {
-			$DP_Config->epc_tenant_db_isolation_error = 'dedicated_db_required';
+			$DP_Config->epc_tenant_db_isolation_error = 'degraded_shared_docpart';
 		}
-		$GLOBALS['epc_tenant_db_isolation_error'] = 'dedicated_db_required:' . $host;
 	}
 
 	if (property_exists($DP_Config, 'db')) {
@@ -382,6 +380,14 @@ function epc_portal_resolve_tenant_db($DP_Config): void
 	if (property_exists($DP_Config, 'host')) {
 		$DP_Config->host = 'localhost';
 	}
+}
+
+/**
+ * True when this client host is temporarily still on shared docpart (must hide orders/bank).
+ */
+function epc_portal_tenant_db_is_degraded_shared(): bool
+{
+	return !empty($GLOBALS['epc_tenant_db_degraded_shared']);
 }
 
 /**
