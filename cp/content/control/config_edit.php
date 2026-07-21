@@ -125,15 +125,16 @@ else//Если нет перехода после нажатия "Сохрани
 	//Для работы с пользователем
 	require_once( $_SERVER['DOCUMENT_ROOT']."/content/users/dp_user.php" );
 	$user_session = DP_User::getAdminSession();
+	// CP pages are eval()'d from core — never use __DIR__ for local requires.
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_frame.php");
 	require_once($_SERVER['DOCUMENT_ROOT']."/content/general_pages/epc_cp_page_assets.php");
-	require_once(__DIR__ . "/epc_config_edit_meta.php");
 
-	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg1';
+	$epcCfgAssetVer = epc_cp_page_asset_version() . 'cfg2';
 	$epcCfgBackend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 	if ($epcCfgBackend === '') {
 		$epcCfgBackend = 'cp';
 	}
+	require_once($_SERVER['DOCUMENT_ROOT']."/".$epcCfgBackend."/content/control/epc_config_edit_meta.php");
 	epc_cp_register_page_assets(
 		array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($epcCfgAssetVer)),
 		array('/' . $epcCfgBackend . '/content/control/epc_config_edit.js?v=' . rawurlencode($epcCfgAssetVer))
