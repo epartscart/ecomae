@@ -63,18 +63,18 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/control/portal/epc_platform_health_checkup.js?v=' . rawurlencode($ver),
 			),
 		),
-		'control/portal/epc_web_tracker' => array(
-			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt3')),
+		'shop/statistics/web_tracker' => array(
+			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt6')),
 			'js' => array(
-				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt3'),
-				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt3'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt6'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt6'),
 			),
 		),
-		'shop/statistics/web_tracker' => array(
-			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt3')),
+		'control/portal/epc_web_tracker' => array(
+			'css' => array('/content/general_pages/epc_web_tracker_cp_css.php?v=' . rawurlencode($ver . 'wt6')),
 			'js' => array(
-				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt3'),
-				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt3'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_config.php?v=' . rawurlencode($ver . 'wt6'),
+				'/' . $backend . '/content/control/portal/epc_web_tracker_cp.js?v=' . rawurlencode($ver . 'wt6'),
 			),
 		),
 		'control/portal/epc_power_bi' => array(

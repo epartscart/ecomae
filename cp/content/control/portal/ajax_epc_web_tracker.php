@@ -80,6 +80,7 @@ if (!$isSuper && function_exists('epc_portal_is_super_cp_host') && epc_portal_is
 $action = (string) ($_GET['action'] ?? $_POST['action'] ?? 'dashboard');
 $siteKey = preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) ($_GET['site_key'] ?? $_POST['site_key'] ?? '')));
 $range = epc_web_tracker_range_from_request();
+$filters = epc_web_tracker_filters_from_request();
 
 if (!$isSuper) {
 	$own = epc_web_tracker_resolve_site_key();
@@ -113,7 +114,8 @@ try {
 			$all ? '_all' : $siteKey,
 			$range['from'],
 			$range['to'],
-			$all
+			$all,
+			$filters
 		);
 		$label = $all ? 'all' : preg_replace('/[^a-z0-9_\-]/', '', $siteKey);
 		$fname = 'web-tracker-' . $label . '-' . date('Ymd', $range['from']) . '-' . date('Ymd', $range['to']) . '.csv';
@@ -126,12 +128,13 @@ try {
 		exit;
 	}
 
-	$data = epc_web_tracker_dashboard($pdo, $all ? '_all' : $siteKey, $range['from'], $range['to'], $all);
+	$data = epc_web_tracker_dashboard($pdo, $all ? '_all' : $siteKey, $range['from'], $range['to'], $all, $filters);
 	exit(json_encode(array(
 		'ok' => true,
 		'site_key' => $all ? '_all' : $siteKey,
 		'from' => $range['from'],
 		'to' => $range['to'],
+		'filters' => $filters,
 		'is_super' => $isSuper,
 		'db' => $dbLabel,
 		'data' => $data,

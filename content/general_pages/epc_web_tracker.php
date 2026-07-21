@@ -644,17 +644,135 @@ function epc_web_tracker_range_from_request(): array
 }
 
 /**
+ * Optional dashboard filters from request (device, country, IP, user, path, who).
+ *
+ * @return array{device:string,country:string,ip:string,user_id:string,user_type:string,path:string,browser:string}
+ */
+function epc_web_tracker_filters_from_request(): array
+{
+	$src = array_merge($_GET, $_POST);
+	$device = strtolower(trim((string) ($src['device'] ?? $src['device_type'] ?? '')));
+	$device = preg_replace('/[^a-z0-9_\-]/', '', $device);
+	if (!in_array($device, array('desktop', 'mobile', 'tablet'), true)) {
+		$device = '';
+	}
+	$country = strtoupper(trim((string) ($src['country'] ?? $src['country_code'] ?? '')));
+	$country = preg_replace('/[^A-Z0-9]/', '', $country);
+	if (strlen($country) > 8) {
+		$country = substr($country, 0, 8);
+	}
+	$ip = trim((string) ($src['ip'] ?? ''));
+	$ip = preg_replace('/[^0-9a-fA-F:\.]/', '', $ip);
+	if (strlen($ip) > 45) {
+		$ip = substr($ip, 0, 45);
+	}
+	$userId = trim((string) ($src['user_id'] ?? $src['user'] ?? ''));
+	$userId = preg_replace('/[^0-9]/', '', $userId);
+	if (strlen($userId) > 12) {
+		$userId = substr($userId, 0, 12);
+	}
+	$userType = strtolower(trim((string) ($src['user_type'] ?? $src['who'] ?? '')));
+	if (!in_array($userType, array('guest', 'registered', 'reg'), true)) {
+		$userType = '';
+	}
+	if ($userType === 'reg') {
+		$userType = 'registered';
+	}
+	$path = trim((string) ($src['path'] ?? $src['page'] ?? ''));
+	$path = str_replace(array("\0", "\r", "\n"), '', $path);
+	if (strlen($path) > 200) {
+		$path = substr($path, 0, 200);
+	}
+	$browser = trim((string) ($src['browser'] ?? ''));
+	$browser = preg_replace('/[^a-zA-Z0-9 _\-\.]/', '', $browser);
+	if (strlen($browser) > 40) {
+		$browser = substr($browser, 0, 40);
+	}
+	return array(
+		'device' => (string) $device,
+		'country' => (string) $country,
+		'ip' => (string) $ip,
+		'user_id' => (string) $userId,
+		'user_type' => (string) $userType,
+		'path' => (string) $path,
+		'browser' => (string) $browser,
+	);
+}
+
+/**
+ * Build AND clauses for epc_web_tracker_sessions columns.
+ *
+ * @param array<string,string> $filters
+ * @return array{sql:string,params:array<int,mixed>,active:bool}
+ */
+function epc_web_tracker_session_filter_sql(array $filters, string $alias = ''): array
+{
+	$col = static function (string $name) use ($alias): string {
+		return $alias !== '' ? ($alias . '.`' . $name . '`') : ('`' . $name . '`');
+	};
+	$sql = '';
+	$params = array();
+	$device = (string) ($filters['device'] ?? '');
+	if ($device !== '') {
+		$sql .= ' AND ' . $col('device_type') . ' = ? ';
+		$params[] = $device;
+	}
+	$country = (string) ($filters['country'] ?? '');
+	if ($country !== '') {
+		$sql .= ' AND ' . $col('country_code') . ' = ? ';
+		$params[] = $country;
+	}
+	$ip = (string) ($filters['ip'] ?? '');
+	if ($ip !== '') {
+		$sql .= ' AND ' . $col('ip') . ' LIKE ? ';
+		$params[] = '%' . $ip . '%';
+	}
+	$userId = (string) ($filters['user_id'] ?? '');
+	if ($userId !== '') {
+		$sql .= ' AND ' . $col('user_id') . ' = ? ';
+		$params[] = (int) $userId;
+	}
+	$userType = (string) ($filters['user_type'] ?? '');
+	if ($userType === 'guest') {
+		$sql .= ' AND ' . $col('is_registered') . ' = 0 ';
+	} elseif ($userType === 'registered') {
+		$sql .= ' AND ' . $col('is_registered') . ' = 1 ';
+	}
+	$browser = (string) ($filters['browser'] ?? '');
+	if ($browser !== '') {
+		$sql .= ' AND ' . $col('browser') . ' LIKE ? ';
+		$params[] = '%' . $browser . '%';
+	}
+	$path = (string) ($filters['path'] ?? '');
+	if ($path !== '') {
+		$like = '%' . $path . '%';
+		$idRef = $alias !== '' ? ($alias . '.`id`') : '`id`';
+		$sql .= ' AND (' . $col('landing_path') . ' LIKE ? OR ' . $col('exit_path') . ' LIKE ?'
+			. ' OR EXISTS (SELECT 1 FROM `epc_web_tracker_pageviews` _wt_pv'
+			. ' WHERE _wt_pv.`session_id` = ' . $idRef . ' AND _wt_pv.`path` LIKE ?)) ';
+		$params[] = $like;
+		$params[] = $like;
+		$params[] = $like;
+	}
+	return array('sql' => $sql, 'params' => $params, 'active' => ($sql !== ''));
+}
+
+/**
  * @return array<string,mixed>
  */
-function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to, bool $allSites = false): array
+function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to, bool $allSites = false, array $filters = array()): array
 {
 	epc_web_tracker_ensure_schema($pdo);
+	$filt = epc_web_tracker_session_filter_sql($filters);
 	$params = array($from, $to);
 	$siteSql = '';
 	if (!$allSites && $siteKey !== '' && $siteKey !== '_all') {
 		$siteSql = ' AND `site_key` = ? ';
 		$params[] = $siteKey;
 	}
+	$params = array_merge($params, $filt['params']);
+	$filterSql = $filt['sql'];
+	$scopeSql = $siteSql . $filterSql;
 
 	$summary = array(
 		'sessions' => 0,
@@ -681,7 +799,7 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 			COALESCE(AVG(`pageview_count`),0) AS avg_pages,
 			SUM(CASE WHEN `pageview_count` <= 1 THEN 1 ELSE 0 END) AS bounces
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql
 	);
 	$st->execute($params);
 	$row = $st->fetch(PDO::FETCH_ASSOC) ?: array();
@@ -698,18 +816,32 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 		? round(100 * ((int) ($row['bounces'] ?? 0)) / $sessions, 1)
 		: 0;
 
+	// Events / pageviews: join sessions when any session filter is active so KPIs match.
+	$filtS = epc_web_tracker_session_filter_sql($filters, 's');
 	$evParams = array($from, $to);
-	$evSite = '';
+	$evJoin = '';
+	$evWhere = '';
 	if (!$allSites && $siteKey !== '' && $siteKey !== '_all') {
-		$evSite = ' AND `site_key` = ? ';
-		$evParams[] = $siteKey;
+		if ($filtS['active']) {
+			$evJoin = ' INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ';
+			$evWhere = ' AND s.`site_key` = ? ' . $filtS['sql'];
+			$evParams[] = $siteKey;
+			$evParams = array_merge($evParams, $filtS['params']);
+		} else {
+			$evWhere = ' AND e.`site_key` = ? ';
+			$evParams[] = $siteKey;
+		}
+	} elseif ($filtS['active']) {
+		$evJoin = ' INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = e.`session_id` ';
+		$evWhere = $filtS['sql'];
+		$evParams = array_merge($evParams, $filtS['params']);
 	}
 	$st = $pdo->prepare(
 		'SELECT
-			SUM(CASE WHEN `event_type` = \'click\' THEN 1 ELSE 0 END) AS clicks,
-			SUM(CASE WHEN `event_type` = \'search\' THEN 1 ELSE 0 END) AS searches
-		 FROM `epc_web_tracker_events`
-		 WHERE `ts` BETWEEN ? AND ?' . $evSite
+			SUM(CASE WHEN e.`event_type` = \'click\' THEN 1 ELSE 0 END) AS clicks,
+			SUM(CASE WHEN e.`event_type` = \'search\' THEN 1 ELSE 0 END) AS searches
+		 FROM `epc_web_tracker_events` e' . $evJoin . '
+		 WHERE e.`ts` BETWEEN ? AND ?' . $evWhere
 	);
 	$st->execute($evParams);
 	$er = $st->fetch(PDO::FETCH_ASSOC) ?: array();
@@ -722,7 +854,7 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 			COUNT(*) AS sessions,
 			COALESCE(SUM(`pageview_count`),0) AS pageviews
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql . '
 		 GROUP BY d ORDER BY d ASC'
 	);
 	$st->execute($params);
@@ -734,16 +866,45 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 		);
 	}
 
+	$pvParams = array($from, $to);
+	$pvJoin = '';
+	$pvWhere = '';
+	if (!$allSites && $siteKey !== '' && $siteKey !== '_all') {
+		if ($filtS['active']) {
+			$pvJoin = ' INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = p.`session_id` ';
+			$pvWhere = ' AND s.`site_key` = ? ' . $filtS['sql'];
+			$pvParams[] = $siteKey;
+			$pvParams = array_merge($pvParams, $filtS['params']);
+		} else {
+			$pvWhere = ' AND p.`site_key` = ? ';
+			$pvParams[] = $siteKey;
+		}
+	} elseif ($filtS['active']) {
+		$pvJoin = ' INNER JOIN `epc_web_tracker_sessions` s ON s.`id` = p.`session_id` ';
+		$pvWhere = $filtS['sql'];
+		$pvParams = array_merge($pvParams, $filtS['params']);
+	}
+	// Optional path filter also narrows pageviews by viewed path when set.
+	$pathFilter = (string) ($filters['path'] ?? '');
+	if ($pathFilter !== '' && $filtS['active']) {
+		// already filtered via landing/exit on session; also prefer matching pageview path
+		$pvWhere .= ' AND p.`path` LIKE ? ';
+		$pvParams[] = '%' . $pathFilter . '%';
+	} elseif ($pathFilter !== '') {
+		$pvWhere .= ' AND p.`path` LIKE ? ';
+		$pvParams[] = '%' . $pathFilter . '%';
+	}
+
 	$topPages = array();
 	$st = $pdo->prepare(
-		'SELECT `path`, COUNT(*) AS views, COUNT(DISTINCT `session_uid`) AS sessions,
-			ROUND(AVG(`time_on_page_ms`)) AS avg_time_ms,
-			ROUND(AVG(`scroll_max_pct`)) AS avg_scroll
-		 FROM `epc_web_tracker_pageviews`
-		 WHERE `ts` BETWEEN ? AND ?' . $evSite . '
-		 GROUP BY `path` ORDER BY views DESC LIMIT 40'
+		'SELECT p.`path`, COUNT(*) AS views, COUNT(DISTINCT p.`session_uid`) AS sessions,
+			ROUND(AVG(p.`time_on_page_ms`)) AS avg_time_ms,
+			ROUND(AVG(p.`scroll_max_pct`)) AS avg_scroll
+		 FROM `epc_web_tracker_pageviews` p' . $pvJoin . '
+		 WHERE p.`ts` BETWEEN ? AND ?' . $pvWhere . '
+		 GROUP BY p.`path` ORDER BY views DESC LIMIT 40'
 	);
-	$st->execute($evParams);
+	$st->execute($pvParams);
 	while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
 		$topPages[] = $r;
 	}
@@ -752,7 +913,7 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 	$st = $pdo->prepare(
 		'SELECT `country_code`, `country_name`, `city`, COUNT(*) AS sessions
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql . '
 		 GROUP BY `country_code`, `country_name`, `city`
 		 ORDER BY sessions DESC LIMIT 40'
 	);
@@ -765,7 +926,7 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 	$st = $pdo->prepare(
 		'SELECT `device_type`, `browser`, `os`, COUNT(*) AS sessions
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql . '
 		 GROUP BY `device_type`, `browser`, `os`
 		 ORDER BY sessions DESC LIMIT 30'
 	);
@@ -776,10 +937,10 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 
 	$searches = array();
 	$st = $pdo->prepare(
-		'SELECT `search_query`, `search_context`, COUNT(*) AS hits, COUNT(DISTINCT `session_uid`) AS sessions
-		 FROM `epc_web_tracker_events`
-		 WHERE `ts` BETWEEN ? AND ? AND `event_type` = \'search\' AND `search_query` <> \'\'' . $evSite . '
-		 GROUP BY `search_query`, `search_context`
+		'SELECT e.`search_query`, e.`search_context`, COUNT(*) AS hits, COUNT(DISTINCT e.`session_uid`) AS sessions
+		 FROM `epc_web_tracker_events` e' . $evJoin . '
+		 WHERE e.`ts` BETWEEN ? AND ? AND e.`event_type` = \'search\' AND e.`search_query` <> \'\'' . $evWhere . '
+		 GROUP BY e.`search_query`, e.`search_context`
 		 ORDER BY hits DESC LIMIT 50'
 	);
 	$st->execute($evParams);
@@ -789,10 +950,10 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 
 	$topClicks = array();
 	$st = $pdo->prepare(
-		'SELECT `path`, `element_tag`, `element_id`, `element_text`, `element_href`, COUNT(*) AS hits
-		 FROM `epc_web_tracker_events`
-		 WHERE `ts` BETWEEN ? AND ? AND `event_type` = \'click\'' . $evSite . '
-		 GROUP BY `path`, `element_tag`, `element_id`, `element_text`, `element_href`
+		'SELECT e.`path`, e.`element_tag`, e.`element_id`, e.`element_text`, e.`element_href`, COUNT(*) AS hits
+		 FROM `epc_web_tracker_events` e' . $evJoin . '
+		 WHERE e.`ts` BETWEEN ? AND ? AND e.`event_type` = \'click\'' . $evWhere . '
+		 GROUP BY e.`path`, e.`element_tag`, e.`element_id`, e.`element_text`, e.`element_href`
 		 ORDER BY hits DESC LIMIT 50'
 	);
 	$st->execute($evParams);
@@ -805,7 +966,7 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 		'SELECT IF(`referrer_host`=\'\', \'(direct)\', `referrer_host`) AS host,
 			`utm_source`, `utm_medium`, `utm_campaign`, COUNT(*) AS sessions
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql . '
 		 GROUP BY host, `utm_source`, `utm_medium`, `utm_campaign`
 		 ORDER BY sessions DESC LIMIT 40'
 	);
@@ -821,8 +982,8 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 			`landing_path`, `exit_path`, `country_code`, `country_name`, `city`, `region`,
 			`device_type`, `browser`, `os`, `ip`, `referrer_host`, `utm_source`
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
-		 ORDER BY `last_seen_at` DESC LIMIT 60'
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql . '
+		 ORDER BY `last_seen_at` DESC LIMIT 100'
 	);
 	$st->execute($params);
 	while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
@@ -831,19 +992,62 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 
 	$byTenant = array();
 	if ($allSites || $siteKey === '_all') {
+		$tenantParams = array($from, $to);
+		$tenantParams = array_merge($tenantParams, $filt['params']);
 		$st = $pdo->prepare(
 			'SELECT `site_key`, `hostname`, COUNT(*) AS sessions,
 				COALESCE(SUM(`pageview_count`),0) AS pageviews,
 				COUNT(DISTINCT NULLIF(`visitor_uid`,\'\')) AS visitors
 			 FROM `epc_web_tracker_sessions`
-			 WHERE `last_seen_at` BETWEEN ? AND ?
+			 WHERE `last_seen_at` BETWEEN ? AND ?' . $filterSql . '
 			 GROUP BY `site_key`, `hostname`
 			 ORDER BY sessions DESC LIMIT 100'
 		);
-		$st->execute(array($from, $to));
+		$st->execute($tenantParams);
 		while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
 			$byTenant[] = $r;
 		}
+	}
+
+	// Facets for filter dropdowns (same date + site scope, ignore detail filters except site/date).
+	$facetParams = array($from, $to);
+	$facetSite = '';
+	if (!$allSites && $siteKey !== '' && $siteKey !== '_all') {
+		$facetSite = ' AND `site_key` = ? ';
+		$facetParams[] = $siteKey;
+	}
+	$facetCountries = array();
+	$st = $pdo->prepare(
+		'SELECT `country_code`, MAX(`country_name`) AS country_name, COUNT(*) AS sessions
+		 FROM `epc_web_tracker_sessions`
+		 WHERE `last_seen_at` BETWEEN ? AND ? AND `country_code` <> \'\'' . $facetSite . '
+		 GROUP BY `country_code` ORDER BY sessions DESC LIMIT 80'
+	);
+	$st->execute($facetParams);
+	while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
+		$facetCountries[] = $r;
+	}
+	$facetDevices = array();
+	$st = $pdo->prepare(
+		'SELECT `device_type`, COUNT(*) AS sessions
+		 FROM `epc_web_tracker_sessions`
+		 WHERE `last_seen_at` BETWEEN ? AND ? AND `device_type` <> \'\'' . $facetSite . '
+		 GROUP BY `device_type` ORDER BY sessions DESC LIMIT 20'
+	);
+	$st->execute($facetParams);
+	while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
+		$facetDevices[] = $r;
+	}
+	$facetBrowsers = array();
+	$st = $pdo->prepare(
+		'SELECT `browser`, COUNT(*) AS sessions
+		 FROM `epc_web_tracker_sessions`
+		 WHERE `last_seen_at` BETWEEN ? AND ? AND `browser` <> \'\'' . $facetSite . '
+		 GROUP BY `browser` ORDER BY sessions DESC LIMIT 30'
+	);
+	$st->execute($facetParams);
+	while ($r = $st->fetch(PDO::FETCH_ASSOC)) {
+		$facetBrowsers[] = $r;
 	}
 
 	return array(
@@ -857,6 +1061,12 @@ function epc_web_tracker_dashboard(PDO $pdo, string $siteKey, int $from, int $to
 		'referrers' => $referrers,
 		'recent_sessions' => $recent,
 		'by_tenant' => $byTenant,
+		'filters' => $filters,
+		'facets' => array(
+			'countries' => $facetCountries,
+			'devices' => $facetDevices,
+			'browsers' => $facetBrowsers,
+		),
 	);
 }
 
@@ -935,15 +1145,18 @@ function epc_web_tracker_csv_line(array $row): string
 /**
  * Full multi-section CSV report for the selected site + date range.
  */
-function epc_web_tracker_export_csv(PDO $pdo, string $siteKey, int $from, int $to, bool $allSites = false): string
+function epc_web_tracker_export_csv(PDO $pdo, string $siteKey, int $from, int $to, bool $allSites = false, array $filters = array()): string
 {
-	$data = epc_web_tracker_dashboard($pdo, $siteKey, $from, $to, $allSites);
+	$data = epc_web_tracker_dashboard($pdo, $siteKey, $from, $to, $allSites, $filters);
+	$filt = epc_web_tracker_session_filter_sql($filters);
 	$params = array($from, $to);
 	$siteSql = '';
 	if (!$allSites && $siteKey !== '' && $siteKey !== '_all') {
 		$siteSql = ' AND `site_key` = ? ';
 		$params[] = $siteKey;
 	}
+	$params = array_merge($params, $filt['params']);
+	$scopeSql = $siteSql . $filt['sql'];
 
 	$csv = "\xEF\xBB\xBF"; // UTF-8 BOM for Excel
 	$csv .= epc_web_tracker_csv_line(array('Website tracker full report'));
@@ -956,6 +1169,15 @@ function epc_web_tracker_export_csv(PDO $pdo, string $siteKey, int $from, int $t
 		gmdate('Y-m-d H:i:s', $to) . ' UTC',
 		'Generated',
 		gmdate('Y-m-d H:i:s') . ' UTC',
+	));
+	$csv .= epc_web_tracker_csv_line(array(
+		'Filter device', (string) ($filters['device'] ?? ''),
+		'Filter country', (string) ($filters['country'] ?? ''),
+		'Filter IP', (string) ($filters['ip'] ?? ''),
+		'Filter user_id', (string) ($filters['user_id'] ?? ''),
+		'Filter who', (string) ($filters['user_type'] ?? ''),
+		'Filter path', (string) ($filters['path'] ?? ''),
+		'Filter browser', (string) ($filters['browser'] ?? ''),
 	));
 	$csv .= "\r\n";
 
@@ -1069,7 +1291,7 @@ function epc_web_tracker_export_csv(PDO $pdo, string $siteKey, int $from, int $t
 			`device_type`, `browser`, `os`, `ip`, `referrer_host`,
 			`utm_source`, `utm_medium`, `utm_campaign`
 		 FROM `epc_web_tracker_sessions`
-		 WHERE `last_seen_at` BETWEEN ? AND ?' . $siteSql . '
+		 WHERE `last_seen_at` BETWEEN ? AND ?' . $scopeSql . '
 		 ORDER BY `last_seen_at` DESC LIMIT 10000'
 	);
 	$st->execute($params);
