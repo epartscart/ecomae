@@ -339,6 +339,19 @@ for($i=0; $i < count($product_objects); $i++)
 		
 		
 		//Проверяем хеш, защищающий от подмены данных злоумышлненниками через JavaScript
+		// Normalize money strings so VAT-inclusive display prices hash consistently.
+		if (is_numeric($price)) {
+			$price = number_format((float) $price, 2, '.', '');
+			$product_object['price'] = $price;
+		}
+		if (isset($product_object['price_purchase']) && is_numeric($product_object['price_purchase'])) {
+			$product_object['price_purchase'] = number_format((float) $product_object['price_purchase'], 2, '.', '');
+			$t2_price_purchase = $product_object['price_purchase'];
+		}
+		if (isset($product_object['markup']) && is_numeric($product_object['markup'])) {
+			$product_object['markup'] = (string) (int) $product_object['markup'];
+			$t2_markup = $product_object['markup'];
+		}
 		$computed_hash = docpart_type2_cart_check_hash($product_object, $price, $DP_Config->tech_key);
 		$client_hash = isset($product_object["check_hash"]) ? trim((string) $product_object["check_hash"]) : '';
 		// Guest price redaction used to set check_hash=0; treat placeholder zeros as missing.
