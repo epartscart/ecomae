@@ -498,7 +498,9 @@ $needsListings = ($tab === 'listings');
 $needsWizard = ($tab === 'wizard');
 $needsSources = ($tab === 'sources');
 $needsKpiChrome = !$apaiPartial && ($needsDiscover || $needsImports || $needsProductLines);
-$needsFlatTax = !$apaiPartial && ($needsDiscover || $needsUaeSources || $needsCompare || $needsWizard || $needsSources);
+// Shell-inline Discover sets apaiPartial=true for lighter loads — still need taxonomy options in the filter.
+$needsFlatTax = ($needsDiscover || $needsUaeSources || $needsCompare || $needsWizard || $needsSources)
+	&& (!$apaiPartial || !empty($apaiShellInlineDiscover));
 
 $tenantCfg = epc_ape_tenant_config_get($pdo, $siteKey);
 $rules = ($needsRules || $needsCompare) ? epc_ape_rules_get($pdo, $siteKey) : array('min_margin_percent' => 15);
