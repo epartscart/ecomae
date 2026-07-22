@@ -166,6 +166,18 @@ function epc_boc_page_shell_open(array $opts = array()): void
 		$nav = epc_boc_nav();
 	}
 
+	if (is_file(__DIR__ . '/epc_boc_tenant_scope.php')) {
+		require_once __DIR__ . '/epc_boc_tenant_scope.php';
+		epc_boc_handle_tenant_switch(isset($db_link) && $db_link instanceof PDO ? $db_link : null);
+	}
+	$scope = (string) ($opts['scope'] ?? '');
+	if ($scope === '' && function_exists('epc_boc_scope_label')) {
+		$scope = epc_boc_scope_label();
+	}
+	if ($scope === '') {
+		$scope = 'Platform · All tenants';
+	}
+
 	$ctx = array(
 		'active' => $active,
 		'title' => $title,
@@ -174,7 +186,7 @@ function epc_boc_page_shell_open(array $opts = array()): void
 		'operator' => $operator,
 		'env' => (string) ($opts['env'] ?? 'Production'),
 		'nav' => $nav,
-		'scope' => (string) ($opts['scope'] ?? 'All units · Fleet'),
+		'scope' => $scope,
 		'layout' => 'top',
 	);
 	epc_boc_console_open($ctx);

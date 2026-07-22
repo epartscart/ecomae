@@ -73,6 +73,24 @@ body.epc-cp-shell .content .epc-boc--topnav,.epc-cp-shell .epc-boc--topnav{flex-
 .epc-boc__topnav-actions .epc-boc__btn{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28);color:#fff;}
 .epc-boc__topnav-actions .epc-boc__btn--ai{background:#b71c1c;border-color:#b71c1c;}
 .epc-boc__topnav-actions .epc-boc__lang select,.epc-boc__topnav-actions .epc-boc__lang .form-control{min-height:28px;padding:2px 8px;font-size:12px;border-radius:6px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:#fff;}
+.epc-boc__tenant-switch{position:relative;flex:0 0 auto;}
+.epc-boc__tenant-switch-btn{appearance:none;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;max-width:220px;}
+.epc-boc__tenant-switch-btn:hover,.epc-boc__tenant-switch.is-open .epc-boc__tenant-switch-btn{background:rgba(255,255,255,.28);}
+.epc-boc__tenant-switch-label{overflow:hidden;text-overflow:ellipsis;max-width:140px;}
+.epc-boc__tenant-switch-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:60;min-width:280px;max-width:min(360px,calc(100vw - 24px));max-height:min(420px,70vh);overflow:auto;background:#fff;color:#1f2937;border:1px solid var(--boc-rose-line);border-radius:10px;box-shadow:0 16px 40px rgba(198,40,40,.18);padding:8px;}
+.epc-boc__tenant-switch-head{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--boc-red);padding:6px 10px 8px;}
+.epc-boc__tenant-switch-item{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:8px;color:#374151;font-size:13px;font-weight:700;text-decoration:none;}
+.epc-boc__tenant-switch-item small{font-size:11px;font-weight:500;color:#6b7280;}
+.epc-boc__tenant-switch-item:hover{background:var(--boc-rose);color:#7f1d1d;}
+.epc-boc__tenant-switch-item.is-active{background:var(--boc-rose-mid);color:#b71c1c;box-shadow:inset 3px 0 0 var(--boc-red);}
+.epc-boc__tenant-switch-open{display:block;margin:2px 10px 8px;padding:6px 10px;border-radius:6px;background:#b71c1c;color:#fff!important;font-size:12px;font-weight:700;text-align:center;text-decoration:none;}
+.epc-boc__tenant-banner,.epc-boc__platform-banner{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 16px;padding:14px 16px;border-radius:12px;border:1px solid var(--boc-rose-line);}
+.epc-boc__tenant-banner{background:linear-gradient(180deg,#fff 0%,#fff7f7 100%);box-shadow:0 8px 24px rgba(198,40,40,.08);}
+.epc-boc__platform-banner{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border-color:#e2e8f0;}
+.epc-boc__tenant-banner strong,.epc-boc__platform-banner strong{font-weight:800;color:#1f2937;}
+.epc-boc__tenant-banner span,.epc-boc__platform-banner span{color:#6b7280;font-weight:600;}
+.epc-boc__tenant-banner-hint,.epc-boc__platform-banner-hint{margin-top:4px;font-size:12.5px;color:#4b5563;line-height:1.45;max-width:64ch;}
+.epc-boc__tenant-banner-actions,.epc-boc__platform-banner-actions{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .epc-boc--topnav .epc-boc__topbar{display:none!important;}
 .epc-boc__page-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px;padding:0;}
 .epc-boc__page-title h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--boc-ink-1);}
@@ -273,7 +291,9 @@ if (!function_exists('epc_boc_render_top_nav')) {
                 }
             }
             $first = reset($g['areas']);
-            $firstUrl = $base . '/' . ltrim((string) ($first['path'] ?? 'control'), '/');
+            $firstUrl = function_exists('epc_boc_area_href')
+                ? epc_boc_area_href(is_array($first) ? $first : array(), $base)
+                : ($base . '/' . ltrim((string) ($first['path'] ?? 'control'), '/'));
             echo '<li class="epc-boc__topnav-item' . ($isActive ? ' is-active' : '') . '" data-boc-group="' . $h($gKey) . '" role="none">';
             echo '<button type="button" class="epc-boc__topnav-btn" role="menuitem" aria-haspopup="true" aria-expanded="false" data-boc-topnav-toggle="' . $h($gKey) . '">';
             echo '<i class="fa ' . $h($gIcon) . '" aria-hidden="true"></i>';
@@ -296,9 +316,12 @@ if (!function_exists('epc_boc_render_top_nav')) {
                 echo '<div class="epc-boc__topnav-col-hd"><i class="fa fa-sitemap"></i> ' . $h($colLabel) . '</div>';
                 echo '<ul class="epc-boc__topnav-links">';
                 foreach ($chunk as $id => $area) {
-                    $url = $base . '/' . ltrim((string) ($area['path'] ?? ''), '/');
+                    $url = function_exists('epc_boc_area_href')
+                        ? epc_boc_area_href($area, $base)
+                        : ($base . '/' . ltrim((string) ($area['path'] ?? ''), '/'));
+                    $target = !empty($area['url_override']) ? ' target="_blank" rel="noopener"' : '';
                     $cls = ((string) $id === $active) ? ' class="is-active"' : '';
-                    echo '<li' . $cls . '><a href="' . $h($url) . '" title="' . $h($area['hint'] ?? '') . '">';
+                    echo '<li' . $cls . '><a href="' . $h($url) . '"' . $target . ' title="' . $h($area['hint'] ?? '') . '">';
                     echo '<i class="fa ' . $h($area['icon'] ?? 'fa-circle-o') . '"></i> ' . $h($area['label'] ?? $id);
                     echo '</a></li>';
                 }
@@ -312,7 +335,7 @@ if (!function_exists('epc_boc_render_top_nav')) {
             echo '<div class="epc-boc__topnav-actions">' . $actionsHtml . '</div>';
         }
         echo '</div></nav>';
-        echo '<script>(function(){function bind(){var root=document.getElementById("epc_boc_topnav");if(!root||root._bocTopBound){return;}root._bocTopBound=true;var items=root.querySelectorAll(".epc-boc__topnav-item");function closeAll(ex){items.forEach(function(it){if(ex&&it===ex){return;}it.classList.remove("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","false");}if(p){p.hidden=true;}});document.body.classList.remove("epc-boc-topnav-open");}function place(it,p){var rr=root.getBoundingClientRect();var btn=it.querySelector(".epc-boc__topnav-btn");var br=btn?btn.getBoundingClientRect():rr;var top=Math.round(rr.bottom);p.style.top=top+"px";p.style.maxHeight=Math.max(180,Math.floor(window.innerHeight-top-12))+"px";p.hidden=false;var w=p.offsetWidth||640;var left=Math.round(br.left);var maxLeft=Math.max(8,window.innerWidth-w-8);if(left>maxLeft){left=maxLeft;}if(left<8){left=8;}p.style.left=left+"px";p.style.right="auto";}function open(it){closeAll(it);it.classList.add("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","true");}if(p){place(it,p);}document.body.classList.add("epc-boc-topnav-open");}items.forEach(function(it){var b=it.querySelector("[data-boc-topnav-toggle]");if(!b){return;}b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(it.classList.contains("is-open")){closeAll();}else{open(it);}});});document.addEventListener("click",function(e){if(!root.contains(e.target)){closeAll();}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeAll();}});window.addEventListener("resize",function(){items.forEach(function(it){if(!it.classList.contains("is-open")){return;}var p=it.querySelector("[data-boc-topnav-panel]");if(p){place(it,p);}});});}if(document.readyState!=="loading"){bind();}else{document.addEventListener("DOMContentLoaded",bind);}})();</script>';
+        echo '<script>(function(){function bind(){var root=document.getElementById("epc_boc_topnav");if(!root||root._bocTopBound){return;}root._bocTopBound=true;var items=root.querySelectorAll(".epc-boc__topnav-item");function closeTenant(){var sw=root.querySelector("[data-epc-boc-tenant-switch]");if(!sw){return;}sw.classList.remove("is-open");var tb=sw.querySelector("[data-boc-tenant-toggle]");var tp=sw.querySelector(".epc-boc__tenant-switch-panel");if(tb){tb.setAttribute("aria-expanded","false");}if(tp){tp.hidden=true;}}function closeAll(ex){closeTenant();items.forEach(function(it){if(ex&&it===ex){return;}it.classList.remove("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","false");}if(p){p.hidden=true;}});document.body.classList.remove("epc-boc-topnav-open");}function place(it,p){var rr=root.getBoundingClientRect();var btn=it.querySelector(".epc-boc__topnav-btn");var br=btn?btn.getBoundingClientRect():rr;var top=Math.round(rr.bottom);p.style.top=top+"px";p.style.maxHeight=Math.max(180,Math.floor(window.innerHeight-top-12))+"px";p.hidden=false;var w=p.offsetWidth||640;var left=Math.round(br.left);var maxLeft=Math.max(8,window.innerWidth-w-8);if(left>maxLeft){left=maxLeft;}if(left<8){left=8;}p.style.left=left+"px";p.style.right="auto";}function open(it){closeAll(it);it.classList.add("is-open");var b=it.querySelector("[data-boc-topnav-toggle]");var p=it.querySelector("[data-boc-topnav-panel]");if(b){b.setAttribute("aria-expanded","true");}if(p){place(it,p);}document.body.classList.add("epc-boc-topnav-open");}items.forEach(function(it){var b=it.querySelector("[data-boc-topnav-toggle]");if(!b){return;}b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(it.classList.contains("is-open")){closeAll();}else{open(it);}});});var sw=root.querySelector("[data-epc-boc-tenant-switch]");if(sw){var tb=sw.querySelector("[data-boc-tenant-toggle]");var tp=sw.querySelector(".epc-boc__tenant-switch-panel");if(tb&&tp){tb.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();var openNow=sw.classList.contains("is-open");closeAll();if(!openNow){sw.classList.add("is-open");tb.setAttribute("aria-expanded","true");tp.hidden=false;}});}}document.addEventListener("click",function(e){if(!root.contains(e.target)){closeAll();}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeAll();}});window.addEventListener("resize",function(){items.forEach(function(it){if(!it.classList.contains("is-open")){return;}var p=it.querySelector("[data-boc-topnav-panel]");if(p){place(it,p);}});});}if(document.readyState!=="loading"){bind();}else{document.addEventListener("DOMContentLoaded",bind);}})();</script>';
     }
 }
 
@@ -368,8 +391,18 @@ if (!function_exists('epc_boc_console_open')) {
             }
         }
         $actionsHtml = '';
+        if (is_file(__DIR__ . '/epc_boc_tenant_scope.php')) {
+            require_once __DIR__ . '/epc_boc_tenant_scope.php';
+        }
+        global $db_link;
+        if (function_exists('epc_boc_handle_tenant_switch')) {
+            epc_boc_handle_tenant_switch(($db_link instanceof PDO) ? $db_link : null);
+        }
+        if (function_exists('epc_boc_render_tenant_switcher_html')) {
+            $actionsHtml .= epc_boc_render_tenant_switcher_html(($db_link instanceof PDO) ? $db_link : null);
+        }
         $actionsHtml .= '<span class="epc-boc__lang" id="epc-boc-lang-slot" title="Change language">' . $langSwitcher . '</span>';
-        $actionsHtml .= '<span class="epc-boc__scope" title="What this login can see"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
+        $actionsHtml .= '<span class="epc-boc__scope" title="Platform fleet vs active tenant CP"><i class="fa fa-globe"></i> ' . $h($scope) . '</span>';
         $actionsHtml .= '<span class="epc-boc__env"><i class="fa fa-circle" style="font-size:7px;vertical-align:middle;color:#16a34a"></i> ' . $h($env) . '</span>';
         $actionsHtml .= '<span class="epc-boc__avatar" title="' . $h($operator) . '">' . $h($initials) . '</span>';
 
@@ -383,9 +416,12 @@ if (!function_exists('epc_boc_console_open')) {
                 if (empty($g['areas'])) { continue; }
                 echo '<div class="epc-boc__group"><div class="epc-boc__group-h"><i class="fa ' . $h($g['group']['icon']) . '"></i> ' . $h($g['group']['label']) . '</div><div class="epc-boc__nav">';
                 foreach ($g['areas'] as $id => $area) {
-                    $url = $base . '/' . ltrim((string) $area['path'], '/');
+                    $url = function_exists('epc_boc_area_href')
+                        ? epc_boc_area_href($area, $base)
+                        : ($base . '/' . ltrim((string) $area['path'], '/'));
+                    $target = !empty($area['url_override']) ? ' target="_blank" rel="noopener"' : '';
                     $cls = $id === $active ? ' class="is-active"' : '';
-                    echo '<a href="' . $h($url) . '"' . $cls . ' title="' . $h($area['hint']) . '"><i class="fa ' . $h($area['icon']) . '"></i> ' . $h($area['label']) . '</a>';
+                    echo '<a href="' . $h($url) . '"' . $target . $cls . ' title="' . $h($area['hint']) . '"><i class="fa ' . $h($area['icon']) . '"></i> ' . $h($area['label']) . '</a>';
                 }
                 echo '</div></div>';
             }
@@ -403,6 +439,28 @@ if (!function_exists('epc_boc_console_open')) {
         // Relocate legacy CP language switcher into the BOS chrome slot.
         echo '<script>(function(){function go(){var s=document.getElementById("epc-boc-lang-slot");if(!s){return;}if(s.querySelector("select")){return;}var w=document.querySelector(".epc-cp-translate-nav,.epc-cp-translate");if(w){s.appendChild(w);}}if(document.readyState!=="loading"){go();}else{document.addEventListener("DOMContentLoaded",go);}setTimeout(go,900);})();</script>';
         echo '<div class="epc-boc__canvas">';
+        if (function_exists('epc_boc_active_tenant')
+            && function_exists('epc_portal_is_super_cp_host')
+            && epc_portal_is_super_cp_host()
+        ) {
+            $epcBocTenant = epc_boc_active_tenant();
+            if ($epcBocTenant) {
+                echo '<div class="epc-boc__tenant-banner" role="status">';
+                echo '<div><strong>Tenant CP mode:</strong> ' . $h($epcBocTenant['label']);
+                echo ' <span>(' . $h($epcBocTenant['hostname']) . ')</span>';
+                echo '<div class="epc-boc__tenant-banner-hint">Commerce / Catalogue / Logistics / ERP open on this tenant’s CP host — not the platform ecomae database.</div></div>';
+                echo '<div class="epc-boc__tenant-banner-actions">';
+                echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($epcBocTenant['cp_url']) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open tenant CP</a>';
+                $exit = htmlspecialchars((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/cp/control'), PHP_URL_PATH) ?: '/cp/control'), ENT_QUOTES, 'UTF-8');
+                echo '<a class="epc-boc__btn" href="' . $exit . '?epc_boc_exit_tenant=1"><i class="fa fa-globe"></i> Back to platform</a>';
+                echo '</div></div>';
+            } else {
+                echo '<div class="epc-boc__platform-banner" role="status">';
+                echo '<div><strong>Platform Super CP</strong> <span>· ecomae.com overall fleet</span>';
+                echo '<div class="epc-boc__platform-banner-hint">Tenants, health, governance, and fleet pricing stay here. Use <em>Select tenant CP</em> for epartscart.com, taxofinca.com, and other shops — their OMS / catalogue / ERP never mix into this platform DB.</div></div>';
+                echo '</div>';
+            }
+        }
         if ($layout === 'top' && $title !== '' && $active !== 'command_center') {
             echo '<div class="epc-boc__page-title"><h1>' . $h($title) . '</h1><small>' . $h($brand['name']) . '</small></div>';
         }
@@ -449,14 +507,24 @@ if (!function_exists('epc_boc_render_command_center')) {
         $demo = (int) $summary['by_type']['demo'];
 
         // Hero
+        $bocTenant = function_exists('epc_boc_active_tenant') ? epc_boc_active_tenant() : null;
         echo '<div class="epc-boc__hero">';
         echo '<div><div class="epc-boc__hero-brand"><span>' . $h($brand['short']) . '</span> Business Operation System</div>';
-        echo '<h2>Operations Command Center</h2>';
-        echo '<p>' . $h($brand['tagline']) . '</p></div>';
-        echo '<div class="epc-boc__hero-actions">';
-        echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($base . '/shop/tenant_hub/tenant_hub?tab=onboard') . '"><i class="fa fa-rocket"></i> Onboard client</a>';
-        echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/portal/epc_platform_health_checkup') . '"><i class="fa fa-heartbeat"></i> Health checkup</a>';
-        echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/cp_brochure') . '" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>';
+        if ($bocTenant) {
+            echo '<h2>Tenant CP · ' . $h($bocTenant['label']) . '</h2>';
+            echo '<p>Shop modules open on ' . $h($bocTenant['hostname']) . '. Platform fleet tools stay on ecomae Super CP.</p></div>';
+            echo '<div class="epc-boc__hero-actions">';
+            echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($bocTenant['cp_url']) . '" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open full tenant CP</a>';
+            $exitCc = htmlspecialchars((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/cp/control'), PHP_URL_PATH) ?: '/cp/control'), ENT_QUOTES, 'UTF-8');
+            echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $exitCc . '?epc_boc_exit_tenant=1"><i class="fa fa-globe"></i> Platform fleet</a>';
+        } else {
+            echo '<h2>Platform Super CP</h2>';
+            echo '<p>Overall fleet control for all tenants. Select a tenant CP to operate epartscart, taxofinca, and others without mixing shop data into ecomae.</p></div>';
+            echo '<div class="epc-boc__hero-actions">';
+            echo '<a class="epc-boc__btn epc-boc__btn--solid" href="' . $h($base . '/shop/tenant_hub/tenant_hub?tab=onboard') . '"><i class="fa fa-rocket"></i> Onboard client</a>';
+            echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/portal/epc_platform_health_checkup') . '"><i class="fa fa-heartbeat"></i> Health checkup</a>';
+            echo '<a class="epc-boc__btn epc-boc__btn--ghost" href="' . $h($base . '/control/cp_brochure') . '" target="_blank" rel="noopener"><i class="fa fa-book"></i> CP brochure</a>';
+        }
         echo '</div></div>';
 
         // KPI tiles
