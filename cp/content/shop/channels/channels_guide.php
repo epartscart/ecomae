@@ -1,6 +1,6 @@
 <?php
 /**
- * Channels — step-by-step guide (Amazon, eBay marketplaces only).
+ * Channels — step-by-step guide (worldwide marketplaces).
  * URL: /cp/shop/channels/guide
  */
 defined('_ASTEXE_') or die('No access');
@@ -52,10 +52,11 @@ $logisticsGuideUrl = $logisticsGuideUrl ?? ('/' . $DP_Config->backend_dir . '/sh
 		<div class="panel-body">
 
 			<div class="epc-ch-guide-intro">
-				<h3><i class="fa fa-book"></i> Amazon &amp; eBay marketplace integration</h3>
+				<h3><i class="fa fa-book"></i> Worldwide marketplace channels</h3>
 				<p style="margin:0;opacity:.92;">
-					SKU mapping, inventory sync, and order import from external marketplaces.
-					Hub: <a href="<?php echo epc_channel_h($channelsUrl); ?>" style="color:#bfdbfe;"><?php echo epc_channel_h($channelsUrl); ?></a>
+					Plug-and-play partners — Amazon &amp; eBay worldwide, noon, Flipkart, Walmart, Mercado Libre, and more.
+					SKU mapping, inventory sync, and order import from one hub:
+					<a href="<?php echo epc_channel_h($channelsUrl); ?>" style="color:#bfdbfe;"><?php echo epc_channel_h($channelsUrl); ?></a>
 				</p>
 			</div>
 
@@ -76,7 +77,7 @@ $logisticsGuideUrl = $logisticsGuideUrl ?? ('/' . $DP_Config->backend_dir . '/sh
 				<tbody>
 					<tr><td>Marketplace orders</td><td><strong><?php echo (int)$dash['marketplace_orders']; ?></strong> (<?php echo (int)$dash['marketplace_pending']; ?> awaiting ship/import)</td></tr>
 					<tr><td>SKU mappings (active)</td><td><?php echo (int)$dash['sku_mapped']; ?></td></tr>
-					<tr><td>Marketplace channels</td><td><?php echo count($snapshot['channels']); ?> (Amazon, eBay)</td></tr>
+					<tr><td>Marketplace channels</td><td><?php echo count($snapshot['channels']); ?> partners (catalog <?php echo (int)($dash['catalog_count'] ?? 0); ?>)</td></tr>
 				</tbody>
 			</table>
 

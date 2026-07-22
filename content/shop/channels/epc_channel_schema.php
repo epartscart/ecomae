@@ -9,7 +9,7 @@ function epc_channel_ensure_schema(PDO $db)
 	$db->exec(
 		'CREATE TABLE IF NOT EXISTS `epc_marketplace_channels` (
 			`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-			`code` VARCHAR(32) NOT NULL,
+			`code` VARCHAR(64) NOT NULL,
 			`name` VARCHAR(128) NOT NULL,
 			`marketplace_id` VARCHAR(64) DEFAULT NULL,
 			`active` TINYINT(1) NOT NULL DEFAULT 1,
@@ -21,6 +21,12 @@ function epc_channel_ensure_schema(PDO $db)
 			UNIQUE KEY `code` (`code`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8'
 	);
+	// Widen code for worldwide marketplace keys (amazon_co_uk, mercadolibre, …).
+	try {
+		$db->exec('ALTER TABLE `epc_marketplace_channels` MODIFY `code` VARCHAR(64) NOT NULL');
+	} catch (Throwable $e) {
+		// ignore if already applied / unsupported
+	}
 
 	$db->exec(
 		'CREATE TABLE IF NOT EXISTS `epc_marketplace_sku_map` (

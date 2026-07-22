@@ -330,6 +330,14 @@ function epc_cp_page_asset_url_map(): array
 				'/' . $backend . '/content/shop/order_process/order_card_cp.js?v=' . rawurlencode($ver . 'omsForms2'),
 			),
 		),
+		'shop/channels/channels' => array(
+			'css' => array(
+				'/content/general_pages/epc_channels_hub.css?v=' . rawurlencode($ver . 'chHub1'),
+			),
+			'js' => array(
+				'/' . $backend . '/content/shop/channels/channels_hub.js?v=' . rawurlencode($ver . 'chHub1'),
+			),
+		),
 		'shop/logistics/carriers' => array(
 			'css' => array(
 				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver . 'lc3'),
