@@ -1,16 +1,49 @@
 <?php
 /**
  * CP AJAX — logistics & carrier actions.
+ * Callable via include from logistics_carriers.php OR direct POST to this file.
  */
-defined('_ASTEXE_') or die('No access');
-
-header('Content-Type: application/json; charset=utf-8');
+$epcAjaxDirect = !defined('_ASTEXE_');
+if ($epcAjaxDirect) {
+	define('_ASTEXE_', 1);
+	header('Content-Type: application/json; charset=utf-8');
+	$root = isset($_SERVER['DOCUMENT_ROOT']) ? (string)$_SERVER['DOCUMENT_ROOT'] : '';
+	if ($root === '' || !is_file($root . '/config.php')) {
+		$root = dirname(__DIR__, 3);
+		$_SERVER['DOCUMENT_ROOT'] = $root;
+	}
+	require_once $root . '/config.php';
+	$DP_Config = new DP_Config();
+	$GLOBALS['DP_Config'] = $DP_Config;
+	try {
+		$dbHost = trim((string)($DP_Config->host ?? ''));
+		if ($dbHost === '' || strtolower($dbHost) === 'localhost') {
+			$dbHost = '127.0.0.1';
+		}
+		$db_link = new PDO(
+			'mysql:host=' . $dbHost . ';dbname=' . $DP_Config->db . ';charset=utf8mb4',
+			(string)$DP_Config->user,
+			(string)$DP_Config->password,
+			array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+		);
+	} catch (Throwable $e) {
+		echo json_encode(array('status' => false, 'message' => 'Database unavailable'));
+		exit;
+	}
+} else {
+	header('Content-Type: application/json; charset=utf-8');
+}
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/logistics/epc_logistics_helpers.php';
 
 if (!DP_User::isAdmin() && !DP_User::isBackendGroup()) {
 	echo json_encode(array('status' => false, 'message' => 'Access denied'));
+	exit;
+}
+
+if (!isset($db_link) || !($db_link instanceof PDO)) {
+	echo json_encode(array('status' => false, 'message' => 'Database link missing'));
 	exit;
 }
 
@@ -63,4 +96,7 @@ try {
 	}
 } catch (Throwable $e) {
 	echo json_encode(array('status' => false, 'message' => $e->getMessage()));
+}
+if ($epcAjaxDirect) {
+	exit;
 }

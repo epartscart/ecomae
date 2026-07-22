@@ -239,7 +239,8 @@ echo '<div class="col-lg-12 epc-lc-hub">';
 </div>
 <script>
 window.EPC_LC = <?php echo json_encode(array(
-	'url' => $carriersUrl,
+	'url' => '/' . trim((string)$DP_Config->backend_dir, '/') . '/content/shop/logistics/ajax_logistics.php',
+	'pageUrl' => $carriersUrl,
 	'csrf' => $csrf,
 ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>

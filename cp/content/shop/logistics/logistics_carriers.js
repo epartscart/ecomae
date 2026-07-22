@@ -18,15 +18,23 @@
 	function post(action, extra) {
 		var fd = new FormData();
 		fd.append('action', action);
-		fd.append('csrf_guard_key', csrf);
+		if (csrf) fd.append('csrf_guard_key', csrf);
 		if (extra) {
 			Object.keys(extra).forEach(function (k) {
 				fd.append(k, extra[k]);
 			});
 		}
-		return fetch(url, { method: 'POST', body: fd, credentials: 'same-origin' }).then(function (r) {
-			return r.json();
-		});
+		var endpoint = url || (cfg.pageUrl || '');
+		return fetch(endpoint, { method: 'POST', body: fd, credentials: 'same-origin' })
+			.then(function (r) {
+				return r.text().then(function (text) {
+					try {
+						return JSON.parse(text);
+					} catch (e) {
+						throw new Error(r.status + ' non-JSON response');
+					}
+				});
+			});
 	}
 
 	function applyRegionFilter(region) {
@@ -86,8 +94,8 @@
 					msg(!!j.status, j.message || '');
 					if (j.status) setTimeout(function () { location.reload(); }, 500);
 					else btn.disabled = false;
-				}).catch(function () {
-					msg(false, 'Network error');
+				}).catch(function (err) {
+					msg(false, (err && err.message) ? err.message : 'Network error');
 					btn.disabled = false;
 				});
 			});
