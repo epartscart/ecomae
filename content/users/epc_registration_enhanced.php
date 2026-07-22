@@ -136,7 +136,7 @@ function epc_reg_render_country_select(string $id = 'epc_reg_country', string $s
 		$name = $id;
 	}
 	?>
-	<select name="<?php echo epc_reg_h($name); ?>" id="<?php echo epc_reg_h($id); ?>" class="form-control epc-reg-country" required>
+	<select name="<?php echo epc_reg_h($name); ?>" id="<?php echo epc_reg_h($id); ?>" class="form-control epc-reg-country">
 		<option value="">— Select country —</option>
 		<?php foreach (epc_reg_country_options() as $code => $label) { ?>
 		<option value="<?php echo epc_reg_h($code); ?>"<?php echo ($selected === $code) ? ' selected="selected"' : ''; ?>><?php echo epc_reg_h($label); ?></option>
@@ -435,13 +435,41 @@ function epc_reg_render_tab_scripts(): void
 		if(!inp)return;
 		inp.style.display=(mode&&mode.value==='has_trn')?'':'none';
 	}
+	function epcRegSetPaneEnabled(pane, enabled){
+		if(!pane)return;
+		var nodes=pane.querySelectorAll('input, select, textarea, button');
+		for(var i=0;i<nodes.length;i++){
+			var el=nodes[i];
+			if(enabled){
+				if(el.getAttribute('data-epc-was-disabled')==='1'){
+					el.removeAttribute('disabled');
+					el.removeAttribute('data-epc-was-disabled');
+				}
+			}else{
+				if(!el.disabled){
+					el.setAttribute('data-epc-was-disabled','1');
+					el.disabled=true;
+				}
+			}
+		}
+	}
+	function epcRegSyncTabFields(){
+		var t=epcRegActiveType();
+		var retail=document.getElementById('epc_reg_tab_retail');
+		var wholesale=document.getElementById('epc_reg_tab_wholesale');
+		epcRegSetPaneEnabled(retail, t==='retail');
+		epcRegSetPaneEnabled(wholesale, t==='wholesale');
+		epcRegSyncCountryHidden();
+	}
 	(function(){
+		var form=document.getElementById('regform');
+		if(form){ form.setAttribute('novalidate','novalidate'); }
 		var tabs=document.querySelectorAll('.epc-reg-type-tabs a[data-epc-type]');
 		tabs.forEach(function(tab){
 			tab.addEventListener('shown.bs.tab',function(){
 				var hf=document.getElementById('epc_customer_type_field');
 				if(hf)hf.value=tab.getAttribute('data-epc-type')||'retail';
-				epcRegSyncCountryHidden();
+				epcRegSyncTabFields();
 			});
 		});
 		var wc=document.getElementById('epc_wholesale_country');
@@ -454,26 +482,26 @@ function epc_reg_render_tab_scripts(): void
 		epcRegRetailCountryUi();
 		epcRegWholesaleTrnUi();
 		epcRegTrnOptionalToggle();
-		epcRegSyncCountryHidden();
+		epcRegSyncTabFields();
 	})();
 	function epcRegClientValidate(){
+		epcRegSyncTabFields();
 		var t=epcRegActiveType();
-		var prefix=t==='wholesale'?'epc_wholesale_':'epc_retail_';
 		var labels={epc_retail_first_name:'First name',epc_retail_last_name:'Last name',epc_retail_mobile:'Mobile phone',epc_retail_city:'City',epc_retail_address:'Delivery address',epc_wholesale_company:'Company name',epc_wholesale_legal_name:'Legal entity name',epc_wholesale_first_name:'Contact first name',epc_wholesale_last_name:'Contact last name',epc_wholesale_job_title:'Contact job title',epc_wholesale_mobile:'Mobile phone',epc_wholesale_city:'City',epc_wholesale_address:'Business address',epc_wholesale_business_type:'Business type',epc_wholesale_trade_licence:'Trade licence no.'};
 		var ids=t==='wholesale'?['epc_wholesale_company','epc_wholesale_legal_name','epc_wholesale_first_name','epc_wholesale_last_name','epc_wholesale_job_title','epc_wholesale_mobile','epc_wholesale_city','epc_wholesale_address','epc_wholesale_business_type','epc_wholesale_trade_licence']:['epc_retail_first_name','epc_retail_last_name','epc_retail_mobile','epc_retail_city','epc_retail_address'];
 		for(var i=0;i<ids.length;i++){
 			var el=document.getElementById(ids[i]);
-			if(!el||!String(el.value||'').trim()){alert('Please fill in: '+(labels[ids[i]]||ids[i]));if(el)el.focus();return false;}
+			if(!el||!String(el.value||'').trim()){alert('Please fill in: '+(labels[ids[i]]||ids[i]));if(el){try{el.focus();}catch(e){}}return false;}
 		}
 		var countryEl=document.getElementById(t==='wholesale'?'epc_wholesale_country':'epc_retail_country');
-		if(!countryEl||!countryEl.value){alert('Please select your country.');if(countryEl)countryEl.focus();return false;}
+		if(!countryEl||!countryEl.value){alert('Please select your country.');if(countryEl){try{countryEl.focus();}catch(e){}}return false;}
 		if(t==='wholesale'){
 			if(countryEl.value==='AE'){
 				var trn=(document.getElementById('epc_wholesale_trn')||{}).value||'';
 				trn=trn.replace(/\D/g,'');
 				if(trn.length!==15){alert('UAE TRN must be 15 digits.');return false;}
 			}else{
-				var mode=document.querySelector('input[name="epc_reg_trn_mode"]:checked');
+				var mode=document.querySelector('#epc_reg_tab_wholesale input[name="epc_reg_trn_mode"]:checked');
 				if(!mode){alert('Please choose TRN status: enter TRN or Not available.');return false;}
 				if(mode.value==='has_trn'){
 					var opt=(document.getElementById('epc_wholesale_trn_optional')||{}).value||'';
@@ -481,11 +509,11 @@ function epc_reg_render_tab_scripts(): void
 				}
 			}
 			var pep=document.getElementById('epc_pep_declaration');
-			if(!pep||!String(pep.value||'').trim()){alert('Please complete the PEP declaration.');if(pep)pep.focus();return false;}
+			if(!pep||!String(pep.value||'').trim()){alert('Please complete the PEP declaration.');if(pep){try{pep.focus();}catch(e){}}return false;}
 			var tlFile=document.getElementById('epc_doc_trade_licence');
 			var eidFile=document.getElementById('epc_doc_emirates_id');
-			if(!tlFile||!tlFile.files||!tlFile.files.length){alert('Please upload your trade licence scan.');if(tlFile)tlFile.focus();return false;}
-			if(!eidFile||!eidFile.files||!eidFile.files.length){alert('Please upload your Emirates ID copy.');if(eidFile)eidFile.focus();return false;}
+			if(!tlFile||!tlFile.files||!tlFile.files.length){alert('Please upload your trade licence scan.');if(tlFile){try{tlFile.focus();}catch(e){}}return false;}
+			if(!eidFile||!eidFile.files||!eidFile.files.length){alert('Please upload your Emirates ID copy.');if(eidFile){try{eidFile.focus();}catch(e){}}return false;}
 		}
 		epcRegSyncCountryHidden();
 		return true;
