@@ -17,6 +17,15 @@ function epc_cp_page_asset_url_map(): array
 	$backend = isset($DP_Config->backend_dir) ? trim((string) $DP_Config->backend_dir, '/') : 'cp';
 
 	return array(
+		'shop/workshop/workshop' => array(
+			'css' => array('/content/general_pages/epc_workshop_css.php?v=' . rawurlencode($ver . 'ws1')),
+			'js' => array(
+				'/' . $backend . '/content/shop/workshop/epc_workshop.js?v=' . rawurlencode($ver . 'ws1'),
+			),
+		),
+		'control/portal/epc_autoworkshop_guide' => array(
+			'css' => array('/content/general_pages/epc_workshop_css.php?v=' . rawurlencode($ver . 'ws1')),
+		),
 		'control/config' => array(
 			'css' => array('/content/general_pages/epc_config_edit_css.php?v=' . rawurlencode($ver . 'cfg6')),
 			'js' => array(
