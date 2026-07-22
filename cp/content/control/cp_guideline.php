@@ -53,13 +53,16 @@ function epc_cpg_page_hints()
 		'/shop/crosses' => 'Cross-reference (interchange) management for part numbers.',
 		'/shop/demand_countries' => 'Export demand countries and vehicle tags for market intelligence.',
 		'/users/customer_approvals' => 'Approve new Retail / Wholesale registrations and assign currency.',
+		'/users/customer_mgmt' => 'Customer directory — orders, invoices, advances, returns, e-invoice profile.',
 		'/users/usermanager' => 'Search customers, edit profile, assign price profile group.',
-		'/control/config' => 'Site settings: shop, e-mail, SMS, payment, agent toggle, contacts.',
+		'/control/config' => 'Settings redesign: jump-nav groups, Frontend/Backend impact chips for storefront-facing values (contacts, currency, search, refunds).',
 		'/control/notifications_settings' => 'E-mail and SMS notification templates for orders and system events.',
 		'/control/communications' => 'Test e-mail / SMS delivery from the control panel.',
-		'/control/cp-guideline' => 'This page — complete CP map and workflows.',
+		'/control/cp-guideline' => 'This page — visual CP map, daily workflows, and Settings guide.',
 		'/shop/finance/erp' => 'ERP: sales revenue, customer receivables, supplier payables, purchases, cash & bank entries.',
 		'/shop/finance/erp/guide' => 'Step-by-step ERP guide — sales, AR, AP, cash/bank, COA, GL, P&L, balance sheet.',
+		'/shop/document_control/document_control' => 'Company docs, letterheads, and document templates used on invoices and PDFs.',
+		'/shop/logistics/whatsapp-guide' => 'WhatsApp logistics guide — share and notify flows for warehouse / delivery staff.',
 	);
 }
 
@@ -114,199 +117,348 @@ epc_cp_page_frame_open(array(
 	'hero' => array(
 		'badge' => $isSuperCp ? 'Super CP' : 'Control panel',
 		'title' => 'Control Panel guideline',
-		'sub' => 'Use the <strong>left sidebar</strong> (SYSTEM · SHOP · CATALOG · CONTENT · USERS · EXTENSIONS) to open any task. This page maps every menu item, daily workflows, and links to detailed sub-guides.',
-		'html_sub' => true,
+		'sub' => 'A simple map of the left sidebar, daily workflows, and Settings. Open any card to jump straight into the task.',
+		'html_sub' => false,
 		'actions' => array(
 			array('label' => 'CP home', 'icon' => 'fa-home', 'url' => $base_cp),
-			array('label' => 'Price management', 'icon' => 'fa-tags', 'url' => $base_cp . '/shop/price-management', 'primary' => true),
-			array('label' => 'Product brochure', 'icon' => 'fa-file-text-o', 'url' => '/brochure'),
-			array('label' => 'Full CP brochure', 'icon' => 'fa-book', 'url' => $base_cp . '/control/cp_brochure', 'primary' => false),
+			array('label' => 'Settings', 'icon' => 'fa-sliders', 'url' => $base_cp . '/control/config', 'primary' => true),
+			array('label' => 'Price management', 'icon' => 'fa-tags', 'url' => $base_cp . '/shop/price-management'),
+			array('label' => 'Full CP brochure', 'icon' => 'fa-book', 'url' => $base_cp . '/control/cp_brochure'),
 		),
 	),
 ));
 ?>
 
-<p class="text-muted" style="margin:0 0 14px;max-width:52rem;line-height:1.45;">
-	<strong>Platform roles:</strong> <code>epartscart.com</code> is spare-parts (auto_parts).
-	<code>ecomae.com/cp</code> is overall platform control. Common OMS / commerce CP packs stay in sync across tenants; industry tools (vehicle catalog, etc.) stay scoped.
-	Share the <a href="/brochure" target="_blank" rel="noopener">product brochure</a> or the exhaustive
-	<a href="<?=epc_cpg_h($base_cp . '/control/cp_brochure');?>" target="_blank" rel="noopener">full CP brochure</a>
-	(every function, Print / PDF) — also at <a href="/brochure-cp" target="_blank" rel="noopener">/brochure-cp</a>.
-</p>
+<div class="epc-cpg-roles">
+	<span class="epc-cpg-roles__label">Roles</span>
+	<span class="epc-cpg-chip"><i class="fa fa-car"></i> epartscart.com — spare parts</span>
+	<span class="epc-cpg-chip"><i class="fa fa-building"></i> ecomae.com/cp — platform</span>
+	<span class="epc-cpg-chip"><i class="fa fa-bars"></i> Sidebar: SYSTEM · SHOP · CATALOG · USERS</span>
+	<a class="epc-cpg-chip" href="/brochure" target="_blank" rel="noopener"><i class="fa fa-file-text-o"></i> Product brochure</a>
+</div>
+
 <div class="epc-cpg-quick">
+	<a href="<?=epc_cpg_h($base_cp . '/control/config');?>">
+		<span class="epc-cpg-quick__ico"><i class="fa fa-sliders"></i></span>
+		<strong>Settings</strong>
+		<span>Jump-nav groups + Frontend / Backend impact chips for storefront values.</span>
+	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">
-		<strong>Price profiles &amp; margins</strong>
-		<span>Retail / Wholesale profiles, guest margin, brand &amp; article rules — with live demo.</span>
+		<span class="epc-cpg-quick__ico"><i class="fa fa-percent"></i></span>
+		<strong>Price profiles</strong>
+		<span>Retail / Wholesale margins, guest %, brand &amp; article rules.</span>
 	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/shop/prices/guide');?>">
-		<strong>Price upload guide</strong>
-		<span>Import supplier CSV price lists into warehouse stock.</span>
+		<span class="epc-cpg-quick__ico"><i class="fa fa-upload"></i></span>
+		<strong>Price upload</strong>
+		<span>Import supplier CSV / multi-vendor Excel into warehouses.</span>
 	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/shop/orders/oms-guide');?>">
-		<strong>OMS daily guide</strong>
-		<span>Step-by-step areas: open queue → items → payment → docs → status → messages → complete.</span>
+		<span class="epc-cpg-quick__ico"><i class="fa fa-list-alt"></i></span>
+		<strong>OMS daily</strong>
+		<span>Queue → items → pay → docs → status → messages → done.</span>
 	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/shop/orders/guide');?>">
-		<strong>Order fulfilment guide</strong>
-		<span>Checkout → customer e-mail → supplier LPO → staff processing.</span>
+		<span class="epc-cpg-quick__ico"><i class="fa fa-truck"></i></span>
+		<strong>Fulfilment</strong>
+		<span>Checkout → e-mails → supplier LPO → staff processing.</span>
 	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/shop/orders/whatsapp-guide');?>">
-		<strong>WhatsApp sharing guide</strong>
-		<span>Customer quotes, cart share, staff order &amp; LPO messages (bilingual EN/AR).</span>
+		<span class="epc-cpg-quick__ico"><i class="fa fa-whatsapp"></i></span>
+		<strong>WhatsApp</strong>
+		<span>Quotes, cart share, staff order &amp; LPO messages (EN + AR).</span>
 	</a>
-	<a href="<?=epc_cpg_h($base_cp . '/shop/parts_agent_chats');?>">
-		<strong>AI Parts Expert chats</strong>
-		<span>Review storefront agent conversations and customer details.</span>
+	<a href="<?=epc_cpg_h($base_cp . '/users/customer_mgmt');?>">
+		<span class="epc-cpg-quick__ico"><i class="fa fa-users"></i></span>
+		<strong>Customers</strong>
+		<span>Directory, orders, invoices, advances, returns.</span>
 	</a>
 	<a href="<?=epc_cpg_h($base_cp . '/users/customer_approvals');?>">
-		<strong>Customer trade approvals</strong>
-		<span>Approve Retail / Wholesale registrations.</span>
-	</a>
-	<a href="<?=epc_cpg_h($base_cp . '/control/config');?>">
-		<strong>Site configuration</strong>
-		<span>Shop settings, e-mail, SMS, payment, agent on/off.</span>
+		<span class="epc-cpg-quick__ico"><i class="fa fa-check-square-o"></i></span>
+		<strong>Trade approvals</strong>
+		<span>Approve Retail / Wholesale registrations &amp; currency.</span>
 	</a>
 </div>
 
-<div class="hpanel">
-	<div class="panel-heading hbuilt">Daily workflows — step by step</div>
-	<div class="panel-body">
-		<div class="panel-group" id="epc_cpg_workflows">
-			<div class="panel panel-default epc-cpg-section">
-				<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#wf_prices">1. Prices &amp; stock</a></h5></div>
-				<div id="wf_prices" class="panel-collapse collapse in">
-					<div class="panel-body epc-cpg-flow">
-						<span class="epc-cpg-badge">SHOP</span>
-						<ol>
-							<li><strong>Upload price list</strong> — <a href="<?=epc_cpg_h($base_cp . '/shop/prices/guide');?>">Price upload guide</a> or <a href="<?=epc_cpg_h($base_cp . '/shop/prices');?>">Price manager</a>.</li>
-							<li><strong>Verify rows</strong> — <a href="<?=epc_cpg_h($base_cp . '/shop/prices/prices_edit');?>">Edit price list rows</a> — check site preview per profile.</li>
-							<li><strong>Set customer margins</strong> — <a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price management</a>: profile overall %, brand rules, article rules, guest margin.</li>
-							<li><strong>Assign customer to profile</strong> — same page → Assign customer (e.g. YAWER → Retail or Wholesale).</li>
-						</ol>
-					</div>
+<div class="epc-cpg-block">
+	<div class="epc-cpg-block__head">
+		<div>
+			<h3>Daily workflows</h3>
+			<p>Follow the arrows left → right. Each step links into the live CP page.</p>
+		</div>
+	</div>
+	<div class="epc-cpg-flows">
+		<div class="epc-cpg-flow">
+			<div class="epc-cpg-flow__top">
+				<span class="epc-cpg-flow__num">1</span>
+				<h4>Prices &amp; stock</h4>
+				<span class="epc-cpg-flow__badge">Shop</span>
+			</div>
+			<div class="epc-cpg-steps">
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 1</span>
+					<strong>Upload list</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/prices/guide');?>">Price upload guide</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 2</span>
+					<strong>Verify rows</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/prices/prices_edit');?>">Prices edit preview</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 3</span>
+					<strong>Set margins</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price management</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 4</span>
+					<strong>Assign profile</strong>
+					<span>Retail / Wholesale / guest</span>
 				</div>
 			</div>
-			<div class="panel panel-default epc-cpg-section">
-				<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#wf_orders" class="collapsed">2. Orders &amp; fulfilment</a></h5></div>
-				<div id="wf_orders" class="panel-collapse collapse">
-					<div class="panel-body epc-cpg-flow">
-						<span class="epc-cpg-badge">SHOP</span>
-						<ol>
-							<li>Customer registers → <a href="<?=epc_cpg_h($base_cp . '/users/customer_approvals');?>">Customer approvals</a> (if trade account).</li>
-							<li>Customer searches parts on storefront → adds to cart → checkout.</li>
-							<li>System sends e-mails (customer, staff, supplier LPO) — see <a href="<?=epc_cpg_h($base_cp . '/shop/orders/guide');?>">Order fulfilment guide</a>.</li>
-							<li>Staff opens <a href="<?=epc_cpg_h($base_cp . '/shop/orders/orders');?>">Orders</a> → update status, edit lines, print documents, <a href="<?=epc_cpg_h($base_cp . '/shop/orders/whatsapp-guide');?>">WhatsApp share</a>.</li>
-							<li>Configure warehouses &amp; LPO e-mails: <a href="<?=epc_cpg_h($base_cp . '/shop/logistics/storages');?>">Warehouses</a>.</li>
-						</ol>
-					</div>
+		</div>
+
+		<div class="epc-cpg-flow">
+			<div class="epc-cpg-flow__top">
+				<span class="epc-cpg-flow__num">2</span>
+				<h4>Orders &amp; fulfilment</h4>
+				<span class="epc-cpg-flow__badge">Shop</span>
+			</div>
+			<div class="epc-cpg-steps">
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 1</span>
+					<strong>Approve trade</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/users/customer_approvals');?>">Customer approvals</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 2</span>
+					<strong>Customer orders</strong>
+					<span>Search → cart → checkout</span>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 3</span>
+					<strong>Process in OMS</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/orders/orders');?>">Orders console</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 4</span>
+					<strong>Share / LPO</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/orders/whatsapp-guide');?>">WhatsApp guide</a>
 				</div>
 			</div>
-			<div class="panel panel-default epc-cpg-section">
-				<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#wf_customers" class="collapsed">3. Customers &amp; profiles</a></h5></div>
-				<div id="wf_customers" class="panel-collapse collapse">
-					<div class="panel-body epc-cpg-flow">
-						<span class="epc-cpg-badge">USERS</span>
-						<ol>
-							<li><a href="<?=epc_cpg_h($base_cp . '/users/usermanager');?>">User manager</a> — find customer by e-mail or ID.</li>
-							<li><a href="<?=epc_cpg_h($base_cp . '/users/customer_approvals');?>">Customer approvals</a> — approve Retail / Wholesale, set currency.</li>
-							<li><a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price management</a> — assign profile group (Retail, Wholesale, CIS, GCC).</li>
-							<li>Customer logs in → sees prices with their profile margins on the storefront.</li>
-						</ol>
-					</div>
+		</div>
+
+		<div class="epc-cpg-flow">
+			<div class="epc-cpg-flow__top">
+				<span class="epc-cpg-flow__num">3</span>
+				<h4>Customers &amp; profiles</h4>
+				<span class="epc-cpg-flow__badge">Users</span>
+			</div>
+			<div class="epc-cpg-steps">
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 1</span>
+					<strong>Find customer</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/users/customer_mgmt');?>">Customer management</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 2</span>
+					<strong>Approve account</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/users/customer_approvals');?>">Trade approvals</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 3</span>
+					<strong>Assign margin</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price profiles</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 4</span>
+					<strong>Storefront prices</strong>
+					<span>Customer sees their profile %</span>
 				</div>
 			</div>
-			<div class="panel panel-default epc-cpg-section">
-				<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#wf_agent" class="collapsed">4. AI Parts Expert</a></h5></div>
-				<div id="wf_agent" class="panel-collapse collapse">
-					<div class="panel-body epc-cpg-flow">
-						<span class="epc-cpg-badge">SHOP</span>
-						<ol>
-							<li>Enable agent: <a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Configuration</a> → epc_parts_agent_enabled.</li>
-							<li>Customers use <strong>AI PARTS EXPERT</strong> widget on the storefront.</li>
-							<li>Review chats: <a href="<?=epc_cpg_h($base_cp . '/shop/parts_agent_chats');?>">AI agent chats</a> — customer, country, transcript.</li>
-						</ol>
-					</div>
+		</div>
+
+		<div class="epc-cpg-flow">
+			<div class="epc-cpg-flow__top">
+				<span class="epc-cpg-flow__num">4</span>
+				<h4>AI Parts Expert</h4>
+				<span class="epc-cpg-flow__badge">Shop</span>
+			</div>
+			<div class="epc-cpg-steps">
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 1</span>
+					<strong>Enable agent</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Settings → agent toggle</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 2</span>
+					<strong>Customers chat</strong>
+					<span>Storefront AI widget</span>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 3</span>
+					<strong>Review chats</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/shop/parts_agent_chats');?>">AI agent chats</a>
 				</div>
 			</div>
-			<div class="panel panel-default epc-cpg-section">
-				<div class="panel-heading"><h5 class="panel-title"><a data-toggle="collapse" href="#wf_system" class="collapsed">5. System &amp; notifications</a></h5></div>
-				<div id="wf_system" class="panel-collapse collapse">
-					<div class="panel-body epc-cpg-flow">
-						<span class="epc-cpg-badge">SYSTEM</span>
-						<ol>
-							<li><a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Configuration</a> — shop, SMTP, SMS, payment gateways.</li>
-							<li><a href="<?=epc_cpg_h($base_cp . '/control/notifications_settings');?>">Notification settings</a> — order e-mail templates.</li>
-							<li><a href="<?=epc_cpg_h($base_cp . '/control/communications');?>">Communications test</a> — send test e-mail / SMS.</li>
-							<li>If banners show “Email/SMS not working” — fix SMTP/IMAP in Configuration first.</li>
-						</ol>
-					</div>
+		</div>
+
+		<div class="epc-cpg-flow">
+			<div class="epc-cpg-flow__top">
+				<span class="epc-cpg-flow__num">5</span>
+				<h4>System &amp; notifications</h4>
+				<span class="epc-cpg-flow__badge">System</span>
+			</div>
+			<div class="epc-cpg-steps">
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 1</span>
+					<strong>Site Settings</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Contacts, SMTP, shop</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 2</span>
+					<strong>Templates</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/control/notifications_settings');?>">Notification settings</a>
+				</div>
+				<div class="epc-cpg-step">
+					<span class="epc-cpg-step__n">Step 3</span>
+					<strong>Send a test</strong>
+					<a href="<?=epc_cpg_h($base_cp . '/control/communications');?>">Communications test</a>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 
-<?php foreach ($menu_tabs as $tab) { ?>
-	<?php if (empty($tab['items'])) { continue; } ?>
-	<div class="hpanel">
-		<div class="panel-heading hbuilt"><?=epc_cpg_h($tab['caption']);?> — menu map</div>
-		<div class="panel-body">
-			<div class="table-responsive">
-				<table class="table table-striped epc-cpg-menu-table">
-					<thead><tr><th style="width:28%;">Page</th><th>What it does</th><th style="width:100px;"></th></tr></thead>
-					<tbody>
-						<?php foreach ($tab['items'] as $item) {
-							$label = epc_cpg_item_label($item['caption']);
-							$url = (string)$item['url'];
-							$hint = epc_cpg_hint_for_url($url, $hints);
-							?>
-						<tr>
-							<td class="epc-cpg-link">
-								<?php if (!empty($item['fontawesome_class'])) { ?><i class="<?=epc_cpg_h($item['fontawesome_class']);?>"></i> <?php } ?>
-								<?=epc_cpg_h($label);?>
-							</td>
-							<td class="epc-cpg-hint"><?=epc_cpg_h($hint);?></td>
-							<td><a class="btn btn-primary btn-xs" href="<?=epc_cpg_h($url);?>">Open</a></td>
-						</tr>
-						<?php } ?>
-					</tbody>
-				</table>
-			</div>
+<div class="epc-cpg-block">
+	<div class="epc-cpg-block__head">
+		<div>
+			<h3>Settings page — what changed</h3>
+			<p>Open <a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Settings</a>. Blue chips mark values that affect the public storefront.</p>
 		</div>
 	</div>
-<?php } ?>
-
-<div class="hpanel">
-	<div class="panel-heading hbuilt">Margin levels (price management summary)</div>
-	<div class="panel-body">
-		<p>Full guide with live demo: <a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>"><strong>Price management</strong></a></p>
-		<table class="table table-bordered epc-cpg-margin-table">
-			<thead><tr><th>Level</th><th>Where</th><th>Example</th></tr></thead>
-			<tbody>
-				<tr><td>Guest overall</td><td>Price management → Guest margin</td><td>+40% for visitors not logged in</td></tr>
-				<tr><td>Profile overall</td><td>Profile table → Overall margin %</td><td>Wholesale +5% on all brands</td></tr>
-				<tr><td>Brand</td><td>Add / update brand rule</td><td>Retail MAZDA +15%</td></tr>
-				<tr><td>Article</td><td>Add / update article rule</td><td>Retail TOYOTA 1140051020 +20%</td></tr>
-			</tbody>
-		</table>
-		<p class="text-muted" style="font-size:12px;">Applied in order: profile → brand → article → guest. Each stacks on the previous price.</p>
-	</div>
-</div>
-
-<div class="hpanel">
-	<div class="panel-heading hbuilt">Troubleshooting</div>
-	<div class="panel-body">
-		<ul style="line-height:1.65;">
-			<li><strong>Cannot open a CP page / “privileges” error</strong> — your admin group needs access in Content → access rights, or run the relevant setup script (e.g. epc-parts-agent-cp-access-fix.php).</li>
-			<li><strong>Prices wrong on storefront</strong> — check customer profile assignment and rules in <a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price management</a>; preview in <a href="<?=epc_cpg_h($base_cp . '/shop/prices/prices_edit');?>">Prices edit</a>.</li>
-			<li><strong>Order e-mails not sent</strong> — <a href="<?=epc_cpg_h($base_cp . '/control/communications');?>">Communications test</a> + SMTP in <a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Configuration</a>.</li>
-			<li><strong>AI agent not on site</strong> — Configuration → epc_parts_agent_enabled = 1; clear cache / hard refresh storefront.</li>
-			<li><strong>Red banner “Email/SMS not working”</strong> — fix SMTP and SMS operator settings under SYSTEM → Configuration / Communications.</li>
+	<div class="epc-cpg-settings">
+		<div class="epc-cpg-settings__visual">
+			<h4><i class="fa fa-desktop"></i> Frontend vs Backend</h4>
+			<p>Use the left jump nav to open a group. Read the blue “Effect on frontend” line before you save.</p>
+			<div class="epc-cpg-settings__pills">
+				<span>Frontend — customers see it</span>
+				<span>Backend — CP / integrations only</span>
+			</div>
+		</div>
+		<ul class="epc-cpg-settings__list">
+			<li><i class="fa fa-phone"></i><span><strong>Contacts &amp; footer</strong> — phone, WhatsApp, offices appear on the public site.</span></li>
+			<li><i class="fa fa-shopping-cart"></i><span><strong>Online store</strong> — currency, rounding, guest checkout, partial payment.</span></li>
+			<li><i class="fa fa-search"></i><span><strong>Article search</strong> — results table, filters, async search layout.</span></li>
+			<li><i class="fa fa-undo"></i><span><strong>Refunds</strong> — customer return requests and withholding text.</span></li>
+			<li><i class="fa fa-envelope"></i><span><strong>E-mail / updates mailbox</strong> — mostly backend; customers only feel SMTP “from” name.</span></li>
 		</ul>
 	</div>
 </div>
 
-<p class="text-muted" style="font-size:12px;margin-top:8px;">
+<div class="epc-cpg-block">
+	<div class="epc-cpg-block__head">
+		<div>
+			<h3>Menu map</h3>
+			<p>Every item from your left sidebar, grouped, with a short “what it does”.</p>
+		</div>
+	</div>
+	<div class="epc-cpg-menu-grid">
+		<?php foreach ($menu_tabs as $tab) {
+			if (empty($tab['items'])) {
+				continue;
+			}
+			$itemCount = count($tab['items']);
+			?>
+		<div class="epc-cpg-menu-card">
+			<div class="epc-cpg-menu-card__head">
+				<?=epc_cpg_h($tab['caption']);?>
+				<small><?= (int) $itemCount; ?> pages</small>
+			</div>
+			<?php foreach ($tab['items'] as $item) {
+				$label = epc_cpg_item_label($item['caption']);
+				$url = (string) $item['url'];
+				$hint = epc_cpg_hint_for_url($url, $hints);
+				?>
+			<div class="epc-cpg-menu-row">
+				<div>
+					<div class="epc-cpg-menu-row__title">
+						<?php if (!empty($item['fontawesome_class'])) { ?><i class="<?=epc_cpg_h($item['fontawesome_class']);?>"></i><?php } ?>
+						<?=epc_cpg_h($label);?>
+					</div>
+					<span class="epc-cpg-menu-row__hint"><?=epc_cpg_h($hint);?></span>
+				</div>
+				<a class="btn btn-primary btn-xs" href="<?=epc_cpg_h($url);?>">Open</a>
+			</div>
+			<?php } ?>
+		</div>
+		<?php } ?>
+	</div>
+</div>
+
+<div class="epc-cpg-block">
+	<div class="epc-cpg-block__head">
+		<div>
+			<h3>Margin stack</h3>
+			<p>Applied in order on the storefront. Full demo: <a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price management</a>.</p>
+		</div>
+	</div>
+	<div class="epc-cpg-margin">
+		<div class="epc-cpg-margin__item">
+			<strong>1 · Profile</strong>
+			<span>Wholesale +5% on all brands</span>
+		</div>
+		<div class="epc-cpg-margin__item">
+			<strong>2 · Brand</strong>
+			<span>Retail MAZDA +15%</span>
+		</div>
+		<div class="epc-cpg-margin__item">
+			<strong>3 · Article</strong>
+			<span>TOYOTA 1140051020 +20%</span>
+		</div>
+		<div class="epc-cpg-margin__item">
+			<strong>4 · Guest</strong>
+			<span>+40% when not logged in</span>
+		</div>
+	</div>
+</div>
+
+<div class="epc-cpg-block">
+	<div class="epc-cpg-block__head">
+		<div>
+			<h3>Troubleshooting</h3>
+			<p>Quick fixes for the most common CP issues.</p>
+		</div>
+	</div>
+	<div class="epc-cpg-trouble">
+		<div class="epc-cpg-trouble__item">
+			<strong>Cannot open a page / privileges</strong>
+			Your admin group needs access under Content → access rights.
+		</div>
+		<div class="epc-cpg-trouble__item">
+			<strong>Prices wrong on storefront</strong>
+			Check profile rules in <a href="<?=epc_cpg_h($base_cp . '/shop/price-management');?>">Price management</a>; preview in Prices edit.
+		</div>
+		<div class="epc-cpg-trouble__item">
+			<strong>Order e-mails not sent</strong>
+			<a href="<?=epc_cpg_h($base_cp . '/control/communications');?>">Communications test</a> + SMTP under <a href="<?=epc_cpg_h($base_cp . '/control/config');?>">Settings</a> → E-mail.
+		</div>
+		<div class="epc-cpg-trouble__item">
+			<strong>AI agent missing on site</strong>
+			Settings → enable <code>epc_parts_agent_enabled</code>, then hard-refresh the storefront.
+		</div>
+		<div class="epc-cpg-trouble__item">
+			<strong>Red “Email/SMS not working” banner</strong>
+			Fix SMTP / SMS under Settings and Communications before other work.
+		</div>
+		<div class="epc-cpg-trouble__item">
+			<strong>Changed a contact but site unchanged</strong>
+			In Settings, confirm the blue Frontend chip, Save, then reload the public page.
+		</div>
+	</div>
+</div>
+
+<p class="epc-cpg-foot">
 	Last updated: <?=epc_cpg_h(date('Y-m-d'));?> · eParts Cart CP guideline ·
 	<a href="<?=epc_cpg_h($base_cp);?>">Control panel home</a>
 </p>
