@@ -5,6 +5,7 @@
  */
 defined('_ASTEXE_') or die('No access');
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/dp_user.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/content/shop/bulk_upload/epc_bulk_helpers.php';
 
 if (!isset($db_link) || !($db_link instanceof PDO)) {
@@ -18,11 +19,11 @@ if (!isset($db_link) || !($db_link instanceof PDO)) {
 		$db_link->query('SET NAMES utf8;');
 	} catch (Exception $e) {
 		echo '<div class="alert alert-danger">Database connection failed.</div>';
-		return;
+		$db_link = null;
 	}
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
+if ($db_link instanceof PDO && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 	if (!headers_sent()) {
 		header('Content-Type: application/json; charset=utf-8');
 	}
@@ -30,15 +31,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 	die();
 }
 
-try {
-	epc_bulk_ensure_history_schema($db_link);
-	$dash = epc_bulk_dashboard($db_link);
-} catch (Throwable $e) {
-	echo '<div class="alert alert-danger">Bulk upload data unavailable: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
-	return;
+$dash = array('total' => 0, 'unreviewed' => 0, 'today' => 0, 'storefront' => 0, 'available_today' => 0);
+$epcBuBootError = '';
+if ($db_link instanceof PDO) {
+	try {
+		epc_bulk_ensure_history_schema($db_link);
+		$dash = epc_bulk_dashboard($db_link);
+	} catch (Throwable $e) {
+		$epcBuBootError = 'Bulk upload data unavailable: ' . $e->getMessage();
+	}
 }
 
 $price_profiles = array();
+if ($db_link instanceof PDO) {
 try {
 	$pq = $db_link->query(
 		'SELECT pp.`group_id`, pp.`code`, g.`value`
@@ -55,11 +60,12 @@ try {
 } catch (Throwable $e) {
 	$price_profiles = array();
 }
+}
 
 $backend = isset($DP_Config->backend_dir) ? $DP_Config->backend_dir : 'cp';
 $hubUrl = '/' . $backend . '/shop/bulk_upload';
 $quotesUrl = '/' . $backend . '/shop/quote-requests';
-$crmUrl = '/' . $backend . '/shop/finance/erp?tab=crm';
+$crmUrl = '/' . $backend . '/shop/finance/erp?tab=crm&crm_tab=quotes';
 $erpUrl = '/' . $backend . '/shop/finance/erp';
 $cartsUrl = '/' . $backend . '/shop/orders/carts';
 $storefrontUrl = '/en/shop/bulk-upload';
@@ -73,6 +79,9 @@ if (is_array($user_session) && !empty($user_session['csrf_guard_key'])) {
 $cssVer = @filemtime($_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_bulk_cp.css') ?: time();
 echo '<link rel="stylesheet" href="/content/general_pages/epc_bulk_cp.css?v=' . rawurlencode((string)$cssVer) . '">';
 echo '<div class="col-lg-12 epc-bu-hub">';
+if (!empty($epcBuBootError)) {
+	echo '<div class="alert alert-danger">' . epc_bulk_h($epcBuBootError) . '</div>';
+}
 ?>
 <div class="epc-bu">
 	<header class="epc-bu-brandbar">

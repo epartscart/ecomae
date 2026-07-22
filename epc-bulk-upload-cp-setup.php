@@ -67,7 +67,7 @@ $parentId = (int) $parentRow['id'];
 $level = (int) $parentRow['level'] + 1;
 
 $url = 'shop/bulk_upload';
-$phpPath = '/<backend_dir>/content/shop/bulk_upload/bulk_upload_hub_page.php';
+$phpPath = '/<backend_dir>/content/shop/bulk_upload/bulk_upload_hub.php';
 $now = time();
 
 $existing = $pdo->prepare('SELECT `id` FROM `content` WHERE `url` = ? AND `is_frontend` = 0 LIMIT 1');
@@ -197,6 +197,6 @@ echo json_encode(array(
 		'cp' => $base . '/' . $cfg->backend_dir . '/shop/bulk_upload',
 		'storefront' => $base . '/en/shop/bulk-upload',
 		'quotes' => $base . '/' . $cfg->backend_dir . '/shop/quote-requests',
-		'crm_quotes' => $base . '/' . $cfg->backend_dir . '/shop/finance/erp?tab=crm',
+		'crm_quotes' => $base . '/' . $cfg->backend_dir . '/shop/finance/erp?tab=crm&crm_tab=quotes',
 	),
 ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
