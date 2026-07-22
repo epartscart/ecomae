@@ -21,9 +21,9 @@ $action = (string)($_POST['action'] ?? '');
 try {
 	switch ($action) {
 		case 'seed_dummy':
-			epc_payment_seed_uae_gateways($db_link);
+			epc_payment_seed_all_gateways($db_link);
 			epc_payment_enable_legacy($db_link);
-			epc_pay_json(true, 'Dummy credentials refreshed for all gateways');
+			epc_pay_json(true, 'GCC, Pakistan, crypto & international gateways seeded');
 
 		case 'activate':
 			$handler = preg_replace('/[^a-z0-9_]/', '', (string)($_POST['handler'] ?? ''));

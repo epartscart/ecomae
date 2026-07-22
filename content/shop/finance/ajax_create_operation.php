@@ -236,13 +236,28 @@ if( isset($DP_Config->wholesaler) )
 else
 {
 	$office_id = 0;
-	
-	$active_payment_system_query = $db_link->prepare('SELECT * FROM `shop_payment_systems` WHERE `active` = 1;');
-	$active_payment_system_query->execute();
-	$active_system = $active_payment_system_query->fetch();
-	if( $active_system != false )
-	{
-		$active_system = $active_system["handler"];
+
+	// Optional customer-selected gateway (must be enabled / anable=1)
+	$requested_handler = '';
+	if (!empty($request_object['pay_handler'])) {
+		$requested_handler = preg_replace('/[^a-z0-9_]/', '', (string)$request_object['pay_handler']);
+	}
+	$active_system = false;
+	if ($requested_handler !== '') {
+		$pick_q = $db_link->prepare('SELECT `handler` FROM `shop_payment_systems` WHERE `handler` = ? AND `anable` = 1 LIMIT 1;');
+		$pick_q->execute(array($requested_handler));
+		$picked = $pick_q->fetchColumn();
+		if ($picked) {
+			$active_system = (string)$picked;
+		}
+	}
+	if ($active_system === false) {
+		$active_payment_system_query = $db_link->prepare('SELECT * FROM `shop_payment_systems` WHERE `active` = 1;');
+		$active_payment_system_query->execute();
+		$active_system_row = $active_payment_system_query->fetch();
+		if ($active_system_row != false) {
+			$active_system = $active_system_row["handler"];
+		}
 	}
 }
 

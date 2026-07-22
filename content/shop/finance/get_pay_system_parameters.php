@@ -9,6 +9,7 @@ if( !isset($DP_Config) )
 
 
 //Необходимый параметр - $operation_id, который должен быть задан перед этим скриптом
+// Optional: $EPC_PAY_HANDLER to load credentials for a specific enabled gateway (multi-gateway checkout)
 
 
 
@@ -21,9 +22,25 @@ if( isset( $DP_Config->wholesaler ) )
 }
 else
 {
-	$paysystem_parameters_query = $db_link->prepare('SELECT * FROM `shop_payment_systems` WHERE `active`= ?;');
-	$paysystem_parameters_query->execute( array(1) );
-	$paysystem_parameters_record = $paysystem_parameters_query->fetch();
-	$paysystem_parameters = json_decode($paysystem_parameters_record["parameters_values"], true);
+	$handlerHint = '';
+	if (isset($EPC_PAY_HANDLER) && (string)$EPC_PAY_HANDLER !== '') {
+		$handlerHint = preg_replace('/[^a-z0-9_]/', '', (string)$EPC_PAY_HANDLER);
+	}
+	if ($handlerHint !== '') {
+		$paysystem_parameters_query = $db_link->prepare('SELECT * FROM `shop_payment_systems` WHERE `handler` = ? AND `anable` = 1 LIMIT 1;');
+		$paysystem_parameters_query->execute(array($handlerHint));
+		$paysystem_parameters_record = $paysystem_parameters_query->fetch();
+	} else {
+		$paysystem_parameters_record = false;
+	}
+	if ($paysystem_parameters_record == false) {
+		$paysystem_parameters_query = $db_link->prepare('SELECT * FROM `shop_payment_systems` WHERE `active`= ?;');
+		$paysystem_parameters_query->execute( array(1) );
+		$paysystem_parameters_record = $paysystem_parameters_query->fetch();
+	}
+	$paysystem_parameters = json_decode($paysystem_parameters_record["parameters_values"] ?? '{}', true);
+	if (!is_array($paysystem_parameters)) {
+		$paysystem_parameters = array();
+	}
 }
 ?>
