@@ -196,6 +196,11 @@ function epc_cp_page_asset_url_map(): array
 				'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub2'),
 			),
 		),
+		'shop/payments/payments' => array(
+			'js' => array(
+				'/content/general_pages/epc_payments_cp_js.php?v=' . rawurlencode($ver . 'payAcc2'),
+			),
+		),
 		'control/portal/epc_mobile_apps' => array(
 			'css' => array(
 				'/content/general_pages/epc_portal_settings_css.php?v=' . rawurlencode($ver),
