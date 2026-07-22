@@ -132,7 +132,7 @@ foreach (epc_cp_common_parity_targets() as $siteKey => $meta) {
 		$probe = epc_parity_probe_oms($pdo);
 		$row['before'] = $probe;
 
-		$packKeys = array('oms_orders_menu', 'oms_daily_guide', 'multivendor_upload', 'vehicle_catalog', 'platform_governance');
+		$packKeys = array('oms_orders_menu', 'cp_menu_full', 'oms_daily_guide', 'multivendor_upload', 'vehicle_catalog', 'platform_governance');
 		foreach ($packKeys as $packKey) {
 			if ($onlyPack !== '' && $onlyPack !== $packKey) {
 				continue;
@@ -157,6 +157,13 @@ foreach (epc_cp_common_parity_targets() as $siteKey => $meta) {
 					if (!$needsMenu) {
 						$packRow['action'] = 'refresh';
 					}
+				}
+			} elseif ($packKey === 'cp_menu_full') {
+				$packRow['needed'] = true;
+				$packRow['action'] = $apply ? 'apply' : 'would_apply';
+				if ($apply) {
+					$packRow['result'] = epc_cp_menu_parity_apply($pdo);
+					$packRow['action'] = !empty($packRow['result']['ok']) ? 'applied' : 'partial';
 				}
 			} elseif ($packKey === 'oms_daily_guide') {
 				$needsGuide = (int) ($probe['guide_content_id'] ?? 0) <= 0;

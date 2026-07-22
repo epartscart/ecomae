@@ -28,6 +28,7 @@ function epc_cp_nav_group_icon_map(): array
 {
 	return array(
 		'744' => 'fa-shopping-cart',
+		'741' => 'fa-users',
 		'epc_cp_group_customers' => 'fa-users',
 		'epc_cp_group_documents' => 'fa-file-text-o',
 		'epc_cp_group_erp' => 'fa-university',
@@ -53,6 +54,7 @@ function epc_cp_nav_group_short_map(): array
 {
 	return array(
 		'744' => 'Commerce',
+		'741' => 'Users',
 		'epc_cp_group_customers' => 'Customers',
 		'epc_cp_group_documents' => 'Documents',
 		'epc_cp_group_erp' => 'ERP',
@@ -138,7 +140,7 @@ function epc_cp_build_nav_tabs(): array
 	foreach ($epcCpMenuItems as $item) {
 		$showAnyway = (int) (isset($item['show_anyway']) ? $item['show_anyway'] : 0) === 1;
 		$aclOk = $epcCpSuperAdmin ? true : is_anable($item);
-		$mayShow = $aclOk || ($showAnyway && !$epcCpSuperHost);
+		$mayShow = $aclOk || $showAnyway;
 		if (!$mayShow) {
 			continue;
 		}
