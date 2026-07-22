@@ -31,7 +31,8 @@
 
   function postUrl() {
     var el = root();
-    return (el && el.getAttribute('data-post-url')) || window.location.pathname;
+    return (el && el.getAttribute('data-post-url')) ||
+      '/cp/content/shop/marketing/ajax_marketing_endpoint.php';
   }
 
   function csrf() {

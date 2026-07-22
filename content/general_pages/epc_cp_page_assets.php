@@ -170,10 +170,10 @@ function epc_cp_page_asset_url_map(): array
 		'shop/marketing/marketing' => array(
 			'css' => array(
 				'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
-				'/content/general_pages/epc_marketing_hub_css.php?v=' . rawurlencode($ver . 'mktHub1'),
+				'/content/general_pages/epc_marketing_hub_css.php?v=' . rawurlencode($ver . 'mktHub2'),
 			),
 			'js' => array(
-				'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub1'),
+				'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub2'),
 			),
 		),
 		'control/portal/epc_mobile_apps' => array(

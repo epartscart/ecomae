@@ -33,10 +33,10 @@ $ver = epc_cp_page_asset_version();
 epc_cp_register_page_assets(
 	array(
 		'/content/shop/finance/epc_erp_ui.css?v=' . rawurlencode($ver),
-		'/content/general_pages/epc_marketing_hub_css.php?v=' . rawurlencode($ver . 'mktHub1'),
+		'/content/general_pages/epc_marketing_hub_css.php?v=' . rawurlencode($ver . 'mktHub2'),
 	),
 	array(
-		'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub1'),
+		'/content/general_pages/epc_marketing_hub_js.php?v=' . rawurlencode($ver . 'mktHub2'),
 	)
 );
 
@@ -51,8 +51,12 @@ $live['sitemap_url'] = $live['domain'] . '/sitemap-products.php';
 $latestKpis = epc_marketing_latest_kpis($db_link, $strategies);
 $reviews = epc_marketing_recent_reviews($db_link, 15);
 
-$backend = (string)$DP_Config->backend_dir;
+$backend = trim((string)$DP_Config->backend_dir, '/');
+if ($backend === '') {
+	$backend = 'cp';
+}
 $marketingUrl = '/' . $backend . '/shop/marketing/marketing';
+$ajaxUrl = '/' . $backend . '/content/shop/marketing/ajax_marketing_endpoint.php';
 $broadcastUrl = '/' . $backend . '/control/portal/epc_marketing_broadcast';
 $socialUrl = '/' . $backend . '/control/portal/epc_social_media_hub';
 $csrf = isset($user_session['csrf_guard_key']) ? (string)$user_session['csrf_guard_key'] : '';
@@ -110,7 +114,7 @@ epc_cp_page_frame_open(array(
 <div
 	id="epcMktHub"
 	class="epc-mkt-hub"
-	data-post-url="<?php echo epc_marketing_h($marketingUrl); ?>"
+	data-post-url="<?php echo epc_marketing_h($ajaxUrl); ?>"
 	data-csrf="<?php echo epc_marketing_h($csrf); ?>"
 	data-initial="<?php echo epc_marketing_h($activeStrategy); ?>"
 >
